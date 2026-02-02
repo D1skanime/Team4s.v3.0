@@ -32,32 +32,48 @@ Legacy database uses mixed encodings (latin1_swedish_ci for anmi1_watch, utf8_un
 
 ---
 
-### 3. Media File Storage Strategy
-**Impact:** Medium | **Likelihood:** Low
+### 3. Docker Desktop Manual Start
+**Impact:** Low | **Likelihood:** High
 
-Current system uses X-Sendfile for downloads with IP-based rate limiting. Need to decide:
-- Keep files local with nginx?
-- Move to S3-compatible storage?
-- How to handle download tokens in new system?
+Docker Desktop on Windows does not auto-start by default. Development workflow requires manual Docker start after each system restart.
 
 **Mitigation:**
-- [ ] Inventory current media storage size
-- [ ] Evaluate hosting options and costs
-- [ ] Design new download token system (JWT-based?)
+- [ ] Consider adding Docker Desktop to Windows startup
+- [ ] Document startup procedure in TOMORROW.md
+- [x] Added reminder in tomorrow's first task
 
-**Owner:** TBD | **Due:** Before P1 features
+**Owner:** D1skanime | **Due:** Ongoing awareness
 
 ---
 
 ## Current Blockers
-None - project is in initialization phase.
+None - development environment is fully set up and ready.
+
+## Resolved Risks (2026-02-02)
+- **Go Framework Selection:** Resolved - chose Gin (most popular, best documentation)
+- **Database Infrastructure:** Resolved - Docker Compose with PostgreSQL 16 + Redis 7
+
+## Pending Decisions (May Become Risks)
+
+### Primary Key Strategy
+**Options:** UUID vs BIGSERIAL
+**Impact if delayed:** Schema rework if we change minds later
+**Recommendation:** BIGSERIAL for simplicity; UUIDs add complexity without clear benefit for this app
+**Decision needed by:** Before creating schema (Day 2)
+
+### Media File Storage
+**Options:** Local filesystem vs S3-compatible storage
+**Impact if delayed:** May need to redesign download system later
+**Decision needed by:** Before P1 features (download functionality)
+
+---
 
 ## If Nothing Changes...
 **What will fail next week?**
 
-If we don't finalize the PostgreSQL schema design soon, we risk:
-- Inconsistent data models between backend and frontend
-- Rework when we discover missing relationships
-- Delayed start on actual feature development
+If we don't:
+1. **Verify Docker stack works** - Cannot develop any database features
+2. **Create PostgreSQL schema** - Cannot implement any CRUD operations
+3. **Decide on primary keys** - Risk rework if schema needs to change
 
-**Action:** Complete schema design by end of Day 2 (2026-02-03).
+**Action:** Complete Docker verification and schema design by end of Day 2 (2026-02-03).

@@ -56,6 +56,7 @@ temp/
 # Database
 *.sqlite
 *.db
+data/
 
 # Secrets (never commit)
 *.pem

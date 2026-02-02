@@ -40,7 +40,7 @@ Need to select a modern tech stack to replace the legacy WoltLab WBB4/WCF + PHP 
 - Slightly more complex deployment than monolithic PHP
 
 ### Follow-ups
-- [ ] Select specific Go web framework (Gin/Echo/Fiber)
+- [x] Select specific Go web framework (Gin/Echo/Fiber) - **Decided: Gin**
 - [ ] Set up shared type definitions (OpenAPI spec?)
 
 ---
@@ -99,19 +99,113 @@ JWT + Refresh Token pattern with Redis session store
 
 ---
 
+## ADR-004: Go Web Framework Selection
+**Date:** 2026-02-02
+**Status:** Accepted
+
+### Context
+Need to select a Go web framework for the backend API.
+
+### Options Considered
+1. **Gin** - Most popular, extensive middleware ecosystem, excellent documentation
+2. **Echo** - Fast, minimalist, good middleware support
+3. **Fiber** - Express-inspired, very fast, newer community
+
+### Decision
+**Gin**
+
+### Why This Option Won
+- Most popular Go web framework (largest community)
+- Excellent documentation and tutorials
+- Mature middleware ecosystem (auth, CORS, logging, etc.)
+- Battle-tested in production
+- Easy to find help and examples
+
+### Consequences
+**Good:**
+- Large community means easy troubleshooting
+- Familiar patterns for developers from other frameworks
+- Rich middleware ecosystem
+
+**Bad:**
+- Not the absolute fastest (Fiber is faster)
+- Uses reflection (minor performance overhead)
+
+### Implementation
+- Gin v1.11.0 installed
+- Basic server structure created in `backend/cmd/server/main.go`
+- Health check and placeholder routes implemented
+
+---
+
+## ADR-005: Local Development Database Strategy
+**Date:** 2026-02-02
+**Status:** Accepted
+
+### Context
+Need a local development database setup that is:
+- Easy to set up and tear down
+- Consistent across development machines
+- Close to production environment
+
+### Options Considered
+1. **Native PostgreSQL installation** - Direct install on Windows
+2. **Docker Compose** - Containerized PostgreSQL + Redis
+3. **Cloud-hosted dev database** - Remote development DB
+
+### Decision
+**Docker Compose with local volume storage**
+
+### Why This Option Won
+- Easy to start/stop entire stack with one command
+- Data persists in `./data/` folder
+- Adminer UI for visual DB management
+- Matches production container setup
+- No system-level installation required
+
+### Configuration
+```yaml
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports: ["5432:5432"]
+    volumes: ["./data/postgres:/var/lib/postgresql/data"]
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    volumes: ["./data/redis:/data"]
+  adminer:
+    image: adminer
+    ports: ["8081:8080"]
+```
+
+### Consequences
+**Good:**
+- Consistent environment
+- Easy to reset (delete data/ folder)
+- Visual management via Adminer
+- Portable setup
+
+**Bad:**
+- Requires Docker Desktop running
+- Docker Desktop needs manual start on Windows
+
+---
+
 ## Pending Decisions
 
 ### Primary Key Strategy
 **Options:** UUID vs BIGSERIAL
 **Considerations:**
-- UUID: Better for distributed systems, harder to guess
-- BIGSERIAL: Simpler, better index performance
-**Decision needed by:** Schema design phase
+- UUID: Better for distributed systems, harder to guess, 36 chars
+- BIGSERIAL: Simpler, better index performance, sequential
+**Recommendation:** BIGSERIAL (we're not distributed, simpler is better)
+**Decision needed by:** Before schema design (Day 2)
 
 ### Database Migration Tool
 **Options:** golang-migrate vs goose vs Atlas
 **Decision needed by:** Before first migration
 
-### Go Web Framework
-**Options:** Gin vs Echo vs Fiber
-**Decision needed by:** Backend skeleton setup
+### API Documentation
+**Options:** OpenAPI/Swagger vs manual documentation
+**Decision needed by:** Before frontend development starts

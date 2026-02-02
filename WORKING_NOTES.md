@@ -13,6 +13,20 @@ For the new schema, consider:
 - Add `deleted_at` for soft deletes where appropriate
 - Include `created_by` and `updated_by` audit fields
 
+### Primary Key Decision (Leaning BIGSERIAL)
+Pros of BIGSERIAL:
+- Simpler to work with
+- Better index performance
+- Smaller storage footprint
+- Sufficient for our scale (not building distributed system)
+
+Cons of UUID:
+- Adds complexity without clear benefit
+- 36 chars vs 8 bytes
+- Harder to debug (can't remember UUIDs)
+
+**Recommendation: Use BIGSERIAL for all primary keys**
+
 ### Authentication Migration Path
 1. Export users with password hashes
 2. On first login attempt in new system:
@@ -34,14 +48,96 @@ From Final.md, key features to implement first:
 - [ ] What's the download key generation algorithm exactly?
 - [ ] Are there any rate limits we need to preserve?
 
+### Docker Commands Quick Reference
+```bash
+# Start all services
+docker-compose up -d
+
+# Stop all services
+docker-compose down
+
+# View logs
+docker-compose logs -f postgres
+
+# Reset database (delete all data)
+docker-compose down
+rm -rf data/postgres data/redis
+docker-compose up -d
+
+# Connect to PostgreSQL directly
+docker exec -it team4s_postgres psql -U team4s
+
+# Connect to Redis
+docker exec -it team4s_redis redis-cli
+```
+
+### Go Backend Structure
+```
+backend/
+  cmd/
+    server/
+      main.go         # Entry point, router setup
+  internal/
+    config/           # Configuration loading
+    database/         # DB connection, migrations
+    handlers/         # HTTP handlers
+    models/           # Data structures
+    services/         # Business logic
+  pkg/
+    middleware/       # Auth, logging, CORS
+```
+
 ---
 
 ## Mental Unload (End of Day 2026-02-02)
 
-Today was productive - got the project properly initialized and all the analysis work from v2.0 is now actionable. The schema recovery from .frm files was a win; we now have complete documentation of the legacy database.
+Incredibly productive day. Went from "project initialized" to "full development environment ready."
 
-Main concern: the password migration. WCF's authentication is a black box, and we don't have direct code access to verify the exact hashing algorithm. Need to extract sample hashes and test against bcrypt.
+**Key wins:**
+- Go toolchain fully installed and working
+- Backend skeleton compiles and runs
+- Docker Compose ready with PostgreSQL + Redis + Adminer
+- All dependencies installed (Gin, pgx, JWT, godotenv)
 
-Looking forward to tomorrow's schema design work. Having Final.md as reference makes this straightforward - just need to modernize the column names and add proper constraints.
+**What I learned:**
+- Go 1.25.6 installation was straightforward
+- Gin is really clean to work with - the routing syntax is intuitive
+- Docker Compose makes local dev infrastructure trivial
+- Adminer is a nice lightweight alternative to pgAdmin
 
-GitHub setup went smoothly. Ready to push once the initial files are committed.
+**Main concern going forward:**
+Still need to verify the Docker stack actually works. Haven't run `docker-compose up` yet because Docker Desktop wasn't started. That's literally the first thing tomorrow.
+
+The password migration remains a question mark. Need to grab a sample hash from the legacy DB and test it against Go's bcrypt package. Worst case: force password reset for all users.
+
+**Feeling good about:**
+- Clean project structure
+- Good documentation foundation
+- Clear next steps
+
+Tomorrow: Docker up, schema design, database connection. Let's go.
+
+---
+
+## Session Log
+
+### 2026-02-02 Morning
+- Day-start agent ran successfully
+- Recovered missing schemas from .frm files
+- Updated Final.md with complete documentation
+
+### 2026-02-02 Afternoon
+- Installed GitHub CLI, authenticated
+- Installed Go 1.25.6 + VS Code extension
+- Created Go module, installed dependencies
+- Built backend skeleton with Gin
+- Compiled server.exe successfully
+
+### 2026-02-02 Evening
+- Installed Docker Desktop
+- Created docker-compose.yml
+- Set up data directories
+- Updated .gitignore
+- Created .env.example
+- Created analyzer agents for legacy code
+- Running day-closeout
