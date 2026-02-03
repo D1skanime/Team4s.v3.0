@@ -2,18 +2,6 @@
 
 ## Current Scratchpad
 
-### WSL2 Installation Commands
-```powershell
-# Run as Administrator
-wsl --install
-
-# After restart, verify
-wsl --status
-
-# If needed, update WSL
-wsl --update
-```
-
 ### Docker Commands Quick Reference
 ```bash
 # Start all services
@@ -31,24 +19,78 @@ rm -rf data/postgres data/redis
 docker-compose up -d
 
 # Connect to PostgreSQL directly
-docker exec -it team4s_postgres psql -U team4s
+docker exec -it team4sv30-postgres-1 psql -U team4s
 
 # Connect to Redis
-docker exec -it team4s_redis redis-cli
+docker exec -it team4sv30-redis-1 redis-cli
 ```
 
-### Database Test Queries
-After Docker is working, run these in Adminer:
+### Database Verification Queries
 ```sql
--- Verify all tables
-SELECT table_name FROM information_schema.tables
-WHERE table_schema = 'public' ORDER BY table_name;
+-- Count all records
+SELECT 'anime' as table_name, COUNT(*) as count FROM anime
+UNION ALL SELECT 'episodes', COUNT(*) FROM episodes
+UNION ALL SELECT 'anime_relations', COUNT(*) FROM anime_relations
+UNION ALL SELECT 'comments', COUNT(*) FROM comments
+UNION ALL SELECT 'ratings', COUNT(*) FROM ratings
+UNION ALL SELECT 'watchlist', COUNT(*) FROM watchlist;
 
--- Check test data
-SELECT * FROM users;
-SELECT * FROM anime;
-SELECT * FROM roles;
+-- Sample anime data
+SELECT id, title, type, status, year FROM anime LIMIT 10;
+
+-- Episodes for an anime
+SELECT id, anime_id, episode_number, title, status FROM episodes WHERE anime_id = 1;
 ```
+
+---
+
+## Migration Notes (2026-02-03)
+
+### Migration Script Location
+`database/migrate_mysql_to_postgres.py`
+
+### Generated SQL Files
+```
+database/migration_data/
+  anime.sql           (11.2 MB, 13,326 records)
+  episodes.sql        (15.1 MB, 30,179 records)
+  comments.sql        (57 KB, 145 records)
+  ratings.sql         (57 KB, 456 records)
+  watchlist.sql       (97 KB, 716 records)
+  anime_relations.sql (295 KB, 2,323 records)
+```
+
+### Migration Command Sequence
+```bash
+# 1. Start Docker stack
+docker-compose up -d
+
+# 2. Apply schema updates
+docker exec -i team4sv30-postgres-1 psql -U team4s < database/schema_update.sql
+
+# 3. Run Python migration script
+python database/migrate_mysql_to_postgres.py
+
+# 4. Import generated SQL files
+docker exec -i team4sv30-postgres-1 psql -U team4s < database/migration_data/anime.sql
+docker exec -i team4sv30-postgres-1 psql -U team4s < database/migration_data/episodes.sql
+docker exec -i team4sv30-postgres-1 psql -U team4s < database/migration_data/comments.sql
+docker exec -i team4sv30-postgres-1 psql -U team4s < database/migration_data/ratings.sql
+docker exec -i team4sv30-postgres-1 psql -U team4s < database/migration_data/watchlist.sql
+docker exec -i team4sv30-postgres-1 psql -U team4s < database/migration_data/anime_relations.sql
+```
+
+### Type Conversions Applied
+- MySQL `Serie` -> PostgreSQL `tv`
+- MySQL `Film` -> PostgreSQL `film`
+- MySQL `OVA` -> PostgreSQL `ova`
+- MySQL enum values normalized to lowercase
+
+### Schema Updates Applied
+- Added `title_de` and `title_en` columns to anime table
+- Added `stream_links_legacy` and `filename` columns to episodes table
+- Changed VARCHAR(255) to TEXT for HTML content fields
+- Temporarily dropped FK constraints for bulk import
 
 ---
 
@@ -98,7 +140,7 @@ backend/
       main.go         # Entry point, router setup
   internal/
     config/           # Configuration loading
-    database/         # DB connection, migrations
+    database/         # DB connection, migrations (TODO: create postgres.go)
     handlers/         # HTTP handlers
     models/           # Data structures
     services/         # Business logic
@@ -110,53 +152,51 @@ backend/
 
 ## Mental Unload (End of Day 2026-02-03)
 
-Productive schema design day, but hit infrastructure blocker.
+**Major milestone achieved today!**
 
-**Key wins:**
-- Complete PostgreSQL schema designed (12 tables)
-- All migration files created (001-005)
-- init.sql with test data ready
-- docker-compose.yml updated with init.sql mount
+WSL2 installation and Docker setup resolved the critical blocker. But the real win was completing the full MySQL to PostgreSQL migration - 47,145+ records of real production data now in the new database.
 
-**What I learned:**
-- Windows 11 Docker Desktop requires WSL2 - not optional
-- PostgreSQL ENUMs are great for type safety
-- Fansub workflow tracking needs 10 process stages
+**Key accomplishments:**
+- WSL2 installed (required BIOS changes for virtualization)
+- Docker Desktop running successfully
+- PostgreSQL container with full schema
+- Python migration script created and tested
+- All anime portal data migrated
 
-**Blocker discovered:**
-WSL2 is not installed. Docker Desktop shows virtualization error because WSL2 backend is missing. User will restart to install WSL2 via `wsl --install`.
+**Technical discoveries:**
+- Legacy data had VARCHAR overflow issues - fixed with TEXT
+- FK constraints needed to be disabled for bulk import
+- ON CONFLICT DO NOTHING makes migrations idempotent
 
-**Tomorrow's critical path:**
-1. Install WSL2 (requires restart)
-2. Start Docker Desktop
-3. Run `docker-compose up -d`
-4. Verify in Adminer
-
-Once database is running, can finally connect Go backend and start building real endpoints.
+**Tomorrow's focus:**
+Connect Go backend to database and implement real API endpoints. The data is ready - time to build the API.
 
 **Feeling about progress:**
-Schema work is solid - 12 well-designed tables with proper relationships, ENUMs, indexes, and triggers. Just need the infrastructure to catch up.
+Excellent day. Went from blocked to having a fully populated database. The migration script is reusable if we need to re-import. Ready for actual feature development.
 
 ---
 
 ## Session Log
+
+### 2026-02-03 Evening (Migration Session)
+- WSL2 installed after BIOS virtualization enabled
+- Docker Desktop started successfully
+- Created Python migration script
+- Migrated 47,145+ records from MySQL dump
+- Fixed schema issues (VARCHAR->TEXT)
+- All data now in PostgreSQL
 
 ### 2026-02-03 Morning
 - Day-start agent ran successfully
 - Read Final.md for complete legacy analysis
 - Planned schema migration approach
 
-### 2026-02-03 Afternoon
+### 2026-02-03 Afternoon (Schema Session)
 - Created migration files 001-005
 - Built init.sql with combined schema + test data
 - Updated docker-compose.yml
 - Attempted to start Docker - failed
 - Discovered WSL2 not installed
-
-### 2026-02-03 Evening
-- Documented WSL2 blocker
-- Created test_connection.sql
-- Running day-closeout
 
 ### 2026-02-02 Morning
 - Day-start agent ran successfully
@@ -190,10 +230,25 @@ Schema work is solid - 12 well-designed tables with proper relationships, ENUMs,
 
 ---
 
-## Test Credentials
-| User | Password | Role |
-|------|----------|------|
-| admin | test123 | admin |
-| testuser | test123 | registered |
+## Database Connection Info
+| Setting | Value |
+|---------|-------|
+| Host | localhost |
+| Port | 5432 |
+| Database | team4s |
+| User | team4s |
+| Password | team4s_dev_password |
+| Adminer | http://localhost:8081 |
 
-bcrypt hash for "test123": `$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n3.Z6y6bqXOxP0RQKyqMO`
+---
+
+## Record Counts (2026-02-03)
+| Table | Records |
+|-------|---------|
+| anime | 13,326 |
+| episodes | 30,179 |
+| anime_relations | 2,323 |
+| comments | 145 |
+| ratings | 456 |
+| watchlist | 716 |
+| **TOTAL** | **47,145** |

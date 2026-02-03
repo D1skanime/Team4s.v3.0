@@ -193,7 +193,7 @@ services:
 **Bad:**
 - Requires Docker Desktop running
 - Docker Desktop needs manual start on Windows
-- **Requires WSL2 on Windows 11**
+- **Requires WSL2 on Windows 11** - RESOLVED 2026-02-03
 
 ---
 
@@ -230,7 +230,7 @@ Need to decide on primary key type for all tables.
 - Not suitable if we ever need distributed ID generation
 
 ### Implementation
-All 12 tables use `id BIGSERIAL PRIMARY KEY`
+All 13 tables use `id BIGSERIAL PRIMARY KEY`
 
 ---
 
@@ -304,7 +304,7 @@ Legacy system has both WoltLab WBB4/WCF forum tables and custom anime portal tab
 - Forum functionality can be added later with modern solution
 - Focus on core value: anime portal
 
-### Tables Created (12)
+### Tables Created (13)
 **Authentication:**
 - users (replacing wcf4_user)
 - roles (replacing wcf4_user_group)
@@ -336,6 +336,111 @@ Legacy system has both WoltLab WBB4/WCF forum tables and custom anime portal tab
 **Bad:**
 - No forum out of the box
 - Need to rebuild all integrations
+
+---
+
+## ADR-009: VARCHAR to TEXT for HTML Content
+**Date:** 2026-02-03
+**Status:** Accepted
+
+### Context
+During migration, discovered that legacy data contained HTML content longer than VARCHAR(255) limit.
+
+### Problem
+Fields like `stream_comment`, `sub_comment`, and `description` contained full HTML blocks that exceeded 255 characters.
+
+### Decision
+**Change VARCHAR(255) to TEXT for content fields that may contain HTML**
+
+### Implementation
+```sql
+-- Applied via schema_update.sql
+ALTER TABLE anime ALTER COLUMN stream_comment TYPE TEXT;
+ALTER TABLE anime ALTER COLUMN sub_comment TYPE TEXT;
+ALTER TABLE anime ALTER COLUMN description TYPE TEXT;
+```
+
+### Consequences
+**Good:**
+- No length limit issues
+- Can store rich HTML content
+- Migration completes successfully
+
+**Bad:**
+- TEXT slightly slower for indexing (but we don't index these fields)
+- Larger storage footprint
+
+---
+
+## ADR-010: Migration Strategy - Temporary FK Disable
+**Date:** 2026-02-03
+**Status:** Accepted (temporary)
+
+### Context
+Bulk import of legacy data fails due to FK constraints when user table is not yet populated.
+
+### Problem
+- Episodes, comments, ratings, watchlist reference user_id
+- User migration not yet complete
+- FK constraints prevent import
+
+### Decision
+**Temporarily disable FK constraints, import with placeholder user_id=1**
+
+### Implementation
+```sql
+-- Disable constraints
+ALTER TABLE comments DROP CONSTRAINT IF EXISTS comments_user_id_fkey;
+-- etc.
+
+-- Import with user_id=1 for all records
+INSERT INTO comments (..., user_id, ...) VALUES (..., 1, ...);
+```
+
+### Consequences
+**Good:**
+- Allows complete data import
+- Core content (anime, episodes) fully accessible
+- Can fix user references later
+
+**Bad:**
+- User attribution temporarily lost
+- Must remember to re-enable FK constraints
+- Referential integrity not enforced until fixed
+
+### Follow-up Required
+- [ ] Extract and migrate WCF users
+- [ ] Update user_id references in migrated tables
+- [ ] Re-enable FK constraints
+- [ ] Verify integrity
+
+---
+
+## ADR-011: Idempotent Migration with ON CONFLICT
+**Date:** 2026-02-03
+**Status:** Accepted
+
+### Context
+Migration scripts may need to be run multiple times during development. Need to prevent duplicate key errors.
+
+### Decision
+**Use ON CONFLICT DO NOTHING for all INSERT statements**
+
+### Implementation
+```sql
+INSERT INTO anime (id, title, ...) VALUES (1, 'Title', ...)
+ON CONFLICT (id) DO NOTHING;
+```
+
+### Consequences
+**Good:**
+- Safe to re-run migration scripts
+- No errors on duplicate data
+- Predictable behavior
+
+**Bad:**
+- Won't update existing records (use DO UPDATE if needed)
+- Silent failures if data should have been inserted
 
 ---
 

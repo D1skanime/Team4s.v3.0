@@ -4,9 +4,9 @@
 Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stack to a modern Go + Next.js + PostgreSQL architecture.
 
 ## Current Phase
-**Phase:** Database Schema Design (Complete, Awaiting Deployment)
+**Phase:** Backend Development (Database Ready)
 **Started:** 2026-02-02
-**Blocked:** WSL2 installation required
+**Status:** Database migration complete, ready for API development
 
 ## Project State
 
@@ -32,19 +32,25 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - [x] .gitignore updated to exclude data/ and binaries
 - [x] backend/.env.example created with connection template
 - [x] Frontend/JavaScript analyzer agents created (in Team4s.v2.0)
-- [x] PostgreSQL schema designed (12 tables)
+- [x] PostgreSQL schema designed (13 tables)
 - [x] Migration files created (001-005)
 - [x] Combined init.sql with test data
 - [x] Test connection queries prepared
+- [x] **WSL2 installed** (BIOS + wsl --install)
+- [x] **Docker Desktop running**
+- [x] **PostgreSQL container running**
+- [x] **MySQL to PostgreSQL migration script created**
+- [x] **47,145+ records migrated from legacy database**
 
 ### In Progress
-- [ ] Install WSL2 (requires restart)
-- [ ] Start Docker and verify PostgreSQL
-- [ ] Connect Go backend to database
+- [ ] Connect Go backend to PostgreSQL (pgx pool)
+- [ ] Implement real API endpoints with database queries
+- [ ] Frontend skeleton
 
 ### Blocked
-- **WSL2 Not Installed:** Docker Desktop requires WSL2 on Windows 11
-  - Resolution: Run `wsl --install` in admin PowerShell, restart
+- **User Migration:** Need to extract and migrate WCF users
+  - All user_id references currently point to admin (user_id=1)
+  - FK constraints disabled until user migration complete
 
 ## Key Decisions & Context
 
@@ -71,10 +77,10 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - **Status Fields:** PostgreSQL ENUMs for type safety
 
 ### Database Schema
-12 tables designed:
+13 tables deployed with production data:
 - **Users:** users, roles, user_roles
-- **Content:** anime, anime_relations, episodes
-- **Social:** comments, ratings, watchlist, messages
+- **Content:** anime (13,326), anime_relations (2,323), episodes (30,179)
+- **Social:** comments (145), ratings (456), watchlist (716), messages
 - **Fansub:** attendants, fansub_groups, anime_fansub_groups
 
 ### Assumptions
@@ -91,6 +97,36 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 ## Session History
 
 ### Day 2026-02-03
+- Phase: Database Migration (COMPLETED)
+- Accomplishments:
+  - Fixed WSL2 installation (BIOS + wsl --install)
+  - Started Docker Desktop successfully
+  - PostgreSQL container running with schema
+  - Created Python migration script (migrate_mysql_to_postgres.py)
+  - Migrated 47,145+ records from legacy MySQL dump
+  - Fixed VARCHAR->TEXT for HTML content fields
+  - Temporarily disabled FK constraints for bulk import
+- Key Decisions:
+  - VARCHAR(255) to TEXT for stream_comment, sub_comment, description
+  - ON CONFLICT DO NOTHING for idempotent imports
+  - Point orphaned user_id references to admin temporarily
+- Migration Results:
+  - anime: 13,326 records
+  - episodes: 30,179 records
+  - anime_relations: 2,323 records
+  - comments: 145 records
+  - ratings: 456 records
+  - watchlist: 716 records
+- Risks/Unknowns:
+  - User migration still pending
+  - FK constraints disabled
+- Next Steps:
+  - Connect Go backend to database
+  - Implement GET /api/v1/anime endpoint
+  - Implement GET /api/v1/anime/:id endpoint
+- First task tomorrow: Create internal/database/postgres.go
+
+### Day 2026-02-03 (Morning Session)
 - Phase: Database Schema Design
 - Accomplishments:
   - Ran day-start agent for morning briefing
@@ -110,11 +146,6 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - Risks/Unknowns:
   - WSL2 installation requires system restart
   - Password migration from WCF hashes not yet tested
-- Next Steps:
-  - Install WSL2 (`wsl --install`)
-  - Restart and start Docker
-  - Verify database with Adminer
-- First task tomorrow: PowerShell Admin -> `wsl --install` -> restart
 
 ### Day 2026-02-02
 - Phase: Project Initialization -> Development Environment Setup
@@ -155,3 +186,5 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - Backend Entry: `backend/cmd/server/main.go`
 - Migration Files: `database/migrations/001-005_*.sql`
 - Init Script: `database/init.sql`
+- Migration Script: `database/migrate_mysql_to_postgres.py`
+- Migration Data: `database/migration_data/*.sql`

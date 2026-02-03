@@ -2,24 +2,62 @@
 
 ## Current Blockers
 
-### BLOCKER: WSL2 Not Installed
-**Status:** BLOCKING - Must resolve before any database work
-**Impact:** Critical | **Since:** 2026-02-03
+### BLOCKER: User Migration Not Complete
+**Status:** BLOCKING social features | **Since:** 2026-02-03
+**Impact:** Medium (core anime data works, social features incomplete)
 
-Docker Desktop on Windows 11 requires WSL2 (Windows Subsystem for Linux 2) as its backend. The system currently does not have WSL2 installed.
+Legacy WCF users have not been migrated. All user_id references in migrated data currently point to user_id=1 (admin).
 
-**Symptoms:**
-- Docker Desktop shows virtualization error
-- Cannot start containers
-- PostgreSQL stack cannot run
+**Affected Tables:**
+- comments.user_id
+- ratings.user_id
+- watchlist.user_id
+
+**Workaround:** Data is accessible, but user attribution is lost until migration.
 
 **Resolution:**
-1. Open PowerShell as Administrator
-2. Run: `wsl --install`
-3. Restart computer
-4. Start Docker Desktop
+1. Extract user data from WCF tables in MySQL dump
+2. Map WCF user IDs to new user IDs
+3. Update references in migrated tables
+4. Re-enable FK constraints
 
-**Owner:** D1skanime | **Due:** 2026-02-04 (first task)
+**Owner:** D1skanime | **Due:** Before social features go live
+
+---
+
+### BLOCKER: FK Constraints Disabled
+**Status:** Technical debt | **Since:** 2026-02-03
+**Impact:** Low (dev only, no production risk yet)
+
+Foreign key constraints were disabled to allow bulk import without user table populated.
+
+**Constraints disabled:**
+- episodes.anime_id -> anime.id
+- comments.anime_id -> anime.id
+- comments.user_id -> users.id
+- ratings.anime_id -> anime.id
+- ratings.user_id -> users.id
+- watchlist.anime_id -> anime.id
+- watchlist.user_id -> users.id
+- anime_relations.anime_id -> anime.id
+- anime_relations.related_anime_id -> anime.id
+
+**Resolution:** Re-enable after user migration with:
+```sql
+ALTER TABLE episodes ADD CONSTRAINT episodes_anime_id_fkey FOREIGN KEY (anime_id) REFERENCES anime(id);
+-- etc.
+```
+
+**Owner:** D1skanime | **Due:** After user migration
+
+---
+
+## Resolved Blockers
+
+### 2026-02-03: WSL2 Not Installed - RESOLVED
+**Was:** Docker Desktop could not start due to missing WSL2
+**Resolution:** Enabled virtualization in BIOS, ran `wsl --install`, restarted
+**Result:** Docker Desktop now running successfully
 
 ---
 
@@ -41,37 +79,51 @@ The legacy system uses WCF's crypt-compatible password hashing. If we cannot ver
 
 ---
 
-### 2. Character Encoding Issues
-**Impact:** Medium | **Likelihood:** High
+### 2. Media File Migration
+**Impact:** High | **Likelihood:** Medium
 
-Legacy database uses mixed encodings (latin1_swedish_ci for anmi1_watch, utf8_unicode_ci elsewhere). Japanese characters may be stored incorrectly.
+Legacy system has anime covers and download files stored locally. Need strategy for:
+- Cover images (~13,326 files)
+- Download files (unknown count/size)
+- Stream links (stored as legacy HTML)
 
 **Mitigation:**
-- [ ] Audit encoding of key text fields (anime titles, descriptions)
-- [ ] Create encoding conversion script for migration
-- [ ] Test with sample data before full migration
+- [ ] Audit current file storage location and size
+- [ ] Decide storage strategy (local vs S3-compatible)
+- [ ] Create file migration script
+- [ ] Parse stream_links_legacy into structured format
 
-**Owner:** TBD | **Due:** Before data migration
+**Owner:** TBD | **Due:** Before frontend development
 
 ---
 
-### 3. Data Migration Volume
+### 3. Data Integrity - Orphaned References
 **Impact:** Medium | **Likelihood:** Low
 
-Unknown total data volume in legacy system. Large tables may require batch migration strategy.
+Some migrated records may reference anime/episodes that were deleted in legacy system.
+
+**Potential issues:**
+- Episodes referencing non-existent anime
+- Comments on deleted content
+- Watchlist entries for removed anime
 
 **Mitigation:**
-- [ ] Query legacy DB for row counts
-- [ ] Identify largest tables
-- [ ] Plan batch migration if needed
+- [ ] Run integrity checks after re-enabling FK constraints
+- [ ] Handle orphaned records (delete or archive)
+- [ ] Add ON DELETE CASCADE where appropriate
 
-**Owner:** TBD | **Due:** Before migration sprint
+**Owner:** TBD | **Due:** Before production
 
 ---
 
 ## Resolved Risks
 
 ### 2026-02-03
+- **WSL2 Blocker:** Resolved - installed via wsl --install after BIOS changes
+- **VARCHAR Overflow:** Resolved - changed to TEXT for HTML content fields
+- **Migration Import Errors:** Resolved - used ON CONFLICT DO NOTHING
+
+### 2026-02-03 (Morning)
 - **Primary Key Strategy:** Resolved - chose BIGSERIAL (simpler, better performance)
 - **Schema Design Approach:** Resolved - anime portal only, no WCF tables
 
@@ -105,10 +157,10 @@ Unknown total data volume in legacy system. Large tables may require batch migra
 **What will fail next week?**
 
 If we don't:
-1. **Install WSL2** - Cannot develop any features requiring database
-2. **Verify database schema** - Cannot build API endpoints
-3. **Test user authentication flow** - Cannot implement login
+1. **Connect Go backend to database** - Cannot build any real features
+2. **Plan user migration** - Social features will have wrong attribution
+3. **Decide on media storage** - May need major refactor later
 
-**Critical path:** WSL2 -> Docker -> PostgreSQL -> API Development
+**Critical path:** Backend DB connection -> API endpoints -> Frontend
 
-All database-dependent work is blocked until WSL2 is installed.
+The database is ready - backend development is now the priority.

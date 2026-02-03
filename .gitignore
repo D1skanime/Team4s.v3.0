@@ -58,6 +58,9 @@ temp/
 *.db
 data/
 
+# Migration generated files (large SQL dumps)
+database/migration_data/
+
 # Secrets (never commit)
 *.pem
 *.key
