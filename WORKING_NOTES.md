@@ -2,51 +2,17 @@
 
 ## Current Scratchpad
 
-### Schema Design Thoughts
-The legacy schema has some quirks to address:
-- `anmi1_watch.IDs` uses non-standard naming (should be `id`)
-- `verwandt` table uses German column names (`gueltig`) - normalize to English
-- Mixed FK strategies (some explicit, some commented out in install.sql)
+### WSL2 Installation Commands
+```powershell
+# Run as Administrator
+wsl --install
 
-For the new schema, consider:
-- Use `snake_case` consistently for all columns
-- Add `deleted_at` for soft deletes where appropriate
-- Include `created_by` and `updated_by` audit fields
+# After restart, verify
+wsl --status
 
-### Primary Key Decision (Leaning BIGSERIAL)
-Pros of BIGSERIAL:
-- Simpler to work with
-- Better index performance
-- Smaller storage footprint
-- Sufficient for our scale (not building distributed system)
-
-Cons of UUID:
-- Adds complexity without clear benefit
-- 36 chars vs 8 bytes
-- Harder to debug (can't remember UUIDs)
-
-**Recommendation: Use BIGSERIAL for all primary keys**
-
-### Authentication Migration Path
-1. Export users with password hashes
-2. On first login attempt in new system:
-   - Try bcrypt verify against stored hash
-   - If fails, prompt for password reset
-   - Generate new bcrypt hash on successful login/reset
-3. Track migration status per user (`password_migrated` boolean)
-
-### Feature Mapping Notes
-From Final.md, key features to implement first:
-- `/api/anime` - List with filtering (P0)
-- `/api/anime/:id` - Detail with episodes (P0)
-- `/api/comments` - CRUD (P0)
-- `/api/watchlist` - CRUD (P0)
-- `/api/auth/login` - JWT issuance (P0)
-
-### Questions to Answer
-- [ ] How are anime covers currently stored? Path pattern?
-- [ ] What's the download key generation algorithm exactly?
-- [ ] Are there any rate limits we need to preserve?
+# If needed, update WSL
+wsl --update
+```
 
 ### Docker Commands Quick Reference
 ```bash
@@ -71,7 +37,60 @@ docker exec -it team4s_postgres psql -U team4s
 docker exec -it team4s_redis redis-cli
 ```
 
-### Go Backend Structure
+### Database Test Queries
+After Docker is working, run these in Adminer:
+```sql
+-- Verify all tables
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public' ORDER BY table_name;
+
+-- Check test data
+SELECT * FROM users;
+SELECT * FROM anime;
+SELECT * FROM roles;
+```
+
+---
+
+## Schema Design Notes (2026-02-03)
+
+### ENUMs Created
+Six PostgreSQL ENUM types for type-safe status fields:
+1. `anime_status` - disabled, ongoing, done, aborted, licensed
+2. `anime_type` - tv, ova, film, bonus, special, ona, music
+3. `content_type` - anime, hentai
+4. `episode_status` - disabled, private, public
+5. `watchlist_status` - watching, done, break, planned, dropped
+6. `fansub_role` - raw, translate, time, typeset, logo, edit, karatime, karafx, qc, encode
+
+### Fansub Process Tracking
+Episodes table has 10 percentage columns (0-100):
+- raw_proc, translate_proc, time_proc, typeset_proc, logo_proc
+- edit_proc, karatime_proc, karafx_proc, qc_proc, encode_proc
+
+Each has a corresponding `*_proc_by` user reference.
+
+### Roles System (27 roles)
+Replaced WCF group system with granular RBAC:
+- Core: admin, moderator, registered
+- Anime: anime_create, anime_modify, anime_delete, anime_status
+- Stream: stream_create, stream_modify, stream_delete, stream_status
+- Comment: comment_modify, comment_delete
+- Fansub: fansub_create, fansub_modify, fansub_delete
+- Special: private
+- Process: raw_proc, translate_proc, time_proc, typeset_proc, logo_proc, edit_proc, karatime_proc, karafx_proc, qc_proc, encode_proc
+
+### Legacy ID Columns
+All main tables have `legacy_*_id` columns for migration:
+- users.legacy_wcf_user_id
+- anime.legacy_anime_id
+- episodes.legacy_episode_id
+- comments.legacy_comment_id
+- messages.legacy_message_id
+
+---
+
+## Go Backend Structure
 ```
 backend/
   cmd/
@@ -89,37 +108,55 @@ backend/
 
 ---
 
-## Mental Unload (End of Day 2026-02-02)
+## Mental Unload (End of Day 2026-02-03)
 
-Incredibly productive day. Went from "project initialized" to "full development environment ready."
+Productive schema design day, but hit infrastructure blocker.
 
 **Key wins:**
-- Go toolchain fully installed and working
-- Backend skeleton compiles and runs
-- Docker Compose ready with PostgreSQL + Redis + Adminer
-- All dependencies installed (Gin, pgx, JWT, godotenv)
+- Complete PostgreSQL schema designed (12 tables)
+- All migration files created (001-005)
+- init.sql with test data ready
+- docker-compose.yml updated with init.sql mount
 
 **What I learned:**
-- Go 1.25.6 installation was straightforward
-- Gin is really clean to work with - the routing syntax is intuitive
-- Docker Compose makes local dev infrastructure trivial
-- Adminer is a nice lightweight alternative to pgAdmin
+- Windows 11 Docker Desktop requires WSL2 - not optional
+- PostgreSQL ENUMs are great for type safety
+- Fansub workflow tracking needs 10 process stages
 
-**Main concern going forward:**
-Still need to verify the Docker stack actually works. Haven't run `docker-compose up` yet because Docker Desktop wasn't started. That's literally the first thing tomorrow.
+**Blocker discovered:**
+WSL2 is not installed. Docker Desktop shows virtualization error because WSL2 backend is missing. User will restart to install WSL2 via `wsl --install`.
 
-The password migration remains a question mark. Need to grab a sample hash from the legacy DB and test it against Go's bcrypt package. Worst case: force password reset for all users.
+**Tomorrow's critical path:**
+1. Install WSL2 (requires restart)
+2. Start Docker Desktop
+3. Run `docker-compose up -d`
+4. Verify in Adminer
 
-**Feeling good about:**
-- Clean project structure
-- Good documentation foundation
-- Clear next steps
+Once database is running, can finally connect Go backend and start building real endpoints.
 
-Tomorrow: Docker up, schema design, database connection. Let's go.
+**Feeling about progress:**
+Schema work is solid - 12 well-designed tables with proper relationships, ENUMs, indexes, and triggers. Just need the infrastructure to catch up.
 
 ---
 
 ## Session Log
+
+### 2026-02-03 Morning
+- Day-start agent ran successfully
+- Read Final.md for complete legacy analysis
+- Planned schema migration approach
+
+### 2026-02-03 Afternoon
+- Created migration files 001-005
+- Built init.sql with combined schema + test data
+- Updated docker-compose.yml
+- Attempted to start Docker - failed
+- Discovered WSL2 not installed
+
+### 2026-02-03 Evening
+- Documented WSL2 blocker
+- Created test_connection.sql
+- Running day-closeout
 
 ### 2026-02-02 Morning
 - Day-start agent ran successfully
@@ -141,3 +178,22 @@ Tomorrow: Docker up, schema design, database connection. Let's go.
 - Created .env.example
 - Created analyzer agents for legacy code
 - Running day-closeout
+
+---
+
+## Questions to Answer
+- [x] Primary keys: UUID vs BIGSERIAL? **Answer: BIGSERIAL**
+- [ ] How are anime covers currently stored? Path pattern?
+- [ ] What's the download key generation algorithm exactly?
+- [ ] Are there any rate limits we need to preserve?
+- [ ] WCF password hash compatibility with Go bcrypt?
+
+---
+
+## Test Credentials
+| User | Password | Role |
+|------|----------|------|
+| admin | test123 | admin |
+| testuser | test123 | registered |
+
+bcrypt hash for "test123": `$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n3.Z6y6bqXOxP0RQKyqMO`

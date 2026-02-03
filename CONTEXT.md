@@ -4,8 +4,9 @@
 Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stack to a modern Go + Next.js + PostgreSQL architecture.
 
 ## Current Phase
-**Phase:** Development Environment Setup (Complete)
+**Phase:** Database Schema Design (Complete, Awaiting Deployment)
 **Started:** 2026-02-02
+**Blocked:** WSL2 installation required
 
 ## Project State
 
@@ -31,14 +32,19 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - [x] .gitignore updated to exclude data/ and binaries
 - [x] backend/.env.example created with connection template
 - [x] Frontend/JavaScript analyzer agents created (in Team4s.v2.0)
+- [x] PostgreSQL schema designed (12 tables)
+- [x] Migration files created (001-005)
+- [x] Combined init.sql with test data
+- [x] Test connection queries prepared
 
 ### In Progress
-- [ ] PostgreSQL schema design for new system
-- [ ] Database connection implementation
-- [ ] Next.js frontend skeleton setup
+- [ ] Install WSL2 (requires restart)
+- [ ] Start Docker and verify PostgreSQL
+- [ ] Connect Go backend to database
 
 ### Blocked
-- None
+- **WSL2 Not Installed:** Docker Desktop requires WSL2 on Windows 11
+  - Resolution: Run `wsl --install` in admin PowerShell, restart
 
 ## Key Decisions & Context
 
@@ -61,6 +67,15 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - RESTful API design (see Final.md for endpoint mapping)
 - Role-based access control (RBAC) replacing WCF group system
 - Server-side rendering for SEO-critical pages
+- **Primary Keys:** BIGSERIAL (not UUID) - simpler, better performance
+- **Status Fields:** PostgreSQL ENUMs for type safety
+
+### Database Schema
+12 tables designed:
+- **Users:** users, roles, user_roles
+- **Content:** anime, anime_relations, episodes
+- **Social:** comments, ratings, watchlist, messages
+- **Fansub:** attendants, fansub_groups, anime_fansub_groups
 
 ### Assumptions
 - Users will be migrated with password reset (bcrypt compatibility TBD)
@@ -74,6 +89,32 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - Database queries must use parameterized statements (no SQL injection)
 
 ## Session History
+
+### Day 2026-02-03
+- Phase: Database Schema Design
+- Accomplishments:
+  - Ran day-start agent for morning briefing
+  - Read Final.md documentation with complete legacy analysis
+  - Created PostgreSQL migration schema for anime portal tables
+  - Created 5 migration files (001-005) covering all tables
+  - Created init.sql with combined schema + test data
+  - Created test_connection.sql for verification queries
+  - Updated docker-compose.yml with init.sql mount
+  - Discovered Docker virtualization error
+  - Found WSL2 not installed (root cause)
+- Key Decisions:
+  - BIGSERIAL for all primary keys (not UUID)
+  - PostgreSQL ENUMs for status fields
+  - Anime portal tables only (no WCF/WoltLab)
+  - Test users: admin/test123, testuser/test123
+- Risks/Unknowns:
+  - WSL2 installation requires system restart
+  - Password migration from WCF hashes not yet tested
+- Next Steps:
+  - Install WSL2 (`wsl --install`)
+  - Restart and start Docker
+  - Verify database with Adminer
+- First task tomorrow: PowerShell Admin -> `wsl --install` -> restart
 
 ### Day 2026-02-02
 - Phase: Project Initialization -> Development Environment Setup
@@ -97,7 +138,6 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
   - Go web framework: Gin (most popular, best documentation)
   - Database: PostgreSQL 16 via Docker (local data in ./data/)
   - Cache: Redis 7 via Docker
-  - Primary key strategy: Still pending (UUID vs BIGSERIAL)
 - Risks/Unknowns:
   - Docker Desktop needs manual start after Windows restart
   - Password migration from WCF hashes not yet tested
@@ -105,7 +145,6 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
   - Start Docker and verify PostgreSQL/Redis
   - Create PostgreSQL schema
   - Connect Go backend to database
-- First task tomorrow: Start Docker, run docker-compose up -d, verify with Adminer
 
 ## References
 - Legacy Analysis: `../Team4s.v2.0/reports/Final.md`
@@ -114,3 +153,5 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - Database Schema: See Final.md "Datenbank-Architektur" section
 - Docker Config: `docker-compose.yml`
 - Backend Entry: `backend/cmd/server/main.go`
+- Migration Files: `database/migrations/001-005_*.sql`
+- Init Script: `database/init.sql`

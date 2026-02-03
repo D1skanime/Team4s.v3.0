@@ -57,7 +57,8 @@ Monorepo structure:
 ```
 /backend     - Go API server
 /frontend    - Next.js application
-/docs        - Documentation and schemas
+/database    - Migration files and init scripts
+/docs        - Documentation and day logs
 /context     - AI context files
 ```
 
@@ -169,7 +170,9 @@ services:
   postgres:
     image: postgres:16-alpine
     ports: ["5432:5432"]
-    volumes: ["./data/postgres:/var/lib/postgresql/data"]
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
   redis:
     image: redis:7-alpine
     ports: ["6379:6379"]
@@ -185,26 +188,167 @@ services:
 - Easy to reset (delete data/ folder)
 - Visual management via Adminer
 - Portable setup
+- Auto-runs init.sql on first start
 
 **Bad:**
 - Requires Docker Desktop running
 - Docker Desktop needs manual start on Windows
+- **Requires WSL2 on Windows 11**
+
+---
+
+## ADR-006: Primary Key Strategy
+**Date:** 2026-02-03
+**Status:** Accepted
+
+### Context
+Need to decide on primary key type for all tables.
+
+### Options Considered
+1. **UUID** - Globally unique, no collision risk, 36 characters
+2. **BIGSERIAL** - Auto-incrementing 64-bit integer, simple, 8 bytes
+
+### Decision
+**BIGSERIAL for all primary keys**
+
+### Why This Option Won
+- Simpler to work with in development and debugging
+- Better index performance (8 bytes vs 36 characters)
+- Smaller storage footprint
+- Sufficient for our scale (not building distributed system)
+- Easier to reference in URLs and logs (can remember IDs)
+
+### Consequences
+**Good:**
+- Simple, familiar pattern
+- Fast index lookups
+- Small storage footprint
+- Easy debugging (sequential IDs)
+
+**Bad:**
+- IDs are guessable (mitigated by auth)
+- Not suitable if we ever need distributed ID generation
+
+### Implementation
+All 12 tables use `id BIGSERIAL PRIMARY KEY`
+
+---
+
+## ADR-007: Database Status Fields as ENUMs
+**Date:** 2026-02-03
+**Status:** Accepted
+
+### Context
+Many tables have status fields with a fixed set of values (e.g., anime_status, episode_status).
+
+### Options Considered
+1. **VARCHAR** - Flexible but no type safety
+2. **INTEGER with constants** - Fast but not self-documenting
+3. **PostgreSQL ENUM** - Type-safe, self-documenting, enforced by DB
+
+### Decision
+**PostgreSQL ENUM types for all status fields**
+
+### Why This Option Won
+- Type safety at the database level
+- Self-documenting (enum values visible in schema)
+- Cannot insert invalid values
+- Good performance (stored as integers internally)
+- Works well with Go struct tags
+
+### ENUMs Created
+```sql
+CREATE TYPE anime_status AS ENUM ('disabled', 'ongoing', 'done', 'aborted', 'licensed');
+CREATE TYPE anime_type AS ENUM ('tv', 'ova', 'film', 'bonus', 'special', 'ona', 'music');
+CREATE TYPE content_type AS ENUM ('anime', 'hentai');
+CREATE TYPE episode_status AS ENUM ('disabled', 'private', 'public');
+CREATE TYPE watchlist_status AS ENUM ('watching', 'done', 'break', 'planned', 'dropped');
+CREATE TYPE fansub_role AS ENUM ('raw', 'translate', 'time', 'typeset', 'logo', 'edit', 'karatime', 'karafx', 'qc', 'encode');
+```
+
+### Consequences
+**Good:**
+- Invalid data impossible at DB level
+- Clear schema documentation
+- IDE autocomplete in Go with proper mapping
+
+**Bad:**
+- Adding new enum values requires ALTER TYPE
+- Need to keep Go constants in sync
+
+### Follow-ups
+- [ ] Create Go enum constants matching PostgreSQL types
+- [ ] Add migration strategy for adding new enum values
+
+---
+
+## ADR-008: Schema Scope - Anime Portal Only
+**Date:** 2026-02-03
+**Status:** Accepted
+
+### Context
+Legacy system has both WoltLab WBB4/WCF forum tables and custom anime portal tables. Need to decide scope of new schema.
+
+### Options Considered
+1. **Full migration** - Migrate both forum and portal tables
+2. **Portal only** - Only migrate anime-related tables, replace forum
+3. **Hybrid** - Keep WCF for forum, new system for portal
+
+### Decision
+**Anime portal tables only - clean break from WCF**
+
+### Why This Option Won
+- Clean architecture without legacy baggage
+- Modern RBAC system replacing WCF groups
+- Simpler codebase to maintain
+- Forum functionality can be added later with modern solution
+- Focus on core value: anime portal
+
+### Tables Created (12)
+**Authentication:**
+- users (replacing wcf4_user)
+- roles (replacing wcf4_user_group)
+- user_roles (replacing wcf4_user_to_group)
+
+**Content:**
+- anime (from anmi1_anime)
+- anime_relations (from verwandt)
+- episodes (from anmi1_episode)
+
+**Social:**
+- comments (from anmi1_comments)
+- ratings (from anmi1_rating)
+- watchlist (from anmi1_watch)
+- messages (new, simplified PM system)
+
+**Fansub:**
+- attendants (from anmi1_attendants)
+- fansub_groups (new)
+- anime_fansub_groups (new)
+
+### Consequences
+**Good:**
+- Clean, maintainable schema
+- No legacy dependencies
+- Modern role-based permissions
+- Focused feature set
+
+**Bad:**
+- No forum out of the box
+- Need to rebuild all integrations
 
 ---
 
 ## Pending Decisions
 
-### Primary Key Strategy
-**Options:** UUID vs BIGSERIAL
-**Considerations:**
-- UUID: Better for distributed systems, harder to guess, 36 chars
-- BIGSERIAL: Simpler, better index performance, sequential
-**Recommendation:** BIGSERIAL (we're not distributed, simpler is better)
-**Decision needed by:** Before schema design (Day 2)
-
 ### Database Migration Tool
 **Options:** golang-migrate vs goose vs Atlas
-**Decision needed by:** Before first migration
+**Considerations:**
+- golang-migrate: Simple CLI, good Go integration
+- goose: Go-native, embeddable
+- Atlas: Modern, declarative, more complex
+**Recommendation:** golang-migrate (simple, proven)
+**Decision needed by:** Before second schema change
 
 ### API Documentation
 **Options:** OpenAPI/Swagger vs manual documentation

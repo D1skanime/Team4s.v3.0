@@ -1,5 +1,28 @@
 # Team4s.v3.0 - Risks and Blockers
 
+## Current Blockers
+
+### BLOCKER: WSL2 Not Installed
+**Status:** BLOCKING - Must resolve before any database work
+**Impact:** Critical | **Since:** 2026-02-03
+
+Docker Desktop on Windows 11 requires WSL2 (Windows Subsystem for Linux 2) as its backend. The system currently does not have WSL2 installed.
+
+**Symptoms:**
+- Docker Desktop shows virtualization error
+- Cannot start containers
+- PostgreSQL stack cannot run
+
+**Resolution:**
+1. Open PowerShell as Administrator
+2. Run: `wsl --install`
+3. Restart computer
+4. Start Docker Desktop
+
+**Owner:** D1skanime | **Due:** 2026-02-04 (first task)
+
+---
+
 ## Top 3 Risks
 
 ### 1. Password Migration Complexity
@@ -32,39 +55,49 @@ Legacy database uses mixed encodings (latin1_swedish_ci for anmi1_watch, utf8_un
 
 ---
 
-### 3. Docker Desktop Manual Start
-**Impact:** Low | **Likelihood:** High
+### 3. Data Migration Volume
+**Impact:** Medium | **Likelihood:** Low
 
-Docker Desktop on Windows does not auto-start by default. Development workflow requires manual Docker start after each system restart.
+Unknown total data volume in legacy system. Large tables may require batch migration strategy.
 
 **Mitigation:**
-- [ ] Consider adding Docker Desktop to Windows startup
-- [ ] Document startup procedure in TOMORROW.md
-- [x] Added reminder in tomorrow's first task
+- [ ] Query legacy DB for row counts
+- [ ] Identify largest tables
+- [ ] Plan batch migration if needed
 
-**Owner:** D1skanime | **Due:** Ongoing awareness
+**Owner:** TBD | **Due:** Before migration sprint
 
 ---
 
-## Current Blockers
-None - development environment is fully set up and ready.
+## Resolved Risks
 
-## Resolved Risks (2026-02-02)
+### 2026-02-03
+- **Primary Key Strategy:** Resolved - chose BIGSERIAL (simpler, better performance)
+- **Schema Design Approach:** Resolved - anime portal only, no WCF tables
+
+### 2026-02-02
 - **Go Framework Selection:** Resolved - chose Gin (most popular, best documentation)
 - **Database Infrastructure:** Resolved - Docker Compose with PostgreSQL 16 + Redis 7
 
+---
+
 ## Pending Decisions (May Become Risks)
 
-### Primary Key Strategy
-**Options:** UUID vs BIGSERIAL
-**Impact if delayed:** Schema rework if we change minds later
-**Recommendation:** BIGSERIAL for simplicity; UUIDs add complexity without clear benefit for this app
-**Decision needed by:** Before creating schema (Day 2)
+### Database Migration Tool
+**Options:** golang-migrate vs goose vs Atlas
+**Impact if delayed:** Manual schema changes become error-prone
+**Recommendation:** golang-migrate (good Go integration, simple workflow)
+**Decision needed by:** Before second schema change
 
 ### Media File Storage
 **Options:** Local filesystem vs S3-compatible storage
 **Impact if delayed:** May need to redesign download system later
 **Decision needed by:** Before P1 features (download functionality)
+
+### API Documentation
+**Options:** OpenAPI/Swagger vs manual documentation
+**Impact if delayed:** Frontend development slowed by unclear API contracts
+**Decision needed by:** Before frontend sprint
 
 ---
 
@@ -72,8 +105,10 @@ None - development environment is fully set up and ready.
 **What will fail next week?**
 
 If we don't:
-1. **Verify Docker stack works** - Cannot develop any database features
-2. **Create PostgreSQL schema** - Cannot implement any CRUD operations
-3. **Decide on primary keys** - Risk rework if schema needs to change
+1. **Install WSL2** - Cannot develop any features requiring database
+2. **Verify database schema** - Cannot build API endpoints
+3. **Test user authentication flow** - Cannot implement login
 
-**Action:** Complete Docker verification and schema design by end of Day 2 (2026-02-03).
+**Critical path:** WSL2 -> Docker -> PostgreSQL -> API Development
+
+All database-dependent work is blocked until WSL2 is installed.
