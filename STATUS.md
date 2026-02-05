@@ -1,8 +1,8 @@
 # Team4s.v3.0 - Current Status
 
-**Last Updated:** 2026-02-05
-**Phase:** P0 Features Complete
-**Overall Progress:** ~55%
+**Last Updated:** 2026-02-06
+**Phase:** P1 Features In Progress
+**Overall Progress:** ~60%
 
 ---
 
@@ -11,7 +11,7 @@
 | Milestone | Status | Progress |
 |-----------|--------|----------|
 | P0: Core Browse/View | DONE | 100% |
-| P1: Enhanced Features | TODO | 0% |
+| P1: Enhanced Features | IN PROGRESS | 25% |
 | P2: User Features | TODO | 0% |
 | P3: Admin Features | TODO | 0% |
 
@@ -31,15 +31,15 @@
 
 ---
 
-## P1 Features (Next)
+## P1 Features (In Progress)
 
-| Feature | Backend | Frontend | Priority |
-|---------|---------|----------|----------|
-| Anime Search | GET /api/v1/anime/search | SearchBar | HIGH |
-| Status Filter | ?status=ongoing | FilterUI | HIGH |
-| Type Filter | ?type=tv | FilterUI | HIGH |
-| Related Anime | GET /api/v1/anime/:id/relations | RelatedSection | MEDIUM |
-| Episode Detail | GET /api/v1/episodes/:id | /episode/:id | MEDIUM |
+| Feature | Backend | Frontend | Status |
+|---------|---------|----------|--------|
+| Anime Search | GET /api/v1/anime/search | /search + SearchBar | DONE |
+| Status Filter | ?status=ongoing | FilterUI | TODO |
+| Type Filter | ?type=tv | FilterUI | TODO |
+| Related Anime | GET /api/v1/anime/:id/relations | RelatedSection | TODO |
+| Episode Detail | GET /api/v1/episodes/:id | /episode/:id | TODO |
 
 ---
 
@@ -48,6 +48,8 @@
 **Frontend (http://localhost:3000):**
 - `/anime` - Anime-Liste mit A-Z Filter und Pagination
 - `/anime/:id` - Anime-Detail mit Cover, Infos, Episoden-Liste
+- `/search?q=query` - Suchergebnisse mit Anime-Liste
+- Header mit SearchBar auf allen Seiten
 - Dark Theme, Responsive Design, CSS Modules
 
 **Backend API (http://localhost:8080):**
@@ -57,6 +59,7 @@
 | GET | /api/v1/anime | Liste mit Filtern und Pagination |
 | GET | /api/v1/anime/:id | Anime-Detail |
 | GET | /api/v1/anime/:id/episodes | Episoden eines Anime |
+| GET | /api/v1/anime/search | Suche nach Anime (q=query) |
 
 ### How to Verify
 ```bash

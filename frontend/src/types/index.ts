@@ -100,3 +100,19 @@ export interface EpisodesResponse {
   data: Episode[];
   meta: { total: number };
 }
+
+// Search Types
+export interface SearchMeta {
+  total: number;
+  query: string;
+}
+
+export interface SearchResponse<T> {
+  data: T[];
+  meta: SearchMeta;
+}
+
+export interface SearchParams {
+  q: string;
+  limit?: number;
+}

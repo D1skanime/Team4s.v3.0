@@ -156,3 +156,81 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64) (*models.Anime,
 
 	return &a, nil
 }
+
+// Search searches for anime by title, title_de, and title_en
+func (r *AnimeRepository) Search(ctx context.Context, query string, limit int) ([]models.AnimeListItem, int64, error) {
+	// Validate and set defaults
+	if limit < 1 {
+		limit = 20
+	}
+	if limit > 50 {
+		limit = 50
+	}
+
+	// Prepare search pattern for ILIKE
+	searchPattern := "%" + query + "%"
+
+	// Count total matches
+	countQuery := `
+		SELECT COUNT(*) FROM anime
+		WHERE content_type = 'anime'
+		AND (
+			title ILIKE $1
+			OR title_de ILIKE $1
+			OR title_en ILIKE $1
+		)
+	`
+
+	var total int64
+	if err := r.db.QueryRow(ctx, countQuery, searchPattern).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("count search results: %w", err)
+	}
+
+	// Data query with relevance ordering (exact matches first, then by title)
+	dataQuery := `
+		SELECT id, title, type, status, year, cover_image, max_episodes
+		FROM anime
+		WHERE content_type = 'anime'
+		AND (
+			title ILIKE $1
+			OR title_de ILIKE $1
+			OR title_en ILIKE $1
+		)
+		ORDER BY
+			CASE WHEN LOWER(title) = LOWER($2) THEN 0
+			     WHEN LOWER(title) LIKE LOWER($2) || '%' THEN 1
+			     ELSE 2
+			END,
+			title
+		LIMIT $3
+	`
+
+	rows, err := r.db.Query(ctx, dataQuery, searchPattern, query, limit)
+	if err != nil {
+		return nil, 0, fmt.Errorf("search anime: %w", err)
+	}
+	defer rows.Close()
+
+	var items []models.AnimeListItem
+	for rows.Next() {
+		var item models.AnimeListItem
+		if err := rows.Scan(
+			&item.ID,
+			&item.Title,
+			&item.Type,
+			&item.Status,
+			&item.Year,
+			&item.CoverImage,
+			&item.MaxEpisodes,
+		); err != nil {
+			return nil, 0, fmt.Errorf("scan search result: %w", err)
+		}
+		items = append(items, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("iterate search results: %w", err)
+	}
+
+	return items, total, nil
+}

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Link from 'next/link';
+import { Header } from '@/components/layout/Header';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -18,30 +18,7 @@ export default function RootLayout({
   return (
     <html lang="de">
       <body className={inter.className}>
-        <header style={{
-          background: 'var(--bg-secondary)',
-          borderBottom: '1px solid var(--bg-hover)',
-          padding: 'var(--space-4) 0',
-        }}>
-          <div className="container" style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
-            <Link href="/" style={{
-              fontSize: 'var(--text-xl)',
-              fontWeight: 700,
-              color: 'var(--accent-primary)',
-            }}>
-              Team4s
-            </Link>
-            <nav style={{ display: 'flex', gap: 'var(--space-4)' }}>
-              <Link href="/anime" style={{ color: 'var(--text-secondary)' }}>
-                Anime
-              </Link>
-            </nav>
-          </div>
-        </header>
+        <Header />
         {children}
       </body>
     </html>

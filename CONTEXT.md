@@ -4,9 +4,9 @@
 Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stack to a modern Go + Next.js + PostgreSQL architecture.
 
 ## Current Phase
-**Phase:** P0 Features Complete
+**Phase:** P1 Features In Progress
 **Started:** 2026-02-02
-**Status:** Core Browse/View functionality working, ready for P1 features
+**Status:** Core Browse/View + Search Feature complete, continuing with P1
 
 ## Project State
 
@@ -43,11 +43,15 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - [x] **47,145+ records migrated from legacy database**
 
 ### In Progress
-- [ ] P1-1: Anime Search Endpoint
 - [ ] P1-2: Advanced Filters (Status, Type)
 - [ ] P1-3: Related Anime Section
+- [ ] P1-4: Episode Detail View
 
-### Recently Completed (2026-02-05)
+### Recently Completed (2026-02-05/06)
+- [x] P1-1: Search Feature (Backend + Frontend) - NEU
+- [x] SearchBar Komponente mit Autocomplete-Style
+- [x] Header Komponente mit Navigation
+- [x] Search Page mit Ergebnissen
 - [x] Connect Go backend to PostgreSQL (pgx pool)
 - [x] Implement real API endpoints with database queries
 - [x] Frontend with Next.js 14 App Router
@@ -106,11 +110,18 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 
 ## Session History
 
-### Day 2026-02-05
-- Phase: P0 Features (COMPLETED)
+### Day 2026-02-05/06
+- Phase: P0 COMPLETED + P1-1 COMPLETED
 - Accomplishments:
+  - Backend: Search Handler in anime.go hinzugefuegt
+  - Backend: Search Repository-Methode mit ILIKE Query
+  - Backend: SearchResponse Model fuer strukturierte Rueckgabe
+  - Frontend: Search Page (/search) erstellt
+  - Frontend: SearchBar Komponente mit Styling
+  - Frontend: Header Komponente mit globaler Navigation
+  - Frontend: Layout.tsx refactored (Header integriert)
   - Backend: Database connection with pgxpool, Repository pattern
-  - Backend: 3 API endpoints (anime list, detail, episodes)
+  - Backend: 4 API endpoints (anime list, detail, episodes, SEARCH)
   - Frontend: Next.js 14 App with App Router
   - Frontend: Anime-Liste mit A-Z Filter und Pagination
   - Frontend: Anime-Detail Page mit Cover, Infos
@@ -121,11 +132,14 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
   - CSS Modules statt Tailwind (bessere Performance, mehr Kontrolle)
   - Server Components fuer alle Pages (schnelleres Initial Load)
   - Repository Pattern im Backend (saubere Trennung)
+  - ILIKE fuer Case-insensitive Suche (performant genug fuer 13k records)
+  - SearchBar als eigenstaendige Komponente (wiederverwendbar)
 - Risks/Unknowns:
   - Stream-Links noch nicht geparst
   - User-Auth noch Placeholder
-- Next Steps: P1 Features (Search, Filter, Related Anime)
-- First task tomorrow: Search-Endpoint implementieren
+  - Full-text Search fuer bessere Performance bei Wachstum
+- Next Steps: P1-2 Advanced Filters, P1-3 Related Anime
+- First task tomorrow: Status/Type Filter implementieren
 
 ### Day 2026-02-03
 - Phase: Database Migration (COMPLETED)

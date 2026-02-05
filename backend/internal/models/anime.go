@@ -61,3 +61,15 @@ type PaginatedResponse[T any] struct {
 	Data []T            `json:"data"`
 	Meta PaginationMeta `json:"meta"`
 }
+
+// SearchMeta contains metadata for search results
+type SearchMeta struct {
+	Total int64  `json:"total"`
+	Query string `json:"query"`
+}
+
+// SearchResponse wraps search results with metadata
+type SearchResponse[T any] struct {
+	Data []T        `json:"data"`
+	Meta SearchMeta `json:"meta"`
+}

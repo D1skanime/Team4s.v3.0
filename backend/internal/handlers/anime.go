@@ -65,6 +65,42 @@ func (h *AnimeHandler) List(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// Search handles GET /api/v1/anime/search
+func (h *AnimeHandler) Search(c *gin.Context) {
+	// Parse query parameter
+	query := c.Query("q")
+	if len(query) < 2 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "search query must be at least 2 characters"})
+		return
+	}
+
+	// Parse limit parameter
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+
+	// Search database
+	items, total, err := h.repo.Search(c.Request.Context(), query, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+
+	// Ensure items is not nil for JSON
+	if items == nil {
+		items = []models.AnimeListItem{}
+	}
+
+	// Build response
+	response := models.SearchResponse[models.AnimeListItem]{
+		Data: items,
+		Meta: models.SearchMeta{
+			Total: total,
+			Query: query,
+		},
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
 // GetByID handles GET /api/v1/anime/:id
 func (h *AnimeHandler) GetByID(c *gin.Context) {
 	// Parse ID

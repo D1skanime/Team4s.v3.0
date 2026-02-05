@@ -80,6 +80,7 @@ func main() {
 	{
 		// Anime routes
 		v1.GET("/anime", animeHandler.List)
+		v1.GET("/anime/search", animeHandler.Search)
 		v1.GET("/anime/:id", animeHandler.GetByID)
 		v1.GET("/anime/:id/episodes", episodeHandler.ListByAnime)
 

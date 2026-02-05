@@ -6,6 +6,8 @@ import type {
   ApiResponse,
   AnimeListParams,
   EpisodesResponse,
+  SearchResponse,
+  SearchParams,
 } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090';
@@ -69,6 +71,15 @@ export const api = {
   // Episodes by Anime
   getEpisodes: (animeId: number): Promise<EpisodesResponse> => {
     return fetchApi(`/api/v1/anime/${animeId}/episodes`);
+  },
+
+  // Search Anime
+  searchAnime: (params: SearchParams): Promise<SearchResponse<AnimeListItem>> => {
+    const query = buildQueryString({
+      q: params.q,
+      limit: params.limit || 20,
+    });
+    return fetchApi(`/api/v1/anime/search${query}`);
   },
 };
 
