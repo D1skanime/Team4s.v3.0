@@ -83,17 +83,19 @@ The legacy system uses WCF's crypt-compatible password hashing. If we cannot ver
 **Impact:** High | **Likelihood:** Medium
 
 Legacy system has anime covers and download files stored locally. Need strategy for:
-- Cover images (~13,326 files)
+- Cover images - DONE (2.386 migriert)
+- Fansub logos - DONE (105 migriert)
 - Download files (unknown count/size)
 - Stream links (stored as legacy HTML)
 
 **Mitigation:**
-- [ ] Audit current file storage location and size
-- [ ] Decide storage strategy (local vs S3-compatible)
-- [ ] Create file migration script
+- [x] Audit current file storage location and size
+- [x] Migrate cover images to frontend/public/covers/
+- [x] Migrate fansub logos to frontend/public/groups/
+- [ ] Decide storage strategy for downloads (local vs S3-compatible)
 - [ ] Parse stream_links_legacy into structured format
 
-**Owner:** TBD | **Due:** Before frontend development
+**Owner:** D1skanime | **Due:** Before P1 episode detail feature
 
 ---
 
@@ -148,8 +150,16 @@ Some migrated records may reference anime/episodes that were deleted in legacy s
 
 ### API Documentation
 **Options:** OpenAPI/Swagger vs manual documentation
-**Impact if delayed:** Frontend development slowed by unclear API contracts
-**Decision needed by:** Before frontend sprint
+**Impact if delayed:** External API consumers have no reference
+**Decision needed by:** Before public API release
+
+---
+
+## Resolved Risks (2026-02-05)
+- **Frontend Framework:** Resolved - Next.js 14 with App Router working
+- **CSS Strategy:** Resolved - CSS Modules chosen over Tailwind
+- **Cover Migration:** Resolved - 2.386 images successfully migrated
+- **API Design:** Resolved - RESTful endpoints with pagination working
 
 ---
 
@@ -157,10 +167,10 @@ Some migrated records may reference anime/episodes that were deleted in legacy s
 **What will fail next week?**
 
 If we don't:
-1. **Connect Go backend to database** - Cannot build any real features
+1. **Implement Search** - Users cannot find specific anime
 2. **Plan user migration** - Social features will have wrong attribution
-3. **Decide on media storage** - May need major refactor later
+3. **Parse stream links** - Episode detail pages will be incomplete
 
-**Critical path:** Backend DB connection -> API endpoints -> Frontend
+**Critical path:** Search -> Filters -> Auth -> Social Features
 
-The database is ready - backend development is now the priority.
+P0 is complete - P1 features are now the priority.

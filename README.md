@@ -8,60 +8,78 @@ This project modernizes the legacy Team4s Anime Portal from WoltLab WBB4/WCF + P
 
 ### Tech Stack
 - **Backend:** Go 1.25.6 with Gin framework
-- **Frontend:** Next.js 14 (App Router) + TypeScript
+- **Frontend:** Next.js 14 (App Router) + TypeScript + CSS Modules
 - **Database:** PostgreSQL 16 (via Docker)
 - **Cache/Sessions:** Redis 7 (via Docker)
-- **Auth:** JWT + Refresh Tokens
+- **Auth:** JWT + Refresh Tokens (planned)
 - **Deployment:** Docker Compose
 
 ## Current Status
 
-**Phase:** Backend Development (Database Ready)
-**Progress:** ~35%
+**Phase:** P0 Features Complete
+**Progress:** ~55%
 
-### Completed
-- Legacy system analysis (10 database tables documented)
-- Feature requirements (15 features cataloged)
-- API endpoint mapping (20+ endpoints)
-- Go backend skeleton with Gin framework
-- Docker Compose configuration (PostgreSQL + Redis + Adminer)
-- PostgreSQL schema (13 tables)
-- **MySQL to PostgreSQL migration complete (47,145+ records)**
-  - 13,326 anime entries
-  - 30,179 episodes
-  - 2,323 anime relations
+### What Works Now
 
-### In Progress
-- Go backend database connection
-- Real API endpoint implementation
+**Frontend (http://localhost:3000):**
+- `/anime` - Anime-Liste mit A-Z Filter und Pagination
+- `/anime/:id` - Anime-Detail mit Cover, Infos, Episoden-Liste
+- Dark Theme, Responsive Design
+
+**Backend API (http://localhost:8080):**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /health | Health check mit DB-Status |
+| GET | /api/v1/anime | Liste mit Filtern und Pagination |
+| GET | /api/v1/anime/:id | Anime-Detail |
+| GET | /api/v1/anime/:id/episodes | Episoden eines Anime |
+
+### Data Available
+| Table | Records |
+|-------|---------|
+| anime | 13,326 |
+| episodes | 30,179 |
+| anime_relations | 2,323 |
+| covers | 2,386 images |
+| fansub logos | 105 images |
+
+### What's Next (P1 Features)
+1. Anime Search
+2. Advanced Filters (Status, Type)
+3. Related Anime Section
+4. Episode Detail View
+
+### Known Risks / Blockers
+- User Migration pending (all user_id = 1 temporarily)
+- FK Constraints disabled for bulk import
+- Stream-Links not yet parsed
 
 ## Quick Start
 
 ### Prerequisites
 - Go 1.25.6+
+- Node.js 18+
 - Docker Desktop (with WSL2 on Windows)
-- Node.js 18+ (for frontend, coming soon)
 
 ### Start Development Environment
 
 ```bash
-# 1. Start Docker Desktop (Windows: manual start required)
+# 1. Start Docker Desktop
 
 # 2. Start database stack
 docker-compose up -d
 
-# 3. Verify databases are running
-# Open http://localhost:8081 (Adminer)
-# Login: System=PostgreSQL, Server=postgres, User=team4s, Password=team4s_dev_password
-
-# 4. Run the backend
+# 3. Start backend
 cd backend
 cp .env.example .env  # First time only
 go run cmd/server/main.go
+# API at http://localhost:8080
 
-# 5. Test the API
-curl http://localhost:8080/health
-# Expected: {"service":"team4s-api","status":"ok"}
+# 4. Start frontend
+cd frontend
+npm install  # First time only
+npm run dev
+# App at http://localhost:3000
 ```
 
 ### Stop Development Environment
@@ -75,20 +93,23 @@ docker-compose down
 ```
 Team4s.v3.0/
   backend/           # Go API server
-    cmd/server/      # Application entry point
-    internal/        # Private application code
-    pkg/             # Public libraries
-    .env.example     # Environment template
-  frontend/          # Next.js application (coming soon)
-  database/          # Database files
-    migrations/      # SQL migration files
-    migration_data/  # Generated import SQL (gitignored)
-    init.sql         # Initial schema
-    migrate_mysql_to_postgres.py  # Migration script
-  docs/              # Documentation and day logs
-  context/           # Legacy context files
-  data/              # Docker volume data (gitignored)
-  docker-compose.yml # Local dev infrastructure
+    cmd/server/      # Entry point
+    internal/        # Private code
+      database/      # PostgreSQL connection
+      handlers/      # HTTP handlers
+      models/        # Data structures
+      repository/    # Database queries
+  frontend/          # Next.js application
+    src/
+      app/           # Pages (App Router)
+      components/    # React components
+      lib/           # API client, utilities
+      types/         # TypeScript interfaces
+    public/
+      covers/        # Anime cover images (gitignored)
+      groups/        # Fansub logos (gitignored)
+  database/          # Migration files
+  docs/              # Day logs
   CONTEXT.md         # Project context
   STATUS.md          # Current status
   TOMORROW.md        # Next day's plan
@@ -96,43 +117,9 @@ Team4s.v3.0/
   DECISIONS.md       # Architecture decisions
 ```
 
-## Database
+## Environment Variables
 
-### Current Data
-| Table | Records |
-|-------|---------|
-| anime | 13,326 |
-| episodes | 30,179 |
-| anime_relations | 2,323 |
-| comments | 145 |
-| ratings | 456 |
-| watchlist | 716 |
-
-### Access Database
-- **Adminer:** http://localhost:8081
-- **Direct:** `docker exec -it team4sv30-postgres-1 psql -U team4s`
-
-## API Endpoints (Current)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | /health | Health check |
-| GET | /api/v1/anime | List anime (placeholder) |
-| GET | /api/v1/anime/:id | Anime detail (placeholder) |
-| POST | /api/v1/auth/login | Login (placeholder) |
-
-## Documentation
-
-- **Architecture Decisions:** See `DECISIONS.md`
-- **Day Logs:** See `docs/` directory
-- **Legacy Analysis:** See `../Team4s.v2.0/reports/Final.md`
-
-## Development
-
-### Environment Variables
-
-Copy `backend/.env.example` to `backend/.env` and adjust as needed:
-
+### Backend (backend/.env)
 ```env
 PORT=8080
 GIN_MODE=debug
@@ -141,26 +128,19 @@ JWT_SECRET=your-super-secret-key-change-in-production
 REDIS_URL=redis://localhost:6379
 ```
 
-### Database Management
+### Frontend
+Uses backend at `http://localhost:8080` by default.
 
-Access Adminer at http://localhost:8081 for visual database management.
+## Database Access
 
-### Re-run Migration
+- **Adminer:** http://localhost:8081
+- **Direct:** `docker exec -it team4sv30-postgres-1 psql -U team4s`
 
-If you need to re-import legacy data:
+## Documentation
 
-```bash
-# Generate SQL from MySQL dump
-python database/migrate_mysql_to_postgres.py
-
-# Import (from project root)
-docker exec -i team4sv30-postgres-1 psql -U team4s < database/migration_data/anime.sql
-# ... repeat for other tables
-```
-
-## Contributing
-
-This is a private project for the Team4s community.
+- **Day Logs:** `docs/YYYY-MM-DD - day-summary.md`
+- **Decisions:** `DECISIONS.md`
+- **Risks:** `RISKS.md`
 
 ## License
 

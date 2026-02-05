@@ -66,3 +66,7 @@ database/migration_data/
 *.key
 credentials.json
 secrets.json
+
+# Asset files (too large for git)
+frontend/public/covers/
+frontend/public/groups/

@@ -1,0 +1,152 @@
+# API Contract: Anime List
+# Feature: Anime Liste mit A-Z Filter und Pagination
+
+endpoint:
+  method: GET
+  path: /api/v1/anime
+  description: Listet alle Anime mit Filtern und Pagination
+
+request:
+  query_params:
+    - name: page
+      type: integer
+      default: 1
+      description: Aktuelle Seite
+
+    - name: per_page
+      type: integer
+      default: 24
+      description: Einträge pro Seite (max 100)
+
+    - name: letter
+      type: string
+      default: ""
+      description: |
+        Filter nach Anfangsbuchstabe:
+        - "A"-"Z": Titel beginnt mit Buchstabe
+        - "0": Titel beginnt mit Zahl
+        - "": Alle Anime (kein Filter)
+
+    - name: content_type
+      type: string
+      enum: [anime, hentai]
+      default: anime
+      description: Inhaltstyp filtern
+
+    - name: status
+      type: string
+      enum: [ongoing, done, aborted, licensed, disabled]
+      default: ""
+      description: Status filtern (leer = alle)
+
+    - name: type
+      type: string
+      enum: [tv, film, ova, ona, special, bonus]
+      default: ""
+      description: Anime-Typ filtern (leer = alle)
+
+response:
+  status: 200
+  content_type: application/json
+  body:
+    data:
+      type: array
+      items: AnimeListItem
+    meta:
+      type: PaginationMeta
+
+types:
+  AnimeListItem:
+    id:
+      type: int64
+      description: Unique ID
+    title:
+      type: string
+      description: Haupt-Titel
+    type:
+      type: anime_type
+      enum: [tv, film, ova, ona, special, bonus]
+    status:
+      type: anime_status
+      enum: [ongoing, done, aborted, licensed, disabled]
+    year:
+      type: int16
+      nullable: true
+      description: Erscheinungsjahr
+    cover_image:
+      type: string
+      nullable: true
+      description: Cover-Bild Dateiname
+    max_episodes:
+      type: int16
+      description: Maximale Episodenzahl
+
+  PaginationMeta:
+    total:
+      type: int64
+      description: Gesamtanzahl Einträge
+    page:
+      type: int
+      description: Aktuelle Seite
+    per_page:
+      type: int
+      description: Einträge pro Seite
+    total_pages:
+      type: int
+      description: Gesamtanzahl Seiten
+
+example_response:
+  data:
+    - id: 1
+      title: "Attack on Titan"
+      type: "tv"
+      status: "done"
+      year: 2013
+      cover_image: "attack-on-titan.jpg"
+      max_episodes: 25
+    - id: 2
+      title: "Akame ga Kill!"
+      type: "tv"
+      status: "done"
+      year: 2014
+      cover_image: "akame-ga-kill.jpg"
+      max_episodes: 24
+  meta:
+    total: 13326
+    page: 1
+    per_page: 24
+    total_pages: 556
+
+errors:
+  - status: 400
+    description: Ungültige Parameter
+    example:
+      error: "invalid page parameter"
+
+  - status: 500
+    description: Server-Fehler
+    example:
+      error: "internal error"
+
+# Implementation Notes
+backend:
+  files:
+    - internal/models/anime.go
+    - internal/repository/anime.go
+    - internal/handlers/anime.go
+  sql: |
+    SELECT id, title, type, status, year, cover_image, max_episodes
+    FROM anime
+    WHERE content_type = $1
+      AND ($2 = '' OR title ILIKE $2 || '%')
+      AND ($3 = '' OR status = $3)
+    ORDER BY title
+    LIMIT $4 OFFSET $5
+
+frontend:
+  files:
+    - src/app/anime/page.tsx
+    - src/components/anime/AnimeGrid.tsx
+    - src/components/anime/AnimeCard.tsx
+    - src/components/anime/AlphabetNav.tsx
+    - src/components/ui/Pagination.tsx

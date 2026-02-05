@@ -1,0 +1,43 @@
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-6);
+}
+
+.letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 var(--space-2);
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.letter:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.letter.active {
+  background: var(--accent-primary);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .letter {
+    min-width: 2rem;
+    height: 2rem;
+    font-size: var(--text-xs);
+  }
+}

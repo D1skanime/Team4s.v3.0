@@ -1,133 +1,138 @@
-# Tomorrow's Plan - 2026-02-04
+# Tomorrow's Plan - 2026-02-06
 
 ## Top 3 Priorities
 
-### 1. Connect Go Backend to PostgreSQL
-Implement database connection pool using pgx driver.
+### 1. Search Endpoint implementieren
+Full-Text-Suche ueber Anime-Titel.
 
-Steps:
-1. Create `internal/database/postgres.go` with connection pool
-2. Add database health check to `/health` endpoint
-3. Load connection string from environment variables
-4. Test connection on startup
-
+**Backend:**
 ```go
-// Expected structure
-func NewPostgresPool(ctx context.Context, connString string) (*pgxpool.Pool, error)
-func (p *Pool) Ping(ctx context.Context) error
+// GET /api/v1/anime/search?q=attack
+func (h *AnimeHandler) Search(c *gin.Context)
 ```
 
-### 2. Implement GET /api/v1/anime Endpoint
-Replace placeholder with real database query.
+**Anforderungen:**
+- Suche in: title, title_de, title_en
+- Mindestens 2 Zeichen Query
+- Pagination wie bei List
+- Case-insensitive
 
-Requirements:
-- Query anime table with pagination (default 20 per page)
-- Support query parameters: `?page=1&limit=20&status=ongoing&type=tv`
-- Return JSON with metadata: total count, page info
-- Include basic anime fields: id, title, type, status, year, cover_image
+**PostgreSQL Query:**
+```sql
+SELECT * FROM anime
+WHERE title ILIKE '%query%'
+   OR title_de ILIKE '%query%'
+   OR title_en ILIKE '%query%'
+LIMIT 24 OFFSET 0;
+```
 
-Expected response:
-```json
-{
-  "data": [...],
-  "meta": {
-    "total": 13326,
-    "page": 1,
-    "per_page": 20,
-    "total_pages": 667
-  }
+---
+
+### 2. Filter-UI im Frontend
+Erweiterte Filter fuer Anime-Liste.
+
+**Komponente:** `src/components/anime/AnimeFilters.tsx`
+
+**Filter-Optionen:**
+- Status: ongoing, done, aborted, licensed
+- Type: tv, ova, film, special, ona
+- Content Type: anime, hentai (Toggle)
+
+**Design:**
+- Kompaktes Dropdown/Chip-UI
+- Filter in URL als Query-Parameter
+- Kompatibel mit A-Z Navigation
+
+---
+
+### 3. Related Anime Section
+Zeige verwandte Anime auf Detail-Page.
+
+**Backend:**
+```go
+// GET /api/v1/anime/:id/relations
+type AnimeRelation struct {
+    RelatedAnimeID int64  `json:"related_anime_id"`
+    RelationType   string `json:"relation_type"`
+    Title          string `json:"title"`
+    CoverImage     string `json:"cover_image"`
 }
 ```
 
-### 3. Implement GET /api/v1/anime/:id Endpoint
-Single anime detail with related data.
-
-Requirements:
-- Fetch anime by ID
-- Include episodes list
-- Include anime relations (sequels/prequels)
-- Return 404 if not found
+**Frontend:**
+- Horizontale Scroll-Liste unter Episoden
+- Relation-Type als Badge (Sequel, Prequel, etc.)
 
 ---
 
 ## First 15-Minute Task
-**Create `internal/database/postgres.go` with basic connection pool setup.**
 
-This is the foundation for all database operations. Start simple:
-1. Create the file
-2. Import pgxpool
-3. Add NewPool function
-4. Add Ping function
-5. Test compilation
+**Route fuer Search hinzufuegen:**
+
+1. In `cmd/server/main.go`:
+```go
+v1.GET("/anime/search", animeHandler.Search)
+```
+
+2. In `internal/handlers/anime.go`:
+```go
+func (h *AnimeHandler) Search(c *gin.Context) {
+    q := c.Query("q")
+    if len(q) < 2 {
+        c.JSON(400, gin.H{"error": "query too short"})
+        return
+    }
+    // TODO: implement
+}
+```
+
+3. Kompilieren + testen
 
 ---
 
 ## Dependencies to Unblock Early
-1. **Docker running** - Verify with `docker ps` showing postgres container
-2. **Environment variables** - Ensure DATABASE_URL is set in .env
-3. **pgx driver** - Already installed (verify with `go list -m github.com/jackc/pgx/v5`)
 
----
-
-## Verification Checklist
-After completing priorities 1-3, verify:
-- [ ] `go run cmd/server/main.go` starts without errors
-- [ ] `/health` endpoint shows database connection status
-- [ ] `/api/v1/anime` returns paginated anime list from database
-- [ ] `/api/v1/anime/1` returns a single anime with episodes
-- [ ] Response times are reasonable (<100ms for list, <50ms for single)
+1. **Docker running** - `docker ps` zeigt postgres Container
+2. **Backend running** - Port 8080
+3. **Frontend running** - Port 3000 mit `npm run dev`
 
 ---
 
 ## If Ahead of Schedule
 
-### Implement Search Endpoint
-`GET /api/v1/anime/search?q=attack`
-- Full-text search on title, title_de, title_en
-- Return matching anime with relevance scoring
+### Anime Watchlist (P1-3)
+- Watchlist-Status Toggle auf Detail-Page
+- Erfordert: Auth-Session pruefen
+- Vereinfacht: Lokaler State ohne Backend
 
-### Add Episode Detail Endpoint
-`GET /api/v1/episodes/:id`
-- Episode detail with fansub process status
-- Include stream links (parsed from legacy format)
+### Episode Detail View (P1-4)
+- Stream-Links parsen und anzeigen
+- Fansub-Info (wenn vorhanden)
 
-### Start User Authentication
-- Create `/api/v1/auth/login` endpoint
-- Implement JWT token generation
-- Add middleware for protected routes
-
----
-
-## Environment Reminders
-- Docker Desktop should already be running from today
-- PostgreSQL container name: `team4sv30-postgres-1`
-- Database has 47,145+ records of real data to work with
-- Test with real anime IDs (1-13326 range)
+### Responsive Polish
+- Mobile Navigation
+- Touch-friendly Filter
+- Swipe fuer Pagination
 
 ---
 
-## Code Structure Reference
-```
-backend/
-  cmd/server/main.go     # Entry point - add database init here
-  internal/
-    config/              # Add database config loading
-    database/            # NEW: postgres.go connection pool
-    handlers/            # Update anime.go with real queries
-    models/              # Define Go structs for anime, episode
-    services/            # Business logic layer
-  pkg/middleware/        # Existing middleware
-```
+## Verification Checklist
+
+Nach Abschluss der Prioritaeten:
+- [ ] `/api/v1/anime/search?q=attack` liefert Ergebnisse
+- [ ] Filter-UI aendert URL-Parameter
+- [ ] Related Anime werden auf Detail-Page angezeigt
+- [ ] Keine Regression bei bestehenden Features
 
 ---
 
-## Test Data Quick Reference
-| ID | Title | Type | Status |
-|----|-------|------|--------|
-| 1 | First anime in DB | tv | varies |
-| ~13326 | Last anime in DB | varies | varies |
+## P1 Feature Roadmap (Reference)
 
-Use Adminer to find specific test IDs:
-```sql
-SELECT id, title, type, status FROM anime LIMIT 10;
-```
+| ID | Feature | Status |
+|----|---------|--------|
+| P1-1 | Anime Search | TODO |
+| P1-2 | Advanced Filters | TODO |
+| P1-3 | Anime Relations | TODO |
+| P1-4 | Episode Detail | TODO |
+| P1-5 | Watchlist UI | TODO |
+| P1-6 | Rating Display | TODO |

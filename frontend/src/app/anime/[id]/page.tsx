@@ -1,0 +1,59 @@
+import { notFound } from 'next/navigation';
+import { api } from '@/lib/api';
+import { AnimeDetail } from '@/components/anime/AnimeDetail';
+import { EpisodeList } from '@/components/anime/EpisodeList';
+import styles from './page.module.css';
+
+interface Props {
+  params: { id: string };
+}
+
+export default async function AnimeDetailPage({ params }: Props) {
+  const id = parseInt(params.id, 10);
+
+  if (isNaN(id)) {
+    notFound();
+  }
+
+  try {
+    // Fetch anime and episodes in parallel
+    const [animeResponse, episodesResponse] = await Promise.all([
+      api.getAnime(id),
+      api.getEpisodes(id).catch(() => ({ data: [], meta: { total: 0 } })),
+    ]);
+
+    const anime = animeResponse.data;
+    const episodes = episodesResponse.data;
+    const episodesTotal = episodesResponse.meta.total;
+
+    return (
+      <main className={styles.main}>
+        <div className="container">
+          <AnimeDetail anime={anime}>
+            <EpisodeList episodes={episodes} total={episodesTotal} />
+          </AnimeDetail>
+        </div>
+      </main>
+    );
+  } catch (error) {
+    notFound();
+  }
+}
+
+export async function generateMetadata({ params }: Props) {
+  const id = parseInt(params.id, 10);
+
+  if (isNaN(id)) {
+    return { title: 'Anime nicht gefunden' };
+  }
+
+  try {
+    const { data: anime } = await api.getAnime(id);
+    return {
+      title: `${anime.title} | Team4s`,
+      description: anime.description?.slice(0, 160) || `${anime.title} auf Team4s`,
+    };
+  } catch {
+    return { title: 'Anime nicht gefunden' };
+  }
+}

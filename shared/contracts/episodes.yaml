@@ -1,0 +1,155 @@
+# API Contract: Episodes
+# Feature: P0-3 Episode View
+
+feature: episodes
+version: "1.0"
+
+endpoints:
+  - name: Get Episodes by Anime
+    method: GET
+    path: /api/v1/anime/:id/episodes
+    description: Liefert alle Episoden eines Anime
+
+    path_params:
+      - name: id
+        type: integer
+        required: true
+        description: Anime ID
+
+    response:
+      type: EpisodesResponse
+      example:
+        data:
+          - id: 1
+            anime_id: 1
+            episode_number: "01"
+            title: "To You, 2000 Years From Now"
+            filename: "aot_ep01.mp4"
+            stream_links:
+              - "https://stream1.example.com/aot/01"
+              - "https://stream2.example.com/aot/01"
+            status: "public"
+            view_count: 12500
+            download_count: 3200
+            progress:
+              raw: 100
+              translate: 100
+              time: 100
+              typeset: 100
+              logo: 100
+              edit: 100
+              karatime: 100
+              karafx: 100
+              qc: 100
+              encode: 100
+            created_at: "2024-01-15T10:30:00Z"
+            updated_at: "2024-01-15T10:30:00Z"
+        meta:
+          total: 25
+
+types:
+  Episode:
+    id: int64
+    anime_id: int64
+    episode_number: string        # "01", "02", "OVA1", etc.
+    title: string | null
+    filename: string | null
+    stream_links: string[]        # Array von Stream-URLs
+    status: EpisodeStatus
+    view_count: int
+    download_count: int
+    progress: FansubProgress
+    created_at: string           # ISO 8601 datetime
+    updated_at: string           # ISO 8601 datetime
+
+  FansubProgress:
+    raw: int                     # 0-100
+    translate: int               # 0-100
+    time: int                    # 0-100
+    typeset: int                 # 0-100
+    logo: int                    # 0-100
+    edit: int                    # 0-100
+    karatime: int                # 0-100
+    karafx: int                  # 0-100
+    qc: int                      # 0-100
+    encode: int                  # 0-100
+
+  EpisodeStatus:
+    enum: [disabled, private, public]
+
+  EpisodesResponse:
+    data: Episode[]
+    meta:
+      total: int64
+
+# Go Struct Mapping
+go_types:
+  Episode:
+    file: internal/models/episode.go
+    fields:
+      - ID: int64 `json:"id"`
+      - AnimeID: int64 `json:"anime_id"`
+      - EpisodeNumber: string `json:"episode_number"`
+      - Title: *string `json:"title,omitempty"`
+      - Filename: *string `json:"filename,omitempty"`
+      - StreamLinks: []string `json:"stream_links"`
+      - Status: string `json:"status"`
+      - ViewCount: int `json:"view_count"`
+      - DownloadCount: int `json:"download_count"`
+      - Progress: FansubProgress `json:"progress"`
+      - CreatedAt: time.Time `json:"created_at"`
+      - UpdatedAt: time.Time `json:"updated_at"`
+
+  FansubProgress:
+    file: internal/models/episode.go
+    fields:
+      - Raw: int16 `json:"raw"`
+      - Translate: int16 `json:"translate"`
+      - Time: int16 `json:"time"`
+      - Typeset: int16 `json:"typeset"`
+      - Logo: int16 `json:"logo"`
+      - Edit: int16 `json:"edit"`
+      - Karatime: int16 `json:"karatime"`
+      - Karafx: int16 `json:"karafx"`
+      - QC: int16 `json:"qc"`
+      - Encode: int16 `json:"encode"`
+
+# TypeScript Interface Mapping
+typescript_types:
+  file: src/types/index.ts
+  interfaces:
+    - |
+      export interface Episode {
+        id: number;
+        anime_id: number;
+        episode_number: string;
+        title?: string;
+        filename?: string;
+        stream_links: string[];
+        status: EpisodeStatus;
+        view_count: number;
+        download_count: number;
+        progress: FansubProgress;
+        created_at: string;
+        updated_at: string;
+      }
+    - |
+      export interface FansubProgress {
+        raw: number;
+        translate: number;
+        time: number;
+        typeset: number;
+        logo: number;
+        edit: number;
+        karatime: number;
+        karafx: number;
+        qc: number;
+        encode: number;
+      }
+    - |
+      export type EpisodeStatus = 'disabled' | 'private' | 'public';
+    - |
+      export interface EpisodesResponse {
+        data: Episode[];
+        meta: { total: number };
+      }

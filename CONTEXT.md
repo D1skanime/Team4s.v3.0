@@ -4,9 +4,9 @@
 Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stack to a modern Go + Next.js + PostgreSQL architecture.
 
 ## Current Phase
-**Phase:** Backend Development (Database Ready)
+**Phase:** P0 Features Complete
 **Started:** 2026-02-02
-**Status:** Database migration complete, ready for API development
+**Status:** Core Browse/View functionality working, ready for P1 features
 
 ## Project State
 
@@ -43,9 +43,19 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - [x] **47,145+ records migrated from legacy database**
 
 ### In Progress
-- [ ] Connect Go backend to PostgreSQL (pgx pool)
-- [ ] Implement real API endpoints with database queries
-- [ ] Frontend skeleton
+- [ ] P1-1: Anime Search Endpoint
+- [ ] P1-2: Advanced Filters (Status, Type)
+- [ ] P1-3: Related Anime Section
+
+### Recently Completed (2026-02-05)
+- [x] Connect Go backend to PostgreSQL (pgx pool)
+- [x] Implement real API endpoints with database queries
+- [x] Frontend with Next.js 14 App Router
+- [x] Anime Liste mit A-Z Filter und Pagination
+- [x] Anime Detail Page mit Cover, Infos, Status
+- [x] Episode View mit Episoden-Liste
+- [x] 2.386 Cover-Bilder migriert
+- [x] 105 Fansub-Logos migriert
 
 ### Blocked
 - **User Migration:** Need to extract and migrate WCF users
@@ -95,6 +105,27 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - Database queries must use parameterized statements (no SQL injection)
 
 ## Session History
+
+### Day 2026-02-05
+- Phase: P0 Features (COMPLETED)
+- Accomplishments:
+  - Backend: Database connection with pgxpool, Repository pattern
+  - Backend: 3 API endpoints (anime list, detail, episodes)
+  - Frontend: Next.js 14 App with App Router
+  - Frontend: Anime-Liste mit A-Z Filter und Pagination
+  - Frontend: Anime-Detail Page mit Cover, Infos
+  - Frontend: Episode View mit Episoden-Liste
+  - Assets: 2.386 Covers + 105 Logos migriert
+  - Styling: CSS Modules mit Dark Theme
+- Key Decisions:
+  - CSS Modules statt Tailwind (bessere Performance, mehr Kontrolle)
+  - Server Components fuer alle Pages (schnelleres Initial Load)
+  - Repository Pattern im Backend (saubere Trennung)
+- Risks/Unknowns:
+  - Stream-Links noch nicht geparst
+  - User-Auth noch Placeholder
+- Next Steps: P1 Features (Search, Filter, Related Anime)
+- First task tomorrow: Search-Endpoint implementieren
 
 ### Day 2026-02-03
 - Phase: Database Migration (COMPLETED)

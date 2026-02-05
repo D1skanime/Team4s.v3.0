@@ -444,6 +444,135 @@ ON CONFLICT (id) DO NOTHING;
 
 ---
 
+## ADR-012: CSS Modules over Tailwind
+**Date:** 2026-02-05
+**Status:** Accepted
+
+### Context
+Need to decide on CSS strategy for the Next.js frontend.
+
+### Options Considered
+1. **Tailwind CSS** - Utility-first, rapid prototyping, large bundle
+2. **CSS Modules** - Scoped styles, native CSS, small bundle
+3. **Styled Components** - CSS-in-JS, dynamic styling, runtime overhead
+
+### Decision
+**CSS Modules**
+
+### Why This Option Won
+- Zero runtime overhead (pure CSS)
+- Scoped styles prevent conflicts
+- Full CSS feature support (custom properties, animations)
+- Smaller bundle size than Tailwind
+- IDE autocomplete with TypeScript
+- More control over design details
+
+### Consequences
+**Good:**
+- Fast performance
+- Clean separation of concerns
+- Easy to customize
+- No build-time CSS generation
+
+**Bad:**
+- More verbose than utility classes
+- No built-in design system
+
+### Implementation
+All components have `.module.css` files:
+- `AnimeCard.module.css`
+- `AnimeGrid.module.css`
+- `Pagination.module.css`
+- etc.
+
+---
+
+## ADR-013: Server Components as Default
+**Date:** 2026-02-05
+**Status:** Accepted
+
+### Context
+Next.js 14 App Router supports React Server Components (RSC) by default.
+
+### Decision
+**Use Server Components for all pages and data-fetching components**
+
+### Why
+- Faster initial page load (no JS hydration for static content)
+- Direct database/API access without client-side fetching
+- Smaller JavaScript bundle
+- Better SEO (content rendered on server)
+
+### Implementation
+```typescript
+// Server Component (default)
+export default async function AnimePage() {
+  const data = await api.getAnimeList(); // Server-side fetch
+  return <AnimeGrid anime={data} />;
+}
+```
+
+### Consequences
+**Good:**
+- Faster Time-to-First-Byte
+- Better Core Web Vitals
+- Simplified data fetching
+
+**Bad:**
+- Cannot use React hooks directly
+- Need "use client" for interactive components
+
+---
+
+## ADR-014: Repository Pattern for Database Access
+**Date:** 2026-02-05
+**Status:** Accepted
+
+### Context
+Need to structure Go backend database access cleanly.
+
+### Options Considered
+1. **Direct SQL in handlers** - Simple but hard to test
+2. **Repository Pattern** - Abstraction layer, testable
+3. **ORM (GORM)** - Full ORM, magic, potential performance issues
+
+### Decision
+**Repository Pattern with raw SQL**
+
+### Why
+- Clear separation between HTTP handlers and database logic
+- Easy to test (mock repositories)
+- Full control over SQL queries
+- No ORM overhead or magic
+
+### Implementation
+```go
+// repository/anime.go
+type AnimeRepository struct {
+    pool *pgxpool.Pool
+}
+
+func (r *AnimeRepository) List(ctx context.Context, filter AnimeFilter) ([]AnimeListItem, int64, error)
+func (r *AnimeRepository) GetByID(ctx context.Context, id int64) (*Anime, error)
+
+// handlers/anime.go
+type AnimeHandler struct {
+    repo *AnimeRepository
+}
+```
+
+### Consequences
+**Good:**
+- Testable handlers
+- Reusable queries
+- Clear boundaries
+
+**Bad:**
+- More boilerplate than ORM
+- Manual SQL management
+
+---
+
 ## Pending Decisions
 
 ### Database Migration Tool
