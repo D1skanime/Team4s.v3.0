@@ -73,3 +73,14 @@ type SearchResponse[T any] struct {
 	Data []T        `json:"data"`
 	Meta SearchMeta `json:"meta"`
 }
+
+// RelatedAnime represents an anime related to another anime
+type RelatedAnime struct {
+	ID           int64   `json:"id"`
+	Title        string  `json:"title"`
+	Type         string  `json:"type"`
+	Status       string  `json:"status"`
+	Year         *int16  `json:"year,omitempty"`
+	CoverImage   *string `json:"cover_image,omitempty"`
+	RelationType string  `json:"relation_type"`
+}

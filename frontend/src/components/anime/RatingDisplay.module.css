@@ -1,0 +1,123 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.container.compact {
+  gap: 0.5rem;
+}
+
+.main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.compact .main {
+  gap: 0.5rem;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.compact .info {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.average {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fbbf24;
+  line-height: 1;
+}
+
+.compact .average {
+  font-size: 1rem;
+}
+
+.count {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.noRating {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Distribution chart */
+.distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.distributionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.distributionLabel {
+  width: 1.5rem;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: right;
+}
+
+.distributionBarWrapper {
+  flex: 1;
+  height: 0.5rem;
+  background: #1f2937;
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.distributionBar {
+  height: 100%;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  border-radius: 0.25rem;
+  transition: width 0.3s ease;
+  min-width: 2px;
+}
+
+.distributionCount {
+  width: 2rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: right;
+}
+
+/* Badge variant */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(251, 191, 36, 0.15);
+  border-radius: 0.375rem;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.badgeStar {
+  width: 14px;
+  height: 14px;
+}
+
+.badgeValue {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fbbf24;
+}

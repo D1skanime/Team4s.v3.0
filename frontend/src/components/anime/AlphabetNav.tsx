@@ -5,13 +5,39 @@ import styles from './AlphabetNav.module.css';
 interface AlphabetNavProps {
   currentLetter: string;
   basePath?: string;
+  preserveParams?: Record<string, string>;
 }
 
-export function AlphabetNav({ currentLetter, basePath = '/anime' }: AlphabetNavProps) {
+function buildUrl(basePath: string, letter: string, preserveParams?: Record<string, string>): string {
+  const params = new URLSearchParams();
+
+  // Add preserved params first
+  if (preserveParams) {
+    Object.entries(preserveParams).forEach(([key, value]) => {
+      if (value && key !== 'letter' && key !== 'page') {
+        params.set(key, value);
+      }
+    });
+  }
+
+  // Add letter if specified
+  if (letter) {
+    params.set('letter', letter);
+  }
+
+  const queryString = params.toString();
+  return queryString ? `${basePath}?${queryString}` : basePath;
+}
+
+export function AlphabetNav({
+  currentLetter,
+  basePath = '/anime',
+  preserveParams,
+}: AlphabetNavProps) {
   return (
     <nav className={styles.nav}>
       <Link
-        href={basePath}
+        href={buildUrl(basePath, '', preserveParams)}
         className={`${styles.letter} ${currentLetter === '' ? styles.active : ''}`}
       >
         Alle
@@ -19,7 +45,7 @@ export function AlphabetNav({ currentLetter, basePath = '/anime' }: AlphabetNavP
       {ALPHABET.map((letter) => (
         <Link
           key={letter}
-          href={`${basePath}?letter=${letter}`}
+          href={buildUrl(basePath, letter, preserveParams)}
           className={`${styles.letter} ${currentLetter === letter ? styles.active : ''}`}
         >
           {letter === '0' ? '0-9' : letter}

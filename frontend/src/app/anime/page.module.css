@@ -20,3 +20,12 @@
   color: var(--text-secondary);
   margin-top: var(--space-2);
 }
+
+.filtersSkeleton {
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}

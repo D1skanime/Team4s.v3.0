@@ -71,3 +71,38 @@ func (r *EpisodeRepository) GetByAnimeID(ctx context.Context, animeID int64) ([]
 
 	return episodes, total, nil
 }
+
+// GetByID returns an episode by ID with parent anime info
+func (r *EpisodeRepository) GetByID(ctx context.Context, id int64) (*models.EpisodeDetail, error) {
+	query := `
+		SELECT
+			e.id, e.anime_id, e.episode_number, e.title, e.filename,
+			e.status, e.view_count, e.download_count,
+			COALESCE(e.stream_links, ARRAY[]::TEXT[]) as stream_links,
+			e.stream_links_legacy,
+			e.raw_proc, e.translate_proc, e.time_proc, e.typeset_proc, e.logo_proc,
+			e.edit_proc, e.karatime_proc, e.karafx_proc, e.qc_proc, e.encode_proc,
+			e.created_at, e.updated_at,
+			a.id as anime_id, a.title as anime_title, a.cover_image as anime_cover
+		FROM episodes e
+		JOIN anime a ON a.id = e.anime_id
+		WHERE e.id = $1
+	`
+
+	var ep models.EpisodeDetail
+	err := r.db.QueryRow(ctx, query, id).Scan(
+		&ep.ID, &ep.AnimeID, &ep.EpisodeNumber, &ep.Title, &ep.Filename,
+		&ep.Status, &ep.ViewCount, &ep.DownloadCount,
+		&ep.StreamLinks, &ep.StreamLinksLegacy,
+		&ep.FansubProgress.Raw, &ep.FansubProgress.Translate, &ep.FansubProgress.Time,
+		&ep.FansubProgress.Typeset, &ep.FansubProgress.Logo, &ep.FansubProgress.Edit,
+		&ep.FansubProgress.Karatime, &ep.FansubProgress.Karafx, &ep.FansubProgress.QC,
+		&ep.FansubProgress.Encode, &ep.CreatedAt, &ep.UpdatedAt,
+		&ep.Anime.ID, &ep.Anime.Title, &ep.Anime.CoverImage,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("query episode by id: %w", err)
+	}
+
+	return &ep, nil
+}

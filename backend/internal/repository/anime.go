@@ -234,3 +234,45 @@ func (r *AnimeRepository) Search(ctx context.Context, query string, limit int) (
 
 	return items, total, nil
 }
+
+// GetRelations returns all related anime for a given anime ID
+func (r *AnimeRepository) GetRelations(ctx context.Context, animeID int64) ([]models.RelatedAnime, error) {
+	query := `
+		SELECT
+			a.id, a.title, a.type, a.status, a.year, a.cover_image,
+			ar.relation_type
+		FROM anime_relations ar
+		JOIN anime a ON a.id = ar.related_anime_id
+		WHERE ar.anime_id = $1
+		ORDER BY ar.relation_type, a.title
+	`
+
+	rows, err := r.db.Query(ctx, query, animeID)
+	if err != nil {
+		return nil, fmt.Errorf("query anime relations: %w", err)
+	}
+	defer rows.Close()
+
+	var relations []models.RelatedAnime
+	for rows.Next() {
+		var rel models.RelatedAnime
+		if err := rows.Scan(
+			&rel.ID,
+			&rel.Title,
+			&rel.Type,
+			&rel.Status,
+			&rel.Year,
+			&rel.CoverImage,
+			&rel.RelationType,
+		); err != nil {
+			return nil, fmt.Errorf("scan relation: %w", err)
+		}
+		relations = append(relations, rel)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate relations: %w", err)
+	}
+
+	return relations, nil
+}

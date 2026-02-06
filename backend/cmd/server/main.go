@@ -42,6 +42,9 @@ func main() {
 	episodeRepo := repository.NewEpisodeRepository(db.Pool)
 	episodeHandler := handlers.NewEpisodeHandler(episodeRepo)
 
+	ratingRepo := repository.NewRatingRepository(db.Pool)
+	ratingHandler := handlers.NewRatingHandler(ratingRepo)
+
 	// Set Gin mode
 	mode := os.Getenv("GIN_MODE")
 	if mode == "" {
@@ -83,6 +86,11 @@ func main() {
 		v1.GET("/anime/search", animeHandler.Search)
 		v1.GET("/anime/:id", animeHandler.GetByID)
 		v1.GET("/anime/:id/episodes", episodeHandler.ListByAnime)
+		v1.GET("/anime/:id/relations", animeHandler.GetRelations)
+		v1.GET("/anime/:id/rating", ratingHandler.GetAnimeRating)
+
+		// Episode routes
+		v1.GET("/episodes/:id", episodeHandler.GetByID)
 
 		// Auth routes (placeholder)
 		v1.POST("/auth/login", func(c *gin.Context) {

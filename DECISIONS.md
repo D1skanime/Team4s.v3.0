@@ -573,6 +573,248 @@ type AnimeHandler struct {
 
 ---
 
+## ADR-015: AnimeFilters als Client Component
+**Date:** 2026-02-06
+**Status:** Accepted
+
+### Context
+Filter-Komponente fuer Status/Type auf der Anime-Liste benoetigt.
+
+### Options Considered
+1. **Server Component** - Filter als URL-Parameter, kein JS
+2. **Client Component** - Interaktive Dropdowns mit URL-State Sync
+3. **Mixed** - Server Component mit Client-Side Filter-UI
+
+### Decision
+**Client Component mit URL-State Synchronisation**
+
+### Why This Option Won
+- useSearchParams Hook erfordert Client Component
+- Interaktive Dropdowns benoetigen State
+- URL-State ermoeglicht Bookmarking und Sharing
+- Page-Reset bei Filter-Aenderung moeglich
+
+### Implementation
+```typescript
+'use client';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+const updateFilter = (key: string, value: string) => {
+  const params = new URLSearchParams(searchParams.toString());
+  if (value) params.set(key, value);
+  else params.delete(key);
+  params.delete('page'); // Reset pagination
+  router.push(`/anime?${params.toString()}`);
+};
+```
+
+### Consequences
+**Good:**
+- Shareable URLs mit Filter-State
+- Browser-History funktioniert korrekt
+- SEO-freundlich (Server kann Filter auslesen)
+
+**Bad:**
+- Zusaetzliches JS Hydration
+- Kleine Verzoegerung bei URL-Update
+
+---
+
+## ADR-016: Horizontaler Scroll fuer Related Anime
+**Date:** 2026-02-06
+**Status:** Accepted
+
+### Context
+Verwandte Anime auf Anime-Detail-Page anzeigen.
+
+### Options Considered
+1. **Grid Layout** - Mehrere Reihen, alle sichtbar
+2. **Carousel** - Mit Prev/Next Buttons, Animation
+3. **Horizontal Scroll** - Native Browser-Scroll, touch-freundlich
+
+### Decision
+**Horizontale Scroll-Liste**
+
+### Why This Option Won
+- Native Touch-Gesten funktionieren out-of-the-box
+- Keine zusaetzliche JS-Bibliothek noetig
+- Platzsparend auf Desktop und Mobile
+- Einfache Implementation mit CSS overflow-x
+
+### Implementation
+```css
+.scrollContainer {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.cardList {
+  display: flex;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+}
+```
+
+### Consequences
+**Good:**
+- Natuerliches Scrollverhalten
+- Touch-freundlich ohne JS
+- Keine externe Abhaengigkeit
+
+**Bad:**
+- Kein visueller Hinweis auf mehr Content (optional: Fade-Edge hinzufuegen)
+- Keine Pagination bei sehr vielen Relations
+
+---
+
+## ADR-017: localStorage fuer Watchlist (Pre-Auth)
+**Date:** 2026-02-06
+**Status:** Accepted (Temporary)
+
+### Context
+Watchlist-Feature benoetigt, aber Auth-System noch nicht implementiert.
+
+### Options Considered
+1. **Warten auf Auth** - Feature erst mit P2 Auth
+2. **Backend ohne Auth** - Anonymous Watchlist via Session
+3. **localStorage** - Client-seitige Speicherung
+
+### Decision
+**localStorage mit Migration zu Backend bei Auth**
+
+### Why This Option Won
+- Feature sofort nutzbar ohne Login
+- Einfache Implementation
+- Klare Migration-Path zu Backend
+- localStorage persistent ueber Sessions
+
+### Implementation
+```typescript
+interface WatchlistEntry {
+  animeId: number;
+  status: WatchlistStatus;
+  addedAt: string;
+}
+
+// localStorage Key: 'team4s_watchlist'
+```
+
+### Consequences
+**Good:**
+- Sofort nutzbar
+- Keine Backend-Aenderungen noetig
+- Progressive Enhancement
+
+**Bad:**
+- Daten nur lokal (kein Cross-Device)
+- Datenverlust bei Browser-Clear moeglich
+- Migration bei Auth-Einbau noetig
+
+### Follow-ups
+- [ ] Backend Watchlist Endpoint mit P2 Auth
+- [ ] Migration von localStorage zu Backend bei Login
+- [ ] Merge-Strategie fuer Konflikte
+
+---
+
+## ADR-018: SVG clipPath fuer StarRating
+**Date:** 2026-02-06
+**Status:** Accepted
+
+### Context
+Rating-Anzeige mit 0-10 Skala auf 5 Sterne mappen, halbe Sterne unterstuetzen.
+
+### Options Considered
+1. **Icon-Austausch** - Volle/Halbe/Leere Star-Icons
+2. **CSS Width** - Icon mit overflow:hidden beschneiden
+3. **SVG clipPath** - Praezise Beschneidung im SVG selbst
+
+### Decision
+**SVG clipPath fuer praezise Partial-Fills**
+
+### Why This Option Won
+- Beliebige Fill-Prozentsaetze moeglich (nicht nur 0/50/100)
+- Kein Icon-Wechsel bei Wertaenderung
+- Saubere Animation moeglich
+- Ein SVG pro Stern, keine externen Assets
+
+### Implementation
+```tsx
+<svg viewBox="0 0 24 24">
+  {/* Empty star background */}
+  <path className={styles.starEmpty} d="M12 2l3.09 6.26..." />
+
+  {/* Filled star with clip */}
+  <defs>
+    <clipPath id={`star-clip-${i}`}>
+      <rect x="0" y="0" width={`${fillPercent}%`} height="100%" />
+    </clipPath>
+  </defs>
+  <path className={styles.starFilled} clipPath={`url(#star-clip-${i})`} d="..." />
+</svg>
+```
+
+### Consequences
+**Good:**
+- Praezise Wertdarstellung
+- Smooth, keine Icon-Spruenge
+- Kein externes Icon-Set noetig
+
+**Bad:**
+- clipPath ID muss unique sein (potentielle Kollision)
+- Etwas komplexeres SVG
+
+### Follow-ups
+- [ ] Unique ID Generation mit useId() Hook
+- [ ] Test mit mehreren Ratings auf einer Page
+
+---
+
+## ADR-019: FansubProgress mit 10 Progress-Bars
+**Date:** 2026-02-06
+**Status:** Accepted
+
+### Context
+Legacy-System hatte 10 Prozentspalten fuer Fansub-Fortschritt pro Episode.
+
+### Options Considered
+1. **Single Progress Bar** - Gesamtfortschritt als ein Wert
+2. **10 Progress Bars** - Jeder Schritt einzeln
+3. **Hybrid** - Gesamtfortschritt + Detail-Aufklapp
+
+### Decision
+**10 einzelne Progress-Bars mit Farbcodierung**
+
+### Why This Option Won
+- Kompatibel mit Legacy-Datenstruktur
+- Detaillierte Information fuer Fansub-Teams
+- Bekannt von altem System
+- Klare visuelle Unterscheidung per Farbe
+
+### Implementation
+```typescript
+const steps = ['raw', 'translate', 'time', 'typeset', 'logo',
+               'edit', 'karatime', 'karafx', 'qc', 'encode'];
+
+// Farbcodierung:
+// 0% -> Grau (nicht gestartet)
+// 1-99% -> Gelb (in Arbeit)
+// 100% -> Gruen (abgeschlossen)
+```
+
+### Consequences
+**Good:**
+- Detaillierte Information
+- Legacy-kompatibel
+- Visuell klar
+
+**Bad:**
+- Mehr vertikaler Platz benoetigt
+- Kann unuebersichtlich wirken fuer Casual Users
+
+---
+
 ## Pending Decisions
 
 ### Database Migration Tool

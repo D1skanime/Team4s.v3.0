@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { api } from '@/lib/api';
 import { AnimeDetail } from '@/components/anime/AnimeDetail';
 import { EpisodeList } from '@/components/anime/EpisodeList';
+import { RelatedAnime } from '@/components/anime/RelatedAnime';
 import styles from './page.module.css';
 
 interface Props {
@@ -16,10 +17,12 @@ export default async function AnimeDetailPage({ params }: Props) {
   }
 
   try {
-    // Fetch anime and episodes in parallel
-    const [animeResponse, episodesResponse] = await Promise.all([
+    // Fetch anime, episodes, relations, and rating in parallel
+    const [animeResponse, episodesResponse, relations, rating] = await Promise.all([
       api.getAnime(id),
       api.getEpisodes(id).catch(() => ({ data: [], meta: { total: 0 } })),
+      api.getAnimeRelations(id).catch(() => []),
+      api.getAnimeRating(id).catch(() => null),
     ]);
 
     const anime = animeResponse.data;
@@ -29,9 +32,10 @@ export default async function AnimeDetailPage({ params }: Props) {
     return (
       <main className={styles.main}>
         <div className="container">
-          <AnimeDetail anime={anime}>
+          <AnimeDetail anime={anime} rating={rating}>
             <EpisodeList episodes={episodes} total={episodesTotal} />
           </AnimeDetail>
+          <RelatedAnime relations={relations} />
         </div>
       </main>
     );

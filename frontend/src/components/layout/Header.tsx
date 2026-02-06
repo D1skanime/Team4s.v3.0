@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Bookmark } from 'lucide-react';
 import { SearchBar } from '@/components/ui/SearchBar';
 import styles from './Header.module.css';
 
@@ -15,6 +16,10 @@ export function Header() {
           <nav className={styles.nav}>
             <Link href="/anime" className={styles.navLink}>
               Anime
+            </Link>
+            <Link href="/watchlist" className={styles.navLink}>
+              <Bookmark size={16} />
+              <span>Watchlist</span>
             </Link>
           </nav>
         </div>

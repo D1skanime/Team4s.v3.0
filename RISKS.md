@@ -79,23 +79,22 @@ The legacy system uses WCF's crypt-compatible password hashing. If we cannot ver
 
 ---
 
-### 2. Media File Migration
-**Impact:** High | **Likelihood:** Medium
+### 2. Stream Links Parsing
+**Impact:** Medium | **Likelihood:** High
 
-Legacy system has anime covers and download files stored locally. Need strategy for:
-- Cover images - DONE (2.386 migriert)
-- Fansub logos - DONE (105 migriert)
-- Download files (unknown count/size)
-- Stream links (stored as legacy HTML)
+Legacy stream links are stored as HTML in `stream_links_legacy` column. Episode Detail currently cannot display structured stream links.
+
+**Current State:**
+- Episode Detail shows FansubProgress but no actual stream links
+- HTML contains `<a href="...">` tags that need parsing
 
 **Mitigation:**
-- [x] Audit current file storage location and size
-- [x] Migrate cover images to frontend/public/covers/
-- [x] Migrate fansub logos to frontend/public/groups/
-- [ ] Decide storage strategy for downloads (local vs S3-compatible)
-- [ ] Parse stream_links_legacy into structured format
+- [ ] Analyze HTML structure in legacy data
+- [ ] Create parser for stream link extraction
+- [ ] Store structured data in new format
+- [ ] Update Episode Detail to display links
 
-**Owner:** D1skanime | **Due:** Before P1 episode detail feature
+**Owner:** D1skanime | **Due:** Before Episode Detail is fully functional
 
 ---
 
@@ -118,14 +117,59 @@ Some migrated records may reference anime/episodes that were deleted in legacy s
 
 ---
 
+## Medium-Priority Risks
+
+### 4. StarRating clipPath ID Collision
+**Impact:** Low | **Likelihood:** Medium
+
+StarRating component uses static IDs (`star-clip-1`, `star-clip-2`, etc.) for SVG clipPath definitions. If multiple StarRating instances are on the same page, IDs may collide.
+
+**Current State:**
+- Works on Anime Detail (single rating display)
+- May break on list views with ratings
+
+**Mitigation:**
+- [ ] Generate unique IDs per component instance (useId hook)
+- [ ] Test with multiple ratings on one page
+
+**Owner:** D1skanime | **Due:** Before P2 rating input
+
+---
+
+### 5. localStorage Watchlist Data Loss
+**Impact:** Medium | **Likelihood:** Low
+
+Watchlist is stored in localStorage until P2 Auth is implemented. Users may lose data if:
+- Browser data is cleared
+- Different device/browser used
+- Incognito mode
+
+**Mitigation:**
+- [x] Clear warning in UI about local storage
+- [ ] Implement backend sync with P2 Auth
+- [ ] Migration path from localStorage to backend
+
+**Owner:** D1skanime | **Due:** P2 implementation
+
+---
+
 ## Resolved Risks
+
+### 2026-02-06
+- **P1 Feature Scope:** Resolved - All 6 P1 features completed
+- **Filter URL State:** Resolved - useSearchParams working correctly
+- **Related Anime Display:** Resolved - Horizontal scroll with badges
+
+### 2026-02-05
+- **Frontend Framework:** Resolved - Next.js 14 with App Router working
+- **CSS Strategy:** Resolved - CSS Modules chosen over Tailwind
+- **Cover Migration:** Resolved - 2.386 images successfully migrated
+- **API Design:** Resolved - RESTful endpoints with pagination working
 
 ### 2026-02-03
 - **WSL2 Blocker:** Resolved - installed via wsl --install after BIOS changes
 - **VARCHAR Overflow:** Resolved - changed to TEXT for HTML content fields
 - **Migration Import Errors:** Resolved - used ON CONFLICT DO NOTHING
-
-### 2026-02-03 (Morning)
 - **Primary Key Strategy:** Resolved - chose BIGSERIAL (simpler, better performance)
 - **Schema Design Approach:** Resolved - anime portal only, no WCF tables
 
@@ -143,23 +187,16 @@ Some migrated records may reference anime/episodes that were deleted in legacy s
 **Recommendation:** golang-migrate (good Go integration, simple workflow)
 **Decision needed by:** Before second schema change
 
-### Media File Storage
-**Options:** Local filesystem vs S3-compatible storage
-**Impact if delayed:** May need to redesign download system later
-**Decision needed by:** Before P1 features (download functionality)
-
 ### API Documentation
 **Options:** OpenAPI/Swagger vs manual documentation
 **Impact if delayed:** External API consumers have no reference
 **Decision needed by:** Before public API release
 
----
-
-## Resolved Risks (2026-02-05)
-- **Frontend Framework:** Resolved - Next.js 14 with App Router working
-- **CSS Strategy:** Resolved - CSS Modules chosen over Tailwind
-- **Cover Migration:** Resolved - 2.386 images successfully migrated
-- **API Design:** Resolved - RESTful endpoints with pagination working
+### Auth Token Storage
+**Options:** httpOnly cookies vs localStorage
+**Impact if delayed:** Security implications
+**Recommendation:** httpOnly cookies (more secure)
+**Decision needed by:** P2-1 Auth implementation
 
 ---
 
@@ -167,10 +204,10 @@ Some migrated records may reference anime/episodes that were deleted in legacy s
 **What will fail next week?**
 
 If we don't:
-1. **Implement Search** - Users cannot find specific anime
-2. **Plan user migration** - Social features will have wrong attribution
-3. **Parse stream links** - Episode detail pages will be incomplete
+1. **Implement Auth** - Users cannot save ratings or sync watchlists
+2. **Parse stream links** - Episode Detail remains incomplete
+3. **Plan user migration** - Social features will have wrong attribution
 
-**Critical path:** Search -> Filters -> Auth -> Social Features
+**Critical path:** Auth -> Profile -> Ratings -> Watchlist Sync
 
-P0 is complete - P1 features are now the priority.
+P0 + P1 complete - P2 User Features are now the priority.

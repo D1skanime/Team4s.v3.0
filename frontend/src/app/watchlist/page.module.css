@@ -1,0 +1,40 @@
+.main {
+  padding: var(--space-6) 0 var(--space-8);
+  min-height: calc(100vh - 70px);
+}
+
+.header {
+  margin-bottom: var(--space-8);
+}
+
+.title {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2);
+}
+
+.subtitle {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: var(--space-4) 0 var(--space-6);
+  }
+
+  .header {
+    margin-bottom: var(--space-6);
+    text-align: center;
+  }
+
+  .title {
+    font-size: var(--text-2xl);
+  }
+
+  .subtitle {
+    font-size: var(--text-sm);
+  }
+}

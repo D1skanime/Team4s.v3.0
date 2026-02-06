@@ -1,9 +1,9 @@
 # Day Summary - 2026-02-06
 
 ## Session Overview
-**Date:** 2026-02-05/06 (Nacht-Session)
-**Phase:** P0 Complete -> P1 In Progress
-**Focus:** Search Feature (P1-1) Implementation
+**Date:** 2026-02-06
+**Phase:** P1 Features COMPLETED
+**Focus:** P1-2 bis P1-6 Implementation
 
 ---
 
@@ -11,122 +11,185 @@
 
 | Planned | Result |
 |---------|--------|
-| P1-1: Search Feature | DONE |
-| Backend Search Endpoint | DONE |
-| Frontend Search Page | DONE |
-| SearchBar Komponente | DONE |
-| Header mit Navigation | DONE |
+| P1-1: Anime Search | DONE (bereits vor heute) |
+| P1-2: Advanced Filters | DONE |
+| P1-3: Related Anime | DONE |
+| P1-4: Episode Detail | DONE |
+| P1-5: Watchlist UI | DONE |
+| P1-6: Rating Display | DONE |
 
-**Completion:** 100% of planned work
+**Completion:** 100% - P1 Phase abgeschlossen!
 
 ---
 
 ## What Changed Today
 
-### Backend Changes
-**Files Modified:**
-- `backend/cmd/server/main.go` - Search Route hinzugefuegt
-- `backend/internal/handlers/anime.go` - Search Handler implementiert
-- `backend/internal/models/anime.go` - SearchResponse Struct
-- `backend/internal/repository/anime.go` - Search Query mit ILIKE
+### Backend Changes (Go)
 
-**New API Endpoint:**
-```
-GET /api/v1/anime/search?q=<query>&page=1&per_page=24
-```
-
-**Search Logic:**
-- Case-insensitive Suche mit ILIKE
-- Durchsucht: title, title_de, title_en
-- Mindestens 2 Zeichen Query erforderlich
-- Pagination unterstuetzt
-
-### Frontend Changes
 **New Files:**
-- `src/app/search/page.tsx` - Search Results Page
-- `src/components/ui/SearchBar.tsx` - Wiederverwendbare Suchleiste
-- `src/components/ui/SearchBar.module.css` - Styling
-- `src/components/layout/Header.tsx` - Globale Navigation mit Search
+- `backend/internal/models/rating.go` - Rating Model und RatingStats Struct
+- `backend/internal/repository/rating.go` - Rating Repository mit GetStats
+- `backend/internal/handlers/rating.go` - Rating Handler fuer Stats Endpoint
 
 **Modified Files:**
-- `src/app/layout.tsx` - Header integriert, Layout vereinfacht
-- `src/lib/api.ts` - searchAnime Funktion
-- `src/types/index.ts` - SearchResult Type
+- `backend/cmd/server/main.go` - Neue Routes fuer Relations, Episode Detail, Ratings
+- `backend/internal/handlers/anime.go` - GetRelations Handler
+- `backend/internal/handlers/episode.go` - GetByID Handler fuer Episode Detail
+- `backend/internal/models/anime.go` - RelatedAnime Struct
+- `backend/internal/models/episode.go` - EpisodeDetail, FansubProgress Structs
+- `backend/internal/repository/anime.go` - GetRelations() Methode
+- `backend/internal/repository/episode.go` - GetByID() mit FansubProgress
+
+**New API Endpoints:**
+```
+GET /api/v1/anime/:id/relations     - Verwandte Anime
+GET /api/v1/episodes/:id            - Episode Detail mit FansubProgress
+GET /api/v1/anime/:id/rating/stats  - Rating Statistiken
+```
+
+### Frontend Changes (Next.js)
+
+**New Files:**
+- `src/components/anime/AnimeFilters.tsx` + `.module.css` - Status/Type Filter mit URL-State
+- `src/components/anime/RelatedAnime.tsx` + `.module.css` - Horizontale Scroll-Liste
+- `src/components/anime/WatchlistButton.tsx` + `.module.css` - Dropdown mit Status-Auswahl
+- `src/components/anime/StarRating.tsx` + `.module.css` - SVG Sterne mit clipPath
+- `src/components/anime/RatingDisplay.tsx` + `.module.css` - Rating Anzeige
+- `src/components/episode/EpisodeDetail.tsx` + `.module.css` - Episode Detail View
+- `src/components/episode/FansubProgress.tsx` + `.module.css` - 10 Progress Bars
+- `src/components/watchlist/WatchlistGrid.tsx` + `.module.css` - Watchlist Anzeige
+- `src/app/episode/[id]/page.tsx` + `.module.css` - Episode Route
+- `src/app/watchlist/page.tsx` + `.module.css` - Watchlist Route
+- `src/lib/watchlist.ts` - localStorage Watchlist Helper
+
+**Modified Files:**
+- `src/app/anime/page.tsx` - AnimeFilters integriert
+- `src/app/anime/[id]/page.tsx` - RelatedAnime, WatchlistButton, RatingDisplay
+- `src/components/anime/AnimeDetail.tsx` - WatchlistButton, Rating Anzeige
+- `src/components/anime/EpisodeList.tsx` - Links zu Episode Detail
+- `src/components/layout/Header.tsx` - Watchlist Link im Header
+- `src/lib/api.ts` - Neue API Funktionen
+- `src/types/index.ts` - Neue Types
+
+**New Routes:**
+```
+/anime?status=ongoing&type=tv  - Gefilterte Anime Liste
+/episode/:id                    - Episode Detail View
+/watchlist                      - Persoenliche Watchlist
+```
 
 ---
 
 ## Key Decisions Made
 
-### 1. ILIKE statt Full-Text-Search
-**Entscheidung:** PostgreSQL ILIKE fuer Suche verwenden
-**Kontext:** Einfachere Implementierung, 13k Records
-**Alternativen:** tsvector/tsquery, Elasticsearch
-**Warum:** Performant genug fuer aktuelle Datenmenge, schneller zu implementieren
-**Konsequenz:** Bei starkem Wachstum (>100k) ggf. Migration notwendig
+### 1. AnimeFilters als Client Component
+**Entscheidung:** Separate Client Component mit URL-State Sync
+**Kontext:** Filter muessen interaktiv sein, URL fuer Bookmarking
+**Warum:** useSearchParams erfordert Client Component, URL-State fuer SEO
+**Konsequenz:** Etwas mehr Hydration, aber bessere UX und Shareable URLs
 
-### 2. SearchBar als eigenstaendige Komponente
-**Entscheidung:** SearchBar getrennt von Header
-**Kontext:** Wiederverwendbarkeit
-**Warum:** Kann in Mobile-Menu, Sidebar, etc. eingebunden werden
-**Konsequenz:** Etwas mehr Boilerplate, aber flexibler
+### 2. RelatedAnime mit horizontalem Scroll
+**Entscheidung:** Horizontale Scroll-Liste statt Grid
+**Kontext:** Platzsparend, mobile-freundlich
+**Alternativen:** Grid, Carousel mit Arrows
+**Warum:** Native Scroll ist touch-freundlich, kein JS noetig
+**Konsequenz:** Keine Pagination, alle Relations auf einmal sichtbar
 
-### 3. Server-seitige Suche
-**Entscheidung:** Kein Client-seitiges Filtern
-**Kontext:** Skalierbarkeit
-**Warum:** Funktioniert auch bei grossen Datenmengen
-**Konsequenz:** Netzwerk-Roundtrip bei jeder Suche (aber cachebarkeit)
+### 3. FansubProgress mit 10 Progress-Bars
+**Entscheidung:** Alle 10 Schritte als separate Bars anzeigen
+**Kontext:** Legacy-System hatte 10 Prozentspalten
+**Warum:** Zeigt detaillierten Fortschritt, bekannt von altem System
+**Konsequenz:** Mehr visueller Platz, aber informativer
+**Farbcodierung:** Grau (0%), Gelb (1-99%), Gruen (100%)
+
+### 4. Watchlist mit localStorage
+**Entscheidung:** Vorerst nur localStorage, kein Backend
+**Kontext:** P2 bringt Auth, dann Backend-Sync
+**Alternativen:** Direkt mit Backend (aber Auth fehlt noch)
+**Warum:** Feature nutzbar ohne Login, Migration zu Backend spaeter
+**Konsequenz:** Daten nur lokal, Cross-Device Sync erst mit P2
+
+### 5. StarRating mit SVG clipPath
+**Entscheidung:** Halbe Sterne via clipPath statt Icon-Austausch
+**Kontext:** 0-10 Skala auf 5 Sterne mappen
+**Warum:** Praezise Darstellung beliebiger Werte, smooth
+**Konsequenz:** Etwas komplexeres SVG, aber genauer
 
 ---
 
 ## Technical Details
 
-### Search Query (PostgreSQL)
-```sql
-SELECT id, title, title_de, title_en, type, status, year, cover_image
-FROM anime
-WHERE title ILIKE $1
-   OR title_de ILIKE $1
-   OR title_en ILIKE $1
-ORDER BY title
-LIMIT $2 OFFSET $3
+### AnimeFilters URL-State Sync
+```typescript
+const updateFilter = useCallback((key: string, value: string) => {
+  const params = new URLSearchParams(searchParams.toString());
+  if (value) params.set(key, value);
+  else params.delete(key);
+  params.delete('page'); // Reset pagination
+  router.push(queryString ? `/anime?${queryString}` : '/anime');
+}, [router, searchParams]);
 ```
 
-### Search Response Structure
-```json
-{
-  "anime": [...],
-  "total": 42,
-  "page": 1,
-  "per_page": 24,
-  "query": "attack"
+### FansubProgress Struktur
+```typescript
+interface FansubProgress {
+  raw: number;       // 0-100
+  translate: number;
+  time: number;
+  typeset: number;
+  logo: number;
+  edit: number;
+  karatime: number;
+  karafx: number;
+  qc: number;
+  encode: number;
 }
+```
+
+### Watchlist localStorage Schema
+```typescript
+interface WatchlistEntry {
+  animeId: number;
+  status: WatchlistStatus;
+  addedAt: string;  // ISO date
+}
+// Stored as: localStorage.setItem('team4s_watchlist', JSON.stringify(entries))
 ```
 
 ---
 
 ## Problems Discovered (Not Solved)
 
-1. **Keine Debounce bei Suche**
-   - Aktuell: Suche wird bei jedem Keypress ausgeloest
-   - Loesung: useDebounce Hook hinzufuegen
-   - Prioritaet: Low (funktioniert, nur UX-Verbesserung)
+1. **Stream Links noch nicht geparst**
+   - Legacy HTML Format in DB
+   - Loesung: Parser fuer stream_links_legacy
+   - Prioritaet: Medium (Episode Detail zeigt nur Placeholder)
 
-2. **Keine Suchvorschlaege/Autocomplete**
-   - Aktuell: Nur vollstaendige Suchergebnisse
-   - Loesung: Separater Endpoint fuer Suggestions
-   - Prioritaet: Medium (nice-to-have)
+2. **Keine User Attribution**
+   - Alle user_id = 1 (Admin)
+   - Loesung: User Migration (P2)
+   - Prioritaet: Blocker fuer Social Features
+
+3. **clipPath ID Kollision bei StarRating**
+   - Potentiell: Wenn mehrere Ratings auf einer Page
+   - Loesung: Unique ID Generation pro Komponenten-Instanz
+   - Prioritaet: Low (funktioniert in aktueller Verwendung)
 
 ---
 
 ## Ideas Explored and Rejected
 
-1. **Client-seitige Suche mit allen Daten**
-   - Abgelehnt: 13k Records zu viel fuer Browser
-   - Wuerde funktionieren, aber nicht skalieren
+1. **Carousel fuer Related Anime**
+   - Abgelehnt: Zusaetzliche Abhaengigkeit, Touch-Gesten komplexer
+   - Horizontaler Scroll ist simpler und funktioniert gut
 
-2. **Elasticsearch Integration**
-   - Abgelehnt: Overkill fuer aktuelle Groesse
-   - Behalten als Option fuer spaeter
+2. **Backend Watchlist sofort**
+   - Abgelehnt: Auth fehlt noch
+   - localStorage als Uebergang bis P2
+
+3. **Externe Rating-Icons (Font Awesome)**
+   - Abgelehnt: Zusaetzliche Abhaengigkeit, eigenes SVG flexibler
+   - clipPath erlaubt praezise Partial-Fills
 
 ---
 
@@ -134,45 +197,98 @@ LIMIT $2 OFFSET $3
 
 | Metric | Value |
 |--------|-------|
-| Files Modified | 7 |
-| Files Created | 4 |
-| Lines Added | ~156 |
-| Lines Removed | ~25 |
+| Files Modified | 19 |
+| Files Created | 17 |
+| Lines Added | ~1200 |
+| Lines Removed | ~50 |
+| New Routes | 2 (/episode/:id, /watchlist) |
+| New API Endpoints | 3 |
 
 ---
 
 ## Testing Performed
 
-- [x] Backend: Search mit verschiedenen Queries
-- [x] Backend: Leerer Query (400 Error)
-- [x] Backend: Query < 2 Zeichen (400 Error)
-- [x] Frontend: Search Page rendert
-- [x] Frontend: SearchBar Eingabe funktioniert
-- [x] Frontend: Navigation zu Suchergebnissen
-- [x] Frontend: Keine Regression bei /anime
+- [x] Backend: `go build ./...` - OK
+- [x] Frontend: `npm run build` - OK (8 Routes)
+- [x] Filter: Status/Type aendern URL korrekt
+- [x] Filter: Kombination mit A-Z Navigation
+- [x] Related Anime: Horizontaler Scroll funktioniert
+- [x] Related Anime: Badges mit korrekten Farben
+- [x] Episode Detail: Route /episode/:id funktioniert
+- [x] FansubProgress: 10 Bars mit Farbcodierung
+- [x] Watchlist: Add/Remove/Status Change
+- [x] Watchlist: Page zeigt lokale Eintraege
+- [x] Rating: Sterne-Anzeige mit halben Sternen
+- [x] Keine Regression bei Search Feature
 
 ---
 
-## Next Steps (For Tomorrow)
+## Build Verification
 
-1. **P1-2: Advanced Filters**
-   - Status/Type Dropdowns
-   - URL-State Synchronisation
-   - Kombination mit A-Z Filter
+```bash
+# Backend
+cd backend && go build ./...
+# Exit code: 0
 
-2. **P1-3: Related Anime**
-   - Backend Endpoint
-   - Frontend Section auf Detail-Page
+# Frontend
+cd frontend && npm run build
+# Route (app)                  Size
+# /                            176 B
+# /anime                       178 B
+# /anime/[id]                  183 B
+# /episode/[id]                178 B  <-- NEU
+# /search                      176 B
+# /watchlist                   177 B  <-- NEU
+```
 
-3. **P1-4: Episode Detail**
-   - Stream-Links parsen
-   - Einzelne Episode anzeigen
+---
+
+## How This Aligns with Project Vision
+
+- **P1 Features Complete:** Alle Enhanced Features implementiert
+- **Progressive Enhancement:** Watchlist funktioniert ohne Auth
+- **Mobile Ready:** Horizontaler Scroll, Touch-freundlich
+- **SEO Friendly:** Server Components, URL-State fuer Filter
+- **Clean Architecture:** Repository Pattern, Type Safety
+
+---
+
+## Next Steps (P2 Phase)
+
+1. **Auth System**
+   - Login/Register Pages
+   - JWT + Refresh Tokens
+   - Protected Routes
+
+2. **User Profile**
+   - Profil-Page
+   - Avatar Upload
+   - Watchlist Backend-Sync
+
+3. **User Ratings**
+   - Rating abgeben koennen
+   - Eigene Bewertungen anzeigen
+
+4. **Comments**
+   - Kommentare lesen
+   - Kommentare schreiben (auth required)
 
 ---
 
 ## References
 
-- Search Handler: `backend/internal/handlers/anime.go`
-- Search Page: `frontend/src/app/search/page.tsx`
-- SearchBar: `frontend/src/components/ui/SearchBar.tsx`
-- Header: `frontend/src/components/layout/Header.tsx`
+### New Components
+- AnimeFilters: `frontend/src/components/anime/AnimeFilters.tsx`
+- RelatedAnime: `frontend/src/components/anime/RelatedAnime.tsx`
+- WatchlistButton: `frontend/src/components/anime/WatchlistButton.tsx`
+- StarRating: `frontend/src/components/anime/StarRating.tsx`
+- EpisodeDetail: `frontend/src/components/episode/EpisodeDetail.tsx`
+- FansubProgress: `frontend/src/components/episode/FansubProgress.tsx`
+
+### New Pages
+- Episode Detail: `frontend/src/app/episode/[id]/page.tsx`
+- Watchlist: `frontend/src/app/watchlist/page.tsx`
+
+### New API
+- Rating Handler: `backend/internal/handlers/rating.go`
+- Rating Repository: `backend/internal/repository/rating.go`

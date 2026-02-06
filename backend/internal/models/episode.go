@@ -42,3 +42,28 @@ type EpisodesResponse struct {
 	Data []Episode    `json:"data"`
 	Meta EpisodesMeta `json:"meta"`
 }
+
+// AnimeMinimal contains minimal anime info for episode detail view
+type AnimeMinimal struct {
+	ID         int64   `json:"id"`
+	Title      string  `json:"title"`
+	CoverImage *string `json:"cover_image,omitempty"`
+}
+
+// EpisodeDetail represents a full episode with parent anime info
+type EpisodeDetail struct {
+	ID                int64          `json:"id"`
+	AnimeID           int64          `json:"anime_id"`
+	EpisodeNumber     string         `json:"episode_number"`
+	Title             *string        `json:"title,omitempty"`
+	Filename          *string        `json:"filename,omitempty"`
+	Status            string         `json:"status"`
+	ViewCount         int            `json:"view_count"`
+	DownloadCount     int            `json:"download_count"`
+	StreamLinks       []string       `json:"stream_links"`
+	StreamLinksLegacy *string        `json:"stream_links_legacy,omitempty"`
+	FansubProgress    FansubProgress `json:"fansub_progress"`
+	Anime             AnimeMinimal   `json:"anime"`
+	CreatedAt         time.Time      `json:"created_at"`
+	UpdatedAt         time.Time      `json:"updated_at"`
+}

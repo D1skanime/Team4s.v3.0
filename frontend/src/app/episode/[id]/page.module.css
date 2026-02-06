@@ -1,0 +1,4 @@
+.main {
+  padding: var(--space-6) var(--space-4);
+  min-height: calc(100vh - 80px);
+}

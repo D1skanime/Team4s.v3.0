@@ -1,0 +1,61 @@
+.container {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.starWrapper {
+  display: inline-flex;
+}
+
+.star {
+  fill: currentColor;
+}
+
+.star.sm {
+  width: 14px;
+  height: 14px;
+}
+
+.star.md {
+  width: 18px;
+  height: 18px;
+}
+
+.star.lg {
+  width: 24px;
+  height: 24px;
+}
+
+.starEmpty {
+  fill: #374151;
+  stroke: #4b5563;
+  stroke-width: 1;
+}
+
+.starFilled {
+  fill: #fbbf24;
+}
+
+.value {
+  font-weight: 600;
+  color: #fbbf24;
+}
+
+.value.sm {
+  font-size: 0.75rem;
+}
+
+.value.md {
+  font-size: 0.875rem;
+}
+
+.value.lg {
+  font-size: 1.125rem;
+}

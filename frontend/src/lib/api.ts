@@ -8,6 +8,9 @@ import type {
   EpisodesResponse,
   SearchResponse,
   SearchParams,
+  RelatedAnime,
+  EpisodeDetailResponse,
+  AnimeRating,
 } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090';
@@ -80,6 +83,21 @@ export const api = {
       limit: params.limit || 20,
     });
     return fetchApi(`/api/v1/anime/search${query}`);
+  },
+
+  // Related Anime
+  getAnimeRelations: (id: number): Promise<RelatedAnime[]> => {
+    return fetchApi(`/api/v1/anime/${id}/relations`);
+  },
+
+  // Episode Detail
+  getEpisode: (id: number): Promise<EpisodeDetailResponse> => {
+    return fetchApi(`/api/v1/episodes/${id}`);
+  },
+
+  // Anime Rating
+  getAnimeRating: (id: number): Promise<AnimeRating> => {
+    return fetchApi(`/api/v1/anime/${id}/rating`);
   },
 };
 

@@ -116,3 +116,76 @@ export interface SearchParams {
   q: string;
   limit?: number;
 }
+
+// Related Anime Types
+export interface RelatedAnime {
+  id: number;
+  title: string;
+  type: string;
+  status: string;
+  year: number | null;
+  cover_image: string | null;
+  relation_type: string;
+}
+
+// Episode Detail Types
+export interface AnimeMinimal {
+  id: number;
+  title: string;
+  cover_image?: string;
+}
+
+export interface EpisodeDetail {
+  id: number;
+  anime_id: number;
+  episode_number: string;
+  title?: string;
+  filename?: string;
+  status: EpisodeStatus;
+  view_count: number;
+  download_count: number;
+  stream_links: string[];
+  stream_links_legacy?: string;
+  fansub_progress: FansubProgress;
+  anime: AnimeMinimal;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EpisodeDetailResponse {
+  data: EpisodeDetail;
+}
+
+// Watchlist Types
+export type WatchlistStatus = 'watching' | 'done' | 'break' | 'planned' | 'dropped';
+
+export interface WatchlistItem {
+  animeId: number;
+  status: WatchlistStatus;
+  addedAt: string;
+  updatedAt: string;
+}
+
+export const WATCHLIST_STATUS_LABELS: Record<WatchlistStatus, string> = {
+  watching: 'Schaue ich',
+  done: 'Gesehen',
+  break: 'Pausiert',
+  planned: 'Geplant',
+  dropped: 'Abgebrochen',
+};
+
+export const WATCHLIST_STATUS_COLORS: Record<WatchlistStatus, string> = {
+  watching: '#3b82f6',
+  done: '#22c55e',
+  break: '#eab308',
+  planned: '#6b7280',
+  dropped: '#ef4444',
+};
+
+// Rating Types
+export interface AnimeRating {
+  anime_id: number;
+  average: number;      // 0.0 - 10.0
+  count: number;        // Number of ratings
+  distribution: Record<number, number>;  // Rating value (1-10) -> count
+}

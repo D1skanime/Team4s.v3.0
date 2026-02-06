@@ -2,131 +2,242 @@
 
 ## Top 3 Priorities
 
-### 1. Status/Type Filter im Frontend
-Erweiterte Filter fuer die Anime-Liste.
+### 1. Auth System Planung
+Design des Authentication Systems fuer P2.
 
-**Komponente:** `src/components/anime/AnimeFilters.tsx`
+**Backend-Architektur:**
+```go
+// JWT + Refresh Token Pattern
+type AuthHandler struct {
+    userRepo    *UserRepository
+    tokenService *TokenService
+}
 
-**Filter-Optionen:**
-- Status: ongoing, done, aborted, licensed
-- Type: tv, ova, film, special, ona
-
-**Backend:** Bereits unterstuetzt via Query-Parameter:
-```bash
-curl "http://localhost:8080/api/v1/anime?status=ongoing&type=tv"
+// Endpoints
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/refresh
+POST /api/v1/auth/logout
 ```
 
-**Frontend-Aufgaben:**
-1. Filter-Komponente erstellen
-2. URL-State synchronisieren
-3. Mit A-Z Navigation kombinieren
+**Frontend-Struktur:**
+- `/login` - Login Page
+- `/register` - Registrierung
+- AuthContext fuer globalen State
+- Protected Route HOC
+
+**Aufgaben:**
+1. Token-Strategie definieren (Access Token Lifetime, Refresh Token Rotation)
+2. Password Hashing mit bcrypt implementieren
+3. Middleware fuer geschuetzte Routen
+4. Cookie vs localStorage fuer Token-Speicherung entscheiden
 
 ---
 
-### 2. Related Anime Section
-Zeige verwandte Anime auf der Detail-Page.
+### 2. Login/Register Pages erstellen
+Frontend-Implementation der Auth-Pages.
 
-**Backend:**
-```go
-// GET /api/v1/anime/:id/relations
-// Repository: GetRelations(animeID int64)
-// Nutzt anime_relations Tabelle (2.323 records)
+**Komponenten:**
+```typescript
+// src/components/auth/LoginForm.tsx
+// src/components/auth/RegisterForm.tsx
+// src/components/auth/AuthProvider.tsx
+// src/app/login/page.tsx
+// src/app/register/page.tsx
 ```
 
-**Frontend:**
-- Horizontale Scroll-Liste unter Episoden
-- Relation-Type als Badge (Sequel, Prequel, etc.)
-- Klickbare Cover-Cards
+**Features:**
+- Form Validation
+- Error Handling
+- Loading States
+- Redirect nach Login
 
 ---
 
-### 3. Episode Detail View
-Einzelne Episode mit Stream-Links.
+### 3. User Repository und Handler
+Backend-Implementation fuer User-Management.
 
-**Backend:**
+**Files zu erstellen:**
+```
+backend/internal/repository/user.go
+backend/internal/handlers/auth.go
+backend/internal/services/token.go
+backend/pkg/middleware/auth.go
+```
+
+**User Model erweitern:**
 ```go
-// GET /api/v1/episodes/:id
-type EpisodeDetail struct {
-    Episode
-    StreamLinks []StreamLink `json:"stream_links"`
+type User struct {
+    ID           int64     `json:"id"`
+    Username     string    `json:"username"`
+    Email        string    `json:"email"`
+    PasswordHash string    `json:"-"`
+    CreatedAt    time.Time `json:"created_at"`
+    UpdatedAt    time.Time `json:"updated_at"`
 }
 ```
-
-**Frontend:**
-- Route: `/episode/:id`
-- Stream-Links parsen (legacy HTML -> strukturiert)
-- Fansub-Progress anzeigen
 
 ---
 
 ## First 15-Minute Task
 
-**Filter-Komponente erstellen:**
+**Token Service Skeleton erstellen:**
 
-1. Erstelle `src/components/anime/AnimeFilters.tsx`:
-```tsx
-'use client';
-import { useRouter, useSearchParams } from 'next/navigation';
+1. Erstelle `backend/internal/services/token.go`:
+```go
+package services
 
-const STATUS_OPTIONS = ['ongoing', 'done', 'aborted', 'licensed'];
-const TYPE_OPTIONS = ['tv', 'ova', 'film', 'special', 'ona'];
+import (
+    "time"
+    "github.com/golang-jwt/jwt/v5"
+)
 
-export default function AnimeFilters() {
-  // URL-Parameter lesen und setzen
+type TokenService struct {
+    secretKey     []byte
+    accessExpiry  time.Duration
+    refreshExpiry time.Duration
+}
+
+func NewTokenService(secret string) *TokenService {
+    return &TokenService{
+        secretKey:     []byte(secret),
+        accessExpiry:  15 * time.Minute,
+        refreshExpiry: 7 * 24 * time.Hour,
+    }
+}
+
+func (s *TokenService) GenerateAccessToken(userID int64) (string, error) {
+    // TODO: Implement
+}
+
+func (s *TokenService) GenerateRefreshToken(userID int64) (string, error) {
+    // TODO: Implement
+}
+
+func (s *TokenService) ValidateToken(tokenString string) (*Claims, error) {
+    // TODO: Implement
 }
 ```
 
-2. In `/anime/page.tsx` einbinden
-3. Testen mit verschiedenen Kombinationen
+2. Teste Kompilierung mit `go build ./...`
+3. JWT Library installieren: `go get github.com/golang-jwt/jwt/v5`
 
 ---
 
 ## Dependencies to Unblock Early
 
-1. **Docker running** - `docker ps` zeigt postgres Container
-2. **Backend running** - Port 8080
-3. **Frontend running** - Port 3000 mit `npm run dev`
-4. **anime_relations Daten pruefen** - 2.323 records vorhanden
+1. **JWT Library installieren**
+   ```bash
+   cd backend && go get github.com/golang-jwt/jwt/v5
+   ```
+
+2. **Redis fuer Refresh Token Store**
+   - Bereits running in Docker
+   - Go Redis Client: `go get github.com/redis/go-redis/v9`
+
+3. **bcrypt fuer Passwords**
+   ```bash
+   go get golang.org/x/crypto/bcrypt
+   ```
+
+4. **Docker running** - `docker ps` zeigt postgres + redis
 
 ---
 
 ## If Ahead of Schedule
 
-### Watchlist Toggle (P1-5)
-- Button auf Anime-Detail-Page
-- Lokal ohne Auth (localStorage)
-- Spaeter: Backend-Integration
+### User Profile Page
+- GET /api/v1/users/:id (public info)
+- GET /api/v1/users/me (authenticated, full info)
+- PUT /api/v1/users/me (update profile)
 
-### Search Verbesserungen
-- Debounce bei Eingabe
-- Suchvorschlaege/Autocomplete
-- Highlight matched text
+### Watchlist Backend Migration
+- POST /api/v1/watchlist
+- GET /api/v1/users/me/watchlist
+- localStorage zu Backend Sync bei Login
 
-### Mobile Navigation
-- Hamburger Menu
-- Touch-friendly Filter
-- Swipe fuer Pagination
+### Password Reset Flow
+- POST /api/v1/auth/forgot-password
+- POST /api/v1/auth/reset-password
+- Email-Versand (spaeter)
 
 ---
 
 ## Verification Checklist
 
 Nach Abschluss der Prioritaeten:
-- [ ] Filter-UI aendert URL-Parameter korrekt
-- [ ] Backend gibt gefilterte Ergebnisse zurueck
-- [ ] Related Anime werden auf Detail-Page angezeigt
-- [ ] Episode-Detail zeigt Stream-Links
-- [ ] Keine Regression bei Search Feature
+- [ ] JWT Generation funktioniert
+- [ ] Password Hashing mit bcrypt
+- [ ] Login Endpoint gibt Token zurueck
+- [ ] Register Endpoint erstellt User
+- [ ] Frontend Login Form funktioniert
+- [ ] Protected Route redirected zu /login
+- [ ] Refresh Token erneuert Access Token
 
 ---
 
-## P1 Feature Roadmap (Reference)
+## P2 Feature Roadmap (Reference)
 
-| ID | Feature | Status |
-|----|---------|--------|
-| P1-1 | Anime Search | DONE |
-| P1-2 | Advanced Filters | TODO |
-| P1-3 | Anime Relations | TODO |
-| P1-4 | Episode Detail | TODO |
-| P1-5 | Watchlist UI | TODO |
-| P1-6 | Rating Display | TODO |
+| ID | Feature | Priority | Status |
+|----|---------|----------|--------|
+| P2-1 | Auth (Login/Register) | HIGH | TODO |
+| P2-2 | User Profile | MEDIUM | TODO |
+| P2-3 | User Ratings | MEDIUM | TODO |
+| P2-4 | Watchlist Sync | MEDIUM | TODO |
+| P2-5 | Comments Read | LOW | TODO |
+| P2-6 | Comments Write | LOW | TODO |
+
+---
+
+## Technical Notes
+
+### JWT Token Structure
+```json
+{
+  "sub": "user_id",
+  "exp": "expiration_timestamp",
+  "iat": "issued_at",
+  "type": "access" | "refresh"
+}
+```
+
+### Auth Flow
+1. User submits credentials
+2. Backend validates, returns access + refresh tokens
+3. Frontend stores in httpOnly cookies
+4. Access token sent with each request
+5. When expired, refresh endpoint called
+6. If refresh fails, redirect to login
+
+### Cookie Settings
+```go
+http.SetCookie(w, &http.Cookie{
+    Name:     "access_token",
+    Value:    token,
+    HttpOnly: true,
+    Secure:   true, // HTTPS only in production
+    SameSite: http.SameSiteStrictMode,
+    Path:     "/",
+    MaxAge:   900, // 15 minutes
+})
+```
+
+---
+
+## Questions to Resolve
+
+1. **Email Verification?**
+   - Option A: Required before access
+   - Option B: Optional, can use without
+   - Recommendation: Option B (simpler for now)
+
+2. **Username vs Email Login?**
+   - Option A: Username only
+   - Option B: Email only
+   - Option C: Both
+   - Recommendation: Option C (flexible)
+
+3. **Rate Limiting?**
+   - Needed for auth endpoints
+   - Redis-based counter
+   - 5 attempts per minute per IP

@@ -1,6 +1,8 @@
+import { Suspense } from 'react';
 import { api } from '@/lib/api';
 import { AnimeGrid } from '@/components/anime/AnimeGrid';
 import { AlphabetNav } from '@/components/anime/AlphabetNav';
+import { AnimeFilters } from '@/components/anime/AnimeFilters';
 import { Pagination } from '@/components/ui/Pagination';
 import styles from './page.module.css';
 
@@ -42,7 +44,14 @@ export default async function AnimePage({ searchParams }: PageProps) {
           </p>
         </header>
 
-        <AlphabetNav currentLetter={letter} />
+        <AlphabetNav currentLetter={letter} preserveParams={currentParams} />
+
+        <Suspense fallback={<div className={styles.filtersSkeleton}>Filter laden...</div>}>
+          <AnimeFilters
+            currentStatus={searchParams.status}
+            currentType={searchParams.type}
+          />
+        </Suspense>
 
         <AnimeGrid anime={response.data} />
 

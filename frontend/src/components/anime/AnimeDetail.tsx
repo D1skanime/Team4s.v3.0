@@ -1,12 +1,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Clock, CheckCircle, XCircle, Shield, EyeOff, Eye, Calendar, Film, Layers, ArrowLeft } from 'lucide-react';
-import type { Anime } from '@/types';
+import type { Anime, AnimeRating } from '@/types';
 import { getCoverUrl, getStatusColor, getStatusLabel, getTypeLabel } from '@/lib/utils';
+import { WatchlistButton } from './WatchlistButton';
+import { RatingDisplay } from './RatingDisplay';
 import styles from './AnimeDetail.module.css';
 
 interface AnimeDetailProps {
   anime: Anime;
+  rating?: AnimeRating | null;
   children?: React.ReactNode;
 }
 
@@ -18,7 +21,7 @@ const statusIcons: Record<string, typeof Clock> = {
   disabled: EyeOff,
 };
 
-export function AnimeDetail({ anime, children }: AnimeDetailProps) {
+export function AnimeDetail({ anime, rating, children }: AnimeDetailProps) {
   const StatusIcon = statusIcons[anime.status] || Clock;
 
   return (
@@ -43,7 +46,10 @@ export function AnimeDetail({ anime, children }: AnimeDetailProps) {
 
         <div className={styles.info}>
           <div className={styles.titleSection}>
-            <h1 className={styles.title}>{anime.title}</h1>
+            <div className={styles.titleRow}>
+              <h1 className={styles.title}>{anime.title}</h1>
+              <WatchlistButton animeId={anime.id} className={styles.watchlistButton} />
+            </div>
             {anime.title_de && anime.title_de !== anime.title && (
               <p className={styles.altTitle}>{anime.title_de}</p>
             )}
@@ -65,6 +71,12 @@ export function AnimeDetail({ anime, children }: AnimeDetailProps) {
               {getTypeLabel(anime.type)}
             </span>
           </div>
+
+          {rating !== undefined && (
+            <div className={styles.ratingSection}>
+              <RatingDisplay rating={rating} compact />
+            </div>
+          )}
 
           <div className={styles.meta}>
             {anime.year && (

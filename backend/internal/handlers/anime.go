@@ -123,3 +123,27 @@ func (h *AnimeHandler) GetByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": anime})
 }
+
+// GetRelations handles GET /api/v1/anime/:id/relations
+func (h *AnimeHandler) GetRelations(c *gin.Context) {
+	// Parse ID
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	// Query database
+	relations, err := h.repo.GetRelations(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+
+	// Ensure relations is not nil for JSON
+	if relations == nil {
+		relations = []models.RelatedAnime{}
+	}
+
+	c.JSON(http.StatusOK, relations)
+}

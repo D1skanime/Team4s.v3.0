@@ -1,6 +1,7 @@
 'use client';
 
-import { Play, Download, Eye, ExternalLink, Lock, EyeOff, CheckCircle, Clock } from 'lucide-react';
+import Link from 'next/link';
+import { Play, Download, Eye, ExternalLink, Lock, EyeOff, CheckCircle, Clock, ChevronRight } from 'lucide-react';
 import type { Episode } from '@/types';
 import styles from './EpisodeList.module.css';
 
@@ -125,7 +126,7 @@ export function EpisodeList({ episodes, total }: EpisodeListProps) {
 
                   {isPublic && hasStreams && (
                     <div className={styles.streamLinks}>
-                      {episode.stream_links.slice(0, 3).map((link, index) => (
+                      {episode.stream_links.slice(0, 2).map((link, index) => (
                         <a
                           key={index}
                           href={link}
@@ -135,12 +136,11 @@ export function EpisodeList({ episodes, total }: EpisodeListProps) {
                           title={`Stream ${index + 1}`}
                         >
                           <Play size={16} />
-                          <span>Stream {index + 1}</span>
                         </a>
                       ))}
-                      {episode.stream_links.length > 3 && (
+                      {episode.stream_links.length > 2 && (
                         <span className={styles.moreLinks}>
-                          +{episode.stream_links.length - 3} weitere
+                          +{episode.stream_links.length - 2}
                         </span>
                       )}
                     </div>
@@ -149,6 +149,10 @@ export function EpisodeList({ episodes, total }: EpisodeListProps) {
                   {isPublic && !hasStreams && isComplete && (
                     <span className={styles.noStreams}>Keine Streams</span>
                   )}
+
+                  <Link href={`/episode/${episode.id}`} className={styles.detailLink} title="Details anzeigen">
+                    <ChevronRight size={20} />
+                  </Link>
                 </div>
               </div>
 
