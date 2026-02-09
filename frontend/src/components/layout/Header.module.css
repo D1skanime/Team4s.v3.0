@@ -56,11 +56,177 @@
   background: var(--bg-hover);
 }
 
+.center {
+  flex: 1;
+  max-width: 320px;
+}
+
 .right {
   display: flex;
   align-items: center;
-  flex: 1;
-  max-width: 320px;
+  gap: var(--space-3);
+}
+
+/* Auth Loading */
+.authLoading {
+  color: var(--text-muted);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* Auth Links (not logged in) */
+.authLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.authLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  transition: color 0.2s, background 0.2s;
+}
+
+.authLink:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.authLinkPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--accent-primary);
+  transition: background 0.2s;
+}
+
+.authLinkPrimary:hover {
+  background: var(--accent-hover);
+}
+
+/* User Menu (logged in) */
+.userMenu {
+  position: relative;
+}
+
+.userButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.userButton:hover {
+  background: var(--bg-hover);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  overflow: hidden;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.userName {
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  min-width: 200px;
+  background: var(--bg-card);
+  border: 1px solid var(--bg-hover);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 101;
+}
+
+.dropdownHeader {
+  padding: var(--space-3) var(--space-4);
+}
+
+.dropdownName {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dropdownUsername {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: var(--bg-hover);
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.dropdownItem:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 /* Responsive */
@@ -73,7 +239,7 @@
     gap: var(--space-4);
   }
 
-  .right {
+  .center {
     order: 3;
     flex-basis: 100%;
     max-width: 100%;
@@ -81,6 +247,15 @@
   }
 
   .nav {
+    display: none;
+  }
+
+  .userName {
+    display: none;
+  }
+
+  .authLink span,
+  .authLinkPrimary span {
     display: none;
   }
 }

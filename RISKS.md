@@ -3,8 +3,8 @@
 ## Current Blockers
 
 ### BLOCKER: User Migration Not Complete
-**Status:** BLOCKING social features | **Since:** 2026-02-03
-**Impact:** Medium (core anime data works, social features incomplete)
+**Status:** BLOCKING legacy user attribution | **Since:** 2026-02-03
+**Impact:** Medium (new users can register, legacy users cannot login)
 
 Legacy WCF users have not been migrated. All user_id references in migrated data currently point to user_id=1 (admin).
 
@@ -13,7 +13,7 @@ Legacy WCF users have not been migrated. All user_id references in migrated data
 - ratings.user_id
 - watchlist.user_id
 
-**Workaround:** Data is accessible, but user attribution is lost until migration.
+**Workaround:** New users can register and use all features. Legacy user attribution is lost until migration.
 
 **Resolution:**
 1. Extract user data from WCF tables in MySQL dump
@@ -63,7 +63,26 @@ ALTER TABLE episodes ADD CONSTRAINT episodes_anime_id_fkey FOREIGN KEY (anime_id
 
 ## Top 3 Risks
 
-### 1. Password Migration Complexity
+### 1. Rate Limiting Not Implemented
+**Impact:** High | **Likelihood:** Medium
+**Added:** 2026-02-09
+
+Auth endpoints (login, register) have no rate limiting. Vulnerable to:
+- Brute force password attacks
+- Account enumeration
+- DoS attacks on auth system
+
+**Mitigation:**
+- [ ] Implement Redis-based rate limiter
+- [ ] 5 attempts per minute per IP for login
+- [ ] 3 attempts per minute per IP for register
+- [ ] Return 429 with Retry-After header
+
+**Owner:** D1skanime | **Due:** Before production (priority for P2)
+
+---
+
+### 2. Password Migration Complexity
 **Impact:** High | **Likelihood:** Medium
 
 The legacy system uses WCF's crypt-compatible password hashing. If we cannot verify bcrypt compatibility, we may need to:
@@ -79,7 +98,7 @@ The legacy system uses WCF's crypt-compatible password hashing. If we cannot ver
 
 ---
 
-### 2. Stream Links Parsing
+### 3. Stream Links Parsing
 **Impact:** Medium | **Likelihood:** High
 
 Legacy stream links are stored as HTML in `stream_links_legacy` column. Episode Detail currently cannot display structured stream links.
@@ -98,7 +117,9 @@ Legacy stream links are stored as HTML in `stream_links_legacy` column. Episode 
 
 ---
 
-### 3. Data Integrity - Orphaned References
+## Medium-Priority Risks
+
+### 4. Data Integrity - Orphaned References
 **Impact:** Medium | **Likelihood:** Low
 
 Some migrated records may reference anime/episodes that were deleted in legacy system.
@@ -117,9 +138,7 @@ Some migrated records may reference anime/episodes that were deleted in legacy s
 
 ---
 
-## Medium-Priority Risks
-
-### 4. StarRating clipPath ID Collision
+### 5. StarRating clipPath ID Collision
 **Impact:** Low | **Likelihood:** Medium
 
 StarRating component uses static IDs (`star-clip-1`, `star-clip-2`, etc.) for SVG clipPath definitions. If multiple StarRating instances are on the same page, IDs may collide.
@@ -132,28 +151,51 @@ StarRating component uses static IDs (`star-clip-1`, `star-clip-2`, etc.) for SV
 - [ ] Generate unique IDs per component instance (useId hook)
 - [ ] Test with multiple ratings on one page
 
-**Owner:** D1skanime | **Due:** Before P2 rating input
+**Owner:** D1skanime | **Due:** Before P2-3 rating input
 
 ---
 
-### 5. localStorage Watchlist Data Loss
+### 6. localStorage Watchlist Data Loss
 **Impact:** Medium | **Likelihood:** Low
 
-Watchlist is stored in localStorage until P2 Auth is implemented. Users may lose data if:
+Watchlist is stored in localStorage until P2-4 Watchlist Sync is implemented. Users may lose data if:
 - Browser data is cleared
 - Different device/browser used
 - Incognito mode
 
 **Mitigation:**
 - [x] Clear warning in UI about local storage
-- [ ] Implement backend sync with P2 Auth
+- [ ] Implement backend sync with P2-4
 - [ ] Migration path from localStorage to backend
 
-**Owner:** D1skanime | **Due:** P2 implementation
+**Owner:** D1skanime | **Due:** P2-4 implementation
+
+---
+
+### 7. Email Verification Not Implemented
+**Impact:** Low | **Likelihood:** Low
+**Added:** 2026-02-09
+
+Users can register without email verification. Potential issues:
+- Spam accounts
+- Unverified email addresses
+- Cannot send password reset emails
+
+**Mitigation:**
+- [ ] Implement email service (SendGrid, SES, etc.)
+- [ ] Add verification token flow
+- [ ] Optional: Require verification for certain actions
+
+**Owner:** D1skanime | **Due:** P3 or before production
 
 ---
 
 ## Resolved Risks
+
+### 2026-02-09
+- **Auth System Design:** Resolved - JWT + Refresh Token pattern implemented
+- **Token Storage:** Resolved - httpOnly cookies recommended, localStorage for dev
+- **Profile Update State:** Resolved - refreshUser() in AuthContext
 
 ### 2026-02-06
 - **P1 Feature Scope:** Resolved - All 6 P1 features completed
@@ -192,11 +234,11 @@ Watchlist is stored in localStorage until P2 Auth is implemented. Users may lose
 **Impact if delayed:** External API consumers have no reference
 **Decision needed by:** Before public API release
 
-### Auth Token Storage
-**Options:** httpOnly cookies vs localStorage
-**Impact if delayed:** Security implications
-**Recommendation:** httpOnly cookies (more secure)
-**Decision needed by:** P2-1 Auth implementation
+### Email Service Provider
+**Options:** SendGrid vs AWS SES vs Mailgun vs SMTP
+**Impact if delayed:** Cannot implement password reset or email verification
+**Recommendation:** SendGrid (easy setup, good free tier)
+**Decision needed by:** P3 or password reset feature
 
 ---
 
@@ -204,10 +246,10 @@ Watchlist is stored in localStorage until P2 Auth is implemented. Users may lose
 **What will fail next week?**
 
 If we don't:
-1. **Implement Auth** - Users cannot save ratings or sync watchlists
-2. **Parse stream links** - Episode Detail remains incomplete
-3. **Plan user migration** - Social features will have wrong attribution
+1. **Add rate limiting** - Auth endpoints vulnerable to brute force
+2. **Implement user ratings** - Users cannot interact with content
+3. **Sync watchlist to backend** - Users lose data on device change
 
-**Critical path:** Auth -> Profile -> Ratings -> Watchlist Sync
+**Critical path:** Rate Limiting -> User Ratings -> Watchlist Sync -> Comments
 
-P0 + P1 complete - P2 User Features are now the priority.
+P2 Auth + Profile complete - continue with remaining P2 features.

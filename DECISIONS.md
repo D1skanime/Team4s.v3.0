@@ -76,7 +76,7 @@ Monorepo structure:
 
 ## ADR-003: Authentication Strategy
 **Date:** 2026-02-02
-**Status:** Proposed (needs validation)
+**Status:** Accepted (Implemented 2026-02-09)
 
 ### Context
 Replacing WCF's session-based authentication.
@@ -94,9 +94,9 @@ JWT + Refresh Token pattern with Redis session store
 - Must handle token storage securely (httpOnly cookies)
 
 ### Follow-ups
-- [ ] Define token expiration times
-- [ ] Design refresh token rotation strategy
-- [ ] Plan logout/revocation mechanism
+- [x] Define token expiration times - **See ADR-020**
+- [x] Design refresh token rotation strategy - **See ADR-021**
+- [x] Plan logout/revocation mechanism - **Implemented**
 
 ---
 
@@ -712,7 +712,8 @@ interface WatchlistEntry {
 - Migration bei Auth-Einbau noetig
 
 ### Follow-ups
-- [ ] Backend Watchlist Endpoint mit P2 Auth
+- [x] Auth System implementiert (ADR-020)
+- [ ] Backend Watchlist Endpoint mit P2-4
 - [ ] Migration von localStorage zu Backend bei Login
 - [ ] Merge-Strategie fuer Konflikte
 
@@ -815,6 +816,283 @@ const steps = ['raw', 'translate', 'time', 'typeset', 'logo',
 
 ---
 
+## ADR-020: JWT Access Token Expiry (15 Minuten)
+**Date:** 2026-02-09
+**Status:** Accepted
+
+### Context
+Need to define access token lifetime for the JWT-based auth system.
+
+### Options Considered
+1. **5 minutes** - Very secure, frequent refresh needed
+2. **15 minutes** - Good balance of security and UX
+3. **1 hour** - Convenient but longer exposure window
+4. **24 hours** - Maximum convenience, security concern
+
+### Decision
+**15 minutes access token expiry**
+
+### Why This Option Won
+- Industry standard for web applications
+- Short enough to limit damage if token is compromised
+- Long enough to not require constant refreshing during active use
+- Matches common user session patterns
+
+### Implementation
+```go
+// services/token.go
+const (
+    AccessTokenExpiry = 15 * time.Minute
+)
+
+func (s *TokenService) GenerateAccessToken(userID int64) (string, error) {
+    claims := jwt.MapClaims{
+        "sub": userID,
+        "exp": time.Now().Add(AccessTokenExpiry).Unix(),
+        "iat": time.Now().Unix(),
+        "type": "access",
+    }
+    // ...
+}
+```
+
+### Consequences
+**Good:**
+- Good security/UX balance
+- Stateless validation (no DB lookup)
+- Fast authentication checks
+
+**Bad:**
+- Need refresh token mechanism
+- Frontend must handle token refresh
+
+---
+
+## ADR-021: Refresh Token Strategy (Random Hex in Redis)
+**Date:** 2026-02-09
+**Status:** Accepted
+
+### Context
+Need to implement refresh tokens for session continuity.
+
+### Options Considered
+1. **JWT Refresh Token** - Stateless, longer expiry
+2. **Random Hex in Redis** - Stateful, revocable
+3. **Database-stored sessions** - Traditional, slower
+
+### Decision
+**32-byte random hex string stored in Redis with 7-day TTL**
+
+### Why This Option Won
+- Cryptographically random, unpredictable
+- Easy revocation (delete from Redis)
+- Fast lookup (Redis in-memory)
+- Supports multiple devices (multiple tokens per user)
+- No JWT size overhead
+
+### Implementation
+```go
+// services/token.go
+func (s *TokenService) GenerateRefreshToken(userID int64) (string, error) {
+    tokenBytes := make([]byte, 32)
+    rand.Read(tokenBytes)
+    token := hex.EncodeToString(tokenBytes)
+
+    // Store in Redis: key = refresh:token, value = userID, TTL = 7 days
+    s.redis.Set(ctx, "refresh:"+token, userID, 7*24*time.Hour)
+    return token, nil
+}
+```
+
+### Consequences
+**Good:**
+- Easy invalidation on logout
+- Supports "logout all devices"
+- Fast validation via Redis
+- No token bloat
+
+**Bad:**
+- Requires Redis availability
+- Stateful (Redis must be persistent)
+
+---
+
+## ADR-022: bcrypt Cost Factor 10
+**Date:** 2026-02-09
+**Status:** Accepted
+
+### Context
+Need to choose bcrypt cost factor for password hashing.
+
+### Options Considered
+1. **Cost 8** - Fast but potentially weak for modern hardware
+2. **Cost 10** - Standard, ~100ms hash time
+3. **Cost 12** - More secure, ~400ms hash time
+4. **Cost 14** - Very secure, ~1.6s hash time
+
+### Decision
+**bcrypt cost factor 10**
+
+### Why This Option Won
+- Industry standard default
+- ~100ms hash time on modern hardware
+- Good balance of security and performance
+- Can be increased later if needed
+- Not noticeable delay on login/register
+
+### Implementation
+```go
+// services/auth.go
+import "golang.org/x/crypto/bcrypt"
+
+const bcryptCost = 10
+
+func (s *AuthService) HashPassword(password string) (string, error) {
+    hash, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
+    return string(hash), err
+}
+
+func (s *AuthService) CheckPassword(password, hash string) bool {
+    err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+    return err == nil
+}
+```
+
+### Consequences
+**Good:**
+- Secure against brute force
+- Acceptable performance
+- Future-proof (cost can be increased)
+
+**Bad:**
+- Login slightly slower than plain hash
+- Higher CPU usage under load
+
+---
+
+## ADR-023: AuthContext with refreshUser()
+**Date:** 2026-02-09
+**Status:** Accepted
+
+### Context
+Frontend needs centralized auth state management with ability to update user data without re-login.
+
+### Options Considered
+1. **Redux/Zustand** - Global state management library
+2. **React Context** - Built-in, simpler
+3. **Server-side only** - No client state
+
+### Decision
+**React Context with refreshUser() method**
+
+### Why This Option Won
+- Built-in to React, no extra dependency
+- Sufficient for auth state (not complex)
+- refreshUser() allows profile updates to reflect immediately
+- Works well with Next.js App Router
+
+### Implementation
+```typescript
+// contexts/AuthContext.tsx
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;  // <-- Key addition
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+
+  const refreshUser = async () => {
+    const response = await fetch('/api/v1/auth/me');
+    const data = await response.json();
+    setUser(data.user);
+  };
+
+  // Used after profile update, password change, etc.
+}
+```
+
+### Consequences
+**Good:**
+- Simple implementation
+- No extra dependencies
+- Header updates immediately after profile changes
+- Single source of truth for auth state
+
+**Bad:**
+- Context re-renders all consumers on change
+- Must wrap app in provider
+
+---
+
+## ADR-024: Settings Page with Tab Navigation
+**Date:** 2026-02-09
+**Status:** Accepted
+
+### Context
+Need to organize user settings (profile, password, account deletion).
+
+### Options Considered
+1. **Separate routes** - /settings/profile, /settings/password, /settings/account
+2. **Single page with tabs** - /settings with client-side tab switching
+3. **Modal dialogs** - Settings in modal overlays
+
+### Decision
+**Single /settings route with tab navigation**
+
+### Why This Option Won
+- Cleaner URL structure
+- Faster navigation between settings (no page reload)
+- All settings visible at a glance
+- Familiar UX pattern
+
+### Implementation
+```typescript
+// app/settings/page.tsx
+'use client';
+
+const tabs = ['profile', 'password', 'account'] as const;
+const [activeTab, setActiveTab] = useState<typeof tabs[number]>('profile');
+
+return (
+  <div className={styles.settings}>
+    <nav className={styles.tabs}>
+      {tabs.map(tab => (
+        <button
+          key={tab}
+          className={activeTab === tab ? styles.active : ''}
+          onClick={() => setActiveTab(tab)}
+        >
+          {tab}
+        </button>
+      ))}
+    </nav>
+    <div className={styles.content}>
+      {activeTab === 'profile' && <ProfileForm />}
+      {activeTab === 'password' && <PasswordForm />}
+      {activeTab === 'account' && <DeleteAccountForm />}
+    </div>
+  </div>
+);
+```
+
+### Consequences
+**Good:**
+- Clean single URL
+- Fast tab switching
+- Related settings grouped
+- Mobile-friendly tab bar
+
+**Bad:**
+- Cannot link directly to specific tab (could add ?tab= param)
+- All tab components loaded (even if not visible)
+
+---
+
 ## Pending Decisions
 
 ### Database Migration Tool
@@ -828,4 +1106,13 @@ const steps = ['raw', 'translate', 'time', 'typeset', 'logo',
 
 ### API Documentation
 **Options:** OpenAPI/Swagger vs manual documentation
-**Decision needed by:** Before frontend development starts
+**Decision needed by:** Before external API consumers
+
+### Email Service Provider
+**Options:** SendGrid vs AWS SES vs Mailgun
+**Considerations:**
+- SendGrid: Easy setup, good free tier
+- AWS SES: Cheapest at scale, requires AWS
+- Mailgun: Good deliverability, API-first
+**Recommendation:** SendGrid (simplest for starting)
+**Decision needed by:** P3 or password reset feature

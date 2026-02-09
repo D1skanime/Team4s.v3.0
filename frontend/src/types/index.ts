@@ -189,3 +189,71 @@ export interface AnimeRating {
   count: number;        // Number of ratings
   distribution: Record<number, number>;  // Rating value (1-10) -> count
 }
+
+// Auth Types
+export interface User {
+  id: number;
+  username: string;
+  display_name?: string;
+  avatar_url?: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
+export interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
+export interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+  display_name?: string;
+}
+
+export interface LoginData {
+  login: string;  // Username or email
+  password: string;
+}
+
+export interface MeResponse {
+  user: User;
+}
+
+// User Profile Types
+export interface UserStats {
+  anime_watched: number;
+  anime_watching: number;
+  ratings_count: number;
+  comments_count: number;
+}
+
+export interface UserProfile {
+  id: number;
+  username: string;
+  display_name?: string;
+  avatar_url?: string;
+  created_at: string;
+  stats: UserStats;
+}
+
+export interface UpdateProfileData {
+  display_name?: string;
+  avatar_url?: string;
+}
+
+export interface ChangePasswordData {
+  current_password: string;
+  new_password: string;
+}
+
+export interface UpdateProfileResponse {
+  user: User;
+}

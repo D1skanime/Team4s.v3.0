@@ -40,6 +40,55 @@ SELECT id, title, type, status, year FROM anime LIMIT 10;
 
 -- Episodes for an anime
 SELECT id, anime_id, episode_number, title, status FROM episodes WHERE anime_id = 1;
+
+-- New: Count users
+SELECT COUNT(*) FROM users;
+```
+
+---
+
+## Auth System Notes (2026-02-09)
+
+### API Endpoints
+```
+POST /api/v1/auth/register    - Create new user
+POST /api/v1/auth/login       - Authenticate user
+POST /api/v1/auth/refresh     - Refresh access token
+POST /api/v1/auth/logout      - Invalidate current session
+POST /api/v1/auth/logout-all  - Invalidate all sessions
+GET  /api/v1/auth/me          - Get current user
+GET  /api/v1/users/:username  - Get user profile (public)
+PUT  /api/v1/users/me         - Update own profile
+PUT  /api/v1/users/me/password - Change password
+DELETE /api/v1/users/me       - Delete account
+```
+
+### Token Configuration
+```go
+const (
+    AccessTokenExpiry  = 15 * time.Minute
+    RefreshTokenExpiry = 7 * 24 * time.Hour
+    BcryptCost         = 10
+)
+```
+
+### Redis Keys
+```
+refresh:<token>  -> user_id (TTL: 7 days)
+```
+
+### Test User Creation
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","email":"test@example.com","password":"testpass123"}'
+```
+
+### Test Login
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"login":"testuser","password":"testpass123"}'
 ```
 
 ---
@@ -140,13 +189,72 @@ backend/
       main.go         # Entry point, router setup
   internal/
     config/           # Configuration loading
-    database/         # DB connection, migrations (TODO: create postgres.go)
-    handlers/         # HTTP handlers
+    database/         # DB connection (postgres.go, redis.go)
+    handlers/         # HTTP handlers (anime, auth, user, rating)
     models/           # Data structures
-    services/         # Business logic
+    repository/       # Database access (anime, user, rating)
+    services/         # Business logic (token, auth)
   pkg/
     middleware/       # Auth, logging, CORS
 ```
+
+---
+
+## Frontend Structure
+```
+frontend/src/
+  app/
+    anime/[id]/       # Anime detail
+    episode/[id]/     # Episode detail
+    login/            # Login page
+    register/         # Register page
+    search/           # Search results
+    settings/         # User settings
+    user/[username]/  # User profile
+    watchlist/        # Watchlist page
+  components/
+    anime/            # AnimeCard, AnimeGrid, AnimeFilters, etc.
+    auth/             # LoginForm, RegisterForm, AuthGuard
+    layout/           # Header, Pagination
+    settings/         # ProfileForm, PasswordForm, DeleteAccountForm
+    user/             # ProfileCard, StatsGrid
+  contexts/
+    AuthContext.tsx   # Auth state management
+  lib/
+    api.ts            # API client
+    auth.ts           # Auth utilities
+```
+
+---
+
+## Mental Unload (End of Day 2026-02-09)
+
+**P2-1 Auth und P2-2 Profile KOMPLETT!**
+
+Grosser Tag heute. Das Auth-System ist jetzt vollstaendig implementiert - JWT mit Refresh Tokens, Redis Storage, Login/Register/Logout. Und gleich danach das Profil-System mit Settings Page.
+
+**Highlights:**
+- TokenService mit 15min Access / 7 Tage Refresh funktioniert sauber
+- AuthContext mit refreshUser() loest das Problem der State-Updates elegant
+- Settings Page mit Tabs ist sehr aufgeraeumt geworden
+- UserStats Query zeigt schoene Statistiken auf dem Profil
+
+**Technische Learnings:**
+- bcrypt Cost 10 ist der Sweet Spot fuer Performance/Sicherheit
+- Redis fuer Refresh Tokens ist perfekt - einfache Invalidierung
+- React Context reicht fuer Auth State voellig aus
+- Tab-Navigation besser als separate Routes fuer Settings
+
+**Was noch fehlt bei Auth:**
+- Rate Limiting (muss vor Production rein)
+- Email Verification (kann warten)
+- Avatar Upload (nur URL momentan)
+
+**Gefuehl:**
+Sehr zufrieden. P2 ist jetzt 40% fertig. Die grossen Features (Auth, Profile) sind erledigt. Der Rest (Ratings, Watchlist Sync, Comments) baut darauf auf und sollte schneller gehen.
+
+**Morgen:**
+P2-3 User Ratings. Die RatingInput Komponente ist der erste Schritt. Das Rating Repository existiert bereits, braucht nur den Handler.
 
 ---
 
@@ -239,6 +347,14 @@ Excellent day. Went from blocked to having a fully populated database. The migra
 
 ## Session Log
 
+### 2026-02-09 (P2 Auth + Profile Session)
+- P2-1 Auth System implementiert
+- P2-2 User Profile implementiert
+- ~25 neue Frontend-Dateien
+- 11 neue Backend-Dateien
+- 10 neue API Endpoints
+- Git commit vorbereitet
+
 ### 2026-02-06 (P1 Completion Session)
 - P1-2 AnimeFilters mit Status/Type Dropdowns
 - P1-3 RelatedAnime mit horizontalem Scroll
@@ -302,6 +418,8 @@ Excellent day. Went from blocked to having a fully populated database. The migra
 
 ## Questions to Answer
 - [x] Primary keys: UUID vs BIGSERIAL? **Answer: BIGSERIAL**
+- [x] Auth Token Storage: Cookies vs localStorage? **Answer: Cookies recommended, localStorage for dev**
+- [x] Settings Page Layout: Tabs vs separate routes? **Answer: Tabs**
 - [ ] How are anime covers currently stored? Path pattern?
 - [ ] What's the download key generation algorithm exactly?
 - [ ] Are there any rate limits we need to preserve?
@@ -318,6 +436,7 @@ Excellent day. Went from blocked to having a fully populated database. The migra
 | User | team4s |
 | Password | team4s_dev_password |
 | Adminer | http://localhost:8081 |
+| Redis | localhost:6379 |
 
 ---
 
@@ -331,3 +450,37 @@ Excellent day. Went from blocked to having a fully populated database. The migra
 | ratings | 456 |
 | watchlist | 716 |
 | **TOTAL** | **47,145** |
+
+---
+
+## API Quick Reference
+
+### Public Endpoints
+```
+GET  /health
+GET  /api/v1/anime
+GET  /api/v1/anime/:id
+GET  /api/v1/anime/:id/episodes
+GET  /api/v1/anime/:id/relations
+GET  /api/v1/anime/:id/rating/stats
+GET  /api/v1/anime/search?q=
+GET  /api/v1/episodes/:id
+GET  /api/v1/users/:username
+```
+
+### Auth Endpoints
+```
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/refresh
+POST /api/v1/auth/logout
+POST /api/v1/auth/logout-all
+GET  /api/v1/auth/me
+```
+
+### Protected Endpoints (require auth)
+```
+PUT    /api/v1/users/me
+PUT    /api/v1/users/me/password
+DELETE /api/v1/users/me
+```

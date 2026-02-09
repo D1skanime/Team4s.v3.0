@@ -4,9 +4,9 @@
 Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stack to a modern Go + Next.js + PostgreSQL architecture.
 
 ## Current Phase
-**Phase:** P1 Features COMPLETED
+**Phase:** P2 Features In Progress
 **Started:** 2026-02-02
-**Status:** P0 + P1 complete, ready for P2 (User Features)
+**Status:** P0 + P1 complete, P2-1 Auth + P2-2 Profile complete
 
 ## Project State
 
@@ -41,25 +41,30 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - [x] **PostgreSQL container running**
 - [x] **MySQL to PostgreSQL migration script created**
 - [x] **47,145+ records migrated from legacy database**
+- [x] **P0 Features complete** (Anime List, Detail, Episodes, Covers, Logos)
+- [x] **P1 Features complete** (Search, Filters, Related, Episode Detail, Watchlist, Rating Display)
+- [x] **P2-1 Auth System** (JWT, Refresh Token, Redis, Login/Register)
+- [x] **P2-2 User Profile** (Profile Page, Settings, Password Change, Account Delete)
 
 ### In Progress
-- [ ] P2: User Features (Auth, Profile, Ratings, Comments)
+- [ ] P2-3: User Ratings (submit own ratings)
+- [ ] P2-4: Watchlist Sync (localStorage to backend)
+- [ ] P2-5: Comments (read and write)
 
-### Recently Completed (2026-02-06)
-- [x] P1-1: Search Feature (Backend + Frontend)
-- [x] P1-2: Advanced Filters (Status/Type Dropdowns mit URL-State)
-- [x] P1-3: Related Anime (Backend + Frontend, horizontale Scroll-Liste)
-- [x] P1-4: Episode Detail (Route /episode/:id mit FansubProgress)
-- [x] P1-5: Watchlist UI (localStorage, WatchlistButton, /watchlist Page)
-- [x] P1-6: Rating Display (StarRating mit halben Sternen, RatingDisplay)
-- [x] Connect Go backend to PostgreSQL (pgx pool)
-- [x] Implement real API endpoints with database queries
-- [x] Frontend with Next.js 14 App Router
-- [x] Anime Liste mit A-Z Filter und Pagination
-- [x] Anime Detail Page mit Cover, Infos, Status
-- [x] Episode View mit Episoden-Liste
-- [x] 2.386 Cover-Bilder migriert
-- [x] 105 Fansub-Logos migriert
+### Recently Completed (2026-02-09)
+- [x] P2-1: Auth System
+  - Backend: TokenService, AuthService, AuthMiddleware
+  - Backend: Redis integration for refresh tokens
+  - Backend: User Repository with CRUD
+  - Frontend: AuthContext with login/register/logout/refreshUser
+  - Frontend: Login/Register Pages
+  - Frontend: Header with User Menu
+- [x] P2-2: User Profile
+  - Backend: User Handler (GetProfile, UpdateProfile, ChangePassword, DeleteAccount)
+  - Backend: UserStats Query (anime watched, watching, ratings, comments)
+  - Frontend: /user/[username] Profile Page with ProfileCard, StatsGrid
+  - Frontend: /settings Page with Tabs (Profile, Password, Account)
+  - Frontend: ProfileForm, PasswordForm, DeleteAccountForm Components
 
 ### Blocked
 - **User Migration:** Need to extract and migrate WCF users
@@ -78,7 +83,7 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - **Frontend:** Next.js 14 with App Router + TypeScript
 - **Database:** PostgreSQL 16 (via Docker)
 - **Cache/Sessions:** Redis 7 (via Docker)
-- **Auth:** JWT + Refresh tokens + Redis session store
+- **Auth:** JWT (15 min) + Refresh tokens (7 days) + Redis session store
 - **Deployment:** Docker Compose + nginx
 - **DB Admin:** Adminer on localhost:8081
 
@@ -109,6 +114,27 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - Database queries must use parameterized statements (no SQL injection)
 
 ## Session History
+
+### Day 2026-02-09
+- Phase: P2 IN PROGRESS (40% complete)
+- Accomplishments:
+  - P2-1: Auth System complete (JWT + Refresh + Redis)
+  - P2-2: User Profile complete (View, Edit, Settings)
+  - Backend: 11 neue Dateien (services, handlers, middleware, repository)
+  - Frontend: ~25 neue Dateien (pages, components, contexts)
+  - 10 neue API Endpoints implementiert
+- Key Decisions:
+  - JWT Access Token: 15 min Expiry (ADR-020)
+  - Refresh Token: 7 Tage, Random Hex in Redis (ADR-021)
+  - bcrypt Cost: 10 fuer Password Hashing (ADR-022)
+  - AuthContext mit refreshUser() (ADR-023)
+  - Settings Page mit Tab-Navigation (ADR-024)
+- Risks/Unknowns:
+  - Rate Limiting noch nicht implementiert (Brute-Force-Schutz fehlt)
+  - Email Verification nicht implementiert
+  - Avatar nur als URL, kein Upload
+- Next Steps: P2-3 User Ratings, P2-4 Watchlist Sync
+- First task tomorrow: RatingInput Komponente erstellen
 
 ### Day 2026-02-06
 - Phase: P1 COMPLETED

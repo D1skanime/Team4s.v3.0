@@ -1,178 +1,190 @@
-# Tomorrow's Plan - 2026-02-07
+# Tomorrow's Plan - 2026-02-10
 
 ## Top 3 Priorities
 
-### 1. Auth System Planung
-Design des Authentication Systems fuer P2.
+### 1. P2-3: User Ratings Implementation
+Benutzer sollen eigene Bewertungen fuer Anime abgeben koennen.
 
-**Backend-Architektur:**
+**Backend:**
 ```go
-// JWT + Refresh Token Pattern
-type AuthHandler struct {
-    userRepo    *UserRepository
-    tokenService *TokenService
-}
-
-// Endpoints
-POST /api/v1/auth/register
-POST /api/v1/auth/login
-POST /api/v1/auth/refresh
-POST /api/v1/auth/logout
+// Rating Handler erweitern
+POST /api/v1/anime/:id/ratings    - Bewertung abgeben/aktualisieren
+GET  /api/v1/anime/:id/ratings/me - Eigene Bewertung abrufen
+DELETE /api/v1/anime/:id/ratings  - Bewertung loeschen
 ```
 
-**Frontend-Struktur:**
-- `/login` - Login Page
-- `/register` - Registrierung
-- AuthContext fuer globalen State
-- Protected Route HOC
+**Frontend:**
+- RatingInput Komponente (klickbare Sterne)
+- Integration in AnimeDetail Page
+- Aktualisierung der Gesamtbewertung nach Submit
 
 **Aufgaben:**
-1. Token-Strategie definieren (Access Token Lifetime, Refresh Token Rotation)
-2. Password Hashing mit bcrypt implementieren
-3. Middleware fuer geschuetzte Routen
-4. Cookie vs localStorage fuer Token-Speicherung entscheiden
+1. Backend: Rating Handler mit Create/Update/Delete
+2. Backend: Rating Repository erweitern
+3. Frontend: RatingInput Komponente
+4. Frontend: Integration mit AuthContext (nur eingeloggt)
+5. Frontend: Optimistic UI Update
 
 ---
 
-### 2. Login/Register Pages erstellen
-Frontend-Implementation der Auth-Pages.
+### 2. P2-4: Watchlist Backend Sync
+localStorage Watchlist zu Backend migrieren.
 
-**Komponenten:**
-```typescript
-// src/components/auth/LoginForm.tsx
-// src/components/auth/RegisterForm.tsx
-// src/components/auth/AuthProvider.tsx
-// src/app/login/page.tsx
-// src/app/register/page.tsx
-```
-
-**Features:**
-- Form Validation
-- Error Handling
-- Loading States
-- Redirect nach Login
-
----
-
-### 3. User Repository und Handler
-Backend-Implementation fuer User-Management.
-
-**Files zu erstellen:**
-```
-backend/internal/repository/user.go
-backend/internal/handlers/auth.go
-backend/internal/services/token.go
-backend/pkg/middleware/auth.go
-```
-
-**User Model erweitern:**
+**Backend:**
 ```go
-type User struct {
-    ID           int64     `json:"id"`
-    Username     string    `json:"username"`
-    Email        string    `json:"email"`
-    PasswordHash string    `json:"-"`
-    CreatedAt    time.Time `json:"created_at"`
-    UpdatedAt    time.Time `json:"updated_at"`
-}
+POST   /api/v1/watchlist           - Anime zur Watchlist hinzufuegen
+GET    /api/v1/watchlist           - Eigene Watchlist abrufen
+PUT    /api/v1/watchlist/:animeId  - Status aendern
+DELETE /api/v1/watchlist/:animeId  - Von Watchlist entfernen
 ```
+
+**Frontend:**
+- WatchlistContext fuer zentralen State
+- Migration von localStorage bei Login
+- Sync bei jeder Aenderung
+- Offline-Fallback auf localStorage
+
+**Aufgaben:**
+1. Backend: Watchlist Handler implementieren
+2. Backend: Watchlist Repository
+3. Frontend: WatchlistContext erstellen
+4. Frontend: Migration-Logic bei Login
+5. Frontend: WatchlistButton anpassen
+
+---
+
+### 3. Rate Limiting fuer Auth Endpoints
+Schutz gegen Brute-Force Angriffe.
+
+**Implementation:**
+```go
+// middleware/ratelimit.go
+type RateLimiter struct {
+    redis  *redis.Client
+    limit  int           // Anfragen pro Zeitfenster
+    window time.Duration // Zeitfenster
+}
+
+// 5 Versuche pro Minute pro IP fuer Login
+// 3 Versuche pro Minute pro IP fuer Register
+```
+
+**Aufgaben:**
+1. RateLimiter Middleware erstellen
+2. Redis-basierter Counter
+3. Anwenden auf /auth/login und /auth/register
+4. Error Response mit Retry-After Header
 
 ---
 
 ## First 15-Minute Task
 
-**Token Service Skeleton erstellen:**
+**RatingInput Komponente Skeleton erstellen:**
 
-1. Erstelle `backend/internal/services/token.go`:
-```go
-package services
+1. Erstelle `frontend/src/components/anime/RatingInput.tsx`:
+```typescript
+'use client';
 
-import (
-    "time"
-    "github.com/golang-jwt/jwt/v5"
-)
+import { useState } from 'react';
+import styles from './RatingInput.module.css';
 
-type TokenService struct {
-    secretKey     []byte
-    accessExpiry  time.Duration
-    refreshExpiry time.Duration
+interface RatingInputProps {
+  animeId: number;
+  currentRating?: number;
+  onRatingChange?: (rating: number) => void;
 }
 
-func NewTokenService(secret string) *TokenService {
-    return &TokenService{
-        secretKey:     []byte(secret),
-        accessExpiry:  15 * time.Minute,
-        refreshExpiry: 7 * 24 * time.Hour,
-    }
-}
+export default function RatingInput({
+  animeId,
+  currentRating,
+  onRatingChange
+}: RatingInputProps) {
+  const [rating, setRating] = useState(currentRating || 0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-func (s *TokenService) GenerateAccessToken(userID int64) (string, error) {
-    // TODO: Implement
-}
+  const handleClick = async (value: number) => {
+    // TODO: Implement API call
+    setRating(value);
+    onRatingChange?.(value);
+  };
 
-func (s *TokenService) GenerateRefreshToken(userID int64) (string, error) {
-    // TODO: Implement
-}
-
-func (s *TokenService) ValidateToken(tokenString string) (*Claims, error) {
-    // TODO: Implement
+  return (
+    <div className={styles.container}>
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
+        <button
+          key={value}
+          className={`${styles.star} ${value <= (hoveredRating || rating) ? styles.filled : ''}`}
+          onMouseEnter={() => setHoveredRating(value)}
+          onMouseLeave={() => setHoveredRating(0)}
+          onClick={() => handleClick(value)}
+          disabled={isSubmitting}
+        >
+          {value}
+        </button>
+      ))}
+    </div>
+  );
 }
 ```
 
-2. Teste Kompilierung mit `go build ./...`
-3. JWT Library installieren: `go get github.com/golang-jwt/jwt/v5`
+2. Erstelle `frontend/src/components/anime/RatingInput.module.css`
+3. Teste Kompilierung mit `npm run build`
 
 ---
 
 ## Dependencies to Unblock Early
 
-1. **JWT Library installieren**
+1. **Rating Repository bereits vorhanden**
+   - `backend/internal/repository/rating.go` existiert
+   - Nur Handler fehlt
+
+2. **Watchlist Table existiert**
+   - Schema mit user_id, anime_id, status
+   - 716 Legacy-Eintraege migriert
+
+3. **Redis bereits konfiguriert**
+   - Verbindung in `database/redis.go`
+   - Kann fuer Rate Limiting wiederverwendet werden
+
+4. **Docker running**
    ```bash
-   cd backend && go get github.com/golang-jwt/jwt/v5
+   docker ps
+   # Zeigt: postgres, redis, adminer
    ```
-
-2. **Redis fuer Refresh Token Store**
-   - Bereits running in Docker
-   - Go Redis Client: `go get github.com/redis/go-redis/v9`
-
-3. **bcrypt fuer Passwords**
-   ```bash
-   go get golang.org/x/crypto/bcrypt
-   ```
-
-4. **Docker running** - `docker ps` zeigt postgres + redis
 
 ---
 
 ## If Ahead of Schedule
 
-### User Profile Page
-- GET /api/v1/users/:id (public info)
-- GET /api/v1/users/me (authenticated, full info)
-- PUT /api/v1/users/me (update profile)
-
-### Watchlist Backend Migration
-- POST /api/v1/watchlist
-- GET /api/v1/users/me/watchlist
-- localStorage zu Backend Sync bei Login
+### P2-5: Comments System
+- GET /api/v1/anime/:id/comments - Kommentare laden
+- POST /api/v1/anime/:id/comments - Kommentar schreiben
+- DELETE /api/v1/comments/:id - Eigenen Kommentar loeschen (oder Mod)
+- CommentList und CommentForm Komponenten
 
 ### Password Reset Flow
 - POST /api/v1/auth/forgot-password
 - POST /api/v1/auth/reset-password
-- Email-Versand (spaeter)
+- Token per Email (spaeter)
+
+### Avatar Upload
+- Multipart Form statt URL
+- Lokale Speicherung oder S3
+- Image Resize/Crop
 
 ---
 
 ## Verification Checklist
 
 Nach Abschluss der Prioritaeten:
-- [ ] JWT Generation funktioniert
-- [ ] Password Hashing mit bcrypt
-- [ ] Login Endpoint gibt Token zurueck
-- [ ] Register Endpoint erstellt User
-- [ ] Frontend Login Form funktioniert
-- [ ] Protected Route redirected zu /login
-- [ ] Refresh Token erneuert Access Token
+- [ ] User kann Anime bewerten (1-10)
+- [ ] Bewertung wird in DB gespeichert
+- [ ] Gesamtbewertung aktualisiert sich
+- [ ] Watchlist wird bei Login synchronisiert
+- [ ] localStorage wird nach Sync geleert
+- [ ] Rate Limiting blockiert nach 5 Versuchen
+- [ ] Retry-After Header wird gesendet
 
 ---
 
@@ -180,64 +192,62 @@ Nach Abschluss der Prioritaeten:
 
 | ID | Feature | Priority | Status |
 |----|---------|----------|--------|
-| P2-1 | Auth (Login/Register) | HIGH | TODO |
-| P2-2 | User Profile | MEDIUM | TODO |
+| P2-1 | Auth (Login/Register) | HIGH | DONE |
+| P2-2 | User Profile | MEDIUM | DONE |
 | P2-3 | User Ratings | MEDIUM | TODO |
 | P2-4 | Watchlist Sync | MEDIUM | TODO |
-| P2-5 | Comments Read | LOW | TODO |
-| P2-6 | Comments Write | LOW | TODO |
+| P2-5 | Comments | LOW | TODO |
 
 ---
 
 ## Technical Notes
 
-### JWT Token Structure
+### Rating API Design
 ```json
+// POST /api/v1/anime/:id/ratings
+// Request
 {
-  "sub": "user_id",
-  "exp": "expiration_timestamp",
-  "iat": "issued_at",
-  "type": "access" | "refresh"
+  "rating": 8
+}
+
+// Response
+{
+  "id": 123,
+  "anime_id": 456,
+  "user_id": 1,
+  "rating": 8,
+  "created_at": "2026-02-10T10:00:00Z"
 }
 ```
 
-### Auth Flow
-1. User submits credentials
-2. Backend validates, returns access + refresh tokens
-3. Frontend stores in httpOnly cookies
-4. Access token sent with each request
-5. When expired, refresh endpoint called
-6. If refresh fails, redirect to login
+### Watchlist Sync Strategy
+1. Bei Login: localStorage lesen
+2. Fuer jeden Eintrag: POST an Backend
+3. Bei Konflikt: Backend-Version gewinnt (neuerer Timestamp)
+4. Nach Sync: localStorage leeren
+5. Danach: Alle Aenderungen direkt an Backend
 
-### Cookie Settings
-```go
-http.SetCookie(w, &http.Cookie{
-    Name:     "access_token",
-    Value:    token,
-    HttpOnly: true,
-    Secure:   true, // HTTPS only in production
-    SameSite: http.SameSiteStrictMode,
-    Path:     "/",
-    MaxAge:   900, // 15 minutes
-})
+### Rate Limiter Redis Keys
+```
+ratelimit:login:192.168.1.1   -> Counter (TTL: 60s)
+ratelimit:register:192.168.1.1 -> Counter (TTL: 60s)
 ```
 
 ---
 
 ## Questions to Resolve
 
-1. **Email Verification?**
-   - Option A: Required before access
-   - Option B: Optional, can use without
-   - Recommendation: Option B (simpler for now)
+1. **Rating Update vs Create?**
+   - Option A: Separater PUT Endpoint
+   - Option B: POST macht Upsert
+   - Empfehlung: Option B (einfacher fuer Frontend)
 
-2. **Username vs Email Login?**
-   - Option A: Username only
-   - Option B: Email only
-   - Option C: Both
-   - Recommendation: Option C (flexible)
+2. **Watchlist Konfliktloesung?**
+   - Option A: Server gewinnt immer
+   - Option B: Neuester Timestamp gewinnt
+   - Option C: User entscheidet
+   - Empfehlung: Option B
 
-3. **Rate Limiting?**
-   - Needed for auth endpoints
-   - Redis-based counter
-   - 5 attempts per minute per IP
+3. **Rate Limit Response Code?**
+   - 429 Too Many Requests (Standard)
+   - Retry-After Header mit Sekunden

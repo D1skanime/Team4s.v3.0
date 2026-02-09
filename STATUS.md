@@ -1,8 +1,8 @@
 # Team4s.v3.0 - Current Status
 
-**Last Updated:** 2026-02-06
-**Phase:** P1 Features COMPLETED
-**Overall Progress:** ~75%
+**Last Updated:** 2026-02-09
+**Phase:** P2 Features In Progress
+**Overall Progress:** ~80%
 
 ---
 
@@ -12,7 +12,7 @@
 |-----------|--------|----------|
 | P0: Core Browse/View | DONE | 100% |
 | P1: Enhanced Features | DONE | 100% |
-| P2: User Features | TODO | 0% |
+| P2: User Features | IN PROGRESS | 40% |
 | P3: Admin Features | TODO | 0% |
 
 ---
@@ -45,16 +45,15 @@
 
 ---
 
-## P2 Features (Planned)
+## P2 Features (In Progress)
 
 | Feature | Backend | Frontend | Status |
 |---------|---------|----------|--------|
-| Auth (Login/Register) | JWT + Refresh | /login, /register | TODO |
-| User Profile | GET/PUT /api/v1/users/:id | /profile | TODO |
+| Auth (Login/Register) | JWT + Refresh + Redis | /login, /register, AuthContext | DONE |
+| User Profile | GET/PUT /api/v1/users | /user/[username], /settings | DONE |
 | User Ratings | POST /api/v1/anime/:id/ratings | RatingInput | TODO |
 | Watchlist Sync | POST /api/v1/watchlist | Backend Migration | TODO |
-| Comments Read | GET /api/v1/anime/:id/comments | CommentList | TODO |
-| Comments Write | POST /api/v1/anime/:id/comments | CommentForm | TODO |
+| Comments | GET/POST /api/v1/anime/:id/comments | CommentList, CommentForm | TODO |
 
 ---
 
@@ -66,10 +65,15 @@
 - `/episode/:id` - Episode-Detail mit Fansub-Progress
 - `/search?q=query` - Suchergebnisse
 - `/watchlist` - Persoenliche Watchlist (localStorage)
-- Header mit SearchBar und Navigation auf allen Seiten
+- `/login` - Login mit Email oder Username
+- `/register` - Benutzerregistrierung
+- `/settings` - Profil bearbeiten, Passwort aendern, Account loeschen
+- `/user/[username]` - Oeffentliches Benutzerprofil mit Stats
+- Header mit SearchBar, User Menu und Navigation auf allen Seiten
 - Dark Theme, Responsive Design, CSS Modules
 
 **Backend API (http://localhost:8080):**
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | /health | Health check mit DB-Status |
@@ -80,17 +84,36 @@
 | GET | /api/v1/anime/:id/rating/stats | Rating Statistiken |
 | GET | /api/v1/anime/search | Suche nach Anime (q=query) |
 | GET | /api/v1/episodes/:id | Episode Detail mit FansubProgress |
+| POST | /api/v1/auth/register | Benutzer registrieren |
+| POST | /api/v1/auth/login | Login (JWT + Refresh Token) |
+| POST | /api/v1/auth/refresh | Access Token erneuern |
+| POST | /api/v1/auth/logout | Aktuelle Session beenden |
+| POST | /api/v1/auth/logout-all | Alle Sessions beenden |
+| GET | /api/v1/auth/me | Aktueller Benutzer |
+| GET | /api/v1/users/:username | Oeffentliches Profil |
+| PUT | /api/v1/users/me | Eigenes Profil bearbeiten |
+| PUT | /api/v1/users/me/password | Passwort aendern |
+| DELETE | /api/v1/users/me | Account loeschen |
 
 ### How to Verify
 ```bash
 # Backend starten
 cd backend && go run cmd/server/main.go
 
-# API testen
+# API testen (Public)
 curl http://localhost:8080/api/v1/anime?letter=A
 curl http://localhost:8080/api/v1/anime?status=ongoing&type=tv
 curl http://localhost:8080/api/v1/anime/1/relations
 curl http://localhost:8080/api/v1/episodes/1
+
+# API testen (Auth)
+curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","email":"test@example.com","password":"testpass123"}'
+
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"login":"test","password":"testpass123"}'
 
 # Frontend starten
 cd frontend && npm run dev
@@ -104,7 +127,7 @@ cd frontend && npm run dev
 | Component | Status | Notes |
 |-----------|--------|-------|
 | PostgreSQL 16 | Running | Docker, Port 5432 |
-| Redis 7 | Running | Docker, Port 6379 |
+| Redis 7 | Running | Docker, Port 6379, Auth Token Storage |
 | Go Backend | Running | Port 8080 |
 | Next.js Frontend | Running | Port 3000 |
 | Adminer | Running | Port 8081 |
@@ -121,7 +144,7 @@ cd frontend && npm run dev
 | comments | 145 | Yes |
 | ratings | 456 | Yes |
 | watchlist | 716 | Yes |
-| users | 1 (admin) | Partial |
+| users | 1+ (admin + new) | Partial |
 | covers | 2,386 | Yes (files) |
 | fansub logos | 105 | Yes (files) |
 
@@ -130,10 +153,12 @@ cd frontend && npm run dev
 ## Technical Debt
 
 1. **FK Constraints Disabled** - Re-enable after user migration
-2. **User References** - All point to user_id=1
+2. **User References** - All legacy data points to user_id=1
 3. **Stream Links** - Still in legacy HTML format
 4. **API Docs** - No OpenAPI spec yet
 5. **StarRating clipPath IDs** - Need unique IDs per instance
+6. **Rate Limiting** - Auth endpoints not rate-limited
+7. **Email Verification** - Not implemented
 
 ---
 
@@ -142,6 +167,15 @@ cd frontend && npm run dev
 - **User Migration Pending:** Legacy users not yet migrated from WCF
 - **Password Migration:** WCF uses crypt-compatible hashes; bcrypt compatibility not tested
 - **Stream Links Parsing:** Legacy HTML needs parser for Episode Detail
+- **Rate Limiting:** Auth endpoints vulnerable to brute force
+
+---
+
+## Top 3 Next Steps
+
+1. **P2-3: User Ratings** - Let users rate anime
+2. **P2-4: Watchlist Sync** - Move localStorage to backend
+3. **P2-5: Comments** - Read and write comments
 
 ---
 
