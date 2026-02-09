@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -12,10 +12,19 @@ import {
   Trash2,
   ArrowUpDown,
   ListFilter,
+  RefreshCw,
+  Cloud,
+  HardDrive,
 } from 'lucide-react';
-import type { WatchlistStatus, WatchlistItem, AnimeListItem } from '@/types';
+import type { WatchlistStatus, WatchlistItem, BackendWatchlistItem } from '@/types';
 import { WATCHLIST_STATUS_LABELS, WATCHLIST_STATUS_COLORS } from '@/types';
-import { getWatchlist, removeFromWatchlist } from '@/lib/watchlist';
+import {
+  getLocalWatchlist,
+  removeFromLocalWatchlist,
+  syncLocalWatchlistToBackend,
+} from '@/lib/watchlist';
+import { authClient } from '@/lib/auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { getCoverUrl } from '@/lib/utils';
 import styles from './WatchlistGrid.module.css';
@@ -32,50 +41,127 @@ const STATUS_ICONS: Record<WatchlistStatus, typeof Eye> = {
 
 const STATUS_ORDER: WatchlistStatus[] = ['watching', 'done', 'break', 'planned', 'dropped'];
 
-interface AnimeWithWatchlist extends AnimeListItem {
-  watchlistItem: WatchlistItem;
+// Unified item type for display
+interface DisplayItem {
+  id: number;
+  animeId: number;
+  title: string;
+  type: string;
+  status: string;
+  year: number | null;
+  coverImage: string | null;
+  maxEpisodes: number;
+  watchlistStatus: WatchlistStatus;
+  addedAt: string;
+  updatedAt: string;
 }
 
 export function WatchlistGrid() {
-  const [items, setItems] = useState<AnimeWithWatchlist[]>([]);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const [items, setItems] = useState<DisplayItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ synced: number; skipped: number } | null>(null);
   const [activeStatus, setActiveStatus] = useState<WatchlistStatus | 'all'>('all');
   const [sortBy, setSortBy] = useState<SortOption>('added');
+  const [dataSource, setDataSource] = useState<'local' | 'backend'>('local');
 
-  // Load watchlist and fetch anime details
-  useEffect(() => {
-    async function loadWatchlist() {
-      setLoading(true);
-      const watchlist = getWatchlist();
+  // Load watchlist based on auth status
+  const loadWatchlist = useCallback(async () => {
+    setLoading(true);
 
-      if (watchlist.length === 0) {
-        setItems([]);
-        setLoading(false);
-        return;
+    if (isAuthenticated) {
+      // Fetch from backend
+      try {
+        const response = await authClient.getWatchlist();
+        const displayItems: DisplayItem[] = response.data.map((item) => ({
+          id: item.id,
+          animeId: item.anime_id,
+          title: item.anime?.title || 'Unknown',
+          type: item.anime?.type || 'tv',
+          status: item.anime?.status || 'done',
+          year: item.anime?.year || null,
+          coverImage: item.anime?.cover_image || null,
+          maxEpisodes: item.anime?.max_episodes || 0,
+          watchlistStatus: item.status,
+          addedAt: item.created_at,
+          updatedAt: item.updated_at,
+        }));
+        setItems(displayItems);
+        setDataSource('backend');
+      } catch (error) {
+        console.error('Failed to load watchlist from backend:', error);
+        // Fallback to localStorage
+        await loadLocalWatchlist();
       }
-
-      // Fetch anime details for each watchlist item
-      const animePromises = watchlist.map(async (item) => {
-        try {
-          const response = await api.getAnime(item.animeId);
-          return {
-            ...response.data,
-            watchlistItem: item,
-          } as AnimeWithWatchlist;
-        } catch {
-          // If anime not found, return null
-          return null;
-        }
-      });
-
-      const results = await Promise.all(animePromises);
-      const validItems = results.filter((item): item is AnimeWithWatchlist => item !== null);
-      setItems(validItems);
-      setLoading(false);
+    } else {
+      await loadLocalWatchlist();
     }
 
-    loadWatchlist();
-  }, []);
+    setLoading(false);
+  }, [isAuthenticated]);
+
+  // Load from localStorage
+  const loadLocalWatchlist = async () => {
+    const watchlist = getLocalWatchlist();
+    setDataSource('local');
+
+    if (watchlist.length === 0) {
+      setItems([]);
+      return;
+    }
+
+    // Fetch anime details for each watchlist item
+    const animePromises = watchlist.map(async (item) => {
+      try {
+        const response = await api.getAnime(item.animeId);
+        return {
+          id: item.animeId,
+          animeId: item.animeId,
+          title: response.data.title,
+          type: response.data.type,
+          status: response.data.status,
+          year: response.data.year || null,
+          coverImage: response.data.cover_image || null,
+          maxEpisodes: response.data.max_episodes,
+          watchlistStatus: item.status,
+          addedAt: item.addedAt,
+          updatedAt: item.updatedAt,
+        } as DisplayItem;
+      } catch {
+        return null;
+      }
+    });
+
+    const results = await Promise.all(animePromises);
+    const validItems = results.filter((item): item is DisplayItem => item !== null);
+    setItems(validItems);
+  };
+
+  // Initial load and auth change
+  useEffect(() => {
+    if (!authLoading) {
+      loadWatchlist();
+    }
+  }, [authLoading, loadWatchlist]);
+
+  // Sync localStorage to backend on login
+  useEffect(() => {
+    async function syncOnLogin() {
+      if (isAuthenticated && !authLoading) {
+        setSyncing(true);
+        const result = await syncLocalWatchlistToBackend();
+        if (result && (result.synced > 0 || result.skipped > 0)) {
+          setSyncResult(result);
+          // Reload watchlist after sync
+          await loadWatchlist();
+        }
+        setSyncing(false);
+      }
+    }
+
+    syncOnLogin();
+  }, [isAuthenticated, authLoading, loadWatchlist]);
 
   // Filter and sort items
   const displayedItems = useMemo(() => {
@@ -83,16 +169,16 @@ export function WatchlistGrid() {
 
     // Filter by status
     if (activeStatus !== 'all') {
-      filtered = items.filter((item) => item.watchlistItem.status === activeStatus);
+      filtered = items.filter((item) => item.watchlistStatus === activeStatus);
     }
 
     // Sort
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'added':
-          return new Date(b.watchlistItem.addedAt).getTime() - new Date(a.watchlistItem.addedAt).getTime();
+          return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
         case 'updated':
-          return new Date(b.watchlistItem.updatedAt).getTime() - new Date(a.watchlistItem.updatedAt).getTime();
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
         case 'title':
           return a.title.localeCompare(b.title, 'de');
         default:
@@ -113,18 +199,34 @@ export function WatchlistGrid() {
     };
 
     items.forEach((item) => {
-      counts[item.watchlistItem.status]++;
+      counts[item.watchlistStatus]++;
     });
 
     return counts;
   }, [items]);
 
-  const handleRemove = (animeId: number) => {
-    removeFromWatchlist(animeId);
-    setItems((prev) => prev.filter((item) => item.id !== animeId));
+  const handleRemove = async (animeId: number) => {
+    // Optimistic update
+    setItems((prev) => prev.filter((item) => item.animeId !== animeId));
+
+    try {
+      if (isAuthenticated) {
+        await authClient.removeFromWatchlist(animeId);
+      } else {
+        removeFromLocalWatchlist(animeId);
+      }
+    } catch (error) {
+      console.error('Failed to remove from watchlist:', error);
+      // Reload on error
+      await loadWatchlist();
+    }
   };
 
-  if (loading) {
+  const handleRefresh = async () => {
+    await loadWatchlist();
+  };
+
+  if (authLoading || loading) {
     return (
       <div className={styles.loading}>
         <div className={styles.spinner} />
@@ -148,6 +250,23 @@ export function WatchlistGrid() {
 
   return (
     <div className={styles.container}>
+      {/* Sync notification */}
+      {syncResult && (syncResult.synced > 0 || syncResult.skipped > 0) && (
+        <div className={styles.syncNotice}>
+          <Cloud size={16} />
+          <span>
+            {syncResult.synced > 0 && `${syncResult.synced} Eintraege synchronisiert. `}
+            {syncResult.skipped > 0 && `${syncResult.skipped} waren bereits aktuell.`}
+          </span>
+          <button
+            onClick={() => setSyncResult(null)}
+            className={styles.dismissButton}
+          >
+            Schliessen
+          </button>
+        </div>
+      )}
+
       {/* Controls */}
       <div className={styles.controls}>
         {/* Status Tabs */}
@@ -181,18 +300,37 @@ export function WatchlistGrid() {
           })}
         </div>
 
-        {/* Sort */}
-        <div className={styles.sortWrapper}>
-          <ArrowUpDown size={16} />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className={styles.sortSelect}
+        {/* Actions */}
+        <div className={styles.actions}>
+          {/* Data source indicator */}
+          <div className={styles.dataSource} title={dataSource === 'backend' ? 'Cloud-Daten' : 'Lokale Daten'}>
+            {dataSource === 'backend' ? <Cloud size={14} /> : <HardDrive size={14} />}
+            <span>{dataSource === 'backend' ? 'Cloud' : 'Lokal'}</span>
+          </div>
+
+          {/* Refresh */}
+          <button
+            onClick={handleRefresh}
+            className={styles.refreshButton}
+            disabled={syncing}
+            title="Aktualisieren"
           >
-            <option value="added">Zuletzt hinzugefuegt</option>
-            <option value="updated">Zuletzt aktualisiert</option>
-            <option value="title">Alphabetisch</option>
-          </select>
+            <RefreshCw size={16} className={syncing ? styles.spinning : ''} />
+          </button>
+
+          {/* Sort */}
+          <div className={styles.sortWrapper}>
+            <ArrowUpDown size={16} />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className={styles.sortSelect}
+            >
+              <option value="added">Zuletzt hinzugefuegt</option>
+              <option value="updated">Zuletzt aktualisiert</option>
+              <option value="title">Alphabetisch</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -204,13 +342,13 @@ export function WatchlistGrid() {
       ) : (
         <div className={styles.grid}>
           {displayedItems.map((anime) => {
-            const StatusIcon = STATUS_ICONS[anime.watchlistItem.status];
+            const StatusIcon = STATUS_ICONS[anime.watchlistStatus];
             return (
-              <div key={anime.id} className={styles.card}>
-                <Link href={`/anime/${anime.id}`} className={styles.cardLink}>
+              <div key={anime.animeId} className={styles.card}>
+                <Link href={`/anime/${anime.animeId}`} className={styles.cardLink}>
                   <div className={styles.coverWrapper}>
                     <Image
-                      src={getCoverUrl(anime.cover_image)}
+                      src={getCoverUrl(anime.coverImage)}
                       alt={anime.title}
                       width={200}
                       height={280}
@@ -219,23 +357,23 @@ export function WatchlistGrid() {
                     />
                     <span
                       className={styles.statusBadge}
-                      style={{ backgroundColor: WATCHLIST_STATUS_COLORS[anime.watchlistItem.status] }}
+                      style={{ backgroundColor: WATCHLIST_STATUS_COLORS[anime.watchlistStatus] }}
                     >
                       <StatusIcon size={12} />
-                      {WATCHLIST_STATUS_LABELS[anime.watchlistItem.status]}
+                      {WATCHLIST_STATUS_LABELS[anime.watchlistStatus]}
                     </span>
                   </div>
                   <div className={styles.content}>
                     <h3 className={styles.title}>{anime.title}</h3>
                     <div className={styles.meta}>
-                      <span>{anime.max_episodes} Ep.</span>
+                      <span>{anime.maxEpisodes} Ep.</span>
                       {anime.year && <span>{anime.year}</span>}
                     </div>
                   </div>
                 </Link>
                 <button
                   className={styles.removeButton}
-                  onClick={() => handleRemove(anime.id)}
+                  onClick={() => handleRemove(anime.animeId)}
                   title="Aus Watchlist entfernen"
                 >
                   <Trash2 size={16} />

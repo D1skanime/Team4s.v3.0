@@ -1,0 +1,240 @@
+# P2-4: Watchlist Sync API Contract
+# Migrates localStorage watchlist to backend with hybrid mode
+
+feature: watchlist-sync
+version: 1.0.0
+status: implemented
+
+# Database Schema (existing)
+database:
+  table: watchlist
+  columns:
+    - id: BIGSERIAL PRIMARY KEY
+    - anime_id: BIGINT NOT NULL REFERENCES anime(id) ON DELETE CASCADE
+    - user_id: BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+    - status: watchlist_status ENUM ('watching', 'done', 'break', 'planned', 'dropped')
+    - created_at: TIMESTAMPTZ
+    - updated_at: TIMESTAMPTZ
+  constraints:
+    - UNIQUE (user_id, anime_id)
+  indexes:
+    - idx_watchlist_user: user_id
+    - idx_watchlist_anime: anime_id
+    - idx_watchlist_status: (user_id, status)
+
+# API Endpoints
+endpoints:
+  # Get user's complete watchlist
+  - method: GET
+    path: /api/v1/watchlist
+    auth: required
+    description: Get user's complete watchlist with anime info
+    response:
+      type: WatchlistResponse
+      example:
+        data:
+          - id: 1
+            anime_id: 394
+            status: "done"
+            created_at: "2024-01-15T10:30:00Z"
+            updated_at: "2024-01-15T10:30:00Z"
+            anime:
+              id: 394
+              title: "Attack on Titan"
+              type: "tv"
+              status: "done"
+              year: 2013
+              cover_image: "aot.jpg"
+              max_episodes: 25
+        meta:
+          total: 42
+          by_status:
+            watching: 5
+            done: 30
+            break: 3
+            planned: 2
+            dropped: 2
+
+  # Get status for specific anime
+  - method: GET
+    path: /api/v1/watchlist/:animeId
+    auth: required
+    description: Get watchlist entry for specific anime
+    response:
+      type: WatchlistEntry
+      example:
+        id: 1
+        anime_id: 394
+        user_id: 1
+        status: "done"
+        created_at: "2024-01-15T10:30:00Z"
+        updated_at: "2024-01-15T10:30:00Z"
+    errors:
+      404: "not in watchlist"
+
+  # Add to watchlist
+  - method: POST
+    path: /api/v1/watchlist/:animeId
+    auth: required
+    description: Add anime to watchlist (upsert - updates if exists)
+    request:
+      type: AddToWatchlistRequest
+      body:
+        status: WatchlistStatus
+    response:
+      type: WatchlistEntry
+    errors:
+      400: "status is required" | "invalid status"
+      404: "anime not found"
+
+  # Update watchlist status
+  - method: PUT
+    path: /api/v1/watchlist/:animeId
+    auth: required
+    description: Update watchlist entry status
+    request:
+      type: UpdateWatchlistRequest
+      body:
+        status: WatchlistStatus
+    response:
+      type: WatchlistEntry
+    errors:
+      400: "status is required" | "invalid status"
+      404: "not in watchlist"
+
+  # Remove from watchlist
+  - method: DELETE
+    path: /api/v1/watchlist/:animeId
+    auth: required
+    description: Remove anime from watchlist
+    response:
+      status: 204 No Content
+    errors:
+      404: "not in watchlist"
+
+  # Sync localStorage watchlist
+  - method: POST
+    path: /api/v1/watchlist/sync
+    auth: required
+    description: Sync localStorage watchlist to backend (merge strategy)
+    request:
+      type: SyncWatchlistRequest
+      body:
+        items:
+          type: array
+          maxItems: 1000
+          items:
+            anime_id: number
+            status: WatchlistStatus
+            added_at: string (ISO 8601)
+            updated_at: string (ISO 8601)
+    response:
+      type: SyncWatchlistResponse
+      example:
+        synced: 5
+        skipped: 2
+        invalid: 1
+
+  # Check watchlist for multiple anime
+  - method: POST
+    path: /api/v1/watchlist/check
+    auth: required
+    description: Check watchlist status for multiple anime IDs
+    request:
+      type: CheckWatchlistRequest
+      body:
+        anime_ids:
+          type: array
+          maxItems: 100
+    response:
+      type: CheckWatchlistResponse
+      example:
+        statuses:
+          394: "done"
+          395: "watching"
+
+# Types
+types:
+  WatchlistStatus:
+    enum: ["watching", "done", "break", "planned", "dropped"]
+
+  WatchlistEntry:
+    id: int64
+    anime_id: int64
+    user_id: int64
+    status: WatchlistStatus
+    created_at: timestamp
+    updated_at: timestamp
+
+  WatchlistAnime:
+    id: int64
+    title: string
+    type: string
+    status: string
+    year: int16 | null
+    cover_image: string | null
+    max_episodes: int16
+
+  WatchlistItem:
+    id: int64
+    anime_id: int64
+    status: WatchlistStatus
+    created_at: timestamp
+    updated_at: timestamp
+    anime: WatchlistAnime | null
+
+  WatchlistResponse:
+    data: WatchlistItem[]
+    meta:
+      total: int
+      by_status: Record<WatchlistStatus, int>
+
+  SyncWatchlistItem:
+    anime_id: int64
+    status: WatchlistStatus
+    added_at: timestamp
+    updated_at: timestamp
+
+  SyncWatchlistResponse:
+    synced: int
+    skipped: int
+    invalid: int
+
+  CheckWatchlistResponse:
+    statuses: Record<int64, WatchlistStatus>
+
+# Frontend Behavior
+frontend:
+  hybridMode:
+    description: |
+      - Guest users: Store in localStorage only
+      - Authenticated users: Use backend API with localStorage fallback on error
+      - On login: Sync localStorage to backend (merge strategy - newer wins)
+      - On logout: Clear sync flag to allow re-sync on next login
+
+  components:
+    WatchlistButton:
+      - Uses async functions for all operations
+      - Optimistic updates with rollback on error
+      - Shows loading spinner during operations
+      - Loads from localStorage first for instant UI, then fetches from backend
+
+    WatchlistGrid:
+      - Shows data source indicator (Cloud/Lokal)
+      - Auto-syncs on login and shows notification
+      - Refresh button to reload data
+      - Fallback to localStorage on backend errors
+
+# Merge Strategy
+syncStrategy:
+  description: |
+    When syncing localStorage to backend on login:
+    1. For each localStorage item:
+       - If anime doesn't exist in DB: skip (invalid)
+       - If no backend entry exists: create new entry
+       - If backend entry exists:
+         - Compare updated_at timestamps
+         - If localStorage is newer: update backend
+         - If backend is newer or same: skip
+    2. After successful sync: clear localStorage watchlist
+    3. Mark sync as completed to prevent duplicate syncs

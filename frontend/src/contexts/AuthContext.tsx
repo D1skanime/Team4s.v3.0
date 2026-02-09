@@ -13,6 +13,10 @@ import {
   authClient,
   AuthError,
 } from '@/lib/auth';
+import {
+  syncLocalWatchlistToBackend,
+  clearSyncFlag,
+} from '@/lib/watchlist';
 
 interface AuthContextType {
   user: User | null;
@@ -66,6 +70,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await authClient.login(data);
       setUser(response.user);
+
+      // Sync localStorage watchlist to backend after successful login
+      // This runs in background, no need to await
+      syncLocalWatchlistToBackend().catch((err) => {
+        console.error('Watchlist sync failed:', err);
+      });
     } catch (err) {
       const message = err instanceof AuthError ? err.message : 'Login fehlgeschlagen';
       setError(message);
@@ -100,6 +110,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setUser(null);
       setIsLoading(false);
+      // Clear sync flag so next login will sync again
+      clearSyncFlag();
     }
   }, []);
 

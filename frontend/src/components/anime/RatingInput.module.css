@@ -1,0 +1,159 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #1f2937;
+  border-radius: 0.5rem;
+  border: 1px solid #374151;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.currentRating {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fbbf24;
+}
+
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.starButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  color: #4b5563;
+  transition: color 0.15s ease, transform 0.1s ease;
+}
+
+.starButton:hover:not(.disabled) {
+  transform: scale(1.15);
+}
+
+.starButton.filled {
+  color: #fbbf24;
+}
+
+.starButton.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.starIcon {
+  transition: fill 0.15s ease;
+}
+
+.deleteButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  background: transparent;
+  border: 1px solid #374151;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.deleteButton:hover:not(:disabled) {
+  color: #ef4444;
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.deleteButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: #60a5fa;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hoverLabel {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-style: italic;
+  min-height: 1rem;
+}
+
+.error {
+  font-size: 0.75rem;
+  color: #f87171;
+  padding: 0.25rem 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 0.25rem;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.loginPrompt {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.loginPrompt svg {
+  color: #4b5563;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem;
+  }
+
+  .starButton {
+    padding: 0.125rem;
+  }
+
+  .starButton svg {
+    width: 16px;
+    height: 16px;
+  }
+}

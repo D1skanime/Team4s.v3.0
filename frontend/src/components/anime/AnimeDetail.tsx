@@ -4,7 +4,7 @@ import { Clock, CheckCircle, XCircle, Shield, EyeOff, Eye, Calendar, Film, Layer
 import type { Anime, AnimeRating } from '@/types';
 import { getCoverUrl, getStatusColor, getStatusLabel, getTypeLabel } from '@/lib/utils';
 import { WatchlistButton } from './WatchlistButton';
-import { RatingDisplay } from './RatingDisplay';
+import { RatingSection } from './RatingSection';
 import styles from './AnimeDetail.module.css';
 
 interface AnimeDetailProps {
@@ -74,7 +74,7 @@ export function AnimeDetail({ anime, rating, children }: AnimeDetailProps) {
 
           {rating !== undefined && (
             <div className={styles.ratingSection}>
-              <RatingDisplay rating={rating} compact />
+              <RatingSection animeId={anime.id} initialRating={rating} />
             </div>
           )}
 

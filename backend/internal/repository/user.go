@@ -29,8 +29,8 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 // Create creates a new user in the database
 func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 	query := `
-		INSERT INTO users (username, email, password_hash, display_name, is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO users (username, email, password_hash, display_name, is_active, email_verified, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id, created_at, updated_at
 	`
 
@@ -40,7 +40,8 @@ func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 		user.Email,
 		user.PasswordHash,
 		user.DisplayName,
-		true, // is_active
+		true,  // is_active
+		false, // email_verified - always false on registration
 		now,
 		now,
 	).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
@@ -58,6 +59,7 @@ func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 	}
 
 	user.IsActive = true
+	user.EmailVerified = false
 	return nil
 }
 
@@ -65,7 +67,7 @@ func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 func (r *UserRepository) GetByID(ctx context.Context, id int64) (*models.User, error) {
 	query := `
 		SELECT id, username, email, password_hash, display_name, avatar_url,
-		       is_active, last_login_at, created_at, updated_at
+		       is_active, email_verified, last_login_at, created_at, updated_at
 		FROM users
 		WHERE id = $1
 	`
@@ -79,6 +81,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id int64) (*models.User, e
 		&user.DisplayName,
 		&user.AvatarURL,
 		&user.IsActive,
+		&user.EmailVerified,
 		&user.LastLoginAt,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -98,7 +101,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id int64) (*models.User, e
 func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*models.User, error) {
 	query := `
 		SELECT id, username, email, password_hash, display_name, avatar_url,
-		       is_active, last_login_at, created_at, updated_at
+		       is_active, email_verified, last_login_at, created_at, updated_at
 		FROM users
 		WHERE LOWER(username) = LOWER($1)
 	`
@@ -112,6 +115,7 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*m
 		&user.DisplayName,
 		&user.AvatarURL,
 		&user.IsActive,
+		&user.EmailVerified,
 		&user.LastLoginAt,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -131,7 +135,7 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*m
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	query := `
 		SELECT id, username, email, password_hash, display_name, avatar_url,
-		       is_active, last_login_at, created_at, updated_at
+		       is_active, email_verified, last_login_at, created_at, updated_at
 		FROM users
 		WHERE LOWER(email) = LOWER($1)
 	`
@@ -145,6 +149,7 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 		&user.DisplayName,
 		&user.AvatarURL,
 		&user.IsActive,
+		&user.EmailVerified,
 		&user.LastLoginAt,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -164,7 +169,7 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 func (r *UserRepository) GetByUsernameOrEmail(ctx context.Context, login string) (*models.User, error) {
 	query := `
 		SELECT id, username, email, password_hash, display_name, avatar_url,
-		       is_active, last_login_at, created_at, updated_at
+		       is_active, email_verified, last_login_at, created_at, updated_at
 		FROM users
 		WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1)
 	`
@@ -178,6 +183,7 @@ func (r *UserRepository) GetByUsernameOrEmail(ctx context.Context, login string)
 		&user.DisplayName,
 		&user.AvatarURL,
 		&user.IsActive,
+		&user.EmailVerified,
 		&user.LastLoginAt,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -299,6 +305,44 @@ func (r *UserRepository) Delete(ctx context.Context, userID int64) error {
 	}
 
 	return nil
+}
+
+// UpdateEmailVerified sets the email_verified status for a user
+func (r *UserRepository) UpdateEmailVerified(ctx context.Context, userID int64, verified bool) error {
+	query := `
+		UPDATE users
+		SET email_verified = $1, updated_at = $2
+		WHERE id = $3
+	`
+
+	now := time.Now()
+	result, err := r.db.Exec(ctx, query, verified, now, userID)
+	if err != nil {
+		return fmt.Errorf("update email verified: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
+}
+
+// GetEmailByUserID returns only the email for a user (used for verification emails)
+func (r *UserRepository) GetEmailByUserID(ctx context.Context, userID int64) (string, error) {
+	query := `SELECT email FROM users WHERE id = $1`
+
+	var email string
+	err := r.db.QueryRow(ctx, query, userID).Scan(&email)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", ErrUserNotFound
+	}
+	if err != nil {
+		return "", fmt.Errorf("get email by user id: %w", err)
+	}
+
+	return email, nil
 }
 
 // GetStats returns user statistics (watchlist, ratings, comments counts)

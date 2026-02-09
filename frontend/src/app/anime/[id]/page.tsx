@@ -3,6 +3,7 @@ import { api } from '@/lib/api';
 import { AnimeDetail } from '@/components/anime/AnimeDetail';
 import { EpisodeList } from '@/components/anime/EpisodeList';
 import { RelatedAnime } from '@/components/anime/RelatedAnime';
+import { CommentsSection } from '@/components/comments';
 import styles from './page.module.css';
 
 interface Props {
@@ -17,12 +18,13 @@ export default async function AnimeDetailPage({ params }: Props) {
   }
 
   try {
-    // Fetch anime, episodes, relations, and rating in parallel
-    const [animeResponse, episodesResponse, relations, rating] = await Promise.all([
+    // Fetch anime, episodes, relations, rating, and comments in parallel
+    const [animeResponse, episodesResponse, relations, rating, comments] = await Promise.all([
       api.getAnime(id),
       api.getEpisodes(id).catch(() => ({ data: [], meta: { total: 0 } })),
       api.getAnimeRelations(id).catch(() => []),
       api.getAnimeRating(id).catch(() => null),
+      api.getComments(id, 1, 20).catch(() => null),
     ]);
 
     const anime = animeResponse.data;
@@ -36,6 +38,7 @@ export default async function AnimeDetailPage({ params }: Props) {
             <EpisodeList episodes={episodes} total={episodesTotal} />
           </AnimeDetail>
           <RelatedAnime relations={relations} />
+          <CommentsSection animeId={id} initialComments={comments} />
         </div>
       </main>
     );

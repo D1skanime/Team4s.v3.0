@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Header } from '@/components/layout/Header';
+import { GlobalBanner } from '@/components/layout/GlobalBanner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import './globals.css';
 
@@ -21,6 +22,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <Header />
+          <GlobalBanner />
           {children}
         </AuthProvider>
       </body>

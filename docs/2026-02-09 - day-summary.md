@@ -2,335 +2,347 @@
 
 ## Overview
 **Project:** Team4s.v3.0 - Anime Portal Modernization
-**Phase:** P2 Features In Progress
-**Focus:** Auth System + User Profile Implementation
+**Phase:** P2 COMPLETE - All User Features Implemented
+**Focus:** User Ratings, Watchlist Sync, Rate Limiting, Comments System, Email Verification
 
 ---
 
-## Goals: Intended vs. Achieved
+## Goals: Intended vs Achieved
 
-| Intended | Achieved |
-|----------|----------|
-| P2-1 Auth System | DONE |
-| P2-2 User Profile | DONE |
-| P2-3 User Ratings | Not started |
+| Intended | Status | Notes |
+|----------|--------|-------|
+| P2-1: Auth System | DONE (earlier) | JWT + Refresh + Redis |
+| P2-2: User Profile | DONE (earlier) | Profile pages, settings |
+| P2-3: User Ratings | DONE | RatingInput component, backend CRUD, delete support |
+| P2-4: Watchlist Sync | DONE | localStorage to backend migration, hybrid mode |
+| Rate Limiting | DONE | Redis sliding window for auth endpoints |
+| P2-5: Comments System | DONE | Full CRUD, pagination, soft delete |
+| Email Verification | DONE | Tokens in Redis, console email, frontend pages |
 
-**Result:** 2 of 2 planned features completed (100% daily goal)
-
----
-
-## P2-1 Auth System (COMPLETED)
-
-### Backend Implementation
-- **TokenService** (`services/token.go`)
-  - JWT Access Token generation (15 min expiry)
-  - Refresh Token generation (random hex, 7 days expiry)
-  - Token validation with claims parsing
-  - Redis integration for refresh token storage
-
-- **AuthService** (`services/auth.go`)
-  - User registration with bcrypt password hashing (cost 10)
-  - Login with credential validation
-  - Token refresh flow
-  - Logout (single session) and logout-all (all sessions)
-
-- **AuthMiddleware** (`middleware/auth.go`)
-  - JWT extraction from Authorization header
-  - Token validation and user context injection
-  - Protected route enforcement
-
-- **Redis Integration** (`database/redis.go`)
-  - Connection pool setup
-  - Refresh token storage with TTL
-  - Token invalidation support
-
-- **User Repository** (`repository/user.go`)
-  - Create user with password hash
-  - Find by ID, username, email
-  - Update user profile
-  - Change password
-  - Delete account
-
-### Frontend Implementation
-- **AuthContext** (`contexts/AuthContext.tsx`)
-  - Global auth state management
-  - login(), register(), logout() methods
-  - refreshUser() for profile updates after changes
-  - Automatic token refresh on mount
-
-- **Login Page** (`app/login/page.tsx`)
-  - LoginForm with validation
-  - Error handling and loading states
-  - Redirect to previous page after login
-
-- **Register Page** (`app/register/page.tsx`)
-  - RegisterForm with username, email, password
-  - Client-side validation
-  - Auto-login after registration
-
-- **Header Update** (`components/layout/Header.tsx`)
-  - User menu dropdown (logged in)
-  - Login/Register links (logged out)
-  - Avatar and username display
-
-### API Endpoints
-```
-POST /api/v1/auth/register    - Create new user
-POST /api/v1/auth/login       - Authenticate user
-POST /api/v1/auth/refresh     - Refresh access token
-POST /api/v1/auth/logout      - Invalidate current session
-POST /api/v1/auth/logout-all  - Invalidate all sessions
-GET  /api/v1/auth/me          - Get current user
-```
+**Achievement Rate:** 100% - MAJOR MILESTONE: P2 PHASE COMPLETE
 
 ---
 
-## P2-2 User Profile (COMPLETED)
+## Major Accomplishments
 
-### Backend Implementation
-- **User Handler** (`handlers/user.go`)
-  - GetProfile: Public profile view by username
-  - UpdateProfile: Update own profile (bio, avatar)
-  - ChangePassword: Change own password with old password verification
-  - DeleteAccount: Soft delete with password confirmation
+### P2-3: User Ratings (Complete)
+**Backend:**
+- POST /api/v1/anime/:id/ratings - Submit/update rating (1-10)
+- GET /api/v1/anime/:id/ratings/me - Get own rating
+- DELETE /api/v1/anime/:id/ratings - Delete own rating
+- Rating handler with upsert logic
+- Rating repository extended with user-specific queries
 
-- **UserStats Query**
-  - Anime watched count
-  - Anime watching count
-  - Total ratings given
-  - Total comments written
+**Frontend:**
+- RatingInput component with 10 clickable stars
+- Hover state with German rating labels (Katastrophal -> Meisterwerk)
+- Delete rating button with trash icon
+- Loading/error states
+- Integration in AnimeDetail page
+- Optimistic UI with anime rating refresh
 
-### Frontend Implementation
-- **Profile Page** (`app/user/[username]/page.tsx`)
-  - Dynamic route for any user profile
-  - Server-side data fetching
-  - ProfileCard component with avatar, bio, join date
-  - StatsGrid with user statistics
+### P2-4: Watchlist Sync (Complete)
+**Backend:**
+- GET /api/v1/watchlist - Full watchlist with anime info and counts
+- GET /api/v1/watchlist/:animeId - Status of specific anime
+- POST /api/v1/watchlist/:animeId - Add to watchlist (upsert)
+- PUT /api/v1/watchlist/:animeId - Update status
+- DELETE /api/v1/watchlist/:animeId - Remove from watchlist
+- POST /api/v1/watchlist/sync - Bulk sync from localStorage
+- POST /api/v1/watchlist/check - Check multiple anime statuses
 
-- **Settings Page** (`app/settings/page.tsx`)
-  - Tab navigation (Profil, Passwort, Account)
-  - ProfileForm: Edit bio and avatar URL
-  - PasswordForm: Change password with confirmation
-  - DeleteAccountForm: Account deletion with warning
+**Frontend:**
+- WatchlistButton upgraded to hybrid mode
+- localStorage used as cache for anonymous users
+- Backend sync on login
+- Merge strategy: backend wins on conflict
+- WatchlistGrid with status counts by category
 
-- **Components**
-  - `components/user/ProfileCard.tsx` - User info display
-  - `components/user/StatsGrid.tsx` - Statistics cards
-  - `components/settings/ProfileForm.tsx` - Profile edit form
-  - `components/settings/PasswordForm.tsx` - Password change form
-  - `components/settings/DeleteAccountForm.tsx` - Account deletion
+### Rate Limiting (Complete)
+**Implementation:**
+- Redis-based sliding window algorithm
+- RateLimiter middleware in `middleware/ratelimit.go`
+- Configurable limits per endpoint
+- Rate limit headers (X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After)
 
-- **Header Dropdown Extended**
-  - "Mein Profil" link to own profile
-  - "Einstellungen" link to settings
-  - "Abmelden" logout action
+**Limits Applied:**
+- Login: 5 attempts/minute per IP
+- Register: 3 attempts/minute per IP
+- Token Refresh: 10 attempts/minute per IP
+- Verification Email: 10 attempts/minute per IP (plus per-user limit)
 
-### API Endpoints
+### P2-5: Comments System (Complete)
+**Backend:**
+- GET /api/v1/anime/:id/comments - Paginated comments
+- POST /api/v1/anime/:id/comments - Create comment (auth required)
+- PUT /api/v1/anime/:id/comments/:commentId - Edit own comment
+- DELETE /api/v1/anime/:id/comments/:commentId - Soft delete own comment
+- Support for reply_to_id (threaded comments)
+- Ownership checks on update/delete
+- isOwner flag in response for current user
+
+**Frontend Components:**
+- CommentSection component
+- CommentList with pagination
+- CommentForm for new comments
+- Edit/Delete buttons for own comments
+- Reply functionality support
+
+### Email Verification (Complete)
+**Backend:**
+- VerificationService with 24-hour token expiry
+- POST /api/v1/auth/send-verification - Send verification email
+- GET /api/v1/auth/verify-email?token=... - Verify email
+- Per-user rate limit: 3 emails/hour
+- Console email service (dev mode - logs to stdout)
+- Redis storage for verification tokens
+- Migration 006: email_verified column added
+
+**Frontend:**
+- /verify-email page for token verification
+- /verify-email/success page
+- EmailVerificationBanner component
+- Integration with AuthContext
+- Registration prompts for verification
+
+---
+
+## New Files Created Today
+
+### Backend (11 new files)
 ```
-GET    /api/v1/users/:username  - Get user profile (public)
-PUT    /api/v1/users/me         - Update own profile
-PUT    /api/v1/users/me/password - Change password
-DELETE /api/v1/users/me         - Delete account
+backend/internal/handlers/comment.go          - Comment CRUD handler (310 lines)
+backend/internal/handlers/verification.go    - Email verification handler (127 lines)
+backend/internal/handlers/watchlist.go       - Watchlist CRUD + sync handler (305 lines)
+backend/internal/middleware/ratelimit.go     - Redis sliding window rate limiter (216 lines)
+backend/internal/middleware/ratelimit_test.go - Rate limiter tests
+backend/internal/models/comment.go           - Comment models and DTOs
+backend/internal/models/watchlist.go         - Watchlist models and DTOs
+backend/internal/repository/comment.go       - Comment repository
+backend/internal/repository/watchlist.go     - Watchlist repository
+backend/internal/services/email.go           - Console email service (dev)
+backend/internal/services/verification.go    - Email verification service (151 lines)
+```
+
+### Frontend (12+ new files)
+```
+frontend/src/components/anime/RatingInput.tsx        - Star rating input (205 lines)
+frontend/src/components/anime/RatingInput.module.css - Rating styles
+frontend/src/components/anime/RatingSection.tsx      - Rating section wrapper
+frontend/src/components/anime/RatingSection.module.css
+frontend/src/components/auth/EmailVerificationBanner.tsx
+frontend/src/components/auth/EmailVerificationBanner.module.css
+frontend/src/components/comments/                    - Comments components directory
+frontend/src/components/layout/GlobalBanner.tsx      - Global notification banner
+frontend/src/components/layout/GlobalBanner.module.css
+frontend/src/app/verify-email/page.tsx              - Verification page
+frontend/src/app/verify-email/success/page.tsx      - Success page (placeholder)
+```
+
+### Database & Contracts
+```
+database/migrations/006_add_email_verified.sql - Email verified column
+shared/contracts/auth.yaml                     - Updated with verification endpoints
+shared/contracts/comments.yaml                 - Comments API spec
+shared/contracts/email-verification.yaml       - Verification API spec
+shared/contracts/user-rating.yaml              - Rating API spec
+shared/contracts/watchlist.yaml                - Watchlist API spec
 ```
 
 ---
 
 ## Structural Decisions Made
 
-### 1. JWT Access Token: 15 Minutes Expiry
-- Short-lived for security
-- Refresh token used for session continuity
-- Stateless validation (no DB lookup per request)
+### ADR-025: Rating Input as 10 Stars
+**Decision:** Display 10 clickable stars (not 5 half-stars)
+**Rationale:**
+- Direct mapping to 1-10 rating scale
+- No half-star confusion
+- Hover labels for each value (1=Katastrophal, 10=Meisterwerk)
+- Simple click interaction
 
-### 2. Refresh Token: 7 Days, Random Hex in Redis
-- Cryptographically random 32-byte hex string
-- Stored in Redis with user ID as key
-- Supports multiple devices (multiple tokens per user)
-- Easy invalidation on logout
+### ADR-026: Watchlist Hybrid Mode
+**Decision:** Use localStorage as cache, backend as source of truth
+**Rationale:**
+- Anonymous users can still use watchlist
+- Login triggers sync to backend
+- Backend wins on conflicts
+- No data loss on browser clear (for logged-in users)
 
-### 3. bcrypt Cost: 10 for Password Hashing
-- Industry standard balance of security and performance
-- ~100ms hash time on modern hardware
-- Future-proof with adjustable cost factor
+### ADR-027: Sliding Window Rate Limiting
+**Decision:** Redis ZSET-based sliding window algorithm
+**Rationale:**
+- More accurate than fixed window
+- Prevents burst attacks at window boundaries
+- Atomic operations with Redis pipeline
+- Easy to configure per-endpoint limits
 
-### 4. AuthContext with refreshUser()
-- Central auth state management
-- refreshUser() updates user data without re-login
-- Used after profile changes, password changes
+### ADR-028: Soft Delete for Comments
+**Decision:** is_deleted flag instead of hard delete
+**Rationale:**
+- Preserves reply chains
+- Audit trail for moderation
+- Can show "[deleted]" placeholder
+- Easy to recover if needed
 
-### 5. Settings Page with Tab Navigation
-- Single route `/settings` with tabs
-- Cleaner than `/settings/profile`, `/settings/password`
-- State managed in single component
-- Better UX for related settings
-
----
-
-## Problems Solved
-
-### Frontend Auth State Persistence
-**Problem:** User logged out on page refresh
-**Root Cause:** AuthContext initialized without checking existing token
-**Fix:** Added useEffect to call /auth/me on mount if token exists
-
-### Profile Update Not Reflecting in Header
-**Problem:** Username change not showing in header immediately
-**Root Cause:** Header read from stale AuthContext
-**Fix:** Added refreshUser() call after profile update, context updates header
-
-### Password Change Validation
-**Problem:** Users could set empty password
-**Root Cause:** No client-side validation
-**Fix:** Added minimum length (8 chars) and confirmation matching
-
----
-
-## Problems Discovered (Not Solved)
-
-### 1. Email Verification Not Implemented
-**Status:** Deferred to P3
-**Next Step:** Design email service integration
-**Impact:** Low - Users can register without email verification
-
-### 2. Rate Limiting for Auth Endpoints
-**Status:** Not implemented
-**Next Step:** Add Redis-based rate limiter
-**Impact:** Medium - Brute force protection missing
-
-### 3. Avatar Upload
-**Status:** URL-only, no file upload
-**Next Step:** Implement file upload with S3 or local storage
-**Impact:** Low - Users can use external image URLs
-
----
-
-## Ideas Explored and Rejected
-
-### 1. Session-based Auth (Cookies Only)
-**Rejected because:**
-- Less scalable than JWT
-- Harder to implement for future mobile app
-- Stateful server required
-
-### 2. Separate Settings Routes
-**Rejected because:**
-- More routes to maintain
-- Navigation between settings less fluid
-- Tab pattern more familiar to users
-
-### 3. Immediate Password Hash Migration
-**Rejected because:**
-- WCF hash compatibility not tested
-- Better to require password reset on first legacy login
-- Deferred to user migration phase
-
----
-
-## Evidence / References
-
-### Build Verification
-```bash
-# Backend
-cd backend && go build ./...
-# Result: OK, no errors
-
-# Frontend
-cd frontend && npm run build
-# Result: OK, 11 routes generated
-```
-
-### Route Verification
-```
-Frontend Routes (npm run build output):
-- / (Static)
-- /anime (Dynamic)
-- /anime/[id] (Dynamic)
-- /episode/[id] (Dynamic)
-- /login (Static)
-- /register (Static)
-- /search (Dynamic)
-- /settings (Static)
-- /user/[username] (Dynamic)
-- /watchlist (Static)
-- /_not-found (Static)
-```
-
-### Files Created/Modified
-
-**Backend (New Files):**
-- `internal/models/user.go` - User model with JSON tags
-- `internal/models/rating.go` - Rating model
-- `internal/database/redis.go` - Redis connection
-- `internal/repository/user.go` - User CRUD operations
-- `internal/repository/rating.go` - Rating repository
-- `internal/services/token.go` - JWT/Refresh token service
-- `internal/services/auth.go` - Authentication service
-- `internal/handlers/auth.go` - Auth HTTP handlers
-- `internal/handlers/user.go` - User HTTP handlers
-- `internal/handlers/rating.go` - Rating HTTP handlers
-- `pkg/middleware/auth.go` - Auth middleware
-
-**Backend (Modified):**
-- `cmd/server/main.go` - Added auth routes, middleware, services
-
-**Frontend (New Files):**
-- `src/contexts/AuthContext.tsx` - Auth state management
-- `src/lib/auth.ts` - Auth API functions
-- `src/app/login/page.tsx` - Login page
-- `src/app/register/page.tsx` - Register page
-- `src/app/settings/page.tsx` - Settings page
-- `src/app/user/[username]/page.tsx` - Profile page
-- `src/components/auth/LoginForm.tsx` - Login form
-- `src/components/auth/LoginForm.module.css`
-- `src/components/auth/RegisterForm.tsx` - Register form
-- `src/components/auth/RegisterForm.module.css`
-- `src/components/auth/AuthGuard.tsx` - Protected route wrapper
-- `src/components/user/ProfileCard.tsx` - Profile display
-- `src/components/user/ProfileCard.module.css`
-- `src/components/user/StatsGrid.tsx` - User statistics
-- `src/components/user/StatsGrid.module.css`
-- `src/components/settings/ProfileForm.tsx` - Profile edit
-- `src/components/settings/ProfileForm.module.css`
-- `src/components/settings/PasswordForm.tsx` - Password change
-- `src/components/settings/PasswordForm.module.css`
-- `src/components/settings/DeleteAccountForm.tsx` - Account deletion
-- `src/components/settings/DeleteAccountForm.module.css`
-
-**Frontend (Modified):**
-- `src/components/layout/Header.tsx` - User menu added
-- `src/components/layout/Header.module.css` - User menu styles
+### ADR-029: Console Email Service for Development
+**Decision:** Log emails to console instead of sending
+**Rationale:**
+- No external dependencies for dev
+- Easy to copy verification links
+- Production will use real email service (SendGrid/SES)
+- Same interface for production swap
 
 ---
 
 ## Combined Context
 
 ### Alignment with Project Vision
-- Auth system enables all social features (ratings, comments, watchlist sync)
-- Profile system creates user identity within the platform
-- Moving toward full WCF replacement with modern architecture
+Today marked a **major milestone** - P2 phase is now COMPLETE:
+- All user interaction features implemented
+- Authentication with email verification
+- User ratings and watchlist persistence
+- Comments system for community engagement
+- Security with rate limiting
 
-### P2 Progress
-| Feature | Status | Notes |
-|---------|--------|-------|
-| P2-1 Auth | DONE | JWT + Refresh, Redis storage |
-| P2-2 Profile | DONE | View/Edit profile, Settings |
-| P2-3 User Ratings | TODO | Next priority |
-| P2-4 Watchlist Sync | TODO | Requires Auth (done) |
-| P2-5 Comments | TODO | Read/Write with Auth |
+### Project Evolution
+- **Morning:** P2-1 Auth + P2-2 Profile already complete
+- **Today:** P2-3 Ratings + P2-4 Watchlist + P2-5 Comments + Rate Limiting + Email Verification
+- **Result:** P2 Phase 100% complete
 
-**P2 Progress:** 40% (2 of 5 features)
+### Progress Summary
+- **P0 (Core):** 100% complete
+- **P1 (Enhanced):** 100% complete
+- **P2 (User Features):** 100% complete
+- **Overall:** ~85% to MVP
 
-### Open Questions
-1. Email service for password reset - which provider?
-2. Rate limiting thresholds for auth endpoints
-3. Avatar storage solution (S3 vs local)
+---
+
+## Problems Solved
+
+### 1. Watchlist Sync Conflicts
+**Problem:** How to handle localStorage vs backend conflicts during sync
+**Solution:** Backend wins strategy with timestamp tracking
+**Result:** Clean merge, no data loss for authenticated users
+
+### 2. Rate Limit Race Conditions
+**Problem:** Multiple requests could bypass rate limit in concurrent scenarios
+**Solution:** Redis pipeline for atomic check-and-increment
+**Result:** Accurate rate limiting even under load
+
+### 3. Comment Ownership Verification
+**Problem:** Users could potentially edit/delete other users' comments
+**Solution:** Ownership check in handler before update/delete
+**Result:** Proper authorization with 403 for unauthorized access
+
+---
+
+## Problems Discovered (Not Solved)
+
+### 1. Email Service for Production
+**Issue:** Console email service only works for development
+**Impact:** Cannot send real verification emails in production
+**Next Step:** Integrate SendGrid or AWS SES before production deployment
+
+### 2. Comment Threading Display
+**Issue:** reply_to_id supported but frontend doesn't display threads
+**Impact:** Comments appear flat, not hierarchical
+**Next Step:** P3 enhancement - implement threaded comment display
+
+---
+
+## Evidence / References
+
+### API Contracts Created
+- `shared/contracts/user-rating.yaml` - Rating API specification
+- `shared/contracts/watchlist.yaml` - Watchlist API specification
+- `shared/contracts/comments.yaml` - Comments API specification
+- `shared/contracts/email-verification.yaml` - Verification API specification
+
+### New API Endpoints (16 total today)
+**Ratings (3):**
+- POST /api/v1/anime/:id/ratings
+- GET /api/v1/anime/:id/ratings/me
+- DELETE /api/v1/anime/:id/ratings
+
+**Watchlist (7):**
+- GET /api/v1/watchlist
+- GET /api/v1/watchlist/:animeId
+- POST /api/v1/watchlist/:animeId
+- PUT /api/v1/watchlist/:animeId
+- DELETE /api/v1/watchlist/:animeId
+- POST /api/v1/watchlist/sync
+- POST /api/v1/watchlist/check
+
+**Comments (4):**
+- GET /api/v1/anime/:id/comments
+- POST /api/v1/anime/:id/comments
+- PUT /api/v1/anime/:id/comments/:commentId
+- DELETE /api/v1/anime/:id/comments/:commentId
+
+**Email Verification (2):**
+- POST /api/v1/auth/send-verification
+- GET /api/v1/auth/verify-email
+
+### Code Statistics
+- Backend: ~1,200 new lines of Go code
+- Frontend: ~800 new lines of TypeScript/React
+- Modified: 23 files
+- Net additions: +1,545 lines / -157 lines
+
+---
+
+## Technical Notes
+
+### Rate Limiter Implementation
+```go
+// Sliding window algorithm using Redis ZSET
+// Key: ratelimit:login:192.168.1.1
+// Score: timestamp in milliseconds
+// Member: timestamp:nanoseconds (unique)
+
+pipe.ZRemRangeByScore(ctx, key, "0", windowStart) // Clean old
+countCmd := pipe.ZCard(ctx, key)                   // Count current
+pipe.ZAdd(ctx, key, redis.Z{Score: now, Member: unique})
+pipe.Expire(ctx, key, window+1s)                  // Auto cleanup
+```
+
+### Watchlist Sync Strategy
+1. Frontend: Read localStorage on login
+2. POST /api/v1/watchlist/sync with all items
+3. Backend: Upsert each item (backend wins on conflict)
+4. Response: Merged list with counts
+5. Frontend: Clear localStorage, use backend data
+
+### Email Verification Flow
+1. User registers (email_verified = false)
+2. Banner prompts to verify
+3. POST /api/v1/auth/send-verification
+4. Token stored in Redis (24h TTL)
+5. User clicks link in "email" (console log)
+6. GET /api/v1/auth/verify-email?token=...
+7. Token consumed, email_verified = true
+
+---
+
+## Tomorrow's First Task
+**Start P3 Phase: Admin Features Planning**
+
+P2 is complete. Tomorrow:
+1. Review P3 feature requirements
+2. Create admin user role and middleware
+3. Plan admin dashboard structure
+4. Begin anime management features
 
 ---
 
 ## Session Statistics
 
-- **Duration:** Full day
-- **Commits:** Ready for commit
-- **New Files:** ~25 files
-- **Modified Files:** ~5 files
-- **Lines of Code:** ~1500+ (estimated)
+| Metric | Value |
+|--------|-------|
+| Features Completed | 5 (P2-3, P2-4, P2-5, Rate Limiting, Email Verification) |
+| New Files Created | ~25 |
+| Lines Added | +1,545 |
+| API Endpoints Added | 16 |
+| Decisions Made (ADRs) | 5 (ADR-025 to ADR-029) |
+| Risks Resolved | 4 (Rate Limiting, Email Verification, Ratings, Comments) |

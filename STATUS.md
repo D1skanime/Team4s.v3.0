@@ -1,8 +1,8 @@
 # Team4s.v3.0 - Current Status
 
 **Last Updated:** 2026-02-09
-**Phase:** P2 Features In Progress
-**Overall Progress:** ~80%
+**Phase:** P2 COMPLETE - Starting P3
+**Overall Progress:** ~85%
 
 ---
 
@@ -12,7 +12,7 @@
 |-----------|--------|----------|
 | P0: Core Browse/View | DONE | 100% |
 | P1: Enhanced Features | DONE | 100% |
-| P2: User Features | IN PROGRESS | 40% |
+| P2: User Features | DONE | 100% |
 | P3: Admin Features | TODO | 0% |
 
 ---
@@ -45,15 +45,17 @@
 
 ---
 
-## P2 Features (In Progress)
+## P2 Features (Complete)
 
 | Feature | Backend | Frontend | Status |
 |---------|---------|----------|--------|
 | Auth (Login/Register) | JWT + Refresh + Redis | /login, /register, AuthContext | DONE |
 | User Profile | GET/PUT /api/v1/users | /user/[username], /settings | DONE |
-| User Ratings | POST /api/v1/anime/:id/ratings | RatingInput | TODO |
-| Watchlist Sync | POST /api/v1/watchlist | Backend Migration | TODO |
-| Comments | GET/POST /api/v1/anime/:id/comments | CommentList, CommentForm | TODO |
+| User Ratings | POST/GET/DELETE /api/v1/anime/:id/ratings | RatingInput | DONE |
+| Watchlist Sync | 7 Endpoints + Sync | Hybrid localStorage/Backend | DONE |
+| Comments | GET/POST/PUT/DELETE | CommentSection | DONE |
+| Rate Limiting | Redis Sliding Window | - | DONE |
+| Email Verification | POST/GET + Redis Tokens | /verify-email | DONE |
 
 ---
 
@@ -61,19 +63,21 @@
 
 **Frontend (http://localhost:3000):**
 - `/anime` - Anime-Liste mit A-Z Filter, Status/Type Filter, Pagination
-- `/anime/:id` - Anime-Detail mit Cover, Infos, Episoden, Related Anime, Rating, Watchlist
+- `/anime/:id` - Anime-Detail mit Cover, Infos, Episoden, Related Anime, Rating, Watchlist, Comments
 - `/episode/:id` - Episode-Detail mit Fansub-Progress
 - `/search?q=query` - Suchergebnisse
-- `/watchlist` - Persoenliche Watchlist (localStorage)
+- `/watchlist` - Persoenliche Watchlist (synced to backend when logged in)
 - `/login` - Login mit Email oder Username
 - `/register` - Benutzerregistrierung
 - `/settings` - Profil bearbeiten, Passwort aendern, Account loeschen
 - `/user/[username]` - Oeffentliches Benutzerprofil mit Stats
+- `/verify-email` - Email Verifizierung
 - Header mit SearchBar, User Menu und Navigation auf allen Seiten
 - Dark Theme, Responsive Design, CSS Modules
 
 **Backend API (http://localhost:8080):**
 
+### Public Endpoints
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | /health | Health check mit DB-Status |
@@ -82,18 +86,42 @@
 | GET | /api/v1/anime/:id/episodes | Episoden eines Anime |
 | GET | /api/v1/anime/:id/relations | Verwandte Anime |
 | GET | /api/v1/anime/:id/rating/stats | Rating Statistiken |
+| GET | /api/v1/anime/:id/comments | Kommentare (paginated) |
 | GET | /api/v1/anime/search | Suche nach Anime (q=query) |
 | GET | /api/v1/episodes/:id | Episode Detail mit FansubProgress |
-| POST | /api/v1/auth/register | Benutzer registrieren |
-| POST | /api/v1/auth/login | Login (JWT + Refresh Token) |
-| POST | /api/v1/auth/refresh | Access Token erneuern |
-| POST | /api/v1/auth/logout | Aktuelle Session beenden |
-| POST | /api/v1/auth/logout-all | Alle Sessions beenden |
-| GET | /api/v1/auth/me | Aktueller Benutzer |
 | GET | /api/v1/users/:username | Oeffentliches Profil |
+
+### Auth Endpoints (Rate Limited)
+| Method | Endpoint | Description | Rate Limit |
+|--------|----------|-------------|------------|
+| POST | /api/v1/auth/register | Benutzer registrieren | 3/min |
+| POST | /api/v1/auth/login | Login (JWT + Refresh Token) | 5/min |
+| POST | /api/v1/auth/refresh | Access Token erneuern | 10/min |
+| POST | /api/v1/auth/logout | Aktuelle Session beenden | - |
+| POST | /api/v1/auth/logout-all | Alle Sessions beenden | - |
+| GET | /api/v1/auth/me | Aktueller Benutzer | - |
+| POST | /api/v1/auth/send-verification | Verifizierungs-Email senden | 10/min + 3/h/user |
+| GET | /api/v1/auth/verify-email | Email verifizieren | - |
+
+### Protected Endpoints (Auth Required)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
 | PUT | /api/v1/users/me | Eigenes Profil bearbeiten |
 | PUT | /api/v1/users/me/password | Passwort aendern |
 | DELETE | /api/v1/users/me | Account loeschen |
+| POST | /api/v1/anime/:id/ratings | Bewertung abgeben |
+| GET | /api/v1/anime/:id/ratings/me | Eigene Bewertung |
+| DELETE | /api/v1/anime/:id/ratings | Bewertung loeschen |
+| GET | /api/v1/watchlist | Eigene Watchlist |
+| GET | /api/v1/watchlist/:animeId | Watchlist-Status fuer Anime |
+| POST | /api/v1/watchlist/:animeId | Zur Watchlist hinzufuegen |
+| PUT | /api/v1/watchlist/:animeId | Watchlist-Status aendern |
+| DELETE | /api/v1/watchlist/:animeId | Von Watchlist entfernen |
+| POST | /api/v1/watchlist/sync | localStorage synchronisieren |
+| POST | /api/v1/watchlist/check | Mehrere Anime pruefen |
+| POST | /api/v1/anime/:id/comments | Kommentar schreiben |
+| PUT | /api/v1/anime/:id/comments/:commentId | Eigenen Kommentar bearbeiten |
+| DELETE | /api/v1/anime/:id/comments/:commentId | Eigenen Kommentar loeschen |
 
 ### How to Verify
 ```bash
@@ -105,6 +133,7 @@ curl http://localhost:8080/api/v1/anime?letter=A
 curl http://localhost:8080/api/v1/anime?status=ongoing&type=tv
 curl http://localhost:8080/api/v1/anime/1/relations
 curl http://localhost:8080/api/v1/episodes/1
+curl http://localhost:8080/api/v1/anime/1/comments
 
 # API testen (Auth)
 curl -X POST http://localhost:8080/api/v1/auth/register \
@@ -127,7 +156,7 @@ cd frontend && npm run dev
 | Component | Status | Notes |
 |-----------|--------|-------|
 | PostgreSQL 16 | Running | Docker, Port 5432 |
-| Redis 7 | Running | Docker, Port 6379, Auth Token Storage |
+| Redis 7 | Running | Docker, Port 6379, Auth + Verification Tokens + Rate Limiting |
 | Go Backend | Running | Port 8080 |
 | Next.js Frontend | Running | Port 3000 |
 | Adminer | Running | Port 8081 |
@@ -141,9 +170,9 @@ cd frontend && npm run dev
 | anime | 13,326 | Yes |
 | episodes | 30,179 | Yes |
 | anime_relations | 2,323 | Yes |
-| comments | 145 | Yes |
-| ratings | 456 | Yes |
-| watchlist | 716 | Yes |
+| comments | 145+ | Yes |
+| ratings | 456+ | Yes |
+| watchlist | 716+ | Yes |
 | users | 1+ (admin + new) | Partial |
 | covers | 2,386 | Yes (files) |
 | fansub logos | 105 | Yes (files) |
@@ -157,8 +186,10 @@ cd frontend && npm run dev
 3. **Stream Links** - Still in legacy HTML format
 4. **API Docs** - No OpenAPI spec yet
 5. **StarRating clipPath IDs** - Need unique IDs per instance
-6. **Rate Limiting** - Auth endpoints not rate-limited
-7. **Email Verification** - Not implemented
+6. ~~Rate Limiting~~ - RESOLVED (2026-02-09)
+7. ~~Email Verification~~ - RESOLVED (2026-02-09)
+8. **Production Email Service** - Console service only, need SendGrid/SES
+9. **Comment Threading Display** - Backend supports, frontend shows flat
 
 ---
 
@@ -167,15 +198,15 @@ cd frontend && npm run dev
 - **User Migration Pending:** Legacy users not yet migrated from WCF
 - **Password Migration:** WCF uses crypt-compatible hashes; bcrypt compatibility not tested
 - **Stream Links Parsing:** Legacy HTML needs parser for Episode Detail
-- **Rate Limiting:** Auth endpoints vulnerable to brute force
+- **Production Email:** Console email service needs replacement for production
 
 ---
 
 ## Top 3 Next Steps
 
-1. **P2-3: User Ratings** - Let users rate anime
-2. **P2-4: Watchlist Sync** - Move localStorage to backend
-3. **P2-5: Comments** - Read and write comments
+1. **P3-1: Admin Role & Middleware** - Create admin authorization
+2. **P3-2: Admin Dashboard** - Admin-only area with management tools
+3. **P3-3: Anime Management** - CRUD for anime (admin only)
 
 ---
 

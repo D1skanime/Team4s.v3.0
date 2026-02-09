@@ -1,0 +1,96 @@
+# Email Verification API Contract
+# Version: 1.0.0
+# Created: 2026-02-09
+
+feature: email-verification
+description: |
+  Email verification system for user registration.
+  Tokens are stored in Redis with 24h expiry.
+  Rate limited to 3 emails per hour per user.
+
+endpoints:
+  - method: POST
+    path: /api/v1/auth/send-verification
+    auth: required
+    description: Send or resend verification email to authenticated user
+    rate_limit:
+      requests: 10
+      window: 1 minute
+      key: IP
+      note: Additional per-user limit of 3 per hour enforced in service
+    response:
+      success:
+        status: 200
+        body:
+          message: string
+          remaining: integer  # Remaining attempts in rate limit window
+      errors:
+        - status: 400
+          error: "E-Mail ist bereits verifiziert"
+        - status: 401
+          error: "unauthorized"
+        - status: 429
+          error: "Zu viele Anfragen. Bitte warte etwas bevor du es erneut versuchst."
+          body:
+            error: string
+            retry_after: integer  # Seconds until rate limit resets
+
+  - method: GET
+    path: /api/v1/auth/verify-email
+    auth: none
+    description: Verify email using token from URL (linked in email)
+    query_params:
+      - name: token
+        type: string
+        required: true
+        description: "Verification token (64 hex characters)"
+    response:
+      success:
+        status: 200
+        body:
+          message: string
+          verified: boolean
+      errors:
+        - status: 400
+          error: "token is required"
+        - status: 400
+          error: "Ungueltiger oder abgelaufener Verifizierungslink"
+
+types:
+  SendVerificationResponse:
+    message: string
+    remaining: integer
+
+  VerifyEmailResponse:
+    message: string
+    verified: boolean
+
+  VerificationErrorResponse:
+    error: string
+    retry_after?: integer
+
+implementation_notes:
+  backend:
+    - email_verified column added to users table (default false)
+    - Tokens stored in Redis with 24h expiry
+    - Tokens are one-time use (deleted after verification)
+    - Console email service for development (logs to stdout)
+    - Email automatically sent on registration
+
+  frontend:
+    - /verify-email/pending - Shown after registration
+    - /verify-email?token=xxx - Verification link destination
+    - GlobalBanner shows warning if logged in but not verified
+    - Excluded from banner: /verify-email/*, /login, /register
+
+  security:
+    - Per-user rate limit: 3 emails per hour
+    - Per-IP rate limit: 10 requests per minute
+    - Secure random token generation (32 bytes = 64 hex chars)
+    - Token invalidated after successful use
+
+user_model_changes:
+  User:
+    email_verified: boolean  # Added field
+  UserPublic:
+    email_verified: boolean  # Included in auth responses

@@ -66,9 +66,24 @@ func main() {
 	episodeRepo := repository.NewEpisodeRepository(db.Pool)
 	ratingRepo := repository.NewRatingRepository(db.Pool)
 	userRepo := repository.NewUserRepository(db.Pool)
+	watchlistRepo := repository.NewWatchlistRepository(db.Pool)
+	commentRepo := repository.NewCommentRepository(db.Pool)
+
+	// Initialize email service (console output for development)
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if frontendURL == "" {
+		frontendURL = "http://localhost:3000"
+	}
+	emailService := services.NewConsoleEmailService(frontendURL)
 
 	// Initialize auth service
 	authService := services.NewAuthService(userRepo, tokenService)
+
+	// Initialize verification service
+	verificationService := services.NewVerificationService(userRepo, redis, emailService)
+
+	// Connect verification service to auth service (for auto-send on registration)
+	authService.SetVerificationService(verificationService)
 
 	// Initialize handlers
 	animeHandler := handlers.NewAnimeHandler(animeRepo)
@@ -76,9 +91,13 @@ func main() {
 	ratingHandler := handlers.NewRatingHandler(ratingRepo)
 	authHandler := handlers.NewAuthHandler(authService)
 	userHandler := handlers.NewUserHandler(userRepo, authService)
+	watchlistHandler := handlers.NewWatchlistHandler(watchlistRepo)
+	commentHandler := handlers.NewCommentHandler(commentRepo)
+	verificationHandler := handlers.NewVerificationHandler(verificationService)
 
 	// Initialize middleware
 	authMiddleware := middleware.NewAuthMiddleware(tokenService)
+	rateLimiter := middleware.NewRateLimiter(redis)
 
 	// Set Gin mode
 	mode := os.Getenv("GIN_MODE")
@@ -127,12 +146,16 @@ func main() {
 	// API v1 routes
 	v1 := r.Group("/api/v1")
 	{
-		// Auth routes (public)
+		// Auth routes (public) with rate limiting
 		auth := v1.Group("/auth")
 		{
-			auth.POST("/register", authHandler.Register)
-			auth.POST("/login", authHandler.Login)
-			auth.POST("/refresh", authHandler.Refresh)
+			auth.POST("/register", rateLimiter.LimitRegister(), authHandler.Register)
+			auth.POST("/login", rateLimiter.LimitLogin(), authHandler.Login)
+			auth.POST("/refresh", rateLimiter.LimitRefresh(), authHandler.Refresh)
+
+			// Email verification routes
+			// GET is public (link from email)
+			auth.GET("/verify-email", verificationHandler.VerifyEmail)
 
 			// Protected auth routes
 			authProtected := auth.Group("")
@@ -141,16 +164,35 @@ func main() {
 				authProtected.POST("/logout", authHandler.Logout)
 				authProtected.POST("/logout-all", authHandler.LogoutAll)
 				authProtected.GET("/me", authHandler.Me)
+
+				// Send verification email (protected, rate limited)
+				authProtected.POST("/send-verification", rateLimiter.LimitVerificationEmail(), verificationHandler.SendVerificationEmail)
 			}
 		}
 
-		// Anime routes
+		// Anime routes (public)
 		v1.GET("/anime", animeHandler.List)
 		v1.GET("/anime/search", animeHandler.Search)
 		v1.GET("/anime/:id", animeHandler.GetByID)
 		v1.GET("/anime/:id/episodes", episodeHandler.ListByAnime)
 		v1.GET("/anime/:id/relations", animeHandler.GetRelations)
 		v1.GET("/anime/:id/rating", ratingHandler.GetAnimeRating)
+
+		// Comments routes - public GET with optional auth for IsOwner flag
+		v1.GET("/anime/:id/comments", authMiddleware.OptionalAuth(), commentHandler.GetAnimeComments)
+
+		// Protected anime routes (ratings)
+		animeProtected := v1.Group("/anime")
+		animeProtected.Use(authMiddleware.RequireAuth())
+		{
+			animeProtected.GET("/:id/rating/me", ratingHandler.GetUserRating)
+			animeProtected.POST("/:id/rating", ratingHandler.SubmitRating)
+			animeProtected.DELETE("/:id/rating", ratingHandler.DeleteRating)
+			// Protected comment routes
+			animeProtected.POST("/:id/comments", commentHandler.CreateComment)
+			animeProtected.PUT("/:id/comments/:commentId", commentHandler.UpdateComment)
+			animeProtected.DELETE("/:id/comments/:commentId", commentHandler.DeleteComment)
+		}
 
 		// Episode routes
 		v1.GET("/episodes/:id", episodeHandler.GetByID)
@@ -165,6 +207,19 @@ func main() {
 			users.PUT("/me", userHandler.UpdateProfile)
 			users.PUT("/me/password", userHandler.ChangePassword)
 			users.DELETE("/me", userHandler.DeleteAccount)
+		}
+
+		// Watchlist routes (all protected)
+		watchlist := v1.Group("/watchlist")
+		watchlist.Use(authMiddleware.RequireAuth())
+		{
+			watchlist.GET("", watchlistHandler.GetWatchlist)
+			watchlist.POST("/sync", watchlistHandler.SyncWatchlist)
+			watchlist.POST("/check", watchlistHandler.CheckWatchlist)
+			watchlist.GET("/:animeId", watchlistHandler.GetWatchlistStatus)
+			watchlist.POST("/:animeId", watchlistHandler.AddToWatchlist)
+			watchlist.PUT("/:animeId", watchlistHandler.UpdateWatchlistStatus)
+			watchlist.DELETE("/:animeId", watchlistHandler.RemoveFromWatchlist)
 		}
 	}
 

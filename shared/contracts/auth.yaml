@@ -1,0 +1,237 @@
+# Auth API Contract - P2-1
+# Status: Implemented
+# Date: 2026-02-06
+
+feature: auth-system
+version: 1.0.0
+description: JWT-based authentication with refresh tokens stored in Redis
+
+# Token Configuration
+token_config:
+  access_token_expiry: 15m
+  refresh_token_expiry: 7d
+  algorithm: HS256
+  bcrypt_cost: 10
+
+# Endpoints
+endpoints:
+  # Register
+  - method: POST
+    path: /api/v1/auth/register
+    auth: false
+    request:
+      content_type: application/json
+      body:
+        username:
+          type: string
+          required: true
+          min: 3
+          max: 50
+          pattern: "^[a-zA-Z0-9_]+$"
+        email:
+          type: string
+          required: true
+          format: email
+        password:
+          type: string
+          required: true
+          min: 8
+        display_name:
+          type: string
+          required: false
+          max: 100
+    response:
+      status: 201
+      content_type: application/json
+      body:
+        user: UserPublic
+        access_token: string
+        refresh_token: string
+        expires_in: int (seconds)
+    errors:
+      - status: 400
+        message: "invalid request body"
+      - status: 400
+        message: "username must be 3-50 alphanumeric characters or underscores"
+      - status: 400
+        message: "invalid email format"
+      - status: 400
+        message: "password must be at least 8 characters"
+      - status: 409
+        message: "username already exists"
+      - status: 409
+        message: "email already exists"
+
+  # Login
+  - method: POST
+    path: /api/v1/auth/login
+    auth: false
+    request:
+      content_type: application/json
+      body:
+        login:
+          type: string
+          required: true
+          description: "Username or email"
+        password:
+          type: string
+          required: true
+    response:
+      status: 200
+      body:
+        user: UserPublic
+        access_token: string
+        refresh_token: string
+        expires_in: int
+    errors:
+      - status: 400
+        message: "invalid request body"
+      - status: 401
+        message: "invalid username/email or password"
+      - status: 403
+        message: "account is inactive"
+
+  # Refresh Token
+  - method: POST
+    path: /api/v1/auth/refresh
+    auth: false
+    request:
+      content_type: application/json
+      body:
+        refresh_token:
+          type: string
+          required: true
+    response:
+      status: 200
+      body:
+        access_token: string
+        refresh_token: string
+        expires_in: int
+    errors:
+      - status: 401
+        message: "refresh token is invalid or expired"
+      - status: 403
+        message: "account is inactive"
+
+  # Logout
+  - method: POST
+    path: /api/v1/auth/logout
+    auth: true
+    request:
+      content_type: application/json
+      body:
+        refresh_token:
+          type: string
+          required: false
+          description: "Optional: revoke specific refresh token"
+    response:
+      status: 200
+      body:
+        message: "logged out successfully"
+    errors:
+      - status: 401
+        message: "authorization header required"
+
+  # Logout All Devices
+  - method: POST
+    path: /api/v1/auth/logout-all
+    auth: true
+    response:
+      status: 200
+      body:
+        message: "logged out from all devices"
+    errors:
+      - status: 401
+        message: "authorization header required"
+
+  # Get Current User
+  - method: GET
+    path: /api/v1/auth/me
+    auth: true
+    response:
+      status: 200
+      body:
+        user: UserPublic
+    errors:
+      - status: 401
+        message: "authorization header required"
+      - status: 401
+        message: "token has expired"
+      - status: 404
+        message: "user not found"
+
+# Types
+types:
+  User:
+    id: int64
+    username: string
+    email: string
+    password_hash: string # Never exposed in JSON
+    display_name: string | null
+    avatar_url: string | null
+    is_active: boolean
+    last_login_at: timestamp | null
+    created_at: timestamp
+    updated_at: timestamp
+
+  UserPublic:
+    id: int64
+    username: string
+    display_name: string | null
+    avatar_url: string | null
+
+  AuthResponse:
+    user: UserPublic
+    access_token: string
+    refresh_token: string
+    expires_in: int # Seconds until access token expires
+
+  TokenResponse:
+    access_token: string
+    refresh_token: string
+    expires_in: int
+
+# Authentication Header Format
+auth_header:
+  format: "Authorization: Bearer <access_token>"
+  example: "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# JWT Claims Structure
+jwt_claims:
+  user_id: int64
+  type: "access"
+  exp: timestamp # Expiration
+  iat: timestamp # Issued at
+  nbf: timestamp # Not before
+  iss: "team4s"
+  sub: string # User ID as string
+
+# Redis Keys
+redis_keys:
+  refresh_token: "refresh_token:{token}" # Value: user_id, TTL: 7 days
+  user_tokens: "user_tokens:{user_id}" # Set of all user's refresh tokens
+
+# Database Table
+database:
+  table: users
+  columns:
+    - name: id
+      type: BIGSERIAL PRIMARY KEY
+    - name: username
+      type: VARCHAR(50) UNIQUE NOT NULL
+    - name: email
+      type: VARCHAR(255) UNIQUE NOT NULL
+    - name: password_hash
+      type: TEXT NOT NULL
+    - name: display_name
+      type: VARCHAR(100)
+    - name: avatar_url
+      type: TEXT
+    - name: is_active
+      type: BOOLEAN DEFAULT true
+    - name: last_login_at
+      type: TIMESTAMPTZ
+    - name: created_at
+      type: TIMESTAMPTZ DEFAULT NOW()
+    - name: updated_at
+      type: TIMESTAMPTZ DEFAULT NOW()

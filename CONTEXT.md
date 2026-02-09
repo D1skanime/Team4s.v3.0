@@ -4,9 +4,9 @@
 Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stack to a modern Go + Next.js + PostgreSQL architecture.
 
 ## Current Phase
-**Phase:** P2 Features In Progress
+**Phase:** P2 COMPLETE - Starting P3
 **Started:** 2026-02-02
-**Status:** P0 + P1 complete, P2-1 Auth + P2-2 Profile complete
+**Status:** P0 + P1 + P2 complete, P3 Admin Features next
 
 ## Project State
 
@@ -33,7 +33,7 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - [x] backend/.env.example created with connection template
 - [x] Frontend/JavaScript analyzer agents created (in Team4s.v2.0)
 - [x] PostgreSQL schema designed (13 tables)
-- [x] Migration files created (001-005)
+- [x] Migration files created (001-006)
 - [x] Combined init.sql with test data
 - [x] Test connection queries prepared
 - [x] **WSL2 installed** (BIOS + wsl --install)
@@ -45,26 +45,16 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - [x] **P1 Features complete** (Search, Filters, Related, Episode Detail, Watchlist, Rating Display)
 - [x] **P2-1 Auth System** (JWT, Refresh Token, Redis, Login/Register)
 - [x] **P2-2 User Profile** (Profile Page, Settings, Password Change, Account Delete)
+- [x] **P2-3 User Ratings** (RatingInput, Submit/Update/Delete, Stats update)
+- [x] **P2-4 Watchlist Sync** (Backend API, localStorage migration, hybrid mode)
+- [x] **P2-5 Comments** (CRUD, pagination, soft delete, ownership)
+- [x] **Rate Limiting** (Redis sliding window, auth endpoints protected)
+- [x] **Email Verification** (Tokens in Redis, console email, frontend pages)
 
 ### In Progress
-- [ ] P2-3: User Ratings (submit own ratings)
-- [ ] P2-4: Watchlist Sync (localStorage to backend)
-- [ ] P2-5: Comments (read and write)
-
-### Recently Completed (2026-02-09)
-- [x] P2-1: Auth System
-  - Backend: TokenService, AuthService, AuthMiddleware
-  - Backend: Redis integration for refresh tokens
-  - Backend: User Repository with CRUD
-  - Frontend: AuthContext with login/register/logout/refreshUser
-  - Frontend: Login/Register Pages
-  - Frontend: Header with User Menu
-- [x] P2-2: User Profile
-  - Backend: User Handler (GetProfile, UpdateProfile, ChangePassword, DeleteAccount)
-  - Backend: UserStats Query (anime watched, watching, ratings, comments)
-  - Frontend: /user/[username] Profile Page with ProfileCard, StatsGrid
-  - Frontend: /settings Page with Tabs (Profile, Password, Account)
-  - Frontend: ProfileForm, PasswordForm, DeleteAccountForm Components
+- [ ] P3-1: Admin Role & Middleware
+- [ ] P3-2: Admin Dashboard
+- [ ] P3-3: Anime Management
 
 ### Blocked
 - **User Migration:** Need to extract and migrate WCF users
@@ -94,6 +84,7 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - Server-side rendering for SEO-critical pages
 - **Primary Keys:** BIGSERIAL (not UUID) - simpler, better performance
 - **Status Fields:** PostgreSQL ENUMs for type safety
+- **Rate Limiting:** Redis sliding window algorithm
 
 ### Database Schema
 13 tables deployed with production data:
@@ -115,7 +106,28 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 
 ## Session History
 
-### Day 2026-02-09
+### Day 2026-02-09 (P2 COMPLETE)
+- Phase: P2 COMPLETE
+- Accomplishments:
+  - P2-3: User Ratings - RatingInput (10 stars), submit/update/delete
+  - P2-4: Watchlist Sync - 7 backend endpoints, localStorage migration, hybrid mode
+  - P2-5: Comments - Full CRUD with pagination and soft delete
+  - Rate Limiting - Redis sliding window for auth endpoints
+  - Email Verification - Tokens, console email service, frontend pages
+  - ~25 new files, +1,545 lines, 16 new API endpoints
+- Key Decisions:
+  - ADR-025: 10 Stars Rating Input (direct 1-10 mapping)
+  - ADR-026: Watchlist Hybrid Mode (localStorage cache, backend source of truth)
+  - ADR-027: Sliding Window Rate Limiting (Redis ZSET)
+  - ADR-028: Soft Delete for Comments (preserve reply chains)
+  - ADR-029: Console Email Service (dev mode, easy verification link copy)
+- Risks/Unknowns:
+  - Production email service needed (SendGrid/SES)
+  - Comment threading display not implemented
+- Next Steps: P3 Admin Features
+- First task tomorrow: Admin role and middleware
+
+### Day 2026-02-09 (Morning)
 - Phase: P2 IN PROGRESS (40% complete)
 - Accomplishments:
   - P2-1: Auth System complete (JWT + Refresh + Redis)
@@ -130,11 +142,10 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
   - AuthContext mit refreshUser() (ADR-023)
   - Settings Page mit Tab-Navigation (ADR-024)
 - Risks/Unknowns:
-  - Rate Limiting noch nicht implementiert (Brute-Force-Schutz fehlt)
-  - Email Verification nicht implementiert
+  - Rate Limiting noch nicht implementiert - RESOLVED
+  - Email Verification nicht implementiert - RESOLVED
   - Avatar nur als URL, kein Upload
-- Next Steps: P2-3 User Ratings, P2-4 Watchlist Sync
-- First task tomorrow: RatingInput Komponente erstellen
+- Next Steps: P2-3 User Ratings, P2-4 Watchlist Sync - COMPLETED
 
 ### Day 2026-02-06
 - Phase: P1 COMPLETED
@@ -184,12 +195,6 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
   - Repository Pattern im Backend (saubere Trennung)
   - ILIKE fuer Case-insensitive Suche (performant genug fuer 13k records)
   - SearchBar als eigenstaendige Komponente (wiederverwendbar)
-- Risks/Unknowns:
-  - Stream-Links noch nicht geparst
-  - User-Auth noch Placeholder
-  - Full-text Search fuer bessere Performance bei Wachstum
-- Next Steps: P1-2 Advanced Filters, P1-3 Related Anime
-- First task tomorrow: Status/Type Filter implementieren
 
 ### Day 2026-02-03
 - Phase: Database Migration (COMPLETED)
@@ -205,48 +210,12 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
   - VARCHAR(255) to TEXT for stream_comment, sub_comment, description
   - ON CONFLICT DO NOTHING for idempotent imports
   - Point orphaned user_id references to admin temporarily
-- Migration Results:
-  - anime: 13,326 records
-  - episodes: 30,179 records
-  - anime_relations: 2,323 records
-  - comments: 145 records
-  - ratings: 456 records
-  - watchlist: 716 records
-- Risks/Unknowns:
-  - User migration still pending
-  - FK constraints disabled
-- Next Steps:
-  - Connect Go backend to database
-  - Implement GET /api/v1/anime endpoint
-  - Implement GET /api/v1/anime/:id endpoint
-- First task tomorrow: Create internal/database/postgres.go
-
-### Day 2026-02-03 (Morning Session)
-- Phase: Database Schema Design
-- Accomplishments:
-  - Ran day-start agent for morning briefing
-  - Read Final.md documentation with complete legacy analysis
-  - Created PostgreSQL migration schema for anime portal tables
-  - Created 5 migration files (001-005) covering all tables
-  - Created init.sql with combined schema + test data
-  - Created test_connection.sql for verification queries
-  - Updated docker-compose.yml with init.sql mount
-  - Discovered Docker virtualization error
-  - Found WSL2 not installed (root cause)
-- Key Decisions:
-  - BIGSERIAL for all primary keys (not UUID)
-  - PostgreSQL ENUMs for status fields
-  - Anime portal tables only (no WCF/WoltLab)
-  - Test users: admin/test123, testuser/test123
-- Risks/Unknowns:
-  - WSL2 installation requires system restart
-  - Password migration from WCF hashes not yet tested
 
 ### Day 2026-02-02
 - Phase: Project Initialization -> Development Environment Setup
 - Accomplishments:
   - Ran day-start agent for morning briefing
-  - Recovered missing database schemas from .frm files (anmi1_watch, anmi1_profield, verwandt)
+  - Recovered missing database schemas from .frm files
   - Updated Final.md with complete schema documentation
   - Installed GitHub CLI and authenticated as D1skanime
   - Created Team4s.v3.0 project folder and initialized git
@@ -264,13 +233,6 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
   - Go web framework: Gin (most popular, best documentation)
   - Database: PostgreSQL 16 via Docker (local data in ./data/)
   - Cache: Redis 7 via Docker
-- Risks/Unknowns:
-  - Docker Desktop needs manual start after Windows restart
-  - Password migration from WCF hashes not yet tested
-- Next Steps:
-  - Start Docker and verify PostgreSQL/Redis
-  - Create PostgreSQL schema
-  - Connect Go backend to database
 
 ## References
 - Legacy Analysis: `../Team4s.v2.0/reports/Final.md`
@@ -279,7 +241,8 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - Database Schema: See Final.md "Datenbank-Architektur" section
 - Docker Config: `docker-compose.yml`
 - Backend Entry: `backend/cmd/server/main.go`
-- Migration Files: `database/migrations/001-005_*.sql`
+- Migration Files: `database/migrations/001-006_*.sql`
 - Init Script: `database/init.sql`
 - Migration Script: `database/migrate_mysql_to_postgres.py`
 - Migration Data: `database/migration_data/*.sql`
+- API Contracts: `shared/contracts/*.yaml`

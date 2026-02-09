@@ -63,22 +63,25 @@ ALTER TABLE episodes ADD CONSTRAINT episodes_anime_id_fkey FOREIGN KEY (anime_id
 
 ## Top 3 Risks
 
-### 1. Rate Limiting Not Implemented
-**Impact:** High | **Likelihood:** Medium
+### 1. Production Email Service Not Configured
+**Impact:** High | **Likelihood:** Certain (when going to production)
 **Added:** 2026-02-09
 
-Auth endpoints (login, register) have no rate limiting. Vulnerable to:
-- Brute force password attacks
-- Account enumeration
-- DoS attacks on auth system
+Console email service works for development but cannot send real emails in production.
+
+**Affected Features:**
+- Email verification
+- Password reset (future)
+- Notifications (future)
 
 **Mitigation:**
-- [ ] Implement Redis-based rate limiter
-- [ ] 5 attempts per minute per IP for login
-- [ ] 3 attempts per minute per IP for register
-- [ ] Return 429 with Retry-After header
+- [x] EmailService interface defined
+- [x] Console implementation for development
+- [ ] Create SendGrid implementation
+- [ ] Configure production environment variables
+- [ ] Test email delivery before production
 
-**Owner:** D1skanime | **Due:** Before production (priority for P2)
+**Owner:** D1skanime | **Due:** Before production deployment
 
 ---
 
@@ -151,51 +154,38 @@ StarRating component uses static IDs (`star-clip-1`, `star-clip-2`, etc.) for SV
 - [ ] Generate unique IDs per component instance (useId hook)
 - [ ] Test with multiple ratings on one page
 
-**Owner:** D1skanime | **Due:** Before P2-3 rating input
+**Owner:** D1skanime | **Due:** P3 or when adding rating to list views
 
 ---
 
-### 6. localStorage Watchlist Data Loss
-**Impact:** Medium | **Likelihood:** Low
-
-Watchlist is stored in localStorage until P2-4 Watchlist Sync is implemented. Users may lose data if:
-- Browser data is cleared
-- Different device/browser used
-- Incognito mode
-
-**Mitigation:**
-- [x] Clear warning in UI about local storage
-- [ ] Implement backend sync with P2-4
-- [ ] Migration path from localStorage to backend
-
-**Owner:** D1skanime | **Due:** P2-4 implementation
-
----
-
-### 7. Email Verification Not Implemented
-**Impact:** Low | **Likelihood:** Low
+### 6. Comment Threading Display
+**Impact:** Low | **Likelihood:** Certain
 **Added:** 2026-02-09
 
-Users can register without email verification. Potential issues:
-- Spam accounts
-- Unverified email addresses
-- Cannot send password reset emails
+Backend supports reply_to_id for threaded comments, but frontend shows comments in a flat list.
+
+**Current State:**
+- Comments API supports reply_to_id
+- Frontend ignores threading
+- All comments appear at same level
 
 **Mitigation:**
-- [ ] Implement email service (SendGrid, SES, etc.)
-- [ ] Add verification token flow
-- [ ] Optional: Require verification for certain actions
+- [ ] Implement nested comment display
+- [ ] Add "Reply" button to comments
+- [ ] Consider thread depth limit (3 levels?)
 
-**Owner:** D1skanime | **Due:** P3 or before production
+**Owner:** D1skanime | **Due:** P3 enhancement
 
 ---
 
 ## Resolved Risks
 
 ### 2026-02-09
-- **Auth System Design:** Resolved - JWT + Refresh Token pattern implemented
-- **Token Storage:** Resolved - httpOnly cookies recommended, localStorage for dev
-- **Profile Update State:** Resolved - refreshUser() in AuthContext
+- **Rate Limiting:** RESOLVED - Redis sliding window implemented for auth endpoints
+- **Email Verification:** RESOLVED - Token-based verification with Redis storage
+- **Watchlist Sync:** RESOLVED - Backend API with localStorage migration
+- **User Ratings:** RESOLVED - Full CRUD with RatingInput component
+- **Comments System:** RESOLVED - Full CRUD with soft delete
 
 ### 2026-02-06
 - **P1 Feature Scope:** Resolved - All 6 P1 features completed
@@ -234,22 +224,16 @@ Users can register without email verification. Potential issues:
 **Impact if delayed:** External API consumers have no reference
 **Decision needed by:** Before public API release
 
-### Email Service Provider
-**Options:** SendGrid vs AWS SES vs Mailgun vs SMTP
-**Impact if delayed:** Cannot implement password reset or email verification
-**Recommendation:** SendGrid (easy setup, good free tier)
-**Decision needed by:** P3 or password reset feature
-
 ---
 
 ## If Nothing Changes...
 **What will fail next week?**
 
 If we don't:
-1. **Add rate limiting** - Auth endpoints vulnerable to brute force
-2. **Implement user ratings** - Users cannot interact with content
-3. **Sync watchlist to backend** - Users lose data on device change
+1. **Configure production email** - Cannot deploy with email verification
+2. **Plan admin features** - Cannot manage content
+3. **Test user migration** - Cannot restore legacy user accounts
 
-**Critical path:** Rate Limiting -> User Ratings -> Watchlist Sync -> Comments
+**Critical path for next week:** Admin Role -> Admin Dashboard -> Anime Management
 
-P2 Auth + Profile complete - continue with remaining P2 features.
+P2 complete - continue with P3 Admin Features.

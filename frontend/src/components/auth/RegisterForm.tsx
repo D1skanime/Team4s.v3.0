@@ -47,7 +47,8 @@ export function RegisterForm() {
         password: formData.password,
         display_name: formData.display_name || undefined,
       });
-      router.push('/');
+      // Redirect to verification pending page after successful registration
+      router.push('/verify-email/pending');
     } catch {
       // Error is handled by context
     }

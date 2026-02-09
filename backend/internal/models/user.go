@@ -4,33 +4,36 @@ import "time"
 
 // User represents a user in the database
 type User struct {
-	ID           int64      `json:"id"`
-	Username     string     `json:"username"`
-	Email        string     `json:"email"`
-	PasswordHash string     `json:"-"` // Never expose in JSON
-	DisplayName  *string    `json:"display_name,omitempty"`
-	AvatarURL    *string    `json:"avatar_url,omitempty"`
-	IsActive     bool       `json:"is_active"`
-	LastLoginAt  *time.Time `json:"last_login_at,omitempty"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
+	ID            int64      `json:"id"`
+	Username      string     `json:"username"`
+	Email         string     `json:"email"`
+	PasswordHash  string     `json:"-"` // Never expose in JSON
+	DisplayName   *string    `json:"display_name,omitempty"`
+	AvatarURL     *string    `json:"avatar_url,omitempty"`
+	IsActive      bool       `json:"is_active"`
+	EmailVerified bool       `json:"email_verified"`
+	LastLoginAt   *time.Time `json:"last_login_at,omitempty"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
 }
 
 // UserPublic represents public user information (safe to expose)
 type UserPublic struct {
-	ID          int64   `json:"id"`
-	Username    string  `json:"username"`
-	DisplayName *string `json:"display_name,omitempty"`
-	AvatarURL   *string `json:"avatar_url,omitempty"`
+	ID            int64   `json:"id"`
+	Username      string  `json:"username"`
+	DisplayName   *string `json:"display_name,omitempty"`
+	AvatarURL     *string `json:"avatar_url,omitempty"`
+	EmailVerified bool    `json:"email_verified"`
 }
 
 // ToPublic converts User to UserPublic
 func (u *User) ToPublic() UserPublic {
 	return UserPublic{
-		ID:          u.ID,
-		Username:    u.Username,
-		DisplayName: u.DisplayName,
-		AvatarURL:   u.AvatarURL,
+		ID:            u.ID,
+		Username:      u.Username,
+		DisplayName:   u.DisplayName,
+		AvatarURL:     u.AvatarURL,
+		EmailVerified: u.EmailVerified,
 	}
 }
 

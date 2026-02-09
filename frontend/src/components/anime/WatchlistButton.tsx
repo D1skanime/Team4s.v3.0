@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Eye,
   CheckCircle,
@@ -10,6 +10,7 @@ import {
   Trash2,
   ChevronDown,
   Plus,
+  Loader2,
 } from 'lucide-react';
 import type { WatchlistStatus } from '@/types';
 import { WATCHLIST_STATUS_LABELS, WATCHLIST_STATUS_COLORS } from '@/types';
@@ -17,7 +18,9 @@ import {
   getWatchlistStatus,
   addToWatchlist,
   removeFromWatchlist,
+  getLocalWatchlistStatus,
 } from '@/lib/watchlist';
+import { useAuth } from '@/contexts/AuthContext';
 import styles from './WatchlistButton.module.css';
 
 interface WatchlistButtonProps {
@@ -36,16 +39,36 @@ const STATUS_ICONS: Record<WatchlistStatus, typeof Eye> = {
 const STATUS_ORDER: WatchlistStatus[] = ['watching', 'done', 'break', 'planned', 'dropped'];
 
 export function WatchlistButton({ animeId, className }: WatchlistButtonProps) {
+  const { isAuthenticated } = useAuth();
   const [currentStatus, setCurrentStatus] = useState<WatchlistStatus | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Load status from localStorage on mount
+  // Load status on mount and when auth changes
   useEffect(() => {
-    setCurrentStatus(getWatchlistStatus(animeId));
-    setIsLoaded(true);
-  }, [animeId]);
+    async function loadStatus() {
+      // For initial render, use localStorage for instant feedback
+      if (!isInitialized) {
+        const localStatus = getLocalWatchlistStatus(animeId);
+        setCurrentStatus(localStatus);
+        setIsInitialized(true);
+      }
+
+      // If authenticated, fetch from backend
+      if (isAuthenticated) {
+        try {
+          const status = await getWatchlistStatus(animeId);
+          setCurrentStatus(status);
+        } catch {
+          // Keep localStorage value on error
+        }
+      }
+    }
+
+    loadStatus();
+  }, [animeId, isAuthenticated, isInitialized]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -71,20 +94,47 @@ export function WatchlistButton({ animeId, className }: WatchlistButtonProps) {
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
-  const handleStatusSelect = (status: WatchlistStatus) => {
-    addToWatchlist(animeId, status);
-    setCurrentStatus(status);
+  const handleStatusSelect = useCallback(async (status: WatchlistStatus) => {
+    setIsLoading(true);
     setIsOpen(false);
-  };
 
-  const handleRemove = () => {
-    removeFromWatchlist(animeId);
-    setCurrentStatus(null);
+    // Optimistic update
+    setCurrentStatus(status);
+
+    try {
+      await addToWatchlist(animeId, status);
+    } catch (error) {
+      // Revert on error
+      console.error('Failed to update watchlist:', error);
+      // Reload actual status
+      const actualStatus = await getWatchlistStatus(animeId);
+      setCurrentStatus(actualStatus);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [animeId]);
+
+  const handleRemove = useCallback(async () => {
+    setIsLoading(true);
     setIsOpen(false);
-  };
+
+    // Optimistic update
+    const previousStatus = currentStatus;
+    setCurrentStatus(null);
+
+    try {
+      await removeFromWatchlist(animeId);
+    } catch (error) {
+      // Revert on error
+      console.error('Failed to remove from watchlist:', error);
+      setCurrentStatus(previousStatus);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [animeId, currentStatus]);
 
   // Show placeholder during SSR/hydration
-  if (!isLoaded) {
+  if (!isInitialized) {
     return (
       <div className={`${styles.wrapper} ${className || ''}`}>
         <button className={styles.button} disabled>
@@ -110,11 +160,16 @@ export function WatchlistButton({ animeId, className }: WatchlistButtonProps) {
         style={buttonColor ? { borderColor: buttonColor } : undefined}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
+        disabled={isLoading}
       >
-        <CurrentIcon
-          size={18}
-          style={buttonColor ? { color: buttonColor } : undefined}
-        />
+        {isLoading ? (
+          <Loader2 size={18} className={styles.spinner} />
+        ) : (
+          <CurrentIcon
+            size={18}
+            style={buttonColor ? { color: buttonColor } : undefined}
+          />
+        )}
         <span style={buttonColor ? { color: buttonColor } : undefined}>
           {buttonLabel}
         </span>

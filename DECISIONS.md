@@ -1093,6 +1093,250 @@ return (
 
 ---
 
+---
+
+## ADR-025: Rating Input as 10 Stars
+**Date:** 2026-02-09
+**Status:** Accepted
+
+### Context
+Need to design user rating input for 1-10 scale.
+
+### Options Considered
+1. **5 half-stars** - 10 values mapped to 5 stars with half-star precision
+2. **10 full stars** - Direct 1:1 mapping to rating scale
+3. **Slider** - Continuous slider from 1-10
+4. **Number input** - Simple text/number field
+
+### Decision
+**10 clickable full stars with German hover labels**
+
+### Why This Option Won
+- Direct, intuitive mapping (star 7 = rating 7)
+- No confusion about half-star meaning
+- Hover labels provide context (1=Katastrophal, 10=Meisterwerk)
+- Familiar interaction pattern
+- Works well on mobile (larger tap targets)
+
+### Implementation
+```typescript
+{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
+  <button
+    onClick={() => handleRatingClick(value)}
+    onMouseEnter={() => setHoveredRating(value)}
+  >
+    <Star fill={value <= displayRating ? 'currentColor' : 'none'} />
+  </button>
+))}
+```
+
+### Consequences
+**Good:**
+- Very intuitive
+- Works well on all devices
+- Clear visual feedback
+
+**Bad:**
+- Takes more horizontal space than 5 stars
+- May need responsive adjustments
+
+---
+
+## ADR-026: Watchlist Hybrid Mode
+**Date:** 2026-02-09
+**Status:** Accepted
+
+### Context
+Need to migrate localStorage watchlist to backend while maintaining UX for anonymous users.
+
+### Options Considered
+1. **Backend only** - Require login to use watchlist
+2. **localStorage only** - Keep current implementation
+3. **Hybrid mode** - localStorage as cache, backend as source of truth
+4. **Progressive enhancement** - localStorage first, sync on login
+
+### Decision
+**Hybrid mode with localStorage cache and backend source of truth**
+
+### Why This Option Won
+- Anonymous users can still use watchlist immediately
+- No data loss for authenticated users (cross-device sync)
+- Backend wins on conflicts (simpler merge strategy)
+- Seamless transition when user logs in
+- Graceful degradation if backend unavailable
+
+### Implementation Strategy
+1. Anonymous: Use localStorage only
+2. Login: POST /api/v1/watchlist/sync with localStorage data
+3. Backend merges (newer timestamp or backend wins)
+4. Clear localStorage, use backend data going forward
+5. All subsequent changes go directly to backend
+
+### Consequences
+**Good:**
+- Best of both worlds
+- No breaking change for existing users
+- Progressive enhancement
+
+**Bad:**
+- Slightly more complex frontend logic
+- Potential edge cases in sync
+
+---
+
+## ADR-027: Sliding Window Rate Limiting
+**Date:** 2026-02-09
+**Status:** Accepted
+
+### Context
+Need to protect auth endpoints from brute force attacks.
+
+### Options Considered
+1. **Fixed window** - Simple counter reset at interval (10:00, 10:01, etc.)
+2. **Sliding window** - Rolling time window
+3. **Token bucket** - Tokens regenerate over time
+4. **Leaky bucket** - Fixed output rate
+
+### Decision
+**Redis ZSET-based sliding window algorithm**
+
+### Why This Option Won
+- More accurate than fixed window (no burst at boundaries)
+- Simpler than token/leaky bucket
+- Redis ZSET provides atomic operations
+- Natural cleanup with TTL
+- Easy to configure per-endpoint
+
+### Implementation
+```go
+// Key: ratelimit:login:<ip>
+// Score: timestamp in milliseconds
+// Member: unique request identifier
+
+// Check: ZCard after ZRemRangeByScore (cleanup old)
+// Allow: ZAdd new entry, Expire for cleanup
+```
+
+### Rate Limits Applied
+- Login: 5/minute per IP
+- Register: 3/minute per IP
+- Token refresh: 10/minute per IP
+- Verification email: 10/minute per IP + 3/hour per user
+
+### Consequences
+**Good:**
+- Accurate rate limiting
+- Atomic operations
+- Auto-cleanup
+- Configurable per endpoint
+
+**Bad:**
+- Requires Redis availability
+- Memory usage scales with traffic
+
+---
+
+## ADR-028: Soft Delete for Comments
+**Date:** 2026-02-09
+**Status:** Accepted
+
+### Context
+Need to handle comment deletion while preserving discussion context.
+
+### Options Considered
+1. **Hard delete** - Remove from database
+2. **Soft delete** - Set is_deleted flag
+3. **Archive** - Move to separate table
+4. **Replace content** - Keep row, replace message with "[deleted]"
+
+### Decision
+**Soft delete with is_deleted boolean flag**
+
+### Why This Option Won
+- Preserves reply chain integrity
+- Enables audit trail for moderation
+- Easy to implement and query
+- Can show "[deleted]" placeholder in UI
+- Recoverable if needed
+
+### Implementation
+```sql
+-- Column
+is_deleted BOOLEAN NOT NULL DEFAULT false
+
+-- Query (exclude deleted unless admin)
+WHERE is_deleted = false OR user_id = $currentUserId
+```
+
+### Consequences
+**Good:**
+- Reply chains remain intact
+- Audit trail preserved
+- Simple implementation
+
+**Bad:**
+- Database grows with "deleted" data
+- Need to filter in queries
+
+---
+
+## ADR-029: Console Email Service for Development
+**Date:** 2026-02-09
+**Status:** Accepted
+
+### Context
+Need email service for verification without external dependencies in development.
+
+### Options Considered
+1. **Real email service** - Use SendGrid/SES from start
+2. **Local SMTP** - Run MailHog or similar
+3. **Console logging** - Log email content to stdout
+4. **File-based** - Write emails to files
+
+### Decision
+**Console email service that logs to stdout**
+
+### Why This Option Won
+- Zero external dependencies
+- Easy to copy verification links from terminal
+- Same interface as production service
+- No configuration required
+- Works in any environment
+
+### Implementation
+```go
+type ConsoleEmailService struct{}
+
+func (s *ConsoleEmailService) SendVerificationEmail(ctx context.Context, to, username, token string) error {
+    url := fmt.Sprintf("http://localhost:3000/verify-email?token=%s", token)
+    log.Printf("\n=== VERIFICATION EMAIL ===\nTo: %s\nSubject: Email verifizieren\nLink: %s\n", to, url)
+    return nil
+}
+```
+
+### Production Swap
+```go
+// Just change the implementation
+var emailService EmailService
+if config.IsDevelopment {
+    emailService = NewConsoleEmailService()
+} else {
+    emailService = NewSendGridEmailService(config.SendGridAPIKey)
+}
+```
+
+### Consequences
+**Good:**
+- Instant development setup
+- Easy debugging
+- No credentials needed
+
+**Bad:**
+- Not testing actual email delivery
+- Must swap before production
+
+---
+
 ## Pending Decisions
 
 ### Database Migration Tool
@@ -1115,4 +1359,4 @@ return (
 - AWS SES: Cheapest at scale, requires AWS
 - Mailgun: Good deliverability, API-first
 **Recommendation:** SendGrid (simplest for starting)
-**Decision needed by:** P3 or password reset feature
+**Decision needed by:** Before production deployment

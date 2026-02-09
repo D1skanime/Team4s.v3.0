@@ -11,6 +11,7 @@ import type {
   RelatedAnime,
   EpisodeDetailResponse,
   AnimeRating,
+  CommentsResponse,
 } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090';
@@ -98,6 +99,12 @@ export const api = {
   // Anime Rating
   getAnimeRating: (id: number): Promise<AnimeRating> => {
     return fetchApi(`/api/v1/anime/${id}/rating`);
+  },
+
+  // Comments (public, no auth - is_owner will always be false)
+  getComments: (animeId: number, page: number = 1, perPage: number = 20): Promise<CommentsResponse> => {
+    const query = buildQueryString({ page, per_page: perPage });
+    return fetchApi(`/api/v1/anime/${animeId}/comments${query}`);
   },
 };
 

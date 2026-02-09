@@ -9,6 +9,19 @@ import type {
   UpdateProfileData,
   UpdateProfileResponse,
   ChangePasswordData,
+  UserRating,
+  SubmitRatingResponse,
+  WatchlistStatus,
+  WatchlistEntry,
+  WatchlistResponse,
+  SyncWatchlistItem,
+  SyncWatchlistResponse,
+  CheckWatchlistResponse,
+  CommentsResponse,
+  CommentResponse,
+  Comment,
+  SendVerificationResponse,
+  VerifyEmailResponse,
 } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090';
@@ -201,6 +214,181 @@ export async function deleteAccount(password: string): Promise<void> {
   clearTokens();
 }
 
+// Email Verification API functions
+
+// Send verification email to current user
+// Returns remaining attempts in rate limit window
+export async function sendVerificationEmail(): Promise<SendVerificationResponse> {
+  return fetchWithAuth<SendVerificationResponse>('/api/v1/auth/send-verification', {
+    method: 'POST',
+  });
+}
+
+// Verify email with token from URL
+// Token is one-time use
+export async function verifyEmail(token: string): Promise<VerifyEmailResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/auth/verify-email?token=${encodeURIComponent(token)}`);
+
+  if (!res.ok) {
+    let message = `HTTP ${res.status}`;
+    try {
+      const errorData = await res.json();
+      message = errorData.error || message;
+    } catch {
+      // Ignore JSON parse errors
+    }
+    throw new AuthError(res.status, message);
+  }
+
+  return res.json();
+}
+
+// Rating API functions
+
+// Get current user's rating for an anime
+export async function getUserRating(animeId: number): Promise<UserRating | null> {
+  try {
+    return await fetchWithAuth<UserRating>(`/api/v1/anime/${animeId}/rating/me`);
+  } catch (error) {
+    if (error instanceof AuthError && error.status === 404) {
+      return null; // No rating exists
+    }
+    throw error;
+  }
+}
+
+// Submit or update a rating
+export async function submitRating(animeId: number, rating: number): Promise<SubmitRatingResponse> {
+  return fetchWithAuth<SubmitRatingResponse>(`/api/v1/anime/${animeId}/rating`, {
+    method: 'POST',
+    body: JSON.stringify({ rating }),
+  });
+}
+
+// Delete user's rating
+export async function deleteRating(animeId: number): Promise<void> {
+  await fetchWithAuth(`/api/v1/anime/${animeId}/rating`, {
+    method: 'DELETE',
+  });
+}
+
+// Watchlist API functions
+
+// Get user's complete watchlist
+export async function getWatchlist(): Promise<WatchlistResponse> {
+  return fetchWithAuth<WatchlistResponse>('/api/v1/watchlist');
+}
+
+// Get watchlist status for a specific anime
+export async function getWatchlistStatus(animeId: number): Promise<WatchlistEntry | null> {
+  try {
+    return await fetchWithAuth<WatchlistEntry>(`/api/v1/watchlist/${animeId}`);
+  } catch (error) {
+    if (error instanceof AuthError && error.status === 404) {
+      return null; // Not in watchlist
+    }
+    throw error;
+  }
+}
+
+// Add anime to watchlist (or update if already exists)
+export async function addToWatchlist(animeId: number, status: WatchlistStatus): Promise<WatchlistEntry> {
+  return fetchWithAuth<WatchlistEntry>(`/api/v1/watchlist/${animeId}`, {
+    method: 'POST',
+    body: JSON.stringify({ status }),
+  });
+}
+
+// Update watchlist status
+export async function updateWatchlistStatus(animeId: number, status: WatchlistStatus): Promise<WatchlistEntry> {
+  return fetchWithAuth<WatchlistEntry>(`/api/v1/watchlist/${animeId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  });
+}
+
+// Remove from watchlist
+export async function removeFromWatchlist(animeId: number): Promise<void> {
+  await fetchWithAuth(`/api/v1/watchlist/${animeId}`, {
+    method: 'DELETE',
+  });
+}
+
+// Sync localStorage watchlist to backend
+export async function syncWatchlist(items: SyncWatchlistItem[]): Promise<SyncWatchlistResponse> {
+  return fetchWithAuth<SyncWatchlistResponse>('/api/v1/watchlist/sync', {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+  });
+}
+
+// Check watchlist status for multiple anime IDs
+export async function checkWatchlist(animeIds: number[]): Promise<CheckWatchlistResponse> {
+  return fetchWithAuth<CheckWatchlistResponse>('/api/v1/watchlist/check', {
+    method: 'POST',
+    body: JSON.stringify({ anime_ids: animeIds }),
+  });
+}
+
+// Comment API functions
+
+// Get comments for an anime (paginated)
+export async function getComments(
+  animeId: number,
+  page: number = 1,
+  perPage: number = 20
+): Promise<CommentsResponse> {
+  return fetchWithAuth<CommentsResponse>(
+    `/api/v1/anime/${animeId}/comments?page=${page}&per_page=${perPage}`
+  );
+}
+
+// Create a new comment
+export async function createComment(
+  animeId: number,
+  message: string,
+  replyToId?: number
+): Promise<Comment> {
+  const body: { message: string; reply_to_id?: number } = { message };
+  if (replyToId) {
+    body.reply_to_id = replyToId;
+  }
+  const response = await fetchWithAuth<CommentResponse>(
+    `/api/v1/anime/${animeId}/comments`,
+    {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }
+  );
+  return response.data;
+}
+
+// Update an existing comment
+export async function updateComment(
+  animeId: number,
+  commentId: number,
+  message: string
+): Promise<Comment> {
+  const response = await fetchWithAuth<CommentResponse>(
+    `/api/v1/anime/${animeId}/comments/${commentId}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ message }),
+    }
+  );
+  return response.data;
+}
+
+// Delete a comment
+export async function deleteComment(
+  animeId: number,
+  commentId: number
+): Promise<void> {
+  await fetchWithAuth(`/api/v1/anime/${animeId}/comments/${commentId}`, {
+    method: 'DELETE',
+  });
+}
+
 // Auth client object for convenience
 export const authClient = {
   register,
@@ -217,6 +405,26 @@ export const authClient = {
   updateProfile,
   changePassword,
   deleteAccount,
+  // Rating functions
+  getUserRating,
+  submitRating,
+  deleteRating,
+  // Watchlist functions
+  getWatchlist,
+  getWatchlistStatus,
+  addToWatchlist,
+  updateWatchlistStatus,
+  removeFromWatchlist,
+  syncWatchlist,
+  checkWatchlist,
+  // Comment functions
+  getComments,
+  createComment,
+  updateComment,
+  deleteComment,
+  // Email verification functions
+  sendVerificationEmail,
+  verifyEmail,
 };
 
 export { AuthError };

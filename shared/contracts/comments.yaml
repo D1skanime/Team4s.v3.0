@@ -1,0 +1,239 @@
+# API Contract: Comments System
+# Feature: P2-5 - Comments on Anime
+# Status: Implemented
+
+feature: comments
+description: Let users read and write comments on anime
+
+# ============================================
+# Endpoints
+# ============================================
+
+endpoints:
+  # GET Comments (Public with optional auth)
+  - method: GET
+    path: /api/v1/anime/:id/comments
+    description: Get paginated comments for an anime
+    auth: optional  # If authenticated, is_owner flag is set correctly
+    query_params:
+      - name: page
+        type: integer
+        default: 1
+        description: Page number
+      - name: per_page
+        type: integer
+        default: 20
+        max: 100
+        description: Comments per page
+    response:
+      type: CommentsResponse
+      example:
+        data:
+          - id: 1
+            anime_id: 123
+            message: "Toller Anime, kann ich nur empfehlen!"
+            reply_to_id: null
+            author:
+              id: 42
+              username: "otaku123"
+              display_name: "Otaku Fan"
+              avatar_url: null
+            is_owner: false
+            created_at: "2024-02-09T15:30:00Z"
+            updated_at: "2024-02-09T15:30:00Z"
+        meta:
+          total: 42
+          page: 1
+          per_page: 20
+          total_pages: 3
+    errors:
+      - status: 404
+        message: "anime not found"
+
+  # POST Create Comment (Authenticated)
+  - method: POST
+    path: /api/v1/anime/:id/comments
+    description: Create a new comment on an anime
+    auth: required
+    request_body:
+      type: CreateCommentRequest
+      example:
+        message: "Sehr guter Anime mit tollem Ending!"
+        reply_to_id: null  # Optional, for replies
+    response:
+      type: CommentResponse
+      status: 201
+      example:
+        data:
+          id: 43
+          anime_id: 123
+          message: "Sehr guter Anime mit tollem Ending!"
+          reply_to_id: null
+          author:
+            id: 42
+            username: "otaku123"
+            display_name: "Otaku Fan"
+            avatar_url: null
+          is_owner: true
+          created_at: "2024-02-09T15:45:00Z"
+          updated_at: "2024-02-09T15:45:00Z"
+    errors:
+      - status: 400
+        message: "comment cannot be empty"
+      - status: 400
+        message: "comment too long (max 2000 characters)"
+      - status: 400
+        message: "reply target comment not found"
+      - status: 401
+        message: "unauthorized"
+      - status: 404
+        message: "anime not found"
+
+  # PUT Update Comment (Authenticated, own comments only)
+  - method: PUT
+    path: /api/v1/anime/:id/comments/:commentId
+    description: Update an existing comment
+    auth: required
+    request_body:
+      type: UpdateCommentRequest
+      example:
+        message: "Sehr guter Anime mit tollem Ending! (bearbeitet)"
+    response:
+      type: CommentResponse
+      example:
+        data:
+          id: 43
+          anime_id: 123
+          message: "Sehr guter Anime mit tollem Ending! (bearbeitet)"
+          reply_to_id: null
+          author:
+            id: 42
+            username: "otaku123"
+            display_name: "Otaku Fan"
+            avatar_url: null
+          is_owner: true
+          created_at: "2024-02-09T15:45:00Z"
+          updated_at: "2024-02-09T16:00:00Z"
+    errors:
+      - status: 400
+        message: "comment cannot be empty"
+      - status: 400
+        message: "comment too long (max 2000 characters)"
+      - status: 401
+        message: "unauthorized"
+      - status: 403
+        message: "you can only edit your own comments"
+      - status: 404
+        message: "comment not found"
+
+  # DELETE Comment (Authenticated, own comments only)
+  - method: DELETE
+    path: /api/v1/anime/:id/comments/:commentId
+    description: Delete a comment (soft delete)
+    auth: required
+    response:
+      status: 204
+      description: No content on success
+    errors:
+      - status: 401
+        message: "unauthorized"
+      - status: 403
+        message: "you can only delete your own comments"
+      - status: 404
+        message: "comment not found"
+
+# ============================================
+# Types
+# ============================================
+
+types:
+  CommentAuthor:
+    id: int64
+    username: string
+    display_name: string | null
+    avatar_url: string | null
+
+  Comment:
+    id: int64
+    anime_id: int64
+    message: string
+    reply_to_id: int64 | null
+    author: CommentAuthor
+    is_owner: boolean  # true if current user owns this comment
+    created_at: datetime
+    updated_at: datetime
+
+  CommentsMeta:
+    total: int
+    page: int
+    per_page: int
+    total_pages: int
+
+  CommentsResponse:
+    data: Comment[]
+    meta: CommentsMeta
+
+  CommentResponse:
+    data: Comment
+
+  CreateCommentRequest:
+    message: string  # required, 1-2000 chars
+    reply_to_id: int64 | null  # optional
+
+  UpdateCommentRequest:
+    message: string  # required, 1-2000 chars
+
+# ============================================
+# Validation Rules
+# ============================================
+
+validation:
+  message:
+    min_length: 1
+    max_length: 2000
+    trim: true
+
+# ============================================
+# Database Schema
+# ============================================
+
+database:
+  table: comments
+  columns:
+    - id: BIGSERIAL PRIMARY KEY
+    - anime_id: BIGINT NOT NULL REFERENCES anime(id)
+    - user_id: BIGINT NOT NULL REFERENCES users(id)
+    - reply_to_id: BIGINT REFERENCES comments(id)
+    - message: TEXT NOT NULL
+    - is_deleted: BOOLEAN NOT NULL DEFAULT false
+    - deleted_by: BIGINT REFERENCES users(id)
+    - deleted_at: TIMESTAMPTZ
+    - created_at: TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    - updated_at: TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  indexes:
+    - idx_comments_anime: (anime_id)
+    - idx_comments_user: (user_id)
+    - idx_comments_reply: (reply_to_id)
+    - idx_comments_created: (created_at DESC)
+
+# ============================================
+# Implementation Files
+# ============================================
+
+backend_files:
+  - internal/models/comment.go
+  - internal/repository/comment.go
+  - internal/handlers/comment.go
+  - cmd/server/main.go (routes)
+
+frontend_files:
+  - src/types/index.ts (Comment types)
+  - src/lib/auth.ts (API functions)
+  - src/lib/api.ts (public API)
+  - src/lib/utils.ts (formatRelativeTime, getAvatarUrl)
+  - src/components/comments/CommentsSection.tsx
+  - src/components/comments/CommentForm.tsx
+  - src/components/comments/CommentList.tsx
+  - src/components/comments/CommentItem.tsx
+  - src/components/comments/*.module.css
+  - src/app/anime/[id]/page.tsx (integration)

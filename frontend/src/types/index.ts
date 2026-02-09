@@ -159,11 +159,68 @@ export interface EpisodeDetailResponse {
 // Watchlist Types
 export type WatchlistStatus = 'watching' | 'done' | 'break' | 'planned' | 'dropped';
 
+// LocalStorage watchlist item (legacy format)
 export interface WatchlistItem {
   animeId: number;
   status: WatchlistStatus;
   addedAt: string;
   updatedAt: string;
+}
+
+// Backend watchlist entry
+export interface WatchlistEntry {
+  id: number;
+  anime_id: number;
+  user_id: number;
+  status: WatchlistStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+// Backend watchlist item with anime info
+export interface BackendWatchlistItem {
+  id: number;
+  anime_id: number;
+  status: WatchlistStatus;
+  created_at: string;
+  updated_at: string;
+  anime?: {
+    id: number;
+    title: string;
+    type: string;
+    status: string;
+    year: number | null;
+    cover_image: string | null;
+    max_episodes: number;
+  };
+}
+
+// Backend watchlist response
+export interface WatchlistResponse {
+  data: BackendWatchlistItem[];
+  meta: {
+    total: number;
+    by_status: Record<WatchlistStatus, number>;
+  };
+}
+
+// Sync request/response
+export interface SyncWatchlistItem {
+  anime_id: number;
+  status: WatchlistStatus;
+  added_at: string;
+  updated_at: string;
+}
+
+export interface SyncWatchlistResponse {
+  synced: number;
+  skipped: number;
+  invalid: number;
+}
+
+// Check watchlist status for multiple anime
+export interface CheckWatchlistResponse {
+  statuses: Record<number, WatchlistStatus>;
 }
 
 export const WATCHLIST_STATUS_LABELS: Record<WatchlistStatus, string> = {
@@ -190,12 +247,33 @@ export interface AnimeRating {
   distribution: Record<number, number>;  // Rating value (1-10) -> count
 }
 
+// User's individual rating for an anime
+export interface UserRating {
+  anime_id: number;
+  user_id: number;
+  rating: number;       // 1-10
+  created_at: string;
+  updated_at: string;
+}
+
+// Request to submit a rating
+export interface SubmitRatingRequest {
+  rating: number;       // 1-10
+}
+
+// Response after submitting a rating
+export interface SubmitRatingResponse {
+  rating: UserRating;
+  anime_rating: AnimeRating;
+}
+
 // Auth Types
 export interface User {
   id: number;
   username: string;
   display_name?: string;
   avatar_url?: string;
+  email_verified: boolean;
 }
 
 export interface AuthResponse {
@@ -256,4 +334,68 @@ export interface ChangePasswordData {
 
 export interface UpdateProfileResponse {
   user: User;
+}
+
+// Comment Types
+export interface CommentAuthor {
+  id: number;
+  username: string;
+  display_name?: string;
+  avatar_url?: string;
+}
+
+export interface Comment {
+  id: number;
+  anime_id: number;
+  message: string;
+  reply_to_id?: number;
+  author: CommentAuthor;
+  is_owner: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommentsMeta {
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
+export interface CommentsResponse {
+  data: Comment[];
+  meta: CommentsMeta;
+}
+
+export interface CommentResponse {
+  data: Comment;
+}
+
+export interface CreateCommentRequest {
+  message: string;
+  reply_to_id?: number;
+}
+
+export interface UpdateCommentRequest {
+  message: string;
+}
+
+// Comment validation constants
+export const MAX_COMMENT_LENGTH = 2000;
+export const MIN_COMMENT_LENGTH = 1;
+
+// Email Verification Types
+export interface SendVerificationResponse {
+  message: string;
+  remaining: number; // Remaining attempts in rate limit window
+}
+
+export interface VerifyEmailResponse {
+  message: string;
+  verified: boolean;
+}
+
+export interface VerificationErrorResponse {
+  error: string;
+  retry_after?: number; // Seconds until rate limit resets
 }

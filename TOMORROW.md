@@ -2,252 +2,281 @@
 
 ## Top 3 Priorities
 
-### 1. P2-3: User Ratings Implementation
-Benutzer sollen eigene Bewertungen fuer Anime abgeben koennen.
+### 1. P3-1: Admin Role & Middleware
+Implement role-based access control for admin features.
 
 **Backend:**
 ```go
-// Rating Handler erweitern
-POST /api/v1/anime/:id/ratings    - Bewertung abgeben/aktualisieren
-GET  /api/v1/anime/:id/ratings/me - Eigene Bewertung abrufen
-DELETE /api/v1/anime/:id/ratings  - Bewertung loeschen
-```
-
-**Frontend:**
-- RatingInput Komponente (klickbare Sterne)
-- Integration in AnimeDetail Page
-- Aktualisierung der Gesamtbewertung nach Submit
-
-**Aufgaben:**
-1. Backend: Rating Handler mit Create/Update/Delete
-2. Backend: Rating Repository erweitern
-3. Frontend: RatingInput Komponente
-4. Frontend: Integration mit AuthContext (nur eingeloggt)
-5. Frontend: Optimistic UI Update
-
----
-
-### 2. P2-4: Watchlist Backend Sync
-localStorage Watchlist zu Backend migrieren.
-
-**Backend:**
-```go
-POST   /api/v1/watchlist           - Anime zur Watchlist hinzufuegen
-GET    /api/v1/watchlist           - Eigene Watchlist abrufen
-PUT    /api/v1/watchlist/:animeId  - Status aendern
-DELETE /api/v1/watchlist/:animeId  - Von Watchlist entfernen
-```
-
-**Frontend:**
-- WatchlistContext fuer zentralen State
-- Migration von localStorage bei Login
-- Sync bei jeder Aenderung
-- Offline-Fallback auf localStorage
-
-**Aufgaben:**
-1. Backend: Watchlist Handler implementieren
-2. Backend: Watchlist Repository
-3. Frontend: WatchlistContext erstellen
-4. Frontend: Migration-Logic bei Login
-5. Frontend: WatchlistButton anpassen
-
----
-
-### 3. Rate Limiting fuer Auth Endpoints
-Schutz gegen Brute-Force Angriffe.
-
-**Implementation:**
-```go
-// middleware/ratelimit.go
-type RateLimiter struct {
-    redis  *redis.Client
-    limit  int           // Anfragen pro Zeitfenster
-    window time.Duration // Zeitfenster
+// middleware/admin.go
+func AdminRequired() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        userID := GetUserID(c)
+        if !isAdmin(userID) {
+            c.AbortWithStatusJSON(403, gin.H{"error": "admin access required"})
+            return
+        }
+        c.Next()
+    }
 }
 
-// 5 Versuche pro Minute pro IP fuer Login
-// 3 Versuche pro Minute pro IP fuer Register
+// repository/user.go
+func (r *UserRepository) HasRole(ctx context.Context, userID int64, role string) (bool, error)
 ```
 
-**Aufgaben:**
-1. RateLimiter Middleware erstellen
-2. Redis-basierter Counter
-3. Anwenden auf /auth/login und /auth/register
-4. Error Response mit Retry-After Header
+**Database:**
+- Check existing roles table
+- Ensure admin role exists
+- Link admin user to admin role
+
+**Tasks:**
+1. Create AdminRequired middleware
+2. Add HasRole method to UserRepository
+3. Create admin user if not exists
+4. Add role check to middleware
+5. Test with protected endpoint
+
+---
+
+### 2. P3-2: Admin Dashboard Route
+Create admin-only area with navigation.
+
+**Backend:**
+```go
+// Admin routes group
+admin := r.Group("/api/v1/admin")
+admin.Use(middleware.AuthRequired(), middleware.AdminRequired())
+{
+    admin.GET("/stats", adminHandler.GetDashboardStats)
+    admin.GET("/users", adminHandler.ListUsers)
+    admin.GET("/anime", adminHandler.ListAnimeForAdmin)
+}
+```
+
+**Frontend:**
+- `/admin` - Dashboard with stats overview
+- `/admin/users` - User management table
+- `/admin/anime` - Anime management table
+- Protected routes (redirect non-admin to 403)
+
+**Tasks:**
+1. Create admin routes in backend
+2. Implement GetDashboardStats (counts, recent activity)
+3. Create /admin page in frontend
+4. Add AdminGuard component
+5. Create AdminLayout with sidebar navigation
+
+---
+
+### 3. P3-3: Anime Management (CRUD)
+Allow admins to create, update, and delete anime.
+
+**Backend:**
+```go
+// Admin anime endpoints
+POST   /api/v1/admin/anime         - Create anime
+PUT    /api/v1/admin/anime/:id     - Update anime
+DELETE /api/v1/admin/anime/:id     - Delete anime (soft delete?)
+POST   /api/v1/admin/anime/:id/cover - Upload cover image
+```
+
+**Frontend:**
+- AnimeEditor component (form for create/edit)
+- Delete confirmation modal
+- Cover upload with preview
+- Status/Type enum selectors
+
+**Tasks:**
+1. Add CreateAnime, UpdateAnime, DeleteAnime to repository
+2. Create AdminAnimeHandler with CRUD
+3. Create AnimeEditor form component
+4. Implement cover upload (local storage first)
+5. Add to admin anime list page
 
 ---
 
 ## First 15-Minute Task
 
-**RatingInput Komponente Skeleton erstellen:**
+**Create AdminRequired middleware:**
 
-1. Erstelle `frontend/src/components/anime/RatingInput.tsx`:
-```typescript
-'use client';
+1. Create `backend/internal/middleware/admin.go`:
+```go
+package middleware
 
-import { useState } from 'react';
-import styles from './RatingInput.module.css';
+import (
+    "net/http"
+    "github.com/gin-gonic/gin"
+)
 
-interface RatingInputProps {
-  animeId: number;
-  currentRating?: number;
-  onRatingChange?: (rating: number) => void;
-}
+// AdminRequired checks if the authenticated user has admin role
+func AdminRequired() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        userID := GetUserID(c)
+        if userID == 0 {
+            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+            return
+        }
 
-export default function RatingInput({
-  animeId,
-  currentRating,
-  onRatingChange
-}: RatingInputProps) {
-  const [rating, setRating] = useState(currentRating || 0);
-  const [hoveredRating, setHoveredRating] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+        // TODO: Check admin role from database
+        // For now, check if user_id == 1 (admin)
+        if userID != 1 {
+            c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "admin access required"})
+            return
+        }
 
-  const handleClick = async (value: number) => {
-    // TODO: Implement API call
-    setRating(value);
-    onRatingChange?.(value);
-  };
-
-  return (
-    <div className={styles.container}>
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
-        <button
-          key={value}
-          className={`${styles.star} ${value <= (hoveredRating || rating) ? styles.filled : ''}`}
-          onMouseEnter={() => setHoveredRating(value)}
-          onMouseLeave={() => setHoveredRating(0)}
-          onClick={() => handleClick(value)}
-          disabled={isSubmitting}
-        >
-          {value}
-        </button>
-      ))}
-    </div>
-  );
+        c.Next()
+    }
 }
 ```
 
-2. Erstelle `frontend/src/components/anime/RatingInput.module.css`
-3. Teste Kompilierung mit `npm run build`
+2. Wire up in `cmd/server/main.go`
+3. Test with `curl -H "Authorization: Bearer $TOKEN" /api/v1/admin/stats`
 
 ---
 
 ## Dependencies to Unblock Early
 
-1. **Rating Repository bereits vorhanden**
-   - `backend/internal/repository/rating.go` existiert
-   - Nur Handler fehlt
+1. **Roles table exists**
+   - users, roles, user_roles tables in schema
+   - Need to verify data exists
 
-2. **Watchlist Table existiert**
-   - Schema mit user_id, anime_id, status
-   - 716 Legacy-Eintraege migriert
+2. **Admin user exists**
+   - user_id=1 is admin
+   - Check roles assignment
 
-3. **Redis bereits konfiguriert**
-   - Verbindung in `database/redis.go`
-   - Kann fuer Rate Limiting wiederverwendet werden
+3. **Auth middleware working**
+   - Already implemented
+   - AdminRequired builds on AuthRequired
 
 4. **Docker running**
    ```bash
    docker ps
-   # Zeigt: postgres, redis, adminer
+   # Shows: postgres, redis, adminer
    ```
 
 ---
 
 ## If Ahead of Schedule
 
-### P2-5: Comments System
-- GET /api/v1/anime/:id/comments - Kommentare laden
-- POST /api/v1/anime/:id/comments - Kommentar schreiben
-- DELETE /api/v1/comments/:id - Eigenen Kommentar loeschen (oder Mod)
-- CommentList und CommentForm Komponenten
+### Episode Management
+- GET/POST/PUT/DELETE episodes
+- Fansub progress editing
+- Stream link management (parse legacy HTML)
 
-### Password Reset Flow
-- POST /api/v1/auth/forgot-password
-- POST /api/v1/auth/reset-password
-- Token per Email (spaeter)
+### User Management
+- List all users (admin)
+- Ban/suspend user
+- Edit user role
+- Delete user (soft)
 
-### Avatar Upload
-- Multipart Form statt URL
-- Lokale Speicherung oder S3
-- Image Resize/Crop
+### Moderation Tools
+- Flag comments for review
+- Delete any comment (admin)
+- View flagged content queue
 
 ---
 
 ## Verification Checklist
 
-Nach Abschluss der Prioritaeten:
-- [ ] User kann Anime bewerten (1-10)
-- [ ] Bewertung wird in DB gespeichert
-- [ ] Gesamtbewertung aktualisiert sich
-- [ ] Watchlist wird bei Login synchronisiert
-- [ ] localStorage wird nach Sync geleert
-- [ ] Rate Limiting blockiert nach 5 Versuchen
-- [ ] Retry-After Header wird gesendet
+After completing priorities:
+- [ ] Admin middleware blocks non-admin users
+- [ ] Admin dashboard shows stats
+- [ ] Admin can view user list
+- [ ] Admin can create new anime
+- [ ] Admin can edit existing anime
+- [ ] Admin can delete anime (soft delete)
+- [ ] Cover upload works
 
 ---
 
-## P2 Feature Roadmap (Reference)
+## P3 Feature Roadmap (Reference)
 
 | ID | Feature | Priority | Status |
 |----|---------|----------|--------|
-| P2-1 | Auth (Login/Register) | HIGH | DONE |
-| P2-2 | User Profile | MEDIUM | DONE |
-| P2-3 | User Ratings | MEDIUM | TODO |
-| P2-4 | Watchlist Sync | MEDIUM | TODO |
-| P2-5 | Comments | LOW | TODO |
+| P3-1 | Admin Role & Middleware | HIGH | TODO |
+| P3-2 | Admin Dashboard | HIGH | TODO |
+| P3-3 | Anime Management | HIGH | TODO |
+| P3-4 | Episode Management | MEDIUM | TODO |
+| P3-5 | User Management | MEDIUM | TODO |
+| P3-6 | Moderation Tools | LOW | TODO |
 
 ---
 
 ## Technical Notes
 
-### Rating API Design
-```json
-// POST /api/v1/anime/:id/ratings
-// Request
-{
-  "rating": 8
-}
-
-// Response
-{
-  "id": 123,
-  "anime_id": 456,
-  "user_id": 1,
-  "rating": 8,
-  "created_at": "2026-02-10T10:00:00Z"
-}
+### Role Check Query
+```sql
+SELECT EXISTS (
+    SELECT 1 FROM user_roles ur
+    JOIN roles r ON ur.role_id = r.id
+    WHERE ur.user_id = $1 AND r.name = 'admin'
+) AS is_admin;
 ```
 
-### Watchlist Sync Strategy
-1. Bei Login: localStorage lesen
-2. Fuer jeden Eintrag: POST an Backend
-3. Bei Konflikt: Backend-Version gewinnt (neuerer Timestamp)
-4. Nach Sync: localStorage leeren
-5. Danach: Alle Aenderungen direkt an Backend
+### Dashboard Stats Query
+```sql
+-- User counts
+SELECT COUNT(*) FROM users WHERE is_active = true;
 
-### Rate Limiter Redis Keys
+-- Content counts
+SELECT
+    (SELECT COUNT(*) FROM anime) as anime_count,
+    (SELECT COUNT(*) FROM episodes) as episode_count,
+    (SELECT COUNT(*) FROM comments WHERE is_deleted = false) as comment_count,
+    (SELECT COUNT(*) FROM ratings) as rating_count;
+
+-- Recent activity
+SELECT * FROM comments ORDER BY created_at DESC LIMIT 10;
+SELECT * FROM ratings ORDER BY created_at DESC LIMIT 10;
 ```
-ratelimit:login:192.168.1.1   -> Counter (TTL: 60s)
-ratelimit:register:192.168.1.1 -> Counter (TTL: 60s)
+
+### Admin Routes Structure
 ```
+/api/v1/admin/
+  GET  /stats              - Dashboard statistics
+  GET  /users              - List users (paginated)
+  GET  /users/:id          - User details
+  PUT  /users/:id          - Update user
+  DELETE /users/:id        - Delete user
+  GET  /anime              - List anime (paginated, all statuses)
+  POST /anime              - Create anime
+  GET  /anime/:id          - Anime details (admin view)
+  PUT  /anime/:id          - Update anime
+  DELETE /anime/:id        - Delete anime
+  GET  /comments           - All comments (for moderation)
+  DELETE /comments/:id     - Delete any comment
+```
+
+---
+
+## Context from P2 Completion
+
+**Completed yesterday:**
+- P2-3: User Ratings (RatingInput, backend CRUD)
+- P2-4: Watchlist Sync (7 endpoints, hybrid mode)
+- P2-5: Comments (CRUD, soft delete)
+- Rate Limiting (Redis sliding window)
+- Email Verification (tokens, console email)
+
+**Ready for P3:**
+- Auth system fully functional
+- Role tables exist in database
+- User system complete
+- All user-facing features done
 
 ---
 
 ## Questions to Resolve
 
-1. **Rating Update vs Create?**
-   - Option A: Separater PUT Endpoint
-   - Option B: POST macht Upsert
-   - Empfehlung: Option B (einfacher fuer Frontend)
+1. **Soft delete for anime?**
+   - Option A: Hard delete (cascade episodes, ratings, etc.)
+   - Option B: Soft delete (is_deleted flag, hide from users)
+   - Recommendation: Soft delete (preserve history, easier undo)
 
-2. **Watchlist Konfliktloesung?**
-   - Option A: Server gewinnt immer
-   - Option B: Neuester Timestamp gewinnt
-   - Option C: User entscheidet
-   - Empfehlung: Option B
+2. **Cover upload storage?**
+   - Option A: Local filesystem (current covers location)
+   - Option B: S3/Cloud storage
+   - Recommendation: Local first, S3 for production
 
-3. **Rate Limit Response Code?**
-   - 429 Too Many Requests (Standard)
-   - Retry-After Header mit Sekunden
+3. **Admin audit logging?**
+   - Track admin actions (create/update/delete)?
+   - Recommendation: Add later if needed

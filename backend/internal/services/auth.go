@@ -31,8 +31,9 @@ var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]
 
 // AuthService handles authentication business logic
 type AuthService struct {
-	userRepo     *repository.UserRepository
-	tokenService *TokenService
+	userRepo            *repository.UserRepository
+	tokenService        *TokenService
+	verificationService *VerificationService
 }
 
 // NewAuthService creates a new auth service
@@ -41,6 +42,11 @@ func NewAuthService(userRepo *repository.UserRepository, tokenService *TokenServ
 		userRepo:     userRepo,
 		tokenService: tokenService,
 	}
+}
+
+// SetVerificationService sets the verification service (to avoid circular dependency)
+func (s *AuthService) SetVerificationService(vs *VerificationService) {
+	s.verificationService = vs
 }
 
 // Register creates a new user account
@@ -91,6 +97,17 @@ func (s *AuthService) Register(ctx context.Context, req models.RegisterRequest) 
 	accessToken, refreshToken, err := s.tokenService.GenerateTokenPair(ctx, user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("generate tokens: %w", err)
+	}
+
+	// Send verification email (if verification service is configured)
+	if s.verificationService != nil {
+		// Send in background, don't block registration
+		go func() {
+			_, _, err := s.verificationService.SendVerificationEmail(ctx, user.ID)
+			if err != nil {
+				fmt.Printf("failed to send verification email: %v\n", err)
+			}
+		}()
 	}
 
 	return &models.AuthResponse{

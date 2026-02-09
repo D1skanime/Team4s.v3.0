@@ -44,8 +44,10 @@ func (r *RedisClient) Ping(ctx context.Context) error {
 // Token Storage Methods
 
 const (
-	refreshTokenPrefix = "refresh_token:"
-	userTokensPrefix   = "user_tokens:"
+	refreshTokenPrefix       = "refresh_token:"
+	userTokensPrefix         = "user_tokens:"
+	verificationTokenPrefix  = "verification_token:"
+	verificationRateLimitKey = "verification_ratelimit:"
 )
 
 // StoreRefreshToken stores a refresh token with associated user ID
@@ -129,4 +131,99 @@ func (r *RedisClient) DeleteAllUserTokens(ctx context.Context, userID int64) err
 // Client returns the underlying Redis client for advanced usage
 func (r *RedisClient) Client() *redis.Client {
 	return r.client
+}
+
+// Email Verification Token Methods
+
+// StoreVerificationToken stores an email verification token for a user
+// Token expires after the specified duration (typically 24 hours)
+// The token is one-time use - will be deleted after verification
+func (r *RedisClient) StoreVerificationToken(ctx context.Context, token string, userID int64, expiry time.Duration) error {
+	tokenKey := verificationTokenPrefix + token
+	if err := r.client.Set(ctx, tokenKey, userID, expiry).Err(); err != nil {
+		return fmt.Errorf("store verification token: %w", err)
+	}
+	return nil
+}
+
+// GetVerificationToken retrieves the user ID associated with a verification token
+// Returns 0 if token not found or expired
+func (r *RedisClient) GetVerificationToken(ctx context.Context, token string) (int64, error) {
+	tokenKey := verificationTokenPrefix + token
+	result, err := r.client.Get(ctx, tokenKey).Result()
+	if err == redis.Nil {
+		return 0, nil // Token not found or expired
+	}
+	if err != nil {
+		return 0, fmt.Errorf("get verification token: %w", err)
+	}
+
+	userID, err := strconv.ParseInt(result, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse user id: %w", err)
+	}
+
+	return userID, nil
+}
+
+// DeleteVerificationToken removes a verification token (after successful verification)
+func (r *RedisClient) DeleteVerificationToken(ctx context.Context, token string) error {
+	tokenKey := verificationTokenPrefix + token
+	if err := r.client.Del(ctx, tokenKey).Err(); err != nil {
+		return fmt.Errorf("delete verification token: %w", err)
+	}
+	return nil
+}
+
+// CheckVerificationRateLimit checks if user can send another verification email
+// Returns (allowed, remaining count, seconds until reset, error)
+// Limit: 3 verification emails per hour per user
+func (r *RedisClient) CheckVerificationRateLimit(ctx context.Context, userID int64) (bool, int, int64, error) {
+	key := verificationRateLimitKey + strconv.FormatInt(userID, 10)
+	window := time.Hour
+
+	// Get current count
+	countStr, err := r.client.Get(ctx, key).Result()
+	if err == redis.Nil {
+		// No previous requests, allow and set counter
+		pipe := r.client.Pipeline()
+		pipe.Set(ctx, key, "1", window)
+		_, err = pipe.Exec(ctx)
+		if err != nil {
+			return false, 0, 0, fmt.Errorf("set rate limit: %w", err)
+		}
+		return true, 2, 0, nil // 3 allowed, 1 used, 2 remaining
+	}
+	if err != nil {
+		return false, 0, 0, fmt.Errorf("get rate limit: %w", err)
+	}
+
+	count, err := strconv.Atoi(countStr)
+	if err != nil {
+		return false, 0, 0, fmt.Errorf("parse count: %w", err)
+	}
+
+	// Get TTL for retry-after calculation
+	ttl, err := r.client.TTL(ctx, key).Result()
+	if err != nil {
+		return false, 0, 0, fmt.Errorf("get ttl: %w", err)
+	}
+
+	// Check limit (3 per hour)
+	if count >= 3 {
+		return false, 0, int64(ttl.Seconds()), nil
+	}
+
+	// Increment counter
+	newCount, err := r.client.Incr(ctx, key).Result()
+	if err != nil {
+		return false, 0, 0, fmt.Errorf("incr rate limit: %w", err)
+	}
+
+	remaining := 3 - int(newCount)
+	if remaining < 0 {
+		remaining = 0
+	}
+
+	return true, remaining, 0, nil
 }

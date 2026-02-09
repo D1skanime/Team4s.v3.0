@@ -1,3 +1,4 @@
 export { LoginForm } from './LoginForm';
 export { RegisterForm } from './RegisterForm';
 export { AuthGuard } from './AuthGuard';
+export { EmailVerificationBanner } from './EmailVerificationBanner';

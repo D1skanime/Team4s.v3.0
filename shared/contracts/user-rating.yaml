@@ -1,0 +1,257 @@
+# API Contract: User Rating System
+# Feature: P2-3 - Allow users to rate anime (1-10)
+# Status: Implementing
+
+feature: user-rating
+version: "1.0"
+created: 2024-02-09
+
+# =============================================================================
+# ENDPOINTS
+# =============================================================================
+
+endpoints:
+  # Get current user's rating for an anime (protected)
+  - name: GetUserRating
+    method: GET
+    path: /api/v1/anime/:id/rating/me
+    auth: required
+    description: Get the authenticated user's rating for a specific anime
+
+    path_params:
+      - name: id
+        type: int64
+        description: Anime ID
+
+    response:
+      success:
+        status: 200
+        body:
+          type: UserRating
+          example:
+            anime_id: 123
+            user_id: 456
+            rating: 8
+            created_at: "2024-02-09T12:00:00Z"
+            updated_at: "2024-02-09T12:00:00Z"
+
+      not_found:
+        status: 404
+        description: User has not rated this anime
+        body:
+          error: "rating not found"
+
+      unauthorized:
+        status: 401
+        body:
+          error: "unauthorized"
+
+  # Submit or update a rating (protected)
+  - name: SubmitRating
+    method: POST
+    path: /api/v1/anime/:id/rating
+    auth: required
+    description: Create or update user's rating for an anime (upsert)
+
+    path_params:
+      - name: id
+        type: int64
+        description: Anime ID
+
+    request:
+      body:
+        type: SubmitRatingRequest
+        example:
+          rating: 8
+
+    response:
+      success:
+        status: 200
+        description: Rating created or updated
+        body:
+          type: SubmitRatingResponse
+          example:
+            rating:
+              anime_id: 123
+              user_id: 456
+              rating: 8
+              created_at: "2024-02-09T12:00:00Z"
+              updated_at: "2024-02-09T12:00:00Z"
+            anime_rating:
+              anime_id: 123
+              average: 7.8
+              count: 150
+              distribution:
+                1: 2
+                2: 3
+                3: 5
+                4: 8
+                5: 12
+                6: 18
+                7: 25
+                8: 35
+                9: 28
+                10: 14
+
+      bad_request:
+        status: 400
+        body:
+          error: "rating must be between 1 and 10"
+
+      unauthorized:
+        status: 401
+        body:
+          error: "unauthorized"
+
+      not_found:
+        status: 404
+        description: Anime does not exist
+        body:
+          error: "anime not found"
+
+  # Delete user's rating (protected)
+  - name: DeleteRating
+    method: DELETE
+    path: /api/v1/anime/:id/rating
+    auth: required
+    description: Remove user's rating for an anime
+
+    path_params:
+      - name: id
+        type: int64
+        description: Anime ID
+
+    response:
+      success:
+        status: 204
+        description: Rating deleted successfully (no content)
+
+      not_found:
+        status: 404
+        body:
+          error: "rating not found"
+
+      unauthorized:
+        status: 401
+        body:
+          error: "unauthorized"
+
+# =============================================================================
+# TYPES
+# =============================================================================
+
+types:
+  UserRating:
+    description: A user's individual rating for an anime
+    fields:
+      anime_id:
+        type: int64
+        description: ID of the anime
+      user_id:
+        type: int64
+        description: ID of the user who rated
+      rating:
+        type: int
+        description: Rating value (1-10)
+        constraints: "1 <= rating <= 10"
+      created_at:
+        type: datetime
+        description: When the rating was first created
+      updated_at:
+        type: datetime
+        description: When the rating was last updated
+
+  SubmitRatingRequest:
+    description: Request body for submitting a rating
+    fields:
+      rating:
+        type: int
+        required: true
+        description: Rating value (1-10)
+        constraints: "1 <= rating <= 10"
+
+  SubmitRatingResponse:
+    description: Response after submitting a rating
+    fields:
+      rating:
+        type: UserRating
+        description: The user's rating that was created/updated
+      anime_rating:
+        type: AnimeRating
+        description: Updated aggregated rating data for the anime
+
+  AnimeRating:
+    description: Aggregated rating statistics for an anime (existing)
+    fields:
+      anime_id:
+        type: int64
+      average:
+        type: float64
+        description: "Average rating (0.0-10.0)"
+      count:
+        type: int
+        description: Total number of ratings
+      distribution:
+        type: "map[int]int"
+        description: "Count of ratings per value (1-10)"
+
+# =============================================================================
+# TYPESCRIPT TYPES (Frontend)
+# =============================================================================
+
+typescript: |
+  // User's individual rating
+  export interface UserRating {
+    anime_id: number;
+    user_id: number;
+    rating: number;        // 1-10
+    created_at: string;
+    updated_at: string;
+  }
+
+  // Request to submit rating
+  export interface SubmitRatingRequest {
+    rating: number;        // 1-10
+  }
+
+  // Response after submitting rating
+  export interface SubmitRatingResponse {
+    rating: UserRating;
+    anime_rating: AnimeRating;
+  }
+
+# =============================================================================
+# GO TYPES (Backend)
+# =============================================================================
+
+go_types: |
+  // UserRating represents a user's rating for an anime
+  type UserRating struct {
+    AnimeID   int64     `json:"anime_id"`
+    UserID    int64     `json:"user_id"`
+    Rating    int       `json:"rating"`
+    CreatedAt time.Time `json:"created_at"`
+    UpdatedAt time.Time `json:"updated_at"`
+  }
+
+  // SubmitRatingRequest is the request body for rating submission
+  type SubmitRatingRequest struct {
+    Rating int `json:"rating" binding:"required,min=1,max=10"`
+  }
+
+  // SubmitRatingResponse includes both user rating and updated anime rating
+  type SubmitRatingResponse struct {
+    Rating      *UserRating   `json:"rating"`
+    AnimeRating *AnimeRating  `json:"anime_rating"`
+  }
+
+# =============================================================================
+# NOTES
+# =============================================================================
+
+notes:
+  - Rating scale is 1-10 (0 is not allowed for user submissions)
+  - POST endpoint uses upsert semantics (create or update)
+  - SubmitRating returns both user rating AND updated anime rating for immediate UI update
+  - DELETE is optional for MVP, can implement later
+  - Auth middleware extracts user_id from JWT token
