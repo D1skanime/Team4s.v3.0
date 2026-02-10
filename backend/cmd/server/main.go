@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/D1skanime/Team4s.v3.0/backend/internal/database"
@@ -86,6 +87,23 @@ func main() {
 	// Connect verification service to auth service (for auto-send on registration)
 	authService.SetVerificationService(verificationService)
 
+	// Initialize upload service
+	uploadDir := os.Getenv("UPLOAD_DIR")
+	if uploadDir == "" {
+		uploadDir = "./uploads"
+	}
+	uploadConfig := services.UploadConfig{
+		BaseDir:     uploadDir,
+		MaxFileSize: 5 * 1024 * 1024, // 5MB
+		BaseURL:     "/uploads",
+	}
+	uploadService := services.NewUploadService(uploadConfig)
+
+	// Ensure upload directories exist
+	if err := os.MkdirAll(filepath.Join(uploadDir, "covers"), 0755); err != nil {
+		log.Printf("Warning: failed to create upload directories: %v", err)
+	}
+
 	// Initialize handlers
 	animeHandler := handlers.NewAnimeHandler(animeRepo)
 	episodeHandler := handlers.NewEpisodeHandler(episodeRepo)
@@ -96,6 +114,8 @@ func main() {
 	commentHandler := handlers.NewCommentHandler(commentRepo)
 	verificationHandler := handlers.NewVerificationHandler(verificationService)
 	adminHandler := handlers.NewAdminHandler(adminRepo)
+	adminUserHandler := handlers.NewAdminUserHandler(userRepo)
+	uploadHandler := handlers.NewUploadHandler(uploadService)
 
 	// Initialize middleware
 	authMiddleware := middleware.NewAuthMiddleware(tokenService)
@@ -114,6 +134,9 @@ func main() {
 
 	// CORS middleware
 	r.Use(corsMiddleware())
+
+	// Serve uploaded files statically
+	r.Static("/uploads", uploadDir)
 
 	// Health check with database and Redis status
 	r.GET("/health", func(c *gin.Context) {
@@ -246,6 +269,24 @@ func main() {
 			admin.POST("/anime", animeHandler.Create)
 			admin.PUT("/anime/:id", animeHandler.Update)
 			admin.DELETE("/anime/:id", animeHandler.Delete)
+
+			// Episode management routes
+			admin.GET("/episodes", episodeHandler.AdminList)
+			admin.POST("/episodes", episodeHandler.Create)
+			admin.PUT("/episodes/:id", episodeHandler.Update)
+			admin.DELETE("/episodes/:id", episodeHandler.Delete)
+
+			// Upload routes
+			admin.POST("/upload/cover", uploadHandler.UploadCover)
+			admin.DELETE("/upload/cover/:filename", uploadHandler.DeleteCover)
+
+			// User management routes
+			admin.GET("/users", adminUserHandler.ListUsers)
+			admin.GET("/users/:id", adminUserHandler.GetUser)
+			admin.PUT("/users/:id", adminUserHandler.UpdateUser)
+			admin.DELETE("/users/:id", adminUserHandler.DeleteUser)
+			admin.POST("/users/:id/ban", adminUserHandler.BanUser)
+			admin.POST("/users/:id/unban", adminUserHandler.UnbanUser)
 		}
 	}
 

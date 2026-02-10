@@ -110,3 +110,85 @@ type ChangePasswordRequest struct {
 type DeleteAccountRequest struct {
 	Password string `json:"password" binding:"required"`
 }
+
+// ========== Admin User Management Types ==========
+
+// UserAdminListItem represents a user in the admin list (includes admin-only fields)
+type UserAdminListItem struct {
+	ID            int64      `json:"id"`
+	Username      string     `json:"username"`
+	Email         string     `json:"email"`
+	DisplayName   *string    `json:"display_name,omitempty"`
+	AvatarURL     *string    `json:"avatar_url,omitempty"`
+	IsActive      bool       `json:"is_active"`
+	EmailVerified bool       `json:"email_verified"`
+	IsAdmin       bool       `json:"is_admin"`
+	LastLoginAt   *time.Time `json:"last_login_at,omitempty"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+}
+
+// UserAdminDetail represents detailed user info for admin view
+type UserAdminDetail struct {
+	ID            int64      `json:"id"`
+	Username      string     `json:"username"`
+	Email         string     `json:"email"`
+	DisplayName   *string    `json:"display_name,omitempty"`
+	AvatarURL     *string    `json:"avatar_url,omitempty"`
+	IsActive      bool       `json:"is_active"`
+	EmailVerified bool       `json:"email_verified"`
+	IsAdmin       bool       `json:"is_admin"`
+	Roles         []string   `json:"roles"`
+	LastLoginAt   *time.Time `json:"last_login_at,omitempty"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	Stats         UserStats  `json:"stats"`
+}
+
+// UserAdminFilter represents filter options for admin user list
+type UserAdminFilter struct {
+	Page     int    `form:"page"`
+	PerPage  int    `form:"per_page"`
+	Search   string `form:"search"`    // Search in username, email
+	Role     string `form:"role"`      // "admin", "user", or empty for all
+	Status   string `form:"status"`    // "active", "banned", or empty for all
+	Verified string `form:"verified"`  // "true", "false", or empty for all
+	SortBy   string `form:"sort_by"`   // "created_at", "last_login_at", "username"
+	SortDir  string `form:"sort_dir"`  // "asc", "desc"
+}
+
+// SetDefaults sets default values for pagination
+func (f *UserAdminFilter) SetDefaults() {
+	if f.Page < 1 {
+		f.Page = 1
+	}
+	if f.PerPage < 1 || f.PerPage > 100 {
+		f.PerPage = 20
+	}
+	if f.SortBy == "" {
+		f.SortBy = "created_at"
+	}
+	if f.SortDir == "" {
+		f.SortDir = "desc"
+	}
+}
+
+// UpdateUserAdminRequest represents the request to update a user as admin
+type UpdateUserAdminRequest struct {
+	DisplayName   *string `json:"display_name"`
+	Email         *string `json:"email" binding:"omitempty,email"`
+	IsActive      *bool   `json:"is_active"`
+	EmailVerified *bool   `json:"email_verified"`
+	IsAdmin       *bool   `json:"is_admin"`
+}
+
+// UserAdminResponse wraps a single user for admin response
+type UserAdminResponse struct {
+	Data UserAdminDetail `json:"data"`
+}
+
+// UsersAdminListResponse wraps paginated user list for admin response
+type UsersAdminListResponse struct {
+	Data []UserAdminListItem `json:"data"`
+	Meta PaginationMeta      `json:"meta"`
+}

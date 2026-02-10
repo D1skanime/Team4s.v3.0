@@ -25,6 +25,11 @@
   gap: 1rem;
 }
 
+.headerActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .manageButton {
   display: flex;
   align-items: center;

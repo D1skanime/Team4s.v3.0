@@ -112,13 +112,13 @@ func (r *AdminRepository) GetDashboardStats(ctx context.Context) (*DashboardStat
 		return nil, fmt.Errorf("get active users: %w", err)
 	}
 
-	// Get anime by status
+	// Get anime by status (enum values: disabled, ongoing, done, aborted, licensed)
 	statusQuery := `
 		SELECT
-			COUNT(*) FILTER (WHERE status = 'airing') as airing,
-			COUNT(*) FILTER (WHERE status = 'completed') as completed,
-			COUNT(*) FILTER (WHERE status = 'upcoming') as upcoming,
-			COUNT(*) FILTER (WHERE status NOT IN ('airing', 'completed', 'upcoming') OR status IS NULL) as unknown
+			COUNT(*) FILTER (WHERE status = 'ongoing') as airing,
+			COUNT(*) FILTER (WHERE status = 'done') as completed,
+			COUNT(*) FILTER (WHERE status = 'licensed') as upcoming,
+			COUNT(*) FILTER (WHERE status IN ('disabled', 'aborted') OR status IS NULL) as unknown
 		FROM anime
 	`
 	err = r.db.QueryRow(ctx, statusQuery).Scan(

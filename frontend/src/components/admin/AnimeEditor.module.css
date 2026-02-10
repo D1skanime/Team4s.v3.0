@@ -177,3 +177,11 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.coverUrlField {
+  margin-top: 0.75rem;
+}
+
+.coverUrlField .input {
+  width: 100%;
+}

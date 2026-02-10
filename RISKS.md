@@ -116,7 +116,7 @@ Legacy stream links are stored as HTML in `stream_links_legacy` column. Episode 
 - [ ] Store structured data in new format
 - [ ] Update Episode Detail to display links
 
-**Owner:** D1skanime | **Due:** Before Episode Detail is fully functional
+**Owner:** D1skanime | **Due:** P5 enhancement phase
 
 ---
 
@@ -154,7 +154,7 @@ StarRating component uses static IDs (`star-clip-1`, `star-clip-2`, etc.) for SV
 - [ ] Generate unique IDs per component instance (useId hook)
 - [ ] Test with multiple ratings on one page
 
-**Owner:** D1skanime | **Due:** P4 or when adding rating to list views
+**Owner:** D1skanime | **Due:** P5 or when adding rating to list views
 
 ---
 
@@ -174,35 +174,18 @@ Backend supports reply_to_id for threaded comments, but frontend shows comments 
 - [ ] Add "Reply" button to comments
 - [ ] Consider thread depth limit (3 levels?)
 
-**Owner:** D1skanime | **Due:** P4 enhancement
-
----
-
-### 7. Cover Upload Not Implemented
-**Impact:** Medium | **Likelihood:** Certain
-**Added:** 2026-02-10
-
-Admin anime CRUD lacks cover image upload functionality.
-
-**Current State:**
-- AnimeEditor form does not include file upload
-- Covers must be added manually to filesystem
-- No image validation or processing
-
-**Mitigation:**
-- [ ] Add file upload input to AnimeEditor
-- [ ] Create upload endpoint in backend
-- [ ] Implement image validation (type, size)
-- [ ] Add image preview before save
-- [ ] Store in covers/ directory with proper naming
-
-**Owner:** D1skanime | **Due:** P4-1 or as enhancement
+**Owner:** D1skanime | **Due:** P5 enhancement
 
 ---
 
 ## Resolved Risks
 
 ### 2026-02-10
+- **P4 Content Management:** RESOLVED - All 3 features complete (Episode CRUD, Cover Upload, User Management)
+- **Cover Upload:** RESOLVED - Upload service with validation and CoverUpload component implemented
+- **Episode Management:** RESOLVED - Full CRUD with EpisodeEditor component
+
+### 2026-02-10 (Earlier)
 - **P3 Admin Features:** RESOLVED - All 3 features complete (Role, Dashboard, Anime CRUD)
 
 ### 2026-02-09
@@ -249,12 +232,6 @@ Admin anime CRUD lacks cover image upload functionality.
 **Impact if delayed:** External API consumers have no reference
 **Decision needed by:** Before public API release
 
-### Anime Deletion Strategy
-**Options:** Hard delete vs Soft delete
-**Impact if delayed:** Inconsistent data handling
-**Recommendation:** Soft delete (preserve history, easier undo)
-**Decision needed by:** Before admin anime deletion is used extensively
-
 ---
 
 ## If Nothing Changes...
@@ -262,10 +239,10 @@ Admin anime CRUD lacks cover image upload functionality.
 
 If we don't:
 1. **Configure production email** - Cannot deploy with email verification
-2. **Implement episode management** - Admin cannot manage episode content
-3. **Add cover upload** - New anime entries have no cover images
+2. **Test all P4 features** - May have bugs in episode/user management
+3. **Implement stream links parser** - Episode detail incomplete
 4. **Test user migration** - Cannot restore legacy user accounts
 
-**Critical path for next week:** Episode Management -> Cover Upload -> User Management
+**Critical path for next week:** QA Testing -> Stream Links Parser -> Production Prep
 
-P3 complete - continue with P4 Content Management.
+P4 complete - MVP essentially done. Focus shifts to polish and production readiness.

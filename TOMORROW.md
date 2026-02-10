@@ -2,145 +2,138 @@
 
 ## Top 3 Priorities
 
-### 1. P4-1: Episode Management (CRUD)
-Implement admin interface for managing episodes.
+### 1. End-to-End QA Testing of P4 Features
+Verify all new admin features work correctly before moving forward.
 
-**Backend:**
-```go
-// Admin episode endpoints
-GET    /api/v1/admin/episodes           - List all episodes (paginated, filterable)
-GET    /api/v1/admin/episodes/:id       - Get episode details (admin view)
-POST   /api/v1/admin/anime/:id/episodes - Create episode for anime
-PUT    /api/v1/admin/episodes/:id       - Update episode
-DELETE /api/v1/admin/episodes/:id       - Delete episode
-```
+**Episode Management Testing:**
+- [ ] Create new episode for existing anime
+- [ ] Edit episode metadata (title, status, duration)
+- [ ] Update fansub progress (all 10 fields)
+- [ ] Delete episode and verify removal
+- [ ] Test pagination and filtering in episode list
+- [ ] Verify episodes display correctly on anime detail page
 
-**Frontend:**
-- `/admin/episodes` - Episode listing with filters (anime, status)
-- `/admin/episodes/:id` - Episode editor page
-- EpisodeEditor component with form fields
-- FansubProgress editor (10 sliders for process tracking)
+**Cover Upload Testing:**
+- [ ] Upload new cover via CoverUpload component
+- [ ] Verify file validation (type, size)
+- [ ] Check image preview before save
+- [ ] Verify cover displays after upload
+- [ ] Test cover replacement for existing anime
+- [ ] Delete cover and verify removal
 
-**Tasks:**
-1. Add Episode CRUD methods to repository
-2. Create AdminEpisodeHandler
-3. Add routes to admin group
-4. Create EpisodeEditor component
-5. Create episode management page
-6. Add to admin navigation
-
----
-
-### 2. P4-2: Cover Upload
-Add cover image upload to anime management.
-
-**Backend:**
-```go
-// File upload endpoint
-POST /api/v1/admin/anime/:id/cover - Upload cover image
-
-// Implementation
-- Accept multipart/form-data
-- Validate file type (jpg, png, webp)
-- Validate file size (max 5MB)
-- Generate filename (anime_id.ext)
-- Save to covers/ directory
-- Return new cover URL
-```
-
-**Frontend:**
-- Add file input to AnimeEditor
-- Image preview before upload
-- Progress indicator
-- Replace existing cover option
-
-**Tasks:**
-1. Create upload handler in backend
-2. Add file validation (type, size)
-3. Implement file storage
-4. Add file input to AnimeEditor
-5. Create ImageUpload component
-6. Add preview functionality
+**User Management Testing:**
+- [ ] List all users with search/filter
+- [ ] View user details
+- [ ] Edit user profile (display name, bio)
+- [ ] Ban/unban user
+- [ ] Add role to user
+- [ ] Remove role from user
+- [ ] Delete user (verify cascade behavior)
 
 ---
 
-### 3. P4-3: User Management (Admin)
-Admin interface for viewing and managing users.
+### 2. P5-1: Stream Links Parser (Optional)
+If QA testing completes successfully, begin stream links parser.
 
-**Backend:**
-```go
-// Admin user endpoints
-GET    /api/v1/admin/users            - List users (paginated, searchable)
-GET    /api/v1/admin/users/:id        - User details (admin view)
-PUT    /api/v1/admin/users/:id        - Update user (ban, role change)
-DELETE /api/v1/admin/users/:id        - Delete user (soft delete)
-POST   /api/v1/admin/users/:id/roles  - Add role to user
-DELETE /api/v1/admin/users/:id/roles/:role - Remove role
+**Analyze Legacy Data:**
+```sql
+-- Sample stream links HTML
+SELECT id, anime_id, stream_links_legacy
+FROM episodes
+WHERE stream_links_legacy IS NOT NULL
+  AND stream_links_legacy != ''
+LIMIT 10;
 ```
 
-**Frontend:**
-- `/admin/users` - User listing with search
-- `/admin/users/:id` - User detail/edit page
-- Ban/unban toggle
-- Role management dropdown
-- Activity summary
+**Expected HTML Structure:**
+```html
+<a href="https://example.com/stream1">HD 1080p</a>
+<a href="https://example.com/stream2">SD 720p</a>
+```
 
-**Tasks:**
-1. Add user management methods to repository
-2. Create AdminUserHandler
-3. Add routes to admin group
-4. Create UserManagement page
-5. Create UserEditor component
-6. Add role management UI
+**Parser Implementation:**
+1. Create `internal/services/parser.go`
+2. Use Go's html package for parsing
+3. Extract href and link text
+4. Store in structured format (JSON array or new table)
+
+**Frontend Update:**
+- Update Episode Detail to show parsed links
+- Display as clickable buttons/links
+
+---
+
+### 3. Production Prep Checklist
+Begin preparing for production deployment.
+
+**Environment:**
+- [ ] Create production `.env.example`
+- [ ] Document required environment variables
+- [ ] Set up separate production database credentials
+
+**Security:**
+- [ ] Review CORS settings for production
+- [ ] Ensure JWT secret is production-grade (not dev default)
+- [ ] Verify rate limiting is appropriate
+
+**Email Service:**
+- [ ] Research SendGrid pricing/setup
+- [ ] Create SendGrid account (or alternative)
+- [ ] Implement SendGridEmailService
 
 ---
 
 ## First 15-Minute Task
 
-**Create Episode CRUD repository methods:**
+**Test Episode Creation Flow:**
 
-1. Open `backend/internal/repository/episode.go` (create if not exists)
-2. Add these methods:
-```go
-func (r *EpisodeRepository) Create(ctx context.Context, episode *models.CreateEpisodeRequest) (int64, error)
-func (r *EpisodeRepository) Update(ctx context.Context, id int64, episode *models.UpdateEpisodeRequest) error
-func (r *EpisodeRepository) Delete(ctx context.Context, id int64) error
-func (r *EpisodeRepository) ListForAdmin(ctx context.Context, filter EpisodeFilter) ([]Episode, int64, error)
-```
+1. Start backend and frontend
+2. Login as admin (admin / admin123)
+3. Navigate to `/admin/episodes`
+4. Click "Create Episode"
+5. Select an anime from dropdown
+6. Fill in episode number, title, status
+7. Set some progress values
+8. Submit and verify creation
+9. Check episode appears in list
+10. Navigate to anime detail and verify episode shows
 
-3. Wire up in `cmd/server/main.go`
+This tests the full E2E flow for the most critical P4 feature.
 
 ---
 
 ## Dependencies to Unblock Early
 
-1. **Admin middleware working**
-   - Already implemented (2026-02-10)
-   - AdminRequired() in middleware/admin.go
-
-2. **Episode model exists**
-   - Episode struct in models/episode.go
-   - Need to add CreateEpisodeRequest, UpdateEpisodeRequest
-
-3. **Docker running**
+1. **Docker running**
    ```bash
    docker ps
    # Shows: postgres, redis, adminer
    ```
 
-4. **Test admin user**
+2. **Backend compiles**
+   ```bash
+   cd backend && go build ./cmd/server
+   ```
+
+3. **Frontend builds**
+   ```bash
+   cd frontend && npm run build
+   ```
+
+4. **Admin user exists**
    - user_id=1 has admin role
-   - Can test with existing token
+   - Login: admin / admin123
 
 ---
 
 ## If Ahead of Schedule
 
-### Stream Links Parser
-- Analyze legacy HTML format
-- Create Go parser for stream links
-- Store structured data
-- Update Episode model
+### Comment Threading Display
+- Fetch comments with reply_to_id relationships
+- Build nested comment structure in frontend
+- Add "Reply" button to each comment
+- Implement nested display with indentation
+- Consider max depth limit (3 levels)
 
 ### Moderation Tools
 - GET /api/v1/admin/comments - All comments (for moderation)
@@ -149,154 +142,128 @@ func (r *EpisodeRepository) ListForAdmin(ctx context.Context, filter EpisodeFilt
 - Moderation queue page
 
 ### Audit Logging
+- Create admin_audit_log table
 - Log admin actions (create, update, delete)
-- admin_audit_log table
-- View action history
+- View action history in admin dashboard
 
 ---
 
 ## Verification Checklist
 
 After completing priorities:
-- [ ] Admin can list all episodes
-- [ ] Admin can create new episode
-- [ ] Admin can edit episode details
-- [ ] Admin can update fansub progress
-- [ ] Admin can delete episode
-- [ ] Cover upload works
-- [ ] Image preview displays correctly
-- [ ] Admin can list all users
-- [ ] Admin can ban/unban users
-- [ ] Admin can manage user roles
 
----
+**QA Testing:**
+- [ ] Episode CRUD works end-to-end
+- [ ] Cover upload works with preview
+- [ ] User management works with role control
+- [ ] No console errors in browser
+- [ ] No server errors in backend logs
 
-## P4 Feature Roadmap (Reference)
-
-| ID | Feature | Priority | Status |
-|----|---------|----------|--------|
-| P4-1 | Episode Management | HIGH | TODO |
-| P4-2 | Cover Upload | HIGH | TODO |
-| P4-3 | User Management | MEDIUM | TODO |
-| P4-4 | Stream Links Parser | MEDIUM | TODO |
-| P4-5 | Moderation Tools | LOW | TODO |
-| P4-6 | Audit Logging | LOW | TODO |
+**Production Prep:**
+- [ ] Production env file documented
+- [ ] Security settings reviewed
+- [ ] Email service plan identified
 
 ---
 
 ## Technical Notes
 
-### Episode Create Query
-```sql
-INSERT INTO episodes (
-    anime_id, episode_number, title, title_de, title_en,
-    status, duration, raw_proc, translate_proc, time_proc,
-    typeset_proc, logo_proc, edit_proc, karatime_proc,
-    karafx_proc, qc_proc, encode_proc, stream_links_legacy, filename
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
-RETURNING id;
-```
-
-### File Upload Handler Pattern
-```go
-func (h *AdminHandler) UploadCover(c *gin.Context) {
-    animeID := c.Param("id")
-    file, err := c.FormFile("cover")
-    if err != nil {
-        c.JSON(400, gin.H{"error": "no file uploaded"})
-        return
-    }
-
-    // Validate file type
-    ext := filepath.Ext(file.Filename)
-    if ext != ".jpg" && ext != ".png" && ext != ".webp" {
-        c.JSON(400, gin.H{"error": "invalid file type"})
-        return
-    }
-
-    // Validate size (5MB max)
-    if file.Size > 5*1024*1024 {
-        c.JSON(400, gin.H{"error": "file too large"})
-        return
-    }
-
-    // Save file
-    filename := fmt.Sprintf("%s%s", animeID, ext)
-    path := filepath.Join("covers", filename)
-    if err := c.SaveUploadedFile(file, path); err != nil {
-        c.JSON(500, gin.H{"error": "failed to save file"})
-        return
-    }
-
-    c.JSON(200, gin.H{"cover_url": "/covers/" + filename})
+### Test Data for Episode Creation
+```json
+{
+  "anime_id": 1,
+  "episode_number": 999,
+  "title": "Test Episode",
+  "title_de": "Test Folge",
+  "title_en": "Test Episode",
+  "status": "private",
+  "duration": 24,
+  "raw_proc": 100,
+  "translate_proc": 50,
+  "time_proc": 0,
+  "typeset_proc": 0,
+  "logo_proc": 0,
+  "edit_proc": 0,
+  "karatime_proc": 0,
+  "karafx_proc": 0,
+  "qc_proc": 0,
+  "encode_proc": 0
 }
 ```
 
-### Admin Routes Structure (Extended)
+### Stream Links Parser Pseudocode
+```go
+import "golang.org/x/net/html"
+
+type StreamLink struct {
+    URL   string `json:"url"`
+    Label string `json:"label"`
+}
+
+func ParseStreamLinks(htmlContent string) ([]StreamLink, error) {
+    doc, _ := html.Parse(strings.NewReader(htmlContent))
+    var links []StreamLink
+
+    var f func(*html.Node)
+    f = func(n *html.Node) {
+        if n.Type == html.ElementNode && n.Data == "a" {
+            var link StreamLink
+            for _, attr := range n.Attr {
+                if attr.Key == "href" {
+                    link.URL = attr.Val
+                }
+            }
+            if n.FirstChild != nil {
+                link.Label = n.FirstChild.Data
+            }
+            links = append(links, link)
+        }
+        for c := n.FirstChild; c != nil; c = c.NextSibling {
+            f(c)
+        }
+    }
+    f(doc)
+
+    return links, nil
+}
 ```
-/api/v1/admin/
-  # Dashboard
-  GET  /stats              - Dashboard statistics
-  GET  /activity           - Recent activity
 
-  # Anime Management (existing)
-  GET  /anime              - List anime (paginated, all statuses)
-  POST /anime              - Create anime
-  GET  /anime/:id          - Anime details (admin view)
-  PUT  /anime/:id          - Update anime
-  DELETE /anime/:id        - Delete anime
-  POST /anime/:id/cover    - Upload cover (NEW)
-
-  # Episode Management (NEW)
-  GET  /episodes           - List all episodes
-  GET  /episodes/:id       - Episode details
-  POST /anime/:id/episodes - Create episode for anime
-  PUT  /episodes/:id       - Update episode
-  DELETE /episodes/:id     - Delete episode
-
-  # User Management (NEW)
-  GET  /users              - List users
-  GET  /users/:id          - User details
-  PUT  /users/:id          - Update user
-  DELETE /users/:id        - Delete user
-  POST /users/:id/roles    - Add role
-  DELETE /users/:id/roles/:role - Remove role
-
-  # Moderation (future)
-  GET  /comments           - All comments (for moderation)
-  DELETE /comments/:id     - Delete any comment
+### Production Environment Variables
+```bash
+# Production .env template
+DATABASE_URL=postgres://user:pass@host:5432/team4s?sslmode=require
+REDIS_URL=redis://user:pass@host:6379
+JWT_SECRET=<generate-32-byte-random-hex>
+CORS_ORIGIN=https://team4s.example.com
+SENDGRID_API_KEY=<sendgrid-api-key>
+FROM_EMAIL=noreply@team4s.example.com
 ```
 
 ---
 
-## Context from P3 Completion
+## Context from P4 Completion
 
 **Completed yesterday (2026-02-10):**
-- P3-1: Admin Role & Middleware (AdminRequired, HasRole)
-- P3-2: Admin Dashboard (stats, activity)
-- P3-3: Anime Management (CRUD + AnimeEditor)
+- P4-1: Episode Management (CRUD endpoints, EpisodeEditor, admin/episodes page)
+- P4-2: Cover Upload (Upload service, file validation, CoverUpload component)
+- P4-3: User Management (6 admin endpoints, full management UI)
+- Fixed anime_status enum mismatch
+- Added missing database columns
 
-**Ready for P4:**
+**Ready for QA:**
+- All P0-P4 features implemented
 - Admin system fully functional
-- Role-based access working
-- Dashboard provides overview
-- Anime CRUD as template for Episode CRUD
+- ~95% MVP complete
 
 ---
 
-## Questions to Resolve
+## Questions Resolved
 
 1. **Episode soft delete or hard delete?**
-   - Option A: Hard delete (remove from database)
-   - Option B: Soft delete (is_deleted flag)
-   - Recommendation: Hard delete (episodes less critical than anime)
+   - Answer: Hard delete (simpler, episodes less critical)
 
 2. **Fansub progress update API?**
-   - Option A: Full episode update (PUT /episodes/:id)
-   - Option B: Dedicated progress endpoint (PATCH /episodes/:id/progress)
-   - Recommendation: Full episode update (simpler, fewer endpoints)
+   - Answer: Full episode update via PUT (simpler API)
 
 3. **Cover filename strategy?**
-   - Option A: anime_id.ext (1234.jpg)
-   - Option B: anime_id_timestamp.ext (1234_1707580800.jpg)
-   - Recommendation: Option A (simpler, overwrites old covers)
+   - Answer: UUID-based (prevents cache issues)

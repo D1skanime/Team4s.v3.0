@@ -229,33 +229,34 @@ frontend/src/
 
 ## Mental Unload (End of Day 2026-02-10)
 
-**P3 KOMPLETT! Admin Features fertig!**
+**P4 KOMPLETT! MVP im Wesentlichen fertig!**
 
-Heute war sehr produktiv. Alle drei P3 Features sind implementiert - Admin Role & Middleware, Admin Dashboard, und Anime Management mit vollem CRUD.
+Sehr produktiver Tag. Alle P4 Features sind jetzt implementiert - Episode Management, Cover Upload, und User Management. Das Projekt ist zu ~95% fertig.
 
 **Highlights:**
-- AdminRequired Middleware war schneller fertig als erwartet
-- HasRole im UserRepository funktioniert sauber mit SQL EXISTS
-- Dashboard Stats Query aggregiert alle wichtigen Zahlen in einem Call
-- AnimeEditor Form mit Type/Status Dropdowns sieht professionell aus
-- Admin-Seiten sind sauber vom Rest getrennt
+- Episode CRUD war straightforward dank Anime CRUD als Vorlage
+- EpisodeEditor mit 10 Progress-Slidern in sinnvolle Gruppen aufgeteilt
+- CoverUpload mit Drag&Drop und Preview funktioniert super
+- User Management mit Role Control ist sehr maechtig
+- Bugfix: anime_status enum Werte korrigiert (ongoing/done/licensed statt airing/completed/upcoming)
 
 **Technische Learnings:**
-- Database-based role checking ist einfacher als JWT claims
-- Admin routes unter /api/v1/admin/ gruppieren macht Middleware-Anwendung trivial
-- Form-based editing reicht voellig aus - kein WYSIWYG noetig
-- AdminGuard Component im Frontend schuetzt Client-seitig
+- UUID-basierte Dateinamen verhindern Cache-Probleme bei Cover-Updates
+- Hard Delete fuer Episodes ist die richtige Wahl (einfacher als Soft Delete)
+- Full PUT fuer Episode-Updates (inkl. Progress) ist einfacher als separate PATCH-Endpoints
+- Upload-Service mit File-Validation ist wiederverwendbar fuer andere Uploads
 
-**Was noch fehlt:**
-- Cover Upload (wichtig fuer neue Anime)
-- Episode Management (als naechstes)
-- User Management (Admin braucht Kontrolle)
+**Was jetzt noch fehlt (P5):**
+- Stream Links Parser (Legacy HTML parsen)
+- Comment Threading Display (Verschachtelte Anzeige)
+- Moderation Tools (Comment Flagging, Review Queue)
+- Production Email Service (SendGrid/SES)
 
 **Gefuehl:**
-Sehr zufrieden. P0-P3 sind jetzt alle komplett. Das Projekt ist zu ~90% fertig. Die verbleibenden Features (Episode CRUD, Cover Upload, User Management) sind alle nach dem gleichen Muster wie Anime CRUD - sollte schnell gehen.
+Sehr zufrieden. Das MVP ist im Wesentlichen fertig. P0-P4 alle komplett. Die Admin-Funktionen sind vollstaendig - Anime, Episodes, und Users koennen verwaltet werden. Das Projekt hat jetzt eine solide Grundlage fuer die Produktion.
 
 **Morgen:**
-P4-1 Episode Management. Die Anime CRUD Implementierung dient als perfekte Vorlage.
+QA Testing aller P4 Features. Wenn das erfolgreich ist, entweder P5 Enhancements oder Production Prep beginnen.
 
 ---
 
@@ -378,6 +379,17 @@ Excellent day. Went from blocked to having a fully populated database. The migra
 ---
 
 ## Session Log
+
+### 2026-02-10 (P4 Content Management Session)
+- P4-1 Episode Management implementiert (CRUD, EpisodeEditor)
+- P4-2 Cover Upload implementiert (Upload Service, CoverUpload Component)
+- P4-3 User Management implementiert (6 Endpoints, Full UI)
+- Bug Fix: anime_status enum Werte korrigiert
+- Bug Fix: display_name und email_verified Spalten hinzugefuegt
+- 3 neue Backend-Dateien, 6 neue Frontend-Dateien
+- 15 modifizierte Dateien
+- 12 neue API Endpoints
+- Day Closeout mit allen Context-Files aktualisiert
 
 ### 2026-02-09 (P2 Auth + Profile Session)
 - P2-1 Auth System implementiert
@@ -515,4 +527,37 @@ GET  /api/v1/auth/me
 PUT    /api/v1/users/me
 PUT    /api/v1/users/me/password
 DELETE /api/v1/users/me
+POST   /api/v1/anime/:id/ratings
+GET    /api/v1/anime/:id/ratings/me
+DELETE /api/v1/anime/:id/ratings
+GET    /api/v1/watchlist
+POST   /api/v1/watchlist/:animeId
+PUT    /api/v1/watchlist/:animeId
+DELETE /api/v1/watchlist/:animeId
+POST   /api/v1/watchlist/sync
+POST   /api/v1/watchlist/check
+POST   /api/v1/anime/:id/comments
+PUT    /api/v1/anime/:id/comments/:commentId
+DELETE /api/v1/anime/:id/comments/:commentId
+```
+
+### Admin Endpoints (require admin role)
+```
+GET    /api/v1/admin/stats
+GET    /api/v1/admin/activity
+POST   /api/v1/admin/anime
+PUT    /api/v1/admin/anime/:id
+DELETE /api/v1/admin/anime/:id
+GET    /api/v1/admin/episodes
+POST   /api/v1/admin/anime/:id/episodes
+PUT    /api/v1/admin/episodes/:id
+DELETE /api/v1/admin/episodes/:id
+GET    /api/v1/admin/users
+GET    /api/v1/admin/users/:id
+PUT    /api/v1/admin/users/:id
+DELETE /api/v1/admin/users/:id
+POST   /api/v1/admin/users/:id/roles
+DELETE /api/v1/admin/users/:id/roles/:role
+POST   /api/v1/admin/upload/cover
+DELETE /api/v1/admin/upload/cover/:filename
 ```

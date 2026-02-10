@@ -4,9 +4,9 @@
 Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stack to a modern Go + Next.js + PostgreSQL architecture.
 
 ## Current Phase
-**Phase:** P3 COMPLETE - Ready for P4
+**Phase:** P4 COMPLETE - MVP Essentially Done
 **Started:** 2026-02-02
-**Status:** P0 + P1 + P2 + P3 complete, P4 Content Management next
+**Status:** P0 + P1 + P2 + P3 + P4 complete, ready for P5 enhancements or production prep
 
 ## Project State
 
@@ -53,11 +53,20 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - [x] **P3-1 Admin Role & Middleware** (AdminRequired, HasRole, role-based access)
 - [x] **P3-2 Admin Dashboard** (Stats endpoint, recent activity, frontend page)
 - [x] **P3-3 Anime Management** (Create/Update/Delete endpoints, AnimeEditor, management page)
+- [x] **P4-1 Episode Management** (CRUD endpoints, EpisodeEditor, admin/episodes page)
+- [x] **P4-2 Cover Upload** (Upload service, file validation, CoverUpload component)
+- [x] **P4-3 User Management** (List/Update/Delete users, role management, admin/users page)
 
 ### In Progress
-- [ ] P4-1: Episode Management
-- [ ] P4-2: User Management
-- [ ] P4-3: Moderation Tools
+- [ ] Final QA and testing of all features
+
+### Optional / Future (P5)
+- [ ] Stream Links Parser (parse legacy HTML format)
+- [ ] Comment Threading Display (nested comments in frontend)
+- [ ] Moderation Tools (flag/review queue)
+- [ ] Audit Logging (admin action history)
+- [ ] Production Email Service (SendGrid/SES)
+- [ ] User Migration from WCF
 
 ### Blocked
 - **User Migration:** Need to extract and migrate WCF users
@@ -110,7 +119,27 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 
 ## Session History
 
-### Day 2026-02-10 (P3 COMPLETE)
+### Day 2026-02-10 (P4 COMPLETE)
+- Phase: P4 COMPLETE
+- Accomplishments:
+  - P4-1: Episode Management (CRUD endpoints, EpisodeEditor, admin/episodes page)
+  - P4-2: Cover Upload (Upload service, file validation, CoverUpload component)
+  - P4-3: User Management (6 admin endpoints, full management UI)
+  - Fixed anime_status enum mismatch in dashboard query
+  - Added missing database columns (display_name, email_verified)
+  - 3 new backend files, 6 new frontend files, 15 modified files
+  - 12 new API endpoints for admin functionality
+- Key Decisions:
+  - ADR-033: Hard delete for episodes (not soft delete)
+  - ADR-034: Full episode update for progress (no separate PATCH endpoint)
+  - ADR-035: UUID-based cover filenames (prevent cache issues)
+- Risks/Unknowns:
+  - Stream links parser still pending
+  - Comment threading display not implemented
+- Next Steps: QA testing, P5 enhancements, or production prep
+- First task tomorrow: End-to-end testing of all P4 features
+
+### Day 2026-02-10 (P3 COMPLETE - Earlier)
 - Phase: P3 COMPLETE
 - Accomplishments:
   - P3-1: Admin Role & Middleware (AdminRequired, HasRole)
@@ -123,10 +152,9 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
   - ADR-031: Admin routes under /api/v1/admin/ prefix
   - ADR-032: Form-based anime editor (no WYSIWYG)
 - Risks/Unknowns:
-  - Cover upload not yet implemented
-  - Episode management pending
-- Next Steps: P4 Content Management
-- First task tomorrow: Episode CRUD endpoints
+  - Cover upload not yet implemented - RESOLVED in P4
+  - Episode management pending - RESOLVED in P4
+- Next Steps: P4 Content Management - COMPLETED
 
 ### Day 2026-02-09 (P2 COMPLETE)
 - Phase: P2 COMPLETE
@@ -146,8 +174,7 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - Risks/Unknowns:
   - Production email service needed (SendGrid/SES)
   - Comment threading display not implemented
-- Next Steps: P3 Admin Features
-- First task tomorrow: Admin role and middleware
+- Next Steps: P3 Admin Features - COMPLETED
 
 ### Day 2026-02-09 (Morning)
 - Phase: P2 IN PROGRESS (40% complete)
@@ -190,8 +217,7 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
   - Stream-Links noch nicht geparst
   - clipPath IDs koennen bei mehreren StarRating-Instanzen kollidieren
   - User Migration weiterhin blockiert Social Features
-- Next Steps: P2 Phase - Auth, Profile, User Ratings, Comments
-- First task tomorrow: Login/Register Pages planen
+- Next Steps: P2 Phase - Auth, Profile, User Ratings, Comments - COMPLETED
 
 ### Day 2026-02-05/06 (Nacht-Session)
 - Phase: P0 COMPLETED + P1-1 COMPLETED

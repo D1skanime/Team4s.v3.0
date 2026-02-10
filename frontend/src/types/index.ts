@@ -476,3 +476,171 @@ export interface UpdateAnimeRequest {
 export interface AnimeResponse {
   data: Anime;
 }
+
+// Episode Admin Types
+export interface EpisodeAdminListItem {
+  id: number;
+  anime_id: number;
+  anime_title: string;
+  episode_number: string;
+  title?: string;
+  filename?: string;
+  status: EpisodeStatus;
+  view_count: number;
+  download_count: number;
+  progress: FansubProgress;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateEpisodeRequest {
+  anime_id: number;
+  episode_number: string;
+  title?: string;
+  filename?: string;
+  stream_links?: string[];
+  status: EpisodeStatus;
+  progress_raw?: number;
+  progress_translate?: number;
+  progress_time?: number;
+  progress_typeset?: number;
+  progress_logo?: number;
+  progress_edit?: number;
+  progress_karatime?: number;
+  progress_karafx?: number;
+  progress_qc?: number;
+  progress_encode?: number;
+}
+
+export interface UpdateEpisodeRequest {
+  episode_number?: string;
+  title?: string;
+  filename?: string;
+  stream_links?: string[];
+  status?: EpisodeStatus;
+  progress_raw?: number;
+  progress_translate?: number;
+  progress_time?: number;
+  progress_typeset?: number;
+  progress_logo?: number;
+  progress_edit?: number;
+  progress_karatime?: number;
+  progress_karafx?: number;
+  progress_qc?: number;
+  progress_encode?: number;
+}
+
+export interface EpisodeResponse {
+  data: Episode;
+}
+
+export interface EpisodeAdminListParams {
+  page?: number;
+  per_page?: number;
+  anime_id?: number;
+  status?: EpisodeStatus;
+  search?: string;
+}
+
+export const EPISODE_STATUS_LABELS: Record<EpisodeStatus, string> = {
+  disabled: 'Deaktiviert',
+  private: 'Privat',
+  public: 'Oeffentlich',
+};
+
+export const EPISODE_STATUS_COLORS: Record<EpisodeStatus, string> = {
+  disabled: '#6b7280',
+  private: '#eab308',
+  public: '#22c55e',
+};
+
+// Upload Types
+export interface UploadResult {
+  filename: string;
+  url: string;
+  size: number;
+}
+
+export interface UploadResponse {
+  data: UploadResult;
+}
+
+// ========== Admin User Management Types ==========
+
+export interface UserAdminListItem {
+  id: number;
+  username: string;
+  email: string;
+  display_name?: string;
+  avatar_url?: string;
+  is_active: boolean;
+  email_verified: boolean;
+  is_admin: boolean;
+  last_login_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserAdminDetail {
+  id: number;
+  username: string;
+  email: string;
+  display_name?: string;
+  avatar_url?: string;
+  is_active: boolean;
+  email_verified: boolean;
+  is_admin: boolean;
+  roles: string[];
+  last_login_at?: string;
+  created_at: string;
+  updated_at: string;
+  stats: UserStats;
+}
+
+export interface UserAdminFilter {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  role?: 'admin' | 'user' | '';
+  status?: 'active' | 'banned' | '';
+  verified?: 'true' | 'false' | '';
+  sort_by?: 'created_at' | 'last_login_at' | 'username' | 'email';
+  sort_dir?: 'asc' | 'desc';
+}
+
+export interface UpdateUserAdminRequest {
+  display_name?: string;
+  email?: string;
+  is_active?: boolean;
+  email_verified?: boolean;
+  is_admin?: boolean;
+}
+
+export interface UserAdminResponse {
+  data: UserAdminDetail;
+}
+
+export interface UsersAdminListResponse {
+  data: UserAdminListItem[];
+  meta: PaginationMeta;
+}
+
+export const USER_STATUS_LABELS: Record<string, string> = {
+  active: 'Aktiv',
+  banned: 'Gesperrt',
+};
+
+export const USER_STATUS_COLORS: Record<string, string> = {
+  active: '#22c55e',
+  banned: '#ef4444',
+};
+
+export const USER_ROLE_LABELS: Record<string, string> = {
+  admin: 'Admin',
+  user: 'Benutzer',
+};
+
+export const USER_ROLE_COLORS: Record<string, string> = {
+  admin: '#8b5cf6',
+  user: '#6b7280',
+};

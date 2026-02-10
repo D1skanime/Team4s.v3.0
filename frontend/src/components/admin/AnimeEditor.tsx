@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Save, X } from 'lucide-react';
 import type { Anime, CreateAnimeRequest, UpdateAnimeRequest, AnimeType, AnimeStatus, ContentType } from '@/types';
+import { CoverUpload } from './CoverUpload';
 import styles from './AnimeEditor.module.css';
 
 interface AnimeEditorProps {
@@ -261,17 +262,26 @@ export function AnimeEditor({ anime, onSave, onCancel, isLoading }: AnimeEditorP
           />
         </div>
 
-        {/* Cover Image */}
+        {/* Cover Image Upload */}
         <div className={`${styles.field} ${styles.fullWidth}`}>
-          <label className={styles.label}>Cover-Bild URL</label>
-          <input
-            type="text"
-            name="cover_image"
-            value={formData.cover_image}
-            onChange={handleChange}
-            className={styles.input}
-            placeholder="https://..."
+          <label className={styles.label}>Cover-Bild</label>
+          <CoverUpload
+            currentCover={formData.cover_image}
+            onUploadComplete={(url) => {
+              setFormData(prev => ({ ...prev, cover_image: url }));
+            }}
+            onError={(err) => setError(err)}
           />
+          <div className={styles.coverUrlField}>
+            <input
+              type="text"
+              name="cover_image"
+              value={formData.cover_image}
+              onChange={handleChange}
+              className={styles.input}
+              placeholder="Oder URL direkt eingeben..."
+            />
+          </div>
         </div>
 
         {/* Description */}

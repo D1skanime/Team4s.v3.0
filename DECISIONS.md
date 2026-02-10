@@ -1516,6 +1516,129 @@ const AnimeEditor = ({ anime, onSave }) => {
 
 ---
 
+## ADR-033: Hard Delete for Episodes
+**Date:** 2026-02-10
+**Status:** Accepted
+
+### Context
+Need to decide how to handle episode deletion in admin interface.
+
+### Options Considered
+1. **Hard delete** - Remove episode from database completely
+2. **Soft delete** - Set is_deleted flag, keep in database
+
+### Decision
+**Hard delete for episodes**
+
+### Why This Option Won
+- Episodes are less critical than anime entries
+- Simpler implementation and cleanup
+- No orphaned data accumulation
+- Can always recreate episodes if needed
+- Anime entries use soft delete for history preservation, episodes don't need same treatment
+
+### Consequences
+**Good:**
+- Clean database without deleted records
+- Simpler queries (no WHERE is_deleted = false)
+- Less storage usage
+
+**Bad:**
+- Cannot recover accidentally deleted episodes
+- No audit trail of deletions
+
+---
+
+## ADR-034: Full Episode Update for Progress
+**Date:** 2026-02-10
+**Status:** Accepted
+
+### Context
+Need to decide API design for updating episode fansub progress (10 fields).
+
+### Options Considered
+1. **Full PUT** - Single PUT /episodes/:id with all fields
+2. **Separate PATCH** - PATCH /episodes/:id/progress for progress only
+3. **Individual fields** - PATCH with only changed fields
+
+### Decision
+**Full PUT for all episode updates including progress**
+
+### Why This Option Won
+- Simpler API design (one endpoint)
+- Fewer endpoints to maintain
+- Consistent with other CRUD operations
+- Frontend can submit entire form easily
+- Progress updates are typically done alongside other edits
+
+### Implementation
+```go
+PUT /api/v1/admin/episodes/:id
+{
+    "episode_number": 1,
+    "title": "...",
+    "status": "public",
+    "raw_proc": 100,
+    "translate_proc": 50,
+    // ... all 10 progress fields
+}
+```
+
+### Consequences
+**Good:**
+- Single endpoint for all updates
+- Consistent API design
+- Simple frontend implementation
+
+**Bad:**
+- Slightly more data transferred per request
+- Entire episode must be sent even for small changes
+
+---
+
+## ADR-035: UUID-Based Cover Filenames
+**Date:** 2026-02-10
+**Status:** Accepted
+
+### Context
+Need to decide filename strategy for uploaded cover images.
+
+### Options Considered
+1. **anime_id.ext** - Simple, overwrites old covers (e.g., 1234.jpg)
+2. **UUID.ext** - Unique per upload (e.g., 550e8400-e29b.jpg)
+3. **anime_id_timestamp.ext** - Versioned (e.g., 1234_1707580800.jpg)
+
+### Decision
+**UUID-based filenames**
+
+### Why This Option Won
+- Prevents filename collisions entirely
+- Avoids browser caching issues (new filename = new image)
+- Allows multiple covers to exist temporarily
+- Works well with CDN caching strategies
+- Simpler cleanup logic
+
+### Implementation
+```go
+func (s *UploadService) GenerateFilename(ext string) string {
+    return uuid.New().String() + ext
+}
+```
+
+### Consequences
+**Good:**
+- No cache busting needed
+- Clean URLs without cache query params
+- Works with any CDN
+- Multiple uploads don't conflict
+
+**Bad:**
+- Orphaned files possible (need cleanup job)
+- Longer filenames
+- Slightly more complex database updates
+
+---
+
 ## Pending Decisions
 
 ### Database Migration Tool

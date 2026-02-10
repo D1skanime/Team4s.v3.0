@@ -123,10 +123,20 @@ function AdminDashboard() {
           <h1 className={styles.title}>Admin Dashboard</h1>
           <p className={styles.subtitle}>Statistiken und Aktivitaeten</p>
         </div>
-        <Link href="/admin/anime" className={styles.manageButton}>
-          <Settings size={18} />
-          Anime verwalten
-        </Link>
+        <div className={styles.headerActions}>
+          <Link href="/admin/anime" className={styles.manageButton}>
+            <Film size={18} />
+            Anime
+          </Link>
+          <Link href="/admin/episodes" className={styles.manageButton}>
+            <PlayCircle size={18} />
+            Episoden
+          </Link>
+          <Link href="/admin/users" className={styles.manageButton}>
+            <Users size={18} />
+            Benutzer
+          </Link>
+        </div>
       </div>
 
       {/* Stats Grid */}

@@ -1,8 +1,8 @@
 # Team4s.v3.0 - Current Status
 
 **Last Updated:** 2026-02-10
-**Phase:** P3 COMPLETE - Ready for P4
-**Overall Progress:** ~90%
+**Phase:** P4 COMPLETE - MVP Essentially Done
+**Overall Progress:** ~95%
 
 ---
 
@@ -14,7 +14,8 @@
 | P1: Enhanced Features | DONE | 100% |
 | P2: User Features | DONE | 100% |
 | P3: Admin Features | DONE | 100% |
-| P4: Content Management | TODO | 0% |
+| P4: Content Management | DONE | 100% |
+| P5: Enhancements | TODO | 0% |
 
 ---
 
@@ -70,9 +71,19 @@
 
 ---
 
+## P4 Features (Complete)
+
+| Feature | Backend | Frontend | Status |
+|---------|---------|----------|--------|
+| Episode Management | CRUD /api/v1/admin/episodes | /admin/episodes, EpisodeEditor | DONE |
+| Cover Upload | POST /api/v1/admin/upload/cover | CoverUpload component | DONE |
+| User Management | 6 endpoints /api/v1/admin/users | /admin/users | DONE |
+
+---
+
 ## What Works Now
 
-**Frontend (http://localhost:3000):**
+**Frontend (http://localhost:3001):**
 - `/anime` - Anime-Liste mit A-Z Filter, Status/Type Filter, Pagination
 - `/anime/:id` - Anime-Detail mit Cover, Infos, Episoden, Related Anime, Rating, Watchlist, Comments
 - `/episode/:id` - Episode-Detail mit Fansub-Progress
@@ -85,10 +96,12 @@
 - `/verify-email` - Email Verifizierung
 - `/admin` - Admin Dashboard mit Stats und Activity (admin only)
 - `/admin/anime` - Anime Management mit CRUD (admin only)
+- `/admin/episodes` - Episode Management mit CRUD (admin only)
+- `/admin/users` - User Management mit Role Control (admin only)
 - Header mit SearchBar, User Menu und Navigation auf allen Seiten
 - Dark Theme, Responsive Design, CSS Modules
 
-**Backend API (http://localhost:8080):**
+**Backend API (http://localhost:8090):**
 
 ### Public Endpoints
 | Method | Endpoint | Description |
@@ -144,6 +157,18 @@
 | POST | /api/v1/admin/anime | Anime erstellen |
 | PUT | /api/v1/admin/anime/:id | Anime bearbeiten |
 | DELETE | /api/v1/admin/anime/:id | Anime loeschen |
+| GET | /api/v1/admin/episodes | Episode Liste (admin) |
+| POST | /api/v1/admin/anime/:id/episodes | Episode erstellen |
+| PUT | /api/v1/admin/episodes/:id | Episode bearbeiten |
+| DELETE | /api/v1/admin/episodes/:id | Episode loeschen |
+| GET | /api/v1/admin/users | User Liste |
+| GET | /api/v1/admin/users/:id | User Details |
+| PUT | /api/v1/admin/users/:id | User bearbeiten |
+| DELETE | /api/v1/admin/users/:id | User loeschen |
+| POST | /api/v1/admin/users/:id/roles | Role hinzufuegen |
+| DELETE | /api/v1/admin/users/:id/roles/:role | Role entfernen |
+| POST | /api/v1/admin/upload/cover | Cover hochladen |
+| DELETE | /api/v1/admin/upload/cover/:filename | Cover loeschen |
 
 ### How to Verify
 ```bash
@@ -151,25 +176,25 @@
 cd backend && go run cmd/server/main.go
 
 # API testen (Public)
-curl http://localhost:8080/api/v1/anime?letter=A
-curl http://localhost:8080/api/v1/anime?status=ongoing&type=tv
-curl http://localhost:8080/api/v1/anime/1/relations
-curl http://localhost:8080/api/v1/episodes/1
-curl http://localhost:8080/api/v1/anime/1/comments
+curl http://localhost:8090/api/v1/anime?letter=A
+curl http://localhost:8090/api/v1/anime?status=ongoing&type=tv
+curl http://localhost:8090/api/v1/anime/1/relations
+curl http://localhost:8090/api/v1/episodes/1
+curl http://localhost:8090/api/v1/anime/1/comments
 
 # API testen (Auth)
-curl -X POST http://localhost:8080/api/v1/auth/login \
+curl -X POST http://localhost:8090/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"login":"admin","password":"adminpass"}'
+  -d '{"login":"admin","password":"admin123"}'
 
 # API testen (Admin - mit Token)
 curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8080/api/v1/admin/stats
+  http://localhost:8090/api/v1/admin/stats
 
 # Frontend starten
 cd frontend && npm run dev
-# Browser: http://localhost:3000/anime
-# Admin: http://localhost:3000/admin
+# Browser: http://localhost:3001/anime
+# Admin: http://localhost:3001/admin
 ```
 
 ---
@@ -180,8 +205,8 @@ cd frontend && npm run dev
 |-----------|--------|-------|
 | PostgreSQL 16 | Running | Docker, Port 5432 |
 | Redis 7 | Running | Docker, Port 6379, Auth + Verification Tokens + Rate Limiting |
-| Go Backend | Running | Port 8080 |
-| Next.js Frontend | Running | Port 3000 |
+| Go Backend | Running | Port 8090 |
+| Next.js Frontend | Running | Port 3001 |
 | Adminer | Running | Port 8081 |
 
 ---
@@ -211,7 +236,6 @@ cd frontend && npm run dev
 5. **StarRating clipPath IDs** - Need unique IDs per instance
 6. **Production Email Service** - Console service only, need SendGrid/SES
 7. **Comment Threading Display** - Backend supports, frontend shows flat
-8. **Cover Upload** - Admin anime CRUD lacks cover upload
 
 ---
 
@@ -226,9 +250,9 @@ cd frontend && npm run dev
 
 ## Top 3 Next Steps
 
-1. **P4-1: Episode Management** - CRUD for episodes (admin only)
-2. **P4-2: User Management** - List, ban, edit users (admin only)
-3. **P4-3: Moderation Tools** - Flag/delete comments, review queue
+1. **QA Testing:** End-to-end testing of all P4 features
+2. **P5-1: Stream Links Parser** - Parse legacy HTML into structured data
+3. **P5-2: Comment Threading** - Nested comment display in frontend
 
 ---
 

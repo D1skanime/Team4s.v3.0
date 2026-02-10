@@ -28,6 +28,19 @@ import type {
   CreateAnimeRequest,
   UpdateAnimeRequest,
   AnimeResponse,
+  Episode,
+  EpisodeAdminListItem,
+  EpisodeAdminListParams,
+  CreateEpisodeRequest,
+  UpdateEpisodeRequest,
+  EpisodeResponse,
+  PaginatedResponse,
+  UserAdminListItem,
+  UserAdminDetail,
+  UserAdminFilter,
+  UpdateUserAdminRequest,
+  UserAdminResponse,
+  UsersAdminListResponse,
 } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090';
@@ -447,6 +460,172 @@ export async function deleteAnime(id: number): Promise<void> {
   });
 }
 
+// Episode Management (admin only)
+
+// Get paginated list of episodes for admin
+export async function getAdminEpisodes(
+  params: EpisodeAdminListParams = {}
+): Promise<PaginatedResponse<EpisodeAdminListItem>> {
+  const searchParams = new URLSearchParams();
+  if (params.page) searchParams.set('page', params.page.toString());
+  if (params.per_page) searchParams.set('per_page', params.per_page.toString());
+  if (params.anime_id) searchParams.set('anime_id', params.anime_id.toString());
+  if (params.status) searchParams.set('status', params.status);
+  if (params.search) searchParams.set('search', params.search);
+
+  const query = searchParams.toString();
+  return fetchWithAuth<PaginatedResponse<EpisodeAdminListItem>>(
+    `/api/v1/admin/episodes${query ? `?${query}` : ''}`
+  );
+}
+
+// Create a new episode
+export async function createEpisode(data: CreateEpisodeRequest): Promise<Episode> {
+  const response = await fetchWithAuth<EpisodeResponse>('/api/v1/admin/episodes', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return response.data;
+}
+
+// Update an episode
+export async function updateEpisode(id: number, data: UpdateEpisodeRequest): Promise<Episode> {
+  const response = await fetchWithAuth<EpisodeResponse>(`/api/v1/admin/episodes/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  return response.data;
+}
+
+// Delete an episode
+export async function deleteEpisode(id: number): Promise<void> {
+  await fetchWithAuth(`/api/v1/admin/episodes/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+// Upload API functions
+
+// Upload cover image
+export async function uploadCover(
+  file: File,
+  onProgress?: (progress: number) => void
+): Promise<{ filename: string; url: string; size: number }> {
+  const accessToken = getAccessToken();
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable && onProgress) {
+        const progress = Math.round((event.loaded / event.total) * 100);
+        onProgress(progress);
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          resolve(response.data);
+        } catch {
+          reject(new AuthError(xhr.status, 'Invalid response'));
+        }
+      } else {
+        let message = `HTTP ${xhr.status}`;
+        try {
+          const errorData = JSON.parse(xhr.responseText);
+          message = errorData.error || message;
+        } catch {
+          // Ignore parse errors
+        }
+        reject(new AuthError(xhr.status, message));
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      reject(new AuthError(0, 'Network error'));
+    });
+
+    xhr.open('POST', `${API_BASE}/api/v1/admin/upload/cover`);
+    if (accessToken) {
+      xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+    }
+    xhr.send(formData);
+  });
+}
+
+// Delete cover image
+export async function deleteCover(filename: string): Promise<void> {
+  await fetchWithAuth(`/api/v1/admin/upload/cover/${encodeURIComponent(filename)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ========== Admin User Management Functions ==========
+
+// Get paginated list of users for admin
+export async function getAdminUsers(
+  params: UserAdminFilter = {}
+): Promise<UsersAdminListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params.page) searchParams.set('page', params.page.toString());
+  if (params.per_page) searchParams.set('per_page', params.per_page.toString());
+  if (params.search) searchParams.set('search', params.search);
+  if (params.role) searchParams.set('role', params.role);
+  if (params.status) searchParams.set('status', params.status);
+  if (params.verified) searchParams.set('verified', params.verified);
+  if (params.sort_by) searchParams.set('sort_by', params.sort_by);
+  if (params.sort_dir) searchParams.set('sort_dir', params.sort_dir);
+
+  const query = searchParams.toString();
+  return fetchWithAuth<UsersAdminListResponse>(
+    `/api/v1/admin/users${query ? `?${query}` : ''}`
+  );
+}
+
+// Get single user details for admin
+export async function getAdminUser(id: number): Promise<UserAdminDetail> {
+  const response = await fetchWithAuth<UserAdminResponse>(`/api/v1/admin/users/${id}`);
+  return response.data;
+}
+
+// Update user as admin
+export async function updateAdminUser(
+  id: number,
+  data: UpdateUserAdminRequest
+): Promise<UserAdminDetail> {
+  const response = await fetchWithAuth<UserAdminResponse>(`/api/v1/admin/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  return response.data;
+}
+
+// Delete user as admin (soft delete by default)
+export async function deleteAdminUser(id: number, hardDelete: boolean = false): Promise<void> {
+  await fetchWithAuth(`/api/v1/admin/users/${id}${hardDelete ? '?hard=true' : ''}`, {
+    method: 'DELETE',
+  });
+}
+
+// Ban user
+export async function banUser(id: number): Promise<void> {
+  await fetchWithAuth(`/api/v1/admin/users/${id}/ban`, {
+    method: 'POST',
+  });
+}
+
+// Unban user
+export async function unbanUser(id: number): Promise<void> {
+  await fetchWithAuth(`/api/v1/admin/users/${id}/unban`, {
+    method: 'POST',
+  });
+}
+
 // Auth client object for convenience
 export const authClient = {
   register,
@@ -491,6 +670,21 @@ export const authClient = {
   createAnime,
   updateAnime,
   deleteAnime,
+  // Admin episode management
+  getAdminEpisodes,
+  createEpisode,
+  updateEpisode,
+  deleteEpisode,
+  // Upload functions
+  uploadCover,
+  deleteCover,
+  // Admin user management
+  getAdminUsers,
+  getAdminUser,
+  updateAdminUser,
+  deleteAdminUser,
+  banUser,
+  unbanUser,
 };
 
 export { AuthError };
