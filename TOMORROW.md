@@ -1,282 +1,302 @@
-# Tomorrow's Plan - 2026-02-10
+# Tomorrow's Plan - 2026-02-11
 
 ## Top 3 Priorities
 
-### 1. P3-1: Admin Role & Middleware
-Implement role-based access control for admin features.
+### 1. P4-1: Episode Management (CRUD)
+Implement admin interface for managing episodes.
 
 **Backend:**
 ```go
-// middleware/admin.go
-func AdminRequired() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        userID := GetUserID(c)
-        if !isAdmin(userID) {
-            c.AbortWithStatusJSON(403, gin.H{"error": "admin access required"})
-            return
-        }
-        c.Next()
-    }
-}
-
-// repository/user.go
-func (r *UserRepository) HasRole(ctx context.Context, userID int64, role string) (bool, error)
-```
-
-**Database:**
-- Check existing roles table
-- Ensure admin role exists
-- Link admin user to admin role
-
-**Tasks:**
-1. Create AdminRequired middleware
-2. Add HasRole method to UserRepository
-3. Create admin user if not exists
-4. Add role check to middleware
-5. Test with protected endpoint
-
----
-
-### 2. P3-2: Admin Dashboard Route
-Create admin-only area with navigation.
-
-**Backend:**
-```go
-// Admin routes group
-admin := r.Group("/api/v1/admin")
-admin.Use(middleware.AuthRequired(), middleware.AdminRequired())
-{
-    admin.GET("/stats", adminHandler.GetDashboardStats)
-    admin.GET("/users", adminHandler.ListUsers)
-    admin.GET("/anime", adminHandler.ListAnimeForAdmin)
-}
+// Admin episode endpoints
+GET    /api/v1/admin/episodes           - List all episodes (paginated, filterable)
+GET    /api/v1/admin/episodes/:id       - Get episode details (admin view)
+POST   /api/v1/admin/anime/:id/episodes - Create episode for anime
+PUT    /api/v1/admin/episodes/:id       - Update episode
+DELETE /api/v1/admin/episodes/:id       - Delete episode
 ```
 
 **Frontend:**
-- `/admin` - Dashboard with stats overview
-- `/admin/users` - User management table
-- `/admin/anime` - Anime management table
-- Protected routes (redirect non-admin to 403)
+- `/admin/episodes` - Episode listing with filters (anime, status)
+- `/admin/episodes/:id` - Episode editor page
+- EpisodeEditor component with form fields
+- FansubProgress editor (10 sliders for process tracking)
 
 **Tasks:**
-1. Create admin routes in backend
-2. Implement GetDashboardStats (counts, recent activity)
-3. Create /admin page in frontend
-4. Add AdminGuard component
-5. Create AdminLayout with sidebar navigation
+1. Add Episode CRUD methods to repository
+2. Create AdminEpisodeHandler
+3. Add routes to admin group
+4. Create EpisodeEditor component
+5. Create episode management page
+6. Add to admin navigation
 
 ---
 
-### 3. P3-3: Anime Management (CRUD)
-Allow admins to create, update, and delete anime.
+### 2. P4-2: Cover Upload
+Add cover image upload to anime management.
 
 **Backend:**
 ```go
-// Admin anime endpoints
-POST   /api/v1/admin/anime         - Create anime
-PUT    /api/v1/admin/anime/:id     - Update anime
-DELETE /api/v1/admin/anime/:id     - Delete anime (soft delete?)
-POST   /api/v1/admin/anime/:id/cover - Upload cover image
+// File upload endpoint
+POST /api/v1/admin/anime/:id/cover - Upload cover image
+
+// Implementation
+- Accept multipart/form-data
+- Validate file type (jpg, png, webp)
+- Validate file size (max 5MB)
+- Generate filename (anime_id.ext)
+- Save to covers/ directory
+- Return new cover URL
 ```
 
 **Frontend:**
-- AnimeEditor component (form for create/edit)
-- Delete confirmation modal
-- Cover upload with preview
-- Status/Type enum selectors
+- Add file input to AnimeEditor
+- Image preview before upload
+- Progress indicator
+- Replace existing cover option
 
 **Tasks:**
-1. Add CreateAnime, UpdateAnime, DeleteAnime to repository
-2. Create AdminAnimeHandler with CRUD
-3. Create AnimeEditor form component
-4. Implement cover upload (local storage first)
-5. Add to admin anime list page
+1. Create upload handler in backend
+2. Add file validation (type, size)
+3. Implement file storage
+4. Add file input to AnimeEditor
+5. Create ImageUpload component
+6. Add preview functionality
+
+---
+
+### 3. P4-3: User Management (Admin)
+Admin interface for viewing and managing users.
+
+**Backend:**
+```go
+// Admin user endpoints
+GET    /api/v1/admin/users            - List users (paginated, searchable)
+GET    /api/v1/admin/users/:id        - User details (admin view)
+PUT    /api/v1/admin/users/:id        - Update user (ban, role change)
+DELETE /api/v1/admin/users/:id        - Delete user (soft delete)
+POST   /api/v1/admin/users/:id/roles  - Add role to user
+DELETE /api/v1/admin/users/:id/roles/:role - Remove role
+```
+
+**Frontend:**
+- `/admin/users` - User listing with search
+- `/admin/users/:id` - User detail/edit page
+- Ban/unban toggle
+- Role management dropdown
+- Activity summary
+
+**Tasks:**
+1. Add user management methods to repository
+2. Create AdminUserHandler
+3. Add routes to admin group
+4. Create UserManagement page
+5. Create UserEditor component
+6. Add role management UI
 
 ---
 
 ## First 15-Minute Task
 
-**Create AdminRequired middleware:**
+**Create Episode CRUD repository methods:**
 
-1. Create `backend/internal/middleware/admin.go`:
+1. Open `backend/internal/repository/episode.go` (create if not exists)
+2. Add these methods:
 ```go
-package middleware
-
-import (
-    "net/http"
-    "github.com/gin-gonic/gin"
-)
-
-// AdminRequired checks if the authenticated user has admin role
-func AdminRequired() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        userID := GetUserID(c)
-        if userID == 0 {
-            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-            return
-        }
-
-        // TODO: Check admin role from database
-        // For now, check if user_id == 1 (admin)
-        if userID != 1 {
-            c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "admin access required"})
-            return
-        }
-
-        c.Next()
-    }
-}
+func (r *EpisodeRepository) Create(ctx context.Context, episode *models.CreateEpisodeRequest) (int64, error)
+func (r *EpisodeRepository) Update(ctx context.Context, id int64, episode *models.UpdateEpisodeRequest) error
+func (r *EpisodeRepository) Delete(ctx context.Context, id int64) error
+func (r *EpisodeRepository) ListForAdmin(ctx context.Context, filter EpisodeFilter) ([]Episode, int64, error)
 ```
 
-2. Wire up in `cmd/server/main.go`
-3. Test with `curl -H "Authorization: Bearer $TOKEN" /api/v1/admin/stats`
+3. Wire up in `cmd/server/main.go`
 
 ---
 
 ## Dependencies to Unblock Early
 
-1. **Roles table exists**
-   - users, roles, user_roles tables in schema
-   - Need to verify data exists
+1. **Admin middleware working**
+   - Already implemented (2026-02-10)
+   - AdminRequired() in middleware/admin.go
 
-2. **Admin user exists**
-   - user_id=1 is admin
-   - Check roles assignment
+2. **Episode model exists**
+   - Episode struct in models/episode.go
+   - Need to add CreateEpisodeRequest, UpdateEpisodeRequest
 
-3. **Auth middleware working**
-   - Already implemented
-   - AdminRequired builds on AuthRequired
-
-4. **Docker running**
+3. **Docker running**
    ```bash
    docker ps
    # Shows: postgres, redis, adminer
    ```
 
+4. **Test admin user**
+   - user_id=1 has admin role
+   - Can test with existing token
+
 ---
 
 ## If Ahead of Schedule
 
-### Episode Management
-- GET/POST/PUT/DELETE episodes
-- Fansub progress editing
-- Stream link management (parse legacy HTML)
-
-### User Management
-- List all users (admin)
-- Ban/suspend user
-- Edit user role
-- Delete user (soft)
+### Stream Links Parser
+- Analyze legacy HTML format
+- Create Go parser for stream links
+- Store structured data
+- Update Episode model
 
 ### Moderation Tools
-- Flag comments for review
-- Delete any comment (admin)
-- View flagged content queue
+- GET /api/v1/admin/comments - All comments (for moderation)
+- DELETE /api/v1/admin/comments/:id - Delete any comment
+- Comment flagging system
+- Moderation queue page
+
+### Audit Logging
+- Log admin actions (create, update, delete)
+- admin_audit_log table
+- View action history
 
 ---
 
 ## Verification Checklist
 
 After completing priorities:
-- [ ] Admin middleware blocks non-admin users
-- [ ] Admin dashboard shows stats
-- [ ] Admin can view user list
-- [ ] Admin can create new anime
-- [ ] Admin can edit existing anime
-- [ ] Admin can delete anime (soft delete)
+- [ ] Admin can list all episodes
+- [ ] Admin can create new episode
+- [ ] Admin can edit episode details
+- [ ] Admin can update fansub progress
+- [ ] Admin can delete episode
 - [ ] Cover upload works
+- [ ] Image preview displays correctly
+- [ ] Admin can list all users
+- [ ] Admin can ban/unban users
+- [ ] Admin can manage user roles
 
 ---
 
-## P3 Feature Roadmap (Reference)
+## P4 Feature Roadmap (Reference)
 
 | ID | Feature | Priority | Status |
 |----|---------|----------|--------|
-| P3-1 | Admin Role & Middleware | HIGH | TODO |
-| P3-2 | Admin Dashboard | HIGH | TODO |
-| P3-3 | Anime Management | HIGH | TODO |
-| P3-4 | Episode Management | MEDIUM | TODO |
-| P3-5 | User Management | MEDIUM | TODO |
-| P3-6 | Moderation Tools | LOW | TODO |
+| P4-1 | Episode Management | HIGH | TODO |
+| P4-2 | Cover Upload | HIGH | TODO |
+| P4-3 | User Management | MEDIUM | TODO |
+| P4-4 | Stream Links Parser | MEDIUM | TODO |
+| P4-5 | Moderation Tools | LOW | TODO |
+| P4-6 | Audit Logging | LOW | TODO |
 
 ---
 
 ## Technical Notes
 
-### Role Check Query
+### Episode Create Query
 ```sql
-SELECT EXISTS (
-    SELECT 1 FROM user_roles ur
-    JOIN roles r ON ur.role_id = r.id
-    WHERE ur.user_id = $1 AND r.name = 'admin'
-) AS is_admin;
+INSERT INTO episodes (
+    anime_id, episode_number, title, title_de, title_en,
+    status, duration, raw_proc, translate_proc, time_proc,
+    typeset_proc, logo_proc, edit_proc, karatime_proc,
+    karafx_proc, qc_proc, encode_proc, stream_links_legacy, filename
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+RETURNING id;
 ```
 
-### Dashboard Stats Query
-```sql
--- User counts
-SELECT COUNT(*) FROM users WHERE is_active = true;
+### File Upload Handler Pattern
+```go
+func (h *AdminHandler) UploadCover(c *gin.Context) {
+    animeID := c.Param("id")
+    file, err := c.FormFile("cover")
+    if err != nil {
+        c.JSON(400, gin.H{"error": "no file uploaded"})
+        return
+    }
 
--- Content counts
-SELECT
-    (SELECT COUNT(*) FROM anime) as anime_count,
-    (SELECT COUNT(*) FROM episodes) as episode_count,
-    (SELECT COUNT(*) FROM comments WHERE is_deleted = false) as comment_count,
-    (SELECT COUNT(*) FROM ratings) as rating_count;
+    // Validate file type
+    ext := filepath.Ext(file.Filename)
+    if ext != ".jpg" && ext != ".png" && ext != ".webp" {
+        c.JSON(400, gin.H{"error": "invalid file type"})
+        return
+    }
 
--- Recent activity
-SELECT * FROM comments ORDER BY created_at DESC LIMIT 10;
-SELECT * FROM ratings ORDER BY created_at DESC LIMIT 10;
+    // Validate size (5MB max)
+    if file.Size > 5*1024*1024 {
+        c.JSON(400, gin.H{"error": "file too large"})
+        return
+    }
+
+    // Save file
+    filename := fmt.Sprintf("%s%s", animeID, ext)
+    path := filepath.Join("covers", filename)
+    if err := c.SaveUploadedFile(file, path); err != nil {
+        c.JSON(500, gin.H{"error": "failed to save file"})
+        return
+    }
+
+    c.JSON(200, gin.H{"cover_url": "/covers/" + filename})
+}
 ```
 
-### Admin Routes Structure
+### Admin Routes Structure (Extended)
 ```
 /api/v1/admin/
+  # Dashboard
   GET  /stats              - Dashboard statistics
-  GET  /users              - List users (paginated)
-  GET  /users/:id          - User details
-  PUT  /users/:id          - Update user
-  DELETE /users/:id        - Delete user
+  GET  /activity           - Recent activity
+
+  # Anime Management (existing)
   GET  /anime              - List anime (paginated, all statuses)
   POST /anime              - Create anime
   GET  /anime/:id          - Anime details (admin view)
   PUT  /anime/:id          - Update anime
   DELETE /anime/:id        - Delete anime
+  POST /anime/:id/cover    - Upload cover (NEW)
+
+  # Episode Management (NEW)
+  GET  /episodes           - List all episodes
+  GET  /episodes/:id       - Episode details
+  POST /anime/:id/episodes - Create episode for anime
+  PUT  /episodes/:id       - Update episode
+  DELETE /episodes/:id     - Delete episode
+
+  # User Management (NEW)
+  GET  /users              - List users
+  GET  /users/:id          - User details
+  PUT  /users/:id          - Update user
+  DELETE /users/:id        - Delete user
+  POST /users/:id/roles    - Add role
+  DELETE /users/:id/roles/:role - Remove role
+
+  # Moderation (future)
   GET  /comments           - All comments (for moderation)
   DELETE /comments/:id     - Delete any comment
 ```
 
 ---
 
-## Context from P2 Completion
+## Context from P3 Completion
 
-**Completed yesterday:**
-- P2-3: User Ratings (RatingInput, backend CRUD)
-- P2-4: Watchlist Sync (7 endpoints, hybrid mode)
-- P2-5: Comments (CRUD, soft delete)
-- Rate Limiting (Redis sliding window)
-- Email Verification (tokens, console email)
+**Completed yesterday (2026-02-10):**
+- P3-1: Admin Role & Middleware (AdminRequired, HasRole)
+- P3-2: Admin Dashboard (stats, activity)
+- P3-3: Anime Management (CRUD + AnimeEditor)
 
-**Ready for P3:**
-- Auth system fully functional
-- Role tables exist in database
-- User system complete
-- All user-facing features done
+**Ready for P4:**
+- Admin system fully functional
+- Role-based access working
+- Dashboard provides overview
+- Anime CRUD as template for Episode CRUD
 
 ---
 
 ## Questions to Resolve
 
-1. **Soft delete for anime?**
-   - Option A: Hard delete (cascade episodes, ratings, etc.)
-   - Option B: Soft delete (is_deleted flag, hide from users)
-   - Recommendation: Soft delete (preserve history, easier undo)
+1. **Episode soft delete or hard delete?**
+   - Option A: Hard delete (remove from database)
+   - Option B: Soft delete (is_deleted flag)
+   - Recommendation: Hard delete (episodes less critical than anime)
 
-2. **Cover upload storage?**
-   - Option A: Local filesystem (current covers location)
-   - Option B: S3/Cloud storage
-   - Recommendation: Local first, S3 for production
+2. **Fansub progress update API?**
+   - Option A: Full episode update (PUT /episodes/:id)
+   - Option B: Dedicated progress endpoint (PATCH /episodes/:id/progress)
+   - Recommendation: Full episode update (simpler, fewer endpoints)
 
-3. **Admin audit logging?**
-   - Track admin actions (create/update/delete)?
-   - Recommendation: Add later if needed
+3. **Cover filename strategy?**
+   - Option A: anime_id.ext (1234.jpg)
+   - Option B: anime_id_timestamp.ext (1234_1707580800.jpg)
+   - Recommendation: Option A (simpler, overwrites old covers)

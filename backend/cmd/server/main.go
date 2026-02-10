@@ -68,6 +68,7 @@ func main() {
 	userRepo := repository.NewUserRepository(db.Pool)
 	watchlistRepo := repository.NewWatchlistRepository(db.Pool)
 	commentRepo := repository.NewCommentRepository(db.Pool)
+	adminRepo := repository.NewAdminRepository(db.Pool)
 
 	// Initialize email service (console output for development)
 	frontendURL := os.Getenv("FRONTEND_URL")
@@ -94,9 +95,11 @@ func main() {
 	watchlistHandler := handlers.NewWatchlistHandler(watchlistRepo)
 	commentHandler := handlers.NewCommentHandler(commentRepo)
 	verificationHandler := handlers.NewVerificationHandler(verificationService)
+	adminHandler := handlers.NewAdminHandler(adminRepo)
 
 	// Initialize middleware
 	authMiddleware := middleware.NewAuthMiddleware(tokenService)
+	adminMiddleware := middleware.NewAdminMiddleware(userRepo)
 	rateLimiter := middleware.NewRateLimiter(redis)
 
 	// Set Gin mode
@@ -220,6 +223,29 @@ func main() {
 			watchlist.POST("/:animeId", watchlistHandler.AddToWatchlist)
 			watchlist.PUT("/:animeId", watchlistHandler.UpdateWatchlistStatus)
 			watchlist.DELETE("/:animeId", watchlistHandler.RemoveFromWatchlist)
+		}
+
+		// Admin routes (requires auth + admin role)
+		admin := v1.Group("/admin")
+		admin.Use(authMiddleware.RequireAuth(), adminMiddleware.RequireAdmin())
+		{
+			// Test endpoint to verify admin access
+			admin.GET("/ping", func(c *gin.Context) {
+				userID := middleware.GetUserID(c)
+				c.JSON(http.StatusOK, gin.H{
+					"message": "admin access granted",
+					"user_id": userID,
+				})
+			})
+
+			// Dashboard routes
+			admin.GET("/dashboard/stats", adminHandler.GetDashboardStats)
+			admin.GET("/dashboard/activity", adminHandler.GetRecentActivity)
+
+			// Anime management routes
+			admin.POST("/anime", animeHandler.Create)
+			admin.PUT("/anime/:id", animeHandler.Update)
+			admin.DELETE("/anime/:id", animeHandler.Delete)
 		}
 	}
 

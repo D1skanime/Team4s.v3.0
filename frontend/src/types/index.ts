@@ -399,3 +399,80 @@ export interface VerificationErrorResponse {
   error: string;
   retry_after?: number; // Seconds until rate limit resets
 }
+
+// Admin Types
+export interface DashboardStats {
+  total_users: number;
+  total_anime: number;
+  total_episodes: number;
+  total_comments: number;
+  total_ratings: number;
+  new_users: number;
+  new_comments: number;
+  new_ratings: number;
+  active_users: number;
+  anime_by_status: {
+    airing: number;
+    completed: number;
+    upcoming: number;
+    unknown: number;
+  };
+}
+
+export interface RecentActivity {
+  type: 'comment' | 'rating' | 'user';
+  user_id: number;
+  username: string;
+  anime_id?: number;
+  anime_title?: string;
+  created_at: string;
+}
+
+export interface RecentActivityResponse {
+  activities: RecentActivity[];
+}
+
+// Anime Admin Types
+export interface CreateAnimeRequest {
+  title: string;
+  title_de?: string;
+  title_en?: string;
+  type: AnimeType;
+  content_type: ContentType;
+  status: AnimeStatus;
+  year?: number;
+  max_episodes: number;
+  genre?: string;
+  source?: string;
+  description?: string;
+  cover_image?: string;
+  folder_name?: string;
+  sub_comment?: string;
+  stream_comment?: string;
+  is_self_subbed: boolean;
+  anisearch_id?: string;
+}
+
+export interface UpdateAnimeRequest {
+  title?: string;
+  title_de?: string;
+  title_en?: string;
+  type?: AnimeType;
+  content_type?: ContentType;
+  status?: AnimeStatus;
+  year?: number;
+  max_episodes?: number;
+  genre?: string;
+  source?: string;
+  description?: string;
+  cover_image?: string;
+  folder_name?: string;
+  sub_comment?: string;
+  stream_comment?: string;
+  is_self_subbed?: boolean;
+  anisearch_id?: string;
+}
+
+export interface AnimeResponse {
+  data: Anime;
+}

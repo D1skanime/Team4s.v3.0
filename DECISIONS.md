@@ -1337,6 +1337,185 @@ if config.IsDevelopment {
 
 ---
 
+## ADR-030: Database-Based Role Checking
+**Date:** 2026-02-10
+**Status:** Accepted
+
+### Context
+Need to verify admin access for protected admin endpoints.
+
+### Options Considered
+1. **JWT Claims** - Embed roles in JWT token
+2. **Database Query** - Check user_roles + roles tables on each request
+3. **Redis Cache** - Cache role lookups in Redis
+
+### Decision
+**Database query via HasRole method in UserRepository**
+
+### Why This Option Won
+- Roles can change without requiring token refresh
+- Single source of truth in database
+- Simple implementation
+- No cache invalidation complexity
+- Performance acceptable for admin operations (not high-frequency)
+
+### Implementation
+```go
+// repository/user.go
+func (r *UserRepository) HasRole(ctx context.Context, userID int64, role string) (bool, error) {
+    query := `
+        SELECT EXISTS (
+            SELECT 1 FROM user_roles ur
+            JOIN roles r ON ur.role_id = r.id
+            WHERE ur.user_id = $1 AND r.name = $2
+        )
+    `
+    var hasRole bool
+    err := r.pool.QueryRow(ctx, query, userID, role).Scan(&hasRole)
+    return hasRole, err
+}
+
+// middleware/admin.go
+func AdminRequired(userRepo *repository.UserRepository) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        userID := GetUserID(c)
+        isAdmin, _ := userRepo.HasRole(c.Request.Context(), userID, "admin")
+        if !isAdmin {
+            c.AbortWithStatusJSON(403, gin.H{"error": "admin access required"})
+            return
+        }
+        c.Next()
+    }
+}
+```
+
+### Consequences
+**Good:**
+- Role changes take effect immediately
+- No JWT bloat with role claims
+- Clear audit trail in database
+- Extensible for multiple roles
+
+**Bad:**
+- Additional database query per admin request
+- Could add Redis caching if performance becomes issue
+
+---
+
+## ADR-031: Admin Routes Under /api/v1/admin/ Prefix
+**Date:** 2026-02-10
+**Status:** Accepted
+
+### Context
+Need to organize admin-only API endpoints.
+
+### Options Considered
+1. **/api/admin/v1/** - Separate version prefix for admin
+2. **/api/v1/admin/** - Admin as sub-path under versioned API
+3. **/admin/api/v1/** - Admin prefix before API
+
+### Decision
+**/api/v1/admin/** prefix for all admin endpoints
+
+### Why This Option Won
+- Consistent versioning across all endpoints
+- Clear hierarchy (API > Version > Feature Area)
+- Easy to apply middleware to entire route group
+- Matches common REST API conventions
+
+### Implementation
+```go
+// cmd/server/main.go
+admin := r.Group("/api/v1/admin")
+admin.Use(middleware.AuthRequired(), middleware.AdminRequired(userRepo))
+{
+    admin.GET("/stats", adminHandler.GetStats)
+    admin.GET("/activity", adminHandler.GetActivity)
+    admin.POST("/anime", animeHandler.CreateAnime)
+    admin.PUT("/anime/:id", animeHandler.UpdateAnime)
+    admin.DELETE("/anime/:id", animeHandler.DeleteAnime)
+}
+```
+
+### Consequences
+**Good:**
+- Clean, predictable URL structure
+- Single middleware application point
+- Easy to document
+- Version upgrades affect all endpoints uniformly
+
+**Bad:**
+- Slightly longer URLs than dedicated /admin path
+
+---
+
+## ADR-032: Form-Based Anime Editor
+**Date:** 2026-02-10
+**Status:** Accepted
+
+### Context
+Need admin interface for creating and editing anime entries.
+
+### Options Considered
+1. **WYSIWYG Editor** - Rich text editor for description, inline image placement
+2. **Form-Based Editor** - Standard form inputs for all fields
+3. **Markdown Editor** - Markdown input with preview
+
+### Decision
+**Standard form-based editor with separate inputs for each field**
+
+### Why This Option Won
+- Simpler implementation
+- All fields have known types and constraints
+- Description field is plain text (HTML handled separately)
+- No additional WYSIWYG library required
+- Consistent with other admin forms
+- Easier validation
+
+### Implementation
+```typescript
+// components/admin/AnimeEditor.tsx
+const AnimeEditor = ({ anime, onSave }) => {
+  const [form, setForm] = useState({
+    title: anime?.title || '',
+    title_de: anime?.title_de || '',
+    title_en: anime?.title_en || '',
+    type: anime?.type || 'tv',
+    status: anime?.status || 'ongoing',
+    year: anime?.year || new Date().getFullYear(),
+    description: anime?.description || '',
+  });
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="title" value={form.title} onChange={handleChange} />
+      <select name="type" value={form.type} onChange={handleChange}>
+        <option value="tv">TV Series</option>
+        <option value="ova">OVA</option>
+        <option value="film">Film</option>
+        {/* ... */}
+      </select>
+      <textarea name="description" value={form.description} onChange={handleChange} />
+      <button type="submit">Save</button>
+    </form>
+  );
+};
+```
+
+### Consequences
+**Good:**
+- Fast to implement
+- Easy to validate
+- Predictable behavior
+- Works on all devices
+
+**Bad:**
+- No rich text formatting in description
+- Limited inline preview
+- May need WYSIWYG later for complex content
+
+---
+
 ## Pending Decisions
 
 ### Database Migration Tool

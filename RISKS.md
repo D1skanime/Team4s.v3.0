@@ -154,7 +154,7 @@ StarRating component uses static IDs (`star-clip-1`, `star-clip-2`, etc.) for SV
 - [ ] Generate unique IDs per component instance (useId hook)
 - [ ] Test with multiple ratings on one page
 
-**Owner:** D1skanime | **Due:** P3 or when adding rating to list views
+**Owner:** D1skanime | **Due:** P4 or when adding rating to list views
 
 ---
 
@@ -174,11 +174,36 @@ Backend supports reply_to_id for threaded comments, but frontend shows comments 
 - [ ] Add "Reply" button to comments
 - [ ] Consider thread depth limit (3 levels?)
 
-**Owner:** D1skanime | **Due:** P3 enhancement
+**Owner:** D1skanime | **Due:** P4 enhancement
+
+---
+
+### 7. Cover Upload Not Implemented
+**Impact:** Medium | **Likelihood:** Certain
+**Added:** 2026-02-10
+
+Admin anime CRUD lacks cover image upload functionality.
+
+**Current State:**
+- AnimeEditor form does not include file upload
+- Covers must be added manually to filesystem
+- No image validation or processing
+
+**Mitigation:**
+- [ ] Add file upload input to AnimeEditor
+- [ ] Create upload endpoint in backend
+- [ ] Implement image validation (type, size)
+- [ ] Add image preview before save
+- [ ] Store in covers/ directory with proper naming
+
+**Owner:** D1skanime | **Due:** P4-1 or as enhancement
 
 ---
 
 ## Resolved Risks
+
+### 2026-02-10
+- **P3 Admin Features:** RESOLVED - All 3 features complete (Role, Dashboard, Anime CRUD)
 
 ### 2026-02-09
 - **Rate Limiting:** RESOLVED - Redis sliding window implemented for auth endpoints
@@ -224,6 +249,12 @@ Backend supports reply_to_id for threaded comments, but frontend shows comments 
 **Impact if delayed:** External API consumers have no reference
 **Decision needed by:** Before public API release
 
+### Anime Deletion Strategy
+**Options:** Hard delete vs Soft delete
+**Impact if delayed:** Inconsistent data handling
+**Recommendation:** Soft delete (preserve history, easier undo)
+**Decision needed by:** Before admin anime deletion is used extensively
+
 ---
 
 ## If Nothing Changes...
@@ -231,9 +262,10 @@ Backend supports reply_to_id for threaded comments, but frontend shows comments 
 
 If we don't:
 1. **Configure production email** - Cannot deploy with email verification
-2. **Plan admin features** - Cannot manage content
-3. **Test user migration** - Cannot restore legacy user accounts
+2. **Implement episode management** - Admin cannot manage episode content
+3. **Add cover upload** - New anime entries have no cover images
+4. **Test user migration** - Cannot restore legacy user accounts
 
-**Critical path for next week:** Admin Role -> Admin Dashboard -> Anime Management
+**Critical path for next week:** Episode Management -> Cover Upload -> User Management
 
-P2 complete - continue with P3 Admin Features.
+P3 complete - continue with P4 Content Management.

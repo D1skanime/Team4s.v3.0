@@ -381,6 +381,52 @@ func (r *UserRepository) GetStats(ctx context.Context, userID int64) (*models.Us
 	return stats, nil
 }
 
+// HasRole checks if a user has a specific role
+func (r *UserRepository) HasRole(ctx context.Context, userID int64, roleName string) (bool, error) {
+	query := `
+		SELECT EXISTS(
+			SELECT 1 FROM user_roles ur
+			JOIN roles r ON r.id = ur.role_id
+			WHERE ur.user_id = $1 AND r.name = $2
+		)
+	`
+
+	var hasRole bool
+	err := r.db.QueryRow(ctx, query, userID, roleName).Scan(&hasRole)
+	if err != nil {
+		return false, fmt.Errorf("check user role: %w", err)
+	}
+
+	return hasRole, nil
+}
+
+// GetUserRoles returns all role names for a user
+func (r *UserRepository) GetUserRoles(ctx context.Context, userID int64) ([]string, error) {
+	query := `
+		SELECT r.name FROM user_roles ur
+		JOIN roles r ON r.id = ur.role_id
+		WHERE ur.user_id = $1
+		ORDER BY r.name
+	`
+
+	rows, err := r.db.Query(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("get user roles: %w", err)
+	}
+	defer rows.Close()
+
+	var roles []string
+	for rows.Next() {
+		var role string
+		if err := rows.Scan(&role); err != nil {
+			return nil, fmt.Errorf("scan role: %w", err)
+		}
+		roles = append(roles, role)
+	}
+
+	return roles, nil
+}
+
 // Helper function to check if string contains substring
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsAt(s, substr, 0))

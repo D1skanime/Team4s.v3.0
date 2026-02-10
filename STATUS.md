@@ -1,8 +1,8 @@
 # Team4s.v3.0 - Current Status
 
-**Last Updated:** 2026-02-09
-**Phase:** P2 COMPLETE - Starting P3
-**Overall Progress:** ~85%
+**Last Updated:** 2026-02-10
+**Phase:** P3 COMPLETE - Ready for P4
+**Overall Progress:** ~90%
 
 ---
 
@@ -13,7 +13,8 @@
 | P0: Core Browse/View | DONE | 100% |
 | P1: Enhanced Features | DONE | 100% |
 | P2: User Features | DONE | 100% |
-| P3: Admin Features | TODO | 0% |
+| P3: Admin Features | DONE | 100% |
+| P4: Content Management | TODO | 0% |
 
 ---
 
@@ -59,6 +60,16 @@
 
 ---
 
+## P3 Features (Complete)
+
+| Feature | Backend | Frontend | Status |
+|---------|---------|----------|--------|
+| Admin Role & Middleware | AdminRequired, HasRole | AdminGuard | DONE |
+| Admin Dashboard | GET /api/v1/admin/stats, activity | /admin | DONE |
+| Anime Management | POST/PUT/DELETE /api/v1/admin/anime | /admin/anime, AnimeEditor | DONE |
+
+---
+
 ## What Works Now
 
 **Frontend (http://localhost:3000):**
@@ -72,6 +83,8 @@
 - `/settings` - Profil bearbeiten, Passwort aendern, Account loeschen
 - `/user/[username]` - Oeffentliches Benutzerprofil mit Stats
 - `/verify-email` - Email Verifizierung
+- `/admin` - Admin Dashboard mit Stats und Activity (admin only)
+- `/admin/anime` - Anime Management mit CRUD (admin only)
 - Header mit SearchBar, User Menu und Navigation auf allen Seiten
 - Dark Theme, Responsive Design, CSS Modules
 
@@ -123,6 +136,15 @@
 | PUT | /api/v1/anime/:id/comments/:commentId | Eigenen Kommentar bearbeiten |
 | DELETE | /api/v1/anime/:id/comments/:commentId | Eigenen Kommentar loeschen |
 
+### Admin Endpoints (Admin Role Required)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/v1/admin/stats | Dashboard Statistiken |
+| GET | /api/v1/admin/activity | Recent Activity |
+| POST | /api/v1/admin/anime | Anime erstellen |
+| PUT | /api/v1/admin/anime/:id | Anime bearbeiten |
+| DELETE | /api/v1/admin/anime/:id | Anime loeschen |
+
 ### How to Verify
 ```bash
 # Backend starten
@@ -136,17 +158,18 @@ curl http://localhost:8080/api/v1/episodes/1
 curl http://localhost:8080/api/v1/anime/1/comments
 
 # API testen (Auth)
-curl -X POST http://localhost:8080/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"test","email":"test@example.com","password":"testpass123"}'
-
 curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"login":"test","password":"testpass123"}'
+  -d '{"login":"admin","password":"adminpass"}'
+
+# API testen (Admin - mit Token)
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8080/api/v1/admin/stats
 
 # Frontend starten
 cd frontend && npm run dev
 # Browser: http://localhost:3000/anime
+# Admin: http://localhost:3000/admin
 ```
 
 ---
@@ -186,10 +209,9 @@ cd frontend && npm run dev
 3. **Stream Links** - Still in legacy HTML format
 4. **API Docs** - No OpenAPI spec yet
 5. **StarRating clipPath IDs** - Need unique IDs per instance
-6. ~~Rate Limiting~~ - RESOLVED (2026-02-09)
-7. ~~Email Verification~~ - RESOLVED (2026-02-09)
-8. **Production Email Service** - Console service only, need SendGrid/SES
-9. **Comment Threading Display** - Backend supports, frontend shows flat
+6. **Production Email Service** - Console service only, need SendGrid/SES
+7. **Comment Threading Display** - Backend supports, frontend shows flat
+8. **Cover Upload** - Admin anime CRUD lacks cover upload
 
 ---
 
@@ -204,9 +226,9 @@ cd frontend && npm run dev
 
 ## Top 3 Next Steps
 
-1. **P3-1: Admin Role & Middleware** - Create admin authorization
-2. **P3-2: Admin Dashboard** - Admin-only area with management tools
-3. **P3-3: Anime Management** - CRUD for anime (admin only)
+1. **P4-1: Episode Management** - CRUD for episodes (admin only)
+2. **P4-2: User Management** - List, ban, edit users (admin only)
+3. **P4-3: Moderation Tools** - Flag/delete comments, review queue
 
 ---
 

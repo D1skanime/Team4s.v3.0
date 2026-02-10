@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/D1skanime/Team4s.v3.0/backend/internal/models"
 	"github.com/jackc/pgx/v5"
@@ -275,4 +276,195 @@ func (r *AnimeRepository) GetRelations(ctx context.Context, animeID int64) ([]mo
 	}
 
 	return relations, nil
+}
+
+// Create creates a new anime record
+func (r *AnimeRepository) Create(ctx context.Context, req models.CreateAnimeRequest) (*models.Anime, error) {
+	query := `
+		INSERT INTO anime (
+			title, title_de, title_en, type, content_type, status,
+			year, max_episodes, genre, source, description, cover_image,
+			folder_name, sub_comment, stream_comment, is_self_subbed,
+			anisearch_id, view_count, created_at, updated_at
+		) VALUES (
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+			$13, $14, $15, $16, $17, 0, $18, $18
+		)
+		RETURNING id, created_at, updated_at
+	`
+
+	now := time.Now()
+	anime := &models.Anime{
+		Title:         req.Title,
+		TitleDE:       req.TitleDE,
+		TitleEN:       req.TitleEN,
+		Type:          req.Type,
+		ContentType:   req.ContentType,
+		Status:        req.Status,
+		Year:          req.Year,
+		MaxEpisodes:   req.MaxEpisodes,
+		Genre:         req.Genre,
+		Source:        req.Source,
+		Description:   req.Description,
+		CoverImage:    req.CoverImage,
+		FolderName:    req.FolderName,
+		SubComment:    req.SubComment,
+		StreamComment: req.StreamComment,
+		IsSelfSubbed:  req.IsSelfSubbed,
+		AnisearchID:   req.AnisearchID,
+		ViewCount:     0,
+	}
+
+	err := r.db.QueryRow(ctx, query,
+		req.Title, req.TitleDE, req.TitleEN, req.Type, req.ContentType, req.Status,
+		req.Year, req.MaxEpisodes, req.Genre, req.Source, req.Description, req.CoverImage,
+		req.FolderName, req.SubComment, req.StreamComment, req.IsSelfSubbed,
+		req.AnisearchID, now,
+	).Scan(&anime.ID, &anime.CreatedAt, &anime.UpdatedAt)
+
+	if err != nil {
+		return nil, fmt.Errorf("create anime: %w", err)
+	}
+
+	return anime, nil
+}
+
+// Update updates an existing anime record
+func (r *AnimeRepository) Update(ctx context.Context, id int64, req models.UpdateAnimeRequest) (*models.Anime, error) {
+	// Build dynamic update query
+	setClauses := []string{}
+	args := []any{}
+	argNum := 1
+
+	if req.Title != nil {
+		setClauses = append(setClauses, fmt.Sprintf("title = $%d", argNum))
+		args = append(args, *req.Title)
+		argNum++
+	}
+	if req.TitleDE != nil {
+		setClauses = append(setClauses, fmt.Sprintf("title_de = $%d", argNum))
+		args = append(args, *req.TitleDE)
+		argNum++
+	}
+	if req.TitleEN != nil {
+		setClauses = append(setClauses, fmt.Sprintf("title_en = $%d", argNum))
+		args = append(args, *req.TitleEN)
+		argNum++
+	}
+	if req.Type != nil {
+		setClauses = append(setClauses, fmt.Sprintf("type = $%d", argNum))
+		args = append(args, *req.Type)
+		argNum++
+	}
+	if req.ContentType != nil {
+		setClauses = append(setClauses, fmt.Sprintf("content_type = $%d", argNum))
+		args = append(args, *req.ContentType)
+		argNum++
+	}
+	if req.Status != nil {
+		setClauses = append(setClauses, fmt.Sprintf("status = $%d", argNum))
+		args = append(args, *req.Status)
+		argNum++
+	}
+	if req.Year != nil {
+		setClauses = append(setClauses, fmt.Sprintf("year = $%d", argNum))
+		args = append(args, *req.Year)
+		argNum++
+	}
+	if req.MaxEpisodes != nil {
+		setClauses = append(setClauses, fmt.Sprintf("max_episodes = $%d", argNum))
+		args = append(args, *req.MaxEpisodes)
+		argNum++
+	}
+	if req.Genre != nil {
+		setClauses = append(setClauses, fmt.Sprintf("genre = $%d", argNum))
+		args = append(args, *req.Genre)
+		argNum++
+	}
+	if req.Source != nil {
+		setClauses = append(setClauses, fmt.Sprintf("source = $%d", argNum))
+		args = append(args, *req.Source)
+		argNum++
+	}
+	if req.Description != nil {
+		setClauses = append(setClauses, fmt.Sprintf("description = $%d", argNum))
+		args = append(args, *req.Description)
+		argNum++
+	}
+	if req.CoverImage != nil {
+		setClauses = append(setClauses, fmt.Sprintf("cover_image = $%d", argNum))
+		args = append(args, *req.CoverImage)
+		argNum++
+	}
+	if req.FolderName != nil {
+		setClauses = append(setClauses, fmt.Sprintf("folder_name = $%d", argNum))
+		args = append(args, *req.FolderName)
+		argNum++
+	}
+	if req.SubComment != nil {
+		setClauses = append(setClauses, fmt.Sprintf("sub_comment = $%d", argNum))
+		args = append(args, *req.SubComment)
+		argNum++
+	}
+	if req.StreamComment != nil {
+		setClauses = append(setClauses, fmt.Sprintf("stream_comment = $%d", argNum))
+		args = append(args, *req.StreamComment)
+		argNum++
+	}
+	if req.IsSelfSubbed != nil {
+		setClauses = append(setClauses, fmt.Sprintf("is_self_subbed = $%d", argNum))
+		args = append(args, *req.IsSelfSubbed)
+		argNum++
+	}
+	if req.AnisearchID != nil {
+		setClauses = append(setClauses, fmt.Sprintf("anisearch_id = $%d", argNum))
+		args = append(args, *req.AnisearchID)
+		argNum++
+	}
+
+	if len(setClauses) == 0 {
+		// No fields to update, just return the existing anime
+		return r.GetByID(ctx, id)
+	}
+
+	// Always update updated_at
+	setClauses = append(setClauses, fmt.Sprintf("updated_at = $%d", argNum))
+	args = append(args, time.Now())
+	argNum++
+
+	// Add ID as the last argument
+	args = append(args, id)
+
+	query := fmt.Sprintf(`
+		UPDATE anime
+		SET %s
+		WHERE id = $%d
+	`, strings.Join(setClauses, ", "), argNum)
+
+	result, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("update anime: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return nil, ErrNotFound
+	}
+
+	return r.GetByID(ctx, id)
+}
+
+// Delete deletes an anime by ID
+func (r *AnimeRepository) Delete(ctx context.Context, id int64) error {
+	query := `DELETE FROM anime WHERE id = $1`
+
+	result, err := r.db.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("delete anime: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+
+	return nil
 }

@@ -84,3 +84,45 @@ type RelatedAnime struct {
 	CoverImage   *string `json:"cover_image,omitempty"`
 	RelationType string  `json:"relation_type"`
 }
+
+// CreateAnimeRequest represents the request body for creating an anime
+type CreateAnimeRequest struct {
+	Title         string  `json:"title" binding:"required,min=1,max=255"`
+	TitleDE       *string `json:"title_de" binding:"omitempty,max=255"`
+	TitleEN       *string `json:"title_en" binding:"omitempty,max=255"`
+	Type          string  `json:"type" binding:"required,oneof=tv film ova ona special bonus"`
+	ContentType   string  `json:"content_type" binding:"required,oneof=anime hentai"`
+	Status        string  `json:"status" binding:"required,oneof=ongoing done aborted licensed disabled"`
+	Year          *int16  `json:"year" binding:"omitempty,min=1900,max=2100"`
+	MaxEpisodes   int16   `json:"max_episodes" binding:"min=0"`
+	Genre         *string `json:"genre" binding:"omitempty,max=255"`
+	Source        *string `json:"source" binding:"omitempty,max=100"`
+	Description   *string `json:"description"`
+	CoverImage    *string `json:"cover_image" binding:"omitempty,max=512"`
+	FolderName    *string `json:"folder_name" binding:"omitempty,max=255"`
+	SubComment    *string `json:"sub_comment"`
+	StreamComment *string `json:"stream_comment"`
+	IsSelfSubbed  bool    `json:"is_self_subbed"`
+	AnisearchID   *string `json:"anisearch_id" binding:"omitempty,max=50"`
+}
+
+// UpdateAnimeRequest represents the request body for updating an anime
+type UpdateAnimeRequest struct {
+	Title         *string `json:"title" binding:"omitempty,min=1,max=255"`
+	TitleDE       *string `json:"title_de" binding:"omitempty,max=255"`
+	TitleEN       *string `json:"title_en" binding:"omitempty,max=255"`
+	Type          *string `json:"type" binding:"omitempty,oneof=tv film ova ona special bonus"`
+	ContentType   *string `json:"content_type" binding:"omitempty,oneof=anime hentai"`
+	Status        *string `json:"status" binding:"omitempty,oneof=ongoing done aborted licensed disabled"`
+	Year          *int16  `json:"year" binding:"omitempty,min=1900,max=2100"`
+	MaxEpisodes   *int16  `json:"max_episodes" binding:"omitempty,min=0"`
+	Genre         *string `json:"genre" binding:"omitempty,max=255"`
+	Source        *string `json:"source" binding:"omitempty,max=100"`
+	Description   *string `json:"description"`
+	CoverImage    *string `json:"cover_image" binding:"omitempty,max=512"`
+	FolderName    *string `json:"folder_name" binding:"omitempty,max=255"`
+	SubComment    *string `json:"sub_comment"`
+	StreamComment *string `json:"stream_comment"`
+	IsSelfSubbed  *bool   `json:"is_self_subbed"`
+	AnisearchID   *string `json:"anisearch_id" binding:"omitempty,max=50"`
+}

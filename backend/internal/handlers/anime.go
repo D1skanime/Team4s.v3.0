@@ -147,3 +147,78 @@ func (h *AnimeHandler) GetRelations(c *gin.Context) {
 
 	c.JSON(http.StatusOK, relations)
 }
+
+// ========== Admin CRUD handlers ==========
+
+// Create handles POST /api/v1/admin/anime
+func (h *AnimeHandler) Create(c *gin.Context) {
+	var req models.CreateAnimeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid request body",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	anime, err := h.repo.Create(c.Request.Context(), req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create anime"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"data": anime})
+}
+
+// Update handles PUT /api/v1/admin/anime/:id
+func (h *AnimeHandler) Update(c *gin.Context) {
+	// Parse ID
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	var req models.UpdateAnimeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid request body",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	anime, err := h.repo.Update(c.Request.Context(), id, req)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "anime not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update anime"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": anime})
+}
+
+// Delete handles DELETE /api/v1/admin/anime/:id
+func (h *AnimeHandler) Delete(c *gin.Context) {
+	// Parse ID
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	err = h.repo.Delete(c.Request.Context(), id)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "anime not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete anime"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "anime deleted successfully"})
+}

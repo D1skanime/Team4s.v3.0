@@ -22,6 +22,12 @@ import type {
   Comment,
   SendVerificationResponse,
   VerifyEmailResponse,
+  DashboardStats,
+  RecentActivityResponse,
+  Anime,
+  CreateAnimeRequest,
+  UpdateAnimeRequest,
+  AnimeResponse,
 } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090';
@@ -389,6 +395,58 @@ export async function deleteComment(
   });
 }
 
+// Admin API functions
+
+// Check if current user has admin access
+export async function checkAdminAccess(): Promise<boolean> {
+  try {
+    await fetchWithAuth<{ message: string }>('/api/v1/admin/ping');
+    return true;
+  } catch (error) {
+    if (error instanceof AuthError && (error.status === 403 || error.status === 401)) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+// Get dashboard statistics (admin only)
+export async function getDashboardStats(): Promise<DashboardStats> {
+  return fetchWithAuth<DashboardStats>('/api/v1/admin/dashboard/stats');
+}
+
+// Get recent activity (admin only)
+export async function getRecentActivity(limit: number = 10): Promise<RecentActivityResponse> {
+  return fetchWithAuth<RecentActivityResponse>(`/api/v1/admin/dashboard/activity?limit=${limit}`);
+}
+
+// Anime Management (admin only)
+
+// Create a new anime
+export async function createAnime(data: CreateAnimeRequest): Promise<Anime> {
+  const response = await fetchWithAuth<AnimeResponse>('/api/v1/admin/anime', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return response.data;
+}
+
+// Update an anime
+export async function updateAnime(id: number, data: UpdateAnimeRequest): Promise<Anime> {
+  const response = await fetchWithAuth<AnimeResponse>(`/api/v1/admin/anime/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  return response.data;
+}
+
+// Delete an anime
+export async function deleteAnime(id: number): Promise<void> {
+  await fetchWithAuth(`/api/v1/admin/anime/${id}`, {
+    method: 'DELETE',
+  });
+}
+
 // Auth client object for convenience
 export const authClient = {
   register,
@@ -425,6 +483,14 @@ export const authClient = {
   // Email verification functions
   sendVerificationEmail,
   verifyEmail,
+  // Admin functions
+  checkAdminAccess,
+  getDashboardStats,
+  getRecentActivity,
+  // Admin anime management
+  createAnime,
+  updateAnime,
+  deleteAnime,
 };
 
 export { AuthError };
