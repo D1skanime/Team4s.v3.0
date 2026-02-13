@@ -65,9 +65,14 @@ ALTER TABLE episodes ADD CONSTRAINT episodes_anime_id_fkey FOREIGN KEY (anime_id
 
 ### 1. Production Email Service Not Configured
 **Impact:** High | **Likelihood:** Certain (when going to production)
-**Added:** 2026-02-09
+**Added:** 2026-02-09 | **Updated:** 2026-02-13
 
 Console email service works for development but cannot send real emails in production.
+
+**Testing Update (2026-02-13):**
+- Email verification flow works correctly in dev (console logging)
+- Manual verification tested and working
+- No blocking issues for development
 
 **Affected Features:**
 - Email verification
@@ -180,6 +185,12 @@ Backend supports reply_to_id for threaded comments, but frontend shows comments 
 
 ## Resolved Risks
 
+### 2026-02-13
+- **Schema Completeness:** RESOLVED - All missing columns and tables added during QA testing
+- **Episode Data Availability:** RESOLVED - All 29,901 episodes successfully migrated to database
+- **Cover Display Bug:** RESOLVED - Fixed URL construction in CoverUpload component
+- **User Details Loading:** RESOLVED - Created missing tables and columns
+
 ### 2026-02-10
 - **P4 Content Management:** RESOLVED - All 3 features complete (Episode CRUD, Cover Upload, User Management)
 - **Cover Upload:** RESOLVED - Upload service with validation and CoverUpload component implemented
@@ -234,15 +245,80 @@ Backend supports reply_to_id for threaded comments, but frontend shows comments 
 
 ---
 
+## New Risks Identified (2026-02-13)
+
+### 7. Rate Limiting on Upload Endpoints Missing
+**Impact:** Medium | **Likelihood:** High
+**Added:** 2026-02-13
+
+Upload endpoints have no rate limiting, allowing rapid file uploads that could exhaust disk space.
+
+**Details:**
+- Identified in QA Report as M2
+- Only exploitable by authenticated admins (reduces risk)
+- Could cause disk space issues if abused
+
+**Mitigation:**
+- [ ] Add rate limiter to upload endpoints (10/minute)
+- [ ] Consider per-user upload quotas
+- [ ] Monitor disk space usage
+
+**Owner:** D1skanime | **Due:** 2026-02-14 (tomorrow)
+
+---
+
+### 8. Stream Link URL Validation Missing
+**Impact:** Medium | **Likelihood:** Medium
+**Added:** 2026-02-13
+
+Episode editor accepts any string as stream link, no URL validation.
+
+**Details:**
+- Identified in QA Report as M3
+- Invalid URLs can be saved to database
+- Poor data quality, potential XSS risk
+
+**Mitigation:**
+- [ ] Add URL validation in EpisodeEditor
+- [ ] Enforce https:// protocol
+- [ ] Add backend validation as well
+
+**Owner:** D1skanime | **Due:** 2026-02-14 (tomorrow)
+
+---
+
+### 9. Schema Drift Between Dev and Migrations
+**Impact:** High | **Likelihood:** Certain for fresh installs
+**Added:** 2026-02-13
+
+Development database has different structure than what migration files would create.
+
+**Details:**
+- Many ALTER TABLE statements applied directly to dev DB
+- Fresh production install will be missing columns
+- Schema documentation out of sync with reality
+
+**Mitigation:**
+- [ ] Create migration 008_add_missing_columns.sql
+- [ ] Test full migration on clean database
+- [ ] Verify production schema before deployment
+
+**Owner:** D1skanime | **Due:** Before production deployment
+
+---
+
 ## If Nothing Changes...
 **What will fail next week?**
 
 If we don't:
-1. **Configure production email** - Cannot deploy with email verification
-2. **Test all P4 features** - May have bugs in episode/user management
-3. **Implement stream links parser** - Episode detail incomplete
-4. **Test user migration** - Cannot restore legacy user accounts
+1. **Add rate limiting to uploads** - Admin could exhaust disk space
+2. **Create schema migration file** - Production install will fail or have wrong schema
+3. **Configure production email** - Cannot deploy with email verification
+4. **Validate stream link URLs** - Bad data will accumulate in database
 
-**Critical path for next week:** QA Testing -> Stream Links Parser -> Production Prep
+**Critical path for next week:** Security Fixes -> Schema Migration File -> Production Email -> Deploy
 
-P4 complete - MVP essentially done. Focus shifts to polish and production readiness.
+**Updated Assessment (2026-02-13):**
+- P4 QA Testing: COMPLETED - All features working
+- MVP Progress: 97% complete
+- Focus shifts to: Security hardening + Production preparation

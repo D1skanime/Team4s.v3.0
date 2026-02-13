@@ -22,7 +22,9 @@ export function CoverUpload({ currentCover, onUploadComplete, onError }: CoverUp
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const displayUrl = previewUrl || currentCover;
+  // Construct full URL for existing cover
+  const currentCoverUrl = currentCover ? `/covers/${currentCover}` : null;
+  const displayUrl = previewUrl || currentCoverUrl;
 
   const validateFile = useCallback((file: File): string | null => {
     if (!ALLOWED_TYPES.includes(file.type)) {

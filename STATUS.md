@@ -1,8 +1,8 @@
 # Team4s.v3.0 - Current Status
 
-**Last Updated:** 2026-02-10
-**Phase:** P4 COMPLETE - MVP Essentially Done
-**Overall Progress:** ~95%
+**Last Updated:** 2026-02-13
+**Phase:** P4 COMPLETE - QA Testing Done, Security Hardening Next
+**Overall Progress:** ~97%
 
 ---
 
@@ -204,10 +204,15 @@ cd frontend && npm run dev
 | Component | Status | Notes |
 |-----------|--------|-------|
 | PostgreSQL 16 | Running | Docker, Port 5432 |
-| Redis 7 | Running | Docker, Port 6379, Auth + Verification Tokens + Rate Limiting |
+| Redis 7 | Running | Docker, Port 16379 (Windows custom port) |
 | Go Backend | Running | Port 8090 |
-| Next.js Frontend | Running | Port 3001 |
+| Next.js Frontend | Running | Port 3001 (local npm dev) |
 | Adminer | Running | Port 8081 |
+
+### Recent Changes (2026-02-13)
+- Redis port changed to 16379 (Windows blocked 6379)
+- Frontend running local (not Docker) for faster development
+- Admin user created and verified (admin / admin123)
 
 ---
 
@@ -236,6 +241,9 @@ cd frontend && npm run dev
 5. **StarRating clipPath IDs** - Need unique IDs per instance
 6. **Production Email Service** - Console service only, need SendGrid/SES
 7. **Comment Threading Display** - Backend supports, frontend shows flat
+8. **Schema Migration 008** - Missing columns need migration file (added manually in dev)
+9. **Rate Limiting Missing** - Upload endpoints not protected
+10. **URL Validation Missing** - Stream links accept any string
 
 ---
 
@@ -245,14 +253,17 @@ cd frontend && npm run dev
 - **Password Migration:** WCF uses crypt-compatible hashes; bcrypt compatibility not tested
 - **Stream Links Parsing:** Legacy HTML needs parser for Episode Detail
 - **Production Email:** Console email service needs replacement for production
+- **Schema Drift:** Dev database differs from migration files (needs migration 008)
+- **Rate Limiting Missing:** Upload endpoints not protected from spam
+- **URL Validation Missing:** Stream links not validated before saving
 
 ---
 
 ## Top 3 Next Steps
 
-1. **QA Testing:** End-to-end testing of all P4 features
-2. **P5-1: Stream Links Parser** - Parse legacy HTML into structured data
-3. **P5-2: Comment Threading** - Nested comment display in frontend
+1. **Security Fixes:** Rate limiting on uploads, stream link validation, duplicate episode check
+2. **Schema Migration:** Create migration file for schema changes, test on clean DB
+3. **Production Prep:** Document environment variables, choose email service, deployment checklist
 
 ---
 

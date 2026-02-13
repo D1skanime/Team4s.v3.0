@@ -4,9 +4,9 @@
 Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stack to a modern Go + Next.js + PostgreSQL architecture.
 
 ## Current Phase
-**Phase:** P4 COMPLETE - MVP Essentially Done
+**Phase:** P4 COMPLETE - QA Testing Done, Security Hardening Next
 **Started:** 2026-02-02
-**Status:** P0 + P1 + P2 + P3 + P4 complete, ready for P5 enhancements or production prep
+**Status:** P0 + P1 + P2 + P3 + P4 complete and tested, 97% MVP, ready for security fixes and production prep
 
 ## Project State
 
@@ -58,7 +58,10 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - [x] **P4-3 User Management** (List/Update/Delete users, role management, admin/users page)
 
 ### In Progress
-- [ ] Final QA and testing of all features
+- [x] Final QA and testing of all features - COMPLETED 2026-02-13
+- [ ] Security hardening (rate limiting, validation)
+- [ ] Schema migration file creation
+- [ ] Production deployment preparation
 
 ### Optional / Future (P5)
 - [ ] Stream Links Parser (parse legacy HTML format)
@@ -118,6 +121,26 @@ Modernization of the Team4s Anime Portal from legacy WoltLab WBB4/WCF + PHP stac
 - Database queries must use parameterized statements (no SQL injection)
 
 ## Session History
+
+### Day 2026-02-13 (QA Testing Session)
+- Phase: P4 QA COMPLETE
+- Accomplishments:
+  - Systematic testing of Episode Management, Cover Upload, User Management
+  - Fixed 4 High severity bugs (missing DB columns/tables, data migration)
+  - Fixed 1 Medium severity bug (cover display URL construction)
+  - Documented 7 additional bugs for future fixes
+  - All P4 features now fully functional with real data
+  - Setup fixes: Redis port 16379, admin user verified, frontend local
+- Key Decisions:
+  - ADR-036: Cover storage in frontend/public/covers/ (static serving)
+  - ADR-037: ALTER TABLE for schema fixes (preserve data)
+  - ADR-038: Manual email verification for dev testing
+- Risks/Unknowns:
+  - Rate limiting missing on upload endpoints
+  - Stream link URL validation missing
+  - Schema drift (dev DB differs from migrations)
+- Next Steps: Security fixes (rate limiting, validation), schema migration file
+- First task tomorrow: Implement rate limiting for upload endpoint
 
 ### Day 2026-02-10 (P4 COMPLETE)
 - Phase: P4 COMPLETE

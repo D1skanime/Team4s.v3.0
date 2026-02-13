@@ -1639,6 +1639,164 @@ func (s *UploadService) GenerateFilename(ext string) string {
 
 ---
 
+## ADR-036: Cover Storage Strategy
+**Date:** 2026-02-13
+**Status:** Accepted
+
+### Context
+Need to decide where cover images are stored and how they're served to frontend.
+
+### Options Considered
+1. **Backend Storage + Proxy** - Backend stores and serves via /api/v1/covers/:filename
+2. **Frontend Public Folder** - Backend saves to frontend/public/covers/, static serving
+3. **External CDN** - Upload to S3/Cloudinary, serve from CDN
+
+### Decision
+**Frontend public folder with static file serving**
+
+### Why This Option Won
+- Next.js automatically serves /public as static files
+- No backend proxy needed (faster, less resource usage)
+- Simple URL structure: /covers/filename
+- CDN-friendly (can add CloudFront later)
+- Works with UUID filenames (ADR-035)
+
+### Implementation
+```typescript
+// Upload: Backend saves to filesystem
+uploadDir := "frontend/public/covers/"
+filePath := uploadDir + uuid + ext
+
+// Display: Frontend uses /covers path
+<img src={`/covers/${filename}`} />
+```
+
+### Consequences
+**Good:**
+- Fast static serving
+- Simple URLs
+- CDN-ready
+- No backend load for image serving
+
+**Bad:**
+- Binary files in frontend repo (mitigated with .gitignore)
+- Backend needs write access to frontend folder
+- Not ideal for multi-server deployments (use CDN in that case)
+
+### Follow-ups
+- [ ] Add CDN configuration for production
+- [ ] Implement cleanup job for orphaned covers
+
+---
+
+## ADR-037: Database Schema Completion Strategy
+**Date:** 2026-02-13
+**Status:** Accepted
+
+### Context
+During QA testing, discovered that database schema was incomplete. Several columns expected by backend code were missing from tables.
+
+### Problem
+- Episode list showed only 2 episodes instead of 30,179
+- User details returned 500 error
+- Backend code expected columns that didn't exist
+
+### Options Considered
+1. **ALTER TABLE** - Add missing columns to existing tables
+2. **DROP + RECREATE** - Drop all tables, recreate with complete schema, re-import data
+3. **New Migration** - Create migration file with ALTER statements
+
+### Decision
+**ALTER TABLE for immediate fix, create migration file for production**
+
+### Why This Option Won
+- Preserves existing data (no need to re-import 30K episodes)
+- Fast execution (seconds vs. hours for re-import)
+- Easy to track changes
+- Can create proper migration file later
+
+### Implementation
+```sql
+-- Applied directly to dev database
+ALTER TABLE episodes ADD COLUMN filename VARCHAR(255);
+ALTER TABLE episodes ADD COLUMN stream_links TEXT;
+ALTER TABLE episodes ADD COLUMN raw_proc INT NOT NULL DEFAULT 0;
+-- ... (10+ more columns)
+
+ALTER TABLE anime ADD COLUMN anisearch_id VARCHAR(50);
+ALTER TABLE anime ADD COLUMN source VARCHAR(100);
+-- ... (7 more columns)
+
+ALTER TABLE comments ADD COLUMN user_id BIGINT;
+```
+
+### Consequences
+**Good:**
+- No data loss
+- Quick resolution
+- All features now working
+
+**Bad:**
+- Schema drift (dev DB differs from what migrations create)
+- Must document changes for production
+- Need to test fresh install
+
+### Follow-ups
+- [x] Apply ALTER statements to dev database
+- [ ] Create migration file 008_add_missing_columns.sql
+- [ ] Test full migration on clean database
+- [ ] Verify production schema matches dev
+
+---
+
+## ADR-038: Email Verification Testing Strategy (Dev)
+**Date:** 2026-02-13
+**Status:** Accepted
+
+### Context
+Email verification implemented but no real email service in dev environment (console logging only).
+
+### Options Considered
+1. **Configure SendGrid immediately** - Set up real email service for dev
+2. **Use MailHog** - Local SMTP server for testing
+3. **Manual DB update** - Set email_verified=true directly in database
+4. **Auto-verify in dev** - All new users automatically verified in development
+
+### Decision
+**Manual database update for testing**
+
+### Why This Option Won
+- Fastest for QA testing
+- No external dependencies
+- No configuration needed
+- Same as production behavior (verified users work the same)
+- Doesn't hide verification bugs
+
+### Implementation
+```sql
+-- Verify test users manually
+UPDATE users SET email_verified = true WHERE username = 'admin';
+```
+
+### Consequences
+**Good:**
+- Fast testing workflow
+- No email service setup needed
+- Tests actual verified user behavior
+- Simple and reliable
+
+**Bad:**
+- Doesn't test email sending flow
+- Manual step required for each test user
+- Different from production (production sends real emails)
+
+### Follow-ups
+- [ ] Configure SendGrid for staging environment
+- [ ] Test actual email delivery before production
+- [ ] Document email service setup in production docs
+
+---
+
 ## Pending Decisions
 
 ### Database Migration Tool
