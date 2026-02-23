@@ -1,0 +1,381 @@
+feature: fansub-management
+endpoints:
+  - name: fansub-list
+    method: GET
+    path: /api/v1/fansubs
+    query_params:
+      - name: q
+        type: string
+        description: Optional substring filter on name and slug.
+      - name: status
+        type: string
+        enum: [active, inactive, dissolved]
+      - name: page
+        type: int32
+        default: 1
+      - name: per_page
+        type: int32
+        default: 24
+        maximum: 100
+    response:
+      status: 200
+      type: FansubGroupListResponse
+
+  - name: fansub-create
+    method: POST
+    path: /api/v1/fansubs
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    request_body:
+      required: true
+      type: FansubGroupCreateRequest
+    response:
+      status: 201
+      type: FansubGroupResponse
+
+  - name: fansub-get-by-id
+    method: GET
+    path: /api/v1/fansubs/:id
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: FansubGroupResponse
+
+  - name: fansub-get-by-slug
+    method: GET
+    path: /api/v1/fansub-slugs/:slug
+    path_params:
+      - name: slug
+        type: string
+        minimum_length: 1
+        maximum_length: 120
+    response:
+      status: 200
+      type: FansubGroupResponse
+
+  - name: fansub-update
+    method: PATCH
+    path: /api/v1/fansubs/:id
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: FansubGroupPatchRequest
+    response:
+      status: 200
+      type: FansubGroupResponse
+
+  - name: fansub-delete
+    method: DELETE
+    path: /api/v1/fansubs/:id
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 204
+      type: none
+
+  - name: fansub-members-list
+    method: GET
+    path: /api/v1/fansubs/:id/members
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: FansubMemberListResponse
+
+  - name: fansub-members-create
+    method: POST
+    path: /api/v1/fansubs/:id/members
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: FansubMemberCreateRequest
+    response:
+      status: 201
+      type: FansubMemberResponse
+
+  - name: fansub-members-update
+    method: PATCH
+    path: /api/v1/fansubs/:id/members/:memberId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: memberId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: FansubMemberPatchRequest
+    response:
+      status: 200
+      type: FansubMemberResponse
+
+  - name: fansub-members-delete
+    method: DELETE
+    path: /api/v1/fansubs/:id/members/:memberId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: memberId
+        type: int64
+        minimum: 1
+    response:
+      status: 204
+      type: none
+
+  - name: anime-fansub-list
+    method: GET
+    path: /api/v1/anime/:animeId/fansubs
+    path_params:
+      - name: animeId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: AnimeFansubListResponse
+
+  - name: anime-fansub-attach
+    method: POST
+    path: /api/v1/anime/:animeId/fansubs/:fansubId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: animeId
+        type: int64
+        minimum: 1
+      - name: fansubId
+        type: int64
+        minimum: 1
+    request_body:
+      required: false
+      type: AnimeFansubAttachRequest
+    response:
+      status: 201
+      type: AnimeFansubResponse
+
+  - name: anime-fansub-detach
+    method: DELETE
+    path: /api/v1/anime/:animeId/fansubs/:fansubId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: animeId
+        type: int64
+        minimum: 1
+      - name: fansubId
+        type: int64
+        minimum: 1
+    response:
+      status: 204
+      type: none
+
+types:
+  FansubStatus:
+    enum: [active, inactive, dissolved]
+  FansubGroupListResponse:
+    data: FansubGroup[]
+    meta: PaginationMeta
+  FansubGroupResponse:
+    data: FansubGroup
+  FansubMemberListResponse:
+    data: FansubMember[]
+  FansubMemberResponse:
+    data: FansubMember
+  AnimeFansubListResponse:
+    data: AnimeFansub[]
+  AnimeFansubResponse:
+    data: AnimeFansub
+  FansubGroupCreateRequest:
+    slug: string (required, min: 1, max: 120)
+    name: string (required, min: 1, max: 120)
+    description: string | null
+    history: string | null
+    logo_url: string | null
+    banner_url: string | null
+    founded_year: int32 | null
+    dissolved_year: int32 | null
+    status: FansubStatus (required)
+    website_url: string | null
+    discord_url: string | null
+    irc_url: string | null
+    country: string | null
+  FansubGroupPatchRequest:
+    slug: string (optional, min: 1, max: 120)
+    name: string (optional, min: 1, max: 120)
+    description: string | null
+    history: string | null
+    logo_url: string | null
+    banner_url: string | null
+    founded_year: int32 | null
+    dissolved_year: int32 | null
+    status: FansubStatus (optional)
+    website_url: string | null
+    discord_url: string | null
+    irc_url: string | null
+    country: string | null
+  FansubMemberCreateRequest:
+    handle: string (required, min: 1, max: 120)
+    role: string (required, min: 1, max: 60)
+    since_year: int32 | null
+    until_year: int32 | null
+    notes: string | null
+  FansubMemberPatchRequest:
+    handle: string (optional, min: 1, max: 120)
+    role: string (optional, min: 1, max: 60)
+    since_year: int32 | null
+    until_year: int32 | null
+    notes: string | null
+  AnimeFansubAttachRequest:
+    is_primary: bool
+    notes: string | null
+  FansubGroup:
+    id: int64
+    slug: string
+    name: string
+    description: string | null
+    history: string | null
+    logo_url: string | null
+    banner_url: string | null
+    founded_year: int32 | null
+    dissolved_year: int32 | null
+    status: FansubStatus
+    website_url: string | null
+    discord_url: string | null
+    irc_url: string | null
+    country: string | null
+    created_at: datetime
+    updated_at: datetime
+  FansubMember:
+    id: int64
+    fansub_group_id: int64
+    handle: string
+    role: string
+    since_year: int32 | null
+    until_year: int32 | null
+    notes: string | null
+    created_at: datetime
+    updated_at: datetime
+  AnimeFansub:
+    anime_id: int64
+    fansub_group_id: int64
+    is_primary: bool
+    notes: string | null
+    created_at: datetime
+    fansub_group: FansubGroup
+  PaginationMeta:
+    total: int64
+    page: int32
+    per_page: int32
+    total_pages: int32

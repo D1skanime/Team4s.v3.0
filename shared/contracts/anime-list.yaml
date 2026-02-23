@@ -1,0 +1,70 @@
+feature: anime-list
+endpoint:
+  method: GET
+  path: /api/v1/anime
+query_params:
+  - name: page
+    type: integer
+    default: 1
+    minimum: 1
+  - name: per_page
+    type: integer
+    default: 24
+    minimum: 1
+    maximum: 100
+  - name: q
+    type: string
+    description: "Suchstring (substring match), optional"
+  - name: letter
+    type: string
+    description: "A-Z, '0' fuer Zahlen, leer fuer alle"
+  - name: content_type
+    type: string
+    enum: [anime, hentai]
+  - name: status
+    type: string
+    enum: [disabled, ongoing, done, aborted, licensed]
+    description: "Optional; disabled wird nur zusammen mit include_disabled=true geliefert."
+  - name: fansub_id
+    type: integer
+    minimum: 1
+    description: "Optional: filtert nur Anime mit Zuordnung zur angegebenen Fansubgruppe."
+  - name: include_disabled
+    type: boolean
+    description: "Optional: true erlaubt disabled Datensaetze in Liste/Filtern; default false."
+  - name: has_cover
+    type: boolean
+    description: "Optional: true = nur mit cover_image, false = nur ohne cover_image"
+response:
+  type: PaginatedResponse<AnimeListItem>
+  example:
+    data:
+      - id: 1
+        title: "Attack on Titan"
+        type: "tv"
+        status: "done"
+        year: 2013
+        cover_image: "attack-on-titan.jpg"
+        max_episodes: 25
+    meta:
+      total: 13326
+      page: 1
+      per_page: 24
+      total_pages: 556
+
+types:
+  AnimeListItem:
+    id: int64
+    title: string
+    type: anime_type
+    status: anime_status
+    year: int16 | null
+    cover_image: string | null
+    max_episodes: int16 | null
+  PaginatedResponse:
+    data: AnimeListItem[]
+    meta:
+      total: int64
+      page: int
+      per_page: int
+      total_pages: int

@@ -1,0 +1,238 @@
+feature: episode-versioning
+endpoints:
+  - name: grouped-episodes-list
+    method: GET
+    path: /api/v1/anime/:animeId/episodes
+    path_params:
+      - name: animeId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: GroupedEpisodesResponse
+
+  - name: episode-version-get
+    method: GET
+    path: /api/v1/episode-versions/:versionId
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: EpisodeVersionResponse
+
+  - name: episode-version-create
+    method: POST
+    path: /api/v1/anime/:animeId/episodes/:episodeNumber/versions
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: animeId
+        type: int64
+        minimum: 1
+      - name: episodeNumber
+        type: int32
+        minimum: 1
+    request_body:
+      required: true
+      type: EpisodeVersionCreateRequest
+    response:
+      status: 201
+      type: EpisodeVersionResponse
+
+  - name: episode-version-update
+    method: PATCH
+    path: /api/v1/episode-versions/:versionId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: EpisodeVersionPatchRequest
+    response:
+      status: 200
+      type: EpisodeVersionResponse
+
+  - name: episode-version-delete
+    method: DELETE
+    path: /api/v1/episode-versions/:versionId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    response:
+      status: 204
+      type: none
+
+  - name: release-stream-proxy
+    method: POST
+    path: /api/v1/releases/:id/grant
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 201
+      type: ReleaseStreamGrantResponse
+
+  - name: release-stream-proxy
+    method: GET
+    path: /api/v1/releases/:id/stream
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    query_params:
+      - name: grant
+        type: string
+        description: Optional short-lived signed stream grant token (required when Authorization header is not provided).
+    response:
+      status: 200
+      type: binary-stream
+
+  - name: media-image-proxy
+    method: GET
+    path: /api/v1/media/image
+    query_params:
+      - name: provider
+        type: string
+      - name: item_id
+        type: string
+      - name: kind
+        type: string
+        enum: [primary, backdrop, logo, thumb]
+      - name: width
+        type: int32
+      - name: quality
+        type: int32
+      - name: index
+        type: int32
+        minimum: 0
+        description: Optional backdrop index for Jellyfin multi-fanart rotation (fanart, fanart1...).
+    response:
+      status: 200
+      type: binary-image
+
+  - name: media-video-proxy
+    method: GET
+    path: /api/v1/media/video
+    query_params:
+      - name: provider
+        type: string
+      - name: item_id
+        type: string
+    response:
+      status: 200
+      type: binary-stream
+
+types:
+  SubtitleType:
+    enum: [hardsub, softsub]
+  GroupedEpisodesResponse:
+    anime_id: int64
+    episodes: GroupedEpisode[]
+  EpisodeVersionResponse:
+    data: EpisodeVersion
+  ReleaseStreamGrantResponse:
+    data: ReleaseStreamGrant
+  GroupedEpisode:
+    episode_number: int32
+    episode_title: string | null
+    default_version_id: int64 | null
+    version_count: int32
+    versions: EpisodeVersion[]
+  EpisodeVersion:
+    id: int64
+    anime_id: int64
+    episode_number: int32
+    title: string | null
+    fansub_group: FansubGroupShort | null
+    media_provider: string
+    media_item_id: string
+    video_quality: string | null
+    subtitle_type: SubtitleType | null
+    release_date: datetime | null
+    stream_url: string | null
+    created_at: datetime
+    updated_at: datetime
+  ReleaseStreamGrant:
+    release_id: int64
+    grant_token: string
+    expires_at: int64
+    ttl_seconds: int64
+    issued_for: int64
+  EpisodeVersionCreateRequest:
+    title: string | null
+    fansub_group_id: int64 | null
+    media_provider: string (required, min: 1, max: 30)
+    media_item_id: string (required, min: 1, max: 120)
+    video_quality: string | null
+    subtitle_type: SubtitleType | null
+    release_date: datetime | null
+    stream_url: string | null
+  EpisodeVersionPatchRequest:
+    title: string | null
+    fansub_group_id: int64 | null
+    media_provider: string (optional, min: 1, max: 30)
+    media_item_id: string (optional, min: 1, max: 120)
+    video_quality: string | null
+    subtitle_type: SubtitleType | null
+    release_date: datetime | null
+    stream_url: string | null
+  FansubGroupShort:
+    id: int64
+    slug: string
+    name: string
+    logo_url: string | null

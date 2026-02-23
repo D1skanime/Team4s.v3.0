@@ -1,0 +1,36 @@
+.page {
+  /* Desktop-first: use more horizontal space (FullHD etc.) while keeping a safe gutter. */
+  width: min(1680px, 100% - 2rem);
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.kicker {
+  margin: 0;
+  color: var(--accent-soft);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.title {
+  margin: 0.25rem 0 0;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+.subtitle {
+  margin: 0.4rem 0 0;
+  color: var(--text-secondary);
+}
+
+.errorBox {
+  border: 1px solid color-mix(in srgb, var(--status-aborted) 60%, transparent);
+  background: color-mix(in srgb, var(--status-aborted) 12%, var(--bg-card));
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}

@@ -1,0 +1,4554 @@
+openapi: 3.0.3
+info:
+  title: Team4s v3 API
+  version: 0.1.0
+  description: |
+    Baseline OpenAPI contract for current endpoints, including admin content-management routes.
+  license:
+    name: Proprietary
+    url: https://team4s.dev/license
+servers:
+  - url: /
+    description: Relative API base
+tags:
+  - name: Health
+    description: Service health and availability checks.
+  - name: Auth
+    description: Access token lifecycle endpoints.
+  - name: Anime
+    description: Anime listing and detail endpoints.
+  - name: Comments
+    description: Anime comment endpoints.
+  - name: Watchlist
+    description: User watchlist endpoints.
+  - name: Episodes
+    description: Episode detail endpoints.
+  - name: Fansubs
+    description: Fansub groups, members, and anime relation endpoints.
+  - name: Releases
+    description: Proxy endpoints for episode release streaming and media images.
+  - name: Admin
+    description: Admin content management endpoints (P2).
+security: []
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: Service is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/issue:
+    post:
+      tags: [Auth]
+      summary: Issue access and refresh token pair
+      description: |
+        Trusted identity source contract:
+        - Non-dev deployments: `Authorization: Bearer <signed token>` is required.
+        - Local development only: server-side fallback identity may be used when `AUTH_ISSUE_DEV_MODE=true`.
+        - `X-Auth-Issue-Key` is only evaluated for the dev fallback path when `AUTH_ISSUE_DEV_KEY` is configured.
+      operationId: issueAuthToken
+      parameters:
+        - in: header
+          name: Authorization
+          required: false
+          schema:
+            type: string
+          description: |
+            Trusted identity source for non-dev deployments (`Bearer <signed token>` required outside local dev fallback mode).
+        - in: header
+          name: X-Auth-Issue-Key
+          required: false
+          schema:
+            type: string
+          description: Optional local dev fallback gate key; ignored unless `AUTH_ISSUE_DEV_MODE=true` and `AUTH_ISSUE_DEV_KEY` is configured.
+      responses:
+        "201":
+          description: Issued access and refresh token pair
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokenResponse"
+        "401":
+          description: Missing trusted identity source for active profile or invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                required:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access and refresh token pair
+      operationId: refreshAuthToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRefreshRequest"
+            examples:
+              default:
+                value:
+                  refresh_token: <refresh-token>
+      responses:
+        "200":
+          description: Rotated access and refresh token pair
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokenResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidBody:
+                  value:
+                    error:
+                      message: ungueltiger request body
+                missingRefreshToken:
+                  value:
+                    error:
+                      message: refresh_token ist erforderlich
+        "401":
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidRefreshToken:
+                  value:
+                    error:
+                      message: ungueltiges refresh-token
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/revoke:
+    post:
+      tags: [Auth]
+      summary: Revoke active access token and session
+      operationId: revokeAuthToken
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRevokeRequest"
+            examples:
+              default:
+                value:
+                  refresh_token: <refresh-token>
+      responses:
+        "204":
+          description: Session revoked
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidBody:
+                  value:
+                    error:
+                      message: ungueltiger request body
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime:
+    get:
+      tags: [Anime]
+      summary: List anime
+      operationId: listAnime
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 24
+        - name: q
+          in: query
+          description: Search string (substring match) applied to title fields.
+          schema:
+            type: string
+            maxLength: 100
+            example: attack
+        - name: letter
+          in: query
+          description: Uppercase A-Z, "0" for numeric titles, or omitted for all.
+          schema:
+            type: string
+            pattern: '^[A-Z0]|$'
+            example: A
+        - name: content_type
+          in: query
+          schema:
+            $ref: "#/components/schemas/ContentType"
+        - name: status
+          in: query
+          description: Optional status filter. "disabled" values are only returned when include_disabled=true.
+          schema:
+            $ref: "#/components/schemas/AnimeStatus"
+        - name: fansub_id
+          in: query
+          description: Optional filter for anime that are linked to a specific fansub group.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: include_disabled
+          in: query
+          description: Include disabled/preseed anime rows in responses. Default false.
+          schema:
+            type: boolean
+            default: false
+        - name: has_cover
+          in: query
+          description: Optional filter for cover_image presence. true = only records with cover_image, false = only records without cover_image.
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Paginated anime list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedAnimeResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidPage:
+                  value:
+                    error:
+                      message: ungueltiger page parameter
+                invalidQuery:
+                  value:
+                    error:
+                      message: ungueltiger q parameter
+                invalidFansubID:
+                  value:
+                    error:
+                      message: ungueltiger fansub_id parameter
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{id}:
+    get:
+      tags: [Anime]
+      summary: Get anime detail
+      operationId: getAnimeById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: include_disabled
+          in: query
+          description: Include disabled/preseed anime rows in detail lookup. Default false.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Anime detail payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnimeDetailResponse"
+        "400":
+          description: Invalid anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidId:
+                  value:
+                    error:
+                      message: ungueltige anime id
+        "404":
+          description: Anime not found or disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: anime nicht gefunden
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{id}/backdrops:
+    get:
+      tags: [Anime]
+      summary: Resolve Jellyfin backdrop and theme-video candidates for anime detail background
+      operationId: listAnimeBackdrops
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Backdrop and theme-video candidate URLs (can be empty)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnimeBackdropResponse"
+        "400":
+          description: Invalid anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidId:
+                  value:
+                    error:
+                      message: ungueltige anime id
+        "404":
+          description: Anime not found or disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: anime nicht gefunden
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{id}/comments:
+    get:
+      tags: [Comments]
+      summary: List comments for anime
+      operationId: listAnimeComments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Paginated comment list for anime
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedCommentResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidId:
+                  value:
+                    error:
+                      message: ungueltige anime id
+                invalidPage:
+                  value:
+                    error:
+                      message: ungueltiger page parameter
+                invalidPerPage:
+                  value:
+                    error:
+                      message: ungueltiger per_page parameter
+        "404":
+          description: Anime not found or disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: anime nicht gefunden
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Comments]
+      summary: Create comment for anime
+      operationId: createAnimeComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentCreateRequest"
+            examples:
+              default:
+                value:
+                  content: Danke fuer den Release!
+      responses:
+        "201":
+          description: Created comment payload
+          headers:
+            X-Comment-RateLimit-Degraded:
+              description: Present with `true` when rate limit store is unavailable and limiter runs in degraded mode.
+              schema:
+                type: string
+                enum: ["true"]
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentCreateResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidId:
+                  value:
+                    error:
+                      message: ungueltige anime id
+                invalidBody:
+                  value:
+                    error:
+                      message: ungueltiger request body
+                missingContent:
+                  value:
+                    error:
+                      message: content ist erforderlich
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "404":
+          description: Anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: anime nicht gefunden
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "429":
+          description: Rate limit exceeded for comment creation
+          headers:
+            Retry-After:
+              description: Seconds until the next comment create request is allowed.
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                rateLimitExceeded:
+                  value:
+                    error:
+                      message: zu viele anfragen, bitte spaeter erneut versuchen
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/watchlist:
+    get:
+      tags: [Watchlist]
+      summary: List watchlist entries
+      operationId: listWatchlist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Paginated watchlist entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedWatchlistResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidPage:
+                  value:
+                    error:
+                      message: ungueltiger page parameter
+                invalidPerPage:
+                  value:
+                    error:
+                      message: ungueltiger per_page parameter
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Watchlist]
+      summary: Add anime to watchlist
+      operationId: createWatchlistEntry
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WatchlistCreateRequest"
+            examples:
+              default:
+                value:
+                  anime_id: 1
+      responses:
+        "201":
+          description: Created watchlist entry payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistCreateResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidBody:
+                  value:
+                    error:
+                      message: ungueltiger request body
+                invalidAnimeID:
+                  value:
+                    error:
+                      message: anime_id ist erforderlich
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "404":
+          description: Anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: anime nicht gefunden
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/watchlist/{anime_id}:
+    get:
+      tags: [Watchlist]
+      summary: Get watchlist entry for anime
+      operationId: getWatchlistEntry
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: anime_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Watchlist entry payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistCreateResponse"
+        "400":
+          description: Invalid anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidAnimeID:
+                  value:
+                    error:
+                      message: ungueltige anime id
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "404":
+          description: Watchlist entry not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: watchlist-eintrag nicht gefunden
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Watchlist]
+      summary: Remove anime from watchlist
+      operationId: deleteWatchlistEntry
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: anime_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "204":
+          description: Watchlist entry deleted
+        "400":
+          description: Invalid anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidAnimeID:
+                  value:
+                    error:
+                      message: ungueltige anime id
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "404":
+          description: Watchlist entry not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: watchlist-eintrag nicht gefunden
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime:
+    post:
+      tags: [Admin]
+      summary: Create anime entry
+      operationId: adminCreateAnime
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAnimeCreateRequest"
+      responses:
+        "201":
+          description: Created anime payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAnimeUpsertResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidBody:
+                  value:
+                    error:
+                      message: ungueltiger request body
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                forbidden:
+                  value:
+                    error:
+                      message: keine berechtigung
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime/{id}:
+    patch:
+      tags: [Admin]
+      summary: Update anime entry
+      operationId: adminUpdateAnime
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAnimePatchRequest"
+      responses:
+        "200":
+          description: Updated anime payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAnimeUpsertResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidId:
+                  value:
+                    error:
+                      message: ungueltige anime id
+                invalidBody:
+                  value:
+                    error:
+                      message: ungueltiger request body
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                forbidden:
+                  value:
+                    error:
+                      message: keine berechtigung
+        "404":
+          description: Anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: anime nicht gefunden
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime/{id}/jellyfin/sync:
+    post:
+      tags: [Admin]
+      summary: Sync anime episodes and versions from Jellyfin
+      operationId: adminSyncAnimeFromJellyfin
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAnimeJellyfinSyncRequest"
+      responses:
+        "200":
+          description: Jellyfin sync result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAnimeJellyfinSyncResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidId:
+                  value:
+                    error:
+                      message: ungueltige anime id
+                invalidSeason:
+                  value:
+                    error:
+                      message: ungueltiger season_number parameter
+                invalidEpisodeStatus:
+                  value:
+                    error:
+                      message: ungueltiger episode_status parameter
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                forbidden:
+                  value:
+                    error:
+                      message: keine berechtigung
+        "404":
+          description: Anime or Jellyfin series not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                animeNotFound:
+                  value:
+                    error:
+                      message: anime nicht gefunden
+                seriesNotFound:
+                  value:
+                    error:
+                      message: jellyfin serie nicht gefunden
+        "409":
+          description: Ambiguous Jellyfin series search result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                ambiguous:
+                  value:
+                    error:
+                      message: mehrere jellyfin serien gefunden, bitte jellyfin_series_id angeben
+        "502":
+          description: Jellyfin upstream request failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                jellyfinListFailed:
+                  value:
+                    error:
+                      message: jellyfin episoden konnten nicht geladen werden
+        "503":
+          description: Auth state unavailable or Jellyfin configuration missing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+                jellyfinNotConfigured:
+                  value:
+                    error:
+                      message: jellyfin ist nicht konfiguriert
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/jellyfin/series:
+    get:
+      tags: [Admin]
+      summary: Search Jellyfin series candidates for manual selection
+      operationId: adminSearchJellyfinSeries
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+      responses:
+        "200":
+          description: Jellyfin series search result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminJellyfinSeriesSearchResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingQuery:
+                  value:
+                    error:
+                      message: q ist erforderlich
+                invalidQuery:
+                  value:
+                    error:
+                      message: ungueltiger q parameter
+                invalidLimit:
+                  value:
+                    error:
+                      message: ungueltiger limit parameter
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                forbidden:
+                  value:
+                    error:
+                      message: keine berechtigung
+        "502":
+          description: Jellyfin upstream request failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                jellyfinSearchFailed:
+                  value:
+                    error:
+                      message: jellyfin serien konnten nicht gesucht werden
+        "503":
+          description: Auth state unavailable or Jellyfin configuration missing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+                jellyfinNotConfigured:
+                  value:
+                    error:
+                      message: jellyfin ist nicht konfiguriert
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime/{id}/jellyfin/preview:
+    post:
+      tags: [Admin]
+      summary: Preview Jellyfin sync payload for selected series without writing to DB
+      operationId: adminPreviewAnimeFromJellyfin
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAnimeJellyfinSyncRequest"
+      responses:
+        "200":
+          description: Jellyfin preview result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAnimeJellyfinPreviewResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidId:
+                  value:
+                    error:
+                      message: ungueltige anime id
+                invalidSeason:
+                  value:
+                    error:
+                      message: ungueltiger season_number parameter
+                invalidEpisodeStatus:
+                  value:
+                    error:
+                      message: ungueltiger episode_status parameter
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                forbidden:
+                  value:
+                    error:
+                      message: keine berechtigung
+        "404":
+          description: Anime or Jellyfin series not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                animeNotFound:
+                  value:
+                    error:
+                      message: anime nicht gefunden
+                seriesNotFound:
+                  value:
+                    error:
+                      message: jellyfin serie nicht gefunden
+        "409":
+          description: Ambiguous Jellyfin series search result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                ambiguous:
+                  value:
+                    error:
+                      message: mehrere jellyfin serien gefunden, bitte jellyfin_series_id angeben
+        "502":
+          description: Jellyfin upstream request failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                jellyfinListFailed:
+                  value:
+                    error:
+                      message: jellyfin episoden konnten nicht geladen werden
+        "503":
+          description: Auth state unavailable or Jellyfin configuration missing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+                jellyfinNotConfigured:
+                  value:
+                    error:
+                      message: jellyfin ist nicht konfiguriert
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/episodes:
+    post:
+      tags: [Admin]
+      summary: Create episode entry
+      operationId: adminCreateEpisode
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminEpisodeCreateRequest"
+      responses:
+        "201":
+          description: Created episode payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminEpisodeUpsertResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidBody:
+                  value:
+                    error:
+                      message: ungueltiger request body
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                forbidden:
+                  value:
+                    error:
+                      message: keine berechtigung
+        "404":
+          description: Anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: anime nicht gefunden
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/genres:
+    get:
+      tags: [Admin]
+      summary: List genre tokens
+      operationId: adminListGenres
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          description: Optional substring filter.
+          schema:
+            type: string
+            maxLength: 100
+            example: kom
+        - name: limit
+          in: query
+          description: Max number of tokens to return (default 200, max 1000).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 200
+      responses:
+        "200":
+          description: List of genre tokens (split by commas, sorted by count desc).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenreTokenListResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/episodes/{id}:
+    patch:
+      tags: [Admin]
+      summary: Update episode entry
+      operationId: adminUpdateEpisode
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminEpisodePatchRequest"
+      responses:
+        "200":
+          description: Updated episode payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminEpisodeUpsertResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidId:
+                  value:
+                    error:
+                      message: ungueltige episode id
+                invalidBody:
+                  value:
+                    error:
+                      message: ungueltiger request body
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                forbidden:
+                  value:
+                    error:
+                      message: keine berechtigung
+        "404":
+          description: Episode not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: episode nicht gefunden
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Admin]
+      summary: Remove episode from anime context
+      operationId: adminDeleteEpisode
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Episode unlink result payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminEpisodeDeleteResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidId:
+                  value:
+                    error:
+                      message: ungueltige episode id
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+                invalidToken:
+                  value:
+                    error:
+                      message: ungueltiges zugriffstoken
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                forbidden:
+                  value:
+                    error:
+                      message: keine berechtigung
+        "404":
+          description: Episode not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: episode nicht gefunden
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/fansubs:
+    get:
+      tags: [Fansubs]
+      summary: List fansub groups
+      operationId: listFansubGroups
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 120
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/FansubStatus"
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 24
+      responses:
+        "200":
+          description: Fansub group list payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubGroupListResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Fansubs]
+      summary: Create fansub group
+      operationId: createFansubGroup
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FansubGroupCreateRequest"
+      responses:
+        "201":
+          description: Created fansub group payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubGroupResponse"
+        "400":
+          description: Invalid request body or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate slug or name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/fansubs/{id}:
+    get:
+      tags: [Fansubs]
+      summary: Get fansub group by id
+      operationId: getFansubGroupById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Fansub group payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubGroupResponse"
+        "400":
+          description: Invalid fansub id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      tags: [Fansubs]
+      summary: Update fansub group
+      operationId: updateFansubGroup
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FansubGroupPatchRequest"
+      responses:
+        "200":
+          description: Updated fansub group payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubGroupResponse"
+        "400":
+          description: Invalid request body or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate slug or name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Fansubs]
+      summary: Delete fansub group
+      operationId: deleteFansubGroup
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "204":
+          description: Fansub group deleted
+        "400":
+          description: Invalid fansub id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/fansub-slugs/{slug}:
+    get:
+      tags: [Fansubs]
+      summary: Get fansub group by slug
+      operationId: getFansubGroupBySlug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+      responses:
+        "200":
+          description: Fansub group payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubGroupResponse"
+        "400":
+          description: Invalid fansub slug
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/fansubs/{id}/members:
+    get:
+      tags: [Fansubs]
+      summary: List fansub members
+      operationId: listFansubMembers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Fansub member list payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubMemberListResponse"
+        "400":
+          description: Invalid fansub id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Fansubs]
+      summary: Create fansub member
+      operationId: createFansubMember
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FansubMemberCreateRequest"
+      responses:
+        "201":
+          description: Created fansub member payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubMemberResponse"
+        "400":
+          description: Invalid request body or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/fansubs/{id}/members/{memberId}:
+    patch:
+      tags: [Fansubs]
+      summary: Update fansub member
+      operationId: updateFansubMember
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FansubMemberPatchRequest"
+      responses:
+        "200":
+          description: Updated fansub member payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubMemberResponse"
+        "400":
+          description: Invalid request body or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group or member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Fansubs]
+      summary: Delete fansub member
+      operationId: deleteFansubMember
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "204":
+          description: Fansub member deleted
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group or member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/fansubs:
+    get:
+      tags: [Fansubs]
+      summary: List fansub relations for an anime
+      operationId: listAnimeFansubs
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Anime fansub relation list payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnimeFansubListResponse"
+        "400":
+          description: Invalid anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/fansubs/{fansubId}:
+    post:
+      tags: [Fansubs]
+      summary: Attach fansub group to anime
+      operationId: attachAnimeFansub
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: fansubId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnimeFansubAttachRequest"
+      responses:
+        "201":
+          description: Anime fansub relation payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnimeFansubResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Anime or fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Relation already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Fansubs]
+      summary: Detach fansub group from anime
+      operationId: detachAnimeFansub
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: fansubId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "204":
+          description: Relation deleted
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Relation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/episodes:
+    get:
+      tags: [Episodes]
+      summary: Get grouped episodes with available versions
+      operationId: getGroupedEpisodesByAnimeId
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Grouped episode/version payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupedEpisodesResponse"
+        "400":
+          description: Invalid anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/episodes/{episodeNumber}/versions:
+    post:
+      tags: [Episodes]
+      summary: Create episode version
+      operationId: createEpisodeVersion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: episodeNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EpisodeVersionCreateRequest"
+      responses:
+        "201":
+          description: Created episode version payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodeVersionResponse"
+        "400":
+          description: Invalid request body or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Anime or fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Version identity already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Semantic validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/episode-versions/{versionId}:
+    get:
+      tags: [Episodes]
+      summary: Get episode version by id
+      operationId: getEpisodeVersionById
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Episode version payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodeVersionResponse"
+        "400":
+          description: Invalid version id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Episode version not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      tags: [Episodes]
+      summary: Update episode version
+      operationId: updateEpisodeVersion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EpisodeVersionPatchRequest"
+      responses:
+        "200":
+          description: Updated episode version payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodeVersionResponse"
+        "400":
+          description: Invalid request body or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Episode version not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Version identity already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Semantic validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Episodes]
+      summary: Delete episode version
+      operationId: deleteEpisodeVersion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "204":
+          description: Episode version deleted
+        "400":
+          description: Invalid version id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Episode version not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/releases/{id}/grant:
+    post:
+      tags: [Releases]
+      summary: Issue short-lived stream grant token for release playback
+      operationId: createReleaseStreamGrant
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "201":
+          description: Stream grant created
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseStreamGrantResponse"
+        "400":
+          description: Invalid release id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Release not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Grant service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/releases/{id}/stream:
+    get:
+      tags: [Releases]
+      summary: Stream episode release through backend proxy
+      operationId: streamRelease
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: grant
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Optional short-lived grant token; required when no bearer token is provided.
+      responses:
+        "200":
+          description: Stream payload
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+            video/x-matroska:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Release not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/media/image:
+    get:
+      tags: [Releases]
+      summary: Fetch media image through backend proxy
+      operationId: getMediaImage
+      parameters:
+        - name: provider
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: item_id
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: kind
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [primary, backdrop, logo, banner, thumb]
+            default: primary
+        - name: width
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: quality
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+        - name: index
+          in: query
+          required: false
+          description: Optional backdrop index for Jellyfin multi-fanart rotation.
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+      responses:
+        "200":
+          description: Image payload
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/media/video:
+    get:
+      tags: [Releases]
+      summary: Fetch media video through backend proxy
+      operationId: getMediaVideo
+      parameters:
+        - name: provider
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: item_id
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: Video payload
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+            video/x-matroska:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "206":
+          description: Partial video payload
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+            video/x-matroska:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Video not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Upstream video unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/episodes/{id}:
+    get:
+      tags: [Episodes]
+      summary: Get episode detail
+      operationId: getEpisodeById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Episode detail payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodeDetailResponse"
+        "400":
+          description: Invalid episode id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidId:
+                  value:
+                    error:
+                      message: ungueltige episode id
+        "404":
+          description: Episode not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: episode nicht gefunden
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/episodes/{id}/play/grant:
+    post:
+      tags: [Episodes]
+      summary: Issue short-lived stream grant token for episode playback
+      operationId: createEpisodePlaybackGrant
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "201":
+          description: Episode playback grant created
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodePlaybackGrantResponse"
+        "400":
+          description: Invalid episode id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Episode or stream not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Playback grant rate limit exceeded
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Seconds until grant can be retried.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Grant service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/episodes/{id}/play:
+    get:
+      tags: [Episodes]
+      summary: Stream episode through backend proxy
+      operationId: streamEpisodePlayback
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: grant
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Optional short-lived grant token; required when no bearer token is provided.
+      responses:
+        "200":
+          description: Stream payload
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+            video/x-matroska:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid episode id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required or invalid grant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Playback rate limit exceeded
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Seconds until playback can be retried.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Episode or stream not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Upstream stream unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Playback unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: SignedToken
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: ok
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [message]
+          properties:
+            message:
+              type: string
+    AuthRefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+    AuthRevokeRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+    AuthTokenData:
+      type: object
+      required:
+        - token_type
+        - access_token
+        - access_token_expires_at
+        - access_token_expires_in
+        - refresh_token
+        - refresh_token_expires_at
+        - refresh_token_expires_in
+        - user_id
+        - display_name
+      properties:
+        token_type:
+          type: string
+          enum: [Bearer]
+        access_token:
+          type: string
+        access_token_expires_at:
+          type: integer
+          format: int64
+        access_token_expires_in:
+          type: integer
+          format: int64
+        refresh_token:
+          type: string
+        refresh_token_expires_at:
+          type: integer
+          format: int64
+        refresh_token_expires_in:
+          type: integer
+          format: int64
+        user_id:
+          type: integer
+          format: int64
+        display_name:
+          type: string
+    AuthTokenResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AuthTokenData"
+    AnimeType:
+      type: string
+      enum: [tv, film, ova, ona, special, bonus]
+    AnimeStatus:
+      type: string
+      enum: [disabled, ongoing, done, aborted, licensed]
+    ContentType:
+      type: string
+      enum: [anime, hentai]
+    EpisodeStatus:
+      type: string
+      enum: [disabled, private, public]
+    AnimeListItem:
+      type: object
+      required:
+        - id
+        - title
+        - type
+        - status
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        type:
+          $ref: "#/components/schemas/AnimeType"
+        status:
+          $ref: "#/components/schemas/AnimeStatus"
+        year:
+          type: integer
+          format: int32
+          nullable: true
+        cover_image:
+          type: string
+          nullable: true
+        max_episodes:
+          type: integer
+          format: int32
+          nullable: true
+    PaginationMeta:
+      type: object
+      required: [total, page, per_page, total_pages]
+      properties:
+        total:
+          type: integer
+          format: int64
+        page:
+          type: integer
+          format: int32
+        per_page:
+          type: integer
+          format: int32
+        total_pages:
+          type: integer
+          format: int32
+    PaginatedAnimeResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnimeListItem"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+    EpisodeListItem:
+      type: object
+      required:
+        - id
+        - episode_number
+        - status
+        - view_count
+        - download_count
+      properties:
+        id:
+          type: integer
+          format: int64
+        episode_number:
+          type: string
+        title:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/EpisodeStatus"
+        view_count:
+          type: integer
+          format: int32
+        download_count:
+          type: integer
+          format: int32
+    AnimeDetail:
+      type: object
+      required:
+        - id
+        - title
+        - type
+        - content_type
+        - status
+        - view_count
+        - episodes
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        title_de:
+          type: string
+          nullable: true
+        title_en:
+          type: string
+          nullable: true
+        type:
+          $ref: "#/components/schemas/AnimeType"
+        content_type:
+          $ref: "#/components/schemas/ContentType"
+        status:
+          $ref: "#/components/schemas/AnimeStatus"
+        year:
+          type: integer
+          format: int32
+          nullable: true
+        max_episodes:
+          type: integer
+          format: int32
+          nullable: true
+        genre:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        cover_image:
+          type: string
+          nullable: true
+        view_count:
+          type: integer
+          format: int32
+        episodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/EpisodeListItem"
+    AnimeDetailResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AnimeDetail"
+    AnimeBackdropManifest:
+      type: object
+      required:
+        - anime_id
+        - provider
+        - theme_videos
+        - backdrops
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        provider:
+          type: string
+        media_item_id:
+          type: string
+        theme_videos:
+          type: array
+          items:
+            type: string
+        backdrops:
+          type: array
+          items:
+            type: string
+        banner_url:
+          type: string
+          description: Proxy URL for series banner image (if available)
+        logo_url:
+          type: string
+          description: Proxy URL for transparent clearlogo image (if available)
+    AnimeBackdropResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AnimeBackdropManifest"
+    CommentListItem:
+      type: object
+      required:
+        - id
+        - anime_id
+        - author_name
+        - content
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        author_name:
+          type: string
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    CommentCreateRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 4000
+    CommentCreateResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/CommentListItem"
+    PaginatedCommentResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommentListItem"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+    WatchlistItem:
+      type: object
+      required:
+        - anime_id
+        - title
+        - type
+        - status
+        - added_at
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        type:
+          $ref: "#/components/schemas/AnimeType"
+        status:
+          $ref: "#/components/schemas/AnimeStatus"
+        year:
+          type: integer
+          format: int32
+          nullable: true
+        cover_image:
+          type: string
+          nullable: true
+        max_episodes:
+          type: integer
+          format: int32
+          nullable: true
+        added_at:
+          type: string
+          format: date-time
+    WatchlistCreateRequest:
+      type: object
+      required: [anime_id]
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+          minimum: 1
+    WatchlistCreateResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/WatchlistItem"
+    PaginatedWatchlistResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/WatchlistItem"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+    EpisodeDetail:
+      type: object
+      required:
+        - id
+        - anime_id
+        - anime_title
+        - episode_number
+        - status
+        - view_count
+        - download_count
+      properties:
+        id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        anime_title:
+          type: string
+        episode_number:
+          type: string
+        title:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/EpisodeStatus"
+        view_count:
+          type: integer
+          format: int32
+        download_count:
+          type: integer
+          format: int32
+        previous_episode_id:
+          type: integer
+          format: int64
+          nullable: true
+        next_episode_id:
+          type: integer
+          format: int64
+          nullable: true
+    EpisodeDetailResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/EpisodeDetail"
+    AdminAnimeCreateRequest:
+      type: object
+      required: [title, type, content_type, status]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        title_de:
+          type: string
+          nullable: true
+        title_en:
+          type: string
+          nullable: true
+        type:
+          $ref: "#/components/schemas/AnimeType"
+        content_type:
+          $ref: "#/components/schemas/ContentType"
+        status:
+          $ref: "#/components/schemas/AnimeStatus"
+        year:
+          type: integer
+          format: int32
+          nullable: true
+        max_episodes:
+          type: integer
+          format: int32
+          nullable: true
+        genre:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        cover_image:
+          type: string
+          nullable: true
+    AdminAnimePatchRequest:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        title_de:
+          type: string
+          nullable: true
+        title_en:
+          type: string
+          nullable: true
+        type:
+          $ref: "#/components/schemas/AnimeType"
+        content_type:
+          $ref: "#/components/schemas/ContentType"
+        status:
+          $ref: "#/components/schemas/AnimeStatus"
+        year:
+          type: integer
+          format: int32
+          nullable: true
+        max_episodes:
+          type: integer
+          format: int32
+          nullable: true
+        genre:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        cover_image:
+          type: string
+          nullable: true
+    AdminAnimeJellyfinSyncRequest:
+      type: object
+      properties:
+        jellyfin_series_id:
+          type: string
+          maxLength: 120
+        season_number:
+          type: integer
+          format: int32
+          minimum: 1
+          default: 1
+        episode_status:
+          $ref: "#/components/schemas/EpisodeStatus"
+        overwrite_episode_titles:
+          type: boolean
+          default: false
+        overwrite_version_titles:
+          type: boolean
+          default: false
+        cleanup_provider_versions:
+          type: boolean
+          default: false
+          description: Wenn true, werden alle bestehenden Jellyfin-Versionen fuer diesen Anime vor dem Import geloescht
+    AdminJellyfinSeriesSearchItem:
+      type: object
+      required: [jellyfin_series_id, name]
+      properties:
+        jellyfin_series_id:
+          type: string
+        name:
+          type: string
+        production_year:
+          type: integer
+          format: int32
+          nullable: true
+        path:
+          type: string
+          nullable: true
+    AdminJellyfinSeriesSearchResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminJellyfinSeriesSearchItem"
+    AdminEpisodeCreateRequest:
+      type: object
+      required: [anime_id, episode_number, status]
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+          minimum: 1
+        episode_number:
+          type: string
+          minLength: 1
+          maxLength: 32
+        title:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/EpisodeStatus"
+    AdminEpisodePatchRequest:
+      type: object
+      minProperties: 1
+      properties:
+        episode_number:
+          type: string
+          minLength: 1
+          maxLength: 32
+        title:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/EpisodeStatus"
+    AdminAnimeItem:
+      type: object
+      required:
+        - id
+        - title
+        - type
+        - content_type
+        - status
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        title_de:
+          type: string
+          nullable: true
+        title_en:
+          type: string
+          nullable: true
+        type:
+          $ref: "#/components/schemas/AnimeType"
+        content_type:
+          $ref: "#/components/schemas/ContentType"
+        status:
+          $ref: "#/components/schemas/AnimeStatus"
+        year:
+          type: integer
+          format: int32
+          nullable: true
+        max_episodes:
+          type: integer
+          format: int32
+          nullable: true
+        genre:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        cover_image:
+          type: string
+          nullable: true
+    AdminEpisodeItem:
+      type: object
+      required:
+        - id
+        - anime_id
+        - episode_number
+        - status
+      properties:
+        id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: string
+        title:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/EpisodeStatus"
+    AdminAnimeUpsertResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AdminAnimeItem"
+    AdminEpisodeUpsertResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AdminEpisodeItem"
+    AdminEpisodeDeleteResult:
+      type: object
+      required:
+        - episode_id
+        - anime_id
+        - episode_number
+        - deleted_episode_versions
+      properties:
+        episode_id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: string
+        deleted_episode_versions:
+          type: integer
+          format: int32
+    AdminEpisodeDeleteResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AdminEpisodeDeleteResult"
+    AdminAnimeJellyfinSyncResult:
+      type: object
+      required:
+        - anime_id
+        - jellyfin_series_id
+        - jellyfin_series_name
+        - season_number
+        - scanned_episodes
+        - imported_episodes
+        - updated_episodes
+        - imported_versions
+        - updated_versions
+        - skipped_episodes
+        - applied_episode_status
+        - overwrite_episode_titles
+        - overwrite_version_titles
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        jellyfin_series_id:
+          type: string
+        jellyfin_series_name:
+          type: string
+        season_number:
+          type: integer
+          format: int32
+        scanned_episodes:
+          type: integer
+          format: int32
+        imported_episodes:
+          type: integer
+          format: int32
+        updated_episodes:
+          type: integer
+          format: int32
+        imported_versions:
+          type: integer
+          format: int32
+        updated_versions:
+          type: integer
+          format: int32
+        skipped_episodes:
+          type: integer
+          format: int32
+        deleted_versions:
+          type: integer
+          format: int32
+          description: Anzahl der geloeschten Jellyfin-Versionen (nur wenn cleanup_provider_versions=true)
+        applied_episode_status:
+          $ref: "#/components/schemas/EpisodeStatus"
+        overwrite_episode_titles:
+          type: boolean
+        overwrite_version_titles:
+          type: boolean
+    AdminAnimeJellyfinSyncResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AdminAnimeJellyfinSyncResult"
+    AdminAnimeJellyfinPreviewEpisode:
+      type: object
+      required: [jellyfin_item_id, episode_number]
+      properties:
+        jellyfin_item_id:
+          type: string
+        episode_number:
+          type: integer
+          format: int32
+        title:
+          type: string
+          nullable: true
+        premiere_date:
+          type: string
+          format: date-time
+          nullable: true
+        video_quality:
+          type: string
+          nullable: true
+    AdminAnimeJellyfinPreviewResult:
+      type: object
+      required:
+        - anime_id
+        - jellyfin_series_id
+        - jellyfin_series_name
+        - season_number
+        - scanned_episodes
+        - matched_episodes
+        - skipped_episodes
+        - existing_jellyfin_versions
+        - applied_episode_status
+        - overwrite_episode_titles
+        - overwrite_version_titles
+        - episodes
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        jellyfin_series_id:
+          type: string
+        jellyfin_series_name:
+          type: string
+        jellyfin_series_path:
+          type: string
+          nullable: true
+        season_number:
+          type: integer
+          format: int32
+        scanned_episodes:
+          type: integer
+          format: int32
+        matched_episodes:
+          type: integer
+          format: int32
+        skipped_episodes:
+          type: integer
+          format: int32
+        existing_jellyfin_versions:
+          type: integer
+          format: int32
+          description: Anzahl der bestehenden Jellyfin-Versionen die bei cleanup_provider_versions=true geloescht wuerden
+        applied_episode_status:
+          $ref: "#/components/schemas/EpisodeStatus"
+        overwrite_episode_titles:
+          type: boolean
+        overwrite_version_titles:
+          type: boolean
+        episodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminAnimeJellyfinPreviewEpisode"
+    AdminAnimeJellyfinPreviewResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AdminAnimeJellyfinPreviewResult"
+    GenreToken:
+      type: object
+      required: [name, count]
+      properties:
+        name:
+          type: string
+        count:
+          type: integer
+          format: int64
+    GenreTokenListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/GenreToken"
+    FansubStatus:
+      type: string
+      enum: [active, inactive, dissolved]
+    FansubGroupSummary:
+      type: object
+      required:
+        - id
+        - slug
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+        slug:
+          type: string
+        name:
+          type: string
+        logo_url:
+          type: string
+          nullable: true
+    FansubGroup:
+      type: object
+      required:
+        - id
+        - slug
+        - name
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        slug:
+          type: string
+          maxLength: 120
+        name:
+          type: string
+          maxLength: 120
+        description:
+          type: string
+          nullable: true
+        history:
+          type: string
+          nullable: true
+        logo_url:
+          type: string
+          nullable: true
+        banner_url:
+          type: string
+          nullable: true
+        founded_year:
+          type: integer
+          format: int32
+          nullable: true
+        dissolved_year:
+          type: integer
+          format: int32
+          nullable: true
+        status:
+          $ref: "#/components/schemas/FansubStatus"
+        website_url:
+          type: string
+          nullable: true
+        discord_url:
+          type: string
+          nullable: true
+        irc_url:
+          type: string
+          nullable: true
+        country:
+          type: string
+          maxLength: 80
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    FansubMember:
+      type: object
+      required:
+        - id
+        - fansub_group_id
+        - handle
+        - role
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        fansub_group_id:
+          type: integer
+          format: int64
+        handle:
+          type: string
+          maxLength: 120
+        role:
+          type: string
+          maxLength: 60
+        since_year:
+          type: integer
+          format: int32
+          nullable: true
+        until_year:
+          type: integer
+          format: int32
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    AnimeFansubRelation:
+      type: object
+      required:
+        - anime_id
+        - fansub_group_id
+        - is_primary
+        - created_at
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        fansub_group_id:
+          type: integer
+          format: int64
+        is_primary:
+          type: boolean
+        notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        fansub_group:
+          $ref: "#/components/schemas/FansubGroupSummary"
+    FansubGroupCreateRequest:
+      type: object
+      required: [slug, name, status]
+      properties:
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 120
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          nullable: true
+        history:
+          type: string
+          nullable: true
+        logo_url:
+          type: string
+          nullable: true
+        banner_url:
+          type: string
+          nullable: true
+        founded_year:
+          type: integer
+          format: int32
+          nullable: true
+        dissolved_year:
+          type: integer
+          format: int32
+          nullable: true
+        status:
+          $ref: "#/components/schemas/FansubStatus"
+        website_url:
+          type: string
+          nullable: true
+        discord_url:
+          type: string
+          nullable: true
+        irc_url:
+          type: string
+          nullable: true
+        country:
+          type: string
+          maxLength: 80
+          nullable: true
+    FansubGroupPatchRequest:
+      type: object
+      minProperties: 1
+      properties:
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 120
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          nullable: true
+        history:
+          type: string
+          nullable: true
+        logo_url:
+          type: string
+          nullable: true
+        banner_url:
+          type: string
+          nullable: true
+        founded_year:
+          type: integer
+          format: int32
+          nullable: true
+        dissolved_year:
+          type: integer
+          format: int32
+          nullable: true
+        status:
+          $ref: "#/components/schemas/FansubStatus"
+        website_url:
+          type: string
+          nullable: true
+        discord_url:
+          type: string
+          nullable: true
+        irc_url:
+          type: string
+          nullable: true
+        country:
+          type: string
+          maxLength: 80
+          nullable: true
+    FansubMemberCreateRequest:
+      type: object
+      required: [handle, role]
+      properties:
+        handle:
+          type: string
+          minLength: 1
+          maxLength: 120
+        role:
+          type: string
+          minLength: 1
+          maxLength: 60
+        since_year:
+          type: integer
+          format: int32
+          nullable: true
+        until_year:
+          type: integer
+          format: int32
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+    FansubMemberPatchRequest:
+      type: object
+      minProperties: 1
+      properties:
+        handle:
+          type: string
+          minLength: 1
+          maxLength: 120
+        role:
+          type: string
+          minLength: 1
+          maxLength: 60
+        since_year:
+          type: integer
+          format: int32
+          nullable: true
+        until_year:
+          type: integer
+          format: int32
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+    AnimeFansubAttachRequest:
+      type: object
+      properties:
+        is_primary:
+          type: boolean
+          default: false
+        notes:
+          type: string
+          nullable: true
+    FansubGroupListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/FansubGroup"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+    FansubGroupResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/FansubGroup"
+    FansubMemberListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/FansubMember"
+    FansubMemberResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/FansubMember"
+    AnimeFansubListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnimeFansubRelation"
+    AnimeFansubResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AnimeFansubRelation"
+    EpisodeVersion:
+      type: object
+      required:
+        - id
+        - anime_id
+        - episode_number
+        - media_provider
+        - media_item_id
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: integer
+          format: int32
+        title:
+          type: string
+          nullable: true
+        fansub_group:
+          $ref: "#/components/schemas/FansubGroupSummary"
+        media_provider:
+          type: string
+          maxLength: 30
+        media_item_id:
+          type: string
+          maxLength: 120
+        video_quality:
+          type: string
+          maxLength: 20
+          nullable: true
+        subtitle_type:
+          type: string
+          enum: [hardsub, softsub]
+          nullable: true
+        release_date:
+          type: string
+          format: date-time
+          nullable: true
+        stream_url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    GroupedEpisode:
+      type: object
+      required:
+        - episode_number
+        - default_version_id
+        - version_count
+        - versions
+      properties:
+        episode_number:
+          type: integer
+          format: int32
+        episode_title:
+          type: string
+          nullable: true
+        default_version_id:
+          type: integer
+          format: int64
+          nullable: true
+        version_count:
+          type: integer
+          format: int32
+        versions:
+          type: array
+          items:
+            $ref: "#/components/schemas/EpisodeVersion"
+    GroupedEpisodesData:
+      type: object
+      required: [anime_id, episodes]
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        episodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupedEpisode"
+    GroupedEpisodesResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/GroupedEpisodesData"
+    EpisodeVersionCreateRequest:
+      type: object
+      required: [media_provider, media_item_id]
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          nullable: true
+        fansub_group_id:
+          type: integer
+          format: int64
+          nullable: true
+        media_provider:
+          type: string
+          minLength: 1
+          maxLength: 30
+        media_item_id:
+          type: string
+          minLength: 1
+          maxLength: 120
+        video_quality:
+          type: string
+          maxLength: 20
+          nullable: true
+        subtitle_type:
+          type: string
+          enum: [hardsub, softsub]
+          nullable: true
+        release_date:
+          type: string
+          format: date-time
+          nullable: true
+        stream_url:
+          type: string
+          nullable: true
+    EpisodeVersionPatchRequest:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          nullable: true
+        fansub_group_id:
+          type: integer
+          format: int64
+          nullable: true
+        media_provider:
+          type: string
+          minLength: 1
+          maxLength: 30
+        media_item_id:
+          type: string
+          minLength: 1
+          maxLength: 120
+        video_quality:
+          type: string
+          maxLength: 20
+          nullable: true
+        subtitle_type:
+          type: string
+          enum: [hardsub, softsub]
+          nullable: true
+        release_date:
+          type: string
+          format: date-time
+          nullable: true
+        stream_url:
+          type: string
+          nullable: true
+    EpisodeVersionResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/EpisodeVersion"
+    ReleaseStreamGrant:
+      type: object
+      required: [release_id, grant_token, expires_at, ttl_seconds, issued_for]
+      properties:
+        release_id:
+          type: integer
+          format: int64
+        grant_token:
+          type: string
+        expires_at:
+          type: integer
+          format: int64
+        ttl_seconds:
+          type: integer
+          format: int64
+        issued_for:
+          type: integer
+          format: int64
+    ReleaseStreamGrantResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/ReleaseStreamGrant"
+    EpisodePlaybackGrant:
+      type: object
+      required: [episode_id, grant_token, expires_at, ttl_seconds, issued_for]
+      properties:
+        episode_id:
+          type: integer
+          format: int64
+        grant_token:
+          type: string
+        expires_at:
+          type: integer
+          format: int64
+        ttl_seconds:
+          type: integer
+          format: int64
+        issued_for:
+          type: integer
+          format: int64
+    EpisodePlaybackGrantResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/EpisodePlaybackGrant"

@@ -1,0 +1,106 @@
+:root {
+  --color-primary: #ff6a3d;
+  --color-primary-hover: #e55a31;
+  --color-primary-active: #cc4d29;
+  --color-bg-light: #f9f9f9;
+  --color-white: #ffffff;
+  --color-text-primary: #1c1c1e;
+  --color-text-secondary: #6b6b70;
+  --color-border: #e1e1e6;
+  --color-success: #28a745;
+  --color-warning: #ffc107;
+  --color-error: #dc3545;
+
+  --bg-primary: var(--color-bg-light);
+  --bg-secondary: var(--color-white);
+  --bg-card: var(--color-white);
+  --bg-hover: var(--color-bg-light);
+
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-secondary);
+  --border-color: var(--color-border);
+  --surface-color: var(--color-white);
+  --accent-color: var(--color-primary);
+
+  --accent-primary: var(--color-primary);
+  --accent-soft: var(--color-primary);
+  --accent-dark: var(--color-primary-active);
+
+  --status-ongoing: var(--color-success);
+  --status-done: var(--color-primary);
+  --status-aborted: var(--color-error);
+  --status-licensed: var(--color-warning);
+  --status-disabled: var(--color-text-secondary);
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 12px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 16px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+}
+
+a {
+  color: inherit;
+}
+
+.page-shell {
+  width: min(1280px, 100% - 48px);
+  margin: 0 auto;
+  padding: var(--space-6) 0;
+}
+
+.hero {
+  background: var(--bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.primary-link {
+  display: inline-block;
+  margin-top: var(--space-4);
+  text-decoration: none;
+  background: var(--accent-primary);
+  color: var(--color-white);
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+}
+
+.primary-link:hover {
+  background: var(--color-primary-hover);
+}

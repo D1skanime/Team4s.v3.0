@@ -1,0 +1,33 @@
+feature: anime-backdrops
+endpoint:
+  method: GET
+  path: /api/v1/anime/:id/backdrops
+path_params:
+  - name: id
+    type: int64
+    minimum: 1
+response:
+  type: AnimeBackdropResponse
+  example:
+    data:
+      anime_id: 22
+      provider: jellyfin
+      media_item_id: "54b1a43bdb4e5a013fbd6974911827bd"
+      theme_videos:
+        - /api/v1/media/video?provider=jellyfin&item_id=0eae7971916d6971c6613e132d7d6048
+      backdrops:
+        - /api/v1/media/image?provider=jellyfin&item_id=54b1a43bdb4e5a013fbd6974911827bd&kind=backdrop
+        - /api/v1/media/image?provider=jellyfin&item_id=54b1a43bdb4e5a013fbd6974911827bd&kind=backdrop&index=1
+      banner_url: /api/v1/media/image?provider=jellyfin&item_id=54b1a43bdb4e5a013fbd6974911827bd&kind=banner
+      logo_url: /api/v1/media/image?provider=jellyfin&item_id=54b1a43bdb4e5a013fbd6974911827bd&kind=logo
+types:
+  AnimeBackdropResponse:
+    data: AnimeBackdropManifest
+  AnimeBackdropManifest:
+    anime_id: int64
+    provider: string
+    media_item_id: string
+    theme_videos: string[]
+    backdrops: string[]
+    banner_url: string
+    logo_url: string

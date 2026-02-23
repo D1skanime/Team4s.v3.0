@@ -1,0 +1,455 @@
+feature: admin-content-management
+endpoints:
+  - name: admin-anime-create
+    method: POST
+    path: /api/v1/admin/anime
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Admin role/permission enforcement is required before production enablement.
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    request_body:
+      required: true
+      type: AdminAnimeCreateRequest
+      example:
+        title: "Attack on Titan"
+        title_de: "Angriff der Titanen"
+        title_en: "Attack on Titan"
+        type: "tv"
+        content_type: "anime"
+        status: "ongoing"
+        year: 2013
+        max_episodes: 25
+        genre: "Action, Drama"
+        description: "Menschen kaempfen gegen Titanen."
+        cover_image: "attack-on-titan.jpg"
+    response:
+      status: 201
+      type: AdminAnimeUpsertResponse
+
+  - name: admin-anime-update
+    method: PATCH
+    path: /api/v1/admin/anime/:id
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Admin role/permission enforcement is required before production enablement.
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: AdminAnimePatchRequest
+      example:
+        status: "done"
+        max_episodes: 25
+        description: "Abgeschlossen."
+    response:
+      status: 200
+      type: AdminAnimeUpsertResponse
+
+  - name: admin-episode-create
+    method: POST
+    path: /api/v1/admin/episodes
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Admin role/permission enforcement is required before production enablement.
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    request_body:
+      required: true
+      type: AdminEpisodeCreateRequest
+      example:
+        anime_id: 1
+        episode_number: "01"
+        title: "An dich in 2000 Jahren"
+        status: "public"
+        stream_link: "https://anime.team4s.de/web/index.html#!/item?id=6424&serverId=8bc8ae6fe2d946fcbd21cb341832072d&context=tvshows"
+    response:
+      status: 201
+      type: AdminEpisodeUpsertResponse
+
+  - name: admin-anime-jellyfin-sync
+    method: POST
+    path: /api/v1/admin/anime/:id/jellyfin/sync
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Admin role/permission enforcement is required before production enablement.
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: false
+      type: AdminAnimeJellyfinSyncRequest
+      example:
+        jellyfin_series_id: "2dd78be87c3740a781eb479cca260361"
+        season_number: 1
+        episode_status: "private"
+        overwrite_episode_titles: false
+        overwrite_version_titles: false
+        cleanup_provider_versions: false
+    response:
+      status: 200
+      type: AdminAnimeJellyfinSyncResponse
+
+  - name: admin-jellyfin-series-search
+    method: GET
+    path: /api/v1/admin/jellyfin/series
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Admin role/permission enforcement is required before production enablement.
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    query_params:
+      - name: q
+        type: string
+        required: true
+        description: "Series title query."
+      - name: limit
+        type: integer
+        default: 25
+        maximum: 100
+    response:
+      status: 200
+      type: AdminJellyfinSeriesSearchResponse
+
+  - name: admin-anime-jellyfin-preview
+    method: POST
+    path: /api/v1/admin/anime/:id/jellyfin/preview
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Admin role/permission enforcement is required before production enablement.
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: false
+      type: AdminAnimeJellyfinSyncRequest
+      example:
+        jellyfin_series_id: "2dd78be87c3740a781eb479cca260361"
+        season_number: 1
+        episode_status: "private"
+        overwrite_episode_titles: false
+        overwrite_version_titles: false
+    response:
+      status: 200
+      type: AdminAnimeJellyfinPreviewResponse
+
+  - name: admin-episode-update
+    method: PATCH
+    path: /api/v1/admin/episodes/:id
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Admin role/permission enforcement is required before production enablement.
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: AdminEpisodePatchRequest
+      example:
+        title: "An dich in 2000 Jahren (Remastered)"
+        status: "public"
+        stream_link: "https://anime.team4s.de/web/index.html#!/item?id=6424&serverId=8bc8ae6fe2d946fcbd21cb341832072d&context=tvshows"
+    response:
+      status: 200
+      type: AdminEpisodeUpsertResponse
+
+  - name: admin-episode-delete
+    method: DELETE
+    path: /api/v1/admin/episodes/:id
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Admin role/permission enforcement is required before production enablement.
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: AdminEpisodeDeleteResponse
+
+  - name: admin-genre-tokens
+    method: GET
+    path: /api/v1/admin/genres
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Admin role/permission enforcement is required before production enablement.
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    query_params:
+      - name: q
+        type: string
+        description: "Optional substring filter."
+      - name: limit
+        type: integer
+        default: 200
+        maximum: 1000
+    response:
+      status: 200
+      type: AdminGenreTokensResponse
+
+types:
+  AdminAnimeCreateRequest:
+    title: string (required, min: 1, max: 255)
+    title_de: string | null
+    title_en: string | null
+    type: anime_type (required)
+    content_type: content_type (required)
+    status: anime_status (required)
+    year: int16 | null
+    max_episodes: int16 | null
+    genre: string | null
+    description: string | null
+    cover_image: string | null
+  AdminAnimePatchRequest:
+    title: string (optional, min: 1, max: 255)
+    title_de: string | null
+    title_en: string | null
+    type: anime_type (optional)
+    content_type: content_type (optional)
+    status: anime_status (optional)
+    year: int16 | null
+    max_episodes: int16 | null
+    genre: string | null
+    description: string | null
+    cover_image: string | null
+  AdminEpisodeCreateRequest:
+    anime_id: int64 (required, minimum: 1)
+    episode_number: string (required, min: 1, max: 32)
+    title: string | null
+    status: episode_status (required)
+    stream_link: string | null
+  AdminEpisodePatchRequest:
+    episode_number: string (optional, min: 1, max: 32)
+    title: string | null
+    status: episode_status (optional)
+    stream_link: string | null
+  AdminAnimeJellyfinSyncRequest:
+    jellyfin_series_id: string (optional, max: 120)
+    season_number: int32 (optional, minimum: 1, default: 1)
+    episode_status: episode_status (optional, default: private)
+    overwrite_episode_titles: boolean (optional, default: false)
+    overwrite_version_titles: boolean (optional, default: false)
+    cleanup_provider_versions: boolean (optional, default: false, description: "Wenn true, werden alle bestehenden Jellyfin-Versionen fuer diesen Anime vor dem Import geloescht")
+  AdminAnimeUpsertResponse:
+    data: AdminAnimeItem
+  AdminEpisodeUpsertResponse:
+    data: AdminEpisodeItem
+  AdminEpisodeDeleteResponse:
+    data: AdminEpisodeDeleteResult
+  AdminEpisodeDeleteResult:
+    episode_id: int64
+    anime_id: int64
+    episode_number: string
+    deleted_episode_versions: int32
+  AdminAnimeJellyfinSyncResponse:
+    data: AdminAnimeJellyfinSyncResult
+  AdminJellyfinSeriesSearchResponse:
+    data: AdminJellyfinSeriesSearchItem[]
+  AdminJellyfinSeriesSearchItem:
+    jellyfin_series_id: string
+    name: string
+    production_year: int32 | null
+    path: string | null
+  AdminAnimeJellyfinPreviewResponse:
+    data: AdminAnimeJellyfinPreviewResult
+  AdminAnimeJellyfinPreviewResult:
+    anime_id: int64
+    jellyfin_series_id: string
+    jellyfin_series_name: string
+    jellyfin_series_path: string | null
+    season_number: int32
+    scanned_episodes: int32
+    matched_episodes: int32
+    skipped_episodes: int32
+    existing_jellyfin_versions: int32 (description: "Anzahl der bestehenden Jellyfin-Versionen die bei cleanup_provider_versions=true geloescht wuerden")
+    applied_episode_status: episode_status
+    overwrite_episode_titles: boolean
+    overwrite_version_titles: boolean
+    episodes: AdminAnimeJellyfinPreviewEpisode[]
+  AdminAnimeJellyfinPreviewEpisode:
+    jellyfin_item_id: string
+    episode_number: int32
+    title: string | null
+    premiere_date: timestamp | null
+    video_quality: string | null
+  AdminAnimeJellyfinSyncResult:
+    anime_id: int64
+    jellyfin_series_id: string
+    jellyfin_series_name: string
+    season_number: int32
+    scanned_episodes: int32
+    imported_episodes: int32
+    updated_episodes: int32
+    imported_versions: int32
+    updated_versions: int32
+    skipped_episodes: int32
+    deleted_versions: int32 (optional, description: "Anzahl der geloeschten Jellyfin-Versionen (nur wenn cleanup_provider_versions=true)")
+    applied_episode_status: episode_status
+    overwrite_episode_titles: boolean
+    overwrite_version_titles: boolean
+  AdminGenreTokensResponse:
+    data: GenreToken[]
+  GenreToken:
+    name: string
+    count: int64
+  AdminAnimeItem:
+    id: int64
+    title: string
+    title_de: string | null
+    title_en: string | null
+    type: anime_type
+    content_type: content_type
+    status: anime_status
+    year: int16 | null
+    max_episodes: int16 | null
+    genre: string | null
+    description: string | null
+    cover_image: string | null
+  AdminEpisodeItem:
+    id: int64
+    anime_id: int64
+    episode_number: string
+    title: string | null
+    status: episode_status
+    stream_link: string | null

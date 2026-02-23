@@ -1,0 +1,119 @@
+feature: comments
+endpoints:
+  - name: comments-list
+    method: GET
+    path: /api/v1/anime/:id/comments
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    query_params:
+      - name: page
+        type: integer
+        minimum: 1
+        default: 1
+      - name: per_page
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    response:
+      type: PaginatedCommentResponse
+      example:
+        data:
+          - id: 9021
+            anime_id: 1
+            author_name: "Nico"
+            content: "Starke Folge, freue mich auf naechste Woche."
+            created_at: "2026-02-09T19:31:00Z"
+        meta:
+          total: 138
+          page: 1
+          per_page: 20
+          total_pages: 7
+    not_found_behavior:
+      - anime fehlt oder ist deaktiviert (status = disabled)
+      - response: 404 anime nicht gefunden
+
+  - name: comments-create
+    method: POST
+    path: /api/v1/anime/:id/comments
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: CommentCreateRequest
+      example:
+        content: "Danke fuer den Release!"
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      token_claims:
+        user_id:
+          type: int64
+          minimum: 1
+        display_name:
+          type: string
+          min_length: 1
+          max_length: 80
+        exp:
+          type: unix_timestamp_seconds
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    response:
+      status: 201
+      type: CommentCreateResponse
+      example:
+        data:
+          id: 9022
+          anime_id: 1
+          author_name: "Nico"
+          content: "Danke fuer den Release!"
+          created_at: "2026-02-10T08:25:00Z"
+    not_found_behavior:
+      - anime fehlt oder ist deaktiviert (status = disabled)
+      - response: 404 anime nicht gefunden
+    rate_limit:
+      key: client_ip
+      max_requests: 5
+      per: 60s
+      exceed_status: 429
+      exceed_response:
+        error:
+          message: "zu viele anfragen, bitte spaeter erneut versuchen"
+      headers:
+        Retry-After: "seconds until next allowed request"
+      degraded_mode:
+        on_store_unavailable: allow_request
+        response_header:
+          X-Comment-RateLimit-Degraded: "true"
+
+types:
+  CommentCreateRequest:
+    content: string (required, min: 1, max: 4000)
+  CommentCreateResponse:
+    data: CommentListItem
+  PaginatedCommentResponse:
+    data: CommentListItem[]
+    meta: PaginationMeta
+  CommentListItem:
+    id: int64
+    anime_id: int64
+    author_name: string
+    content: string
+    created_at: date-time
+  PaginationMeta:
+    total: int64
+    page: int
+    per_page: int
+    total_pages: int

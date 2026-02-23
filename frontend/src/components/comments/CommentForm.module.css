@@ -1,0 +1,82 @@
+.wrapper {
+  margin: 0 0 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 86%, transparent);
+  padding: 0.9rem;
+}
+
+.wrapper h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.fieldLabel {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.authInfo {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.input,
+.textarea {
+  border-radius: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 26%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 76%, transparent);
+  color: var(--text-primary);
+  padding: 0.55rem 0.65rem;
+  font: inherit;
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: 1px solid color-mix(in srgb, var(--accent-primary) 52%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 58%, transparent);
+}
+
+.submitButton {
+  justify-self: start;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 18%, var(--bg-secondary));
+  color: var(--text-primary);
+  padding: 0.42rem 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submitButton:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.errorBox,
+.successBox {
+  margin-top: 0.65rem;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.9rem;
+}
+
+.errorBox {
+  border: 1px solid color-mix(in srgb, var(--color-error) 45%, transparent);
+  background: color-mix(in srgb, var(--color-error) 11%, transparent);
+}
+
+.successBox {
+  border: 1px solid color-mix(in srgb, var(--color-success) 45%, transparent);
+  background: color-mix(in srgb, var(--color-success) 11%, transparent);
+}

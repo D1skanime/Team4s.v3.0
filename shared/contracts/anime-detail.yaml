@@ -1,0 +1,61 @@
+feature: anime-detail
+endpoint:
+  method: GET
+  path: /api/v1/anime/:id
+path_params:
+  - name: id
+    type: int64
+    minimum: 1
+query_params:
+  - name: include_disabled
+    type: boolean
+    description: "Optional: true erlaubt Detailzugriff auf disabled/preseed Datensaetze; default false."
+response:
+  type: AnimeDetailResponse
+  example:
+    data:
+      id: 1
+      title: "Attack on Titan"
+      title_de: "Attack on Titan"
+      title_en: "Attack on Titan"
+      type: "tv"
+      content_type: "anime"
+      status: "done"
+      year: 2013
+      max_episodes: 25
+      genre: "Action, Drama"
+      description: "Menschheit gegen Titanen."
+      cover_image: "attack-on-titan.jpg"
+      view_count: 123456
+      episodes:
+        - id: 101
+          episode_number: "01"
+          title: "An dich in 2000 Jahren"
+          status: "public"
+          view_count: 5200
+          download_count: 1800
+types:
+  AnimeDetailResponse:
+    data: AnimeDetail
+  AnimeDetail:
+    id: int64
+    title: string
+    title_de: string | null
+    title_en: string | null
+    type: anime_type
+    content_type: content_type
+    status: anime_status
+    year: int16 | null
+    max_episodes: int16 | null
+    genre: string | null
+    description: string | null
+    cover_image: string | null
+    view_count: int32
+    episodes: EpisodeListItem[]
+  EpisodeListItem:
+    id: int64
+    episode_number: string
+    title: string | null
+    status: episode_status
+    view_count: int32
+    download_count: int32

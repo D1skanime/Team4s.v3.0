@@ -1,0 +1,218 @@
+.section {
+  margin-top: 16px;
+}
+
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.filterChip {
+  border-radius: 16px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text-primary);
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.filterChipActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.emptyBox {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  padding: 16px;
+}
+
+.episodeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.episodeCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  overflow: hidden;
+}
+
+.episodeHeader {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.episodeNumber {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.summaryLine {
+  margin: 4px 0 0;
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.countBadge {
+  border-radius: 16px;
+  border: 0;
+  color: var(--color-white);
+  background: var(--color-primary);
+  padding: 8px 12px;
+  font-size: 14px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.versionList {
+  border-top: 1px solid var(--color-border);
+  padding: 12px 16px 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.versionRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-light);
+  padding: 12px;
+}
+
+.versionMeta {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.versionIdentity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.versionLogo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+}
+
+.versionLogoFallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.versionIdentityText {
+  min-width: 0;
+}
+
+.versionGroupName {
+  margin: 0;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.versionReleaseName {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metaBadge {
+  border-radius: 16px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.playButton {
+  min-width: 56px;
+  min-height: 36px;
+  border-radius: 18px;
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  padding: 0 12px;
+}
+
+.playButton:hover {
+  border-color: var(--color-primary-hover);
+  background: var(--color-primary-hover);
+}
+
+.fallbackRow {
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  color: var(--text-secondary);
+}
+
+.fallbackRow p {
+  margin: 0;
+}
+
+.fallbackHint {
+  margin-top: 4px;
+  font-size: 14px;
+}

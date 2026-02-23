@@ -1,0 +1,191 @@
+feature: watchlist
+endpoints:
+  - name: watchlist-list
+    method: GET
+    path: /api/v1/watchlist
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      token_claims:
+        user_id:
+          type: int64
+          minimum: 1
+        display_name:
+          type: string
+          min_length: 1
+          max_length: 80
+        exp:
+          type: unix_timestamp_seconds
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    query_params:
+      - name: page
+        type: integer
+        minimum: 1
+        default: 1
+      - name: per_page
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    response:
+      status: 200
+      type: PaginatedWatchlistResponse
+      example:
+        data:
+          - anime_id: 1
+            title: "Attack on Titan"
+            type: "tv"
+            status: "done"
+            year: 2013
+            cover_image: "attack-on-titan.jpg"
+            max_episodes: 25
+            added_at: "2026-02-10T10:30:00Z"
+        meta:
+          total: 1
+          page: 1
+          per_page: 20
+          total_pages: 1
+
+  - name: watchlist-create
+    method: POST
+    path: /api/v1/watchlist
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      token_claims:
+        user_id:
+          type: int64
+          minimum: 1
+        display_name:
+          type: string
+          min_length: 1
+          max_length: 80
+        exp:
+          type: unix_timestamp_seconds
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    request_body:
+      required: true
+      type: WatchlistCreateRequest
+      example:
+        anime_id: 1
+    response:
+      status: 201
+      type: WatchlistCreateResponse
+      example:
+        data:
+          anime_id: 1
+          title: "Attack on Titan"
+          type: "tv"
+          status: "done"
+          year: 2013
+          cover_image: "attack-on-titan.jpg"
+          max_episodes: 25
+          added_at: "2026-02-10T10:30:00Z"
+
+  - name: watchlist-delete
+    method: DELETE
+    path: /api/v1/watchlist/:anime_id
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      token_claims:
+        user_id:
+          type: int64
+          minimum: 1
+        display_name:
+          type: string
+          min_length: 1
+          max_length: 80
+        exp:
+          type: unix_timestamp_seconds
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    path_params:
+      - name: anime_id
+        type: int64
+        minimum: 1
+    response:
+      status: 204
+
+  - name: watchlist-get-entry
+    method: GET
+    path: /api/v1/watchlist/:anime_id
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      token_claims:
+        user_id:
+          type: int64
+          minimum: 1
+        display_name:
+          type: string
+          min_length: 1
+          max_length: 80
+        exp:
+          type: unix_timestamp_seconds
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      state_unavailable_status: 503
+      state_unavailable_response:
+        error:
+          message: "auth-status voruebergehend nicht verfuegbar"
+    path_params:
+      - name: anime_id
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: WatchlistCreateResponse
+
+types:
+  WatchlistCreateRequest:
+    anime_id: int64 (required, minimum: 1)
+  WatchlistCreateResponse:
+    data: WatchlistItem
+  PaginatedWatchlistResponse:
+    data: WatchlistItem[]
+    meta: PaginationMeta
+  WatchlistItem:
+    anime_id: int64
+    title: string
+    type: anime_type
+    status: anime_status
+    year: int16 | null
+    cover_image: string | null
+    max_episodes: int16 | null
+    added_at: date-time
+  PaginationMeta:
+    total: int64
+    page: int
+    per_page: int
+    total_pages: int

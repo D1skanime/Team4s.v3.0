@@ -1,0 +1,158 @@
+.page {
+  width: min(1280px, 100% - 48px);
+  margin: 0 auto;
+  padding: 24px 0 48px;
+}
+
+.navRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.backLink {
+  margin: 0;
+}
+
+.backLink a {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.backLink a:hover {
+  color: var(--text-primary);
+}
+
+.hero {
+  margin-top: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  padding: 24px;
+}
+
+.kicker {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 8px 0 0;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.badges {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.statusBadge,
+.metaBadge {
+  border-radius: 16px;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid var(--color-border);
+  text-transform: uppercase;
+}
+
+.statusPublic {
+  color: var(--color-white);
+  border-color: var(--color-success);
+  background: var(--color-success);
+}
+
+.statusPrivate {
+  color: var(--color-text-primary);
+  border-color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 20%, var(--color-white));
+}
+
+.statusDisabled {
+  color: var(--color-text-secondary);
+  background: var(--color-bg-light);
+}
+
+.metaBadge {
+  color: var(--color-text-primary);
+  background: var(--color-white);
+}
+
+.metrics {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.metrics span {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.actions {
+  margin-top: 24px;
+}
+
+.actions h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+.actionGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .actionGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.navButton {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text-primary);
+  padding: 12px 16px;
+  text-decoration: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 2.75rem;
+  font-size: 16px;
+}
+
+.navButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.navButtonDisabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.errorBox {
+  margin-top: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  padding: 16px;
+}

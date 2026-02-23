@@ -1,0 +1,92 @@
+services:
+  team4sv30-db:
+    image: postgres:16
+    container_name: team4sv30-db
+    environment:
+      # Keep v3 isolated: this is the database v3 expects by default.
+      POSTGRES_DB: team4s_v2dump
+      POSTGRES_USER: team4s
+      POSTGRES_PASSWORD: team4s_dev_password
+    # Avoid host-port collisions with other local apps (default is 5433).
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U team4s -d team4s"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  team4sv30-redis:
+    image: redis:7
+    container_name: team4sv30-redis
+
+  team4sv30-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: team4sv30-backend
+    environment:
+      PORT: 8092
+      RUNTIME_PROFILE: ${RUNTIME_PROFILE:-local}
+      DATABASE_URL: postgres://team4s:team4s_dev_password@team4sv30-db:5432/team4s_v2dump?sslmode=disable
+      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:-team4s-local-dev-secret}
+      AUTH_ADMIN_BOOTSTRAP_USER_IDS: ${AUTH_ADMIN_BOOTSTRAP_USER_IDS:-1}
+      EMBY_API_KEY: ${EMBY_API_KEY:-}
+      EMBY_STREAM_BASE_URL: ${EMBY_STREAM_BASE_URL:-}
+      EMBY_STREAM_PATH_TEMPLATE: ${EMBY_STREAM_PATH_TEMPLATE:-/Videos/%s/stream}
+      EMBY_ALLOWED_ANIME_IDS: ${EMBY_ALLOWED_ANIME_IDS:-22}
+      JELLYFIN_API_KEY: ${JELLYFIN_API_KEY:-}
+      JELLYFIN_BASE_URL: ${JELLYFIN_BASE_URL:-}
+      JELLYFIN_STREAM_PATH_TEMPLATE: ${JELLYFIN_STREAM_PATH_TEMPLATE:-/Videos/%s/stream}
+      AUTH_ACCESS_TOKEN_TTL_SECONDS: ${AUTH_ACCESS_TOKEN_TTL_SECONDS:-900}
+      AUTH_REFRESH_TOKEN_TTL_SECONDS: ${AUTH_REFRESH_TOKEN_TTL_SECONDS:-604800}
+      RELEASE_STREAM_GRANT_SECRET: ${RELEASE_STREAM_GRANT_SECRET:-}
+      RELEASE_STREAM_GRANT_TTL_SECONDS: ${RELEASE_STREAM_GRANT_TTL_SECONDS:-120}
+      EPISODE_PLAYBACK_RATE_LIMIT: ${EPISODE_PLAYBACK_RATE_LIMIT:-30}
+      EPISODE_PLAYBACK_RATE_WINDOW_SECONDS: ${EPISODE_PLAYBACK_RATE_WINDOW_SECONDS:-60}
+      EPISODE_PLAYBACK_MAX_CONCURRENT_STREAMS: ${EPISODE_PLAYBACK_MAX_CONCURRENT_STREAMS:-12}
+      REDIS_ADDR: team4sv30-redis:6379
+      REDIS_DB: ${REDIS_DB:-0}
+    ports:
+      - "8092:8092"
+    volumes:
+      - ./database/migrations:/app/database/migrations:ro
+    depends_on:
+      team4sv30-db:
+        condition: service_healthy
+      team4sv30-redis:
+        condition: service_started
+
+  team4sv30-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Public URL must be reachable from the user's browser on the host.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8092}
+        NEXT_PUBLIC_AUTH_TOKEN: ${NEXT_PUBLIC_AUTH_TOKEN:-}
+        NEXT_PUBLIC_AUTH_DISPLAY_NAME: ${NEXT_PUBLIC_AUTH_DISPLAY_NAME:-}
+        NEXT_PUBLIC_RUNTIME_PROFILE: ${RUNTIME_PROFILE:-local}
+        NEXT_PUBLIC_AUTH_ISSUE_DEV_MODE: ${AUTH_ISSUE_DEV_MODE:-false}
+    container_name: team4sv30-frontend
+    environment:
+      # Public URL for client-side requests (browser).
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8092}
+      # Internal URL for server-side requests inside the container.
+      API_INTERNAL_URL: ${API_INTERNAL_URL:-http://team4sv30-backend:8092}
+      NEXT_PUBLIC_AUTH_TOKEN: ${NEXT_PUBLIC_AUTH_TOKEN:-}
+      NEXT_PUBLIC_AUTH_DISPLAY_NAME: ${NEXT_PUBLIC_AUTH_DISPLAY_NAME:-}
+      NEXT_PUBLIC_RUNTIME_PROFILE: ${RUNTIME_PROFILE:-local}
+      NEXT_PUBLIC_AUTH_ISSUE_DEV_MODE: ${AUTH_ISSUE_DEV_MODE:-false}
+    volumes:
+      # Persist uploaded covers to the workspace (local-dev helper writes into public/covers).
+      - ./frontend/public/covers:/app/public/covers
+    ports:
+      - "3002:3000"
+    depends_on:
+      - team4sv30-backend
+
+volumes:
+  postgres_data:

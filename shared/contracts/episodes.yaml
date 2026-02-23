@@ -1,0 +1,89 @@
+feature: episode-view
+endpoint:
+  method: GET
+  path: /api/v1/episodes/:id
+path_params:
+  - name: id
+    type: int64
+    minimum: 1
+response:
+  type: EpisodeDetailResponse
+  example:
+    data:
+      id: 101
+      anime_id: 1
+      anime_title: "Attack on Titan"
+      episode_number: "01"
+      title: "An dich in 2000 Jahren"
+      status: "public"
+      view_count: 5200
+      download_count: 1800
+      previous_episode_id: null
+      next_episode_id: 102
+types:
+  EpisodeDetailResponse:
+    data: EpisodeDetail
+  EpisodeDetail:
+    id: int64
+    anime_id: int64
+    anime_title: string
+    episode_number: string
+    title: string | null
+    status: episode_status
+    view_count: int32
+    download_count: int32
+    previous_episode_id: int64 | null
+    next_episode_id: int64 | null
+
+playback:
+  grant_endpoint:
+    method: POST
+    path: /api/v1/episodes/:id/play/grant
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    response:
+      status: 201
+      type: EpisodePlaybackGrantResponse
+    errors:
+      - status: 401
+        message: anmeldung erforderlich
+      - status: 404
+        message: episode nicht gefunden | stream nicht gefunden
+      - status: 429
+        message: zu viele anfragen, bitte spaeter erneut versuchen
+        headers:
+          Retry-After: "<seconds>"
+      - status: 503
+        message: stream-rate-limit voruebergehend nicht verfuegbar
+  stream_endpoint:
+    method: GET
+    path: /api/v1/episodes/:id/play
+    query_params:
+      - name: grant
+        type: string
+        required: false
+        description: Optional short-lived stream grant token when no bearer token is provided.
+    response:
+      status: 200
+      type: binary
+    errors:
+      - status: 401
+        message: anmeldung erforderlich | ungueltiger stream grant
+      - status: 429
+        message: zu viele anfragen, bitte spaeter erneut versuchen
+        headers:
+          Retry-After: "<seconds>"
+      - status: 503
+        message: stream-rate-limit voruebergehend nicht verfuegbar | stream derzeit ueberlastet
+  grant_response_type:
+    EpisodePlaybackGrantResponse:
+      data: EpisodePlaybackGrant
+    EpisodePlaybackGrant:
+      episode_id: int64
+      grant_token: string
+      expires_at: int64
+      ttl_seconds: int64
+      issued_for: int64

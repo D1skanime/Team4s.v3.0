@@ -1,0 +1,51 @@
+.nav {
+  margin-top: 1.1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 25%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+  padding: 0.45rem 0.72rem;
+}
+
+.button[aria-disabled='true'] {
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+.pages {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.page {
+  min-width: 2rem;
+  text-align: center;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 25%, transparent);
+  color: var(--text-secondary);
+  padding: 0.4rem 0.45rem;
+  background: color-mix(in srgb, var(--bg-secondary) 65%, transparent);
+}
+
+.page:hover {
+  color: var(--text-primary);
+}
+
+.active {
+  color: var(--color-white);
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+}

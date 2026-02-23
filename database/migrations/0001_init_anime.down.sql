@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS anime;
+DROP TYPE IF EXISTS content_type;
+DROP TYPE IF EXISTS anime_status;
+DROP TYPE IF EXISTS anime_type;

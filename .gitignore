@@ -1,0 +1,14 @@
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Backend
+backend/bin/
+backend/.env
+
+# General
+*.log
+*.tmp
+.env
+.env.*

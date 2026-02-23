@@ -1,0 +1,353 @@
+.page {
+  position: relative;
+  isolation: isolate;
+  width: min(1280px, 100% - 48px);
+  margin: 0 auto;
+  padding: 24px 0 48px;
+  min-height: 100vh;
+}
+
+.backLink a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.backLink a:hover {
+  color: var(--text-primary);
+}
+
+.heroShell {
+  position: relative;
+  border-radius: var(--radius-md);
+}
+
+.hero {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 24px;
+  align-items: start;
+  padding: 18px;
+}
+
+@media (min-width: 992px) {
+  .hero {
+    grid-template-columns: 400px 1fr;
+    padding: 22px;
+  }
+}
+
+.cover {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-light);
+}
+
+.info {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+}
+
+.infoHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.infoLogo {
+  width: clamp(180px, 32vw, 360px);
+  max-width: 58%;
+  max-height: clamp(88px, 12vw, 132px);
+  height: auto;
+  object-fit: contain;
+  object-position: right center;
+  display: block;
+  flex: 0 0 auto;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.badges {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metaBadge {
+  border-radius: 16px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  text-transform: uppercase;
+}
+
+.description {
+  margin: 16px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-size: 16px;
+}
+
+.stats {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.infoBanner {
+  margin-top: 16px;
+  margin-left: auto;
+  margin-right: auto;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: clamp(120px, 22vw, 260px);
+  display: block;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-light);
+  object-fit: contain;
+  object-position: center center;
+}
+
+.externalLinkButton {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  padding: 12px 24px;
+  font-size: 16px;
+}
+
+.externalLinkButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.episodesSection {
+  margin-top: 24px;
+}
+
+.episodesSection h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+.fansubRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fansubStoryGrid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+@media (min-width: 900px) {
+  .fansubStoryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .infoHeader {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .infoLogo {
+    width: clamp(170px, 58vw, 320px);
+    max-width: 100%;
+    max-height: 96px;
+  }
+}
+
+.fansubStoryCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  padding: 14px 16px;
+}
+
+.fansubStoryTitle {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.fansubStoryTitle a {
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.fansubStoryTitle a:hover {
+  color: var(--color-primary);
+}
+
+.fansubStoryText {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.fansubChip {
+  border-radius: 16px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.fansubChip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.episodeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.episodeItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.episodeNumber {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.episodeTitle {
+  margin: 4px 0;
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.episodeMeta {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.episodeActions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.actionButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.emptyEpisodes,
+.errorBox {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  padding: 16px;
+  font-size: 16px;
+}
+
+.commentsSection {
+  margin-top: 1.4rem;
+}
+
+.commentList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.commentItem {
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 86%, transparent);
+  padding: 0.85rem;
+}
+
+.commentHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  align-items: baseline;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.commentHeader strong {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.commentContent {
+  margin: 0.45rem 0 0;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.emptyComments {
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 86%, transparent);
+  padding: 0.9rem;
+}

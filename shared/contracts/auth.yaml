@@ -1,0 +1,87 @@
+feature: auth-lifecycle
+endpoints:
+  - name: auth-issue
+    method: POST
+    path: /api/v1/auth/issue
+    auth:
+      required: false
+      trusted_sources:
+        - Non-dev profiles: Authorization: Bearer <signed token> (required)
+        - Local dev profile only: server-configured fallback identity when AUTH_ISSUE_DEV_MODE=true
+      profile_rules:
+        - AUTH_ISSUE_DEV_MODE must remain false in non-dev deployments.
+        - X-Auth-Issue-Key is evaluated only for dev fallback and only when AUTH_ISSUE_DEV_KEY is configured.
+    request_body:
+      required: false
+    response:
+      status: 201
+      type: AuthTokenResponse
+    errors:
+      - status: 401
+        response:
+          error:
+            message: anmeldung erforderlich
+      - status: 401
+        response:
+          error:
+            message: ungueltiges zugriffstoken
+      - status: 503
+        response:
+          error:
+            message: auth-status voruebergehend nicht verfuegbar
+
+  - name: auth-refresh
+    method: POST
+    path: /api/v1/auth/refresh
+    request_body:
+      required: true
+      type: AuthRefreshRequest
+      example:
+        refresh_token: eyJhbGciOi...
+    response:
+      status: 200
+      type: AuthTokenResponse
+    errors:
+      - status: 401
+        response:
+          error:
+            message: ungueltiges refresh-token
+
+  - name: auth-revoke
+    method: POST
+    path: /api/v1/auth/revoke
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    request_body:
+      required: false
+      type: AuthRevokeRequest
+      example:
+        refresh_token: eyJhbGciOi...
+    response:
+      status: 204
+    errors:
+      - status: 503
+        response:
+          error:
+            message: auth-status voruebergehend nicht verfuegbar
+
+types:
+  AuthRefreshRequest:
+    refresh_token: string (required)
+  AuthRevokeRequest:
+    refresh_token: string (optional)
+  AuthTokenResponse:
+    data: AuthTokenData
+  AuthTokenData:
+    token_type: "Bearer"
+    access_token: string
+    access_token_expires_at: unix_timestamp_seconds
+    access_token_expires_in: int64
+    refresh_token: string
+    refresh_token_expires_at: unix_timestamp_seconds
+    refresh_token_expires_in: int64
+    user_id: int64
+    display_name: string

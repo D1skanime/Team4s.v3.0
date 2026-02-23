@@ -1,0 +1,46 @@
+.section {
+  margin-top: 1.4rem;
+}
+
+.commentList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.commentItem {
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 86%, transparent);
+  padding: 0.85rem;
+}
+
+.commentHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  align-items: baseline;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.commentHeader strong {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.commentContent {
+  margin: 0.45rem 0 0;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.errorBox,
+.emptyComments {
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 86%, transparent);
+  padding: 0.9rem;
+}

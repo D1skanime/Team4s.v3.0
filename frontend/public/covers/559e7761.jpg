@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="de-DE" xml:lang="de-DE">
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+	
+   <title>Bilder-Upload - Kostenlos Fotos hochladen und ins Netz stellen</title>
+	
+   <!--Icons-->
+   <link rel="icon" href="http://www.bilder-upload.eu/favicon.png" type="image/png" />
+   <link rel="icon" href="http://www.bilder-upload.eu/favicon.ico" type="image/x-icon" />
+   <link rel="apple-touch-icon" href="/favicon_iphone.png" />
+
+   <!-- Metadaten -->
+   <meta  name="keywords" content="gratis, kostenlos, bilder upload, bild upload, foto upload, fotos uploaden, bilder hochladen, bild hochladen, ohne anmeldung, bilder für auktionen hochladen, für foren, pic upload,pic hochladen, bildergalerie, party bilder hochladen, gratis upload,bild speichern und links verteilen, öffentliche galerie, gif, jpg bilder hochladen, upload box für die homepage" />
+   <meta  name="description" content="Kostenlos Bilder hochladen. Bilder Upload ohne Anmeldung" />
+
+   <meta name="Abstract" content="bla" />
+   <meta name="audience" content="Alle" />
+
+   <meta name="Title" content="Bilder-Upload - Kostenlos Fotos hochladen und ins Netz stellen" />
+   <meta name="Author" content="Michael Heiter" />
+   <meta name="Publisher" content="Michael Heiter" />
+   <meta name="Copyright" content="Michael Heiter" />
+   <meta name="Creation_date" content="2010-02-26" />
+   <meta name="revisit-after" content="6 days" />
+
+   <meta  name="robots" content="index, follow" />
+   <meta  name="language" content="de" />
+
+   <link rel="Stylesheet" type="text/css" href="css/style.css" media="all" />
+
+</head>
+<body>
+<div class="wrapper">
+   <div id="header">
+      <a class="logo" href="/" title=""><img src="img/logo.png" alt="" title="" /></a>
+   </div><!-- header ENDE -->
+
+   <div id="headernavi"><br />
+   <p class="headernavi">
+      &raquo; <a href="/">Bilder Upload</a>&nbsp;&nbsp;&nbsp;&nbsp;&raquo;
+      <a href="info.php">Hilfe / FAQ</a>&nbsp;&nbsp;&nbsp;&nbsp;&raquo;
+      <a href="agb.php">AGB</a>&nbsp;&nbsp;&nbsp;&nbsp;&raquo;      
+      <a href="kontakt.php">Kontakt</a>&nbsp;&nbsp;&nbsp;&nbsp;&raquo;
+      <a href="partner.php">Partner</a>&nbsp;&nbsp;&nbsp;&nbsp;&raquo;
+      <a href="impressum.php">Impressum</a>
+   </p>
+   </div> 
+
+   
+   <div id="content" style="text-align:center;">
+<br />
+            <form method="post" action="show.php?file=d37b28-1436449293.jpg">
+               <strong>Zoom:</strong> <select name="zoom">
+                  <option value="0.1">10 %</option>
+                  <option value="0.25">25 %</option>
+                  <option value="0.5">50 %</option>
+                  <option value="1"selected>100 %</option>
+                  <option value="1.5">150 %</option>
+                  <option value="2">200 %</option>
+                  <option value="2.5">250 %</option>
+                  <option value="5">500 %</option>
+                  <option value="10">1000 %</option>
+               </select>            
+               <input type="submit" name="Anzeigen" value="Anzeigen" />
+            </form><br /><input type="image" src="upload/d37b28-1436449293.jpg" style="text-align:center;border:0px;width:px;height:px;" />   </div><!-- content ENDE -->
+</div><!-- wrapper ENDE --><br />
+
+
+<div id="footer">
+   <div id="inlay">
+      <div class="small left mright">
+         <strong>Bilder Upload</strong>
+         <ul>
+            <li><a href="/" title="">Bilder hochladen</a></li>
+         </ul>
+      </div>
+      <div class="small left mright">
+         <strong>Allgemein</strong>
+         <ul>
+            <li><a href="/agb.php" title="AGB">AGB</a></li>
+            <li><a href="/info.php" title="Hilfe">Hilfe / FAQ</a></li>
+            <li><a href="/impressum.php" title="">Impressum</a></li>
+            <li><a href="/kontakt.php" title="">Kontakt</a></li>
+         </ul>
+      </div>
+      <div class="small left mright">
+         <strong>Partner</strong>
+         <ul>
+            <li><a href="http://www.eierkraulen.net" title="Wallpaper">Lustige Videos</a></li>
+            <li><a href="http://sms-power.eu" title="SMS Gratis">SMS Gratis</a></li>
+            <li><a href="http://www.promo-rank.net" title="Promo-Rank.net">Promo-Rank.net</a></li>
+            <li><a href="http://www.bilder-space.de" title="Bilder hochladen">Bilder hochladen</a></li>
+            <li><a href="http://www.gratismagnet.de/cgi-bin/liste/in.cgi?id=1169944171" title="Gratismagnet.de">Gratismagnet.de</a></li>
+         </ul>
+      </div>
+      <div class="small left">
+         <strong>Partner</strong>
+         <ul>
+            <li><a href="http://www.umts-flatrate.mobi" title="UMTS Flatrate">UMTS Flatrate</a></li>
+            <li><a href="http://www.geizfinder.de" title="Geizfinder.de">Geizfinder.de</a></li>
+            <li><a href="http://www.ad-innovation.de" title="Online Vermarkter">Online Vermarkter</a></li>
+            <li><a href="http://www.fail.to" title="Fail Picture">Fail Picture</a></li>
+            <li><a href="http://www.dailywin.net" title="v">Dailywin</a></li>
+         </ul>
+      </div>
+   </div>
+</div><!-- footer ENDE -->
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-20198768-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+   <div id="copy">
+      <p>Copyright © 2006-2015 by Bilder-Upload.eu - Kostenlos Fotos &amp; Bilder hochladen</p>
+      <script type="text/javascript" src="http://www.ipcounter.de/count_js.php?u=57396315&amp;color=black"></script>
+      <noscript><a href="http://www.ipcounter.de/stats.php?u=57396315" target="_blank"><img src="http://www.ipcounter.de/count.php?u=57396315&amp;color=black" alt="IPCOUNTER.DE - Kostenloser Live Counter!" border="0" /></a></noscript>
+      <!--<iframe src="http://www.bilder-upload.eu/partner_links.php" height="1" width="1" frameborder="0"></iframe>-->
+   </div>
+
+</body>
+</html>

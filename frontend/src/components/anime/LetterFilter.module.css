@@ -1,0 +1,31 @@
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+  padding: 0.9rem;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-card) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+}
+
+.link {
+  text-decoration: none;
+  font-size: 0.86rem;
+  border-radius: var(--radius-sm);
+  padding: 0.33rem 0.55rem;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 22%, transparent);
+}
+
+.link:hover {
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--accent-soft) 45%, transparent);
+}
+
+.active {
+  color: white;
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
