@@ -446,8 +446,23 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 		episodeNumber int32
 		mediaItemID   string
 		episodeTitle  *string
+		fansubGroupID *int64
 		releaseDate   *time.Time
 		videoQuality  *string
+	}
+
+	aliasResolver := newFansubAliasResolver(nil)
+	if h.fansubRepo != nil {
+		candidates, aliasErr := h.fansubRepo.ListAnimeAliasCandidates(c.Request.Context(), animeID)
+		if aliasErr != nil && !errors.Is(aliasErr, repository.ErrNotFound) {
+			log.Printf(
+				"admin_content jellyfin_sync: list alias candidates failed (anime_id=%d): %v",
+				animeID,
+				aliasErr,
+			)
+		} else {
+			aliasResolver = newFansubAliasResolver(candidates)
+		}
 	}
 
 	normalizedPathPrefix := normalizeJellyfinPath(result.AppliedPathPrefix)
@@ -480,6 +495,7 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 			episodeNumber: episodeNumber,
 			mediaItemID:   mediaItemID,
 			episodeTitle:  normalizeNullableStringPtr(item.Name),
+			fansubGroupID: aliasResolver.Resolve(item.Name, item.Path),
 			releaseDate:   parseJellyfinPremiereDate(item.PremiereDate),
 			videoQuality:  jellyfinVideoQuality(item.MediaStreams),
 		})
@@ -559,7 +575,7 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 				AnimeID:       animeID,
 				EpisodeNumber: accepted.episodeNumber,
 				Title:         accepted.episodeTitle,
-				FansubGroupID: nil,
+				FansubGroupID: accepted.fansubGroupID,
 				MediaProvider: "jellyfin",
 				MediaItemID:   accepted.mediaItemID,
 				VideoQuality:  accepted.videoQuality,

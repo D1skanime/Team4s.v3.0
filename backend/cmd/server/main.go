@@ -143,6 +143,7 @@ func main() {
 	}
 	adminContentHandler := handlers.NewAdminContentHandler(
 		adminContentRepo,
+		fansubRepo,
 		episodeVersionRepo,
 		authzRepo,
 		cfg.AuthAdminRoleName,
@@ -211,6 +212,7 @@ func main() {
 	v1.GET("/fansubs", fansubHandler.ListFansubs)
 	v1.GET("/fansub-slugs/:slug", fansubHandler.GetFansubBySlug)
 	v1.GET("/fansubs/:id", fansubHandler.GetFansubByID)
+	v1.GET("/fansubs/:id/aliases", fansubHandler.ListFansubAliases)
 	v1.GET("/fansubs/:id/members", fansubHandler.ListFansubMembers)
 	v1.GET("/media/image", fansubHandler.MediaImage)
 	v1.GET("/media/video", fansubHandler.MediaVideo)
@@ -283,6 +285,16 @@ func main() {
 		"/fansubs/:id",
 		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		fansubHandler.DeleteFansub,
+	)
+	v1.POST(
+		"/fansubs/:id/aliases",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		fansubHandler.CreateFansubAlias,
+	)
+	v1.DELETE(
+		"/fansubs/:id/aliases/:aliasId",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		fansubHandler.DeleteFansubAlias,
 	)
 	v1.POST(
 		"/fansubs/:id/members",

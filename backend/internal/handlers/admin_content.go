@@ -54,6 +54,7 @@ type adminEpisodeCreateRequest struct {
 
 type AdminContentHandler struct {
 	repo               *repository.AdminContentRepository
+	fansubRepo         *repository.FansubRepository
 	episodeVersionRepo *repository.EpisodeVersionRepository
 	authzRepo          *repository.AuthzRepository
 	adminRoleName      string
@@ -69,6 +70,7 @@ type AdminContentJellyfinConfig struct {
 
 func NewAdminContentHandler(
 	repo *repository.AdminContentRepository,
+	fansubRepo *repository.FansubRepository,
 	episodeVersionRepo *repository.EpisodeVersionRepository,
 	authzRepo *repository.AuthzRepository,
 	adminRoleName string,
@@ -76,6 +78,7 @@ func NewAdminContentHandler(
 ) *AdminContentHandler {
 	return &AdminContentHandler{
 		repo:               repo,
+		fansubRepo:         fansubRepo,
 		episodeVersionRepo: episodeVersionRepo,
 		authzRepo:          authzRepo,
 		adminRoleName:      strings.TrimSpace(adminRoleName),

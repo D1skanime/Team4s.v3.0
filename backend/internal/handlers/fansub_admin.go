@@ -140,6 +140,14 @@ func parseFansubMemberID(raw string) (int64, error) {
 	return id, nil
 }
 
+func parseFansubAliasID(raw string) (int64, error) {
+	id, err := strconv.ParseInt(strings.TrimSpace(raw), 10, 64)
+	if err != nil || id <= 0 {
+		return 0, strconv.ErrSyntax
+	}
+	return id, nil
+}
+
 func parseEpisodeVersionID(raw string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(raw), 10, 64)
 	if err != nil || id <= 0 {

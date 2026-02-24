@@ -129,6 +129,71 @@ endpoints:
       status: 200
       type: FansubMemberListResponse
 
+  - name: fansub-aliases-list
+    method: GET
+    path: /api/v1/fansubs/:id/aliases
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: FansubAliasListResponse
+
+  - name: fansub-aliases-create
+    method: POST
+    path: /api/v1/fansubs/:id/aliases
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: FansubAliasCreateRequest
+    response:
+      status: 201
+      type: FansubAliasResponse
+
+  - name: fansub-aliases-delete
+    method: DELETE
+    path: /api/v1/fansubs/:id/aliases/:aliasId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: aliasId
+        type: int64
+        minimum: 1
+    response:
+      status: 204
+      type: none
+
   - name: fansub-members-create
     method: POST
     path: /api/v1/fansubs/:id/members
@@ -293,6 +358,10 @@ types:
     data: FansubMember[]
   FansubMemberResponse:
     data: FansubMember
+  FansubAliasListResponse:
+    data: FansubAlias[]
+  FansubAliasResponse:
+    data: FansubAlias
   AnimeFansubListResponse:
     data: AnimeFansub[]
   AnimeFansubResponse:
@@ -337,6 +406,8 @@ types:
     since_year: int32 | null
     until_year: int32 | null
     notes: string | null
+  FansubAliasCreateRequest:
+    alias: string (required, min: 1, max: 120)
   AnimeFansubAttachRequest:
     is_primary: bool
     notes: string | null
@@ -365,6 +436,12 @@ types:
     since_year: int32 | null
     until_year: int32 | null
     notes: string | null
+    created_at: datetime
+    updated_at: datetime
+  FansubAlias:
+    id: int64
+    fansub_group_id: int64
+    alias: string
     created_at: datetime
     updated_at: datetime
   AnimeFansub:

@@ -2075,6 +2075,162 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/fansubs/{id}/aliases:
+    get:
+      tags: [Fansubs]
+      summary: List fansub aliases
+      operationId: listFansubAliases
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Fansub alias list payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubAliasListResponse"
+        "400":
+          description: Invalid fansub id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Fansubs]
+      summary: Create fansub alias
+      operationId: createFansubAlias
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FansubAliasCreateRequest"
+      responses:
+        "201":
+          description: Created fansub alias payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubAliasResponse"
+        "400":
+          description: Invalid request body or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Alias already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/fansubs/{id}/aliases/{aliasId}:
+    delete:
+      tags: [Fansubs]
+      summary: Delete fansub alias
+      operationId: deleteFansubAlias
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: aliasId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "204":
+          description: Fansub alias deleted
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub alias not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/fansubs/{id}/members:
     get:
       tags: [Fansubs]
@@ -4156,6 +4312,30 @@ components:
         updated_at:
           type: string
           format: date-time
+    FansubAlias:
+      type: object
+      required:
+        - id
+        - fansub_group_id
+        - alias
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        fansub_group_id:
+          type: integer
+          format: int64
+        alias:
+          type: string
+          maxLength: 120
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
     AnimeFansubRelation:
       type: object
       required:
@@ -4320,6 +4500,14 @@ components:
         notes:
           type: string
           nullable: true
+    FansubAliasCreateRequest:
+      type: object
+      required: [alias]
+      properties:
+        alias:
+          type: string
+          minLength: 1
+          maxLength: 120
     AnimeFansubAttachRequest:
       type: object
       properties:
@@ -4359,6 +4547,20 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/FansubMember"
+    FansubAliasListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/FansubAlias"
+    FansubAliasResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/FansubAlias"
     AnimeFansubListResponse:
       type: object
       required: [data]

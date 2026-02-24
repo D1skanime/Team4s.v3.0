@@ -336,6 +336,154 @@ func (r *FansubRepository) DeleteGroup(ctx context.Context, id int64) error {
 	return nil
 }
 
+func (r *FansubRepository) ListAliases(ctx context.Context, fansubID int64) ([]models.FansubAlias, error) {
+	exists, err := r.fansubGroupExists(ctx, fansubID)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, ErrNotFound
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT id, fansub_group_id, alias, created_at, updated_at
+		FROM fansub_group_aliases
+		WHERE fansub_group_id = $1
+		ORDER BY alias ASC, id ASC
+	`, fansubID)
+	if err != nil {
+		return nil, fmt.Errorf("query fansub aliases for group %d: %w", fansubID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.FansubAlias, 0, 16)
+	for rows.Next() {
+		var item models.FansubAlias
+		if err := rows.Scan(
+			&item.ID,
+			&item.FansubGroupID,
+			&item.Alias,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan fansub alias row: %w", err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate fansub alias rows: %w", err)
+	}
+
+	return items, nil
+}
+
+func (r *FansubRepository) CreateAlias(
+	ctx context.Context,
+	fansubID int64,
+	input models.FansubAliasCreateInput,
+) (*models.FansubAlias, error) {
+	query := `
+		INSERT INTO fansub_group_aliases (fansub_group_id, alias, normalized_alias)
+		VALUES ($1, $2, $3)
+		RETURNING id, fansub_group_id, alias, created_at, updated_at
+	`
+
+	var item models.FansubAlias
+	if err := r.db.QueryRow(
+		ctx,
+		query,
+		fansubID,
+		input.Alias,
+		input.NormalizedAlias,
+	).Scan(
+		&item.ID,
+		&item.FansubGroupID,
+		&item.Alias,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+	); err != nil {
+		if isForeignKeyViolation(err) {
+			return nil, ErrNotFound
+		}
+		if isUniqueViolation(err) {
+			return nil, ErrConflict
+		}
+		return nil, fmt.Errorf("create fansub alias for group %d: %w", fansubID, err)
+	}
+
+	return &item, nil
+}
+
+func (r *FansubRepository) DeleteAlias(ctx context.Context, fansubID, aliasID int64) error {
+	commandTag, err := r.db.Exec(
+		ctx,
+		`DELETE FROM fansub_group_aliases WHERE id = $1 AND fansub_group_id = $2`,
+		aliasID,
+		fansubID,
+	)
+	if err != nil {
+		return fmt.Errorf("delete fansub alias %d: %w", aliasID, err)
+	}
+	if commandTag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}
+
+func (r *FansubRepository) ListAnimeAliasCandidates(
+	ctx context.Context,
+	animeID int64,
+) ([]models.AnimeFansubAliasCandidate, error) {
+	exists, err := r.animeExists(ctx, animeID)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, ErrNotFound
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT fansub_group_id, alias
+		FROM (
+			SELECT afg.fansub_group_id, fg.slug AS alias, 1 AS priority
+			FROM anime_fansub_groups afg
+			JOIN fansub_groups fg ON fg.id = afg.fansub_group_id
+			WHERE afg.anime_id = $1
+			UNION ALL
+			SELECT afg.fansub_group_id, fg.name AS alias, 2 AS priority
+			FROM anime_fansub_groups afg
+			JOIN fansub_groups fg ON fg.id = afg.fansub_group_id
+			WHERE afg.anime_id = $1
+			UNION ALL
+			SELECT afg.fansub_group_id, fga.alias AS alias, 3 AS priority
+			FROM anime_fansub_groups afg
+			JOIN fansub_group_aliases fga ON fga.fansub_group_id = afg.fansub_group_id
+			WHERE afg.anime_id = $1
+		) candidates
+		WHERE btrim(alias) <> ''
+		ORDER BY priority ASC, fansub_group_id ASC
+	`, animeID)
+	if err != nil {
+		return nil, fmt.Errorf("query anime alias candidates for anime %d: %w", animeID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.AnimeFansubAliasCandidate, 0, 32)
+	for rows.Next() {
+		var item models.AnimeFansubAliasCandidate
+		if err := rows.Scan(&item.FansubGroupID, &item.Alias); err != nil {
+			return nil, fmt.Errorf("scan anime alias candidate row: %w", err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate anime alias candidate rows: %w", err)
+	}
+
+	return items, nil
+}
+
 func (r *FansubRepository) ListMembers(ctx context.Context, fansubID int64) ([]models.FansubMember, error) {
 	exists, err := r.fansubGroupExists(ctx, fansubID)
 	if err != nil {

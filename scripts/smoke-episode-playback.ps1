@@ -382,6 +382,29 @@ try {
   $grantRetryAfter = Get-ResponseHeaderValue -Response $grantRateLimited -HeaderName "Retry-After"
   Add-Check -Name "Episode play grant rate-limit includes Retry-After" -Passed ("$grantRetryAfter".Trim() -ne "") -Details "retry_after=$grantRetryAfter"
 
+  $playRateLimitBootstrapToken = New-SignedBootstrapToken -UserID ($AdminUserID + 1001) -DisplayName "EpisodePlaybackPlayRateLimitUser" -Secret $secret
+  $playRateLimitSession = Issue-AuthSession -BaseUrl $ApiBaseUrl -BootstrapToken $playRateLimitBootstrapToken
+
+  $playWithinLimitPass = $true
+  for ($i = 1; $i -le $playbackRateLimit; $i++) {
+    $playAttemptStatus = [int](Invoke-CurlStatus -Uri "$ApiBaseUrl/api/v1/episodes/$episodeID/play" -Headers @{
+      Authorization = "Bearer $($playRateLimitSession.access_token)"
+      Range         = "bytes=0-0"
+    })
+    if (@(200, 206) -notcontains $playAttemptStatus) {
+      $playWithinLimitPass = $false
+      break
+    }
+  }
+  Add-Check -Name "Episode play allows requests within configured rate limit" -Passed $playWithinLimitPass -Details "limit=$playbackRateLimit"
+
+  $playRateLimited = Invoke-ApiRequest -Method "GET" -Uri "$ApiBaseUrl/api/v1/episodes/$episodeID/play" -Headers @{
+    Authorization = "Bearer $($playRateLimitSession.access_token)"
+  }
+  Add-Check -Name "Episode play above rate limit returns 429" -Passed ($playRateLimited.StatusCode -eq 429) -Details "status=$($playRateLimited.StatusCode)"
+  $playRetryAfter = Get-ResponseHeaderValue -Response $playRateLimited -HeaderName "Retry-After"
+  Add-Check -Name "Episode play rate-limit includes Retry-After" -Passed ("$playRetryAfter".Trim() -ne "") -Details "retry_after=$playRetryAfter"
+
   $passed = @($script:Checks | Where-Object { $_.Passed }).Count
   $total = $script:Checks.Count
   Write-Host ""

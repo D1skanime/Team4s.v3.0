@@ -234,6 +234,8 @@ Current baseline:
 - `0012_episode_versions.down.sql`
 - `0013_init_roles.up.sql`
 - `0013_init_roles.down.sql`
+- `0014_fansub_group_aliases.up.sql`
+- `0014_fansub_group_aliases.down.sql`
 
 Migration runner command:
 
@@ -267,3 +269,5 @@ docker compose exec team4sv30-backend ./migrate status
 docker compose exec team4sv30-backend ./migrate up
 docker compose exec team4sv30-backend ./migrate down -steps 1
 ```
+
+

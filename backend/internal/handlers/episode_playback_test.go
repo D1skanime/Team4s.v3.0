@@ -272,6 +272,49 @@ func TestEnforcePlaybackRateLimitExceeded(t *testing.T) {
 	}
 }
 
+func TestEnforcePlaybackRateLimitActionIsolation(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	now := time.Date(2026, 2, 21, 10, 0, 0, 0, time.UTC)
+	limiter := &episodePlaybackRateLimiter{
+		store:   &fakeEpisodePlaybackRateLimitStore{counts: map[string]int64{}},
+		limit:   1,
+		window:  time.Minute,
+		nowFunc: func() time.Time { return now },
+		prefix:  "episode_playback_rate_limit",
+	}
+	handler := &EpisodePlaybackHandler{
+		playbackRateLimiter: limiter,
+	}
+
+	firstGrantRecorder := httptest.NewRecorder()
+	firstGrantCtx, _ := gin.CreateTestContext(firstGrantRecorder)
+	firstGrantCtx.Request = httptest.NewRequest(http.MethodPost, "/api/v1/episodes/76/play/grant", nil)
+	if ok := handler.enforcePlaybackRateLimit(firstGrantCtx, "grant", "user:1"); !ok {
+		t.Fatalf("expected first grant request to pass rate limiter")
+	}
+
+	secondGrantRecorder := httptest.NewRecorder()
+	secondGrantCtx, _ := gin.CreateTestContext(secondGrantRecorder)
+	secondGrantCtx.Request = httptest.NewRequest(http.MethodPost, "/api/v1/episodes/76/play/grant", nil)
+	if ok := handler.enforcePlaybackRateLimit(secondGrantCtx, "grant", "user:1"); ok {
+		t.Fatalf("expected second grant request to hit rate limiter")
+	}
+	if secondGrantRecorder.Code != http.StatusTooManyRequests {
+		t.Fatalf("expected second grant status 429, got %d", secondGrantRecorder.Code)
+	}
+
+	playRecorder := httptest.NewRecorder()
+	playCtx, _ := gin.CreateTestContext(playRecorder)
+	playCtx.Request = httptest.NewRequest(http.MethodGet, "/api/v1/episodes/76/play", nil)
+	if ok := handler.enforcePlaybackRateLimit(playCtx, "play", "user:1"); !ok {
+		t.Fatalf("expected play action to be isolated from grant limiter key")
+	}
+	if playRecorder.Code != http.StatusOK {
+		t.Fatalf("expected play action recorder code to remain 200, got %d", playRecorder.Code)
+	}
+}
+
 func TestAcquirePlaybackSlotOverloaded(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	recorder := httptest.NewRecorder()

@@ -217,10 +217,13 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes }: FansubVersi
           {episodes.map((episode) => {
             const expanded = Boolean(expandedEpisodes[episode.episode_number])
             const summaryVersion = getSummaryVersion(episode, filterMode, activeFansubGroupID)
-            const filteredVersions =
-              filterMode === 'single' && activeFansubGroupID !== null
-                ? episode.versions.filter((item) => item.fansub_group?.id === activeFansubGroupID)
-                : episode.versions
+            const hasSingleGroupFilter = filterMode === 'single' && activeFansubGroupID !== null
+            const groupMatchedVersions = hasSingleGroupFilter
+              ? episode.versions.filter((item) => item.fansub_group?.id === activeFansubGroupID)
+              : episode.versions
+            const fallbackToAllVersions =
+              hasSingleGroupFilter && groupMatchedVersions.length === 0 && episode.versions.length > 0
+            const displayedVersions = fallbackToAllVersions ? episode.versions : groupMatchedVersions
             const fallbackVersion = getFallbackVersion(episode)
             const panelID = `episode-versions-${episode.episode_number}`
             const episodeTitle = resolveEpisodeTitle(episode, summaryVersion)
@@ -243,7 +246,7 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes }: FansubVersi
 
                 {expanded ? (
                   <div id={panelID} className={styles.versionList}>
-                    {filteredVersions.length === 0 ? (
+                    {displayedVersions.length === 0 ? (
                       <div className={styles.fallbackRow}>
                         <p>Keine Version dieser Gruppe gefunden.</p>
                         {fallbackVersion ? (
@@ -254,7 +257,14 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes }: FansubVersi
                         ) : null}
                       </div>
                     ) : (
-                      filteredVersions.map((version) => {
+                      <>
+                        {fallbackToAllVersions ? (
+                          <div className={styles.fallbackRow}>
+                            <p>Keine Version dieser Gruppe direkt zugeordnet.</p>
+                            <p className={styles.fallbackHint}>Zeige alle verfuegbaren Versionen als Fallback.</p>
+                          </div>
+                        ) : null}
+                        {displayedVersions.map((version) => {
                         const versionLogoURL = resolveLogoUrl(version.fansub_group?.logo_url)
                         return (
                           <div key={version.id} className={styles.versionRow}>
@@ -294,7 +304,8 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes }: FansubVersi
                             </a>
                           </div>
                         )
-                      })
+                        })}
+                      </>
                     )}
                   </div>
                 ) : null}

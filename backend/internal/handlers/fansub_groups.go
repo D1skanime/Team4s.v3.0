@@ -37,6 +37,10 @@ type fansubMemberCreateRequest struct {
 	Notes     *string `json:"notes"`
 }
 
+type fansubAliasCreateRequest struct {
+	Alias string `json:"alias"`
+}
+
 type animeFansubAttachRequest struct {
 	IsPrimary *bool   `json:"is_primary"`
 	Notes     *string `json:"notes"`
@@ -287,6 +291,131 @@ func (h *FansubHandler) DeleteFansub(c *gin.Context) {
 		return
 	} else if err != nil {
 		log.Printf("fansub delete: repo error (user_id=%d, fansub_id=%d): %v", identity.UserID, id, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{
+				"message": "interner serverfehler",
+			},
+		})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func (h *FansubHandler) ListFansubAliases(c *gin.Context) {
+	fansubID, err := parseFansubID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungueltige fansub id")
+		return
+	}
+
+	items, err := h.fansubRepo.ListAliases(c.Request.Context(), fansubID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": gin.H{
+				"message": "fansubgruppe nicht gefunden",
+			},
+		})
+		return
+	}
+	if err != nil {
+		log.Printf("fansub alias list: repo error (fansub_id=%d): %v", fansubID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{
+				"message": "interner serverfehler",
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": items,
+	})
+}
+
+func (h *FansubHandler) CreateFansubAlias(c *gin.Context) {
+	identity, ok := h.requireAdmin(c)
+	if !ok {
+		return
+	}
+
+	fansubID, err := parseFansubID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungueltige fansub id")
+		return
+	}
+
+	var req fansubAliasCreateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("fansub alias create: bad request (user_id=%d, fansub_id=%d): %v", identity.UserID, fansubID, err)
+		badRequest(c, "ungueltiger request body")
+		return
+	}
+
+	input, validationMessage := validateFansubAliasCreateRequest(req)
+	if validationMessage != "" {
+		badRequest(c, validationMessage)
+		return
+	}
+
+	item, err := h.fansubRepo.CreateAlias(c.Request.Context(), fansubID, input)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": gin.H{
+				"message": "fansubgruppe nicht gefunden",
+			},
+		})
+		return
+	}
+	if errors.Is(err, repository.ErrConflict) {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{
+				"message": "alias bereits vorhanden",
+			},
+		})
+		return
+	}
+	if err != nil {
+		log.Printf("fansub alias create: repo error (user_id=%d, fansub_id=%d): %v", identity.UserID, fansubID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{
+				"message": "interner serverfehler",
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"data": item,
+	})
+}
+
+func (h *FansubHandler) DeleteFansubAlias(c *gin.Context) {
+	identity, ok := h.requireAdmin(c)
+	if !ok {
+		return
+	}
+
+	fansubID, err := parseFansubID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungueltige fansub id")
+		return
+	}
+	aliasID, err := parseFansubAliasID(c.Param("aliasId"))
+	if err != nil {
+		badRequest(c, "ungueltige alias id")
+		return
+	}
+
+	if err := h.fansubRepo.DeleteAlias(c.Request.Context(), fansubID, aliasID); errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": gin.H{
+				"message": "alias nicht gefunden",
+			},
+		})
+		return
+	} else if err != nil {
+		log.Printf("fansub alias delete: repo error (user_id=%d, fansub_id=%d, alias_id=%d): %v", identity.UserID, fansubID, aliasID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": gin.H{
 				"message": "interner serverfehler",
@@ -786,6 +915,23 @@ func validateFansubMemberCreateRequest(req fansubMemberCreateRequest) (models.Fa
 		SinceYear: req.SinceYear,
 		UntilYear: req.UntilYear,
 		Notes:     normalizeNullableString(req.Notes),
+	}, ""
+}
+
+func validateFansubAliasCreateRequest(req fansubAliasCreateRequest) (models.FansubAliasCreateInput, string) {
+	alias := normalizeRequiredString(&req.Alias)
+	if alias == nil || len([]rune(*alias)) > 120 {
+		return models.FansubAliasCreateInput{}, "ungueltiger alias parameter"
+	}
+
+	normalizedAlias := normalizeFansubAliasKey(*alias)
+	if normalizedAlias == "" {
+		return models.FansubAliasCreateInput{}, "ungueltiger alias parameter"
+	}
+
+	return models.FansubAliasCreateInput{
+		Alias:           *alias,
+		NormalizedAlias: normalizedAlias,
 	}, ""
 }
 

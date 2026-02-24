@@ -47,6 +47,14 @@ type FansubMember struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
+type FansubAlias struct {
+	ID            int64     `json:"id"`
+	FansubGroupID int64     `json:"fansub_group_id"`
+	Alias         string    `json:"alias"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
 type AnimeFansubRelation struct {
 	AnimeID       int64               `json:"anime_id"`
 	FansubGroupID int64               `json:"fansub_group_id"`
@@ -54,6 +62,16 @@ type AnimeFansubRelation struct {
 	Notes         *string             `json:"notes,omitempty"`
 	CreatedAt     time.Time           `json:"created_at"`
 	FansubGroup   *FansubGroupSummary `json:"fansub_group,omitempty"`
+}
+
+type FansubAliasCreateInput struct {
+	Alias           string
+	NormalizedAlias string
+}
+
+type AnimeFansubAliasCandidate struct {
+	FansubGroupID int64
+	Alias         string
 }
 
 type FansubGroupCreateInput struct {
