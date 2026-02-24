@@ -2,6 +2,14 @@ package models
 
 import "time"
 
+// FansubGroupType distinguishes regular groups from collaborations
+type FansubGroupType string
+
+const (
+	FansubGroupTypeGroup         FansubGroupType = "group"
+	FansubGroupTypeCollaboration FansubGroupType = "collaboration"
+)
+
 type FansubFilter struct {
 	Page    int
 	PerPage int
@@ -10,22 +18,24 @@ type FansubFilter struct {
 }
 
 type FansubGroup struct {
-	ID            int64     `json:"id"`
-	Slug          string    `json:"slug"`
-	Name          string    `json:"name"`
-	Description   *string   `json:"description,omitempty"`
-	History       *string   `json:"history,omitempty"`
-	LogoURL       *string   `json:"logo_url,omitempty"`
-	BannerURL     *string   `json:"banner_url,omitempty"`
-	FoundedYear   *int32    `json:"founded_year,omitempty"`
-	DissolvedYear *int32    `json:"dissolved_year,omitempty"`
-	Status        string    `json:"status"`
-	WebsiteURL    *string   `json:"website_url,omitempty"`
-	DiscordURL    *string   `json:"discord_url,omitempty"`
-	IrcURL        *string   `json:"irc_url,omitempty"`
-	Country       *string   `json:"country,omitempty"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	ID                   int64               `json:"id"`
+	Slug                 string              `json:"slug"`
+	Name                 string              `json:"name"`
+	Description          *string             `json:"description,omitempty"`
+	History              *string             `json:"history,omitempty"`
+	LogoURL              *string             `json:"logo_url,omitempty"`
+	BannerURL            *string             `json:"banner_url,omitempty"`
+	FoundedYear          *int32              `json:"founded_year,omitempty"`
+	DissolvedYear        *int32              `json:"dissolved_year,omitempty"`
+	Status               string              `json:"status"`
+	GroupType            FansubGroupType     `json:"group_type"`
+	WebsiteURL           *string             `json:"website_url,omitempty"`
+	DiscordURL           *string             `json:"discord_url,omitempty"`
+	IrcURL               *string             `json:"irc_url,omitempty"`
+	Country              *string             `json:"country,omitempty"`
+	CreatedAt            time.Time           `json:"created_at"`
+	UpdatedAt            time.Time           `json:"updated_at"`
+	CollaborationMembers []FansubGroupSummary `json:"collaboration_members,omitempty"`
 }
 
 type FansubGroupSummary struct {
@@ -84,6 +94,7 @@ type FansubGroupCreateInput struct {
 	FoundedYear   *int32
 	DissolvedYear *int32
 	Status        string
+	GroupType     FansubGroupType
 	WebsiteURL    *string
 	DiscordURL    *string
 	IrcURL        *string
@@ -100,10 +111,28 @@ type FansubGroupPatchInput struct {
 	FoundedYear   OptionalInt32  `json:"founded_year"`
 	DissolvedYear OptionalInt32  `json:"dissolved_year"`
 	Status        OptionalString `json:"status"`
+	GroupType     OptionalString `json:"group_type"`
 	WebsiteURL    OptionalString `json:"website_url"`
 	DiscordURL    OptionalString `json:"discord_url"`
 	IrcURL        OptionalString `json:"irc_url"`
 	Country       OptionalString `json:"country"`
+}
+
+// MergeGroupsResult contains statistics from a fansub group merge operation
+type MergeGroupsResult struct {
+	MergedCount      int      `json:"merged_count"`
+	VersionsMigrated int      `json:"versions_migrated"`
+	MembersMigrated  int      `json:"members_migrated"`
+	RelationsMigrated int     `json:"relations_migrated"`
+	AliasesAdded     []string `json:"aliases_added"`
+}
+
+// CollaborationMember represents a member group in a collaboration
+type CollaborationMember struct {
+	CollaborationID int64     `json:"collaboration_id"`
+	MemberGroupID   int64     `json:"member_group_id"`
+	AddedAt         time.Time `json:"added_at"`
+	MemberGroup     *FansubGroupSummary `json:"member_group,omitempty"`
 }
 
 type FansubMemberCreateInput struct {

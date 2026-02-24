@@ -23,6 +23,7 @@ type fansubGroupCreateRequest struct {
 	FoundedYear   *int32  `json:"founded_year"`
 	DissolvedYear *int32  `json:"dissolved_year"`
 	Status        string  `json:"status"`
+	GroupType     *string `json:"group_type"`
 	WebsiteURL    *string `json:"website_url"`
 	DiscordURL    *string `json:"discord_url"`
 	IrcURL        *string `json:"irc_url"`
@@ -58,8 +59,8 @@ func (h *FansubHandler) ListFansubs(c *gin.Context) {
 		badRequest(c, "ungueltiger per_page parameter")
 		return
 	}
-	if perPage > 100 {
-		perPage = 100
+	if perPage > 500 {
+		perPage = 500
 	}
 
 	q := strings.TrimSpace(c.Query("q"))
@@ -768,6 +769,22 @@ func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.Fans
 		return models.FansubGroupCreateInput{}, "ungueltiger status parameter"
 	}
 
+	groupType := models.FansubGroupTypeGroup
+	if req.GroupType != nil {
+		value := normalizeRequiredString(req.GroupType)
+		if value == nil {
+			return models.FansubGroupCreateInput{}, "ungueltiger group_type parameter"
+		}
+
+		parsedGroupType := models.FansubGroupType(*value)
+		switch parsedGroupType {
+		case models.FansubGroupTypeGroup, models.FansubGroupTypeCollaboration:
+			groupType = parsedGroupType
+		default:
+			return models.FansubGroupCreateInput{}, "ungueltiger group_type parameter"
+		}
+	}
+
 	if req.FoundedYear != nil && *req.FoundedYear <= 0 {
 		return models.FansubGroupCreateInput{}, "ungueltiger founded_year parameter"
 	}
@@ -793,6 +810,7 @@ func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.Fans
 		FoundedYear:   req.FoundedYear,
 		DissolvedYear: req.DissolvedYear,
 		Status:        *status,
+		GroupType:     groupType,
 		WebsiteURL:    normalizeNullableString(req.WebsiteURL),
 		DiscordURL:    normalizeNullableString(req.DiscordURL),
 		IrcURL:        normalizeNullableString(req.IrcURL),
@@ -828,6 +846,21 @@ func validateFansubGroupPatchRequest(req models.FansubGroupPatchInput) (models.F
 			return models.FansubGroupPatchInput{}, "ungueltiger status parameter"
 		}
 		req.Status.Value = value
+	}
+	if req.GroupType.Set {
+		value := normalizeRequiredString(req.GroupType.Value)
+		if value == nil {
+			return models.FansubGroupPatchInput{}, "ungueltiger group_type parameter"
+		}
+
+		parsedGroupType := models.FansubGroupType(*value)
+		switch parsedGroupType {
+		case models.FansubGroupTypeGroup, models.FansubGroupTypeCollaboration:
+			normalizedGroupType := string(parsedGroupType)
+			req.GroupType.Value = &normalizedGroupType
+		default:
+			return models.FansubGroupPatchInput{}, "ungueltiger group_type parameter"
+		}
 	}
 	if req.FoundedYear.Set && req.FoundedYear.Value != nil && *req.FoundedYear.Value <= 0 {
 		return models.FansubGroupPatchInput{}, "ungueltiger founded_year parameter"
@@ -882,6 +915,7 @@ func hasAnyFansubGroupPatchField(req models.FansubGroupPatchInput) bool {
 		req.FoundedYear.Set ||
 		req.DissolvedYear.Set ||
 		req.Status.Set ||
+		req.GroupType.Set ||
 		req.WebsiteURL.Set ||
 		req.DiscordURL.Set ||
 		req.IrcURL.Set ||

@@ -16,7 +16,7 @@ endpoints:
       - name: per_page
         type: int32
         default: 24
-        maximum: 100
+        maximum: 500
     response:
       status: 200
       type: FansubGroupListResponse
@@ -194,6 +194,117 @@ endpoints:
       status: 204
       type: none
 
+  - name: fansub-collaboration-members-list
+    method: GET
+    path: /api/v1/fansubs/:id/collaboration-members
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: CollaborationMemberListResponse
+
+  - name: fansub-collaboration-members-create
+    method: POST
+    path: /api/v1/fansubs/:id/collaboration-members
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: AddCollaborationMemberRequest
+    response:
+      status: 201
+      type: CollaborationMemberResponse
+
+  - name: fansub-collaboration-members-delete
+    method: DELETE
+    path: /api/v1/fansubs/:id/collaboration-members/:memberGroupId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: memberGroupId
+        type: int64
+        minimum: 1
+    response:
+      status: 204
+      type: none
+
+  - name: fansub-merge-preview
+    method: POST
+    path: /api/v1/admin/fansubs/merge/preview
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    request_body:
+      required: true
+      type: MergeFansubsRequest
+    response:
+      status: 200
+      type: MergeFansubsResponse
+
+  - name: fansub-merge
+    method: POST
+    path: /api/v1/admin/fansubs/merge
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    request_body:
+      required: true
+      type: MergeFansubsRequest
+    response:
+      status: 200
+      type: MergeFansubsResponse
+
   - name: fansub-members-create
     method: POST
     path: /api/v1/fansubs/:id/members
@@ -349,6 +460,8 @@ endpoints:
 types:
   FansubStatus:
     enum: [active, inactive, dissolved]
+  FansubGroupType:
+    enum: [group, collaboration]
   FansubGroupListResponse:
     data: FansubGroup[]
     meta: PaginationMeta
@@ -362,10 +475,16 @@ types:
     data: FansubAlias[]
   FansubAliasResponse:
     data: FansubAlias
+  CollaborationMemberListResponse:
+    data: CollaborationMember[]
+  CollaborationMemberResponse:
+    data: CollaborationMember
   AnimeFansubListResponse:
     data: AnimeFansub[]
   AnimeFansubResponse:
     data: AnimeFansub
+  MergeFansubsResponse:
+    data: MergeFansubsResult
   FansubGroupCreateRequest:
     slug: string (required, min: 1, max: 120)
     name: string (required, min: 1, max: 120)
@@ -376,6 +495,7 @@ types:
     founded_year: int32 | null
     dissolved_year: int32 | null
     status: FansubStatus (required)
+    group_type: FansubGroupType (optional, default: group)
     website_url: string | null
     discord_url: string | null
     irc_url: string | null
@@ -390,6 +510,7 @@ types:
     founded_year: int32 | null
     dissolved_year: int32 | null
     status: FansubStatus (optional)
+    group_type: FansubGroupType (optional)
     website_url: string | null
     discord_url: string | null
     irc_url: string | null
@@ -408,9 +529,20 @@ types:
     notes: string | null
   FansubAliasCreateRequest:
     alias: string (required, min: 1, max: 120)
+  AddCollaborationMemberRequest:
+    member_group_id: int64 (required, minimum: 1)
   AnimeFansubAttachRequest:
     is_primary: bool
     notes: string | null
+  MergeFansubsRequest:
+    target_id: int64 (required, minimum: 1)
+    source_ids: int64[] (required, min_items: 1)
+  MergeFansubsResult:
+    merged_count: int32
+    versions_migrated: int32
+    members_migrated: int32
+    relations_migrated: int32
+    aliases_added: string[]
   FansubGroup:
     id: int64
     slug: string
@@ -422,12 +554,18 @@ types:
     founded_year: int32 | null
     dissolved_year: int32 | null
     status: FansubStatus
+    group_type: FansubGroupType
     website_url: string | null
     discord_url: string | null
     irc_url: string | null
     country: string | null
     created_at: datetime
     updated_at: datetime
+  FansubGroupSummary:
+    id: int64
+    slug: string
+    name: string
+    logo_url: string | null
   FansubMember:
     id: int64
     fansub_group_id: int64
@@ -444,6 +582,11 @@ types:
     alias: string
     created_at: datetime
     updated_at: datetime
+  CollaborationMember:
+    collaboration_id: int64
+    member_group_id: int64
+    added_at: datetime
+    member_group: FansubGroupSummary | null
   AnimeFansub:
     anime_id: int64
     fansub_group_id: int64

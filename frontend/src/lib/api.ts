@@ -37,7 +37,15 @@ import {
   FansubMemberCreateRequest,
   FansubMemberListResponse,
   FansubMemberPatchRequest,
+  FansubAliasListResponse,
+  FansubAliasResponse,
+  FansubAliasCreateRequest,
   FansubStatus,
+  MergeFansubsRequest,
+  MergeFansubsResponse,
+  CollaborationMemberListResponse,
+  CollaborationMemberResponse,
+  AddCollaborationMemberRequest,
 } from '@/types/fansub'
 import { PaginatedWatchlistResponse, WatchlistCreateResponse } from '@/types/watchlist'
 
@@ -368,6 +376,58 @@ export async function getFansubMembers(fansubID: number): Promise<FansubMemberLi
   }
 
   return response.json() as Promise<FansubMemberListResponse>
+}
+
+export async function getFansubAliases(fansubID: number): Promise<FansubAliasListResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases`, {
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<FansubAliasListResponse>
+}
+
+export async function createFansubAlias(
+  fansubID: number,
+  payload: FansubAliasCreateRequest,
+  authToken?: string,
+): Promise<FansubAliasResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<FansubAliasResponse>
+}
+
+export async function deleteFansubAlias(fansubID: number, aliasID: number, authToken?: string): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases/${aliasID}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
 }
 
 export async function getAnimeFansubs(animeID: number): Promise<AnimeFansubListResponse> {
@@ -981,4 +1041,113 @@ export async function getAdminGenreTokens(
   }
 
   return response.json() as Promise<AdminGenreTokensResponse>
+}
+
+// Fansub merge operations
+export async function mergeFansubsPreview(
+  payload: MergeFansubsRequest,
+  authToken?: string,
+): Promise<MergeFansubsResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/merge/preview`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<MergeFansubsResponse>
+}
+
+export async function mergeFansubs(
+  payload: MergeFansubsRequest,
+  authToken?: string,
+): Promise<MergeFansubsResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/merge`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<MergeFansubsResponse>
+}
+
+// Collaboration member operations
+export async function getCollaborationMembers(fansubID: number): Promise<CollaborationMemberListResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/collaboration-members`, {
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<CollaborationMemberListResponse>
+}
+
+export async function addCollaborationMember(
+  collaborationID: number,
+  payload: AddCollaborationMemberRequest,
+  authToken?: string,
+): Promise<CollaborationMemberResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${collaborationID}/collaboration-members`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<CollaborationMemberResponse>
+}
+
+export async function removeCollaborationMember(
+  collaborationID: number,
+  memberGroupID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/fansubs/${collaborationID}/collaboration-members/${memberGroupID}`,
+    {
+      method: 'DELETE',
+      headers: withAuthHeader({}, authToken),
+    },
+  )
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
 }

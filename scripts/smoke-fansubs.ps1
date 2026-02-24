@@ -247,6 +247,54 @@ try {
   Add-Check -Name "Fansub patch returns 200" -Passed ($patchedFansub.StatusCode -eq 200) -Details "status=$($patchedFansub.StatusCode)"
   Add-Check -Name "Fansub patch reflected" -Passed ("$($patchedFansub.Json.data.name)" -like "*patched*")
 
+  $collabSlug = "smoke-collab-$stamp"
+  $collabName = "Smoke Collaboration $stamp"
+  $createdCollaboration = Invoke-ApiRequest -Method "POST" -Uri "$ApiBaseUrl/api/v1/fansubs" -Headers @{
+    Authorization = "Bearer $($adminSession.access_token)"
+  } -Body @{
+    slug       = $collabSlug
+    name       = $collabName
+    status     = "active"
+    group_type = "collaboration"
+  }
+  Add-Check -Name "Collaboration group create returns 201" -Passed ($createdCollaboration.StatusCode -eq 201) -Details "status=$($createdCollaboration.StatusCode)"
+  $collaborationID = [int64]$createdCollaboration.Json.data.id
+  Add-Check -Name "Created collaboration id is available" -Passed ($collaborationID -gt 0) -Details "collaboration_id=$collaborationID"
+
+  $collabMembersInitial = Invoke-ApiRequest -Method "GET" -Uri "$ApiBaseUrl/api/v1/fansubs/$collaborationID/collaboration-members"
+  Add-Check -Name "Collaboration members list returns 200" -Passed ($collabMembersInitial.StatusCode -eq 200) -Details "status=$($collabMembersInitial.StatusCode)"
+  Add-Check -Name "Collaboration members starts empty" -Passed (@($collabMembersInitial.Json.data).Count -eq 0)
+
+  $addCollabMemberForbidden = Invoke-ApiRequest -Method "POST" -Uri "$ApiBaseUrl/api/v1/fansubs/$collaborationID/collaboration-members" -Headers @{
+    Authorization = "Bearer $($nonAdminSession.access_token)"
+  } -Body @{
+    member_group_id = $fansubID
+  }
+  Add-Check -Name "Collaboration member add with non-admin returns 403" -Passed ($addCollabMemberForbidden.StatusCode -eq 403) -Details "status=$($addCollabMemberForbidden.StatusCode)"
+
+  $addCollabMember = Invoke-ApiRequest -Method "POST" -Uri "$ApiBaseUrl/api/v1/fansubs/$collaborationID/collaboration-members" -Headers @{
+    Authorization = "Bearer $($adminSession.access_token)"
+  } -Body @{
+    member_group_id = $fansubID
+  }
+  Add-Check -Name "Collaboration member add returns 201" -Passed ($addCollabMember.StatusCode -eq 201) -Details "status=$($addCollabMember.StatusCode)"
+
+  $collabMembersAfterAdd = Invoke-ApiRequest -Method "GET" -Uri "$ApiBaseUrl/api/v1/fansubs/$collaborationID/collaboration-members"
+  Add-Check -Name "Added collaboration member appears in list" -Passed (@($collabMembersAfterAdd.Json.data | Where-Object { [int64]$_.member_group_id -eq $fansubID }).Count -eq 1)
+
+  $removeCollabMember = Invoke-ApiRequest -Method "DELETE" -Uri "$ApiBaseUrl/api/v1/fansubs/$collaborationID/collaboration-members/$fansubID" -Headers @{
+    Authorization = "Bearer $($adminSession.access_token)"
+  }
+  Add-Check -Name "Collaboration member delete returns 204" -Passed ($removeCollabMember.StatusCode -eq 204) -Details "status=$($removeCollabMember.StatusCode)"
+
+  $collabMembersAfterDelete = Invoke-ApiRequest -Method "GET" -Uri "$ApiBaseUrl/api/v1/fansubs/$collaborationID/collaboration-members"
+  Add-Check -Name "Collaboration members empty after delete" -Passed (@($collabMembersAfterDelete.Json.data).Count -eq 0)
+
+  $deleteCollaboration = Invoke-ApiRequest -Method "DELETE" -Uri "$ApiBaseUrl/api/v1/fansubs/$collaborationID" -Headers @{
+    Authorization = "Bearer $($adminSession.access_token)"
+  }
+  Add-Check -Name "Collaboration group delete returns 204" -Passed ($deleteCollaboration.StatusCode -eq 204) -Details "status=$($deleteCollaboration.StatusCode)"
+
   $createdMember = Invoke-ApiRequest -Method "POST" -Uri "$ApiBaseUrl/api/v1/fansubs/$fansubID/members" -Headers @{
     Authorization = "Bearer $($adminSession.access_token)"
   } -Body @{

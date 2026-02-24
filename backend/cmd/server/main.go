@@ -336,6 +336,28 @@ func main() {
 		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		fansubHandler.DeleteEpisodeVersion,
 	)
+	// Fansub merge and collaboration endpoints
+	v1.POST(
+		"/admin/fansubs/merge",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		fansubHandler.MergeFansubs,
+	)
+	v1.POST(
+		"/admin/fansubs/merge/preview",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		fansubHandler.MergeFansubsPreview,
+	)
+	v1.GET("/fansubs/:id/collaboration-members", fansubHandler.ListCollaborationMembers)
+	v1.POST(
+		"/fansubs/:id/collaboration-members",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		fansubHandler.AddCollaborationMember,
+	)
+	v1.DELETE(
+		"/fansubs/:id/collaboration-members/:memberGroupId",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		fansubHandler.RemoveCollaborationMember,
+	)
 
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,

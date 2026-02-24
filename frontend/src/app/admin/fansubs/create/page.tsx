@@ -3,12 +3,13 @@
 import Link from 'next/link'
 import { FormEvent, useState } from 'react'
 
-import { ApiError, createFansubGroup, getRuntimeAuthToken } from '@/lib/api'
-import { FansubGroup, FansubStatus } from '@/types/fansub'
+import { ApiError, createFansubAlias, createFansubGroup, getRuntimeAuthToken } from '@/lib/api'
+import { FansubGroup, FansubGroupType, FansubStatus } from '@/types/fansub'
 
 import styles from '../../admin.module.css'
 
 const STATUS_OPTIONS: FansubStatus[] = ['active', 'inactive', 'dissolved']
+const GROUP_TYPE_OPTIONS: FansubGroupType[] = ['group', 'collaboration']
 
 function normalizeOptional(value: string): string | null {
   const trimmed = value.trim()
@@ -36,7 +37,9 @@ export default function AdminFansubCreatePage() {
 
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
+  const [alias, setAlias] = useState('')
   const [status, setStatus] = useState<FansubStatus>('active')
+  const [groupType, setGroupType] = useState<FansubGroupType>('group')
   const [description, setDescription] = useState('')
   const [history, setHistory] = useState('')
   const [logoURL, setLogoURL] = useState('')
@@ -82,6 +85,7 @@ export default function AdminFansubCreatePage() {
           name: name.trim(),
           slug: normalizedSlug,
           status,
+          group_type: groupType,
           description: normalizeOptional(description),
           history: normalizeOptional(history),
           logo_url: normalizeOptional(logoURL),
@@ -95,6 +99,16 @@ export default function AdminFansubCreatePage() {
         },
         authToken,
       )
+      const normalizedAlias = alias.trim()
+      if (normalizedAlias) {
+        try {
+          await createFansubAlias(response.data.id, { alias: normalizedAlias }, authToken)
+        } catch (error) {
+          setSuccessGroup(response.data)
+          setErrorMessage(`Fansub erstellt, Tag konnte nicht gespeichert werden: ${formatError(error)}`)
+          return
+        }
+      }
       setSuccessGroup(response.data)
     } catch (error) {
       setErrorMessage(formatError(error))
@@ -134,9 +148,27 @@ export default function AdminFansubCreatePage() {
                   />
                 </div>
                 <div className={styles.field}>
+                  <label htmlFor="alias">Tag (Alias)</label>
+                  <input id="alias" value={alias} onChange={(event) => setAlias(event.target.value)} placeholder="z. B. GAX" />
+                </div>
+                <div className={styles.field}>
                   <label htmlFor="status">Status *</label>
                   <select id="status" value={status} onChange={(event) => setStatus(event.target.value as FansubStatus)}>
                     {STATUS_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="group-type">Typ *</label>
+                  <select
+                    id="group-type"
+                    value={groupType}
+                    onChange={(event) => setGroupType(event.target.value as FansubGroupType)}
+                  >
+                    {GROUP_TYPE_OPTIONS.map((option) => (
                       <option key={option} value={option}>
                         {option}
                       </option>

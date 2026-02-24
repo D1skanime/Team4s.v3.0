@@ -1819,7 +1819,7 @@ paths:
             type: integer
             format: int32
             minimum: 1
-            maximum: 100
+            maximum: 500
             default: 24
       responses:
         "200":
@@ -2435,6 +2435,274 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Fansub group or member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/fansubs/{id}/collaboration-members:
+    get:
+      tags: [Fansubs]
+      summary: List collaboration members
+      operationId: listFansubCollaborationMembers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Collaboration member list payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollaborationMemberListResponse"
+        "400":
+          description: Invalid fansub id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Fansubs]
+      summary: Add collaboration member
+      operationId: addFansubCollaborationMember
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddCollaborationMemberRequest"
+      responses:
+        "201":
+          description: Created collaboration member payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollaborationMemberResponse"
+        "400":
+          description: Invalid request body or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Member group already attached
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/fansubs/{id}/collaboration-members/{memberGroupId}:
+    delete:
+      tags: [Fansubs]
+      summary: Remove collaboration member
+      operationId: removeFansubCollaborationMember
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: memberGroupId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "204":
+          description: Collaboration member removed
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Collaboration member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/merge/preview:
+    post:
+      tags: [Fansubs]
+      summary: Preview fansub merge operation
+      operationId: previewFansubMerge
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergeFansubsRequest"
+      responses:
+        "200":
+          description: Merge preview payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MergeFansubsResponse"
+        "400":
+          description: Invalid request body or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Target or source fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Merge would cause episode version conflicts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/merge:
+    post:
+      tags: [Fansubs]
+      summary: Merge fansub groups into a target group
+      operationId: mergeFansubs
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergeFansubsRequest"
+      responses:
+        "200":
+          description: Merge operation result payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MergeFansubsResponse"
+        "400":
+          description: Invalid request body or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Target or source fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Merge would cause episode version conflicts
           content:
             application/json:
               schema:
@@ -4196,6 +4464,9 @@ components:
     FansubStatus:
       type: string
       enum: [active, inactive, dissolved]
+    FansubGroupType:
+      type: string
+      enum: [group, collaboration]
     FansubGroupSummary:
       type: object
       required:
@@ -4220,6 +4491,7 @@ components:
         - slug
         - name
         - status
+        - group_type
         - created_at
         - updated_at
       properties:
@@ -4254,6 +4526,8 @@ components:
           nullable: true
         status:
           $ref: "#/components/schemas/FansubStatus"
+        group_type:
+          $ref: "#/components/schemas/FansubGroupType"
         website_url:
           type: string
           nullable: true
@@ -4336,6 +4610,24 @@ components:
         updated_at:
           type: string
           format: date-time
+    CollaborationMember:
+      type: object
+      required:
+        - collaboration_id
+        - member_group_id
+        - added_at
+      properties:
+        collaboration_id:
+          type: integer
+          format: int64
+        member_group_id:
+          type: integer
+          format: int64
+        added_at:
+          type: string
+          format: date-time
+        member_group:
+          $ref: "#/components/schemas/FansubGroupSummary"
     AnimeFansubRelation:
       type: object
       required:
@@ -4394,6 +4686,8 @@ components:
           nullable: true
         status:
           $ref: "#/components/schemas/FansubStatus"
+        group_type:
+          $ref: "#/components/schemas/FansubGroupType"
         website_url:
           type: string
           nullable: true
@@ -4441,6 +4735,8 @@ components:
           nullable: true
         status:
           $ref: "#/components/schemas/FansubStatus"
+        group_type:
+          $ref: "#/components/schemas/FansubGroupType"
         website_url:
           type: string
           nullable: true
@@ -4508,6 +4804,14 @@ components:
           type: string
           minLength: 1
           maxLength: 120
+    AddCollaborationMemberRequest:
+      type: object
+      required: [member_group_id]
+      properties:
+        member_group_id:
+          type: integer
+          format: int64
+          minimum: 1
     AnimeFansubAttachRequest:
       type: object
       properties:
@@ -4517,6 +4821,46 @@ components:
         notes:
           type: string
           nullable: true
+    MergeFansubsRequest:
+      type: object
+      required: [target_id, source_ids]
+      properties:
+        target_id:
+          type: integer
+          format: int64
+          minimum: 1
+        source_ids:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+            minimum: 1
+    MergeFansubsResult:
+      type: object
+      required:
+        - merged_count
+        - versions_migrated
+        - members_migrated
+        - relations_migrated
+        - aliases_added
+      properties:
+        merged_count:
+          type: integer
+          format: int32
+        versions_migrated:
+          type: integer
+          format: int32
+        members_migrated:
+          type: integer
+          format: int32
+        relations_migrated:
+          type: integer
+          format: int32
+        aliases_added:
+          type: array
+          items:
+            type: string
     FansubGroupListResponse:
       type: object
       required: [data, meta]
@@ -4561,6 +4905,20 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/FansubAlias"
+    CollaborationMemberListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollaborationMember"
+    CollaborationMemberResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/CollaborationMember"
     AnimeFansubListResponse:
       type: object
       required: [data]
@@ -4575,6 +4933,12 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/AnimeFansubRelation"
+    MergeFansubsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/MergeFansubsResult"
     EpisodeVersion:
       type: object
       required:

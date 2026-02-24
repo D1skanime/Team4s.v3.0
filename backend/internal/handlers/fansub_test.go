@@ -11,11 +11,13 @@ import (
 func TestValidateFansubGroupCreateRequest(t *testing.T) {
 	founded := int32(2010)
 	dissolved := int32(2015)
+	groupType := "collaboration"
 
 	input, message := validateFansubGroupCreateRequest(fansubGroupCreateRequest{
 		Slug:          " gax ",
 		Name:          " Group A ",
 		Status:        "active",
+		GroupType:     &groupType,
 		FoundedYear:   &founded,
 		DissolvedYear: &dissolved,
 	})
@@ -27,6 +29,9 @@ func TestValidateFansubGroupCreateRequest(t *testing.T) {
 	}
 	if input.Name != "Group A" {
 		t.Fatalf("expected normalized name, got %q", input.Name)
+	}
+	if input.GroupType != models.FansubGroupTypeCollaboration {
+		t.Fatalf("expected group_type collaboration, got %q", input.GroupType)
 	}
 }
 
@@ -42,6 +47,50 @@ func TestValidateFansubGroupCreateRequest_InvalidYearRange(t *testing.T) {
 		DissolvedYear: &dissolved,
 	})
 	if message != "dissolved_year muss groesser oder gleich founded_year sein" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+}
+
+func TestValidateFansubGroupCreateRequest_InvalidGroupType(t *testing.T) {
+	groupType := "invalid"
+
+	_, message := validateFansubGroupCreateRequest(fansubGroupCreateRequest{
+		Slug:      "gax",
+		Name:      "Group A",
+		Status:    "active",
+		GroupType: &groupType,
+	})
+	if message != "ungueltiger group_type parameter" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+}
+
+func TestValidateFansubGroupPatchRequest_GroupTypeOnly(t *testing.T) {
+	var patch models.FansubGroupPatchInput
+	if err := json.Unmarshal([]byte(`{"group_type":"collaboration"}`), &patch); err != nil {
+		t.Fatalf("unmarshal patch: %v", err)
+	}
+
+	validated, message := validateFansubGroupPatchRequest(patch)
+	if message != "" {
+		t.Fatalf("expected no validation error, got %q", message)
+	}
+	if !validated.GroupType.Set || validated.GroupType.Value == nil {
+		t.Fatalf("expected group_type to be set")
+	}
+	if *validated.GroupType.Value != "collaboration" {
+		t.Fatalf("expected group_type collaboration, got %q", *validated.GroupType.Value)
+	}
+}
+
+func TestValidateFansubGroupPatchRequest_InvalidGroupType(t *testing.T) {
+	var patch models.FansubGroupPatchInput
+	if err := json.Unmarshal([]byte(`{"group_type":"invalid"}`), &patch); err != nil {
+		t.Fatalf("unmarshal patch: %v", err)
+	}
+
+	_, message := validateFansubGroupPatchRequest(patch)
+	if message != "ungueltiger group_type parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
