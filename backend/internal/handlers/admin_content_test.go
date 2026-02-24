@@ -347,3 +347,35 @@ func TestGetJellyfinSeriesByID_UsesItemsLookupWithPathField(t *testing.T) {
 		t.Fatalf("unexpected path %q", item.Path)
 	}
 }
+
+func TestJellyfinPathHasPrefix(t *testing.T) {
+	t.Parallel()
+
+	prefix := `/media/Anime/Bonus/Anime.Bonus.Sub/11 eyes OVA`
+	normalizedPrefix := normalizeJellyfinPath(&prefix)
+	if normalizedPrefix == "" {
+		t.Fatalf("expected normalized prefix")
+	}
+
+	if !jellyfinPathHasPrefix(`/media/Anime/Bonus/Anime.Bonus.Sub/11 eyes OVA/11 eyes ova.mkv`, normalizedPrefix) {
+		t.Fatalf("expected path to match prefix")
+	}
+	if jellyfinPathHasPrefix(`/media/Anime/Serie/Anime.TV.Sub/11eyes/11eyes-s01e01.mkv`, normalizedPrefix) {
+		t.Fatalf("expected unrelated path to be filtered")
+	}
+}
+
+func TestBuildJellyfinSyncMismatchReason(t *testing.T) {
+	t.Parallel()
+
+	maxEpisodes := int16(1)
+	mismatch := buildJellyfinSyncMismatchReason(&maxEpisodes, 12)
+	if mismatch == nil {
+		t.Fatalf("expected mismatch reason for oversized episode count")
+	}
+
+	ok := buildJellyfinSyncMismatchReason(&maxEpisodes, 1)
+	if ok != nil {
+		t.Fatalf("expected no mismatch for matching episode count, got %q", *ok)
+	}
+}

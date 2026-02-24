@@ -131,25 +131,30 @@ type AdminAnimeSyncSource struct {
 	TitleEN     *string
 	Source      *string
 	Year        *int16
+	MaxEpisodes *int16
 	Description *string
 }
 
 type AdminAnimeJellyfinSyncResult struct {
-	AnimeID               int64  `json:"anime_id"`
-	JellyfinSeriesID      string `json:"jellyfin_series_id"`
-	JellyfinSeriesName    string `json:"jellyfin_series_name"`
-	SeasonNumber          int32  `json:"season_number"`
-	ScannedEpisodes       int32  `json:"scanned_episodes"`
-	ImportedEpisodes      int32  `json:"imported_episodes"`
-	UpdatedEpisodes       int32  `json:"updated_episodes"`
-	ImportedVersions      int32  `json:"imported_versions"`
-	UpdatedVersions       int32  `json:"updated_versions"`
-	SkippedEpisodes       int32  `json:"skipped_episodes"`
-	DeletedVersions       int32  `json:"deleted_versions,omitempty"`
-	DeletedEpisodes       int32  `json:"deleted_episodes,omitempty"`
-	AppliedEpisodeStatus  string `json:"applied_episode_status"`
-	OverwriteEpisodeTitle bool   `json:"overwrite_episode_titles"`
-	OverwriteVersionTitle bool   `json:"overwrite_version_titles"`
+	AnimeID                int64   `json:"anime_id"`
+	JellyfinSeriesID       string  `json:"jellyfin_series_id"`
+	JellyfinSeriesName     string  `json:"jellyfin_series_name"`
+	JellyfinSeriesPath     *string `json:"jellyfin_series_path,omitempty"`
+	AppliedPathPrefix      *string `json:"applied_path_prefix,omitempty"`
+	SeasonNumber           int32   `json:"season_number"`
+	ScannedEpisodes        int32   `json:"scanned_episodes"`
+	PathFilteredEpisodes   int32   `json:"path_filtered_episodes"`
+	AcceptedUniqueEpisodes int32   `json:"accepted_unique_episodes"`
+	ImportedEpisodes       int32   `json:"imported_episodes"`
+	UpdatedEpisodes        int32   `json:"updated_episodes"`
+	ImportedVersions       int32   `json:"imported_versions"`
+	UpdatedVersions        int32   `json:"updated_versions"`
+	SkippedEpisodes        int32   `json:"skipped_episodes"`
+	DeletedVersions        int32   `json:"deleted_versions,omitempty"`
+	DeletedEpisodes        int32   `json:"deleted_episodes,omitempty"`
+	AppliedEpisodeStatus   string  `json:"applied_episode_status"`
+	OverwriteEpisodeTitle  bool    `json:"overwrite_episode_titles"`
+	OverwriteVersionTitle  bool    `json:"overwrite_version_titles"`
 }
 
 type AdminJellyfinSeriesSearchItem struct {
@@ -172,9 +177,14 @@ type AdminAnimeJellyfinPreviewResult struct {
 	JellyfinSeriesID         string                             `json:"jellyfin_series_id"`
 	JellyfinSeriesName       string                             `json:"jellyfin_series_name"`
 	JellyfinSeriesPath       *string                            `json:"jellyfin_series_path,omitempty"`
+	AppliedPathPrefix        *string                            `json:"applied_path_prefix,omitempty"`
 	SeasonNumber             int32                              `json:"season_number"`
 	ScannedEpisodes          int32                              `json:"scanned_episodes"`
 	MatchedEpisodes          int32                              `json:"matched_episodes"`
+	PathFilteredEpisodes     int32                              `json:"path_filtered_episodes"`
+	AcceptedUniqueEpisodes   int32                              `json:"accepted_unique_episodes"`
+	MismatchDetected         bool                               `json:"mismatch_detected"`
+	MismatchReason           *string                            `json:"mismatch_reason,omitempty"`
 	SkippedEpisodes          int32                              `json:"skipped_episodes"`
 	ExistingJellyfinVersions int32                              `json:"existing_jellyfin_versions"`
 	ExistingEpisodes         int32                              `json:"existing_episodes"`

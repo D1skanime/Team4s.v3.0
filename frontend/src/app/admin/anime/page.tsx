@@ -192,6 +192,7 @@ export default function AdminAnimePage() {
   const [jellyfinSeasonInput, setJellyfinSeasonInput] = useState('1')
   const [jellyfinEpisodeStatus, setJellyfinEpisodeStatus] = useState<EpisodeStatus>('private')
   const [jellyfinCleanupVersions, setJellyfinCleanupVersions] = useState(false)
+  const [jellyfinAllowMismatch, setJellyfinAllowMismatch] = useState(false)
   const [isLoadingAnimeList, setIsLoadingAnimeList] = useState(false)
   const [animeListItems, setAnimeListItems] = useState<AnimeListItem[]>([])
   const [animeListPage, setAnimeListPage] = useState(1)
@@ -299,6 +300,7 @@ export default function AdminAnimePage() {
       setJellyfinSeriesOptions([])
       setJellyfinPreviewResult(null)
       setJellyfinSeriesIDInput('')
+      setJellyfinAllowMismatch(false)
       return
     }
 
@@ -306,6 +308,7 @@ export default function AdminAnimePage() {
     setJellyfinSeriesOptions([])
     setJellyfinPreviewResult(null)
     setJellyfinSeriesIDInput('')
+    setJellyfinAllowMismatch(false)
   }, [contextAnime])
 
   useEffect(() => {
@@ -653,7 +656,7 @@ export default function AdminAnimePage() {
       const response = await previewAdminAnimeFromJellyfin(contextAnime.id, payload, authToken)
       setJellyfinPreviewResult(response.data)
       setSuccessMessage(
-        `Preview geladen: ${response.data.jellyfin_series_name} | Treffer ${response.data.matched_episodes}/${response.data.scanned_episodes}`,
+        `Preview geladen: ${response.data.jellyfin_series_name} | Treffer ${response.data.matched_episodes}/${response.data.scanned_episodes} | Pfad-gefiltert ${response.data.path_filtered_episodes}`,
       )
     } catch (error) {
       setErrorMessage(formatError(error, 'Jellyfin-Preview fehlgeschlagen.'))
@@ -685,6 +688,7 @@ export default function AdminAnimePage() {
       season_number: seasonNumber,
       episode_status: jellyfinEpisodeStatus,
       cleanup_provider_versions: jellyfinCleanupVersions,
+      allow_mismatch: jellyfinAllowMismatch,
     }
 
     const selectedSeriesID = jellyfinSeriesIDInput.trim()
@@ -1895,6 +1899,26 @@ export default function AdminAnimePage() {
                           </p>
                         )}
                       </div>
+                      <div className={styles.field}>
+                        <label className={styles.checkboxLabel}>
+                          <input
+                            type="checkbox"
+                            checked={jellyfinAllowMismatch}
+                            onChange={(event) => setJellyfinAllowMismatch(event.target.checked)}
+                            disabled={isSyncingJellyfin || isLoadingJellyfinPreview}
+                          />
+                          Mismatch-Guard uebersteuern (nur wenn Preview geprueft)
+                        </label>
+                        <p className={styles.hint}>
+                          Standard: Sync blockiert bei deutlich zu vielen eindeutigen Episoden im Vergleich zu
+                          max_episodes.
+                        </p>
+                        {jellyfinAllowMismatch ? (
+                          <p className={styles.hintWarning}>
+                            Achtung: Guard ist deaktiviert. Falsche Zuordnung kann erneut TV/OVA mischen.
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
                     <div className={styles.actions}>
                       <button
@@ -1925,8 +1949,13 @@ export default function AdminAnimePage() {
                           Preview: {jellyfinPreviewResult.jellyfin_series_name} | Pfad:{' '}
                           {jellyfinPreviewResult.jellyfin_series_path || '(unbekannt)'} | Episode-Treffer:{' '}
                           {jellyfinPreviewResult.matched_episodes}/{jellyfinPreviewResult.scanned_episodes} |
-                          Bestehende Jellyfin-Versionen: {jellyfinPreviewResult.existing_jellyfin_versions}
+                          Pfad-gefiltert: {jellyfinPreviewResult.path_filtered_episodes} | Eindeutig akzeptiert:{' '}
+                          {jellyfinPreviewResult.accepted_unique_episodes} | Bestehende Jellyfin-Versionen:{' '}
+                          {jellyfinPreviewResult.existing_jellyfin_versions}
                         </p>
+                        {jellyfinPreviewResult.mismatch_detected && jellyfinPreviewResult.mismatch_reason ? (
+                          <p className={styles.hintWarning}>Guard-Hinweis: {jellyfinPreviewResult.mismatch_reason}</p>
+                        ) : null}
                         <pre className={styles.resultBox}>
                           {JSON.stringify(jellyfinPreviewResult, null, 2)}
                         </pre>

@@ -27,6 +27,7 @@ type adminAnimeJellyfinSyncRequest struct {
 	OverwriteEpisodeTitle   *bool   `json:"overwrite_episode_titles"`
 	OverwriteVersionTitle   *bool   `json:"overwrite_version_titles"`
 	CleanupProviderVersions *bool   `json:"cleanup_provider_versions"`
+	AllowMismatch           *bool   `json:"allow_mismatch"`
 }
 
 type adminAnimeJellyfinSyncInput struct {
@@ -36,6 +37,7 @@ type adminAnimeJellyfinSyncInput struct {
 	OverwriteEpisodeTitle   bool
 	OverwriteVersionTitle   bool
 	CleanupProviderVersions bool
+	AllowMismatch           bool
 }
 
 type jellyfinSeriesListResponse struct {
@@ -57,6 +59,7 @@ type jellyfinEpisodeListResponse struct {
 type jellyfinEpisodeItem struct {
 	ID                string                `json:"Id"`
 	Name              string                `json:"Name"`
+	Path              string                `json:"Path"`
 	IndexNumber       *int                  `json:"IndexNumber"`
 	ParentIndexNumber *int                  `json:"ParentIndexNumber"`
 	PremiereDate      *string               `json:"PremiereDate"`
@@ -265,6 +268,7 @@ func (h *AdminContentHandler) PreviewAnimeFromJellyfin(c *gin.Context) {
 		JellyfinSeriesID:         strings.TrimSpace(series.ID),
 		JellyfinSeriesName:       strings.TrimSpace(series.Name),
 		JellyfinSeriesPath:       normalizeNullableStringPtr(series.Path),
+		AppliedPathPrefix:        normalizeNullableStringPtr(series.Path),
 		SeasonNumber:             input.SeasonNumber,
 		ExistingJellyfinVersions: existingJellyfinVersions,
 		ExistingEpisodes:         existingEpisodes,
@@ -274,12 +278,20 @@ func (h *AdminContentHandler) PreviewAnimeFromJellyfin(c *gin.Context) {
 		Episodes:                 make([]models.AdminAnimeJellyfinPreviewEpisode, 0, 64),
 	}
 
+	normalizedPathPrefix := normalizeJellyfinPath(result.AppliedPathPrefix)
+	acceptedEpisodeNumbers := make(map[int32]struct{}, 64)
+
 	for _, item := range episodes {
 		if jellyfinSeasonNumber(item.ParentIndexNumber) != input.SeasonNumber {
 			continue
 		}
 
 		result.ScannedEpisodes++
+		if normalizedPathPrefix != "" && !jellyfinPathHasPrefix(item.Path, normalizedPathPrefix) {
+			result.PathFilteredEpisodes++
+			continue
+		}
+
 		episodeNumber := jellyfinEpisodeNumber(item.IndexNumber)
 		mediaItemID := strings.TrimSpace(item.ID)
 		if episodeNumber <= 0 || mediaItemID == "" {
@@ -288,6 +300,7 @@ func (h *AdminContentHandler) PreviewAnimeFromJellyfin(c *gin.Context) {
 		}
 
 		result.MatchedEpisodes++
+		acceptedEpisodeNumbers[episodeNumber] = struct{}{}
 		result.Episodes = append(result.Episodes, models.AdminAnimeJellyfinPreviewEpisode{
 			JellyfinItemID: mediaItemID,
 			EpisodeNumber:  episodeNumber,
@@ -296,6 +309,9 @@ func (h *AdminContentHandler) PreviewAnimeFromJellyfin(c *gin.Context) {
 			VideoQuality:   jellyfinVideoQuality(item.MediaStreams),
 		})
 	}
+	result.AcceptedUniqueEpisodes = int32(len(acceptedEpisodeNumbers))
+	result.MismatchReason = buildJellyfinSyncMismatchReason(animeSource.MaxEpisodes, result.AcceptedUniqueEpisodes)
+	result.MismatchDetected = result.MismatchReason != nil
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": result,
@@ -416,15 +432,71 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 
 	result := models.AdminAnimeJellyfinSyncResult{
 		AnimeID:               animeID,
-		JellyfinSeriesID:      series.ID,
-		JellyfinSeriesName:    series.Name,
+		JellyfinSeriesID:      strings.TrimSpace(series.ID),
+		JellyfinSeriesName:    strings.TrimSpace(series.Name),
+		JellyfinSeriesPath:    normalizeNullableStringPtr(series.Path),
+		AppliedPathPrefix:     normalizeNullableStringPtr(series.Path),
 		SeasonNumber:          input.SeasonNumber,
 		AppliedEpisodeStatus:  input.EpisodeStatus,
 		OverwriteEpisodeTitle: false,
 		OverwriteVersionTitle: false,
 	}
 
-	// Delete existing Jellyfin versions if cleanup is requested
+	type acceptedJellyfinEpisode struct {
+		episodeNumber int32
+		mediaItemID   string
+		episodeTitle  *string
+		releaseDate   *time.Time
+		videoQuality  *string
+	}
+
+	normalizedPathPrefix := normalizeJellyfinPath(result.AppliedPathPrefix)
+	acceptedEpisodes := make([]acceptedJellyfinEpisode, 0, len(episodes))
+	episodeNumberSet := make(map[int32]struct{}, 64)
+	for _, item := range episodes {
+		if jellyfinSeasonNumber(item.ParentIndexNumber) != input.SeasonNumber {
+			continue
+		}
+
+		result.ScannedEpisodes++
+		if normalizedPathPrefix != "" && !jellyfinPathHasPrefix(item.Path, normalizedPathPrefix) {
+			result.PathFilteredEpisodes++
+			continue
+		}
+
+		episodeNumber := jellyfinEpisodeNumber(item.IndexNumber)
+		if episodeNumber <= 0 {
+			result.SkippedEpisodes++
+			continue
+		}
+
+		mediaItemID := strings.TrimSpace(item.ID)
+		if mediaItemID == "" {
+			result.SkippedEpisodes++
+			continue
+		}
+
+		acceptedEpisodes = append(acceptedEpisodes, acceptedJellyfinEpisode{
+			episodeNumber: episodeNumber,
+			mediaItemID:   mediaItemID,
+			episodeTitle:  normalizeNullableStringPtr(item.Name),
+			releaseDate:   parseJellyfinPremiereDate(item.PremiereDate),
+			videoQuality:  jellyfinVideoQuality(item.MediaStreams),
+		})
+		episodeNumberSet[episodeNumber] = struct{}{}
+	}
+
+	result.AcceptedUniqueEpisodes = int32(len(episodeNumberSet))
+	if mismatchReason := buildJellyfinSyncMismatchReason(animeSource.MaxEpisodes, result.AcceptedUniqueEpisodes); mismatchReason != nil && !input.AllowMismatch {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{
+				"message": *mismatchReason,
+			},
+		})
+		return
+	}
+
+	// Delete existing Jellyfin versions if cleanup is requested.
 	if input.CleanupProviderVersions {
 		deletedCount, deleteErr := h.episodeVersionRepo.DeleteByAnimeAndProvider(c.Request.Context(), animeID, "jellyfin")
 		if deleteErr != nil {
@@ -450,32 +522,13 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 		)
 	}
 
-	episodeNumberSet := make(map[int32]struct{}, 64)
-	for _, item := range episodes {
-		if jellyfinSeasonNumber(item.ParentIndexNumber) != input.SeasonNumber {
-			continue
-		}
-
-		result.ScannedEpisodes++
-		episodeNumber := jellyfinEpisodeNumber(item.IndexNumber)
-		if episodeNumber <= 0 {
-			result.SkippedEpisodes++
-			continue
-		}
-
-		mediaItemID := strings.TrimSpace(item.ID)
-		if mediaItemID == "" {
-			result.SkippedEpisodes++
-			continue
-		}
-
-		episodeTitle := normalizeNullableStringPtr(item.Name)
-		episodeNumberText := strconv.Itoa(int(episodeNumber))
+	for _, accepted := range acceptedEpisodes {
+		episodeNumberText := strconv.Itoa(int(accepted.episodeNumber))
 		_, episodeCreated, upsertEpisodeErr := h.repo.UpsertEpisodeByAnimeAndNumber(
 			c.Request.Context(),
 			animeID,
 			episodeNumberText,
-			episodeTitle,
+			accepted.episodeTitle,
 			input.EpisodeStatus,
 			false,
 		)
@@ -483,8 +536,8 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 			log.Printf(
 				"admin_content jellyfin_sync: upsert episode failed (anime_id=%d, episode=%d, item_id=%s): %v",
 				animeID,
-				episodeNumber,
-				mediaItemID,
+				accepted.episodeNumber,
+				accepted.mediaItemID,
 				upsertEpisodeErr,
 			)
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -499,22 +552,19 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 		} else {
 			result.UpdatedEpisodes++
 		}
-		episodeNumberSet[episodeNumber] = struct{}{}
 
-		releaseDate := parseJellyfinPremiereDate(item.PremiereDate)
-		videoQuality := jellyfinVideoQuality(item.MediaStreams)
 		_, versionCreated, upsertVersionErr := h.episodeVersionRepo.UpsertByMediaSource(
 			c.Request.Context(),
 			models.EpisodeVersionCreateInput{
 				AnimeID:       animeID,
-				EpisodeNumber: episodeNumber,
-				Title:         episodeTitle,
+				EpisodeNumber: accepted.episodeNumber,
+				Title:         accepted.episodeTitle,
 				FansubGroupID: nil,
 				MediaProvider: "jellyfin",
-				MediaItemID:   mediaItemID,
-				VideoQuality:  videoQuality,
+				MediaItemID:   accepted.mediaItemID,
+				VideoQuality:  accepted.videoQuality,
 				SubtitleType:  nil,
-				ReleaseDate:   releaseDate,
+				ReleaseDate:   accepted.releaseDate,
 				StreamURL:     nil,
 			},
 			false,
@@ -523,8 +573,8 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 			log.Printf(
 				"admin_content jellyfin_sync: upsert version failed (anime_id=%d, episode=%d, item_id=%s): %v",
 				animeID,
-				episodeNumber,
-				mediaItemID,
+				accepted.episodeNumber,
+				accepted.mediaItemID,
 				upsertVersionErr,
 			)
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -602,6 +652,9 @@ func validateAdminAnimeJellyfinSyncRequest(req adminAnimeJellyfinSyncRequest) (a
 	}
 	if req.CleanupProviderVersions != nil {
 		input.CleanupProviderVersions = *req.CleanupProviderVersions
+	}
+	if req.AllowMismatch != nil {
+		input.AllowMismatch = *req.AllowMismatch
 	}
 
 	return input, ""
@@ -830,7 +883,7 @@ func (h *AdminContentHandler) listJellyfinEpisodes(
 	seriesID string,
 ) ([]jellyfinEpisodeItem, error) {
 	values := url.Values{}
-	values.Set("Fields", "MediaStreams")
+	values.Set("Fields", "MediaStreams,Path")
 	values.Set("EnableUserData", "false")
 
 	var payload jellyfinEpisodeListResponse
@@ -966,6 +1019,66 @@ func jellyfinVideoQuality(streams []jellyfinMediaStream) *string {
 	}
 
 	return &label
+}
+
+func normalizeJellyfinPath(raw *string) string {
+	if raw == nil {
+		return ""
+	}
+
+	path := strings.TrimSpace(*raw)
+	path = strings.ReplaceAll(path, "\\", "/")
+	path = strings.TrimSuffix(path, "/")
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return ""
+	}
+
+	return strings.ToLower(path)
+}
+
+func jellyfinPathHasPrefix(itemPath string, normalizedPrefix string) bool {
+	candidate := strings.TrimSpace(itemPath)
+	candidate = strings.ReplaceAll(candidate, "\\", "/")
+	candidate = strings.TrimSuffix(candidate, "/")
+	candidate = strings.TrimSpace(candidate)
+	if candidate == "" || normalizedPrefix == "" {
+		return false
+	}
+
+	normalizedCandidate := strings.ToLower(candidate)
+	if normalizedCandidate == normalizedPrefix {
+		return true
+	}
+
+	return strings.HasPrefix(normalizedCandidate, normalizedPrefix+"/")
+}
+
+func buildJellyfinSyncMismatchReason(maxEpisodes *int16, acceptedUniqueEpisodes int32) *string {
+	if maxEpisodes == nil || *maxEpisodes <= 0 || acceptedUniqueEpisodes <= 0 {
+		return nil
+	}
+
+	expected := int32(*maxEpisodes)
+	allowedUpperBound := expected + 2
+	if expected >= 6 {
+		allowedUpperBound = expected + (expected / 2)
+	}
+	if allowedUpperBound < expected+2 {
+		allowedUpperBound = expected + 2
+	}
+
+	if acceptedUniqueEpisodes <= allowedUpperBound {
+		return nil
+	}
+
+	message := fmt.Sprintf(
+		"sync blockiert: %d eindeutige episoden gefunden, anime.max_episodes=%d (erlaubte obergrenze=%d). Bitte jellyfin_series_id/pfad pruefen oder allow_mismatch=true setzen.",
+		acceptedUniqueEpisodes,
+		expected,
+		allowedUpperBound,
+	)
+	return &message
 }
 
 func normalizeNullableStringPtr(raw string) *string {

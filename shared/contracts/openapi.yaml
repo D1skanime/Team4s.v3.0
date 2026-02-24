@@ -1174,7 +1174,7 @@ paths:
                     error:
                       message: jellyfin serie nicht gefunden
         "409":
-          description: Ambiguous Jellyfin series search result
+          description: Ambiguous Jellyfin series search result or mismatch guard blocked sync
           content:
             application/json:
               schema:
@@ -3689,6 +3689,10 @@ components:
           type: boolean
           default: false
           description: Wenn true, werden alle bestehenden Jellyfin-Versionen fuer diesen Anime vor dem Import geloescht
+        allow_mismatch:
+          type: boolean
+          default: false
+          description: Wenn true, wird der max_episodes-Mismatch-Guard fuer den aktuellen Sync ueberschrieben
     AdminJellyfinSeriesSearchItem:
       type: object
       required: [jellyfin_series_id, name]
@@ -3851,6 +3855,8 @@ components:
         - jellyfin_series_name
         - season_number
         - scanned_episodes
+        - path_filtered_episodes
+        - accepted_unique_episodes
         - imported_episodes
         - updated_episodes
         - imported_versions
@@ -3867,10 +3873,22 @@ components:
           type: string
         jellyfin_series_name:
           type: string
+        jellyfin_series_path:
+          type: string
+          nullable: true
+        applied_path_prefix:
+          type: string
+          nullable: true
         season_number:
           type: integer
           format: int32
         scanned_episodes:
+          type: integer
+          format: int32
+        path_filtered_episodes:
+          type: integer
+          format: int32
+        accepted_unique_episodes:
           type: integer
           format: int32
         imported_episodes:
@@ -3932,8 +3950,12 @@ components:
         - season_number
         - scanned_episodes
         - matched_episodes
+        - path_filtered_episodes
+        - accepted_unique_episodes
+        - mismatch_detected
         - skipped_episodes
         - existing_jellyfin_versions
+        - existing_episodes
         - applied_episode_status
         - overwrite_episode_titles
         - overwrite_version_titles
@@ -3949,6 +3971,9 @@ components:
         jellyfin_series_path:
           type: string
           nullable: true
+        applied_path_prefix:
+          type: string
+          nullable: true
         season_number:
           type: integer
           format: int32
@@ -3958,6 +3983,17 @@ components:
         matched_episodes:
           type: integer
           format: int32
+        path_filtered_episodes:
+          type: integer
+          format: int32
+        accepted_unique_episodes:
+          type: integer
+          format: int32
+        mismatch_detected:
+          type: boolean
+        mismatch_reason:
+          type: string
+          nullable: true
         skipped_episodes:
           type: integer
           format: int32
@@ -3965,6 +4001,9 @@ components:
           type: integer
           format: int32
           description: Anzahl der bestehenden Jellyfin-Versionen die bei cleanup_provider_versions=true geloescht wuerden
+        existing_episodes:
+          type: integer
+          format: int32
         applied_episode_status:
           $ref: "#/components/schemas/EpisodeStatus"
         overwrite_episode_titles:

@@ -76,6 +76,7 @@ export interface AdminAnimeJellyfinSyncRequest {
   overwrite_episode_titles?: boolean
   overwrite_version_titles?: boolean
   cleanup_provider_versions?: boolean
+  allow_mismatch?: boolean
 }
 
 export interface AdminAnimeUpsertResponse {
@@ -110,8 +111,12 @@ export interface AdminAnimeJellyfinSyncResult {
   anime_id: number
   jellyfin_series_id: string
   jellyfin_series_name: string
+  jellyfin_series_path?: string
+  applied_path_prefix?: string
   season_number: number
   scanned_episodes: number
+  path_filtered_episodes: number
+  accepted_unique_episodes: number
   imported_episodes: number
   updated_episodes: number
   imported_versions: number
@@ -151,11 +156,17 @@ export interface AdminAnimeJellyfinPreviewResult {
   jellyfin_series_id: string
   jellyfin_series_name: string
   jellyfin_series_path?: string
+  applied_path_prefix?: string
   season_number: number
   scanned_episodes: number
   matched_episodes: number
+  path_filtered_episodes: number
+  accepted_unique_episodes: number
+  mismatch_detected: boolean
+  mismatch_reason?: string
   skipped_episodes: number
   existing_jellyfin_versions: number
+  existing_episodes: number
   applied_episode_status: EpisodeStatus
   overwrite_episode_titles: boolean
   overwrite_version_titles: boolean

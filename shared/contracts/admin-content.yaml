@@ -149,6 +149,7 @@ endpoints:
         overwrite_episode_titles: false
         overwrite_version_titles: false
         cleanup_provider_versions: false
+        allow_mismatch: false
     response:
       status: 200
       type: AdminAnimeJellyfinSyncResponse
@@ -223,6 +224,7 @@ endpoints:
         episode_status: "private"
         overwrite_episode_titles: false
         overwrite_version_titles: false
+        allow_mismatch: false
     response:
       status: 200
       type: AdminAnimeJellyfinPreviewResponse
@@ -371,6 +373,7 @@ types:
     overwrite_episode_titles: boolean (optional, default: false)
     overwrite_version_titles: boolean (optional, default: false)
     cleanup_provider_versions: boolean (optional, default: false, description: "Wenn true, werden alle bestehenden Jellyfin-Versionen fuer diesen Anime vor dem Import geloescht")
+    allow_mismatch: boolean (optional, default: false, description: "Wenn true, wird der max_episodes-Mismatch-Guard fuer den aktuellen Sync ueberschrieben")
   AdminAnimeUpsertResponse:
     data: AdminAnimeItem
   AdminEpisodeUpsertResponse:
@@ -398,11 +401,17 @@ types:
     jellyfin_series_id: string
     jellyfin_series_name: string
     jellyfin_series_path: string | null
+    applied_path_prefix: string | null
     season_number: int32
     scanned_episodes: int32
     matched_episodes: int32
+    path_filtered_episodes: int32
+    accepted_unique_episodes: int32
+    mismatch_detected: boolean
+    mismatch_reason: string | null
     skipped_episodes: int32
     existing_jellyfin_versions: int32 (description: "Anzahl der bestehenden Jellyfin-Versionen die bei cleanup_provider_versions=true geloescht wuerden")
+    existing_episodes: int32
     applied_episode_status: episode_status
     overwrite_episode_titles: boolean
     overwrite_version_titles: boolean
@@ -417,8 +426,12 @@ types:
     anime_id: int64
     jellyfin_series_id: string
     jellyfin_series_name: string
+    jellyfin_series_path: string | null
+    applied_path_prefix: string | null
     season_number: int32
     scanned_episodes: int32
+    path_filtered_episodes: int32
+    accepted_unique_episodes: int32
     imported_episodes: int32
     updated_episodes: int32
     imported_versions: int32
