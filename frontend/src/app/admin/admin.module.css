@@ -1326,68 +1326,389 @@
   }
 }
 
+.breadcrumb {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.breadcrumb a {
+  color: inherit;
+}
+
 .mergeHint {
   margin: 0 0 0.5rem;
   font-size: 0.84rem;
   color: var(--text-secondary);
 }
 
-.mergeTableWrap {
-  max-height: 350px;
-  overflow-y: auto;
+.mergeWizardProgressBar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  overflow: hidden;
+}
+
+.mergeWizardProgressFill {
+  height: 100%;
+  background: color-mix(in srgb, var(--accent-primary) 58%, transparent);
+  transition: width 180ms ease;
+}
+
+.mergeWizardSteps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mergeWizardStepItem {
+  min-width: 0;
+}
+
+.mergeWizardStepButton {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 25%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.5rem;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  cursor: pointer;
+  min-height: 42px;
+}
+
+.mergeWizardStepButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mergeWizardStepIndex {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 35%, transparent);
+}
+
+.mergeWizardStepActive .mergeWizardStepButton {
+  border-color: color-mix(in srgb, var(--accent-primary) 44%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+}
+
+.mergeWizardStepDone .mergeWizardStepButton {
+  border-color: color-mix(in srgb, var(--color-success) 44%, transparent);
+}
+
+.mergeWizardStepDisabled .mergeWizardStepButton {
+  opacity: 0.5;
+}
+
+.mergeFilterRow {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: minmax(240px, 2fr) repeat(3, minmax(140px, 1fr));
+}
+
+.mergeSelectedTargetCard {
+  position: sticky;
+  top: 8px;
+  z-index: 8;
+}
+
+.mergeGroupList {
+  display: grid;
+  gap: 0.5rem;
+  max-height: 480px;
+  overflow: auto;
+}
+
+.mergeGroupCard {
   border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
   border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.55rem;
+  text-align: left;
 }
 
-.mergeTable {
-  table-layout: fixed;
+button.mergeGroupCard {
   width: 100%;
+  cursor: pointer;
 }
 
-.mergeColumnCheck {
-  width: 40px;
-}
-
-.mergeColumnName {
-  width: 40%;
-}
-
-.mergeColumnSlug {
-  width: 45%;
-}
-
-.mergeColumnType {
-  width: 80px;
-}
-
-.mergeEllipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mergeRowTarget {
+.mergeGroupCardTarget {
+  border-color: color-mix(in srgb, var(--color-success) 48%, transparent);
   background: color-mix(in srgb, var(--color-success) 12%, transparent);
-  cursor: pointer;
 }
 
-.mergeRowSource {
-  background: color-mix(in srgb, var(--color-warning) 18%, transparent);
-  cursor: pointer;
+.mergeGroupCardSource {
+  border-color: color-mix(in srgb, var(--color-warning) 50%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
 }
 
-.mergePreviewActions {
+.mergeGroupCardDisabled {
+  opacity: 0.72;
+}
+
+.mergeGroupCardSelect {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mergeGroupCardSelect input {
+  margin: 0;
+}
+
+.mergeGroupCardContent {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.mergeGroupLogo {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 90%, transparent);
+}
+
+.mergeGroupMain {
+  min-width: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.mergeGroupName {
+  margin: 0;
+  font-weight: 700;
+}
+
+.mergeGroupSlug {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.83rem;
+}
+
+.mergeGroupBadges {
+  display: inline-flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.mergeMetaBadge,
+.mergeMetaBadgeSelected {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  padding: 0.1rem 0.42rem;
+  font-size: 0.74rem;
+}
+
+.mergeMetaBadgeSelected {
+  border-color: color-mix(in srgb, var(--accent-primary) 52%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+}
+
+.mergeStatGrid {
+  display: grid;
+  gap: 0.2rem 0.4rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.mergeInlineHint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.mergeSourceLayout {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+}
+
+.mergeComparePanel {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+  padding: 0.65rem;
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+}
+
+.mergeComparePanel h3 {
+  margin: 0;
+}
+
+.mergeCompareList {
+  margin: 0;
+  display: grid;
+  gap: 0.3rem 0.45rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.mergeCompareList dt {
+  color: var(--text-secondary);
+}
+
+.mergeCompareList dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.mergeKpiGrid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mergeKpiCard {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+  padding: 0.55rem;
+  min-width: 0;
+}
+
+.mergeKpiLabel {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.mergeKpiValue {
+  margin: 0.2rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.mergePreviewDetailGrid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mergePreviewDetailCard {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+  padding: 0.6rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.mergePreviewDetailCard h3 {
+  margin: 0;
+}
+
+.mergeCompactList {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.mergeConflictPanel {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.mergeConflictPanelWarning {
+  border-color: color-mix(in srgb, var(--color-warning) 64%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+}
+
+.mergeConflictPanelSafe {
+  border-color: color-mix(in srgb, var(--color-success) 58%, transparent);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+}
+
+.mergeConflictSafeText {
+  margin: 0;
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.mergeConflictRow {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-card) 90%, transparent);
+  padding: 0.5rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.mergeConflictTitle {
+  margin: 0;
+  font-weight: 700;
+}
+
+.mergeConflictSummary {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.mergeDangerBox {
+  border: 1px solid color-mix(in srgb, var(--color-error) 52%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-error) 8%, transparent);
+  padding: 0.6rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.mergeDangerBox h3 {
+  margin: 0;
+}
+
+.mergeWizardFooter {
+  position: sticky;
+  bottom: 0;
+  z-index: 12;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-card) 95%, transparent);
+  backdrop-filter: blur(2px);
+  padding: 0.55rem;
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.mergePreviewBox {
-  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
-  border-radius: var(--radius-sm);
-  padding: 1rem;
-  margin-bottom: 1rem;
+.mergeWizardFooterLeft {
+  display: inline-flex;
+}
+
+.mergeWizardFooterActions {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .mergeBackLink {
@@ -1396,6 +1717,37 @@
 
 .mergeSummary {
   margin-top: 0.5rem;
+}
+
+@media (max-width: 1200px) {
+  .mergeFilterRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mergeKpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .mergeSourceLayout,
+  .mergePreviewDetailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .mergeWizardSteps {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .mergeFilterRow {
+    grid-template-columns: 1fr;
+  }
+
+  .mergeKpiGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .fansubEditToast {
@@ -1463,6 +1815,16 @@
   height: 100%;
   background-size: cover;
   background-position: center;
+}
+
+.fansubEditLogoBadge span {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
 }
 
 .fansubEditIdentity {

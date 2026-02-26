@@ -108,9 +108,18 @@ func (h *FansubHandler) MergeFansubs(c *gin.Context) {
 		return
 	}
 
-	log.Printf("fansub merge: user=%d merged %d groups into %q (target_id=%d), versions=%d, members=%d, relations=%d, aliases=%v",
-		identity.UserID, result.MergedCount, target.Name, req.TargetID,
-		result.VersionsMigrated, result.MembersMigrated, result.RelationsMigrated, result.AliasesAdded)
+	log.Printf(
+		"fansub merge report: user=%d target_id=%d target_name=%q source_ids=%v merged=%d versions=%d members=%d relations=%d aliases_added=%v",
+		identity.UserID,
+		req.TargetID,
+		target.Name,
+		req.SourceIDs,
+		result.MergedCount,
+		result.VersionsMigrated,
+		result.MembersMigrated,
+		result.RelationsMigrated,
+		result.AliasesAdded,
+	)
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": result,
@@ -151,11 +160,6 @@ func (h *FansubHandler) MergeFansubsPreview(c *gin.Context) {
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{"message": "zielgruppe oder quellgruppe nicht gefunden"},
-		})
-		return
-	} else if errors.Is(err, repository.ErrConflict) {
-		c.JSON(http.StatusConflict, gin.H{
-			"error": gin.H{"message": "zusammenfuehren fuehrt zu konflikt bei episode-versionen"},
 		})
 		return
 	} else if err != nil {

@@ -9,6 +9,8 @@ export interface FansubGroup {
   name: string
   description?: string | null
   history?: string | null
+  logo_id?: number | null
+  banner_id?: number | null
   logo_url?: string | null
   banner_url?: string | null
   founded_year?: number | null
@@ -19,6 +21,10 @@ export interface FansubGroup {
   discord_url?: string | null
   irc_url?: string | null
   country?: string | null
+  anime_relations_count: number
+  episode_versions_count: number
+  members_count: number
+  aliases_count: number
   created_at: string
   updated_at: string
   collaboration_members?: FansubGroupSummary[]
@@ -94,6 +100,8 @@ export interface FansubGroupCreateRequest {
   name: string
   description?: string | null
   history?: string | null
+  logo_id?: number | null
+  banner_id?: number | null
   logo_url?: string | null
   banner_url?: string | null
   founded_year?: number | null
@@ -111,6 +119,8 @@ export interface FansubGroupPatchRequest {
   name?: string | null
   description?: string | null
   history?: string | null
+  logo_id?: number | null
+  banner_id?: number | null
   logo_url?: string | null
   banner_url?: string | null
   founded_year?: number | null
@@ -161,6 +171,35 @@ export interface MergeFansubsResponse {
   data: MergeFansubsResult
 }
 
+export interface MergeFansubsPreviewConflicts {
+  version_conflicts: number
+  duplicate_aliases_count: number
+  duplicate_aliases: string[]
+  duplicate_members_count: number
+  duplicate_members: string[]
+  duplicate_relations_count: number
+  duplicate_relation_anime_ids: number[]
+  duplicate_slugs_count: number
+  duplicate_slugs: string[]
+  duplicate_names_count: number
+  duplicate_names: string[]
+}
+
+export interface MergeFansubsPreviewResult {
+  merged_count: number
+  versions_migrated: number
+  members_migrated: number
+  relations_migrated: number
+  aliases_added: string[]
+  aliases_skipped: string[]
+  can_merge: boolean
+  conflicts: MergeFansubsPreviewConflicts
+}
+
+export interface MergeFansubsPreviewResponse {
+  data: MergeFansubsPreviewResult
+}
+
 // Collaboration member types
 export interface CollaborationMember {
   collaboration_id: number
@@ -179,4 +218,25 @@ export interface CollaborationMemberResponse {
 
 export interface AddCollaborationMemberRequest {
   member_group_id: number
+}
+
+export type FansubMediaKind = 'logo' | 'banner'
+
+export interface FansubMediaAsset {
+  id: number
+  filename: string
+  public_url: string
+  mime_type: string
+  size_bytes: number
+  width?: number | null
+  height?: number | null
+  created_at: string
+}
+
+export interface FansubMediaUploadResponse {
+  data: {
+    kind: FansubMediaKind
+    media: FansubMediaAsset
+    gif_large_warning: boolean
+  }
 }

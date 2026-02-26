@@ -42,10 +42,13 @@ import {
   FansubAliasCreateRequest,
   FansubStatus,
   MergeFansubsRequest,
+  MergeFansubsPreviewResponse,
   MergeFansubsResponse,
   CollaborationMemberListResponse,
   CollaborationMemberResponse,
   AddCollaborationMemberRequest,
+  FansubMediaKind,
+  FansubMediaUploadResponse,
 } from '@/types/fansub'
 import { PaginatedWatchlistResponse, WatchlistCreateResponse } from '@/types/watchlist'
 
@@ -218,6 +221,19 @@ async function parseApiError(response: Response, fallback: string): Promise<stri
     }
   } catch {
     // Keep fallback message.
+  }
+
+  return fallback
+}
+
+function parsePayloadError(payload: unknown, fallback: string): string {
+  if (!payload || typeof payload !== 'object') {
+    return fallback
+  }
+
+  const message = (payload as { error?: { message?: unknown } }).error?.message
+  if (typeof message === 'string' && message.trim()) {
+    return message
   }
 
   return fallback
@@ -588,6 +604,80 @@ export async function updateFansubGroup(
 export async function deleteFansubGroup(fansubID: number, authToken?: string): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
   const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+}
+
+interface FansubMediaUploadOptions {
+  fansubID: number
+  kind: FansubMediaKind
+  file: File
+  authToken?: string
+  onProgress?: (percent: number) => void
+}
+
+export async function uploadFansubMedia(options: FansubMediaUploadOptions): Promise<FansubMediaUploadResponse> {
+  if (typeof window === 'undefined') {
+    throw new ApiError(500, 'upload ist nur im browser verfuegbar')
+  }
+
+  const API_BASE_URL = getApiBaseUrl()
+  const token = resolveAuthToken(options.authToken)
+  const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/media`
+
+  return new Promise<FansubMediaUploadResponse>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', endpoint, true)
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (!options.onProgress) return
+      if (!event.lengthComputable) return
+      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)))
+      options.onProgress(percent)
+    }
+
+    xhr.onerror = () => {
+      reject(new ApiError(0, 'netzwerkfehler beim upload'))
+    }
+
+    xhr.onload = () => {
+      let payload: unknown = null
+      try {
+        payload = JSON.parse(xhr.responseText)
+      } catch {
+        payload = null
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        options.onProgress?.(100)
+        resolve(payload as FansubMediaUploadResponse)
+        return
+      }
+
+      const fallback = `API request failed: ${xhr.status}`
+      reject(new ApiError(xhr.status, parsePayloadError(payload, fallback)))
+    }
+
+    const body = new FormData()
+    body.set('kind', options.kind)
+    body.set('file', options.file)
+    options.onProgress?.(0)
+    xhr.send(body)
+  })
+}
+
+export async function deleteFansubMedia(fansubID: number, kind: FansubMediaKind, authToken?: string): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/media/${kind}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -1047,7 +1137,7 @@ export async function getAdminGenreTokens(
 export async function mergeFansubsPreview(
   payload: MergeFansubsRequest,
   authToken?: string,
-): Promise<MergeFansubsResponse> {
+): Promise<MergeFansubsPreviewResponse> {
   const API_BASE_URL = getApiBaseUrl()
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/merge/preview`, {
     method: 'POST',
@@ -1065,7 +1155,7 @@ export async function mergeFansubsPreview(
     throw new ApiError(response.status, message)
   }
 
-  return response.json() as Promise<MergeFansubsResponse>
+  return response.json() as Promise<MergeFansubsPreviewResponse>
 }
 
 export async function mergeFansubs(

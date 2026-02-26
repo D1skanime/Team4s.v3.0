@@ -1,13 +1,35 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { getFansubList, mergeFansubsPreview, mergeFansubs, getRuntimeAuthToken } from '@/lib/api'
-import { FansubGroup, MergeFansubsResult } from '@/types/fansub'
+import { useRouter } from 'next/navigation'
+import { getFansubList, getRuntimeAuthToken, mergeFansubs, mergeFansubsPreview } from '@/lib/api'
+import { FansubGroup, MergeFansubsPreviewResult } from '@/types/fansub'
 import styles from '../../admin.module.css'
 
+type WizardStep = 1 | 2 | 3 | 4
+type SortMode = 'name' | 'related'
+type StatusFilter = 'all' | 'active' | 'inactive' | 'dissolved'
+type TypeFilter = 'all' | 'group' | 'collaboration'
+
+interface CountSummary {
+  animeRelations: number
+  episodeVersions: number
+  members: number
+  aliases: number
+}
+
+const WIZARD_STEPS: Array<{ id: WizardStep; title: string }> = [
+  { id: 1, title: 'Zielgruppe waehlen' },
+  { id: 2, title: 'Quellgruppen waehlen' },
+  { id: 3, title: 'Vorschau pruefen' },
+  { id: 4, title: 'Bestaetigen & zusammenfuehren' },
+]
+
 export default function MergeFansubsPage() {
+  const router = useRouter()
   const [authToken] = useState(() => getRuntimeAuthToken())
+
   const [groups, setGroups] = useState<FansubGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -15,19 +37,29 @@ export default function MergeFansubsPage() {
 
   const [targetID, setTargetID] = useState<number | null>(null)
   const [sourceIDs, setSourceIDs] = useState<Set<number>>(new Set())
-  const [preview, setPreview] = useState<MergeFansubsResult | null>(null)
-  const [previewLoading, setPreviewLoading] = useState(false)
-  const [merging, setMerging] = useState(false)
 
   const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
+  const [sortMode, setSortMode] = useState<SortMode>('name')
+
+  const [currentStep, setCurrentStep] = useState<WizardStep>(1)
+  const [preview, setPreview] = useState<MergeFansubsPreviewResult | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewKey, setPreviewKey] = useState('')
+  const [merging, setMerging] = useState(false)
+
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [slugConfirmation, setSlugConfirmation] = useState('')
 
   useEffect(() => {
-    loadGroups()
+    void loadGroups()
   }, [])
 
   async function loadGroups() {
     try {
       setLoading(true)
+      setError(null)
       const response = await getFansubList({ per_page: 500 })
       setGroups(response.data)
     } catch (err) {
@@ -37,7 +69,78 @@ export default function MergeFansubsPage() {
     }
   }
 
-  async function handlePreview() {
+  const filteredGroups = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+
+    function relevanceScore(group: FansubGroup): number {
+      if (!query) return 0
+      const name = group.name.toLowerCase()
+      const slug = group.slug.toLowerCase()
+      if (name === query || slug === query) return 120
+      if (name.startsWith(query)) return 90
+      if (slug.startsWith(query)) return 80
+      if (name.includes(query)) return 55
+      if (slug.includes(query)) return 45
+      return 0
+    }
+
+    return groups
+      .filter((group) => {
+        if (query) {
+          const inName = group.name.toLowerCase().includes(query)
+          const inSlug = group.slug.toLowerCase().includes(query)
+          if (!inName && !inSlug) return false
+        }
+        if (statusFilter !== 'all' && group.status !== statusFilter) return false
+        if (typeFilter !== 'all' && group.group_type !== typeFilter) return false
+        return true
+      })
+      .sort((a, b) => {
+        if (sortMode === 'related') {
+          const scoreDiff = relevanceScore(b) - relevanceScore(a)
+          if (scoreDiff !== 0) return scoreDiff
+        }
+        return a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
+      })
+  }, [groups, searchQuery, sortMode, statusFilter, typeFilter])
+
+  const selectionReady = targetID !== null && sourceIDs.size > 0
+  const selectionKey = useMemo(() => {
+    const sourcePart = Array.from(sourceIDs).sort((a, b) => a - b).join(',')
+    return `${targetID ?? 0}:${sourcePart}`
+  }, [sourceIDs, targetID])
+
+  const targetGroup = targetID ? groups.find((group) => group.id === targetID) ?? null : null
+  const selectedSourceGroups = useMemo(() => groups.filter((group) => sourceIDs.has(group.id)), [groups, sourceIDs])
+  const sourceCandidates = useMemo(() => filteredGroups.filter((group) => group.id !== targetID), [filteredGroups, targetID])
+
+  const sourceSummary = useMemo(() => sumGroupCounts(selectedSourceGroups), [selectedSourceGroups])
+  const targetSummary = useMemo(() => (targetGroup ? sumGroupCounts([targetGroup]) : emptyCountSummary()), [targetGroup])
+
+  const hasPreviewConflicts = Boolean(
+    preview &&
+      (preview.conflicts.version_conflicts > 0 ||
+        preview.conflicts.duplicate_aliases_count > 0 ||
+        preview.conflicts.duplicate_members_count > 0 ||
+        preview.conflicts.duplicate_relations_count > 0 ||
+        preview.conflicts.duplicate_slugs_count > 0 ||
+        preview.conflicts.duplicate_names_count > 0),
+  )
+
+  useEffect(() => {
+    setPreview(null)
+    setPreviewKey('')
+    setConfirmDelete(false)
+    setSlugConfirmation('')
+  }, [selectionKey])
+
+  useEffect(() => {
+    if (!selectionReady && currentStep > 2) {
+      setCurrentStep(2)
+    }
+  }, [currentStep, selectionReady])
+
+  const loadPreview = useCallback(async () => {
     if (!targetID || sourceIDs.size === 0) return
 
     try {
@@ -48,37 +151,55 @@ export default function MergeFansubsPage() {
         authToken || undefined,
       )
       setPreview(response.data)
+      setPreviewKey(selectionKey)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Fehler bei der Vorschau')
       setPreview(null)
+      setPreviewKey('')
+      setError(err instanceof Error ? err.message : 'Fehler bei der Merge-Vorschau')
     } finally {
       setPreviewLoading(false)
     }
-  }
+  }, [authToken, selectionKey, sourceIDs, targetID])
+
+  useEffect(() => {
+    if (currentStep !== 3 || !selectionReady || previewKey === selectionKey || previewLoading) {
+      return
+    }
+    void loadPreview()
+  }, [currentStep, loadPreview, previewKey, previewLoading, selectionKey, selectionReady])
 
   async function handleMerge() {
-    if (!targetID || sourceIDs.size === 0) return
-
-    const confirmed = window.confirm(
-      `Wirklich ${sourceIDs.size} Gruppe(n) in die Zielgruppe zusammenfuehren? Diese Aktion kann nicht rueckgaengig gemacht werden.`,
-    )
-    if (!confirmed) return
+    if (!targetID || sourceIDs.size === 0 || !targetGroup || !preview?.can_merge) {
+      return
+    }
+    if (!confirmDelete || slugConfirmation.trim() !== targetGroup.slug) {
+      return
+    }
 
     try {
       setMerging(true)
       setError(null)
+      setSuccess(null)
+
       const response = await mergeFansubs(
         { target_id: targetID, source_ids: Array.from(sourceIDs) },
         authToken || undefined,
       )
+
       setSuccess(
-        `Erfolgreich zusammengefuehrt: ${response.data.merged_count} Gruppe(n), ` +
-          `${response.data.versions_migrated} Versionen, ${response.data.members_migrated} Mitglieder. ` +
-          `Aliases hinzugefuegt: ${response.data.aliases_added.join(', ') || 'keine'}`,
+        `Merge abgeschlossen: ${response.data.merged_count} Gruppe(n), ${response.data.versions_migrated} Versionen, ` +
+          `${response.data.members_migrated} Mitglieder, ${response.data.relations_migrated} Anime-Zuordnungen.`,
       )
-      setPreview(null)
+
+      const nextTargetID = targetID
+      await loadGroups()
       setSourceIDs(new Set())
-      void loadGroups()
+      setPreview(null)
+      setPreviewKey('')
+      setCurrentStep(1)
+      setConfirmDelete(false)
+      setSlugConfirmation('')
+      router.push(`/admin/fansubs/${nextTargetID}/edit`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fehler beim Zusammenfuehren')
     } finally {
@@ -86,30 +207,83 @@ export default function MergeFansubsPage() {
     }
   }
 
-  function toggleSource(id: number) {
-    const newSet = new Set(sourceIDs)
-    if (newSet.has(id)) {
-      newSet.delete(id)
-    } else {
-      newSet.add(id)
-    }
-    setSourceIDs(newSet)
-    setPreview(null)
+  function chooseTarget(groupID: number) {
+    setTargetID(groupID)
+    setSourceIDs((prev) => {
+      if (!prev.has(groupID)) return prev
+      const next = new Set(prev)
+      next.delete(groupID)
+      return next
+    })
   }
 
-  const filteredGroups = groups.filter(
-    (g) =>
-      g.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      g.slug.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  function toggleSource(groupID: number) {
+    if (groupID === targetID) return
+    setSourceIDs((prev) => {
+      const next = new Set(prev)
+      if (next.has(groupID)) {
+        next.delete(groupID)
+      } else {
+        next.add(groupID)
+      }
+      return next
+    })
+  }
 
-  const targetGroup = targetID ? groups.find((g) => g.id === targetID) : null
-  const sourceGroups = groups.filter((g) => sourceIDs.has(g.id))
+  function selectAllFilteredSources() {
+    setSourceIDs(new Set(sourceCandidates.map((group) => group.id)))
+  }
+
+  function clearSourceSelection() {
+    setSourceIDs(new Set())
+  }
+
+  function isStepEnabled(step: WizardStep): boolean {
+    if (step <= 2) return true
+    return selectionReady
+  }
+
+  function goToStep(step: WizardStep) {
+    if (!isStepEnabled(step)) return
+    setCurrentStep(step)
+  }
+
+  function goBack() {
+    if (currentStep === 1) return
+    setCurrentStep((currentStep - 1) as WizardStep)
+  }
+
+  function goNext() {
+    if (currentStep === 1) {
+      setCurrentStep(2)
+      return
+    }
+    if (currentStep === 2) {
+      if (!selectionReady) return
+      setCurrentStep(3)
+      return
+    }
+    if (currentStep === 3) {
+      if (!selectionReady || previewLoading || !preview) return
+      setCurrentStep(4)
+    }
+  }
+
+  const canGoNext =
+    currentStep === 1 || (currentStep === 2 ? selectionReady : currentStep === 3 ? Boolean(preview) && !previewLoading : false)
+
+  const mergeButtonDisabled =
+    merging ||
+    !targetGroup ||
+    !preview ||
+    !preview.can_merge ||
+    !confirmDelete ||
+    slugConfirmation.trim() !== targetGroup?.slug
 
   if (loading) {
     return (
       <div className={styles.page}>
-        <div className={styles.panel}>Lade Gruppen...</div>
+        <div className={styles.panel}>Lade Merge-Wizard...</div>
       </div>
     )
   }
@@ -120,177 +294,489 @@ export default function MergeFansubsPage() {
         <Link href="/admin">Admin</Link> | <Link href="/admin/fansubs">Fansub Verwaltung</Link>
       </p>
 
-      <h1>Fansub-Gruppen zusammenfuehren</h1>
-      <p>Duplikate oder variante Tags zu einer Gruppe zusammenfuehren.</p>
+      <h1>Fansub Merge Wizard</h1>
+      <p>Gefuehrtes Zusammenfuehren mit Vorschau, Konflikt-Transparenz und Safety-Checks.</p>
 
       {error && <div className={styles.errorBox}>{error}</div>}
       {success && <div className={styles.successBox}>{success}</div>}
 
       <div className={styles.panel}>
-        <h2>1. Zielgruppe waehlen</h2>
-        <p>Die Gruppe, in die alle anderen zusammengefuehrt werden.</p>
-
-        <div className={styles.field}>
-          <label>Suche</label>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Name oder Slug..."
-          />
+        <div className={styles.mergeWizardProgressBar} aria-hidden="true">
+          <div className={styles.mergeWizardProgressFill} style={{ width: `${(currentStep / WIZARD_STEPS.length) * 100}%` }} />
         </div>
-
-        <p className={styles.mergeHint}>
-          {filteredGroups.length} Ergebnis(se) gefunden
-        </p>
-        <div className={styles.mergeTableWrap}>
-          <table className={`${styles.episodeTable} ${styles.mergeTable}`}>
-            <thead>
-              <tr className={styles.episodeTableHeader}>
-                <th className={styles.mergeColumnCheck}></th>
-                <th className={styles.mergeColumnName}>Name</th>
-                <th className={styles.mergeColumnSlug}>Slug</th>
-                <th className={styles.mergeColumnType}>Typ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredGroups.map((g) => (
-                <tr
-                  key={g.id}
-                  className={`${styles.episodeTableRow} ${
-                    targetID === g.id
-                      ? styles.mergeRowTarget
-                      : sourceIDs.has(g.id)
-                        ? styles.mergeRowSource
-                        : ''
-                  }`}
-                  onClick={() => {
-                    if (!sourceIDs.has(g.id)) {
-                      setTargetID(g.id)
-                      setPreview(null)
-                    }
-                  }}
+        <ol className={styles.mergeWizardSteps} aria-label="Merge Schritte">
+          {WIZARD_STEPS.map((step) => {
+            const isActive = step.id === currentStep
+            const isDone = step.id < currentStep
+            const disabled = !isStepEnabled(step.id)
+            return (
+              <li
+                key={step.id}
+                className={`${styles.mergeWizardStepItem} ${isActive ? styles.mergeWizardStepActive : ''} ${isDone ? styles.mergeWizardStepDone : ''} ${disabled ? styles.mergeWizardStepDisabled : ''}`}
+              >
+                <button
+                  type="button"
+                  className={styles.mergeWizardStepButton}
+                  onClick={() => goToStep(step.id)}
+                  disabled={disabled || merging}
                 >
-                  <td className={styles.mergeColumnCheck}>
-                    <input
-                      type="radio"
-                      name="target"
-                      checked={targetID === g.id}
-                      disabled={sourceIDs.has(g.id)}
-                      onChange={() => {
-                        setTargetID(g.id)
-                        setPreview(null)
-                      }}
-                    />
-                  </td>
-                  <td className={styles.mergeEllipsis} title={g.name}>
-                    {g.name}
-                  </td>
-                  <td className={styles.mergeEllipsis} title={g.slug}>
-                    {g.slug}
-                  </td>
-                  <td>{g.group_type === 'collaboration' ? 'Kollab.' : 'Gruppe'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {targetGroup && (
-          <p className={styles.mergeSummary}>
-            <strong>Ziel:</strong> {targetGroup.name} ({targetGroup.slug})
-          </p>
-        )}
+                  <span className={styles.mergeWizardStepIndex}>{step.id}</span>
+                  <span>{step.title}</span>
+                </button>
+              </li>
+            )
+          })}
+        </ol>
       </div>
 
       <div className={styles.panel}>
-        <h2>2. Quellgruppen waehlen</h2>
-        <p>Diese Gruppen werden in die Zielgruppe zusammengefuehrt und danach geloescht.</p>
-
-        <div className={styles.mergeTableWrap}>
-          <table className={`${styles.episodeTable} ${styles.mergeTable}`}>
-            <thead>
-              <tr className={styles.episodeTableHeader}>
-                <th className={styles.mergeColumnCheck}></th>
-                <th className={styles.mergeColumnName}>Name</th>
-                <th>Slug</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredGroups
-                .filter((g) => g.id !== targetID)
-                .map((g) => (
-                  <tr
-                    key={g.id}
-                    className={`${styles.episodeTableRow} ${sourceIDs.has(g.id) ? styles.mergeRowSource : ''}`}
-                    onClick={() => toggleSource(g.id)}
-                  >
-                    <td className={styles.mergeColumnCheck}>
-                      <input type="checkbox" checked={sourceIDs.has(g.id)} onChange={() => toggleSource(g.id)} />
-                    </td>
-                    <td className={styles.mergeEllipsis} title={g.name}>
-                      {g.name}
-                    </td>
-                    <td className={styles.mergeEllipsis} title={g.slug}>
-                      {g.slug}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+        <div className={styles.mergeFilterRow}>
+          <div className={styles.field}>
+            <label htmlFor="merge-search">Suche</label>
+            <input
+              id="merge-search"
+              type="text"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Name oder Slug..."
+              disabled={merging}
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="merge-status-filter">Status</label>
+            <select
+              id="merge-status-filter"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+              disabled={merging}
+            >
+              <option value="all">Alle Status</option>
+              <option value="active">Aktiv</option>
+              <option value="inactive">Inaktiv</option>
+              <option value="dissolved">Aufgeloest</option>
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="merge-type-filter">Typ</label>
+            <select
+              id="merge-type-filter"
+              value={typeFilter}
+              onChange={(event) => setTypeFilter(event.target.value as TypeFilter)}
+              disabled={merging}
+            >
+              <option value="all">Alle Typen</option>
+              <option value="group">Gruppe</option>
+              <option value="collaboration">Kollaboration</option>
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="merge-sort">Sortierung</label>
+            <select
+              id="merge-sort"
+              value={sortMode}
+              onChange={(event) => setSortMode(event.target.value as SortMode)}
+              disabled={merging}
+            >
+              <option value="name">Name</option>
+              <option value="related">Most related</option>
+            </select>
+          </div>
         </div>
-
-        {sourceGroups.length > 0 && (
-          <p className={styles.mergeSummary}>
-            <strong>Quellen ({sourceGroups.length}):</strong> {sourceGroups.map((g) => g.name).join(', ')}
-          </p>
-        )}
+        <p className={styles.hint}>
+          {filteredGroups.length} Treffer | Zielgruppe: {targetGroup ? `${targetGroup.name} (${targetGroup.slug})` : 'nicht gesetzt'} | Quellen:{' '}
+          {selectedSourceGroups.length}
+        </p>
       </div>
 
-      <div className={styles.panel}>
-        <h2>3. Vorschau und Zusammenfuehren</h2>
-
-        <div className={styles.mergePreviewActions}>
-          <button
-            className={styles.button}
-            onClick={handlePreview}
-            disabled={!targetID || sourceIDs.size === 0 || previewLoading}
-          >
-            {previewLoading ? 'Lade Vorschau...' : 'Vorschau anzeigen'}
-          </button>
+      {targetGroup && (
+        <div className={`${styles.panel} ${styles.mergeSelectedTargetCard}`}>
+          <h2>Ausgewaehlte Zielgruppe</h2>
+          <GroupRowCard group={targetGroup} selectedAs="target" />
         </div>
+      )}
 
-        {preview && (
-          <div className={styles.mergePreviewBox}>
-            <h3>Vorschau</h3>
-            <ul>
-              <li>
-                <strong>{preview.merged_count}</strong> Gruppe(n) werden geloescht
-              </li>
-              <li>
-                <strong>{preview.versions_migrated}</strong> Episode-Versionen werden migriert
-              </li>
-              <li>
-                <strong>{preview.members_migrated}</strong> Mitglieder werden migriert
-              </li>
-              <li>
-                <strong>{preview.relations_migrated}</strong> Anime-Verknuepfungen werden migriert
-              </li>
-              <li>
-                <strong>Aliases:</strong> {preview.aliases_added.join(', ') || 'keine'}
-              </li>
-            </ul>
+      {currentStep === 1 && (
+        <div className={styles.panel}>
+          <h2>1. Zielgruppe waehlen</h2>
+          <p>Diese Gruppe bleibt bestehen und erhaelt Daten aus den Quellgruppen.</p>
+          <div className={styles.mergeGroupList}>
+            {filteredGroups.map((group) => (
+              <button
+                key={group.id}
+                type="button"
+                className={`${styles.mergeGroupCard} ${targetID === group.id ? styles.mergeGroupCardTarget : ''}`}
+                onClick={() => chooseTarget(group.id)}
+                disabled={merging}
+              >
+                <div className={styles.mergeGroupCardSelect}>
+                  <input
+                    type="radio"
+                    name="merge-target"
+                    checked={targetID === group.id}
+                    onChange={() => chooseTarget(group.id)}
+                    aria-label={`Zielgruppe ${group.name}`}
+                  />
+                </div>
+                <GroupRowCard group={group} selectedAs={targetID === group.id ? 'target' : null} />
+              </button>
+            ))}
+            {filteredGroups.length === 0 && <p className={styles.hint}>Keine Gruppen fuer diese Filter gefunden.</p>}
+          </div>
+        </div>
+      )}
 
-            <button className={styles.button} onClick={handleMerge} disabled={merging}>
-              {merging ? 'Fuehre zusammen...' : 'Jetzt zusammenfuehren'}
+      {currentStep === 2 && (
+        <div className={styles.panel}>
+          <h2>2. Quellgruppen waehlen</h2>
+          <p>Quellen werden in die Zielgruppe migriert und danach geloescht.</p>
+
+          <div className={styles.actions}>
+            <button className={styles.buttonSecondary} type="button" onClick={selectAllFilteredSources} disabled={merging || sourceCandidates.length === 0}>
+              Alle Treffer waehlen
+            </button>
+            <button className={styles.buttonSecondary} type="button" onClick={clearSourceSelection} disabled={merging || sourceIDs.size === 0}>
+              Auswahl loeschen
             </button>
           </div>
-        )}
-      </div>
 
-      <div className={styles.mergeBackLink}>
-        <Link href="/admin/fansubs">Zurueck zur Fansub-Verwaltung</Link>
+          <div className={styles.mergeSourceLayout}>
+            <div className={styles.mergeGroupList}>
+              {filteredGroups.map((group) => {
+                const isTarget = group.id === targetID
+                const checked = sourceIDs.has(group.id)
+                return (
+                  <label
+                    key={group.id}
+                    className={`${styles.mergeGroupCard} ${checked ? styles.mergeGroupCardSource : ''} ${isTarget ? styles.mergeGroupCardDisabled : ''}`}
+                  >
+                    <div className={styles.mergeGroupCardSelect}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        disabled={isTarget || merging}
+                        onChange={() => toggleSource(group.id)}
+                        aria-label={`Quellgruppe ${group.name}`}
+                      />
+                    </div>
+                    <GroupRowCard group={group} selectedAs={checked ? 'source' : null} />
+                    {isTarget && <p className={styles.mergeInlineHint}>Zielgruppe kann nicht als Quelle gewaehlt werden.</p>}
+                  </label>
+                )
+              })}
+              {filteredGroups.length === 0 && <p className={styles.hint}>Keine Gruppen fuer diese Filter gefunden.</p>}
+            </div>
+
+            <aside className={styles.mergeComparePanel}>
+              <h3>Vergleich</h3>
+              <p className={styles.hint}>Ziel vs ausgewaehlte Quellen</p>
+              <dl className={styles.mergeCompareList}>
+                <dt>Zielgruppe</dt>
+                <dd>{targetGroup ? `${targetGroup.name} (${targetGroup.slug})` : 'nicht gesetzt'}</dd>
+                <dt>Quellgruppen</dt>
+                <dd>{selectedSourceGroups.length}</dd>
+                <dt>Anime-Zuordnungen</dt>
+                <dd>
+                  {targetSummary.animeRelations} -&gt; +{sourceSummary.animeRelations}
+                </dd>
+                <dt>Episoden-Versionen</dt>
+                <dd>
+                  {targetSummary.episodeVersions} -&gt; +{sourceSummary.episodeVersions}
+                </dd>
+                <dt>Mitglieder</dt>
+                <dd>
+                  {targetSummary.members} -&gt; +{sourceSummary.members}
+                </dd>
+                <dt>Aliases/Tags</dt>
+                <dd>
+                  {targetSummary.aliases} -&gt; +{sourceSummary.aliases}
+                </dd>
+              </dl>
+            </aside>
+          </div>
+        </div>
+      )}
+
+      {currentStep === 3 && (
+        <div className={styles.panel}>
+          <h2>3. Vorschau pruefen</h2>
+          <p>Impact und potenzielle Konflikte vor dem finalen Merge pruefen.</p>
+          <div className={styles.actions}>
+            <button className={styles.button} type="button" onClick={() => void loadPreview()} disabled={!selectionReady || previewLoading || merging}>
+              {previewLoading ? 'Lade Vorschau...' : 'Vorschau aktualisieren'}
+            </button>
+          </div>
+
+          {previewLoading && <p className={styles.hint}>Vorschau wird geladen...</p>}
+
+          {preview && (
+            <>
+              <div className={styles.mergeKpiGrid}>
+                <KpiCard label="Zielgruppe" value={targetGroup ? `${targetGroup.name} (${targetGroup.slug})` : '-'} />
+                <KpiCard label="Quellgruppen" value={String(selectedSourceGroups.length)} />
+                <KpiCard label="Anime-Zuordnungen" value={String(preview.relations_migrated)} />
+                <KpiCard label="Episoden-Versionen" value={String(preview.versions_migrated)} />
+                <KpiCard label="Mitglieder" value={String(preview.members_migrated)} />
+                <KpiCard label="Aliases migriert" value={String(preview.aliases_added.length)} />
+              </div>
+
+              <div className={styles.mergePreviewDetailGrid}>
+                <div className={styles.mergePreviewDetailCard}>
+                  <h3>Werden geloescht</h3>
+                  {selectedSourceGroups.length > 0 ? (
+                    <ul className={styles.mergeCompactList}>
+                      {selectedSourceGroups.map((group) => (
+                        <li key={group.id}>
+                          {group.name} ({group.slug})
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className={styles.hint}>Keine Quellen ausgewaehlt.</p>
+                  )}
+                </div>
+
+                <div className={styles.mergePreviewDetailCard}>
+                  <h3>Alias-Vorschau</h3>
+                  <p>
+                    <strong>{preview.aliases_added.length}</strong> werden hinzugefuegt, <strong>{preview.aliases_skipped.length}</strong>{' '}
+                    werden uebersprungen.
+                  </p>
+                  {preview.aliases_added.length > 0 && (
+                    <>
+                      <p className={styles.hint}>Hinzugefuegt</p>
+                      <ul className={styles.mergeCompactList}>
+                        {preview.aliases_added.slice(0, 10).map((alias) => (
+                          <li key={`add-${alias}`}>{alias}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {preview.aliases_skipped.length > 0 && (
+                    <>
+                      <p className={styles.hint}>Uebersprungen</p>
+                      <ul className={styles.mergeCompactList}>
+                        {preview.aliases_skipped.slice(0, 10).map((alias) => (
+                          <li key={`skip-${alias}`}>{alias}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className={`${styles.mergeConflictPanel} ${hasPreviewConflicts ? styles.mergeConflictPanelWarning : styles.mergeConflictPanelSafe}`}>
+                <h3>Konflikte / Duplikate</h3>
+                {!hasPreviewConflicts && <p className={styles.mergeConflictSafeText}>Keine Konflikte gefunden.</p>}
+
+                {preview.conflicts.version_conflicts > 0 && (
+                  <ConflictRow
+                    title="Episode-Version Konflikte"
+                    summary={`${preview.conflicts.version_conflicts} Konflikt(e) blockieren den Merge.`}
+                  />
+                )}
+                {preview.conflicts.duplicate_aliases_count > 0 && (
+                  <ConflictRow
+                    title="Duplicate Aliases/Tags"
+                    summary={`${preview.conflicts.duplicate_aliases_count} Alias-Kollision(en) erkannt.`}
+                    details={preview.conflicts.duplicate_aliases}
+                  />
+                )}
+                {preview.conflicts.duplicate_members_count > 0 && (
+                  <ConflictRow
+                    title="Duplicate Members"
+                    summary={`${preview.conflicts.duplicate_members_count} moegliche Duplikate erkannt.`}
+                    details={preview.conflicts.duplicate_members}
+                  />
+                )}
+                {preview.conflicts.duplicate_relations_count > 0 && (
+                  <ConflictRow
+                    title="Doppelte Anime-Zuordnungen"
+                    summary={`${preview.conflicts.duplicate_relations_count} Zuordnungen existieren bereits.`}
+                    details={preview.conflicts.duplicate_relation_anime_ids.map((animeID) => `Anime #${animeID}`)}
+                  />
+                )}
+                {preview.conflicts.duplicate_slugs_count > 0 && (
+                  <ConflictRow
+                    title="Slug-Kollisionen"
+                    summary={`${preview.conflicts.duplicate_slugs_count} Slug-Kollision(en) erkannt.`}
+                    details={preview.conflicts.duplicate_slugs}
+                  />
+                )}
+                {preview.conflicts.duplicate_names_count > 0 && (
+                  <ConflictRow
+                    title="Name-Kollisionen"
+                    summary={`${preview.conflicts.duplicate_names_count} Name-Kollision(en) erkannt.`}
+                    details={preview.conflicts.duplicate_names}
+                  />
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {currentStep === 4 && (
+        <div className={styles.panel}>
+          <h2>4. Bestaetigen & zusammenfuehren</h2>
+          <p>Danger Zone: Quellgruppen werden nach dem Merge dauerhaft geloescht.</p>
+
+          {selectedSourceGroups.length > 0 && (
+            <div className={styles.mergeDangerBox}>
+              <h3>Quellgruppen werden geloescht</h3>
+              <ul className={styles.mergeCompactList}>
+                {selectedSourceGroups.map((group) => (
+                  <li key={group.id}>
+                    {group.name} ({group.slug})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {!preview && <p className={styles.hintWarning}>Keine Vorschau geladen. Gehe zurueck zu Schritt 3.</p>}
+
+          {preview && !preview.can_merge && (
+            <p className={styles.hintWarning}>
+              Der Merge ist aktuell blockiert. Bitte Konflikte in der Vorschau pruefen (insbesondere Episode-Version Konflikte).
+            </p>
+          )}
+
+          <label className={styles.checkboxLabel}>
+            <input
+              type="checkbox"
+              checked={confirmDelete}
+              onChange={(event) => setConfirmDelete(event.target.checked)}
+              disabled={merging}
+            />
+            Ich bestaetige, dass die Quellgruppen geloescht werden.
+          </label>
+
+          <div className={styles.field}>
+            <label htmlFor="merge-slug-confirm">Zur Sicherheit Ziel-Slug eingeben</label>
+            <input
+              id="merge-slug-confirm"
+              type="text"
+              value={slugConfirmation}
+              placeholder={targetGroup?.slug ?? ''}
+              onChange={(event) => setSlugConfirmation(event.target.value)}
+              disabled={merging || !targetGroup}
+            />
+            {targetGroup && (
+              <p className={styles.hint}>
+                Erwartet: <strong>{targetGroup.slug}</strong>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className={styles.mergeWizardFooter}>
+        <div className={styles.mergeWizardFooterLeft}>
+          <Link href="/admin/fansubs" className={styles.buttonSecondary}>
+            Abbrechen
+          </Link>
+        </div>
+        <div className={styles.mergeWizardFooterActions}>
+          <button className={styles.buttonSecondary} type="button" onClick={goBack} disabled={currentStep === 1 || merging}>
+            Zurueck
+          </button>
+          {currentStep < 4 ? (
+            <button className={styles.button} type="button" onClick={goNext} disabled={!canGoNext || merging}>
+              {currentStep === 2 ? 'Zur Vorschau' : currentStep === 3 ? 'Zur Bestaetigung' : 'Weiter'}
+            </button>
+          ) : (
+            <button className={`${styles.button} ${styles.buttonDanger}`} type="button" onClick={() => void handleMerge()} disabled={mergeButtonDisabled}>
+              {merging ? 'Fuehre zusammen...' : 'Zusammenfuehren'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
+}
+
+function GroupRowCard({
+  group,
+  selectedAs,
+}: {
+  group: FansubGroup
+  selectedAs: 'target' | 'source' | null
+}) {
+  const typeLabel = group.group_type === 'collaboration' ? 'Kollaboration' : 'Gruppe'
+  const statusLabel = group.status === 'active' ? 'aktiv' : group.status === 'inactive' ? 'inaktiv' : 'aufgeloest'
+
+  return (
+    <div className={styles.mergeGroupCardContent}>
+      {group.logo_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={group.logo_url}
+          alt={`${group.name} Logo`}
+          className={styles.mergeGroupLogo}
+          loading="lazy"
+        />
+      )}
+      <div className={styles.mergeGroupMain}>
+        <p className={styles.mergeGroupName}>{group.name}</p>
+        <p className={styles.mergeGroupSlug}>{group.slug}</p>
+        <div className={styles.mergeGroupBadges}>
+          <span className={styles.mergeMetaBadge}>{typeLabel}</span>
+          <span className={styles.mergeMetaBadge}>{statusLabel}</span>
+          {selectedAs && <span className={styles.mergeMetaBadgeSelected}>{selectedAs === 'target' ? 'Ziel' : 'Quelle'}</span>}
+        </div>
+        <div className={styles.mergeStatGrid}>
+          <span>Anime: {group.anime_relations_count}</span>
+          <span>Versionen: {group.episode_versions_count}</span>
+          <span>Members: {group.members_count}</span>
+          <span>Tags: {group.aliases_count}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function KpiCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className={styles.mergeKpiCard}>
+      <p className={styles.mergeKpiLabel}>{label}</p>
+      <p className={styles.mergeKpiValue}>{value}</p>
+    </div>
+  )
+}
+
+function ConflictRow({ title, summary, details = [] }: { title: string; summary: string; details?: string[] }) {
+  return (
+    <div className={styles.mergeConflictRow}>
+      <p className={styles.mergeConflictTitle}>{title}</p>
+      <p className={styles.mergeConflictSummary}>{summary}</p>
+      {details.length > 0 && (
+        <ul className={styles.mergeCompactList}>
+          {details.slice(0, 10).map((item) => (
+            <li key={`${title}-${item}`}>{item}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function sumGroupCounts(groups: FansubGroup[]): CountSummary {
+  return groups.reduce(
+    (acc, group) => ({
+      animeRelations: acc.animeRelations + group.anime_relations_count,
+      episodeVersions: acc.episodeVersions + group.episode_versions_count,
+      members: acc.members + group.members_count,
+      aliases: acc.aliases + group.aliases_count,
+    }),
+    emptyCountSummary(),
+  )
+}
+
+function emptyCountSummary(): CountSummary {
+  return {
+    animeRelations: 0,
+    episodeVersions: 0,
+    members: 0,
+    aliases: 0,
+  }
 }

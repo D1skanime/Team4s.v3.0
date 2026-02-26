@@ -13,6 +13,7 @@ import (
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,6 +28,8 @@ type FansubHandler struct {
 	fansubRepo         *repository.FansubRepository
 	episodeVersionRepo *repository.EpisodeVersionRepository
 	authzRepo          *repository.AuthzRepository
+	mediaRepo          *repository.MediaRepository
+	mediaService       *services.MediaService
 	adminRoleName      string
 	embyAPIKey         string
 	embyBaseURL        string

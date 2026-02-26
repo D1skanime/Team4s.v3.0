@@ -18,23 +18,29 @@ type FansubFilter struct {
 }
 
 type FansubGroup struct {
-	ID                   int64               `json:"id"`
-	Slug                 string              `json:"slug"`
-	Name                 string              `json:"name"`
-	Description          *string             `json:"description,omitempty"`
-	History              *string             `json:"history,omitempty"`
-	LogoURL              *string             `json:"logo_url,omitempty"`
-	BannerURL            *string             `json:"banner_url,omitempty"`
-	FoundedYear          *int32              `json:"founded_year,omitempty"`
-	DissolvedYear        *int32              `json:"dissolved_year,omitempty"`
-	Status               string              `json:"status"`
-	GroupType            FansubGroupType     `json:"group_type"`
-	WebsiteURL           *string             `json:"website_url,omitempty"`
-	DiscordURL           *string             `json:"discord_url,omitempty"`
-	IrcURL               *string             `json:"irc_url,omitempty"`
-	Country              *string             `json:"country,omitempty"`
-	CreatedAt            time.Time           `json:"created_at"`
-	UpdatedAt            time.Time           `json:"updated_at"`
+	ID                   int64                `json:"id"`
+	Slug                 string               `json:"slug"`
+	Name                 string               `json:"name"`
+	Description          *string              `json:"description,omitempty"`
+	History              *string              `json:"history,omitempty"`
+	LogoID               *int64               `json:"logo_id,omitempty"`
+	BannerID             *int64               `json:"banner_id,omitempty"`
+	LogoURL              *string              `json:"logo_url,omitempty"`
+	BannerURL            *string              `json:"banner_url,omitempty"`
+	FoundedYear          *int32               `json:"founded_year,omitempty"`
+	DissolvedYear        *int32               `json:"dissolved_year,omitempty"`
+	Status               string               `json:"status"`
+	GroupType            FansubGroupType      `json:"group_type"`
+	WebsiteURL           *string              `json:"website_url,omitempty"`
+	DiscordURL           *string              `json:"discord_url,omitempty"`
+	IrcURL               *string              `json:"irc_url,omitempty"`
+	Country              *string              `json:"country,omitempty"`
+	AnimeRelationsCount  int                  `json:"anime_relations_count"`
+	EpisodeVersionsCount int                  `json:"episode_versions_count"`
+	MembersCount         int                  `json:"members_count"`
+	AliasesCount         int                  `json:"aliases_count"`
+	CreatedAt            time.Time            `json:"created_at"`
+	UpdatedAt            time.Time            `json:"updated_at"`
 	CollaborationMembers []FansubGroupSummary `json:"collaboration_members,omitempty"`
 }
 
@@ -89,6 +95,8 @@ type FansubGroupCreateInput struct {
 	Name          string
 	Description   *string
 	History       *string
+	LogoID        *int64
+	BannerID      *int64
 	LogoURL       *string
 	BannerURL     *string
 	FoundedYear   *int32
@@ -106,6 +114,8 @@ type FansubGroupPatchInput struct {
 	Name          OptionalString `json:"name"`
 	Description   OptionalString `json:"description"`
 	History       OptionalString `json:"history"`
+	LogoID        OptionalInt64  `json:"logo_id"`
+	BannerID      OptionalInt64  `json:"banner_id"`
 	LogoURL       OptionalString `json:"logo_url"`
 	BannerURL     OptionalString `json:"banner_url"`
 	FoundedYear   OptionalInt32  `json:"founded_year"`
@@ -120,18 +130,43 @@ type FansubGroupPatchInput struct {
 
 // MergeGroupsResult contains statistics from a fansub group merge operation
 type MergeGroupsResult struct {
-	MergedCount      int      `json:"merged_count"`
-	VersionsMigrated int      `json:"versions_migrated"`
-	MembersMigrated  int      `json:"members_migrated"`
-	RelationsMigrated int     `json:"relations_migrated"`
-	AliasesAdded     []string `json:"aliases_added"`
+	MergedCount       int      `json:"merged_count"`
+	VersionsMigrated  int      `json:"versions_migrated"`
+	MembersMigrated   int      `json:"members_migrated"`
+	RelationsMigrated int      `json:"relations_migrated"`
+	AliasesAdded      []string `json:"aliases_added"`
+}
+
+type MergePreviewConflicts struct {
+	VersionConflicts          int      `json:"version_conflicts"`
+	DuplicateAliasesCount     int      `json:"duplicate_aliases_count"`
+	DuplicateAliases          []string `json:"duplicate_aliases"`
+	DuplicateMembersCount     int      `json:"duplicate_members_count"`
+	DuplicateMembers          []string `json:"duplicate_members"`
+	DuplicateRelationsCount   int      `json:"duplicate_relations_count"`
+	DuplicateRelationAnimeIDs []int64  `json:"duplicate_relation_anime_ids"`
+	DuplicateSlugsCount       int      `json:"duplicate_slugs_count"`
+	DuplicateSlugs            []string `json:"duplicate_slugs"`
+	DuplicateNamesCount       int      `json:"duplicate_names_count"`
+	DuplicateNames            []string `json:"duplicate_names"`
+}
+
+type MergeGroupsPreview struct {
+	MergedCount       int                   `json:"merged_count"`
+	VersionsMigrated  int                   `json:"versions_migrated"`
+	MembersMigrated   int                   `json:"members_migrated"`
+	RelationsMigrated int                   `json:"relations_migrated"`
+	AliasesAdded      []string              `json:"aliases_added"`
+	AliasesSkipped    []string              `json:"aliases_skipped"`
+	CanMerge          bool                  `json:"can_merge"`
+	Conflicts         MergePreviewConflicts `json:"conflicts"`
 }
 
 // CollaborationMember represents a member group in a collaboration
 type CollaborationMember struct {
-	CollaborationID int64     `json:"collaboration_id"`
-	MemberGroupID   int64     `json:"member_group_id"`
-	AddedAt         time.Time `json:"added_at"`
+	CollaborationID int64               `json:"collaboration_id"`
+	MemberGroupID   int64               `json:"member_group_id"`
+	AddedAt         time.Time           `json:"added_at"`
 	MemberGroup     *FansubGroupSummary `json:"member_group,omitempty"`
 }
 

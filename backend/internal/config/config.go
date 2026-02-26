@@ -34,6 +34,8 @@ type Config struct {
 	EpisodePlaybackRateLimit     int
 	EpisodePlaybackRateWindowSec int
 	EpisodePlaybackMaxConcurrent int
+	MediaStorageDir              string
+	MediaPublicBaseURL           string
 }
 
 func Load() Config {
@@ -67,6 +69,8 @@ func Load() Config {
 		EpisodePlaybackRateLimit:     getEnvInt("EPISODE_PLAYBACK_RATE_LIMIT", 30),
 		EpisodePlaybackRateWindowSec: getEnvInt("EPISODE_PLAYBACK_RATE_WINDOW_SECONDS", 60),
 		EpisodePlaybackMaxConcurrent: getEnvInt("EPISODE_PLAYBACK_MAX_CONCURRENT_STREAMS", 12),
+		MediaStorageDir:              strings.TrimSpace(getEnv("MEDIA_STORAGE_DIR", "./storage/media")),
+		MediaPublicBaseURL:           strings.TrimSpace(getEnv("MEDIA_PUBLIC_BASE_URL", "http://localhost:8092")),
 	}
 }
 

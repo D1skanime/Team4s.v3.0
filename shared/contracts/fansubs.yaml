@@ -280,7 +280,7 @@ endpoints:
       type: MergeFansubsRequest
     response:
       status: 200
-      type: MergeFansubsResponse
+      type: MergeFansubsPreviewResponse
 
   - name: fansub-merge
     method: POST
@@ -304,6 +304,73 @@ endpoints:
     response:
       status: 200
       type: MergeFansubsResponse
+
+  - name: fansub-media-upload
+    method: POST
+    path: /api/v1/admin/fansubs/:id/media
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      content_type: multipart/form-data
+      fields:
+        kind: FansubMediaKind (required)
+        file: binary (required)
+    response:
+      status: 201
+      type: FansubMediaUploadResponse
+
+  - name: fansub-media-delete
+    method: DELETE
+    path: /api/v1/admin/fansubs/:id/media/:kind
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: kind
+        type: FansubMediaKind
+    response:
+      status: 204
+      type: none
+
+  - name: media-file
+    method: GET
+    path: /api/v1/media/files/:filename
+    path_params:
+      - name: filename
+        type: string
+        minimum_length: 1
+    response:
+      status: 200
+      type: binary
 
   - name: fansub-members-create
     method: POST
@@ -485,11 +552,15 @@ types:
     data: AnimeFansub
   MergeFansubsResponse:
     data: MergeFansubsResult
+  MergeFansubsPreviewResponse:
+    data: MergeFansubsPreviewResult
   FansubGroupCreateRequest:
     slug: string (required, min: 1, max: 120)
     name: string (required, min: 1, max: 120)
     description: string | null
     history: string | null
+    logo_id: int64 | null
+    banner_id: int64 | null
     logo_url: string | null
     banner_url: string | null
     founded_year: int32 | null
@@ -505,6 +576,8 @@ types:
     name: string (optional, min: 1, max: 120)
     description: string | null
     history: string | null
+    logo_id: int64 | null
+    banner_id: int64 | null
     logo_url: string | null
     banner_url: string | null
     founded_year: int32 | null
@@ -543,12 +616,35 @@ types:
     members_migrated: int32
     relations_migrated: int32
     aliases_added: string[]
+  MergeFansubsPreviewResult:
+    merged_count: int32
+    versions_migrated: int32
+    members_migrated: int32
+    relations_migrated: int32
+    aliases_added: string[]
+    aliases_skipped: string[]
+    can_merge: bool
+    conflicts: MergeFansubsPreviewConflicts
+  MergeFansubsPreviewConflicts:
+    version_conflicts: int32
+    duplicate_aliases_count: int32
+    duplicate_aliases: string[]
+    duplicate_members_count: int32
+    duplicate_members: string[]
+    duplicate_relations_count: int32
+    duplicate_relation_anime_ids: int64[]
+    duplicate_slugs_count: int32
+    duplicate_slugs: string[]
+    duplicate_names_count: int32
+    duplicate_names: string[]
   FansubGroup:
     id: int64
     slug: string
     name: string
     description: string | null
     history: string | null
+    logo_id: int64 | null
+    banner_id: int64 | null
     logo_url: string | null
     banner_url: string | null
     founded_year: int32 | null
@@ -559,6 +655,10 @@ types:
     discord_url: string | null
     irc_url: string | null
     country: string | null
+    anime_relations_count: int32
+    episode_versions_count: int32
+    members_count: int32
+    aliases_count: int32
     created_at: datetime
     updated_at: datetime
   FansubGroupSummary:
@@ -599,3 +699,19 @@ types:
     page: int32
     per_page: int32
     total_pages: int32
+  FansubMediaKind:
+    enum: [logo, banner]
+  MediaAsset:
+    id: int64
+    filename: string
+    public_url: string
+    mime_type: string
+    size_bytes: int64
+    width: int32 | null
+    height: int32 | null
+    created_at: datetime
+  FansubMediaUploadResponse:
+    data:
+      kind: FansubMediaKind
+      media: MediaAsset
+      gif_large_warning: bool

@@ -18,6 +18,8 @@ type fansubGroupCreateRequest struct {
 	Name          string  `json:"name"`
 	Description   *string `json:"description"`
 	History       *string `json:"history"`
+	LogoID        *int64  `json:"logo_id"`
+	BannerID      *int64  `json:"banner_id"`
 	LogoURL       *string `json:"logo_url"`
 	BannerURL     *string `json:"banner_url"`
 	FoundedYear   *int32  `json:"founded_year"`
@@ -788,6 +790,12 @@ func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.Fans
 	if req.FoundedYear != nil && *req.FoundedYear <= 0 {
 		return models.FansubGroupCreateInput{}, "ungueltiger founded_year parameter"
 	}
+	if req.LogoID != nil && *req.LogoID <= 0 {
+		return models.FansubGroupCreateInput{}, "ungueltiger logo_id parameter"
+	}
+	if req.BannerID != nil && *req.BannerID <= 0 {
+		return models.FansubGroupCreateInput{}, "ungueltiger banner_id parameter"
+	}
 	if req.DissolvedYear != nil && *req.DissolvedYear <= 0 {
 		return models.FansubGroupCreateInput{}, "ungueltiger dissolved_year parameter"
 	}
@@ -805,6 +813,8 @@ func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.Fans
 		Name:          *name,
 		Description:   normalizeNullableString(req.Description),
 		History:       normalizeNullableString(req.History),
+		LogoID:        req.LogoID,
+		BannerID:      req.BannerID,
 		LogoURL:       normalizeNullableString(req.LogoURL),
 		BannerURL:     normalizeNullableString(req.BannerURL),
 		FoundedYear:   req.FoundedYear,
@@ -862,6 +872,12 @@ func validateFansubGroupPatchRequest(req models.FansubGroupPatchInput) (models.F
 			return models.FansubGroupPatchInput{}, "ungueltiger group_type parameter"
 		}
 	}
+	if req.LogoID.Set && req.LogoID.Value != nil && *req.LogoID.Value <= 0 {
+		return models.FansubGroupPatchInput{}, "ungueltiger logo_id parameter"
+	}
+	if req.BannerID.Set && req.BannerID.Value != nil && *req.BannerID.Value <= 0 {
+		return models.FansubGroupPatchInput{}, "ungueltiger banner_id parameter"
+	}
 	if req.FoundedYear.Set && req.FoundedYear.Value != nil && *req.FoundedYear.Value <= 0 {
 		return models.FansubGroupPatchInput{}, "ungueltiger founded_year parameter"
 	}
@@ -910,6 +926,8 @@ func hasAnyFansubGroupPatchField(req models.FansubGroupPatchInput) bool {
 		req.Name.Set ||
 		req.Description.Set ||
 		req.History.Set ||
+		req.LogoID.Set ||
+		req.BannerID.Set ||
 		req.LogoURL.Set ||
 		req.BannerURL.Set ||
 		req.FoundedYear.Set ||

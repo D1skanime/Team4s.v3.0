@@ -16,6 +16,7 @@ import (
 	"team4s.v3/backend/internal/handlers"
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -100,6 +101,8 @@ func main() {
 	episodeRepo := repository.NewEpisodeRepository(dbPool)
 	episodeHandler := handlers.NewEpisodeHandler(episodeRepo)
 	fansubRepo := repository.NewFansubRepository(dbPool)
+	mediaRepo := repository.NewMediaRepository(dbPool)
+	mediaService := services.NewMediaService(cfg.MediaStorageDir, cfg.MediaPublicBaseURL)
 	episodeVersionRepo := repository.NewEpisodeVersionRepository(dbPool)
 	episodePlaybackHandler := handlers.NewEpisodePlaybackHandler(episodeRepo, handlers.EpisodePlaybackConfig{
 		EmbyAPIKey:              cfg.EmbyAPIKey,
@@ -167,7 +170,7 @@ func main() {
 			ReleaseGrantSecret:     resolveReleaseGrantSecret(cfg),
 			ReleaseGrantTTLSeconds: cfg.ReleaseStreamGrantTTLSeconds,
 		},
-	)
+	).WithMedia(mediaRepo, mediaService)
 
 	v1 := router.Group("/api/v1")
 	v1.POST("/auth/issue", authHandler.Issue)
@@ -216,6 +219,7 @@ func main() {
 	v1.GET("/fansubs/:id/members", fansubHandler.ListFansubMembers)
 	v1.GET("/media/image", fansubHandler.MediaImage)
 	v1.GET("/media/video", fansubHandler.MediaVideo)
+	v1.GET("/media/files/:filename", fansubHandler.ServeMediaFile)
 	v1.POST(
 		"/releases/:id/grant",
 		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
@@ -270,6 +274,16 @@ func main() {
 		"/admin/episodes/:id",
 		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		adminContentHandler.DeleteEpisode,
+	)
+	v1.POST(
+		"/admin/fansubs/:id/media",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		fansubHandler.UploadFansubMedia,
+	)
+	v1.DELETE(
+		"/admin/fansubs/:id/media/:kind",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		fansubHandler.DeleteFansubMedia,
 	)
 	v1.POST(
 		"/fansubs",

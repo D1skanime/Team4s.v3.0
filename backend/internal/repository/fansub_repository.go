@@ -38,7 +38,7 @@ func (r *FansubRepository) ListGroups(
 
 	listQuery := fmt.Sprintf(`
 		SELECT
-			id, slug, name, description, history, logo_url, banner_url,
+			id, slug, name, description, history, logo_id, banner_id, logo_url, banner_url,
 			founded_year, dissolved_year, status, group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 		FROM fansub_groups
@@ -65,6 +65,10 @@ func (r *FansubRepository) ListGroups(
 		return nil, 0, fmt.Errorf("iterate fansub groups: %w", err)
 	}
 
+	if err := r.attachGroupCounts(ctx, items); err != nil {
+		return nil, 0, err
+	}
+
 	return items, total, nil
 }
 
@@ -79,12 +83,12 @@ func (r *FansubRepository) CreateGroup(
 
 	query := `
 		INSERT INTO fansub_groups (
-			slug, name, description, history, logo_url, banner_url, founded_year,
+			slug, name, description, history, logo_id, banner_id, logo_url, banner_url, founded_year,
 			dissolved_year, status, group_type, website_url, discord_url, irc_url, country
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		RETURNING
-			id, slug, name, description, history, logo_url, banner_url,
+			id, slug, name, description, history, logo_id, banner_id, logo_url, banner_url,
 			founded_year, dissolved_year, status, group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 	`
@@ -97,6 +101,8 @@ func (r *FansubRepository) CreateGroup(
 		input.Name,
 		input.Description,
 		input.History,
+		input.LogoID,
+		input.BannerID,
 		input.LogoURL,
 		input.BannerURL,
 		input.FoundedYear,
@@ -113,6 +119,8 @@ func (r *FansubRepository) CreateGroup(
 		&item.Name,
 		&item.Description,
 		&item.History,
+		&item.LogoID,
+		&item.BannerID,
 		&item.LogoURL,
 		&item.BannerURL,
 		&item.FoundedYear,
@@ -138,7 +146,7 @@ func (r *FansubRepository) CreateGroup(
 func (r *FansubRepository) GetGroupByID(ctx context.Context, id int64) (*models.FansubGroup, error) {
 	query := `
 		SELECT
-			id, slug, name, description, history, logo_url, banner_url,
+			id, slug, name, description, history, logo_id, banner_id, logo_url, banner_url,
 			founded_year, dissolved_year, status, group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 		FROM fansub_groups
@@ -152,6 +160,8 @@ func (r *FansubRepository) GetGroupByID(ctx context.Context, id int64) (*models.
 		&item.Name,
 		&item.Description,
 		&item.History,
+		&item.LogoID,
+		&item.BannerID,
 		&item.LogoURL,
 		&item.BannerURL,
 		&item.FoundedYear,
@@ -176,7 +186,7 @@ func (r *FansubRepository) GetGroupByID(ctx context.Context, id int64) (*models.
 func (r *FansubRepository) GetGroupBySlug(ctx context.Context, slug string) (*models.FansubGroup, error) {
 	query := `
 		SELECT
-			id, slug, name, description, history, logo_url, banner_url,
+			id, slug, name, description, history, logo_id, banner_id, logo_url, banner_url,
 			founded_year, dissolved_year, status, group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 		FROM fansub_groups
@@ -190,6 +200,8 @@ func (r *FansubRepository) GetGroupBySlug(ctx context.Context, slug string) (*mo
 		&item.Name,
 		&item.Description,
 		&item.History,
+		&item.LogoID,
+		&item.BannerID,
 		&item.LogoURL,
 		&item.BannerURL,
 		&item.FoundedYear,
@@ -240,6 +252,16 @@ func (r *FansubRepository) UpdateGroup(
 	if input.History.Set {
 		assignments = append(assignments, fmt.Sprintf("history = $%d", argPos))
 		args = append(args, input.History.Value)
+		argPos++
+	}
+	if input.LogoID.Set {
+		assignments = append(assignments, fmt.Sprintf("logo_id = $%d", argPos))
+		args = append(args, input.LogoID.Value)
+		argPos++
+	}
+	if input.BannerID.Set {
+		assignments = append(assignments, fmt.Sprintf("banner_id = $%d", argPos))
+		args = append(args, input.BannerID.Value)
 		argPos++
 	}
 	if input.LogoURL.Set {
@@ -302,7 +324,7 @@ func (r *FansubRepository) UpdateGroup(
 		SET %s
 		WHERE id = $%d
 		RETURNING
-			id, slug, name, description, history, logo_url, banner_url,
+			id, slug, name, description, history, logo_id, banner_id, logo_url, banner_url,
 			founded_year, dissolved_year, status, group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 	`, strings.Join(assignments, ", "), argPos)
@@ -315,6 +337,8 @@ func (r *FansubRepository) UpdateGroup(
 		&item.Name,
 		&item.Description,
 		&item.History,
+		&item.LogoID,
+		&item.BannerID,
 		&item.LogoURL,
 		&item.BannerURL,
 		&item.FoundedYear,
@@ -873,6 +897,8 @@ func scanFansubGroup(rows pgx.Rows) (*models.FansubGroup, error) {
 		&item.Name,
 		&item.Description,
 		&item.History,
+		&item.LogoID,
+		&item.BannerID,
 		&item.LogoURL,
 		&item.BannerURL,
 		&item.FoundedYear,
@@ -973,7 +999,7 @@ func (r *FansubRepository) MergeGroups(
 
 	// 4. Add source slugs as aliases on target
 	rows, err := tx.Query(ctx, `
-		SELECT slug FROM fansub_groups WHERE id = ANY($1)
+		SELECT slug FROM fansub_groups WHERE id = ANY($1) ORDER BY id ASC
 	`, sourceIDs)
 	if err != nil {
 		return nil, fmt.Errorf("fetch source slugs: %w", err)
@@ -997,7 +1023,7 @@ func (r *FansubRepository) MergeGroups(
 		if normalized == "" {
 			continue
 		}
-		_, err := tx.Exec(ctx, `
+		tag, err := tx.Exec(ctx, `
 			INSERT INTO fansub_group_aliases (fansub_group_id, alias, normalized_alias)
 			VALUES ($1, $2, $3)
 			ON CONFLICT (normalized_alias) DO NOTHING
@@ -1005,7 +1031,9 @@ func (r *FansubRepository) MergeGroups(
 		if err != nil {
 			return nil, fmt.Errorf("add alias %q: %w", slug, err)
 		}
-		result.AliasesAdded = append(result.AliasesAdded, slug)
+		if tag.RowsAffected() > 0 {
+			result.AliasesAdded = append(result.AliasesAdded, slug)
+		}
 	}
 
 	// 5. Delete source groups (CASCADE handles members and anime_fansub_groups)
@@ -1157,7 +1185,7 @@ func (r *FansubRepository) GetMergePreview(
 	ctx context.Context,
 	targetID int64,
 	sourceIDs []int64,
-) (*models.MergeGroupsResult, error) {
+) (*models.MergeGroupsPreview, error) {
 	if len(sourceIDs) == 0 {
 		return nil, fmt.Errorf("no source groups specified")
 	}
@@ -1175,17 +1203,24 @@ func (r *FansubRepository) GetMergePreview(
 	if existingSources != len(sourceIDs) {
 		return nil, ErrNotFound
 	}
-	conflicts, err := r.countMergeVersionConflicts(ctx, targetID, sourceIDs)
+	versionConflicts, err := r.countMergeVersionConflicts(ctx, targetID, sourceIDs)
 	if err != nil {
 		return nil, err
 	}
-	if conflicts > 0 {
-		return nil, ErrConflict
-	}
 
-	result := &models.MergeGroupsResult{
-		MergedCount:  len(sourceIDs),
-		AliasesAdded: make([]string, 0, len(sourceIDs)),
+	result := &models.MergeGroupsPreview{
+		MergedCount:    len(sourceIDs),
+		AliasesAdded:   make([]string, 0, len(sourceIDs)),
+		AliasesSkipped: make([]string, 0, len(sourceIDs)),
+		CanMerge:       versionConflicts == 0,
+		Conflicts: models.MergePreviewConflicts{
+			VersionConflicts:          versionConflicts,
+			DuplicateAliases:          make([]string, 0, 8),
+			DuplicateMembers:          make([]string, 0, 8),
+			DuplicateRelationAnimeIDs: make([]int64, 0, 16),
+			DuplicateSlugs:            make([]string, 0, 4),
+			DuplicateNames:            make([]string, 0, 4),
+		},
 	}
 
 	// Count episode versions
@@ -1209,21 +1244,444 @@ func (r *FansubRepository) GetMergePreview(
 		return nil, fmt.Errorf("count relations: %w", err)
 	}
 
-	// Get slugs that would become aliases
-	rows, err := r.db.Query(ctx, `SELECT slug FROM fansub_groups WHERE id = ANY($1)`, sourceIDs)
-	if err != nil {
-		return nil, fmt.Errorf("fetch slugs: %w", err)
+	if err := r.populateAliasMergePreview(ctx, targetID, sourceIDs, result); err != nil {
+		return nil, err
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var slug string
-		if err := rows.Scan(&slug); err != nil {
-			return nil, fmt.Errorf("scan slug: %w", err)
-		}
-		result.AliasesAdded = append(result.AliasesAdded, slug)
+	if err := r.populateMergeMemberDuplicates(ctx, targetID, sourceIDs, result); err != nil {
+		return nil, err
+	}
+	if err := r.populateMergeRelationDuplicates(ctx, targetID, sourceIDs, result); err != nil {
+		return nil, err
+	}
+	if err := r.populateMergeNameSlugCollisions(ctx, targetID, sourceIDs, result); err != nil {
+		return nil, err
 	}
 
 	return result, nil
+}
+
+func (r *FansubRepository) attachGroupCounts(ctx context.Context, items []models.FansubGroup) error {
+	if len(items) == 0 {
+		return nil
+	}
+
+	ids := make([]int64, 0, len(items))
+	indexByID := make(map[int64]int, len(items))
+	for i := range items {
+		ids = append(ids, items[i].ID)
+		indexByID[items[i].ID] = i
+	}
+
+	if err := r.populateCountMap(
+		ctx,
+		`SELECT fansub_group_id, COUNT(*) FROM anime_fansub_groups WHERE fansub_group_id = ANY($1) GROUP BY fansub_group_id`,
+		ids,
+		func(i int, count int) { items[i].AnimeRelationsCount = count },
+		indexByID,
+	); err != nil {
+		return fmt.Errorf("load anime relation counts: %w", err)
+	}
+
+	if err := r.populateCountMap(
+		ctx,
+		`SELECT fansub_group_id, COUNT(*) FROM episode_versions WHERE fansub_group_id = ANY($1) GROUP BY fansub_group_id`,
+		ids,
+		func(i int, count int) { items[i].EpisodeVersionsCount = count },
+		indexByID,
+	); err != nil {
+		return fmt.Errorf("load episode version counts: %w", err)
+	}
+
+	if err := r.populateCountMap(
+		ctx,
+		`SELECT fansub_group_id, COUNT(*) FROM fansub_members WHERE fansub_group_id = ANY($1) GROUP BY fansub_group_id`,
+		ids,
+		func(i int, count int) { items[i].MembersCount = count },
+		indexByID,
+	); err != nil {
+		return fmt.Errorf("load member counts: %w", err)
+	}
+
+	if err := r.populateCountMap(
+		ctx,
+		`SELECT fansub_group_id, COUNT(*) FROM fansub_group_aliases WHERE fansub_group_id = ANY($1) GROUP BY fansub_group_id`,
+		ids,
+		func(i int, count int) { items[i].AliasesCount = count },
+		indexByID,
+	); err != nil {
+		return fmt.Errorf("load alias counts: %w", err)
+	}
+
+	return nil
+}
+
+func (r *FansubRepository) populateCountMap(
+	ctx context.Context,
+	query string,
+	ids []int64,
+	assign func(index int, count int),
+	indexByID map[int64]int,
+) error {
+	rows, err := r.db.Query(ctx, query, ids)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var groupID int64
+		var count int
+		if err := rows.Scan(&groupID, &count); err != nil {
+			return fmt.Errorf("scan group count row: %w", err)
+		}
+		index, ok := indexByID[groupID]
+		if ok {
+			assign(index, count)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate group count rows: %w", err)
+	}
+
+	return nil
+}
+
+func (r *FansubRepository) populateAliasMergePreview(
+	ctx context.Context,
+	targetID int64,
+	sourceIDs []int64,
+	result *models.MergeGroupsPreview,
+) error {
+	rows, err := r.db.Query(ctx, `
+		SELECT slug
+		FROM fansub_groups
+		WHERE id = ANY($1)
+		ORDER BY id ASC
+	`, sourceIDs)
+	if err != nil {
+		return fmt.Errorf("query merge preview source groups: %w", err)
+	}
+	defer rows.Close()
+
+	sourceSlugs := make([]string, 0, len(sourceIDs))
+	for rows.Next() {
+		var slug string
+		if err := rows.Scan(&slug); err != nil {
+			return fmt.Errorf("scan merge preview source group: %w", err)
+		}
+		sourceSlugs = append(sourceSlugs, slug)
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate merge preview source groups: %w", err)
+	}
+
+	normalizedInputs := make([]string, 0, len(sourceSlugs))
+	for _, slug := range sourceSlugs {
+		normalized := normalizeAliasKey(slug)
+		if normalized == "" {
+			continue
+		}
+		normalizedInputs = append(normalizedInputs, normalized)
+	}
+
+	existingNormalized := make(map[string]struct{}, len(normalizedInputs)+2)
+	if len(normalizedInputs) > 0 {
+		aliasRows, err := r.db.Query(ctx, `
+			SELECT normalized_alias
+			FROM fansub_group_aliases
+			WHERE normalized_alias = ANY($1)
+		`, normalizedInputs)
+		if err != nil {
+			return fmt.Errorf("query merge preview alias collisions: %w", err)
+		}
+		for aliasRows.Next() {
+			var normalized string
+			if err := aliasRows.Scan(&normalized); err != nil {
+				aliasRows.Close()
+				return fmt.Errorf("scan merge preview alias collision: %w", err)
+			}
+			existingNormalized[normalized] = struct{}{}
+		}
+		aliasRows.Close()
+		if err := aliasRows.Err(); err != nil {
+			return fmt.Errorf("iterate merge preview alias collisions: %w", err)
+		}
+	}
+
+	acceptedNormalized := make(map[string]struct{}, len(normalizedInputs))
+	for _, slug := range sourceSlugs {
+		normalized := normalizeAliasKey(slug)
+		if normalized == "" {
+			result.AliasesSkipped = append(result.AliasesSkipped, slug)
+			continue
+		}
+		if _, exists := existingNormalized[normalized]; exists {
+			result.AliasesSkipped = append(result.AliasesSkipped, slug)
+			continue
+		}
+		if _, exists := acceptedNormalized[normalized]; exists {
+			result.AliasesSkipped = append(result.AliasesSkipped, slug)
+			continue
+		}
+		acceptedNormalized[normalized] = struct{}{}
+		result.AliasesAdded = append(result.AliasesAdded, slug)
+	}
+
+	duplicateAliases := make([]string, 0, len(result.AliasesSkipped))
+	seenDuplicateAlias := make(map[string]struct{}, len(result.AliasesSkipped))
+	for _, slug := range result.AliasesSkipped {
+		if _, exists := seenDuplicateAlias[slug]; exists {
+			continue
+		}
+		seenDuplicateAlias[slug] = struct{}{}
+		duplicateAliases = append(duplicateAliases, slug)
+	}
+	result.Conflicts.DuplicateAliases = duplicateAliases
+	result.Conflicts.DuplicateAliasesCount = len(duplicateAliases)
+
+	return nil
+}
+
+func (r *FansubRepository) populateMergeMemberDuplicates(
+	ctx context.Context,
+	targetID int64,
+	sourceIDs []int64,
+	result *models.MergeGroupsPreview,
+) error {
+	if err := r.db.QueryRow(ctx, `
+		WITH duplicate_members AS (
+			SELECT
+				lower(btrim(handle)) AS handle_key,
+				lower(btrim(role)) AS role_key,
+				MIN(handle) AS display_handle,
+				MIN(role) AS display_role,
+				COUNT(*) AS duplicate_count
+			FROM fansub_members
+			WHERE fansub_group_id = $1 OR fansub_group_id = ANY($2)
+			GROUP BY lower(btrim(handle)), lower(btrim(role))
+			HAVING COUNT(*) > 1
+		)
+		SELECT COUNT(*) FROM duplicate_members
+	`, targetID, sourceIDs).Scan(&result.Conflicts.DuplicateMembersCount); err != nil {
+		return fmt.Errorf("count merge preview duplicate members: %w", err)
+	}
+
+	rows, err := r.db.Query(ctx, `
+		WITH duplicate_members AS (
+			SELECT
+				MIN(handle) AS display_handle,
+				MIN(role) AS display_role,
+				COUNT(*) AS duplicate_count
+			FROM fansub_members
+			WHERE fansub_group_id = $1 OR fansub_group_id = ANY($2)
+			GROUP BY lower(btrim(handle)), lower(btrim(role))
+			HAVING COUNT(*) > 1
+		)
+		SELECT display_handle, display_role, duplicate_count
+		FROM duplicate_members
+		ORDER BY duplicate_count DESC, display_handle ASC
+		LIMIT 20
+	`, targetID, sourceIDs)
+	if err != nil {
+		return fmt.Errorf("query merge preview duplicate members: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var handle string
+		var role string
+		var count int
+		if err := rows.Scan(&handle, &role, &count); err != nil {
+			return fmt.Errorf("scan merge preview duplicate member: %w", err)
+		}
+		result.Conflicts.DuplicateMembers = append(result.Conflicts.DuplicateMembers, fmt.Sprintf("%s (%s) x%d", handle, role, count))
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate merge preview duplicate members: %w", err)
+	}
+
+	return nil
+}
+
+func (r *FansubRepository) populateMergeRelationDuplicates(
+	ctx context.Context,
+	targetID int64,
+	sourceIDs []int64,
+	result *models.MergeGroupsPreview,
+) error {
+	if err := r.db.QueryRow(ctx, `
+		WITH source_rel AS (
+			SELECT anime_id, COUNT(*) AS source_count
+			FROM anime_fansub_groups
+			WHERE fansub_group_id = ANY($1)
+			GROUP BY anime_id
+		),
+		target_rel AS (
+			SELECT anime_id
+			FROM anime_fansub_groups
+			WHERE fansub_group_id = $2
+		),
+		duplicate_rel AS (
+			SELECT sr.anime_id
+			FROM source_rel sr
+			LEFT JOIN target_rel tr ON tr.anime_id = sr.anime_id
+			WHERE sr.source_count > 1 OR tr.anime_id IS NOT NULL
+		)
+		SELECT COUNT(*) FROM duplicate_rel
+	`, sourceIDs, targetID).Scan(&result.Conflicts.DuplicateRelationsCount); err != nil {
+		return fmt.Errorf("count merge preview duplicate relations: %w", err)
+	}
+
+	rows, err := r.db.Query(ctx, `
+		WITH source_rel AS (
+			SELECT anime_id, COUNT(*) AS source_count
+			FROM anime_fansub_groups
+			WHERE fansub_group_id = ANY($1)
+			GROUP BY anime_id
+		),
+		target_rel AS (
+			SELECT anime_id
+			FROM anime_fansub_groups
+			WHERE fansub_group_id = $2
+		),
+		duplicate_rel AS (
+			SELECT sr.anime_id
+			FROM source_rel sr
+			LEFT JOIN target_rel tr ON tr.anime_id = sr.anime_id
+			WHERE sr.source_count > 1 OR tr.anime_id IS NOT NULL
+		)
+		SELECT anime_id
+		FROM duplicate_rel
+		ORDER BY anime_id ASC
+		LIMIT 25
+	`, sourceIDs, targetID)
+	if err != nil {
+		return fmt.Errorf("query merge preview duplicate relations: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var animeID int64
+		if err := rows.Scan(&animeID); err != nil {
+			return fmt.Errorf("scan merge preview duplicate relation: %w", err)
+		}
+		result.Conflicts.DuplicateRelationAnimeIDs = append(result.Conflicts.DuplicateRelationAnimeIDs, animeID)
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate merge preview duplicate relations: %w", err)
+	}
+
+	return nil
+}
+
+func (r *FansubRepository) populateMergeNameSlugCollisions(
+	ctx context.Context,
+	targetID int64,
+	sourceIDs []int64,
+	result *models.MergeGroupsPreview,
+) error {
+	if err := r.db.QueryRow(ctx, `
+		WITH selected_groups AS (
+			SELECT slug
+			FROM fansub_groups
+			WHERE id = $1 OR id = ANY($2)
+		),
+		duplicate_slugs AS (
+			SELECT lower(btrim(slug))
+			FROM selected_groups
+			GROUP BY lower(btrim(slug))
+			HAVING COUNT(*) > 1
+		)
+		SELECT COUNT(*) FROM duplicate_slugs
+	`, targetID, sourceIDs).Scan(&result.Conflicts.DuplicateSlugsCount); err != nil {
+		return fmt.Errorf("count merge preview duplicate slugs: %w", err)
+	}
+
+	slugRows, err := r.db.Query(ctx, `
+		WITH selected_groups AS (
+			SELECT slug
+			FROM fansub_groups
+			WHERE id = $1 OR id = ANY($2)
+		),
+		duplicate_slugs AS (
+			SELECT lower(btrim(slug)) AS slug_key, MIN(slug) AS slug_label
+			FROM selected_groups
+			GROUP BY lower(btrim(slug))
+			HAVING COUNT(*) > 1
+		)
+		SELECT slug_label
+		FROM duplicate_slugs
+		ORDER BY slug_label ASC
+		LIMIT 20
+	`, targetID, sourceIDs)
+	if err != nil {
+		return fmt.Errorf("query merge preview duplicate slugs: %w", err)
+	}
+	for slugRows.Next() {
+		var slug string
+		if err := slugRows.Scan(&slug); err != nil {
+			slugRows.Close()
+			return fmt.Errorf("scan merge preview duplicate slug: %w", err)
+		}
+		result.Conflicts.DuplicateSlugs = append(result.Conflicts.DuplicateSlugs, slug)
+	}
+	slugRows.Close()
+	if err := slugRows.Err(); err != nil {
+		return fmt.Errorf("iterate merge preview duplicate slugs: %w", err)
+	}
+
+	if err := r.db.QueryRow(ctx, `
+		WITH selected_groups AS (
+			SELECT name
+			FROM fansub_groups
+			WHERE id = $1 OR id = ANY($2)
+		),
+		duplicate_names AS (
+			SELECT lower(btrim(name))
+			FROM selected_groups
+			GROUP BY lower(btrim(name))
+			HAVING COUNT(*) > 1
+		)
+		SELECT COUNT(*) FROM duplicate_names
+	`, targetID, sourceIDs).Scan(&result.Conflicts.DuplicateNamesCount); err != nil {
+		return fmt.Errorf("count merge preview duplicate names: %w", err)
+	}
+
+	nameRows, err := r.db.Query(ctx, `
+		WITH selected_groups AS (
+			SELECT name
+			FROM fansub_groups
+			WHERE id = $1 OR id = ANY($2)
+		),
+		duplicate_names AS (
+			SELECT lower(btrim(name)) AS name_key, MIN(name) AS name_label
+			FROM selected_groups
+			GROUP BY lower(btrim(name))
+			HAVING COUNT(*) > 1
+		)
+		SELECT name_label
+		FROM duplicate_names
+		ORDER BY name_label ASC
+		LIMIT 20
+	`, targetID, sourceIDs)
+	if err != nil {
+		return fmt.Errorf("query merge preview duplicate names: %w", err)
+	}
+	for nameRows.Next() {
+		var name string
+		if err := nameRows.Scan(&name); err != nil {
+			nameRows.Close()
+			return fmt.Errorf("scan merge preview duplicate name: %w", err)
+		}
+		result.Conflicts.DuplicateNames = append(result.Conflicts.DuplicateNames, name)
+	}
+	nameRows.Close()
+	if err := nameRows.Err(); err != nil {
+		return fmt.Errorf("iterate merge preview duplicate names: %w", err)
+	}
+
+	return nil
 }
 
 func (r *FansubRepository) countExistingFansubGroups(ctx context.Context, ids []int64) (int, error) {

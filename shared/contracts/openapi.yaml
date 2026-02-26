@@ -2620,7 +2620,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MergeFansubsResponse"
+                $ref: "#/components/schemas/MergeFansubsPreviewResponse"
         "400":
           description: Invalid request body or validation failure
           content:
@@ -2641,12 +2641,6 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Target or source fansub group not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "409":
-          description: Merge would cause episode version conflicts
           content:
             application/json:
               schema:
@@ -2703,6 +2697,162 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: Merge would cause episode version conflicts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/media:
+    post:
+      tags: [Fansubs]
+      summary: Upload fansub logo or banner
+      operationId: uploadFansubMedia
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [kind, file]
+              properties:
+                kind:
+                  $ref: "#/components/schemas/FansubMediaKind"
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Uploaded media payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubMediaUploadResponse"
+        "400":
+          description: Invalid request or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Conflicting media asset metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/media/{kind}:
+    delete:
+      tags: [Fansubs]
+      summary: Delete assigned fansub logo or banner
+      operationId: deleteFansubMedia
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: kind
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/FansubMediaKind"
+      responses:
+        "204":
+          description: Fansub media removed
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/media/files/{filename}:
+    get:
+      tags: [Releases]
+      summary: Resolve media file by filename
+      operationId: getMediaFile
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: Binary media file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Media file not found
           content:
             application/json:
               schema:
@@ -4467,6 +4617,56 @@ components:
     FansubGroupType:
       type: string
       enum: [group, collaboration]
+    FansubMediaKind:
+      type: string
+      enum: [logo, banner]
+    MediaAsset:
+      type: object
+      required:
+        - id
+        - filename
+        - public_url
+        - mime_type
+        - size_bytes
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        filename:
+          type: string
+        public_url:
+          type: string
+        mime_type:
+          type: string
+        size_bytes:
+          type: integer
+          format: int64
+        width:
+          type: integer
+          format: int32
+          nullable: true
+        height:
+          type: integer
+          format: int32
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+    FansubMediaUploadResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [kind, media, gif_large_warning]
+          properties:
+            kind:
+              $ref: "#/components/schemas/FansubMediaKind"
+            media:
+              $ref: "#/components/schemas/MediaAsset"
+            gif_large_warning:
+              type: boolean
     FansubGroupSummary:
       type: object
       required:
@@ -4510,6 +4710,14 @@ components:
         history:
           type: string
           nullable: true
+        logo_id:
+          type: integer
+          format: int64
+          nullable: true
+        banner_id:
+          type: integer
+          format: int64
+          nullable: true
         logo_url:
           type: string
           nullable: true
@@ -4541,6 +4749,18 @@ components:
           type: string
           maxLength: 80
           nullable: true
+        anime_relations_count:
+          type: integer
+          format: int32
+        episode_versions_count:
+          type: integer
+          format: int32
+        members_count:
+          type: integer
+          format: int32
+        aliases_count:
+          type: integer
+          format: int32
         created_at:
           type: string
           format: date-time
@@ -4670,6 +4890,14 @@ components:
         history:
           type: string
           nullable: true
+        logo_id:
+          type: integer
+          format: int64
+          nullable: true
+        banner_id:
+          type: integer
+          format: int64
+          nullable: true
         logo_url:
           type: string
           nullable: true
@@ -4718,6 +4946,14 @@ components:
           nullable: true
         history:
           type: string
+          nullable: true
+        logo_id:
+          type: integer
+          format: int64
+          nullable: true
+        banner_id:
+          type: integer
+          format: int64
           nullable: true
         logo_url:
           type: string
@@ -4861,6 +5097,96 @@ components:
           type: array
           items:
             type: string
+    MergeFansubsPreviewConflicts:
+      type: object
+      required:
+        - version_conflicts
+        - duplicate_aliases_count
+        - duplicate_aliases
+        - duplicate_members_count
+        - duplicate_members
+        - duplicate_relations_count
+        - duplicate_relation_anime_ids
+        - duplicate_slugs_count
+        - duplicate_slugs
+        - duplicate_names_count
+        - duplicate_names
+      properties:
+        version_conflicts:
+          type: integer
+          format: int32
+        duplicate_aliases_count:
+          type: integer
+          format: int32
+        duplicate_aliases:
+          type: array
+          items:
+            type: string
+        duplicate_members_count:
+          type: integer
+          format: int32
+        duplicate_members:
+          type: array
+          items:
+            type: string
+        duplicate_relations_count:
+          type: integer
+          format: int32
+        duplicate_relation_anime_ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+        duplicate_slugs_count:
+          type: integer
+          format: int32
+        duplicate_slugs:
+          type: array
+          items:
+            type: string
+        duplicate_names_count:
+          type: integer
+          format: int32
+        duplicate_names:
+          type: array
+          items:
+            type: string
+    MergeFansubsPreviewResult:
+      type: object
+      required:
+        - merged_count
+        - versions_migrated
+        - members_migrated
+        - relations_migrated
+        - aliases_added
+        - aliases_skipped
+        - can_merge
+        - conflicts
+      properties:
+        merged_count:
+          type: integer
+          format: int32
+        versions_migrated:
+          type: integer
+          format: int32
+        members_migrated:
+          type: integer
+          format: int32
+        relations_migrated:
+          type: integer
+          format: int32
+        aliases_added:
+          type: array
+          items:
+            type: string
+        aliases_skipped:
+          type: array
+          items:
+            type: string
+        can_merge:
+          type: boolean
+        conflicts:
+          $ref: "#/components/schemas/MergeFansubsPreviewConflicts"
     FansubGroupListResponse:
       type: object
       required: [data, meta]
@@ -4939,6 +5265,12 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/MergeFansubsResult"
+    MergeFansubsPreviewResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/MergeFansubsPreviewResult"
     EpisodeVersion:
       type: object
       required:

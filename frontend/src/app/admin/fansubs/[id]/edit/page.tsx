@@ -15,7 +15,6 @@ import {
   MessageCircle,
   Save,
   Trash2,
-  Upload,
   Users,
   X,
 } from 'lucide-react'
@@ -32,6 +31,7 @@ import {
   updateFansubGroup,
 } from '@/lib/api'
 import { FansubAlias, FansubGroup, FansubGroupPatchRequest, FansubGroupType, FansubStatus } from '@/types/fansub'
+import { buildFansubLogoFallback, EditableMediaValue, MediaUpload } from '@/components/admin/MediaUpload'
 import styles from '../../../admin.module.css'
 
 const STATUS_OPTIONS: FansubStatus[] = ['active', 'inactive', 'dissolved']
@@ -41,7 +41,6 @@ const YEAR_MAX = 2100
 const MARKDOWN_SOFT_LIMIT = 8000
 const URL_PROTOCOLS = new Set(['http:', 'https:', 'irc:', 'ircs:'])
 
-type MediaKind = 'logo' | 'banner'
 type Tab = 'description' | 'history'
 type SectionKey = 'basic' | 'tags' | 'content' | 'media' | 'links'
 type FormState = {
@@ -52,8 +51,6 @@ type FormState = {
   country: string
   foundedYear: string
   dissolvedYear: string
-  logoURL: string
-  bannerURL: string
   websiteURL: string
   discordURL: string
   ircURL: string
@@ -104,8 +101,6 @@ function mapGroupToForm(group: FansubGroup): FormState {
     country: group.country || '',
     foundedYear: group.founded_year ? String(group.founded_year) : '',
     dissolvedYear: group.dissolved_year ? String(group.dissolved_year) : '',
-    logoURL: group.logo_url || '',
-    bannerURL: group.banner_url || '',
     websiteURL: group.website_url || '',
     discordURL: group.discord_url || '',
     ircURL: group.irc_url || '',
@@ -114,7 +109,24 @@ function mapGroupToForm(group: FansubGroup): FormState {
   }
 }
 
-function formToPayload(form: FormState): FansubGroupPatchRequest {
+function mapGroupMedia(group: FansubGroup): { logo: EditableMediaValue | null; banner: EditableMediaValue | null } {
+  const logo = group.logo_url
+    ? {
+        id: group.logo_id ?? null,
+        publicURL: group.logo_url,
+      }
+    : null
+  const banner = group.banner_url
+    ? {
+        id: group.banner_id ?? null,
+        publicURL: group.banner_url,
+      }
+    : null
+
+  return { logo, banner }
+}
+
+function formToPayload(form: FormState, logo: EditableMediaValue | null, banner: EditableMediaValue | null): FansubGroupPatchRequest {
   const founded = parseYear(form.foundedYear)
   const dissolved = parseYear(form.dissolvedYear)
   return {
@@ -125,8 +137,10 @@ function formToPayload(form: FormState): FansubGroupPatchRequest {
     country: toOptional(form.country),
     founded_year: founded === null ? null : founded,
     dissolved_year: dissolved === null ? null : dissolved,
-    logo_url: toOptional(form.logoURL),
-    banner_url: toOptional(form.bannerURL),
+    logo_id: logo?.id ?? null,
+    banner_id: banner?.id ?? null,
+    logo_url: logo?.publicURL?.trim() ? logo.publicURL.trim() : null,
+    banner_url: banner?.publicURL?.trim() ? banner.publicURL.trim() : null,
     website_url: toOptional(form.websiteURL),
     discord_url: toOptional(form.discordURL),
     irc_url: toOptional(form.ircURL),
@@ -144,8 +158,6 @@ function emptyForm(): FormState {
     country: '',
     foundedYear: '',
     dissolvedYear: '',
-    logoURL: '',
-    bannerURL: '',
     websiteURL: '',
     discordURL: '',
     ircURL: '',
@@ -156,30 +168,6 @@ function emptyForm(): FormState {
 
 function errMessage(error: unknown): string {
   return error instanceof ApiError ? `(${error.status}) ${error.message}` : 'Anfrage fehlgeschlagen.'
-}
-
-async function uploadMedia(fansubID: number, kind: MediaKind, file: File, previousPath: string): Promise<string> {
-  const body = new FormData()
-  body.set('file', file)
-  body.set('fansub_id', String(fansubID))
-  body.set('kind', kind)
-  if (previousPath) body.set('previous_path', previousPath)
-  const response = await fetch('/api/admin/upload-fansub-media', { method: 'POST', body })
-  const payload = await response.json().catch(() => null)
-  if (!response.ok) throw new Error(payload?.error?.message || 'Upload fehlgeschlagen.')
-  return payload?.data?.path || ''
-}
-
-async function deleteMedia(fansubID: number, path: string): Promise<void> {
-  const response = await fetch('/api/admin/upload-fansub-media', {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fansub_id: fansubID, path }),
-  })
-  if (!response.ok && response.status !== 404) {
-    const payload = await response.json().catch(() => null)
-    throw new Error(payload?.error?.message || 'Loeschen fehlgeschlagen.')
-  }
 }
 
 export default function AdminFansubEditPage() {
@@ -206,13 +194,18 @@ export default function AdminFansubEditPage() {
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [aliasBusy, setAliasBusy] = useState(false)
-  const [uploading, setUploading] = useState<MediaKind | null>(null)
+  const [logoMedia, setLogoMedia] = useState<EditableMediaValue | null>(null)
+  const [bannerMedia, setBannerMedia] = useState<EditableMediaValue | null>(null)
+  const [initialLogoMedia, setInitialLogoMedia] = useState<EditableMediaValue | null>(null)
+  const [initialBannerMedia, setInitialBannerMedia] = useState<EditableMediaValue | null>(null)
+  const [mediaBusy, setMediaBusy] = useState<Record<'logo' | 'banner', boolean>>({
+    logo: false,
+    banner: false,
+  })
   const [slugConflict, setSlugConflict] = useState(false)
   const [slugChecking, setSlugChecking] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const logoInputRef = useRef<HTMLInputElement | null>(null)
-  const bannerInputRef = useRef<HTMLInputElement | null>(null)
   const markdownRef = useRef<HTMLTextAreaElement | null>(null)
 
   useEffect(() => {
@@ -236,9 +229,14 @@ export default function AdminFansubEditPage() {
         if (!active) return
         const nextGroup = groupResponse.data
         const nextForm = mapGroupToForm(nextGroup)
+        const nextMedia = mapGroupMedia(nextGroup)
         setGroup(nextGroup)
         setForm(nextForm)
         setInitialForm(nextForm)
+        setLogoMedia(nextMedia.logo)
+        setBannerMedia(nextMedia.banner)
+        setInitialLogoMedia(nextMedia.logo)
+        setInitialBannerMedia(nextMedia.banner)
         setManualSlug(nextForm.slug !== slugify(nextForm.name))
         setAliases(aliasResponse.data)
       })
@@ -290,7 +288,13 @@ export default function AdminFansubEditPage() {
     return () => window.clearTimeout(timeout)
   }, [toast])
 
-  const dirty = useMemo(() => JSON.stringify(form) !== JSON.stringify(initialForm), [form, initialForm])
+  const dirty = useMemo(
+    () =>
+      JSON.stringify(form) !== JSON.stringify(initialForm) ||
+      JSON.stringify(logoMedia) !== JSON.stringify(initialLogoMedia) ||
+      JSON.stringify(bannerMedia) !== JSON.stringify(initialBannerMedia),
+    [bannerMedia, form, initialBannerMedia, initialForm, initialLogoMedia, logoMedia],
+  )
   useEffect(() => {
     if (!dirty) return
     const onUnload = (event: BeforeUnloadEvent) => {
@@ -331,6 +335,7 @@ export default function AdminFansubEditPage() {
   const websiteError = !isAbsoluteURL(form.websiteURL) ? 'Bitte absolute URL mit Protokoll verwenden.' : null
   const discordError = !isAbsoluteURL(form.discordURL) ? 'Bitte absolute URL mit Protokoll verwenden.' : null
   const ircError = !isAbsoluteURL(form.ircURL) ? 'Bitte absolute URL mit Protokoll verwenden.' : null
+  const anyMediaBusy = mediaBusy.logo || mediaBusy.banner
 
   const invalid =
     !authToken ||
@@ -344,7 +349,7 @@ export default function AdminFansubEditPage() {
     Boolean(discordError) ||
     Boolean(ircError) ||
     slugChecking ||
-    uploading !== null
+    anyMediaBusy
 
   const isSectionOpen = (section: SectionKey): boolean => (isMobile ? openSections[section] : true)
   const onSectionToggle = (section: SectionKey, open: boolean) => {
@@ -392,11 +397,16 @@ export default function AdminFansubEditPage() {
     setSaving(true)
     setError(null)
     try {
-      const response = await updateFansubGroup(fansubID, formToPayload(form), authToken)
+      const response = await updateFansubGroup(fansubID, formToPayload(form, logoMedia, bannerMedia), authToken)
       const next = mapGroupToForm(response.data)
+      const nextMedia = mapGroupMedia(response.data)
       setGroup(response.data)
       setForm(next)
       setInitialForm(next)
+      setLogoMedia(nextMedia.logo)
+      setBannerMedia(nextMedia.banner)
+      setInitialLogoMedia(nextMedia.logo)
+      setInitialBannerMedia(nextMedia.banner)
       setManualSlug(next.slug !== slugify(next.name))
       setToast('Aenderungen gespeichert.')
     } catch (nextError) {
@@ -419,37 +429,6 @@ export default function AdminFansubEditPage() {
     }
   }
 
-  const onUpload = async (kind: MediaKind, file: File) => {
-    if (!file.type.startsWith('image/')) return setError('Nur Bilddateien sind erlaubt.')
-    if (file.size > 8 * 1024 * 1024) return setError('Datei ist zu gross (max. 8MB).')
-    setUploading(kind)
-    try {
-      const current = kind === 'logo' ? form.logoURL.trim() : form.bannerURL.trim()
-      const nextPath = await uploadMedia(fansubID, kind, file, current)
-      setForm((currentForm) => ({ ...currentForm, ...(kind === 'logo' ? { logoURL: nextPath } : { bannerURL: nextPath }) }))
-      setToast(`${kind === 'logo' ? 'Logo' : 'Banner'} hochgeladen.`)
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Upload fehlgeschlagen.')
-    } finally {
-      setUploading(null)
-    }
-  }
-
-  const onDeleteMedia = async (kind: MediaKind) => {
-    const path = (kind === 'logo' ? form.logoURL : form.bannerURL).trim()
-    if (!path) return
-    setUploading(kind)
-    try {
-      if (path.startsWith('/media/fansubs/')) await deleteMedia(fansubID, path)
-      setForm((currentForm) => ({ ...currentForm, ...(kind === 'logo' ? { logoURL: '' } : { bannerURL: '' }) }))
-      setToast(`${kind === 'logo' ? 'Logo' : 'Banner'} entfernt.`)
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Loeschen fehlgeschlagen.')
-    } finally {
-      setUploading(null)
-    }
-  }
-
   const markdownValue = activeTab === 'description' ? form.description : form.history
   const insertMarkdown = (prefix: string, suffix = '') => {
     const textarea = markdownRef.current
@@ -464,6 +443,8 @@ export default function AdminFansubEditPage() {
 
   if (loading) return <main className={styles.page}><section className={styles.panel}><p>Lade...</p></section></main>
 
+  const logoFallback = buildFansubLogoFallback(form.name)
+
   return (
     <main className={styles.page}>
       <p className={styles.backLinks}><Link href="/admin/fansubs">Fansubs</Link></p>
@@ -471,9 +452,15 @@ export default function AdminFansubEditPage() {
 
       <section className={styles.panel}>
         <header className={styles.fansubEditHeaderCard}>
-          <div className={styles.fansubEditBannerShell}>{form.bannerURL.trim() ? <div className={styles.fansubEditBannerImage} style={{ backgroundImage: `url(${form.bannerURL.trim()})` }} /> : <div className={styles.fansubEditBannerPlaceholder}>Kein Banner vorhanden</div>}</div>
+          <div className={styles.fansubEditBannerShell}>{bannerMedia?.publicURL?.trim() ? <div className={styles.fansubEditBannerImage} style={{ backgroundImage: `url(${bannerMedia.publicURL.trim()})` }} /> : <div className={styles.fansubEditBannerPlaceholder}>Kein Banner vorhanden</div>}</div>
           <div className={styles.fansubEditProfileRow}>
-            <div className={styles.fansubEditLogoBadge}>{form.logoURL.trim() ? <div className={styles.fansubEditLogoImage} style={{ backgroundImage: `url(${form.logoURL.trim()})` }} /> : <span>{form.name.trim().slice(0, 1).toUpperCase() || '?'}</span>}</div>
+            <div className={styles.fansubEditLogoBadge}>
+              {logoMedia?.publicURL?.trim() ? (
+                <div className={styles.fansubEditLogoImage} style={{ backgroundImage: `url(${logoMedia.publicURL.trim()})` }} />
+              ) : (
+                <span style={{ backgroundColor: logoFallback.background, color: logoFallback.color }}>{logoFallback.initials}</span>
+              )}
+            </div>
             <div className={styles.fansubEditIdentity}>
               <div className={styles.fansubEditIdentityTop}>
                 <h1 className={styles.title}>{form.name.trim() || 'Fansub bearbeiten'}</h1>
@@ -547,8 +534,34 @@ export default function AdminFansubEditPage() {
               <details className={styles.fansubEditSection} open={isSectionOpen('media')} onToggle={(event) => onSectionToggle('media', event.currentTarget.open)}><summary className={styles.fansubEditSectionSummary}>Media</summary>
                 <div className={styles.fansubEditSectionBody}>
                 <div className={styles.fansubEditMediaGrid}>
-                  <div className={styles.fansubEditMediaCard}><h3>Logo</h3><p className={styles.fansubEditHint}>Empfohlen: 512 x 512</p><div className={styles.fansubEditDropzone} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) void onUpload('logo', f) }}>{form.logoURL.trim() ? <div className={styles.fansubEditMediaPreviewRound} style={{ backgroundImage: `url(${form.logoURL.trim()})` }} /> : <div className={styles.fansubEditMediaPlaceholderRound}>Kein Logo</div>}</div><p className={styles.fansubEditHint}>Drag & Drop oder Datei waehlen</p><div className={styles.fansubEditMediaActions}><button type="button" className={styles.buttonSecondary} onClick={() => logoInputRef.current?.click()} disabled={uploading === 'logo'}><Upload size={14} />{uploading === 'logo' ? 'Upload...' : 'Replace'}</button><button type="button" className={`${styles.buttonSecondary} ${styles.buttonDanger}`} onClick={() => void onDeleteMedia('logo')} disabled={!form.logoURL.trim() || uploading === 'logo'}><Trash2 size={14} />Delete</button></div><input ref={logoInputRef} className={styles.fileInput} type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onUpload('logo', f); e.currentTarget.value = '' }} /></div>
-                  <div className={styles.fansubEditMediaCard}><h3>Banner</h3><p className={styles.fansubEditHint}>Empfohlen: 1600 x 400</p><div className={styles.fansubEditDropzone} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) void onUpload('banner', f) }}>{form.bannerURL.trim() ? <div className={styles.fansubEditMediaPreviewWide} style={{ backgroundImage: `url(${form.bannerURL.trim()})` }} /> : <div className={styles.fansubEditMediaPlaceholderWide}>Kein Banner</div>}</div><p className={styles.fansubEditHint}>Drag & Drop oder Datei waehlen</p><div className={styles.fansubEditMediaActions}><button type="button" className={styles.buttonSecondary} onClick={() => bannerInputRef.current?.click()} disabled={uploading === 'banner'}><Upload size={14} />{uploading === 'banner' ? 'Upload...' : 'Replace'}</button><button type="button" className={`${styles.buttonSecondary} ${styles.buttonDanger}`} onClick={() => void onDeleteMedia('banner')} disabled={!form.bannerURL.trim() || uploading === 'banner'}><Trash2 size={14} />Delete</button></div><input ref={bannerInputRef} className={styles.fileInput} type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onUpload('banner', f); e.currentTarget.value = '' }} /></div>
+                  <MediaUpload
+                    type="logo"
+                    fansubID={fansubID}
+                    authToken={authToken}
+                    groupName={form.name.trim() || group?.name || ''}
+                    value={logoMedia}
+                    disabled={!authToken || saving || deleting}
+                    onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, logo: isBusy }))}
+                    onChange={(nextValue) => {
+                      setLogoMedia(nextValue)
+                      setInitialLogoMedia(nextValue)
+                      setToast(nextValue?.publicURL ? 'Logo aktualisiert.' : 'Logo entfernt.')
+                    }}
+                  />
+                  <MediaUpload
+                    type="banner"
+                    fansubID={fansubID}
+                    authToken={authToken}
+                    groupName={form.name.trim() || group?.name || ''}
+                    value={bannerMedia}
+                    disabled={!authToken || saving || deleting}
+                    onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, banner: isBusy }))}
+                    onChange={(nextValue) => {
+                      setBannerMedia(nextValue)
+                      setInitialBannerMedia(nextValue)
+                      setToast(nextValue?.publicURL ? 'Banner aktualisiert.' : 'Banner entfernt.')
+                    }}
+                  />
                 </div>
                 </div>
               </details>
