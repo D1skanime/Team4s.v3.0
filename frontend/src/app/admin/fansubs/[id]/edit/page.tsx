@@ -31,7 +31,7 @@ import {
   updateFansubGroup,
 } from '@/lib/api'
 import { FansubAlias, FansubGroup, FansubGroupPatchRequest, FansubGroupType, FansubStatus } from '@/types/fansub'
-import { buildFansubLogoFallback, EditableMediaValue, MediaUpload } from '@/components/admin/MediaUpload'
+import { buildFansubLogoFallback, buildMediaPreviewURL, EditableMediaValue, MediaUpload } from '@/components/admin/MediaUpload'
 import styles from '../../../admin.module.css'
 
 const STATUS_OPTIONS: FansubStatus[] = ['active', 'inactive', 'dissolved']
@@ -444,6 +444,8 @@ export default function AdminFansubEditPage() {
   if (loading) return <main className={styles.page}><section className={styles.panel}><p>Lade...</p></section></main>
 
   const logoFallback = buildFansubLogoFallback(form.name)
+  const bannerPreviewURL = buildMediaPreviewURL(bannerMedia)
+  const logoPreviewURL = buildMediaPreviewURL(logoMedia)
 
   return (
     <main className={styles.page}>
@@ -452,11 +454,11 @@ export default function AdminFansubEditPage() {
 
       <section className={styles.panel}>
         <header className={styles.fansubEditHeaderCard}>
-          <div className={styles.fansubEditBannerShell}>{bannerMedia?.publicURL?.trim() ? <div className={styles.fansubEditBannerImage} style={{ backgroundImage: `url(${bannerMedia.publicURL.trim()})` }} /> : <div className={styles.fansubEditBannerPlaceholder}>Kein Banner vorhanden</div>}</div>
+          <div className={styles.fansubEditBannerShell}>{bannerPreviewURL ? <div className={styles.fansubEditBannerImage} style={{ backgroundImage: `url(${bannerPreviewURL})` }} /> : <div className={styles.fansubEditBannerPlaceholder}>Kein Banner vorhanden</div>}</div>
           <div className={styles.fansubEditProfileRow}>
             <div className={styles.fansubEditLogoBadge}>
-              {logoMedia?.publicURL?.trim() ? (
-                <div className={styles.fansubEditLogoImage} style={{ backgroundImage: `url(${logoMedia.publicURL.trim()})` }} />
+              {logoPreviewURL ? (
+                <div className={styles.fansubEditLogoImage} style={{ backgroundImage: `url(${logoPreviewURL})` }} />
               ) : (
                 <span style={{ backgroundColor: logoFallback.background, color: logoFallback.color }}>{logoFallback.initials}</span>
               )}

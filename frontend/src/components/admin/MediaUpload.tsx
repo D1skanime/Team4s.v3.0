@@ -1,11 +1,12 @@
 'use client'
 /* eslint-disable @next/next/no-img-element */
 
-import { ChangeEvent, KeyboardEvent, PointerEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { ChangeEvent, KeyboardEvent, PointerEvent, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ImagePlus, Loader2, RefreshCw, Trash2 } from 'lucide-react'
 
 import { ApiError, deleteFansubMedia, uploadFansubMedia } from '@/lib/api'
 import { FansubMediaKind } from '@/types/fansub'
+import { getCropOffsetDeltaForKey, getFocusTrapNextIndex } from '@/components/admin/mediaUploadA11y'
 
 import styles from './MediaUpload.module.css'
 
@@ -32,6 +33,39 @@ interface MediaUploadProps {
 
 const CROP_VIEW_SIZE = 260
 const CROP_OUTPUT_SIZE = 512
+
+type CropMetrics = {
+  scale: number
+  width: number
+  height: number
+  maxOffsetX: number
+  maxOffsetY: number
+}
+
+function clampCropOffset(offset: { x: number; y: number }, metrics: CropMetrics | null): { x: number; y: number } {
+  if (!metrics) return { x: 0, y: 0 }
+  return {
+    x: Math.max(-metrics.maxOffsetX, Math.min(metrics.maxOffsetX, offset.x)),
+    y: Math.max(-metrics.maxOffsetY, Math.min(metrics.maxOffsetY, offset.y)),
+  }
+}
+
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  const selector = [
+    'button:not([disabled])',
+    '[href]',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+  ].join(', ')
+
+  return Array.from(container.querySelectorAll<HTMLElement>(selector)).filter((element) => {
+    if (element.getAttribute('aria-hidden') === 'true') return false
+    if (element.hasAttribute('disabled')) return false
+    return true
+  })
+}
 
 function readErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) {
@@ -64,6 +98,33 @@ function deriveFilename(value: EditableMediaValue | null): string {
     const parts = raw.split('/').filter(Boolean)
     return decodeURIComponent(parts[parts.length - 1] || '')
   }
+}
+
+function appendCacheBustParam(rawURL: string, cacheKey: string): string {
+  if (!cacheKey.trim()) return rawURL
+  try {
+    const parsed = new URL(rawURL)
+    parsed.searchParams.set('v', cacheKey)
+    return parsed.toString()
+  } catch {
+    const separator = rawURL.includes('?') ? '&' : '?'
+    return `${rawURL}${separator}v=${encodeURIComponent(cacheKey)}`
+  }
+}
+
+export function buildMediaPreviewURL(value: EditableMediaValue | null): string {
+  const raw = value?.publicURL?.trim() || ''
+  if (!raw) return ''
+
+  const keyParts: Array<string> = []
+  if (typeof value?.id === 'number' && Number.isFinite(value.id)) keyParts.push(`id:${value.id}`)
+  if (typeof value?.sizeBytes === 'number' && Number.isFinite(value.sizeBytes)) keyParts.push(`s:${value.sizeBytes}`)
+  if (value?.filename?.trim()) keyParts.push(`f:${value.filename.trim()}`)
+  if (value?.mimeType?.trim()) keyParts.push(`m:${value.mimeType.trim()}`)
+  if (typeof value?.width === 'number' && Number.isFinite(value.width)) keyParts.push(`w:${value.width}`)
+  if (typeof value?.height === 'number' && Number.isFinite(value.height)) keyParts.push(`h:${value.height}`)
+
+  return appendCacheBustParam(raw, keyParts.join('|'))
 }
 
 function hashString(input: string): number {
@@ -162,6 +223,8 @@ function validateFile(type: FansubMediaKind, file: File): string | null {
 
 export function MediaUpload({ type, fansubID, groupName, value, authToken, disabled, onBusyChange, onChange }: MediaUploadProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const cropPanelRef = useRef<HTMLDivElement | null>(null)
+  const cropViewportRef = useRef<HTMLDivElement | null>(null)
   const [dragging, setDragging] = useState(false)
   const [busyAction, setBusyAction] = useState<'upload' | 'delete' | null>(null)
   const [progress, setProgress] = useState(0)
@@ -173,6 +236,8 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
   const [cropZoom, setCropZoom] = useState(1)
   const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 })
   const [cropImageReady, setCropImageReady] = useState(false)
+  const [cropImageSize, setCropImageSize] = useState<{ w: number; h: number } | null>(null)
+  const cropHintID = useId()
 
   const cropImageRef = useRef<HTMLImageElement | null>(null)
   const cropDragRef = useRef<{ pointerID: number; startX: number; startY: number; originX: number; originY: number } | null>(null)
@@ -187,13 +252,50 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
   const busy = busyAction !== null
   const hasValue = Boolean(value?.publicURL?.trim())
   const isLogo = type === 'logo'
+  const cropMetrics = useMemo<CropMetrics | null>(() => {
+    if (!cropImageSize) return null
+    const baseScale = Math.max(CROP_VIEW_SIZE / cropImageSize.w, CROP_VIEW_SIZE / cropImageSize.h)
+    const scale = baseScale * cropZoom
+    const width = cropImageSize.w * scale
+    const height = cropImageSize.h * scale
+    return {
+      scale,
+      width,
+      height,
+      maxOffsetX: Math.max(0, (width - CROP_VIEW_SIZE) / 2),
+      maxOffsetY: Math.max(0, (height - CROP_VIEW_SIZE) / 2),
+    }
+  }, [cropImageSize, cropZoom])
 
   const title = isLogo ? 'Logo' : 'Banner'
   const acceptedMime = isLogo ? 'image/svg+xml,image/png,image/jpeg,image/webp' : 'image/png,image/jpeg,image/webp,image/gif'
+  const dropzoneAriaLabel = isLogo
+    ? hasValue
+      ? 'Logo ersetzen oder neu hochladen'
+      : 'Logo hochladen'
+    : hasValue
+      ? 'Banner ersetzen oder neu hochladen'
+      : 'Banner hochladen'
 
   useEffect(() => {
     onBusyChange?.(busy)
   }, [busy, onBusyChange])
+
+  useEffect(() => {
+    setCropOffset((current) => {
+      const next = clampCropOffset(current, cropMetrics)
+      if (next.x === current.x && next.y === current.y) return current
+      return next
+    })
+  }, [cropMetrics])
+
+  useEffect(() => {
+    if (!cropSourceURL) return
+    const frameID = window.requestAnimationFrame(() => {
+      cropViewportRef.current?.focus()
+    })
+    return () => window.cancelAnimationFrame(frameID)
+  }, [cropSourceURL])
 
   const submitUpload = async (file: File) => {
     setError(null)
@@ -244,12 +346,14 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
     setCropZoom(1)
     setCropOffset({ x: 0, y: 0 })
     setCropImageReady(false)
+    setCropImageSize(null)
   }
 
   const closeCropper = () => {
     if (cropSourceURL) URL.revokeObjectURL(cropSourceURL)
     setCropSourceURL(null)
     setCropImageReady(false)
+    setCropImageSize(null)
     cropImageRef.current = null
     cropDragRef.current = null
   }
@@ -271,10 +375,11 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
       return
     }
 
-    const baseScale = Math.max(CROP_OUTPUT_SIZE / image.naturalWidth, CROP_OUTPUT_SIZE / image.naturalHeight)
-    const scale = baseScale * cropZoom
-    const drawWidth = image.naturalWidth * scale
-    const drawHeight = image.naturalHeight * scale
+    const renderScale = cropMetrics
+      ? cropMetrics.scale
+      : Math.max(CROP_VIEW_SIZE / image.naturalWidth, CROP_VIEW_SIZE / image.naturalHeight) * cropZoom
+    const drawWidth = image.naturalWidth * renderScale * (CROP_OUTPUT_SIZE / CROP_VIEW_SIZE)
+    const drawHeight = image.naturalHeight * renderScale * (CROP_OUTPUT_SIZE / CROP_VIEW_SIZE)
     const ratio = CROP_OUTPUT_SIZE / CROP_VIEW_SIZE
 
     const drawX = (CROP_OUTPUT_SIZE - drawWidth) / 2 + cropOffset.x * ratio
@@ -385,7 +490,7 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
 
     const deltaX = event.clientX - dragState.startX
     const deltaY = event.clientY - dragState.startY
-    setCropOffset({ x: dragState.originX + deltaX, y: dragState.originY + deltaY })
+    setCropOffset(clampCropOffset({ x: dragState.originX + deltaX, y: dragState.originY + deltaY }, cropMetrics))
   }
 
   const onCropPointerUp = (event: PointerEvent<HTMLDivElement>) => {
@@ -395,14 +500,55 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
     }
   }
 
+  const onCropViewportKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!cropMetrics) return
+
+    const delta = getCropOffsetDeltaForKey(event.key, event.shiftKey)
+    if (!delta) return
+    event.preventDefault()
+    setCropOffset((current) => clampCropOffset({ x: current.x + delta.x, y: current.y + delta.y }, cropMetrics))
+  }
+
+  const onCropOffsetXChange = (nextValue: number) => {
+    setCropOffset((current) => clampCropOffset({ x: nextValue, y: current.y }, cropMetrics))
+  }
+
+  const onCropOffsetYChange = (nextValue: number) => {
+    setCropOffset((current) => clampCropOffset({ x: current.x, y: nextValue }, cropMetrics))
+  }
+
+  const onCropPanelKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closeCropper()
+      return
+    }
+    if (event.key !== 'Tab') return
+
+    const panel = cropPanelRef.current
+    if (!panel) return
+
+    const focusables = getFocusableElements(panel)
+    if (focusables.length === 0) return
+
+    const activeElement = typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null
+    const currentIndex = activeElement ? focusables.indexOf(activeElement) : -1
+    const nextIndex = getFocusTrapNextIndex(currentIndex, focusables.length, event.shiftKey)
+    if (nextIndex < 0) return
+
+    event.preventDefault()
+    focusables[nextIndex]?.focus()
+  }
+
   const filename = deriveFilename(value)
+  const previewURL = buildMediaPreviewURL(value)
 
   return (
     <div className={styles.card}>
       <div className={styles.headerRow}>
         <h3>{title}</h3>
         {busy ? (
-          <span className={styles.statusPill}>
+          <span className={styles.statusPill} aria-live="polite">
             <Loader2 size={14} className={styles.spinner} />
             {busyAction === 'upload' ? 'Upload...' : 'Loeschen...'}
           </span>
@@ -413,6 +559,8 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
         className={`${styles.dropzone} ${dragging ? styles.dropzoneDrag : ''} ${error ? styles.dropzoneError : ''} ${disabled ? styles.dropzoneDisabled : ''}`}
         role="button"
         tabIndex={disabled ? -1 : 0}
+        aria-label={dropzoneAriaLabel}
+        aria-busy={busy}
         onClick={() => (!disabled && !busy ? inputRef.current?.click() : undefined)}
         onKeyDown={onDropzoneKeyDown}
         onDragOver={(event) => {
@@ -439,11 +587,11 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
           <>
             {isLogo ? (
               <div className={styles.previewRound}>
-                <img src={value?.publicURL || ''} alt="Logo Vorschau" className={styles.previewImageRound} />
+                <img src={previewURL} alt="Logo Vorschau" className={styles.previewImageRound} />
               </div>
             ) : (
               <div className={styles.previewWide}>
-                <img src={value?.publicURL || ''} alt="Banner Vorschau" className={styles.previewImageWide} />
+                <img src={previewURL} alt="Banner Vorschau" className={styles.previewImageWide} />
               </div>
             )}
           </>
@@ -478,26 +626,56 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
       </div>
 
       <div className={styles.actions}>
-        <button type="button" className={styles.buttonSecondary} onClick={() => inputRef.current?.click()} disabled={disabled || busy}>
+        <button
+          type="button"
+          className={styles.buttonSecondary}
+          onClick={() => inputRef.current?.click()}
+          disabled={disabled || busy}
+          aria-label={`${title} ersetzen`}
+        >
           <RefreshCw size={14} />
           Replace
         </button>
-        <button type="button" className={styles.buttonDanger} onClick={() => void onRemove()} disabled={disabled || busy || !hasValue}>
+        <button
+          type="button"
+          className={styles.buttonDanger}
+          onClick={() => void onRemove()}
+          disabled={disabled || busy || !hasValue}
+          aria-label={`${title} loeschen`}
+        >
           <Trash2 size={14} />
           Delete
         </button>
       </div>
 
-      {warning ? <p className={styles.warning}>{warning}</p> : null}
-      {error ? <p className={styles.error}>{error}</p> : null}
+      {warning ? <p className={styles.warning} aria-live="polite">{warning}</p> : null}
+      {error ? <p className={styles.error} role="alert">{error}</p> : null}
 
-      <input ref={inputRef} className={styles.fileInput} type="file" accept={acceptedMime} onChange={(event) => void onInputChange(event)} />
+      <input
+        ref={inputRef}
+        className={styles.fileInput}
+        type="file"
+        accept={acceptedMime}
+        aria-label={`${title} Datei auswaehlen`}
+        onChange={(event) => void onInputChange(event)}
+      />
 
       {type === 'logo' && cropSourceURL ? (
-        <div className={styles.cropPanel}>
+        <div
+          ref={cropPanelRef}
+          className={styles.cropPanel}
+          role="dialog"
+          aria-label="Logo-Cropper"
+          aria-describedby={cropHintID}
+          onKeyDown={onCropPanelKeyDown}
+        >
           <p className={styles.cropTitle}>Logo zuschneiden (kreisfoermig)</p>
           <div
+            ref={cropViewportRef}
             className={styles.cropViewport}
+            tabIndex={0}
+            aria-label="Logo-Ausschnitt waehlen"
+            onKeyDown={onCropViewportKeyDown}
             onPointerDown={onCropPointerDown}
             onPointerMove={onCropPointerMove}
             onPointerUp={onCropPointerUp}
@@ -509,27 +687,78 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
               className={styles.cropImage}
               onLoad={(event) => {
                 cropImageRef.current = event.currentTarget
+                setCropImageSize({ w: event.currentTarget.naturalWidth, h: event.currentTarget.naturalHeight })
                 setCropImageReady(true)
               }}
-              style={{ transform: `translate(-50%, -50%) translate(${cropOffset.x}px, ${cropOffset.y}px) scale(${cropZoom})` }}
+              style={
+                cropImageSize
+                  ? (() => {
+                      const width = cropMetrics?.width ?? CROP_VIEW_SIZE
+                      const height = cropMetrics?.height ?? CROP_VIEW_SIZE
+                      return {
+                        width: `${width}px`,
+                        height: `${height}px`,
+                        transform: `translate(-50%, -50%) translate(${cropOffset.x}px, ${cropOffset.y}px)`,
+                      }
+                    })()
+                  : { transform: 'translate(-50%, -50%)' }
+              }
             />
             <div className={styles.cropMask} />
           </div>
+          <p id={cropHintID} className={styles.cropHint}>Bild ziehen oder X/Y-Regler nutzen. Pfeiltasten: fein, Shift+Pfeil: grob. Esc schliesst den Cropper.</p>
           <label className={styles.sliderLabel}>
             Zoom
             <input
               type="range"
               min={1}
-              max={4}
-              step={0.01}
-              value={cropZoom}
-              onChange={(event) => setCropZoom(Number(event.target.value))}
-              disabled={!cropImageReady || busy}
-            />
+                max={4}
+                step={0.01}
+                value={cropZoom}
+                aria-label="Zoom"
+                onChange={(event) => setCropZoom(Number(event.target.value))}
+                disabled={!cropImageReady || busy}
+              />
           </label>
+          <div className={styles.cropAxisGrid}>
+            <label className={styles.sliderLabel}>
+              X
+              <input
+                type="range"
+                min={-(cropMetrics?.maxOffsetX ?? 0)}
+                max={cropMetrics?.maxOffsetX ?? 0}
+                step={1}
+                value={cropOffset.x}
+                aria-label="X-Verschiebung"
+                onChange={(event) => onCropOffsetXChange(Number(event.target.value))}
+                disabled={!cropImageReady || busy || !cropMetrics || cropMetrics.maxOffsetX <= 0}
+              />
+            </label>
+            <label className={styles.sliderLabel}>
+              Y
+              <input
+                type="range"
+                min={-(cropMetrics?.maxOffsetY ?? 0)}
+                max={cropMetrics?.maxOffsetY ?? 0}
+                step={1}
+                value={cropOffset.y}
+                aria-label="Y-Verschiebung"
+                onChange={(event) => onCropOffsetYChange(Number(event.target.value))}
+                disabled={!cropImageReady || busy || !cropMetrics || cropMetrics.maxOffsetY <= 0}
+              />
+            </label>
+          </div>
           <div className={styles.actions}>
             <button type="button" className={styles.buttonSecondary} onClick={closeCropper} disabled={busy}>
               Abbrechen
+            </button>
+            <button
+              type="button"
+              className={styles.buttonSecondary}
+              onClick={() => setCropOffset({ x: 0, y: 0 })}
+              disabled={!cropImageReady || busy}
+            >
+              Position zuruecksetzen
             </button>
             <button type="button" className={styles.buttonPrimary} onClick={() => void cropAndUploadLogo()} disabled={!cropImageReady || busy}>
               Ausschnitt speichern

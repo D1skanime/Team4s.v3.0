@@ -5,6 +5,7 @@ import { FormEvent, useState } from 'react'
 
 import { ApiError, createFansubAlias, createFansubGroup, getRuntimeAuthToken } from '@/lib/api'
 import { FansubGroup, FansubGroupType, FansubStatus } from '@/types/fansub'
+import { EditableMediaValue, MediaUpload } from '@/components/admin/MediaUpload'
 
 import styles from '../../admin.module.css'
 
@@ -29,11 +30,34 @@ function formatError(error: unknown): string {
   return 'Anfrage fehlgeschlagen.'
 }
 
+function mapGroupMedia(group: FansubGroup): { logo: EditableMediaValue | null; banner: EditableMediaValue | null } {
+  const logo = group.logo_url
+    ? {
+        id: group.logo_id ?? null,
+        publicURL: group.logo_url,
+      }
+    : null
+  const banner = group.banner_url
+    ? {
+        id: group.banner_id ?? null,
+        publicURL: group.banner_url,
+      }
+    : null
+
+  return { logo, banner }
+}
+
 export default function AdminFansubCreatePage() {
   const [authToken] = useState(() => getRuntimeAuthToken())
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successGroup, setSuccessGroup] = useState<FansubGroup | null>(null)
+  const [logoMedia, setLogoMedia] = useState<EditableMediaValue | null>(null)
+  const [bannerMedia, setBannerMedia] = useState<EditableMediaValue | null>(null)
+  const [mediaBusy, setMediaBusy] = useState<Record<'logo' | 'banner', boolean>>({
+    logo: false,
+    banner: false,
+  })
 
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
@@ -42,14 +66,13 @@ export default function AdminFansubCreatePage() {
   const [groupType, setGroupType] = useState<FansubGroupType>('group')
   const [description, setDescription] = useState('')
   const [history, setHistory] = useState('')
-  const [logoURL, setLogoURL] = useState('')
-  const [bannerURL, setBannerURL] = useState('')
   const [foundedYear, setFoundedYear] = useState('')
   const [dissolvedYear, setDissolvedYear] = useState('')
   const [websiteURL, setWebsiteURL] = useState('')
   const [discordURL, setDiscordURL] = useState('')
   const [ircURL, setIrcURL] = useState('')
   const [country, setCountry] = useState('')
+  const anyMediaBusy = mediaBusy.logo || mediaBusy.banner
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -88,8 +111,6 @@ export default function AdminFansubCreatePage() {
           group_type: groupType,
           description: normalizeOptional(description),
           history: normalizeOptional(history),
-          logo_url: normalizeOptional(logoURL),
-          banner_url: normalizeOptional(bannerURL),
           founded_year: founded,
           dissolved_year: dissolved,
           website_url: normalizeOptional(websiteURL),
@@ -99,6 +120,9 @@ export default function AdminFansubCreatePage() {
         },
         authToken,
       )
+      const nextMedia = mapGroupMedia(response.data)
+      setLogoMedia(nextMedia.logo)
+      setBannerMedia(nextMedia.banner)
       const normalizedAlias = alias.trim()
       if (normalizedAlias) {
         try {
@@ -192,16 +216,56 @@ export default function AdminFansubCreatePage() {
 
             <section className={styles.formSectionCard}>
               <h2 className={styles.formSectionTitle}>Media</h2>
-              <div className={styles.responsiveFieldGrid}>
-                <div className={styles.field}>
-                  <label htmlFor="logo">Logo URL</label>
-                  <input id="logo" value={logoURL} onChange={(event) => setLogoURL(event.target.value)} />
+              {successGroup ? (
+                <div className={styles.fansubEditMediaGrid}>
+                  <MediaUpload
+                    type="logo"
+                    fansubID={successGroup.id}
+                    authToken={authToken}
+                    groupName={name.trim() || successGroup.name}
+                    value={logoMedia}
+                    disabled={!authToken || isSubmitting}
+                    onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, logo: isBusy }))}
+                    onChange={(nextValue) => {
+                      setLogoMedia(nextValue)
+                      setSuccessGroup((current) =>
+                        current
+                          ? {
+                              ...current,
+                              logo_id: nextValue?.id ?? null,
+                              logo_url: nextValue?.publicURL?.trim() || null,
+                            }
+                          : current,
+                      )
+                    }}
+                  />
+                  <MediaUpload
+                    type="banner"
+                    fansubID={successGroup.id}
+                    authToken={authToken}
+                    groupName={name.trim() || successGroup.name}
+                    value={bannerMedia}
+                    disabled={!authToken || isSubmitting}
+                    onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, banner: isBusy }))}
+                    onChange={(nextValue) => {
+                      setBannerMedia(nextValue)
+                      setSuccessGroup((current) =>
+                        current
+                          ? {
+                              ...current,
+                              banner_id: nextValue?.id ?? null,
+                              banner_url: nextValue?.publicURL?.trim() || null,
+                            }
+                          : current,
+                      )
+                    }}
+                  />
                 </div>
-                <div className={styles.field}>
-                  <label htmlFor="banner">Banner URL</label>
-                  <input id="banner" value={bannerURL} onChange={(event) => setBannerURL(event.target.value)} />
-                </div>
-              </div>
+              ) : (
+                <p className={styles.fansubEditHint}>
+                  Medien-Upload ist nach dem ersten Speichern verfuegbar.
+                </p>
+              )}
             </section>
 
             <section className={styles.formSectionCard}>
@@ -252,8 +316,8 @@ export default function AdminFansubCreatePage() {
               <Link href="/admin/fansubs" className={styles.buttonSecondary}>
                 Abbrechen
               </Link>
-              <button type="submit" className={styles.button} disabled={isSubmitting}>
-                {isSubmitting ? 'Speichern...' : 'Anlegen'}
+              <button type="submit" className={styles.button} disabled={isSubmitting || anyMediaBusy || Boolean(successGroup)}>
+                {isSubmitting ? 'Speichern...' : successGroup ? 'Angelegt' : 'Anlegen'}
               </button>
             </div>
           </form>
