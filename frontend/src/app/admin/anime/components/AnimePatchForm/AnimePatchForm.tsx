@@ -22,11 +22,23 @@ interface AnimePatchFormProps {
   onError: (msg: string) => void
   onRequest?: (request: string | null) => void
   onResponse?: (response: string | null) => void
+  onEditorStateChange?: (state: { hasUnsavedChanges: boolean; isSaving: boolean }) => void
+  onRegisterSaveAction?: (saveAction: (() => void) | null) => void
 }
 
-export function AnimePatchForm({ anime, authToken, onSuccess, onError, onRequest, onResponse }: AnimePatchFormProps) {
+export function AnimePatchForm({
+  anime,
+  authToken,
+  onSuccess,
+  onError,
+  onRequest,
+  onResponse,
+  onEditorStateChange,
+  onRegisterSaveAction,
+}: AnimePatchFormProps) {
   const [animeIDInput, setAnimeIDInput] = useState('')
   const coverFileInputRef = useRef<HTMLInputElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
 
   const patch = useAnimePatch(authToken, onSuccess, onError, {
     onRequest,
@@ -43,6 +55,17 @@ export function AnimePatchForm({ anime, authToken, onSuccess, onError, onRequest
     patch.resetFromAnime(anime)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anime?.id])
+
+  useEffect(() => {
+    onEditorStateChange?.({ hasUnsavedChanges: patch.isDirty, isSaving: patch.isSubmitting })
+  }, [onEditorStateChange, patch.isDirty, patch.isSubmitting])
+
+  useEffect(() => {
+    onRegisterSaveAction?.(() => {
+      formRef.current?.requestSubmit()
+    })
+    return () => onRegisterSaveAction?.(null)
+  }, [onRegisterSaveAction])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -82,12 +105,11 @@ export function AnimePatchForm({ anime, authToken, onSuccess, onError, onRequest
 
   return (
     <section className={`${styles.panel} ${styles.editPanel}`}>
-      <h2>Anime bearbeiten (Patch)</h2>
+      <h2>Anime bearbeiten</h2>
       <p className={styles.hint}>
-        Nur ausgewaehlte Felder werden gesendet. Fuer nullable Felder kannst du explizit Wert loeschen (null) waehlen. Ohne
-        ID wird die aktuelle Kontext-ID verwendet.
+        Inhalte und Metadaten aktualisieren. Ohne ID wird die aktuell geladene Kontext-ID verwendet.
       </p>
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <form ref={formRef} className={styles.form} onSubmit={handleSubmit}>
         <AnimeBasicFields
           animeIDInput={animeIDInput}
           values={patch.values}
@@ -137,8 +159,8 @@ export function AnimePatchForm({ anime, authToken, onSuccess, onError, onRequest
         </div>
 
         <div className={styles.actions}>
-          <button className={styles.buttonSecondary} type="submit" disabled={patch.isSubmitting}>
-            {patch.isSubmitting ? 'Speichern...' : 'Anime aktualisieren'}
+          <button className={styles.buttonSecondary} type="submit" disabled={patch.isSubmitting || !patch.isDirty}>
+            {patch.isSubmitting ? 'Speichern...' : 'Aenderungen speichern'}
           </button>
           {anime ? (
             <button

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { getAdminGenreTokens, getAnimeByID, updateAdminAnime } from '@/lib/api'
-import { AdminAnimePatchRequest, AnimeType, GenreToken } from '@/types/admin'
+import { getAdminGenreTokens } from '@/lib/api'
+import { AnimeType, GenreToken } from '@/types/admin'
 import { AnimeDetail, AnimeStatus, ContentType } from '@/types/anime'
 
 import { AnimePatchClearFlags, AnimePatchState, AnimePatchValues } from '../../types/admin-anime'
-import { normalizeOptionalString, parsePositiveInt, splitGenreTokens } from '../../utils/anime-helpers'
+import { splitGenreTokens } from '../../utils/anime-helpers'
+import { useAnimePatchMutations } from './anime-patch/useAnimePatchMutations'
 
 interface AnimePatchActions {
   setField: (field: keyof AnimePatchValues, value: string | string[]) => void
@@ -48,34 +49,9 @@ const EMPTY_CLEAR_FLAGS: AnimePatchClearFlags = {
   coverImage: false,
 }
 
-async function uploadCoverFile(file: File): Promise<string> {
-  const form = new FormData()
-  form.set('file', file)
-
-  const response = await fetch('/api/admin/upload-cover', {
-    method: 'POST',
-    body: form,
-  })
-
-  if (!response.ok) {
-    let message = `Upload fehlgeschlagen (${response.status}).`
-    try {
-      const body = (await response.json()) as { error?: { message?: string } }
-      if (body.error?.message) {
-        message = body.error.message
-      }
-    } catch {
-      // ignore
-    }
-    throw new Error(message)
-  }
-
-  const body = (await response.json()) as { data?: { file_name?: string } }
-  const fileName = (body.data?.file_name || '').trim()
-  if (!fileName) {
-    throw new Error('Upload fehlgeschlagen: keine Datei erhalten.')
-  }
-  return fileName
+function areStringArraysEqual(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) return false
+  return left.every((value, index) => value === right[index])
 }
 
 export function useAnimePatch(
@@ -86,6 +62,8 @@ export function useAnimePatch(
 ): AnimePatchState & AnimePatchActions {
   const [values, setValues] = useState<AnimePatchValues>(EMPTY_VALUES)
   const [clearFlags, setClearFlags] = useState<AnimePatchClearFlags>(EMPTY_CLEAR_FLAGS)
+  const [initialValues, setInitialValues] = useState<AnimePatchValues>(EMPTY_VALUES)
+  const [initialClearFlags, setInitialClearFlags] = useState<AnimePatchClearFlags>(EMPTY_CLEAR_FLAGS)
   const [genreTokens, setGenreTokens] = useState<GenreToken[]>([])
   const [isLoadingGenreTokens, setIsLoadingGenreTokens] = useState(false)
   const [genreTokensError, setGenreTokensError] = useState<string | null>(null)
@@ -134,20 +112,22 @@ export function useAnimePatch(
 
   const isDirty = useMemo(() => {
     const hasValueChanges =
-      Boolean(values.title.trim()) ||
-      Boolean(values.type.trim()) ||
-      Boolean(values.contentType.trim()) ||
-      Boolean(values.status.trim()) ||
-      Boolean(values.year.trim()) ||
-      Boolean(values.maxEpisodes.trim()) ||
-      Boolean(values.titleDE.trim()) ||
-      Boolean(values.titleEN.trim()) ||
-      values.genreTokens.length > 0 ||
-      Boolean(values.description.trim()) ||
-      Boolean(values.coverImage.trim())
-    const hasClearFlags = Object.values(clearFlags).some(Boolean)
+      values.title !== initialValues.title ||
+      values.type !== initialValues.type ||
+      values.contentType !== initialValues.contentType ||
+      values.status !== initialValues.status ||
+      values.year !== initialValues.year ||
+      values.maxEpisodes !== initialValues.maxEpisodes ||
+      values.titleDE !== initialValues.titleDE ||
+      values.titleEN !== initialValues.titleEN ||
+      !areStringArraysEqual(values.genreTokens, initialValues.genreTokens) ||
+      values.description !== initialValues.description ||
+      values.coverImage !== initialValues.coverImage
+    const hasClearFlags = Object.keys(clearFlags).some(
+      (key) => clearFlags[key as keyof AnimePatchClearFlags] !== initialClearFlags[key as keyof AnimePatchClearFlags],
+    )
     return hasValueChanges || hasClearFlags
-  }, [clearFlags, values])
+  }, [clearFlags, initialClearFlags, initialValues, values])
 
   const setField = useCallback((field: keyof AnimePatchValues, value: string | string[]) => {
     setValues((current) => ({
@@ -194,7 +174,7 @@ export function useAnimePatch(
   }, [])
 
   const resetFromAnime = useCallback((anime: AnimeDetail) => {
-    setValues({
+    const nextValues: AnimePatchValues = {
       title: anime.title ?? '',
       type: (anime.type as AnimeType) ?? '',
       contentType: (anime.content_type as ContentType) ?? '',
@@ -207,104 +187,26 @@ export function useAnimePatch(
       genreDraft: '',
       description: anime.description ?? '',
       coverImage: anime.cover_image ?? '',
-    })
+    }
+    setValues(nextValues)
     setClearFlags(EMPTY_CLEAR_FLAGS)
+    setInitialValues(nextValues)
+    setInitialClearFlags(EMPTY_CLEAR_FLAGS)
   }, [])
 
-  const submit = useCallback(async (animeID: number) => {
-    if (!hasAuthToken) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
-      return
-    }
-
-    const payload: AdminAnimePatchRequest = {}
-    const title = normalizeOptionalString(values.title)
-    if (title) payload.title = title
-    if (values.type) payload.type = values.type as AnimeType
-    if (values.contentType) payload.content_type = values.contentType as ContentType
-    if (values.status) payload.status = values.status as AnimeStatus
-
-    if (clearFlags.year) payload.year = null
-    else if (values.year.trim()) {
-      const year = parsePositiveInt(values.year)
-      if (!year) {
-        onError('year muss groesser als 0 sein')
-        return
-      }
-      payload.year = year
-    }
-
-    if (clearFlags.maxEpisodes) payload.max_episodes = null
-    else if (values.maxEpisodes.trim()) {
-      const maxEpisodes = parsePositiveInt(values.maxEpisodes)
-      if (!maxEpisodes) {
-        onError('max_episodes muss groesser als 0 sein')
-        return
-      }
-      payload.max_episodes = maxEpisodes
-    }
-
-    const titleDE = normalizeOptionalString(values.titleDE)
-    const titleEN = normalizeOptionalString(values.titleEN)
-    const genre = normalizeOptionalString(values.genreTokens.join(', '))
-    const description = normalizeOptionalString(values.description)
-    const coverImage = normalizeOptionalString(values.coverImage)
-
-    if (clearFlags.titleDE) payload.title_de = null
-    else if (titleDE) payload.title_de = titleDE
-
-    if (clearFlags.titleEN) payload.title_en = null
-    else if (titleEN) payload.title_en = titleEN
-
-    if (clearFlags.genre) payload.genre = null
-    else if (genre) payload.genre = genre
-
-    if (clearFlags.description) payload.description = null
-    else if (description) payload.description = description
-
-    if (clearFlags.coverImage) payload.cover_image = null
-    else if (coverImage) payload.cover_image = coverImage
-
-    if (Object.keys(payload).length === 0) {
-      onError('Mindestens ein Feld fuer das Update ausfuellen.')
-      return
-    }
-
-    try {
-      setIsSubmitting(true)
-      options.onRequest?.(JSON.stringify(payload, null, 2))
-      const response = await updateAdminAnime(animeID, payload, authToken)
-      options.onResponse?.(JSON.stringify(response, null, 2))
-      const refreshed = await getAnimeByID(animeID, { include_disabled: true })
-      onSuccess(refreshed.data)
-    } catch (error) {
-      if (error instanceof Error) onError(error.message)
-      else onError('Anime konnte nicht aktualisiert werden.')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }, [authToken, clearFlags, hasAuthToken, onError, onSuccess, options, values])
-
-  const uploadAndSetCover = useCallback(async (file: File, animeID?: number | null) => {
-    try {
-      setIsUploadingCover(true)
-      const fileName = await uploadCoverFile(file)
-      setValues((current) => ({ ...current, coverImage: fileName }))
-      setClearFlags((current) => ({ ...current, coverImage: false }))
-
-      if (!hasAuthToken) return
-      if (!animeID) return
-
-      await updateAdminAnime(animeID, { cover_image: fileName }, authToken)
-      const refreshed = await getAnimeByID(animeID, { include_disabled: true })
-      onSuccess(refreshed.data)
-    } catch (error) {
-      if (error instanceof Error) onError(error.message)
-      else onError('Cover Upload fehlgeschlagen.')
-    } finally {
-      setIsUploadingCover(false)
-    }
-  }, [authToken, hasAuthToken, onError, onSuccess])
+  const { submit, uploadAndSetCover } = useAnimePatchMutations({
+    authToken,
+    hasAuthToken,
+    values,
+    clearFlags,
+    onSuccess,
+    onError,
+    options,
+    setIsSubmitting,
+    setIsUploadingCover,
+    setValues,
+    setClearFlags,
+  })
 
   return {
     values,

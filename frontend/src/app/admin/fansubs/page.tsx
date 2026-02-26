@@ -15,7 +15,10 @@ import {
 } from '@/lib/api'
 import { FansubGroup, FansubStatus } from '@/types/fansub'
 
-import styles from '../admin.module.css'
+import sharedStyles from '../admin.module.css'
+import fansubStyles from './fansubs.module.css'
+
+const styles = { ...sharedStyles, ...fansubStyles }
 
 type StatusFilter = 'all' | 'active' | 'inactive' | 'archived'
 type SortKey = 'name' | 'status' | 'period'

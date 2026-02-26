@@ -1,0 +1,439 @@
+.fansubAdminPage {
+  max-width: 1480px;
+}
+
+.fansubTopActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.fansubTopActionButton {
+  white-space: nowrap;
+}
+
+.fansubFilterBar {
+  display: grid;
+  grid-template-columns: minmax(280px, 2fr) repeat(3, minmax(160px, 1fr));
+  gap: 0.55rem;
+  padding: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+}
+
+.fansubFilterSearch {
+  min-width: 0;
+}
+
+.fansubFilterSelect {
+  min-width: 0;
+}
+
+.fansubBulkBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 38%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+
+.fansubBulkInfo {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+
+.fansubBulkControls {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fansubBulkSelect {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 26%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0.44rem 0.55rem;
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-primary);
+}
+
+.fansubTableShell {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.fansubDesktopTableWrap {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+}
+
+.fansubTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.fansubTable th,
+.fansubTable td {
+  padding: 0.5rem 0.55rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
+  vertical-align: middle;
+}
+
+.fansubTable thead th {
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--bg-card) 80%, var(--bg-secondary));
+}
+
+.fansubTable th:first-child,
+.fansubTable td:first-child {
+  width: 30px;
+}
+
+.fansubTable th:nth-child(2) {
+  width: 30%;
+}
+
+.fansubTable th:nth-child(3) {
+  width: 18%;
+}
+
+.fansubTable th:nth-child(4) {
+  width: 14%;
+}
+
+.fansubTable th:nth-child(5) {
+  width: 18%;
+}
+
+.fansubTable th:nth-child(6) {
+  width: 11%;
+}
+
+.fansubTable th:nth-child(7) {
+  width: 13%;
+}
+
+.fansubTable tbody tr:hover {
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--bg-secondary));
+}
+
+.fansubNameCell {
+  font-weight: 700;
+}
+
+.fansubSlugCell {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.fansubSlugBlock {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.fansubSlugText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fansubAliasTag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 34%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: color-mix(in srgb, var(--accent-primary) 62%, var(--text-primary));
+  font-size: 0.72rem;
+  line-height: 1.15;
+  width: max-content;
+  max-width: 100%;
+  padding: 0.1rem 0.38rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fansubPeriodCell,
+.fansubMemberCell {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fansubSortButton {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-transform: inherit;
+  letter-spacing: inherit;
+}
+
+.fansubSortButton:hover {
+  color: var(--text-primary);
+}
+
+.fansubStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.12rem 0.46rem;
+  font-size: 0.73rem;
+  line-height: 1.2;
+  text-transform: lowercase;
+  width: auto;
+  max-width: max-content;
+  white-space: nowrap;
+}
+
+.fansubStatusActive {
+  border-color: color-mix(in srgb, var(--color-success) 55%, transparent);
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+
+.fansubStatusInactive {
+  border-color: color-mix(in srgb, var(--text-secondary) 34%, transparent);
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--bg-card) 86%, var(--bg-secondary));
+}
+
+.fansubStatusArchived {
+  border-color: color-mix(in srgb, var(--color-error) 52%, transparent);
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+}
+
+.fansubActionsHeader {
+  text-align: right;
+}
+
+.fansubActionGroup {
+  display: inline-flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.fansubIconButton {
+  width: 30px;
+  height: 30px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.fansubIconButton:hover {
+  border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
+}
+
+.fansubIconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fansubIconButtonDanger {
+  border-color: color-mix(in srgb, var(--color-error) 45%, transparent);
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 8%, transparent);
+}
+
+.fansubTableFooter {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.fansubPaginationSummary {
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+
+.fansubPagination {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.fansubPaginationLabel {
+  min-width: 86px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+
+.fansubMobileList {
+  display: none;
+}
+
+.fansubCard {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+  padding: 0.58rem;
+  display: grid;
+  gap: 0.42rem;
+}
+
+.fansubCardTop {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.fansubCardCheckLabel {
+  display: inline-flex;
+}
+
+.fansubCardMeta {
+  min-width: 0;
+}
+
+.fansubCardName {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.fansubCardSlug {
+  margin: 0.1rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fansubCardAlias {
+  margin: 0.14rem 0 0;
+  color: color-mix(in srgb, var(--accent-primary) 66%, var(--text-secondary));
+  font-size: 0.76rem;
+}
+
+.fansubCardData {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.fansubCardDetail {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.fansubCardMenu {
+  position: relative;
+}
+
+.fansubMenuButton {
+  width: 30px;
+  height: 30px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fansubMenuPopup {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 150px;
+  padding: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 25%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  display: grid;
+  gap: 0.2rem;
+  z-index: 3;
+}
+
+.fansubMenuItem {
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.83rem;
+  text-decoration: none;
+  padding: 0.36rem 0.45rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.fansubMenuItem:hover {
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-secondary));
+}
+
+.fansubMenuItemDanger {
+  color: var(--color-error);
+}
+
+@media (max-width: 1100px) {
+  .fansubFilterBar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .fansubDesktopTableWrap {
+    display: none;
+  }
+
+  .fansubMobileList {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .fansubTableFooter {
+    justify-content: space-between;
+  }
+
+  .fansubPagination {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 680px) {
+  .fansubFilterBar {
+    grid-template-columns: 1fr;
+  }
+
+  .fansubBulkBar {
+    align-items: flex-start;
+  }
+}

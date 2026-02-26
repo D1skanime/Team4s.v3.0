@@ -5,7 +5,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getFansubList, getRuntimeAuthToken, mergeFansubs, mergeFansubsPreview } from '@/lib/api'
 import { FansubGroup, MergeFansubsPreviewResult } from '@/types/fansub'
-import styles from '../../admin.module.css'
+import sharedStyles from '../../admin.module.css'
+import mergeStyles from './MergeWizard.module.css'
+
+const styles = { ...sharedStyles, ...mergeStyles }
 
 type WizardStep = 1 | 2 | 3 | 4
 type SortMode = 'name' | 'related'

@@ -1,0 +1,178 @@
+.episodeList {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.animeRow {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+  padding: 0.55rem;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: start;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.animeRow:hover {
+  border-color: color-mix(in srgb, var(--accent-primary) 36%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 7%, var(--bg-secondary));
+}
+
+.animeRowActive {
+  border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 9%, var(--bg-secondary));
+}
+
+.animeThumb {
+  width: 44px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  font-size: 0;
+}
+
+.animeMeta {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.animeTitleLine {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.badgeRow {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.animeTitleText {
+  margin: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowContextMenu {
+  position: relative;
+}
+
+.rowContextMenu summary {
+  list-style: none;
+}
+
+.rowContextMenu summary::-webkit-details-marker {
+  display: none;
+}
+
+.rowContextMenuBody {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 150px;
+  padding: 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 96%, transparent);
+  z-index: 5;
+}
+
+.letterFilterBar {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+}
+
+.letterFilterButton {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  padding: 0.2rem 0.48rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.letterFilterButtonActive {
+  border-color: color-mix(in srgb, var(--accent-primary) 58%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
+  color: var(--text-primary);
+}
+
+.coverMissingBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 55%, transparent);
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  flex-shrink: 0;
+  text-transform: lowercase;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  flex-shrink: 0;
+  text-transform: lowercase;
+}
+
+.statusOngoing {
+  border-color: color-mix(in srgb, var(--status-ongoing) 55%, transparent);
+  color: color-mix(in srgb, var(--status-ongoing) 80%, white);
+  background: color-mix(in srgb, var(--status-ongoing) 14%, transparent);
+}
+
+.statusDone {
+  border-color: color-mix(in srgb, var(--status-done) 55%, transparent);
+  color: color-mix(in srgb, var(--status-done) 80%, white);
+  background: color-mix(in srgb, var(--status-done) 14%, transparent);
+}
+
+.statusAborted {
+  border-color: color-mix(in srgb, var(--status-aborted) 55%, transparent);
+  color: color-mix(in srgb, var(--status-aborted) 80%, white);
+  background: color-mix(in srgb, var(--status-aborted) 12%, transparent);
+}
+
+.statusLicensed {
+  border-color: color-mix(in srgb, var(--status-licensed) 55%, transparent);
+  color: color-mix(in srgb, var(--status-licensed) 80%, white);
+  background: color-mix(in srgb, var(--status-licensed) 12%, transparent);
+}
+
+.statusDisabled {
+  opacity: 0.9;
+}
+
+.statusPrivate {
+  border-color: color-mix(in srgb, var(--color-warning) 55%, transparent);
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+}
+
+.statusPublic {
+  border-color: color-mix(in srgb, var(--color-success) 55%, transparent);
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}

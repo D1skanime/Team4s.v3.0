@@ -1,7 +1,10 @@
 import { FansubGroup } from '@/types/fansub'
 
 import { buildFansubStoryPreview } from '../../utils/episode-helpers'
-import styles from '../../../admin.module.css'
+import sharedStyles from '../../../admin.module.css'
+import contextStyles from './AnimeContext.module.css'
+
+const styles = { ...sharedStyles, ...contextStyles }
 
 interface AnimeContextFansubsProps {
   fansubs: FansubGroup[]

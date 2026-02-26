@@ -1,7 +1,10 @@
 import { KeyboardEvent } from 'react'
 
 import { CoverFilter } from '../../types/admin-anime'
-import styles from '../../../admin.module.css'
+import sharedStyles from '../../../admin.module.css'
+import browserStyles from './AnimeBrowser.module.css'
+
+const styles = { ...sharedStyles, ...browserStyles }
 
 interface AnimeBrowserFiltersProps {
   queryInput: string
@@ -26,6 +29,8 @@ export function AnimeBrowserFilters({
   onLetterChange,
   onCoverChange,
 }: AnimeBrowserFiltersProps) {
+  const letterFilters = ['', '0', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')]
+
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Enter') return
     event.preventDefault()
@@ -33,21 +38,9 @@ export function AnimeBrowserFilters({
   }
 
   return (
-    <div className={styles.gridTwo}>
+    <div className={styles.grid}>
       <div className={styles.field}>
-        <label htmlFor="anime-browser-letter">API Filter (A-Z)</label>
-        <select id="anime-browser-letter" value={letter} onChange={(event) => onLetterChange(event.target.value)} disabled={isLoading}>
-          <option value="">Alle</option>
-          <option value="0">0-9</option>
-          {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className={styles.field}>
-        <label htmlFor="anime-browser-query">Suche (Server)</label>
+        <label htmlFor="anime-browser-query">Suche</label>
         <div className={styles.inputRow}>
           <input
             id="anime-browser-query"
@@ -67,6 +60,26 @@ export function AnimeBrowserFilters({
           >
             X
           </button>
+        </div>
+      </div>
+      <div className={styles.field}>
+        <label>Startbuchstabe</label>
+        <div className={styles.letterFilterBar} role="group" aria-label="Startbuchstabe">
+          {letterFilters.map((value) => {
+            const label = value === '' ? 'Alle' : value === '0' ? '0-9' : value
+            const isActive = letter === value
+            return (
+              <button
+                key={label}
+                type="button"
+                className={`${styles.letterFilterButton} ${isActive ? styles.letterFilterButtonActive : ''}`}
+                onClick={() => onLetterChange(value)}
+                disabled={isLoading}
+              >
+                {label}
+              </button>
+            )
+          })}
         </div>
       </div>
       <div className={styles.field}>

@@ -1,0 +1,175 @@
+.layoutRoot {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+}
+
+.layoutGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+@media (min-width: 992px) {
+  .layoutGrid {
+    grid-template-columns: minmax(250px, 0.9fr) minmax(340px, 1.15fr) minmax(520px, 1.85fr);
+  }
+}
+
+.pane {
+  min-width: 0;
+  transition: transform 140ms ease, opacity 140ms ease, filter 140ms ease;
+}
+
+.browserPane {
+  min-width: 0;
+}
+
+@media (min-width: 992px) {
+  .layoutRootEditing .browserPane {
+    opacity: 0.72;
+    filter: saturate(0.82);
+  }
+}
+
+.contextPane {
+  min-width: 0;
+}
+
+.editorPane {
+  min-width: 0;
+  position: relative;
+}
+
+.layoutRootEditing .editorPane {
+  z-index: 2;
+}
+
+.editorShell {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.editorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.8rem;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 92%, transparent);
+}
+
+.editorHeaderTitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.editorMeta {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.editorModeTabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.editorTab {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-primary);
+  border-radius: 999px;
+  padding: 0.32rem 0.62rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.editorTabActive {
+  border-color: color-mix(in srgb, var(--accent-primary) 52%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
+}
+
+.editorTab:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.statePill {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 28%, transparent);
+  border-radius: 999px;
+  padding: 0.2rem 0.58rem;
+  font-size: 0.77rem;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  white-space: nowrap;
+}
+
+.stateIdle {
+  color: var(--text-secondary);
+}
+
+.stateEditing {
+  color: var(--text-primary);
+}
+
+.stateUnsaved {
+  border-color: color-mix(in srgb, var(--color-warning) 56%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 13%, transparent);
+  color: var(--text-primary);
+}
+
+.stateSaving {
+  border-color: color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 13%, transparent);
+  color: var(--text-primary);
+}
+
+.stateSaved {
+  border-color: color-mix(in srgb, var(--color-success) 55%, transparent);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+}
+
+.stateError {
+  border-color: color-mix(in srgb, var(--color-error) 58%, transparent);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  color: var(--color-error);
+}
+
+.stickySaveWrap {
+  position: sticky;
+  bottom: 0.85rem;
+  z-index: 3;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.stickySave {
+  pointer-events: auto;
+  border: 1px solid var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 20%, var(--bg-card));
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.stickySave:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.stickyHint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+

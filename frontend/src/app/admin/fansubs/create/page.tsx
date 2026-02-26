@@ -7,7 +7,10 @@ import { ApiError, createFansubAlias, createFansubGroup, getRuntimeAuthToken } f
 import { FansubGroup, FansubGroupType, FansubStatus } from '@/types/fansub'
 import { EditableMediaValue, MediaUpload } from '@/components/admin/MediaUpload'
 
-import styles from '../../admin.module.css'
+import sharedStyles from '../../admin.module.css'
+import fansubEditStyles from '../[id]/edit/FansubEdit.module.css'
+
+const styles = { ...sharedStyles, ...fansubEditStyles }
 
 const STATUS_OPTIONS: FansubStatus[] = ['active', 'inactive', 'dissolved']
 const GROUP_TYPE_OPTIONS: FansubGroupType[] = ['group', 'collaboration']

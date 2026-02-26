@@ -5,6 +5,7 @@ interface AnimeBrowserPaginationProps {
   page: number
   totalPages: number
   canReset: boolean
+  hideNonEssential: boolean
   onSearch: () => void
   onReset: () => void
   onPrev: () => void
@@ -17,6 +18,7 @@ export function AnimeBrowserPagination({
   page,
   totalPages,
   canReset,
+  hideNonEssential,
   onSearch,
   onReset,
   onPrev,
@@ -31,15 +33,19 @@ export function AnimeBrowserPagination({
       <button className={styles.buttonSecondary} type="button" disabled={isLoading || !canReset} onClick={onReset}>
         Reset
       </button>
-      <button className={styles.buttonSecondary} type="button" disabled={isLoading || page <= 1} onClick={onPrev}>
-        Vorherige Seite
-      </button>
-      <button className={styles.buttonSecondary} type="button" disabled={isLoading || page >= totalPages} onClick={onNext}>
-        Naechste Seite
-      </button>
-      <button className={styles.buttonSecondary} type="button" disabled={isLoading} onClick={onReload}>
-        Neu laden
-      </button>
+      {!hideNonEssential ? (
+        <>
+          <button className={styles.buttonSecondary} type="button" disabled={isLoading || page <= 1} onClick={onPrev}>
+            Vorherige Seite
+          </button>
+          <button className={styles.buttonSecondary} type="button" disabled={isLoading || page >= totalPages} onClick={onNext}>
+            Naechste Seite
+          </button>
+          <button className={styles.buttonSecondary} type="button" disabled={isLoading} onClick={onReload}>
+            Neu laden
+          </button>
+        </>
+      ) : null}
     </div>
   )
 }

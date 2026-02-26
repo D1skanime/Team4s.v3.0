@@ -1,7 +1,10 @@
 import { AnimeListItem, AnimeStatus } from '@/types/anime'
 
 import { handleCoverImgError, resolveAnimeStatusClass, resolveCoverUrl } from '../../utils/anime-helpers'
-import styles from '../../../admin.module.css'
+import sharedStyles from '../../../admin.module.css'
+import browserStyles from './AnimeBrowser.module.css'
+
+const styles = { ...sharedStyles, ...browserStyles }
 
 interface AnimeRowProps {
   anime: AnimeListItem
@@ -13,6 +16,7 @@ interface AnimeRowProps {
   onSelect: () => void
   onSync: () => void
   onCoverError: () => void
+  hideNonEssential: boolean
 }
 
 export function AnimeRow({
@@ -25,6 +29,7 @@ export function AnimeRow({
   onSelect,
   onSync,
   onCoverError,
+  hideNonEssential,
 }: AnimeRowProps) {
   const rawCover = (anime.cover_image || '').trim()
   const hasCover = rawCover.length > 0
@@ -59,14 +64,23 @@ export function AnimeRow({
         </p>
         <div className={styles.actions}>
           <button className={styles.button} type="button" onClick={onSelect} disabled={isLoadingContext}>
-            Bearbeiten
+            Kontext laden
           </button>
-          <a href={`/anime/${anime.id}`} className={styles.buttonSecondary} target="_blank" rel="noreferrer">
-            Oeffnen
-          </a>
-          <button className={styles.buttonSecondary} type="button" onClick={onSync} disabled={isSyncDisabled || isSyncing}>
-            {isSyncing ? 'Sync...' : 'Sync'}
-          </button>
+          {!hideNonEssential ? (
+            <>
+              <details className={styles.rowContextMenu}>
+                <summary className={styles.buttonSecondary}>Mehr</summary>
+                <div className={styles.rowContextMenuBody}>
+                  <a href={`/anime/${anime.id}`} className={styles.buttonSecondary} target="_blank" rel="noreferrer">
+                    Oeffnen
+                  </a>
+                  <button className={styles.buttonSecondary} type="button" onClick={onSync} disabled={isSyncDisabled || isSyncing}>
+                    {isSyncing ? 'Synchronisiert...' : 'Synchronisieren'}
+                  </button>
+                </div>
+              </details>
+            </>
+          ) : null}
         </div>
       </div>
     </div>

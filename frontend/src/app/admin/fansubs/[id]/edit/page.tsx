@@ -32,7 +32,10 @@ import {
 } from '@/lib/api'
 import { FansubAlias, FansubGroup, FansubGroupPatchRequest, FansubGroupType, FansubStatus } from '@/types/fansub'
 import { buildFansubLogoFallback, buildMediaPreviewURL, EditableMediaValue, MediaUpload } from '@/components/admin/MediaUpload'
-import styles from '../../../admin.module.css'
+import sharedStyles from '../../../admin.module.css'
+import fansubEditStyles from './FansubEdit.module.css'
+
+const styles = { ...sharedStyles, ...fansubEditStyles }
 
 const STATUS_OPTIONS: FansubStatus[] = ['active', 'inactive', 'dissolved']
 const GROUP_TYPE_OPTIONS: FansubGroupType[] = ['group', 'collaboration']
@@ -458,7 +461,8 @@ export default function AdminFansubEditPage() {
           <div className={styles.fansubEditProfileRow}>
             <div className={styles.fansubEditLogoBadge}>
               {logoPreviewURL ? (
-                <div className={styles.fansubEditLogoImage} style={{ backgroundImage: `url(${logoPreviewURL})` }} />
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoPreviewURL} alt={`${form.name.trim() || 'Fansub'} Logo`} className={styles.fansubEditLogoImage} />
               ) : (
                 <span style={{ backgroundColor: logoFallback.background, color: logoFallback.color }}>{logoFallback.initials}</span>
               )}

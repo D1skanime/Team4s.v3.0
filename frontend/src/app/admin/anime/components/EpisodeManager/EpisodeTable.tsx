@@ -1,7 +1,10 @@
 import { EpisodeListItem, EpisodeStatus } from '@/types/anime'
 
 import { EpisodeRow } from './EpisodeRow'
-import styles from '../../../admin.module.css'
+import sharedStyles from '../../../admin.module.css'
+import episodeStyles from './EpisodeManager.module.css'
+
+const styles = { ...sharedStyles, ...episodeStyles }
 
 interface EpisodeTableProps {
   episodes: EpisodeListItem[]
@@ -41,19 +44,11 @@ export function EpisodeTable({
   onRemoveEpisode,
 }: EpisodeTableProps) {
   if (episodes.length === 0) {
-    return <p className={styles.hint}>Noch keine Episoden vorhanden.</p>
+    return <p className={styles.episodeEmptyState}>Keine Episoden fuer diesen Filter gefunden.</p>
   }
 
   return (
     <div className={`${styles.episodeTable} ${density === 'compact' ? styles.episodeTableCompact : styles.episodeTableComfortable}`}>
-      <div className={styles.episodeTableHeader} role="row">
-        <span className={styles.episodeHeaderCell} aria-hidden="true" />
-        <span className={styles.episodeHeaderCell}>Nr</span>
-        <span className={styles.episodeHeaderCell}>Titel</span>
-        <span className={styles.episodeHeaderCell}>Status</span>
-        <span className={styles.episodeHeaderCell}>ID</span>
-        <span className={styles.episodeHeaderCell}>Aktion</span>
-      </div>
       {episodes.map((episode) => (
         <EpisodeRow
           key={episode.id}

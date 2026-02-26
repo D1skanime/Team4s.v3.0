@@ -1,16 +1,19 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 
-import { AnimeDetail, EpisodeStatus } from '@/types/anime'
+import { AnimeDetail, EpisodeListItem, EpisodeStatus } from '@/types/anime'
 
 import { useEpisodeManager } from '../../hooks/useEpisodeManager'
 import { parsePositiveInt } from '../../utils/anime-helpers'
 import { suggestNextEpisodeNumber } from '../../utils/episode-helpers'
 import { EpisodeFilters } from './EpisodeFilters'
 import { EpisodeBulkBar } from './EpisodeBulkBar'
-import { EpisodeTable } from './EpisodeTable'
+import { EpisodeList } from './EpisodeList'
 import { EpisodeCreateForm } from './EpisodeCreateForm'
-import { EpisodeEditForm } from './EpisodeEditForm'
-import styles from '../../../admin.module.css'
+import { EpisodeEditor } from './EpisodeEditor'
+import sharedStyles from '../../../admin.module.css'
+import episodeStyles from './EpisodeManager.module.css'
+
+const styles = { ...sharedStyles, ...episodeStyles }
 
 const EPISODE_STATUSES: EpisodeStatus[] = ['disabled', 'private', 'public']
 
@@ -22,9 +25,21 @@ interface EpisodeManagerProps {
   onError: (msg: string) => void
   onRequest?: (request: string | null) => void
   onResponse?: (response: string | null) => void
+  onEditorStateChange?: (state: { selectedEpisodeId: number | null; hasUnsavedChanges: boolean; isSaving: boolean }) => void
+  onRegisterSaveAction?: (saveAction: (() => void) | null) => void
 }
 
-export function EpisodeManager({ anime, authToken, onRefresh, onSuccess, onError, onRequest, onResponse }: EpisodeManagerProps) {
+export function EpisodeManager({
+  anime,
+  authToken,
+  onRefresh,
+  onSuccess,
+  onError,
+  onRequest,
+  onResponse,
+  onEditorStateChange,
+  onRegisterSaveAction,
+}: EpisodeManagerProps) {
   const [bulkStatus, setBulkStatus] = useState<EpisodeStatus | ''>('')
   const episodeFilterInputRef = useRef<HTMLInputElement>(null)
   const episodeEditAnchorRef = useRef<HTMLDivElement>(null)
@@ -45,6 +60,21 @@ export function EpisodeManager({ anime, authToken, onRefresh, onSuccess, onError
     }
   }, [manager.selectedID])
 
+  useEffect(() => {
+    onEditorStateChange?.({
+      selectedEpisodeId: manager.selectedID,
+      hasUnsavedChanges: manager.hasEditChanges,
+      isSaving: manager.isUpdating,
+    })
+  }, [manager.hasEditChanges, manager.isUpdating, manager.selectedID, onEditorStateChange])
+
+  useEffect(() => {
+    onRegisterSaveAction?.(() => {
+      void manager.submitEdit()
+    })
+    return () => onRegisterSaveAction?.(null)
+  }, [manager, onRegisterSaveAction])
+
   const resetPayloadPreview = () => {
     onRequest?.(null)
     onResponse?.(null)
@@ -64,9 +94,7 @@ export function EpisodeManager({ anime, authToken, onRefresh, onSuccess, onError
 
   const handleRemoveEpisode = (episodeID: number, episodeNumber: string) => {
     if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(
-        `Episode ${episodeNumber} aus Anime #${anime.id} entfernen?\nDas entfernt nur lokale Zuordnungen (DB), nicht die Datei in Jellyfin/Emby.`,
-      )
+      const confirmed = window.confirm(`Episode ${episodeNumber} wirklich entfernen?`)
       if (!confirmed) return
     }
 
@@ -80,9 +108,7 @@ export function EpisodeManager({ anime, authToken, onRefresh, onSuccess, onError
   const handleRemoveSelected = () => {
     if (manager.selectedCount === 0) return
     if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(
-        `${manager.selectedCount} markierte Episoden aus Anime #${anime.id} entfernen?\nDas entfernt nur lokale Zuordnungen (DB), nicht die Datei in Jellyfin/Emby.`,
-      )
+      const confirmed = window.confirm(`${manager.selectedCount} ausgewaehlte Episoden wirklich entfernen?`)
       if (!confirmed) return
     }
 
@@ -96,74 +122,28 @@ export function EpisodeManager({ anime, authToken, onRefresh, onSuccess, onError
     void manager.applyBulkStatus(bulkStatus)
   }
 
+  const handleSelectEpisode = (episode: EpisodeListItem) => {
+    if (manager.selectedID && manager.selectedID !== episode.id && manager.hasEditChanges && typeof window !== 'undefined') {
+      const confirmed = window.confirm(
+        'Es gibt ungespeicherte Aenderungen an der aktuellen Episode. Trotzdem wechseln und Aenderungen verwerfen?',
+      )
+      if (!confirmed) return
+    }
+    manager.selectEpisode(episode)
+  }
+
   return (
-    <section id="admin-anime-episodes" className={`${styles.panel} ${styles.editPanel}`}>
-      <h2>Episoden verwalten</h2>
-      <p className={styles.hint}>
-        Anime #{anime.id}: {anime.title} | Episoden: {anime.episodes.length}
-      </p>
+    <section id="admin-anime-episodes" className={`${styles.panel} ${styles.editPanel} ${styles.episodePanel}`}>
+      <header className={styles.episodeHeaderZone}>
+        <h2 className={styles.episodeHeaderTitle}>Episoden verwalten</h2>
+        <p className={styles.episodeHeaderSubtitle}>Anime: {anime.title}</p>
+        <p className={styles.episodeHeaderMeta}>{anime.episodes.length} Episoden</p>
+        <p className={styles.episodeHeaderSelection}>{manager.selectedCount} ausgewaehlt</p>
+      </header>
 
       <div className={styles.episodeManager}>
         <div className={styles.episodeManagerLeft}>
-          <EpisodeFilters
-            inputRef={episodeFilterInputRef}
-            query={manager.query}
-            statusFilter={manager.statusFilter}
-            density={manager.density}
-            statusCounts={manager.statusCounts}
-            totalCount={anime.episodes.length}
-            visibleCount={manager.visibleEpisodes.length}
-            selectedVisibleCount={manager.selectedVisibleCount}
-            selectedCount={manager.selectedCount}
-            statuses={EPISODE_STATUSES}
-            disabled={manager.isUpdating || manager.isCreating || manager.isApplyingBulk}
-            onQueryChange={manager.setQuery}
-            onStatusFilterChange={manager.setStatusFilter}
-            onDensityChange={manager.setDensity}
-          />
-
-          <EpisodeBulkBar
-            statuses={EPISODE_STATUSES}
-            visibleCount={manager.visibleEpisodes.length}
-            selectedCount={manager.selectedCount}
-            allVisibleSelected={manager.allVisibleSelected}
-            bulkStatus={bulkStatus}
-            isApplyingBulk={manager.isApplyingBulk}
-            isUpdating={manager.isUpdating}
-            bulkProgress={manager.bulkProgress}
-            onToggleAllVisible={() => manager.toggleAllVisible(manager.visibleEpisodes.map((episode) => episode.id))}
-            onClearSelection={manager.clearSelection}
-            onBulkStatusChange={setBulkStatus}
-            onApplyBulkStatus={handleBulkStatusApply}
-            onRemoveSelected={handleRemoveSelected}
-          />
-
-          <EpisodeTable
-            episodes={manager.visibleEpisodes}
-            density={manager.density}
-            selectedID={manager.selectedID}
-            inlineEditID={manager.inlineEditID}
-            inlineEditValues={manager.inlineEditValues}
-            removingIDs={manager.removingIDs}
-            isUpdating={manager.isUpdating}
-            isApplyingBulk={manager.isApplyingBulk}
-            statuses={EPISODE_STATUSES}
-            onSelectEpisode={manager.selectEpisode}
-            onToggleSelected={manager.toggleSelected}
-            onBeginInlineEdit={manager.beginInlineEdit}
-            onInlineFieldChange={manager.setInlineField}
-            onSaveInlineEdit={() => {
-              resetPayloadPreview()
-              void manager.saveInlineEdit()
-            }}
-            onCancelInlineEdit={manager.cancelInlineEdit}
-            onRemoveEpisode={(episode) => handleRemoveEpisode(episode.id, episode.episode_number)}
-          />
-        </div>
-
-        <div className={styles.episodeManagerRight}>
           <EpisodeCreateForm
-            animeID={anime.id}
             values={manager.createFormValues}
             statuses={EPISODE_STATUSES}
             nextEpisodeNumberSuggestion={nextEpisodeNumberSuggestion}
@@ -172,13 +152,74 @@ export function EpisodeManager({ anime, authToken, onRefresh, onSuccess, onError
             onSubmit={handleCreateSubmit}
           />
 
-          <div className={styles.sectionDivider} />
+          <EpisodeFilters
+            inputRef={episodeFilterInputRef}
+            query={manager.query}
+            statusFilter={manager.statusFilter}
+            density={manager.density}
+            statusCounts={manager.statusCounts}
+            visibleCount={manager.visibleEpisodes.length}
+            allVisibleSelected={manager.allVisibleSelected}
+            disabled={manager.isUpdating || manager.isCreating || manager.isApplyingBulk}
+            onQueryChange={manager.setQuery}
+            onStatusFilterChange={manager.setStatusFilter}
+            onDensityChange={manager.setDensity}
+            onToggleAllVisible={() => manager.toggleAllVisible(manager.visibleEpisodes.map((episode) => episode.id))}
+          />
+
+          {manager.selectedCount > 0 ? (
+            <EpisodeBulkBar
+              statuses={EPISODE_STATUSES}
+              selectedCount={manager.selectedCount}
+              bulkStatus={bulkStatus}
+              isApplyingBulk={manager.isApplyingBulk}
+              isUpdating={manager.isUpdating}
+              bulkProgress={manager.bulkProgress}
+              onClearSelection={manager.clearSelection}
+              onBulkStatusChange={setBulkStatus}
+              onApplyBulkStatus={handleBulkStatusApply}
+              onRemoveSelected={handleRemoveSelected}
+            />
+          ) : null}
+
+          <section className={styles.episodeListZone}>
+            <div className={styles.episodeListZoneHeader}>
+              <h3>Episodenliste</h3>
+              <p className={styles.hint}>{manager.visibleEpisodes.length} sichtbar</p>
+            </div>
+            <EpisodeList
+              episodes={manager.visibleEpisodes}
+              density={manager.density}
+              selectedID={manager.selectedID}
+              inlineEditID={manager.inlineEditID}
+              inlineEditValues={manager.inlineEditValues}
+              removingIDs={manager.removingIDs}
+              isUpdating={manager.isUpdating}
+              isApplyingBulk={manager.isApplyingBulk}
+              statuses={EPISODE_STATUSES}
+              onSelectEpisode={handleSelectEpisode}
+              onToggleSelected={manager.toggleSelected}
+              onBeginInlineEdit={manager.beginInlineEdit}
+              onInlineFieldChange={manager.setInlineField}
+              onSaveInlineEdit={() => {
+                resetPayloadPreview()
+                void manager.saveInlineEdit()
+              }}
+              onCancelInlineEdit={manager.cancelInlineEdit}
+              onRemoveEpisode={(episode) => handleRemoveEpisode(episode.id, episode.episode_number)}
+            />
+          </section>
+        </div>
+
+        <div className={styles.episodeManagerRight}>
           <div ref={episodeEditAnchorRef} />
 
-          <EpisodeEditForm
+          <EpisodeEditor
             episodeOpenID={episodeOpenID}
+            selectedEpisode={manager.selectedEpisode}
             values={manager.editFormValues}
             clearFlags={manager.editFormClearFlags}
+            hasUnsavedChanges={manager.hasEditChanges}
             statuses={EPISODE_STATUSES}
             isUpdating={manager.isUpdating}
             onFieldChange={manager.setEditField}

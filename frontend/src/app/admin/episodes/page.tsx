@@ -8,7 +8,10 @@ import { AdminEpisodeCreateRequest, AdminEpisodePatchRequest } from '@/types/adm
 import { ApiError, createAdminEpisode, getAnimeList, getRuntimeAuthToken, updateAdminEpisode } from '@/lib/api'
 import { getCoverUrl } from '@/lib/utils'
 
-import styles from '../admin.module.css'
+import sharedStyles from '../admin.module.css'
+import browserStyles from '../anime/components/AnimeBrowser/AnimeBrowser.module.css'
+
+const styles = { ...sharedStyles, ...browserStyles }
 
 const EPISODE_STATUSES: EpisodeStatus[] = ['disabled', 'private', 'public']
 const ANIME_SEARCH_PER_PAGE = 20

@@ -1,0 +1,516 @@
+.episodePanel {
+  gap: 0.85rem;
+}
+
+.episodeHeaderZone {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  padding: 0.85rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.episodeHeaderTitle {
+  margin: 0;
+  font-size: 1.22rem;
+  font-weight: 700;
+}
+
+.episodeHeaderSubtitle,
+.episodeHeaderMeta,
+.episodeHeaderSelection {
+  margin: 0;
+}
+
+.episodeHeaderSubtitle {
+  color: var(--text-secondary);
+}
+
+.episodeHeaderMeta,
+.episodeHeaderSelection {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.episodeManager {
+  display: grid;
+  gap: 0.95rem;
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+@media (min-width: 1080px) {
+  .episodeManager {
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  }
+}
+
+.episodeManagerLeft,
+.episodeManagerRight {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.createCard {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+  padding: 0.65rem 0.72rem;
+}
+
+.createSummary {
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+
+.createSummary::-webkit-details-marker {
+  display: none;
+}
+
+.createBody {
+  margin-top: 0.68rem;
+  display: grid;
+  gap: 0.68rem;
+  overflow: hidden;
+}
+
+.createCard[open] .createBody {
+  animation: createExpand 180ms ease;
+}
+
+@keyframes createExpand {
+  from {
+    opacity: 0.35;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filterZoneGrid {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.zoneBlock {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+  padding: 0.7rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.zoneBlockHeader h4 {
+  margin: 0;
+  font-size: 0.93rem;
+}
+
+.filterBlockBody {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.filterMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.segmentedControl {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-card) 94%, transparent);
+  overflow: hidden;
+}
+
+.segmentedOption {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 0.42rem 0.7rem;
+  cursor: pointer;
+}
+
+.segmentedOption + .segmentedOption {
+  border-left: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
+}
+
+.segmentedOptionActive {
+  background: color-mix(in srgb, var(--accent-primary) 16%, transparent);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.segmentedOption:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.statusChipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.filterChip {
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-card) 94%, transparent);
+  color: var(--text-secondary);
+  padding: 0.36rem 0.62rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.filterChipActive {
+  background: color-mix(in srgb, var(--accent-primary) 16%, transparent);
+  color: var(--text-primary);
+}
+
+.filterChip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.filterChipCount {
+  font-size: 0.78rem;
+  color: inherit;
+}
+
+.bulkActionBar {
+  position: sticky;
+  top: 0.55rem;
+  z-index: 4;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 28%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-card) 96%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 11%, transparent);
+  padding: 0.58rem;
+  display: grid;
+  gap: 0.48rem;
+}
+
+.bulkSummary {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.bulkProgress {
+  color: var(--text-muted);
+}
+
+.bulkActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.bulkSelect {
+  min-width: 170px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.55rem;
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-primary);
+}
+
+.episodeListZone {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+  padding: 0.68rem;
+  display: grid;
+  gap: 0.65rem;
+  min-height: 320px;
+}
+
+.episodeListZoneHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.episodeListZoneHeader h3 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.episodeTable {
+  display: grid;
+  gap: 0.55rem;
+  min-height: 220px;
+  align-content: start;
+}
+
+.episodeTableCompact .episodeTableRow {
+  padding: 0.5rem 0.55rem;
+}
+
+.episodeTableComfortable .episodeTableRow {
+  padding: 0.72rem 0.76rem;
+}
+
+.episodeEmptyState {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.episodeTableRow {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.62rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 96%, transparent);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--text-secondary) 8%, transparent);
+  transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+}
+
+.episodeTableRowClickable {
+  cursor: pointer;
+}
+
+.episodeTableRow:hover {
+  border-color: color-mix(in srgb, var(--accent-primary) 28%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 6%, var(--bg-card));
+}
+
+.episodeTableRowSelected {
+  border-color: color-mix(in srgb, var(--accent-primary) 42%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 9%, var(--bg-card));
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+}
+
+.episodeSelect {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.episodeSelect input {
+  margin: 0;
+}
+
+.episodeRowMain {
+  min-width: 0;
+  display: grid;
+  gap: 0.34rem;
+}
+
+.episodeNumberBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  padding: 0.15rem 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.episodeTitleWrap {
+  min-width: 0;
+  display: grid;
+  gap: 0.16rem;
+}
+
+.episodeTitleCell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.episodeIDCell {
+  font-size: 0.77rem;
+  color: var(--text-muted);
+}
+
+.episodeStatusBadge {
+  border-radius: 999px;
+  padding: 0.16rem 0.52rem;
+  font-size: 0.78rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-secondary);
+  text-transform: lowercase;
+  white-space: nowrap;
+}
+
+.statusPrivate {
+  border-color: color-mix(in srgb, var(--color-warning) 54%, transparent);
+  color: color-mix(in srgb, var(--color-warning) 78%, var(--text-primary));
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+}
+
+.statusPublic {
+  border-color: color-mix(in srgb, var(--color-success) 54%, transparent);
+  color: color-mix(in srgb, var(--color-success) 78%, var(--text-primary));
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+
+.statusDisabled {
+  border-color: color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+}
+
+.episodeActionsCell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.rowContextMenu {
+  position: relative;
+}
+
+.rowContextMenu summary {
+  list-style: none;
+}
+
+.rowContextMenu summary::-webkit-details-marker {
+  display: none;
+}
+
+.episodeContextTrigger {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rowContextMenuBody {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 190px;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.44rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 98%, transparent);
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--text-secondary) 14%, transparent);
+  z-index: 6;
+}
+
+.episodeContextButton,
+.episodeOpenLink,
+.episodeMiniButton {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.55rem;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+
+.episodeContextButton:disabled,
+.episodeMiniButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.episodeDangerButton {
+  border-color: color-mix(in srgb, var(--color-error) 54%, transparent);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  color: color-mix(in srgb, var(--color-error) 74%, var(--text-primary));
+}
+
+.episodeInlineShell {
+  grid-column: 2 / -1;
+  display: grid;
+  gap: 0.52rem;
+}
+
+.episodeInlineGrid {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: minmax(88px, 116px) minmax(0, 1fr) minmax(120px, 165px);
+}
+
+.episodeFieldInput {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 26%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0.38rem 0.48rem;
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-primary);
+}
+
+.episodeFieldInput:disabled {
+  opacity: 0.62;
+}
+
+.episodeTitleInput {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.episodeStatusSelect {
+  border-radius: 999px;
+}
+
+@media (max-width: 900px) {
+  .episodeTableRow {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 0.58rem;
+  }
+
+  .episodeStatusBadge {
+    justify-self: start;
+  }
+
+  .episodeActionsCell {
+    justify-content: flex-start;
+  }
+
+  .episodeRowMain {
+    gap: 0.3rem;
+  }
+
+  .episodeInlineShell {
+    grid-column: 1 / -1;
+  }
+
+  .episodeInlineGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .bulkActions {
+    align-items: stretch;
+  }
+
+  .bulkSelect {
+    min-width: 0;
+    width: 100%;
+  }
+}

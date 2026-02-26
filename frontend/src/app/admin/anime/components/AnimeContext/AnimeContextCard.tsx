@@ -6,7 +6,10 @@ import { FansubGroup } from '@/types/fansub'
 
 import { resolveCoverUrl, handleCoverImgError } from '../../utils/anime-helpers'
 import { AnimeContextFansubs } from './AnimeContextFansubs'
-import styles from '../../../admin.module.css'
+import sharedStyles from '../../../admin.module.css'
+import contextStyles from './AnimeContext.module.css'
+
+const styles = { ...sharedStyles, ...contextStyles }
 
 interface AnimeContextCardProps {
   anime: AnimeDetail | null
@@ -35,8 +38,8 @@ export function AnimeContextCard({
 }: AnimeContextCardProps) {
   return (
     <section className={`${styles.panel} ${styles.contextPanel} ${styles.contextColumn}`}>
-      <h2>Arbeitskontext (Anime)</h2>
-      <p className={styles.hint}>Lade einen Anime, damit Episoden im selben Kontext erstellt und bearbeitet werden koennen.</p>
+      <h2>Aktiver Kontext</h2>
+      <p className={styles.hint}>Schritt 2: Kontext laden, dann Episode auswaehlen und bearbeiten.</p>
       <form className={styles.form} onSubmit={onSubmitContext}>
         <div className={styles.gridTwo}>
           <div className={styles.field}>
@@ -50,13 +53,13 @@ export function AnimeContextCard({
             />
           </div>
         </div>
-        <div className={styles.actions}>
-          <button className={styles.button} type="submit" disabled={isLoading}>
-            {isLoading ? 'Lade...' : 'Anime-Kontext laden'}
-          </button>
-          <Link href="/admin/episodes" className={styles.buttonSecondary}>
-            Separater Episoden-Modus
-          </Link>
+          <div className={styles.actions}>
+            <button className={styles.button} type="submit" disabled={isLoading}>
+            {isLoading ? 'Lade...' : 'Kontext laden'}
+            </button>
+            <Link href="/admin/episodes" className={styles.buttonSecondary}>
+            Episoden-Ansicht
+            </Link>
           <Link href="/admin/anime/create" className={styles.buttonSecondary}>
             Neuen Anime erstellen
           </Link>

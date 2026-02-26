@@ -1,15 +1,22 @@
 import Link from 'next/link'
 import { FormEvent } from 'react'
 
+import { EpisodeListItem } from '@/types/anime'
 import { EpisodeStatus } from '@/types/anime'
 
 import { formatEpisodeStatusLabel, parsePositiveInt } from '../../utils/anime-helpers'
-import styles from '../../../admin.module.css'
+import sharedStyles from '../../../admin.module.css'
+import contextStyles from '../AnimeContext/AnimeContext.module.css'
+import episodeStyles from './EpisodeManager.module.css'
+
+const styles = { ...sharedStyles, ...contextStyles, ...episodeStyles }
 
 interface EpisodeEditFormProps {
   episodeOpenID: number | null
+  selectedEpisode: EpisodeListItem | null
   values: { id: string; number: string; title: string; status: string; streamLink: string }
   clearFlags: { title: boolean; streamLink: boolean }
+  hasUnsavedChanges: boolean
   statuses: EpisodeStatus[]
   isUpdating: boolean
   onFieldChange: (field: 'id' | 'number' | 'title' | 'status' | 'streamLink', value: string) => void
@@ -19,8 +26,10 @@ interface EpisodeEditFormProps {
 
 export function EpisodeEditForm({
   episodeOpenID,
+  selectedEpisode,
   values,
   clearFlags,
+  hasUnsavedChanges,
   statuses,
   isUpdating,
   onFieldChange,
@@ -33,26 +42,39 @@ export function EpisodeEditForm({
       {!episodeOpenID ? (
         <div className={styles.contextCard}>
           <p className={styles.contextTitle}>Keine Episode ausgewaehlt</p>
-          <p className={styles.hint}>Klicke links auf eine Zeile oder die Episoden-Nummer, um sie zum Bearbeiten zu laden.</p>
+          <p className={styles.hint}>Waehle links eine Episode aus, um sie zu bearbeiten.</p>
         </div>
       ) : (
-        <p className={styles.hint}>Ausgewaehlt: Episode #{episodeOpenID}</p>
+        <p className={styles.hint}>
+          Ausgewaehlt: Episode #{episodeOpenID} {hasUnsavedChanges ? '| Ungespeicherte Aenderungen' : ''}
+        </p>
       )}
 
       <form className={styles.form} onSubmit={onSubmit}>
+        <div className={styles.field}>
+          <label htmlFor="update-episode-title">Titel</label>
+          <input
+            id="update-episode-title"
+            className={styles.episodeTitleInput}
+            value={values.title}
+            onChange={(event) => onFieldChange('title', event.target.value)}
+            disabled={isUpdating || clearFlags.title}
+            placeholder="Episodentitel"
+          />
+          <label className={styles.nullToggle}>
+            <input
+              type="checkbox"
+              checked={clearFlags.title}
+              onChange={(event) => onClearFlagChange('title', event.target.checked)}
+              disabled={isUpdating}
+            />
+            Feld zuruecksetzen
+          </label>
+        </div>
+
         <div className={styles.gridTwo}>
           <div className={styles.field}>
-            <label htmlFor="update-episode-id">Episode ID *</label>
-            <input
-              id="update-episode-id"
-              value={values.id}
-              onChange={(event) => onFieldChange('id', event.target.value)}
-              disabled={isUpdating}
-              placeholder="aus Liste waehlen"
-            />
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="update-episode-number">Episode Number</label>
+            <label htmlFor="update-episode-number">Episodennummer</label>
             <input
               id="update-episode-number"
               value={values.number}
@@ -64,11 +86,12 @@ export function EpisodeEditForm({
             <label htmlFor="update-episode-status">Status</label>
             <select
               id="update-episode-status"
+              className={styles.episodeStatusSelect}
               value={values.status}
               onChange={(event) => onFieldChange('status', event.target.value)}
               disabled={isUpdating}
             >
-              <option value="">-- unveraendert --</option>
+              <option value="">Status beibehalten</option>
               {statuses.map((value) => (
                 <option key={value} value={value}>
                   {formatEpisodeStatusLabel(value)}
@@ -76,48 +99,50 @@ export function EpisodeEditForm({
               ))}
             </select>
           </div>
-          <div className={styles.field}>
-            <label htmlFor="update-episode-title">Title</label>
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="update-episode-stream-link">Streaming-Link</label>
+          <input
+            id="update-episode-stream-link"
+            value={values.streamLink}
+            onChange={(event) => onFieldChange('streamLink', event.target.value)}
+            disabled={isUpdating || clearFlags.streamLink}
+            placeholder="https://.../web/index.html#!/item?id=..."
+          />
+          <label className={styles.nullToggle}>
             <input
-              id="update-episode-title"
-              value={values.title}
-              onChange={(event) => onFieldChange('title', event.target.value)}
-              disabled={isUpdating || clearFlags.title}
+              type="checkbox"
+              checked={clearFlags.streamLink}
+              onChange={(event) => onClearFlagChange('streamLink', event.target.checked)}
+              disabled={isUpdating}
             />
-            <label className={styles.nullToggle}>
-              <input
-                type="checkbox"
-                checked={clearFlags.title}
-                onChange={(event) => onClearFlagChange('title', event.target.checked)}
-                disabled={isUpdating}
-              />
-              Wert loeschen (null)
-            </label>
+            Feld zuruecksetzen
+          </label>
+        </div>
+
+        <div className={styles.gridTwo}>
+          <div className={styles.field}>
+            <label htmlFor="update-episode-id">Episode-ID (nur lesen)</label>
+            <input id="update-episode-id" value={values.id} readOnly disabled placeholder="aus Liste waehlen" />
           </div>
           <div className={styles.field}>
-            <label htmlFor="update-episode-stream-link">Stream Link (Emby)</label>
-            <input
-              id="update-episode-stream-link"
-              value={values.streamLink}
-              onChange={(event) => onFieldChange('streamLink', event.target.value)}
-              disabled={isUpdating || clearFlags.streamLink}
-              placeholder="https://.../web/index.html#!/item?id=..."
-            />
-            <label className={styles.nullToggle}>
-              <input
-                type="checkbox"
-                checked={clearFlags.streamLink}
-                onChange={(event) => onClearFlagChange('streamLink', event.target.checked)}
-                disabled={isUpdating}
-              />
-              Wert loeschen (null)
-            </label>
+            <label>Metadaten</label>
+            <p className={styles.hint}>
+              Aktueller Status: {selectedEpisode ? formatEpisodeStatusLabel(selectedEpisode.status) : '-'}
+              <br />
+              Aktueller Link: {selectedEpisode?.stream_links?.[0] ? 'vorhanden' : 'nicht gesetzt'}
+            </p>
           </div>
         </div>
 
         <div className={styles.actions}>
-          <button className={styles.buttonSecondary} type="submit" disabled={isUpdating || !parsePositiveInt(values.id)}>
-            {isUpdating ? 'Speichern...' : 'Episode aktualisieren'}
+          <button
+            className={hasUnsavedChanges ? styles.button : styles.buttonSecondary}
+            type="submit"
+            disabled={isUpdating || !parsePositiveInt(values.id) || !hasUnsavedChanges}
+          >
+            {isUpdating ? 'Speichern...' : 'Aenderungen speichern'}
           </button>
           {episodeOpenID ? (
             <Link href={`/episodes/${episodeOpenID}`} className={styles.buttonSecondary} target="_blank" rel="noreferrer">

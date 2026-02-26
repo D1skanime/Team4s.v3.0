@@ -41,6 +41,14 @@ export function AnimeMetaFields({
   onRemoveGenreToken,
   onGenreSuggestionLimitChange,
 }: AnimeMetaFieldsProps) {
+  const groupedSuggestions = genreSuggestions.reduce<Record<string, GenreSuggestion[]>>((acc, token) => {
+    const first = token.name.trim().charAt(0).toUpperCase()
+    const key = /[A-F]/.test(first) ? 'A-F' : /[G-M]/.test(first) ? 'G-M' : /[N-T]/.test(first) ? 'N-T' : 'U-Z/0-9'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(token)
+    return acc
+  }, {})
+
   const onGenreInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Enter') return
     event.preventDefault()
@@ -100,21 +108,27 @@ export function AnimeMetaFields({
             <p className={styles.hint}>
               Vorschlaege: {genreSuggestions.length}/{genreSuggestionsTotal} (geladen: {loadedGenreCount})
             </p>
-            <div className={styles.chipBox} aria-label="Genre Vorschlaege">
-              <div className={styles.chipRow}>
-                {genreSuggestions.map((token) => (
-                  <button
-                    key={token.name}
-                    type="button"
-                    className={styles.chip}
-                    onClick={() => onAddGenreToken(token.name)}
-                    disabled={isSubmitting || clearFlags.genre}
-                    title={`+ ${token.name} (x${token.count})`}
-                  >
-                    {token.name}
-                  </button>
-                ))}
-              </div>
+            <div className={styles.genreSuggestionBox} aria-label="Genre Vorschlaege">
+              {Object.entries(groupedSuggestions).map(([group, tokens]) => (
+                <div key={group} className={styles.genreSuggestionGroup}>
+                  <p className={styles.genreSuggestionGroupTitle}>{group}</p>
+                  <div className={styles.genreSuggestionList}>
+                    {tokens.map((token) => (
+                      <button
+                        key={`${group}-${token.name}`}
+                        type="button"
+                        className={styles.genreSuggestionItem}
+                        onClick={() => onAddGenreToken(token.name)}
+                        disabled={isSubmitting || clearFlags.genre}
+                        title={`+ ${token.name} (x${token.count})`}
+                      >
+                        <span>{token.name}</span>
+                        <span className={styles.genreSuggestionCount}>x{token.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
             <div className={styles.actions}>
               <button
@@ -123,7 +137,7 @@ export function AnimeMetaFields({
                 disabled={isSubmitting || clearFlags.genre || genreSuggestionLimit >= 1000}
                 onClick={() => onGenreSuggestionLimitChange(genreSuggestionLimit + 40)}
               >
-                Mehr
+                Mehr anzeigen
               </button>
               <button
                 type="button"
@@ -131,9 +145,9 @@ export function AnimeMetaFields({
                 disabled={isSubmitting || clearFlags.genre || genreSuggestionLimit <= 40}
                 onClick={() => onGenreSuggestionLimitChange(40)}
               >
-                Weniger
+                Zuruecksetzen
               </button>
-            </div>
+              </div>
           </>
         ) : null}
         <label className={styles.nullToggle}>

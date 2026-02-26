@@ -104,6 +104,7 @@ export interface EpisodeInlineEditValues {
 export interface EpisodeManagerState {
   episodes: EpisodeListItem[]
   visibleEpisodes: EpisodeListItem[]
+  selectedEpisode: EpisodeListItem | null
   statusCounts: Record<string, number>
   selectedCount: number
   selectedVisibleCount: number
@@ -117,6 +118,7 @@ export interface EpisodeManagerState {
   inlineEditValues: EpisodeInlineEditValues
   editFormValues: EpisodeEditFormValues
   editFormClearFlags: { title: boolean; streamLink: boolean }
+  hasEditChanges: boolean
   createFormValues: EpisodeCreateFormValues
   isCreating: boolean
   isUpdating: boolean

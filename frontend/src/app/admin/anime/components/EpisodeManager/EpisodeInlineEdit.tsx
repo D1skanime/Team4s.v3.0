@@ -1,4 +1,7 @@
-import styles from '../../../admin.module.css'
+import sharedStyles from '../../../admin.module.css'
+import episodeStyles from './EpisodeManager.module.css'
+
+const styles = { ...sharedStyles, ...episodeStyles }
 
 interface EpisodeInlineEditProps {
   clearTitle: boolean
@@ -18,7 +21,7 @@ export function EpisodeInlineEdit({ clearTitle, disabled, onToggleClearTitle, on
           onChange={(event) => onToggleClearTitle(event.target.checked)}
           disabled={disabled}
         />
-        Titel null
+        Feld zuruecksetzen
       </label>
       <button className={styles.episodeMiniButton} type="button" disabled={disabled} onClick={onSave}>
         Speichern

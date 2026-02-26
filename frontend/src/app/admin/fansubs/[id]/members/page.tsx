@@ -15,7 +15,10 @@ import {
 } from '@/lib/api'
 import { FansubGroup, FansubMember } from '@/types/fansub'
 
-import styles from '../../../admin.module.css'
+import sharedStyles from '../../../admin.module.css'
+import episodeStyles from '../../../anime/components/EpisodeManager/EpisodeManager.module.css'
+
+const styles = { ...sharedStyles, ...episodeStyles }
 
 function parseOptionalYear(value: string): number | null {
   const trimmed = value.trim()

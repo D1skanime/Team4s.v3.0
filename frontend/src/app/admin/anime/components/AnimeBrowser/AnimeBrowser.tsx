@@ -34,6 +34,7 @@ interface AnimeBrowserProps {
   onSyncAnime: (anime: AnimeListItem) => void
   onSyncAll: () => void
   onMarkCoverFailure: (animeID: number) => void
+  uiMode: 'navigation' | 'editing'
 }
 
 export function AnimeBrowser({
@@ -62,13 +63,15 @@ export function AnimeBrowser({
   onSyncAnime,
   onSyncAll,
   onMarkCoverFailure,
+  uiMode,
 }: AnimeBrowserProps) {
   const [queryInput, setQueryInput] = useState(query)
+  const hideNonEssential = uiMode === 'editing'
 
   return (
     <section className={`${styles.panel} ${styles.browserColumn}`}>
-      <h2>Anime Browser</h2>
-      <p className={styles.hint}>Anime aus der Datenbank durchsuchen und direkt bearbeiten.</p>
+      <h2>Anime-Auswahl</h2>
+      <p className={styles.hint}>Schritt 1: Anime suchen und Kontext laden.</p>
       <div className={styles.form}>
         <AnimeBrowserFilters
           queryInput={queryInput}
@@ -95,6 +98,7 @@ export function AnimeBrowser({
           page={page}
           totalPages={totalPages}
           canReset={Boolean(queryInput || query)}
+          hideNonEssential={hideNonEssential}
           onSearch={() => onSetQuery(queryInput)}
           onReset={() => {
             setQueryInput('')
@@ -108,16 +112,23 @@ export function AnimeBrowser({
           }}
         />
 
-        <div className={styles.actions}>
-          <button
-            className={styles.button}
-            type="button"
-            disabled={!hasAuthToken || isLoading || isBulkSyncing || isSyncing || total <= 0}
-            onClick={onSyncAll}
-          >
-            {isBulkSyncing ? 'Globaler Sync laeuft...' : 'Alle Treffer syncen'}
-          </button>
-        </div>
+        {!hideNonEssential ? (
+          <div className={styles.actions}>
+            <details className={styles.details}>
+              <summary>Weitere Aktionen</summary>
+              <div className={styles.detailsInner}>
+                <button
+                  className={styles.buttonSecondary}
+                  type="button"
+                  disabled={!hasAuthToken || isLoading || isBulkSyncing || isSyncing || total <= 0}
+                  onClick={onSyncAll}
+                >
+                  {isBulkSyncing ? 'Synchronisierung laeuft...' : 'Treffer synchronisieren'}
+                </button>
+              </div>
+            </details>
+          </div>
+        ) : null}
         {bulkProgress ? (
           <p className={styles.hint}>
             Jellyfin Global Sync: {bulkProgress.done}/{bulkProgress.total} | ok: {bulkProgress.success} | fehler:{' '}
@@ -136,6 +147,7 @@ export function AnimeBrowser({
           onSelectAnime={onSelectAnime}
           onSyncAnime={onSyncAnime}
           onCoverError={onMarkCoverFailure}
+          hideNonEssential={hideNonEssential}
         />
       </div>
     </section>

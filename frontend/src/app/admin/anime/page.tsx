@@ -8,10 +8,14 @@ import { AnimeListItem } from '@/types/anime'
 
 import { AnimeBrowser } from './components/AnimeBrowser/AnimeBrowser'
 import { AnimeContextCard } from './components/AnimeContext/AnimeContextCard'
-import { AnimePatchForm } from './components/AnimePatchForm/AnimePatchForm'
+import { AnimeEditor } from './components/AnimePatchForm/AnimeEditor'
 import { JellyfinSyncPanel } from './components/JellyfinSync/JellyfinSyncPanel'
 import { EpisodeManager } from './components/EpisodeManager/EpisodeManager'
 import { MessageToast } from './components/MessageToast'
+import { ActiveContextPanel } from './components/StudioLayout/ActiveContextPanel'
+import { AdminLayout } from './components/StudioLayout/AdminLayout'
+import { AnimeBrowserPanel } from './components/StudioLayout/AnimeBrowserPanel'
+import { EditorPanel } from './components/StudioLayout/EditorPanel'
 import { useAdminMessages } from './hooks/useAdminMessages'
 import { useAnimeBrowser } from './hooks/useAnimeBrowser'
 import { useAnimeContext } from './hooks/useAnimeContext'
@@ -32,8 +36,19 @@ function formatError(error: unknown, fallback: string): string {
 export default function AdminAnimePage() {
   const [authToken] = useState(() => getRuntimeAuthToken())
   const [contextAnimeIDInput, setContextAnimeIDInput] = useState('')
+  const [uiMode, setUiMode] = useState<'navigation' | 'editing'>('navigation')
+  const [editorMode, setEditorMode] = useState<'anime' | 'episode'>('anime')
+  const [animeEditorState, setAnimeEditorState] = useState({ hasUnsavedChanges: false, isSaving: false })
+  const [episodeEditorState, setEpisodeEditorState] = useState({
+    selectedEpisodeId: null as number | null,
+    hasUnsavedChanges: false,
+    isSaving: false,
+  })
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null)
   const [lastRequest, setLastRequest] = useState<string | null>(null)
   const [lastResponse, setLastResponse] = useState<string | null>(null)
+  const animeSaveActionRef = useRef<(() => void) | null>(null)
+  const episodeSaveActionRef = useRef<(() => void) | null>(null)
 
   const handledInitialContextParamRef = useRef(false)
   const contextCardAnchorRef = useRef<HTMLDivElement>(null)
@@ -45,6 +60,27 @@ export default function AdminAnimePage() {
   const jellyfin = useJellyfinSync(authToken, messages.setSuccess, messages.setError)
 
   const hasAuthToken = authToken.trim().length > 0
+  const selectedAnimeId = context.anime?.id ?? null
+  const selectedEpisodeId = episodeEditorState.selectedEpisodeId
+  const hasUnsavedChanges = editorMode === 'anime' ? animeEditorState.hasUnsavedChanges : episodeEditorState.hasUnsavedChanges
+  const isSaving = editorMode === 'anime' ? animeEditorState.isSaving : episodeEditorState.isSaving
+
+  const uiState = useMemo<'idle' | 'editing' | 'unsaved' | 'saving' | 'saved' | 'error'>(() => {
+    if (messages.error) return 'error'
+    if (isSaving) return 'saving'
+    if (hasUnsavedChanges) return 'unsaved'
+    if (uiMode === 'editing') return 'editing'
+    if (lastSavedAt) return 'saved'
+    return 'idle'
+  }, [hasUnsavedChanges, isSaving, lastSavedAt, messages.error, uiMode])
+
+  useEffect(() => {
+    if (isSaving || hasUnsavedChanges || (editorMode === 'episode' && selectedEpisodeId !== null)) {
+      setUiMode('editing')
+      return
+    }
+    setUiMode('navigation')
+  }, [editorMode, hasUnsavedChanges, isSaving, selectedEpisodeId])
   const tokenPreview = useMemo(() => {
     if (!authToken) return 'n/a'
     return authToken.length > 24 ? `${authToken.slice(0, 24)}...` : authToken
@@ -99,6 +135,7 @@ export default function AdminAnimePage() {
       messages.clear()
       try {
         await loadContextAnime(animeID, `Anime-Kontext #${animeID} geladen.`)
+        setEditorMode('anime')
       } catch (error) {
         messages.setError(formatError(error, 'Anime-Kontext konnte nicht geladen werden.'))
       }
@@ -186,132 +223,186 @@ export default function AdminAnimePage() {
 
       <header className={styles.header}>
         <h1 className={styles.title}>Admin Studio: Anime + Episoden</h1>
-        <p className={styles.subtitle}>Ein zusammenhaengender Workflow: Anime laden, dann Episoden direkt dazu verwalten.</p>
+        <p className={styles.subtitle}>Workflow: Anime waehlen -&gt; Kontext laden -&gt; Episode waehlen -&gt; bearbeiten -&gt; speichern.</p>
         <p className={styles.tokenPreview}>Token: {hasAuthToken ? tokenPreview : 'nicht vorhanden'}</p>
+        <p className={styles.hint}>
+          Zustand: {uiState} | uiMode: {uiMode} | selectedAnimeId: {selectedAnimeId ?? '-'} | selectedEpisodeId:{' '}
+          {selectedEpisodeId ?? '-'} | hasUnsavedChanges: {hasUnsavedChanges ? 'ja' : 'nein'} | isSaving:{' '}
+          {isSaving ? 'ja' : 'nein'}
+        </p>
       </header>
 
       {!hasAuthToken ? <div className={styles.errorBox}>Kein Access-Token gefunden. Bitte zuerst auf /auth anmelden.</div> : null}
 
       <MessageToast error={messages.error} success={messages.success} onDismiss={messages.clear} />
 
-      {lastRequest ? (
-        <pre className={styles.resultBox}>
-          {'LAST REQUEST\n'}
-          {lastRequest}
-        </pre>
-      ) : null}
-      {lastResponse ? (
-        <pre className={styles.resultBox}>
-          {'LAST RESPONSE\n'}
-          {lastResponse}
-        </pre>
-      ) : null}
+      <details className={styles.details}>
+        <summary>Diagnose (Request / Response)</summary>
+        <div className={styles.detailsInner}>
+          {lastRequest ? (
+            <pre className={styles.resultBox}>
+              {'LAST REQUEST\n'}
+              {lastRequest}
+            </pre>
+          ) : null}
+          {lastResponse ? (
+            <pre className={styles.resultBox}>
+              {'LAST RESPONSE\n'}
+              {lastResponse}
+            </pre>
+          ) : null}
+        </div>
+      </details>
 
-      <div className={styles.splitLayout}>
-        <AnimeBrowser
-          items={browser.items}
-          page={browser.page}
-          totalPages={browser.totalPages}
-          total={browser.total}
-          query={browser.query}
-          letter={browser.letter}
-          hasCover={browser.hasCover}
-          isLoading={browser.isLoading}
-          coverFailures={browser.coverFailures}
-          activeAnimeID={context.anime?.id ?? null}
-          isLoadingContext={context.isLoading}
-          hasAuthToken={hasAuthToken}
-          isSyncing={jellyfin.isSyncing}
-          isBulkSyncing={jellyfin.isBulkSyncing}
-          syncingAnimeIDs={jellyfin.syncingAnimeIDs}
-          bulkProgress={jellyfin.bulkProgress}
-          onSetPage={browser.setPage}
-          onSetQuery={browser.setQuery}
-          onSetLetter={browser.setLetter}
-          onSetHasCover={browser.setHasCover}
-          onRefresh={browser.refresh}
-          onSelectAnime={(id) => {
-            void handleSelectAnimeFromBrowser(id)
-          }}
-          onSyncAnime={(anime) => {
-            void handleAnimeRowSync(anime)
-          }}
-          onSyncAll={() => {
-            void handleGlobalSync()
-          }}
-          onMarkCoverFailure={browser.markCoverFailure}
-        />
-
-        <AnimeContextCard
-          anime={context.anime}
-          fansubs={context.fansubs}
-          isLoading={context.isLoading}
-          isLoadingFansubs={context.isLoadingFansubs}
-          contextAnimeIDInput={contextAnimeIDInput}
-          onContextAnimeIDInputChange={setContextAnimeIDInput}
-          onSubmitContext={(event) => {
-            void handleContextSubmit(event)
-          }}
-          onJumpToPatch={() => animePatchAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-          onJumpToEpisodes={() => {
-            const section = document.getElementById('admin-anime-episodes')
-            section?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            setTimeout(() => {
-              const input = document.getElementById('episode-filter') as HTMLInputElement | null
-              input?.focus()
-            }, 150)
-          }}
-          contextAnchorRef={contextCardAnchorRef}
-        />
-
-        <div className={styles.editColumn}>
-          <div ref={animePatchAnchorRef} />
-          <AnimePatchForm
-            anime={context.anime}
-            authToken={authToken}
-            onSuccess={async (anime) => {
-              await context.load(anime.id)
-              await browser.refresh().catch(() => {
-                // handled via hook callback
-              })
-              messages.setSuccess(`Anime #${anime.id} wurde aktualisiert.`)
+      <AdminLayout
+        uiMode={uiMode}
+        browser={
+          <AnimeBrowserPanel>
+            <AnimeBrowser
+              items={browser.items}
+              page={browser.page}
+              totalPages={browser.totalPages}
+              total={browser.total}
+              query={browser.query}
+              letter={browser.letter}
+              hasCover={browser.hasCover}
+              isLoading={browser.isLoading}
+              coverFailures={browser.coverFailures}
+              activeAnimeID={context.anime?.id ?? null}
+              isLoadingContext={context.isLoading}
+              hasAuthToken={hasAuthToken}
+              isSyncing={jellyfin.isSyncing}
+              isBulkSyncing={jellyfin.isBulkSyncing}
+              syncingAnimeIDs={jellyfin.syncingAnimeIDs}
+              bulkProgress={jellyfin.bulkProgress}
+              onSetPage={browser.setPage}
+              onSetQuery={browser.setQuery}
+              onSetLetter={browser.setLetter}
+              onSetHasCover={browser.setHasCover}
+              onRefresh={browser.refresh}
+              onSelectAnime={(id) => {
+                void handleSelectAnimeFromBrowser(id)
+              }}
+              onSyncAnime={(anime) => {
+                void handleAnimeRowSync(anime)
+              }}
+              onSyncAll={() => {
+                void handleGlobalSync()
+              }}
+              onMarkCoverFailure={browser.markCoverFailure}
+              uiMode={uiMode}
+            />
+          </AnimeBrowserPanel>
+        }
+        context={
+          <ActiveContextPanel>
+            <AnimeContextCard
+              anime={context.anime}
+              fansubs={context.fansubs}
+              isLoading={context.isLoading}
+              isLoadingFansubs={context.isLoadingFansubs}
+              contextAnimeIDInput={contextAnimeIDInput}
+              onContextAnimeIDInputChange={setContextAnimeIDInput}
+              onSubmitContext={(event) => {
+                void handleContextSubmit(event)
+              }}
+              onJumpToPatch={() => {
+                setEditorMode('anime')
+                animePatchAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
+              onJumpToEpisodes={() => {
+                setEditorMode('episode')
+                const section = document.getElementById('admin-anime-episodes')
+                section?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                setTimeout(() => {
+                  const input = document.getElementById('episode-filter') as HTMLInputElement | null
+                  input?.focus()
+                }, 150)
+              }}
+              contextAnchorRef={contextCardAnchorRef}
+            />
+          </ActiveContextPanel>
+        }
+        editor={
+          <EditorPanel
+            editorMode={editorMode}
+            canEditEpisode={Boolean(context.anime)}
+            uiState={uiState}
+            hasUnsavedChanges={hasUnsavedChanges}
+            isSaving={isSaving}
+            onEditorModeChange={setEditorMode}
+            onSave={() => {
+              messages.clear()
+              const saveAction = editorMode === 'anime' ? animeSaveActionRef.current : episodeSaveActionRef.current
+              saveAction?.()
             }}
-            onError={messages.setError}
-            onRequest={setLastRequest}
-            onResponse={setLastResponse}
-          />
-
-          {context.anime ? (
-            <>
-              <JellyfinSyncPanel
-                anime={context.anime}
-                model={jellyfin}
-                onBeforeAction={messages.clear}
-                onSynced={async () => {
-                  await handleContextRefresh()
-                  await browser.refresh().catch(() => {
-                    // handled via hook callback
-                  })
-                }}
-              />
-
+          >
+            <div ref={animePatchAnchorRef} />
+            {editorMode === 'anime' ? (
+              <>
+                <AnimeEditor
+                  anime={context.anime}
+                  authToken={authToken}
+                  onSuccess={async (anime) => {
+                    await context.load(anime.id)
+                    await browser.refresh().catch(() => {
+                      // handled via hook callback
+                    })
+                    messages.setSuccess(`Anime #${anime.id} wurde aktualisiert.`)
+                    setLastSavedAt(Date.now())
+                  }}
+                  onError={messages.setError}
+                  onRequest={setLastRequest}
+                  onResponse={setLastResponse}
+                  onEditorStateChange={setAnimeEditorState}
+                  onRegisterSaveAction={(saveAction) => {
+                    animeSaveActionRef.current = saveAction
+                  }}
+                />
+                {context.anime && uiMode === 'navigation' ? (
+                  <details className={styles.details}>
+                    <summary>Weitere Aktionen</summary>
+                    <div className={styles.detailsInner}>
+                      <JellyfinSyncPanel
+                        anime={context.anime}
+                        model={jellyfin}
+                        onBeforeAction={messages.clear}
+                        onSynced={async () => {
+                          await handleContextRefresh()
+                          await browser.refresh().catch(() => {
+                            // handled via hook callback
+                          })
+                        }}
+                      />
+                    </div>
+                  </details>
+                ) : null}
+              </>
+            ) : context.anime ? (
               <EpisodeManager
                 anime={context.anime}
                 authToken={authToken}
                 onRefresh={handleContextRefresh}
-                onSuccess={messages.setSuccess}
+                onSuccess={(msg) => {
+                  messages.setSuccess(msg)
+                  setLastSavedAt(Date.now())
+                }}
                 onError={messages.setError}
                 onRequest={setLastRequest}
                 onResponse={setLastResponse}
+                onEditorStateChange={setEpisodeEditorState}
+                onRegisterSaveAction={(saveAction) => {
+                  episodeSaveActionRef.current = saveAction
+                }}
               />
-            </>
-          ) : (
-            <section className={`${styles.panel} ${styles.editPanel}`}>
-              <p className={styles.hint}>Bitte zuerst oben einen Anime-Kontext laden.</p>
-            </section>
-          )}
-        </div>
-      </div>
+            ) : (
+              <section className={`${styles.panel} ${styles.editPanel}`}>
+                <p className={styles.hint}>Bitte zuerst einen Anime im Browser waehlen und den Kontext laden.</p>
+              </section>
+            )}
+          </EditorPanel>
+        }
+      />
 
       <div className={styles.actions}>
         <button className={styles.buttonSecondary} type="button" onClick={clearMessageAndPayload}>
