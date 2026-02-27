@@ -3295,6 +3295,116 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/episode-versions/{versionId}/editor-context:
+    get:
+      tags: [Admin]
+      summary: Load episode version editor context
+      operationId: getEpisodeVersionEditorContext
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Episode version editor context payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodeVersionEditorContextResponse"
+        "400":
+          description: Invalid version id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Episode version not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/episode-versions/{versionId}/folder-scan:
+    post:
+      tags: [Admin]
+      summary: Scan anime folder and return media candidates for an episode version
+      operationId: scanEpisodeVersionFolder
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Episode version folder scan payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodeVersionFolderScanResponse"
+        "400":
+          description: Folder sync unavailable for this version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Episode version not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Jellyfin scan failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Jellyfin unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/releases/{id}/grant:
     post:
       tags: [Releases]
@@ -5435,6 +5545,87 @@ components:
         stream_url:
           type: string
           nullable: true
+    EpisodeVersionEditorContext:
+      type: object
+      required: [version, anime_title, selected_groups]
+      properties:
+        version:
+          $ref: "#/components/schemas/EpisodeVersion"
+        anime_title:
+          type: string
+        anime_folder_path:
+          type: string
+          nullable: true
+        collaboration_group_id:
+          type: integer
+          format: int64
+          nullable: true
+        selected_groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/FansubGroupSummary"
+    EpisodeVersionEditorContextResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/EpisodeVersionEditorContext"
+    EpisodeVersionMediaFile:
+      type: object
+      required: [file_name, path, media_item_id]
+      properties:
+        file_name:
+          type: string
+        path:
+          type: string
+        media_item_id:
+          type: string
+          maxLength: 120
+        stream_url:
+          type: string
+          nullable: true
+        video_quality:
+          type: string
+          maxLength: 20
+          nullable: true
+        file_size_bytes:
+          type: integer
+          format: int64
+          nullable: true
+        last_modified:
+          type: string
+          format: date-time
+          nullable: true
+        detected_episode_number:
+          type: integer
+          format: int32
+          nullable: true
+        release_name:
+          type: string
+          nullable: true
+    EpisodeVersionFolderScanResult:
+      type: object
+      required: [version_id, anime_id, files]
+      properties:
+        version_id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        anime_folder_path:
+          type: string
+          nullable: true
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/EpisodeVersionMediaFile"
+    EpisodeVersionFolderScanResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/EpisodeVersionFolderScanResult"
     EpisodeVersionResponse:
       type: object
       required: [data]

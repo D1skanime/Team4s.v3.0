@@ -22,6 +22,54 @@ endpoints:
       status: 200
       type: EpisodeVersionResponse
 
+  - name: episode-version-editor-context
+    method: GET
+    path: /api/v1/admin/episode-versions/:versionId/editor-context
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: EpisodeVersionEditorContextResponse
+
+  - name: episode-version-folder-scan
+    method: POST
+    path: /api/v1/admin/episode-versions/:versionId/folder-scan
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: EpisodeVersionFolderScanResponse
+
   - name: episode-version-create
     method: POST
     path: /api/v1/anime/:animeId/episodes/:episodeNumber/versions
@@ -185,6 +233,10 @@ types:
     episodes: GroupedEpisode[]
   EpisodeVersionResponse:
     data: EpisodeVersion
+  EpisodeVersionEditorContextResponse:
+    data: EpisodeVersionEditorContext
+  EpisodeVersionFolderScanResponse:
+    data: EpisodeVersionFolderScanResult
   ReleaseStreamGrantResponse:
     data: ReleaseStreamGrant
   GroupedEpisode:
@@ -207,6 +259,27 @@ types:
     stream_url: string | null
     created_at: datetime
     updated_at: datetime
+  EpisodeVersionEditorContext:
+    version: EpisodeVersion
+    anime_title: string
+    anime_folder_path: string | null
+    collaboration_group_id: int64 | null
+    selected_groups: FansubGroupShort[]
+  EpisodeVersionFolderScanResult:
+    version_id: int64
+    anime_id: int64
+    anime_folder_path: string | null
+    files: EpisodeVersionMediaFile[]
+  EpisodeVersionMediaFile:
+    file_name: string
+    path: string
+    media_item_id: string
+    stream_url: string | null
+    video_quality: string | null
+    file_size_bytes: int64 | null
+    last_modified: datetime | null
+    detected_episode_number: int32 | null
+    release_name: string | null
   ReleaseStreamGrant:
     release_id: int64
     grant_token: string

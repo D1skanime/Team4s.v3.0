@@ -368,7 +368,7 @@ func (r *AdminContentRepository) GetAnimeSyncSource(
 	animeID int64,
 ) (*models.AdminAnimeSyncSource, error) {
 	query := `
-		SELECT id, title, title_de, title_en, source, year, max_episodes, description
+		SELECT id, title, title_de, title_en, source, folder_name, year, max_episodes, description
 		FROM anime
 		WHERE id = $1
 	`
@@ -380,6 +380,7 @@ func (r *AdminContentRepository) GetAnimeSyncSource(
 		&item.TitleDE,
 		&item.TitleEN,
 		&item.Source,
+		&item.FolderName,
 		&item.Year,
 		&item.MaxEpisodes,
 		&item.Description,

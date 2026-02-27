@@ -871,7 +871,19 @@ func buildFansubGroupWhere(filter models.FansubFilter) (string, []any) {
 	if filter.Q != "" {
 		conditions = append(
 			conditions,
-			fmt.Sprintf("(name ILIKE $%d OR slug ILIKE $%d)", argPos, argPos),
+			fmt.Sprintf(
+				`(
+					name ILIKE $%[1]d
+					OR slug ILIKE $%[1]d
+					OR EXISTS (
+						SELECT 1
+						FROM fansub_group_aliases fga
+						WHERE fga.fansub_group_id = fansub_groups.id
+						  AND fga.alias ILIKE $%[1]d
+					)
+				)`,
+				argPos,
+			),
 		)
 		args = append(args, "%"+filter.Q+"%")
 		argPos++

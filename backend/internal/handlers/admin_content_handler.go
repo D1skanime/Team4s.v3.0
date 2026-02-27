@@ -38,12 +38,14 @@ type AdminContentHandler struct {
 	adminRoleName      string
 	jellyfinAPIKey     string
 	jellyfinBaseURL    string
+	jellyfinStreamPath string
 	httpClient         *http.Client
 }
 
 type AdminContentJellyfinConfig struct {
-	APIKey  string
-	BaseURL string
+	APIKey     string
+	BaseURL    string
+	StreamPath string
 }
 
 func NewAdminContentHandler(
@@ -62,6 +64,7 @@ func NewAdminContentHandler(
 		adminRoleName:      strings.TrimSpace(adminRoleName),
 		jellyfinAPIKey:     strings.TrimSpace(jellyfinCfg.APIKey),
 		jellyfinBaseURL:    strings.TrimSpace(jellyfinCfg.BaseURL),
+		jellyfinStreamPath: normalizeStreamPathTemplate(jellyfinCfg.StreamPath),
 		httpClient: &http.Client{
 			Timeout: 20 * time.Second,
 		},

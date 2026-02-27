@@ -24,6 +24,8 @@ import { CommentCreateRequest, CommentCreateResponse, PaginatedCommentResponse }
 import {
   GroupedEpisodesResponse,
   EpisodeVersionCreateRequest,
+  EpisodeVersionEditorContextResponse,
+  EpisodeVersionFolderScanResponse,
   EpisodeVersionPatchRequest,
   EpisodeVersionResponse,
 } from '@/types/episodeVersion'
@@ -518,6 +520,42 @@ export async function getEpisodeVersionByID(versionID: number): Promise<EpisodeV
   }
 
   return response.json() as Promise<EpisodeVersionResponse>
+}
+
+export async function getEpisodeVersionEditorContext(
+  versionID: number,
+  authToken?: string,
+): Promise<EpisodeVersionEditorContextResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/episode-versions/${versionID}/editor-context`, {
+    cache: 'no-store',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<EpisodeVersionEditorContextResponse>
+}
+
+export async function scanEpisodeVersionFolder(
+  versionID: number,
+  authToken?: string,
+): Promise<EpisodeVersionFolderScanResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/episode-versions/${versionID}/folder-scan`, {
+    method: 'POST',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<EpisodeVersionFolderScanResponse>
 }
 
 export async function createEpisodeVersion(

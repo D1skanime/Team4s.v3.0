@@ -62,3 +62,30 @@ type ReleaseStreamSource struct {
 	MediaItemID   string
 	StreamURL     *string
 }
+
+type EpisodeVersionEditorContext struct {
+	Version              EpisodeVersion       `json:"version"`
+	AnimeTitle           string               `json:"anime_title"`
+	AnimeFolderPath      *string              `json:"anime_folder_path,omitempty"`
+	CollaborationGroupID *int64               `json:"collaboration_group_id,omitempty"`
+	SelectedGroups       []FansubGroupSummary `json:"selected_groups"`
+}
+
+type EpisodeVersionMediaFile struct {
+	FileName              string     `json:"file_name"`
+	Path                  string     `json:"path"`
+	MediaItemID           string     `json:"media_item_id"`
+	StreamURL             *string    `json:"stream_url,omitempty"`
+	VideoQuality          *string    `json:"video_quality,omitempty"`
+	FileSizeBytes         *int64     `json:"file_size_bytes,omitempty"`
+	LastModified          *time.Time `json:"last_modified,omitempty"`
+	DetectedEpisodeNumber *int32     `json:"detected_episode_number,omitempty"`
+	ReleaseName           *string    `json:"release_name,omitempty"`
+}
+
+type EpisodeVersionFolderScanResult struct {
+	VersionID       int64                     `json:"version_id"`
+	AnimeID         int64                     `json:"anime_id"`
+	AnimeFolderPath *string                   `json:"anime_folder_path,omitempty"`
+	Files           []EpisodeVersionMediaFile `json:"files"`
+}

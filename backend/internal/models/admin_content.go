@@ -130,6 +130,7 @@ type AdminAnimeSyncSource struct {
 	TitleDE     *string
 	TitleEN     *string
 	Source      *string
+	FolderName  *string
 	Year        *int16
 	MaxEpisodes *int16
 	Description *string

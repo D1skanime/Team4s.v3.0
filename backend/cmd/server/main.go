@@ -151,8 +151,9 @@ func main() {
 		authzRepo,
 		cfg.AuthAdminRoleName,
 		handlers.AdminContentJellyfinConfig{
-			APIKey:  cfg.JellyfinAPIKey,
-			BaseURL: cfg.JellyfinBaseURL,
+			APIKey:     cfg.JellyfinAPIKey,
+			BaseURL:    cfg.JellyfinBaseURL,
+			StreamPath: cfg.JellyfinStreamPathTemplate,
 		},
 	)
 	fansubHandler := handlers.NewFansubHandler(
@@ -254,6 +255,16 @@ func main() {
 		"/admin/anime/:id/jellyfin/preview",
 		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		adminContentHandler.PreviewAnimeFromJellyfin,
+	)
+	v1.GET(
+		"/admin/episode-versions/:versionId/editor-context",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		adminContentHandler.GetEpisodeVersionEditorContext,
+	)
+	v1.POST(
+		"/admin/episode-versions/:versionId/folder-scan",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		adminContentHandler.ScanEpisodeVersionFolder,
 	)
 	v1.POST(
 		"/admin/episodes",
