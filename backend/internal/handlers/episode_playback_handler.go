@@ -34,6 +34,8 @@ type EpisodePlaybackHandler struct {
 	playbackRateLimiter    *episodePlaybackRateLimiter
 	streamSlots            chan struct{}
 	httpClient             *http.Client
+	grantStore             grantTokenStore
+	auditLogger            *playbackAuditLogger
 }
 
 func NewEpisodePlaybackHandler(repo *repository.EpisodeRepository, cfg EpisodePlaybackConfig) *EpisodePlaybackHandler {
@@ -68,7 +70,9 @@ func NewEpisodePlaybackHandler(repo *repository.EpisodeRepository, cfg EpisodePl
 			cfg.PlaybackRateLimit,
 			time.Duration(cfg.PlaybackRateWindowSec)*time.Second,
 		),
-		streamSlots: streamSlots,
+		streamSlots:  streamSlots,
+		grantStore:   newGrantTokenStore(cfg.PlaybackRateLimitClient),
+		auditLogger:  newPlaybackAuditLogger(cfg.PlaybackRateLimitClient),
 		httpClient: &http.Client{
 			Timeout: 0,
 		},

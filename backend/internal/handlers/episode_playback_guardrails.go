@@ -68,16 +68,26 @@ func (h *EpisodePlaybackHandler) enforcePlaybackRateLimit(
 		return true
 	}
 
-	key := strings.TrimSpace(action) + ":" + strings.TrimSpace(principal)
-	allowed, retryAfter, err := h.playbackRateLimiter.Allow(c.Request.Context(), key)
-	if err != nil {
+	clientIP := extractClientIP(c)
+
+	// Check user-based rate limit
+	userKey := strings.TrimSpace(action) + ":" + strings.TrimSpace(principal)
+	userAllowed, userRetryAfter, userErr := h.playbackRateLimiter.Allow(c.Request.Context(), userKey)
+
+	// Check IP-based rate limit
+	ipKey := strings.TrimSpace(action) + ":" + playbackPrincipalForIP(clientIP)
+	ipAllowed, ipRetryAfter, ipErr := h.playbackRateLimiter.Allow(c.Request.Context(), ipKey)
+
+	if userErr != nil || ipErr != nil {
 		log.Printf(
-			"episode_playback: rate limit store unavailable (path=%s method=%s action=%s principal=%s): %v",
+			"episode_playback: rate limit store unavailable (path=%s method=%s action=%s principal=%s client_ip=%s): user_err=%v ip_err=%v",
 			c.FullPath(),
 			c.Request.Method,
 			action,
 			principal,
-			err,
+			clientIP,
+			userErr,
+			ipErr,
 		)
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"error": gin.H{
@@ -87,22 +97,31 @@ func (h *EpisodePlaybackHandler) enforcePlaybackRateLimit(
 		return false
 	}
 
-	if allowed {
-		return true
+	if !userAllowed || !ipAllowed {
+		if h.auditLogger != nil {
+			h.auditLogger.logRateLimitViolation(c.Request.Context(), action, principal, clientIP)
+		}
+
+		retryAfter := userRetryAfter
+		if ipRetryAfter > retryAfter {
+			retryAfter = ipRetryAfter
+		}
+
+		retryAfterSeconds := int(math.Ceil(retryAfter.Seconds()))
+		if retryAfterSeconds < 1 {
+			retryAfterSeconds = 1
+		}
+
+		c.Header("Retry-After", strconv.Itoa(retryAfterSeconds))
+		c.JSON(http.StatusTooManyRequests, gin.H{
+			"error": gin.H{
+				"message": episodePlaybackRateLimitExceededMessage,
+			},
+		})
+		return false
 	}
 
-	retryAfterSeconds := int(math.Ceil(retryAfter.Seconds()))
-	if retryAfterSeconds < 1 {
-		retryAfterSeconds = 1
-	}
-
-	c.Header("Retry-After", strconv.Itoa(retryAfterSeconds))
-	c.JSON(http.StatusTooManyRequests, gin.H{
-		"error": gin.H{
-			"message": episodePlaybackRateLimitExceededMessage,
-		},
-	})
-	return false
+	return true
 }
 
 func (h *EpisodePlaybackHandler) acquirePlaybackSlot(c *gin.Context) (func(), bool) {

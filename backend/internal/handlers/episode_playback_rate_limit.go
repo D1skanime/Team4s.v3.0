@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -74,4 +75,23 @@ func (s *redisEpisodePlaybackRateLimitStore) IncrementWindow(
 
 func playbackPrincipalForUserID(userID int64) string {
 	return fmt.Sprintf("user:%d", userID)
+}
+
+func playbackPrincipalForIP(ip string) string {
+	return fmt.Sprintf("ip:%s", ip)
+}
+
+func extractClientIP(c interface{ GetHeader(string) string; ClientIP() string }) string {
+	if ip := strings.TrimSpace(c.GetHeader("X-Forwarded-For")); ip != "" {
+		if parts := strings.Split(ip, ","); len(parts) > 0 {
+			return strings.TrimSpace(parts[0])
+		}
+	}
+	if ip := strings.TrimSpace(c.GetHeader("X-Real-IP")); ip != "" {
+		return ip
+	}
+	if ip := strings.TrimSpace(c.ClientIP()); ip != "" {
+		return ip
+	}
+	return "unknown"
 }

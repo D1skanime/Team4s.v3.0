@@ -32,6 +32,13 @@ func (h *EpisodePlaybackHandler) CreatePlaybackGrant(c *gin.Context) {
 		return
 	}
 
+	clientIP := extractClientIP(c)
+
+	// Track multiple IPs per user for audit
+	if h.auditLogger != nil {
+		h.auditLogger.logMultipleIPsPerUser(c.Request.Context(), identity.UserID, clientIP)
+	}
+
 	episode, ok := h.loadPlayableEpisode(c, episodeID)
 	if !ok {
 		return
@@ -71,6 +78,8 @@ func (h *EpisodePlaybackHandler) CreatePlaybackGrant(c *gin.Context) {
 		})
 		return
 	}
+
+	log.Printf("episode playback grant: created (episode_id=%d, user_id=%d, client_ip=%s)", episodeID, identity.UserID, clientIP)
 
 	c.Header("Cache-Control", "no-store")
 	c.JSON(http.StatusCreated, gin.H{
