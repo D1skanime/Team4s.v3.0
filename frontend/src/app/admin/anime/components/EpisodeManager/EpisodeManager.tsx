@@ -1,6 +1,9 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { ApiError, getGroupedEpisodes } from '@/lib/api'
 import { AnimeDetail, EpisodeListItem, EpisodeStatus } from '@/types/anime'
+import { GroupedEpisode } from '@/types/episodeVersion'
+import { FansubGroup } from '@/types/fansub'
 
 import { useEpisodeManager } from '../../hooks/useEpisodeManager'
 import { parsePositiveInt } from '../../utils/anime-helpers'
@@ -17,8 +20,19 @@ const styles = { ...sharedStyles, ...episodeStyles }
 
 const EPISODE_STATUSES: EpisodeStatus[] = ['disabled', 'private', 'public']
 
+function formatGroupedEpisodeError(error: unknown): string {
+  if (error instanceof ApiError) {
+    return `(${error.status}) ${error.message}`
+  }
+  if (error instanceof Error && error.message.trim()) {
+    return error.message
+  }
+  return 'Episode-Versionen konnten nicht geladen werden.'
+}
+
 interface EpisodeManagerProps {
   anime: AnimeDetail
+  fansubs: FansubGroup[]
   authToken: string
   onRefresh: () => Promise<void>
   onSuccess: (msg: string) => void
@@ -31,6 +45,7 @@ interface EpisodeManagerProps {
 
 export function EpisodeManager({
   anime,
+  fansubs,
   authToken,
   onRefresh,
   onSuccess,
@@ -41,6 +56,9 @@ export function EpisodeManager({
   onRegisterSaveAction,
 }: EpisodeManagerProps) {
   const [bulkStatus, setBulkStatus] = useState<EpisodeStatus | ''>('')
+  const [groupedEpisodes, setGroupedEpisodes] = useState<GroupedEpisode[]>([])
+  const [isLoadingGroupedEpisodes, setIsLoadingGroupedEpisodes] = useState(false)
+  const [groupedEpisodesError, setGroupedEpisodesError] = useState<string | null>(null)
   const episodeFilterInputRef = useRef<HTMLInputElement>(null)
   const episodeEditAnchorRef = useRef<HTMLDivElement>(null)
 
@@ -51,6 +69,33 @@ export function EpisodeManager({
 
   const nextEpisodeNumberSuggestion = useMemo(() => suggestNextEpisodeNumber(anime.episodes), [anime.episodes])
   const episodeOpenID = useMemo(() => manager.selectedID ?? parsePositiveInt(manager.editFormValues.id) ?? null, [manager.editFormValues.id, manager.selectedID])
+  const selectedEpisodeNumber = useMemo(
+    () => (manager.selectedEpisode ? parsePositiveInt(manager.selectedEpisode.episode_number) : null),
+    [manager.selectedEpisode],
+  )
+  const selectedGroupedEpisode = useMemo(() => {
+    if (!selectedEpisodeNumber) return null
+    return groupedEpisodes.find((episode) => episode.episode_number === selectedEpisodeNumber) || null
+  }, [groupedEpisodes, selectedEpisodeNumber])
+
+  const loadGroupedEpisodes = useCallback(async () => {
+    setIsLoadingGroupedEpisodes(true)
+    setGroupedEpisodesError(null)
+
+    try {
+      const response = await getGroupedEpisodes(anime.id)
+      setGroupedEpisodes(response.data.episodes)
+    } catch (error) {
+      setGroupedEpisodes([])
+      setGroupedEpisodesError(formatGroupedEpisodeError(error))
+    } finally {
+      setIsLoadingGroupedEpisodes(false)
+    }
+  }, [anime.id])
+
+  useEffect(() => {
+    void loadGroupedEpisodes()
+  }, [anime.episodes, loadGroupedEpisodes])
 
   useEffect(() => {
     if (!manager.selectedID) return
@@ -216,7 +261,14 @@ export function EpisodeManager({
 
           <EpisodeEditor
             episodeOpenID={episodeOpenID}
+            animeID={anime.id}
+            availableFansubs={fansubs}
             selectedEpisode={manager.selectedEpisode}
+            selectedEpisodeNumber={selectedEpisodeNumber}
+            selectedEpisodeVersions={selectedGroupedEpisode?.versions || []}
+            selectedEpisodeVersionCount={selectedGroupedEpisode?.version_count || 0}
+            isLoadingVersions={isLoadingGroupedEpisodes}
+            versionsError={groupedEpisodesError}
             values={manager.editFormValues}
             clearFlags={manager.editFormClearFlags}
             hasUnsavedChanges={manager.hasEditChanges}

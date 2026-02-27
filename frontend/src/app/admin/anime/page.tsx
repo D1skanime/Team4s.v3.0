@@ -36,7 +36,6 @@ function formatError(error: unknown, fallback: string): string {
 export default function AdminAnimePage() {
   const [authToken] = useState(() => getRuntimeAuthToken())
   const [contextAnimeIDInput, setContextAnimeIDInput] = useState('')
-  const [uiMode, setUiMode] = useState<'navigation' | 'editing'>('navigation')
   const [editorMode, setEditorMode] = useState<'anime' | 'episode'>('anime')
   const [animeEditorState, setAnimeEditorState] = useState({ hasUnsavedChanges: false, isSaving: false })
   const [episodeEditorState, setEpisodeEditorState] = useState({
@@ -64,6 +63,12 @@ export default function AdminAnimePage() {
   const selectedEpisodeId = episodeEditorState.selectedEpisodeId
   const hasUnsavedChanges = editorMode === 'anime' ? animeEditorState.hasUnsavedChanges : episodeEditorState.hasUnsavedChanges
   const isSaving = editorMode === 'anime' ? animeEditorState.isSaving : episodeEditorState.isSaving
+  const uiMode = useMemo<'navigation' | 'editing'>(() => {
+    if (isSaving || hasUnsavedChanges || (editorMode === 'episode' && selectedEpisodeId !== null)) {
+      return 'editing'
+    }
+    return 'navigation'
+  }, [editorMode, hasUnsavedChanges, isSaving, selectedEpisodeId])
 
   const uiState = useMemo<'idle' | 'editing' | 'unsaved' | 'saving' | 'saved' | 'error'>(() => {
     if (messages.error) return 'error'
@@ -73,14 +78,6 @@ export default function AdminAnimePage() {
     if (lastSavedAt) return 'saved'
     return 'idle'
   }, [hasUnsavedChanges, isSaving, lastSavedAt, messages.error, uiMode])
-
-  useEffect(() => {
-    if (isSaving || hasUnsavedChanges || (editorMode === 'episode' && selectedEpisodeId !== null)) {
-      setUiMode('editing')
-      return
-    }
-    setUiMode('navigation')
-  }, [editorMode, hasUnsavedChanges, isSaving, selectedEpisodeId])
   const tokenPreview = useMemo(() => {
     if (!authToken) return 'n/a'
     return authToken.length > 24 ? `${authToken.slice(0, 24)}...` : authToken
@@ -299,6 +296,7 @@ export default function AdminAnimePage() {
             <AnimeContextCard
               anime={context.anime}
               fansubs={context.fansubs}
+              authToken={authToken}
               isLoading={context.isLoading}
               isLoadingFansubs={context.isLoadingFansubs}
               contextAnimeIDInput={contextAnimeIDInput}
@@ -306,6 +304,9 @@ export default function AdminAnimePage() {
               onSubmitContext={(event) => {
                 void handleContextSubmit(event)
               }}
+              onRefreshFansubs={handleContextRefresh}
+              onSuccess={messages.setSuccess}
+              onError={messages.setError}
               onJumpToPatch={() => {
                 setEditorMode('anime')
                 animePatchAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -381,6 +382,7 @@ export default function AdminAnimePage() {
             ) : context.anime ? (
               <EpisodeManager
                 anime={context.anime}
+                fansubs={context.fansubs}
                 authToken={authToken}
                 onRefresh={handleContextRefresh}
                 onSuccess={(msg) => {

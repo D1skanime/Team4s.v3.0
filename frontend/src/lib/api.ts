@@ -460,6 +460,38 @@ export async function getAnimeFansubs(animeID: number): Promise<AnimeFansubListR
   return response.json() as Promise<AnimeFansubListResponse>
 }
 
+export async function attachAnimeFansub(
+  animeID: number,
+  fansubID: number,
+  authToken?: string,
+): Promise<{ data: { anime_id: number; fansub_group_id: number } }> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${animeID}/fansubs/${fansubID}`, {
+    method: 'POST',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<{ data: { anime_id: number; fansub_group_id: number } }>
+}
+
+export async function detachAnimeFansub(animeID: number, fansubID: number, authToken?: string): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${animeID}/fansubs/${fansubID}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+}
+
 export async function getGroupedEpisodes(animeID: number): Promise<GroupedEpisodesResponse> {
   const API_BASE_URL = getApiBaseUrl()
   const response = await fetch(`${API_BASE_URL}/api/v1/anime/${animeID}/episodes`, {

@@ -6,6 +6,7 @@ import { FansubGroup } from '@/types/fansub'
 
 import { resolveCoverUrl, handleCoverImgError } from '../../utils/anime-helpers'
 import { AnimeContextFansubs } from './AnimeContextFansubs'
+import { AnimeContextFansubManager } from './AnimeContextFansubManager'
 import sharedStyles from '../../../admin.module.css'
 import contextStyles from './AnimeContext.module.css'
 
@@ -14,11 +15,15 @@ const styles = { ...sharedStyles, ...contextStyles }
 interface AnimeContextCardProps {
   anime: AnimeDetail | null
   fansubs: FansubGroup[]
+  authToken: string
   isLoading: boolean
   isLoadingFansubs: boolean
   contextAnimeIDInput: string
   onContextAnimeIDInputChange: (value: string) => void
   onSubmitContext: (event: FormEvent<HTMLFormElement>) => void
+  onRefreshFansubs: () => Promise<void>
+  onSuccess: (message: string) => void
+  onError: (message: string) => void
   onJumpToPatch: () => void
   onJumpToEpisodes: () => void
   contextAnchorRef: RefObject<HTMLDivElement>
@@ -27,11 +32,15 @@ interface AnimeContextCardProps {
 export function AnimeContextCard({
   anime,
   fansubs,
+  authToken,
   isLoading,
   isLoadingFansubs,
   contextAnimeIDInput,
   onContextAnimeIDInputChange,
   onSubmitContext,
+  onRefreshFansubs,
+  onSuccess,
+  onError,
   onJumpToPatch,
   onJumpToEpisodes,
   contextAnchorRef,
@@ -106,6 +115,15 @@ export function AnimeContextCard({
             </div>
           </div>
           <AnimeContextFansubs fansubs={fansubs} isLoading={isLoadingFansubs} />
+          <AnimeContextFansubManager
+            animeID={anime.id}
+            authToken={authToken}
+            attachedFansubs={fansubs}
+            disabled={isLoading || isLoadingFansubs}
+            onChanged={onRefreshFansubs}
+            onSuccess={onSuccess}
+            onError={onError}
+          />
         </div>
       ) : null}
     </section>
