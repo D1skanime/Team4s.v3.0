@@ -1,4 +1,4 @@
-import { AdminAnimeJellyfinPreviewResult, AdminJellyfinSeriesSearchItem, GenreToken } from '@/types/admin'
+import { AdminAnimeJellyfinPreviewResult, AdminAnimeJellyfinSyncResult, AdminJellyfinSeriesSearchItem, GenreToken } from '@/types/admin'
 import { AnimeDetail, AnimeListItem, EpisodeListItem, EpisodeStatus } from '@/types/anime'
 import { FansubGroup } from '@/types/fansub'
 
@@ -72,6 +72,7 @@ export interface JellyfinSyncState {
   cleanupVersions: boolean
   allowMismatch: boolean
   previewResult: AdminAnimeJellyfinPreviewResult | null
+  lastSyncResult: AdminAnimeJellyfinSyncResult | null
   isSearching: boolean
   isLoadingPreview: boolean
   isSyncing: boolean

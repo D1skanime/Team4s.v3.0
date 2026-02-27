@@ -136,24 +136,19 @@ export default function AdminAnimeEditPage() {
           />
 
           <section className={styles.card}>
-            <details className={styles.developerPanel}>
-              <summary>Provider Sync (Jellyfin)</summary>
-              <div className={styles.developerPanelContent}>
-                <JellyfinSyncPanel
-                  anime={anime}
-                  model={jellyfin}
-                  onBeforeAction={() => {
-                    setErrorMessage(null)
-                    setSuccessMessage(null)
-                  }}
-                  onSynced={async () => {
-                    const refreshed = await getAnimeByID(anime.id, { include_disabled: true })
-                    setAnime(refreshed.data)
-                    setSuccessMessage('Jellyfin Sync abgeschlossen.')
-                  }}
-                />
-              </div>
-            </details>
+            <JellyfinSyncPanel
+              anime={anime}
+              model={jellyfin}
+              onBeforeAction={() => {
+                setErrorMessage(null)
+                setSuccessMessage(null)
+              }}
+              onSynced={async () => {
+                const refreshed = await getAnimeByID(anime.id, { include_disabled: true })
+                setAnime(refreshed.data)
+                setSuccessMessage('Jellyfin Sync abgeschlossen.')
+              }}
+            />
           </section>
 
           {(lastRequest || lastResponse) ? (

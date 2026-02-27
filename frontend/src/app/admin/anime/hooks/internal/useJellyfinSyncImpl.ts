@@ -1,7 +1,12 @@
 import { useCallback, useState } from 'react'
 
 import { getAnimeList, previewAdminAnimeFromJellyfin, searchAdminJellyfinSeries, syncAdminAnimeFromJellyfin } from '@/lib/api'
-import { AdminAnimeJellyfinPreviewResult, AdminAnimeJellyfinSyncRequest, AdminJellyfinSeriesSearchItem } from '@/types/admin'
+import {
+  AdminAnimeJellyfinPreviewResult,
+  AdminAnimeJellyfinSyncRequest,
+  AdminAnimeJellyfinSyncResult,
+  AdminJellyfinSeriesSearchItem,
+} from '@/types/admin'
 import { AnimeListItem, EpisodeStatus } from '@/types/anime'
 
 import { CoverFilter, JellyfinSyncState } from '../../types/admin-anime'
@@ -18,7 +23,7 @@ interface JellyfinSyncActions {
   setAllowMismatch: (value: boolean) => void
   search: () => Promise<void>
   preview: (animeID: number) => Promise<void>
-  sync: (animeID: number, options?: { requireFreshPreview?: boolean }) => Promise<void>
+  sync: (animeID: number, options?: { requireFreshPreview?: boolean }) => Promise<boolean>
   syncRow: (anime: AnimeListItem, selectedSeriesID?: string) => Promise<void>
   syncGlobal: (options: {
     total: number
@@ -48,6 +53,7 @@ export function useJellyfinSync(
   const [cleanupVersions, setCleanupVersionsState] = useState(false)
   const [allowMismatch, setAllowMismatchState] = useState(false)
   const [previewResult, setPreviewResult] = useState<AdminAnimeJellyfinPreviewResult | null>(null)
+  const [lastSyncResult, setLastSyncResult] = useState<AdminAnimeJellyfinSyncResult | null>(null)
   const [isSearching, setIsSearching] = useState(false)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -64,16 +70,19 @@ export function useJellyfinSync(
   const selectSeries = useCallback((value: string) => {
     setSelectedSeriesID(value)
     setPreviewResult(null)
+    setLastSyncResult(null)
   }, [])
 
   const setSeasonInput = useCallback((value: string) => {
     setSeasonInputState(value)
     setPreviewResult(null)
+    setLastSyncResult(null)
   }, [])
 
   const setEpisodeStatus = useCallback((value: EpisodeStatus) => {
     setEpisodeStatusState(value)
     setPreviewResult(null)
+    setLastSyncResult(null)
   }, [])
 
   const setCleanupVersions = useCallback((value: boolean) => {
@@ -97,6 +106,7 @@ export function useJellyfinSync(
 
     try {
       setIsSearching(true)
+      setLastSyncResult(null)
       const response = await searchAdminJellyfinSeries(query, { limit: 50 }, authToken)
       setSeriesOptions(response.data)
       if (response.data.length === 0) onSuccess('Keine Jellyfin-Serien fuer die Suche gefunden.')
@@ -149,13 +159,13 @@ export function useJellyfinSync(
   const sync = useCallback(async (animeID: number, options: { requireFreshPreview?: boolean } = {}) => {
     if (!hasAuthToken) {
       onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
-      return
+      return false
     }
 
     const seasonNumber = parsePositiveInt(seasonInput)
     if (!seasonNumber) {
       onError('Season Number muss groesser als 0 sein.')
-      return
+      return false
     }
 
     const selected = selectedSeriesID.trim()
@@ -168,7 +178,7 @@ export function useJellyfinSync(
         previewResult.season_number !== seasonNumber)
     ) {
       onError('Bitte zuerst eine aktuelle Jellyfin-Preview fuer diese Auswahl laden.')
-      return
+      return false
     }
 
     const payload: AdminAnimeJellyfinSyncRequest = {
@@ -183,13 +193,16 @@ export function useJellyfinSync(
       setIsSyncing(true)
       const response = await syncAdminAnimeFromJellyfin(animeID, payload, authToken)
       const result = response.data
+      setLastSyncResult(result)
       const deletedInfo = result.deleted_versions ? ` | Geloescht -${result.deleted_versions}` : ''
       onSuccess(
         `Jellyfin Sync OK: ${result.jellyfin_series_name} | Episoden +${result.imported_episodes}/~${result.updated_episodes} | Versionen +${result.imported_versions}/~${result.updated_versions}${deletedInfo}`,
       )
+      return true
     } catch (error) {
       if (error instanceof Error) onError(error.message)
       else onError('Jellyfin Sync fehlgeschlagen.')
+      return false
     } finally {
       setIsSyncing(false)
     }
@@ -329,6 +342,7 @@ export function useJellyfinSync(
     setSeriesOptions([])
     setSelectedSeriesID('')
     setPreviewResult(null)
+    setLastSyncResult(null)
     setAllowMismatchState(false)
   }, [])
 
@@ -341,6 +355,7 @@ export function useJellyfinSync(
     cleanupVersions,
     allowMismatch,
     previewResult,
+    lastSyncResult,
     isSearching,
     isLoadingPreview,
     isSyncing,
