@@ -12,3 +12,4 @@ backend/.env
 *.tmp
 .env
 .env.*
+!.env.example
