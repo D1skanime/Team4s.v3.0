@@ -20,6 +20,8 @@ const styles = { ...sharedStyles, ...episodeStyles }
 
 const EPISODE_STATUSES: EpisodeStatus[] = ['disabled', 'private', 'public']
 
+type EpisodeVersionMatchMode = 'exact' | 'title' | 'none'
+
 function formatGroupedEpisodeError(error: unknown): string {
   if (error instanceof ApiError) {
     return `(${error.status}) ${error.message}`
@@ -28,6 +30,10 @@ function formatGroupedEpisodeError(error: unknown): string {
     return error.message
   }
   return 'Episode-Versionen konnten nicht geladen werden.'
+}
+
+function normalizeEpisodeLookup(value?: string | null): string {
+  return (value || '').trim().replace(/\s+/g, ' ').toLowerCase()
 }
 
 interface EpisodeManagerProps {
@@ -73,10 +79,58 @@ export function EpisodeManager({
     () => (manager.selectedEpisode ? parsePositiveInt(manager.selectedEpisode.episode_number) : null),
     [manager.selectedEpisode],
   )
-  const selectedGroupedEpisode = useMemo(() => {
-    if (!selectedEpisodeNumber) return null
-    return groupedEpisodes.find((episode) => episode.episode_number === selectedEpisodeNumber) || null
-  }, [groupedEpisodes, selectedEpisodeNumber])
+  const selectedVersionMatch = useMemo(() => {
+    if (!manager.selectedEpisode) {
+      return {
+        episode: null as GroupedEpisode | null,
+        mode: 'none' as EpisodeVersionMatchMode,
+        matchedEpisodeNumber: null as number | null,
+      }
+    }
+
+    if (selectedEpisodeNumber) {
+      const exactMatch = groupedEpisodes.find((episode) => episode.episode_number === selectedEpisodeNumber) || null
+      if (exactMatch) {
+        return {
+          episode: exactMatch,
+          mode: 'exact' as EpisodeVersionMatchMode,
+          matchedEpisodeNumber: exactMatch.episode_number,
+        }
+      }
+    }
+
+    const selectedTitle = normalizeEpisodeLookup(manager.selectedEpisode.title)
+    if (!selectedTitle) {
+      return {
+        episode: null as GroupedEpisode | null,
+        mode: 'none' as EpisodeVersionMatchMode,
+        matchedEpisodeNumber: null as number | null,
+      }
+    }
+
+    const titleMatch =
+      groupedEpisodes.find((episode) => {
+        if (normalizeEpisodeLookup(episode.episode_title) === selectedTitle) {
+          return true
+        }
+
+        return episode.versions.some((version) => normalizeEpisodeLookup(version.title) === selectedTitle)
+      }) || null
+
+    if (!titleMatch) {
+      return {
+        episode: null as GroupedEpisode | null,
+        mode: 'none' as EpisodeVersionMatchMode,
+        matchedEpisodeNumber: null as number | null,
+      }
+    }
+
+    return {
+      episode: titleMatch,
+      mode: 'title' as EpisodeVersionMatchMode,
+      matchedEpisodeNumber: titleMatch.episode_number,
+    }
+  }, [groupedEpisodes, manager.selectedEpisode, selectedEpisodeNumber])
 
   const loadGroupedEpisodes = useCallback(async () => {
     setIsLoadingGroupedEpisodes(true)
@@ -265,8 +319,10 @@ export function EpisodeManager({
             availableFansubs={fansubs}
             selectedEpisode={manager.selectedEpisode}
             selectedEpisodeNumber={selectedEpisodeNumber}
-            selectedEpisodeVersions={selectedGroupedEpisode?.versions || []}
-            selectedEpisodeVersionCount={selectedGroupedEpisode?.version_count || 0}
+            selectedEpisodeVersions={selectedVersionMatch.episode?.versions || []}
+            selectedEpisodeVersionCount={selectedVersionMatch.episode?.version_count || 0}
+            versionMatchMode={selectedVersionMatch.mode}
+            matchedVersionEpisodeNumber={selectedVersionMatch.matchedEpisodeNumber}
             isLoadingVersions={isLoadingGroupedEpisodes}
             versionsError={groupedEpisodesError}
             values={manager.editFormValues}

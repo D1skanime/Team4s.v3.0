@@ -21,6 +21,8 @@ interface EpisodeEditFormProps {
   selectedEpisodeNumber: number | null
   selectedEpisodeVersions: EpisodeVersion[]
   selectedEpisodeVersionCount: number
+  versionMatchMode: 'exact' | 'title' | 'none'
+  matchedVersionEpisodeNumber: number | null
   isLoadingVersions: boolean
   versionsError: string | null
   values: { id: string; number: string; title: string; status: string; streamLink: string }
@@ -46,6 +48,49 @@ function resolveVersionTitle(version: EpisodeVersion): string {
   return `(release #${version.id})`
 }
 
+function resolveEpisodeStreamDiagnostics(selectedEpisode: EpisodeListItem | null): {
+  rawLink: string | null
+  sourceOrigin: string | null
+  itemID: string | null
+  derivedStreamPath: string | null
+} {
+  const rawLink = selectedEpisode?.stream_links?.[0]?.trim() || ''
+  if (!rawLink) {
+    return {
+      rawLink: null,
+      sourceOrigin: null,
+      itemID: null,
+      derivedStreamPath: null,
+    }
+  }
+
+  try {
+    const parsed = new URL(rawLink)
+    let itemID = parsed.searchParams.get('id')
+
+    if (!itemID && parsed.hash) {
+      const hashMatch = parsed.hash.match(/[?&]id=([^&]+)/i)
+      if (hashMatch?.[1]) {
+        itemID = decodeURIComponent(hashMatch[1])
+      }
+    }
+
+    return {
+      rawLink,
+      sourceOrigin: parsed.origin,
+      itemID: itemID || null,
+      derivedStreamPath: itemID ? `/Videos/${itemID}/stream` : null,
+    }
+  } catch {
+    return {
+      rawLink,
+      sourceOrigin: null,
+      itemID: null,
+      derivedStreamPath: null,
+    }
+  }
+}
+
 function resolveExpandedFansub(version: EpisodeVersion, availableFansubs: FansubGroup[]): FansubGroup | null {
   const fansubID = version.fansub_group?.id
   if (!fansubID) return null
@@ -60,6 +105,8 @@ export function EpisodeEditForm({
   selectedEpisodeNumber,
   selectedEpisodeVersions,
   selectedEpisodeVersionCount,
+  versionMatchMode,
+  matchedVersionEpisodeNumber,
   isLoadingVersions,
   versionsError,
   values,
@@ -71,6 +118,8 @@ export function EpisodeEditForm({
   onClearFlagChange,
   onSubmit,
 }: EpisodeEditFormProps) {
+  const streamDiagnostics = resolveEpisodeStreamDiagnostics(selectedEpisode)
+
   return (
     <>
       <h3 className={styles.subheading}>Episode bearbeiten</h3>
@@ -166,7 +215,15 @@ export function EpisodeEditForm({
             <p className={styles.hint}>
               Aktueller Status: {selectedEpisode ? formatEpisodeStatusLabel(selectedEpisode.status) : '-'}
               <br />
-              Aktueller Link: {selectedEpisode?.stream_links?.[0] ? 'vorhanden' : 'nicht gesetzt'}
+              Episodentitel: {selectedEpisode?.title?.trim() || 'nicht gesetzt'}
+              <br />
+              Gespeicherter Link: {streamDiagnostics.rawLink || 'nicht gesetzt'}
+              <br />
+              Quell-Host: {streamDiagnostics.sourceOrigin || 'nicht lesbar'}
+              <br />
+              Verknuepfte Item-ID: {streamDiagnostics.itemID || 'nicht lesbar'}
+              <br />
+              Abgeleiteter Stream-Pfad: {streamDiagnostics.derivedStreamPath || 'nicht ableitbar'}
             </p>
           </div>
         </div>
@@ -182,6 +239,17 @@ export function EpisodeEditForm({
           ) : null}
           {selectedEpisode && selectedEpisodeNumber !== null && versionsError ? (
             <p className={styles.hintWarning}>Versionen konnten nicht geladen werden: {versionsError}</p>
+          ) : null}
+          {selectedEpisode &&
+          selectedEpisodeNumber !== null &&
+          !isLoadingVersions &&
+          !versionsError &&
+          versionMatchMode === 'title' &&
+          selectedEpisodeVersions.length > 0 ? (
+            <p className={styles.hintWarning}>
+              Kein exakter Nummern-Match fuer Episode {selectedEpisodeNumber}. Es werden Titel-Treffer aus importierter
+              Episodennummer {matchedVersionEpisodeNumber ?? '?'} angezeigt.
+            </p>
           ) : null}
           {selectedEpisode &&
           selectedEpisodeNumber !== null &&
