@@ -2,10 +2,9 @@
 
 ## Active Threads
 - Security follow-through: leaked keys must still be rotated even though `.env` was removed from Git history
-- Admin anime step-flow: new routes are in place; next pass is route-by-route responsive QA
-- Anime edit workspace: structure is shipped; the genre dropdown still needs one live browser validation
-- Playback hardening: grant flow works, abuse controls next
-- Handler modularization: remaining oversized files still need a later sweep
+- Handler modularization: remaining oversized files need systematic sweep
+- Regression coverage: new admin routes need automated test coverage
+- Next.js warnings: img tags need replacement with next/image
 
 ## Quick Checks
 ```bash
@@ -24,8 +23,10 @@ curl "http://localhost:8092/api/v1/genres?query=act&limit=3"
 - Clean residual %??% placeholder artifacts
 
 ## Mental Unload
-- Backend data access for genres now answers correctly; if the UI still looks empty, it is almost certainly a browser-side render or stale-bundle issue, not the DB query.
-- The biggest closeout gap is not code generation anymore, it is disciplined live validation of the new admin routes.
+- Genre dropdown now fully working (CSS overflow fix applied)
+- Playback security hardening complete (IP rate limit, replay protection, audit log)
+- Admin QA pass complete, all routes verified working
+- Focus shifts to code quality: handler size discipline and test coverage
 
 ## Auth Contract
 - Bearer token with HMAC-SHA256

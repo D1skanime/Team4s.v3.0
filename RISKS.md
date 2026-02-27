@@ -2,25 +2,25 @@
 
 ## Top 3 Risks
 
-### 1. Playback Abuse-Control Gap
-- **Impact:** High (resource abuse risk)
-- **Status:** Auth parity done, guardrails pending
-- **Mitigation:** Add rate/operational limits to /api/v1/episodes/:id/play
+### 1. Handler Modularization Backlog
+- **Impact:** Medium (maintainability degrades with oversized files)
+- **Status:** Major monoliths split, but remaining files >150 lines need systematic sweep
+- **Mitigation:** Identify all handlers >150 lines and create focused split plan
 
-### 2. Genre Autocomplete Still Needs Live UI Confirmation
-- **Impact:** Medium (core admin edit flow still feels broken to operators)
-- **Status:** Backend endpoint returns DB values, but the user-reported browser symptom was not yet re-verified after the transport change
-- **Mitigation:** Hard refresh `/admin/anime/[id]/edit`, inspect the request path in the browser, and fix any remaining client render, z-index, or stale-bundle issue
+### 2. New Admin Anime Routes Have Limited Regression Coverage
+- **Impact:** Medium (navigation or layout regressions can slip through)
+- **Status:** Manual QA complete, but no automated regression tests
+- **Mitigation:** Add focused UI smoke/regression suite for new step flow
 
-### 3. New Admin Anime Routes Have Limited Regression Coverage
-- **Impact:** Medium (navigation or layout regressions can slip through across the new step flow)
-- **Status:** The new route split is built and reachable, but coverage is still mostly manual
-- **Mitigation:** Run a focused desktop/mobile pass across all new routes and add one deterministic UI smoke/regression path
+### 3. Next.js Image Warnings Accumulating
+- **Impact:** Low (cosmetic, but clutters build output)
+- **Status:** Multiple img tags remain in admin routes
+- **Mitigation:** Systematic replacement pass with next/image component
 
 ## Current Blockers
 - None
 
 ## If Nothing Changes
-- Playback remains softer than desired under abuse
-- Operators can still see the genre field as broken even though the API now returns matches
-- The new admin step flow can regress without a targeted regression pass
+- Handler files will continue to grow beyond maintainable size
+- Admin UI regressions may go undetected without automated coverage
+- Build warnings will accumulate and obscure real issues

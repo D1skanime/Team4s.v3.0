@@ -27,14 +27,17 @@
   - sticky save bar
   - advanced developer panel
   - Jellyfin sync restored inside provider section
+  - Genre dropdown CSS overflow fix
 - Genre suggestion backend path available at `/api/v1/genres`
+- Playback abuse-control hardening:
+  - IP-based rate limiting
+  - Grant token replay protection
+  - Audit logging for episode playback
+- Admin QA pass completed (all routes working, no legacy links)
 - RBAC (DB-based roles, bootstrap)
 - Handler modularization sweep (major monoliths split)
 
 ### In Progress
-- Live browser validation of the genre dropdown on `/admin/anime/[id]/edit`
-- Manual responsive QA across the new admin anime routes
-- Playback abuse-control hardening
 - Continue handler modularization (remaining files >150 lines)
 
 ### Blocked
@@ -62,8 +65,8 @@
 
 ### Day 2026-02-27
 - Phase: P2 hardening closeout + admin anime IA/UX stabilization
-- Accomplishments: removed leaked `.env` from history, shipped the admin anime step-flow refactor, rebuilt the anime edit workspace, and rewired genre suggestions to a public DB-backed read endpoint
-- Key Decisions: template-only env policy, route-level admin separation, advanced developer controls collapsed out of the main edit form
-- Risks/Unknowns: browser-side genre dropdown still needs one live confirmation pass; playback abuse controls remain the main backend hardening gap
-- Next Steps: validate the genre field in-browser, run a responsive pass across the new routes, then resume playback hardening
-- First task tomorrow: open `/admin/anime/25/edit`, hard refresh, type into the genre field, and inspect the request/response plus dropdown visibility
+- Accomplishments: fixed genre dropdown CSS overflow clipping, implemented playback abuse-control hardening (IP rate limiting, grant token replay protection, audit logging), completed comprehensive admin QA pass
+- Key Decisions: all security measures implemented at handler level, audit logs for playback tracking
+- Risks/Unknowns: none identified
+- Next Steps: continue handler modularization for remaining oversized files
+- First task tomorrow: identify handlers >150 lines and begin modularization sweep

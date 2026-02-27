@@ -8,8 +8,9 @@
   - `/admin/anime/[id]/episodes`
   - `/admin/anime/[id]/episodes/[episodeId]/edit`
   - `/admin/anime/[id]/episodes/[episodeId]/versions`
-- Anime edit route: sectioned cards, sticky save UX, advanced developer panel, Jellyfin provider sync
+- Anime edit route: sectioned cards, sticky save UX, advanced developer panel, Jellyfin provider sync, genre dropdown working
 - Genre suggestion backend path: `GET /api/v1/genres?query=...` returns DB-backed suggestions
+- Playback security: IP-based rate limiting, grant token replay protection, audit logging
 - Auth lifecycle (issue/refresh/revoke with signed tokens)
 - Fansub profiles, version browser, admin CRUD
 - Jellyfin sync with path filtering + mismatch guard
@@ -29,12 +30,12 @@ cd ../frontend && npm run build
 ```
 
 ## Next (Top 3)
-1. Live browser validation and final fix for the genre dropdown on `/admin/anime/[id]/edit`
-2. Responsive/manual QA across the new admin anime step-flow routes and cleanup of remaining legacy links
-3. Playback abuse-control for `/api/v1/episodes/:id/play`
+1. Continue handler modularization (remaining files >150 lines)
+2. Add focused regression coverage for new admin anime step-flow
+3. Replace img tags in admin routes to clear Next.js warnings
 
 ## Known Risks
 - Docker daemon availability can block runtime verification
-- The genre API now returns data, but the browser dropdown may still fail to render until the final client-side validation is done
-- New admin routes shipped quickly and still have limited focused regression coverage
+- New admin routes have limited focused regression coverage
 - Direct stream endpoint usage can fail without fresh grant
+- Handler modularization backlog may grow if not addressed systematically
