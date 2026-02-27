@@ -1,20 +1,23 @@
-# Tomorrow Plan (2026-02-28)
+# TOMORROW
 
 ## Top 3 Priorities
-1. Review and commit the uncommitted Episode Manager frontend changes (2 modified files)
-2. Continue handler modularization (`episode_versions.go` is next at 735 lines)
-3. Verify frontend container rebuild with Docker
+1. Continue handler modularization (fansub_admin.go, remaining files)
+2. Playback abuse-control hardening for /api/v1/episodes/:id/play
+3. Alias backfill for unmapped release tags (B-SH etc.)
 
 ## First 15-Minute Task
-> Run `git diff` on the 2 uncommitted Episode Manager files and understand what was left in progress:
-> - `EpisodeEditForm.tsx`
-> - `EpisodeManager.tsx`
+```bash
+cd Team4s.v3.0
+docker compose ps
+docker compose exec -T team4sv30-backend ./migrate status
+curl http://localhost:8092/health
+cd backend && go test ./internal/handlers/...
+```
 
-## Dependencies to Unblock Early
-- Docker daemon must be running for frontend container rebuild
-- Check if earlier session changes need cleanup before commit
+## Dependencies To Unblock
+- Restore Docker Desktop if unavailable
+- Confirm alias strategy for legacy import tags
 
-## Nice-to-Have (If Ahead)
-- Split `admin_content.go` (629 lines)
-- Split `anime_backdrops.go` (558 lines)
-- Update `agents/code-modularization-agent.md` with lessons learned
+## Nice-To-Have
+- Split remaining test files >150 lines
+- Add UI regression for episode selection flow
