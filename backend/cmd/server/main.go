@@ -218,6 +218,7 @@ func main() {
 	v1.GET("/fansubs/:id", fansubHandler.GetFansubByID)
 	v1.GET("/fansubs/:id/aliases", fansubHandler.ListFansubAliases)
 	v1.GET("/fansubs/:id/members", fansubHandler.ListFansubMembers)
+	v1.GET("/genres", adminContentHandler.ListGenreTokensPublic)
 	v1.GET("/media/image", fansubHandler.MediaImage)
 	v1.GET("/media/video", fansubHandler.MediaVideo)
 	v1.GET("/media/files/:filename", fansubHandler.ServeMediaFile)

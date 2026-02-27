@@ -1,0 +1,519 @@
+'use client'
+
+import { KeyboardEvent, useEffect, useRef, useState } from 'react'
+
+import { getAdminGenreTokens, getAnimeByID, updateAdminAnime } from '@/lib/api'
+import { AnimeDetail, AnimeStatus, ContentType } from '@/types/anime'
+import { AnimeType } from '@/types/admin'
+
+import { useAnimePatch } from '../../hooks/useAnimePatch'
+import { handleCoverImgError, resolveCoverUrl } from '../../utils/anime-helpers'
+import styles from '../../AdminStudio.module.css'
+import workspaceStyles from './AnimeEditWorkspace.module.css'
+
+const ANIME_TYPES: AnimeType[] = ['tv', 'film', 'ova', 'ona', 'special', 'bonus']
+const CONTENT_TYPES: ContentType[] = ['anime', 'hentai']
+const ANIME_STATUSES: AnimeStatus[] = ['disabled', 'ongoing', 'done', 'aborted', 'licensed']
+
+interface GenreSuggestion {
+  name: string
+  count: number
+}
+
+interface AnimeEditWorkspaceProps {
+  anime: AnimeDetail
+  authToken: string
+  onSaved: (anime: AnimeDetail, message: string) => void
+  onError: (message: string) => void
+  onRequest?: (request: string | null) => void
+  onResponse?: (response: string | null) => void
+}
+
+export function AnimeEditWorkspace({
+  anime,
+  authToken,
+  onSaved,
+  onError,
+  onRequest,
+  onResponse,
+}: AnimeEditWorkspaceProps) {
+  const patch = useAnimePatch(
+    authToken,
+    (nextAnime) => onSaved(nextAnime, `Anime #${nextAnime.id} wurde gespeichert.`),
+    onError,
+    { onRequest, onResponse },
+  )
+  const resetFromAnime = patch.resetFromAnime
+
+  const coverFileInputRef = useRef<HTMLInputElement>(null)
+  const genreCloseTimeoutRef = useRef<number | null>(null)
+
+  const [genreResults, setGenreResults] = useState<GenreSuggestion[]>([])
+  const [isLoadingGenres, setIsLoadingGenres] = useState(false)
+  const [genreError, setGenreError] = useState<string | null>(null)
+  const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false)
+  const [activeGenreIndex, setActiveGenreIndex] = useState(-1)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [genreSearchVersion, setGenreSearchVersion] = useState(0)
+
+  useEffect(() => {
+    resetFromAnime(anime)
+    setGenreResults([])
+    setGenreError(null)
+    setIsGenreDropdownOpen(false)
+    setActiveGenreIndex(-1)
+  }, [anime, resetFromAnime])
+
+  useEffect(() => {
+    const query = patch.values.genreDraft.trim()
+
+    if (patch.clearFlags.genre || !query) {
+      setGenreResults([])
+      setIsLoadingGenres(false)
+      setGenreError(null)
+      setIsGenreDropdownOpen(false)
+      setActiveGenreIndex(-1)
+      return
+    }
+
+    let cancelled = false
+    const timer = window.setTimeout(() => {
+      setIsLoadingGenres(true)
+      setGenreError(null)
+
+      getAdminGenreTokens({ query, limit: 20 })
+        .then((response) => {
+          if (cancelled) return
+
+          const selected = new Set(patch.values.genreTokens.map((token) => token.toLowerCase()))
+          const nextResults = response.data.filter((item) => !selected.has(item.name.toLowerCase()))
+          setGenreResults(nextResults)
+          setIsGenreDropdownOpen(true)
+          setActiveGenreIndex(nextResults.length > 0 ? 0 : -1)
+        })
+        .catch((error) => {
+          if (cancelled) return
+
+          setGenreResults([])
+          if (error instanceof Error && error.message.trim()) {
+            setGenreError(error.message)
+          } else {
+            setGenreError('Genres konnten nicht geladen werden.')
+          }
+          setIsGenreDropdownOpen(true)
+          setActiveGenreIndex(-1)
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setIsLoadingGenres(false)
+          }
+        })
+    }, 250)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [genreSearchVersion, patch.clearFlags.genre, patch.values.genreDraft, patch.values.genreTokens])
+
+  useEffect(
+    () => () => {
+      if (genreCloseTimeoutRef.current !== null) {
+        window.clearTimeout(genreCloseTimeoutRef.current)
+      }
+    },
+    [],
+  )
+
+  function clearGenreDropdown() {
+    setIsGenreDropdownOpen(false)
+    setActiveGenreIndex(-1)
+  }
+
+  function applyGenreToken(token: string) {
+    patch.addGenreToken(token)
+    patch.setField('genreDraft', '')
+    setGenreResults([])
+    setGenreError(null)
+    clearGenreDropdown()
+  }
+
+  function scheduleDropdownClose() {
+    if (genreCloseTimeoutRef.current !== null) {
+      window.clearTimeout(genreCloseTimeoutRef.current)
+    }
+
+    genreCloseTimeoutRef.current = window.setTimeout(() => {
+      clearGenreDropdown()
+    }, 120)
+  }
+
+  function handleGenreKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'ArrowDown' && genreResults.length > 0) {
+      event.preventDefault()
+      setIsGenreDropdownOpen(true)
+      setActiveGenreIndex((current) => (current + 1) % genreResults.length)
+      return
+    }
+
+    if (event.key === 'ArrowUp' && genreResults.length > 0) {
+      event.preventDefault()
+      setIsGenreDropdownOpen(true)
+      setActiveGenreIndex((current) => (current <= 0 ? genreResults.length - 1 : current - 1))
+      return
+    }
+
+    if (event.key === 'Escape') {
+      clearGenreDropdown()
+      return
+    }
+
+    if (event.key === 'Backspace' && !patch.values.genreDraft.trim() && patch.values.genreTokens.length > 0) {
+      patch.removeGenreToken(patch.values.genreTokens[patch.values.genreTokens.length - 1])
+      return
+    }
+
+    if ((event.key === 'Enter' || event.key === ',') && patch.values.genreDraft.trim()) {
+      event.preventDefault()
+
+      if (isGenreDropdownOpen && activeGenreIndex >= 0 && genreResults[activeGenreIndex]) {
+        applyGenreToken(genreResults[activeGenreIndex].name)
+        return
+      }
+
+      applyGenreToken(patch.values.genreDraft)
+    }
+  }
+
+  async function handleRemoveCover() {
+    if (!authToken.trim()) {
+      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+      return
+    }
+
+    try {
+      await updateAdminAnime(anime.id, { cover_image: null }, authToken)
+      const refreshed = await getAnimeByID(anime.id, { include_disabled: true })
+      patch.setField('coverImage', '')
+      patch.setClearFlag('coverImage', false)
+      onSaved(refreshed.data, 'Cover wurde entfernt.')
+    } catch (error) {
+      if (error instanceof Error && error.message.trim()) {
+        onError(error.message)
+      } else {
+        onError('Cover konnte nicht entfernt werden.')
+      }
+    }
+  }
+
+  const resolvedCover = resolveCoverUrl(patch.clearFlags.coverImage ? '' : patch.values.coverImage || anime.cover_image)
+  const hasUnsavedChanges = patch.isDirty
+
+  return (
+    <div className={workspaceStyles.workspace}>
+      <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h2 className={styles.sectionTitle}>Basisdaten</h2>
+            <p className={styles.sectionMeta}>Titel, Typ, Inhaltstyp und Status des Anime.</p>
+          </div>
+        </div>
+        <div className={workspaceStyles.sectionGrid}>
+          <label className={workspaceStyles.field}>
+            <span>Anime ID</span>
+            <input className={styles.input} value={String(anime.id)} readOnly disabled />
+          </label>
+          <label className={workspaceStyles.field}>
+            <span>Title</span>
+            <input className={styles.input} value={patch.values.title} onChange={(event) => patch.setField('title', event.target.value)} />
+          </label>
+          <label className={workspaceStyles.field}>
+            <span>Type</span>
+            <select className={styles.select} value={patch.values.type} onChange={(event) => patch.setField('type', event.target.value)}>
+              <option value="">-- unveraendert --</option>
+              {ANIME_TYPES.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={workspaceStyles.field}>
+            <span>Content Type</span>
+            <select
+              className={styles.select}
+              value={patch.values.contentType}
+              onChange={(event) => patch.setField('contentType', event.target.value)}
+            >
+              <option value="">-- unveraendert --</option>
+              {CONTENT_TYPES.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={workspaceStyles.field}>
+            <span>Status</span>
+            <select className={styles.select} value={patch.values.status} onChange={(event) => patch.setField('status', event.target.value)}>
+              <option value="">-- unveraendert --</option>
+              {ANIME_STATUSES.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h2 className={styles.sectionTitle}>Titel und Struktur</h2>
+            <p className={styles.sectionMeta}>Jahr, Episodenstruktur und lokalisierte Titel.</p>
+          </div>
+        </div>
+        <div className={workspaceStyles.sectionGrid}>
+          <label className={workspaceStyles.field}>
+            <span>Year</span>
+            <input className={styles.input} value={patch.values.year} onChange={(event) => patch.setField('year', event.target.value)} />
+          </label>
+          <label className={workspaceStyles.field}>
+            <span>Max Episodes</span>
+            <input
+              className={styles.input}
+              value={patch.values.maxEpisodes}
+              onChange={(event) => patch.setField('maxEpisodes', event.target.value)}
+            />
+          </label>
+          <label className={workspaceStyles.field}>
+            <span>Title DE</span>
+            <input className={styles.input} value={patch.values.titleDE} onChange={(event) => patch.setField('titleDE', event.target.value)} />
+          </label>
+          <label className={workspaceStyles.field}>
+            <span>Title EN</span>
+            <input className={styles.input} value={patch.values.titleEN} onChange={(event) => patch.setField('titleEN', event.target.value)} />
+          </label>
+        </div>
+      </section>
+
+      <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h2 className={styles.sectionTitle}>Genres</h2>
+            <p className={styles.sectionMeta}>Tag-Input mit Autocomplete aus den vorhandenen DB-Werten.</p>
+          </div>
+        </div>
+        <div className={workspaceStyles.tagSection}>
+          <div className={workspaceStyles.chipWrap}>
+            {patch.values.genreTokens.length > 0 ? (
+              patch.values.genreTokens.map((token) => (
+                <button
+                  key={token}
+                  type="button"
+                  className={workspaceStyles.chip}
+                  onClick={() => patch.removeGenreToken(token)}
+                  disabled={patch.isSubmitting || patch.clearFlags.genre}
+                >
+                  <span>{token}</span>
+                  <span className={workspaceStyles.chipRemove}>x</span>
+                </button>
+              ))
+            ) : (
+              <p className={workspaceStyles.helperText}>Noch keine Genres gesetzt.</p>
+            )}
+          </div>
+
+          <div className={workspaceStyles.tagInputShell}>
+            <input
+              className={styles.input}
+              value={patch.values.genreDraft}
+              onChange={(event) => patch.setField('genreDraft', event.target.value)}
+              onKeyDown={handleGenreKeyDown}
+              onFocus={() => {
+                if (genreResults.length > 0 || isLoadingGenres || genreError) {
+                  setIsGenreDropdownOpen(true)
+                }
+              }}
+              onBlur={scheduleDropdownClose}
+              disabled={patch.isSubmitting || patch.clearFlags.genre}
+              placeholder="Genre tippen und mit Enter oder Komma hinzufuegen"
+            />
+            {isGenreDropdownOpen ? (
+              <div className={workspaceStyles.tagDropdown}>
+                {isLoadingGenres ? <p className={workspaceStyles.dropdownState}>Genres werden geladen...</p> : null}
+                {!isLoadingGenres && genreError ? (
+                  <>
+                    <p className={workspaceStyles.dropdownState}>{genreError}</p>
+                    <button
+                      type="button"
+                      className={workspaceStyles.tagRetry}
+                      onMouseDown={(event) => {
+                        event.preventDefault()
+                        setGenreSearchVersion((current) => current + 1)
+                      }}
+                    >
+                      Retry
+                    </button>
+                  </>
+                ) : null}
+                {!isLoadingGenres && !genreError && genreResults.length === 0 ? (
+                  <p className={workspaceStyles.dropdownState}>Keine Treffer.</p>
+                ) : null}
+                {!isLoadingGenres && !genreError
+                  ? genreResults.map((item, index) => (
+                      <button
+                        key={item.name}
+                        type="button"
+                        className={`${workspaceStyles.tagOption} ${index === activeGenreIndex ? workspaceStyles.tagOptionActive : ''}`}
+                        onMouseDown={(event) => {
+                          event.preventDefault()
+                          applyGenreToken(item.name)
+                        }}
+                      >
+                        <span>{item.name}</span>
+                        <span className={workspaceStyles.tagOptionMeta}>x{item.count}</span>
+                      </button>
+                    ))
+                  : null}
+              </div>
+            ) : null}
+          </div>
+
+          <p className={workspaceStyles.helperText}>Duplikate werden verhindert. Backspace entfernt das letzte Tag.</p>
+        </div>
+      </section>
+
+      <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
+        <div className={workspaceStyles.descriptionHeader}>
+          <div>
+            <h2 className={styles.sectionTitle}>Beschreibung</h2>
+            <p className={styles.sectionMeta}>Laengere Beschreibung mit besserer Lesbarkeit und klarer Flaeche.</p>
+          </div>
+          <p className={workspaceStyles.helperText}>{patch.values.description.length} Zeichen</p>
+        </div>
+        <textarea
+          className={`${styles.textarea} ${workspaceStyles.descriptionArea}`}
+          value={patch.values.description}
+          onChange={(event) => patch.setField('description', event.target.value)}
+          disabled={patch.isSubmitting || patch.clearFlags.description}
+        />
+      </section>
+
+      <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h2 className={styles.sectionTitle}>Cover Management</h2>
+            <p className={styles.sectionMeta}>Vorschau, Upload und schnelle Cover-Aktionen in einer klaren Card.</p>
+          </div>
+        </div>
+        <div className={workspaceStyles.coverLayout}>
+          <img className={workspaceStyles.coverPreview} src={resolvedCover} alt="Cover Vorschau" loading="lazy" onError={handleCoverImgError} />
+          <div className={workspaceStyles.uploadColumn}>
+            <button
+              type="button"
+              className={`${workspaceStyles.dropZone} ${isDragOver ? workspaceStyles.dropZoneActive : ''}`}
+              onClick={() => coverFileInputRef.current?.click()}
+              onDragOver={(event) => {
+                event.preventDefault()
+                setIsDragOver(true)
+              }}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={async (event) => {
+                event.preventDefault()
+                setIsDragOver(false)
+                const file = event.dataTransfer.files?.[0]
+                if (!file) return
+                await patch.uploadAndSetCover(file, anime.id)
+              }}
+            >
+              <p className={workspaceStyles.dropZoneTitle}>Datei ablegen oder klicken</p>
+              <p className={workspaceStyles.dropZoneMeta}>Unterstuetzt: jpg, jpeg, png, webp, gif</p>
+            </button>
+            <input
+              ref={coverFileInputRef}
+              className={workspaceStyles.hiddenInput}
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
+              onChange={async (event) => {
+                const file = event.target.files?.[0]
+                if (!file) return
+                try {
+                  await patch.uploadAndSetCover(file, anime.id)
+                } finally {
+                  event.target.value = ''
+                }
+              }}
+            />
+            <div className={styles.actionsRow}>
+              <button
+                type="button"
+                className={`${styles.button} ${styles.buttonPrimary}`}
+                disabled={patch.isSubmitting || patch.isUploadingCover}
+                onClick={() => coverFileInputRef.current?.click()}
+              >
+                {patch.isUploadingCover ? 'Upload laeuft...' : 'Cover hochladen'}
+              </button>
+              <a className={`${styles.button} ${styles.buttonGhost}`} href={resolvedCover} target="_blank" rel="noreferrer">
+                Cover oeffnen
+              </a>
+              <button
+                type="button"
+                className={`${styles.button} ${styles.buttonDanger}`}
+                disabled={patch.isSubmitting || patch.isUploadingCover}
+                onClick={() => void handleRemoveCover()}
+              >
+                Cover entfernen
+              </button>
+            </div>
+            <p className={workspaceStyles.helperText}>Lokale Uploads sind fuer das Dev-Setup gedacht und bleiben bewusst nachrangig.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
+        <details className={styles.developerPanel}>
+          <summary>Erweitert / Developer</summary>
+          <div className={styles.developerPanelContent}>
+            <div className={workspaceStyles.advancedGrid}>
+              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.year} onChange={(event) => patch.setClearFlag('year', event.target.checked)} />Year leeren</label>
+              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.maxEpisodes} onChange={(event) => patch.setClearFlag('maxEpisodes', event.target.checked)} />Max Episodes leeren</label>
+              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.titleDE} onChange={(event) => patch.setClearFlag('titleDE', event.target.checked)} />Title DE leeren</label>
+              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.titleEN} onChange={(event) => patch.setClearFlag('titleEN', event.target.checked)} />Title EN leeren</label>
+              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.genre} onChange={(event) => patch.setClearFlag('genre', event.target.checked)} />Genres leeren</label>
+              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.description} onChange={(event) => patch.setClearFlag('description', event.target.checked)} />Beschreibung leeren</label>
+              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.coverImage} onChange={(event) => patch.setClearFlag('coverImage', event.target.checked)} />Cover leeren</label>
+            </div>
+            <div className={styles.actionsRow}>
+              <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={() => patch.resetFromAnime(anime)}>
+                Patch-Form aus Kontext neu fuellen
+              </button>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <section className={workspaceStyles.saveBar}>
+        <div className={workspaceStyles.saveState}>
+          <p className={workspaceStyles.saveStateTitle}>{hasUnsavedChanges ? 'Ungespeicherte Aenderungen' : 'Alle Aenderungen gespeichert'}</p>
+          <p className={workspaceStyles.saveStateMeta}>
+            {hasUnsavedChanges ? 'Pruefe die Sektionen und speichere den allgemeinen Anime-Kontext.' : 'Kein offener Patch im Formular.'}
+          </p>
+        </div>
+        <button
+          type="button"
+          className={`${styles.button} ${styles.buttonPrimary}`}
+          disabled={patch.isSubmitting || !hasUnsavedChanges}
+          onClick={() => {
+            onRequest?.(null)
+            onResponse?.(null)
+            void patch.submit(anime.id)
+          }}
+        >
+          {patch.isSubmitting ? 'Speichert...' : 'Aenderungen speichern'}
+        </button>
+      </section>
+    </div>
+  )
+}

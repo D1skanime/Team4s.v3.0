@@ -1182,14 +1182,15 @@ export async function deleteAdminEpisode(episodeID: number, authToken?: string):
 }
 
 export async function getAdminGenreTokens(
-  params: { q?: string; limit?: number } = {},
+  params: { q?: string; query?: string; limit?: number } = {},
   authToken?: string,
 ): Promise<AdminGenreTokensResponse> {
   const API_BASE_URL = getApiBaseUrl()
   const query = new URLSearchParams()
-  if (params.q) query.set('q', params.q)
+  const genreQuery = (params.query || params.q || '').trim()
+  if (genreQuery) query.set('query', genreQuery)
   if (params.limit && Number.isFinite(params.limit) && params.limit > 0) query.set('limit', String(params.limit))
-  const url = `${API_BASE_URL}/api/v1/admin/genres${query.toString() ? `?${query.toString()}` : ''}`
+  const url = `${API_BASE_URL}/api/v1/genres${query.toString() ? `?${query.toString()}` : ''}`
   const response = await fetch(url, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',

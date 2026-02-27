@@ -1,18 +1,36 @@
 'use client'
 
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 import { formatBytes, formatDateTime, padEpisodeNumber } from './episodeVersionEditorUtils'
 import { useEpisodeVersionEditor } from './useEpisodeVersionEditor'
 import styles from './EpisodeVersionEditor.module.css'
 
+function parsePositiveInt(value: string | null): number | null {
+  if (!value) return null
+
+  const parsed = Number.parseInt(value, 10)
+  if (!Number.isFinite(parsed) || parsed <= 0) return null
+
+  return parsed
+}
+
 export function EpisodeVersionEditorPage() {
+  const searchParams = useSearchParams()
   const editor = useEpisodeVersionEditor()
   const version = editor.contextData?.version
+  const animeIDFromQuery = parsePositiveInt(searchParams.get('animeId'))
+  const episodeIDFromQuery = parsePositiveInt(searchParams.get('episodeId'))
   const subtitle = version
     ? `Version #${version.id} - ${padEpisodeNumber(version.episode_number)} ${editor.contextData?.anime_title || ''}`.trim()
     : 'Episode-Version bearbeiten'
-  const backHref = editor.contextData ? `/admin/anime/${editor.contextData.version.anime_id}/versions` : '/admin/anime'
+  const backHref =
+    animeIDFromQuery && episodeIDFromQuery
+      ? `/admin/anime/${animeIDFromQuery}/episodes/${episodeIDFromQuery}/versions`
+      : editor.contextData
+        ? `/admin/anime/${editor.contextData.version.anime_id}/episodes`
+        : '/admin/anime'
 
   return (
     <main className={styles.page}>
@@ -209,7 +227,7 @@ export function EpisodeVersionEditorPage() {
                 {editor.selectedGroups.length > 0 ? (
                   editor.selectedGroups.map((group) => (
                     <button key={group.id} type="button" className={styles.chip} title={`Slug: ${group.slug}`} onClick={() => editor.removeGroup(group.id)}>
-                      {group.name} ×
+                      {group.name} x
                     </button>
                   ))
                 ) : (

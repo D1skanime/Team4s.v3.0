@@ -74,19 +74,37 @@ export function useAnimePatch(
   const hasAuthToken = authToken.trim().length > 0
 
   useEffect(() => {
-    if (!hasAuthToken) return
     if (genreTokens.length > 0) return
 
-    setIsLoadingGenreTokens(true)
-    setGenreTokensError(null)
-    getAdminGenreTokens({ limit: 1000 }, authToken)
-      .then((response) => setGenreTokens(response.data))
-      .catch((error) => {
+    let cancelled = false
+
+    const loadGenreTokens = async () => {
+      setIsLoadingGenreTokens(true)
+      setGenreTokensError(null)
+
+      try {
+        const response = await getAdminGenreTokens({ limit: 1000 })
+        if (!cancelled) {
+          setGenreTokens(response.data)
+        }
+      } catch (error) {
+        if (cancelled) return
+
         if (error instanceof Error) setGenreTokensError(error.message)
         else setGenreTokensError('Genre-Vorschlaege konnten nicht geladen werden.')
-      })
-      .finally(() => setIsLoadingGenreTokens(false))
-  }, [authToken, genreTokens.length, hasAuthToken])
+      } finally {
+        if (!cancelled) {
+          setIsLoadingGenreTokens(false)
+        }
+      }
+    }
+
+    void loadGenreTokens()
+
+    return () => {
+      cancelled = true
+    }
+  }, [genreTokens.length])
 
   const genreSuggestions = useMemo(() => {
     const q = values.genreDraft.trim().toLowerCase()

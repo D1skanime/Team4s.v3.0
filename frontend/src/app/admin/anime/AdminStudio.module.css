@@ -1,0 +1,433 @@
+.page {
+  width: min(1200px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 32px 0 48px;
+  display: grid;
+  gap: 32px;
+  color: #1c1c1e;
+}
+
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+  color: #6b6b70;
+}
+
+.breadcrumbs a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+  color: #1c1c1e;
+}
+
+.headerCard,
+.card,
+.noticeBox,
+.errorBox,
+.successBox {
+  background: #ffffff;
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.headerCard {
+  display: grid;
+  gap: 16px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b6b70;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.pageSubtitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #6b6b70;
+}
+
+.headerActions,
+.actionsRow,
+.toolbar,
+.sectionActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.card {
+  display: grid;
+  gap: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sectionMeta {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b6b70;
+}
+
+.noticeBox,
+.errorBox,
+.successBox {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.noticeBox {
+  background: #f9f9f9;
+}
+
+.errorBox {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.successBox {
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.filterGrid,
+.formGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
+.field label,
+.field span {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 12px;
+  border: 1px solid #e1e1e6;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1c1c1e;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #ff6a3d;
+}
+
+.button {
+  min-height: 44px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.buttonPrimary {
+  background: #ff6a3d;
+  border-color: #ff6a3d;
+  color: #ffffff;
+}
+
+.buttonPrimary:hover {
+  background: #e55a31;
+  border-color: #e55a31;
+}
+
+.buttonSecondary {
+  background: #ffffff;
+  border-color: #e1e1e6;
+  color: #1c1c1e;
+}
+
+.buttonGhost {
+  background: transparent;
+  border-color: transparent;
+  color: #6b6b70;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.buttonDanger {
+  background: #ffffff;
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.summaryGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.summaryCard {
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  gap: 4px;
+}
+
+.summaryLabel {
+  margin: 0;
+  font-size: 13px;
+  color: #6b6b70;
+}
+
+.summaryValue {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.listGrid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.stack {
+  display: grid;
+  gap: 16px;
+}
+
+.animeCard,
+.episodeCard,
+.versionCard {
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+  background: #ffffff;
+}
+
+.animeCard {
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.cover {
+  width: 96px;
+  height: 136px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #e1e1e6;
+  background: #f9f9f9;
+}
+
+.itemBody {
+  display: grid;
+  gap: 12px;
+}
+
+.itemTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.metaText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b6b70;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.badgePrimary {
+  background: #ff6a3d;
+  color: #ffffff;
+}
+
+.badgeSuccess {
+  background: #28a745;
+  color: #ffffff;
+}
+
+.badgeWarning {
+  background: #ffc107;
+  color: #1c1c1e;
+}
+
+.badgeDanger {
+  background: #dc3545;
+  color: #ffffff;
+}
+
+.badgeMuted {
+  background: #f9f9f9;
+  color: #6b6b70;
+  border: 1px solid #e1e1e6;
+}
+
+.emptyState {
+  margin: 0;
+  padding: 20px;
+  border: 1px dashed #e1e1e6;
+  border-radius: 12px;
+  background: #f9f9f9;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b6b70;
+}
+
+.splitLayout {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.developerPanel {
+  border-top: 1px solid #e1e1e6;
+  padding-top: 16px;
+}
+
+.developerPanel summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b6b70;
+}
+
+.developerPanelContent {
+  margin-top: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.codeBlock {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #e1e1e6;
+  border-radius: 8px;
+  background: #f9f9f9;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (min-width: 992px) {
+  .splitLayout {
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .page {
+    width: min(100%, calc(100% - 24px));
+    padding: 24px 0 32px;
+    gap: 24px;
+  }
+
+  .headerCard,
+  .card,
+  .noticeBox,
+  .errorBox,
+  .successBox,
+  .animeCard,
+  .episodeCard,
+  .versionCard {
+    padding: 20px;
+  }
+
+  .animeCard {
+    grid-template-columns: 1fr;
+  }
+
+  .cover {
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+  }
+}

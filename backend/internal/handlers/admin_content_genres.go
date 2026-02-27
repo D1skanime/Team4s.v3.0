@@ -10,18 +10,28 @@ import (
 )
 
 func (h *AdminContentHandler) ListGenreTokens(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
-	if !ok {
+	if _, ok := h.requireAdmin(c); !ok {
 		return
 	}
 
-	q := strings.TrimSpace(c.Query("q"))
+	h.listGenreTokens(c)
+}
+
+func (h *AdminContentHandler) ListGenreTokensPublic(c *gin.Context) {
+	h.listGenreTokens(c)
+}
+
+func (h *AdminContentHandler) listGenreTokens(c *gin.Context) {
+	q := strings.TrimSpace(c.Query("query"))
+	if q == "" {
+		q = strings.TrimSpace(c.Query("q"))
+	}
 	if len([]rune(q)) > 100 {
-		badRequest(c, "ungueltiger q parameter")
+		badRequest(c, "ungueltiger query parameter")
 		return
 	}
 
-	limit := 200
+	limit := 20
 	if limitRaw := strings.TrimSpace(c.Query("limit")); limitRaw != "" {
 		value, err := strconv.Atoi(limitRaw)
 		if err != nil || value <= 0 {
@@ -36,7 +46,7 @@ func (h *AdminContentHandler) ListGenreTokens(c *gin.Context) {
 
 	items, err := h.repo.ListGenreTokens(c.Request.Context(), q, limit)
 	if err != nil {
-		log.Printf("admin_content list_genres: repo error (user_id=%d): %v", identity.UserID, err)
+		log.Printf("admin_content list_genres: repo error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
 		return
 	}

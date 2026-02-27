@@ -715,10 +715,22 @@ func (r *AdminContentRepository) ListGenreTokens(
 	}
 
 	sort.Slice(tokens, func(i, j int) bool {
-		if tokens[i].Count != tokens[j].Count {
-			return tokens[i].Count > tokens[j].Count
+		leftName := strings.ToLower(tokens[i].Name)
+		rightName := strings.ToLower(tokens[j].Name)
+
+		if q != "" {
+			leftPrefix := strings.HasPrefix(leftName, q)
+			rightPrefix := strings.HasPrefix(rightName, q)
+			if leftPrefix != rightPrefix {
+				return leftPrefix
+			}
 		}
-		return strings.ToLower(tokens[i].Name) < strings.ToLower(tokens[j].Name)
+
+		if leftName != rightName {
+			return leftName < rightName
+		}
+
+		return tokens[i].Count > tokens[j].Count
 	})
 
 	if limit > 0 && len(tokens) > limit {
