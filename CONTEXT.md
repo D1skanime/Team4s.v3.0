@@ -3,7 +3,7 @@
 ## Project
 - **Name:** Team4s.v3.0
 - **Phase:** P2 hardening closeout + backend handler maintainability
-- **Completion:** ~91%
+- **Completion:** ~92%
 
 ## Current State
 
@@ -13,11 +13,12 @@
 - Provider proxy (Jellyfin/Emby streams, images, video)
 - Admin Studio (anime, episodes, fansubs, media upload)
 - Admin Anime page rebuild (episode/version editing, Jellyfin sync, group assignment)
+- Admin Episode-Versionen UI redesign (modern card layout, stronger hierarchy, clearer actions)
 - RBAC (DB-based roles, bootstrap)
 - Handler modularization sweep (major monoliths split)
 
 ### In Progress
-- Anime page design improvements
+- Manual QA and component split for the redesigned Episode-Versionen route
 - Continue handler modularization (remaining files >150 lines)
 - Playback abuse-control hardening
 - Alias coverage for imported release tags

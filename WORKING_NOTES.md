@@ -1,8 +1,8 @@
 # WORKING_NOTES
 
 ## Active Threads
-- Anime page rebuild: episodes/versions editable, Jellyfin sync integration, group assignment done
-- Design improvements: Anime page UX/UI next priority
+- Episode versions redesign: modernized admin layout shipped and deployed
+- Next frontend cleanup: split `/admin/anime/[id]/versions/page.tsx` into smaller presentational pieces
 - Handler modularization: fansub_validation.go done, fansub_admin.go pending
 - Playback hardening: grant flow works, abuse controls next
 - Alias coverage: B-SH needs mapping for anime 25
@@ -16,7 +16,7 @@ curl http://localhost:8092/health
 ```
 
 ## Parking Lot
-- Add UI regression tests for admin anime workflow
+- Add focused regression coverage for the redesigned episode versions route
 - Add deterministic test for cropper output parity
 - Consider pg_trgm index for anime search at scale
 - Clean residual %??% placeholder artifacts
