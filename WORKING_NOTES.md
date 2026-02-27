@@ -1,7 +1,9 @@
 # WORKING_NOTES
 
 ## Active Threads
-- Handler modularization: fansub_validation.go done, continue with fansub_admin.go
+- Anime page rebuild: episodes/versions editable, Jellyfin sync integration, group assignment done
+- Design improvements: Anime page UX/UI next priority
+- Handler modularization: fansub_validation.go done, fansub_admin.go pending
 - Playback hardening: grant flow works, abuse controls next
 - Alias coverage: B-SH needs mapping for anime 25
 

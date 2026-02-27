@@ -2,6 +2,7 @@
 
 ## What Works Now
 - Anime list/detail, episode detail, comments, watchlist
+- Admin Anime page: episode/version editing, Jellyfin sync matching, group assignment
 - Auth lifecycle (issue/refresh/revoke with signed tokens)
 - Fansub profiles, version browser, admin CRUD
 - Jellyfin sync with path filtering + mismatch guard
@@ -20,9 +21,9 @@ cd ../frontend && npm run build
 ```
 
 ## Next (Top 3)
-1. Finish handler modularization sweep
-2. Playback abuse-control for /api/v1/episodes/:id/play
-3. Alias backfill for imported release tags
+1. Improve Anime page design
+2. Finish handler modularization sweep
+3. Playback abuse-control for /api/v1/episodes/:id/play
 
 ## Known Risks
 - Docker daemon availability can block runtime verification

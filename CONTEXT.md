@@ -12,10 +12,12 @@
 - Fansub domain (groups, members, aliases, versions, media)
 - Provider proxy (Jellyfin/Emby streams, images, video)
 - Admin Studio (anime, episodes, fansubs, media upload)
+- Admin Anime page rebuild (episode/version editing, Jellyfin sync, group assignment)
 - RBAC (DB-based roles, bootstrap)
 - Handler modularization sweep (major monoliths split)
 
 ### In Progress
+- Anime page design improvements
 - Continue handler modularization (remaining files >150 lines)
 - Playback abuse-control hardening
 - Alias coverage for imported release tags
