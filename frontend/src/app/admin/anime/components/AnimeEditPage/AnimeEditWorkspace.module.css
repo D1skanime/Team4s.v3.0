@@ -6,6 +6,7 @@
 .sectionCard {
   display: grid;
   gap: 20px;
+  overflow: visible;
 }
 
 .sectionGrid {
@@ -44,6 +45,7 @@
   position: relative;
   display: grid;
   gap: 12px;
+  overflow: visible;
 }
 
 .chipWrap {
