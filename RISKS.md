@@ -9,8 +9,8 @@
 
 ### 2. New Admin Anime Routes Have Limited Regression Coverage
 - **Impact:** Medium (navigation or layout regressions can slip through)
-- **Status:** Manual QA complete, but no automated regression tests
-- **Mitigation:** Add focused UI smoke/regression suite for new step flow
+- **Status:** RESOLVED - 145 automated tests added (97 frontend, 48 backend)
+- **Mitigation:** Complete - all admin anime routes now have regression coverage
 
 ### 3. Next.js Image Warnings Accumulating
 - **Impact:** Low (cosmetic, but clutters build output)
@@ -22,5 +22,5 @@
 
 ## If Nothing Changes
 - Handler files will continue to grow beyond maintainable size
-- Admin UI regressions may go undetected without automated coverage
 - Build warnings will accumulate and obscure real issues
+- Technical debt from oversized handlers will make future refactoring harder

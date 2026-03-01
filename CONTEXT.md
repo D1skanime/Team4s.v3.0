@@ -36,6 +36,7 @@
 - Admin QA pass completed (all routes working, no legacy links)
 - RBAC (DB-based roles, bootstrap)
 - Handler modularization sweep (major monoliths split)
+- Focused regression test coverage for admin anime step-flow (145 tests)
 
 ### In Progress
 - Continue handler modularization (remaining files >150 lines)
@@ -70,3 +71,11 @@
 - Risks/Unknowns: none identified
 - Next Steps: continue handler modularization for remaining oversized files
 - First task tomorrow: identify handlers >150 lines and begin modularization sweep
+
+### Day 2026-03-01
+- Phase: P2 hardening closeout + admin anime IA/UX stabilization
+- Accomplishments: added focused regression coverage for admin anime step-flow (97 frontend tests, 48 backend tests), all tests passing
+- Key Decisions: none (implementation day)
+- Risks/Unknowns: handler modularization and img tag replacement deferred
+- Next Steps: handler modularization sweep, replace img tags with next/image
+- First task tomorrow: identify handlers >150 lines and create modularization plan

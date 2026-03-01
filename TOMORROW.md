@@ -2,8 +2,8 @@
 
 ## Top 3 Priorities
 1. Continue handler modularization sweep (identify and split files >150 lines)
-2. Add focused regression coverage for new admin anime step-flow
-3. Replace img tags in admin routes to clear Next.js warnings
+2. Replace img tags in admin routes to clear Next.js warnings
+3. Continue P2 hardening closeout tasks
 
 ## First 15-Minute Task
 ```bash
@@ -18,5 +18,6 @@ find . -name "*.go" -type f -exec wc -l {} \; | sort -rn | head -20
 - None currently
 
 ## Nice-To-Have
-- Replace remaining `img` tags in the new admin UI slices to clear the current Next warnings
-- Continue handler modularization after the admin UI stabilization pass
+- Verify all 145 new tests run in CI pipeline
+- Add integration tests for complete admin anime workflow
+- Review handler modularization progress metrics

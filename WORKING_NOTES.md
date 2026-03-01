@@ -3,8 +3,8 @@
 ## Active Threads
 - Security follow-through: leaked keys must still be rotated even though `.env` was removed from Git history
 - Handler modularization: remaining oversized files need systematic sweep
-- Regression coverage: new admin routes need automated test coverage
 - Next.js warnings: img tags need replacement with next/image
+- Test coverage: 145 new tests added for admin anime step-flow (COMPLETE)
 
 ## Quick Checks
 ```bash
@@ -17,16 +17,17 @@ curl "http://localhost:8092/api/v1/genres?query=act&limit=3"
 
 ## Parking Lot
 - Replace `img` usage in new admin routes to clear `@next/next/no-img-element` warnings
-- Add focused regression coverage for the new admin anime step-flow
 - Add deterministic test for cropper output parity
 - Consider pg_trgm index for anime search at scale
 - Clean residual %??% placeholder artifacts
+- Verify new tests run correctly in CI pipeline
 
 ## Mental Unload
-- Genre dropdown now fully working (CSS overflow fix applied)
-- Playback security hardening complete (IP rate limit, replay protection, audit log)
-- Admin QA pass complete, all routes verified working
-- Focus shifts to code quality: handler size discipline and test coverage
+- Test coverage milestone reached: 145 new tests for admin anime step-flow
+- Frontend tests cover all five admin routes (selection, edit, episodes, episode edit, versions)
+- Backend tests verify validation boundaries and error messages
+- Handler modularization and img tag cleanup remain as next priorities
+- System is stable and well-tested, ready for continued refactoring work
 
 ## Auth Contract
 - Bearer token with HMAC-SHA256

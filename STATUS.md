@@ -31,11 +31,11 @@ cd ../frontend && npm run build
 
 ## Next (Top 3)
 1. Continue handler modularization (remaining files >150 lines)
-2. Add focused regression coverage for new admin anime step-flow
-3. Replace img tags in admin routes to clear Next.js warnings
+2. Replace img tags in admin routes to clear Next.js warnings
+3. Continue P2 hardening closeout tasks
 
 ## Known Risks
 - Docker daemon availability can block runtime verification
-- New admin routes have limited focused regression coverage
 - Direct stream endpoint usage can fail without fresh grant
 - Handler modularization backlog may grow if not addressed systematically
+- Next.js img tag warnings accumulating in build output
