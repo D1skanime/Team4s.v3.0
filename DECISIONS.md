@@ -1,5 +1,43 @@
 # DECISIONS
 
+## 2026-03-01
+
+### Decision
+Make provider and Jellyfin sync preview-first workflows with separate search and sync endpoints.
+
+### Context
+The current search action provides no visible response, no explicit error handling, and no safe preview step before syncing. That makes provider operations hard to trust and harder to diagnose.
+
+### Options Considered
+- Keep the existing opaque sync flow and only add minimal UI feedback
+- Split search from sync, show preview results first, and require explicit user confirmation before the write action
+
+### Why This Won
+Operators need to see what the backend found before any sync mutates provider mappings. Separating read and write paths also makes backend diagnostics, HTTP contracts, and frontend states easier to reason about.
+
+### Consequences
+- Frontend must handle loading, disabled, empty, auth-failure, and unreachable-server states explicitly
+- Backend must return structured preview payloads and structured error JSON for search failures
+- Sync must remain idempotent and should not run directly from the initial search action
+
+### Decision
+Keep `/admin/anime/{id}/episodes` focused on the episode list, but include expandable version and fansub context inline.
+
+### Context
+The current episodes overview does not expose version details or fansub assignments clearly enough. That forces extra navigation and makes it harder to understand what will be edited.
+
+### Options Considered
+- Keep the overview minimal and require deeper navigation to inspect version details
+- Extend the overview endpoint and UI so operators can see versions and fansub groups before choosing a deeper edit path
+
+### Why This Won
+The route can stay focused on episode browsing while still giving enough context to make the correct next edit decision. This preserves the route-based workflow without hiding critical version metadata.
+
+### Consequences
+- Backend needs a joined response shape that can optionally include versions and fansub groups
+- Frontend needs expandable rows or accordions plus clear edit entry points
+- Fansub associations become visible earlier, which should reduce mistaken edits
+
 ## 2026-02-27
 
 ### Decision

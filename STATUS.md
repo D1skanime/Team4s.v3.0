@@ -30,12 +30,13 @@ cd ../frontend && npm run build
 ```
 
 ## Next (Top 3)
-1. Continue handler modularization (remaining files >150 lines)
-2. Replace img tags in admin routes to clear Next.js warnings
-3. Continue P2 hardening closeout tasks
+1. Repair the provider/Jellyfin sync workflow with explicit search, preview, confirmation, and sync stages
+2. Fix JellySync folder discovery, diagnostics, and frontend result rendering
+3. Refactor the episodes overview to show versions and fansub groups, then run a full backend/frontend/UX review
 
 ## Known Risks
 - Docker daemon availability can block runtime verification
 - Direct stream endpoint usage can fail without fresh grant
-- Handler modularization backlog may grow if not addressed systematically
-- Next.js img tag warnings accumulating in build output
+- Provider sync currently lacks visible diagnostics and safe preview gating
+- Jellyfin folder discovery issues are hard to diagnose without structured error output
+- Episode version and fansub context are still too hidden in the current overview flow

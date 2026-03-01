@@ -2,7 +2,7 @@
 
 ## Project
 - **Name:** Team4s.v3.0
-- **Phase:** P2 hardening closeout + admin anime IA/UX stabilization
+- **Phase:** P2 hardening closeout + provider sync reliability + admin episode visibility
 - **Completion:** ~93%
 
 ## Current State
@@ -39,6 +39,9 @@
 - Focused regression test coverage for admin anime step-flow (145 tests)
 
 ### In Progress
+- Repair the provider/Jellyfin search-preview-sync workflow
+- Fix JellySync search diagnostics and candidate folder discovery
+- Refactor the episodes overview to expose versions and fansub groups
 - Continue handler modularization (remaining files >150 lines)
 
 ### Blocked
@@ -52,17 +55,21 @@
 - DB-first sync (existing values not overwritten)
 - Collaboration groups for multi-group releases
 - Backend-owned media lifecycle
+- Sync actions must be preview-first; no direct sync without visible search results and explicit confirmation
+- Provider/Jellyfin search and sync actions should remain separate endpoints for clearer diagnostics and UX
 
 ## Intent and Constraints
 - Prioritize v3.0 maintainability and operator clarity over legacy parity cosmetics
 - Keep UX refactors structural; avoid accidental business-feature expansion
 - Keep editor-facing UI clean and move technical diagnostics into collapsed/developer-only surfaces
+- Make provider automation observable: errors, empty states, and preview data must be explicit before mutating anything
 
 ## Quality Bar
 - `go test ./...` must pass
 - `npm run build` must pass
 - OpenAPI lint must pass
 - German error messages for user-facing responses
+- Sync and search endpoints should return structured, operator-readable success/error payloads
 
 ### Day 2026-02-27
 - Phase: P2 hardening closeout + admin anime IA/UX stabilization
@@ -73,9 +80,9 @@
 - First task tomorrow: identify handlers >150 lines and begin modularization sweep
 
 ### Day 2026-03-01
-- Phase: P2 hardening closeout + admin anime IA/UX stabilization
-- Accomplishments: added focused regression coverage for admin anime step-flow (97 frontend tests, 48 backend tests), all tests passing
-- Key Decisions: none (implementation day)
-- Risks/Unknowns: handler modularization and img tag replacement deferred
-- Next Steps: handler modularization sweep, replace img tags with next/image
-- First task tomorrow: identify handlers >150 lines and create modularization plan
+- Phase: P2 hardening closeout + provider sync reliability + admin episode visibility
+- Accomplishments: added focused regression coverage for admin anime step-flow (97 frontend tests, 48 backend tests), all tests passing; captured the next provider-sync and episodes visibility work bundle for follow-up
+- Key Decisions: make sync preview-first and separate search from sync before further provider automation
+- Risks/Unknowns: provider sync is too opaque, Jellyfin search diagnostics are weak, and episode version/fansub context is underexposed
+- Next Steps: repair the provider/Jellyfin sync workflow, fix JellySync search output, refactor the episodes overview, then run a full code/UX audit
+- First task tomorrow: inspect the current Jellyfin/provider search button wiring and endpoint flow

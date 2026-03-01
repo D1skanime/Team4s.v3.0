@@ -25,7 +25,8 @@
 
 ## Structural Decisions
 
-No new structural decisions today. Focus was on implementing planned test coverage from yesterday's risk mitigation plan.
+- Keep the next provider/Jellyfin sync work preview-first: search -> preview -> confirm -> sync.
+- Separate search and sync endpoints so diagnostics and UX states stay explicit.
 
 ## Content/Implementation Changes
 
@@ -60,9 +61,12 @@ No new structural decisions today. Focus was on implementing planned test covera
 - **Quality Assurance:** Both frontend UI and backend validation paths are now verified
 
 ## Problems Discovered (Not Solved)
-- Handler modularization still pending (files >150 lines remain)
-- Next.js img tag warnings still accumulating
-- These remain as planned work, not blockers
+- Provider/Jellyfin sync flow still needs repair: the search action gives no visible feedback, no explicit error state, and no safe preview step
+- JellySync search does not surface candidate anime folders and needs stronger diagnostics plus structured error JSON
+- The episodes overview still hides too much version and fansub context for efficient editing
+- Handler modularization is still pending (files >150 lines remain)
+- Next.js `img` tag warnings are still accumulating
+- These remain planned follow-up work, not hard blockers
 
 ## Combined Context
 
@@ -95,14 +99,15 @@ All tests passing:
 - Backend: `go test ./...` passes
 
 ## Next Steps (Priority Order)
-1. Handler modularization sweep (identify files >150 lines and create split plan)
-2. Replace img tags with next/image (clear Next.js warnings)
-3. Continue any remaining P2 hardening tasks
+1. Repair the provider/Jellyfin sync workflow with explicit search, preview, confirmation, and sync phases
+2. Fix JellySync folder discovery, frontend result cards, and structured backend error handling
+3. Refactor `/admin/anime/{id}/episodes` to expose versions and fansub groups, then run a full code/architecture/UX review
+4. Resume handler modularization and remaining `img` cleanup after the higher-priority sync work
 
 ## First Task Tomorrow
 ```bash
-cd C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\backend\internal\handlers
-# Find all handler files >150 lines
-find . -name "*.go" -type f -exec wc -l {} \; | sort -rn | head -20
-# Review top candidates and select first file for modularization
+cd C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0
+# Locate the current Jellyfin/provider sync wiring before changing behavior
+rg -n "jelly|provider.*sync|Preview Sync|Suche" frontend backend
+# Review the current search button handler and backend endpoints
 ```
