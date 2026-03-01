@@ -2,10 +2,12 @@
 
 import Link from 'next/link'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
-import { createAdminEpisode, getAnimeByID, getRuntimeAuthToken } from '@/lib/api'
-import { AnimeDetail, EpisodeListItem, EpisodeStatus } from '@/types/anime'
+import { createAdminEpisode, getAnimeByID, getRuntimeAuthToken, getGroupedEpisodes } from '@/lib/api'
+import { AnimeDetail, EpisodeStatus } from '@/types/anime'
+import { GroupedEpisode } from '@/types/episodeVersion'
+import { EpisodesOverview } from '@/components/episodes/EpisodesOverview'
 
 import styles from '../../AdminStudio.module.css'
 import { parsePositiveInt, formatEpisodeStatusLabel } from '../../utils/anime-helpers'
@@ -13,41 +15,20 @@ import { formatAdminError, normalizeOptionalText } from '../../utils/studio-help
 
 const EPISODE_STATUSES: EpisodeStatus[] = ['disabled', 'private', 'public']
 
-function sortEpisodes(items: EpisodeListItem[]): EpisodeListItem[] {
-  return [...items].sort((left, right) => {
-    const leftNumber = parsePositiveInt(left.episode_number)
-    const rightNumber = parsePositiveInt(right.episode_number)
-
-    if (leftNumber && rightNumber) return leftNumber - rightNumber
-    if (leftNumber) return -1
-    if (rightNumber) return 1
-
-    return left.episode_number.localeCompare(right.episode_number, 'de')
-  })
-}
-
-function resolveEpisodeStatusClass(status: EpisodeStatus): string {
-  switch (status) {
-    case 'public':
-      return styles.badgeSuccess
-    case 'private':
-      return styles.badgeWarning
-    case 'disabled':
-    default:
-      return styles.badgeMuted
-  }
-}
-
 export default function AdminAnimeEpisodesPage() {
   const params = useParams<{ id: string }>()
+  const router = useRouter()
   const animeID = useMemo(() => parsePositiveInt((params.id || '').trim()), [params.id])
 
   const [authToken] = useState(() => getRuntimeAuthToken())
   const [anime, setAnime] = useState<AnimeDetail | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [groupedEpisodes, setGroupedEpisodes] = useState<GroupedEpisode[]>([])
+  const [isLoadingAnime, setIsLoadingAnime] = useState(true)
+  const [isLoadingVersions, setIsLoadingVersions] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [versionsErrorMessage, setVersionsErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [formState, setFormState] = useState({
     number: '',
@@ -59,11 +40,11 @@ export default function AdminAnimeEpisodesPage() {
     async function loadAnime() {
       if (!animeID) {
         setErrorMessage('Ungueltige Anime-ID.')
-        setIsLoading(false)
+        setIsLoadingAnime(false)
         return
       }
 
-      setIsLoading(true)
+      setIsLoadingAnime(true)
       setErrorMessage(null)
 
       try {
@@ -73,14 +54,37 @@ export default function AdminAnimeEpisodesPage() {
         setAnime(null)
         setErrorMessage(formatAdminError(error, 'Episoden konnten nicht geladen werden.'))
       } finally {
-        setIsLoading(false)
+        setIsLoadingAnime(false)
       }
     }
 
     void loadAnime()
   }, [animeID])
 
-  const episodes = useMemo(() => sortEpisodes(anime?.episodes || []), [anime?.episodes])
+  useEffect(() => {
+    async function loadGroupedEpisodes() {
+      if (!animeID) {
+        return
+      }
+
+      setIsLoadingVersions(true)
+      setVersionsErrorMessage(null)
+
+      try {
+        const response = await getGroupedEpisodes(animeID)
+        setGroupedEpisodes(response.data.episodes)
+      } catch (error) {
+        setVersionsErrorMessage(formatAdminError(error, 'Versionen konnten nicht geladen werden.'))
+        setGroupedEpisodes([])
+      } finally {
+        setIsLoadingVersions(false)
+      }
+    }
+
+    void loadGroupedEpisodes()
+  }, [animeID])
+
+  const episodeCount = useMemo(() => anime?.episodes?.length || 0, [anime?.episodes])
 
   async function handleCreateEpisode(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -115,8 +119,13 @@ export default function AdminAnimeEpisodesPage() {
         authToken,
       )
 
-      const refreshed = await getAnimeByID(animeID, { include_disabled: true })
-      setAnime(refreshed.data)
+      const [refreshedAnime, refreshedVersions] = await Promise.all([
+        getAnimeByID(animeID, { include_disabled: true }),
+        getGroupedEpisodes(animeID),
+      ])
+
+      setAnime(refreshedAnime.data)
+      setGroupedEpisodes(refreshedVersions.data.episodes)
       setFormState({ number: '', title: '', status: 'disabled' })
       setShowCreateForm(false)
       setSuccessMessage(`Episode ${parsedEpisodeNumber} wurde angelegt.`)
@@ -125,6 +134,11 @@ export default function AdminAnimeEpisodesPage() {
     } finally {
       setIsCreating(false)
     }
+  }
+
+  function handlePlayVersion(versionId: number) {
+    if (!animeID) return
+    router.push(`/admin/anime/${animeID}/versions/${versionId}`)
   }
 
   return (
@@ -144,8 +158,8 @@ export default function AdminAnimeEpisodesPage() {
           <p className={styles.eyebrow}>Schritt 3</p>
           <h1 className={styles.pageTitle}>Episoden-Uebersicht</h1>
           <p className={styles.pageSubtitle}>
-            Jede Route kuemmert sich um genau eine Aufgabe. Hier gibt es nur die Liste der Episoden und den Einstieg in
-            die Episode-Bearbeitung.
+            Episoden mit allen Versionen, Fansub-Zuordnungen und Version-Counts pro Episode. Accordion zeigt Details bei
+            Bedarf.
           </p>
         </div>
         {anime ? (
@@ -164,7 +178,7 @@ export default function AdminAnimeEpisodesPage() {
         ) : null}
       </header>
 
-      {isLoading ? <div className={styles.noticeBox}>Episoden werden geladen...</div> : null}
+      {isLoadingAnime ? <div className={styles.noticeBox}>Episoden werden geladen...</div> : null}
       {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
       {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
 
@@ -178,7 +192,13 @@ export default function AdminAnimeEpisodesPage() {
               </div>
               <div className={styles.summaryCard}>
                 <p className={styles.summaryLabel}>Episoden</p>
-                <p className={styles.summaryValue}>{episodes.length}</p>
+                <p className={styles.summaryValue}>{episodeCount}</p>
+              </div>
+              <div className={styles.summaryCard}>
+                <p className={styles.summaryLabel}>Versionen gesamt</p>
+                <p className={styles.summaryValue}>
+                  {groupedEpisodes.reduce((sum, ep) => sum + ep.version_count, 0)}
+                </p>
               </div>
             </div>
           </section>
@@ -251,44 +271,21 @@ export default function AdminAnimeEpisodesPage() {
           <section className={styles.card}>
             <div className={styles.sectionHeader}>
               <div>
-                <h2 className={styles.sectionTitle}>Episoden</h2>
-                <p className={styles.sectionMeta}>Card-Liste mit Status-Badge und klarer Bearbeitungsaktion.</p>
+                <h2 className={styles.sectionTitle}>Episoden mit Versionen</h2>
+                <p className={styles.sectionMeta}>
+                  Accordion-Ansicht mit Version-Counts, Fansub-Badges und direkten Bearbeitungslinks.
+                </p>
               </div>
             </div>
 
-            {episodes.length === 0 ? <p className={styles.emptyState}>Fuer diesen Anime sind noch keine Episoden vorhanden.</p> : null}
+            {versionsErrorMessage ? <div className={styles.errorBox}>{versionsErrorMessage}</div> : null}
 
-            {episodes.length > 0 ? (
-              <div className={styles.stack}>
-                {episodes.map((episode) => (
-                  <article key={episode.id} className={styles.episodeCard}>
-                    <div className={styles.sectionHeader}>
-                      <div>
-                        <h3 className={styles.itemTitle}>
-                          Episode {episode.episode_number}
-                          {episode.title?.trim() ? ` | ${episode.title}` : ''}
-                        </h3>
-                        <p className={styles.metaText}>
-                          Views {episode.view_count} | Downloads {episode.download_count}
-                        </p>
-                      </div>
-                      <span className={`${styles.badge} ${resolveEpisodeStatusClass(episode.status)}`}>
-                        {formatEpisodeStatusLabel(episode.status)}
-                      </span>
-                    </div>
-
-                    <div className={styles.actionsRow}>
-                      <Link
-                        href={`/admin/anime/${anime.id}/episodes/${episode.id}/edit`}
-                        className={`${styles.button} ${styles.buttonPrimary}`}
-                      >
-                        Episode bearbeiten
-                      </Link>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : null}
+            <EpisodesOverview
+              episodes={groupedEpisodes}
+              isLoading={isLoadingVersions}
+              error={versionsErrorMessage}
+              onPlayVersion={handlePlayVersion}
+            />
           </section>
         </>
       ) : null}
