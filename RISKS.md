@@ -2,24 +2,27 @@
 
 ## Top 3 Risks
 
-### 1. Provider Sync Workflow Is Opaque
+### 1. Duplicate Jellyfin Matches Still Need Manual Disambiguation
 - **Impact:** High
-- **Status:** Search provides no visible feedback, no preview, no explicit failure states
-- **Mitigation:** Add structured error JSON responses to backend, improve frontend error display
+- **Likelihood:** Medium
+- **Status:** Live search works, but multiple same-title candidates can still appear for the same anime
+- **Mitigation:** Always compare preview output and path before first sync on a title with duplicates
 
-### 2. Jellyfin Folder Discovery Is Unreliable
+### 2. Real Preview/Sync Path Is Not Yet Fully Documented
 - **Impact:** High
-- **Status:** JellySync does not surface possible anime folders; failures are silent
-- **Mitigation:** Validate credentials, base URL, implement structured error responses
+- **Likelihood:** Medium
+- **Status:** Failure paths are validated, but one representative successful preview+sync still needs a written reference flow
+- **Mitigation:** Run and document one clean preview path before broad operator use
 
-### 3. Episode-Version Context Is Hidden (PARTIALLY MITIGATED)
+### 3. Episode-Version Context Is Still Not Integrated In Admin Episodes
 - **Impact:** Medium
-- **Status:** Backend endpoint now supports `includeVersions`/`includeFansubs` params
-- **Remaining:** Frontend UI needs Accordion-Expansion and Fansub-Badges
+- **Likelihood:** High
+- **Status:** Backend and UI scaffolding exist, but the route is not wired yet
+- **Mitigation:** Integrate the new episodes overview component next
 
 ## Current Blockers
 - None
 
 ## If Nothing Changes
-- Provider sync will remain opaque and hard to trust
-- Episode version/fansub visibility depends on pending frontend work
+- Operators can search Jellyfin reliably, but ambiguous title matches may still lead to wrong manual choices
+- The admin episodes route will continue to hide too much version/fansub context

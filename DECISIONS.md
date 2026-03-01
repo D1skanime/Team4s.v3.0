@@ -21,6 +21,42 @@ Operators need to see what the backend found before any sync mutates provider ma
 - Sync must remain idempotent and should not run directly from the initial search action
 
 ### Decision
+Extend the standard error envelope with optional machine-readable `code` and operator-facing `details` for the Jellyfin admin lane.
+
+### Context
+The original `error.message` shape was not enough for stable frontend mapping or for distinguishing configuration, connectivity, and auth failures during runtime validation.
+
+### Options Considered
+- Keep `error.message` only and infer behavior from free-text strings
+- Keep the existing envelope but add optional `code` and `details`
+
+### Why This Won
+This keeps the global contract shape stable while giving the frontend enough structure to map user-visible states without brittle string parsing.
+
+### Consequences
+- The frontend can render precise step-specific feedback
+- Existing clients that only read `error.message` remain compatible
+- New error paths must keep codes stable once relied on by UI logic
+
+### Decision
+Treat a preview with zero accepted episodes as a hard stop for sync.
+
+### Context
+Allowing sync to proceed after an empty preview risks misleading operators into thinking a safe import ran when the selected Jellyfin candidate or season was wrong.
+
+### Options Considered
+- Allow sync to run and effectively no-op
+- Block sync until the operator fixes the candidate, season, or path assumptions
+
+### Why This Won
+An explicit stop is safer than a silent no-op in an admin write flow.
+
+### Consequences
+- Operators get a clear correction point before any write action
+- The confirm path now depends on a valid, non-empty preview
+- Preview validation becomes a stronger part of the workflow
+
+### Decision
 Keep `/admin/anime/{id}/episodes` focused on the episode list, but include expandable version and fansub context inline.
 
 ### Context

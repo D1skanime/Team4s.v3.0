@@ -1,56 +1,51 @@
 # WORKING_NOTES
 
 ## Active Threads
-- Provider/Jellyfin sync flow needs to become preview-first: search -> preview -> confirm -> sync
-- JellySync search is failing silently and needs explicit diagnostics plus candidate folder results
-- Episodes overview needs version counts, expandable version details, and visible fansub groups
-- Full code/architecture/UX review is needed across the sync and admin surfaces
-- Security follow-through: leaked keys must still be rotated even though `.env` was removed from Git history
-- Test coverage: 145 new tests added for admin anime step-flow (COMPLETE)
+- Jellyfin sync lane is now preview-first with explicit step feedback; the next step is validating a real preview on a representative anime
+- Duplicate Jellyfin title matches are now the main operator-risk area, not silent failures
+- Episodes overview needs to consume the new `includeVersions` / `includeFansubs` backend support and wire in the new accordion component
+- Full code/architecture/UX review is still needed once the sync and episodes slices settle
+- Security follow-through: `.env` stays local-only and untracked; secret rotation discipline still matters
 
 ## Required Contracts / UX Notes
-- Planned search endpoints: `GET /api/provider/search?animeId=xxx` and `GET /api/jellyfin/search?animeId=xxx`
-- Planned sync endpoints: `POST /api/provider/sync` and `POST /api/jellyfin/sync`
-- Search button must show loading, disable during request, and surface `Server nicht erreichbar`, `Keine Ordner gefunden`, or `Jellyfin Token ungültig` when applicable
-- JellySync failures should return structured JSON such as `{ "success": false, "error": "Jellyfin unreachable", "details": "timeout" }`
-- Episodes overview target route stays `/admin/anime/{id}/episodes`, backed by `GET /api/anime/{id}/episodes?includeVersions=true&includeFansubs=true`
+- Current admin search endpoint: `GET /api/v1/admin/jellyfin/series?q=...&limit=...`
+- Current admin preview endpoint: `POST /api/v1/admin/anime/{id}/jellyfin/preview`
+- Current admin sync endpoint: `POST /api/v1/admin/anime/{id}/jellyfin/sync`
+- Standard error shape may now include `error.code` and `error.details`
+- Search/preview/sync states must keep surfacing:
+  - `server nicht erreichbar`
+  - `jellyfin token ungueltig`
+  - `jellyfin ist nicht konfiguriert`
+  - `keine importierbaren episoden gefunden`
+- Episodes overview target route stays `/admin/anime/{id}/episodes`, backed by `GET /api/v1/anime/{id}/episodes?includeVersions=true&includeFansubs=true`
 
 ## Quick Checks
 ```bash
-go test ./...                    # Backend tests
-npm run build                    # Frontend build
-docker compose ps                # Container health
+go test ./internal/handlers
+npm run build
+docker compose ps
 curl http://localhost:8092/health
-curl "http://localhost:8092/api/v1/genres?query=act&limit=3"
-curl "http://localhost:8092/api/provider/search?animeId=<id>"
-curl "http://localhost:8092/api/jellyfin/search?animeId=<id>"
+curl -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admin/jellyfin/series?q=Naruto&limit=3"
 ```
 
 ## Parking Lot
-- Add audit logs for sync execution, version edits, and fansub assignments
-- Resume handler modularization after the sync and episode-visibility tasks
-- Replace `img` usage in new admin routes to clear `@next/next/no-img-element` warnings
+- Add focused frontend tests for Jellyfin feedback states and confirm-dialog behavior
+- Resume handler modularization after the sync and episode-visibility slices are locked
+- Replace `img` usage in older admin routes to clear `@next/next/no-img-element` warnings
 - Add deterministic test for cropper output parity
 - Consider pg_trgm index for anime search at scale
-- Clean residual %??% placeholder artifacts
-- Verify new tests run correctly in CI pipeline
 
 ## Mental Unload (2026-03-01 EOD)
-- Test coverage milestone COMPLETE: 145 new tests for admin anime step-flow
-- Frontend tests cover all five admin routes (selection, edit, episodes, episode edit, versions)
-- Backend tests verify validation boundaries and error messages
-- New follow-up bundle captured: provider sync reliability, JellySync search diagnostics, and episodes visibility refactor
-- Handler modularization and img tag cleanup are still pending, but now sit behind the sync/episodes priority bundle
-- System is stable and well-tested, ready for continued refactoring work
-- Day closed clean: all tests passing, no uncommitted changes, documentation synchronized
+- The highest-risk admin workflow is now diagnosable instead of opaque
+- Runtime validation covered not-configured, unreachable, and live-connected Jellyfin states
+- Live Jellyfin search works; the real remaining question is safe candidate selection when titles collide
+- Episodes overview scaffolding exists, but the route integration is the next real product step
+- Do not commit local `.env`; keep secrets local and rotate when needed
 
-## Auth Contract
-- Bearer token with HMAC-SHA256
-- Claims: user_id, display_name, exp, sid
-- 401 for invalid/expired, 503 for Redis unavailable
-
-## Key Paths
-- Contracts: shared/contracts/openapi.yaml
-- Backend handlers: backend/internal/handlers/
-- Admin anime: frontend/src/app/admin/anime/
-- Fansub admin: frontend/src/app/admin/fansubs/
+### Day 2026-03-01
+- Phase: Sync hardening + episodes overview groundwork
+- Accomplishments: structured Jellyfin errors, live local deployment checks, conditional grouped episode reads, new overview components
+- Key Decisions: optional `code/details` in error responses; block sync on zero accepted episodes
+- Risks/Unknowns: duplicate Jellyfin candidates still need manual comparison; overview UI is not wired yet
+- Next Steps: validate a real preview on one anime, then integrate the overview UI into the admin route
+- First task tomorrow: run Jellyfin search for one real anime title and compare preview output across duplicate candidates

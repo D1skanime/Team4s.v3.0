@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -377,6 +378,57 @@ func TestBuildJellyfinSyncMismatchReason(t *testing.T) {
 	ok := buildJellyfinSyncMismatchReason(&maxEpisodes, 1)
 	if ok != nil {
 		t.Fatalf("expected no mismatch for matching episode count, got %q", *ok)
+	}
+}
+
+func TestClassifyJellyfinUpstreamError_AuthInvalid(t *testing.T) {
+	t.Parallel()
+
+	message, code, details := classifyJellyfinUpstreamError(
+		errors.New("jellyfin returned status 401"),
+		"jellyfin serien konnten nicht gesucht werden",
+	)
+	if message != "jellyfin token ungueltig" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+	if code != "jellyfin_auth_invalid" {
+		t.Fatalf("unexpected code: %q", code)
+	}
+	if details == nil || *details == "" {
+		t.Fatalf("expected auth details")
+	}
+}
+
+func TestClassifyJellyfinUpstreamError_Unreachable(t *testing.T) {
+	t.Parallel()
+
+	message, code, details := classifyJellyfinUpstreamError(
+		errors.New("call jellyfin: Get \"http://localhost:8096\": dial tcp 127.0.0.1:8096: connectex"),
+		"jellyfin episoden konnten nicht geladen werden",
+	)
+	if message != "server nicht erreichbar" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+	if code != "jellyfin_unreachable" {
+		t.Fatalf("unexpected code: %q", code)
+	}
+	if details == nil || *details == "" {
+		t.Fatalf("expected unreachable details")
+	}
+}
+
+func TestClassifyJellyfinResolutionError_AmbiguousSeries(t *testing.T) {
+	t.Parallel()
+
+	code, details := classifyJellyfinResolutionError(
+		http.StatusConflict,
+		"mehrere jellyfin serien gefunden, bitte jellyfin_series_id angeben",
+	)
+	if code != "jellyfin_series_ambiguous" {
+		t.Fatalf("unexpected code: %q", code)
+	}
+	if details == nil || *details == "" {
+		t.Fatalf("expected ambiguity details")
 	}
 }
 

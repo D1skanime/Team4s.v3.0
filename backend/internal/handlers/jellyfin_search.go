@@ -71,11 +71,8 @@ func (h *AdminContentHandler) SearchJellyfinSeries(c *gin.Context) {
 	items, err := h.searchJellyfinSeries(c.Request.Context(), query, limit)
 	if err != nil {
 		log.Printf("admin_content jellyfin_series_search: search failed (user_id=%d, q=%q): %v", identity.UserID, query, err)
-		c.JSON(http.StatusBadGateway, gin.H{
-			"error": gin.H{
-				"message": "jellyfin serien konnten nicht gesucht werden",
-			},
-		})
+		message, code, details := classifyJellyfinUpstreamError(err, "jellyfin serien konnten nicht gesucht werden")
+		writeJellyfinErrorResponse(c, http.StatusBadGateway, message, code, details)
 		return
 	}
 
@@ -146,11 +143,8 @@ func validateAdminAnimeJellyfinSyncRequest(req adminAnimeJellyfinSyncRequest) (a
 // ensureJellyfinConfigured checks if Jellyfin integration is set up.
 func (h *AdminContentHandler) ensureJellyfinConfigured(c *gin.Context) bool {
 	if strings.TrimSpace(h.jellyfinBaseURL) == "" || strings.TrimSpace(h.jellyfinAPIKey) == "" {
-		c.JSON(http.StatusServiceUnavailable, gin.H{
-			"error": gin.H{
-				"message": "jellyfin ist nicht konfiguriert",
-			},
-		})
+		details := "JELLYFIN_BASE_URL oder JELLYFIN_API_KEY fehlt."
+		writeJellyfinErrorResponse(c, http.StatusServiceUnavailable, "jellyfin ist nicht konfiguriert", "jellyfin_not_configured", &details)
 		return false
 	}
 	return true

@@ -79,6 +79,15 @@ export interface JellyfinSyncState {
   isBulkSyncing: boolean
   bulkProgress: { done: number; total: number; success: number; failed: number } | null
   syncingAnimeIDs: Record<number, true>
+  searchFeedback: JellyfinSyncFeedback | null
+  previewFeedback: JellyfinSyncFeedback | null
+  syncFeedback: JellyfinSyncFeedback | null
+}
+
+export interface JellyfinSyncFeedback {
+  tone: 'success' | 'error'
+  message: string
+  details?: string
 }
 
 export interface EpisodeEditFormValues {

@@ -89,11 +89,8 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 			input.JellyfinSeriesID,
 			resolveErr,
 		)
-		c.JSON(statusCode, gin.H{
-			"error": gin.H{
-				"message": resolveErr.Error(),
-			},
-		})
+		code, details := classifyJellyfinResolutionError(statusCode, resolveErr.Error())
+		writeJellyfinErrorResponse(c, statusCode, resolveErr.Error(), code, details)
 		return
 	}
 
@@ -106,11 +103,8 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 			series.ID,
 			listErr,
 		)
-		c.JSON(http.StatusBadGateway, gin.H{
-			"error": gin.H{
-				"message": "jellyfin episoden konnten nicht geladen werden",
-			},
-		})
+		message, code, details := classifyJellyfinUpstreamError(listErr, "jellyfin episoden konnten nicht geladen werden")
+		writeJellyfinErrorResponse(c, http.StatusBadGateway, message, code, details)
 		return
 	}
 
@@ -134,12 +128,14 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 	}
 
 	result.AcceptedUniqueEpisodes = int32(len(collectUniqueEpisodeNumbers(acceptedEpisodes)))
+	if result.AcceptedUniqueEpisodes == 0 {
+		details := "Bitte Season-Nummer, Serienauswahl und Pfad-Filter pruefen, bevor der Sync gestartet wird."
+		writeJellyfinErrorResponse(c, http.StatusConflict, "keine passenden jellyfin episoden gefunden", "jellyfin_no_matching_episodes", &details)
+		return
+	}
 	if mismatchReason := buildJellyfinSyncMismatchReason(animeSource.MaxEpisodes, result.AcceptedUniqueEpisodes); mismatchReason != nil && !input.AllowMismatch {
-		c.JSON(http.StatusConflict, gin.H{
-			"error": gin.H{
-				"message": *mismatchReason,
-			},
-		})
+		details := "Bitte die Preview pruefen oder den Guard nur bewusst mit allow_mismatch=true uebersteuern."
+		writeJellyfinErrorResponse(c, http.StatusConflict, *mismatchReason, "jellyfin_episode_mismatch", &details)
 		return
 	}
 

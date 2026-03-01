@@ -91,12 +91,28 @@ export const AUTH_DISPLAY_NAME_COOKIE_NAME = 'team4s_display_name'
 export class ApiError extends Error {
   status: number
   retryAfterSeconds: number | null
+  code: string | null
+  details: string | null
 
-  constructor(status: number, message: string, retryAfterSeconds: number | null = null) {
+  constructor(
+    status: number,
+    message: string,
+    retryAfterSeconds: number | null = null,
+    code: string | null = null,
+    details: string | null = null,
+  ) {
     super(message)
     this.status = status
     this.retryAfterSeconds = retryAfterSeconds
+    this.code = code
+    this.details = details
   }
+}
+
+interface ParsedApiErrorPayload {
+  message: string
+  code: string | null
+  details: string | null
 }
 
 interface CommentListParams {
@@ -215,17 +231,30 @@ function withAuthHeader(headers: Record<string, string>, authToken?: string): Re
   return headers
 }
 
-async function parseApiError(response: Response, fallback: string): Promise<string> {
+async function parseApiErrorPayload(response: Response, fallback: string): Promise<ParsedApiErrorPayload> {
   try {
-    const body = (await response.json()) as { error?: { message?: string } }
+    const body = (await response.json()) as { error?: { message?: string; code?: string; details?: string } }
     if (body.error?.message) {
-      return body.error.message
+      return {
+        message: body.error.message,
+        code: typeof body.error.code === 'string' && body.error.code.trim() ? body.error.code : null,
+        details: typeof body.error.details === 'string' && body.error.details.trim() ? body.error.details : null,
+      }
     }
   } catch {
     // Keep fallback message.
   }
 
-  return fallback
+  return {
+    message: fallback,
+    code: null,
+    details: null,
+  }
+}
+
+async function parseApiError(response: Response, fallback: string): Promise<string> {
+  const parsed = await parseApiErrorPayload(response, fallback)
+  return parsed.message
 }
 
 function parsePayloadError(payload: unknown, fallback: string): string {
@@ -317,8 +346,8 @@ export async function getAnimeBackdrops(id: number): Promise<AnimeBackdropRespon
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<AnimeBackdropResponse>
@@ -346,8 +375,8 @@ export async function getFansubList(params: FansubListParams = {}): Promise<Fans
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<FansubGroupListResponse>
@@ -360,8 +389,8 @@ export async function getFansubByID(id: number): Promise<FansubGroupResponse> {
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<FansubGroupResponse>
@@ -1062,8 +1091,8 @@ export async function syncAdminAnimeFromJellyfin(
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<AdminAnimeJellyfinSyncResponse>
@@ -1085,8 +1114,8 @@ export async function searchAdminJellyfinSeries(
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<AdminJellyfinSeriesSearchResponse>
@@ -1110,8 +1139,8 @@ export async function previewAdminAnimeFromJellyfin(
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<AdminAnimeJellyfinPreviewResponse>

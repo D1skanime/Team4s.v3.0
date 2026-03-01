@@ -79,11 +79,8 @@ func (h *AdminContentHandler) PreviewAnimeFromJellyfin(c *gin.Context) {
 			input.JellyfinSeriesID,
 			resolveErr,
 		)
-		c.JSON(statusCode, gin.H{
-			"error": gin.H{
-				"message": resolveErr.Error(),
-			},
-		})
+		code, details := classifyJellyfinResolutionError(statusCode, resolveErr.Error())
+		writeJellyfinErrorResponse(c, statusCode, resolveErr.Error(), code, details)
 		return
 	}
 
@@ -96,11 +93,8 @@ func (h *AdminContentHandler) PreviewAnimeFromJellyfin(c *gin.Context) {
 			series.ID,
 			listErr,
 		)
-		c.JSON(http.StatusBadGateway, gin.H{
-			"error": gin.H{
-				"message": "jellyfin episoden konnten nicht geladen werden",
-			},
-		})
+		message, code, details := classifyJellyfinUpstreamError(listErr, "jellyfin episoden konnten nicht geladen werden")
+		writeJellyfinErrorResponse(c, http.StatusBadGateway, message, code, details)
 		return
 	}
 

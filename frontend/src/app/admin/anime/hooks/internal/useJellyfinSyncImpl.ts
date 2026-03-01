@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-import { getAnimeList, previewAdminAnimeFromJellyfin, searchAdminJellyfinSeries, syncAdminAnimeFromJellyfin } from '@/lib/api'
+import { ApiError, getAnimeList, previewAdminAnimeFromJellyfin, searchAdminJellyfinSeries, syncAdminAnimeFromJellyfin } from '@/lib/api'
 import {
   AdminAnimeJellyfinPreviewResult,
   AdminAnimeJellyfinSyncRequest,
@@ -9,7 +9,7 @@ import {
 } from '@/types/admin'
 import { AnimeListItem, EpisodeStatus } from '@/types/anime'
 
-import { CoverFilter, JellyfinSyncState } from '../../types/admin-anime'
+import { CoverFilter, JellyfinSyncFeedback, JellyfinSyncState } from '../../types/admin-anime'
 import { normalizeOptionalString, parsePositiveInt } from '../../utils/anime-helpers'
 
 const ANIME_BROWSER_PER_PAGE = 20
@@ -40,6 +40,41 @@ interface JellyfinSyncActions {
   reset: () => void
 }
 
+function buildJellyfinFeedback(tone: 'success' | 'error', message: string, details?: string): JellyfinSyncFeedback {
+  return {
+    tone,
+    message,
+    ...(details ? { details } : {}),
+  }
+}
+
+function formatJellyfinActionError(error: unknown, fallback: string): JellyfinSyncFeedback {
+  if (!(error instanceof ApiError)) {
+    if (error instanceof Error && error.message.trim()) {
+      return buildJellyfinFeedback('error', error.message)
+    }
+
+    return buildJellyfinFeedback('error', fallback)
+  }
+
+  switch (error.code) {
+    case 'jellyfin_unreachable':
+      return buildJellyfinFeedback('error', 'Server nicht erreichbar.', error.details || undefined)
+    case 'jellyfin_auth_invalid':
+      return buildJellyfinFeedback('error', 'Jellyfin Token ungueltig.', error.details || undefined)
+    case 'jellyfin_not_configured':
+      return buildJellyfinFeedback('error', 'Jellyfin ist nicht konfiguriert.', error.details || undefined)
+    case 'jellyfin_series_not_found':
+      return buildJellyfinFeedback('error', 'Keine passende Jellyfin-Serie gefunden.', error.details || undefined)
+    case 'jellyfin_series_ambiguous':
+      return buildJellyfinFeedback('error', 'Mehrere passende Jellyfin-Serien gefunden.', error.details || undefined)
+    case 'jellyfin_no_matching_episodes':
+      return buildJellyfinFeedback('error', 'Keine importierbaren Episoden gefunden.', error.details || undefined)
+    default:
+      return buildJellyfinFeedback('error', error.message || fallback, error.details || undefined)
+  }
+}
+
 export function useJellyfinSync(
   authToken: string,
   onSuccess: (msg: string) => void,
@@ -60,6 +95,9 @@ export function useJellyfinSync(
   const [isBulkSyncing, setIsBulkSyncing] = useState(false)
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number; success: number; failed: number } | null>(null)
   const [syncingAnimeIDs, setSyncingAnimeIDs] = useState<Record<number, true>>({})
+  const [searchFeedback, setSearchFeedback] = useState<JellyfinSyncFeedback | null>(null)
+  const [previewFeedback, setPreviewFeedback] = useState<JellyfinSyncFeedback | null>(null)
+  const [syncFeedback, setSyncFeedback] = useState<JellyfinSyncFeedback | null>(null)
 
   const hasAuthToken = authToken.trim().length > 0
 
@@ -71,18 +109,24 @@ export function useJellyfinSync(
     setSelectedSeriesID(value)
     setPreviewResult(null)
     setLastSyncResult(null)
+    setPreviewFeedback(null)
+    setSyncFeedback(null)
   }, [])
 
   const setSeasonInput = useCallback((value: string) => {
     setSeasonInputState(value)
     setPreviewResult(null)
     setLastSyncResult(null)
+    setPreviewFeedback(null)
+    setSyncFeedback(null)
   }, [])
 
   const setEpisodeStatus = useCallback((value: EpisodeStatus) => {
     setEpisodeStatusState(value)
     setPreviewResult(null)
     setLastSyncResult(null)
+    setPreviewFeedback(null)
+    setSyncFeedback(null)
   }, [])
 
   const setCleanupVersions = useCallback((value: boolean) => {
@@ -106,14 +150,26 @@ export function useJellyfinSync(
 
     try {
       setIsSearching(true)
+      setSearchFeedback(null)
+      setPreviewFeedback(null)
+      setSyncFeedback(null)
+      setSeriesOptions([])
+      setSelectedSeriesID('')
+      setPreviewResult(null)
       setLastSyncResult(null)
       const response = await searchAdminJellyfinSeries(query, { limit: 50 }, authToken)
       setSeriesOptions(response.data)
-      if (response.data.length === 0) onSuccess('Keine Jellyfin-Serien fuer die Suche gefunden.')
-      else onSuccess(`${response.data.length} Jellyfin-Treffer gefunden.`)
+      if (response.data.length === 0) {
+        onSuccess('Keine Jellyfin-Serien fuer die Suche gefunden.')
+      } else {
+        const message = `${response.data.length} Jellyfin-Treffer gefunden.`
+        setSearchFeedback(buildJellyfinFeedback('success', message))
+        onSuccess(message)
+      }
     } catch (error) {
-      if (error instanceof Error) onError(error.message)
-      else onError('Jellyfin-Suche fehlgeschlagen.')
+      const feedback = formatJellyfinActionError(error, 'Jellyfin-Suche fehlgeschlagen.')
+      setSearchFeedback(feedback)
+      onError(feedback.message)
     } finally {
       setIsSearching(false)
     }
@@ -143,14 +199,28 @@ export function useJellyfinSync(
 
     try {
       setIsLoadingPreview(true)
+      setPreviewFeedback(null)
+      setSyncFeedback(null)
+      setPreviewResult(null)
       const response = await previewAdminAnimeFromJellyfin(animeID, payload, authToken)
       setPreviewResult(response.data)
-      onSuccess(
-        `Preview geladen: ${response.data.jellyfin_series_name} | Treffer ${response.data.matched_episodes}/${response.data.scanned_episodes} | Pfad-gefiltert ${response.data.path_filtered_episodes}`,
-      )
+      if (response.data.accepted_unique_episodes === 0) {
+        const feedback = buildJellyfinFeedback(
+          'error',
+          'Keine importierbaren Episoden in der Preview gefunden.',
+          'Bitte Season-Nummer oder Serienauswahl pruefen.',
+        )
+        setPreviewFeedback(feedback)
+        onError(feedback.message)
+      } else {
+        const message = `Preview geladen: ${response.data.jellyfin_series_name} | Treffer ${response.data.matched_episodes}/${response.data.scanned_episodes} | Pfad-gefiltert ${response.data.path_filtered_episodes}`
+        setPreviewFeedback(buildJellyfinFeedback('success', message))
+        onSuccess(message)
+      }
     } catch (error) {
-      if (error instanceof Error) onError(error.message)
-      else onError('Jellyfin-Preview fehlgeschlagen.')
+      const feedback = formatJellyfinActionError(error, 'Jellyfin-Preview fehlgeschlagen.')
+      setPreviewFeedback(feedback)
+      onError(feedback.message)
     } finally {
       setIsLoadingPreview(false)
     }
@@ -169,15 +239,33 @@ export function useJellyfinSync(
     }
 
     const selected = selectedSeriesID.trim()
+    if (!selected) {
+      const feedback = buildJellyfinFeedback('error', 'Bitte zuerst einen Jellyfin-Treffer auswaehlen.')
+      setSyncFeedback(feedback)
+      onError(feedback.message)
+      return false
+    }
     if (
       options.requireFreshPreview !== false &&
-      selected &&
       (!previewResult ||
         previewResult.anime_id !== animeID ||
         previewResult.jellyfin_series_id !== selected ||
         previewResult.season_number !== seasonNumber)
     ) {
-      onError('Bitte zuerst eine aktuelle Jellyfin-Preview fuer diese Auswahl laden.')
+      const feedback = buildJellyfinFeedback('error', 'Bitte zuerst eine aktuelle Jellyfin-Preview fuer diese Auswahl laden.')
+      setSyncFeedback(feedback)
+      onError(feedback.message)
+      return false
+    }
+
+    if (options.requireFreshPreview !== false && previewResult && previewResult.accepted_unique_episodes === 0) {
+      const feedback = buildJellyfinFeedback(
+        'error',
+        'Die aktuelle Preview enthaelt keine importierbaren Episoden.',
+        'Bitte Season-Nummer oder Serienauswahl pruefen.',
+      )
+      setSyncFeedback(feedback)
+      onError(feedback.message)
       return false
     }
 
@@ -191,17 +279,19 @@ export function useJellyfinSync(
 
     try {
       setIsSyncing(true)
+      setSyncFeedback(null)
       const response = await syncAdminAnimeFromJellyfin(animeID, payload, authToken)
       const result = response.data
       setLastSyncResult(result)
       const deletedInfo = result.deleted_versions ? ` | Geloescht -${result.deleted_versions}` : ''
-      onSuccess(
-        `Jellyfin Sync OK: ${result.jellyfin_series_name} | Episoden +${result.imported_episodes}/~${result.updated_episodes} | Versionen +${result.imported_versions}/~${result.updated_versions}${deletedInfo}`,
-      )
+      const message = `Jellyfin Sync OK: ${result.jellyfin_series_name} | Episoden +${result.imported_episodes}/~${result.updated_episodes} | Versionen +${result.imported_versions}/~${result.updated_versions}${deletedInfo}`
+      setSyncFeedback(buildJellyfinFeedback('success', message))
+      onSuccess(message)
       return true
     } catch (error) {
-      if (error instanceof Error) onError(error.message)
-      else onError('Jellyfin Sync fehlgeschlagen.')
+      const feedback = formatJellyfinActionError(error, 'Jellyfin Sync fehlgeschlagen.')
+      setSyncFeedback(feedback)
+      onError(feedback.message)
       return false
     } finally {
       setIsSyncing(false)
@@ -344,6 +434,9 @@ export function useJellyfinSync(
     setPreviewResult(null)
     setLastSyncResult(null)
     setAllowMismatchState(false)
+    setSearchFeedback(null)
+    setPreviewFeedback(null)
+    setSyncFeedback(null)
   }, [])
 
   return {
@@ -362,6 +455,9 @@ export function useJellyfinSync(
     isBulkSyncing,
     bulkProgress,
     syncingAnimeIDs,
+    searchFeedback,
+    previewFeedback,
+    syncFeedback,
     setSearchQuery: setSearchQueryValue,
     selectSeries,
     setSeasonInput,

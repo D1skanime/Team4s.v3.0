@@ -1,0 +1,346 @@
+.episodesOverview {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.episodeList {
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* Accordion Item */
+.accordionItem {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+  overflow: hidden;
+}
+
+.accordionHeader {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: background 120ms ease;
+}
+
+.accordionHeader:hover {
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+}
+
+.accordionHeader:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
+/* Episode Number Badge */
+.episodeNumberBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Episode Title */
+.episodeTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Version Count Badge */
+.versionCountBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 32%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.48rem;
+  white-space: nowrap;
+}
+
+/* Expand Icon */
+.expandIcon {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  transition: transform 180ms ease;
+}
+
+.expandIconRotated {
+  transform: rotate(180deg);
+}
+
+/* Accordion Content */
+.accordionContent {
+  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  padding: 0.65rem 0.85rem;
+  animation: accordionExpand 180ms ease;
+}
+
+@keyframes accordionExpand {
+  from {
+    opacity: 0.35;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.noVersions {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+/* Version List */
+.versionList {
+  display: grid;
+  gap: 0.45rem;
+}
+
+/* Version Row */
+.versionRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 96%, transparent);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.versionRow:hover {
+  border-color: color-mix(in srgb, var(--accent-primary) 28%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 5%, var(--bg-card));
+}
+
+.versionRowDefault {
+  border-color: color-mix(in srgb, var(--color-success) 38%, transparent);
+  background: color-mix(in srgb, var(--color-success) 6%, var(--bg-card));
+}
+
+/* Version Main (left side) */
+.versionMain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+/* Fansub Badge */
+.fansubBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.fansubLogo {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: contain;
+  background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+}
+
+.fansubName {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.fansubUnknown {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Version Meta (badges) */
+.versionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Quality Badge */
+.qualityBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.12rem 0.42rem;
+  text-transform: uppercase;
+}
+
+/* Subtitle Badges */
+.subtitleBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.12rem 0.42rem;
+}
+
+.subtitleHardsub {
+  border: 1px solid color-mix(in srgb, var(--color-warning) 48%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: color-mix(in srgb, var(--color-warning) 78%, var(--text-primary));
+}
+
+.subtitleSoftsub {
+  border: 1px solid color-mix(in srgb, var(--color-info) 48%, transparent);
+  background: color-mix(in srgb, var(--color-info) 12%, transparent);
+  color: color-mix(in srgb, var(--color-info) 78%, var(--text-primary));
+}
+
+/* Default Badge */
+.defaultBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-success) 48%, transparent);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: color-mix(in srgb, var(--color-success) 78%, var(--text-primary));
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.12rem 0.42rem;
+}
+
+/* Version Actions (right side) */
+.versionActions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.releaseDate {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Play Button */
+.playButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 42%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  color: var(--accent-primary);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.playButton:hover {
+  background: color-mix(in srgb, var(--accent-primary) 22%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 58%, transparent);
+}
+
+.playButton:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* State Containers (Loading, Error, Empty) */
+.stateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+  min-height: 180px;
+}
+
+.stateText {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.errorText {
+  margin: 0;
+  color: var(--color-error);
+  font-size: 0.92rem;
+}
+
+/* Spinner */
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid color-mix(in srgb, var(--accent-primary) 22%, transparent);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .accordionHeader {
+    grid-template-columns: auto 1fr auto;
+    gap: 0.55rem;
+  }
+
+  .versionCountBadge {
+    display: none;
+  }
+
+  .episodeNumberBadge::after {
+    content: ' (' attr(data-count) ')';
+  }
+
+  .versionRow {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .versionActions {
+    justify-content: flex-start;
+  }
+
+  .versionMain {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.38rem;
+  }
+}

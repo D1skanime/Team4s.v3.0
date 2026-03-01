@@ -17,7 +17,15 @@ func (h *FansubHandler) ListGroupedEpisodes(c *gin.Context) {
 		return
 	}
 
-	data, err := h.episodeVersionRepo.ListGroupedByAnimeID(c.Request.Context(), animeID)
+	includeVersions := c.DefaultQuery("includeVersions", "true") == "true"
+	includeFansubs := c.DefaultQuery("includeFansubs", "true") == "true"
+
+	data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+		c.Request.Context(),
+		animeID,
+		includeVersions,
+		includeFansubs,
+	)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "anime nicht gefunden"}})
 		return

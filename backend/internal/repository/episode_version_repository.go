@@ -25,6 +25,8 @@ func NewEpisodeVersionRepository(db *pgxpool.Pool) *EpisodeVersionRepository {
 func (r *EpisodeVersionRepository) ListGroupedByAnimeID(
 	ctx context.Context,
 	animeID int64,
+	includeVersions bool,
+	includeFansubs bool,
 ) (*models.GroupedEpisodesData, error) {
 	exists, err := r.animeExists(ctx, animeID)
 	if err != nil {
@@ -39,16 +41,56 @@ func (r *EpisodeVersionRepository) ListGroupedByAnimeID(
 		return nil, err
 	}
 
-	rows, err := r.db.Query(ctx, `
+	if !includeVersions {
+		versionCounts, err := r.countVersionsByEpisodeNumber(ctx, animeID)
+		if err != nil {
+			return nil, err
+		}
+
+		grouped := make([]models.GroupedEpisode, 0, len(episodeTitlesByNumber))
+		for episodeNumber, title := range episodeTitlesByNumber {
+			count := versionCounts[episodeNumber]
+			grouped = append(grouped, models.GroupedEpisode{
+				EpisodeNumber: episodeNumber,
+				EpisodeTitle:  title,
+				VersionCount:  count,
+				Versions:      nil,
+			})
+		}
+		sort.Slice(grouped, func(i, j int) bool {
+			return grouped[i].EpisodeNumber < grouped[j].EpisodeNumber
+		})
+
+		return &models.GroupedEpisodesData{
+			AnimeID:  animeID,
+			Episodes: grouped,
+		}, nil
+	}
+
+	query := `
 		SELECT
 			ev.id, ev.anime_id, ev.episode_number, ev.title, ev.media_provider, ev.media_item_id,
-			ev.video_quality, ev.subtitle_type, ev.release_date, ev.stream_url, ev.created_at, ev.updated_at,
-			fg.id, fg.slug, fg.name, fg.logo_url
-		FROM episode_versions ev
-		LEFT JOIN fansub_groups fg ON fg.id = ev.fansub_group_id
+			ev.video_quality, ev.subtitle_type, ev.release_date, ev.stream_url, ev.created_at, ev.updated_at`
+
+	if includeFansubs {
+		query += `,
+			fg.id, fg.slug, fg.name, fg.logo_url`
+	}
+
+	query += `
+		FROM episode_versions ev`
+
+	if includeFansubs {
+		query += `
+		LEFT JOIN fansub_groups fg ON fg.id = ev.fansub_group_id`
+	}
+
+	query += `
 		WHERE ev.anime_id = $1
 		ORDER BY ev.episode_number ASC, ev.release_date DESC NULLS LAST, ev.id ASC
-	`, animeID)
+	`
+
+	rows, err := r.db.Query(ctx, query, animeID)
 	if err != nil {
 		return nil, fmt.Errorf("query grouped episode versions for anime %d: %w", animeID, err)
 	}
@@ -56,7 +98,12 @@ func (r *EpisodeVersionRepository) ListGroupedByAnimeID(
 
 	groupMap := make(map[int32]*models.GroupedEpisode, 32)
 	for rows.Next() {
-		item, err := scanEpisodeVersion(rows)
+		var item *models.EpisodeVersion
+		if includeFansubs {
+			item, err = scanEpisodeVersion(rows)
+		} else {
+			item, err = scanEpisodeVersionWithoutFansub(rows)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -138,6 +185,41 @@ func (r *EpisodeVersionRepository) listEpisodeTitlesByAnimeID(
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate episode title rows for anime %d: %w", animeID, err)
+	}
+
+	return result, nil
+}
+
+func (r *EpisodeVersionRepository) countVersionsByEpisodeNumber(
+	ctx context.Context,
+	animeID int64,
+) (map[int32]int32, error) {
+	rows, err := r.db.Query(
+		ctx,
+		`
+		SELECT episode_number, COUNT(*) as count
+		FROM episode_versions
+		WHERE anime_id = $1
+		GROUP BY episode_number
+		`,
+		animeID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("query version counts for anime %d: %w", animeID, err)
+	}
+	defer rows.Close()
+
+	result := make(map[int32]int32, 32)
+	for rows.Next() {
+		var episodeNumber int32
+		var count int32
+		if err := rows.Scan(&episodeNumber, &count); err != nil {
+			return nil, fmt.Errorf("scan version count row for anime %d: %w", animeID, err)
+		}
+		result[episodeNumber] = count
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate version count rows for anime %d: %w", animeID, err)
 	}
 
 	return result, nil
@@ -502,6 +584,29 @@ func scanEpisodeVersion(rows pgx.Rows) (*models.EpisodeVersion, error) {
 		return nil, fmt.Errorf("scan episode version row: %w", err)
 	}
 	return item, nil
+}
+
+func scanEpisodeVersionWithoutFansub(rows pgx.Rows) (*models.EpisodeVersion, error) {
+	var item models.EpisodeVersion
+
+	if err := rows.Scan(
+		&item.ID,
+		&item.AnimeID,
+		&item.EpisodeNumber,
+		&item.Title,
+		&item.MediaProvider,
+		&item.MediaItemID,
+		&item.VideoQuality,
+		&item.SubtitleType,
+		&item.ReleaseDate,
+		&item.StreamURL,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+	); err != nil {
+		return nil, fmt.Errorf("scan episode version row without fansub: %w", err)
+	}
+
+	return &item, nil
 }
 
 func scanEpisodeVersionRow(row pgx.Row) (*models.EpisodeVersion, error) {

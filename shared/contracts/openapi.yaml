@@ -3039,6 +3039,20 @@ paths:
             type: integer
             format: int64
             minimum: 1
+        - name: includeVersions
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: Include version details in response. If false, only episode metadata and version count are returned.
+        - name: includeFansubs
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: Include fansub group data in version details. Only effective when includeVersions is true.
       responses:
         "200":
           description: Grouped episode/version payload
@@ -3890,6 +3904,12 @@ components:
           properties:
             message:
               type: string
+            code:
+              type: string
+              description: Optional machine-readable error code for lane-specific client handling.
+            details:
+              type: string
+              description: Optional operator-facing hint with concrete remediation context.
     AuthRefreshRequest:
       type: object
       required: [refresh_token]
