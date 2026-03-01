@@ -3,24 +3,23 @@
 ## Top 3 Risks
 
 ### 1. Provider Sync Workflow Is Opaque
-- **Impact:** High (operators cannot trust whether search or sync actually ran)
-- **Status:** The search action currently provides no visible feedback, no preview, and no explicit failure states
-- **Mitigation:** Split search from sync, enforce preview-first confirmation, and add loading/empty/error UI states
+- **Impact:** High
+- **Status:** Search provides no visible feedback, no preview, no explicit failure states
+- **Mitigation:** Add structured error JSON responses to backend, improve frontend error display
 
 ### 2. Jellyfin Folder Discovery Is Unreliable
-- **Impact:** High (candidate anime folders cannot be verified before sync)
-- **Status:** JellySync does not surface possible anime folders; current failure mode is effectively silent
-- **Mitigation:** Validate credentials, base URL, `/Items?IncludeItemTypes=Series`, folder mapping, path normalization, and structured error JSON
+- **Impact:** High
+- **Status:** JellySync does not surface possible anime folders; failures are silent
+- **Mitigation:** Validate credentials, base URL, implement structured error responses
 
-### 3. Episode-Version Context Is Hidden
-- **Impact:** Medium (operators may edit the wrong version or miss fansub assignments)
-- **Status:** The episodes overview does not show version details or per-version fansub groups clearly enough
-- **Mitigation:** Extend the episodes endpoint joins and render expandable version details with badges and edit entry points
+### 3. Episode-Version Context Is Hidden (PARTIALLY MITIGATED)
+- **Impact:** Medium
+- **Status:** Backend endpoint now supports `includeVersions`/`includeFansubs` params
+- **Remaining:** Frontend UI needs Accordion-Expansion and Fansub-Badges
 
 ## Current Blockers
-- No hard repo blocker, but the current sync workflow is effectively blocked by missing diagnostics and operator-visible feedback
+- None
 
 ## If Nothing Changes
-- Provider sync will remain unsafe and difficult to trust
-- Jellyfin mapping issues will stay hard to diagnose and easy to miss
-- Episode version and fansub assignments will remain cumbersome to verify before edits
+- Provider sync will remain opaque and hard to trust
+- Episode version/fansub visibility depends on pending frontend work
