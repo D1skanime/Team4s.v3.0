@@ -31,6 +31,7 @@
 - The new `EpisodesOverview` components are not yet wired into `/admin/anime/{id}/episodes`
 - A full real preview+sync run for a representative anime was not completed and documented
 - Handler modularization remains pending
+- The existing episode versions page is still not linked correctly from the current admin episodes UX, which still exposes a misplaced play action
 
 ## Structural Decisions
 
@@ -90,6 +91,7 @@
 
 - Real Jellyfin search can return duplicate title matches, so operators still need clear candidate disambiguation before syncing
 - The new episodes overview UI exists as a reusable component but is not integrated into the admin episodes route yet
+- The current admin episodes route points operators toward playback instead of version management, even though the versions page already exists
 - Local `.env` now carries live runtime configuration and must stay untracked; secret rotation discipline still matters
 
 ## Combined Context
@@ -115,14 +117,16 @@ Today's work moved the highest-risk admin workflow from opaque to diagnosable. T
 - Verified live Jellyfin connectivity after restoring the real base URL
 
 ## Next Steps (Priority Order)
-1. Run a real preview on a representative anime, compare duplicate candidates, and document the correct path/series choice before a full sync
-2. Integrate the new `EpisodesOverview` component into `/admin/anime/{id}/episodes`
-3. Add focused UI tests for the new Jellyfin error and empty states
-4. Resume handler modularization after the sync and episode-visibility slices are locked down
+1. Rework `/admin/anime/{id}/episodes` with the UX team so episode management is version-first and the stray play action is removed
+2. Replace the current episode-row play action with an edit action that opens `/admin/anime/{id}/episodes/{episodeId}/versions`
+3. Add single-episode sync plus row metadata for path order / sequence and stream-link visibility
+4. Run a real preview on a representative anime after the episode-management flow is clarified
 
 ## First Task Tomorrow
 ```bash
 cd C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0
-# Pick one real admin anime, run Jellyfin search, and compare preview output across duplicate candidates
-curl -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admin/jellyfin/series?q=<anime-title>&limit=5"
+# Inspect the current admin episodes route and note the UX fixes to implement first
+# 1) locate the misplaced play button
+# 2) confirm the existing versions edit route
+# 3) list the missing row metadata (path order / stream link)
 ```

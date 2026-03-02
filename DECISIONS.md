@@ -1,5 +1,43 @@
 # DECISIONS
 
+## 2026-03-02
+
+### Decision
+Keep the general Jellyfin sync action as the bulk season-wide import path; use single-episode sync only for corrective reruns.
+
+### Context
+The question today was whether operators would need to sync episodes one by one manually. The existing bulk sync path already imports every accepted episode/version for the selected Jellyfin series + season, while the new single-episode endpoint exists for targeted corrections.
+
+### Options Considered
+- Shift operators toward manual per-episode sync as the normal flow
+- Keep the existing bulk sync as the default path and reserve single-episode sync for corrective use
+
+### Why This Won
+The bulk path already does the right write behavior for accepted episodes and matching Jellyfin links. Making per-episode sync the normal path would add unnecessary operator work and create avoidable repetition.
+
+### Consequences
+- UI copy should make the distinction between bulk sync and corrective sync explicit
+- Operators should not need to sync each episode manually in the normal workflow
+- Future UX work should preserve the bulk-first mental model
+
+### Decision
+The public anime detail should show exactly one active fansub-group context at a time.
+
+### Context
+The current public anime view can show every fansub description/history together, which overloads the page and makes it harder to understand which versions belong to which group.
+
+### Options Considered
+- Keep all fansub histories/descriptions and all visible versions on screen at once
+- Treat one fansub group as the active context and let users switch explicitly
+
+### Why This Won
+One active context keeps the page readable and makes the relationship between group history and visible versions obvious. It also creates a cleaner mental model for public users.
+
+### Consequences
+- The page needs an explicit group switcher
+- Changing the active group must swap both the visible history/description and the public episode versions
+- The initial group can be preselected automatically, but the implementation should stay stable and predictable
+
 ## 2026-03-01
 
 ### Decision

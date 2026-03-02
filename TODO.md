@@ -1,21 +1,25 @@
 # TODO
 
 ## Immediate (Next Session)
-- [ ] Validate one real Jellyfin preview flow end-to-end on a representative anime
-  - Search the anime title in the admin Jellyfin search endpoint
-  - Compare duplicate candidates by path before any write action
-  - Confirm which candidate produces the correct preview payload
-- [ ] Integrate the new `EpisodesOverview` component into `/admin/anime/{id}/episodes`
-  - Use `includeVersions=true&includeFansubs=true`
-  - Render version counts, expandable rows, and fansub badges inline
-  - Keep deeper edit links intact
-- [ ] Add focused frontend regression tests for the new Jellyfin sync states
-  - Search error state
-  - Preview empty/error state
-  - Confirm dialog behavior during sync failures
+- [ ] Run the `team4s-design` agent for `/admin/anime/{id}/episodes/{episodeId}/edit`
+  - Review information hierarchy
+  - Review action clarity and danger states
+  - Capture concrete UX adjustments before code changes
+- [ ] Run the `team4s-design` agent for `/admin/anime/{id}/episodes/{episodeId}/versions`
+  - Review version-management flow
+  - Check edit/delete affordances
+  - Check scan/sync affordances and operator clarity
+- [ ] Rework the public anime detail to one active fansub group at a time
+  - Render one active history/description block only
+  - Add explicit switching between fansub groups
+  - Preselect one group automatically when the page opens
+- [ ] Filter the public episode version list to the active public fansub group only
+  - Never render all groups' versions together
+  - Only show versions that are public for the active group
+  - Keep the history/description and visible versions in sync when the user switches groups
 
 ## Short Term (This Week)
-- [ ] Run and document one safe first real sync after preview verification
+- [ ] Add explicit UI copy that clarifies bulk Jellyfin sync vs. corrective single-episode sync
 - [ ] Full code + architecture + UX review across the sync/admin surfaces
 - [ ] Resume handler modularization sweep for files >150 lines
 - [ ] Replace remaining `img` tags with `next/image`

@@ -358,7 +358,7 @@ func (h *AdminContentHandler) SyncEpisodeFromJellyfin(c *gin.Context) {
 		return
 	}
 
-	animeID, err := parseAnimeID(c.Param("animeId"))
+	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
 		badRequest(c, "ungueltige anime id")
 		return

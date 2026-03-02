@@ -1,5 +1,12 @@
 # DAYLOG
 
+## 2026-03-02
+- Fixed the backend Gin route conflict for single-episode sync by reusing the existing `:id` prefix on the nested admin anime route.
+- Verified the local backend runtime again (`/health`) and live-smoke-tested `POST /api/v1/admin/anime/25/episodes/1/sync` successfully.
+- Added focused frontend regression tests for Jellyfin feedback mapping and sync-dialog gating so the step feedback logic is now covered by Vitest.
+- Captured the next UX work bundle: run the `team4s-design` agent on episode edit + version edit, then simplify the public anime detail to one active fansub group at a time.
+- Locked in the public anime direction: one active group controls the visible description/history and the public episode versions; all groups should never render simultaneously.
+
 ## 2026-03-01
 - Added focused regression coverage for the admin anime step-flow (145 tests total across frontend and backend), with passing test results.
 - Captured the next work bundle for provider sync reliability: separate provider/Jellyfin search and sync endpoints, explicit preview before sync, and visible frontend loading/error states.

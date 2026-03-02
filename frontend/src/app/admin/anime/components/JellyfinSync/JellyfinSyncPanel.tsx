@@ -9,6 +9,7 @@ import { AnimeDetail, EpisodeStatus } from '@/types/anime'
 
 import studioStyles from '../../AdminStudio.module.css'
 import { formatEpisodeStatusLabel } from '../../utils/anime-helpers'
+import { deriveJellyfinSyncPanelState } from '../../utils/jellyfin-sync-panel-state'
 import styles from './JellyfinSyncPanel.module.css'
 
 const EPISODE_STATUSES: EpisodeStatus[] = ['disabled', 'private', 'public']
@@ -153,16 +154,18 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
     () => model.seriesOptions.find((item) => item.jellyfin_series_id === selectedSeriesID) || null,
     [model.seriesOptions, selectedSeriesID],
   )
-  const seasonNumber = Number.parseInt(model.seasonInput, 10)
-  const hasFreshPreview = Boolean(
-    model.previewResult &&
-      model.previewResult.anime_id === anime.id &&
-      model.previewResult.jellyfin_series_id === selectedSeriesID &&
-      model.previewResult.season_number === seasonNumber,
-  )
-  const activeStep = hasFreshPreview ? 4 : selectedSeriesID ? 3 : model.seriesOptions.length > 0 ? 2 : 1
-  const hasSyncablePreview = hasFreshPreview && (model.previewResult?.accepted_unique_episodes ?? 0) > 0
-  const canSync = hasSyncablePreview && selectedSeriesID.length > 0 && !model.isSyncing && !model.isBulkSyncing
+  const { activeStep, hasFreshPreview, hasSyncablePreview, canSync, showSearchEmptyState } = deriveJellyfinSyncPanelState({
+    animeID: anime.id,
+    selectedSeriesID,
+    seasonInput: model.seasonInput,
+    previewResult: model.previewResult,
+    isSyncing: model.isSyncing,
+    isBulkSyncing: model.isBulkSyncing,
+    seriesOptionCount: model.seriesOptions.length,
+    hasSearched,
+    isSearching: model.isSearching,
+    searchFeedbackTone: model.searchFeedback?.tone ?? null,
+  })
 
   const handleSearch = () => {
     setHasCopiedSeriesID(false)
@@ -172,7 +175,6 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
   }
 
   const hasSearchResults = model.seriesOptions.length > 0
-  const showSearchEmptyState = hasSearched && !hasSearchResults && !model.isSearching && model.searchFeedback?.tone !== 'error'
 
   const handlePreview = () => {
     onBeforeAction()
