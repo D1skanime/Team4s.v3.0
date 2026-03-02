@@ -247,6 +247,11 @@ func main() {
 		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		adminContentHandler.SyncAnimeFromJellyfin,
 	)
+	v1.POST(
+		"/admin/anime/:animeId/episodes/:episodeId/sync",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		adminContentHandler.SyncEpisodeFromJellyfin,
+	)
 	v1.GET(
 		"/admin/jellyfin/series",
 		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),

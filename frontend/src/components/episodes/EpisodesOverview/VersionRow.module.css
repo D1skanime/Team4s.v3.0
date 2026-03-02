@@ -1,0 +1,225 @@
+/* Version Row */
+.versionRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 96%, transparent);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.versionRow:hover {
+  border-color: color-mix(in srgb, var(--accent-primary) 28%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 5%, var(--bg-card));
+}
+
+.versionRowDefault {
+  border-color: color-mix(in srgb, var(--color-success) 38%, transparent);
+  background: color-mix(in srgb, var(--color-success) 6%, var(--bg-card));
+}
+
+/* Version Main (left side) */
+.versionMain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+/* Fansub Badge */
+.fansubBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.fansubLogo {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: contain;
+  background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+}
+
+.fansubName {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.fansubUnknown {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Version Meta (badges) */
+.versionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Quality Badge */
+.qualityBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.12rem 0.42rem;
+  text-transform: uppercase;
+}
+
+/* Subtitle Badges */
+.subtitleBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.12rem 0.42rem;
+}
+
+.subtitleHardsub {
+  border: 1px solid color-mix(in srgb, var(--color-warning) 48%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: color-mix(in srgb, var(--color-warning) 78%, var(--text-primary));
+}
+
+.subtitleSoftsub {
+  border: 1px solid color-mix(in srgb, var(--color-info) 48%, transparent);
+  background: color-mix(in srgb, var(--color-info) 12%, transparent);
+  color: color-mix(in srgb, var(--color-info) 78%, var(--text-primary));
+}
+
+/* Default Badge */
+.defaultBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-success) 48%, transparent);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: color-mix(in srgb, var(--color-success) 78%, var(--text-primary));
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.12rem 0.42rem;
+}
+
+/* Version Actions (right side) */
+.versionActions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.releaseDate {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Episode Edit Button (Primary Action) */
+.episodeEditButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.episodeEditButton:hover {
+  background: color-mix(in srgb, var(--accent-primary) 85%, black);
+  border-color: color-mix(in srgb, var(--accent-primary) 85%, black);
+}
+
+.episodeEditButton:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Stream Indicator */
+.episodeStreamIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.streamPresent {
+  border: 1px solid color-mix(in srgb, var(--color-success) 38%, transparent);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+  color: color-mix(in srgb, var(--color-success) 85%, var(--text-primary));
+}
+
+.streamAbsent {
+  border: 1px solid color-mix(in srgb, var(--color-warning) 38%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  color: color-mix(in srgb, var(--color-warning) 85%, var(--text-primary));
+}
+
+.streamUrl {
+  font-size: 0.7rem;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 300px;
+}
+
+.streamCopyButton {
+  padding: 0.15rem 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--color-success) 48%, transparent);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: color-mix(in srgb, var(--color-success) 90%, var(--text-primary));
+  font-size: 0.65rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.streamCopyButton:hover {
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+}
+
+.streamCopyButton:focus-visible {
+  outline: 2px solid var(--color-success);
+  outline-offset: 1px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .versionRow {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .versionActions {
+    justify-content: flex-start;
+  }
+
+  .versionMain {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.38rem;
+  }
+}

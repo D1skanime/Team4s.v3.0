@@ -110,7 +110,7 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 	}
 
 	episodeQuery := `
-		SELECT id, episode_number, title, status, view_count, download_count, stream_links
+		SELECT id, episode_number, title, status, view_count, download_count, stream_links, filename
 		FROM episodes
 		WHERE anime_id = $1
 	`
@@ -132,6 +132,7 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 			&episode.ViewCount,
 			&episode.DownloadCount,
 			&episode.StreamLinks,
+			&episode.Filename,
 		); err != nil {
 			return nil, fmt.Errorf("scan episode row: %w", err)
 		}

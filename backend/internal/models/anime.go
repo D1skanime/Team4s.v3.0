@@ -30,6 +30,7 @@ type EpisodeListItem struct {
 	ViewCount     int32    `json:"view_count"`
 	DownloadCount int32    `json:"download_count"`
 	StreamLinks   []string `json:"stream_links,omitempty"`
+	Filename      *string  `json:"filename,omitempty"`
 }
 
 type AnimeDetail struct {

@@ -1,0 +1,193 @@
+/* Accordion Item */
+.accordionItem {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+  overflow: hidden;
+}
+
+.accordionHeaderWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.accordionHeader {
+  flex: 1;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: background 120ms ease;
+}
+
+.accordionHeader:hover {
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+}
+
+.accordionHeader:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
+/* Episode Number Badge */
+.episodeNumberBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Episode Title */
+.episodeTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Version Count Badge */
+.versionCountBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 32%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.48rem;
+  white-space: nowrap;
+}
+
+/* Expand Icon */
+.expandIcon {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  transition: transform 180ms ease;
+}
+
+.expandIconRotated {
+  transform: rotate(180deg);
+}
+
+/* Accordion Content */
+.accordionContent {
+  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  padding: 0.65rem 0.85rem;
+  animation: accordionExpand 180ms ease;
+}
+
+@keyframes accordionExpand {
+  from {
+    opacity: 0.35;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.noVersions {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+/* Version List */
+.versionList {
+  display: grid;
+  gap: 0.45rem;
+}
+
+/* Episode Sync Button (Secondary Action) */
+.episodeSyncButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.75rem;
+  margin-right: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 30%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.episodeSyncButton:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--bg-secondary) 85%, transparent);
+  border-color: color-mix(in srgb, var(--text-secondary) 45%, transparent);
+}
+
+.episodeSyncButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.episodeSyncButton:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Sync Spinner */
+.syncSpinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, var(--text-primary) 30%, transparent);
+  border-top-color: var(--text-primary);
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+}
+
+/* Sync Error Message */
+.syncErrorMessage {
+  padding: 0.5rem 0.85rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-error) 20%, transparent);
+  background: color-mix(in srgb, var(--color-error) 8%, transparent);
+  color: var(--color-error);
+  font-size: 0.8rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .accordionHeader {
+    grid-template-columns: auto 1fr auto;
+    gap: 0.55rem;
+  }
+
+  .versionCountBadge {
+    display: none;
+  }
+
+  .episodeNumberBadge::after {
+    content: ' (' attr(data-count) ')';
+  }
+}

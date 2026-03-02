@@ -9,14 +9,18 @@ interface EpisodesOverviewProps {
   episodes: GroupedEpisode[]
   isLoading?: boolean
   error?: string | null
-  onPlayVersion?: (versionId: number) => void
+  onSyncEpisode?: (episodeNumber: number) => Promise<void>
+  syncingEpisode?: number | null
+  syncError?: { episodeNumber: number; message: string } | null
 }
 
 export function EpisodesOverview({
   episodes,
   isLoading = false,
   error = null,
-  onPlayVersion,
+  onSyncEpisode,
+  syncingEpisode = null,
+  syncError = null,
 }: EpisodesOverviewProps) {
   const [expandedEpisodes, setExpandedEpisodes] = useState<Set<number>>(new Set())
 
@@ -66,7 +70,9 @@ export function EpisodesOverview({
             episode={episode}
             isExpanded={expandedEpisodes.has(episode.episode_number)}
             onToggle={() => toggleExpanded(episode.episode_number)}
-            onPlayVersion={onPlayVersion}
+            onSyncEpisode={onSyncEpisode}
+            isSyncing={syncingEpisode === episode.episode_number}
+            syncError={syncError?.episodeNumber === episode.episode_number ? syncError.message : null}
           />
         ))}
       </div>

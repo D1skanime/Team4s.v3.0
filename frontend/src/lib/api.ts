@@ -1341,3 +1341,22 @@ export async function removeCollaborationMember(
     throw new ApiError(response.status, message)
   }
 }
+
+export async function syncEpisode(
+  animeID: number,
+  episodeID: number,
+  authToken?: string,
+): Promise<{ data: { success: boolean; message?: string } }> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episodes/${episodeID}/sync`, {
+    method: 'POST',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<{ data: { success: boolean; message?: string } }>
+}

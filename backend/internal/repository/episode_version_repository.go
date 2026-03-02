@@ -427,6 +427,25 @@ func (r *EpisodeVersionRepository) DeleteByAnimeAndProvider(
 	return commandTag.RowsAffected(), nil
 }
 
+// DeleteByAnimeEpisodeNumberAndProvider deletes all episode versions for the given anime, episode number, and media provider.
+// Returns the number of deleted rows.
+func (r *EpisodeVersionRepository) DeleteByAnimeEpisodeNumberAndProvider(
+	ctx context.Context,
+	animeID int64,
+	episodeNumber int32,
+	provider string,
+) (int64, error) {
+	commandTag, err := r.db.Exec(ctx, `
+		DELETE FROM episode_versions
+		WHERE anime_id = $1 AND episode_number = $2 AND media_provider = $3
+	`, animeID, episodeNumber, provider)
+	if err != nil {
+		return 0, fmt.Errorf("delete episode versions anime=%d episode=%d provider=%s: %w", animeID, episodeNumber, provider, err)
+	}
+
+	return commandTag.RowsAffected(), nil
+}
+
 // CountByAnimeAndProvider counts all episode versions for the given anime and media provider.
 func (r *EpisodeVersionRepository) CountByAnimeAndProvider(
 	ctx context.Context,
