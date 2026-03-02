@@ -2,27 +2,28 @@
 
 ## Top 3 Risks
 
-### 1. Duplicate Jellyfin Matches Need Manual Disambiguation
+### 1. Single-Episode Sync Not Yet Smoke-Tested
 - **Impact:** Medium
 - **Likelihood:** Medium
-- **Status:** Search works, operators must compare `path` field for duplicates
-- **Mitigation:** Preview before sync, compare paths, select correct series ID
+- **Status:** Endpoint and UI implemented, needs live Jellyfin validation
+- **Mitigation:** Run smoke-test with configured Jellyfin instance
 
-### 2. Real Preview/Sync Not Yet Run on Production Data
+### 2. Handler File Size Growing
+- **Impact:** Low
+- **Likelihood:** High
+- **Status:** jellyfin_sync.go now ~600 lines (limit is 150)
+- **Mitigation:** Extract SyncEpisodeFromJellyfin to separate file after stabilization
+
+### 3. Duplicate Jellyfin Title Matches
 - **Impact:** Medium
 - **Likelihood:** Low
-- **Status:** All code paths validated, but no representative real-data run yet
-- **Mitigation:** Run one clean preview+sync on a real anime tomorrow
-
-### 3. Handler Modularization Incomplete
-- **Impact:** Low
-- **Likelihood:** Low
-- **Status:** Some handlers still exceed 150-line limit
-- **Mitigation:** Continue modularization in next session
+- **Status:** Manual comparison required when multiple series match
+- **Mitigation:** UI shows all candidates, operator picks correct one
 
 ## Current Blockers
 - None
 
 ## If Nothing Changes
-- Operators may choose wrong Jellyfin series without path comparison
-- Code maintainability slightly reduced in oversized handlers
+- New sync/edit features work but lack live validation
+- Handler files continue growing without modularization
+- Test coverage gaps remain for Jellyfin feedback states

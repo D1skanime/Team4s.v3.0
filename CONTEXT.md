@@ -2,8 +2,8 @@
 
 ## Project
 - **Name:** Team4s.v3.0
-- **Phase:** P2 closeout - provider sync + admin UX
-- **Completion:** ~96%
+- **Phase:** P2 closeout - admin UX polish
+- **Completion:** ~97%
 
 ## Current State
 
@@ -12,24 +12,25 @@
 - Fansub domain (groups, members, aliases, versions, media)
 - Provider proxy (Jellyfin/Emby streams, images, video)
 - Admin Studio (anime, episodes, fansubs, media upload)
-- Admin Anime IA refactor complete
 - Playback abuse-control hardening
 - Jellyfin sync wizard with structured error handling
 - Episodes overview with accordion, version counts, fansub badges
-- Jellyfin validation tests (helper functions, mismatch guard)
+- Admin episodes UX overhaul: Edit replaces Play, stream_url visible
+- Single-episode sync endpoint + UI with loading/error states
+- CSS modularization (VersionRow, EpisodeAccordion split)
 
 ### In Progress
-- Real preview/sync validation on representative anime
-- Handler modularization (remaining files >150 lines)
+- Smoke-testing new sync/edit flows
+- Frontend tests for Jellyfin feedback states
 
 ### Blocked
 - None
 
 ## Key Decisions
 - Contract-first API design
-- 150-line handler file limit
+- 150-line handler file limit, 400-line CSS module limit
 - Sync actions must stay preview-first
-- Mismatch guard blocks sync when episode count exceeds bounds
+- Admin episode rows prioritize edit/version management, not playback
 
 ## Quality Bar
 - `go test ./...` must pass
