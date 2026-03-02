@@ -315,7 +315,7 @@ func (h *AdminContentHandler) importAcceptedEpisodes(
 				VideoQuality:  accepted.videoQuality,
 				SubtitleType:  nil,
 				ReleaseDate:   accepted.releaseDate,
-				StreamURL:     nil,
+				StreamURL:     h.buildJellyfinEditorStreamURL(accepted.mediaItemID),
 			},
 			false,
 		)
@@ -568,7 +568,7 @@ func (h *AdminContentHandler) SyncEpisodeFromJellyfin(c *gin.Context) {
 			VideoQuality:  jellyfinVideoQuality(targetEpisode.MediaStreams),
 			SubtitleType:  nil,
 			ReleaseDate:   parseJellyfinPremiereDate(targetEpisode.PremiereDate),
-			StreamURL:     nil,
+			StreamURL:     h.buildJellyfinEditorStreamURL(mediaItemID),
 		},
 		false,
 	)

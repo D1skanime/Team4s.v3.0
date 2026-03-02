@@ -137,7 +137,12 @@ func (h *AdminContentHandler) ensureJellyfinConfiguredForEditor() bool {
 }
 
 func (h *AdminContentHandler) buildJellyfinEditorStreamURL(itemID string) *string {
-	streamURL, err := buildProviderStreamURL(h.jellyfinBaseURL, h.jellyfinStreamPath, h.jellyfinAPIKey, itemID)
+	streamURL, err := buildProviderStreamURL(
+		h.jellyfinBaseURL,
+		normalizeStreamPathTemplate(h.jellyfinStreamPath),
+		h.jellyfinAPIKey,
+		itemID,
+	)
 	if err != nil {
 		return nil
 	}

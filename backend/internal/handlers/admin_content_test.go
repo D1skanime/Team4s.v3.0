@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -429,6 +430,48 @@ func TestClassifyJellyfinResolutionError_AmbiguousSeries(t *testing.T) {
 	}
 	if details == nil || *details == "" {
 		t.Fatalf("expected ambiguity details")
+	}
+}
+
+func TestBuildJellyfinEditorStreamURL_UsesDefaultPathTemplate(t *testing.T) {
+	t.Parallel()
+
+	handler := &AdminContentHandler{
+		jellyfinBaseURL: "http://media.local:8096",
+		jellyfinAPIKey:  "media-key",
+	}
+
+	streamURL := handler.buildJellyfinEditorStreamURL("abc123")
+	if streamURL == nil {
+		t.Fatalf("expected stream URL to be built")
+	}
+
+	parsed, err := url.Parse(*streamURL)
+	if err != nil {
+		t.Fatalf("parse stream url: %v", err)
+	}
+	if parsed.Path != "/Videos/abc123/stream" {
+		t.Fatalf("unexpected path: %q", parsed.Path)
+	}
+	query := parsed.Query()
+	if query.Get("api_key") != "media-key" {
+		t.Fatalf("expected api_key to be set, got %q", query.Get("api_key"))
+	}
+	if query.Get("static") != "true" {
+		t.Fatalf("expected static=true, got %q", query.Get("static"))
+	}
+}
+
+func TestBuildJellyfinEditorStreamURL_MissingConfigReturnsNil(t *testing.T) {
+	t.Parallel()
+
+	handler := &AdminContentHandler{
+		jellyfinBaseURL: "http://media.local:8096",
+	}
+
+	streamURL := handler.buildJellyfinEditorStreamURL("abc123")
+	if streamURL != nil {
+		t.Fatalf("expected nil stream URL when config is incomplete, got %q", *streamURL)
 	}
 }
 
