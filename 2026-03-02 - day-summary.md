@@ -18,6 +18,11 @@
   - Found and fixed a real Gin route-registration panic caused by conflicting `:animeId` vs `:id` wildcard prefixes
   - Verified `GET /health` returns `200`
   - Verified `POST /api/v1/admin/anime/25/episodes/1/sync` returns `200` against the real local runtime
+- Follow-up bugfix: automatic Jellyfin stream-link persistence completed
+  - Confirmed the sync originally created/updated Jellyfin versions with `stream_url = nil`
+  - Updated both the bulk anime sync and single-episode sync to persist Jellyfin `stream_url`
+  - Added backend tests for Jellyfin stream URL generation
+  - Rebuilt the backend and verified a real bulk sync now stores non-empty `stream_url` values
 - Task 2: Frontend regression coverage added
   - Extracted Jellyfin feedback mapping into a reusable helper
   - Extracted sync-panel state derivation into a reusable helper
@@ -40,6 +45,11 @@
   - Reused `:id` in the nested single-episode sync route so Gin accepts the route tree
 - Updated `backend/internal/handlers/jellyfin_sync.go`
   - Read the anime ID from `c.Param("id")` for the nested single-episode sync route
+  - Persist Jellyfin `stream_url` during both bulk and corrective sync paths
+- Updated `backend/internal/handlers/admin_content_episode_version_editor_helpers.go`
+  - Reused the default Jellyfin stream path template when generating sync-time stream URLs
+- Updated `backend/internal/handlers/admin_content_test.go`
+  - Added regression coverage for Jellyfin stream URL generation
 
 ### Frontend
 - Updated `frontend/src/app/admin/anime/hooks/internal/useJellyfinSyncImpl.ts`
@@ -61,7 +71,7 @@
 
 - **Backend startup panic:** Gin rejected the new nested sync route because the wildcard prefix did not match the existing `/admin/anime/:id` tree; using `:id` consistently fixed runtime startup.
 - **Missing focused frontend coverage:** Jellyfin feedback and sync-dialog rules now have direct unit coverage instead of living only inside component/hook behavior.
-- **Unclear operator expectation:** The closeout notes now explicitly document that full Jellyfin sync already imports all accepted episodes/version links for the selected season.
+- **Missing automatic stream links:** Jellyfin sync now persists `stream_url` so the admin episodes UI no longer requires manual link entry after sync.
 
 ## Problems Discovered (Not Solved)
 
@@ -88,11 +98,13 @@ Today's work closed the runtime gap on the new sync functionality and moved the 
 - `npm run build` passes
 - `GET http://localhost:8092/health` returns `{"status":"ok"}`
 - `POST http://localhost:8092/api/v1/admin/anime/25/episodes/1/sync` returns `200`
+- `POST http://localhost:8092/api/v1/admin/anime/25/jellyfin/sync` returns `200`
 
 ### Runtime Checks
 - Backend container rebuild succeeded
 - Backend logs show the nested route registered successfully after the fix
 - Backend logs show the live single-episode sync request completed successfully
+- Database verification shows non-empty Jellyfin `stream_url` values after a real bulk sync
 
 ## Next Steps (Priority Order)
 1. Run the `team4s-design` agent on `/admin/anime/{id}/episodes/{episodeId}/edit`

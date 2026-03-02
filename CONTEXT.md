@@ -17,8 +17,9 @@
 - Episodes overview with accordion, version counts, fansub badges
 - Admin episodes UX overhaul: Edit replaces Play, stream_url visible
 - Single-episode sync endpoint + UI with loading/error states
-- Season-wide Jellyfin sync confirmed to upsert all accepted episodes + matching Jellyfin version links for the selected series/season
+- Season-wide Jellyfin sync confirmed to upsert all accepted episodes and now persist Jellyfin `stream_url` links for synced versions
 - Single-episode sync live-smoke-tested against the local runtime (`POST /api/v1/admin/anime/25/episodes/1/sync` -> `200`)
+- Real follow-up validation confirmed the admin episodes UI no longer needs manual Jellyfin link entry after sync
 - Frontend regression tests now cover Jellyfin feedback mapping and sync-dialog gating rules
 - Backend route conflict for nested single-episode sync fixed (`:id` prefix reused to satisfy Gin router rules)
 - CSS modularization (VersionRow, EpisodeAccordion split)

@@ -1,7 +1,7 @@
 # WORKING_NOTES
 
 ## Active Threads
-- Full Jellyfin sync is confirmed as the bulk path: it upserts every accepted episode/version in the selected season; single-episode sync is only for corrective re-runs
+- Full Jellyfin sync is confirmed as the bulk path: it upserts every accepted episode/version in the selected season and now persists `stream_url`; single-episode sync is only for corrective re-runs
 - Public anime detail now needs a focused fansub-group selector so one group stays active at a time
 - Public episode versions must follow the active public fansub group only; never render every group's versions together
 - Episode edit + episode-version edit need a dedicated UX/design review pass via the `team4s-design` agent
@@ -55,14 +55,14 @@ curl -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admi
 
 ## Mental Unload (2026-03-02 EOD)
 - The route panic was a real runtime issue, not a test-only edge case; Gin requires the nested admin anime route to reuse `:id`
-- The local stack now proves the corrective single-episode sync path end-to-end, and the bulk sync path already remains season-wide
+- The local stack now proves the corrective single-episode sync path end-to-end, and the bulk sync path now also fills Jellyfin stream links automatically
 - The next real UX risk has shifted to the public anime page: too many fansub contexts are visible at once
 - Tomorrow should start with the public anime detail flow and a design pass, not more sync plumbing
 - Do not commit local `.env`; keep secrets local and rotate when needed
 
 ### Day 2026-03-02
 - Phase: Sync validation + public anime UX scoping
-- Accomplishments: fixed the backend route conflict, live-smoke-tested single-episode sync, added frontend regression tests for Jellyfin feedback/dialog state
+- Accomplishments: fixed the backend route conflict, live-smoke-tested single-episode sync, added frontend regression tests for Jellyfin feedback/dialog state, fixed automatic Jellyfin stream-link persistence during sync
 - Key Decisions: keep bulk Jellyfin sync season-wide; treat public anime detail as a single active fansub-group experience
 - Risks/Unknowns: random default group selection needs a stable implementation; the public episode list still needs group-scoped filtering
 - Next Steps: run the design agent on episode edit/version edit, then rework the public anime page to one active fansub group

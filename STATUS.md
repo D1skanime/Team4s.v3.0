@@ -13,7 +13,7 @@
   - explicit search -> preview -> confirm -> sync flow for season-wide imports
   - visible loading, empty, success, and error feedback
   - sync guard when preview has zero importable episodes
-  - full sync upserts all accepted episodes + matching Jellyfin version links for the selected series/season
+  - full sync upserts all accepted episodes and now persists Jellyfin `stream_url` links for synced versions
 - Single-episode sync is available for corrective re-syncs and is live-validated against the local stack
 - Jellyfin admin search now works against the configured live remote instance
 - Grouped episodes API supports lightweight reads via `includeVersions` / `includeFansubs`
@@ -32,7 +32,7 @@ docker compose exec -T team4sv30-backend ./migrate status
 curl http://localhost:8092/health
 curl "http://localhost:8092/api/v1/genres?query=act&limit=3"
 curl -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admin/jellyfin/series?q=Naruto&limit=3"
-curl -X POST -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admin/anime/25/episodes/1/sync"
+curl -X POST -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admin/anime/25/jellyfin/sync"
 curl http://localhost:3002/admin/anime/25/episodes
 cd backend && go test ./...
 cd ../frontend && npm test
