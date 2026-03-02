@@ -11,18 +11,11 @@ interface FansubVersionBrowserProps {
   animeID: number
   fansubs: AnimeFansubRelation[]
   episodes: GroupedEpisode[]
+  onActiveFansubChange?: (fansubGroupId: number | null) => void
 }
-
-type FilterMode = 'all' | 'single'
 
 interface PersistedFilterState {
-  mode?: FilterMode
   activeFansubGroupId?: number | null
-}
-
-interface FilterState {
-  mode: FilterMode
-  activeFansubGroupID: number | null
 }
 
 function getStorageKey(animeID: number): string {
@@ -38,42 +31,29 @@ function collectFansubOptions(fansubs: AnimeFansubRelation[]): AnimeFansubRelati
   return Array.from(map.values())
 }
 
-function resolveInitialFilterState(animeID: number, fansubs: AnimeFansubRelation[]): FilterState {
+function resolveInitialActiveFansubGroupID(animeID: number, fansubs: AnimeFansubRelation[]): number | null {
   const options = collectFansubOptions(fansubs)
   const optionIDs = new Set(options.map((item) => item.fansub_group?.id).filter((item): item is number => Boolean(item)))
   const primary = options.find((item) => item.is_primary && item.fansub_group)?.fansub_group?.id ?? null
   const fallback = primary ?? (options[0]?.fansub_group?.id ?? null)
 
   if (typeof window === 'undefined') {
-    return {
-      mode: fallback ? 'single' : 'all',
-      activeFansubGroupID: fallback,
-    }
+    return fallback
   }
 
   const storageValue = window.localStorage.getItem(getStorageKey(animeID))
   if (!storageValue) {
-    return {
-      mode: fallback ? 'single' : 'all',
-      activeFansubGroupID: fallback,
-    }
+    return fallback
   }
 
   try {
     const parsed = JSON.parse(storageValue) as PersistedFilterState
-    const mode = parsed.mode === 'single' ? 'single' : 'all'
     const candidate = parsed.activeFansubGroupId
     const activeFansubGroupID =
       typeof candidate === 'number' && optionIDs.has(candidate) ? candidate : fallback
-    return {
-      mode: activeFansubGroupID ? mode : 'all',
-      activeFansubGroupID,
-    }
+    return activeFansubGroupID
   } catch {
-    return {
-      mode: fallback ? 'single' : 'all',
-      activeFansubGroupID: fallback,
-    }
+    return fallback
   }
 }
 
@@ -117,18 +97,12 @@ function resolveReleaseName(version: EpisodeVersion): string {
   return `Release #${version.id}`
 }
 
-function getFallbackVersion(episode: GroupedEpisode): EpisodeVersion | null {
-  if (episode.versions.length === 0) return null
-  return episode.versions[0]
-}
-
 function getSummaryVersion(
   episode: GroupedEpisode,
-  mode: FilterMode,
   activeFansubGroupID: number | null,
 ): EpisodeVersion | null {
   if (episode.versions.length === 0) return null
-  if (mode === 'all' || activeFansubGroupID === null) {
+  if (activeFansubGroupID === null) {
     if (episode.default_version_id) {
       const defaultVersion = episode.versions.find((item) => item.id === episode.default_version_id)
       if (defaultVersion) return defaultVersion
@@ -140,32 +114,25 @@ function getSummaryVersion(
   return preferred || episode.versions[0]
 }
 
-export function FansubVersionBrowser({ animeID, fansubs, episodes }: FansubVersionBrowserProps) {
-  const [filterState, setFilterState] = useState<FilterState>(() => resolveInitialFilterState(animeID, fansubs))
+export function FansubVersionBrowser({ animeID, fansubs, episodes, onActiveFansubChange }: FansubVersionBrowserProps) {
+  const [activeFansubGroupID, setActiveFansubGroupID] = useState<number | null>(() => resolveInitialActiveFansubGroupID(animeID, fansubs))
   const [expandedEpisodes, setExpandedEpisodes] = useState<Record<number, true>>({})
 
   const fansubOptions = useMemo(() => collectFansubOptions(fansubs), [fansubs])
-  const filterMode = filterState.mode
-  const activeFansubGroupID = filterState.activeFansubGroupID
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     const value: PersistedFilterState = {
-      mode: filterState.mode,
-      activeFansubGroupId: filterState.activeFansubGroupID,
+      activeFansubGroupId: activeFansubGroupID,
     }
     window.localStorage.setItem(getStorageKey(animeID), JSON.stringify(value))
-  }, [animeID, filterState])
+  }, [animeID, activeFansubGroupID])
 
-  function setAllMode() {
-    setFilterState((current) => ({ ...current, mode: 'all' }))
-  }
-
-  function setSingleMode(groupID: number) {
-    setFilterState({
-      mode: 'single',
-      activeFansubGroupID: groupID,
-    })
+  function selectFansubGroup(groupID: number) {
+    setActiveFansubGroupID(groupID)
+    if (onActiveFansubChange) {
+      onActiveFansubChange(groupID)
+    }
   }
 
   function toggleEpisode(episodeNumber: number) {
@@ -182,24 +149,16 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes }: FansubVersi
   return (
     <section className={styles.section}>
       <div className={styles.filterRow}>
-        <button
-          type="button"
-          className={`${styles.filterChip} ${filterMode === 'all' ? styles.filterChipActive : ''}`}
-          onClick={setAllMode}
-          aria-pressed={filterMode === 'all'}
-        >
-          Alle Versionen
-        </button>
         {fansubOptions.map((relation) => {
           if (!relation.fansub_group) return null
           const logoURL = resolveLogoUrl(relation.fansub_group.logo_url)
-          const isActive = filterMode === 'single' && activeFansubGroupID === relation.fansub_group.id
+          const isActive = activeFansubGroupID === relation.fansub_group.id
           return (
             <button
               key={relation.fansub_group.id}
               type="button"
               className={`${styles.filterChip} ${isActive ? styles.filterChipActive : ''}`}
-              onClick={() => setSingleMode(relation.fansub_group!.id)}
+              onClick={() => selectFansubGroup(relation.fansub_group!.id)}
               aria-pressed={isActive}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -216,15 +175,11 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes }: FansubVersi
         <ul className={styles.episodeList}>
           {episodes.map((episode) => {
             const expanded = Boolean(expandedEpisodes[episode.episode_number])
-            const summaryVersion = getSummaryVersion(episode, filterMode, activeFansubGroupID)
-            const hasSingleGroupFilter = filterMode === 'single' && activeFansubGroupID !== null
-            const groupMatchedVersions = hasSingleGroupFilter
+            const summaryVersion = getSummaryVersion(episode, activeFansubGroupID)
+            const groupMatchedVersions = activeFansubGroupID !== null
               ? episode.versions.filter((item) => item.fansub_group?.id === activeFansubGroupID)
               : episode.versions
-            const fallbackToAllVersions =
-              hasSingleGroupFilter && groupMatchedVersions.length === 0 && episode.versions.length > 0
-            const displayedVersions = fallbackToAllVersions ? episode.versions : groupMatchedVersions
-            const fallbackVersion = getFallbackVersion(episode)
+            const hasNoMatchingVersion = activeFansubGroupID !== null && groupMatchedVersions.length === 0
             const panelID = `episode-versions-${episode.episode_number}`
             const episodeTitle = resolveEpisodeTitle(episode, summaryVersion)
 
@@ -246,41 +201,29 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes }: FansubVersi
 
                 {expanded ? (
                   <div id={panelID} className={styles.versionList}>
-                    {displayedVersions.length === 0 ? (
-                      <div className={styles.fallbackRow}>
-                        <p>Keine Version dieser Gruppe gefunden.</p>
-                        {fallbackVersion ? (
-                          <p className={styles.fallbackHint}>
-                            Alternative: {fallbackVersion.fansub_group?.name || 'Unbekannt'} /{' '}
-                            {fallbackVersion.video_quality || 'n/a'}
-                          </p>
-                        ) : null}
+                    {hasNoMatchingVersion ? (
+                      <div className={styles.noVersionHint}>
+                        <p className={styles.noVersionText}>Keine Version dieser Gruppe verfuegbar.</p>
+                        <p className={styles.noVersionAction}>Wechseln Sie zu einer anderen Fansub-Gruppe.</p>
                       </div>
                     ) : (
-                      <>
-                        {fallbackToAllVersions ? (
-                          <div className={styles.fallbackRow}>
-                            <p>Keine Version dieser Gruppe direkt zugeordnet.</p>
-                            <p className={styles.fallbackHint}>Zeige alle verfuegbaren Versionen als Fallback.</p>
-                          </div>
-                        ) : null}
-                        {displayedVersions.map((version) => {
+                      groupMatchedVersions.map((version) => {
                         const versionLogoURL = resolveLogoUrl(version.fansub_group?.logo_url)
                         return (
                           <div key={version.id} className={styles.versionRow}>
                             <div className={styles.versionMeta}>
                               <div className={styles.versionIdentity}>
                                 {versionLogoURL ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
-                                  src={versionLogoURL}
-                                  alt=""
-                                  className={styles.versionLogo}
-                                />
-                              ) : (
-                                <div className={styles.versionLogoFallback} aria-hidden="true">
-                                  {version.fansub_group?.name?.charAt(0)?.toUpperCase() || '?'}
-                                </div>
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={versionLogoURL}
+                                    alt=""
+                                    className={styles.versionLogo}
+                                  />
+                                ) : (
+                                  <div className={styles.versionLogoFallback} aria-hidden="true">
+                                    {version.fansub_group?.name?.charAt(0)?.toUpperCase() || '?'}
+                                  </div>
                                 )}
                                 <div className={styles.versionIdentityText}>
                                   <p className={styles.versionGroupName}>{version.fansub_group?.name || 'Unbekannt'}</p>
@@ -304,8 +247,7 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes }: FansubVersi
                             </a>
                           </div>
                         )
-                        })}
-                      </>
+                      })
                     )}
                   </div>
                 ) : null}

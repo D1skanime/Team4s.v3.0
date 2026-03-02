@@ -1,123 +1,167 @@
-# Day Summary: 2026-03-02
+# Day Summary: 2026-03-02 (Final)
 
 ## Project Context
 - **Project:** Team4s.v3.0
-- **Phase:** P2 closeout - sync validation + public anime UX scoping
+- **Phase:** P2 closeout - public anime UX refactor + fansub-group filtering
 - **Milestone:** ~98% completion
 
 ## Goals: Intended vs. Achieved
 
-### Intended (from TOMORROW.md)
-1. Smoke-test single-episode sync with live Jellyfin configuration
-2. Add frontend tests for Jellyfin feedback states and sync-dialog behavior
-3. Update STATUS.md and WORKING_NOTES.md to reflect completed UX overhaul
+### Intended
+1. Complete design review for episode edit routes
+2. Implement single active fansub group logic on public anime detail
+3. Filter public episode versions by active fansub group
+4. Validate backend API requirements for fansub filtering
 
 ### Achieved
-- Task 1: Live single-episode sync validation completed
-  - Restarted and rebuilt the local backend container
-  - Found and fixed a real Gin route-registration panic caused by conflicting `:animeId` vs `:id` wildcard prefixes
-  - Verified `GET /health` returns `200`
-  - Verified `POST /api/v1/admin/anime/25/episodes/1/sync` returns `200` against the real local runtime
-- Follow-up bugfix: automatic Jellyfin stream-link persistence completed
-  - Confirmed the sync originally created/updated Jellyfin versions with `stream_url = nil`
-  - Updated both the bulk anime sync and single-episode sync to persist Jellyfin `stream_url`
-  - Added backend tests for Jellyfin stream URL generation
-  - Rebuilt the backend and verified a real bulk sync now stores non-empty `stream_url` values
-- Task 2: Frontend regression coverage added
-  - Extracted Jellyfin feedback mapping into a reusable helper
-  - Extracted sync-panel state derivation into a reusable helper
-  - Added Vitest coverage for structured Jellyfin feedback messages
-  - Added Vitest coverage for sync-dialog gating (fresh preview, empty preview, search empty-state)
-- Task 3: Context files updated
-  - Refreshed `CONTEXT.md`, `STATUS.md`, `RISKS.md`, `WORKING_NOTES.md`, `TODO.md`, `TOMORROW.md`, `DAYLOG.md`, and `DECISIONS.md`
-  - Captured tomorrow's UX/design tasks for the public anime page and episode editing surfaces
+- All intended goals completed
+- Design review confirmed episode edit routes need no changes
+- Single active fansub group implemented with localStorage persistence
+- Client-side version filtering implemented (no backend changes needed)
+- Build validated successfully (`npm run build` passes)
+- Frontend regression tests working
+- Documentation fully updated
 
 ## Structural Decisions
 
-- Keep the general Jellyfin sync action as the season-wide bulk import path; operators should not need to sync episodes one by one in the normal flow.
-- Treat single-episode sync as a corrective action only.
-- Move the public anime detail toward one active fansub-group context at a time instead of rendering every group simultaneously.
+1. **Single Active Fansub Group Pattern**
+   - Public anime detail shows exactly one fansub group at a time
+   - Active group persists in localStorage per-anime
+   - Primary fansub relation determines initial selection with fallback to first available
 
-## Content/Implementation Changes
+2. **Client-Side Version Filtering**
+   - Backend API returns all public versions unchanged
+   - Frontend filters by active fansub group
+   - No backend API changes required
 
-### Backend
-- Updated `backend/cmd/server/main.go`
-  - Reused `:id` in the nested single-episode sync route so Gin accepts the route tree
-- Updated `backend/internal/handlers/jellyfin_sync.go`
-  - Read the anime ID from `c.Param("id")` for the nested single-episode sync route
-  - Persist Jellyfin `stream_url` during both bulk and corrective sync paths
-- Updated `backend/internal/handlers/admin_content_episode_version_editor_helpers.go`
-  - Reused the default Jellyfin stream path template when generating sync-time stream URLs
-- Updated `backend/internal/handlers/admin_content_test.go`
-  - Added regression coverage for Jellyfin stream URL generation
+3. **Design Review Outcome**
+   - Episode edit routes (`/admin/anime/{id}/episodes/{episodeId}/edit` and `/admin/anime/{id}/episodes/{episodeId}/versions`) reviewed
+   - No changes needed: routes are clear and functional as-is
 
-### Frontend
-- Updated `frontend/src/app/admin/anime/hooks/internal/useJellyfinSyncImpl.ts`
-  - Reused extracted Jellyfin feedback helpers
-- Updated `frontend/src/app/admin/anime/components/JellyfinSync/JellyfinSyncPanel.tsx`
-  - Reused extracted sync-panel state helper
-- Added `frontend/src/app/admin/anime/utils/jellyfin-sync-feedback.ts`
-- Added `frontend/src/app/admin/anime/utils/jellyfin-sync-panel-state.ts`
-- Added `frontend/src/app/admin/anime/utils/jellyfin-sync-feedback.test.ts`
-- Added `frontend/src/app/admin/anime/utils/jellyfin-sync-panel-state.test.ts`
+## Implementation Changes
 
-### Docs / Project Context
-- Updated the repo-local closeout files to reflect:
-  - bulk sync behavior is already season-wide
-  - single-episode sync is validated
-  - tomorrow's work shifts to UX/design and public anime simplification
+### New Components
+- **`frontend/src/components/fansubs/ActiveFansubStory.tsx`**
+  - Renders single active fansub group's history/description
+  - Reads active group from localStorage with cross-tab sync
+  - Primary relation fallback for deterministic initial state
+  - Preview truncation at 520 chars
+
+- **`frontend/src/components/fansubs/ActiveFansubStory.module.css`**
+  - Card-based layout
+  - Hover state for group name link
+  - Pre-line text formatting for proper history rendering
+
+### Refactored Components
+- **`frontend/src/components/fansubs/FansubVersionBrowser.tsx`**
+  - Removed "Alle Versionen" option (all-groups view)
+  - Added localStorage-based active group persistence
+  - Cross-tab synchronization via storage events + polling
+  - Horizontal scroll for mobile group pills
+  - Explicit "Keine Versionen für aktive Gruppe" state
+  - Client-side filtering by active fansub group ID
+
+- **`frontend/src/components/fansubs/FansubVersionBrowser.module.css`**
+  - Horizontal scroll container with touch scrolling
+  - Proper mobile pill layout with nowrap
+  - Spacing adjustments for better touch targets
+
+### Page Integration
+- **`frontend/src/app/anime/[id]/page.tsx`**
+  - Integrated `ActiveFansubStory` component
+  - Replaced inline fansub history rendering with focused component
+  - Maintains existing data flow and API contracts
+
+### Build Validation
+```bash
+cd C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\frontend
+npm run build
+```
+Result: successful build, all routes rendered
 
 ## Problems Solved
 
-- **Backend startup panic:** Gin rejected the new nested sync route because the wildcard prefix did not match the existing `/admin/anime/:id` tree; using `:id` consistently fixed runtime startup.
-- **Missing focused frontend coverage:** Jellyfin feedback and sync-dialog rules now have direct unit coverage instead of living only inside component/hook behavior.
-- **Missing automatic stream links:** Jellyfin sync now persists `stream_url` so the admin episodes UI no longer requires manual link entry after sync.
+### 1. Public Anime Page Overload
+**Root Cause:** All fansub descriptions/histories rendered simultaneously, creating visual noise and unclear version context
+
+**Fix:**
+- Extracted `ActiveFansubStory` component to render single active group
+- Added localStorage persistence per-anime for stable user context
+- Primary relation provides deterministic initial selection
+
+### 2. Version List Confusion
+**Root Cause:** All fansub groups' versions displayed together, making it unclear which versions belong to which group
+
+**Fix:**
+- Client-side filtering in `FansubVersionBrowser` by active group ID
+- Explicit "no versions" state when active group has zero public releases
+- Group switching updates both history and version list simultaneously
+
+### 3. Mobile Fansub Group Navigation
+**Root Cause:** Vertical pill list was awkward on mobile, poor touch interaction
+
+**Fix:**
+- Horizontal scroll container with proper overflow handling
+- Touch-scrolling enabled
+- Proper spacing and nowrap layout for mobile pills
 
 ## Problems Discovered (Not Solved)
 
-- The public anime detail still renders too much fansub context at once
-- The public episode list still needs to scope visible versions to one active public fansub group
-- "Random" initial fansub-group selection needs a stable implementation strategy so the UI does not feel erratic
-- `jellyfin_sync.go` is still much larger than the project's handler-size target
+### 1. Handler File Size Violation
+**Issue:** `backend/internal/handlers/jellyfin_sync.go` exceeds 150-line project limit
+
+**Next Diagnostic Step:** Identify `SyncEpisodeFromJellyfin` function boundaries and extract to `jellyfin_episode_sync.go`
+
+### 2. Missing Sync Workflow UI Copy
+**Issue:** No explicit operator-facing labels to distinguish bulk season-wide sync from corrective single-episode sync
+
+**Next Diagnostic Step:** Add help text and clear button labels in admin episodes UI
+
+## Ideas Explored and Rejected
+
+### Backend API Fansub Filtering
+**Why Rejected:** Frontend already receives all public versions efficiently. Adding backend filtering would complicate the API for a purely presentational concern. Client-side filtering is instant, requires no network round-trip, and keeps the backend contract simpler.
+
+### Session-Only Active Group State
+**Why Rejected:** Users would lose their fansub group selection on every page reload, creating repetitive manual work. localStorage persistence maintains stable context across sessions and tabs without requiring backend changes.
 
 ## Combined Context
 
 ### Alignment with Project Vision
-Today's work closed the runtime gap on the new sync functionality and moved the project closer to a reliable finish line. The highest remaining product risk is now readability and clarity in the public anime experience, not backend sync correctness.
+Today's changes directly address the P2 goal of "public anime UX simplification." The single active fansub group pattern creates a clearer mental model for public users and reduces cognitive load by showing one coherent context at a time.
 
-### Tradeoffs / Open Questions
-- The bulk sync path is more efficient for operators, but the UI should explain that clearly so users do not mistake single-episode sync for the primary path
-- A random initial fansub-group selection matches the requested UX direction, but the exact implementation needs to stay stable enough for rendering and repeat visits
-- The next design pass should resolve whether the episode edit/version edit flows need stronger hierarchy changes before more feature work lands there
+### Evolution of Understanding
+The initial assumption was that backend API changes would be needed for version filtering. Analysis revealed the frontend already had all necessary data, making client-side filtering the simpler and more performant solution.
+
+### Remaining Work
+- Handler modularization (jellyfin_sync.go)
+- Sync workflow UI copy improvements
+- Full architecture review pass
 
 ## Evidence / References
 
-### Validation
-- `go test ./...` passes
-- `npm test` passes
-- `npm run build` passes
-- `GET http://localhost:8092/health` returns `{"status":"ok"}`
-- `POST http://localhost:8092/api/v1/admin/anime/25/episodes/1/sync` returns `200`
-- `POST http://localhost:8092/api/v1/admin/anime/25/jellyfin/sync` returns `200`
+### Code Changes
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\frontend\src\components\fansubs\ActiveFansubStory.tsx` (new)
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\frontend\src\components\fansubs\ActiveFansubStory.module.css` (new)
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\frontend\src\components\fansubs\FansubVersionBrowser.tsx` (refactored)
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\frontend\src\components\fansubs\FansubVersionBrowser.module.css` (updated)
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\frontend\src\app\anime\[id]\page.tsx` (integrated ActiveFansubStory)
 
-### Runtime Checks
-- Backend container rebuild succeeded
-- Backend logs show the nested route registered successfully after the fix
-- Backend logs show the live single-episode sync request completed successfully
-- Database verification shows non-empty Jellyfin `stream_url` values after a real bulk sync
+### Build Validation
+```bash
+cd C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\frontend
+npm run build
+# Result: successful build, all routes rendered
+```
 
-## Next Steps (Priority Order)
-1. Run the `team4s-design` agent on `/admin/anime/{id}/episodes/{episodeId}/edit`
-2. Run the `team4s-design` agent on `/admin/anime/{id}/episodes/{episodeId}/versions`
-3. Rework the public anime detail so one fansub group is active at a time
-4. Limit the public episode version list to the active public fansub group only
-5. Add copy that clarifies the difference between bulk Jellyfin sync and corrective single-episode sync
+### Design Review
+- Episode edit routes reviewed via `team4s-design` agent
+- Outcome: no changes needed, routes are functional and clear
+
+## Next Steps
+1. Extract `SyncEpisodeFromJellyfin` from `jellyfin_sync.go` to meet 150-line limit
+2. Add explicit UI copy distinguishing bulk sync from corrective single-episode sync
+3. Replace remaining `img` tags with Next.js Image component
 
 ## First Task Tomorrow
-```bash
-cd C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0
-# Inspect the public anime detail flow before changing UX
-# 1) open frontend/src/app/anime/[id]/page.tsx
-# 2) locate fansub description/history rendering
-# 3) locate the public episode version list and map where active-group state should apply
-```
+Open `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\backend\internal\handlers\jellyfin_sync.go` and identify the `SyncEpisodeFromJellyfin` function boundaries to prepare extraction into `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\backend\internal\handlers\jellyfin_episode_sync.go`.

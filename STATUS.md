@@ -40,11 +40,11 @@ cd ../frontend && npm run build
 ```
 
 ## Next (Top 3)
-1. Run the `team4s-design` agent on `/admin/anime/{id}/episodes/{episodeId}/edit` and `/admin/anime/{id}/episodes/{episodeId}/versions`
-2. Rework the public anime detail so only one fansub group is active at a time and users can switch groups explicitly
-3. Filter the public episode version list to the active public fansub group only, with one initial group preselected by the system
+1. Extract `jellyfin_sync.go` handler: move `SyncEpisodeFromJellyfin` to separate file to meet 150-line limit
+2. Add explicit UI copy distinguishing bulk Jellyfin sync from corrective single-episode sync
+3. Resume full code/architecture/UX review pass across sync and admin surfaces
 
 ## Known Risks
-- The public anime detail currently shows all fansub descriptions/histories at once, which overloads the page
-- The public episode list still risks showing mixed versions from multiple groups instead of one clear active context
-- Random initial group selection needs a deterministic implementation strategy to avoid confusing reloads or hydration mismatches
+- `jellyfin_sync.go` exceeds 150-line handler limit and needs modularization
+- No explicit UI copy yet to distinguish bulk sync from corrective single-episode sync
+- Some older admin routes still use `img` tags instead of Next.js Image component

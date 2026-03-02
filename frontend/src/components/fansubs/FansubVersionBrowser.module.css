@@ -4,9 +4,30 @@
 
 .filterRow {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.filterRow::-webkit-scrollbar {
+  height: 6px;
+}
+
+.filterRow::-webkit-scrollbar-track {
+  background: var(--color-bg-light);
+  border-radius: 3px;
+}
+
+.filterRow::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.filterRow::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
 }
 
 .filterChip {
@@ -21,6 +42,8 @@
   cursor: pointer;
   font-size: 14px;
   line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .filterChipActive {
@@ -201,18 +224,22 @@
   background: var(--color-primary-hover);
 }
 
-.fallbackRow {
-  border: 1px dashed var(--color-border);
+.noVersionHint {
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: 12px;
-  color: var(--text-secondary);
+  padding: 14px;
+  background: var(--color-bg-light);
 }
 
-.fallbackRow p {
+.noVersionText {
   margin: 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
 }
 
-.fallbackHint {
-  margin-top: 4px;
+.noVersionAction {
+  margin: 6px 0 0;
+  color: var(--text-muted);
   font-size: 14px;
 }

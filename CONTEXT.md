@@ -23,11 +23,14 @@
 - Frontend regression tests now cover Jellyfin feedback mapping and sync-dialog gating rules
 - Backend route conflict for nested single-episode sync fixed (`:id` prefix reused to satisfy Gin router rules)
 - CSS modularization (VersionRow, EpisodeAccordion split)
+- Episode edit and episode-version edit routes UX design review completed
+- Public anime detail reworked: one active fansub group at a time with localStorage persistence
+- ActiveFansubStory component extracted for single-group history/description rendering
+- FansubVersionBrowser refactored: horizontal scroll on mobile, explicit "no versions" state, localStorage-based filter sync
+- Backend API confirmed to return all public versions: frontend now filters client-side by active fansub group
 
 ### In Progress
-- UX/design review for episode edit and episode-version edit surfaces
-- Public anime detail simplification: one active fansub group at a time
-- Public episode version visibility should follow the active public fansub group only
+- None
 
 ### Blocked
 - None
@@ -38,11 +41,13 @@
 - Sync actions must stay preview-first
 - Admin episode rows prioritize edit/version management, not playback
 - Full anime Jellyfin sync remains the bulk season-wide path; single-episode sync is corrective only
-- Public anime pages should never show every fansub description/history/version set at once
+- Public anime pages must show exactly one active fansub group at a time: one history/description, one filtered version list
+- Active fansub group persists in localStorage per-anime to maintain user context across sessions
 
 ## Quality Bar
 - `go test ./...` must pass
 - `npm run build` must pass
 - `npm test` must pass for frontend logic changes
 - German user-facing feedback must be explicit and actionable
-- Public anime detail must keep one clear active fansub context instead of rendering every group simultaneously
+- Public anime detail must maintain exactly one active fansub context: single group history, single filtered version list
+- Active fansub group state must persist across page reloads using localStorage

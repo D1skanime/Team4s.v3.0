@@ -3,6 +3,44 @@
 ## 2026-03-02
 
 ### Decision
+Persist the active fansub group selection per-anime in localStorage to maintain stable user context across sessions and tabs.
+
+### Context
+Users switching between fansub groups on a public anime detail page need their selection to persist across page reloads, tab switches, and return visits. Without persistence, the page would reset to a default group on every navigation, forcing repetitive manual switching.
+
+### Options Considered
+- Use session-only state (React useState) and reset to default on every page load
+- Persist selection in localStorage per-anime with cross-tab synchronization
+
+### Why This Won
+localStorage provides stable context without requiring backend changes or authentication. Per-anime keying ensures selections remain independent across different anime. The cross-tab sync via storage events and polling keeps the UI consistent when users open multiple tabs.
+
+### Consequences
+- Users maintain their preferred fansub group selection across sessions
+- No backend changes required for preference storage
+- localStorage must be checked for validity (selected group must still exist for that anime)
+- Primary fansub relation serves as deterministic fallback when localStorage is empty or invalid
+
+### Decision
+Filter public episode versions client-side by active fansub group instead of changing backend API.
+
+### Context
+The public anime detail needed to show only versions from the active fansub group. The question was whether to add backend filtering or handle it in the frontend.
+
+### Options Considered
+- Add query parameter to backend API for fansub group filtering
+- Filter versions client-side using the existing full response
+
+### Why This Won
+The backend already returns all public versions efficiently. Adding a filter parameter would complicate the API contract for a purely presentational concern. Client-side filtering keeps the backend API simpler and gives the frontend full control over version visibility without additional round-trips.
+
+### Consequences
+- No backend API changes needed
+- Frontend owns the filtering logic explicitly
+- Switching fansub groups is instant (no network request)
+- Backend response size stays unchanged but manageable for typical anime
+
+### Decision
 Keep the general Jellyfin sync action as the bulk season-wide import path; use single-episode sync only for corrective reruns.
 
 ### Context

@@ -6,6 +6,7 @@ import { Download, ExternalLink, Eye, Play } from 'lucide-react'
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
+import { ActiveFansubStory } from '@/components/fansubs/ActiveFansubStory'
 import { StatusBadge } from '@/components/anime/StatusBadge'
 import { CommentSection } from '@/components/comments/CommentSection'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
@@ -257,20 +258,12 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
             )}
           </div>
         ) : null}
-        {fansubStoryGroups.length > 0 ? (
-          <div className={styles.fansubStoryGrid}>
-            {fansubStoryGroups.map((group) => {
-              const preview = buildFansubStoryPreview(group)
-              return (
-                <article key={group.id} className={styles.fansubStoryCard}>
-                  <h3 className={styles.fansubStoryTitle}>
-                    <Link href={`/fansubs/${group.slug}`}>{group.name}</Link>
-                  </h3>
-                  <p className={styles.fansubStoryText}>{preview || 'Keine Fansub-Historie hinterlegt.'}</p>
-                </article>
-              )
-            })}
-          </div>
+        {groupedEpisodesResponse && fansubStoryGroups.length > 0 ? (
+          <ActiveFansubStory
+            animeID={anime.id}
+            fansubGroups={fansubStoryGroups}
+            animeFansubs={animeFansubsResponse?.data ?? []}
+          />
         ) : null}
         {groupedEpisodesResponse ? (
           <FansubVersionBrowser
@@ -320,14 +313,4 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
       />
     </main>
   )
-}
-
-function buildFansubStoryPreview(group: FansubGroup): string | null {
-  const raw = (group.history || group.description || '').trim()
-  if (!raw) return null
-
-  const normalized = raw.replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim()
-  const maxLength = 520
-  if (normalized.length <= maxLength) return normalized
-  return `${normalized.slice(0, maxLength).trimEnd()}...`
 }

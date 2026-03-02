@@ -1,0 +1,29 @@
+.card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.title a {
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.title a:hover {
+  color: var(--color-primary);
+}
+
+.text {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-line;
+}

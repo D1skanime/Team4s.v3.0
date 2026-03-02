@@ -2,28 +2,28 @@
 
 ## Top 3 Risks
 
-### 1. Public Anime Detail Is Overloaded
-- **Impact:** Medium
-- **Likelihood:** High
-- **Status:** All fansub descriptions/histories can render at once, which makes the page noisy and hard to scan
-- **Mitigation:** Move to one active fansub-group context with explicit group switching
-
-### 2. Public Episode Versions Can Mix Multiple Groups
-- **Impact:** High
-- **Likelihood:** Medium
-- **Status:** The public episode area still needs a single active fansub filter so users only see one coherent public version set
-- **Mitigation:** Bind the visible version list to the currently active public fansub group only
-
-### 3. Handler File Size Growing
+### 1. Handler File Size Growing
 - **Impact:** Low
 - **Likelihood:** High
-- **Status:** `jellyfin_sync.go` is still far above the project's handler-size target
-- **Mitigation:** Extract `SyncEpisodeFromJellyfin` to a separate file after the current UX slice stabilizes
+- **Status:** `jellyfin_sync.go` exceeds 150-line handler limit
+- **Mitigation:** Extract `SyncEpisodeFromJellyfin` to separate file `jellyfin_episode_sync.go` (next session)
+
+### 2. Missing Sync Workflow UI Copy
+- **Impact:** Low
+- **Likelihood:** Medium
+- **Status:** No explicit UI copy yet to distinguish bulk season-wide sync from corrective single-episode sync
+- **Mitigation:** Add clear operator-facing labels and help text to both sync buttons in admin episodes UI
+
+### 3. Legacy Image Components
+- **Impact:** Low
+- **Likelihood:** Low
+- **Status:** Some older admin routes still use `img` tags instead of Next.js Image component
+- **Mitigation:** Replace remaining `img` usage during next refactor pass
 
 ## Current Blockers
 - None
 
 ## If Nothing Changes
-- The public anime page stays visually overloaded and harder to understand
-- Users can keep seeing mismatched version rows from multiple fansub groups at the same time
-- Handler files continue growing without modularization
+- Handler files continue growing without modularization, making maintenance harder
+- Operators may remain confused about the difference between bulk sync and corrective single-episode sync
+- Older admin routes keep using `img` tags and trigger linter warnings

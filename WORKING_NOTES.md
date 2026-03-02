@@ -53,17 +53,31 @@ curl -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admi
 - Next Steps: align with UX on the episode-management layout, replace the play action with edit/version access, then add single-episode sync
 - First task tomorrow: inspect `/admin/anime/{id}/episodes`, identify the misplaced play button, and map the exact versions route that the replacement edit action should open
 
-## Mental Unload (2026-03-02 EOD)
-- The route panic was a real runtime issue, not a test-only edge case; Gin requires the nested admin anime route to reuse `:id`
-- The local stack now proves the corrective single-episode sync path end-to-end, and the bulk sync path now also fills Jellyfin stream links automatically
-- The next real UX risk has shifted to the public anime page: too many fansub contexts are visible at once
-- Tomorrow should start with the public anime detail flow and a design pass, not more sync plumbing
-- Do not commit local `.env`; keep secrets local and rotate when needed
+## Mental Unload (2026-03-02 EOD - Final)
+- The public anime single-fansub-group refactor is complete: ActiveFansubStory renders one group's history/description, FansubVersionBrowser filters versions client-side by active group
+- localStorage now persists the active fansub group per anime, so users keep their context across sessions and tabs
+- The "Alle Versionen" option was removed: only one fansub group is active at a time, preventing version-list confusion
+- Horizontal scroll for mobile fansub group pills is now working properly with proper touch interaction
+- Design review for episode edit routes was completed: no immediate changes needed, routes are clear and functional
+- Backend API returns all public versions: frontend filters client-side, so no backend changes were needed
+- Build validated successfully: `npm run build` passes without errors
+- Tomorrow can focus on handler modularization (extract `SyncEpisodeFromJellyfin`) and UX copy improvements
 
 ### Day 2026-03-02
-- Phase: Sync validation + public anime UX scoping
-- Accomplishments: fixed the backend route conflict, live-smoke-tested single-episode sync, added frontend regression tests for Jellyfin feedback/dialog state, fixed automatic Jellyfin stream-link persistence during sync
-- Key Decisions: keep bulk Jellyfin sync season-wide; treat public anime detail as a single active fansub-group experience
-- Risks/Unknowns: random default group selection needs a stable implementation; the public episode list still needs group-scoped filtering
-- Next Steps: run the design agent on episode edit/version edit, then rework the public anime page to one active fansub group
-- First task tomorrow: inspect `frontend/src/app/anime/[id]/page.tsx` and map where the active fansub-group state should control both history and episode versions
+- Phase: Public anime UX refactor + fansub-group filtering
+- Accomplishments:
+  - Completed design review of episode edit routes (no changes needed)
+  - Confirmed backend API returns all public versions (frontend filters client-side)
+  - Implemented single active fansub group logic for public anime detail
+  - Created ActiveFansubStory component for focused group history/description rendering
+  - Refactored FansubVersionBrowser: removed "Alle Versionen", added localStorage sync, horizontal scroll for mobile
+  - Added explicit "Keine Versionen" state when active group has no public releases
+  - Validated build success: `npm run build` passes
+- Key Decisions:
+  - Public anime shows exactly one active fansub group at a time
+  - localStorage persists active group per-anime for stable user experience
+  - Frontend filters versions client-side, no backend API changes needed
+  - Primary fansub relation determines initial active group, with fallback to first available
+- Risks/Unknowns: `jellyfin_sync.go` still exceeds 150-line limit
+- Next Steps: extract `SyncEpisodeFromJellyfin` to separate file, add explicit sync UI copy
+- First task tomorrow: identify `SyncEpisodeFromJellyfin` function boundaries in `jellyfin_sync.go` for extraction
