@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -490,11 +491,13 @@ export default function AdminAnimeCreatePage() {
                 placeholder="dateiname.jpg"
               />
               <div className={styles.coverInline}>
-                <img
+                <Image
                   className={styles.coverPreviewSmall}
                   src={resolveCoverUrl(createCoverImage)}
                   alt=""
-                  loading="lazy"
+                  width={88}
+                  height={132}
+                  unoptimized
                   onError={handleCoverImgError}
                 />
                 <div className={styles.actions}>

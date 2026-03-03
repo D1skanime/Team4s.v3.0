@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
@@ -212,8 +213,7 @@ export function FansubProfileTabs({ group, members, projects }: FansubProfileTab
             <p className={styles.empty}>Kein Archiv-Link hinterlegt.</p>
           )}
           {group.banner_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={group.banner_url} alt="" className={styles.banner} />
+            <Image src={group.banner_url} alt="" className={styles.banner} width={760} height={240} unoptimized />
           ) : (
             <p className={styles.empty}>Keine Archiv-Screenshots vorhanden.</p>
           )}

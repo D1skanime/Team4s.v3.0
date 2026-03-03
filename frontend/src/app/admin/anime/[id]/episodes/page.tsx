@@ -297,7 +297,7 @@ export default function AdminAnimeEpisodesPage() {
               <div>
                 <h2 className={styles.sectionTitle}>Episoden mit Versionen</h2>
                 <p className={styles.sectionMeta}>
-                  Accordion-Ansicht mit Version-Counts, Fansub-Badges und direkten Bearbeitungslinks.
+                  Accordion-Ansicht mit Version-Counts, Fansub-Badges und direkten Bearbeitungslinks. "Korrektur-Sync" ist nur fuer einzelne Nachbesserungen gedacht; der normale Staffel-Import bleibt der Jellyfin Saison-Sync im Anime-Editor.
                 </p>
               </div>
             </div>

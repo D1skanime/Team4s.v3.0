@@ -216,8 +216,9 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
       <div className={styles.header}>
         <div className={styles.headerCopy}>
           <p className={styles.eyebrow}>Provider Sync</p>
-          <h2 className={studioStyles.sectionTitle}>Jellyfin Sync</h2>
-          <p className={styles.description}>Suche, pruefe und synchronisiere in einem klaren Ablauf. Preview kommt immer vor dem Sync.</p>
+          <h2 className={studioStyles.sectionTitle}>Jellyfin Saison-Sync</h2>
+          <p className={styles.description}>Standardpfad fuer komplette Staffeln: Suche, pruefe und synchronisiere in einem klaren Ablauf. Preview kommt immer vor dem Sync.</p>
+          <p className={styles.description}>Gezielte Korrekturen fuer einzelne Folgen laufen separat ueber den Einzelfolgen-Sync im Episodenbereich.</p>
         </div>
         <div className={styles.headerStatus}>
           <span
@@ -595,7 +596,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
                 Sync wirklich anwenden?
               </h3>
               <p className={styles.modalText}>
-                {selectedSeries ? `Serie: ${selectedSeries.name}` : 'Die ausgewaehlte Jellyfin-Serie'} wird jetzt mit diesem Anime synchronisiert.
+                {selectedSeries ? `Serie: ${selectedSeries.name}` : 'Die ausgewaehlte Jellyfin-Serie'} wird jetzt als saisonweiter Bulk-Sync mit diesem Anime synchronisiert.
               </p>
               {model.cleanupVersions ? (
                 <div className={styles.warningBox}>Bestehende Jellyfin-Versionen werden vor dem Re-Import entfernt.</div>
@@ -625,10 +626,10 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
                 {model.isSyncing ? (
                   <>
                     <LoadingSpinner />
-                    Synchronisiere...
+                    Staffel wird synchronisiert...
                   </>
                 ) : (
-                  'Jetzt synchronisieren'
+                  'Staffel jetzt synchronisieren'
                 )}
               </button>
             </div>

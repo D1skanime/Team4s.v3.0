@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { AnimeListItem, AnimeStatus } from '@/types/anime'
 
 import { handleCoverImgError, resolveAnimeStatusClass, resolveCoverUrl } from '../../utils/anime-helpers'
@@ -37,11 +38,13 @@ export function AnimeRow({
 
   return (
     <div className={`${styles.animeRow} ${isActive ? styles.animeRowActive : ''}`}>
-      <img
+      <Image
         className={styles.animeThumb}
         src={coverMissing ? '/covers/placeholder.jpg' : resolveCoverUrl(rawCover)}
         alt=""
-        loading="lazy"
+        width={44}
+        height={58}
+        unoptimized
         onError={(event) => {
           onCoverError()
           handleCoverImgError(event)

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
@@ -108,7 +109,7 @@ export default function AdminAnimeEditPage() {
                 #{String(anime.id).padStart(3, '0')} | Typ {anime.type} | Status {anime.status}
               </p>
             </div>
-            <img className={styles.cover} src={resolveCoverUrl(anime.cover_image)} alt="" />
+            <Image className={styles.cover} src={resolveCoverUrl(anime.cover_image)} alt="" width={96} height={136} unoptimized />
           </div>
         ) : null}
       </header>

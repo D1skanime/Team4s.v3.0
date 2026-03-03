@@ -1,5 +1,13 @@
 # DAYLOG
 
+## 2026-03-03
+- Migrated remaining frontend `img` usage to `next/image` across admin and public surfaces; build + local deploy validated.
+- Added explicit sync workflow copy in admin: bulk season sync is now clearly separated from corrective single-episode sync.
+- Extracted `SyncEpisodeFromJellyfin` into `backend/internal/handlers/jellyfin_episode_sync.go` as first handler modularization step; backend tests passed and backend redeployed.
+- Added deterministic cropper parity coverage by extracting crop math to `mediaUploadCropMath.ts` and adding focused Vitest assertions.
+- Benchmarked anime search with/without trigram index at scale and added migration `0017_anime_search_trgm` (applied locally).
+- Removed 10 unreferenced broken cover artifacts from `frontend/public/covers` (HTML/GZIP/empty binaries).
+
 ## 2026-03-02
 - Fixed the backend Gin route conflict for single-episode sync by reusing the existing `:id` prefix on the nested admin anime route.
 - Verified the local backend runtime again (`/health`) and live-smoke-tested `POST /api/v1/admin/anime/25/episodes/1/sync` successfully.

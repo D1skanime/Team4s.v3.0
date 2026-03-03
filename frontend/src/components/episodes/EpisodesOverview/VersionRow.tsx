@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { EpisodeVersion } from '@/types/episodeVersion'
 import styles from './VersionRow.module.css'
@@ -48,12 +49,13 @@ export function VersionRow({ version, isDefault = false }: VersionRowProps) {
         {version.fansub_group ? (
           <div className={styles.fansubBadge}>
             {version.fansub_group.logo_url && (
-              <img
+              <Image
                 src={version.fansub_group.logo_url}
                 alt=""
                 className={styles.fansubLogo}
                 width={24}
                 height={24}
+                unoptimized
               />
             )}
             <span className={styles.fansubName}>{version.fansub_group.name}</span>

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -197,11 +198,13 @@ export default function AdminAnimePage() {
           <div className={styles.listGrid}>
             {browser.items.map((anime) => (
               <article key={anime.id} className={styles.animeCard}>
-                <img
+                <Image
                   className={styles.cover}
                   src={resolveCoverUrl(anime.cover_image)}
                   alt=""
-                  loading="lazy"
+                  width={96}
+                  height={136}
+                  unoptimized
                   onError={(event) => {
                     browser.markCoverFailure(anime.id)
                     handleCoverImgError(event)

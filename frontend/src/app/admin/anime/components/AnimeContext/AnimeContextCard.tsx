@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { FormEvent, RefObject } from 'react'
 
@@ -100,11 +101,13 @@ export function AnimeContextCard({
             </a>
           </div>
           <div className={styles.coverRow}>
-            <img
+            <Image
               className={styles.coverPreview}
               src={resolveCoverUrl(anime.cover_image)}
               alt={`Cover ${anime.title}`}
-              loading="lazy"
+              width={140}
+              height={210}
+              unoptimized
               onError={handleCoverImgError}
             />
             <div className={styles.coverMeta}>

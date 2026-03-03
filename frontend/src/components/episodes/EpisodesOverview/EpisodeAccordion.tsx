@@ -63,12 +63,13 @@ export function EpisodeAccordion({
             className={styles.episodeSyncButton}
             onClick={handleSync}
             disabled={isSyncing}
-            aria-label={`Episode ${episode.episode_number} synchronisieren`}
+            aria-label={`Episode ${episode.episode_number} als Korrektur neu synchronisieren`}
+            title={`Episode ${episode.episode_number} als Korrektur neu synchronisieren`}
           >
             {isSyncing ? (
               <span className={styles.syncSpinner} aria-hidden="true" />
             ) : null}
-            {isSyncing ? 'Syncing...' : 'Sync'}
+            {isSyncing ? 'Korrektur-Sync...' : 'Korrektur-Sync'}
           </button>
         )}
       </div>

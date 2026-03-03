@@ -2,28 +2,28 @@
 
 ## Top 3 Risks
 
-### 1. Handler File Size Growing
-- **Impact:** Low
+### 1. Jellyfin Handler Modularization Still Incomplete
+- **Impact:** Medium
 - **Likelihood:** High
-- **Status:** `jellyfin_sync.go` exceeds 150-line handler limit
-- **Mitigation:** Extract `SyncEpisodeFromJellyfin` to separate file `jellyfin_episode_sync.go` (next session)
+- **Status:** `SyncEpisodeFromJellyfin` is extracted, but remaining sync handlers/helpers still exceed the 150-line target in parts
+- **Mitigation:** Continue split into focused handler/helper files while preserving API behavior and tests
 
-### 2. Missing Sync Workflow UI Copy
+### 2. Intermittent Jellyfin Upstream Timeouts
+- **Impact:** Medium
+- **Likelihood:** Medium
+- **Status:** Operators still occasionally hit `server nicht erreichbar` despite valid config
+- **Mitigation:** Add tighter timeout/error diagnostics and keep retry/resync workflow explicit in UI/runbook
+
+### 3. Local/CI Drift Risk After Refactors + Migration
 - **Impact:** Low
 - **Likelihood:** Medium
-- **Status:** No explicit UI copy yet to distinguish bulk season-wide sync from corrective single-episode sync
-- **Mitigation:** Add clear operator-facing labels and help text to both sync buttons in admin episodes UI
-
-### 3. Legacy Image Components
-- **Impact:** Low
-- **Likelihood:** Low
-- **Status:** Some older admin routes still use `img` tags instead of Next.js Image component
-- **Mitigation:** Replace remaining `img` usage during next refactor pass
+- **Status:** Local validations passed, but CI regression path has not been re-run since today's handler/crop/migration changes
+- **Mitigation:** Execute CI-equivalent suite next session and fix drift immediately if detected
 
 ## Current Blockers
 - None
 
 ## If Nothing Changes
-- Handler files continue growing without modularization, making maintenance harder
-- Operators may remain confused about the difference between bulk sync and corrective single-episode sync
-- Older admin routes keep using `img` tags and trigger linter warnings
+- Remaining sync handlers stay harder to maintain and review
+- Jellyfin timeout incidents remain harder to triage under operator pressure
+- A CI-only regression could slip through despite local green runs

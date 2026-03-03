@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { KeyboardEvent, useEffect, useRef, useState } from 'react'
 
 import { getAdminGenreTokens, getAnimeByID, updateAdminAnime } from '@/lib/api'
@@ -409,7 +410,15 @@ export function AnimeEditWorkspace({
           </div>
         </div>
         <div className={workspaceStyles.coverLayout}>
-          <img className={workspaceStyles.coverPreview} src={resolvedCover} alt="Cover Vorschau" loading="lazy" onError={handleCoverImgError} />
+          <Image
+            className={workspaceStyles.coverPreview}
+            src={resolvedCover}
+            alt="Cover Vorschau"
+            width={280}
+            height={420}
+            unoptimized
+            onError={handleCoverImgError}
+          />
           <div className={workspaceStyles.uploadColumn}>
             <button
               type="button"

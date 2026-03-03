@@ -1,17 +1,17 @@
 # TOMORROW
 
 ## Top 3 Priorities
-1. Extract `SyncEpisodeFromJellyfin` from `jellyfin_sync.go` to meet 150-line handler limit
-2. Add explicit UI copy to distinguish bulk Jellyfin sync from corrective single-episode sync
-3. Replace remaining `img` tags with Next.js Image component in older admin routes
+1. Continue Jellyfin handler modularization beyond episode extraction (`jellyfin_sync.go`, `jellyfin_episode_sync.go`)
+2. Run a full code/architecture/UX review pass across sync/admin surfaces and capture findings
+3. Verify CI-equivalent regression path (`go test`, `npm test`, `npm run build`) and migration health on a clean start
 
 ## First 15-Minute Task
-Open `backend/internal/handlers/jellyfin_sync.go` and identify the `SyncEpisodeFromJellyfin` function boundaries to prepare extraction into a new file `backend/internal/handlers/jellyfin_episode_sync.go`.
+Open `backend/internal/handlers/jellyfin_sync.go`, list remaining oversized handlers/helpers with rough line counts, and choose the first extraction target for a new focused file.
 
 ## Dependencies To Unblock
-- None
+- Ensure the Jellyfin test instance is reachable before sync smoke tests
+- Confirm CI job/runtime parity with local toolchain versions
 
 ## Nice-To-Have
-- Full code/architecture/UX review across sync and admin surfaces
-- Add deterministic test for cropper output parity
-- Verify regression suite in CI
+- Add lightweight diagnostics around Jellyfin timeout/error cases in admin sync flow
+- Document the local `pg_trgm` benchmark method/results in a durable note

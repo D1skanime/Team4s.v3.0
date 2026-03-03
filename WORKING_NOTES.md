@@ -1,11 +1,10 @@
 # WORKING_NOTES
 
 ## Active Threads
-- Full Jellyfin sync is confirmed as the bulk path: it upserts every accepted episode/version in the selected season and now persists `stream_url`; single-episode sync is only for corrective re-runs
-- Public anime detail now needs a focused fansub-group selector so one group stays active at a time
-- Public episode versions must follow the active public fansub group only; never render every group's versions together
-- Episode edit + episode-version edit need a dedicated UX/design review pass via the `team4s-design` agent
-- Full code/architecture/UX review is still needed once the sync and episodes slices settle
+- Full Jellyfin sync remains bulk-default and single-episode sync remains corrective; continue handler modularization without changing behavior
+- Intermittent Jellyfin timeout reports (`server nicht erreichbar`) need tighter diagnostics and repeatable triage steps
+- Full code/architecture/UX review is still needed across sync/admin slices after today's refactors
+- CI-equivalent regression validation still needs a fresh pass after crop utility extraction and migration work
 - Security follow-through: `.env` stays local-only and untracked; secret rotation discipline still matters
 
 ## Required Contracts / UX Notes
@@ -40,10 +39,31 @@ curl -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admi
 
 ## Parking Lot
 - Resume handler modularization after the sync and episode-visibility slices are locked
-- Add explicit UX copy that distinguishes bulk sync from corrective single-episode sync
-- Replace `img` usage in older admin routes to clear `@next/next/no-img-element` warnings
-- Add deterministic test for cropper output parity
-- Consider pg_trgm index for anime search at scale
+- Add lightweight timeout telemetry around Jellyfin sync/admin operations
+- Capture and retain query-plan snapshots as anime dataset grows post-`pg_trgm`
+
+### Day 2026-03-03
+- Phase: P2 closeout hardening + maintainability pass
+- Accomplishments:
+  - Migrated remaining frontend `img` usage to `next/image`
+  - Clarified sync UI copy (bulk season sync vs corrective single-episode sync)
+  - Extracted `SyncEpisodeFromJellyfin` to `jellyfin_episode_sync.go`
+  - Added deterministic crop math utility + Vitest parity tests
+  - Added/applied `0017_anime_search_trgm` migration after benchmark pass
+  - Removed 10 unreferenced broken cover artifacts from `frontend/public/covers`
+- Key Decisions:
+  - `pg_trgm` is now the chosen scaling path for substring anime search
+  - Crop math belongs in testable pure utilities, not inline UI logic
+  - Broken public assets are deleted only after DB reference validation
+- Risks/Unknowns:
+  - Remaining Jellyfin handlers still need additional modularization
+  - Jellyfin upstream timeout behavior remains intermittent
+  - CI parity has not yet been re-run after all new changes
+- Next Steps:
+  - Continue handler decomposition with behavior-preserving tests
+  - Run CI-equivalent full regression and resolve any drift
+  - Add timeout-focused diagnostics for Jellyfin operations
+- First task tomorrow: map the next oversized function block in `jellyfin_sync.go` and extract it into a focused helper file
 
 ### Day 2026-03-01
 - Phase: Sync hardening + episodes overview groundwork

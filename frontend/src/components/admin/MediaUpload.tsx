@@ -1,12 +1,13 @@
 'use client'
-/* eslint-disable @next/next/no-img-element */
 
+import Image from 'next/image'
 import { ChangeEvent, KeyboardEvent, PointerEvent, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ImagePlus, Loader2, Pencil, RefreshCw, Trash2 } from 'lucide-react'
 
 import { ApiError, deleteFansubMedia, uploadFansubMedia } from '@/lib/api'
 import { FansubMediaKind } from '@/types/fansub'
 import { getCropOffsetDeltaForKey, getFocusTrapNextIndex } from '@/components/admin/mediaUploadA11y'
+import { clampCropOffset, computeCropDrawRect, computeCropMetrics, type CropMetrics } from '@/components/admin/mediaUploadCropMath'
 
 import styles from './MediaUpload.module.css'
 
@@ -37,22 +38,6 @@ const CROP_MIN_ZOOM = 0.2
 const CROP_MAX_ZOOM = 4
 const CROP_DEFAULT_ZOOM = 1.2
 const CROP_OFFSET_SLIDER_STEP = 0.1
-
-type CropMetrics = {
-  scale: number
-  width: number
-  height: number
-  maxOffsetX: number
-  maxOffsetY: number
-}
-
-function clampCropOffset(offset: { x: number; y: number }, metrics: CropMetrics | null): { x: number; y: number } {
-  if (!metrics) return { x: 0, y: 0 }
-  return {
-    x: Math.max(-metrics.maxOffsetX, Math.min(metrics.maxOffsetX, offset.x)),
-    y: Math.max(-metrics.maxOffsetY, Math.min(metrics.maxOffsetY, offset.y)),
-  }
-}
 
 function extensionForMime(mimeType: string): string {
   if (mimeType === 'image/jpeg') return 'jpg'
@@ -267,20 +252,7 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
   const isLogo = type === 'logo'
   const filename = deriveFilename(value)
   const previewURL = buildMediaPreviewURL(value)
-  const cropMetrics = useMemo<CropMetrics | null>(() => {
-    if (!cropImageSize) return null
-    const baseScale = Math.max(CROP_VIEW_SIZE / cropImageSize.w, CROP_VIEW_SIZE / cropImageSize.h)
-    const scale = baseScale * cropZoom
-    const width = cropImageSize.w * scale
-    const height = cropImageSize.h * scale
-    return {
-      scale,
-      width,
-      height,
-      maxOffsetX: Math.max(0, (width - CROP_VIEW_SIZE) / 2),
-      maxOffsetY: Math.max(0, (height - CROP_VIEW_SIZE) / 2),
-    }
-  }, [cropImageSize, cropZoom])
+  const cropMetrics = useMemo<CropMetrics | null>(() => computeCropMetrics(cropImageSize, CROP_VIEW_SIZE, cropZoom), [cropImageSize, cropZoom])
 
   const title = isLogo ? 'Logo' : 'Banner'
   const acceptedMime = isLogo ? 'image/svg+xml,image/png,image/jpeg,image/webp' : 'image/png,image/jpeg,image/webp,image/gif'
@@ -417,19 +389,18 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
       return
     }
 
-    const renderScale =
-      cropMetrics?.scale ?? Math.max(CROP_VIEW_SIZE / image.naturalWidth, CROP_VIEW_SIZE / image.naturalHeight) * cropZoom
     const viewportWidth = cropViewportRef.current?.clientWidth ?? CROP_VIEW_SIZE
     const viewportHeight = cropViewportRef.current?.clientHeight ?? CROP_VIEW_SIZE
-    const ratioX = CROP_OUTPUT_SIZE / viewportWidth
-    const ratioY = CROP_OUTPUT_SIZE / viewportHeight
-
-    const imageWidth = image.naturalWidth * renderScale
-    const imageHeight = image.naturalHeight * renderScale
-    const drawX = ((viewportWidth - imageWidth) / 2 + cropOffset.x) * ratioX
-    const drawY = ((viewportHeight - imageHeight) / 2 + cropOffset.y) * ratioY
-    const drawWidth = imageWidth * ratioX
-    const drawHeight = imageHeight * ratioY
+    const { drawX, drawY, drawWidth, drawHeight } = computeCropDrawRect({
+      imageNatural: { w: image.naturalWidth, h: image.naturalHeight },
+      cropMetrics,
+      cropZoom,
+      cropOffset,
+      viewportWidth,
+      viewportHeight,
+      viewSize: CROP_VIEW_SIZE,
+      outputSize: CROP_OUTPUT_SIZE,
+    })
 
     context.clearRect(0, 0, CROP_OUTPUT_SIZE, CROP_OUTPUT_SIZE)
     context.save()
@@ -642,11 +613,25 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
           <>
             {isLogo ? (
               <div className={styles.previewRound}>
-                <img src={previewURL} alt="Logo Vorschau" className={styles.previewImageRound} />
+                <Image
+                  src={previewURL}
+                  alt="Logo Vorschau"
+                  className={styles.previewImageRound}
+                  width={116}
+                  height={116}
+                  unoptimized
+                />
               </div>
             ) : (
               <div className={styles.previewWide}>
-                <img src={previewURL} alt="Banner Vorschau" className={styles.previewImageWide} />
+                <Image
+                  src={previewURL}
+                  alt="Banner Vorschau"
+                  className={styles.previewImageWide}
+                  width={520}
+                  height={130}
+                  unoptimized
+                />
               </div>
             )}
           </>
@@ -748,10 +733,13 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
             onPointerUp={onCropPointerUp}
             onPointerCancel={onCropPointerUp}
           >
-            <img
+            <Image
               src={cropSourceURL}
               alt="Logo Crop"
               className={styles.cropImage}
+              width={CROP_VIEW_SIZE}
+              height={CROP_VIEW_SIZE}
+              unoptimized
               onLoad={(event) => {
                 cropImageRef.current = event.currentTarget
                 setCropImageSize({ w: event.currentTarget.naturalWidth, h: event.currentTarget.naturalHeight })

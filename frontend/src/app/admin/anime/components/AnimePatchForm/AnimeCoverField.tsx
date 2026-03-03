@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { RefObject } from 'react'
 
 import { AnimePatchClearFlags, AnimePatchValues } from '../../types/admin-anime'
@@ -48,11 +49,13 @@ export function AnimeCoverField({
         Wert loeschen (null)
       </label>
       <div className={styles.coverInline}>
-        <img
+        <Image
           className={styles.coverPreviewSmall}
           src={resolveCoverUrl(clearFlags.coverImage ? '' : values.coverImage || contextCoverImage)}
           alt="Cover Vorschau"
-          loading="lazy"
+          width={88}
+          height={132}
+          unoptimized
           onError={handleCoverImgError}
         />
         <div className={styles.actions}>

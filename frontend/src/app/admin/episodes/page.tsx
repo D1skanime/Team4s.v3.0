@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 
@@ -349,11 +350,13 @@ export default function AdminEpisodesPage() {
                       key={anime.id}
                       className={`${styles.animeRow} ${selectedAnime?.id === anime.id ? styles.animeRowActive : ''}`}
                     >
-                      <img
+                      <Image
                         className={styles.animeThumb}
                         src={getCoverUrl(anime.cover_image)}
                         alt=""
-                        loading="lazy"
+                        width={44}
+                        height={58}
+                        unoptimized
                         onError={handleCoverImgError}
                       />
                       <div className={styles.animeMeta}>

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 
 import { GroupedEpisode, EpisodeVersion } from '@/types/episodeVersion'
@@ -161,8 +162,7 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes, onActiveFansu
               onClick={() => selectFansubGroup(relation.fansub_group!.id)}
               aria-pressed={isActive}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              {logoURL ? <img src={logoURL} alt="" className={styles.logo} /> : null}
+              {logoURL ? <Image src={logoURL} alt="" className={styles.logo} width={16} height={16} unoptimized /> : null}
               {relation.fansub_group.name}
             </button>
           )
@@ -214,11 +214,13 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes, onActiveFansu
                             <div className={styles.versionMeta}>
                               <div className={styles.versionIdentity}>
                                 {versionLogoURL ? (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img
+                                  <Image
                                     src={versionLogoURL}
                                     alt=""
                                     className={styles.versionLogo}
+                                    width={36}
+                                    height={36}
+                                    unoptimized
                                   />
                                 ) : (
                                   <div className={styles.versionLogoFallback} aria-hidden="true">

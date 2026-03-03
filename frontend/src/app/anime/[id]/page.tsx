@@ -206,7 +206,16 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
           <div className={styles.info}>
             <div className={styles.infoHeader}>
               <h1 className={styles.title}>{anime.title}</h1>
-              {infoLogoURL ? <img src={infoLogoURL} alt={`${anime.title} Logo`} className={styles.infoLogo} /> : null}
+              {infoLogoURL ? (
+                <Image
+                  src={infoLogoURL}
+                  alt={`${anime.title} Logo`}
+                  className={styles.infoLogo}
+                  width={360}
+                  height={132}
+                  unoptimized
+                />
+              ) : null}
             </div>
             <div className={styles.badges}>
               <StatusBadge status={anime.status} />
@@ -222,7 +231,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
               </span>
               <span>{anime.max_episodes ?? 0} Episoden geplant</span>
             </div>
-            {infoBannerURL ? <img src={infoBannerURL} alt="" className={styles.infoBanner} /> : null}
+            {infoBannerURL ? <Image src={infoBannerURL} alt="" className={styles.infoBanner} width={760} height={260} unoptimized /> : null}
             {embySeriesUrl ? (
               <a
                 className={styles.externalLinkButton}

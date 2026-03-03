@@ -1,5 +1,61 @@
 # DECISIONS
 
+## 2026-03-03
+
+### Decision
+Extract deterministic crop math from `MediaUpload` into a standalone utility and test it directly.
+
+### Context
+Crop behavior needed stable parity checks, but the prior math lived inline in UI code, making targeted regression tests difficult and brittle.
+
+### Options Considered
+- Keep crop math inline and test only through component-level integration tests
+- Extract pure crop math functions and add dedicated unit tests for deterministic inputs/outputs
+
+### Why This Won
+Pure functions are easier to test exhaustively and reduce UI coupling. This improves confidence when changing crop behavior without depending on browser rendering details.
+
+### Consequences
+- Crop logic is now reusable and centrally maintained
+- Vitest can verify deterministic output parity quickly
+- Future cropper refactors have a lower regression risk
+
+### Decision
+Adopt `pg_trgm` indexes for scalable anime substring search and ship as migration `0017_anime_search_trgm`.
+
+### Context
+Current production-like query pattern relies on `ILIKE %...%`, which degrades with row growth. Benchmarks showed a large gap at higher row counts.
+
+### Options Considered
+- Keep sequential scans and defer optimization
+- Add trigram GIN indexes for `title`, `title_english`, and `title_japanese` search fields
+
+### Why This Won
+At higher cardinality, trigram indexes reduced query latency significantly in local benchmark simulations while keeping existing API/query semantics unchanged.
+
+### Consequences
+- Migration must be applied consistently across environments
+- Small datasets may still use seq scan; this is expected and should be monitored, not treated as failure
+- Search scaling risk is reduced for growing anime catalogs
+
+### Decision
+Remove broken/unreferenced cover artifacts from `frontend/public/covers` after DB reference verification.
+
+### Context
+A set of invalid binaries (HTML/gzip/empty files) remained in public assets and created noise/risk without being used by any anime row.
+
+### Options Considered
+- Keep artifacts to avoid accidental data loss
+- Verify references first, then delete only unreferenced invalid files
+
+### Why This Won
+Reference verification made deletion low-risk and reduced static asset clutter. Keeping known-bad unused files provided no operational value.
+
+### Consequences
+- Public asset set is cleaner and less misleading
+- Any accidental future dependency on deleted filenames would now fail fast instead of serving broken data
+- Cleanup process established: validate DB references before deleting asset artifacts
+
 ## 2026-03-02
 
 ### Decision

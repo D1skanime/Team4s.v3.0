@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -711,12 +712,13 @@ function GroupRowCard({
   return (
     <div className={styles.mergeGroupCardContent}>
       {group.logo_url && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={group.logo_url}
           alt={`${group.name} Logo`}
           className={styles.mergeGroupLogo}
-          loading="lazy"
+          width={44}
+          height={44}
+          unoptimized
         />
       )}
       <div className={styles.mergeGroupMain}>

@@ -18,6 +18,10 @@
 - Jellyfin admin search now works against the configured live remote instance
 - Grouped episodes API supports lightweight reads via `includeVersions` / `includeFansubs`
 - Frontend regression helpers/tests cover Jellyfin error feedback and confirm-dialog gating
+- Sync UI copy now explicitly separates season-wide bulk sync from corrective single-episode sync
+- Frontend image rendering uses `next/image` across admin and public surfaces
+- Cropper math now has deterministic parity coverage in Vitest
+- Anime search has `pg_trgm` migration available (`0017_anime_search_trgm`) for scalable substring queries
 - Playback security: IP-based rate limiting, grant token replay protection, audit logging
 - Auth lifecycle (issue/refresh/revoke with signed tokens)
 - Fansub profiles, version browser, admin CRUD
@@ -40,11 +44,11 @@ cd ../frontend && npm run build
 ```
 
 ## Next (Top 3)
-1. Extract `jellyfin_sync.go` handler: move `SyncEpisodeFromJellyfin` to separate file to meet 150-line limit
-2. Add explicit UI copy distinguishing bulk Jellyfin sync from corrective single-episode sync
-3. Resume full code/architecture/UX review pass across sync and admin surfaces
+1. Continue modularization of `jellyfin_sync.go` + `jellyfin_episode_sync.go` toward 150-line handler files
+2. Run full code/architecture/UX review pass across sync and admin surfaces and document actionable findings
+3. Re-run CI-equivalent regression suite and verify migration/runtime parity on fresh startup
 
 ## Known Risks
-- `jellyfin_sync.go` exceeds 150-line handler limit and needs modularization
-- No explicit UI copy yet to distinguish bulk sync from corrective single-episode sync
-- Some older admin routes still use `img` tags instead of Next.js Image component
+- Jellyfin sync handlers still exceed the 150-line target and need further splitting
+- Jellyfin upstream can intermittently timeout (`server nicht erreichbar`) despite valid configuration
+- CI regression coverage has not yet been re-verified after today's refactors/migrations

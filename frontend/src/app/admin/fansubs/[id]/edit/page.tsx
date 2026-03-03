@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
@@ -461,8 +462,14 @@ export default function AdminFansubEditPage() {
           <div className={styles.fansubEditProfileRow}>
             <div className={styles.fansubEditLogoBadge}>
               {logoPreviewURL ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={logoPreviewURL} alt={`${form.name.trim() || 'Fansub'} Logo`} className={styles.fansubEditLogoImage} />
+                <Image
+                  src={logoPreviewURL}
+                  alt={`${form.name.trim() || 'Fansub'} Logo`}
+                  className={styles.fansubEditLogoImage}
+                  width={78}
+                  height={78}
+                  unoptimized
+                />
               ) : (
                 <span style={{ backgroundColor: logoFallback.background, color: logoFallback.color }}>{logoFallback.initials}</span>
               )}
