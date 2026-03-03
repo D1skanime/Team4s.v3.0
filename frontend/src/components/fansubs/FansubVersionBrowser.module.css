@@ -30,6 +30,32 @@
   background: var(--text-secondary);
 }
 
+.groupCtaRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.groupButton {
+  border-radius: 18px;
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-white);
+  padding: 10px 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.groupButton:hover {
+  border-color: var(--color-primary-hover);
+  background: var(--color-primary-hover);
+}
+
 .filterChip {
   border-radius: 16px;
   border: 1px solid var(--color-border);

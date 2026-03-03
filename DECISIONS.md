@@ -3,6 +3,24 @@
 ## 2026-03-03
 
 ### Decision
+Use app-owned media ingest for group/release editorial assets as V1, with optional Jellyfin-direct ingest as V2.
+
+### Context
+Public group/release surfaces need fast editorial workflows for screenshots and karaoke clips. A direct browser-to-provider model would increase auth/token risk and make partial-failure handling harder.
+
+### Options Considered
+- Upload/edit assets directly in Jellyfin through a proxy API as the primary path
+- Use app-owned upload/curation as primary path, then sync/export to Jellyfin when needed
+
+### Why This Won
+App-owned ingest keeps editorial control, validation, moderation, and auditability in one place while preserving provider abstraction. It reduces operational risk during initial rollout.
+
+### Consequences
+- V1: screenshots/karaoke are uploaded and curated in Team4s admin first, then exposed via `/api/v1/...`
+- Jellyfin remains playback/media-source where applicable, but not the sole editorial write target
+- Optional V2 can add controlled direct ingest to Jellyfin (admin-only, async job, retries, audit log)
+
+### Decision
 Extract deterministic crop math from `MediaUpload` into a standalone utility and test it directly.
 
 ### Context

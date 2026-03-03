@@ -1,0 +1,173 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.backLink {
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.backLink a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.backLink a:hover {
+  text-decoration: underline;
+}
+
+.errorBox {
+  padding: 20px;
+  border-radius: var(--radius-md);
+  background: var(--color-error-bg, #fee);
+  color: var(--color-error-text, #c00);
+  border: 1px solid var(--color-error-border, #fcc);
+}
+
+.heroShell {
+  position: relative;
+  margin-bottom: 32px;
+}
+
+.hero {
+  display: flex;
+  gap: 32px;
+  padding: 24px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface, #f9f9f9);
+  border: 1px solid var(--color-border);
+}
+
+.logo {
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  flex: 0 0 120px;
+  background: var(--color-white);
+}
+
+.logoPlaceholder {
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 120px;
+}
+
+.logoInitial {
+  font-size: 48px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.statItem {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.story {
+  margin-bottom: 24px;
+}
+
+.storyHeading {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.releasesButton,
+.profileButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.releasesButton {
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: 1px solid var(--color-primary);
+}
+
+.releasesButton:hover {
+  background: var(--color-primary-hover, #0056b3);
+  border-color: var(--color-primary-hover, #0056b3);
+}
+
+.profileButton {
+  background: var(--color-white);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+}
+
+.profileButton:hover {
+  border-color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .logo,
+  .logoPlaceholder {
+    width: 120px;
+    height: 120px;
+    flex: 0 0 120px;
+    align-self: center;
+  }
+
+  .logoInitial {
+    font-size: 48px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .releasesButton,
+  .profileButton {
+    width: 100%;
+  }
+}

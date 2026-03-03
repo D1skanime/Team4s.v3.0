@@ -53,6 +53,11 @@ import {
   FansubMediaUploadResponse,
 } from '@/types/fansub'
 import { PaginatedWatchlistResponse, WatchlistCreateResponse } from '@/types/watchlist'
+import {
+  GroupDetailResponse,
+  GroupReleasesResponse,
+  GroupReleasesParams,
+} from '@/types/group'
 
 // Browser needs a host-reachable API URL (e.g. http://localhost:8092).
 // Server-side code inside Docker needs a container-network URL.
@@ -1359,4 +1364,51 @@ export async function syncEpisode(
   }
 
   return response.json() as Promise<{ data: { success: boolean; message?: string } }>
+}
+
+// Group operations
+export async function getGroupDetail(animeID: number, groupID: number): Promise<GroupDetailResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}`, {
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<GroupDetailResponse>
+}
+
+function buildGroupReleasesQuery(params: GroupReleasesParams): string {
+  const query = new URLSearchParams()
+  if (params.page) query.set('page', String(params.page))
+  if (params.per_page) query.set('per_page', String(params.per_page))
+  if (typeof params.has_op === 'boolean') query.set('has_op', String(params.has_op))
+  if (typeof params.has_ed === 'boolean') query.set('has_ed', String(params.has_ed))
+  if (typeof params.has_karaoke === 'boolean') query.set('has_karaoke', String(params.has_karaoke))
+  if (params.q) query.set('q', params.q)
+
+  return query.toString()
+}
+
+export async function getGroupReleases(
+  animeID: number,
+  groupID: number,
+  params: GroupReleasesParams = {},
+): Promise<GroupReleasesResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const query = buildGroupReleasesQuery(params)
+  const url = `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/releases${query ? `?${query}` : ''}`
+  const response = await fetch(url, {
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<GroupReleasesResponse>
 }

@@ -104,6 +104,8 @@ func main() {
 	mediaRepo := repository.NewMediaRepository(dbPool)
 	mediaService := services.NewMediaService(cfg.MediaStorageDir, cfg.MediaPublicBaseURL)
 	episodeVersionRepo := repository.NewEpisodeVersionRepository(dbPool)
+	episodeVersionImageRepo := repository.NewEpisodeVersionImageRepository(dbPool)
+	episodeVersionImagesHandler := handlers.NewEpisodeVersionImagesHandler(episodeVersionImageRepo)
 	episodePlaybackHandler := handlers.NewEpisodePlaybackHandler(episodeRepo, handlers.EpisodePlaybackConfig{
 		EmbyAPIKey:              cfg.EmbyAPIKey,
 		EmbyStreamBaseURL:       cfg.EmbyStreamBaseURL,
@@ -172,6 +174,13 @@ func main() {
 			ReleaseGrantTTLSeconds: cfg.ReleaseStreamGrantTTLSeconds,
 		},
 	).WithMedia(mediaRepo, mediaService)
+	groupRepo := repository.NewGroupRepository(dbPool)
+	groupHandler := handlers.NewGroupHandler(groupRepo)
+	assetStreamHandler := handlers.NewAssetStreamHandler(handlers.AssetStreamConfig{
+		JellyfinAPIKey:     cfg.JellyfinAPIKey,
+		JellyfinBaseURL:    cfg.JellyfinBaseURL,
+		JellyfinStreamPath: cfg.JellyfinStreamPathTemplate,
+	})
 
 	v1 := router.Group("/api/v1")
 	v1.POST("/auth/issue", authHandler.Issue)
@@ -182,6 +191,8 @@ func main() {
 	v1.GET("/anime/:id/backdrops", animeHandler.ListBackdrops)
 	v1.GET("/anime/:id/fansubs", fansubHandler.ListAnimeFansubs)
 	v1.GET("/anime/:id/episodes", fansubHandler.ListGroupedEpisodes)
+	v1.GET("/anime/:id/group/:groupId", groupHandler.GetGroupDetail)
+	v1.GET("/anime/:id/group/:groupId/releases", groupHandler.GetGroupReleases)
 	v1.GET("/episode-versions/:versionId", fansubHandler.GetEpisodeVersionByID)
 	v1.GET("/anime/:id/comments", commentHandler.ListByAnimeID)
 	v1.POST(
@@ -222,6 +233,11 @@ func main() {
 	v1.GET("/media/image", fansubHandler.MediaImage)
 	v1.GET("/media/video", fansubHandler.MediaVideo)
 	v1.GET("/media/files/:filename", fansubHandler.ServeMediaFile)
+	v1.GET(
+		"/assets/:assetId/stream",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		assetStreamHandler.StreamAsset,
+	)
 	v1.POST(
 		"/releases/:id/grant",
 		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
@@ -232,6 +248,7 @@ func main() {
 		middleware.CommentAuthOptionalMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		fansubHandler.StreamRelease,
 	)
+	v1.GET("/releases/:releaseId/images", episodeVersionImagesHandler.ListReleaseImages)
 	v1.POST(
 		"/admin/anime",
 		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),

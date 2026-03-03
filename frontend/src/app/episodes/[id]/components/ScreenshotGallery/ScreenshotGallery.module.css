@@ -1,0 +1,264 @@
+/* ScreenshotGallery: Grid-based image gallery with lightbox */
+
+.screenshotGallerySection {
+  margin: 2rem 0;
+}
+
+.screenshotGalleryHeading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-primary, #1a1a1a);
+}
+
+/* Grid Layout */
+.screenshotGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 768px) {
+  .screenshotGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .screenshotGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Thumbnail */
+.screenshotThumbnail {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: var(--bg-light, #f5f5f5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.screenshotThumbnail:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.screenshotThumbnail:focus-visible {
+  outline: 2px solid var(--primary-color, #0066cc);
+  outline-offset: 2px;
+}
+
+.screenshotThumbnailImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Skeleton Loading */
+.screenshotSkeleton {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background-color: var(--bg-light, #f5f5f5);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.screenshotSkeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeletonPulse {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Load More Trigger */
+.screenshotLoadTrigger {
+  height: 1px;
+  margin-top: 200px;
+}
+
+/* Error State */
+.screenshotError {
+  padding: 1rem;
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  color: #c33;
+  margin-top: 1rem;
+}
+
+.screenshotErrorText {
+  margin-bottom: 0.5rem;
+}
+
+.screenshotRetryButton {
+  padding: 0.5rem 1rem;
+  background-color: #c33;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+}
+
+.screenshotRetryButton:hover {
+  background-color: #a22;
+}
+
+.screenshotRetryButton:focus-visible {
+  outline: 2px solid #c33;
+  outline-offset: 2px;
+}
+
+/* Lightbox Modal */
+.screenshotLightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(28, 28, 30, 0.9);
+  animation: lightboxFadeIn 0.2s ease;
+}
+
+@keyframes lightboxFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.screenshotLightboxContent {
+  position: relative;
+  width: 90vw;
+  height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.screenshotLightboxImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+
+/* Lightbox Navigation */
+.screenshotLightboxNav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.screenshotLightboxNav:hover {
+  background-color: var(--primary-color, #0066cc);
+  color: white;
+}
+
+.screenshotLightboxNav:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+.screenshotLightboxNav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.screenshotLightboxNavPrev {
+  left: 2rem;
+}
+
+.screenshotLightboxNavNext {
+  right: 2rem;
+}
+
+/* Lightbox Close Button */
+.screenshotLightboxClose {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  width: 48px;
+  height: 48px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.screenshotLightboxClose:hover {
+  background-color: #c33;
+}
+
+.screenshotLightboxClose:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+/* Lightbox Counter */
+.screenshotLightboxCounter {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Lightbox Caption */
+.screenshotLightboxCaption {
+  position: absolute;
+  bottom: 4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  max-width: 80%;
+  text-align: center;
+}

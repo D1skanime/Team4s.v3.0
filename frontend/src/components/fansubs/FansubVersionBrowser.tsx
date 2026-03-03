@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 
 import { GroupedEpisode, EpisodeVersion } from '@/types/episodeVersion'
@@ -168,6 +169,17 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes, onActiveFansu
           )
         })}
       </div>
+      {activeFansubGroupID !== null ? (
+        <div className={styles.groupCtaRow}>
+          <Link
+            href={`/anime/${animeID}/group/${activeFansubGroupID}`}
+            className={styles.groupButton}
+            aria-label="Zum Gruppenbereich"
+          >
+            Gruppenbereich
+          </Link>
+        </div>
+      ) : null}
 
       {episodes.length === 0 ? (
         <div className={styles.emptyBox}>Keine Episoden-Versionen vorhanden.</div>

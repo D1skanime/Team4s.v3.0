@@ -3026,6 +3026,137 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/group/{groupId}:
+    get:
+      tags: [Fansubs]
+      summary: Get fansub group detail for anime
+      operationId: getAnimeGroupDetail
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Group detail payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupDetailResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Anime or group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/group/{groupId}/releases:
+    get:
+      tags: [Fansubs]
+      summary: Get fansub group releases for anime
+      operationId: getAnimeGroupReleases
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 1
+            minimum: 1
+        - name: per_page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 24
+            minimum: 1
+            maximum: 500
+        - name: has_op
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter episodes that have opening
+        - name: has_ed
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter episodes that have ending
+        - name: has_karaoke
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter episodes that have karaoke
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search query for episode title
+      responses:
+        "200":
+          description: Group releases payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupReleasesResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Anime or group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/anime/{animeId}/episodes:
     get:
       tags: [Episodes]
@@ -3531,6 +3662,66 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/releases/{releaseId}/images:
+    get:
+      tags: [Releases]
+      summary: List images for an episode release
+      operationId: listReleaseImages
+      parameters:
+        - name: releaseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          description: Episode version (release) ID
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Cursor for pagination (ID-based, last seen image ID)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 12
+          description: Maximum number of images to return (default 12, max 100)
+      responses:
+        "200":
+          description: List of images with optional next cursor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/EpisodeVersionImagesResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Release not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/media/image:
     get:
       tags: [Releases]
@@ -3611,6 +3802,76 @@ paths:
           description: Internal server error
           content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/assets/{assetId}/stream:
+    get:
+      tags: [Releases]
+      summary: Stream a media asset via Jellyfin proxy
+      description: |
+        Proxies video stream requests from Jellyfin for authenticated users.
+        Requires Portal-Login (session-based authentication).
+        Supports range requests for video seeking.
+      operationId: streamAsset
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: |
+            The Jellyfin item ID (can be numeric or GUID format).
+            This ID references a video item in the Jellyfin media library.
+      responses:
+        "200":
+          description: Stream successfully proxied
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: video/mp4
+            Accept-Ranges:
+              schema:
+                type: string
+                example: bytes
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+            video/x-matroska:
+              schema:
+                type: string
+                format: binary
+        "206":
+          description: Partial content (range request)
+          headers:
+            Content-Range:
+              schema:
+                type: string
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Not authenticated
+          content:
+            application\json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Asset not found
+          content:
+            application\json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error or stream error
+          content:
+            application\json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
   /api/v1/media/video:
@@ -5700,3 +5961,201 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/EpisodePlaybackGrant"
+    GroupPeriod:
+      type: object
+      properties:
+        start:
+          type: string
+          nullable: true
+          description: Start date or period description
+        end:
+          type: string
+          nullable: true
+          description: End date or period description
+    GroupStats:
+      type: object
+      required: [member_count, episode_count]
+      properties:
+        member_count:
+          type: integer
+          format: int32
+          description: Number of members in the group
+        episode_count:
+          type: integer
+          format: int32
+          description: Number of episodes released by the group
+    GroupDetail:
+      type: object
+      required:
+        - id
+        - anime_id
+        - fansub_id
+        - fansub
+        - stats
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Group detail record ID
+        anime_id:
+          type: integer
+          format: int64
+        fansub_id:
+          type: integer
+          format: int64
+        fansub:
+          allOf:
+            - $ref: "#/components/schemas/FansubGroupSummary"
+            - type: object
+              properties:
+                logo_url:
+                  type: string
+                  nullable: true
+        story:
+          type: string
+          nullable: true
+          description: Story or notes about this group's work on this anime
+        period:
+          allOf:
+            - $ref: "#/components/schemas/GroupPeriod"
+          nullable: true
+        stats:
+          $ref: "#/components/schemas/GroupStats"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    GroupDetailResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/GroupDetail"
+    EpisodeReleaseSummary:
+      type: object
+      required:
+        - id
+        - episode_number
+        - has_op
+        - has_ed
+        - karaoke_count
+        - insert_count
+        - screenshot_count
+      properties:
+        id:
+          type: integer
+          format: int64
+        episode_number:
+          type: integer
+          format: int32
+        title:
+          type: string
+          nullable: true
+        has_op:
+          type: boolean
+          description: Episode has opening
+        has_ed:
+          type: boolean
+          description: Episode has ending
+        karaoke_count:
+          type: integer
+          format: int32
+          description: Number of karaoke extras
+        insert_count:
+          type: integer
+          format: int32
+          description: Number of insert songs
+        screenshot_count:
+          type: integer
+          format: int32
+          description: Number of screenshots available
+        thumbnail_url:
+          type: string
+          nullable: true
+        released_at:
+          type: string
+          format: date-time
+          nullable: true
+    GroupReleasesData:
+      type: object
+      required: [group, episodes, other_groups]
+      properties:
+        group:
+          $ref: "#/components/schemas/GroupDetail"
+        episodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/EpisodeReleaseSummary"
+        other_groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/FansubGroupSummary"
+          description: Other fansub groups that worked on this anime
+    GroupReleasesResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/GroupReleasesData"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+    EpisodeVersionImage:
+      type: object
+      required:
+        - id
+        - episode_version_id
+        - url
+        - display_order
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        episode_version_id:
+          type: integer
+          format: int64
+        url:
+          type: string
+          description: Image URL (will be proxied via /api/v1/media/image)
+        thumbnail_url:
+          type: string
+          nullable: true
+          description: Thumbnail URL (smaller version)
+        width:
+          type: integer
+          format: int32
+          nullable: true
+        height:
+          type: integer
+          format: int32
+          nullable: true
+        caption:
+          type: string
+          nullable: true
+        display_order:
+          type: integer
+          format: int32
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    EpisodeVersionImagesResponse:
+      type: object
+      required:
+        - images
+      properties:
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/EpisodeVersionImage"
+        cursor:
+          type: string
+          nullable: true
+          description: Cursor for next page (ID-based, null if no more pages)

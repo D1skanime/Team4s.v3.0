@@ -1,0 +1,130 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+}
+
+.navButton {
+  pointer-events: auto;
+  margin: 0 8px;
+  width: var(--group-nav-button-size, 40px);
+  height: var(--group-nav-button-size, 40px);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--group-nav-border-color, var(--color-border));
+  background: var(--group-nav-bg, var(--color-white));
+  color: var(--group-nav-color, var(--color-text-primary));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.navButton:hover:not(:disabled),
+.navButton:focus-visible:not(:disabled) {
+  border-color: var(--group-nav-hover-border-color, var(--color-primary));
+  color: var(--group-nav-hover-color, var(--color-primary));
+}
+
+.navButton:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.previewCard {
+  pointer-events: none;
+  position: absolute;
+  top: 12px;
+  width: min(280px, calc(100% - 5.5rem));
+  border-radius: var(--radius-md);
+  border: 1px solid var(--group-nav-preview-border, var(--color-border));
+  background: var(--group-nav-preview-bg, var(--color-white));
+  box-shadow: var(--group-nav-preview-shadow, 0 2px 8px rgba(0, 0, 0, 0.08));
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+}
+
+.previewLeft {
+  left: 3.2rem;
+}
+
+.previewRight {
+  right: 3.2rem;
+}
+
+.previewLogo {
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  flex: 0 0 auto;
+  background: var(--color-surface);
+}
+
+.previewLogoPlaceholder {
+  width: 66px;
+  height: 66px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.previewLogoInitial {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.previewMeta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.previewTitle {
+  margin: 0;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--group-nav-preview-title, var(--color-text-primary));
+}
+
+.previewSubtitle {
+  margin: 4px 0 0;
+  color: var(--group-nav-preview-subtitle, var(--color-text-secondary));
+  font-size: 14px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .overlay {
+    position: static;
+    inset: auto;
+    margin-top: 12px;
+    pointer-events: auto;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .previewCard {
+    position: static;
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .previewLeft,
+  .previewRight {
+    left: auto;
+    right: auto;
+  }
+}

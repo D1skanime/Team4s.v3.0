@@ -1,0 +1,145 @@
+# Asset Stream Proxy Contract
+# Endpoint: GET /api/v1/assets/:assetId/stream
+
+description: |
+  Proxies video stream requests from Jellyfin for authenticated users.
+  Requires Portal-Login (session-based authentication).
+  Supports range requests for video seeking.
+
+paths:
+  /api/v1/assets/{assetId}/stream:
+    get:
+      summary: Stream a media asset
+      description: |
+        Proxies a video stream from Jellyfin to the authenticated client.
+        The backend fetches the stream from Jellyfin and forwards it to the client
+        without exposing Jellyfin credentials to the browser.
+
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: |
+            The Jellyfin item ID (can be numeric or GUID format).
+            This ID references a video item in the Jellyfin media library.
+
+      security:
+        - PortalSession: []
+
+      responses:
+        200:
+          description: Stream successfully proxied
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: video/mp4
+              description: MIME type of the video stream
+            Content-Length:
+              schema:
+                type: integer
+              description: Total size of the video (if not chunked)
+            Content-Range:
+              schema:
+                type: string
+              description: Byte range being returned (for range requests)
+            Accept-Ranges:
+              schema:
+                type: string
+                example: bytes
+              description: Indicates server supports range requests
+            Cache-Control:
+              schema:
+                type: string
+              description: Caching directives
+            ETag:
+              schema:
+                type: string
+              description: Entity tag for caching
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+            video/x-matroska:
+              schema:
+                type: string
+                format: binary
+
+        206:
+          description: Partial content (range request)
+          headers:
+            Content-Type:
+              schema:
+                type: string
+            Content-Range:
+              schema:
+                type: string
+            Content-Length:
+              schema:
+                type: integer
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+
+        401:
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: anmeldung erforderlich
+
+        404:
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: asset nicht gefunden
+
+        500:
+          description: Internal server error or stream error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: stream fehler
+
+security_schemes:
+  PortalSession:
+    type: apiKey
+    in: header
+    name: Authorization
+    description: |
+      Portal session token issued via /api/v1/auth/issue endpoint.
+      Format: "Bearer <token>"
+
+notes:
+  - The backend never exposes Jellyfin API keys to the client
+  - Range requests (HTTP Range header) are forwarded to Jellyfin for video seeking
+  - Response headers from Jellyfin (Content-Type, Content-Range, etc.) are forwarded to client
+  - Video content is streamed (not buffered) for optimal memory usage
+  - Timeout is set to 0 to support long-running stream connections

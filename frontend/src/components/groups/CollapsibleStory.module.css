@@ -1,0 +1,77 @@
+.storyCollapsible {
+  position: relative;
+}
+
+.storyContent {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.storyContentCollapsed {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  max-height: 120px;
+  overflow: hidden;
+  position: relative;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.storyContentCollapsed::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, var(--color-surface, #f9f9f9));
+  pointer-events: none;
+}
+
+.storyContentExpanded {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  max-height: none;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.expandButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.expandButton:hover {
+  background: var(--color-surface-hover, #f0f0f0);
+  border-color: var(--color-primary);
+}
+
+.expandButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.expandIcon {
+  display: inline-block;
+  transition: transform 0.3s ease-in-out;
+  font-size: 10px;
+}
+
+.expandIconRotated {
+  display: inline-block;
+  transform: rotate(180deg);
+  transition: transform 0.3s ease-in-out;
+  font-size: 10px;
+}

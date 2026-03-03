@@ -4,7 +4,10 @@ import { ArrowLeft, Download, ExternalLink, Eye, Play } from 'lucide-react'
 import { ApiError, getEpisodeByID } from '@/lib/api'
 import { getPreferredEmbyEpisodeUrl } from '@/lib/emby'
 import { EpisodeStatus } from '@/types/anime'
+import { MediaAsset } from '@/types/mediaAsset'
 
+import MediaAssetsSection from './components/MediaAssetsSection'
+import ScreenshotGallery from './components/ScreenshotGallery'
 import styles from './page.module.css'
 
 interface EpisodeDetailPageProps {
@@ -72,6 +75,66 @@ export default async function EpisodeDetailPage({ params }: EpisodeDetailPagePro
   const title = episode.title ?? `Folge ${episode.episode_number}`
   const embyEpisodeUrl = getPreferredEmbyEpisodeUrl(episode.anime_id, episode.stream_links)
   const playbackProxyUrl = `/api/episodes/${episode.id}/play`
+
+  // Mock data for media assets (EPIC 8 will implement API)
+  const mockAssets: MediaAsset[] = [
+    {
+      id: 1,
+      type: 'opening',
+      title: 'Opening 1',
+      duration_seconds: 90,
+      thumbnail_url: null,
+      order: 1,
+    },
+    {
+      id: 2,
+      type: 'opening',
+      title: 'Opening 2 (TV Size)',
+      duration_seconds: 87,
+      thumbnail_url: null,
+      order: 2,
+    },
+    {
+      id: 3,
+      type: 'opening',
+      title: 'Opening 3 (Special Version)',
+      duration_seconds: 92,
+      thumbnail_url: null,
+      order: 3,
+    },
+    {
+      id: 4,
+      type: 'ending',
+      title: 'Ending 1',
+      duration_seconds: 88,
+      thumbnail_url: null,
+      order: 1,
+    },
+    {
+      id: 5,
+      type: 'ending',
+      title: 'Ending 2',
+      duration_seconds: 85,
+      thumbnail_url: null,
+      order: 2,
+    },
+    {
+      id: 6,
+      type: 'karaoke',
+      title: 'Karaoke Opening',
+      duration_seconds: 90,
+      thumbnail_url: null,
+      order: 1,
+    },
+    {
+      id: 7,
+      type: 'insert',
+      title: 'Insert Song 1',
+      duration_seconds: 120,
+      thumbnail_url: null,
+      order: 1,
+    },
+  ]
 
   return (
     <main className={styles.page}>
@@ -145,6 +208,10 @@ export default async function EpisodeDetailPage({ params }: EpisodeDetailPagePro
           )}
         </div>
       </section>
+
+      <MediaAssetsSection assets={mockAssets} />
+
+      <ScreenshotGallery releaseId={episode.id} />
     </main>
   )
 }
