@@ -55,8 +55,16 @@ func classifyJellyfinUpstreamError(err error, fallbackMessage string) (string, s
 		details := "Jellyfin API meldet 401/403. Bitte API-Key und Berechtigungen pruefen."
 		return "jellyfin token ungueltig", "jellyfin_auth_invalid", &details
 	case strings.Contains(normalized, "context deadline exceeded"),
-		strings.Contains(normalized, "call jellyfin:"):
-		details := "Die Verbindung zu Jellyfin konnte nicht aufgebaut werden oder hat zu lange gedauert."
+		strings.Contains(normalized, "i/o timeout"),
+		strings.Contains(normalized, "operation timed out"),
+		strings.Contains(normalized, "category=timeout"):
+		details := "Die Jellyfin-Anfrage hat das Timeout erreicht. Bitte Netzwerkpfad, Serverlast und Timeout-Konfiguration pruefen."
+		return "server nicht erreichbar", "jellyfin_unreachable", &details
+	case strings.Contains(normalized, "call jellyfin:"),
+		strings.Contains(normalized, "connection refused"),
+		strings.Contains(normalized, "no such host"),
+		strings.Contains(normalized, "network is unreachable"):
+		details := "Die Verbindung zu Jellyfin konnte nicht aufgebaut werden. Bitte Host, Port, DNS und Erreichbarkeit pruefen."
 		return "server nicht erreichbar", "jellyfin_unreachable", &details
 	case strings.Contains(normalized, "decode jellyfin response"),
 		strings.Contains(normalized, "read jellyfin response"):

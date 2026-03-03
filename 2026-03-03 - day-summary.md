@@ -11,8 +11,12 @@
   - Remaining frontend `img` usage migrated to `next/image`.
   - Admin sync copy clarified: bulk season sync vs corrective single-episode sync.
   - `SyncEpisodeFromJellyfin` extracted into `backend/internal/handlers/jellyfin_episode_sync.go`.
+  - Sync handler entrypoints fully modularized for this slice (`jellyfin_sync.go` -> 144 lines, `jellyfin_episode_sync.go` -> 114 lines).
   - Cropper math extracted and covered by deterministic Vitest tests.
   - `pg_trgm` anime search migration added (`0017`) and applied locally.
+  - Timeout diagnostics added in Jellyfin shared client path (`path`, `elapsed_ms`, transport category logging).
+  - Sync/admin hardening review + diagnostics/deployment/search runbooks documented.
+  - CI-equivalent checks and admin smoke suite re-run successfully.
   - 10 unreferenced broken cover artifacts removed from public assets.
 
 ## Structural Decisions
@@ -24,6 +28,11 @@
 - Backend:
   - New: `backend/internal/handlers/jellyfin_episode_sync.go`
   - Updated: `backend/internal/handlers/jellyfin_sync.go`
+  - New: `backend/internal/handlers/jellyfin_sync_flow_helpers.go`
+  - New: `backend/internal/handlers/jellyfin_sync_import_helpers.go`
+  - New: `backend/internal/handlers/jellyfin_episode_sync_helpers.go`
+  - Updated: `backend/internal/handlers/jellyfin_client.go`
+  - Updated: `backend/internal/handlers/jellyfin_error_responses.go`
   - New migration: `database/migrations/0017_anime_search_trgm.up.sql`
   - New migration: `database/migrations/0017_anime_search_trgm.down.sql`
 - Frontend:
@@ -32,6 +41,11 @@
   - New crop utility: `frontend/src/components/admin/mediaUploadCropMath.ts`
   - New tests: `frontend/src/components/admin/mediaUploadCropMath.test.ts`
   - Cleanup: removed broken files in `frontend/public/covers`
+- Docs/Ops:
+  - New: `docs/reviews/2026-03-03-sync-admin-hardening-review.md`
+  - New: `docs/operations/jellyfin-timeout-diagnostics.md`
+  - New: `docs/operations/deployment-hardening-checklist.md`
+  - New: `docs/performance/anime-search-query-plan-tracking.md`
 
 ## Problems Solved
 - Maintained handler behavior while beginning modular split for better readability.
@@ -40,9 +54,7 @@
 - Reduced search-latency risk at scale through trigram indexing.
 
 ## Problems Found But Not Fully Solved
-- Jellyfin upstream intermittently returns timeout/unreachable behavior (`server nicht erreichbar`).
-- Remaining sync handlers still exceed the 150-line target in parts.
-- CI-equivalent full regression was not yet rerun after all changes in one pass.
+- Jellyfin upstream intermittently returns timeout/unreachable behavior (`server nicht erreichbar`) and needs trend monitoring despite better diagnostics.
 
 ## Ideas Explored and Rejected
 - Rejected making single-episode sync the normal workflow; bulk sync remains the operational default.
@@ -53,12 +65,17 @@
   - `go test ./...` (backend) passed
   - `npm test` (frontend) passed
   - `npm run build` (frontend) passed
+  - `scripts/smoke-admin-content.ps1` passed (25/25)
   - `docker compose up -d --build team4sv30-backend` + health check `200`
   - `docker compose up -d --build team4sv30-frontend` + route checks `200`
 - Benchmark notes:
   - Anime search query benchmark showed significant improvement with trigram index at larger synthetic scale.
 - Tracking docs updated:
   - `DAYLOG.md`, `CONTEXT.md`, `STATUS.md`, `TODO.md`, `RISKS.md`, `TOMORROW.md`, `WORKING_NOTES.md`, `DECISIONS.md`
+  - `docs/reviews/2026-03-03-sync-admin-hardening-review.md`
+  - `docs/operations/jellyfin-timeout-diagnostics.md`
+  - `docs/operations/deployment-hardening-checklist.md`
+  - `docs/performance/anime-search-query-plan-tracking.md`
 
 ## Tradeoffs / Open Questions
 - Extra DB index improves read search at scale but increases write/index maintenance cost.
@@ -66,8 +83,8 @@
 
 ## Next Steps
 1. Continue modularization of remaining large Jellyfin handlers/helpers.
-2. Run CI-equivalent full regression and fix any drift immediately.
-3. Add timeout-focused diagnostics/runbook entries for Jellyfin sync failures.
+2. Add timeout simulation regression coverage for Jellyfin transport failure paths.
+3. Run deployment checklist rehearsal and keep weekly query-plan drift snapshots.
 
 ## First Task Tomorrow
-- Open `backend/internal/handlers/jellyfin_sync.go`, identify the next oversized block, and extract it into a focused helper/handler file.
+- Run the selective `%nar%` query-plan snapshot from `docs/performance/anime-search-query-plan-tracking.md` and capture the result as weekly baseline evidence.

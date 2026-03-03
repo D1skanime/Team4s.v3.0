@@ -2,28 +2,28 @@
 
 ## Top 3 Risks
 
-### 1. Jellyfin Handler Modularization Still Incomplete
-- **Impact:** Medium
-- **Likelihood:** High
-- **Status:** `SyncEpisodeFromJellyfin` is extracted, but remaining sync handlers/helpers still exceed the 150-line target in parts
-- **Mitigation:** Continue split into focused handler/helper files while preserving API behavior and tests
-
-### 2. Intermittent Jellyfin Upstream Timeouts
+### 1. Intermittent Jellyfin Upstream Timeouts Remain Environment-Dependent
 - **Impact:** Medium
 - **Likelihood:** Medium
-- **Status:** Operators still occasionally hit `server nicht erreichbar` despite valid config
-- **Mitigation:** Add tighter timeout/error diagnostics and keep retry/resync workflow explicit in UI/runbook
+- **Status:** Transport diagnostics are now in place, but upstream/network variability can still trigger `server nicht erreichbar`
+- **Mitigation:** Use `docs/operations/jellyfin-timeout-diagnostics.md` during incidents and track timeout log frequency over repeated runs
 
-### 3. Local/CI Drift Risk After Refactors + Migration
+### 2. Timeout Diagnostics Need Ongoing Signal Validation
 - **Impact:** Low
 - **Likelihood:** Medium
-- **Status:** Local validations passed, but CI regression path has not been re-run since today's handler/crop/migration changes
-- **Mitigation:** Execute CI-equivalent suite next session and fix drift immediately if detected
+- **Status:** Diagnostics were added centrally, but trend behavior under higher load is not yet benchmarked
+- **Mitigation:** Add timeout simulation fixture and review log quality/noise weekly
+
+### 3. Search Query Plan Drift as Dataset Grows
+- **Impact:** Low
+- **Likelihood:** Medium
+- **Status:** `pg_trgm` baseline is documented, but plan behavior can change with cardinality and planner statistics
+- **Mitigation:** Run the weekly query-plan checks in `docs/performance/anime-search-query-plan-tracking.md`
 
 ## Current Blockers
 - None
 
 ## If Nothing Changes
-- Remaining sync handlers stay harder to maintain and review
-- Jellyfin timeout incidents remain harder to triage under operator pressure
-- A CI-only regression could slip through despite local green runs
+- Jellyfin timeout incidents can recur without clear trend ownership
+- Diagnostic quality may degrade if logs are not periodically reviewed
+- Search latency could regress silently as dataset size changes

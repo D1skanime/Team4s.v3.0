@@ -4,6 +4,10 @@
 - Migrated remaining frontend `img` usage to `next/image` across admin and public surfaces; build + local deploy validated.
 - Added explicit sync workflow copy in admin: bulk season sync is now clearly separated from corrective single-episode sync.
 - Extracted `SyncEpisodeFromJellyfin` into `backend/internal/handlers/jellyfin_episode_sync.go` as first handler modularization step; backend tests passed and backend redeployed.
+- Completed the next handler modularization step for sync lanes: `jellyfin_sync.go` reduced to 144 lines and `jellyfin_episode_sync.go` reduced to 114 lines using focused helper files.
+- Added centralized Jellyfin transport diagnostics in `fetchJellyfinJSON` with failure log context (`path`, `elapsed_ms`, `category`) to improve timeout/connectivity triage.
+- Documented sync/admin hardening review findings and created operator runbooks for timeout diagnostics, deployment hardening, and search query-plan tracking.
+- Re-ran full CI-equivalent checks (`go test ./...`, `npm test`, `npm run build`) and executed `scripts/smoke-admin-content.ps1` (25/25 passed).
 - Added deterministic cropper parity coverage by extracting crop math to `mediaUploadCropMath.ts` and adding focused Vitest assertions.
 - Benchmarked anime search with/without trigram index at scale and added migration `0017_anime_search_trgm` (applied locally).
 - Removed 10 unreferenced broken cover artifacts from `frontend/public/covers` (HTML/GZIP/empty binaries).

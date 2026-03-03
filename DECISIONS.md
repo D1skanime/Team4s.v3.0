@@ -56,6 +56,42 @@ Reference verification made deletion low-risk and reduced static asset clutter. 
 - Any accidental future dependency on deleted filenames would now fail fast instead of serving broken data
 - Cleanup process established: validate DB references before deleting asset artifacts
 
+### Decision
+Complete the next Jellyfin modularization step by splitting sync orchestration from import/cleanup helpers while preserving API behavior.
+
+### Context
+After extracting `SyncEpisodeFromJellyfin`, the active sync entrypoints still carried too much mixed responsibility in single files and violated the maintainability target.
+
+### Options Considered
+- Keep current files and defer further split
+- Extract focused helper files for flow, import, and episode-sync helper logic
+
+### Why This Won
+The split keeps entrypoint handlers focused on request orchestration and error boundaries while moving import/metadata/cleanup behavior into reusable, testable units.
+
+### Consequences
+- `jellyfin_sync.go` and `jellyfin_episode_sync.go` are now below the 150-line target
+- New helper files increase file count but reduce cognitive load per file
+- Behavior remains contract-compatible; regression risk stays controlled with full test reruns
+
+### Decision
+Centralize Jellyfin timeout/connectivity diagnostics at the shared HTTP client boundary (`fetchJellyfinJSON`) and document operator triage.
+
+### Context
+Operators reported intermittent `server nicht erreichbar` incidents without enough detail to quickly distinguish timeout, connectivity, or other transport causes.
+
+### Options Considered
+- Keep existing generic error mapping only
+- Add transport-level diagnostics + explicit runbook while keeping response contract stable
+
+### Why This Won
+Client-boundary logging captures every Jellyfin route uniformly and enables repeatable triage without introducing contract churn in frontend/backends.
+
+### Consequences
+- Logs now include `path`, `elapsed_ms`, and transport `category`
+- `error.code` compatibility remains unchanged for frontend mapping
+- New diagnostics require periodic review to ensure sustained signal quality
+
 ## 2026-03-02
 
 ### Decision

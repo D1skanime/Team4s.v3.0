@@ -1,15 +1,11 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
-
-	"team4s.v3/backend/internal/models"
-	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -61,77 +57,14 @@ func (h *AdminContentHandler) SyncEpisodeFromJellyfin(c *gin.Context) {
 		return
 	}
 
-	animeSource, sourceErr := h.repo.GetAnimeSyncSource(c.Request.Context(), animeID)
-	if errors.Is(sourceErr, repository.ErrNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": gin.H{
-				"message": "anime nicht gefunden",
-			},
-		})
-		return
-	}
-	if sourceErr != nil {
-		log.Printf("admin_content jellyfin_episode_sync: load anime failed (user_id=%d, anime_id=%d): %v", identity.UserID, animeID, sourceErr)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": gin.H{
-				"message": "interner serverfehler",
-			},
-		})
-		return
-	}
-
-	seriesTitles := uniqueLookupTitles(animeSource.Title, animeSource.TitleDE, animeSource.TitleEN)
-	resolvedSeriesID := strings.TrimSpace(input.JellyfinSeriesID)
-	if resolvedSeriesID == "" {
-		resolvedSeriesID = jellyfinSeriesIDFromSource(animeSource.Source)
-	}
-
-	series, statusCode, resolveErr := h.resolveJellyfinSeries(c.Request.Context(), seriesTitles, resolvedSeriesID)
-	if resolveErr != nil {
-		log.Printf(
-			"admin_content jellyfin_episode_sync: resolve series failed (user_id=%d, anime_id=%d, series_id=%q): %v",
-			identity.UserID,
-			animeID,
-			input.JellyfinSeriesID,
-			resolveErr,
-		)
-		code, details := classifyJellyfinResolutionError(statusCode, resolveErr.Error())
-		writeJellyfinErrorResponse(c, statusCode, resolveErr.Error(), code, details)
-		return
-	}
-
-	episodes, listErr := h.listJellyfinEpisodes(c.Request.Context(), series.ID)
-	if listErr != nil {
-		log.Printf(
-			"admin_content jellyfin_episode_sync: list episodes failed (user_id=%d, anime_id=%d, series_id=%s): %v",
-			identity.UserID,
-			animeID,
-			series.ID,
-			listErr,
-		)
-		message, code, details := classifyJellyfinUpstreamError(listErr, "jellyfin episoden konnten nicht geladen werden")
-		writeJellyfinErrorResponse(c, http.StatusBadGateway, message, code, details)
+	_, series, episodes, ok := h.loadJellyfinEpisodeSyncSeriesAndEpisodes(c, identity.UserID, animeID, input)
+	if !ok {
 		return
 	}
 
 	sortJellyfinEpisodes(episodes)
 
-	normalizedPathPrefix := normalizeJellyfinPath(normalizeNullableStringPtr(series.Path))
-	var targetEpisode *jellyfinEpisodeItem
-	for i := range episodes {
-		ep := &episodes[i]
-		if jellyfinSeasonNumber(ep.ParentIndexNumber) != input.SeasonNumber {
-			continue
-		}
-		if normalizedPathPrefix != "" && !jellyfinPathHasPrefix(ep.Path, normalizedPathPrefix) {
-			continue
-		}
-		epNum := jellyfinEpisodeNumber(ep.IndexNumber)
-		if epNum == int32(targetEpisodeNumber) {
-			targetEpisode = ep
-			break
-		}
-	}
+	targetEpisode := findTargetJellyfinEpisode(episodes, input.SeasonNumber, normalizeNullableStringPtr(series.Path), int32(targetEpisodeNumber))
 
 	if targetEpisode == nil {
 		details := fmt.Sprintf("Episode %d wurde nicht in Jellyfin gefunden. Bitte Season-Nummer und Pfad-Filter pruefen.", targetEpisodeNumber)
@@ -150,104 +83,19 @@ func (h *AdminContentHandler) SyncEpisodeFromJellyfin(c *gin.Context) {
 		return
 	}
 
-	var fansubGroupID *int64
-	aliasResolver := newFansubAliasResolver(nil)
-	if h.fansubRepo != nil {
-		candidates, aliasErr := h.fansubRepo.ListAnimeAliasCandidates(c.Request.Context(), animeID)
-		if aliasErr == nil {
-			aliasResolver = newFansubAliasResolver(candidates)
-			fansubGroupID = aliasResolver.Resolve(targetEpisode.Name, targetEpisode.Path)
-		}
-	}
-
-	var deletedCount int64
-	if input.CleanupProviderVersions {
-		deleted, deleteErr := h.episodeVersionRepo.DeleteByAnimeEpisodeNumberAndProvider(
-			c.Request.Context(),
-			animeID,
-			episodeNumber,
-			"jellyfin",
-		)
-		if deleteErr != nil {
-			log.Printf(
-				"admin_content jellyfin_episode_sync: delete existing versions failed (user_id=%d, anime_id=%d, episode=%d): %v",
-				identity.UserID,
-				animeID,
-				episodeNumber,
-				deleteErr,
-			)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": gin.H{
-					"message": "bestehende versionen konnten nicht geloescht werden",
-				},
-			})
-			return
-		}
-		deletedCount = deleted
-		log.Printf(
-			"admin_content jellyfin_episode_sync: deleted %d existing jellyfin versions (user_id=%d, anime_id=%d, episode=%d)",
-			deleted,
-			identity.UserID,
-			animeID,
-			episodeNumber,
-		)
-	}
-
-	episodeNumberText := strconv.Itoa(int(episodeNumber))
-	episodeTitle := normalizeNullableStringPtr(targetEpisode.Name)
-	_, episodeCreated, upsertEpisodeErr := h.repo.UpsertEpisodeByAnimeAndNumber(
-		c.Request.Context(),
-		animeID,
-		episodeNumberText,
-		episodeTitle,
-		input.EpisodeStatus,
-		false,
-	)
-	if upsertEpisodeErr != nil {
-		log.Printf(
-			"admin_content jellyfin_episode_sync: upsert episode failed (anime_id=%d, episode=%d, item_id=%s): %v",
-			animeID,
-			episodeNumber,
-			mediaItemID,
-			upsertEpisodeErr,
-		)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": gin.H{
-				"message": "episode import fehlgeschlagen",
-			},
-		})
+	fansubGroupID := h.resolveJellyfinEpisodeFansubGroupID(c, animeID, targetEpisode)
+	deletedCount, ok := h.cleanupJellyfinEpisodeProviderVersions(c, identity.UserID, animeID, episodeNumber, input.CleanupProviderVersions)
+	if !ok {
 		return
 	}
 
-	_, versionCreated, upsertVersionErr := h.episodeVersionRepo.UpsertByMediaSource(
-		c.Request.Context(),
-		models.EpisodeVersionCreateInput{
-			AnimeID:       animeID,
-			EpisodeNumber: episodeNumber,
-			Title:         episodeTitle,
-			FansubGroupID: fansubGroupID,
-			MediaProvider: "jellyfin",
-			MediaItemID:   mediaItemID,
-			VideoQuality:  jellyfinVideoQuality(targetEpisode.MediaStreams),
-			SubtitleType:  nil,
-			ReleaseDate:   parseJellyfinPremiereDate(targetEpisode.PremiereDate),
-			StreamURL:     h.buildJellyfinEditorStreamURL(mediaItemID),
-		},
-		false,
-	)
-	if upsertVersionErr != nil {
-		log.Printf(
-			"admin_content jellyfin_episode_sync: upsert version failed (anime_id=%d, episode=%d, item_id=%s): %v",
-			animeID,
-			episodeNumber,
-			mediaItemID,
-			upsertVersionErr,
-		)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": gin.H{
-				"message": "version import fehlgeschlagen",
-			},
-		})
+	episodeTitle, episodeCreated, ok := h.upsertJellyfinEpisode(c, animeID, episodeNumber, mediaItemID, targetEpisode, input)
+	if !ok {
+		return
+	}
+
+	versionCreated, ok := h.upsertJellyfinEpisodeVersion(c, animeID, episodeNumber, mediaItemID, episodeTitle, fansubGroupID, targetEpisode)
+	if !ok {
 		return
 	}
 

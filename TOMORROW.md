@@ -1,17 +1,17 @@
 # TOMORROW
 
 ## Top 3 Priorities
-1. Continue Jellyfin handler modularization beyond episode extraction (`jellyfin_sync.go`, `jellyfin_episode_sync.go`)
-2. Run a full code/architecture/UX review pass across sync/admin surfaces and capture findings
-3. Verify CI-equivalent regression path (`go test`, `npm test`, `npm run build`) and migration health on a clean start
+1. Add timeout-simulation regression coverage for Jellyfin transport failures
+2. Run one deployment rehearsal using `docs/operations/deployment-hardening-checklist.md`
+3. Capture first weekly query-plan snapshot using `docs/performance/anime-search-query-plan-tracking.md`
 
 ## First 15-Minute Task
-Open `backend/internal/handlers/jellyfin_sync.go`, list remaining oversized handlers/helpers with rough line counts, and choose the first extraction target for a new focused file.
+Run the selective `%nar%` query-plan command from `docs/performance/anime-search-query-plan-tracking.md` and append the result as today's first snapshot.
 
 ## Dependencies To Unblock
-- Ensure the Jellyfin test instance is reachable before sync smoke tests
-- Confirm CI job/runtime parity with local toolchain versions
+- Ensure the Jellyfin test instance is reachable before timeout simulation checks
+- Confirm deployment rehearsal environment has valid auth secret available for smoke scripts
 
 ## Nice-To-Have
-- Add lightweight diagnostics around Jellyfin timeout/error cases in admin sync flow
-- Document the local `pg_trgm` benchmark method/results in a durable note
+- Add one focused backend test for timeout classification/details mapping
+- Attach a sample `jellyfin_http` timeout log excerpt into the diagnostics runbook

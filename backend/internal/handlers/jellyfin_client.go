@@ -6,10 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Jellyfin API response types
@@ -136,6 +139,8 @@ func (h *AdminContentHandler) fetchJellyfinJSON(
 	query url.Values,
 	target any,
 ) (int, error) {
+	startedAt := time.Now()
+
 	baseURL := strings.TrimSpace(h.jellyfinBaseURL)
 	if baseURL == "" {
 		return http.StatusServiceUnavailable, errors.New("jellyfin base url missing")
@@ -172,21 +177,74 @@ func (h *AdminContentHandler) fetchJellyfinJSON(
 
 	resp, err := h.httpClient.Do(req)
 	if err != nil {
+		log.Printf(
+			"admin_content jellyfin_http: request failed (path=%s, elapsed_ms=%d, category=%s): %v",
+			strings.TrimSpace(apiPath),
+			time.Since(startedAt).Milliseconds(),
+			classifyJellyfinTransportError(err),
+			err,
+		)
 		return 0, fmt.Errorf("call jellyfin: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
+		log.Printf(
+			"admin_content jellyfin_http: upstream status (path=%s, status=%d, elapsed_ms=%d)",
+			strings.TrimSpace(apiPath),
+			resp.StatusCode,
+			time.Since(startedAt).Milliseconds(),
+		)
 		return resp.StatusCode, fmt.Errorf("jellyfin returned status %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		log.Printf(
+			"admin_content jellyfin_http: read response failed (path=%s, status=%d, elapsed_ms=%d): %v",
+			strings.TrimSpace(apiPath),
+			resp.StatusCode,
+			time.Since(startedAt).Milliseconds(),
+			err,
+		)
 		return resp.StatusCode, fmt.Errorf("read jellyfin response: %w", err)
 	}
 	if err := json.Unmarshal(body, target); err != nil {
+		log.Printf(
+			"admin_content jellyfin_http: decode response failed (path=%s, status=%d, elapsed_ms=%d): %v",
+			strings.TrimSpace(apiPath),
+			resp.StatusCode,
+			time.Since(startedAt).Milliseconds(),
+			err,
+		)
 		return resp.StatusCode, fmt.Errorf("decode jellyfin response: %w", err)
 	}
 
 	return resp.StatusCode, nil
+}
+
+func classifyJellyfinTransportError(err error) string {
+	if err == nil {
+		return "unknown"
+	}
+
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "timeout"
+	}
+
+	var netErr net.Error
+	if errors.As(err, &netErr) && netErr.Timeout() {
+		return "timeout"
+	}
+
+	normalized := strings.ToLower(strings.TrimSpace(err.Error()))
+	switch {
+	case strings.Contains(normalized, "connection refused"),
+		strings.Contains(normalized, "no such host"),
+		strings.Contains(normalized, "network is unreachable"),
+		strings.Contains(normalized, "connectex"):
+		return "connectivity"
+	default:
+		return "transport"
+	}
 }

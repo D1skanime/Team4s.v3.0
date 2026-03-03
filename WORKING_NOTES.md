@@ -1,10 +1,10 @@
 # WORKING_NOTES
 
 ## Active Threads
-- Full Jellyfin sync remains bulk-default and single-episode sync remains corrective; continue handler modularization without changing behavior
-- Intermittent Jellyfin timeout reports (`server nicht erreichbar`) need tighter diagnostics and repeatable triage steps
-- Full code/architecture/UX review is still needed across sync/admin slices after today's refactors
-- CI-equivalent regression validation still needs a fresh pass after crop utility extraction and migration work
+- Full Jellyfin sync remains bulk-default and single-episode sync remains corrective; keep behavior stable while extending tests
+- Jellyfin timeout diagnostics are now centralized in transport logs; next step is timeout simulation coverage + trend review
+- Sync/admin hardening review is documented; follow-ups are now focused on rehearsal and observability hygiene
+- CI-equivalent regression validation is green after refactor and diagnostics updates
 - Security follow-through: `.env` stays local-only and untracked; secret rotation discipline still matters
 
 ## Required Contracts / UX Notes
@@ -38,32 +38,44 @@ curl -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admi
 ```
 
 ## Parking Lot
-- Resume handler modularization after the sync and episode-visibility slices are locked
-- Add lightweight timeout telemetry around Jellyfin sync/admin operations
 - Capture and retain query-plan snapshots as anime dataset grows post-`pg_trgm`
+- Add explicit timeout simulation fixture for Jellyfin admin flows
+- Run deployment hardening checklist as a timed rehearsal
 
 ### Day 2026-03-03
-- Phase: P2 closeout hardening + maintainability pass
+- Phase: P2 closeout completed (hardening + maintainability baseline locked)
 - Accomplishments:
   - Migrated remaining frontend `img` usage to `next/image`
   - Clarified sync UI copy (bulk season sync vs corrective single-episode sync)
   - Extracted `SyncEpisodeFromJellyfin` to `jellyfin_episode_sync.go`
+  - Completed next modularization split:
+    - `jellyfin_sync.go` -> 144 lines
+    - `jellyfin_episode_sync.go` -> 114 lines
+    - Added focused sync helper files for flow/import/episode lanes
   - Added deterministic crop math utility + Vitest parity tests
   - Added/applied `0017_anime_search_trgm` migration after benchmark pass
+  - Added `pg_trgm` query-plan tracking doc + baseline snapshot commands/results
+  - Added deployment hardening checklist and Jellyfin timeout diagnostics runbook
+  - Added transport-level Jellyfin diagnostics logging (`path`, `elapsed_ms`, `category`)
   - Removed 10 unreferenced broken cover artifacts from `frontend/public/covers`
+  - Reran full validation:
+    - `go test ./...`
+    - `npm test`
+    - `npm run build`
+    - `scripts/smoke-admin-content.ps1` (25/25)
 - Key Decisions:
   - `pg_trgm` is now the chosen scaling path for substring anime search
   - Crop math belongs in testable pure utilities, not inline UI logic
   - Broken public assets are deleted only after DB reference validation
+  - Jellyfin timeout diagnostics should be centralized at the shared client transport path
 - Risks/Unknowns:
-  - Remaining Jellyfin handlers still need additional modularization
-  - Jellyfin upstream timeout behavior remains intermittent
-  - CI parity has not yet been re-run after all new changes
+  - Jellyfin upstream timeout behavior remains intermittent and environment-dependent
+  - Diagnostics need trend validation under repeated load
 - Next Steps:
-  - Continue handler decomposition with behavior-preserving tests
-  - Run CI-equivalent full regression and resolve any drift
-  - Add timeout-focused diagnostics for Jellyfin operations
-- First task tomorrow: map the next oversized function block in `jellyfin_sync.go` and extract it into a focused helper file
+  - Add timeout simulation test coverage for Jellyfin transport failure paths
+  - Run one deployment rehearsal with the hardening checklist
+  - Capture weekly query-plan drift snapshots
+- First task tomorrow: run a `%nar%` query-plan snapshot and store it as the first weekly baseline check
 
 ### Day 2026-03-01
 - Phase: Sync hardening + episodes overview groundwork

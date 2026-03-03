@@ -2,8 +2,8 @@
 
 ## Project
 - **Name:** Team4s.v3.0
-- **Phase:** P2 closeout - hardening + maintainability pass
-- **Completion:** ~99%
+- **Phase:** P2 closeout completed - hardening + maintainability baseline locked
+- **Completion:** ~100% (P2 scope)
 
 ## Current State
 
@@ -31,12 +31,26 @@
 - Remaining frontend `img` usage migrated to `next/image` (admin + public routes/components)
 - Sync workflow copy clarified in admin UI: season-wide bulk sync vs corrective single-episode sync
 - `SyncEpisodeFromJellyfin` extracted to dedicated handler file `jellyfin_episode_sync.go`
+- Further sync handler modularization completed via focused helper extraction:
+  - `jellyfin_sync_flow_helpers.go`
+  - `jellyfin_sync_import_helpers.go`
+  - `jellyfin_episode_sync_helpers.go`
+- `jellyfin_sync.go` now at 144 lines; `jellyfin_episode_sync.go` now at 114 lines
 - Deterministic cropper parity coverage added via extracted crop math utility + Vitest tests
 - `pg_trgm` anime search migration added (`0017_anime_search_trgm`) and applied in local dev DB
 - Residual unreferenced broken cover artifacts removed from `frontend/public/covers`
+- Jellyfin timeout diagnostics strengthened:
+  - transport-level backend logging in `fetchJellyfinJSON` (`path`, `elapsed_ms`, `category`)
+  - operator runbook added (`docs/operations/jellyfin-timeout-diagnostics.md`)
+- Sync/admin review completed and documented (`docs/reviews/2026-03-03-sync-admin-hardening-review.md`)
+- CI-equivalent and runtime validation rerun:
+  - `go test ./...`
+  - `npm test`
+  - `npm run build`
+  - `scripts/smoke-admin-content.ps1` (25/25)
 
 ### In Progress
-- Continue handler modularization toward the 150-line file rule (`jellyfin_sync.go`, `jellyfin_episode_sync.go`)
+- Post-closeout follow-through: timeout simulation test coverage + deployment rehearsal
 
 ### Blocked
 - None
@@ -62,9 +76,9 @@
 ## Session History
 
 ### Day 2026-03-03
-- Phase: P2 closeout - hardening + maintainability pass
-- Accomplishments: finished `next/image` migration, clarified sync copy, extracted `SyncEpisodeFromJellyfin`, added crop math utility/tests, added/applied `pg_trgm` migration, removed unreferenced broken cover artifacts
-- Key Decisions: keep bulk sync as default and corrective sync separate; adopt `pg_trgm` for scalable substring search; keep crop math in deterministic testable utility functions
-- Risks/Unknowns: remaining Jellyfin handler modularization; intermittent Jellyfin timeout behavior; CI parity not yet re-run after all changes
-- Next Steps: continue handler decomposition, run CI-equivalent regression pass, add timeout diagnostics for Jellyfin operations
-- First task tomorrow: identify and extract the next oversized block in `jellyfin_sync.go` into a focused helper/handler file
+- Phase: P2 closeout completed - hardening + maintainability baseline locked
+- Accomplishments: finished `next/image` migration, clarified sync copy, completed sync handler modularization for active entrypoints, added timeout diagnostics + runbook, added/applied `pg_trgm` migration, removed unreferenced broken cover artifacts, reran full validation + admin smoke checks
+- Key Decisions: keep bulk sync as default and corrective sync separate; adopt `pg_trgm` for scalable substring search; keep crop math in deterministic testable utility functions; centralize Jellyfin transport diagnostics in the shared client path
+- Risks/Unknowns: intermittent Jellyfin upstream behavior remains environment-dependent; timeout diagnostics need continued observation under load
+- Next Steps: add timeout simulation coverage, run deployment rehearsal using the new hardening checklist, and monitor query-plan drift snapshots weekly
+- First task tomorrow: run one timeout-simulation test path for Jellyfin and capture the resulting diagnostics log sample in the runbook

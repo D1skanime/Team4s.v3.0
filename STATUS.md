@@ -19,6 +19,10 @@
 - Grouped episodes API supports lightweight reads via `includeVersions` / `includeFansubs`
 - Frontend regression helpers/tests cover Jellyfin error feedback and confirm-dialog gating
 - Sync UI copy now explicitly separates season-wide bulk sync from corrective single-episode sync
+- Jellyfin sync handler entrypoints are modularized below target:
+  - `backend/internal/handlers/jellyfin_sync.go` (144 lines)
+  - `backend/internal/handlers/jellyfin_episode_sync.go` (114 lines)
+- Jellyfin transport diagnostics now log failure path + latency + category in the shared client path
 - Frontend image rendering uses `next/image` across admin and public surfaces
 - Cropper math now has deterministic parity coverage in Vitest
 - Anime search has `pg_trgm` migration available (`0017_anime_search_trgm`) for scalable substring queries
@@ -38,17 +42,17 @@ curl "http://localhost:8092/api/v1/genres?query=act&limit=3"
 curl -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admin/jellyfin/series?q=Naruto&limit=3"
 curl -X POST -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admin/anime/25/jellyfin/sync"
 curl http://localhost:3002/admin/anime/25/episodes
+powershell -ExecutionPolicy Bypass -File .\scripts\smoke-admin-content.ps1 -AuthTokenSecret <auth-token-secret>
 cd backend && go test ./...
 cd ../frontend && npm test
 cd ../frontend && npm run build
 ```
 
 ## Next (Top 3)
-1. Continue modularization of `jellyfin_sync.go` + `jellyfin_episode_sync.go` toward 150-line handler files
-2. Run full code/architecture/UX review pass across sync and admin surfaces and document actionable findings
-3. Re-run CI-equivalent regression suite and verify migration/runtime parity on fresh startup
+1. Add timeout-simulation regression coverage for Jellyfin transport failures
+2. Run deployment rehearsal once with `docs/operations/deployment-hardening-checklist.md`
+3. Capture weekly `pg_trgm` query-plan snapshots and tune if drift appears
 
 ## Known Risks
-- Jellyfin sync handlers still exceed the 150-line target and need further splitting
 - Jellyfin upstream can intermittently timeout (`server nicht erreichbar`) despite valid configuration
-- CI regression coverage has not yet been re-verified after today's refactors/migrations
+- Timeout diagnostics are now available but still need trend monitoring under load
