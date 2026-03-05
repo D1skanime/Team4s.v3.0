@@ -222,19 +222,40 @@ func (r *GroupRepository) buildReleasesWhere(
 		argPos++
 	}
 
-	// NOTE: has_op, has_ed, and has_karaoke filters require episode_extras table
-	// which doesn't exist yet. These filters are ignored for now.
-	// Once episode_extras is implemented, add joins like:
-	// LEFT JOIN episode_extras ee ON ee.episode_version_id = ev.id
-	// and filter conditions:
-	// if filter.HasOP != nil {
-	//     conditions = append(conditions, fmt.Sprintf("ee.has_op = $%d", argPos))
-	//     args = append(args, *filter.HasOP)
-	//     argPos++
-	// }
+	if filter.HasOP != nil {
+		conditions = append(conditions, buildRegexFilterCondition("ev.title", opTitleRegex, argPos, *filter.HasOP))
+		args = append(args, opTitleRegex)
+		argPos++
+	}
+
+	if filter.HasED != nil {
+		conditions = append(conditions, buildRegexFilterCondition("ev.title", edTitleRegex, argPos, *filter.HasED))
+		args = append(args, edTitleRegex)
+		argPos++
+	}
+
+	if filter.HasKaraoke != nil {
+		conditions = append(conditions, buildRegexFilterCondition("ev.title", karaokeTitleRegex, argPos, *filter.HasKaraoke))
+		args = append(args, karaokeTitleRegex)
+		argPos++
+	}
 
 	whereSQL := "WHERE " + strings.Join(conditions, " AND ")
 	return whereSQL, args
+}
+
+const (
+	opTitleRegex      = `(^|[^a-z0-9])(op|opening)([^a-z0-9]|$)`
+	edTitleRegex      = `(^|[^a-z0-9])(ed|ending)([^a-z0-9]|$)`
+	karaokeTitleRegex = `(^|[^a-z0-9])(karaoke|kfx|k-fx|kara)([^a-z0-9]|$)`
+)
+
+func buildRegexFilterCondition(field string, pattern string, position int, expected bool) string {
+	condition := fmt.Sprintf("COALESCE(%s, '') ~* $%d", field, position)
+	if expected {
+		return condition
+	}
+	return "NOT (" + condition + ")"
 }
 
 // getOtherGroups retrieves other fansub groups that worked on this anime

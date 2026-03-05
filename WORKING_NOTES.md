@@ -1,5 +1,35 @@
 # WORKING_NOTES
 
+## Current Workflow Phase
+- Phase: Stabilization + handoff + automation design
+- Focus today: developer environment baseline and media-folder automation feasibility
+
+## Project State
+- Done:
+  - VS Code settings validated for programming workflow
+  - Recommended extension baseline installed
+  - Jellyfin/Emby API capability check completed
+  - Closeout files updated for restartability
+- In Progress:
+  - Define and implement one-click folder provisioning for anime/group media assets
+- Blocked:
+  - Direct folder creation via Jellyfin/Emby REST is not available in documented APIs
+
+## Key Decisions and Context (Today)
+- Intent and constraints:
+  - Keep folder writes under project-owned logic, not media-server REST assumptions
+  - Keep workstation defaults stable for CPU-only host usage
+- Design/approach:
+  - Add a small idempotent backend/script path for folder creation
+  - Trigger library refresh after filesystem writes where needed
+- Assumptions:
+  - Folder naming rules can be unified now without breaking release tooling (risky)
+  - Media path permissions will allow service-side directory creation (risky)
+- Quality bar:
+  - Idempotent folder creation
+  - clear error mapping for "path exists", "permission denied", "invalid chars"
+  - auditable logs of requested vs created paths
+
 ## Active Threads
 - Full Jellyfin sync remains bulk-default and single-episode sync remains corrective; keep behavior stable while extending tests
 - Jellyfin timeout diagnostics are now centralized in transport logs; next step is timeout simulation coverage + trend review
@@ -76,6 +106,25 @@ curl -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admi
   - Run one deployment rehearsal with the hardening checklist
   - Capture weekly query-plan drift snapshots
 - First task tomorrow: run a `%nar%` query-plan snapshot and store it as the first weekly baseline check
+
+### Day 2026-03-05
+- Phase: Stabilization + operational automation planning
+- Accomplishments:
+  - Verified VS Code user settings and terminal behavior for programming
+  - Installed recommended extension baseline (EditorConfig, Prettier, ESLint, GitLens, Spell Checker, Jupyter, Ruff)
+  - Confirmed Jellyfin and Emby REST APIs do not provide a normal endpoint for filesystem folder creation in media roots
+  - Completed full day-closeout documentation sweep across handoff files
+- Key Decisions:
+  - Keep `terminal.integrated.gpuAcceleration` disabled in current CPU-only setup
+  - Build project-owned folder provisioning flow instead of relying on media-server REST
+- Risks/Unknowns:
+  - Folder schema and permissions model are not finalized
+  - Implementation path (backend endpoint vs script vs plugin) not finalized
+- Next Steps:
+  - Decide canonical folder schema for anime/group assets
+  - Implement minimal idempotent server-side folder creation action
+  - Add post-create library refresh/sync action
+- First task tomorrow: define and document the exact folder path template and validation rules in one markdown spec.
 
 ### Day 2026-03-01
 - Phase: Sync hardening + episodes overview groundwork

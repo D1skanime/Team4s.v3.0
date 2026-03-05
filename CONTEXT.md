@@ -1,44 +1,47 @@
 # CONTEXT
 
 ## Project
-- **Name:** Team4s.v3.0
-- **Phase:** Public Group/Release Experience (EPIC 0-6 complete)
-- **Completion:** ~40% (Public EPICs 0-6 of 16)
+- Name: Team4s.v3.0
+- Phase: Public Group/Release Experience stabilization + operations handoff
+- Milestone: EPIC 0-6 complete; EPIC 7+ pending
+- Completion: ~45%
 
-## Current State
+## Project State
 
-### Done (Today 2026-03-03)
-- EPIC 0: Group Routes (`/anime/:id/group/:groupId`, `/releases`), Breadcrumbs, GroupEdgeNavigation
-- EPIC 1: Anime-Detail CTA to Group pages
-- EPIC 2: Group Story page (CollapsibleStory, Header, Stats)
-- EPIC 3: Releases page (Filter chips, Search, Episode Cards, Badges)
-- EPIC 4: Episode Expanded (MediaAssetsSection with OP/ED/Kara/Insert tiles)
-- EPIC 5: Public Playback (VideoPlayerModal, Stream Proxy, Error states)
-- EPIC 6: Screenshot Gallery (Lightbox, Infinite Loading, DB migration 0018)
+### Done
+- [x] Public group/release foundation (routes, story view, release feed, playback integration base)
+- [x] VS Code programming baseline validated for this workstation
+- [x] Recommended extensions installed for coding workflow
+- [x] API capability check completed for Jellyfin and Emby folder-creation question
+- [x] End-of-day closeout docs synced for restartability
 
-### New Backend Components
-- `group_handler.go`, `group_repository.go` (Group Detail + Releases APIs)
-- `asset_stream_handler.go` (Video stream proxy)
-- `episode_version_images_handler.go` + migration 0018
+### In Progress
+- [ ] Release feed polish and filters behavior refinement
+- [ ] Group-aware release browsing UX improvements
+- [ ] Operational design for one-click media-folder provisioning
 
-### New Frontend Components
-- `components/navigation/Breadcrumbs.tsx`
-- `components/groups/GroupEdgeNavigation.tsx`, `CollapsibleStory.tsx`
-- `app/anime/[id]/group/[groupId]/page.tsx` + `/releases/page.tsx`
-- `app/episodes/[id]/components/MediaAssetsSection/`, `VideoPlayerModal/`, `ScreenshotGallery/`
+### Blocked
+- [ ] No direct Jellyfin/Emby REST endpoint for filesystem folder creation in media roots
+- [ ] Folder automation path must be implemented in project-owned backend/service/plugin
 
-### Pending
-- EPIC 7-10: Comments, APIs, UX Polish, Permissions
-- EPIC 11-15: Admin Group/Release Curation
+## Key Decisions and Context
 
-## Key Decisions
-- Multi-agent orchestration: UX → Design → Backend/Frontend parallel
-- Contract-first: OpenAPI specs before implementation
-- 400 char story collapse threshold
-- Database-backed images (not provider-proxied)
-- Native HTML5 video player (no custom library)
+### Intent and Constraints
+- Optimize for maintainability, explicit contracts, and predictable operations.
+- Keep security-sensitive filesystem writes in owned services.
+- Refuse undocumented server mutations that depend on fragile internal behavior.
 
-## Quality Bar
-- `go build ./...` must pass
-- `npm run build` must pass
-- All tests green before merge
+### Design and Approach
+- Keep API contract-first workflow for product endpoints.
+- For folder provisioning, use explicit backend automation with idempotent behavior.
+- Keep VS Code terminal GPU acceleration disabled in this CPU-only environment.
+
+### Assumptions
+- Risky: media host path permissions can be managed by the same service user as backend automation.
+- Risky: naming rules for anime/group assets can be standardized without major legacy conflicts.
+- Low risk: extension baseline selected today is compatible with current stack (Go + Next.js + Python tools).
+
+### Quality Bar
+- Build and tests must stay green for merged feature work.
+- Docs must capture decisions that would otherwise be re-debated tomorrow.
+- "First task tomorrow" must be concrete and executable in <=15 minutes.

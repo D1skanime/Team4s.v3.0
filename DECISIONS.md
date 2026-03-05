@@ -1,5 +1,60 @@
 # DECISIONS
 
+## 2026-03-05
+
+### Decision
+Keep VS Code integrated terminal GPU acceleration disabled on this workstation.
+
+### Context
+This environment is used against a CPU-only server setup, and terminal rendering stability is prioritized over optional GPU acceleration.
+
+### Options Considered
+- Set `terminal.integrated.gpuAcceleration` to `auto`
+- Keep `terminal.integrated.gpuAcceleration` set to `off`
+
+### Why This Won
+It matches the current infrastructure constraint and avoids graphics acceleration issues that provide no practical benefit for this workflow.
+
+### Consequences
+- Terminal remains stable and predictable in this environment
+- If workstation hardware/workload changes, this can be revisited
+
+### Decision
+Standardize a baseline VS Code extension set for daily development.
+
+### Context
+Local setup lacked a clearly documented baseline for formatting, linting, and repository navigation productivity.
+
+### Options Considered
+- Keep ad-hoc extension selection per session
+- Install and maintain a minimal shared baseline
+
+### Why This Won
+A baseline reduces setup drift and makes day-to-day coding behavior more predictable across tasks.
+
+### Consequences
+- Installed baseline now includes EditorConfig, Prettier, ESLint, GitLens, Code Spell Checker, Jupyter, and Ruff
+- Future onboarding and environment recovery are faster
+
+### Decision
+Do not rely on Jellyfin/Emby REST APIs for direct media-folder creation; implement project-owned folder provisioning.
+
+### Context
+Requirement: one-click creation of anime/group asset folder structures on server media paths.
+
+### Options Considered
+- Use Jellyfin REST API for folder creation
+- Use Emby REST API for folder creation
+- Implement folder creation in project-owned backend/service/plugin and then refresh library data
+
+### Why This Won
+Documented API surfaces support directory browsing/validation and virtual library path management, but not direct filesystem mkdir operations for media roots.
+
+### Consequences
+- Requires implementation work in project codebase
+- Provides full control over path validation, idempotency, audit logging, and permission handling
+- Avoids dependency on undocumented media server behavior
+
 ## 2026-03-03
 
 ### Decision

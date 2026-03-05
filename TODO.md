@@ -1,5 +1,18 @@
 # TODO
 
+## Completed (2026-03-05)
+- [x] Validate VS Code settings baseline for programming workflow
+- [x] Install recommended extension baseline in local VS Code
+- [x] Verify Jellyfin API capabilities for server-side folder creation
+- [x] Verify Emby API capabilities for server-side folder creation
+- [x] Execute end-of-day closeout documentation sweep
+
+## Immediate (Next Session)
+- [ ] Define canonical anime/group asset folder schema
+- [ ] Implement idempotent folder provisioning action in project-owned backend/service
+- [ ] Add operator-safe error mapping (permission denied, path exists, invalid name)
+- [ ] Add optional dry-run mode before production writes
+
 ## Completed (2026-03-03)
 - [x] Add explicit UI copy for sync workflows
   - Bulk season-wide sync vs corrective single-episode sync is now explicitly labeled in admin UI
@@ -116,7 +129,7 @@
   - Grid Layout, Cards clickable → /episodes/[id]
   - Badges: OP, ED, K-FX {count}, Insert {count}, {count} Screenshots
 - [x] Stelle sicher: bei Fansub-Merge erscheinen alte, vorher einzelne Gruppen nicht mehr separat
-  - API liefert nur aktive Gruppen
+  - API liefert nur existierende Gruppen
 - [x] Stelle sicher: bei Fansubgruppen-Loeschung sind diese hier nicht mehr verlinkt
   - API liefert nur existierende Gruppen
 - [x] Stelle sicher: wenn ein Anime eine Gruppe hinzugefuegt bekommt, ist sie hier sichtbar

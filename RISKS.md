@@ -2,24 +2,35 @@
 
 ## Top 3 Risks
 
-### 1. Migration 0018 Not Yet Applied
-- **Impact:** High (Screenshot Gallery won't work)
-- **Likelihood:** High (new migration from today)
-- **Mitigation:** Run `0018_episode_version_images.up.sql` before testing
+### 1. Folder Provisioning Gap for Anime/Group Assets
+- Impact: High (manual folder setup does not scale)
+- Likelihood: High
+- Mitigation:
+  - Next action: define canonical path schema + validation rules
+  - Owner: Team4s backend/dev
+  - Due: 2026-03-06
 
-### 2. Mock Data in MediaAssetsSection
-- **Impact:** Medium (Assets show placeholder data)
-- **Likelihood:** High (EPIC 8 API not implemented)
-- **Mitigation:** EPIC 8 will implement real assets API; mock data is temporary
+### 2. Filesystem Permission Mismatch on Media Host
+- Impact: High (automation fails at runtime)
+- Likelihood: Medium
+- Mitigation:
+  - Next action: verify service account write permissions on target media roots in staging/local
+  - Owner: infra/dev
+  - Due: 2026-03-06
 
-### 3. Stream Proxy Requires Jellyfin Config
-- **Impact:** Medium (Playback fails without provider)
-- **Likelihood:** Medium
-- **Mitigation:** Ensure JELLYFIN_* env vars are set; error states implemented
+### 3. Naming Inconsistency Across Existing Anime Folders
+- Impact: Medium (duplicates, hard-to-find assets, broken assumptions)
+- Likelihood: Medium
+- Mitigation:
+  - Next action: define and enforce normalization policy (slug, season format, episode format)
+  - Owner: product + dev
+  - Due: 2026-03-07
 
 ## Current Blockers
-- None
+- Missing one-click folder creation path in app/backend.
+- No documented direct mkdir endpoint in Jellyfin/Emby REST APIs.
 
-## Technical Debt
-- Component tests removed (need @testing-library/react)
-- Some admin upload flows still need image proxy integration
+## If Nothing Changes, What Fails Next Week?
+- New anime/group asset onboarding will stay manual and slow.
+- Error rate from inconsistent folder structures will increase.
+- Work on group-asset features will be delayed by operational overhead.

@@ -1,5 +1,13 @@
 # DAYLOG
 
+## 2026-03-05
+- Verified local VS Code setup for development: user settings, terminal defaults, and extension inventory.
+- Confirmed CPU-only terminal setup is consistent with current environment (`terminal.integrated.gpuAcceleration = off`).
+- Installed recommended extension baseline: EditorConfig, Prettier, ESLint, GitLens, Code Spell Checker, Jupyter, Ruff.
+- Validated Jellyfin API scope via stable OpenAPI: directory browse/validate and library-path management exist, direct media-folder creation endpoint not documented.
+- Validated Emby API scope via official REST reference: directory listing/library virtual folder endpoints exist, direct filesystem folder creation endpoint not documented.
+- Captured closeout documentation and next-step plan for implementing one-click anime/group asset folder provisioning through project-owned automation.
+
 ## 2026-03-03
 - Migrated remaining frontend `img` usage to `next/image` across admin and public surfaces; build + local deploy validated.
 - Added explicit sync workflow copy in admin: bulk season sync is now clearly separated from corrective single-episode sync.

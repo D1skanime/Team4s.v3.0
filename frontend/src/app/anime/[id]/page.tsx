@@ -5,6 +5,7 @@ import { Download, ExternalLink, Eye, Play } from 'lucide-react'
 
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
+import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
 import { ActiveFansubStory } from '@/components/fansubs/ActiveFansubStory'
 import { StatusBadge } from '@/components/anime/StatusBadge'
@@ -95,6 +96,10 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   }
 
   const anime = response.data
+  const breadcrumbItems = [
+    { label: 'Anime', href: '/anime' },
+    { label: anime.title },
+  ]
   const fromGrid = typeof resolvedSearchParams.from === 'string' && resolvedSearchParams.from === 'anime-grid'
   const rawGridQuery =
     typeof resolvedSearchParams.grid_query === 'string' ? resolvedSearchParams.grid_query : ''
@@ -188,6 +193,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
 
   return (
     <main className={styles.page}>
+      <Breadcrumbs items={breadcrumbItems} />
       <p className={styles.backLink}>
         <Link href={backToGridHref}>Zur Anime-Liste</Link>
       </p>

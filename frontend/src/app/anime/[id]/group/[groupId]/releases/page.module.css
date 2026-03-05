@@ -186,6 +186,69 @@
   margin-top: 24px;
 }
 
+.otherGroupsSection {
+  margin-bottom: 16px;
+}
+
+.otherGroupsLabel {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.otherGroupsScroller {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+}
+
+.otherGroupChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.otherGroupChip:hover {
+  border-color: #d0d0d5;
+  background: #fafafa;
+}
+
+.otherGroupLogo {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.otherGroupInitial {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+.otherGroupName {
+  font-size: 13px;
+  font-weight: 500;
+}
+
 .releasesMeta {
   margin-bottom: 16px;
 }
@@ -335,6 +398,28 @@
   margin: 0;
   font-size: 13px;
   color: var(--color-text-tertiary);
+}
+
+.cardActions {
+  margin-top: 12px;
+}
+
+.detailsButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.releaseCard:hover .detailsButton {
+  border-color: #FF6A3D;
+  color: #FF6A3D;
 }
 
 @media (max-width: 768px) {
