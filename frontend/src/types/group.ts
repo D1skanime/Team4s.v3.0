@@ -31,6 +31,7 @@ export interface GroupDetailResponse {
 
 export interface EpisodeReleaseSummary {
   id: number
+  episode_id?: number | null
   episode_number: number
   title?: string | null
   has_op: boolean

@@ -1,5 +1,25 @@
 # DECISIONS
 
+## 2026-03-06
+
+### Decision
+Ship `GET /api/v1/releases/:releaseId/assets` now as a stable empty public contract for existing releases, and remove all mock media assets from the live episode route.
+
+### Context
+The public release-context episode flow had already stopped using broken mock playback, but the missing assets endpoint left EPIC 4/5 in an inconsistent state: the UI contract existed conceptually, while the live route had no real backend source.
+
+### Options Considered
+- Keep the endpoint absent and continue hiding the section behind client-side assumptions
+- Add the public endpoint now with a deterministic empty response for existing releases until persisted release-asset storage exists
+
+### Why This Won
+A real empty contract is safer than mock data and prevents further route-level regressions. It lets frontend and backend converge on the final API shape without pretending that release assets already exist in storage.
+
+### Consequences
+- Public episode detail now fetches a real backend route for release assets
+- Empty responses remain hidden cleanly, but the contract is live and testable
+- The next implementation step is persistence/admin curation, not another API shape rewrite
+
 ## 2026-03-05
 
 ### Decision
@@ -56,6 +76,24 @@ Documented API surfaces support directory browsing/validation and virtual librar
 - Avoids dependency on undocumented media server behavior
 
 ## 2026-03-03
+
+### Decision
+Ship `GET /api/v1/releases/:releaseId/assets` now as a stable empty public contract for existing releases, and remove all mock media assets from the live episode route.
+
+### Context
+The public release-context episode flow had already stopped using broken mock playback, but the missing assets endpoint left EPIC 4/5 in an inconsistent state: the UI contract existed conceptually, while the live route had no real backend source.
+
+### Options Considered
+- Keep the endpoint absent and continue hiding the section behind client-side assumptions
+- Add the public endpoint now with a deterministic empty response for existing releases until persisted release-asset storage exists
+
+### Why This Won
+A real empty contract is safer than mock data and prevents further route-level regressions. It lets frontend and backend converge on the final API shape without pretending that release assets already exist in storage.
+
+### Consequences
+- Public episode detail now fetches a real backend route for release assets
+- Empty responses remain hidden cleanly, but the contract is live and testable
+- The next implementation step is persistence/admin curation, not another API shape rewrite
 
 ### Decision
 Use app-owned media ingest for group/release editorial assets as V1, with optional Jellyfin-direct ingest as V2.

@@ -5,7 +5,8 @@ import { notFound } from 'next/navigation'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { GroupEdgeNavigation } from '@/components/groups/GroupEdgeNavigation'
 import { CollapsibleStory } from '@/components/groups/CollapsibleStory'
-import { getGroupDetail, getGroupReleases, getAnimeByID, ApiError } from '@/lib/api'
+import { buildGroupNavigationGroups } from '@/lib/groupNavigation'
+import { getGroupDetail, getGroupReleases, getAnimeByID, getAnimeFansubs, ApiError } from '@/lib/api'
 
 import styles from './page.module.css'
 
@@ -59,12 +60,29 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
   const anime = animeResponse.data
 
   let otherGroups: Awaited<ReturnType<typeof getGroupReleases>>['data']['other_groups'] = []
+  let animeFansubRelations: Awaited<ReturnType<typeof getAnimeFansubs>>['data'] | null = null
   try {
-    const releasesData = await getGroupReleases(animeID, groupID, { per_page: 1 })
+    const [releasesData, animeFansubsData] = await Promise.all([
+      getGroupReleases(animeID, groupID, { per_page: 1 }),
+      getAnimeFansubs(animeID),
+    ])
     otherGroups = releasesData.data.other_groups
+    animeFansubRelations = animeFansubsData.data
   } catch {
     // If releases fail, continue without navigation
+    try {
+      const releasesData = await getGroupReleases(animeID, groupID, { per_page: 1 })
+      otherGroups = releasesData.data.other_groups
+    } catch {
+      // Continue without additional navigation data
+    }
   }
+
+  const navigationGroups = buildGroupNavigationGroups({
+    currentGroup: group.fansub,
+    fallbackOtherGroups: otherGroups,
+    animeFansubRelations,
+  })
 
   const breadcrumbItems = [
     { label: 'Anime', href: '/anime' },
@@ -124,12 +142,12 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
             </div>
           </div>
         </section>
-        {otherGroups.length > 0 ? (
+        {navigationGroups.length > 1 ? (
           <GroupEdgeNavigation
             currentGroupId={groupID}
             animeId={animeID}
             animeTitle={anime.title}
-            otherGroups={otherGroups}
+            otherGroups={navigationGroups}
             mode="story"
           />
         ) : null}

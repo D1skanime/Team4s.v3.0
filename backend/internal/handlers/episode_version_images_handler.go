@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
@@ -23,9 +24,12 @@ func NewEpisodeVersionImagesHandler(imageRepo *repository.EpisodeVersionImageRep
 }
 
 // ListReleaseImages returns paginated images for an episode version (release).
-// GET /api/v1/releases/:releaseId/images?cursor=&limit=
+// GET /api/v1/releases/:id/images?cursor=&limit=
 func (h *EpisodeVersionImagesHandler) ListReleaseImages(c *gin.Context) {
 	releaseIDRaw := c.Param("releaseId")
+	if strings.TrimSpace(releaseIDRaw) == "" {
+		releaseIDRaw = c.Param("id")
+	}
 	releaseID, err := strconv.ParseInt(releaseIDRaw, 10, 64)
 	if err != nil || releaseID <= 0 {
 		badRequest(c, "ungueltiger releaseId parameter")

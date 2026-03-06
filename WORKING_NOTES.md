@@ -31,6 +31,7 @@
   - auditable logs of requested vs created paths
 
 ## Active Threads
+- Public release-context episode detail now fetches a real `GET /api/v1/releases/:releaseId/assets` endpoint; current response is intentionally empty until release-asset persistence exists
 - Full Jellyfin sync remains bulk-default and single-episode sync remains corrective; keep behavior stable while extending tests
 - Jellyfin timeout diagnostics are now centralized in transport logs; next step is timeout simulation coverage + trend review
 - Sync/admin hardening review is documented; follow-ups are now focused on rehearsal and observability hygiene
@@ -64,13 +65,34 @@ npm test
 npm run build
 docker compose ps
 curl http://localhost:8092/health
+curl http://localhost:8092/api/v1/releases/311/assets
 curl -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admin/jellyfin/series?q=Naruto&limit=3"
 ```
 
 ## Parking Lot
+- Add persisted release assets so the live public assets route stops returning an empty list
 - Capture and retain query-plan snapshots as anime dataset grows post-`pg_trgm`
 - Add explicit timeout simulation fixture for Jellyfin admin flows
 - Run deployment hardening checklist as a timed rehearsal
+
+### Day 2026-03-06
+- Phase: Public release-context stabilization
+- Accomplishments:
+  - Added live public contract + route for `GET /api/v1/releases/:releaseId/assets`
+  - Fixed the new handler/tests and rebuilt the local backend/frontend stack
+  - Wired `MediaAssetsSection` to the real API and removed the last dependency on mock release assets
+  - Revalidated live:
+    - `GET /api/v1/releases/311/assets` -> `200` with empty assets
+    - `/episodes/106?releaseId=311&animeId=25&groupId=75`
+- Key Decisions:
+  - Empty asset responses are acceptable for now; fake client assets are not
+  - Keep `/episodes/[id]` episode-canonical and treat `releaseId` as supplemental context only
+- Risks/Unknowns:
+  - No persisted release-asset data means EPIC 4/5 still look incomplete in real content
+- Next Steps:
+  - Design and implement the first persisted release-asset slice
+  - Add real asset counters back into group releases once storage exists
+- First task tomorrow: sketch the storage shape for persisted release assets tied to `release_id`
 
 ### Day 2026-03-03
 - Phase: P2 closeout completed (hardening + maintainability baseline locked)

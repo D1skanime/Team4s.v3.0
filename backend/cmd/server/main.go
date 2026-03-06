@@ -106,6 +106,7 @@ func main() {
 	episodeVersionRepo := repository.NewEpisodeVersionRepository(dbPool)
 	episodeVersionImageRepo := repository.NewEpisodeVersionImageRepository(dbPool)
 	episodeVersionImagesHandler := handlers.NewEpisodeVersionImagesHandler(episodeVersionImageRepo)
+	releaseAssetsHandler := handlers.NewReleaseAssetsHandler(episodeVersionRepo)
 	episodePlaybackHandler := handlers.NewEpisodePlaybackHandler(episodeRepo, handlers.EpisodePlaybackConfig{
 		EmbyAPIKey:              cfg.EmbyAPIKey,
 		EmbyStreamBaseURL:       cfg.EmbyStreamBaseURL,
@@ -248,7 +249,8 @@ func main() {
 		middleware.CommentAuthOptionalMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		fansubHandler.StreamRelease,
 	)
-	v1.GET("/releases/:releaseId/images", episodeVersionImagesHandler.ListReleaseImages)
+	v1.GET("/releases/:id/assets", releaseAssetsHandler.ListReleaseAssets)
+	v1.GET("/releases/:id/images", episodeVersionImagesHandler.ListReleaseImages)
 	v1.POST(
 		"/admin/anime",
 		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),

@@ -58,6 +58,7 @@ import {
   GroupReleasesResponse,
   GroupReleasesParams,
 } from '@/types/group'
+import { ReleaseAssetsResponse } from '@/types/mediaAsset'
 
 // Browser needs a host-reachable API URL (e.g. http://localhost:8092).
 // Server-side code inside Docker needs a container-network URL.
@@ -1411,4 +1412,18 @@ export async function getGroupReleases(
   }
 
   return response.json() as Promise<GroupReleasesResponse>
+}
+
+export async function getReleaseAssets(releaseID: number): Promise<ReleaseAssetsResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/releases/${releaseID}/assets`, {
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<ReleaseAssetsResponse>
 }

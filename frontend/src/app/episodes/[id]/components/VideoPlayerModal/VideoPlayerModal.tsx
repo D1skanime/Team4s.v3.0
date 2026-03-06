@@ -29,6 +29,7 @@ const ERROR_MESSAGES: Record<Exclude<ErrorType, null>, string> = {
 }
 
 const LOADING_TIMEOUT_MS = 15000
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://localhost:8092'
 
 export default function VideoPlayerModal({ isOpen, asset, onClose }: VideoPlayerModalProps) {
   const [loading, setLoading] = useState(true)
@@ -187,7 +188,7 @@ export default function VideoPlayerModal({ isOpen, asset, onClose }: VideoPlayer
     return null
   }
 
-  const streamUrl = `/api/v1/assets/${asset.id}/stream`
+  const streamUrl = `${API_BASE_URL}${asset.stream_path}`
 
   return (
     <div

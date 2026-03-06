@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"team4s.v3/backend/internal/models"
@@ -145,10 +147,35 @@ func (r *GroupRepository) GetGroupReleases(
 	listQuery := fmt.Sprintf(`
 		SELECT
 			ev.id,
+			episode_match.id AS episode_id,
 			ev.episode_number,
 			ev.title,
-			ev.release_date
+			ev.release_date,
+			COALESCE(image_stats.image_count, 0) AS screenshot_count,
+			image_stats.thumbnail_url
 		FROM episode_versions ev
+		LEFT JOIN LATERAL (
+			SELECT e.id
+			FROM episodes e
+			WHERE e.anime_id = ev.anime_id
+			  AND e.episode_number ~ '^[0-9]+$'
+			  AND CAST(e.episode_number AS INTEGER) = ev.episode_number
+			ORDER BY e.id ASC
+			LIMIT 1
+		) AS episode_match ON TRUE
+		LEFT JOIN LATERAL (
+			SELECT
+				COUNT(*)::BIGINT AS image_count,
+				(
+					SELECT evi.thumbnail_url
+					FROM episode_version_images evi
+					WHERE evi.episode_version_id = ev.id
+					ORDER BY evi.display_order ASC, evi.id ASC
+					LIMIT 1
+				) AS thumbnail_url
+			FROM episode_version_images evi
+			WHERE evi.episode_version_id = ev.id
+		) AS image_stats ON TRUE
 		%s
 		ORDER BY ev.episode_number ASC, ev.id ASC
 		LIMIT $%d OFFSET $%d
@@ -163,13 +190,22 @@ func (r *GroupRepository) GetGroupReleases(
 	episodes := make([]models.EpisodeReleaseSummary, 0, filter.PerPage)
 	for rows.Next() {
 		var ep models.EpisodeReleaseSummary
+		var episodeID sql.NullInt64
+		var screenshotCount int64
 		if err := rows.Scan(
 			&ep.ID,
+			&episodeID,
 			&ep.EpisodeNumber,
 			&ep.Title,
 			&ep.ReleasedAt,
+			&screenshotCount,
+			&ep.ThumbnailURL,
 		); err != nil {
 			return nil, 0, fmt.Errorf("scan episode release row: %w", err)
+		}
+		if episodeID.Valid {
+			id := episodeID.Int64
+			ep.EpisodeID = &id
 		}
 
 		// Set default values for fields not yet in database
@@ -178,8 +214,7 @@ func (r *GroupRepository) GetGroupReleases(
 		ep.HasED = false
 		ep.KaraokeCount = 0
 		ep.InsertCount = 0
-		ep.ScreenshotCount = 0
-		ep.ThumbnailURL = nil
+		ep.ScreenshotCount = int32(screenshotCount)
 
 		episodes = append(episodes, ep)
 	}
@@ -217,9 +252,20 @@ func (r *GroupRepository) buildReleasesWhere(
 
 	// Text search on episode title
 	if filter.Q != "" {
-		conditions = append(conditions, fmt.Sprintf("ev.title ILIKE $%d", argPos))
-		args = append(args, "%"+filter.Q+"%")
-		argPos++
+		trimmedQuery := strings.TrimSpace(filter.Q)
+		if trimmedQuery != "" {
+			searchConditions := []string{fmt.Sprintf("ev.title ILIKE $%d", argPos)}
+			args = append(args, "%"+trimmedQuery+"%")
+			argPos++
+
+			if episodeNumber, err := strconv.Atoi(trimmedQuery); err == nil && episodeNumber > 0 {
+				searchConditions = append(searchConditions, fmt.Sprintf("ev.episode_number = $%d", argPos))
+				args = append(args, episodeNumber)
+				argPos++
+			}
+
+			conditions = append(conditions, "("+strings.Join(searchConditions, " OR ")+")")
+		}
 	}
 
 	if filter.HasOP != nil {

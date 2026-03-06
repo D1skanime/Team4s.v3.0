@@ -187,7 +187,8 @@
 - [ ] Implementiere API: `GET /api/v1/anime/:animeId` (Anime-Headerdaten + Gruppenliste)
 - [ ] Implementiere API: `GET /api/v1/anime/:animeId/group/:groupId` (Gruppenheader + story + stats)
 - [ ] Implementiere API: `GET /api/v1/anime/:animeId/group/:groupId/releases` (Episodenliste + asset counts + preview data)
-- [ ] Implementiere API: `GET /api/v1/releases/:releaseId/assets` (Assets pro EpisodeRelease, gruppiert/typisiert)
+- [x] Implementiere API: `GET /api/v1/releases/:releaseId/assets` (Assets pro EpisodeRelease, gruppiert/typisiert)
+  - Stable Public Contract + Handler live; liefert derzeit eine echte leere Liste, bis dedizierte Release-Asset-Daten persistiert werden
 - [ ] Implementiere API: `GET /api/v1/releases/:releaseId/images?cursor=` (paginiert)
 - [ ] Implementiere API: `GET /api/v1/releases/:releaseId/contributions` (Beitraege + Rollen)
 

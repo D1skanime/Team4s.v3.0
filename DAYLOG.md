@@ -1,5 +1,13 @@
 # DAYLOG
 
+## 2026-03-06
+- Added the public `GET /api/v1/releases/:releaseId/assets` contract/handler and corresponding backend coverage.
+- Wired the public episode detail `MediaAssetsSection` to the real assets endpoint and removed the remaining mock release-asset dependency from the live route.
+- Re-ran `go test ./...`, `npm test`, and `npm run build`.
+- Rebuilt `team4sv30-backend` and `team4sv30-frontend` and validated the live route:
+  - `http://localhost:8092/api/v1/releases/311/assets`
+  - `http://localhost:3002/episodes/106?releaseId=311&animeId=25&groupId=75`
+
 ## 2026-03-05
 - Verified local VS Code setup for development: user settings, terminal defaults, and extension inventory.
 - Confirmed CPU-only terminal setup is consistent with current environment (`terminal.integrated.gpuAcceleration = off`).

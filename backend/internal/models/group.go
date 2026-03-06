@@ -38,6 +38,7 @@ type GroupStats struct {
 // EpisodeReleaseSummary represents a summary of an episode release
 type EpisodeReleaseSummary struct {
 	ID              int64      `json:"id"`
+	EpisodeID       *int64     `json:"episode_id,omitempty"`
 	EpisodeNumber   int32      `json:"episode_number"`
 	Title           *string    `json:"title,omitempty"`
 	HasOP           bool       `json:"has_op"`

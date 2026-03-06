@@ -1,47 +1,46 @@
 # CONTEXT
 
 ## Project
-- Name: Team4s.v3.0
-- Phase: Public Group/Release Experience stabilization + operations handoff
-- Milestone: EPIC 0-6 complete; EPIC 7+ pending
-- Completion: ~45%
+- **Name:** Team4s.v3.0
+- **Phase:** Public Group/Release Experience stabilization
+- **Milestone:** EPIC 0-6 implemented, hardening and data-completion ongoing
+- **Completion:** ~45%
 
-## Project State
+## Current State
 
-### Done
-- [x] Public group/release foundation (routes, story view, release feed, playback integration base)
-- [x] VS Code programming baseline validated for this workstation
-- [x] Recommended extensions installed for coding workflow
-- [x] API capability check completed for Jellyfin and Emby folder-creation question
-- [x] End-of-day closeout docs synced for restartability
+### Done (2026-03-06)
+- Fixed the public group releases -> episode detail flow so release cards navigate with canonical `episode_id` plus release context.
+- Added `episode_id` to public group release payloads while keeping release identity for screenshots and release-scoped sections.
+- Repaired release-context screenshot requests so they resolve against the backend API host instead of the frontend origin.
+- Removed the broken mock media-assets playback path from the live public release-context route.
+- Added the public `GET /api/v1/releases/:releaseId/assets` contract and backend handler.
+- Wired the public episode detail page to fetch release assets from the real API instead of local mock data.
+- Added Media Assets empty/error handling while keeping empty responses hidden.
+- Added screenshot count/thumbnail enrichment plus numeric search support to the group releases feed.
+- Rebuilt the local stack and revalidated the live release-context flow against running services.
 
-### In Progress
-- [ ] Release feed polish and filters behavior refinement
-- [ ] Group-aware release browsing UX improvements
-- [ ] Operational design for one-click media-folder provisioning
+### Previously Completed (2026-03-03)
+- EPIC 0: Group routes, breadcrumbs, group edge navigation
+- EPIC 1: Anime detail CTA to group pages
+- EPIC 2: Group story page
+- EPIC 3: Releases page base feed/filter UX
+- EPIC 4: Episode Media Assets section shell
+- EPIC 5: Public playback modal + stream proxy
+- EPIC 6: Screenshot gallery + lightbox + pagination
 
-### Blocked
-- [ ] No direct Jellyfin/Emby REST endpoint for filesystem folder creation in media roots
-- [ ] Folder automation path must be implemented in project-owned backend/service/plugin
+### Pending
+- EPIC 4/5 still need persisted release-asset data before Media Assets/player can render non-empty public content.
+- EPIC 7-10: Comments, additional public APIs, UX polish, permissions groundwork
+- EPIC 11-15: Admin group/release curation flows
 
-## Key Decisions and Context
+## Key Decisions
+- `/episodes/[id]` remains episode-canonical; `releaseId` stays supplemental context only.
+- The public release-assets API ships now as a stable empty contract instead of continuing with mock assets.
+- Empty asset responses are acceptable; fake client-side asset data is not.
+- Screenshot data remains database-backed, not provider-proxied.
 
-### Intent and Constraints
-- Optimize for maintainability, explicit contracts, and predictable operations.
-- Keep security-sensitive filesystem writes in owned services.
-- Refuse undocumented server mutations that depend on fragile internal behavior.
-
-### Design and Approach
-- Keep API contract-first workflow for product endpoints.
-- For folder provisioning, use explicit backend automation with idempotent behavior.
-- Keep VS Code terminal GPU acceleration disabled in this CPU-only environment.
-
-### Assumptions
-- Risky: media host path permissions can be managed by the same service user as backend automation.
-- Risky: naming rules for anime/group assets can be standardized without major legacy conflicts.
-- Low risk: extension baseline selected today is compatible with current stack (Go + Next.js + Python tools).
-
-### Quality Bar
-- Build and tests must stay green for merged feature work.
-- Docs must capture decisions that would otherwise be re-debated tomorrow.
-- "First task tomorrow" must be concrete and executable in <=15 minutes.
+## Quality Bar
+- `go test ./...` must pass
+- `npm test` must pass
+- `npm run build` must pass
+- Live route/API smoke checks must pass on the local stack before merge

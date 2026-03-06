@@ -153,6 +153,12 @@ func TestGroupHandler_GetGroupReleases(t *testing.T) {
 
 	// Create episodes
 	for i := int32(1); i <= 10; i++ {
+		if _, err := db.Exec(testCtx, `
+			INSERT INTO episodes (anime_id, episode_number, title, status)
+			VALUES ($1, $2, $3, 'public')
+		`, animeID, fmt.Sprintf("%d", i), fmt.Sprintf("Episode %d", i)); err != nil {
+			t.Fatalf("failed to create episode row %d: %v", i, err)
+		}
 		_, err := versionRepo.Create(testCtx, models.EpisodeVersionCreateInput{
 			AnimeID:       animeID,
 			EpisodeNumber: i,
@@ -191,6 +197,11 @@ func TestGroupHandler_GetGroupReleases(t *testing.T) {
 
 		if len(response.Data.Episodes) != 10 {
 			t.Errorf("expected 10 episodes, got %d", len(response.Data.Episodes))
+		}
+		for _, episode := range response.Data.Episodes {
+			if episode.EpisodeID == nil || *episode.EpisodeID <= 0 {
+				t.Fatalf("expected populated episode_id for release %d", episode.ID)
+			}
 		}
 		if response.Meta["total"] != float64(10) {
 			t.Errorf("expected total 10, got %v", response.Meta["total"])

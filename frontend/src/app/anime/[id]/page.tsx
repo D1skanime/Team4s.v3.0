@@ -51,6 +51,24 @@ interface AnimeDetailPageProps {
       }>
 }
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  return await new Promise<T>((resolve, reject) => {
+    const timeoutID = setTimeout(() => {
+      reject(new Error('request timeout'))
+    }, timeoutMs)
+
+    promise
+      .then((value) => {
+        clearTimeout(timeoutID)
+        resolve(value)
+      })
+      .catch((error) => {
+        clearTimeout(timeoutID)
+        reject(error)
+      })
+  })
+}
+
 export default async function AnimeDetailPage({ params, searchParams }: AnimeDetailPageProps) {
   const resolvedSearchParams = ((await searchParams) ?? {}) as {
     from?: string | string[]
@@ -167,7 +185,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   let infoBannerURL: string | null = null
   let infoLogoURL: string | null = null
   try {
-    const backdropsResponse = await getAnimeBackdrops(anime.id)
+    const backdropsResponse = await withTimeout(getAnimeBackdrops(anime.id), 4000)
     const rawBannerURL = (backdropsResponse.data.banner_url || '').trim()
     const rawBackdropBannerURL = (backdropsResponse.data.backdrops[0] || '').trim()
     const rawLogoURL = (backdropsResponse.data.logo_url || '').trim()

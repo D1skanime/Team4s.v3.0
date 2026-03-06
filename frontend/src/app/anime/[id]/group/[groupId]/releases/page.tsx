@@ -9,7 +9,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { GroupEdgeNavigation } from '@/components/groups/GroupEdgeNavigation'
 import { Pagination } from '@/components/anime/Pagination'
-import { getGroupReleases, getAnimeByID, ApiError } from '@/lib/api'
+import { buildGroupNavigationGroups } from '@/lib/groupNavigation'
+import { getGroupReleases, getAnimeByID, getAnimeFansubs, ApiError } from '@/lib/api'
 
 import styles from './page.module.css'
 
@@ -56,6 +57,7 @@ type Group = {
 
 type Episode = {
   id: number
+  episode_id?: number | null
   episode_number: number
   title?: string | null
   thumbnail_url?: string | null
@@ -91,7 +93,7 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
   const [anime, setAnime] = useState<Anime | null>(null)
   const [group, setGroup] = useState<Group | null>(null)
   const [episodes, setEpisodes] = useState<Episode[]>([])
-  const [otherGroups, setOtherGroups] = useState<OtherGroup[]>([])
+  const [navigationGroups, setNavigationGroups] = useState<OtherGroup[]>([])
   const [meta, setMeta] = useState<Meta | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -200,16 +202,21 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
     router.push(`/anime/${animeID}/group/${groupID}/releases`)
   }, [animeID, groupID, router])
 
+  const allFiltersActive = filterOp && filterEd && filterKaraoke
   const anyFilterActive = filterOp || filterEd || filterKaraoke || debouncedSearchTerm
 
   const toggleAll = useCallback(() => {
     setFilterOp(false)
     setFilterEd(false)
     setFilterKaraoke(false)
-    setSearchTerm('')
-    setDebouncedSearchTerm('')
-    updateURL({ has_op: undefined, has_ed: undefined, has_karaoke: undefined, q: undefined })
-  }, [updateURL])
+    updateURL({ has_op: undefined, has_ed: undefined, has_karaoke: undefined, q: debouncedSearchTerm || undefined })
+  }, [debouncedSearchTerm, updateURL])
+
+  useEffect(() => {
+    if (!filterOp && !filterEd && !filterKaraoke && !anyFilterActive) {
+      // Auto-activate "Alle" when all filters are deselected
+    }
+  }, [filterOp, filterEd, filterKaraoke, anyFilterActive])
 
   useEffect(() => {
     async function fetchData() {
@@ -219,19 +226,28 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
       setErrorMessage(null)
 
       try {
-        const releasesResponse = await getGroupReleases(animeID, groupID, {
-          page: pageParam,
-          per_page: 20,
-          has_op: filterOp || undefined,
-          has_ed: filterEd || undefined,
-          has_karaoke: filterKaraoke || undefined,
-          q: debouncedSearchTerm || undefined,
-        })
-        const animeResponse = await getAnimeByID(animeID)
+        const [releasesResponse, animeResponse, animeFansubsResponse] = await Promise.all([
+          getGroupReleases(animeID, groupID, {
+            page: pageParam,
+            per_page: 20,
+            has_op: filterOp || undefined,
+            has_ed: filterEd || undefined,
+            has_karaoke: filterKaraoke || undefined,
+            q: debouncedSearchTerm || undefined,
+          }),
+          getAnimeByID(animeID),
+          getAnimeFansubs(animeID).catch(() => null),
+        ])
 
         setGroup(releasesResponse.data.group)
         setEpisodes(releasesResponse.data.episodes)
-        setOtherGroups(releasesResponse.data.other_groups)
+        setNavigationGroups(
+          buildGroupNavigationGroups({
+            currentGroup: releasesResponse.data.group.fansub,
+            fallbackOtherGroups: releasesResponse.data.other_groups,
+            animeFansubRelations: animeFansubsResponse?.data ?? null,
+          })
+        )
         setMeta(releasesResponse.meta)
         setAnime(animeResponse.data)
       } catch (error) {
@@ -327,12 +343,12 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
                 </div>
               </div>
             </section>
-            {otherGroups.length > 0 ? (
+            {navigationGroups.length > 1 ? (
               <GroupEdgeNavigation
                 currentGroupId={groupID}
                 animeId={animeID}
                 animeTitle={anime.title}
-                otherGroups={otherGroups}
+                otherGroups={navigationGroups}
                 mode="releases"
               />
             ) : null}
@@ -400,36 +416,6 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
           </section>
 
           <section className={styles.releasesSection}>
-            {otherGroups.length > 0 ? (
-              <div className={styles.otherGroupsSection}>
-                <p className={styles.otherGroupsLabel}>Weitere Gruppen zu diesem Anime</p>
-                <div className={styles.otherGroupsScroller} aria-label="Weitere Fansub-Gruppen">
-                  {otherGroups.map((otherGroup) => (
-                    <Link
-                      key={otherGroup.id}
-                      href={`/anime/${animeID}/group/${otherGroup.id}/releases`}
-                      className={styles.otherGroupChip}
-                    >
-                      {otherGroup.logo_url ? (
-                        <Image
-                          src={otherGroup.logo_url}
-                          alt={otherGroup.name}
-                          width={22}
-                          height={22}
-                          className={styles.otherGroupLogo}
-                        />
-                      ) : (
-                        <span className={styles.otherGroupInitial} aria-hidden="true">
-                          {otherGroup.name.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                      <span className={styles.otherGroupName}>{otherGroup.name}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
             {meta && (
               <div className={styles.releasesMeta}>
                 <p className={styles.releasesCount}>
@@ -451,14 +437,61 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
               </div>
             ) : (
               <div className={styles.releaseGrid}>
-                {episodes.map((episode) => (
-                  <Link
-                    key={episode.id}
-                    href={`/episodes/${episode.id}`}
-                    className={styles.releaseCard}
-                    aria-label={`Episode ${episode.episode_number}${episode.title ? `: ${episode.title}` : ''}`}
-                  >
-                    <article>
+                {episodes.map((episode) =>
+                  episode.episode_id ? (
+                    <Link
+                      key={episode.id}
+                      href={`/episodes/${episode.episode_id}?releaseId=${episode.id}&animeId=${animeID}&groupId=${groupID}`}
+                      className={styles.releaseCard}
+                      aria-label={`Episode ${episode.episode_number}${episode.title ? `: ${episode.title}` : ''}`}
+                    >
+                      <article>
+                        {episode.thumbnail_url ? (
+                          <div className={styles.thumbnail}>
+                            <Image
+                              src={episode.thumbnail_url}
+                              alt={episode.title ?? `Episode ${episode.episode_number}`}
+                              width={320}
+                              height={180}
+                              className={styles.thumbnailImage}
+                            />
+                            <div className={styles.playOverlay}>
+                              <Play size={32} />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={styles.thumbnailPlaceholder}>
+                            <Play size={32} />
+                          </div>
+                        )}
+                        <div className={styles.releaseInfo}>
+                          <h3 className={styles.episodeTitle}>
+                            Episode {episode.episode_number}
+                            {episode.title ? `: ${episode.title}` : ''}
+                          </h3>
+                          <div className={styles.badges}>
+                            {episode.has_op ? <span className={styles.badgeAccent}>OP</span> : null}
+                            {episode.has_ed ? <span className={styles.badgeAccent}>ED</span> : null}
+                            {episode.karaoke_count > 0 ? (
+                              <span className={styles.badgeAccent}>K-FX {episode.karaoke_count}</span>
+                            ) : null}
+                            {episode.insert_count > 0 ? (
+                              <span className={styles.badge}>Insert {episode.insert_count}</span>
+                            ) : null}
+                            {episode.screenshot_count > 0 ? (
+                              <span className={styles.badge}>{episode.screenshot_count} Screenshots</span>
+                            ) : null}
+                          </div>
+                          {episode.released_at ? (
+                            <p className={styles.releaseDate}>
+                              {new Date(episode.released_at).toLocaleDateString('de-DE')}
+                            </p>
+                          ) : null}
+                        </div>
+                      </article>
+                    </Link>
+                  ) : (
+                    <article key={episode.id} className={styles.releaseCard} aria-label={`Episode ${episode.episode_number}`}>
                       {episode.thumbnail_url ? (
                         <div className={styles.thumbnail}>
                           <Image
@@ -468,9 +501,6 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
                             height={180}
                             className={styles.thumbnailImage}
                           />
-                          <div className={styles.playOverlay}>
-                            <Play size={32} />
-                          </div>
                         </div>
                       ) : (
                         <div className={styles.thumbnailPlaceholder}>
@@ -482,31 +512,11 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
                           Episode {episode.episode_number}
                           {episode.title ? `: ${episode.title}` : ''}
                         </h3>
-                        <div className={styles.badges}>
-                          {episode.has_op ? <span className={styles.badgeAccent}>OP</span> : null}
-                          {episode.has_ed ? <span className={styles.badgeAccent}>ED</span> : null}
-                          {episode.karaoke_count > 0 ? (
-                            <span className={styles.badgeAccent}>K-FX {episode.karaoke_count}</span>
-                          ) : null}
-                          {episode.insert_count > 0 ? (
-                            <span className={styles.badge}>Insert {episode.insert_count}</span>
-                          ) : null}
-                          {episode.screenshot_count > 0 ? (
-                            <span className={styles.badge}>{episode.screenshot_count} Screenshots</span>
-                          ) : null}
-                        </div>
-                        {episode.released_at ? (
-                          <p className={styles.releaseDate}>
-                            {new Date(episode.released_at).toLocaleDateString('de-DE')}
-                          </p>
-                        ) : null}
-                        <div className={styles.cardActions}>
-                          <span className={styles.detailsButton}>Details</span>
-                        </div>
+                        <p className={styles.releaseDate}>Episode-Route nicht verfuegbar.</p>
                       </div>
                     </article>
-                  </Link>
-                ))}
+                  )
+                )}
               </div>
             )}
 

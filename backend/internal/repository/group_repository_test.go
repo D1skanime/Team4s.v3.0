@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -118,6 +119,12 @@ func TestGroupRepository_GetGroupReleases(t *testing.T) {
 	// Create episode versions
 	versionRepo := NewEpisodeVersionRepository(repo.db)
 	for i := int32(1); i <= 5; i++ {
+		if _, err := repo.db.Exec(ctx, `
+			INSERT INTO episodes (anime_id, episode_number, title, status)
+			VALUES ($1, $2, $3, 'public')
+		`, animeID, fmt.Sprintf("%d", i), fmt.Sprintf("Episode %d", i)); err != nil {
+			t.Fatalf("failed to create episode row %d: %v", i, err)
+		}
 		_, err := versionRepo.Create(ctx, models.EpisodeVersionCreateInput{
 			AnimeID:       animeID,
 			EpisodeNumber: i,
@@ -146,6 +153,11 @@ func TestGroupRepository_GetGroupReleases(t *testing.T) {
 	}
 	if len(data.Episodes) != 5 {
 		t.Errorf("expected 5 episodes, got %d", len(data.Episodes))
+	}
+	for _, episode := range data.Episodes {
+		if episode.EpisodeID == nil || *episode.EpisodeID <= 0 {
+			t.Fatalf("expected populated episode_id for release %d", episode.ID)
+		}
 	}
 	if data.Group.FansubID != group1.ID {
 		t.Errorf("expected group id %d, got %d", group1.ID, data.Group.FansubID)
@@ -183,6 +195,51 @@ func TestGroupRepository_GetGroupReleases(t *testing.T) {
 	}
 	if total != 1 {
 		t.Errorf("expected total 1 with search, got %d", total)
+	}
+
+	// Test: Episode number search
+	data, total, err = groupRepo.GetGroupReleases(ctx, animeID, group1.ID, models.GroupReleasesFilter{
+		Page:    1,
+		PerPage: 20,
+		Q:       "4",
+	})
+	if err != nil {
+		t.Fatalf("GetGroupReleases with episode-number search failed: %v", err)
+	}
+	if total != 1 || len(data.Episodes) != 1 || data.Episodes[0].EpisodeNumber != 4 {
+		t.Fatalf("expected only episode 4 for numeric search, got total=%d count=%d", total, len(data.Episodes))
+	}
+
+	// Test: Screenshot count + thumbnail
+	if _, err := repo.db.Exec(ctx, `
+		INSERT INTO episode_version_images (episode_version_id, url, thumbnail_url, display_order)
+		VALUES ($1, $2, $3, 1), ($1, $4, $5, 2)
+	`,
+		data.Episodes[0].ID,
+		"https://example.com/full-1.jpg",
+		"https://example.com/thumb-1.jpg",
+		"https://example.com/full-2.jpg",
+		"https://example.com/thumb-2.jpg",
+	); err != nil {
+		t.Fatalf("failed to seed episode_version_images: %v", err)
+	}
+
+	data, total, err = groupRepo.GetGroupReleases(ctx, animeID, group1.ID, models.GroupReleasesFilter{
+		Page:    1,
+		PerPage: 20,
+		Q:       "4",
+	})
+	if err != nil {
+		t.Fatalf("GetGroupReleases after seeding screenshots failed: %v", err)
+	}
+	if total != 1 {
+		t.Fatalf("expected total 1 after screenshot seed, got %d", total)
+	}
+	if data.Episodes[0].ScreenshotCount != 2 {
+		t.Fatalf("expected screenshot_count 2, got %d", data.Episodes[0].ScreenshotCount)
+	}
+	if data.Episodes[0].ThumbnailURL == nil || *data.Episodes[0].ThumbnailURL != "https://example.com/thumb-1.jpg" {
+		t.Fatalf("expected first thumbnail_url to be populated, got %v", data.Episodes[0].ThumbnailURL)
 	}
 
 	// Test: Not found

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Play, Film } from 'lucide-react'
 
+import { ApiError, getReleaseAssets } from '@/lib/api'
 import { MediaAsset, MediaAssetType, MediaAssetsByType } from '@/types/mediaAsset'
 import VideoPlayerModal from '../VideoPlayerModal'
 
@@ -11,6 +12,7 @@ import styles from './MediaAssetsSection.module.css'
 interface MediaAssetsSectionProps {
   releaseId?: number
   assets?: MediaAsset[]
+  errorMessage?: string | null
 }
 
 const TYPE_LABELS: Record<MediaAssetType, string> = {
@@ -93,7 +95,9 @@ function AssetTile({ asset, onPlay }: AssetTileProps) {
         <div className={styles.assetTitle} title={asset.title}>
           {asset.title}
         </div>
-        <div className={styles.assetDuration}>{formatDuration(asset.duration_seconds)}</div>
+        <div className={styles.assetDuration}>
+          {typeof asset.duration_seconds === 'number' ? formatDuration(asset.duration_seconds) : 'Dauer unbekannt'}
+        </div>
       </div>
     </div>
   )
@@ -153,11 +157,62 @@ function TypeGroup({ type, assets, onPlayAsset }: TypeGroupProps) {
 }
 
 export default function MediaAssetsSection({
-  releaseId: _releaseId,
-  assets = [],
+  releaseId,
+  assets: initialAssets,
+  errorMessage = null,
 }: MediaAssetsSectionProps) {
+  const [assets, setAssets] = useState<MediaAsset[]>(initialAssets ?? [])
+  const [loading, setLoading] = useState(false)
+  const [runtimeError, setRuntimeError] = useState<string | null>(errorMessage)
   const [playingAsset, setPlayingAsset] = useState<MediaAsset | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  useEffect(() => {
+    setAssets(initialAssets ?? [])
+  }, [initialAssets])
+
+  useEffect(() => {
+    if (typeof errorMessage === 'string' && errorMessage.trim()) {
+      setRuntimeError(errorMessage)
+      return
+    }
+
+    if (!releaseId || initialAssets) {
+      setRuntimeError(null)
+      return
+    }
+
+    let cancelled = false
+    setLoading(true)
+    setRuntimeError(null)
+
+    void getReleaseAssets(releaseId)
+      .then((response) => {
+        if (cancelled) {
+          return
+        }
+        setAssets(response.data.assets)
+      })
+      .catch((error: unknown) => {
+        if (cancelled) {
+          return
+        }
+        if (error instanceof ApiError) {
+          setRuntimeError(error.message)
+          return
+        }
+        setRuntimeError('Media Assets konnten nicht geladen werden.')
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [errorMessage, initialAssets, releaseId])
 
   const handlePlayAsset = (asset: MediaAsset) => {
     setPlayingAsset(asset)
@@ -167,6 +222,30 @@ export default function MediaAssetsSection({
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setPlayingAsset(null)
+  }
+
+  if (runtimeError) {
+    return (
+      <section className={styles.mediaAssetsSection} aria-labelledby="media-assets-title">
+        <h2 id="media-assets-title" className={styles.sectionTitle}>
+          Media Assets
+        </h2>
+        <div className={styles.errorState} role="status">
+          {runtimeError}
+        </div>
+      </section>
+    )
+  }
+
+  if (loading) {
+    return (
+      <section className={styles.mediaAssetsSection} aria-labelledby="media-assets-title" aria-busy="true">
+        <h2 id="media-assets-title" className={styles.sectionTitle}>
+          Media Assets
+        </h2>
+        <div className={styles.loadingState}>Media Assets werden geladen...</div>
+      </section>
+    )
   }
 
   if (assets.length === 0) {

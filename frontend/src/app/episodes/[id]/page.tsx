@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, Download, ExternalLink, Eye, Play } from 'lucide-react'
 
-import { ApiError, getEpisodeByID } from '@/lib/api'
+import { ApiError, getEpisodeByID, getReleaseAssets } from '@/lib/api'
 import { getPreferredEmbyEpisodeUrl } from '@/lib/emby'
 import { EpisodeStatus } from '@/types/anime'
 import { MediaAsset } from '@/types/mediaAsset'
@@ -18,6 +18,17 @@ interface EpisodeDetailPageProps {
     | Promise<{
         id: string
       }>
+  searchParams?:
+    | {
+        releaseId?: string | string[]
+        animeId?: string | string[]
+        groupId?: string | string[]
+      }
+    | Promise<{
+        releaseId?: string | string[]
+        animeId?: string | string[]
+        groupId?: string | string[]
+      }>
 }
 
 const statusLabel: Record<EpisodeStatus, string> = {
@@ -32,8 +43,13 @@ const statusClassName: Record<EpisodeStatus, string> = {
   public: styles.statusPublic,
 }
 
-export default async function EpisodeDetailPage({ params }: EpisodeDetailPageProps) {
+export default async function EpisodeDetailPage({ params, searchParams }: EpisodeDetailPageProps) {
   const resolvedParams = await params
+  const resolvedSearchParams = ((await searchParams) ?? {}) as {
+    releaseId?: string | string[]
+    animeId?: string | string[]
+    groupId?: string | string[]
+  }
   const episodeID = Number.parseInt(resolvedParams.id, 10)
   if (Number.isNaN(episodeID) || episodeID <= 0) {
     return (
@@ -74,75 +90,42 @@ export default async function EpisodeDetailPage({ params }: EpisodeDetailPagePro
   const episode = response.data
   const title = episode.title ?? `Folge ${episode.episode_number}`
   const embyEpisodeUrl = getPreferredEmbyEpisodeUrl(episode.anime_id, episode.stream_links)
-  const playbackProxyUrl = `/api/episodes/${episode.id}/play`
+  const parsePositiveInt = (value?: string | string[]): number | null => {
+    const raw = Array.isArray(value) ? value[0] : value
+    const parsed = Number.parseInt((raw || '').trim(), 10)
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+  }
+  const activeReleaseID = parsePositiveInt(resolvedSearchParams.releaseId)
+  const sourceAnimeID = parsePositiveInt(resolvedSearchParams.animeId)
+  const sourceGroupID = parsePositiveInt(resolvedSearchParams.groupId)
+  const hasGroupReleaseContext = activeReleaseID !== null && sourceAnimeID !== null && sourceGroupID !== null
+  const playbackProxyUrl =
+    activeReleaseID !== null ? `/api/releases/${activeReleaseID}/stream` : `/api/episodes/${episode.id}/play`
+  let releaseAssets: MediaAsset[] = []
+  let releaseAssetsError: string | null = null
 
-  // Mock data for media assets (EPIC 8 will implement API)
-  const mockAssets: MediaAsset[] = [
-    {
-      id: 1,
-      type: 'opening',
-      title: 'Opening 1',
-      duration_seconds: 90,
-      thumbnail_url: null,
-      order: 1,
-    },
-    {
-      id: 2,
-      type: 'opening',
-      title: 'Opening 2 (TV Size)',
-      duration_seconds: 87,
-      thumbnail_url: null,
-      order: 2,
-    },
-    {
-      id: 3,
-      type: 'opening',
-      title: 'Opening 3 (Special Version)',
-      duration_seconds: 92,
-      thumbnail_url: null,
-      order: 3,
-    },
-    {
-      id: 4,
-      type: 'ending',
-      title: 'Ending 1',
-      duration_seconds: 88,
-      thumbnail_url: null,
-      order: 1,
-    },
-    {
-      id: 5,
-      type: 'ending',
-      title: 'Ending 2',
-      duration_seconds: 85,
-      thumbnail_url: null,
-      order: 2,
-    },
-    {
-      id: 6,
-      type: 'karaoke',
-      title: 'Karaoke Opening',
-      duration_seconds: 90,
-      thumbnail_url: null,
-      order: 1,
-    },
-    {
-      id: 7,
-      type: 'insert',
-      title: 'Insert Song 1',
-      duration_seconds: 120,
-      thumbnail_url: null,
-      order: 1,
-    },
-  ]
+  if (activeReleaseID !== null) {
+    try {
+      const releaseAssetsResponse = await getReleaseAssets(activeReleaseID)
+      releaseAssets = releaseAssetsResponse.data.assets
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        releaseAssets = []
+      } else if (error instanceof ApiError) {
+        releaseAssetsError = error.message || 'Media Assets konnten nicht geladen werden.'
+      } else {
+        releaseAssetsError = 'Media Assets konnten nicht geladen werden.'
+      }
+    }
+  }
 
   return (
     <main className={styles.page}>
       <div className={styles.navRow}>
         <p className={styles.backLink}>
-          <Link href={`/anime/${episode.anime_id}`}>
+          <Link href={hasGroupReleaseContext ? `/anime/${sourceAnimeID}/group/${sourceGroupID}/releases` : `/anime/${episode.anime_id}`}>
             <ArrowLeft size={14} />
-            Zur Anime-Detailseite
+            {hasGroupReleaseContext ? 'Zur Gruppen-Releaseansicht' : 'Zur Anime-Detailseite'}
           </Link>
         </p>
         <p className={styles.backLink}>
@@ -172,13 +155,15 @@ export default async function EpisodeDetailPage({ params }: EpisodeDetailPagePro
       <section className={styles.actions}>
         <h2>Episode Navigation</h2>
         <div className={styles.actionGrid}>
-          {episode.previous_episode_id ? (
+          {!hasGroupReleaseContext && episode.previous_episode_id ? (
             <Link href={`/episodes/${episode.previous_episode_id}`} className={styles.navButton}>
               <ArrowLeft size={16} />
               Vorherige Folge
             </Link>
           ) : (
-            <span className={`${styles.navButton} ${styles.navButtonDisabled}`}>Keine vorherige Folge</span>
+            <span className={`${styles.navButton} ${styles.navButtonDisabled}`}>
+              {hasGroupReleaseContext ? 'Release-Kontext aktiv' : 'Keine vorherige Folge'}
+            </span>
           )}
 
           <a href={playbackProxyUrl} className={styles.navButton} target="_blank" rel="noopener noreferrer">
@@ -199,19 +184,25 @@ export default async function EpisodeDetailPage({ params }: EpisodeDetailPagePro
             </a>
           ) : null}
 
-          {episode.next_episode_id ? (
+          {!hasGroupReleaseContext && episode.next_episode_id ? (
             <Link href={`/episodes/${episode.next_episode_id}`} className={styles.navButton}>
               Naechste Folge
             </Link>
           ) : (
-            <span className={`${styles.navButton} ${styles.navButtonDisabled}`}>Keine naechste Folge</span>
+            <span className={`${styles.navButton} ${styles.navButtonDisabled}`}>
+              {hasGroupReleaseContext ? 'Zurueck ueber Gruppen-Releases' : 'Keine naechste Folge'}
+            </span>
           )}
         </div>
       </section>
 
-      <MediaAssetsSection assets={mockAssets} />
+      <MediaAssetsSection
+        releaseId={activeReleaseID ?? undefined}
+        assets={releaseAssets}
+        errorMessage={releaseAssetsError}
+      />
 
-      <ScreenshotGallery releaseId={episode.id} />
+      {activeReleaseID !== null ? <ScreenshotGallery releaseId={activeReleaseID} /> : null}
     </main>
   )
 }
