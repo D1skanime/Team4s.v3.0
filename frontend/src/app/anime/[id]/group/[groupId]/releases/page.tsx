@@ -50,7 +50,9 @@ type Anime = {
 
 type Group = {
   fansub: {
+    id: number
     name: string
+    slug: string
     logo_url?: string | null
   }
 }
@@ -111,6 +113,8 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
   const [filterOp, setFilterOp] = useState(hasOpParam)
   const [filterEd, setFilterEd] = useState(hasEdParam)
   const [filterKaraoke, setFilterKaraoke] = useState(hasKaraokeParam)
+
+  const otherGroups = navigationGroups.filter((item) => item.id !== groupID)
 
   useEffect(() => {
     async function resolveParams() {
@@ -208,10 +212,8 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
     setFilterOp(false)
     setFilterEd(false)
     setFilterKaraoke(false)
-    setSearchTerm('')
-    setDebouncedSearchTerm('')
-    updateURL({ has_op: undefined, has_ed: undefined, has_karaoke: undefined, q: undefined })
-  }, [updateURL])
+    updateURL({ has_op: undefined, has_ed: undefined, has_karaoke: undefined, q: debouncedSearchTerm || undefined })
+  }, [debouncedSearchTerm, updateURL])
 
   useEffect(() => {
     async function fetchData() {
@@ -411,6 +413,36 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
           </section>
 
           <section className={styles.releasesSection}>
+            {otherGroups.length > 0 ? (
+              <div className={styles.otherGroupsSection}>
+                <p className={styles.otherGroupsLabel}>Weitere Gruppen zu diesem Anime</p>
+                <div className={styles.otherGroupsScroller} aria-label="Weitere Fansub-Gruppen">
+                  {otherGroups.map((otherGroup) => (
+                    <Link
+                      key={otherGroup.id}
+                      href={`/anime/${animeID}/group/${otherGroup.id}/releases`}
+                      className={styles.otherGroupChip}
+                    >
+                      {otherGroup.logo_url ? (
+                        <Image
+                          src={otherGroup.logo_url}
+                          alt={otherGroup.name}
+                          width={22}
+                          height={22}
+                          className={styles.otherGroupLogo}
+                        />
+                      ) : (
+                        <span className={styles.otherGroupInitial} aria-hidden="true">
+                          {otherGroup.name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      <span className={styles.otherGroupName}>{otherGroup.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             {meta && (
               <div className={styles.releasesMeta}>
                 <p className={styles.releasesCount}>
@@ -507,27 +539,7 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
                           Episode {episode.episode_number}
                           {episode.title ? `: ${episode.title}` : ''}
                         </h3>
-                        <div className={styles.badges}>
-                          {episode.has_op ? <span className={styles.badgeAccent}>OP</span> : null}
-                          {episode.has_ed ? <span className={styles.badgeAccent}>ED</span> : null}
-                          {episode.karaoke_count > 0 ? (
-                            <span className={styles.badgeAccent}>K-FX {episode.karaoke_count}</span>
-                          ) : null}
-                          {episode.insert_count > 0 ? (
-                            <span className={styles.badge}>Insert {episode.insert_count}</span>
-                          ) : null}
-                          {episode.screenshot_count > 0 ? (
-                            <span className={styles.badge}>{episode.screenshot_count} Screenshots</span>
-                          ) : null}
-                        </div>
-                        {episode.released_at ? (
-                          <p className={styles.releaseDate}>
-                            {new Date(episode.released_at).toLocaleDateString('de-DE')}
-                          </p>
-                        ) : null}
-                        <div className={styles.cardActions}>
-                          <span className={styles.detailsButton}>Episode-Route nicht verfuegbar</span>
-                        </div>
+                        <p className={styles.releaseDate}>Episode-Route nicht verfuegbar.</p>
                       </div>
                     </article>
                   )
@@ -548,5 +560,3 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
     </main>
   )
 }
-
-
