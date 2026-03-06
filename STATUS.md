@@ -32,6 +32,7 @@
 - Media proxy (streams, images, video, backdrops, banners)
 - Release/episode grant flow for playback
 - Public release-assets contract is live at `GET /api/v1/releases/:releaseId/assets`; episode detail now consumes the real endpoint and cleanly hides empty asset responses
+- Anime detail route no longer double-loads backdrop manifests; non-critical list/fansub prefetches were reduced and edge-navigation neighbors now load on demand
 
 ## How To Verify
 ```bash
@@ -58,3 +59,4 @@ cd ../frontend && npm run build
 ## Known Risks
 - Jellyfin upstream can intermittently timeout (`server nicht erreichbar`) despite valid configuration
 - Timeout diagnostics are now available but still need trend monitoring under load
+- Anime detail performance is still bounded by the Jellyfin-backed `/api/v1/anime/:id/backdrops` endpoint, even after frontend request deduplication

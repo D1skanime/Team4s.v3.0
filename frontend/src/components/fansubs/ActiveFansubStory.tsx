@@ -90,7 +90,7 @@ export function ActiveFansubStory({ animeID, fansubGroups, animeFansubs }: Activ
   return (
     <article className={styles.card}>
       <h3 className={styles.title}>
-        <Link href={`/fansubs/${activeGroup.slug}`}>{activeGroup.name}</Link>
+        <Link href={`/fansubs/${activeGroup.slug}`} prefetch={false}>{activeGroup.name}</Link>
       </h3>
       <p className={styles.text}>{preview || 'Keine Fansub-Historie hinterlegt.'}</p>
     </article>

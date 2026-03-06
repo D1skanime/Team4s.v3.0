@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -36,81 +36,81 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
   const [nextAnime, setNextAnime] = useState<AnimeListItem | null>(null)
   const [hoverDirection, setHoverDirection] = useState<Direction | null>(null)
   const [loadingDirection, setLoadingDirection] = useState<Direction | null>(null)
+  const [isLoadingNeighbors, setIsLoadingNeighbors] = useState(false)
+  const hasLoadedNeighborsRef = useRef(false)
 
   const gridParams = useMemo(() => parseAnimeListParamsFromGridQuery(gridQuery), [gridQuery])
   const previewAnime = hoverDirection === 'prev' ? previousAnime : hoverDirection === 'next' ? nextAnime : null
 
-  useEffect(() => {
-    let cancelled = false
+  const loadNeighbors = useCallback(async () => {
+    if (!gridParams) {
+      setPreviousAnime(null)
+      setNextAnime(null)
+      return
+    }
+    if (hasLoadedNeighborsRef.current || isLoadingNeighbors) {
+      return
+    }
 
-    async function loadNeighbors() {
-      if (!gridParams) {
+    hasLoadedNeighborsRef.current = true
+    setIsLoadingNeighbors(true)
+
+    try {
+      const currentPage = gridParams.page ?? 1
+      const currentResponse = await getAnimeList(gridParams)
+
+      const items = currentResponse.data
+      const currentIndex = items.findIndex((item) => item.id === currentAnimeID)
+      if (currentIndex < 0) {
         setPreviousAnime(null)
         setNextAnime(null)
         return
       }
 
-      try {
-        const currentPage = gridParams.page ?? 1
-        const currentResponse = await getAnimeList(gridParams)
-        if (cancelled) return
+      let prev = currentIndex > 0 ? items[currentIndex - 1] : null
+      let next = currentIndex < items.length - 1 ? items[currentIndex + 1] : null
 
-        const items = currentResponse.data
-        const currentIndex = items.findIndex((item) => item.id === currentAnimeID)
-        if (currentIndex < 0) {
-          setPreviousAnime(null)
-          setNextAnime(null)
-          return
-        }
-
-        let prev = currentIndex > 0 ? items[currentIndex - 1] : null
-        let next = currentIndex < items.length - 1 ? items[currentIndex + 1] : null
-
-        if (!prev && currentPage > 1) {
-          const prevPageResponse = await getAnimeList({
-            ...gridParams,
-            page: currentPage - 1,
-          })
-          if (cancelled) return
-          if (prevPageResponse.data.length > 0) {
-            prev = prevPageResponse.data[prevPageResponse.data.length - 1]
-          }
-        }
-
-        if (!next && currentPage < currentResponse.meta.total_pages) {
-          const nextPageResponse = await getAnimeList({
-            ...gridParams,
-            page: currentPage + 1,
-          })
-          if (cancelled) return
-          if (nextPageResponse.data.length > 0) {
-            next = nextPageResponse.data[0]
-          }
-        }
-
-        setPreviousAnime(prev)
-        setNextAnime(next)
-      } catch {
-        if (!cancelled) {
-          setPreviousAnime(null)
-          setNextAnime(null)
+      if (!prev && currentPage > 1) {
+        const prevPageResponse = await getAnimeList({
+          ...gridParams,
+          page: currentPage - 1,
+        })
+        if (prevPageResponse.data.length > 0) {
+          prev = prevPageResponse.data[prevPageResponse.data.length - 1]
         }
       }
+
+      if (!next && currentPage < currentResponse.meta.total_pages) {
+        const nextPageResponse = await getAnimeList({
+          ...gridParams,
+          page: currentPage + 1,
+        })
+        if (nextPageResponse.data.length > 0) {
+          next = nextPageResponse.data[0]
+        }
+      }
+
+      setPreviousAnime(prev)
+      setNextAnime(next)
+    } catch {
+      setPreviousAnime(null)
+      setNextAnime(null)
+      hasLoadedNeighborsRef.current = false
+    } finally {
+      setIsLoadingNeighbors(false)
     }
+  }, [currentAnimeID, gridParams, isLoadingNeighbors])
 
-    void loadNeighbors()
-
-    return () => {
-      cancelled = true
-    }
-  }, [currentAnimeID, gridParams])
-
-  if (!previousAnime && !nextAnime) {
+  if (!gridParams) {
     return null
   }
 
-  function handleNavigate(direction: Direction) {
+  async function handleNavigate(direction: Direction) {
     if (loadingDirection) return
+
+    if (!hasLoadedNeighborsRef.current) {
+      await loadNeighbors()
+    }
 
     const target = direction === 'prev' ? previousAnime : nextAnime
     if (!target) return
@@ -124,12 +124,21 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
       <button
         type="button"
         className={styles.navButton}
-        onMouseEnter={() => previousAnime && setHoverDirection('prev')}
+        onMouseEnter={() => {
+          void loadNeighbors()
+          if (previousAnime) setHoverDirection('prev')
+        }}
         onMouseLeave={() => setHoverDirection((current) => (current === 'prev' ? null : current))}
-        onFocus={() => previousAnime && setHoverDirection('prev')}
+        onFocus={() => {
+          void loadNeighbors()
+          if (previousAnime) setHoverDirection('prev')
+        }}
+        onTouchStart={() => {
+          void loadNeighbors()
+        }}
         onBlur={() => setHoverDirection((current) => (current === 'prev' ? null : current))}
-        onClick={() => handleNavigate('prev')}
-        disabled={!previousAnime || loadingDirection !== null}
+        onClick={() => void handleNavigate('prev')}
+        disabled={(!previousAnime && hasLoadedNeighborsRef.current) || loadingDirection !== null || isLoadingNeighbors}
         aria-label="Vorheriger Anime"
       >
         <ChevronLeft size={22} />
@@ -138,12 +147,21 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
       <button
         type="button"
         className={styles.navButton}
-        onMouseEnter={() => nextAnime && setHoverDirection('next')}
+        onMouseEnter={() => {
+          void loadNeighbors()
+          if (nextAnime) setHoverDirection('next')
+        }}
         onMouseLeave={() => setHoverDirection((current) => (current === 'next' ? null : current))}
-        onFocus={() => nextAnime && setHoverDirection('next')}
+        onFocus={() => {
+          void loadNeighbors()
+          if (nextAnime) setHoverDirection('next')
+        }}
+        onTouchStart={() => {
+          void loadNeighbors()
+        }}
         onBlur={() => setHoverDirection((current) => (current === 'next' ? null : current))}
-        onClick={() => handleNavigate('next')}
-        disabled={!nextAnime || loadingDirection !== null}
+        onClick={() => void handleNavigate('next')}
+        disabled={(!nextAnime && hasLoadedNeighborsRef.current) || loadingDirection !== null || isLoadingNeighbors}
         aria-label="Naechster Anime"
       >
         <ChevronRight size={22} />

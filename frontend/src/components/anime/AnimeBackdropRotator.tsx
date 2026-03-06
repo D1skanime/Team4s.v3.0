@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+import type { AnimeBackdropManifest } from '@/types/anime'
 import { getAnimeBackdrops } from '@/lib/api'
+import { normalizeBackdropImageURLs, normalizeThemeVideoURLs } from '@/lib/animeBackdrops'
 import { getCoverUrl } from '@/lib/utils'
 import { shouldRenderEnableAudioButton } from './themeVideoAudio'
 
@@ -12,16 +14,19 @@ import styles from './AnimeBackdropRotator.module.css'
 interface AnimeBackdropRotatorProps {
   animeID: number
   coverImage?: string
+  initialManifest?: AnimeBackdropManifest | null
 }
 
 const ROTATION_INTERVAL_MS = 9000
-const API_PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://localhost:8092'
 
-export function AnimeBackdropRotator({ animeID, coverImage }: AnimeBackdropRotatorProps) {
-  const [backdropUrls, setBackdropUrls] = useState<string[]>([])
+export function AnimeBackdropRotator({ animeID, coverImage, initialManifest = null }: AnimeBackdropRotatorProps) {
+  const [backdropUrls, setBackdropUrls] = useState<string[]>(() => normalizeBackdropImageURLs(initialManifest))
   const [activeIndex, setActiveIndex] = useState(0)
-  const [activeThemeVideoUrl, setActiveThemeVideoURL] = useState<string | null>(null)
-  const [showThemeVideo, setShowThemeVideo] = useState(false)
+  const [activeThemeVideoUrl, setActiveThemeVideoURL] = useState<string | null>(() => {
+    const themeVideos = normalizeThemeVideoURLs(initialManifest)
+    return themeVideos[0] ?? null
+  })
+  const [showThemeVideo, setShowThemeVideo] = useState(() => normalizeThemeVideoURLs(initialManifest).length > 0)
   const [isThemeVideoMuted, setThemeVideoMuted] = useState(true)
   const [audioToggleError, setAudioToggleError] = useState<string | null>(null)
   const themeVideoRef = useRef<HTMLVideoElement | null>(null)
@@ -50,25 +55,25 @@ export function AnimeBackdropRotator({ animeID, coverImage }: AnimeBackdropRotat
   }, [])
 
   useEffect(() => {
+    const initialBackdrops = normalizeBackdropImageURLs(initialManifest)
+    const initialThemeVideos = normalizeThemeVideoURLs(initialManifest)
+    if (initialBackdrops.length > 0 || initialThemeVideos.length > 0) {
+      setBackdropUrls(shuffle(initialBackdrops))
+      setActiveIndex(initialBackdrops.length > 0 ? Math.floor(Math.random() * initialBackdrops.length) : 0)
+      setActiveThemeVideoURL(initialThemeVideos[0] ?? null)
+      setThemeVideoMuted(true)
+      setAudioToggleError(null)
+      setShowThemeVideo(initialThemeVideos.length > 0)
+      return
+    }
+
     let isCancelled = false
 
     async function loadBackdrops() {
       try {
         const response = await getAnimeBackdrops(animeID)
-        const base = API_PUBLIC_BASE_URL.endsWith('/') ? API_PUBLIC_BASE_URL : `${API_PUBLIC_BASE_URL}/`
-        const normalizedBackdrops = (response.data.backdrops || [])
-          .map((item) => item.trim())
-          .filter((item) => item.length > 0)
-          .map((item) => {
-            const imageURL = new URL(item, base)
-            imageURL.searchParams.set('width', '1920')
-            imageURL.searchParams.set('quality', '86')
-            return imageURL.toString()
-          })
-        const normalizedThemeVideos = (response.data.theme_videos || [])
-          .map((item) => item.trim())
-          .filter((item) => item.length > 0)
-          .map((item) => new URL(item, base).toString())
+        const normalizedBackdrops = normalizeBackdropImageURLs(response.data)
+        const normalizedThemeVideos = normalizeThemeVideoURLs(response.data)
 
         if (isCancelled) return
 
@@ -109,7 +114,7 @@ export function AnimeBackdropRotator({ animeID, coverImage }: AnimeBackdropRotat
     return () => {
       isCancelled = true
     }
-  }, [animeID])
+  }, [animeID, initialManifest])
 
   useEffect(() => {
     if (showThemeVideo || backdropUrls.length < 2) return undefined

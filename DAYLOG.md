@@ -7,6 +7,9 @@
 - Rebuilt `team4sv30-backend` and `team4sv30-frontend` and validated the live route:
   - `http://localhost:8092/api/v1/releases/311/assets`
   - `http://localhost:3002/episodes/106?releaseId=311&animeId=25&groupId=75`
+- Reduced anime detail route overhead by deduplicating backdrop manifest fetches, parallelizing non-critical server reads, disabling route prefetch on detail-only links, and making edge-navigation neighbor loading lazy.
+- Revalidated the performance-sensitive anime detail path:
+  - `http://localhost:3002/anime/4538?from=anime-grid&grid_query=page%3D1%26per_page%3D24`
 
 ## 2026-03-05
 - Verified local VS Code setup for development: user settings, terminal defaults, and extension inventory.

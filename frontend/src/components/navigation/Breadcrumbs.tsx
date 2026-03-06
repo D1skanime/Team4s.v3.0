@@ -28,7 +28,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
           return (
             <li key={index} className={styles.breadcrumbsItem}>
               {item.href && !isLast ? (
-                <Link href={item.href} className={styles.breadcrumbsLink}>
+                <Link href={item.href} prefetch={false} className={styles.breadcrumbsLink}>
                   {item.label}
                 </Link>
               ) : (

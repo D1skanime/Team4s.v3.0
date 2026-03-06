@@ -24,13 +24,12 @@ import {
   getGroupedEpisodes,
   getWatchlistEntry,
 } from '@/lib/api'
+import { resolveInfoBannerURL, resolveInfoLogoURL } from '@/lib/animeBackdrops'
 import { buildAnimeListHrefFromGridQuery, normalizeGridQuery } from '@/lib/animeGridContext'
 import { getEmbySeriesUrlForAnime } from '@/lib/emby'
 import { getCoverUrl } from '@/lib/utils'
 
 import styles from './page.module.css'
-
-const API_PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://localhost:8092'
 
 interface AnimeDetailPageProps {
   params:
@@ -125,14 +124,18 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   const backToGridHref = fromGrid ? buildAnimeListHrefFromGridQuery(gridQuery) : '/anime'
 
   const embySeriesUrl = getEmbySeriesUrlForAnime(anime.id)
-  let animeFansubsResponse: Awaited<ReturnType<typeof getAnimeFansubs>> | null = null
-  let groupedEpisodesResponse: Awaited<ReturnType<typeof getGroupedEpisodes>> | null = null
-  try {
-    animeFansubsResponse = await getAnimeFansubs(anime.id)
-    groupedEpisodesResponse = await getGroupedEpisodes(anime.id)
-  } catch {
-    // fallback to legacy episode list rendering below
-  }
+  const [animeFansubsResult, groupedEpisodesResult, commentsResult, watchlistResult, backdropResult] =
+    await Promise.allSettled([
+      getAnimeFansubs(anime.id),
+      getGroupedEpisodes(anime.id),
+      getAnimeComments(animeID, { page: 1, per_page: 10 }),
+      authToken ? getWatchlistEntry(animeID, authToken) : Promise.resolve(null),
+      withTimeout(getAnimeBackdrops(anime.id), 4000),
+    ])
+
+  const animeFansubsResponse = animeFansubsResult.status === 'fulfilled' ? animeFansubsResult.value : null
+  const groupedEpisodesResponse = groupedEpisodesResult.status === 'fulfilled' ? groupedEpisodesResult.value : null
+
   const fansubDetailsBySlug = new Map<string, FansubGroup>()
   if (animeFansubsResponse && animeFansubsResponse.data.length > 0) {
     const slugs = Array.from(
@@ -162,62 +165,22 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
     }
   }
 
-  let commentsResponse: Awaited<ReturnType<typeof getAnimeComments>> | null = null
-  let commentsError: string | null = null
-  try {
-    commentsResponse = await getAnimeComments(animeID, { page: 1, per_page: 10 })
-  } catch {
-    commentsError = 'Kommentare konnten nicht geladen werden.'
-  }
-
-  let inWatchlist = false
-  if (authToken) {
-    try {
-      await getWatchlistEntry(animeID, authToken)
-      inWatchlist = true
-    } catch (error) {
-      if (!(error instanceof ApiError && error.status === 404)) {
-        // ignore non-critical watchlist preload failures on detail page
-      }
-    }
-  }
-
-  let infoBannerURL: string | null = null
-  let infoLogoURL: string | null = null
-  try {
-    const backdropsResponse = await withTimeout(getAnimeBackdrops(anime.id), 4000)
-    const rawBannerURL = (backdropsResponse.data.banner_url || '').trim()
-    const rawBackdropBannerURL = (backdropsResponse.data.backdrops[0] || '').trim()
-    const rawLogoURL = (backdropsResponse.data.logo_url || '').trim()
-    const bannerCandidate = rawBannerURL || rawBackdropBannerURL
-    if (bannerCandidate) {
-      const base = API_PUBLIC_BASE_URL.endsWith('/') ? API_PUBLIC_BASE_URL : `${API_PUBLIC_BASE_URL}/`
-      const imageURL = new URL(bannerCandidate, base)
-      imageURL.searchParams.set('width', '1280')
-      imageURL.searchParams.set('quality', '86')
-      infoBannerURL = imageURL.toString()
-    }
-    if (rawLogoURL) {
-      const base = API_PUBLIC_BASE_URL.endsWith('/') ? API_PUBLIC_BASE_URL : `${API_PUBLIC_BASE_URL}/`
-      const logoURL = new URL(rawLogoURL, base)
-      logoURL.searchParams.set('width', '760')
-      logoURL.searchParams.set('quality', '90')
-      infoLogoURL = logoURL.toString()
-    }
-  } catch {
-    infoBannerURL = null
-    infoLogoURL = null
-  }
+  const commentsResponse = commentsResult.status === 'fulfilled' ? commentsResult.value : null
+  const commentsError = commentsResult.status === 'rejected' ? 'Kommentare konnten nicht geladen werden.' : null
+  const inWatchlist = watchlistResult.status === 'fulfilled' && Boolean(watchlistResult.value)
+  const backdropManifest = backdropResult.status === 'fulfilled' ? backdropResult.value.data : null
+  const infoBannerURL = resolveInfoBannerURL(backdropManifest)
+  const infoLogoURL = resolveInfoLogoURL(backdropManifest)
 
   return (
     <main className={styles.page}>
       <Breadcrumbs items={breadcrumbItems} />
       <p className={styles.backLink}>
-        <Link href={backToGridHref}>Zur Anime-Liste</Link>
+        <Link href={backToGridHref} prefetch={false}>Zur Anime-Liste</Link>
       </p>
 
       <section className={styles.heroShell}>
-        <AnimeBackdropRotator animeID={anime.id} coverImage={anime.cover_image} />
+        <AnimeBackdropRotator animeID={anime.id} coverImage={anime.cover_image} initialManifest={backdropManifest} />
         <section className={styles.hero}>
           <Image
             src={getCoverUrl(anime.cover_image)}
@@ -283,6 +246,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
                 <Link
                   key={relation.fansub_group.id}
                   href={`/fansubs/${relation.fansub_group.slug}`}
+                  prefetch={false}
                   className={styles.fansubChip}
                 >
                   {relation.fansub_group.name}

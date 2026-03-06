@@ -23,3 +23,6 @@ Decide the first persisted release-asset slice:
 - Database migration 0018 must be applied before testing screenshots
 - Release asset data source must exist before public media assets/player can show non-empty content
 - Jellyfin instance needed for stream proxy testing
+
+## Parking Lot
+- If EPIC work is blocked, optimize `GET /api/v1/anime/:id/backdrops` by caching or reducing serial Jellyfin probes
