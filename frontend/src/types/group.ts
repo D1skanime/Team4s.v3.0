@@ -1,5 +1,6 @@
 import { FansubGroupSummary } from '@/types/fansub'
 import { PaginationMeta } from '@/types/anime'
+import { MediaAsset } from '@/types/mediaAsset'
 
 export interface GroupPeriod {
   start?: string | null
@@ -61,4 +62,37 @@ export interface GroupReleasesParams {
   has_ed?: boolean
   has_karaoke?: boolean
   q?: string
+}
+
+export interface GroupAssetHero {
+  backdrop_url?: string | null
+  primary_url?: string | null
+  poster_url?: string | null
+  folder_found?: boolean
+}
+
+export interface GroupAssetScreenshot {
+  id: string
+  title: string
+  image_url: string
+  thumbnail_url?: string | null
+}
+
+export interface GroupEpisodeAssets {
+  episode_number: number
+  title: string
+  screenshots: GroupAssetScreenshot[]
+  media_assets: MediaAsset[]
+}
+
+export interface GroupAssetsData {
+  anime_id: number
+  group_id: number
+  folder_name: string
+  hero: GroupAssetHero
+  episodes: GroupEpisodeAssets[]
+}
+
+export interface GroupAssetsResponse {
+  data: GroupAssetsData
 }

@@ -2,10 +2,12 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  display: grid;
+  gap: 20px;
 }
 
 .backLink {
-  margin-bottom: 16px;
+  margin: 0;
   font-size: 14px;
 }
 
@@ -28,82 +30,157 @@
 
 .heroShell {
   position: relative;
-  margin-bottom: 32px;
+  display: grid;
+  gap: 16px;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
 }
 
 .hero {
   display: flex;
-  gap: 32px;
-  padding: 24px;
-  border-radius: var(--radius-md);
-  background: var(--color-surface, #f9f9f9);
-  border: 1px solid var(--color-border);
+  gap: 24px;
+  padding: 40px max(24px, calc((100vw - 1200px) / 2 + 20px));
+  background: linear-gradient(180deg, #201016 0%, #12080d 100%);
+  color: var(--color-white);
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
 }
 
-.logo {
-  border-radius: var(--radius-sm);
-  object-fit: contain;
-  flex: 0 0 120px;
-  background: var(--color-white);
+.heroWithBackdrop {
+  min-height: 420px;
 }
 
-.logoPlaceholder {
-  width: 120px;
-  height: 120px;
-  border-radius: var(--radius-sm);
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(10, 12, 18, 0.42) 0%, rgba(10, 12, 18, 0.22) 24%, rgba(10, 12, 18, 0.72) 100%),
+    linear-gradient(90deg, rgba(10, 12, 18, 0.82) 0%, rgba(10, 12, 18, 0.54) 34%, rgba(10, 12, 18, 0.74) 100%);
+  pointer-events: none;
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.poster {
+  width: 220px;
+  height: 320px;
+  border-radius: 16px;
+  object-fit: cover;
+  flex: 0 0 220px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.posterPlaceholder {
+  width: 220px;
+  height: 320px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 120px;
+  flex: 0 0 220px;
 }
 
-.logoInitial {
-  font-size: 48px;
+.posterInitial {
+  font-size: 72px;
   font-weight: 600;
-  color: var(--color-text-secondary);
+  color: rgba(255, 255, 255, 0.76);
 }
 
 .info {
   flex: 1;
   min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 20px;
+  background: rgba(10, 6, 9, 0.48);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+  position: relative;
+}
+
+.info::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(10, 12, 18, 0.24) 0%, rgba(10, 12, 18, 0.56) 100%),
+    linear-gradient(90deg, rgba(10, 12, 18, 0.5) 0%, rgba(10, 12, 18, 0.32) 58%, rgba(10, 12, 18, 0.52) 100%);
+  pointer-events: none;
+}
+
+.info > * {
+  position: relative;
+  z-index: 1;
+}
+
+.infoWithBackdrop {
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .title {
-  margin: 0 0 8px;
-  font-size: 32px;
-  font-weight: 600;
+  margin: 0;
+  font-size: 36px;
+  font-weight: 700;
   line-height: 1.2;
 }
-
 
 .stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 10px;
+  margin: 0;
 }
 
 .statItem {
   font-size: 14px;
-  color: var(--color-text-secondary);
+  color: var(--color-white);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 8px 12px;
 }
 
 .story {
-  margin-bottom: 24px;
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(8, 4, 6, 0.44);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .storyHeading {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 18px;
   font-weight: 500;
 }
 
-
 .actions {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .releasesButton,
@@ -112,7 +189,7 @@
   align-items: center;
   justify-content: center;
   padding: 10px 20px;
-  border-radius: var(--radius-sm);
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
@@ -131,31 +208,39 @@
 }
 
 .profileButton {
-  background: var(--color-white);
-  color: var(--color-primary);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-white);
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .profileButton:hover {
-  border-color: var(--color-primary);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.assetsPanel {
+  border-radius: 20px;
+  background: linear-gradient(180deg, #16090d 0%, #0f0609 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 24px;
 }
 
 @media (max-width: 768px) {
   .hero {
     flex-direction: column;
     gap: 20px;
+    padding: 28px 20px;
   }
 
-  .logo,
-  .logoPlaceholder {
-    width: 120px;
-    height: 120px;
-    flex: 0 0 120px;
+  .poster,
+  .posterPlaceholder {
+    width: 180px;
+    height: 260px;
+    flex: 0 0 180px;
     align-self: center;
   }
 
-  .logoInitial {
-    font-size: 48px;
+  .posterInitial {
+    font-size: 64px;
   }
 
   .title {

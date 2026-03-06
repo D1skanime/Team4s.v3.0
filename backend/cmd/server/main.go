@@ -177,6 +177,13 @@ func main() {
 	).WithMedia(mediaRepo, mediaService)
 	groupRepo := repository.NewGroupRepository(dbPool)
 	groupHandler := handlers.NewGroupHandler(groupRepo)
+	groupAssetsHandler := handlers.NewGroupAssetsHandler(
+		groupRepo,
+		handlers.AnimeMediaConfig{
+			JellyfinAPIKey:  cfg.JellyfinAPIKey,
+			JellyfinBaseURL: cfg.JellyfinBaseURL,
+		},
+	)
 	assetStreamHandler := handlers.NewAssetStreamHandler(handlers.AssetStreamConfig{
 		JellyfinAPIKey:     cfg.JellyfinAPIKey,
 		JellyfinBaseURL:    cfg.JellyfinBaseURL,
@@ -193,6 +200,7 @@ func main() {
 	v1.GET("/anime/:id/fansubs", fansubHandler.ListAnimeFansubs)
 	v1.GET("/anime/:id/episodes", fansubHandler.ListGroupedEpisodes)
 	v1.GET("/anime/:id/group/:groupId", groupHandler.GetGroupDetail)
+	v1.GET("/anime/:id/group/:groupId/assets", groupAssetsHandler.GetGroupAssets)
 	v1.GET("/anime/:id/group/:groupId/releases", groupHandler.GetGroupReleases)
 	v1.GET("/episode-versions/:versionId", fansubHandler.GetEpisodeVersionByID)
 	v1.GET("/anime/:id/comments", commentHandler.ListByAnimeID)

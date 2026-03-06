@@ -13,50 +13,42 @@
   - explicit search -> preview -> confirm -> sync flow for season-wide imports
   - visible loading, empty, success, and error feedback
   - sync guard when preview has zero importable episodes
-  - full sync upserts all accepted episodes and now persists Jellyfin `stream_url` links for synced versions
+  - full sync upserts all accepted episodes and persists Jellyfin `stream_url` links for synced versions
 - Single-episode sync is available for corrective re-syncs and is live-validated against the local stack
-- Jellyfin admin search now works against the configured live remote instance
+- Jellyfin admin search works against the configured live remote instance
 - Grouped episodes API supports lightweight reads via `includeVersions` / `includeFansubs`
-- Frontend regression helpers/tests cover Jellyfin error feedback and confirm-dialog gating
-- Sync UI copy now explicitly separates season-wide bulk sync from corrective single-episode sync
-- Jellyfin sync handler entrypoints are modularized below target:
-  - `backend/internal/handlers/jellyfin_sync.go` (144 lines)
-  - `backend/internal/handlers/jellyfin_episode_sync.go` (114 lines)
-- Jellyfin transport diagnostics now log failure path + latency + category in the shared client path
-- Frontend image rendering uses `next/image` across admin and public surfaces
-- Cropper math now has deterministic parity coverage in Vitest
-- Anime search has `pg_trgm` migration available (`0017_anime_search_trgm`) for scalable substring queries
 - Playback security: IP-based rate limiting, grant token replay protection, audit logging
 - Auth lifecycle (issue/refresh/revoke with signed tokens)
 - Fansub profiles, version browser, admin CRUD
 - Media proxy (streams, images, video, backdrops, banners)
 - Release/episode grant flow for playback
-- Public release-assets contract is live at `GET /api/v1/releases/:releaseId/assets`; episode detail now consumes the real endpoint and cleanly hides empty asset responses
-- Anime detail route no longer double-loads backdrop manifests; non-critical list/fansub prefetches were reduced and edge-navigation neighbors now load on demand
+- Public release-assets contract is live at `GET /api/v1/releases/:releaseId/assets`; episode detail consumes the real endpoint and hides empty asset responses cleanly
+- Public anime group detail now loads live Jellyfin subgroup assets at `GET /api/v1/anime/:animeId/group/:groupId/assets`
+- Group detail uses the Jellyfin subgroup root backdrop as the full-page background and episode-folder assets as the per-episode gallery/media source
+- Local stack is deployed and responding on:
+  - Frontend: `http://localhost:3002`
+  - Backend: `http://localhost:8092`
 
 ## How To Verify
 ```bash
 cd Team4s.v3.0
-docker compose up -d
-docker compose exec -T team4sv30-backend ./migrate status
+docker compose up -d --build
 curl http://localhost:8092/health
+curl http://localhost:8092/api/v1/anime/25/group/301/assets
 curl http://localhost:8092/api/v1/releases/311/assets
-curl "http://localhost:8092/api/v1/genres?query=act&limit=3"
-curl -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admin/jellyfin/series?q=Naruto&limit=3"
-curl -X POST -H "Authorization: Bearer <admin-token>" "http://localhost:8092/api/v1/admin/anime/25/jellyfin/sync"
-curl http://localhost:3002/admin/anime/25/episodes
-powershell -ExecutionPolicy Bypass -File .\scripts\smoke-admin-content.ps1 -AuthTokenSecret <auth-token-secret>
+curl -I http://localhost:3002/anime/25/group/301
 cd backend && go test ./...
 cd ../frontend && npm test
 cd ../frontend && npm run build
 ```
 
 ## Next (Top 3)
-1. Add persisted release-asset storage and seed real OP/ED/Kara/Insert data behind `GET /api/v1/releases/:releaseId/assets`
-2. Add real asset counters/filter semantics to group releases once release-asset persistence exists
-3. Implement EPIC 7 public release notes and contributions flow
+1. Align `shared/contracts/openapi.yaml` with the live subgroup group-assets payload
+2. Add subgroup folder discovery pagination / robust matching so libraries larger than 500 root folders still resolve correctly
+3. Improve operational error mapping when `JELLYFIN_*` config is missing or invalid, instead of surfacing it as a generic folder-not-found state
 
 ## Known Risks
-- Jellyfin upstream can intermittently timeout (`server nicht erreichbar`) despite valid configuration
-- Timeout diagnostics are now available but still need trend monitoring under load
-- Anime detail performance is still bounded by the Jellyfin-backed `/api/v1/anime/:id/backdrops` endpoint, even after frontend request deduplication
+- The live subgroup asset payload is ahead of the checked-in OpenAPI contract
+- Subgroups library discovery currently inspects only the first 500 root folders
+- Missing or broken `JELLYFIN_*` configuration is not yet distinguished from a real missing subgroup folder
+- Episode-detail linking inside the group detail page is still bounded by the currently loaded release list size

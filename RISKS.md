@@ -2,26 +2,30 @@
 
 ## Top 3 Risks
 
-### 1. Release Assets Still Have No Persisted Data Source
-- **Impact:** High (EPIC 4/5 remain visually empty despite the live public API contract)
-- **Likelihood:** Medium
-- **Mitigation:** Add dedicated release-asset persistence/admin curation, seed at least one release, then rerun media-assets/player validation
+### 1. OpenAPI Contract Drift on Group Assets
+- **Impact:** High (frontend/backend work is live, but docs and future clients can implement the wrong payload)
+- **Likelihood:** High
+- **Mitigation:** Update `shared/contracts/openapi.yaml` first tomorrow and smoke the generated schema against the live endpoint
 
-### 2. Screenshot Data Not Yet Seeded
-- **Impact:** Medium (screenshot flow stays invisible without data)
+### 2. Subgroups Library Discovery Stops at 500 Root Folders
+- **Impact:** High (group asset pages will fail to resolve once the library grows past the first page)
 - **Likelihood:** Medium
-- **Mitigation:** Seed real screenshot rows after migration checks and rerun gallery validation
+- **Mitigation:** Add provider pagination/iteration for subgroup root discovery and re-test against the current naming rules
 
-### 3. Stream Proxy Requires Jellyfin Config
-- **Impact:** Medium (Playback fails without provider)
+### 3. Jellyfin Config Failures Still Masquerade as Missing Folders
+- **Impact:** Medium (operators will debug the wrong thing and lose time on incidents)
 - **Likelihood:** Medium
-- **Mitigation:** Ensure `JELLYFIN_*` env vars are set; error states remain implemented
+- **Mitigation:** Distinguish missing `JELLYFIN_*` / auth / connectivity failures from true subgroup-folder misses in the handler response/logging
 
 ## Current Blockers
-- No persisted release-asset storage behind the now-live public assets contract
+- None for the local deploy; the current blockers are correctness and operability, not startup/runtime
 
 ## Technical Debt
-- Component tests removed (need `@testing-library/react`)
-- Some admin upload flows still need image proxy integration
-- `EpisodeReleaseSummary.id` still represents release identity, so future clients must keep using `episode_id` for `/episodes/[id]`
-- The public assets endpoint currently returns a stable empty list for existing releases until asset storage lands
+- Group-detail episode linking is still derived from the currently loaded release list
+- The live subgroup contract is only partially documented outside the code
+- Existing release-assets persistence work is still pending for the separate `/api/v1/releases/:releaseId/assets` lane
+
+## If Nothing Changes, What Fails Next Week?
+- The next client or docs consumer will integrate the wrong group-assets contract
+- Larger Jellyfin subgroup libraries will start producing false "not found" results for valid anime/group pages
+- Configuration outages will be misdiagnosed as content/data issues

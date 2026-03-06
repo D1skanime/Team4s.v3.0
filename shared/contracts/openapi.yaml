@@ -3071,6 +3071,51 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/group/{groupId}/assets:
+    get:
+      tags: [Fansubs]
+      summary: Get subgroup media assets for anime-group detail
+      operationId: getAnimeGroupAssets
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Group assets payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupAssetsResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Anime or group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Jellyfin subgroup assets unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/anime/{animeId}/group/{groupId}/releases:
     get:
       tags: [Fansubs]
@@ -6074,6 +6119,114 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/GroupDetail"
+    GroupAssetHero:
+      type: object
+      required: [folder_name, folder_path, folder_found]
+      properties:
+        folder_name:
+          type: string
+        folder_path:
+          type: string
+        folder_found:
+          type: boolean
+        backdrop_url:
+          type: string
+          nullable: true
+        primary_url:
+          type: string
+          nullable: true
+        media_item_id:
+          type: string
+          nullable: true
+    GroupAssetImage:
+      type: object
+      required: [id, title, image_url, thumbnail_url, order]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        image_url:
+          type: string
+        thumbnail_url:
+          type: string
+        width:
+          type: integer
+          format: int32
+          nullable: true
+        height:
+          type: integer
+          format: int32
+          nullable: true
+        order:
+          type: integer
+          format: int32
+    GroupAssetMedia:
+      type: object
+      required: [id, type, title, order, stream_path]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [opening, ending, karaoke, insert]
+        title:
+          type: string
+        thumbnail_url:
+          type: string
+          nullable: true
+        duration_seconds:
+          type: integer
+          format: int32
+          nullable: true
+        order:
+          type: integer
+          format: int32
+        stream_path:
+          type: string
+    GroupEpisodeAssets:
+      type: object
+      required: [episode_number, folder_name, folder_path, images, media_assets]
+      properties:
+        episode_number:
+          type: integer
+          format: int32
+        folder_name:
+          type: string
+        folder_path:
+          type: string
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupAssetImage"
+        media_assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupAssetMedia"
+    GroupAssetsData:
+      type: object
+      required: [anime_id, group_id, group_slug, hero, episodes]
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        group_id:
+          type: integer
+          format: int64
+        group_slug:
+          type: string
+        hero:
+          $ref: "#/components/schemas/GroupAssetHero"
+        episodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupEpisodeAssets"
+    GroupAssetsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/GroupAssetsData"
     EpisodeReleaseSummary:
       type: object
       required:

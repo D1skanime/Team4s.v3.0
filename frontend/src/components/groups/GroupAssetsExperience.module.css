@@ -1,0 +1,312 @@
+.groupAssetsSection {
+  display: grid;
+  gap: 20px;
+}
+
+.groupAssetsHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.groupAssetsTitle {
+  margin: 0;
+  font-size: 28px;
+  color: var(--color-text-primary);
+}
+
+.groupAssetsText {
+  margin: 8px 0 0;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.groupAssetsMeta {
+  margin: 0;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.stateBox {
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-white);
+  padding: 18px;
+  color: var(--color-text-secondary);
+}
+
+.episodeCard {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(34, 13, 21, 0.96) 0%, rgba(17, 9, 13, 0.98) 100%);
+  padding: 20px;
+  display: grid;
+  gap: 18px;
+}
+
+.episodeHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+
+.detailsLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-white);
+  text-decoration: none;
+}
+
+.episodeEyebrow {
+  margin: 0 0 6px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.episodeTitle {
+  margin: 0;
+  font-size: 24px;
+  color: var(--color-white);
+}
+
+.galleryBlock,
+.mediaBlock {
+  display: grid;
+  gap: 12px;
+}
+
+.blockHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.blockTitle {
+  margin: 0;
+  font-size: 18px;
+  color: var(--color-white);
+}
+
+.blockCount {
+  display: inline-flex;
+  min-width: 28px;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+}
+
+.imageGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.imageButton {
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+}
+
+.imageThumbnail {
+  display: block;
+  width: 100%;
+  height: 132px;
+  object-fit: cover;
+}
+
+.mediaGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.mediaCard {
+  display: grid;
+  gap: 12px;
+  text-align: left;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-white);
+  cursor: pointer;
+}
+
+.mediaThumbWrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  min-height: 138px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mediaThumb,
+.mediaThumbPlaceholder {
+  width: 100%;
+  height: 138px;
+  object-fit: cover;
+}
+
+.mediaThumbPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.playBadge {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.56);
+  color: var(--color-white);
+}
+
+.mediaInfo {
+  display: grid;
+  gap: 4px;
+}
+
+.mediaType {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mediaTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mediaMeta {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(7, 5, 8, 0.88);
+}
+
+.lightboxContent {
+  position: relative;
+  width: min(1100px, 100%);
+}
+
+.lightboxImage {
+  display: block;
+  width: 100%;
+  max-height: 82vh;
+  object-fit: contain;
+  border-radius: 18px;
+  background: #000;
+}
+
+.closeButton,
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.56);
+  color: var(--color-white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.closeButton {
+  top: 18px;
+  right: 18px;
+  transform: none;
+}
+
+.navButtonLeft {
+  left: 18px;
+}
+
+.navButtonRight {
+  right: 18px;
+}
+
+.navButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.lightboxMeta {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--color-white);
+}
+
+@media (max-width: 768px) {
+  .groupAssetsHeader,
+  .episodeHeader,
+  .lightboxMeta {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .imageGrid,
+  .mediaGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .lightbox {
+    padding: 16px;
+  }
+
+  .navButtonLeft {
+    left: 8px;
+  }
+
+  .navButtonRight {
+    right: 8px;
+  }
+
+  .closeButton {
+    top: 8px;
+    right: 8px;
+  }
+}
