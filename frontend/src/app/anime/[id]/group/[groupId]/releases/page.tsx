@@ -202,21 +202,16 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
     router.push(`/anime/${animeID}/group/${groupID}/releases`)
   }, [animeID, groupID, router])
 
-  const allFiltersActive = filterOp && filterEd && filterKaraoke
   const anyFilterActive = filterOp || filterEd || filterKaraoke || debouncedSearchTerm
 
   const toggleAll = useCallback(() => {
     setFilterOp(false)
     setFilterEd(false)
     setFilterKaraoke(false)
-    updateURL({ has_op: undefined, has_ed: undefined, has_karaoke: undefined, q: debouncedSearchTerm || undefined })
-  }, [debouncedSearchTerm, updateURL])
-
-  useEffect(() => {
-    if (!filterOp && !filterEd && !filterKaraoke && !anyFilterActive) {
-      // Auto-activate "Alle" when all filters are deselected
-    }
-  }, [filterOp, filterEd, filterKaraoke, anyFilterActive])
+    setSearchTerm('')
+    setDebouncedSearchTerm('')
+    updateURL({ has_op: undefined, has_ed: undefined, has_karaoke: undefined, q: undefined })
+  }, [updateURL])
 
   useEffect(() => {
     async function fetchData() {
@@ -512,7 +507,27 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
                           Episode {episode.episode_number}
                           {episode.title ? `: ${episode.title}` : ''}
                         </h3>
-                        <p className={styles.releaseDate}>Episode-Route nicht verfuegbar.</p>
+                        <div className={styles.badges}>
+                          {episode.has_op ? <span className={styles.badgeAccent}>OP</span> : null}
+                          {episode.has_ed ? <span className={styles.badgeAccent}>ED</span> : null}
+                          {episode.karaoke_count > 0 ? (
+                            <span className={styles.badgeAccent}>K-FX {episode.karaoke_count}</span>
+                          ) : null}
+                          {episode.insert_count > 0 ? (
+                            <span className={styles.badge}>Insert {episode.insert_count}</span>
+                          ) : null}
+                          {episode.screenshot_count > 0 ? (
+                            <span className={styles.badge}>{episode.screenshot_count} Screenshots</span>
+                          ) : null}
+                        </div>
+                        {episode.released_at ? (
+                          <p className={styles.releaseDate}>
+                            {new Date(episode.released_at).toLocaleDateString('de-DE')}
+                          </p>
+                        ) : null}
+                        <div className={styles.cardActions}>
+                          <span className={styles.detailsButton}>Episode-Route nicht verfuegbar</span>
+                        </div>
                       </div>
                     </article>
                   )
@@ -533,3 +548,5 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
     </main>
   )
 }
+
+
