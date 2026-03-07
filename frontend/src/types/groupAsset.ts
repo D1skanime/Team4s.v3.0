@@ -4,6 +4,8 @@ export interface GroupAssetHero {
   backdrop_url?: string | null;
   primary_url?: string | null;
   poster_url?: string | null;
+  thumb_url?: string | null;
+  banner_url?: string | null;
 }
 
 export interface GroupAssetImage {

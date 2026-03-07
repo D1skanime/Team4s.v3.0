@@ -1,5 +1,61 @@
 # DECISIONS
 
+## 2026-03-07
+
+### Decision
+Prefer Jellyfin `Groups` over `Subgroups` for public anime-group asset resolution, with `Subgroups` retained as fallback.
+
+### Context
+The same underlying folder structure is visible through multiple Jellyfin libraries, but `Groups` exposes richer root artwork metadata (`Banner`, `Primary`, `Backdrop`) for the anime-group folder than the earlier `Subgroups` path.
+
+### Options Considered
+- Keep resolving from `Subgroups` only
+- Prefer `Groups`, then fall back to `Subgroups` when `Groups` is missing or incomplete
+
+### Why This Won
+`Groups` provides the richer hero surface the page actually needs, while fallback preserves resilience if the preferred library is unavailable.
+
+### Consequences
+- The public route now has access to `banner_url` and `thumb_url`
+- The group-detail page can use root banner artwork for the info panel instead of reusing Episode 1 imagery
+- Library discovery still needs pagination and better error states
+
+### Decision
+Treat episode-folder `BackdropImageTags` as normal gallery images in the public group-detail payload.
+
+### Context
+Jellyfin was not exposing the desired episode visuals as normal `Photo` children, but it did expose them as folder-level `BackdropImageTags`.
+
+### Options Considered
+- Wait for Jellyfin to surface them as `Photo` items
+- Promote episode-folder backdrops into the gallery payload explicitly
+
+### Why This Won
+It matches the user’s intended editorial model: multiple images per episode should appear in the gallery regardless of whether Jellyfin stored them as folder backdrops or discrete photos.
+
+### Consequences
+- Episode galleries now render the expected visuals
+- Episode backdrops remain gallery content, not hero content
+- The contract now includes more image sources and must be documented precisely
+
+### Decision
+Cache the resolved Jellyfin group-library ID in the backend handler to reduce repeated `Library/MediaFolders` timeouts.
+
+### Context
+The group-assets endpoint repeatedly hit a slow Jellyfin `Library/MediaFolders` call, causing transient 15-second failures during normal page reloads and UI iteration.
+
+### Options Considered
+- Keep resolving the library ID on every request
+- Cache the resolved library ID with a bounded TTL
+
+### Why This Won
+The library ID is stable enough for local runtime, and caching removes the most painful repeated upstream lookup without changing the public contract.
+
+### Consequences
+- Repeated requests are now fast and stable in the common case
+- Cache invalidation remains time-based rather than event-driven
+- If Jellyfin library IDs ever change during runtime, there may be a short stale window until TTL expiry
+
 ## 2026-03-06
 
 ### Decision
@@ -13,12 +69,12 @@ The public group detail page needed real visual and media assets tied to a speci
 - Read the dedicated Jellyfin subgroup folder now and use it as the source for public group-detail presentation
 
 ### Why This Won
-The subgroup library already expresses the right editorial grouping: one anime/group root folder plus episode subfolders. Using it now unlocks the intended public experience without inventing temporary duplicate storage.
+The subgroup library already expresses the right editorial grouping: one anime/group root folder plus episode subfolders. Using it now unlocked the intended public experience without inventing temporary duplicate storage.
 
 ### Consequences
-- The public group-detail route now depends on Jellyfin subgroup discovery/matching
-- Group pages can render real backgrounds, galleries, and media tiles immediately
-- Contract/documentation hardening is now required because the new payload is live
+- The initial public group-detail route depended on Jellyfin subgroup discovery/matching
+- Group pages could render real backgrounds, galleries, and media tiles immediately
+- Contract/documentation hardening became required because the payload was live
 
 ### Decision
 Separate root-folder artwork from episode-folder imagery in the group-detail presentation rules.
@@ -33,65 +89,9 @@ The user clarified that the Jellyfin subgroup root backdrop is page-level presen
 ### Why This Won
 The page structure becomes stable and predictable:
 - root backdrop controls the full-page background
-- Episode 1 imagery controls the upper info-panel treatment
+- episode-specific imagery controls section-level treatment
 - episode backdrops/images remain gallery content
 
 ### Consequences
-- The UI now matches the intended hierarchy more closely
+- The UI matches the intended hierarchy more closely
 - Episode-folder images are preserved for lightbox/gallery usage instead of being consumed by hero logic
-- The Episode 1 info-panel image rule remains a pragmatic convention and may need refinement later
-
-## 2026-03-05
-
-### Decision
-Keep VS Code integrated terminal GPU acceleration disabled on this workstation.
-
-### Context
-This environment is used against a CPU-only server setup, and terminal rendering stability is prioritized over optional GPU acceleration.
-
-### Options Considered
-- Set `terminal.integrated.gpuAcceleration` to `auto`
-- Keep `terminal.integrated.gpuAcceleration` set to `off`
-
-### Why This Won
-It matches the current infrastructure constraint and avoids graphics acceleration issues that provide no practical benefit for this workflow.
-
-### Consequences
-- Terminal remains stable and predictable in this environment
-- If workstation hardware/workload changes, this can be revisited
-
-### Decision
-Standardize a baseline VS Code extension set for daily development.
-
-### Context
-Local setup lacked a clearly documented baseline for formatting, linting, and repository navigation productivity.
-
-### Options Considered
-- Keep ad-hoc extension selection per session
-- Install and maintain a minimal shared baseline
-
-### Why This Won
-A baseline reduces setup drift and makes day-to-day coding behavior more predictable across tasks.
-
-### Consequences
-- Installed baseline now includes EditorConfig, Prettier, ESLint, GitLens, Code Spell Checker, Jupyter, and Ruff
-- Future onboarding and environment recovery are faster
-
-### Decision
-Do not rely on Jellyfin/Emby REST APIs for direct media-folder creation; implement project-owned folder provisioning.
-
-### Context
-Requirement: one-click creation of anime/group asset folder structures on server media paths.
-
-### Options Considered
-- Use Jellyfin REST API for folder creation
-- Use Emby REST API for folder creation
-- Implement folder creation in project-owned backend/service/plugin and then refresh library data
-
-### Why This Won
-Documented API surfaces support directory browsing/validation and virtual library path management, but not direct filesystem mkdir operations for media roots.
-
-### Consequences
-- Requires implementation work in project codebase
-- Provides full control over path validation, idempotency, audit logging, and permission handling
-- Avoids dependency on undocumented media server behavior

@@ -23,8 +23,10 @@
 - Media proxy (streams, images, video, backdrops, banners)
 - Release/episode grant flow for playback
 - Public release-assets contract is live at `GET /api/v1/releases/:releaseId/assets`; episode detail consumes the real endpoint and hides empty asset responses cleanly
-- Public anime group detail now loads live Jellyfin subgroup assets at `GET /api/v1/anime/:animeId/group/:groupId/assets`
-- Group detail uses the Jellyfin subgroup root backdrop as the full-page background and episode-folder assets as the per-episode gallery/media source
+- Public anime group detail now loads live Jellyfin group assets at `GET /api/v1/anime/:animeId/group/:groupId/assets`
+- Group detail prefers the Jellyfin `Groups` library, falls back to `Subgroups`, and exposes root `backdrop`, `primary`, `poster`, `thumb`, and `banner` hero artwork
+- Group detail uses the root backdrop as the page background, the root banner as the info-panel background, and episode-folder backdrops as gallery images
+- Group-library lookup is cached in-process to reduce repeated Jellyfin `Library/MediaFolders` timeout failures
 - Local stack is deployed and responding on:
   - Frontend: `http://localhost:3002`
   - Backend: `http://localhost:8092`
@@ -38,17 +40,17 @@ curl http://localhost:8092/api/v1/anime/25/group/301/assets
 curl http://localhost:8092/api/v1/releases/311/assets
 curl -I http://localhost:3002/anime/25/group/301
 cd backend && go test ./...
-cd ../frontend && npm test
 cd ../frontend && npm run build
 ```
 
 ## Next (Top 3)
-1. Align `shared/contracts/openapi.yaml` with the live subgroup group-assets payload
-2. Add subgroup folder discovery pagination / robust matching so libraries larger than 500 root folders still resolve correctly
+1. Align `shared/contracts/openapi.yaml` with the live group-assets payload including `thumb_url` and `banner_url`
+2. Add group-library discovery pagination / robust matching so libraries larger than 500 root folders still resolve correctly
 3. Improve operational error mapping when `JELLYFIN_*` config is missing or invalid, instead of surfacing it as a generic folder-not-found state
 
 ## Known Risks
-- The live subgroup asset payload is ahead of the checked-in OpenAPI contract
-- Subgroups library discovery currently inspects only the first 500 root folders
-- Missing or broken `JELLYFIN_*` configuration is not yet distinguished from a real missing subgroup folder
+- The live group-assets payload is ahead of the checked-in OpenAPI contract
+- Groups/Subgroups library discovery currently inspects only the first 500 root folders
+- Missing or broken `JELLYFIN_*` configuration is not yet distinguished from a real missing group folder
 - Episode-detail linking inside the group detail page is still bounded by the currently loaded release list size
+- Visual contrast on the group-detail page is improved but still somewhat subjective; one more browser pass may be wanted

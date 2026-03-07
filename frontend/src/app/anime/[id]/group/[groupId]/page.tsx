@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { CSSProperties } from "react";
 
 import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
 import { CollapsibleStory } from "@/components/groups/CollapsibleStory";
@@ -136,6 +137,7 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
   const firstEpisode = groupAssetsResponse?.data.episodes.find(
     (episode) => episode.episode_number === 1,
   ) ?? groupAssetsResponse?.data.episodes.find((episode) => episode.images.length > 0);
+  const infoPanelBannerPath = groupAssetsResponse?.data.hero.banner_url ?? null;
   const infoPanelImage =
     firstEpisode?.images.find((image) =>
       image.title.toLowerCase().includes("landscape"),
@@ -146,7 +148,11 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
       : null;
   const heroBackdropPath = groupAssetsResponse?.data.hero.backdrop_url ?? null;
   const heroBackdropUrl = heroBackdropPath ? `${apiBaseUrl}${heroBackdropPath}` : null;
-  const infoPanelBackgroundUrl = infoPanelImage ? `${apiBaseUrl}${infoPanelImage.image_url}` : null;
+  const infoPanelBackgroundUrl = infoPanelBannerPath
+    ? `${apiBaseUrl}${infoPanelBannerPath}`
+    : infoPanelImage
+      ? `${apiBaseUrl}${infoPanelImage.image_url}`
+      : null;
   const posterImage =
     (groupAssetsResponse?.data.hero.poster_url
       ? `${apiBaseUrl}${groupAssetsResponse.data.hero.poster_url}`
@@ -158,17 +164,25 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
   const hasEpisodeAssets = Boolean(groupAssetsResponse?.data.episodes?.length);
   const heroStyle = heroBackdropUrl
     ? {
-        backgroundImage: `linear-gradient(90deg, rgba(17, 10, 14, 0.92) 0%, rgba(17, 10, 14, 0.78) 44%, rgba(17, 10, 14, 0.9) 100%), url(${heroBackdropUrl})`,
+        backgroundImage: `linear-gradient(90deg, rgba(17, 10, 14, 0.42) 0%, rgba(17, 10, 14, 0.18) 44%, rgba(17, 10, 14, 0.42) 100%), url(${heroBackdropUrl})`,
       }
     : undefined;
   const infoPanelStyle = infoPanelBackgroundUrl
     ? {
-        backgroundImage: `linear-gradient(180deg, rgba(12, 6, 9, 0.52) 0%, rgba(12, 6, 9, 0.74) 100%), url(${infoPanelBackgroundUrl})`,
+        backgroundImage: `linear-gradient(180deg, rgba(12, 6, 9, 0.04) 0%, rgba(12, 6, 9, 0.12) 100%), url(${infoPanelBackgroundUrl})`,
       }
+    : undefined;
+  const pageStyle = heroBackdropUrl
+    ? ({
+        "--group-page-backdrop": `url(${heroBackdropUrl})`,
+      } as CSSProperties)
     : undefined;
 
   return (
-    <main className={styles.page}>
+    <main
+      className={`${styles.page} ${heroBackdropUrl ? styles.pageWithBackdrop : ""}`}
+      style={pageStyle}
+    >
       <Breadcrumbs items={breadcrumbItems} />
 
       <p className={styles.backLink}>

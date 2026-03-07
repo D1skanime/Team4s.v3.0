@@ -1,21 +1,28 @@
 # TODO
 
+## Completed (2026-03-07)
+- [x] Prefer Jellyfin `Groups` over `Subgroups` for group-detail asset resolution
+- [x] Expose `banner_url` and `thumb_url` in the group-assets hero payload
+- [x] Treat episode-folder backdrops as gallery images in `episodes[].images[]`
+- [x] Cache the resolved Jellyfin group-library ID to reduce repeated timeout failures
+- [x] Iterate group page visual contrast for root backdrop/banner visibility
+
 ## Completed (2026-03-06)
-- [x] Implement public subgroup assets API `GET /api/v1/anime/:animeId/group/:groupId/assets`
-- [x] Map Jellyfin `Subgroups` root artwork to group-detail hero/background data
+- [x] Implement public group assets API `GET /api/v1/anime/:animeId/group/:groupId/assets`
+- [x] Map Jellyfin root artwork to group-detail hero/background data
 - [x] Map `Episode N` folders to episode-level gallery images and media assets
-- [x] Render subgroup-backed assets on `/anime/:animeId/group/:groupId`
+- [x] Render group-backed assets on `/anime/:animeId/group/:groupId`
 - [x] Separate page background vs episode-gallery image semantics
 
 ## Immediate (Next Session)
-- [ ] Align `shared/contracts/openapi.yaml` with the live subgroup assets payload
-- [ ] Add subgroup library discovery pagination beyond the first 500 root folders
+- [ ] Align `shared/contracts/openapi.yaml` with the live group-assets payload including `thumb_url` and `banner_url`
+- [ ] Add group library discovery pagination beyond the first 500 root folders
 - [ ] Improve handler error mapping for missing/invalid `JELLYFIN_*` configuration
 - [ ] Decide whether group-detail episode links should resolve outside the currently loaded release list
 
 ## Short Term (This Week)
-- [ ] Add focused tests for subgroup discovery pagination and config-failure states
-- [ ] Document subgroup folder naming assumptions and matching rules
+- [ ] Add focused tests for group discovery pagination and config-failure states
+- [ ] Document group folder naming assumptions and matching rules
 - [ ] Re-run live validation against at least one additional anime/group folder pair
 
 ## Medium Term (This Sprint)

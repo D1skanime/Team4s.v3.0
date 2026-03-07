@@ -1,5 +1,15 @@
 # DAYLOG
 
+## 2026-03-07
+- Switched public group-detail asset resolution to prefer the Jellyfin `Groups` library, with `Subgroups` retained as fallback.
+- Added root hero enrichment so `banner_url` and `thumb_url` are available alongside `backdrop_url`, `primary_url`, and `poster_url`.
+- Promoted episode-folder `BackdropImageTags` into `episodes[].images[]`, so episode visuals render as the intended gallery.
+- Added a backend library-ID cache to reduce repeated Jellyfin `Library/MediaFolders` timeouts on the group-assets endpoint.
+- Rebuilt `team4sv30-backend` and `team4sv30-frontend` and revalidated:
+  - `http://localhost:8092/api/v1/anime/25/group/301/assets`
+  - `http://localhost:3002/anime/25/group/301`
+- Iterated the group page overlays and contrast so the root backdrop, root banner, and asset text are more visible in the live browser.
+
 ## 2026-03-06
 - Added the public `GET /api/v1/anime/:animeId/group/:groupId/assets` subgroup assets contract/handler.
 - Wired `/anime/[id]/group/[groupId]` to the live subgroup asset payload from Jellyfin `Subgroups`.
@@ -12,11 +22,3 @@
 - Rebuilt `team4sv30-backend` and `team4sv30-frontend` and validated the live route:
   - `http://localhost:8092/api/v1/anime/25/group/301/assets`
   - `http://localhost:3002/anime/25/group/301`
-
-## 2026-03-05
-- Verified local VS Code setup for development: user settings, terminal defaults, and extension inventory.
-- Confirmed CPU-only terminal setup is consistent with current environment (`terminal.integrated.gpuAcceleration = off`).
-- Installed recommended extension baseline: EditorConfig, Prettier, ESLint, GitLens, Code Spell Checker, Jupyter, Ruff.
-- Validated Jellyfin API scope via stable OpenAPI: directory browse/validate and library-path management exist, direct media-folder creation endpoint not documented.
-- Validated Emby API scope via official REST reference: directory listing/library virtual folder endpoints exist, direct filesystem folder creation endpoint not documented.
-- Captured closeout documentation and next-step plan for implementing one-click anime/group asset folder provisioning through project-owned automation.

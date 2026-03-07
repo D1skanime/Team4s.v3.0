@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"team4s.v3/backend/internal/models"
@@ -19,6 +20,13 @@ type GroupAssetsHandler struct {
 	jellyfinAPIKey  string
 	jellyfinBaseURL string
 	httpClient      *http.Client
+	libraryCacheMu  sync.RWMutex
+	libraryCache    groupAssetsLibraryCache
+}
+
+type groupAssetsLibraryCache struct {
+	id        string
+	expiresAt time.Time
 }
 
 func NewGroupAssetsHandler(
@@ -32,6 +40,7 @@ func NewGroupAssetsHandler(
 		httpClient: &http.Client{
 			Timeout: 15 * time.Second,
 		},
+		libraryCache: groupAssetsLibraryCache{},
 	}
 }
 

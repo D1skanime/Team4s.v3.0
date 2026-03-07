@@ -13,6 +13,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"team4s.v3/backend/internal/models"
 )
@@ -45,6 +46,8 @@ type jellyfinGroupItem struct {
 
 var episodeFolderPattern = regexp.MustCompile(`(?i)^episode\s+(\d+)$`)
 
+const groupAssetsLibraryCacheTTL = 30 * time.Minute
+
 func (h *GroupAssetsHandler) resolveGroupAssets(
 	ctx context.Context,
 	animeID int64,
@@ -65,6 +68,9 @@ func (h *GroupAssetsHandler) resolveGroupAssets(
 	root, err := h.findSubgroupRoot(ctx, animeID, candidates)
 	if err != nil || root == nil {
 		return payload, err
+	}
+	if detailedRoot, detailErr := h.getGroupItemDetails(ctx, root.ID); detailErr == nil && detailedRoot != nil {
+		root = detailedRoot
 	}
 
 	payload.FolderName = root.Name
@@ -142,7 +148,7 @@ func (h *GroupAssetsHandler) findSubgroupRoot(
 	animeID int64,
 	suffixCandidates []string,
 ) (*jellyfinGroupItem, error) {
-	subgroupsLibraryID, err := h.getSubgroupsLibraryID(ctx)
+	subgroupsLibraryID, err := h.getGroupAssetsLibraryID(ctx)
 	if err != nil || strings.TrimSpace(subgroupsLibraryID) == "" {
 		return nil, err
 	}
@@ -182,17 +188,57 @@ func (h *GroupAssetsHandler) findSubgroupRoot(
 	return best, nil
 }
 
-func (h *GroupAssetsHandler) getSubgroupsLibraryID(ctx context.Context) (string, error) {
+func (h *GroupAssetsHandler) getGroupAssetsLibraryID(ctx context.Context) (string, error) {
+	if cachedID := h.getCachedGroupAssetsLibraryID(); cachedID != "" {
+		return cachedID, nil
+	}
+
 	var payload jellyfinLibraryFoldersResponse
 	if err := h.fetchGroupAssetsJSON(ctx, "/Library/MediaFolders", url.Values{}, &payload); err != nil {
 		return "", err
 	}
+	for _, libraryName := range []string{"Groups", "Subgroups"} {
+		for _, item := range payload.Items {
+			if strings.EqualFold(strings.TrimSpace(item.Name), libraryName) {
+				h.setCachedGroupAssetsLibraryID(item.ID)
+				return item.ID, nil
+			}
+		}
+	}
 	for _, item := range payload.Items {
 		if strings.EqualFold(strings.TrimSpace(item.Name), "Subgroups") {
+			h.setCachedGroupAssetsLibraryID(item.ID)
 			return item.ID, nil
 		}
 	}
 	return "", nil
+}
+
+func (h *GroupAssetsHandler) getCachedGroupAssetsLibraryID() string {
+	h.libraryCacheMu.RLock()
+	defer h.libraryCacheMu.RUnlock()
+
+	if strings.TrimSpace(h.libraryCache.id) == "" {
+		return ""
+	}
+	if time.Now().After(h.libraryCache.expiresAt) {
+		return ""
+	}
+	return h.libraryCache.id
+}
+
+func (h *GroupAssetsHandler) setCachedGroupAssetsLibraryID(id string) {
+	trimmedID := strings.TrimSpace(id)
+	if trimmedID == "" {
+		return
+	}
+
+	h.libraryCacheMu.Lock()
+	defer h.libraryCacheMu.Unlock()
+	h.libraryCache = groupAssetsLibraryCache{
+		id:        trimmedID,
+		expiresAt: time.Now().Add(groupAssetsLibraryCacheTTL),
+	}
 }
 
 func scoreSubgroupFolderMatch(normalizedName string, suffixCandidates []string) int {
@@ -233,6 +279,20 @@ func (h *GroupAssetsHandler) listSubgroupChildren(ctx context.Context, rootID st
 	return payload.Items, nil
 }
 
+func (h *GroupAssetsHandler) getGroupItemDetails(ctx context.Context, itemID string) (*jellyfinGroupItem, error) {
+	if strings.TrimSpace(itemID) == "" {
+		return nil, nil
+	}
+
+	var item jellyfinGroupItem
+	if err := h.fetchGroupAssetsJSON(ctx, "/Items/"+url.PathEscape(itemID), url.Values{
+		"Fields": []string{"Path,Width,Height,ImageTags,BackdropImageTags,RunTimeTicks"},
+	}, &item); err != nil {
+		return nil, err
+	}
+	return &item, nil
+}
+
 func (h *GroupAssetsHandler) fetchGroupAssetsJSON(ctx context.Context, apiPath string, query url.Values, target any) error {
 	baseURL := strings.TrimSpace(h.jellyfinBaseURL)
 	parsedBase, err := url.Parse(baseURL)
@@ -270,13 +330,21 @@ func (h *GroupAssetsHandler) fetchGroupAssetsJSON(ctx context.Context, apiPath s
 func buildGroupAssetHero(root jellyfinGroupItem) models.GroupAssetHero {
 	hero := models.GroupAssetHero{}
 	if len(root.BackdropImageTags) > 0 {
-		url := buildGroupMediaImageURL(root.ID, "backdrop")
+		url := buildGroupMediaImageURL(root.ID, "backdrop", nil)
 		hero.BackdropURL = &url
 	}
 	if _, ok := root.ImageTags["Primary"]; ok {
-		url := buildGroupMediaImageURL(root.ID, "primary")
+		url := buildGroupMediaImageURL(root.ID, "primary", nil)
 		hero.PrimaryURL = &url
 		hero.PosterURL = &url
+	}
+	if _, ok := root.ImageTags["Thumb"]; ok {
+		url := buildGroupMediaImageURL(root.ID, "thumb", nil)
+		hero.ThumbURL = &url
+	}
+	if _, ok := root.ImageTags["Banner"]; ok || strings.EqualFold(strings.TrimSpace(root.Type), "Folder") {
+		url := buildGroupMediaImageURL(root.ID, "banner", nil)
+		hero.BannerURL = &url
 	}
 	return hero
 }
@@ -292,6 +360,8 @@ func buildGroupEpisodeAssets(rootPath string, items []jellyfinGroupItem) []model
 		switch item.Type {
 		case "Photo":
 			entry.Images = append(entry.Images, buildGroupAssetImage(int32(len(entry.Images)), item))
+		case "Folder", "PhotoAlbum":
+			entry.Images = append(entry.Images, buildGroupAssetBackdropImages(int32(len(entry.Images)), item)...)
 		case "Video":
 			asset, ok := buildGroupAssetMedia(int32(len(entry.MediaAssets)), item)
 			if ok {
@@ -338,9 +408,6 @@ func resolveEpisodeFolder(rootPath string, itemPath string) (int32, string, bool
 		return 0, "", false
 	}
 	parts := strings.Split(relativePath, "/")
-	if len(parts) < 2 {
-		return 0, "", false
-	}
 	match := episodeFolderPattern.FindStringSubmatch(parts[0])
 	if len(match) != 2 {
 		return 0, "", false
@@ -356,12 +423,32 @@ func buildGroupAssetImage(order int32, item jellyfinGroupItem) models.GroupAsset
 	return models.GroupAssetImage{
 		ID:           item.ID,
 		Title:        item.Name,
-		ImageURL:     buildGroupMediaImageURL(item.ID, "primary"),
-		ThumbnailURL: buildGroupMediaImageURL(item.ID, "primary"),
+		ImageURL:     buildGroupMediaImageURL(item.ID, "primary", nil),
+		ThumbnailURL: buildGroupMediaImageURL(item.ID, "primary", nil),
 		Width:        item.Width,
 		Height:       item.Height,
 		Order:        order + 1,
 	}
+}
+
+func buildGroupAssetBackdropImages(orderOffset int32, item jellyfinGroupItem) []models.GroupAssetImage {
+	if len(item.BackdropImageTags) == 0 {
+		return nil
+	}
+
+	images := make([]models.GroupAssetImage, 0, len(item.BackdropImageTags))
+	for index := range item.BackdropImageTags {
+		title := fmt.Sprintf("%s backdrop %d", item.Name, index+1)
+		imageURL := buildGroupMediaImageURL(item.ID, "backdrop", &index)
+		images = append(images, models.GroupAssetImage{
+			ID:           fmt.Sprintf("%s-backdrop-%d", item.ID, index),
+			Title:        title,
+			ImageURL:     imageURL,
+			ThumbnailURL: imageURL,
+			Order:        orderOffset + int32(index) + 1,
+		})
+	}
+	return images
 }
 
 func buildGroupAssetMedia(order int32, item jellyfinGroupItem) (models.GroupAssetMedia, bool) {
@@ -373,7 +460,7 @@ func buildGroupAssetMedia(order int32, item jellyfinGroupItem) (models.GroupAsse
 		ID:              item.ID,
 		Type:            assetType,
 		Title:           item.Name,
-		ThumbnailURL:    stringPtr(buildGroupMediaImageURL(item.ID, "primary")),
+		ThumbnailURL:    stringPtr(buildGroupMediaImageURL(item.ID, "primary", nil)),
 		DurationSeconds: durationSecondsFromTicks(item.RunTimeTicks),
 		Order:           order + 1,
 		StreamPath:      buildGroupMediaVideoURL(item.ID),
@@ -404,11 +491,14 @@ func durationSecondsFromTicks(value *int64) *int32 {
 	return &seconds
 }
 
-func buildGroupMediaImageURL(itemID string, kind string) string {
+func buildGroupMediaImageURL(itemID string, kind string, index *int) string {
 	values := url.Values{}
 	values.Set("provider", "jellyfin")
 	values.Set("item_id", itemID)
 	values.Set("kind", kind)
+	if index != nil {
+		values.Set("index", strconv.Itoa(*index))
+	}
 	return "/api/v1/media/image?" + values.Encode()
 }
 

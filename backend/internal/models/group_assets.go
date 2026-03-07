@@ -15,6 +15,8 @@ type GroupAssetHero struct {
 	BackdropURL *string `json:"backdrop_url,omitempty"`
 	PrimaryURL  *string `json:"primary_url,omitempty"`
 	PosterURL   *string `json:"poster_url,omitempty"`
+	ThumbURL    *string `json:"thumb_url,omitempty"`
+	BannerURL   *string `json:"banner_url,omitempty"`
 }
 
 // GroupAssetImage represents one gallery image inside an episode folder.
