@@ -3,6 +3,44 @@
 ## 2026-03-13
 
 ### Decision
+Keep Team4s repo-local docs canonical for daily project state while using `.planning/` as the migration planning and execution layer.
+
+### Context
+The GSD pilot became useful once the schema brief and pilot handoff existed, but the repo already had a reliable day-start/day-closeout loop that covered more than the migration lane.
+
+### Options Considered
+- Move the migration lane and daily project state fully into GSD
+- Keep GSD as a loose mirror with no clear ownership boundary
+- Keep repo-local docs canonical for daily state and use `.planning/` specifically for migration planning, execution, verification, and handoff
+
+### Why This Won
+It preserves the existing Team4s workflow while giving the migration lane an execution-ready GSD spine instead of scattered planning notes.
+
+### Consequences
+- Team4s repo-local docs remain the source of truth for live product priorities and risks
+- `.planning/` now carries migration-lane continuation, verification, and next-action routing
+- Future migration execution phases should be added in GSD without duplicating repo-local day status files
+
+### Decision
+Treat the first concrete post-brief migration slice as the next proof point for GSD, not the creation of more planning structure.
+
+### Context
+The pilot now has a completed migration brief and handoff, so the next uncertainty is no longer "can GSD plan this?" but "can GSD guide the first real execution slice cleanly?"
+
+### Options Considered
+- Keep extending planning artifacts before any concrete migration slice exists
+- Stop the pilot after the migration brief and handoff
+- Add and plan the first explicit migration execution phase after the brief
+
+### Why This Won
+It is the smallest next step that can prove the pilot adds value beyond documentation.
+
+### Consequences
+- The next migration action should be a roadmap change plus a real phase plan, not more pilot framing
+- Phase ordering is now intentionally non-linear in the pilot because Phases 3 and 4 completed before open product-delivery phases 1 and 2
+- The pilot remains provisional until that first execution-facing phase exists
+
+### Decision
 Install GSD locally in the workspace as a pilot planning tool for the DB schema migration only.
 
 ### Context

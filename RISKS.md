@@ -15,10 +15,11 @@
 ### 3. Big-Bang Schema Migration Would Break Too Many Surfaces at Once
 - **Impact:** High (repositories, handlers, contracts, admin flows, and release/media behavior all depend on the current flat tables)
 - **Likelihood:** Medium
-- **Mitigation:** Keep `docs/architecture/db-schema-v2.md` as the target model and plan an expand-and-migrate rollout before touching production tables
+- **Mitigation:** Keep `docs/architecture/db-schema-v2.md` as the target model and execute only explicit post-brief migration slices with parity/cleanup gates
 
 ## Current Blockers
 - None for the local deploy; the current blockers are correctness and operability, not startup/runtime
+- No technical blocker for planning, but the next migration execution slice is not yet added to the roadmap
 
 ## Technical Debt
 - Group-detail episode linking is still derived from the currently loaded release list
@@ -30,4 +31,4 @@
 ## If Nothing Changes, What Fails Next Week?
 - The next client or docs consumer will integrate the wrong group-assets contract
 - Larger Jellyfin group libraries will start producing false "not found" results for valid anime/group pages
-- The normalized schema discussion will remain trapped in chat instead of becoming an executable migration plan
+- The migration effort will stall at "good brief, no first execution slice" and the pilot will not prove value beyond planning

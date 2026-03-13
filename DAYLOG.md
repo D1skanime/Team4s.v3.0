@@ -5,6 +5,8 @@
 - Ran the brownfield mapping flow and generated `.planning/codebase/STACK.md`, `INTEGRATIONS.md`, `ARCHITECTURE.md`, `STRUCTURE.md`, `CONVENTIONS.md`, `TESTING.md`, and `CONCERNS.md`.
 - Reviewed the proposed normalized DB schema against the current production tables and confirmed it should be treated as a phased target architecture instead of a big-bang migration.
 - Stored the schema draft canonically in `Team4s.v3.0/docs/architecture/db-schema-v2.md` so future restarts can resume from files, not chat history.
+- Executed GSD Phase 3 and turned the schema draft into a phased migration brief with blocker audit, impact mapping, rollout slices, and validation gates.
+- Executed GSD Phase 4 and created ownership/routing rules plus a migration-lane handoff so `.planning/` can guide the next migration action without replacing Team4s repo-local day-state docs.
 
 ## 2026-03-07
 - Switched public group-detail asset resolution to prefer the Jellyfin `Groups` library, with `Subgroups` retained as fallback.

@@ -31,6 +31,8 @@
   - Frontend: `http://localhost:3002`
   - Backend: `http://localhost:8092`
 - GSD for Codex is installed locally in the workspace and successfully produced a brownfield codebase map in `.planning/codebase/`
+- The normalized schema draft has been upgraded into a phased migration brief in `docs/architecture/db-schema-v2.md`
+- The DB migration lane now has GSD ownership rules, pilot baseline, and a restartable handoff in `.planning/phases/04-gsd-migration-planning-pilot/`
 
 ## How To Verify
 ```bash
@@ -47,7 +49,7 @@ cd ../frontend && npm run build
 ## Next (Top 3)
 1. Align `shared/contracts/openapi.yaml` with the live group-assets payload including `thumb_url` and `banner_url`
 2. Add group-library discovery pagination / robust matching so libraries larger than 500 root folders still resolve correctly
-3. Finalize the DB schema migration milestone brief around `docs/architecture/db-schema-v2.md` and decide whether to plan it through GSD
+3. Add and plan the first concrete post-brief migration execution phase in GSD
 
 ## Known Risks
 - The live group-assets payload is ahead of the checked-in OpenAPI contract
@@ -55,4 +57,4 @@ cd ../frontend && npm run build
 - Missing or broken `JELLYFIN_*` configuration is not yet distinguished from a real missing group folder
 - Episode-detail linking inside the group detail page is still bounded by the currently loaded release list size
 - Visual contrast on the group-detail page is improved but still somewhat subjective; one more browser pass may be wanted
-- The proposed normalized schema is much broader than the current production model, so a big-bang migration would create high delivery risk without a phased rollout
+- The proposed normalized schema is much broader than the current production model, so the next risk is not planning anymore but choosing the first safe execution slice

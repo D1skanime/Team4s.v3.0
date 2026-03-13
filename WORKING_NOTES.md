@@ -1,8 +1,8 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phase: Public anime group-detail hardening plus migration-planning setup
-- Focus today: validate a local GSD install for brownfield planning and capture the proposed normalized DB schema inside the repo without losing the current group-assets lane
+- Phase: Public anime group-detail hardening plus post-brief migration pilot handoff
+- Focus today: push the GSD pilot from setup into an executed migration brief plus a restartable migration-lane handoff
 
 ## Project State
 - Done:
@@ -17,7 +17,7 @@
   - Contract/documentation cleanup around the new payload
   - Hardening group discovery and operational error handling
   - Final visual tuning on the group-detail page
-  - Framing the normalized DB schema as a phased migration instead of a big-bang rewrite
+  - Choosing the first concrete migration execution slice after the completed brief
 - Blocked:
   - No hard blocker for local work; remaining issues are correctness and scaling follow-ups
 
@@ -46,6 +46,7 @@
 - Release-assets persistence is still a separate unfinished lane for episode detail pages
 - OpenAPI/docs are lagging behind the shipped group-assets payload
 - GSD has been installed locally under `.codex/` and successfully generated `.planning/codebase/*.md` as a pilot for the upcoming schema-migration planning work
+- GSD planning and execution artifacts now carry the migration lane baseline and handoff, while Team4s repo docs remain the daily operating truth
 
 ## Required Contracts / UX Notes
 - Public group assets endpoint: `GET /api/v1/anime/{animeId}/group/{groupId}/assets`
@@ -79,6 +80,7 @@ curl -I http://localhost:3002/anime/25/group/301
 - Revisit episode-link lookup so it is not tied to the current release list size
 - Return to persisted release assets for `/api/v1/releases/:releaseId/assets`
 - Turn `docs/architecture/db-schema-v2.md` into a milestone with explicit compatibility phases
+- Add or insert the first concrete migration execution phase after the brief
 
 ### Day 2026-03-07
 - Phase: Public anime group-detail hardening
@@ -110,15 +112,18 @@ curl -I http://localhost:3002/anime/25/group/301
   - Installed GSD for Codex locally under workspace `.codex/`
   - Ran a successful GSD-style codebase map that generated `.planning/codebase/STACK.md`, `INTEGRATIONS.md`, `ARCHITECTURE.md`, `STRUCTURE.md`, `CONVENTIONS.md`, `TESTING.md`, and `CONCERNS.md`
   - Captured the proposed normalized DB target model in `docs/architecture/db-schema-v2.md`
-  - Chose to keep GSD as a pilot planning layer for the migration rather than replacing the existing Team4s daily workflow
+  - Executed GSD Phase 3 so the target model became a phased migration brief with blocker audit, impact map, rollout slices, and validation gates
+  - Executed GSD Phase 4 so the migration lane now has ownership rules, pilot baseline, and a clear handoff / next-action guide
+  - Chose to keep GSD as the migration planning/execution layer while retaining Team4s repo-local docs as the canonical daily workflow
 - Key Decisions:
   - Treat the normalized schema as a target architecture, not an immediate rewrite
   - Keep the schema draft canonical in-repo so a restart can resume from files instead of chat history
+  - Keep Team4s repo docs canonical for daily state and `.planning/` canonical for migration-lane continuation
 - Risks/Unknowns:
   - The migration scope touches many repositories and handlers through the current flat schema
-  - GSD value for this repo is still being evaluated and may remain planning-only
+  - The pilot still needs its first concrete post-brief execution slice to prove value beyond planning
 - Next Steps:
   - update the OpenAPI schema
   - harden group discovery
-  - draft the migration phases around the new schema
-- First task tomorrow: update `shared/contracts/openapi.yaml`, then turn `docs/architecture/db-schema-v2.md` into a phased migration outline
+  - add and plan the first migration execution slice after the completed brief
+- First task tomorrow: update `shared/contracts/openapi.yaml`, then decide whether to use `gsd-add-phase` or `gsd-insert-phase` for the first migration execution slice

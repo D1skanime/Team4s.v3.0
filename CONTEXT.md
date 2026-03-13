@@ -2,9 +2,9 @@
 
 ## Project
 - **Name:** Team4s.v3.0
-- **Phase:** Public anime group-detail hardening with parallel DB schema migration planning
+- **Phase:** Public anime group-detail hardening with completed DB migration brief plus GSD migration-lane pilot
 - **Milestone:** EPIC 0-6 delivered at route level; current live work remains the group-assets hardening lane while the next milestone is being framed around a normalized v2 data model
-- **Completion:** ~62%
+- **Completion:** ~68%
 
 ## Current State
 
@@ -40,8 +40,8 @@
 - Paginate group-library discovery beyond the first 500 Jellyfin root items
 - Improve configuration error handling for missing/invalid `JELLYFIN_*`
 - Decide whether episode detail lookups on the group page should resolve outside the currently loaded release feed
-- Decide the migration sequencing from the current flat schema to the normalized v2 anime / release / media model
-- Convert the DB schema migration into a GSD-planned milestone without disrupting the existing day-start / day-closeout workflow
+- Add the first concrete migration execution phase after the completed brief
+- Keep proving the GSD pilot beyond planning while preserving the Team4s repo-local daily workflow
 
 ## Key Decisions
 - Jellyfin `Groups` is now the preferred source for anime/group presentation assets on `/anime/:animeId/group/:groupId`, with `Subgroups` as fallback.
@@ -56,6 +56,8 @@
 - Episode-folder backdrops remain ordinary images in the gallery and must not override page-level hero treatment.
 - GSD is installed locally in the workspace under `.codex/` as a pilot planning layer for the upcoming DB schema migration, not as a replacement for the existing Team4s day-start / day-closeout loop.
 - The canonical draft for the normalized schema now lives in `docs/architecture/db-schema-v2.md`.
+- The migration brief inside `docs/architecture/db-schema-v2.md` is now phased and names blocker resolutions, impact surfaces, rollout slices, and validation gates.
+- Team4s repo-local docs remain canonical for daily project state, while `.planning/` now serves as the migration planning/execution layer with explicit handoff.
 
 ## Quality Bar
 - `go test ./...` must pass
