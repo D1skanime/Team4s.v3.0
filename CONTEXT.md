@@ -2,9 +2,9 @@
 
 ## Project
 - **Name:** Team4s.v3.0
-- **Phase:** Public anime group-detail hardening with contract sync and large-library discovery fixes completed, plus GSD migration-lane pilot
-- **Milestone:** EPIC 0-6 delivered at route level; current live work remains the group-assets hardening lane while the next milestone is being framed around a normalized v2 data model
-- **Completion:** ~68%
+- **Phase:** Phase 5 - Reference and Metadata Groundwork (normalized v2 schema migration)
+- **Milestone:** Phase 5 planning complete, Package 2 (Backend Implementation) ready for execution
+- **Completion:** ~70%
 
 ## Current State
 
@@ -36,28 +36,32 @@
 - Release-context episode detail consumes the real public `GET /api/v1/releases/:releaseId/assets` endpoint
 
 ### Pending
-- Improve configuration error handling for missing/invalid `JELLYFIN_*`
-- Decide whether episode detail lookups on the group page should resolve outside the currently loaded release feed
-- Add the first concrete migration execution phase after the completed brief
-- Keep proving the GSD pilot beyond planning while preserving the Team4s repo-local daily workflow
+- Create Package 2 execution artifacts (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
+- Begin team4s-go lane implementation (tables, repositories, services with shadow mode)
+- Refine verification gates and backfill strategy for reference data migration
+- Execute Package 2, then prepare Package 1 (TypeScript SDK) for execution
 
 ## Key Decisions
-- Jellyfin `Groups` is now the preferred source for anime/group presentation assets on `/anime/:animeId/group/:groupId`, with `Subgroups` as fallback.
-- The root group folder artwork controls page-level presentation:
-  - root backdrop -> full-page background
-  - root primary/poster -> hero poster fallbacks
-  - root banner -> info-panel background
-  - root thumb -> extra hero artwork metadata
-- Episode folders are the source of content blocks:
-  - episode images/backdrops -> gallery/lightbox content
-  - episode media files -> OP/ED/Kara/Insert tiles
-- Episode-folder backdrops remain ordinary images in the gallery and must not override page-level hero treatment.
-- The checked-in OpenAPI contract should stay aligned with the real shipped group-assets payload before more group-detail consumer work continues.
-- Group root discovery must iterate across Jellyfin pages instead of assuming the first 500 root folders are sufficient.
-- GSD is installed locally in the workspace under `.codex/` as a pilot planning layer for the upcoming DB schema migration, not as a replacement for the existing Team4s day-start / day-closeout loop.
-- The canonical draft for the normalized schema now lives in `docs/architecture/db-schema-v2.md`.
-- The migration brief inside `docs/architecture/db-schema-v2.md` is now phased and names blocker resolutions, impact surfaces, rollout slices, and validation gates.
-- Team4s repo-local docs remain canonical for daily project state, while `.planning/` now serves as the migration planning/execution layer with explicit handoff.
+
+### Phase 5 (Reference and Metadata Groundwork) - 2026-03-13
+- Phase 5 is backend foundation only: new tables, repositories, services without public API changes
+- Contract freeze set for Phase 5: NO CHANGES NEEDED for all Public APIs
+- Package execution order: Backend (Package 2) before SDK (Package 1) to avoid premature generation
+- Shadow mode pattern enables validation before foreign key enforcement
+- Handler consumption deferred to Phase 6 to maintain contract stability
+- Phase 5 planning complete with handoff artifacts ready for execution agents
+
+### Previous Decisions (Group Assets & Migration Planning)
+- Jellyfin `Groups` is the preferred source for anime/group presentation assets on `/anime/:animeId/group/:groupId`, with `Subgroups` as fallback
+- The root group folder artwork controls page-level presentation (backdrop, banner, poster, thumb)
+- Episode folders are the source of content blocks (images, media files)
+- Episode-folder backdrops remain ordinary images in the gallery and must not override page-level hero treatment
+- The checked-in OpenAPI contract stays aligned with shipped payload before more consumer work continues
+- Group root discovery iterates across Jellyfin pages instead of assuming first 500 root folders are sufficient
+- GSD installed locally under `.codex/` as pilot planning layer for DB schema migration
+- Canonical normalized schema draft lives in `docs/architecture/db-schema-v2.md`
+- Migration brief is phased with blocker resolutions, impact surfaces, rollout slices, validation gates
+- Team4s repo-local docs remain canonical for daily project state, `.planning/` serves migration planning/execution layer
 
 ## Quality Bar
 - `go test ./...` must pass

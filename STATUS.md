@@ -35,6 +35,9 @@
 - GSD for Codex is installed locally in the workspace and successfully produced a brownfield codebase map in `.planning/codebase/`
 - The normalized schema draft has been upgraded into a phased migration brief in `docs/architecture/db-schema-v2.md`
 - The DB migration lane now has GSD ownership rules, pilot baseline, and a restartable handoff in `.planning/phases/04-gsd-migration-planning-pilot/`
+- Phase 5 (Reference and Metadata Groundwork) planning is complete with full GSD artifacts in `.planning/phases/05-reference-and-metadata-groundwork/`
+- Contract impact analysis confirms NO CHANGES NEEDED for all Public APIs during Phase 5
+- Package 2 (Backend Implementation) is ready for execution with contract freeze in place
 
 ## How To Verify
 ```bash
@@ -49,12 +52,13 @@ cd ../frontend && npm run build
 ```
 
 ## Next (Top 3)
-1. Improve group-assets handler error mapping for missing/invalid `JELLYFIN_*`
-2. Add and plan the first concrete post-brief migration execution phase in GSD
-3. Re-run live validation against at least one additional anime/group folder pair
+1. Create Package 2 execution artifacts for Phase 5 backend implementation (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
+2. Begin team4s-go lane implementation: tables, repositories, services with shadow mode support
+3. Refine verification gates and backfill strategy for reference data migration
 
 ## Known Risks
-- Missing or broken `JELLYFIN_*` configuration is not yet distinguished from a real missing group folder
-- Episode-detail linking inside the group detail page is still bounded by the currently loaded release list size
-- Visual contrast on the group-detail page is improved but still somewhat subjective; one more browser pass may be wanted
-- The proposed normalized schema is much broader than the current production model, so the next risk is not planning anymore but choosing the first safe execution slice
+- Reference data migration complexity: Large existing dataset needs safe backfill with verification
+- Foreign key dependencies: New tables must align with existing schema during shadow mode
+- Shadow mode validation duration: Metrics/duration thresholds need refinement during execution
+- Package 2 critical path: SDK generation blocked until backend tables exist
+- Phase 5 scope expansion: Any unexpected contract needs require phase re-planning

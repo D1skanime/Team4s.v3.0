@@ -1,6 +1,89 @@
 # DECISIONS
 
-## 2026-03-13
+## 2026-03-13 (Phase 5 Planning & Contract Impact Analysis)
+
+### Decision
+Phase 5 (Reference and Metadata Groundwork) is backend foundation only, with NO CHANGES to public API contracts.
+
+### Context
+Phase 5 introduces normalized reference and metadata tables (studios, persons, roles, genres, tags, etc.) as foundation for the target v2 schema. Planning analysis revealed that foundation work can proceed without handler consumption or contract changes.
+
+### Options Considered
+- Include handler updates in Phase 5 to immediately consume new tables
+- Keep Phase 5 pure backend foundation, defer handler consumption to Phase 6
+
+### Why This Won
+Separating foundation from consumption reduces risk, simplifies coordination, and enables contract freeze. Handler consumption can proceed in Phase 6 with explicit compatibility verification after backend foundation is proven stable.
+
+### Consequences
+- Contract freeze set for Phase 5 (NO CHANGES NEEDED confirmed via impact analysis)
+- Public APIs remain stable during Phase 5 execution
+- Handler consumption becomes explicit Phase 6 work with verification gates
+- Frontend and backend work can proceed in parallel without coordination overhead
+- Any unexpected contract needs require explicit phase re-planning
+
+### Follow-ups Required
+- Create Package 2 execution artifacts (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
+- Execute Package 2 backend implementation with shadow mode support
+- Plan Phase 6 handler consumption after Phase 5 completion
+
+---
+
+### Decision
+Package execution order is Backend (Package 2) before TypeScript SDK (Package 1).
+
+### Context
+Phase 5 has two main packages: Package 1 (TypeScript SDK types/services) and Package 2 (Backend Go tables/repositories/services). TypeScript SDK types should be generated from backend schema, not written manually.
+
+### Options Considered
+- SDK first, then backend (allows frontend prototyping)
+- Backend first, then SDK (enables schema-driven generation)
+- Parallel execution (high rework risk)
+
+### Why This Won
+Backend tables must exist before SDK types can be accurately generated. Starting with backend establishes the schema of record, reduces rework, and provides clear critical path.
+
+### Consequences
+- Package 2 (team4s-go lane) is the immediate next action
+- SDK generation blocked until backend tables exist
+- Clear dependency chain reduces coordination overhead
+- Schema changes during Package 2 won't require SDK rework
+
+### Follow-ups Required
+- Execute Package 2 fully before starting Package 1
+- Establish backend schema stability before SDK generation
+- Document SDK generation process for Package 1 execution
+
+---
+
+### Decision
+Contract freeze set for Phase 5 with explicit handler consumption deferral to Phase 6.
+
+### Context
+Contract impact analysis reviewed all public API endpoints and confirmed NO CHANGES NEEDED during Phase 5. Handler consumption can be safely deferred to Phase 6 without contract modifications.
+
+### Options Considered
+- Proceed without contract freeze (allow changes during Phase 5)
+- Set contract freeze with handler consumption in Phase 6
+
+### Why This Won
+Contract freeze eliminates coordination overhead, enables parallel work, reduces regression risk, and simplifies agent handoff. Handler consumption becomes explicit Phase 6 work with verification.
+
+### Consequences
+- Public API contracts frozen during Phase 5 execution
+- Handler consumption explicitly deferred to Phase 6
+- Contract changes during Phase 5 require explicit phase re-planning
+- Frontend can continue development against stable contracts
+- Phase 6 planning must include handler consumption verification
+
+### Follow-ups Required
+- Document contract freeze in all Phase 5 handoff artifacts
+- Plan Phase 6 with explicit handler consumption scope
+- Establish verification gates for handler integration
+
+---
+
+## 2026-03-13 (Group Assets Contract & Pagination)
 
 ### Decision
 Treat the checked-in OpenAPI contract as a release-blocking part of the live group-assets lane, not as optional follow-up documentation.

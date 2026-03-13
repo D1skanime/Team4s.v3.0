@@ -1,27 +1,23 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phase: Public anime group-detail hardening plus post-brief migration pilot handoff
-- Focus today: close the remaining correctness gaps on the live group-assets lane before returning to the first concrete migration execution slice
+- Phase: Phase 5 - Reference and Metadata Groundwork (normalized v2 schema migration)
+- Focus: Package 2 execution artifacts and team4s-go lane implementation start
 
 ## Project State
 - Done:
-  - Public group-assets endpoint exists and is live
-  - Group detail route consumes the real group-assets payload
-  - Root backdrop drives the full-page background
-  - Root banner drives the info-panel background
-  - Episode folder backdrops/images stay normal gallery items
-  - Group library lookup is cached to reduce repeated Jellyfin `Library/MediaFolders` timeouts
-  - `shared/contracts/openapi.yaml` now matches the shipped group-assets payload
-  - Group root discovery now paginates across Jellyfin root-folder pages beyond the first 500 results
-  - Added a regression test covering subgroup-root discovery on a later Jellyfin page
-  - Local frontend/backend stack rebuilt and reachable
+  - Phase 5 planning complete (05-CONTEXT.md, 05-RESEARCH.md, 05-01-PLAN.md, 05-ORCHESTRATOR-HANDOFF.md)
+  - Contract impact analysis complete (NO CHANGES NEEDED for all Public APIs)
+  - Contract freeze set and documented
+  - Package execution order established (Package 2 before Package 1)
+  - GSD migration brief phased and verified
+  - Canonical schema draft in `docs/architecture/db-schema-v2.md`
+  - `.planning/ROADMAP.md` and `.planning/STATE.md` updated with Phase 5 status
 - In Progress:
-  - Operational error handling for missing/invalid Jellyfin configuration
-  - Final visual tuning on the group-detail page
-  - Choosing the first concrete migration execution slice after the completed brief
+  - Package 2 execution artifacts creation (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
+  - Verification gates refinement (shadow mode criteria, metrics, backfill strategy)
 - Blocked:
-  - No hard blocker for local work; remaining issues are correctness and scaling follow-ups
+  - None - all prerequisites met for Phase 5 execution
 
 ## Key Decisions and Context (Today)
 - Intent and constraints:
@@ -107,27 +103,33 @@ curl -I http://localhost:3002/anime/25/group/301
   - improve operator-facing Jellyfin error states
 - First task tomorrow: update `shared/contracts/openapi.yaml` to match the live group-assets payload including `thumb_url` and `banner_url`
 
-### Day 2026-03-13
-- Phase: Brownfield planning setup for schema migration
+### Day 2026-03-13 (Updated End-of-Day)
+- Phase: Phase 5 - Reference and Metadata Groundwork
 - Accomplishments:
-  - Installed GSD for Codex locally under workspace `.codex/`
-  - Ran a successful GSD-style codebase map that generated `.planning/codebase/STACK.md`, `INTEGRATIONS.md`, `ARCHITECTURE.md`, `STRUCTURE.md`, `CONVENTIONS.md`, `TESTING.md`, and `CONCERNS.md`
-  - Captured the proposed normalized DB target model in `docs/architecture/db-schema-v2.md`
-  - Executed GSD Phase 3 so the target model became a phased migration brief with blocker audit, impact map, rollout slices, and validation gates
-  - Executed GSD Phase 4 so the migration lane now has ownership rules, pilot baseline, and a clear handoff / next-action guide
-  - Chose to keep GSD as the migration planning/execution layer while retaining Team4s repo-local docs as the canonical daily workflow
-  - Updated `shared/contracts/openapi.yaml` so the public group-assets contract matches the shipped payload
-  - Added Jellyfin root-folder pagination for group discovery so the lookup no longer stops at the first 500 entries
-  - Added a regression test proving subgroup-root discovery works beyond the first Jellyfin page
+  - Completed morning briefing and confirmed Phase 5 readiness
+  - Created Phase 5 full GSD planning artifacts:
+    - `05-CONTEXT.md` (phase rationale, scope, success criteria)
+    - `05-RESEARCH.md` (reference/metadata analysis)
+    - `05-01-PLAN.md` (packages, lanes, verification gates)
+    - `05-ORCHESTRATOR-HANDOFF.md` (agent handoff)
+  - Executed contract impact analysis:
+    - Result: NO CHANGES NEEDED for all Public APIs
+    - Created `05-CONTRACT-IMPACT-ANALYSIS.md`
+    - Created `orchestrator-handoff.md` with contract freeze confirmation
+  - Updated `.planning/ROADMAP.md` and `.planning/STATE.md` with Phase 5 status
+  - Confirmed Package 2 (team4s-go lane) as next critical path
 - Key Decisions:
-  - Treat the normalized schema as a target architecture, not an immediate rewrite
-  - Keep the schema draft canonical in-repo so a restart can resume from files instead of chat history
-  - Keep Team4s repo docs canonical for daily state and `.planning/` canonical for migration-lane continuation
+  - Phase 5 is backend foundation only (no public API changes)
+  - Contract freeze set for Phase 5
+  - Package execution order: Backend (Package 2) before SDK (Package 1)
+  - Shadow mode pattern enables validation before enforcement
+  - Handler consumption deferred to Phase 6
 - Risks/Unknowns:
-  - The migration scope touches many repositories and handlers through the current flat schema
-  - The pilot still needs its first concrete post-brief execution slice to prove value beyond planning
-  - Missing/invalid Jellyfin configuration still needs clearer operator-facing error mapping
+  - Reference data migration complexity (large dataset, safe backfill needed)
+  - Foreign key dependencies during shadow mode
+  - Shadow mode validation duration thresholds need refinement
 - Next Steps:
-  - clarify group-assets config/auth failure handling
-  - add and plan the first migration execution slice after the completed brief
-- First task tomorrow: trace the current `JELLYFIN_*` failure path in the group-assets handler, then decide whether to use `gsd-add-phase` or `gsd-insert-phase` for the first migration execution slice
+  - Create Package 2 execution artifacts (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
+  - Begin team4s-go lane implementation (tables, repositories, services)
+  - Refine verification gates and backfill strategy
+- First task tomorrow: Create `05-02-CONTEXT.md` with Package 2 scope, success criteria, dependencies, and risks

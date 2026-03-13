@@ -14,27 +14,35 @@
 - [x] Render group-backed assets on `/anime/:animeId/group/:groupId`
 - [x] Separate page background vs episode-gallery image semantics
 
+## Completed (2026-03-13 - Phase 5 Planning)
+- [x] Complete Phase 5 planning artifacts (05-CONTEXT.md, 05-RESEARCH.md, 05-01-PLAN.md, 05-ORCHESTRATOR-HANDOFF.md)
+- [x] Execute contract impact analysis for Phase 5
+- [x] Set contract freeze and document rationale
+- [x] Establish package execution order (Package 2 before Package 1)
+- [x] Update `.planning/ROADMAP.md` and `.planning/STATE.md` with Phase 5 status
+
 ## Immediate (Next Session)
-- [x] Align `shared/contracts/openapi.yaml` with the live group-assets payload including `thumb_url` and `banner_url`
-- [x] Add group library discovery pagination beyond the first 500 root folders
-- [ ] Improve handler error mapping for missing/invalid `JELLYFIN_*` configuration
-- [ ] Add or insert the first concrete migration execution phase after the completed brief
-- [ ] Decide whether group-detail episode links should resolve outside the currently loaded release list
+- [ ] Create Package 2 execution artifacts (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
+- [ ] Begin team4s-go lane implementation: migration files for reference/metadata tables
+- [ ] Implement repository layer with shadow mode support
+- [ ] Implement service layer with validation
+- [ ] Refine verification gates: shadow mode criteria, metrics/duration thresholds, backfill strategy
 
 ## Short Term (This Week)
-- [x] Add focused tests for group discovery pagination
-- [ ] Add focused tests for config-failure states
-- [ ] Document group folder naming assumptions and matching rules
-- [ ] Re-run live validation against at least one additional anime/group folder pair
+- [ ] Complete Package 2 backend implementation (tables, repositories, services)
+- [ ] Execute verification gates for Package 2 (shadow mode validation, test coverage)
+- [ ] Document reference data backfill progress
+- [ ] Prepare Package 1 (TypeScript SDK) execution artifacts
 
 ## Medium Term (This Sprint)
-- [ ] Persist real release assets behind `GET /api/v1/releases/:releaseId/assets`
-- [ ] Add real asset counters/filter semantics to the group releases feed
-- [ ] Implement EPIC 7 public release notes and contributions flow
-- [ ] Validate whether GSD can guide the first real migration execution slice cleanly
+- [ ] Complete Package 1 (TypeScript SDK) implementation
+- [ ] Execute Package 1 verification gates
+- [ ] Plan Phase 6 (Handler Consumption) with explicit scope and verification
+- [ ] Validate GSD pilot value through Package 2 execution success
 
 ## Long Term (Future Sprints)
-- [ ] Performance optimization pass
-- [ ] Documentation review and update
-- [ ] Production deployment preparation
-- [ ] Monitoring and observability improvements
+- [ ] Complete Phase 5 (Reference and Metadata Groundwork)
+- [ ] Execute Phase 6 (Handler Consumption) with contract verification
+- [ ] Migration verification and cleanup gates
+- [ ] Production deployment of normalized schema
+- [ ] Monitoring and observability for new reference/metadata tables
