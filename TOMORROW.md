@@ -1,24 +1,26 @@
 # TOMORROW
 
 ## Top 3 Priorities
-1. **Package 2 Execution Artifacts** - Create 05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md for backend implementation
-2. **team4s-go Lane Start** - Begin backend tables/repositories/services implementation with shadow mode support
-3. **Verification Gates Refinement** - Detail shadow mode validation criteria, metrics/duration thresholds, backfill strategy
+1. **Repository Layer Implementation** - Tasks 5-6: Create repository files for studios, persons, genres, contributor_roles, anime_titles, anime_relations, and junction tables
+2. **Service Layer Implementation** - Task 7: Implement backfill service with idempotent migration logic and validation
+3. **Test Suite Implementation** - Tasks 8-11: Migration tests, repository tests, service tests, integration tests
 
 ## First 15-Minute Task
-Create `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\.planning\phases\05-reference-and-metadata-groundwork\05-02-CONTEXT.md` with Package 2 scope: backend tables (studios, persons, roles, genres), repositories, services with shadow mode support, success criteria (test coverage, migration safety), and dependencies (Phase 5 planning complete, contract freeze confirmed).
+Create `backend/internal/db/repositories/studio_repository.go` with basic CRUD operations (Create, GetByID, List, Update, Delete) and table struct definition for the studios table.
 
 ## Phase 5 Execution Checklist
 - [x] Phase 5 planning complete (05-CONTEXT.md, 05-RESEARCH.md, 05-01-PLAN.md, 05-ORCHESTRATOR-HANDOFF.md)
 - [x] Contract impact analysis complete (NO CHANGES NEEDED confirmed)
 - [x] Contract freeze set and documented
 - [x] Package execution order established (Package 2 before Package 1)
-- [ ] Package 2 execution artifacts created (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
-- [ ] Backend tables implemented (studios, persons, roles, genres, etc.)
-- [ ] Repository layer implemented with shadow mode support
-- [ ] Service layer implemented with validation
-- [ ] Verification gates executed (shadow mode validation, test coverage)
-- [ ] Reference data backfill strategy executed
+- [x] Package 2 execution artifacts created (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
+- [x] Backend migrations implemented (reference data, metadata references, normalized metadata, junctions)
+- [ ] Repository layer implemented (studios, persons, roles, genres, anime metadata)
+- [ ] Service layer implemented (backfill service with validation)
+- [ ] Tests implemented (migrations, repositories, services, integration)
+- [ ] Migrations executed in local environment
+- [ ] Backfill executed and verified
+- [ ] Verification gates executed (Package 3: shadow mode validation, test coverage)
 - [ ] Package 1 (TypeScript SDK) ready for execution
 
 ## Dependencies

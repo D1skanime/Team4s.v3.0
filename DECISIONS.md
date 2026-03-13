@@ -1,5 +1,36 @@
 # DECISIONS
 
+## 2026-03-13 (Phase 5 Package 2 Database Migrations)
+
+### Decision
+Implement database migrations for reference and metadata tables in four sequential migrations (0019-0022).
+
+### Context
+Package 2 Tasks 1-4 required creating normalized reference and metadata tables as foundation for Phase 5. The migration structure needed to support safe rollback and clear dependency ordering.
+
+### Options Considered
+- Single large migration with all tables
+- Four separate migrations grouped by table category (reference data, metadata references, normalized metadata, junctions)
+
+### Why This Won
+Four migrations provides better granularity for rollback, clearer logical grouping, and easier troubleshooting if specific table categories have issues. Each migration is independently reversible.
+
+### Consequences
+- Migration 0019: Reference Data Tables (studios, persons, contributor_roles, genres) - foundation entities
+- Migration 0020: Metadata Reference Tables (title_types, languages, relation_types) - lookup tables
+- Migration 0021: Normalized Metadata Tables (anime_titles, anime_relations) - metadata storage
+- Migration 0022: Junction Tables (anime_studios, anime_persons, anime_genres, release_roles) - many-to-many relationships
+- release_roles table uses logical release_id only (no FK constraint) in shadow mode, deferred to Phase 6
+- All migrations have corresponding .down.sql files for safe rollback
+
+### Follow-ups Required
+- Execute migrations in local environment and verify table structure
+- Implement repository layer for new tables (Tasks 5-6)
+- Implement service layer with backfill logic (Task 7)
+- Implement comprehensive tests (Tasks 8-11)
+
+---
+
 ## 2026-03-13 (Phase 5 Planning & Contract Impact Analysis)
 
 ### Decision

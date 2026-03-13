@@ -18,17 +18,20 @@
 - **Mitigation:** Contract freeze documented and confirmed, handler consumption deferred to Phase 6, any contract changes require explicit phase planning
 
 ## Current Blockers
-- None - all Phase 5 prerequisites are met
-- Package 2 execution artifacts are the next action item (planning complete, ready to execute)
+- None - Package 2 Tasks 1-4 complete, ready for Tasks 5-11
+- Migrations created but not yet executed in local environment
 
 ## Technical Debt
 - Shadow mode validation duration thresholds not yet defined (needs refinement during Package 2 execution)
 - Reference data backfill progress tracking not yet implemented
 - Automated verification gate checks not yet established
 - Current production schema still mixes release, stream, and provider concerns inside `episode_versions` (addressed by Phase 5 normalized schema)
+- Database migrations 0019-0022 created but not yet executed or tested in local environment
+- Repository layer not yet implemented (blocks service layer and tests)
 
 ## If Nothing Changes, What Fails Next Week?
-- Phase 5 execution will stall without Package 2 execution artifacts
-- Backend implementation cannot start without detailed lane-by-lane plan (05-02-PLAN.md)
-- SDK generation remains blocked until backend tables exist
-- Migration progress tracking will be manual and error-prone without defined metrics
+- Backend implementation cannot proceed without repository layer (Tasks 5-6)
+- Service layer and tests blocked without repository layer foundation
+- SDK generation remains blocked until backend implementation completes and tables are verified
+- Migration execution delayed without local environment testing
+- Backfill strategy remains theoretical without service layer implementation

@@ -14,19 +14,27 @@
 - [x] Render group-backed assets on `/anime/:animeId/group/:groupId`
 - [x] Separate page background vs episode-gallery image semantics
 
-## Completed (2026-03-13 - Phase 5 Planning)
+## Completed (2026-03-13 - Phase 5 Planning & Package 2 Tasks 1-4)
 - [x] Complete Phase 5 planning artifacts (05-CONTEXT.md, 05-RESEARCH.md, 05-01-PLAN.md, 05-ORCHESTRATOR-HANDOFF.md)
 - [x] Execute contract impact analysis for Phase 5
 - [x] Set contract freeze and document rationale
 - [x] Establish package execution order (Package 2 before Package 1)
 - [x] Update `.planning/ROADMAP.md` and `.planning/STATE.md` with Phase 5 status
+- [x] Create Package 2 execution artifacts (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
+- [x] Create migration 0019: Reference Data Tables (studios, persons, contributor_roles, genres)
+- [x] Create migration 0020: Metadata Reference Tables (title_types, languages, relation_types)
+- [x] Create migration 0021: Normalized Metadata Tables (anime_titles, anime_relations)
+- [x] Create migration 0022: Junction Tables (anime_studios, anime_persons, anime_genres, release_roles)
 
-## Immediate (Next Session)
-- [ ] Create Package 2 execution artifacts (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
-- [ ] Begin team4s-go lane implementation: migration files for reference/metadata tables
-- [ ] Implement repository layer with shadow mode support
-- [ ] Implement service layer with validation
-- [ ] Refine verification gates: shadow mode criteria, metrics/duration thresholds, backfill strategy
+## Immediate (Next Session - Package 2 Tasks 5-11)
+- [ ] Implement repository layer for reference data tables (studios, persons, genres, contributor_roles)
+- [ ] Implement repository layer for metadata tables (anime_titles, anime_relations, junction tables)
+- [ ] Implement service layer with backfill logic and validation
+- [ ] Implement migration tests (verify table structure, constraints, indexes)
+- [ ] Implement repository tests (CRUD operations, shadow mode behavior)
+- [ ] Implement service tests (backfill logic, validation, error handling)
+- [ ] Implement integration tests (end-to-end verification)
+- [ ] Execute migrations in local environment and verify table structure
 
 ## Short Term (This Week)
 - [ ] Complete Package 2 backend implementation (tables, repositories, services)
