@@ -19,7 +19,8 @@ import (
 )
 
 type jellyfinGroupItemsResponse struct {
-	Items []jellyfinGroupItem `json:"Items"`
+	Items            []jellyfinGroupItem `json:"Items"`
+	TotalRecordCount int                 `json:"TotalRecordCount"`
 }
 
 type jellyfinLibraryFoldersResponse struct {
@@ -47,6 +48,7 @@ type jellyfinGroupItem struct {
 var episodeFolderPattern = regexp.MustCompile(`(?i)^episode\s+(\d+)$`)
 
 const groupAssetsLibraryCacheTTL = 30 * time.Minute
+const jellyfinGroupRootPageSize = 500
 
 func (h *GroupAssetsHandler) resolveGroupAssets(
 	ctx context.Context,
@@ -155,19 +157,18 @@ func (h *GroupAssetsHandler) findSubgroupRoot(
 
 	values := url.Values{}
 	values.Set("ParentId", subgroupsLibraryID)
-	values.Set("Limit", "500")
 	values.Set("Fields", "Path,ImageTags,BackdropImageTags")
 	values.Set("IncludeItemTypes", "PhotoAlbum,Folder")
 
-	var payload jellyfinGroupItemsResponse
-	if err := h.fetchGroupAssetsJSON(ctx, "/Items", values, &payload); err != nil {
+	items, err := h.listPagedGroupItems(ctx, values, jellyfinGroupRootPageSize)
+	if err != nil {
 		return nil, err
 	}
 
 	normalizedPrefix := strconv.FormatInt(animeID, 10) + "-"
 	bestScore := -1
 	var best *jellyfinGroupItem
-	for _, item := range payload.Items {
+	for _, item := range items {
 		baseName := strings.TrimSpace(filepath.Base(strings.ReplaceAll(item.Path, "\\", "/")))
 		if baseName == "." || baseName == "" {
 			baseName = item.Name
@@ -186,6 +187,57 @@ func (h *GroupAssetsHandler) findSubgroupRoot(
 		best = &found
 	}
 	return best, nil
+}
+
+func (h *GroupAssetsHandler) listPagedGroupItems(
+	ctx context.Context,
+	baseValues url.Values,
+	pageSize int,
+) ([]jellyfinGroupItem, error) {
+	if pageSize <= 0 {
+		pageSize = jellyfinGroupRootPageSize
+	}
+
+	items := make([]jellyfinGroupItem, 0, pageSize)
+	startIndex := 0
+	for {
+		values := cloneURLValues(baseValues)
+		values.Set("Limit", strconv.Itoa(pageSize))
+		values.Set("StartIndex", strconv.Itoa(startIndex))
+
+		var payload jellyfinGroupItemsResponse
+		if err := h.fetchGroupAssetsJSON(ctx, "/Items", values, &payload); err != nil {
+			return nil, err
+		}
+
+		items = append(items, payload.Items...)
+		if len(payload.Items) == 0 {
+			break
+		}
+
+		startIndex += len(payload.Items)
+		if payload.TotalRecordCount > 0 {
+			if startIndex >= payload.TotalRecordCount {
+				break
+			}
+			continue
+		}
+		if len(payload.Items) < pageSize {
+			break
+		}
+	}
+
+	return items, nil
+}
+
+func cloneURLValues(values url.Values) url.Values {
+	cloned := make(url.Values, len(values))
+	for key, entries := range values {
+		copied := make([]string, len(entries))
+		copy(copied, entries)
+		cloned[key] = copied
+	}
+	return cloned
 }
 
 func (h *GroupAssetsHandler) getGroupAssetsLibraryID(ctx context.Context) (string, error) {

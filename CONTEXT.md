@@ -2,7 +2,7 @@
 
 ## Project
 - **Name:** Team4s.v3.0
-- **Phase:** Public anime group-detail hardening with completed DB migration brief plus GSD migration-lane pilot
+- **Phase:** Public anime group-detail hardening with contract sync and large-library discovery fixes completed, plus GSD migration-lane pilot
 - **Milestone:** EPIC 0-6 delivered at route level; current live work remains the group-assets hardening lane while the next milestone is being framed around a normalized v2 data model
 - **Completion:** ~68%
 
@@ -36,8 +36,6 @@
 - Release-context episode detail consumes the real public `GET /api/v1/releases/:releaseId/assets` endpoint
 
 ### Pending
-- Align the OpenAPI contract with the shipped group-assets response
-- Paginate group-library discovery beyond the first 500 Jellyfin root items
 - Improve configuration error handling for missing/invalid `JELLYFIN_*`
 - Decide whether episode detail lookups on the group page should resolve outside the currently loaded release feed
 - Add the first concrete migration execution phase after the completed brief
@@ -54,6 +52,8 @@
   - episode images/backdrops -> gallery/lightbox content
   - episode media files -> OP/ED/Kara/Insert tiles
 - Episode-folder backdrops remain ordinary images in the gallery and must not override page-level hero treatment.
+- The checked-in OpenAPI contract should stay aligned with the real shipped group-assets payload before more group-detail consumer work continues.
+- Group root discovery must iterate across Jellyfin pages instead of assuming the first 500 root folders are sufficient.
 - GSD is installed locally in the workspace under `.codex/` as a pilot planning layer for the upcoming DB schema migration, not as a replacement for the existing Team4s day-start / day-closeout loop.
 - The canonical draft for the normalized schema now lives in `docs/architecture/db-schema-v2.md`.
 - The migration brief inside `docs/architecture/db-schema-v2.md` is now phased and names blocker resolutions, impact surfaces, rollout slices, and validation gates.

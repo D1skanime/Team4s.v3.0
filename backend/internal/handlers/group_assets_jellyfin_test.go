@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -191,6 +192,51 @@ func TestGetGroupAssetsLibraryID_UsesCacheAfterFirstLookup(t *testing.T) {
 	}
 }
 
+func TestFindSubgroupRoot_PaginatesBeyondFirst500Folders(t *testing.T) {
+	firstPageItems := make([]string, 0, 500)
+	for i := 0; i < 500; i++ {
+		firstPageItems = append(firstPageItems, `{"Id":"root-`+strconv.Itoa(i)+`","Name":"25_other-group","Type":"Folder","Path":"/media/Groups/25_other-group"}`)
+	}
+	firstPageBody := `{"Items":[` + strings.Join(firstPageItems, ",") + `],"TotalRecordCount":501}`
+
+	handler := &GroupAssetsHandler{
+		jellyfinBaseURL: "http://example.test",
+		jellyfinAPIKey:  "test-key",
+		httpClient: &http.Client{
+			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+				switch req.URL.Path {
+				case "/Library/MediaFolders":
+					return jsonResponse(`{"Items":[{"Id":"groups-id","Name":"Groups"}]}`), nil
+				case "/Items":
+					query := req.URL.Query()
+					startIndex := query.Get("StartIndex")
+					switch startIndex {
+					case "0":
+						return jsonResponse(firstPageBody), nil
+					case "500":
+						return jsonResponse(`{"Items":[{"Id":"target-root","Name":"25_strawhat-subs","Type":"Folder","Path":"/media/Groups/25_strawhat-subs"}],"TotalRecordCount":501}`), nil
+					default:
+						t.Fatalf("unexpected StartIndex %q in query %q", startIndex, req.URL.RawQuery)
+					}
+				}
+				t.Fatalf("unexpected request uri %q", req.URL.RequestURI())
+				return nil, nil
+			}),
+		},
+	}
+
+	root, err := handler.findSubgroupRoot(context.Background(), 25, buildSubgroupSuffixCandidates("strawhats", "Strawhat Subs"))
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if root == nil {
+		t.Fatal("expected subgroup root to be found on second page")
+	}
+	if root.ID != "target-root" {
+		t.Fatalf("expected target-root, got %q", root.ID)
+	}
+}
+
 func stubJSONClient(t *testing.T, responses map[string]string) *http.Client {
 	t.Helper()
 	return &http.Client{
@@ -206,6 +252,14 @@ func stubJSONClient(t *testing.T, responses map[string]string) *http.Client {
 				Body:       io.NopCloser(strings.NewReader(body)),
 			}, nil
 		}),
+	}
+}
+
+func jsonResponse(body string) *http.Response {
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(strings.NewReader(body)),
 	}
 }
 

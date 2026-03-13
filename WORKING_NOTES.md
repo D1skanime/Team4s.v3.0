@@ -2,7 +2,7 @@
 
 ## Current Workflow Phase
 - Phase: Public anime group-detail hardening plus post-brief migration pilot handoff
-- Focus today: push the GSD pilot from setup into an executed migration brief plus a restartable migration-lane handoff
+- Focus today: close the remaining correctness gaps on the live group-assets lane before returning to the first concrete migration execution slice
 
 ## Project State
 - Done:
@@ -12,10 +12,12 @@
   - Root banner drives the info-panel background
   - Episode folder backdrops/images stay normal gallery items
   - Group library lookup is cached to reduce repeated Jellyfin `Library/MediaFolders` timeouts
+  - `shared/contracts/openapi.yaml` now matches the shipped group-assets payload
+  - Group root discovery now paginates across Jellyfin root-folder pages beyond the first 500 results
+  - Added a regression test covering subgroup-root discovery on a later Jellyfin page
   - Local frontend/backend stack rebuilt and reachable
 - In Progress:
-  - Contract/documentation cleanup around the new payload
-  - Hardening group discovery and operational error handling
+  - Operational error handling for missing/invalid Jellyfin configuration
   - Final visual tuning on the group-detail page
   - Choosing the first concrete migration execution slice after the completed brief
 - Blocked:
@@ -44,7 +46,7 @@
 - Public group detail now depends on Jellyfin `Groups` first and `Subgroups` second instead of placeholder-only content
 - Root backdrop, root banner, and episode image behavior is now explicitly separated
 - Release-assets persistence is still a separate unfinished lane for episode detail pages
-- OpenAPI/docs are lagging behind the shipped group-assets payload
+- OpenAPI/docs are now aligned; the next follow-up is clearer error-state mapping
 - GSD has been installed locally under `.codex/` and successfully generated `.planning/codebase/*.md` as a pilot for the upcoming schema-migration planning work
 - GSD planning and execution artifacts now carry the migration lane baseline and handoff, while Team4s repo docs remain the daily operating truth
 
@@ -75,7 +77,6 @@ curl -I http://localhost:3002/anime/25/group/301
 ```
 
 ## Parking Lot
-- Add pagination to group library discovery
 - Clarify config/auth failures in the group-assets handler
 - Revisit episode-link lookup so it is not tied to the current release list size
 - Return to persisted release assets for `/api/v1/releases/:releaseId/assets`
@@ -115,6 +116,9 @@ curl -I http://localhost:3002/anime/25/group/301
   - Executed GSD Phase 3 so the target model became a phased migration brief with blocker audit, impact map, rollout slices, and validation gates
   - Executed GSD Phase 4 so the migration lane now has ownership rules, pilot baseline, and a clear handoff / next-action guide
   - Chose to keep GSD as the migration planning/execution layer while retaining Team4s repo-local docs as the canonical daily workflow
+  - Updated `shared/contracts/openapi.yaml` so the public group-assets contract matches the shipped payload
+  - Added Jellyfin root-folder pagination for group discovery so the lookup no longer stops at the first 500 entries
+  - Added a regression test proving subgroup-root discovery works beyond the first Jellyfin page
 - Key Decisions:
   - Treat the normalized schema as a target architecture, not an immediate rewrite
   - Keep the schema draft canonical in-repo so a restart can resume from files instead of chat history
@@ -122,8 +126,8 @@ curl -I http://localhost:3002/anime/25/group/301
 - Risks/Unknowns:
   - The migration scope touches many repositories and handlers through the current flat schema
   - The pilot still needs its first concrete post-brief execution slice to prove value beyond planning
+  - Missing/invalid Jellyfin configuration still needs clearer operator-facing error mapping
 - Next Steps:
-  - update the OpenAPI schema
-  - harden group discovery
+  - clarify group-assets config/auth failure handling
   - add and plan the first migration execution slice after the completed brief
-- First task tomorrow: update `shared/contracts/openapi.yaml`, then decide whether to use `gsd-add-phase` or `gsd-insert-phase` for the first migration execution slice
+- First task tomorrow: trace the current `JELLYFIN_*` failure path in the group-assets handler, then decide whether to use `gsd-add-phase` or `gsd-insert-phase` for the first migration execution slice

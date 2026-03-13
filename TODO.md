@@ -15,14 +15,15 @@
 - [x] Separate page background vs episode-gallery image semantics
 
 ## Immediate (Next Session)
-- [ ] Align `shared/contracts/openapi.yaml` with the live group-assets payload including `thumb_url` and `banner_url`
-- [ ] Add group library discovery pagination beyond the first 500 root folders
+- [x] Align `shared/contracts/openapi.yaml` with the live group-assets payload including `thumb_url` and `banner_url`
+- [x] Add group library discovery pagination beyond the first 500 root folders
 - [ ] Improve handler error mapping for missing/invalid `JELLYFIN_*` configuration
 - [ ] Add or insert the first concrete migration execution phase after the completed brief
 - [ ] Decide whether group-detail episode links should resolve outside the currently loaded release list
 
 ## Short Term (This Week)
-- [ ] Add focused tests for group discovery pagination and config-failure states
+- [x] Add focused tests for group discovery pagination
+- [ ] Add focused tests for config-failure states
 - [ ] Document group folder naming assumptions and matching rules
 - [ ] Re-run live validation against at least one additional anime/group folder pair
 

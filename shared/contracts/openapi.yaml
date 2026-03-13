@@ -3074,7 +3074,7 @@ paths:
   /api/v1/anime/{animeId}/group/{groupId}/assets:
     get:
       tags: [Fansubs]
-      summary: Get subgroup media assets for anime-group detail
+      summary: Get group media assets for anime-group detail
       operationId: getAnimeGroupAssets
       parameters:
         - name: animeId
@@ -3111,7 +3111,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "502":
-          description: Jellyfin subgroup assets unavailable
+          description: Jellyfin group assets unavailable
           content:
             application/json:
               schema:
@@ -6121,21 +6121,20 @@ components:
           $ref: "#/components/schemas/GroupDetail"
     GroupAssetHero:
       type: object
-      required: [folder_name, folder_path, folder_found]
       properties:
-        folder_name:
-          type: string
-        folder_path:
-          type: string
-        folder_found:
-          type: boolean
         backdrop_url:
           type: string
           nullable: true
         primary_url:
           type: string
           nullable: true
-        media_item_id:
+        poster_url:
+          type: string
+          nullable: true
+        thumb_url:
+          type: string
+          nullable: true
+        banner_url:
           type: string
           nullable: true
     GroupAssetImage:
@@ -6188,9 +6187,20 @@ components:
       type: object
       required: [episode_number, folder_name, folder_path, images, media_assets]
       properties:
+        release_id:
+          type: integer
+          format: int64
+          nullable: true
+        episode_id:
+          type: integer
+          format: int64
+          nullable: true
         episode_number:
           type: integer
           format: int32
+        title:
+          type: string
+          nullable: true
         folder_name:
           type: string
         folder_path:
@@ -6205,7 +6215,7 @@ components:
             $ref: "#/components/schemas/GroupAssetMedia"
     GroupAssetsData:
       type: object
-      required: [anime_id, group_id, group_slug, hero, episodes]
+      required: [anime_id, group_id, folder_name, hero, episodes]
       properties:
         anime_id:
           type: integer
@@ -6213,7 +6223,7 @@ components:
         group_id:
           type: integer
           format: int64
-        group_slug:
+        folder_name:
           type: string
         hero:
           $ref: "#/components/schemas/GroupAssetHero"

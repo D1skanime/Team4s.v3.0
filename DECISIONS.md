@@ -3,6 +3,42 @@
 ## 2026-03-13
 
 ### Decision
+Treat the checked-in OpenAPI contract as a release-blocking part of the live group-assets lane, not as optional follow-up documentation.
+
+### Context
+The public group-assets endpoint had already shipped richer payload fields than `shared/contracts/openapi.yaml` described, which meant docs and future consumers could implement against the wrong response despite the live route working.
+
+### Options Considered
+- Leave the contract drift in place until a later docs sweep
+- Update the OpenAPI contract immediately to mirror the shipped response before continuing adjacent work
+
+### Why This Won
+The contract is part of the interface, not an afterthought. Fixing it now removes ambiguity for frontend work, future clients, and any generated schema consumers.
+
+### Consequences
+- `shared/contracts/openapi.yaml` now reflects the current group-assets payload shape
+- Future payload changes on this endpoint should be updated in the contract in the same work slice
+- The remaining group-assets follow-up shifts from schema drift to operational error mapping
+
+### Decision
+Paginate Jellyfin root-folder discovery for group assets instead of assuming the first 500 root items are sufficient.
+
+### Context
+The live group-assets lookup only fetched one Jellyfin `/Items` page with `Limit=500`, so valid group folders would eventually disappear once the library grew beyond that first page.
+
+### Options Considered
+- Keep single-page discovery and accept the implicit 500-folder ceiling
+- Add paginated iteration for root-folder lookup and cover it with a regression test
+
+### Why This Won
+It fixes a real scaling limit without changing the public contract and makes the existing folder-matching approach viable for larger libraries.
+
+### Consequences
+- Group root discovery now walks multiple Jellyfin result pages when needed
+- A regression test now protects the later-page lookup path
+- Naming drift remains a separate risk even though paging is fixed
+
+### Decision
 Keep Team4s repo-local docs canonical for daily project state while using `.planning/` as the migration planning and execution layer.
 
 ### Context

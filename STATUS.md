@@ -27,6 +27,8 @@
 - Group detail prefers the Jellyfin `Groups` library, falls back to `Subgroups`, and exposes root `backdrop`, `primary`, `poster`, `thumb`, and `banner` hero artwork
 - Group detail uses the root backdrop as the page background, the root banner as the info-panel background, and episode-folder backdrops as gallery images
 - Group-library lookup is cached in-process to reduce repeated Jellyfin `Library/MediaFolders` timeout failures
+- The OpenAPI contract now matches the shipped group-assets payload, including root `poster`, `thumb`, `banner`, top-level `folder_name`, and episode image/media fields
+- Group root discovery now paginates across Jellyfin root-folder pages instead of stopping at the first 500 entries
 - Local stack is deployed and responding on:
   - Frontend: `http://localhost:3002`
   - Backend: `http://localhost:8092`
@@ -47,13 +49,11 @@ cd ../frontend && npm run build
 ```
 
 ## Next (Top 3)
-1. Align `shared/contracts/openapi.yaml` with the live group-assets payload including `thumb_url` and `banner_url`
-2. Add group-library discovery pagination / robust matching so libraries larger than 500 root folders still resolve correctly
-3. Add and plan the first concrete post-brief migration execution phase in GSD
+1. Improve group-assets handler error mapping for missing/invalid `JELLYFIN_*`
+2. Add and plan the first concrete post-brief migration execution phase in GSD
+3. Re-run live validation against at least one additional anime/group folder pair
 
 ## Known Risks
-- The live group-assets payload is ahead of the checked-in OpenAPI contract
-- Groups/Subgroups library discovery currently inspects only the first 500 root folders
 - Missing or broken `JELLYFIN_*` configuration is not yet distinguished from a real missing group folder
 - Episode-detail linking inside the group detail page is still bounded by the currently loaded release list size
 - Visual contrast on the group-detail page is improved but still somewhat subjective; one more browser pass may be wanted
