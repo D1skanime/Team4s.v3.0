@@ -1,5 +1,11 @@
 # DAYLOG
 
+## 2026-03-13
+- Installed GSD locally for Codex under workspace `.codex/` as a planning pilot rather than a repo-wide workflow replacement.
+- Ran the brownfield mapping flow and generated `.planning/codebase/STACK.md`, `INTEGRATIONS.md`, `ARCHITECTURE.md`, `STRUCTURE.md`, `CONVENTIONS.md`, `TESTING.md`, and `CONCERNS.md`.
+- Reviewed the proposed normalized DB schema against the current production tables and confirmed it should be treated as a phased target architecture instead of a big-bang migration.
+- Stored the schema draft canonically in `Team4s.v3.0/docs/architecture/db-schema-v2.md` so future restarts can resume from files, not chat history.
+
 ## 2026-03-07
 - Switched public group-detail asset resolution to prefer the Jellyfin `Groups` library, with `Subgroups` retained as fallback.
 - Added root hero enrichment so `banner_url` and `thumb_url` are available alongside `backdrop_url`, `primary_url`, and `poster_url`.

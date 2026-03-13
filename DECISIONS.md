@@ -1,5 +1,45 @@
 # DECISIONS
 
+## 2026-03-13
+
+### Decision
+Install GSD locally in the workspace as a pilot planning tool for the DB schema migration only.
+
+### Context
+The proposed normalized schema is broad and cross-cutting, while the existing Team4s workflow already has effective daily context management through `day-start` and `day-closeout`.
+
+### Options Considered
+- Replace the existing workflow with GSD across the repo
+- Skip GSD entirely and keep schema planning only in ad hoc notes
+- Install GSD locally and use it selectively for brownfield planning around the migration
+
+### Why This Won
+It preserves the working daily loop while giving the schema migration a more structured planning system to test on a high-complexity initiative.
+
+### Consequences
+- GSD artifacts now exist in workspace `.codex/` and `.planning/codebase/`
+- The Team4s repo remains the canonical source for project state and decisions
+- The pilot still needs to prove that it adds value beyond the existing planning documents
+
+### Decision
+Store the normalized DB schema draft in-repo at `docs/architecture/db-schema-v2.md`.
+
+### Context
+The migration discussion had become large enough that keeping it only in chat would make restarts and handoffs unreliable.
+
+### Options Considered
+- Keep the schema only in chat history
+- Store it in workspace-only planning files outside the repo
+- Store it in Team4s docs as the canonical target-model draft
+
+### Why This Won
+The schema needs to survive restarts, be reviewable in git, and stay close to the codebase it will eventually reshape.
+
+### Consequences
+- Future migration planning can reference one canonical file
+- The schema still needs phased rollout documentation before implementation
+- Changes to the target model can now be versioned like other architecture decisions
+
 ## 2026-03-07
 
 ### Decision

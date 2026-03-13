@@ -30,6 +30,7 @@
 - Local stack is deployed and responding on:
   - Frontend: `http://localhost:3002`
   - Backend: `http://localhost:8092`
+- GSD for Codex is installed locally in the workspace and successfully produced a brownfield codebase map in `.planning/codebase/`
 
 ## How To Verify
 ```bash
@@ -46,7 +47,7 @@ cd ../frontend && npm run build
 ## Next (Top 3)
 1. Align `shared/contracts/openapi.yaml` with the live group-assets payload including `thumb_url` and `banner_url`
 2. Add group-library discovery pagination / robust matching so libraries larger than 500 root folders still resolve correctly
-3. Improve operational error mapping when `JELLYFIN_*` config is missing or invalid, instead of surfacing it as a generic folder-not-found state
+3. Finalize the DB schema migration milestone brief around `docs/architecture/db-schema-v2.md` and decide whether to plan it through GSD
 
 ## Known Risks
 - The live group-assets payload is ahead of the checked-in OpenAPI contract
@@ -54,3 +55,4 @@ cd ../frontend && npm run build
 - Missing or broken `JELLYFIN_*` configuration is not yet distinguished from a real missing group folder
 - Episode-detail linking inside the group detail page is still bounded by the currently loaded release list size
 - Visual contrast on the group-detail page is improved but still somewhat subjective; one more browser pass may be wanted
+- The proposed normalized schema is much broader than the current production model, so a big-bang migration would create high delivery risk without a phased rollout

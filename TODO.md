@@ -18,6 +18,7 @@
 - [ ] Align `shared/contracts/openapi.yaml` with the live group-assets payload including `thumb_url` and `banner_url`
 - [ ] Add group library discovery pagination beyond the first 500 root folders
 - [ ] Improve handler error mapping for missing/invalid `JELLYFIN_*` configuration
+- [ ] Draft phased rollout steps from the current schema to `docs/architecture/db-schema-v2.md`
 - [ ] Decide whether group-detail episode links should resolve outside the currently loaded release list
 
 ## Short Term (This Week)
@@ -29,6 +30,7 @@
 - [ ] Persist real release assets behind `GET /api/v1/releases/:releaseId/assets`
 - [ ] Add real asset counters/filter semantics to the group releases feed
 - [ ] Implement EPIC 7 public release notes and contributions flow
+- [ ] Validate whether GSD should remain planning-only or become part of milestone setup for the migration lane
 
 ## Long Term (Future Sprints)
 - [ ] Performance optimization pass

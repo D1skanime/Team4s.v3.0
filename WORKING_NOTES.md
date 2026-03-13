@@ -1,8 +1,8 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phase: Public anime group-detail hardening
-- Focus today: switch the group detail page to the better Jellyfin `Groups` library, expose root banner/thumb artwork, and reduce the timeout pain
+- Phase: Public anime group-detail hardening plus migration-planning setup
+- Focus today: validate a local GSD install for brownfield planning and capture the proposed normalized DB schema inside the repo without losing the current group-assets lane
 
 ## Project State
 - Done:
@@ -17,6 +17,7 @@
   - Contract/documentation cleanup around the new payload
   - Hardening group discovery and operational error handling
   - Final visual tuning on the group-detail page
+  - Framing the normalized DB schema as a phased migration instead of a big-bang rewrite
 - Blocked:
   - No hard blocker for local work; remaining issues are correctness and scaling follow-ups
 
@@ -44,6 +45,7 @@
 - Root backdrop, root banner, and episode image behavior is now explicitly separated
 - Release-assets persistence is still a separate unfinished lane for episode detail pages
 - OpenAPI/docs are lagging behind the shipped group-assets payload
+- GSD has been installed locally under `.codex/` and successfully generated `.planning/codebase/*.md` as a pilot for the upcoming schema-migration planning work
 
 ## Required Contracts / UX Notes
 - Public group assets endpoint: `GET /api/v1/anime/{animeId}/group/{groupId}/assets`
@@ -76,6 +78,7 @@ curl -I http://localhost:3002/anime/25/group/301
 - Clarify config/auth failures in the group-assets handler
 - Revisit episode-link lookup so it is not tied to the current release list size
 - Return to persisted release assets for `/api/v1/releases/:releaseId/assets`
+- Turn `docs/architecture/db-schema-v2.md` into a milestone with explicit compatibility phases
 
 ### Day 2026-03-07
 - Phase: Public anime group-detail hardening
@@ -100,3 +103,22 @@ curl -I http://localhost:3002/anime/25/group/301
   - harden group discovery
   - improve operator-facing Jellyfin error states
 - First task tomorrow: update `shared/contracts/openapi.yaml` to match the live group-assets payload including `thumb_url` and `banner_url`
+
+### Day 2026-03-13
+- Phase: Brownfield planning setup for schema migration
+- Accomplishments:
+  - Installed GSD for Codex locally under workspace `.codex/`
+  - Ran a successful GSD-style codebase map that generated `.planning/codebase/STACK.md`, `INTEGRATIONS.md`, `ARCHITECTURE.md`, `STRUCTURE.md`, `CONVENTIONS.md`, `TESTING.md`, and `CONCERNS.md`
+  - Captured the proposed normalized DB target model in `docs/architecture/db-schema-v2.md`
+  - Chose to keep GSD as a pilot planning layer for the migration rather than replacing the existing Team4s daily workflow
+- Key Decisions:
+  - Treat the normalized schema as a target architecture, not an immediate rewrite
+  - Keep the schema draft canonical in-repo so a restart can resume from files instead of chat history
+- Risks/Unknowns:
+  - The migration scope touches many repositories and handlers through the current flat schema
+  - GSD value for this repo is still being evaluated and may remain planning-only
+- Next Steps:
+  - update the OpenAPI schema
+  - harden group discovery
+  - draft the migration phases around the new schema
+- First task tomorrow: update `shared/contracts/openapi.yaml`, then turn `docs/architecture/db-schema-v2.md` into a phased migration outline

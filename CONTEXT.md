@@ -2,9 +2,9 @@
 
 ## Project
 - **Name:** Team4s.v3.0
-- **Phase:** Public anime group experience backed by live Jellyfin group-library assets
-- **Milestone:** EPIC 0-6 delivered at route level; group detail now renders real Jellyfin-backed presentation instead of placeholder-only content
-- **Completion:** ~60%
+- **Phase:** Public anime group-detail hardening with parallel DB schema migration planning
+- **Milestone:** EPIC 0-6 delivered at route level; current live work remains the group-assets hardening lane while the next milestone is being framed around a normalized v2 data model
+- **Completion:** ~62%
 
 ## Current State
 
@@ -40,6 +40,8 @@
 - Paginate group-library discovery beyond the first 500 Jellyfin root items
 - Improve configuration error handling for missing/invalid `JELLYFIN_*`
 - Decide whether episode detail lookups on the group page should resolve outside the currently loaded release feed
+- Decide the migration sequencing from the current flat schema to the normalized v2 anime / release / media model
+- Convert the DB schema migration into a GSD-planned milestone without disrupting the existing day-start / day-closeout workflow
 
 ## Key Decisions
 - Jellyfin `Groups` is now the preferred source for anime/group presentation assets on `/anime/:animeId/group/:groupId`, with `Subgroups` as fallback.
@@ -52,8 +54,11 @@
   - episode images/backdrops -> gallery/lightbox content
   - episode media files -> OP/ED/Kara/Insert tiles
 - Episode-folder backdrops remain ordinary images in the gallery and must not override page-level hero treatment.
+- GSD is installed locally in the workspace under `.codex/` as a pilot planning layer for the upcoming DB schema migration, not as a replacement for the existing Team4s day-start / day-closeout loop.
+- The canonical draft for the normalized schema now lives in `docs/architecture/db-schema-v2.md`.
 
 ## Quality Bar
 - `go test ./...` must pass
 - `npm run build` must pass
 - Local stack must answer `/health`, group-assets API smoke checks, and the live group-detail route before closeout
+- Any schema-migration planning must keep backward-compatible rollout steps explicit before implementation begins
