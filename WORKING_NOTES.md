@@ -2,7 +2,7 @@
 
 ## Current Workflow Phase
 - Phase: Phase 5 - Reference and Metadata Groundwork
-- Focus: Canonical Phase A correction, metadata backfill implementation, local DB verification prep
+- Focus: Production-ready backfill optimization, API evaluation for relation backfill
 
 ## Project State
 - Done:
@@ -13,12 +13,17 @@
   - Added `AnimeMetadataBackfillService`
   - Added CLI command `go run ./cmd/migrate backfill-phase-a-metadata`
   - Verified `go test ./...` in `backend`
+  - Executed Phase A migrations locally (7 tables created)
+  - Backfilled 19,578 anime with normalized metadata (99.5% complete)
+  - Created 501 genres and 60,932 genre associations
+  - Completed relation source investigation (no legacy data found)
+  - Passed 2 Critical Reviews with conditional approvals
 - In Progress:
-  - Local migration execution
-  - Local metadata backfill execution
-  - DB inspection of normalized rows
+  - Fixing HIGH-1 timeout issue (5 -> 10 minutes + batch processing)
+  - API evaluation for relation backfill (AniSearch vs. alternatives)
 - Blocked:
-  - Old source for anime-to-anime relations is not available
+  - Production deployment blocked until HIGH-1 resolved
+  - Relation backfill blocked until API evaluation complete
 
 ## Key Decisions and Context
 - Intent & Constraints:
@@ -40,33 +45,36 @@
   - Backfill is directly runnable and inspectable locally
 
 ## Active Threads
-- Package 2 is now anime metadata only, not studio/person/contributor work
-- The next proof point is local migration/backfill evidence, not more planning
-- GUI DB access may need DBeaver/psql because the installed Navicat version does not support SCRAM auth
+- HIGH-1 timeout fix is the critical path for production deployment
+- API evaluation must compare at least 3 alternatives (AniSearch, AniDB, MAL, AniList)
+- Backfill is 99.5% complete (timeout on ~100 anime IDs 13340-13404)
+- Normalized metadata is ready for adapter layer work after 100% completion verified
 
 ## Parking Lot
-- Recover the old relation source schema
-- Add SQL snippets for verifying migrated titles/genres
+- Create `scripts/verify-phase-a-backfill.sql` with row count checks
+- Add exit code on backfill errors (MEDIUM-2)
 - Revisit title-type richness later when AniSearch/AniDB enrichment returns
+- Plan read-path switch from legacy to normalized titles
+- Design adapter layer for dual-read during transition
 
 ### Day 2026-03-14
-- Phase: Canonical Phase A metadata correction and implementation
+- Phase: Phase A migrations and metadata backfill execution
 - Accomplishments:
-  - Corrected Package 2 scope drift
-  - Implemented metadata backfill code path
-  - Fixed legacy title mapping rules
-  - Verified backend tests
+  - Executed Phase A migrations (0019-0022) - 7 tables created
+  - Backfilled 19,578 anime with normalized metadata (99.5% complete)
+  - Created 501 genres and 60,932 genre associations
+  - Completed relation source investigation (no legacy data)
+  - Passed 2 Critical Reviews (conditional approvals)
 - Key Decisions:
-  - `title` -> `ja/main`
-  - `title_de` -> `de/main`
-  - `title_en` -> `en/official`
-  - `anime_relations` stays schema-only for now
+  - `title` -> `ja/main`, `title_de` -> `de/main`, `title_en` -> `en/official`
+  - Defer relation backfill until external API selected
+  - Approve local dev, block production until HIGH-1 resolved
 - Risks/Unknowns:
-  - relation source missing
-  - genre token quality unknown
-  - local DB verification still pending
+  - HIGH-1: Backfill timeout affects ~100 anime (0.5%)
+  - API evaluation pending for relation backfill
+  - Best API choice unclear (AniSearch vs. AniDB vs. MAL vs. AniList)
 - Next Steps:
-  - run migrations
-  - run backfill
-  - inspect 10 sample anime rows
-- First task tomorrow: run `go run ./cmd/migrate up` in `backend` and inspect the new Phase A tables
+  - Fix HIGH-1 timeout (5 -> 10 minutes + batch processing)
+  - Re-run backfill and verify 100% completion
+  - Complete API evaluation with 3+ alternatives
+- First task tomorrow: Increase backfill timeout to 10 minutes in `backend/cmd/migrate/main.go:121`
