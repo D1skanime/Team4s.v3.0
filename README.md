@@ -245,6 +245,7 @@ export DATABASE_URL="postgres://team4s:team4s_dev_password@localhost:5433/team4s
 go run ./cmd/migrate status
 go run ./cmd/migrate up
 go run ./cmd/migrate down -steps 1
+go run ./cmd/migrate backfill-phase-a-metadata
 ```
 
 PowerShell:
@@ -255,11 +256,13 @@ $env:DATABASE_URL='postgres://team4s:team4s_dev_password@localhost:5433/team4s_v
 go run ./cmd/migrate status
 go run ./cmd/migrate up
 go run ./cmd/migrate down -steps 1
+go run ./cmd/migrate backfill-phase-a-metadata
 ```
 
 Notes:
 - `up` applies all pending migrations and records them in `schema_migrations`.
 - `down` rolls back the most recent migration by default (`-steps` controls count).
+- `backfill-phase-a-metadata` populates normalized anime titles and genres from the legacy anime columns.
 - If needed, pass a custom directory: `-dir ../database/migrations`.
 
 ### Database Migrations (Docker)

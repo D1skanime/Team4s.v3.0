@@ -1,144 +1,72 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phase: Phase 5 - Reference and Metadata Groundwork (normalized v2 schema migration)
-- Focus: Package 2 execution artifacts and team4s-go lane implementation start
+- Phase: Phase 5 - Reference and Metadata Groundwork
+- Focus: Canonical Phase A correction, metadata backfill implementation, local DB verification prep
 
 ## Project State
 - Done:
-  - Phase 5 planning complete (05-CONTEXT.md, 05-RESEARCH.md, 05-01-PLAN.md, 05-ORCHESTRATOR-HANDOFF.md)
-  - Contract impact analysis complete (NO CHANGES NEEDED for all Public APIs)
-  - Contract freeze set and documented
-  - Package execution order established (Package 2 before Package 1)
-  - GSD migration brief phased and verified
-  - Canonical schema draft in `docs/architecture/db-schema-v2.md`
-  - `.planning/ROADMAP.md` and `.planning/STATE.md` updated with Phase 5 status
+  - Corrected Package 2 back to canonical Phase A metadata scope
+  - Reduced `0019` to `genres`
+  - Reduced `0022` to `anime_genres`
+  - Added `anime_metadata` repository support
+  - Added `AnimeMetadataBackfillService`
+  - Added CLI command `go run ./cmd/migrate backfill-phase-a-metadata`
+  - Verified `go test ./...` in `backend`
 - In Progress:
-  - Package 2 execution artifacts creation (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
-  - Verification gates refinement (shadow mode criteria, metrics, backfill strategy)
+  - Local migration execution
+  - Local metadata backfill execution
+  - DB inspection of normalized rows
 - Blocked:
-  - None - all prerequisites met for Phase 5 execution
+  - Old source for anime-to-anime relations is not available
 
-## Key Decisions and Context (Today)
-- Intent and constraints:
-  - Keep Jellyfin group assets presentation-driven, not playback-driven by default
-  - Treat root folder artwork and episode-folder images differently
-  - Preserve the existing page routes instead of introducing a parallel asset-only route
-- Design/approach:
-  - Prefer `Groups`, fall back to `Subgroups`
-  - Root folder artwork drives page-level presentation
-  - `Episode N` folders define the episode sections
-  - Episode folder backdrops and photos stay gallery/lightbox items
-  - Episode media files become media asset cards with stream links where applicable
+## Key Decisions and Context
+- Intent & Constraints:
+  - Keep Phase 5 aligned to `docs/architecture/db-schema-v2.md`
+  - Keep API behavior stable while normalized tables are introduced
+  - Do not invent relation backfills without a real source
+- Design / Approach:
+  - `anime.title` -> `ja/main`
+  - `anime.title_de` -> `de/main`
+  - `anime.title_en` -> `en/official`
+  - `anime.genre` -> comma-split into `genres` and `anime_genres`
+  - `anime_relations` remains schema-only for now
 - Assumptions:
-  - Current group folder naming remains stable enough for matching (`<animeId>_<title>_<group-slug>`) (risky)
-  - Root `banner` is the right info-panel source when present (risky if editorial practice drifts)
-- Quality bar:
-  - Live endpoint returns meaningful group data
-  - Group page renders from that data without breaking other public routes
-  - Root backdrop/banner never gets confused with episode gallery images
+  - Legacy `anime.title` is the crawled Japanese AniSearch title
+  - German titles are important for real user search behavior
+- Quality Bar:
+  - Backend tests green
+  - Migrations create only the canonical Phase A tables
+  - Backfill is directly runnable and inspectable locally
 
 ## Active Threads
-- Public group detail now depends on Jellyfin `Groups` first and `Subgroups` second instead of placeholder-only content
-- Root backdrop, root banner, and episode image behavior is now explicitly separated
-- Release-assets persistence is still a separate unfinished lane for episode detail pages
-- OpenAPI/docs are now aligned; the next follow-up is clearer error-state mapping
-- GSD has been installed locally under `.codex/` and successfully generated `.planning/codebase/*.md` as a pilot for the upcoming schema-migration planning work
-- GSD planning and execution artifacts now carry the migration lane baseline and handoff, while Team4s repo docs remain the daily operating truth
-
-## Required Contracts / UX Notes
-- Public group assets endpoint: `GET /api/v1/anime/{animeId}/group/{groupId}/assets`
-- Current payload shape includes:
-  - `folder_name`
-  - `hero.backdrop_url`
-  - `hero.primary_url`
-  - `hero.poster_url`
-  - `hero.thumb_url`
-  - `hero.banner_url`
-  - `episodes[].images[]`
-  - `episodes[].media_assets[]`
-- UX binding:
-  - root backdrop = whole page background
-  - root banner = info-panel background
-  - episode backdrops/images = normal clickable gallery images
-
-## Quick Checks
-```bash
-go test ./...
-npm run build
-docker compose ps
-curl http://localhost:8092/health
-curl http://localhost:8092/api/v1/anime/25/group/301/assets
-curl -I http://localhost:3002/anime/25/group/301
-```
+- Package 2 is now anime metadata only, not studio/person/contributor work
+- The next proof point is local migration/backfill evidence, not more planning
+- GUI DB access may need DBeaver/psql because the installed Navicat version does not support SCRAM auth
 
 ## Parking Lot
-- Clarify config/auth failures in the group-assets handler
-- Revisit episode-link lookup so it is not tied to the current release list size
-- Return to persisted release assets for `/api/v1/releases/:releaseId/assets`
-- Turn `docs/architecture/db-schema-v2.md` into a milestone with explicit compatibility phases
-- Add or insert the first concrete migration execution phase after the brief
+- Recover the old relation source schema
+- Add SQL snippets for verifying migrated titles/genres
+- Revisit title-type richness later when AniSearch/AniDB enrichment returns
 
-### Day 2026-03-07
-- Phase: Public anime group-detail hardening
+### Day 2026-03-14
+- Phase: Canonical Phase A metadata correction and implementation
 - Accomplishments:
-  - Switched group-detail library preference to Jellyfin `Groups`
-  - Exposed root `thumb_url` and `banner_url` in the group-assets hero payload
-  - Mapped episode folder `BackdropImageTags` into normal gallery images
-  - Added a library-ID cache to avoid repeated `Library/MediaFolders` timeout pain
-  - Iterated the group page visual layers so root backdrop, root banner, and asset text are more visible
-  - Rebuilt the stack and revalidated `/anime/25/group/301`
+  - Corrected Package 2 scope drift
+  - Implemented metadata backfill code path
+  - Fixed legacy title mapping rules
+  - Verified backend tests
 - Key Decisions:
-  - `Groups` is the preferred source for group-detail presentation assets; `Subgroups` is fallback
-  - Root banner is the correct info-panel background source
-  - Episode-folder backdrops are not hero assets; they stay ordinary gallery images
+  - `title` -> `ja/main`
+  - `title_de` -> `de/main`
+  - `title_en` -> `en/official`
+  - `anime_relations` stays schema-only for now
 - Risks/Unknowns:
-  - OpenAPI contract drift
-  - group library discovery pagination limit
-  - config failures are not yet clearly distinguished
-  - visual tuning may still want one more pass
+  - relation source missing
+  - genre token quality unknown
+  - local DB verification still pending
 - Next Steps:
-  - update the OpenAPI schema
-  - harden group discovery
-  - improve operator-facing Jellyfin error states
-- First task tomorrow: update `shared/contracts/openapi.yaml` to match the live group-assets payload including `thumb_url` and `banner_url`
-
-### Day 2026-03-13 (Final End-of-Day)
-- Phase: Phase 5 - Reference and Metadata Groundwork (Package 2 Backend Implementation)
-- Accomplishments:
-  - Completed morning briefing and confirmed Phase 5 readiness
-  - Created Phase 5 full GSD planning artifacts:
-    - `05-CONTEXT.md` (phase rationale, scope, success criteria)
-    - `05-RESEARCH.md` (reference/metadata analysis)
-    - `05-01-PLAN.md` (packages, lanes, verification gates)
-    - `05-ORCHESTRATOR-HANDOFF.md` (agent handoff)
-  - Executed contract impact analysis:
-    - Result: NO CHANGES NEEDED for all Public APIs
-    - Created `05-CONTRACT-IMPACT-ANALYSIS.md`
-    - Created `orchestrator-handoff.md` with contract freeze confirmation
-  - Updated `.planning/ROADMAP.md` and `.planning/STATE.md` with Phase 5 status
-  - Confirmed Package 2 (team4s-go lane) as next critical path
-  - Created Package 2 execution artifacts (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
-  - Completed Package 2 Tasks 1-4: Database Migrations
-    - Migration 0019: Reference Data Tables (studios, persons, contributor_roles, genres)
-    - Migration 0020: Metadata Reference Tables (title_types, languages, relation_types)
-    - Migration 0021: Normalized Metadata Tables (anime_titles, anime_relations)
-    - Migration 0022: Junction Tables (anime_studios, anime_persons, anime_genres, release_roles)
-- Key Decisions:
-  - Phase 5 is backend foundation only (no public API changes)
-  - Contract freeze set for Phase 5
-  - Package execution order: Backend (Package 2) before SDK (Package 1)
-  - Shadow mode pattern enables validation before enforcement
-  - Handler consumption deferred to Phase 6
-  - release_roles table uses logical release_id only (no FK until Phase 6)
-- Risks/Unknowns:
-  - Reference data migration complexity (large dataset, safe backfill needed)
-  - Foreign key dependencies during shadow mode
-  - Shadow mode validation duration thresholds need refinement
-  - Migration execution in local environment not yet tested
-- Next Steps:
-  - Implement repository layer (Tasks 5-6)
-  - Implement service layer with backfill logic (Task 7)
-  - Implement tests (Tasks 8-11)
-  - Execute migrations in local environment and verify
-- First task tomorrow: Create `backend/internal/db/repositories/studio_repository.go` with basic CRUD operations
+  - run migrations
+  - run backfill
+  - inspect 10 sample anime rows
+- First task tomorrow: run `go run ./cmd/migrate up` in `backend` and inspect the new Phase A tables

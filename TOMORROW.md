@@ -1,36 +1,35 @@
 # TOMORROW
 
 ## Top 3 Priorities
-1. **Repository Layer Implementation** - Tasks 5-6: Create repository files for studios, persons, genres, contributor_roles, anime_titles, anime_relations, and junction tables
-2. **Service Layer Implementation** - Task 7: Implement backfill service with idempotent migration logic and validation
-3. **Test Suite Implementation** - Tasks 8-11: Migration tests, repository tests, service tests, integration tests
+1. **Run Corrected Phase A Migrations** - Execute `0019-0022` locally and inspect the created metadata tables
+2. **Run Anime Metadata Backfill** - Populate `anime_titles`, `genres`, and `anime_genres` from the legacy anime columns
+3. **Inspect Relation Source** - Find the old schema/table source for anime-to-anime relations before any relation backfill
 
 ## First 15-Minute Task
-Create `backend/internal/db/repositories/studio_repository.go` with basic CRUD operations (Create, GetByID, List, Update, Delete) and table struct definition for the studios table.
+Run `go run ./cmd/migrate up` in `backend`, then verify in the DB that `genres`, `title_types`, `languages`, `relation_types`, `anime_titles`, `anime_genres`, and `anime_relations` exist.
 
 ## Phase 5 Execution Checklist
-- [x] Phase 5 planning complete (05-CONTEXT.md, 05-RESEARCH.md, 05-01-PLAN.md, 05-ORCHESTRATOR-HANDOFF.md)
-- [x] Contract impact analysis complete (NO CHANGES NEEDED confirmed)
-- [x] Contract freeze set and documented
-- [x] Package execution order established (Package 2 before Package 1)
-- [x] Package 2 execution artifacts created (05-02-CONTEXT.md, 05-02-PLAN.md, 05-02-orchestrator-handoff.md)
-- [x] Backend migrations implemented (reference data, metadata references, normalized metadata, junctions)
-- [ ] Repository layer implemented (studios, persons, roles, genres, anime metadata)
-- [ ] Service layer implemented (backfill service with validation)
-- [ ] Tests implemented (migrations, repositories, services, integration)
+- [x] Phase 5 planning complete
+- [x] Contract impact analysis complete
+- [x] Contract freeze set
+- [x] Package 2 scope corrected to canonical Phase A
+- [x] Backend migrations corrected to canonical Phase A scope
+- [x] Anime metadata backfill repository/service code added
+- [x] Focused migration/service tests added
 - [ ] Migrations executed in local environment
 - [ ] Backfill executed and verified
-- [ ] Verification gates executed (Package 3: shadow mode validation, test coverage)
-- [ ] Package 1 (TypeScript SDK) ready for execution
+- [ ] Verification gates executed
+- [ ] Package 1 ready for execution
 
 ## Dependencies
-- Phase 5 planning artifacts complete (all prerequisites met)
-- Contract freeze confirmed (no public API changes during Phase 5)
-- Backend tables must exist before SDK types can be generated
-- Shadow mode validation requires stable existing schema during migration
-- Reference data backfill depends on existing data quality and volume
+- Local DB must be reachable on `localhost:5433`
+- Legacy anime columns remain the current backfill source:
+  - `title`
+  - `title_de`
+  - `title_en`
+  - `genre`
+- Relation backfill depends on recovering the old relation source
 
 ## Nice To Have
-- Define specific shadow mode metrics/duration thresholds early in Package 2 execution
-- Document reference data backfill progress tracking
-- Establish automated verification gate checks for shadow mode validation
+- Capture reusable SQL snippets for checking 10 legacy anime rows against normalized title/genre rows
+- Verify a DB GUI path that supports SCRAM auth cleanly
