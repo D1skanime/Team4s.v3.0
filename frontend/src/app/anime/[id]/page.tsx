@@ -5,6 +5,7 @@ import { Download, ExternalLink, Eye, Play } from 'lucide-react'
 
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
+import { AnimeRelations } from '@/components/anime/AnimeRelations'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
 import { ActiveFansubStory } from '@/components/fansubs/ActiveFansubStory'
@@ -19,6 +20,7 @@ import {
   getAnimeByID,
   getAnimeBackdrops,
   getAnimeComments,
+  getAnimeRelations,
   getFansubBySlug,
   getAnimeFansubs,
   getGroupedEpisodes,
@@ -124,13 +126,14 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   const backToGridHref = fromGrid ? buildAnimeListHrefFromGridQuery(gridQuery) : '/anime'
 
   const embySeriesUrl = getEmbySeriesUrlForAnime(anime.id)
-  const [animeFansubsResult, groupedEpisodesResult, commentsResult, watchlistResult, backdropResult] =
+  const [animeFansubsResult, groupedEpisodesResult, commentsResult, watchlistResult, backdropResult, relationsResult] =
     await Promise.allSettled([
       getAnimeFansubs(anime.id),
       getGroupedEpisodes(anime.id),
       getAnimeComments(animeID, { page: 1, per_page: 10 }),
       authToken ? getWatchlistEntry(animeID, authToken) : Promise.resolve(null),
       withTimeout(getAnimeBackdrops(anime.id), 4000),
+      getAnimeRelations(anime.id),
     ])
 
   const animeFansubsResponse = animeFansubsResult.status === 'fulfilled' ? animeFansubsResult.value : null
@@ -169,6 +172,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   const commentsError = commentsResult.status === 'rejected' ? 'Kommentare konnten nicht geladen werden.' : null
   const inWatchlist = watchlistResult.status === 'fulfilled' && Boolean(watchlistResult.value)
   const backdropManifest = backdropResult.status === 'fulfilled' ? backdropResult.value.data : null
+  const relationsResponse = relationsResult.status === 'fulfilled' ? relationsResult.value : null
   const infoBannerURL = resolveInfoBannerURL(backdropManifest)
   const infoLogoURL = resolveInfoLogoURL(backdropManifest)
 
@@ -218,6 +222,9 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
               </span>
               <span>{anime.max_episodes ?? 0} Episoden geplant</span>
             </div>
+            {relationsResponse && relationsResponse.data.length > 0 ? (
+              <AnimeRelations relations={relationsResponse.data} />
+            ) : null}
             {infoBannerURL ? <Image src={infoBannerURL} alt="" className={styles.infoBanner} width={760} height={260} unoptimized /> : null}
             {embySeriesUrl ? (
               <a

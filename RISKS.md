@@ -16,20 +16,19 @@
 - **Status:** Fix designed, not yet implemented
 - **Due:** Before production deployment
 
-### 2. API Selection for Relation Backfill Uncertain
-- **Impact:** MEDIUM - `anime_relations` table remains empty, relation features blocked
-- **Likelihood:** HIGH - No API evaluation completed yet
-- **Evidence:** Task #3 investigation found no legacy relation source
-- **Root Cause:** Only one API option presented (AniSearch), no comparison with alternatives
+### 2. Relation Data Quality from Legacy Source (2026-03-15)
+- **Impact:** LOW - Relation feature functional, but data quality depends on legacy accuracy
+- **Likelihood:** UNKNOWN - Legacy `verwandt` table quality not fully audited
+- **Evidence:** 2,278 relations imported from legacy source
+- **Root Cause:** Legacy data may contain outdated or incorrect mappings
 - **Mitigation:**
-  - Document alternative APIs (AniDB, MyAnimeList, AniList)
-  - Compare: availability, documentation, rate limits, relation coverage, data quality
-  - Verify selected API availability and constraints
-  - Define fallback strategy for manual entry
-  - Create proof-of-concept API call
-- **Owner:** Backend lane (requires planning phase)
-- **Status:** Conditions documented in Critical Review
-- **Due:** Before relation backfill implementation
+  - Perform spot-check verification of sample relations
+  - Add admin UI for manual corrections
+  - Consider future API enrichment to supplement legacy data
+  - Document known data quality issues as discovered
+- **Owner:** Backend lane (requires verification phase)
+- **Status:** Baseline data functional, enrichment deferred
+- **Due:** Before declaring relation feature production-ready
 
 ### 3. Read-Path Switch Timing Unclear
 - **Impact:** MEDIUM - Cannot leverage normalized metadata until adapter layer implemented
@@ -55,11 +54,10 @@
 - **Resolution:** Implement timeout fix + batch processing + verification
 - **ETA:** 1 day (tomorrow)
 
-### Relation Features
-- **Blocker:** API evaluation incomplete
-- **Impact:** `anime_relations` table remains empty
-- **Resolution:** Complete API comparison and selection
-- **ETA:** 2-3 days (requires research and POC)
+### Relation Features (Updated 2026-03-15)
+- **Status:** UNBLOCKED
+- **Resolution:** Legacy `verwandt` table imported via Migration 0023
+- **Result:** 4,556 relation records populated, feature functional
 
 ---
 
@@ -168,8 +166,8 @@
 
 ## If Nothing Changes, What Fails Next Week?
 
-1. **Production deployment stalls** - HIGH-1 timeout must be fixed before production rollout
-2. **Relation features remain unavailable** - API evaluation must complete before implementation
+1. **Production deployment stalls** - HIGH-1 timeout must be fixed before Phase A production rollout
+2. **Relation feature quality unknowns** - Spot-check verification should be done to confirm data accuracy
 3. **Phase 6 delays** - Adapter layer planning must start to support handler consumption
 
 ---

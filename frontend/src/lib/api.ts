@@ -16,6 +16,7 @@ import {
   AnimeBackdropResponse,
   AnimeDetail,
   AnimeListParams,
+  AnimeRelationsResponse,
   EpisodeDetail,
   PaginatedAnimeResponse,
 } from '@/types/anime'
@@ -358,6 +359,23 @@ export async function getAnimeBackdrops(id: number): Promise<AnimeBackdropRespon
   }
 
   return response.json() as Promise<AnimeBackdropResponse>
+}
+
+export async function getAnimeRelations(id: number): Promise<AnimeRelationsResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${id}/relations`, {
+    next: { revalidate: 60 },
+  })
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      return { data: [] }
+    }
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<AnimeRelationsResponse>
 }
 
 export async function getEpisodeByID(id: number): Promise<{ data: EpisodeDetail }> {

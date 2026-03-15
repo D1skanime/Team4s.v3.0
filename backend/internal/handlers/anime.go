@@ -196,6 +196,42 @@ func (h *AnimeHandler) GetByID(c *gin.Context) {
 	})
 }
 
+func (h *AnimeHandler) GetAnimeRelations(c *gin.Context) {
+	idStr := c.Param("id")
+	animeID, err := parseAnimeID(idStr)
+	if err != nil {
+		badRequest(c, "ungueltige anime-id")
+		return
+	}
+
+	// Optional: Check if anime exists (can be disabled for performance)
+	_, err = h.repo.GetByID(c.Request.Context(), animeID, false)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": gin.H{"message": "anime nicht gefunden"},
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "interner fehler"},
+		})
+		return
+	}
+
+	relations, err := h.repo.GetAnimeRelations(c.Request.Context(), animeID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "relationen konnten nicht geladen werden"},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": relations,
+	})
+}
+
 func parsePositiveInt(raw string) (int, error) {
 	value, err := strconv.Atoi(raw)
 	if err != nil {

@@ -29,6 +29,70 @@ The schema draft is the architectural source of truth for the migration lane. Co
 
 ---
 
+## 2026-03-15 - Bidirectional Relation Storage
+
+### Decision
+Store anime relations bidirectionally during migration (both A->B and B->A).
+
+### Context
+Legacy `verwandt` table stored only one direction per relation. Modern graph queries benefit from bidirectional access without UNION complexity.
+
+### Options Considered
+1. Store one direction, query with UNION (SELECT ... UNION SELECT ...)
+2. Store both directions, query single table (SELECT with simple WHERE)
+3. Use recursive CTE for bidirectional traversal
+
+### Why This Won
+- Simplifies repository query logic (no UNION needed)
+- Better query performance (single table scan with index)
+- Aligns with modern graph database patterns
+- Makes relation semantics explicit in both directions
+
+### Consequences
+- Migration creates 2x records (2,278 -> 4,556)
+- Slightly higher storage cost (negligible for this dataset)
+- Repository code is simpler and more maintainable
+- Future relation queries are faster and more readable
+
+### Follow-ups Required
+- Document relation query patterns for future developers
+- Consider adding relation traversal depth limiting
+- Add relation count verification to backfill script
+
+---
+
+## 2026-03-15 - Legacy Relation Source Discovery
+
+### Decision
+Import anime relations from legacy `verwandt` table instead of external API.
+
+### Context
+Investigation on 2026-03-14 concluded no legacy relation source existed. Further inspection revealed `verwandt` table with 2,278 records was overlooked due to non-standard naming.
+
+### Options Considered
+1. Continue with external API integration plan (AniSearch, AniDB, MAL)
+2. Import legacy `verwandt` data and defer API enrichment
+3. Hybrid approach (legacy baseline + API enrichment)
+
+### Why This Won
+- Legacy data already exists in the database (zero external dependency)
+- 2,278 relations provide solid baseline for feature launch
+- External API integration can be deferred to enrichment phase
+- Faster time-to-market (no API evaluation delay)
+
+### Consequences
+- `anime_relations` table is now populated with production-ready data
+- External API evaluation is no longer blocking for baseline feature
+- Future enrichment can supplement (not replace) legacy data
+- Relation quality depends on legacy source accuracy
+
+### Follow-ups Required
+- Verify relation quality with manual spot checks
+- Document relation data lineage (legacy `verwandt` source)
+- Plan optional API enrichment for future phase
+
+---
+
 ## 2026-03-14 - Fix Legacy Title Mapping
 
 ### Decision

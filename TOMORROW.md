@@ -6,30 +6,33 @@
    - Increase timeout from 5 to 10 minutes in `backend/cmd/migrate/main.go:121`
    - Implement batch processing (100 anime per transaction)
    - Add progress logging every 1000 anime
+   - Re-run backfill and verify 100% completion (19,578 anime)
 
-2. **Verify Backfill Completeness**
-   - Re-run backfill after timeout/batch fixes
-   - Verify 100% completion (19,578 anime)
-   - Inspect sample anime for data quality
+2. **Create Phase A Verification Script**
+   - Add `scripts/verify-phase-a-backfill.sql`
+   - Include row count checks for all Phase A tables (titles, genres, relations)
+   - Add data quality checks (null counts, orphans)
+   - Execute and document results
 
-3. **Task #3 Conditions: API Evaluation**
-   - Document alternative APIs (AniDB, MyAnimeList, AniList)
-   - Compare: availability, documentation, rate limits, relation coverage
-   - Verify AniSearch API availability and constraints
-   - Define fallback strategy for manual entry
+3. **Document Anime Relations Feature**
+   - Update README with GET /api/v1/anime/:id/relations endpoint
+   - Add endpoint to API contract documentation
+   - Document bidirectional storage decision in architecture docs
+   - Add example queries for relation traversal
 
 ---
 
 ## First 15-Minute Task
 
-Fix HIGH-1 timeout: Edit `backend/cmd/migrate/main.go:121` and change:
-```go
-ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-```
-to:
-```go
-ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-```
+**Open `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\backend\cmd\migrate\main.go`**
+
+1. Find line 121 (timeout configuration for backfill command)
+2. Change timeout from `5 * time.Minute` to `10 * time.Minute`
+3. Save file
+4. Run `go test ./...` to verify no syntax errors
+5. Commit change with message: "Fix HIGH-1: Increase backfill timeout to 10 minutes"
+
+This is a simple code change that unblocks the next steps (batch processing implementation).
 
 ---
 
@@ -71,25 +74,24 @@ ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 
 ---
 
-## Task #3 Conditions (Relation Backfill)
+## Relation Data Quality Verification (Optional)
 
-Before relation backfill implementation proceeds:
+Anime relations feature is functional with 2,278 legacy relations imported. Optional quality checks:
 
-1. **API Option Analysis**
-   - Document: AniDB, MyAnimeList, AniList, Kitsu
-   - Compare: availability, documentation, rate limits, relation coverage, data quality
-   - Justify final selection with evidence
+1. **Spot-Check Verification**
+   - Manually verify 10-20 sample anime relations
+   - Check relation type accuracy (sequel, prequel, etc.)
+   - Document any incorrect or missing relations
 
-2. **Primary API Verification**
-   - Verify API endpoint availability
-   - Document rate limits and authentication requirements
-   - Provide API documentation reference
-   - Create proof-of-concept API call
+2. **Data Quality Metrics**
+   - Count anime with 0 relations
+   - Count anime with 1+ relations
+   - Identify most common relation types
 
-3. **Fallback Strategy**
-   - Define manual entry workflow for missing relations
-   - Document hybrid approach (API + manual override)
-   - Define error handling for API unavailability
+3. **Future Enrichment (Deferred)**
+   - External API integration is optional for enrichment
+   - Baseline data from legacy `verwandt` table is sufficient
+   - Can be planned for future phase if needed
 
 ---
 
@@ -141,26 +143,36 @@ Before relation backfill implementation proceeds:
 
 ## Context for Next Session
 
-### What Just Happened
+### What Just Happened (2026-03-15)
+- Implemented anime relations feature (full stack)
+- Migration 0023: Imported 2,278 legacy relations from `verwandt` table
+- Created bidirectional relations (4,556 total records)
+- GET /api/v1/anime/:id/relations endpoint deployed
+- AnimeRelations.tsx component integrated and deployed
+- Critical Review: APPROVED (3 Low findings)
+
+### What Happened Previously (2026-03-14)
 - Executed Phase A migrations successfully (7 tables created)
 - Backfilled 19,578 anime with normalized titles and genres
 - Identified timeout issue affecting ~100 anime (~0.5%)
-- Completed relation source investigation (no legacy data)
+- Completed relation source investigation
 - Passed 2 Critical Reviews with conditional approvals
 
 ### Current State
-- Phase A schema: COMPLETE
+- Phase A schema: COMPLETE (7 tables)
 - Phase A backfill: 99.5% (timeout on ~100 anime)
-- Production readiness: BLOCKED (HIGH-1)
-- Relation backfill: BLOCKED (API evaluation required)
+- Anime relations: COMPLETE (2,278 legacy relations imported)
+- Production readiness: BLOCKED (HIGH-1 timeout fix required)
+- Phase 5 completion: ~82%
 
 ### What's Clear
 - Timeout fix is straightforward (increase + batch processing)
+- Relation data source found (legacy `verwandt` table)
 - Schema design is correct and approved
 - Backfill logic is correct and idempotent
-- API evaluation conditions are well-defined
+- Anime relations feature is functional and deployed
 
 ### What's Uncertain
-- Best API for relation data (AniSearch vs. alternatives)
-- API availability and constraints
-- Timeline for relation feature delivery
+- Relation data quality from legacy source (needs spot-check)
+- Timeline for Phase 5 completion (depends on HIGH-1 fix)
+- When to switch read-path from legacy to normalized metadata

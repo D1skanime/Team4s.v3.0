@@ -8,7 +8,19 @@
 
 ## Current State
 
-### What Was Done Today (2026-03-14)
+### What Was Done Today (2026-03-15)
+- Implemented anime relations feature (full stack)
+  - Migration 0023: Imported 2,278 legacy relations from `verwandt` table
+  - Created bidirectional relations (4,556 total records)
+  - New endpoint: GET /api/v1/anime/:id/relations
+  - New component: AnimeRelations.tsx with grid layout
+  - Deployed to Docker (backend + frontend)
+  - Critical Review: APPROVED (3 Low findings, none blocking)
+- Resolved relation data source mystery
+  - Found legacy `verwandt` table (previously overlooked)
+  - External API integration no longer needed for baseline data
+
+### What Was Done Previously (2026-03-14)
 - Executed Phase A migrations (0019-0022) in local environment
   - Created 7 tables: `genres`, `title_types`, `languages`, `relation_types`, `anime_titles`, `anime_relations`, `anime_genres`
   - Seeded reference data: 6 title types, 9 languages, 8 relation types
@@ -16,9 +28,6 @@
   - Created 19,578+ title entries (ja/main, de/main, en/official variants)
   - Created 501 genres from legacy CSV data
   - Created 60,932 anime-genre associations
-- Completed relation source investigation
-  - No legacy relation data found in schema or import files
-  - Recommended external API integration (AniSearch, pending evaluation)
 - Passed 2 Critical Reviews with conditional approvals
   - Local dev: APPROVED
   - Production: BLOCKED until HIGH-1 timeout resolved
@@ -32,9 +41,9 @@
 ### What Is Pending
 - Fix HIGH-1 timeout issue (5 -> 10 minutes + batch processing)
 - Re-run backfill and verify 100% completion (currently 99.5%)
-- Complete API evaluation for relation backfill (3+ alternatives)
 - Create verification script: `scripts/verify-phase-a-backfill.sql`
 - Design adapter layer for read-path switch to normalized metadata
+- Document anime relations feature in README and API contracts
 
 ## Key Decisions
 
@@ -54,14 +63,11 @@
 - `anime.title_de` -> `de/main`
 - `anime.title_en` -> `en/official`
 
-### Relation Backfill Posture
-- `anime_relations` is schema-only (table created, empty)
-- No legacy relation source exists (confirmed via investigation)
-- External API integration required (AniSearch recommended, evaluation pending)
-- Conditions before implementation:
-  - Document 3+ API alternatives (AniDB, MAL, AniList)
-  - Verify selected API availability and constraints
-  - Define fallback strategy for manual entry
+### Relation Backfill Posture (Updated 2026-03-15)
+- `anime_relations` populated with 4,556 records (2,278 bidirectional pairs)
+- Source: Legacy `verwandt` table (discovered 2026-03-15)
+- Migration 0023: Backfilled and normalized to Phase A schema
+- External API integration optional for enrichment (baseline data complete)
 
 ## Quality Bar
 - `go test ./...` must pass

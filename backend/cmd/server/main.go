@@ -197,6 +197,7 @@ func main() {
 	v1.GET("/anime", animeHandler.List)
 	v1.GET("/anime/:id", animeHandler.GetByID)
 	v1.GET("/anime/:id/backdrops", animeHandler.ListBackdrops)
+	v1.GET("/anime/:id/relations", animeHandler.GetAnimeRelations)
 	v1.GET("/anime/:id/fansubs", fansubHandler.ListAnimeFansubs)
 	v1.GET("/anime/:id/episodes", fansubHandler.ListGroupedEpisodes)
 	v1.GET("/anime/:id/group/:groupId", groupHandler.GetGroupDetail)

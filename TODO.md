@@ -1,5 +1,20 @@
 # TODO
 
+## Completed (2026-03-15)
+
+### Anime Relations Feature
+- [x] Discover legacy `verwandt` table with 2,278 relation records
+- [x] Create Migration 0023 to import and normalize legacy relations
+- [x] Implement bidirectional relation storage (4,556 total records)
+- [x] Create GET /api/v1/anime/:id/relations endpoint
+- [x] Implement AnimeRelations repository with JOIN query
+- [x] Register route in backend server
+- [x] Create AnimeRelations.tsx frontend component
+- [x] Add relation types to frontend types
+- [x] Integrate component into anime detail page
+- [x] Deploy to Docker (backend + frontend)
+- [x] Pass Critical Review (3 Low findings, APPROVED)
+
 ## Completed (2026-03-14)
 
 ### Phase A Migrations and Backfill
@@ -12,7 +27,7 @@
 - [x] Add anime metadata backfill service
 - [x] Add CLI command `go run ./cmd/migrate backfill-phase-a-metadata`
 - [x] Add focused migration/service tests
-- [x] Execute corrected migrations in local environment (22 applied, 0 pending)
+- [x] Execute corrected migrations in local environment (24 applied, 0 pending)
 - [x] Execute Phase A metadata backfill locally (19,578 anime, 99.5% complete)
 - [x] Verify sample anime rows against `anime_titles` (stichproben passed)
 - [x] Verify `genres` and `anime_genres` after backfill (501 genres, 60,932 links)
@@ -20,8 +35,8 @@
 ### Relation Source Investigation
 - [x] Investigate legacy schema for relation source (migrations 0001, 0003, 0008)
 - [x] Investigate import files for relation data (v2_anime.tsv, v2_full_anime_min.tsv)
-- [x] Document findings in Critical Review
-- [x] Identify external API integration requirement
+- [x] Discover legacy `verwandt` table
+- [x] Import legacy relations via Migration 0023
 
 ---
 
@@ -60,22 +75,28 @@
 
 ---
 
-## Short Term (Task #3 Conditions)
+## Short Term (Anime Relations Documentation)
 
-### API Evaluation for Relation Backfill
-- [ ] Document AniDB API option (availability, rate limits, auth, relation coverage)
-- [ ] Document MyAnimeList API option (availability, rate limits, auth, relation coverage)
-- [ ] Document AniList API option (availability, rate limits, auth, relation coverage)
-- [ ] Compare all options in a decision matrix
-- [ ] Verify selected API availability with proof-of-concept call
-- [ ] Document API selection justification
-- [ ] Define fallback strategy for manual entry
-- [ ] Define hybrid approach (API + manual override)
-- [ ] Define error handling for API unavailability
+### Feature Documentation
+- [ ] Update README with GET /api/v1/anime/:id/relations endpoint
+- [ ] Add endpoint to API contract documentation
+- [ ] Document relation query patterns for developers
+- [ ] Add example SQL queries for relation traversal
+- [ ] Document bidirectional storage decision in architecture docs
 
-**Priority:** HIGH
-**Blocking:** Relation backfill implementation
-**ETA:** 2-3 days
+**Priority:** MEDIUM
+**Blocking:** Feature completeness
+**ETA:** 1 day
+
+### Relation Data Quality Verification
+- [ ] Perform spot-check verification of 20-30 sample relations
+- [ ] Document any data quality issues discovered
+- [ ] Add admin UI for manual relation corrections (future)
+- [ ] Consider future API enrichment plan (optional)
+
+**Priority:** LOW
+**Blocking:** None (feature functional)
+**ETA:** 2 days
 
 ### Verification and Documentation
 - [ ] Document reusable DB verification SQL snippets
@@ -124,16 +145,16 @@
 
 ## Long Term (Phase 6 Preparation)
 
-### Relation Backfill Implementation
-- [ ] Create external API client (after API selection)
-- [ ] Implement relation-type mapping
-- [ ] Add batch sync command for relation backfill
+### Optional Relation Enrichment
+- [ ] Evaluate external APIs for relation enrichment (AniDB, MAL, AniList)
+- [ ] Create API client if enrichment is prioritized
+- [ ] Implement relation-type mapping for external data
+- [ ] Add batch sync command for enrichment
 - [ ] Add admin UI for manual corrections
-- [ ] Verify relation data quality
 
-**Priority:** LOW (blocked by API evaluation)
-**Blocking:** Relation features
-**ETA:** 5-7 days (after API selection)
+**Priority:** LOW (baseline data complete)
+**Blocking:** None
+**ETA:** TBD (deferred to future phase)
 
 ### Package 1 Preparation
 - [ ] Prepare Package 1 (TypeScript SDK) execution artifacts
