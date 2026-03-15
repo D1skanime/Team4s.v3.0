@@ -1,9 +1,13 @@
 /* ==========================================================================
-   AnimeRelations Component - Redesigned for AniList/Netflix Style
+   AnimeRelations - Cropped Card Carousel
    ========================================================================== */
 
 .relationsSection {
   margin-top: 32px;
+  min-width: 0;
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
 }
 
 .relationsSection.compact {
@@ -11,182 +15,324 @@
 }
 
 .title {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text-primary);
-  margin: 0 0 16px;
+  margin: 0;
 }
 
-/* For dark theme pages */
 .compact .title {
   color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.header {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
 }
 
 /* --------------------------------------------------------------------------
    Horizontal Slider
    -------------------------------------------------------------------------- */
-.relationsSlider {
+.sliderShell {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.sliderControls {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  gap: 10px;
+  overflow: visible;
+  pointer-events: auto;
+}
+
+.slider {
   display: flex;
   gap: 16px;
   overflow-x: auto;
-  padding-bottom: 12px;
-  padding-right: 24px;
-  scroll-padding-inline: 24px;
+  width: 100%;
+  max-width: 100%;
+  padding: 4px 0 12px;
+  scroll-padding-inline: 16px;
+  scroll-snap-type: x proximity;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
-.relationsSlider::-webkit-scrollbar {
+.navButton {
+  position: relative;
+  z-index: 5;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(255, 196, 140, 0.65);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 164, 91, 0.95), rgba(255, 122, 69, 0.95));
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(255, 122, 69, 0.28);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
+}
+
+.navButton:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.navButton:disabled {
+  opacity: 0.55;
+  cursor: default;
+  filter: grayscale(0.15);
+  box-shadow: none;
+}
+
+.slider::-webkit-scrollbar {
   height: 6px;
 }
 
-.relationsSlider::-webkit-scrollbar-track {
+.slider::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.relationsSlider::-webkit-scrollbar-thumb {
+.slider::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 3px;
 }
 
-.relationsSlider::-webkit-scrollbar-thumb:hover {
+.slider::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.35);
 }
 
 /* --------------------------------------------------------------------------
-   Relation Card
+   Card
    -------------------------------------------------------------------------- */
-.relationCard {
+.card {
   flex-shrink: 0;
-  width: 160px;
+  width: 196px;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.2s ease;
+  scroll-snap-align: start;
+  transition: transform 0.25s ease;
 }
 
-.relationCard:hover {
-  transform: translateY(-6px);
+.card:hover {
+  transform: translateY(-8px);
 }
 
-.relationCard:focus-visible {
-  outline: 2px solid var(--color-primary, #ff8a4c);
+.card:focus-visible {
+  outline: 2px solid #ff8a4c;
   outline-offset: 4px;
   border-radius: 12px;
 }
 
 /* --------------------------------------------------------------------------
-   Cover Wrapper
+   Card Inner (Fixed Size Container)
    -------------------------------------------------------------------------- */
-.coverWrapper {
+.cardInner {
   position: relative;
-  width: 160px;
-  height: 220px;
+  width: 196px;
+  height: 224px;
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06)),
+    rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
-.coverImage {
+.cardMedia {
+  position: relative;
+  height: 126px;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Card Image (Cropped with object-fit: cover)
+   -------------------------------------------------------------------------- */
+.cardImage {
   object-fit: cover;
+  object-position: center 30%;
   transition: transform 0.3s ease;
 }
 
-.relationCard:hover .coverImage {
-  transform: scale(1.05);
+.card:hover .cardImage {
+  transform: scale(1.08);
 }
 
-.coverPlaceholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+.cardPlaceholder {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
 }
 
 /* --------------------------------------------------------------------------
-   Card Overlay (Gradient with Info)
+   Gradient Overlay (Bottom Fade for Title Readability)
    -------------------------------------------------------------------------- */
-.cardOverlay {
+.cardGradient {
   position: absolute;
   inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.05) 0%,
+    rgba(0, 0, 0, 0.12) 55%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Relation Type Badge (Top Left)
+   -------------------------------------------------------------------------- */
+.cardBadge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  background: rgba(28, 22, 30, 0.52);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: 0.01em;
+}
+
+/* --------------------------------------------------------------------------
+   Title Overlay (Bottom)
+   -------------------------------------------------------------------------- */
+.cardContent {
+  position: relative;
+  min-height: 96px;
+  padding: 12px 14px 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 10px;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.1) 0%,
-    rgba(0, 0, 0, 0) 30%,
-    rgba(0, 0, 0, 0.5) 70%,
-    rgba(0, 0, 0, 0.85) 100%
-  );
+  gap: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08)),
+    rgba(62, 48, 61, 0.58);
 }
 
-/* --------------------------------------------------------------------------
-   Relation Type Badge
-   -------------------------------------------------------------------------- */
-.relationType {
-  align-self: flex-start;
-  padding: 5px 10px;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  border-radius: 6px;
-  font-size: 11px;
+.cardContent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 14px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.cardTitle {
+  position: relative;
+  font-size: 14px;
   font-weight: 600;
   color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-/* --------------------------------------------------------------------------
-   Card Info (Bottom)
-   -------------------------------------------------------------------------- */
-.cardInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.animeTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-  line-height: 1.3;
+  line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
 }
 
-.animeMeta {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
+.cardMeta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+}
+
+.cardYear,
+.cardType {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.78);
   font-weight: 500;
+  white-space: nowrap;
+}
+
+.cardMeta > span + span::before {
+  content: '|';
+  margin-right: 8px;
+  color: rgba(255, 255, 255, 0.42);
 }
 
 /* --------------------------------------------------------------------------
    Reduced Motion
    -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-  .relationCard:hover {
+  .card:hover {
     transform: none;
   }
 
-  .relationCard:hover .coverImage {
+  .card:hover .cardImage {
     transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .sliderControls {
+    gap: 8px;
+  }
+
+  .slider {
+    padding-inline: 0;
+  }
+
+  .navButton {
+    width: 38px;
+    height: 38px;
+  }
+
+  .card,
+  .cardInner {
+    width: 180px;
+  }
+
+  .cardInner {
+    height: 216px;
+  }
+
+  .cardMedia {
+    height: 118px;
   }
 }
 
 /* --------------------------------------------------------------------------
-   Light Theme Fallback (for non-redesigned pages)
+   Light Theme Fallback
    -------------------------------------------------------------------------- */
-.relationsSection:not(.compact) .relationsSlider {
+.relationsSection:not(.compact) .slider {
   scrollbar-color: var(--color-border, rgba(0, 0, 0, 0.2)) transparent;
 }
 
-.relationsSection:not(.compact) .relationsSlider::-webkit-scrollbar-thumb {
+.relationsSection:not(.compact) .slider::-webkit-scrollbar-thumb {
   background: var(--color-border, rgba(0, 0, 0, 0.2));
-}
-
-.relationsSection:not(.compact) .relationsSlider::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-secondary, rgba(0, 0, 0, 0.35));
 }

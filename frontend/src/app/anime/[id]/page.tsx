@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { cookies } from 'next/headers'
 import { Download, ExternalLink, Eye, Play } from 'lucide-react'
 
+import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
 import { AnimeRelations } from '@/components/anime/AnimeRelations'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
@@ -25,7 +26,7 @@ import {
   getGroupedEpisodes,
   getWatchlistEntry,
 } from '@/lib/api'
-import { resolveInfoBannerURL } from '@/lib/animeBackdrops'
+import { resolveInfoBannerURL, resolveInfoLogoURL } from '@/lib/animeBackdrops'
 import { normalizeGridQuery } from '@/lib/animeGridContext'
 import { getEmbySeriesUrlForAnime } from '@/lib/emby'
 import { getCoverUrl } from '@/lib/utils'
@@ -175,6 +176,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   const backdropManifest = backdropResult.status === 'fulfilled' ? backdropResult.value.data : null
   const relationsResponse = relationsResult.status === 'fulfilled' ? relationsResult.value : null
   const infoBannerURL = resolveInfoBannerURL(backdropManifest)
+  const infoLogoURL = resolveInfoLogoURL(backdropManifest)
 
   // Get cover image for banner background
   const coverUrl = getCoverUrl(anime.cover_image)
@@ -184,7 +186,14 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
 
   return (
     <main className={styles.page}>
-      {/* Banner with blurred background */}
+      {/* Backdrop Rotator (Videos & Images from Jellyfin) */}
+      <AnimeBackdropRotator
+        animeID={anime.id}
+        coverImage={anime.cover_image}
+        initialManifest={backdropManifest}
+      />
+
+      {/* Banner with blurred background (fallback) */}
       <div className={styles.heroBanner}>
         <div
           className={styles.bannerImage}
@@ -198,78 +207,113 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
         <Breadcrumbs items={breadcrumbItems} />
       </div>
 
-      {/* Hero Container (Glassmorphism) */}
+      {/* Hero Container (Glassmorphism) - 2 Column Grid */}
       <div className={styles.heroWrapper}>
         <section className={styles.heroContainer}>
-          {/* 2-Column Grid */}
-          <div className={styles.heroTop}>
-            {/* Left: Poster Column */}
-            <div className={styles.posterColumn}>
-              <div className={styles.posterWrapper}>
-                <Image
-                  src={coverUrl}
-                  alt={anime.title}
-                  width={260}
-                  height={390}
-                  className={styles.poster}
-                  priority
-                />
-                <div className={styles.posterFade} />
+          {/* Left: Poster Column */}
+          <div className={styles.posterColumn}>
+            <div
+              className={styles.posterWrapper}
+              style={{ '--poster-image': `url(${coverUrl})` } as React.CSSProperties}
+            >
+              <Image
+                src={coverUrl}
+                alt={anime.title}
+                width={260}
+                height={390}
+                className={styles.poster}
+                priority
+              />
+              {/* Stats Overlay on Poster */}
+              <div className={styles.posterStats}>
+                <span className={styles.posterRating}>
+                  <span className={styles.ratingIcon}>★</span>
+                  7.8
+                </span>
+                <span className={styles.posterViews}>{anime.view_count.toLocaleString('de-DE')}</span>
+                <span className={styles.posterEpisodes}>{anime.max_episodes ?? 0} Episodes</span>
               </div>
+            </div>
 
-              {/* Watchlist Button */}
+            {/* Poster Meta (Watchlist + Genres) */}
+            <div className={styles.posterMeta}>
               <WatchlistAddButton
                 animeID={anime.id}
                 initiallyInWatchlist={inWatchlist}
                 className={styles.watchlistButton}
                 activeClassName={styles.watchlistButtonActive}
               />
-
-              {/* Genres */}
-              {genres.length > 0 && (
+              <hr className={styles.posterDivider} />
+              <div className={styles.genresSection}>
+                <span className={styles.genresLabel}>Genres</span>
                 <div className={styles.genres}>
-                  {genres.map((genre) => (
-                    <Link
-                      key={genre}
-                      href={`/anime?genre=${encodeURIComponent(genre)}`}
-                      className={styles.genreChip}
-                      prefetch={false}
-                    >
-                      {genre}
-                    </Link>
-                  ))}
+                  {anime.genre ? (
+                    anime.genre.split(',').map((g) => g.trim()).filter(Boolean).map((genre) => (
+                      <span key={genre} className={styles.genreChip}>
+                        {genre}
+                      </span>
+                    ))
+                  ) : (
+                    <span className={styles.genreChip}>Anime</span>
+                  )}
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Info Card */}
+          <div className={styles.infoCard}>
+            {/* Title + Logo Row */}
+            <div className={styles.titleRow}>
+              <h1 className={styles.title}>{anime.title}</h1>
+              {infoLogoURL && (
+                <Image
+                  src={infoLogoURL}
+                  alt={`${anime.title} Logo`}
+                  width={120}
+                  height={48}
+                  className={styles.titleLogo}
+                  unoptimized
+                />
               )}
             </div>
 
-            {/* Right: Info Card */}
-            <div className={styles.infoCard}>
-              <h1 className={styles.title}>{anime.title}</h1>
+            {/* Badges */}
+            <div className={styles.badges}>
+              <StatusBadge status={anime.status} />
+              <span className={styles.badge}>{anime.type.toUpperCase()}</span>
+              <span className={styles.badge}>{anime.content_type}</span>
+              <span className={styles.badge}>{anime.year ?? 'n/a'}</span>
+            </div>
 
-              {/* Badges */}
-              <div className={styles.badges}>
-                <StatusBadge status={anime.status} />
-                <span className={styles.badge}>{anime.type.toUpperCase()}</span>
-                <span className={styles.badge}>{anime.content_type}</span>
-                <span className={styles.badge}>{anime.year ?? 'n/a'}</span>
-              </div>
+            {/* Description */}
+            <p className={styles.description}>
+              {anime.description ?? 'Keine Beschreibung vorhanden.'}
+            </p>
 
-              {/* Description */}
-              <p className={styles.description}>
-                {anime.description ?? 'Keine Beschreibung vorhanden.'}
-              </p>
+            {/* Stats Row */}
+            <div className={styles.statsRow}>
+              <span className={styles.statItem}>
+                <Eye size={16} />
+                {anime.view_count.toLocaleString('de-DE')} Views
+              </span>
+              {embySeriesUrl && (
+                <a
+                  className={styles.embyLink}
+                  href={embySeriesUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink size={14} />
+                  Emby
+                </a>
+              )}
+            </div>
 
-              {/* Stats */}
-              <div className={styles.stats}>
-                <span>
-                  <Eye size={16} />
-                  {anime.view_count.toLocaleString('de-DE')} Views
-                </span>
-                <span>{anime.max_episodes ?? 0} Episoden geplant</span>
-              </div>
-
-              {/* Info Banner */}
-              {infoBannerURL && (
+            {/* Info Banner from Jellyfin */}
+            {infoBannerURL && (
+              <>
+                <hr className={styles.divider} />
                 <Image
                   src={infoBannerURL}
                   alt=""
@@ -278,45 +322,26 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
                   height={180}
                   unoptimized
                 />
-              )}
+              </>
+            )}
 
-              {/* External Links */}
-              {embySeriesUrl && (
-                <div className={styles.externalLinks}>
-                  <a
-                    className={styles.externalLinkButton}
-                    href={embySeriesUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Anime in Emby oeffnen"
-                  >
-                    <ExternalLink size={15} />
-                    In Emby oeffnen
-                  </a>
-                </div>
-              )}
-            </div>
+            {/* Edge Navigation */}
+            {gridQuery && (
+              <div className={styles.edgeNavigation}>
+                <AnimeEdgeNavigation currentAnimeID={anime.id} gridQuery={gridQuery} />
+              </div>
+            )}
           </div>
-
-          {/* Edge Navigation */}
-          {gridQuery && (
-            <div className={styles.edgeNavigation}>
-              <AnimeEdgeNavigation currentAnimeID={anime.id} gridQuery={gridQuery} />
-            </div>
-          )}
-
-          {/* Related Section */}
-          {relationsResponse && relationsResponse.data.length > 0 && (
-            <>
-              <hr className={styles.divider} />
-              <section className={styles.relatedSection}>
-                <h2 className={styles.relatedTitle}>Related</h2>
-                <AnimeRelations relations={relationsResponse.data} variant="compact" />
-              </section>
-            </>
-          )}
         </section>
       </div>
+
+      {relationsResponse && relationsResponse.data.length > 0 && (
+        <div className={styles.relatedRailWrapper}>
+          <section className={styles.relatedRailSection}>
+            <AnimeRelations relations={relationsResponse.data} variant="compact" />
+          </section>
+        </div>
+      )}
 
       {/* Content Area (Episodes, Comments) */}
       <div className={styles.contentArea}>

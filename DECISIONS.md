@@ -190,6 +190,39 @@ WCAG 2.1 guideline 2.3.3 recommends respecting user preferences for reduced moti
 
 ---
 
+## 2026-03-15 - UX Freeze for Anime Detail Related Section
+
+### Decision
+Freeze the `Related` area on `/anime/[id]` as a post-hero, horizontally scrollable related-anime rail with stateful arrow visibility, whole-card click priority, and deterministic mobile/desktop behavior.
+
+### Context
+The current redesign places `Related` inside the hero info card and uses always-visible scroll buttons with full-card links. The open UX questions were when arrows should be visible, how rail scrolling/navigation should behave, how card clickability should be prioritized, and how `Related` should sit directly under the hero.
+
+### Options Considered
+1. Keep `Related` embedded inside the hero info card
+2. Move `Related` into its own first content block directly below the hero
+3. Replace the rail with a static wrapped grid
+
+### Why This Won
+- Separates hero summary from browseable cross-navigation content
+- Makes relation discovery feel like a deliberate next step after hero comprehension
+- Reduces interaction conflicts between hero CTAs and related navigation controls
+- Preserves compact browsing on mobile without turning the section into a tall grid
+
+### Consequences
+- UX ownership is now frozen for arrow visibility, rail behavior, card priority, and placement
+- Frontend should treat arrow controls as progressive enhancement on top of native horizontal scroll
+- `Related` should not compete with hero CTAs inside the same card region
+- Any implementation that keeps `Related` inside the hero should be considered temporary and not UX-final
+
+### Follow-ups Required
+- Frontend lane should relocate `Related` to the first content block immediately below the hero
+- Frontend lane should align arrow visibility and scroll-step behavior to the frozen UX rules
+- Frontend lane should keep the whole card as the primary interactive target and avoid nested competing links/buttons
+- Critical review should verify the resulting layout and keyboard behavior against the UX handoff
+
+---
+
 ## 2026-03-14 - Fix Legacy Title Mapping
 
 ### Decision

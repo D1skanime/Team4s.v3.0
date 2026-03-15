@@ -2,233 +2,29 @@
 
 ## Top 3 Risks
 
-### 1. Backfill Timeout Blocks Production Deployment (HIGH-1)
-- **Impact:** HIGH - Cannot deploy Phase A to production until resolved
-- **Likelihood:** CONFIRMED - ~100 anime (0.5%) encountered timeouts during local execution
-- **Evidence:** Timeout warnings for anime IDs 13340-13404 during backfill
-- **Root Cause:** 5-minute timeout insufficient for 19,578 anime (~293,670 queries)
-- **Mitigation:**
-  - Increase timeout from 5 to 10 minutes
-  - Implement batch processing (100 anime per transaction)
-  - Add progress logging every 1000 anime
-  - Re-run backfill and verify 100% completion
-- **Owner:** Backend lane
-- **Status:** Fix designed, not yet implemented
-- **Due:** Before production deployment
+### 1. Genre Contract Mismatch Survives The Layout Fix
+- **Impact:** Medium
+- **Likelihood:** High
+- **Why it matters:** The page layout is shipped, but the backend still needs an explicit `genres: string[]` contract to support type-safe genre handling after the redesign.
+- **Mitigation:** Patch backend anime detail serialization first tomorrow, then update the frontend type and smoke-test `/anime/[id]`.
 
-### 2. Genre Chips Non-Functional Due to Backend Contract Mismatch (2026-03-15)
-- **Impact:** LOW - Genre chips UI ready but won't display until backend updated
-- **Likelihood:** CERTAIN - Backend provides `genre: string` (CSV), frontend expects `genres: string[]`
-- **Evidence:** Critical Review HIGH finding in anime detail redesign
-- **Root Cause:** Frontend prepared for future backend field, contract mismatch acknowledged
-- **Mitigation:**
-  - Update backend AnimeDetail contract to include `genres: string[]`
-  - Update API handler to split CSV into array
-  - Update frontend type definitions to remove unsafe cast
-  - Verify genre chips display after backend change
-- **Owner:** Backend lane
-- **Status:** Acknowledged in Critical Review, low priority
-- **Due:** Next backend contract update cycle
+### 2. Repo-Wide Frontend Lint Debt Masks Slice-Level Regressions
+- **Impact:** Medium
+- **Likelihood:** High
+- **Why it matters:** `frontend npm run lint` still fails outside this scope, so it cannot currently serve as a clean gate for local slice validation.
+- **Mitigation:** Keep using targeted build/runtime validation for this slice and schedule a separate lint-debt cleanup pass.
 
-### 3. Relation Data Quality from Legacy Source (2026-03-15)
-- **Impact:** LOW - Relation feature functional, but data quality depends on legacy accuracy
-- **Likelihood:** UNKNOWN - Legacy `verwandt` table quality not fully audited
-- **Evidence:** 2,278 relations imported from legacy source
-- **Root Cause:** Legacy data may contain outdated or incorrect mappings
-- **Mitigation:**
-  - Perform spot-check verification of sample relations
-  - Add admin UI for manual corrections
-  - Consider future API enrichment to supplement legacy data
-  - Document known data quality issues as discovered
-- **Owner:** Backend lane (requires verification phase)
-- **Status:** Baseline data functional, enrichment deferred
-- **Due:** Before declaring relation feature production-ready
-
-### 4. CSS Variable Fallback Missing for Accessibility (2026-03-15)
-- **Impact:** LOW - Focus outlines may be invisible if CSS variable fails
-- **Likelihood:** LOW - `--color-primary` defined globally, but edge cases exist
-- **Evidence:** Critical Review MEDIUM finding in anime detail redesign
-- **Root Cause:** `var(--color-primary)` used without fallback in focus-visible styles
-- **Mitigation:**
-  - Add fallback color: `var(--color-primary, #ff8a4c)`
-  - Update all occurrences in `page.module.css` (lines 249, 388)
-  - Test focus outlines in browsers with CSS variable disabled
-- **Owner:** Frontend lane
-- **Status:** Acknowledged in Critical Review, medium priority
-- **Due:** Before next release (accessibility improvement)
-
-### 5. Read-Path Switch Timing Unclear
-- **Impact:** MEDIUM - Cannot leverage normalized metadata until adapter layer implemented
-- **Likelihood:** MEDIUM - Not yet planned
-- **Evidence:** Phase A backfill complete, but API still uses legacy columns
-- **Root Cause:** No adapter parity tests or dual-read strategy defined
-- **Mitigation:**
-  - Add adapter parity tests for normalized metadata reads
-  - Design adapter layer for dual-read during transition
-  - Plan gradual switch from legacy to normalized titles
-  - Verify no performance regression
-- **Owner:** Backend lane
-- **Status:** Not yet planned
-- **Due:** Before Phase 6 (handler consumption)
-
----
+### 3. Dirty Worktree Increases Commit/Deploy Risk
+- **Impact:** Medium
+- **Likelihood:** High
+- **Why it matters:** Foreign changes exist in `frontend/src/components/anime/AnimeEdgeNavigation.*`, `backend/server.exe`, and `frontend/tsconfig.tsbuildinfo`; careless staging could pollute follow-up commits or revert someone else's work.
+- **Mitigation:** Continue using explicit file staging and verify `git status --short` before every commit/push.
 
 ## Current Blockers
-
-### Production Deployment
-- **Blocker:** HIGH-1 - Backfill timeout
-- **Impact:** Cannot deploy Phase A migrations to production
-- **Resolution:** Implement timeout fix + batch processing + verification
-- **ETA:** 1 day (tomorrow)
-
-### Relation Features (Updated 2026-03-15)
-- **Status:** UNBLOCKED
-- **Resolution:** Legacy `verwandt` table imported via Migration 0023
-- **Result:** 4,556 relation records populated, feature functional
-
----
-
-## Technical Debt
-
-### Immediate (Production Blockers)
-1. **HIGH-1: Backfill Timeout**
-   - Location: `backend/cmd/migrate/main.go:121`
-   - Fix: Increase timeout to 10 minutes + batch processing
-   - Priority: CRITICAL
-
-2. **MEDIUM-1: No Backfill Verification Script**
-   - Location: Missing `scripts/verify-phase-a-backfill.sql`
-   - Fix: Create SQL script with row count checks
-   - Priority: HIGH
-
-3. **MEDIUM-2: Silent Backfill Failures**
-   - Location: `backend/cmd/migrate/main.go:148-150`
-   - Fix: Return non-zero exit code if `len(report.Errors) > 0`
-   - Priority: MEDIUM
-
-### Short-Term (Phase 5 Completion)
-1. **Adapter Parity Tests Missing**
-   - Impact: Cannot safely switch read-path to normalized metadata
-   - Fix: Add tests comparing legacy vs. normalized reads
-   - Priority: MEDIUM
-
-2. **Integration Tests Missing**
-   - Impact: Cannot verify full migration/backfill flow
-   - Fix: Add end-to-end tests
-   - Priority: MEDIUM
-
-3. **DB Verification SQL Missing**
-   - Impact: Manual verification is tedious and error-prone
-   - Fix: Document reusable SQL snippets
-   - Priority: LOW
-
-### Medium-Term (Phase 6 Preparation)
-1. **Dual-Read Strategy Undefined**
-   - Impact: Risky to switch read-path without fallback
-   - Fix: Design adapter layer with dual-read support
-   - Priority: MEDIUM
-
-2. **Relation Backfill Implementation**
-   - Impact: Relation features unavailable
-   - Fix: Implement after API evaluation
-   - Priority: MEDIUM
-
----
-
-## Resolved Risks (2026-03-14)
-
-### Scope Drift in Package 2
-- **Resolution:** Corrected to canonical Phase A scope
-- **Evidence:** Migrations 0019-0022 implement only titles, genres, relations (schema)
-- **Status:** RESOLVED
-
-### Unclear Legacy Title Semantics
-- **Resolution:** Explicit mapping rules defined (ja/main, de/main, en/official)
-- **Evidence:** Backfill service implements deterministic mapping
-- **Status:** RESOLVED
-
-### No Local Execution Path
-- **Resolution:** Added CLI command `go run ./cmd/migrate backfill-phase-a-metadata`
-- **Evidence:** Backfill executed successfully on 19,578 anime
-- **Status:** RESOLVED
-
----
-
-## Residual Risks
-
-### Data Quality
-1. **Genre Normalization Quality Unknown**
-   - Likelihood: MEDIUM
-   - Impact: LOW (can be cleaned up post-backfill)
-   - Mitigation: Stichproben verification passed, further cleanup if needed
-
-2. **Relation Data Quality from External API**
-   - Likelihood: UNKNOWN (depends on API selection)
-   - Impact: MEDIUM
-   - Mitigation: Define validation strategy, allow manual corrections
-
-### Performance
-1. **Normalized Query Performance**
-   - Likelihood: LOW (indexes present)
-   - Impact: MEDIUM (if regression occurs)
-   - Mitigation: Index coverage validated, can monitor in production
-
-2. **Adapter Layer Complexity**
-   - Likelihood: MEDIUM
-   - Impact: MEDIUM
-   - Mitigation: Phase A defers adapter implementation, can be designed carefully
-
-### API Integration
-1. **API Availability Uncertain**
-   - Likelihood: UNKNOWN
-   - Impact: HIGH (blocks relation features)
-   - Mitigation: Verify availability before implementation, define fallback
-
-2. **Rate Limiting**
-   - Likelihood: MEDIUM
-   - Impact: MEDIUM (slower backfill)
-   - Mitigation: Document rate limits, implement respectful backfill
-
----
+- No blocker remains for the related-slider/layout fix itself.
+- Remaining blocker for the broader anime detail follow-up: backend genre contract work is still open.
 
 ## If Nothing Changes, What Fails Next Week?
-
-1. **Production deployment stalls** - HIGH-1 timeout must be fixed before Phase A production rollout
-2. **Genre chips remain invisible** - Backend contract must be updated to provide `genres: string[]` array
-3. **Accessibility regressions possible** - CSS variable fallback missing for focus outlines
-4. **Phase 6 delays** - Adapter layer planning must start to support handler consumption
-
----
-
-## Risk Mitigation Checklist
-
-### Before Production Deployment
-- [ ] HIGH-1 timeout fix implemented and verified
-- [ ] Backfill re-run shows 100% completion (19,578 anime)
-- [ ] Verification script created and executed
-- [ ] Error reporting enhanced (non-zero exit codes)
-- [ ] Critical Review approval for production obtained
-
-### Before Relation Backfill
-- [ ] API evaluation complete (3+ alternatives documented)
-- [ ] Selected API verified (availability, rate limits, auth)
-- [ ] Fallback strategy defined (manual entry workflow)
-- [ ] Proof-of-concept API call successful
-- [ ] Data quality validation strategy defined
-
-### Before Read-Path Switch
-- [ ] Adapter parity tests passing
-- [ ] Dual-read strategy designed and tested
-- [ ] Performance baseline established
-- [ ] Rollback plan documented
-- [ ] Gradual rollout plan defined
-
----
-
-## Escalation Criteria
-
-**Escalate if:**
-1. HIGH-1 timeout fix does not resolve incompleteness (requires architectural change)
-2. No viable API option found for relation data (requires product decision on feature scope)
-3. Normalized query performance shows regression >20% (requires optimization or rollback)
-4. Backfill verification reveals data quality issues affecting >5% of anime (requires cleanup strategy)
+- The page will remain visually fixed, but the data contract around genres will continue to be implicit and easy to break.
+- Frontend lint will keep producing noisy failures unrelated to the active slice.
+- Any rushed follow-up could accidentally include foreign worktree changes.
