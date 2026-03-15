@@ -8,17 +8,19 @@
    - Add progress logging every 1000 anime
    - Re-run backfill and verify 100% completion (19,578 anime)
 
-2. **Create Phase A Verification Script**
-   - Add `scripts/verify-phase-a-backfill.sql`
-   - Include row count checks for all Phase A tables (titles, genres, relations)
-   - Add data quality checks (null counts, orphans)
-   - Execute and document results
+2. **Backend: Add `genres: string[]` Field to AnimeDetail Contract**
+   - Update `AnimeDetail` type to include `genres: string[]`
+   - Update `backend/internal/handlers/anime.go` to split CSV into array
+   - Update `backend/internal/repository/anime.go` if needed
+   - Update `frontend/src/types/anime.ts` to remove unsafe cast
+   - Verify genre chips display on anime detail page
+   - **Blocks:** Genre chips display on redesigned anime detail page
 
-3. **Document Anime Relations Feature**
-   - Update README with GET /api/v1/anime/:id/relations endpoint
-   - Add endpoint to API contract documentation
-   - Document bidirectional storage decision in architecture docs
-   - Add example queries for relation traversal
+3. **Frontend: Add CSS Variable Fallback for Accessibility**
+   - File: `frontend/src/app/anime/[id]/page.module.css`
+   - Add fallback to `var(--color-primary, #ff8a4c)` on lines 249, 388
+   - Test focus outlines with CSS variable disabled
+   - **Improves:** Accessibility for keyboard navigation users
 
 ---
 
@@ -144,12 +146,18 @@ Anime relations feature is functional with 2,278 legacy relations imported. Opti
 ## Context for Next Session
 
 ### What Just Happened (2026-03-15)
-- Implemented anime relations feature (full stack)
-- Migration 0023: Imported 2,278 legacy relations from `verwandt` table
-- Created bidirectional relations (4,556 total records)
-- GET /api/v1/anime/:id/relations endpoint deployed
-- AnimeRelations.tsx component integrated and deployed
-- Critical Review: APPROVED (3 Low findings)
+- **Morning:** Implemented anime relations feature (full stack)
+  - Migration 0023: Imported 2,278 legacy relations from `verwandt` table
+  - Created bidirectional relations (4,556 total records)
+  - GET /api/v1/anime/:id/relations endpoint deployed
+  - AnimeRelations.tsx component integrated and deployed
+  - Critical Review: APPROVED (3 Low findings)
+- **Afternoon:** Redesigned AnimeDetail page (full stack)
+  - Complete visual redesign: glassmorphism, blurred background, 2-column grid
+  - 592 lines of CSS rewritten (dark theme, responsive, accessibility)
+  - Enhanced AnimeRelations with variant prop, enhanced WatchlistAddButton
+  - Deployed to production
+  - Critical Review: CONDITIONAL APPROVAL (1 High, 1 Medium, 3 Low findings)
 
 ### What Happened Previously (2026-03-14)
 - Executed Phase A migrations successfully (7 tables created)
@@ -161,9 +169,11 @@ Anime relations feature is functional with 2,278 legacy relations imported. Opti
 ### Current State
 - Phase A schema: COMPLETE (7 tables)
 - Phase A backfill: 99.5% (timeout on ~100 anime)
-- Anime relations: COMPLETE (2,278 legacy relations imported)
+- Anime relations: COMPLETE (2,278 legacy relations imported, 4,556 bidirectional)
+- AnimeDetail page redesign: COMPLETE (glassmorphism, responsive, accessible)
 - Production readiness: BLOCKED (HIGH-1 timeout fix required)
-- Phase 5 completion: ~82%
+- Genre chips: BLOCKED (backend needs `genres: string[]` field)
+- Phase 5 completion: ~85%
 
 ### What's Clear
 - Timeout fix is straightforward (increase + batch processing)
@@ -176,3 +186,4 @@ Anime relations feature is functional with 2,278 legacy relations imported. Opti
 - Relation data quality from legacy source (needs spot-check)
 - Timeline for Phase 5 completion (depends on HIGH-1 fix)
 - When to switch read-path from legacy to normalized metadata
+- Genre chips display blocked until backend provides `genres: string[]`

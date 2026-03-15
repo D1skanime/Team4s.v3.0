@@ -2,7 +2,7 @@
 
 ## Completed (2026-03-15)
 
-### Anime Relations Feature
+### Morning: Anime Relations Feature
 - [x] Discover legacy `verwandt` table with 2,278 relation records
 - [x] Create Migration 0023 to import and normalize legacy relations
 - [x] Implement bidirectional relation storage (4,556 total records)
@@ -14,6 +14,19 @@
 - [x] Integrate component into anime detail page
 - [x] Deploy to Docker (backend + frontend)
 - [x] Pass Critical Review (3 Low findings, APPROVED)
+
+### Afternoon: AnimeDetail Page Redesign
+- [x] Design glassmorphism layout with blurred background
+- [x] Implement 2-column grid layout (poster + info card)
+- [x] Rewrite page.tsx with new component structure
+- [x] Rewrite page.module.css with dark theme (592 lines)
+- [x] Add responsive breakpoints (mobile 767px, tablet 1023px)
+- [x] Add reduced motion support for accessibility
+- [x] Enhance AnimeRelations with variant prop (default | compact)
+- [x] Enhance WatchlistAddButton with className props
+- [x] Integrate genre chips UI (ready for backend `genres: string[]`)
+- [x] Deploy to Docker (frontend)
+- [x] Pass Critical Review (CONDITIONAL APPROVAL: 1 High, 1 Medium, 3 Low findings)
 
 ## Completed (2026-03-14)
 
@@ -37,6 +50,32 @@
 - [x] Investigate import files for relation data (v2_anime.tsv, v2_full_anime_min.tsv)
 - [x] Discover legacy `verwandt` table
 - [x] Import legacy relations via Migration 0023
+
+---
+
+## Immediate (Critical Review Follow-ups from 2026-03-15)
+
+### HIGH: Backend - Add `genres: string[]` to AnimeDetail Contract
+- [ ] Update `AnimeDetail` type definition to include `genres: string[]`
+- [ ] Update `backend/internal/handlers/anime.go` to split CSV into array
+- [ ] Update `backend/internal/repository/anime.go` if needed
+- [ ] Update `frontend/src/types/anime.ts` to remove unsafe cast
+- [ ] Test genre chips display on anime detail page
+- [ ] Document contract change in API documentation
+
+**Priority:** HIGH (frontend ready, backend contract mismatch)
+**Blocking:** Genre chips display on redesigned anime detail page
+**ETA:** 0.5 days
+
+### MEDIUM: Frontend - Add CSS Variable Fallback
+- [ ] Add fallback to `var(--color-primary, #ff8a4c)` in `page.module.css:249`
+- [ ] Add fallback to `var(--color-primary, #ff8a4c)` in `page.module.css:388`
+- [ ] Test focus outlines with CSS variable disabled
+- [ ] Verify keyboard navigation accessibility
+
+**Priority:** MEDIUM (accessibility improvement)
+**Blocking:** None (graceful degradation)
+**ETA:** 0.25 days
 
 ---
 

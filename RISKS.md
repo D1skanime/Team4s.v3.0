@@ -16,7 +16,21 @@
 - **Status:** Fix designed, not yet implemented
 - **Due:** Before production deployment
 
-### 2. Relation Data Quality from Legacy Source (2026-03-15)
+### 2. Genre Chips Non-Functional Due to Backend Contract Mismatch (2026-03-15)
+- **Impact:** LOW - Genre chips UI ready but won't display until backend updated
+- **Likelihood:** CERTAIN - Backend provides `genre: string` (CSV), frontend expects `genres: string[]`
+- **Evidence:** Critical Review HIGH finding in anime detail redesign
+- **Root Cause:** Frontend prepared for future backend field, contract mismatch acknowledged
+- **Mitigation:**
+  - Update backend AnimeDetail contract to include `genres: string[]`
+  - Update API handler to split CSV into array
+  - Update frontend type definitions to remove unsafe cast
+  - Verify genre chips display after backend change
+- **Owner:** Backend lane
+- **Status:** Acknowledged in Critical Review, low priority
+- **Due:** Next backend contract update cycle
+
+### 3. Relation Data Quality from Legacy Source (2026-03-15)
 - **Impact:** LOW - Relation feature functional, but data quality depends on legacy accuracy
 - **Likelihood:** UNKNOWN - Legacy `verwandt` table quality not fully audited
 - **Evidence:** 2,278 relations imported from legacy source
@@ -30,7 +44,20 @@
 - **Status:** Baseline data functional, enrichment deferred
 - **Due:** Before declaring relation feature production-ready
 
-### 3. Read-Path Switch Timing Unclear
+### 4. CSS Variable Fallback Missing for Accessibility (2026-03-15)
+- **Impact:** LOW - Focus outlines may be invisible if CSS variable fails
+- **Likelihood:** LOW - `--color-primary` defined globally, but edge cases exist
+- **Evidence:** Critical Review MEDIUM finding in anime detail redesign
+- **Root Cause:** `var(--color-primary)` used without fallback in focus-visible styles
+- **Mitigation:**
+  - Add fallback color: `var(--color-primary, #ff8a4c)`
+  - Update all occurrences in `page.module.css` (lines 249, 388)
+  - Test focus outlines in browsers with CSS variable disabled
+- **Owner:** Frontend lane
+- **Status:** Acknowledged in Critical Review, medium priority
+- **Due:** Before next release (accessibility improvement)
+
+### 5. Read-Path Switch Timing Unclear
 - **Impact:** MEDIUM - Cannot leverage normalized metadata until adapter layer implemented
 - **Likelihood:** MEDIUM - Not yet planned
 - **Evidence:** Phase A backfill complete, but API still uses legacy columns
@@ -167,8 +194,9 @@
 ## If Nothing Changes, What Fails Next Week?
 
 1. **Production deployment stalls** - HIGH-1 timeout must be fixed before Phase A production rollout
-2. **Relation feature quality unknowns** - Spot-check verification should be done to confirm data accuracy
-3. **Phase 6 delays** - Adapter layer planning must start to support handler consumption
+2. **Genre chips remain invisible** - Backend contract must be updated to provide `genres: string[]` array
+3. **Accessibility regressions possible** - CSS variable fallback missing for focus outlines
+4. **Phase 6 delays** - Adapter layer planning must start to support handler consumption
 
 ---
 

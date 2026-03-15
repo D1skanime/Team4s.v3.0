@@ -96,6 +96,9 @@ export interface AnimeRelation {
   anime_id: number
   title: string
   relation_type: string
+  cover_image: string | null
+  year: number | null
+  type: string
 }
 
 export interface AnimeRelationsResponse {

@@ -1,20 +1,192 @@
-.relationsLine {
-  margin: 12px 0 0;
-  color: var(--text-secondary);
-  font-size: 14px;
-  line-height: 1.5;
+/* ==========================================================================
+   AnimeRelations Component - Redesigned for AniList/Netflix Style
+   ========================================================================== */
+
+.relationsSection {
+  margin-top: 32px;
 }
 
-.label {
-  color: var(--text-muted);
+.relationsSection.compact {
+  margin-top: 0;
 }
 
-.relationsLine a {
+.title {
+  font-size: 20px;
+  font-weight: 600;
   color: var(--color-text-primary);
-  text-decoration: none;
+  margin: 0 0 16px;
 }
 
-.relationsLine a:hover {
-  color: var(--color-primary);
-  text-decoration: underline;
+/* For dark theme pages */
+.compact .title {
+  color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   Horizontal Slider
+   -------------------------------------------------------------------------- */
+.relationsSlider {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  padding-right: 24px;
+  scroll-padding-inline: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.relationsSlider::-webkit-scrollbar {
+  height: 6px;
+}
+
+.relationsSlider::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.relationsSlider::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.relationsSlider::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* --------------------------------------------------------------------------
+   Relation Card
+   -------------------------------------------------------------------------- */
+.relationCard {
+  flex-shrink: 0;
+  width: 160px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease;
+}
+
+.relationCard:hover {
+  transform: translateY(-6px);
+}
+
+.relationCard:focus-visible {
+  outline: 2px solid var(--color-primary, #ff8a4c);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   Cover Wrapper
+   -------------------------------------------------------------------------- */
+.coverWrapper {
+  position: relative;
+  width: 160px;
+  height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.coverImage {
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.relationCard:hover .coverImage {
+  transform: scale(1.05);
+}
+
+.coverPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+/* --------------------------------------------------------------------------
+   Card Overlay (Gradient with Info)
+   -------------------------------------------------------------------------- */
+.cardOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0) 30%,
+    rgba(0, 0, 0, 0.5) 70%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+}
+
+/* --------------------------------------------------------------------------
+   Relation Type Badge
+   -------------------------------------------------------------------------- */
+.relationType {
+  align-self: flex-start;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* --------------------------------------------------------------------------
+   Card Info (Bottom)
+   -------------------------------------------------------------------------- */
+.cardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.animeTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.animeMeta {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   Reduced Motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .relationCard:hover {
+    transform: none;
+  }
+
+  .relationCard:hover .coverImage {
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Light Theme Fallback (for non-redesigned pages)
+   -------------------------------------------------------------------------- */
+.relationsSection:not(.compact) .relationsSlider {
+  scrollbar-color: var(--color-border, rgba(0, 0, 0, 0.2)) transparent;
+}
+
+.relationsSection:not(.compact) .relationsSlider::-webkit-scrollbar-thumb {
+  background: var(--color-border, rgba(0, 0, 0, 0.2));
+}
+
+.relationsSection:not(.compact) .relationsSlider::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary, rgba(0, 0, 0, 0.35));
 }

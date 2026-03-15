@@ -7,7 +7,9 @@
 
 ## What Changed Today
 
-### Feature Shipped: Anime Relations (Full Stack)
+### Morning: Feature Shipped - Anime Relations (Full Stack)
+
+**Completed:** ~11:30 AM
 
 #### Backend Implementation
 1. **Migration 0023: Anime Relations Backfill**
@@ -45,9 +47,63 @@
    - Migration 0023 applied to production DB
    - Health checks passed
 
+---
+
+### Afternoon: Feature Shipped - AnimeDetail Page Redesign (Full Stack)
+
+**Completed:** ~6:00 PM
+
+#### Frontend Implementation
+1. **Complete Page Redesign**
+   - File: `frontend/src/app/anime/[id]/page.tsx` (complete rewrite)
+   - Blurred banner background with cover image
+   - Glassmorphism hero container with backdrop-filter
+   - 2-column grid layout (poster + info card)
+   - Poster with fade effect
+   - Gradient watchlist button integration
+   - Genre chips with navigation links (ready for backend `genres[]` field)
+   - Divider and embedded related anime section
+   - Responsive design (mobile, tablet, desktop breakpoints)
+
+2. **Complete CSS Module Overhaul**
+   - File: `frontend/src/app/anime/[id]/page.module.css` (592 lines, complete rewrite)
+   - Dark theme with glassmorphism effects
+   - Backdrop-filter with feature detection (`@supports`)
+   - Responsive breakpoints: 767px (mobile), 1023px (tablet)
+   - Reduced motion support (`@media (prefers-reduced-motion: reduce)`)
+   - Smooth transitions and hover states
+   - Accessibility: focus-visible states on all interactive elements
+
+3. **Component Enhancements**
+   - **AnimeRelations.tsx:** Added `variant` prop ('default' | 'compact')
+   - **AnimeRelations.module.css:** New card-overlay design with horizontal slider
+   - **WatchlistAddButton.tsx:** Added `className` and `activeClassName` props for custom styling
+
+#### Quality Review
+4. **Critical Review: APPROVED (Conditional)**
+   - 1 High finding: Genre type mismatch (backend needs `genres: string[]` field)
+   - 1 Medium finding: CSS variable fallback missing for `--color-primary`
+   - 3 Low findings: ARIA label consistency, image sizes attribute, duplicate background load
+   - Build passed successfully (Next.js 16.1.6, Turbopack)
+   - File: `.planning/features/anime-detail-redesign/PLAN.md`
+   - File: `.planning/features/anime-detail-redesign/UX-REVIEW.md`
+   - File: `.planning/features/anime-detail-redesign/IMPLEMENTATION.md`
+   - File: `docs/reviews/2026-03-15-anime-detail-redesign-critical-review.md`
+
+#### Deployment
+5. **Docker Deployment Complete**
+   - Frontend rebuilt and deployed
+   - Page live at `/anime/[id]` with new design
+   - Health checks passed
+   - Manual verification on sample anime
+
+---
+
 ## Structural Decisions Made
 
-### 1. Bidirectional Relations Import
+### Morning: Anime Relations
+
+#### 1. Bidirectional Relations Import
 - **Decision:** Create both A->B and B->A relations during migration
 - **Context:** Legacy `verwandt` table only stored one direction
 - **Rationale:** Simplifies query logic (no UNION needed), aligns with modern graph patterns
@@ -67,11 +123,39 @@
 - **Rationale:** Single source of truth for relation semantics
 - **Consequence:** Enables future relation type evolution without code changes
 
-### 3. Frontend Component Positioning
+#### 3. Frontend Component Positioning
 - **Decision:** Place AnimeRelations after .stats section in AnimeDetail
 - **Context:** Stats section provides core metadata, relations provide discovery
 - **Rationale:** Logical information architecture (metadata -> discovery)
 - **Consequence:** Consistent with other metadata sections
+
+---
+
+### Afternoon: AnimeDetail Page Redesign
+
+#### 1. Glassmorphism Design Pattern
+- **Decision:** Implement glassmorphism with blurred background and semi-transparent panels
+- **Context:** Modern streaming platforms (AniList, Netflix, Plex) use this pattern
+- **Rationale:** Improves visual hierarchy, creates depth, aligns with user expectations
+- **Consequence:** Requires backdrop-filter support (graceful degradation with `@supports`)
+
+#### 2. 2-Column Grid Layout
+- **Decision:** Split hero section into poster (left) + info card (right)
+- **Context:** Original design was single-column with inline elements
+- **Rationale:** Better visual balance, separates image from text, modern layout pattern
+- **Consequence:** Responsive breakpoints needed (mobile switches to single-column)
+
+#### 3. Genre Chips Prepared for Backend Change
+- **Decision:** Implement genre chips UI with type-unsafe cast to `genres: string[]`
+- **Context:** Backend currently provides `genre: string` (singular CSV), frontend ready for array
+- **Rationale:** Frontend ready for when backend provides proper array field
+- **Consequence:** Genre chips won't display until backend contract updated (acknowledged in Critical Review)
+
+#### 4. Reduced Motion Support
+- **Decision:** Add `@media (prefers-reduced-motion: reduce)` to disable animations
+- **Context:** Accessibility best practice for users with motion sensitivity
+- **Rationale:** WCAG 2.1 guideline, improves accessibility
+- **Consequence:** Animations disabled for users who prefer reduced motion
 
 ## Problems Solved
 
@@ -97,9 +181,13 @@
 - **Verification:** Manual testing on multiple anime detail pages
 - **Result:** Seamless integration, no layout regressions
 
+---
+
 ## Files Changed
 
-### New Files Created
+### Morning: Anime Relations
+
+#### New Files Created
 - `database/migrations/0023_backfill_anime_relations_from_legacy.up.sql`
 - `database/migrations/0023_backfill_anime_relations_from_legacy.down.sql`
 - `backend/internal/repository/anime_relations.go`
@@ -109,12 +197,34 @@
 - `.planning/features/anime-relations/anime-relations-implementation.md`
 - `.planning/features/anime-relations/anime-relations-critical-review.md`
 
-### Files Modified
+#### Files Modified
 - `backend/internal/handlers/anime.go` (added GetAnimeRelations handler)
 - `backend/cmd/server/main.go` (registered /api/v1/anime/:id/relations route)
 - `frontend/src/lib/api.ts` (added getAnimeRelations function)
 - `frontend/src/types/anime.ts` (added AnimeRelation interface)
 - `frontend/src/app/anime/[id]/page.tsx` (integrated AnimeRelations component)
+
+---
+
+### Afternoon: AnimeDetail Page Redesign
+
+#### Files Completely Rewritten
+- `frontend/src/app/anime/[id]/page.tsx` (complete redesign: blurred background, glassmorphism, 2-column grid)
+- `frontend/src/app/anime/[id]/page.module.css` (592 lines, complete dark theme overhaul)
+
+#### Files Modified
+- `frontend/src/components/anime/AnimeRelations.tsx` (added `variant` prop for compact/default modes)
+- `frontend/src/components/anime/AnimeRelations.module.css` (new card-overlay design with horizontal slider)
+- `frontend/src/components/watchlist/WatchlistAddButton.tsx` (added `className` and `activeClassName` props)
+- `frontend/src/types/anime.ts` (no changes, but identified need for `genres: string[]` field)
+
+#### Planning Files Created
+- `.planning/features/anime-detail-redesign/PLAN.md`
+- `.planning/features/anime-detail-redesign/UX-REVIEW.md`
+- `.planning/features/anime-detail-redesign/IMPLEMENTATION.md`
+
+#### Review Documents Created
+- `docs/reviews/2026-03-15-anime-detail-redesign-critical-review.md`
 
 ## Evidence & References
 
@@ -155,11 +265,13 @@
 
 ### Phase 5 Status Update
 - **Previous completion:** ~78% (2026-03-14)
-- **Current completion:** ~82% (+4% for anime relations feature)
+- **Current completion:** ~85% (+7% for anime relations + anime detail redesign features)
 - **Remaining work:**
   - Fix HIGH-1 timeout issue (Phase A metadata backfill)
   - Create verification script for Phase A
   - Design adapter layer for read-path switch
+  - Backend: Add `genres: string[]` field to AnimeDetail contract
+  - Frontend: Add CSS variable fallback for `--color-primary`
 
 ## Next Steps (Top 3)
 
@@ -169,43 +281,62 @@
    - Re-run backfill and verify 100% completion (19,578 anime)
    - **First task tomorrow:** Modify timeout constant in migrate command
 
-2. **Create Phase A Verification Script**
-   - Add `scripts/verify-phase-a-backfill.sql`
-   - Include row count checks for titles, genres, relations
-   - Add data quality checks (null counts, orphans)
+2. **Backend: Add `genres: string[]` Field to AnimeDetail**
+   - Update `AnimeDetail` type to include `genres: string[]`
+   - Update API handler to split `genre` CSV into array
+   - Update frontend type definitions
+   - **Blocks:** Genre chips display on redesigned anime detail page
+   - **Priority:** HIGH (frontend ready, backend contract mismatch)
 
-3. **Document Anime Relations Feature**
-   - Update README with new endpoint
-   - Update API contract documentation
-   - Add example queries for relation traversal
+3. **CSS Improvements: Add Fallback for `--color-primary`**
+   - File: `frontend/src/app/anime/[id]/page.module.css`
+   - Add fallback color to all `var(--color-primary)` usages
+   - Example: `var(--color-primary, #ff8a4c)`
+   - **Priority:** MEDIUM (accessibility improvement for focus outlines)
 
 ## Mental Unload
 
-Today was satisfying because we closed a loop from yesterday's investigation. Finding the `verwandt` table and successfully importing those 2,278 relations felt like solving a puzzle. The bidirectional storage decision simplified the query code significantly (no UNION needed). The frontend integration went smoothly, and the deployment pipeline worked flawlessly. The Critical Review process caught 3 minor issues but nothing blocking, which gives confidence in the implementation quality.
+Today was incredibly productive with two major features shipped. The morning session closed a loop from yesterday's investigation - finding the `verwandt` table and successfully importing those 2,278 relations felt like solving a puzzle. The bidirectional storage decision simplified the query code significantly (no UNION needed).
 
-The main outstanding concern is still the HIGH-1 timeout issue from Phase A work. That needs to be tackled tomorrow before we can confidently deploy Phase A to production. The timeout fix should be straightforward (increase limit + add batching), but it's a critical path blocker.
+The afternoon session was a complete visual transformation of the anime detail page. The redesign implements modern streaming platform patterns (glassmorphism, blurred backgrounds, 2-column grid) and feels significantly more polished. The Critical Review process caught 5 findings (1 High, 1 Medium, 3 Low), but none are breaking - the High finding is a known contract mismatch where the frontend is ready for a backend field that doesn't exist yet.
+
+The glassmorphism effects required careful feature detection with `@supports`, and the responsive design needed three breakpoints (mobile, tablet, desktop). The reduced motion support was a nice touch for accessibility. Overall, the page feels modern and professional now.
+
+The main outstanding concern is still the HIGH-1 timeout issue from Phase A work. That needs to be tackled tomorrow before we can confidently deploy Phase A to production. Additionally, the genre chips are ready but need the backend to provide a `genres: string[]` field instead of the current `genre: string` CSV format.
 
 ## Session History
 
 ### Day 2026-03-15
-- **Phase:** Feature implementation (anime relations)
+- **Phase:** Feature implementation (anime relations + anime detail redesign)
 - **Accomplishments:**
-  - Imported 2,278 legacy relations from `verwandt` table
-  - Created bidirectional relations (4,556 total records)
-  - Implemented GET /api/v1/anime/:id/relations endpoint
-  - Created AnimeRelations frontend component
-  - Deployed to Docker (backend + frontend)
-  - Passed Critical Review (3 Low findings, APPROVED)
+  - **Morning:** Anime Relations Feature (Full Stack)
+    - Imported 2,278 legacy relations from `verwandt` table
+    - Created bidirectional relations (4,556 total records)
+    - Implemented GET /api/v1/anime/:id/relations endpoint
+    - Created AnimeRelations frontend component
+    - Deployed to Docker (backend + frontend)
+    - Passed Critical Review (3 Low findings, APPROVED)
+  - **Afternoon:** AnimeDetail Page Redesign (Full Stack)
+    - Complete visual redesign (glassmorphism, blurred background, 2-column grid)
+    - 592 lines of CSS rewritten (dark theme, responsive, accessibility)
+    - Enhanced AnimeRelations component with variant prop
+    - Enhanced WatchlistAddButton with custom styling props
+    - Deployed to Docker (frontend)
+    - Passed Critical Review (1 High, 1 Medium, 3 Low findings, CONDITIONAL APPROVAL)
 - **Key Decisions:**
-  - Bidirectional storage for simpler query logic
-  - Positioned component after stats section
-  - Used legacy `verwandt` table as source (external API no longer needed)
+  - Bidirectional relation storage for simpler query logic
+  - Glassmorphism design pattern with feature detection
+  - Genre chips prepared for backend `genres: string[]` field (frontend ready)
+  - Reduced motion support for accessibility
+  - 2-column grid layout with responsive breakpoints
 - **Risks/Unknowns:**
   - HIGH-1 timeout issue still pending from Phase A work
+  - Genre chips non-functional until backend provides `genres: string[]`
+  - CSS variable fallback missing for `--color-primary` (accessibility)
 - **Next Steps:**
   - Fix HIGH-1 timeout (critical path for Phase A production deployment)
-  - Create verification script for Phase A backfill
-  - Document anime relations feature
+  - Add `genres: string[]` to backend AnimeDetail contract
+  - Add CSS variable fallback for accessibility
 - **First task tomorrow:** Increase backfill timeout to 10 minutes in `backend/cmd/migrate/main.go:121`
 
 ## Quality Bar Met

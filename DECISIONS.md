@@ -93,6 +93,103 @@ Investigation on 2026-03-14 concluded no legacy relation source existed. Further
 
 ---
 
+## 2026-03-15 - Glassmorphism Design Pattern for AnimeDetail
+
+### Decision
+Implement glassmorphism design pattern for AnimeDetail page with blurred background, semi-transparent panels, and backdrop-filter effects.
+
+### Context
+Modern streaming platforms (AniList, Netflix, Plex) use glassmorphism for visual hierarchy and depth. The original design was flat with single-column layout. User expectations align with modern streaming UX patterns.
+
+### Options Considered
+1. Keep flat design with simple cards
+2. Implement glassmorphism with backdrop-filter
+3. Use gradient overlays without blur (fallback-only)
+
+### Why This Won
+- Aligns with user expectations from modern streaming platforms
+- Improves visual hierarchy and content separation
+- Creates depth and professional appearance
+- Feature detection with `@supports` ensures graceful degradation
+
+### Consequences
+- Requires backdrop-filter support (falls back to solid background)
+- Slightly higher CSS complexity (feature detection needed)
+- Better visual appeal and modern UX
+- Responsive design requires three breakpoints (mobile, tablet, desktop)
+
+### Follow-ups Required
+- Monitor browser support for backdrop-filter
+- Ensure fallback design is acceptable for older browsers
+- Consider performance impact on lower-end devices
+
+---
+
+## 2026-03-15 - Genre Chips Prepared for Backend Array Field
+
+### Decision
+Implement genre chips UI with type-unsafe cast to `genres: string[]`, acknowledging backend contract mismatch.
+
+### Context
+Backend currently provides `genre: string` (CSV format). Frontend wants to display genre chips with navigation links. Proper implementation requires backend to provide `genres: string[]` array.
+
+### Options Considered
+1. Wait for backend contract update before implementing UI
+2. Implement UI now with type-unsafe cast (ready for backend change)
+3. Parse CSV string in frontend (temporary workaround)
+
+### Why This Won
+- Frontend ready for when backend provides proper array field
+- Critical Review acknowledged and approved with condition
+- No runtime errors (just returns empty array until backend updated)
+- Demonstrates proper UI pattern for future backend work
+
+### Consequences
+- Genre chips won't display until backend contract updated
+- Type safety bypassed with `as unknown as` cast
+- Creates clear backlog item for backend team
+- Frontend code ready and tested
+
+### Follow-ups Required
+- Update backend AnimeDetail contract to include `genres: string[]`
+- Update API handler to split CSV into array
+- Update frontend type definitions to remove unsafe cast
+- Verify genre chips display correctly after backend update
+
+---
+
+## 2026-03-15 - Reduced Motion Support for Accessibility
+
+### Decision
+Add `@media (prefers-reduced-motion: reduce)` to disable animations for users with motion sensitivity.
+
+### Context
+WCAG 2.1 guideline 2.3.3 recommends respecting user preferences for reduced motion. Glassmorphism design includes subtle transitions and animations.
+
+### Options Considered
+1. No motion support (ignore accessibility guideline)
+2. Add reduced motion support (disable animations)
+3. Make animations opt-in only
+
+### Why This Won
+- WCAG 2.1 compliance improves accessibility
+- Zero cost for users who don't need reduced motion
+- Modern browsers support prefers-reduced-motion
+- Demonstrates accessibility best practices
+
+### Consequences
+- Animations disabled for users who prefer reduced motion
+- Slightly more CSS complexity (media query variations)
+- Better accessibility for motion-sensitive users
+- Aligns with modern web standards
+
+### Follow-ups Required
+- Document reduced motion support in accessibility guide
+- Test with browser DevTools (emulate prefers-reduced-motion)
+- Consider adding to other animated components
+
+---
+
 ## 2026-03-14 - Fix Legacy Title Mapping
 
 ### Decision

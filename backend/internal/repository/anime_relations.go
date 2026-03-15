@@ -7,9 +7,12 @@ import (
 
 // AnimeRelation represents a related anime with its title and relation type
 type AnimeRelation struct {
-	AnimeID      int64  `json:"anime_id"`
-	Title        string `json:"title"`
-	RelationType string `json:"relation_type"`
+	AnimeID      int64   `json:"anime_id"`
+	Title        string  `json:"title"`
+	RelationType string  `json:"relation_type"`
+	CoverImage   *string `json:"cover_image"`
+	Year         *int16  `json:"year"`
+	Type         string  `json:"type"`
 }
 
 // GetAnimeRelations returns all anime related to the given anime ID
@@ -23,7 +26,10 @@ func (r *AnimeRepository) GetAnimeRelations(ctx context.Context, animeID int64) 
 				ELSE ar.source_anime_id
 			END AS anime_id,
 			a.title,
-			rt.name AS relation_type
+			rt.name AS relation_type,
+			a.cover_image,
+			a.year,
+			a.type
 		FROM anime_relations ar
 		JOIN relation_types rt ON ar.relation_type_id = rt.id
 		JOIN anime a ON (
@@ -34,7 +40,7 @@ func (r *AnimeRepository) GetAnimeRelations(ctx context.Context, animeID int64) 
 		)
 		WHERE (ar.source_anime_id = $1 OR ar.target_anime_id = $1)
 		  AND a.status != 'disabled'
-		ORDER BY a.title
+		ORDER BY a.year DESC NULLS LAST, a.title
 	`
 
 	rows, err := r.db.Query(ctx, query, animeID)
@@ -46,7 +52,7 @@ func (r *AnimeRepository) GetAnimeRelations(ctx context.Context, animeID int64) 
 	relations := make([]AnimeRelation, 0)
 	for rows.Next() {
 		var rel AnimeRelation
-		if err := rows.Scan(&rel.AnimeID, &rel.Title, &rel.RelationType); err != nil {
+		if err := rows.Scan(&rel.AnimeID, &rel.Title, &rel.RelationType, &rel.CoverImage, &rel.Year, &rel.Type); err != nil {
 			return nil, fmt.Errorf("scan anime relation: %w", err)
 		}
 		relations = append(relations, rel)

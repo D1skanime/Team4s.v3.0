@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Plus, Check } from 'lucide-react'
 
 import { addWatchlistEntry, ApiError, hasRuntimeAuthToken, removeWatchlistEntry } from '@/lib/api'
 
@@ -9,9 +10,18 @@ import styles from './WatchlistAddButton.module.css'
 interface WatchlistAddButtonProps {
   animeID: number
   initiallyInWatchlist?: boolean
+  /** Custom className for the button (overrides default styling) */
+  className?: string
+  /** Custom className when in watchlist */
+  activeClassName?: string
 }
 
-export function WatchlistAddButton({ animeID, initiallyInWatchlist = false }: WatchlistAddButtonProps) {
+export function WatchlistAddButton({
+  animeID,
+  initiallyInWatchlist = false,
+  className,
+  activeClassName,
+}: WatchlistAddButtonProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isAdded, setIsAdded] = useState(initiallyInWatchlist)
   const [hasAuthToken, setHasAuthToken] = useState(false)
@@ -55,23 +65,39 @@ export function WatchlistAddButton({ animeID, initiallyInWatchlist = false }: Wa
     }
   }
 
+  // Determine button classes
+  const useCustomStyle = Boolean(className)
+  const buttonClasses = useCustomStyle
+    ? `${className}${isAdded && activeClassName ? ` ${activeClassName}` : ''}`
+    : styles.button
+
+  const buttonContent = isSubmitting ? (
+    'Speichern...'
+  ) : isAdded ? (
+    <>
+      <Check size={18} />
+      In Watchlist
+    </>
+  ) : hasAuthToken ? (
+    <>
+      <Plus size={18} />
+      Zur Watchlist
+    </>
+  ) : (
+    'Anmeldung erforderlich'
+  )
+
   return (
-    <div className={styles.wrapper}>
+    <div className={useCustomStyle ? undefined : styles.wrapper}>
       <button
-        className={styles.button}
+        className={buttonClasses}
         type="button"
         onClick={handleToggle}
         disabled={isSubmitting || !hasAuthToken}
       >
-        {isSubmitting
-          ? 'Speichern...'
-          : isAdded
-            ? 'Aus Watchlist'
-            : hasAuthToken
-              ? 'Zur Watchlist'
-              : 'Anmeldung erforderlich'}
+        {buttonContent}
       </button>
-      {message ? <p className={styles.message}>{message}</p> : null}
+      {message && !useCustomStyle ? <p className={styles.message}>{message}</p> : null}
     </div>
   )
 }

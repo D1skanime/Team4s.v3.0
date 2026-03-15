@@ -24,16 +24,24 @@
 
 ### Phase 5 - Package 2 Status
 
-**Completion:** ~82% (+4% for anime relations feature)
+**Completion:** ~85% (+7% for anime relations + anime detail redesign features)
 
 **Completed Today (2026-03-15):**
-- [x] Anime Relations Feature (Full Stack)
+- [x] Anime Relations Feature (Full Stack - Morning)
   - Migration 0023: Imported 2,278 legacy relations from `verwandt` table
   - Created bidirectional relations (4,556 total records)
   - Backend: GET /api/v1/anime/:id/relations endpoint
   - Frontend: AnimeRelations.tsx component with grid layout
   - Deployed to Docker (backend + frontend)
   - Critical Review: APPROVED (3 Low findings)
+
+- [x] AnimeDetail Page Redesign (Full Stack - Afternoon)
+  - Complete visual redesign: glassmorphism, blurred background, 2-column grid
+  - 592 lines of CSS rewritten (dark theme, responsive, accessibility)
+  - Enhanced AnimeRelations with variant prop (default | compact)
+  - Enhanced WatchlistAddButton with className props
+  - Deployed to Docker (frontend)
+  - Critical Review: CONDITIONAL APPROVAL (1 High, 1 Medium, 3 Low findings)
 
 **Completed Previously (2026-03-14):**
 - [x] Task #1: Phase A Migrations (0019-0022)
@@ -60,11 +68,18 @@
   - Fix: Increase timeout to 10 minutes + batch processing
   - Status: Local dev approved, production blocked
 
+**Feature Blockers (Non-Critical):**
+- Genre chips display blocked by backend contract mismatch
+  - Frontend ready with genre chips UI
+  - Backend needs `genres: string[]` field in AnimeDetail contract
+  - Current: `genre: string` (CSV format)
+  - Status: Acknowledged in Critical Review, low priority
+
 **Next Actions:**
-1. Fix HIGH-1 timeout issue
-2. Implement batch processing
-3. Re-run backfill and verify 100% completion
-4. Complete API evaluation for relation backfill
+1. Fix HIGH-1 timeout issue (increase to 10 minutes + batch processing)
+2. Add `genres: string[]` to backend AnimeDetail contract
+3. Add CSS variable fallback for `--color-primary` (accessibility)
+4. Re-run backfill and verify 100% completion
 
 ---
 
