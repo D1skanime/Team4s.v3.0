@@ -1,21 +1,30 @@
 # TODO
 
+## Completed (2026-03-18)
+- [x] Add `genres: string[]` to backend anime detail contract
+- [x] Parse genre CSV into array in backend repository layer
+- [x] Update OpenAPI contract with genres array schema
+- [x] Add `genres?: string[]` to frontend interface
+- [x] Remove frontend type workaround for genres
+- [x] Correct Related section placement (inside infoCard, not standalone)
+- [x] Fix AnimeEdgeNavigation positioning (top-left/top-right on heroContainer)
+- [x] Add overflow handling to prevent Related cards from overflowing
+- [x] Implement scroll buttons for Related section horizontal navigation
+- [x] Verify Go build, Next.js build, Docker deployment
+- [x] Runtime verification: health checks and page smoke tests
+
 ## Completed (2026-03-15)
-- [x] Move `Related` on `/anime/[id]` out of the hero card and into the first standalone post-hero section
-- [x] Make related-rail arrows overflow-aware instead of always visible
-- [x] Keep native horizontal scroll usable without buttons
-- [x] Preserve whole-card click behavior for related anime cards
-- [x] Capture the UX handoff in `docs/ux-related-section-handoff-2026-03-15.md`
+- [x] Implement glassmorphism design for `/anime/[id]`
+- [x] Capture UX handoff (NOTE: Later found to be incorrect)
 - [x] Re-run critical review and reach `approve`
 - [x] Rebuild and redeploy `team4sv30-frontend`
-- [x] Verify runtime via `/health` and `/anime/25`
 
 ## Next Up
-- [ ] Add `genres: string[]` to the backend anime detail response
-- [ ] Remove any remaining frontend type workaround once the backend field exists
-- [ ] Re-run `frontend npm run build` and a page smoke-check after the contract change
-- [ ] Inventory repo-wide frontend lint failures outside this slice
+- [ ] Archive or correct outdated UX handoff documents (incorrect Related placement description)
+- [ ] Inventory repo-wide frontend lint failures for separate cleanup pass
+- [ ] Consider accessibility audit for anime detail page
 
 ## Parking Lot
-- [ ] Separate accessibility wording cleanup if needed after the data-contract follow-up
-- [ ] Review whether any further related-rail polish is needed once the contract work lands
+- [ ] Optional: Enhanced genre navigation/filtering features
+- [ ] Optional: Related section data quality improvements
+- [ ] Optional: Performance optimization for large related lists

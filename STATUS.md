@@ -3,36 +3,41 @@
 ## Project Snapshot
 - **Project:** Team4s.v3.0
 - **Milestone:** Phase 5 - Reference and Metadata Groundwork
-- **Status:** Frontend related-slider/layout fix on `/anime/[id]` shipped, reviewed, deployed
-- **Rough completion:** ~88%
+- **Status:** Genre Array Contract implemented, Related Section corrected and deployed
+- **Rough completion:** ~90%
 
 ## What Works Now
-- `/anime/[id]` renders the hero first and the `Related` rail as the first standalone block below it
-- The `Related` rail supports native horizontal scroll plus overflow-aware arrows
-- Arrows hide when there is no overflow in a direction
-- Whole-card navigation remains the only primary action inside each related card
-- Frontend service deploys successfully via Docker Compose
-- Runtime checks after deploy passed:
+- `/anime/[id]` renders with glassmorphism hero design
+- Genre chips display correctly using `genres: string[]` from backend
+- Related section positioned correctly within hero info card
+- Edge navigation buttons (Zuruck/Weiter) positioned at heroContainer top-left/top-right
+- Horizontal scroll with overflow handling for Related cards
+- Scroll buttons appear when more than 3 related cards exist
+- Frontend/backend contract aligned for genre data
+- Docker Compose stack runs successfully
+- All runtime checks pass:
   - `http://localhost:8092/health` -> `{"status":"ok"}`
   - `http://localhost:3002/anime/25` -> HTTP 200
 
 ## Verification
-- `frontend npm run build`: passed
-- `frontend npm run lint`: still failing on existing issues outside the touched files
-- Critical review: `approve`
-  - Artifact: `docs/reviews/2026-03-15-related-slider-fix-critical-review.md`
+- Go backend build: PASSED
+- Next.js frontend build: PASSED
+- Docker deployment: SUCCESS
+- Runtime health checks: PASSED
+- Genre array contract: IMPLEMENTED
+- Related section layout: CORRECTED
 
 ## Top 3 Next
-1. Add `genres: string[]` to the anime detail contract so the post-redesign genre handling is explicit and type-safe.
-2. Decide whether the existing `/anime/[id]` page should keep the current fallback genre rendering or switch fully once backend array support lands.
-3. Triage the remaining repo-wide frontend lint debt separately from this shipped slice.
+1. Clean up outdated UX handoff documentation that incorrectly described Related placement
+2. Inventory and triage repo-wide frontend lint debt (separate from this slice)
+3. Consider accessibility audit for anime detail page
 
 ## Known Risks / Blockers
-- Backend/frontend contract mismatch around genres is still unresolved outside this slider fix.
-- Global frontend lint remains red for unrelated files, so lint is not a reliable gate for this slice yet.
-- Foreign worktree changes are present and require care during any follow-up commit or deploy work.
+- **Documentation inconsistency:** Previous UX docs incorrectly described Related as post-hero standalone
+- **Frontend lint debt:** Repo-wide lint failures mask slice-level validation
+- **Dirty worktree:** Foreign files (`server.exe`, tsconfig artifacts) require careful staging
 
 ## Owners / Lanes
-- Frontend lane: `/anime/[id]` related rail and page layout
-- UX lane: handoff and acceptance criteria for rail placement/behavior
-- Critical review lane: re-review gate after fix
+- Backend lane: Genre array contract implementation (COMPLETE)
+- Frontend lane: Type-safe genre handling + Related section layout (COMPLETE)
+- Documentation lane: UX handoff correction needed

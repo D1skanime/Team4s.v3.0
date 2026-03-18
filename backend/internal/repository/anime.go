@@ -109,6 +109,19 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 		return nil, fmt.Errorf("query anime detail %d: %w", id, err)
 	}
 
+	// Populate Genres array from Genre string
+	if anime.Genre != nil && *anime.Genre != "" {
+		parts := strings.Split(*anime.Genre, ",")
+		genres := make([]string, 0, len(parts))
+		for _, p := range parts {
+			trimmed := strings.TrimSpace(p)
+			if trimmed != "" {
+				genres = append(genres, trimmed)
+			}
+		}
+		anime.Genres = genres
+	}
+
 	episodeQuery := `
 		SELECT id, episode_number, title, status, view_count, download_count, stream_links, filename
 		FROM episodes

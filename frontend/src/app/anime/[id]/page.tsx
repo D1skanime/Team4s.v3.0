@@ -181,9 +181,6 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   // Get cover image for banner background
   const coverUrl = getCoverUrl(anime.cover_image)
 
-  // Extract genres if available
-  const genres: string[] = (anime as unknown as { genres?: string[] }).genres ?? []
-
   return (
     <main className={styles.page}>
       {/* Backdrop Rotator (Videos & Images from Jellyfin) */}
@@ -247,8 +244,8 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
               <div className={styles.genresSection}>
                 <span className={styles.genresLabel}>Genres</span>
                 <div className={styles.genres}>
-                  {anime.genre ? (
-                    anime.genre.split(',').map((g) => g.trim()).filter(Boolean).map((genre) => (
+                  {anime.genres && anime.genres.length > 0 ? (
+                    anime.genres.map((genre) => (
                       <span key={genre} className={styles.genreChip}>
                         {genre}
                       </span>
@@ -325,23 +322,22 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
               </>
             )}
 
-            {/* Edge Navigation */}
-            {gridQuery && (
-              <div className={styles.edgeNavigation}>
-                <AnimeEdgeNavigation currentAnimeID={anime.id} gridQuery={gridQuery} />
+            {/* Related Animes Section - inside infoCard */}
+            {relationsResponse && relationsResponse.data.length > 0 && (
+              <div className={styles.relatedSection}>
+                <AnimeRelations relations={relationsResponse.data} />
               </div>
             )}
           </div>
+
+          {/* Edge Navigation Overlay - positioned on heroContainer */}
+          {gridQuery && (
+            <div className={styles.edgeNavigationOverlay}>
+              <AnimeEdgeNavigation currentAnimeID={anime.id} gridQuery={gridQuery} />
+            </div>
+          )}
         </section>
       </div>
-
-      {relationsResponse && relationsResponse.data.length > 0 && (
-        <div className={styles.relatedRailWrapper}>
-          <section className={styles.relatedRailSection}>
-            <AnimeRelations relations={relationsResponse.data} variant="compact" />
-          </section>
-        </div>
-      )}
 
       {/* Content Area (Episodes, Comments) */}
       <div className={styles.contentArea}>

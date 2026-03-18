@@ -223,6 +223,74 @@ The current redesign places `Related` inside the hero info card and uses always-
 
 ---
 
+## 2026-03-18 - Genre Array Contract Implementation
+
+### Decision
+Implement dual-field strategy for genre data: keep legacy `genre` string field and add new `genres: string[]` array field to maintain backward compatibility while enabling type-safe frontend handling.
+
+### Context
+Backend originally provided genre data as CSV string (`genre: "Action, Adventure, Fantasy"`). Frontend wanted to display genre chips with proper type safety and navigation. Previous implementation used unsafe type casts to work around the mismatch.
+
+### Options Considered
+1. Replace `genre` string with `genres` array (breaking change)
+2. Add `genres` array alongside `genre` string (backward compatible)
+3. Keep CSV string and parse in frontend (type-unsafe workaround)
+
+### Why This Won
+- Maintains backward compatibility for existing API consumers
+- Enables type-safe frontend handling without workarounds
+- Backend parsing is cleaner than frontend CSV splitting
+- Single source of truth for array generation (repository layer)
+- Aligns with OpenAPI contract evolution patterns
+
+### Consequences
+- Backend model includes both `Genre string` and `Genres []string` fields
+- Minimal performance overhead (CSV split during serialization)
+- OpenAPI contract now documents array field explicitly
+- Frontend can remove all type-unsafe casts
+- Future consumers can migrate gradually from string to array
+
+### Follow-ups Required
+- Monitor API usage to see when legacy `genre` string can be deprecated
+- Consider similar pattern for other CSV-encoded fields
+- Document this pattern as reference for future contract migrations
+
+---
+
+## 2026-03-18 - Related Section Placement Correction
+
+### Decision
+Correct Related section placement to **inside infoCard**, reversing previous decision that placed it as standalone post-hero block.
+
+### Context
+Previous UX documentation (2026-03-15) described Related section as standalone block below hero. Implementation revealed this created visual disconnection and overflow issues. Actual best placement is inside hero infoCard with proper overflow handling.
+
+### Options Considered
+1. Keep Related as standalone post-hero block (per old docs)
+2. Move Related inside infoCard with overflow handling
+3. Remove Related section entirely and reconsider design
+
+### Why This Won
+- Creates better visual hierarchy within hero card
+- Overflow handling prevents cards from breaking layout boundaries
+- Edge navigation buttons can remain at heroContainer level
+- Maintains compact mobile experience
+- Better aligns with glassmorphism design pattern
+
+### Consequences
+- Previous UX handoff documentation is now incorrect
+- Implementation differs from documented design decision
+- Requires documentation cleanup to prevent future confusion
+- Demonstrates importance of validating UX decisions during implementation
+
+### Follow-ups Required
+- Archive or correct `docs/ux-related-section-handoff-2026-03-15.md`
+- Update any references to Related section placement in other docs
+- Document actual component hierarchy with visual diagram
+- Review other UX decisions for similar implementation mismatches
+
+---
+
 ## 2026-03-14 - Fix Legacy Title Mapping
 
 ### Decision

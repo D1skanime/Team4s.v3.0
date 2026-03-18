@@ -45,8 +45,8 @@ export function AnimeRelations({ relations, variant = 'default' }: AnimeRelation
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const animationFrameRef = useRef<number | null>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(false)
-  const [hasOverflow, setHasOverflow] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(relations.length > 3)
+  const [hasOverflow, setHasOverflow] = useState(relations.length > 3)
   const isCompact = variant === 'compact'
 
   const updateScrollState = () => {
@@ -114,28 +114,26 @@ export function AnimeRelations({ relations, variant = 'default' }: AnimeRelation
     <section className={`${styles.relationsSection} ${isCompact ? styles.compact : ''}`}>
       <div className={styles.header}>
         <h2 className={styles.title}>Related</h2>
-        {hasOverflow && (
+        {relations.length > 3 && (
           <div className={styles.sliderControls}>
-            {canScrollLeft ? (
-              <button
-                type="button"
-                className={styles.navButton}
-                onClick={() => scrollByCards('left')}
-                aria-label="Related nach links scrollen"
-              >
-                <ChevronLeft size={18} />
-              </button>
-            ) : null}
-            {canScrollRight ? (
-              <button
-                type="button"
-                className={styles.navButton}
-                onClick={() => scrollByCards('right')}
-                aria-label="Related nach rechts scrollen"
-              >
-                <ChevronRight size={18} />
-              </button>
-            ) : null}
+            <button
+              type="button"
+              className={styles.navButton}
+              onClick={() => scrollByCards('left')}
+              disabled={!canScrollLeft}
+              aria-label="Related nach links scrollen"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              className={styles.navButton}
+              onClick={() => scrollByCards('right')}
+              disabled={!canScrollRight}
+              aria-label="Related nach rechts scrollen"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
         )}
       </div>

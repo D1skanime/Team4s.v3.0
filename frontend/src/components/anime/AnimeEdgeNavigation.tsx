@@ -120,68 +120,90 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
   }
 
   return (
-    <div className={styles.overlay}>
-      <button
-        type="button"
-        className={styles.navButton}
-        onMouseEnter={() => {
-          void loadNeighbors()
-          if (previousAnime) setHoverDirection('prev')
-        }}
-        onMouseLeave={() => setHoverDirection((current) => (current === 'prev' ? null : current))}
-        onFocus={() => {
-          void loadNeighbors()
-          if (previousAnime) setHoverDirection('prev')
-        }}
-        onTouchStart={() => {
-          void loadNeighbors()
-        }}
-        onBlur={() => setHoverDirection((current) => (current === 'prev' ? null : current))}
-        onClick={() => void handleNavigate('prev')}
-        disabled={(!previousAnime && hasLoadedNeighborsRef.current) || loadingDirection !== null || isLoadingNeighbors}
-        aria-label="Vorheriger Anime"
-      >
-        <ChevronLeft size={22} />
-      </button>
-
-      <button
-        type="button"
-        className={styles.navButton}
-        onMouseEnter={() => {
-          void loadNeighbors()
-          if (nextAnime) setHoverDirection('next')
-        }}
-        onMouseLeave={() => setHoverDirection((current) => (current === 'next' ? null : current))}
-        onFocus={() => {
-          void loadNeighbors()
-          if (nextAnime) setHoverDirection('next')
-        }}
-        onTouchStart={() => {
-          void loadNeighbors()
-        }}
-        onBlur={() => setHoverDirection((current) => (current === 'next' ? null : current))}
-        onClick={() => void handleNavigate('next')}
-        disabled={(!nextAnime && hasLoadedNeighborsRef.current) || loadingDirection !== null || isLoadingNeighbors}
-        aria-label="Naechster Anime"
-      >
-        <ChevronRight size={22} />
-      </button>
-
-      {previewAnime ? (
-        <div className={`${styles.previewCard} ${hoverDirection === 'prev' ? styles.previewLeft : styles.previewRight}`}>
-          <Image
-            src={getCoverUrl(previewAnime.cover_image)}
-            alt={previewAnime.title}
-            width={66}
-            height={92}
-            className={styles.previewCover}
-          />
-          <div className={styles.previewMeta}>
-            <p className={styles.previewTitle}>{previewAnime.title}</p>
-            <p className={styles.previewState}>#{previewAnime.id} - {getStatusLabel(previewAnime.status)}</p>
+    <>
+      {/* Left button wrapper */}
+      <div className={styles.buttonWrapper}>
+        <button
+          type="button"
+          className={styles.navButton}
+          onMouseEnter={() => {
+            void loadNeighbors()
+            if (previousAnime) setHoverDirection('prev')
+          }}
+          onMouseLeave={() => setHoverDirection((current) => (current === 'prev' ? null : current))}
+          onFocus={() => {
+            void loadNeighbors()
+            if (previousAnime) setHoverDirection('prev')
+          }}
+          onTouchStart={() => {
+            void loadNeighbors()
+          }}
+          onBlur={() => setHoverDirection((current) => (current === 'prev' ? null : current))}
+          onClick={() => void handleNavigate('prev')}
+          disabled={(!previousAnime && hasLoadedNeighborsRef.current) || loadingDirection !== null || isLoadingNeighbors}
+          aria-label="Vorheriger Anime"
+        >
+          <ChevronLeft size={22} />
+          <span>Zurueck</span>
+        </button>
+        {previewAnime && hoverDirection === 'prev' ? (
+          <div className={`${styles.previewCard} ${styles.previewLeft}`}>
+            <Image
+              src={getCoverUrl(previewAnime.cover_image)}
+              alt={previewAnime.title}
+              width={66}
+              height={92}
+              className={styles.previewCover}
+            />
+            <div className={styles.previewMeta}>
+              <p className={styles.previewTitle}>{previewAnime.title}</p>
+              <p className={styles.previewState}>#{previewAnime.id} - {getStatusLabel(previewAnime.status)}</p>
+            </div>
           </div>
-        </div>
-      ) : null}
-    </div>
+        ) : null}
+      </div>
+
+      {/* Right button wrapper */}
+      <div className={styles.buttonWrapper}>
+        <button
+          type="button"
+          className={styles.navButton}
+          onMouseEnter={() => {
+            void loadNeighbors()
+            if (nextAnime) setHoverDirection('next')
+          }}
+          onMouseLeave={() => setHoverDirection((current) => (current === 'next' ? null : current))}
+          onFocus={() => {
+            void loadNeighbors()
+            if (nextAnime) setHoverDirection('next')
+          }}
+          onTouchStart={() => {
+            void loadNeighbors()
+          }}
+          onBlur={() => setHoverDirection((current) => (current === 'next' ? null : current))}
+          onClick={() => void handleNavigate('next')}
+          disabled={(!nextAnime && hasLoadedNeighborsRef.current) || loadingDirection !== null || isLoadingNeighbors}
+          aria-label="Naechster Anime"
+        >
+          <span>Weiter</span>
+          <ChevronRight size={22} />
+        </button>
+        {previewAnime && hoverDirection === 'next' ? (
+          <div className={`${styles.previewCard} ${styles.previewRight}`}>
+            <Image
+              src={getCoverUrl(previewAnime.cover_image)}
+              alt={previewAnime.title}
+              width={66}
+              height={92}
+              className={styles.previewCover}
+            />
+            <div className={styles.previewMeta}>
+              <p className={styles.previewTitle}>{previewAnime.title}</p>
+              <p className={styles.previewState}>#{previewAnime.id} - {getStatusLabel(previewAnime.status)}</p>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </>
   )
 }

@@ -106,13 +106,14 @@
 }
 
 .heroContainer {
+  position: relative;
   display: grid;
   grid-template-columns: 260px 1fr;
   background: rgba(30, 30, 35, 0.95);
   border-radius: 24px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  overflow: hidden;
+  overflow: visible;
 }
 
 @supports (backdrop-filter: blur(20px)) {
@@ -328,6 +329,7 @@
   color: #1a1a1a;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0.95) 0%,
@@ -436,14 +438,34 @@
 }
 
 /* --------------------------------------------------------------------------
-   Edge Navigation
+   Related Section (inside infoCard, horizontal scroll)
    -------------------------------------------------------------------------- */
-.edgeNavigation {
-  position: relative;
-  margin-top: auto;
+.relatedSection {
+  margin-top: 20px;
   padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   min-width: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Edge Navigation Overlay (positioned on heroContainer - top edges)
+   -------------------------------------------------------------------------- */
+.edgeNavigationOverlay {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0 12px;
+  pointer-events: none;
+}
+
+.edgeNavigationOverlay > * {
+  pointer-events: auto;
 }
 
 /* --------------------------------------------------------------------------
@@ -457,22 +479,22 @@
 }
 
 /* --------------------------------------------------------------------------
-   Related Rail (standalone block below hero)
+   Related Rail (block below heroContainer, inside heroWrapper)
    -------------------------------------------------------------------------- */
 .relatedRailWrapper {
   position: relative;
   z-index: 1;
-  width: min(1200px, 100% - 48px);
-  margin: 24px auto 0;
+  width: 100%;
+  margin-top: 24px;
 }
 
 .relatedRailSection {
   min-width: 0;
-  padding: 24px 28px 28px;
-  border-radius: 24px;
+  padding: 20px 24px 24px;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
@@ -485,7 +507,7 @@
   z-index: 1;
   width: min(1200px, 100% - 48px);
   margin: 0 auto;
-  padding: 40px 0 60px;
+  padding: 60px 0 60px;
 }
 
 .episodesSection {
@@ -716,6 +738,23 @@
 
   .divider {
     background: rgba(255, 255, 255, 0.15);
+  }
+
+  .relatedSection {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .edgeNavigationOverlay {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    margin-top: 16px;
+    padding: 0 20px 20px;
+    justify-content: center;
+    gap: 16px;
   }
 
   .relatedRailWrapper {

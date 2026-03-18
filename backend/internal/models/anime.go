@@ -44,6 +44,7 @@ type AnimeDetail struct {
 	Year        *int16            `json:"year,omitempty"`
 	MaxEpisodes *int16            `json:"max_episodes,omitempty"`
 	Genre       *string           `json:"genre,omitempty"`
+	Genres      []string          `json:"genres,omitempty"`
 	Description *string           `json:"description,omitempty"`
 	CoverImage  *string           `json:"cover_image,omitempty"`
 	ViewCount   int32             `json:"view_count"`

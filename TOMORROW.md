@@ -1,16 +1,19 @@
 # TOMORROW
 
 ## Top 3 Priorities
-1. Add `genres: string[]` to the backend anime detail contract and remove any remaining type workaround around genres on `/anime/[id]`.
-2. Re-run targeted validation for the anime detail page after the contract change: build, page smoke-check, and any affected API response spot-checks.
-3. Start a scoped lint-debt inventory for the frontend so future slice validation is not masked by unrelated errors.
+1. Review and archive/correct outdated UX handoff documentation that incorrectly described Related section as standalone post-hero block
+2. Inventory repo-wide frontend lint failures and create cleanup plan separate from feature work
+3. Optional: Conduct accessibility audit for anime detail page (keyboard navigation, screen readers, ARIA labels)
 
 ## First 15-Minute Task
-Open `backend/internal/handlers/anime.go` and the anime detail DTO/type definition, then trace where `genre` is serialized today. Write down the exact response shape change needed for `genres: string[]` and identify the smallest backend patch to produce it.
+Open `docs/ux-related-section-handoff-2026-03-15.md` and compare its description of Related section placement against the actual implemented code in `frontend/src/app/anime/[id]/page.tsx`. Document the discrepancy and decide whether to archive the document or add a correction note at the top.
 
 ## Dependencies To Unblock Early
-- Confirm the canonical backend response type for anime detail before touching frontend types
-- Keep current unrelated worktree changes out of the first follow-up commit
+- No external dependencies
+- All technical blockers from today are resolved
+- Ready to focus on documentation hygiene and quality improvements
 
 ## Nice To Have
-- Decide whether the review follow-up should also normalize any remaining `Related` ARIA wording in the same slice or leave it for a separate accessibility pass
+- Create a visual diagram showing the correct anime detail page component hierarchy
+- Document the genre array migration pattern as a reference for future contract changes
+- Write developer notes about overflow handling patterns used in Related section
