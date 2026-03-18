@@ -1,5 +1,12 @@
 # Related Section UX Handoff
 
+> **KORREKTURHINWEIS (2026-03-18):**
+> Die in diesem Dokument beschriebene Platzierung der Related Section wurde bei der Implementierung als inkorrekt befunden.
+> Die Related Section gehört INNERHALB der infoCard (im heroContainer), NICHT als eigenständiger Block darunter.
+> Diese Platzierung löst Overflow-Probleme, passt zum Glassmorphism-Design und schafft bessere visuelle Hierarchie.
+> Dieses Dokument bleibt als Referenz erhalten, sollte aber nicht als aktuelle Implementierungsanleitung verwendet werden.
+> Siehe DECISIONS.md Eintrag "2026-03-18 - Related Section Placement Correction" für Details.
+
 LANE: ux
 
 SCOPE:
