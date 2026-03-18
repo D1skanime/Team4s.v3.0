@@ -13,6 +13,8 @@
 - Edge navigation buttons (Zuruck/Weiter) positioned at heroContainer top-left/top-right
 - Horizontal scroll with overflow handling for Related cards
 - Scroll buttons appear when more than 3 related cards exist
+- Preview cards show title + type with white background and black text
+- posterColumn has glass effect matching infoCard styling
 - Frontend/backend contract aligned for genre data
 - Docker Compose stack runs successfully
 - All runtime checks pass:

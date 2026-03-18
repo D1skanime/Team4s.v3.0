@@ -22,12 +22,15 @@ interface AnimeEdgeNavigationProps {
   gridQuery: string
 }
 
-function getStatusLabel(status: AnimeListItem['status']): string {
-  if (status === 'ongoing') return 'laufend'
-  if (status === 'done') return 'abgeschlossen'
-  if (status === 'licensed') return 'lizenziert'
-  if (status === 'aborted') return 'abgebrochen'
-  return status
+function getTypeLabel(type: string): string {
+  const lower = type.toLowerCase()
+  if (lower === 'tv') return 'TV'
+  if (lower === 'movie') return 'Movie'
+  if (lower === 'ova') return 'OVA'
+  if (lower === 'ona') return 'ONA'
+  if (lower === 'special') return 'Special'
+  if (lower === 'music') return 'Music'
+  return type
 }
 
 export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavigationProps) {
@@ -157,7 +160,7 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
             />
             <div className={styles.previewMeta}>
               <p className={styles.previewTitle}>{previewAnime.title}</p>
-              <p className={styles.previewState}>#{previewAnime.id} - {getStatusLabel(previewAnime.status)}</p>
+              <p className={styles.previewType}>{getTypeLabel(previewAnime.type)}</p>
             </div>
           </div>
         ) : null}
@@ -199,7 +202,7 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
             />
             <div className={styles.previewMeta}>
               <p className={styles.previewTitle}>{previewAnime.title}</p>
-              <p className={styles.previewState}>#{previewAnime.id} - {getStatusLabel(previewAnime.status)}</p>
+              <p className={styles.previewType}>{getTypeLabel(previewAnime.type)}</p>
             </div>
           </div>
         ) : null}

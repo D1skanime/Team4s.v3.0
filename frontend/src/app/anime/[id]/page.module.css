@@ -129,7 +129,15 @@
 .posterColumn {
   display: flex;
   flex-direction: column;
-  background: rgba(20, 20, 25, 0.95);
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.12) 40%,
+    rgba(255, 255, 255, 0.08) 70%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 24px 0 0 24px;
   overflow: hidden;
   position: relative;
@@ -449,7 +457,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   Edge Navigation Overlay (positioned on heroContainer - top edges)
+   Edge Navigation Overlay (positioned on heroContainer - buttons centered on edges)
    -------------------------------------------------------------------------- */
 .edgeNavigationOverlay {
   position: absolute;
@@ -460,7 +468,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 0 12px;
+  padding: 0;
   pointer-events: none;
 }
 

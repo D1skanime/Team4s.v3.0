@@ -23,6 +23,11 @@
   - Added overflow handling to prevent cards from overflowing boundaries
   - Implemented scroll buttons for horizontal navigation when needed
 
+- **Preview Card Improvements (COMPLETE)**
+  - Preview cards now show title + type (instead of ID + status)
+  - White background with black text for better readability
+  - Glass effect added to posterColumn (matches infoCard)
+
 - **Validation**
   - Go build: SUCCESS
   - Next.js build: SUCCESS
