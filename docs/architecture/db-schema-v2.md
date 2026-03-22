@@ -1,8 +1,18 @@
 # DB Schema v2 Draft
 
-**Status:** Working draft  
-**Date:** 2026-03-13  
+**Status:** Working draft
+**Date:** 2026-03-13 (Updated: 2026-03-22)
 **Purpose:** Canonical target-model draft for the normalized Team4s schema migration
+
+## Phase Status
+
+| Phase | Status | Date |
+|-------|--------|------|
+| **A** Reference & Metadata | ✅ Complete | 2026-03-22 |
+| **B** Episode Identity | ⏳ Pending | - |
+| **C** Release Decomposition | ⏳ Pending | - |
+| **D** Media Normalization | ✅ Complete | 2026-03-20 |
+| **E** Contributor/Notes | ⏳ Pending | - |
 
 ## Why This File Exists
 
