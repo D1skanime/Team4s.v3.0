@@ -37,7 +37,6 @@ export function AnimePatchForm({
   onRegisterSaveAction,
 }: AnimePatchFormProps) {
   const [animeIDInput, setAnimeIDInput] = useState('')
-  const coverFileInputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
   const patch = useAnimePatch(authToken, onSuccess, onError, {
@@ -147,7 +146,6 @@ export function AnimePatchForm({
             contextCoverImage={anime?.cover_image}
             isSubmitting={patch.isSubmitting}
             isUploadingCover={patch.isUploadingCover}
-            coverFileInputRef={coverFileInputRef}
             onFieldChange={(field, value) => patch.setField(field, value)}
             onClearFlagChange={patch.setClearFlag}
             onUploadFile={async (file) => {

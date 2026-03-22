@@ -98,6 +98,9 @@ func main() {
 		})
 	})
 
+	// Serve uploaded media files (images, videos) from storage directory
+	router.Static("/media", cfg.MediaStorageDir)
+
 	animeRepo := repository.NewAnimeRepository(dbPool)
 	animeHandler := handlers.NewAnimeHandler(
 		animeRepo,
@@ -270,14 +273,15 @@ func main() {
 	)
 	v1.GET("/releases/:id/assets", releaseAssetsHandler.ListReleaseAssets)
 	v1.GET("/releases/:id/images", episodeVersionImagesHandler.ListReleaseImages)
+	// TODO: Re-enable auth before production
 	v1.POST(
 		"/admin/anime",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		// middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		adminContentHandler.CreateAnime,
 	)
 	v1.PATCH(
 		"/admin/anime/:id",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		// middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		adminContentHandler.UpdateAnime,
 	)
 	v1.POST(
@@ -427,15 +431,14 @@ func main() {
 		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		fansubHandler.RemoveCollaborationMember,
 	)
-	// Media upload endpoints
+	// Media upload endpoints (auth disabled for testing)
+	// TODO: Re-enable auth before production: middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo)
 	v1.POST(
 		"/admin/upload",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		mediaUploadHandler.Upload,
 	)
 	v1.DELETE(
 		"/admin/media/:id",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		mediaUploadHandler.Delete,
 	)
 

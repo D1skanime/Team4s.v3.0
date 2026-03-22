@@ -234,9 +234,9 @@ func (h *MediaUploadHandler) processImage(
 
 	var files []models.UploadFileInfo
 
-	// Process original
-	originalPath := filepath.Join(storagePath, "original.webp")
-	originalRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, "original.webp")
+	// Process original - save as JPEG (imaging library doesn't support WebP output)
+	originalPath := filepath.Join(storagePath, "original.jpg")
+	originalRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, "original.jpg")
 
 	// For animated GIFs, keep original format
 	if format == "gif" && h.isAnimatedGIF(file) {
@@ -249,9 +249,9 @@ func (h *MediaUploadHandler) processImage(
 			return nil, fmt.Errorf("original gif speichern: %w", err)
 		}
 	} else {
-		// Convert to WebP
-		if err := h.saveAsWebP(img, originalPath); err != nil {
-			return nil, fmt.Errorf("webp speichern: %w", err)
+		// Save as JPEG
+		if err := imaging.Save(img, originalPath); err != nil {
+			return nil, fmt.Errorf("original speichern: %w", err)
 		}
 	}
 
@@ -263,12 +263,12 @@ func (h *MediaUploadHandler) processImage(
 		Height:  originalHeight,
 	})
 
-	// Generate thumbnail
-	thumbPath := filepath.Join(storagePath, "thumb.webp")
-	thumbRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, "thumb.webp")
+	// Generate thumbnail as JPEG
+	thumbPath := filepath.Join(storagePath, "thumb.jpg")
+	thumbRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, "thumb.jpg")
 
 	thumb := imaging.Resize(img, thumbWidth, 0, imaging.Lanczos)
-	if err := h.saveAsWebP(thumb, thumbPath); err != nil {
+	if err := imaging.Save(thumb, thumbPath); err != nil {
 		return nil, fmt.Errorf("thumbnail speichern: %w", err)
 	}
 
@@ -398,9 +398,9 @@ func (h *MediaUploadHandler) processVideo(
 		Height:  height,
 	})
 
-	// Extract thumbnail from video
-	thumbPath := filepath.Join(storagePath, "thumb.webp")
-	thumbRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, "thumb.webp")
+	// Extract thumbnail from video as JPEG
+	thumbPath := filepath.Join(storagePath, "thumb.jpg")
+	thumbRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, "thumb.jpg")
 
 	// Determine which frame to extract (5 seconds or start if video is shorter)
 	extractTime := videoThumbTimeSec

@@ -432,9 +432,19 @@ export function AnimeEditWorkspace({
               onDrop={async (event) => {
                 event.preventDefault()
                 setIsDragOver(false)
+                console.log('[AnimeEditWorkspace] File dropped')
                 const file = event.dataTransfer.files?.[0]
-                if (!file) return
-                await patch.uploadAndSetCover(file, anime.id)
+                if (!file) {
+                  console.warn('[AnimeEditWorkspace] No file in drop')
+                  return
+                }
+                console.log('[AnimeEditWorkspace] Drop file:', file.name, file.size, 'animeId:', anime.id)
+                try {
+                  await patch.uploadAndSetCover(file, anime.id)
+                  console.log('[AnimeEditWorkspace] Drop upload completed')
+                } catch (error) {
+                  console.error('[AnimeEditWorkspace] Drop upload error:', error)
+                }
               }}
             >
               <p className={workspaceStyles.dropZoneTitle}>Datei ablegen oder klicken</p>
@@ -446,10 +456,18 @@ export function AnimeEditWorkspace({
               type="file"
               accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
               onChange={async (event) => {
+                console.log('[AnimeEditWorkspace] File input onChange triggered')
                 const file = event.target.files?.[0]
-                if (!file) return
+                if (!file) {
+                  console.warn('[AnimeEditWorkspace] No file selected')
+                  return
+                }
+                console.log('[AnimeEditWorkspace] Uploading file:', file.name, file.size, 'animeId:', anime.id)
                 try {
                   await patch.uploadAndSetCover(file, anime.id)
+                  console.log('[AnimeEditWorkspace] Upload completed successfully')
+                } catch (error) {
+                  console.error('[AnimeEditWorkspace] Upload error:', error)
                 } finally {
                   event.target.value = ''
                 }

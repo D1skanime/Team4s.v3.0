@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { RefObject } from 'react'
+import { useRef } from 'react'
 
 import { AnimePatchClearFlags, AnimePatchValues } from '../../types/admin-anime'
 import { handleCoverImgError, resolveCoverUrl } from '../../utils/anime-helpers'
@@ -11,7 +11,6 @@ interface AnimeCoverFieldProps {
   contextCoverImage?: string
   isSubmitting: boolean
   isUploadingCover: boolean
-  coverFileInputRef: RefObject<HTMLInputElement>
   onFieldChange: (field: keyof AnimePatchValues, value: string) => void
   onClearFlagChange: (field: keyof AnimePatchClearFlags, value: boolean) => void
   onUploadFile: (file: File) => Promise<void>
@@ -24,12 +23,13 @@ export function AnimeCoverField({
   contextCoverImage,
   isSubmitting,
   isUploadingCover,
-  coverFileInputRef,
   onFieldChange,
   onClearFlagChange,
   onUploadFile,
   onRemoveCover,
 }: AnimeCoverFieldProps) {
+  // Local ref ensures stable binding - no prop drilling issues
+  const fileInputRef = useRef<HTMLInputElement>(null)
   return (
     <div className={styles.field}>
       <label htmlFor="update-cover-image">Cover Image</label>
@@ -70,7 +70,7 @@ export function AnimeCoverField({
         </div>
         <div className={styles.actions}>
           <input
-            ref={coverFileInputRef}
+            ref={fileInputRef}
             className={styles.fileInput}
             type="file"
             accept="image/*"
@@ -97,14 +97,11 @@ export function AnimeCoverField({
             type="button"
             disabled={isUploadingCover || isSubmitting}
             onClick={() => {
-              console.log('[AnimeCoverField] Button clicked')
-              console.log('[AnimeCoverField] coverFileInputRef:', coverFileInputRef)
-              console.log('[AnimeCoverField] coverFileInputRef.current:', coverFileInputRef.current)
-              if (coverFileInputRef.current) {
-                console.log('[AnimeCoverField] Triggering file input click...')
-                coverFileInputRef.current.click()
+              console.log('[AnimeCoverField] Button clicked, fileInputRef.current:', fileInputRef.current)
+              if (fileInputRef.current) {
+                fileInputRef.current.click()
               } else {
-                console.error('[AnimeCoverField] ERROR: coverFileInputRef.current is null!')
+                console.error('[AnimeCoverField] ERROR: fileInputRef.current is null - input not mounted')
               }
             }}
           >
