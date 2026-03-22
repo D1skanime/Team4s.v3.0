@@ -9,7 +9,6 @@ backend/.env
 backend/*.exe
 
 # Media storage (uploaded files)
-storage/
 media/
 
 # General

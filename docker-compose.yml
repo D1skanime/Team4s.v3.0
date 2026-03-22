@@ -52,13 +52,13 @@ services:
       AUTH_ISSUE_DEV_MODE: ${AUTH_ISSUE_DEV_MODE:-false}
       AUTH_ISSUE_DEV_USER_ID: ${AUTH_ISSUE_DEV_USER_ID:-1}
       AUTH_ISSUE_DEV_DISPLAY_NAME: ${AUTH_ISSUE_DEV_DISPLAY_NAME:-DevUser}
-      MEDIA_STORAGE_DIR: /app/storage/media
+      MEDIA_STORAGE_DIR: /app/media
       MEDIA_PUBLIC_BASE_URL: ${MEDIA_PUBLIC_BASE_URL:-http://localhost:8092}
     ports:
       - "8092:8092"
     volumes:
       - ./database/migrations:/app/database/migrations:ro
-      - ./storage/media:/app/storage/media
+      - ./media:/app/media
     depends_on:
       team4sv30-db:
         condition: service_healthy
