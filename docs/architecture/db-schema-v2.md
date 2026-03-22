@@ -10,7 +10,7 @@
 |-------|--------|------|
 | **A** Reference & Metadata | ✅ Complete | 2026-03-22 |
 | **B** Episode Identity | ✅ Complete | 2026-03-22 |
-| **C** Release Decomposition | ⏳ Pending | - |
+| **C** Release Decomposition | ✅ Complete | 2026-03-22 |
 | **D** Media Normalization | ✅ Complete | 2026-03-20 |
 | **E** Contributor/Notes | ⏳ Pending | - |
 
