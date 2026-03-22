@@ -21,30 +21,42 @@ interface UseAnimePatchMutationsParams {
   setClearFlags: Dispatch<SetStateAction<AnimePatchClearFlags>>
 }
 
-async function uploadCoverFile(file: File): Promise<string> {
+async function uploadCoverFile(file: File, animeID: number, authToken: string): Promise<string> {
   const form = new FormData()
   form.set('file', file)
+  form.set('entity_type', 'anime')
+  form.set('entity_id', String(animeID))
+  form.set('asset_type', 'poster')
 
-  const response = await fetch('/api/admin/upload-cover', {
+  const response = await fetch('/api/v1/admin/upload', {
     method: 'POST',
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
     body: form,
   })
 
   if (!response.ok) {
     let message = `Upload fehlgeschlagen (${response.status}).`
     try {
-      const body = (await response.json()) as { error?: { message?: string } }
-      if (body.error?.message) message = body.error.message
+      const body = (await response.json()) as { error?: string }
+      if (body.error) message = body.error
     } catch {
       // ignore
     }
     throw new Error(message)
   }
 
-  const body = (await response.json()) as { data?: { file_name?: string } }
-  const fileName = (body.data?.file_name || '').trim()
-  if (!fileName) throw new Error('Upload fehlgeschlagen: keine Datei erhalten.')
-  return fileName
+  const body = (await response.json()) as {
+    id?: string
+    status?: string
+    files?: Array<{ variant: string; path: string; width: number; height: number }>
+    url?: string
+  }
+
+  const url = (body.url || '').trim()
+  if (!url) throw new Error('Upload fehlgeschlagen: keine URL erhalten.')
+  return url
 }
 
 function buildAnimePatchPayload(values: AnimePatchValues, clearFlags: AnimePatchClearFlags, onError: (msg: string) => void): AdminAnimePatchRequest | null {
@@ -146,16 +158,27 @@ export function useAnimePatchMutations({
 
   const uploadAndSetCover = useCallback(
     async (file: File, animeID?: number | null) => {
+      console.log('[uploadAndSetCover] Called with:', { fileName: file.name, animeID, hasAuthToken })
+      if (!hasAuthToken) {
+        console.warn('[uploadAndSetCover] No auth token')
+        onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+        return
+      }
+      if (!animeID) {
+        console.warn('[uploadAndSetCover] No anime ID')
+        onError('Anime-ID fehlt. Bitte zuerst einen Anime-Kontext laden.')
+        return
+      }
+
       try {
         setIsUploadingCover(true)
-        const fileName = await uploadCoverFile(file)
-        setValues((current) => ({ ...current, coverImage: fileName }))
+        console.log('[uploadAndSetCover] Starting upload...')
+        const coverUrl = await uploadCoverFile(file, animeID, authToken)
+        console.log('[uploadAndSetCover] Upload successful:', coverUrl)
+        setValues((current) => ({ ...current, coverImage: coverUrl }))
         setClearFlags((current) => ({ ...current, coverImage: false }))
 
-        if (!hasAuthToken) return
-        if (!animeID) return
-
-        await updateAdminAnime(animeID, { cover_image: fileName }, authToken)
+        await updateAdminAnime(animeID, { cover_image: coverUrl }, authToken)
         const refreshed = await getAnimeByID(animeID, { include_disabled: true })
         onSuccess(refreshed.data)
       } catch (error) {

@@ -49,6 +49,9 @@ services:
       EPISODE_PLAYBACK_MAX_CONCURRENT_STREAMS: ${EPISODE_PLAYBACK_MAX_CONCURRENT_STREAMS:-12}
       REDIS_ADDR: team4sv30-redis:6379
       REDIS_DB: ${REDIS_DB:-0}
+      AUTH_ISSUE_DEV_MODE: ${AUTH_ISSUE_DEV_MODE:-false}
+      AUTH_ISSUE_DEV_USER_ID: ${AUTH_ISSUE_DEV_USER_ID:-1}
+      AUTH_ISSUE_DEV_DISPLAY_NAME: ${AUTH_ISSUE_DEV_DISPLAY_NAME:-DevUser}
     ports:
       - "8092:8092"
     volumes:
@@ -80,9 +83,13 @@ services:
       NEXT_PUBLIC_AUTH_DISPLAY_NAME: ${NEXT_PUBLIC_AUTH_DISPLAY_NAME:-}
       NEXT_PUBLIC_RUNTIME_PROFILE: ${RUNTIME_PROFILE:-local}
       NEXT_PUBLIC_AUTH_ISSUE_DEV_MODE: ${AUTH_ISSUE_DEV_MODE:-false}
+      # Media base path for serving uploaded files
+      MEDIA_BASE_PATH: /media
     volumes:
       # Persist uploaded covers to the workspace (local-dev helper writes into public/covers).
       - ./frontend/public/covers:/app/public/covers
+      # New media system - mount media directory
+      - ./media:/media
     ports:
       - "3002:3000"
     depends_on:

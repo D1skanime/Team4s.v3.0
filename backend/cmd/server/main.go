@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -80,6 +81,13 @@ func main() {
 		log.Fatalf("redis init failed: %v", err)
 	}
 	defer redisClient.Close()
+
+	// Check FFmpeg availability for video processing
+	if err := checkFFmpegAvailability(cfg.FFmpegPath); err != nil {
+		log.Printf("warning: ffmpeg not available at %s: %v (video upload will be disabled)", cfg.FFmpegPath, err)
+	} else {
+		log.Printf("ffmpeg available at %s", cfg.FFmpegPath)
+	}
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), corsMiddleware())
@@ -189,6 +197,8 @@ func main() {
 		JellyfinBaseURL:    cfg.JellyfinBaseURL,
 		JellyfinStreamPath: cfg.JellyfinStreamPathTemplate,
 	})
+	mediaUploadRepo := repository.NewMediaUploadRepository(dbPool)
+	mediaUploadHandler := handlers.NewMediaUploadHandler(mediaUploadRepo, cfg.MediaStorageDir, cfg.MediaPublicBaseURL, cfg.FFmpegPath)
 
 	v1 := router.Group("/api/v1")
 	v1.POST("/auth/issue", authHandler.Issue)
@@ -417,6 +427,17 @@ func main() {
 		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
 		fansubHandler.RemoveCollaborationMember,
 	)
+	// Media upload endpoints
+	v1.POST(
+		"/admin/upload",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		mediaUploadHandler.Upload,
+	)
+	v1.DELETE(
+		"/admin/media/:id",
+		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		mediaUploadHandler.Delete,
+	)
 
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
@@ -521,4 +542,9 @@ func isLocalDevProfile(profile string) bool {
 	default:
 		return false
 	}
+}
+
+func checkFFmpegAvailability(ffmpegPath string) error {
+	cmd := exec.Command(ffmpegPath, "-version")
+	return cmd.Run()
 }

@@ -126,6 +126,15 @@ describe('resolveCoverUrl', () => {
     expect(resolveCoverUrl('/custom/path/cover.jpg')).toBe('/custom/path/cover.jpg')
   })
 
+  it('returns new media system URLs unchanged', () => {
+    expect(resolveCoverUrl('/media/anime/123/poster/abc-uuid-123/original.jpg')).toBe(
+      '/media/anime/123/poster/abc-uuid-123/original.jpg'
+    )
+    expect(resolveCoverUrl('/media/anime/456/poster/def-uuid-456/original.webp')).toBe(
+      '/media/anime/456/poster/def-uuid-456/original.webp'
+    )
+  })
+
   it('prefixes relative filenames with /covers/', () => {
     expect(resolveCoverUrl('cover.jpg')).toBe('/covers/cover.jpg')
     expect(resolveCoverUrl('anime-001.png')).toBe('/covers/anime-001.png')

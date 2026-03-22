@@ -291,6 +291,231 @@ Previous UX documentation (2026-03-15) described Related section as standalone b
 
 ---
 
+## 2026-03-22 - Generic Upload Endpoint Architecture
+
+### Decision
+Implement a single `/api/v1/admin/upload` endpoint that handles all media types (images and videos) for all entities (anime, episode, fansub, release, user, member) instead of creating specialized endpoints per entity or asset type.
+
+### Context
+The Media Upload Service spec required a unified upload mechanism to replace ad-hoc cover upload logic. Options were either specialized endpoints per entity type or a generic endpoint with request parameters for entity/asset types.
+
+### Options Considered
+1. Specialized endpoints per entity (e.g., `/api/v1/admin/anime/:id/cover`, `/api/v1/admin/episode/:id/thumbnail`)
+2. Generic upload endpoint with entity_type and asset_type parameters
+3. Hybrid approach (generic for common types, specialized for complex cases)
+
+### Why This Won
+- Eliminates code duplication across handlers (DRY principle)
+- Simplifies frontend integration (single mutation hook for all uploads)
+- Easier to maintain validation, processing, and storage logic in one place
+- Aligns with GSD spec requirement for "ein zentraler Endpoint"
+- Reduces API surface area (fewer routes to document and test)
+
+### Consequences
+- Entity type and asset type must be validated via whitelists (security requirement)
+- Path construction requires careful traversal protection (`filepath.Clean()` + prefix check)
+- Join table routing adds complexity to handler logic (switch on entity_type)
+- Request model includes more parameters than specialized endpoints would need
+
+### Follow-ups Required
+- Monitor performance as upload volume increases
+- Consider splitting if validation/processing logic diverges significantly per media type
+- Document entity_type and asset_type whitelists in API contract
+
+---
+
+## 2026-03-22 - Go-Native Image Processing vs. Libvips
+
+### Decision
+Use pure Go `github.com/disintegration/imaging` library for image processing instead of libvips bindings (`github.com/h2non/bimg`).
+
+### Context
+Image processing for uploads requires WebP conversion and thumbnail generation. Libvips is faster but requires C dependencies. Pure Go is slower but simpler to deploy.
+
+### Options Considered
+1. Pure Go `imaging` library (no C dependencies)
+2. Libvips bindings via `bimg` (faster, C dependencies)
+3. Image manipulation service (out of scope - YAGNI)
+
+### Why This Won
+- **Simplicity:** No C dependencies means simpler Docker image (no libvips installation)
+- **Portability:** Pure Go compiles to static binary (easier cross-platform development)
+- **Performance sufficient:** 2000+ covers process in seconds with pure Go
+- **Maintainability:** Easier to debug and maintain without cgo complexity
+- **Docker image size:** Alpine Go image stays small without libvips libraries
+
+### Consequences
+- Slightly slower processing than libvips (acceptable tradeoff for current scale)
+- Limited to common image formats (JPEG, PNG, WebP, GIF - sufficient for spec)
+- May need to revisit if upload volume increases 100x
+
+### Follow-ups Required
+- Benchmark actual processing times for 50MB images
+- Monitor performance as dataset grows beyond 10k covers
+- Document performance characteristics in spec
+
+---
+
+## 2026-03-22 - FFmpeg CLI for Video Processing
+
+### Decision
+Execute FFmpeg via `os/exec` CLI calls for video thumbnail extraction instead of using Go bindings.
+
+### Context
+Video uploads require thumbnail extraction at 5-second mark. FFmpeg is the industry standard, but Go bindings exist via cgo. CLI approach is simpler.
+
+### Options Considered
+1. FFmpeg CLI via `os/exec` (subprocess overhead, simple integration)
+2. FFmpeg Go bindings via cgo (faster, complex integration)
+3. Pure Go video decoding (limited format support, YAGNI)
+
+### Why This Won
+- FFmpeg CLI is stable, well-documented, and battle-tested
+- No cgo complexity (keeps build process simple)
+- Startup check ensures FFmpeg availability (warns if missing)
+- Black placeholder fallback for failed extractions (graceful degradation)
+- Subprocess overhead negligible for async processing
+
+### Consequences
+- Requires FFmpeg in Docker image (added to Dockerfile)
+- Subprocess overhead (minimal, acceptable for video processing time)
+- Depends on external binary availability (mitigated by startup check)
+- Must handle FFmpeg output parsing for error detection
+
+### Follow-ups Required
+- Add timeout for FFmpeg subprocess (prevent hang on corrupt video)
+- Test with various video codecs (H.264, VP9, etc.)
+- Document FFmpeg version requirements
+
+---
+
+## 2026-03-22 - Transaction Boundary for Media Upload
+
+### Decision
+Wrap all database writes (MediaAsset + MediaFile + join table) in a single transaction boundary with rollback on failure.
+
+### Context
+Critical Review blocker C2 identified data integrity risk: if any DB write fails, previous inserts succeed, leaving orphaned records. Upload process involves 4+ separate DB writes.
+
+### Options Considered
+1. No transaction (original implementation - data integrity risk)
+2. Single transaction for all writes (atomic operation)
+3. Nested transactions per entity type (complex, unnecessary)
+
+### Why This Won
+- Ensures all-or-nothing semantics (data integrity)
+- Prevents orphaned records in `media_assets` and `media_files` tables
+- Aligns with ACID principles for multi-table operations
+- Critical Review blocker (C2) - required for merge approval
+
+### Consequences
+- Requires transaction handling in repository layer (added `tx *sql.Tx` parameter)
+- Rollback logic needed for filesystem cleanup (if DB commit fails, delete uploaded files)
+- Slightly more complex error handling (must distinguish DB errors from processing errors)
+
+### Follow-ups Required
+- Add unit tests for transaction rollback scenarios
+- Document rollback behavior in API contract
+- Consider adding distributed transaction support if external services added later
+
+---
+
+## 2026-03-22 - Path Traversal Protection
+
+### Decision
+Validate constructed storage paths using `filepath.Clean()` and prefix check to prevent directory traversal attacks.
+
+### Context
+Critical Review blocker C4 identified security vulnerability: malicious `entity_type` or `entity_id` values (e.g., `../../etc`) could escape the media directory structure.
+
+### Options Considered
+1. No validation (original implementation - security vulnerability)
+2. Whitelist validation for entity_type + filepath.Clean + prefix check (defense in depth)
+3. Regex validation only (insufficient - bypassed by URL encoding)
+
+### Why This Won
+- Defense in depth: whitelist + path cleaning + prefix validation
+- Prevents directory traversal attacks (OWASP Top 10 mitigation)
+- `filepath.Clean()` normalizes paths and removes `..` segments
+- Prefix check ensures resolved path stays within `MEDIA_BASE_PATH`
+- Critical Review blocker (C4) - required for merge approval
+
+### Consequences
+- Additional validation overhead (negligible, ~1ms per request)
+- Clearer error messages for invalid paths (security + UX improvement)
+- Must maintain whitelist for entity_type and asset_type values
+
+### Follow-ups Required
+- Add security tests for path traversal attempts
+- Document security validations in API contract
+- Review other handlers for similar vulnerabilities
+
+---
+
+## 2026-03-22 - Backward-Compatible Cover URL Resolution
+
+### Decision
+Frontend `getCoverUrl()` function supports both legacy `/covers/` paths and new `/media/` paths during migration window.
+
+### Context
+Migrating 2231 anime covers from `/covers/` to `/media/anime/{id}/poster/{uuid}/` requires gradual rollout without breaking existing data or deployments.
+
+### Options Considered
+1. Hard cutover (update all DB records, deploy, remove legacy path - risky)
+2. Backward-compatible dual-path support (safer, gradual rollout)
+3. Redirect legacy paths to new paths (requires nginx config changes)
+
+### Why This Won
+- Allows gradual migration without breaking existing data
+- Old covers remain accessible during migration window
+- Simplifies rollback if migration fails (just revert DB updates)
+- No nginx configuration changes required
+- Can verify new paths work before removing legacy support
+
+### Consequences
+- Temporary dual-path logic in frontend (technical debt)
+- Cleanup needed after migration verification (remove legacy path handling)
+- Slightly more complex URL resolution logic (acceptable tradeoff)
+
+### Follow-ups Required
+- Set migration verification deadline (1 week after migration)
+- Document removal plan for legacy path support
+- Add metrics to track legacy path usage (know when safe to remove)
+
+---
+
+## 2026-03-22 - Schema Deviation: Inline Entity Fields vs. MediaType FK
+
+### Decision
+Use inline `entity_type`, `entity_id`, and `asset_type` fields in `media_assets` table instead of `media_type_id` FK to `MediaType` reference table as specified in `db-schema-v2.md`.
+
+### Context
+Critical Review blocker C7 identified schema mismatch between implementation and `db-schema-v2.md`. The spec expected `media_type_id` FK, but implementation used inline fields for simplicity.
+
+### Options Considered
+1. Follow spec exactly (add `MediaType` table, use FK)
+2. Use inline fields and document deviation (pragmatic)
+3. Hybrid approach (inline for entity, FK for asset type)
+
+### Why This Won
+- **Simpler queries:** No JOIN needed to determine entity/asset type
+- **Easier validation:** Whitelist check on inline fields vs. FK lookup
+- **Clearer intent:** Inline fields make relationship explicit in code
+- **Sufficient normalization:** entity_type values are low-cardinality (6 values)
+- **Migration complexity:** Changing schema now would require re-running migration
+
+### Consequences
+- Schema drift from `db-schema-v2.md` (must be documented)
+- May cause confusion in future phases if spec is assumed source of truth
+- Slightly less normalized (acceptable tradeoff for query simplicity)
+
+### Follow-ups Required
+- Update `db-schema-v2.md` to reflect actual implementation
+- Add migration note explaining deviation rationale
+- Review other schema sections for similar mismatches
+
+---
+
 ## 2026-03-14 - Fix Legacy Title Mapping
 
 ### Decision

@@ -36,6 +36,7 @@ type Config struct {
 	EpisodePlaybackMaxConcurrent int
 	MediaStorageDir              string
 	MediaPublicBaseURL           string
+	FFmpegPath                   string
 }
 
 func Load() Config {
@@ -71,6 +72,7 @@ func Load() Config {
 		EpisodePlaybackMaxConcurrent: getEnvInt("EPISODE_PLAYBACK_MAX_CONCURRENT_STREAMS", 12),
 		MediaStorageDir:              strings.TrimSpace(getEnv("MEDIA_STORAGE_DIR", "./storage/media")),
 		MediaPublicBaseURL:           strings.TrimSpace(getEnv("MEDIA_PUBLIC_BASE_URL", "http://localhost:8092")),
+		FFmpegPath:                   strings.TrimSpace(getEnv("FFMPEG_PATH", "/usr/bin/ffmpeg")),
 	}
 }
 

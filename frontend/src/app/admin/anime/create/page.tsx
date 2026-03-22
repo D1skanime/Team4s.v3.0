@@ -7,6 +7,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { ContentType, AnimeStatus } from '@/types/anime'
 import { AdminAnimeCreateRequest, AnimeType, GenreToken } from '@/types/admin'
 import { ApiError, createAdminAnime, getAdminGenreTokens, getRuntimeAuthToken } from '@/lib/api'
+import { resolveCoverUrl } from '../utils/anime-helpers'
 
 import styles from '../../admin.module.css'
 
@@ -39,14 +40,6 @@ function splitGenreTokens(raw: string): string[] {
     .split(',')
     .map((part) => normalizeGenreToken(part))
     .filter(Boolean)
-}
-
-function resolveCoverUrl(rawCoverImage?: string): string {
-  const value = (rawCoverImage || '').trim()
-  if (!value) return '/covers/placeholder.jpg'
-  if (value.startsWith('http://') || value.startsWith('https://')) return value
-  if (value.startsWith('/')) return value
-  return `/covers/${value}`
 }
 
 function handleCoverImgError(event: React.SyntheticEvent<HTMLImageElement>) {

@@ -28,6 +28,19 @@ export function splitGenreTokens(raw: string): string[] {
     .filter(Boolean)
 }
 
+/**
+ * Resolves anime cover image URLs to their canonical format.
+ *
+ * Supports multiple formats:
+ * - New media system: `/media/anime/{id}/poster/{uuid}/original.{ext}` (returned as-is)
+ * - Legacy absolute: `/covers/filename.jpg` (returned as-is)
+ * - Legacy relative: `filename.jpg` (prefixed with `/covers/`)
+ * - External URLs: `http://` or `https://` (returned as-is)
+ * - Empty/null: returns placeholder
+ *
+ * @param rawCoverImage - Raw cover image value from API
+ * @returns Resolved cover URL or placeholder
+ */
 export function resolveCoverUrl(rawCoverImage?: string): string {
   const value = (rawCoverImage || '').trim()
   if (!value) {
@@ -42,6 +55,7 @@ export function resolveCoverUrl(rawCoverImage?: string): string {
     return value
   }
 
+  // Legacy format: bare filename -> /covers/filename
   return `/covers/${value}`
 }
 
@@ -51,7 +65,7 @@ export function handleCoverImgError(event: React.SyntheticEvent<HTMLImageElement
     return
   }
   img.dataset.fallbackApplied = 'true'
-  img.alt = ''
+  img.alt = 'Cover nicht verfuegbar'
   img.src = '/covers/placeholder.jpg'
 }
 

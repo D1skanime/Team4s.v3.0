@@ -76,9 +76,16 @@ export function AnimeCoverField({
             accept="image/*"
             onChange={async (event) => {
               const file = event.target.files?.[0]
-              if (!file) return
+              if (!file) {
+                console.warn('[AnimeCoverField] No file selected')
+                return
+              }
+              console.log('[AnimeCoverField] Uploading file:', file.name, file.size)
               try {
                 await onUploadFile(file)
+                console.log('[AnimeCoverField] Upload completed')
+              } catch (error) {
+                console.error('[AnimeCoverField] Upload error:', error)
               } finally {
                 event.target.value = ''
               }
@@ -89,7 +96,17 @@ export function AnimeCoverField({
             className={styles.buttonSecondary}
             type="button"
             disabled={isUploadingCover || isSubmitting}
-            onClick={() => coverFileInputRef.current?.click()}
+            onClick={() => {
+              console.log('[AnimeCoverField] Button clicked')
+              console.log('[AnimeCoverField] coverFileInputRef:', coverFileInputRef)
+              console.log('[AnimeCoverField] coverFileInputRef.current:', coverFileInputRef.current)
+              if (coverFileInputRef.current) {
+                console.log('[AnimeCoverField] Triggering file input click...')
+                coverFileInputRef.current.click()
+              } else {
+                console.error('[AnimeCoverField] ERROR: coverFileInputRef.current is null!')
+              }
+            }}
           >
             {isUploadingCover ? 'Upload...' : 'Cover hochladen (lokal)'}
           </button>
@@ -111,7 +128,8 @@ export function AnimeCoverField({
           </button>
         </div>
         <p className={styles.hint}>
-          Hinweis: Upload ist fuer lokale Entwicklung gedacht und speichert nach <code>frontend/public/covers</code>.
+          Hinweis: Upload speichert Bilder im neuen Media-Service unter <code>/media/anime/ID/poster/UUID/</code>.
+          Alte Cover unter <code>/covers/</code> werden weiterhin unterstuetzt.
         </p>
       </div>
     </div>
