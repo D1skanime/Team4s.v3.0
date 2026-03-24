@@ -39,6 +39,11 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 		return models.AdminAnimeCreateInput{}, "ungueltiger status parameter"
 	}
 
+	coverImage := normalizeNullableString(req.CoverImage)
+	if coverImage == nil {
+		return models.AdminAnimeCreateInput{}, "cover_image ist erforderlich"
+	}
+
 	if req.Year != nil && *req.Year <= 0 {
 		return models.AdminAnimeCreateInput{}, "ungueltiger year parameter"
 	}
@@ -57,7 +62,7 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 		MaxEpisodes: req.MaxEpisodes,
 		Genre:       normalizeNullableString(req.Genre),
 		Description: normalizeNullableString(req.Description),
-		CoverImage:  normalizeNullableString(req.CoverImage),
+		CoverImage:  coverImage,
 	}, ""
 }
 
