@@ -47,7 +47,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 02-01-PLAN.md - Add the manual intake choice screen and the reusable manual draft-state contract.
-- [ ] 02-02-PLAN.md - Enforce the Phase 2 title-plus-cover create contract in backend validation.
+- [x] 02-02-PLAN.md - Enforce the Phase 2 title-plus-cover create contract in backend validation.
 - [ ] 02-03-PLAN.md - Rebuild `/admin/anime/create` into a shared-shell preview-before-save workflow with cover upload and edit redirect.
 **UI hint**: yes
 

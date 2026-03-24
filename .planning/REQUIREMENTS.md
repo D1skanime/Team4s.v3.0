@@ -10,8 +10,8 @@
 - [x] **INTK-01**: Admin can start anime creation by choosing either a manual flow or a Jellyfin-assisted flow.
 - [ ] **INTK-02**: Admin can review and edit all proposed anime values in a draft form before any anime record is created.
 - [ ] **INTK-03**: Admin can cancel a Jellyfin-assisted draft without creating a Team4s anime record.
-- [ ] **INTK-04**: Admin can save a new anime when only `title` and `cover` are present.
-- [ ] **INTK-05**: Admin can create and maintain an anime without any Jellyfin linkage.
+- [x] **INTK-04**: Admin can save a new anime when only `title` and `cover` are present.
+- [x] **INTK-05**: Admin can create and maintain an anime without any Jellyfin linkage.
 - [x] **INTK-06**: Admin can edit an existing anime through the same ownership-aware admin surface used by intake.
 
 ### Jellyfin Source Selection
@@ -36,7 +36,7 @@
 - [ ] **ASST-01**: Admin can see which asset slots came from Jellyfin, including cover, logo, banner, background, and background video.
 - [ ] **ASST-02**: Admin can remove a Jellyfin-derived asset from an individual asset slot without deleting the anime.
 - [ ] **ASST-03**: Admin can replace a Jellyfin-derived asset with a manual asset for the same slot.
-- [ ] **ASST-04**: Admin can continue using the existing cover upload flow inside the new anime intake and edit workflow.
+- [x] **ASST-04**: Admin can continue using the existing cover upload flow inside the new anime intake and edit workflow.
 - [ ] **ASST-05**: Admin can keep manual replacement assets from being silently replaced by later Jellyfin re-sync.
 
 ### Relation Management
@@ -88,8 +88,8 @@
 | INTK-01 | Phase 2 | Complete |
 | INTK-02 | Phase 2 | Pending |
 | INTK-03 | Phase 3 | Pending |
-| INTK-04 | Phase 2 | Pending |
-| INTK-05 | Phase 2 | Pending |
+| INTK-04 | Phase 2 | Complete |
+| INTK-05 | Phase 2 | Complete |
 | INTK-06 | Phase 1 | Complete |
 | JFIN-01 | Phase 3 | Pending |
 | JFIN-02 | Phase 3 | Pending |
@@ -105,7 +105,7 @@
 | ASST-01 | Phase 4 | Pending |
 | ASST-02 | Phase 4 | Pending |
 | ASST-03 | Phase 4 | Pending |
-| ASST-04 | Phase 2 | Pending |
+| ASST-04 | Phase 2 | Complete |
 | ASST-05 | Phase 4 | Pending |
 | RELA-01 | Phase 5 | Pending |
 | RELA-02 | Phase 5 | Pending |

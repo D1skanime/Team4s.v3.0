@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-24T15:23:02.916Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-24T15:24:20.087Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-23)
 ## Current Position
 
 Phase: 02 (manual-intake-baseline) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Plan: 2 of 3
 | Phase 01 P03 | 4274 | 2 tasks | 13 files |
 | Phase 01 P04 | 11m | 2 tasks | 8 files |
 | Phase 02 P01 | 2m | 2 tasks | 4 files |
+| Phase 02 P02 | 19min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Recent decisions affecting current work:
 - [Phase 01]: Admin content repository code is split by bounded responsibility while keeping existing repository signatures and transaction boundaries unchanged.
 - [Phase 02]: Replace the old searchable /admin/anime studio landing page with the phase-specific intake choice contract so the manual path is explicit before the create route is rebuilt.
 - [Phase 02]: Keep the manual draft resolver generic over manual input values so the next create-page refactor can reuse one empty/incomplete/ready seam without introducing Jellyfin-specific fields.
+- [Phase 02]: Manual anime create now requires a normalized non-empty cover_image in the backend, not only in the UI.
+- [Phase 02]: The create contract remains manual-only and continues accepting the existing upload-cover file_name as cover_image.
 
 ### Pending Todos
 
@@ -84,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T15:23:02.911Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-03-24T15:24:20.082Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
