@@ -26,7 +26,11 @@ This roadmap hardens the existing Team4s admin anime workflow in dependency orde
   1. Admin can open and maintain an existing anime through the same ownership-aware admin surface pattern that later intake flows will reuse.
   2. Admin-triggered anime mutations are durably attributable to the acting admin user ID for later traceability.
   3. The create/edit workflow behaves as one consistent admin surface instead of diverging into incompatible screens as new intake features are added.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 01-01-PLAN.md - Align authoritative anime metadata writes and reads before Phase 1 ownership UI.
+- [ ] 01-02-PLAN.md - Restore trusted admin actor attribution and durable audit persistence for Phase 1 mutations.
+- [ ] 01-03-PLAN.md - Extract the shared editor shell and add lightweight ownership visibility without expanding scope.
 **UI hint**: yes
 
 ### Phase 2: Manual Intake Baseline
