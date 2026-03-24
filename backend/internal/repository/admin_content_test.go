@@ -8,7 +8,7 @@ import (
 	"team4s.v3/backend/internal/models"
 )
 
-func TestBuildApplyJellyfinSyncMetadataQuery_UsesExplicitCasts(t *testing.T) {
+func TestAdminContentRepository_BuildApplyJellyfinSyncMetadataQuery_UsesExplicitCasts(t *testing.T) {
 	query, _ := buildApplyJellyfinSyncMetadataQuery(25, "jellyfin:abc", nil, nil, nil, false)
 
 	requiredFragments := []string{
@@ -26,7 +26,7 @@ func TestBuildApplyJellyfinSyncMetadataQuery_UsesExplicitCasts(t *testing.T) {
 	}
 }
 
-func TestBuildApplyJellyfinSyncMetadataQuery_TrimmedSourceAndNullableArgs(t *testing.T) {
+func TestAdminContentRepository_BuildApplyJellyfinSyncMetadataQuery_TrimmedSourceAndNullableArgs(t *testing.T) {
 	query, args := buildApplyJellyfinSyncMetadataQuery(25, " jellyfin:abc123 ", nil, nil, nil, true)
 
 	if strings.TrimSpace(query) == "" {
@@ -59,7 +59,7 @@ func TestBuildApplyJellyfinSyncMetadataQuery_TrimmedSourceAndNullableArgs(t *tes
 	}
 }
 
-func TestBuildAuthoritativeAnimeMetadataCreate_MatchesNormalizedReadContract(t *testing.T) {
+func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_MatchesNormalizedReadContract(t *testing.T) {
 	titleDE := "Frieren - Nach dem Ende der Reise"
 	titleEN := "Frieren: Beyond Journey's End"
 	genre := "Fantasy, Adventure, fantasy"
@@ -101,7 +101,7 @@ func TestBuildAuthoritativeAnimeMetadataCreate_MatchesNormalizedReadContract(t *
 	}
 }
 
-func TestBuildAuthoritativeAnimeMetadataPatch_OnlyTouchesExplicitFields(t *testing.T) {
+func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_OnlyTouchesExplicitFields(t *testing.T) {
 	title := "Orb: On the Movements of the Earth"
 
 	write := buildAuthoritativeAnimeMetadataPatch(models.AdminAnimePatchInput{
@@ -126,7 +126,7 @@ func TestBuildAuthoritativeAnimeMetadataPatch_OnlyTouchesExplicitFields(t *testi
 	}
 }
 
-func TestBuildAuthoritativeGenreTokensQuery_UsesNormalizedGenreStore(t *testing.T) {
+func TestAdminContentRepository_BuildAuthoritativeGenreTokensQuery_UsesNormalizedGenreStore(t *testing.T) {
 	query := buildAuthoritativeGenreTokensQuery()
 
 	requiredFragments := []string{
