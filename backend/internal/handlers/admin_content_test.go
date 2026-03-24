@@ -18,6 +18,7 @@ import (
 func TestValidateAdminAnimeCreateRequest(t *testing.T) {
 	year := int16(2013)
 	maxEpisodes := int16(25)
+	coverImage := " cover_123.webp "
 
 	input, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
 		Title:       " Attack on Titan ",
@@ -26,12 +27,67 @@ func TestValidateAdminAnimeCreateRequest(t *testing.T) {
 		Status:      "ongoing",
 		Year:        &year,
 		MaxEpisodes: &maxEpisodes,
+		CoverImage:  &coverImage,
 	})
 	if message != "" {
 		t.Fatalf("expected no validation error, got %q", message)
 	}
 	if input.Title != "Attack on Titan" {
 		t.Fatalf("unexpected normalized title: %q", input.Title)
+	}
+}
+
+func TestValidateAdminAnimeCreateRequest_RequiresCover(t *testing.T) {
+	coverImage := "   "
+
+	_, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
+		Title:       "Manual Draft",
+		Type:        "tv",
+		ContentType: "anime",
+		Status:      "ongoing",
+		CoverImage:  &coverImage,
+	})
+	if message != "cover_image ist erforderlich" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+}
+
+func TestValidateAdminAnimeCreateRequest_PreservesCoverImageOnSuccess(t *testing.T) {
+	coverImage := " cover_123.webp "
+
+	input, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
+		Title:       "Manual Draft",
+		Type:        "tv",
+		ContentType: "anime",
+		Status:      "ongoing",
+		CoverImage:  &coverImage,
+	})
+	if message != "" {
+		t.Fatalf("expected no validation error, got %q", message)
+	}
+	if input.CoverImage == nil || *input.CoverImage != "cover_123.webp" {
+		t.Fatalf("expected cover image to be preserved, got %+v", input.CoverImage)
+	}
+}
+
+func TestValidateAdminAnimeCreateRequest_ManualOnlyWithoutJellyfinDependency(t *testing.T) {
+	coverImage := "cover_123.webp"
+
+	input, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
+		Title:       "Manual Draft",
+		Type:        "tv",
+		ContentType: "anime",
+		Status:      "ongoing",
+		CoverImage:  &coverImage,
+	})
+	if message != "" {
+		t.Fatalf("expected no validation error, got %q", message)
+	}
+	if input.CoverImage == nil || *input.CoverImage != coverImage {
+		t.Fatalf("expected cover image %q, got %+v", coverImage, input.CoverImage)
+	}
+	if input.TitleDE != nil || input.TitleEN != nil || input.Year != nil || input.MaxEpisodes != nil || input.Genre != nil || input.Description != nil {
+		t.Fatalf("expected manual create contract to stay optional outside title and cover, got %+v", input)
 	}
 }
 
