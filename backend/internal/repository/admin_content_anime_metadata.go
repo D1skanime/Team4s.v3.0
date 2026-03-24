@@ -149,6 +149,50 @@ func normalizeGenreList(raw *string) []string {
 	return genres
 }
 
+func applyAuthoritativeAnimeMetadataWrite(
+	titleRecords []normalizedAnimeTitleRecord,
+	genres []string,
+	write authoritativeAnimeMetadataWrite,
+) ([]normalizedAnimeTitleRecord, []string) {
+	updatedTitles := append([]normalizedAnimeTitleRecord(nil), titleRecords...)
+	for _, slot := range write.TitleSlots {
+		if !slot.Set {
+			continue
+		}
+
+		replaced := false
+		for idx := range updatedTitles {
+			record := &updatedTitles[idx]
+			if record.LanguageCode != slot.LanguageCode || record.TitleType != slot.TitleType {
+				continue
+			}
+
+			replaced = true
+			if slot.Title == nil {
+				updatedTitles = append(updatedTitles[:idx], updatedTitles[idx+1:]...)
+			} else {
+				record.Title = *slot.Title
+			}
+			break
+		}
+
+		if !replaced && slot.Title != nil {
+			updatedTitles = append(updatedTitles, normalizedAnimeTitleRecord{
+				LanguageCode: slot.LanguageCode,
+				TitleType:    slot.TitleType,
+				Title:        *slot.Title,
+			})
+		}
+	}
+
+	updatedGenres := append([]string(nil), genres...)
+	if write.GenresSet {
+		updatedGenres = append([]string(nil), write.Genres...)
+	}
+
+	return updatedTitles, updatedGenres
+}
+
 func (r *AdminContentRepository) CreateAnime(
 	ctx context.Context,
 	input models.AdminAnimeCreateInput,
@@ -469,36 +513,19 @@ func buildAuthoritativeGenreTokensQuery() string {
 	`
 }
 
-func (r *AdminContentRepository) ListGenreTokens(
-	ctx context.Context,
-	query string,
-	limit int,
-) ([]models.GenreToken, error) {
-	rows, err := r.db.Query(ctx, buildAuthoritativeGenreTokensQuery())
-	if err != nil {
-		return nil, fmt.Errorf("query authoritative genres: %w", err)
-	}
-	defer rows.Close()
-
+func filterGenreTokens(tokens []models.GenreToken, query string, limit int) []models.GenreToken {
+	filtered := make([]models.GenreToken, 0, len(tokens))
 	q := strings.ToLower(strings.TrimSpace(query))
-	tokens := make([]models.GenreToken, 0)
-	for rows.Next() {
-		var token models.GenreToken
-		if err := rows.Scan(&token.Name, &token.Count); err != nil {
-			return nil, fmt.Errorf("scan authoritative genre token: %w", err)
-		}
+	for _, token := range tokens {
 		if q != "" && !strings.Contains(strings.ToLower(token.Name), q) {
 			continue
 		}
-		tokens = append(tokens, token)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate authoritative genre tokens: %w", err)
+		filtered = append(filtered, token)
 	}
 
-	sort.Slice(tokens, func(i, j int) bool {
-		leftName := strings.ToLower(tokens[i].Name)
-		rightName := strings.ToLower(tokens[j].Name)
+	sort.Slice(filtered, func(i, j int) bool {
+		leftName := strings.ToLower(filtered[i].Name)
+		rightName := strings.ToLower(filtered[j].Name)
 
 		if q != "" {
 			leftPrefix := strings.HasPrefix(leftName, q)
@@ -512,12 +539,38 @@ func (r *AdminContentRepository) ListGenreTokens(
 			return leftName < rightName
 		}
 
-		return tokens[i].Count > tokens[j].Count
+		return filtered[i].Count > filtered[j].Count
 	})
 
-	if limit > 0 && len(tokens) > limit {
-		tokens = tokens[:limit]
+	if limit > 0 && len(filtered) > limit {
+		filtered = filtered[:limit]
 	}
 
-	return tokens, nil
+	return filtered
+}
+
+func (r *AdminContentRepository) ListGenreTokens(
+	ctx context.Context,
+	query string,
+	limit int,
+) ([]models.GenreToken, error) {
+	rows, err := r.db.Query(ctx, buildAuthoritativeGenreTokensQuery())
+	if err != nil {
+		return nil, fmt.Errorf("query authoritative genres: %w", err)
+	}
+	defer rows.Close()
+
+	tokens := make([]models.GenreToken, 0)
+	for rows.Next() {
+		var token models.GenreToken
+		if err := rows.Scan(&token.Name, &token.Count); err != nil {
+			return nil, fmt.Errorf("scan authoritative genre token: %w", err)
+		}
+		tokens = append(tokens, token)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate authoritative genre tokens: %w", err)
+	}
+
+	return filterGenreTokens(tokens, query, limit), nil
 }

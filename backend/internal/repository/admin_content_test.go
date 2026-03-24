@@ -223,7 +223,7 @@ func TestAdminContentRepository_FilterGenreTokens_PrioritizesPrefixMatches(t *te
 		{Name: "Drama", Count: 4},
 		{Name: "Dark Fantasy", Count: 2},
 		{Name: "Adventure", Count: 8},
-	}, "da", 2)
+	}, "d", 2)
 
 	want := []models.GenreToken{
 		{Name: "Dark Fantasy", Count: 2},
