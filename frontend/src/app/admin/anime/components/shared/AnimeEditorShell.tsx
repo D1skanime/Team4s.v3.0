@@ -5,8 +5,6 @@ import workspaceStyles from '../AnimeEditPage/AnimeEditWorkspace.module.css'
 import type { AnimeEditorShellProps } from '../../types/admin-anime-editor'
 
 export function AnimeEditorShell({ editor, title, subtitle, header, children }: AnimeEditorShellProps) {
-  const hasUnsavedChanges = editor.isDirty
-
   return (
     <div className={workspaceStyles.workspace}>
       {title || subtitle || header ? (
@@ -28,10 +26,10 @@ export function AnimeEditorShell({ editor, title, subtitle, header, children }: 
           type={editor.submitButtonType}
           form={editor.formID}
           className={`${styles.button} ${styles.buttonPrimary}`}
-          disabled={editor.isSubmitting || !hasUnsavedChanges}
+          disabled={editor.isSubmitting || !editor.canSubmit}
           onClick={editor.onSubmit}
         >
-          {editor.isSubmitting ? 'Speichert...' : editor.submitLabel}
+          {editor.submitLabel}
         </button>
       </section>
     </div>

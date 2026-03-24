@@ -31,9 +31,11 @@ const DEFAULT_COPY: Record<
 export function useAnimeEditor(context: AnimeEditorContext, input: AnimeEditorControllerInput): AnimeEditorController {
   return useMemo(() => {
     const copy = DEFAULT_COPY[context]
+    const canSubmit = input.canSubmit ?? input.isDirty
     return {
       context,
       isDirty: input.isDirty,
+      canSubmit,
       isSubmitting: input.isSubmitting,
       onSubmit: input.onSubmit,
       formID: input.formID,

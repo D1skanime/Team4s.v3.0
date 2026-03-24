@@ -1,21 +1,23 @@
 'use client'
+
 import Link from 'next/link'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+
+import { ApiError, createAdminAnime, getAdminGenreTokens, getRuntimeAuthToken } from '@/lib/api'
 import { ContentType, AnimeStatus } from '@/types/anime'
 import { AdminAnimeCreateRequest, AnimeType, GenreToken } from '@/types/admin'
-import { ApiError, createAdminAnime, getAdminGenreTokens, getRuntimeAuthToken } from '@/lib/api'
-import { useAnimeEditor } from '../hooks/useAnimeEditor'
-import { normalizeOptionalString, parsePositiveInt, splitGenreTokens } from '../utils/anime-helpers'
-import { AnimeCreateCoverField } from '../components/CreatePage/AnimeCreateCoverField'
-import { AnimeCreateGenreField } from '../components/CreatePage/AnimeCreateGenreField'
-import { AnimeEditorShell } from '../components/shared/AnimeEditorShell'
+
 import styles from '../../admin.module.css'
+import { ManualCreateWorkspace } from '../components/ManualCreate/ManualCreateWorkspace'
+import { useAnimeEditor } from '../hooks/useAnimeEditor'
+import { resolveManualCreateState } from '../hooks/useManualAnimeDraft'
+import { normalizeOptionalString, parsePositiveInt, splitGenreTokens } from '../utils/anime-helpers'
 
-const ANIME_TYPES: AnimeType[] = ['tv', 'film', 'ova', 'ona', 'special', 'bonus']
-const CONTENT_TYPES: ContentType[] = ['anime', 'hentai']
-const ANIME_STATUSES: AnimeStatus[] = ['disabled', 'ongoing', 'done', 'aborted', 'licensed']
+export function buildManualCreateRedirectPath(id: number): string {
+  return `/admin/anime/${id}/edit`
+}
 
-async function uploadCoverFile(file: File): Promise<string> {
+export async function uploadManualCreateCover(file: File): Promise<string> {
   const form = new FormData()
   form.set('file', file)
 
@@ -41,6 +43,23 @@ async function uploadCoverFile(file: File): Promise<string> {
   return fileName
 }
 
+export async function createManualAnimeAndRedirect(
+  payload: AdminAnimeCreateRequest,
+  deps: {
+    createAdminAnime: (payload: AdminAnimeCreateRequest, authToken?: string) => Promise<{ data: { id: number } }>
+    setLocationHref: (value: string) => void
+    authToken?: string
+  },
+) {
+  const response = deps.authToken
+    ? await deps.createAdminAnime(payload, deps.authToken)
+    : await deps.createAdminAnime(payload)
+  deps.setLocationHref(buildManualCreateRedirectPath(response.data.id))
+  return response
+}
+
+const DEFAULT_GENRE_LIMIT = 40
+
 export default function AdminAnimeCreatePage() {
   const [authToken, setAuthToken] = useState('')
   const [isSubmittingCreate, setIsSubmittingCreate] = useState(false)
@@ -52,7 +71,8 @@ export default function AdminAnimeCreatePage() {
   const [genreTokens, setGenreTokens] = useState<GenreToken[]>([])
   const [isLoadingGenreTokens, setIsLoadingGenreTokens] = useState(false)
   const [genreTokensError, setGenreTokensError] = useState<string | null>(null)
-  const [genreSuggestionLimit, setGenreSuggestionLimit] = useState(40)
+  const [genreSuggestionLimit, setGenreSuggestionLimit] = useState(DEFAULT_GENRE_LIMIT)
+  const [showValidationSummary, setShowValidationSummary] = useState(false)
 
   const [createTitle, setCreateTitle] = useState('')
   const [createType, setCreateType] = useState<AnimeType>('tv')
@@ -86,47 +106,61 @@ export default function AdminAnimeCreatePage() {
     getAdminGenreTokens({ limit: 1000 }, authToken)
       .then((response) => setGenreTokens(response.data))
       .catch((error) => {
-        console.error('admin/anime/create: failed to load genre tokens', error)
         if (error instanceof ApiError) setGenreTokensError(`(${error.status}) ${error.message}`)
         else setGenreTokensError('Genre-Vorschlaege konnten nicht geladen werden.')
       })
       .finally(() => setIsLoadingGenreTokens(false))
-  }, [hasAuthToken, authToken])
+  }, [authToken, hasAuthToken])
 
-  const createGenreValue = useMemo(() => createGenreTokens.join(', '), [createGenreTokens])
-  const hasCreateDraft = useMemo(
+  const manualDraftState = useMemo(
     () =>
-      createTitle.trim().length > 0 ||
-      createType !== 'tv' ||
-      createContentType !== 'anime' ||
-      createStatus !== 'ongoing' ||
-      createYear.trim().length > 0 ||
-      createMaxEpisodes.trim().length > 0 ||
-      createTitleDE.trim().length > 0 ||
-      createTitleEN.trim().length > 0 ||
-      createGenreTokens.length > 0 ||
-      createDescription.trim().length > 0 ||
-      createCoverImage.trim().length > 0,
+      resolveManualCreateState({
+        title: createTitle,
+        cover_image: createCoverImage,
+        year: createYear,
+        max_episodes: createMaxEpisodes,
+        title_de: createTitleDE,
+        title_en: createTitleEN,
+        genre: createGenreTokens,
+        description: createDescription,
+      }),
     [
-      createContentType,
       createCoverImage,
       createDescription,
       createGenreTokens,
       createMaxEpisodes,
-      createStatus,
       createTitle,
       createTitleDE,
       createTitleEN,
-      createType,
       createYear,
     ],
   )
+
+  const missingFields = useMemo(() => {
+    const fields: string[] = []
+    if (!createTitle.trim()) fields.push('Titel')
+    if (!createCoverImage.trim()) fields.push('Cover')
+    return fields
+  }, [createCoverImage, createTitle])
+
   const editor = useAnimeEditor('create', {
-    isDirty: hasCreateDraft,
+    isDirty: manualDraftState.key !== 'empty',
+    canSubmit: manualDraftState.canSubmit,
     isSubmitting: isSubmittingCreate,
     formID: 'anime-create-form',
     submitButtonType: 'submit',
+    submitLabel: isSubmittingCreate ? 'Anime wird erstellt...' : 'Anime erstellen',
+    savedStateTitle: 'Noch kein manueller Entwurf',
+    savedStateMessage: 'Starte mit Titel und Cover. Erst beim Speichern wird ein Anime angelegt.',
+    dirtyStateTitle:
+      manualDraftState.key === 'ready' ? 'Entwurf bereit zum Anlegen' : 'Entwurf unvollstaendig',
+    dirtyStateMessage:
+      manualDraftState.key === 'ready'
+        ? 'Titel und Cover sind gesetzt. Du kannst den Anime jetzt anlegen.'
+        : 'Titel und Cover fehlen noch, bevor der Anime angelegt werden kann.',
   })
+
+  const createGenreValue = useMemo(() => createGenreTokens.join(', '), [createGenreTokens])
 
   const genreSuggestions = useMemo(() => {
     const q = createGenreDraft.trim().toLowerCase()
@@ -138,7 +172,7 @@ export default function AdminAnimeCreatePage() {
     })
     const limit = q ? Math.max(80, genreSuggestionLimit) : genreSuggestionLimit
     return filtered.slice(0, limit)
-  }, [createGenreDraft, createGenreTokens, genreTokens, genreSuggestionLimit])
+  }, [createGenreDraft, createGenreTokens, genreSuggestionLimit, genreTokens])
 
   const genreSuggestionsTotal = useMemo(() => {
     const q = createGenreDraft.trim().toLowerCase()
@@ -157,6 +191,7 @@ export default function AdminAnimeCreatePage() {
 
   function formatError(error: unknown, fallback: string): string {
     if (error instanceof ApiError) return `(${error.status}) ${error.message}`
+    if (error instanceof Error && error.message.trim()) return error.message
     return fallback
   }
 
@@ -177,32 +212,30 @@ export default function AdminAnimeCreatePage() {
     })
   }
 
-  function removeCreateGenreToken(name: string) {
-    setCreateGenreTokens((current) => current.filter((token) => token.toLowerCase() !== name.toLowerCase()))
-  }
-
   async function handleCreateSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     clearMessages()
     setLastRequest(null)
     setLastResponse(null)
+    setShowValidationSummary(true)
 
     if (!hasAuthToken) {
       setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
       return
     }
 
-    const title = createTitle.trim()
-    if (!title) {
-      setErrorMessage('title ist erforderlich')
+    if (!manualDraftState.canSubmit) {
+      setErrorMessage('Titel und Cover sind erforderlich')
       return
     }
 
+    const title = createTitle.trim()
     const payload: AdminAnimeCreateRequest = {
       title,
       type: createType,
       content_type: createContentType,
       status: createStatus,
+      cover_image: createCoverImage.trim(),
     }
 
     if (createYear.trim()) {
@@ -227,19 +260,20 @@ export default function AdminAnimeCreatePage() {
     payload.title_en = normalizeOptionalString(createTitleEN)
     payload.genre = normalizeOptionalString(createGenreValue)
     payload.description = normalizeOptionalString(createDescription)
-    payload.cover_image = normalizeOptionalString(createCoverImage)
 
     try {
       setIsSubmittingCreate(true)
       setLastRequest(JSON.stringify(payload, null, 2))
-      const response = await createAdminAnime(payload)
+      const response = await createManualAnimeAndRedirect(payload, {
+        createAdminAnime,
+        authToken,
+        setLocationHref: (value) => {
+          window.location.href = value
+        },
+      })
       setSuccessMessage(`Anime #${response.data.id} wurde erstellt. (Weiterleitung ins Studio...)`)
       setLastResponse(JSON.stringify(response, null, 2))
-
-      // Send user back to Studio with the new anime preloaded.
-      window.location.href = `/admin/anime?context=${response.data.id}`
     } catch (error) {
-      console.error('admin/anime/create: create failed', error)
       setErrorMessage(formatError(error, 'Anime konnte nicht erstellt werden.'))
     } finally {
       setIsSubmittingCreate(false)
@@ -250,12 +284,12 @@ export default function AdminAnimeCreatePage() {
     clearMessages()
     setIsUploadingCover(true)
     try {
-      const fileName = await uploadCoverFile(file)
+      const fileName = await uploadManualCreateCover(file)
       setCreateCoverImage(fileName)
+      setShowValidationSummary(false)
       setSuccessMessage(`Cover hochgeladen: ${fileName}`)
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Cover Upload fehlgeschlagen.'
-      setErrorMessage(message)
+      setErrorMessage(formatError(error, 'Cover Upload fehlgeschlagen.'))
     } finally {
       setIsUploadingCover(false)
     }
@@ -269,167 +303,77 @@ export default function AdminAnimeCreatePage() {
 
       <header className={styles.header}>
         <h1 className={styles.title}>Anime erstellen</h1>
-        <p className={styles.subtitle}>Neuen Anime Datensatz anlegen und dann im Studio weiter bearbeiten.</p>
+        <p className={styles.subtitle}>Neuen Anime erst als manuellen Entwurf pruefen und dann ins Studio uebernehmen.</p>
         <p className={styles.tokenPreview}>Token: {tokenPreview}</p>
       </header>
 
       {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
       {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
 
-      <AnimeEditorShell editor={editor}>
-        <section className={styles.panel}>
-          <form id="anime-create-form" className={styles.form} onSubmit={handleCreateSubmit}>
-          <div className={styles.gridTwo}>
-            <div className={styles.field}>
-              <label htmlFor="create-title">Title *</label>
-              <input
-                id="create-title"
-                value={createTitle}
-                onChange={(event) => setCreateTitle(event.target.value)}
-                disabled={isSubmittingCreate}
-              />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="create-type">Type *</label>
-              <select
-                id="create-type"
-                value={createType}
-                onChange={(event) => setCreateType(event.target.value as AnimeType)}
-                disabled={isSubmittingCreate}
-              >
-                {ANIME_TYPES.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="create-content-type">Content Type *</label>
-              <select
-                id="create-content-type"
-                value={createContentType}
-                onChange={(event) => setCreateContentType(event.target.value as ContentType)}
-                disabled={isSubmittingCreate}
-              >
-                {CONTENT_TYPES.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="create-status">Status *</label>
-              <select
-                id="create-status"
-                value={createStatus}
-                onChange={(event) => setCreateStatus(event.target.value as AnimeStatus)}
-                disabled={isSubmittingCreate}
-              >
-                {ANIME_STATUSES.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className={styles.gridTwo}>
-            <div className={styles.field}>
-              <label htmlFor="create-year">Year</label>
-              <input
-                id="create-year"
-                value={createYear}
-                onChange={(event) => setCreateYear(event.target.value)}
-                disabled={isSubmittingCreate}
-                placeholder="z. B. 2026"
-              />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="create-max-episodes">Max Episodes</label>
-              <input
-                id="create-max-episodes"
-                value={createMaxEpisodes}
-                onChange={(event) => setCreateMaxEpisodes(event.target.value)}
-                disabled={isSubmittingCreate}
-                placeholder="z. B. 12"
-              />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="create-title-de">Title DE</label>
-              <input
-                id="create-title-de"
-                value={createTitleDE}
-                onChange={(event) => setCreateTitleDE(event.target.value)}
-                disabled={isSubmittingCreate}
-              />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="create-title-en">Title EN</label>
-              <input
-                id="create-title-en"
-                value={createTitleEN}
-                onChange={(event) => setCreateTitleEN(event.target.value)}
-                disabled={isSubmittingCreate}
-              />
-            </div>
-          </div>
-
-          <div className={styles.grid}>
-            <AnimeCreateGenreField
-              draft={createGenreDraft}
-              selectedTokens={createGenreTokens}
-              suggestions={genreSuggestions}
-              suggestionsTotal={genreSuggestionsTotal}
-              loadedTokenCount={genreTokens.length}
-              isLoading={isLoadingGenreTokens}
-              error={genreTokensError}
-              isSubmitting={isSubmittingCreate}
-              canLoadMore={genreSuggestionLimit < 1000}
-              canResetLimit={genreSuggestionLimit > 40}
-              onDraftChange={setCreateGenreDraft}
-              onAddDraft={() => {
-                addCreateGenreTokens(createGenreDraft)
-                setCreateGenreDraft('')
-              }}
-              onRemoveToken={removeCreateGenreToken}
-              onAddSuggestion={addCreateGenreTokens}
-              onIncreaseLimit={() => setGenreSuggestionLimit((current) => Math.min(1000, current + 40))}
-              onResetLimit={() => setGenreSuggestionLimit(40)}
-            />
-            <AnimeCreateCoverField
-              inputRef={coverFileInputRef}
-              coverImage={createCoverImage}
-              isSubmitting={isSubmittingCreate}
-              isUploading={isUploadingCover}
-              onCoverImageChange={setCreateCoverImage}
-              onFileChange={async (event) => {
-                const file = event.target.files?.[0]
-                if (!file) return
-                try {
-                  await handleCoverUpload(file)
-                } finally {
-                  event.target.value = ''
-                }
-              }}
-              onOpenFileDialog={() => coverFileInputRef.current?.click()}
-            />
-            <div className={styles.field}>
-              <label htmlFor="create-description">Description</label>
-              <textarea
-                id="create-description"
-                value={createDescription}
-                onChange={(event) => setCreateDescription(event.target.value)}
-                disabled={isSubmittingCreate}
-              />
-            </div>
-          </div>
-
-          </form>
-        </section>
-      </AnimeEditorShell>
+      <ManualCreateWorkspace
+        editor={editor}
+        title={createTitle}
+        type={createType}
+        contentType={createContentType}
+        status={createStatus}
+        year={createYear}
+        maxEpisodes={createMaxEpisodes}
+        titleDE={createTitleDE}
+        titleEN={createTitleEN}
+        genreDraft={createGenreDraft}
+        genreTokens={createGenreTokens}
+        description={createDescription}
+        coverImage={createCoverImage}
+        inputRef={coverFileInputRef}
+        genreSuggestions={genreSuggestions}
+        genreSuggestionsTotal={genreSuggestionsTotal}
+        loadedTokenCount={genreTokens.length}
+        isLoadingGenres={isLoadingGenreTokens}
+        genreError={genreTokensError}
+        isSubmitting={isSubmittingCreate}
+        isUploadingCover={isUploadingCover}
+        canLoadMore={genreSuggestionLimit < 1000}
+        canResetLimit={genreSuggestionLimit > DEFAULT_GENRE_LIMIT}
+        missingFields={showValidationSummary ? missingFields : []}
+        onSubmit={handleCreateSubmit}
+        onTitleChange={(value) => {
+          setCreateTitle(value)
+          if (showValidationSummary) setShowValidationSummary(false)
+        }}
+        onTypeChange={setCreateType}
+        onContentTypeChange={setCreateContentType}
+        onStatusChange={setCreateStatus}
+        onYearChange={setCreateYear}
+        onMaxEpisodesChange={setCreateMaxEpisodes}
+        onTitleDEChange={setCreateTitleDE}
+        onTitleENChange={setCreateTitleEN}
+        onDescriptionChange={setCreateDescription}
+        onCoverImageChange={(value) => {
+          setCreateCoverImage(value)
+          if (showValidationSummary) setShowValidationSummary(false)
+        }}
+        onDraftGenreChange={setCreateGenreDraft}
+        onAddDraftGenre={() => {
+          addCreateGenreTokens(createGenreDraft)
+          setCreateGenreDraft('')
+        }}
+        onRemoveGenreToken={(name) =>
+          setCreateGenreTokens((current) => current.filter((token) => token.toLowerCase() !== name.toLowerCase()))
+        }
+        onAddGenreSuggestion={addCreateGenreTokens}
+        onIncreaseGenreLimit={() => setGenreSuggestionLimit((current) => Math.min(1000, current + 40))}
+        onResetGenreLimit={() => setGenreSuggestionLimit(DEFAULT_GENRE_LIMIT)}
+        onFileChange={async (event) => {
+          const file = event.target.files?.[0]
+          if (!file) return
+          try {
+            await handleCoverUpload(file)
+          } finally {
+            event.target.value = ''
+          }
+        }}
+        onOpenFileDialog={() => coverFileInputRef.current?.click()}
+      />
 
       {lastRequest ? (
         <pre className={styles.resultBox}>

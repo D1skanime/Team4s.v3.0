@@ -4,6 +4,7 @@ export type AnimeEditorContext = 'edit' | 'create'
 
 export interface AnimeEditorControllerInput {
   isDirty: boolean
+  canSubmit?: boolean
   isSubmitting: boolean
   onSubmit?: () => void
   formID?: string
@@ -18,6 +19,7 @@ export interface AnimeEditorControllerInput {
 export interface AnimeEditorController {
   context: AnimeEditorContext
   isDirty: boolean
+  canSubmit: boolean
   isSubmitting: boolean
   onSubmit?: () => void
   formID?: string
