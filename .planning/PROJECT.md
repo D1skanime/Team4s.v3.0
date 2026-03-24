@@ -29,7 +29,9 @@ Admins can reliably create and maintain correct anime records without losing con
 - [ ] Jellyfin re-sync updates Jellyfin-backed fields only when the stored field is empty; non-empty manual values must not be overwritten.
 - [ ] Jellyfin media origins are visible in the UI and removable so admins can replace them with manual uploads later.
 - [ ] Admin UI clearly exposes Jellyfin path and Jellyfin ID both during selection and later while editing.
-- [ ] Admin actions for anime intake and maintenance are audit-logged with the acting user ID for later traceability.
+- [ ] Admin can manage anime relations manually, including setting what an anime is and linking it to other existing anime records.
+- [ ] Anime relation management in V1 only offers `Hauptgeschichte`, `Nebengeschichte`, `Fortsetzung`, and `Zusammenfassung`, mapped to `full-story`, `side-story`, `sequel`, and `summary`.
+- [ ] Admin actions for anime intake, relation changes, and anime maintenance are audit-logged with the acting user ID for later traceability.
 - [ ] Validation and Jellyfin fetch or sync failures are shown clearly in the admin UI for fast debugging, but do not need durable error history in V1.
 
 ### Out of Scope
@@ -38,14 +40,15 @@ Admins can reliably create and maintain correct anime records without losing con
 - Fine-grained access rules and broader authz redesign - current phase is focused on admin workflow and data behavior
 - AniSearch crawler automation - deferred to a later phase
 - Full non-cover upload system parity for logo, banner, background, and background video - existing cover upload is the only completed upload surface today
+- Broader relation-type coverage beyond the four approved V1 labels - defer until the first admin relation workflow is stable
 
 ## Context
 
 Team4s is a brownfield codebase with active work already in progress across anime detail, admin content, metadata normalization, release decomposition, and media upload. The current stack is documented in `.planning/codebase/STACK.md` and `.planning/codebase/ARCHITECTURE.md`, and local development already runs via Docker Compose with Postgres, Redis, backend, and frontend services.
 
-This project already contains partial admin anime management and Jellyfin sync work, but the current anime intake flow is not yet cleanly defined as a product experience. The immediate need is to define the intended workflow, error visibility, auditability, and data ownership rules before expanding upload surfaces, live sync behavior, or future AniSearch enrichment.
+This project already contains partial admin anime management and Jellyfin sync work, but the current anime intake flow is not yet cleanly defined as a product experience. The immediate need is to define the intended workflow, relation management, error visibility, auditability, and data ownership rules before expanding upload surfaces, live sync behavior, or future AniSearch enrichment.
 
-The initial audience is internal admins only, not a broader moderator or editor surface. Jellyfin integration requires environment-backed API access and should expose enough metadata for admins to confidently select the correct source item. AniSearch remains the domain reference for anime semantics, especially the rule that anime should be treated as self-contained series rather than season-based records, but AniSearch crawling is not part of this phase.
+The initial audience is internal admins only, not a broader moderator or editor surface. Jellyfin integration requires environment-backed API access and should expose enough metadata for admins to confidently select the correct source item. The database already contains anime relation tables, but backend write endpoints and frontend relation management UI are not yet implemented. AniSearch remains the domain reference for anime semantics, especially the rule that anime should be treated as self-contained series rather than season-based records, but AniSearch crawling is not part of this phase.
 
 ## Constraints
 
@@ -55,6 +58,7 @@ The initial audience is internal admins only, not a broader moderator or editor 
 - **Workflow**: Jellyfin import must always pass through an editable form before save - prevents opaque automatic record creation
 - **Audience**: V1 is admin-only - the workflow can optimize for informed internal operators first
 - **Observability**: Admin actions need audit attribution by user ID, while operational errors must be visible immediately in the UI - supports debugging without requiring durable error retention
+- **Relations**: V1 relation editing is intentionally limited to four approved labels even though the database can support more - keeps the first admin relation surface understandable
 - **Scope**: Only cover upload is currently productionized - other anime media upload surfaces need planning and follow-up work
 - **Infrastructure**: Jellyfin access depends on `.env` configuration and API connectivity - feature design must account for that operational dependency
 
@@ -71,7 +75,9 @@ The initial audience is internal admins only, not a broader moderator or editor 
 | Jellyfin media provenance must be visible and removable in the UI | Admins need to understand what came from Jellyfin and replace it when needed | Pending |
 | Anime may be created without any Jellyfin linkage | Purely manual editorial workflows must remain possible | Pending |
 | Type from Jellyfin folder context is only a suggestion | Derived metadata should guide the user, not silently decide for them | Pending |
-| Anime intake actions are audit-logged by acting admin | Later traceability matters for debugging and accountability | Pending |
+| Anime relations are managed explicitly in admin rather than inferred silently | Relation semantics need human control and later editorial correction | Pending |
+| V1 relation UI only exposes Hauptgeschichte, Nebengeschichte, Fortsetzung, and Zusammenfassung | The first relation workflow should stay narrow even if the DB supports more types | Pending |
+| Anime intake and relation actions are audit-logged by acting admin | Later traceability matters for debugging and accountability | Pending |
 | Validation and Jellyfin fetch errors are surfaced in the UI but not durably stored in V1 | Errors should be easy to resolve without designing long-term error retention yet | Pending |
 
 ---
