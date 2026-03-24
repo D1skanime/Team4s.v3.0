@@ -276,6 +276,22 @@ func TestMediaUploadHandler_UploadPersistsUploadedByFromAuthIdentity(t *testing.
 	}
 }
 
+func TestMediaUploadHandler_MainFileStaysWithinLineBudget(t *testing.T) {
+	content, err := os.ReadFile("media_upload.go")
+	if err != nil {
+		t.Fatalf("read media_upload.go: %v", err)
+	}
+
+	lineCount := bytes.Count(content, []byte{'\n'})
+	if len(content) > 0 && content[len(content)-1] != '\n' {
+		lineCount++
+	}
+
+	if lineCount > 450 {
+		t.Fatalf("media_upload.go line count = %d, want <= 450", lineCount)
+	}
+}
+
 func newMediaUploadRequest(t *testing.T) *http.Request {
 	t.Helper()
 
