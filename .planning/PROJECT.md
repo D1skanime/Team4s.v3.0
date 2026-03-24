@@ -15,6 +15,9 @@ Admins can reliably create and maintain correct anime records without losing con
 - [x] Team4s already has a working backend/frontend stack for anime, admin content, media upload, and runtime deployment - existing
 - [x] Cover upload infrastructure already exists and is integrated into the current system - existing
 - [x] Jellyfin integration seams already exist in backend config and admin handlers - existing
+- [x] Validated in Phase 1: existing anime edit and intake now share one ownership-aware admin editor surface
+- [x] Validated in Phase 1: admin anime mutations and upload flows are durably attributable to the acting admin user ID
+- [x] Validated in Phase 1: Phase 1 production workflow files now stay within the 450-line modularity limit
 
 ### Active
 
@@ -43,6 +46,10 @@ Admins can reliably create and maintain correct anime records without losing con
 - Broader relation-type coverage beyond the four approved V1 labels - defer until the first admin relation workflow is stable
 
 ## Context
+
+## Current State
+
+Phase 1 is complete as of 2026-03-24. The repo now has a shared ownership-aware anime editor foundation, durable actor attribution for Phase 1 mutation paths, and the repository/server/upload files touched by the phase have been split back under the production file-size limit.
 
 Team4s is a brownfield codebase with active work already in progress across anime detail, admin content, metadata normalization, release decomposition, and media upload. The current stack is documented in `.planning/codebase/STACK.md` and `.planning/codebase/ARCHITECTURE.md`, and local development already runs via Docker Compose with Postgres, Redis, backend, and frontend services.
 
@@ -85,4 +92,4 @@ The initial audience is internal admins only, not a broader moderator or editor 
 | Validation and Jellyfin fetch errors are surfaced in the UI but not durably stored in V1 | Errors should be easy to resolve without designing long-term error retention yet | Pending |
 
 ---
-*Last updated: 2026-03-23 after Brownfield GSD questioning for anime intake/admin workflow planning*
+*Last updated: 2026-03-24 after Phase 1 completion*
