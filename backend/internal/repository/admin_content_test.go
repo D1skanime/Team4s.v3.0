@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"reflect"
 	"strings"
 	"testing"
+
+	"team4s.v3/backend/internal/models"
 )
 
 func TestBuildApplyJellyfinSyncMetadataQuery_UsesExplicitCasts(t *testing.T) {
@@ -53,5 +56,88 @@ func TestBuildApplyJellyfinSyncMetadataQuery_TrimmedSourceAndNullableArgs(t *tes
 	forceSourceArg, ok := args[5].(bool)
 	if !ok || !forceSourceArg {
 		t.Fatalf("expected forceSourceUpdate bool arg=true, got %#v", args[5])
+	}
+}
+
+func TestBuildAuthoritativeAnimeMetadataCreate_MatchesNormalizedReadContract(t *testing.T) {
+	titleDE := "Frieren - Nach dem Ende der Reise"
+	titleEN := "Frieren: Beyond Journey's End"
+	genre := "Fantasy, Adventure, fantasy"
+
+	write := buildAuthoritativeAnimeMetadataCreate(models.AdminAnimeCreateInput{
+		Title:   "Sousou no Frieren",
+		TitleDE: &titleDE,
+		TitleEN: &titleEN,
+		Genre:   &genre,
+	})
+
+	if len(write.TitleSlots) != 3 {
+		t.Fatalf("expected 3 title slots, got %d", len(write.TitleSlots))
+	}
+	if !write.GenresSet {
+		t.Fatal("expected genres to be marked authoritative on create")
+	}
+
+	metadata := mergeNormalizedAnimeMetadata(write.normalizedTitleRecords(), write.Genres)
+	if metadata == nil {
+		t.Fatal("expected normalized metadata")
+	}
+	if metadata.Title != "Sousou no Frieren" {
+		t.Fatalf("expected primary title to survive normalized read, got %q", metadata.Title)
+	}
+	if metadata.TitleDE == nil || *metadata.TitleDE != titleDE {
+		t.Fatalf("expected German title %q, got %#v", titleDE, metadata.TitleDE)
+	}
+	if metadata.TitleEN == nil || *metadata.TitleEN != titleEN {
+		t.Fatalf("expected English title %q, got %#v", titleEN, metadata.TitleEN)
+	}
+
+	wantGenres := []string{"Adventure", "Fantasy"}
+	if !reflect.DeepEqual(write.Genres, wantGenres) {
+		t.Fatalf("expected normalized genres %#v, got %#v", wantGenres, write.Genres)
+	}
+	if !reflect.DeepEqual(metadata.Genres, wantGenres) {
+		t.Fatalf("expected read genres %#v, got %#v", wantGenres, metadata.Genres)
+	}
+}
+
+func TestBuildAuthoritativeAnimeMetadataPatch_OnlyTouchesExplicitFields(t *testing.T) {
+	title := "Orb: On the Movements of the Earth"
+
+	write := buildAuthoritativeAnimeMetadataPatch(models.AdminAnimePatchInput{
+		Title: models.OptionalString{
+			Set:   true,
+			Value: &title,
+		},
+	})
+
+	if len(write.TitleSlots) != 1 {
+		t.Fatalf("expected 1 explicit title slot, got %d", len(write.TitleSlots))
+	}
+	slot := write.TitleSlots[0]
+	if !slot.Set || slot.LanguageCode != "romaji" || slot.TitleType != "main" {
+		t.Fatalf("expected romaji/main slot, got %#v", slot)
+	}
+	if slot.Title == nil || *slot.Title != title {
+		t.Fatalf("expected title value %q, got %#v", title, slot.Title)
+	}
+	if write.GenresSet {
+		t.Fatal("expected untouched genres to remain unset in patch")
+	}
+}
+
+func TestBuildAuthoritativeGenreTokensQuery_UsesNormalizedGenreStore(t *testing.T) {
+	query := buildAuthoritativeGenreTokensQuery()
+
+	requiredFragments := []string{
+		"FROM anime_genres ag",
+		"JOIN genres g ON g.id = ag.genre_id",
+		"GROUP BY g.name",
+	}
+
+	for _, fragment := range requiredFragments {
+		if !strings.Contains(query, fragment) {
+			t.Fatalf("expected query to contain %q, got %s", fragment, query)
+		}
 	}
 }
