@@ -2,7 +2,10 @@ package repository
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -57,6 +60,22 @@ func TestAdminContentRepository_BuildApplyJellyfinSyncMetadataQuery_TrimmedSourc
 	forceSourceArg, ok := args[5].(bool)
 	if !ok || !forceSourceArg {
 		t.Fatalf("expected forceSourceUpdate bool arg=true, got %#v", args[5])
+	}
+}
+
+func TestAdminContentRepository_Task1FilesStayWithinLineBudget(t *testing.T) {
+	files := []string{
+		"admin_content.go",
+		"admin_content_anime_metadata.go",
+		"admin_content_episode.go",
+		"admin_content_sync.go",
+		"admin_content_anime_audit.go",
+	}
+
+	for _, file := range files {
+		if got := repositoryFileLineCount(t, file); got > 450 {
+			t.Fatalf("expected %s to stay at or below 450 lines, got %d", file, got)
+		}
 	}
 }
 
@@ -294,4 +313,20 @@ func TestAdminContentRepository_BuildAnimePatchAuditEntry_UsesCoverRemoveMutatio
 	if rawCover != nil {
 		t.Fatalf("expected cover_image null in payload, got %#v", rawCover)
 	}
+}
+
+func repositoryFileLineCount(t *testing.T, name string) int {
+	t.Helper()
+
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("resolve test file path")
+	}
+
+	content, err := os.ReadFile(filepath.Join(filepath.Dir(file), name))
+	if err != nil {
+		t.Fatalf("read %s: %v", name, err)
+	}
+
+	return strings.Count(string(content), "\n") + 1
 }
