@@ -53,7 +53,7 @@
 
 - [ ] **RLY-01**: Admin can see validation failures clearly in the UI while creating, editing, syncing, or changing relations.
 - [ ] **RLY-02**: Admin can see Jellyfin fetch or sync failures clearly in the UI with enough context for quick debugging.
-- [ ] **RLY-03**: Admin-triggered create, update, resync, asset removal, upload, and relation-change actions are durably attributable to the acting admin user ID.
+- [x] **RLY-03**: Admin-triggered create, update, resync, asset removal, upload, and relation-change actions are durably attributable to the acting admin user ID.
 - [x] **RLY-04**: Admin-facing workflow changes keep implementation modular so production code files do not grow beyond the 450-line project limit.
 
 ## v2 Requirements
@@ -116,7 +116,7 @@
 | RELA-07 | Phase 5 | Pending |
 | RLY-01 | Phase 5 | Pending |
 | RLY-02 | Phase 4 | Pending |
-| RLY-03 | Phase 1 | Pending |
+| RLY-03 | Phase 1 | Complete |
 | RLY-04 | Phase 1 | Complete |
 
 **Coverage:**

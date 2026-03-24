@@ -29,7 +29,7 @@ This roadmap hardens the existing Team4s admin anime workflow in dependency orde
 **Plans**: 3 plans
 Plans:
 - [x] 01-01-PLAN.md - Align authoritative anime metadata writes and reads before Phase 1 ownership UI.
-- [ ] 01-02-PLAN.md - Restore trusted admin actor attribution and durable audit persistence for Phase 1 mutations.
+- [x] 01-02-PLAN.md - Restore trusted admin actor attribution and durable audit persistence for Phase 1 mutations.
 - [ ] 01-03-PLAN.md - Extract the shared editor shell and add lightweight ownership visibility without expanding scope.
 **UI hint**: yes
 
@@ -85,7 +85,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Ownership Foundations | 0/TBD | Not started | - |
+| 1. Ownership Foundations | 2/3 | In Progress|  |
 | 2. Manual Intake Baseline | 0/TBD | Not started | - |
 | 3. Jellyfin-Assisted Intake | 0/TBD | Not started | - |
 | 4. Provenance, Assets, And Safe Resync | 0/TBD | Not started | - |
