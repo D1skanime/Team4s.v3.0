@@ -26,11 +26,13 @@ This roadmap hardens the existing Team4s admin anime workflow in dependency orde
   1. Admin can open and maintain an existing anime through the same ownership-aware admin surface pattern that later intake flows will reuse.
   2. Admin-triggered anime mutations are durably attributable to the acting admin user ID for later traceability.
   3. The create/edit workflow behaves as one consistent admin surface instead of diverging into incompatible screens as new intake features are added.
-**Plans**: 3 plans
+**Plans**: 5 plans
 Plans:
 - [x] 01-01-PLAN.md - Align authoritative anime metadata writes and reads before Phase 1 ownership UI.
 - [x] 01-02-PLAN.md - Restore trusted admin actor attribution and durable audit persistence for Phase 1 mutations.
 - [x] 01-03-PLAN.md - Extract the shared editor shell and add lightweight ownership visibility without expanding scope.
+- [x] 01-04-PLAN.md - Close the remaining repository modularity gaps without changing verified authority or audit behavior.
+- [ ] 01-05-PLAN.md - Split remaining oversized handler and route wiring files to finish the Phase 1 modularity pass.
 **UI hint**: yes
 
 ### Phase 2: Manual Intake Baseline
@@ -85,7 +87,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Ownership Foundations | 3/3 | Complete | 2026-03-24 |
+| 1. Ownership Foundations | 4/5 | In progress | - |
 | 2. Manual Intake Baseline | 0/TBD | Not started | - |
 | 3. Jellyfin-Assisted Intake | 0/TBD | Not started | - |
 | 4. Provenance, Assets, And Safe Resync | 0/TBD | Not started | - |
