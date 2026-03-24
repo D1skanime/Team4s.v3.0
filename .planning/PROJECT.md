@@ -59,6 +59,8 @@ The initial audience is internal admins only, not a broader moderator or editor 
 - **Audience**: V1 is admin-only - the workflow can optimize for informed internal operators first
 - **Observability**: Admin actions need audit attribution by user ID, while operational errors must be visible immediately in the UI - supports debugging without requiring durable error retention
 - **Relations**: V1 relation editing is intentionally limited to four approved labels even though the database can support more - keeps the first admin relation surface understandable
+- **Modularity**: Production code files should stay at or below 450 lines; larger implementations must be split before they become monolithic
+- **UX quality**: Admin workflow changes should get explicit UX attention, not just backend correctness - the flow must stay understandable for internal operators
 - **Scope**: Only cover upload is currently productionized - other anime media upload surfaces need planning and follow-up work
 - **Infrastructure**: Jellyfin access depends on `.env` configuration and API connectivity - feature design must account for that operational dependency
 
@@ -77,6 +79,8 @@ The initial audience is internal admins only, not a broader moderator or editor 
 | Type from Jellyfin folder context is only a suggestion | Derived metadata should guide the user, not silently decide for them | Pending |
 | Anime relations are managed explicitly in admin rather than inferred silently | Relation semantics need human control and later editorial correction | Pending |
 | V1 relation UI only exposes Hauptgeschichte, Nebengeschichte, Fortsetzung, and Zusammenfassung | The first relation workflow should stay narrow even if the DB supports more types | Pending |
+| Code should be split before a production file exceeds 450 lines | Keeps anime intake, asset handling, and relation logic modular and reviewable | Pending |
+| Admin workflow work should include explicit UX review, not only technical correctness | The phase is partly about making the flow usable and debuggable for admins | Pending |
 | Anime intake and relation actions are audit-logged by acting admin | Later traceability matters for debugging and accountability | Pending |
 | Validation and Jellyfin fetch errors are surfaced in the UI but not durably stored in V1 | Errors should be easy to resolve without designing long-term error retention yet | Pending |
 
