@@ -10,7 +10,7 @@ This roadmap hardens the existing Team4s admin anime workflow in dependency orde
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Ownership Foundations** - Establish the shared ownership-aware edit surface, audit attribution, and modular contract base.
+- [x] **Phase 1: Ownership Foundations** - Establish the shared ownership-aware edit surface, audit attribution, and modular contract base.
 - [ ] **Phase 2: Manual Intake Baseline** - Deliver the manual preview-before-save workflow with minimum-field creation and existing cover upload.
 - [ ] **Phase 3: Jellyfin-Assisted Intake** - Add Jellyfin source selection and draft prefill without hidden persistence.
 - [ ] **Phase 4: Provenance, Assets, And Safe Resync** - Expose source provenance, per-slot asset handling, and fill-only resync behavior.
@@ -32,7 +32,7 @@ Plans:
 - [x] 01-02-PLAN.md - Restore trusted admin actor attribution and durable audit persistence for Phase 1 mutations.
 - [x] 01-03-PLAN.md - Extract the shared editor shell and add lightweight ownership visibility without expanding scope.
 - [x] 01-04-PLAN.md - Close the remaining repository modularity gaps without changing verified authority or audit behavior.
-- [ ] 01-05-PLAN.md - Split remaining oversized handler and route wiring files to finish the Phase 1 modularity pass.
+- [x] 01-05-PLAN.md - Split remaining oversized handler and route wiring files to finish the Phase 1 modularity pass.
 **UI hint**: yes
 
 ### Phase 2: Manual Intake Baseline
@@ -87,7 +87,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Ownership Foundations | 4/5 | In progress | - |
+| 1. Ownership Foundations | 5/5 | Complete | 2026-03-24 |
 | 2. Manual Intake Baseline | 0/TBD | Not started | - |
 | 3. Jellyfin-Assisted Intake | 0/TBD | Not started | - |
 | 4. Provenance, Assets, And Safe Resync | 0/TBD | Not started | - |
