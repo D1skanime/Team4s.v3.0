@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { KeyboardEvent, useEffect, useRef, useState } from 'react'
 
 import { getAdminGenreTokens, getAnimeByID, updateAdminAnime } from '@/lib/api'
@@ -8,7 +7,11 @@ import { AnimeDetail, AnimeStatus, ContentType } from '@/types/anime'
 import { AnimeType } from '@/types/admin'
 
 import { useAnimePatch } from '../../hooks/useAnimePatch'
-import { handleCoverImgError, resolveCoverUrl } from '../../utils/anime-helpers'
+import { useAnimeEditor } from '../../hooks/useAnimeEditor'
+import { resolveCoverUrl } from '../../utils/anime-helpers'
+import { AnimeEditorShell } from '../shared/AnimeEditorShell'
+import { AnimeEditCoverSection } from './AnimeEditCoverSection'
+import { AnimeEditGenreSection } from './AnimeEditGenreSection'
 import styles from '../../AdminStudio.module.css'
 import workspaceStyles from './AnimeEditWorkspace.module.css'
 
@@ -45,6 +48,15 @@ export function AnimeEditWorkspace({
     { onRequest, onResponse },
   )
   const resetFromAnime = patch.resetFromAnime
+  const editor = useAnimeEditor('edit', {
+    isDirty: patch.isDirty,
+    isSubmitting: patch.isSubmitting,
+    onSubmit: () => {
+      onRequest?.(null)
+      onResponse?.(null)
+      void patch.submit(anime.id)
+    },
+  })
 
   const coverFileInputRef = useRef<HTMLInputElement>(null)
   const genreCloseTimeoutRef = useRef<number | null>(null)
@@ -208,10 +220,8 @@ export function AnimeEditWorkspace({
   }
 
   const resolvedCover = resolveCoverUrl(patch.clearFlags.coverImage ? '' : patch.values.coverImage || anime.cover_image)
-  const hasUnsavedChanges = patch.isDirty
-
   return (
-    <div className={workspaceStyles.workspace}>
+    <AnimeEditorShell editor={editor}>
       <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
         <div className={styles.sectionHeader}>
           <div>
@@ -299,92 +309,28 @@ export function AnimeEditWorkspace({
         </div>
       </section>
 
-      <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <h2 className={styles.sectionTitle}>Genres</h2>
-            <p className={styles.sectionMeta}>Tag-Input mit Autocomplete aus den vorhandenen DB-Werten.</p>
-          </div>
-        </div>
-        <div className={workspaceStyles.tagSection}>
-          <div className={workspaceStyles.chipWrap}>
-            {patch.values.genreTokens.length > 0 ? (
-              patch.values.genreTokens.map((token) => (
-                <button
-                  key={token}
-                  type="button"
-                  className={workspaceStyles.chip}
-                  onClick={() => patch.removeGenreToken(token)}
-                  disabled={patch.isSubmitting || patch.clearFlags.genre}
-                >
-                  <span>{token}</span>
-                  <span className={workspaceStyles.chipRemove}>x</span>
-                </button>
-              ))
-            ) : (
-              <p className={workspaceStyles.helperText}>Noch keine Genres gesetzt.</p>
-            )}
-          </div>
-
-          <div className={workspaceStyles.tagInputShell}>
-            <input
-              className={styles.input}
-              value={patch.values.genreDraft}
-              onChange={(event) => patch.setField('genreDraft', event.target.value)}
-              onKeyDown={handleGenreKeyDown}
-              onFocus={() => {
-                if (genreResults.length > 0 || isLoadingGenres || genreError) {
-                  setIsGenreDropdownOpen(true)
-                }
-              }}
-              onBlur={scheduleDropdownClose}
-              disabled={patch.isSubmitting || patch.clearFlags.genre}
-              placeholder="Genre tippen und mit Enter oder Komma hinzufuegen"
-            />
-            {isGenreDropdownOpen ? (
-              <div className={workspaceStyles.tagDropdown}>
-                {isLoadingGenres ? <p className={workspaceStyles.dropdownState}>Genres werden geladen...</p> : null}
-                {!isLoadingGenres && genreError ? (
-                  <>
-                    <p className={workspaceStyles.dropdownState}>{genreError}</p>
-                    <button
-                      type="button"
-                      className={workspaceStyles.tagRetry}
-                      onMouseDown={(event) => {
-                        event.preventDefault()
-                        setGenreSearchVersion((current) => current + 1)
-                      }}
-                    >
-                      Retry
-                    </button>
-                  </>
-                ) : null}
-                {!isLoadingGenres && !genreError && genreResults.length === 0 ? (
-                  <p className={workspaceStyles.dropdownState}>Keine Treffer.</p>
-                ) : null}
-                {!isLoadingGenres && !genreError
-                  ? genreResults.map((item, index) => (
-                      <button
-                        key={item.name}
-                        type="button"
-                        className={`${workspaceStyles.tagOption} ${index === activeGenreIndex ? workspaceStyles.tagOptionActive : ''}`}
-                        onMouseDown={(event) => {
-                          event.preventDefault()
-                          applyGenreToken(item.name)
-                        }}
-                      >
-                        <span>{item.name}</span>
-                        <span className={workspaceStyles.tagOptionMeta}>x{item.count}</span>
-                      </button>
-                    ))
-                  : null}
-              </div>
-            ) : null}
-          </div>
-
-          <p className={workspaceStyles.helperText}>Duplikate werden verhindert. Backspace entfernt das letzte Tag.</p>
-        </div>
-      </section>
+      <AnimeEditGenreSection
+        genreTokens={patch.values.genreTokens}
+        genreDraft={patch.values.genreDraft}
+        isSubmitting={patch.isSubmitting}
+        clearGenre={patch.clearFlags.genre}
+        genreResults={genreResults}
+        isLoadingGenres={isLoadingGenres}
+        genreError={genreError}
+        isDropdownOpen={isGenreDropdownOpen}
+        activeGenreIndex={activeGenreIndex}
+        onGenreDraftChange={(value) => patch.setField('genreDraft', value)}
+        onGenreKeyDown={handleGenreKeyDown}
+        onGenreFocus={() => {
+          if (genreResults.length > 0 || isLoadingGenres || genreError) {
+            setIsGenreDropdownOpen(true)
+          }
+        }}
+        onGenreBlur={scheduleDropdownClose}
+        onRetry={() => setGenreSearchVersion((current) => current + 1)}
+        onRemoveToken={patch.removeGenreToken}
+        onApplyToken={applyGenreToken}
+      />
 
       <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
         <div className={workspaceStyles.descriptionHeader}>
@@ -402,102 +348,36 @@ export function AnimeEditWorkspace({
         />
       </section>
 
-      <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <h2 className={styles.sectionTitle}>Cover Management</h2>
-            <p className={styles.sectionMeta}>Vorschau, Upload und schnelle Cover-Aktionen in einer klaren Card.</p>
-          </div>
-        </div>
-        <div className={workspaceStyles.coverLayout}>
-          <Image
-            className={workspaceStyles.coverPreview}
-            src={resolvedCover}
-            alt="Cover Vorschau"
-            width={280}
-            height={420}
-            unoptimized
-            onError={handleCoverImgError}
-          />
-          <div className={workspaceStyles.uploadColumn}>
-            <button
-              type="button"
-              className={`${workspaceStyles.dropZone} ${isDragOver ? workspaceStyles.dropZoneActive : ''}`}
-              onClick={() => coverFileInputRef.current?.click()}
-              onDragOver={(event) => {
-                event.preventDefault()
-                setIsDragOver(true)
-              }}
-              onDragLeave={() => setIsDragOver(false)}
-              onDrop={async (event) => {
-                event.preventDefault()
-                setIsDragOver(false)
-                console.log('[AnimeEditWorkspace] File dropped')
-                const file = event.dataTransfer.files?.[0]
-                if (!file) {
-                  console.warn('[AnimeEditWorkspace] No file in drop')
-                  return
-                }
-                console.log('[AnimeEditWorkspace] Drop file:', file.name, file.size, 'animeId:', anime.id)
-                try {
-                  await patch.uploadAndSetCover(file, anime.id)
-                  console.log('[AnimeEditWorkspace] Drop upload completed')
-                } catch (error) {
-                  console.error('[AnimeEditWorkspace] Drop upload error:', error)
-                }
-              }}
-            >
-              <p className={workspaceStyles.dropZoneTitle}>Datei ablegen oder klicken</p>
-              <p className={workspaceStyles.dropZoneMeta}>Unterstuetzt: jpg, jpeg, png, webp, gif</p>
-            </button>
-            <input
-              ref={coverFileInputRef}
-              className={workspaceStyles.hiddenInput}
-              type="file"
-              accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
-              onChange={async (event) => {
-                console.log('[AnimeEditWorkspace] File input onChange triggered')
-                const file = event.target.files?.[0]
-                if (!file) {
-                  console.warn('[AnimeEditWorkspace] No file selected')
-                  return
-                }
-                console.log('[AnimeEditWorkspace] Uploading file:', file.name, file.size, 'animeId:', anime.id)
-                try {
-                  await patch.uploadAndSetCover(file, anime.id)
-                  console.log('[AnimeEditWorkspace] Upload completed successfully')
-                } catch (error) {
-                  console.error('[AnimeEditWorkspace] Upload error:', error)
-                } finally {
-                  event.target.value = ''
-                }
-              }}
-            />
-            <div className={styles.actionsRow}>
-              <button
-                type="button"
-                className={`${styles.button} ${styles.buttonPrimary}`}
-                disabled={patch.isSubmitting || patch.isUploadingCover}
-                onClick={() => coverFileInputRef.current?.click()}
-              >
-                {patch.isUploadingCover ? 'Upload laeuft...' : 'Cover hochladen'}
-              </button>
-              <a className={`${styles.button} ${styles.buttonGhost}`} href={resolvedCover} target="_blank" rel="noreferrer">
-                Cover oeffnen
-              </a>
-              <button
-                type="button"
-                className={`${styles.button} ${styles.buttonDanger}`}
-                disabled={patch.isSubmitting || patch.isUploadingCover}
-                onClick={() => void handleRemoveCover()}
-              >
-                Cover entfernen
-              </button>
-            </div>
-            <p className={workspaceStyles.helperText}>Lokale Uploads sind fuer das Dev-Setup gedacht und bleiben bewusst nachrangig.</p>
-          </div>
-        </div>
-      </section>
+      <AnimeEditCoverSection
+        coverFileInputRef={coverFileInputRef}
+        resolvedCover={resolvedCover}
+        isDragOver={isDragOver}
+        isSubmitting={patch.isSubmitting}
+        isUploadingCover={patch.isUploadingCover}
+        onDragOver={(event) => {
+          event.preventDefault()
+          setIsDragOver(true)
+        }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={async (event) => {
+          event.preventDefault()
+          setIsDragOver(false)
+          const file = event.dataTransfer.files?.[0]
+          if (!file) return
+          await patch.uploadAndSetCover(file, anime.id)
+        }}
+        onFileChange={async (event) => {
+          const file = event.target.files?.[0]
+          if (!file) return
+          try {
+            await patch.uploadAndSetCover(file, anime.id)
+          } finally {
+            event.target.value = ''
+          }
+        }}
+        onOpenFileDialog={() => coverFileInputRef.current?.click()}
+        onRemoveCover={() => void handleRemoveCover()}
+      />
 
       <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
         <details className={styles.developerPanel}>
@@ -521,26 +401,6 @@ export function AnimeEditWorkspace({
         </details>
       </section>
 
-      <section className={workspaceStyles.saveBar}>
-        <div className={workspaceStyles.saveState}>
-          <p className={workspaceStyles.saveStateTitle}>{hasUnsavedChanges ? 'Ungespeicherte Aenderungen' : 'Alle Aenderungen gespeichert'}</p>
-          <p className={workspaceStyles.saveStateMeta}>
-            {hasUnsavedChanges ? 'Pruefe die Sektionen und speichere den allgemeinen Anime-Kontext.' : 'Kein offener Patch im Formular.'}
-          </p>
-        </div>
-        <button
-          type="button"
-          className={`${styles.button} ${styles.buttonPrimary}`}
-          disabled={patch.isSubmitting || !hasUnsavedChanges}
-          onClick={() => {
-            onRequest?.(null)
-            onResponse?.(null)
-            void patch.submit(anime.id)
-          }}
-        >
-          {patch.isSubmitting ? 'Speichert...' : 'Aenderungen speichern'}
-        </button>
-      </section>
-    </div>
+    </AnimeEditorShell>
   )
 }

@@ -1,54 +1,19 @@
 'use client'
-
-import Image from 'next/image'
 import Link from 'next/link'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-
 import { ContentType, AnimeStatus } from '@/types/anime'
 import { AdminAnimeCreateRequest, AnimeType, GenreToken } from '@/types/admin'
 import { ApiError, createAdminAnime, getAdminGenreTokens, getRuntimeAuthToken } from '@/lib/api'
-import { resolveCoverUrl } from '../utils/anime-helpers'
-
+import { useAnimeEditor } from '../hooks/useAnimeEditor'
+import { normalizeOptionalString, parsePositiveInt, splitGenreTokens } from '../utils/anime-helpers'
+import { AnimeCreateCoverField } from '../components/CreatePage/AnimeCreateCoverField'
+import { AnimeCreateGenreField } from '../components/CreatePage/AnimeCreateGenreField'
+import { AnimeEditorShell } from '../components/shared/AnimeEditorShell'
 import styles from '../../admin.module.css'
 
 const ANIME_TYPES: AnimeType[] = ['tv', 'film', 'ova', 'ona', 'special', 'bonus']
 const CONTENT_TYPES: ContentType[] = ['anime', 'hentai']
 const ANIME_STATUSES: AnimeStatus[] = ['disabled', 'ongoing', 'done', 'aborted', 'licensed']
-
-function parsePositiveInt(value: string): number | null {
-  const parsed = Number.parseInt(value, 10)
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return null
-  }
-  return parsed
-}
-
-function normalizeOptionalString(value: string): string | undefined {
-  const trimmed = value.trim()
-  return trimmed ? trimmed : undefined
-}
-
-function normalizeGenreToken(raw: string): string {
-  return raw.trim().replace(/\s+/g, ' ')
-}
-
-function splitGenreTokens(raw: string): string[] {
-  const trimmed = raw.trim()
-  if (!trimmed) return []
-  if (!trimmed.includes(',')) return [normalizeGenreToken(trimmed)].filter(Boolean)
-  return trimmed
-    .split(',')
-    .map((part) => normalizeGenreToken(part))
-    .filter(Boolean)
-}
-
-function handleCoverImgError(event: React.SyntheticEvent<HTMLImageElement>) {
-  const img = event.currentTarget
-  if (img.dataset.fallbackApplied === 'true') return
-  img.dataset.fallbackApplied = 'true'
-  img.alt = ''
-  img.src = '/covers/placeholder.jpg'
-}
 
 async function uploadCoverFile(file: File): Promise<string> {
   const form = new FormData()
@@ -101,7 +66,6 @@ export default function AdminAnimeCreatePage() {
   const [createGenreTokens, setCreateGenreTokens] = useState<string[]>([])
   const [createDescription, setCreateDescription] = useState('')
   const [createCoverImage, setCreateCoverImage] = useState('')
-
   const coverFileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -130,6 +94,39 @@ export default function AdminAnimeCreatePage() {
   }, [hasAuthToken, authToken])
 
   const createGenreValue = useMemo(() => createGenreTokens.join(', '), [createGenreTokens])
+  const hasCreateDraft = useMemo(
+    () =>
+      createTitle.trim().length > 0 ||
+      createType !== 'tv' ||
+      createContentType !== 'anime' ||
+      createStatus !== 'ongoing' ||
+      createYear.trim().length > 0 ||
+      createMaxEpisodes.trim().length > 0 ||
+      createTitleDE.trim().length > 0 ||
+      createTitleEN.trim().length > 0 ||
+      createGenreTokens.length > 0 ||
+      createDescription.trim().length > 0 ||
+      createCoverImage.trim().length > 0,
+    [
+      createContentType,
+      createCoverImage,
+      createDescription,
+      createGenreTokens,
+      createMaxEpisodes,
+      createStatus,
+      createTitle,
+      createTitleDE,
+      createTitleEN,
+      createType,
+      createYear,
+    ],
+  )
+  const editor = useAnimeEditor('create', {
+    isDirty: hasCreateDraft,
+    isSubmitting: isSubmittingCreate,
+    formID: 'anime-create-form',
+    submitButtonType: 'submit',
+  })
 
   const genreSuggestions = useMemo(() => {
     const q = createGenreDraft.trim().toLowerCase()
@@ -279,8 +276,9 @@ export default function AdminAnimeCreatePage() {
       {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
       {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
 
-      <section className={styles.panel}>
-        <form className={styles.form} onSubmit={handleCreateSubmit}>
+      <AnimeEditorShell editor={editor}>
+        <section className={styles.panel}>
+          <form id="anime-create-form" className={styles.form} onSubmit={handleCreateSubmit}>
           <div className={styles.gridTwo}>
             <div className={styles.field}>
               <label htmlFor="create-title">Title *</label>
@@ -380,160 +378,44 @@ export default function AdminAnimeCreatePage() {
           </div>
 
           <div className={styles.grid}>
-            <div className={styles.field}>
-              <label htmlFor="create-genre">Genre</label>
-              {createGenreTokens.length > 0 ? (
-                <div className={styles.chipRow} aria-label="Ausgewaehlte Genres">
-                  {createGenreTokens.map((token) => (
-                    <button
-                      key={token}
-                      type="button"
-                      className={`${styles.chip} ${styles.chipActive}`}
-                      onClick={() => removeCreateGenreToken(token)}
-                      disabled={isSubmittingCreate}
-                      title="Klicken zum Entfernen"
-                    >
-                      {token} x
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className={styles.hint}>Noch keine Genres gesetzt.</p>
-              )}
-
-              <div className={styles.inputRow}>
-                <input
-                  id="create-genre"
-                  value={createGenreDraft}
-                  onChange={(event) => setCreateGenreDraft(event.target.value)}
-                  disabled={isSubmittingCreate}
-                  placeholder="z. B. Action, Drama"
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault()
-                      addCreateGenreTokens(createGenreDraft)
-                      setCreateGenreDraft('')
-                    }
-                  }}
-                />
-                <button
-                  type="button"
-                  className={styles.buttonSecondary}
-                  disabled={isSubmittingCreate || createGenreDraft.trim().length === 0}
-                  onClick={() => {
-                    addCreateGenreTokens(createGenreDraft)
-                    setCreateGenreDraft('')
-                  }}
-                >
-                  Hinzufuegen
-                </button>
-              </div>
-
-              {isLoadingGenreTokens ? <p className={styles.hint}>Genre-Vorschlaege werden geladen...</p> : null}
-              {genreTokensError ? <p className={styles.hint}>Hinweis: {genreTokensError}</p> : null}
-              {!isLoadingGenreTokens && genreSuggestions.length > 0 ? (
-                <>
-                  <p className={styles.hint}>
-                    Vorschlaege: {genreSuggestions.length}/{genreSuggestionsTotal} (geladen: {genreTokens.length})
-                  </p>
-                  <div className={styles.chipBox} aria-label="Genre Vorschlaege">
-                    <div className={styles.chipRow}>
-                      {genreSuggestions.map((token) => (
-                        <button
-                          key={token.name}
-                          type="button"
-                          className={styles.chip}
-                          onClick={() => addCreateGenreTokens(token.name)}
-                          disabled={isSubmittingCreate}
-                          title={`+ ${token.name} (x${token.count})`}
-                        >
-                          {token.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className={styles.actions}>
-                    <button
-                      type="button"
-                      className={styles.buttonSecondary}
-                      disabled={isSubmittingCreate || genreSuggestionLimit >= 1000}
-                      onClick={() => setGenreSuggestionLimit((current) => Math.min(1000, current + 40))}
-                    >
-                      Mehr
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.buttonSecondary}
-                      disabled={isSubmittingCreate || genreSuggestionLimit <= 40}
-                      onClick={() => setGenreSuggestionLimit(40)}
-                    >
-                      Weniger
-                    </button>
-                  </div>
-                </>
-              ) : null}
-              <p className={styles.hint}>Tip: Komma getrennt eingeben; Klick auf Vorschlag fuegt es hinzu.</p>
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="create-cover-image">Cover Image</label>
-              <input
-                id="create-cover-image"
-                value={createCoverImage}
-                onChange={(event) => setCreateCoverImage(event.target.value)}
-                disabled={isSubmittingCreate || isUploadingCover}
-                placeholder="dateiname.jpg"
-              />
-              <div className={styles.coverInline}>
-                <Image
-                  className={styles.coverPreviewSmall}
-                  src={resolveCoverUrl(createCoverImage)}
-                  alt=""
-                  width={88}
-                  height={132}
-                  unoptimized
-                  onError={handleCoverImgError}
-                />
-                <div className={styles.actions}>
-                  <a
-                    className={styles.buttonSecondary}
-                    href={resolveCoverUrl(createCoverImage)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Cover oeffnen
-                  </a>
-                </div>
-                <div className={styles.actions}>
-                  <input
-                    ref={coverFileInputRef}
-                    className={styles.fileInput}
-                    type="file"
-                    accept="image/*"
-                    onChange={async (event) => {
-                      const file = event.target.files?.[0]
-                      if (!file) return
-                      try {
-                        await handleCoverUpload(file)
-                      } finally {
-                        event.target.value = ''
-                      }
-                    }}
-                    disabled={isUploadingCover || isSubmittingCreate}
-                  />
-                  <button
-                    className={styles.buttonSecondary}
-                    type="button"
-                    disabled={isUploadingCover || isSubmittingCreate}
-                    onClick={() => coverFileInputRef.current?.click()}
-                  >
-                    {isUploadingCover ? 'Upload...' : 'Cover hochladen (lokal)'}
-                  </button>
-                </div>
-                <p className={styles.hint}>
-                  Hinweis: Upload ist fuer lokale Entwicklung gedacht und speichert nach <code>frontend/public/covers</code>.
-                </p>
-              </div>
-            </div>
+            <AnimeCreateGenreField
+              draft={createGenreDraft}
+              selectedTokens={createGenreTokens}
+              suggestions={genreSuggestions}
+              suggestionsTotal={genreSuggestionsTotal}
+              loadedTokenCount={genreTokens.length}
+              isLoading={isLoadingGenreTokens}
+              error={genreTokensError}
+              isSubmitting={isSubmittingCreate}
+              canLoadMore={genreSuggestionLimit < 1000}
+              canResetLimit={genreSuggestionLimit > 40}
+              onDraftChange={setCreateGenreDraft}
+              onAddDraft={() => {
+                addCreateGenreTokens(createGenreDraft)
+                setCreateGenreDraft('')
+              }}
+              onRemoveToken={removeCreateGenreToken}
+              onAddSuggestion={addCreateGenreTokens}
+              onIncreaseLimit={() => setGenreSuggestionLimit((current) => Math.min(1000, current + 40))}
+              onResetLimit={() => setGenreSuggestionLimit(40)}
+            />
+            <AnimeCreateCoverField
+              inputRef={coverFileInputRef}
+              coverImage={createCoverImage}
+              isSubmitting={isSubmittingCreate}
+              isUploading={isUploadingCover}
+              onCoverImageChange={setCreateCoverImage}
+              onFileChange={async (event) => {
+                const file = event.target.files?.[0]
+                if (!file) return
+                try {
+                  await handleCoverUpload(file)
+                } finally {
+                  event.target.value = ''
+                }
+              }}
+              onOpenFileDialog={() => coverFileInputRef.current?.click()}
+            />
             <div className={styles.field}>
               <label htmlFor="create-description">Description</label>
               <textarea
@@ -545,16 +427,9 @@ export default function AdminAnimeCreatePage() {
             </div>
           </div>
 
-          <div className={styles.actions}>
-            <button className={styles.button} type="submit" disabled={isSubmittingCreate}>
-              {isSubmittingCreate ? 'Speichern...' : 'Anime erstellen'}
-            </button>
-            <Link className={styles.buttonSecondary} href="/admin/anime">
-              Abbrechen (zurueck ins Studio)
-            </Link>
-          </div>
-        </form>
-      </section>
+          </form>
+        </section>
+      </AnimeEditorShell>
 
       {lastRequest ? (
         <pre className={styles.resultBox}>
