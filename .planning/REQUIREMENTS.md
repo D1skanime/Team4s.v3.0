@@ -85,44 +85,44 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INTK-01 | Unmapped | Pending |
-| INTK-02 | Unmapped | Pending |
-| INTK-03 | Unmapped | Pending |
-| INTK-04 | Unmapped | Pending |
-| INTK-05 | Unmapped | Pending |
-| INTK-06 | Unmapped | Pending |
-| JFIN-01 | Unmapped | Pending |
-| JFIN-02 | Unmapped | Pending |
-| JFIN-03 | Unmapped | Pending |
-| JFIN-04 | Unmapped | Pending |
-| JFIN-05 | Unmapped | Pending |
-| JFIN-06 | Unmapped | Pending |
-| OWNR-01 | Unmapped | Pending |
-| OWNR-02 | Unmapped | Pending |
-| OWNR-03 | Unmapped | Pending |
-| OWNR-04 | Unmapped | Pending |
-| OWNR-05 | Unmapped | Pending |
-| ASST-01 | Unmapped | Pending |
-| ASST-02 | Unmapped | Pending |
-| ASST-03 | Unmapped | Pending |
-| ASST-04 | Unmapped | Pending |
-| ASST-05 | Unmapped | Pending |
-| RELA-01 | Unmapped | Pending |
-| RELA-02 | Unmapped | Pending |
-| RELA-03 | Unmapped | Pending |
-| RELA-04 | Unmapped | Pending |
-| RELA-05 | Unmapped | Pending |
-| RELA-06 | Unmapped | Pending |
-| RELA-07 | Unmapped | Pending |
-| RLY-01 | Unmapped | Pending |
-| RLY-02 | Unmapped | Pending |
-| RLY-03 | Unmapped | Pending |
-| RLY-04 | Unmapped | Pending |
+| INTK-01 | Phase 2 | Pending |
+| INTK-02 | Phase 2 | Pending |
+| INTK-03 | Phase 3 | Pending |
+| INTK-04 | Phase 2 | Pending |
+| INTK-05 | Phase 2 | Pending |
+| INTK-06 | Phase 1 | Pending |
+| JFIN-01 | Phase 3 | Pending |
+| JFIN-02 | Phase 3 | Pending |
+| JFIN-03 | Phase 4 | Pending |
+| JFIN-04 | Phase 3 | Pending |
+| JFIN-05 | Phase 3 | Pending |
+| JFIN-06 | Phase 3 | Pending |
+| OWNR-01 | Phase 4 | Pending |
+| OWNR-02 | Phase 4 | Pending |
+| OWNR-03 | Phase 4 | Pending |
+| OWNR-04 | Phase 4 | Pending |
+| OWNR-05 | Phase 4 | Pending |
+| ASST-01 | Phase 4 | Pending |
+| ASST-02 | Phase 4 | Pending |
+| ASST-03 | Phase 4 | Pending |
+| ASST-04 | Phase 2 | Pending |
+| ASST-05 | Phase 4 | Pending |
+| RELA-01 | Phase 5 | Pending |
+| RELA-02 | Phase 5 | Pending |
+| RELA-03 | Phase 5 | Pending |
+| RELA-04 | Phase 5 | Pending |
+| RELA-05 | Phase 5 | Pending |
+| RELA-06 | Phase 5 | Pending |
+| RELA-07 | Phase 5 | Pending |
+| RLY-01 | Phase 5 | Pending |
+| RLY-02 | Phase 4 | Pending |
+| RLY-03 | Phase 1 | Pending |
+| RLY-04 | Phase 1 | Pending |
 
 **Coverage:**
 - v1 requirements: 33 total
-- Mapped to phases: 0
-- Unmapped: 33
+- Mapped to phases: 33
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-24*
