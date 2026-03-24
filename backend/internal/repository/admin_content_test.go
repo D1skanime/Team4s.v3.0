@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
@@ -231,5 +232,66 @@ func TestAdminContentRepository_FilterGenreTokens_PrioritizesPrefixMatches(t *te
 	}
 	if !reflect.DeepEqual(filtered, want) {
 		t.Fatalf("expected filtered genre tokens %#v, got %#v", want, filtered)
+	}
+}
+
+func TestAdminContentRepository_BuildAnimeCreateAuditEntry_PersistsActorAndPayload(t *testing.T) {
+	titleDE := "German"
+	genre := "Drama, Mystery"
+
+	entry, err := buildAdminAnimeAuditEntryForCreate(42, 77, models.AdminAnimeCreateInput{
+		Title:       "Monster",
+		TitleDE:     &titleDE,
+		Type:        "tv",
+		ContentType: "anime",
+		Status:      "done",
+		Genre:       &genre,
+	})
+	if err != nil {
+		t.Fatalf("build create audit entry: %v", err)
+	}
+	if entry.ActorUserID != 42 {
+		t.Fatalf("expected actor 42, got %d", entry.ActorUserID)
+	}
+	if entry.AnimeID != 77 {
+		t.Fatalf("expected anime 77, got %d", entry.AnimeID)
+	}
+	if entry.MutationKind != adminAnimeMutationKindCreate {
+		t.Fatalf("expected mutation kind %q, got %q", adminAnimeMutationKindCreate, entry.MutationKind)
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(entry.RequestPayload, &payload); err != nil {
+		t.Fatalf("unmarshal payload: %v", err)
+	}
+	if payload["title"] != "Monster" {
+		t.Fatalf("expected title in payload, got %#v", payload["title"])
+	}
+	if payload["genre"] != "Drama, Mystery" {
+		t.Fatalf("expected genre in payload, got %#v", payload["genre"])
+	}
+}
+
+func TestAdminContentRepository_BuildAnimePatchAuditEntry_UsesCoverRemoveMutationKind(t *testing.T) {
+	entry, err := buildAdminAnimeAuditEntryForPatch(11, 88, models.AdminAnimePatchInput{
+		CoverImage: models.OptionalString{Set: true, Value: nil},
+	})
+	if err != nil {
+		t.Fatalf("build patch audit entry: %v", err)
+	}
+	if entry.MutationKind != adminAnimeMutationKindCoverRemove {
+		t.Fatalf("expected mutation kind %q, got %q", adminAnimeMutationKindCoverRemove, entry.MutationKind)
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(entry.RequestPayload, &payload); err != nil {
+		t.Fatalf("unmarshal payload: %v", err)
+	}
+	rawCover, ok := payload["cover_image"]
+	if !ok {
+		t.Fatalf("expected cover_image in payload")
+	}
+	if rawCover != nil {
+		t.Fatalf("expected cover_image null in payload, got %#v", rawCover)
 	}
 }
