@@ -8,7 +8,9 @@ import { AnimeType } from '@/types/admin'
 
 import { useAnimePatch } from '../../hooks/useAnimePatch'
 import { useAnimeEditor } from '../../hooks/useAnimeEditor'
+import { resolveAnimeEditorOwnership } from '../../utils/anime-editor-ownership'
 import { resolveCoverUrl } from '../../utils/anime-helpers'
+import { AnimeOwnershipBadge } from '../shared/AnimeOwnershipBadge'
 import { AnimeEditorShell } from '../shared/AnimeEditorShell'
 import { AnimeEditCoverSection } from './AnimeEditCoverSection'
 import { AnimeEditGenreSection } from './AnimeEditGenreSection'
@@ -48,6 +50,7 @@ export function AnimeEditWorkspace({
     { onRequest, onResponse },
   )
   const resetFromAnime = patch.resetFromAnime
+  const ownership = resolveAnimeEditorOwnership(anime)
   const editor = useAnimeEditor('edit', {
     isDirty: patch.isDirty,
     isSubmitting: patch.isSubmitting,
@@ -221,7 +224,7 @@ export function AnimeEditWorkspace({
 
   const resolvedCover = resolveCoverUrl(patch.clearFlags.coverImage ? '' : patch.values.coverImage || anime.cover_image)
   return (
-    <AnimeEditorShell editor={editor}>
+    <AnimeEditorShell editor={editor} header={<AnimeOwnershipBadge ownership={ownership} />}>
       <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
         <div className={styles.sectionHeader}>
           <div>
