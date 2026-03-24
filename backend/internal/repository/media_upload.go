@@ -259,20 +259,20 @@ func (r *MediaUploadRepository) DeleteMediaAsset(ctx context.Context, id string)
 
 	for _, table := range joinTables {
 		query := fmt.Sprintf("DELETE FROM %s WHERE media_id = $1", table)
-		_, err := r.db.Exec(ctx, query, id)
+		_, err := r.getConn().Exec(ctx, query, id)
 		if err != nil {
 			return fmt.Errorf("delete from %s: %w", table, err)
 		}
 	}
 
 	// Delete media files
-	_, err := r.db.Exec(ctx, "DELETE FROM media_files WHERE media_id = $1", id)
+	_, err := r.getConn().Exec(ctx, "DELETE FROM media_files WHERE media_id = $1", id)
 	if err != nil {
 		return fmt.Errorf("delete media files: %w", err)
 	}
 
 	// Delete media asset
-	_, err = r.db.Exec(ctx, "DELETE FROM media_assets WHERE id = $1", id)
+	_, err = r.getConn().Exec(ctx, "DELETE FROM media_assets WHERE id = $1", id)
 	if err != nil {
 		return fmt.Errorf("delete media asset: %w", err)
 	}

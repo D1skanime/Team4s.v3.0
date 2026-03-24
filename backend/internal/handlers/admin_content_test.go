@@ -9,7 +9,10 @@ import (
 	"net/url"
 	"testing"
 
+	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
+
+	"github.com/gin-gonic/gin"
 )
 
 func TestValidateAdminAnimeCreateRequest(t *testing.T) {
@@ -472,6 +475,56 @@ func TestBuildJellyfinEditorStreamURL_MissingConfigReturnsNil(t *testing.T) {
 	streamURL := handler.buildJellyfinEditorStreamURL("abc123")
 	if streamURL != nil {
 		t.Fatalf("expected nil stream URL when config is incomplete, got %q", *streamURL)
+	}
+}
+
+func TestAdminContentRequireAdmin_RejectsMissingAuthIdentity(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime", nil)
+
+	handler := &AdminContentHandler{}
+	identity, ok := handler.requireAdmin(c)
+	if ok {
+		t.Fatalf("expected missing auth identity to be rejected, got %#v", identity)
+	}
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d", recorder.Code)
+	}
+
+	var payload struct {
+		Error struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("decode error payload: %v", err)
+	}
+	if payload.Error.Message != "anmeldung erforderlich" {
+		t.Fatalf("unexpected error message %q", payload.Error.Message)
+	}
+}
+
+func TestAdminContentRequireAdmin_RejectsMissingAuthzRepo(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime", nil)
+	c.Set("auth_identity", middleware.AuthIdentity{
+		UserID:      12,
+		DisplayName: "Nico",
+	})
+
+	handler := &AdminContentHandler{}
+	identity, ok := handler.requireAdmin(c)
+	if ok {
+		t.Fatalf("expected missing authz repo to fail closed, got %#v", identity)
+	}
+	if recorder.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500 when authz repo is missing, got %d", recorder.Code)
 	}
 }
 

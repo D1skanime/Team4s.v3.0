@@ -31,7 +31,7 @@ func (h *AdminContentHandler) CreateAnime(c *gin.Context) {
 		return
 	}
 
-	item, err := h.repo.CreateAnime(c.Request.Context(), input)
+	item, err := h.repo.CreateAnime(c.Request.Context(), input, identity.UserID)
 	if err != nil {
 		log.Printf("admin_content create_anime: repo error (user_id=%d): %v", identity.UserID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
@@ -68,7 +68,7 @@ func (h *AdminContentHandler) UpdateAnime(c *gin.Context) {
 		return
 	}
 
-	item, err := h.repo.UpdateAnime(c.Request.Context(), id, input)
+	item, err := h.repo.UpdateAnime(c.Request.Context(), id, input, identity.UserID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "anime nicht gefunden"}})
 		return

@@ -3,6 +3,10 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"image"
+	"image/color"
+	"image/png"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -10,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 
@@ -96,6 +101,10 @@ func (m *MockMediaUploadRepository) DeleteMediaAsset(ctx context.Context, id str
 	delete(m.assets, id)
 	delete(m.files, id)
 	return nil
+}
+
+func (m *MockMediaUploadRepository) WithTx(ctx context.Context, fn func(repo repository.MediaUploadRepo) error) error {
+	return fn(m)
 }
 
 func TestMediaUploadHandler_ValidateFile(t *testing.T) {
@@ -204,7 +213,13 @@ func TestMediaUploadHandler_Delete(t *testing.T) {
 	// Test delete
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	router.DELETE("/admin/media/:id", handler.Delete)
+	router.DELETE("/admin/media/:id", func(c *gin.Context) {
+		c.Set("auth_identity", middleware.AuthIdentity{
+			UserID:      22,
+			DisplayName: "Operator",
+		})
+		handler.Delete(c)
+	})
 
 	req := httptest.NewRequest(http.MethodDelete, "/admin/media/"+mediaID, nil)
 	w := httptest.NewRecorder()
@@ -215,6 +230,91 @@ func TestMediaUploadHandler_Delete(t *testing.T) {
 	// Verify asset is deleted
 	_, err := repo.GetMediaAsset(context.Background(), mediaID)
 	assert.Error(t, err)
+}
+
+func TestMediaUploadHandler_UploadRejectsMissingAuthIdentity(t *testing.T) {
+	repo := NewMockMediaUploadRepository()
+	handler := NewMediaUploadHandler(repo, t.TempDir(), "http://localhost", "/usr/bin/ffmpeg")
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.POST("/admin/upload", handler.Upload)
+
+	req := newMediaUploadRequest(t)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Contains(t, w.Body.String(), "anmeldung erforderlich")
+}
+
+func TestMediaUploadHandler_UploadPersistsUploadedByFromAuthIdentity(t *testing.T) {
+	repo := NewMockMediaUploadRepository()
+	handler := NewMediaUploadHandler(repo, t.TempDir(), "http://localhost", "/usr/bin/ffmpeg")
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.POST("/admin/upload", func(c *gin.Context) {
+		c.Set("auth_identity", middleware.AuthIdentity{
+			UserID:      44,
+			DisplayName: "Operator",
+		})
+		handler.Upload(c)
+	})
+
+	req := newMediaUploadRequest(t)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	if assert.Len(t, repo.assets, 1) {
+		for _, asset := range repo.assets {
+			if assert.NotNil(t, asset.UploadedBy) {
+				assert.Equal(t, int64(44), *asset.UploadedBy)
+			}
+		}
+	}
+}
+
+func newMediaUploadRequest(t *testing.T) *http.Request {
+	t.Helper()
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	assert.NoError(t, writer.WriteField("entity_type", "anime"))
+	assert.NoError(t, writer.WriteField("entity_id", "123"))
+	assert.NoError(t, writer.WriteField("asset_type", "poster"))
+
+	fileWriter, err := writer.CreateFormFile("file", "cover.png")
+	if err != nil {
+		t.Fatalf("create form file: %v", err)
+	}
+	if _, err := fileWriter.Write(testPNGBytes(t)); err != nil {
+		t.Fatalf("write png bytes: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("close multipart writer: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/admin/upload", &body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	return req
+}
+
+func testPNGBytes(t *testing.T) []byte {
+	t.Helper()
+
+	var body bytes.Buffer
+	img := image.NewRGBA(image.Rect(0, 0, 2, 2))
+	img.Set(0, 0, color.RGBA{R: 255, A: 255})
+	img.Set(1, 0, color.RGBA{G: 255, A: 255})
+	img.Set(0, 1, color.RGBA{B: 255, A: 255})
+	img.Set(1, 1, color.RGBA{R: 255, G: 255, B: 255, A: 255})
+	if err := png.Encode(&body, img); err != nil {
+		t.Fatalf("encode png: %v", err)
+	}
+
+	return body.Bytes()
 }
 
 // mockMultipartFile implements multipart.File interface for testing

@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 
@@ -87,6 +88,12 @@ func NewMediaUploadHandler(repo repository.MediaUploadRepoTx, storageDir, baseUR
 
 // Upload handles POST /api/admin/upload
 func (h *MediaUploadHandler) Upload(c *gin.Context) {
+	identity, ok := middleware.CommentAuthIdentityFromContext(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "anmeldung erforderlich"}})
+		return
+	}
+
 	var req models.UploadRequest
 	if err := c.ShouldBind(&req); err != nil {
 		log.Printf("media_upload: bad request: %v", err)
@@ -163,9 +170,9 @@ func (h *MediaUploadHandler) Upload(c *gin.Context) {
 	// Process file based on format
 	var uploadResp *models.UploadResponse
 	if format == "image" {
-		uploadResp, err = h.processImage(c.Request.Context(), file, mimeType, mediaID, req, storagePath)
+		uploadResp, err = h.processImage(c.Request.Context(), file, mimeType, mediaID, req, storagePath, identity.UserID)
 	} else if format == "video" {
-		uploadResp, err = h.processVideo(c.Request.Context(), file, mimeType, mediaID, req, storagePath)
+		uploadResp, err = h.processVideo(c.Request.Context(), file, mimeType, mediaID, req, storagePath, identity.UserID)
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "nicht unterstuetztes format"})
 		return
@@ -220,6 +227,7 @@ func (h *MediaUploadHandler) processImage(
 	mediaID string,
 	req models.UploadRequest,
 	storagePath string,
+	actorUserID int64,
 ) (*models.UploadResponse, error) {
 	// Decode image
 	img, format, err := image.Decode(file)
@@ -289,6 +297,7 @@ func (h *MediaUploadHandler) processImage(
 		AssetType:  req.AssetType,
 		Format:     "image",
 		MimeType:   mimeType,
+		UploadedBy: &actorUserID,
 		CreatedAt:  time.Now(),
 	}
 
@@ -354,6 +363,7 @@ func (h *MediaUploadHandler) processVideo(
 	mediaID string,
 	req models.UploadRequest,
 	storagePath string,
+	actorUserID int64,
 ) (*models.UploadResponse, error) {
 	// Check if FFmpeg is available
 	if h.ffmpegPath == "" {
@@ -440,6 +450,7 @@ func (h *MediaUploadHandler) processVideo(
 		AssetType:  req.AssetType,
 		Format:     "video",
 		MimeType:   mimeType,
+		UploadedBy: &actorUserID,
 		CreatedAt:  time.Now(),
 	}
 
@@ -566,6 +577,11 @@ func (h *MediaUploadHandler) createJoinTableEntryWithRepo(ctx context.Context, r
 
 // Delete handles DELETE /api/admin/media/{id}
 func (h *MediaUploadHandler) Delete(c *gin.Context) {
+	if _, ok := middleware.CommentAuthIdentityFromContext(c); !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "anmeldung erforderlich"}})
+		return
+	}
+
 	mediaID := c.Param("id")
 	if mediaID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "media id fehlt"})
