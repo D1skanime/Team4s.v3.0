@@ -79,6 +79,19 @@ func TestAdminContentRepository_Task1FilesStayWithinLineBudget(t *testing.T) {
 	}
 }
 
+func TestAnimeRepository_Task2FilesStayWithinLineBudget(t *testing.T) {
+	files := []string{
+		"anime.go",
+		"anime_metadata.go",
+	}
+
+	for _, file := range files {
+		if got := repositoryFileLineCount(t, file); got > 450 {
+			t.Fatalf("expected %s to stay at or below 450 lines, got %d", file, got)
+		}
+	}
+}
+
 func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_MatchesNormalizedReadContract(t *testing.T) {
 	titleDE := "Frieren - Nach dem Ende der Reise"
 	titleEN := "Frieren: Beyond Journey's End"
