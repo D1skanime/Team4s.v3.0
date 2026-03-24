@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 01-05-PLAN.md
-last_updated: "2026-03-24T13:47:04.823Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-03-24T13:52:04.139Z"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-23)
 ## Current Position
 
 Phase: 01 (ownership-foundations) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -66,6 +66,8 @@ Recent decisions affecting current work:
 - [Phase 01]: Shared anime editing now runs through AnimeEditorShell and useAnimeEditor so create and edit keep one save-bar contract.
 - [Phase 01]: Phase 1 ownership visibility stays record-level via AnimeOwnershipBadge and the anime-editor-ownership utility.
 - [Phase 01-ownership-foundations]: Keep media_upload.go limited to constructor, validation, Upload, and Delete while moving image/video/storage details into dedicated helper files.
+- [Phase 01]: Normalized anime metadata loading and merge helpers now live in anime_metadata.go so detail and media lookup overlays share one dedicated read-path seam.
+- [Phase 01]: Admin content repository code is split by bounded responsibility while keeping existing repository signatures and transaction boundaries unchanged.
 
 ### Pending Todos
 
@@ -78,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T13:47:04.638Z
-Stopped at: Completed 01-05-PLAN.md
+Last session: 2026-03-24T13:51:56.338Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
