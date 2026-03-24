@@ -48,7 +48,7 @@ Plans:
 Plans:
 - [x] 02-01-PLAN.md - Add the manual intake choice screen and the reusable manual draft-state contract.
 - [x] 02-02-PLAN.md - Enforce the Phase 2 title-plus-cover create contract in backend validation.
-- [ ] 02-03-PLAN.md - Rebuild `/admin/anime/create` into a shared-shell preview-before-save workflow with cover upload and edit redirect.
+- [x] 02-03-PLAN.md - Rebuild `/admin/anime/create` into a shared-shell preview-before-save workflow with cover upload and edit redirect.
 **UI hint**: yes
 
 ### Phase 3: Jellyfin-Assisted Intake
@@ -92,7 +92,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Ownership Foundations | 5/5 | Complete | 2026-03-24 |
-| 2. Manual Intake Baseline | 1/3 | In Progress | - |
+| 2. Manual Intake Baseline | 3/3 | Human verification needed | - |
 | 3. Jellyfin-Assisted Intake | 0/TBD | Not started | - |
 | 4. Provenance, Assets, And Safe Resync | 0/TBD | Not started | - |
 | 5. Relations And Reliability | 0/TBD | Not started | - |
