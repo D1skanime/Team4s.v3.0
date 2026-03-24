@@ -2,11 +2,9 @@ package main
 
 import (
 	"context"
-	"errors"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -20,53 +18,11 @@ import (
 	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func main() {
 	cfg := config.Load()
-	runtimeProfile := strings.TrimSpace(cfg.RuntimeProfile)
-	if runtimeProfile == "" {
-		runtimeProfile = "local"
-	}
-	if strings.TrimSpace(cfg.AuthTokenSecret) == "" {
-		log.Fatal("AUTH_TOKEN_SECRET is required")
-	}
-	if cfg.AuthAccessTokenTTLSeconds <= 0 {
-		log.Fatal("AUTH_ACCESS_TOKEN_TTL_SECONDS must be greater than 0")
-	}
-	if cfg.AuthRefreshTokenTTLSeconds <= 0 {
-		log.Fatal("AUTH_REFRESH_TOKEN_TTL_SECONDS must be greater than 0")
-	}
-	if cfg.ReleaseStreamGrantTTLSeconds <= 0 {
-		log.Fatal("RELEASE_STREAM_GRANT_TTL_SECONDS must be greater than 0")
-	}
-	if cfg.EpisodePlaybackRateLimit <= 0 {
-		log.Fatal("EPISODE_PLAYBACK_RATE_LIMIT must be greater than 0")
-	}
-	if cfg.EpisodePlaybackRateWindowSec <= 0 {
-		log.Fatal("EPISODE_PLAYBACK_RATE_WINDOW_SECONDS must be greater than 0")
-	}
-	if cfg.EpisodePlaybackMaxConcurrent <= 0 {
-		log.Fatal("EPISODE_PLAYBACK_MAX_CONCURRENT_STREAMS must be greater than 0")
-	}
-	if cfg.AuthIssueDevMode {
-		if !isLocalDevProfile(runtimeProfile) {
-			log.Fatalf("AUTH_ISSUE_DEV_MODE must be false when RUNTIME_PROFILE=%s", runtimeProfile)
-		}
-		if cfg.AuthIssueDevUserID <= 0 {
-			log.Fatal("AUTH_ISSUE_DEV_USER_ID must be greater than 0 when AUTH_ISSUE_DEV_MODE=true")
-		}
-
-		displayName := strings.TrimSpace(cfg.AuthIssueDevDisplayName)
-		if displayName == "" {
-			log.Fatal("AUTH_ISSUE_DEV_DISPLAY_NAME is required when AUTH_ISSUE_DEV_MODE=true")
-		}
-		if len([]rune(displayName)) > 80 {
-			log.Fatal("AUTH_ISSUE_DEV_DISPLAY_NAME must be at most 80 characters")
-		}
-		log.Printf("warning: AUTH_ISSUE_DEV_MODE=true (RUNTIME_PROFILE=%s)", runtimeProfile)
-	}
+	validateRuntimeConfig(cfg)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -134,6 +90,8 @@ func main() {
 	commentHandler := handlers.NewCommentHandler(commentRepo)
 	commentCreateLimiter := middleware.NewCommentRateLimiter(redisClient, 5, time.Minute)
 	authRepo := repository.NewAuthRepository(redisClient)
+	authMiddleware := middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo)
+	authOptionalMiddleware := middleware.CommentAuthOptionalMiddlewareWithState(cfg.AuthTokenSecret, authRepo)
 	authHandler := handlers.NewAuthHandler(
 		authRepo,
 		cfg.AuthTokenSecret,
@@ -206,7 +164,7 @@ func main() {
 	v1 := router.Group("/api/v1")
 	v1.POST("/auth/issue", authHandler.Issue)
 	v1.POST("/auth/refresh", authHandler.Refresh)
-	v1.POST("/auth/revoke", middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo), authHandler.Revoke)
+	v1.POST("/auth/revoke", authMiddleware, authHandler.Revoke)
 	v1.GET("/anime", animeHandler.List)
 	v1.GET("/anime/:id", animeHandler.GetByID)
 	v1.GET("/anime/:id/backdrops", animeHandler.ListBackdrops)
@@ -220,31 +178,31 @@ func main() {
 	v1.GET("/anime/:id/comments", commentHandler.ListByAnimeID)
 	v1.POST(
 		"/anime/:id/comments",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		authMiddleware,
 		middleware.CommentCreateRateLimitMiddleware(commentCreateLimiter),
 		commentHandler.CreateByAnimeID,
 	)
-	v1.GET("/watchlist", middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo), watchlistHandler.ListByUser)
-	v1.POST("/watchlist", middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo), watchlistHandler.CreateByUser)
+	v1.GET("/watchlist", authMiddleware, watchlistHandler.ListByUser)
+	v1.POST("/watchlist", authMiddleware, watchlistHandler.CreateByUser)
 	v1.GET(
 		"/watchlist/:anime_id",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		authMiddleware,
 		watchlistHandler.GetByUserAndAnimeID,
 	)
 	v1.DELETE(
 		"/watchlist/:anime_id",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		authMiddleware,
 		watchlistHandler.DeleteByUser,
 	)
 	v1.GET("/episodes/:id", episodeHandler.GetByID)
 	v1.POST(
 		"/episodes/:id/play/grant",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		authMiddleware,
 		episodePlaybackHandler.CreatePlaybackGrant,
 	)
 	v1.GET(
 		"/episodes/:id/play",
-		middleware.CommentAuthOptionalMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		authOptionalMiddleware,
 		episodePlaybackHandler.Play,
 	)
 	v1.GET("/fansubs", fansubHandler.ListFansubs)
@@ -258,187 +216,36 @@ func main() {
 	v1.GET("/media/files/:filename", fansubHandler.ServeMediaFile)
 	v1.GET(
 		"/assets/:assetId/stream",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		authMiddleware,
 		assetStreamHandler.StreamAsset,
 	)
 	v1.POST(
 		"/releases/:id/grant",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		authMiddleware,
 		fansubHandler.CreateReleaseStreamGrant,
 	)
 	v1.GET(
 		"/releases/:id/stream",
-		middleware.CommentAuthOptionalMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		authOptionalMiddleware,
 		fansubHandler.StreamRelease,
 	)
 	v1.GET("/releases/:id/assets", releaseAssetsHandler.ListReleaseAssets)
 	v1.GET("/releases/:id/images", episodeVersionImagesHandler.ListReleaseImages)
-	v1.POST(
-		"/admin/anime",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		adminContentHandler.CreateAnime,
-	)
-	v1.PATCH(
-		"/admin/anime/:id",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		adminContentHandler.UpdateAnime,
-	)
-	v1.POST(
-		"/admin/anime/:id/jellyfin/sync",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		adminContentHandler.SyncAnimeFromJellyfin,
-	)
-	v1.POST(
-		"/admin/anime/:id/episodes/:episodeId/sync",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		adminContentHandler.SyncEpisodeFromJellyfin,
-	)
-	v1.GET(
-		"/admin/jellyfin/series",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		adminContentHandler.SearchJellyfinSeries,
-	)
-	v1.POST(
-		"/admin/anime/:id/jellyfin/preview",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		adminContentHandler.PreviewAnimeFromJellyfin,
-	)
-	v1.GET(
-		"/admin/episode-versions/:versionId/editor-context",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		adminContentHandler.GetEpisodeVersionEditorContext,
-	)
-	v1.POST(
-		"/admin/episode-versions/:versionId/folder-scan",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		adminContentHandler.ScanEpisodeVersionFolder,
-	)
-	v1.POST(
-		"/admin/episodes",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		adminContentHandler.CreateEpisode,
-	)
-	v1.GET(
-		"/admin/genres",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		adminContentHandler.ListGenreTokens,
-	)
-	v1.PATCH(
-		"/admin/episodes/:id",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		adminContentHandler.UpdateEpisode,
-	)
-	v1.DELETE(
-		"/admin/episodes/:id",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		adminContentHandler.DeleteEpisode,
-	)
-	v1.POST(
-		"/admin/fansubs/:id/media",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.UploadFansubMedia,
-	)
-	v1.DELETE(
-		"/admin/fansubs/:id/media/:kind",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.DeleteFansubMedia,
-	)
-	v1.POST(
-		"/fansubs",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.CreateFansub,
-	)
-	v1.PATCH(
-		"/fansubs/:id",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.UpdateFansub,
-	)
-	v1.DELETE(
-		"/fansubs/:id",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.DeleteFansub,
-	)
-	v1.POST(
-		"/fansubs/:id/aliases",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.CreateFansubAlias,
-	)
-	v1.DELETE(
-		"/fansubs/:id/aliases/:aliasId",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.DeleteFansubAlias,
-	)
-	v1.POST(
-		"/fansubs/:id/members",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.CreateFansubMember,
-	)
-	v1.PATCH(
-		"/fansubs/:id/members/:memberId",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.UpdateFansubMember,
-	)
-	v1.DELETE(
-		"/fansubs/:id/members/:memberId",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.DeleteFansubMember,
-	)
-	v1.POST(
-		"/anime/:id/fansubs/:fansubId",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.AttachAnimeFansub,
-	)
-	v1.DELETE(
-		"/anime/:id/fansubs/:fansubId",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.DetachAnimeFansub,
-	)
-	v1.POST(
-		"/anime/:id/episodes/:episodeNumber/versions",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.CreateEpisodeVersion,
-	)
-	v1.PATCH(
-		"/episode-versions/:versionId",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.UpdateEpisodeVersion,
-	)
-	v1.DELETE(
-		"/episode-versions/:versionId",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.DeleteEpisodeVersion,
-	)
-	// Fansub merge and collaboration endpoints
-	v1.POST(
-		"/admin/fansubs/merge",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.MergeFansubs,
-	)
-	v1.POST(
-		"/admin/fansubs/merge/preview",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		fansubHandler.MergeFansubsPreview,
-	)
+	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
+		adminContentHandler: adminContentHandler,
+		fansubHandler:       fansubHandler,
+		mediaUploadHandler:  mediaUploadHandler,
+	})
 	v1.GET("/fansubs/:id/collaboration-members", fansubHandler.ListCollaborationMembers)
 	v1.POST(
 		"/fansubs/:id/collaboration-members",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		authMiddleware,
 		fansubHandler.AddCollaborationMember,
 	)
 	v1.DELETE(
 		"/fansubs/:id/collaboration-members/:memberGroupId",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
+		authMiddleware,
 		fansubHandler.RemoveCollaborationMember,
-	)
-	v1.POST(
-		"/admin/upload",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		mediaUploadHandler.Upload,
-	)
-	v1.DELETE(
-		"/admin/media/:id",
-		middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo),
-		mediaUploadHandler.Delete,
 	)
 
 	server := &http.Server{
@@ -466,62 +273,6 @@ func main() {
 	}
 }
 
-func resolveReleaseGrantSecret(cfg config.Config) string {
-	secret := strings.TrimSpace(cfg.ReleaseStreamGrantSecret)
-	if secret != "" {
-		return secret
-	}
-
-	return strings.TrimSpace(cfg.AuthTokenSecret)
-}
-
-func resolveAdminBootstrapUserIDs(cfg config.Config) []int64 {
-	return cfg.AuthAdminBootstrapUserIDs
-}
-
-func bootstrapAdminRoleAssignments(
-	ctx context.Context,
-	authzRepo *repository.AuthzRepository,
-	roleName string,
-	userIDs []int64,
-) error {
-	if authzRepo == nil {
-		return nil
-	}
-
-	trimmedRoleName := strings.TrimSpace(roleName)
-	if trimmedRoleName == "" {
-		trimmedRoleName = "admin"
-	}
-
-	if len(userIDs) == 0 {
-		return nil
-	}
-
-	if _, err := authzRepo.EnsureRole(ctx, trimmedRoleName); err != nil {
-		return err
-	}
-
-	for _, userID := range userIDs {
-		if userID <= 0 {
-			continue
-		}
-		if err := authzRepo.AssignRole(ctx, userID, trimmedRoleName); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func isUndefinedTableError(err error) bool {
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		return pgErr.Code == "42P01"
-	}
-	return false
-}
-
 func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -535,18 +286,4 @@ func corsMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
-}
-
-func isLocalDevProfile(profile string) bool {
-	switch strings.ToLower(strings.TrimSpace(profile)) {
-	case "", "local", "dev", "development", "test":
-		return true
-	default:
-		return false
-	}
-}
-
-func checkFFmpegAvailability(ffmpegPath string) error {
-	cmd := exec.Command(ffmpegPath, "-version")
-	return cmd.Run()
 }
