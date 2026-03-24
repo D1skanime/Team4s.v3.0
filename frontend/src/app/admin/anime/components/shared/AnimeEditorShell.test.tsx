@@ -43,4 +43,31 @@ describe('AnimeEditorShell', () => {
     expect(createMarkup).toContain('Aenderungen speichern')
     expect(createMarkup).toContain('data-context="create"')
   })
+
+  it('disables create submit when readiness is false even if the draft is dirty', () => {
+    function DisabledCreateHarness() {
+      const editor = useAnimeEditor(
+        'create',
+        createControllerInput({
+          isDirty: true,
+          submitLabel: undefined,
+          canSubmit: false,
+          dirtyStateTitle: 'Entwurf unvollstaendig',
+          dirtyStateMessage: 'Titel und Cover fehlen noch.',
+        }),
+      )
+
+      return (
+        <AnimeEditorShell editor={editor} title="Create">
+          <section data-context="create">context</section>
+        </AnimeEditorShell>
+      )
+    }
+
+    const markup = renderToStaticMarkup(<DisabledCreateHarness />)
+
+    expect(markup).toContain('Entwurf unvollstaendig')
+    expect(markup).toContain('Anime erstellen')
+    expect(markup).toContain('disabled=""')
+  })
 })
