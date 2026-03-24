@@ -12,7 +12,7 @@
 - [ ] **INTK-03**: Admin can cancel a Jellyfin-assisted draft without creating a Team4s anime record.
 - [ ] **INTK-04**: Admin can save a new anime when only `title` and `cover` are present.
 - [ ] **INTK-05**: Admin can create and maintain an anime without any Jellyfin linkage.
-- [ ] **INTK-06**: Admin can edit an existing anime through the same ownership-aware admin surface used by intake.
+- [x] **INTK-06**: Admin can edit an existing anime through the same ownership-aware admin surface used by intake.
 
 ### Jellyfin Source Selection
 
@@ -54,7 +54,7 @@
 - [ ] **RLY-01**: Admin can see validation failures clearly in the UI while creating, editing, syncing, or changing relations.
 - [ ] **RLY-02**: Admin can see Jellyfin fetch or sync failures clearly in the UI with enough context for quick debugging.
 - [ ] **RLY-03**: Admin-triggered create, update, resync, asset removal, upload, and relation-change actions are durably attributable to the acting admin user ID.
-- [ ] **RLY-04**: Admin-facing workflow changes keep implementation modular so production code files do not grow beyond the 450-line project limit.
+- [x] **RLY-04**: Admin-facing workflow changes keep implementation modular so production code files do not grow beyond the 450-line project limit.
 
 ## v2 Requirements
 
@@ -90,7 +90,7 @@
 | INTK-03 | Phase 3 | Pending |
 | INTK-04 | Phase 2 | Pending |
 | INTK-05 | Phase 2 | Pending |
-| INTK-06 | Phase 1 | Pending |
+| INTK-06 | Phase 1 | Complete |
 | JFIN-01 | Phase 3 | Pending |
 | JFIN-02 | Phase 3 | Pending |
 | JFIN-03 | Phase 4 | Pending |
@@ -117,7 +117,7 @@
 | RLY-01 | Phase 5 | Pending |
 | RLY-02 | Phase 4 | Pending |
 | RLY-03 | Phase 1 | Pending |
-| RLY-04 | Phase 1 | Pending |
+| RLY-04 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 33 total
