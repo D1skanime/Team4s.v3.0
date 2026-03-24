@@ -44,7 +44,11 @@ Plans:
   2. Admin can review and edit a draft form before any new anime record is created.
   3. Admin can save a manual anime when only `title` and `cover` are present, using the existing cover upload flow inside intake and edit.
   4. Admin can create and continue maintaining an anime with no Jellyfin linkage at all.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 02-01-PLAN.md - Add the manual intake choice screen and the reusable manual draft-state contract.
+- [ ] 02-02-PLAN.md - Enforce the Phase 2 title-plus-cover create contract in backend validation.
+- [ ] 02-03-PLAN.md - Rebuild `/admin/anime/create` into a shared-shell preview-before-save workflow with cover upload and edit redirect.
 **UI hint**: yes
 
 ### Phase 3: Jellyfin-Assisted Intake
@@ -88,7 +92,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Ownership Foundations | 5/5 | Complete | 2026-03-24 |
-| 2. Manual Intake Baseline | 0/TBD | Not started | - |
+| 2. Manual Intake Baseline | 0/3 | Planned | - |
 | 3. Jellyfin-Assisted Intake | 0/TBD | Not started | - |
 | 4. Provenance, Assets, And Safe Resync | 0/TBD | Not started | - |
 | 5. Relations And Reliability | 0/TBD | Not started | - |
