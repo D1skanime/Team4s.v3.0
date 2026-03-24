@@ -141,3 +141,95 @@ func TestAdminContentRepository_BuildAuthoritativeGenreTokensQuery_UsesNormalize
 		}
 	}
 }
+
+func TestAdminContentRepository_AuthoritativeTitlePatchReplacesNormalizedReadValues(t *testing.T) {
+	title := "Kimi no Na wa."
+	titleDE := "Your Name."
+	titleEN := "Your Name"
+
+	updatedTitles, updatedGenres := applyAuthoritativeAnimeMetadataWrite(
+		[]normalizedAnimeTitleRecord{
+			{LanguageCode: "romaji", TitleType: "main", Title: "Old Title"},
+			{LanguageCode: "de", TitleType: "main", Title: "Alter Titel"},
+			{LanguageCode: "en", TitleType: "official", Title: "Old English"},
+		},
+		[]string{"Drama"},
+		buildAuthoritativeAnimeMetadataPatch(models.AdminAnimePatchInput{
+			Title: models.OptionalString{Set: true, Value: &title},
+			TitleDE: models.OptionalString{
+				Set:   true,
+				Value: &titleDE,
+			},
+			TitleEN: models.OptionalString{
+				Set:   true,
+				Value: &titleEN,
+			},
+		}),
+	)
+
+	metadata := mergeNormalizedAnimeMetadata(updatedTitles, updatedGenres)
+	if metadata == nil {
+		t.Fatal("expected normalized metadata after patch")
+	}
+	if metadata.Title != title {
+		t.Fatalf("expected primary title %q, got %q", title, metadata.Title)
+	}
+	if metadata.TitleDE == nil || *metadata.TitleDE != titleDE {
+		t.Fatalf("expected German title %q, got %#v", titleDE, metadata.TitleDE)
+	}
+	if metadata.TitleEN == nil || *metadata.TitleEN != titleEN {
+		t.Fatalf("expected English title %q, got %#v", titleEN, metadata.TitleEN)
+	}
+}
+
+func TestAdminContentRepository_AuthoritativeGenrePatchReplacesAndClearsReadValues(t *testing.T) {
+	replacement := "Sci-Fi, Drama"
+
+	updatedTitles, updatedGenres := applyAuthoritativeAnimeMetadataWrite(
+		[]normalizedAnimeTitleRecord{
+			{LanguageCode: "romaji", TitleType: "main", Title: "Psycho-Pass"},
+		},
+		[]string{"Action", "Thriller"},
+		buildAuthoritativeAnimeMetadataPatch(models.AdminAnimePatchInput{
+			Genre: models.OptionalString{Set: true, Value: &replacement},
+		}),
+	)
+
+	metadata := mergeNormalizedAnimeMetadata(updatedTitles, updatedGenres)
+	wantGenres := []string{"Drama", "Sci-Fi"}
+	if metadata == nil || !reflect.DeepEqual(metadata.Genres, wantGenres) {
+		t.Fatalf("expected replacement genres %#v, got %#v", wantGenres, metadata)
+	}
+
+	clearedTitles, clearedGenres := applyAuthoritativeAnimeMetadataWrite(
+		updatedTitles,
+		updatedGenres,
+		buildAuthoritativeAnimeMetadataPatch(models.AdminAnimePatchInput{
+			Genre: models.OptionalString{Set: true, Value: nil},
+		}),
+	)
+
+	clearedMetadata := mergeNormalizedAnimeMetadata(clearedTitles, clearedGenres)
+	if clearedMetadata == nil {
+		t.Fatal("expected title metadata to remain after clearing genres")
+	}
+	if len(clearedMetadata.Genres) != 0 {
+		t.Fatalf("expected genres to be cleared, got %#v", clearedMetadata.Genres)
+	}
+}
+
+func TestAdminContentRepository_FilterGenreTokens_PrioritizesPrefixMatches(t *testing.T) {
+	filtered := filterGenreTokens([]models.GenreToken{
+		{Name: "Drama", Count: 4},
+		{Name: "Dark Fantasy", Count: 2},
+		{Name: "Adventure", Count: 8},
+	}, "da", 2)
+
+	want := []models.GenreToken{
+		{Name: "Dark Fantasy", Count: 2},
+		{Name: "Drama", Count: 4},
+	}
+	if !reflect.DeepEqual(filtered, want) {
+		t.Fatalf("expected filtered genre tokens %#v, got %#v", want, filtered)
+	}
+}
