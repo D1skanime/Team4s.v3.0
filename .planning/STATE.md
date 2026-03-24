@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 01 complete
-last_updated: "2026-03-24T14:05:00.000Z"
+status: Ready to execute
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-24T15:23:02.916Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 9
+  completed_plans: 6
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-23)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 01 — ownership-foundations
+**Current focus:** Phase 02 — manual-intake-baseline
 
 ## Current Position
 
-Phase: 02
-Plan: Not started
+Phase: 02 (manual-intake-baseline) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Plan: Not started
 | Phase 01 P02 | 32m | 2 tasks | 11 files |
 | Phase 01 P03 | 4274 | 2 tasks | 13 files |
 | Phase 01 P04 | 11m | 2 tasks | 8 files |
+| Phase 02 P01 | 2m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Recent decisions affecting current work:
 - [Phase 01-ownership-foundations]: Keep media_upload.go limited to constructor, validation, Upload, and Delete while moving image/video/storage details into dedicated helper files.
 - [Phase 01]: Normalized anime metadata loading and merge helpers now live in anime_metadata.go so detail and media lookup overlays share one dedicated read-path seam.
 - [Phase 01]: Admin content repository code is split by bounded responsibility while keeping existing repository signatures and transaction boundaries unchanged.
+- [Phase 02]: Replace the old searchable /admin/anime studio landing page with the phase-specific intake choice contract so the manual path is explicit before the create route is rebuilt.
+- [Phase 02]: Keep the manual draft resolver generic over manual input values so the next create-page refactor can reuse one empty/incomplete/ready seam without introducing Jellyfin-specific fields.
 
 ### Pending Todos
 
@@ -81,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T14:05:00.000Z
-Stopped at: Phase 01 complete
-Resume file: .planning/phases/01-ownership-foundations/01-VERIFICATION.md
+Last session: 2026-03-24T15:23:02.911Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None

@@ -7,7 +7,7 @@
 
 ### Intake Workflow
 
-- [ ] **INTK-01**: Admin can start anime creation by choosing either a manual flow or a Jellyfin-assisted flow.
+- [x] **INTK-01**: Admin can start anime creation by choosing either a manual flow or a Jellyfin-assisted flow.
 - [ ] **INTK-02**: Admin can review and edit all proposed anime values in a draft form before any anime record is created.
 - [ ] **INTK-03**: Admin can cancel a Jellyfin-assisted draft without creating a Team4s anime record.
 - [ ] **INTK-04**: Admin can save a new anime when only `title` and `cover` are present.
@@ -85,7 +85,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INTK-01 | Phase 2 | Pending |
+| INTK-01 | Phase 2 | Complete |
 | INTK-02 | Phase 2 | Pending |
 | INTK-03 | Phase 3 | Pending |
 | INTK-04 | Phase 2 | Pending |

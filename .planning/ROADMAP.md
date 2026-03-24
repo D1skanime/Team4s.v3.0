@@ -46,7 +46,7 @@ Plans:
   4. Admin can create and continue maintaining an anime with no Jellyfin linkage at all.
 **Plans**: 3 plans
 Plans:
-- [ ] 02-01-PLAN.md - Add the manual intake choice screen and the reusable manual draft-state contract.
+- [x] 02-01-PLAN.md - Add the manual intake choice screen and the reusable manual draft-state contract.
 - [ ] 02-02-PLAN.md - Enforce the Phase 2 title-plus-cover create contract in backend validation.
 - [ ] 02-03-PLAN.md - Rebuild `/admin/anime/create` into a shared-shell preview-before-save workflow with cover upload and edit redirect.
 **UI hint**: yes
@@ -92,7 +92,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Ownership Foundations | 5/5 | Complete | 2026-03-24 |
-| 2. Manual Intake Baseline | 0/3 | Planned | - |
+| 2. Manual Intake Baseline | 1/3 | In Progress | - |
 | 3. Jellyfin-Assisted Intake | 0/TBD | Not started | - |
 | 4. Provenance, Assets, And Safe Resync | 0/TBD | Not started | - |
 | 5. Relations And Reliability | 0/TBD | Not started | - |
