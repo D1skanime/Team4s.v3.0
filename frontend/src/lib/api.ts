@@ -83,14 +83,17 @@ function normalizeInternalApiBaseUrl(raw: string): string {
 }
 
 const API_INTERNAL_BASE_URL = normalizeInternalApiBaseUrl(process.env.API_INTERNAL_URL || '') || API_PUBLIC_BASE_URL
+const AUTH_BYPASS_LOCAL = ((process.env.NEXT_PUBLIC_AUTH_BYPASS_LOCAL || '').trim() || 'false').toLowerCase() === 'true'
+const AUTH_BYPASS_TOKEN = 'local-auth-bypass'
+const AUTH_BYPASS_DISPLAY_NAME = 'LocalAdmin'
 
 function getApiBaseUrl(): string {
   return typeof window === 'undefined' ? API_INTERNAL_BASE_URL : API_PUBLIC_BASE_URL
 }
 
 export const AUTH_BEARER_TOKEN = (process.env.NEXT_PUBLIC_AUTH_TOKEN || '').trim()
-export const AUTH_DISPLAY_NAME = (process.env.NEXT_PUBLIC_AUTH_DISPLAY_NAME || '').trim()
-export const HAS_AUTH_TOKEN = AUTH_BEARER_TOKEN.length > 0
+export const AUTH_DISPLAY_NAME = (process.env.NEXT_PUBLIC_AUTH_DISPLAY_NAME || '').trim() || (AUTH_BYPASS_LOCAL ? AUTH_BYPASS_DISPLAY_NAME : '')
+export const HAS_AUTH_TOKEN = AUTH_BEARER_TOKEN.length > 0 || AUTH_BYPASS_LOCAL
 
 export const AUTH_TOKEN_COOKIE_NAME = 'team4s_access_token'
 export const AUTH_REFRESH_COOKIE_NAME = 'team4s_refresh_token'
@@ -227,7 +230,15 @@ function resolveAuthToken(authToken?: string): string {
     }
   }
 
-  return AUTH_BEARER_TOKEN
+  if (AUTH_BEARER_TOKEN) {
+    return AUTH_BEARER_TOKEN
+  }
+
+  if (AUTH_BYPASS_LOCAL) {
+    return AUTH_BYPASS_TOKEN
+  }
+
+  return ''
 }
 
 function withAuthHeader(headers: Record<string, string>, authToken?: string): Record<string, string> {

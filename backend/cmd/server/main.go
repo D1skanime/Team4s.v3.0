@@ -90,6 +90,7 @@ func main() {
 	commentHandler := handlers.NewCommentHandler(commentRepo)
 	commentCreateLimiter := middleware.NewCommentRateLimiter(redisClient, 5, time.Minute)
 	authRepo := repository.NewAuthRepository(redisClient)
+	middleware.ConfigureLocalAuthBypass(cfg.AuthBypassLocal, cfg.AuthIssueDevUserID, strings.TrimSpace(cfg.AuthIssueDevDisplayName))
 	authMiddleware := middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo)
 	authOptionalMiddleware := middleware.CommentAuthOptionalMiddlewareWithState(cfg.AuthTokenSecret, authRepo)
 	authHandler := handlers.NewAuthHandler(

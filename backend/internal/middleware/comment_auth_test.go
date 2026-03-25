@@ -50,6 +50,7 @@ func (s authCheckerStub) IsSessionActive(_ context.Context, _ string) (bool, err
 }
 
 func TestCommentAuthMiddlewareMissingHeader(t *testing.T) {
+	ConfigureLocalAuthBypass(false, 0, "")
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.POST("/comments", CommentAuthMiddleware(testAuthSecret), func(c *gin.Context) {
@@ -66,6 +67,7 @@ func TestCommentAuthMiddlewareMissingHeader(t *testing.T) {
 }
 
 func TestCommentAuthMiddlewareRejectsInvalidScheme(t *testing.T) {
+	ConfigureLocalAuthBypass(false, 0, "")
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.POST("/comments", CommentAuthMiddleware(testAuthSecret), func(c *gin.Context) {
@@ -83,6 +85,7 @@ func TestCommentAuthMiddlewareRejectsInvalidScheme(t *testing.T) {
 }
 
 func TestCommentAuthMiddlewareRejectsInvalidSignature(t *testing.T) {
+	ConfigureLocalAuthBypass(false, 0, "")
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.POST("/comments", CommentAuthMiddleware(testAuthSecret), func(c *gin.Context) {
@@ -106,6 +109,7 @@ func TestCommentAuthMiddlewareRejectsInvalidSignature(t *testing.T) {
 }
 
 func TestCommentAuthMiddlewareRejectsExpiredToken(t *testing.T) {
+	ConfigureLocalAuthBypass(false, 0, "")
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.POST("/comments", CommentAuthMiddleware(testAuthSecret), func(c *gin.Context) {
@@ -129,6 +133,7 @@ func TestCommentAuthMiddlewareRejectsExpiredToken(t *testing.T) {
 }
 
 func TestCommentAuthMiddlewareSetsContextIdentity(t *testing.T) {
+	ConfigureLocalAuthBypass(false, 0, "")
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.POST("/comments", CommentAuthMiddleware(testAuthSecret), func(c *gin.Context) {
@@ -166,6 +171,7 @@ func TestCommentAuthMiddlewareSetsContextIdentity(t *testing.T) {
 }
 
 func TestCommentAuthMiddlewareRejectsRevokedToken(t *testing.T) {
+	ConfigureLocalAuthBypass(false, 0, "")
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.POST(
@@ -194,6 +200,7 @@ func TestCommentAuthMiddlewareRejectsRevokedToken(t *testing.T) {
 }
 
 func TestCommentAuthMiddlewareRejectsInactiveSession(t *testing.T) {
+	ConfigureLocalAuthBypass(false, 0, "")
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.POST(
@@ -222,6 +229,7 @@ func TestCommentAuthMiddlewareRejectsInactiveSession(t *testing.T) {
 }
 
 func TestCommentAuthMiddlewareStateCheckErrorReturnsServiceUnavailable(t *testing.T) {
+	ConfigureLocalAuthBypass(false, 0, "")
 	gin.SetMode(gin.TestMode)
 	before := observability.GetDegradedCounters()
 	router := gin.New()
@@ -263,6 +271,7 @@ func TestCommentAuthMiddlewareStateCheckErrorReturnsServiceUnavailable(t *testin
 }
 
 func TestCommentAuthMiddlewareSessionCheckErrorReturnsServiceUnavailable(t *testing.T) {
+	ConfigureLocalAuthBypass(false, 0, "")
 	gin.SetMode(gin.TestMode)
 	before := observability.GetDegradedCounters()
 	router := gin.New()
@@ -300,6 +309,52 @@ func TestCommentAuthMiddlewareSessionCheckErrorReturnsServiceUnavailable(t *test
 			before.AuthStateUnavailableCommentAuthTotal,
 			after.AuthStateUnavailableCommentAuthTotal,
 		)
+	}
+}
+
+func TestCommentAuthMiddleware_AllowsMissingHeaderWhenLocalBypassEnabled(t *testing.T) {
+	ConfigureLocalAuthBypass(true, 1, "LocalAdmin")
+	defer ConfigureLocalAuthBypass(false, 0, "")
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.POST("/comments", CommentAuthMiddleware(testAuthSecret), func(c *gin.Context) {
+		identity, ok := CommentAuthIdentityFromContext(c)
+		if !ok {
+			t.Fatalf("expected local bypass identity")
+		}
+		if identity.UserID != 1 || identity.DisplayName != "LocalAdmin" {
+			t.Fatalf("unexpected bypass identity: %+v", identity)
+		}
+		c.Status(http.StatusCreated)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/comments", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("expected status %d, got %d", http.StatusCreated, rec.Code)
+	}
+}
+
+func TestCommentAuthMiddleware_AllowsInvalidTokenWhenLocalBypassEnabled(t *testing.T) {
+	ConfigureLocalAuthBypass(true, 1, "LocalAdmin")
+	defer ConfigureLocalAuthBypass(false, 0, "")
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.POST("/comments", CommentAuthMiddleware(testAuthSecret), func(c *gin.Context) {
+		c.Status(http.StatusCreated)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/comments", nil)
+	req.Header.Set(commentAuthAuthorizationHeader, "Bearer not-a-real-token")
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("expected status %d, got %d", http.StatusCreated, rec.Code)
 	}
 }
 

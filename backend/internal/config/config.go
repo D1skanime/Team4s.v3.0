@@ -29,6 +29,7 @@ type Config struct {
 	AuthIssueDevUserID           int64
 	AuthIssueDevDisplayName      string
 	AuthIssueDevKey              string
+	AuthBypassLocal              bool
 	ReleaseStreamGrantSecret     string
 	ReleaseStreamGrantTTLSeconds int
 	EpisodePlaybackRateLimit     int
@@ -65,6 +66,7 @@ func Load() Config {
 		AuthIssueDevUserID:           getEnvInt64("AUTH_ISSUE_DEV_USER_ID", 1),
 		AuthIssueDevDisplayName:      getEnv("AUTH_ISSUE_DEV_DISPLAY_NAME", "Nico"),
 		AuthIssueDevKey:              os.Getenv("AUTH_ISSUE_DEV_KEY"),
+		AuthBypassLocal:              getEnvBool("AUTH_BYPASS_LOCAL", getEnv("RUNTIME_PROFILE", "local") == "local"),
 		ReleaseStreamGrantSecret:     strings.TrimSpace(os.Getenv("RELEASE_STREAM_GRANT_SECRET")),
 		ReleaseStreamGrantTTLSeconds: getEnvInt("RELEASE_STREAM_GRANT_TTL_SECONDS", 120),
 		EpisodePlaybackRateLimit:     getEnvInt("EPISODE_PLAYBACK_RATE_LIMIT", 30),
