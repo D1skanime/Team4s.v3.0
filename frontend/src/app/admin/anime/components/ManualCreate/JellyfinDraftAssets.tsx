@@ -34,8 +34,6 @@ function missingSlotLabel(kind: Exclude<JellyfinDraftAssetTarget['kind'], 'backg
       return 'Kein Jellyfin-Logo gefunden'
     case 'banner':
       return 'Kein Jellyfin-Banner gefunden'
-    case 'background':
-      return 'Kein Jellyfin-Background gefunden'
     case 'background_video':
       return 'Kein Jellyfin-Background-Video gefunden'
   }
@@ -44,7 +42,7 @@ function missingSlotLabel(kind: Exclude<JellyfinDraftAssetTarget['kind'], 'backg
 function renderAssetPreview(animeTitle: string, kind: JellyfinDraftAssetTarget['kind'], url?: string) {
   const resolvedUrl = resolveJellyfinIntakeAssetUrl(url)
   if (!resolvedUrl && kind !== 'background_video') {
-    return <p className={styles.hint}>{missingSlotLabel(kind)}</p>
+    return <p className={styles.hint}>{kind === 'background' ? 'Kein Jellyfin-Background gefunden' : missingSlotLabel(kind)}</p>
   }
 
   if (kind === 'background_video') {
