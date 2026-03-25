@@ -3,16 +3,15 @@
 import styles from '../../../admin.module.css'
 import type { AdminJellyfinIntakeAssetSlots } from '@/types/admin'
 import { resolveJellyfinIntakeAssetUrl } from '../../utils/jellyfin-intake-assets'
-
-type JellyfinDraftAssetKind = keyof AdminJellyfinIntakeAssetSlots
+import type { JellyfinDraftAssetTarget } from '../../hooks/useManualAnimeDraft'
 
 interface JellyfinDraftAssetsProps {
   animeTitle: string
   assetSlots: AdminJellyfinIntakeAssetSlots
-  onRemoveAsset: (kind: JellyfinDraftAssetKind) => void
+  onRemoveAsset: (target: JellyfinDraftAssetTarget) => void
 }
 
-function slotLabel(kind: JellyfinDraftAssetKind): string {
+function slotLabel(kind: JellyfinDraftAssetTarget['kind']): string {
   switch (kind) {
     case 'cover':
       return 'Poster'
@@ -27,7 +26,7 @@ function slotLabel(kind: JellyfinDraftAssetKind): string {
   }
 }
 
-function missingSlotLabel(kind: JellyfinDraftAssetKind): string {
+function missingSlotLabel(kind: Exclude<JellyfinDraftAssetTarget['kind'], 'background'>): string {
   switch (kind) {
     case 'cover':
       return 'Kein Jellyfin-Poster gefunden'
@@ -42,9 +41,9 @@ function missingSlotLabel(kind: JellyfinDraftAssetKind): string {
   }
 }
 
-function renderAssetPreview(animeTitle: string, kind: JellyfinDraftAssetKind, url?: string) {
+function renderAssetPreview(animeTitle: string, kind: JellyfinDraftAssetTarget['kind'], url?: string) {
   const resolvedUrl = resolveJellyfinIntakeAssetUrl(url)
-  if (!resolvedUrl) {
+  if (!resolvedUrl && kind !== 'background_video') {
     return <p className={styles.hint}>{missingSlotLabel(kind)}</p>
   }
 
@@ -73,7 +72,7 @@ function renderAssetPreview(animeTitle: string, kind: JellyfinDraftAssetKind, ur
 }
 
 export function JellyfinDraftAssets({ animeTitle, assetSlots, onRemoveAsset }: JellyfinDraftAssetsProps) {
-  const kinds: JellyfinDraftAssetKind[] = ['cover', 'logo', 'banner', 'background', 'background_video']
+  const singleKinds: Array<Exclude<JellyfinDraftAssetTarget['kind'], 'background'>> = ['cover', 'logo', 'banner', 'background_video']
 
   return (
     <section className={styles.panel}>
@@ -82,7 +81,7 @@ export function JellyfinDraftAssets({ animeTitle, assetSlots, onRemoveAsset }: J
         Diese Vorschau bleibt unverbindlich. Erst die zentrale Save-Bar legt wirklich einen Anime an.
       </p>
       <div className={styles.gridTwo}>
-        {kinds.map((kind) => {
+        {singleKinds.map((kind) => {
           const slot = assetSlots[kind]
           return (
             <div key={kind} className={styles.details}>
@@ -93,7 +92,7 @@ export function JellyfinDraftAssets({ animeTitle, assetSlots, onRemoveAsset }: J
                   className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
                   type="button"
                   disabled={!slot.present}
-                  onClick={() => onRemoveAsset(kind)}
+                  onClick={() => onRemoveAsset({ kind })}
                 >
                   Aus Entwurf entfernen
                 </button>
@@ -101,6 +100,30 @@ export function JellyfinDraftAssets({ animeTitle, assetSlots, onRemoveAsset }: J
             </div>
           )
         })}
+        <div className={styles.details}>
+          <strong>Backgrounds</strong>
+          {assetSlots.backgrounds.length > 0 ? (
+            <div className={styles.gridTwo}>
+              {assetSlots.backgrounds.map((slot, index) => (
+                <div key={`${slot.kind}-${slot.index ?? index}`} className={styles.details}>
+                  {renderAssetPreview(animeTitle, 'background', slot.url)}
+                  <p className={styles.hint}>Background {index + 1}</p>
+                  <div className={styles.actions}>
+                    <button
+                      className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
+                      type="button"
+                      onClick={() => onRemoveAsset({ kind: 'background', index })}
+                    >
+                      Bild aus Entwurf entfernen
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.hint}>Keine Jellyfin-Backgrounds gefunden</p>
+          )}
+        </div>
       </div>
     </section>
   )

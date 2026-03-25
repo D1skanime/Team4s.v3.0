@@ -17,7 +17,7 @@ import {
   hydrateManualDraftFromJellyfinPreview,
   removeJellyfinDraftAsset,
   resolveManualCreateState,
-  type JellyfinDraftAssetKind,
+  type JellyfinDraftAssetTarget,
   type ManualAnimeDraftValues,
 } from '../hooks/useManualAnimeDraft'
 import { useJellyfinIntake } from '../hooks/useJellyfinIntake'
@@ -445,10 +445,10 @@ export default function AdminAnimeCreatePage() {
     setSuccessMessage('AniSearch Sync kommt in Phase 4.')
   }
 
-  function handleRemoveJellyfinAsset(kind: JellyfinDraftAssetKind) {
+  function handleRemoveJellyfinAsset(target: JellyfinDraftAssetTarget) {
     if (!jellyfinAssetSlots) return
 
-    const next = removeJellyfinDraftAsset(manualDraftValues, jellyfinAssetSlots, kind)
+    const next = removeJellyfinDraftAsset(manualDraftValues, jellyfinAssetSlots, target)
     applyManualDraftValues(next.draft)
     setJellyfinAssetSlots(next.assetSlots)
     setShowValidationSummary(false)

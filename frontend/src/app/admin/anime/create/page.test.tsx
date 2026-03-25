@@ -141,7 +141,10 @@ describe('AdminAnimeCreatePage', () => {
         cover: { present: true, kind: 'cover', source: 'jellyfin', url: 'https://img/cover.jpg' },
         logo: { present: true, kind: 'logo', source: 'jellyfin', url: 'https://img/logo.png' },
         banner: { present: false, kind: 'banner', source: 'jellyfin' },
-        background: { present: true, kind: 'background', source: 'jellyfin', url: 'https://img/bg.jpg' },
+        backgrounds: [
+          { present: true, kind: 'background', source: 'jellyfin', index: 0, url: 'https://img/bg-1.jpg' },
+          { present: true, kind: 'background', source: 'jellyfin', index: 1, url: 'https://img/bg-2.jpg' },
+        ],
         background_video: { present: false, kind: 'background_video', source: 'jellyfin' },
       },
     })
@@ -151,6 +154,7 @@ describe('AdminAnimeCreatePage', () => {
     expect(hydrated.draft.description).toBe('Shinobi story')
     expect(hydrated.draft.genreTokens).toEqual(['Action', 'Adventure'])
     expect(hydrated.assetSlots.logo.present).toBe(true)
+    expect(hydrated.assetSlots.backgrounds).toHaveLength(2)
   })
 
   it('removes imported draft assets after hydration and keeps cancellation free of create calls', () => {
@@ -175,10 +179,10 @@ describe('AdminAnimeCreatePage', () => {
         cover: { present: true, kind: 'cover', source: 'jellyfin', url: 'https://img/cover.jpg' },
         logo: { present: false, kind: 'logo', source: 'jellyfin' },
         banner: { present: false, kind: 'banner', source: 'jellyfin' },
-        background: { present: false, kind: 'background', source: 'jellyfin' },
+        backgrounds: [],
         background_video: { present: false, kind: 'background_video', source: 'jellyfin' },
       },
-      'cover',
+      { kind: 'cover' },
     )
 
     expect(removal.draft.coverImage).toBe('')
@@ -209,7 +213,7 @@ describe('AdminAnimeCreatePage', () => {
           cover: { present: true, kind: 'cover', source: 'jellyfin', url: 'https://img/cover.jpg' },
           logo: { present: false, kind: 'logo', source: 'jellyfin' },
           banner: { present: false, kind: 'banner', source: 'jellyfin' },
-          background: { present: false, kind: 'background', source: 'jellyfin' },
+          backgrounds: [],
           background_video: { present: false, kind: 'background_video', source: 'jellyfin' },
         },
       },
@@ -233,5 +237,39 @@ describe('AdminAnimeCreatePage', () => {
 
     expect(payload.source).toBeUndefined()
     expect(payload.folder_name).toBeUndefined()
+  })
+
+  it('removes only the selected background from the jellyfin draft gallery', () => {
+    const draft = buildManualCreateDraftSnapshot({
+      title: 'Naruto',
+      type: 'tv',
+      contentType: 'anime',
+      status: 'ongoing',
+      year: '',
+      maxEpisodes: '',
+      titleDE: '',
+      titleEN: '',
+      genreTokens: [],
+      description: '',
+      coverImage: '',
+    })
+
+    const removal = removeJellyfinDraftAsset(
+      draft,
+      {
+        cover: { present: false, kind: 'cover', source: 'jellyfin' },
+        logo: { present: false, kind: 'logo', source: 'jellyfin' },
+        banner: { present: false, kind: 'banner', source: 'jellyfin' },
+        backgrounds: [
+          { present: true, kind: 'background', source: 'jellyfin', index: 0, url: 'https://img/bg-1.jpg' },
+          { present: true, kind: 'background', source: 'jellyfin', index: 1, url: 'https://img/bg-2.jpg' },
+        ],
+        background_video: { present: false, kind: 'background_video', source: 'jellyfin' },
+      },
+      { kind: 'background', index: 0 },
+    )
+
+    expect(removal.assetSlots.backgrounds).toHaveLength(1)
+    expect(removal.assetSlots.backgrounds[0].url).toBe('https://img/bg-2.jpg')
   })
 })

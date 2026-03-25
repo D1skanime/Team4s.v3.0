@@ -10,6 +10,7 @@ type AdminJellyfinIntakeAssetSlot struct {
 	Present bool    `json:"present"`
 	Kind    string  `json:"kind"`
 	Source  string  `json:"source"`
+	Index   *int    `json:"index,omitempty"`
 	URL     *string `json:"url,omitempty"`
 }
 
@@ -17,7 +18,7 @@ type AdminJellyfinIntakeAssetSlots struct {
 	Cover           AdminJellyfinIntakeAssetSlot `json:"cover"`
 	Logo            AdminJellyfinIntakeAssetSlot `json:"logo"`
 	Banner          AdminJellyfinIntakeAssetSlot `json:"banner"`
-	Background      AdminJellyfinIntakeAssetSlot `json:"background"`
+	Backgrounds     []AdminJellyfinIntakeAssetSlot `json:"backgrounds"`
 	BackgroundVideo AdminJellyfinIntakeAssetSlot `json:"background_video"`
 }
 

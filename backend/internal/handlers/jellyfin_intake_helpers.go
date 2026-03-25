@@ -91,7 +91,7 @@ func buildAdminJellyfinIntakePreviewResult(
 			Cover:           buildJellyfinIntakeAssetSlot("cover", buildGroupMediaImageURL(seriesID, "primary", nil), hasImageTag(detail.ImageTags, "Primary")),
 			Logo:            buildJellyfinIntakeAssetSlot("logo", buildGroupMediaImageURL(seriesID, "logo", nil), hasImageTag(detail.ImageTags, "Logo")),
 			Banner:          buildJellyfinIntakeAssetSlot("banner", buildGroupMediaImageURL(seriesID, "banner", nil), hasImageTag(detail.ImageTags, "Banner")),
-			Background:      buildJellyfinIntakeAssetSlot("background", buildAnimeBackdropProxyURL(seriesID, nil), len(detail.BackdropImageTags) > 0),
+			Backgrounds:     buildJellyfinIntakeBackgroundSlots(seriesID, len(detail.BackdropImageTags)),
 			BackgroundVideo: buildJellyfinIntakeAssetSlot("background_video", buildAnimeBackdropVideoProxyURL(firstNonEmptyString(themeVideoIDs...)), len(themeVideoIDs) > 0),
 		},
 	}
@@ -107,6 +107,22 @@ func buildJellyfinIntakeAssetSlot(kind string, rawURL string, present bool) mode
 		slot.URL = normalizeNullableStringPtr(rawURL)
 	}
 	return slot
+}
+
+func buildJellyfinIntakeBackgroundSlots(seriesID string, count int) []models.AdminJellyfinIntakeAssetSlot {
+	if count <= 0 {
+		return []models.AdminJellyfinIntakeAssetSlot{}
+	}
+
+	result := make([]models.AdminJellyfinIntakeAssetSlot, 0, count)
+	for i := 0; i < count; i++ {
+		index := i
+		slot := buildJellyfinIntakeAssetSlot("background", buildAnimeBackdropProxyURL(seriesID, &index), true)
+		slot.Index = &index
+		result = append(result, slot)
+	}
+
+	return result
 }
 
 func buildJellyfinIntakeTypeHint(name string, rawPath *string) models.AdminJellyfinIntakeTypeHint {

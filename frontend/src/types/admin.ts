@@ -176,6 +176,7 @@ export interface AdminJellyfinIntakeAssetSlot {
   present: boolean
   kind: 'cover' | 'logo' | 'banner' | 'background' | 'background_video'
   source: 'jellyfin'
+  index?: number
   url?: string
 }
 
@@ -183,7 +184,7 @@ export interface AdminJellyfinIntakeAssetSlots {
   cover: AdminJellyfinIntakeAssetSlot
   logo: AdminJellyfinIntakeAssetSlot
   banner: AdminJellyfinIntakeAssetSlot
-  background: AdminJellyfinIntakeAssetSlot
+  backgrounds: AdminJellyfinIntakeAssetSlot[]
   background_video: AdminJellyfinIntakeAssetSlot
 }
 

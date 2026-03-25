@@ -45,7 +45,7 @@ func TestBuildAdminJellyfinIntakePreviewResult_ReturnsMetadataSlotsAndReasons(t 
 	assertSlotPresent(t, result.AssetSlots.Cover, "cover")
 	assertSlotPresent(t, result.AssetSlots.Logo, "logo")
 	assertSlotPresent(t, result.AssetSlots.Banner, "banner")
-	assertSlotPresent(t, result.AssetSlots.Background, "background")
+	assertBackgroundSlotsPresent(t, result.AssetSlots.Backgrounds, 1)
 	assertSlotPresent(t, result.AssetSlots.BackgroundVideo, "background_video")
 }
 
@@ -61,10 +61,34 @@ func TestBuildAdminJellyfinIntakePreviewResult_UsesExplicitEmptySlots(t *testing
 	assertSlotEmpty(t, result.AssetSlots.Cover, "cover")
 	assertSlotEmpty(t, result.AssetSlots.Logo, "logo")
 	assertSlotEmpty(t, result.AssetSlots.Banner, "banner")
-	assertSlotEmpty(t, result.AssetSlots.Background, "background")
+	if len(result.AssetSlots.Backgrounds) != 0 {
+		t.Fatalf("expected no background slots, got %+v", result.AssetSlots.Backgrounds)
+	}
 	assertSlotEmpty(t, result.AssetSlots.BackgroundVideo, "background_video")
 	if result.TypeHint.SuggestedType == nil || *result.TypeHint.SuggestedType != "tv" {
 		t.Fatalf("expected advisory tv fallback, got %+v", result.TypeHint)
+	}
+}
+
+func assertBackgroundSlotsPresent(t *testing.T, slots []models.AdminJellyfinIntakeAssetSlot, expectedCount int) {
+	t.Helper()
+
+	if len(slots) != expectedCount {
+		t.Fatalf("expected %d background slots, got %d", expectedCount, len(slots))
+	}
+	for index, slot := range slots {
+		if !slot.Present {
+			t.Fatalf("expected background slot %d to be present", index)
+		}
+		if slot.Kind != "background" {
+			t.Fatalf("expected slot kind background, got %q", slot.Kind)
+		}
+		if slot.Index == nil || *slot.Index != index {
+			t.Fatalf("expected background slot index %d, got %+v", index, slot.Index)
+		}
+		if slot.URL == nil || *slot.URL == "" {
+			t.Fatalf("expected background slot url for index %d", index)
+		}
 	}
 }
 

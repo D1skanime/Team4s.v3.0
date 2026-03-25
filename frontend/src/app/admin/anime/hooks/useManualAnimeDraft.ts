@@ -43,7 +43,10 @@ export interface HydratedJellyfinDraft {
   assetSlots: AdminJellyfinIntakeAssetSlots
 }
 
-export type JellyfinDraftAssetKind = keyof AdminJellyfinIntakeAssetSlots
+export interface JellyfinDraftAssetTarget {
+  kind: 'cover' | 'logo' | 'banner' | 'background' | 'background_video'
+  index?: number
+}
 
 function cloneAssetSlot(slot: AdminJellyfinIntakeAssetSlot): AdminJellyfinIntakeAssetSlot {
   return {
@@ -56,7 +59,7 @@ export function cloneJellyfinAssetSlots(assetSlots: AdminJellyfinIntakeAssetSlot
     cover: cloneAssetSlot(assetSlots.cover),
     logo: cloneAssetSlot(assetSlots.logo),
     banner: cloneAssetSlot(assetSlots.banner),
-    background: cloneAssetSlot(assetSlots.background),
+    backgrounds: assetSlots.backgrounds.map((slot) => cloneAssetSlot(slot)),
     background_video: cloneAssetSlot(assetSlots.background_video),
   }
 }
@@ -111,23 +114,32 @@ export function hydrateManualDraftFromJellyfinPreview(
 export function removeJellyfinDraftAsset(
   draft: ManualAnimeDraftValues,
   assetSlots: AdminJellyfinIntakeAssetSlots,
-  kind: JellyfinDraftAssetKind,
+  target: JellyfinDraftAssetTarget,
 ): HydratedJellyfinDraft {
   const nextDraft: ManualAnimeDraftValues = {
     ...draft,
   }
   const nextAssetSlots = cloneJellyfinAssetSlots(assetSlots)
-  const removedSlot = nextAssetSlots[kind]
+  let removedSlot: AdminJellyfinIntakeAssetSlot | null = null
 
-  nextAssetSlots[kind] = {
-    ...removedSlot,
-    present: false,
-    url: undefined,
+  if (target.kind === 'background') {
+    const index = Number.isInteger(target.index) ? target.index! : -1
+    if (index >= 0 && index < nextAssetSlots.backgrounds.length) {
+      removedSlot = nextAssetSlots.backgrounds[index]
+      nextAssetSlots.backgrounds = nextAssetSlots.backgrounds.filter((_, candidateIndex) => candidateIndex !== index)
+    }
+  } else {
+    removedSlot = nextAssetSlots[target.kind]
+    nextAssetSlots[target.kind] = {
+      ...removedSlot,
+      present: false,
+      url: undefined,
+    }
   }
 
   if (
-    kind === 'cover' &&
-    removedSlot.url?.trim() &&
+    target.kind === 'cover' &&
+    removedSlot?.url?.trim() &&
     nextDraft.coverImage.trim() === removedSlot.url.trim()
   ) {
     nextDraft.coverImage = ''
