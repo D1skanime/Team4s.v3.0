@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"team4s.v3/backend/internal/models"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -76,22 +74,8 @@ func (h *AdminContentHandler) SearchJellyfinSeries(c *gin.Context) {
 		return
 	}
 
-	result := make([]models.AdminJellyfinSeriesSearchItem, 0, len(items))
-	for _, item := range items {
-		seriesID := strings.TrimSpace(item.ID)
-		if seriesID == "" {
-			continue
-		}
-		result = append(result, models.AdminJellyfinSeriesSearchItem{
-			JellyfinSeriesID: seriesID,
-			Name:             strings.TrimSpace(item.Name),
-			ProductionYear:   item.ProductionYear,
-			Path:             normalizeNullableStringPtr(item.Path),
-		})
-	}
-
 	c.JSON(http.StatusOK, gin.H{
-		"data": result,
+		"data": buildAdminJellyfinIntakeSearchItems(items, query),
 	})
 }
 

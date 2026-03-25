@@ -18,6 +18,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/anime/:id/jellyfin/sync", auth, deps.adminContentHandler.SyncAnimeFromJellyfin)
 	v1.POST("/admin/anime/:id/episodes/:episodeId/sync", auth, deps.adminContentHandler.SyncEpisodeFromJellyfin)
 	v1.GET("/admin/jellyfin/series", auth, deps.adminContentHandler.SearchJellyfinSeries)
+	v1.POST("/admin/jellyfin/intake/preview", auth, deps.adminContentHandler.PreviewAnimeIntakeFromJellyfin)
 	v1.POST("/admin/anime/:id/jellyfin/preview", auth, deps.adminContentHandler.PreviewAnimeFromJellyfin)
 	v1.GET("/admin/episode-versions/:versionId/editor-context", auth, deps.adminContentHandler.GetEpisodeVersionEditorContext)
 	v1.POST("/admin/episode-versions/:versionId/folder-scan", auth, deps.adminContentHandler.ScanEpisodeVersionFolder)
