@@ -1,0 +1,30 @@
+.surface {
+  display: grid;
+  gap: 24px;
+}
+
+.compactPicker {
+  display: grid;
+  gap: 8px;
+}
+
+.compactList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.compactItem {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid #e4e4e4;
+  border-radius: 999px;
+  background: #ffffff;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.reviewGrid {
+  display: grid;
+  gap: 24px;
+}

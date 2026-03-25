@@ -143,6 +143,67 @@ export interface AdminJellyfinSeriesSearchResponse {
   data: AdminJellyfinSeriesSearchItem[]
 }
 
+export type JellyfinIntakeConfidence = 'high' | 'medium' | 'low'
+
+export interface AdminJellyfinIntakeTypeHint {
+  suggested_type?: AnimeType
+  confidence: JellyfinIntakeConfidence
+  reasons: string[]
+}
+
+export interface AdminJellyfinIntakeSearchItem extends AdminJellyfinSeriesSearchItem {
+  parent_context?: string
+  library_context?: string
+  confidence: JellyfinIntakeConfidence
+  type_hint: AdminJellyfinIntakeTypeHint
+  poster_url?: string
+  banner_url?: string
+  logo_url?: string
+  background_url?: string
+}
+
+export interface AdminJellyfinIntakeSearchResponse {
+  data: AdminJellyfinIntakeSearchItem[]
+}
+
+export interface AdminAnimeJellyfinIntakePreviewRequest {
+  jellyfin_series_id: string
+}
+
+export interface AdminJellyfinIntakeAssetSlot {
+  present: boolean
+  kind: 'cover' | 'logo' | 'banner' | 'background' | 'background_video'
+  source: 'jellyfin'
+  url?: string
+}
+
+export interface AdminJellyfinIntakeAssetSlots {
+  cover: AdminJellyfinIntakeAssetSlot
+  logo: AdminJellyfinIntakeAssetSlot
+  banner: AdminJellyfinIntakeAssetSlot
+  background: AdminJellyfinIntakeAssetSlot
+  background_video: AdminJellyfinIntakeAssetSlot
+}
+
+export interface AdminAnimeJellyfinIntakePreviewResult {
+  jellyfin_series_id: string
+  jellyfin_series_name: string
+  jellyfin_series_path?: string
+  parent_context?: string
+  library_context?: string
+  description?: string
+  year?: number
+  genre?: string
+  tags: string[]
+  anidb_id?: string
+  type_hint: AdminJellyfinIntakeTypeHint
+  asset_slots: AdminJellyfinIntakeAssetSlots
+}
+
+export interface AdminAnimeJellyfinIntakePreviewResponse {
+  data: AdminAnimeJellyfinIntakePreviewResult
+}
+
 export interface AdminAnimeJellyfinPreviewEpisode {
   jellyfin_item_id: string
   episode_number: number
