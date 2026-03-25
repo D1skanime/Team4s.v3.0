@@ -65,7 +65,7 @@ Plans:
 - [x] 03-01-PLAN.md - Define the draft-safe Jellyfin intake backend contracts with rich candidate evidence and advisory type reasoning.
 - [x] 03-02-PLAN.md - Build the typed compact-first search and rich candidate review UI on the new intake contracts.
 - [x] 03-03-PLAN.md - Hydrate the shared create draft from Jellyfin, add draft-level asset review, and preserve cancel-without-persist behavior.
-- [ ] 03-04-PLAN.md - Wire optional Jellyfin linkage through explicit save only so preview stays non-persistent.
+- [x] 03-04-PLAN.md - Wire optional Jellyfin linkage through explicit save only so preview stays non-persistent.
 **UI hint**: yes
 
 ### Phase 4: Provenance, Assets, And Safe Resync
