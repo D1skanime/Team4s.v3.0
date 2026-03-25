@@ -60,7 +60,12 @@ Plans:
   2. Admin can open an editable Jellyfin-backed draft that prefills available metadata and asset slots before any record is saved.
   3. Admin can review Jellyfin-provided description, year, genres or tags, AniDB ID, and media candidates, then accept or override any suggested anime type before save.
   4. Admin can cancel a Jellyfin-assisted draft without creating a Team4s anime record.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 03-01-PLAN.md - Define the draft-safe Jellyfin intake backend contracts with rich candidate evidence and advisory type reasoning.
+- [ ] 03-02-PLAN.md - Build the typed compact-first search and rich candidate review UI on the new intake contracts.
+- [ ] 03-03-PLAN.md - Hydrate the shared create draft from Jellyfin, add draft-level asset review, and preserve cancel-without-persist behavior.
+- [ ] 03-04-PLAN.md - Wire optional Jellyfin linkage through explicit save only so preview stays non-persistent.
 **UI hint**: yes
 
 ### Phase 4: Provenance, Assets, And Safe Resync
