@@ -44,6 +44,23 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 		return models.AdminAnimeCreateInput{}, "cover_image ist erforderlich"
 	}
 
+	source := normalizeNullableString(req.Source)
+	folderName := normalizeNullableString(req.FolderName)
+	if folderName != nil && source == nil {
+		return models.AdminAnimeCreateInput{}, "folder_name erfordert source"
+	}
+	if source != nil {
+		if !strings.HasPrefix(*source, "jellyfin:") {
+			return models.AdminAnimeCreateInput{}, "ungueltiger source parameter"
+		}
+		seriesID := strings.TrimSpace(strings.TrimPrefix(*source, "jellyfin:"))
+		if seriesID == "" {
+			return models.AdminAnimeCreateInput{}, "ungueltiger source parameter"
+		}
+		normalizedSource := "jellyfin:" + seriesID
+		source = &normalizedSource
+	}
+
 	if req.Year != nil && *req.Year <= 0 {
 		return models.AdminAnimeCreateInput{}, "ungueltiger year parameter"
 	}
@@ -63,6 +80,8 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 		Genre:       normalizeNullableString(req.Genre),
 		Description: normalizeNullableString(req.Description),
 		CoverImage:  coverImage,
+		Source:      source,
+		FolderName:  folderName,
 	}, ""
 }
 

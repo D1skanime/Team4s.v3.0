@@ -20,6 +20,8 @@ type adminAnimeCreateRequest struct {
 	Genre       *string `json:"genre"`
 	Description *string `json:"description"`
 	CoverImage  *string `json:"cover_image"`
+	Source      *string `json:"source"`
+	FolderName  *string `json:"folder_name"`
 }
 
 type adminEpisodeCreateRequest struct {

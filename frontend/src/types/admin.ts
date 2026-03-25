@@ -38,6 +38,8 @@ export interface AdminAnimeCreateRequest {
   genre?: string
   description?: string
   cover_image?: string
+  source?: string
+  folder_name?: string
 }
 
 export interface AdminAnimePatchRequest {

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 
 import { ApiError, createAdminAnime, getAdminGenreTokens, getRuntimeAuthToken } from '@/lib/api'
+import { createAdminAnimeFromJellyfinDraft } from '@/lib/api/admin-anime-intake'
 import { ContentType, AnimeStatus } from '@/types/anime'
 import { AdminAnimeCreateRequest, AnimeType, GenreToken } from '@/types/admin'
 
@@ -33,6 +34,24 @@ import type {
 
 export function buildManualCreateRedirectPath(id: number): string {
   return `/admin/anime/${id}/edit`
+}
+
+export function appendJellyfinLinkageToCreatePayload(
+  payload: AdminAnimeCreateRequest,
+  preview: AdminAnimeJellyfinIntakePreviewResult | null,
+): AdminAnimeCreateRequest {
+  if (!preview) {
+    return payload
+  }
+
+  const source = `jellyfin:${preview.jellyfin_series_id.trim()}`
+  const folderName = preview.jellyfin_series_path?.trim()
+
+  return {
+    ...payload,
+    source,
+    folder_name: folderName || undefined,
+  }
 }
 
 export async function uploadManualCreateCover(file: File): Promise<string> {
@@ -354,8 +373,9 @@ export default function AdminAnimeCreatePage() {
     try {
       setIsSubmittingCreate(true)
       setLastRequest(JSON.stringify(payload, null, 2))
-      const response = await createManualAnimeAndRedirect(payload, {
-        createAdminAnime,
+      const createPayload = appendJellyfinLinkageToCreatePayload(payload, jellyfinPreview)
+      const response = await createManualAnimeAndRedirect(createPayload, {
+        createAdminAnime: jellyfinPreview ? createAdminAnimeFromJellyfinDraft : createAdminAnime,
         authToken,
         setLocationHref: (value) => {
           window.location.href = value

@@ -1,6 +1,8 @@
 import type {
   AdminAnimeJellyfinIntakePreviewRequest,
   AdminAnimeJellyfinIntakePreviewResponse,
+  AdminAnimeCreateRequest,
+  AdminAnimeUpsertResponse,
   AdminJellyfinIntakeSearchResponse,
 } from '@/types/admin'
 
@@ -114,4 +116,24 @@ export async function previewAdminAnimeFromJellyfinIntake(
   }
 
   return response.json() as Promise<AdminAnimeJellyfinIntakePreviewResponse>
+}
+
+export async function createAdminAnimeFromJellyfinDraft(
+  payload: AdminAnimeCreateRequest,
+  authToken?: string,
+): Promise<AdminAnimeUpsertResponse> {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/anime`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...withAuthHeaders(authToken),
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, `API request failed: ${response.status}`))
+  }
+
+  return response.json() as Promise<AdminAnimeUpsertResponse>
 }

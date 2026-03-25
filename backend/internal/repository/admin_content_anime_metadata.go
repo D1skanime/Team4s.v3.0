@@ -209,9 +209,9 @@ func (r *AdminContentRepository) CreateAnime(
 	query := `
 		INSERT INTO anime (
 			title, title_de, title_en, type, content_type, status,
-			year, max_episodes, genre, description, cover_image
+			year, max_episodes, genre, description, cover_image, source, folder_name
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 		RETURNING
 			id, title, title_de, title_en, type, content_type, status,
 			year, max_episodes, genre, description, cover_image
@@ -232,6 +232,8 @@ func (r *AdminContentRepository) CreateAnime(
 		input.Genre,
 		input.Description,
 		input.CoverImage,
+		input.Source,
+		input.FolderName,
 	).Scan(
 		&item.ID,
 		&item.Title,

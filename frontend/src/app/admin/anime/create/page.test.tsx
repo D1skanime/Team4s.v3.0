@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import AdminAnimeCreatePage, {
+  appendJellyfinLinkageToCreatePayload,
   buildManualCreateDraftSnapshot,
   buildManualCreateRedirectPath,
   createManualAnimeAndRedirect,
@@ -183,5 +184,54 @@ describe('AdminAnimeCreatePage', () => {
     expect(removal.draft.coverImage).toBe('')
     expect(removal.assetSlots.cover.present).toBe(false)
     expect(createSpy).not.toHaveBeenCalled()
+  })
+
+  it('adds Jellyfin linkage only to the explicit create payload after preview selection', () => {
+    const payload = appendJellyfinLinkageToCreatePayload(
+      {
+        title: 'Naruto',
+        type: 'tv',
+        content_type: 'anime',
+        status: 'ongoing',
+        cover_image: 'naruto.jpg',
+      },
+      {
+        jellyfin_series_id: 'series-42',
+        jellyfin_series_name: 'Naruto',
+        jellyfin_series_path: 'D:/Anime/TV/Naruto',
+        tags: [],
+        type_hint: {
+          confidence: 'high',
+          suggested_type: 'tv',
+          reasons: ['Serienordner erkannt.'],
+        },
+        asset_slots: {
+          cover: { present: true, kind: 'cover', source: 'jellyfin', url: 'https://img/cover.jpg' },
+          logo: { present: false, kind: 'logo', source: 'jellyfin' },
+          banner: { present: false, kind: 'banner', source: 'jellyfin' },
+          background: { present: false, kind: 'background', source: 'jellyfin' },
+          background_video: { present: false, kind: 'background_video', source: 'jellyfin' },
+        },
+      },
+    )
+
+    expect(payload.source).toBe('jellyfin:series-42')
+    expect(payload.folder_name).toBe('D:/Anime/TV/Naruto')
+  })
+
+  it('keeps manual-only create payload unchanged when no Jellyfin preview exists', () => {
+    const payload = appendJellyfinLinkageToCreatePayload(
+      {
+        title: 'Naruto',
+        type: 'tv',
+        content_type: 'anime',
+        status: 'ongoing',
+        cover_image: 'naruto.jpg',
+      },
+      null,
+    )
+
+    expect(payload.source).toBeUndefined()
+    expect(payload.folder_name).toBeUndefined()
   })
 })

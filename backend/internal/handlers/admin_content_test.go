@@ -91,6 +91,65 @@ func TestValidateAdminAnimeCreateRequest_ManualOnlyWithoutJellyfinDependency(t *
 	}
 }
 
+func TestValidateAdminAnimeCreateRequest_AcceptsNormalizedJellyfinLinkage(t *testing.T) {
+	coverImage := "cover_123.webp"
+	source := " jellyfin:series-99 "
+	folderName := " D:/Anime/TV/Naruto "
+
+	input, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
+		Title:       "Naruto",
+		Type:        "tv",
+		ContentType: "anime",
+		Status:      "ongoing",
+		CoverImage:  &coverImage,
+		Source:      &source,
+		FolderName:  &folderName,
+	})
+	if message != "" {
+		t.Fatalf("expected no validation error, got %q", message)
+	}
+	if input.Source == nil || *input.Source != "jellyfin:series-99" {
+		t.Fatalf("expected normalized source, got %+v", input.Source)
+	}
+	if input.FolderName == nil || *input.FolderName != "D:/Anime/TV/Naruto" {
+		t.Fatalf("expected normalized folder name, got %+v", input.FolderName)
+	}
+}
+
+func TestValidateAdminAnimeCreateRequest_RejectsMalformedJellyfinSource(t *testing.T) {
+	coverImage := "cover_123.webp"
+	source := "jellyfin:   "
+
+	_, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
+		Title:       "Naruto",
+		Type:        "tv",
+		ContentType: "anime",
+		Status:      "ongoing",
+		CoverImage:  &coverImage,
+		Source:      &source,
+	})
+	if message != "ungueltiger source parameter" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+}
+
+func TestValidateAdminAnimeCreateRequest_RejectsFolderWithoutSource(t *testing.T) {
+	coverImage := "cover_123.webp"
+	folderName := "D:/Anime/TV/Naruto"
+
+	_, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
+		Title:       "Naruto",
+		Type:        "tv",
+		ContentType: "anime",
+		Status:      "ongoing",
+		CoverImage:  &coverImage,
+		FolderName:  &folderName,
+	})
+	if message != "folder_name erfordert source" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+}
+
 func TestValidateAdminAnimeCreateRequest_InvalidType(t *testing.T) {
 	_, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
 		Title:       "Valid",
@@ -654,12 +713,14 @@ func TestValidateAdminAnimeCreateRequest_InvalidStatus(t *testing.T) {
 
 func TestValidateAdminAnimeCreateRequest_InvalidYear(t *testing.T) {
 	year := int16(-1)
+	coverImage := "cover_123.webp"
 	_, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
 		Title:       "Valid",
 		Type:        "tv",
 		ContentType: "anime",
 		Status:      "ongoing",
 		Year:        &year,
+		CoverImage:  &coverImage,
 	})
 	if message != "ungueltiger year parameter" {
 		t.Fatalf("unexpected message: %q", message)
@@ -668,12 +729,14 @@ func TestValidateAdminAnimeCreateRequest_InvalidYear(t *testing.T) {
 
 func TestValidateAdminAnimeCreateRequest_ZeroYear(t *testing.T) {
 	year := int16(0)
+	coverImage := "cover_123.webp"
 	_, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
 		Title:       "Valid",
 		Type:        "tv",
 		ContentType: "anime",
 		Status:      "ongoing",
 		Year:        &year,
+		CoverImage:  &coverImage,
 	})
 	if message != "ungueltiger year parameter" {
 		t.Fatalf("unexpected message: %q", message)
@@ -682,12 +745,14 @@ func TestValidateAdminAnimeCreateRequest_ZeroYear(t *testing.T) {
 
 func TestValidateAdminAnimeCreateRequest_InvalidMaxEpisodes(t *testing.T) {
 	maxEpisodes := int16(0)
+	coverImage := "cover_123.webp"
 	_, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
 		Title:       "Valid",
 		Type:        "tv",
 		ContentType: "anime",
 		Status:      "ongoing",
 		MaxEpisodes: &maxEpisodes,
+		CoverImage:  &coverImage,
 	})
 	if message != "ungueltiger max_episodes parameter" {
 		t.Fatalf("unexpected message: %q", message)
@@ -696,12 +761,14 @@ func TestValidateAdminAnimeCreateRequest_InvalidMaxEpisodes(t *testing.T) {
 
 func TestValidateAdminAnimeCreateRequest_AllAnimeTypes(t *testing.T) {
 	validTypes := []string{"tv", "film", "ova", "ona", "special", "bonus"}
+	coverImage := "cover_123.webp"
 	for _, animeType := range validTypes {
 		input, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
 			Title:       "Test",
 			Type:        animeType,
 			ContentType: "anime",
 			Status:      "ongoing",
+			CoverImage:  &coverImage,
 		})
 		if message != "" {
 			t.Fatalf("type %q should be valid, got error: %q", animeType, message)
@@ -714,12 +781,14 @@ func TestValidateAdminAnimeCreateRequest_AllAnimeTypes(t *testing.T) {
 
 func TestValidateAdminAnimeCreateRequest_AllStatuses(t *testing.T) {
 	validStatuses := []string{"disabled", "ongoing", "done", "aborted", "licensed"}
+	coverImage := "cover_123.webp"
 	for _, status := range validStatuses {
 		input, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
 			Title:       "Test",
 			Type:        "tv",
 			ContentType: "anime",
 			Status:      status,
+			CoverImage:  &coverImage,
 		})
 		if message != "" {
 			t.Fatalf("status %q should be valid, got error: %q", status, message)
@@ -732,12 +801,14 @@ func TestValidateAdminAnimeCreateRequest_AllStatuses(t *testing.T) {
 
 func TestValidateAdminAnimeCreateRequest_AllContentTypes(t *testing.T) {
 	validContentTypes := []string{"anime", "hentai"}
+	coverImage := "cover_123.webp"
 	for _, contentType := range validContentTypes {
 		input, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
 			Title:       "Test",
 			Type:        "tv",
 			ContentType: contentType,
 			Status:      "ongoing",
+			CoverImage:  &coverImage,
 		})
 		if message != "" {
 			t.Fatalf("content_type %q should be valid, got error: %q", contentType, message)

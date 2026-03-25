@@ -40,6 +40,8 @@ func buildAdminAnimeAuditEntryForCreate(
 		"genre":        input.Genre,
 		"description":  input.Description,
 		"cover_image":  input.CoverImage,
+		"source":       input.Source,
+		"folder_name":  input.FolderName,
 	})
 	if err != nil {
 		return adminAnimeAuditEntry{}, fmt.Errorf("marshal anime create audit payload: %w", err)

@@ -62,6 +62,8 @@ type AdminAnimeCreateInput struct {
 	Genre       *string
 	Description *string
 	CoverImage  *string
+	Source      *string
+	FolderName  *string
 }
 
 type AdminAnimePatchInput struct {
