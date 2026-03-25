@@ -22,11 +22,16 @@ type jellyfinSeriesListResponse struct {
 }
 
 type jellyfinSeriesItem struct {
-	ID             string `json:"Id"`
-	Name           string `json:"Name"`
-	ProductionYear *int   `json:"ProductionYear"`
-	Overview       string `json:"Overview"`
-	Path           string `json:"Path"`
+	ID                string            `json:"Id"`
+	Name              string            `json:"Name"`
+	ProductionYear    *int              `json:"ProductionYear"`
+	Overview          string            `json:"Overview"`
+	Path              string            `json:"Path"`
+	Genres            []string          `json:"Genres"`
+	Tags              []string          `json:"Tags"`
+	ProviderIDs       map[string]string `json:"ProviderIds"`
+	ImageTags         map[string]string `json:"ImageTags"`
+	BackdropImageTags []string          `json:"BackdropImageTags"`
 }
 
 type jellyfinEpisodeListResponse struct {
@@ -115,6 +120,46 @@ func (h *AdminContentHandler) getJellyfinSeriesByID(
 	return &payload.Items[0], nil
 }
 
+type jellyfinSeriesDetailItem struct {
+	ID                string            `json:"Id"`
+	Name              string            `json:"Name"`
+	ProductionYear    *int              `json:"ProductionYear"`
+	Overview          string            `json:"Overview"`
+	Path              string            `json:"Path"`
+	Genres            []string          `json:"Genres"`
+	Tags              []string          `json:"Tags"`
+	ProviderIDs       map[string]string `json:"ProviderIds"`
+	ImageTags         map[string]string `json:"ImageTags"`
+	BackdropImageTags []string          `json:"BackdropImageTags"`
+}
+
+func (h *AdminContentHandler) getJellyfinSeriesIntakeDetail(
+	ctx context.Context,
+	seriesID string,
+) (*jellyfinSeriesDetailItem, error) {
+	trimmedSeriesID := strings.TrimSpace(seriesID)
+	if trimmedSeriesID == "" {
+		return nil, nil
+	}
+
+	values := url.Values{}
+	values.Set("Fields", "Path,ProductionYear,Overview,ProviderIds,Genres,Tags,ImageTags,BackdropImageTags")
+
+	var payload jellyfinSeriesDetailItem
+	statusCode, err := h.fetchJellyfinJSON(ctx, fmt.Sprintf("/Items/%s", url.PathEscape(trimmedSeriesID)), values, &payload)
+	if statusCode == http.StatusNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(payload.ID) == "" {
+		return nil, nil
+	}
+
+	return &payload, nil
+}
+
 // listJellyfinEpisodes fetches all episodes for a series.
 func (h *AdminContentHandler) listJellyfinEpisodes(
 	ctx context.Context,
@@ -130,6 +175,38 @@ func (h *AdminContentHandler) listJellyfinEpisodes(
 	}
 
 	return payload.Items, nil
+}
+
+func (h *AdminContentHandler) listJellyfinThemeVideoIDs(
+	ctx context.Context,
+	seriesID string,
+) ([]string, error) {
+	trimmedSeriesID := strings.TrimSpace(seriesID)
+	if trimmedSeriesID == "" {
+		return []string{}, nil
+	}
+
+	apiPath := fmt.Sprintf("/Items/%s/ThemeVideos", url.PathEscape(trimmedSeriesID))
+	payload := animeJellyfinThemeVideosResponse{}
+	if _, err := h.fetchJellyfinJSON(ctx, apiPath, url.Values{}, &payload); err != nil {
+		return nil, err
+	}
+
+	seen := make(map[string]struct{}, len(payload.Items))
+	result := make([]string, 0, len(payload.Items))
+	for _, item := range payload.Items {
+		trimmedID := strings.TrimSpace(item.ID)
+		if trimmedID == "" {
+			continue
+		}
+		if _, exists := seen[trimmedID]; exists {
+			continue
+		}
+		seen[trimmedID] = struct{}{}
+		result = append(result, trimmedID)
+	}
+
+	return result, nil
 }
 
 // fetchJellyfinJSON performs a GET request to the Jellyfin API.
