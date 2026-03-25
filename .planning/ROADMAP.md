@@ -62,7 +62,7 @@ Plans:
   4. Admin can cancel a Jellyfin-assisted draft without creating a Team4s anime record.
 **Plans**: 4 plans
 Plans:
-- [ ] 03-01-PLAN.md - Define the draft-safe Jellyfin intake backend contracts with rich candidate evidence and advisory type reasoning.
+- [x] 03-01-PLAN.md - Define the draft-safe Jellyfin intake backend contracts with rich candidate evidence and advisory type reasoning.
 - [ ] 03-02-PLAN.md - Build the typed compact-first search and rich candidate review UI on the new intake contracts.
 - [ ] 03-03-PLAN.md - Hydrate the shared create draft from Jellyfin, add draft-level asset review, and preserve cancel-without-persist behavior.
 - [ ] 03-04-PLAN.md - Wire optional Jellyfin linkage through explicit save only so preview stays non-persistent.
