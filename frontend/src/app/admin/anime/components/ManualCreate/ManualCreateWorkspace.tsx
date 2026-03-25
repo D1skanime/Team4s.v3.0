@@ -1,6 +1,6 @@
 'use client'
 
-import type { FormEvent, RefObject } from 'react'
+import type { FormEvent, ReactNode, RefObject } from 'react'
 
 import { AnimeStatus, ContentType } from '@/types/anime'
 import { AnimeType, GenreToken } from '@/types/admin'
@@ -38,6 +38,10 @@ interface ManualCreateWorkspaceProps {
   canLoadMore: boolean
   canResetLimit: boolean
   missingFields: string[]
+  titleActions?: ReactNode
+  titleHint?: ReactNode
+  typeHint?: ReactNode
+  draftAssets?: ReactNode
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   onTitleChange: (value: string) => void
   onTypeChange: (value: AnimeType) => void
@@ -78,12 +82,16 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
           <div className={styles.gridTwo}>
             <div className={styles.field}>
               <label htmlFor="create-title">Title *</label>
-              <input
-                id="create-title"
-                value={props.title}
-                onChange={(event) => props.onTitleChange(event.target.value)}
-                disabled={props.isSubmitting}
-              />
+              <div className={styles.inputRow}>
+                <input
+                  id="create-title"
+                  value={props.title}
+                  onChange={(event) => props.onTitleChange(event.target.value)}
+                  disabled={props.isSubmitting}
+                />
+                {props.titleActions ? <div className={styles.actions}>{props.titleActions}</div> : null}
+              </div>
+              {props.titleHint}
             </div>
             <div className={styles.field}>
               <label htmlFor="create-type">Type *</label>
@@ -99,6 +107,7 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
                   </option>
                 ))}
               </select>
+              {props.typeHint}
             </div>
             <div className={styles.field}>
               <label htmlFor="create-content-type">Content Type *</label>
@@ -201,6 +210,7 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
               onFileChange={props.onFileChange}
               onOpenFileDialog={props.onOpenFileDialog}
             />
+            {props.draftAssets}
             <div className={styles.field}>
               <label htmlFor="create-description">Description</label>
               <textarea

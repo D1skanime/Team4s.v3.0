@@ -8,10 +8,28 @@ import { ContentType, AnimeStatus } from '@/types/anime'
 import { AdminAnimeCreateRequest, AnimeType, GenreToken } from '@/types/admin'
 
 import styles from '../../admin.module.css'
+import { JellyfinCandidateReview } from '../components/JellyfinIntake/JellyfinCandidateReview'
+import { JellyfinDraftAssets } from '../components/ManualCreate/JellyfinDraftAssets'
 import { ManualCreateWorkspace } from '../components/ManualCreate/ManualCreateWorkspace'
 import { useAnimeEditor } from '../hooks/useAnimeEditor'
-import { resolveManualCreateState } from '../hooks/useManualAnimeDraft'
+import {
+  hydrateManualDraftFromJellyfinPreview,
+  removeJellyfinDraftAsset,
+  resolveManualCreateState,
+  type JellyfinDraftAssetKind,
+  type ManualAnimeDraftValues,
+} from '../hooks/useManualAnimeDraft'
+import { useJellyfinIntake } from '../hooks/useJellyfinIntake'
 import { normalizeOptionalString, parsePositiveInt, splitGenreTokens } from '../utils/anime-helpers'
+import {
+  formatJellyfinTypeHintConfidence,
+  formatJellyfinTypeHintLabel,
+  formatJellyfinTypeHintReasoning,
+} from '../utils/jellyfin-intake-type-hint'
+import type {
+  AdminAnimeJellyfinIntakePreviewResult,
+  AdminJellyfinIntakeAssetSlots,
+} from '@/types/admin'
 
 export function buildManualCreateRedirectPath(id: number): string {
   return `/admin/anime/${id}/edit`
@@ -60,6 +78,24 @@ export async function createManualAnimeAndRedirect(
 
 const DEFAULT_GENRE_LIMIT = 40
 
+export function resolveSourceActionState(title: string) {
+  const trimmed = title.trim()
+  const meaningful = trimmed.length >= 2 && /[\p{L}\p{N}]/u.test(trimmed)
+  return {
+    canSync: meaningful,
+    helperText: meaningful
+      ? 'Jellyfin nutzt den aktuellen Titel als Suchanfrage. AniSearch Sync kommt in Phase 4.'
+      : 'Gib zuerst einen aussagekraeftigen Anime-Titel ein. AniSearch Sync kommt in Phase 4.',
+  }
+}
+
+export function buildManualCreateDraftSnapshot(values: ManualAnimeDraftValues): ManualAnimeDraftValues {
+  return {
+    ...values,
+    genreTokens: [...values.genreTokens],
+  }
+}
+
 export default function AdminAnimeCreatePage() {
   const [authToken, setAuthToken] = useState('')
   const [isSubmittingCreate, setIsSubmittingCreate] = useState(false)
@@ -86,6 +122,9 @@ export default function AdminAnimeCreatePage() {
   const [createGenreTokens, setCreateGenreTokens] = useState<string[]>([])
   const [createDescription, setCreateDescription] = useState('')
   const [createCoverImage, setCreateCoverImage] = useState('')
+  const [jellyfinPreview, setJellyfinPreview] = useState<AdminAnimeJellyfinIntakePreviewResult | null>(null)
+  const [jellyfinAssetSlots, setJellyfinAssetSlots] = useState<AdminJellyfinIntakeAssetSlots | null>(null)
+  const [jellyfinDraftSnapshot, setJellyfinDraftSnapshot] = useState<ManualAnimeDraftValues | null>(null)
   const coverFileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -111,6 +150,43 @@ export default function AdminAnimeCreatePage() {
       })
       .finally(() => setIsLoadingGenreTokens(false))
   }, [authToken, hasAuthToken])
+
+  const jellyfinIntake = useJellyfinIntake(authToken)
+
+  useEffect(() => {
+    jellyfinIntake.setQuery(createTitle)
+  }, [createTitle, jellyfinIntake.setQuery])
+
+  const sourceActionState = useMemo(() => resolveSourceActionState(createTitle), [createTitle])
+
+  const manualDraftValues = useMemo<ManualAnimeDraftValues>(
+    () => ({
+      title: createTitle,
+      type: createType,
+      contentType: createContentType,
+      status: createStatus,
+      year: createYear,
+      maxEpisodes: createMaxEpisodes,
+      titleDE: createTitleDE,
+      titleEN: createTitleEN,
+      genreTokens: createGenreTokens,
+      description: createDescription,
+      coverImage: createCoverImage,
+    }),
+    [
+      createContentType,
+      createCoverImage,
+      createDescription,
+      createGenreTokens,
+      createMaxEpisodes,
+      createStatus,
+      createTitle,
+      createTitleDE,
+      createTitleEN,
+      createType,
+      createYear,
+    ],
+  )
 
   const manualDraftState = useMemo(
     () =>
@@ -187,6 +263,20 @@ export default function AdminAnimeCreatePage() {
   function clearMessages() {
     setErrorMessage(null)
     setSuccessMessage(null)
+  }
+
+  function applyManualDraftValues(values: ManualAnimeDraftValues) {
+    setCreateTitle(values.title)
+    setCreateType(values.type)
+    setCreateContentType(values.contentType)
+    setCreateStatus(values.status)
+    setCreateYear(values.year)
+    setCreateMaxEpisodes(values.maxEpisodes)
+    setCreateTitleDE(values.titleDE)
+    setCreateTitleEN(values.titleEN)
+    setCreateGenreTokens(values.genreTokens)
+    setCreateDescription(values.description)
+    setCreateCoverImage(values.coverImage)
   }
 
   function formatError(error: unknown, fallback: string): string {
@@ -295,6 +385,67 @@ export default function AdminAnimeCreatePage() {
     }
   }
 
+  async function handleJellyfinSearch() {
+    clearMessages()
+    try {
+      await jellyfinIntake.search()
+      if (jellyfinIntake.candidates.length === 0) {
+        setSuccessMessage('Jellyfin-Suche abgeschlossen. Falls keine Karten erscheinen, pruefe Titel oder Ordnernamen.')
+      }
+    } catch (error) {
+      setErrorMessage(formatError(error, 'Jellyfin-Daten konnten nicht geladen werden.'))
+    }
+  }
+
+  async function handleJellyfinCandidateReview(candidateID: string) {
+    clearMessages()
+    jellyfinIntake.reviewCandidate(candidateID)
+
+    try {
+      const preview = await jellyfinIntake.loadPreview(candidateID)
+      if (!preview) {
+        setErrorMessage('Jellyfin-Vorschau konnte nicht geladen werden.')
+        return
+      }
+
+      setJellyfinDraftSnapshot(buildManualCreateDraftSnapshot(manualDraftValues))
+      const hydrated = hydrateManualDraftFromJellyfinPreview(manualDraftValues, preview)
+      applyManualDraftValues(hydrated.draft)
+      setJellyfinPreview(preview)
+      setJellyfinAssetSlots(hydrated.assetSlots)
+      setShowValidationSummary(false)
+      setSuccessMessage(`Jellyfin-Vorschau fuer ${preview.jellyfin_series_name} geladen.`)
+    } catch (error) {
+      setErrorMessage(formatError(error, 'Jellyfin-Vorschau konnte nicht geladen werden.'))
+    }
+  }
+
+  function handleAniSearchPlaceholder() {
+    clearMessages()
+    setSuccessMessage('AniSearch Sync kommt in Phase 4.')
+  }
+
+  function handleRemoveJellyfinAsset(kind: JellyfinDraftAssetKind) {
+    if (!jellyfinAssetSlots) return
+
+    const next = removeJellyfinDraftAsset(manualDraftValues, jellyfinAssetSlots, kind)
+    applyManualDraftValues(next.draft)
+    setJellyfinAssetSlots(next.assetSlots)
+    setShowValidationSummary(false)
+  }
+
+  function handleDiscardJellyfinPreview() {
+    if (jellyfinDraftSnapshot) {
+      applyManualDraftValues(jellyfinDraftSnapshot)
+    }
+    setJellyfinPreview(null)
+    setJellyfinAssetSlots(null)
+    setJellyfinDraftSnapshot(null)
+    jellyfinIntake.resetReview()
+    clearMessages()
+    setSuccessMessage('Jellyfin-Vorschau verworfen. Der Entwurf bleibt ungespeichert.')
+  }
+
   return (
     <main className={styles.page}>
       <p className={styles.backLinks}>
@@ -309,6 +460,23 @@ export default function AdminAnimeCreatePage() {
 
       {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
       {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
+
+      {jellyfinIntake.candidates.length > 0 ? (
+        <section className={styles.panel}>
+          <h2>Jellyfin-Kandidaten pruefen</h2>
+          <p className={styles.hint}>
+            Waehl den passenden Ordner bewusst aus. Erst danach wird derselbe Entwurf vorbefuellt.
+          </p>
+          <JellyfinCandidateReview
+            query={createTitle.trim()}
+            candidates={jellyfinIntake.candidates}
+            selectedCandidateID={jellyfinIntake.reviewState.selectedCandidate?.jellyfin_series_id}
+            onReviewCandidate={(candidateID) => {
+              void handleJellyfinCandidateReview(candidateID)
+            }}
+          />
+        </section>
+      ) : null}
 
       <ManualCreateWorkspace
         editor={editor}
@@ -335,6 +503,56 @@ export default function AdminAnimeCreatePage() {
         canLoadMore={genreSuggestionLimit < 1000}
         canResetLimit={genreSuggestionLimit > DEFAULT_GENRE_LIMIT}
         missingFields={showValidationSummary ? missingFields : []}
+        titleActions={
+          <>
+            <button
+              className={styles.button}
+              type="button"
+              disabled={!sourceActionState.canSync || jellyfinIntake.isSearching || isSubmittingCreate}
+              onClick={() => {
+                void handleJellyfinSearch()
+              }}
+            >
+              {jellyfinIntake.isSearching ? 'Jellyfin laedt...' : 'Jellyfin Sync'}
+            </button>
+            <button
+              className={styles.buttonSecondary}
+              type="button"
+              disabled={!sourceActionState.canSync || isSubmittingCreate}
+              onClick={handleAniSearchPlaceholder}
+            >
+              AniSearch Sync
+            </button>
+          </>
+        }
+        titleHint={<p className={styles.hint}>{sourceActionState.helperText}</p>}
+        typeHint={
+          jellyfinPreview ? (
+            <div className={styles.details}>
+              <strong>{formatJellyfinTypeHintLabel(jellyfinPreview.type_hint)}</strong>
+              <p className={styles.hint}>
+                Vertrauen: {formatJellyfinTypeHintConfidence(jellyfinPreview.type_hint.confidence)}
+              </p>
+              <p className={styles.hint}>{formatJellyfinTypeHintReasoning(jellyfinPreview.type_hint)}</p>
+            </div>
+          ) : null
+        }
+        draftAssets={
+          jellyfinPreview && jellyfinAssetSlots ? (
+            <>
+              <JellyfinDraftAssets
+                animeTitle={createTitle.trim() || jellyfinPreview.jellyfin_series_name}
+                assetSlots={jellyfinAssetSlots}
+                onRemoveAsset={handleRemoveJellyfinAsset}
+              />
+              <div className={styles.actions}>
+                <button className={`${styles.buttonSecondary} ${styles.buttonDanger}`} type="button" onClick={handleDiscardJellyfinPreview}>
+                  Auswahl verwerfen
+                </button>
+              </div>
+            </>
+          ) : null
+        }
         onSubmit={handleCreateSubmit}
         onTitleChange={(value) => {
           setCreateTitle(value)

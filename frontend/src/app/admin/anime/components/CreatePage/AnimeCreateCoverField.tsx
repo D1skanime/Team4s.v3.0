@@ -52,7 +52,7 @@ export function AnimeCreateCoverField({
         </div>
         <div className={styles.actions}>
           <input
-            ref={inputRef}
+            ref={inputRef as RefObject<HTMLInputElement>}
             className={styles.fileInput}
             type="file"
             accept="image/*"
