@@ -9,6 +9,7 @@ import type {
 import type { AnimeStatus, ContentType } from '@/types/anime'
 
 import { splitGenreTokens } from '../utils/anime-helpers'
+import { resolveJellyfinIntakeAssetUrl } from '../utils/jellyfin-intake-assets'
 
 export type ManualAnimeDraftStateKey = 'empty' | 'incomplete' | 'ready'
 
@@ -98,7 +99,7 @@ export function hydrateManualDraftFromJellyfinPreview(
     preview.asset_slots.cover.present &&
     hasMeaningfulValue(preview.asset_slots.cover.url)
   ) {
-    hydratedDraft.coverImage = preview.asset_slots.cover.url!.trim()
+    hydratedDraft.coverImage = resolveJellyfinIntakeAssetUrl(preview.asset_slots.cover.url)
   }
 
   return {

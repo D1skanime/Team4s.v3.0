@@ -143,21 +143,54 @@ func (h *AdminContentHandler) getJellyfinSeriesIntakeDetail(
 	}
 
 	values := url.Values{}
+	values.Set("Ids", trimmedSeriesID)
+	values.Set("IncludeItemTypes", "Series")
+	values.Set("Recursive", "true")
+	values.Set("Limit", "1")
 	values.Set("Fields", "Path,ProductionYear,Overview,ProviderIds,Genres,Tags,ImageTags,BackdropImageTags")
 
-	var payload jellyfinSeriesDetailItem
-	statusCode, err := h.fetchJellyfinJSON(ctx, fmt.Sprintf("/Items/%s", url.PathEscape(trimmedSeriesID)), values, &payload)
+	var payload jellyfinSeriesListResponse
+	statusCode, err := h.fetchJellyfinJSON(ctx, "/Items", values, &payload)
 	if statusCode == http.StatusNotFound {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	if strings.TrimSpace(payload.ID) == "" {
+	if len(payload.Items) == 0 {
 		return nil, nil
 	}
 
-	return &payload, nil
+	for _, item := range payload.Items {
+		if strings.TrimSpace(item.ID) == trimmedSeriesID {
+			return &jellyfinSeriesDetailItem{
+				ID:                item.ID,
+				Name:              item.Name,
+				ProductionYear:    item.ProductionYear,
+				Overview:          item.Overview,
+				Path:              item.Path,
+				Genres:            item.Genres,
+				Tags:              item.Tags,
+				ProviderIDs:       item.ProviderIDs,
+				ImageTags:         item.ImageTags,
+				BackdropImageTags: item.BackdropImageTags,
+			}, nil
+		}
+	}
+
+	item := payload.Items[0]
+	return &jellyfinSeriesDetailItem{
+		ID:                item.ID,
+		Name:              item.Name,
+		ProductionYear:    item.ProductionYear,
+		Overview:          item.Overview,
+		Path:              item.Path,
+		Genres:            item.Genres,
+		Tags:              item.Tags,
+		ProviderIDs:       item.ProviderIDs,
+		ImageTags:         item.ImageTags,
+		BackdropImageTags: item.BackdropImageTags,
+	}, nil
 }
 
 // listJellyfinEpisodes fetches all episodes for a series.

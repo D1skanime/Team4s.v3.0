@@ -2,6 +2,7 @@
 
 import styles from '../../../admin.module.css'
 import type { AdminJellyfinIntakeAssetSlots } from '@/types/admin'
+import { resolveJellyfinIntakeAssetUrl } from '../../utils/jellyfin-intake-assets'
 
 type JellyfinDraftAssetKind = keyof AdminJellyfinIntakeAssetSlots
 
@@ -42,7 +43,8 @@ function missingSlotLabel(kind: JellyfinDraftAssetKind): string {
 }
 
 function renderAssetPreview(animeTitle: string, kind: JellyfinDraftAssetKind, url?: string) {
-  if (!url) {
+  const resolvedUrl = resolveJellyfinIntakeAssetUrl(url)
+  if (!resolvedUrl) {
     return <p className={styles.hint}>{missingSlotLabel(kind)}</p>
   }
 
@@ -51,7 +53,7 @@ function renderAssetPreview(animeTitle: string, kind: JellyfinDraftAssetKind, ur
       <div className={styles.details}>
         <strong>{slotLabel(kind)}</strong>
         <p className={styles.hint}>Jellyfin-Quelle fuer {animeTitle}</p>
-        <a className={styles.buttonSecondary} href={url} target="_blank" rel="noreferrer">
+        <a className={styles.buttonSecondary} href={resolvedUrl} target="_blank" rel="noreferrer">
           Videoquelle oeffnen
         </a>
       </div>
@@ -62,7 +64,7 @@ function renderAssetPreview(animeTitle: string, kind: JellyfinDraftAssetKind, ur
     <div className={styles.coverInline}>
       <img
         className={styles.coverPreviewSmall}
-        src={url}
+        src={resolvedUrl}
         alt={`${slotLabel(kind)} von Jellyfin fuer ${animeTitle}`}
       />
       <p className={styles.hint}>Jellyfin-Quelle fuer {animeTitle}</p>

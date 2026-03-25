@@ -1,4 +1,5 @@
 import type { AdminJellyfinIntakeSearchItem } from '@/types/admin'
+import { resolveJellyfinIntakeAssetUrl } from '../../utils/jellyfin-intake-assets'
 
 import styles from './JellyfinCandidateCard.module.css'
 
@@ -9,12 +10,13 @@ interface JellyfinCandidateCardProps {
 }
 
 function renderPreviewTile(label: string, url?: string) {
+  const resolvedUrl = resolveJellyfinIntakeAssetUrl(url)
   return (
     <div className={styles.previewTile}>
       <span className={styles.previewLabel}>{label}</span>
       <div className={styles.previewFrame}>
-        {url ? (
-          <img className={styles.previewImage} src={url} alt={`${label} preview`} />
+        {resolvedUrl ? (
+          <img className={styles.previewImage} src={resolvedUrl} alt={`${label} preview`} />
         ) : (
           <div className={styles.emptyFrame}>keine Vorschau</div>
         )}
