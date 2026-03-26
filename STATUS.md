@@ -2,60 +2,65 @@
 
 ## Project Snapshot
 - **Project:** Team4s.v3.0
-- **Milestone:** Generic Media Upload Service Implementation
-- **Status:** Core infrastructure complete, cover migration executed, debugging UI integration
-- **Rough completion:** ~85%
+- **Milestone:** Admin anime intake and public/admin parity hardening
+- **Status:** Manual create flow, Jellyfin-assisted intake, local dev auth bypass, and core public/admin cover handling are working; edit flow and richer metadata/media ownership still need follow-up
+- **Rough completion:** ~70% for the current admin anime intake track
 
 ## What Works Now
-- `/anime/[id]` renders with glassmorphism hero design
-- Genre chips display correctly using `genres: string[]` from backend
-- Related section positioned correctly within hero info card
-- Edge navigation buttons (Zuruck/Weiter) positioned at heroContainer top-left/top-right
-- Docker Compose stack runs successfully
-- All runtime checks pass:
-  - `http://localhost:8092/health` -> `{"status":"ok"}`
-  - `http://localhost:3002/anime/25` -> HTTP 200
-- **Generic media upload service:**
-  - Backend endpoint `/api/v1/admin/upload` functional (API-tested)
-  - Image processing: JPEG/PNG/WebP -> WebP original + 300px thumbnail
-  - Video processing: MP4/WebM -> 1:1 copy + FFmpeg thumbnail (5s frame)
-  - MIME validation via magic bytes (security)
-  - Path traversal protection (security)
-  - Admin auth middleware (requires bearer token)
-  - Transaction handling (atomic DB writes)
-  - Database schema deployed (MediaAsset, MediaFile, join tables)
-  - Cover migration completed (2231 covers -> `/media/anime/{id}/poster/{uuid}/`)
-  - Frontend media serving route: `http://localhost:3002/media/anime/1/poster/{uuid}/original.webp`
-  - Backward-compatible cover URL resolution (supports `/covers/` and `/media/`)
+- Docker stack starts and serves:
+  - `http://localhost:3002`
+  - `http://localhost:8092/health`
+- Local dev auth friction is reduced for this environment:
+  - admin routes can be exercised locally without the previous token lifecycle blocking every test
+- Admin anime create flow works with:
+  - title + cover as required fields
+  - Jellyfin search from title input
+  - Jellyfin preview/draft hydration
+  - multiple Jellyfin backgrounds in the draft
+- Public anime detail accepts both:
+  - manual/local cover paths
+  - absolute Jellyfin/media proxy URLs
+- Admin anime overview now shows persisted anime entries and links to:
+  - edit
+  - public detail
+- Create flow now returns to `/admin/anime`, where the new anime is visible immediately
+- Edit cover upload works again through the local cover upload route
 
 ## Verification
-- Go backend build: PASSED
-- Next.js frontend build: PASSED
-- Docker deployment: SUCCESS
-- Runtime health checks: PASSED
-- Genre array contract: IMPLEMENTED
-- Related section layout: CORRECTED
-- Media upload endpoint (API): FUNCTIONAL
-- Cover migration (2231 covers): COMPLETED
-- Media serving route: FUNCTIONAL
-- Critical Review blockers: 6/7 RESOLVED (C6 pending documentation)
+- `frontend npm test` -> passing
+- `frontend npm run build` -> passing
+- `docker compose up -d --build` -> passing
+- Admin overview runtime render verified on Docker:
+  - `/admin/anime` shows `Naruto`
+  - `/admin/anime/1/edit` reachable
+- Public anime detail verified:
+  - `/anime/1` loads and resolves cover correctly
 
 ## Top 3 Next
-1. Debug cover upload button click handler (ref.current null issue)
-2. Document migration rollback procedure (Critical Review blocker C6)
-3. Run end-to-end upload smoke test (image + video via UI)
+1. Define and implement the remaining edit-save behavior cleanly:
+   - what saves immediately
+   - what saves through the main save bar
+   - what should redirect or stay in context
+2. Continue the edit screen improvements:
+   - smoother edit UX
+   - clearer save semantics
+   - better post-save feedback
+3. Reconcile the generic backend media upload path with the current DB schema before banner/logo/background uploads are expanded
 
 ## Known Risks / Blockers
-- **Cover upload button not working:** Click handler not triggering file input (ref.current null issue - debugging in progress)
-- **Missing rollback docs:** Migration rollback procedure not yet documented (Critical Review blocker C6)
-- **Schema deviation:** MediaAsset table differs from `db-schema-v2.md` (intentional, needs documentation)
-- **Documentation inconsistency:** Previous UX docs incorrectly described Related as post-hero standalone
-- **Frontend lint debt:** Repo-wide lint failures mask slice-level validation
-- **Dirty worktree:** Foreign files (`server.exe`, tsconfig artifacts, `migrate-covers.exe`) require careful staging
+- **Generic backend media upload is schema-broken:** `/api/v1/admin/upload` still expects old `media_assets(entity_type, entity_id, asset_type, ...)` columns and cannot currently be trusted for the newer media workflow
+- **Edit flow semantics are not fully settled:** create flow is now clearer, but edit still has mixed immediate-vs-save-bar behavior
+- **Planning/docs drift exists:** old media-upload milestone notes are no longer the best description of the active anime-intake work
+- **Dirty worktree is intentional:** current working changes and `.planning` artifacts are not fully closed out into commits yet
 
-## Owners / Lanes
-- Backend lane: Media upload service implementation (CORE COMPLETE, debugging pending)
-- Frontend lane: Media serving route + upload mutation (CORE COMPLETE, UI debugging pending)
-- Migration lane: Cover migration (COMPLETE, rollback docs pending)
-- Security lane: Auth + path validation + MIME checks (COMPLETE)
-- Documentation lane: Rollback procedure + schema deviation notes (PENDING)
+## Valid Commands
+- Start stack: `docker compose up -d --build`
+- Stop stack: `docker compose down`
+- Frontend tests: `cd frontend && npm test`
+- Frontend build: `cd frontend && npm run build`
+- Backend health check: `http://localhost:8092/health`
+
+## Owner Focus
+- Frontend/admin lane: anime create/edit flow hardening
+- Backend lane: media/schema alignment and future ownership sync rules
+- Planning lane: GSD phase continuation from the anime intake roadmap

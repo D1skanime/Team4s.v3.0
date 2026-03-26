@@ -52,3 +52,40 @@
 - Stored the schema draft canonically in `Team4s.v3.0/docs/architecture/db-schema-v2.md` so future restarts can resume from files, not chat history.
 - Executed GSD Phase 3 and turned the schema draft into a phased migration brief with blocker audit, impact mapping, rollout slices, and validation gates.
 - Executed GSD Phase 4 and created ownership/routing rules plus a migration-lane handoff so `.planning/` can guide the next migration action without replacing Team4s repo-local day-state docs.
+
+## 2026-03-26
+- Project: `Team4s.v3.0`
+- Milestone: `Admin anime intake and edit-flow hardening`
+- Today's focus: make local anime create/edit/public flows easier to test and easier to trust
+- Repo-local project files live in `C:\Users\admin\Documents\Team4s`
+
+### Workstreams Touched
+- Public/admin cover URL consistency
+- Edit poster upload repair
+- Admin anime overview and post-create verification flow
+- Codex skill support for local day closeout
+
+### Goals Intended vs Achieved
+- Intended: understand why the newly created anime was not clearly visible in admin flow, repair the remaining cover/upload friction, and leave a better restart point
+- Achieved: public cover handling now supports absolute Jellyfin/media URLs, edit poster upload works through the safe local route, the admin overview shows persisted anime, and create now returns to that overview
+
+### Problems Solved
+- Root cause: the anime create flow itself persisted correctly, but `/admin/anime` was not functioning as a real overview and therefore failed as a verification surface
+- Fix: converted `/admin/anime` into a runtime-rendered overview with real anime entries and changed create redirect back to the overview
+- Root cause: edit poster upload still used the broken generic backend media upload path against a newer schema
+- Fix: rerouted current poster edit uploads through the working local cover upload endpoint
+- Root cause: public cover helper treated some values like legacy local filenames only
+- Fix: extended public cover resolution to accept absolute URLs and reused that in related cards
+
+### Open Follow-ups
+- Edit save semantics still need a clean product/UX definition
+- Generic backend media upload remains schema-broken for richer asset types
+- Relations management is still upcoming work
+
+### Evidence / References
+- Skill added: `C:\Users\admin\Documents\Team4s\.codex\skills\day-closeout\SKILL.md`
+- Overview route: `frontend/src/app/admin/anime/page.tsx`
+- Create route: `frontend/src/app/admin/anime/create/page.tsx`
+- Edit upload seam: `frontend/src/app/admin/anime/hooks/internal/anime-patch/useAnimePatchMutations.ts`
+- Public cover helper: `frontend/src/lib/utils.ts`
+- Public relations cards: `frontend/src/components/anime/AnimeRelations.tsx`

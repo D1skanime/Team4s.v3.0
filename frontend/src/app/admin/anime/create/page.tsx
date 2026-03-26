@@ -33,7 +33,7 @@ import type {
 } from '@/types/admin'
 
 export function buildManualCreateRedirectPath(id: number): string {
-  return `/admin/anime/${id}/edit`
+  return '/admin/anime'
 }
 
 export function appendJellyfinLinkageToCreatePayload(
@@ -381,7 +381,7 @@ export default function AdminAnimeCreatePage() {
           window.location.href = value
         },
       })
-      setSuccessMessage(`Anime #${response.data.id} wurde erstellt. (Weiterleitung ins Studio...)`)
+      setSuccessMessage(`Anime #${response.data.id} wurde erstellt. (Weiterleitung zur Uebersicht...)`)
       setLastResponse(JSON.stringify(response, null, 2))
     } catch (error) {
       setErrorMessage(formatError(error, 'Anime konnte nicht erstellt werden.'))

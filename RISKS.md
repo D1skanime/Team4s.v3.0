@@ -2,50 +2,29 @@
 
 ## Top 3 Risks
 
-### 1. Cover Upload Button Not Working - Blocks UI Workflow (NEW)
-- **Impact:** High (UI feature broken)
-- **Likelihood:** High (currently reproducible)
-- **Why it matters:** Admin users cannot upload covers via UI, must use direct API calls. Click handler on "Cover hochladen" button does not trigger file input - `coverFileInputRef.current` appears to be null at click time.
-- **Mitigation:** Debug component mount order and ref lifecycle tomorrow. API upload path works, so functionality exists (just UI convenience missing).
-
-### 2. Missing Migration Rollback Documentation - Blocks Production Deployment (NEW)
-- **Impact:** High (operational risk)
-- **Likelihood:** Medium (required for production readiness)
-- **Why it matters:** Critical Review blocker C6. If cover migration causes production issues, no documented procedure to rollback. Migration touched 2231 anime records and created thousands of new DB entries and filesystem files.
-- **Mitigation:** Document rollback procedure tomorrow (SQL to delete from new tables, restore `anime.cover_image`, delete `/media/anime/*/poster/` directories).
-
-### 3. Schema Deviation May Cause Future Phase Conflicts (NEW)
-- **Impact:** Medium (technical debt)
-- **Likelihood:** Medium (if future work assumes spec is source of truth)
-- **Why it matters:** `media_assets` table uses inline `entity_type`/`asset_type` fields instead of `media_type_id` FK as specified in `db-schema-v2.md`. Future database migrations or API work may assume spec is accurate, causing implementation conflicts.
-- **Mitigation:** Update `db-schema-v2.md` to reflect actual implementation, add migration note explaining deviation rationale.
-
-### 4. Documentation Inconsistency May Cause Future Confusion
-- **Impact:** Medium
+### 1. Generic media upload path is not aligned with the live schema
+- **Impact:** High
 - **Likelihood:** High
-- **Why it matters:** Previous UX handoff documents incorrectly described Related section as standalone post-hero block, when it actually belongs inside infoCard. This could mislead future developers or cause unnecessary rework.
-- **Mitigation:** Review and archive/correct outdated documentation tomorrow, add notes explaining the correction.
+- **Why it matters:** richer uploads for banner/logo/background will trip over the same backend mismatch that broke edit poster upload through `/api/v1/admin/upload`
+- **Mitigation:** either patch repository/handler to current `media_assets` schema or explicitly keep using the local cover route until the broader media lane is redesigned
 
-### 5. Repo-Wide Frontend Lint Debt Masks Slice-Level Regressions
-- **Impact:** Medium
-- **Likelihood:** High
-- **Why it matters:** `frontend npm run lint` still fails outside this scope, so it cannot currently serve as a clean gate for local slice validation.
-- **Mitigation:** Inventory lint failures tomorrow and create separate cleanup plan. Continue using build/runtime validation as primary gates.
-
-### 6. Dirty Worktree Increases Commit/Deploy Risk
-- **Impact:** Low
+### 2. Edit save behavior is still semantically muddy
+- **Impact:** High
 - **Likelihood:** Medium
-- **Why it matters:** Foreign changes exist in `backend/server.exe`, `backend/migrate-covers.exe`, `backend/migrate.exe`, and `frontend/tsconfig.tsbuildinfo`. Careless staging could include unrelated files in commits.
-- **Mitigation:** Continue using explicit file staging. Use `.gitignore` for build artifacts.
+- **Why it matters:** create flow is now understandable, but edit still mixes immediate mutations and save-bar-driven changes, which can confuse both users and future implementation work
+- **Mitigation:** define the save contract first, then implement against that spec instead of continuing ad hoc UI tweaks
+
+### 3. Planning/state drift between old milestone docs and actual active work
+- **Impact:** Medium
+- **Likelihood:** High
+- **Why it matters:** older docs still describe the media-upload milestone as the current center of gravity, while real work has moved into anime intake and edit flow hardening
+- **Mitigation:** keep repo-local status/context files aligned with the actual active slice and use them tomorrow instead of older milestone summaries
 
 ## Current Blockers
-- **Cover upload button not working:** UI click handler not triggering file input (debugging in progress)
-- **Missing rollback documentation:** Critical Review blocker C6 - migration rollback procedure not documented
+- No hard blocker for resuming tomorrow
+- Main design blocker: final edit-save semantics are not yet fully decided
 
 ## If Nothing Changes, What Fails Next Week?
-- **Admin users cannot upload covers via UI** (workaround: direct API calls)
-- **Production migration rollback is undocumented** (risk if migration causes issues)
-- **Schema deviation will confuse future developers** (assumes spec matches implementation)
-- Documentation inconsistency will persist and potentially confuse future work
-- Frontend lint will continue producing noisy failures unrelated to current work
-- Core media upload functionality works (API-level), just UI integration incomplete
+- richer media uploads beyond poster will keep failing on the backend schema mismatch
+- edit behavior will become harder to reason about as more fields and sync sources are added
+- roadmap discussions may become noisy because old status docs point at the wrong center of work

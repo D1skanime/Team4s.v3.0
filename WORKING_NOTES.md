@@ -1,132 +1,61 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phase: Generic Media Upload Service Implementation
-- Focus: Core infrastructure complete, debugging cover upload button, migration verification
+- Phase: Admin anime intake and edit-flow hardening
+- Focus: make local create/edit/public behavior coherent before expanding ownership/media complexity
 
 ## Project State
 - Done:
-  - Generic media upload service backend implementation
-  - Image processing (WebP conversion, thumbnails) with Go `imaging` library
-  - Video processing (FFmpeg thumbnail extraction)
-  - Database schema (MediaAsset, MediaFile, join tables)
-  - Cover migration script executed (2231 covers migrated)
-  - Frontend media serving route (`/media/[...path]/route.ts`)
-  - Frontend upload mutation with FormData and auth token
-  - Transaction handling for atomic DB writes
-  - Path traversal protection (security)
-  - Auth middleware integration (admin gate)
-  - Docker config updated (volume mount, env vars, Go 1.25, FFmpeg)
-  - All builds passing (Go, Next.js, Docker)
+  - create flow with title + cover requirement
+  - Jellyfin-assisted draft flow
+  - multiple Jellyfin backgrounds in draft
+  - local auth bypass for easier local testing
+  - public cover resolution for absolute Jellyfin/media URLs
+  - admin overview with visible persisted anime entries
+  - create redirect back to overview
+  - edit poster upload rerouted to working local cover endpoint
 - In progress:
-  - Cover upload button debugging (ref.current null issue)
-  - End-to-end upload smoke testing
+  - edit UX clarification
+  - save semantics cleanup
+  - deciding next phase sequencing
 - Blocked:
-  - None
+  - generic backend media upload for broader asset types is schema-misaligned
 
 ## Key Decisions & Context
-- Intent & Constraints:
-  - Keep closeout repo-local
-  - Do not disturb foreign worktree changes (`server.exe`, tsconfig artifacts)
-  - Generic upload service for all media types (no specialized endpoints)
-  - No separate microservice (Go-native implementation)
-  - No Redis/queue (synchronous processing sufficient)
-- Design / Approach:
-  - **Upload Endpoint:** Single `/api/v1/admin/upload` for images + videos
-  - **Image Processing:** Go-native `imaging` library (no libvips dependency)
-  - **Video Processing:** FFmpeg CLI via `os/exec` (no Go bindings)
-  - **Security:** MIME magic bytes, path traversal protection, admin auth middleware
-  - **Transactions:** Atomic writes for MediaAsset + MediaFile + join tables
-  - **Migration:** UUID-based paths, backward-compatible URL resolution
-- Assumptions:
-  - Synchronous processing fast enough for current file sizes (<50MB images, <300MB videos)
-  - Go `imaging` library performance sufficient vs. libvips (simpler deployment preferred)
-  - FFmpeg always available in Docker environment (startup check warns if missing)
-  - Cover migration safe to execute without staged rollout (tested with dry-run)
-  - Schema deviation from `db-schema-v2.md` acceptable if documented (inline entity_type vs. FK)
-- Quality Bar:
-  - Go build passes
-  - Next.js build passes
-  - Docker deployment succeeds
-  - Runtime health checks pass
-  - Critical review blockers resolved (7/7 for Media Upload Service)
-  - Security validations implemented (MIME, path, auth)
-  - Transaction integrity maintained
-  - Migration tested with dry-run before live execution
+- Create success should be visible from the overview, not hidden behind an immediate edit redirect
+- The anime overview itself is part of the verification path
+- Local testing should stay low-friction; auth lifecycle must not dominate every manual check
+- Poster upload can use the local cover route until the generic media backend is truly ready
+
+## Assumptions
+- The current local environment remains the main verification target
+- Future asset uploads will likely need a different treatment than the old generic upload repository currently provides
+- The next productive conversation should start from edit/save semantics, not from re-litigating finished create/overview fixes
 
 ## Parking Lot
-- Documentation cleanup: Archive/correct outdated UX handoff docs
-- Separate cleanup for repo-wide frontend lint errors
-- Optional accessibility audit for anime detail page
-- Implement proper GIF animation detection (current: assumes all GIFs animated)
-- Add rate limiting middleware for upload endpoint
-- Add upload progress indicator for large files
-- Add admin UI for media gallery management
+- relations management phase still needs full UI/backend delivery
+- provenance badges and sync ownership rules are still intentionally light
+- general media upload backend needs a later cleanup/design pass
 
-### Day 2026-03-22
-- Phase: Generic Media Upload Service Implementation
+### Day 2026-03-26
+- Phase: anime intake stabilization and admin/public parity hardening
 - Accomplishments:
-  - Backend upload endpoint implemented (`/api/v1/admin/upload`)
-  - Image processing with Go `imaging` library (WebP conversion, 300px thumbnails)
-  - Video processing with FFmpeg (thumbnail extraction at 5s, black placeholder fallback)
-  - Database schema migrations (MediaAsset, MediaFile, AnimeMedia, EpisodeMedia, etc.)
-  - Cover migration script created and executed (2231 covers -> `/media/anime/{id}/poster/{uuid}/`)
-  - Frontend media serving route implemented (`/media/[...path]/route.ts`)
-  - Frontend upload mutation with FormData and auth token
-  - Backward-compatible `getCoverUrl()` (supports `/covers/` and `/media/`)
-  - Resolved 6 of 7 Critical Review blockers (auth, transactions, path traversal, FFmpeg check, cleanup)
-  - Fixed Go version conflict (1.23 -> 1.25), docker-compose duplicate env section
-  - Added debug logging for cover upload button click handler
+  - added Codex `day-closeout` skill
+  - fixed public cover resolution for absolute URLs
+  - fixed edit poster upload by using the local cover route
+  - made `/admin/anime` a real overview with persisted anime entries
+  - changed create redirect to go back to `/admin/anime`
+  - verified Docker stack and runtime routes again
 - Key Decisions:
-  - Generic upload endpoint architecture (single endpoint for all media types)
-  - Go-native `imaging` vs. libvips (chose simplicity over speed)
-  - FFmpeg CLI vs. Go bindings (chose stability and simplicity)
-  - Transaction boundary for atomic DB writes (data integrity)
-  - Path traversal protection with `filepath.Clean()` (security)
-  - Inline `entity_type`/`asset_type` fields vs. `media_type_id` FK (pragmatic deviation from schema)
+  - overview must visibly prove persistence after create
+  - local safe upload path is preferable to the broken generic backend path for poster edits
+  - `/admin/anime` must render dynamically at runtime, not as a baked static error state
 - Risks/Unknowns:
-  - Cover upload button click handler not firing (ref.current null issue - debugging in progress)
-  - Migration rollback procedure not yet documented (Critical Review blocker C6 pending)
-  - End-to-end upload smoke test not yet completed (UI path untested)
-  - Schema deviation from `db-schema-v2.md` may cause issues in future phases (needs documentation)
+  - generic media backend still broken for richer asset flows
+  - edit flow save semantics still need explicit design
 - Next Steps:
-  - Debug cover upload button ref lifecycle issue
-  - Document migration rollback procedure (SQL + filesystem cleanup)
-  - Run end-to-end upload smoke test (image + video via UI)
-  - Verify cover display on anime detail page after migration
-  - Add unit tests for upload handler validation logic
-- First task tomorrow: Debug cover upload button ref.current null issue with component mount order inspection
-- Mental Unload: Dense implementation day with a lot of moving parts. Core infrastructure is solid - upload endpoint works via API, migration script executed successfully, all critical review blockers resolved except rollback docs. Cover upload button issue is frustrating but not blocking - API works, just UI convenience missing. FFmpeg integration was smoother than expected. Schema mismatch discussion was enlightening - pragmatic deviations from specs are okay if documented. Tomorrow should be lighter - debug ref issue, write rollback docs, smoke test, and we're done with this epic.
-
-### Day 2026-03-18 (END OF DAY - COMPLETE)
-- Phase: Genre Array Contract + Related Section Final Corrections
-- Accomplishments:
-  - Implemented full genre array contract (backend + frontend + OpenAPI)
-  - Backend parses genre CSV into `Genres []string` in repository layer
-  - Frontend uses type-safe `anime.genres` without workarounds
-  - Corrected Related section placement (inside infoCard, not standalone)
-  - Fixed AnimeEdgeNavigation positioning (heroContainer level)
-  - Added overflow handling and scroll buttons for Related section
-  - Improved preview cards (title + type, white background, glass effect)
-  - All builds passing, Docker deployment successful
-  - Runtime verification complete
-  - Day closeout completed: all docs updated, git committed
-- Key Decisions:
-  - Dual-field strategy for genres (backward compatible)
-  - Related section belongs INSIDE infoCard (previous docs incorrect)
-  - CSV parsing acceptable for current dataset size
-  - Documentation inconsistency documented and flagged for tomorrow
-- Risks/Unknowns:
-  - Previous UX documentation needs correction (flagged for tomorrow)
-  - Repo-wide lint debt remains unaddressed (inventory planned)
-  - Foreign worktree files require careful git staging (pattern working)
-- Next Steps:
-  - Clean up outdated UX handoff documentation
-  - Inventory frontend lint debt for separate pass
-  - Consider accessibility audit
-- First task tomorrow: Add correction notice to outdated UX handoff docs
-- Mental Unload: Clean day, moved from workarounds to proper implementations. Genre array contract is exactly right. Related section correction proves importance of validating design docs during implementation. All systems green, no blockers.
-
-### Day 2026-03-15
-- Phase: Glassmorphism redesign and initial Related section work
-- Note: Related section placement described in day-15 docs was later found to be incorrect
+  - define edit save behavior cleanly
+  - continue edit-screen improvements
+  - decide whether to patch or defer the generic media upload backend
+- First task tomorrow: compare `page.tsx` and `AnimeEditWorkspace.tsx` and note which edit actions are immediate versus save-bar-driven
+- Mental unload: The biggest hidden issue today was not persistence but observability; create was fine, the overview simply did not prove it. Now the local flow is much easier to trust. The remaining hard part is not another tactical fix but clarifying edit behavior before adding more complexity.

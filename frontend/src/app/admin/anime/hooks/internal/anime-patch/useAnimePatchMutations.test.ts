@@ -91,7 +91,7 @@ describe('useAnimePatchMutations', () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: vi.fn().mockResolvedValue({
-        url: 'https://cdn.example.com/lain.jpg',
+        data: { file_name: 'lain.jpg' },
       }),
     })
     vi.stubGlobal('fetch', fetchMock)
@@ -103,12 +103,12 @@ describe('useAnimePatchMutations', () => {
     await mutations.uploadAndSetCover(new File(['cover'], 'lain.jpg', { type: 'image/jpeg' }), 42)
 
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/admin/upload'),
+      '/api/admin/upload-cover',
       expect.objectContaining({
         method: 'POST',
       }),
     )
-    expect(updateAdminAnime).toHaveBeenCalledWith(42, { cover_image: 'https://cdn.example.com/lain.jpg' }, 'token')
+    expect(updateAdminAnime).toHaveBeenCalledWith(42, { cover_image: 'lain.jpg' }, 'token')
     expect(getAnimeByID).toHaveBeenCalledWith(42, { include_disabled: true })
     expect(onSuccess).toHaveBeenCalled()
   })

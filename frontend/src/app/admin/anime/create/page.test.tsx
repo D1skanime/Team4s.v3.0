@@ -49,11 +49,11 @@ describe('AdminAnimeCreatePage', () => {
     expect(resolveSourceActionState('Naruto').helperText).toContain('AniSearch Sync kommt in Phase 4.')
   })
 
-  it('builds the create redirect path for the live editor route', () => {
-    expect(buildManualCreateRedirectPath(42)).toBe('/admin/anime/42/edit')
+  it('builds the create redirect path for the anime overview route', () => {
+    expect(buildManualCreateRedirectPath(42)).toBe('/admin/anime')
   })
 
-  it('uses createAdminAnime and redirects to the persisted edit route after success', async () => {
+  it('uses createAdminAnime and redirects to the anime overview after success', async () => {
     const createAdminAnimeMock = vi.fn().mockResolvedValue({
       data: {
         id: 42,
@@ -82,7 +82,7 @@ describe('AdminAnimeCreatePage', () => {
       status: 'ongoing',
       cover_image: 'lain.jpg',
     })
-    expect(setLocationHref).toHaveBeenCalledWith('/admin/anime/42/edit')
+    expect(setLocationHref).toHaveBeenCalledWith('/admin/anime')
     expect(response.data.id).toBe(42)
   })
 

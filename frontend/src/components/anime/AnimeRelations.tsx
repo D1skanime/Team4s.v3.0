@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { getCoverUrl } from '@/lib/utils'
 import styles from './AnimeRelations.module.css'
 
 interface AnimeRelation {
@@ -150,7 +151,7 @@ export function AnimeRelations({ relations, variant = 'default' }: AnimeRelation
                 <div className={styles.cardMedia}>
                   {rel.cover_image ? (
                     <Image
-                      src={`/covers/${rel.cover_image}`}
+                      src={getCoverUrl(rel.cover_image)}
                       alt={rel.title}
                       fill
                       sizes="160px"

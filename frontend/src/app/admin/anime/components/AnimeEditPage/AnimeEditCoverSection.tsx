@@ -8,7 +8,7 @@ import styles from '../../AdminStudio.module.css'
 import workspaceStyles from './AnimeEditWorkspace.module.css'
 
 interface AnimeEditCoverSectionProps {
-  coverFileInputRef: RefObject<HTMLInputElement | null>
+  coverFileInputRef: RefObject<HTMLInputElement>
   resolvedCover: string
   isDragOver: boolean
   isSubmitting: boolean

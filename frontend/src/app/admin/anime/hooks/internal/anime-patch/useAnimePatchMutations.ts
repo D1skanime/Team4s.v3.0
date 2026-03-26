@@ -21,17 +21,11 @@ interface UseAnimePatchMutationsParams {
   setClearFlags: Dispatch<SetStateAction<AnimePatchClearFlags>>
 }
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://localhost:8092'
-
-async function uploadCoverFile(file: File, animeID: number, authToken: string): Promise<string> {
+async function uploadCoverFile(file: File, _animeID: number, _authToken: string): Promise<string> {
   const form = new FormData()
   form.set('file', file)
-  form.set('entity_type', 'anime')
-  form.set('entity_id', String(animeID))
-  form.set('asset_type', 'poster')
 
-  // TODO: Re-enable auth before production
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/upload`, {
+  const response = await fetch('/api/admin/upload-cover', {
     method: 'POST',
     body: form,
   })
@@ -39,7 +33,7 @@ async function uploadCoverFile(file: File, animeID: number, authToken: string): 
   if (!response.ok) {
     let message = `Upload fehlgeschlagen (${response.status}).`
     try {
-      const body = (await response.json()) as { error?: string | { message?: string } }
+    const body = (await response.json()) as { error?: string | { message?: string } }
       if (typeof body.error === 'string') {
         message = body.error
       } else if (body.error && typeof body.error.message === 'string') {
@@ -51,16 +45,10 @@ async function uploadCoverFile(file: File, animeID: number, authToken: string): 
     throw new Error(message)
   }
 
-  const body = (await response.json()) as {
-    id?: string
-    status?: string
-    files?: Array<{ variant: string; path: string; width: number; height: number }>
-    url?: string
-  }
-
-  const url = (body.url || '').trim()
-  if (!url) throw new Error('Upload fehlgeschlagen: keine URL erhalten.')
-  return url
+  const body = (await response.json()) as { data?: { file_name?: string } }
+  const fileName = (body.data?.file_name || '').trim()
+  if (!fileName) throw new Error('Upload fehlgeschlagen: keine Datei erhalten.')
+  return fileName
 }
 
 function buildAnimePatchPayload(values: AnimePatchValues, clearFlags: AnimePatchClearFlags, onError: (msg: string) => void): AdminAnimePatchRequest | null {
