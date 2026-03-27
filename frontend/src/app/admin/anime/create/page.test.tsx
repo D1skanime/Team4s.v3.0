@@ -50,7 +50,7 @@ describe('AdminAnimeCreatePage', () => {
   })
 
   it('builds the create redirect path for the anime overview route', () => {
-    expect(buildManualCreateRedirectPath(42)).toBe('/admin/anime')
+    expect(buildManualCreateRedirectPath(42)).toBe('/admin/anime?created=42#anime-42')
   })
 
   it('uses createAdminAnime and redirects to the anime overview after success', async () => {
@@ -82,7 +82,7 @@ describe('AdminAnimeCreatePage', () => {
       status: 'ongoing',
       cover_image: 'lain.jpg',
     })
-    expect(setLocationHref).toHaveBeenCalledWith('/admin/anime')
+    expect(setLocationHref).toHaveBeenCalledWith('/admin/anime?created=42#anime-42')
     expect(response.data.id).toBe(42)
   })
 

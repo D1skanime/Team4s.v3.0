@@ -41,7 +41,7 @@ type WorkflowStep = {
 }
 
 export function buildManualCreateRedirectPath(id: number): string {
-  return '/admin/anime'
+  return `/admin/anime?created=${id}#anime-${id}`
 }
 
 export function appendJellyfinLinkageToCreatePayload(
@@ -501,6 +501,12 @@ export default function AdminAnimeCreatePage() {
     setSuccessMessage('AniSearch Sync kommt in Phase 4.')
   }
 
+  function handleJellyfinCandidateSelect(candidateID: string) {
+    clearMessages()
+    jellyfinIntake.reviewCandidate(candidateID)
+    setSuccessMessage('Treffer ausgewaehlt. Lade jetzt die Jellyfin-Vorschau, wenn dieser Ordner wirklich passt.')
+  }
+
   function handleRemoveJellyfinAsset(target: JellyfinDraftAssetTarget) {
     if (!jellyfinAssetSlots) return
 
@@ -702,7 +708,9 @@ export default function AdminAnimeCreatePage() {
                 query={createTitle.trim()}
                 candidates={jellyfinIntake.candidates}
                 selectedCandidateID={jellyfinIntake.reviewState.selectedCandidate?.jellyfin_series_id}
-                onReviewCandidate={(candidateID) => {
+                isLoadingPreview={jellyfinIntake.isLoadingPreview}
+                onSelectCandidate={handleJellyfinCandidateSelect}
+                onLoadCandidatePreview={(candidateID) => {
                   void handleJellyfinCandidateReview(candidateID)
                 }}
               />
