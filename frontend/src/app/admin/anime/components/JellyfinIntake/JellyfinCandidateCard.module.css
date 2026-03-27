@@ -2,14 +2,26 @@
   display: grid;
   gap: 16px;
   padding: 24px;
-  border: 1px solid #e4e4e4;
-  border-radius: 20px;
-  background: #f9f9f9;
+  border: 1px solid #eaded8;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #ffffff 0%, #fff9f7 100%);
+  box-shadow: 0 14px 32px rgba(36, 23, 15, 0.06);
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 38px rgba(36, 23, 15, 0.1);
 }
 
 .selected {
   border-color: #ff6a3d;
-  box-shadow: 0 0 0 1px #ff6a3d;
+  box-shadow:
+    0 0 0 1px #ff6a3d,
+    0 18px 38px rgba(255, 106, 61, 0.16);
 }
 
 .header {
@@ -36,6 +48,7 @@
   gap: 4px;
   font-size: 14px;
   line-height: 1.4;
+  color: #67574f;
 }
 
 .path {
@@ -52,12 +65,14 @@
   display: inline-flex;
   align-items: center;
   min-height: 32px;
-  padding: 4px 8px;
+  padding: 7px 10px;
   border-radius: 999px;
   background: #ffffff;
   font-size: 14px;
   line-height: 1.4;
   font-weight: 600;
+  border: 1px solid #ebddd6;
+  color: #53423a;
 }
 
 .confidenceHigh {
@@ -68,6 +83,10 @@
 .typeHint {
   display: grid;
   gap: 8px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid #f0e3dd;
 }
 
 .typeLabel {
@@ -85,7 +104,7 @@
 
 .previewGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -99,14 +118,16 @@
   line-height: 1.4;
   font-weight: 600;
   text-transform: lowercase;
+  color: #65544b;
 }
 
 .previewFrame {
   position: relative;
-  min-height: 120px;
+  min-height: 148px;
   border-radius: 16px;
   overflow: hidden;
-  background: #ffffff;
+  background: #f5efeb;
+  border: 1px solid #f0e4de;
 }
 
 .previewImage {
@@ -119,12 +140,13 @@
 .emptyFrame {
   display: grid;
   place-items: center;
-  min-height: 120px;
+  min-height: 148px;
   padding: 12px;
   border-radius: 16px;
   background: #ffffff;
   font-size: 14px;
   line-height: 1.4;
+  color: #8e776a;
 }
 
 .actions {
@@ -134,12 +156,19 @@
 
 .actionButton {
   min-height: 44px;
-  padding: 8px 16px;
-  border: 0;
-  border-radius: 999px;
-  background: #ff6a3d;
+  padding: 10px 18px;
+  border: 1px solid #ff6a3d;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff6a3d 0%, #ff8a4f 100%);
   color: #ffffff;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.2;
   font-weight: 600;
+  box-shadow: 0 12px 24px rgba(255, 106, 61, 0.2);
+}
+
+@media (max-width: 720px) {
+  .previewGrid {
+    grid-template-columns: 1fr;
+  }
 }

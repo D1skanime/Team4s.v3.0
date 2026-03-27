@@ -58,8 +58,10 @@ func main() {
 	router.Static("/media", cfg.MediaStorageDir)
 
 	animeRepo := repository.NewAnimeRepository(dbPool)
+	animeAssetRepo := repository.NewAnimeAssetRepository(dbPool)
 	animeHandler := handlers.NewAnimeHandler(
 		animeRepo,
+		animeAssetRepo,
 		handlers.AnimeMediaConfig{
 			JellyfinAPIKey:  cfg.JellyfinAPIKey,
 			JellyfinBaseURL: cfg.JellyfinBaseURL,
@@ -119,6 +121,7 @@ func main() {
 	}
 	adminContentHandler := handlers.NewAdminContentHandler(
 		adminContentRepo,
+		animeAssetRepo,
 		fansubRepo,
 		episodeVersionRepo,
 		authzRepo,

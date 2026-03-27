@@ -136,6 +136,80 @@ type AdminAnimeSyncSource struct {
 	Year        *int16
 	MaxEpisodes *int16
 	Description *string
+	CoverImage  *string
+}
+
+type AdminAnimeJellyfinMetadataFieldPreview struct {
+	Field         string  `json:"field"`
+	Label         string  `json:"label"`
+	CurrentValue  *string `json:"current_value,omitempty"`
+	IncomingValue *string `json:"incoming_value,omitempty"`
+	Action        string  `json:"action"`
+	Apply         bool    `json:"apply"`
+	Reason        *string `json:"reason,omitempty"`
+}
+
+type AdminAnimeJellyfinCoverPreview struct {
+	CurrentImage       *string `json:"current_image,omitempty"`
+	CurrentSource      string  `json:"current_source"`
+	IncomingImage      *string `json:"incoming_image,omitempty"`
+	IncomingAvailable  bool    `json:"incoming_available"`
+	CanApply           bool    `json:"can_apply"`
+	WillApplyByDefault bool    `json:"will_apply_by_default"`
+	Reason             *string `json:"reason,omitempty"`
+}
+
+type AdminAnimePersistedAssetState struct {
+	MediaID   *string `json:"media_id,omitempty"`
+	URL       string  `json:"url"`
+	Ownership string  `json:"ownership"`
+}
+
+type AdminAnimePersistedBackgroundState struct {
+	ID        int64   `json:"id"`
+	MediaID   *string `json:"media_id,omitempty"`
+	URL       string  `json:"url"`
+	Ownership string  `json:"ownership"`
+	SortOrder int32   `json:"sort_order"`
+}
+
+type AdminAnimePersistedAssets struct {
+	Cover       *AdminAnimePersistedAssetState       `json:"cover,omitempty"`
+	Banner      *AdminAnimePersistedAssetState       `json:"banner,omitempty"`
+	Backgrounds []AdminAnimePersistedBackgroundState `json:"backgrounds"`
+}
+
+type AdminAnimeJellyfinProvenanceContext struct {
+	AnimeID            int64                          `json:"anime_id"`
+	Linked             bool                           `json:"linked"`
+	Source             *string                        `json:"source,omitempty"`
+	SourceKind         string                         `json:"source_kind"`
+	JellyfinSeriesID   *string                        `json:"jellyfin_series_id,omitempty"`
+	JellyfinSeriesName *string                        `json:"jellyfin_series_name,omitempty"`
+	JellyfinSeriesPath *string                        `json:"jellyfin_series_path,omitempty"`
+	FolderName         *string                        `json:"folder_name,omitempty"`
+	Cover              AdminAnimeJellyfinCoverPreview `json:"cover"`
+	AssetSlots         *AdminJellyfinIntakeAssetSlots `json:"asset_slots,omitempty"`
+	PersistedAssets    AdminAnimePersistedAssets      `json:"persisted_assets"`
+}
+
+type AdminAnimeJellyfinMetadataPreviewResult struct {
+	AnimeID            int64                                    `json:"anime_id"`
+	Linked             bool                                     `json:"linked"`
+	JellyfinSeriesID   string                                   `json:"jellyfin_series_id"`
+	JellyfinSeriesName string                                   `json:"jellyfin_series_name"`
+	JellyfinSeriesPath *string                                  `json:"jellyfin_series_path,omitempty"`
+	Diff               []AdminAnimeJellyfinMetadataFieldPreview `json:"diff"`
+	Cover              AdminAnimeJellyfinCoverPreview           `json:"cover"`
+	AssetSlots         AdminJellyfinIntakeAssetSlots            `json:"asset_slots"`
+}
+
+type AdminAnimeJellyfinMetadataApplyResult struct {
+	AnimeID            int64                                    `json:"anime_id"`
+	JellyfinSeriesID   string                                   `json:"jellyfin_series_id"`
+	JellyfinSeriesName string                                   `json:"jellyfin_series_name"`
+	AppliedFields      []AdminAnimeJellyfinMetadataFieldPreview `json:"applied_fields"`
+	Cover              AdminAnimeJellyfinCoverPreview           `json:"cover"`
 }
 
 type AdminAnimeJellyfinSyncResult struct {

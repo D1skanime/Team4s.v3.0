@@ -13,14 +13,15 @@ import (
 )
 
 func TestAdminContentRepository_BuildApplyJellyfinSyncMetadataQuery_UsesExplicitCasts(t *testing.T) {
-	query, _ := buildApplyJellyfinSyncMetadataQuery(25, "jellyfin:abc", nil, nil, nil, false)
+	query, _ := buildApplyJellyfinSyncMetadataQuery(25, "jellyfin:abc", nil, nil, nil, nil, false)
 
 	requiredFragments := []string{
-		"WHEN $6 = true AND $2 <> '' THEN $2",
+		"WHEN $7 = true AND $2 <> '' THEN $2",
 		"WHEN (source IS NULL OR btrim(source) = '') AND $2 <> '' THEN $2",
-		"year = COALESCE(year, $3::smallint)",
-		"THEN $4::text",
-		"max_episodes = COALESCE(max_episodes, $5::smallint)",
+		"COALESCE($3::text, '') <> ''",
+		"year = COALESCE(year, $4::smallint)",
+		"THEN $5::text",
+		"max_episodes = COALESCE(max_episodes, $6::smallint)",
 	}
 
 	for _, fragment := range requiredFragments {
@@ -31,13 +32,13 @@ func TestAdminContentRepository_BuildApplyJellyfinSyncMetadataQuery_UsesExplicit
 }
 
 func TestAdminContentRepository_BuildApplyJellyfinSyncMetadataQuery_TrimmedSourceAndNullableArgs(t *testing.T) {
-	query, args := buildApplyJellyfinSyncMetadataQuery(25, " jellyfin:abc123 ", nil, nil, nil, true)
+	query, args := buildApplyJellyfinSyncMetadataQuery(25, " jellyfin:abc123 ", nil, nil, nil, nil, true)
 
 	if strings.TrimSpace(query) == "" {
 		t.Fatalf("expected query to be non-empty")
 	}
-	if len(args) != 6 {
-		t.Fatalf("expected 6 args, got %d", len(args))
+	if len(args) != 7 {
+		t.Fatalf("expected 7 args, got %d", len(args))
 	}
 	if got := args[0]; got != int64(25) {
 		t.Fatalf("expected anime id 25, got %#v", got)
@@ -45,21 +46,25 @@ func TestAdminContentRepository_BuildApplyJellyfinSyncMetadataQuery_TrimmedSourc
 	if got := args[1]; got != "jellyfin:abc123" {
 		t.Fatalf("expected trimmed source tag, got %#v", got)
 	}
-	yearArg, ok := args[2].(*int16)
+	folderNameArg, ok := args[2].(*string)
+	if !ok || folderNameArg != nil {
+		t.Fatalf("expected typed nil *string folder_name arg, got %#v", args[2])
+	}
+	yearArg, ok := args[3].(*int16)
 	if !ok || yearArg != nil {
-		t.Fatalf("expected typed nil *int16 year arg, got %#v", args[2])
+		t.Fatalf("expected typed nil *int16 year arg, got %#v", args[3])
 	}
-	descriptionArg, ok := args[3].(*string)
+	descriptionArg, ok := args[4].(*string)
 	if !ok || descriptionArg != nil {
-		t.Fatalf("expected typed nil *string description arg, got %#v", args[3])
+		t.Fatalf("expected typed nil *string description arg, got %#v", args[4])
 	}
-	maxEpisodesArg, ok := args[4].(*int16)
+	maxEpisodesArg, ok := args[5].(*int16)
 	if !ok || maxEpisodesArg != nil {
-		t.Fatalf("expected typed nil *int16 max_episodes arg, got %#v", args[4])
+		t.Fatalf("expected typed nil *int16 max_episodes arg, got %#v", args[5])
 	}
-	forceSourceArg, ok := args[5].(bool)
+	forceSourceArg, ok := args[6].(bool)
 	if !ok || !forceSourceArg {
-		t.Fatalf("expected forceSourceUpdate bool arg=true, got %#v", args[5])
+		t.Fatalf("expected forceSourceUpdate bool arg=true, got %#v", args[6])
 	}
 }
 

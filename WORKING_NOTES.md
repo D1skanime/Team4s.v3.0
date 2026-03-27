@@ -1,61 +1,72 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phase: Admin anime intake and edit-flow hardening
-- Focus: make local create/edit/public behavior coherent before expanding ownership/media complexity
+- Phase: 04 - Provenance, Assets, And Safe Resync
+- Focus: finish the formal closeout of the now-verified asset-slot slice instead of reopening already-solved cover work
 
 ## Project State
 - Done:
-  - create flow with title + cover requirement
-  - Jellyfin-assisted draft flow
-  - multiple Jellyfin backgrounds in draft
-  - local auth bypass for easier local testing
-  - public cover resolution for absolute Jellyfin/media URLs
-  - admin overview with visible persisted anime entries
-  - create redirect back to overview
-  - edit poster upload rerouted to working local cover endpoint
+  - Phase 3 verification and planning closeout
+  - Phase 4 planning refinement for DB-backed anime image assets
+  - migration-number cleanup for conflicting `0034`/`0035` lines
+  - backend groundwork for anime asset slots with `manual|provider` ownership
+  - runtime precedence update for persisted anime cover/banner/background assets
+  - Phase 4 edit-route UI for provenance, preview/apply, persisted cover/banner/background controls, and operator feedback
+  - runtime verification for metadata preview/apply and protected manual ownership
+  - browser verification for `/admin/anime/25/edit` cover remove/upload/preview flow
+  - preview host fix so provider media now loads from `localhost:8092` instead of `localhost:3002`
+  - global installation of `ui-ux-pro-max`
 - In progress:
-  - edit UX clarification
-  - save semantics cleanup
-  - deciding next phase sequencing
+  - phase-plan/status closeout so `04-03` reflects the real verified implementation
+  - decision on whether the temporary Playwright cover smoke should become durable automation
+  - `day-closeout` skill/worker packaging for Codex
 - Blocked:
-  - generic backend media upload for broader asset types is schema-misaligned
+  - no product blocker
+  - repository-wide lint/type noise is still outside this task slice
 
 ## Key Decisions & Context
-- Create success should be visible from the overview, not hidden behind an immediate edit redirect
-- The anime overview itself is part of the verification path
-- Local testing should stay low-friction; auth lifecycle must not dominate every manual check
-- Poster upload can use the local cover route until the generic media backend is truly ready
+- Persisted anime image assets must be first-class backend data, not just provider URLs.
+- `cover`, `banner`, and `backgrounds` belong to the same ownership-aware persistence layer.
+- Manual assets always win until explicitly removed.
+- `cover_image` remains a compatibility mirror while the slot model becomes authoritative.
+- Background/theme videos stay Jellyfin-only in this phase.
+- Phase 4 should not stay "open" because of old plan text when runtime and browser evidence already closed the implementation gap.
+
+## 04-03 Plan Audit
+
+### Audit Verdict
+- `ASST-01` verify-done for `cover`, `banner`, and `backgrounds`
+- `ASST-02` verify-done for explicit replace on `cover`/`banner` and append-style manual add for `backgrounds`
+- `ASST-03` verify-done for explicit remove on `cover`, `banner`, and `backgrounds`
+- `ASST-05` verify-done for `cover`, `banner`, and `backgrounds`
+- `OWNR-02` verify-done for visible provenance on edit plus ownership surfaced in API/context payloads
+- `RLY-02` verify-done for runtime fallback, explicit apply gating, German operator feedback, and protected manual cover behavior
+
+### Done
+- Migration `0039_add_anime_asset_slots` adds persisted anime-owned `banner` state plus ordered `anime_background_assets` with `manual|provider` ownership.
+- Migration `0040_add_anime_cover_asset_slots` extends the same ownership model to `cover` and backfills existing `cover_image` rows into the persisted slot layer.
+- Repository layer resolves persisted assets, keeps manual ownership explicit, appends provider backgrounds safely, and preserves manual background ordering/identity during provider refresh.
+- Repository layer mirrors persisted `cover` changes back into `cover_image` so existing public/admin cover reads stay compatible while the new slot model becomes authoritative.
+- Public anime backdrops runtime reads persisted cover/banner/background assets before Jellyfin fallback where applicable.
+- Admin actions exist for explicit manual cover/banner assign/remove and manual background add/remove.
+- Jellyfin metadata apply path only updates cover/banner/backgrounds when explicitly requested and does not overwrite manual persisted assets.
+- Edit route exposes provenance, provider preview, explicit apply toggles, persisted cover/banner/background state, and destructive actions with German operator copy.
+- Focused verification exists for:
+- repository reconcile logic and local-path precedence
+- handler mapping/preview protection rules
+- runtime smoke for preview/apply/delete/fallback behavior
+- browser smoke for edit-route cover remove/upload/preview rendering
+
+### Still Open
+- Decide whether the temporary Playwright smoke in `frontend/tmp-playwright-phase4` should be promoted into a maintained regression test.
+- Update formal phase/progress docs so the verified cover path is no longer treated as still-open work.
 
 ## Assumptions
-- The current local environment remains the main verification target
-- Future asset uploads will likely need a different treatment than the old generic upload repository currently provides
-- The next productive conversation should start from edit/save semantics, not from re-litigating finished create/overview fixes
+- Existing untracked repository files are intentional user/worktree state and must not be cleaned up implicitly.
+- The backend groundwork already present in untracked files was meant to be integrated, not discarded.
+- The user wants repo-local handoff files to reflect the real Team4s work even if broader root `.planning` state says something else.
 
 ## Parking Lot
-- relations management phase still needs full UI/backend delivery
-- provenance badges and sync ownership rules are still intentionally light
-- general media upload backend needs a later cleanup/design pass
-
-### Day 2026-03-26
-- Phase: anime intake stabilization and admin/public parity hardening
-- Accomplishments:
-  - added Codex `day-closeout` skill
-  - fixed public cover resolution for absolute URLs
-  - fixed edit poster upload by using the local cover route
-  - made `/admin/anime` a real overview with persisted anime entries
-  - changed create redirect to go back to `/admin/anime`
-  - verified Docker stack and runtime routes again
-- Key Decisions:
-  - overview must visibly prove persistence after create
-  - local safe upload path is preferable to the broken generic backend path for poster edits
-  - `/admin/anime` must render dynamically at runtime, not as a baked static error state
-- Risks/Unknowns:
-  - generic media backend still broken for richer asset flows
-  - edit flow save semantics still need explicit design
-- Next Steps:
-  - define edit save behavior cleanly
-  - continue edit-screen improvements
-  - decide whether to patch or defer the generic media upload backend
-- First task tomorrow: compare `page.tsx` and `AnimeEditWorkspace.tsx` and note which edit actions are immediate versus save-bar-driven
-- Mental unload: The biggest hidden issue today was not persistence but observability; create was fine, the overview simply did not prove it. Now the local flow is much easier to trust. The remaining hard part is not another tactical fix but clarifying edit behavior before adding more complexity.
+- Logo persistence remains out of this specific slice.
+- Karaoke/video-specific asset management belongs to later work, not this phase.
+- A cleaner global convention for repo-local worker agents might be useful after `day-closeout`.

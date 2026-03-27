@@ -81,6 +81,7 @@ func (h *AdminContentHandler) applyJellyfinSyncMetadata(
 		c.Request.Context(),
 		animeID,
 		fmt.Sprintf("jellyfin:%s", series.ID),
+		normalizeNullableStringPtr(series.Path),
 		int16FromInt(series.ProductionYear),
 		normalizeNullableStringPtr(series.Overview),
 		maxEpisodes,

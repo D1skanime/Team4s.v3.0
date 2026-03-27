@@ -240,3 +240,112 @@ export interface AdminAnimeJellyfinPreviewResult {
 export interface AdminAnimeJellyfinPreviewResponse {
   data: AdminAnimeJellyfinPreviewResult
 }
+
+export interface AdminAnimeJellyfinMetadataFieldPreview {
+  field: 'source' | 'folder_name' | 'year' | 'description'
+  label: string
+  current_value?: string
+  incoming_value?: string
+  action: 'fill' | 'keep' | 'protect'
+  apply: boolean
+  reason?: string
+}
+
+export interface AdminAnimeJellyfinCoverPreview {
+  current_image?: string
+  current_source: 'none' | 'manual' | 'provider'
+  incoming_image?: string
+  incoming_available: boolean
+  can_apply: boolean
+  will_apply_by_default: boolean
+  reason?: string
+}
+
+export interface AdminAnimePersistedAssetState {
+  media_id?: string
+  url: string
+  ownership: 'manual' | 'provider'
+}
+
+export interface AdminAnimePersistedBackgroundState extends AdminAnimePersistedAssetState {
+  id: number
+  sort_order: number
+}
+
+export interface AdminAnimePersistedAssets {
+  cover?: AdminAnimePersistedAssetState
+  banner?: AdminAnimePersistedAssetState
+  backgrounds: AdminAnimePersistedBackgroundState[]
+}
+
+export interface AdminAnimeJellyfinContext {
+  anime_id: number
+  linked: boolean
+  source?: string
+  source_kind: 'manual' | 'jellyfin'
+  jellyfin_series_id?: string
+  jellyfin_series_name?: string
+  jellyfin_series_path?: string
+  folder_name?: string
+  cover: AdminAnimeJellyfinCoverPreview
+  asset_slots?: AdminJellyfinIntakeAssetSlots
+  persisted_assets: AdminAnimePersistedAssets
+}
+
+export interface AdminAnimeJellyfinContextResponse {
+  data: AdminAnimeJellyfinContext
+}
+
+export interface AdminAnimeJellyfinMetadataPreviewRequest {
+  jellyfin_series_id?: string
+}
+
+export interface AdminAnimeJellyfinMetadataPreviewResult {
+  anime_id: number
+  linked: boolean
+  jellyfin_series_id: string
+  jellyfin_series_name: string
+  jellyfin_series_path?: string
+  diff: AdminAnimeJellyfinMetadataFieldPreview[]
+  cover: AdminAnimeJellyfinCoverPreview
+  asset_slots: AdminJellyfinIntakeAssetSlots
+}
+
+export interface AdminAnimeJellyfinMetadataPreviewResponse {
+  data: AdminAnimeJellyfinMetadataPreviewResult
+}
+
+export interface AdminAnimeJellyfinMetadataApplyRequest {
+  jellyfin_series_id?: string
+  apply_cover?: boolean
+  apply_banner?: boolean
+  apply_backgrounds?: boolean
+}
+
+export interface AdminAnimeJellyfinMetadataApplyResult {
+  anime_id: number
+  jellyfin_series_id: string
+  jellyfin_series_name: string
+  applied_fields: AdminAnimeJellyfinMetadataFieldPreview[]
+  cover: AdminAnimeJellyfinCoverPreview
+}
+
+export interface AdminAnimeJellyfinMetadataApplyResponse {
+  data: AdminAnimeJellyfinMetadataApplyResult
+}
+
+export interface AdminMediaUploadResponse {
+  id: string
+  status: string
+  url: string
+  files: Array<{
+    variant: string
+    path: string
+    width: number
+    height: number
+  }>
+}
+
+export interface AdminAnimeBackgroundAssetResponse {
+  data: AdminAnimePersistedBackgroundState
+}

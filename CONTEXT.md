@@ -2,57 +2,62 @@
 
 ## Project
 - **Name:** Team4s.v3.0
-- **Current workflow:** Admin anime intake and follow-up editing flow hardening
-- **Current slice:** manual create + Jellyfin-assisted intake + public/admin cover consistency
+- **Current workflow:** Phase 4 implementation and closeout after verified Phase 3 completion
+- **Current slice:** provenance-aware anime asset persistence and safe resync behavior on the admin edit route
 
 ## Current State
 
 ### What Finished Recently
-- Installed a Codex-local `day-closeout` skill under `.codex/skills/day-closeout/`
-- Completed major planning/execution progress for the current anime-admin roadmap:
-  - ownership/editor foundations
-  - manual intake baseline
-  - Jellyfin-assisted intake
-- Reduced local auth friction so local testing no longer depends on the full auth-token lifecycle
-- Fixed public anime cover rendering so absolute Jellyfin/media URLs work on public pages
-- Fixed edit-cover upload by routing it through the known-good local cover upload route
-- Extended Jellyfin draft handling to support multiple background images
-- Upgraded `/admin/anime` from a static entry page into a real runtime overview that lists created anime
-- Changed post-create redirect back to `/admin/anime` so successful creation is visible immediately in the overview
+- The `04-03` edit-route asset slice now covers persisted `cover`, `banner`, and `backgrounds`.
+- Migration `0040_add_anime_cover_asset_slots` extends the same slot/ownership model to `cover`.
+- Existing `cover_image` rows were backfilled into the new cover slot model as `manual`.
+- `cover_image` is still mirrored so older read paths stay compatible.
+- Docker runtime was brought up and migration status is clean at `Applied: 40, Pending: 0`.
+- A real browser smoke confirmed:
+  - existing manual cover visible
+  - remove cover clears persisted slot
+  - upload cover restores persisted slot
+  - preview still shows manual protection
 
 ### What Is Working
-- `Naruto` exists in the local DB and appears in `/admin/anime`
-- `/admin/anime/1/edit` is reachable
-- `/anime/1` loads and shows the cover correctly
-- Jellyfin intake search/preview is functional enough for local draft creation
-- Docker stack is currently the expected local verification path
+- Admin Jellyfin context/preview/apply routes are live in Docker.
+- Persisted anime assets override Jellyfin fallback at runtime.
+- Manual ownership survives provider apply for `cover`, `banner`, and `backgrounds`.
+- Edit route UI exposes provenance and explicit operator actions for the persisted slots.
+- Cover UI flow now has end-to-end evidence across:
+  - schema
+  - repository/handler tests
+  - runtime API
+  - DB state
+  - real browser interaction
+
+### What Is In Progress
+- Formal closeout of `04-03` in planning/handoff files.
+- Decision on whether the temporary Playwright cover smoke should be promoted into a maintained regression path.
+- Repo-local closeout/resume tooling alignment with the actual Team4s slice.
 
 ### What Is Still Pending
-- Edit UX is still not fully settled
-- Save behavior needs a clean final specification for edit mode
-- Generic media upload backend still has schema mismatch and is not yet ready for broader asset types
-- Relations management is still planned work, not yet delivered as a full backend+UI flow
-- Ownership/provenance rules beyond the current lightweight level still belong to the next phase
+- Mark the remaining Phase 4 planning state accurately now that cover is no longer the open architectural gap.
+- Decide whether to keep or discard the temporary browser smoke script after phase closeout.
 
 ## Active Planning Context
-- Roadmap moved from DB-heavy thinking back to the real product need:
-  - admins creating anime
-  - improving anime editing
-  - Jellyfin-assisted intake
-  - later ownership/resync rules
-- The next likely GSD step is:
-  - `Phase 4: Data Ownership And Re-Sync Rules`
-  - unless relations management is intentionally pulled forward
+- Current focus: `Phase 04 - Provenance, Assets, And Safe Resync`
+- Most active sub-slice: `04-03 Asset Provenance And Protected Slot Actions`
+- Core rules in force:
+  - manual persisted assets remain authoritative
+  - provider-owned assets refresh only on explicit apply/resync
+  - persisted anime assets beat Jellyfin fallback at runtime
+  - background/theme videos stay provider-only
 
 ## Key Decisions In Force
-- Manual values remain leading over synced values
-- Jellyfin stays preview-only until final save
-- Create should return to the anime overview, not drop the user straight into edit by default
-- The overview itself must prove persistence by showing the new anime
-- For local poster uploads, the stable local cover route is preferred until the generic media backend is reconciled with the newer schema
+- Phase 3 is closed as verified complete.
+- Anime image assets are DB-backed, not loose provider URLs.
+- `cover`, `banner`, and `backgrounds` belong to the same ownership-aware persistence model.
+- `cover_image` remains as a compatibility mirror while the slot model becomes authoritative.
+- Background/theme videos are not part of local persistence in this phase.
 
 ## Quality Bar
-- Docker remains the primary local verification path after each meaningful task
-- Public and admin views must agree on cover resolution
-- Create success must be observable from the admin overview
-- Tomorrow's first task must be tiny, concrete, and restart the flow without re-discovery
+- Do not claim Phase 4 complete until planning files reflect the actually verified slice.
+- Runtime precedence must stay deterministic: persisted first, Jellyfin fallback second.
+- Migration changes must remain reversible and runnable in Docker.
+- Handoff files should point tomorrow-you at the next planning/verification action, not at already-finished cover work.

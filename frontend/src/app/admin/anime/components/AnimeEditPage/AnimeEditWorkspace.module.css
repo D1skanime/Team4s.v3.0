@@ -147,6 +147,158 @@
   align-items: center;
 }
 
+.panelHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.infoPanel,
+.assetCard,
+.choiceCard,
+.assetListItem {
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+  box-shadow: 0 1px 2px rgba(28, 28, 30, 0.04);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
+}
+
+.infoPanel,
+.assetCard {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.toggleStack {
+  display: grid;
+  gap: 12px;
+}
+
+.choiceCard {
+  display: block;
+  padding: 18px;
+  cursor: pointer;
+}
+
+.choiceHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.choiceHeader input {
+  margin-top: 2px;
+  accent-color: #ff6a3d;
+}
+
+.choiceHeader strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #1c1c1e;
+}
+
+.statusNote {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 106, 61, 0.22);
+  background: linear-gradient(180deg, rgba(255, 106, 61, 0.12) 0%, rgba(255, 106, 61, 0.06) 100%);
+  color: #8f341a;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.assetCardHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.assetPreviewFrame {
+  overflow: hidden;
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+  aspect-ratio: 16 / 9;
+}
+
+.assetPreviewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.assetList {
+  display: grid;
+  gap: 12px;
+}
+
+.assetListItem {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 16px;
+  padding: 12px;
+}
+
+.assetListMedia {
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid #e1e1e6;
+  background: #ffffff;
+  aspect-ratio: 16 / 9;
+}
+
+.assetThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.assetListBody {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.infoPanel:hover,
+.assetCard:hover,
+.choiceCard:hover,
+.assetListItem:hover {
+  border-color: #d3d3da;
+  box-shadow: 0 8px 24px rgba(28, 28, 30, 0.06);
+  transform: translateY(-1px);
+}
+
+.choiceCard:focus-within,
+.assetCard:focus-within,
+.infoPanel:focus-within,
+.assetListItem:focus-within {
+  border-color: #ff6a3d;
+  box-shadow: 0 0 0 3px rgba(255, 106, 61, 0.12);
+}
+
+.assetCardHeader span:first-child,
+.panelHeader h3,
+.infoPanel > span,
+.assetListBody > .assetCardHeader > span:first-child {
+  color: #1c1c1e;
+}
+
 .coverLayout {
   display: grid;
   gap: 20px;
@@ -173,18 +325,25 @@
   border: 1px dashed #e1e1e6;
   border-radius: 12px;
   padding: 24px;
-  background: #f9f9f9;
+  background:
+    radial-gradient(circle at top right, rgba(255, 106, 61, 0.06), transparent 36%),
+    linear-gradient(180deg, #ffffff 0%, #f9f9f9 100%);
   display: grid;
   gap: 8px;
   cursor: pointer;
   transition:
     border-color 120ms ease,
-    background-color 120ms ease;
+    background-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
 }
 
 .dropZoneActive {
   border-color: #ff6a3d;
-  background: rgba(255, 106, 61, 0.06);
+  background:
+    radial-gradient(circle at top right, rgba(255, 106, 61, 0.12), transparent 36%),
+    linear-gradient(180deg, rgba(255, 106, 61, 0.08) 0%, rgba(255, 106, 61, 0.03) 100%);
+  box-shadow: 0 10px 24px rgba(255, 106, 61, 0.08);
 }
 
 .dropZoneTitle {
@@ -235,6 +394,7 @@
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 8px 24px rgba(28, 28, 30, 0.08);
+  backdrop-filter: blur(8px);
 }
 
 .saveState {
@@ -265,9 +425,44 @@
   .coverPreview {
     max-width: 220px;
   }
+
+  .assetListItem,
+  .choiceHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .assetListItem {
+    gap: 12px;
+  }
+
+  .assetPreviewFrame {
+    aspect-ratio: 3 / 2;
+  }
 }
 
 @media (max-width: 767px) {
+  .panelHeader,
+  .descriptionHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .infoPanel,
+  .assetCard,
+  .choiceCard,
+  .assetListItem,
+  .dropZone {
+    padding: 14px;
+  }
+
+  .choiceHeader {
+    gap: 10px;
+  }
+
+  .assetCardHeader {
+    align-items: flex-start;
+  }
+
   .saveBar {
     bottom: 12px;
     padding: 14px 16px;

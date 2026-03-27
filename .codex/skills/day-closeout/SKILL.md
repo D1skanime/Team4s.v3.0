@@ -1,8 +1,8 @@
 ---
 name: "day-closeout"
-description: "Project-local end-of-day closeout for Team4s; capture context, update handoff files, and leave a restartable workspace"
+description: "Project-local end-of-day closeout for Team4s.v3.0; refresh handoff files and leave a restartable workspace"
 metadata:
-  short-description: "Close the workday with durable notes, updated handoff files, and a clean restart point"
+  short-description: "Close the day with durable repo-local notes and a clear next starting point"
 ---
 
 <codex_skill_adapter>
@@ -18,7 +18,7 @@ metadata:
 </codex_skill_adapter>
 
 <objective>
-Close the day for `Team4s` with a clean, restartable workspace.
+Close the day for `Team4s.v3.0` with a clean, restartable workspace.
 
 After this skill runs, tomorrow-you or another collaborator should be able to:
 - understand what changed today and why,
@@ -29,31 +29,31 @@ After this skill runs, tomorrow-you or another collaborator should be able to:
 
 <scope>
 Canonical repo root:
-- `C:\Users\admin\Documents\Team4s`
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0`
 
 Repo-local files to update when present:
-- `C:\Users\admin\Documents\Team4s\DAYLOG.md`
-- `C:\Users\admin\Documents\Team4s\CONTEXT.md`
-- `C:\Users\admin\Documents\Team4s\STATUS.md`
-- `C:\Users\admin\Documents\Team4s\TOMORROW.md`
-- `C:\Users\admin\Documents\Team4s\RISKS.md`
-- `C:\Users\admin\Documents\Team4s\WORKING_NOTES.md`
-- `C:\Users\admin\Documents\Team4s\DECISIONS.md`
-- `C:\Users\admin\Documents\Team4s\TODO.md`
-- `C:\Users\admin\Documents\Team4s\AGENTS.md` only if operating instructions genuinely changed
-- `C:\Users\admin\Documents\Team4s\YYYY-MM-DD - day-summary.md`
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\DAYLOG.md`
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\CONTEXT.md`
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\STATUS.md`
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\TOMORROW.md`
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\RISKS.md`
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\WORKING_NOTES.md`
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\DECISIONS.md`
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\TODO.md`
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\AGENTS.md` only if operating instructions genuinely changed
+- `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\YYYY-MM-DD - day-summary.md`
 
 Update only repo-local files for this workflow.
 </scope>
 
 <hard_rules>
-1. Never write outside `C:\Users\admin\Documents\Team4s` for this skill.
+1. Never write outside `C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0` unless the user explicitly asks to install the skill globally.
 2. Never run `git init`.
 3. Never delete or overwrite unrelated user work just to make the closeout tidy.
-4. If a handoff file is missing, create it only if it is clearly part of the current repo convention.
+4. If a handoff file is missing, create it only if it matches the current repo convention.
 5. Keep entries concrete, current, and short enough to scan quickly.
 6. The first task in `TOMORROW.md` must be a single concrete action that should take 15 minutes or less.
-7. If you make code changes while closing out, mention them explicitly in the closeout notes.
+7. If code changes remain unverified, say so plainly in the closeout.
 </hard_rules>
 
 <process>
@@ -87,7 +87,7 @@ Update only repo-local files for this workflow.
 ## 4. Refresh core handoff files
 - Update `CONTEXT.md` with the current state of the project and active thread.
 - Update `STATUS.md` with the current phase, what works, what is in progress, and valid run/test commands.
-- Update `WORKING_NOTES.md` with useful scratch context, partial findings, or mental unload notes worth keeping.
+- Update `WORKING_NOTES.md` with useful scratch context or mental unload notes worth keeping.
 - Update `RISKS.md` with the top current risks, blockers, and mitigations.
 - Update `TOMORROW.md` with:
   - top 3 priorities,
@@ -98,7 +98,7 @@ Update only repo-local files for this workflow.
 
 ## 5. Keep the repo restartable
 - Check that any commands referenced in `STATUS.md` still match the repo.
-- Note whether Docker/services are expected to be running or need restart.
+- Note whether Docker/services are expected to be running or need rebuild.
 - If the current workspace has important dirty changes, record that clearly in the handoff.
 
 ## 6. Optional git closeout
@@ -121,10 +121,10 @@ Good closeout means tomorrow-you does not need to rediscover:
 - where to resume,
 - what is risky right now.
 
-If a note would answer “why is it like this?” tomorrow, write it today.
+If a note would answer "why is it like this?" tomorrow, write it today.
 </quality_bar>
 
 <example_invocations>
 - `$day-closeout`
-- `$day-closeout focus on anime create flow, jellyfin preview fixes, and admin overview follow-up`
+- `$day-closeout focus on phase 4 asset persistence and codex tooling`
 </example_invocations>

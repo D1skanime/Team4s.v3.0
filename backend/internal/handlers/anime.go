@@ -29,6 +29,7 @@ var allowedContentTypes = map[string]struct{}{
 
 type AnimeHandler struct {
 	repo            *repository.AnimeRepository
+	assetRepo       *repository.AnimeAssetRepository
 	jellyfinAPIKey  string
 	jellyfinBaseURL string
 	httpClient      *http.Client
@@ -39,9 +40,14 @@ type AnimeMediaConfig struct {
 	JellyfinBaseURL string
 }
 
-func NewAnimeHandler(repo *repository.AnimeRepository, mediaConfig AnimeMediaConfig) *AnimeHandler {
+func NewAnimeHandler(
+	repo *repository.AnimeRepository,
+	assetRepo *repository.AnimeAssetRepository,
+	mediaConfig AnimeMediaConfig,
+) *AnimeHandler {
 	return &AnimeHandler{
 		repo:            repo,
+		assetRepo:       assetRepo,
 		jellyfinAPIKey:  strings.TrimSpace(mediaConfig.JellyfinAPIKey),
 		jellyfinBaseURL: strings.TrimSpace(mediaConfig.JellyfinBaseURL),
 		httpClient: &http.Client{

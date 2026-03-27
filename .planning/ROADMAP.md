@@ -12,7 +12,7 @@ This roadmap hardens the existing Team4s admin anime workflow in dependency orde
 
 - [x] **Phase 1: Ownership Foundations** - Establish the shared ownership-aware edit surface, audit attribution, and modular contract base.
 - [ ] **Phase 2: Manual Intake Baseline** - Deliver the manual preview-before-save workflow with minimum-field creation and existing cover upload.
-- [ ] **Phase 3: Jellyfin-Assisted Intake** - Add Jellyfin source selection and draft prefill without hidden persistence.
+- [x] **Phase 3: Jellyfin-Assisted Intake** - Add Jellyfin source selection and draft prefill without hidden persistence.
 - [ ] **Phase 4: Provenance, Assets, And Safe Resync** - Expose source provenance, per-slot asset handling, and fill-only resync behavior.
 - [ ] **Phase 5: Relations And Reliability** - Complete relation CRUD and validation-centered admin reliability on top of the stabilized ownership model.
 
@@ -98,6 +98,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Ownership Foundations | 5/5 | Complete | 2026-03-24 |
 | 2. Manual Intake Baseline | 3/3 | Human verification needed | - |
-| 3. Jellyfin-Assisted Intake | 0/TBD | Not started | - |
+| 3. Jellyfin-Assisted Intake | 4/4 | Complete | 2026-03-26 |
 | 4. Provenance, Assets, And Safe Resync | 0/TBD | Not started | - |
 | 5. Relations And Reliability | 0/TBD | Not started | - |
