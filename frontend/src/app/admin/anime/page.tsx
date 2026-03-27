@@ -51,8 +51,8 @@ export default async function AdminAnimePage() {
           <p className={styles.eyebrow}>Schritt 1</p>
           <h1 className={styles.pageTitle}>Anime anlegen</h1>
           <p className={styles.pageSubtitle}>
-            Waehle den Einstieg fuer den neuen Anime. Nach dem Speichern muss der Eintrag direkt in der Uebersicht
-            erscheinen, damit du ihn sauber pruefen und wieder oeffnen kannst.
+            Lege neue Anime an und pruefe direkt darunter, ob der Eintrag sauber in der Uebersicht erscheint und sich
+            wieder oeffnen laesst.
           </p>
         </div>
         <div className={styles.headerActions}>
@@ -61,39 +61,6 @@ export default async function AdminAnimePage() {
           </Link>
         </div>
       </header>
-
-      <section className={styles.card}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <h2 className={styles.sectionTitle}>Manuell starten</h2>
-            <p className={styles.sectionMeta}>
-              Titel und Cover reichen fuer den ersten Anime-Eintrag. Alles Weitere kann nach dem ersten Speichern im
-              Studio gepflegt werden.
-            </p>
-          </div>
-        </div>
-        <div className={styles.actionsRow}>
-          <Link href="/admin/anime/create" className={`${styles.button} ${styles.buttonPrimary}`}>
-            Neu manuell
-          </Link>
-        </div>
-      </section>
-
-      <section className={styles.card}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <h2 className={styles.sectionTitle}>Jellyfin</h2>
-            <p className={styles.sectionMeta}>
-              Diese Option bleibt fuer Phase 3 reserviert. In diesem Schritt erscheint bewusst keine Suche, keine
-              Vorschau und keine Herkunftssteuerung.
-            </p>
-          </div>
-        </div>
-        <div className={styles.noticeBox}>
-          Jellyfin-gestuetzte Auswahl folgt in der naechsten Phase. Dieser Einstieg bleibt sichtbar, fuehrt aber noch
-          nicht in eine Such- oder Preview-Oberflaeche.
-        </div>
-      </section>
 
       <section className={styles.card}>
         <div className={styles.sectionHeader}>
