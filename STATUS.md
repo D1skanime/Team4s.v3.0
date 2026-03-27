@@ -3,8 +3,8 @@
 ## Project Snapshot
 - **Project:** Team4s.v3.0
 - **Milestone:** Admin anime intake and public/admin parity hardening
-- **Status:** Manual create flow, Jellyfin-assisted intake, local dev auth bypass, and core public/admin cover handling are working; edit flow and richer metadata/media ownership still need follow-up
-- **Rough completion:** ~70% for the current admin anime intake track
+- **Status:** Manual create flow, Jellyfin-assisted intake, runtime UI-review on localhost, overview confirmation after create, and server-prefetched edit route are working; edit semantics and richer metadata/media ownership still need follow-up
+- **Rough completion:** ~78% for the current admin anime intake track
 
 ## What Works Now
 - Docker stack starts and serves:
@@ -23,16 +23,19 @@
 - Admin anime overview now shows persisted anime entries and links to:
   - edit
   - public detail
-- Create flow now returns to `/admin/anime`, where the new anime is visible immediately
+- Create flow now returns to `/admin/anime?created=<id>#anime-<id>`, where the new anime is visible immediately and explicitly confirmed
 - Edit cover upload works again through the local cover upload route
+- `/admin/anime/[id]/edit` now server-renders with initial anime data instead of starting from the old client-only loading shell
+- Local UI-review can use runtime screenshots from the live Docker stack
 
 ## Verification
-- `frontend npm test` -> passing
+- `frontend npm test -- src/app/admin/anime/page.test.tsx src/app/admin/anime/create/page.test.tsx` -> passing
+- `frontend npm test -- src/app/admin/anime/hooks/useJellyfinIntake.test.ts src/app/admin/anime/components/JellyfinIntake/JellyfinCandidateCard.test.tsx` -> passing
 - `frontend npm run build` -> passing
-- `docker compose up -d --build` -> passing
+- `docker compose up -d --build team4sv30-frontend` -> passing
 - Admin overview runtime render verified on Docker:
-  - `/admin/anime` shows `Naruto`
-  - `/admin/anime/1/edit` reachable
+  - `/admin/anime?created=3` shows explicit confirmation for `Air`
+  - `/admin/anime/3/edit` renders with real content
 - Public anime detail verified:
   - `/anime/1` loads and resolves cover correctly
 
@@ -52,6 +55,7 @@
 - **Edit flow semantics are not fully settled:** create flow is now clearer, but edit still has mixed immediate-vs-save-bar behavior
 - **Planning/docs drift exists:** old media-upload milestone notes are no longer the best description of the active anime-intake work
 - **Dirty worktree is intentional:** current working changes and `.planning` artifacts are not fully closed out into commits yet
+- **Docker runtime is currently part of verification state:** local screenshots, created test anime, and uploaded covers are part of the live working context
 
 ## Valid Commands
 - Start stack: `docker compose up -d --build`
@@ -63,4 +67,4 @@
 ## Owner Focus
 - Frontend/admin lane: anime create/edit flow hardening
 - Backend lane: media/schema alignment and future ownership sync rules
-- Planning lane: GSD phase continuation from the anime intake roadmap
+- Planning lane: GSD phase continuation from the anime intake roadmap plus runtime UI-review support

@@ -33,7 +33,7 @@ import type {
 } from '@/types/admin'
 
 export function buildManualCreateRedirectPath(id: number): string {
-  return '/admin/anime'
+  return `/admin/anime?created=${id}#anime-${id}`
 }
 
 export function appendJellyfinLinkageToCreatePayload(
@@ -128,6 +128,7 @@ export default function AdminAnimeCreatePage() {
   const [genreTokensError, setGenreTokensError] = useState<string | null>(null)
   const [genreSuggestionLimit, setGenreSuggestionLimit] = useState(DEFAULT_GENRE_LIMIT)
   const [showValidationSummary, setShowValidationSummary] = useState(false)
+  const [hasSearchedJellyfin, setHasSearchedJellyfin] = useState(false)
 
   const [createTitle, setCreateTitle] = useState('')
   const [createType, setCreateType] = useState<AnimeType>('tv')
@@ -407,14 +408,24 @@ export default function AdminAnimeCreatePage() {
 
   async function handleJellyfinSearch() {
     clearMessages()
+    setHasSearchedJellyfin(false)
     try {
-      await jellyfinIntake.search()
-      if (jellyfinIntake.candidates.length === 0) {
-        setSuccessMessage('Jellyfin-Suche abgeschlossen. Falls keine Karten erscheinen, pruefe Titel oder Ordnernamen.')
+      const candidateCount = await jellyfinIntake.search()
+      setHasSearchedJellyfin(true)
+      if (candidateCount === 0) {
+        setSuccessMessage('Keine Jellyfin-Treffer gefunden. Pruefe Titel oder Ordnernamen und versuche es erneut.')
+      } else {
+        setSuccessMessage(`Jellyfin-Treffer geladen: ${candidateCount}. Waehle jetzt bewusst einen Treffer fuer die Vorschau.`)
       }
     } catch (error) {
       setErrorMessage(formatError(error, 'Jellyfin-Daten konnten nicht geladen werden.'))
     }
+  }
+
+  function handleJellyfinCandidateSelect(candidateID: string) {
+    clearMessages()
+    jellyfinIntake.reviewCandidate(candidateID)
+    setSuccessMessage('Treffer ausgewaehlt. Lade jetzt die Jellyfin-Vorschau, wenn dieser Ordner wirklich passt.')
   }
 
   async function handleJellyfinCandidateReview(candidateID: string) {
@@ -474,27 +485,61 @@ export default function AdminAnimeCreatePage() {
 
       <header className={styles.header}>
         <h1 className={styles.title}>Anime erstellen</h1>
-        <p className={styles.subtitle}>Neuen Anime erst als manuellen Entwurf pruefen und dann ins Studio uebernehmen.</p>
+        <p className={styles.subtitle}>
+          Neuer gemeinsamer Create-Flow: manuell starten oder Jellyfin als Vorschauquelle pruefen, dann den Entwurf
+          bewusst speichern.
+        </p>
         <p className={styles.tokenPreview}>Token: {tokenPreview}</p>
       </header>
 
       {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
       {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
 
-      {jellyfinIntake.candidates.length > 0 ? (
+      {!hasAuthToken ? (
+        <div className={styles.hintWarning}>
+          Fuer echtes Speichern brauchst du zuerst ein gueltiges Token aus <Link href="/auth">/auth</Link>. Ohne Auth
+          kannst du den Entwurf sehen, aber nicht abschliessen.
+        </div>
+      ) : null}
+
+      <section className={styles.panel}>
+        <h2 className={styles.subheading}>Ablauf</h2>
+        <p className={styles.hint}>1. Titel eintragen und optional Jellyfin-Treffer laden.</p>
+        <p className={styles.hint}>2. Einen Treffer bewusst auswaehlen und erst dann die Jellyfin-Vorschau laden.</p>
+        <p className={styles.hint}>3. Cover lokal hochladen oder die Vorschau pruefen und erst danach speichern.</p>
+        <p className={styles.hint}>
+          Cover-Upload laeuft aktuell ueber den lokalen `/api/admin/upload-cover`-Pfad und speichert nach
+          `frontend/public/covers`.
+        </p>
+      </section>
+
+      {(hasSearchedJellyfin || jellyfinIntake.candidates.length > 0) ? (
         <section className={styles.panel}>
           <h2>Jellyfin-Kandidaten pruefen</h2>
           <p className={styles.hint}>
-            Waehl den passenden Ordner bewusst aus. Erst danach wird derselbe Entwurf vorbefuellt.
+            Waehl zuerst bewusst einen Treffer. Die eigentliche Vorschau wird erst danach geladen und in den Entwurf
+            uebernommen.
           </p>
-          <JellyfinCandidateReview
-            query={createTitle.trim()}
-            candidates={jellyfinIntake.candidates}
-            selectedCandidateID={jellyfinIntake.reviewState.selectedCandidate?.jellyfin_series_id}
-            onReviewCandidate={(candidateID) => {
-              void handleJellyfinCandidateReview(candidateID)
-            }}
-          />
+          {jellyfinIntake.candidates.length === 0 ? (
+            <div className={styles.details}>
+              <strong>Noch keine Jellyfin-Quelle geladen</strong>
+              <p className={styles.hint}>
+                Fuer "{createTitle.trim() || 'diesen Titel'}" wurden noch keine Treffer gefunden. Passe den Titel an
+                oder starte die Suche erneut.
+              </p>
+            </div>
+          ) : (
+            <JellyfinCandidateReview
+              query={createTitle.trim()}
+              candidates={jellyfinIntake.candidates}
+              selectedCandidateID={jellyfinIntake.reviewState.selectedCandidate?.jellyfin_series_id}
+              isLoadingPreview={jellyfinIntake.isLoadingPreview}
+              onSelectCandidate={handleJellyfinCandidateSelect}
+              onLoadCandidatePreview={(candidateID) => {
+                void handleJellyfinCandidateReview(candidateID)
+              }}
+            />
+          )}
         </section>
       ) : null}
 
@@ -533,7 +578,7 @@ export default function AdminAnimeCreatePage() {
                 void handleJellyfinSearch()
               }}
             >
-              {jellyfinIntake.isSearching ? 'Jellyfin laedt...' : 'Jellyfin Sync'}
+              {jellyfinIntake.isSearching ? 'Jellyfin laedt...' : 'Jellyfin-Treffer laden'}
             </button>
             <button
               className={styles.buttonSecondary}

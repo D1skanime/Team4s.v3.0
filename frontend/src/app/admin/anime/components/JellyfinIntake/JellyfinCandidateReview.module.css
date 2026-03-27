@@ -9,19 +9,32 @@
 }
 
 .compactList {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 8px;
 }
 
 .compactItem {
-  min-height: 44px;
+  min-height: 52px;
   padding: 8px 16px;
   border: 1px solid #e4e4e4;
-  border-radius: 999px;
+  border-radius: 16px;
   background: #ffffff;
+  display: grid;
+  gap: 4px;
+  text-align: left;
   font-size: 14px;
   line-height: 1.4;
+}
+
+.compactItemSelected {
+  border-color: #ff6a3d;
+  box-shadow: 0 0 0 1px #ff6a3d;
+}
+
+.compactMeta {
+  color: #6b6b70;
+  font-size: 13px;
+  overflow-wrap: anywhere;
 }
 
 .reviewGrid {

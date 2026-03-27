@@ -7,14 +7,18 @@ interface JellyfinCandidateReviewProps {
   query: string
   candidates: AdminJellyfinIntakeSearchItem[]
   selectedCandidateID?: string | null
-  onReviewCandidate: (candidateID: string) => void
+  isLoadingPreview?: boolean
+  onSelectCandidate: (candidateID: string) => void
+  onLoadCandidatePreview: (candidateID: string) => void
 }
 
 export function JellyfinCandidateReview({
   query,
   candidates,
   selectedCandidateID,
-  onReviewCandidate,
+  isLoadingPreview = false,
+  onSelectCandidate,
+  onLoadCandidatePreview,
 }: JellyfinCandidateReviewProps) {
   return (
     <section className={styles.surface}>
@@ -24,11 +28,17 @@ export function JellyfinCandidateReview({
           {candidates.map((candidate) => (
             <button
               key={candidate.jellyfin_series_id}
-              className={styles.compactItem}
+              className={`${styles.compactItem} ${
+                candidate.jellyfin_series_id === selectedCandidateID ? styles.compactItemSelected : ''
+              }`}
               type="button"
-              onClick={() => onReviewCandidate(candidate.jellyfin_series_id)}
+              onClick={() => onSelectCandidate(candidate.jellyfin_series_id)}
             >
-              {candidate.name}
+              <span>{candidate.name}</span>
+              <span className={styles.compactMeta}>
+                {candidate.production_year ? `${candidate.production_year} | ` : ''}
+                {candidate.path || 'ohne Pfad'}
+              </span>
             </button>
           ))}
         </div>
@@ -40,7 +50,9 @@ export function JellyfinCandidateReview({
             key={candidate.jellyfin_series_id}
             candidate={candidate}
             isSelected={candidate.jellyfin_series_id === selectedCandidateID}
-            onReview={onReviewCandidate}
+            isLoadingPreview={isLoadingPreview && candidate.jellyfin_series_id === selectedCandidateID}
+            onSelect={onSelectCandidate}
+            onLoadPreview={onLoadCandidatePreview}
           />
         ))}
       </div>

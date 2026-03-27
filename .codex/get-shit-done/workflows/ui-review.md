@@ -1,5 +1,5 @@
 <purpose>
-Retroactive 6-pillar visual audit of implemented frontend code. Standalone command that works on any project — GSD-managed or not. Produces scored UI-REVIEW.md with actionable findings.
+Retroactive 6-pillar visual audit of implemented frontend code. Standalone command that works on any project - GSD-managed or not. Produces scored UI-REVIEW.md with actionable findings.
 </purpose>
 
 <required_reading>
@@ -23,9 +23,9 @@ UI_AUDITOR_MODEL=$(node "C:/Users/admin/Documents/Team4s/.codex/get-shit-done/bi
 
 Display banner:
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- GSD ► UI AUDIT — PHASE {N}: {name}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-----------------------------------------------------
+ GSD > UI AUDIT - PHASE {N}: {name}
+-----------------------------------------------------
 ```
 
 ## 1. Detect Input State
@@ -36,14 +36,14 @@ UI_SPEC_FILE=$(ls "${PHASE_DIR}"/*-UI-SPEC.md 2>/dev/null | head -1)
 UI_REVIEW_FILE=$(ls "${PHASE_DIR}"/*-UI-REVIEW.md 2>/dev/null | head -1)
 ```
 
-**If `SUMMARY_FILES` empty:** Exit — "Phase {N} not executed. Run $gsd-execute-phase {N} first."
+**If `SUMMARY_FILES` empty:** Exit - "Phase {N} not executed. Run $gsd-execute-phase {N} first."
 
 **If `UI_REVIEW_FILE` non-empty:** Use AskUserQuestion:
 - header: "Existing UI Review"
 - question: "UI-REVIEW.md already exists for Phase {N}."
 - options:
-  - "Re-audit — run fresh audit"
-  - "View — display current review and exit"
+  - "Re-audit - run fresh audit"
+  - "View - display current review and exit"
 
 If "View": display file, exit.
 If "Re-audit": continue.
@@ -53,8 +53,13 @@ If "Re-audit": continue.
 Build file list for auditor:
 - All SUMMARY.md files in phase dir
 - All PLAN.md files in phase dir
-- UI-SPEC.md (if exists — audit baseline)
-- CONTEXT.md (if exists — locked decisions)
+- UI-SPEC.md (if exists - audit baseline)
+- CONTEXT.md (if exists - locked decisions)
+
+Also gather runtime screenshot targets:
+- Prefer the project's real local app URL first
+- For Docker/local-dev setups, probe `http://localhost:3002` before `http://localhost:3000`, `http://localhost:5173`, and `http://localhost:8080`
+- If the phase is tied to a concrete route, include that route explicitly so the auditor captures the relevant screen instead of only the app root
 
 ## 3. Spawn gsd-ui-auditor
 
@@ -73,10 +78,16 @@ Conduct 6-pillar visual audit of Phase {phase_number}: {phase_name}
 {If no UI-SPEC: "Audit against abstract 6-pillar standards."}
 </objective>
 
+<runtime_targets>
+- Prefer reachable local URLs in this order: `http://localhost:3002`, `http://localhost:3000`, `http://localhost:5173`, `http://localhost:8080`
+- Capture the primary phase route first when known (example: `/admin/anime/create`)
+- Capture one supporting overview/list route as secondary context when practical
+</runtime_targets>
+
 <files_to_read>
 - {summary_paths} (Execution summaries)
-- {plan_paths} (Execution plans — what was intended)
-- {ui_spec_path} (UI Design Contract — audit baseline, if exists)
+- {plan_paths} (Execution plans - what was intended)
+- {ui_spec_path} (UI Design Contract - audit baseline, if exists)
 - {context_path} (User decisions, if exists)
 </files_to_read>
 
@@ -104,11 +115,11 @@ Task(
 Display score summary:
 
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- GSD ► UI AUDIT COMPLETE ✓
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-----------------------------------------------------
+ GSD > UI AUDIT COMPLETE
+-----------------------------------------------------
 
-**Phase {N}: {Name}** — Overall: {score}/24
+**Phase {N}: {Name}** - Overall: {score}/24
 
 | Pillar | Score |
 |--------|-------|
@@ -125,17 +136,6 @@ Top fixes:
 3. {fix}
 
 Full review: {path to UI-REVIEW.md}
-
-───────────────────────────────────────────────────────────────
-
-## ▶ Next
-
-- `$gsd-verify-work {N}` — UAT testing
-- `$gsd-plan-phase {N+1}` — plan next phase
-
-<sub>/clear first → fresh context window</sub>
-
-───────────────────────────────────────────────────────────────
 ```
 
 ## 5. Commit (if configured)

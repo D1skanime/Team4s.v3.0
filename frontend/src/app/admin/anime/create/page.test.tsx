@@ -38,9 +38,10 @@ describe('AdminAnimeCreatePage', () => {
   it('renders title-adjacent Jellyfin and AniSearch actions with disabled-until-meaningful-title guidance', () => {
     const markup = renderToStaticMarkup(<AdminAnimeCreatePage />)
 
-    expect(markup).toContain('Jellyfin Sync')
+    expect(markup).toContain('Jellyfin-Treffer laden')
     expect(markup).toContain('AniSearch Sync')
     expect(markup).toContain('Gib zuerst einen aussagekraeftigen Anime-Titel ein. AniSearch Sync kommt in Phase 4.')
+    expect(markup).toContain('Fuer echtes Speichern brauchst du zuerst ein gueltiges Token aus')
     expect(resolveSourceActionState('').canSync).toBe(false)
     expect(resolveSourceActionState('Naruto').canSync).toBe(true)
   })
@@ -50,7 +51,7 @@ describe('AdminAnimeCreatePage', () => {
   })
 
   it('builds the create redirect path for the anime overview route', () => {
-    expect(buildManualCreateRedirectPath(42)).toBe('/admin/anime')
+    expect(buildManualCreateRedirectPath(42)).toBe('/admin/anime?created=42#anime-42')
   })
 
   it('uses createAdminAnime and redirects to the anime overview after success', async () => {
@@ -82,7 +83,7 @@ describe('AdminAnimeCreatePage', () => {
       status: 'ongoing',
       cover_image: 'lain.jpg',
     })
-    expect(setLocationHref).toHaveBeenCalledWith('/admin/anime')
+    expect(setLocationHref).toHaveBeenCalledWith('/admin/anime?created=42#anime-42')
     expect(response.data.id).toBe(42)
   })
 

@@ -72,3 +72,53 @@ The page is operational UI that must reflect live persisted data, especially rig
 
 ### Follow-ups Required
 - apply the same dynamic-vs-static judgment carefully to future admin operational pages
+
+---
+
+## 2026-03-27 - Post-Create Continuity Must Use Explicit Overview Confirmation
+
+### Decision
+After a successful anime create, redirect to `/admin/anime?created={id}#anime-{id}` and show an explicit success confirmation inside the overview.
+
+### Context
+The earlier change back to the overview improved observability, but runtime review still showed that a hash jump alone was too subtle. Operators needed a clearer proof that the just-created anime was the item now in focus.
+
+### Options Considered
+- keep redirecting to `/admin/anime` with only scroll/highlight behavior
+- add an explicit created-state confirmation in the overview
+
+### Why This Won
+It makes create success obvious in runtime checks, screenshots, and human review without forcing an edit redirect again.
+
+### Consequences
+- create now carries a lightweight `created` query parameter
+- the overview doubles as the confirmation surface for successful persistence
+- future create-flow tweaks should preserve this explicit continuity signal
+
+### Follow-ups Required
+- keep the confirmation pattern in mind for other operational create flows
+
+---
+
+## 2026-03-27 - Local UI Review Should Prefer Live Docker Runtime
+
+### Decision
+When localhost is available, local UI review should prefer the live Docker/runtime app and capture screenshots there instead of relying on code-only review.
+
+### Context
+The earlier GSD UI-review flow was useful for code audit but weak at catching continuity and presentation issues that only became obvious on the running app.
+
+### Options Considered
+- keep UI review code-only by default
+- bias the local review workflow toward the running Docker/localhost app when present
+
+### Why This Won
+The live stack exposed the real operator-facing problems: create continuity, wording, and the perceived loading-shell issue on edit. Those would have been harder to judge from code alone.
+
+### Consequences
+- local runtime screenshots are now part of the review toolkit
+- Docker availability matters more for high-confidence UI review
+- review artifacts under `.planning/ui-reviews/` are now meaningful handoff evidence
+
+### Follow-ups Required
+- keep runtime review inputs current when localhost ports or startup conventions change

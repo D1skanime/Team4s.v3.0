@@ -95,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T14:03:40.896Z
-Stopped at: Completed 03-04-PLAN.md
-Resume file: .planning/ROADMAP.md
+Last session: 2026-03-27T10:55:00+01:00
+Stopped at: Session resumed; active repo focus is edit-save semantics and upload-path cleanup after 2026-03-26 handoff
+Resume file: WORKING_NOTES.md

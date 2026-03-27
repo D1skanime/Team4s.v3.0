@@ -3,7 +3,7 @@
 ## Project
 - **Name:** Team4s.v3.0
 - **Current workflow:** Admin anime intake and follow-up editing flow hardening
-- **Current slice:** manual create + Jellyfin-assisted intake + public/admin cover consistency
+- **Current slice:** runtime-reviewed anime create flow + overview continuity + edit-route stabilization
 
 ## Current State
 
@@ -19,13 +19,19 @@
 - Extended Jellyfin draft handling to support multiple background images
 - Upgraded `/admin/anime` from a static entry page into a real runtime overview that lists created anime
 - Changed post-create redirect back to `/admin/anime` so successful creation is visible immediately in the overview
+- Added runtime screenshot support to the local GSD UI-review path
+- Verified the anime create flow against the live Docker stack with `Bleach` and `Air`
+- Added explicit overview confirmation after create using `?created=<id>#anime-<id>`
+- Converted `/admin/anime/[id]/edit` to a server-prefetched wrapper around `AdminAnimeEditPageClient`
 
 ### What Is Working
-- `Naruto` exists in the local DB and appears in `/admin/anime`
-- `/admin/anime/1/edit` is reachable
+- `Naruto`, `Bleach`, and `Air` exist in the local DB and appear in `/admin/anime`
+- `/admin/anime?created=3` shows an explicit success confirmation for `Air`
+- `/admin/anime/3/edit` renders server-side with real anime context
 - `/anime/1` loads and shows the cover correctly
 - Jellyfin intake search/preview is functional enough for local draft creation
 - Docker stack is currently the expected local verification path
+- Runtime screenshots can be captured from the live local stack for UI review
 
 ### What Is Still Pending
 - Edit UX is still not fully settled
@@ -49,10 +55,13 @@
 - Jellyfin stays preview-only until final save
 - Create should return to the anime overview, not drop the user straight into edit by default
 - The overview itself must prove persistence by showing the new anime
+- Overview confirmation should be explicit, not only implied by scroll position
 - For local poster uploads, the stable local cover route is preferred until the generic media backend is reconciled with the newer schema
+- Runtime UI review should prefer the live Docker stack when localhost is available
 
 ## Quality Bar
 - Docker remains the primary local verification path after each meaningful task
 - Public and admin views must agree on cover resolution
 - Create success must be observable from the admin overview
+- Runtime UI-review findings should be backed by the actual local app when possible
 - Tomorrow's first task must be tiny, concrete, and restart the flow without re-discovery

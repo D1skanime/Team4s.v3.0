@@ -23,6 +23,7 @@
 ## Current Blockers
 - No hard blocker for resuming tomorrow
 - Main design blocker: final edit-save semantics are not yet fully decided
+- Operational note: the local Docker stack currently contains created verification entries (`Bleach`, `Air`) and uploaded local cover assets
 
 ## If Nothing Changes, What Fails Next Week?
 - richer media uploads beyond poster will keep failing on the backend schema mismatch

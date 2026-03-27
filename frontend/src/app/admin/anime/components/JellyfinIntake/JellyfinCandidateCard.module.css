@@ -130,6 +130,8 @@
 .actions {
   display: flex;
   justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .actionButton {
@@ -140,6 +142,18 @@
   background: #ff6a3d;
   color: #ffffff;
   font-size: 16px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.actionButtonSecondary {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid #e4e4e4;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1c1c1e;
+  font-size: 14px;
   line-height: 1.5;
   font-weight: 600;
 }

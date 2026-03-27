@@ -28,7 +28,7 @@ export interface JellyfinIntakeModel {
   isSearching: boolean
   isLoadingPreview: boolean
   setQuery: (value: string) => void
-  search: () => Promise<void>
+  search: () => Promise<number>
   reviewCandidate: (candidateID: string) => void
   loadPreview: (candidateID: string) => Promise<AdminAnimeJellyfinIntakePreviewResult | null>
   resetReview: () => void
@@ -76,7 +76,7 @@ export function useJellyfinIntake(authToken?: string): JellyfinIntakeModel {
     if (!searchState.canSearch) {
       setCandidates([])
       setReviewState({ mode: 'idle', selectedCandidate: null, shouldHydrateDraft: false })
-      return
+      return 0
     }
 
     setIsSearching(true)
@@ -85,6 +85,7 @@ export function useJellyfinIntake(authToken?: string): JellyfinIntakeModel {
       const response = await searchAdminJellyfinIntakeCandidates(query.trim(), { limit: 12 }, authToken)
       setCandidates(response.data)
       setReviewState({ mode: 'idle', selectedCandidate: null, shouldHydrateDraft: false })
+      return response.data.length
     } finally {
       setIsSearching(false)
     }

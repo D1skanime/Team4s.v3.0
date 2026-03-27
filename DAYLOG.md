@@ -89,3 +89,42 @@
 - Edit upload seam: `frontend/src/app/admin/anime/hooks/internal/anime-patch/useAnimePatchMutations.ts`
 - Public cover helper: `frontend/src/lib/utils.ts`
 - Public relations cards: `frontend/src/components/anime/AnimeRelations.tsx`
+
+## 2026-03-27
+- Project: `Team4s.v3.0`
+- Milestone: `Admin anime intake and edit-flow hardening`
+- Today's focus: runtime UI review, create-flow trust, and edit-route continuity
+- Repo-local project files live in `C:\Users\admin\Documents\Team4s`
+
+### Workstreams Touched
+- GSD UI-review runtime support on local Docker/localhost
+- Anime create-flow review with real runtime screenshots
+- Admin overview post-create continuity
+- Edit-route server-prefetch wrapper to remove loading-shell ambiguity
+
+### Goals Intended vs Achieved
+- Intended: prove that UI review can work against a live local stack, exercise the anime creator flow with real examples, and close the biggest continuity gap after create
+- Achieved: runtime screenshots were produced from the live Docker stack, `Bleach` and `Air` were created through the local flow, `/admin/anime` now gives explicit success confirmation for the new anime, and `/admin/anime/[id]/edit` renders server-side with real anime data instead of depending on the old client-loading shell
+
+### Problems Solved
+- Root cause: the previous UI-review flow was effectively code-only unless a running localhost target was wired in manually
+- Fix: updated the local GSD UI-review workflow/agent instructions and proved the path with runtime screenshots against Docker
+- Root cause: create-to-overview continuity still relied too much on scroll position and not enough on explicit feedback
+- Fix: create now redirects to `/admin/anime?created={id}#anime-{id}` and the overview shows a confirmation message for the created anime
+- Root cause: the edit route previously started from a client-only loading state, which made runtime review captures look broken or ambiguous
+- Fix: moved the edit page to a server-prefetched wrapper feeding `AdminAnimeEditPageClient`
+
+### Open Follow-ups
+- Edit save semantics still need a clean product/UX contract
+- Generic backend media upload remains schema-broken for richer asset types
+- Runtime screenshot artifacts and local uploaded covers are still uncommitted working-state files
+
+### Evidence / References
+- UI-review workflow: `.codex/get-shit-done/workflows/ui-review.md`
+- UI-review agent: `.codex/agents/gsd-ui-auditor.md`
+- Overview route: `frontend/src/app/admin/anime/page.tsx`
+- Create route: `frontend/src/app/admin/anime/create/page.tsx`
+- Edit route wrapper: `frontend/src/app/admin/anime/[id]/edit/page.tsx`
+- Edit client shell: `frontend/src/app/admin/anime/components/AnimeEditPage/AdminAnimeEditPageClient.tsx`
+- Runtime review artifacts: `.planning/ui-reviews/`
+- Verified locally with `cd frontend && npm test -- src/app/admin/anime/page.test.tsx src/app/admin/anime/create/page.test.tsx`, `cd frontend && npm run build`, and Docker on `http://localhost:3002`
