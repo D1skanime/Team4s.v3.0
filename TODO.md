@@ -1,21 +1,20 @@
 # TODO
 
 ## Current Active Work
-- [x] Make admin anime overview show persisted anime entries
-- [x] Redirect successful anime create back to `/admin/anime`
-- [x] Fix public cover rendering for absolute Jellyfin/media URLs
-- [x] Restore edit poster upload through the local cover route
-- [x] Add Codex `day-closeout` skill
+- [x] Verify Phase 3 and mark planning files accordingly
+- [x] Refine Phase 4 asset ownership scope
+- [x] Repair conflicting migration numbering and restore local `migrate up`
+- [x] Implement backend groundwork for anime asset-slot persistence
+- [x] Finish edit-route cover/banner/background asset controls
+- [x] Validate persisted asset precedence and operator actions through the UI
+- [ ] Package `day-closeout` cleanly for Codex skill + worker usage
 
 ## Next Up
-- [ ] Define exact edit save behavior
-- [ ] Continue edit-screen UX cleanup
-- [ ] Decide whether the next execution phase is ownership/resync rules or relations management
-- [ ] Reconcile or redesign the generic backend media upload path for broader asset types
-- [ ] Extend asset handling beyond poster once the backend path is trustworthy
+- [ ] Mark `04-03` formally aligned with the now-verified cover/banner/background implementation
+- [ ] Decide whether `frontend/tmp-playwright-phase4/cover-ui-smoke.mjs` should become a durable regression artifact
+- [ ] Reconcile the latest frontend type/API updates with repo-wide lint/type noise
 
 ## Parking Lot
-- [ ] Full anime relations management UI/backend flow
-- [ ] Richer provenance indicators in edit/create flows
-- [ ] AniSearch sync beyond placeholder level
-- [ ] Broader media asset uploads for banner/logo/background/video
+- [ ] Anime logo persistence
+- [ ] Karaoke/video-specific local asset management
+- [ ] Broader worker-agent conventions beyond `day-closeout`

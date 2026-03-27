@@ -15,6 +15,8 @@ import { ManualCreateValidationSummary } from './ManualCreateValidationSummary'
 
 interface ManualCreateWorkspaceProps {
   editor: AnimeEditorController
+  titleText?: string
+  subtitleText?: string
   title: string
   type: AnimeType
   contentType: ContentType
@@ -71,8 +73,8 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
   return (
     <AnimeEditorShell
       editor={props.editor}
-      title="Anime erstellen"
-      subtitle="Manual Draft mit Vorschau, bevor ein echter Anime-Datensatz gespeichert wird."
+      title={props.titleText || 'Anime erstellen'}
+      subtitle={props.subtitleText || 'Manual Draft mit Vorschau, bevor ein echter Anime-Datensatz gespeichert wird.'}
     >
       <ManualCreatePreview title={props.title} coverImage={props.coverImage} />
       <ManualCreateValidationSummary missingFields={props.missingFields} />

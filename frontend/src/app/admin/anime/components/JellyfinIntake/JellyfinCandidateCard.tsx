@@ -6,17 +6,19 @@ import styles from './JellyfinCandidateCard.module.css'
 interface JellyfinCandidateCardProps {
   candidate: AdminJellyfinIntakeSearchItem
   isSelected?: boolean
-  onReview: (candidateID: string) => void
+  isLoadingPreview?: boolean
+  onSelect: (candidateID: string) => void
+  onLoadPreview: (candidateID: string) => void
 }
 
-function renderPreviewTile(label: string, url?: string) {
+function renderPreviewTile(label: string, candidateName: string, url?: string) {
   const resolvedUrl = resolveJellyfinIntakeAssetUrl(url)
   return (
     <div className={styles.previewTile}>
       <span className={styles.previewLabel}>{label}</span>
       <div className={styles.previewFrame}>
         {resolvedUrl ? (
-          <img className={styles.previewImage} src={resolvedUrl} alt={`${label} preview`} />
+          <img className={styles.previewImage} src={resolvedUrl} alt={`${label} Vorschau fuer ${candidateName}`} />
         ) : (
           <div className={styles.emptyFrame}>keine Vorschau</div>
         )}
@@ -36,7 +38,13 @@ function confidenceLabel(confidence: AdminJellyfinIntakeSearchItem['confidence']
   }
 }
 
-export function JellyfinCandidateCard({ candidate, isSelected = false, onReview }: JellyfinCandidateCardProps) {
+export function JellyfinCandidateCard({
+  candidate,
+  isSelected = false,
+  isLoadingPreview = false,
+  onSelect,
+  onLoadPreview,
+}: JellyfinCandidateCardProps) {
   return (
     <article className={`${styles.card} ${isSelected ? styles.selected : ''}`}>
       <div className={styles.header}>
@@ -67,15 +75,20 @@ export function JellyfinCandidateCard({ candidate, isSelected = false, onReview 
       </div>
 
       <div className={styles.previewGrid}>
-        {renderPreviewTile('poster', candidate.poster_url)}
-        {renderPreviewTile('banner', candidate.banner_url)}
-        {renderPreviewTile('logo', candidate.logo_url)}
-        {renderPreviewTile('background', candidate.background_url)}
+        {renderPreviewTile('poster', candidate.name, candidate.poster_url)}
+        {renderPreviewTile('banner', candidate.name, candidate.banner_url)}
+        {renderPreviewTile('logo', candidate.name, candidate.logo_url)}
+        {renderPreviewTile('background', candidate.name, candidate.background_url)}
       </div>
 
       <div className={styles.actions}>
-        <button className={styles.actionButton} type="button" onClick={() => onReview(candidate.jellyfin_series_id)}>
-          {isSelected ? 'Vorschau uebernehmen' : 'Treffer pruefen'}
+        {!isSelected ? (
+          <button className={styles.actionButtonSecondary} type="button" onClick={() => onSelect(candidate.jellyfin_series_id)}>
+            Diesen Treffer ansehen
+          </button>
+        ) : null}
+        <button className={styles.actionButton} type="button" onClick={() => onLoadPreview(candidate.jellyfin_series_id)}>
+          {isLoadingPreview ? 'Vorschau laedt...' : 'Jellyfin-Vorschau laden'}
         </button>
       </div>
     </article>

@@ -9,19 +9,19 @@
 
 - [x] **INTK-01**: Admin can start anime creation by choosing either a manual flow or a Jellyfin-assisted flow.
 - [ ] **INTK-02**: Admin can review and edit all proposed anime values in a draft form before any anime record is created.
-- [ ] **INTK-03**: Admin can cancel a Jellyfin-assisted draft without creating a Team4s anime record.
+- [x] **INTK-03**: Admin can cancel a Jellyfin-assisted draft without creating a Team4s anime record.
 - [x] **INTK-04**: Admin can save a new anime when only `title` and `cover` are present.
 - [x] **INTK-05**: Admin can create and maintain an anime without any Jellyfin linkage.
 - [x] **INTK-06**: Admin can edit an existing anime through the same ownership-aware admin surface used by intake.
 
 ### Jellyfin Source Selection
 
-- [ ] **JFIN-01**: Admin can search or browse Jellyfin candidates before creating an anime from Jellyfin.
-- [ ] **JFIN-02**: Admin can see Jellyfin item identity and path during source selection.
+- [x] **JFIN-01**: Admin can search or browse Jellyfin candidates before creating an anime from Jellyfin.
+- [x] **JFIN-02**: Admin can see Jellyfin item identity and path during source selection.
 - [ ] **JFIN-03**: Admin can still see the linked Jellyfin item identity and path later while editing a Jellyfin-linked anime.
-- [ ] **JFIN-04**: Admin can import a Jellyfin candidate into an editable draft that prefills available metadata before save.
-- [ ] **JFIN-05**: Admin can review Jellyfin-provided description, year, genres or tags, AniDB ID, cover, logo, banner, background, and background video in the draft before deciding to save.
-- [ ] **JFIN-06**: Admin can accept or override a suggested anime type derived from Jellyfin folder structure or naming context.
+- [x] **JFIN-04**: Admin can import a Jellyfin candidate into an editable draft that prefills available metadata before save.
+- [x] **JFIN-05**: Admin can review Jellyfin-provided description, year, genres or tags, AniDB ID, cover, logo, banner, background, and background video in the draft before deciding to save.
+- [x] **JFIN-06**: Admin can accept or override a suggested anime type derived from Jellyfin folder structure or naming context.
 
 ### Data Ownership And Provenance
 
@@ -87,16 +87,16 @@
 |-------------|-------|--------|
 | INTK-01 | Phase 2 | Complete |
 | INTK-02 | Phase 2 | Pending |
-| INTK-03 | Phase 3 | Pending |
+| INTK-03 | Phase 3 | Complete |
 | INTK-04 | Phase 2 | Complete |
 | INTK-05 | Phase 2 | Complete |
 | INTK-06 | Phase 1 | Complete |
-| JFIN-01 | Phase 3 | Pending |
-| JFIN-02 | Phase 3 | Pending |
+| JFIN-01 | Phase 3 | Complete |
+| JFIN-02 | Phase 3 | Complete |
 | JFIN-03 | Phase 4 | Pending |
-| JFIN-04 | Phase 3 | Pending |
-| JFIN-05 | Phase 3 | Pending |
-| JFIN-06 | Phase 3 | Pending |
+| JFIN-04 | Phase 3 | Complete |
+| JFIN-05 | Phase 3 | Complete |
+| JFIN-06 | Phase 3 | Complete |
 | OWNR-01 | Phase 4 | Pending |
 | OWNR-02 | Phase 4 | Pending |
 | OWNR-03 | Phase 4 | Pending |
@@ -126,4 +126,4 @@
 
 ---
 *Requirements defined: 2026-03-24*
-*Last updated: 2026-03-24 after research-informed rewrite*
+*Last updated: 2026-03-26 after Phase 3 verification*

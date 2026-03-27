@@ -1,7 +1,7 @@
 # Phase 03 Validation
 
 Phase: `03-jellyfin-assisted-intake`  
-Status: planned  
+Status: verified complete  
 Validation source: `03-RESEARCH.md` Validation Architecture.
 
 ## Objective
@@ -28,7 +28,7 @@ These files must exist by the end of execution because the plans rely on them as
 - `backend/internal/handlers/jellyfin_search_test.go`
 - `frontend/src/app/admin/anime/hooks/useJellyfinIntake.test.ts`
 - `frontend/src/app/admin/anime/components/JellyfinIntake/JellyfinCandidateCard.test.tsx`
-- `frontend/src/app/admin/anime/components/JellyfinIntake/JellyfinDraftAssets.test.tsx`
+- `frontend/src/app/admin/anime/components/ManualCreate/JellyfinDraftAssets.test.tsx`
 - `frontend/src/app/admin/anime/utils/jellyfin-intake-type-hint.test.ts`
 
 ## Wave Checks
@@ -67,7 +67,7 @@ Pass conditions:
 Run before marking Phase 3 complete:
 
 ```bash
-cd frontend && npm test -- src/app/admin/anime/hooks/useJellyfinIntake.test.ts src/app/admin/anime/components/JellyfinIntake/JellyfinCandidateCard.test.tsx src/app/admin/anime/components/JellyfinIntake/JellyfinDraftAssets.test.tsx src/app/admin/anime/utils/jellyfin-intake-type-hint.test.ts src/app/admin/anime/create/page.test.tsx
+cd frontend && npm test -- src/app/admin/anime/hooks/useJellyfinIntake.test.ts src/app/admin/anime/components/JellyfinIntake/JellyfinCandidateCard.test.tsx src/app/admin/anime/components/ManualCreate/JellyfinDraftAssets.test.tsx src/app/admin/anime/utils/jellyfin-intake-type-hint.test.ts src/app/admin/anime/create/page.test.tsx
 cd backend && go test ./internal/handlers -run "Test.*Jellyfin.*(Search|IntakePreview)" -count=1
 ```
 
@@ -89,3 +89,23 @@ Validation for this phase must not require:
 - relation CRUD
 
 If any test or manual check needs those behaviors, it belongs to a later phase and should be removed from Phase 3 validation.
+
+## Verification Result
+
+Validated on 2026-03-26 against the repo-local implementation after rebuilding the local Docker runtime.
+
+Automated verification passed:
+- `cd frontend && npm test -- src/app/admin/anime/hooks/useJellyfinIntake.test.ts src/app/admin/anime/components/JellyfinIntake/JellyfinCandidateCard.test.tsx src/app/admin/anime/components/ManualCreate/JellyfinDraftAssets.test.tsx src/app/admin/anime/utils/jellyfin-intake-type-hint.test.ts src/app/admin/anime/create/page.test.tsx`
+- `cd backend && go test ./internal/handlers -run "Test.*Jellyfin.*(Search|IntakePreview)" -count=1`
+
+Runtime verification passed:
+- `docker compose up -d --build team4sv30-backend team4sv30-frontend`
+- `GET /health` -> `200`
+- `GET /api/v1/admin/jellyfin/series?q=11eyes` -> `200`
+- `POST /api/v1/admin/jellyfin/intake/preview` -> `200`
+- `GET /admin/anime/create` -> `200`
+
+Verdict:
+- Phase 3 is verified complete for the preview-only Jellyfin-assisted intake scope.
+- Candidate search and review, shared draft hydration, draft-only asset removal, advisory type hints, and explicit-save-only linkage are all covered by passing tests and live runtime seams.
+- Provenance, fill-only resync, and linked-edit visibility remain correctly deferred to Phase 4.

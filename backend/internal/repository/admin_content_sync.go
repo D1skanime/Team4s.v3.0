@@ -16,7 +16,7 @@ func (r *AdminContentRepository) GetAnimeSyncSource(
 	animeID int64,
 ) (*models.AdminAnimeSyncSource, error) {
 	query := `
-		SELECT id, title, title_de, title_en, source, folder_name, year, max_episodes, description
+		SELECT id, title, title_de, title_en, source, folder_name, year, max_episodes, description, cover_image
 		FROM anime
 		WHERE id = $1
 	`
@@ -32,6 +32,7 @@ func (r *AdminContentRepository) GetAnimeSyncSource(
 		&item.Year,
 		&item.MaxEpisodes,
 		&item.Description,
+		&item.CoverImage,
 	); errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
 	} else if err != nil {
@@ -45,6 +46,7 @@ func (r *AdminContentRepository) ApplyJellyfinSyncMetadata(
 	ctx context.Context,
 	animeID int64,
 	sourceTag string,
+	folderName *string,
 	year *int16,
 	description *string,
 	maxEpisodes *int16,
@@ -53,6 +55,7 @@ func (r *AdminContentRepository) ApplyJellyfinSyncMetadata(
 	query, args := buildApplyJellyfinSyncMetadataQuery(
 		animeID,
 		sourceTag,
+		folderName,
 		year,
 		description,
 		maxEpisodes,
@@ -73,25 +76,39 @@ func (r *AdminContentRepository) ApplyJellyfinSyncMetadata(
 func buildApplyJellyfinSyncMetadataQuery(
 	animeID int64,
 	sourceTag string,
+	folderName *string,
 	year *int16,
 	description *string,
 	maxEpisodes *int16,
 	forceSourceUpdate bool,
 ) (string, []any) {
+	var normalizedFolderName *string
+	if folderName != nil {
+		trimmed := strings.TrimSpace(*folderName)
+		if trimmed != "" {
+			normalizedFolderName = &trimmed
+		}
+	}
+
 	query := `
 		UPDATE anime
 		SET
 			source = CASE
-				WHEN $6 = true AND $2 <> '' THEN $2
+				WHEN $7 = true AND $2 <> '' THEN $2
 				WHEN (source IS NULL OR btrim(source) = '') AND $2 <> '' THEN $2
 				ELSE source
 			END,
-			year = COALESCE(year, $3::smallint),
+			folder_name = CASE
+				WHEN $7 = true AND COALESCE($3::text, '') <> '' THEN $3::text
+				WHEN (folder_name IS NULL OR btrim(folder_name) = '') AND COALESCE($3::text, '') <> '' THEN $3::text
+				ELSE folder_name
+			END,
+			year = COALESCE(year, $4::smallint),
 			description = CASE
-				WHEN description IS NULL OR btrim(description) = '' THEN $4::text
+				WHEN description IS NULL OR btrim(description) = '' THEN $5::text
 				ELSE description
 			END,
-			max_episodes = COALESCE(max_episodes, $5::smallint),
+			max_episodes = COALESCE(max_episodes, $6::smallint),
 			updated_at = NOW()
 		WHERE id = $1
 	`
@@ -99,6 +116,7 @@ func buildApplyJellyfinSyncMetadataQuery(
 	args := []any{
 		animeID,
 		strings.TrimSpace(sourceTag),
+		normalizedFolderName,
 		year,
 		description,
 		maxEpisodes,

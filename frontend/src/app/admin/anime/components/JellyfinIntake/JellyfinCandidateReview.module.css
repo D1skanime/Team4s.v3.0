@@ -5,7 +5,11 @@
 
 .compactPicker {
   display: grid;
-  gap: 8px;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #eee2db;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fffaf8 0%, #ffffff 100%);
 }
 
 .compactList {
@@ -17,14 +21,27 @@
 .compactItem {
   min-height: 44px;
   padding: 8px 16px;
-  border: 1px solid #e4e4e4;
+  border: 1px solid #e5d9d2;
   border-radius: 999px;
   background: #ffffff;
   font-size: 14px;
   line-height: 1.4;
+  font-weight: 600;
+  color: #46362f;
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.compactItem:hover {
+  border-color: rgba(255, 106, 61, 0.3);
+  box-shadow: 0 8px 18px rgba(255, 106, 61, 0.12);
+  transform: translateY(-1px);
 }
 
 .reviewGrid {
   display: grid;
-  gap: 24px;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }

@@ -1,9 +1,0 @@
-DROP TABLE IF EXISTS release_streams;
-DROP TABLE IF EXISTS stream_sources;
-DROP TABLE IF EXISTS visibilities;
-DROP TABLE IF EXISTS stream_types;
-DROP TABLE IF EXISTS release_variants;
-DROP TABLE IF EXISTS release_version_groups;
-DROP TABLE IF EXISTS release_versions;
-DROP TABLE IF EXISTS fansub_releases;
-DROP TABLE IF EXISTS release_sources;

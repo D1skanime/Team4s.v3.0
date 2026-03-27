@@ -8,6 +8,12 @@ import styles from './AdminStudio.module.css'
 
 export const dynamic = 'force-dynamic'
 
+interface AdminAnimePageProps {
+  searchParams?: Promise<{
+    created?: string
+  }>
+}
+
 function resolveStatusTone(status: string): string {
   switch (status) {
     case 'ongoing':
@@ -24,7 +30,9 @@ function resolveStatusTone(status: string): string {
   }
 }
 
-export default async function AdminAnimePage() {
+export default async function AdminAnimePage({ searchParams }: AdminAnimePageProps = {}) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined
+  const createdID = Number.parseInt(resolvedSearchParams?.created || '', 10)
   let animeItems: Awaited<ReturnType<typeof getAnimeList>>['data'] = []
   let listError: string | null = null
 
@@ -37,6 +45,9 @@ export default async function AdminAnimePage() {
         ? `Anime-Liste konnte nicht geladen werden. (${error.status}) ${error.message}`
         : 'Anime-Liste konnte nicht geladen werden.'
   }
+
+  const createdAnime =
+    Number.isFinite(createdID) && createdID > 0 ? animeItems.find((anime) => anime.id === createdID) ?? null : null
 
   return (
     <main className={styles.page}>
@@ -51,16 +62,54 @@ export default async function AdminAnimePage() {
           <p className={styles.eyebrow}>Schritt 1</p>
           <h1 className={styles.pageTitle}>Anime anlegen</h1>
           <p className={styles.pageSubtitle}>
-            Lege neue Anime an und pruefe direkt darunter, ob der Eintrag sauber in der Uebersicht erscheint und sich
-            wieder oeffnen laesst.
+            Starte neue Anime jetzt ueber denselben Create-Flow, egal ob du manuell beginnst oder Jellyfin zuerst als
+            Vorschauquelle pruefen willst. Nach dem Speichern muss der Eintrag direkt in der Uebersicht erscheinen.
           </p>
         </div>
         <div className={styles.headerActions}>
           <Link href="/admin/anime/create" className={`${styles.button} ${styles.buttonPrimary}`}>
-            Neu manuell
+            Anime erstellen
           </Link>
         </div>
       </header>
+
+      <section className={styles.card}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h2 className={styles.sectionTitle}>Manuell starten</h2>
+            <p className={styles.sectionMeta}>
+              Titel und Cover reichen fuer den ersten Anime-Eintrag. Im gemeinsamen Create-Flow kannst du aber auch
+              spaeter erst Jellyfin pruefen und dann bewusst beim Entwurf bleiben oder speichern.
+            </p>
+          </div>
+        </div>
+        <div className={styles.actionsRow}>
+          <Link href="/admin/anime/create" className={`${styles.button} ${styles.buttonPrimary}`}>
+            Manuell starten
+          </Link>
+        </div>
+      </section>
+
+      <section className={styles.card}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h2 className={styles.sectionTitle}>Jellyfin</h2>
+            <p className={styles.sectionMeta}>
+              Jellyfin ist jetzt Teil des gemeinsamen Create-Flows: erst Treffer suchen, dann Vorschau laden und erst
+              danach den Entwurf bewusst uebernehmen oder verwerfen.
+            </p>
+          </div>
+        </div>
+        <div className={styles.actionsRow}>
+          <Link href="/admin/anime/create" className={`${styles.button} ${styles.buttonSecondary}`}>
+            Mit Jellyfin starten
+          </Link>
+        </div>
+        <div className={styles.noticeBox}>
+          Der Ersteller-Flow fuehrt jetzt durch Suche, Kandidaten-Review, Vorschau und erst dann durch das eigentliche
+          Speichern.
+        </div>
+      </section>
 
       <section className={styles.card}>
         <div className={styles.sectionHeader}>
@@ -73,6 +122,13 @@ export default async function AdminAnimePage() {
           </div>
         </div>
 
+        {createdAnime ? (
+          <div className={styles.successBox}>
+            Anime #{String(createdAnime.id).padStart(3, '0')} {createdAnime.title} wurde erstellt und ist jetzt in der
+            Uebersicht verankert.
+          </div>
+        ) : null}
+
         {listError ? <div className={styles.errorBox}>{listError}</div> : null}
 
         {!listError && animeItems.length === 0 ? <p className={styles.emptyState}>Noch keine Anime vorhanden.</p> : null}
@@ -80,7 +136,7 @@ export default async function AdminAnimePage() {
         {!listError && animeItems.length > 0 ? (
           <div className={styles.stack}>
             {animeItems.map((anime) => (
-              <article key={anime.id} className={styles.animeCard}>
+              <article key={anime.id} id={`anime-${anime.id}`} className={styles.animeCard}>
                 <Image
                   className={styles.cover}
                   src={getCoverUrl(anime.cover_image)}

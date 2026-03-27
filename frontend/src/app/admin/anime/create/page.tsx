@@ -9,6 +9,7 @@ import { ContentType, AnimeStatus } from '@/types/anime'
 import { AdminAnimeCreateRequest, AnimeType, GenreToken } from '@/types/admin'
 
 import styles from '../../admin.module.css'
+import createStyles from './page.module.css'
 import { JellyfinCandidateReview } from '../components/JellyfinIntake/JellyfinCandidateReview'
 import { JellyfinDraftAssets } from '../components/ManualCreate/JellyfinDraftAssets'
 import { ManualCreateWorkspace } from '../components/ManualCreate/ManualCreateWorkspace'
@@ -32,8 +33,15 @@ import type {
   AdminJellyfinIntakeAssetSlots,
 } from '@/types/admin'
 
+type WorkflowStep = {
+  key: string
+  title: string
+  body: string
+  state: 'waiting' | 'active' | 'done'
+}
+
 export function buildManualCreateRedirectPath(id: number): string {
-  return '/admin/anime'
+  return `/admin/anime?created=${id}#anime-${id}`
 }
 
 export function appendJellyfinLinkageToCreatePayload(
@@ -113,6 +121,19 @@ export function buildManualCreateDraftSnapshot(values: ManualAnimeDraftValues): 
     ...values,
     genreTokens: [...values.genreTokens],
   }
+}
+
+function countIncomingDraftAssets(assetSlots: AdminJellyfinIntakeAssetSlots | null): number {
+  if (!assetSlots) return 0
+
+  let total = 0
+  if (assetSlots.cover.present) total += 1
+  if (assetSlots.logo.present) total += 1
+  if (assetSlots.banner.present) total += 1
+  if (assetSlots.background_video.present) total += 1
+  total += assetSlots.backgrounds.length
+
+  return total
 }
 
 export default function AdminAnimeCreatePage() {
@@ -237,6 +258,41 @@ export default function AdminAnimeCreatePage() {
     if (!createCoverImage.trim()) fields.push('Cover')
     return fields
   }, [createCoverImage, createTitle])
+
+  const selectedDraftAssetCount = useMemo(() => countIncomingDraftAssets(jellyfinAssetSlots), [jellyfinAssetSlots])
+  const jellyfinCandidateCount = jellyfinIntake.candidates.length
+  const hasMeaningfulTitle = sourceActionState.canSync
+  const hasSelectedJellyfinPreview = Boolean(jellyfinPreview)
+  const canCreateNow = manualDraftState.canSubmit
+  const workflowSteps = useMemo<WorkflowStep[]>(
+    () => [
+      {
+        key: 'search',
+        title: 'Jellyfin suchen',
+        body: 'Mit Titel oder Ordnerkontext nach passenden Serien suchen.',
+        state: hasMeaningfulTitle ? (jellyfinCandidateCount > 0 || hasSelectedJellyfinPreview ? 'done' : 'active') : 'waiting',
+      },
+      {
+        key: 'select',
+        title: 'Treffer auswaehlen',
+        body: 'Bewusst den richtigen Serienordner waehlen und Vorschau laden.',
+        state: hasSelectedJellyfinPreview ? 'done' : jellyfinCandidateCount > 0 ? 'active' : 'waiting',
+      },
+      {
+        key: 'review',
+        title: 'Entwurf pruefen',
+        body: 'Medien, Typ-Hinweise und manuelle Felder im Draft kontrollieren.',
+        state: canCreateNow ? 'done' : hasSelectedJellyfinPreview || manualDraftState.key !== 'empty' ? 'active' : 'waiting',
+      },
+      {
+        key: 'create',
+        title: 'Anime anlegen',
+        body: 'Den finalen Draft mit Cover und Metadaten ins Studio uebernehmen.',
+        state: canCreateNow ? 'active' : 'waiting',
+      },
+    ],
+    [canCreateNow, hasMeaningfulTitle, hasSelectedJellyfinPreview, jellyfinCandidateCount, manualDraftState.key],
+  )
 
   const editor = useAnimeEditor('create', {
     isDirty: manualDraftState.key !== 'empty',
@@ -445,6 +501,12 @@ export default function AdminAnimeCreatePage() {
     setSuccessMessage('AniSearch Sync kommt in Phase 4.')
   }
 
+  function handleJellyfinCandidateSelect(candidateID: string) {
+    clearMessages()
+    jellyfinIntake.reviewCandidate(candidateID)
+    setSuccessMessage('Treffer ausgewaehlt. Lade jetzt die Jellyfin-Vorschau, wenn dieser Ordner wirklich passt.')
+  }
+
   function handleRemoveJellyfinAsset(target: JellyfinDraftAssetTarget) {
     if (!jellyfinAssetSlots) return
 
@@ -472,161 +534,345 @@ export default function AdminAnimeCreatePage() {
         <Link href="/admin">Admin</Link> | <Link href="/admin/anime">Studio</Link> | <Link href="/auth">Auth</Link>
       </p>
 
-      <header className={styles.header}>
-        <h1 className={styles.title}>Anime erstellen</h1>
-        <p className={styles.subtitle}>Neuen Anime erst als manuellen Entwurf pruefen und dann ins Studio uebernehmen.</p>
-        <p className={styles.tokenPreview}>Token: {tokenPreview}</p>
-      </header>
+      <div className={createStyles.pageShell}>
+        <header className={createStyles.heroCard}>
+          <div className={createStyles.heroTop}>
+            <p className={createStyles.heroEyebrow}>Admin Intake Workflow</p>
+            <h1 className={createStyles.heroTitle}>Anime erstellen</h1>
+            <p className={createStyles.heroText}>
+              Der Ablauf ist jetzt klar getrennt: erst Jellyfin suchen, dann den richtigen Treffer bewusst auswaehlen,
+              danach den Entwurf pruefen und erst am Ende den Anime anlegen.
+            </p>
+          </div>
+          <div className={createStyles.heroBadgeRow}>
+            <span className={`${createStyles.heroBadge} ${hasAuthToken ? createStyles.heroBadgeStrong : ''}`}>
+              {hasAuthToken ? 'Auth bereit' : 'Auth fehlt'}
+            </span>
+            <span className={createStyles.heroBadge}>
+              {hasSelectedJellyfinPreview ? 'Jellyfin-Vorschau aktiv' : 'Manueller Entwurf'}
+            </span>
+            <span className={createStyles.heroBadge}>
+              {selectedDraftAssetCount > 0 ? `${selectedDraftAssetCount} Draft-Assets gewaehlt` : 'Noch keine Draft-Assets'}
+            </span>
+            <span className={createStyles.heroBadge}>Token: {tokenPreview}</span>
+          </div>
+          <div className={createStyles.workflowGrid}>
+            {workflowSteps.map((step, index) => (
+              <article
+                key={step.key}
+                className={`${createStyles.workflowCard} ${
+                  step.state === 'active'
+                    ? createStyles.workflowCardActive
+                    : step.state === 'done'
+                      ? createStyles.workflowCardDone
+                      : ''
+                }`}
+              >
+                <span className={createStyles.workflowIndex}>{index + 1}</span>
+                <h2 className={createStyles.workflowTitle}>{step.title}</h2>
+                <p className={createStyles.workflowBody}>{step.body}</p>
+                <span className={createStyles.workflowState}>
+                  {step.state === 'done' ? 'Erledigt' : step.state === 'active' ? 'Aktiver Schritt' : 'Bereit'}
+                </span>
+              </article>
+            ))}
+          </div>
+        </header>
 
-      {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
-      {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
+        {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
+        {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
 
-      {jellyfinIntake.candidates.length > 0 ? (
-        <section className={styles.panel}>
-          <h2>Jellyfin-Kandidaten pruefen</h2>
-          <p className={styles.hint}>
-            Waehl den passenden Ordner bewusst aus. Erst danach wird derselbe Entwurf vorbefuellt.
-          </p>
-          <JellyfinCandidateReview
-            query={createTitle.trim()}
-            candidates={jellyfinIntake.candidates}
-            selectedCandidateID={jellyfinIntake.reviewState.selectedCandidate?.jellyfin_series_id}
-            onReviewCandidate={(candidateID) => {
-              void handleJellyfinCandidateReview(candidateID)
-            }}
-          />
-        </section>
-      ) : null}
-
-      <ManualCreateWorkspace
-        editor={editor}
-        title={createTitle}
-        type={createType}
-        contentType={createContentType}
-        status={createStatus}
-        year={createYear}
-        maxEpisodes={createMaxEpisodes}
-        titleDE={createTitleDE}
-        titleEN={createTitleEN}
-        genreDraft={createGenreDraft}
-        genreTokens={createGenreTokens}
-        description={createDescription}
-        coverImage={createCoverImage}
-        inputRef={coverFileInputRef}
-        genreSuggestions={genreSuggestions}
-        genreSuggestionsTotal={genreSuggestionsTotal}
-        loadedTokenCount={genreTokens.length}
-        isLoadingGenres={isLoadingGenreTokens}
-        genreError={genreTokensError}
-        isSubmitting={isSubmittingCreate}
-        isUploadingCover={isUploadingCover}
-        canLoadMore={genreSuggestionLimit < 1000}
-        canResetLimit={genreSuggestionLimit > DEFAULT_GENRE_LIMIT}
-        missingFields={showValidationSummary ? missingFields : []}
-        titleActions={
-          <>
-            <button
-              className={styles.button}
-              type="button"
-              disabled={!sourceActionState.canSync || jellyfinIntake.isSearching || isSubmittingCreate}
-              onClick={() => {
-                void handleJellyfinSearch()
-              }}
-            >
-              {jellyfinIntake.isSearching ? 'Jellyfin laedt...' : 'Jellyfin Sync'}
-            </button>
-            <button
-              className={styles.buttonSecondary}
-              type="button"
-              disabled={!sourceActionState.canSync || isSubmittingCreate}
-              onClick={handleAniSearchPlaceholder}
-            >
-              AniSearch Sync
-            </button>
-          </>
-        }
-        titleHint={<p className={styles.hint}>{sourceActionState.helperText}</p>}
-        typeHint={
-          jellyfinPreview ? (
-            <div className={styles.details}>
-              <strong>{formatJellyfinTypeHintLabel(jellyfinPreview.type_hint)}</strong>
-              <p className={styles.hint}>
-                Vertrauen: {formatJellyfinTypeHintConfidence(jellyfinPreview.type_hint.confidence)}
+        <section className={createStyles.stepSection}>
+          <div className={createStyles.stepHeader}>
+            <div className={createStyles.stepTitleBlock}>
+              <p className={createStyles.stepEyebrow}>Schritt 1 bis 2</p>
+              <h2 className={createStyles.stepTitle}>Jellyfin suchen und bewusst auswaehlen</h2>
+              <p className={createStyles.stepText}>
+                Nutze den aktuellen Titel als Suchanfrage. Sobald Treffer da sind, waehle bewusst den richtigen Ordner aus.
+                Erst die ausgewaehlte Vorschau fuellt den Entwurf vor.
               </p>
-              <p className={styles.hint}>{formatJellyfinTypeHintReasoning(jellyfinPreview.type_hint)}</p>
             </div>
-          ) : null
-        }
-        draftAssets={
-          jellyfinPreview && jellyfinAssetSlots ? (
-            <>
-              <JellyfinDraftAssets
-                animeTitle={createTitle.trim() || jellyfinPreview.jellyfin_series_name}
-                assetSlots={jellyfinAssetSlots}
-                onRemoveAsset={handleRemoveJellyfinAsset}
-              />
-              <div className={styles.actions}>
-                <button className={`${styles.buttonSecondary} ${styles.buttonDanger}`} type="button" onClick={handleDiscardJellyfinPreview}>
-                  Auswahl verwerfen
+          </div>
+
+          <div className={createStyles.stepSummary}>
+            <article className={createStyles.summaryTile}>
+              <p className={createStyles.summaryLabel}>Aktueller Titel</p>
+              <p className={createStyles.summaryValue}>{createTitle.trim() || 'Noch kein Titel'}</p>
+              <p className={createStyles.summaryMeta}>
+                {hasMeaningfulTitle ? 'Titel ist suchbar.' : 'Mindestens 2 sinnvolle Zeichen fuer die Suche.'}
+              </p>
+            </article>
+            <article className={createStyles.summaryTile}>
+              <p className={createStyles.summaryLabel}>Jellyfin-Treffer</p>
+              <p className={createStyles.summaryValue}>{jellyfinCandidateCount}</p>
+              <p className={createStyles.summaryMeta}>
+                {jellyfinCandidateCount > 0 ? 'Treffer koennen direkt geprueft werden.' : 'Noch keine Suche oder kein Treffer.'}
+              </p>
+            </article>
+            <article className={createStyles.summaryTile}>
+              <p className={createStyles.summaryLabel}>Ausgewaehlte Serie</p>
+              <p className={createStyles.summaryValue}>{jellyfinPreview?.jellyfin_series_name || 'Noch offen'}</p>
+              <p className={createStyles.summaryMeta}>
+                {jellyfinPreview ? 'Diese Serie fuellt jetzt den Draft vor.' : 'Wird nach dem Review bewusst uebernommen.'}
+              </p>
+            </article>
+            <article className={createStyles.summaryTile}>
+              <p className={createStyles.summaryLabel}>Bereit zum Anlegen</p>
+              <p className={createStyles.summaryValue}>{canCreateNow ? 'Ja' : 'Noch nicht'}</p>
+              <p className={createStyles.summaryMeta}>
+                {canCreateNow ? 'Titel und Cover sind gesetzt.' : 'Fuer den finalen Create sind Titel und Cover Pflicht.'}
+              </p>
+            </article>
+          </div>
+
+          <div className={createStyles.searchLayout}>
+            <div className={createStyles.searchPanel}>
+              <div className={createStyles.stepTitleBlock}>
+                <p className={createStyles.stepEyebrow}>Aktion</p>
+                <h3 className={createStyles.stepTitle}>Titel eingeben, dann Jellyfin durchsuchen</h3>
+                <p className={createStyles.stepText}>{sourceActionState.helperText}</p>
+              </div>
+
+              <div className={createStyles.searchActions}>
+                <button
+                  className={createStyles.primaryAction}
+                  type="button"
+                  disabled={!sourceActionState.canSync || jellyfinIntake.isSearching || isSubmittingCreate}
+                  onClick={() => {
+                    void handleJellyfinSearch()
+                  }}
+                >
+                  {jellyfinIntake.isSearching ? 'Jellyfin sucht...' : 'Jellyfin suchen'}
+                </button>
+                <button
+                  className={createStyles.secondaryAction}
+                  type="button"
+                  disabled={!sourceActionState.canSync || isSubmittingCreate}
+                  onClick={handleAniSearchPlaceholder}
+                >
+                  AniSearch spaeter
                 </button>
               </div>
-            </>
-          ) : null
-        }
-        onSubmit={handleCreateSubmit}
-        onTitleChange={(value) => {
-          setCreateTitle(value)
-          if (showValidationSummary) setShowValidationSummary(false)
-        }}
-        onTypeChange={setCreateType}
-        onContentTypeChange={setCreateContentType}
-        onStatusChange={setCreateStatus}
-        onYearChange={setCreateYear}
-        onMaxEpisodesChange={setCreateMaxEpisodes}
-        onTitleDEChange={setCreateTitleDE}
-        onTitleENChange={setCreateTitleEN}
-        onDescriptionChange={setCreateDescription}
-        onCoverImageChange={(value) => {
-          setCreateCoverImage(value)
-          if (showValidationSummary) setShowValidationSummary(false)
-        }}
-        onDraftGenreChange={setCreateGenreDraft}
-        onAddDraftGenre={() => {
-          addCreateGenreTokens(createGenreDraft)
-          setCreateGenreDraft('')
-        }}
-        onRemoveGenreToken={(name) =>
-          setCreateGenreTokens((current) => current.filter((token) => token.toLowerCase() !== name.toLowerCase()))
-        }
-        onAddGenreSuggestion={addCreateGenreTokens}
-        onIncreaseGenreLimit={() => setGenreSuggestionLimit((current) => Math.min(1000, current + 40))}
-        onResetGenreLimit={() => setGenreSuggestionLimit(DEFAULT_GENRE_LIMIT)}
-        onFileChange={async (event) => {
-          const file = event.target.files?.[0]
-          if (!file) return
-          try {
-            await handleCoverUpload(file)
-          } finally {
-            event.target.value = ''
-          }
-        }}
-        onOpenFileDialog={() => coverFileInputRef.current?.click()}
-      />
+            </div>
 
-      {lastRequest ? (
-        <pre className={styles.resultBox}>
-          <strong>Request</strong>
-          {'\n'}
-          {lastRequest}
-        </pre>
-      ) : null}
-      {lastResponse ? (
-        <pre className={styles.resultBox}>
-          <strong>Response</strong>
-          {'\n'}
-          {lastResponse}
-        </pre>
-      ) : null}
+            <aside className={createStyles.searchStatusCard}>
+              <div className={createStyles.stepTitleBlock}>
+                <p className={createStyles.stepEyebrow}>Status</p>
+                <h3 className={createStyles.stepTitle}>Erstellmodus</h3>
+              </div>
+              <div className={createStyles.statusPillRow}>
+                <span className={`${createStyles.statusPill} ${hasMeaningfulTitle ? createStyles.statusPillSuccess : ''}`}>
+                  {hasMeaningfulTitle ? 'Titel bereit' : 'Titel fehlt'}
+                </span>
+                <span className={`${createStyles.statusPill} ${jellyfinCandidateCount > 0 ? createStyles.statusPillSuccess : ''}`}>
+                  {jellyfinCandidateCount > 0 ? `${jellyfinCandidateCount} Treffer` : 'Keine Treffer'}
+                </span>
+                <span
+                  className={`${createStyles.statusPill} ${
+                    hasSelectedJellyfinPreview ? createStyles.statusPillStrong : ''
+                  }`}
+                >
+                  {hasSelectedJellyfinPreview ? 'Jellyfin verknuepft' : 'Manuell'}
+                </span>
+              </div>
+
+              {jellyfinPreview ? (
+                <div className={createStyles.selectedSeries}>
+                  <p className={createStyles.selectedTitle}>{jellyfinPreview.jellyfin_series_name}</p>
+                  <p className={createStyles.selectedMeta}>{jellyfinPreview.jellyfin_series_path || 'Ohne Pfadangabe'}</p>
+                  <p className={createStyles.selectedMeta}>
+                    {selectedDraftAssetCount > 0
+                      ? `${selectedDraftAssetCount} Medien wurden in den Draft uebernommen.`
+                      : 'Es wurden noch keine Medien in den Draft uebernommen.'}
+                  </p>
+                </div>
+              ) : (
+                <p className={createStyles.stepText}>
+                  Ohne Auswahl bleibt der Ablauf komplett manuell. Mit Jellyfin-Auswahl wird derselbe Draft nur vorbefuellt,
+                  aber noch nichts gespeichert.
+                </p>
+              )}
+            </aside>
+          </div>
+
+          {jellyfinIntake.candidates.length > 0 ? (
+            <section className={createStyles.workspaceSection}>
+              <div className={createStyles.stepTitleBlock}>
+                <p className={createStyles.stepEyebrow}>Auswahl</p>
+                <h3 className={createStyles.stepTitle}>Passenden Jellyfin-Treffer pruefen</h3>
+                <p className={createStyles.stepText}>
+                  Entscheidend ist nicht nur der Name, sondern auch Pfad, Parent-Kontext und die Bildvorschauen.
+                </p>
+              </div>
+              <JellyfinCandidateReview
+                query={createTitle.trim()}
+                candidates={jellyfinIntake.candidates}
+                selectedCandidateID={jellyfinIntake.reviewState.selectedCandidate?.jellyfin_series_id}
+                isLoadingPreview={jellyfinIntake.isLoadingPreview}
+                onSelectCandidate={handleJellyfinCandidateSelect}
+                onLoadCandidatePreview={(candidateID) => {
+                  void handleJellyfinCandidateReview(candidateID)
+                }}
+              />
+            </section>
+          ) : null}
+        </section>
+
+        <section className={createStyles.stepSection}>
+          <div className={createStyles.stepHeader}>
+            <div className={createStyles.stepTitleBlock}>
+              <p className={createStyles.stepEyebrow}>Schritt 3 bis 4</p>
+              <h2 className={createStyles.stepTitle}>Entwurf pruefen und final anlegen</h2>
+              <p className={createStyles.stepText}>
+                Kontrolliere Typ, Cover, optionale Titel und Medienauswahl. Erst die Save-Bar legt den Anime wirklich an.
+              </p>
+            </div>
+          </div>
+
+          <ManualCreateWorkspace
+            editor={editor}
+            titleText="Anime erstellen"
+            subtitleText="Manuellen oder Jellyfin-vorbefuellten Draft pruefen, dann bewusst ins Studio uebernehmen."
+            title={createTitle}
+            type={createType}
+            contentType={createContentType}
+            status={createStatus}
+            year={createYear}
+            maxEpisodes={createMaxEpisodes}
+            titleDE={createTitleDE}
+            titleEN={createTitleEN}
+            genreDraft={createGenreDraft}
+            genreTokens={createGenreTokens}
+            description={createDescription}
+            coverImage={createCoverImage}
+            inputRef={coverFileInputRef}
+            genreSuggestions={genreSuggestions}
+            genreSuggestionsTotal={genreSuggestionsTotal}
+            loadedTokenCount={genreTokens.length}
+            isLoadingGenres={isLoadingGenreTokens}
+            genreError={genreTokensError}
+            isSubmitting={isSubmittingCreate}
+            isUploadingCover={isUploadingCover}
+            canLoadMore={genreSuggestionLimit < 1000}
+            canResetLimit={genreSuggestionLimit > DEFAULT_GENRE_LIMIT}
+            missingFields={showValidationSummary ? missingFields : []}
+            titleActions={
+              <>
+                <button
+                  className={createStyles.primaryAction}
+                  type="button"
+                  disabled={!sourceActionState.canSync || jellyfinIntake.isSearching || isSubmittingCreate}
+                  onClick={() => {
+                    void handleJellyfinSearch()
+                  }}
+                >
+                  {jellyfinIntake.isSearching ? 'Jellyfin sucht...' : 'Jellyfin suchen'}
+                </button>
+                <button
+                  className={createStyles.secondaryAction}
+                  type="button"
+                  disabled={!sourceActionState.canSync || isSubmittingCreate}
+                  onClick={handleAniSearchPlaceholder}
+                >
+                  AniSearch spaeter
+                </button>
+              </>
+            }
+            titleHint={<p className={styles.hint}>{sourceActionState.helperText}</p>}
+            typeHint={
+              jellyfinPreview ? (
+                <div className={styles.details}>
+                  <strong>{formatJellyfinTypeHintLabel(jellyfinPreview.type_hint)}</strong>
+                  <p className={styles.hint}>
+                    Vertrauen: {formatJellyfinTypeHintConfidence(jellyfinPreview.type_hint.confidence)}
+                  </p>
+                  <p className={styles.hint}>{formatJellyfinTypeHintReasoning(jellyfinPreview.type_hint)}</p>
+                </div>
+              ) : null
+            }
+            draftAssets={
+              jellyfinPreview && jellyfinAssetSlots ? (
+                <>
+                  <JellyfinDraftAssets
+                    animeTitle={createTitle.trim() || jellyfinPreview.jellyfin_series_name}
+                    assetSlots={jellyfinAssetSlots}
+                    onRemoveAsset={handleRemoveJellyfinAsset}
+                  />
+                  <div className={styles.actions}>
+                    <button
+                      className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
+                      type="button"
+                      onClick={handleDiscardJellyfinPreview}
+                    >
+                      Auswahl verwerfen
+                    </button>
+                  </div>
+                </>
+              ) : null
+            }
+            onSubmit={handleCreateSubmit}
+            onTitleChange={(value) => {
+              setCreateTitle(value)
+              if (showValidationSummary) setShowValidationSummary(false)
+            }}
+            onTypeChange={setCreateType}
+            onContentTypeChange={setCreateContentType}
+            onStatusChange={setCreateStatus}
+            onYearChange={setCreateYear}
+            onMaxEpisodesChange={setCreateMaxEpisodes}
+            onTitleDEChange={setCreateTitleDE}
+            onTitleENChange={setCreateTitleEN}
+            onDescriptionChange={setCreateDescription}
+            onCoverImageChange={(value) => {
+              setCreateCoverImage(value)
+              if (showValidationSummary) setShowValidationSummary(false)
+            }}
+            onDraftGenreChange={setCreateGenreDraft}
+            onAddDraftGenre={() => {
+              addCreateGenreTokens(createGenreDraft)
+              setCreateGenreDraft('')
+            }}
+            onRemoveGenreToken={(name) =>
+              setCreateGenreTokens((current) => current.filter((token) => token.toLowerCase() !== name.toLowerCase()))
+            }
+            onAddGenreSuggestion={addCreateGenreTokens}
+            onIncreaseGenreLimit={() => setGenreSuggestionLimit((current) => Math.min(1000, current + 40))}
+            onResetGenreLimit={() => setGenreSuggestionLimit(DEFAULT_GENRE_LIMIT)}
+            onFileChange={async (event) => {
+              const file = event.target.files?.[0]
+              if (!file) return
+              try {
+                await handleCoverUpload(file)
+              } finally {
+                event.target.value = ''
+              }
+            }}
+            onOpenFileDialog={() => coverFileInputRef.current?.click()}
+          />
+        </section>
+
+        {lastRequest || lastResponse ? (
+          <details className={createStyles.developerDetails}>
+            <summary className={createStyles.developerSummary}>Debug Request/Response</summary>
+            <div className={createStyles.developerBody}>
+              {lastRequest ? (
+                <pre className={createStyles.developerBlock}>
+                  <strong>Request</strong>
+                  {'\n'}
+                  {lastRequest}
+                </pre>
+              ) : null}
+              {lastResponse ? (
+                <pre className={createStyles.developerBlock}>
+                  <strong>Response</strong>
+                  {'\n'}
+                  {lastResponse}
+                </pre>
+              ) : null}
+            </div>
+          </details>
+        ) : null}
+      </div>
     </main>
   )
 }

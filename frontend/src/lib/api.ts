@@ -1,7 +1,14 @@
 import {
   AdminAnimeJellyfinPreviewResponse,
+  AdminAnimeJellyfinContextResponse,
+  AdminAnimeJellyfinMetadataApplyRequest,
+  AdminAnimeJellyfinMetadataApplyResponse,
+  AdminAnimeJellyfinMetadataPreviewRequest,
+  AdminAnimeJellyfinMetadataPreviewResponse,
+  AdminAnimeBackgroundAssetResponse,
   AdminAnimeJellyfinSyncRequest,
   AdminAnimeJellyfinSyncResponse,
+  AdminMediaUploadResponse,
   AdminJellyfinSeriesSearchResponse,
   AdminAnimeCreateRequest,
   AdminAnimePatchRequest,
@@ -89,6 +96,23 @@ const AUTH_BYPASS_DISPLAY_NAME = 'LocalAdmin'
 
 function getApiBaseUrl(): string {
   return typeof window === 'undefined' ? API_INTERNAL_BASE_URL : API_PUBLIC_BASE_URL
+}
+
+export function resolveApiUrl(value?: string): string {
+  const trimmed = (value || '').trim()
+  if (!trimmed) {
+    return ''
+  }
+
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed
+  }
+
+  if (trimmed.startsWith('/api/')) {
+    return `${API_PUBLIC_BASE_URL}${trimmed}`
+  }
+
+  return trimmed
 }
 
 export const AUTH_BEARER_TOKEN = (process.env.NEXT_PUBLIC_AUTH_TOKEN || '').trim()
@@ -1180,6 +1204,246 @@ export async function previewAdminAnimeFromJellyfin(
   }
 
   return response.json() as Promise<AdminAnimeJellyfinPreviewResponse>
+}
+
+export async function getAdminAnimeJellyfinContext(
+  animeID: number,
+  authToken?: string,
+): Promise<AdminAnimeJellyfinContextResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/context`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeJellyfinContextResponse>
+}
+
+export async function previewAdminAnimeMetadataFromJellyfin(
+  animeID: number,
+  payload: AdminAnimeJellyfinMetadataPreviewRequest = {},
+  authToken?: string,
+): Promise<AdminAnimeJellyfinMetadataPreviewResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/metadata/preview`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeJellyfinMetadataPreviewResponse>
+}
+
+export async function applyAdminAnimeMetadataFromJellyfin(
+  animeID: number,
+  payload: AdminAnimeJellyfinMetadataApplyRequest = {},
+  authToken?: string,
+): Promise<AdminAnimeJellyfinMetadataApplyResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/metadata/apply`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeJellyfinMetadataApplyResponse>
+}
+
+interface AdminAnimeMediaUploadOptions {
+  animeID: number
+  assetType: 'poster' | 'banner' | 'gallery'
+  file: File
+  authToken?: string
+  onProgress?: (percent: number) => void
+}
+
+export async function uploadAdminAnimeMedia(options: AdminAnimeMediaUploadOptions): Promise<AdminMediaUploadResponse> {
+  if (typeof window === 'undefined') {
+    throw new ApiError(500, 'upload ist nur im browser verfuegbar')
+  }
+
+  const API_BASE_URL = getApiBaseUrl()
+  const token = resolveAuthToken(options.authToken)
+  const endpoint = `${API_BASE_URL}/api/v1/admin/upload`
+
+  return new Promise<AdminMediaUploadResponse>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', endpoint, true)
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (!options.onProgress || !event.lengthComputable) return
+      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)))
+      options.onProgress(percent)
+    }
+
+    xhr.onerror = () => reject(new ApiError(0, 'netzwerkfehler beim upload'))
+    xhr.onload = () => {
+      let payload: unknown = null
+      try {
+        payload = JSON.parse(xhr.responseText)
+      } catch {
+        payload = null
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        options.onProgress?.(100)
+        resolve(payload as AdminMediaUploadResponse)
+        return
+      }
+
+      reject(new ApiError(xhr.status, parsePayloadError(payload, `API request failed: ${xhr.status}`)))
+    }
+
+    const body = new FormData()
+    body.set('entity_type', 'anime')
+    body.set('entity_id', String(options.animeID))
+    body.set('asset_type', options.assetType)
+    body.set('file', options.file)
+    options.onProgress?.(0)
+    xhr.send(body)
+  })
+}
+
+export async function assignAdminAnimeBannerAsset(
+  animeID: number,
+  mediaID: string,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/banner`, {
+    method: 'PUT',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify({ media_id: mediaID }),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+export async function assignAdminAnimeCoverAsset(
+  animeID: number,
+  mediaID: string,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/cover`, {
+    method: 'PUT',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify({ media_id: mediaID }),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+export async function deleteAdminAnimeCoverAsset(animeID: number, authToken?: string): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/cover`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+export async function deleteAdminAnimeBannerAsset(animeID: number, authToken?: string): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/banner`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+export async function addAdminAnimeBackgroundAsset(
+  animeID: number,
+  mediaID: string,
+  authToken?: string,
+): Promise<AdminAnimeBackgroundAssetResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/backgrounds`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify({ media_id: mediaID }),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeBackgroundAssetResponse>
+}
+
+export async function deleteAdminAnimeBackgroundAsset(
+  animeID: number,
+  backgroundID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/backgrounds/${backgroundID}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
 }
 
 export async function createAdminEpisode(

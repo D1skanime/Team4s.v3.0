@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-03-25T14:03:49.164Z"
+stopped_at: Phase 03 verified complete; Phase 04 ready to plan
+last_updated: "2026-03-26T10:20:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State
@@ -19,18 +19,18 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-23)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 03 — jellyfin-assisted-intake
+**Current focus:** Phase 04 - provenance-assets-safe-resync
 
 ## Current Position
 
-Phase: 03 (jellyfin-assisted-intake) — EXECUTING
-Plan: 3 of 4
+Phase: 04 (provenance-assets-safe-resync) - READY TO PLAN
+Plan: 0 of TBD
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: -
 - Total execution time: 0.0 hours
 
@@ -40,10 +40,11 @@ Plan: 3 of 4
 |-------|-------|-------|----------|
 | 01 | 5 | - | - |
 | 02 | 3 | - | - |
+| 03 | 4 | - | - |
 
 **Recent Trend:**
 
-- Last 5 plans: 01-04, 01-05, 02-01, 02-02, 02-03
+- Last 5 plans: 02-02, 02-03, 03-01, 03-02, 03-03, 03-04
 - Trend: Stable
 
 | Phase 01 P02 | 32m | 2 tasks | 11 files |
@@ -55,6 +56,7 @@ Plan: 3 of 4
 | Phase 03 P01 | 16 min | 2 tasks | 9 files |
 | Phase 03 P02 | 8 min | 2 tasks | 10 files |
 | Phase 03 P03 | 23 min | 2 tasks | 9 files |
+| Phase 03 P04 | 18 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -82,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 02]: The create contract remains manual-only and continues accepting the existing upload-cover file_name as cover_image.
 - [Phase 02]: Manual create now stays draft-only until explicit save and redirects into /admin/anime/{id}/edit after success.
 - [Phase 02]: The shared save bar now respects explicit create readiness instead of dirty-state alone.
+- [Phase 03]: Jellyfin-assisted intake is verified as preview-only until explicit save, with source linkage persisted only on the final create action.
+- [Phase 03]: Local runtime verification passed after rebuilding backend and frontend and confirming the Jellyfin search and intake-preview seams live in Docker.
 
 ### Pending Todos
 
@@ -90,11 +94,10 @@ None yet.
 ### Blockers/Concerns
 
 - Non-cover asset upload parity is still deferred, so Phase 4 should stay provenance-first rather than promise full manual upload parity.
-- Jellyfin item/image metadata behavior still needs implementation-level validation during Phase 3 planning.
 - Phase 02 still needs browser smoke verification plus one backend re-run after the external anime_metadata_backfill compile blocker is fixed.
 
 ## Session Continuity
 
-Last session: 2026-03-25T14:03:40.896Z
-Stopped at: Completed 03-04-PLAN.md
+Last session: 2026-03-26T10:20:00+01:00
+Stopped at: Phase 03 verified complete; Phase 04 ready to plan
 Resume file: .planning/ROADMAP.md

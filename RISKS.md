@@ -2,29 +2,29 @@
 
 ## Top 3 Risks
 
-### 1. Generic media upload path is not aligned with the live schema
-- **Impact:** High
-- **Likelihood:** High
-- **Why it matters:** richer uploads for banner/logo/background will trip over the same backend mismatch that broke edit poster upload through `/api/v1/admin/upload`
-- **Mitigation:** either patch repository/handler to current `media_assets` schema or explicitly keep using the local cover route until the broader media lane is redesigned
-
-### 2. Edit save behavior is still semantically muddy
+### 1. Planning state is now behind the verified implementation
 - **Impact:** High
 - **Likelihood:** Medium
-- **Why it matters:** create flow is now understandable, but edit still mixes immediate mutations and save-bar-driven changes, which can confuse both users and future implementation work
-- **Mitigation:** define the save contract first, then implement against that spec instead of continuing ad hoc UI tweaks
+- **Why it matters:** cover was the main architectural gap in `04-03`, and that gap is now closed in code/runtime/UI. If planning files stay stale, tomorrow's work will start from the wrong problem.
+- **Mitigation:** update the `04-03` plan/status notes before opening new Phase 4 work.
 
-### 3. Planning/state drift between old milestone docs and actual active work
+### 2. Dirty worktree plus unrelated local changes can still blur attribution
 - **Impact:** Medium
 - **Likelihood:** High
-- **Why it matters:** older docs still describe the media-upload milestone as the current center of gravity, while real work has moved into anime intake and edit flow hardening
-- **Mitigation:** keep repo-local status/context files aligned with the actual active slice and use them tomorrow instead of older milestone summaries
+- **Why it matters:** many backend, frontend, docs, planning, and tooling changes are in flight beyond the verified cover-slot slice.
+- **Mitigation:** keep targeted verification narrow and document clearly which parts were actually proven today.
+
+### 3. Temporary browser smoke may be mistaken for durable automation
+- **Impact:** Medium
+- **Likelihood:** Medium
+- **Why it matters:** the cover UI path is verified through `frontend/tmp-playwright-phase4/cover-ui-smoke.mjs`, but that is an ad-hoc script, not yet part of a maintained test lane.
+- **Mitigation:** make an explicit keep/promote/delete decision instead of letting the temp script drift.
 
 ## Current Blockers
-- No hard blocker for resuming tomorrow
-- Main design blocker: final edit-save semantics are not yet fully decided
+- No hard product blocker.
+- Remaining blocker is administrative/phase-management: formal closeout of the verified Phase 4 slice.
 
 ## If Nothing Changes, What Fails Next Week?
-- richer media uploads beyond poster will keep failing on the backend schema mismatch
-- edit behavior will become harder to reason about as more fields and sync sources are added
-- roadmap discussions may become noisy because old status docs point at the wrong center of work
+- The team may keep discussing cover as if it were still open, even though code/runtime/browser evidence says otherwise.
+- Future regressions may be harder to classify if the temporary smoke script is assumed to be permanent coverage without being maintained.
+- Resume quality will drift again if repo-local handoff files stop matching the actual Team4s worktree.

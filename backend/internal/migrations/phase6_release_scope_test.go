@@ -6,21 +6,27 @@ import (
 )
 
 func TestPhase6ReleaseDecompositionMigration_CreatesAdditiveTablesOnly(t *testing.T) {
-	content := strings.ToLower(readMigrationFile(t, "0034_add_release_decomposition_tables.up.sql"))
+	content := strings.ToLower(readMigrationFile(t, "0037_add_release_decomposition_tables.up.sql"))
 
 	required := []string{
-		"create table if not exists release_sources",
-		"create table if not exists fansub_releases",
-		"create table if not exists release_versions",
-		"create table if not exists release_variants",
-		"create table if not exists release_streams",
-		"create table if not exists stream_sources",
-		"create table if not exists stream_types",
+		"alter table release_sources",
+		"add column if not exists type varchar(40)",
+		"create index if not exists idx_release_sources_type",
+		"alter table fansub_releases",
+		"add column if not exists updated_at timestamptz not null default now()",
+		"alter table release_versions",
+		"add column if not exists legacy_episode_version_id bigint",
+		"add column if not exists release_date timestamptz",
+		"add column if not exists title varchar(255)",
+		"alter table release_variants",
+		"add column if not exists subtitle_type varchar(20)",
 		"create table if not exists visibilities",
+		"create table if not exists stream_sources",
+		"create table if not exists release_streams",
 	}
 	for _, fragment := range required {
 		if !strings.Contains(content, fragment) {
-			t.Fatalf("expected migration 0034 to contain %q", fragment)
+			t.Fatalf("expected migration 0037 to contain %q", fragment)
 		}
 	}
 
@@ -35,7 +41,7 @@ func TestPhase6ReleaseDecompositionMigration_CreatesAdditiveTablesOnly(t *testin
 	}
 	for _, fragment := range forbidden {
 		if strings.Contains(content, fragment) {
-			t.Fatalf("expected migration 0034 to exclude %q", fragment)
-		}
+			t.Fatalf("expected migration 0037 to exclude %q", fragment)
 	}
+}
 }

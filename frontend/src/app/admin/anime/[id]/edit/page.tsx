@@ -9,6 +9,7 @@ import { getAnimeByID, getRuntimeAuthToken } from '@/lib/api'
 import { AnimeDetail } from '@/types/anime'
 
 import { AnimeEditWorkspace } from '../../components/AnimeEditPage/AnimeEditWorkspace'
+import { AnimeJellyfinMetadataSection } from '../../components/AnimeEditPage/AnimeJellyfinMetadataSection'
 import { JellyfinSyncPanel } from '../../components/JellyfinSync/JellyfinSyncPanel'
 import { useJellyfinSync } from '../../hooks/useJellyfinSync'
 import styles from '../../AdminStudio.module.css'
@@ -30,6 +31,14 @@ export default function AdminAnimeEditPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [lastRequest, setLastRequest] = useState<string | null>(null)
   const [lastResponse, setLastResponse] = useState<string | null>(null)
+  const [jellyfinContext, setJellyfinContext] = useState<{
+    source_kind?: 'manual' | 'jellyfin'
+    source?: string
+    folder_name?: string
+    jellyfin_series_id?: string
+    jellyfin_series_name?: string
+    jellyfin_series_path?: string
+  } | null>(null)
   const jellyfin = useJellyfinSync(
     authToken,
     (message) => {
@@ -120,8 +129,56 @@ export default function AdminAnimeEditPage() {
 
       {anime ? (
         <>
+          <AnimeJellyfinMetadataSection
+            animeID={anime.id}
+            authToken={authToken}
+            onError={(message) => {
+              setSuccessMessage(null)
+              setErrorMessage(message)
+            }}
+            onSuccess={(message) => {
+              setErrorMessage(null)
+              setSuccessMessage(message)
+            }}
+            onAfterApply={async () => {
+              const refreshed = await getAnimeByID(anime.id, { include_disabled: true })
+              setAnime(refreshed.data)
+            }}
+            onContextLoaded={(context) => {
+              setJellyfinContext(
+                context
+                  ? {
+                      source_kind: context.source_kind,
+                      source: context.source,
+                      folder_name: context.folder_name,
+                      jellyfin_series_id: context.jellyfin_series_id,
+                      jellyfin_series_name: context.jellyfin_series_name,
+                      jellyfin_series_path: context.jellyfin_series_path,
+                    }
+                  : null,
+              )
+            }}
+          />
+
+          {jellyfinContext ? (
+            <section className={styles.noticeBox}>
+              <strong>Jellyfin-Kontext</strong>
+              <p className={styles.pageSubtitle}>
+                {jellyfinContext.source_kind === 'jellyfin' ? 'Verknuepft mit Jellyfin' : 'Manuelle Quelle'}
+                {jellyfinContext.jellyfin_series_name ? ` | Serie ${jellyfinContext.jellyfin_series_name}` : ''}
+                {jellyfinContext.folder_name ? ` | Ordner ${jellyfinContext.folder_name}` : ''}
+              </p>
+            </section>
+          ) : null}
+
           <AnimeEditWorkspace
-            anime={anime}
+            anime={{
+              ...anime,
+              source: jellyfinContext?.source,
+              folder_name: jellyfinContext?.folder_name,
+              jellyfin_series_id: jellyfinContext?.jellyfin_series_id,
+              jellyfin_series_path: jellyfinContext?.jellyfin_series_path,
+            }}
             authToken={authToken}
             onSaved={(nextAnime, message) => {
               setAnime(nextAnime)

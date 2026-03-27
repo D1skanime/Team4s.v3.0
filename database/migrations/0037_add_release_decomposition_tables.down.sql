@@ -1,0 +1,2 @@
+-- This migration only normalizes the already-present release schema for
+-- forward compatibility. No destructive rollback is performed here.

@@ -61,6 +61,10 @@ export interface AnimeDetail {
   genres?: string[]
   description?: string
   cover_image?: string
+  source?: string
+  folder_name?: string
+  jellyfin_series_id?: string
+  jellyfin_series_path?: string
   view_count: number
   episodes: EpisodeListItem[]
 }
