@@ -13,6 +13,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
+
+	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/transform"
 )
 
 // Jellyfin API response types
@@ -319,6 +323,7 @@ func (h *AdminContentHandler) fetchJellyfinJSON(
 		)
 		return resp.StatusCode, fmt.Errorf("read jellyfin response: %w", err)
 	}
+	body = normalizeJellyfinResponseEncoding(body, resp.Header.Get("Content-Type"))
 	if err := json.Unmarshal(body, target); err != nil {
 		log.Printf(
 			"admin_content jellyfin_http: decode response failed (path=%s, status=%d, elapsed_ms=%d): %v",
@@ -331,6 +336,36 @@ func (h *AdminContentHandler) fetchJellyfinJSON(
 	}
 
 	return resp.StatusCode, nil
+}
+
+func normalizeJellyfinResponseEncoding(body []byte, contentType string) []byte {
+	if len(body) == 0 || utf8.Valid(body) {
+		return body
+	}
+
+	normalizedContentType := strings.ToLower(strings.TrimSpace(contentType))
+	switch {
+	case strings.Contains(normalizedContentType, "charset=windows-1252"),
+		strings.Contains(normalizedContentType, "charset=cp1252"):
+		if decoded, _, err := transform.Bytes(charmap.Windows1252.NewDecoder(), body); err == nil {
+			return decoded
+		}
+	case strings.Contains(normalizedContentType, "charset=iso-8859-1"),
+		strings.Contains(normalizedContentType, "charset=latin1"):
+		if decoded, _, err := transform.Bytes(charmap.ISO8859_1.NewDecoder(), body); err == nil {
+			return decoded
+		}
+	}
+
+	if decoded, _, err := transform.Bytes(charmap.Windows1252.NewDecoder(), body); err == nil && utf8.Valid(decoded) {
+		return decoded
+	}
+
+	if decoded, _, err := transform.Bytes(charmap.ISO8859_1.NewDecoder(), body); err == nil && utf8.Valid(decoded) {
+		return decoded
+	}
+
+	return body
 }
 
 func classifyJellyfinTransportError(err error) string {

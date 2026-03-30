@@ -100,6 +100,16 @@ export interface AdminEpisodeDeleteResponse {
   data: AdminEpisodeDeleteResult
 }
 
+export interface AdminAnimeDeleteResult {
+  anime_id: number
+  title: string
+  orphaned_local_cover_image?: string
+}
+
+export interface AdminAnimeDeleteResponse {
+  data: AdminAnimeDeleteResult
+}
+
 export interface GenreToken {
   name: string
   count: number

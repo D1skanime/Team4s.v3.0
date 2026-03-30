@@ -16,6 +16,7 @@ type AnimeListItem struct {
 	ID          int64   `json:"id"`
 	Title       string  `json:"title"`
 	Type        string  `json:"type"`
+	ContentType string  `json:"content_type,omitempty"`
 	Status      string  `json:"status"`
 	Year        *int16  `json:"year,omitempty"`
 	CoverImage  *string `json:"cover_image,omitempty"`

@@ -760,7 +760,7 @@ func TestValidateAdminAnimeCreateRequest_InvalidMaxEpisodes(t *testing.T) {
 }
 
 func TestValidateAdminAnimeCreateRequest_AllAnimeTypes(t *testing.T) {
-	validTypes := []string{"tv", "film", "ova", "ona", "special", "bonus"}
+	validTypes := []string{"tv", "film", "ova", "ona", "special", "bonus", "web"}
 	coverImage := "cover_123.webp"
 	for _, animeType := range validTypes {
 		input, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{

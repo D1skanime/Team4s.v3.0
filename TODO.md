@@ -1,20 +1,20 @@
 # TODO
 
 ## Current Active Work
-- [x] Verify Phase 3 and mark planning files accordingly
-- [x] Refine Phase 4 asset ownership scope
-- [x] Repair conflicting migration numbering and restore local `migrate up`
-- [x] Implement backend groundwork for anime asset-slot persistence
-- [x] Finish edit-route cover/banner/background asset controls
-- [x] Validate persisted asset precedence and operator actions through the UI
-- [ ] Package `day-closeout` cleanly for Codex skill + worker usage
+- [x] Stand up a fresh `team4s_v2` schema foundation
+- [x] Switch local backend runtime to `team4s_v2`
+- [x] Move anime create to v2
+- [x] Move public anime list/detail/backdrops to v2
+- [x] Move anime delete to v2 with audit retention and media cleanup
+- [x] Simplify the admin anime overview/create UX
+- [x] Fix public Jellyfin cover rendering on the frontend
 
 ## Next Up
-- [ ] Mark `04-03` formally aligned with the now-verified cover/banner/background implementation
-- [ ] Decide whether `frontend/tmp-playwright-phase4/cover-ui-smoke.mjs` should become a durable regression artifact
-- [ ] Reconcile the latest frontend type/API updates with repo-wide lint/type noise
+- [ ] Move `UpdateAnime` / admin edit persistence to v2
+- [ ] Audit remaining anime routes for legacy flat-column assumptions
+- [ ] Decide where compatibility mirrors can be removed after edit/update is on v2
 
 ## Parking Lot
-- [ ] Anime logo persistence
-- [ ] Karaoke/video-specific local asset management
-- [ ] Broader worker-agent conventions beyond `day-closeout`
+- [ ] Broader v2 rollout for episodes/releases/fansub admin surfaces
+- [ ] Old anime DB migration/import strategy if the legacy data is ever needed again
+- [ ] Compatibility-layer cleanup once the anime vertical is fully on v2

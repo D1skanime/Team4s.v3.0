@@ -23,6 +23,14 @@ func NewAnimeRepository(db *pgxpool.Pool) *AnimeRepository {
 }
 
 func (r *AnimeRepository) List(ctx context.Context, filter models.AnimeFilter) ([]models.AnimeListItem, int64, error) {
+	useV2Schema, err := r.hasV2AnimeSchema(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	if useV2Schema {
+		return r.listV2(ctx, filter)
+	}
+
 	whereSQL, args := buildAnimeListWhere(filter)
 
 	countQuery := "SELECT COUNT(*) FROM anime" + whereSQL
@@ -76,6 +84,14 @@ func (r *AnimeRepository) List(ctx context.Context, filter models.AnimeFilter) (
 }
 
 func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled bool) (*models.AnimeDetail, error) {
+	useV2Schema, err := r.hasV2AnimeSchema(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if useV2Schema {
+		return r.getByIDV2(ctx, id)
+	}
+
 	query := `
 		SELECT id, title, title_de, title_en, type, content_type, status, year,
 		       max_episodes, genre, description, cover_image, view_count
@@ -87,7 +103,7 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 	}
 
 	var anime models.AnimeDetail
-	err := r.db.QueryRow(ctx, query, id).Scan(
+	err = r.db.QueryRow(ctx, query, id).Scan(
 		&anime.ID,
 		&anime.Title,
 		&anime.TitleDE,
@@ -184,6 +200,14 @@ func (r *AnimeRepository) GetMediaLookupByID(
 	id int64,
 	includeDisabled bool,
 ) (*models.AnimeMediaLookup, error) {
+	useV2Schema, err := r.hasV2AnimeSchema(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if useV2Schema {
+		return r.getMediaLookupByIDV2(ctx, id)
+	}
+
 	query := `
 		SELECT title, title_de, title_en, source, folder_name
 		FROM anime
@@ -194,7 +218,7 @@ func (r *AnimeRepository) GetMediaLookupByID(
 	}
 
 	var lookup models.AnimeMediaLookup
-	err := r.db.QueryRow(ctx, query, id).Scan(
+	err = r.db.QueryRow(ctx, query, id).Scan(
 		&lookup.Title,
 		&lookup.TitleDE,
 		&lookup.TitleEN,

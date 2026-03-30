@@ -77,7 +77,7 @@ func (r *AdminContentRepository) UpsertAnimeTitle(
 		INSERT INTO anime_titles (anime_id, language_id, title_type_id, title)
 		VALUES ($1, $2, $3, $4)
 		ON CONFLICT (anime_id, language_id, title_type_id)
-		DO UPDATE SET title = EXCLUDED.title, updated_at = NOW()
+		DO UPDATE SET title = EXCLUDED.title
 	`, animeID, languageID, titleTypeID, title)
 	if err != nil {
 		return false, fmt.Errorf("upsert anime title anime=%d language=%d type=%d: %w", animeID, languageID, titleTypeID, err)

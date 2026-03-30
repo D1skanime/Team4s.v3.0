@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 import { buildAnimeDetailHref, getGridScrollStorageKey } from '@/lib/animeGridContext'
-import { getCoverUrl } from '@/lib/utils'
+import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
 import { AnimeListItem } from '@/types/anime'
 
 import { StatusBadge } from './StatusBadge'
@@ -17,6 +17,7 @@ interface AnimeCardProps {
 
 export function AnimeCard({ anime, gridQuery }: AnimeCardProps) {
   const detailHref = buildAnimeDetailHref(anime.id, gridQuery)
+  const coverUrl = getCoverUrl(anime.cover_image)
 
   function handleOpenDetail() {
     if (typeof window === 'undefined') return
@@ -28,11 +29,12 @@ export function AnimeCard({ anime, gridQuery }: AnimeCardProps) {
       <Link href={detailHref} className={styles.link} onClick={handleOpenDetail}>
         <div className={styles.coverWrap}>
           <Image
-            src={getCoverUrl(anime.cover_image)}
+            src={coverUrl}
             alt={anime.title}
             width={300}
             height={400}
             className={styles.cover}
+            unoptimized={shouldUseUnoptimizedImage(coverUrl)}
           />
         </div>
         <div className={styles.content}>

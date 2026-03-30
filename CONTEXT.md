@@ -2,43 +2,41 @@
 
 ## Project
 - **Name:** Team4s.v3.0
-- **Current workflow:** Phase 4 implementation and closeout after verified Phase 3 completion
-- **Current slice:** provenance-aware anime asset persistence and safe resync behavior on the admin edit route
+- **Current workflow:** anime v2 schema cutover on a fresh DB/runtime path
+- **Current slice:** normalized anime create/read/delete plus public Jellyfin asset rendering on `team4s_v2`
 
 ## Current State
 
 ### What Finished Recently
-- The `04-03` edit-route asset slice now covers persisted `cover`, `banner`, and `backgrounds`.
-- Migration `0040_add_anime_cover_asset_slots` extends the same slot/ownership model to `cover`.
-- Existing `cover_image` rows were backfilled into the new cover slot model as `manual`.
-- `cover_image` is still mirrored so older read paths stay compatible.
-- Docker runtime was brought up and migration status is clean at `Applied: 40, Pending: 0`.
-- A real browser smoke confirmed:
-  - existing manual cover visible
-  - remove cover clears persisted slot
-  - upload cover restores persisted slot
-  - preview still shows manual protection
+- Admin anime create page was reduced from multiple duplicate workflow cards to a simpler functional form.
+- Admin anime overview was reduced to one create CTA plus the actual anime list and got a working delete action.
+- Delete audit retention was fixed so anime delete audits survive the anime row removal.
+- A new fresh DB bootstrap exists under `database/migrations_v2`.
+- Backend runtime now points to `team4s_v2` instead of the older local anime DB.
+- Live anime create works on v2, including normalized titles/genres plus Jellyfin-backed cover media linkage.
+- Public anime list/detail/backdrops now read from v2.
+- Public Jellyfin covers render again after frontend media-proxy image handling was corrected.
 
 ### What Is Working
-- Admin Jellyfin context/preview/apply routes are live in Docker.
-- Persisted anime assets override Jellyfin fallback at runtime.
-- Manual ownership survives provider apply for `cover`, `banner`, and `backgrounds`.
-- Edit route UI exposes provenance and explicit operator actions for the persisted slots.
-- Cover UI flow now has end-to-end evidence across:
-  - schema
-  - repository/handler tests
-  - runtime API
-  - DB state
-  - real browser interaction
+- `team4sv30-backend` runs against `team4s_v2`.
+- `POST /api/v1/admin/anime` works against v2.
+- `GET /api/v1/anime`
+- `GET /api/v1/anime/:id`
+- `GET /api/v1/anime/:id/backdrops`
+- `DELETE /api/v1/admin/anime/:id`
+- v2 delete removes normalized anime links and unreferenced cover media assets.
+- Public detail pages can display Jellyfin-backed poster/logo/banner again.
+- Jellyfin client decoding is tolerant of non-UTF-8 metadata payloads.
 
 ### What Is In Progress
-- Formal closeout of `04-03` in planning/handoff files.
-- Decision on whether the temporary Playwright cover smoke should be promoted into a maintained regression path.
-- Repo-local closeout/resume tooling alignment with the actual Team4s slice.
+- Pulling the remaining anime admin write paths onto v2, especially update/edit.
+- Keeping the public/admin surface coherent while legacy compatibility code still exists.
+- Replacing legacy flat anime-column assumptions route by route instead of by unsafe big-bang rewrite.
 
 ### What Is Still Pending
-- Mark the remaining Phase 4 planning state accurately now that cover is no longer the open architectural gap.
-- Decide whether to keep or discard the temporary browser smoke script after phase closeout.
+- `UpdateAnime` / edit save path on v2.
+- More admin/public routes that still expect legacy anime columns.
+- Later domain slices like episodes/releases/media management beyond the current anime vertical.
 
 ## Active Planning Context
 - Current focus: `Phase 04 - Provenance, Assets, And Safe Resync`

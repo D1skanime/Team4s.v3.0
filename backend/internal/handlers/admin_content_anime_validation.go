@@ -13,6 +13,7 @@ var allowedAnimeTypes = map[string]struct{}{
 	"ona":     {},
 	"special": {},
 	"bonus":   {},
+	"web":     {},
 }
 
 func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminAnimeCreateInput, string) {

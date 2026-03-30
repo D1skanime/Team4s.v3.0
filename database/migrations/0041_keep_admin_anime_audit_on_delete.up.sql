@@ -1,0 +1,2 @@
+ALTER TABLE admin_anime_mutation_audit
+DROP CONSTRAINT IF EXISTS admin_anime_mutation_audit_anime_id_fkey;

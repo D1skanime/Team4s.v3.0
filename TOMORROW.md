@@ -1,16 +1,16 @@
-# TOMORROW - 2026-03-28
+# TOMORROW - 2026-03-31
 
 ## Top 3 Priorities
-1. Close the formal Phase 4 gap by updating the `04-03` planning state to match the verified implementation.
-2. Decide whether `frontend/tmp-playwright-phase4/cover-ui-smoke.mjs` should become a durable regression test or remain temporary evidence.
-3. Keep repo-local closeout/resume files aligned with the Team4s repo state instead of the broader root planning noise.
+1. Move admin anime update/edit persistence onto the v2 schema.
+2. Audit remaining anime routes for legacy flat-column writes/reads and list which need migration next.
+3. Decide whether the old compatibility mirrors can be reduced once edit/update is working on v2.
 
 ## First 15-Minute Task
-- Open [04-03-PLAN.md](C:\Users\D1sk\Documents\Entwicklung\Opencloud\Team4s.v3.0\.planning\phases\04-provenance-assets-and-safe-resync\04-03-PLAN.md) and mark the cover-related requirements as `verify-done` now that runtime and browser smoke both passed.
+- Open `backend/internal/repository/admin_content_anime_metadata.go` and list every `anime` column write in `UpdateAnime(...)` that does not exist in v2: `title`, `title_de`, `title_en`, `type`, `status`, `cover_image`, `updated_at`.
 
 ## Dependencies To Unblock Early
-- Keep Docker running if you want to inspect the current verified cover flow without rebuild.
-- Preserve the temporary Playwright artifacts in `frontend/tmp-playwright-phase4` until the decision about durable regression coverage is made.
+- Keep Docker running; backend/frontend are already on the live local v2 stack.
+- Verify which existing edit-route UI fields truly need persisted v2 columns versus compatibility-only response fields before rewriting the update contract.
 
 ## Nice To Have
-- If the phase is formally closed, prune or relocate temporary smoke artifacts so only intentional test evidence remains.
+- Add focused tests for the future v2 update path once the first migration slice is in place.

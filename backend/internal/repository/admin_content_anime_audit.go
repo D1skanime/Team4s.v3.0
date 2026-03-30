@@ -14,6 +14,7 @@ const (
 	adminAnimeMutationKindCreate      = "anime.create"
 	adminAnimeMutationKindUpdate      = "anime.update"
 	adminAnimeMutationKindCoverRemove = "anime.cover.remove"
+	adminAnimeMutationKindDelete      = "anime.delete"
 )
 
 type adminAnimeAuditEntry struct {
@@ -81,6 +82,26 @@ func buildAdminAnimeAuditEntryForPatch(
 		AnimeID:        animeID,
 		ActorUserID:    actorUserID,
 		MutationKind:   resolveAdminAnimePatchMutationKind(input),
+		RequestPayload: payload,
+	}, nil
+}
+
+func buildAdminAnimeAuditEntryForDelete(
+	actorUserID int64,
+	result models.AdminAnimeDeleteResult,
+) (adminAnimeAuditEntry, error) {
+	payload, err := json.Marshal(map[string]any{
+		"anime_id": result.AnimeID,
+		"title":    result.Title,
+	})
+	if err != nil {
+		return adminAnimeAuditEntry{}, fmt.Errorf("marshal anime delete audit payload: %w", err)
+	}
+
+	return adminAnimeAuditEntry{
+		AnimeID:        result.AnimeID,
+		ActorUserID:    actorUserID,
+		MutationKind:   adminAnimeMutationKindDelete,
 		RequestPayload: payload,
 	}, nil
 }

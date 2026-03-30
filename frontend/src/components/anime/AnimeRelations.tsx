@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { getCoverUrl } from '@/lib/utils'
+import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
 import styles from './AnimeRelations.module.css'
 
 interface AnimeRelation {
@@ -156,6 +156,7 @@ export function AnimeRelations({ relations, variant = 'default' }: AnimeRelation
                       fill
                       sizes="160px"
                       className={styles.cardImage}
+                      unoptimized={shouldUseUnoptimizedImage(getCoverUrl(rel.cover_image))}
                     />
                   ) : (
                     <div className={styles.cardPlaceholder} />

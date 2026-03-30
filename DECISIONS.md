@@ -143,3 +143,53 @@ The new schema exists specifically to unify old asset storage paths. Leaving cov
 
 ### Follow-ups Required
 - close the remaining planning gap by marking the verified cover requirements accordingly
+
+---
+
+## 2026-03-30 - Anime Runtime Moves To A Fresh v2 DB Instead Of Extending The Hybrid Schema
+
+### Decision
+Use a fresh normalized anime DB/runtime path (`team4s_v2`) as the active local target for anime create/read/delete work instead of continuing to extend the older hybrid anime schema.
+
+### Context
+The running backend code and the older local DB had drifted apart, and the old schema still mixed flat anime columns with normalized side tables. Continuing to patch that hybrid path would keep creating mismatches and make every new route harder to reason about.
+
+### Options Considered
+- keep evolving the old hybrid anime DB in place
+- stand up a fresh v2 schema and pull routes over slice by slice
+
+### Why This Won
+The fresh v2 path is cleaner, better aligned with the intended architecture, and avoids spending more effort on a schema the team already wants to replace.
+
+### Consequences
+- local backend runtime now points to `team4s_v2`
+- anime create/read/delete/backdrops needed explicit v2-aware repository paths
+- some compatibility shims remain temporarily while edit/update and adjacent routes are still being migrated
+
+### Follow-ups Required
+- migrate `UpdateAnime` / edit save next
+- audit the remaining anime routes for legacy flat-column assumptions
+
+---
+
+## 2026-03-30 - Keep Anime Delete Audits After Hard Delete
+
+### Decision
+Anime hard deletes must leave behind audit entries even after the anime row itself is removed.
+
+### Context
+Once delete became a real admin action, removing the anime row without preserving audit would make destructive changes hard to trace and harder to trust operationally.
+
+### Options Considered
+- let delete audits disappear with the anime row
+- preserve delete audits independently from the anime record
+
+### Why This Won
+Hard delete without durable audit is too opaque for an admin workflow.
+
+### Consequences
+- `admin_anime_mutation_audit` must not cascade away on anime delete
+- delete responses and repo logic need to keep enough context to record the destructive action
+
+### Follow-ups Required
+- keep delete verification part of future v2 route checks

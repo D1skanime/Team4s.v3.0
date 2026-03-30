@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"team4s.v3/backend/internal/models"
 
@@ -21,6 +22,14 @@ func NewAnimeAssetRepository(db *pgxpool.Pool) *AnimeAssetRepository {
 }
 
 func (r *AnimeAssetRepository) GetResolvedAssets(ctx context.Context, animeID int64) (*models.AnimeResolvedAssets, error) {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if useV2Schema {
+		return r.getResolvedAssetsV2(ctx, animeID)
+	}
+
 	row := r.db.QueryRow(ctx, `
 		SELECT
 			a.cover_asset_id,
@@ -139,6 +148,128 @@ func (r *AnimeAssetRepository) GetResolvedAssets(ctx context.Context, animeID in
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate anime background assets %d: %w", animeID, err)
+	}
+
+	return result, nil
+}
+
+func (r *AnimeAssetRepository) getResolvedAssetsV2(ctx context.Context, animeID int64) (*models.AnimeResolvedAssets, error) {
+	var exists bool
+	if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+		return nil, fmt.Errorf("check anime asset subject %d: %w", animeID, err)
+	}
+	if !exists {
+		return nil, ErrNotFound
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			ma.id,
+			mt.name,
+			am.sort_order,
+			ma.file_path,
+			mf.path,
+			me.provider,
+			me.external_id,
+			ma.created_at,
+			ma.modified_at
+		FROM anime_media am
+		JOIN media_assets ma ON ma.id = am.media_id
+		JOIN media_types mt ON mt.id = ma.media_type_id
+		LEFT JOIN LATERAL (
+			SELECT path
+			FROM media_files
+			WHERE media_id = ma.id
+			ORDER BY
+				CASE WHEN variant = 'original' THEN 0 ELSE 1 END,
+				id ASC
+			LIMIT 1
+		) mf ON true
+		LEFT JOIN LATERAL (
+			SELECT provider, external_id
+			FROM media_external
+			WHERE media_id = ma.id
+			ORDER BY id ASC
+			LIMIT 1
+		) me ON true
+		WHERE am.anime_id = $1
+		ORDER BY am.sort_order ASC, ma.id ASC
+	`, animeID)
+	if err != nil {
+		return nil, fmt.Errorf("query v2 anime assets %d: %w", animeID, err)
+	}
+	defer rows.Close()
+
+	result := &models.AnimeResolvedAssets{
+		Backgrounds: make([]models.AnimeBackgroundAsset, 0),
+	}
+
+	for rows.Next() {
+		var mediaID int64
+		var mediaType string
+		var sortOrder int32
+		var filePath string
+		var mediaPath *string
+		var provider *string
+		var externalID *string
+		var createdAt time.Time
+		var modifiedAt time.Time
+		if err := rows.Scan(
+			&mediaID,
+			&mediaType,
+			&sortOrder,
+			&filePath,
+			&mediaPath,
+			&provider,
+			&externalID,
+			&createdAt,
+			&modifiedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan v2 anime asset %d: %w", animeID, err)
+		}
+
+		resolvedURL := strings.TrimSpace(derefString(mediaPath))
+		if resolvedURL == "" {
+			resolvedURL = strings.TrimSpace(filePath)
+		}
+		if resolvedURL == "" {
+			continue
+		}
+
+		ownership, providerKey := resolveV2AssetOwnership(provider, externalID)
+		mediaIDText := fmt.Sprintf("%d", mediaID)
+		asset := &models.AnimeResolvedAsset{
+			MediaID:     &mediaIDText,
+			URL:         resolvedURL,
+			Ownership:   ownership,
+			ProviderKey: providerKey,
+		}
+
+		switch strings.TrimSpace(strings.ToLower(mediaType)) {
+		case "poster":
+			if result.Cover == nil {
+				result.Cover = asset
+			}
+		case "banner":
+			if result.Banner == nil {
+				result.Banner = asset
+			}
+		case "background":
+			item := models.AnimeBackgroundAsset{
+				ID:          mediaID,
+				MediaID:     asset.MediaID,
+				URL:         asset.URL,
+				Ownership:   asset.Ownership,
+				ProviderKey: asset.ProviderKey,
+				SortOrder:   sortOrder,
+			}
+			item.CreatedAt = createdAt
+			item.UpdatedAt = modifiedAt
+			result.Backgrounds = append(result.Backgrounds, item)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate v2 anime assets %d: %w", animeID, err)
 	}
 
 	return result, nil
@@ -619,11 +750,52 @@ func normalizeNullableTrimmedString(value *string) *string {
 	return &trimmed
 }
 
+func (r *AnimeAssetRepository) hasV2AssetSchema(ctx context.Context) (bool, error) {
+	var hasAnimeMedia bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1
+			FROM information_schema.tables
+			WHERE table_schema = current_schema()
+			  AND table_name = 'anime_media'
+		)
+	`).Scan(&hasAnimeMedia); err != nil {
+		return false, fmt.Errorf("detect v2 anime asset schema: %w", err)
+	}
+
+	if !hasAnimeMedia {
+		return false, nil
+	}
+
+	var hasCoverSlot bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1
+			FROM information_schema.columns
+			WHERE table_schema = current_schema()
+			  AND table_name = 'anime'
+			  AND column_name = 'cover_asset_id'
+		)
+	`).Scan(&hasCoverSlot); err != nil {
+		return false, fmt.Errorf("detect legacy anime asset slots: %w", err)
+	}
+
+	return !hasCoverSlot, nil
+}
+
 func derefString(value *string) string {
 	if value == nil {
 		return ""
 	}
 	return *value
+}
+
+func resolveV2AssetOwnership(provider *string, externalID *string) (models.AnimeAssetOwnership, *string) {
+	if strings.TrimSpace(derefString(provider)) == "" {
+		return models.AnimeAssetOwnershipManual, nil
+	}
+
+	return models.AnimeAssetOwnershipProvider, normalizeNullableTrimmedString(externalID)
 }
 
 type storedAnimeBackgroundAsset struct {

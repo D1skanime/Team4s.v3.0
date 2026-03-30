@@ -1,3 +1,5 @@
+import { resolveApiUrl } from '@/lib/api'
+
 /**
  * Resolves anime cover image URLs to their canonical format.
  *
@@ -21,6 +23,10 @@ export function getCoverUrl(coverImage?: string): string {
     return value
   }
 
+  if (value.startsWith('/api/')) {
+    return resolveApiUrl(value)
+  }
+
   // New format: full paths starting with / (e.g., /media/anime/123/poster/uuid/original.webp)
   if (value.startsWith('/')) {
     return value
@@ -28,6 +34,15 @@ export function getCoverUrl(coverImage?: string): string {
 
   // Legacy format: bare filename -> /covers/filename
   return `/covers/${value}`
+}
+
+export function shouldUseUnoptimizedImage(source?: string): boolean {
+  const value = (source || '').trim()
+  if (!value) {
+    return false
+  }
+
+  return value.includes('/api/v1/media/')
 }
 
 export function toNumber(input: string | string[] | undefined, fallback: number): number {

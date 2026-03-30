@@ -81,3 +81,30 @@ func (h *AdminContentHandler) UpdateAnime(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": item})
 }
+
+func (h *AdminContentHandler) DeleteAnime(c *gin.Context) {
+	identity, ok := h.requireAdmin(c)
+	if !ok {
+		return
+	}
+
+	id, err := parseAnimeID(c.Param("id"))
+	if err != nil {
+		log.Printf("admin_content delete_anime: invalid id %q (user_id=%d): %v", c.Param("id"), identity.UserID, err)
+		badRequest(c, "ungueltige anime id")
+		return
+	}
+
+	result, err := h.repo.DeleteAnime(c.Request.Context(), id, identity.UserID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "anime nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		log.Printf("admin_content delete_anime: repo error (user_id=%d, anime_id=%d): %v", identity.UserID, id, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": result})
+}

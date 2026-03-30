@@ -10,7 +10,7 @@ import {
   buildAnimeDetailHref,
   parseAnimeListParamsFromGridQuery,
 } from '@/lib/animeGridContext'
-import { getCoverUrl } from '@/lib/utils'
+import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
 import { AnimeListItem } from '@/types/anime'
 
 import styles from './AnimeEdgeNavigation.module.css'
@@ -44,6 +44,7 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
 
   const gridParams = useMemo(() => parseAnimeListParamsFromGridQuery(gridQuery), [gridQuery])
   const previewAnime = hoverDirection === 'prev' ? previousAnime : hoverDirection === 'next' ? nextAnime : null
+  const previewCoverUrl = previewAnime ? getCoverUrl(previewAnime.cover_image) : ''
 
   const loadNeighbors = useCallback(async () => {
     if (!gridParams) {
@@ -152,11 +153,12 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
         {previewAnime && hoverDirection === 'prev' ? (
           <div className={`${styles.previewCard} ${styles.previewLeft}`}>
             <Image
-              src={getCoverUrl(previewAnime.cover_image)}
+              src={previewCoverUrl}
               alt={previewAnime.title}
               width={66}
               height={92}
               className={styles.previewCover}
+              unoptimized={shouldUseUnoptimizedImage(previewCoverUrl)}
             />
             <div className={styles.previewMeta}>
               <p className={styles.previewTitle}>{previewAnime.title}</p>
@@ -194,11 +196,12 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
         {previewAnime && hoverDirection === 'next' ? (
           <div className={`${styles.previewCard} ${styles.previewRight}`}>
             <Image
-              src={getCoverUrl(previewAnime.cover_image)}
+              src={previewCoverUrl}
               alt={previewAnime.title}
               width={66}
               height={92}
               className={styles.previewCover}
+              unoptimized={shouldUseUnoptimizedImage(previewCoverUrl)}
             />
             <div className={styles.previewMeta}>
               <p className={styles.previewTitle}>{previewAnime.title}</p>

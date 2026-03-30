@@ -72,3 +72,47 @@
 
 ### Next Step
 - Update the formal `04-03` plan/progress notes so cover is no longer tracked as still-open work
+
+## 2026-03-30
+- Project: `Team4s.v3.0`
+- Milestone: `Anime v2 schema cutover (fresh DB path)`
+- Today's focus: stop extending the legacy hybrid anime schema, stand up `team4s_v2`, move live anime create/read/delete onto it, and simplify the admin create/overview UI while keeping Jellyfin-backed public assets working
+
+### Workstreams Touched
+- Admin anime create page UX reduction and card cleanup
+- Admin anime overview cleanup and delete action
+- Delete audit retention and orphaned local-cover cleanup
+- Fresh v2 schema bootstrap and runtime DB switch
+- Backend anime create/read/backdrop/delete adaptation for v2
+- Public Jellyfin cover rendering fix in frontend
+- UTF-8 normalization for Jellyfin metadata payloads
+
+### Goals Intended vs Achieved
+- Intended: stop patching the old hybrid anime model and move the live anime path onto the new normalized schema
+- Achieved: `team4s_v2` exists, backend runtime now points at it, anime create/list/detail/backdrops/delete work against v2, public Jellyfin covers render again, and the admin UI entry/create pages were stripped down to the functional core
+
+### Problems Solved
+- Root cause: the running anime code expected newer schema pieces than the local DB actually had
+- Fix: created `database/migrations_v2`, bootstrapped a fresh normalized anime/media foundation, and switched the dev backend runtime to `team4s_v2`
+- Root cause: anime create was still coupled to flat legacy columns
+- Fix: added a v2 create path that writes `anime`, `anime_titles`, `anime_genres`, and cover media/external links while keeping the legacy path available when needed
+- Root cause: public anime reads and backdrops still assumed the older anime table/asset-slot shape
+- Fix: added v2 repository reads for list/detail/media lookup and a v2 asset resolver based on `anime_media` + `media_assets`
+- Root cause: anime delete still loaded title/cover from legacy `anime.title` and `anime.cover_image`
+- Fix: moved delete to load title from `anime_titles`, cover from `anime_media`/`media_assets`, delete normalized associations, and remove unreferenced media assets
+- Root cause: public poster images from Jellyfin were rendered through paths that broke in the frontend/container setup
+- Fix: normalized `/api/v1/media/...` cover URLs to the backend host and disabled Next image optimization for backend media proxy URLs
+- Root cause: some Jellyfin metadata came back with broken umlauts / Windows-1252 style bytes
+- Fix: normalized invalid Jellyfin response encodings to UTF-8 before JSON unmarshal
+
+### Decisions
+- Do not keep evolving the old hybrid anime schema as the main path
+- Use a fresh v2 DB/runtime cutover for anime instead of trying to complete the migration in place first
+- Keep legacy paths only as compatibility shims while the v2 slice is being pulled through route by route
+
+### Blockers
+- `UpdateAnime` / edit persistence is still legacy-only and is the next required v2 backend slice
+- Broader public/admin routes outside anime create/read/delete are not yet fully on v2
+
+### Next Step
+- Move `UpdateAnime` in `backend/internal/repository/admin_content_anime_metadata.go` off legacy flat anime columns and onto v2 normalized writes

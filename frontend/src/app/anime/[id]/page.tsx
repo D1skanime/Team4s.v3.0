@@ -29,7 +29,7 @@ import {
 import { resolveInfoBannerURL, resolveInfoLogoURL } from '@/lib/animeBackdrops'
 import { normalizeGridQuery } from '@/lib/animeGridContext'
 import { getEmbySeriesUrlForAnime } from '@/lib/emby'
-import { getCoverUrl } from '@/lib/utils'
+import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
 
 import styles from './page.module.css'
 
@@ -180,6 +180,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
 
   // Get cover image for banner background
   const coverUrl = getCoverUrl(anime.cover_image)
+  const coverNeedsUnoptimized = shouldUseUnoptimizedImage(coverUrl)
 
   return (
     <main className={styles.page}>
@@ -220,6 +221,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
                 height={390}
                 className={styles.poster}
                 priority
+                unoptimized={coverNeedsUnoptimized}
               />
               {/* Stats Overlay on Poster */}
               <div className={styles.posterStats}>

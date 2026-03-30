@@ -1,8 +1,7 @@
-import Image from 'next/image'
 import Link from 'next/link'
 
 import { ApiError, getAnimeList } from '@/lib/api'
-import { getCoverUrl } from '@/lib/utils'
+import { AdminAnimeOverviewClient } from './components/AdminAnimeOverviewClient'
 
 import styles from './AdminStudio.module.css'
 
@@ -14,22 +13,6 @@ interface AdminAnimePageProps {
   }>
 }
 
-function resolveStatusTone(status: string): string {
-  switch (status) {
-    case 'ongoing':
-      return styles.badgeSuccess
-    case 'done':
-      return styles.badgePrimary
-    case 'disabled':
-    case 'aborted':
-      return styles.badgeDanger
-    case 'licensed':
-      return styles.badgeWarning
-    default:
-      return styles.badgeMuted
-  }
-}
-
 export default async function AdminAnimePage({ searchParams }: AdminAnimePageProps = {}) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined
   const createdID = Number.parseInt(resolvedSearchParams?.created || '', 10)
@@ -37,7 +20,7 @@ export default async function AdminAnimePage({ searchParams }: AdminAnimePagePro
   let listError: string | null = null
 
   try {
-    const response = await getAnimeList({ page: 1, per_page: 24, include_disabled: true })
+    const response = await getAnimeList({ page: 1, per_page: 24, include_disabled: true }, { cache: 'no-store' })
     animeItems = response.data
   } catch (error) {
     listError =
@@ -45,9 +28,6 @@ export default async function AdminAnimePage({ searchParams }: AdminAnimePagePro
         ? `Anime-Liste konnte nicht geladen werden. (${error.status}) ${error.message}`
         : 'Anime-Liste konnte nicht geladen werden.'
   }
-
-  const createdAnime =
-    Number.isFinite(createdID) && createdID > 0 ? animeItems.find((anime) => anime.id === createdID) ?? null : null
 
   return (
     <main className={styles.page}>
@@ -59,12 +39,8 @@ export default async function AdminAnimePage({ searchParams }: AdminAnimePagePro
 
       <header className={styles.headerCard}>
         <div>
-          <p className={styles.eyebrow}>Schritt 1</p>
-          <h1 className={styles.pageTitle}>Anime anlegen</h1>
-          <p className={styles.pageSubtitle}>
-            Starte neue Anime jetzt ueber denselben Create-Flow, egal ob du manuell beginnst oder Jellyfin zuerst als
-            Vorschauquelle pruefen willst. Nach dem Speichern muss der Eintrag direkt in der Uebersicht erscheinen.
-          </p>
+          <h1 className={styles.pageTitle}>Anime</h1>
+          <p className={styles.pageSubtitle}>Neue Eintraege anlegen und bestehende Anime verwalten.</p>
         </div>
         <div className={styles.headerActions}>
           <Link href="/admin/anime/create" className={`${styles.button} ${styles.buttonPrimary}`}>
@@ -76,105 +52,15 @@ export default async function AdminAnimePage({ searchParams }: AdminAnimePagePro
       <section className={styles.card}>
         <div className={styles.sectionHeader}>
           <div>
-            <h2 className={styles.sectionTitle}>Manuell starten</h2>
-            <p className={styles.sectionMeta}>
-              Titel und Cover reichen fuer den ersten Anime-Eintrag. Im gemeinsamen Create-Flow kannst du aber auch
-              spaeter erst Jellyfin pruefen und dann bewusst beim Entwurf bleiben oder speichern.
-            </p>
-          </div>
-        </div>
-        <div className={styles.actionsRow}>
-          <Link href="/admin/anime/create" className={`${styles.button} ${styles.buttonPrimary}`}>
-            Manuell starten
-          </Link>
-        </div>
-      </section>
-
-      <section className={styles.card}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <h2 className={styles.sectionTitle}>Jellyfin</h2>
-            <p className={styles.sectionMeta}>
-              Jellyfin ist jetzt Teil des gemeinsamen Create-Flows: erst Treffer suchen, dann Vorschau laden und erst
-              danach den Entwurf bewusst uebernehmen oder verwerfen.
-            </p>
-          </div>
-        </div>
-        <div className={styles.actionsRow}>
-          <Link href="/admin/anime/create" className={`${styles.button} ${styles.buttonSecondary}`}>
-            Mit Jellyfin starten
-          </Link>
-        </div>
-        <div className={styles.noticeBox}>
-          Der Ersteller-Flow fuehrt jetzt durch Suche, Kandidaten-Review, Vorschau und erst dann durch das eigentliche
-          Speichern.
-        </div>
-      </section>
-
-      <section className={styles.card}>
-        <div className={styles.sectionHeader}>
-          <div>
             <h2 className={styles.sectionTitle}>Vorhandene Anime</h2>
-            <p className={styles.sectionMeta}>
-              Neu angelegte Anime muessen hier sofort sichtbar sein. Von hier aus kommst du zur Bearbeitung oder in die
-              Public-Ansicht.
-            </p>
+            <p className={styles.sectionMeta}>Bearbeiten, ansehen oder direkt wieder entfernen.</p>
           </div>
         </div>
-
-        {createdAnime ? (
-          <div className={styles.successBox}>
-            Anime #{String(createdAnime.id).padStart(3, '0')} {createdAnime.title} wurde erstellt und ist jetzt in der
-            Uebersicht verankert.
-          </div>
-        ) : null}
-
-        {listError ? <div className={styles.errorBox}>{listError}</div> : null}
-
-        {!listError && animeItems.length === 0 ? <p className={styles.emptyState}>Noch keine Anime vorhanden.</p> : null}
-
-        {!listError && animeItems.length > 0 ? (
-          <div className={styles.stack}>
-            {animeItems.map((anime) => (
-              <article key={anime.id} id={`anime-${anime.id}`} className={styles.animeCard}>
-                <Image
-                  className={styles.cover}
-                  src={getCoverUrl(anime.cover_image)}
-                  alt={anime.title}
-                  width={96}
-                  height={136}
-                  unoptimized
-                />
-                <div className={styles.itemBody}>
-                  <div>
-                    <h3 className={styles.itemTitle}>{anime.title}</h3>
-                    <p className={styles.metaText}>
-                      #{String(anime.id).padStart(3, '0')} | {anime.type.toUpperCase()}
-                      {anime.year ? ` | ${anime.year}` : ''}
-                      {anime.max_episodes ? ` | ${anime.max_episodes} Episoden` : ''}
-                    </p>
-                  </div>
-                  <div className={styles.badgeRow}>
-                    <span className={`${styles.badge} ${resolveStatusTone(anime.status)}`}>{anime.status}</span>
-                  </div>
-                  <div className={styles.actionsRow}>
-                    <Link href={`/admin/anime/${anime.id}/edit`} className={`${styles.button} ${styles.buttonPrimary}`}>
-                      Bearbeiten
-                    </Link>
-                    <Link
-                      href={`/anime/${anime.id}`}
-                      className={`${styles.button} ${styles.buttonSecondary}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Public ansehen
-                    </Link>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : null}
+        <AdminAnimeOverviewClient
+          initialItems={animeItems}
+          initialError={listError}
+          createdID={Number.isFinite(createdID) && createdID > 0 ? createdID : null}
+        />
       </section>
     </main>
   )

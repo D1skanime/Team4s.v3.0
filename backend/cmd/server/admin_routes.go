@@ -15,6 +15,7 @@ type adminRouteHandlers struct {
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
 	v1.POST("/admin/anime", auth, deps.adminContentHandler.CreateAnime)
 	v1.PATCH("/admin/anime/:id", auth, deps.adminContentHandler.UpdateAnime)
+	v1.DELETE("/admin/anime/:id", auth, deps.adminContentHandler.DeleteAnime)
 	v1.PUT("/admin/anime/:id/assets/cover", auth, deps.adminContentHandler.AssignAnimeCoverAsset)
 	v1.DELETE("/admin/anime/:id/assets/cover", auth, deps.adminContentHandler.DeleteAnimeCoverAsset)
 	v1.PUT("/admin/anime/:id/assets/banner", auth, deps.adminContentHandler.AssignAnimeBannerAsset)

@@ -206,54 +206,24 @@ func (r *AdminContentRepository) CreateAnime(
 		_ = tx.Rollback(ctx)
 	}()
 
-	query := `
-		INSERT INTO anime (
-			title, title_de, title_en, type, content_type, status,
-			year, max_episodes, genre, description, cover_image, source, folder_name
-		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-		RETURNING
-			id, title, title_de, title_en, type, content_type, status,
-			year, max_episodes, genre, description, cover_image
-	`
-
-	var item models.AdminAnimeItem
-	if err := tx.QueryRow(
-		ctx,
-		query,
-		input.Title,
-		input.TitleDE,
-		input.TitleEN,
-		input.Type,
-		input.ContentType,
-		input.Status,
-		input.Year,
-		input.MaxEpisodes,
-		input.Genre,
-		input.Description,
-		input.CoverImage,
-		input.Source,
-		input.FolderName,
-	).Scan(
-		&item.ID,
-		&item.Title,
-		&item.TitleDE,
-		&item.TitleEN,
-		&item.Type,
-		&item.ContentType,
-		&item.Status,
-		&item.Year,
-		&item.MaxEpisodes,
-		&item.Genre,
-		&item.Description,
-		&item.CoverImage,
-	); err != nil {
-		return nil, fmt.Errorf("create anime: %w", err)
-	}
-
-	if err := syncAuthoritativeAnimeMetadata(ctx, tx, item.ID, buildAuthoritativeAnimeMetadataCreate(input)); err != nil {
+	useV2Schema, err := hasV2AnimeCreateSchema(ctx, tx)
+	if err != nil {
 		return nil, err
 	}
+
+	var item *models.AdminAnimeItem
+	if useV2Schema {
+		item, err = r.createAnimeV2(ctx, tx, input, actorUserID)
+	} else {
+		item, err = r.createAnimeLegacy(ctx, tx, input)
+		if err == nil {
+			err = syncAuthoritativeAnimeMetadata(ctx, tx, item.ID, buildAuthoritativeAnimeMetadataCreate(input))
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	auditEntry, err := buildAdminAnimeAuditEntryForCreate(actorUserID, item.ID, input)
 	if err != nil {
 		return nil, err
@@ -265,7 +235,7 @@ func (r *AdminContentRepository) CreateAnime(
 		return nil, fmt.Errorf("commit create anime tx: %w", err)
 	}
 
-	return &item, nil
+	return item, nil
 }
 
 func (r *AdminContentRepository) UpdateAnime(

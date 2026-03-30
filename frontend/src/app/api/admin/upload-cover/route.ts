@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import crypto from 'node:crypto'
 
@@ -20,6 +20,19 @@ function safeExtension(fileName: string, contentType: string): string {
   if (type === 'image/gif') return 'gif'
 
   return 'bin'
+}
+
+function resolveCoversDir(): string {
+  return path.join(process.cwd(), 'public', 'covers')
+}
+
+function resolveSafeCoverPath(fileName: string): string | null {
+  const trimmed = (fileName || '').trim()
+  if (!trimmed || trimmed !== path.basename(trimmed)) {
+    return null
+  }
+
+  return path.join(resolveCoversDir(), trimmed)
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -56,7 +69,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const ext = safeExtension(file.name, file.type)
   const fileName = `cover_${Date.now()}_${crypto.randomUUID()}.${ext}`
-  const coversDir = path.join(process.cwd(), 'public', 'covers')
+  const coversDir = resolveCoversDir()
   const targetPath = path.join(coversDir, fileName)
 
   await mkdir(coversDir, { recursive: true })
@@ -64,4 +77,26 @@ export async function POST(request: Request): Promise<Response> {
   await writeFile(targetPath, bytes)
 
   return Response.json({ data: { file_name: fileName } }, { status: 201 })
+}
+
+export async function DELETE(request: Request): Promise<Response> {
+  const runtimeProfile = process.env.NEXT_PUBLIC_RUNTIME_PROFILE || 'local'
+  if (!isLocalProfile(runtimeProfile)) {
+    return Response.json({ error: { message: 'delete ist in dieser umgebung deaktiviert' } }, { status: 403 })
+  }
+
+  let body: { file_name?: string } | null = null
+  try {
+    body = (await request.json()) as { file_name?: string }
+  } catch {
+    body = null
+  }
+
+  const targetPath = resolveSafeCoverPath(body?.file_name || '')
+  if (!targetPath) {
+    return Response.json({ error: { message: 'ungueltiger dateiname' } }, { status: 400 })
+  }
+
+  await rm(targetPath, { force: true })
+  return Response.json({ data: { deleted: true } }, { status: 200 })
 }

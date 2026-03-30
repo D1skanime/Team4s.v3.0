@@ -333,6 +333,36 @@ func TestAdminContentRepository_BuildAnimePatchAuditEntry_UsesCoverRemoveMutatio
 	}
 }
 
+func TestAdminContentRepository_BuildAnimeDeleteAuditEntry_PersistsDeletedAnimeContext(t *testing.T) {
+	entry, err := buildAdminAnimeAuditEntryForDelete(19, models.AdminAnimeDeleteResult{
+		AnimeID: 55,
+		Title:   "Erased",
+	})
+	if err != nil {
+		t.Fatalf("build delete audit entry: %v", err)
+	}
+	if entry.ActorUserID != 19 {
+		t.Fatalf("expected actor 19, got %d", entry.ActorUserID)
+	}
+	if entry.AnimeID != 55 {
+		t.Fatalf("expected anime 55, got %d", entry.AnimeID)
+	}
+	if entry.MutationKind != adminAnimeMutationKindDelete {
+		t.Fatalf("expected mutation kind %q, got %q", adminAnimeMutationKindDelete, entry.MutationKind)
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(entry.RequestPayload, &payload); err != nil {
+		t.Fatalf("unmarshal payload: %v", err)
+	}
+	if payload["anime_id"] != float64(55) {
+		t.Fatalf("expected anime_id 55 in payload, got %#v", payload["anime_id"])
+	}
+	if payload["title"] != "Erased" {
+		t.Fatalf("expected title in payload, got %#v", payload["title"])
+	}
+}
+
 func repositoryFileLineCount(t *testing.T, name string) int {
 	t.Helper()
 

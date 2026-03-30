@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import { StatusBadge } from '@/components/anime/StatusBadge'
 import { ApiError, removeWatchlistEntry } from '@/lib/api'
 import { PaginationMeta } from '@/types/anime'
-import { getCoverUrl } from '@/lib/utils'
+import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
 import { WatchlistItem } from '@/types/watchlist'
 
 import styles from './WatchlistList.module.css'
@@ -125,14 +125,18 @@ export function WatchlistList({ items, meta, page, perPage }: WatchlistListProps
         <div className={styles.grid}>
           {entries.map((entry) => (
             <article key={entry.anime_id} className={styles.card}>
+              {(() => {
+                const coverUrl = getCoverUrl(entry.cover_image)
+                return (
               <Link href={`/anime/${entry.anime_id}`} className={styles.link}>
                 <div className={styles.coverWrap}>
                   <Image
-                    src={getCoverUrl(entry.cover_image)}
+                    src={coverUrl}
                     alt={entry.title}
                     width={300}
                     height={400}
                     className={styles.cover}
+                    unoptimized={shouldUseUnoptimizedImage(coverUrl)}
                   />
                 </div>
                 <div className={styles.content}>
@@ -147,6 +151,8 @@ export function WatchlistList({ items, meta, page, perPage }: WatchlistListProps
                   <StatusBadge status={entry.status} />
                 </div>
               </Link>
+                )
+              })()}
               <div className={styles.actions}>
                 <button
                   type="button"

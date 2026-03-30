@@ -110,6 +110,12 @@ type AdminAnimeItem struct {
 	CoverImage  *string `json:"cover_image,omitempty"`
 }
 
+type AdminAnimeDeleteResult struct {
+	AnimeID                 int64   `json:"anime_id"`
+	Title                   string  `json:"title"`
+	OrphanedLocalCoverImage *string `json:"orphaned_local_cover_image,omitempty"`
+}
+
 type AdminEpisodeItem struct {
 	ID            int64   `json:"id"`
 	AnimeID       int64   `json:"anime_id"`

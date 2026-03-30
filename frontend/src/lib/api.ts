@@ -11,6 +11,7 @@ import {
   AdminMediaUploadResponse,
   AdminJellyfinSeriesSearchResponse,
   AdminAnimeCreateRequest,
+  AdminAnimeDeleteResponse,
   AdminAnimePatchRequest,
   AdminAnimeUpsertResponse,
   AdminGenreTokensResponse,
@@ -351,13 +352,29 @@ export function clearAuthSession(): void {
   writeBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME, '', 0)
 }
 
-export async function getAnimeList(params: AnimeListParams): Promise<PaginatedAnimeResponse> {
+interface AnimeListRequestOptions {
+  cache?: RequestCache
+  revalidate?: number
+}
+
+export async function getAnimeList(
+  params: AnimeListParams,
+  options: AnimeListRequestOptions = {},
+): Promise<PaginatedAnimeResponse> {
   const API_BASE_URL = getApiBaseUrl()
   const query = buildQuery(params)
   const url = `${API_BASE_URL}/api/v1/anime${query ? `?${query}` : ''}`
-  const response = await fetch(url, {
-    next: { revalidate: 30 },
-  })
+  const requestInit: RequestInit & { next?: { revalidate: number } } = {}
+  if (options.cache) {
+    requestInit.cache = options.cache
+  }
+  if (typeof options.revalidate === 'number') {
+    requestInit.next = { revalidate: options.revalidate }
+  } else if (options.cache !== 'no-store') {
+    requestInit.next = { revalidate: 30 }
+  }
+
+  const response = await fetch(url, requestInit)
 
   if (!response.ok) {
     throw new ApiError(response.status, `API request failed: ${response.status}`)
@@ -1508,6 +1525,36 @@ export async function deleteAdminEpisode(episodeID: number, authToken?: string):
   }
 
   return response.json() as Promise<AdminEpisodeDeleteResponse>
+}
+
+export async function deleteAdminAnime(animeID: number, authToken?: string): Promise<AdminAnimeDeleteResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<AdminAnimeDeleteResponse>
+}
+
+export async function deleteUploadedCoverFile(fileName: string): Promise<void> {
+  const response = await fetch('/api/admin/upload-cover', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ file_name: fileName }),
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
 }
 
 export async function getAdminGenreTokens(

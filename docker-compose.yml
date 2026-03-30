@@ -30,7 +30,7 @@ services:
     environment:
       PORT: 8092
       RUNTIME_PROFILE: ${RUNTIME_PROFILE:-local}
-      DATABASE_URL: postgres://team4s:team4s_dev_password@team4sv30-db:5432/team4s_v2dump?sslmode=disable
+      DATABASE_URL: postgres://team4s:team4s_dev_password@team4sv30-db:5432/team4s_v2?sslmode=disable
       AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:-team4s-local-dev-secret}
       AUTH_ADMIN_BOOTSTRAP_USER_IDS: ${AUTH_ADMIN_BOOTSTRAP_USER_IDS:-1}
       EMBY_API_KEY: ${EMBY_API_KEY:-}

@@ -94,7 +94,7 @@ func upsertAuthoritativeAnimeTitle(
 		JOIN title_types tt ON tt.name = $3
 		WHERE l.code = $2
 		ON CONFLICT (anime_id, language_id, title_type_id)
-		DO UPDATE SET title = EXCLUDED.title, updated_at = NOW()
+		DO UPDATE SET title = EXCLUDED.title
 		`,
 		animeID,
 		slot.LanguageCode,
