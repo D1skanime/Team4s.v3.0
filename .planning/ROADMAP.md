@@ -13,6 +13,7 @@ This roadmap hardens the existing Team4s admin anime workflow in dependency orde
 - [x] **Phase 1: Ownership Foundations** - Establish the shared ownership-aware edit surface, audit attribution, and modular contract base.
 - [ ] **Phase 2: Manual Intake Baseline** - Deliver the manual preview-before-save workflow with minimum-field creation and existing cover upload.
 - [x] **Phase 3: Jellyfin-Assisted Intake** - Add Jellyfin source selection and draft prefill without hidden persistence.
+- [ ] **Phase 4.1: Anime v2 Cutover Stabilization** - Stabilize the live v2 anime create/edit/read stack so cover upload, admin save, source linkage, and operator-facing errors behave reliably before broader provenance work resumes.
 - [ ] **Phase 4: Provenance, Assets, And Safe Resync** - Expose source provenance, per-slot asset handling, and fill-only resync behavior.
 - [ ] **Phase 5: Relations And Reliability** - Complete relation CRUD and validation-centered admin reliability on top of the stabilized ownership model.
 
@@ -80,9 +81,24 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
+### Phase 4.1: Anime v2 Cutover Stabilization
+**Goal**: The local/runtime anime v2 cutover is stable enough that admins can create, edit, and maintain anime records without losing covers, Jellyfin linkage, or actionable error context while the broader provenance phase remains in progress.
+**Depends on**: Phase 3
+**Requirements**: INTK-06, ASST-04, RLY-01
+**Success Criteria** (what must be TRUE):
+  1. Admin can open an existing anime on the shared edit route and save changes through the active v2 runtime without relying on removed legacy flat columns.
+  2. Admin can upload or replace a cover and see that persisted cover again on the next detail/edit read instead of only creating a local file.
+  3. Jellyfin-linked anime keep their source linkage across create and edit flows so preview, metadata resync, backdrop fetch, and episode sync do not regress after a manual save.
+  4. Internal admin failures return operator-usable context instead of only a generic `interner serverfehler`.
+**Plans**: 2 plans
+Plans:
+- [ ] 04.1-01-PLAN.md - Stabilize schema-aware v2 create, edit, and read persistence so mixed local schemas, cover readback, and Jellyfin linkage stay reliable.
+- [ ] 04.1-02-PLAN.md - Surface operator-usable admin anime save and cover-patch errors through handlers, the API client, and the shared edit mutation seam.
+**UI hint**: yes
+
 ### Phase 5: Relations And Reliability
 **Goal**: Admins can manage anime relations safely through a validated backend-backed UI that enforces the narrow V1 taxonomy.
-**Depends on**: Phase 4
+**Depends on**: Phase 4.1, Phase 4
 **Requirements**: RELA-01, RELA-02, RELA-03, RELA-04, RELA-05, RELA-06, RELA-07, RLY-01
 **Success Criteria** (what must be TRUE):
   1. Admin can create, update, and delete relations between existing anime through the admin UI instead of direct database work.
@@ -99,5 +115,6 @@ Plans:
 | 1. Ownership Foundations | 5/5 | Complete | 2026-03-24 |
 | 2. Manual Intake Baseline | 3/3 | Human verification needed | - |
 | 3. Jellyfin-Assisted Intake | 4/4 | Complete | 2026-03-26 |
+| 4.1. Anime v2 Cutover Stabilization | 0/TBD | Not started | - |
 | 4. Provenance, Assets, And Safe Resync | 0/TBD | Not started | - |
 | 5. Relations And Reliability | 0/TBD | Not started | - |
