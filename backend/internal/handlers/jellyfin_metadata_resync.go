@@ -507,6 +507,22 @@ func mapPersistedAnimeAssets(value *models.AnimeResolvedAssets) models.AdminAnim
 		}
 	}
 
+	if value.Logo != nil {
+		result.Logo = &models.AdminAnimePersistedAssetState{
+			MediaID:   value.Logo.MediaID,
+			URL:       value.Logo.URL,
+			Ownership: string(value.Logo.Ownership),
+		}
+	}
+
+	if value.BackgroundVideo != nil {
+		result.BackgroundVideo = &models.AdminAnimePersistedAssetState{
+			MediaID:   value.BackgroundVideo.MediaID,
+			URL:       value.BackgroundVideo.URL,
+			Ownership: string(value.BackgroundVideo.Ownership),
+		}
+	}
+
 	for _, item := range value.Backgrounds {
 		result.Backgrounds = append(result.Backgrounds, models.AdminAnimePersistedBackgroundState{
 			ID:        item.ID,

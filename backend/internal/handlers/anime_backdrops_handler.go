@@ -40,6 +40,10 @@ func (h *AnimeHandler) ListBackdrops(c *gin.Context) {
 				result.BannerURL = persistedAssets.Banner.URL
 				result.Provider = "persisted"
 			}
+			if persistedAssets.Logo != nil {
+				result.LogoURL = persistedAssets.Logo.URL
+				result.Provider = "persisted"
+			}
 			if len(persistedAssets.Backgrounds) > 0 {
 				result.Backdrops = make([]string, 0, len(persistedAssets.Backgrounds))
 				for _, item := range persistedAssets.Backgrounds {
@@ -52,6 +56,10 @@ func (h *AnimeHandler) ListBackdrops(c *gin.Context) {
 				if len(result.Backdrops) > 0 {
 					result.Provider = "persisted"
 				}
+			}
+			if persistedAssets.BackgroundVideo != nil {
+				result.ThemeVideos = []string{persistedAssets.BackgroundVideo.URL}
+				result.Provider = "persisted"
 			}
 		}
 	}
@@ -85,14 +93,18 @@ func (h *AnimeHandler) ListBackdrops(c *gin.Context) {
 	}
 
 	result.MediaItemID = strings.TrimSpace(seriesID)
-	result.ThemeVideos = h.probeJellyfinThemeVideoProxyURLs(c.Request.Context(), result.MediaItemID)
+	if len(result.ThemeVideos) == 0 {
+		result.ThemeVideos = h.probeJellyfinThemeVideoProxyURLs(c.Request.Context(), result.MediaItemID)
+	}
 	if len(result.Backdrops) == 0 {
 		result.Backdrops = h.probeJellyfinBackdropProxyURLs(c.Request.Context(), result.MediaItemID)
 	}
 	if len(result.Backdrops) == 0 {
 		result.Backdrops = buildAnimeBackdropProxyURLs(result.MediaItemID, 1)
 	}
-	result.LogoURL = h.probeJellyfinLogoProxyURL(c.Request.Context(), result.MediaItemID)
+	if strings.TrimSpace(result.LogoURL) == "" {
+		result.LogoURL = h.probeJellyfinLogoProxyURL(c.Request.Context(), result.MediaItemID)
+	}
 	if strings.TrimSpace(result.BannerURL) == "" {
 		result.BannerURL = h.probeJellyfinBannerProxyURL(c.Request.Context(), result.MediaItemID)
 	}

@@ -228,12 +228,12 @@ func TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots(t *testing.T) {
 		{slot: "cover", mediaType: "poster"},
 		{slot: "banner", mediaType: "banner"},
 		{slot: "logo", mediaType: "logo"},
-		{slot: "background_video", mediaType: "background_video"},
+		{slot: "background_video", mediaType: "video"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.slot, func(t *testing.T) {
-			spec, ok := animeAssetLinkSpec(tt.slot)
+			spec, ok := lookupAnimeAssetLinkSpec(tt.slot)
 			if !ok {
 				t.Fatalf("expected slot %q to be supported", tt.slot)
 			}
@@ -248,7 +248,7 @@ func TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots(t *testing.T) {
 }
 
 func TestAnimeAssetLinkSpec_BackgroundRemainsCollection(t *testing.T) {
-	spec, ok := animeAssetLinkSpec("background")
+	spec, ok := lookupAnimeAssetLinkSpec("background")
 	if !ok {
 		t.Fatal("expected background slot to be supported")
 	}
@@ -261,7 +261,7 @@ func TestAnimeAssetLinkSpec_BackgroundRemainsCollection(t *testing.T) {
 }
 
 func TestAnimeAssetLinkSpec_RejectsMediaTypeMismatch(t *testing.T) {
-	spec, ok := animeAssetLinkSpec("logo")
+	spec, ok := lookupAnimeAssetLinkSpec("logo")
 	if !ok {
 		t.Fatal("expected logo slot to be supported")
 	}
@@ -273,7 +273,7 @@ func TestAnimeAssetLinkSpec_RejectsMediaTypeMismatch(t *testing.T) {
 }
 
 func TestAnimeAssetLinkSpec_RejectsUnknownSlot(t *testing.T) {
-	if _, ok := animeAssetLinkSpec("trailer"); ok {
+	if _, ok := lookupAnimeAssetLinkSpec("trailer"); ok {
 		t.Fatal("expected unknown slot to be rejected")
 	}
 }

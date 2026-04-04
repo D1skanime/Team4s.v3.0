@@ -17,8 +17,34 @@ type AnimeAssetRepository struct {
 	db *pgxpool.Pool
 }
 
+type animeAssetLinkSpec struct {
+	Slot      string
+	MediaType string
+	Singular  bool
+}
+
+var animeAssetLinkSpecs = map[string]animeAssetLinkSpec{
+	"cover":            {Slot: "cover", MediaType: "poster", Singular: true},
+	"banner":           {Slot: "banner", MediaType: "banner", Singular: true},
+	"logo":             {Slot: "logo", MediaType: "logo", Singular: true},
+	"background":       {Slot: "background", MediaType: "background", Singular: false},
+	"background_video": {Slot: "background_video", MediaType: "video", Singular: true},
+}
+
 func NewAnimeAssetRepository(db *pgxpool.Pool) *AnimeAssetRepository {
 	return &AnimeAssetRepository{db: db}
+}
+
+func lookupAnimeAssetLinkSpec(slot string) (animeAssetLinkSpec, bool) {
+	spec, ok := animeAssetLinkSpecs[strings.TrimSpace(strings.ToLower(slot))]
+	return spec, ok
+}
+
+func validateAnimeAssetLinkMediaType(spec animeAssetLinkSpec, mediaType string) error {
+	if spec.MediaType == strings.TrimSpace(strings.ToLower(mediaType)) {
+		return nil
+	}
+	return ErrAnimeAssetMediaTypeMismatch
 }
 
 func (r *AnimeAssetRepository) GetResolvedAssets(ctx context.Context, animeID int64) (*models.AnimeResolvedAssets, error) {
@@ -254,6 +280,14 @@ func (r *AnimeAssetRepository) getResolvedAssetsV2(ctx context.Context, animeID 
 			if result.Banner == nil {
 				result.Banner = asset
 			}
+		case "logo":
+			if result.Logo == nil {
+				result.Logo = asset
+			}
+		case "video":
+			if result.BackgroundVideo == nil {
+				result.BackgroundVideo = asset
+			}
 		case "background":
 			item := models.AnimeBackgroundAsset{
 				ID:          mediaID,
@@ -276,6 +310,14 @@ func (r *AnimeAssetRepository) getResolvedAssetsV2(ctx context.Context, animeID 
 }
 
 func (r *AnimeAssetRepository) AssignManualCover(ctx context.Context, animeID int64, mediaID string) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if useV2Schema {
+		return r.assignManualCoverV2(ctx, animeID, mediaID)
+	}
+
 	trimmedMediaID := strings.TrimSpace(mediaID)
 	if trimmedMediaID == "" {
 		return ErrNotFound
@@ -316,6 +358,22 @@ func (r *AnimeAssetRepository) AssignManualCover(ctx context.Context, animeID in
 }
 
 func (r *AnimeAssetRepository) ClearCover(ctx context.Context, animeID int64) error {
+	_, err := r.ClearCoverWithResult(ctx, animeID)
+	return err
+}
+
+func (r *AnimeAssetRepository) ClearCoverWithResult(
+	ctx context.Context,
+	animeID int64,
+) (*models.AnimeAssetRemovalResult, error) {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if useV2Schema {
+		return r.clearCoverV2(ctx, animeID)
+	}
+
 	tag, err := r.db.Exec(ctx, `
 		UPDATE anime
 		SET
@@ -328,15 +386,232 @@ func (r *AnimeAssetRepository) ClearCover(ctx context.Context, animeID int64) er
 		WHERE id = $1
 	`, animeID)
 	if err != nil {
-		return fmt.Errorf("clear anime cover %d: %w", animeID, err)
+		return nil, fmt.Errorf("clear anime cover %d: %w", animeID, err)
 	}
 	if tag.RowsAffected() == 0 {
+		return nil, ErrNotFound
+	}
+	return &models.AnimeAssetRemovalResult{}, nil
+}
+
+func (r *AnimeAssetRepository) assignManualCoverV2(ctx context.Context, animeID int64, mediaRef string) error {
+	trimmedMediaRef := strings.TrimSpace(mediaRef)
+	if trimmedMediaRef == "" {
 		return ErrNotFound
+	}
+
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("begin assign anime cover v2 tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	schema, err := loadAnimeV2SchemaInfo(ctx, tx)
+	if err != nil {
+		return err
+	}
+	if err := lockAnimeRow(ctx, tx, animeID); err != nil {
+		return err
+	}
+	mediaID, err := loadV2AnimeMediaIDByRef(ctx, tx, trimmedMediaRef, "poster")
+	if err != nil {
+		return err
+	}
+	if err := removeAnimeMediaLinksByType(ctx, tx, animeID, "poster"); err != nil {
+		return err
+	}
+	if err := upsertAnimeMediaLink(ctx, tx, animeID, mediaID, 0); err != nil {
+		return err
+	}
+	if err := syncLegacyAnimeCoverImageV2(ctx, tx, animeID, mediaID, schema); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit assign anime cover v2 tx: %w", err)
 	}
 	return nil
 }
 
+func (r *AnimeAssetRepository) clearCoverV2(
+	ctx context.Context,
+	animeID int64,
+) (*models.AnimeAssetRemovalResult, error) {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("begin clear anime cover v2 tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	schema, err := loadAnimeV2SchemaInfo(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
+	if err := lockAnimeRow(ctx, tx, animeID); err != nil {
+		return nil, err
+	}
+	result, err := removeAnimePosterAssetsV2(ctx, tx, animeID, schema)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit clear anime cover v2 tx: %w", err)
+	}
+	return result, nil
+}
+
+func removeAnimePosterAssetsV2(
+	ctx context.Context,
+	tx pgx.Tx,
+	animeID int64,
+	schema animeV2SchemaInfo,
+) (*models.AnimeAssetRemovalResult, error) {
+	rows, err := tx.Query(ctx, `
+		SELECT
+			ma.id,
+			COALESCE(mf.path, ma.file_path) AS resolved_path
+		FROM anime_media am
+		JOIN media_assets ma ON ma.id = am.media_id
+		JOIN media_types mt ON mt.id = ma.media_type_id
+		LEFT JOIN LATERAL (
+			SELECT path
+			FROM media_files
+			WHERE media_id = ma.id
+			ORDER BY
+				CASE WHEN variant = 'original' THEN 0 ELSE 1 END,
+				id ASC
+			LIMIT 1
+		) mf ON true
+		WHERE am.anime_id = $1
+		  AND mt.name = 'poster'
+		ORDER BY am.sort_order ASC, ma.id ASC
+	`, animeID)
+	if err != nil {
+		return nil, fmt.Errorf("query anime poster assets %d: %w", animeID, err)
+	}
+	defer rows.Close()
+
+	type posterAsset struct {
+		mediaID int64
+		path    string
+	}
+	assets := make([]posterAsset, 0)
+	for rows.Next() {
+		var item posterAsset
+		if err := rows.Scan(&item.mediaID, &item.path); err != nil {
+			return nil, fmt.Errorf("scan anime poster asset %d: %w", animeID, err)
+		}
+		assets = append(assets, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate anime poster assets %d: %w", animeID, err)
+	}
+
+	if err := removeAnimeMediaLinksByType(ctx, tx, animeID, "poster"); err != nil {
+		return nil, err
+	}
+	if schema.HasCoverImage {
+		if _, err := tx.Exec(ctx, `
+			UPDATE anime
+			SET cover_image = NULL, updated_at = NOW()
+			WHERE id = $1
+		`, animeID); err != nil {
+			return nil, fmt.Errorf("clear legacy anime cover image %d: %w", animeID, err)
+		}
+	}
+
+	result := &models.AnimeAssetRemovalResult{RemovedPaths: make([]string, 0, len(assets))}
+	for _, asset := range assets {
+		var stillReferenced bool
+		if err := tx.QueryRow(ctx, `
+			SELECT EXISTS(
+				SELECT 1
+				FROM anime_media
+				WHERE media_id = $1
+				UNION ALL
+				SELECT 1 FROM episode_media WHERE media_id = $1
+				UNION ALL
+				SELECT 1 FROM fansub_group_media WHERE media_id = $1
+				UNION ALL
+				SELECT 1 FROM release_media WHERE media_id = $1
+			)
+		`, asset.mediaID).Scan(&stillReferenced); err != nil {
+			return nil, fmt.Errorf("check poster media references anime=%d media=%d: %w", animeID, asset.mediaID, err)
+		}
+		if stillReferenced {
+			continue
+		}
+
+		if _, err := tx.Exec(ctx, `DELETE FROM media_external WHERE media_id = $1`, asset.mediaID); err != nil {
+			return nil, fmt.Errorf("delete poster media external anime=%d media=%d: %w", animeID, asset.mediaID, err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM media_files WHERE media_id = $1`, asset.mediaID); err != nil {
+			return nil, fmt.Errorf("delete poster media files anime=%d media=%d: %w", animeID, asset.mediaID, err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM media_assets WHERE id = $1`, asset.mediaID); err != nil {
+			return nil, fmt.Errorf("delete poster media asset anime=%d media=%d: %w", animeID, asset.mediaID, err)
+		}
+
+		if strings.TrimSpace(asset.path) != "" {
+			result.RemovedPaths = append(result.RemovedPaths, strings.TrimSpace(asset.path))
+		}
+	}
+
+	return result, nil
+}
+
+func syncLegacyAnimeCoverImageV2(
+	ctx context.Context,
+	tx pgx.Tx,
+	animeID int64,
+	mediaID int64,
+	schema animeV2SchemaInfo,
+) error {
+	if !schema.HasCoverImage {
+		return nil
+	}
+
+	var coverPath string
+	if err := tx.QueryRow(ctx, `
+		SELECT COALESCE(mf.path, ma.file_path)
+		FROM media_assets ma
+		LEFT JOIN LATERAL (
+			SELECT path
+			FROM media_files
+			WHERE media_id = ma.id
+			ORDER BY
+				CASE WHEN variant = 'original' THEN 0 ELSE 1 END,
+				id ASC
+			LIMIT 1
+		) mf ON true
+		WHERE ma.id = $1
+	`, mediaID).Scan(&coverPath); errors.Is(err, pgx.ErrNoRows) {
+		return ErrNotFound
+	} else if err != nil {
+		return fmt.Errorf("load legacy anime cover image path %d: %w", mediaID, err)
+	}
+
+	if _, err := tx.Exec(ctx, `
+		UPDATE anime
+		SET cover_image = $2, updated_at = NOW()
+		WHERE id = $1
+	`, animeID, strings.TrimSpace(coverPath)); err != nil {
+		return fmt.Errorf("sync legacy anime cover image %d: %w", animeID, err)
+	}
+
+	return nil
+}
+
 func (r *AnimeAssetRepository) AssignManualBanner(ctx context.Context, animeID int64, mediaID string) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if useV2Schema {
+		return r.assignManualBannerV2(ctx, animeID, mediaID)
+	}
+
 	trimmedMediaID := strings.TrimSpace(mediaID)
 	if trimmedMediaID == "" {
 		return ErrNotFound
@@ -365,6 +640,14 @@ func (r *AnimeAssetRepository) AssignManualBanner(ctx context.Context, animeID i
 }
 
 func (r *AnimeAssetRepository) ClearBanner(ctx context.Context, animeID int64) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if useV2Schema {
+		return r.clearBannerV2(ctx, animeID)
+	}
+
 	tag, err := r.db.Exec(ctx, `
 		UPDATE anime
 		SET
@@ -385,6 +668,14 @@ func (r *AnimeAssetRepository) ClearBanner(ctx context.Context, animeID int64) e
 }
 
 func (r *AnimeAssetRepository) AddManualBackground(ctx context.Context, animeID int64, mediaID string) (*models.AnimeBackgroundAsset, error) {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if useV2Schema {
+		return r.addManualBackgroundV2(ctx, animeID, mediaID)
+	}
+
 	trimmedMediaID := strings.TrimSpace(mediaID)
 	if trimmedMediaID == "" {
 		return nil, ErrNotFound
@@ -456,7 +747,59 @@ func (r *AnimeAssetRepository) AddManualBackground(ctx context.Context, animeID 
 	return &item, nil
 }
 
+func (r *AnimeAssetRepository) AssignManualLogo(ctx context.Context, animeID int64, mediaID string) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if !useV2Schema {
+		return ErrNotFound
+	}
+	return r.assignManualSingularAssetV2(ctx, animeID, mediaID, "logo")
+}
+
+func (r *AnimeAssetRepository) ClearLogo(ctx context.Context, animeID int64) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if !useV2Schema {
+		return ErrNotFound
+	}
+	return r.clearSingularAssetV2(ctx, animeID, "logo")
+}
+
+func (r *AnimeAssetRepository) AssignManualBackgroundVideo(ctx context.Context, animeID int64, mediaID string) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if !useV2Schema {
+		return ErrNotFound
+	}
+	return r.assignManualSingularAssetV2(ctx, animeID, mediaID, "background_video")
+}
+
+func (r *AnimeAssetRepository) ClearBackgroundVideo(ctx context.Context, animeID int64) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if !useV2Schema {
+		return ErrNotFound
+	}
+	return r.clearSingularAssetV2(ctx, animeID, "background_video")
+}
+
 func (r *AnimeAssetRepository) RemoveBackground(ctx context.Context, animeID int64, backgroundID int64) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if useV2Schema {
+		return r.removeBackgroundV2(ctx, animeID, backgroundID)
+	}
+
 	tag, err := r.db.Exec(ctx, `
 		DELETE FROM anime_background_assets
 		WHERE anime_id = $1 AND id = $2
@@ -471,6 +814,14 @@ func (r *AnimeAssetRepository) RemoveBackground(ctx context.Context, animeID int
 }
 
 func (r *AnimeAssetRepository) ApplyProviderBanner(ctx context.Context, animeID int64, input *models.AnimeProviderAssetInput) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if useV2Schema {
+		return r.applyProviderBannerV2(ctx, animeID, input)
+	}
+
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("begin apply anime banner provider tx: %w", err)
@@ -592,6 +943,14 @@ func (r *AnimeAssetRepository) ApplyProviderBackgrounds(
 	animeID int64,
 	incoming []models.AnimeProviderAssetInput,
 ) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if useV2Schema {
+		return r.applyProviderBackgroundsV2(ctx, animeID, incoming)
+	}
+
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("begin apply anime backgrounds provider tx: %w", err)
@@ -665,6 +1024,441 @@ func (r *AnimeAssetRepository) ApplyProviderBackgrounds(
 		return fmt.Errorf("commit anime backgrounds provider tx: %w", err)
 	}
 	return nil
+}
+
+func (r *AnimeAssetRepository) assignManualBannerV2(ctx context.Context, animeID int64, mediaRef string) error {
+	return r.assignManualSingularAssetV2(ctx, animeID, mediaRef, "banner")
+}
+
+func (r *AnimeAssetRepository) clearBannerV2(ctx context.Context, animeID int64) error {
+	return r.clearSingularAssetV2(ctx, animeID, "banner")
+}
+
+func (r *AnimeAssetRepository) addManualBackgroundV2(ctx context.Context, animeID int64, mediaRef string) (*models.AnimeBackgroundAsset, error) {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("begin add anime background v2 tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	if err := lockAnimeRow(ctx, tx, animeID); err != nil {
+		return nil, err
+	}
+
+	mediaID, err := loadV2AnimeMediaIDByRef(ctx, tx, strings.TrimSpace(mediaRef), "background")
+	if err != nil {
+		return nil, err
+	}
+	nextSort, err := loadNextAnimeMediaSortOrderByType(ctx, tx, animeID, "background")
+	if err != nil {
+		return nil, err
+	}
+	if err := upsertAnimeMediaLink(ctx, tx, animeID, mediaID, nextSort); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit add anime background v2 tx: %w", err)
+	}
+
+	resolved, err := r.getResolvedAssetsV2(ctx, animeID)
+	if err != nil {
+		return nil, err
+	}
+	mediaIDText := fmt.Sprintf("%d", mediaID)
+	for _, item := range resolved.Backgrounds {
+		if derefString(item.MediaID) == mediaIDText {
+			copy := item
+			return &copy, nil
+		}
+	}
+
+	return nil, ErrNotFound
+}
+
+func (r *AnimeAssetRepository) removeBackgroundV2(ctx context.Context, animeID int64, backgroundID int64) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("begin remove anime background v2 tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	if err := lockAnimeRow(ctx, tx, animeID); err != nil {
+		return err
+	}
+	tag, err := tx.Exec(ctx, `
+		DELETE FROM anime_media am
+		USING media_assets ma, media_types mt
+		WHERE am.media_id = ma.id
+		  AND ma.media_type_id = mt.id
+		  AND am.anime_id = $1
+		  AND am.media_id = $2
+		  AND mt.name = 'background'
+	`, animeID, backgroundID)
+	if err != nil {
+		return fmt.Errorf("remove anime background v2 %d/%d: %w", animeID, backgroundID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit remove anime background v2 tx: %w", err)
+	}
+	return nil
+}
+
+func (r *AnimeAssetRepository) applyProviderBannerV2(ctx context.Context, animeID int64, input *models.AnimeProviderAssetInput) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("begin apply anime banner provider v2 tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	if err := lockAnimeRow(ctx, tx, animeID); err != nil {
+		return err
+	}
+	if manual, err := hasManualAnimeMediaByType(ctx, tx, animeID, "banner"); err != nil {
+		return err
+	} else if manual {
+		return tx.Commit(ctx)
+	}
+
+	if input == nil || strings.TrimSpace(input.URL) == "" {
+		if err := removeAnimeMediaLinksByType(ctx, tx, animeID, "banner"); err != nil {
+			return err
+		}
+	} else {
+		mediaID, err := ensureProviderAnimeMediaV2(ctx, tx, "banner", input)
+		if err != nil {
+			return err
+		}
+		if err := removeAnimeMediaLinksByType(ctx, tx, animeID, "banner"); err != nil {
+			return err
+		}
+		if err := upsertAnimeMediaLink(ctx, tx, animeID, mediaID, 0); err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit anime banner provider v2 tx: %w", err)
+	}
+	return nil
+}
+
+func (r *AnimeAssetRepository) applyProviderBackgroundsV2(
+	ctx context.Context,
+	animeID int64,
+	incoming []models.AnimeProviderAssetInput,
+) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("begin apply anime backgrounds provider v2 tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	if err := lockAnimeRow(ctx, tx, animeID); err != nil {
+		return err
+	}
+
+	rows, err := tx.Query(ctx, `
+		SELECT am.media_id, COALESCE(me.provider, ''), me.external_id, am.sort_order
+		FROM anime_media am
+		JOIN media_assets ma ON ma.id = am.media_id
+		JOIN media_types mt ON mt.id = ma.media_type_id
+		LEFT JOIN LATERAL (
+			SELECT provider, external_id
+			FROM media_external
+			WHERE media_id = ma.id
+			ORDER BY id ASC
+			LIMIT 1
+		) me ON true
+		WHERE am.anime_id = $1
+		  AND mt.name = 'background'
+		ORDER BY am.sort_order ASC, am.media_id ASC
+		FOR UPDATE
+	`, animeID)
+	if err != nil {
+		return fmt.Errorf("query anime background rows for v2 update %d: %w", animeID, err)
+	}
+	defer rows.Close()
+
+	existing := make([]storedAnimeBackgroundAsset, 0)
+	for rows.Next() {
+		var item storedAnimeBackgroundAsset
+		var provider string
+		if err := rows.Scan(&item.ID, &provider, &item.ProviderKey, &item.SortOrder); err != nil {
+			return fmt.Errorf("scan anime background v2 row %d: %w", animeID, err)
+		}
+		if strings.TrimSpace(provider) == "" {
+			item.Source = string(models.AnimeAssetOwnershipManual)
+		} else {
+			item.Source = string(models.AnimeAssetOwnershipProvider)
+		}
+		existing = append(existing, item)
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate anime background v2 rows %d: %w", animeID, err)
+	}
+
+	plan := reconcileAnimeProviderBackgrounds(existing, incoming)
+	for _, update := range plan.Updates {
+		if _, err := tx.Exec(ctx, `
+			UPDATE media_assets
+			SET file_path = $2, modified_at = NOW()
+			WHERE id = $1
+		`, update.ID, update.URL); err != nil {
+			return fmt.Errorf("update anime provider background v2 %d: %w", update.ID, err)
+		}
+	}
+	for _, insert := range plan.Inserts {
+		mediaID, err := ensureProviderAnimeMediaV2(ctx, tx, "background", &models.AnimeProviderAssetInput{
+			URL:         insert.URL,
+			ProviderKey: insert.ProviderKey,
+		})
+		if err != nil {
+			return err
+		}
+		if err := upsertAnimeMediaLink(ctx, tx, animeID, mediaID, insert.SortOrder); err != nil {
+			return err
+		}
+	}
+	for _, deleteID := range plan.DeleteIDs {
+		if _, err := tx.Exec(ctx, `
+			DELETE FROM anime_media
+			WHERE anime_id = $1 AND media_id = $2
+		`, animeID, deleteID); err != nil {
+			return fmt.Errorf("delete anime provider background v2 %d: %w", deleteID, err)
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit anime backgrounds provider v2 tx: %w", err)
+	}
+	return nil
+}
+
+func (r *AnimeAssetRepository) assignManualSingularAssetV2(ctx context.Context, animeID int64, mediaRef string, mediaType string) error {
+	spec, ok := lookupAnimeAssetLinkSpec(mediaType)
+	if !ok || !spec.Singular {
+		return ErrNotFound
+	}
+
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("begin assign anime %s v2 tx: %w", mediaType, err)
+	}
+	defer tx.Rollback(ctx)
+
+	if err := lockAnimeRow(ctx, tx, animeID); err != nil {
+		return err
+	}
+
+	mediaID, err := loadV2AnimeMediaIDByRef(ctx, tx, strings.TrimSpace(mediaRef), spec.MediaType)
+	if err != nil {
+		return err
+	}
+	if err := removeAnimeMediaLinksByType(ctx, tx, animeID, spec.MediaType); err != nil {
+		return err
+	}
+	if err := upsertAnimeMediaLink(ctx, tx, animeID, mediaID, 0); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit assign anime %s v2 tx: %w", mediaType, err)
+	}
+	return nil
+}
+
+func (r *AnimeAssetRepository) clearSingularAssetV2(ctx context.Context, animeID int64, mediaType string) error {
+	spec, ok := lookupAnimeAssetLinkSpec(mediaType)
+	if !ok || !spec.Singular {
+		return ErrNotFound
+	}
+
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("begin clear anime %s v2 tx: %w", mediaType, err)
+	}
+	defer tx.Rollback(ctx)
+
+	if err := lockAnimeRow(ctx, tx, animeID); err != nil {
+		return err
+	}
+	if err := removeAnimeMediaLinksByType(ctx, tx, animeID, spec.MediaType); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit clear anime %s v2 tx: %w", mediaType, err)
+	}
+	return nil
+}
+
+func loadV2AnimeMediaIDByRef(ctx context.Context, tx pgx.Tx, mediaRef string, mediaType string) (int64, error) {
+	trimmedMediaRef := strings.TrimSpace(mediaRef)
+	if trimmedMediaRef == "" {
+		return 0, ErrNotFound
+	}
+
+	var mediaID int64
+	var actualMediaType string
+	if err := tx.QueryRow(ctx, `
+		SELECT ma.id, COALESCE(mt.name, '')
+		FROM media_assets ma
+		LEFT JOIN media_types mt ON mt.id = ma.media_type_id
+		WHERE ma.id::text = $1
+		LIMIT 1
+	`, trimmedMediaRef).Scan(&mediaID, &actualMediaType); errors.Is(err, pgx.ErrNoRows) {
+		return 0, ErrNotFound
+	} else if err != nil {
+		return 0, fmt.Errorf("load v2 anime %s media ref %q: %w", mediaType, trimmedMediaRef, err)
+	}
+	if err := validateAnimeAssetLinkMediaType(animeAssetLinkSpec{MediaType: mediaType}, actualMediaType); err != nil {
+		return 0, err
+	}
+
+	return mediaID, nil
+}
+
+func loadNextAnimeMediaSortOrderByType(ctx context.Context, tx pgx.Tx, animeID int64, mediaType string) (int32, error) {
+	var nextSort int32
+	if err := tx.QueryRow(ctx, `
+		SELECT COALESCE(MAX(am.sort_order), -1) + 1
+		FROM anime_media am
+		JOIN media_assets ma ON ma.id = am.media_id
+		JOIN media_types mt ON mt.id = ma.media_type_id
+		WHERE am.anime_id = $1
+		  AND mt.name = $2
+	`, animeID, mediaType).Scan(&nextSort); err != nil {
+		return 0, fmt.Errorf("load next anime %s sort for %d: %w", mediaType, animeID, err)
+	}
+	return nextSort, nil
+}
+
+func upsertAnimeMediaLink(ctx context.Context, tx pgx.Tx, animeID int64, mediaID int64, sortOrder int32) error {
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO anime_media (anime_id, media_id, sort_order)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (anime_id, media_id) DO UPDATE SET sort_order = EXCLUDED.sort_order
+	`, animeID, mediaID, sortOrder); err != nil {
+		return fmt.Errorf("link anime media anime=%d media=%d: %w", animeID, mediaID, err)
+	}
+	return nil
+}
+
+func removeAnimeMediaLinksByType(ctx context.Context, tx pgx.Tx, animeID int64, mediaType string) error {
+	if _, err := tx.Exec(ctx, `
+		DELETE FROM anime_media am
+		USING media_assets ma, media_types mt
+		WHERE am.media_id = ma.id
+		  AND ma.media_type_id = mt.id
+		  AND am.anime_id = $1
+		  AND mt.name = $2
+	`, animeID, mediaType); err != nil {
+		return fmt.Errorf("remove anime %s links %d: %w", mediaType, animeID, err)
+	}
+	return nil
+}
+
+func hasManualAnimeMediaByType(ctx context.Context, tx pgx.Tx, animeID int64, mediaType string) (bool, error) {
+	var hasManual bool
+	if err := tx.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			LEFT JOIN media_external me ON me.media_id = ma.id
+			WHERE am.anime_id = $1
+			  AND mt.name = $2
+			  AND me.id IS NULL
+		)
+	`, animeID, mediaType).Scan(&hasManual); err != nil {
+		return false, fmt.Errorf("check anime %s manual ownership %d: %w", mediaType, animeID, err)
+	}
+	return hasManual, nil
+}
+
+func ensureProviderAnimeMediaV2(ctx context.Context, tx pgx.Tx, mediaType string, input *models.AnimeProviderAssetInput) (int64, error) {
+	if input == nil || strings.TrimSpace(input.URL) == "" {
+		return 0, ErrNotFound
+	}
+
+	external := buildJellyfinMediaExternal(input.URL)
+	if external == nil {
+		providerKey := strings.TrimSpace(input.ProviderKey)
+		if providerKey == "" {
+			providerKey = strings.TrimSpace(input.URL)
+		}
+		external = &mediaExternalRef{
+			Provider:     "jellyfin",
+			ExternalID:   providerKey,
+			ExternalType: mediaType,
+		}
+	} else if strings.TrimSpace(input.ProviderKey) != "" {
+		external.ExternalID = strings.TrimSpace(input.ProviderKey)
+		external.ExternalType = mediaType
+	}
+
+	mediaTypeID, err := loadAnimeMediaTypeID(ctx, tx, mediaType)
+	if err != nil {
+		return 0, err
+	}
+
+	var mediaID int64
+	if err := tx.QueryRow(ctx, `
+		SELECT media_id
+		FROM media_external
+		WHERE provider = $1 AND external_id = $2 AND external_type = $3
+		LIMIT 1
+	`, external.Provider, external.ExternalID, external.ExternalType).Scan(&mediaID); errors.Is(err, pgx.ErrNoRows) {
+		if err := tx.QueryRow(ctx, `
+			INSERT INTO media_assets (media_type_id, file_path, format)
+			VALUES ($1, $2, 'image')
+			RETURNING id
+		`, mediaTypeID, strings.TrimSpace(input.URL)).Scan(&mediaID); err != nil {
+			return 0, fmt.Errorf("create provider anime %s media: %w", mediaType, err)
+		}
+	} else if err != nil {
+		return 0, fmt.Errorf("load provider anime %s media: %w", mediaType, err)
+	} else {
+		if _, err := tx.Exec(ctx, `
+			UPDATE media_assets
+			SET media_type_id = $2, file_path = $3, format = 'image', modified_at = NOW()
+			WHERE id = $1
+		`, mediaID, mediaTypeID, strings.TrimSpace(input.URL)); err != nil {
+			return 0, fmt.Errorf("update provider anime %s media %d: %w", mediaType, mediaID, err)
+		}
+	}
+
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO media_external (media_id, provider, external_id, external_type, metadata)
+		VALUES ($1, $2, $3, $4, NULL)
+		ON CONFLICT (provider, external_id, external_type)
+		DO UPDATE SET media_id = EXCLUDED.media_id
+	`, mediaID, external.Provider, external.ExternalID, external.ExternalType); err != nil {
+		return 0, fmt.Errorf("link provider anime %s media %d: %w", mediaType, mediaID, err)
+	}
+
+	return mediaID, nil
+}
+
+func loadAnimeMediaTypeID(ctx context.Context, tx pgx.Tx, mediaType string) (int64, error) {
+	var mediaTypeID int64
+	if err := tx.QueryRow(ctx, `
+		SELECT id
+		FROM media_types
+		WHERE name = $1
+		LIMIT 1
+	`, mediaType).Scan(&mediaTypeID); errors.Is(err, pgx.ErrNoRows) {
+		return 0, ErrNotFound
+	} else if err != nil {
+		return 0, fmt.Errorf("load media type %q: %w", mediaType, err)
+	}
+	return mediaTypeID, nil
 }
 
 func (r *AnimeAssetRepository) ensureAnimeMediaAsset(ctx context.Context, animeID int64, mediaID string) error {

@@ -116,6 +116,25 @@ type AdminAnimeDeleteResult struct {
 	OrphanedLocalCoverImage *string `json:"orphaned_local_cover_image,omitempty"`
 }
 
+type AdminAnimeRelation struct {
+	TargetAnimeID  int64   `json:"target_anime_id"`
+	RelationLabel  string  `json:"relation_label"`
+	TargetTitle    string  `json:"target_title"`
+	TargetType     string  `json:"target_type"`
+	TargetYear     *int16  `json:"target_year,omitempty"`
+	TargetStatus   string  `json:"target_status"`
+	TargetCoverURL *string `json:"target_cover_url,omitempty"`
+}
+
+type AdminAnimeRelationTarget struct {
+	AnimeID  int64   `json:"anime_id"`
+	Title    string  `json:"title"`
+	Type     string  `json:"type"`
+	Status   string  `json:"status"`
+	Year     *int16  `json:"year,omitempty"`
+	CoverURL *string `json:"cover_url,omitempty"`
+}
+
 type AdminEpisodeItem struct {
 	ID            int64   `json:"id"`
 	AnimeID       int64   `json:"anime_id"`
@@ -180,9 +199,11 @@ type AdminAnimePersistedBackgroundState struct {
 }
 
 type AdminAnimePersistedAssets struct {
-	Cover       *AdminAnimePersistedAssetState       `json:"cover,omitempty"`
-	Banner      *AdminAnimePersistedAssetState       `json:"banner,omitempty"`
-	Backgrounds []AdminAnimePersistedBackgroundState `json:"backgrounds"`
+	Cover           *AdminAnimePersistedAssetState       `json:"cover,omitempty"`
+	Banner          *AdminAnimePersistedAssetState       `json:"banner,omitempty"`
+	Logo            *AdminAnimePersistedAssetState       `json:"logo,omitempty"`
+	BackgroundVideo *AdminAnimePersistedAssetState       `json:"background_video,omitempty"`
+	Backgrounds     []AdminAnimePersistedBackgroundState `json:"backgrounds"`
 }
 
 type AdminAnimeJellyfinProvenanceContext struct {

@@ -28,12 +28,18 @@ type AnimeBackgroundAsset struct {
 }
 
 type AnimeResolvedAssets struct {
-	Cover       *AnimeResolvedAsset    `json:"cover,omitempty"`
-	Banner      *AnimeResolvedAsset    `json:"banner,omitempty"`
-	Backgrounds []AnimeBackgroundAsset `json:"backgrounds"`
+	Cover           *AnimeResolvedAsset    `json:"cover,omitempty"`
+	Banner          *AnimeResolvedAsset    `json:"banner,omitempty"`
+	Logo            *AnimeResolvedAsset    `json:"logo,omitempty"`
+	BackgroundVideo *AnimeResolvedAsset    `json:"background_video,omitempty"`
+	Backgrounds     []AnimeBackgroundAsset `json:"backgrounds"`
 }
 
 type AnimeProviderAssetInput struct {
 	URL         string
 	ProviderKey string
+}
+
+type AnimeAssetRemovalResult struct {
+	RemovedPaths []string `json:"removed_paths,omitempty"`
 }

@@ -12,7 +12,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var ErrNotFound = errors.New("not found")
+var (
+	ErrNotFound                    = errors.New("not found")
+	ErrAnimeAssetMediaTypeMismatch = errors.New("anime asset media type mismatch")
+)
 
 type AnimeRepository struct {
 	db *pgxpool.Pool
@@ -23,12 +26,12 @@ func NewAnimeRepository(db *pgxpool.Pool) *AnimeRepository {
 }
 
 func (r *AnimeRepository) List(ctx context.Context, filter models.AnimeFilter) ([]models.AnimeListItem, int64, error) {
-	useV2Schema, err := r.hasV2AnimeSchema(ctx)
+	schema, err := r.loadAnimeV2SchemaInfo(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
-	if useV2Schema {
-		return r.listV2(ctx, filter)
+	if schema.HasSlug {
+		return r.listV2(ctx, filter, schema)
 	}
 
 	whereSQL, args := buildAnimeListWhere(filter)
@@ -84,12 +87,12 @@ func (r *AnimeRepository) List(ctx context.Context, filter models.AnimeFilter) (
 }
 
 func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled bool) (*models.AnimeDetail, error) {
-	useV2Schema, err := r.hasV2AnimeSchema(ctx)
+	schema, err := r.loadAnimeV2SchemaInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if useV2Schema {
-		return r.getByIDV2(ctx, id)
+	if schema.HasSlug {
+		return r.getByIDV2(ctx, id, includeDisabled, schema)
 	}
 
 	query := `
@@ -200,12 +203,12 @@ func (r *AnimeRepository) GetMediaLookupByID(
 	id int64,
 	includeDisabled bool,
 ) (*models.AnimeMediaLookup, error) {
-	useV2Schema, err := r.hasV2AnimeSchema(ctx)
+	schema, err := r.loadAnimeV2SchemaInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if useV2Schema {
-		return r.getMediaLookupByIDV2(ctx, id)
+	if schema.HasSlug {
+		return r.getMediaLookupByIDV2(ctx, id, includeDisabled, schema)
 	}
 
 	query := `
