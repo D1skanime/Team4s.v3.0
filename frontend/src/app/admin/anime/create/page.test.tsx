@@ -39,6 +39,16 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).not.toContain("frontend/public/covers");
   });
 
+  it("renders manual staging controls for banner, logo, background, and background-video on create", () => {
+    const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
+
+    expect(markup).toContain("Banner");
+    expect(markup).toContain("Logo");
+    expect(markup).toContain("Background");
+    expect(markup).toContain("Background-Video");
+    expect(markup).toContain("Asset-Upload");
+  });
+
   it("keeps the default primary CTA copy until submit is in progress", () => {
     const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
 
