@@ -1085,6 +1085,433 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/upload:
+    post:
+      tags: [Admin]
+      summary: Upload admin-managed anime media through the shared V2 seam
+      operationId: adminUploadMedia
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [entity_type, entity_id, asset_type, file]
+              properties:
+                entity_type:
+                  type: string
+                  enum: [anime]
+                entity_id:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                asset_type:
+                  $ref: "#/components/schemas/AdminUploadAssetType"
+                file:
+                  type: string
+                  format: binary
+            encoding:
+              file:
+                contentType: image/jpeg, image/png, image/webp, image/gif, video/mp4, video/webm
+      responses:
+        "200":
+          description: Uploaded media asset metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMediaUploadResponse"
+        "400":
+          description: Invalid upload request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidEntityType:
+                  value:
+                    error:
+                      message: ungueltiger entity_type
+                      code: asset_lifecycle.invalid_entity_type
+                      details: nur anime uploads sind hier erlaubt
+                invalidAssetType:
+                  value:
+                    error:
+                      message: ungueltiger asset_type
+                      code: asset_lifecycle.invalid_asset_type
+                missingFile:
+                  value:
+                    error:
+                      message: keine datei hochgeladen
+                      code: media_upload.missing_file
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                forbidden:
+                  value:
+                    error:
+                      message: keine berechtigung
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime/{id}/assets/cover:
+    put:
+      tags: [Admin]
+      summary: Assign uploaded cover media to an anime
+      operationId: adminAssignAnimeCoverAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/AdminAnimeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAnimeAssetAssignRequest"
+      responses:
+        "204":
+          description: Cover assigned
+        "400":
+          description: Invalid anime id, request body, or media type mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidId:
+                  value:
+                    error:
+                      message: ungueltige anime id
+                invalidBody:
+                  value:
+                    error:
+                      message: ungueltige anfrage
+                mismatchedMedia:
+                  value:
+                    error:
+                      message: media asset passt nicht zu cover
+        "404":
+          description: Anime or media asset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: anime oder media asset nicht gefunden
+    delete:
+      tags: [Admin]
+      summary: Clear the assigned cover media from an anime
+      operationId: adminDeleteAnimeCoverAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/AdminAnimeId"
+      responses:
+        "204":
+          description: Cover cleared
+        "400":
+          description: Invalid anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidId:
+                  value:
+                    error:
+                      message: ungueltige anime id
+        "404":
+          description: Anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: anime nicht gefunden
+  /api/v1/admin/anime/{id}/assets/banner:
+    put:
+      tags: [Admin]
+      summary: Assign uploaded banner media to an anime
+      operationId: adminAssignAnimeBannerAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/AdminAnimeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAnimeAssetAssignRequest"
+      responses:
+        "204":
+          description: Banner assigned
+        "400":
+          description: Invalid anime id, request body, or media type mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                mismatchedMedia:
+                  value:
+                    error:
+                      message: media asset passt nicht zu banner
+        "404":
+          description: Anime or media asset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Admin]
+      summary: Clear the assigned banner media from an anime
+      operationId: adminDeleteAnimeBannerAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/AdminAnimeId"
+      responses:
+        "204":
+          description: Banner cleared
+        "400":
+          description: Invalid anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime/{id}/assets/logo:
+    put:
+      tags: [Admin]
+      summary: Assign uploaded logo media to an anime
+      operationId: adminAssignAnimeLogoAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/AdminAnimeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAnimeAssetAssignRequest"
+      responses:
+        "204":
+          description: Logo assigned
+        "400":
+          description: Invalid anime id, request body, or media type mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                mismatchedMedia:
+                  value:
+                    error:
+                      message: media asset passt nicht zu logo
+        "404":
+          description: Anime or media asset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Admin]
+      summary: Clear the assigned logo media from an anime
+      operationId: adminDeleteAnimeLogoAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/AdminAnimeId"
+      responses:
+        "204":
+          description: Logo cleared
+        "400":
+          description: Invalid anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime/{id}/assets/background_video:
+    put:
+      tags: [Admin]
+      summary: Assign uploaded background video media to an anime
+      operationId: adminAssignAnimeBackgroundVideoAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/AdminAnimeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAnimeAssetAssignRequest"
+      responses:
+        "204":
+          description: Background video assigned
+        "400":
+          description: Invalid anime id, request body, or media type mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                mismatchedMedia:
+                  value:
+                    error:
+                      message: media asset passt nicht zu background_video
+        "404":
+          description: Anime or media asset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Admin]
+      summary: Clear the assigned background video media from an anime
+      operationId: adminDeleteAnimeBackgroundVideoAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/AdminAnimeId"
+      responses:
+        "204":
+          description: Background video cleared
+        "400":
+          description: Invalid anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime/{id}/assets/backgrounds:
+    post:
+      tags: [Admin]
+      summary: Add uploaded background media to an anime's ordered background collection
+      operationId: adminAddAnimeBackgroundAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/AdminAnimeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAnimeAssetAssignRequest"
+      responses:
+        "201":
+          description: Background added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAnimeBackgroundAssetResponse"
+        "400":
+          description: Invalid anime id, request body, or media type mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                mismatchedMedia:
+                  value:
+                    error:
+                      message: media asset passt nicht zu background
+        "404":
+          description: Anime or media asset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime/{id}/assets/backgrounds/{backgroundId}:
+    delete:
+      tags: [Admin]
+      summary: Remove one background media link from an anime
+      operationId: adminDeleteAnimeBackgroundAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/AdminAnimeId"
+        - name: backgroundId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "204":
+          description: Background removed
+        "400":
+          description: Invalid anime id or background id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidAnimeId:
+                  value:
+                    error:
+                      message: ungueltige anime id
+                invalidBackgroundId:
+                  value:
+                    error:
+                      message: ungueltige background id
+        "404":
+          description: Background not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: background nicht gefunden
   /api/v1/admin/anime/{id}/jellyfin/sync:
     post:
       tags: [Admin]
@@ -4231,6 +4658,15 @@ components:
       type: http
       scheme: bearer
       bearerFormat: SignedToken
+  parameters:
+    AdminAnimeId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
   schemas:
     HealthResponse:
       type: object
@@ -4870,6 +5306,126 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/AdminAnimeItem"
+    AdminUploadAssetType:
+      type: string
+      enum: [poster, banner, logo, gallery, background, video, background_video]
+      description: |
+        Accepted upload labels. `poster`, `gallery`, and `video` are aliases that normalize to
+        `cover`, `background`, and `background_video` internally while still using the shared
+        `/api/v1/admin/upload` seam.
+    AdminAnimeAssetOwnership:
+      type: string
+      enum: [manual, provider]
+    AdminAnimeAssetAssignRequest:
+      type: object
+      required: [media_id]
+      properties:
+        media_id:
+          type: string
+          minLength: 1
+    ProvisioningFolderStatus:
+      type: object
+      required: [folder, state]
+      properties:
+        folder:
+          type: string
+        state:
+          type: string
+    ProvisioningResult:
+      type: object
+      required: [entity_type, entity_id, requested_asset_type, root_path, statuses]
+      properties:
+        entity_type:
+          type: string
+        entity_id:
+          type: integer
+          format: int64
+        requested_asset_type:
+          type: string
+        root_path:
+          type: string
+        statuses:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProvisioningFolderStatus"
+    AdminMediaUploadFile:
+      type: object
+      required: [variant, path, width, height]
+      properties:
+        variant:
+          type: string
+        path:
+          type: string
+        width:
+          type: integer
+          format: int32
+        height:
+          type: integer
+          format: int32
+    AdminMediaUploadResponse:
+      type: object
+      required: [id, status, files, url]
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminMediaUploadFile"
+        url:
+          type: string
+        provisioning:
+          allOf:
+            - $ref: "#/components/schemas/ProvisioningResult"
+          nullable: true
+    AdminAnimeResolvedAssetState:
+      type: object
+      required: [url, ownership]
+      properties:
+        media_id:
+          type: string
+          nullable: true
+        url:
+          type: string
+        ownership:
+          $ref: "#/components/schemas/AdminAnimeAssetOwnership"
+        provider_key:
+          type: string
+          nullable: true
+    AdminAnimeBackgroundAsset:
+      type: object
+      required: [id, url, ownership, sort_order, created_at, updated_at]
+      properties:
+        id:
+          type: integer
+          format: int64
+        media_id:
+          type: string
+          nullable: true
+        url:
+          type: string
+        ownership:
+          $ref: "#/components/schemas/AdminAnimeAssetOwnership"
+        provider_key:
+          type: string
+          nullable: true
+        sort_order:
+          type: integer
+          format: int32
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    AdminAnimeBackgroundAssetResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AdminAnimeBackgroundAsset"
     AdminEpisodeUpsertResponse:
       type: object
       required: [data]
