@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"reflect"
 	"strings"
 	"testing"
@@ -97,6 +98,36 @@ func TestBuildAnimeListWhere_FansubFilterArgPosition(t *testing.T) {
 	}
 }
 
+func TestBuildAnimeListWhereV2_UsesPersistedFieldsAndFilters(t *testing.T) {
+	whereSQL, args := buildAnimeListWhereV2(models.AnimeFilter{
+		ContentType: "movie",
+		Status:      "done",
+		HasCover:    boolPtr(false),
+		Q:           "eva",
+		Letter:      "E",
+	})
+
+	required := []string{
+		"anime.content_type = $1",
+		"anime.status = $2",
+		"NOT",
+		"btrim(ma.file_path) <> ''",
+		"anime.slug",
+		"at.title ILIKE $3",
+		"UPPER(LEFT(",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(whereSQL, fragment) {
+			t.Fatalf("expected where clause to contain %q, got %q", fragment, whereSQL)
+		}
+	}
+
+	wantArgs := []any{"movie", "done", "%eva%", "E"}
+	if !reflect.DeepEqual(args, wantArgs) {
+		t.Fatalf("expected args %#v, got %#v", wantArgs, args)
+	}
+}
+
 func TestBuildAnimeListWhere_IncludeDisabledTrue(t *testing.T) {
 	whereSQL, args := buildAnimeListWhere(models.AnimeFilter{IncludeDisabled: true})
 	if whereSQL != "" {
@@ -186,6 +217,64 @@ func TestPrimaryNormalizedTitleSQL_UsesCoalesceFallback(t *testing.T) {
 	}
 	if !strings.Contains(sql, "anime.id") || !strings.Contains(sql, ", title)") {
 		t.Fatalf("expected anime id reference and legacy fallback, got %q", sql)
+	}
+}
+
+func TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots(t *testing.T) {
+	tests := []struct {
+		slot      string
+		mediaType string
+	}{
+		{slot: "cover", mediaType: "poster"},
+		{slot: "banner", mediaType: "banner"},
+		{slot: "logo", mediaType: "logo"},
+		{slot: "background_video", mediaType: "background_video"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.slot, func(t *testing.T) {
+			spec, ok := animeAssetLinkSpec(tt.slot)
+			if !ok {
+				t.Fatalf("expected slot %q to be supported", tt.slot)
+			}
+			if spec.MediaType != tt.mediaType {
+				t.Fatalf("expected media type %q, got %q", tt.mediaType, spec.MediaType)
+			}
+			if !spec.Singular {
+				t.Fatalf("expected slot %q to stay singular", tt.slot)
+			}
+		})
+	}
+}
+
+func TestAnimeAssetLinkSpec_BackgroundRemainsCollection(t *testing.T) {
+	spec, ok := animeAssetLinkSpec("background")
+	if !ok {
+		t.Fatal("expected background slot to be supported")
+	}
+	if spec.MediaType != "background" {
+		t.Fatalf("expected background media type, got %q", spec.MediaType)
+	}
+	if spec.Singular {
+		t.Fatal("expected background slot to remain additive")
+	}
+}
+
+func TestAnimeAssetLinkSpec_RejectsMediaTypeMismatch(t *testing.T) {
+	spec, ok := animeAssetLinkSpec("logo")
+	if !ok {
+		t.Fatal("expected logo slot to be supported")
+	}
+
+	err := validateAnimeAssetLinkMediaType(spec, "background")
+	if !errors.Is(err, ErrAnimeAssetMediaTypeMismatch) {
+		t.Fatalf("expected ErrAnimeAssetMediaTypeMismatch, got %v", err)
+	}
+}
+
+func TestAnimeAssetLinkSpec_RejectsUnknownSlot(t *testing.T) {
+	if _, ok := animeAssetLinkSpec("trailer"); ok {
+		t.Fatal("expected unknown slot to be rejected")
 	}
 }
 

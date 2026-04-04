@@ -7,10 +7,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,18 +39,18 @@ func TestValidateAdminAnimeCreateRequest(t *testing.T) {
 	}
 }
 
-func TestValidateAdminAnimeCreateRequest_RequiresCover(t *testing.T) {
-	coverImage := "   "
-
-	_, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
+func TestValidateAdminAnimeCreateRequest_AllowsMissingCoverForDeferredUpload(t *testing.T) {
+	input, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
 		Title:       "Manual Draft",
 		Type:        "tv",
 		ContentType: "anime",
 		Status:      "ongoing",
-		CoverImage:  &coverImage,
 	})
-	if message != "cover_image ist erforderlich" {
-		t.Fatalf("unexpected message: %q", message)
+	if message != "" {
+		t.Fatalf("expected no validation error, got %q", message)
+	}
+	if input.CoverImage != nil {
+		t.Fatalf("expected cover image to stay nil for deferred upload, got %+v", input.CoverImage)
 	}
 }
 
@@ -87,7 +89,7 @@ func TestValidateAdminAnimeCreateRequest_ManualOnlyWithoutJellyfinDependency(t *
 		t.Fatalf("expected cover image %q, got %+v", coverImage, input.CoverImage)
 	}
 	if input.TitleDE != nil || input.TitleEN != nil || input.Year != nil || input.MaxEpisodes != nil || input.Genre != nil || input.Description != nil {
-		t.Fatalf("expected manual create contract to stay optional outside title and cover, got %+v", input)
+		t.Fatalf("expected manual create contract to stay optional outside title and optional cover, got %+v", input)
 	}
 }
 
@@ -641,6 +643,94 @@ func TestAdminContentRequireAdmin_RejectsMissingAuthzRepo(t *testing.T) {
 	if recorder.Code != http.StatusInternalServerError {
 		t.Fatalf("expected 500 when authz repo is missing, got %d", recorder.Code)
 	}
+}
+
+func TestAssignAnimeCoverAsset_InvalidAnimeIDReturnsGermanOperatorMessage(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPut, "/api/v1/admin/anime/not-a-number/assets/cover", strings.NewReader(`{"media_id":"42"}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = gin.Params{{Key: "id", Value: "not-a-number"}}
+	c.Set("auth_identity", middleware.AuthIdentity{
+		UserID:      12,
+		DisplayName: "Nico",
+	})
+
+	handler := &AdminContentHandler{
+		authzRepo:      stubAdminRoleChecker{allowed: true},
+		adminRoleName:  "admin",
+		animeAssetRepo: &repository.AnimeAssetRepository{},
+	}
+
+	handler.AssignAnimeCoverAsset(c)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", recorder.Code)
+	}
+
+	var payload struct {
+		Error struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("decode error payload: %v", err)
+	}
+	if payload.Error.Message != "ungueltige anime id" {
+		t.Fatalf("unexpected message %q", payload.Error.Message)
+	}
+}
+
+func TestAdminAnimeAssetUnsupportedOperationMessage_IsExplicit(t *testing.T) {
+	message := unsupportedAnimeAssetOperationMessage("logo", animeAssetOperationAdd)
+	if message != "logo unterstuetzt diese aktion nicht" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+}
+
+func TestAdminAnimeAssetMediaMismatchMessage_IsExplicit(t *testing.T) {
+	message, status := mapAnimeAssetLinkError("background_video", repository.ErrAnimeAssetMediaTypeMismatch)
+	if status != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", status)
+	}
+	if message != "media asset passt nicht zu background_video" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+}
+
+func TestNormalizeUploadAssetType_AcceptsAllPhaseSevenAliases(t *testing.T) {
+	tests := map[string]string{
+		"poster":           "cover",
+		"banner":           "banner",
+		"logo":             "logo",
+		"gallery":          "background",
+		"background":       "background",
+		"video":            "background_video",
+		"background_video": "background_video",
+	}
+
+	for input, want := range tests {
+		t.Run(input, func(t *testing.T) {
+			got, err := normalizeUploadAssetType(input)
+			if err != nil {
+				t.Fatalf("expected alias %q to be accepted: %v", input, err)
+			}
+			if got != want {
+				t.Fatalf("expected %q, got %q", want, got)
+			}
+		})
+	}
+}
+
+type stubAdminRoleChecker struct {
+	allowed bool
+	err     error
+}
+
+func (s stubAdminRoleChecker) UserHasRole(ctx context.Context, userID int64, roleName string) (bool, error) {
+	return s.allowed, s.err
 }
 
 // -------------------------------------------------------------------
