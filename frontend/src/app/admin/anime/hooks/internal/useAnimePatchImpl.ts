@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { getAdminGenreTokens } from '@/lib/api'
-import { AnimeType, GenreToken } from '@/types/admin'
+import { AdminAnimeAssetKind, AnimeType, GenreToken } from '@/types/admin'
 import { AnimeDetail, AnimeStatus, ContentType } from '@/types/anime'
 
 import { AnimePatchClearFlags, AnimePatchState, AnimePatchValues } from '../../types/admin-anime'
@@ -16,6 +16,7 @@ interface AnimePatchActions {
   setGenreSuggestionLimit: (next: number) => void
   resetFromAnime: (anime: AnimeDetail) => void
   submit: (animeID: number) => Promise<void>
+  uploadAndLinkAsset: (file: File, assetKind: AdminAnimeAssetKind, animeID?: number | null) => Promise<void>
   uploadAndSetCover: (file: File, animeID?: number | null) => Promise<void>
 }
 
@@ -212,7 +213,7 @@ export function useAnimePatch(
     setInitialClearFlags(EMPTY_CLEAR_FLAGS)
   }, [])
 
-  const { submit, uploadAndSetCover } = useAnimePatchMutations({
+  const { submit, uploadAndLinkAsset, uploadAndSetCover } = useAnimePatchMutations({
     authToken,
     hasAuthToken,
     values,
@@ -245,6 +246,7 @@ export function useAnimePatch(
     setGenreSuggestionLimit,
     resetFromAnime,
     submit,
+    uploadAndLinkAsset,
     uploadAndSetCover,
   }
 }

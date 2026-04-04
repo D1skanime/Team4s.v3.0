@@ -46,19 +46,23 @@ describe('AdminAnimeEditPage load error formatting', () => {
 
   it('exposes manual upload labels for logo and background video in the reachable edit UI', () => {
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
-    const source = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeJellyfinMetadataSection.tsx'), 'utf8')
+    const controlsSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeJellyfinAssetUploadControls.tsx'), 'utf8')
+    const configSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/animeJellyfinAssetUpload.ts'), 'utf8')
 
-    expect(source).toContain('Logo hochladen')
-    expect(source).toContain('Background-Video hochladen')
+    expect(controlsSource).toContain('EDIT_UPLOAD_TARGETS.logo.buttonLabel')
+    expect(controlsSource).toContain('EDIT_UPLOAD_TARGETS.background_video.buttonLabel')
+    expect(configSource).toContain('Logo hochladen')
+    expect(configSource).toContain('Background-Video hochladen')
   })
 
-  it('does not describe logo or background video as provider-only in the active edit UI copy', () => {
+  it('delegates non-cover asset controls out of the metadata shell and removes provider-only copy', () => {
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
-    const source = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeJellyfinMetadataSection.tsx'), 'utf8')
+    const metadataSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeJellyfinMetadataSection.tsx'), 'utf8')
+    const controlsSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeJellyfinAssetUploadControls.tsx'), 'utf8')
 
-    expect(source).not.toContain("asset.kind === 'logo'")
-    expect(source).not.toContain("asset.kind === 'background_video'")
-    expect(source).toContain('manuell ergaenzt')
-    expect(source).not.toContain('provider-only')
+    expect(metadataSource).toContain('AnimeJellyfinAssetUploadControls')
+    expect(controlsSource).toContain('manuell ersetzt')
+    expect(metadataSource).not.toContain('provider-only')
+    expect(controlsSource).not.toContain('provider-only')
   })
 })

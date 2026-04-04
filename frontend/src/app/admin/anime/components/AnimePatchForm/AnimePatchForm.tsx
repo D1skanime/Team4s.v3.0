@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
 
-import { getAnimeByID, updateAdminAnime } from '@/lib/api'
-import { AnimeType } from '@/types/admin'
+import { deleteAdminAnimeCoverAsset, getAnimeByID } from '@/lib/api'
+import { AdminAnimeAssetKind, AnimeType } from '@/types/admin'
 import { AnimeDetail, AnimeStatus, ContentType } from '@/types/anime'
 
 import { parsePositiveInt } from '../../utils/anime-helpers'
@@ -14,6 +14,12 @@ import styles from '../../../admin.module.css'
 const ANIME_TYPES: AnimeType[] = ['tv', 'film', 'ova', 'ona', 'special', 'bonus']
 const CONTENT_TYPES: ContentType[] = ['anime', 'hentai']
 const ANIME_STATUSES: AnimeStatus[] = ['disabled', 'ongoing', 'done', 'aborted', 'licensed']
+const NON_COVER_ASSET_UPLOADS: Array<{ kind: Exclude<AdminAnimeAssetKind, 'cover'>; label: string; accept: string }> = [
+  { kind: 'banner', label: 'Banner hochladen', accept: 'image/*' },
+  { kind: 'logo', label: 'Logo hochladen', accept: 'image/*' },
+  { kind: 'background', label: 'Background anhaengen', accept: 'image/*' },
+  { kind: 'background_video', label: 'Background-Video hochladen', accept: 'video/*' },
+]
 
 interface AnimePatchFormProps {
   anime: AnimeDetail | null
@@ -38,6 +44,10 @@ export function AnimePatchForm({
 }: AnimePatchFormProps) {
   const [animeIDInput, setAnimeIDInput] = useState('')
   const formRef = useRef<HTMLFormElement>(null)
+  const bannerInputRef = useRef<HTMLInputElement>(null)
+  const logoInputRef = useRef<HTMLInputElement>(null)
+  const backgroundInputRef = useRef<HTMLInputElement>(null)
+  const backgroundVideoInputRef = useRef<HTMLInputElement>(null)
 
   const patch = useAnimePatch(authToken, onSuccess, onError, {
     onRequest,
@@ -91,7 +101,7 @@ export function AnimePatchForm({
     }
 
     try {
-      await updateAdminAnime(anime.id, { cover_image: null }, authToken)
+      await deleteAdminAnimeCoverAsset(anime.id, authToken)
       const refreshed = await getAnimeByID(anime.id, { include_disabled: true })
       patch.setField('coverImage', '')
       patch.setClearFlag('coverImage', false)
@@ -100,6 +110,18 @@ export function AnimePatchForm({
       if (error instanceof Error) onError(error.message)
       else onError('Cover konnte nicht entfernt werden.')
     }
+  }
+
+  function resolveUploadRef(kind: Exclude<AdminAnimeAssetKind, 'cover'>) {
+    if (kind === 'banner') return bannerInputRef
+    if (kind === 'logo') return logoInputRef
+    if (kind === 'background_video') return backgroundVideoInputRef
+    return backgroundInputRef
+  }
+
+  async function handleNonCoverUpload(kind: Exclude<AdminAnimeAssetKind, 'cover'>, file: File) {
+    const animeID = parsePositiveInt(animeIDInput) ?? anime?.id ?? null
+    await patch.uploadAndLinkAsset(file, kind, animeID)
   }
 
   return (
@@ -154,6 +176,45 @@ export function AnimePatchForm({
             }}
             onRemoveCover={handleRemoveCover}
           />
+
+          <div className={styles.field}>
+            <label>Weitere Assets</label>
+            <p className={styles.hint}>
+              Banner, Logo, Backgrounds und Background-Video nutzen dieselbe verifizierte V2-Upload-Seam wie Cover.
+            </p>
+            {NON_COVER_ASSET_UPLOADS.map((asset) => (
+              <input
+                key={`${asset.kind}-input`}
+                ref={resolveUploadRef(asset.kind)}
+                className={styles.fileInput}
+                type="file"
+                accept={asset.accept}
+                onChange={async (event) => {
+                  const file = event.target.files?.[0]
+                  if (!file) return
+                  try {
+                    await handleNonCoverUpload(asset.kind, file)
+                  } finally {
+                    event.target.value = ''
+                  }
+                }}
+                disabled={patch.isUploadingCover || patch.isSubmitting}
+              />
+            ))}
+            <div className={styles.actions}>
+              {NON_COVER_ASSET_UPLOADS.map((asset) => (
+                <button
+                  key={asset.kind}
+                  className={styles.buttonSecondary}
+                  type="button"
+                  disabled={patch.isUploadingCover || patch.isSubmitting}
+                  onClick={() => resolveUploadRef(asset.kind).current?.click()}
+                >
+                  {asset.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className={styles.actions}>

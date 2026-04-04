@@ -112,7 +112,7 @@ export function AnimeCoverField({
           </button>
         </div>
         <p className={styles.hint}>
-          Hinweis: Lokaler Upload nutzt die verifizierte V2-Upload-Seam und verknuepft das Bild direkt mit dem aktiven Anime-Asset.
+          Hinweis: Cover-Upload nutzt die verifizierte V2-Upload-Seam; Banner, Logo, Backgrounds und Background-Video haengen an derselben Asset-Logik.
         </p>
       </div>
     </div>
