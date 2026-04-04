@@ -110,6 +110,48 @@ export interface AdminAnimeDeleteResponse {
   data: AdminAnimeDeleteResult
 }
 
+export type AdminAnimeRelationLabel =
+  | 'Hauptgeschichte'
+  | 'Nebengeschichte'
+  | 'Fortsetzung'
+  | 'Zusammenfassung'
+
+export interface AdminAnimeRelation {
+  target_anime_id: number
+  relation_label: AdminAnimeRelationLabel
+  target_title: string
+  target_type: string
+  target_status: AnimeStatus
+  target_year?: number
+  target_cover_url?: string
+}
+
+export interface AdminAnimeRelationTarget {
+  anime_id: number
+  title: string
+  type: string
+  status: AnimeStatus
+  year?: number
+  cover_url?: string
+}
+
+export interface AdminAnimeRelationsResponse {
+  data: AdminAnimeRelation[]
+}
+
+export interface AdminAnimeRelationTargetsResponse {
+  data: AdminAnimeRelationTarget[]
+}
+
+export interface AdminAnimeRelationCreateRequest {
+  target_anime_id: number
+  relation_label: AdminAnimeRelationLabel
+}
+
+export interface AdminAnimeRelationUpdateRequest {
+  relation_label: AdminAnimeRelationLabel
+}
+
 export interface GenreToken {
   name: string
   count: number
@@ -172,6 +214,9 @@ export interface AdminJellyfinIntakeSearchItem extends AdminJellyfinSeriesSearch
   banner_url?: string
   logo_url?: string
   background_url?: string
+  already_imported: boolean
+  existing_anime_id?: number
+  existing_title?: string
 }
 
 export interface AdminJellyfinIntakeSearchResponse {
@@ -202,6 +247,7 @@ export interface AdminAnimeJellyfinIntakePreviewResult {
   jellyfin_series_id: string
   jellyfin_series_name: string
   jellyfin_series_path?: string
+  folder_name_title_seed?: string
   parent_context?: string
   library_context?: string
   description?: string
@@ -282,10 +328,16 @@ export interface AdminAnimePersistedBackgroundState extends AdminAnimePersistedA
   sort_order: number
 }
 
+export type AdminAnimeAssetKind = 'cover' | 'banner' | 'logo' | 'background' | 'background_video'
+
+export type AdminAnimeUploadAssetType = 'poster' | 'banner' | 'logo' | 'background' | 'background_video'
+
 export interface AdminAnimePersistedAssets {
   cover?: AdminAnimePersistedAssetState
   banner?: AdminAnimePersistedAssetState
+  logo?: AdminAnimePersistedAssetState
   backgrounds: AdminAnimePersistedBackgroundState[]
+  background_video?: AdminAnimePersistedAssetState
 }
 
 export interface AdminAnimeJellyfinContext {
@@ -348,6 +400,16 @@ export interface AdminMediaUploadResponse {
   id: string
   status: string
   url: string
+  provisioning?: {
+    entity_type: string
+    entity_id: number
+    requested_asset_type: string
+    root_path: string
+    statuses: Array<{
+      folder: string
+      state: string
+    }>
+  }
   files: Array<{
     variant: string
     path: string

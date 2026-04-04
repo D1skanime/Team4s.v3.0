@@ -1,4 +1,8 @@
 import {
+  AdminAnimeRelationCreateRequest,
+  AdminAnimeRelationTargetsResponse,
+  AdminAnimeRelationUpdateRequest,
+  AdminAnimeRelationsResponse,
   AdminAnimeJellyfinPreviewResponse,
   AdminAnimeJellyfinContextResponse,
   AdminAnimeJellyfinMetadataApplyRequest,
@@ -8,6 +12,8 @@ import {
   AdminAnimeBackgroundAssetResponse,
   AdminAnimeJellyfinSyncRequest,
   AdminAnimeJellyfinSyncResponse,
+  AdminAnimeAssetKind,
+  AdminAnimeUploadAssetType,
   AdminMediaUploadResponse,
   AdminJellyfinSeriesSearchResponse,
   AdminAnimeCreateRequest,
@@ -275,7 +281,7 @@ function withAuthHeader(headers: Record<string, string>, authToken?: string): Re
   return headers
 }
 
-async function parseApiErrorPayload(response: Response, fallback: string): Promise<ParsedApiErrorPayload> {
+export async function parseApiErrorPayload(response: Response, fallback: string): Promise<ParsedApiErrorPayload> {
   try {
     const body = (await response.json()) as { error?: { message?: string; code?: string; details?: string } }
     if (body.error?.message) {
@@ -312,6 +318,23 @@ function parsePayloadError(payload: unknown, fallback: string): string {
   }
 
   return fallback
+}
+
+function parsePayloadApiError(payload: unknown, fallback: string): ParsedApiErrorPayload {
+  if (!payload || typeof payload !== 'object') {
+    return {
+      message: fallback,
+      code: null,
+      details: null,
+    }
+  }
+
+  const error = (payload as { error?: { message?: unknown; code?: unknown; details?: unknown } }).error
+  const message = typeof error?.message === 'string' && error.message.trim() ? error.message : fallback
+  const code = typeof error?.code === 'string' && error.code.trim() ? error.code : null
+  const details = typeof error?.details === 'string' && error.details.trim() ? error.details : null
+
+  return { message, code, details }
 }
 
 export function getRuntimeAuthToken(): string {
@@ -393,7 +416,8 @@ export async function getAnimeByID(id: number, options: { include_disabled?: boo
   })
 
   if (!response.ok) {
-    throw new ApiError(response.status, `API request failed: ${response.status}`)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<{ data: AnimeDetail }>
@@ -481,8 +505,8 @@ export async function getFansubBySlug(slug: string): Promise<FansubGroupResponse
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<FansubGroupResponse>
@@ -495,8 +519,8 @@ export async function getFansubMembers(fansubID: number): Promise<FansubMemberLi
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<FansubMemberListResponse>
@@ -1118,8 +1142,8 @@ export async function createAdminAnime(
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<AdminAnimeUpsertResponse>
@@ -1143,8 +1167,8 @@ export async function updateAdminAnime(
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<AdminAnimeUpsertResponse>
@@ -1293,7 +1317,7 @@ export async function applyAdminAnimeMetadataFromJellyfin(
 
 interface AdminAnimeMediaUploadOptions {
   animeID: number
-  assetType: 'poster' | 'banner' | 'gallery'
+  assetType: AdminAnimeUploadAssetType
   file: File
   authToken?: string
   onProgress?: (percent: number) => void
@@ -1336,7 +1360,8 @@ export async function uploadAdminAnimeMedia(options: AdminAnimeMediaUploadOption
         return
       }
 
-      reject(new ApiError(xhr.status, parsePayloadError(payload, `API request failed: ${xhr.status}`)))
+      const parsed = parsePayloadApiError(payload, `API request failed: ${xhr.status}`)
+      reject(new ApiError(xhr.status, parsed.message, null, parsed.code, parsed.details))
     }
 
     const body = new FormData()
@@ -1354,22 +1379,7 @@ export async function assignAdminAnimeBannerAsset(
   mediaID: string,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/banner`, {
-    method: 'PUT',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify({ media_id: mediaID }),
-  })
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
-  }
+  return assignAdminAnimeSingularAsset(animeID, 'banner', mediaID, authToken)
 }
 
 export async function assignAdminAnimeCoverAsset(
@@ -1377,8 +1387,33 @@ export async function assignAdminAnimeCoverAsset(
   mediaID: string,
   authToken?: string,
 ): Promise<void> {
+  return assignAdminAnimeSingularAsset(animeID, 'cover', mediaID, authToken)
+}
+
+export async function assignAdminAnimeLogoAsset(
+  animeID: number,
+  mediaID: string,
+  authToken?: string,
+): Promise<void> {
+  return assignAdminAnimeSingularAsset(animeID, 'logo', mediaID, authToken)
+}
+
+export async function assignAdminAnimeBackgroundVideoAsset(
+  animeID: number,
+  mediaID: string,
+  authToken?: string,
+): Promise<void> {
+  return assignAdminAnimeSingularAsset(animeID, 'background_video', mediaID, authToken)
+}
+
+async function assignAdminAnimeSingularAsset(
+  animeID: number,
+  assetKind: Exclude<AdminAnimeAssetKind, 'background'>,
+  mediaID: string,
+  authToken?: string,
+): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/cover`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/${assetKind}`, {
     method: 'PUT',
     headers: withAuthHeader(
       {
@@ -1409,8 +1444,24 @@ export async function deleteAdminAnimeCoverAsset(animeID: number, authToken?: st
 }
 
 export async function deleteAdminAnimeBannerAsset(animeID: number, authToken?: string): Promise<void> {
+  return deleteAdminAnimeSingularAsset(animeID, 'banner', authToken)
+}
+
+export async function deleteAdminAnimeLogoAsset(animeID: number, authToken?: string): Promise<void> {
+  return deleteAdminAnimeSingularAsset(animeID, 'logo', authToken)
+}
+
+export async function deleteAdminAnimeBackgroundVideoAsset(animeID: number, authToken?: string): Promise<void> {
+  return deleteAdminAnimeSingularAsset(animeID, 'background_video', authToken)
+}
+
+async function deleteAdminAnimeSingularAsset(
+  animeID: number,
+  assetKind: Exclude<AdminAnimeAssetKind, 'background'>,
+  authToken?: string,
+): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/banner`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/${assetKind}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -1535,11 +1586,117 @@ export async function deleteAdminAnime(animeID: number, authToken?: string): Pro
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<AdminAnimeDeleteResponse>
+}
+
+export async function getAdminAnimeRelations(
+  animeID: number,
+  authToken?: string,
+): Promise<AdminAnimeRelationsResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeRelationsResponse>
+}
+
+export async function searchAdminAnimeRelationTargets(
+  animeID: number,
+  query: string,
+  params: { limit?: number } = {},
+  authToken?: string,
+): Promise<AdminAnimeRelationTargetsResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const search = new URLSearchParams()
+  search.set('q', query)
+  if (params.limit && Number.isFinite(params.limit) && params.limit > 0) search.set('limit', String(params.limit))
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relation-targets?${search.toString()}`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeRelationTargetsResponse>
+}
+
+export async function createAdminAnimeRelation(
+  animeID: number,
+  payload: AdminAnimeRelationCreateRequest,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+export async function updateAdminAnimeRelation(
+  animeID: number,
+  targetAnimeID: number,
+  payload: AdminAnimeRelationUpdateRequest,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations/${targetAnimeID}`, {
+    method: 'PATCH',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+export async function deleteAdminAnimeRelation(
+  animeID: number,
+  targetAnimeID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations/${targetAnimeID}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
 }
 
 export async function deleteUploadedCoverFile(fileName: string): Promise<void> {
@@ -1552,8 +1709,8 @@ export async function deleteUploadedCoverFile(fileName: string): Promise<void> {
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 }
 

@@ -28,7 +28,6 @@ export function AnimeCoverField({
   onUploadFile,
   onRemoveCover,
 }: AnimeCoverFieldProps) {
-  // Local ref ensures stable binding - no prop drilling issues
   const fileInputRef = useRef<HTMLInputElement>(null)
   return (
     <div className={styles.field}>
@@ -77,15 +76,10 @@ export function AnimeCoverField({
             onChange={async (event) => {
               const file = event.target.files?.[0]
               if (!file) {
-                console.warn('[AnimeCoverField] No file selected')
                 return
               }
-              console.log('[AnimeCoverField] Uploading file:', file.name, file.size)
               try {
                 await onUploadFile(file)
-                console.log('[AnimeCoverField] Upload completed')
-              } catch (error) {
-                console.error('[AnimeCoverField] Upload error:', error)
               } finally {
                 event.target.value = ''
               }
@@ -96,14 +90,7 @@ export function AnimeCoverField({
             className={styles.buttonSecondary}
             type="button"
             disabled={isUploadingCover || isSubmitting}
-            onClick={() => {
-              console.log('[AnimeCoverField] Button clicked, fileInputRef.current:', fileInputRef.current)
-              if (fileInputRef.current) {
-                fileInputRef.current.click()
-              } else {
-                console.error('[AnimeCoverField] ERROR: fileInputRef.current is null - input not mounted')
-              }
-            }}
+            onClick={() => fileInputRef.current?.click()}
           >
             {isUploadingCover ? 'Upload...' : 'Cover hochladen (lokal)'}
           </button>
@@ -125,8 +112,7 @@ export function AnimeCoverField({
           </button>
         </div>
         <p className={styles.hint}>
-          Hinweis: Upload speichert Bilder im neuen Media-Service unter <code>/media/anime/ID/poster/UUID/</code>.
-          Alte Cover unter <code>/covers/</code> werden weiterhin unterstuetzt.
+          Hinweis: Lokaler Upload nutzt die verifizierte V2-Upload-Seam und verknuepft das Bild direkt mit dem aktiven Anime-Asset.
         </p>
       </div>
     </div>
