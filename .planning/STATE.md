@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-04-04T21:24:55.807Z"
+status: Ready to execute
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-04-04T22:15:19.465Z"
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 07 (generic-upload-and-linking) — EXECUTING
-Plan: 2 of 2
+Plan: 2 of 4
 
 ## Accumulated Context
 
@@ -44,6 +44,8 @@ Recent durable decisions:
 - [Phase 07-generic-upload-and-linking]: Resolve persisted logo and background_video URLs through the existing anime backdrop manifest before any Jellyfin fallback.
 - [Phase 07-generic-upload-and-linking]: Frontend asset uploads now route through an asset-kind config so singular slots and additive backgrounds share one mutation seam without slot-specific helpers.
 - [Phase 07-generic-upload-and-linking]: The client mirrors backend slot names directly for logo and background_video, while cover continues to map to the upload seam's poster alias.
+- [Phase 07]: ManualCreateWorkspace stays a shell while ManualCreateAssetUploadPanel owns the visible cover and non-cover staging controls.
+- [Phase 07]: Create-route staging now uses one asset-kind plan so post-create linking stays typed and background remains additive.
 
 ### Pending Todos
 
@@ -56,6 +58,6 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-04T21:24:55.755Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-04-04T22:15:19.456Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None
