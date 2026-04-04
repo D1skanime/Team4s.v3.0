@@ -31,6 +31,12 @@ v1.1 focuses on the anime manual-create/upload path first: V2-first media lifecy
 **Goal**: Admins can upload and link multiple anime asset types through one reusable V2 contract instead of slot-specific special cases.
 **Depends on**: Phase 6
 **Requirements**: UPLD-01, UPLD-02, UPLD-03
+**Plans**: 4 plans
+Plans:
+- [x] `07-01-PLAN.md` - Generalize the backend upload/link contract for all supported anime asset kinds.
+- [x] `07-02-PLAN.md` - Generalize the frontend typed helpers and asset-kind mutation seam.
+- [ ] `07-03-PLAN.md` - Close edit-route UI reachability for `logo` and `background_video` using the existing generic seam.
+- [ ] `07-04-PLAN.md` - Close create-route UI reachability for staged non-cover manual uploads and linking.
 **Success Criteria** (what must be TRUE):
   1. Admin can upload supported anime asset types through one generic admin upload seam.
   2. The upload seam supports at least cover, banner, logo, background, and background video.
@@ -50,4 +56,4 @@ v1.1 focuses on the anime manual-create/upload path first: V2-first media lifecy
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 3 | 2 | Planning complete | - |
+| v1.1 Asset Lifecycle Hardening | 3 | 4 | Gap closure planned | - |
