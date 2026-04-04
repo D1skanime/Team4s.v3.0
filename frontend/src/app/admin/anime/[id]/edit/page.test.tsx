@@ -43,4 +43,22 @@ describe('AdminAnimeEditPage load error formatting', () => {
     expect(source).toContain('verifizierte V2-Upload-Seam')
     expect(source).not.toContain('frontend/public/covers')
   })
+
+  it('exposes manual upload labels for logo and background video in the reachable edit UI', () => {
+    const currentDir = path.dirname(fileURLToPath(import.meta.url))
+    const source = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeJellyfinMetadataSection.tsx'), 'utf8')
+
+    expect(source).toContain('Logo hochladen')
+    expect(source).toContain('Background-Video hochladen')
+  })
+
+  it('does not describe logo or background video as provider-only in the active edit UI copy', () => {
+    const currentDir = path.dirname(fileURLToPath(import.meta.url))
+    const source = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeJellyfinMetadataSection.tsx'), 'utf8')
+
+    expect(source).not.toContain("asset.kind === 'logo'")
+    expect(source).not.toContain("asset.kind === 'background_video'")
+    expect(source).toContain('manuell ergaenzt')
+    expect(source).not.toContain('provider-only')
+  })
 })

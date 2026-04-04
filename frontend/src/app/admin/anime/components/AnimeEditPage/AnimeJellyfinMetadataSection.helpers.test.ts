@@ -68,4 +68,28 @@ describe('AnimeJellyfinMetadataSection helpers', () => {
       }),
     ).toBe('Banner kann explizit aus Jellyfin uebernommen oder manuell ersetzt werden')
   })
+
+  it('describes logo slots as manually replaceable when provider data exists', () => {
+    expect(
+      summarizeAssetSlotDecision('logo', {
+        hasIncoming: true,
+      }),
+    ).toBe('Logo kann manuell ersetzt oder explizit aus Jellyfin uebernommen werden')
+  })
+
+  it('describes background video slots as manually replaceable when provider data exists', () => {
+    expect(
+      summarizeAssetSlotDecision('background_video', {
+        hasIncoming: true,
+      }),
+    ).toBe('Background-Video kann manuell ersetzt oder explizit aus Jellyfin uebernommen werden')
+  })
+
+  it('keeps backgrounds additive when provider data exists', () => {
+    expect(
+      summarizeAssetSlotDecision('backgrounds', {
+        hasIncoming: true,
+      }),
+    ).toBe('Backgrounds koennen explizit aus Jellyfin uebernommen oder manuell ergaenzt werden')
+  })
 })
