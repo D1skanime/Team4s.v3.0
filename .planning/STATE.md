@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 07-generic-upload-and-linking-01-PLAN.md
-last_updated: "2026-04-04T21:16:37.248Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-04-04T21:24:55.807Z"
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -42,6 +42,8 @@ Recent durable decisions:
 - The current execution scope is anime-first and V2-first; group/fansub media follows later.
 - [Phase 07-generic-upload-and-linking]: Keep one /api/v1/admin/upload seam and map background_video to stored media type video inside the repository layer.
 - [Phase 07-generic-upload-and-linking]: Resolve persisted logo and background_video URLs through the existing anime backdrop manifest before any Jellyfin fallback.
+- [Phase 07-generic-upload-and-linking]: Frontend asset uploads now route through an asset-kind config so singular slots and additive backgrounds share one mutation seam without slot-specific helpers.
+- [Phase 07-generic-upload-and-linking]: The client mirrors backend slot names directly for logo and background_video, while cover continues to map to the upload seam's poster alias.
 
 ### Pending Todos
 
@@ -54,6 +56,6 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-04T21:16:37.244Z
-Stopped at: Completed 07-generic-upload-and-linking-01-PLAN.md
+Last session: 2026-04-04T21:24:55.755Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
