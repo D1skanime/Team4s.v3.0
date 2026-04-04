@@ -96,18 +96,18 @@ cd frontend && npm test -- src/app/admin/anime/hooks/internal/anime-patch/useAni
 ### Recommended Project Structure
 ```text
 backend/internal/
-├── handlers/
-│   ├── media_upload.go                 # Keep generic multipart upload transport
-│   └── admin_content_anime_assets.go   # Collapse slot-specific HTTP branches behind one generic path/helper
-├── services/
-│   ├── asset_lifecycle_service.go      # Keep provisioning and path policy
-│   └── anime_asset_link_service.go     # New generic slot-link orchestration
-├── repository/
-│   └── anime_assets.go                 # Reuse V2 slot persistence helpers
+|-- handlers/
+|   |-- media_upload.go                 # Keep generic multipart upload transport
+|   `-- admin_content_anime_assets.go   # Collapse slot-specific HTTP branches behind one generic path/helper
+|-- services/
+|   |-- asset_lifecycle_service.go      # Keep provisioning and path policy
+|   `-- anime_asset_link_service.go     # New generic slot-link orchestration
+|-- repository/
+|   `-- anime_assets.go                 # Reuse V2 slot persistence helpers
 frontend/src/
-├── lib/api.ts                          # One upload helper + one generic link helper
-├── app/admin/anime/create/page.tsx     # Reuse generic asset upload/link flow after create
-└── app/admin/anime/...                 # Edit UI uses the same helper for all supported slots
+|-- lib/api.ts                          # One upload helper + one generic link helper
+|-- app/admin/anime/create/page.tsx     # Reuse generic asset upload/link flow after create
+`-- app/admin/anime/...                 # Edit UI uses the same helper for all supported slots
 ```
 
 ### Pattern 1: Generic Upload, Generic Link
@@ -221,7 +221,7 @@ Source: existing thin-transport direction in `backend/internal/handlers/media_up
 ### Pitfall 3: Leaving Logo And Background Video Provider-Only
 **What goes wrong:** The types and provisioning policy include `logo` and `background_video`, but the actual manual upload path still exposes only cover/banner/background.
 **Why it happens:** Current edit UI defines `UploadTarget = 'cover' | 'banner' | 'background'`.
-**How to avoid:** Treat logo and background video as real Phase 7 implementation scope, not “already covered” because they appear in type definitions.
+**How to avoid:** Treat logo and background video as real Phase 7 implementation scope, not "already covered" because they appear in type definitions.
 **Warning signs:** Plans mention only existing manual buttons and never add new slot actions.
 
 ### Pitfall 4: OpenAPI Drift
@@ -329,11 +329,11 @@ Source: `frontend/src/app/admin/anime/components/AnimeEditPage/AnimeJellyfinMeta
 
 | Dependency | Required By | Available | Version | Fallback |
 |------------|------------|-----------|---------|----------|
-| Go | Backend implementation and tests | ✓ | `go1.26.1` | — |
-| Node.js | Frontend implementation and tests | ✓ | available | — |
-| npm | Frontend test/build commands | ✓ | available | — |
-| Docker | Local browser verification stack | ✓ | compose `v5.1.0` | Existing direct local commands for targeted tests |
-| ffmpeg | Background video processing path | Not verified directly in this audit | — | Planner should keep existing config assumptions and verify before executing video-path UAT |
+| Go | Backend implementation and tests | Yes | `go1.26.1` | None |
+| Node.js | Frontend implementation and tests | Yes | available | None |
+| npm | Frontend test/build commands | Yes | available | None |
+| Docker | Local browser verification stack | Yes | compose `v5.1.0` | Existing direct local commands for targeted tests |
+| ffmpeg | Background video processing path | Not verified directly in this audit | unknown | Planner should keep existing config assumptions and verify before executing video-path UAT |
 
 **Missing dependencies with no fallback:**
 - None identified for planning.
@@ -351,10 +351,10 @@ Source: `frontend/src/app/admin/anime/components/AnimeEditPage/AnimeJellyfinMeta
 | Quick run command | `cd backend && go test ./internal/handlers ./internal/repository ./internal/services -count=1` |
 | Full suite command | `cd backend && go test ./... -count=1` and `cd frontend && npm test` |
 
-### Phase Requirements → Test Map
+### Phase Requirements -> Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| UPLD-01 | One generic admin upload/link seam is used instead of slot-specific special cases | backend unit + frontend unit | `cd backend && go test ./internal/handlers ./internal/repository -count=1` | ✅ |
+| UPLD-01 | One generic admin upload/link seam is used instead of slot-specific special cases | backend unit + frontend unit | `cd backend && go test ./internal/handlers ./internal/repository -count=1` | Yes |
 | UPLD-02 | Supported slots include `cover`, `banner`, `logo`, `background`, `background_video` | backend service/handler + frontend helper tests | `cd backend && go test ./internal/services ./internal/handlers -count=1` | Partial |
 | UPLD-03 | Uploaded asset links through one reusable V2 persistence path | backend repository/handler + frontend API/helper tests | `cd backend && go test ./internal/repository ./internal/handlers -count=1` | Partial |
 
