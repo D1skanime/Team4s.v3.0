@@ -7,10 +7,11 @@ import { AnimeType, GenreToken } from "@/types/admin";
 
 import styles from "../../../admin.module.css";
 import workspaceStyles from "./ManualCreateWorkspace.module.css";
-import { AnimeCreateCoverField } from "../CreatePage/AnimeCreateCoverField";
 import { AnimeCreateGenreField } from "../CreatePage/AnimeCreateGenreField";
 import { AnimeEditorShell } from "../shared/AnimeEditorShell";
 import type { AnimeEditorController } from "../../types/admin-anime-editor";
+import { ManualCreateAssetUploadPanel } from "./ManualCreateAssetUploadPanel";
+import type { CreateAssetUploadDraftValue } from "../../create/createAssetUploadPlan";
 
 interface ManualCreateWorkspaceProps {
   editor: AnimeEditorController;
@@ -27,7 +28,17 @@ interface ManualCreateWorkspaceProps {
   description: string;
   coverImage: string;
   coverPreviewUrl?: string;
-  inputRef: RefObject<HTMLInputElement | null>;
+  inputRefs: {
+    cover: RefObject<HTMLInputElement | null>;
+    banner: RefObject<HTMLInputElement | null>;
+    logo: RefObject<HTMLInputElement | null>;
+    background: RefObject<HTMLInputElement | null>;
+    background_video: RefObject<HTMLInputElement | null>;
+  };
+  stagedBanner: CreateAssetUploadDraftValue | null;
+  stagedLogo: CreateAssetUploadDraftValue | null;
+  stagedBackgrounds: CreateAssetUploadDraftValue[];
+  stagedBackgroundVideo: CreateAssetUploadDraftValue | null;
   genreSuggestions: GenreToken[];
   genreSuggestionsTotal: number;
   loadedTokenCount: number;
@@ -59,8 +70,17 @@ interface ManualCreateWorkspaceProps {
   onAddGenreSuggestion: (name: string) => void;
   onIncreaseGenreLimit: () => void;
   onResetGenreLimit: () => void;
-  onFileChange: React.ChangeEventHandler<HTMLInputElement>;
-  onOpenFileDialog: () => void;
+  onCoverFileChange: React.ChangeEventHandler<HTMLInputElement>;
+  onSingleAssetFileChange: (
+    kind: "banner" | "logo" | "background_video",
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => void;
+  onBackgroundFileChange: React.ChangeEventHandler<HTMLInputElement>;
+  onOpenFileDialog: (
+    kind: "cover" | "banner" | "logo" | "background" | "background_video",
+  ) => void;
+  onRemoveSingleAsset: (kind: "banner" | "logo" | "background_video") => void;
+  onRemoveBackground: (index: number) => void;
 }
 
 const ANIME_TYPES: AnimeType[] = [
@@ -317,31 +337,25 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
 
         <aside className={workspaceStyles.sideColumn}>
           <div className={workspaceStyles.sideSticky}>
-            <section className={workspaceStyles.sectionCard}>
-              <div className={workspaceStyles.sectionHeader}>
-                <p className={workspaceStyles.sectionEyebrow}>Cover</p>
-                <h2 className={workspaceStyles.sectionTitle}>
-                  Poster und Datei
-                </h2>
-                <p className={workspaceStyles.sectionText}>
-                  Poster ist Pflicht. Du kannst das Cover direkt ueber die
-                  verifizierte V2-Upload-Seam vorbereiten oder einen
-                  vorhandenen Dateipfad verwenden.
-                </p>
-              </div>
-
-              <AnimeCreateCoverField
-                inputRef={props.inputRef}
-                coverImage={props.coverImage}
-                coverPreviewUrl={props.coverPreviewUrl}
-                isSubmitting={props.isSubmitting}
-                isUploading={props.isUploadingCover}
-                isMissing={isCoverMissing}
-                onCoverImageChange={props.onCoverImageChange}
-                onFileChange={props.onFileChange}
-                onOpenFileDialog={props.onOpenFileDialog}
-              />
-            </section>
+            <ManualCreateAssetUploadPanel
+              inputRefs={props.inputRefs}
+              coverImage={props.coverImage}
+              coverPreviewUrl={props.coverPreviewUrl}
+              stagedBanner={props.stagedBanner}
+              stagedLogo={props.stagedLogo}
+              stagedBackgrounds={props.stagedBackgrounds}
+              stagedBackgroundVideo={props.stagedBackgroundVideo}
+              isSubmitting={props.isSubmitting}
+              isUploadingCover={props.isUploadingCover}
+              isMissingCover={isCoverMissing}
+              onCoverImageChange={props.onCoverImageChange}
+              onCoverFileChange={props.onCoverFileChange}
+              onOpenFileDialog={props.onOpenFileDialog}
+              onSingleAssetChange={props.onSingleAssetFileChange}
+              onBackgroundChange={props.onBackgroundFileChange}
+              onRemoveSingleAsset={props.onRemoveSingleAsset}
+              onRemoveBackground={props.onRemoveBackground}
+            />
           </div>
         </aside>
 
