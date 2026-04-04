@@ -3,101 +3,57 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Phase 03 verified complete; Phase 04 ready to plan
-last_updated: "2026-03-26T10:20:00.000Z"
+stopped_at: Completed 07-generic-upload-and-linking-01-PLAN.md
+last_updated: "2026-04-04T21:16:37.248Z"
 progress:
-  total_phases: 5
-  completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
+  total_phases: 3
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-03-23)
+See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 04 - provenance-assets-safe-resync
+**Current focus:** Phase 07 — generic-upload-and-linking
 
 ## Current Position
 
-Phase: 04 (provenance-assets-safe-resync) - READY TO PLAN
-Plan: 0 of TBD
-
-## Performance Metrics
-
-**Velocity:**
-
-- Total plans completed: 9
-- Average duration: -
-- Total execution time: 0.0 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01 | 5 | - | - |
-| 02 | 3 | - | - |
-| 03 | 4 | - | - |
-
-**Recent Trend:**
-
-- Last 5 plans: 02-02, 02-03, 03-01, 03-02, 03-03, 03-04
-- Trend: Stable
-
-| Phase 01 P02 | 32m | 2 tasks | 11 files |
-| Phase 01 P03 | 4274 | 2 tasks | 13 files |
-| Phase 01 P04 | 11m | 2 tasks | 8 files |
-| Phase 02 P01 | 2m | 2 tasks | 4 files |
-| Phase 02 P02 | 19min | 2 tasks | 3 files |
-| Phase 02 P03 | 1 wave | 2 tasks | 11 files |
-| Phase 03 P01 | 16 min | 2 tasks | 9 files |
-| Phase 03 P02 | 8 min | 2 tasks | 10 files |
-| Phase 03 P03 | 23 min | 2 tasks | 9 files |
-| Phase 03 P04 | 18 min | 2 tasks | 10 files |
+Phase: 07 (generic-upload-and-linking) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in `PROJECT.md` Key Decisions.
-Recent decisions affecting current work:
+Decisions are logged in `PROJECT.md`.
 
-- Phase 1: Keep the ownership-aware edit surface reusable across create and edit rather than splitting the admin workflow.
-- Phase 3: Jellyfin intake remains preview-only until explicit save.
-- Phase 4: Manual values and manual replacement assets remain authoritative over Jellyfin resync.
-- Phase 5: Relation editing stays limited to the four approved V1 labels.
-- [Phase 01]: Genre suggestions now query anime_genres plus genres instead of tokenizing legacy anime.genre strings.
-- [Phase 01]: Admin title and genre edits now update legacy anime columns and normalized metadata tables in one transaction.
-- [Phase 01]: Admin anime mutations now write JSONB audit rows in the same transaction as the anime change.
-- [Phase 01]: Admin anime and upload mutation routes now fail closed without authenticated actor context.
-- [Phase 01]: Shared anime editing now runs through AnimeEditorShell and useAnimeEditor so create and edit keep one save-bar contract.
-- [Phase 01]: Phase 1 ownership visibility stays record-level via AnimeOwnershipBadge and the anime-editor-ownership utility.
-- [Phase 01-ownership-foundations]: Keep media_upload.go limited to constructor, validation, Upload, and Delete while moving image/video/storage details into dedicated helper files.
-- [Phase 01]: Normalized anime metadata loading and merge helpers now live in anime_metadata.go so detail and media lookup overlays share one dedicated read-path seam.
-- [Phase 01]: Admin content repository code is split by bounded responsibility while keeping existing repository signatures and transaction boundaries unchanged.
-- [Phase 02]: Replace the old searchable /admin/anime studio landing page with the phase-specific intake choice contract so the manual path is explicit before the create route is rebuilt.
-- [Phase 02]: Keep the manual draft resolver generic over manual input values so the next create-page refactor can reuse one empty/incomplete/ready seam without introducing Jellyfin-specific fields.
-- [Phase 02]: Manual anime create now requires a normalized non-empty cover_image in the backend, not only in the UI.
-- [Phase 02]: The create contract remains manual-only and continues accepting the existing upload-cover file_name as cover_image.
-- [Phase 02]: Manual create now stays draft-only until explicit save and redirects into /admin/anime/{id}/edit after success.
-- [Phase 02]: The shared save bar now respects explicit create readiness instead of dirty-state alone.
-- [Phase 03]: Jellyfin-assisted intake is verified as preview-only until explicit save, with source linkage persisted only on the final create action.
-- [Phase 03]: Local runtime verification passed after rebuilding backend and frontend and confirming the Jellyfin search and intake-preview seams live in Docker.
+Recent durable decisions:
+
+- Shared admin anime editing stays on one editor surface across create and edit.
+- Jellyfin-assisted intake stays preview-only until explicit save.
+- Manual values and manual replacement assets stay authoritative over later resync behavior.
+- Relation editing stays limited to the four approved V1 labels.
+- The v1.1 milestone is generic upload, asset lifecycle, and folder provisioning rather than more intake expansion.
+- The current execution scope is anime-first and V2-first; group/fansub media follows later.
+- [Phase 07-generic-upload-and-linking]: Keep one /api/v1/admin/upload seam and map background_video to stored media type video inside the repository layer.
+- [Phase 07-generic-upload-and-linking]: Resolve persisted logo and background_video URLs through the existing anime backdrop manifest before any Jellyfin fallback.
 
 ### Pending Todos
 
-None yet.
+- Start Phase 07 on top of the verified anime-first V2 upload seam.
+- Decide later whether the old manual-vs-Jellyfin entry-choice page should be restored or formally retired.
 
 ### Blockers/Concerns
 
-- Non-cover asset upload parity is still deferred, so Phase 4 should stay provenance-first rather than promise full manual upload parity.
-- Phase 02 still needs browser smoke verification plus one backend re-run after the external anime_metadata_backfill compile blocker is fixed.
+- Cross-AI review remains unavailable until an independent reviewer CLI is installed.
 
 ## Session Continuity
 
-Last session: 2026-03-26T10:20:00+01:00
-Stopped at: Phase 03 verified complete; Phase 04 ready to plan
-Resume file: .planning/ROADMAP.md
+Last session: 2026-04-04T21:16:37.244Z
+Stopped at: Completed 07-generic-upload-and-linking-01-PLAN.md
+Resume file: None

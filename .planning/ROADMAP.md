@@ -1,120 +1,53 @@
 # Roadmap: Team4s Admin Anime Intake
 
-## Overview
+## Milestones
 
-This roadmap hardens the existing Team4s admin anime workflow in dependency order: first a reusable ownership-aware editing foundation, then manual intake, then Jellyfin-assisted draft creation, then provenance-aware asset maintenance and safe resync, and finally relation CRUD with operator-safe validation. The sequence follows the research recommendation where schema and ownership rules lead, preview stays non-persistent until explicit save, manual authority is preserved, and the V1 surface remains admin-only, modular, and explicit about provenance.
+- [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
+- [ ] **v1.1 Asset Lifecycle Hardening** - Phases 6, 7, and 8 planned for generic upload, provisioning, and lifecycle safety.
+
+## Current Direction
+
+v1.1 focuses on the anime manual-create/upload path first: V2-first media lifecycle behavior, consistent provisioning, and operator-safe asset handling without Jellyfin dependence.
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-- [x] **Phase 1: Ownership Foundations** - Establish the shared ownership-aware edit surface, audit attribution, and modular contract base.
-- [ ] **Phase 2: Manual Intake Baseline** - Deliver the manual preview-before-save workflow with minimum-field creation and existing cover upload.
-- [x] **Phase 3: Jellyfin-Assisted Intake** - Add Jellyfin source selection and draft prefill without hidden persistence.
-- [ ] **Phase 4.1: Anime v2 Cutover Stabilization** - Stabilize the live v2 anime create/edit/read stack so cover upload, admin save, source linkage, and operator-facing errors behave reliably before broader provenance work resumes.
-- [ ] **Phase 4: Provenance, Assets, And Safe Resync** - Expose source provenance, per-slot asset handling, and fill-only resync behavior.
-- [ ] **Phase 5: Relations And Reliability** - Complete relation CRUD and validation-centered admin reliability on top of the stabilized ownership model.
+- [ ] **Phase 6: Provisioning And Lifecycle Foundations** - Establish the anime-first V2 provisioning contract, validation, auditability, and storage-safe lifecycle rules.
+- [ ] **Phase 7: Generic Upload And Linking** - Build the reusable anime upload and V2 linking path for multiple asset types in manual create/edit flows.
+- [ ] **Phase 8: Replace/Delete Cleanup And Operator UX** - Finish anime asset replace/delete cleanup semantics and the operator-facing lifecycle controls.
 
 ## Phase Details
 
-### Phase 1: Ownership Foundations
-**Goal**: Admins can use one ownership-aware anime editing foundation that is auditable, reusable, and ready for both manual and Jellyfin intake.
-**Depends on**: Nothing (first phase)
-**Requirements**: INTK-06, RLY-03, RLY-04
+### Phase 6: Provisioning And Lifecycle Foundations
+**Goal**: Admins can provision canonical anime media folders safely and rely on one validated V2 lifecycle contract before broader upload work begins.
+**Depends on**: v1.0 shipped state
+**Requirements**: PROV-01, PROV-02, PROV-03, PROV-04, LIFE-02, LIFE-03, LIFE-04
 **Success Criteria** (what must be TRUE):
-  1. Admin can open and maintain an existing anime through the same ownership-aware admin surface pattern that later intake flows will reuse.
-  2. Admin-triggered anime mutations are durably attributable to the acting admin user ID for later traceability.
-  3. The create/edit workflow behaves as one consistent admin surface instead of diverging into incompatible screens as new intake features are added.
-**Plans**: 5 plans
-Plans:
-- [x] 01-01-PLAN.md - Align authoritative anime metadata writes and reads before Phase 1 ownership UI.
-- [x] 01-02-PLAN.md - Restore trusted admin actor attribution and durable audit persistence for Phase 1 mutations.
-- [x] 01-03-PLAN.md - Extract the shared editor shell and add lightweight ownership visibility without expanding scope.
-- [x] 01-04-PLAN.md - Close the remaining repository modularity gaps without changing verified authority or audit behavior.
-- [x] 01-05-PLAN.md - Split remaining oversized handler and route wiring files to finish the Phase 1 modularity pass.
-**UI hint**: yes
+  1. Manual anime create/upload can provision canonical anime asset folders through the V2-first lifecycle seam without Jellyfin input.
+  2. Re-running provisioning is idempotent and reports whether folders already existed or were created.
+  3. Unsafe anime references and unsafe paths are rejected before any filesystem mutation occurs.
+  4. Lifecycle and provisioning failures return operator-usable validation and storage details and remain attributable to the acting admin.
 
-### Phase 2: Manual Intake Baseline
-**Goal**: Admins can create and save anime manually through a clear preview-before-save workflow that preserves direct editorial control.
-**Depends on**: Phase 1
-**Requirements**: INTK-01, INTK-02, INTK-04, INTK-05, ASST-04
+### Phase 7: Generic Upload And Linking
+**Goal**: Admins can upload and link multiple anime asset types through one reusable V2 contract instead of slot-specific special cases.
+**Depends on**: Phase 6
+**Requirements**: UPLD-01, UPLD-02, UPLD-03
 **Success Criteria** (what must be TRUE):
-  1. Admin can start anime creation by explicitly choosing the manual flow from the intake entry point.
-  2. Admin can review and edit a draft form before any new anime record is created.
-  3. Admin can save a manual anime when only `title` and `cover` are present, using the existing cover upload flow inside intake and edit.
-  4. Admin can create and continue maintaining an anime with no Jellyfin linkage at all.
-**Plans**: 3 plans
-Plans:
-- [x] 02-01-PLAN.md - Add the manual intake choice screen and the reusable manual draft-state contract.
-- [x] 02-02-PLAN.md - Enforce the Phase 2 title-plus-cover create contract in backend validation.
-- [x] 02-03-PLAN.md - Rebuild `/admin/anime/create` into a shared-shell preview-before-save workflow with cover upload and edit redirect.
-**UI hint**: yes
+  1. Admin can upload supported anime asset types through one generic admin upload seam.
+  2. The upload seam supports at least cover, banner, logo, background, and background video.
+  3. Uploaded assets are linked to the correct anime and slot through one reusable V2 persistence path.
 
-### Phase 3: Jellyfin-Assisted Intake
-**Goal**: Admins can use Jellyfin as a preview-only assistive source for anime creation while keeping final control over what gets saved.
-**Depends on**: Phase 2
-**Requirements**: INTK-03, JFIN-01, JFIN-02, JFIN-04, JFIN-05, JFIN-06
+### Phase 8: Replace/Delete Cleanup And Operator UX
+**Goal**: Admins can replace or remove persisted anime assets confidently, with defined cleanup behavior and clear UI feedback.
+**Depends on**: Phase 7
+**Requirements**: UPLD-04, UPLD-05, LIFE-01
 **Success Criteria** (what must be TRUE):
-  1. Admin can search or browse Jellyfin candidates and identify the correct source using Jellyfin item identity plus visible path metadata.
-  2. Admin can open an editable Jellyfin-backed draft that prefills available metadata and asset slots before any record is saved.
-  3. Admin can review Jellyfin-provided description, year, genres or tags, AniDB ID, and media candidates, then accept or override any suggested anime type before save.
-  4. Admin can cancel a Jellyfin-assisted draft without creating a Team4s anime record.
-**Plans**: 4 plans
-Plans:
-- [x] 03-01-PLAN.md - Define the draft-safe Jellyfin intake backend contracts with rich candidate evidence and advisory type reasoning.
-- [x] 03-02-PLAN.md - Build the typed compact-first search and rich candidate review UI on the new intake contracts.
-- [x] 03-03-PLAN.md - Hydrate the shared create draft from Jellyfin, add draft-level asset review, and preserve cancel-without-persist behavior.
-- [x] 03-04-PLAN.md - Wire optional Jellyfin linkage through explicit save only so preview stays non-persistent.
-**UI hint**: yes
-
-### Phase 4: Provenance, Assets, And Safe Resync
-**Goal**: Admins can safely maintain Jellyfin-linked anime with visible provenance, removable imported assets, and fill-only resync behavior that preserves manual authority.
-**Depends on**: Phase 3
-**Requirements**: JFIN-03, OWNR-01, OWNR-02, OWNR-03, OWNR-04, OWNR-05, ASST-01, ASST-02, ASST-03, ASST-05, RLY-02
-**Success Criteria** (what must be TRUE):
-  1. Admin can see linked Jellyfin item identity, path, field provenance, and asset provenance while editing a Jellyfin-linked anime.
-  2. Admin can preview which Jellyfin-backed values would change before a resync is applied, then run that resync without creating a new anime record.
-  3. Admin can keep non-empty manual field values and manual replacement assets from being overwritten, while intentionally cleared fields remain refillable on a later resync.
-  4. Admin can remove or replace a Jellyfin-derived asset in an individual slot and understand Jellyfin fetch or sync failures quickly from the UI.
-**Plans**: TBD
-**UI hint**: yes
-
-### Phase 4.1: Anime v2 Cutover Stabilization
-**Goal**: The local/runtime anime v2 cutover is stable enough that admins can create, edit, and maintain anime records without losing covers, Jellyfin linkage, or actionable error context while the broader provenance phase remains in progress.
-**Depends on**: Phase 3
-**Requirements**: INTK-06, ASST-04, RLY-01
-**Success Criteria** (what must be TRUE):
-  1. Admin can open an existing anime on the shared edit route and save changes through the active v2 runtime without relying on removed legacy flat columns.
-  2. Admin can upload or replace a cover and see that persisted cover again on the next detail/edit read instead of only creating a local file.
-  3. Jellyfin-linked anime keep their source linkage across create and edit flows so preview, metadata resync, backdrop fetch, and episode sync do not regress after a manual save.
-  4. Internal admin failures return operator-usable context instead of only a generic `interner serverfehler`.
-**Plans**: 2 plans
-Plans:
-- [ ] 04.1-01-PLAN.md - Stabilize schema-aware v2 create, edit, and read persistence so mixed local schemas, cover readback, and Jellyfin linkage stay reliable.
-- [ ] 04.1-02-PLAN.md - Surface operator-usable admin anime save and cover-patch errors through handlers, the API client, and the shared edit mutation seam.
-**UI hint**: yes
-
-### Phase 5: Relations And Reliability
-**Goal**: Admins can manage anime relations safely through a validated backend-backed UI that enforces the narrow V1 taxonomy.
-**Depends on**: Phase 4.1, Phase 4
-**Requirements**: RELA-01, RELA-02, RELA-03, RELA-04, RELA-05, RELA-06, RELA-07, RLY-01
-**Success Criteria** (what must be TRUE):
-  1. Admin can create, update, and delete relations between existing anime through the admin UI instead of direct database work.
-  2. Admin can choose only the approved V1 relation labels `Hauptgeschichte`, `Nebengeschichte`, `Fortsetzung`, and `Zusammenfassung`.
-  3. Admin cannot create self-links or duplicate relations, and invalid relation changes are shown clearly in the admin UI.
-  4. Relation changes are stored through the existing normalized relation tables rather than a second relation store.
-**Plans**: TBD
-**UI hint**: yes
+  1. Admin can replace an existing asset and immediately see the new asset as the active persisted slot value.
+  2. Admin can remove an existing asset from an anime slot without damaging the owning record or leaving broken active state.
+  3. Replacing or deleting an asset follows a defined cleanup rule so old files do not remain as silent orphans.
 
 ## Progress
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Ownership Foundations | 5/5 | Complete | 2026-03-24 |
-| 2. Manual Intake Baseline | 3/3 | Human verification needed | - |
-| 3. Jellyfin-Assisted Intake | 4/4 | Complete | 2026-03-26 |
-| 4.1. Anime v2 Cutover Stabilization | 0/TBD | Not started | - |
-| 4. Provenance, Assets, And Safe Resync | 0/TBD | Not started | - |
-| 5. Relations And Reliability | 0/TBD | Not started | - |
+| Milestone | Phases | Plans | Status | Shipped |
+|-----------|--------|-------|--------|---------|
+| v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
+| v1.1 Asset Lifecycle Hardening | 3 | 2 | Planning complete | - |
