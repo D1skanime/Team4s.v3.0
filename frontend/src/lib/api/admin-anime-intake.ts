@@ -5,6 +5,7 @@ import type {
   AdminAnimeUpsertResponse,
   AdminJellyfinIntakeSearchResponse,
 } from '@/types/admin'
+import { ApiError, parseApiErrorPayload } from '@/lib/api'
 
 function getApiBaseUrl(): string {
   const publicBase = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://localhost:8092'
@@ -57,19 +58,6 @@ function resolveAuthToken(authToken?: string): string {
   return (process.env.NEXT_PUBLIC_AUTH_TOKEN || '').trim()
 }
 
-async function parseApiError(response: Response, fallback: string): Promise<string> {
-  try {
-    const body = (await response.json()) as { error?: { message?: string } }
-    if (body.error?.message?.trim()) {
-      return body.error.message
-    }
-  } catch {
-    // keep fallback
-  }
-
-  return fallback
-}
-
 function withAuthHeaders(authToken?: string): Record<string, string> {
   const token = resolveAuthToken(authToken)
   return token ? { Authorization: `Bearer ${token}` } : {}
@@ -92,7 +80,8 @@ export async function searchAdminJellyfinIntakeCandidates(
   })
 
   if (!response.ok) {
-    throw new Error(await parseApiError(response, `API request failed: ${response.status}`))
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<AdminJellyfinIntakeSearchResponse>
@@ -112,7 +101,8 @@ export async function previewAdminAnimeFromJellyfinIntake(
   })
 
   if (!response.ok) {
-    throw new Error(await parseApiError(response, `API request failed: ${response.status}`))
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<AdminAnimeJellyfinIntakePreviewResponse>
@@ -132,7 +122,8 @@ export async function createAdminAnimeFromJellyfinDraft(
   })
 
   if (!response.ok) {
-    throw new Error(await parseApiError(response, `API request failed: ${response.status}`))
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<AdminAnimeUpsertResponse>

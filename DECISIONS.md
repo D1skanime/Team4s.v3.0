@@ -193,3 +193,159 @@ Hard delete without durable audit is too opaque for an admin workflow.
 
 ### Follow-ups Required
 - keep delete verification part of future v2 route checks
+
+---
+
+## 2026-03-31 - Protect Active Cover Flows Server-Side For Stale Clients
+
+### Decision
+Keep server-side compatibility for the active anime cover upload/assign/delete flow while the frontend/runtime transition to v2 is still in progress.
+
+### Context
+The core edit route is now v2-aware, but a stale browser bundle could still hit the older `/api/v1/admin/upload` and `/api/v1/admin/anime/:id/assets/cover` endpoints. On `team4s_v2` those old endpoints were failing hard on removed legacy asset columns, turning an otherwise healthy edit flow into a generic 500.
+
+### Options Considered
+- require every client to hard-refresh before cover edits work
+- add targeted backend compatibility so stale clients stop crashing during the cutover
+
+### Why This Won
+Protecting the active cover path on the server removes a fragile operational dependency on browser cache state and makes the cutover more tolerant in real usage.
+
+### Consequences
+- the backend now accepts old cover client behavior on v2 without restoring legacy schema authority
+- compatibility work should stay narrow and focused on genuinely active operator flows
+- banner/background parity is still a separate follow-up, not silently included by this decision
+
+### Follow-ups Required
+- extend or retire the remaining legacy anime asset APIs deliberately once banner/background parity is handled
+
+---
+
+## 2026-03-31 - Phase 3 Jellyfin Draft Title Seeds From Folder Name And Takeover Collapses Review
+
+### Decision
+For Phase 3 Jellyfin-assisted intake, the initial draft title is seeded from the Jellyfin folder name, and once preview hydration succeeds the draft becomes the only active source view until the admin explicitly reopens candidate review.
+
+### Context
+Late Phase 3 clarifications were added after the earlier Jellyfin intake plans were already mostly done. Without storing this decision durably, the UI could drift back toward display-title seeding or leaving competing candidates visible after takeover.
+
+### Options Considered
+- keep using the Jellyfin display title and leave candidate review visible after hydration
+- seed from the folder name and collapse candidate review into the shared draft until explicit restart
+
+### Why This Won
+The folder name is the stronger operator signal for anime intake, and collapsing the UI after takeover keeps the shared draft focused and less error-prone.
+
+### Consequences
+- the intake preview contract now exposes `folder_name_title_seed`
+- draft hydration can intentionally replace the initial query title once, while still staying editable
+- alternate Jellyfin matches stay hidden after takeover unless the admin explicitly chooses `Anderen Treffer waehlen`
+
+### Follow-ups Required
+- keep future AniSearch/source-merge work compatible with the folder-seed and takeover-first draft model
+
+---
+
+## 2026-04-01 - Generic Admin Upload And Asset Lifecycle Must Be One Contract
+
+### Decision
+Future asset work should converge on one generic admin upload contract instead of adding more endpoint-specific image flows.
+
+### Context
+The current anime/admin work is functionally complete through Phase 5, but the next operational thread is asset provisioning and upload lifecycle hardening. During closeout we clarified that replacement and delete behavior only stay safe if upload, linking, and cleanup semantics are defined together.
+
+### Options Considered
+- keep extending special-case cover-style upload paths
+- define one generic upload and asset lifecycle contract before further asset work
+
+### Why This Won
+The generic contract is the only approach that scales cleanly across `anime`, `fansub`, `release`, `user`, `episode`, and `article` without repeating path logic and delete semantics in many places.
+
+### Consequences
+- the target upload shape is:
+  - endpoint: `POST /api/admin/upload`
+  - params: `file`, `entity_type`, `entity_id`, `asset_type`
+  - storage path: `/media/{entity_type}/{entity_id}/{asset_type}/{uuid}.{ext}`
+- `{ext}` is derived server-side from the validated real image format, not copied blindly from the original filename
+- upload planning must define filesystem save, DB record creation, entity linking, replacement behavior, and delete cleanup together
+- future upload work should avoid new per-asset specialized endpoints unless there is a deliberate exception recorded
+
+### Follow-ups Required
+- turn this into the next planned slice before adding more asset upload code
+- trace the current upload implementation against this contract to identify the real migration seam
+
+---
+
+## 2026-04-03 - Phase 06 Is The Verified Baseline For Phase 07
+
+### Decision
+Treat the verified anime manual cover seam from Phase 06 as the required baseline for Phase 07 planning.
+
+### Context
+Today's work closed the real integration gaps between manual create/edit, V2 media linking, cover removal, and anime delete cleanup. The next phase should build on that seam rather than reopening the just-verified behavior.
+
+### Options Considered
+- reopen the just-fixed Phase-06 behavior while planning broader upload work
+- freeze the verified seam and use it as the Phase-07 starting contract
+
+### Why This Won
+It gives Phase 07 a stable foundation and avoids mixing new generic-upload scope with bugs that are already resolved and verified.
+
+### Consequences
+- Phase 07 should extend the verified seam to more anime asset types
+- legacy cover-only paths should not re-enter active flows
+- `$gsd-execute-phase 7` should not be used until Phase 07 is actually planned
+
+### Follow-ups Required
+- create the Phase-07 plan files
+- sync roadmap/requirements drift around completed Phase-06 status
+
+---
+
+## 2026-04-05 - Asset Actions Belong In The Provenance Cards
+
+### Decision
+Keep upload, remove, and open actions inside the edit-route provenance cards instead of splitting them into separate management cards.
+
+### Context
+During Phase-07 human UAT, the earlier UI split provider previews from the actual asset actions. That made it easy to mistake the provider image for the currently active persisted asset and made the edit flow harder to trust.
+
+### Options Considered
+- keep separate management cards below the provenance view
+- move actions directly into the asset cards where provider and active states are already shown
+
+### Why This Won
+The provenance cards are where the user already decides what asset is available and what is active. Keeping the actions there reduces scrolling, removes duplicate mental mapping, and makes the active-vs-provider distinction easier to understand.
+
+### Consequences
+- cover management now lives directly in the cover card
+- non-cover asset actions stay coupled to the visible provider/active state
+- future polish should improve those cards rather than reintroducing detached management panels
+
+### Follow-ups Required
+- keep regression checks on create/edit/delete behavior if the cards get more UI polish later
+
+---
+
+## 2026-04-05 - Backgrounds Use Gallery Semantics In Edit
+
+### Decision
+Treat anime `backgrounds` as a gallery-style additive asset surface in the edit UI, not as a singular provider-vs-active comparison card.
+
+### Context
+Unlike `cover`, `banner`, `logo`, and `background_video`, the `background` slot is additive and can hold multiple persisted assets. The initial comparison-card pattern did not fit that behavior well.
+
+### Options Considered
+- force backgrounds into the same singular compare-card layout as other assets
+- show provider previews and active persisted backgrounds as separate galleries
+
+### Why This Won
+It matches the actual slot semantics and makes the UI communicate that backgrounds are accumulated assets, not a one-for-one replacement slot.
+
+### Consequences
+- the background card uses gallery sections for provider and active assets
+- per-background remove/open actions stay attached to each active thumbnail
+- future work should preserve additive semantics instead of regressing toward a singular-slot mental model
+
+### Follow-ups Required
+- keep background create/edit/delete regression coverage tied to additive behavior

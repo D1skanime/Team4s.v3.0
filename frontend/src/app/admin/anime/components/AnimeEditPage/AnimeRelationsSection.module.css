@@ -1,0 +1,136 @@
+.sectionCard {
+  display: grid;
+  gap: 16px;
+}
+
+.summaryRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  color: #6b6b70;
+  font-size: 14px;
+}
+
+.details {
+  border: 1px solid #e1e1e6;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%);
+  overflow: hidden;
+}
+
+.summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 18px 20px;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summaryTitle {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.content {
+  display: grid;
+  gap: 18px;
+  padding: 0 20px 20px;
+  border-top: 1px solid #ececf0;
+}
+
+.helper {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #44444a;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+}
+
+.searchBlock,
+.createBlock,
+.listBlock,
+.relationRow {
+  display: grid;
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.results {
+  display: grid;
+  gap: 8px;
+}
+
+.resultButton,
+.relationRow {
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px 14px;
+}
+
+.resultButton {
+  cursor: pointer;
+  text-align: left;
+}
+
+.resultMeta,
+.relationMeta {
+  color: #6b6b70;
+  font-size: 13px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.errorBox {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(183, 34, 34, 0.2);
+  border-radius: 12px;
+  background: rgba(183, 34, 34, 0.08);
+  color: #7b1d1d;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.emptyState {
+  margin: 0;
+  color: #6b6b70;
+  font-size: 14px;
+}
+
+.editingRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

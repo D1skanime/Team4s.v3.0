@@ -4,9 +4,11 @@ import { useRef, useState } from 'react'
 
 import {
   addAdminAnimeBackgroundAsset,
+  assignAdminAnimeCoverAsset,
   assignAdminAnimeBackgroundVideoAsset,
   assignAdminAnimeBannerAsset,
   assignAdminAnimeLogoAsset,
+  deleteAdminAnimeCoverAsset,
   deleteAdminAnimeBackgroundAsset,
   deleteAdminAnimeBackgroundVideoAsset,
   deleteAdminAnimeBannerAsset,
@@ -19,11 +21,16 @@ import type { AdminAnimeJellyfinContext } from '@/types/admin'
 import styles from '../../AdminStudio.module.css'
 import workspaceStyles from './AnimeEditWorkspace.module.css'
 import { EDIT_UPLOAD_TARGETS, EditUploadTarget, getEditUploadStatusLabel } from './animeJellyfinAssetUpload'
+import type { AssetCardDescriptor } from './AnimeJellyfinMetadataSection.helpers'
+import { summarizeAssetSlotDecision } from './AnimeJellyfinMetadataSection.helpers'
 
 interface AnimeJellyfinAssetUploadControlsProps {
   animeID: number
   authToken: string
   disabled?: boolean
+  assetCards: AssetCardDescriptor[]
+  coverCurrentImage?: string
+  coverCurrentSource: AdminAnimeJellyfinContext['cover']['current_source']
   persistedAssets: AdminAnimeJellyfinContext['persisted_assets']
   onSuccess: (message: string) => void
   onError: (message: string) => void
@@ -38,6 +45,9 @@ export function AnimeJellyfinAssetUploadControls({
   animeID,
   authToken,
   disabled = false,
+  assetCards,
+  coverCurrentImage,
+  coverCurrentSource,
   persistedAssets,
   onSuccess,
   onError,
@@ -46,14 +56,59 @@ export function AnimeJellyfinAssetUploadControls({
   const [isMutatingAssets, setIsMutatingAssets] = useState(false)
   const [uploadTarget, setUploadTarget] = useState<EditUploadTarget | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [isUploadingCover, setIsUploadingCover] = useState(false)
 
+  const coverInputRef = useRef<HTMLInputElement | null>(null)
   const bannerInputRef = useRef<HTMLInputElement | null>(null)
   const logoInputRef = useRef<HTMLInputElement | null>(null)
   const backgroundInputRef = useRef<HTMLInputElement | null>(null)
   const backgroundVideoInputRef = useRef<HTMLInputElement | null>(null)
 
-  const isBusy = disabled || isMutatingAssets
+  const isBusy = disabled || isMutatingAssets || isUploadingCover
   const mutationStatusLabel = getEditUploadStatusLabel(uploadTarget, false)
+
+  async function handleCoverUpload(file: File) {
+    setIsUploadingCover(true)
+
+    try {
+      const upload = await uploadAdminAnimeMedia({
+        animeID,
+        assetType: 'poster',
+        file,
+        authToken,
+      })
+
+      await assignAdminAnimeCoverAsset(animeID, upload.id, authToken)
+      await onAfterMutation()
+      onSuccess('Cover wurde hochgeladen und als aktives Asset gesetzt.')
+    } catch (error) {
+      if (error instanceof Error && error.message.trim()) {
+        onError(error.message)
+      } else {
+        onError('Cover Upload fehlgeschlagen.')
+      }
+    } finally {
+      setIsUploadingCover(false)
+      if (coverInputRef.current) coverInputRef.current.value = ''
+    }
+  }
+
+  async function handleRemoveCover() {
+    setIsUploadingCover(true)
+    try {
+      await deleteAdminAnimeCoverAsset(animeID, authToken)
+      await onAfterMutation()
+      onSuccess('Cover wurde entfernt.')
+    } catch (error) {
+      if (error instanceof Error && error.message.trim()) {
+        onError(error.message)
+      } else {
+        onError('Cover konnte nicht entfernt werden.')
+      }
+    } finally {
+      setIsUploadingCover(false)
+    }
+  }
 
   async function handleManualUpload(target: EditUploadTarget, file: File) {
     setIsMutatingAssets(true)
@@ -155,8 +210,345 @@ export function AnimeJellyfinAssetUploadControls({
     backgroundInputRef.current?.click()
   }
 
+  function triggerCoverUpload() {
+    coverInputRef.current?.click()
+  }
+
+  function renderPersistedStatus(kind: AssetCardDescriptor['kind']) {
+    if (kind === 'cover') {
+      return null
+    }
+    if (kind === 'backgrounds') {
+      return (
+        <span className={`${styles.badge} ${styles.badgeMuted}`}>
+          {persistedAssets.backgrounds.length} aktiv
+        </span>
+      )
+    }
+
+    const asset =
+      kind === 'banner'
+        ? persistedAssets.banner
+        : kind === 'logo'
+          ? persistedAssets.logo
+          : persistedAssets.background_video
+
+    if (!asset) {
+      return (
+        <span className={`${styles.badge} ${styles.badgeMuted}`}>
+          Noch nicht persistiert
+        </span>
+      )
+    }
+
+    return (
+      <span className={`${styles.badge} ${asset.ownership === 'manual' ? styles.badgeWarning : styles.badgeSuccess}`}>
+        Aktiv: {formatOwnershipLabel(asset.ownership)}
+      </span>
+    )
+  }
+
+  function renderStateFrame(
+    imageUrl: string | undefined,
+    alt: string,
+    options?: { isVideo?: boolean; poster?: boolean },
+  ) {
+    const isVideo = options?.isVideo ?? false
+    const poster = options?.poster ?? false
+
+    if (!imageUrl) {
+      return (
+        <div className={`${workspaceStyles.assetStateEmpty} ${poster ? workspaceStyles.assetStateEmptyPoster : ''}`}>
+          Noch kein Asset verfuegbar.
+        </div>
+      )
+    }
+
+    if (isVideo) {
+      return (
+        <div className={workspaceStyles.assetStateEmpty}>
+          Background-Video ist gesetzt.
+        </div>
+      )
+    }
+
+    return (
+      <div
+        className={`${workspaceStyles.assetPreviewFrame} ${
+          poster ? workspaceStyles.assetPreviewFramePoster : workspaceStyles.assetPreviewFrameWide
+        }`}
+      >
+        <img className={workspaceStyles.assetPreviewImage} src={imageUrl} alt={alt} />
+      </div>
+    )
+  }
+
+  function renderPersistedBody(kind: AssetCardDescriptor['kind']) {
+    if (kind === 'cover') {
+      const hasActiveCover = Boolean(coverCurrentImage?.trim())
+
+      return (
+        <>
+          <div className={workspaceStyles.assetComparisonGrid}>
+            <div className={workspaceStyles.assetStatePanel}>
+              <span className={workspaceStyles.assetStateLabel}>Provider-Vorschau</span>
+              {renderStateFrame(
+                assetCards.find((item) => item.kind === 'cover')?.previewURL,
+                'Provider-Cover',
+                { poster: true },
+              )}
+              <div className={workspaceStyles.assetLinkRow}>
+                {assetCards.find((item) => item.kind === 'cover')?.previewURL ? (
+                  <a
+                    className={`${styles.button} ${styles.buttonGhost}`}
+                    href={assetCards.find((item) => item.kind === 'cover')?.previewURL}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Provider-Asset oeffnen
+                  </a>
+                ) : null}
+              </div>
+            </div>
+            <div className={workspaceStyles.assetStatePanel}>
+              <span className={workspaceStyles.assetStateLabel}>Aktiv gespeichert</span>
+              {renderStateFrame(coverCurrentImage ? resolveApiUrl(coverCurrentImage) : undefined, 'Aktives Cover', {
+                poster: true,
+              })}
+              <p className={workspaceStyles.helperText}>
+                {coverCurrentSource === 'provider'
+                  ? 'Aktiv: Provider-Cover'
+                  : coverCurrentSource === 'manual'
+                    ? 'Aktiv: manuelles Cover'
+                    : 'Aktiv: kein Cover'}
+              </p>
+              {isUploadingCover ? (
+                <p className={workspaceStyles.statusNote} aria-live="polite">
+                  Cover wird verarbeitet...
+                </p>
+              ) : null}
+              <div className={workspaceStyles.assetActionStack}>
+                <div className={workspaceStyles.assetActionRowCompact}>
+                  <button
+                    type="button"
+                    className={`${styles.button} ${styles.buttonPrimary}`}
+                    disabled={isBusy}
+                    onClick={triggerCoverUpload}
+                  >
+                    {isUploadingCover ? 'Upload laeuft...' : 'Cover hochladen'}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.button} ${styles.buttonDanger}`}
+                    disabled={!hasActiveCover || isBusy}
+                    onClick={() => void handleRemoveCover()}
+                  >
+                    Cover entfernen
+                  </button>
+                </div>
+                {hasActiveCover ? (
+                  <div className={workspaceStyles.assetLinkRow}>
+                    <a
+                      className={`${styles.button} ${styles.buttonGhost}`}
+                      href={resolveApiUrl(coverCurrentImage)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Aktives Cover oeffnen
+                    </a>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </>
+      )
+    }
+    if (kind === 'backgrounds') {
+      const backgroundCard = assetCards.find((item) => item.kind === 'backgrounds')
+      const providerBackgrounds = backgroundCard?.previewURLs || []
+
+      return (
+        <>
+          <div className={workspaceStyles.assetComparisonGrid}>
+            <div className={workspaceStyles.assetStatePanel}>
+              <span className={workspaceStyles.assetStateLabel}>Provider-Vorschau</span>
+              {providerBackgrounds.length > 0 ? (
+                <div className={workspaceStyles.assetGallery}>
+                  {providerBackgrounds.map((url, index) => (
+                    <div key={`${url}-${index}`} className={workspaceStyles.assetGalleryItem}>
+                      <div className={workspaceStyles.assetGalleryThumb}>
+                        <img src={url} alt={`Provider-Background ${index + 1}`} />
+                      </div>
+                      <span className={workspaceStyles.assetGalleryMeta}>Provider #{index + 1}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={workspaceStyles.assetStateEmpty}>
+                  Keine Provider-Backgrounds verfuegbar.
+                </div>
+              )}
+              <p className={workspaceStyles.helperText}>
+                Provider-Bilder sind nur Vorschlaege. Aktiv gespeichert werden nur die Backgrounds, die du explizit hinzufuegst.
+              </p>
+            </div>
+            <div className={workspaceStyles.assetStatePanel}>
+              <span className={workspaceStyles.assetStateLabel}>Aktiv gespeichert</span>
+              {persistedAssets.backgrounds.length > 0 ? (
+                <div className={workspaceStyles.assetGallery}>
+                  {persistedAssets.backgrounds.map((item) => (
+                    <div key={item.id} className={workspaceStyles.assetGalleryItem}>
+                      <div className={workspaceStyles.assetGalleryThumb}>
+                        <img src={resolveApiUrl(item.url)} alt={`Aktiver Background ${item.sort_order}`} />
+                      </div>
+                      <span className={workspaceStyles.assetGalleryMeta}>
+                        #{item.sort_order} · {formatOwnershipLabel(item.ownership)}
+                      </span>
+                      <div className={styles.actionsRow}>
+                        <a className={`${styles.button} ${styles.buttonGhost}`} href={resolveApiUrl(item.url)} target="_blank" rel="noreferrer">
+                          Oeffnen
+                        </a>
+                        <button
+                          type="button"
+                          className={`${styles.button} ${styles.buttonDanger}`}
+                          disabled={isBusy}
+                          onClick={() => void handleRemoveBackground(item.id)}
+                        >
+                          Entfernen
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={workspaceStyles.assetStateEmpty}>
+                  Noch kein manueller Background gespeichert.
+                </div>
+              )}
+            </div>
+          </div>
+          <div className={styles.actionsRow}>
+            <button
+              type="button"
+              className={`${styles.button} ${styles.buttonSecondary}`}
+              disabled={isBusy}
+              onClick={() => triggerUpload('background')}
+            >
+              {uploadTarget === 'background' ? `Background laedt... ${uploadProgress}%` : EDIT_UPLOAD_TARGETS.background.buttonLabel}
+            </button>
+          </div>
+          {uploadTarget === 'background' ? (
+            <p className={workspaceStyles.statusNote} aria-live="polite">
+              {mutationStatusLabel}
+            </p>
+          ) : null}
+        </>
+      )
+    }
+
+    const target = kind as Exclude<EditUploadTarget, 'background'>
+    const asset =
+      kind === 'banner'
+        ? persistedAssets.banner
+        : kind === 'logo'
+          ? persistedAssets.logo
+          : persistedAssets.background_video
+
+    return (
+      <>
+        <div className={workspaceStyles.assetComparisonGrid}>
+          <div className={workspaceStyles.assetStatePanel}>
+            <span className={workspaceStyles.assetStateLabel}>Provider-Vorschau</span>
+            {renderStateFrame(
+              assetCards.find((item) => item.kind === kind)?.previewURL,
+              `Provider-${kind}`,
+              { isVideo: kind === 'background_video' },
+            )}
+            <p className={workspaceStyles.helperText}>
+              Provider-Vorschau, nicht automatisch aktiv.
+            </p>
+          </div>
+          <div className={workspaceStyles.assetStatePanel}>
+            <span className={workspaceStyles.assetStateLabel}>Aktiv gespeichert</span>
+            {renderStateFrame(
+              asset?.url ? resolveApiUrl(asset.url) : undefined,
+              `Aktives ${kind}`,
+              { isVideo: kind === 'background_video' },
+            )}
+            <p className={workspaceStyles.helperText}>
+              {asset
+                ? `Aktiv: ${formatOwnershipLabel(asset.ownership)}`
+                : 'Aktiv: noch nicht gespeichert'}
+            </p>
+          </div>
+        </div>
+        {uploadTarget === target ? (
+          <p className={workspaceStyles.statusNote} aria-live="polite">
+            {target === 'banner'
+              ? `Banner laedt... ${uploadProgress}%`
+              : target === 'logo'
+                ? `Logo laedt... ${uploadProgress}%`
+                : `Background-Video laedt... ${uploadProgress}%`}
+          </p>
+        ) : null}
+        <div className={styles.actionsRow}>
+          <button
+            type="button"
+            className={`${styles.button} ${styles.buttonSecondary}`}
+            disabled={isBusy}
+            onClick={() => triggerUpload(target)}
+          >
+            {uploadTarget === target
+              ? target === 'banner'
+                ? `Banner laedt... ${uploadProgress}%`
+                : target === 'logo'
+                  ? `Logo laedt... ${uploadProgress}%`
+                  : `Background-Video laedt... ${uploadProgress}%`
+              : EDIT_UPLOAD_TARGETS[target].buttonLabel}
+          </button>
+          <button
+            type="button"
+            className={`${styles.button} ${styles.buttonDanger}`}
+            disabled={!asset || isBusy}
+            onClick={() => void handleRemoveSingularAsset(target)}
+          >
+            {EDIT_UPLOAD_TARGETS[target].removeLabel}
+          </button>
+          {assetCards.find((item) => item.kind === kind)?.previewURL ? (
+            <a
+              className={`${styles.button} ${styles.buttonGhost}`}
+              href={assetCards.find((item) => item.kind === kind)?.previewURL}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Provider oeffnen
+            </a>
+          ) : null}
+          {asset?.url ? (
+            <a className={`${styles.button} ${styles.buttonGhost}`} href={resolveApiUrl(asset.url)} target="_blank" rel="noreferrer">
+              Aktives Asset oeffnen
+            </a>
+          ) : null}
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
+    <input
+        ref={coverInputRef}
+        type="file"
+        accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
+        hidden
+        onChange={(event) => {
+          const file = event.target.files?.[0]
+          if (file) {
+            void handleCoverUpload(file)
+          }
+        }}
+      />
       <input
         ref={bannerInputRef}
         type="file"
@@ -207,185 +599,37 @@ export function AnimeJellyfinAssetUploadControls({
       />
 
       <div className={workspaceStyles.sectionGridTwo}>
-        <div className={workspaceStyles.assetCard}>
-          <div className={workspaceStyles.assetCardHeader}>
-            <span>Aktiver Banner</span>
-            {persistedAssets.banner ? (
-              <span className={`${styles.badge} ${persistedAssets.banner.ownership === 'manual' ? styles.badgeWarning : styles.badgeSuccess}`}>
-                {formatOwnershipLabel(persistedAssets.banner.ownership)}
-              </span>
-            ) : (
-              <span className={`${styles.badge} ${styles.badgeMuted}`}>Kein persistierter Banner</span>
-            )}
-          </div>
-          {mutationStatusLabel && uploadTarget === 'banner' ? (
-            <p className={workspaceStyles.statusNote} aria-live="polite">
-              {uploadTarget === 'banner' ? `Banner laedt... ${uploadProgress}%` : mutationStatusLabel}
-            </p>
-          ) : null}
-          {persistedAssets.banner?.url ? (
-            <div className={workspaceStyles.assetPreviewFrame}>
-              <img className={workspaceStyles.assetPreviewImage} src={resolveApiUrl(persistedAssets.banner.url)} alt="Aktiver Banner" />
+        {assetCards.map((asset) => {
+          const decision = summarizeAssetSlotDecision(asset.kind, {
+            hasIncoming: asset.hasIncoming,
+            currentSource: coverCurrentSource,
+          })
+          const isCover = asset.kind === 'cover'
+          const isBackgroundVideo = asset.kind === 'background_video'
+
+          return (
+            <div key={asset.key} className={workspaceStyles.assetCard}>
+              <div className={workspaceStyles.assetCardHeader}>
+                <span>{asset.title}</span>
+                {renderPersistedStatus(asset.kind)}
+              </div>
+              <div className={styles.badgeRow}>
+                <span className={`${styles.badge} ${asset.hasIncoming ? styles.badgeSuccess : styles.badgeMuted}`}>
+                  {asset.hasIncoming ? 'Provider-Slot vorhanden' : 'Kein Provider-Slot'}
+                </span>
+                {!isCover ? (
+                  <span className={`${styles.badge} ${styles.badgeWarning}`}>
+                    Manuell oder explizit steuerbar
+                  </span>
+                ) : null}
+                {asset.countLabel ? <span className={`${styles.badge} ${styles.badgeMuted}`}>{asset.countLabel}</span> : null}
+              </div>
+              <p className={workspaceStyles.helperText}>{decision}</p>
+              {!isCover ? renderPersistedBody(asset.kind) : null}
+              {isCover ? renderPersistedBody(asset.kind) : null}
             </div>
-          ) : null}
-          <p className={workspaceStyles.helperText}>
-            {persistedAssets.banner
-              ? `${formatOwnershipLabel(persistedAssets.banner.ownership)}er Banner ist aktiv und kann manuell ersetzt werden.`
-              : 'Wenn hier nichts persistiert ist, faellt die Runtime auf Jellyfin zurueck, bis du ein manuelles Banner setzt.'}
-          </p>
-          <div className={styles.actionsRow}>
-            <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} disabled={isBusy} onClick={() => triggerUpload('banner')}>
-              {uploadTarget === 'banner' ? `Banner laedt... ${uploadProgress}%` : EDIT_UPLOAD_TARGETS.banner.buttonLabel}
-            </button>
-            <button
-              type="button"
-              className={`${styles.button} ${styles.buttonDanger}`}
-              disabled={!persistedAssets.banner || isBusy}
-              onClick={() => void handleRemoveSingularAsset('banner')}
-            >
-              {EDIT_UPLOAD_TARGETS.banner.removeLabel}
-            </button>
-          </div>
-        </div>
-
-        <div className={workspaceStyles.assetCard}>
-          <div className={workspaceStyles.assetCardHeader}>
-            <span>Aktives Logo</span>
-            {persistedAssets.logo ? (
-              <span className={`${styles.badge} ${persistedAssets.logo.ownership === 'manual' ? styles.badgeWarning : styles.badgeSuccess}`}>
-                {formatOwnershipLabel(persistedAssets.logo.ownership)}
-              </span>
-            ) : (
-              <span className={`${styles.badge} ${styles.badgeMuted}`}>Kein persistiertes Logo</span>
-            )}
-          </div>
-          {persistedAssets.logo?.url ? (
-            <div className={workspaceStyles.assetPreviewFrame}>
-              <img className={workspaceStyles.assetPreviewImage} src={resolveApiUrl(persistedAssets.logo.url)} alt="Aktives Logo" />
-            </div>
-          ) : null}
-          <p className={workspaceStyles.helperText}>
-            {persistedAssets.logo
-              ? `${formatOwnershipLabel(persistedAssets.logo.ownership)}es Logo ist aktiv und kann manuell ersetzt werden.`
-              : 'Logo kann jetzt direkt als singularer manueller Slot gesetzt werden.'}
-          </p>
-          <div className={styles.actionsRow}>
-            <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} disabled={isBusy} onClick={() => triggerUpload('logo')}>
-              {uploadTarget === 'logo' ? `Logo laedt... ${uploadProgress}%` : EDIT_UPLOAD_TARGETS.logo.buttonLabel}
-            </button>
-            <button
-              type="button"
-              className={`${styles.button} ${styles.buttonDanger}`}
-              disabled={!persistedAssets.logo || isBusy}
-              onClick={() => void handleRemoveSingularAsset('logo')}
-            >
-              {EDIT_UPLOAD_TARGETS.logo.removeLabel}
-            </button>
-          </div>
-        </div>
-
-        <div className={workspaceStyles.assetCard}>
-          <div className={workspaceStyles.assetCardHeader}>
-            <span>Persistierte Backgrounds</span>
-            <span className={`${styles.badge} ${styles.badgeMuted}`}>{persistedAssets.backgrounds.length} aktiv</span>
-          </div>
-          <p className={workspaceStyles.helperText}>
-            Backgrounds bleiben additive Assets. Jeder Upload ergaenzt die Galerie, statt einen singularen Slot zu ersetzen.
-          </p>
-          <div className={styles.actionsRow}>
-            <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} disabled={isBusy} onClick={() => triggerUpload('background')}>
-              {uploadTarget === 'background' ? `Background laedt... ${uploadProgress}%` : EDIT_UPLOAD_TARGETS.background.buttonLabel}
-            </button>
-          </div>
-
-          {persistedAssets.backgrounds.length > 0 ? (
-            <div className={workspaceStyles.assetList}>
-              {persistedAssets.backgrounds.map((item) => (
-                <div key={item.id} className={workspaceStyles.assetListItem}>
-                  <div className={workspaceStyles.assetListMedia}>
-                    <img className={workspaceStyles.assetThumb} src={resolveApiUrl(item.url)} alt={`Background ${item.sort_order}`} />
-                  </div>
-                  <div className={workspaceStyles.assetListBody}>
-                    <div className={workspaceStyles.assetCardHeader}>
-                      <span>Background #{item.sort_order}</span>
-                    </div>
-                    <div className={styles.badgeRow}>
-                      <span className={`${styles.badge} ${item.ownership === 'manual' ? styles.badgeWarning : styles.badgeSuccess}`}>
-                        {formatOwnershipLabel(item.ownership)}
-                      </span>
-                      <span className={`${styles.badge} ${styles.badgeMuted}`}>Sortierung {item.sort_order}</span>
-                    </div>
-                    <div className={styles.actionsRow}>
-                      <a className={`${styles.button} ${styles.buttonGhost}`} href={resolveApiUrl(item.url)} target="_blank" rel="noreferrer">
-                        Background oeffnen
-                      </a>
-                      <button
-                        type="button"
-                        className={`${styles.button} ${styles.buttonDanger}`}
-                        disabled={isBusy}
-                        onClick={() => void handleRemoveBackground(item.id)}
-                      >
-                        Entfernen
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
-        <div className={workspaceStyles.assetCard}>
-          <div className={workspaceStyles.assetCardHeader}>
-            <span>Aktives Background-Video</span>
-            {persistedAssets.background_video ? (
-              <span
-                className={`${styles.badge} ${
-                  persistedAssets.background_video.ownership === 'manual' ? styles.badgeWarning : styles.badgeSuccess
-                }`}
-              >
-                {formatOwnershipLabel(persistedAssets.background_video.ownership)}
-              </span>
-            ) : (
-              <span className={`${styles.badge} ${styles.badgeMuted}`}>Kein persistiertes Background-Video</span>
-            )}
-          </div>
-          <p className={workspaceStyles.helperText}>
-            {persistedAssets.background_video
-              ? `${formatOwnershipLabel(persistedAssets.background_video.ownership)}es Background-Video ist aktiv und kann manuell ersetzt werden.`
-              : 'Background-Video kann jetzt direkt als singularer manueller Slot gesetzt werden.'}
-          </p>
-          <div className={styles.actionsRow}>
-            <button
-              type="button"
-              className={`${styles.button} ${styles.buttonSecondary}`}
-              disabled={isBusy}
-              onClick={() => triggerUpload('background_video')}
-            >
-              {uploadTarget === 'background_video'
-                ? `Background-Video laedt... ${uploadProgress}%`
-                : EDIT_UPLOAD_TARGETS.background_video.buttonLabel}
-            </button>
-            <button
-              type="button"
-              className={`${styles.button} ${styles.buttonDanger}`}
-              disabled={!persistedAssets.background_video || isBusy}
-              onClick={() => void handleRemoveSingularAsset('background_video')}
-            >
-              {EDIT_UPLOAD_TARGETS.background_video.removeLabel}
-            </button>
-            {persistedAssets.background_video?.url ? (
-              <a
-                className={`${styles.button} ${styles.buttonGhost}`}
-                href={resolveApiUrl(persistedAssets.background_video.url)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Background-Video oeffnen
-              </a>
-            ) : null}
-          </div>
-        </div>
+          )
+        })}
       </div>
     </>
   )

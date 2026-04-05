@@ -9,6 +9,7 @@ import { getAnimeByID, getRuntimeAuthToken } from '@/lib/api'
 import { AnimeDetail } from '@/types/anime'
 
 import { AnimeEditWorkspace } from '../../components/AnimeEditPage/AnimeEditWorkspace'
+import { AnimeRelationsSection } from '../../components/AnimeEditPage/AnimeRelationsSection'
 import { AnimeJellyfinMetadataSection } from '../../components/AnimeEditPage/AnimeJellyfinMetadataSection'
 import { JellyfinSyncPanel } from '../../components/JellyfinSync/JellyfinSyncPanel'
 import { useJellyfinSync } from '../../hooks/useJellyfinSync'
@@ -18,6 +19,10 @@ import { formatAdminError } from '../../utils/studio-helpers'
 
 function formatAnimeLabel(anime: AnimeDetail): string {
   return `${String(anime.id).padStart(3, '0')} ${anime.title}`
+}
+
+export function formatEditLoadError(error: unknown): string {
+  return formatAdminError(error, 'Anime konnte nicht geladen werden.')
 }
 
 export default function AdminAnimeEditPage() {
@@ -67,7 +72,7 @@ export default function AdminAnimeEditPage() {
         setAnime(response.data)
       } catch (error) {
         setAnime(null)
-        setErrorMessage(formatAdminError(error, 'Anime konnte nicht geladen werden.'))
+        setErrorMessage(formatEditLoadError(error))
       } finally {
         setIsLoading(false)
       }
@@ -160,17 +165,6 @@ export default function AdminAnimeEditPage() {
             }}
           />
 
-          {jellyfinContext ? (
-            <section className={styles.noticeBox}>
-              <strong>Jellyfin-Kontext</strong>
-              <p className={styles.pageSubtitle}>
-                {jellyfinContext.source_kind === 'jellyfin' ? 'Verknuepft mit Jellyfin' : 'Manuelle Quelle'}
-                {jellyfinContext.jellyfin_series_name ? ` | Serie ${jellyfinContext.jellyfin_series_name}` : ''}
-                {jellyfinContext.folder_name ? ` | Ordner ${jellyfinContext.folder_name}` : ''}
-              </p>
-            </section>
-          ) : null}
-
           <AnimeEditWorkspace
             anime={{
               ...anime,
@@ -191,6 +185,19 @@ export default function AdminAnimeEditPage() {
             }}
             onRequest={setLastRequest}
             onResponse={setLastResponse}
+          />
+
+          <AnimeRelationsSection
+            animeID={anime.id}
+            authToken={authToken}
+            onSuccess={(message) => {
+              setErrorMessage(null)
+              setSuccessMessage(message)
+            }}
+            onError={(message) => {
+              setSuccessMessage(null)
+              setErrorMessage(message)
+            }}
           />
 
           <section className={styles.card}>

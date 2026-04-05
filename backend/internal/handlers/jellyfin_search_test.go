@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/repository"
 )
 
 func TestBuildAdminJellyfinIntakeSearchItems_RanksStrongerMatchesFirst(t *testing.T) {
@@ -14,7 +15,7 @@ func TestBuildAdminJellyfinIntakeSearchItems_RanksStrongerMatchesFirst(t *testin
 		{ID: "strong", Name: "Naruto", Path: `D:\Anime\TV\Naruto`},
 	}
 
-	result := buildAdminJellyfinIntakeSearchItems(items, "Naruto")
+	result := buildAdminJellyfinIntakeSearchItems(items, "Naruto", nil)
 	if len(result) != 2 {
 		t.Fatalf("expected 2 results, got %d", len(result))
 	}
@@ -38,7 +39,7 @@ func TestBuildAdminJellyfinIntakeSearchItems_IncludeEvidenceAndPreviewReferences
 		},
 	}
 
-	result := buildAdminJellyfinIntakeSearchItems(items, "Naruto")
+	result := buildAdminJellyfinIntakeSearchItems(items, "Naruto", nil)
 	if len(result) != 1 {
 		t.Fatalf("expected 1 result, got %d", len(result))
 	}
@@ -50,6 +51,39 @@ func TestBuildAdminJellyfinIntakeSearchItems_IncludeEvidenceAndPreviewReferences
 	}
 	if len(candidate.TypeHint.Reasons) == 0 {
 		t.Fatalf("expected visible type-hint reasons")
+	}
+}
+
+func TestBuildAdminJellyfinIntakeSearchItems_MarksAlreadyImportedCandidates(t *testing.T) {
+	t.Parallel()
+
+	path := `/media/Anime/OVA/Anime.OVA.Sub/Macross Flash Back 2012`
+	result := buildAdminJellyfinIntakeSearchItems([]jellyfinSeriesItem{
+		{
+			ID:   "macross-ova",
+			Name: "Macross",
+			Path: path,
+		},
+	}, "Macross", []repository.ExistingJellyfinAnimeMatch{
+		{
+			AnimeID:    77,
+			Title:      "Macross Flash Back 2012",
+			Source:     testStringPtr("jellyfin:macross-ova"),
+			FolderName: &path,
+		},
+	})
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 result, got %d", len(result))
+	}
+	if !result[0].AlreadyImported {
+		t.Fatalf("expected candidate to be marked already imported")
+	}
+	if result[0].ExistingAnimeID == nil || *result[0].ExistingAnimeID != 77 {
+		t.Fatalf("expected existing anime id 77, got %+v", result[0].ExistingAnimeID)
+	}
+	if result[0].ExistingTitle == nil || *result[0].ExistingTitle != "Macross Flash Back 2012" {
+		t.Fatalf("expected existing title, got %+v", result[0].ExistingTitle)
 	}
 }
 
@@ -86,5 +120,9 @@ func assertIntakeSearchEvidence(t *testing.T, candidate models.AdminJellyfinInta
 }
 
 func intPtr(v int) *int {
+	return &v
+}
+
+func testStringPtr(v string) *string {
 	return &v
 }

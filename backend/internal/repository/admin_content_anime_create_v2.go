@@ -83,6 +83,11 @@ func (r *AdminContentRepository) createAnimeV2(
 	input models.AdminAnimeCreateInput,
 	actorUserID int64,
 ) (*models.AdminAnimeItem, error) {
+	schema, err := loadAnimeV2SchemaInfo(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
+
 	animeTypeID, err := resolveAnimeTypeID(ctx, tx, input.Type)
 	if err != nil {
 		return nil, err
@@ -99,26 +104,11 @@ func (r *AdminContentRepository) createAnimeV2(
 	}
 
 	var animeID int64
+	query, args := buildCreateAnimeV2InsertQuery(schema, animeTypeID, input, slug, modifiedBy)
 	if err := tx.QueryRow(
 		ctx,
-		`
-		INSERT INTO anime (
-			anime_type_id,
-			year,
-			description,
-			folder_name,
-			slug,
-			modified_by
-		)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id
-		`,
-		animeTypeID,
-		input.Year,
-		input.Description,
-		input.FolderName,
-		slug,
-		modifiedBy,
+		query,
+		args...,
 	).Scan(&animeID); err != nil {
 		return nil, fmt.Errorf("create anime v2: %w", err)
 	}
@@ -131,20 +121,65 @@ func (r *AdminContentRepository) createAnimeV2(
 		return nil, err
 	}
 
-	return &models.AdminAnimeItem{
-		ID:          animeID,
-		Title:       input.Title,
-		TitleDE:     trimOptionalStringPtr(input.TitleDE),
-		TitleEN:     trimOptionalStringPtr(input.TitleEN),
-		Type:        input.Type,
-		ContentType: input.ContentType,
-		Status:      input.Status,
-		Year:        input.Year,
-		MaxEpisodes: input.MaxEpisodes,
-		Genre:       trimOptionalStringPtr(input.Genre),
-		Description: trimOptionalStringPtr(input.Description),
-		CoverImage:  trimOptionalStringPtr(input.CoverImage),
-	}, nil
+	return loadAdminAnimeItemV2(ctx, tx, animeID, schema)
+}
+
+func buildCreateAnimeV2InsertQuery(
+	schema animeV2SchemaInfo,
+	animeTypeID int64,
+	input models.AdminAnimeCreateInput,
+	slug string,
+	modifiedBy *int64,
+) (string, []any) {
+	columns := []string{
+		"anime_type_id",
+	}
+	args := []any{
+		animeTypeID,
+	}
+
+	if schema.HasContentType {
+		columns = append(columns, "content_type")
+		args = append(args, input.ContentType)
+	}
+	if schema.HasStatus {
+		columns = append(columns, "status")
+		args = append(args, input.Status)
+	}
+
+	columns = append(columns, "year")
+	args = append(args, input.Year)
+
+	if schema.HasMaxEpisodes {
+		columns = append(columns, "max_episodes")
+		args = append(args, input.MaxEpisodes)
+	}
+
+	columns = append(columns, "description")
+	args = append(args, input.Description)
+
+	if schema.HasSource {
+		columns = append(columns, "source")
+		args = append(args, input.Source)
+	}
+
+	columns = append(columns, "folder_name", "slug", "modified_by")
+	args = append(args, input.FolderName, slug, modifiedBy)
+
+	placeholders := make([]string, 0, len(columns))
+	for idx := range columns {
+		placeholders = append(placeholders, fmt.Sprintf("$%d", idx+1))
+	}
+
+	query := fmt.Sprintf(`
+		INSERT INTO anime (
+			%s
+		)
+		VALUES (%s)
+		RETURNING id
+	`, strings.Join(columns, ",\n\t\t\t"), strings.Join(placeholders, ", "))
+
+	return query, args
 }
 
 func resolveAnimeTypeID(ctx context.Context, tx pgx.Tx, rawType string) (int64, error) {
@@ -283,11 +318,9 @@ func attachAnimeCoverMediaV2(
 	}
 
 	if external := buildJellyfinMediaExternal(*coverImage); external != nil {
-		metadata, err := json.Marshal(map[string]any{
-			"source_url": *coverImage,
-		})
+		metadata, err := buildCoverMediaExternalMetadata(*coverImage)
 		if err != nil {
-			return fmt.Errorf("marshal cover media external metadata anime=%d: %w", animeID, err)
+			return err
 		}
 
 		if _, err := tx.Exec(
@@ -309,6 +342,17 @@ func attachAnimeCoverMediaV2(
 	}
 
 	return nil
+}
+
+func buildCoverMediaExternalMetadata(sourceURL string) ([]byte, error) {
+	metadata, err := json.Marshal(map[string]any{
+		"source_url": sourceURL,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal cover media external metadata: %w", err)
+	}
+
+	return metadata, nil
 }
 
 type mediaExternalRef struct {

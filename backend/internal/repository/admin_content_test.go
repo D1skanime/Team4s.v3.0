@@ -363,6 +363,20 @@ func TestAdminContentRepository_BuildAnimeDeleteAuditEntry_PersistsDeletedAnimeC
 	}
 }
 
+func TestAdminContentRepository_DeleteAnimeSourceWritesAuditBeforeDelete(t *testing.T) {
+	content := readRepositorySource(t, "admin_content_anime_delete.go")
+	normalized := strings.ToLower(content)
+
+	auditPos := strings.Index(normalized, "if err := insertadminanimeauditentry(ctx, tx, auditentry); err != nil {")
+	deletePos := strings.Index(normalized, "deletetag, err := tx.exec(ctx, `delete from anime where id = $1`, id)")
+	if auditPos == -1 || deletePos == -1 {
+		t.Fatalf("expected delete source to contain audit insert and delete statements")
+	}
+	if auditPos > deletePos {
+		t.Fatalf("expected audit insert to happen before anime delete")
+	}
+}
+
 func repositoryFileLineCount(t *testing.T, name string) int {
 	t.Helper()
 

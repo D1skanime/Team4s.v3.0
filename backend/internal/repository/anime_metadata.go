@@ -5,7 +5,13 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/jackc/pgx/v5"
 )
+
+type normalizedAnimeMetadataQuerier interface {
+	Query(context.Context, string, ...any) (pgx.Rows, error)
+}
 
 type normalizedAnimeMetadata struct {
 	Title   string
@@ -21,7 +27,15 @@ type normalizedAnimeTitleRecord struct {
 }
 
 func (r *AnimeRepository) loadNormalizedAnimeMetadata(ctx context.Context, animeID int64) (*normalizedAnimeMetadata, error) {
-	titleRows, err := r.db.Query(
+	return loadNormalizedAnimeMetadata(ctx, r.db, animeID)
+}
+
+func (r *AdminContentRepository) loadNormalizedAnimeMetadata(ctx context.Context, animeID int64) (*normalizedAnimeMetadata, error) {
+	return loadNormalizedAnimeMetadata(ctx, r.db, animeID)
+}
+
+func loadNormalizedAnimeMetadata(ctx context.Context, db normalizedAnimeMetadataQuerier, animeID int64) (*normalizedAnimeMetadata, error) {
+	titleRows, err := db.Query(
 		ctx,
 		`
 		SELECT l.code, tt.name, at.title
@@ -49,7 +63,7 @@ func (r *AnimeRepository) loadNormalizedAnimeMetadata(ctx context.Context, anime
 		return nil, fmt.Errorf("iterate normalized anime titles %d: %w", animeID, err)
 	}
 
-	genreRows, err := r.db.Query(
+	genreRows, err := db.Query(
 		ctx,
 		`
 		SELECT g.name

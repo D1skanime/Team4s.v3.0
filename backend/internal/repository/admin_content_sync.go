@@ -15,6 +15,14 @@ func (r *AdminContentRepository) GetAnimeSyncSource(
 	ctx context.Context,
 	animeID int64,
 ) (*models.AdminAnimeSyncSource, error) {
+	schema, err := r.loadAnimeV2SchemaInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if schema.HasSlug {
+		return r.getAnimeSyncSourceV2(ctx, animeID, schema)
+	}
+
 	query := `
 		SELECT id, title, title_de, title_en, source, folder_name, year, max_episodes, description, cover_image
 		FROM anime
@@ -37,6 +45,105 @@ func (r *AdminContentRepository) GetAnimeSyncSource(
 		return nil, ErrNotFound
 	} else if err != nil {
 		return nil, fmt.Errorf("get anime sync source %d: %w", animeID, err)
+	}
+
+	return &item, nil
+}
+
+func (r *AdminContentRepository) loadAnimeV2SchemaInfo(ctx context.Context) (animeV2SchemaInfo, error) {
+	return loadAnimeV2SchemaInfo(ctx, r.db)
+}
+
+func (r *AdminContentRepository) getAnimeSyncSourceV2(ctx context.Context, animeID int64, schema animeV2SchemaInfo) (*models.AdminAnimeSyncSource, error) {
+	maxEpisodesSelect := `NULL::smallint`
+	if schema.HasMaxEpisodes {
+		maxEpisodesSelect = "anime.max_episodes"
+	}
+	sourceSelect := `(
+			SELECT 'jellyfin:' || me.external_id
+			FROM anime_media am
+			JOIN media_external me ON me.media_id = am.media_id
+			WHERE am.anime_id = anime.id
+			  AND me.provider = 'jellyfin'
+			ORDER BY am.sort_order ASC, me.id ASC
+			LIMIT 1
+		)`
+	if schema.HasSource {
+		sourceSelect = "anime.source"
+	}
+
+	query := `
+		SELECT
+			anime.id,
+			COALESCE((
+				SELECT at2.title
+				FROM anime_titles at2
+				JOIN languages l ON l.id = at2.language_id
+				JOIN title_types tt ON tt.id = at2.title_type_id
+				WHERE at2.anime_id = anime.id
+				ORDER BY
+					CASE l.code
+						WHEN 'ja' THEN 0
+						WHEN 'romaji' THEN 1
+						WHEN 'en' THEN 2
+						WHEN 'de' THEN 3
+						ELSE 10
+					END,
+					CASE tt.name
+						WHEN 'main' THEN 0
+						WHEN 'romaji' THEN 1
+						WHEN 'official' THEN 2
+						WHEN 'synonym' THEN 3
+						WHEN 'short' THEN 4
+						ELSE 10
+					END,
+					at2.title ASC
+				LIMIT 1
+			), anime.slug) AS display_title,
+			` + sourceSelect + ` AS source,
+			anime.folder_name,
+			anime.year,
+			` + maxEpisodesSelect + ` AS max_episodes,
+			anime.description,
+			poster.file_path
+		FROM anime
+		LEFT JOIN LATERAL (
+			SELECT ma.file_path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			WHERE am.anime_id = anime.id
+			  AND mt.name = 'poster'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) poster ON true
+		WHERE anime.id = $1
+	`
+
+	var item models.AdminAnimeSyncSource
+	if err := r.db.QueryRow(ctx, query, animeID).Scan(
+		&item.ID,
+		&item.Title,
+		&item.Source,
+		&item.FolderName,
+		&item.Year,
+		&item.MaxEpisodes,
+		&item.Description,
+		&item.CoverImage,
+	); errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	} else if err != nil {
+		return nil, fmt.Errorf("get v2 anime sync source %d: %w", animeID, err)
+	}
+
+	if normalized, err := r.loadNormalizedAnimeMetadata(ctx, animeID); err != nil {
+		return nil, err
+	} else if normalized != nil {
+		if normalized.Title != "" {
+			item.Title = normalized.Title
+		}
+		item.TitleDE = normalized.TitleDE
+		item.TitleEN = normalized.TitleEN
 	}
 
 	return &item, nil

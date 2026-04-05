@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"image"
 	"image/color"
 	"image/png"
@@ -11,12 +12,14 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -24,17 +27,23 @@ import (
 
 // MockMediaUploadRepository implements MediaUploadRepository for testing
 type MockMediaUploadRepository struct {
-	assets    map[string]*models.UploadMediaAsset
-	files     map[string][]*models.UploadMediaFile
-	joinTable map[string]map[int64]bool
+	assets       map[string]*models.UploadMediaAsset
+	files        map[string][]*models.UploadMediaFile
+	joinTable    map[string]map[int64]bool
+	legacySchema bool
 }
 
 func NewMockMediaUploadRepository() *MockMediaUploadRepository {
 	return &MockMediaUploadRepository{
-		assets:    make(map[string]*models.UploadMediaAsset),
-		files:     make(map[string][]*models.UploadMediaFile),
-		joinTable: make(map[string]map[int64]bool),
+		assets:       make(map[string]*models.UploadMediaAsset),
+		files:        make(map[string][]*models.UploadMediaFile),
+		joinTable:    make(map[string]map[int64]bool),
+		legacySchema: true,
 	}
+}
+
+func (m *MockMediaUploadRepository) SupportsLegacyUploadSchema(ctx context.Context) (bool, error) {
+	return m.legacySchema, nil
 }
 
 func (m *MockMediaUploadRepository) CreateMediaAsset(ctx context.Context, asset *models.UploadMediaAsset) error {
@@ -276,6 +285,189 @@ func TestMediaUploadHandler_UploadPersistsUploadedByFromAuthIdentity(t *testing.
 	}
 }
 
+type mockAssetLifecycleStore struct {
+	subjects map[int64]bool
+	audit    []models.AssetLifecycleAuditEntry
+}
+
+func newMockAssetLifecycleStore(entityIDs ...int64) *mockAssetLifecycleStore {
+	subjects := make(map[int64]bool, len(entityIDs))
+	for _, id := range entityIDs {
+		subjects[id] = true
+	}
+	return &mockAssetLifecycleStore{subjects: subjects, audit: make([]models.AssetLifecycleAuditEntry, 0)}
+}
+
+func (m *mockAssetLifecycleStore) LookupAssetLifecycleSubject(ctx context.Context, entityType string, entityID int64) (*models.AssetLifecycleSubject, error) {
+	if strings.TrimSpace(entityType) != "anime" || !m.subjects[entityID] {
+		return nil, repository.ErrNotFound
+	}
+	return &models.AssetLifecycleSubject{EntityType: "anime", EntityID: entityID}, nil
+}
+
+func (m *mockAssetLifecycleStore) RecordAssetLifecycleEvent(ctx context.Context, entry models.AssetLifecycleAuditEntry) error {
+	m.audit = append(m.audit, entry)
+	return nil
+}
+
+func TestMediaUploadHandler_UploadAutoProvisionsCanonicalAnimeFoldersAndReportsStatuses(t *testing.T) {
+	repo := NewMockMediaUploadRepository()
+	repo.legacySchema = false
+	tmpDir := t.TempDir()
+	store := newMockAssetLifecycleStore(123)
+	handler := NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
+		WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
+
+	w := performAuthorizedUpload(t, handler, newMediaUploadRequest(t))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var payload models.UploadResponse
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &payload))
+	if assert.NotNil(t, payload.Provisioning) {
+		assert.Equal(t, "anime", payload.Provisioning.EntityType)
+		assert.Equal(t, int64(123), payload.Provisioning.EntityID)
+		assert.Equal(t, "cover", payload.Provisioning.RequestedAssetType)
+		assert.Len(t, payload.Provisioning.Statuses, 5)
+		for _, status := range payload.Provisioning.Statuses {
+			assert.Equal(t, "created", status.State)
+		}
+	}
+	assert.Contains(t, payload.URL, "/media/anime/123/cover/")
+	assert.DirExists(t, filepath.Join(tmpDir, "anime", "123", "cover"))
+	assert.DirExists(t, filepath.Join(tmpDir, "anime", "123", "banner"))
+	assert.DirExists(t, filepath.Join(tmpDir, "anime", "123", "logo"))
+	assert.DirExists(t, filepath.Join(tmpDir, "anime", "123", "background"))
+	assert.DirExists(t, filepath.Join(tmpDir, "anime", "123", "background_video"))
+	if assert.Len(t, repo.assets, 1) {
+		for _, asset := range repo.assets {
+			assert.Equal(t, "cover", asset.AssetType)
+			assert.Equal(t, "poster", asset.MediaType)
+			assert.Equal(t, int64(123), asset.EntityID)
+		}
+	}
+	assert.Len(t, repo.files, 1)
+	assert.True(t, repo.joinTable["anime"][123])
+}
+
+func TestMediaUploadHandler_UploadReportsIdempotentProvisioningReuse(t *testing.T) {
+	repo := NewMockMediaUploadRepository()
+	repo.legacySchema = false
+	tmpDir := t.TempDir()
+	store := newMockAssetLifecycleStore(123)
+	handler := NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
+		WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
+
+	first := performAuthorizedUpload(t, handler, newMediaUploadRequest(t))
+	assert.Equal(t, http.StatusOK, first.Code)
+
+	second := performAuthorizedUpload(t, handler, newMediaUploadRequest(t))
+	assert.Equal(t, http.StatusOK, second.Code)
+
+	var payload models.UploadResponse
+	assert.NoError(t, json.Unmarshal(second.Body.Bytes(), &payload))
+	if assert.NotNil(t, payload.Provisioning) {
+		for _, status := range payload.Provisioning.Statuses {
+			assert.Equal(t, "already_exists", status.State)
+		}
+	}
+}
+
+func TestMediaUploadHandler_UploadUsesManualAnimePathWithoutJellyfinMetadata(t *testing.T) {
+	repo := NewMockMediaUploadRepository()
+	repo.legacySchema = false
+	tmpDir := t.TempDir()
+	store := newMockAssetLifecycleStore(123)
+	handler := NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
+		WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
+
+	req := newMediaUploadRequest(t)
+	w := performAuthorizedUpload(t, handler, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NotContains(t, w.Body.String(), "jellyfin")
+}
+
+func TestMediaUploadHandler_UploadReturnsDetailedValidationErrors(t *testing.T) {
+	tests := []struct {
+		name           string
+		request        func(t *testing.T) *http.Request
+		setupHandler   func(t *testing.T, tmpDir string) *MediaUploadHandler
+		expectedStatus int
+		expectedBody   string
+	}{
+		{
+			name: "invalid entity type",
+			request: func(t *testing.T) *http.Request {
+				return newMediaUploadRequestWithFields(t, "episode", "123", "poster")
+			},
+			setupHandler: func(t *testing.T, tmpDir string) *MediaUploadHandler {
+				return NewMediaUploadHandler(NewMockMediaUploadRepository(), tmpDir, "http://localhost", "/usr/bin/ffmpeg")
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "ungueltiger entity_type",
+		},
+		{
+			name: "invalid entity id",
+			request: func(t *testing.T) *http.Request {
+				return newMediaUploadRequestWithFields(t, "anime", "999", "poster")
+			},
+			setupHandler: func(t *testing.T, tmpDir string) *MediaUploadHandler {
+				repo := NewMockMediaUploadRepository()
+				repo.legacySchema = false
+				store := newMockAssetLifecycleStore(123)
+				return NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
+					WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "ungueltige anime id",
+		},
+		{
+			name: "unsupported asset type",
+			request: func(t *testing.T) *http.Request {
+				return newMediaUploadRequestWithFields(t, "anime", "123", "avatar")
+			},
+			setupHandler: func(t *testing.T, tmpDir string) *MediaUploadHandler {
+				repo := NewMockMediaUploadRepository()
+				repo.legacySchema = false
+				store := newMockAssetLifecycleStore(123)
+				return NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
+					WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "ungueltiger asset_type",
+		},
+		{
+			name: "reserved folder collision",
+			request: func(t *testing.T) *http.Request {
+				return newMediaUploadRequestWithFields(t, "anime", "123", "poster")
+			},
+			setupHandler: func(t *testing.T, tmpDir string) *MediaUploadHandler {
+				assert.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "anime", "123"), 0o755))
+				assert.NoError(t, os.WriteFile(filepath.Join(tmpDir, "anime", "123", "cover"), []byte("not-a-dir"), 0o644))
+				repo := NewMockMediaUploadRepository()
+				repo.legacySchema = false
+				store := newMockAssetLifecycleStore(123)
+				return NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
+					WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "reservierter ordner",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			handler := tt.setupHandler(t, tmpDir)
+			w := performAuthorizedUpload(t, handler, tt.request(t))
+			assert.Equal(t, tt.expectedStatus, w.Code)
+			assert.Contains(t, w.Body.String(), tt.expectedBody)
+			assert.NotContains(t, w.Body.String(), "\"error\":\"")
+		})
+	}
+}
+
 func TestMediaUploadHandler_MainFileStaysWithinLineBudget(t *testing.T) {
 	content, err := os.ReadFile("media_upload.go")
 	if err != nil {
@@ -293,13 +485,17 @@ func TestMediaUploadHandler_MainFileStaysWithinLineBudget(t *testing.T) {
 }
 
 func newMediaUploadRequest(t *testing.T) *http.Request {
+	return newMediaUploadRequestWithFields(t, "anime", "123", "poster")
+}
+
+func newMediaUploadRequestWithFields(t *testing.T, entityType, entityID, assetType string) *http.Request {
 	t.Helper()
 
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
-	assert.NoError(t, writer.WriteField("entity_type", "anime"))
-	assert.NoError(t, writer.WriteField("entity_id", "123"))
-	assert.NoError(t, writer.WriteField("asset_type", "poster"))
+	assert.NoError(t, writer.WriteField("entity_type", entityType))
+	assert.NoError(t, writer.WriteField("entity_id", entityID))
+	assert.NoError(t, writer.WriteField("asset_type", assetType))
 
 	fileWriter, err := writer.CreateFormFile("file", "cover.png")
 	if err != nil {
@@ -315,6 +511,24 @@ func newMediaUploadRequest(t *testing.T) *http.Request {
 	req := httptest.NewRequest(http.MethodPost, "/admin/upload", &body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	return req
+}
+
+func performAuthorizedUpload(t *testing.T, handler *MediaUploadHandler, req *http.Request) *httptest.ResponseRecorder {
+	t.Helper()
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.POST("/admin/upload", func(c *gin.Context) {
+		c.Set("auth_identity", middleware.AuthIdentity{
+			UserID:      44,
+			DisplayName: "Operator",
+		})
+		handler.Upload(c)
+	})
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	return w
 }
 
 func testPNGBytes(t *testing.T) []byte {

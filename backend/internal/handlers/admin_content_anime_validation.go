@@ -41,9 +41,6 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 	}
 
 	coverImage := normalizeNullableString(req.CoverImage)
-	if coverImage == nil {
-		return models.AdminAnimeCreateInput{}, "cover_image ist erforderlich"
-	}
 
 	source := normalizeNullableString(req.Source)
 	folderName := normalizeNullableString(req.FolderName)

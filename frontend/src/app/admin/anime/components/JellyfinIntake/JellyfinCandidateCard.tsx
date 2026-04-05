@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { AdminJellyfinIntakeSearchItem } from '@/types/admin'
 import { resolveJellyfinIntakeAssetUrl } from '../../utils/jellyfin-intake-assets'
 
@@ -74,6 +75,21 @@ export function JellyfinCandidateCard({
         ))}
       </div>
 
+      {candidate.already_imported ? (
+        <div className={styles.importedState}>
+          <strong>Bereits als Anime angelegt</strong>
+          <p>
+            {candidate.existing_title || candidate.name}
+            {candidate.existing_anime_id ? ` (#${candidate.existing_anime_id})` : ''}
+          </p>
+          {candidate.existing_anime_id ? (
+            <Link className={styles.importedLink} href={`/admin/anime/${candidate.existing_anime_id}/edit`}>
+              Bestehenden Anime oeffnen
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className={styles.previewGrid}>
         {renderPreviewTile('poster', candidate.name, candidate.poster_url)}
         {renderPreviewTile('banner', candidate.name, candidate.banner_url)}
@@ -86,10 +102,18 @@ export function JellyfinCandidateCard({
           <button className={styles.actionButtonSecondary} type="button" onClick={() => onSelect(candidate.jellyfin_series_id)}>
             Diesen Treffer ansehen
           </button>
-        ) : null}
-        <button className={styles.actionButton} type="button" onClick={() => onLoadPreview(candidate.jellyfin_series_id)}>
-          {isLoadingPreview ? 'Vorschau laedt...' : 'Jellyfin-Vorschau laden'}
-        </button>
+        ) : (
+          <span className={styles.selectionHint}>Nur Fokus und Vergleich. Noch nichts ins Formular uebernommen.</span>
+        )}
+        {candidate.already_imported ? (
+          <button className={styles.actionButtonDisabled} type="button" disabled>
+            Bereits importiert
+          </button>
+        ) : (
+          <button className={styles.actionButton} type="button" onClick={() => onLoadPreview(candidate.jellyfin_series_id)}>
+            {isLoadingPreview ? 'Jellyfin-Vorschau laedt...' : 'Jellyfin Vorschau laden'}
+          </button>
+        )}
       </div>
     </article>
   )

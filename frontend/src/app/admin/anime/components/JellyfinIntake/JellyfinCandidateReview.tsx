@@ -20,10 +20,17 @@ export function JellyfinCandidateReview({
   onSelectCandidate,
   onLoadCandidatePreview,
 }: JellyfinCandidateReviewProps) {
+  const selectedCandidate = candidates.find((candidate) => candidate.jellyfin_series_id === selectedCandidateID) ?? null
+  const reviewCandidates = selectedCandidate ? [selectedCandidate] : candidates
+
   return (
     <section className={styles.surface}>
       <div className={styles.compactPicker}>
         <strong>Jellyfin-Treffer fuer "{query}"</strong>
+        <p className={styles.compactHelp}>
+          `Diesen Treffer ansehen` markiert nur die Karte. `Jellyfin Vorschau laden` uebernimmt den aktuell geprueften
+          Treffer in den Entwurf und ersetzt die bisherige Vorschau komplett.
+        </p>
         <div className={styles.compactList}>
           {candidates.map((candidate) => (
             <button
@@ -45,7 +52,7 @@ export function JellyfinCandidateReview({
       </div>
 
       <div className={styles.reviewGrid}>
-        {candidates.map((candidate) => (
+        {reviewCandidates.map((candidate) => (
           <JellyfinCandidateCard
             key={candidate.jellyfin_series_id}
             candidate={candidate}

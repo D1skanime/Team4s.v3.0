@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	_ "image/gif"
 	_ "image/jpeg"
@@ -16,6 +18,7 @@ import (
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
@@ -44,27 +47,25 @@ var (
 		"video/webm": true,
 	}
 
-	allowedEntityTypes = map[string]bool{
-		"anime":   true,
-		"episode": true,
-		"fansub":  true,
-		"release": true,
-		"user":    true,
-		"member":  true,
-	}
-
-	allowedAssetTypes = map[string]bool{
-		"poster":  true,
-		"banner":  true,
-		"logo":    true,
-		"avatar":  true,
-		"gallery": true,
-		"karaoke": true,
+	uploadAssetTypeAliases = map[string]string{
+		"poster":           "cover",
+		"cover":            "cover",
+		"banner":           "banner",
+		"logo":             "logo",
+		"gallery":          "background",
+		"background":       "background",
+		"video":            "background_video",
+		"background_video": "background_video",
 	}
 )
 
+type mediaUploadLifecycle interface {
+	EnsureCanonicalLayout(ctx context.Context, actorUserID int64, entityType string, entityID int64, assetType string) (*models.ProvisioningResult, error)
+}
+
 type MediaUploadHandler struct {
 	repo            repository.MediaUploadRepoTx
+	lifecycle       mediaUploadLifecycle
 	mediaStorageDir string
 	mediaBaseURL    string
 	ffmpegPath      string
@@ -79,29 +80,42 @@ func NewMediaUploadHandler(repo repository.MediaUploadRepoTx, storageDir, baseUR
 	}
 }
 
+func (h *MediaUploadHandler) WithLifecycleService(lifecycle mediaUploadLifecycle) *MediaUploadHandler {
+	h.lifecycle = lifecycle
+	return h
+}
+
 // Upload handles POST /api/admin/upload
 func (h *MediaUploadHandler) Upload(c *gin.Context) {
 	identity, ok := middleware.CommentAuthIdentityFromContext(c)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "anmeldung erforderlich"}})
+		h.writeUploadError(c, http.StatusUnauthorized, "anmeldung erforderlich", "", "")
 		return
 	}
 
 	var req models.UploadRequest
 	if err := c.ShouldBind(&req); err != nil {
 		log.Printf("media_upload: bad request: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ungueltige anfrage"})
+		h.writeUploadError(c, http.StatusBadRequest, "ungueltige anfrage", "media_upload.invalid_request", "")
 		return
 	}
 
-	// Validate entity_type and asset_type
-	if !allowedEntityTypes[req.EntityType] {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ungueltiger entity_type"})
+	req.EntityType = normalizeUploadEntityType(req.EntityType)
+	if req.EntityType != "anime" {
+		h.writeUploadError(c, http.StatusBadRequest, "ungueltiger entity_type", services.AssetLifecycleCodeInvalidEntityType, "nur anime uploads sind hier erlaubt")
 		return
 	}
 
-	if !allowedAssetTypes[req.AssetType] {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ungueltiger asset_type"})
+	normalizedAssetType, err := normalizeUploadAssetType(req.AssetType)
+	if err != nil {
+		h.writeUploadError(c, http.StatusBadRequest, err.Error(), services.AssetLifecycleCodeInvalidAssetType, "")
+		return
+	}
+	req.AssetType = normalizedAssetType
+
+	provisioning, err := h.ensureProvisioning(c.Request.Context(), identity.UserID, req)
+	if err != nil {
+		h.mapUploadError(c, err)
 		return
 	}
 
@@ -109,7 +123,7 @@ func (h *MediaUploadHandler) Upload(c *gin.Context) {
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		log.Printf("media_upload: no file uploaded: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "keine datei hochgeladen"})
+		h.writeUploadError(c, http.StatusBadRequest, "keine datei hochgeladen", "media_upload.missing_file", "")
 		return
 	}
 
@@ -117,7 +131,7 @@ func (h *MediaUploadHandler) Upload(c *gin.Context) {
 	file, err := fileHeader.Open()
 	if err != nil {
 		log.Printf("media_upload: failed to open file: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "datei konnte nicht geoeffnet werden"})
+		h.writeUploadError(c, http.StatusInternalServerError, "datei konnte nicht geoeffnet werden", "media_upload.open_failed", "")
 		return
 	}
 	defer file.Close()
@@ -126,7 +140,7 @@ func (h *MediaUploadHandler) Upload(c *gin.Context) {
 	mimeType, format, err := h.validateFile(file, fileHeader.Size)
 	if err != nil {
 		log.Printf("media_upload: validation failed: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		h.writeUploadError(c, http.StatusBadRequest, err.Error(), "media_upload.validation_failed", "")
 		return
 	}
 
@@ -137,47 +151,135 @@ func (h *MediaUploadHandler) Upload(c *gin.Context) {
 	mediaID := uuid.New().String()
 
 	// Create storage directory with path traversal protection
-	storagePath := filepath.Join(
-		h.mediaStorageDir,
-		req.EntityType,
-		fmt.Sprintf("%d", req.EntityID),
-		req.AssetType,
-		mediaID,
-	)
-
-	// Clean path and verify it's within the base directory
-	storagePath = filepath.Clean(storagePath)
-	baseDir := filepath.Clean(h.mediaStorageDir)
-	if !strings.HasPrefix(storagePath, baseDir) {
-		log.Printf("media_upload: path traversal attempt detected: %s", storagePath)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ungueltige pfadangabe"})
+	storagePath, err := h.resolveUploadStoragePath(provisioning.RootPath, req.AssetType, mediaID)
+	if err != nil {
+		log.Printf("media_upload: path resolution failed: %v", err)
+		h.mapUploadError(c, err)
 		return
 	}
 
 	if err := os.MkdirAll(storagePath, 0755); err != nil {
 		log.Printf("media_upload: failed to create directory: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "verzeichnis konnte nicht erstellt werden"})
+		h.writeUploadError(c, http.StatusInternalServerError, fmt.Sprintf("upload-verzeichnis konnte nicht erstellt werden: %v", err), "media_upload.storage_prepare_failed", "")
 		return
 	}
 
 	// Process file based on format
 	var uploadResp *models.UploadResponse
 	if format == "image" {
-		uploadResp, err = h.processImage(c.Request.Context(), file, mimeType, mediaID, req, storagePath, identity.UserID)
+		uploadResp, err = h.processImage(c.Request.Context(), file, mimeType, mediaID, req, storagePath, identity.UserID, provisioning)
 	} else if format == "video" {
-		uploadResp, err = h.processVideo(c.Request.Context(), file, mimeType, mediaID, req, storagePath, identity.UserID)
+		uploadResp, err = h.processVideo(c.Request.Context(), file, mimeType, mediaID, req, storagePath, identity.UserID, provisioning)
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "nicht unterstuetztes format"})
+		h.writeUploadError(c, http.StatusBadRequest, "nicht unterstuetztes format", "media_upload.invalid_format", "")
 		return
 	}
 
 	if err != nil {
 		log.Printf("media_upload: processing failed: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "verarbeitung fehlgeschlagen"})
+		h.mapUploadError(c, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, uploadResp)
+}
+
+func (h *MediaUploadHandler) ensureProvisioning(
+	ctx context.Context,
+	actorUserID int64,
+	req models.UploadRequest,
+) (*models.ProvisioningResult, error) {
+	if h.lifecycle == nil {
+		return &models.ProvisioningResult{
+			EntityType:         req.EntityType,
+			EntityID:           req.EntityID,
+			RequestedAssetType: req.AssetType,
+			RootPath:           filepath.Join(h.mediaStorageDir, req.EntityType, fmt.Sprintf("%d", req.EntityID)),
+		}, nil
+	}
+
+	return h.lifecycle.EnsureCanonicalLayout(ctx, actorUserID, req.EntityType, req.EntityID, req.AssetType)
+}
+
+func (h *MediaUploadHandler) resolveUploadStoragePath(rootPath string, assetType string, mediaID string) (string, error) {
+	target := filepath.Join(rootPath, assetType, mediaID)
+	ok, err := isUploadPathWithinBase(rootPath, target)
+	if err != nil {
+		return "", &services.AssetLifecycleError{
+			Code:    services.AssetLifecycleCodeUnsafePath,
+			Message: "ungueltige pfadangabe",
+			Err:     err,
+		}
+	}
+	if !ok {
+		return "", &services.AssetLifecycleError{
+			Code:    services.AssetLifecycleCodeUnsafePath,
+			Message: "ungueltige pfadangabe",
+		}
+	}
+	return filepath.Clean(target), nil
+}
+
+func isUploadPathWithinBase(base string, target string) (bool, error) {
+	rel, err := filepath.Rel(filepath.Clean(base), filepath.Clean(target))
+	if err != nil {
+		return false, err
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+		return false, nil
+	}
+	return true, nil
+}
+
+func normalizeUploadEntityType(entityType string) string {
+	return strings.TrimSpace(strings.ToLower(entityType))
+}
+
+func normalizeUploadAssetType(assetType string) (string, error) {
+	normalized := strings.TrimSpace(strings.ToLower(assetType))
+	mapped, ok := uploadAssetTypeAliases[normalized]
+	if !ok {
+		return "", fmt.Errorf("ungueltiger asset_type")
+	}
+	return mapped, nil
+}
+
+func mediaTypeForUploadAsset(assetType string) string {
+	switch strings.TrimSpace(strings.ToLower(assetType)) {
+	case "cover":
+		return "poster"
+	case "background_video":
+		return "video"
+	default:
+		return strings.TrimSpace(strings.ToLower(assetType))
+	}
+}
+
+func (h *MediaUploadHandler) mapUploadError(c *gin.Context, err error) {
+	var lifecycleErr *services.AssetLifecycleError
+	if errors.As(err, &lifecycleErr) {
+		details := ""
+		if folder, ok := lifecycleErr.Details["folder"].(string); ok && strings.TrimSpace(folder) != "" {
+			details = folder
+		}
+		h.writeUploadError(c, http.StatusBadRequest, lifecycleErr.Message, lifecycleErr.Code, details)
+		return
+	}
+
+	h.writeUploadError(c, http.StatusInternalServerError, err.Error(), "media_upload.processing_failed", "")
+}
+
+func (h *MediaUploadHandler) writeUploadError(c *gin.Context, status int, message, code, details string) {
+	errorPayload := gin.H{
+		"message": message,
+	}
+	if strings.TrimSpace(code) != "" {
+		errorPayload["code"] = code
+	}
+	if strings.TrimSpace(details) != "" {
+		errorPayload["details"] = details
+	}
+	c.JSON(status, gin.H{"error": errorPayload})
 }
 
 // validateFile validates file type and size using magic bytes

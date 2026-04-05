@@ -22,6 +22,7 @@ func (h *MediaUploadHandler) processImage(
 	req models.UploadRequest,
 	storagePath string,
 	actorUserID int64,
+	provisioning *models.ProvisioningResult,
 ) (*models.UploadResponse, error) {
 	img, format, err := image.Decode(file)
 	if err != nil {
@@ -69,6 +70,21 @@ func (h *MediaUploadHandler) processImage(
 		Height:  thumbBounds.Dy(),
 	})
 
+	usePathFallback, err := h.shouldUseAnimePosterPathFallback(ctx, req)
+	if err != nil {
+		h.cleanupStoragePath(storagePath)
+		return nil, err
+	}
+	if usePathFallback {
+		return &models.UploadResponse{
+			ID:           originalRelPath,
+			Status:       "completed",
+			Files:        files,
+			URL:          h.buildPublicURL(originalRelPath),
+			Provisioning: provisioning,
+		}, nil
+	}
+
 	txErr := h.repo.WithTx(ctx, func(txRepo repository.MediaUploadRepo) error {
 		asset := &models.UploadMediaAsset{
 			ID:         mediaID,
@@ -79,6 +95,8 @@ func (h *MediaUploadHandler) processImage(
 			MimeType:   mimeType,
 			UploadedBy: &actorUserID,
 			CreatedAt:  time.Now(),
+			FilePath:   originalRelPath,
+			MediaType:  mediaTypeForUploadAsset(req.AssetType),
 		}
 		if err := txRepo.CreateMediaAsset(ctx, asset); err != nil {
 			return fmt.Errorf("datenbank: media asset: %w", err)
@@ -89,7 +107,7 @@ func (h *MediaUploadHandler) processImage(
 				size = originalSize
 			}
 			if err := txRepo.CreateMediaFile(ctx, &models.UploadMediaFile{
-				MediaID: mediaID,
+				MediaID: asset.ID,
 				Variant: fileInfo.Variant,
 				Path:    fileInfo.Path,
 				Width:   fileInfo.Width,
@@ -99,9 +117,10 @@ func (h *MediaUploadHandler) processImage(
 				return fmt.Errorf("datenbank: media file: %w", err)
 			}
 		}
-		if err := h.createJoinTableEntryWithRepo(ctx, txRepo, req.EntityType, req.EntityID, mediaID); err != nil {
+		if err := h.createJoinTableEntryWithRepo(ctx, txRepo, req.EntityType, req.EntityID, asset.ID); err != nil {
 			return fmt.Errorf("datenbank: join table: %w", err)
 		}
+		mediaID = asset.ID
 		return nil
 	})
 	if txErr != nil {
@@ -110,10 +129,11 @@ func (h *MediaUploadHandler) processImage(
 	}
 
 	return &models.UploadResponse{
-		ID:     mediaID,
-		Status: "completed",
-		Files:  files,
-		URL:    h.buildPublicURL(originalRelPath),
+		ID:           mediaID,
+		Status:       "completed",
+		Files:        files,
+		URL:          h.buildPublicURL(originalRelPath),
+		Provisioning: provisioning,
 	}, nil
 }
 

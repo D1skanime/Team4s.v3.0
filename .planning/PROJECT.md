@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Team4s is an existing anime platform with a Go backend, Next.js frontend, and an expanding admin area for managing anime content, media, and release data. The current focus is to improve the admin workflow for creating and editing anime so admins can either enter anime manually or bootstrap them from Jellyfin while keeping manual control over the final stored data.
+Team4s is an existing anime platform with a Go backend, Next.js frontend, and an expanding admin area for managing anime content, media, and release data. After v1.0, the admin anime workflow now supports manual intake, Jellyfin-assisted draft creation, provenance-aware maintenance, fill-only resync, and relation CRUD on a shared editor surface.
 
 ## Core Value
 
@@ -12,84 +12,82 @@ Admins can reliably create and maintain correct anime records without losing con
 
 ### Validated
 
-- [x] Team4s already has a working backend/frontend stack for anime, admin content, media upload, and runtime deployment - existing
-- [x] Cover upload infrastructure already exists and is integrated into the current system - existing
-- [x] Jellyfin integration seams already exist in backend config and admin handlers - existing
-- [x] Validated in Phase 1: existing anime edit and intake now share one ownership-aware admin editor surface
-- [x] Validated in Phase 1: admin anime mutations and upload flows are durably attributable to the acting admin user ID
-- [x] Validated in Phase 1: Phase 1 production workflow files now stay within the 450-line modularity limit
+- [x] Admin can start anime creation through the shipped v1 intake flow and work from a shared draft surface before persistence - v1.0
+- [x] Manual create remains explicit-save-only and can succeed with `title + cover` - v1.0
+- [x] Jellyfin-assisted create remains preview-only until explicit save or discard - v1.0
+- [x] Jellyfin candidates expose enough evidence to pick the correct source and hydrate an editable draft - v1.0
+- [x] Existing anime can be edited through the same ownership-aware surface used by intake - v1.0
+- [x] Linked Jellyfin provenance, fill-only resync, and per-slot asset maintenance are available on the edit route - v1.0
+- [x] Manual values and manual replacement assets remain authoritative over Jellyfin refresh behavior - v1.0
+- [x] Relation CRUD is available in the admin edit route with the four approved V1 labels - v1.0
+- [x] Admin actions remain attributable to the acting user and operator-facing failures are surfaced clearly - v1.0
+- [x] Production workflow code touched by the milestone remains modularized rather than collapsing into oversized files - v1.0
 
 ### Active
 
-- [ ] Admin can start anime creation by choosing either a manual flow or a Jellyfin-assisted flow.
-- [ ] Both creation flows open an editable form before final save instead of auto-creating records immediately.
-- [ ] Jellyfin-assisted creation remains a preview flow until the admin explicitly saves or cancels.
-- [ ] V1 saving requires only `title` and `cover`.
-- [ ] Anime can exist fully manually without any Jellyfin linkage.
-- [ ] Jellyfin search/selection lets the admin choose the correct folder/item using Jellyfin item identity and visible path metadata.
-- [ ] Jellyfin-derived data can prefill anime form fields including description, year, AniDB ID, genres/tags, poster, logo, banner, background, and background video.
-- [ ] Manual values remain authoritative over Jellyfin values after save.
-- [ ] Jellyfin re-sync updates Jellyfin-backed fields only when the stored field is empty; non-empty manual values must not be overwritten.
-- [ ] Jellyfin media origins are visible in the UI and removable so admins can replace them with manual uploads later.
-- [ ] Admin UI clearly exposes Jellyfin path and Jellyfin ID both during selection and later while editing.
-- [ ] Admin can manage anime relations manually, including setting what an anime is and linking it to other existing anime records.
-- [ ] Anime relation management in V1 only offers `Hauptgeschichte`, `Nebengeschichte`, `Fortsetzung`, and `Zusammenfassung`, mapped to `full-story`, `side-story`, `sequel`, and `summary`.
-- [ ] Admin actions for anime intake, relation changes, and anime maintenance are audit-logged with the acting user ID for later traceability.
-- [ ] Validation and Jellyfin fetch or sync failures are shown clearly in the admin UI for fast debugging, but do not need durable error history in V1.
+- [ ] Define the generic upload and asset lifecycle contract for admin-managed media beyond cover-only flows.
+- [ ] Add one-click anime/group asset folder provisioning with idempotency and operator-safe validation.
+- [ ] Clarify how generic upload, replace, and delete cleanup should work across cover, banner, logo, background, video, and future asset types.
+- [ ] Build one reusable persistence and linking path for asset lifecycle actions across anime and groups.
+- [ ] Close the remaining milestone-closeout debt without letting it overtake the core asset lifecycle scope.
 
-### Out of Scope
+### Out Of Scope
 
-- Legacy database migration/backfill - not needed for the current no-data-first rollout
-- Fine-grained access rules and broader authz redesign - current phase is focused on admin workflow and data behavior
-- AniSearch crawler automation - deferred to a later phase
-- Full non-cover upload system parity for logo, banner, background, and background video - existing cover upload is the only completed upload surface today
-- Broader relation-type coverage beyond the four approved V1 labels - defer until the first admin relation workflow is stable
+- Fine-grained access control redesign - still separate from the admin anime workflow core
+- Durable historical error/audit browsing UI - current milestone only needed immediate operator-facing errors
+- Bulk Jellyfin intake and bulk resync - higher operational risk than the single-record workflow
+- AniSearch crawler automation - still deferred until generic upload and asset lifecycle semantics are stable
+- Broader relation taxonomy than the four V1 labels - keep the relation surface narrow until there is a clearer editorial need
 
 ## Context
 
 ## Current State
 
-Phase 1 is complete as of 2026-03-24. The repo now has a shared ownership-aware anime editor foundation, durable actor attribution for Phase 1 mutation paths, and the repository/server/upload files touched by the phase have been split back under the production file-size limit.
+v1.0 shipped on 2026-04-01 with 6 completed phases and 23 completed plans. The shipped surface now covers:
 
-Team4s is a brownfield codebase with active work already in progress across anime detail, admin content, metadata normalization, release decomposition, and media upload. The current stack is documented in `.planning/codebase/STACK.md` and `.planning/codebase/ARCHITECTURE.md`, and local development already runs via Docker Compose with Postgres, Redis, backend, and frontend services.
+- shared create/edit editor shell for anime admin flows
+- manual create with explicit draft readiness and existing cover upload
+- Jellyfin-assisted preview-only intake with candidate review, title seeding, and explicit save-only linkage
+- persisted Jellyfin provenance, fill-only resync, and ownership-aware asset handling on edit
+- anime v2 runtime stabilization for create/edit/read behavior
+- relation CRUD with the narrow V1 taxonomy and operator-safe validation
 
-This project already contains partial admin anime management and Jellyfin sync work, but the current anime intake flow is not yet cleanly defined as a product experience. The immediate need is to define the intended workflow, relation management, error visibility, auditability, and data ownership rules before expanding upload surfaces, live sync behavior, or future AniSearch enrichment.
+The next product thread is no longer intake correctness itself; it is the generic upload/provisioning and asset lifecycle layer that future media types will depend on.
 
-The initial audience is internal admins only, not a broader moderator or editor surface. Jellyfin integration requires environment-backed API access and should expose enough metadata for admins to confidently select the correct source item. The database already contains anime relation tables, but backend write endpoints and frontend relation management UI are not yet implemented. AniSearch remains the domain reference for anime semantics, especially the rule that anime should be treated as self-contained series rather than season-based records, but AniSearch crawling is not part of this phase.
+## Current Milestone: v1.1 Asset Lifecycle Hardening
+
+**Goal:** Make admin-managed media lifecycle behavior generic, idempotent, and operator-safe instead of relying on cover-specific seams.
+
+**Target features:**
+- one-click folder provisioning for anime and groups
+- generic upload contract for multiple asset types
+- reusable asset linking across entities and slots
+- replace/delete cleanup rules with clear operator feedback
+- hardening around validation, auditability, and storage safety
 
 ## Constraints
 
-- **Brownfield**: Existing backend/frontend/admin code must be improved rather than replaced - preserves momentum and working surfaces
-- **Compatibility**: Existing Team4s stack, routes, and database evolution model should remain intact - avoids destabilizing adjacent work
-- **Data ownership**: Manual edits must remain authoritative over Jellyfin imports - admins need trust and control
-- **Workflow**: Jellyfin import must always pass through an editable form before save - prevents opaque automatic record creation
-- **Audience**: V1 is admin-only - the workflow can optimize for informed internal operators first
-- **Observability**: Admin actions need audit attribution by user ID, while operational errors must be visible immediately in the UI - supports debugging without requiring durable error retention
-- **Relations**: V1 relation editing is intentionally limited to four approved labels even though the database can support more - keeps the first admin relation surface understandable
-- **Modularity**: Production code files should stay at or below 450 lines; larger implementations must be split before they become monolithic
-- **UX quality**: Admin workflow changes should get explicit UX attention, not just backend correctness - the flow must stay understandable for internal operators
-- **Scope**: Only cover upload is currently productionized - other anime media upload surfaces need planning and follow-up work
-- **Infrastructure**: Jellyfin access depends on `.env` configuration and API connectivity - feature design must account for that operational dependency
+- **Brownfield:** Existing backend/frontend/admin code should be extended, not replaced
+- **Data ownership:** Manual edits stay authoritative over imported values
+- **Workflow:** Imported data remains reviewable before persistence
+- **Audience:** The surface is still optimized for internal admins first
+- **Modularity:** Production code files should stay at or below the 450-line project limit
+- **Ops safety:** Filesystem and storage changes need controlled, project-owned automation and clear validation
+- **Scope:** Generic upload parity beyond cover is not yet fully productized
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Anime creation starts with a mode choice: manual vs Jellyfin | The admin intent changes the sourcing path but not the final review step | Pending |
-| Both creation modes use a review/edit form before save | Prevents blind record creation and keeps admins in control | Pending |
-| Jellyfin create stays in preview until explicit save | Admins must be able to inspect, edit, or cancel before any record exists | Pending |
-| Only title and cover are required in V1 | Keeps intake usable even when metadata is incomplete | Pending |
-| Manual values are authoritative | Imported data should assist, not dominate | Pending |
-| Jellyfin re-sync may fill empty fields but not overwrite non-empty manual values | Supports refresh without destroying curated data | Pending |
-| Jellyfin media provenance must be visible and removable in the UI | Admins need to understand what came from Jellyfin and replace it when needed | Pending |
-| Anime may be created without any Jellyfin linkage | Purely manual editorial workflows must remain possible | Pending |
-| Type from Jellyfin folder context is only a suggestion | Derived metadata should guide the user, not silently decide for them | Pending |
-| Anime relations are managed explicitly in admin rather than inferred silently | Relation semantics need human control and later editorial correction | Pending |
-| V1 relation UI only exposes Hauptgeschichte, Nebengeschichte, Fortsetzung, and Zusammenfassung | The first relation workflow should stay narrow even if the DB supports more types | Pending |
-| Code should be split before a production file exceeds 450 lines | Keeps anime intake, asset handling, and relation logic modular and reviewable | Pending |
-| Admin workflow work should include explicit UX review, not only technical correctness | The phase is partly about making the flow usable and debuggable for admins | Pending |
-| Anime intake and relation actions are audit-logged by acting admin | Later traceability matters for debugging and accountability | Pending |
-| Validation and Jellyfin fetch errors are surfaced in the UI but not durably stored in V1 | Errors should be easy to resolve without designing long-term error retention yet | Pending |
+| Keep one shared editor surface across create and edit | Avoid diverging admin workflows as intake features grow | ✓ Good |
+| Keep Jellyfin intake preview-only until explicit save | Preserve operator control and avoid hidden persistence | ✓ Good |
+| Require only `title + cover` for initial manual create | Keep intake usable even when metadata is incomplete | ✓ Good |
+| Treat Jellyfin-derived type as advisory only | Suggestions should guide, not silently decide | ✓ Good |
+| Keep manual values and manual replacement assets authoritative over resync | Protect curated data from later provider refreshes | ✓ Good |
+| Limit relation editing to the four approved V1 labels | Keep the first relation surface understandable and auditable | ✓ Good |
+| Split workflow code before it exceeds the file-size ceiling | Preserve maintainability while the admin surface grows | ✓ Good |
+| Keep the next milestone focused on generic upload/provisioning rather than reopening settled intake behavior | The broadest remaining risk is media lifecycle semantics, not core intake correctness | Pending |
+| Make asset lifecycle behavior generic before adding more upload surfaces | Prevents banner/logo/background/video work from becoming a pile of slot-specific exceptions | Pending |
 
 ---
-*Last updated: 2026-03-24 after Phase 1 completion*
+*Last updated: 2026-04-02 after v1.1 milestone definition*

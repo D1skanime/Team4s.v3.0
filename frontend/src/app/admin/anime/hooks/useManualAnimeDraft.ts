@@ -68,41 +68,31 @@ export function hydrateManualDraftFromJellyfinPreview(
   draft: ManualAnimeDraftValues,
   preview: AdminAnimeJellyfinIntakePreviewResult,
 ): HydratedJellyfinDraft {
+  const resolvedTitle = hasMeaningfulValue(preview.folder_name_title_seed)
+    ? preview.folder_name_title_seed!.trim()
+    : hasMeaningfulValue(preview.jellyfin_series_name)
+      ? preview.jellyfin_series_name.trim()
+      : ''
+  const resolvedYear = Number.isFinite(preview.year) ? String(preview.year) : ''
+  const resolvedDescription = preview.description?.trim() || ''
+  const resolvedGenreTokens = splitGenreTokens(preview.genre?.trim() || preview.tags.join(', '))
+  const resolvedType =
+    preview.type_hint.suggested_type && preview.type_hint.suggested_type.trim().length > 0
+      ? preview.type_hint.suggested_type
+      : draft.type
+  const resolvedCoverImage =
+    preview.asset_slots.cover.present && hasMeaningfulValue(preview.asset_slots.cover.url)
+      ? resolveJellyfinIntakeAssetUrl(preview.asset_slots.cover.url)
+      : ''
+
   const hydratedDraft: ManualAnimeDraftValues = {
     ...draft,
-  }
-
-  if (!hasMeaningfulValue(hydratedDraft.title) && hasMeaningfulValue(preview.jellyfin_series_name)) {
-    hydratedDraft.title = preview.jellyfin_series_name.trim()
-  }
-
-  if (!hasMeaningfulValue(hydratedDraft.year) && Number.isFinite(preview.year)) {
-    hydratedDraft.year = String(preview.year)
-  }
-
-  if (!hasMeaningfulValue(hydratedDraft.description) && hasMeaningfulValue(preview.description)) {
-    hydratedDraft.description = preview.description!.trim()
-  }
-
-  if (hydratedDraft.genreTokens.length === 0) {
-    const sourceGenre = preview.genre?.trim() || preview.tags.join(', ')
-    hydratedDraft.genreTokens = splitGenreTokens(sourceGenre)
-  }
-
-  if (
-    hydratedDraft.type === 'tv' &&
-    preview.type_hint.suggested_type &&
-    preview.type_hint.suggested_type !== 'tv'
-  ) {
-    hydratedDraft.type = preview.type_hint.suggested_type
-  }
-
-  if (
-    !hasMeaningfulValue(hydratedDraft.coverImage) &&
-    preview.asset_slots.cover.present &&
-    hasMeaningfulValue(preview.asset_slots.cover.url)
-  ) {
-    hydratedDraft.coverImage = resolveJellyfinIntakeAssetUrl(preview.asset_slots.cover.url)
+    title: resolvedTitle,
+    year: resolvedYear,
+    description: resolvedDescription,
+    genreTokens: resolvedGenreTokens,
+    type: resolvedType,
+    coverImage: resolvedCoverImage,
   }
 
   return {

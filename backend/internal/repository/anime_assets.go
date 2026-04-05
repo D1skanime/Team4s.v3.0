@@ -198,7 +198,7 @@ func (r *AnimeAssetRepository) getResolvedAssetsV2(ctx context.Context, animeID 
 			me.provider,
 			me.external_id,
 			ma.created_at,
-			ma.modified_at
+			COALESCE(ma.modified_at, ma.created_at)
 		FROM anime_media am
 		JOIN media_assets ma ON ma.id = am.media_id
 		JOIN media_types mt ON mt.id = ma.media_type_id

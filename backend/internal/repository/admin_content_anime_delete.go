@@ -25,7 +25,7 @@ func (r *AdminContentRepository) DeleteAnime(
 		_ = tx.Rollback(ctx)
 	}()
 
-	useV2Schema, err := hasV2AnimeCreateSchema(ctx, tx)
+	useV2Schema, err := hasV2AnimeDeleteAssetSchema(ctx, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -37,14 +37,6 @@ func (r *AdminContentRepository) DeleteAnime(
 
 	if err := deleteAnimeAssociations(ctx, tx, id, useV2Schema); err != nil {
 		return nil, err
-	}
-
-	deleteTag, err := tx.Exec(ctx, `DELETE FROM anime WHERE id = $1`, id)
-	if err != nil {
-		return nil, fmt.Errorf("delete anime %d: %w", id, err)
-	}
-	if deleteTag.RowsAffected() == 0 {
-		return nil, ErrNotFound
 	}
 
 	orphanedCoverImage, err := resolveOrphanedLocalCoverImage(ctx, tx, result.OrphanedLocalCoverImage, useV2Schema)
@@ -59,6 +51,14 @@ func (r *AdminContentRepository) DeleteAnime(
 	}
 	if err := insertAdminAnimeAuditEntry(ctx, tx, auditEntry); err != nil {
 		return nil, err
+	}
+
+	deleteTag, err := tx.Exec(ctx, `DELETE FROM anime WHERE id = $1`, id)
+	if err != nil {
+		return nil, fmt.Errorf("delete anime %d: %w", id, err)
+	}
+	if deleteTag.RowsAffected() == 0 {
+		return nil, ErrNotFound
 	}
 
 	if err := tx.Commit(ctx); err != nil {
@@ -93,9 +93,13 @@ func loadAnimeDeleteResult(
 }
 
 func loadAnimeDeleteResultV2(ctx context.Context, tx pgx.Tx, id int64) (*models.AdminAnimeDeleteResult, error) {
+	schema, err := loadAnimeV2SchemaInfo(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
+
 	var result models.AdminAnimeDeleteResult
-	if err := tx.QueryRow(
-		ctx,
+	query := fmt.Sprintf(
 		`
 		SELECT
 			a.id,
@@ -125,7 +129,7 @@ func loadAnimeDeleteResultV2(ctx context.Context, tx pgx.Tx, id int64) (*models.
 						at.title ASC
 					LIMIT 1
 				),
-				a.slug
+				%s
 			) AS display_title,
 			(
 				SELECT ma.file_path
@@ -141,6 +145,11 @@ func loadAnimeDeleteResultV2(ctx context.Context, tx pgx.Tx, id int64) (*models.
 		WHERE a.id = $1
 		FOR UPDATE
 		`,
+		v2AnimeTitleFallbackSQL(schema),
+	)
+	if err := tx.QueryRow(
+		ctx,
+		query,
 		id,
 	).Scan(&result.AnimeID, &result.Title, &result.OrphanedLocalCoverImage); errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
@@ -204,6 +213,12 @@ func deleteAnimeAssociationsV2(ctx context.Context, tx pgx.Tx, animeID int64) er
 	}
 
 	for _, mediaID := range mediaIDs {
+		if _, err := tx.Exec(ctx, `DELETE FROM media_external WHERE media_id = $1`, mediaID); err != nil {
+			return fmt.Errorf("delete unreferenced anime media external %d/%d: %w", animeID, mediaID, err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM media_files WHERE media_id = $1`, mediaID); err != nil {
+			return fmt.Errorf("delete unreferenced anime media files %d/%d: %w", animeID, mediaID, err)
+		}
 		tag, err := tx.Exec(ctx, `
 			DELETE FROM media_assets ma
 			WHERE ma.id = $1
@@ -216,6 +231,54 @@ func deleteAnimeAssociationsV2(ctx context.Context, tx pgx.Tx, animeID int64) er
 			return fmt.Errorf("delete unreferenced anime media %d/%d: %w", animeID, mediaID, err)
 		}
 		_ = tag
+	}
+
+	if err := deleteAnimeOwnedMediaByPathPrefixV2(ctx, tx, animeID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deleteAnimeOwnedMediaByPathPrefixV2(ctx context.Context, tx pgx.Tx, animeID int64) error {
+	pathPrefix := fmt.Sprintf("/media/anime/%d/", animeID)
+
+	rows, err := tx.Query(ctx, `
+		SELECT ma.id
+		FROM media_assets ma
+		WHERE ma.file_path LIKE $1
+		  AND NOT EXISTS (SELECT 1 FROM anime_media am WHERE am.media_id = ma.id)
+		  AND NOT EXISTS (SELECT 1 FROM episode_media em WHERE em.media_id = ma.id)
+		  AND NOT EXISTS (SELECT 1 FROM fansub_group_media fgm WHERE fgm.media_id = ma.id)
+		  AND NOT EXISTS (SELECT 1 FROM release_media rm WHERE rm.media_id = ma.id)
+	`, pathPrefix+"%")
+	if err != nil {
+		return fmt.Errorf("query anime-owned media by path prefix %d: %w", animeID, err)
+	}
+	defer rows.Close()
+
+	mediaIDs := make([]int64, 0)
+	for rows.Next() {
+		var mediaID int64
+		if err := rows.Scan(&mediaID); err != nil {
+			return fmt.Errorf("scan anime-owned media id by path prefix %d: %w", animeID, err)
+		}
+		mediaIDs = append(mediaIDs, mediaID)
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate anime-owned media ids by path prefix %d: %w", animeID, err)
+	}
+
+	for _, mediaID := range mediaIDs {
+		if _, err := tx.Exec(ctx, `DELETE FROM media_external WHERE media_id = $1`, mediaID); err != nil {
+			return fmt.Errorf("delete anime-owned media external by path prefix %d/%d: %w", animeID, mediaID, err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM media_files WHERE media_id = $1`, mediaID); err != nil {
+			return fmt.Errorf("delete anime-owned media files by path prefix %d/%d: %w", animeID, mediaID, err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM media_assets WHERE id = $1`, mediaID); err != nil {
+			return fmt.Errorf("delete anime-owned media asset by path prefix %d/%d: %w", animeID, mediaID, err)
+		}
 	}
 
 	return nil
@@ -266,6 +329,44 @@ func resolveOrphanedLocalCoverImageV2(ctx context.Context, tx pgx.Tx, coverImage
 
 	trimmed := strings.TrimSpace(*coverImage)
 	return &trimmed, nil
+}
+
+func hasV2AnimeDeleteAssetSchema(ctx context.Context, tx pgx.Tx) (bool, error) {
+	var hasAnimeMedia bool
+	if err := tx.QueryRow(
+		ctx,
+		`
+		SELECT EXISTS(
+			SELECT 1
+			FROM information_schema.tables
+			WHERE table_schema = current_schema()
+			  AND table_name = 'anime_media'
+		)
+		`,
+	).Scan(&hasAnimeMedia); err != nil {
+		return false, fmt.Errorf("detect anime delete asset schema tables: %w", err)
+	}
+	if !hasAnimeMedia {
+		return false, nil
+	}
+
+	var hasCoverAssetID bool
+	if err := tx.QueryRow(
+		ctx,
+		`
+		SELECT EXISTS(
+			SELECT 1
+			FROM information_schema.columns
+			WHERE table_schema = current_schema()
+			  AND table_name = 'anime'
+			  AND column_name = 'cover_asset_id'
+		)
+		`,
+	).Scan(&hasCoverAssetID); err != nil {
+		return false, fmt.Errorf("detect anime delete legacy cover slots: %w", err)
+	}
+
+	return !hasCoverAssetID, nil
 }
 
 func isLocalUploadedCoverImage(value *string) bool {

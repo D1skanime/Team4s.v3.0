@@ -23,8 +23,10 @@ describe('JellyfinCandidateCard', () => {
             suggested_type: 'ova',
             reasons: ['Token "OVA" im Ordnernamen erkannt.'],
           },
+          already_imported: false,
         }}
-        onReview={() => {}}
+        onSelect={() => {}}
+        onLoadPreview={() => {}}
       />,
     )
 
@@ -39,6 +41,8 @@ describe('JellyfinCandidateCard', () => {
     expect(markup).toContain('banner')
     expect(markup).toContain('logo')
     expect(markup).toContain('background')
+    expect(markup).toContain('Diesen Treffer ansehen')
+    expect(markup).toContain('Jellyfin Vorschau laden')
   })
 
   it('shows confidence treatment and no asset deselection controls', () => {
@@ -56,15 +60,50 @@ describe('JellyfinCandidateCard', () => {
             suggested_type: 'tv',
             reasons: ['Standard-Vorschlag fuer Serienordner.'],
           },
+          already_imported: false,
         }}
         isSelected
-        onReview={() => {}}
+        onSelect={() => {}}
+        onLoadPreview={() => {}}
       />,
     )
 
     expect(markup).toContain('Hohe Uebereinstimmung')
     expect(markup).toContain('Ausgewaehlt')
+    expect(markup).toContain('Noch nichts ins Formular uebernommen')
     expect(markup).not.toContain('Entfernen')
     expect(markup).not.toContain('Abwaehlen')
+  })
+
+  it('blocks preview loading for already imported jellyfin matches', () => {
+    const markup = renderToStaticMarkup(
+      <JellyfinCandidateCard
+        candidate={{
+          jellyfin_series_id: 'series-3',
+          name: 'Macross',
+          path: '/media/Anime/OVA/Anime.OVA.Sub/Macross Flash Back 2012',
+          parent_context: 'Anime.OVA.Sub',
+          library_context: 'media',
+          confidence: 'medium',
+          type_hint: {
+            confidence: 'high',
+            suggested_type: 'ova',
+            reasons: ['Token "OVA" im Pfad oder Namen erkannt.'],
+          },
+          already_imported: true,
+          existing_anime_id: 77,
+          existing_title: 'Macross Flash Back 2012',
+        }}
+        isSelected
+        onSelect={() => {}}
+        onLoadPreview={() => {}}
+      />,
+    )
+
+    expect(markup).toContain('Bereits als Anime angelegt')
+    expect(markup).toContain('Macross Flash Back 2012')
+    expect(markup).toContain('Bestehenden Anime oeffnen')
+    expect(markup).toContain('Bereits importiert')
+    expect(markup).not.toContain('Jellyfin Vorschau laden')
   })
 })

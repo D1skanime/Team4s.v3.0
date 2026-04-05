@@ -126,6 +126,7 @@ func main() {
 		episodeVersionRepo,
 		authzRepo,
 		cfg.AuthAdminRoleName,
+		cfg.MediaStorageDir,
 		handlers.AdminContentJellyfinConfig{
 			APIKey:     cfg.JellyfinAPIKey,
 			BaseURL:    cfg.JellyfinBaseURL,
@@ -162,8 +163,11 @@ func main() {
 		JellyfinBaseURL:    cfg.JellyfinBaseURL,
 		JellyfinStreamPath: cfg.JellyfinStreamPathTemplate,
 	})
+	assetLifecycleRepo := repository.NewAssetLifecycleRepository(dbPool)
+	assetLifecycleService := services.NewAssetLifecycleService(assetLifecycleRepo, cfg.MediaStorageDir)
 	mediaUploadRepo := repository.NewMediaUploadRepository(dbPool)
-	mediaUploadHandler := handlers.NewMediaUploadHandler(mediaUploadRepo, cfg.MediaStorageDir, cfg.MediaPublicBaseURL, cfg.FFmpegPath)
+	mediaUploadHandler := handlers.NewMediaUploadHandler(mediaUploadRepo, cfg.MediaStorageDir, cfg.MediaPublicBaseURL, cfg.FFmpegPath).
+		WithLifecycleService(assetLifecycleService)
 
 	v1 := router.Group("/api/v1")
 	v1.POST("/auth/issue", authHandler.Issue)

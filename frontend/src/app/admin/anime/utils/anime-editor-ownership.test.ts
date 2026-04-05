@@ -7,7 +7,7 @@ describe('resolveAnimeEditorOwnership', () => {
     expect(resolveAnimeEditorOwnership({ id: 1, title: 'Manual Anime' })).toMatchObject({
       label: 'Manuell gepflegt',
       tone: 'manual',
-      hint: 'Aenderungen werden deinem Admin-Konto zugeordnet.',
+      hint: 'Keine persistierte Jellyfin-Verknuepfung aktiv. Aenderungen bleiben manuell gepflegt.',
     })
   })
 
@@ -20,8 +20,18 @@ describe('resolveAnimeEditorOwnership', () => {
         jellyfinSeriesID: 'series-42',
       }),
     ).toMatchObject({
-      label: 'Mit externer Quelle verknuepft',
+      label: 'Jellyfin-Provenance aktiv',
       tone: 'linked',
     })
+  })
+
+  it('surfaces the persisted Jellyfin path in the operator hint when available', () => {
+    expect(
+      resolveAnimeEditorOwnership({
+        id: 3,
+        title: 'Linked Anime',
+        jellyfin_series_path: '/library/anime/Serial Experiments Lain',
+      }).hint,
+    ).toContain('/library/anime/Serial Experiments Lain')
   })
 })

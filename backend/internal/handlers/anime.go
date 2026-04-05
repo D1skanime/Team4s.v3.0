@@ -142,11 +142,7 @@ func (h *AnimeHandler) List(c *gin.Context) {
 
 	items, total, err := h.repo.List(c.Request.Context(), filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": gin.H{
-				"message": "interner serverfehler",
-			},
-		})
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime-Liste konnte nicht geladen werden.")
 		return
 	}
 
@@ -189,11 +185,7 @@ func (h *AnimeHandler) GetByID(c *gin.Context) {
 		return
 	}
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": gin.H{
-				"message": "interner serverfehler",
-			},
-		})
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime-Detaildaten konnten nicht geladen werden. Falls v2 aktiv ist, pruefe bitte, ob die Runtime-Migrationen bereits angewendet wurden.")
 		return
 	}
 

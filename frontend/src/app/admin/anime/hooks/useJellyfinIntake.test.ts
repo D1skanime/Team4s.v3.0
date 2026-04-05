@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  completeJellyfinCandidateTakeover,
   deriveJellyfinIntakeSearchState,
   openJellyfinCandidateReview,
 } from './useJellyfinIntake'
@@ -41,5 +42,36 @@ describe('useJellyfinIntake helpers', () => {
     expect(reviewState.mode).toBe('review')
     expect(reviewState.selectedCandidate?.jellyfin_series_id).toBe('series-1')
     expect(reviewState.shouldHydrateDraft).toBe(false)
+  })
+
+  it('marks a selected candidate as takeover-only after preview hydration', () => {
+    const candidates = [
+      {
+        jellyfin_series_id: 'series-1',
+        name: 'Naruto',
+        confidence: 'high',
+        type_hint: {
+          confidence: 'high',
+          suggested_type: 'tv',
+          reasons: ['Serienordner erkannt.'],
+        },
+      },
+      {
+        jellyfin_series_id: 'series-2',
+        name: 'Naruto Shippuden',
+        confidence: 'medium',
+        type_hint: {
+          confidence: 'medium',
+          suggested_type: 'tv',
+          reasons: ['Titelteil erkannt.'],
+        },
+      },
+    ]
+
+    const reviewState = completeJellyfinCandidateTakeover(candidates, 'series-1')
+
+    expect(reviewState.mode).toBe('hydrated')
+    expect(reviewState.selectedCandidate?.jellyfin_series_id).toBe('series-1')
+    expect(reviewState.shouldHydrateDraft).toBe(true)
   })
 })

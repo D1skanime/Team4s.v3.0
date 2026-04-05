@@ -2,7 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
 
@@ -37,6 +40,27 @@ type MediaUploadRepository struct {
 
 func NewMediaUploadRepository(db *pgxpool.Pool) *MediaUploadRepository {
 	return &MediaUploadRepository{db: db}
+}
+
+// SupportsLegacyUploadSchema reports whether the legacy upload tables/columns
+// required by MediaUploadRepository still exist in the current schema.
+func (r *MediaUploadRepository) SupportsLegacyUploadSchema(ctx context.Context) (bool, error) {
+	rows, err := r.db.Query(ctx, `SELECT entity_type FROM media_assets LIMIT 0`)
+	if err == nil {
+		rows.Close()
+		return true, nil
+	}
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && (pgErr.Code == "42703" || pgErr.Code == "42P01") {
+		return false, nil
+	}
+
+	return false, fmt.Errorf("detect legacy media upload schema: %w", err)
+}
+
+func (r *MediaUploadRepository) useLegacyUploadSchema(ctx context.Context) (bool, error) {
+	return r.SupportsLegacyUploadSchema(ctx)
 }
 
 // DBConn interface for both pool and transaction
@@ -80,12 +104,20 @@ func (r *MediaUploadRepository) WithTx(ctx context.Context, fn func(repo MediaUp
 
 // CreateMediaAsset creates a new media asset record
 func (r *MediaUploadRepository) CreateMediaAsset(ctx context.Context, asset *models.UploadMediaAsset) error {
+	useLegacy, err := r.useLegacyUploadSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if !useLegacy {
+		return r.createMediaAssetV2(ctx, asset)
+	}
+
 	query := `
 		INSERT INTO media_assets (id, entity_type, entity_id, asset_type, format, mime_type, uploaded_by, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 	`
 
-	_, err := r.getConn().Exec(ctx, query,
+	_, err = r.getConn().Exec(ctx, query,
 		asset.ID,
 		asset.EntityType,
 		asset.EntityID,
@@ -104,13 +136,21 @@ func (r *MediaUploadRepository) CreateMediaAsset(ctx context.Context, asset *mod
 
 // CreateMediaFile creates a new media file record
 func (r *MediaUploadRepository) CreateMediaFile(ctx context.Context, file *models.UploadMediaFile) error {
+	useLegacy, err := r.useLegacyUploadSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if !useLegacy {
+		return r.createMediaFileV2(ctx, file)
+	}
+
 	query := `
 		INSERT INTO media_files (media_id, variant, path, width, height, size)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id
 	`
 
-	err := r.getConn().QueryRow(ctx, query,
+	err = r.getConn().QueryRow(ctx, query,
 		file.MediaID,
 		file.Variant,
 		file.Path,
@@ -127,17 +167,93 @@ func (r *MediaUploadRepository) CreateMediaFile(ctx context.Context, file *model
 
 // CreateAnimeMedia creates a join table entry for anime
 func (r *MediaUploadRepository) CreateAnimeMedia(ctx context.Context, animeID int64, mediaID string, sortOrder int) error {
+	useLegacy, err := r.useLegacyUploadSchema(ctx)
+	if err != nil {
+		return err
+	}
+
 	query := `
 		INSERT INTO anime_media (anime_id, media_id, sort_order)
 		VALUES ($1, $2, $3)
 	`
 
-	_, err := r.getConn().Exec(ctx, query, animeID, mediaID, sortOrder)
+	mediaRef, err := coerceMediaReference(mediaID, useLegacy)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.getConn().Exec(ctx, query, animeID, mediaRef, sortOrder)
 	if err != nil {
 		return fmt.Errorf("create anime media: %w", err)
 	}
 
 	return nil
+}
+
+func (r *MediaUploadRepository) createMediaAssetV2(ctx context.Context, asset *models.UploadMediaAsset) error {
+	mediaTypeName := strings.TrimSpace(asset.MediaType)
+	if mediaTypeName == "" {
+		return fmt.Errorf("create media asset: v2 media type is required")
+	}
+	filePath := strings.TrimSpace(asset.FilePath)
+	if filePath == "" {
+		return fmt.Errorf("create media asset: v2 file path is required")
+	}
+
+	var mediaTypeID int64
+	if err := r.getConn().QueryRow(ctx, `
+		SELECT id
+		FROM media_types
+		WHERE name = $1
+		LIMIT 1
+	`, mediaTypeName).Scan(&mediaTypeID); err != nil {
+		return fmt.Errorf("create media asset: load media type %q: %w", mediaTypeName, err)
+	}
+
+	var mediaID int64
+	if err := r.getConn().QueryRow(ctx, `
+		INSERT INTO media_assets (media_type_id, file_path, mime_type, format, uploaded_by, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id
+	`, mediaTypeID, filePath, asset.MimeType, asset.Format, asset.UploadedBy, asset.CreatedAt).Scan(&mediaID); err != nil {
+		return fmt.Errorf("create media asset: %w", err)
+	}
+
+	asset.ID = strconv.FormatInt(mediaID, 10)
+	return nil
+}
+
+func (r *MediaUploadRepository) createMediaFileV2(ctx context.Context, file *models.UploadMediaFile) error {
+	mediaID, err := strconv.ParseInt(strings.TrimSpace(file.MediaID), 10, 64)
+	if err != nil {
+		return fmt.Errorf("create media file: invalid v2 media id %q: %w", file.MediaID, err)
+	}
+
+	if err := r.getConn().QueryRow(ctx, `
+		INSERT INTO media_files (media_id, variant, path, width, height, size)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id
+	`, mediaID, file.Variant, file.Path, file.Width, file.Height, file.Size).Scan(&file.ID); err != nil {
+		return fmt.Errorf("create media file: %w", err)
+	}
+
+	return nil
+}
+
+func coerceMediaReference(mediaID string, useLegacy bool) (any, error) {
+	trimmed := strings.TrimSpace(mediaID)
+	if trimmed == "" {
+		return nil, fmt.Errorf("create anime media: media id fehlt")
+	}
+	if useLegacy {
+		return trimmed, nil
+	}
+
+	parsed, err := strconv.ParseInt(trimmed, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("create anime media: invalid v2 media id %q: %w", mediaID, err)
+	}
+	return parsed, nil
 }
 
 // CreateEpisodeMedia creates a join table entry for episode

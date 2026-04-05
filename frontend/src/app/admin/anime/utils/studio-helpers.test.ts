@@ -23,6 +23,11 @@ describe('formatAdminError', () => {
     expect(formatAdminError(new ApiError(401, 'Nicht autorisiert'))).toBe('(401) Nicht autorisiert')
   })
 
+  it('appends ApiError details when present', () => {
+    const error = new ApiError(500, 'Interner Serverfehler', null, 'db_schema_mismatch', 'Fehlende Spalte: status.')
+    expect(formatAdminError(error)).toBe('(500) Interner Serverfehler\nFehlende Spalte: status.')
+  })
+
   it('uses Error message for regular errors', () => {
     const error = new Error('Netzwerkfehler')
     expect(formatAdminError(error)).toBe('Netzwerkfehler')

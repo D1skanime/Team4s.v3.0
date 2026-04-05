@@ -74,8 +74,25 @@ func (h *AdminContentHandler) SearchJellyfinSeries(c *gin.Context) {
 		return
 	}
 
+	seriesIDs := make([]string, 0, len(items))
+	paths := make([]string, 0, len(items))
+	for _, item := range items {
+		if trimmed := strings.TrimSpace(item.ID); trimmed != "" {
+			seriesIDs = append(seriesIDs, trimmed)
+		}
+		if path := strings.TrimSpace(item.Path); path != "" {
+			paths = append(paths, path)
+		}
+	}
+	existingMatches, err := h.repo.FindExistingAnimeByJellyfinIntakeRefs(c.Request.Context(), seriesIDs, paths)
+	if err != nil {
+		log.Printf("admin_content jellyfin_series_search: existing-match lookup failed (user_id=%d, q=%q): %v", identity.UserID, query, err)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Jellyfin-Intake-Status konnte nicht geladen werden.")
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"data": buildAdminJellyfinIntakeSearchItems(items, query),
+		"data": buildAdminJellyfinIntakeSearchItems(items, query, existingMatches),
 	})
 }
 

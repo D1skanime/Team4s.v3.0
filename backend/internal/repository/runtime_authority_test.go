@@ -43,6 +43,87 @@ func TestAdminAnimeWritesTargetNormalizedMetadataTables(t *testing.T) {
 	}
 }
 
+func TestAnimeV2CreateAndReadPathsPersistRuntimeFields(t *testing.T) {
+	createContent := readRepositorySource(t, "admin_content_anime_create_v2.go")
+	createNormalized := strings.ToLower(createContent)
+
+	createRequired := []string{
+		"loadanimev2schemainfo(ctx, tx)",
+		"buildcreateanimev2insertquery(",
+		"if schema.hascontenttype {",
+		"if schema.hasstatus {",
+		"if schema.hasmaxepisodes {",
+		"if schema.hassource {",
+		"folder_name",
+		"loadadminanimeitemv2(ctx, tx, animeid, schema)",
+	}
+	for _, fragment := range createRequired {
+		if !strings.Contains(createNormalized, fragment) {
+			t.Fatalf("expected v2 create path to contain %q, got %s", fragment, createContent)
+		}
+	}
+
+	v2Content := readRepositorySource(t, "anime_v2.go")
+	v2Normalized := strings.ToLower(v2Content)
+
+	readRequired := []string{
+		"anime.content_type",
+		"anime.status",
+		"anime.max_episodes",
+		"anime.source",
+		"anime.folder_name",
+	}
+	for _, fragment := range readRequired {
+		if !strings.Contains(v2Normalized, fragment) {
+			t.Fatalf("expected v2 read path to contain %q, got %s", fragment, v2Content)
+		}
+	}
+}
+
+func TestAnimeV2UpdatePathRoutesThroughSchemaAwareWriter(t *testing.T) {
+	updateContent := readRepositorySource(t, "admin_content_anime_metadata.go")
+	updateNormalized := strings.ToLower(updateContent)
+
+	updateRequired := []string{
+		"schema, err := loadanimev2schemainfo(ctx, tx)",
+		"if schema.hasslug {",
+		"r.updateanimev2(ctx, tx, id, input, actoruserid, schema)",
+		"return item, nil",
+	}
+	for _, fragment := range updateRequired {
+		if !strings.Contains(updateNormalized, fragment) {
+			t.Fatalf("expected v2 update path to contain %q, got %s", fragment, updateContent)
+		}
+	}
+}
+
+func TestAnimeAssetCompatibilityUsesV2CoverHelpersWhenLegacySlotsAreGone(t *testing.T) {
+	assetContent := readRepositorySource(t, "anime_assets.go")
+	assetNormalized := strings.ToLower(assetContent)
+
+	required := []string{
+		"usev2schema, err := r.hasv2assetschema(ctx)",
+		"return r.assignmanualcoverv2(ctx, animeid, mediaid)",
+		"_, err := r.clearcoverwithresult(ctx, animeid)",
+		"return r.assignmanualbannerv2(ctx, animeid, mediaid)",
+		"return r.clearbannerv2(ctx, animeid)",
+		"return r.addmanualbackgroundv2(ctx, animeid, mediaid)",
+		"return r.removebackgroundv2(ctx, animeid, backgroundid)",
+		"return r.applyproviderbannerv2(ctx, animeid, input)",
+		"return r.applyproviderbackgroundsv2(ctx, animeid, incoming)",
+		"removeanimeposterassetsv2(ctx, tx, animeid, schema)",
+		"synclegacyanimecoverimagev2(ctx, tx, animeid, mediaid, schema)",
+		"loadv2animemediaidbyref(ctx, tx, trimmedmediaref, \"poster\")",
+		"removeanimemedialinksbytype(ctx, tx, animeid, \"poster\")",
+		"upsertanimemedialink(ctx, tx, animeid, mediaid, 0)",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(assetNormalized, fragment) {
+			t.Fatalf("expected anime asset repository to contain %q, got %s", fragment, assetContent)
+		}
+	}
+}
+
 func TestReleaseRuntimeAuthorityStillDependsOnEpisodeVersions(t *testing.T) {
 	repositoryContent := readRepositorySource(t, "episode_version_repository.go")
 	repositoryNormalized := strings.ToLower(repositoryContent)

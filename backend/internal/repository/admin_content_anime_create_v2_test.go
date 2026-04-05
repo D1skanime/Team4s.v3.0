@@ -1,6 +1,11 @@
 package repository
 
-import "testing"
+import (
+	"strings"
+	"testing"
+
+	"team4s.v3/backend/internal/models"
+)
 
 func TestSlugifyAnimeTitle(t *testing.T) {
 	t.Parallel()
@@ -30,5 +35,65 @@ func TestBuildJellyfinMediaExternal(t *testing.T) {
 	}
 	if ref.Provider != "jellyfin" || ref.ExternalID != "series-42" || ref.ExternalType != "primary" {
 		t.Fatalf("unexpected external ref: %#v", ref)
+	}
+}
+
+func TestBuildCreateAnimeV2InsertQuery_SkipsMissingRuntimeColumns(t *testing.T) {
+	t.Parallel()
+
+	query, args := buildCreateAnimeV2InsertQuery(
+		animeV2SchemaInfo{HasSlug: true},
+		7,
+		models.AdminAnimeCreateInput{
+			ContentType: "anime",
+			Status:      "ongoing",
+		},
+		"lain",
+		nil,
+	)
+
+	normalized := strings.ToLower(query)
+	unexpected := []string{"content_type", "status", "max_episodes", "source"}
+	for _, fragment := range unexpected {
+		if strings.Contains(normalized, fragment) {
+			t.Fatalf("did not expect query to contain %q: %s", fragment, query)
+		}
+	}
+
+	if len(args) != 6 {
+		t.Fatalf("expected 6 args for minimal v2 schema, got %d", len(args))
+	}
+}
+
+func TestBuildCreateAnimeV2InsertQuery_IncludesAvailableRuntimeColumns(t *testing.T) {
+	t.Parallel()
+
+	query, args := buildCreateAnimeV2InsertQuery(
+		animeV2SchemaInfo{
+			HasSlug:        true,
+			HasContentType: true,
+			HasStatus:      true,
+			HasMaxEpisodes: true,
+			HasSource:      true,
+		},
+		7,
+		models.AdminAnimeCreateInput{
+			ContentType: "anime",
+			Status:      "ongoing",
+		},
+		"lain",
+		nil,
+	)
+
+	normalized := strings.ToLower(query)
+	required := []string{"content_type", "status", "max_episodes", "source", "folder_name", "slug", "modified_by"}
+	for _, fragment := range required {
+		if !strings.Contains(normalized, fragment) {
+			t.Fatalf("expected query to contain %q: %s", fragment, query)
+		}
+	}
+
+	if len(args) != 10 {
+		t.Fatalf("expected 10 args for full runtime schema, got %d", len(args))
 	}
 }

@@ -2,56 +2,47 @@
 
 ## Project Snapshot
 - **Project:** Team4s.v3.0
-- **Milestone:** Anime v2 schema cutover
-- **Status:** local runtime now uses `team4s_v2`; anime create/list/detail/backdrops/delete are live on v2, while edit/update still remains on the legacy write path
-- **Rough completion:** the first anime vertical is meaningfully running on v2, but the admin write surface is not fully migrated yet
+- **Milestone:** `v1.1 Asset Lifecycle Hardening`
+- **Status:** Phase 07 verified and approved in human UAT
+- **Rough completion:** 2 of 3 v1.1 phases verified
 
 ## What Works Now
-- Docker stack is running.
-- Backend health is green on `http://localhost:8092/health`.
+- Docker stack is usable for local browser testing.
+- Backend health responds on `http://localhost:8092/health`.
 - Frontend is live on `http://localhost:3002`.
-- Backend runtime DB is `team4s_v2`.
-- Anime create on v2 writes `anime`, `anime_titles`, `anime_genres`, `media_assets`, `anime_media`, and `media_external`.
-- Public anime list/detail/backdrops read from v2.
-- Anime delete on v2 is auditable and removes normalized associations plus unreferenced cover media.
-- Public Jellyfin poster/logo/banner rendering works after frontend media URL handling changes.
+- Anime create can stage and link `cover`, `banner`, `logo`, `background`, and `background_video` through the shared V2 seam.
+- Anime edit exposes manual asset controls for `banner`, `logo`, `background`, and `background_video` in the asset provenance cards.
+- Cover management now lives directly in the cover provenance card instead of a separate management block.
+- Backgrounds render as a multi-image gallery with separate provider and active sections.
+- Full anime delete removes anime-owned linked media rows plus `media/anime/{id}`.
 
-## Verification
-- `cd backend && go test ./internal/handlers ./internal/repository`
-- `cd frontend && npm run build`
-- `docker compose up -d --build team4sv30-backend team4sv30-frontend`
-- Live runtime checks performed today:
-  - `POST /api/v1/admin/anime`
-  - `GET /api/v1/anime`
-  - `GET /api/v1/anime/:id`
-  - `GET /api/v1/anime/:id/backdrops`
-  - `DELETE /api/v1/admin/anime/:id`
-  - direct DB verification in `team4s_v2` for create/delete side effects
-  - browser check on `/anime/3` for Jellyfin poster/logo/banner rendering
-- Additional focused verification:
-  - `go test ./internal/handlers/...` for Jellyfin client UTF-8 normalization
-  - direct fetch of `http://localhost:8092/api/v1/media/image?...kind=primary...`
-
-## Top 3 Next
-1. Move `UpdateAnime` / edit save persistence onto the v2 schema.
-2. Audit remaining anime routes for legacy flat-column assumptions and either migrate or consciously shim them.
-3. Decide how much of the older anime/asset compatibility layer should remain once edit/update is on v2.
-
-## Known Risks / Blockers
-- **Edit path mismatch:** `UpdateAnime` still writes to legacy flat anime columns and is the next likely break if someone expects full v2 admin editing.
-- **Partial cutover risk:** anime create/read/delete are on v2, but not every adjacent route is migrated yet.
-- **Dirty worktree is broad:** this push includes v2 DB/bootstrap, backend route migration, UI cleanup, delete/audit fixes, and rendering fixes together.
+## What Is Not Done Yet
+- Phase 08 is not planned yet.
+- Broader follow-up work is now about Phase-08 planning and targeted refinement, not Phase-07 generic upload/linking gaps.
+- Any further UI polish still needs to stay separate from lifecycle-critical seam work.
 
 ## Valid Commands
-- Start stack: `docker compose up -d --build`
-- Backend tests: `cd backend && go test ./internal/handlers ./internal/repository`
-- Frontend production build: `cd frontend && npm run build`
-- Backend health: `Invoke-WebRequest -UseBasicParsing http://localhost:8092/health | Select-Object -ExpandProperty Content`
-- Public anime detail check: `Invoke-WebRequest -UseBasicParsing http://localhost:8092/api/v1/anime/3 | Select-Object -ExpandProperty Content`
-- Public backdrop check: `Invoke-WebRequest -UseBasicParsing http://localhost:8092/api/v1/anime/3/backdrops | Select-Object -ExpandProperty Content`
-- Runtime DB target check: `docker exec team4sv30-backend printenv DATABASE_URL`
+- `docker compose up -d --build team4sv30-backend team4sv30-frontend`
+- `cd backend && go test ./internal/repository ./internal/handlers -count=1`
+- `cd backend && go test ./cmd/server -count=1`
+- `cd frontend && npm test -- src/app/admin/anime/hooks/internal/anime-patch/useAnimePatchMutations.test.ts`
+- `cd frontend && npm run build`
 
-## Owner Focus
-- Backend lane: pull the remaining anime write path onto v2 without reintroducing flat-schema coupling
-- Frontend lane: keep public/admin anime pages aligned with the new route/data shape
-- Handoff lane: leave tomorrow with a clear v2 edit/update target, not the old Phase 4 context
+## Verification Evidence
+- Real browser UAT passed for Phase 06 and is recorded in `.planning/phases/06-provisioning-and-lifecycle-foundations/06-UAT.md`
+- Real browser UAT passed for Phase 07 and is recorded in `.planning/phases/07-generic-upload-and-linking/07-HUMAN-UAT.md`
+- Manual checks covered:
+  - edit-route upload and visibility for `banner`, `logo`, `background`, and `background_video`
+  - create-route staging plus post-create linking for non-cover assets
+  - delete cleanup for uploaded manual anime assets
+  - integrated cover-card management and updated asset provenance presentation
+
+## Top 3 Next
+1. Decide and plan Phase 08 based on the next highest-value anime/admin workflow gap.
+2. Keep UI polish follow-ups separate from lifecycle-critical work so the verified seam stays stable.
+3. Use the verified Phase-06/07 seam as the regression baseline for any further asset-lifecycle work.
+
+## Risks / Blockers
+- The worktree is still broadly dirty across planning, backend, frontend, and generated local artifacts.
+- Cross-AI review is still unavailable because no independent reviewer CLI is installed locally.
+- The next planning step is now ambiguous until the team chooses the highest-value post-Phase-07 scope.

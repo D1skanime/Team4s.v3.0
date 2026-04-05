@@ -7,12 +7,13 @@ import type {
 
 export type AssetDecisionKind = 'cover' | 'logo' | 'banner' | 'backgrounds' | 'background_video'
 
-interface AssetCardDescriptor {
+export interface AssetCardDescriptor {
   key: string
   title: string
   kind: AssetDecisionKind
   countLabel?: string
   previewURL?: string
+  previewURLs?: string[]
   hasIncoming: boolean
 }
 
@@ -85,7 +86,9 @@ export function buildAssetCards(
     return []
   }
 
-  const firstBackground = sourceSlots.backgrounds.find((slot) => slot.present && slot.url?.trim())
+  const backgroundPreviewURLs = sourceSlots.backgrounds
+    .filter((slot) => slot.present && slot.url?.trim())
+    .map((slot) => resolveApiUrl(slot.url))
 
   return [
     {
@@ -114,7 +117,8 @@ export function buildAssetCards(
       title: 'Backgrounds',
       kind: 'backgrounds',
       countLabel: sourceSlots.backgrounds.length > 0 ? `${sourceSlots.backgrounds.length} Slots` : undefined,
-      previewURL: resolveApiUrl(firstBackground?.url),
+      previewURL: backgroundPreviewURLs[0],
+      previewURLs: backgroundPreviewURLs,
       hasIncoming: sourceSlots.backgrounds.length > 0,
     },
     {

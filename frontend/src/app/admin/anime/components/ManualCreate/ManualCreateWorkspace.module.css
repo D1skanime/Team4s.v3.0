@@ -122,6 +122,10 @@
   top: 16px;
 }
 
+.fullWidthPanel {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 1100px) {
   .workspaceLayout {
     grid-template-columns: 1fr;

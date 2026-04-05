@@ -140,7 +140,7 @@ export function ManualCreateAssetUploadPanel(
                   </label>
                   <input
                     id={`create-${kind}-file`}
-                    ref={props.inputRefs[kind]}
+                    ref={props.inputRefs[kind] as RefObject<HTMLInputElement>}
                     className={styles.fileInput}
                     type="file"
                     accept={ACCEPT_BY_KIND[kind]}
@@ -173,7 +173,7 @@ export function ManualCreateAssetUploadPanel(
             </label>
             <input
               id="create-background-file"
-              ref={props.inputRefs.background}
+              ref={props.inputRefs.background as RefObject<HTMLInputElement>}
               className={styles.fileInput}
               type="file"
               accept={ACCEPT_BY_KIND.background}

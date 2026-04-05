@@ -4,7 +4,7 @@ services:
     container_name: team4sv30-db
     environment:
       # Keep v3 isolated: this is the database v3 expects by default.
-      POSTGRES_DB: team4s_v2dump
+      POSTGRES_DB: team4s_v2
       POSTGRES_USER: team4s
       POSTGRES_PASSWORD: team4s_dev_password
     # Avoid host-port collisions with other local apps (default is 5433).
@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U team4s -d team4s"]
+      test: ["CMD-SHELL", "pg_isready -U team4s -d team4s_v2"]
       interval: 10s
       timeout: 5s
       retries: 5

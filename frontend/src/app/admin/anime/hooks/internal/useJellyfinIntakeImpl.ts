@@ -10,7 +10,7 @@ import type {
 } from '@/types/admin'
 
 export interface JellyfinIntakeReviewState {
-  mode: 'idle' | 'review'
+  mode: 'idle' | 'review' | 'hydrated'
   selectedCandidate: AdminJellyfinIntakeSearchItem | null
   shouldHydrateDraft: boolean
 }
@@ -31,6 +31,7 @@ export interface JellyfinIntakeModel {
   search: () => Promise<number>
   reviewCandidate: (candidateID: string) => void
   loadPreview: (candidateID: string) => Promise<AdminAnimeJellyfinIntakePreviewResult | null>
+  restartReview: () => void
   resetReview: () => void
 }
 
@@ -55,6 +56,19 @@ export function openJellyfinCandidateReview(
     mode: selectedCandidate ? 'review' : 'idle',
     selectedCandidate,
     shouldHydrateDraft: false,
+  }
+}
+
+export function completeJellyfinCandidateTakeover(
+  candidates: AdminJellyfinIntakeSearchItem[],
+  candidateID: string,
+): JellyfinIntakeReviewState {
+  const selectedCandidate = candidates.find((candidate) => candidate.jellyfin_series_id === candidateID) ?? null
+
+  return {
+    mode: selectedCandidate ? 'hydrated' : 'idle',
+    selectedCandidate,
+    shouldHydrateDraft: Boolean(selectedCandidate),
   }
 }
 
@@ -108,11 +122,26 @@ export function useJellyfinIntake(authToken?: string): JellyfinIntakeModel {
         authToken,
       )
       setPreviewResult(response.data)
+      setReviewState(completeJellyfinCandidateTakeover(candidates, candidateID))
       return response.data
     } finally {
       setIsLoadingPreview(false)
     }
   }, [authToken, candidates])
+
+  const restartReview = useCallback(() => {
+    setReviewState((current) => {
+      if (!current.selectedCandidate) {
+        return { mode: 'idle', selectedCandidate: null, shouldHydrateDraft: false }
+      }
+
+      return {
+        mode: 'review',
+        selectedCandidate: current.selectedCandidate,
+        shouldHydrateDraft: false,
+      }
+    })
+  }, [])
 
   const resetReview = useCallback(() => {
     setReviewState({ mode: 'idle', selectedCandidate: null, shouldHydrateDraft: false })
@@ -130,6 +159,7 @@ export function useJellyfinIntake(authToken?: string): JellyfinIntakeModel {
     search,
     reviewCandidate,
     loadPreview,
+    restartReview,
     resetReview,
   }
 }

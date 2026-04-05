@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -12,7 +13,7 @@ func TestBuildAdminJellyfinIntakePreviewResult_ReturnsMetadataSlotsAndReasons(t 
 	detail := jellyfinSeriesDetailItem{
 		ID:                "series-1",
 		Name:              "Naruto OVA",
-		Path:              `D:\Anime\Bonus\Naruto OVA`,
+		Path:              `D:\Anime\Bonus\Naruto OVA (2003)`,
 		Overview:          "Leaf village side story",
 		ProductionYear:    intPtr(2003),
 		Genres:            []string{"Action", "Adventure"},
@@ -34,6 +35,12 @@ func TestBuildAdminJellyfinIntakePreviewResult_ReturnsMetadataSlotsAndReasons(t 
 	}
 	if result.AniDBID == nil || *result.AniDBID != "4567" {
 		t.Fatalf("expected AniDB ID, got %+v", result.AniDBID)
+	}
+	if result.FolderNameTitleSeed == nil || *result.FolderNameTitleSeed != "Naruto OVA (2003)" {
+		t.Fatalf("expected folder-name title seed, got %+v", result.FolderNameTitleSeed)
+	}
+	if result.FolderNameTitleSeed != nil && *result.FolderNameTitleSeed == result.JellyfinSeriesName {
+		t.Fatalf("expected folder-name title seed to stay distinct from display title")
 	}
 	if result.TypeHint.SuggestedType == nil || *result.TypeHint.SuggestedType != "ova" {
 		t.Fatalf("expected ova suggestion, got %+v", result.TypeHint)
@@ -67,6 +74,26 @@ func TestBuildAdminJellyfinIntakePreviewResult_UsesExplicitEmptySlots(t *testing
 	assertSlotEmpty(t, result.AssetSlots.BackgroundVideo, "background_video")
 	if result.TypeHint.SuggestedType == nil || *result.TypeHint.SuggestedType != "tv" {
 		t.Fatalf("expected advisory tv fallback, got %+v", result.TypeHint)
+	}
+}
+
+func TestBuildAdminJellyfinIntakePreviewResult_RecognizesOVAFromPathSegments(t *testing.T) {
+	t.Parallel()
+
+	result := buildAdminJellyfinIntakePreviewResult(jellyfinSeriesDetailItem{
+		ID:   "series-macross",
+		Name: "Macross",
+		Path: `/media/Anime/OVA/Anime.OVA.Sub/Macross Flash Back 2012`,
+	}, nil)
+
+	if result.ParentContext == nil || *result.ParentContext != "Anime.OVA.Sub" {
+		t.Fatalf("expected parent context Anime.OVA.Sub, got %+v", result.ParentContext)
+	}
+	if result.TypeHint.SuggestedType == nil || *result.TypeHint.SuggestedType != "ova" {
+		t.Fatalf("expected ova suggestion, got %+v", result.TypeHint)
+	}
+	if len(result.TypeHint.Reasons) == 0 || !strings.Contains(result.TypeHint.Reasons[0], `"OVA"`) {
+		t.Fatalf("expected visible OVA reason, got %+v", result.TypeHint.Reasons)
 	}
 }
 

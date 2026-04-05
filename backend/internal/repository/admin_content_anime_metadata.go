@@ -252,6 +252,30 @@ func (r *AdminContentRepository) UpdateAnime(
 		_ = tx.Rollback(ctx)
 	}()
 
+	schema, err := loadAnimeV2SchemaInfo(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
+	if schema.HasSlug {
+		item, err := r.updateAnimeV2(ctx, tx, id, input, actorUserID, schema)
+		if err != nil {
+			return nil, err
+		}
+
+		auditEntry, err := buildAdminAnimeAuditEntryForPatch(actorUserID, item.ID, input)
+		if err != nil {
+			return nil, err
+		}
+		if err := insertAdminAnimeAuditEntry(ctx, tx, auditEntry); err != nil {
+			return nil, err
+		}
+		if err := tx.Commit(ctx); err != nil {
+			return nil, fmt.Errorf("commit update anime tx %d: %w", id, err)
+		}
+
+		return item, nil
+	}
+
 	assignments := make([]string, 0, 11)
 	args := make([]any, 0, 11)
 	argPos := 1

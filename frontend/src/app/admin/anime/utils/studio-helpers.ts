@@ -3,7 +3,8 @@ import { SubtitleType } from '@/types/episodeVersion'
 
 export function formatAdminError(error: unknown, fallback = 'Anfrage fehlgeschlagen.'): string {
   if (error instanceof ApiError) {
-    return `(${error.status}) ${error.message}`
+    const details = (error.details || '').trim()
+    return details ? `(${error.status}) ${error.message}\n${details}` : `(${error.status}) ${error.message}`
   }
 
   if (error instanceof Error && error.message.trim()) {

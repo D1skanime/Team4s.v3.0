@@ -6,23 +6,26 @@ import (
 	"strings"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/repository"
 )
 
 func buildAdminJellyfinIntakeSearchItems(
 	items []jellyfinSeriesItem,
 	query string,
+	existingMatches []repository.ExistingJellyfinAnimeMatch,
 ) []models.AdminJellyfinIntakeSearchItem {
 	type scoredCandidate struct {
 		score     int
 		candidate models.AdminJellyfinIntakeSearchItem
 	}
 
+	existingBySource, existingByFolder := buildExistingJellyfinMatchLookup(existingMatches)
 	scored := make([]scoredCandidate, 0, len(items))
 	for _, item := range items {
 		if strings.TrimSpace(item.ID) == "" {
 			continue
 		}
-		candidate, score := buildAdminJellyfinIntakeSearchItem(item, query)
+		candidate, score := buildAdminJellyfinIntakeSearchItem(item, query, existingBySource, existingByFolder)
 		scored = append(scored, scoredCandidate{score: score, candidate: candidate})
 	}
 
@@ -44,13 +47,16 @@ func buildAdminJellyfinIntakeSearchItems(
 func buildAdminJellyfinIntakeSearchItem(
 	item jellyfinSeriesItem,
 	query string,
+	existingBySource map[string]repository.ExistingJellyfinAnimeMatch,
+	existingByFolder map[string]repository.ExistingJellyfinAnimeMatch,
 ) (models.AdminJellyfinIntakeSearchItem, int) {
 	parentContext, libraryContext := deriveJellyfinPathContexts(normalizeNullableStringPtr(item.Path))
 	typeHint := buildJellyfinIntakeTypeHint(item.Name, normalizeNullableStringPtr(item.Path))
 	score, confidence := scoreJellyfinIntakeCandidate(item, query)
 	seriesID := strings.TrimSpace(item.ID)
+	match := resolveExistingJellyfinIntakeMatch(seriesID, normalizeNullableStringPtr(item.Path), existingBySource, existingByFolder)
 
-	return models.AdminJellyfinIntakeSearchItem{
+	result := models.AdminJellyfinIntakeSearchItem{
 		JellyfinSeriesID: seriesID,
 		Name:             strings.TrimSpace(item.Name),
 		ProductionYear:   item.ProductionYear,
@@ -63,7 +69,47 @@ func buildAdminJellyfinIntakeSearchItem(
 		BannerURL:        normalizeNullableStringPtr(buildGroupMediaImageURL(seriesID, "banner", nil)),
 		LogoURL:          normalizeNullableStringPtr(buildGroupMediaImageURL(seriesID, "logo", nil)),
 		BackgroundURL:    normalizeNullableStringPtr(buildGroupMediaImageURL(seriesID, "backdrop", nil)),
-	}, score
+	}
+	if match != nil {
+		result.AlreadyImported = true
+		result.ExistingAnimeID = &match.AnimeID
+		result.ExistingTitle = normalizeNullableStringPtr(match.Title)
+	}
+
+	return result, score
+}
+
+func buildExistingJellyfinMatchLookup(
+	matches []repository.ExistingJellyfinAnimeMatch,
+) (map[string]repository.ExistingJellyfinAnimeMatch, map[string]repository.ExistingJellyfinAnimeMatch) {
+	bySource := make(map[string]repository.ExistingJellyfinAnimeMatch, len(matches))
+	byFolder := make(map[string]repository.ExistingJellyfinAnimeMatch, len(matches))
+	for _, match := range matches {
+		if source := strings.TrimSpace(derefString(match.Source)); source != "" {
+			bySource[source] = match
+		}
+		if folder := strings.TrimSpace(derefString(match.FolderName)); folder != "" {
+			byFolder[folder] = match
+		}
+	}
+	return bySource, byFolder
+}
+
+func resolveExistingJellyfinIntakeMatch(
+	seriesID string,
+	rawPath *string,
+	existingBySource map[string]repository.ExistingJellyfinAnimeMatch,
+	existingByFolder map[string]repository.ExistingJellyfinAnimeMatch,
+) *repository.ExistingJellyfinAnimeMatch {
+	if match, ok := existingBySource["jellyfin:"+strings.TrimSpace(seriesID)]; ok {
+		return &match
+	}
+	if path := strings.TrimSpace(derefString(rawPath)); path != "" {
+		if match, ok := existingByFolder[path]; ok {
+			return &match
+		}
+	}
+	return nil
 }
 
 func buildAdminJellyfinIntakePreviewResult(
@@ -76,17 +122,18 @@ func buildAdminJellyfinIntakePreviewResult(
 	seriesID := strings.TrimSpace(detail.ID)
 
 	return models.AdminJellyfinIntakePreviewResult{
-		JellyfinSeriesID:   seriesID,
-		JellyfinSeriesName: strings.TrimSpace(detail.Name),
-		JellyfinSeriesPath: pathPtr,
-		ParentContext:      parentContext,
-		LibraryContext:     libraryContext,
-		Description:        normalizeNullableStringPtr(detail.Overview),
-		Year:               int16FromInt(detail.ProductionYear),
-		Genre:              joinNormalizedStrings(detail.Genres),
-		Tags:               normalizeStringSlice(detail.Tags),
-		AniDBID:            extractAniDBID(detail.ProviderIDs),
-		TypeHint:           typeHint,
+		JellyfinSeriesID:    seriesID,
+		JellyfinSeriesName:  strings.TrimSpace(detail.Name),
+		JellyfinSeriesPath:  pathPtr,
+		FolderNameTitleSeed: buildJellyfinFolderNameTitleSeed(pathPtr),
+		ParentContext:       parentContext,
+		LibraryContext:      libraryContext,
+		Description:         normalizeNullableStringPtr(detail.Overview),
+		Year:                int16FromInt(detail.ProductionYear),
+		Genre:               joinNormalizedStrings(detail.Genres),
+		Tags:                normalizeStringSlice(detail.Tags),
+		AniDBID:             extractAniDBID(detail.ProviderIDs),
+		TypeHint:            typeHint,
 		AssetSlots: models.AdminJellyfinIntakeAssetSlots{
 			Cover:           buildJellyfinIntakeAssetSlot("cover", buildGroupMediaImageURL(seriesID, "primary", nil), hasImageTag(detail.ImageTags, "Primary")),
 			Logo:            buildJellyfinIntakeAssetSlot("logo", buildGroupMediaImageURL(seriesID, "logo", nil), hasImageTag(detail.ImageTags, "Logo")),
@@ -95,6 +142,25 @@ func buildAdminJellyfinIntakePreviewResult(
 			BackgroundVideo: buildJellyfinIntakeAssetSlot("background_video", buildAnimeBackdropVideoProxyURL(firstNonEmptyString(themeVideoIDs...)), len(themeVideoIDs) > 0),
 		},
 	}
+}
+
+func buildJellyfinFolderNameTitleSeed(rawPath *string) *string {
+	path := strings.TrimSpace(derefString(rawPath))
+	if path == "" {
+		return nil
+	}
+
+	parts := strings.FieldsFunc(path, func(r rune) bool {
+		return r == '\\' || r == '/'
+	})
+	for index := len(parts) - 1; index >= 0; index-- {
+		candidate := strings.TrimSpace(parts[index])
+		if candidate != "" {
+			return &candidate
+		}
+	}
+
+	return nil
 }
 
 func buildJellyfinIntakeAssetSlot(kind string, rawURL string, present bool) models.AdminJellyfinIntakeAssetSlot {
@@ -126,19 +192,19 @@ func buildJellyfinIntakeBackgroundSlots(seriesID string, count int) []models.Adm
 }
 
 func buildJellyfinIntakeTypeHint(name string, rawPath *string) models.AdminJellyfinIntakeTypeHint {
-	signal := strings.ToLower(strings.TrimSpace(name + " " + derefString(rawPath)))
+	signal := normalizeJellyfinTypeHintSignal(name, derefString(rawPath))
 	reasons := make([]string, 0, 2)
 	confidence := "low"
 
 	switch {
+	case strings.Contains(signal, " ova "):
+		suggested := "ova"
+		reasons = append(reasons, `Token "OVA" im Pfad oder Namen erkannt.`)
+		confidence = "high"
+		return models.AdminJellyfinIntakeTypeHint{SuggestedType: &suggested, Confidence: confidence, Reasons: reasons}
 	case strings.Contains(signal, " bonus "):
 		suggested := "bonus"
 		reasons = append(reasons, `Token "Bonus" im Pfad oder Namen erkannt.`)
-		confidence = "high"
-		return models.AdminJellyfinIntakeTypeHint{SuggestedType: &suggested, Confidence: confidence, Reasons: reasons}
-	case strings.Contains(signal, " ova") || strings.Contains(signal, "ova "):
-		suggested := "ova"
-		reasons = append(reasons, `Token "OVA" im Pfad oder Namen erkannt.`)
 		confidence = "high"
 		return models.AdminJellyfinIntakeTypeHint{SuggestedType: &suggested, Confidence: confidence, Reasons: reasons}
 	case strings.Contains(signal, " ona") || strings.Contains(signal, "web"):
@@ -161,6 +227,14 @@ func buildJellyfinIntakeTypeHint(name string, rawPath *string) models.AdminJelly
 		reasons = append(reasons, `Kein spezieller Sonderfall erkannt; Standard-Vorschlag fuer Serienordner.`)
 		return models.AdminJellyfinIntakeTypeHint{SuggestedType: &suggested, Confidence: confidence, Reasons: reasons}
 	}
+}
+
+func normalizeJellyfinTypeHintSignal(values ...string) string {
+	joined := strings.Join(values, " ")
+	fields := strings.FieldsFunc(strings.ToLower(joined), func(r rune) bool {
+		return (r < 'a' || r > 'z') && (r < '0' || r > '9')
+	})
+	return " " + strings.Join(fields, " ") + " "
 }
 
 func scoreJellyfinIntakeCandidate(item jellyfinSeriesItem, query string) (int, string) {

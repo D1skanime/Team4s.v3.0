@@ -10,38 +10,37 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *AnimeRepository) hasV2AnimeSchema(ctx context.Context) (bool, error) {
-	var hasSlug bool
-	if err := r.db.QueryRow(
-		ctx,
-		`
-		SELECT EXISTS(
-			SELECT 1
-			FROM information_schema.columns
-			WHERE table_schema = current_schema()
-			  AND table_name = 'anime'
-			  AND column_name = 'slug'
-		)
-		`,
-	).Scan(&hasSlug); err != nil {
-		return false, fmt.Errorf("detect anime read schema: %w", err)
-	}
-
-	return hasSlug, nil
+func (r *AnimeRepository) loadAnimeV2SchemaInfo(ctx context.Context) (animeV2SchemaInfo, error) {
+	return loadAnimeV2SchemaInfo(ctx, r.db)
 }
 
-func (r *AnimeRepository) listV2(ctx context.Context, filter models.AnimeFilter) ([]models.AnimeListItem, int64, error) {
-	if filter.ContentType != "" && filter.ContentType != "anime" {
-		return []models.AnimeListItem{}, 0, nil
-	}
-	if filter.Status != "" && filter.Status != "ongoing" {
-		return []models.AnimeListItem{}, 0, nil
-	}
+func (r *AnimeRepository) listV2(ctx context.Context, filter models.AnimeFilter, schema animeV2SchemaInfo) ([]models.AnimeListItem, int64, error) {
 	if filter.FansubGroupID != nil {
+		return []models.AnimeListItem{}, 0, nil
+	}
+	if !schema.HasContentType && filter.ContentType != "" && filter.ContentType != "anime" {
+		return []models.AnimeListItem{}, 0, nil
+	}
+	if !schema.HasStatus && filter.Status != "" && filter.Status != "ongoing" {
 		return []models.AnimeListItem{}, 0, nil
 	}
 
 	whereSQL, args := buildAnimeListWhereV2(filter)
+	if !schema.HasContentType || !schema.HasStatus {
+		whereSQL, args = buildAnimeListWhereV2WithSchema(filter, schema)
+	}
+	contentTypeSelect := `'anime'::text`
+	if schema.HasContentType {
+		contentTypeSelect = "anime.content_type"
+	}
+	statusSelect := `'ongoing'::text`
+	if schema.HasStatus {
+		statusSelect = "anime.status"
+	}
+	maxEpisodesSelect := `NULL::smallint`
+	if schema.HasMaxEpisodes {
+		maxEpisodesSelect = "anime.max_episodes"
+	}
 
 	countQuery := "SELECT COUNT(*) FROM anime" + whereSQL
 	var total int64
@@ -59,8 +58,11 @@ func (r *AnimeRepository) listV2(ctx context.Context, filter models.AnimeFilter)
 			anime.id,
 			%s AS display_title,
 			at.name,
+			%s AS status,
 			anime.year,
-			poster.file_path
+			poster.file_path,
+			%s AS max_episodes,
+			%s AS content_type
 		FROM anime
 		LEFT JOIN anime_types at ON at.id = anime.anime_type_id
 		LEFT JOIN LATERAL (
@@ -76,7 +78,7 @@ func (r *AnimeRepository) listV2(ctx context.Context, filter models.AnimeFilter)
 		%s
 		ORDER BY display_title ASC
 		LIMIT $%d OFFSET $%d
-	`, displayTitleExpr, whereSQL, limitPos, offsetPos)
+	`, displayTitleExpr, statusSelect, maxEpisodesSelect, contentTypeSelect, whereSQL, limitPos, offsetPos)
 
 	rows, err := r.db.Query(ctx, listQuery, append(args, filter.PerPage, offset)...)
 	if err != nil {
@@ -88,12 +90,10 @@ func (r *AnimeRepository) listV2(ctx context.Context, filter models.AnimeFilter)
 	for rows.Next() {
 		var item models.AnimeListItem
 		var animeType *string
-		if err := rows.Scan(&item.ID, &item.Title, &animeType, &item.Year, &item.CoverImage); err != nil {
+		if err := rows.Scan(&item.ID, &item.Title, &animeType, &item.Status, &item.Year, &item.CoverImage, &item.MaxEpisodes, &item.ContentType); err != nil {
 			return nil, 0, fmt.Errorf("scan anime v2 row: %w", err)
 		}
 		item.Type = mapAnimeTypeNameToAPI(animeType)
-		item.ContentType = "anime"
-		item.Status = "ongoing"
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
@@ -103,7 +103,20 @@ func (r *AnimeRepository) listV2(ctx context.Context, filter models.AnimeFilter)
 	return items, total, nil
 }
 
-func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64) (*models.AnimeDetail, error) {
+func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabled bool, schema animeV2SchemaInfo) (*models.AnimeDetail, error) {
+	contentTypeSelect := `'anime'::text`
+	if schema.HasContentType {
+		contentTypeSelect = "anime.content_type"
+	}
+	statusSelect := `'ongoing'::text`
+	if schema.HasStatus {
+		statusSelect = "anime.status"
+	}
+	maxEpisodesSelect := `NULL::smallint`
+	if schema.HasMaxEpisodes {
+		maxEpisodesSelect = "anime.max_episodes"
+	}
+
 	query := `
 		SELECT
 			anime.id,
@@ -133,7 +146,10 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64) (*models.Anim
 				LIMIT 1
 			), anime.slug) AS display_title,
 			at.name,
+			` + contentTypeSelect + ` AS content_type,
+			` + statusSelect + ` AS status,
 			anime.year,
+			` + maxEpisodesSelect + ` AS max_episodes,
 			anime.description,
 			poster.file_path
 		FROM anime
@@ -150,6 +166,9 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64) (*models.Anim
 		) poster ON true
 		WHERE anime.id = $1
 	`
+	if !includeDisabled && schema.HasStatus {
+		query += " AND anime.status <> 'disabled'"
+	}
 
 	var anime models.AnimeDetail
 	var animeType *string
@@ -157,7 +176,10 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64) (*models.Anim
 		&anime.ID,
 		&anime.Title,
 		&animeType,
+		&anime.ContentType,
+		&anime.Status,
 		&anime.Year,
+		&anime.MaxEpisodes,
 		&anime.Description,
 		&anime.CoverImage,
 	); err != nil {
@@ -168,8 +190,6 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64) (*models.Anim
 	}
 
 	anime.Type = mapAnimeTypeNameToAPI(animeType)
-	anime.ContentType = "anime"
-	anime.Status = "ongoing"
 	anime.ViewCount = 0
 	anime.Episodes = []models.EpisodeListItem{}
 
@@ -191,7 +211,20 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64) (*models.Anim
 	return &anime, nil
 }
 
-func (r *AnimeRepository) getMediaLookupByIDV2(ctx context.Context, id int64) (*models.AnimeMediaLookup, error) {
+func (r *AnimeRepository) getMediaLookupByIDV2(ctx context.Context, id int64, includeDisabled bool, schema animeV2SchemaInfo) (*models.AnimeMediaLookup, error) {
+	sourceSelect := `(
+				SELECT 'jellyfin:' || me.external_id
+				FROM anime_media am
+				JOIN media_external me ON me.media_id = am.media_id
+				WHERE am.anime_id = anime.id
+				  AND me.provider = 'jellyfin'
+				ORDER BY am.sort_order ASC, me.id ASC
+				LIMIT 1
+			)`
+	if schema.HasSource {
+		sourceSelect = "anime.source"
+	}
+
 	query := `
 		SELECT
 			COALESCE((
@@ -220,18 +253,13 @@ func (r *AnimeRepository) getMediaLookupByIDV2(ctx context.Context, id int64) (*
 				LIMIT 1
 			), anime.slug) AS display_title,
 			anime.folder_name,
-			(
-				SELECT 'jellyfin:' || me.external_id
-				FROM anime_media am
-				JOIN media_external me ON me.media_id = am.media_id
-				WHERE am.anime_id = anime.id
-				  AND me.provider = 'jellyfin'
-				ORDER BY am.sort_order ASC, me.id ASC
-				LIMIT 1
-			) AS source
+			` + sourceSelect + ` AS source
 		FROM anime
 		WHERE anime.id = $1
 	`
+	if !includeDisabled && schema.HasStatus {
+		query += " AND anime.status <> 'disabled'"
+	}
 
 	var lookup models.AnimeMediaLookup
 	if err := r.db.QueryRow(ctx, query, id).Scan(&lookup.Title, &lookup.FolderName, &lookup.Source); err != nil {
@@ -255,8 +283,15 @@ func (r *AnimeRepository) getMediaLookupByIDV2(ctx context.Context, id int64) (*
 }
 
 func buildAnimeListWhereV2(filter models.AnimeFilter) (string, []any) {
-	conditions := make([]string, 0, 4)
-	args := make([]any, 0, 4)
+	return buildAnimeListWhereV2WithSchema(filter, animeV2SchemaInfo{
+		HasContentType: true,
+		HasStatus:      true,
+	})
+}
+
+func buildAnimeListWhereV2WithSchema(filter models.AnimeFilter, schema animeV2SchemaInfo) (string, []any) {
+	conditions := make([]string, 0, 5)
+	args := make([]any, 0, 5)
 	argPos := 1
 	displayTitleExpr := primaryNormalizedTitleSQL("anime.id", "anime.slug")
 
@@ -278,6 +313,20 @@ func buildAnimeListWhereV2(filter models.AnimeFilter) (string, []any) {
 		} else {
 			conditions = append(conditions, "NOT "+coverExistsSQL)
 		}
+	}
+
+	if schema.HasContentType && filter.ContentType != "" {
+		conditions = append(conditions, fmt.Sprintf("anime.content_type = $%d", argPos))
+		args = append(args, filter.ContentType)
+		argPos++
+	}
+
+	if schema.HasStatus && filter.Status != "" {
+		conditions = append(conditions, fmt.Sprintf("anime.status = $%d", argPos))
+		args = append(args, filter.Status)
+		argPos++
+	} else if schema.HasStatus && !filter.IncludeDisabled {
+		conditions = append(conditions, "anime.status <> 'disabled'")
 	}
 
 	if filter.Q != "" {

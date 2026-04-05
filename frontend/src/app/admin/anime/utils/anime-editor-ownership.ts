@@ -30,16 +30,19 @@ function hasLinkedSource(anime: AnimeEditorOwnershipInput): boolean {
 
 export function resolveAnimeEditorOwnership(anime: AnimeEditorOwnershipInput): AnimeEditorOwnership {
   if (hasLinkedSource(anime)) {
+    const folderName = (anime.jellyfinSeriesPath || anime.jellyfin_series_path || '').trim()
     return {
-      label: 'Mit externer Quelle verknuepft',
+      label: 'Jellyfin-Provenance aktiv',
       tone: 'linked',
-      hint: 'Aenderungen werden deinem Admin-Konto zugeordnet.',
+      hint: folderName
+        ? `Fill-only Resync bleibt explizit. Manuelle Assets bleiben geschuetzt. Quelle: ${folderName}`
+        : 'Fill-only Resync bleibt explizit. Manuelle Assets bleiben geschuetzt.',
     }
   }
 
   return {
     label: 'Manuell gepflegt',
     tone: 'manual',
-    hint: 'Aenderungen werden deinem Admin-Konto zugeordnet.',
+    hint: 'Keine persistierte Jellyfin-Verknuepfung aktiv. Aenderungen bleiben manuell gepflegt.',
   }
 }

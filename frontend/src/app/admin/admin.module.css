@@ -370,7 +370,9 @@
 
 .coverCard {
   display: grid;
-  gap: 16px;
+  gap: 14px;
+  grid-template-columns: minmax(120px, 156px) minmax(0, 1fr);
+  align-items: start;
 }
 
 .coverStage {
@@ -378,7 +380,7 @@
   border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
   border-radius: 16px;
   background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 3 / 4;
 }
 
 .coverPoster {
@@ -450,6 +452,16 @@
 
 .fileInput {
   display: none;
+}
+
+@media (max-width: 720px) {
+  .coverCard {
+    grid-template-columns: 1fr;
+  }
+
+  .coverStage {
+    max-width: 200px;
+  }
 }
 
 .nullToggle {

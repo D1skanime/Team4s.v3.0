@@ -2,17 +2,15 @@
 
 import { KeyboardEvent, useEffect, useRef, useState } from 'react'
 
-import { getAdminGenreTokens, getAnimeByID, updateAdminAnime } from '@/lib/api'
+import { getAdminGenreTokens } from '@/lib/api'
 import { AnimeDetail, AnimeStatus, ContentType } from '@/types/anime'
 import { AnimeType } from '@/types/admin'
 
 import { useAnimePatch } from '../../hooks/useAnimePatch'
 import { useAnimeEditor } from '../../hooks/useAnimeEditor'
 import { resolveAnimeEditorOwnership } from '../../utils/anime-editor-ownership'
-import { resolveCoverUrl } from '../../utils/anime-helpers'
 import { AnimeOwnershipBadge } from '../shared/AnimeOwnershipBadge'
 import { AnimeEditorShell } from '../shared/AnimeEditorShell'
-import { AnimeEditCoverSection } from './AnimeEditCoverSection'
 import { AnimeEditGenreSection } from './AnimeEditGenreSection'
 import styles from '../../AdminStudio.module.css'
 import workspaceStyles from './AnimeEditWorkspace.module.css'
@@ -61,7 +59,6 @@ export function AnimeEditWorkspace({
     },
   })
 
-  const coverFileInputRef = useRef<HTMLInputElement>(null)
   const genreCloseTimeoutRef = useRef<number | null>(null)
 
   const [genreResults, setGenreResults] = useState<GenreSuggestion[]>([])
@@ -69,7 +66,6 @@ export function AnimeEditWorkspace({
   const [genreError, setGenreError] = useState<string | null>(null)
   const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false)
   const [activeGenreIndex, setActiveGenreIndex] = useState(-1)
-  const [isDragOver, setIsDragOver] = useState(false)
   const [genreSearchVersion, setGenreSearchVersion] = useState(0)
 
   useEffect(() => {
@@ -201,28 +197,6 @@ export function AnimeEditWorkspace({
     }
   }
 
-  async function handleRemoveCover() {
-    if (!authToken.trim()) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
-      return
-    }
-
-    try {
-      await updateAdminAnime(anime.id, { cover_image: null }, authToken)
-      const refreshed = await getAnimeByID(anime.id, { include_disabled: true })
-      patch.setField('coverImage', '')
-      patch.setClearFlag('coverImage', false)
-      onSaved(refreshed.data, 'Cover wurde entfernt.')
-    } catch (error) {
-      if (error instanceof Error && error.message.trim()) {
-        onError(error.message)
-      } else {
-        onError('Cover konnte nicht entfernt werden.')
-      }
-    }
-  }
-
-  const resolvedCover = resolveCoverUrl(patch.clearFlags.coverImage ? '' : patch.values.coverImage || anime.cover_image)
   return (
     <AnimeEditorShell editor={editor} header={<AnimeOwnershipBadge ownership={ownership} />}>
       <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
@@ -238,7 +212,7 @@ export function AnimeEditWorkspace({
             <input className={styles.input} value={String(anime.id)} readOnly disabled />
           </label>
           <label className={workspaceStyles.field}>
-            <span>Title</span>
+            <span>Titel</span>
             <input className={styles.input} value={patch.values.title} onChange={(event) => patch.setField('title', event.target.value)} />
           </label>
           <label className={workspaceStyles.field}>
@@ -253,7 +227,7 @@ export function AnimeEditWorkspace({
             </select>
           </label>
           <label className={workspaceStyles.field}>
-            <span>Content Type</span>
+            <span>Inhaltstyp</span>
             <select
               className={styles.select}
               value={patch.values.contentType}
@@ -290,11 +264,11 @@ export function AnimeEditWorkspace({
         </div>
         <div className={workspaceStyles.sectionGrid}>
           <label className={workspaceStyles.field}>
-            <span>Year</span>
+            <span>Jahr</span>
             <input className={styles.input} value={patch.values.year} onChange={(event) => patch.setField('year', event.target.value)} />
           </label>
           <label className={workspaceStyles.field}>
-            <span>Max Episodes</span>
+            <span>Max. Episoden</span>
             <input
               className={styles.input}
               value={patch.values.maxEpisodes}
@@ -302,11 +276,11 @@ export function AnimeEditWorkspace({
             />
           </label>
           <label className={workspaceStyles.field}>
-            <span>Title DE</span>
+            <span>Titel DE</span>
             <input className={styles.input} value={patch.values.titleDE} onChange={(event) => patch.setField('titleDE', event.target.value)} />
           </label>
           <label className={workspaceStyles.field}>
-            <span>Title EN</span>
+            <span>Titel EN</span>
             <input className={styles.input} value={patch.values.titleEN} onChange={(event) => patch.setField('titleEN', event.target.value)} />
           </label>
         </div>
@@ -351,46 +325,15 @@ export function AnimeEditWorkspace({
         />
       </section>
 
-      <AnimeEditCoverSection
-        coverFileInputRef={coverFileInputRef}
-        resolvedCover={resolvedCover}
-        isDragOver={isDragOver}
-        isSubmitting={patch.isSubmitting}
-        isUploadingCover={patch.isUploadingCover}
-        onDragOver={(event) => {
-          event.preventDefault()
-          setIsDragOver(true)
-        }}
-        onDragLeave={() => setIsDragOver(false)}
-        onDrop={async (event) => {
-          event.preventDefault()
-          setIsDragOver(false)
-          const file = event.dataTransfer.files?.[0]
-          if (!file) return
-          await patch.uploadAndSetCover(file, anime.id)
-        }}
-        onFileChange={async (event) => {
-          const file = event.target.files?.[0]
-          if (!file) return
-          try {
-            await patch.uploadAndSetCover(file, anime.id)
-          } finally {
-            event.target.value = ''
-          }
-        }}
-        onOpenFileDialog={() => coverFileInputRef.current?.click()}
-        onRemoveCover={() => void handleRemoveCover()}
-      />
-
       <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
         <details className={styles.developerPanel}>
           <summary>Erweitert / Developer</summary>
           <div className={styles.developerPanelContent}>
             <div className={workspaceStyles.advancedGrid}>
-              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.year} onChange={(event) => patch.setClearFlag('year', event.target.checked)} />Year leeren</label>
-              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.maxEpisodes} onChange={(event) => patch.setClearFlag('maxEpisodes', event.target.checked)} />Max Episodes leeren</label>
-              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.titleDE} onChange={(event) => patch.setClearFlag('titleDE', event.target.checked)} />Title DE leeren</label>
-              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.titleEN} onChange={(event) => patch.setClearFlag('titleEN', event.target.checked)} />Title EN leeren</label>
+              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.year} onChange={(event) => patch.setClearFlag('year', event.target.checked)} />Jahr leeren</label>
+              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.maxEpisodes} onChange={(event) => patch.setClearFlag('maxEpisodes', event.target.checked)} />Max. Episoden leeren</label>
+              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.titleDE} onChange={(event) => patch.setClearFlag('titleDE', event.target.checked)} />Titel DE leeren</label>
+              <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.titleEN} onChange={(event) => patch.setClearFlag('titleEN', event.target.checked)} />Titel EN leeren</label>
               <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.genre} onChange={(event) => patch.setClearFlag('genre', event.target.checked)} />Genres leeren</label>
               <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.description} onChange={(event) => patch.setClearFlag('description', event.target.checked)} />Beschreibung leeren</label>
               <label className={workspaceStyles.checkItem}><input type="checkbox" checked={patch.clearFlags.coverImage} onChange={(event) => patch.setClearFlag('coverImage', event.target.checked)} />Cover leeren</label>

@@ -2,8 +2,12 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
@@ -34,7 +38,7 @@ func (h *AdminContentHandler) CreateAnime(c *gin.Context) {
 	item, err := h.repo.CreateAnime(c.Request.Context(), input, identity.UserID)
 	if err != nil {
 		log.Printf("admin_content create_anime: repo error (user_id=%d): %v", identity.UserID, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime konnte nicht angelegt werden. Falls lokal gerade auf v2 gearbeitet wird, bitte die neuesten Datenbank-Migrationen anwenden.")
 		return
 	}
 
@@ -75,7 +79,7 @@ func (h *AdminContentHandler) UpdateAnime(c *gin.Context) {
 	}
 	if err != nil {
 		log.Printf("admin_content update_anime: repo error (user_id=%d, anime_id=%d): %v", identity.UserID, id, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime konnte nicht gespeichert werden. Der Bearbeitungs-Pfad oder das Datenbank-Schema ist noch nicht vollstaendig synchron.")
 		return
 	}
 
@@ -102,9 +106,29 @@ func (h *AdminContentHandler) DeleteAnime(c *gin.Context) {
 	}
 	if err != nil {
 		log.Printf("admin_content delete_anime: repo error (user_id=%d, anime_id=%d): %v", identity.UserID, id, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime konnte nicht geloescht werden.")
+		return
+	}
+	h.cleanupDeletedAnimeDir(result.AnimeID)
+
+	c.JSON(http.StatusOK, gin.H{"data": result})
+}
+
+func (h *AdminContentHandler) cleanupDeletedAnimeDir(animeID int64) {
+	if h == nil || animeID <= 0 || strings.TrimSpace(h.mediaStorageDir) == "" {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": result})
+	base := filepath.Clean(h.mediaStorageDir)
+	targetDir := filepath.Join(base, "anime", fmt.Sprintf("%d", animeID))
+	rel, err := filepath.Rel(base, targetDir)
+	if err != nil {
+		return
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return
+	}
+	if err := os.RemoveAll(targetDir); err != nil {
+		log.Printf("admin_content delete_anime: cleanup anime dir %s failed: %v", targetDir, err)
+	}
 }

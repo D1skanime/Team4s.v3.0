@@ -27,6 +27,7 @@ func (h *MediaUploadHandler) processVideo(
 	req models.UploadRequest,
 	storagePath string,
 	actorUserID int64,
+	provisioning *models.ProvisioningResult,
 ) (*models.UploadResponse, error) {
 	if h.ffmpegPath == "" {
 		return nil, fmt.Errorf("ffmpeg nicht konfiguriert")
@@ -96,6 +97,8 @@ func (h *MediaUploadHandler) processVideo(
 			MimeType:   mimeType,
 			UploadedBy: &actorUserID,
 			CreatedAt:  time.Now(),
+			FilePath:   originalRelPath,
+			MediaType:  mediaTypeForUploadAsset(req.AssetType),
 		}
 		if err := txRepo.CreateMediaAsset(ctx, asset); err != nil {
 			return fmt.Errorf("datenbank: media asset: %w", err)
@@ -106,7 +109,7 @@ func (h *MediaUploadHandler) processVideo(
 				size = originalSize
 			}
 			if err := txRepo.CreateMediaFile(ctx, &models.UploadMediaFile{
-				MediaID: mediaID,
+				MediaID: asset.ID,
 				Variant: fileInfo.Variant,
 				Path:    fileInfo.Path,
 				Width:   fileInfo.Width,
@@ -116,9 +119,10 @@ func (h *MediaUploadHandler) processVideo(
 				return fmt.Errorf("datenbank: media file: %w", err)
 			}
 		}
-		if err := h.createJoinTableEntryWithRepo(ctx, txRepo, req.EntityType, req.EntityID, mediaID); err != nil {
+		if err := h.createJoinTableEntryWithRepo(ctx, txRepo, req.EntityType, req.EntityID, asset.ID); err != nil {
 			return fmt.Errorf("datenbank: join table: %w", err)
 		}
+		mediaID = asset.ID
 		return nil
 	})
 	if txErr != nil {
@@ -127,10 +131,11 @@ func (h *MediaUploadHandler) processVideo(
 	}
 
 	return &models.UploadResponse{
-		ID:     mediaID,
-		Status: "completed",
-		Files:  files,
-		URL:    h.buildPublicURL(originalRelPath),
+		ID:           mediaID,
+		Status:       "completed",
+		Files:        files,
+		URL:          h.buildPublicURL(originalRelPath),
+		Provisioning: provisioning,
 	}, nil
 }
 

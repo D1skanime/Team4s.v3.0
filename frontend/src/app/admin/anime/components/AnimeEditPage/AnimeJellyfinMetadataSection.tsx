@@ -16,7 +16,6 @@ import {
   buildAssetCards,
   formatCoverSource,
   formatSourceKindLabel,
-  summarizeAssetSlotDecision,
   summarizeAssetSlots,
 } from './AnimeJellyfinMetadataSection.helpers'
 
@@ -332,51 +331,13 @@ export function AnimeJellyfinMetadataSection({
             </div>
           </div>
 
-          <div className={workspaceStyles.sectionGridTwo}>
-            {assetCards.map((asset) => {
-              const decision = summarizeAssetSlotDecision(asset.kind, {
-                hasIncoming: asset.hasIncoming,
-                currentSource: context.cover.current_source,
-              })
-              const isCover = asset.kind === 'cover'
-              const isActionable = isCover ? preview?.cover.can_apply : true
-
-              return (
-                <div key={asset.key} className={workspaceStyles.assetCard}>
-                  <div className={workspaceStyles.assetCardHeader}>
-                    <span>{asset.title}</span>
-                    {asset.countLabel ? <span className={`${styles.badge} ${styles.badgeMuted}`}>{asset.countLabel}</span> : null}
-                  </div>
-                  <div className={styles.badgeRow}>
-                    <span className={`${styles.badge} ${asset.hasIncoming ? styles.badgeSuccess : styles.badgeMuted}`}>
-                      {asset.hasIncoming ? 'Provider-Slot vorhanden' : 'Kein Provider-Slot'}
-                    </span>
-                    <span className={`${styles.badge} ${isActionable ? styles.badgeWarning : styles.badgeMuted}`}>
-                      {isActionable ? 'Manuell oder explizit steuerbar' : 'Preview zuerst laden'}
-                    </span>
-                  </div>
-                  {asset.previewURL ? (
-                    <div className={workspaceStyles.assetPreviewFrame}>
-                      <img className={workspaceStyles.assetPreviewImage} src={asset.previewURL} alt={`${asset.title} Provider-Vorschau`} />
-                    </div>
-                  ) : null}
-                  <p className={workspaceStyles.helperText}>{decision}</p>
-                  {asset.previewURL ? (
-                    <div className={styles.actionsRow}>
-                      <a className={`${styles.button} ${styles.buttonGhost}`} href={asset.previewURL} target="_blank" rel="noreferrer">
-                        Provider-Asset oeffnen
-                      </a>
-                    </div>
-                  ) : null}
-                </div>
-              )
-            })}
-          </div>
-
           <AnimeJellyfinAssetUploadControls
             animeID={animeID}
             authToken={authToken}
             disabled={isBusy}
+            assetCards={assetCards}
+            coverCurrentImage={context.cover.current_image}
+            coverCurrentSource={context.cover.current_source}
             persistedAssets={context.persisted_assets}
             onSuccess={onSuccess}
             onError={onError}
