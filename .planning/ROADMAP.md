@@ -3,7 +3,7 @@
 ## Milestones
 
 - [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
-- [ ] **v1.1 Asset Lifecycle Hardening** - Phases 6 and 7 are verified, with Phase 07 approved in human UAT on 2026-04-05; Phase 8 remains the next lifecycle planning target.
+- [ ] **v1.1 Asset Lifecycle Hardening** - Phases 6 and 7 are verified, Phase 09 is now planned for controlled AniSearch/Jellysync enrichment, and Phase 8 remains available if replace/delete UX gaps still need a smaller follow-up slice.
 
 ## Current Direction
 
@@ -57,4 +57,23 @@ Plans:
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 3 | 6 | 2 of 3 phases verified | - |
+| v1.1 Asset Lifecycle Hardening | 4 | 9 | 2 phases verified, 1 phase planned | - |
+
+### Phase 9: Controlled AniSearch ID enrichment before create with fill-only Jellysync follow-up
+
+**Goal:** Admins can enrich a create draft from an explicit AniSearch ID before persistence, let Jellysync fill only remaining gaps, and avoid duplicate anime creation.
+**Requirements**: ENR-01, ENR-02, ENR-03, ENR-04, ENR-05
+**Depends on:** Phase 7
+**Plans:** 3 plans
+
+Plans:
+- [ ] `09-01-PLAN.md` - Resolve Phase 09 requirement mapping debt and define the exact create-time enrichment contract.
+- [ ] `09-02-PLAN.md` - Implement the backend AniSearch fetch, rate-limit, duplicate guard, and fill-only enrichment orchestration.
+- [ ] `09-03-PLAN.md` - Integrate the create-form AniSearch UX, draft merge presentation, and browser verification flow.
+
+**Success Criteria** (what must be TRUE):
+  1. Admin can enter an explicit AniSearch ID, load enrichment synchronously, and review the resulting draft before saving.
+  2. Manual values remain authoritative, AniSearch fills only unset metadata, and Jellysync fills only values and media still missing after AniSearch.
+  3. If the AniSearch ID already belongs to an existing local anime, the create flow redirects to that anime instead of creating a duplicate.
+  4. AniSearch relation imports write only resolvable local relations and skip unresolved relations without blocking create.
+  5. AniSearch failures are visible to the operator but do not destroy the draft or block manual save.

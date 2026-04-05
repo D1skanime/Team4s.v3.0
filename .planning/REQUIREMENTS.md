@@ -27,6 +27,14 @@
 - [ ] **LIFE-03**: Asset lifecycle actions are durably attributable to the acting admin user ID.
 - [ ] **LIFE-04**: Asset lifecycle rules are reusable across anime asset slots in the V2 schema instead of being hardcoded around anime covers only.
 
+### Create-Time Enrichment
+
+- [ ] **ENR-01**: Admin can load AniSearch create-time enrichment only by entering an explicit AniSearch ID before local anime creation.
+- [ ] **ENR-02**: AniSearch access is centrally limited to one request at a time with at least two seconds between requests, with no free search or crawl endpoints.
+- [ ] **ENR-03**: If an AniSearch ID already maps to an existing local anime, the flow redirects to that anime instead of creating a duplicate record.
+- [ ] **ENR-04**: Create-time merge priority is strict `manual > AniSearch > Jellysync`, including fill-only handling for metadata and media.
+- [ ] **ENR-05**: AniSearch relation import writes only locally resolvable approved relations, skips unresolved relations, and leaves the draft usable when enrichment fails.
+
 ## v2 Requirements
 
 ### Asset Operations
@@ -62,12 +70,17 @@
 | LIFE-02 | Phase 6 | Pending |
 | LIFE-03 | Phase 6 | Pending |
 | LIFE-04 | Phase 6 | Pending |
+| ENR-01 | Phase 9 | Pending |
+| ENR-02 | Phase 9 | Pending |
+| ENR-03 | Phase 9 | Pending |
+| ENR-04 | Phase 9 | Pending |
+| ENR-05 | Phase 9 | Pending |
 
 **Coverage:**
-- v1 requirements: 13 total
-- Mapped to phases: 13
+- v1 requirements: 18 total
+- Mapped to phases: 18
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-02*
-*Last updated: 2026-04-02 after v1.1 milestone definition*
+*Last updated: 2026-04-05 after Phase 09 create-time enrichment planning*
