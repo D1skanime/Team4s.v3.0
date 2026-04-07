@@ -319,6 +319,50 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
                   onResetLimit={props.onResetGenreLimit}
                 />
 
+                <div className={styles.field}>
+                  <label htmlFor="create-tag-draft">Tags</label>
+                  <div className={styles.tokenInputRow}>
+                    <input
+                      id="create-tag-draft"
+                      value={props.tagDraft}
+                      onChange={(event) =>
+                        props.onDraftTagChange(event.target.value)
+                      }
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          props.onAddDraftTag();
+                        }
+                      }}
+                      disabled={props.isSubmitting}
+                      placeholder="Tag hinzufügen"
+                    />
+                    <button
+                      type="button"
+                      onClick={props.onAddDraftTag}
+                      disabled={props.isSubmitting || !props.tagDraft.trim()}
+                    >
+                      +
+                    </button>
+                  </div>
+                  {props.tagTokens.length > 0 && (
+                    <div className={styles.tokenList}>
+                      {props.tagTokens.map((tag) => (
+                        <span key={tag} className={styles.token}>
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => props.onRemoveTagToken(tag)}
+                            disabled={props.isSubmitting}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div
                   className={`${styles.field} ${workspaceStyles.descriptionField}`}
                 >
@@ -364,6 +408,14 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
             />
           </div>
         </aside>
+
+        {props.sourcePanel ? (
+          <section
+            className={`${workspaceStyles.sectionCard} ${workspaceStyles.fullWidthPanel}`}
+          >
+            {props.sourcePanel}
+          </section>
+        ) : null}
 
         {props.draftAssets ? (
           <section
