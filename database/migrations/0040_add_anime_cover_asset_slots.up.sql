@@ -1,5 +1,5 @@
 ALTER TABLE anime
-    ADD COLUMN IF NOT EXISTS cover_asset_id VARCHAR(255) REFERENCES media_assets(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS cover_asset_id BIGINT REFERENCES media_assets(id) ON DELETE SET NULL,
     ADD COLUMN IF NOT EXISTS cover_source VARCHAR(16),
     ADD COLUMN IF NOT EXISTS cover_resolved_url TEXT,
     ADD COLUMN IF NOT EXISTS cover_provider_key TEXT;

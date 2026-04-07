@@ -1,5 +1,5 @@
 ALTER TABLE anime
-    ADD COLUMN IF NOT EXISTS banner_asset_id VARCHAR(255) REFERENCES media_assets(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS banner_asset_id BIGINT REFERENCES media_assets(id) ON DELETE SET NULL,
     ADD COLUMN IF NOT EXISTS banner_source VARCHAR(16),
     ADD COLUMN IF NOT EXISTS banner_resolved_url TEXT,
     ADD COLUMN IF NOT EXISTS banner_provider_key TEXT;
@@ -14,7 +14,7 @@ ALTER TABLE anime
 CREATE TABLE IF NOT EXISTS anime_background_assets (
     id BIGSERIAL PRIMARY KEY,
     anime_id BIGINT NOT NULL REFERENCES anime(id) ON DELETE CASCADE,
-    media_asset_id VARCHAR(255) REFERENCES media_assets(id) ON DELETE SET NULL,
+    media_asset_id BIGINT REFERENCES media_assets(id) ON DELETE SET NULL,
     source VARCHAR(16) NOT NULL,
     resolved_url TEXT,
     provider_key TEXT,
