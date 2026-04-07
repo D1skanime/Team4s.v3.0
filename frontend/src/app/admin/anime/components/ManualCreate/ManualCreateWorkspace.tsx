@@ -54,6 +54,7 @@ interface ManualCreateWorkspaceProps {
   titleActions?: ReactNode;
   titleHint?: ReactNode;
   typeHint?: ReactNode;
+  sourcePanel?: ReactNode;
   draftAssets?: ReactNode;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onTitleChange: (value: string) => void;
