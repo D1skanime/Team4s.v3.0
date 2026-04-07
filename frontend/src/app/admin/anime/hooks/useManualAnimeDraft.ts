@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
 
 import type {
+  AdminAnimeCreateDraftAssetSuggestions,
+  AdminAnimeCreateDraftPayload,
   AdminAnimeJellyfinIntakePreviewResult,
   AdminJellyfinIntakeAssetSlot,
   AdminJellyfinIntakeAssetSlots,
@@ -34,6 +36,7 @@ export interface ManualAnimeDraftValues {
   titleDE: string
   titleEN: string
   genreTokens: string[]
+  tagTokens: string[]
   description: string
   coverImage: string
 }
@@ -76,6 +79,7 @@ export function hydrateManualDraftFromJellyfinPreview(
   const resolvedYear = Number.isFinite(preview.year) ? String(preview.year) : ''
   const resolvedDescription = preview.description?.trim() || ''
   const resolvedGenreTokens = splitGenreTokens(preview.genre?.trim() || preview.tags.join(', '))
+  const resolvedTagTokens = splitGenreTokens(preview.tags.join(', '))
   const resolvedType =
     preview.type_hint.suggested_type && preview.type_hint.suggested_type.trim().length > 0
       ? preview.type_hint.suggested_type
@@ -85,19 +89,111 @@ export function hydrateManualDraftFromJellyfinPreview(
       ? resolveJellyfinIntakeAssetUrl(preview.asset_slots.cover.url)
       : ''
 
+  // Jellyfin is priority 3 — only fill fields that are currently empty.
+  // Manual (1) and AniSearch (2) values are preserved.
   const hydratedDraft: ManualAnimeDraftValues = {
     ...draft,
-    title: resolvedTitle,
-    year: resolvedYear,
-    description: resolvedDescription,
-    genreTokens: resolvedGenreTokens,
+    title: draft.title || resolvedTitle,
+    year: draft.year || resolvedYear,
+    description: draft.description || resolvedDescription,
+    genreTokens: draft.genreTokens.length > 0 ? draft.genreTokens : resolvedGenreTokens,
+    tagTokens: draft.tagTokens.length > 0 ? draft.tagTokens : (resolvedTagTokens.length > 0 ? resolvedTagTokens : draft.tagTokens),
     type: resolvedType,
-    coverImage: resolvedCoverImage,
+    coverImage: draft.coverImage || resolvedCoverImage,
   }
 
   return {
     draft: hydratedDraft,
     assetSlots: cloneJellyfinAssetSlots(preview.asset_slots),
+  }
+}
+
+export function hydrateManualDraftFromAniSearchDraft(
+  draft: ManualAnimeDraftValues,
+  incoming: AdminAnimeCreateDraftPayload,
+): ManualAnimeDraftValues {
+  const resolvedGenreTokens = splitGenreTokens(incoming.genre?.trim() || incoming.tags?.join(', ') || '')
+  const resolvedTagTokens = splitGenreTokens(incoming.tags?.join(', ') || '')
+
+  return {
+    ...draft,
+    title: incoming.title?.trim() || draft.title,
+    type: incoming.type?.trim() ? incoming.type : draft.type,
+    contentType: incoming.content_type?.trim() ? incoming.content_type : draft.contentType,
+    status: incoming.status?.trim() ? incoming.status : draft.status,
+    year: Number.isFinite(incoming.year) ? String(incoming.year) : draft.year,
+    maxEpisodes: Number.isFinite(incoming.max_episodes) ? String(incoming.max_episodes) : draft.maxEpisodes,
+    titleDE: incoming.title_de?.trim() || draft.titleDE,
+    titleEN: incoming.title_en?.trim() || draft.titleEN,
+    genreTokens: resolvedGenreTokens.length > 0 ? resolvedGenreTokens : draft.genreTokens,
+    tagTokens: resolvedTagTokens.length > 0 ? resolvedTagTokens : draft.tagTokens,
+    description: incoming.description?.trim() || draft.description,
+    coverImage: incoming.cover_image?.trim() || draft.coverImage,
+  }
+}
+
+export function buildDraftAssetSlotsFromSuggestions(
+  suggestions?: AdminAnimeCreateDraftAssetSuggestions | null,
+): AdminJellyfinIntakeAssetSlots | null {
+  if (!suggestions) {
+    return null
+  }
+
+  const backgrounds: AdminJellyfinIntakeAssetSlot[] = []
+  for (const [index, rawUrl] of (suggestions.backgrounds || []).entries()) {
+    const resolvedUrl = resolveJellyfinIntakeAssetUrl(rawUrl)
+    if (!resolvedUrl) continue
+    backgrounds.push({
+      present: true,
+      kind: 'background',
+      source: 'jellyfin',
+      index,
+      url: resolvedUrl,
+    })
+  }
+
+  const coverUrl = resolveJellyfinIntakeAssetUrl(suggestions.cover)
+  const logoUrl = resolveJellyfinIntakeAssetUrl(suggestions.logo)
+  const bannerUrl = resolveJellyfinIntakeAssetUrl(suggestions.banner)
+  const backgroundVideoUrl = resolveJellyfinIntakeAssetUrl(suggestions.background_video)
+
+  const hasAnySuggestion =
+    Boolean(coverUrl) ||
+    Boolean(logoUrl) ||
+    Boolean(bannerUrl) ||
+    Boolean(backgroundVideoUrl) ||
+    backgrounds.length > 0
+
+  if (!hasAnySuggestion) {
+    return null
+  }
+
+  return {
+    cover: {
+      present: Boolean(coverUrl),
+      kind: 'cover',
+      source: 'jellyfin',
+      url: coverUrl || undefined,
+    },
+    logo: {
+      present: Boolean(logoUrl),
+      kind: 'logo',
+      source: 'jellyfin',
+      url: logoUrl || undefined,
+    },
+    banner: {
+      present: Boolean(bannerUrl),
+      kind: 'banner',
+      source: 'jellyfin',
+      url: bannerUrl || undefined,
+    },
+    backgrounds,
+    background_video: {
+      present: Boolean(backgroundVideoUrl),
+      kind: 'background_video',
+      source: 'jellyfin',
+      url: backgroundVideoUrl || undefined,
+    },
   }
 }
 
