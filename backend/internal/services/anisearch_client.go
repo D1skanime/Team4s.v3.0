@@ -246,10 +246,7 @@ func parseAniSearchAnimeHTML(aniSearchID string, rawHTML string) (AniSearchAnime
 	result.Year = parseInt16Ptr(yearText)
 	result.EpisodeCount = parseInt16Ptr(firstNonEmpty(findDataText(doc, "episodes"), findDataText(doc, "episode_count"), episodeText))
 	result.Genres = genres
-	result.Tags = parseDelimitedValues(firstNonEmpty(
-		findDataText(doc, "tags"),
-		findAniSearchInfoValue(doc, "Tags"),
-	))
+	result.Tags = findAniSearchTagLinks(doc)
 	result.Relations = parseAniSearchRelations(doc)
 
 	return result, nil
@@ -619,6 +616,37 @@ func findDataText(doc *xhtml.Node, field string) string {
 		return ""
 	}
 	return walk(doc)
+}
+
+func findAniSearchTagLinks(doc *xhtml.Node) []string {
+	result := make([]string, 0)
+	seen := make(map[string]struct{})
+
+	var walk func(*xhtml.Node)
+	walk = func(node *xhtml.Node) {
+		if node == nil {
+			return
+		}
+		if node.Type == xhtml.ElementNode && node.Data == "a" {
+			href := attrValueFor(node, "href")
+			if strings.Contains(href, "anime/genre/tag/") {
+				text := strings.TrimSpace(nodeText(node))
+				if text != "" {
+					key := strings.ToLower(text)
+					if _, ok := seen[key]; !ok {
+						seen[key] = struct{}{}
+						result = append(result, text)
+					}
+				}
+			}
+		}
+		for child := node.FirstChild; child != nil; child = child.NextSibling {
+			walk(child)
+		}
+	}
+
+	walk(doc)
+	return result
 }
 
 func parseAniSearchRelations(doc *xhtml.Node) []AniSearchAnimeRelation {
