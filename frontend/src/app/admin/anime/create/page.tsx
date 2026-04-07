@@ -9,7 +9,10 @@ import {
   getAdminGenreTokens,
   getRuntimeAuthToken,
 } from "@/lib/api";
-import { createAdminAnimeFromJellyfinDraft } from "@/lib/api/admin-anime-intake";
+import {
+  createAdminAnimeFromJellyfinDraft,
+  enrichAdminAnimeDraftFromAniSearch,
+} from "@/lib/api/admin-anime-intake";
 import { ContentType, AnimeStatus } from "@/types/anime";
 import {
   AdminAnimeAssetKind,
@@ -31,6 +34,7 @@ export {
 } from "./createAssetUploadPlan";
 import { JellyfinCandidateReview } from "../components/JellyfinIntake/JellyfinCandidateReview";
 import { JellyfinDraftAssets } from "../components/ManualCreate/JellyfinDraftAssets";
+import { ManualCreateAniSearchPanel } from "../components/ManualCreate/ManualCreateAniSearchPanel";
 import { ManualCreateWorkspace } from "../components/ManualCreate/ManualCreateWorkspace";
 import { useAnimeEditor } from "../hooks/useAnimeEditor";
 import {
@@ -52,9 +56,18 @@ import {
   formatJellyfinTypeHintReasoning,
 } from "../utils/jellyfin-intake-type-hint";
 import type {
+  AdminAnimeAniSearchEnrichmentDraftResult,
   AdminAnimeJellyfinIntakePreviewResult,
   AdminJellyfinIntakeAssetSlots,
 } from "@/types/admin";
+import {
+  buildAniSearchEnrichmentRequest,
+  buildAniSearchRedirectPath,
+  formatAniSearchSuccessMessage,
+  hydrateAniSearchEnrichmentResult,
+  isAniSearchLoadReady,
+  isAniSearchRedirectResult,
+} from "./anisearchCreateEnrichment";
 
 export function buildManualCreateRedirectPath(id: number): string {
   return `/admin/anime?created=${id}#anime-${id}`;
@@ -131,8 +144,8 @@ export function resolveSourceActionState(title: string) {
   return {
     canSync: meaningful,
     helperText: meaningful
-      ? "Jellyfin nutzt den aktuellen Titel als Suchanfrage. AniSearch Sync kommt in Phase 4."
-      : "Gib zuerst einen aussagekraeftigen Anime-Titel ein. AniSearch Sync kommt in Phase 4.",
+      ? "Jellyfin nutzt den aktuellen Titel als Suchanfrage."
+      : "Gib zuerst einen aussagekraeftigen Anime-Titel ein.",
   };
 }
 
@@ -142,6 +155,7 @@ export function buildManualCreateDraftSnapshot(
   return {
     ...values,
     genreTokens: [...values.genreTokens],
+    tagTokens: [...values.tagTokens],
   };
 }
 
@@ -228,6 +242,8 @@ export default function AdminAnimeCreatePage() {
   const [createTitleEN, setCreateTitleEN] = useState("");
   const [createGenreDraft, setCreateGenreDraft] = useState("");
   const [createGenreTokens, setCreateGenreTokens] = useState<string[]>([]);
+  const [createTagDraft, setCreateTagDraft] = useState("");
+  const [createTagTokens, setCreateTagTokens] = useState<string[]>([]);
   const [createDescription, setCreateDescription] = useState("");
   const [createCoverImage, setCreateCoverImage] = useState("");
   const [stagedCover, setStagedCover] =
@@ -239,6 +255,15 @@ export default function AdminAnimeCreatePage() {
     useState<AdminAnimeJellyfinIntakePreviewResult | null>(null);
   const [jellyfinAssetSlots, setJellyfinAssetSlots] =
     useState<AdminJellyfinIntakeAssetSlots | null>(null);
+  const [aniSearchID, setAniSearchID] = useState("");
+  const [aniSearchSource, setAniSearchSource] = useState<string | null>(null);
+  const [aniSearchStatusText, setAniSearchStatusText] = useState<string | null>(
+    null,
+  );
+  const [aniSearchRelationSummary, setAniSearchRelationSummary] = useState<
+    string | null
+  >(null);
+  const [isLoadingAniSearch, setIsLoadingAniSearch] = useState(false);
   const [jellyfinDraftSnapshot, setJellyfinDraftSnapshot] =
     useState<ManualAnimeDraftValues | null>(null);
   const coverFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -288,6 +313,10 @@ export default function AdminAnimeCreatePage() {
     () => resolveSourceActionState(createTitle),
     [createTitle],
   );
+  const canLoadAniSearch = useMemo(
+    () => isAniSearchLoadReady(aniSearchID),
+    [aniSearchID],
+  );
 
   const manualDraftValues = useMemo<ManualAnimeDraftValues>(
     () => ({
@@ -300,6 +329,7 @@ export default function AdminAnimeCreatePage() {
       titleDE: createTitleDE,
       titleEN: createTitleEN,
       genreTokens: createGenreTokens,
+      tagTokens: createTagTokens,
       description: createDescription,
       coverImage: createCoverImage,
     }),
@@ -308,6 +338,7 @@ export default function AdminAnimeCreatePage() {
       createCoverImage,
       createDescription,
       createGenreTokens,
+      createTagTokens,
       createMaxEpisodes,
       createStatus,
       createTitle,
@@ -493,8 +524,76 @@ export default function AdminAnimeCreatePage() {
     setCreateTitleDE(values.titleDE);
     setCreateTitleEN(values.titleEN);
     setCreateGenreTokens(values.genreTokens);
+    setCreateTagTokens(values.tagTokens);
     setCreateDescription(values.description);
     setCreateCoverImage(values.coverImage);
+  }
+
+  async function handleAniSearchLoad() {
+    clearMessages();
+
+    if (!hasAuthToken) {
+      setErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
+      );
+      return;
+    }
+
+    if (!canLoadAniSearch) {
+      setErrorMessage("Eine explizite AniSearch-ID ist erforderlich.");
+      return;
+    }
+
+    try {
+      setIsLoadingAniSearch(true);
+      // Use pre-Jellyfin snapshot as base so AniSearch can override Jellyfin-filled
+      // fields. Priority: Manual (1) > AniSearch (2) > Jellyfin (3).
+      const aniSearchBaseDraft = jellyfinDraftSnapshot ?? manualDraftValues;
+      const response = await enrichAdminAnimeDraftFromAniSearch(
+        buildAniSearchEnrichmentRequest(aniSearchID, aniSearchBaseDraft),
+        authToken,
+      );
+
+      if (response.data.mode === "redirect") {
+        const redirectPath = buildAniSearchRedirectPath(response.data);
+        setSuccessMessage(
+          `AniSearch-ID ist bereits mit ${response.data.existing_title} verknuepft. Weiterleitung...`,
+        );
+        if (redirectPath) {
+          window.location.href = redirectPath;
+        }
+        return;
+      }
+
+      const hydrated = hydrateAniSearchEnrichmentResult(
+        aniSearchBaseDraft,
+        response.data as AdminAnimeAniSearchEnrichmentDraftResult,
+      );
+      applyManualDraftValues(hydrated.draft);
+      setAniSearchSource(hydrated.source || null);
+      setAniSearchStatusText(
+        hydrated.manualFieldsKept.length > 0
+          ? `Manuell geschuetzt: ${hydrated.manualFieldsKept.join(", ")}`
+          : "Manuelle Werte wurden nicht ueberschrieben.",
+      );
+      setAniSearchRelationSummary(hydrated.relationSummary);
+      if (hydrated.assetSlots) {
+        setJellyfinAssetSlots(hydrated.assetSlots);
+      }
+      setShowValidationSummary(false);
+      setSuccessMessage(formatAniSearchSuccessMessage(hydrated));
+    } catch (error) {
+      setAniSearchStatusText(null);
+      setAniSearchRelationSummary(null);
+      setErrorMessage(
+        formatCreatePageError(
+          error,
+          "AniSearch-Anreicherung konnte nicht geladen werden.",
+        ),
+      );
+    } finally {
+      setIsLoadingAniSearch(false);
+    }
   }
 
   function addCreateGenreTokens(raw: string) {
@@ -502,6 +601,23 @@ export default function AdminAnimeCreatePage() {
     if (tokens.length === 0) return;
 
     setCreateGenreTokens((current) => {
+      const index = new Set(current.map((token) => token.toLowerCase()));
+      const next = [...current];
+      for (const token of tokens) {
+        const key = token.toLowerCase();
+        if (index.has(key)) continue;
+        index.add(key);
+        next.push(token);
+      }
+      return next;
+    });
+  }
+
+  function addCreateTagTokens(raw: string) {
+    const tokens = splitGenreTokens(raw);
+    if (tokens.length === 0) return;
+
+    setCreateTagTokens((current) => {
       const index = new Set(current.map((token) => token.toLowerCase()));
       const next = [...current];
       for (const token of tokens) {
@@ -565,15 +681,15 @@ export default function AdminAnimeCreatePage() {
     payload.title_de = normalizeOptionalString(createTitleDE);
     payload.title_en = normalizeOptionalString(createTitleEN);
     payload.genre = normalizeOptionalString(createGenreValue);
+    if (createTagTokens.length > 0) payload.tags = [...createTagTokens];
     payload.description = normalizeOptionalString(createDescription);
 
     try {
       setIsSubmittingCreate(true);
       setLastRequest(JSON.stringify(payload, null, 2));
-      const createPayload = appendJellyfinLinkageToCreatePayload(
-        payload,
-        jellyfinPreview,
-      );
+      const createPayload = aniSearchSource
+        ? { ...payload, source: aniSearchSource }
+        : appendJellyfinLinkageToCreatePayload(payload, jellyfinPreview);
       const response = await createManualAnimeAndRedirect(createPayload, {
         createAdminAnime: jellyfinPreview
           ? createAdminAnimeFromJellyfinDraft
@@ -728,11 +844,6 @@ export default function AdminAnimeCreatePage() {
     }
   }
 
-  function handleAniSearchPlaceholder() {
-    clearMessages();
-    setSuccessMessage("AniSearch Sync kommt in Phase 4.");
-  }
-
   function handleJellyfinCandidateSelect(candidateID: string) {
     clearMessages();
     jellyfinIntake.reviewCandidate(candidateID);
@@ -834,6 +945,8 @@ export default function AdminAnimeCreatePage() {
             titleEN={createTitleEN}
             genreDraft={createGenreDraft}
             genreTokens={createGenreTokens}
+            tagDraft={createTagDraft}
+            tagTokens={createTagTokens}
             description={createDescription}
             coverImage={createCoverImage}
             coverPreviewUrl={stagedCover?.previewUrl}
@@ -876,18 +989,23 @@ export default function AdminAnimeCreatePage() {
                     ? "Jellyfin sucht..."
                     : "Jellyfin suchen"}
                 </button>
-                <button
-                  className={createStyles.secondaryAction}
-                  type="button"
-                  disabled={!sourceActionState.canSync || isSubmittingCreate}
-                  onClick={handleAniSearchPlaceholder}
-                >
-                  AniSearch spaeter
-                </button>
               </>
             }
             titleHint={
               <p className={styles.hint}>{sourceActionState.helperText}</p>
+            }
+            sourcePanel={
+              <ManualCreateAniSearchPanel
+                aniSearchID={aniSearchID}
+                canLoad={canLoadAniSearch}
+                isLoading={isLoadingAniSearch}
+                statusText={aniSearchStatusText}
+                relationSummary={aniSearchRelationSummary}
+                onAniSearchIDChange={setAniSearchID}
+                onLoad={() => {
+                  void handleAniSearchLoad();
+                }}
+              />
             }
             typeHint={
               jellyfinPreview ? (
@@ -908,39 +1026,43 @@ export default function AdminAnimeCreatePage() {
               ) : null
             }
             draftAssets={
-              jellyfinPreview && jellyfinAssetSlots ? (
+              jellyfinAssetSlots ? (
                 <>
                   <JellyfinDraftAssets
                     animeTitle={
-                      createTitle.trim() || jellyfinPreview.jellyfin_series_name
+                      createTitle.trim() ||
+                      jellyfinPreview?.jellyfin_series_name ||
+                      "Anime"
                     }
                     assetSlots={jellyfinAssetSlots}
                     onRemoveAsset={handleRemoveJellyfinAsset}
                   />
-                  <div className={styles.actions}>
-                    {jellyfinReviewVisibility.showRestartAction ? (
+                  {jellyfinPreview ? (
+                    <div className={styles.actions}>
+                      {jellyfinReviewVisibility.showRestartAction ? (
+                        <button
+                          className={styles.buttonSecondary}
+                          type="button"
+                          onClick={() => {
+                            jellyfinIntake.restartReview();
+                            clearMessages();
+                            setSuccessMessage(
+                              "Jellyfin-Suche wieder geoeffnet. Der aktuelle Entwurf bleibt bearbeitbar.",
+                            );
+                          }}
+                        >
+                          Anderen Treffer waehlen
+                        </button>
+                      ) : null}
                       <button
-                        className={styles.buttonSecondary}
+                        className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
                         type="button"
-                        onClick={() => {
-                          jellyfinIntake.restartReview();
-                          clearMessages();
-                          setSuccessMessage(
-                            "Jellyfin-Suche wieder geoeffnet. Der aktuelle Entwurf bleibt bearbeitbar.",
-                          );
-                        }}
+                        onClick={handleDiscardJellyfinPreview}
                       >
-                        Anderen Treffer waehlen
+                        Auswahl verwerfen
                       </button>
-                    ) : null}
-                    <button
-                      className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
-                      type="button"
-                      onClick={handleDiscardJellyfinPreview}
-                    >
-                      Auswahl verwerfen
-                    </button>
-                  </div>
+                    </div>
+                  ) : null}
                 </>
               ) : null
             }
@@ -975,6 +1097,18 @@ export default function AdminAnimeCreatePage() {
               )
             }
             onAddGenreSuggestion={addCreateGenreTokens}
+            onDraftTagChange={setCreateTagDraft}
+            onAddDraftTag={() => {
+              addCreateTagTokens(createTagDraft);
+              setCreateTagDraft("");
+            }}
+            onRemoveTagToken={(name) =>
+              setCreateTagTokens((current) =>
+                current.filter(
+                  (token) => token.toLowerCase() !== name.toLowerCase(),
+                ),
+              )
+            }
             onIncreaseGenreLimit={() =>
               setGenreSuggestionLimit((current) => Math.min(1000, current + 40))
             }
