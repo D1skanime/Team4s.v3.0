@@ -50,6 +50,28 @@ func (o *OptionalInt16) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type OptionalStringSlice struct {
+	Set   bool
+	Value []string
+}
+
+func (o *OptionalStringSlice) UnmarshalJSON(data []byte) error {
+	o.Set = true
+	trimmed := bytes.TrimSpace(data)
+	if bytes.Equal(trimmed, []byte("null")) {
+		o.Value = nil
+		return nil
+	}
+
+	var value []string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		return err
+	}
+
+	o.Value = value
+	return nil
+}
+
 type AdminAnimeCreateInput struct {
 	Title       string
 	TitleDE     *string
@@ -64,20 +86,98 @@ type AdminAnimeCreateInput struct {
 	CoverImage  *string
 	Source      *string
 	FolderName  *string
+	Tags        []string
+}
+
+type AdminAnimeCreateDraftAssetSuggestions struct {
+	Cover           *string  `json:"cover,omitempty"`
+	Banner          *string  `json:"banner,omitempty"`
+	Logo            *string  `json:"logo,omitempty"`
+	Backgrounds     []string `json:"backgrounds,omitempty"`
+	BackgroundVideo *string  `json:"background_video,omitempty"`
+}
+
+type AdminAnimeAltTitle struct {
+	Language *string `json:"language,omitempty"`
+	Kind     *string `json:"kind,omitempty"`
+	Title    string  `json:"title"`
+}
+
+type AdminAnimeCreateDraftPayload struct {
+	Title            string                                 `json:"title"`
+	TitleDE          *string                                `json:"title_de,omitempty"`
+	TitleEN          *string                                `json:"title_en,omitempty"`
+	Type             string                                 `json:"type"`
+	ContentType      string                                 `json:"content_type"`
+	Status           string                                 `json:"status"`
+	Year             *int16                                 `json:"year,omitempty"`
+	MaxEpisodes      *int16                                 `json:"max_episodes,omitempty"`
+	Genre            *string                                `json:"genre,omitempty"`
+	Description      *string                                `json:"description,omitempty"`
+	CoverImage       *string                                `json:"cover_image,omitempty"`
+	Source           *string                                `json:"source,omitempty"`
+	FolderName       *string                                `json:"folder_name,omitempty"`
+	AltTitles        []AdminAnimeAltTitle                   `json:"alt_titles,omitempty"`
+	Tags             []string                               `json:"tags,omitempty"`
+	Relations        []AdminAnimeRelation                   `json:"relations,omitempty"`
+	AssetSuggestions *AdminAnimeCreateDraftAssetSuggestions `json:"asset_suggestions,omitempty"`
+}
+
+type AdminAnimeAniSearchEnrichmentRequest struct {
+	AniSearchID string                       `json:"anisearch_id"`
+	Draft       AdminAnimeCreateDraftPayload `json:"draft"`
+}
+
+type AdminAnimeAniSearchEnrichmentProviderSummary struct {
+	AniSearchID        string `json:"anisearch_id"`
+	JellysyncApplied   bool   `json:"jellysync_applied"`
+	RelationCandidates int32  `json:"relation_candidates"`
+	RelationMatches    int32  `json:"relation_matches"`
+}
+
+type AdminAnimeAniSearchEnrichmentDraftResult struct {
+	Mode             string                                       `json:"mode"`
+	AniSearchID      string                                       `json:"anisearch_id"`
+	Source           string                                       `json:"source"`
+	Draft            AdminAnimeCreateDraftPayload                 `json:"draft"`
+	ManualFieldsKept []string                                     `json:"manual_fields_kept,omitempty"`
+	FilledFields     []string                                     `json:"filled_fields,omitempty"`
+	FilledAssets     []string                                     `json:"filled_assets,omitempty"`
+	Provider         AdminAnimeAniSearchEnrichmentProviderSummary `json:"provider"`
+}
+
+type AdminAnimeAniSearchEnrichmentRedirectResult struct {
+	Mode            string `json:"mode"`
+	AniSearchID     string `json:"anisearch_id"`
+	ExistingAnimeID int64  `json:"existing_anime_id"`
+	ExistingTitle   string `json:"existing_title"`
+	RedirectPath    string `json:"redirect_path"`
+}
+
+type AdminAnimeSourceMatch struct {
+	Source  string
+	AnimeID int64
+	Title   string
+}
+
+type AdminAnimeRelationTitleMatch struct {
+	MatchedTitle string
+	Target       AdminAnimeRelationTarget
 }
 
 type AdminAnimePatchInput struct {
-	Title       OptionalString `json:"title"`
-	TitleDE     OptionalString `json:"title_de"`
-	TitleEN     OptionalString `json:"title_en"`
-	Type        OptionalString `json:"type"`
-	ContentType OptionalString `json:"content_type"`
-	Status      OptionalString `json:"status"`
-	Year        OptionalInt16  `json:"year"`
-	MaxEpisodes OptionalInt16  `json:"max_episodes"`
-	Genre       OptionalString `json:"genre"`
-	Description OptionalString `json:"description"`
-	CoverImage  OptionalString `json:"cover_image"`
+	Title       OptionalString      `json:"title"`
+	TitleDE     OptionalString      `json:"title_de"`
+	TitleEN     OptionalString      `json:"title_en"`
+	Type        OptionalString      `json:"type"`
+	ContentType OptionalString      `json:"content_type"`
+	Status      OptionalString      `json:"status"`
+	Year        OptionalInt16       `json:"year"`
+	MaxEpisodes OptionalInt16       `json:"max_episodes"`
+	Genre       OptionalString      `json:"genre"`
+	Tags        OptionalStringSlice `json:"tags"`
+	Description OptionalString      `json:"description"`
+	CoverImage  OptionalString      `json:"cover_image"`
 }
 
 type AdminEpisodeCreateInput struct {
@@ -96,18 +196,19 @@ type AdminEpisodePatchInput struct {
 }
 
 type AdminAnimeItem struct {
-	ID          int64   `json:"id"`
-	Title       string  `json:"title"`
-	TitleDE     *string `json:"title_de,omitempty"`
-	TitleEN     *string `json:"title_en,omitempty"`
-	Type        string  `json:"type"`
-	ContentType string  `json:"content_type"`
-	Status      string  `json:"status"`
-	Year        *int16  `json:"year,omitempty"`
-	MaxEpisodes *int16  `json:"max_episodes,omitempty"`
-	Genre       *string `json:"genre,omitempty"`
-	Description *string `json:"description,omitempty"`
-	CoverImage  *string `json:"cover_image,omitempty"`
+	ID          int64    `json:"id"`
+	Title       string   `json:"title"`
+	TitleDE     *string  `json:"title_de,omitempty"`
+	TitleEN     *string  `json:"title_en,omitempty"`
+	Type        string   `json:"type"`
+	ContentType string   `json:"content_type"`
+	Status      string   `json:"status"`
+	Year        *int16   `json:"year,omitempty"`
+	MaxEpisodes *int16   `json:"max_episodes,omitempty"`
+	Genre       *string  `json:"genre,omitempty"`
+	Description *string  `json:"description,omitempty"`
+	CoverImage  *string  `json:"cover_image,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
 }
 
 type AdminAnimeDeleteResult struct {

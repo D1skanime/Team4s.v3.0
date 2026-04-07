@@ -8,22 +8,24 @@ import (
 
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 )
 
 type adminAnimeCreateRequest struct {
-	Title       string  `json:"title"`
-	TitleDE     *string `json:"title_de"`
-	TitleEN     *string `json:"title_en"`
-	Type        string  `json:"type"`
-	ContentType string  `json:"content_type"`
-	Status      string  `json:"status"`
-	Year        *int16  `json:"year"`
-	MaxEpisodes *int16  `json:"max_episodes"`
-	Genre       *string `json:"genre"`
-	Description *string `json:"description"`
-	CoverImage  *string `json:"cover_image"`
-	Source      *string `json:"source"`
-	FolderName  *string `json:"folder_name"`
+	Title       string   `json:"title"`
+	TitleDE     *string  `json:"title_de"`
+	TitleEN     *string  `json:"title_en"`
+	Type        string   `json:"type"`
+	ContentType string   `json:"content_type"`
+	Status      string   `json:"status"`
+	Year        *int16   `json:"year"`
+	MaxEpisodes *int16   `json:"max_episodes"`
+	Genre       *string  `json:"genre"`
+	Tags        []string `json:"tags"`
+	Description *string  `json:"description"`
+	CoverImage  *string  `json:"cover_image"`
+	Source      *string  `json:"source"`
+	FolderName  *string  `json:"folder_name"`
 }
 
 type adminEpisodeCreateRequest struct {
@@ -59,6 +61,7 @@ type AdminContentHandler struct {
 	jellyfinBaseURL    string
 	jellyfinStreamPath string
 	httpClient         *http.Client
+	enrichmentService  *services.AnimeCreateEnrichmentService
 }
 
 type AdminContentJellyfinConfig struct {
@@ -77,7 +80,7 @@ func NewAdminContentHandler(
 	mediaStorageDir string,
 	jellyfinCfg AdminContentJellyfinConfig,
 ) *AdminContentHandler {
-	return &AdminContentHandler{
+	handler := &AdminContentHandler{
 		repo:               repo,
 		relationRepo:       repo,
 		animeAssetRepo:     animeAssetRepo,
@@ -93,4 +96,38 @@ func NewAdminContentHandler(
 			Timeout: 20 * time.Second,
 		},
 	}
+
+	aniSearchClient := services.NewAniSearchClient("https://www.anisearch.de/anime", handler.httpClient)
+	handler.enrichmentService = services.NewAnimeCreateEnrichmentService(
+		aniSearchClient,
+		adminAnimeCreateEnrichmentRepo{repo: repo},
+		handler.previewJellysyncAnimeCreateFollowup,
+	)
+
+	return handler
+}
+
+type adminAnimeCreateEnrichmentRepo struct {
+	repo *repository.AdminContentRepository
+}
+
+func (r adminAnimeCreateEnrichmentRepo) FindAnimeBySource(
+	ctx context.Context,
+	source string,
+) (*models.AdminAnimeSourceMatch, error) {
+	return r.repo.FindAnimeBySource(ctx, source)
+}
+
+func (r adminAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsByTitles(
+	ctx context.Context,
+	titles []string,
+) ([]models.AdminAnimeRelationTitleMatch, error) {
+	return r.repo.ResolveAdminAnimeRelationTargetsByTitles(ctx, titles)
+}
+
+func (r adminAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsBySources(
+	ctx context.Context,
+	sources []string,
+) ([]models.AdminAnimeSourceMatch, error) {
+	return r.repo.ResolveAdminAnimeRelationTargetsBySources(ctx, sources)
 }

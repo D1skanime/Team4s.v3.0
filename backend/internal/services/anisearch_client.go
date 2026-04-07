@@ -20,6 +20,7 @@ import (
 type AniSearchAnimeRelation struct {
 	RelationLabel string
 	Title         string
+	AniSearchID   string // extracted from graph node ID when available
 }
 
 type AniSearchAnime struct {
@@ -191,9 +192,12 @@ func parseAniSearchAnimeHTML(aniSearchID string, rawHTML string) (AniSearchAnime
 	titleEntries := parseAniSearchTitleEntries(doc)
 	description := findAniSearchDescription(doc)
 	formatText := firstNonEmpty(findAniSearchInfoValue(doc, "Typ"), ldJSON.SchemaType)
-	yearText := firstNonEmpty(findAniSearchReleaseYear(doc), ldJSON.StartDate)
+	yearText := firstNonEmpty(findAniSearchReleaseYear(doc), ldJSON.StartDate, findDataText(doc, "year"))
 	episodeText := firstNonEmpty(findAniSearchEpisodeCount(doc), ldJSON.NumberOfEpisodes)
 	genres := appendUniqueNormalizedValues(nil, ldJSON.Genres...)
+	if len(genres) == 0 {
+		genres = parseDelimitedValues(findDataText(doc, "genres"))
+	}
 
 	result := AniSearchAnime{
 		AniSearchID: aniSearchID,
@@ -757,9 +761,16 @@ func parseAniSearchRelationsPageHTML(aniSearchID string, rawHTML string) []AniSe
 			continue
 		}
 
+		// Node IDs have the form "a{anisearchID}" — strip the leading "a".
+		extractedID := ""
+		if strings.HasPrefix(targetNodeID, "a") {
+			extractedID = targetNodeID[1:]
+		}
+
 		result = appendUniqueRelations(result, AniSearchAnimeRelation{
 			RelationLabel: label,
 			Title:         title,
+			AniSearchID:   extractedID,
 		})
 	}
 
