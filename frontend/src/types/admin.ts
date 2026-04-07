@@ -43,6 +43,29 @@ export interface AdminAnimeCreateRequest {
   folder_name?: string
 }
 
+export interface AdminAnimeCreateDraftPayload {
+  title?: string
+  type?: string
+  content_type?: string
+  status?: string
+  title_de?: string
+  title_en?: string
+  year?: number
+  max_episodes?: number
+  genre?: string
+  tags?: string[]
+  description?: string
+  cover_image?: string
+}
+
+export interface AdminAnimeCreateDraftAssetSuggestions {
+  cover?: string
+  logo?: string
+  banner?: string
+  background_video?: string
+  backgrounds?: string[]
+}
+
 export interface AdminAnimePatchRequest {
   title?: string
   title_de?: string | null
