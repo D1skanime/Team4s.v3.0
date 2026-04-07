@@ -45,9 +45,9 @@ export interface AdminAnimeCreateRequest {
 
 export interface AdminAnimeCreateDraftPayload {
   title?: string
-  type?: string
-  content_type?: string
-  status?: string
+  type?: AnimeType
+  content_type?: ContentType
+  status?: AnimeStatus
   title_de?: string
   title_en?: string
   year?: number
