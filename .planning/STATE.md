@@ -19,11 +19,11 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 08 planning - replace-delete-cleanup-and-operator-ux
+**Current focus:** Phase 09 planning - controlled-anisearch-id-enrichment-before-create-with-fill-only-jellysync-follow-up
 
 ## Current Position
 
-Phase: 08 (replace-delete-cleanup-and-operator-ux) - READY FOR PLANNING
+Phase: 09 (controlled-anisearch-id-enrichment-before-create-with-fill-only-jellysync-follow-up) - READY FOR PLANNING
 Plan: Not planned yet
 
 ## Accumulated Context
@@ -51,8 +51,12 @@ Recent durable decisions:
 
 ### Pending Todos
 
-- Plan Phase 08 on top of the verified Phase 06 and Phase 07 lifecycle baseline.
+- Plan Phase 09 on top of the verified Phase 06 and Phase 07 lifecycle baseline.
 - Decide later whether the old manual-vs-Jellyfin entry-choice page should be restored or formally retired.
+
+### Roadmap Evolution
+
+- Phase 09 added: Controlled AniSearch ID enrichment before create with fill-only Jellysync follow-up
 
 ### Blockers/Concerns
 
@@ -63,10 +67,11 @@ Recent durable decisions:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260405-kce | Sync Phase-07 completion across roadmap and milestone tracking | 2026-04-05 | uncommitted (dirty workspace) | [260405-kce-sync-phase-07-completion-across-roadmap-](./quick/260405-kce-sync-phase-07-completion-across-roadmap-/) |
+| 260405-pcz | Add tags schema and persistence analogous to genres for anime metadata | 2026-04-05 | uncommitted (dirty workspace) | [260405-pcz-add-tags-schema-and-persistence-analogou](./quick/260405-pcz-add-tags-schema-and-persistence-analogou/) |
 
 ## Session Continuity
 
 Last session: 2026-04-04T22:18:49.435Z
-Stopped at: Phase 07 approved in human UAT; Phase 08 planning next
-Last activity: 2026-04-05 - Completed quick task 260405-kce: Sync Phase-07 completion across roadmap and milestone tracking
+Stopped at: Phase 09 context gathered
+Last activity: 2026-04-05 - Completed quick task 260405-pcz: Add tags schema and persistence analogous to genres for anime metadata
 Resume file: None
