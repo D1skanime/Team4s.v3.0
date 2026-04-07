@@ -36,6 +36,7 @@ export interface AdminAnimeCreateRequest {
   year?: number
   max_episodes?: number
   genre?: string
+  tags?: string[]
   description?: string
   cover_image?: string
   source?: string
