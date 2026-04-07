@@ -131,3 +131,10 @@ func (r adminAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsBySource
 ) ([]models.AdminAnimeSourceMatch, error) {
 	return r.repo.ResolveAdminAnimeRelationTargetsBySources(ctx, sources)
 }
+
+func (h *AdminContentHandler) previewJellysyncAnimeCreateFollowup(
+	_ context.Context,
+	draft models.AdminAnimeCreateDraftPayload,
+) (services.JellysyncFollowupResult, error) {
+	return services.JellysyncFollowupResult{Draft: draft}, nil
+}
