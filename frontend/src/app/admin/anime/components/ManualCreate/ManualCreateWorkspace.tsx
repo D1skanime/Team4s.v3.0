@@ -25,6 +25,8 @@ interface ManualCreateWorkspaceProps {
   titleEN: string;
   genreDraft: string;
   genreTokens: string[];
+  tagDraft: string;
+  tagTokens: string[];
   description: string;
   coverImage: string;
   coverPreviewUrl?: string;
@@ -81,6 +83,9 @@ interface ManualCreateWorkspaceProps {
   ) => void;
   onRemoveSingleAsset: (kind: "banner" | "logo" | "background_video") => void;
   onRemoveBackground: (index: number) => void;
+  onDraftTagChange: (value: string) => void;
+  onAddDraftTag: () => void;
+  onRemoveTagToken: (name: string) => void;
 }
 
 const ANIME_TYPES: AnimeType[] = [
