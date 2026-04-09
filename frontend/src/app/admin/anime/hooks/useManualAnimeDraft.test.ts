@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveManualCreateState } from './useManualAnimeDraft'
+import { hydrateManualDraftFromAniSearchDraft, resolveManualCreateState } from './useManualAnimeDraft'
 
 describe('resolveManualCreateState', () => {
   it('returns empty when there is no meaningful manual input', () => {
@@ -29,5 +29,33 @@ describe('resolveManualCreateState', () => {
         cover_image: '/covers/lain.jpg',
       }),
     ).toMatchObject({ key: 'ready', canSubmit: true })
+  })
+
+  it('replaces provisional lookup text when AniSearch data is loaded', () => {
+    const hydrated = hydrateManualDraftFromAniSearchDraft(
+      {
+        title: 'lain sea',
+        type: 'tv',
+        contentType: 'anime',
+        status: 'ongoing',
+        year: '',
+        maxEpisodes: '',
+        titleDE: '',
+        titleEN: '',
+        genreTokens: [],
+        tagTokens: [],
+        description: '',
+        coverImage: '',
+      },
+      {
+        title: 'Serial Experiments Lain',
+        type: 'tv',
+        content_type: 'anime',
+        status: 'ongoing',
+        source: 'anisearch:12345',
+      },
+    )
+
+    expect(hydrated.title).toBe('Serial Experiments Lain')
   })
 })

@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"context"
 	"strings"
 	"testing"
+
+	"team4s.v3/backend/internal/models"
 
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -104,5 +107,18 @@ func TestIsRelationConflict_DetectsUniqueAndCheckViolationCodes(t *testing.T) {
 	}
 	if isRelationConflict(&pgconn.PgError{Code: "42703"}) {
 		t.Fatal("expected unrelated pg error code not to map to relation conflict")
+	}
+}
+
+func TestApplyAniSearchRelationsIdempotently_DoesNotDuplicateExistingRows(t *testing.T) {
+	t.Parallel()
+
+	repo := &AdminContentRepository{}
+	err := repo.ApplyAniSearchRelationsIdempotently(context.Background(), 7, []models.AdminAnimeRelation{
+		{TargetAnimeID: 12, RelationLabel: "Fortsetzung"},
+		{TargetAnimeID: 12, RelationLabel: "Fortsetzung"},
+	})
+	if err != nil {
+		t.Fatalf("expected duplicate AniSearch relation apply to no-op, got %v", err)
 	}
 }

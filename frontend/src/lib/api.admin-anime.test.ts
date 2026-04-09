@@ -6,6 +6,7 @@ import {
   assignAdminAnimeLogoAsset,
   createAdminAnime,
   createAdminAnimeRelation,
+  loadAdminAnimeAniSearchEdit,
   searchAdminAnimeRelationTargets,
   updateAdminAnime,
   uploadAdminAnimeMedia,
@@ -246,5 +247,82 @@ describe('admin anime api error propagation', () => {
       code: 'background_video_persist_failed',
       details: 'Das Video konnte nicht mit dem Anime verknuepft werden.',
     })
+  })
+
+  it('posts the edit AniSearch contract with protected_fields', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue({
+        data: {
+          mode: 'draft',
+          anisearch_id: '12345',
+          source: 'anisearch:12345',
+          draft: { title: 'AniSearch Title', source: 'anisearch:12345' },
+          applied_relations: [],
+          skipped_protected_fields: ['title'],
+        },
+      }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await loadAdminAnimeAniSearchEdit(
+      42,
+      {
+        anisearch_id: '12345',
+        draft: { title: 'Lookup Title', source: 'anisearch:12345' },
+        protected_fields: ['title'],
+      },
+      'token',
+    )
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/admin/anime/42/enrichment/anisearch'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          anisearch_id: '12345',
+          draft: { title: 'Lookup Title', source: 'anisearch:12345' },
+          protected_fields: ['title'],
+        }),
+      }),
+    )
+  })
+
+  it('preserves create AniSearch warning metadata on successful create responses', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 201,
+        json: vi.fn().mockResolvedValue({
+          data: {
+            id: 42,
+            title: 'Lain',
+            type: 'tv',
+            content_type: 'anime',
+            status: 'ongoing',
+          },
+          anisearch: {
+            source: 'anisearch:12345',
+            relation_candidates: 3,
+            relation_applied: 1,
+            warning: '2 AniSearch-Relationen konnten nicht lokal zugeordnet werden.',
+          },
+        }),
+      }),
+    )
+
+    const response = await createAdminAnime({
+      title: 'Lain',
+      type: 'tv',
+      content_type: 'anime',
+      status: 'ongoing',
+      source: 'anisearch:12345',
+      cover_image: 'lain.jpg',
+    })
+
+    expect(response.anisearch?.warning).toContain('AniSearch-Relationen')
+    expect(response.anisearch?.source).toBe('anisearch:12345')
   })
 })

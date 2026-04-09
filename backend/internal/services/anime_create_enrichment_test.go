@@ -19,6 +19,7 @@ func (s stubAniSearchFetcher) FetchAnime(ctx context.Context, aniSearchID string
 type stubAnimeCreateEnrichmentRepo struct {
 	duplicate *models.AdminAnimeSourceMatch
 	matches   []models.AdminAnimeRelationTitleMatch
+	sources   []models.AdminAnimeSourceMatch
 }
 
 func (s stubAnimeCreateEnrichmentRepo) FindAnimeBySource(ctx context.Context, source string) (*models.AdminAnimeSourceMatch, error) {
@@ -30,7 +31,7 @@ func (s stubAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsByTitles(
 }
 
 func (s stubAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsBySources(ctx context.Context, sources []string) ([]models.AdminAnimeSourceMatch, error) {
-	return nil, nil
+	return s.sources, nil
 }
 
 func TestAnimeCreateEnrichmentService_ReturnsRedirectForDuplicateAniSearchID(t *testing.T) {
@@ -229,6 +230,61 @@ func TestAnimeCreateEnrichmentService_ResolvesOnlyApprovedLocalRelations(t *test
 	}
 	if draftResult.Draft.Relations[0].RelationLabel != "Fortsetzung" || draftResult.Provider.RelationCandidates != 2 || draftResult.Provider.RelationMatches != 1 {
 		t.Fatalf("unexpected relation result %#v", draftResult)
+	}
+}
+
+func TestAnimeCreateEnrichmentService_PrefersAniSearchSourceMatchesBeforeTitleFallback(t *testing.T) {
+	t.Parallel()
+
+	service := NewAnimeCreateEnrichmentService(
+		stubAniSearchFetcher{
+			anime: AniSearchAnime{
+				AniSearchID:  "12345",
+				PrimaryTitle: "Lain",
+				Relations: []AniSearchAnimeRelation{
+					{RelationLabel: "Fortsetzung", Title: "Shared Title", AniSearchID: "9001"},
+				},
+			},
+		},
+		stubAnimeCreateEnrichmentRepo{
+			matches: []models.AdminAnimeRelationTitleMatch{
+				{
+					MatchedTitle: "Shared Title",
+					Target: models.AdminAnimeRelationTarget{
+						AnimeID: 12,
+						Title:   "Shared Title",
+						Type:    "tv",
+						Status:  "done",
+					},
+				},
+			},
+			sources: []models.AdminAnimeSourceMatch{
+				{Source: "anisearch:9001", AnimeID: 44, Title: "Shared Title"},
+			},
+		},
+		nil,
+	)
+
+	result, err := service.Enrich(context.Background(), models.AdminAnimeAniSearchEnrichmentRequest{
+		AniSearchID: "12345",
+		Draft: models.AdminAnimeCreateDraftPayload{
+			Title:       "Lain",
+			Type:        "tv",
+			ContentType: "anime",
+			Status:      "ongoing",
+			Source:      stringPtr("anisearch:12345"),
+		},
+	})
+	if err != nil {
+		t.Fatalf("enrich: %v", err)
+	}
+
+	draftResult := result.(models.AdminAnimeAniSearchEnrichmentDraftResult)
+	if len(draftResult.Draft.Relations) != 1 {
+		t.Fatalf("expected one resolved relation, got %#v", draftResult.Draft.Relations)
+	}
+	if draftResult.Draft.Relations[0].TargetAnimeID != 44 {
+		t.Fatalf("expected source-first target 44, got %#v", draftResult.Draft.Relations[0])
 	}
 }
 
