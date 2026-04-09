@@ -10,7 +10,7 @@ import type {
 } from '@/types/admin'
 import type { AnimeStatus, ContentType } from '@/types/anime'
 
-import { splitGenreTokens } from '../utils/anime-helpers'
+import { splitGenreTokens, splitTagTokens } from '../utils/anime-helpers'
 import { resolveJellyfinIntakeAssetUrl } from '../utils/jellyfin-intake-assets'
 
 export type ManualAnimeDraftStateKey = 'empty' | 'incomplete' | 'ready'
@@ -51,6 +51,16 @@ export interface JellyfinDraftAssetTarget {
   index?: number
 }
 
+export function buildManualCreateDraftSnapshot(
+  values: ManualAnimeDraftValues,
+): ManualAnimeDraftValues {
+  return {
+    ...values,
+    genreTokens: [...(values.genreTokens || [])],
+    tagTokens: [...(values.tagTokens || [])],
+  }
+}
+
 function cloneAssetSlot(slot: AdminJellyfinIntakeAssetSlot): AdminJellyfinIntakeAssetSlot {
   return {
     ...slot,
@@ -79,7 +89,7 @@ export function hydrateManualDraftFromJellyfinPreview(
   const resolvedYear = Number.isFinite(preview.year) ? String(preview.year) : ''
   const resolvedDescription = preview.description?.trim() || ''
   const resolvedGenreTokens = splitGenreTokens(preview.genre?.trim() || preview.tags.join(', '))
-  const resolvedTagTokens = splitGenreTokens(preview.tags.join(', '))
+  const resolvedTagTokens = splitTagTokens(preview.tags.join(', '))
   const resolvedType =
     preview.type_hint.suggested_type && preview.type_hint.suggested_type.trim().length > 0
       ? preview.type_hint.suggested_type
@@ -89,17 +99,15 @@ export function hydrateManualDraftFromJellyfinPreview(
       ? resolveJellyfinIntakeAssetUrl(preview.asset_slots.cover.url)
       : ''
 
-  // Jellyfin is priority 3 — only fill fields that are currently empty.
-  // Manual (1) and AniSearch (2) values are preserved.
   const hydratedDraft: ManualAnimeDraftValues = {
     ...draft,
-    title: draft.title || resolvedTitle,
-    year: draft.year || resolvedYear,
-    description: draft.description || resolvedDescription,
-    genreTokens: draft.genreTokens.length > 0 ? draft.genreTokens : resolvedGenreTokens,
-    tagTokens: draft.tagTokens.length > 0 ? draft.tagTokens : (resolvedTagTokens.length > 0 ? resolvedTagTokens : draft.tagTokens),
+    title: resolvedTitle || draft.title,
+    year: resolvedYear || draft.year,
+    description: resolvedDescription || draft.description,
+    genreTokens: resolvedGenreTokens.length > 0 ? resolvedGenreTokens : draft.genreTokens,
+    tagTokens: resolvedTagTokens.length > 0 ? resolvedTagTokens : draft.tagTokens,
     type: resolvedType,
-    coverImage: draft.coverImage || resolvedCoverImage,
+    coverImage: resolvedCoverImage || draft.coverImage,
   }
 
   return {
@@ -113,7 +121,7 @@ export function hydrateManualDraftFromAniSearchDraft(
   incoming: AdminAnimeCreateDraftPayload,
 ): ManualAnimeDraftValues {
   const resolvedGenreTokens = splitGenreTokens(incoming.genre?.trim() || incoming.tags?.join(', ') || '')
-  const resolvedTagTokens = splitGenreTokens(incoming.tags?.join(', ') || '')
+  const resolvedTagTokens = splitTagTokens(incoming.tags?.join(', ') || '')
 
   return {
     ...draft,

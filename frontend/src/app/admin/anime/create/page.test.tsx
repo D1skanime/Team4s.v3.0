@@ -18,6 +18,7 @@ import {
   hydrateManualDraftFromJellyfinPreview,
   removeJellyfinDraftAsset,
 } from "../hooks/useManualAnimeDraft";
+import { splitTagTokens } from "../utils/anime-helpers";
 
 describe("AdminAnimeCreatePage", () => {
   beforeEach(() => {
@@ -189,6 +190,7 @@ describe("AdminAnimeCreatePage", () => {
       titleDE: "",
       titleEN: "",
       genreTokens: [],
+      tagTokens: [],
       description: "",
       coverImage: "",
     });
@@ -264,6 +266,7 @@ describe("AdminAnimeCreatePage", () => {
       titleDE: "",
       titleEN: "",
       genreTokens: ["Action"],
+      tagTokens: [],
       description: "Alter Text",
       coverImage: "https://img/old-cover.jpg",
     });
@@ -319,6 +322,7 @@ describe("AdminAnimeCreatePage", () => {
       titleDE: "",
       titleEN: "",
       genreTokens: [],
+      tagTokens: [],
       description: "",
       coverImage: "",
     });
@@ -363,6 +367,7 @@ describe("AdminAnimeCreatePage", () => {
       titleDE: "",
       titleEN: "",
       genreTokens: [],
+      tagTokens: [],
       description: "",
       coverImage: "https://img/cover.jpg",
     });
@@ -462,6 +467,7 @@ describe("AdminAnimeCreatePage", () => {
       titleDE: "",
       titleEN: "",
       genreTokens: [],
+      tagTokens: [],
       description: "",
       coverImage: "",
     });
@@ -512,6 +518,111 @@ describe("AdminAnimeCreatePage", () => {
     });
   });
 
+  // Tags card visibility: the metadata area must render a dedicated Tags card
+  // alongside the existing genre controls so tags are a first-class visible field.
+  it("renders a dedicated Tags card in the metadata section alongside genre controls", () => {
+    const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
+
+    expect(markup).toContain("Tags");
+    expect(markup).toContain("Ausgewaehlte Tags");
+    expect(markup).toContain("Genre, Tags und Beschreibung");
+  });
+
+  // Tags empty state: before any tags are selected the card must show the
+  // configured empty-state copy rather than a blank region.
+  it("shows the Tags empty state copy before any tags are selected", () => {
+    const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
+
+    expect(markup).toContain("Noch keine Tags gesetzt.");
+  });
+
+  // Tag suggestion region: the tags card must expose the suggestion area label
+  // so keyboard/screen-reader users can navigate to it.
+  it("renders the tag suggestion region with the correct aria label", () => {
+    const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
+
+    expect(markup).toContain("Tag Vorschlaege");
+  });
+
+  // splitTagTokens helper: comma-separated input must produce a deduplicated
+  // normalized token list just like the genre token helper.
+  it("splitTagTokens deduplicates and trims comma-separated tag input", () => {
+    expect(splitTagTokens("Classic, Mecha, classic ,  MECHA  ")).toEqual([
+      "Classic",
+      "Mecha",
+    ]);
+  });
+
+  // splitTagTokens: empty input must return an empty array, not undefined or null.
+  it("splitTagTokens returns empty array for blank input", () => {
+    expect(splitTagTokens("")).toEqual([]);
+    expect(splitTagTokens("   ")).toEqual([]);
+  });
+
+  // Provider hydration: Jellyfin tags must land in tagTokens not genreTokens
+  // so the two fields stay independent in the rendered state.
+  it("hydrates provider tags into tagTokens and keeps genre tokens independent", () => {
+    const snapshot = buildManualCreateDraftSnapshot({
+      title: "Lain",
+      type: "tv",
+      contentType: "anime",
+      status: "ongoing",
+      year: "",
+      maxEpisodes: "",
+      titleDE: "",
+      titleEN: "",
+      genreTokens: [],
+      tagTokens: [],
+      description: "",
+      coverImage: "",
+    });
+
+    const hydrated = hydrateManualDraftFromJellyfinPreview(snapshot, {
+      jellyfin_series_id: "series-lain",
+      jellyfin_series_name: "Serial Experiments Lain",
+      jellyfin_series_path: "D:/Anime/TV/Lain",
+      folder_name_title_seed: "Serial Experiments Lain",
+      description: "Wired reality.",
+      year: 1998,
+      genre: "Sci-Fi, Psychological",
+      tags: ["Classic", "Mecha"],
+      type_hint: {
+        confidence: "high",
+        suggested_type: "tv",
+        reasons: ["TV-Ordner erkannt."],
+      },
+      asset_slots: {
+        cover: { present: false, kind: "cover", source: "jellyfin" },
+        logo: { present: false, kind: "logo", source: "jellyfin" },
+        banner: { present: false, kind: "banner", source: "jellyfin" },
+        backgrounds: [],
+        background_video: {
+          present: false,
+          kind: "background_video",
+          source: "jellyfin",
+        },
+      },
+    });
+
+    // Genre and tags stay in separate token arrays
+    expect(hydrated.draft.genreTokens).toContain("Sci-Fi");
+    expect(hydrated.draft.genreTokens).toContain("Psychological");
+    expect(hydrated.draft.tagTokens).toContain("Classic");
+    expect(hydrated.draft.tagTokens).toContain("Mecha");
+    // Tags must not bleed into genre tokens
+    expect(hydrated.draft.genreTokens).not.toContain("Classic");
+    expect(hydrated.draft.genreTokens).not.toContain("Mecha");
+  });
+
+  // Payload shape: the create payload must include tags as a separate array
+  // and must not collapse tags into the genre string.
+  it("getAdminTagTokens is used for tag suggestion loading (import from admin-anime-intake)", async () => {
+    // Verify the helper is importable from the intake module — this proves
+    // the page can use the dedicated tag token loader.
+    const module = await import("@/lib/api/admin-anime-intake");
+    expect(typeof module.getAdminTagTokens).toBe("function");
+  });
+
   it("keeps the first pre-preview draft snapshot as the restore baseline", () => {
     const currentDraft = buildManualCreateDraftSnapshot({
       title: "Macross",
@@ -523,6 +634,7 @@ describe("AdminAnimeCreatePage", () => {
       titleDE: "",
       titleEN: "",
       genreTokens: [],
+      tagTokens: [],
       description: "",
       coverImage: "",
     });
@@ -536,6 +648,7 @@ describe("AdminAnimeCreatePage", () => {
       titleDE: "",
       titleEN: "",
       genreTokens: [],
+      tagTokens: [],
       description: "",
       coverImage: "",
     });

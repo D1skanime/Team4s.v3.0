@@ -4,6 +4,7 @@ import type {
   AdminAnimeCreateRequest,
   AdminAnimeUpsertResponse,
   AdminJellyfinIntakeSearchResponse,
+  AdminTagTokensResponse,
 } from '@/types/admin'
 import { ApiError, parseApiErrorPayload } from '@/lib/api'
 
@@ -127,4 +128,33 @@ export async function createAdminAnimeFromJellyfinDraft(
   }
 
   return response.json() as Promise<AdminAnimeUpsertResponse>
+}
+
+// getAdminTagTokens fetches normalized tag suggestion tokens from the dedicated
+// admin tags endpoint. Uses the same auth-header pattern as the other intake
+// helpers instead of reusing the genre helper so the two token sources stay
+// independently callable.
+export async function getAdminTagTokens(
+  params: { query?: string; limit?: number } = {},
+  authToken?: string,
+): Promise<AdminTagTokensResponse> {
+  const search = new URLSearchParams()
+  const tagQuery = (params.query || '').trim()
+  if (tagQuery) search.set('query', tagQuery)
+  if (params.limit && Number.isFinite(params.limit) && params.limit > 0) {
+    search.set('limit', String(params.limit))
+  }
+
+  const url = `${getApiBaseUrl()}/api/v1/admin/tags${search.toString() ? `?${search.toString()}` : ''}`
+  const response = await fetch(url, {
+    headers: withAuthHeaders(authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminTagTokensResponse>
 }

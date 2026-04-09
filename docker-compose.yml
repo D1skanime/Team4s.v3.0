@@ -21,6 +21,8 @@ services:
   team4sv30-redis:
     image: redis:7
     container_name: team4sv30-redis
+    ports:
+      - "6379:6379"
 
   team4sv30-backend:
     build:

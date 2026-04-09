@@ -169,6 +169,7 @@ func deleteAnimeAssociations(ctx context.Context, tx pgx.Tx, animeID int64, useV
 		`DELETE FROM anime_relations WHERE source_anime_id = $1 OR target_anime_id = $1`,
 		`DELETE FROM anime_titles WHERE anime_id = $1`,
 		`DELETE FROM anime_genres WHERE anime_id = $1`,
+		`DELETE FROM anime_tags WHERE anime_id = $1`,
 		`DELETE FROM anime_media WHERE anime_id = $1`,
 	}
 
@@ -204,6 +205,7 @@ func deleteAnimeAssociationsV2(ctx context.Context, tx pgx.Tx, animeID int64) er
 		`DELETE FROM anime_relations WHERE source_anime_id = $1 OR target_anime_id = $1`,
 		`DELETE FROM anime_titles WHERE anime_id = $1`,
 		`DELETE FROM anime_genres WHERE anime_id = $1`,
+		`DELETE FROM anime_tags WHERE anime_id = $1`,
 		`DELETE FROM anime_media WHERE anime_id = $1`,
 	}
 	for _, statement := range statements {
@@ -332,6 +334,18 @@ func resolveOrphanedLocalCoverImageV2(ctx context.Context, tx pgx.Tx, coverImage
 }
 
 func hasV2AnimeDeleteAssetSchema(ctx context.Context, tx pgx.Tx) (bool, error) {
+	hasAnimeMedia, err := hasAnimeMediaTableTx(ctx, tx)
+	if err != nil {
+		return false, fmt.Errorf("detect anime delete asset schema tables: %w", err)
+	}
+	if !hasAnimeMedia {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func hasAnimeMediaTableTx(ctx context.Context, tx pgx.Tx) (bool, error) {
 	var hasAnimeMedia bool
 	if err := tx.QueryRow(
 		ctx,
@@ -344,29 +358,10 @@ func hasV2AnimeDeleteAssetSchema(ctx context.Context, tx pgx.Tx) (bool, error) {
 		)
 		`,
 	).Scan(&hasAnimeMedia); err != nil {
-		return false, fmt.Errorf("detect anime delete asset schema tables: %w", err)
-	}
-	if !hasAnimeMedia {
-		return false, nil
+		return false, fmt.Errorf("detect anime_media table: %w", err)
 	}
 
-	var hasCoverAssetID bool
-	if err := tx.QueryRow(
-		ctx,
-		`
-		SELECT EXISTS(
-			SELECT 1
-			FROM information_schema.columns
-			WHERE table_schema = current_schema()
-			  AND table_name = 'anime'
-			  AND column_name = 'cover_asset_id'
-		)
-		`,
-	).Scan(&hasCoverAssetID); err != nil {
-		return false, fmt.Errorf("detect anime delete legacy cover slots: %w", err)
-	}
-
-	return !hasCoverAssetID, nil
+	return hasAnimeMedia, nil
 }
 
 func isLocalUploadedCoverImage(value *string) bool {

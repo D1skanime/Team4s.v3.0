@@ -377,6 +377,147 @@ func TestAdminContentRepository_DeleteAnimeSourceWritesAuditBeforeDelete(t *test
 	}
 }
 
+// ---------------------------------------------------------------------------
+// Tag normalization, authoritative persistence, token listing, and delete
+// cleanup tests — Task 1 TDD coverage for Plan 10-02.
+// ---------------------------------------------------------------------------
+
+// TestAdminContentRepository_NormalizeTagList_TrimsDedupesSorts verifies that
+// the normalizeTagList helper collapses duplicates case-insensitively, trims
+// whitespace, and returns a sorted result so stored tag names are canonical.
+func TestAdminContentRepository_NormalizeTagList_TrimsDedupesSorts(t *testing.T) {
+	raw := []string{" Mecha ", "mecha", "Classic", " classic ", "sci-fi"}
+	got := normalizeTagList(raw)
+
+	// "mecha" and "Mecha" collapse; "classic" and "Classic" collapse.
+	// First-seen casing wins, so order of input determines winner.
+	// After dedup the result must be sorted.
+	if len(got) != 3 {
+		t.Fatalf("expected 3 deduplicated tags, got %d: %v", len(got), got)
+	}
+
+	// Result must be sorted ascending (case-insensitive order is fine but the
+	// slice itself must be deterministic and ascending).
+	for i := 1; i < len(got); i++ {
+		if strings.ToLower(got[i-1]) > strings.ToLower(got[i]) {
+			t.Fatalf("expected sorted tags, got %v", got)
+		}
+	}
+}
+
+// TestAdminContentRepository_NormalizeTagList_EmptyInput returns nil for empty
+// or nil input so callers can distinguish "no tags provided" from "empty list".
+func TestAdminContentRepository_NormalizeTagList_EmptyInput(t *testing.T) {
+	if got := normalizeTagList(nil); got != nil {
+		t.Fatalf("expected nil for nil input, got %v", got)
+	}
+	if got := normalizeTagList([]string{}); got != nil {
+		t.Fatalf("expected nil for empty slice, got %v", got)
+	}
+	if got := normalizeTagList([]string{"  ", ""}); got != nil {
+		t.Fatalf("expected nil for whitespace-only slice, got %v", got)
+	}
+}
+
+// TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_TagsSet
+// verifies that a create input with tags populates TagsSet and a normalized
+// Tags slice on the resulting write struct.
+func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_TagsSet(t *testing.T) {
+	write := buildAuthoritativeAnimeMetadataCreate(models.AdminAnimeCreateInput{
+		Title:       "Fullmetal Alchemist",
+		Type:        "tv",
+		ContentType: "anime",
+		Status:      "done",
+		Tags:        []string{" Action ", "action", "Fantasy"},
+	})
+
+	if !write.TagsSet {
+		t.Fatal("expected TagsSet to be true when tags are provided on create")
+	}
+
+	// Deduplication must have collapsed "Action"/"action".
+	if len(write.Tags) != 2 {
+		t.Fatalf("expected 2 normalized tags, got %d: %v", len(write.Tags), write.Tags)
+	}
+}
+
+// TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_TagsSetOnly
+// verifies that a patch with tags sets TagsSet while a patch without tags
+// leaves TagsSet false (authoritative replace semantics).
+func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_TagsSetOnly(t *testing.T) {
+	title := "Steins;Gate"
+
+	withTagsPatch := buildAuthoritativeAnimeMetadataPatch(models.AdminAnimePatchInput{
+		Title: models.OptionalString{Set: true, Value: &title},
+		Tags:  models.OptionalStringSlice{Set: true, Value: []string{"Sci-Fi", "Thriller"}},
+	})
+	if !withTagsPatch.TagsSet {
+		t.Fatal("expected TagsSet=true when patch includes tags")
+	}
+	if len(withTagsPatch.Tags) != 2 {
+		t.Fatalf("expected 2 tags on patch, got %d: %v", len(withTagsPatch.Tags), withTagsPatch.Tags)
+	}
+
+	withoutTagsPatch := buildAuthoritativeAnimeMetadataPatch(models.AdminAnimePatchInput{
+		Title: models.OptionalString{Set: true, Value: &title},
+	})
+	if withoutTagsPatch.TagsSet {
+		t.Fatal("expected TagsSet=false when patch does not include tags")
+	}
+}
+
+// TestAdminContentRepository_BuildAuthoritativeTagTokensQuery_UsesNormalizedTagStore
+// verifies that the SQL returned by buildAuthoritativeTagTokensQuery joins the
+// expected tables — mirrors the genre token query coverage test.
+func TestAdminContentRepository_BuildAuthoritativeTagTokensQuery_UsesNormalizedTagStore(t *testing.T) {
+	query := buildAuthoritativeTagTokensQuery()
+
+	requiredFragments := []string{
+		"FROM anime_tags",
+		"JOIN tags",
+		"GROUP BY",
+	}
+
+	for _, fragment := range requiredFragments {
+		if !strings.Contains(query, fragment) {
+			t.Fatalf("expected tag token query to contain %q, got:\n%s", fragment, query)
+		}
+	}
+}
+
+// TestAdminContentRepository_FilterTagTokens_PrioritizesPrefixMatches mirrors
+// the genre token prefix-priority test for tag tokens.
+func TestAdminContentRepository_FilterTagTokens_PrioritizesPrefixMatches(t *testing.T) {
+	filtered := filterTagTokens([]models.AdminTagToken{
+		{Name: "Drama", Count: 4},
+		{Name: "Dark Fantasy", Count: 2},
+		{Name: "Adventure", Count: 8},
+	}, "d", 2)
+
+	if len(filtered) != 2 {
+		t.Fatalf("expected 2 results after limit, got %d: %v", len(filtered), filtered)
+	}
+	// Prefix matches ("Dark Fantasy", "Drama") must come before non-prefix matches.
+	if filtered[0].Name != "Dark Fantasy" && filtered[0].Name != "Drama" {
+		t.Fatalf("expected prefix matches first, got %q", filtered[0].Name)
+	}
+}
+
+// TestAdminContentRepository_DeleteSource_ClearsAnimeTagsLinks verifies that
+// the delete association SQL includes an `anime_tags` clear statement in both
+// the hybrid and V2 paths, analogous to the existing anime_genres cleanup.
+func TestAdminContentRepository_DeleteSource_ClearsAnimeTagsLinks(t *testing.T) {
+	content := readRepositorySource(t, "admin_content_anime_delete.go")
+	normalized := strings.ToLower(content)
+
+	if !strings.Contains(normalized, "delete from anime_tags where anime_id") {
+		t.Fatalf(
+			"expected admin_content_anime_delete.go to DELETE from anime_tags, got source:\n%s",
+			content,
+		)
+	}
+}
+
 func repositoryFileLineCount(t *testing.T, name string) int {
 	t.Helper()
 

@@ -11,3 +11,14 @@ CREATE TABLE IF NOT EXISTS genres (
 );
 
 CREATE INDEX IF NOT EXISTS idx_genre_name ON genres(name);
+
+-- Tags table - normalized anime tags (Phase 10: analogous to genres)
+CREATE TABLE IF NOT EXISTS tags (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_tag_name UNIQUE (name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tag_name ON tags(name);

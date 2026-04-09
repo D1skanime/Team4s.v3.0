@@ -180,6 +180,13 @@ type AdminAnimePatchInput struct {
 	CoverImage  OptionalString      `json:"cover_image"`
 }
 
+// AdminTagToken is a normalized tag value with its usage count across all anime.
+// Mirrors the genre token shape so frontend state management stays parallel.
+type AdminTagToken struct {
+	Name  string `json:"name"`
+	Count int64  `json:"count"`
+}
+
 type AdminEpisodeCreateInput struct {
 	AnimeID       int64
 	EpisodeNumber string

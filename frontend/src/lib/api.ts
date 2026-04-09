@@ -21,6 +21,7 @@ import {
   AdminAnimePatchRequest,
   AdminAnimeUpsertResponse,
   AdminGenreTokensResponse,
+  AdminTagTokensResponse,
   AdminEpisodeCreateRequest,
   AdminEpisodeDeleteResponse,
   AdminEpisodePatchRequest,
@@ -129,6 +130,9 @@ export const HAS_AUTH_TOKEN = AUTH_BEARER_TOKEN.length > 0 || AUTH_BYPASS_LOCAL
 export const AUTH_TOKEN_COOKIE_NAME = 'team4s_access_token'
 export const AUTH_REFRESH_COOKIE_NAME = 'team4s_refresh_token'
 export const AUTH_DISPLAY_NAME_COOKIE_NAME = 'team4s_display_name'
+const AUTH_TOKEN_STORAGE_KEY = 'team4s.auth.access_token'
+const AUTH_REFRESH_STORAGE_KEY = 'team4s.auth.refresh_token'
+const AUTH_DISPLAY_NAME_STORAGE_KEY = 'team4s.auth.display_name'
 
 export class ApiError extends Error {
   status: number
@@ -248,6 +252,34 @@ function writeBrowserCookie(name: string, value: string, maxAgeSeconds: number):
   document.cookie = `${name}=${encodedValue}; Path=/; Max-Age=${maxAge}; SameSite=Lax`
 }
 
+function readBrowserStorage(name: string): string {
+  if (typeof window === 'undefined') {
+    return ''
+  }
+
+  try {
+    return (window.localStorage.getItem(name) || '').trim()
+  } catch {
+    return ''
+  }
+}
+
+function writeBrowserStorage(name: string, value: string): void {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    if (value.trim()) {
+      window.localStorage.setItem(name, value)
+    } else {
+      window.localStorage.removeItem(name)
+    }
+  } catch {
+    // Ignore storage write failures and rely on cookies only.
+  }
+}
+
 function resolveAuthToken(authToken?: string): string {
   const explicitToken = (authToken || '').trim()
   if (explicitToken) {
@@ -258,6 +290,11 @@ function resolveAuthToken(authToken?: string): string {
     const runtimeToken = readBrowserCookie(AUTH_TOKEN_COOKIE_NAME).trim()
     if (runtimeToken) {
       return runtimeToken
+    }
+
+    const storedToken = readBrowserStorage(AUTH_TOKEN_STORAGE_KEY)
+    if (storedToken) {
+      return storedToken
     }
   }
 
@@ -347,7 +384,7 @@ export function getRuntimeRefreshToken(): string {
     return ''
   }
 
-  return readBrowserCookie(AUTH_REFRESH_COOKIE_NAME).trim()
+  return readBrowserCookie(AUTH_REFRESH_COOKIE_NAME).trim() || readBrowserStorage(AUTH_REFRESH_STORAGE_KEY)
 }
 
 export function getRuntimeDisplayName(): string {
@@ -355,7 +392,7 @@ export function getRuntimeDisplayName(): string {
     return AUTH_DISPLAY_NAME
   }
 
-  const displayName = readBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME).trim()
+  const displayName = readBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME).trim() || readBrowserStorage(AUTH_DISPLAY_NAME_STORAGE_KEY)
   return displayName || AUTH_DISPLAY_NAME
 }
 
@@ -367,12 +404,18 @@ export function persistAuthSession(authData: AuthTokenData): void {
   writeBrowserCookie(AUTH_TOKEN_COOKIE_NAME, authData.access_token, authData.access_token_expires_in)
   writeBrowserCookie(AUTH_REFRESH_COOKIE_NAME, authData.refresh_token, authData.refresh_token_expires_in)
   writeBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME, authData.display_name, authData.refresh_token_expires_in)
+  writeBrowserStorage(AUTH_TOKEN_STORAGE_KEY, authData.access_token)
+  writeBrowserStorage(AUTH_REFRESH_STORAGE_KEY, authData.refresh_token)
+  writeBrowserStorage(AUTH_DISPLAY_NAME_STORAGE_KEY, authData.display_name)
 }
 
 export function clearAuthSession(): void {
   writeBrowserCookie(AUTH_TOKEN_COOKIE_NAME, '', 0)
   writeBrowserCookie(AUTH_REFRESH_COOKIE_NAME, '', 0)
   writeBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME, '', 0)
+  writeBrowserStorage(AUTH_TOKEN_STORAGE_KEY, '')
+  writeBrowserStorage(AUTH_REFRESH_STORAGE_KEY, '')
+  writeBrowserStorage(AUTH_DISPLAY_NAME_STORAGE_KEY, '')
 }
 
 interface AnimeListRequestOptions {
@@ -1065,10 +1108,13 @@ export async function removeWatchlistEntry(animeID: number, authToken?: string):
   }
 }
 
-export async function issueAuthToken(payload: AuthIssueRequest = {}, authToken?: string): Promise<AuthTokenResponse> {
+export async function issueAuthToken(
+  payload: AuthIssueRequest = {},
+  authToken?: string | null,
+): Promise<AuthTokenResponse> {
   const API_BASE_URL = getApiBaseUrl()
   const issueKey = (payload.issue_key || '').trim()
-  const headers = withAuthHeader({}, authToken)
+  const headers = authToken === null ? {} : withAuthHeader({}, authToken || undefined)
   if (issueKey) {
     headers['X-Auth-Issue-Key'] = issueKey
   }
@@ -1735,6 +1781,32 @@ export async function getAdminGenreTokens(
   }
 
   return response.json() as Promise<AdminGenreTokensResponse>
+}
+
+// getAdminTagTokens fetches normalized tag tokens from the dedicated admin tag
+// endpoint. Mirrors getAdminGenreTokens so the two token sources stay parallel
+// in both call signature and auth-header handling.
+export async function getAdminTagTokens(
+  params: { query?: string; limit?: number } = {},
+  authToken?: string,
+): Promise<AdminTagTokensResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const query = new URLSearchParams()
+  const tagQuery = (params.query || '').trim()
+  if (tagQuery) query.set('query', tagQuery)
+  if (params.limit && Number.isFinite(params.limit) && params.limit > 0) query.set('limit', String(params.limit))
+  const url = `${API_BASE_URL}/api/v1/admin/tags${query.toString() ? `?${query.toString()}` : ''}`
+  const response = await fetch(url, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, message)
+  }
+
+  return response.json() as Promise<AdminTagTokensResponse>
 }
 
 // Fansub merge operations

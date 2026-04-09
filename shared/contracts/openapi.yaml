@@ -2031,6 +2031,74 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/tags:
+    get:
+      tags: [Admin]
+      summary: List tag tokens
+      operationId: adminListTags
+      description: |
+        Returns tag tokens derived from existing anime tag links, sorted by usage count descending.
+        Mirrors the genre token endpoint shape so frontend state management stays parallel.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          description: Optional substring filter applied to tag names.
+          schema:
+            type: string
+            maxLength: 100
+            example: klass
+        - name: limit
+          in: query
+          description: Max number of tokens to return (default 200, max 1000).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 200
+      responses:
+        "200":
+          description: List of tag tokens sorted by count desc.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagTokenListResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Auth state unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authStateUnavailable:
+                  value:
+                    error:
+                      message: auth-status voruebergehend nicht verfuegbar
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/episodes/{id}:
     patch:
       tags: [Admin]
@@ -5113,6 +5181,11 @@ components:
         genre:
           type: string
           nullable: true
+        tags:
+          type: array
+          description: Normalized tag values to associate with this anime on create.
+          items:
+            type: string
         description:
           type: string
           nullable: true
@@ -5150,6 +5223,12 @@ components:
         genre:
           type: string
           nullable: true
+        tags:
+          type: array
+          description: Normalized tag values to replace the anime's current tag links on patch.
+          nullable: true
+          items:
+            type: string
         description:
           type: string
           nullable: true
@@ -5647,6 +5726,24 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GenreToken"
+    TagToken:
+      type: object
+      description: A normalized tag value with its usage count across all anime.
+      required: [name, count]
+      properties:
+        name:
+          type: string
+        count:
+          type: integer
+          format: int64
+    TagTokenListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagToken"
     FansubStatus:
       type: string
       enum: [active, inactive, dissolved]

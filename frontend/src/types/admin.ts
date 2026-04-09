@@ -43,27 +43,38 @@ export interface AdminAnimeCreateRequest {
   folder_name?: string
 }
 
+export interface AdminAnimeCreateDraftAssetSuggestions {
+  cover?: string
+  banner?: string
+  logo?: string
+  backgrounds?: string[]
+  background_video?: string
+}
+
+export interface AdminAnimeAltTitle {
+  language?: string
+  kind?: string
+  title: string
+}
+
 export interface AdminAnimeCreateDraftPayload {
-  title?: string
-  type?: AnimeType
-  content_type?: ContentType
-  status?: AnimeStatus
+  title: string
   title_de?: string
   title_en?: string
+  type: AnimeType
+  content_type: ContentType
+  status: AnimeStatus
   year?: number
   max_episodes?: number
   genre?: string
-  tags?: string[]
   description?: string
   cover_image?: string
-}
-
-export interface AdminAnimeCreateDraftAssetSuggestions {
-  cover?: string
-  logo?: string
-  banner?: string
-  background_video?: string
-  backgrounds?: string[]
+  source?: string
+  folder_name?: string
+  alt_titles?: AdminAnimeAltTitle[]
+  tags?: string[]
+  relations?: AdminAnimeRelation[]
+  asset_suggestions?: AdminAnimeCreateDraftAssetSuggestions
 }
 
 export interface AdminAnimePatchRequest {
@@ -76,6 +87,7 @@ export interface AdminAnimePatchRequest {
   year?: number | null
   max_episodes?: number | null
   genre?: string | null
+  tags?: string[] | null
   description?: string | null
   cover_image?: string | null
 }
@@ -183,6 +195,17 @@ export interface GenreToken {
 
 export interface AdminGenreTokensResponse {
   data: GenreToken[]
+}
+
+// TagToken is a normalized tag value with its usage count across all anime.
+// Mirrors GenreToken so frontend state management stays parallel.
+export interface TagToken {
+  name: string
+  count: number
+}
+
+export interface AdminTagTokensResponse {
+  data: TagToken[]
 }
 
 export interface AdminAnimeJellyfinSyncResult {

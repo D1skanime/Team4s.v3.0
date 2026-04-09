@@ -35,6 +35,14 @@
 - [ ] **ENR-04**: Create-time merge priority is strict `manual > AniSearch > Jellysync`, including fill-only handling for metadata and media.
 - [ ] **ENR-05**: AniSearch relation import writes only locally resolvable approved relations, skips unresolved relations, and leaves the draft usable when enrichment fails.
 
+### Create Tags And Metadata Refactor
+
+- [ ] **TAG-01**: Normalized `tags` and `anime_tags` tables exist and anime tag links are created, updated, and deleted through the same authoritative persistence path as genres.
+- [ ] **TAG-02**: Admin can edit tags on `/admin/anime/create` through a dedicated visible metadata card that supports manual free-text entry and suggestion-based filling from a live token list.
+- [ ] **TAG-03**: Provider-supplied tags (Jellyfin or AniSearch) hydrate into the same shared token state used for manual tags on the create page so imported and manual additions converge in one UI.
+- [ ] **TAG-04**: The create-page metadata implementation is refactored so no single page-level file exceeds 700 lines after the tags work is added.
+- [ ] **TAG-05**: New or substantially touched create metadata sections and helper functions include short purpose comments explaining what a block does and when a helper should be used.
+
 ## v2 Requirements
 
 ### Asset Operations
@@ -75,12 +83,17 @@
 | ENR-03 | Phase 9 | Pending |
 | ENR-04 | Phase 9 | Pending |
 | ENR-05 | Phase 9 | Pending |
+| TAG-01 | Phase 10 | Pending |
+| TAG-02 | Phase 10 | Pending |
+| TAG-03 | Phase 10 | Pending |
+| TAG-04 | Phase 10 | Pending |
+| TAG-05 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 18 total
-- Mapped to phases: 18
+- v1 requirements: 23 total
+- Mapped to phases: 23
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-02*
-*Last updated: 2026-04-05 after Phase 09 create-time enrichment planning*
+*Last updated: 2026-04-08 after Phase 10 create-tags-and-metadata-card-refactor planning*

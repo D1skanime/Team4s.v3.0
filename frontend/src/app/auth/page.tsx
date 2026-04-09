@@ -67,7 +67,7 @@ export default function AuthPage() {
       setSuccessMessage(null)
 
       const payload = devFallbackAllowed ? { issue_key: issueKey.trim() || undefined } : {}
-      const response = await issueAuthToken(payload)
+      const response = await issueAuthToken(payload, devFallbackAllowed ? null : undefined)
       persistAuthSession(response.data)
       updateRuntimeState()
       setSuccessMessage('Token erfolgreich aus vertrauenswuerdiger Quelle erstellt und lokal gespeichert.')

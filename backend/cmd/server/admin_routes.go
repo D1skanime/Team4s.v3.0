@@ -43,6 +43,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/episode-versions/:versionId/folder-scan", auth, deps.adminContentHandler.ScanEpisodeVersionFolder)
 	v1.POST("/admin/episodes", auth, deps.adminContentHandler.CreateEpisode)
 	v1.GET("/admin/genres", auth, deps.adminContentHandler.ListGenreTokens)
+	v1.GET("/admin/tags", auth, deps.adminContentHandler.ListTagTokens)
 	v1.PATCH("/admin/episodes/:id", auth, deps.adminContentHandler.UpdateEpisode)
 	v1.DELETE("/admin/episodes/:id", auth, deps.adminContentHandler.DeleteEpisode)
 	v1.POST("/admin/fansubs/:id/media", auth, deps.fansubHandler.UploadFansubMedia)

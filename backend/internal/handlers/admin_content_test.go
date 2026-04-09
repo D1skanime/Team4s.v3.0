@@ -7,6 +7,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -69,6 +72,25 @@ func TestValidateAdminAnimeCreateRequest_PreservesCoverImageOnSuccess(t *testing
 	}
 	if input.CoverImage == nil || *input.CoverImage != "cover_123.webp" {
 		t.Fatalf("expected cover image to be preserved, got %+v", input.CoverImage)
+	}
+}
+
+func TestValidateAdminAnimeCreateRequest_PreservesTagsForAuthoritativePersistence(t *testing.T) {
+	input, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
+		Title:       "Manual Draft",
+		Type:        "tv",
+		ContentType: "anime",
+		Status:      "ongoing",
+		Tags:        []string{" Mecha ", "Classic", "mecha"},
+	})
+	if message != "" {
+		t.Fatalf("expected no validation error, got %q", message)
+	}
+	if len(input.Tags) != 3 {
+		t.Fatalf("expected create validation to preserve raw tags for repository normalization, got %+v", input.Tags)
+	}
+	if input.Tags[0] != " Mecha " || input.Tags[1] != "Classic" || input.Tags[2] != "mecha" {
+		t.Fatalf("unexpected tag passthrough: %+v", input.Tags)
 	}
 }
 
@@ -1249,6 +1271,7 @@ func TestHasAnyAdminAnimePatchField(t *testing.T) {
 		{"genre set", models.AdminAnimePatchInput{Genre: models.OptionalString{Set: true}}, true},
 		{"description set", models.AdminAnimePatchInput{Description: models.OptionalString{Set: true}}, true},
 		{"cover_image set", models.AdminAnimePatchInput{CoverImage: models.OptionalString{Set: true}}, true},
+		{"tags set", models.AdminAnimePatchInput{Tags: models.OptionalStringSlice{Set: true}}, true},
 	}
 
 	for _, tt := range tests {
@@ -1259,4 +1282,110 @@ func TestHasAnyAdminAnimePatchField(t *testing.T) {
 			}
 		})
 	}
+}
+
+// ---------------------------------------------------------------------------
+// ListTagTokens handler tests — Task 1 TDD coverage for Plan 10-02.
+// ---------------------------------------------------------------------------
+
+// TestListTagTokens_RejectsUnauthenticatedRequest verifies that the handler
+// enforces admin authentication before querying the tag token store.
+func TestListTagTokens_RejectsUnauthenticatedRequest(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/admin/tags", nil)
+
+	handler := &AdminContentHandler{}
+	handler.ListTagTokens(c)
+
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401 for unauthenticated request, got %d", recorder.Code)
+	}
+}
+
+// TestListTagTokens_RejectsOversizedQueryParam verifies that query strings
+// exceeding the 100-character limit result in a 400 response.
+func TestListTagTokens_RejectsOversizedQueryParam(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+
+	longQuery := strings.Repeat("a", 101)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/tags?query="+url.QueryEscape(longQuery), nil)
+	c.Request = req
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, DisplayName: "Admin"})
+
+	handler := &AdminContentHandler{
+		authzRepo:     stubAdminRoleChecker{allowed: true},
+		adminRoleName: "admin",
+	}
+	handler.ListTagTokens(c)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for oversized query, got %d", recorder.Code)
+	}
+}
+
+// TestListTagTokens_RejectsInvalidLimitParam verifies that a non-integer or
+// zero limit value results in a 400 response.
+func TestListTagTokens_RejectsInvalidLimitParam(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/admin/tags?limit=abc", nil)
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, DisplayName: "Admin"})
+
+	handler := &AdminContentHandler{
+		authzRepo:     stubAdminRoleChecker{allowed: true},
+		adminRoleName: "admin",
+	}
+	handler.ListTagTokens(c)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for invalid limit, got %d", recorder.Code)
+	}
+}
+
+// TestListTagTokens_RouteDoesNotReuseGenreEndpoint verifies at the source
+// level that the tag handler file is distinct from the genre handler and that
+// the tag token response uses "data" (not "genre_tokens" or a genre alias).
+func TestListTagTokens_RouteDoesNotReuseGenreEndpoint(t *testing.T) {
+	tagHandlerPath := "admin_content_tags.go"
+	genreHandlerPath := "admin_content_genres.go"
+
+	tagContent := readHandlerSource(t, tagHandlerPath)
+	genreContent := readHandlerSource(t, genreHandlerPath)
+
+	// The tag handler must be a separate file.
+	if tagContent == genreContent {
+		t.Fatalf("expected tag handler to be a separate file from genre handler")
+	}
+
+	// The tag handler must reference the tag repo method, not the genre repo method.
+	if !strings.Contains(tagContent, "ListTagTokens") {
+		t.Fatalf("expected tag handler to call ListTagTokens, got:\n%s", tagContent)
+	}
+	if strings.Contains(tagContent, "ListGenreTokens") {
+		t.Fatalf("expected tag handler NOT to delegate to ListGenreTokens, got:\n%s", tagContent)
+	}
+}
+
+func readHandlerSource(t *testing.T, name string) string {
+	t.Helper()
+
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("resolve test file path")
+	}
+
+	content, err := os.ReadFile(filepath.Join(filepath.Dir(file), name))
+	if err != nil {
+		t.Fatalf("read handler source %s: %v", name, err)
+	}
+
+	return string(content)
 }

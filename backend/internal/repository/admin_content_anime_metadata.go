@@ -23,6 +23,8 @@ type authoritativeAnimeMetadataWrite struct {
 	TitleSlots []authoritativeAnimeTitleSlotWrite
 	GenresSet  bool
 	Genres     []string
+	TagsSet    bool
+	Tags       []string
 }
 
 func (m authoritativeAnimeMetadataWrite) normalizedTitleRecords() []normalizedAnimeTitleRecord {
@@ -65,6 +67,8 @@ func buildAuthoritativeAnimeMetadataCreate(input models.AdminAnimeCreateInput) a
 		},
 		GenresSet: true,
 		Genres:    normalizeGenreList(input.Genre),
+		TagsSet:   true,
+		Tags:      normalizeTagList(input.Tags),
 	}
 }
 
@@ -100,6 +104,10 @@ func buildAuthoritativeAnimeMetadataPatch(input models.AdminAnimePatchInput) aut
 	if input.Genre.Set {
 		write.GenresSet = true
 		write.Genres = normalizeGenreList(input.Genre.Value)
+	}
+	if input.Tags.Set {
+		write.TagsSet = true
+		write.Tags = normalizeTagList(input.Tags.Value)
 	}
 
 	return write
@@ -147,6 +155,39 @@ func normalizeGenreList(raw *string) []string {
 	sort.Strings(genres)
 
 	return genres
+}
+
+// normalizeTagList trims whitespace, collapses internal spacing, dedupes
+// case-insensitively (first-seen casing wins), and sorts the final slice so
+// stored tag names are canonical and deterministic. Returns nil for empty input.
+func normalizeTagList(raw []string) []string {
+	if len(raw) == 0 {
+		return nil
+	}
+
+	seen := make(map[string]string, len(raw))
+	for _, part := range raw {
+		trimmed := strings.Join(strings.Fields(part), " ")
+		if trimmed == "" {
+			continue
+		}
+		key := strings.ToLower(trimmed)
+		if _, exists := seen[key]; !exists {
+			seen[key] = trimmed
+		}
+	}
+
+	if len(seen) == 0 {
+		return nil
+	}
+
+	tags := make([]string, 0, len(seen))
+	for _, value := range seen {
+		tags = append(tags, value)
+	}
+	sort.Strings(tags)
+
+	return tags
 }
 
 func applyAuthoritativeAnimeMetadataWrite(

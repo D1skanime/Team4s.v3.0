@@ -50,6 +50,12 @@ func syncAuthoritativeAnimeMetadata(
 		}
 	}
 
+	if write.TagsSet {
+		if err := replaceAuthoritativeAnimeTags(ctx, tx, animeID, write.Tags); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -156,6 +162,51 @@ func replaceAuthoritativeAnimeGenres(
 	return nil
 }
 
+// replaceAuthoritativeAnimeTags clears all existing anime_tags links for the
+// given anime and re-inserts them from the normalized tag slice. This mirrors
+// replaceAuthoritativeAnimeGenres so both tag and genre writes stay consistent.
+func replaceAuthoritativeAnimeTags(
+	ctx context.Context,
+	tx pgx.Tx,
+	animeID int64,
+	tags []string,
+) error {
+	if _, err := tx.Exec(ctx, `DELETE FROM anime_tags WHERE anime_id = $1`, animeID); err != nil {
+		return fmt.Errorf("clear authoritative anime tags anime=%d: %w", animeID, err)
+	}
+
+	for _, tag := range tags {
+		if _, err := tx.Exec(
+			ctx,
+			`
+			INSERT INTO tags (name)
+			VALUES ($1)
+			ON CONFLICT (name) DO NOTHING
+			`,
+			tag,
+		); err != nil {
+			return fmt.Errorf("ensure authoritative tag %q: %w", tag, err)
+		}
+
+		if _, err := tx.Exec(
+			ctx,
+			`
+			INSERT INTO anime_tags (anime_id, tag_id)
+			SELECT $1, t.id
+			FROM tags t
+			WHERE t.name = $2
+			ON CONFLICT (anime_id, tag_id) DO NOTHING
+			`,
+			animeID,
+			tag,
+		); err != nil {
+			return fmt.Errorf("attach authoritative tag anime=%d tag=%q: %w", animeID, tag, err)
+		}
+	}
+
+	return nil
+}
+
 func buildAuthoritativeGenreTokensQuery() string {
 	return `
 		SELECT g.name, COUNT(*) AS usage_count
@@ -225,4 +276,83 @@ func (r *AdminContentRepository) ListGenreTokens(
 	}
 
 	return filterGenreTokens(tokens, query, limit), nil
+}
+
+// buildAuthoritativeTagTokensQuery returns a SQL query that aggregates tag
+// usage counts from the anime_tags junction table. Mirrors the genre token
+// query pattern so the two token sources stay structurally consistent.
+func buildAuthoritativeTagTokensQuery() string {
+	return `
+		SELECT t.name, COUNT(*) AS usage_count
+		FROM anime_tags at_
+		JOIN tags t ON t.id = at_.tag_id
+		GROUP BY t.name
+	`
+}
+
+// filterTagTokens applies substring filtering, sort, and limit to a raw tag
+// token slice. Reuses the same ranking logic as genre tokens.
+func filterTagTokens(tokens []models.AdminTagToken, query string, limit int) []models.AdminTagToken {
+	filtered := make([]models.AdminTagToken, 0, len(tokens))
+	q := strings.ToLower(strings.TrimSpace(query))
+	for _, token := range tokens {
+		if q != "" && !strings.Contains(strings.ToLower(token.Name), q) {
+			continue
+		}
+		filtered = append(filtered, token)
+	}
+
+	sort.Slice(filtered, func(i, j int) bool {
+		leftName := strings.ToLower(filtered[i].Name)
+		rightName := strings.ToLower(filtered[j].Name)
+
+		if q != "" {
+			leftPrefix := strings.HasPrefix(leftName, q)
+			rightPrefix := strings.HasPrefix(rightName, q)
+			if leftPrefix != rightPrefix {
+				return leftPrefix
+			}
+		}
+
+		if leftName != rightName {
+			return leftName < rightName
+		}
+
+		return filtered[i].Count > filtered[j].Count
+	})
+
+	if limit > 0 && len(filtered) > limit {
+		filtered = filtered[:limit]
+	}
+
+	return filtered
+}
+
+// ListTagTokens returns normalized tag tokens sorted by usage count desc with
+// optional substring filtering. Mirrors ListGenreTokens so the two endpoints
+// stay parallel in behavior.
+func (r *AdminContentRepository) ListTagTokens(
+	ctx context.Context,
+	query string,
+	limit int,
+) ([]models.AdminTagToken, error) {
+	rows, err := r.db.Query(ctx, buildAuthoritativeTagTokensQuery())
+	if err != nil {
+		return nil, fmt.Errorf("query authoritative tags: %w", err)
+	}
+	defer rows.Close()
+
+	tokens := make([]models.AdminTagToken, 0)
+	for rows.Next() {
+		var token models.AdminTagToken
+		if err := rows.Scan(&token.Name, &token.Count); err != nil {
+			return nil, fmt.Errorf("scan authoritative tag token: %w", err)
+		}
+		tokens = append(tokens, token)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate authoritative tag tokens: %w", err)
+	}
+
+	return filterTagTokens(tokens, query, limit), nil
 }

@@ -76,6 +76,7 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 		Year:        req.Year,
 		MaxEpisodes: req.MaxEpisodes,
 		Genre:       normalizeNullableString(req.Genre),
+		Tags:        req.Tags,
 		Description: normalizeNullableString(req.Description),
 		CoverImage:  coverImage,
 		Source:      source,
@@ -164,6 +165,7 @@ func hasAnyAdminAnimePatchField(req models.AdminAnimePatchInput) bool {
 		req.Year.Set ||
 		req.MaxEpisodes.Set ||
 		req.Genre.Set ||
+		req.Tags.Set ||
 		req.Description.Set ||
 		req.CoverImage.Set
 }

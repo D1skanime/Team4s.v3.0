@@ -3,11 +3,12 @@
 import type { FormEvent, ReactNode, RefObject } from "react";
 
 import { AnimeStatus, ContentType } from "@/types/anime";
-import { AnimeType, GenreToken } from "@/types/admin";
+import { AnimeType, GenreToken, TagToken } from "@/types/admin";
 
 import styles from "../../../admin.module.css";
 import workspaceStyles from "./ManualCreateWorkspace.module.css";
 import { AnimeCreateGenreField } from "../CreatePage/AnimeCreateGenreField";
+import { AnimeCreateTagField } from "../CreatePage/AnimeCreateTagField";
 import { AnimeEditorShell } from "../shared/AnimeEditorShell";
 import type { AnimeEditorController } from "../../types/admin-anime-editor";
 import { ManualCreateAssetUploadPanel } from "./ManualCreateAssetUploadPanel";
@@ -46,6 +47,13 @@ interface ManualCreateWorkspaceProps {
   loadedTokenCount: number;
   isLoadingGenres: boolean;
   genreError: string | null;
+  tagSuggestions: TagToken[];
+  tagSuggestionsTotal: number;
+  loadedTagTokenCount: number;
+  isLoadingTags: boolean;
+  tagError: string | null;
+  tagSuggestionCanLoadMore: boolean;
+  tagSuggestionCanResetLimit: boolean;
   isSubmitting: boolean;
   isUploadingCover: boolean;
   canLoadMore: boolean;
@@ -54,7 +62,6 @@ interface ManualCreateWorkspaceProps {
   titleActions?: ReactNode;
   titleHint?: ReactNode;
   typeHint?: ReactNode;
-  sourcePanel?: ReactNode;
   draftAssets?: ReactNode;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onTitleChange: (value: string) => void;
@@ -73,6 +80,12 @@ interface ManualCreateWorkspaceProps {
   onAddGenreSuggestion: (name: string) => void;
   onIncreaseGenreLimit: () => void;
   onResetGenreLimit: () => void;
+  onDraftTagChange: (value: string) => void;
+  onAddDraftTag: () => void;
+  onRemoveTagToken: (name: string) => void;
+  onAddTagSuggestion: (name: string) => void;
+  onIncreaseTagLimit: () => void;
+  onResetTagLimit: () => void;
   onCoverFileChange: React.ChangeEventHandler<HTMLInputElement>;
   onSingleAssetFileChange: (
     kind: "banner" | "logo" | "background_video",
@@ -84,9 +97,6 @@ interface ManualCreateWorkspaceProps {
   ) => void;
   onRemoveSingleAsset: (kind: "banner" | "logo" | "background_video") => void;
   onRemoveBackground: (index: number) => void;
-  onDraftTagChange: (value: string) => void;
-  onAddDraftTag: () => void;
-  onRemoveTagToken: (name: string) => void;
 }
 
 const ANIME_TYPES: AnimeType[] = [
@@ -109,6 +119,9 @@ const ANIME_STATUSES: AnimeStatus[] = [
 export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
   const isTitleMissing = props.missingFields.includes("Titel");
   const isCoverMissing = props.missingFields.includes("Cover");
+  // Derived: whether the tag suggestion controls can adjust pagination
+  const tagCanLoadMore = props.tagSuggestionCanLoadMore;
+  const tagCanResetLimit = props.tagSuggestionCanResetLimit;
 
   return (
     <AnimeEditorShell editor={props.editor}>
@@ -287,15 +300,17 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
               </div>
             </section>
 
+            {/* Metadata section: genre card, tags card, and description card
+                as sibling surfaces so each field stays independently editable. */}
             <section className={workspaceStyles.sectionCard}>
               <div className={workspaceStyles.sectionHeader}>
                 <p className={workspaceStyles.sectionEyebrow}>Metadaten</p>
                 <h2 className={workspaceStyles.sectionTitle}>
-                  Genre und Beschreibung
+                  Genre, Tags und Beschreibung
                 </h2>
                 <p className={workspaceStyles.sectionText}>
-                  Nutze nur Metadaten, die fuer Suche oder Darstellung wirklich
-                  helfen.
+                  Genres ordnen den Titel grob ein. Tags helfen bei Suche,
+                  Themen und spaeterer Pflege.
                 </p>
               </div>
 
@@ -319,49 +334,24 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
                   onResetLimit={props.onResetGenreLimit}
                 />
 
-                <div className={styles.field}>
-                  <label htmlFor="create-tag-draft">Tags</label>
-                  <div className={styles.tokenInputRow}>
-                    <input
-                      id="create-tag-draft"
-                      value={props.tagDraft}
-                      onChange={(event) =>
-                        props.onDraftTagChange(event.target.value)
-                      }
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          event.preventDefault();
-                          props.onAddDraftTag();
-                        }
-                      }}
-                      disabled={props.isSubmitting}
-                      placeholder="Tag hinzufügen"
-                    />
-                    <button
-                      type="button"
-                      onClick={props.onAddDraftTag}
-                      disabled={props.isSubmitting || !props.tagDraft.trim()}
-                    >
-                      +
-                    </button>
-                  </div>
-                  {props.tagTokens.length > 0 && (
-                    <div className={styles.tokenList}>
-                      {props.tagTokens.map((tag) => (
-                        <span key={tag} className={styles.token}>
-                          {tag}
-                          <button
-                            type="button"
-                            onClick={() => props.onRemoveTagToken(tag)}
-                            disabled={props.isSubmitting}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <AnimeCreateTagField
+                  draft={props.tagDraft}
+                  selectedTokens={props.tagTokens}
+                  suggestions={props.tagSuggestions}
+                  suggestionsTotal={props.tagSuggestionsTotal}
+                  loadedTokenCount={props.loadedTagTokenCount}
+                  isLoading={props.isLoadingTags}
+                  error={props.tagError}
+                  isSubmitting={props.isSubmitting}
+                  canLoadMore={tagCanLoadMore}
+                  canResetLimit={tagCanResetLimit}
+                  onDraftChange={props.onDraftTagChange}
+                  onAddDraft={props.onAddDraftTag}
+                  onRemoveToken={props.onRemoveTagToken}
+                  onAddSuggestion={props.onAddTagSuggestion}
+                  onIncreaseLimit={props.onIncreaseTagLimit}
+                  onResetLimit={props.onResetTagLimit}
+                />
 
                 <div
                   className={`${styles.field} ${workspaceStyles.descriptionField}`}
@@ -408,14 +398,6 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
             />
           </div>
         </aside>
-
-        {props.sourcePanel ? (
-          <section
-            className={`${workspaceStyles.sectionCard} ${workspaceStyles.fullWidthPanel}`}
-          >
-            {props.sourcePanel}
-          </section>
-        ) : null}
 
         {props.draftAssets ? (
           <section

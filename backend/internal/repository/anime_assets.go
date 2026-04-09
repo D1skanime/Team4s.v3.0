@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -753,7 +754,13 @@ func (r *AnimeAssetRepository) AssignManualLogo(ctx context.Context, animeID int
 		return err
 	}
 	if !useV2Schema {
-		return ErrNotFound
+		hasAnimeMedia, err := r.hasAnimeMediaTable(ctx)
+		if err != nil {
+			return err
+		}
+		if !hasAnimeMedia {
+			return ErrNotFound
+		}
 	}
 	return r.assignManualSingularAssetV2(ctx, animeID, mediaID, "logo")
 }
@@ -764,7 +771,13 @@ func (r *AnimeAssetRepository) ClearLogo(ctx context.Context, animeID int64) err
 		return err
 	}
 	if !useV2Schema {
-		return ErrNotFound
+		hasAnimeMedia, err := r.hasAnimeMediaTable(ctx)
+		if err != nil {
+			return err
+		}
+		if !hasAnimeMedia {
+			return ErrNotFound
+		}
 	}
 	return r.clearSingularAssetV2(ctx, animeID, "logo")
 }
@@ -775,7 +788,13 @@ func (r *AnimeAssetRepository) AssignManualBackgroundVideo(ctx context.Context, 
 		return err
 	}
 	if !useV2Schema {
-		return ErrNotFound
+		hasAnimeMedia, err := r.hasAnimeMediaTable(ctx)
+		if err != nil {
+			return err
+		}
+		if !hasAnimeMedia {
+			return ErrNotFound
+		}
 	}
 	return r.assignManualSingularAssetV2(ctx, animeID, mediaID, "background_video")
 }
@@ -786,7 +805,13 @@ func (r *AnimeAssetRepository) ClearBackgroundVideo(ctx context.Context, animeID
 		return err
 	}
 	if !useV2Schema {
-		return ErrNotFound
+		hasAnimeMedia, err := r.hasAnimeMediaTable(ctx)
+		if err != nil {
+			return err
+		}
+		if !hasAnimeMedia {
+			return ErrNotFound
+		}
 	}
 	return r.clearSingularAssetV2(ctx, animeID, "background_video")
 }
@@ -1462,15 +1487,51 @@ func loadAnimeMediaTypeID(ctx context.Context, tx pgx.Tx, mediaType string) (int
 }
 
 func (r *AnimeAssetRepository) ensureAnimeMediaAsset(ctx context.Context, animeID int64, mediaID string) error {
-	var id string
-	err := r.db.QueryRow(ctx, `
-		SELECT id
-		FROM media_assets
-		WHERE id = $1
-		  AND entity_type = 'anime'
-		  AND entity_id = $2
-		  AND format = 'image'
-	`, mediaID, animeID).Scan(&id)
+	var hasLegacyUploadColumns bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1
+			FROM information_schema.columns
+			WHERE table_schema = current_schema()
+			  AND table_name = 'media_assets'
+			  AND column_name = 'entity_type'
+		)
+	`).Scan(&hasLegacyUploadColumns); err != nil {
+		return fmt.Errorf("detect anime media asset schema: %w", err)
+	}
+
+	if hasLegacyUploadColumns {
+		var id string
+		err := r.db.QueryRow(ctx, `
+			SELECT id
+			FROM media_assets
+			WHERE id = $1
+			  AND entity_type = 'anime'
+			  AND entity_id = $2
+			  AND format = 'image'
+		`, mediaID, animeID).Scan(&id)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return fmt.Errorf("load anime media asset %q: %w", mediaID, err)
+		}
+		return nil
+	}
+
+	parsedMediaID, err := strconv.ParseInt(strings.TrimSpace(mediaID), 10, 64)
+	if err != nil {
+		return fmt.Errorf("load anime media asset %q: invalid v2 media id: %w", mediaID, err)
+	}
+
+	var id int64
+	err = r.db.QueryRow(ctx, `
+		SELECT am.media_id
+		FROM anime_media am
+		WHERE am.media_id = $1
+		  AND am.anime_id = $2
+		LIMIT 1
+	`, parsedMediaID, animeID).Scan(&id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return ErrNotFound
 	}
@@ -1545,18 +1606,10 @@ func normalizeNullableTrimmedString(value *string) *string {
 }
 
 func (r *AnimeAssetRepository) hasV2AssetSchema(ctx context.Context) (bool, error) {
-	var hasAnimeMedia bool
-	if err := r.db.QueryRow(ctx, `
-		SELECT EXISTS(
-			SELECT 1
-			FROM information_schema.tables
-			WHERE table_schema = current_schema()
-			  AND table_name = 'anime_media'
-		)
-	`).Scan(&hasAnimeMedia); err != nil {
+	hasAnimeMedia, err := r.hasAnimeMediaTable(ctx)
+	if err != nil {
 		return false, fmt.Errorf("detect v2 anime asset schema: %w", err)
 	}
-
 	if !hasAnimeMedia {
 		return false, nil
 	}
@@ -1575,6 +1628,22 @@ func (r *AnimeAssetRepository) hasV2AssetSchema(ctx context.Context) (bool, erro
 	}
 
 	return !hasCoverSlot, nil
+}
+
+func (r *AnimeAssetRepository) hasAnimeMediaTable(ctx context.Context) (bool, error) {
+	var hasAnimeMedia bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1
+			FROM information_schema.tables
+			WHERE table_schema = current_schema()
+			  AND table_name = 'anime_media'
+		)
+	`).Scan(&hasAnimeMedia); err != nil {
+		return false, fmt.Errorf("detect anime_media table: %w", err)
+	}
+
+	return hasAnimeMedia, nil
 }
 
 func derefString(value *string) string {

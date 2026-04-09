@@ -29,6 +29,31 @@ export function splitGenreTokens(raw: string): string[] {
 }
 
 /**
+ * Splits a comma-separated tag string into deduplicated normalized tokens.
+ * Mirrors splitGenreTokens but is kept separate so tag and genre normalization
+ * can diverge independently without shared drift.
+ */
+export function splitTagTokens(raw: string): string[] {
+  const trimmed = raw.trim()
+  if (!trimmed) return []
+  const parts = trimmed.includes(',')
+    ? trimmed.split(',').map((part) => normalizeGenreToken(part)).filter(Boolean)
+    : [normalizeGenreToken(trimmed)].filter(Boolean)
+
+  // Deduplicate case-insensitively, first-seen casing wins
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const token of parts) {
+    const key = token.toLowerCase()
+    if (!seen.has(key)) {
+      seen.add(key)
+      result.push(token)
+    }
+  }
+  return result
+}
+
+/**
  * Resolves anime cover image URLs to their canonical format.
  *
  * Supports multiple formats:

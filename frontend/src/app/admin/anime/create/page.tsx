@@ -1,809 +1,78 @@
 "use client";
 
 import Link from "next/link";
-import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
-
-import {
-  ApiError,
-  createAdminAnime,
-  getAdminGenreTokens,
-  getRuntimeAuthToken,
-} from "@/lib/api";
-import { createAdminAnimeFromJellyfinDraft } from "@/lib/api/admin-anime-intake";
-import { ContentType, AnimeStatus } from "@/types/anime";
-import {
-  AdminAnimeAssetKind,
-  AdminAnimeCreateRequest,
-  AnimeType,
-  GenreToken,
-} from "@/types/admin";
 
 import styles from "../../admin.module.css";
 import createStyles from "./page.module.css";
-import type { CreateAssetUploadDraftValue } from "./createAssetUploadPlan";
+import { JellyfinDraftAssets } from "../components/ManualCreate/JellyfinDraftAssets";
+import { ManualCreateWorkspace } from "../components/ManualCreate/ManualCreateWorkspace";
+import { CreateJellyfinResultsPanel } from "./CreateJellyfinResultsPanel";
 import {
-  stageManualCreateAsset,
-  uploadCreatedAnimeAssets,
-} from "./createAssetUploadPlan";
+  appendJellyfinLinkageToCreatePayload,
+  buildManualCreateRedirectPath,
+  createManualAnimeAndRedirect,
+  formatCreatePageError,
+  resolveJellyfinPreviewBaseDraft,
+  resolveJellyfinReviewVisibility,
+  resolveSourceActionState,
+} from "./createPageHelpers";
+import { useAdminAnimeCreateController } from "./useAdminAnimeCreateController";
+
+export {
+  appendJellyfinLinkageToCreatePayload,
+  buildManualCreateRedirectPath,
+  createManualAnimeAndRedirect,
+  formatCreatePageError,
+  resolveJellyfinPreviewBaseDraft,
+  resolveJellyfinReviewVisibility,
+  resolveSourceActionState,
+};
+export { buildManualCreateDraftSnapshot } from "../hooks/useManualAnimeDraft";
 export {
   stageManualCreateCover,
   uploadCreatedAnimeCover,
 } from "./createAssetUploadPlan";
-import { JellyfinCandidateReview } from "../components/JellyfinIntake/JellyfinCandidateReview";
-import { JellyfinDraftAssets } from "../components/ManualCreate/JellyfinDraftAssets";
-import { ManualCreateAniSearchPanel } from "../components/ManualCreate/ManualCreateAniSearchPanel";
-import { ManualCreateWorkspace } from "../components/ManualCreate/ManualCreateWorkspace";
-import { useAnimeEditor } from "../hooks/useAnimeEditor";
-import {
-  hydrateManualDraftFromJellyfinPreview,
-  removeJellyfinDraftAsset,
-  resolveManualCreateState,
-  type JellyfinDraftAssetTarget,
-  type ManualAnimeDraftValues,
-} from "../hooks/useManualAnimeDraft";
-import { useJellyfinIntake } from "../hooks/useJellyfinIntake";
-import {
-  normalizeOptionalString,
-  parsePositiveInt,
-  splitGenreTokens,
-} from "../utils/anime-helpers";
-import {
-  formatJellyfinTypeHintConfidence,
-  formatJellyfinTypeHintLabel,
-  formatJellyfinTypeHintReasoning,
-} from "../utils/jellyfin-intake-type-hint";
-import type {
-  AdminAnimeJellyfinIntakePreviewResult,
-  AdminJellyfinIntakeAssetSlots,
-} from "@/types/admin";
 
-export function buildManualCreateRedirectPath(id: number): string {
-  return `/admin/anime?created=${id}#anime-${id}`;
-}
+function CreatePageTypeHint({
+  preview,
+}: {
+  preview: ReturnType<typeof useAdminAnimeCreateController>["jellyfin"]["preview"];
+}) {
+  if (!preview) return null;
 
-export function appendJellyfinLinkageToCreatePayload(
-  payload: AdminAnimeCreateRequest,
-  preview: AdminAnimeJellyfinIntakePreviewResult | null,
-): AdminAnimeCreateRequest {
-  if (!preview) {
-    return payload;
-  }
-
-  const source = `jellyfin:${preview.jellyfin_series_id.trim()}`;
-  const folderName = preview.jellyfin_series_path?.trim();
-
-  return {
-    ...payload,
-    source,
-    folder_name: folderName || undefined,
-  };
-}
-
-export async function createManualAnimeAndRedirect(
-  payload: AdminAnimeCreateRequest,
-  deps: {
-    createAdminAnime: (
-      payload: AdminAnimeCreateRequest,
-      authToken?: string,
-    ) => Promise<{ data: { id: number } }>;
-    setLocationHref: (value: string) => void;
-    authToken?: string;
-  },
-) {
-  const response = deps.authToken
-    ? await deps.createAdminAnime(payload, deps.authToken)
-    : await deps.createAdminAnime(payload);
-  deps.setLocationHref(buildManualCreateRedirectPath(response.data.id));
-  return response;
-}
-
-export function formatCreatePageError(
-  error: unknown,
-  fallback: string,
-): string {
-  if (error instanceof ApiError) {
-    const details = (error.details || "").trim();
-    return details
-      ? `(${error.status}) ${error.message}\n${details}`
-      : `(${error.status}) ${error.message}`;
-  }
-
-  if (error instanceof Error && error.message.trim()) return error.message;
-  return fallback;
-}
-
-const DEFAULT_GENRE_LIMIT = 40;
-
-export function resolveJellyfinReviewVisibility(
-  candidateCount: number,
-  reviewMode: "idle" | "review" | "hydrated",
-) {
-  const hasCandidates = candidateCount > 0;
-
-  return {
-    showCandidateReview: hasCandidates && reviewMode !== "hydrated",
-    showRestartAction: hasCandidates && reviewMode === "hydrated",
-  };
-}
-
-export function resolveSourceActionState(title: string) {
-  const trimmed = title.trim();
-  const meaningful = trimmed.length >= 2 && /[\p{L}\p{N}]/u.test(trimmed);
-  return {
-    canSync: meaningful,
-    helperText: meaningful
-      ? "Jellyfin nutzt den aktuellen Titel als Suchanfrage."
-      : "Gib zuerst einen aussagekraeftigen Anime-Titel ein.",
-  };
-}
-
-export function buildManualCreateDraftSnapshot(
-  values: ManualAnimeDraftValues,
-): ManualAnimeDraftValues {
-  return {
-    ...values,
-    genreTokens: [...values.genreTokens],
-    tagTokens: [...values.tagTokens],
-  };
-}
-
-export function resolveJellyfinPreviewBaseDraft(
-  currentDraft: ManualAnimeDraftValues,
-  existingSnapshot: ManualAnimeDraftValues | null,
-): ManualAnimeDraftValues {
-  return existingSnapshot
-    ? buildManualCreateDraftSnapshot(existingSnapshot)
-    : buildManualCreateDraftSnapshot(currentDraft);
-}
-
-function countIncomingDraftAssets(
-  assetSlots: AdminJellyfinIntakeAssetSlots | null,
-): number {
-  if (!assetSlots) return 0;
-
-  let total = 0;
-  if (assetSlots.cover.present) total += 1;
-  if (assetSlots.logo.present) total += 1;
-  if (assetSlots.banner.present) total += 1;
-  if (assetSlots.background_video.present) total += 1;
-  total += assetSlots.backgrounds.length;
-
-  return total;
-}
-
-type CreateSingleAssetKind = Exclude<AdminAnimeAssetKind, "cover" | "background">;
-
-interface CreateManualStagedAssets {
-  banner: CreateAssetUploadDraftValue | null;
-  logo: CreateAssetUploadDraftValue | null;
-  background: CreateAssetUploadDraftValue[];
-  background_video: CreateAssetUploadDraftValue | null;
-}
-
-function createEmptyManualStagedAssets(): CreateManualStagedAssets {
-  return {
-    banner: null,
-    logo: null,
-    background: [],
-    background_video: null,
-  };
-}
-
-function revokeStagedAssetPreview(asset: CreateAssetUploadDraftValue | null) {
-  if (asset?.previewUrl) {
-    URL.revokeObjectURL(asset.previewUrl);
-  }
-}
-
-function revokeStagedAssetPreviews(assets: CreateManualStagedAssets) {
-  revokeStagedAssetPreview(assets.banner);
-  revokeStagedAssetPreview(assets.logo);
-  revokeStagedAssetPreview(assets.background_video);
-  for (const entry of assets.background) {
-    revokeStagedAssetPreview(entry);
-  }
+  return (
+    <div className={styles.details}>
+      <strong>{preview.type_hint.suggested_type ?? "Typ-Hinweis"}</strong>
+      <p className={styles.hint}>Vertrauen: {preview.type_hint.confidence}</p>
+      <p className={styles.hint}>{preview.type_hint.reasons.join(" ")}</p>
+    </div>
+  );
 }
 
 export default function AdminAnimeCreatePage() {
-  const [authToken, setAuthToken] = useState("");
-  const [isSubmittingCreate, setIsSubmittingCreate] = useState(false);
-  const [isUploadingCover, setIsUploadingCover] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [lastRequest, setLastRequest] = useState<string | null>(null);
-  const [lastResponse, setLastResponse] = useState<string | null>(null);
-  const [genreTokens, setGenreTokens] = useState<GenreToken[]>([]);
-  const [isLoadingGenreTokens, setIsLoadingGenreTokens] = useState(false);
-  const [genreTokensError, setGenreTokensError] = useState<string | null>(null);
-  const [genreSuggestionLimit, setGenreSuggestionLimit] =
-    useState(DEFAULT_GENRE_LIMIT);
-  const [showValidationSummary, setShowValidationSummary] = useState(false);
-
-  const [createTitle, setCreateTitle] = useState("");
-  const [createType, setCreateType] = useState<AnimeType>("tv");
-  const [createContentType, setCreateContentType] =
-    useState<ContentType>("anime");
-  const [createStatus, setCreateStatus] = useState<AnimeStatus>("ongoing");
-  const [createYear, setCreateYear] = useState("");
-  const [createMaxEpisodes, setCreateMaxEpisodes] = useState("");
-  const [createTitleDE, setCreateTitleDE] = useState("");
-  const [createTitleEN, setCreateTitleEN] = useState("");
-  const [createGenreDraft, setCreateGenreDraft] = useState("");
-  const [createGenreTokens, setCreateGenreTokens] = useState<string[]>([]);
-  const [createTagDraft, setCreateTagDraft] = useState("");
-  const [createTagTokens, setCreateTagTokens] = useState<string[]>([]);
-  const [createDescription, setCreateDescription] = useState("");
-  const [createCoverImage, setCreateCoverImage] = useState("");
-  const [stagedCover, setStagedCover] =
-    useState<CreateAssetUploadDraftValue | null>(null);
-  const [stagedAssets, setStagedAssets] = useState<CreateManualStagedAssets>(
-    createEmptyManualStagedAssets,
-  );
-  const [jellyfinPreview, setJellyfinPreview] =
-    useState<AdminAnimeJellyfinIntakePreviewResult | null>(null);
-  const [jellyfinAssetSlots, setJellyfinAssetSlots] =
-    useState<AdminJellyfinIntakeAssetSlots | null>(null);
-  const [aniSearchID, setAniSearchID] = useState("");
-  const [aniSearchSource, setAniSearchSource] = useState<string | null>(null);
-  const [aniSearchStatusText, setAniSearchStatusText] = useState<string | null>(
-    null,
-  );
-  const [aniSearchRelationSummary, setAniSearchRelationSummary] = useState<
-    string | null
-  >(null);
-  const [isLoadingAniSearch, setIsLoadingAniSearch] = useState(false);
-  const [jellyfinDraftSnapshot, setJellyfinDraftSnapshot] =
-    useState<ManualAnimeDraftValues | null>(null);
-  const coverFileInputRef = useRef<HTMLInputElement | null>(null);
-  const bannerFileInputRef = useRef<HTMLInputElement | null>(null);
-  const logoFileInputRef = useRef<HTMLInputElement | null>(null);
-  const backgroundFileInputRef = useRef<HTMLInputElement | null>(null);
-  const backgroundVideoFileInputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    setAuthToken(getRuntimeAuthToken());
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      revokeStagedAssetPreview(stagedCover);
-      revokeStagedAssetPreviews(stagedAssets);
-    };
-  }, [stagedAssets, stagedCover]);
-
-  const hasAuthToken = authToken.length > 0;
-
-  useEffect(() => {
-    if (!hasAuthToken) return;
-
-    setIsLoadingGenreTokens(true);
-    setGenreTokensError(null);
-    getAdminGenreTokens({ limit: 1000 }, authToken)
-      .then((response) => setGenreTokens(response.data))
-      .catch((error) => {
-        if (error instanceof ApiError)
-          setGenreTokensError(`(${error.status}) ${error.message}`);
-        else
-          setGenreTokensError(
-            "Genre-Vorschlaege konnten nicht geladen werden.",
-          );
-      })
-      .finally(() => setIsLoadingGenreTokens(false));
-  }, [authToken, hasAuthToken]);
-
-  const jellyfinIntake = useJellyfinIntake(authToken);
-
-  useEffect(() => {
-    jellyfinIntake.setQuery(createTitle);
-  }, [createTitle, jellyfinIntake.setQuery]);
-
-  const sourceActionState = useMemo(
-    () => resolveSourceActionState(createTitle),
-    [createTitle],
-  );
-  const canLoadAniSearch = useMemo(
-    () => aniSearchID.trim().length > 0,
-    [aniSearchID],
-  );
-
-  const manualDraftValues = useMemo<ManualAnimeDraftValues>(
-    () => ({
-      title: createTitle,
-      type: createType,
-      contentType: createContentType,
-      status: createStatus,
-      year: createYear,
-      maxEpisodes: createMaxEpisodes,
-      titleDE: createTitleDE,
-      titleEN: createTitleEN,
-      genreTokens: createGenreTokens,
-      tagTokens: createTagTokens,
-      description: createDescription,
-      coverImage: createCoverImage,
-    }),
-    [
-      createContentType,
-      createCoverImage,
-      createDescription,
-      createGenreTokens,
-      createTagTokens,
-      createMaxEpisodes,
-      createStatus,
-      createTitle,
-      createTitleDE,
-      createTitleEN,
-      createType,
-      createYear,
-    ],
-  );
-
-  const manualDraftState = useMemo(
-    () =>
-      resolveManualCreateState({
-        title: createTitle,
-        cover_image: createCoverImage,
-        year: createYear,
-        max_episodes: createMaxEpisodes,
-        title_de: createTitleDE,
-        title_en: createTitleEN,
-        genre: createGenreTokens,
-        description: createDescription,
-      }),
-    [
-      createCoverImage,
-      createDescription,
-      createGenreTokens,
-      createMaxEpisodes,
-      createTitle,
-      createTitleDE,
-      createTitleEN,
-      createYear,
-    ],
-  );
-
-  const missingFields = useMemo(() => {
-    const fields: string[] = [];
-    if (!createTitle.trim()) fields.push("Titel");
-    if (!createCoverImage.trim()) fields.push("Cover");
-    return fields;
-  }, [createCoverImage, createTitle]);
-
-  const selectedDraftAssetCount = useMemo(
-    () => countIncomingDraftAssets(jellyfinAssetSlots),
-    [jellyfinAssetSlots],
-  );
-  const hasSelectedJellyfinPreview = Boolean(jellyfinPreview);
-  const readinessLabel =
-    missingFields.length > 0
-      ? `Fehlt: ${missingFields.join(", ")}`
-      : "Bereit zum Anlegen";
-  const jellyfinReviewVisibility = useMemo(
-    () =>
-      resolveJellyfinReviewVisibility(
-        jellyfinIntake.candidates.length,
-        jellyfinIntake.reviewState.mode,
-      ),
-    [jellyfinIntake.candidates.length, jellyfinIntake.reviewState.mode],
-  );
-  const showJellyfinResults = jellyfinReviewVisibility.showCandidateReview;
-  const showDebugPanel =
-    process.env.NODE_ENV !== "production" && (lastRequest || lastResponse);
-  const editor = useAnimeEditor("create", {
-    isDirty: manualDraftState.key !== "empty",
-    canSubmit: manualDraftState.canSubmit,
-    isSubmitting: isSubmittingCreate,
-    formID: "anime-create-form",
-    submitButtonType: "submit",
-    submitLabel: isSubmittingCreate
-      ? "Anime wird erstellt..."
-      : "Anime erstellen",
-    savedStateTitle: "Noch nicht bereit",
-    savedStateMessage: "Titel und Cover fehlen noch.",
-    dirtyStateTitle:
-      manualDraftState.key === "ready" ? "Bereit zum Anlegen" : "Fehlt noch",
-    dirtyStateMessage:
-      manualDraftState.key === "ready"
-        ? "Titel und Cover sind gesetzt."
-        : "Titel und Cover fehlen noch.",
-  });
-
-  const createGenreValue = useMemo(
-    () => createGenreTokens.join(", "),
-    [createGenreTokens],
-  );
-
-  const genreSuggestions = useMemo(() => {
-    const q = createGenreDraft.trim().toLowerCase();
-    const selected = new Set(
-      createGenreTokens.map((token) => token.toLowerCase()),
-    );
-    const filtered = genreTokens.filter((token) => {
-      if (selected.has(token.name.toLowerCase())) return false;
-      if (!q) return true;
-      return token.name.toLowerCase().includes(q);
-    });
-    const limit = q ? Math.max(80, genreSuggestionLimit) : genreSuggestionLimit;
-    return filtered.slice(0, limit);
-  }, [createGenreDraft, createGenreTokens, genreSuggestionLimit, genreTokens]);
-
-  const genreSuggestionsTotal = useMemo(() => {
-    const q = createGenreDraft.trim().toLowerCase();
-    const selected = new Set(
-      createGenreTokens.map((token) => token.toLowerCase()),
-    );
-    return genreTokens.filter((token) => {
-      if (selected.has(token.name.toLowerCase())) return false;
-      if (!q) return true;
-      return token.name.toLowerCase().includes(q);
-    }).length;
-  }, [createGenreDraft, createGenreTokens, genreTokens]);
-
-  function clearMessages() {
-    setErrorMessage(null);
-    setSuccessMessage(null);
-  }
-
-  function resetStagedCover() {
-    revokeStagedAssetPreview(stagedCover);
-    setStagedCover(null);
-  }
-
-  function resetStagedAssets() {
-    setStagedAssets((current) => {
-      revokeStagedAssetPreviews(current);
-      return createEmptyManualStagedAssets();
-    });
-  }
-
-  function replaceStagedSingleAsset(kind: CreateSingleAssetKind, file: File) {
-    const staged = stageManualCreateAsset(file);
-    setStagedAssets((current) => {
-      const previous = current[kind];
-      revokeStagedAssetPreview(previous);
-      return {
-        ...current,
-        [kind]: staged,
-      };
-    });
-    setShowValidationSummary(false);
-    setSuccessMessage(`${staged.draftValue} fuer ${kind} vorbereitet.`);
-  }
-
-  function addStagedBackground(file: File) {
-    const staged = stageManualCreateAsset(file);
-    setStagedAssets((current) => ({
-      ...current,
-      background: [...current.background, staged],
-    }));
-    setShowValidationSummary(false);
-    setSuccessMessage(`Background vorbereitet: ${staged.draftValue}`);
-  }
-
-  function removeStagedSingleAsset(kind: CreateSingleAssetKind) {
-    setStagedAssets((current) => {
-      revokeStagedAssetPreview(current[kind]);
-      return {
-        ...current,
-        [kind]: null,
-      };
-    });
-  }
-
-  function removeStagedBackground(index: number) {
-    setStagedAssets((current) => {
-      const next = [...current.background];
-      const [removed] = next.splice(index, 1);
-      revokeStagedAssetPreview(removed || null);
-      return {
-        ...current,
-        background: next,
-      };
-    });
-  }
-
-  function applyManualDraftValues(values: ManualAnimeDraftValues) {
-    resetStagedCover();
-    setCreateTitle(values.title);
-    setCreateType(values.type);
-    setCreateContentType(values.contentType);
-    setCreateStatus(values.status);
-    setCreateYear(values.year);
-    setCreateMaxEpisodes(values.maxEpisodes);
-    setCreateTitleDE(values.titleDE);
-    setCreateTitleEN(values.titleEN);
-    setCreateGenreTokens(values.genreTokens);
-    setCreateTagTokens(values.tagTokens);
-    setCreateDescription(values.description);
-    setCreateCoverImage(values.coverImage);
-  }
-
-  function handleAniSearchLoad() {
-    clearMessages();
-    setErrorMessage("AniSearch-Anreicherung kommt in Phase 10.");
-  }
-
-  function addCreateGenreTokens(raw: string) {
-    const tokens = splitGenreTokens(raw);
-    if (tokens.length === 0) return;
-
-    setCreateGenreTokens((current) => {
-      const index = new Set(current.map((token) => token.toLowerCase()));
-      const next = [...current];
-      for (const token of tokens) {
-        const key = token.toLowerCase();
-        if (index.has(key)) continue;
-        index.add(key);
-        next.push(token);
-      }
-      return next;
-    });
-  }
-
-  function addCreateTagTokens(raw: string) {
-    const tokens = splitGenreTokens(raw);
-    if (tokens.length === 0) return;
-
-    setCreateTagTokens((current) => {
-      const index = new Set(current.map((token) => token.toLowerCase()));
-      const next = [...current];
-      for (const token of tokens) {
-        const key = token.toLowerCase();
-        if (index.has(key)) continue;
-        index.add(key);
-        next.push(token);
-      }
-      return next;
-    });
-  }
-
-  async function handleCreateSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    clearMessages();
-    setLastRequest(null);
-    setLastResponse(null);
-    setShowValidationSummary(true);
-
-    if (!hasAuthToken) {
-      setErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
-      );
-      return;
-    }
-
-    if (!manualDraftState.canSubmit) {
-      setErrorMessage("Titel und Cover sind erforderlich");
-      return;
-    }
-
-    const title = createTitle.trim();
-    const payload: AdminAnimeCreateRequest = {
-      title,
-      type: createType,
-      content_type: createContentType,
-      status: createStatus,
-    };
-    const trimmedCoverImage = createCoverImage.trim();
-    if (!stagedCover?.file && trimmedCoverImage)
-      payload.cover_image = trimmedCoverImage;
-
-    if (createYear.trim()) {
-      const year = parsePositiveInt(createYear);
-      if (!year) {
-        setErrorMessage("year muss groesser als 0 sein");
-        return;
-      }
-      payload.year = year;
-    }
-
-    if (createMaxEpisodes.trim()) {
-      const maxEpisodes = parsePositiveInt(createMaxEpisodes);
-      if (!maxEpisodes) {
-        setErrorMessage("max_episodes muss groesser als 0 sein");
-        return;
-      }
-      payload.max_episodes = maxEpisodes;
-    }
-
-    payload.title_de = normalizeOptionalString(createTitleDE);
-    payload.title_en = normalizeOptionalString(createTitleEN);
-    payload.genre = normalizeOptionalString(createGenreValue);
-    if (createTagTokens.length > 0) payload.tags = [...createTagTokens];
-    payload.description = normalizeOptionalString(createDescription);
-
-    try {
-      setIsSubmittingCreate(true);
-      setLastRequest(JSON.stringify(payload, null, 2));
-      const createPayload = aniSearchSource
-        ? { ...payload, source: aniSearchSource }
-        : appendJellyfinLinkageToCreatePayload(payload, jellyfinPreview);
-      const response = await createManualAnimeAndRedirect(createPayload, {
-        createAdminAnime: jellyfinPreview
-          ? createAdminAnimeFromJellyfinDraft
-          : createAdminAnime,
-        authToken,
-        setLocationHref: () => undefined,
-      });
-      await uploadCreatedAnimeAssets(
-        response.data.id,
-        {
-          cover: stagedCover,
-          banner: stagedAssets.banner,
-          logo: stagedAssets.logo,
-          background: stagedAssets.background,
-          background_video: stagedAssets.background_video,
-        },
-        authToken,
-      );
-      setSuccessMessage(
-        `Anime #${response.data.id} wurde erstellt. (Weiterleitung zur Uebersicht...)`,
-      );
-      setLastResponse(JSON.stringify(response, null, 2));
-      resetStagedCover();
-      resetStagedAssets();
-      window.location.href = buildManualCreateRedirectPath(response.data.id);
-    } catch (error) {
-      setErrorMessage(
-        formatCreatePageError(error, "Anime konnte nicht erstellt werden."),
-      );
-    } finally {
-      setIsSubmittingCreate(false);
-    }
-  }
-
-  async function handleCoverUpload(file: File) {
-    clearMessages();
-    setIsUploadingCover(true);
-    try {
-      resetStagedCover();
-      const staged = stageManualCreateAsset(file);
-      setStagedCover(staged);
-      setCreateCoverImage(staged.draftValue);
-      setShowValidationSummary(false);
-      setSuccessMessage(`Cover vorbereitet: ${file.name}`);
-    } catch (error) {
-      setErrorMessage(
-        formatCreatePageError(error, "Cover Upload fehlgeschlagen."),
-      );
-    } finally {
-      setIsUploadingCover(false);
-    }
-  }
-
-  function handleSingleAssetInputChange(
-    kind: CreateSingleAssetKind,
-    event: ChangeEvent<HTMLInputElement>,
-  ) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    clearMessages();
-    replaceStagedSingleAsset(kind, file);
-    event.target.value = "";
-  }
-
-  function handleBackgroundInputChange(
-    event: ChangeEvent<HTMLInputElement>,
-  ) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    clearMessages();
-    addStagedBackground(file);
-    event.target.value = "";
-  }
-
-  function openAssetFileDialog(
-    kind: "cover" | "banner" | "logo" | "background" | "background_video",
-  ) {
-    if (kind === "cover") {
-      coverFileInputRef.current?.click();
-      return;
-    }
-    if (kind === "banner") {
-      bannerFileInputRef.current?.click();
-      return;
-    }
-    if (kind === "logo") {
-      logoFileInputRef.current?.click();
-      return;
-    }
-    if (kind === "background") {
-      backgroundFileInputRef.current?.click();
-      return;
-    }
-    backgroundVideoFileInputRef.current?.click();
-  }
-
-  async function handleJellyfinSearch() {
-    clearMessages();
-    try {
-      await jellyfinIntake.search();
-      if (jellyfinIntake.candidates.length === 0) {
-        setSuccessMessage(
-          "Jellyfin-Suche abgeschlossen. Falls keine Karten erscheinen, pruefe Titel oder Ordnernamen.",
-        );
-      }
-    } catch (error) {
-      setErrorMessage(
-        formatCreatePageError(
-          error,
-          "Jellyfin-Daten konnten nicht geladen werden.",
-        ),
-      );
-    }
-  }
-
-  async function handleJellyfinCandidateReview(candidateID: string) {
-    clearMessages();
-    jellyfinIntake.reviewCandidate(candidateID);
-
-    try {
-      const preview = await jellyfinIntake.loadPreview(candidateID);
-      if (!preview) {
-        setErrorMessage("Jellyfin-Vorschau konnte nicht geladen werden.");
-        return;
-      }
-
-      const baseDraft = resolveJellyfinPreviewBaseDraft(
-        manualDraftValues,
-        jellyfinDraftSnapshot,
-      );
-      setJellyfinDraftSnapshot(baseDraft);
-      const hydrated = hydrateManualDraftFromJellyfinPreview(
-        manualDraftValues,
-        preview,
-      );
-      applyManualDraftValues(hydrated.draft);
-      setJellyfinPreview(preview);
-      setJellyfinAssetSlots(hydrated.assetSlots);
-      setShowValidationSummary(false);
-      setSuccessMessage(
-        `Jellyfin-Vorschau fuer ${preview.jellyfin_series_name} geladen.`,
-      );
-    } catch (error) {
-      setErrorMessage(
-        formatCreatePageError(
-          error,
-          "Jellyfin-Vorschau konnte nicht geladen werden.",
-        ),
-      );
-    }
-  }
-
-  function handleJellyfinCandidateSelect(candidateID: string) {
-    clearMessages();
-    jellyfinIntake.reviewCandidate(candidateID);
-    setSuccessMessage(
-      "Treffer ausgewaehlt. Lade jetzt die Jellyfin-Vorschau, wenn dieser Ordner wirklich passt.",
-    );
-  }
-
-  function handleRemoveJellyfinAsset(target: JellyfinDraftAssetTarget) {
-    if (!jellyfinAssetSlots) return;
-
-    const next = removeJellyfinDraftAsset(
-      manualDraftValues,
-      jellyfinAssetSlots,
-      target,
-    );
-    applyManualDraftValues(next.draft);
-    setJellyfinAssetSlots(next.assetSlots);
-    setShowValidationSummary(false);
-  }
-
-  function handleDiscardJellyfinPreview() {
-    if (jellyfinDraftSnapshot) {
-      applyManualDraftValues(jellyfinDraftSnapshot);
-    }
-    setJellyfinPreview(null);
-    setJellyfinAssetSlots(null);
-    setJellyfinDraftSnapshot(null);
-    jellyfinIntake.resetReview();
-    clearMessages();
-    setSuccessMessage(
-      "Jellyfin-Vorschau verworfen. Der Entwurf bleibt ungespeichert.",
-    );
-  }
+  const controller = useAdminAnimeCreateController();
+  const {
+    auth,
+    debug,
+    editor,
+    errorMessage,
+    fileInputRefs,
+    handlers,
+    jellyfin,
+    manualDraft,
+    status,
+  } = controller;
+  const authStatusReady = auth.isHydrated;
+  const authStatusClassName = authStatusReady
+    ? auth.hasAuthToken
+      ? createStyles.statusPillMuted
+      : createStyles.statusPillWarning
+    : createStyles.statusPillMuted;
+  const authStatusLabel = authStatusReady
+    ? auth.hasAuthToken
+      ? "Auth bereit"
+      : "Auth fehlt"
+    : "Auth wird geladen";
 
   return (
     <main className={styles.page}>
@@ -817,165 +86,131 @@ export default function AdminAnimeCreatePage() {
           <div className={createStyles.pageTitleBlock}>
             <h1 className={createStyles.pageTitle}>Anime erstellen</h1>
             <p className={createStyles.pageIntro}>
-              Pflicht sind nur Titel und Cover. Jellyfin bleibt eine optionale
-              Hilfe.
+              Pflicht sind nur Titel und Cover. Jellyfin bleibt eine optionale Hilfe.
             </p>
           </div>
           <div className={createStyles.statusBar}>
             <span
               className={`${createStyles.statusPill} ${
-                missingFields.length === 0
+                manualDraft.missingFields.length === 0
                   ? createStyles.statusPillReady
                   : createStyles.statusPillWarning
               }`}
             >
-              {readinessLabel}
+              {manualDraft.readinessLabel}
             </span>
             <span className={createStyles.statusPill}>
-              {hasSelectedJellyfinPreview
+              {jellyfin.hasSelectedPreview
                 ? "Jellyfin verknuepft"
-                : showJellyfinResults
-                  ? `${jellyfinIntake.candidates.length} Treffer`
+                : jellyfin.showResults
+                  ? `${jellyfin.intake.candidates.length} Treffer`
                   : "Manuell"}
             </span>
             <span
-              className={`${createStyles.statusPill} ${hasAuthToken ? createStyles.statusPillMuted : createStyles.statusPillWarning}`}
+              className={`${createStyles.statusPill} ${authStatusClassName}`}
             >
-              {hasAuthToken ? "Auth bereit" : "Auth fehlt"}
+              {authStatusLabel}
             </span>
-            {selectedDraftAssetCount > 0 ? (
+            {jellyfin.selectedDraftAssetCount > 0 ? (
               <span className={createStyles.statusPill}>
-                {selectedDraftAssetCount} Assets
+                {jellyfin.selectedDraftAssetCount} Assets
               </span>
             ) : null}
           </div>
         </header>
 
-        {errorMessage ? (
-          <div className={styles.errorBox}>{errorMessage}</div>
-        ) : null}
-        {successMessage ? (
-          <div className={styles.successBox}>{successMessage}</div>
+        {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
+        {status.successMessage ? (
+          <div className={styles.successBox}>{status.successMessage}</div>
         ) : null}
 
         <section className={createStyles.workspaceSection}>
           <ManualCreateWorkspace
             editor={editor}
-            title={createTitle}
-            type={createType}
-            contentType={createContentType}
-            status={createStatus}
-            year={createYear}
-            maxEpisodes={createMaxEpisodes}
-            titleDE={createTitleDE}
-            titleEN={createTitleEN}
-            genreDraft={createGenreDraft}
-            genreTokens={createGenreTokens}
-            tagDraft={createTagDraft}
-            tagTokens={createTagTokens}
-            description={createDescription}
-            coverImage={createCoverImage}
-            coverPreviewUrl={stagedCover?.previewUrl}
-            inputRefs={{
-              cover: coverFileInputRef,
-              banner: bannerFileInputRef,
-              logo: logoFileInputRef,
-              background: backgroundFileInputRef,
-              background_video: backgroundVideoFileInputRef,
-            }}
-            stagedBanner={stagedAssets.banner}
-            stagedLogo={stagedAssets.logo}
-            stagedBackgrounds={stagedAssets.background}
-            stagedBackgroundVideo={stagedAssets.background_video}
-            genreSuggestions={genreSuggestions}
-            genreSuggestionsTotal={genreSuggestionsTotal}
-            loadedTokenCount={genreTokens.length}
-            isLoadingGenres={isLoadingGenreTokens}
-            genreError={genreTokensError}
-            isSubmitting={isSubmittingCreate}
-            isUploadingCover={isUploadingCover}
-            canLoadMore={genreSuggestionLimit < 1000}
-            canResetLimit={genreSuggestionLimit > DEFAULT_GENRE_LIMIT}
-            missingFields={showValidationSummary ? missingFields : []}
+            title={manualDraft.values.title}
+            type={manualDraft.values.type}
+            contentType={manualDraft.values.contentType}
+            status={manualDraft.values.status}
+            year={manualDraft.values.year}
+            maxEpisodes={manualDraft.values.maxEpisodes}
+            titleDE={manualDraft.values.titleDE}
+            titleEN={manualDraft.values.titleEN}
+            genreDraft={manualDraft.values.genreDraft}
+            genreTokens={manualDraft.values.genreTokens}
+            tagDraft={manualDraft.values.tagDraft}
+            tagTokens={manualDraft.values.tagTokens}
+            description={manualDraft.values.description}
+            coverImage={manualDraft.values.coverImage}
+            coverPreviewUrl={manualDraft.stagedCover?.previewUrl}
+            inputRefs={fileInputRefs}
+            stagedBanner={manualDraft.stagedAssets.banner}
+            stagedLogo={manualDraft.stagedAssets.logo}
+            stagedBackgrounds={manualDraft.stagedAssets.background}
+            stagedBackgroundVideo={manualDraft.stagedAssets.background_video}
+            genreSuggestions={manualDraft.suggestions.genre.options}
+            genreSuggestionsTotal={manualDraft.suggestions.genre.total}
+            loadedTokenCount={manualDraft.suggestions.genre.loadedCount}
+            isLoadingGenres={manualDraft.suggestions.genre.isLoading}
+            genreError={manualDraft.suggestions.genre.error}
+            tagSuggestions={manualDraft.suggestions.tag.options}
+            tagSuggestionsTotal={manualDraft.suggestions.tag.total}
+            loadedTagTokenCount={manualDraft.suggestions.tag.loadedCount}
+            isLoadingTags={manualDraft.suggestions.tag.isLoading}
+            tagError={manualDraft.suggestions.tag.error}
+            tagSuggestionCanLoadMore={manualDraft.suggestions.tag.canLoadMore}
+            tagSuggestionCanResetLimit={manualDraft.suggestions.tag.canResetLimit}
+            isSubmitting={status.isSubmittingCreate}
+            isUploadingCover={status.isUploadingCover}
+            canLoadMore={manualDraft.suggestions.genre.canLoadMore}
+            canResetLimit={manualDraft.suggestions.genre.canResetLimit}
+            missingFields={manualDraft.missingFields}
             titleActions={
               <>
                 <button
                   className={createStyles.primaryAction}
                   type="button"
                   disabled={
-                    !sourceActionState.canSync ||
-                    jellyfinIntake.isSearching ||
-                    isSubmittingCreate
+                    !manualDraft.sourceActionState.canSync ||
+                    jellyfin.intake.isSearching ||
+                    status.isSubmittingCreate
                   }
                   onClick={() => {
-                    void handleJellyfinSearch();
+                    void handlers.handleJellyfinSearch();
                   }}
                 >
-                  {jellyfinIntake.isSearching
-                    ? "Jellyfin sucht..."
-                    : "Jellyfin suchen"}
+                  {jellyfin.intake.isSearching ? "Jellyfin sucht..." : "Jellyfin suchen"}
+                </button>
+                <button
+                  className={createStyles.secondaryAction}
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                >
+                  AniSearch spaeter
                 </button>
               </>
             }
-            titleHint={
-              <p className={styles.hint}>{sourceActionState.helperText}</p>
-            }
-            sourcePanel={
-              <ManualCreateAniSearchPanel
-                aniSearchID={aniSearchID}
-                canLoad={canLoadAniSearch}
-                isLoading={isLoadingAniSearch}
-                statusText={aniSearchStatusText}
-                relationSummary={aniSearchRelationSummary}
-                onAniSearchIDChange={setAniSearchID}
-                onLoad={() => {
-                  void handleAniSearchLoad();
-                }}
-              />
-            }
-            typeHint={
-              jellyfinPreview ? (
-                <div className={styles.details}>
-                  <strong>
-                    {formatJellyfinTypeHintLabel(jellyfinPreview.type_hint)}
-                  </strong>
-                  <p className={styles.hint}>
-                    Vertrauen:{" "}
-                    {formatJellyfinTypeHintConfidence(
-                      jellyfinPreview.type_hint.confidence,
-                    )}
-                  </p>
-                  <p className={styles.hint}>
-                    {formatJellyfinTypeHintReasoning(jellyfinPreview.type_hint)}
-                  </p>
-                </div>
-              ) : null
-            }
+            titleHint={<p className={styles.hint}>{manualDraft.sourceActionState.helperText}</p>}
+            typeHint={<CreatePageTypeHint preview={jellyfin.preview} />}
             draftAssets={
-              jellyfinAssetSlots ? (
+              jellyfin.draftAssets ? (
                 <>
                   <JellyfinDraftAssets
                     animeTitle={
-                      createTitle.trim() ||
-                      jellyfinPreview?.jellyfin_series_name ||
+                      manualDraft.values.title.trim() ||
+                      jellyfin.preview?.jellyfin_series_name ||
                       "Anime"
                     }
-                    assetSlots={jellyfinAssetSlots}
-                    onRemoveAsset={handleRemoveJellyfinAsset}
+                    assetSlots={jellyfin.draftAssets}
+                    onRemoveAsset={handlers.handleRemoveJellyfinAsset}
                   />
-                  {jellyfinPreview ? (
+                  {jellyfin.preview ? (
                     <div className={styles.actions}>
-                      {jellyfinReviewVisibility.showRestartAction ? (
+                      {jellyfin.reviewVisibility.showRestartAction ? (
                         <button
                           className={styles.buttonSecondary}
                           type="button"
-                          onClick={() => {
-                            jellyfinIntake.restartReview();
-                            clearMessages();
-                            setSuccessMessage(
-                              "Jellyfin-Suche wieder geoeffnet. Der aktuelle Entwurf bleibt bearbeitbar.",
-                            );
-                          }}
+                          onClick={handlers.restartJellyfinReview}
                         >
                           Anderen Treffer waehlen
                         </button>
@@ -983,7 +218,7 @@ export default function AdminAnimeCreatePage() {
                       <button
                         className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
                         type="button"
-                        onClick={handleDiscardJellyfinPreview}
+                        onClick={handlers.handleDiscardJellyfinPreview}
                       >
                         Auswahl verwerfen
                       </button>
@@ -992,121 +227,78 @@ export default function AdminAnimeCreatePage() {
                 </>
               ) : null
             }
-            onSubmit={handleCreateSubmit}
-            onTitleChange={(value) => {
-              setCreateTitle(value);
-              if (showValidationSummary) setShowValidationSummary(false);
-            }}
-            onTypeChange={setCreateType}
-            onContentTypeChange={setCreateContentType}
-            onStatusChange={setCreateStatus}
-            onYearChange={setCreateYear}
-            onMaxEpisodesChange={setCreateMaxEpisodes}
-            onTitleDEChange={setCreateTitleDE}
-            onTitleENChange={setCreateTitleEN}
-            onDescriptionChange={setCreateDescription}
-            onCoverImageChange={(value) => {
-              resetStagedCover();
-              setCreateCoverImage(value);
-              if (showValidationSummary) setShowValidationSummary(false);
-            }}
-            onDraftGenreChange={setCreateGenreDraft}
-            onAddDraftGenre={() => {
-              addCreateGenreTokens(createGenreDraft);
-              setCreateGenreDraft("");
-            }}
-            onRemoveGenreToken={(name) =>
-              setCreateGenreTokens((current) =>
-                current.filter(
-                  (token) => token.toLowerCase() !== name.toLowerCase(),
-                ),
-              )
-            }
-            onAddGenreSuggestion={addCreateGenreTokens}
-            onDraftTagChange={setCreateTagDraft}
-            onAddDraftTag={() => {
-              addCreateTagTokens(createTagDraft);
-              setCreateTagDraft("");
-            }}
-            onRemoveTagToken={(name) =>
-              setCreateTagTokens((current) =>
-                current.filter(
-                  (token) => token.toLowerCase() !== name.toLowerCase(),
-                ),
-              )
-            }
-            onIncreaseGenreLimit={() =>
-              setGenreSuggestionLimit((current) => Math.min(1000, current + 40))
-            }
-            onResetGenreLimit={() =>
-              setGenreSuggestionLimit(DEFAULT_GENRE_LIMIT)
-            }
+            onSubmit={handlers.handleCreateSubmit}
+            onTitleChange={handlers.setTitle}
+            onTypeChange={handlers.setType}
+            onContentTypeChange={handlers.setContentType}
+            onStatusChange={handlers.setStatus}
+            onYearChange={handlers.setYear}
+            onMaxEpisodesChange={handlers.setMaxEpisodes}
+            onTitleDEChange={handlers.setTitleDE}
+            onTitleENChange={handlers.setTitleEN}
+            onDescriptionChange={handlers.setDescription}
+            onCoverImageChange={handlers.setCoverImage}
+            onDraftGenreChange={handlers.setDraftGenre}
+            onAddDraftGenre={handlers.addDraftGenre}
+            onRemoveGenreToken={handlers.removeGenreToken}
+            onAddGenreSuggestion={handlers.addGenreSuggestion}
+            onIncreaseGenreLimit={handlers.increaseGenreLimit}
+            onResetGenreLimit={handlers.resetGenreLimit}
+            onDraftTagChange={handlers.setDraftTag}
+            onAddDraftTag={handlers.addDraftTag}
+            onRemoveTagToken={handlers.removeTagToken}
+            onAddTagSuggestion={handlers.addTagSuggestion}
+            onIncreaseTagLimit={handlers.increaseTagLimit}
+            onResetTagLimit={handlers.resetTagLimit}
             onCoverFileChange={async (event) => {
               const file = event.target.files?.[0];
               if (!file) return;
               try {
-                await handleCoverUpload(file);
+                await handlers.handleCoverUpload(file);
               } finally {
                 event.target.value = "";
               }
             }}
-            onSingleAssetFileChange={handleSingleAssetInputChange}
-            onBackgroundFileChange={handleBackgroundInputChange}
-            onOpenFileDialog={openAssetFileDialog}
-            onRemoveSingleAsset={removeStagedSingleAsset}
-            onRemoveBackground={removeStagedBackground}
+            onSingleAssetFileChange={handlers.handleSingleAssetInputChange}
+            onBackgroundFileChange={handlers.handleBackgroundInputChange}
+            onOpenFileDialog={handlers.openAssetFileDialog}
+            onRemoveSingleAsset={handlers.removeSingleAsset}
+            onRemoveBackground={handlers.removeBackground}
           />
         </section>
 
-        {showJellyfinResults ? (
-          <section className={createStyles.resultsPanel}>
-            <div className={createStyles.resultsHeader}>
-              <div className={createStyles.resultsTitleBlock}>
-                <p className={createStyles.resultsEyebrow}>Jellyfin</p>
-                <h2 className={createStyles.resultsTitle}>Treffer pruefen</h2>
-                <p className={createStyles.resultsText}>
-                  Erst Details pruefen, dann die ausgewaehlte Serie aktiv in den
-                  Entwurf laden. Beim Laden wird die bisherige Jellyfin-Vorschau
-                  vollstaendig ersetzt.
-                </p>
-              </div>
-              {hasSelectedJellyfinPreview ? (
-                <span className={createStyles.statusPill}>Vorschau aktiv</span>
-              ) : null}
-            </div>
-            <JellyfinCandidateReview
-              query={createTitle.trim()}
-              candidates={jellyfinIntake.candidates}
-              selectedCandidateID={
-                jellyfinIntake.reviewState.selectedCandidate?.jellyfin_series_id
-              }
-              isLoadingPreview={jellyfinIntake.isLoadingPreview}
-              onSelectCandidate={handleJellyfinCandidateSelect}
-              onLoadCandidatePreview={(candidateID) => {
-                void handleJellyfinCandidateReview(candidateID);
-              }}
-            />
-          </section>
+        {jellyfin.showResults ? (
+          <CreateJellyfinResultsPanel
+            query={manualDraft.values.title.trim()}
+            candidates={jellyfin.intake.candidates}
+            selectedCandidateID={jellyfin.intake.reviewState.selectedCandidate?.jellyfin_series_id}
+            hasActivePreview={jellyfin.hasSelectedPreview}
+            isLoadingPreview={jellyfin.intake.isLoadingPreview}
+            onSelectCandidate={handlers.handleJellyfinCandidateSelect}
+            onLoadCandidatePreview={(id) => {
+              void handlers.handleJellyfinCandidateReview(id);
+            }}
+          />
         ) : null}
 
-        {showDebugPanel ? (
+        {debug.showDebugPanel ? (
           <details className={createStyles.developerDetails}>
             <summary className={createStyles.developerSummary}>
               Debug Request/Response
             </summary>
             <div className={createStyles.developerBody}>
-              {lastRequest ? (
+              {debug.lastRequest ? (
                 <pre className={createStyles.developerBlock}>
                   <strong>Request</strong>
                   {"\n"}
-                  {lastRequest}
+                  {debug.lastRequest}
                 </pre>
               ) : null}
-              {lastResponse ? (
+              {debug.lastResponse ? (
                 <pre className={createStyles.developerBlock}>
                   <strong>Response</strong>
                   {"\n"}
-                  {lastResponse}
+                  {debug.lastResponse}
                 </pre>
               ) : null}
             </div>
