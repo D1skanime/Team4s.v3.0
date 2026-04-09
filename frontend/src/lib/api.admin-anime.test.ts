@@ -291,6 +291,58 @@ describe('admin anime api error propagation', () => {
     )
   })
 
+  it('returns the existing edit AniSearch draft payload unchanged on success', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: vi.fn().mockResolvedValue({
+          data: {
+            mode: 'draft',
+            anisearch_id: '12345',
+            source: 'anisearch:12345',
+            draft: {
+              title: 'AniSearch Title',
+              source: 'anisearch:12345',
+              folder_name: 'serial-experiments-lain',
+            },
+            updated_fields: ['title'],
+            relations_applied: 1,
+            relations_skipped_existing: 2,
+            skipped_protected_fields: ['description'],
+          },
+        }),
+      }),
+    )
+
+    await expect(
+      loadAdminAnimeEditAniSearchEnrichment(
+        42,
+        {
+          anisearch_id: '12345',
+          draft: { title: 'Lookup Title', source: 'anisearch:12345' },
+        },
+        'token',
+      ),
+    ).resolves.toEqual({
+      data: {
+        mode: 'draft',
+        anisearch_id: '12345',
+        source: 'anisearch:12345',
+        draft: {
+          title: 'AniSearch Title',
+          source: 'anisearch:12345',
+          folder_name: 'serial-experiments-lain',
+        },
+        updated_fields: ['title'],
+        relations_applied: 1,
+        relations_skipped_existing: 2,
+        skipped_protected_fields: ['description'],
+      },
+    })
+  })
+
   it('preserves redirect metadata for edit AniSearch duplicate conflicts', async () => {
     vi.stubGlobal(
       'fetch',
@@ -298,10 +350,16 @@ describe('admin anime api error propagation', () => {
         ok: false,
         status: 409,
         json: vi.fn().mockResolvedValue({
+          data: {
+            mode: 'conflict',
+            anisearch_id: '12345',
+            existing_anime_id: 84,
+            existing_title: 'Serial Experiments Lain',
+            redirect_path: '/admin/anime/84/edit',
+          },
           error: {
             message: 'AniSearch Quelle ist bereits verknuepft.',
             code: 'anisearch_source_conflict',
-            details: '/admin/anime/84/edit',
           },
         }),
       }),
@@ -321,7 +379,13 @@ describe('admin anime api error propagation', () => {
       status: 409,
       message: 'AniSearch Quelle ist bereits verknuepft.',
       code: 'anisearch_source_conflict',
-      details: '/admin/anime/84/edit',
+      conflict: {
+        mode: 'conflict',
+        anisearch_id: '12345',
+        existing_anime_id: 84,
+        existing_title: 'Serial Experiments Lain',
+        redirect_path: '/admin/anime/84/edit',
+      },
     })
   })
 
