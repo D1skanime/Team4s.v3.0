@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 11 plan 11-04 executed
-stopped_at: Completed 11-04-PLAN.md
-last_updated: "2026-04-09T15:43:55.158Z"
-last_activity: 2026-04-09 - Executed Phase 11 plan 11-04 and shipped duplicate AniSearch conflict redirects through the edit helper and card UI
+status: Phase 11 plan 11-05 executed
+stopped_at: Completed 11-05-PLAN.md
+last_updated: "2026-04-09T15:49:15Z"
+last_activity: 2026-04-09 - Executed Phase 11 plan 11-05 and surfaced AniSearch create follow-through warnings before redirect
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 18
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 11 gap closure is down to create-time AniSearch warning presentation after closing the edit conflict redirect path
+**Current focus:** Phase 11 gap closure is complete; the create and edit AniSearch seams now match the verified frontend requirements.
 
 ## Current Position
 
-Phase: 11 (anisearch-edit-enrichment-and-relation-persistence) - IN PROGRESS
-Plan: 11-04 completed
+Phase: 11 (anisearch-edit-enrichment-and-relation-persistence) - COMPLETE
+Plan: 11-05 completed
 
 ## Accumulated Context
 
@@ -59,10 +59,11 @@ Recent durable decisions:
 - [Phase 11]: AniSearch auto-applied relation feedback refreshes the existing relations section by remounting it from the page shell instead of duplicating relation state.
 - [Phase 11]: The shared edit AniSearch helper keeps the success DTO unchanged and attaches duplicate-owner metadata to ApiError only for the edit enrichment seam.
 - [Phase 11]: The edit workspace consumes hook-managed conflict state directly so duplicate AniSearch ownership renders inside the existing card instead of falling back to generic error text.
+- [Phase 11]: Create success copy is derived from AniSearch follow-through counts and warnings through the existing page helper seam instead of a new UI channel.
+- [Phase 11]: The create route delays redirect briefly so AniSearch warning context is visible before navigation.
 
 ### Pending Todos
 
-- Surface create-time AniSearch warning summaries in the admin UI where successful relation follow-through is partial.
 - Decide later whether the old manual-vs-Jellyfin entry-choice page should be restored or formally retired.
 
 ### Roadmap Evolution
@@ -74,7 +75,6 @@ Recent durable decisions:
 ### Blockers/Concerns
 
 - Cross-AI review remains unavailable until an independent reviewer CLI is installed.
-- Create-time AniSearch warning presentation is still pending in Plan 11-05.
 
 ### Performance Metrics
 
@@ -84,6 +84,7 @@ Recent durable decisions:
 | Phase 11-anisearch-edit-enrichment-and-relation-persistence P02 | 17min | 2 tasks | 11 files |
 | Phase 11-anisearch-edit-enrichment-and-relation-persistence P03 | 9min | 2 tasks | 16 files |
 | Phase 11 P04 | 6min | 2 tasks | 7 files |
+| Phase 11 P05 | 3min | 2 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -94,7 +95,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-09T15:43:55.153Z
-Stopped at: Completed 11-04-PLAN.md
-Last activity: 2026-04-09 - Executed Phase 11 plan 11-04 and shipped duplicate AniSearch conflict redirects through the edit helper and card UI
-Resume file: .planning/phases/11-anisearch-edit-enrichment-and-relation-persistence/11-04-SUMMARY.md
+Last session: 2026-04-09T15:49:15Z
+Stopped at: Completed 11-05-PLAN.md
+Last activity: 2026-04-09 - Executed Phase 11 plan 11-05 and surfaced AniSearch create follow-through warnings before redirect
+Resume file: .planning/phases/11-anisearch-edit-enrichment-and-relation-persistence/11-05-SUMMARY.md
