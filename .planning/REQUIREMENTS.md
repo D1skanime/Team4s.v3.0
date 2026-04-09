@@ -39,9 +39,9 @@
 
 - [ ] **ENR-06**: Admin can load AniSearch enrichment from `/admin/anime/[id]/edit` by entering an explicit AniSearch ID, receive the next draft state first, and still save through the existing edit PATCH flow.
 - [ ] **ENR-07**: Edit-route AniSearch enrichment runs in override mode with explicit protected fields; protected fields stay untouched, and provisional lookup text used only for candidate search is replaceable until the operator explicitly locks it.
-- [ ] **ENR-08**: If an AniSearch ID already belongs to a different local anime during edit enrichment, the endpoint returns a conflict with redirect metadata instead of silently reassigning provenance.
-- [ ] **ENR-09**: AniSearch enrichment on edit auto-applies only approved, locally resolvable relations to `anime_relations`, using `anisearch:{id}` lookup first and title fallback second, without duplicating existing rows.
-- [ ] **ENR-10**: Create and edit flows persist AniSearch provenance as `source='anisearch:{id}'`, and create persists resolved AniSearch relations best-effort after anime creation with operator-visible warning metadata when relation follow-through fails.
+- [x] **ENR-08**: If an AniSearch ID already belongs to a different local anime during edit enrichment, the endpoint returns a conflict with redirect metadata instead of silently reassigning provenance.
+- [x] **ENR-09**: AniSearch enrichment on edit auto-applies only approved, locally resolvable relations to `anime_relations`, using `anisearch:{id}` lookup first and title fallback second, without duplicating existing rows.
+- [x] **ENR-10**: Create and edit flows persist AniSearch provenance as `source='anisearch:{id}'`, and create persists resolved AniSearch relations best-effort after anime creation with operator-visible warning metadata when relation follow-through fails.
 
 #### Phase 11 Wave 0 Contract Rules
 
@@ -100,9 +100,9 @@
 | ENR-05 | Phase 9 | Pending |
 | ENR-06 | Phase 11 | Pending |
 | ENR-07 | Phase 11 | Pending |
-| ENR-08 | Phase 11 | Pending |
-| ENR-09 | Phase 11 | Pending |
-| ENR-10 | Phase 11 | Pending |
+| ENR-08 | Phase 11 | Complete |
+| ENR-09 | Phase 11 | Complete |
+| ENR-10 | Phase 11 | Complete |
 | TAG-01 | Phase 10 | Pending |
 | TAG-02 | Phase 10 | Pending |
 | TAG-03 | Phase 10 | Pending |

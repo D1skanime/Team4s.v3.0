@@ -95,11 +95,11 @@ Plans:
 **Depends on**: Phase 10
 **Requirements**: ENR-06, ENR-07, ENR-08, ENR-09, ENR-10
 **Wave 0 contract decisions**: Duplicate edit AniSearch IDs return `409` with redirect metadata, and persisted AniSearch provenance continues through the normal PATCH save seam as `source='anisearch:{id}'`.
-**Status**: Plan 11-01 executed on 2026-04-09; contract seam and red scaffolds are ready for implementation
+**Status**: Plans 11-01 and 11-02 executed on 2026-04-09; backend AniSearch edit enrichment and relation persistence are ready for frontend integration
 **Plans**: 3 plans
 Plans:
 - [x] `11-01-PLAN.md` - Formalize Phase 11 requirement mapping, Wave 0 decisions, and shared AniSearch contract/test scaffolds.
-- [ ] `11-02-PLAN.md` - Implement backend edit AniSearch enrichment, idempotent relation apply, and persisted create-time relation follow-through.
+- [x] `11-02-PLAN.md` - Implement backend edit AniSearch enrichment, idempotent relation apply, and persisted create-time relation follow-through.
 - [ ] `11-03-PLAN.md` - Integrate edit-route AniSearch UI and shared frontend helpers against the approved Phase 11 UI contract.
 **Success Criteria** (what must be TRUE):
   1. Admin can open an existing anime in the edit route, enter an AniSearch ID, click Load, and have metadata fields updated from AniSearch while preserving explicit field protections.
@@ -111,4 +111,4 @@ Plans:
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 6 | 11 | Phases 6-9 verified, Phase 10 executed with gap closure complete, Phase 11 plan 11-01 executed | - |
+| v1.1 Asset Lifecycle Hardening | 6 | 11 | Phases 6-9 verified, Phase 10 executed with gap closure complete, Phase 11 plans 11-01 and 11-02 executed | - |

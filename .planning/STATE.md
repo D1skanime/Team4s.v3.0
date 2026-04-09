@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: asset-lifecycle-hardening
-status: Phase 11 plan 11-01 executed
-stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-04-09T12:05:57.269Z"
-last_activity: 2026-04-09 - Executed Phase 11 plan 11-01 and locked AniSearch edit contracts plus red scaffolds
+milestone: v1.0
+milestone_name: milestone
+status: Phase 11 plan 11-02 executed
+stopped_at: Completed 11-02-PLAN.md
+last_updated: "2026-04-09T12:24:45.701Z"
+last_activity: 2026-04-09 - Executed Phase 11 plan 11-02 and shipped backend AniSearch edit enrichment plus relation persistence
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 16
-  completed_plans: 11
-  percent: 69
+  completed_plans: 12
 ---
 
 # Project State
@@ -21,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 11 contract locking complete - ready for AniSearch edit enrichment backend implementation
+**Current focus:** Phase 11 backend AniSearch enrichment complete - ready for edit-route frontend integration
 
 ## Current Position
 
 Phase: 11 (anisearch-edit-enrichment-and-relation-persistence) - IN PROGRESS
-Plan: 11-01 completed, 11-02 next
+Plan: 11-02 completed, 11-03 next
 
 ## Accumulated Context
 
@@ -54,11 +53,13 @@ Recent durable decisions:
 - [Phase 11]: Duplicate edit AniSearch IDs return 409 conflict responses with redirect metadata instead of moving provenance.
 - [Phase 11]: Edit AniSearch provenance persists through PATCH source/folder_name fields instead of the enrichment endpoint writing it implicitly.
 - [Phase 11]: Plan 11-02 should implement against a reserved 501 route plus red regression tests rather than inferring partial runtime behavior.
+- [Phase 11-anisearch-edit-enrichment-and-relation-persistence]: Edit AniSearch enrichment reuses shared fetch/relation resolution through LoadAniSearchDraft instead of duplicating crawler logic in handlers.
+- [Phase 11-anisearch-edit-enrichment-and-relation-persistence]: AniSearch provenance persists through the schema-aware V2 PATCH writer (source and folder_name) while edit enrichment stays draft-first.
 
 ### Pending Todos
 
-- Implement Plan 11-02 backend edit AniSearch enrichment against the reserved route and red handler tests.
-- Add the idempotent AniSearch relation apply helper expected by `anime_relations_admin_test.go`.
+- Implement Plan 11-03 frontend AniSearch edit UI against the live `POST /api/v1/admin/anime/:id/enrichment/anisearch` backend contract.
+- Surface create-time AniSearch warning summaries in the admin UI where successful relation follow-through is partial.
 - Decide later whether the old manual-vs-Jellyfin entry-choice page should be restored or formally retired.
 
 ### Roadmap Evolution
@@ -70,13 +71,14 @@ Recent durable decisions:
 ### Blockers/Concerns
 
 - Cross-AI review remains unavailable until an independent reviewer CLI is installed.
-- Phase 11 is intentionally red after 11-01: the edit AniSearch handler still returns `501`, the idempotent relation helper is missing, and the frontend edit AniSearch API/hook/component are not implemented yet.
+- Phase 11 backend is complete, but the frontend edit AniSearch API hook/component and create/edit warning presentation still need Plan 11-03.
 
 ### Performance Metrics
 
 | Phase | Plan | Duration | Tasks | Files |
 |---|---|---|---|---|
 | 11 | 01 | 24min | 2 | 13 |
+| Phase 11-anisearch-edit-enrichment-and-relation-persistence P02 | 17min | 2 tasks | 11 files |
 
 ### Quick Tasks Completed
 
@@ -87,7 +89,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-09T12:05:57.190Z
-Stopped at: Completed 11-01-PLAN.md
-Last activity: 2026-04-09 - Executed Phase 11 plan 11-01 and locked AniSearch edit contracts plus red scaffolds
-Resume file: .planning/phases/11-anisearch-edit-enrichment-and-relation-persistence/11-01-SUMMARY.md
+Last session: 2026-04-09T12:24:45.696Z
+Stopped at: Completed 11-02-PLAN.md
+Last activity: 2026-04-09 - Executed Phase 11 plan 11-02 and shipped backend AniSearch edit enrichment plus relation persistence
+Resume file: .planning/phases/11-anisearch-edit-enrichment-and-relation-persistence/11-02-SUMMARY.md
