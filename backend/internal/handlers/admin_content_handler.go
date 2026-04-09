@@ -9,8 +9,6 @@ import (
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
-
-	"github.com/gin-gonic/gin"
 )
 
 type adminAnimeCreateRequest struct {
@@ -49,6 +47,16 @@ type adminContentRelationRepository interface {
 	ApplyAdminAnimeEnrichmentRelationsDetailed(ctx context.Context, sourceAnimeID int64, relations []models.AdminAnimeRelation) (repository.AdminAnimeEnrichmentRelationApplyResult, error)
 }
 
+type adminAniSearchRepository interface {
+	FindAnimeBySource(ctx context.Context, source string) (*models.AdminAnimeSourceMatch, error)
+	ResolveAdminAnimeRelationTargetsByTitles(ctx context.Context, titles []string) ([]models.AdminAnimeRelationTitleMatch, error)
+	ResolveAdminAnimeRelationTargetsBySources(ctx context.Context, sources []string) ([]models.AdminAnimeSourceMatch, error)
+}
+
+type adminAniSearchDraftLoader interface {
+	LoadAniSearchDraft(ctx context.Context, aniSearchID string) (models.AdminAnimeCreateDraftPayload, []models.AdminAnimeRelation, error)
+}
+
 type adminRoleChecker interface {
 	UserHasRole(ctx context.Context, userID int64, roleName string) (bool, error)
 }
@@ -60,13 +68,14 @@ type AdminContentHandler struct {
 	fansubRepo         *repository.FansubRepository
 	episodeVersionRepo *repository.EpisodeVersionRepository
 	authzRepo          adminRoleChecker
+	aniSearchRepo      adminAniSearchRepository
 	adminRoleName      string
 	mediaStorageDir    string
 	jellyfinAPIKey     string
 	jellyfinBaseURL    string
 	jellyfinStreamPath string
 	httpClient         *http.Client
-	enrichmentService  *services.AnimeCreateEnrichmentService
+	enrichmentService  adminAniSearchDraftLoader
 }
 
 type AdminContentJellyfinConfig struct {
@@ -108,6 +117,7 @@ func NewAdminContentHandler(
 		adminAnimeCreateEnrichmentRepo{repo: repo},
 		handler.previewJellysyncAnimeCreateFollowup,
 	)
+	handler.aniSearchRepo = adminAnimeCreateEnrichmentRepo{repo: repo}
 
 	return handler
 }
@@ -135,15 +145,4 @@ func (r adminAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsBySource
 	sources []string,
 ) ([]models.AdminAnimeSourceMatch, error) {
 	return r.repo.ResolveAdminAnimeRelationTargetsBySources(ctx, sources)
-}
-
-// LoadAnimeAniSearchEnrichment reserves the Phase 11 edit AniSearch seam.
-// The live edit enrichment contract is implemented in the next plan.
-func (h *AdminContentHandler) LoadAnimeAniSearchEnrichment(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"error": gin.H{
-			"message": "anisearch edit enrichment noch nicht implementiert",
-			"code":    "anisearch_edit_enrichment_pending",
-		},
-	})
 }

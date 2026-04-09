@@ -71,6 +71,16 @@ func (r *AdminContentRepository) updateAnimeV2(
 		args = append(args, input.Description.Value)
 		argPos++
 	}
+	if input.Source.Set && schema.HasSource {
+		assignments = append(assignments, fmt.Sprintf("source = $%d", argPos))
+		args = append(args, input.Source.Value)
+		argPos++
+	}
+	if input.FolderName.Set {
+		assignments = append(assignments, fmt.Sprintf("folder_name = $%d", argPos))
+		args = append(args, input.FolderName.Value)
+		argPos++
+	}
 
 	if len(assignments) > 1 {
 		query := fmt.Sprintf(`

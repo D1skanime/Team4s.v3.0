@@ -158,9 +158,6 @@ func validateAdminAnimePatchRequest(req models.AdminAnimePatchInput) (models.Adm
 	}
 	if req.FolderName.Set {
 		req.FolderName.Value = normalizeNullableString(req.FolderName.Value)
-		if req.FolderName.Value != nil && !req.Source.Set {
-			return models.AdminAnimePatchInput{}, "folder_name erfordert source"
-		}
 	}
 
 	return req, ""

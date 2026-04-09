@@ -123,6 +123,30 @@ func (s *AnimeCreateEnrichmentService) Enrich(
 	}, nil
 }
 
+func (s *AnimeCreateEnrichmentService) LoadAniSearchDraft(
+	ctx context.Context,
+	aniSearchID string,
+) (models.AdminAnimeCreateDraftPayload, []models.AdminAnimeRelation, error) {
+	trimmedID := strings.TrimSpace(aniSearchID)
+	if trimmedID == "" {
+		return models.AdminAnimeCreateDraftPayload{}, nil, fmt.Errorf("anisearch id is required")
+	}
+
+	aniSearchAnime, err := s.fetcher.FetchAnime(ctx, trimmedID)
+	if err != nil {
+		return models.AdminAnimeCreateDraftPayload{}, nil, err
+	}
+
+	resolvedRelations, _, _, err := s.resolveRelations(ctx, aniSearchAnime.Relations)
+	if err != nil {
+		return models.AdminAnimeCreateDraftPayload{}, nil, err
+	}
+
+	draft := buildAniSearchDraftPayload(aniSearchAnime)
+	draft.Relations = append([]models.AdminAnimeRelation(nil), resolvedRelations...)
+	return draft, resolvedRelations, nil
+}
+
 func buildAniSearchDraftPayload(anime AniSearchAnime) models.AdminAnimeCreateDraftPayload {
 	draft := models.AdminAnimeCreateDraftPayload{
 		Title:       strings.TrimSpace(anime.PrimaryTitle),

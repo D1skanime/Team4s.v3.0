@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +9,8 @@ import (
 	"testing"
 
 	"team4s.v3/backend/internal/middleware"
+	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +19,16 @@ func TestLoadAnimeAniSearchEditEnrichment_ReturnsDraftSuccessContract(t *testing
 	gin.SetMode(gin.TestMode)
 
 	handler := &AdminContentHandler{
-		authzRepo: adminRoleCheckerStub{isAdmin: true},
+		authzRepo:     adminRoleCheckerStub{isAdmin: true},
+		aniSearchRepo: editAniSearchRepoStub{},
+		enrichmentService: editAniSearchDraftLoaderStub{
+			draft: models.AdminAnimeCreateDraftPayload{
+				Title:       "AniSearch Title",
+				Type:        "film",
+				ContentType: "anime",
+				Status:      "ongoing",
+			},
+		},
 	}
 
 	recorder := httptest.NewRecorder()
@@ -57,6 +69,10 @@ func TestLoadAnimeAniSearchEditEnrichment_ReturnsConflictRedirectForDuplicateSou
 
 	handler := &AdminContentHandler{
 		authzRepo: adminRoleCheckerStub{isAdmin: true},
+		aniSearchRepo: editAniSearchRepoStub{
+			duplicate: &models.AdminAnimeSourceMatch{AnimeID: 9, Title: "Existing Anime"},
+		},
+		enrichmentService: editAniSearchDraftLoaderStub{},
 	}
 
 	recorder := httptest.NewRecorder()
@@ -84,7 +100,25 @@ func TestLoadAnimeAniSearchEditEnrichment_SerializesAppliedSummary(t *testing.T)
 	gin.SetMode(gin.TestMode)
 
 	handler := &AdminContentHandler{
-		authzRepo: adminRoleCheckerStub{isAdmin: true},
+		authzRepo:     adminRoleCheckerStub{isAdmin: true},
+		aniSearchRepo: editAniSearchRepoStub{},
+		enrichmentService: editAniSearchDraftLoaderStub{
+			draft: models.AdminAnimeCreateDraftPayload{
+				Title:       "AniSearch Title",
+				Type:        "tv",
+				ContentType: "anime",
+				Status:      "ongoing",
+			},
+			relations: []models.AdminAnimeRelation{
+				{TargetAnimeID: 12, RelationLabel: "Fortsetzung", TargetTitle: "Lain OVA", TargetType: "ova", TargetStatus: "done"},
+			},
+		},
+		relationRepo: &relationRepoStub{
+			applyResult: repository.AdminAnimeEnrichmentRelationApplyResult{
+				Applied:         1,
+				SkippedExisting: 0,
+			},
+		},
 	}
 
 	recorder := httptest.NewRecorder()
@@ -100,7 +134,32 @@ func TestLoadAnimeAniSearchEditEnrichment_SerializesAppliedSummary(t *testing.T)
 
 	handler.LoadAnimeAniSearchEnrichment(c)
 
-	if !strings.Contains(recorder.Body.String(), "applied_relations") {
-		t.Fatalf("expected applied_relations summary, got %s", recorder.Body.String())
+	if !strings.Contains(recorder.Body.String(), "relations_applied") {
+		t.Fatalf("expected relations_applied summary, got %s", recorder.Body.String())
 	}
+}
+
+type editAniSearchRepoStub struct {
+	duplicate *models.AdminAnimeSourceMatch
+}
+
+func (s editAniSearchRepoStub) FindAnimeBySource(ctx context.Context, source string) (*models.AdminAnimeSourceMatch, error) {
+	return s.duplicate, nil
+}
+
+func (s editAniSearchRepoStub) ResolveAdminAnimeRelationTargetsByTitles(ctx context.Context, titles []string) ([]models.AdminAnimeRelationTitleMatch, error) {
+	return nil, nil
+}
+
+func (s editAniSearchRepoStub) ResolveAdminAnimeRelationTargetsBySources(ctx context.Context, sources []string) ([]models.AdminAnimeSourceMatch, error) {
+	return nil, nil
+}
+
+type editAniSearchDraftLoaderStub struct {
+	draft     models.AdminAnimeCreateDraftPayload
+	relations []models.AdminAnimeRelation
+}
+
+func (s editAniSearchDraftLoaderStub) LoadAniSearchDraft(ctx context.Context, aniSearchID string) (models.AdminAnimeCreateDraftPayload, []models.AdminAnimeRelation, error) {
+	return s.draft, s.relations, nil
 }

@@ -185,7 +185,10 @@ type AdminAnimeAniSearchEditSuccessResult struct {
 	AniSearchID            string                     `json:"anisearch_id"`
 	Source                 string                     `json:"source"`
 	Draft                  AdminAnimeEditDraftPayload `json:"draft"`
+	UpdatedFields          []string                   `json:"updated_fields,omitempty"`
 	AppliedRelations       []AdminAnimeRelation       `json:"applied_relations,omitempty"`
+	RelationsApplied       int32                      `json:"relations_applied"`
+	RelationsSkippedExisting int32                    `json:"relations_skipped_existing"`
 	SkippedProtectedFields []string                   `json:"skipped_protected_fields,omitempty"`
 }
 
