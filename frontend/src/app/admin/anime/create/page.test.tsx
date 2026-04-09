@@ -2,9 +2,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AdminAnimeCreatePage, {
+  buildCreateSuccessMessage,
   appendJellyfinLinkageToCreatePayload,
   buildManualCreateDraftSnapshot,
   buildManualCreateRedirectPath,
+  CREATE_REDIRECT_DELAY_MS,
   createManualAnimeAndRedirect,
   formatCreatePageError,
   resolveJellyfinPreviewBaseDraft,
@@ -117,6 +119,41 @@ describe("AdminAnimeCreatePage", () => {
       "/admin/anime?created=42#anime-42",
     );
     expect(response.data.id).toBe(42);
+  });
+
+  it("builds an operator-visible AniSearch warning summary before redirect", () => {
+    expect(
+      buildCreateSuccessMessage({
+        data: { id: 42 },
+        anisearch: {
+          source: "anisearch:12345",
+          relations_attempted: 3,
+          relations_applied: 1,
+          relations_skipped_existing: 1,
+          warnings: [
+            "2 AniSearch-Relationen konnten nicht lokal zugeordnet werden.",
+          ],
+        },
+      }),
+    ).toContain(
+      "Anime #42 wurde erstellt. AniSearch anisearch:12345: 1/3 Relationen uebernommen. 1 bereits vorhandene Relationen wurden uebersprungen. 2 AniSearch-Relationen konnten nicht lokal zugeordnet werden. (Weiterleitung zur Uebersicht...)",
+    );
+  });
+
+  it("keeps the generic create success message when AniSearch follow-through is clean", () => {
+    expect(
+      buildCreateSuccessMessage({
+        data: { id: 42 },
+        anisearch: {
+          source: "anisearch:12345",
+          relations_attempted: 2,
+          relations_applied: 2,
+          relations_skipped_existing: 0,
+          warnings: [],
+        },
+      }),
+    ).toBe("Anime #42 wurde erstellt. (Weiterleitung zur Uebersicht...)");
+    expect(CREATE_REDIRECT_DELAY_MS).toBeGreaterThan(0);
   });
 
   it("stages the draft cover locally until the anime exists", () => {

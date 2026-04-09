@@ -27,8 +27,10 @@ import type {
 } from "@/types/admin";
 
 import {
+  buildCreateSuccessMessage,
   appendJellyfinLinkageToCreatePayload,
   buildManualCreateRedirectPath,
+  CREATE_REDIRECT_DELAY_MS,
   createManualAnimeAndRedirect,
   formatCreatePageError,
   resolveJellyfinPreviewBaseDraft,
@@ -135,6 +137,7 @@ export function useAdminAnimeCreateController() {
   const logoFileInputRef = useRef<HTMLInputElement | null>(null);
   const backgroundFileInputRef = useRef<HTMLInputElement | null>(null);
   const backgroundVideoFileInputRef = useRef<HTMLInputElement | null>(null);
+  const createRedirectTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     const syncAuthState = () => setAuthStateVersion((v) => v + 1);
@@ -153,6 +156,9 @@ export function useAdminAnimeCreateController() {
 
   useEffect(
     () => () => {
+      if (createRedirectTimeoutRef.current !== null) {
+        window.clearTimeout(createRedirectTimeoutRef.current);
+      }
       revokeStagedAssetPreview(stagedCover);
       revokeStagedAssetPreviews(stagedAssets);
     },
@@ -465,6 +471,10 @@ export function useAdminAnimeCreateController() {
     setLastRequest(null);
     setLastResponse(null);
     setShowValidationSummary(true);
+    if (createRedirectTimeoutRef.current !== null) {
+      window.clearTimeout(createRedirectTimeoutRef.current);
+      createRedirectTimeoutRef.current = null;
+    }
 
     const runtimeAuthToken = getRuntimeAuthToken();
     if (!runtimeAuthToken) {
@@ -541,13 +551,13 @@ export function useAdminAnimeCreateController() {
         runtimeAuthToken,
       );
 
-      setSuccessMessage(
-        `Anime #${response.data.id} wurde erstellt. (Weiterleitung zur Uebersicht...)`,
-      );
+      setSuccessMessage(buildCreateSuccessMessage(response));
       setLastResponse(JSON.stringify(response, null, 2));
       resetStagedCover();
       resetStagedAssets();
-      window.location.href = buildManualCreateRedirectPath(response.data.id);
+      createRedirectTimeoutRef.current = window.setTimeout(() => {
+        window.location.href = buildManualCreateRedirectPath(response.data.id);
+      }, CREATE_REDIRECT_DELAY_MS);
     } catch (error) {
       setErrorMessage(
         formatCreatePageError(error, "Anime konnte nicht erstellt werden."),

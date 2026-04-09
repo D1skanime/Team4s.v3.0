@@ -4,14 +4,54 @@
 
 import { ApiError } from "@/lib/api";
 import type {
+  AdminAnimeCreateAniSearchSummary,
   AdminAnimeCreateRequest,
+  AdminAnimeUpsertResponse,
   AdminAnimeJellyfinIntakePreviewResult,
 } from "@/types/admin";
 import type { ManualAnimeDraftValues } from "../hooks/useManualAnimeDraft";
 import { buildManualCreateDraftSnapshot } from "../hooks/useManualAnimeDraft";
 
+export const CREATE_REDIRECT_DELAY_MS = 1600;
+
 export function buildManualCreateRedirectPath(id: number): string {
   return `/admin/anime?created=${id}#anime-${id}`;
+}
+
+function hasAniSearchFollowThroughWarning(
+  summary: AdminAnimeCreateAniSearchSummary | undefined,
+): boolean {
+  if (!summary) return false;
+  if (summary.warnings.length > 0) return true;
+  return summary.relations_attempted > summary.relations_applied;
+}
+
+export function buildCreateSuccessMessage(
+  response: Pick<AdminAnimeUpsertResponse, "data" | "anisearch">,
+): string {
+  const summary = response.anisearch;
+  if (!hasAniSearchFollowThroughWarning(summary)) {
+    return `Anime #${response.data.id} wurde erstellt. (Weiterleitung zur Uebersicht...)`;
+  }
+
+  const parts = [`Anime #${response.data.id} wurde erstellt.`];
+  const sourceLabel = summary?.source ? `AniSearch ${summary.source}` : "AniSearch";
+  parts.push(
+    `${sourceLabel}: ${summary?.relations_applied ?? 0}/${summary?.relations_attempted ?? 0} Relationen uebernommen.`,
+  );
+
+  if ((summary?.relations_skipped_existing ?? 0) > 0) {
+    parts.push(
+      `${summary?.relations_skipped_existing} bereits vorhandene Relationen wurden uebersprungen.`,
+    );
+  }
+
+  if ((summary?.warnings.length ?? 0) > 0) {
+    parts.push(summary!.warnings.join(" "));
+  }
+
+  parts.push("(Weiterleitung zur Uebersicht...)");
+  return parts.join(" ");
 }
 
 export function appendJellyfinLinkageToCreatePayload(
