@@ -90,6 +90,55 @@ export interface AdminAnimePatchRequest {
   tags?: string[] | null
   description?: string | null
   cover_image?: string | null
+  source?: string | null
+  folder_name?: string | null
+}
+
+export interface AdminAnimeEditDraftPayload {
+  title?: string | null
+  title_de?: string | null
+  title_en?: string | null
+  type?: AnimeType
+  content_type?: ContentType
+  status?: AnimeStatus
+  year?: number | null
+  max_episodes?: number | null
+  genre?: string | null
+  tags?: string[] | null
+  description?: string | null
+  cover_image?: string | null
+  source?: string | null
+  folder_name?: string | null
+}
+
+export interface AdminAnimeAniSearchEditRequest {
+  anisearch_id: string
+  draft: AdminAnimeEditDraftPayload
+  protected_fields?: string[]
+}
+
+export interface AdminAnimeAniSearchEditResult {
+  mode: 'draft'
+  anisearch_id: string
+  source: string
+  draft: AdminAnimeEditDraftPayload
+  applied_relations: AdminAnimeRelation[]
+  skipped_protected_fields: string[]
+}
+
+export interface AdminAnimeAniSearchEditConflictResult {
+  mode: 'conflict'
+  anisearch_id: string
+  existing_anime_id: number
+  existing_title: string
+  redirect_path: string
+}
+
+export interface AdminAnimeCreateAniSearchSummary {
+  source?: string
+  relation_candidates: number
+  relation_applied: number
+  warning?: string
 }
 
 export interface AdminEpisodeCreateRequest {
@@ -119,6 +168,7 @@ export interface AdminAnimeJellyfinSyncRequest {
 
 export interface AdminAnimeUpsertResponse {
   data: AdminAnimeItem
+  anisearch?: AdminAnimeCreateAniSearchSummary
 }
 
 export interface AdminEpisodeUpsertResponse {

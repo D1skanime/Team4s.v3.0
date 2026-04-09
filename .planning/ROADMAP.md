@@ -94,6 +94,7 @@ Plans:
 **Goal**: Admins can run AniSearch enrichment from the edit route to update existing anime metadata, and relations scraped by AniSearch are written to the database on anime create.
 **Depends on**: Phase 10
 **Requirements**: ENR-06, ENR-07, ENR-08, ENR-09, ENR-10
+**Wave 0 contract decisions**: Duplicate edit AniSearch IDs return `409` with redirect metadata, and persisted AniSearch provenance continues through the normal PATCH save seam as `source='anisearch:{id}'`.
 **Plans**: 3 plans
 Plans:
 - [ ] `11-01-PLAN.md` - Formalize Phase 11 requirement mapping, Wave 0 decisions, and shared AniSearch contract/test scaffolds.

@@ -131,3 +131,14 @@ func (r adminAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsBySource
 ) ([]models.AdminAnimeSourceMatch, error) {
 	return r.repo.ResolveAdminAnimeRelationTargetsBySources(ctx, sources)
 }
+
+// LoadAnimeAniSearchEnrichment reserves the Phase 11 edit AniSearch seam.
+// The live edit enrichment contract is implemented in the next plan.
+func (h *AdminContentHandler) LoadAnimeAniSearchEnrichment(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{
+		"error": gin.H{
+			"message": "anisearch edit enrichment noch nicht implementiert",
+			"code":    "anisearch_edit_enrichment_pending",
+		},
+	})
+}

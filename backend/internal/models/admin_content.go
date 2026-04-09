@@ -154,6 +154,49 @@ type AdminAnimeAniSearchEnrichmentRedirectResult struct {
 	RedirectPath    string `json:"redirect_path"`
 }
 
+// AdminAnimeEditDraftPayload mirrors the edit PATCH surface after JSON binding.
+// AniSearch edit enrichment returns this draft-first payload so the normal PATCH
+// save seam remains the only metadata persistence step.
+type AdminAnimeEditDraftPayload struct {
+	Title       *string  `json:"title,omitempty"`
+	TitleDE     *string  `json:"title_de,omitempty"`
+	TitleEN     *string  `json:"title_en,omitempty"`
+	Type        *string  `json:"type,omitempty"`
+	ContentType *string  `json:"content_type,omitempty"`
+	Status      *string  `json:"status,omitempty"`
+	Year        *int16   `json:"year,omitempty"`
+	MaxEpisodes *int16   `json:"max_episodes,omitempty"`
+	Genre       *string  `json:"genre,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
+	Description *string  `json:"description,omitempty"`
+	CoverImage  *string  `json:"cover_image,omitempty"`
+	Source      *string  `json:"source,omitempty"`
+	FolderName  *string  `json:"folder_name,omitempty"`
+}
+
+type AdminAnimeAniSearchEditRequest struct {
+	AniSearchID     string                     `json:"anisearch_id"`
+	Draft           AdminAnimeEditDraftPayload `json:"draft"`
+	ProtectedFields []string                   `json:"protected_fields,omitempty"`
+}
+
+type AdminAnimeAniSearchEditSuccessResult struct {
+	Mode                   string                     `json:"mode"`
+	AniSearchID            string                     `json:"anisearch_id"`
+	Source                 string                     `json:"source"`
+	Draft                  AdminAnimeEditDraftPayload `json:"draft"`
+	AppliedRelations       []AdminAnimeRelation       `json:"applied_relations,omitempty"`
+	SkippedProtectedFields []string                   `json:"skipped_protected_fields,omitempty"`
+}
+
+type AdminAnimeAniSearchEditConflictResult struct {
+	Mode            string `json:"mode"`
+	AniSearchID     string `json:"anisearch_id"`
+	ExistingAnimeID int64  `json:"existing_anime_id"`
+	ExistingTitle   string `json:"existing_title"`
+	RedirectPath    string `json:"redirect_path"`
+}
+
 type AdminAnimeSourceMatch struct {
 	Source  string
 	AnimeID int64
@@ -178,6 +221,8 @@ type AdminAnimePatchInput struct {
 	Tags        OptionalStringSlice `json:"tags"`
 	Description OptionalString      `json:"description"`
 	CoverImage  OptionalString      `json:"cover_image"`
+	Source      OptionalString      `json:"source"`
+	FolderName  OptionalString      `json:"folder_name"`
 }
 
 // AdminTagToken is a normalized tag value with its usage count across all anime.
@@ -222,6 +267,18 @@ type AdminAnimeDeleteResult struct {
 	AnimeID                 int64   `json:"anime_id"`
 	Title                   string  `json:"title"`
 	OrphanedLocalCoverImage *string `json:"orphaned_local_cover_image,omitempty"`
+}
+
+type AdminAnimeCreateAniSearchSummary struct {
+	Source             *string `json:"source,omitempty"`
+	RelationCandidates int32   `json:"relation_candidates"`
+	RelationApplied    int32   `json:"relation_applied"`
+	Warning            *string `json:"warning,omitempty"`
+}
+
+type AdminAnimeUpsertResponse struct {
+	Data      AdminAnimeItem                    `json:"data"`
+	AniSearch *AdminAnimeCreateAniSearchSummary `json:"anisearch,omitempty"`
 }
 
 type AdminAnimeRelation struct {

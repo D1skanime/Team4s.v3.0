@@ -43,6 +43,13 @@
 - [ ] **ENR-09**: AniSearch enrichment on edit auto-applies only approved, locally resolvable relations to `anime_relations`, using `anisearch:{id}` lookup first and title fallback second, without duplicating existing rows.
 - [ ] **ENR-10**: Create and edit flows persist AniSearch provenance as `source='anisearch:{id}'`, and create persists resolved AniSearch relations best-effort after anime creation with operator-visible warning metadata when relation follow-through fails.
 
+#### Phase 11 Wave 0 Contract Rules
+
+- Duplicate AniSearch ownership on edit is a `409` conflict that returns `existing_anime_id`, `existing_title`, and `redirect_path`; the edit endpoint must not silently move `source='anisearch:{id}'` from one anime to another.
+- Edit-route AniSearch enrichment returns the next draft first. Persisted AniSearch provenance remains part of the regular edit PATCH contract through `source='anisearch:{id}'` instead of being hidden as an enrichment side effect.
+- Explicit AniSearch field protection is session-scoped. Provisional lookup text used only to find a source candidate stays replaceable until the operator explicitly protects that field, matching D-05.
+- Create-time AniSearch relation persistence is best-effort follow-through after anime creation. Warning metadata belongs in the create response envelope so operators can see partial relation persistence outcomes without losing a successful create.
+
 ### Create Tags And Metadata Refactor
 
 - [ ] **TAG-01**: Normalized `tags` and `anime_tags` tables exist and anime tag links are created, updated, and deleted through the same authoritative persistence path as genres.
