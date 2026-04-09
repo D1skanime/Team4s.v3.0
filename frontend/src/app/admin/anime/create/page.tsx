@@ -169,30 +169,20 @@ export default function AdminAnimeCreatePage() {
             canResetLimit={manualDraft.suggestions.genre.canResetLimit}
             missingFields={manualDraft.missingFields}
             titleActions={
-              <>
-                <button
-                  className={createStyles.primaryAction}
-                  type="button"
-                  disabled={
-                    !manualDraft.sourceActionState.canSync ||
-                    jellyfin.intake.isSearching ||
-                    status.isSubmittingCreate
-                  }
-                  onClick={() => {
-                    void handlers.handleJellyfinSearch();
-                  }}
-                >
-                  {jellyfin.intake.isSearching ? "Jellyfin sucht..." : "Jellyfin suchen"}
-                </button>
-                <button
-                  className={createStyles.secondaryAction}
-                  type="button"
-                  disabled
-                  aria-disabled="true"
-                >
-                  AniSearch spaeter
-                </button>
-              </>
+              <button
+                className={createStyles.primaryAction}
+                type="button"
+                disabled={
+                  !manualDraft.sourceActionState.canSync ||
+                  jellyfin.intake.isSearching ||
+                  status.isSubmittingCreate
+                }
+                onClick={() => {
+                  void handlers.handleJellyfinSearch();
+                }}
+              >
+                {jellyfin.intake.isSearching ? "Jellyfin sucht..." : "Jellyfin suchen"}
+              </button>
             }
             titleHint={<p className={styles.hint}>{manualDraft.sourceActionState.helperText}</p>}
             typeHint={<CreatePageTypeHint preview={jellyfin.preview} />}

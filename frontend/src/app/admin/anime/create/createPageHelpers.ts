@@ -123,8 +123,8 @@ export function resolveSourceActionState(title: string) {
   return {
     canSync: meaningful,
     helperText: meaningful
-      ? "Jellyfin nutzt den aktuellen Titel als Suchanfrage. AniSearch Sync kommt in Phase 4."
-      : "Gib zuerst einen aussagekraeftigen Anime-Titel ein. AniSearch Sync kommt in Phase 4.",
+      ? "Jellyfin nutzt den aktuellen Titel als Suchanfrage."
+      : "Gib zuerst einen aussagekraeftigen Anime-Titel ein, damit Jellyfin suchen kann.",
   };
 }
 
