@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 11 plan 11-03 executed
-stopped_at: Completed 11-03-PLAN.md
-last_updated: "2026-04-09T14:36:36Z"
-last_activity: 2026-04-09 - Executed Phase 11 plan 11-03 and shipped frontend AniSearch edit enrichment in the admin edit workspace
+status: Phase 11 plan 11-04 executed
+stopped_at: Completed 11-04-PLAN.md
+last_updated: "2026-04-09T15:43:55.158Z"
+last_activity: 2026-04-09 - Executed Phase 11 plan 11-04 and shipped duplicate AniSearch conflict redirects through the edit helper and card UI
 progress:
   total_phases: 6
-  completed_phases: 4
-  total_plans: 16
-  completed_plans: 13
+  completed_phases: 3
+  total_plans: 18
+  completed_plans: 14
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 11 AniSearch edit enrichment is complete across backend and frontend - remaining follow-up is warning presentation and next-phase planning
+**Current focus:** Phase 11 gap closure is down to create-time AniSearch warning presentation after closing the edit conflict redirect path
 
 ## Current Position
 
-Phase: 11 (anisearch-edit-enrichment-and-relation-persistence) - COMPLETE
-Plan: 11-03 completed
+Phase: 11 (anisearch-edit-enrichment-and-relation-persistence) - IN PROGRESS
+Plan: 11-04 completed
 
 ## Accumulated Context
 
@@ -57,6 +57,8 @@ Recent durable decisions:
 - [Phase 11-anisearch-edit-enrichment-and-relation-persistence]: AniSearch provenance persists through the schema-aware V2 PATCH writer (source and folder_name) while edit enrichment stays draft-first.
 - [Phase 11]: Edit AniSearch provenance now flows through the existing patch state so source and folder_name persist only on explicit save.
 - [Phase 11]: AniSearch auto-applied relation feedback refreshes the existing relations section by remounting it from the page shell instead of duplicating relation state.
+- [Phase 11]: The shared edit AniSearch helper keeps the success DTO unchanged and attaches duplicate-owner metadata to ApiError only for the edit enrichment seam.
+- [Phase 11]: The edit workspace consumes hook-managed conflict state directly so duplicate AniSearch ownership renders inside the existing card instead of falling back to generic error text.
 
 ### Pending Todos
 
@@ -72,7 +74,7 @@ Recent durable decisions:
 ### Blockers/Concerns
 
 - Cross-AI review remains unavailable until an independent reviewer CLI is installed.
-- Create-time AniSearch warning presentation is still pending despite Phase 11 completion.
+- Create-time AniSearch warning presentation is still pending in Plan 11-05.
 
 ### Performance Metrics
 
@@ -81,6 +83,7 @@ Recent durable decisions:
 | 11 | 01 | 24min | 2 | 13 |
 | Phase 11-anisearch-edit-enrichment-and-relation-persistence P02 | 17min | 2 tasks | 11 files |
 | Phase 11-anisearch-edit-enrichment-and-relation-persistence P03 | 9min | 2 tasks | 16 files |
+| Phase 11 P04 | 6min | 2 tasks | 7 files |
 
 ### Quick Tasks Completed
 
@@ -91,7 +94,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-09T14:36:36Z
-Stopped at: Completed 11-03-PLAN.md
-Last activity: 2026-04-09 - Executed Phase 11 plan 11-03 and shipped frontend AniSearch edit enrichment in the admin edit workspace
-Resume file: .planning/phases/11-anisearch-edit-enrichment-and-relation-persistence/11-03-SUMMARY.md
+Last session: 2026-04-09T15:43:55.153Z
+Stopped at: Completed 11-04-PLAN.md
+Last activity: 2026-04-09 - Executed Phase 11 plan 11-04 and shipped duplicate AniSearch conflict redirects through the edit helper and card UI
+Resume file: .planning/phases/11-anisearch-edit-enrichment-and-relation-persistence/11-04-SUMMARY.md
