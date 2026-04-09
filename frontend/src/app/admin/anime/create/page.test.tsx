@@ -63,7 +63,7 @@ describe("AdminAnimeCreatePage", () => {
     const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
 
     expect(markup).toContain("Jellyfin suchen");
-    expect(markup).not.toContain("AniSearch spaeter");
+    expect(markup).not.toMatch(/AniSearch\s+spaeter/);
     expect(markup).toContain(
       "Gib zuerst einen aussagekraeftigen Anime-Titel ein, damit Jellyfin suchen kann.",
     );
