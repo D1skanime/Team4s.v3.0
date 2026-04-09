@@ -110,11 +110,11 @@ func TestIsRelationConflict_DetectsUniqueAndCheckViolationCodes(t *testing.T) {
 	}
 }
 
-func TestApplyAniSearchRelationsIdempotently_DoesNotDuplicateExistingRows(t *testing.T) {
+func TestApplyAdminAnimeEnrichmentRelations_DoesNotDuplicateExistingRows(t *testing.T) {
 	t.Parallel()
 
 	repo := &AdminContentRepository{}
-	err := repo.ApplyAniSearchRelationsIdempotently(context.Background(), 7, []models.AdminAnimeRelation{
+	err := repo.ApplyAdminAnimeEnrichmentRelations(context.Background(), 7, []models.AdminAnimeRelation{
 		{TargetAnimeID: 12, RelationLabel: "Fortsetzung"},
 		{TargetAnimeID: 12, RelationLabel: "Fortsetzung"},
 	})

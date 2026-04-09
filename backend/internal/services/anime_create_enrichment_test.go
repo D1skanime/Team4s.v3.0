@@ -288,6 +288,61 @@ func TestAnimeCreateEnrichmentService_PrefersAniSearchSourceMatchesBeforeTitleFa
 	}
 }
 
+func TestBuildAdminAnimeCreateAniSearchSummary_PreservesSourceAndAppliedCounts(t *testing.T) {
+	t.Parallel()
+
+	source := "anisearch:12345"
+	summary := BuildAdminAnimeCreateAniSearchSummary(
+		&source,
+		2,
+		2,
+		0,
+		nil,
+	)
+
+	if summary == nil {
+		t.Fatal("expected summary")
+	}
+	if summary.Source == nil || *summary.Source != "anisearch:12345" {
+		t.Fatalf("expected anisearch provenance, got %#v", summary)
+	}
+	if summary.RelationsAttempted != 2 {
+		t.Fatalf("expected attempted count, got %#v", summary)
+	}
+	if summary.RelationsApplied != 2 {
+		t.Fatalf("expected applied count, got %#v", summary)
+	}
+	if summary.RelationsSkippedExisting != 0 {
+		t.Fatalf("expected skipped count, got %#v", summary)
+	}
+	if len(summary.Warnings) != 0 {
+		t.Fatalf("expected no warnings, got %#v", summary.Warnings)
+	}
+}
+
+func TestBuildAdminAnimeCreateAniSearchSummary_CollectsNonBlockingWarnings(t *testing.T) {
+	t.Parallel()
+
+	source := "anisearch:12345"
+	summary := BuildAdminAnimeCreateAniSearchSummary(
+		&source,
+		3,
+		1,
+		1,
+		[]string{"relation follow-through failed"},
+	)
+
+	if summary == nil {
+		t.Fatal("expected summary")
+	}
+	if summary.RelationsAttempted != 3 || summary.RelationsApplied != 1 || summary.RelationsSkippedExisting != 1 {
+		t.Fatalf("unexpected counts %#v", summary)
+	}
+	if len(summary.Warnings) != 1 || summary.Warnings[0] != "relation follow-through failed" {
+		t.Fatalf("expected warning to be preserved, got %#v", summary.Warnings)
+	}
+}
+
 func stringPtr(value string) *string {
 	return &value
 }

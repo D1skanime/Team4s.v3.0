@@ -1053,6 +1053,35 @@ func TestValidateAdminAnimePatchRequest_NormalizesOptionalFields(t *testing.T) {
 	}
 }
 
+func TestBuildAdminAnimeUpsertResponse_IncludesAniSearchWarningSummary(t *testing.T) {
+	t.Parallel()
+
+	source := "anisearch:12345"
+	response := buildAdminAnimeUpsertResponse(
+		&models.AdminAnimeItem{ID: 7, Title: "Serial Experiments Lain", Type: "tv", ContentType: "anime", Status: "ongoing"},
+		&models.AdminAnimeCreateAniSearchSummary{
+			Source:                   &source,
+			RelationsAttempted:       2,
+			RelationsApplied:         1,
+			RelationsSkippedExisting: 1,
+			Warnings:                 []string{"relation follow-through failed"},
+		},
+	)
+
+	if response.AniSearch == nil {
+		t.Fatal("expected anisearch summary")
+	}
+	if response.AniSearch.Source == nil || *response.AniSearch.Source != "anisearch:12345" {
+		t.Fatalf("expected anisearch provenance, got %#v", response.AniSearch)
+	}
+	if response.AniSearch.RelationsAttempted != 2 {
+		t.Fatalf("expected attempted count, got %#v", response.AniSearch)
+	}
+	if len(response.AniSearch.Warnings) != 1 {
+		t.Fatalf("expected warning list, got %#v", response.AniSearch)
+	}
+}
+
 // -------------------------------------------------------------------
 // Additional regression tests for episode validation
 // -------------------------------------------------------------------
