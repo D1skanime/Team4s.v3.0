@@ -138,9 +138,10 @@ export interface AdminAnimeAniSearchEditConflictResult {
 
 export interface AdminAnimeCreateAniSearchSummary {
   source?: string
-  relation_candidates: number
-  relation_applied: number
-  warning?: string
+  relations_attempted: number
+  relations_applied: number
+  relations_skipped_existing: number
+  warnings: string[]
 }
 
 export interface AdminEpisodeCreateRequest {

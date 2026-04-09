@@ -405,9 +405,13 @@ describe('admin anime api error propagation', () => {
           },
           anisearch: {
             source: 'anisearch:12345',
-            relation_candidates: 3,
-            relation_applied: 1,
-            warning: '2 AniSearch-Relationen konnten nicht lokal zugeordnet werden.',
+            relations_attempted: 3,
+            relations_applied: 1,
+            relations_skipped_existing: 1,
+            warnings: [
+              '2 AniSearch-Relationen konnten nicht lokal zugeordnet werden.',
+              '1 Relation existierte bereits lokal.',
+            ],
           },
         }),
       }),
@@ -422,7 +426,17 @@ describe('admin anime api error propagation', () => {
       cover_image: 'lain.jpg',
     })
 
-    expect(response.anisearch?.warning).toContain('AniSearch-Relationen')
-    expect(response.anisearch?.source).toBe('anisearch:12345')
+    expect(response.anisearch).toEqual(
+      expect.objectContaining({
+        source: 'anisearch:12345',
+        relations_attempted: 3,
+        relations_applied: 1,
+        relations_skipped_existing: 1,
+        warnings: [
+          '2 AniSearch-Relationen konnten nicht lokal zugeordnet werden.',
+          '1 Relation existierte bereits lokal.',
+        ],
+      }),
+    )
   })
 })
