@@ -3,7 +3,7 @@
 ## Milestones
 
 - [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
-- [ ] **v1.1 Asset Lifecycle Hardening** - Phases 6, 7, 8, and 9 verified. Phase 10 gap closure is complete, and Phase 11 AniSearch gap closure is now fully executed.
+- [x] **v1.1 Asset Lifecycle Hardening** - Phases 6, 7, 8, and 9 verified. Phase 10 gap closure is complete, and Phase 11 AniSearch gap closure is now fully executed. (completed 2026-04-09)
 
 ## Current Direction
 
@@ -95,14 +95,15 @@ Plans:
 **Depends on**: Phase 10
 **Requirements**: ENR-06, ENR-07, ENR-08, ENR-09, ENR-10
 **Wave 0 contract decisions**: Duplicate edit AniSearch IDs return `409` with redirect metadata, and persisted AniSearch provenance continues through the normal PATCH save seam as `source='anisearch:{id}'`.
-**Status**: Complete on 2026-04-09; verification gaps ENR-08 and ENR-10 were closed by 11-04 and 11-05
-**Plans**: 5 plans
+**Status**: Complete on 2026-04-09; verification gaps ENR-08 and ENR-10 were closed by 11-04, 11-05, and the create-route placeholder cleanup in 11-06
+**Plans**: 6 plans
 Plans:
 - [x] `11-01-PLAN.md` - Formalize Phase 11 requirement mapping, Wave 0 decisions, and shared AniSearch contract/test scaffolds.
 - [x] `11-02-PLAN.md` - Implement backend edit AniSearch enrichment, idempotent relation apply, and persisted create-time relation follow-through.
 - [x] `11-03-PLAN.md` - Integrate edit-route AniSearch UI and shared frontend helpers against the approved Phase 11 UI contract.
 - [x] `11-04-PLAN.md` - Parse and surface edit-route AniSearch duplicate redirect metadata through the shared helper and edit workspace.
 - [x] `11-05-PLAN.md` - Align create AniSearch summary contracts and surface follow-through warnings before redirect.
+- [x] `11-06-PLAN.md` - Remove the stale create-route AniSearch placeholder and align regression and verification artifacts to the live UI.
 **Success Criteria** (what must be TRUE):
   1. Admin can open an existing anime in the edit route, enter an AniSearch ID, click Load, and have metadata fields updated from AniSearch while preserving explicit field protections.
   2. Relations resolved from AniSearch during anime create are persisted to the `anime_relations` table instead of remaining draft-only data.

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 11 plan 11-05 executed
-stopped_at: Completed 11-05-PLAN.md
-last_updated: "2026-04-09T15:49:15Z"
-last_activity: 2026-04-09 - Executed Phase 11 plan 11-05 and surfaced AniSearch create follow-through warnings before redirect
+status: Phase 11 plan 11-06 executed
+stopped_at: Completed 11-06-PLAN.md
+last_updated: "2026-04-09T17:54:53.651Z"
+last_activity: 2026-04-09 - Executed Phase 11 plan 11-06 and removed the stale create-route AniSearch placeholder from UI and verification docs
 progress:
   total_phases: 6
-  completed_phases: 3
-  total_plans: 18
-  completed_plans: 15
+  completed_phases: 4
+  total_plans: 19
+  completed_plans: 16
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 11 gap closure is complete; the create and edit AniSearch seams now match the verified frontend requirements.
+**Current focus:** Phase 11 is fully executed, including the final create-route placeholder cleanup that brought the live UI and verification artifacts back into sync.
 
 ## Current Position
 
 Phase: 11 (anisearch-edit-enrichment-and-relation-persistence) - COMPLETE
-Plan: 11-05 completed
+Plan: 11-06 completed
 
 ## Accumulated Context
 
@@ -61,6 +61,8 @@ Recent durable decisions:
 - [Phase 11]: The edit workspace consumes hook-managed conflict state directly so duplicate AniSearch ownership renders inside the existing card instead of falling back to generic error text.
 - [Phase 11]: Create success copy is derived from AniSearch follow-through counts and warnings through the existing page helper seam instead of a new UI channel.
 - [Phase 11]: The create route delays redirect briefly so AniSearch warning context is visible before navigation.
+- [Phase 11]: Removed the unreachable create-side AniSearch placeholder instead of inventing a new intake surface in a gap-closure plan.
+- [Phase 11]: Create-route warning-before-redirect verification stays automated until a live create-side AniSearch intake action exists.
 
 ### Pending Todos
 
@@ -85,6 +87,7 @@ Recent durable decisions:
 | Phase 11-anisearch-edit-enrichment-and-relation-persistence P03 | 9min | 2 tasks | 16 files |
 | Phase 11 P04 | 6min | 2 tasks | 7 files |
 | Phase 11 P05 | 3min | 2 tasks | 6 files |
+| Phase 11 P06 | 7min | 2 tasks | 5 files |
 
 ### Quick Tasks Completed
 
@@ -95,7 +98,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-09T15:49:15Z
-Stopped at: Completed 11-05-PLAN.md
-Last activity: 2026-04-09 - Executed Phase 11 plan 11-05 and surfaced AniSearch create follow-through warnings before redirect
-Resume file: .planning/phases/11-anisearch-edit-enrichment-and-relation-persistence/11-05-SUMMARY.md
+Last session: 2026-04-09T17:54:53.647Z
+Stopped at: Completed 11-06-PLAN.md
+Last activity: 2026-04-09 - Executed Phase 11 plan 11-06 and removed the stale create-route AniSearch placeholder from UI and verification docs
+Resume file: .planning/phases/11-anisearch-edit-enrichment-and-relation-persistence/11-06-SUMMARY.md
