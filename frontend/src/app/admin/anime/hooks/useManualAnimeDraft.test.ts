@@ -58,4 +58,33 @@ describe('resolveManualCreateState', () => {
 
     expect(hydrated.title).toBe('Serial Experiments Lain')
   })
+
+  it('keeps the current title when AniSearch title is protected', () => {
+    const hydrated = hydrateManualDraftFromAniSearchDraft(
+      {
+        title: 'lain sea',
+        type: 'tv',
+        contentType: 'anime',
+        status: 'ongoing',
+        year: '',
+        maxEpisodes: '',
+        titleDE: '',
+        titleEN: '',
+        genreTokens: [],
+        tagTokens: [],
+        description: '',
+        coverImage: '',
+      },
+      {
+        title: 'Serial Experiments Lain',
+        type: 'tv',
+        content_type: 'anime',
+        status: 'ongoing',
+        source: 'anisearch:12345',
+      },
+      ['title'],
+    )
+
+    expect(hydrated.title).toBe('lain sea')
+  })
 })

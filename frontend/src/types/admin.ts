@@ -122,7 +122,9 @@ export interface AdminAnimeAniSearchEditResult {
   anisearch_id: string
   source: string
   draft: AdminAnimeEditDraftPayload
-  applied_relations: AdminAnimeRelation[]
+  updated_fields: string[]
+  relations_applied: number
+  relations_skipped_existing: number
   skipped_protected_fields: string[]
 }
 

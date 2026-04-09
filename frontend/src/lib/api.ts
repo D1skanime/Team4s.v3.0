@@ -1,4 +1,6 @@
 import {
+  AdminAnimeAniSearchEditRequest,
+  AdminAnimeAniSearchEditResult,
   AdminAnimeRelationCreateRequest,
   AdminAnimeRelationTargetsResponse,
   AdminAnimeRelationUpdateRequest,
@@ -1218,6 +1220,31 @@ export async function updateAdminAnime(
   }
 
   return response.json() as Promise<AdminAnimeUpsertResponse>
+}
+
+export async function loadAdminAnimeEditAniSearchEnrichment(
+  animeID: number,
+  payload: AdminAnimeAniSearchEditRequest,
+  authToken?: string,
+): Promise<{ data: AdminAnimeAniSearchEditResult }> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/enrichment/anisearch`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<{ data: AdminAnimeAniSearchEditResult }>
 }
 
 export async function syncAdminAnimeFromJellyfin(

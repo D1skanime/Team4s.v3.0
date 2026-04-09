@@ -119,23 +119,29 @@ export function hydrateManualDraftFromJellyfinPreview(
 export function hydrateManualDraftFromAniSearchDraft(
   draft: ManualAnimeDraftValues,
   incoming: AdminAnimeCreateDraftPayload,
+  protectedFields: string[] = [],
 ): ManualAnimeDraftValues {
   const resolvedGenreTokens = splitGenreTokens(incoming.genre?.trim() || incoming.tags?.join(', ') || '')
   const resolvedTagTokens = splitTagTokens(incoming.tags?.join(', ') || '')
+  const protectedFieldSet = new Set(protectedFields)
 
   return {
     ...draft,
-    title: incoming.title?.trim() || draft.title,
+    title: protectedFieldSet.has('title') ? draft.title : incoming.title?.trim() || draft.title,
     type: incoming.type?.trim() ? incoming.type : draft.type,
     contentType: incoming.content_type?.trim() ? incoming.content_type : draft.contentType,
     status: incoming.status?.trim() ? incoming.status : draft.status,
     year: Number.isFinite(incoming.year) ? String(incoming.year) : draft.year,
     maxEpisodes: Number.isFinite(incoming.max_episodes) ? String(incoming.max_episodes) : draft.maxEpisodes,
-    titleDE: incoming.title_de?.trim() || draft.titleDE,
-    titleEN: incoming.title_en?.trim() || draft.titleEN,
-    genreTokens: resolvedGenreTokens.length > 0 ? resolvedGenreTokens : draft.genreTokens,
+    titleDE: protectedFieldSet.has('title_de') ? draft.titleDE : incoming.title_de?.trim() || draft.titleDE,
+    titleEN: protectedFieldSet.has('title_en') ? draft.titleEN : incoming.title_en?.trim() || draft.titleEN,
+    genreTokens: protectedFieldSet.has('genre')
+      ? draft.genreTokens
+      : resolvedGenreTokens.length > 0
+        ? resolvedGenreTokens
+        : draft.genreTokens,
     tagTokens: resolvedTagTokens.length > 0 ? resolvedTagTokens : draft.tagTokens,
-    description: incoming.description?.trim() || draft.description,
+    description: protectedFieldSet.has('description') ? draft.description : incoming.description?.trim() || draft.description,
     coverImage: incoming.cover_image?.trim() || draft.coverImage,
   }
 }

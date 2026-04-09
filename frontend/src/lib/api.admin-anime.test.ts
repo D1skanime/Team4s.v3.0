@@ -6,7 +6,7 @@ import {
   assignAdminAnimeLogoAsset,
   createAdminAnime,
   createAdminAnimeRelation,
-  loadAdminAnimeAniSearchEdit,
+  loadAdminAnimeEditAniSearchEnrichment,
   searchAdminAnimeRelationTargets,
   updateAdminAnime,
   uploadAdminAnimeMedia,
@@ -259,14 +259,16 @@ describe('admin anime api error propagation', () => {
           anisearch_id: '12345',
           source: 'anisearch:12345',
           draft: { title: 'AniSearch Title', source: 'anisearch:12345' },
-          applied_relations: [],
+          updated_fields: ['title'],
+          relations_applied: 0,
+          relations_skipped_existing: 0,
           skipped_protected_fields: ['title'],
         },
       }),
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    await loadAdminAnimeAniSearchEdit(
+    await loadAdminAnimeEditAniSearchEnrichment(
       42,
       {
         anisearch_id: '12345',
@@ -287,6 +289,40 @@ describe('admin anime api error propagation', () => {
         }),
       }),
     )
+  })
+
+  it('preserves redirect metadata for edit AniSearch duplicate conflicts', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 409,
+        json: vi.fn().mockResolvedValue({
+          error: {
+            message: 'AniSearch Quelle ist bereits verknuepft.',
+            code: 'anisearch_source_conflict',
+            details: '/admin/anime/84/edit',
+          },
+        }),
+      }),
+    )
+
+    await expect(
+      loadAdminAnimeEditAniSearchEnrichment(
+        42,
+        {
+          anisearch_id: '12345',
+          draft: { title: 'Lookup Title' },
+          protected_fields: ['title'],
+        },
+        'token',
+      ),
+    ).rejects.toMatchObject<ApiError>({
+      status: 409,
+      message: 'AniSearch Quelle ist bereits verknuepft.',
+      code: 'anisearch_source_conflict',
+      details: '/admin/anime/84/edit',
+    })
   })
 
   it('preserves create AniSearch warning metadata on successful create responses', async () => {
