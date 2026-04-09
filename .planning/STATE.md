@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 11 plan 11-02 executed
-stopped_at: Completed 11-02-PLAN.md
-last_updated: "2026-04-09T12:24:45.701Z"
-last_activity: 2026-04-09 - Executed Phase 11 plan 11-02 and shipped backend AniSearch edit enrichment plus relation persistence
+status: Phase 11 plan 11-03 executed
+stopped_at: Completed 11-03-PLAN.md
+last_updated: "2026-04-09T14:36:36Z"
+last_activity: 2026-04-09 - Executed Phase 11 plan 11-03 and shipped frontend AniSearch edit enrichment in the admin edit workspace
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 16
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 11 backend AniSearch enrichment complete - ready for edit-route frontend integration
+**Current focus:** Phase 11 AniSearch edit enrichment is complete across backend and frontend - remaining follow-up is warning presentation and next-phase planning
 
 ## Current Position
 
-Phase: 11 (anisearch-edit-enrichment-and-relation-persistence) - IN PROGRESS
-Plan: 11-02 completed, 11-03 next
+Phase: 11 (anisearch-edit-enrichment-and-relation-persistence) - COMPLETE
+Plan: 11-03 completed
 
 ## Accumulated Context
 
@@ -55,10 +55,11 @@ Recent durable decisions:
 - [Phase 11]: Plan 11-02 should implement against a reserved 501 route plus red regression tests rather than inferring partial runtime behavior.
 - [Phase 11-anisearch-edit-enrichment-and-relation-persistence]: Edit AniSearch enrichment reuses shared fetch/relation resolution through LoadAniSearchDraft instead of duplicating crawler logic in handlers.
 - [Phase 11-anisearch-edit-enrichment-and-relation-persistence]: AniSearch provenance persists through the schema-aware V2 PATCH writer (source and folder_name) while edit enrichment stays draft-first.
+- [Phase 11]: Edit AniSearch provenance now flows through the existing patch state so source and folder_name persist only on explicit save.
+- [Phase 11]: AniSearch auto-applied relation feedback refreshes the existing relations section by remounting it from the page shell instead of duplicating relation state.
 
 ### Pending Todos
 
-- Implement Plan 11-03 frontend AniSearch edit UI against the live `POST /api/v1/admin/anime/:id/enrichment/anisearch` backend contract.
 - Surface create-time AniSearch warning summaries in the admin UI where successful relation follow-through is partial.
 - Decide later whether the old manual-vs-Jellyfin entry-choice page should be restored or formally retired.
 
@@ -71,7 +72,7 @@ Recent durable decisions:
 ### Blockers/Concerns
 
 - Cross-AI review remains unavailable until an independent reviewer CLI is installed.
-- Phase 11 backend is complete, but the frontend edit AniSearch API hook/component and create/edit warning presentation still need Plan 11-03.
+- Create-time AniSearch warning presentation is still pending despite Phase 11 completion.
 
 ### Performance Metrics
 
@@ -79,6 +80,7 @@ Recent durable decisions:
 |---|---|---|---|---|
 | 11 | 01 | 24min | 2 | 13 |
 | Phase 11-anisearch-edit-enrichment-and-relation-persistence P02 | 17min | 2 tasks | 11 files |
+| Phase 11-anisearch-edit-enrichment-and-relation-persistence P03 | 9min | 2 tasks | 16 files |
 
 ### Quick Tasks Completed
 
@@ -89,7 +91,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-09T12:24:45.696Z
-Stopped at: Completed 11-02-PLAN.md
-Last activity: 2026-04-09 - Executed Phase 11 plan 11-02 and shipped backend AniSearch edit enrichment plus relation persistence
-Resume file: .planning/phases/11-anisearch-edit-enrichment-and-relation-persistence/11-02-SUMMARY.md
+Last session: 2026-04-09T14:36:36Z
+Stopped at: Completed 11-03-PLAN.md
+Last activity: 2026-04-09 - Executed Phase 11 plan 11-03 and shipped frontend AniSearch edit enrichment in the admin edit workspace
+Resume file: .planning/phases/11-anisearch-edit-enrichment-and-relation-persistence/11-03-SUMMARY.md
