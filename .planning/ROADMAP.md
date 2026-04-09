@@ -16,7 +16,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 8: Replace/Delete Cleanup And Operator UX** - Finish anime asset replace and delete cleanup semantics and the operator-facing lifecycle controls.
 - [x] **Phase 9: Controlled AniSearch ID enrichment before create with fill-only Jellysync follow-up** - Add guarded create-time AniSearch enrichment before persistence without breaking manual authority.
 - [ ] **Phase 10: Create Tags And Metadata Card Refactor** - Add normalized tags to anime create and refactor create metadata UI into a maintainable card-based structure.
-- [x] **Phase 11: AniSearch Edit Enrichment And Relation Persistence** - Add AniSearch enrichment to the edit route and persist AniSearch relations once create metadata is stable. (completed 2026-04-09)
+- [ ] **Phase 11: AniSearch Edit Enrichment And Relation Persistence** - Add AniSearch enrichment to the edit route and persist AniSearch relations once create metadata is stable. (executed 2026-04-09; gap closure pending for edit conflict redirect metadata and create warning surfacing)
 
 ## Phase Details
 
@@ -95,12 +95,14 @@ Plans:
 **Depends on**: Phase 10
 **Requirements**: ENR-06, ENR-07, ENR-08, ENR-09, ENR-10
 **Wave 0 contract decisions**: Duplicate edit AniSearch IDs return `409` with redirect metadata, and persisted AniSearch provenance continues through the normal PATCH save seam as `source='anisearch:{id}'`.
-**Status**: Complete on 2026-04-09; backend and frontend AniSearch edit enrichment plus relation persistence are shipped
-**Plans**: 3 plans
+**Status**: Executed on 2026-04-09; verification on 2026-04-09 found targeted frontend gap closure for ENR-08 and ENR-10
+**Plans**: 5 plans
 Plans:
 - [x] `11-01-PLAN.md` - Formalize Phase 11 requirement mapping, Wave 0 decisions, and shared AniSearch contract/test scaffolds.
 - [x] `11-02-PLAN.md` - Implement backend edit AniSearch enrichment, idempotent relation apply, and persisted create-time relation follow-through.
 - [x] `11-03-PLAN.md` - Integrate edit-route AniSearch UI and shared frontend helpers against the approved Phase 11 UI contract.
+- [ ] `11-04-PLAN.md` - Parse and surface edit-route AniSearch duplicate redirect metadata through the shared helper and edit workspace.
+- [ ] `11-05-PLAN.md` - Align create AniSearch summary contracts and surface follow-through warnings before redirect.
 **Success Criteria** (what must be TRUE):
   1. Admin can open an existing anime in the edit route, enter an AniSearch ID, click Load, and have metadata fields updated from AniSearch while preserving explicit field protections.
   2. Relations resolved from AniSearch during anime create are persisted to the `anime_relations` table instead of remaining draft-only data.
