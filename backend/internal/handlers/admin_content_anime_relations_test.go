@@ -165,6 +165,8 @@ type relationRepoStub struct {
 	createErr        error
 	updateErr        error
 	deleteErr        error
+	applyResult      repository.AdminAnimeEnrichmentRelationApplyResult
+	applyErr         error
 	createdSourceID  int64
 	createdTargetID  int64
 	createdLabel     string
@@ -201,6 +203,15 @@ func (s *relationRepoStub) DeleteAdminAnimeRelation(ctx context.Context, sourceA
 	s.deletedSourceID = sourceAnimeID
 	s.deletedTargetID = targetAnimeID
 	return s.deleteErr
+}
+
+func (s *relationRepoStub) ApplyAdminAnimeEnrichmentRelations(ctx context.Context, sourceAnimeID int64, relations []models.AdminAnimeRelation) error {
+	_, err := s.ApplyAdminAnimeEnrichmentRelationsDetailed(ctx, sourceAnimeID, relations)
+	return err
+}
+
+func (s *relationRepoStub) ApplyAdminAnimeEnrichmentRelationsDetailed(ctx context.Context, sourceAnimeID int64, relations []models.AdminAnimeRelation) (repository.AdminAnimeEnrichmentRelationApplyResult, error) {
+	return s.applyResult, s.applyErr
 }
 
 var _ adminContentRelationRepository = (*relationRepoStub)(nil)

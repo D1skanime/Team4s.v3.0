@@ -270,10 +270,11 @@ type AdminAnimeDeleteResult struct {
 }
 
 type AdminAnimeCreateAniSearchSummary struct {
-	Source             *string `json:"source,omitempty"`
-	RelationCandidates int32   `json:"relation_candidates"`
-	RelationApplied    int32   `json:"relation_applied"`
-	Warning            *string `json:"warning,omitempty"`
+	Source                   *string  `json:"source,omitempty"`
+	RelationsAttempted       int32    `json:"relations_attempted"`
+	RelationsApplied         int32    `json:"relations_applied"`
+	RelationsSkippedExisting int32    `json:"relations_skipped_existing"`
+	Warnings                 []string `json:"warnings,omitempty"`
 }
 
 type AdminAnimeUpsertResponse struct {

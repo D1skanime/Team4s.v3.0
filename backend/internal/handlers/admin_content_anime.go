@@ -11,6 +11,7 @@ import (
 
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,7 +43,8 @@ func (h *AdminContentHandler) CreateAnime(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": item})
+	aniSearchSummary := h.applyAniSearchCreateFollowThrough(c, item.ID, req.Source, req.Relations)
+	c.JSON(http.StatusCreated, buildAdminAnimeUpsertResponse(item, aniSearchSummary))
 }
 
 func (h *AdminContentHandler) UpdateAnime(c *gin.Context) {
@@ -84,6 +86,49 @@ func (h *AdminContentHandler) UpdateAnime(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": item})
+}
+
+func (h *AdminContentHandler) applyAniSearchCreateFollowThrough(
+	c *gin.Context,
+	animeID int64,
+	source *string,
+	relations []models.AdminAnimeRelation,
+) *models.AdminAnimeCreateAniSearchSummary {
+	normalizedSource := normalizeNullableString(source)
+	if normalizedSource == nil || !strings.HasPrefix(*normalizedSource, "anisearch:") {
+		return nil
+	}
+
+	attempted := len(relations)
+	if attempted == 0 {
+		return services.BuildAdminAnimeCreateAniSearchSummary(normalizedSource, 0, 0, 0, nil)
+	}
+
+	if h == nil || h.relationRepo == nil {
+		return services.BuildAdminAnimeCreateAniSearchSummary(normalizedSource, attempted, 0, 0, []string{"relation follow-through failed"})
+	}
+
+	result, err := h.relationRepo.ApplyAdminAnimeEnrichmentRelationsDetailed(c.Request.Context(), animeID, relations)
+	if err != nil {
+		log.Printf("admin_content create_anime: anisearch relation follow-through failed (anime_id=%d): %v", animeID, err)
+		return services.BuildAdminAnimeCreateAniSearchSummary(normalizedSource, attempted, result.Applied, result.SkippedExisting, []string{"relation follow-through failed"})
+	}
+
+	return services.BuildAdminAnimeCreateAniSearchSummary(normalizedSource, result.Attempted, result.Applied, result.SkippedExisting, nil)
+}
+
+func buildAdminAnimeUpsertResponse(
+	item *models.AdminAnimeItem,
+	aniSearchSummary *models.AdminAnimeCreateAniSearchSummary,
+) models.AdminAnimeUpsertResponse {
+	if item == nil {
+		return models.AdminAnimeUpsertResponse{}
+	}
+
+	return models.AdminAnimeUpsertResponse{
+		Data:      *item,
+		AniSearch: aniSearchSummary,
+	}
 }
 
 func (h *AdminContentHandler) DeleteAnime(c *gin.Context) {

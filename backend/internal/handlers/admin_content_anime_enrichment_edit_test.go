@@ -80,7 +80,7 @@ func TestLoadAnimeAniSearchEnrichment_ReturnsConflictRedirectForDuplicateSource(
 	}
 }
 
-func TestLoadAnimeAniSearchEnrichment_SerializesAppliedRelationSummary(t *testing.T) {
+func TestLoadAnimeAniSearchEditEnrichment_SerializesAppliedSummary(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	handler := &AdminContentHandler{

@@ -48,14 +48,10 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 		return models.AdminAnimeCreateInput{}, "folder_name erfordert source"
 	}
 	if source != nil {
-		if !strings.HasPrefix(*source, "jellyfin:") {
+		normalizedSource, ok := normalizeAdminAnimeSource(*source)
+		if !ok {
 			return models.AdminAnimeCreateInput{}, "ungueltiger source parameter"
 		}
-		seriesID := strings.TrimSpace(strings.TrimPrefix(*source, "jellyfin:"))
-		if seriesID == "" {
-			return models.AdminAnimeCreateInput{}, "ungueltiger source parameter"
-		}
-		normalizedSource := "jellyfin:" + seriesID
 		source = &normalizedSource
 	}
 
@@ -151,6 +147,21 @@ func validateAdminAnimePatchRequest(req models.AdminAnimePatchInput) (models.Adm
 	if req.CoverImage.Set {
 		req.CoverImage.Value = normalizeNullableString(req.CoverImage.Value)
 	}
+	if req.Source.Set {
+		if req.Source.Value != nil {
+			normalizedSource, ok := normalizeAdminAnimeSource(*req.Source.Value)
+			if !ok {
+				return models.AdminAnimePatchInput{}, "ungueltiger source parameter"
+			}
+			req.Source.Value = &normalizedSource
+		}
+	}
+	if req.FolderName.Set {
+		req.FolderName.Value = normalizeNullableString(req.FolderName.Value)
+		if req.FolderName.Value != nil && !req.Source.Set {
+			return models.AdminAnimePatchInput{}, "folder_name erfordert source"
+		}
+	}
 
 	return req, ""
 }
@@ -167,5 +178,27 @@ func hasAnyAdminAnimePatchField(req models.AdminAnimePatchInput) bool {
 		req.Genre.Set ||
 		req.Tags.Set ||
 		req.Description.Set ||
-		req.CoverImage.Set
+		req.CoverImage.Set ||
+		req.Source.Set ||
+		req.FolderName.Set
+}
+
+func normalizeAdminAnimeSource(raw string) (string, bool) {
+	trimmed := strings.TrimSpace(raw)
+	switch {
+	case strings.HasPrefix(trimmed, "jellyfin:"):
+		seriesID := strings.TrimSpace(strings.TrimPrefix(trimmed, "jellyfin:"))
+		if seriesID == "" {
+			return "", false
+		}
+		return "jellyfin:" + seriesID, true
+	case strings.HasPrefix(trimmed, "anisearch:"):
+		aniSearchID := strings.TrimSpace(strings.TrimPrefix(trimmed, "anisearch:"))
+		if aniSearchID == "" {
+			return "", false
+		}
+		return "anisearch:" + aniSearchID, true
+	default:
+		return "", false
+	}
 }

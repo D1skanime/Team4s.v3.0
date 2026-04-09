@@ -213,6 +213,76 @@ func (r *AdminContentRepository) CreateAdminAnimeRelation(
 	return nil
 }
 
+type AdminAnimeEnrichmentRelationApplyResult struct {
+	Attempted       int
+	Applied         int
+	SkippedExisting int
+}
+
+func (r *AdminContentRepository) ApplyAdminAnimeEnrichmentRelations(
+	ctx context.Context,
+	sourceAnimeID int64,
+	relations []models.AdminAnimeRelation,
+) error {
+	_, err := r.ApplyAdminAnimeEnrichmentRelationsDetailed(ctx, sourceAnimeID, relations)
+	return err
+}
+
+func (r *AdminContentRepository) ApplyAdminAnimeEnrichmentRelationsDetailed(
+	ctx context.Context,
+	sourceAnimeID int64,
+	relations []models.AdminAnimeRelation,
+) (AdminAnimeEnrichmentRelationApplyResult, error) {
+	result := AdminAnimeEnrichmentRelationApplyResult{}
+	if sourceAnimeID <= 0 || len(relations) == 0 {
+		return result, nil
+	}
+	if r == nil || r.db == nil {
+		return result, nil
+	}
+
+	deduped := make([]models.AdminAnimeRelation, 0, len(relations))
+	seen := make(map[string]struct{}, len(relations))
+	for _, relation := range relations {
+		dbLabel, ok := mapAdminRelationLabelToDB(relation.RelationLabel)
+		if !ok || relation.TargetAnimeID <= 0 || relation.TargetAnimeID == sourceAnimeID {
+			continue
+		}
+
+		key := fmt.Sprintf("%d:%s", relation.TargetAnimeID, dbLabel)
+		if _, ok := seen[key]; ok {
+			result.Attempted++
+			result.SkippedExisting++
+			continue
+		}
+		seen[key] = struct{}{}
+		deduped = append(deduped, relation)
+	}
+
+	for _, relation := range deduped {
+		dbLabel, _ := mapAdminRelationLabelToDB(relation.RelationLabel)
+		result.Attempted++
+
+		tag, err := r.db.Exec(ctx, `
+			INSERT INTO anime_relations (source_anime_id, target_anime_id, relation_type_id)
+			SELECT $1, $2, rt.id
+			FROM relation_types rt
+			WHERE rt.name = $3
+			ON CONFLICT (source_anime_id, target_anime_id, relation_type_id) DO NOTHING
+		`, sourceAnimeID, relation.TargetAnimeID, dbLabel)
+		if err != nil {
+			return result, fmt.Errorf("apply admin anime enrichment relation %d->%d: %w", sourceAnimeID, relation.TargetAnimeID, err)
+		}
+		if tag.RowsAffected() == 0 {
+			result.SkippedExisting++
+			continue
+		}
+		result.Applied++
+	}
+
+	return result, nil
+}
+
 func (r *AdminContentRepository) UpdateAdminAnimeRelation(
 	ctx context.Context,
 	sourceAnimeID int64,

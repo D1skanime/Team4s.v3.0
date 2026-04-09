@@ -447,6 +447,27 @@ func BuildJellysyncFollowupResult(
 	}
 }
 
+func BuildAdminAnimeCreateAniSearchSummary(
+	source *string,
+	relationsAttempted int,
+	relationsApplied int,
+	relationsSkippedExisting int,
+	warnings []string,
+) *models.AdminAnimeCreateAniSearchSummary {
+	normalizedSource := normalizeStringPtr(derefString(source))
+	if normalizedSource == nil && relationsAttempted == 0 && relationsApplied == 0 && relationsSkippedExisting == 0 && len(warnings) == 0 {
+		return nil
+	}
+
+	return &models.AdminAnimeCreateAniSearchSummary{
+		Source:                   normalizedSource,
+		RelationsAttempted:       int32(relationsAttempted),
+		RelationsApplied:         int32(relationsApplied),
+		RelationsSkippedExisting: int32(relationsSkippedExisting),
+		Warnings:                 appendUniqueStrings(nil, warnings...),
+	}
+}
+
 func buildAdminAnimeEditPath(animeID int64) string {
 	return fmt.Sprintf("/admin/anime/%d/edit", animeID)
 }

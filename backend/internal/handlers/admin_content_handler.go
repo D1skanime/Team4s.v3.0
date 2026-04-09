@@ -28,6 +28,7 @@ type adminAnimeCreateRequest struct {
 	CoverImage  *string  `json:"cover_image"`
 	Source      *string  `json:"source"`
 	FolderName  *string  `json:"folder_name"`
+	Relations   []models.AdminAnimeRelation `json:"relations"`
 }
 
 type adminEpisodeCreateRequest struct {
@@ -44,6 +45,8 @@ type adminContentRelationRepository interface {
 	CreateAdminAnimeRelation(ctx context.Context, sourceAnimeID int64, targetAnimeID int64, relationLabel string) error
 	UpdateAdminAnimeRelation(ctx context.Context, sourceAnimeID int64, targetAnimeID int64, relationLabel string) error
 	DeleteAdminAnimeRelation(ctx context.Context, sourceAnimeID int64, targetAnimeID int64) error
+	ApplyAdminAnimeEnrichmentRelations(ctx context.Context, sourceAnimeID int64, relations []models.AdminAnimeRelation) error
+	ApplyAdminAnimeEnrichmentRelationsDetailed(ctx context.Context, sourceAnimeID int64, relations []models.AdminAnimeRelation) (repository.AdminAnimeEnrichmentRelationApplyResult, error)
 }
 
 type adminRoleChecker interface {
