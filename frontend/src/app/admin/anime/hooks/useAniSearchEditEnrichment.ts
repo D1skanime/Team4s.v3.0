@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
 
-import { loadAdminAnimeEditAniSearchEnrichment } from '@/lib/api'
+import { ApiError, loadAdminAnimeEditAniSearchEnrichment } from '@/lib/api'
 import type {
+  AdminAnimeAniSearchEditConflictResult,
   AdminAnimeAniSearchEditRequest,
   AdminAnimeAniSearchEditResult,
   AdminAnimeEditDraftPayload,
@@ -19,6 +20,12 @@ export interface AniSearchEditResultSummary {
   protectedFieldCount: number
   relationCount: number
   message: string
+}
+
+export interface AniSearchEditFeedbackState {
+  result: AdminAnimeAniSearchEditResult | null
+  conflict: AdminAnimeAniSearchEditConflictResult | null
+  errorMessage: string | null
 }
 
 export interface UseAniSearchEditEnrichmentParams {
@@ -61,6 +68,39 @@ export function formatAniSearchEditResultSummary(
   }
 }
 
+export function createAniSearchEditSuccessState(result: AdminAnimeAniSearchEditResult): AniSearchEditFeedbackState {
+  return {
+    result,
+    conflict: null,
+    errorMessage: null,
+  }
+}
+
+export function createAniSearchEditFailureState(error: unknown): AniSearchEditFeedbackState {
+  if (error instanceof ApiError) {
+    return {
+      result: null,
+      conflict: error.conflict,
+      errorMessage: error.message.trim() || 'AniSearch konnte nicht geladen werden.',
+    }
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return {
+      result: null,
+      conflict: null,
+      errorMessage: error.message,
+    }
+  }
+
+  return {
+    result: null,
+    conflict: null,
+    errorMessage: 'AniSearch konnte nicht geladen werden.',
+  }
+}
+
+
 export function useAniSearchEditEnrichment({
   animeID,
   authToken,
@@ -71,6 +111,8 @@ export function useAniSearchEditEnrichment({
   const [protectedFields, setProtectedFields] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<AdminAnimeAniSearchEditResult | null>(null)
+  const [conflict, setConflict] = useState<AdminAnimeAniSearchEditConflictResult | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const summary = useMemo(() => (result ? formatAniSearchEditResultSummary(result) : null), [result])
 
@@ -92,13 +134,24 @@ export function useAniSearchEditEnrichment({
       })
 
       setIsLoading(true)
+      setConflict(null)
+      setErrorMessage(null)
       onRequest?.(JSON.stringify(payload, null, 2))
 
       try {
         const response = await loadAdminAnimeEditAniSearchEnrichment(animeID, payload, authToken)
-        setResult(response.data)
+        const successState = createAniSearchEditSuccessState(response.data)
+        setResult(successState.result)
+        setConflict(successState.conflict)
+        setErrorMessage(successState.errorMessage)
         onResponse?.(JSON.stringify(response, null, 2))
         return response.data
+      } catch (error) {
+        const failureState = createAniSearchEditFailureState(error)
+        setResult(failureState.result)
+        setConflict(failureState.conflict)
+        setErrorMessage(failureState.errorMessage)
+        throw error
       } finally {
         setIsLoading(false)
       }
@@ -111,6 +164,8 @@ export function useAniSearchEditEnrichment({
     protectedFields,
     isLoading,
     result,
+    conflict,
+    errorMessage,
     summary,
     setAniSearchID,
     setProtectedFields,

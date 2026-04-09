@@ -1,5 +1,6 @@
 import {
   AdminAnimeAniSearchEditRequest,
+  AdminAnimeAniSearchEditConflictResult,
   AdminAnimeAniSearchEditResult,
   AdminAnimeRelationCreateRequest,
   AdminAnimeRelationTargetsResponse,
@@ -141,6 +142,7 @@ export class ApiError extends Error {
   retryAfterSeconds: number | null
   code: string | null
   details: string | null
+  conflict: AdminAnimeAniSearchEditConflictResult | null
 
   constructor(
     status: number,
@@ -148,12 +150,14 @@ export class ApiError extends Error {
     retryAfterSeconds: number | null = null,
     code: string | null = null,
     details: string | null = null,
+    conflict: AdminAnimeAniSearchEditConflictResult | null = null,
   ) {
     super(message)
     this.status = status
     this.retryAfterSeconds = retryAfterSeconds
     this.code = code
     this.details = details
+    this.conflict = conflict
   }
 }
 
@@ -374,6 +378,38 @@ function parsePayloadApiError(payload: unknown, fallback: string): ParsedApiErro
   const details = typeof error?.details === 'string' && error.details.trim() ? error.details : null
 
   return { message, code, details }
+}
+
+function parseAniSearchEditConflictPayload(payload: unknown): AdminAnimeAniSearchEditConflictResult | null {
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+
+  const data = (payload as { data?: Record<string, unknown> }).data
+  if (!data || typeof data !== 'object') {
+    return null
+  }
+
+  if (data.mode !== 'conflict') {
+    return null
+  }
+
+  if (
+    typeof data.anisearch_id !== 'string' ||
+    typeof data.existing_anime_id !== 'number' ||
+    typeof data.existing_title !== 'string' ||
+    typeof data.redirect_path !== 'string'
+  ) {
+    return null
+  }
+
+  return {
+    mode: 'conflict',
+    anisearch_id: data.anisearch_id,
+    existing_anime_id: data.existing_anime_id,
+    existing_title: data.existing_title,
+    redirect_path: data.redirect_path,
+  }
 }
 
 export function getRuntimeAuthToken(): string {
@@ -1240,8 +1276,10 @@ export async function loadAdminAnimeEditAniSearchEnrichment(
   })
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const body = (await response.json().catch(() => null)) as unknown
+    const parsed = parsePayloadApiError(body, `API request failed: ${response.status}`)
+    const conflict = response.status === 409 ? parseAniSearchEditConflictPayload(body) : null
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details, conflict)
   }
 
   return response.json() as Promise<{ data: AdminAnimeAniSearchEditResult }>
