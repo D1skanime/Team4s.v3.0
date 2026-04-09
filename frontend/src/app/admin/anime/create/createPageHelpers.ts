@@ -78,7 +78,7 @@ export async function createManualAnimeAndRedirect(
     createAdminAnime: (
       payload: AdminAnimeCreateRequest,
       authToken?: string,
-    ) => Promise<{ data: { id: number } }>;
+    ) => Promise<Pick<AdminAnimeUpsertResponse, "data" | "anisearch">>;
     setLocationHref: (value: string) => void;
     authToken?: string;
   },
