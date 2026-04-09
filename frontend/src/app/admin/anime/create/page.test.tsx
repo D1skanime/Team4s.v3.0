@@ -59,13 +59,13 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).not.toContain("Anime wird erstellt...");
   });
 
-  it("renders title-adjacent Jellyfin and AniSearch actions with disabled-until-meaningful-title guidance", () => {
+  it("renders only the reachable title action and title guidance on create", () => {
     const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
 
     expect(markup).toContain("Jellyfin suchen");
-    expect(markup).toContain("AniSearch spaeter");
+    expect(markup).not.toContain("AniSearch spaeter");
     expect(markup).toContain(
-      "Gib zuerst einen aussagekraeftigen Anime-Titel ein. AniSearch Sync kommt in Phase 4.",
+      "Gib zuerst einen aussagekraeftigen Anime-Titel ein, damit Jellyfin suchen kann.",
     );
     expect(markup).not.toContain("Aus Datei hochladen");
     expect(markup).not.toContain("anime ID");
@@ -74,9 +74,12 @@ describe("AdminAnimeCreatePage", () => {
     expect(resolveSourceActionState("Naruto").canSync).toBe(true);
   });
 
-  it("keeps AniSearch in placeholder mode for phase 3", () => {
+  it("describes the reachable Jellyfin title action without promising AniSearch on create", () => {
     expect(resolveSourceActionState("Naruto").helperText).toContain(
-      "AniSearch Sync kommt in Phase 4.",
+      "Jellyfin nutzt den aktuellen Titel als Suchanfrage.",
+    );
+    expect(resolveSourceActionState("Naruto").helperText).not.toContain(
+      "AniSearch",
     );
   });
 
