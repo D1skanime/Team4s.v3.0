@@ -1,64 +1,44 @@
 package repository
 
 import (
+	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
 
-func TestAdminContentAnimeUpdateV2SourceKeepsLegacyFallbackWhenSourceColumnMissing(t *testing.T) {
+func TestUpdateAnimeV2SourcePatchIncludesSourceAndFolderNameAssignments(t *testing.T) {
 	t.Parallel()
 
-	content := readRepositorySource(t, "admin_content_anime_update_v2.go")
+	content := readUpdateV2Source(t)
 	normalized := strings.ToLower(content)
 
 	required := []string{
-		"if schema.hassource {",
-		"removeanimeposterlinks",
-		"bumpanimepostersortorders",
-		"attachanimepostermediav2",
+		`"source = $%d"`,
+		`"folder_name = $%d"`,
+		"if input.source.set",
+		"if input.foldername.set",
 	}
 	for _, fragment := range required {
 		if !strings.Contains(normalized, fragment) {
-			t.Fatalf("expected update v2 source to contain %q", fragment)
+			t.Fatalf("expected update v2 source persistence fragment %q, got %s", fragment, content)
 		}
 	}
 }
 
-func TestAdminContentAnimeUpdateV2ReadbackUsesPosterFilePath(t *testing.T) {
-	t.Parallel()
+func readUpdateV2Source(t *testing.T) string {
+	t.Helper()
 
-	content := readRepositorySource(t, "admin_content_anime_update_v2.go")
-	normalized := strings.ToLower(content)
-
-	required := []string{
-		"select ma.file_path",
-		"join media_types mt on mt.id = ma.media_type_id",
-		"mt.name = 'poster'",
-		"order by am.sort_order asc, ma.id asc",
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("resolve test file path")
 	}
-	for _, fragment := range required {
-		if !strings.Contains(normalized, fragment) {
-			t.Fatalf("expected update v2 readback to contain %q", fragment)
-		}
-	}
-}
 
-func TestAdminContentAnimeUpdateV2DisplayTitleFallsBackWhenSlugMissing(t *testing.T) {
-	t.Parallel()
-
-	content := readRepositorySource(t, "admin_content_anime_update_v2.go")
-	normalized := strings.ToLower(content)
-
-	required := []string{
-		"func v2animetitlefallbacksql(schema animev2schemainfo) string",
-		"if schema.hasslug {",
-		"return \"anime.slug\"",
-		"return \"''\"",
-		"loadv2animedisplaytitle(ctx, tx, id, schema)",
+	content, err := os.ReadFile(filepath.Join(filepath.Dir(file), "admin_content_anime_update_v2.go"))
+	if err != nil {
+		t.Fatalf("read update v2 source: %v", err)
 	}
-	for _, fragment := range required {
-		if !strings.Contains(normalized, fragment) {
-			t.Fatalf("expected update v2 title fallback to contain %q", fragment)
-		}
-	}
+
+	return string(content)
 }

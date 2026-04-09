@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func TestLoadAnimeAniSearchEnrichment_ReturnsDraftSuccessContract(t *testing.T) {
+func TestLoadAnimeAniSearchEditEnrichment_ReturnsDraftSuccessContract(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	handler := &AdminContentHandler{
@@ -52,7 +52,7 @@ func TestLoadAnimeAniSearchEnrichment_ReturnsDraftSuccessContract(t *testing.T) 
 	}
 }
 
-func TestLoadAnimeAniSearchEnrichment_ReturnsConflictRedirectForDuplicateSource(t *testing.T) {
+func TestLoadAnimeAniSearchEditEnrichment_ReturnsConflictRedirectForDuplicateSource(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	handler := &AdminContentHandler{
