@@ -90,7 +90,6 @@ export function AnimeEditWorkspace({
   const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false)
   const [activeGenreIndex, setActiveGenreIndex] = useState(-1)
   const [genreSearchVersion, setGenreSearchVersion] = useState(0)
-  const [aniSearchError, setAniSearchError] = useState<string | null>(null)
   const aniSearch = useAniSearchEditEnrichment({
     animeID: anime.id,
     authToken,
@@ -104,7 +103,6 @@ export function AnimeEditWorkspace({
     setGenreError(null)
     setIsGenreDropdownOpen(false)
     setActiveGenreIndex(-1)
-    setAniSearchError(null)
   }, [anime, resetFromAnime])
 
   useEffect(() => {
@@ -229,8 +227,6 @@ export function AnimeEditWorkspace({
   }
 
   async function handleAniSearchSubmit() {
-    setAniSearchError(null)
-
     try {
       const result = await aniSearch.runEnrichment(buildEditDraftPayload(anime, patch))
       const hydratedDraft = hydrateManualDraftFromAniSearchDraft(
@@ -289,15 +285,7 @@ export function AnimeEditWorkspace({
       if (result.relations_applied > 0 || result.relations_skipped_existing > 0) {
         onRelationsChanged?.()
       }
-    } catch (error) {
-      if (error instanceof Error && error.message.trim()) {
-        setAniSearchError(error.message)
-      } else {
-        setAniSearchError(
-          'AniSearch konnte nicht geladen werden. Pruefe die ID oder versuche es spaeter erneut. Dein aktueller Entwurf bleibt unveraendert.',
-        )
-      }
-    }
+    } catch {}
   }
 
   return (
@@ -362,8 +350,9 @@ export function AnimeEditWorkspace({
         anisearchID={aniSearch.anisearchID}
         protectedFields={aniSearch.protectedFields}
         isLoading={aniSearch.isLoading}
-        statusMessage={aniSearchError ? null : aniSearch.summary?.message || null}
-        errorMessage={aniSearchError}
+        conflictResult={aniSearch.conflict}
+        statusMessage={aniSearch.conflict || aniSearch.errorMessage ? null : aniSearch.summary?.message || null}
+        errorMessage={aniSearch.conflict ? null : aniSearch.errorMessage}
         onAniSearchIDChange={aniSearch.setAniSearchID}
         onProtectedFieldsChange={aniSearch.setProtectedFields}
         onSubmit={() => void handleAniSearchSubmit()}

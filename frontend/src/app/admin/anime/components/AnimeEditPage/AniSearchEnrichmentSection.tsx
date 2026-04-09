@@ -1,5 +1,7 @@
 'use client'
 
+import type { AdminAnimeAniSearchEditConflictResult } from '@/types/admin'
+
 import styles from '../../AdminStudio.module.css'
 import workspaceStyles from './AnimeEditWorkspace.module.css'
 
@@ -17,6 +19,7 @@ interface AniSearchEnrichmentSectionProps {
   anisearchID: string
   protectedFields: string[]
   isLoading?: boolean
+  conflictResult?: AdminAnimeAniSearchEditConflictResult | null
   statusMessage?: string | null
   errorMessage?: string | null
   onAniSearchIDChange: (value: string) => void
@@ -28,6 +31,7 @@ export function AniSearchEnrichmentSection({
   anisearchID,
   protectedFields,
   isLoading = false,
+  conflictResult = null,
   statusMessage,
   errorMessage,
   onAniSearchIDChange,
@@ -105,7 +109,16 @@ export function AniSearchEnrichmentSection({
       </fieldset>
 
       <div id={statusID} className={workspaceStyles.aniSearchStatus} aria-live="polite">
-        {errorMessage ? (
+        {conflictResult ? (
+          <div>
+            <p className={workspaceStyles.statusNote}>
+              AniSearch ID {conflictResult.anisearch_id} ist bereits mit {conflictResult.existing_title} verknuepft.
+            </p>
+            <a href={conflictResult.redirect_path} className={`${styles.button} ${styles.buttonSecondary}`}>
+              Zum vorhandenen Anime wechseln
+            </a>
+          </div>
+        ) : errorMessage ? (
           <p className={styles.errorBox}>{errorMessage}</p>
         ) : statusMessage ? (
           <p className={workspaceStyles.statusNote}>{statusMessage}</p>
