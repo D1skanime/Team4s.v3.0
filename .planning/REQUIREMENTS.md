@@ -35,6 +35,14 @@
 - [ ] **ENR-04**: Create-time merge priority is strict `manual > AniSearch > Jellysync`, including fill-only handling for metadata and media.
 - [ ] **ENR-05**: AniSearch relation import writes only locally resolvable approved relations, skips unresolved relations, and leaves the draft usable when enrichment fails.
 
+### Edit-Time AniSearch Enrichment
+
+- [ ] **ENR-06**: Admin can load AniSearch enrichment from `/admin/anime/[id]/edit` by entering an explicit AniSearch ID, receive the next draft state first, and still save through the existing edit PATCH flow.
+- [ ] **ENR-07**: Edit-route AniSearch enrichment runs in override mode with explicit protected fields; protected fields stay untouched, and provisional lookup text used only for candidate search is replaceable until the operator explicitly locks it.
+- [ ] **ENR-08**: If an AniSearch ID already belongs to a different local anime during edit enrichment, the endpoint returns a conflict with redirect metadata instead of silently reassigning provenance.
+- [ ] **ENR-09**: AniSearch enrichment on edit auto-applies only approved, locally resolvable relations to `anime_relations`, using `anisearch:{id}` lookup first and title fallback second, without duplicating existing rows.
+- [ ] **ENR-10**: Create and edit flows persist AniSearch provenance as `source='anisearch:{id}'`, and create persists resolved AniSearch relations best-effort after anime creation with operator-visible warning metadata when relation follow-through fails.
+
 ### Create Tags And Metadata Refactor
 
 - [ ] **TAG-01**: Normalized `tags` and `anime_tags` tables exist and anime tag links are created, updated, and deleted through the same authoritative persistence path as genres.
@@ -83,6 +91,11 @@
 | ENR-03 | Phase 9 | Pending |
 | ENR-04 | Phase 9 | Pending |
 | ENR-05 | Phase 9 | Pending |
+| ENR-06 | Phase 11 | Pending |
+| ENR-07 | Phase 11 | Pending |
+| ENR-08 | Phase 11 | Pending |
+| ENR-09 | Phase 11 | Pending |
+| ENR-10 | Phase 11 | Pending |
 | TAG-01 | Phase 10 | Pending |
 | TAG-02 | Phase 10 | Pending |
 | TAG-03 | Phase 10 | Pending |
@@ -90,8 +103,8 @@
 | TAG-05 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 23 total
-- Mapped to phases: 23
+- v1 requirements: 28 total
+- Mapped to phases: 28
 - Unmapped: 0
 
 ---

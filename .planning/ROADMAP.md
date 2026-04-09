@@ -93,7 +93,12 @@ Plans:
 ### Phase 11: AniSearch Edit Enrichment And Relation Persistence
 **Goal**: Admins can run AniSearch enrichment from the edit route to update existing anime metadata, and relations scraped by AniSearch are written to the database on anime create.
 **Depends on**: Phase 10
-**Requirements**: Requirement extension needed for edit-route AniSearch enrichment and persisted create-time relation follow-through
+**Requirements**: ENR-06, ENR-07, ENR-08, ENR-09, ENR-10
+**Plans**: 3 plans
+Plans:
+- [ ] `11-01-PLAN.md` - Formalize Phase 11 requirement mapping, Wave 0 decisions, and shared AniSearch contract/test scaffolds.
+- [ ] `11-02-PLAN.md` - Implement backend edit AniSearch enrichment, idempotent relation apply, and persisted create-time relation follow-through.
+- [ ] `11-03-PLAN.md` - Integrate edit-route AniSearch UI and shared frontend helpers against the approved Phase 11 UI contract.
 **Success Criteria** (what must be TRUE):
   1. Admin can open an existing anime in the edit route, enter an AniSearch ID, click Load, and have metadata fields updated from AniSearch while preserving explicit field protections.
   2. Relations resolved from AniSearch during anime create are persisted to the `anime_relations` table instead of remaining draft-only data.
