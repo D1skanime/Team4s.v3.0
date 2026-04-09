@@ -36,6 +36,16 @@ describe('AdminAnimeEditPage load error formatting', () => {
     expect(source.indexOf('AnimeEditWorkspace')).toBeLessThan(source.indexOf('AnimeRelationsSection'))
   })
 
+  it('inserts the AniSearch enrichment section inside the workspace before title fields', () => {
+    const currentDir = path.dirname(fileURLToPath(import.meta.url))
+    const source = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeEditWorkspace.tsx'), 'utf8')
+    const sectionUsageIndex = source.lastIndexOf('AniSearchEnrichmentSection')
+
+    expect(source).toContain('AniSearchEnrichmentSection')
+    expect(sectionUsageIndex).toBeGreaterThan(source.indexOf('Basisdaten'))
+    expect(sectionUsageIndex).toBeLessThan(source.indexOf('Titel und Struktur'))
+  })
+
   it('documents the generic V2 upload seam instead of the legacy public covers path in the edit asset UI', () => {
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
     const source = readFileSync(path.join(currentDir, '../../components/AnimePatchForm/AnimeCoverField.tsx'), 'utf8')
@@ -49,8 +59,7 @@ describe('AdminAnimeEditPage load error formatting', () => {
     const controlsSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeJellyfinAssetUploadControls.tsx'), 'utf8')
     const configSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/animeJellyfinAssetUpload.ts'), 'utf8')
 
-    expect(controlsSource).toContain('EDIT_UPLOAD_TARGETS.logo.buttonLabel')
-    expect(controlsSource).toContain('EDIT_UPLOAD_TARGETS.background_video.buttonLabel')
+    expect(controlsSource).toContain('EDIT_UPLOAD_TARGETS[target].buttonLabel')
     expect(configSource).toContain('Logo hochladen')
     expect(configSource).toContain('Background-Video hochladen')
   })
@@ -61,7 +70,7 @@ describe('AdminAnimeEditPage load error formatting', () => {
     const controlsSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeJellyfinAssetUploadControls.tsx'), 'utf8')
 
     expect(metadataSource).toContain('AnimeJellyfinAssetUploadControls')
-    expect(controlsSource).toContain('manuell ersetzt')
+    expect(controlsSource).toContain('formatOwnershipLabel(asset.ownership)')
     expect(metadataSource).not.toContain('provider-only')
     expect(controlsSource).not.toContain('provider-only')
   })

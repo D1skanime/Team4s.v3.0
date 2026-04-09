@@ -117,6 +117,8 @@ function buildAnimePatchPayload(values: AnimePatchValues, clearFlags: AnimePatch
   const genre = normalizeOptionalString(values.genreTokens.join(', '))
   const description = normalizeOptionalString(values.description)
   const coverImage = normalizeOptionalString(values.coverImage)
+  const source = normalizeOptionalString(values.source)
+  const folderName = normalizeOptionalString(values.folderName)
 
   if (clearFlags.titleDE) payload.title_de = null
   else if (titleDE) payload.title_de = titleDE
@@ -132,6 +134,9 @@ function buildAnimePatchPayload(values: AnimePatchValues, clearFlags: AnimePatch
 
   if (clearFlags.coverImage) payload.cover_image = null
   else if (coverImage) payload.cover_image = coverImage
+
+  if (source) payload.source = source
+  if (folderName) payload.folder_name = folderName
 
   if (Object.keys(payload).length === 0) {
     onError('Mindestens ein Feld fuer das Update ausfuellen.')
@@ -230,4 +235,3 @@ export function useAnimePatchMutations({
     uploadAndSetCover,
   }
 }
-

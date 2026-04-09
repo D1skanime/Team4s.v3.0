@@ -3,14 +3,17 @@
 import { KeyboardEvent, useEffect, useRef, useState } from 'react'
 
 import { getAdminGenreTokens } from '@/lib/api'
+import { AdminAnimeEditDraftPayload, AnimeType } from '@/types/admin'
 import { AnimeDetail, AnimeStatus, ContentType } from '@/types/anime'
-import { AnimeType } from '@/types/admin'
 
+import { useAniSearchEditEnrichment } from '../../hooks/useAniSearchEditEnrichment'
 import { useAnimePatch } from '../../hooks/useAnimePatch'
 import { useAnimeEditor } from '../../hooks/useAnimeEditor'
+import { hydrateManualDraftFromAniSearchDraft } from '../../hooks/useManualAnimeDraft'
 import { resolveAnimeEditorOwnership } from '../../utils/anime-editor-ownership'
 import { AnimeOwnershipBadge } from '../shared/AnimeOwnershipBadge'
 import { AnimeEditorShell } from '../shared/AnimeEditorShell'
+import { AniSearchEnrichmentSection } from './AniSearchEnrichmentSection'
 import { AnimeEditGenreSection } from './AnimeEditGenreSection'
 import styles from '../../AdminStudio.module.css'
 import workspaceStyles from './AnimeEditWorkspace.module.css'
@@ -31,6 +34,25 @@ interface AnimeEditWorkspaceProps {
   onError: (message: string) => void
   onRequest?: (request: string | null) => void
   onResponse?: (response: string | null) => void
+  onRelationsChanged?: () => void
+}
+
+function buildEditDraftPayload(anime: AnimeDetail, patch: ReturnType<typeof useAnimePatch>): AdminAnimeEditDraftPayload {
+  return {
+    title: patch.values.title.trim() || anime.title || null,
+    title_de: patch.values.titleDE.trim() || null,
+    title_en: patch.values.titleEN.trim() || null,
+    type: (patch.values.type.trim() || anime.type || undefined) as AnimeType | undefined,
+    content_type: (patch.values.contentType.trim() || anime.content_type || undefined) as ContentType | undefined,
+    status: (patch.values.status.trim() || anime.status || undefined) as AnimeStatus | undefined,
+    year: patch.values.year.trim() ? Number(patch.values.year) : anime.year ?? null,
+    max_episodes: patch.values.maxEpisodes.trim() ? Number(patch.values.maxEpisodes) : anime.max_episodes ?? null,
+    genre: patch.values.genreTokens.length > 0 ? patch.values.genreTokens.join(', ') : null,
+    description: patch.values.description.trim() || null,
+    cover_image: patch.values.coverImage.trim() || null,
+    source: patch.values.source.trim() || anime.source || null,
+    folder_name: patch.values.folderName.trim() || anime.folder_name || null,
+  }
 }
 
 export function AnimeEditWorkspace({
@@ -40,6 +62,7 @@ export function AnimeEditWorkspace({
   onError,
   onRequest,
   onResponse,
+  onRelationsChanged,
 }: AnimeEditWorkspaceProps) {
   const patch = useAnimePatch(
     authToken,
@@ -67,6 +90,13 @@ export function AnimeEditWorkspace({
   const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false)
   const [activeGenreIndex, setActiveGenreIndex] = useState(-1)
   const [genreSearchVersion, setGenreSearchVersion] = useState(0)
+  const [aniSearchError, setAniSearchError] = useState<string | null>(null)
+  const aniSearch = useAniSearchEditEnrichment({
+    animeID: anime.id,
+    authToken,
+    onRequest,
+    onResponse,
+  })
 
   useEffect(() => {
     resetFromAnime(anime)
@@ -74,6 +104,7 @@ export function AnimeEditWorkspace({
     setGenreError(null)
     setIsGenreDropdownOpen(false)
     setActiveGenreIndex(-1)
+    setAniSearchError(null)
   }, [anime, resetFromAnime])
 
   useEffect(() => {
@@ -197,6 +228,78 @@ export function AnimeEditWorkspace({
     }
   }
 
+  async function handleAniSearchSubmit() {
+    setAniSearchError(null)
+
+    try {
+      const result = await aniSearch.runEnrichment(buildEditDraftPayload(anime, patch))
+      const hydratedDraft = hydrateManualDraftFromAniSearchDraft(
+        {
+          title: patch.values.title,
+          type: (patch.values.type || anime.type) as AnimeType,
+          contentType: (patch.values.contentType || anime.content_type) as ContentType,
+          status: (patch.values.status || anime.status) as AnimeStatus,
+          year: patch.values.year,
+          maxEpisodes: patch.values.maxEpisodes,
+          titleDE: patch.values.titleDE,
+          titleEN: patch.values.titleEN,
+          genreTokens: patch.values.genreTokens,
+          tagTokens: [],
+          description: patch.values.description,
+          coverImage: patch.values.coverImage,
+        },
+        {
+          title: result.draft.title || undefined,
+          title_de: result.draft.title_de || undefined,
+          title_en: result.draft.title_en || undefined,
+          type: result.draft.type,
+          content_type: result.draft.content_type,
+          status: result.draft.status,
+          year: result.draft.year ?? undefined,
+          max_episodes: result.draft.max_episodes ?? undefined,
+          genre: result.draft.genre || undefined,
+          description: result.draft.description || undefined,
+          cover_image: result.draft.cover_image || undefined,
+          source: result.source,
+          folder_name: result.draft.folder_name || undefined,
+        },
+        aniSearch.protectedFields,
+      )
+
+      patch.setField('title', hydratedDraft.title)
+      patch.setField('type', hydratedDraft.type)
+      patch.setField('contentType', hydratedDraft.contentType)
+      patch.setField('status', hydratedDraft.status)
+      patch.setField('year', hydratedDraft.year)
+      patch.setField('maxEpisodes', hydratedDraft.maxEpisodes)
+      patch.setField('titleDE', hydratedDraft.titleDE)
+      patch.setField('titleEN', hydratedDraft.titleEN)
+      patch.setField('genreTokens', hydratedDraft.genreTokens)
+      patch.setField('description', hydratedDraft.description)
+      patch.setField('coverImage', hydratedDraft.coverImage)
+      patch.setField('source', result.source)
+      patch.setField('folderName', result.draft.folder_name || '')
+      patch.setClearFlag('year', false)
+      patch.setClearFlag('maxEpisodes', false)
+      patch.setClearFlag('titleDE', false)
+      patch.setClearFlag('titleEN', false)
+      patch.setClearFlag('genre', false)
+      patch.setClearFlag('description', false)
+
+      if (result.relations_applied > 0 || result.relations_skipped_existing > 0) {
+        onRelationsChanged?.()
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.trim()) {
+        setAniSearchError(error.message)
+      } else {
+        setAniSearchError(
+          'AniSearch konnte nicht geladen werden. Pruefe die ID oder versuche es spaeter erneut. Dein aktueller Entwurf bleibt unveraendert.',
+        )
+      }
+    }
+  }
+
   return (
     <AnimeEditorShell editor={editor} header={<AnimeOwnershipBadge ownership={ownership} />}>
       <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
@@ -254,6 +357,17 @@ export function AnimeEditWorkspace({
           </label>
         </div>
       </section>
+
+      <AniSearchEnrichmentSection
+        anisearchID={aniSearch.anisearchID}
+        protectedFields={aniSearch.protectedFields}
+        isLoading={aniSearch.isLoading}
+        statusMessage={aniSearchError ? null : aniSearch.summary?.message || null}
+        errorMessage={aniSearchError}
+        onAniSearchIDChange={aniSearch.setAniSearchID}
+        onProtectedFieldsChange={aniSearch.setProtectedFields}
+        onSubmit={() => void handleAniSearchSubmit()}
+      />
 
       <section className={`${styles.card} ${workspaceStyles.sectionCard}`}>
         <div className={styles.sectionHeader}>

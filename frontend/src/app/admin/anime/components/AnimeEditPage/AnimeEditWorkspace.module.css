@@ -147,6 +147,93 @@
   align-items: center;
 }
 
+.aniSearchActionRow {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.protectionFieldset {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+  display: grid;
+  gap: 12px;
+}
+
+.protectionFieldset legend {
+  padding: 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.protectionGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.protectionOption {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.protectionOption input {
+  margin: 2px 0 0;
+  accent-color: #ff6a3d;
+}
+
+.protectionOption span {
+  display: grid;
+  gap: 4px;
+}
+
+.protectionOption strong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.protectionOption small {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b6b70;
+}
+
+.aniSearchStatus {
+  display: grid;
+  gap: 8px;
+}
+
+.aniSearchEmptyTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 106, 61, 0.22);
+  background: rgba(255, 106, 61, 0.08);
+  color: #8f341a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .panelHeader {
   display: flex;
   flex-wrap: wrap;
@@ -522,7 +609,9 @@
   .sectionGrid,
   .sectionGridTwo,
   .advancedGrid,
-  .coverLayout {
+  .coverLayout,
+  .protectionGrid,
+  .aniSearchActionRow {
     grid-template-columns: 1fr;
   }
 

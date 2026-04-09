@@ -36,6 +36,7 @@ export default function AdminAnimeEditPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [lastRequest, setLastRequest] = useState<string | null>(null)
   const [lastResponse, setLastResponse] = useState<string | null>(null)
+  const [relationsRefreshToken, setRelationsRefreshToken] = useState(0)
   const [jellyfinContext, setJellyfinContext] = useState<{
     source_kind?: 'manual' | 'jellyfin'
     source?: string
@@ -185,9 +186,11 @@ export default function AdminAnimeEditPage() {
             }}
             onRequest={setLastRequest}
             onResponse={setLastResponse}
+            onRelationsChanged={() => setRelationsRefreshToken((current) => current + 1)}
           />
 
           <AnimeRelationsSection
+            key={relationsRefreshToken}
             animeID={anime.id}
             authToken={authToken}
             onSuccess={(message) => {

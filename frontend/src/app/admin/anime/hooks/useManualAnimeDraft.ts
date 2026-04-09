@@ -131,8 +131,12 @@ export function hydrateManualDraftFromAniSearchDraft(
     type: incoming.type?.trim() ? incoming.type : draft.type,
     contentType: incoming.content_type?.trim() ? incoming.content_type : draft.contentType,
     status: incoming.status?.trim() ? incoming.status : draft.status,
-    year: Number.isFinite(incoming.year) ? String(incoming.year) : draft.year,
-    maxEpisodes: Number.isFinite(incoming.max_episodes) ? String(incoming.max_episodes) : draft.maxEpisodes,
+    year: protectedFieldSet.has('year') ? draft.year : Number.isFinite(incoming.year) ? String(incoming.year) : draft.year,
+    maxEpisodes: protectedFieldSet.has('max_episodes')
+      ? draft.maxEpisodes
+      : Number.isFinite(incoming.max_episodes)
+        ? String(incoming.max_episodes)
+        : draft.maxEpisodes,
     titleDE: protectedFieldSet.has('title_de') ? draft.titleDE : incoming.title_de?.trim() || draft.titleDE,
     titleEN: protectedFieldSet.has('title_en') ? draft.titleEN : incoming.title_en?.trim() || draft.titleEN,
     genreTokens: protectedFieldSet.has('genre')

@@ -37,6 +37,8 @@ export interface AnimePatchValues {
   genreDraft: string
   description: string
   coverImage: string
+  source: string
+  folderName: string
 }
 
 export interface AnimePatchClearFlags {

@@ -38,6 +38,8 @@ const EMPTY_VALUES: AnimePatchValues = {
   genreDraft: '',
   description: '',
   coverImage: '',
+  source: '',
+  folderName: '',
 }
 
 const EMPTY_CLEAR_FLAGS: AnimePatchClearFlags = {
@@ -141,7 +143,9 @@ export function useAnimePatch(
       values.titleEN !== initialValues.titleEN ||
       !areStringArraysEqual(values.genreTokens, initialValues.genreTokens) ||
       values.description !== initialValues.description ||
-      values.coverImage !== initialValues.coverImage
+      values.coverImage !== initialValues.coverImage ||
+      values.source !== initialValues.source ||
+      values.folderName !== initialValues.folderName
     const hasClearFlags = Object.keys(clearFlags).some(
       (key) => clearFlags[key as keyof AnimePatchClearFlags] !== initialClearFlags[key as keyof AnimePatchClearFlags],
     )
@@ -206,6 +210,8 @@ export function useAnimePatch(
       genreDraft: '',
       description: anime.description ?? '',
       coverImage: anime.cover_image ?? '',
+      source: anime.source ?? '',
+      folderName: anime.folder_name ?? '',
     }
     setValues(nextValues)
     setClearFlags(EMPTY_CLEAR_FLAGS)
