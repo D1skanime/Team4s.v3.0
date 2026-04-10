@@ -36,7 +36,7 @@ severity: major
 
 total: 4
 passed: 2
-issues: 2
+issues: 3
 pending: 0
 skipped: 0
 blocked: 0
@@ -55,10 +55,20 @@ blocked: 0
 
 - truth: "AniSearch create enrichment matches relations to anime already present in the Team4s database"
   status: failed
-  reason: "User reported: AniSearch 6123 (11eyes Pink Phantasmagoria) loaded as draft but returned 0 relation matches. 11eyes is already in the database and is listed as a relation on the AniSearch relations page. The backend enrichment endpoint crawls relations but fails to match them against existing DB entries."
+  reason: "User reported: AniSearch 6123 (11eyes Pink Phantasmagoria) loaded as draft but returned 0 relation matches. 11eyes is already in the database and is listed as a relation on the AniSearch relations page. Root cause: mapAniSearchGraphRelation() in anisearch_client.go does not handle incoming 'Sequel' edges. When 11eyes→6123 is a 'Sequel' edge in the graph, parsing from 6123's perspective gives outgoing=false with legend='Sequel', which falls through to the default: return '' case and the relation is dropped. Fix: add case 'Sequel': return 'Hauptgeschichte' to the incoming branch."
   severity: major
   test: 4
   artifacts:
-    - backend/internal/handlers/admin_content_anime_enrichment_create.go
+    - backend/internal/services/anisearch_client.go
   missing:
-    - relation matching logic correctly looks up related anime by AniSearch ID or title against existing DB rows
+    - mapAniSearchGraphRelation handles incoming Sequel edges by returning Hauptgeschichte
+
+- truth: "Entering an AniSearch ID already in the database on the create route redirects to the existing edit page instead of showing a 409 error"
+  status: failed
+  reason: "User reported: AniSearch ID 5468 (11eyes, already in DB) shows '(409) API request failed: 409' error. Root cause: loadAdminAnimeCreateAniSearchDraft() in admin-anime-intake.ts throws ApiError for all !response.ok responses including 409 Conflict. The backend correctly returns 409 with a redirect payload, but the frontend never parses it. Edit-side handles this at api.ts:1281 via response.status === 409 check. Fix: add the same 409 branch to loadAdminAnimeCreateAniSearchDraft before the generic error throw."
+  severity: major
+  test: 4
+  artifacts:
+    - frontend/src/lib/api/admin-anime-intake.ts
+  missing:
+    - 409 response parsed as AdminAnimeAniSearchCreateResponse (conflict/redirect) instead of ApiError
