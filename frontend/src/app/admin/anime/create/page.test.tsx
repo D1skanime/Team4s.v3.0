@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { CreateAniSearchIntakeCard } from "./CreateAniSearchIntakeCard";
 import AdminAnimeCreatePage, {
   buildCreateSuccessMessage,
   appendJellyfinLinkageToCreatePayload,
@@ -62,14 +63,17 @@ describe("AdminAnimeCreatePage", () => {
   it("renders only the reachable title action and title guidance on create", () => {
     const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
 
+    expect(markup).toContain("AniSearch ID");
+    expect(markup).toContain("AniSearch laden");
     expect(markup).toContain("Jellyfin suchen");
-    expect(markup).not.toMatch(/AniSearch\s+spaeter/);
+    expect(markup).toContain("Manuell &gt; AniSearch &gt; Jellyfin");
+    expect(markup.indexOf("AniSearch laden")).toBeLessThan(
+      markup.indexOf("Jellyfin suchen"),
+    );
     expect(markup).toContain(
-      "Gib zuerst einen aussagekraeftigen Anime-Titel ein, damit Jellyfin suchen kann.",
+      "Gib zuerst einen aussagekraeftigen Anime-Titel ein, damit Jellyfin suchen kann. AniSearch laedt gezielt per ID.",
     );
     expect(markup).not.toContain("Aus Datei hochladen");
-    expect(markup).not.toContain("anime ID");
-    expect(markup).not.toContain("ID-basiert");
     expect(resolveSourceActionState("").canSync).toBe(false);
     expect(resolveSourceActionState("Naruto").canSync).toBe(true);
   });
@@ -78,9 +82,84 @@ describe("AdminAnimeCreatePage", () => {
     expect(resolveSourceActionState("Naruto").helperText).toContain(
       "Jellyfin nutzt den aktuellen Titel als Suchanfrage.",
     );
-    expect(resolveSourceActionState("Naruto").helperText).not.toContain(
-      "AniSearch",
+    expect(resolveSourceActionState("Naruto").helperText).toContain(
+      "AniSearch laedt gezielt per ID.",
     );
+  });
+
+  it("renders AniSearch draft summary, duplicate redirect, and local error states through the intake card", () => {
+    const summaryMarkup = renderToStaticMarkup(
+      <CreateAniSearchIntakeCard
+        anisearchID="12345"
+        isLoading={false}
+        result={{
+          anisearchID: "12345",
+          source: "anisearch:12345",
+          summary:
+            "AniSearch ID 12345 hat den Entwurf aktualisiert. Noch nichts gespeichert.",
+          updatedFields: ["Titel", "Beschreibung"],
+          relationNotes: [
+            "1 von 2 Relationen wurde lokal zugeordnet.",
+            "1 Relation wurde uebersprungen.",
+          ],
+          draftStatusNotes: [
+            "AniSearch hat bestehende Jellyfin-Werte fuer Titel ueberschrieben.",
+            "Manuell gepflegte Beschreibung bleibt erhalten.",
+          ],
+        }}
+        conflict={null}
+        errorMessage={null}
+        onAniSearchIDChange={() => undefined}
+        onSubmit={() => undefined}
+      />,
+    );
+
+    expect(summaryMarkup).toContain("Aktualisierte Felder");
+    expect(summaryMarkup).toContain("Relationen");
+    expect(summaryMarkup).toContain("Entwurfsstatus");
+    expect(summaryMarkup).toContain("Noch nichts gespeichert");
+    expect(summaryMarkup).toContain(
+      "AniSearch hat bestehende Jellyfin-Werte fuer Titel ueberschrieben.",
+    );
+    expect(summaryMarkup).toContain(
+      "Manuell gepflegte Beschreibung bleibt erhalten.",
+    );
+
+    const duplicateMarkup = renderToStaticMarkup(
+      <CreateAniSearchIntakeCard
+        anisearchID="12345"
+        isLoading={false}
+        result={null}
+        conflict={{
+          anisearchID: "12345",
+          existingAnimeID: 77,
+          existingTitle: "Cowboy Bebop",
+          redirectPath: "/admin/anime/77/edit",
+        }}
+        errorMessage={null}
+        onAniSearchIDChange={() => undefined}
+        onSubmit={() => undefined}
+      />,
+    );
+
+    expect(duplicateMarkup).toContain("Cowboy Bebop");
+    expect(duplicateMarkup).toContain("Zum vorhandenen Anime wechseln");
+    expect(duplicateMarkup).toContain("/admin/anime/77/edit");
+
+    const errorMarkup = renderToStaticMarkup(
+      <CreateAniSearchIntakeCard
+        anisearchID="12345"
+        isLoading={false}
+        result={null}
+        conflict={null}
+        errorMessage="AniSearch-Daten konnten nicht geladen werden."
+        onAniSearchIDChange={() => undefined}
+        onSubmit={() => undefined}
+      />,
+    );
+
+    expect(errorMarkup).toContain("AniSearch-Daten konnten nicht geladen werden.");
+    expect(errorMarkup).toContain("Der aktuelle Entwurf bleibt unveraendert");
   });
 
   it("builds the create redirect path for the anime overview route", () => {
