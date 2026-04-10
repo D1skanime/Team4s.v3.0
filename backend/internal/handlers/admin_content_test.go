@@ -25,6 +25,13 @@ type stubAniSearchCreateEnrichmentService struct {
 	enrich func(context.Context, models.AdminAnimeAniSearchEnrichmentRequest) (any, error)
 }
 
+func (s stubAniSearchCreateEnrichmentService) LoadAniSearchDraft(
+	context.Context,
+	string,
+) (models.AdminAnimeCreateDraftPayload, []models.AdminAnimeRelation, error) {
+	return models.AdminAnimeCreateDraftPayload{}, nil, nil
+}
+
 func (s stubAniSearchCreateEnrichmentService) Enrich(
 	ctx context.Context,
 	req models.AdminAnimeAniSearchEnrichmentRequest,
@@ -42,7 +49,7 @@ func TestLoadAnimeCreateAniSearchEnrichment_ReturnsDraftEnvelope(t *testing.T) {
 	handler := &AdminContentHandler{
 		authzRepo:     stubAdminRoleChecker{allowed: true},
 		adminRoleName: "admin",
-		createAnimeAniSearchEnrichmentService: stubAniSearchCreateEnrichmentService{
+		enrichmentService: stubAniSearchCreateEnrichmentService{
 			enrich: func(_ context.Context, req models.AdminAnimeAniSearchEnrichmentRequest) (any, error) {
 				captured = req
 				return models.AdminAnimeAniSearchEnrichmentDraftResult{
@@ -119,7 +126,7 @@ func TestLoadAnimeCreateAniSearchEnrichment_ReturnsDuplicateRedirectEnvelope(t *
 	handler := &AdminContentHandler{
 		authzRepo:     stubAdminRoleChecker{allowed: true},
 		adminRoleName: "admin",
-		createAnimeAniSearchEnrichmentService: stubAniSearchCreateEnrichmentService{
+		enrichmentService: stubAniSearchCreateEnrichmentService{
 			enrich: func(_ context.Context, req models.AdminAnimeAniSearchEnrichmentRequest) (any, error) {
 				if req.AniSearchID != "12345" {
 					t.Fatalf("expected anisearch id 12345, got %q", req.AniSearchID)

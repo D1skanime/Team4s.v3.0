@@ -31,6 +31,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.DELETE("/admin/anime/:id/assets/background_video", auth, deps.adminContentHandler.DeleteAnimeBackgroundVideoAsset)
 	v1.POST("/admin/anime/:id/assets/backgrounds", auth, deps.adminContentHandler.AddAnimeBackgroundAsset)
 	v1.DELETE("/admin/anime/:id/assets/backgrounds/:backgroundId", auth, deps.adminContentHandler.DeleteAnimeBackgroundAsset)
+	v1.POST("/admin/anime/enrichment/anisearch", auth, deps.adminContentHandler.LoadAnimeCreateAniSearchEnrichment)
 	v1.POST("/admin/anime/:id/enrichment/anisearch", auth, deps.adminContentHandler.LoadAnimeAniSearchEnrichment)
 	v1.GET("/admin/anime/:id/jellyfin/context", auth, deps.adminContentHandler.GetAnimeJellyfinContext)
 	v1.POST("/admin/anime/:id/jellyfin/metadata/preview", auth, deps.adminContentHandler.PreviewAnimeMetadataFromJellyfin)
