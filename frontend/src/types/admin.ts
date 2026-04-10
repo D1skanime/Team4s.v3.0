@@ -41,6 +41,7 @@ export interface AdminAnimeCreateRequest {
   cover_image?: string
   source?: string
   folder_name?: string
+  relations?: AdminAnimeRelation[]
 }
 
 export interface AdminAnimeCreateDraftAssetSuggestions {

@@ -143,6 +143,7 @@ export function appendCreateSourceLinkageToPayload(
       ...payload,
       source: aniSearchDraft.source.trim(),
       folder_name: normalizeOptionalString(aniSearchDraft.folder_name ?? ""),
+      relations: aniSearchDraft.relations ? [...aniSearchDraft.relations] : undefined,
     };
   }
 
