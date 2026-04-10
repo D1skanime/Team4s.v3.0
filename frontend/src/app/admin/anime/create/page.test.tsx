@@ -168,6 +168,16 @@ describe("AdminAnimeCreatePage", () => {
     );
   });
 
+  it("builds the create redirect path correctly for an AniSearch-backed anime", () => {
+    // Regression: redirect path must resolve even after staged-asset state resets
+    // were removed from the success path. This documents the redirect target is
+    // correct — the real fix is the removal of resetStagedCover/resetStagedAssets
+    // from handleCreateSubmit so the useEffect cleanup cannot cancel the timeout.
+    expect(buildManualCreateRedirectPath(19)).toBe(
+      "/admin/anime?created=19#anime-19",
+    );
+  });
+
   it("uses createAdminAnime and redirects to the anime overview after success", async () => {
     const createAdminAnimeMock = vi.fn().mockResolvedValue({
       data: {

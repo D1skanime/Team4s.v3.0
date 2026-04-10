@@ -343,6 +343,31 @@ func TestBuildAdminAnimeCreateAniSearchSummary_CollectsNonBlockingWarnings(t *te
 	}
 }
 
+func TestMapAniSearchGraphRelation_IncomingSequelMapsToHauptgeschichte(t *testing.T) {
+	t.Parallel()
+
+	// Regression: when 11eyes has a "Sequel" edge pointing TO 6123 (11eyes Pink
+	// Phantasmagoria), parsing from 6123's perspective gives outgoing=false with
+	// legend "Sequel". This must return "Hauptgeschichte" so the relation is
+	// matched rather than silently dropped.
+	legend := []string{"Sequel"}
+	got := mapAniSearchGraphRelation(legend, 0, false)
+	if got != "Hauptgeschichte" {
+		t.Fatalf("expected Hauptgeschichte for incoming Sequel, got %q", got)
+	}
+}
+
+func TestMapAniSearchGraphRelation_OutgoingSequelRemainsFortsetzung(t *testing.T) {
+	t.Parallel()
+
+	// Outgoing "Sequel" (current anime IS the sequel) should stay "Fortsetzung".
+	legend := []string{"Sequel"}
+	got := mapAniSearchGraphRelation(legend, 0, true)
+	if got != "Fortsetzung" {
+		t.Fatalf("expected Fortsetzung for outgoing Sequel, got %q", got)
+	}
+}
+
 func stringPtr(value string) *string {
 	return &value
 }

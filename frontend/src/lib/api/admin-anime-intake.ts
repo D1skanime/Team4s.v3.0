@@ -145,6 +145,10 @@ export async function loadAdminAnimeCreateAniSearchDraft(
     body: JSON.stringify(payload),
   })
 
+  if (response.status === 409) {
+    return response.json() as Promise<AdminAnimeAniSearchCreateResponse>
+  }
+
   if (!response.ok) {
     const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)

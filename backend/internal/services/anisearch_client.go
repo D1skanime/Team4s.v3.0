@@ -987,6 +987,8 @@ func mapAniSearchGraphRelation(legend []string, relationIndex int, outgoing bool
 	}
 
 	switch relationName {
+	case "Sequel":
+		return "Hauptgeschichte"
 	case "Nebengeschichte":
 		return "Hauptgeschichte"
 	case "Hauptgeschichte":

@@ -580,8 +580,6 @@ export function useAdminAnimeCreateController() {
 
       setSuccessMessage(buildCreateSuccessMessage(response));
       setLastResponse(JSON.stringify(response, null, 2));
-      resetStagedCover();
-      resetStagedAssets();
       createRedirectTimeoutRef.current = window.setTimeout(() => {
         window.location.href = buildManualCreateRedirectPath(response.data.id);
       }, CREATE_REDIRECT_DELAY_MS);

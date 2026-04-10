@@ -281,6 +281,77 @@ describe('admin anime api error propagation', () => {
     })
   })
 
+  it('parses 409 Conflict as a redirect payload instead of throwing ApiError', async () => {
+    // Regression: backend returns 409 with a redirect body when the AniSearch ID
+    // already exists in the database. The frontend must return the parsed body so
+    // applyCreateAniSearchControllerResult can handle the redirect mode — not throw.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 409,
+        json: vi.fn().mockResolvedValue({
+          data: {
+            mode: 'redirect',
+            anisearch_id: '5468',
+            existing_anime_id: 11,
+            existing_title: '11eyes',
+            redirect_path: '/admin/anime/11/edit',
+          },
+        }),
+      }),
+    )
+
+    await expect(
+      loadAdminAnimeCreateAniSearchDraft({
+        anisearch_id: '5468',
+        draft: {
+          title: 'Lookup Title',
+          type: 'tv',
+          content_type: 'anime',
+          status: 'ongoing',
+        },
+      }),
+    ).resolves.toEqual({
+      data: {
+        mode: 'redirect',
+        anisearch_id: '5468',
+        existing_anime_id: 11,
+        existing_title: '11eyes',
+        redirect_path: '/admin/anime/11/edit',
+      },
+    })
+  })
+
+  it('still throws ApiError for non-409 failures on create AniSearch draft load', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: vi.fn().mockResolvedValue({
+          error: {
+            message: 'Interner Serverfehler',
+            code: 'internal_error',
+            details: '',
+          },
+        }),
+      }),
+    )
+
+    await expect(
+      loadAdminAnimeCreateAniSearchDraft({
+        anisearch_id: '5468',
+        draft: {
+          title: 'Lookup Title',
+          type: 'tv',
+          content_type: 'anime',
+          status: 'ongoing',
+        },
+      }),
+    ).rejects.toMatchObject({ status: 500 })
+  })
+
   it('preserves backend code and details for admin relation target search failures', async () => {
     vi.stubGlobal(
       'fetch',
