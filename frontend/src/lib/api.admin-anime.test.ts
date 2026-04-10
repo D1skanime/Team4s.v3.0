@@ -11,7 +11,10 @@ import {
   updateAdminAnime,
   uploadAdminAnimeMedia,
 } from './api'
-import { createAdminAnimeFromJellyfinDraft } from './api/admin-anime-intake'
+import {
+  createAdminAnimeFromJellyfinDraft,
+  loadAdminAnimeCreateAniSearchDraft,
+} from './api/admin-anime-intake'
 
 describe('admin anime api error propagation', () => {
   afterEach(() => {
@@ -105,6 +108,172 @@ describe('admin anime api error propagation', () => {
       message: 'Interner Serverfehler',
       code: 'source_link_persist_failed',
       details: 'Jellyfin-Quelle konnte nicht gespeichert werden.',
+    })
+  })
+
+  it('posts the create AniSearch contract to the exact-ID enrichment seam', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue({
+        data: {
+          mode: 'draft',
+          anisearch_id: '12345',
+          source: 'anisearch:12345',
+          draft: {
+            title: 'Serial Experiments Lain',
+            type: 'tv',
+            content_type: 'anime',
+            status: 'ongoing',
+            source: 'anisearch:12345',
+          },
+          manual_fields_kept: ['title'],
+          filled_fields: ['description'],
+          filled_assets: ['cover'],
+          provider: {
+            anisearch_id: '12345',
+            jellysync_applied: false,
+            relation_candidates: 2,
+            relation_matches: 1,
+          },
+        },
+      }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await loadAdminAnimeCreateAniSearchDraft(
+      {
+        anisearch_id: '12345',
+        draft: {
+          title: 'Lookup Title',
+          type: 'tv',
+          content_type: 'anime',
+          status: 'ongoing',
+        },
+      },
+      'token',
+    )
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/admin/anime/enrichment/anisearch'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          anisearch_id: '12345',
+          draft: {
+            title: 'Lookup Title',
+            type: 'tv',
+            content_type: 'anime',
+            status: 'ongoing',
+          },
+        }),
+      }),
+    )
+  })
+
+  it('returns the create AniSearch draft result unchanged on success', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: vi.fn().mockResolvedValue({
+          data: {
+            mode: 'draft',
+            anisearch_id: '12345',
+            source: 'anisearch:12345',
+            draft: {
+              title: 'Serial Experiments Lain',
+              type: 'tv',
+              content_type: 'anime',
+              status: 'ongoing',
+              source: 'anisearch:12345',
+            },
+            manual_fields_kept: ['title'],
+            filled_fields: ['description'],
+            filled_assets: ['cover'],
+            provider: {
+              anisearch_id: '12345',
+              jellysync_applied: true,
+              relation_candidates: 3,
+              relation_matches: 1,
+            },
+          },
+        }),
+      }),
+    )
+
+    await expect(
+      loadAdminAnimeCreateAniSearchDraft({
+        anisearch_id: '12345',
+        draft: {
+          title: 'Lookup Title',
+          type: 'tv',
+          content_type: 'anime',
+          status: 'ongoing',
+        },
+      }),
+    ).resolves.toEqual({
+      data: {
+        mode: 'draft',
+        anisearch_id: '12345',
+        source: 'anisearch:12345',
+        draft: {
+          title: 'Serial Experiments Lain',
+          type: 'tv',
+          content_type: 'anime',
+          status: 'ongoing',
+          source: 'anisearch:12345',
+        },
+        manual_fields_kept: ['title'],
+        filled_fields: ['description'],
+        filled_assets: ['cover'],
+        provider: {
+          anisearch_id: '12345',
+          jellysync_applied: true,
+          relation_candidates: 3,
+          relation_matches: 1,
+        },
+      },
+    })
+  })
+
+  it('returns the duplicate redirect result instead of inventing a second create conflict shape', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: vi.fn().mockResolvedValue({
+          data: {
+            mode: 'redirect',
+            anisearch_id: '12345',
+            existing_anime_id: 84,
+            existing_title: 'Serial Experiments Lain',
+            redirect_path: '/admin/anime/84/edit',
+          },
+        }),
+      }),
+    )
+
+    await expect(
+      loadAdminAnimeCreateAniSearchDraft({
+        anisearch_id: '12345',
+        draft: {
+          title: 'Lookup Title',
+          type: 'tv',
+          content_type: 'anime',
+          status: 'ongoing',
+        },
+      }),
+    ).resolves.toEqual({
+      data: {
+        mode: 'redirect',
+        anisearch_id: '12345',
+        existing_anime_id: 84,
+        existing_title: 'Serial Experiments Lain',
+        redirect_path: '/admin/anime/84/edit',
+      },
     })
   })
 

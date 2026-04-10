@@ -122,10 +122,10 @@ export interface AdminAnimeAniSearchEditResult {
   anisearch_id: string
   source: string
   draft: AdminAnimeEditDraftPayload
-  updated_fields: string[]
+  updated_fields?: string[]
   relations_applied: number
   relations_skipped_existing: number
-  skipped_protected_fields: string[]
+  skipped_protected_fields?: string[]
 }
 
 export interface AdminAnimeAniSearchEditConflictResult {
@@ -134,6 +134,45 @@ export interface AdminAnimeAniSearchEditConflictResult {
   existing_anime_id: number
   existing_title: string
   redirect_path: string
+}
+
+export interface AdminAnimeAniSearchCreateRequest {
+  anisearch_id: string
+  draft: AdminAnimeCreateDraftPayload
+}
+
+export interface AdminAnimeAniSearchCreateProviderSummary {
+  anisearch_id: string
+  jellysync_applied: boolean
+  relation_candidates: number
+  relation_matches: number
+}
+
+export interface AdminAnimeAniSearchCreateDraftResult {
+  mode: 'draft'
+  anisearch_id: string
+  source: string
+  draft: AdminAnimeCreateDraftPayload
+  manual_fields_kept?: string[]
+  filled_fields?: string[]
+  filled_assets?: string[]
+  provider: AdminAnimeAniSearchCreateProviderSummary
+}
+
+export interface AdminAnimeAniSearchCreateConflictResult {
+  mode: 'redirect'
+  anisearch_id: string
+  existing_anime_id: number
+  existing_title: string
+  redirect_path: string
+}
+
+export type AdminAnimeAniSearchCreateResult =
+  | AdminAnimeAniSearchCreateDraftResult
+  | AdminAnimeAniSearchCreateConflictResult
+
+export interface AdminAnimeAniSearchCreateResponse {
+  data: AdminAnimeAniSearchCreateResult
 }
 
 export interface AdminAnimeCreateAniSearchSummary {
