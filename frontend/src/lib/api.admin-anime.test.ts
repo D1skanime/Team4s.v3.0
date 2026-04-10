@@ -169,6 +169,10 @@ describe('admin anime api error propagation', () => {
         }),
       }),
     )
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/admin/anime/42/enrichment/anisearch'),
+      expect.anything(),
+    )
   })
 
   it('returns the create AniSearch draft result unchanged on success', async () => {

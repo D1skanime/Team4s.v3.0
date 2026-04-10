@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 
@@ -19,6 +20,155 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+type stubAniSearchCreateEnrichmentService struct {
+	enrich func(context.Context, models.AdminAnimeAniSearchEnrichmentRequest) (any, error)
+}
+
+func (s stubAniSearchCreateEnrichmentService) Enrich(
+	ctx context.Context,
+	req models.AdminAnimeAniSearchEnrichmentRequest,
+) (any, error) {
+	if s.enrich == nil {
+		return nil, errors.New("unexpected enrich call")
+	}
+	return s.enrich(ctx, req)
+}
+
+func TestLoadAnimeCreateAniSearchEnrichment_ReturnsDraftEnvelope(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	var captured models.AdminAnimeAniSearchEnrichmentRequest
+	handler := &AdminContentHandler{
+		authzRepo:     stubAdminRoleChecker{allowed: true},
+		adminRoleName: "admin",
+		createAnimeAniSearchEnrichmentService: stubAniSearchCreateEnrichmentService{
+			enrich: func(_ context.Context, req models.AdminAnimeAniSearchEnrichmentRequest) (any, error) {
+				captured = req
+				return models.AdminAnimeAniSearchEnrichmentDraftResult{
+					Mode:        "draft",
+					AniSearchID: "12345",
+					Source:      "anisearch:12345",
+					Draft: models.AdminAnimeCreateDraftPayload{
+						Title:       "Serial Experiments Lain",
+						Type:        "tv",
+						ContentType: "anime",
+						Status:      "ongoing",
+						Source:      stringPtr("anisearch:12345"),
+					},
+					ManualFieldsKept: []string{"title"},
+					FilledFields:     []string{"description"},
+					FilledAssets:     []string{"cover"},
+					Provider: models.AdminAnimeAniSearchEnrichmentProviderSummary{
+						AniSearchID:        "12345",
+						JellysyncApplied:   false,
+						RelationCandidates: 2,
+						RelationMatches:    1,
+					},
+				}, nil
+			},
+		},
+	}
+
+	router := gin.New()
+	router.POST("/api/v1/admin/anime/enrichment/anisearch", withTestAdminIdentity(), handler.LoadAnimeCreateAniSearchEnrichment)
+
+	requestBody := `{"anisearch_id":"12345","draft":{"title":"Lookup Title","type":"tv","content_type":"anime","status":"ongoing"}}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime/enrichment/anisearch", strings.NewReader(requestBody))
+	req.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if captured.AniSearchID != "12345" {
+		t.Fatalf("expected AniSearch id to reach service, got %#v", captured)
+	}
+	if captured.Draft.Title != "Lookup Title" {
+		t.Fatalf("expected request draft to reach service, got %#v", captured.Draft)
+	}
+
+	var payload struct {
+		Data models.AdminAnimeAniSearchEnrichmentDraftResult `json:"data"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if payload.Data.Mode != "draft" {
+		t.Fatalf("expected draft mode, got %#v", payload.Data)
+	}
+	if payload.Data.Source != "anisearch:12345" {
+		t.Fatalf("expected source to stay intact, got %#v", payload.Data)
+	}
+	if !slices.Equal(payload.Data.ManualFieldsKept, []string{"title"}) {
+		t.Fatalf("unexpected manual fields kept: %#v", payload.Data.ManualFieldsKept)
+	}
+	if !slices.Equal(payload.Data.FilledFields, []string{"description"}) {
+		t.Fatalf("unexpected filled fields: %#v", payload.Data.FilledFields)
+	}
+	if !slices.Equal(payload.Data.FilledAssets, []string{"cover"}) {
+		t.Fatalf("unexpected filled assets: %#v", payload.Data.FilledAssets)
+	}
+}
+
+func TestLoadAnimeCreateAniSearchEnrichment_ReturnsDuplicateRedirectEnvelope(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	handler := &AdminContentHandler{
+		authzRepo:     stubAdminRoleChecker{allowed: true},
+		adminRoleName: "admin",
+		createAnimeAniSearchEnrichmentService: stubAniSearchCreateEnrichmentService{
+			enrich: func(_ context.Context, req models.AdminAnimeAniSearchEnrichmentRequest) (any, error) {
+				if req.AniSearchID != "12345" {
+					t.Fatalf("expected anisearch id 12345, got %q", req.AniSearchID)
+				}
+				return models.AdminAnimeAniSearchEnrichmentRedirectResult{
+					Mode:            "redirect",
+					AniSearchID:     "12345",
+					ExistingAnimeID: 84,
+					ExistingTitle:   "Serial Experiments Lain",
+					RedirectPath:    "/admin/anime/84/edit",
+				}, nil
+			},
+		},
+	}
+
+	router := gin.New()
+	router.POST("/api/v1/admin/anime/enrichment/anisearch", withTestAdminIdentity(), handler.LoadAnimeCreateAniSearchEnrichment)
+
+	requestBody := `{"anisearch_id":"12345","draft":{"title":"Lookup Title","type":"tv","content_type":"anime","status":"ongoing"}}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime/enrichment/anisearch", strings.NewReader(requestBody))
+	req.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusConflict {
+		t.Fatalf("expected 409, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+
+	var payload struct {
+		Data models.AdminAnimeAniSearchEnrichmentRedirectResult `json:"data"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if payload.Data.Mode != "redirect" {
+		t.Fatalf("expected redirect mode, got %#v", payload.Data)
+	}
+	if payload.Data.RedirectPath != "/admin/anime/84/edit" {
+		t.Fatalf("unexpected redirect payload: %#v", payload.Data)
+	}
+}
+
+func withTestAdminIdentity() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("auth_identity", middleware.AuthIdentity{UserID: 99, DisplayName: "Admin"})
+		c.Next()
+	}
+}
 
 func TestValidateAdminAnimeCreateRequest(t *testing.T) {
 	year := int16(2013)
