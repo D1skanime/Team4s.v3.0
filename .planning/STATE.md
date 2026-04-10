@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-04-10T10:51:12.140Z"
+stopped_at: Completed 12-02-PLAN.md
+last_updated: "2026-04-10T10:58:38.454Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 22
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 12 (create-anisearch-intake-reintroduction-and-draft-merge-control) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -65,6 +65,8 @@ Recent durable decisions:
 - [Phase 11]: Create-route warning-before-redirect verification stays automated until a live create-side AniSearch intake action exists.
 - [Phase 12]: Create AniSearch stays on one exact-ID enrichment helper and returns either a draft result or redirect result without a second duplicate policy.
 - [Phase 12]: Unsaved AniSearch create feedback is shaped in a dedicated summary helper instead of extending persisted create success messaging.
+- [Phase 12]: Create-route AniSearch transitions stay in a small helper module so the controller hook does not absorb more merge logic.
+- [Phase 12]: Final create payload linkage now prefers AniSearch provenance over Jellyfin linkage whenever an AniSearch draft result is active.
 
 ### Pending Todos
 
@@ -92,6 +94,7 @@ Recent durable decisions:
 | Phase 11 P05 | 3min | 2 tasks | 6 files |
 | Phase 11 P06 | 7min | 2 tasks | 5 files |
 | Phase 12 P01 | 6min | 2 tasks | 8 files |
+| Phase 12 P02 | 10min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -102,7 +105,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-10T10:51:12.134Z
-Stopped at: Completed 12-01-PLAN.md
+Last session: 2026-04-10T10:58:38.449Z
+Stopped at: Completed 12-02-PLAN.md
 Last activity: 2026-04-10
 Resume file: None
