@@ -5,6 +5,7 @@
 import { ApiError } from "@/lib/api";
 import type {
   AdminAnimeCreateAniSearchSummary,
+  AdminAnimeCreateDraftPayload,
   AdminAnimeCreateRequest,
   AdminAnimeUpsertResponse,
   AdminAnimeJellyfinIntakePreviewResult,
@@ -126,6 +127,76 @@ export function resolveSourceActionState(title: string) {
       ? "Jellyfin nutzt den aktuellen Titel als Suchanfrage."
       : "Gib zuerst einen aussagekraeftigen Anime-Titel ein, damit Jellyfin suchen kann.",
   };
+}
+
+function normalizeOptionalString(value: string): string | undefined {
+  const trimmed = value.trim()
+  return trimmed ? trimmed : undefined
+}
+
+function parseOptionalPositiveInt(value: string): number | undefined {
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  const parsed = Number.parseInt(trimmed, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
+}
+
+function mapManualDraftToCreateDraft(
+  values: ManualAnimeDraftValues,
+): AdminAnimeCreateDraftPayload {
+  return {
+    title: values.title.trim(),
+    type: values.type,
+    content_type: values.contentType,
+    status: values.status,
+    year: parseOptionalPositiveInt(values.year),
+    max_episodes: parseOptionalPositiveInt(values.maxEpisodes),
+    title_de: normalizeOptionalString(values.titleDE),
+    title_en: normalizeOptionalString(values.titleEN),
+    genre: values.genreTokens.length > 0 ? values.genreTokens.join(", ") : undefined,
+    tags: values.tagTokens.length > 0 ? [...values.tagTokens] : undefined,
+    description: normalizeOptionalString(values.description),
+    cover_image: normalizeOptionalString(values.coverImage),
+  }
+}
+
+function fieldDiffers(left: string, right: string): boolean {
+  return left.trim() !== right.trim()
+}
+
+function arrayDiffers(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) return true
+  return left.some((value, index) => value.trim() !== (right[index] || "").trim())
+}
+
+export function resolveCreateAniSearchDraftMergeInputs(params: {
+  currentDraft: ManualAnimeDraftValues
+  jellyfinSnapshot: ManualAnimeDraftValues | null
+}) {
+  const baseline = params.jellyfinSnapshot
+    ? buildManualCreateDraftSnapshot(params.jellyfinSnapshot)
+    : buildManualCreateDraftSnapshot(params.currentDraft)
+  const current = params.currentDraft
+  const protectedFields: string[] = []
+
+  if (params.jellyfinSnapshot) {
+    if (fieldDiffers(current.titleDE, baseline.titleDE)) protectedFields.push("title_de")
+    if (fieldDiffers(current.titleEN, baseline.titleEN)) protectedFields.push("title_en")
+    if (fieldDiffers(current.year, baseline.year)) protectedFields.push("year")
+    if (fieldDiffers(current.maxEpisodes, baseline.maxEpisodes)) protectedFields.push("max_episodes")
+    if (arrayDiffers(current.genreTokens, baseline.genreTokens)) protectedFields.push("genre")
+    if (arrayDiffers(current.tagTokens, baseline.tagTokens)) protectedFields.push("tags")
+    if (fieldDiffers(current.description, baseline.description)) protectedFields.push("description")
+    if (fieldDiffers(current.coverImage, baseline.coverImage)) protectedFields.push("cover_image")
+    if (current.type !== baseline.type) protectedFields.push("type")
+    if (current.contentType !== baseline.contentType) protectedFields.push("content_type")
+    if (current.status !== baseline.status) protectedFields.push("status")
+  }
+
+  return {
+    requestDraft: mapManualDraftToCreateDraft(baseline),
+    protectedFields,
+  }
 }
 
 export function buildManualCreateDraftSnapshotHelper(

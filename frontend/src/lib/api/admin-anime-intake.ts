@@ -1,4 +1,6 @@
 import type {
+  AdminAnimeAniSearchCreateRequest,
+  AdminAnimeAniSearchCreateResponse,
   AdminAnimeJellyfinIntakePreviewRequest,
   AdminAnimeJellyfinIntakePreviewResponse,
   AdminAnimeCreateRequest,
@@ -128,6 +130,27 @@ export async function createAdminAnimeFromJellyfinDraft(
   }
 
   return response.json() as Promise<AdminAnimeUpsertResponse>
+}
+
+export async function loadAdminAnimeCreateAniSearchDraft(
+  payload: AdminAnimeAniSearchCreateRequest,
+  authToken?: string,
+): Promise<AdminAnimeAniSearchCreateResponse> {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/anime/enrichment/anisearch`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...withAuthHeaders(authToken),
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeAniSearchCreateResponse>
 }
 
 // getAdminTagTokens fetches normalized tag suggestion tokens from the dedicated

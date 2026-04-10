@@ -87,7 +87,9 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
       mergeInputs.protectedFields,
     )
 
-    const jellyfinFollowup = hydrateManualDraftFromJellyfinPreview(aniSearchHydrated, jellyfinPreview)
+    const jellyfinFollowup = hydrateManualDraftFromJellyfinPreview(aniSearchHydrated, jellyfinPreview, {
+      mode: 'fill',
+    })
 
     expect(aniSearchHydrated.title).toBe('Serial Experiments Lain')
     expect(jellyfinFollowup.draft.title).toBe('Serial Experiments Lain')

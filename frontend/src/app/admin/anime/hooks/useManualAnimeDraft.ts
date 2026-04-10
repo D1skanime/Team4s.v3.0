@@ -80,7 +80,9 @@ export function cloneJellyfinAssetSlots(assetSlots: AdminJellyfinIntakeAssetSlot
 export function hydrateManualDraftFromJellyfinPreview(
   draft: ManualAnimeDraftValues,
   preview: AdminAnimeJellyfinIntakePreviewResult,
+  options: { mode?: 'replace' | 'fill' } = {},
 ): HydratedJellyfinDraft {
+  const fillOnly = options.mode === 'fill'
   const resolvedTitle = hasMeaningfulValue(preview.folder_name_title_seed)
     ? preview.folder_name_title_seed!.trim()
     : hasMeaningfulValue(preview.jellyfin_series_name)
@@ -101,13 +103,27 @@ export function hydrateManualDraftFromJellyfinPreview(
 
   const hydratedDraft: ManualAnimeDraftValues = {
     ...draft,
-    title: resolvedTitle || draft.title,
-    year: resolvedYear || draft.year,
-    description: resolvedDescription || draft.description,
-    genreTokens: resolvedGenreTokens.length > 0 ? resolvedGenreTokens : draft.genreTokens,
-    tagTokens: resolvedTagTokens.length > 0 ? resolvedTagTokens : draft.tagTokens,
-    type: resolvedType,
-    coverImage: resolvedCoverImage || draft.coverImage,
+    title: fillOnly ? draft.title || resolvedTitle : resolvedTitle || draft.title,
+    year: fillOnly ? draft.year || resolvedYear : resolvedYear || draft.year,
+    description: fillOnly ? draft.description || resolvedDescription : resolvedDescription || draft.description,
+    genreTokens:
+      fillOnly
+        ? draft.genreTokens.length > 0
+          ? draft.genreTokens
+          : resolvedGenreTokens
+        : resolvedGenreTokens.length > 0
+          ? resolvedGenreTokens
+          : draft.genreTokens,
+    tagTokens:
+      fillOnly
+        ? draft.tagTokens.length > 0
+          ? draft.tagTokens
+          : resolvedTagTokens
+        : resolvedTagTokens.length > 0
+          ? resolvedTagTokens
+          : draft.tagTokens,
+    type: fillOnly && draft.type !== 'tv' ? draft.type : resolvedType,
+    coverImage: fillOnly ? draft.coverImage || resolvedCoverImage : resolvedCoverImage || draft.coverImage,
   }
 
   return {
