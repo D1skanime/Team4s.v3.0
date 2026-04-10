@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 11 plan 11-06 executed
-stopped_at: Completed 11-06-PLAN.md
-last_updated: "2026-04-09T17:54:53.651Z"
-last_activity: 2026-04-09 - Executed Phase 11 plan 11-06 and removed the stale create-route AniSearch placeholder from UI and verification docs
+status: Milestone complete
+stopped_at: Phase 12 context gathered
+last_updated: "2026-04-10T06:33:44.191Z"
+last_activity: 2026-04-09
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 4
   total_plans: 19
   completed_plans: 16
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 11 is fully executed, including the final create-route placeholder cleanup that brought the live UI and verification artifacts back into sync.
+**Current focus:** Phase 12 context is captured for reintroducing AniSearch into the create flow while deferring the broader edit-route refactor.
 
 ## Current Position
 
-Phase: 11 (anisearch-edit-enrichment-and-relation-persistence) - COMPLETE
-Plan: 11-06 completed
+Phase: 12 (create-anisearch-intake-reintroduction-and-draft-merge-control)
+Plan: Context gathered; ready for planning
 
 ## Accumulated Context
 
@@ -73,6 +73,7 @@ Recent durable decisions:
 - Phase 09 added: Controlled AniSearch ID enrichment before create with fill-only Jellysync follow-up.
 - Phase 10 narrowed to create tags and metadata card refactor and is now executed.
 - Phase 11 added: AniSearch edit enrichment and relation persistence.
+- Phase 12 added: Create AniSearch intake reintroduction and draft merge control.
 
 ### Blockers/Concerns
 
@@ -98,7 +99,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-09T17:54:53.647Z
-Stopped at: Completed 11-06-PLAN.md
-Last activity: 2026-04-09 - Executed Phase 11 plan 11-06 and removed the stale create-route AniSearch placeholder from UI and verification docs
-Resume file: .planning/phases/11-anisearch-edit-enrichment-and-relation-persistence/11-06-SUMMARY.md
+Last session: 2026-04-10T06:33:44.160Z
+Stopped at: Phase 12 context gathered
+Last activity: 2026-04-09
+Resume file: .planning/phases/12-create-anisearch-intake-reintroduction-and-draft-merge-control/12-CONTEXT.md
