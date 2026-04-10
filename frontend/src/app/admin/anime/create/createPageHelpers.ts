@@ -25,7 +25,9 @@ function hasAniSearchFollowThroughWarning(
 ): boolean {
   if (!summary) return false;
   if ((summary.warnings ?? []).length > 0) return true;
-  return summary.relations_attempted > summary.relations_applied;
+  const accountedRelations =
+    summary.relations_applied + summary.relations_skipped_existing;
+  return summary.relations_attempted > accountedRelations;
 }
 
 export function buildCreateSuccessMessage(

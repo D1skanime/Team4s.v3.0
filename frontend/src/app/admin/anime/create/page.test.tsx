@@ -248,6 +248,21 @@ describe("AdminAnimeCreatePage", () => {
     expect(CREATE_REDIRECT_DELAY_MS).toBeGreaterThan(0);
   });
 
+  it("treats skipped-existing AniSearch relations as a clean idempotent outcome", () => {
+    expect(
+      buildCreateSuccessMessage({
+        data: { id: 42 },
+        anisearch: {
+          source: "anisearch:12345",
+          relations_attempted: 2,
+          relations_applied: 1,
+          relations_skipped_existing: 1,
+          warnings: [],
+        },
+      }),
+    ).toBe("Anime #42 wurde erstellt. (Weiterleitung zur Uebersicht...)");
+  });
+
   it("does not crash when AniSearch create summary omits the warnings array", () => {
     // Regression for live UAT failure: backend can omit `warnings` from create enrichment
     // summaries. Without the defensive fix this throws at runtime:
