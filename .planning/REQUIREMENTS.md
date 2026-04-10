@@ -29,8 +29,8 @@
 
 ### Create-Time Enrichment
 
-- [ ] **ENR-01**: Admin can load AniSearch create-time enrichment only by entering an explicit AniSearch ID before local anime creation.
-- [ ] **ENR-02**: AniSearch access is centrally limited to one request at a time with at least two seconds between requests, with no free search or crawl endpoints.
+- [x] **ENR-01**: Admin can load AniSearch create-time enrichment only by entering an explicit AniSearch ID before local anime creation.
+- [x] **ENR-02**: AniSearch access is centrally limited to one request at a time with at least two seconds between requests, with no free search or crawl endpoints.
 - [ ] **ENR-03**: If an AniSearch ID already maps to an existing local anime, the flow redirects to that anime instead of creating a duplicate record.
 - [ ] **ENR-04**: Create-time merge priority is strict `manual > AniSearch > Jellysync`, including fill-only handling for metadata and media.
 - [ ] **ENR-05**: AniSearch relation import writes only locally resolvable approved relations, skips unresolved relations, and leaves the draft usable when enrichment fails.
@@ -93,8 +93,8 @@
 | LIFE-02 | Phase 6 | Pending |
 | LIFE-03 | Phase 6 | Pending |
 | LIFE-04 | Phase 6 | Pending |
-| ENR-01 | Phase 9 | Pending |
-| ENR-02 | Phase 9 | Pending |
+| ENR-01 | Phase 9 | Complete |
+| ENR-02 | Phase 9 | Complete |
 | ENR-03 | Phase 9 | Pending |
 | ENR-04 | Phase 9 | Pending |
 | ENR-05 | Phase 9 | Pending |

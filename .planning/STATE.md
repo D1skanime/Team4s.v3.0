@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Milestone complete
-stopped_at: Phase 12 UI-SPEC approved
-last_updated: "2026-04-10T08:27:21.720Z"
-last_activity: 2026-04-09
+status: Ready to execute
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-04-10T10:51:12.140Z"
+last_activity: 2026-04-10
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 19
-  completed_plans: 16
+  total_plans: 22
+  completed_plans: 17
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 12 context is captured for reintroducing AniSearch into the create flow while deferring the broader edit-route refactor.
+**Current focus:** Phase 12 — create-anisearch-intake-reintroduction-and-draft-merge-control
 
 ## Current Position
 
-Phase: 12 (create-anisearch-intake-reintroduction-and-draft-merge-control)
-Plan: Context gathered; ready for planning
+Phase: 12 (create-anisearch-intake-reintroduction-and-draft-merge-control) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -63,6 +63,8 @@ Recent durable decisions:
 - [Phase 11]: The create route delays redirect briefly so AniSearch warning context is visible before navigation.
 - [Phase 11]: Removed the unreachable create-side AniSearch placeholder instead of inventing a new intake surface in a gap-closure plan.
 - [Phase 11]: Create-route warning-before-redirect verification stays automated until a live create-side AniSearch intake action exists.
+- [Phase 12]: Create AniSearch stays on one exact-ID enrichment helper and returns either a draft result or redirect result without a second duplicate policy.
+- [Phase 12]: Unsaved AniSearch create feedback is shaped in a dedicated summary helper instead of extending persisted create success messaging.
 
 ### Pending Todos
 
@@ -89,6 +91,7 @@ Recent durable decisions:
 | Phase 11 P04 | 6min | 2 tasks | 7 files |
 | Phase 11 P05 | 3min | 2 tasks | 6 files |
 | Phase 11 P06 | 7min | 2 tasks | 5 files |
+| Phase 12 P01 | 6min | 2 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -99,7 +102,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-10T08:27:21.713Z
-Stopped at: Phase 12 UI-SPEC approved
-Last activity: 2026-04-09
-Resume file: .planning/phases/12-create-anisearch-intake-reintroduction-and-draft-merge-control/12-UI-SPEC.md
+Last session: 2026-04-10T10:51:12.134Z
+Stopped at: Completed 12-01-PLAN.md
+Last activity: 2026-04-10
+Resume file: None
