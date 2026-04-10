@@ -238,6 +238,45 @@ describe("AdminAnimeCreatePage", () => {
     expect(CREATE_REDIRECT_DELAY_MS).toBeGreaterThan(0);
   });
 
+  it("does not crash when AniSearch create summary omits the warnings array", () => {
+    // Regression for live UAT failure: backend can omit `warnings` from create enrichment
+    // summaries. Without the defensive fix this throws at runtime:
+    // "can't access property 'length', summary.warnings is undefined"
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const incompleteAnisearch = {
+      source: "anisearch:99999",
+      relations_attempted: 2,
+      relations_applied: 2,
+      relations_skipped_existing: 0,
+      // warnings intentionally absent — mirrors backend omission
+    } as any;
+
+    expect(() =>
+      buildCreateSuccessMessage({
+        data: { id: 42 } as never,
+        anisearch: incompleteAnisearch,
+      }),
+    ).not.toThrow();
+  });
+
+  it("returns the generic create success message when AniSearch warnings are absent and all relations applied", () => {
+    // Regression: helper must fall back to generic copy, not crash, when warnings field is missing.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const incompleteAnisearch = {
+      source: "anisearch:99999",
+      relations_attempted: 2,
+      relations_applied: 2,
+      relations_skipped_existing: 0,
+    } as any;
+
+    expect(
+      buildCreateSuccessMessage({
+        data: { id: 42 } as never,
+        anisearch: incompleteAnisearch,
+      }),
+    ).toBe("Anime #42 wurde erstellt. (Weiterleitung zur Uebersicht...)");
+  });
+
   it("stages the draft cover locally until the anime exists", () => {
     const createObjectURL = vi.fn(() => "blob:lain-cover");
     vi.stubGlobal("URL", { createObjectURL, revokeObjectURL: vi.fn() });
