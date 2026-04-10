@@ -39,7 +39,7 @@ Declared values (must be multiples of 4):
 | 2xl | 48px | Page bottom spacing and full-width section breaks |
 | 3xl | 64px | Reserved for future page hero spacing; do not introduce in this phase unless a new page-level section is added |
 
-Exceptions: `12px` may continue for eyebrow text spacing and compact helper rhythm because the live token set already includes `--space-3: 12px`; all new Phase 12 layout changes should otherwise use the declared 4/8/16/24/32/48/64 scale. Interactive buttons and input controls must keep a minimum 44px height; the existing title input may remain 48px.
+Exceptions: compact helper rhythm and eyebrow spacing must map to the existing `8px` or `16px` steps for this phase; all new Phase 12 layout changes use only the declared 4/8/16/24/32/48/64 scale. Interactive buttons and input controls must keep a minimum 44px height; the existing title input may remain 48px.
 
 ---
 
