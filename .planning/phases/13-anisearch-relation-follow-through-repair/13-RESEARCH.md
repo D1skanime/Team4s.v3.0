@@ -273,9 +273,9 @@ return summary.relations_attempted > summary.relations_applied;
 
 | Dependency | Required By | Available | Version | Fallback |
 |------------|------------|-----------|---------|----------|
-| Go | Backend handler/service/repository tests | ✓ | `go1.26.1` | — |
-| Node.js | Frontend tests/build | ✓ | `v24.14.0` | — |
-| npm | Frontend Vitest runs | ✓ | `11.9.0` | — |
+| Go | Backend handler/service/repository tests | yes | `go1.26.1` | none |
+| Node.js | Frontend tests/build | yes | `v24.14.0` | none |
+| npm | Frontend Vitest runs | yes | `11.9.0` | none |
 
 **Missing dependencies with no fallback:**
 - None.
@@ -294,12 +294,12 @@ return summary.relations_attempted > summary.relations_applied;
 | Quick run command | `cd backend && go test ./internal/handlers ./internal/services ./internal/repository -count=1` |
 | Full suite command | `cd backend && go test ./... -count=1` and `cd frontend && npm test` |
 
-### Phase Requirements → Test Map
+### Phase Requirements to Test Map
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| ENR-05 | Create submit preserves only already-resolved approved AniSearch relations and unresolved relations remain skipped/non-blocking | unit + handler regression | `cd backend && go test ./internal/services ./internal/handlers -count=1` | ✅ augment existing |
-| ENR-10 | Create response summary matches real follow-through outcomes, including idempotent `skipped_existing` and warning cases | frontend helper + API + handler regression | `cd frontend && npm test -- src/app/admin/anime/create/page.test.tsx src/app/admin/anime/create/useAdminAnimeCreateController.test.ts src/lib/api.admin-anime.test.ts` | ✅ augment existing |
+| ENR-05 | Create submit preserves only already-resolved approved AniSearch relations and unresolved relations remain skipped/non-blocking | unit + handler regression | `cd backend && go test ./internal/services ./internal/handlers -count=1` | yes, augment existing |
+| ENR-10 | Create response summary matches real follow-through outcomes, including idempotent `skipped_existing` and warning cases | frontend helper + API + handler regression | `cd frontend && npm test -- src/app/admin/anime/create/page.test.tsx src/app/admin/anime/create/useAdminAnimeCreateController.test.ts src/lib/api.admin-anime.test.ts` | yes, augment existing |
 
 ### Sampling Rate
 
@@ -312,7 +312,7 @@ return summary.relations_attempted > summary.relations_applied;
 - [ ] [frontend/src/types/admin.ts](/C:/Users/admin/Documents/Team4s/frontend/src/types/admin.ts) and create API tests need a regression proving `AdminAnimeCreateRequest` can carry optional `relations`.
 - [ ] [frontend/src/app/admin/anime/create/useAdminAnimeCreateController.test.ts](/C:/Users/admin/Documents/Team4s/frontend/src/app/admin/anime/create/useAdminAnimeCreateController.test.ts) needs a case asserting final create submit includes `aniSearchDraftResult.draft.relations`.
 - [ ] [frontend/src/app/admin/anime/create/page.test.tsx](/C:/Users/admin/Documents/Team4s/frontend/src/app/admin/anime/create/page.test.tsx) needs a clean-path assertion where `attempted == applied + skipped_existing` does not show warning copy.
-- [ ] [backend/internal/handlers/admin_content_test.go](/C:/Users/admin/Documents\\Team4s/backend/internal/handlers/admin_content_test.go) needs a create-handler regression asserting `req.Relations` drives follow-through counts in the response envelope.
+- [ ] [backend/internal/handlers/admin_content_test.go](/C:/Users/admin/Documents/Team4s/backend/internal/handlers/admin_content_test.go) needs a create-handler regression asserting `req.Relations` drives follow-through counts in the response envelope.
 
 ## Sources
 
