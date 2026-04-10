@@ -4,6 +4,7 @@
 
 import { ApiError } from "@/lib/api";
 import type {
+  AdminAnimeAniSearchCreateDraftResult,
   AdminAnimeCreateAniSearchSummary,
   AdminAnimeCreateDraftPayload,
   AdminAnimeCreateRequest,
@@ -127,6 +128,47 @@ export function resolveSourceActionState(title: string) {
       ? "Jellyfin nutzt den aktuellen Titel als Suchanfrage."
       : "Gib zuerst einen aussagekraeftigen Anime-Titel ein, damit Jellyfin suchen kann.",
   };
+}
+
+export function appendCreateSourceLinkageToPayload(
+  payload: AdminAnimeCreateRequest,
+  params: {
+    aniSearchDraftResult?: Pick<AdminAnimeAniSearchCreateDraftResult, "draft"> | null;
+    jellyfinPreview: AdminAnimeJellyfinIntakePreviewResult | null;
+  },
+): AdminAnimeCreateRequest {
+  const aniSearchDraft = params.aniSearchDraftResult?.draft;
+  if (aniSearchDraft?.source?.trim()) {
+    return {
+      ...payload,
+      source: aniSearchDraft.source.trim(),
+      folder_name: normalizeOptionalString(aniSearchDraft.folder_name ?? ""),
+    };
+  }
+
+  return appendJellyfinLinkageToCreatePayload(payload, params.jellyfinPreview);
+}
+
+export function buildCreateAniSearchDraftSummary(
+  result: Pick<
+    AdminAnimeAniSearchCreateDraftResult,
+    "anisearch_id" | "manual_fields_kept" | "filled_fields" | "filled_assets" | "provider"
+  >,
+): string {
+  const manualFieldCount = result.manual_fields_kept?.length ?? 0;
+  const filledFieldCount = result.filled_fields?.length ?? 0;
+  const filledAssetCount = result.filled_assets?.length ?? 0;
+  const relationCount = result.provider.relation_matches ?? 0;
+  const providerLabel = result.provider.jellysync_applied
+    ? "Jellysync-Fill aktiv"
+    : "ohne Jellysync-Fill";
+
+  return [
+    `AniSearch ${result.anisearch_id} geladen.`,
+    `${filledFieldCount} Felder aktualisiert, ${manualFieldCount} manuell behalten, ${filledAssetCount} Assets vorgeschlagen.`,
+    `${relationCount}/${result.provider.relation_candidates} Relationen lokal zugeordnet, ${providerLabel}.`,
+    "Noch nichts gespeichert.",
+  ].join(" ");
 }
 
 function normalizeOptionalString(value: string): string | undefined {

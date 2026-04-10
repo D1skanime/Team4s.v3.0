@@ -7,7 +7,7 @@ import {
 import {
   applyCreateAniSearchControllerResult,
   buildCreateAniSearchConflictState,
-} from './useAdminAnimeCreateController'
+} from './createAniSearchControllerHelpers'
 import { hydrateManualDraftFromAniSearchDraft, hydrateManualDraftFromJellyfinPreview } from '../hooks/useManualAnimeDraft'
 
 const manualLookupDraft = {

@@ -15,6 +15,7 @@ import {
 import {
   createAdminAnimeFromJellyfinDraft,
   getAdminTagTokens,
+  loadAdminAnimeCreateAniSearchDraft,
 } from "@/lib/api/admin-anime-intake";
 import { AnimeStatus, ContentType } from "@/types/anime";
 import type {
@@ -27,17 +28,23 @@ import type {
 } from "@/types/admin";
 
 import {
+  appendCreateSourceLinkageToPayload,
   buildCreateSuccessMessage,
-  appendJellyfinLinkageToCreatePayload,
   buildManualCreateRedirectPath,
   CREATE_REDIRECT_DELAY_MS,
   createManualAnimeAndRedirect,
   formatCreatePageError,
+  resolveCreateAniSearchDraftMergeInputs,
   resolveJellyfinPreviewBaseDraft,
   resolveJellyfinReviewVisibility,
   resolveSourceActionState,
 } from "./createPageHelpers";
 import type { CreateAssetUploadDraftValue } from "./createAssetUploadPlan";
+import {
+  applyCreateAniSearchControllerResult,
+  type CreateAniSearchConflictState,
+  type CreateAniSearchDraftState,
+} from "./createAniSearchControllerHelpers";
 import {
   stageManualCreateAsset,
   uploadCreatedAnimeAssets,
@@ -51,7 +58,6 @@ import {
 } from "./createStagedAssets";
 import { useAnimeEditor } from "../hooks/useAnimeEditor";
 import {
-  buildManualCreateDraftSnapshot,
   hydrateManualDraftFromJellyfinPreview,
   removeJellyfinDraftAsset,
   resolveManualCreateState,
@@ -118,6 +124,12 @@ export function useAdminAnimeCreateController() {
   const [createTagTokens, setCreateTagTokens] = useState<string[]>([]);
   const [createDescription, setCreateDescription] = useState("");
   const [createCoverImage, setCreateCoverImage] = useState("");
+  const [createAniSearchID, setCreateAniSearchID] = useState("");
+  const [isLoadingAniSearchDraft, setIsLoadingAniSearchDraft] = useState(false);
+  const [aniSearchDraftResult, setAniSearchDraftResult] =
+    useState<CreateAniSearchDraftState | null>(null);
+  const [aniSearchConflict, setAniSearchConflict] =
+    useState<CreateAniSearchConflictState | null>(null);
 
   const [stagedCover, setStagedCover] =
     useState<CreateAssetUploadDraftValue | null>(null);
@@ -367,6 +379,11 @@ export function useAdminAnimeCreateController() {
     setSuccessMessage(null);
   }
 
+  function clearAniSearchState() {
+    setAniSearchDraftResult(null);
+    setAniSearchConflict(null);
+  }
+
   function resetStagedCover() {
     revokeStagedAssetPreview(stagedCover);
     setStagedCover(null);
@@ -529,7 +546,10 @@ export function useAdminAnimeCreateController() {
       setLastRequest(JSON.stringify(payload, null, 2));
 
       const response = await createManualAnimeAndRedirect(
-        appendJellyfinLinkageToCreatePayload(payload, jellyfinPreview),
+        appendCreateSourceLinkageToPayload(payload, {
+          aniSearchDraftResult,
+          jellyfinPreview,
+        }),
         {
           createAdminAnime: jellyfinPreview
             ? createAdminAnimeFromJellyfinDraft
@@ -619,6 +639,7 @@ export function useAdminAnimeCreateController() {
 
   async function handleJellyfinSearch() {
     clearMessages();
+    setAniSearchConflict(null);
 
     try {
       await jellyfinIntake.search();
@@ -636,6 +657,7 @@ export function useAdminAnimeCreateController() {
 
   async function handleJellyfinCandidateReview(candidateID: string) {
     clearMessages();
+    setAniSearchConflict(null);
     jellyfinIntake.reviewCandidate(candidateID);
 
     try {
@@ -652,6 +674,7 @@ export function useAdminAnimeCreateController() {
       const hydrated = hydrateManualDraftFromJellyfinPreview(
         manualDraftValues,
         preview,
+        aniSearchDraftResult ? { mode: "fill" } : undefined,
       );
       applyManualDraftValues(hydrated.draft);
       setJellyfinPreview(preview);
@@ -669,6 +692,7 @@ export function useAdminAnimeCreateController() {
 
   function handleJellyfinCandidateSelect(candidateID: string) {
     clearMessages();
+    setAniSearchConflict(null);
     jellyfinIntake.reviewCandidate(candidateID);
     setSuccessMessage(
       "Treffer ausgewaehlt. Lade jetzt die Jellyfin-Vorschau, wenn dieser Ordner wirklich passt.",
@@ -693,13 +717,89 @@ export function useAdminAnimeCreateController() {
     setJellyfinPreview(null);
     setJellyfinAssetSlots(null);
     setJellyfinDraftSnapshot(null);
+    setAniSearchConflict(null);
     jellyfinIntake.resetReview();
     clearMessages();
     setSuccessMessage("Jellyfin-Vorschau verworfen. Der Entwurf bleibt ungespeichert.");
   }
 
+  async function handleAniSearchDraftLoad() {
+    clearMessages();
+    clearAniSearchState();
+    setLastRequest(null);
+    setLastResponse(null);
+
+    const anisearchID = createAniSearchID.trim();
+    if (!anisearchID) {
+      setErrorMessage("Bitte zuerst eine AniSearch-ID eingeben.");
+      return;
+    }
+
+    const runtimeAuthToken = getRuntimeAuthToken();
+    if (!runtimeAuthToken) {
+      setErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
+      );
+      return;
+    }
+
+    const requestPayload = {
+      anisearch_id: anisearchID,
+      draft: resolveCreateAniSearchDraftMergeInputs({
+        currentDraft: manualDraftValues,
+        jellyfinSnapshot: jellyfinDraftSnapshot,
+      }).requestDraft,
+    };
+
+    try {
+      setIsLoadingAniSearchDraft(true);
+      setLastRequest(JSON.stringify(requestPayload, null, 2));
+
+      const response = await loadAdminAnimeCreateAniSearchDraft(
+        requestPayload,
+        runtimeAuthToken,
+      );
+      const resolved = applyCreateAniSearchControllerResult({
+        currentDraft: manualDraftValues,
+        jellyfinSnapshot: jellyfinDraftSnapshot,
+        result: response.data,
+      });
+
+      setLastResponse(JSON.stringify(response, null, 2));
+
+      if (resolved.redirect) {
+        setAniSearchConflict(resolved.redirect);
+        setSuccessMessage(
+          `AniSearch ${resolved.redirect.anisearchID} ist bereits mit ${resolved.redirect.existingTitle} verknuepft. Weiterleitung zur Bearbeitung...`,
+        );
+        window.location.href = resolved.redirect.redirectPath;
+        return;
+      }
+
+      applyManualDraftValues(resolved.nextDraft);
+      setAniSearchDraftResult(resolved.draftResult);
+      setShowValidationSummary(false);
+      setSuccessMessage(
+        resolved.draftResult?.summary ??
+          `AniSearch ${anisearchID} geladen. Noch nichts gespeichert.`,
+      );
+    } catch (error) {
+      setErrorMessage(
+        formatCreatePageError(error, "AniSearch-Daten konnten nicht geladen werden."),
+      );
+    } finally {
+      setIsLoadingAniSearchDraft(false);
+    }
+  }
+
   return {
     auth: { hasAuthToken, isHydrated: isAuthStateHydrated },
+    anisearch: {
+      conflict: aniSearchConflict,
+      input: createAniSearchID,
+      isLoading: isLoadingAniSearchDraft,
+      result: aniSearchDraftResult,
+    },
     debug: { lastRequest, lastResponse, showDebugPanel },
     editor,
     errorMessage,
@@ -778,7 +878,9 @@ export function useAdminAnimeCreateController() {
       },
       addGenreSuggestion: addCreateGenreTokens,
       addTagSuggestion: addCreateTagTokens,
+      clearAniSearchState,
       handleBackgroundInputChange,
+      handleAniSearchDraftLoad,
       handleCoverUpload,
       handleCreateSubmit,
       handleDiscardJellyfinPreview,
@@ -807,10 +909,12 @@ export function useAdminAnimeCreateController() {
       restartJellyfinReview: () => {
         jellyfinIntake.restartReview();
         clearMessages();
+        setAniSearchConflict(null);
         setSuccessMessage(
           "Jellyfin-Suche wieder geoeffnet. Der aktuelle Entwurf bleibt bearbeitbar.",
         );
       },
+      setAniSearchID: setCreateAniSearchID,
       setContentType: setCreateContentType,
       setCoverImage: (value: string) => {
         resetStagedCover();
@@ -824,6 +928,7 @@ export function useAdminAnimeCreateController() {
       setStatus: setCreateStatus,
       setTitle: (value: string) => {
         setCreateTitle(value);
+        setAniSearchConflict(null);
         if (showValidationSummary) setShowValidationSummary(false);
       },
       setTitleDE: setCreateTitleDE,
