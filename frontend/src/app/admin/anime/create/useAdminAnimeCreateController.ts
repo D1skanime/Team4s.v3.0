@@ -781,6 +781,7 @@ export function useAdminAnimeCreateController() {
 
       if (resolved.redirect) {
         setAniSearchConflict(resolved.redirect);
+        window.location.href = resolved.redirect.redirectPath;
         return;
       }
 

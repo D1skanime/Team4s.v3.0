@@ -27,7 +27,7 @@ key-files:
     - frontend/src/app/admin/anime/create/page.test.tsx
     - frontend/src/app/admin/anime/components/ManualCreate/ManualCreateWorkspace.module.css
 key-decisions:
-  - "Create-route AniSearch duplicate ownership stays in-card with an explicit edit CTA instead of auto-redirecting immediately."
+  - "Create-route AniSearch duplicate ownership redirects directly to the existing edit route while still keeping conflict UI available as a fallback surface."
   - "Draft-time AniSearch feedback is local to the intake card; the page-level success box remains reserved for post-create persistence feedback."
 patterns-established:
   - "Create AniSearch card: explicit AniSearch ID input, local aria-live status, grouped summary sections."
@@ -50,7 +50,7 @@ completed: 2026-04-10
 - **Files modified:** 10
 
 ## Accomplishments
-- Added a dedicated `CreateAniSearchIntakeCard` with AniSearch ID input, `AniSearch laden`, duplicate CTA, and grouped draft summary sections.
+- Added a dedicated `CreateAniSearchIntakeCard` with AniSearch ID input, `AniSearch laden`, grouped draft summary sections, and duplicate fallback UI.
 - Wired AniSearch create feedback into local card state so draft-time errors and duplicates no longer depend on the generic page message area.
 - Updated the create-page layout and regression tests so AniSearch stays visibly above Jellyfin and the route remains production-build clean.
 
@@ -73,7 +73,7 @@ Each task was committed atomically:
 
 ## Decisions Made
 
-- Duplicate AniSearch ownership in create now renders as an operator-visible card state with `Zum vorhandenen Anime wechseln` instead of redirecting instantly.
+- Duplicate AniSearch ownership in create now redirects directly into the existing edit route, with the card CTA retained as a fallback surface if redirect handling needs to degrade gracefully.
 - AniSearch draft summaries are shown only inside the AniSearch card so create success messaging remains reserved for the actual persistence step.
 
 ## Deviations from Plan
