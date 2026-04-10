@@ -1,11 +1,15 @@
 ---
 phase: 12-create-anisearch-intake-reintroduction-and-draft-merge-control
 verified: 2026-04-10T13:05:00Z
+updated: 2026-04-10T15:27:00Z
 status: human_needed
 score: 5/5 must-haves verified
 human_verification:
-  - "Create route AniSearch draft load: on `/admin/anime/create`, entering a valid AniSearch ID updates the draft, shows grouped summary sections, and does not persist until create is submitted."
-  - "Create route duplicate AniSearch redirect: on `/admin/anime/create`, entering an AniSearch ID already owned by another anime redirects directly to `/admin/anime/{id}/edit`."
+  - "Create route AniSearch draft load: on `/admin/anime/create`, entering a valid AniSearch ID updates the draft, shows grouped summary sections, and does not persist until create is submitted. (Backend 404 fixed in 12-04; re-test required.)"
+  - "Create route duplicate AniSearch redirect: on `/admin/anime/create`, entering an AniSearch ID already owned by another anime redirects directly to `/admin/anime/{id}/edit`. (Blocked previously by 404 and save-crash; both fixed in 12-04 and 12-05.)"
+gap_closure_notes:
+  - "12-04: Wired missing backend create AniSearch enrichment endpoint — resolved frontend 404."
+  - "12-05: Made `AdminAnimeCreateAniSearchSummary.warnings` optional and added safe fallback in `createPageHelpers.ts` — resolved save-flow crash when backend omits warnings array."
 ---
 
 # Phase 12: Create AniSearch Intake Reintroduction And Draft Merge Control Verification Report

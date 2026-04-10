@@ -24,7 +24,7 @@ function hasAniSearchFollowThroughWarning(
   summary: AdminAnimeCreateAniSearchSummary | undefined,
 ): boolean {
   if (!summary) return false;
-  if (summary.warnings.length > 0) return true;
+  if ((summary.warnings ?? []).length > 0) return true;
   return summary.relations_attempted > summary.relations_applied;
 }
 
@@ -48,8 +48,8 @@ export function buildCreateSuccessMessage(
     );
   }
 
-  if ((summary?.warnings.length ?? 0) > 0) {
-    parts.push(summary!.warnings.join(" "));
+  if ((summary?.warnings?.length ?? 0) > 0) {
+    parts.push((summary?.warnings ?? []).join(" "));
   }
 
   parts.push("(Weiterleitung zur Uebersicht...)");

@@ -180,7 +180,7 @@ export interface AdminAnimeCreateAniSearchSummary {
   relations_attempted: number
   relations_applied: number
   relations_skipped_existing: number
-  warnings: string[]
+  warnings?: string[]
 }
 
 export interface AdminEpisodeCreateRequest {
