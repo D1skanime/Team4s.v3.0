@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  appendCreateSourceLinkageToPayload,
   resolveCreateAniSearchDraftMergeInputs,
   resolveJellyfinPreviewBaseDraft,
 } from './createPageHelpers'
@@ -188,5 +189,44 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
     expect(resolved.nextDraft).toEqual(manualLookupDraft)
     expect(resolved.draftResult).toBeNull()
     expect(resolved.redirect).toEqual(conflict)
+  })
+
+  it('keeps AniSearch relations in the final create payload when a draft is saved', () => {
+    const payload = appendCreateSourceLinkageToPayload(
+      {
+        title: 'Serial Experiments Lain',
+        type: 'tv',
+        content_type: 'anime',
+        status: 'ongoing',
+      },
+      {
+        aniSearchDraftResult: {
+          draft: {
+            ...aniSearchDraft,
+            relations: [
+              {
+                target_anime_id: 42,
+                relation_label: 'Fortsetzung',
+                target_title: 'Serial Experiments Lain',
+                target_type: 'tv',
+                target_status: 'finished',
+              },
+            ],
+          },
+        },
+        jellyfinPreview: jellyfinPreview,
+      },
+    )
+
+    expect(payload.source).toBe('anisearch:12345')
+    expect(payload.relations).toEqual([
+      {
+        target_anime_id: 42,
+        relation_label: 'Fortsetzung',
+        target_title: 'Serial Experiments Lain',
+        target_type: 'tv',
+        target_status: 'finished',
+      },
+    ])
   })
 })
