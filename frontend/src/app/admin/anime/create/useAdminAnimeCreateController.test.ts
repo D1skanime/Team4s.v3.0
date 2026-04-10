@@ -4,6 +4,10 @@ import {
   resolveCreateAniSearchDraftMergeInputs,
   resolveJellyfinPreviewBaseDraft,
 } from './createPageHelpers'
+import {
+  applyCreateAniSearchControllerResult,
+  buildCreateAniSearchConflictState,
+} from './useAdminAnimeCreateController'
 import { hydrateManualDraftFromAniSearchDraft, hydrateManualDraftFromJellyfinPreview } from '../hooks/useManualAnimeDraft'
 
 const manualLookupDraft = {
@@ -113,5 +117,76 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
 
     expect(mergeInputs.protectedFields).not.toContain('title')
     expect(hydrated.title).toBe('Serial Experiments Lain')
+  })
+
+  it('preserves real manual edits when AniSearch is loaded after Jellyfin', () => {
+    const jellyfinHydrated = hydrateManualDraftFromJellyfinPreview(manualLookupDraft, jellyfinPreview)
+    const currentDraft = {
+      ...jellyfinHydrated.draft,
+      titleDE: 'Experimente Lain',
+      description: 'Manuell kuratierter Text',
+    }
+
+    const resolved = applyCreateAniSearchControllerResult({
+      currentDraft,
+      jellyfinSnapshot: manualLookupDraft,
+      result: {
+        mode: 'draft',
+        anisearch_id: '12345',
+        source: 'anisearch:12345',
+        draft: {
+          ...aniSearchDraft,
+          title_de: 'Serial Experiments Lain DE',
+          description: 'AniSearch Beschreibung',
+        },
+        manual_fields_kept: ['title_de', 'description'],
+        filled_fields: ['title', 'year'],
+        filled_assets: ['cover'],
+        provider: {
+          anisearch_id: '12345',
+          jellysync_applied: false,
+          relation_candidates: 2,
+          relation_matches: 1,
+        },
+      },
+    })
+
+    expect(resolved.nextDraft.title).toBe('Serial Experiments Lain')
+    expect(resolved.nextDraft.titleDE).toBe('Experimente Lain')
+    expect(resolved.nextDraft.description).toBe('Manuell kuratierter Text')
+    expect(resolved.draftResult?.source).toBe('anisearch:12345')
+    expect(resolved.redirect).toBeNull()
+  })
+
+  it('normalizes duplicate AniSearch loads into immediate edit-route redirect state', () => {
+    const conflict = buildCreateAniSearchConflictState({
+      mode: 'redirect',
+      anisearch_id: '12345',
+      existing_anime_id: 84,
+      existing_title: 'Serial Experiments Lain',
+      redirect_path: '/admin/anime/84/edit',
+    })
+
+    const resolved = applyCreateAniSearchControllerResult({
+      currentDraft: manualLookupDraft,
+      jellyfinSnapshot: null,
+      result: {
+        mode: 'redirect',
+        anisearch_id: '12345',
+        existing_anime_id: 84,
+        existing_title: 'Serial Experiments Lain',
+        redirect_path: '/admin/anime/84/edit',
+      },
+    })
+
+    expect(conflict).toEqual({
+      anisearchID: '12345',
+      existingAnimeID: 84,
+      existingTitle: 'Serial Experiments Lain',
+      redirectPath: '/admin/anime/84/edit',
+    })
+    expect(resolved.nextDraft).toEqual(manualLookupDraft)
+    expect(resolved.draftResult).toBeNull()
+    expect(resolved.redirect).toEqual(conflict)
   })
 })
