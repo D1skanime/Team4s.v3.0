@@ -115,3 +115,13 @@ Plans:
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
 | v1.1 Asset Lifecycle Hardening | 6 | 11 | Phases 6-9 verified, Phase 10 executed with gap closure complete, Phase 11 complete | - |
+
+### Phase 12: Create AniSearch Intake Reintroduction And Draft Merge Control
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 11
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 12 to break down)
