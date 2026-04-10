@@ -97,7 +97,7 @@
 | ENR-02 | Phase 9 | Complete |
 | ENR-03 | Phase 9 | Complete |
 | ENR-04 | Phase 9 | Complete |
-| ENR-05 | Phase 9 | Pending |
+| ENR-05 | Phase 13 | Pending |
 | ENR-06 | Phase 11 | Complete |
 | ENR-07 | Phase 11 | Complete |
 | ENR-08 | Phase 11 | Complete |
@@ -116,4 +116,4 @@
 
 ---
 *Requirements defined: 2026-04-02*
-*Last updated: 2026-04-09 after Phase 11 AniSearch gap closure completion*
+*Last updated: 2026-04-10 after Phase 12 verification and Phase 13 addition*

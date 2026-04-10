@@ -3,7 +3,7 @@
 ## Milestones
 
 - [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
-- [x] **v1.1 Asset Lifecycle Hardening** - Phases 6, 7, 8, and 9 verified. Phase 10 gap closure is complete, and Phase 11 AniSearch gap closure is now fully executed. (completed 2026-04-09)
+- [ ] **v1.1 Asset Lifecycle Hardening** - Phases 6 through 12 are complete or verified, and Phase 13 is queued to repair AniSearch relation follow-through.
 
 ## Current Direction
 
@@ -15,8 +15,10 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 7: Generic Upload And Linking** - Build the reusable anime upload and V2 linking path for multiple asset types in manual create and edit flows.
 - [x] **Phase 8: Replace/Delete Cleanup And Operator UX** - Finish anime asset replace and delete cleanup semantics and the operator-facing lifecycle controls.
 - [x] **Phase 9: Controlled AniSearch ID enrichment before create with fill-only Jellysync follow-up** - Add guarded create-time AniSearch enrichment before persistence without breaking manual authority.
-- [ ] **Phase 10: Create Tags And Metadata Card Refactor** - Add normalized tags to anime create and refactor create metadata UI into a maintainable card-based structure.
+- [x] **Phase 10: Create Tags And Metadata Card Refactor** - Add normalized tags to anime create and refactor create metadata UI into a maintainable card-based structure.
 - [x] **Phase 11: AniSearch Edit Enrichment And Relation Persistence** - Add AniSearch enrichment to the edit route and persist AniSearch relations once create metadata is stable. (executed 2026-04-09; verification gaps ENR-08 and ENR-10 closed by 11-04 and 11-05)
+- [x] **Phase 12: Create AniSearch Intake Reintroduction And Draft Merge Control** - Restore AniSearch as a first-class create action, preserve `manual > AniSearch > Jellyfin`, and redirect duplicates straight to edit.
+- [ ] **Phase 13: AniSearch Relation Follow-Through Repair** - Repair the still-broken AniSearch relation persistence and follow-through after the create-flow reintroduction shipped.
 
 ## Phase Details
 
@@ -109,23 +111,35 @@ Plans:
   2. Relations resolved from AniSearch during anime create are persisted to the `anime_relations` table instead of remaining draft-only data.
   3. AniSearch enrichment in the edit route follows the same source-ID-based relation resolution as the create route (`anisearch:{id}` lookup first, title fallback).
 
-## Progress
-
-| Milestone | Phases | Plans | Status | Shipped |
-|-----------|--------|-------|--------|---------|
-| v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 6 | 11 | Phases 6-9 verified, Phase 10 executed with gap closure complete, Phase 11 complete | - |
-
 ### Phase 12: Create AniSearch Intake Reintroduction And Draft Merge Control
-
 **Goal:** Admins can explicitly load AniSearch into the create route again, keep `manual > AniSearch > Jellyfin` draft precedence in both load orders, and switch directly to edit when an AniSearch ID already belongs to an existing anime.
 **Requirements**: ENR-01, ENR-02, ENR-03, ENR-04, ENR-05
 **Depends on:** Phase 11
+**Status**: Verified and human-approved on 2026-04-10 after gap closures 12-04 and 12-05
 **Plans:** 5/5 plans complete
-
 Plans:
 - [x] `12-01-PLAN.md` - Define the create AniSearch helper/contracts and Wave 0 regression scaffolds.
 - [x] `12-02-PLAN.md` - Implement AniSearch-aware create-controller precedence, duplicate redirect handling, and source ownership rules.
 - [x] `12-03-PLAN.md` - Reintroduce the visible create AniSearch card above Jellyfin and verify the operator-facing status flow.
 - [x] `12-04-PLAN.md` - Register the missing backend create AniSearch route and close the live 404 gap confirmed by browser UAT.
-- [ ] `12-05-PLAN.md` - Harden AniSearch create success handling against missing `warnings` metadata and close the save-flow crash found in browser UAT.
+- [x] `12-05-PLAN.md` - Harden AniSearch create success handling against missing `warnings` metadata and close the save-flow crash found in browser UAT.
+**Success Criteria** (what must be TRUE):
+  1. AniSearch is visible again on `/admin/anime/create` as an explicit exact-ID action above Jellyfin.
+  2. Create-side merge precedence remains `manual > AniSearch > Jellyfin` in both load orders.
+  3. Duplicate AniSearch IDs in create redirect directly to the existing edit route.
+  4. AniSearch draft-time feedback is visible, local to the create controls, and clearly unsaved.
+
+### Phase 13: AniSearch Relation Follow-Through Repair
+**Goal:** Repair AniSearch relation persistence and follow-through after create so resolvable approved relations are actually written and operator feedback matches reality.
+**Requirements**: ENR-05, ENR-10
+**Depends on:** Phase 12
+**Plans:** 0 plans
+Plans:
+- [ ] TBD (run `$gsd-plan-phase 13` to break down)
+
+## Progress
+
+| Milestone | Phases | Plans | Status | Shipped |
+|-----------|--------|-------|--------|---------|
+| v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
+| v1.1 Asset Lifecycle Hardening | 8 | 16+ | Phases 6-12 complete or verified; Phase 13 queued for AniSearch relation repair | - |

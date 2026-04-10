@@ -1,22 +1,23 @@
 ---
 phase: 12-create-anisearch-intake-reintroduction-and-draft-merge-control
-verified: 2026-04-10T13:05:00Z
-updated: 2026-04-10T15:27:00Z
-status: human_needed
+verified: 2026-04-10T20:27:00Z
+updated: 2026-04-10T20:27:00Z
+status: passed
 score: 5/5 must-haves verified
 human_verification:
-  - "Create route AniSearch draft load: on `/admin/anime/create`, entering a valid AniSearch ID updates the draft, shows grouped summary sections, and does not persist until create is submitted. (Backend 404 fixed in 12-04; re-test required.)"
-  - "Create route duplicate AniSearch redirect: on `/admin/anime/create`, entering an AniSearch ID already owned by another anime redirects directly to `/admin/anime/{id}/edit`. (Blocked previously by 404 and save-crash; both fixed in 12-04 and 12-05.)"
+  - "Passed on 2026-04-10: on `/admin/anime/create`, entering a valid AniSearch ID updates the draft, shows grouped summary sections, and does not persist until create is submitted."
+  - "Passed on 2026-04-10: on `/admin/anime/create`, entering an AniSearch ID already owned by another anime redirects directly to `/admin/anime/{id}/edit`."
+  - "Passed on 2026-04-10: after AniSearch draft load, normal create submit succeeds and redirects to `/admin/anime?created={id}#anime-{id}`."
 gap_closure_notes:
-  - "12-04: Wired missing backend create AniSearch enrichment endpoint — resolved frontend 404."
-  - "12-05: Made `AdminAnimeCreateAniSearchSummary.warnings` optional and added safe fallback in `createPageHelpers.ts` — resolved save-flow crash when backend omits warnings array."
+  - "12-04: Wired missing backend create AniSearch enrichment endpoint - resolved frontend 404."
+  - "12-05: Made `AdminAnimeCreateAniSearchSummary.warnings` optional and added safe fallback in `createPageHelpers.ts` - resolved save-flow crash when backend omits warnings array."
 ---
 
 # Phase 12: Create AniSearch Intake Reintroduction And Draft Merge Control Verification Report
 
 **Phase Goal:** Reintroduce AniSearch as a first-class action in the create flow, preserve `manual > AniSearch > Jellyfin` precedence, and deliver visible duplicate/summary handling without broader edit-route refactor.
-**Verified:** 2026-04-10T13:05:00Z
-**Status:** human_needed
+**Verified:** 2026-04-10T20:27:00Z
+**Status:** passed
 
 ## Goal Achievement
 
@@ -75,14 +76,15 @@ gap_closure_notes:
 
 No orphaned Phase 12 requirement IDs were found. The union of requirement IDs claimed across Phase 12 plan frontmatter is exactly `ENR-01, ENR-02, ENR-03, ENR-04, ENR-05`, and each ID is present in [.planning/REQUIREMENTS.md](C:/Users/admin/Documents/Team4s/.planning/REQUIREMENTS.md).
 
-### Human Verification Needed
+### Human Verification Completed
 
-Automated verification is green, but two live operator behaviors still need browser confirmation against real AniSearch responses:
+Live browser UAT completed on 2026-04-10:
 
-1. On `/admin/anime/create`, loading a valid AniSearch ID should update the draft, show the grouped AniSearch summary card, and leave the anime unpersisted until the normal create submit happens.
-2. On `/admin/anime/create`, loading an AniSearch ID already owned by another anime should redirect directly to `/admin/anime/{id}/edit`.
+1. On `/admin/anime/create`, loading a valid AniSearch ID updates the draft, shows the grouped AniSearch summary card, and leaves the anime unpersisted until the normal create submit happens.
+2. On `/admin/anime/create`, loading an AniSearch ID already owned by another anime redirects directly to `/admin/anime/{id}/edit`.
+3. After AniSearch draft load, a normal create submit succeeds and redirects to `/admin/anime?created={id}#anime-{id}`.
 
 ---
 
-_Verified: 2026-04-10T13:05:00Z_  
+_Verified: 2026-04-10T20:27:00Z_  
 _Verifier: Codex (manual phase verification after automated checks)_

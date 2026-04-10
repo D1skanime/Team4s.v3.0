@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
+milestone: v1.1
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 12-05-PLAN.md
-last_updated: "2026-04-10T15:28:42.870Z"
+status: Ready to plan
+stopped_at: Phase 12 verified complete; Phase 13 added for AniSearch relation repair
+last_updated: "2026-04-10T20:27:00Z"
 last_activity: 2026-04-10
 progress:
-  total_phases: 7
-  completed_phases: 5
+  total_phases: 8
+  completed_phases: 7
   total_plans: 24
-  completed_plans: 21
+  completed_plans: 24
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 12 — create-anisearch-intake-reintroduction-and-draft-merge-control
+**Current focus:** Phase 13 - anisearch-relation-follow-through-repair
 
 ## Current Position
 
-Phase: 12 (create-anisearch-intake-reintroduction-and-draft-merge-control) — EXECUTING
-Plan: 2 of 5
+Phase: 13 (anisearch-relation-follow-through-repair) - NOT PLANNED
+Plan: 0 of 0
 
 ## Accumulated Context
 
@@ -67,6 +67,7 @@ Recent durable decisions:
 - [Phase 12]: Unsaved AniSearch create feedback is shaped in a dedicated summary helper instead of extending persisted create success messaging.
 - [Phase 12]: Create-route AniSearch transitions stay in a small helper module so the controller hook does not absorb more merge logic.
 - [Phase 12]: Final create payload linkage now prefers AniSearch provenance over Jellyfin linkage whenever an AniSearch draft result is active.
+- [Phase 13 prep]: AniSearch create intake is now verified complete, so the remaining relation follow-through breakage should be isolated as its own repair phase instead of reopening the finished create-intake work.
 
 ### Pending Todos
 
@@ -78,6 +79,7 @@ Recent durable decisions:
 - Phase 10 narrowed to create tags and metadata card refactor and is now executed.
 - Phase 11 added: AniSearch edit enrichment and relation persistence.
 - Phase 12 added: Create AniSearch intake reintroduction and draft merge control.
+- Phase 13 added: AniSearch Relation Follow-Through Repair.
 
 ### Blockers/Concerns
 
@@ -105,7 +107,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-10T15:28:42.865Z
-Stopped at: Completed 12-05-PLAN.md
+Last session: 2026-04-10T20:27:00Z
+Stopped at: Phase 12 verified complete; Phase 13 added for AniSearch relation repair
 Last activity: 2026-04-10
 Resume file: None
