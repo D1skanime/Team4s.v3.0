@@ -1239,6 +1239,49 @@ func TestBuildAdminAnimeUpsertResponse_IncludesAniSearchWarningSummary(t *testin
 	}
 }
 
+func TestApplyAniSearchCreateFollowThrough_UsesDetailedRelationOutcomeCounts(t *testing.T) {
+	t.Parallel()
+
+	source := "anisearch:12345"
+	relationInput := []models.AdminAnimeRelation{
+		{TargetAnimeID: 12, RelationLabel: "Fortsetzung", TargetTitle: "Lain", TargetType: "tv", TargetStatus: "done"},
+		{TargetAnimeID: 13, RelationLabel: "Nebengeschichte", TargetTitle: "Lain Specials", TargetType: "special", TargetStatus: "done"},
+	}
+	relationRepo := &relationRepoStub{
+		applyResult: repository.AdminAnimeEnrichmentRelationApplyResult{
+			Attempted:       2,
+			Applied:         1,
+			SkippedExisting: 1,
+		},
+	}
+
+	handler := &AdminContentHandler{relationRepo: relationRepo}
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime", strings.NewReader(`{}`))
+
+	summary := handler.applyAniSearchCreateFollowThrough(c, 77, &source, relationInput)
+
+	if relationRepo.appliedSourceID != 77 {
+		t.Fatalf("expected source anime id to reach relation repo, got %d", relationRepo.appliedSourceID)
+	}
+	if !slices.Equal(relationRepo.appliedRelations, relationInput) {
+		t.Fatalf("expected relations to reach relation repo, got %#v", relationRepo.appliedRelations)
+	}
+	if summary == nil {
+		t.Fatal("expected anisearch summary")
+	}
+	if summary.RelationsAttempted != 2 || summary.RelationsApplied != 1 || summary.RelationsSkippedExisting != 1 {
+		t.Fatalf("unexpected summary counts: %#v", summary)
+	}
+	if summary.Source == nil || *summary.Source != source {
+		t.Fatalf("expected source %q, got %#v", source, summary.Source)
+	}
+	if len(summary.Warnings) != 0 {
+		t.Fatalf("expected no warnings for idempotent follow-through, got %#v", summary.Warnings)
+	}
+}
+
 // -------------------------------------------------------------------
 // Additional regression tests for episode validation
 // -------------------------------------------------------------------
