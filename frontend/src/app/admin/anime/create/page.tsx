@@ -6,6 +6,7 @@ import styles from "../../admin.module.css";
 import createStyles from "./page.module.css";
 import { JellyfinDraftAssets } from "../components/ManualCreate/JellyfinDraftAssets";
 import { ManualCreateWorkspace } from "../components/ManualCreate/ManualCreateWorkspace";
+import { CreateAniSearchIntakeCard } from "./CreateAniSearchIntakeCard";
 import { CreateJellyfinResultsPanel } from "./CreateJellyfinResultsPanel";
 import {
   buildCreateSuccessMessage,
@@ -169,20 +170,35 @@ export default function AdminAnimeCreatePage() {
             canResetLimit={manualDraft.suggestions.genre.canResetLimit}
             missingFields={manualDraft.missingFields}
             titleActions={
-              <button
-                className={createStyles.primaryAction}
-                type="button"
-                disabled={
-                  !manualDraft.sourceActionState.canSync ||
-                  jellyfin.intake.isSearching ||
-                  status.isSubmittingCreate
-                }
-                onClick={() => {
-                  void handlers.handleJellyfinSearch();
-                }}
-              >
-                {jellyfin.intake.isSearching ? "Jellyfin sucht..." : "Jellyfin suchen"}
-              </button>
+              <div className={createStyles.sourceActionStack}>
+                <CreateAniSearchIntakeCard
+                  anisearchID={controller.anisearch.input}
+                  isLoading={controller.anisearch.isLoading}
+                  result={controller.anisearch.result}
+                  conflict={controller.anisearch.conflict}
+                  errorMessage={controller.anisearch.errorMessage}
+                  onAniSearchIDChange={handlers.setAniSearchID}
+                  onSubmit={() => {
+                    void handlers.handleAniSearchDraftLoad();
+                  }}
+                />
+                <button
+                  className={createStyles.primaryAction}
+                  type="button"
+                  disabled={
+                    !manualDraft.sourceActionState.canSync ||
+                    jellyfin.intake.isSearching ||
+                    status.isSubmittingCreate
+                  }
+                  onClick={() => {
+                    void handlers.handleJellyfinSearch();
+                  }}
+                >
+                  {jellyfin.intake.isSearching
+                    ? "Jellyfin sucht..."
+                    : "Jellyfin suchen"}
+                </button>
+              </div>
             }
             titleHint={<p className={styles.hint}>{manualDraft.sourceActionState.helperText}</p>}
             typeHint={<CreatePageTypeHint preview={jellyfin.preview} />}

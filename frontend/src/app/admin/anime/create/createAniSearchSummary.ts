@@ -1,57 +1,68 @@
 import type { AdminAnimeAniSearchCreateDraftResult } from "@/types/admin";
 
-export interface CreateAniSearchDraftSummary {
-  message: string
-  notes: string[]
-}
-
-function formatFieldList(values: string[] | undefined): string | null {
-  const normalized = (values || []).map((value) => value.trim()).filter(Boolean)
-  if (normalized.length === 0) return null
-  return normalized.join(", ")
-}
-
-export function buildCreateAniSearchDraftSummary(params: {
+interface BuildCreateAniSearchDraftSummaryParams {
   result: Pick<
     AdminAnimeAniSearchCreateDraftResult,
-    "anisearch_id" | "source" | "filled_fields" | "manual_fields_kept" | "provider"
-  >
-  overwrittenJellyfinFields?: string[]
-  preservedManualFields?: string[]
-}): CreateAniSearchDraftSummary {
-  const updatedFields = formatFieldList(params.result.filled_fields)
-  const preservedManualFields = formatFieldList(
-    params.preservedManualFields?.length
-      ? params.preservedManualFields
-      : params.result.manual_fields_kept,
-  )
-  const overwrittenJellyfinFields = formatFieldList(params.overwrittenJellyfinFields)
-  const notes: string[] = []
+    "anisearch_id" | "filled_fields" | "manual_fields_kept" | "provider"
+  >;
+  overwrittenJellyfinFields: string[];
+  preservedManualFields: string[];
+}
 
-  if (updatedFields) {
-    notes.push(`Aktualisiert: ${updatedFields}.`)
+export interface CreateAniSearchDraftSummary {
+  message: string;
+  notes: string[];
+  updatedFields: string[];
+  relationNotes: string[];
+  draftStatusNotes: string[];
+}
+
+function joinOrFallback(values: string[], fallback: string): string {
+  return values.length > 0 ? values.join(", ") : fallback;
+}
+
+export function buildCreateAniSearchDraftSummary({
+  result,
+  overwrittenJellyfinFields,
+  preservedManualFields,
+}: BuildCreateAniSearchDraftSummaryParams): CreateAniSearchDraftSummary {
+  const updatedFields = [...(result.filled_fields ?? [])];
+  const relationNotes =
+    result.provider.relation_candidates > 0
+      ? [
+          `${result.provider.relation_matches} von ${result.provider.relation_candidates} AniSearch-Relationen konnten lokal zugeordnet werden.`,
+        ]
+      : ["AniSearch hat keine lokalen Relationen fuer diesen Titel gefunden."];
+  const draftStatusNotes: string[] = [];
+  const notes = [
+    `Aktualisiert: ${joinOrFallback(updatedFields, "keine Felder")}.`,
+    `Relationen: ${relationNotes[0]}`,
+  ];
+
+  if (overwrittenJellyfinFields.length > 0) {
+    draftStatusNotes.push(
+      `AniSearch hat bestehende Jellyfin-Werte fuer ${overwrittenJellyfinFields.join(", ")} ueberschrieben.`,
+    );
+    notes.push(`Jellyfin ersetzt: ${overwrittenJellyfinFields.join(", ")}.`);
   }
 
-  const relationCandidates = params.result.provider.relation_candidates
-  const relationMatches = params.result.provider.relation_matches
-  if (relationCandidates > 0) {
-    notes.push(
-      `Relationen: ${relationMatches} von ${relationCandidates} AniSearch-Relationen konnten lokal zugeordnet werden.`,
-    )
+  if (preservedManualFields.length > 0) {
+    draftStatusNotes.push(
+      `Manuell gepflegte ${preservedManualFields.join(", ")} bleiben erhalten.`,
+    );
+    notes.push(`Manuell behalten: ${preservedManualFields.join(", ")}.`);
   }
 
-  if (overwrittenJellyfinFields) {
-    notes.push(`Jellyfin ersetzt: ${overwrittenJellyfinFields}.`)
-  }
-
-  if (preservedManualFields) {
-    notes.push(`Manuell behalten: ${preservedManualFields}.`)
-  }
-
-  notes.push("Noch nichts gespeichert: nothing is saved yet.")
+  draftStatusNotes.push(
+    "Noch nichts gespeichert. Erst Speichern uebernimmt die Daten dauerhaft.",
+  );
+  notes.push("Noch nichts gespeichert.");
 
   return {
-    message: `AniSearch ID ${params.result.anisearch_id} hat den Entwurf aktualisiert.`,
+    message: `AniSearch ID ${result.anisearch_id} hat den Entwurf aktualisiert. Noch nichts gespeichert.`,
     notes,
-  }
+    updatedFields,
+    relationNotes,
+    draftStatusNotes,
+  };
 }

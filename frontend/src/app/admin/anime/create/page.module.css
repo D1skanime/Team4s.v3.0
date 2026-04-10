@@ -70,6 +70,12 @@
   display: grid;
 }
 
+.sourceActionStack {
+  display: grid;
+  gap: 16px;
+  width: min(440px, 100%);
+}
+
 .resultsPanel,
 .developerDetails {
   margin: 0;
@@ -177,6 +183,10 @@
 }
 
 @media (max-width: 720px) {
+  .sourceActionStack {
+    width: 100%;
+  }
+
   .resultsPanel,
   .developerDetails {
     border-radius: 16px;

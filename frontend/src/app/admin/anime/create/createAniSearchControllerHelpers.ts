@@ -5,18 +5,16 @@ import type {
 } from "@/types/admin";
 
 import { hydrateManualDraftFromAniSearchDraft, type ManualAnimeDraftValues } from "../hooks/useManualAnimeDraft";
-import { buildCreateAniSearchDraftSummary, resolveCreateAniSearchDraftMergeInputs } from "./createPageHelpers";
+import { buildCreateAniSearchDraftSummary } from "./createAniSearchSummary";
+import { resolveCreateAniSearchDraftMergeInputs } from "./createPageHelpers";
 
 export interface CreateAniSearchDraftState {
   anisearchID: string;
   source: string;
   summary: string;
-  filledFields: string[];
-  manualFieldsKept: string[];
-  filledAssets: string[];
-  relationCandidateCount: number;
-  relationMatchCount: number;
-  jellysyncApplied: boolean;
+  updatedFields: string[];
+  relationNotes: string[];
+  draftStatusNotes: string[];
   draft: AdminAnimeAniSearchCreateDraftResult["draft"];
 }
 
@@ -29,17 +27,24 @@ export interface CreateAniSearchConflictState {
 
 export function buildCreateAniSearchDraftState(
   result: AdminAnimeAniSearchCreateDraftResult,
+  options?: {
+    overwrittenJellyfinFields?: string[];
+    preservedManualFields?: string[];
+  },
 ): CreateAniSearchDraftState {
+  const summary = buildCreateAniSearchDraftSummary({
+    result,
+    overwrittenJellyfinFields: [...(options?.overwrittenJellyfinFields ?? [])],
+    preservedManualFields: [...(options?.preservedManualFields ?? [])],
+  });
+
   return {
     anisearchID: result.anisearch_id,
     source: result.source,
-    summary: buildCreateAniSearchDraftSummary(result),
-    filledFields: [...(result.filled_fields ?? [])],
-    manualFieldsKept: [...(result.manual_fields_kept ?? [])],
-    filledAssets: [...(result.filled_assets ?? [])],
-    relationCandidateCount: result.provider.relation_candidates,
-    relationMatchCount: result.provider.relation_matches,
-    jellysyncApplied: result.provider.jellysync_applied,
+    summary: summary.message,
+    updatedFields: summary.updatedFields,
+    relationNotes: summary.relationNotes,
+    draftStatusNotes: summary.draftStatusNotes,
     draft: result.draft,
   };
 }
@@ -76,6 +81,10 @@ export function applyCreateAniSearchControllerResult(params: {
     currentDraft: params.currentDraft,
     jellyfinSnapshot: params.jellyfinSnapshot,
   });
+  const overwrittenJellyfinFields = params.jellyfinSnapshot
+    ? [...(params.result.filled_fields ?? [])]
+    : [];
+  const preservedManualFields = [...(params.result.manual_fields_kept ?? [])];
 
   return {
     nextDraft: hydrateManualDraftFromAniSearchDraft(
@@ -83,7 +92,10 @@ export function applyCreateAniSearchControllerResult(params: {
       params.result.draft,
       mergeInputs.protectedFields,
     ),
-    draftResult: buildCreateAniSearchDraftState(params.result),
+    draftResult: buildCreateAniSearchDraftState(params.result, {
+      overwrittenJellyfinFields,
+      preservedManualFields,
+    }),
     redirect: null,
   };
 }

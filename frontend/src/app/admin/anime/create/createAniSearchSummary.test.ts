@@ -25,7 +25,7 @@ describe('buildCreateAniSearchDraftSummary', () => {
     expect(summary.notes).toContain('Aktualisiert: title, description, relations.')
     expect(summary.notes).toContain('Relationen: 1 von 3 AniSearch-Relationen konnten lokal zugeordnet werden.')
     expect(summary.notes).toContain('Jellyfin ersetzt: description.')
-    expect(summary.notes).toContain('Noch nichts gespeichert: nothing is saved yet.')
+    expect(summary.notes).toContain('Noch nichts gespeichert.')
   })
 
   it('mentions preserved manual values when AniSearch leaves them untouched', () => {

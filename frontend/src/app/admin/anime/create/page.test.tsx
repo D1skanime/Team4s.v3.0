@@ -68,7 +68,7 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).toContain("Jellyfin suchen");
     expect(markup).toContain("Manuell &gt; AniSearch &gt; Jellyfin");
     expect(markup.indexOf("AniSearch laden")).toBeLessThan(
-      markup.indexOf("Jellyfin suchen"),
+      markup.lastIndexOf("Jellyfin suchen"),
     );
     expect(markup).toContain(
       "Gib zuerst einen aussagekraeftigen Anime-Titel ein, damit Jellyfin suchen kann. AniSearch laedt gezielt per ID.",

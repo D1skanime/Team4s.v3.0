@@ -96,6 +96,8 @@ export function useAdminAnimeCreateController() {
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [aniSearchErrorMessage, setAniSearchErrorMessage] =
+    useState<string | null>(null);
   const [lastRequest, setLastRequest] = useState<string | null>(null);
   const [lastResponse, setLastResponse] = useState<string | null>(null);
   const [showValidationSummary, setShowValidationSummary] = useState(false);
@@ -379,9 +381,14 @@ export function useAdminAnimeCreateController() {
     setSuccessMessage(null);
   }
 
+  function clearAniSearchMessage() {
+    setAniSearchErrorMessage(null);
+  }
+
   function clearAniSearchState() {
     setAniSearchDraftResult(null);
     setAniSearchConflict(null);
+    clearAniSearchMessage();
   }
 
   function resetStagedCover() {
@@ -589,6 +596,7 @@ export function useAdminAnimeCreateController() {
 
   async function handleCoverUpload(file: File) {
     clearMessages();
+    clearAniSearchMessage();
     setIsUploadingCover(true);
 
     try {
@@ -639,6 +647,7 @@ export function useAdminAnimeCreateController() {
 
   async function handleJellyfinSearch() {
     clearMessages();
+    clearAniSearchMessage();
     setAniSearchConflict(null);
 
     try {
@@ -657,6 +666,7 @@ export function useAdminAnimeCreateController() {
 
   async function handleJellyfinCandidateReview(candidateID: string) {
     clearMessages();
+    clearAniSearchMessage();
     setAniSearchConflict(null);
     jellyfinIntake.reviewCandidate(candidateID);
 
@@ -692,6 +702,7 @@ export function useAdminAnimeCreateController() {
 
   function handleJellyfinCandidateSelect(candidateID: string) {
     clearMessages();
+    clearAniSearchMessage();
     setAniSearchConflict(null);
     jellyfinIntake.reviewCandidate(candidateID);
     setSuccessMessage(
@@ -720,6 +731,7 @@ export function useAdminAnimeCreateController() {
     setAniSearchConflict(null);
     jellyfinIntake.resetReview();
     clearMessages();
+    clearAniSearchMessage();
     setSuccessMessage("Jellyfin-Vorschau verworfen. Der Entwurf bleibt ungespeichert.");
   }
 
@@ -731,13 +743,13 @@ export function useAdminAnimeCreateController() {
 
     const anisearchID = createAniSearchID.trim();
     if (!anisearchID) {
-      setErrorMessage("Bitte zuerst eine AniSearch-ID eingeben.");
+      setAniSearchErrorMessage("Bitte zuerst eine AniSearch-ID eingeben.");
       return;
     }
 
     const runtimeAuthToken = getRuntimeAuthToken();
     if (!runtimeAuthToken) {
-      setErrorMessage(
+      setAniSearchErrorMessage(
         "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
       );
       return;
@@ -769,22 +781,14 @@ export function useAdminAnimeCreateController() {
 
       if (resolved.redirect) {
         setAniSearchConflict(resolved.redirect);
-        setSuccessMessage(
-          `AniSearch ${resolved.redirect.anisearchID} ist bereits mit ${resolved.redirect.existingTitle} verknuepft. Weiterleitung zur Bearbeitung...`,
-        );
-        window.location.href = resolved.redirect.redirectPath;
         return;
       }
 
       applyManualDraftValues(resolved.nextDraft);
       setAniSearchDraftResult(resolved.draftResult);
       setShowValidationSummary(false);
-      setSuccessMessage(
-        resolved.draftResult?.summary ??
-          `AniSearch ${anisearchID} geladen. Noch nichts gespeichert.`,
-      );
     } catch (error) {
-      setErrorMessage(
+      setAniSearchErrorMessage(
         formatCreatePageError(error, "AniSearch-Daten konnten nicht geladen werden."),
       );
     } finally {
@@ -796,6 +800,7 @@ export function useAdminAnimeCreateController() {
     auth: { hasAuthToken, isHydrated: isAuthStateHydrated },
     anisearch: {
       conflict: aniSearchConflict,
+      errorMessage: aniSearchErrorMessage,
       input: createAniSearchID,
       isLoading: isLoadingAniSearchDraft,
       result: aniSearchDraftResult,
@@ -909,6 +914,7 @@ export function useAdminAnimeCreateController() {
       restartJellyfinReview: () => {
         jellyfinIntake.restartReview();
         clearMessages();
+        clearAniSearchMessage();
         setAniSearchConflict(null);
         setSuccessMessage(
           "Jellyfin-Suche wieder geoeffnet. Der aktuelle Entwurf bleibt bearbeitbar.",
@@ -929,6 +935,7 @@ export function useAdminAnimeCreateController() {
       setTitle: (value: string) => {
         setCreateTitle(value);
         setAniSearchConflict(null);
+        clearAniSearchMessage();
         if (showValidationSummary) setShowValidationSummary(false);
       },
       setTitleDE: setCreateTitleDE,

@@ -88,10 +88,10 @@
 }
 
 .titleActions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 10px;
   justify-content: flex-end;
+  width: min(440px, 100%);
 }
 
 .statusInline {
@@ -147,6 +147,6 @@
   }
 
   .titleActions {
-    justify-content: stretch;
+    width: 100%;
   }
 }
