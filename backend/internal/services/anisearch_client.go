@@ -681,9 +681,9 @@ func parseAniSearchRelations(doc *xhtml.Node) []AniSearchAnimeRelation {
 }
 
 type aniSearchRelationsGraph struct {
-	Nodes  map[string]map[string]aniSearchRelationsNode `json:"nodes"`
-	Edges  []aniSearchRelationsEdge                     `json:"edges"`
-	Legend []string                                     `json:"legend"`
+	Nodes  map[string]json.RawMessage `json:"nodes"`
+	Edges  []aniSearchRelationsEdge   `json:"edges"`
+	Legend []string                   `json:"legend"`
 }
 
 type aniSearchRelationsNode struct {
@@ -721,7 +721,10 @@ func parseAniSearchRelationsPageHTML(aniSearchID string, rawHTML string) []AniSe
 	}
 
 	currentNodeID := "a" + strings.TrimSpace(aniSearchID)
-	nodes := graph.Nodes["anime"]
+	nodes, err := decodeAniSearchRelationsNodes(graph.Nodes["anime"])
+	if err != nil || len(nodes) == 0 {
+		return nil
+	}
 	if len(nodes) == 0 {
 		return nil
 	}
@@ -775,6 +778,23 @@ func parseAniSearchRelationsPageHTML(aniSearchID string, rawHTML string) []AniSe
 	}
 
 	return result
+}
+
+func decodeAniSearchRelationsNodes(raw json.RawMessage) (map[string]aniSearchRelationsNode, error) {
+	if len(raw) == 0 {
+		return nil, nil
+	}
+
+	trimmed := strings.TrimSpace(string(raw))
+	if trimmed == "" || trimmed == "null" || trimmed == "[]" {
+		return map[string]aniSearchRelationsNode{}, nil
+	}
+
+	var nodes map[string]aniSearchRelationsNode
+	if err := json.Unmarshal(raw, &nodes); err != nil {
+		return nil, err
+	}
+	return nodes, nil
 }
 
 func nodeText(node *xhtml.Node) string {
