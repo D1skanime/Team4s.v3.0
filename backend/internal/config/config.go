@@ -38,6 +38,8 @@ type Config struct {
 	MediaStorageDir              string
 	MediaPublicBaseURL           string
 	FFmpegPath                   string
+	TMDBAPIKey                   string
+	FanartAPIKey                 string
 }
 
 func Load() Config {
@@ -75,6 +77,8 @@ func Load() Config {
 		MediaStorageDir:              strings.TrimSpace(getEnv("MEDIA_STORAGE_DIR", "./storage/media")),
 		MediaPublicBaseURL:           strings.TrimSpace(getEnv("MEDIA_PUBLIC_BASE_URL", "http://localhost:8092")),
 		FFmpegPath:                   strings.TrimSpace(getEnv("FFMPEG_PATH", "/usr/bin/ffmpeg")),
+		TMDBAPIKey:                   strings.TrimSpace(os.Getenv("TMDB_API_KEY")),
+		FanartAPIKey:                 strings.TrimSpace(os.Getenv("FANART_API_KEY")),
 	}
 }
 

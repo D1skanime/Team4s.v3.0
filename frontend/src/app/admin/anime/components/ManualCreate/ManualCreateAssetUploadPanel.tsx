@@ -29,6 +29,7 @@ interface ManualCreateAssetUploadPanelProps {
   onCoverImageChange: (value: string) => void;
   onCoverFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onOpenFileDialog: (kind: keyof AssetInputRefs) => void;
+  onOpenAssetSearch: (kind: "cover" | "banner" | "logo" | "background") => void;
   onSingleAssetChange: (
     kind: SingleAssetKind,
     event: ChangeEvent<HTMLInputElement>,
@@ -108,6 +109,16 @@ export function ManualCreateAssetUploadPanel(
           onFileChange={props.onCoverFileChange}
           onOpenFileDialog={() => props.onOpenFileDialog("cover")}
         />
+        <div className={styles.actions}>
+          <button
+            className={styles.buttonSecondary}
+            type="button"
+            disabled={props.isSubmitting}
+            onClick={() => props.onOpenAssetSearch("cover")}
+          >
+            Cover online suchen
+          </button>
+        </div>
       </section>
 
       <section className={workspaceStyles.sectionCard}>
@@ -161,6 +172,16 @@ export function ManualCreateAssetUploadPanel(
                     >
                       {uploadPlan[kind].label} vorbereiten
                     </button>
+                    {kind !== "background_video" ? (
+                      <button
+                        className={styles.buttonSecondary}
+                        type="button"
+                        disabled={props.isSubmitting}
+                        onClick={() => props.onOpenAssetSearch(kind)}
+                      >
+                        {uploadPlan[kind].label} online suchen
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               );
@@ -196,6 +217,14 @@ export function ManualCreateAssetUploadPanel(
                 onClick={() => props.onOpenFileDialog("background")}
               >
                 Background hinzufuegen
+              </button>
+              <button
+                className={styles.buttonSecondary}
+                type="button"
+                disabled={props.isSubmitting}
+                onClick={() => props.onOpenAssetSearch("background")}
+              >
+                Backgrounds online suchen
               </button>
             </div>
             {props.stagedBackgrounds.length > 0 ? (

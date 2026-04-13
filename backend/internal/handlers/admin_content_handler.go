@@ -12,20 +12,20 @@ import (
 )
 
 type adminAnimeCreateRequest struct {
-	Title       string   `json:"title"`
-	TitleDE     *string  `json:"title_de"`
-	TitleEN     *string  `json:"title_en"`
-	Type        string   `json:"type"`
-	ContentType string   `json:"content_type"`
-	Status      string   `json:"status"`
-	Year        *int16   `json:"year"`
-	MaxEpisodes *int16   `json:"max_episodes"`
-	Genre       *string  `json:"genre"`
-	Tags        []string `json:"tags"`
-	Description *string  `json:"description"`
-	CoverImage  *string  `json:"cover_image"`
-	Source      *string  `json:"source"`
-	FolderName  *string  `json:"folder_name"`
+	Title       string                      `json:"title"`
+	TitleDE     *string                     `json:"title_de"`
+	TitleEN     *string                     `json:"title_en"`
+	Type        string                      `json:"type"`
+	ContentType string                      `json:"content_type"`
+	Status      string                      `json:"status"`
+	Year        *int16                      `json:"year"`
+	MaxEpisodes *int16                      `json:"max_episodes"`
+	Genre       *string                     `json:"genre"`
+	Tags        []string                    `json:"tags"`
+	Description *string                     `json:"description"`
+	CoverImage  *string                     `json:"cover_image"`
+	Source      *string                     `json:"source"`
+	FolderName  *string                     `json:"folder_name"`
 	Relations   []models.AdminAnimeRelation `json:"relations"`
 }
 
@@ -55,6 +55,11 @@ type adminAniSearchRepository interface {
 
 type adminAniSearchDraftLoader interface {
 	LoadAniSearchDraft(ctx context.Context, aniSearchID string) (models.AdminAnimeCreateDraftPayload, []models.AdminAnimeRelation, error)
+	SearchAniSearchCandidates(ctx context.Context, query string, limit int) ([]models.AdminAnimeAniSearchSearchCandidate, error)
+}
+
+type adminAnimeAssetSearchService interface {
+	SearchAssetCandidates(ctx context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error)
 }
 
 type adminRoleChecker interface {
@@ -76,12 +81,18 @@ type AdminContentHandler struct {
 	jellyfinStreamPath string
 	httpClient         *http.Client
 	enrichmentService  adminAniSearchDraftLoader
+	assetSearchService adminAnimeAssetSearchService
 }
 
 type AdminContentJellyfinConfig struct {
 	APIKey     string
 	BaseURL    string
 	StreamPath string
+}
+
+type AdminContentAssetSearchConfig struct {
+	TMDBAPIKey   string
+	FanartAPIKey string
 }
 
 func NewAdminContentHandler(
@@ -93,6 +104,7 @@ func NewAdminContentHandler(
 	adminRoleName string,
 	mediaStorageDir string,
 	jellyfinCfg AdminContentJellyfinConfig,
+	assetSearchCfg AdminContentAssetSearchConfig,
 ) *AdminContentHandler {
 	handler := &AdminContentHandler{
 		repo:               repo,
@@ -116,6 +128,14 @@ func NewAdminContentHandler(
 		aniSearchClient,
 		adminAnimeCreateEnrichmentRepo{repo: repo},
 		handler.previewJellysyncAnimeCreateFollowup,
+	)
+	handler.assetSearchService = services.NewAnimeAssetSearchService(
+		services.NewTMDBAssetSearchProvider(assetSearchCfg.TMDBAPIKey, handler.httpClient),
+		services.NewFanartTVAssetSearchProvider(assetSearchCfg.FanartAPIKey, assetSearchCfg.TMDBAPIKey, handler.httpClient),
+		services.NewAniListAssetSearchProvider(handler.httpClient),
+		services.NewZerochanAssetSearchProvider(handler.httpClient),
+		services.NewKonachanAssetSearchProvider(handler.httpClient),
+		services.NewSafebooruAssetSearchProvider(handler.httpClient),
 	)
 	handler.aniSearchRepo = adminAnimeCreateEnrichmentRepo{repo: repo}
 

@@ -99,8 +99,8 @@ The AniSearch card should share the same shell family as the existing edit cards
 - white or near-white surface
 - subtle neutral border
 - 12px to 14px radius
-- 18px to 24px interior padding
-- 16px to 20px content gaps
+- 16px to 24px interior padding
+- 16px to 24px content gaps
 
 ### AniSearch Card Structure
 
@@ -111,6 +111,23 @@ Desktop and tablet structure:
 - lower area: field-protection controls and result summary
 
 The protection controls and result summary may stack vertically, but they must stay in the same card so the operator reads "load, protect, review" as one action cluster.
+
+### Eye Priority Order
+
+The primary AniSearch card state must guide the eye in this order:
+
+1. section title plus overwrite warning
+2. AniSearch ID input
+3. primary `AniSearch laden` action
+4. field-protection controls
+5. result summary or error state
+
+Visual emphasis rules:
+
+- the overwrite warning sits directly under or beside the section title and is the first supporting line the operator reads
+- the AniSearch ID input and primary action form the strongest interaction row
+- protection controls are visually quieter than the action row but stronger than helper copy
+- result summary and error copy sit below the action area and must not compete with the primary action before a load occurs
 
 ### Relation Placement
 
@@ -221,13 +238,13 @@ Declared values must stay inside the existing admin rhythm:
 Exceptions:
 
 - interactive inputs and buttons remain at the established 44px minimum touch height from the current admin form controls
-- compact lock rows may use 12px internal padding if they keep the 44px tap target
+- compact lock rows may use 8px or 16px internal padding if they keep the 44px tap target
 
 Additional rules:
 
 - AniSearch input and primary action should sit in one row on desktop if space permits
 - on narrower widths, the action stacks below the input before any horizontal overflow appears
-- result summary items should use 8px to 12px internal gaps and 12px to 16px card-to-card separation
+- result summary items should use 8px to 16px internal gaps and 8px to 16px card-to-card separation
 
 ---
 
@@ -238,15 +255,16 @@ Use the existing admin type scale already visible in the edit route:
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px | 400 | 1.5 |
-| Label | 14px | 500 | 1.4 |
+| Label | 14px | 600 | 1.4 |
 | Heading | 20px | 600 | 1.3 |
-| Display | 28px | 700 | 1.2 |
+| Display | 28px | 600 | 1.2 |
 
 Typography rules:
 
 - all new helper and status copy should align with the current `sectionMeta`, `helperText`, and field-label hierarchy
 - no new display tier beyond the existing page title
-- lock-row labels use standard label weight, not heading weight
+- use only two font weights in this phase: `400` for body/helper copy and `600` for labels, headings, and emphasized counts
+- lock-row labels use the same `600` label weight as other field labels
 - result-summary numbers may use semibold emphasis but must not read like badges
 
 ---
@@ -282,7 +300,7 @@ All operator-facing copy remains German and should match the concise tone alread
 
 | Element | Copy |
 |---------|------|
-| AniSearch card title | `AniSearch Enrichment` |
+| AniSearch card title | `AniSearch Daten laden` |
 | AniSearch card meta | `AniSearch ueberschreibt bestehende Werte, ausser du schuetzt Felder vor dem Laden.` |
 | AniSearch ID label | `AniSearch ID` |
 | AniSearch ID placeholder | `z. B. 12345` |

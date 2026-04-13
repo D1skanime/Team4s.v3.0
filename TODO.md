@@ -1,14 +1,14 @@
 # TODO
 
 ## Current Active Work
-- [x] Execute and approve Phase 07 (`Generic Upload And Linking`)
-- [x] Verify create/edit/delete behavior for non-cover anime assets in the browser
-- [x] Record Phase 07 human UAT in `.planning/phases/07-generic-upload-and-linking/07-HUMAN-UAT.md`
+- [x] Close Phase 13 AniSearch create relation follow-through and verify DB persistence
+- [x] Fix the AniSearch relation-page parser so mixed node container types no longer discard valid anime relations
+- [x] Push the corrected Phase-13 baseline to GitHub `main`
 
 ## Next Up
-- [ ] Sync roadmap/requirements/milestone tracking to the approved Phase-07 state
-- [ ] Decide and plan the next post-Phase-07 phase
-- [ ] Separate any further UI polish from lifecycle-critical milestone work
+- [ ] Scope the chosen edit-route relation UX slice explicitly
+- [ ] Keep local dev commands and Docker/local verification paths documented as the team-default workflow
+- [ ] Separate any further UI polish or relation-taxonomy expansion from the verified lifecycle/enrichment seam work
 
 ## Parking Lot
 - [ ] Broader v2 rollout for non-anime entities and admin surfaces

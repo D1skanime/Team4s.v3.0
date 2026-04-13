@@ -349,3 +349,108 @@ It matches the actual slot semantics and makes the UI communicate that backgroun
 
 ### Follow-ups Required
 - keep background create/edit/delete regression coverage tied to additive behavior
+
+---
+
+## 2026-04-09 - Tags Follow The Same Normalized Persistence Model As Genres
+
+### Decision
+Persist anime tags through normalized `tags` and `anime_tags` tables, with authoritative write-on-save behavior analogous to genres.
+
+### Context
+Phase 10 added visible create-page tag editing. To keep that feature durable, tags needed real DB-backed normalization instead of hidden draft-only state or ad-hoc free-text storage.
+
+### Options Considered
+- keep tags as UI-only draft tokens
+- store tags as denormalized text on `anime`
+- model tags like genres with a reference table plus a junction table
+
+### Why This Won
+It matches the genre pattern the team already trusts, keeps dedupe/normalization manageable, and makes create/delete behavior easier to reason about.
+
+### Consequences
+- schema now includes `tags` and `anime_tags`
+- create persistence writes tags authoritatively after normalization
+- anime delete removes `anime_tags` links but leaves shared `tags` reference rows in place
+
+### Follow-ups Required
+- keep future edit/AniSearch enrichment work aligned with the same authoritative tag model
+
+---
+
+## 2026-04-09 - Recovery Branch Replaces The Broken Remote Baseline
+
+### Decision
+Promote the tested recovery branch to GitHub `main` and delete the older broken remote branches instead of continuing to patch them in place.
+
+### Context
+The real Git repo had drifted away from the validated local recovery workspace, and the old remote branches were no longer trustworthy as the active baseline.
+
+### Options Considered
+- keep repairing the old broken branch history
+- open a long-lived side branch and leave `main` stale
+- replace `main` with the tested recovery baseline and keep one recovery branch as rollback rope
+
+### Why This Won
+It gives the project a single trustworthy baseline again and stops future work from starting from known-bad branch state.
+
+### Consequences
+- GitHub `main` now points at recovery commit `9f54a3a`
+- broken remote branches were deleted
+- local work should continue in `C:\Users\admin\Documents\Team4s`
+
+### Follow-ups Required
+- keep the recovery branch around temporarily until the new baseline proves stable
+
+---
+
+## 2026-04-12 - AniSearch Relation Graph Parsing Must Tolerate Mixed Node Container Types
+
+### Decision
+When parsing AniSearch relation pages, treat mixed node container types in `data-graph` as valid input. Empty `manga` or `movie` arrays must not invalidate the anime relation graph.
+
+### Context
+The real AniSearch page for `Ace of the Diamond: Staffel 2` (`10250`) clearly exposed valid anime relations to Staffel 1 and Act II, but the local import still showed zero relation candidates. The root cause was not missing local anime data and not the relation URL itself; it was the graph decoder assuming every `nodes.*` group was always a JSON object.
+
+### Options Considered
+- keep strict decoding and fail the whole graph whenever any node group has an unexpected shape
+- decode node groups more defensively and only require the `anime` node group needed by the current import path
+
+### Why This Won
+AniSearch can legitimately emit empty arrays for non-anime node groups while still including a valid anime relation graph. Failing the full decode on that shape silently discards correct relations and creates misleading "no local relations" symptoms.
+
+### Consequences
+- relation parsing now tolerates mixed node container shapes
+- valid anime relations survive even when `manga` and `movie` groups are empty arrays
+- the create relation baseline now correctly covers real cases like `10250`
+
+### Follow-ups Required
+- keep a regression test for the mixed-type graph shape
+- if future relation-label expansion is added, test it against the same real AniSearch graph inputs
+
+---
+
+## 2026-04-12 - Edit-Route Relation UX Comes Before Broader Relation Label Expansion
+
+### Decision
+After the verified Phase-13 create relation baseline, the next AniSearch/admin slice is edit-route relation UX. Broader relation-label normalization stays deferred until that UX slice is scoped and delivered.
+
+### Context
+Phase 13 closed the create-side relation persistence gap and fixed the last known AniSearch parser bug. The remaining open work split into at least two plausible directions: making the existing edit route's relation experience clearer for operators, or expanding how AniSearch relation labels map into local semantics. Doing both together would blur the seam that was just verified.
+
+### Options Considered
+- move straight into broader relation-label normalization
+- do more general AniSearch polish without choosing a concrete thread
+- choose edit-route relation UX first and keep taxonomy work separate
+
+### Why This Won
+Edit-route relation UX builds directly on the now-proven persistence baseline and can be scoped around operator-visible behavior without changing product semantics. It keeps the next slice concrete while avoiding unnecessary churn in mapping rules.
+
+### Consequences
+- the next planning step is to write down the exact edit-route relation UX gaps
+- Phase 13 create relation persistence becomes the regression baseline for the new slice
+- broader relation-label normalization remains explicitly out of scope until revisited
+
+### Follow-ups Required
+- capture the exact edit-route relation UX scope before implementation starts
+- record any future taxonomy expansion as a separate decision before code changes

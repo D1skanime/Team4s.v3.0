@@ -128,6 +128,49 @@ type AdminAnimeAniSearchEnrichmentRequest struct {
 	Draft       AdminAnimeCreateDraftPayload `json:"draft"`
 }
 
+type AdminAnimeAniSearchSearchCandidate struct {
+	AniSearchID string `json:"anisearch_id"`
+	Title       string `json:"title"`
+	Type        string `json:"type"`
+	Year        *int16 `json:"year,omitempty"`
+}
+
+type AdminAnimeAssetSearchSource string
+
+const (
+	AdminAnimeAssetSearchSourceTMDB     AdminAnimeAssetSearchSource = "tmdb"
+	AdminAnimeAssetSearchSourceFanartTV AdminAnimeAssetSearchSource = "fanart.tv"
+	AdminAnimeAssetSearchSourceZerochan AdminAnimeAssetSearchSource = "zerochan"
+	AdminAnimeAssetSearchSourceKonachan  AdminAnimeAssetSearchSource = "konachan"
+	AdminAnimeAssetSearchSourceAniList   AdminAnimeAssetSearchSource = "anilist"
+	AdminAnimeAssetSearchSourceSafebooru AdminAnimeAssetSearchSource = "safebooru"
+)
+
+type AdminAnimeAssetSearchRequest struct {
+	AssetKind string
+	Query     string
+	Limit     int
+	Page      int // 1-indexed; 0 treated as 1
+	Sources   []AdminAnimeAssetSearchSource
+}
+
+type AdminAnimeAssetSearchCandidate struct {
+	ID         string                      `json:"id"`
+	AssetKind  string                      `json:"asset_kind"`
+	Source     AdminAnimeAssetSearchSource `json:"source"`
+	Title      *string                     `json:"title,omitempty"`
+	PreviewURL string                      `json:"preview_url"`
+	ImageURL   string                      `json:"image_url"`
+	SourceURL  *string                     `json:"source_url,omitempty"`
+	Width      *int32                      `json:"width,omitempty"`
+	Height     *int32                      `json:"height,omitempty"`
+	Year       *int16                      `json:"year,omitempty"`
+}
+
+type AdminAnimeAssetSearchResponse struct {
+	Data []AdminAnimeAssetSearchCandidate `json:"data"`
+}
+
 type AdminAnimeAniSearchEnrichmentProviderSummary struct {
 	AniSearchID        string `json:"anisearch_id"`
 	JellysyncApplied   bool   `json:"jellysync_applied"`
@@ -181,15 +224,15 @@ type AdminAnimeAniSearchEditRequest struct {
 }
 
 type AdminAnimeAniSearchEditSuccessResult struct {
-	Mode                   string                     `json:"mode"`
-	AniSearchID            string                     `json:"anisearch_id"`
-	Source                 string                     `json:"source"`
-	Draft                  AdminAnimeEditDraftPayload `json:"draft"`
-	UpdatedFields          []string                   `json:"updated_fields,omitempty"`
-	AppliedRelations       []AdminAnimeRelation       `json:"applied_relations,omitempty"`
-	RelationsApplied       int32                      `json:"relations_applied"`
-	RelationsSkippedExisting int32                    `json:"relations_skipped_existing"`
-	SkippedProtectedFields []string                   `json:"skipped_protected_fields,omitempty"`
+	Mode                     string                     `json:"mode"`
+	AniSearchID              string                     `json:"anisearch_id"`
+	Source                   string                     `json:"source"`
+	Draft                    AdminAnimeEditDraftPayload `json:"draft"`
+	UpdatedFields            []string                   `json:"updated_fields,omitempty"`
+	AppliedRelations         []AdminAnimeRelation       `json:"applied_relations,omitempty"`
+	RelationsApplied         int32                      `json:"relations_applied"`
+	RelationsSkippedExisting int32                      `json:"relations_skipped_existing"`
+	SkippedProtectedFields   []string                   `json:"skipped_protected_fields,omitempty"`
 }
 
 type AdminAnimeAniSearchEditConflictResult struct {

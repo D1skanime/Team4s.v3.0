@@ -182,6 +182,182 @@
   line-height: 1.6;
 }
 
+.candidateModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.44);
+}
+
+.candidateModal {
+  width: min(560px, 100%);
+  max-height: min(80vh, 720px);
+  overflow: auto;
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #dfe3e8;
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+}
+
+.assetModal {
+  width: min(980px, 100%);
+}
+
+.candidateModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.candidateModalTitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+  color: #13161a;
+}
+
+.candidateModalText {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #667085;
+}
+
+.candidateList {
+  display: grid;
+  gap: 8px;
+}
+
+.candidateItem {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #dfe3e8;
+  background: #ffffff;
+  color: #13161a;
+  text-align: left;
+}
+
+.candidateItem span {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #667085;
+}
+
+.candidateItem:hover {
+  border-color: #ff6a3d;
+  background: #fff7f4;
+}
+
+.assetSearchToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.assetSearchStatus {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #667085;
+}
+
+.assetCandidateGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.assetLoadMoreRow {
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.assetCandidateCard {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #dfe3e8;
+  background: #ffffff;
+  text-align: left;
+  color: #13161a;
+}
+
+.assetCandidateCard:hover {
+  border-color: #ff6a3d;
+  background: #fff7f4;
+}
+
+.assetCandidateCardSelected {
+  border-color: #ff6a3d;
+  box-shadow: inset 0 0 0 1px #ff6a3d;
+  background: #fff7f4;
+}
+
+.assetCandidatePreview {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #f4f4f5;
+}
+
+.assetCandidateImage {
+  object-fit: cover;
+}
+
+.assetCandidateBody {
+  display: grid;
+  gap: 6px;
+}
+
+.assetCandidateMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.assetSourceBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 106, 61, 0.24);
+  background: #fff7f4;
+  color: #b54b28;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.assetCandidateTitle {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.assetMetaText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #667085;
+}
+
 @media (max-width: 720px) {
   .sourceActionStack {
     width: 100%;
@@ -194,5 +370,17 @@
 
   .resultsPanel {
     padding: 16px;
+  }
+
+  .candidateModalBackdrop {
+    padding: 16px;
+  }
+
+  .candidateModalHeader {
+    flex-direction: column;
+  }
+
+  .assetSearchToolbar {
+    align-items: stretch;
   }
 }

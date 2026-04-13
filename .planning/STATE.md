@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Executing Phase 13
-stopped_at: Phase 14 planned
-last_updated: "2026-04-12T20:31:16.661Z"
-last_activity: 2026-04-10
+status: Phase 15 executed
+stopped_at: Phase 15 verification recorded
+last_updated: "2026-04-13T15:40:00.000Z"
+last_activity: 2026-04-13
 progress:
-  total_phases: 9
-  completed_phases: 6
-  total_plans: 31
-  completed_plans: 25
+  total_phases: 10
+  completed_phases: 8
+  total_plans: 34
+  completed_plans: 31
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 13 — anisearch-relation-follow-through-repair
+**Current focus:** Phase 15 — asset-specific-online-search-and-selection-for-create-page-anime-assets
 
 ## Current Position
 
-Phase: 13 (anisearch-relation-follow-through-repair) — EXECUTING
-Plan: 1 of 3
+Phase: 15 (asset-specific-online-search-and-selection-for-create-page-anime-assets) — EXECUTED
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -81,6 +81,8 @@ Recent durable decisions:
 - Phase 12 added: Create AniSearch intake reintroduction and draft merge control.
 - Phase 13 added: AniSearch Relation Follow-Through Repair.
 - Phase 14 added: Create provider search separation and result selection.
+- Phase 15 added: Asset-specific online search and selection for create-page anime assets.
+- Phase 15 executed: dedicated asset search seam, Zerochan-backed discovery, and source-aware create-page asset adoption.
 
 ### Blockers/Concerns
 
@@ -109,6 +111,7 @@ Recent durable decisions:
 ## Session Continuity
 
 Last session: 2026-04-12T20:31:16.652Z
-Stopped at: Phase 14 planned
-Last activity: 2026-04-10
-Resume file: .planning/phases/14-create-provider-search-separation-and-result-selection/14-01-PLAN.md
+Stopped at: Phase 15 verification recorded
+Last activity: 2026-04-13
+Resume file: .planning/phases/15-asset-specific-online-search-and-selection-for-create-page-anime-assets/15-VERIFICATION.md
+

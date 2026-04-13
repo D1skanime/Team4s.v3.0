@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildCreateAssetUploadPlan,
+  stageRemoteCreateAssetCandidate,
   uploadCreatedAnimeAssets,
 } from "./createAssetUploadPlan";
 
@@ -125,5 +126,35 @@ describe("createAssetUploadPlan", () => {
     expect(api.assignAdminAnimeBannerAsset).not.toHaveBeenCalled();
     expect(api.assignAdminAnimeLogoAsset).not.toHaveBeenCalled();
     expect(api.assignAdminAnimeBackgroundVideoAsset).not.toHaveBeenCalled();
+  });
+
+  it("downloads a remote asset candidate into the normal staged upload shape", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      blob: () =>
+        Promise.resolve(new Blob(["remote"], { type: "image/png" })),
+    });
+    const createObjectURL = vi.fn(() => "blob:remote-cover");
+
+    const staged = await stageRemoteCreateAssetCandidate(
+      {
+        id: "zerochan-123",
+        asset_kind: "cover",
+        source: "zerochan",
+        title: "Ao Haru Ride",
+        preview_url: "https://preview.example/123.jpg",
+        image_url: "https://image.example/123.png",
+      },
+      { fetchImpl, createObjectURL },
+    );
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "/api/admin/asset-proxy?url=https%3A%2F%2Fimage.example%2F123.png",
+      expect.objectContaining({ cache: "no-store" }),
+    );
+    expect(staged.draftValue).toBe("cover-zerochan-zerochan-123.png");
+    expect(staged.file.name).toBe("cover-zerochan-zerochan-123.png");
+    expect(staged.file.type).toBe("image/png");
+    expect(staged.previewUrl).toBe("blob:remote-cover");
   });
 });

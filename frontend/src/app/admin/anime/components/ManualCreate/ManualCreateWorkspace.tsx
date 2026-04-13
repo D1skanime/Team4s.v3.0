@@ -95,6 +95,7 @@ interface ManualCreateWorkspaceProps {
   onOpenFileDialog: (
     kind: "cover" | "banner" | "logo" | "background" | "background_video",
   ) => void;
+  onOpenAssetSearch: (kind: "cover" | "banner" | "logo" | "background") => void;
   onRemoveSingleAsset: (kind: "banner" | "logo" | "background_video") => void;
   onRemoveBackground: (index: number) => void;
 }
@@ -391,6 +392,7 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
               onCoverImageChange={props.onCoverImageChange}
               onCoverFileChange={props.onCoverFileChange}
               onOpenFileDialog={props.onOpenFileDialog}
+              onOpenAssetSearch={props.onOpenAssetSearch}
               onSingleAssetChange={props.onSingleAssetFileChange}
               onBackgroundChange={props.onBackgroundFileChange}
               onRemoveSingleAsset={props.onRemoveSingleAsset}

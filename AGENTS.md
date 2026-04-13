@@ -26,4 +26,4 @@ Shared operating notes for human + AI agents working in `Team4sV3`.
 - First task in `TOMORROW.md` must be concrete and <=15 minutes.
 
 ## Current Open Thread
-- Plan and implement Phase 07 generic upload and linking on top of the verified Phase-06 anime asset lifecycle seam.
+- Plan and implement the next AniSearch/admin slice as edit-route relation UX on top of the verified Phase-13 create relation baseline.

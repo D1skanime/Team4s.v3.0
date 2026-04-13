@@ -142,6 +142,13 @@ export interface AdminAnimeAniSearchCreateRequest {
   draft: AdminAnimeCreateDraftPayload
 }
 
+export interface AdminAnimeAniSearchSearchCandidate {
+  anisearch_id: string
+  title: string
+  type: string
+  year?: number
+}
+
 export interface AdminAnimeAniSearchCreateProviderSummary {
   anisearch_id: string
   jellysync_applied: boolean
@@ -174,6 +181,37 @@ export type AdminAnimeAniSearchCreateResult =
 
 export interface AdminAnimeAniSearchCreateResponse {
   data: AdminAnimeAniSearchCreateResult
+}
+
+export interface AdminAnimeAniSearchSearchResponse {
+  data: AdminAnimeAniSearchSearchCandidate[]
+}
+
+export type AdminAnimeAssetSearchSource = 'tmdb' | 'fanart.tv' | 'zerochan' | 'konachan' | 'anilist' | 'safebooru'
+
+export interface AdminAnimeAssetSearchCandidate {
+  id: string
+  asset_kind: AdminAnimeAssetKind
+  source: AdminAnimeAssetSearchSource
+  title?: string
+  preview_url: string
+  image_url: string
+  source_url?: string
+  width?: number
+  height?: number
+  year?: number
+}
+
+export interface AdminAnimeAssetSearchRequest {
+  asset_kind: AdminAnimeAssetKind
+  query: string
+  limit?: number
+  page?: number
+  sources?: AdminAnimeAssetSearchSource[]
+}
+
+export interface AdminAnimeAssetSearchResponse {
+  data: AdminAnimeAssetSearchCandidate[]
 }
 
 export interface AdminAnimeCreateAniSearchSummary {

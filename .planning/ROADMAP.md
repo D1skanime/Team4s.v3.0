@@ -19,6 +19,8 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 11: AniSearch Edit Enrichment And Relation Persistence** - Add AniSearch enrichment to the edit route and persist AniSearch relations once create metadata is stable. (executed 2026-04-09; verification gaps ENR-08 and ENR-10 closed by 11-04 and 11-05)
 - [x] **Phase 12: Create AniSearch Intake Reintroduction And Draft Merge Control** - Restore AniSearch as a first-class create action, preserve `manual > AniSearch > Jellyfin`, and redirect duplicates straight to edit.
 - [ ] **Phase 13: AniSearch Relation Follow-Through Repair** - Repair the still-broken AniSearch relation persistence and follow-through after the create-flow reintroduction shipped.
+- [ ] **Phase 14: Create Provider Search Separation And Result Selection** - Split create-page provider search from final form data so Jellyfin and AniSearch each get their own search flow, candidate selection, and controlled data handoff.
+- [x] **Phase 15: Asset-Specific Online Search And Selection For Create-Page Anime Assets** - Let admins search external asset sources per slot, review found images with source visibility, and adopt selected cover/banner/logo/background assets into the create draft without leaving the page.
 
 ## Phase Details
 
@@ -137,9 +139,43 @@ Plans:
 Plans:
 - [ ] TBD (run `$gsd-plan-phase 13` to break down)
 
+### Phase 14: Create Provider Search Separation And Result Selection
+**Goal:** Admins can search Jellyfin and AniSearch from separate create-page search controls, select an explicit provider result, and load that result into the draft without reusing the final title field as temporary search text.
+**Requirements**: TBD
+**Depends on:** Phase 13
+**Plans:** 0 plans
+**Success Criteria** (what must be TRUE):
+  1. Jellyfin and AniSearch no longer reuse the final anime title field as shared search state on `/admin/anime/create`.
+  2. Jellyfin has its own dedicated search input and result-selection flow inside the Jellyfin create surface.
+  3. AniSearch keeps exact-ID entry and also supports title-based search that returns multiple selectable candidates before enrichment is loaded.
+  4. Selecting a Jellyfin or AniSearch candidate writes the chosen provider data, including the resolved title, into the actual create draft only after explicit user selection.
+  5. AniSearch title search avoids aggressive fan-out crawling by loading only a candidate list first and fetching full detail only for the chosen entry.
+  6. The provider search UX stays visually and logically consistent, with clear source boundaries and operator-visible step transitions.
+
+Plans:
+- [ ] TBD (run `$gsd-plan-phase 14` to break down)
+
+### Phase 15: Asset-Specific Online Search And Selection For Create-Page Anime Assets
+**Goal:** Admins can search external image sources per asset slot on `/admin/anime/create`, compare found results with visible source metadata, and adopt one cover/banner/logo or multiple backgrounds into the draft while manual upload remains available.
+**Requirements**: TBD
+**Depends on:** Phase 14
+**Status**: Executed on 2026-04-13; automated verification passed and live browser follow-up remains recommended for remote-host image adoption
+**Plans:** 3/3 plans complete
+**Success Criteria** (what must be TRUE):
+  1. The create route keeps the current manual upload flow and adds an `Online suchen` path for at least `cover`, `banner`, `logo`, and `background`.
+  2. Search results are shown in an operator-driven chooser with the asset source clearly visible on each result instead of one blind mixed image wall.
+  3. Cover, banner, and logo stay single-select assets, while backgrounds support selecting more than one result before save.
+  4. Asset search shows a busy/loading state during crawl work so operators can see that requests are in progress and avoid repeated clicks.
+  5. The backend source strategy stays request-disciplined, uses a curated initial provider set, and does not force one external media-server taxonomy onto AniSearch-specific OVA/bonus entries.
+
+Plans:
+- [x] `15-01-PLAN.md` - Define the source matrix, asset-search contracts, and request-discipline rules before wiring crawlers.
+- [x] `15-02-PLAN.md` - Implement the backend asset-search orchestrator and initial source adapters for per-slot candidate discovery.
+- [x] `15-03-PLAN.md` - Add the create-page asset search dialogs, source-aware result chooser, busy states, and draft adoption flow.
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 8 | 16+ | Phases 6-12 complete or verified; Phase 13 queued for AniSearch relation repair | - |
+| v1.1 Asset Lifecycle Hardening | 10 | 19+ | Phases 6-15 complete, verified, or executed with targeted follow-up notes | - |

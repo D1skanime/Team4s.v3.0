@@ -1,6 +1,9 @@
 import type {
+  AdminAnimeAssetSearchRequest,
+  AdminAnimeAssetSearchResponse,
   AdminAnimeAniSearchCreateRequest,
   AdminAnimeAniSearchCreateResponse,
+  AdminAnimeAniSearchSearchResponse,
   AdminAnimeJellyfinIntakePreviewRequest,
   AdminAnimeJellyfinIntakePreviewResponse,
   AdminAnimeCreateRequest,
@@ -155,6 +158,60 @@ export async function loadAdminAnimeCreateAniSearchDraft(
   }
 
   return response.json() as Promise<AdminAnimeAniSearchCreateResponse>
+}
+
+export async function searchAdminAnimeCreateAniSearchCandidates(
+  query: string,
+  params: { limit?: number } = {},
+  authToken?: string,
+): Promise<AdminAnimeAniSearchSearchResponse> {
+  const search = new URLSearchParams()
+  search.set('q', query)
+  if (params.limit && Number.isFinite(params.limit) && params.limit > 0) {
+    search.set('limit', String(params.limit))
+  }
+
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/anime/enrichment/anisearch/search?${search.toString()}`, {
+    headers: withAuthHeaders(authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeAniSearchSearchResponse>
+}
+
+export async function searchAdminAnimeCreateAssetCandidates(
+  payload: AdminAnimeAssetSearchRequest,
+  authToken?: string,
+): Promise<AdminAnimeAssetSearchResponse> {
+  const search = new URLSearchParams()
+  search.set('slot', payload.asset_kind)
+  search.set('q', payload.query)
+  if (payload.limit && Number.isFinite(payload.limit) && payload.limit > 0) {
+    search.set('limit', String(payload.limit))
+  }
+  if (payload.page && Number.isFinite(payload.page) && payload.page > 1) {
+    search.set('page', String(payload.page))
+  }
+  if (payload.sources && payload.sources.length > 0) {
+    search.set('sources', payload.sources.join(','))
+  }
+
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/anime/assets/search?${search.toString()}`, {
+    headers: withAuthHeaders(authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeAssetSearchResponse>
 }
 
 // getAdminTagTokens fetches normalized tag suggestion tokens from the dedicated

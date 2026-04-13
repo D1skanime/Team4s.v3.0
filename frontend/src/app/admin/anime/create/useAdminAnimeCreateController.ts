@@ -16,9 +16,14 @@ import {
   createAdminAnimeFromJellyfinDraft,
   getAdminTagTokens,
   loadAdminAnimeCreateAniSearchDraft,
+  searchAdminAnimeCreateAssetCandidates,
+  searchAdminAnimeCreateAniSearchCandidates,
 } from "@/lib/api/admin-anime-intake";
 import { AnimeStatus, ContentType } from "@/types/anime";
 import type {
+  AdminAnimeAniSearchSearchCandidate,
+  AdminAnimeAssetKind,
+  AdminAnimeAssetSearchCandidate,
   AdminAnimeCreateRequest,
   AdminAnimeJellyfinIntakePreviewResult,
   AdminJellyfinIntakeAssetSlots,
@@ -46,6 +51,7 @@ import {
   type CreateAniSearchDraftState,
 } from "./createAniSearchControllerHelpers";
 import {
+  stageRemoteCreateAssetCandidate,
   stageManualCreateAsset,
   uploadCreatedAnimeAssets,
 } from "./createAssetUploadPlan";
@@ -65,6 +71,7 @@ import {
   type ManualAnimeDraftValues,
 } from "../hooks/useManualAnimeDraft";
 import { useJellyfinIntake } from "../hooks/useJellyfinIntake";
+import { deriveJellyfinIntakeSearchState } from "../hooks/useJellyfinIntake";
 import {
   normalizeOptionalString,
   parsePositiveInt,
@@ -74,6 +81,10 @@ import {
 
 const DEFAULT_GENRE_LIMIT = 40;
 const DEFAULT_TAG_LIMIT = 40;
+type CreateSearchableAssetKind = Extract<
+  AdminAnimeAssetKind,
+  "cover" | "banner" | "logo" | "background"
+>;
 
 function countIncomingDraftAssets(
   assetSlots: AdminJellyfinIntakeAssetSlots | null,
@@ -127,7 +138,13 @@ export function useAdminAnimeCreateController() {
   const [createDescription, setCreateDescription] = useState("");
   const [createCoverImage, setCreateCoverImage] = useState("");
   const [createAniSearchID, setCreateAniSearchID] = useState("");
+  const [createAniSearchSearchQuery, setCreateAniSearchSearchQuery] = useState("");
   const [isLoadingAniSearchDraft, setIsLoadingAniSearchDraft] = useState(false);
+  const [isSearchingAniSearchCandidates, setIsSearchingAniSearchCandidates] =
+    useState(false);
+  const [aniSearchCandidates, setAniSearchCandidates] = useState<
+    AdminAnimeAniSearchSearchCandidate[]
+  >([]);
   const [aniSearchDraftResult, setAniSearchDraftResult] =
     useState<CreateAniSearchDraftState | null>(null);
   const [aniSearchConflict, setAniSearchConflict] =
@@ -138,6 +155,23 @@ export function useAdminAnimeCreateController() {
   const [stagedAssets, setStagedAssets] = useState<CreateManualStagedAssets>(
     createEmptyManualStagedAssets,
   );
+  const [activeAssetSearchKind, setActiveAssetSearchKind] =
+    useState<CreateSearchableAssetKind | null>(null);
+  const [assetSearchQuery, setAssetSearchQuery] = useState("");
+  const [assetSearchCandidates, setAssetSearchCandidates] = useState<
+    AdminAnimeAssetSearchCandidate[]
+  >([]);
+  const [assetSearchSelectedIDs, setAssetSearchSelectedIDs] = useState<string[]>(
+    [],
+  );
+  const [assetSearchErrorMessage, setAssetSearchErrorMessage] =
+    useState<string | null>(null);
+  const [assetSearchPage, setAssetSearchPage] = useState(1);
+  const [assetSearchHasMore, setAssetSearchHasMore] = useState(false);
+  const [isSearchingAssetCandidates, setIsSearchingAssetCandidates] =
+    useState(false);
+  const [isAdoptingAssetCandidates, setIsAdoptingAssetCandidates] =
+    useState(false);
 
   const [jellyfinPreview, setJellyfinPreview] =
     useState<AdminAnimeJellyfinIntakePreviewResult | null>(null);
@@ -218,13 +252,13 @@ export function useAdminAnimeCreateController() {
 
   const jellyfinIntake = useJellyfinIntake();
 
-  useEffect(() => {
-    jellyfinIntake.setQuery(createTitle);
-  }, [createTitle, jellyfinIntake.setQuery]);
-
   const sourceActionState = useMemo(
-    () => resolveSourceActionState(createTitle),
-    [createTitle],
+    () => resolveSourceActionState(jellyfinIntake.query),
+    [jellyfinIntake.query],
+  );
+  const jellyfinSearchState = useMemo(
+    () => deriveJellyfinIntakeSearchState(jellyfinIntake.query),
+    [jellyfinIntake.query],
   );
 
   const manualDraftValues = useMemo<ManualAnimeDraftValues>(
@@ -385,10 +419,22 @@ export function useAdminAnimeCreateController() {
     setAniSearchErrorMessage(null);
   }
 
+  function clearAssetSearchState() {
+    setAssetSearchCandidates([]);
+    setAssetSearchSelectedIDs([]);
+    setAssetSearchErrorMessage(null);
+  }
+
   function clearAniSearchState() {
     setAniSearchDraftResult(null);
     setAniSearchConflict(null);
+    setAniSearchCandidates([]);
     clearAniSearchMessage();
+  }
+
+  function closeAssetSearch() {
+    setActiveAssetSearchKind(null);
+    clearAssetSearchState();
   }
 
   function resetStagedCover() {
@@ -437,6 +483,23 @@ export function useAdminAnimeCreateController() {
       revokeStagedAssetPreview(removed || null);
       return { ...current, background: next };
     });
+  }
+
+  function buildAssetSearchSeedQuery() {
+    return (
+      createTitle.trim() ||
+      createAniSearchSearchQuery.trim() ||
+      jellyfinIntake.query.trim() ||
+      jellyfinPreview?.jellyfin_series_name?.trim() ||
+      ""
+    );
+  }
+
+  function openAssetSearch(kind: CreateSearchableAssetKind) {
+    clearMessages();
+    setActiveAssetSearchKind(kind);
+    setAssetSearchQuery(buildAssetSearchSeedQuery());
+    clearAssetSearchState();
   }
 
   function applyManualDraftValues(values: ManualAnimeDraftValues) {
@@ -733,13 +796,12 @@ export function useAdminAnimeCreateController() {
     setSuccessMessage("Jellyfin-Vorschau verworfen. Der Entwurf bleibt ungespeichert.");
   }
 
-  async function handleAniSearchDraftLoad() {
+  async function loadAniSearchDraftByID(anisearchID: string) {
     clearMessages();
     clearAniSearchState();
     setLastRequest(null);
     setLastResponse(null);
 
-    const anisearchID = createAniSearchID.trim();
     if (!anisearchID) {
       setAniSearchErrorMessage("Bitte zuerst eine AniSearch-ID eingeben.");
       return;
@@ -790,19 +852,269 @@ export function useAdminAnimeCreateController() {
       setAniSearchErrorMessage(
         formatCreatePageError(error, "AniSearch-Daten konnten nicht geladen werden."),
       );
+      } finally {
+        setIsLoadingAniSearchDraft(false);
+      }
+    }
+
+  async function handleAniSearchDraftLoad() {
+    await loadAniSearchDraftByID(createAniSearchID.trim());
+  }
+
+  async function handleAniSearchCandidateSearch() {
+    clearMessages();
+    clearAniSearchState();
+    setLastRequest(null);
+    setLastResponse(null);
+
+    const query = createAniSearchSearchQuery.trim();
+    if (!query) {
+      setAniSearchErrorMessage("Bitte zuerst einen AniSearch-Titel eingeben.");
+      return;
+    }
+
+    const runtimeAuthToken = getRuntimeAuthToken();
+    if (!runtimeAuthToken) {
+      setAniSearchErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
+      );
+      return;
+    }
+
+    try {
+      setIsSearchingAniSearchCandidates(true);
+      const response = await searchAdminAnimeCreateAniSearchCandidates(
+        query,
+        { limit: 12 },
+        runtimeAuthToken,
+      );
+      setLastResponse(JSON.stringify(response, null, 2));
+      setAniSearchCandidates(response.data);
+      if (response.data.length === 0) {
+        setAniSearchErrorMessage(
+          "Keine AniSearch-Treffer gefunden. Bitte pruefe den Titel oder nutze die ID direkt.",
+        );
+        return;
+      }
+      setSuccessMessage(
+        `${response.data.length} AniSearch-Treffer gefunden. Waehle jetzt den passenden Eintrag aus.`,
+      );
+    } catch (error) {
+      setAniSearchErrorMessage(
+        formatCreatePageError(error, "AniSearch-Treffer konnten nicht geladen werden."),
+      );
     } finally {
-      setIsLoadingAniSearchDraft(false);
+      setIsSearchingAniSearchCandidates(false);
+    }
+  }
+
+  async function handleAniSearchCandidateSelect(
+    candidate: AdminAnimeAniSearchSearchCandidate,
+  ) {
+    setCreateAniSearchID(candidate.anisearch_id);
+    setCreateAniSearchSearchQuery(candidate.title);
+    await loadAniSearchDraftByID(candidate.anisearch_id);
+  }
+
+  const assetSearchPageLimit = activeAssetSearchKind === "background" ? 12 : 8;
+
+  async function handleAssetCandidateSearch() {
+    clearMessages();
+    setAssetSearchErrorMessage(null);
+    setAssetSearchHasMore(false);
+    setLastRequest(null);
+    setLastResponse(null);
+
+    const query = assetSearchQuery.trim();
+    if (!activeAssetSearchKind) {
+      setAssetSearchErrorMessage("Bitte zuerst einen Asset-Slot waehlen.");
+      return;
+    }
+    if (!query) {
+      setAssetSearchErrorMessage("Bitte zuerst einen Suchbegriff eingeben.");
+      return;
+    }
+
+    const runtimeAuthToken = getRuntimeAuthToken();
+    if (!runtimeAuthToken) {
+      setAssetSearchErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
+      );
+      return;
+    }
+
+    try {
+      setIsSearchingAssetCandidates(true);
+      setAssetSearchPage(1);
+      const response = await searchAdminAnimeCreateAssetCandidates(
+        {
+          asset_kind: activeAssetSearchKind,
+          query,
+          limit: assetSearchPageLimit,
+          page: 1,
+        },
+        runtimeAuthToken,
+      );
+      setLastResponse(JSON.stringify(response, null, 2));
+      setAssetSearchCandidates(response.data);
+      setAssetSearchSelectedIDs([]);
+      setAssetSearchHasMore(response.data.length >= assetSearchPageLimit);
+      if (response.data.length === 0) {
+        setAssetSearchErrorMessage(
+          "Keine passenden Assets gefunden. Bitte pruefe Titel oder Quelle.",
+        );
+        return;
+      }
+      setSuccessMessage(
+        `${response.data.length} Asset-Treffer gefunden. Waehle jetzt die passenden Bilder aus.`,
+      );
+    } catch (error) {
+      setAssetSearchErrorMessage(
+        formatCreatePageError(error, "Asset-Treffer konnten nicht geladen werden."),
+      );
+    } finally {
+      setIsSearchingAssetCandidates(false);
+    }
+  }
+
+  async function handleLoadMoreAssets() {
+    if (!activeAssetSearchKind || isSearchingAssetCandidates) return;
+    const query = assetSearchQuery.trim();
+    if (!query) return;
+    const runtimeAuthToken = getRuntimeAuthToken();
+    if (!runtimeAuthToken) return;
+
+    const nextPage = assetSearchPage + 1;
+    try {
+      setIsSearchingAssetCandidates(true);
+      setAssetSearchErrorMessage(null);
+      const response = await searchAdminAnimeCreateAssetCandidates(
+        {
+          asset_kind: activeAssetSearchKind,
+          query,
+          limit: assetSearchPageLimit,
+          page: nextPage,
+        },
+        runtimeAuthToken,
+      );
+      setAssetSearchPage(nextPage);
+      setAssetSearchCandidates((current) => [...current, ...response.data]);
+      setAssetSearchHasMore(response.data.length >= assetSearchPageLimit);
+      if (response.data.length === 0) {
+        setAssetSearchErrorMessage("Keine weiteren Treffer gefunden.");
+      }
+    } catch (error) {
+      setAssetSearchErrorMessage(
+        formatCreatePageError(error, "Weitere Treffer konnten nicht geladen werden."),
+      );
+    } finally {
+      setIsSearchingAssetCandidates(false);
+    }
+  }
+
+  function toggleAssetCandidateSelection(candidateID: string) {
+    if (activeAssetSearchKind === "background") {
+      setAssetSearchSelectedIDs((current) =>
+        current.includes(candidateID)
+          ? current.filter((id) => id !== candidateID)
+          : [...current, candidateID],
+      );
+      return;
+    }
+
+    setAssetSearchSelectedIDs((current) =>
+      current[0] === candidateID ? [] : [candidateID],
+    );
+  }
+
+  async function handleAssetCandidateAdoption() {
+    clearMessages();
+    setAssetSearchErrorMessage(null);
+
+    if (!activeAssetSearchKind) {
+      setAssetSearchErrorMessage("Bitte zuerst einen Asset-Slot waehlen.");
+      return;
+    }
+    if (assetSearchSelectedIDs.length === 0) {
+      setAssetSearchErrorMessage("Bitte zuerst mindestens einen Treffer auswaehlen.");
+      return;
+    }
+
+    const selectedCandidates = assetSearchCandidates.filter((candidate) =>
+      assetSearchSelectedIDs.includes(candidate.id),
+    );
+
+    try {
+      setIsAdoptingAssetCandidates(true);
+      const stagedCandidates = await Promise.all(
+        selectedCandidates.map((candidate) =>
+          stageRemoteCreateAssetCandidate(candidate),
+        ),
+      );
+
+      if (activeAssetSearchKind === "cover") {
+        resetStagedCover();
+        const [nextCover] = stagedCandidates;
+        if (nextCover) {
+          setStagedCover(nextCover);
+          setCreateCoverImage(nextCover.draftValue);
+        }
+      } else if (activeAssetSearchKind === "background") {
+        setStagedAssets((current) => ({
+          ...current,
+          background: [...current.background, ...stagedCandidates],
+        }));
+      } else {
+        const [nextAsset] = stagedCandidates;
+        if (nextAsset) {
+          setStagedAssets((current) => {
+            revokeStagedAssetPreview(current[activeAssetSearchKind]);
+            return { ...current, [activeAssetSearchKind]: nextAsset };
+          });
+        }
+      }
+
+      setShowValidationSummary(false);
+      setSuccessMessage(
+        activeAssetSearchKind === "background"
+          ? `${stagedCandidates.length} Background(s) vorgemerkt.`
+          : `${activeAssetSearchKind} erfolgreich vorgemerkt.`,
+      );
+      closeAssetSearch();
+    } catch (error) {
+      setAssetSearchErrorMessage(
+        formatCreatePageError(
+          error,
+          "Das gewaehlte Asset konnte nicht uebernommen werden.",
+        ),
+      );
+    } finally {
+      setIsAdoptingAssetCandidates(false);
     }
   }
 
   return {
+    assetSearch: {
+      activeKind: activeAssetSearchKind,
+      candidates: assetSearchCandidates,
+      errorMessage: assetSearchErrorMessage,
+      hasMore: assetSearchHasMore,
+      isAdopting: isAdoptingAssetCandidates,
+      isOpen: activeAssetSearchKind !== null,
+      isSearching: isSearchingAssetCandidates,
+      query: assetSearchQuery,
+      selectedCandidateIDs: assetSearchSelectedIDs,
+    },
     auth: { hasAuthToken, isHydrated: isAuthStateHydrated },
     anisearch: {
+      candidates: aniSearchCandidates,
       conflict: aniSearchConflict,
       errorMessage: aniSearchErrorMessage,
       input: createAniSearchID,
       isLoading: isLoadingAniSearchDraft,
+      isSearchingCandidates: isSearchingAniSearchCandidates,
       result: aniSearchDraftResult,
+      searchQuery: createAniSearchSearchQuery,
     },
     debug: { lastRequest, lastResponse, showDebugPanel },
     editor,
@@ -820,6 +1132,7 @@ export function useAdminAnimeCreateController() {
       intake: jellyfinIntake,
       preview: jellyfinPreview,
       reviewVisibility: jellyfinReviewVisibility,
+      searchState: jellyfinSearchState,
       selectedDraftAssetCount,
       showResults: showJellyfinResults,
     },
@@ -880,10 +1193,16 @@ export function useAdminAnimeCreateController() {
         addCreateTagTokens(createTagDraft);
         setCreateTagDraft("");
       },
-      addGenreSuggestion: addCreateGenreTokens,
-      addTagSuggestion: addCreateTagTokens,
-      clearAniSearchState,
+        addGenreSuggestion: addCreateGenreTokens,
+        addTagSuggestion: addCreateTagTokens,
+        clearAniSearchState,
+      closeAssetSearch,
+      handleAssetCandidateAdoption,
+      handleAssetCandidateSearch,
+      handleLoadMoreAssets,
       handleBackgroundInputChange,
+      handleAniSearchCandidateSearch,
+      handleAniSearchCandidateSelect,
       handleAniSearchDraftLoad,
       handleCoverUpload,
       handleCreateSubmit,
@@ -897,6 +1216,7 @@ export function useAdminAnimeCreateController() {
         setGenreSuggestionLimit((current) => Math.min(1000, current + 40)),
       increaseTagLimit: () =>
         setTagSuggestionLimit((current) => Math.min(1000, current + 40)),
+      openAssetSearch,
       openAssetFileDialog,
       removeBackground: removeStagedBackground,
       removeGenreToken: (name: string) =>
@@ -918,9 +1238,12 @@ export function useAdminAnimeCreateController() {
         setSuccessMessage(
           "Jellyfin-Suche wieder geoeffnet. Der aktuelle Entwurf bleibt bearbeitbar.",
         );
-      },
+        },
+      setAssetSearchQuery,
+      setJellyfinQuery: jellyfinIntake.setQuery,
       setAniSearchID: setCreateAniSearchID,
-      setContentType: setCreateContentType,
+      setAniSearchSearchQuery: setCreateAniSearchSearchQuery,
+        setContentType: setCreateContentType,
       setCoverImage: (value: string) => {
         resetStagedCover();
         setCreateCoverImage(value);
@@ -941,6 +1264,7 @@ export function useAdminAnimeCreateController() {
       setTitleEN: setCreateTitleEN,
       setType: setCreateType,
       setYear: setCreateYear,
+      toggleAssetCandidateSelection,
     },
   };
 }

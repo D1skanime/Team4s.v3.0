@@ -132,6 +132,10 @@ func main() {
 			BaseURL:    cfg.JellyfinBaseURL,
 			StreamPath: cfg.JellyfinStreamPathTemplate,
 		},
+		handlers.AdminContentAssetSearchConfig{
+			TMDBAPIKey:   cfg.TMDBAPIKey,
+			FanartAPIKey: cfg.FanartAPIKey,
+		},
 	)
 	fansubHandler := handlers.NewFansubHandler(
 		fansubRepo,

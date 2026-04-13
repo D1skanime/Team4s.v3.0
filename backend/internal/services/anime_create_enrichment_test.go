@@ -2,18 +2,24 @@ package services
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
 )
 
 type stubAniSearchFetcher struct {
-	anime AniSearchAnime
-	err   error
+	anime  AniSearchAnime
+	search []AniSearchSearchCandidate
+	err    error
 }
 
 func (s stubAniSearchFetcher) FetchAnime(ctx context.Context, aniSearchID string) (AniSearchAnime, error) {
 	return s.anime, s.err
+}
+
+func (s stubAniSearchFetcher) SearchAnime(ctx context.Context, query string, limit int) ([]AniSearchSearchCandidate, error) {
+	return s.search, s.err
 }
 
 type stubAnimeCreateEnrichmentRepo struct {
@@ -32,6 +38,37 @@ func (s stubAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsByTitles(
 
 func (s stubAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsBySources(ctx context.Context, sources []string) ([]models.AdminAnimeSourceMatch, error) {
 	return s.sources, nil
+}
+
+type stubAssetSearchProvider struct {
+	source   models.AdminAnimeAssetSearchSource
+	supports map[string]bool
+	search   func(context.Context, models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error)
+	calls    *[]models.AdminAnimeAssetSearchSource
+}
+
+func (s stubAssetSearchProvider) Source() models.AdminAnimeAssetSearchSource {
+	return s.source
+}
+
+func (s stubAssetSearchProvider) SupportsAssetKind(assetKind string) bool {
+	if len(s.supports) == 0 {
+		return true
+	}
+	return s.supports[assetKind]
+}
+
+func (s stubAssetSearchProvider) SearchAssetCandidates(
+	ctx context.Context,
+	req models.AdminAnimeAssetSearchRequest,
+) ([]models.AdminAnimeAssetSearchCandidate, error) {
+	if s.calls != nil {
+		*s.calls = append(*s.calls, s.source)
+	}
+	if s.search == nil {
+		return nil, errors.New("unexpected search call")
+	}
+	return s.search(ctx, req)
 }
 
 func TestAnimeCreateEnrichmentService_ReturnsRedirectForDuplicateAniSearchID(t *testing.T) {
@@ -340,6 +377,137 @@ func TestBuildAdminAnimeCreateAniSearchSummary_CollectsNonBlockingWarnings(t *te
 	}
 	if len(summary.Warnings) != 1 || summary.Warnings[0] != "relation follow-through failed" {
 		t.Fatalf("expected warning to be preserved, got %#v", summary.Warnings)
+	}
+}
+
+func TestAnimeAssetSearchService_UsesSlotAwareSourceOrderingAndAggregatesResults(t *testing.T) {
+	t.Parallel()
+
+	callOrder := make([]models.AdminAnimeAssetSearchSource, 0, 2)
+	service := NewAnimeAssetSearchService(
+		stubAssetSearchProvider{
+			source:   models.AdminAnimeAssetSearchSourceTMDB,
+			supports: map[string]bool{"background": true},
+			calls:    &callOrder,
+			search: func(_ context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error) {
+				if req.AssetKind != "background" {
+					t.Fatalf("expected background slot, got %q", req.AssetKind)
+				}
+				return []models.AdminAnimeAssetSearchCandidate{
+					{
+						ID:         "tmdb-1",
+						AssetKind:  "background",
+						Source:     models.AdminAnimeAssetSearchSourceTMDB,
+						PreviewURL: "https://img.example/tmdb-preview.jpg",
+						ImageURL:   "https://img.example/tmdb-full.jpg",
+					},
+				}, nil
+			},
+		},
+		stubAssetSearchProvider{
+			source:   models.AdminAnimeAssetSearchSourceZerochan,
+			supports: map[string]bool{"background": true},
+			calls:    &callOrder,
+			search: func(_ context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error) {
+			// With limit=3 and minimum perProvider=4, both providers get 4.
+			if req.Limit != 4 {
+				t.Fatalf("expected limit 4 (minimum per-provider), got %d", req.Limit)
+			}
+				return []models.AdminAnimeAssetSearchCandidate{
+					{
+						ID:         "zerochan-1",
+						AssetKind:  "background",
+						Source:     models.AdminAnimeAssetSearchSourceZerochan,
+						PreviewURL: "https://img.example/zerochan-preview.jpg",
+						ImageURL:   "https://img.example/zerochan-full.jpg",
+					},
+				}, nil
+			},
+		},
+	)
+
+	results, err := service.SearchAssetCandidates(context.Background(), models.AdminAnimeAssetSearchRequest{
+		AssetKind: "background",
+		Query:     "Lain",
+		Limit:     3,
+	})
+	if err != nil {
+		t.Fatalf("search asset candidates: %v", err)
+	}
+
+	if len(results) != 2 {
+		t.Fatalf("expected aggregated results from two providers, got %#v", results)
+	}
+	expectedOrder := []models.AdminAnimeAssetSearchSource{
+		models.AdminAnimeAssetSearchSourceTMDB,
+		models.AdminAnimeAssetSearchSourceZerochan,
+	}
+	if len(callOrder) != len(expectedOrder) {
+		t.Fatalf("unexpected call order length: %#v", callOrder)
+	}
+	for idx, source := range expectedOrder {
+		if callOrder[idx] != source {
+			t.Fatalf("expected call order %#v, got %#v", expectedOrder, callOrder)
+		}
+	}
+}
+
+func TestAnimeAssetSearchService_PrefersFanartForLogoAndBanner(t *testing.T) {
+	t.Parallel()
+
+	callOrder := make([]models.AdminAnimeAssetSearchSource, 0, 2)
+	service := NewAnimeAssetSearchService(
+		stubAssetSearchProvider{
+			source:   models.AdminAnimeAssetSearchSourceFanartTV,
+			supports: map[string]bool{"logo": true},
+			calls:    &callOrder,
+			search: func(_ context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error) {
+				return []models.AdminAnimeAssetSearchCandidate{
+					{
+						ID:         "fanart-1",
+						AssetKind:  req.AssetKind,
+						Source:     models.AdminAnimeAssetSearchSourceFanartTV,
+						PreviewURL: "https://img.example/fanart-preview.png",
+						ImageURL:   "https://img.example/fanart-full.png",
+					},
+				}, nil
+			},
+		},
+		stubAssetSearchProvider{
+			source:   models.AdminAnimeAssetSearchSourceTMDB,
+			supports: map[string]bool{"logo": true},
+			calls:    &callOrder,
+			search: func(_ context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error) {
+				return []models.AdminAnimeAssetSearchCandidate{
+					{
+						ID:         "tmdb-1",
+						AssetKind:  req.AssetKind,
+						Source:     models.AdminAnimeAssetSearchSourceTMDB,
+						PreviewURL: "https://img.example/tmdb-preview.png",
+						ImageURL:   "https://img.example/tmdb-full.png",
+					},
+				}, nil
+			},
+		},
+	)
+
+	_, err := service.SearchAssetCandidates(context.Background(), models.AdminAnimeAssetSearchRequest{
+		AssetKind: "logo",
+		Query:     "Lain",
+		Limit:     2,
+	})
+	if err != nil {
+		t.Fatalf("search asset candidates: %v", err)
+	}
+
+	expectedOrder := []models.AdminAnimeAssetSearchSource{
+		models.AdminAnimeAssetSearchSourceFanartTV,
+		models.AdminAnimeAssetSearchSourceTMDB,
+	}
+	for idx, source := range expectedOrder {
+		if callOrder[idx] != source {
+			t.Fatalf("expected call order %#v, got %#v", expectedOrder, callOrder)
+		}
 	}
 }
 

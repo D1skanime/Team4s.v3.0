@@ -7,6 +7,7 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	_ "golang.org/x/image/webp"
 	"io"
 	"log"
 	"mime/multipart"
@@ -40,6 +41,7 @@ var (
 		"image/png":  true,
 		"image/webp": true,
 		"image/gif":  true,
+		"image/avif": true,
 	}
 
 	allowedVideoMimeTypes = map[string]bool{

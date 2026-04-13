@@ -39,6 +39,13 @@ type AniSearchAnime struct {
 	Relations     []AniSearchAnimeRelation
 }
 
+type AniSearchSearchCandidate struct {
+	AniSearchID string
+	Title       string
+	Type        string
+	Year        *int16
+}
+
 type contextSleeper func(ctx context.Context, wait time.Duration) error
 
 type AniSearchRateLimiter struct {
@@ -148,6 +155,24 @@ func (c *AniSearchClient) FetchAnime(ctx context.Context, aniSearchID string) (A
 	return result, nil
 }
 
+func (c *AniSearchClient) SearchAnime(
+	ctx context.Context,
+	query string,
+	limit int,
+) ([]AniSearchSearchCandidate, error) {
+	trimmedQuery := strings.TrimSpace(query)
+	if trimmedQuery == "" {
+		return nil, fmt.Errorf("anisearch query is required")
+	}
+
+	pageBody, err := c.fetchSearchHTML(ctx, trimmedQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseAniSearchSearchHTML(pageBody, limit)
+}
+
 func (c *AniSearchClient) fetchPageHTML(ctx context.Context, aniSearchID string, suffix string) (string, error) {
 	var body string
 	err := c.limiter.Do(ctx, func() error {
@@ -172,6 +197,40 @@ func (c *AniSearchClient) fetchPageHTML(ctx context.Context, aniSearchID string,
 		raw, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("read anisearch anime %s%s: %w", aniSearchID, suffix, err)
+		}
+		body = string(raw)
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+	return body, nil
+}
+
+func (c *AniSearchClient) fetchSearchHTML(ctx context.Context, query string) (string, error) {
+	var body string
+	err := c.limiter.Do(ctx, func() error {
+		requestURL := "https://www.anisearch.de/search?q=" + url.QueryEscape(strings.TrimSpace(query))
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
+		if err != nil {
+			return fmt.Errorf("build anisearch search request: %w", err)
+		}
+		req.Header.Set("User-Agent", "Team4sBot/1.0 (+controlled AniSearch enrichment)")
+		req.Header.Set("Accept", "text/html,application/xhtml+xml")
+
+		resp, err := c.httpClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("search anisearch %q: %w", query, err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("search anisearch %q: unexpected status %d", query, resp.StatusCode)
+		}
+
+		raw, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("read anisearch search %q: %w", query, err)
 		}
 		body = string(raw)
 		return nil
@@ -254,6 +313,121 @@ func parseAniSearchAnimeHTML(aniSearchID string, rawHTML string) (AniSearchAnime
 	result.Relations = parseAniSearchRelations(doc)
 
 	return result, nil
+}
+
+func parseAniSearchSearchHTML(rawHTML string, limit int) ([]AniSearchSearchCandidate, error) {
+	doc, err := xhtml.Parse(strings.NewReader(rawHTML))
+	if err != nil {
+		return nil, fmt.Errorf("parse anisearch search html: %w", err)
+	}
+
+	results := make([]AniSearchSearchCandidate, 0)
+	animeSection := findAniSearchSearchAnimeSection(doc)
+	if animeSection == nil {
+		return results, nil
+	}
+
+	covers := findDirectChildByTagAndClass(animeSection, "ul", "covers")
+	if covers == nil {
+		return results, nil
+	}
+
+	for child := covers.FirstChild; child != nil; child = child.NextSibling {
+		if child.Type != xhtml.ElementNode || child.Data != "li" {
+			continue
+		}
+
+		candidate, ok := parseAniSearchSearchCandidate(child)
+		if !ok {
+			continue
+		}
+		results = append(results, candidate)
+		if limit > 0 && len(results) >= limit {
+			break
+		}
+	}
+
+	return results, nil
+}
+
+func findAniSearchSearchAnimeSection(doc *xhtml.Node) *xhtml.Node {
+	var walk func(*xhtml.Node) *xhtml.Node
+	walk = func(node *xhtml.Node) *xhtml.Node {
+		if node == nil {
+			return nil
+		}
+		if node.Type == xhtml.ElementNode && node.Data == "section" {
+			for child := node.FirstChild; child != nil; child = child.NextSibling {
+				if child.Type == xhtml.ElementNode && child.Data == "h2" {
+					header := strings.TrimSpace(nodeText(child))
+					if strings.HasPrefix(header, "Anime") {
+						return node
+					}
+				}
+			}
+		}
+		for child := node.FirstChild; child != nil; child = child.NextSibling {
+			if result := walk(child); result != nil {
+				return result
+			}
+		}
+		return nil
+	}
+	return walk(doc)
+}
+
+func parseAniSearchSearchCandidate(node *xhtml.Node) (AniSearchSearchCandidate, bool) {
+	anchor := findFirstDescendant(node, func(current *xhtml.Node) bool {
+		if current.Type != xhtml.ElementNode || current.Data != "a" {
+			return false
+		}
+		href := attrValueFor(current, "href")
+		return strings.HasPrefix(href, "anime/")
+	})
+	if anchor == nil {
+		return AniSearchSearchCandidate{}, false
+	}
+
+	aniSearchID := parseAniSearchSearchID(attrValueFor(anchor, "href"))
+	title := strings.TrimSpace(findFirstChildTextByTagAndClass(anchor, "span", "title"))
+	typeLabel, year := parseAniSearchSearchDate(strings.TrimSpace(findFirstChildTextByTagAndClass(anchor, "span", "date")))
+	if aniSearchID == "" || title == "" {
+		return AniSearchSearchCandidate{}, false
+	}
+
+	return AniSearchSearchCandidate{
+		AniSearchID: aniSearchID,
+		Title:       title,
+		Type:        typeLabel,
+		Year:        year,
+	}, true
+}
+
+func parseAniSearchSearchID(href string) string {
+	matches := regexp.MustCompile(`^anime/(\d+)`).FindStringSubmatch(strings.TrimSpace(href))
+	if len(matches) < 2 {
+		return ""
+	}
+	return matches[1]
+}
+
+func parseAniSearchSearchDate(value string) (string, *int16) {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return "", nil
+	}
+
+	year := parseInt16Ptr(extractFirstNumberInParens(trimmed))
+	parts := strings.SplitN(trimmed, ",", 2)
+	return strings.TrimSpace(parts[0]), year
+}
+
+func extractFirstNumberInParens(value string) string {
+	matches := regexp.MustCompile(`\((\d{4})\)`).FindStringSubmatch(value)
+	if len(matches) < 2 {
+		return ""
+	}
+	return matches[1]
 }
 
 type aniSearchLDJSON struct {
@@ -436,6 +610,33 @@ func findDirectChildTextByTagAndClass(node *xhtml.Node, tag string, className st
 		}
 	}
 	return ""
+}
+
+func findDirectChildByTagAndClass(node *xhtml.Node, tag string, className string) *xhtml.Node {
+	if node == nil {
+		return nil
+	}
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
+		if child.Type == xhtml.ElementNode && child.Data == tag && hasClass(child, className) {
+			return child
+		}
+	}
+	return nil
+}
+
+func findFirstDescendant(node *xhtml.Node, match func(*xhtml.Node) bool) *xhtml.Node {
+	if node == nil || match == nil {
+		return nil
+	}
+	if match(node) {
+		return node
+	}
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
+		if result := findFirstDescendant(child, match); result != nil {
+			return result
+		}
+	}
+	return nil
 }
 
 func findAniSearchEpisodeCount(doc *xhtml.Node) string {

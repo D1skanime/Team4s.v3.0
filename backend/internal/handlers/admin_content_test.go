@@ -23,6 +23,7 @@ import (
 
 type stubAniSearchCreateEnrichmentService struct {
 	enrich func(context.Context, models.AdminAnimeAniSearchEnrichmentRequest) (any, error)
+	search func(context.Context, string, int) ([]models.AdminAnimeAniSearchSearchCandidate, error)
 }
 
 func (s stubAniSearchCreateEnrichmentService) LoadAniSearchDraft(
@@ -40,6 +41,31 @@ func (s stubAniSearchCreateEnrichmentService) Enrich(
 		return nil, errors.New("unexpected enrich call")
 	}
 	return s.enrich(ctx, req)
+}
+
+func (s stubAniSearchCreateEnrichmentService) SearchAniSearchCandidates(
+	ctx context.Context,
+	query string,
+	limit int,
+) ([]models.AdminAnimeAniSearchSearchCandidate, error) {
+	if s.search == nil {
+		return nil, errors.New("unexpected search call")
+	}
+	return s.search(ctx, query, limit)
+}
+
+type stubAdminAnimeAssetSearchService struct {
+	search func(context.Context, models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error)
+}
+
+func (s stubAdminAnimeAssetSearchService) SearchAssetCandidates(
+	ctx context.Context,
+	req models.AdminAnimeAssetSearchRequest,
+) ([]models.AdminAnimeAssetSearchCandidate, error) {
+	if s.search == nil {
+		return nil, errors.New("unexpected asset search call")
+	}
+	return s.search(ctx, req)
 }
 
 func TestLoadAnimeCreateAniSearchEnrichment_ReturnsDraftEnvelope(t *testing.T) {
@@ -170,6 +196,172 @@ func TestLoadAnimeCreateAniSearchEnrichment_ReturnsDuplicateRedirectEnvelope(t *
 	}
 }
 
+func TestSearchAnimeCreateAniSearchCandidates_ReturnsCandidateEnvelope(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	handler := &AdminContentHandler{
+		authzRepo:     stubAdminRoleChecker{allowed: true},
+		adminRoleName: "admin",
+		enrichmentService: stubAniSearchCreateEnrichmentService{
+			search: func(_ context.Context, query string, limit int) ([]models.AdminAnimeAniSearchSearchCandidate, error) {
+				if query != "Bleach" {
+					t.Fatalf("expected query Bleach, got %q", query)
+				}
+				if limit != 12 {
+					t.Fatalf("expected default limit 12, got %d", limit)
+				}
+				return []models.AdminAnimeAniSearchSearchCandidate{
+					{AniSearchID: "1078", Title: "Bleach", Type: "TV-Serie", Year: int16Ptr(2004)},
+					{AniSearchID: "15085", Title: "Bleach: Thousand-Year Blood War", Type: "TV-Serie", Year: int16Ptr(2022)},
+				}, nil
+			},
+		},
+	}
+
+	router := gin.New()
+	router.GET("/api/v1/admin/anime/enrichment/anisearch/search", withTestAdminIdentity(), handler.SearchAnimeCreateAniSearchCandidates)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/anime/enrichment/anisearch/search?q=Bleach", nil)
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+
+	var payload struct {
+		Data []models.AdminAnimeAniSearchSearchCandidate `json:"data"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(payload.Data) != 2 {
+		t.Fatalf("expected 2 candidates, got %#v", payload.Data)
+	}
+	if payload.Data[0].AniSearchID != "1078" || payload.Data[0].Title != "Bleach" {
+		t.Fatalf("unexpected first candidate: %#v", payload.Data[0])
+	}
+}
+
+func TestSearchAnimeCreateAniSearchCandidates_RejectsMissingQuery(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	handler := &AdminContentHandler{
+		authzRepo:         stubAdminRoleChecker{allowed: true},
+		adminRoleName:     "admin",
+		enrichmentService: stubAniSearchCreateEnrichmentService{},
+	}
+
+	router := gin.New()
+	router.GET("/api/v1/admin/anime/enrichment/anisearch/search", withTestAdminIdentity(), handler.SearchAnimeCreateAniSearchCandidates)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/anime/enrichment/anisearch/search", nil)
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestSearchAnimeCreateAssetCandidates_ReturnsCandidateEnvelope(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	handler := &AdminContentHandler{
+		authzRepo:     stubAdminRoleChecker{allowed: true},
+		adminRoleName: "admin",
+		assetSearchService: stubAdminAnimeAssetSearchService{
+			search: func(_ context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error) {
+				if req.AssetKind != "background" {
+					t.Fatalf("expected background slot, got %q", req.AssetKind)
+				}
+				if req.Query != "Serial Experiments Lain" {
+					t.Fatalf("expected query to reach service, got %q", req.Query)
+				}
+				if req.Limit != 8 {
+					t.Fatalf("expected limit 8, got %d", req.Limit)
+				}
+				if !slices.Equal(req.Sources, []models.AdminAnimeAssetSearchSource{
+					models.AdminAnimeAssetSearchSourceTMDB,
+					models.AdminAnimeAssetSearchSourceZerochan,
+				}) {
+					t.Fatalf("unexpected sources: %#v", req.Sources)
+				}
+				width := int32(1920)
+				height := int32(1080)
+				year := int16(1998)
+				title := "Lain visual"
+				return []models.AdminAnimeAssetSearchCandidate{
+					{
+						ID:         "tmdb-991",
+						AssetKind:  "background",
+						Source:     models.AdminAnimeAssetSearchSourceTMDB,
+						Title:      &title,
+						PreviewURL: "https://img.example/tmdb-preview.jpg",
+						ImageURL:   "https://img.example/tmdb-full.jpg",
+						Width:      &width,
+						Height:     &height,
+						Year:       &year,
+					},
+				}, nil
+			},
+		},
+	}
+
+	router := gin.New()
+	router.GET("/api/v1/admin/anime/assets/search", withTestAdminIdentity(), handler.SearchAnimeCreateAssetCandidates)
+
+	req := httptest.NewRequest(
+		http.MethodGet,
+		"/api/v1/admin/anime/assets/search?slot=background&q=Serial+Experiments+Lain&limit=8&sources=tmdb,zerochan",
+		nil,
+	)
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+
+	var payload models.AdminAnimeAssetSearchResponse
+	if err := json.Unmarshal(recorder.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(payload.Data) != 1 {
+		t.Fatalf("expected one asset candidate, got %#v", payload.Data)
+	}
+	if payload.Data[0].Source != models.AdminAnimeAssetSearchSourceTMDB {
+		t.Fatalf("expected tmdb source, got %#v", payload.Data[0])
+	}
+}
+
+func TestSearchAnimeCreateAssetCandidates_RejectsInvalidSourceFilter(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	handler := &AdminContentHandler{
+		authzRepo:     stubAdminRoleChecker{allowed: true},
+		adminRoleName: "admin",
+	}
+
+	router := gin.New()
+	router.GET("/api/v1/admin/anime/assets/search", withTestAdminIdentity(), handler.SearchAnimeCreateAssetCandidates)
+
+	req := httptest.NewRequest(
+		http.MethodGet,
+		"/api/v1/admin/anime/assets/search?slot=cover&q=Lain&sources=tmdb,unknown",
+		nil,
+	)
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if !strings.Contains(recorder.Body.String(), "sources enthaelt einen ungueltigen wert") {
+		t.Fatalf("unexpected body: %s", recorder.Body.String())
+	}
+}
+
 func withTestAdminIdentity() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set("auth_identity", middleware.AuthIdentity{UserID: 99, DisplayName: "Admin"})
@@ -212,6 +404,10 @@ func TestValidateAdminAnimeCreateRequest_AllowsMissingCoverForDeferredUpload(t *
 	if input.CoverImage != nil {
 		t.Fatalf("expected cover image to stay nil for deferred upload, got %+v", input.CoverImage)
 	}
+}
+
+func int16Ptr(value int16) *int16 {
+	return &value
 }
 
 func TestValidateAdminAnimeCreateRequest_PreservesCoverImageOnSuccess(t *testing.T) {

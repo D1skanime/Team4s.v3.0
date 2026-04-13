@@ -57,14 +57,16 @@ export function formatAniSearchEditResultSummary(
     'anisearch_id' | 'updated_fields' | 'skipped_protected_fields' | 'relations_applied' | 'relations_skipped_existing'
   >,
 ): AniSearchEditResultSummary {
+  const updatedFields = result.updated_fields ?? []
+  const protectedFields = result.skipped_protected_fields ?? []
   const relationCount = result.relations_applied + result.relations_skipped_existing
 
   return {
     anisearchID: result.anisearch_id,
-    updatedFieldCount: result.updated_fields.length,
-    protectedFieldCount: result.skipped_protected_fields.length,
+    updatedFieldCount: updatedFields.length,
+    protectedFieldCount: protectedFields.length,
     relationCount,
-    message: `AniSearch geladen. ${result.updated_fields.length} Felder aktualisiert, ${result.skipped_protected_fields.length} geschuetzt, ${relationCount} Relationen uebernommen.`,
+    message: `AniSearch geladen. ${updatedFields.length} Felder aktualisiert, ${protectedFields.length} geschuetzt, ${relationCount} Relationen uebernommen.`,
   }
 }
 

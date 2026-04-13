@@ -14,6 +14,8 @@ import {
 import {
   createAdminAnimeFromJellyfinDraft,
   loadAdminAnimeCreateAniSearchDraft,
+  searchAdminAnimeCreateAssetCandidates,
+  searchAdminAnimeCreateAniSearchCandidates,
 } from './api/admin-anime-intake'
 
 describe('admin anime api error propagation', () => {
@@ -172,6 +174,124 @@ describe('admin anime api error propagation', () => {
     expect(fetchMock).not.toHaveBeenCalledWith(
       expect.stringContaining('/api/v1/admin/anime/42/enrichment/anisearch'),
       expect.anything(),
+    )
+  })
+
+  it('loads AniSearch title candidates from the dedicated search seam', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue({
+        data: [
+          { anisearch_id: '1078', title: 'Bleach', type: 'TV-Serie', year: 2004 },
+          {
+            anisearch_id: '15085',
+            title: 'Bleach: Thousand-Year Blood War',
+            type: 'TV-Serie',
+            year: 2022,
+          },
+        ],
+      }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      searchAdminAnimeCreateAniSearchCandidates('Bleach', { limit: 12 }, 'token'),
+    ).resolves.toEqual({
+      data: [
+        { anisearch_id: '1078', title: 'Bleach', type: 'TV-Serie', year: 2004 },
+        {
+          anisearch_id: '15085',
+          title: 'Bleach: Thousand-Year Blood War',
+          type: 'TV-Serie',
+          year: 2022,
+        },
+      ],
+    })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/admin/anime/enrichment/anisearch/search?q=Bleach&limit=12'),
+      expect.objectContaining({
+        cache: 'no-store',
+      }),
+    )
+  })
+
+  it('loads slot-aware asset candidates from the dedicated asset search seam with source metadata', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'tmdb-991',
+            asset_kind: 'background',
+            source: 'tmdb',
+            title: 'Lain key visual',
+            preview_url: 'https://img.example/tmdb-preview.jpg',
+            image_url: 'https://img.example/tmdb-full.jpg',
+            width: 1920,
+            height: 1080,
+            year: 1998,
+          },
+          {
+            id: 'zerochan-77',
+            asset_kind: 'background',
+            source: 'zerochan',
+            title: 'Lain alt visual',
+            preview_url: 'https://img.example/zerochan-preview.jpg',
+            image_url: 'https://img.example/zerochan-full.jpg',
+            width: 1600,
+            height: 900,
+          },
+        ],
+      }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      searchAdminAnimeCreateAssetCandidates(
+        {
+          asset_kind: 'background',
+          query: 'Serial Experiments Lain',
+          limit: 8,
+          sources: ['tmdb', 'zerochan'],
+        },
+        'token',
+      ),
+    ).resolves.toEqual({
+      data: [
+        {
+          id: 'tmdb-991',
+          asset_kind: 'background',
+          source: 'tmdb',
+          title: 'Lain key visual',
+          preview_url: 'https://img.example/tmdb-preview.jpg',
+          image_url: 'https://img.example/tmdb-full.jpg',
+          width: 1920,
+          height: 1080,
+          year: 1998,
+        },
+        {
+          id: 'zerochan-77',
+          asset_kind: 'background',
+          source: 'zerochan',
+          title: 'Lain alt visual',
+          preview_url: 'https://img.example/zerochan-preview.jpg',
+          image_url: 'https://img.example/zerochan-full.jpg',
+          width: 1600,
+          height: 900,
+        },
+      ],
+    })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining(
+        '/api/v1/admin/anime/assets/search?slot=background&q=Serial+Experiments+Lain&limit=8&sources=tmdb%2Czerochan',
+      ),
+      expect.objectContaining({
+        cache: 'no-store',
+      }),
     )
   })
 

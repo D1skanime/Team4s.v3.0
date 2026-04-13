@@ -50,6 +50,22 @@ describe('buildAniSearchEditRequest', () => {
     })
   })
 
+  it('falls back to empty field lists when the edit result omits optional arrays', () => {
+    expect(
+      formatAniSearchEditResultSummary({
+        anisearch_id: '12345',
+        relations_applied: 1,
+        relations_skipped_existing: 0,
+      }),
+    ).toMatchObject({
+      anisearchID: '12345',
+      updatedFieldCount: 0,
+      protectedFieldCount: 0,
+      relationCount: 1,
+      message: 'AniSearch geladen. 0 Felder aktualisiert, 0 geschuetzt, 1 Relationen uebernommen.',
+    })
+  })
+
   it('stores conflict metadata separately from the generic error text', () => {
     const state = createAniSearchEditFailureState(
       new ApiError(

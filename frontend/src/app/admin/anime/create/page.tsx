@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import styles from "../../admin.module.css";
 import createStyles from "./page.module.css";
+import { CreateAssetSearchDialog } from "./CreateAssetSearchDialog";
 import { JellyfinDraftAssets } from "../components/ManualCreate/JellyfinDraftAssets";
 import { ManualCreateWorkspace } from "../components/ManualCreate/ManualCreateWorkspace";
 import { CreateAniSearchIntakeCard } from "./CreateAniSearchIntakeCard";
@@ -173,31 +174,66 @@ export default function AdminAnimeCreatePage() {
               <div className={createStyles.sourceActionStack}>
                 <CreateAniSearchIntakeCard
                   anisearchID={controller.anisearch.input}
+                  searchQuery={controller.anisearch.searchQuery}
                   isLoading={controller.anisearch.isLoading}
+                  isSearchingCandidates={controller.anisearch.isSearchingCandidates}
+                  candidates={controller.anisearch.candidates}
                   result={controller.anisearch.result}
                   conflict={controller.anisearch.conflict}
                   errorMessage={controller.anisearch.errorMessage}
                   onAniSearchIDChange={handlers.setAniSearchID}
+                  onSearchQueryChange={handlers.setAniSearchSearchQuery}
+                  onSearchSubmit={() => {
+                    void handlers.handleAniSearchCandidateSearch();
+                  }}
+                  onCandidateDismiss={handlers.clearAniSearchState}
+                  onCandidateSelect={(candidate) => {
+                    void handlers.handleAniSearchCandidateSelect(candidate);
+                  }}
                   onSubmit={() => {
                     void handlers.handleAniSearchDraftLoad();
                   }}
                 />
-                <button
-                  className={createStyles.primaryAction}
-                  type="button"
-                  disabled={
-                    !manualDraft.sourceActionState.canSync ||
-                    jellyfin.intake.isSearching ||
-                    status.isSubmittingCreate
-                  }
-                  onClick={() => {
-                    void handlers.handleJellyfinSearch();
-                  }}
-                >
-                  {jellyfin.intake.isSearching
-                    ? "Jellyfin sucht..."
-                    : "Jellyfin suchen"}
-                </button>
+                <section className={createStyles.resultsPanel}>
+                  <div className={createStyles.resultsHeader}>
+                    <div className={createStyles.resultsTitleBlock}>
+                      <p className={createStyles.resultsEyebrow}>Jellyfin</p>
+                      <h2 className={createStyles.resultsTitle}>Jellyfin suchen</h2>
+                      <p className={createStyles.resultsText}>
+                        Jellyfin nutzt ein eigenes Suchfeld. Der finale Titel im
+                        Entwurf bleibt davon getrennt.
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.inputRow}>
+                    <label className={styles.field}>
+                      <span>Jellyfin Suche</span>
+                      <input
+                        value={jellyfin.intake.query}
+                        placeholder="z. B. Serial Experiments Lain"
+                        onChange={(event) =>
+                          handlers.setJellyfinQuery(event.target.value)
+                        }
+                      />
+                    </label>
+                    <button
+                      className={createStyles.primaryAction}
+                      type="button"
+                      disabled={
+                        !jellyfin.searchState.canSearch ||
+                        jellyfin.intake.isSearching ||
+                        status.isSubmittingCreate
+                      }
+                      onClick={() => {
+                        void handlers.handleJellyfinSearch();
+                      }}
+                    >
+                      {jellyfin.intake.isSearching
+                        ? "Jellyfin sucht..."
+                        : "Jellyfin suchen"}
+                    </button>
+                  </div>
+                </section>
               </div>
             }
             titleHint={<p className={styles.hint}>{manualDraft.sourceActionState.helperText}</p>}
@@ -272,14 +308,39 @@ export default function AdminAnimeCreatePage() {
             onSingleAssetFileChange={handlers.handleSingleAssetInputChange}
             onBackgroundFileChange={handlers.handleBackgroundInputChange}
             onOpenFileDialog={handlers.openAssetFileDialog}
+            onOpenAssetSearch={handlers.openAssetSearch}
             onRemoveSingleAsset={handlers.removeSingleAsset}
             onRemoveBackground={handlers.removeBackground}
           />
         </section>
 
+        <CreateAssetSearchDialog
+          activeKind={controller.assetSearch.activeKind}
+          query={controller.assetSearch.query}
+          candidates={controller.assetSearch.candidates}
+          selectedCandidateIDs={controller.assetSearch.selectedCandidateIDs}
+          errorMessage={controller.assetSearch.errorMessage}
+          hasMore={controller.assetSearch.hasMore}
+          isOpen={controller.assetSearch.isOpen}
+          isSearching={controller.assetSearch.isSearching}
+          isAdopting={controller.assetSearch.isAdopting}
+          onClose={handlers.closeAssetSearch}
+          onQueryChange={handlers.setAssetSearchQuery}
+          onSearch={() => {
+            void handlers.handleAssetCandidateSearch();
+          }}
+          onLoadMore={() => {
+            void handlers.handleLoadMoreAssets();
+          }}
+          onToggleCandidate={handlers.toggleAssetCandidateSelection}
+          onAdoptSelection={() => {
+            void handlers.handleAssetCandidateAdoption();
+          }}
+        />
+
         {jellyfin.showResults ? (
           <CreateJellyfinResultsPanel
-            query={manualDraft.values.title.trim()}
+            query={jellyfin.intake.query.trim()}
             candidates={jellyfin.intake.candidates}
             selectedCandidateID={jellyfin.intake.reviewState.selectedCandidate?.jellyfin_series_id}
             hasActivePreview={jellyfin.hasSelectedPreview}

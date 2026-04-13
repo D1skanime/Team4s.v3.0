@@ -5,6 +5,7 @@ import {
   resolveCreateAniSearchDraftMergeInputs,
   resolveJellyfinPreviewBaseDraft,
 } from './createPageHelpers'
+import { deriveJellyfinIntakeSearchState } from '../hooks/useJellyfinIntake'
 import {
   applyCreateAniSearchControllerResult,
   buildCreateAniSearchConflictState,
@@ -64,6 +65,15 @@ const aniSearchDraft = {
 }
 
 describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
+  it('treats Jellyfin query text as separate provider search state from the final draft title', () => {
+    const finalDraftTitle = 'Serial Experiments Lain'
+    const jellyfinQuery = 'lain ordner'
+
+    expect(finalDraftTitle).not.toBe(jellyfinQuery)
+    expect(deriveJellyfinIntakeSearchState(jellyfinQuery).canSearch).toBe(true)
+    expect(deriveJellyfinIntakeSearchState('').canSearch).toBe(false)
+  })
+
   it('uses the pre-Jellyfin snapshot so AniSearch can beat Jellyfin when loaded second', () => {
     const jellyfinHydrated = hydrateManualDraftFromJellyfinPreview(manualLookupDraft, jellyfinPreview)
     const snapshot = resolveJellyfinPreviewBaseDraft(manualLookupDraft, null)

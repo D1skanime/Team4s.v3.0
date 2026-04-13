@@ -163,3 +163,7 @@ type editAniSearchDraftLoaderStub struct {
 func (s editAniSearchDraftLoaderStub) LoadAniSearchDraft(ctx context.Context, aniSearchID string) (models.AdminAnimeCreateDraftPayload, []models.AdminAnimeRelation, error) {
 	return s.draft, s.relations, nil
 }
+
+func (s editAniSearchDraftLoaderStub) SearchAniSearchCandidates(ctx context.Context, query string, limit int) ([]models.AdminAnimeAniSearchSearchCandidate, error) {
+	return nil, nil
+}

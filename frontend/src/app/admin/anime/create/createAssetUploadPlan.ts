@@ -8,7 +8,11 @@ import {
   assignAdminAnimeLogoAsset,
   uploadAdminAnimeMedia,
 } from "@/lib/api";
-import type { AdminAnimeAssetKind, AdminAnimeUploadAssetType } from "@/types/admin";
+import type {
+  AdminAnimeAssetKind,
+  AdminAnimeAssetSearchCandidate,
+  AdminAnimeUploadAssetType,
+} from "@/types/admin";
 
 export interface CreateAssetUploadDraftValue {
   draftValue: string;
@@ -69,6 +73,106 @@ export function stageManualCreateAsset(file: File): CreateAssetUploadDraftValue 
     draftValue: file.name.trim(),
     file,
     previewUrl: URL.createObjectURL(file),
+  };
+}
+
+function resolveRemoteAssetExtension(contentType: string): string {
+  const normalized = contentType.trim().toLowerCase();
+  if (normalized.includes("png")) return "png";
+  if (normalized.includes("webp")) return "webp";
+  if (normalized.includes("avif")) return "avif";
+  if (normalized.includes("gif")) return "gif";
+  return "jpg";
+}
+
+function sanitizeRemoteAssetSegment(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// convertAvifToJpeg uses an off-screen canvas to convert an AVIF blob to JPEG.
+// Browsers render AVIF natively so the canvas round-trip gives a clean JPEG.
+async function convertAvifToJpeg(avifBlob: Blob): Promise<Blob> {
+  return new Promise<Blob>((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(avifBlob);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("canvas context not available"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob(
+        (converted) => {
+          if (!converted) {
+            reject(new Error("canvas toBlob returned null"));
+            return;
+          }
+          resolve(converted);
+        },
+        "image/jpeg",
+        0.92,
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("AVIF bild konnte nicht geladen werden"));
+    };
+    img.src = objectUrl;
+  });
+}
+
+export async function stageRemoteCreateAssetCandidate(
+  candidate: AdminAnimeAssetSearchCandidate,
+  deps: {
+    fetchImpl?: typeof fetch;
+    createObjectURL?: (object: Blob) => string;
+  } = {},
+): Promise<CreateAssetUploadDraftValue> {
+  const fetchImpl = deps.fetchImpl ?? fetch;
+  const createObjectURL = deps.createObjectURL ?? URL.createObjectURL;
+  const proxyURL = `/api/admin/asset-proxy?url=${encodeURIComponent(candidate.image_url)}`;
+  const response = await fetchImpl(proxyURL, { cache: "no-store" });
+
+  if (!response.ok) {
+    throw new Error(`Remote asset download failed: ${response.status}`);
+  }
+
+  let blob = await response.blob();
+
+  // AVIF has no pure-Go decoder on the backend — convert to JPEG in the
+  // browser before upload. The browser renders AVIF natively so the canvas
+  // round-trip is lossless in practice and produces a standard JPEG.
+  if (blob.type === "image/avif" || blob.type === "image/avif-sequence") {
+    blob = await convertAvifToJpeg(blob);
+  }
+
+  const extension = resolveRemoteAssetExtension(blob.type);
+  const baseName = [
+    candidate.asset_kind,
+    candidate.source,
+    candidate.id,
+  ]
+    .map(sanitizeRemoteAssetSegment)
+    .filter(Boolean)
+    .join("-");
+  const fileName = `${baseName || "asset"}.${extension}`;
+  const file = new File([blob], fileName, {
+    type: blob.type || "image/jpeg",
+  });
+
+  return {
+    draftValue: file.name,
+    file,
+    previewUrl: createObjectURL(file),
   };
 }
 

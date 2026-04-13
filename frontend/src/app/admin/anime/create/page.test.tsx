@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { CreateAssetSearchDialog } from "./CreateAssetSearchDialog";
 import { CreateAniSearchIntakeCard } from "./CreateAniSearchIntakeCard";
 import AdminAnimeCreatePage, {
   buildCreateSuccessMessage,
@@ -51,6 +52,48 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).toContain("Background");
     expect(markup).toContain("Background-Video");
     expect(markup).toContain("Asset-Upload");
+    expect(markup).toContain("Cover online suchen");
+    expect(markup).toContain("Banner online suchen");
+    expect(markup).toContain("Logo online suchen");
+    expect(markup).toContain("Backgrounds online suchen");
+  });
+
+  it("renders the asset chooser with visible source metadata and multi-select copy", () => {
+    const markup = renderToStaticMarkup(
+      <CreateAssetSearchDialog
+        activeKind="background"
+        query="Ao Haru Ride"
+        candidates={[
+          {
+            id: "zerochan-123",
+            asset_kind: "background",
+            source: "zerochan",
+            title: "Ao Haru Ride",
+            preview_url: "https://preview.example/123.jpg",
+            image_url: "https://image.example/123.jpg",
+            year: 2014,
+            width: 1920,
+            height: 1080,
+          },
+        ]}
+        selectedCandidateIDs={["zerochan-123"]}
+        errorMessage={null}
+        isOpen
+        isSearching={false}
+        isAdopting={false}
+        onClose={() => undefined}
+        onQueryChange={() => undefined}
+        onSearch={() => undefined}
+        onToggleCandidate={() => undefined}
+        onAdoptSelection={() => undefined}
+      />,
+    );
+
+    expect(markup).toContain("Backgrounds online suchen");
+    expect(markup).toContain("zerochan");
+    expect(markup).toContain("1 Treffer ausgewaehlt");
+    expect(markup).toContain("Auswahl uebernehmen");
+    expect(markup).toContain("1920 x 1080");
   });
 
   it("keeps the default primary CTA copy until submit is in progress", () => {
@@ -64,26 +107,29 @@ describe("AdminAnimeCreatePage", () => {
     const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
 
     expect(markup).toContain("AniSearch ID");
+    expect(markup).toContain("AniSearch Titel");
+    expect(markup).toContain("Titel suchen");
     expect(markup).toContain("AniSearch laden");
+    expect(markup).toContain("Jellyfin Suche");
     expect(markup).toContain("Jellyfin suchen");
     expect(markup).toContain("Manuell &gt; AniSearch &gt; Jellyfin");
     expect(markup.indexOf("AniSearch laden")).toBeLessThan(
       markup.lastIndexOf("Jellyfin suchen"),
     );
     expect(markup).toContain(
-      "Gib zuerst einen aussagekraeftigen Anime-Titel ein, damit Jellyfin suchen kann. AniSearch laedt gezielt per ID.",
+      "Der finale Titel ist kein Suchfeld. Nutze die getrennten Jellyfin- und AniSearch-Suchfeldern fuer Provider-Suchen.",
     );
     expect(markup).not.toContain("Aus Datei hochladen");
     expect(resolveSourceActionState("").canSync).toBe(false);
     expect(resolveSourceActionState("Naruto").canSync).toBe(true);
   });
 
-  it("describes the reachable Jellyfin title action without promising AniSearch on create", () => {
+  it("describes separated provider search instead of reusing the final title field", () => {
     expect(resolveSourceActionState("Naruto").helperText).toContain(
-      "Jellyfin nutzt den aktuellen Titel als Suchanfrage.",
+      "Der finale Titel bleibt Entwurfsdaten.",
     );
     expect(resolveSourceActionState("Naruto").helperText).toContain(
-      "AniSearch laedt gezielt per ID.",
+      "getrennten Jellyfin- und AniSearch-Suchfeldern",
     );
   });
 
@@ -91,7 +137,10 @@ describe("AdminAnimeCreatePage", () => {
     const summaryMarkup = renderToStaticMarkup(
       <CreateAniSearchIntakeCard
         anisearchID="12345"
+        searchQuery=""
         isLoading={false}
+        isSearchingCandidates={false}
+        candidates={[]}
         result={{
           anisearchID: "12345",
           source: "anisearch:12345",
@@ -110,6 +159,10 @@ describe("AdminAnimeCreatePage", () => {
         conflict={null}
         errorMessage={null}
         onAniSearchIDChange={() => undefined}
+        onSearchQueryChange={() => undefined}
+        onSearchSubmit={() => undefined}
+        onCandidateDismiss={() => undefined}
+        onCandidateSelect={() => undefined}
         onSubmit={() => undefined}
       />,
     );
@@ -128,7 +181,10 @@ describe("AdminAnimeCreatePage", () => {
     const duplicateMarkup = renderToStaticMarkup(
       <CreateAniSearchIntakeCard
         anisearchID="12345"
+        searchQuery=""
         isLoading={false}
+        isSearchingCandidates={false}
+        candidates={[]}
         result={null}
         conflict={{
           anisearchID: "12345",
@@ -138,6 +194,10 @@ describe("AdminAnimeCreatePage", () => {
         }}
         errorMessage={null}
         onAniSearchIDChange={() => undefined}
+        onSearchQueryChange={() => undefined}
+        onSearchSubmit={() => undefined}
+        onCandidateDismiss={() => undefined}
+        onCandidateSelect={() => undefined}
         onSubmit={() => undefined}
       />,
     );
@@ -149,11 +209,18 @@ describe("AdminAnimeCreatePage", () => {
     const errorMarkup = renderToStaticMarkup(
       <CreateAniSearchIntakeCard
         anisearchID="12345"
+        searchQuery=""
         isLoading={false}
+        isSearchingCandidates={false}
+        candidates={[]}
         result={null}
         conflict={null}
         errorMessage="AniSearch-Daten konnten nicht geladen werden."
         onAniSearchIDChange={() => undefined}
+        onSearchQueryChange={() => undefined}
+        onSearchSubmit={() => undefined}
+        onCandidateDismiss={() => undefined}
+        onCandidateSelect={() => undefined}
         onSubmit={() => undefined}
       />,
     );

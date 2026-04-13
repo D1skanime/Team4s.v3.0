@@ -34,25 +34,26 @@ This phase does not redesign the edit route, does not change the existing Jellyf
 - **D-07:** The Jellyfin search input sits directly inside the Jellyfin card rather than in the shared title area or a separate top-level toolbar.
 
 ### AniSearch Title Search
-- **D-08:** AniSearch keeps explicit ID entry, but Phase 14 also adds title-based search by name.
+- **D-08:** AniSearch keeps the current explicit ID-entry flow exactly as a first-class path, but Phase 14 also adds title-based search by name in the same AniSearch card.
 - **D-09:** AniSearch title search must return a candidate list first; it must not immediately load one guessed record into the draft.
 - **D-10:** AniSearch candidate selection opens through a popup/modal-style chooser rather than an always-expanded inline list.
 - **D-11:** Each AniSearch candidate row must show at least title, type, year, and AniSearch ID so the operator can distinguish similar entries cleanly.
 - **D-12:** The detailed AniSearch crawl happens only after the operator explicitly chooses one candidate from the result popup.
+- **D-13:** Once an AniSearch candidate is selected, the system should reuse the existing ID-based AniSearch crawl/load seam in the background by taking the selected candidate's AniSearch ID, rather than inventing a second detail-fetch path.
 
 ### Draft Handoff And Operator Feedback
-- **D-13:** Once the operator chooses a Jellyfin or AniSearch result, the chosen provider data writes directly into the create draft.
-- **D-14:** Even after provider data is written into the draft, the UI must continue to make it clear that nothing is saved yet.
-- **D-15:** The chosen provider's resolved title becomes the actual draft title value; temporary search text must not survive as the stored title unless the operator edits it manually afterwards.
+- **D-14:** Once the operator chooses a Jellyfin or AniSearch result, the chosen provider data writes directly into the create draft.
+- **D-15:** Even after provider data is written into the draft, the UI must continue to make it clear that nothing is saved yet.
+- **D-16:** The chosen provider's resolved title becomes the actual draft title value; temporary search text must not survive as the stored title unless the operator edits it manually afterwards.
 
 ### Request Safety And Crawl Discipline
-- **D-16:** AniSearch title search must avoid aggressive fan-out crawling and unnecessary detail requests.
-- **D-17:** General title queries such as `Bleach` should fetch only a candidate list first; full detail fetch is reserved for the single chosen candidate.
-- **D-18:** Phase 14 must preserve the existing guarded AniSearch posture from earlier phases instead of creating a free-crawl experience.
+- **D-17:** AniSearch title search must avoid aggressive fan-out crawling and unnecessary detail requests.
+- **D-18:** General title queries such as `Bleach` should fetch only a candidate list first; full detail fetch is reserved for the single chosen candidate.
+- **D-19:** Phase 14 must preserve the existing guarded AniSearch posture from earlier phases instead of creating a free-crawl experience.
 
 ### Visual And UX Consistency
-- **D-19:** Jellyfin and AniSearch must read as clearly separated provider areas with their own labels, controls, and state messaging.
-- **D-20:** The create-page provider UX should feel consistent across both cards even though Jellyfin keeps its existing review flow and AniSearch uses a popup candidate chooser.
+- **D-20:** Jellyfin and AniSearch must read as clearly separated provider areas with their own labels, controls, and state messaging.
+- **D-21:** The create-page provider UX should feel consistent across both cards even though Jellyfin keeps its existing review flow and AniSearch uses a popup candidate chooser.
 
 ### the agent's Discretion
 - Exact popup presentation for AniSearch candidate selection, as long as it is clearly operator-driven and shows title, type, year, and ID.
@@ -96,7 +97,7 @@ This phase does not redesign the edit route, does not change the existing Jellyf
 ## Existing Code Insights
 
 ### Reusable Assets
-- `CreateAniSearchIntakeCard.tsx` already provides the AniSearch card shell, operator feedback area, and dedicated exact-ID action seam.
+- `CreateAniSearchIntakeCard.tsx` already provides the AniSearch card shell, operator feedback area, and dedicated exact-ID action seam that Phase 14 should preserve.
 - `CreateJellyfinResultsPanel.tsx` and `JellyfinCandidateReview.tsx` already provide the current Jellyfin candidate review experience that should remain largely intact.
 - `useAdminAnimeCreateController.ts` already centralizes Jellyfin query state, AniSearch draft loading, draft hydration, and create submission, so Phase 14 can extend one controller seam instead of scattering search state across the page.
 - `admin-anime-intake.ts` already contains the provider API helper family for Jellyfin search/preview and AniSearch draft load; AniSearch title search should likely live beside those helpers.
@@ -105,12 +106,12 @@ This phase does not redesign the edit route, does not change the existing Jellyf
 - The create route is controller-driven and draft-first: provider actions update the unsaved draft, then the operator still saves explicitly.
 - Provider results are already shown as card-local/operator-visible status instead of silent background changes.
 - Jellyfin currently derives its query from `createTitle`, which is the exact coupling Phase 14 must break.
-- AniSearch currently only supports exact-ID create intake; title search is new, but it should reuse the same downstream draft-load seam after candidate selection.
+- AniSearch currently only supports exact-ID create intake; title search is new, but it should reuse that same downstream ID-based draft-load seam after candidate selection.
 
 ### Integration Points
 - Jellyfin search state currently enters through `jellyfinIntake.setQuery(createTitle)` in `useAdminAnimeCreateController.ts`; that coupling should be replaced with dedicated Jellyfin query state.
 - `ManualCreateWorkspace` already exposes `titleActions` and `titleHint`, so provider card placement can stay within the current create-page composition.
-- AniSearch title search needs a new candidate-list step before calling the existing `loadAdminAnimeCreateAniSearchDraft(...)` detail flow.
+- AniSearch title search needs a new candidate-list step before calling the existing `loadAdminAnimeCreateAniSearchDraft(...)` ID-based detail flow with the selected candidate's ID.
 - The chosen provider result should still flow through the existing draft-application functions rather than inventing a second create-draft path.
 
 </code_context>

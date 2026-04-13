@@ -8,24 +8,39 @@ import type {
   CreateAniSearchConflictState,
   CreateAniSearchDraftState,
 } from "./createAniSearchControllerHelpers";
+import type { AdminAnimeAniSearchSearchCandidate } from "@/types/admin";
 
 interface CreateAniSearchIntakeCardProps {
   anisearchID: string;
+  searchQuery: string;
   isLoading: boolean;
+  isSearchingCandidates: boolean;
+  candidates: AdminAnimeAniSearchSearchCandidate[];
   result: CreateAniSearchDraftState | null;
   conflict: CreateAniSearchConflictState | null;
   errorMessage: string | null;
   onAniSearchIDChange: (value: string) => void;
+  onSearchQueryChange: (value: string) => void;
+  onSearchSubmit: () => void;
+  onCandidateDismiss: () => void;
+  onCandidateSelect: (candidate: AdminAnimeAniSearchSearchCandidate) => void;
   onSubmit: () => void;
 }
 
 export function CreateAniSearchIntakeCard({
   anisearchID,
+  searchQuery,
   isLoading,
+  isSearchingCandidates,
+  candidates,
   result,
   conflict,
   errorMessage,
   onAniSearchIDChange,
+  onSearchQueryChange,
+  onSearchSubmit,
+  onCandidateDismiss,
+  onCandidateSelect,
   onSubmit,
 }: CreateAniSearchIntakeCardProps) {
   const helperID = "create-anisearch-helper";
@@ -38,9 +53,30 @@ export function CreateAniSearchIntakeCard({
           <p className={createStyles.resultsEyebrow}>AniSearch</p>
           <h2 className={createStyles.resultsTitle}>AniSearch Daten laden</h2>
           <p className={createStyles.resultsText}>
-            Lade AniSearch gezielt per ID, bevor du Jellyfin als Zusatzquelle nutzt.
+            Nutze AniSearch entweder direkt per ID oder suche zuerst nach einem Titel
+            und waehle dann den passenden Eintrag aus.
           </p>
         </div>
+      </div>
+
+      <div className={styles.inputRow}>
+        <label className={styles.field}>
+          <span>AniSearch Titel</span>
+          <input
+            value={searchQuery}
+            placeholder="z. B. Bleach"
+            onChange={(event) => onSearchQueryChange(event.target.value)}
+          />
+        </label>
+        <button
+          type="button"
+          className={createStyles.secondaryAction}
+          aria-busy={isSearchingCandidates}
+          disabled={isSearchingCandidates || !searchQuery.trim()}
+          onClick={onSearchSubmit}
+        >
+          {isSearchingCandidates ? "AniSearch sucht..." : "Titel suchen"}
+        </button>
       </div>
 
       <div className={styles.inputRow}>
@@ -67,6 +103,60 @@ export function CreateAniSearchIntakeCard({
       <p id={helperID} className={styles.hint}>
         Manuell &gt; AniSearch &gt; Jellyfin
       </p>
+
+      {candidates.length > 0 ? (
+        <div
+          className={createStyles.candidateModalBackdrop}
+          role="presentation"
+          onClick={onCandidateDismiss}
+        >
+          <div
+            className={createStyles.candidateModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-anisearch-candidate-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={createStyles.candidateModalHeader}>
+              <div>
+                <h3
+                  id="create-anisearch-candidate-title"
+                  className={createStyles.candidateModalTitle}
+                >
+                  AniSearch Treffer waehlen
+                </h3>
+                <p className={createStyles.candidateModalText}>
+                  Der Detailabruf startet erst nach deiner Auswahl.
+                </p>
+              </div>
+              <button
+                type="button"
+                className={createStyles.secondaryAction}
+                onClick={onCandidateDismiss}
+              >
+                Schliessen
+              </button>
+            </div>
+            <div className={createStyles.candidateList}>
+              {candidates.map((candidate) => (
+                <button
+                  key={candidate.anisearch_id}
+                  type="button"
+                  className={createStyles.candidateItem}
+                  onClick={() => onCandidateSelect(candidate)}
+                >
+                  <strong>{candidate.title}</strong>
+                  <span>
+                    {candidate.type}
+                    {candidate.year ? ` | ${candidate.year}` : ""}
+                    {` | ID ${candidate.anisearch_id}`}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div id={statusID} aria-live="polite">
         {conflict ? (

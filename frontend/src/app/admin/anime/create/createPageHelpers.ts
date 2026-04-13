@@ -127,8 +127,8 @@ export function resolveSourceActionState(title: string) {
   return {
     canSync: meaningful,
     helperText: meaningful
-      ? "Jellyfin nutzt den aktuellen Titel als Suchanfrage. AniSearch laedt gezielt per ID."
-      : "Gib zuerst einen aussagekraeftigen Anime-Titel ein, damit Jellyfin suchen kann. AniSearch laedt gezielt per ID.",
+      ? "Der finale Titel bleibt Entwurfsdaten. Nutze die getrennten Jellyfin- und AniSearch-Suchfeldern fuer Provider-Suchen."
+      : "Der finale Titel ist kein Suchfeld. Nutze die getrennten Jellyfin- und AniSearch-Suchfeldern fuer Provider-Suchen.",
   };
 }
 

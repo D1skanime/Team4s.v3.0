@@ -23,23 +23,24 @@ This phase does not add free AniSearch search, does not redesign the public anim
 - **D-02:** Locked fields remain untouched during edit-route AniSearch loads.
 - **D-03:** Field changes from AniSearch enrichment update the edit draft first. The admin still saves explicitly through the existing save flow.
 - **D-04:** The existing source priority rule continues to apply: values manually changed after an AniSearch load are not overwritten again by a later AniSearch load unless the admin intentionally unlocks and reloads them.
+- **D-05:** Temporary lookup text used to find a source candidate (for example a partial manual title typed only to search Jellyfin or AniSearch) does not count as a protected manual value. Once the admin selects a source and loads AniSearch enrichment, the AniSearch title should replace that provisional search text unless the field is explicitly locked afterwards.
 
 ### AniSearch Relation Persistence
-- **D-05:** Relations resolved from AniSearch during edit are auto-applied to `anime_relations` immediately when the enrichment request succeeds.
-- **D-06:** Existing relations are not duplicated.
-- **D-07:** Unresolvable AniSearch relations are skipped silently.
-- **D-08:** Relation matching continues to prefer `source = anisearch:{id}` first, then title-based fallback.
-- **D-09:** The dedicated edit endpoint remains `POST /admin/anime/:id/enrichment/anisearch`.
-- **D-10:** The create flow must also persist resolved AniSearch relations after anime creation instead of leaving them as draft-only data.
+- **D-06:** Relations resolved from AniSearch during edit are auto-applied to `anime_relations` immediately when the enrichment request succeeds.
+- **D-07:** Existing relations are not duplicated.
+- **D-08:** Unresolvable AniSearch relations are skipped silently.
+- **D-09:** Relation matching continues to prefer `source = anisearch:{id}` first, then title-based fallback.
+- **D-10:** The dedicated edit endpoint remains `POST /admin/anime/:id/enrichment/anisearch`.
+- **D-11:** The create flow must also persist resolved AniSearch relations after anime creation instead of leaving them as draft-only data.
 
 ### API And Reuse Strategy
-- **D-11:** The already existing AniSearch backend service stack (`AniSearchClient` plus `AnimeCreateEnrichmentService`) is the reuse baseline for this phase, not a new crawler implementation.
-- **D-12:** Relation persistence should reuse the same AniSearch source lookup and approved-relation filtering rules already established in the create enrichment service.
+- **D-12:** The already existing AniSearch backend service stack (`AniSearchClient` plus `AnimeCreateEnrichmentService`) is the reuse baseline for this phase, not a new crawler implementation.
+- **D-13:** Relation persistence should reuse the same AniSearch source lookup and approved-relation filtering rules already established in the create enrichment service.
 
 ### Code Quality Guardrails
-- **D-13:** No single page component should exceed 700 lines after this phase. If needed, logic must be split into focused components, hooks, or helper modules.
-- **D-14:** New or substantially touched code should include short explanatory comments for major sections and non-obvious helper functions so future maintainers understand purpose, not just mechanics.
-- **D-15:** Frontend work for this phase must include a lightweight UI contract before implementation details sprawl. The planner should treat that contract as required input for the edit-page AniSearch placement and result presentation.
+- **D-14:** No single page component should exceed 700 lines after this phase. If needed, logic must be split into focused components, hooks, or helper modules.
+- **D-15:** New or substantially touched code should include short explanatory comments for major sections and non-obvious helper functions so future maintainers understand purpose, not just mechanics.
+- **D-16:** Frontend work for this phase must include a lightweight UI contract before implementation details sprawl. The planner should treat that contract as required input for the edit-page AniSearch placement and result presentation.
 
 ### the agent's Discretion
 - Exact lock-model representation for edit-field protections as long as the override semantics stay clear
@@ -56,7 +57,9 @@ This phase does not add free AniSearch search, does not redesign the public anim
 ### Phase scope and planning
 - `.planning/ROADMAP.md` - Phase 11 goal and roadmap ordering after the split
 - `.planning/REQUIREMENTS.md` - create-time enrichment requirements that still govern AniSearch behavior until new edit-phase requirements are added
-- `.planning/phases/09-controlled-anisearch-id-enrichment-before-create-with-fill-only-jellysync-follow-up/09-CONTEXT.md` - prior AniSearch create-flow decisions that this phase must stay consistent with
+- `.planning/phases/09-controlled-anisearch-id-enrichment-before-create-with-fill-only-jellysync-follow-up/09-01-PLAN.md` - Phase 09 AniSearch contract and locked create-flow rules that Phase 11 must extend consistently
+- `.planning/phases/09-controlled-anisearch-id-enrichment-before-create-with-fill-only-jellysync-follow-up/09-02-PLAN.md` - Phase 09 backend AniSearch orchestration, relation handling, and provenance rules to reuse instead of reinterpreting
+- `.planning/phases/09-controlled-anisearch-id-enrichment-before-create-with-fill-only-jellysync-follow-up/09-UAT.md` - verified create-time AniSearch behavior baseline that edit enrichment must not regress
 - `.planning/phases/10-create-tags-and-metadata-card-refactor/10-CONTEXT.md` - create metadata structure that must already exist before this AniSearch follow-up lands
 
 ### AniSearch backend reuse
@@ -94,6 +97,7 @@ This phase does not add free AniSearch search, does not redesign the public anim
 ## Specific Ideas
 
 - Edit-route AniSearch should feel like an intentional enrichment tool, not a hidden debug form. The UI should clearly communicate overwrite behavior and any protected-field behavior.
+- Provisional text typed only to search for a provider match is not authoritative content. After source selection, AniSearch enrichment should replace that search text with the provider title unless the operator explicitly locks the field.
 - Relation persistence should fail soft for unresolved AniSearch relations and should never block the operator from completing a normal save.
 - Section comments should explain what a block is responsible for, and helper comments should explain why a function exists or when it should be used. Avoid noisy line-by-line comments.
 

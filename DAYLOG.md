@@ -267,3 +267,86 @@
 
 ### Next Step
 - Sync remaining roadmap/requirements/milestone tracking to the now-approved Phase-07 state and choose the next phase
+
+## 2026-04-09
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: finish Phase 10 honestly, close the tag-schema gap, verify create/delete behavior in the browser, and replace the broken GitHub baseline with the validated local recovery state
+
+### Workstreams Touched
+- Phase 10 planning, execution-state sync, and UAT
+- tag schema repair migration and backend create persistence
+- local dev startup scripts for backend/frontend without Docker rebuilds
+- browser/runtime verification for tags, assets, create, and delete cleanup
+- Git recovery branch creation, `main` replacement, and bad branch cleanup
+- repo-local handoff refresh
+
+### Goals Intended vs Achieved
+- Intended: confirm the current create flow still works, close the remaining Phase-10 gap cleanly, and make the current validated workspace the new trustworthy GitHub baseline
+- Achieved: Phase 10 is now complete with tags persisted through DB-backed `tags`/`anime_tags`, the browser flow was rechecked for create/delete and asset cleanup, local non-Docker dev scripts are in place, and GitHub `main` now points at the validated recovery commit
+
+### Problems Solved
+- Root cause: the running DB did not actually contain `tags` / `anime_tags` even though planning and code assumed they existed
+- Fix: added forward-only migration `0042_add_tag_tables_forward_fix` and applied it instead of mutating historical applied migrations
+- Root cause: create validation dropped `req.Tags` before authoritative persistence, so tag input could silently vanish even after the schema fix
+- Fix: passed `Tags` through validation and added a regression test to lock that behavior
+- Root cause: local backend startup without Docker rebuilds failed because Redis was not reachable and Jellyfin env values were not loaded
+- Fix: exposed Redis on `6379`, added `start-backend-dev.ps1` / `start-frontend-dev.ps1`, and loaded Jellyfin settings from `.env`
+- Root cause: the create page could throw a hydration mismatch because auth state differed between server render and client token rehydration
+- Fix: introduced a neutral auth-loading state until client hydration completes
+- Root cause: the real Git repo had drifted away from the validated `Team4sV2` state and GitHub still pointed at a broken baseline
+- Fix: created `codex/recovery-valid-v2-20260409`, mirrored the validated workspace into the Git repo, tested it, moved `main` to commit `9f54a3a`, and deleted the old broken remote branches
+
+### Decisions
+- Keep `Team4s` as the canonical local Git repo and treat `Team4sV2` as disposable recovery workspace material
+- Replace bad remote history by promoting the tested recovery branch to `main` instead of continuing to patch the broken old branch
+- Keep the recovery branch temporarily as rollback rope even after `main` is updated
+
+### Blockers
+- No current product blocker on Phase 10
+- Process blocker remains the missing independent reviewer CLI for a real `$gsd-review`
+
+### Next Step
+- Start Phase 11 planning from the now-clean `main` baseline and keep any new work inside `C:\Users\admin\Documents\Team4s`
+
+## 2026-04-12
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: finish AniSearch create relation follow-through, verify the real persistence path, fix the last parser bug on AniSearch relation pages, and push the corrected Phase-13 baseline to GitHub
+
+### Workstreams Touched
+- Phase 13 execution, verification, and closeout
+- AniSearch create relation carry-through in frontend and backend
+- create success/warning semantics for idempotent relation outcomes
+- AniSearch relation-page parser repair
+- live local verification against the running backend and database
+- repo-local handoff refresh
+
+### Goals Intended vs Achieved
+- Intended: prove whether AniSearch relations really survive create/save and remove the remaining uncertainty around missing relation imports
+- Achieved: Phase 13 is now effectively complete, create-side AniSearch relations persist through save into the DB, the last real blocker was identified as a parser bug in AniSearch `data-graph` decoding, and the fix is committed and pushed
+
+### Problems Solved
+- Root cause: the create route previously dropped AniSearch relations before the final anime create request
+- Fix: the final create payload now carries AniSearch `relations` alongside `source`
+- Root cause: idempotent `relations_skipped_existing` outcomes were being surfaced like operator-visible failures
+- Fix: create success messaging now treats `applied + skipped_existing` as accounted successful follow-through
+- Root cause: AniSearch relation pages with mixed node container types (`anime` object plus empty `manga` / `movie` arrays) caused the graph JSON decode to fail silently
+- Fix: the parser now decodes node groups tolerantly and no longer discards valid anime relations when non-anime groups are empty arrays
+- Root cause: the misleading "keine lokalen Relationen" symptom obscured that the real failure was earlier in graph parsing
+- Fix: traced the issue with the concrete `Ace of the Diamond: Staffel 2` case and verified the repaired parser now yields the expected Staffel-1 and Act-II relations
+
+### Decisions
+- Treat Phase 13 as closed based on automated verification plus live local DB-backed confirmation
+- Keep the AniSearch parser tolerant of mixed graph node types instead of assuming every node group is always an object
+- Preserve directed relation follow-through only; no automatic reverse relation was added
+- Choose edit-route relation UX as the next AniSearch/admin slice before any broader relation-label normalization
+
+### Blockers
+- No product blocker remains on the Phase-13 create relation path
+- Process blocker remains the missing independent reviewer CLI for true `$gsd-review`
+- Workspace note: root handoff files and some older Phase-11 artifacts were already dirty before closeout and remain unstaged user/worktree context
+- Procedural blocker: the next slice is chosen, but the exact edit-route relation UX scope still needs to be written down before implementation
+
+### Next Step
+- Scope the edit-route relation UX slice explicitly before touching broader relation taxonomy changes

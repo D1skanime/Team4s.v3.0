@@ -47,7 +47,7 @@
 | Anders | Custom behavior | |
 
 **User's choice:** Candidate list first, then crawl detailed AniSearch data only after a deliberate selection.
-**Notes:** The user explicitly tied this to request discipline and avoiding too many AniSearch requests.
+**Notes:** The user explicitly tied this to request discipline and avoiding too many AniSearch requests. They later clarified that the existing AniSearch ID flow must continue to work unchanged, and that candidate selection should simply pass the chosen AniSearch ID into that existing ID-based crawler/load path.
 
 ---
 
