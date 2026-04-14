@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ListGenreTokens verarbeitet GET /api/v1/admin/genres und gibt normalisierte Genre-Token für Admins zurück.
 func (h *AdminContentHandler) ListGenreTokens(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
@@ -17,6 +18,7 @@ func (h *AdminContentHandler) ListGenreTokens(c *gin.Context) {
 	h.listGenreTokens(c)
 }
 
+// ListGenreTokensPublic verarbeitet GET /api/v1/genres und gibt normalisierte Genre-Token ohne Authentifizierungspflicht zurück.
 func (h *AdminContentHandler) ListGenreTokensPublic(c *gin.Context) {
 	h.listGenreTokens(c)
 }

@@ -1,17 +1,19 @@
 package models
 
+// AnimeFilter enthält alle Filterparameter für Anime-Listenabfragen in der öffentlichen und Admin-API.
 type AnimeFilter struct {
-	Page            int
-	PerPage         int
-	Letter          string
-	Q               string
-	ContentType     string
-	Status          string
-	FansubGroupID   *int64
-	HasCover        *bool
-	IncludeDisabled bool
+	Page            int    // Seitennummer (1-basiert)
+	PerPage         int    // Einträge pro Seite
+	Letter          string // Anfangsbuchstabe des Titels
+	Q               string // Volltextsuchbegriff
+	ContentType     string // Inhaltstyp-Filter (z.B. "anime", "movie")
+	Status          string // Status-Filter (z.B. "ongoing", "completed")
+	FansubGroupID   *int64 // Optional: nur Anime einer bestimmten Fansub-Gruppe
+	HasCover        *bool  // Optional: nur Anime mit oder ohne Coverbild
+	IncludeDisabled bool   // Deaktivierte Einträge einschließen (nur Admin)
 }
 
+// AnimeListItem repräsentiert einen einzelnen Anime-Eintrag in der öffentlichen Listenansicht.
 type AnimeListItem struct {
 	ID          int64   `json:"id"`
 	Title       string  `json:"title"`
@@ -23,6 +25,7 @@ type AnimeListItem struct {
 	MaxEpisodes *int16  `json:"max_episodes,omitempty"`
 }
 
+// EpisodeListItem repräsentiert eine einzelne Episode in der Episodenliste eines Anime.
 type EpisodeListItem struct {
 	ID            int64    `json:"id"`
 	EpisodeNumber string   `json:"episode_number"`
@@ -34,6 +37,8 @@ type EpisodeListItem struct {
 	Filename      *string  `json:"filename,omitempty"`
 }
 
+// AnimeDetail enthält die vollständige Detailansicht eines Anime inklusive Episodenliste,
+// wird von der öffentlichen Anime-Detailseite verwendet.
 type AnimeDetail struct {
 	ID          int64             `json:"id"`
 	Title       string            `json:"title"`
@@ -52,6 +57,8 @@ type AnimeDetail struct {
 	Episodes    []EpisodeListItem `json:"episodes"`
 }
 
+// AnimeMediaLookup enthält die für Medienpfad-Lookups benötigten Titelfelder eines Anime,
+// wird intern für Jellyfin- und Medien-Resolver-Abfragen verwendet.
 type AnimeMediaLookup struct {
 	Title      string
 	TitleDE    *string
@@ -60,6 +67,8 @@ type AnimeMediaLookup struct {
 	FolderName *string
 }
 
+// AnimeBackdropManifest enthält alle Backdrop- und Medien-URLs eines Anime,
+// die von einem externen Provider (z.B. Jellyfin) geliefert werden.
 type AnimeBackdropManifest struct {
 	AnimeID     int64    `json:"anime_id"`
 	Provider    string   `json:"provider"`
@@ -70,6 +79,7 @@ type AnimeBackdropManifest struct {
 	BannerURL   string   `json:"banner_url,omitempty"`
 }
 
+// PaginationMeta enthält die Paginierungsmetadaten für paginierten Listenendpunkte.
 type PaginationMeta struct {
 	Total      int64 `json:"total"`
 	Page       int   `json:"page"`
@@ -77,6 +87,7 @@ type PaginationMeta struct {
 	TotalPages int   `json:"total_pages"`
 }
 
+// GenreToken repräsentiert ein Genre mit seiner Verwendungshäufigkeit im Anime-Katalog.
 type GenreToken struct {
 	Name  string `json:"name"`
 	Count int64  `json:"count"`

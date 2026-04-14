@@ -8,10 +8,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// adminAnimeJellyfinIntakePreviewRequest enthält die Parameter für eine Jellyfin-Intake-Vorschau-Anfrage.
 type adminAnimeJellyfinIntakePreviewRequest struct {
 	JellyfinSeriesID *string `json:"jellyfin_series_id"`
 }
 
+// validateAdminAnimeJellyfinIntakePreviewRequest prüft die Pflichtfelder einer Intake-Vorschau-Anfrage.
 func validateAdminAnimeJellyfinIntakePreviewRequest(
 	req adminAnimeJellyfinIntakePreviewRequest,
 ) (string, string) {
@@ -25,6 +27,7 @@ func validateAdminAnimeJellyfinIntakePreviewRequest(
 	return seriesID, ""
 }
 
+// PreviewAnimeIntakeFromJellyfin gibt eine Vorschau der Jellyfin-Daten zurück, bevor ein Anime angelegt wird.
 func (h *AdminContentHandler) PreviewAnimeIntakeFromJellyfin(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

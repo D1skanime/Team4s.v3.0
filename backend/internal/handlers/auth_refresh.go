@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Refresh verarbeitet POST /api/v1/auth/refresh und rotiert das Refresh-Token gegen ein neues Tokenpaar.
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	var req refreshAuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

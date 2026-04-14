@@ -2,6 +2,11 @@ import Link from 'next/link'
 
 import styles from './admin.module.css'
 
+/**
+ * Einstiegsseite des Admin-Bereichs.
+ * Rendert Navigationskarten zu den wichtigsten Admin-Bereichen:
+ * Studio (Anime + Episoden), separater Episoden-Modus und Fansubs.
+ */
 export default function AdminOverviewPage() {
   return (
     <main className={styles.page}>

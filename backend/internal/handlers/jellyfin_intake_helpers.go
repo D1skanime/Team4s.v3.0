@@ -9,6 +9,7 @@ import (
 	"team4s.v3/backend/internal/repository"
 )
 
+// buildAdminJellyfinIntakeSearchItems erstellt eine sortierte Liste von Intake-Suchtreffern aus Jellyfin-Ergebnissen.
 func buildAdminJellyfinIntakeSearchItems(
 	items []jellyfinSeriesItem,
 	query string,
@@ -44,6 +45,7 @@ func buildAdminJellyfinIntakeSearchItems(
 	return result
 }
 
+// buildAdminJellyfinIntakeSearchItem erstellt einen einzelnen Intake-Suchtreffer aus einem Jellyfin-Serien-Item.
 func buildAdminJellyfinIntakeSearchItem(
 	item jellyfinSeriesItem,
 	query string,
@@ -79,6 +81,7 @@ func buildAdminJellyfinIntakeSearchItem(
 	return result, score
 }
 
+// buildExistingJellyfinMatchLookup erstellt zwei Lookup-Maps (nach Source und nach Ordnername) aus bestehenden Treffern.
 func buildExistingJellyfinMatchLookup(
 	matches []repository.ExistingJellyfinAnimeMatch,
 ) (map[string]repository.ExistingJellyfinAnimeMatch, map[string]repository.ExistingJellyfinAnimeMatch) {
@@ -95,6 +98,7 @@ func buildExistingJellyfinMatchLookup(
 	return bySource, byFolder
 }
 
+// resolveExistingJellyfinIntakeMatch prüft, ob für eine Jellyfin-Serie bereits ein Anime-Eintrag existiert.
 func resolveExistingJellyfinIntakeMatch(
 	seriesID string,
 	rawPath *string,
@@ -112,6 +116,7 @@ func resolveExistingJellyfinIntakeMatch(
 	return nil
 }
 
+// buildAdminJellyfinIntakePreviewResult erstellt das vollständige Intake-Vorschau-Ergebnis aus Jellyfin-Seriendetails.
 func buildAdminJellyfinIntakePreviewResult(
 	detail jellyfinSeriesDetailItem,
 	themeVideoIDs []string,
@@ -144,6 +149,7 @@ func buildAdminJellyfinIntakePreviewResult(
 	}
 }
 
+// buildJellyfinFolderNameTitleSeed extrahiert den letzten Pfad-Bestandteil als Titelvorschlag.
 func buildJellyfinFolderNameTitleSeed(rawPath *string) *string {
 	path := strings.TrimSpace(derefString(rawPath))
 	if path == "" {
@@ -163,6 +169,7 @@ func buildJellyfinFolderNameTitleSeed(rawPath *string) *string {
 	return nil
 }
 
+// buildJellyfinIntakeAssetSlot erstellt einen Asset-Slot für die Intake-Vorschau.
 func buildJellyfinIntakeAssetSlot(kind string, rawURL string, present bool) models.AdminJellyfinIntakeAssetSlot {
 	slot := models.AdminJellyfinIntakeAssetSlot{
 		Present: present,
@@ -175,6 +182,7 @@ func buildJellyfinIntakeAssetSlot(kind string, rawURL string, present bool) mode
 	return slot
 }
 
+// buildJellyfinIntakeBackgroundSlots erstellt eine Liste von Hintergrund-Asset-Slots für die gegebene Anzahl von Backdrops.
 func buildJellyfinIntakeBackgroundSlots(seriesID string, count int) []models.AdminJellyfinIntakeAssetSlot {
 	if count <= 0 {
 		return []models.AdminJellyfinIntakeAssetSlot{}
@@ -191,6 +199,7 @@ func buildJellyfinIntakeBackgroundSlots(seriesID string, count int) []models.Adm
 	return result
 }
 
+// buildJellyfinIntakeTypeHint leitet aus Name und Pfad einer Jellyfin-Serie einen Typ-Hinweis (TV, OVA, Film usw.) ab.
 func buildJellyfinIntakeTypeHint(name string, rawPath *string) models.AdminJellyfinIntakeTypeHint {
 	signal := normalizeJellyfinTypeHintSignal(name, derefString(rawPath))
 	reasons := make([]string, 0, 2)
@@ -229,6 +238,7 @@ func buildJellyfinIntakeTypeHint(name string, rawPath *string) models.AdminJelly
 	}
 }
 
+// normalizeJellyfinTypeHintSignal normalisiert mehrere Strings zu einem gemeinsamen Signal-String für die Typ-Erkennung.
 func normalizeJellyfinTypeHintSignal(values ...string) string {
 	joined := strings.Join(values, " ")
 	fields := strings.FieldsFunc(strings.ToLower(joined), func(r rune) bool {
@@ -237,6 +247,7 @@ func normalizeJellyfinTypeHintSignal(values ...string) string {
 	return " " + strings.Join(fields, " ") + " "
 }
 
+// scoreJellyfinIntakeCandidate berechnet einen Übereinstimmungswert und ein Konfidenz-Label für ein Suchergebnis.
 func scoreJellyfinIntakeCandidate(item jellyfinSeriesItem, query string) (int, string) {
 	normalizedQuery := normalizeJellyfinLookup(query)
 	normalizedName := normalizeJellyfinLookup(item.Name)
@@ -262,6 +273,7 @@ func scoreJellyfinIntakeCandidate(item jellyfinSeriesItem, query string) (int, s
 	}
 }
 
+// deriveJellyfinPathContexts leitet den übergeordneten Ordner und den Bibliotheks-Kontext aus einem Dateipfad ab.
 func deriveJellyfinPathContexts(rawPath *string) (*string, *string) {
 	trimmed := strings.TrimSpace(derefString(rawPath))
 	if trimmed == "" {
@@ -302,6 +314,7 @@ func deriveJellyfinPathContexts(rawPath *string) (*string, *string) {
 	return parent, library
 }
 
+// hasImageTag prüft, ob eine Jellyfin-ImageTags-Map einen nicht-leeren Eintrag für den angegebenen Schlüssel hat.
 func hasImageTag(tags map[string]string, key string) bool {
 	for candidateKey, value := range tags {
 		if !strings.EqualFold(strings.TrimSpace(candidateKey), key) {
@@ -312,6 +325,7 @@ func hasImageTag(tags map[string]string, key string) bool {
 	return false
 }
 
+// joinNormalizedStrings bereinigt eine String-Liste, dedupliziert sie und verbindet die Einträge mit Komma.
 func joinNormalizedStrings(values []string) *string {
 	normalized := normalizeStringSlice(values)
 	if len(normalized) == 0 {
@@ -321,6 +335,7 @@ func joinNormalizedStrings(values []string) *string {
 	return &joined
 }
 
+// normalizeStringSlice bereinigt und dedupliziert eine String-Liste.
 func normalizeStringSlice(values []string) []string {
 	seen := make(map[string]struct{}, len(values))
 	result := make([]string, 0, len(values))
@@ -339,6 +354,7 @@ func normalizeStringSlice(values []string) []string {
 	return result
 }
 
+// extractAniDBID extrahiert die AniDB-ID aus einer Jellyfin-ProviderIDs-Map.
 func extractAniDBID(providerIDs map[string]string) *string {
 	for key, value := range providerIDs {
 		if !strings.EqualFold(strings.TrimSpace(key), "AniDB") {
@@ -349,6 +365,7 @@ func extractAniDBID(providerIDs map[string]string) *string {
 	return nil
 }
 
+// firstNonEmptyString gibt den ersten nicht-leeren String aus der übergebenen Liste zurück.
 func firstNonEmptyString(values ...string) string {
 	for _, value := range values {
 		trimmed := strings.TrimSpace(value)

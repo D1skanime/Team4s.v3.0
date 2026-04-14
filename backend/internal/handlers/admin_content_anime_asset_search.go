@@ -11,6 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// SearchAnimeCreateAssetCandidates verarbeitet GET /api/v1/admin/anime/assets/search und sucht
+// externe Asset-Kandidaten (Cover, Banner, Logo, Background) über mehrere Provider.
 func (h *AdminContentHandler) SearchAnimeCreateAssetCandidates(c *gin.Context) {
 	slot := strings.TrimSpace(c.Query("slot"))
 	if !isSupportedAdminAnimeAssetSearchKind(slot) {
@@ -79,6 +81,7 @@ func (h *AdminContentHandler) SearchAnimeCreateAssetCandidates(c *gin.Context) {
 	c.JSON(http.StatusOK, models.AdminAnimeAssetSearchResponse{Data: results})
 }
 
+// isSupportedAdminAnimeAssetSearchKind prüft, ob der übergebene Asset-Typ (Slot) unterstützt wird.
 func isSupportedAdminAnimeAssetSearchKind(kind string) bool {
 	switch strings.TrimSpace(kind) {
 	case "cover", "banner", "logo", "background":
@@ -88,6 +91,8 @@ func isSupportedAdminAnimeAssetSearchKind(kind string) bool {
 	}
 }
 
+// parseAdminAnimeAssetSearchSources parst den kommagetrennten "sources"-Query-Parameter und gibt
+// deduplizierte, validierte Provider-Bezeichner zurück.
 func parseAdminAnimeAssetSearchSources(raw string) ([]models.AdminAnimeAssetSearchSource, error) {
 	trimmed := strings.TrimSpace(raw)
 	if trimmed == "" {

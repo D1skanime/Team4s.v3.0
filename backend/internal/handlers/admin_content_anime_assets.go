@@ -14,14 +14,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// adminAnimeBannerAssignRequest enthält die MediaID für das Zuweisen eines Banner-Assets zu einem Anime.
 type adminAnimeBannerAssignRequest struct {
 	MediaID string `json:"media_id"`
 }
 
+// adminAnimeBackgroundAssignRequest enthält die MediaID für das Hinzufügen eines Hintergrundbilds zu einem Anime.
 type adminAnimeBackgroundAssignRequest struct {
 	MediaID string `json:"media_id"`
 }
 
+// animeAssetOperation repräsentiert die möglichen Operationen auf einem Anime-Asset (zuweisen, leeren, hinzufügen, entfernen).
 type animeAssetOperation string
 
 const (
@@ -31,10 +34,12 @@ const (
 	animeAssetOperationRemove animeAssetOperation = "remove"
 )
 
+// unsupportedAnimeAssetOperationMessage erzeugt eine Fehlermeldung für nicht unterstützte Asset-Operationen.
 func unsupportedAnimeAssetOperationMessage(slot string, operation animeAssetOperation) string {
 	return strings.TrimSpace(slot) + " unterstuetzt diese aktion nicht"
 }
 
+// mapAnimeAssetLinkError übersetzt Repository-Fehler beim Asset-Verknüpfen in HTTP-Status und Meldung.
 func mapAnimeAssetLinkError(slot string, err error) (string, int) {
 	switch {
 	case errors.Is(err, repository.ErrAnimeAssetMediaTypeMismatch):
@@ -46,6 +51,7 @@ func mapAnimeAssetLinkError(slot string, err error) (string, int) {
 	}
 }
 
+// AssignAnimeCoverAsset verarbeitet PUT /api/v1/admin/anime/:id/assets/cover und setzt das Cover-Bild.
 func (h *AdminContentHandler) AssignAnimeCoverAsset(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
@@ -83,6 +89,7 @@ func (h *AdminContentHandler) AssignAnimeCoverAsset(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// DeleteAnimeCoverAsset verarbeitet DELETE /api/v1/admin/anime/:id/assets/cover und entfernt das Cover-Bild.
 func (h *AdminContentHandler) DeleteAnimeCoverAsset(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
@@ -112,6 +119,7 @@ func (h *AdminContentHandler) DeleteAnimeCoverAsset(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// AssignAnimeBannerAsset verarbeitet PUT /api/v1/admin/anime/:id/assets/banner und setzt das Banner-Bild.
 func (h *AdminContentHandler) AssignAnimeBannerAsset(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return

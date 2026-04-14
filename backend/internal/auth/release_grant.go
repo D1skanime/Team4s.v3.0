@@ -11,16 +11,22 @@ import (
 )
 
 var (
-	ErrReleaseGrantFormat    = errors.New("release grant format invalid")
+	// ErrReleaseGrantFormat wird zurückgegeben, wenn das Grant-Token-Format ungültig ist.
+	ErrReleaseGrantFormat = errors.New("release grant format invalid")
+	// ErrReleaseGrantSignature wird zurückgegeben, wenn die Grant-Signatur nicht übereinstimmt.
 	ErrReleaseGrantSignature = errors.New("release grant signature invalid")
-	ErrReleaseGrantPayload   = errors.New("release grant payload invalid")
-	ErrReleaseGrantExpired   = errors.New("release grant expired")
+	// ErrReleaseGrantPayload wird zurückgegeben, wenn das Grant-Payload unvollständig oder ungültig ist.
+	ErrReleaseGrantPayload = errors.New("release grant payload invalid")
+	// ErrReleaseGrantExpired wird zurückgegeben, wenn das Grant-Token abgelaufen ist.
+	ErrReleaseGrantExpired = errors.New("release grant expired")
 )
 
+// ReleaseStreamGrantClaims enthält die Nutzinformationen eines Release-Stream-Grants,
+// der kurzlebigen Zugriff auf einen einzelnen Release-Stream gewährt.
 type ReleaseStreamGrantClaims struct {
-	ReleaseID int64
-	UserID    int64
-	ExpiresAt int64
+	ReleaseID int64 // ID der freigegebenen Episodenversion
+	UserID    int64 // ID des berechtigten Benutzers
+	ExpiresAt int64 // Unix-Zeitstempel des Ablaufdatums
 }
 
 type releaseStreamGrantPayload struct {
@@ -29,6 +35,8 @@ type releaseStreamGrantPayload struct {
 	ExpiresAt int64 `json:"exp"`
 }
 
+// CreateReleaseStreamGrant erzeugt ein kurzlebiges, HMAC-signiertes Grant-Token
+// für den Zugriff auf einen einzelnen Release-Stream und gibt Token sowie Ablaufzeitstempel zurück.
 func CreateReleaseStreamGrant(
 	releaseID int64,
 	userID int64,
@@ -63,6 +71,8 @@ func CreateReleaseStreamGrant(
 	return payloadSegment + "." + signatureSegment, expiresAt, nil
 }
 
+// ParseAndVerifyReleaseStreamGrant parst ein Release-Stream-Grant-Token, verifiziert Signatur
+// und Ablaufzeit und gibt die enthaltenen Claims zurück.
 func ParseAndVerifyReleaseStreamGrant(
 	token string,
 	secret string,

@@ -94,6 +94,7 @@ func (h *FansubHandler) tryCleanupUnusedMedia(ctx context.Context, mediaID int64
 	}
 }
 
+// parseMediaKind wandelt einen rohen String in einen validen MediaKind-Wert um.
 func parseMediaKind(raw string) (models.MediaKind, error) {
 	switch models.MediaKind(strings.ToLower(strings.TrimSpace(raw))) {
 	case models.MediaKindLogo:
@@ -105,6 +106,7 @@ func parseMediaKind(raw string) (models.MediaKind, error) {
 	}
 }
 
+// removeFileQuietly löscht eine Datei ohne Fehler zurückzugeben, wenn die Datei nicht existiert.
 func removeFileQuietly(path string) error {
 	trimmedPath := strings.TrimSpace(path)
 	if trimmedPath == "" {

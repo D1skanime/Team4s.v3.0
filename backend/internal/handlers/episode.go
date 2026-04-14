@@ -11,14 +11,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// EpisodeHandler verwaltet HTTP-Endpunkte für Episoden-Abfragen.
 type EpisodeHandler struct {
 	repo *repository.EpisodeRepository
 }
 
+// NewEpisodeHandler erstellt einen neuen EpisodeHandler mit dem angegebenen Repository.
 func NewEpisodeHandler(repo *repository.EpisodeRepository) *EpisodeHandler {
 	return &EpisodeHandler{repo: repo}
 }
 
+// GetByID verarbeitet GET /api/v1/episodes/:id und gibt die Episodendetails zurück.
 func (h *EpisodeHandler) GetByID(c *gin.Context) {
 	id, err := parseEpisodeID(c.Param("id"))
 	if err != nil {

@@ -8,6 +8,11 @@ import contextStyles from './AnimeContext.module.css'
 
 const styles = { ...sharedStyles, ...contextStyles }
 
+/**
+ * Props des AnimeContextFansubManagers.
+ * Enthalten die ID des aktuellen Anime, das Auth-Token, bereits
+ * verknuepfte Gruppen sowie Callbacks fuer Aenderungen und Statusmeldungen.
+ */
 interface AnimeContextFansubManagerProps {
   animeID: number
   authToken: string
@@ -18,6 +23,11 @@ interface AnimeContextFansubManagerProps {
   onError: (message: string) => void
 }
 
+/**
+ * Wandelt einen unbekannten Fehler in eine lesbare Fehlermeldung um.
+ * Gibt bei API-Fehlern den HTTP-Status und die Meldung zurueck,
+ * bei sonstigen Error-Objekten die Nachricht, sonst den Fallback-Text.
+ */
 function formatError(error: unknown, fallback: string): string {
   if (error instanceof ApiError) {
     return `(${error.status}) ${error.message}`
@@ -28,6 +38,11 @@ function formatError(error: unknown, fallback: string): string {
   return fallback
 }
 
+/**
+ * Verwaltungskomponente fuer Fansub-Verknuepfungen eines Anime.
+ * Rendert eine Suchmaske fuer Fansub-Gruppen sowie die Liste
+ * der bereits verknuepften Gruppen mit Hinzufuegen- und Entfernen-Aktionen.
+ */
 export function AnimeContextFansubManager({
   animeID,
   authToken,
@@ -49,6 +64,11 @@ export function AnimeContextFansubManager({
     [attachedIDs, results],
   )
 
+  /**
+   * Sucht Fansub-Gruppen anhand des eingegebenen Suchbegriffs.
+   * Mindestens 2 Zeichen sind erforderlich; gefundene, bereits
+   * verknuepfte Gruppen werden aus den Ergebnissen herausgefiltert.
+   */
   const handleSearch = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const trimmedQuery = query.trim()
@@ -72,6 +92,11 @@ export function AnimeContextFansubManager({
     }
   }
 
+  /**
+   * Verknuepft eine Fansub-Gruppe mit dem aktuellen Anime.
+   * Erfordert ein gueltiges Auth-Token; aktualisiert nach Erfolg
+   * die Fansub-Liste und zeigt eine Erfolgsmeldung an.
+   */
   const handleAttach = async (group: FansubGroup) => {
     if (!authToken.trim()) {
       onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
@@ -93,6 +118,11 @@ export function AnimeContextFansubManager({
     }
   }
 
+  /**
+   * Loest die Verknuepfung einer Fansub-Gruppe vom aktuellen Anime.
+   * Fordert eine Bestaetigung an, erfordert ein gueltiges Auth-Token
+   * und zeigt nach Erfolg eine Bestaetigung an.
+   */
   const handleDetach = async (group: FansubGroup) => {
     if (!authToken.trim()) {
       onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')

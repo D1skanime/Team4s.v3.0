@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// LoadAnimeAniSearchEnrichment verarbeitet POST /api/v1/admin/anime/:id/anisearch/enrich und reichert einen bestehenden Anime-Entwurf mit AniSearch-Daten an.
 func (h *AdminContentHandler) LoadAnimeAniSearchEnrichment(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -95,6 +96,7 @@ func (h *AdminContentHandler) LoadAnimeAniSearchEnrichment(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": relationResult})
 }
 
+// mergeAniSearchEditDraft führt einen eingehenden AniSearch-Entwurf mit dem bestehenden Bearbeitungsentwurf zusammen und berücksichtigt dabei geschützte Felder.
 func mergeAniSearchEditDraft(
 	current models.AdminAnimeEditDraftPayload,
 	incoming models.AdminAnimeCreateDraftPayload,
@@ -171,6 +173,7 @@ func mergeAniSearchEditDraft(
 	return next, updatedFields, skippedProtectedFields
 }
 
+// appendUniqueFields fügt Werte eindeutig an eine Zeichenkettenliste an und ignoriert dabei bereits vorhandene und leere Einträge.
 func appendUniqueFields(target []string, values ...string) []string {
 	seen := make(map[string]struct{}, len(target))
 	for _, value := range target {
@@ -190,6 +193,7 @@ func appendUniqueFields(target []string, values ...string) []string {
 	return target
 }
 
+// equalStringSlices vergleicht zwei Zeichenkettenlisten auf inhaltliche Gleichheit nach Trimmen der Leerzeichen.
 func equalStringSlices(left []string, right []string) bool {
 	if len(left) != len(right) {
 		return false
@@ -202,6 +206,7 @@ func equalStringSlices(left []string, right []string) bool {
 	return true
 }
 
+// buildAdminAnimeEditPath erstellt den Frontend-Pfad zur Bearbeitungsseite eines bestimmten Anime.
 func buildAdminAnimeEditPath(animeID int64) string {
 	return fmt.Sprintf("/admin/anime/%d/edit", animeID)
 }

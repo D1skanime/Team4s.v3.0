@@ -9,6 +9,10 @@ import type { AdminJellyfinIntakeSearchItem } from "@/types/admin";
 
 import createStyles from "./page.module.css";
 
+/**
+ * Props des CreateJellyfinResultsPanel. Enthaelt die Suchanfrage, gefundene
+ * Kandidaten, den aktuell ausgewaehlten Kandidaten und Lade-/Auswahlrueckrufe.
+ */
 interface CreateJellyfinResultsPanelProps {
   query: string;
   candidates: AdminJellyfinIntakeSearchItem[];
@@ -19,6 +23,11 @@ interface CreateJellyfinResultsPanelProps {
   onLoadCandidatePreview: (id: string) => void;
 }
 
+/**
+ * Rendert den Jellyfin-Ergebnis-Bereich auf der Anime-Erstellen-Seite. Zeigt
+ * gefundene Jellyfin-Serien mit Auswahl- und Vorschaufunktion. Ein Status-Pill
+ * signalisiert, wenn bereits eine Vorschau aktiv in den Entwurf geladen wurde.
+ */
 export function CreateJellyfinResultsPanel({
   query,
   candidates,

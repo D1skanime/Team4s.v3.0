@@ -16,6 +16,7 @@ var allowedAnimeTypes = map[string]struct{}{
 	"web":     {},
 }
 
+// validateAdminAnimeCreateRequest prüft und normalisiert die Eingabe einer Anime-Erstellungsanfrage und gibt das bereinigte Eingabeobjekt oder eine Fehlermeldung zurück.
 func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminAnimeCreateInput, string) {
 	title := strings.TrimSpace(req.Title)
 	if title == "" {
@@ -80,6 +81,7 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 	}, ""
 }
 
+// validateAdminAnimePatchRequest prüft und normalisiert die Eingabe einer partiellen Anime-Aktualisierungsanfrage und gibt das bereinigte Eingabeobjekt oder eine Fehlermeldung zurück.
 func validateAdminAnimePatchRequest(req models.AdminAnimePatchInput) (models.AdminAnimePatchInput, string) {
 	if !hasAnyAdminAnimePatchField(req) {
 		return models.AdminAnimePatchInput{}, "mindestens ein feld ist erforderlich"
@@ -163,6 +165,7 @@ func validateAdminAnimePatchRequest(req models.AdminAnimePatchInput) (models.Adm
 	return req, ""
 }
 
+// hasAnyAdminAnimePatchField prüft, ob mindestens ein Feld in einer Anime-Patch-Anfrage gesetzt ist.
 func hasAnyAdminAnimePatchField(req models.AdminAnimePatchInput) bool {
 	return req.Title.Set ||
 		req.TitleDE.Set ||
@@ -180,6 +183,7 @@ func hasAnyAdminAnimePatchField(req models.AdminAnimePatchInput) bool {
 		req.FolderName.Set
 }
 
+// normalizeAdminAnimeSource normalisiert und validiert einen Anime-Quellbezeichner im Format "jellyfin:<id>" oder "anisearch:<id>".
 func normalizeAdminAnimeSource(raw string) (string, bool) {
 	trimmed := strings.TrimSpace(raw)
 	switch {

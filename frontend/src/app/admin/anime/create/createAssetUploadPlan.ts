@@ -14,14 +14,27 @@ import type {
   AdminAnimeUploadAssetType,
 } from "@/types/admin";
 
+/**
+ * Repraesentiert ein lokal vorbereitetes (gestaged) Asset, das noch nicht
+ * hochgeladen wurde. Enthaelt den Entwurfsdateinamen, die Datei selbst und
+ * die lokale Vorschau-URL.
+ */
 export interface CreateAssetUploadDraftValue {
   draftValue: string;
   file: File;
   previewUrl: string;
 }
 
+/**
+ * Eine einzelne Asset-Auswahl fuer den Upload: entweder eine rohe Datei,
+ * ein vorbereiteter Entwurfswert oder null (kein Asset ausgewaehlt).
+ */
 type CreateAssetUploadSelection = File | CreateAssetUploadDraftValue | null;
 
+/**
+ * Sammelt alle ausgewaehlten Assets fuer die Erstellen-Seite nach Asset-Slot.
+ * Hintergrundbilder koennen mehrere Eintraege enthalten.
+ */
 export interface CreateAssetUploadSelections {
   cover?: CreateAssetUploadSelection;
   banner?: CreateAssetUploadSelection;
@@ -30,6 +43,10 @@ export interface CreateAssetUploadSelections {
   background_video?: CreateAssetUploadSelection;
 }
 
+/**
+ * Konfigurationseintrag fuer einen Asset-Upload-Slot: beschreibt den Backend-
+ * Asset-Typ, das lesbare Label und ob mehrere Dateien erlaubt sind.
+ */
 interface CreateAssetUploadPlanEntry {
   assetType: AdminAnimeUploadAssetType;
   label: string;
@@ -64,10 +81,18 @@ const CREATE_ASSET_UPLOAD_PLAN: Record<AdminAnimeAssetKind, CreateAssetUploadPla
   },
 };
 
+/**
+ * Gibt die vollstaendige Upload-Plan-Konfiguration fuer alle Asset-Arten
+ * zurueck. Wird vom Controller verwendet, um Asset-Slots zuzuordnen.
+ */
 export function buildCreateAssetUploadPlan() {
   return CREATE_ASSET_UPLOAD_PLAN;
 }
 
+/**
+ * Bereitet eine lokal gewaelte Datei als gestaged-Asset vor. Erstellt eine
+ * temporaere Vorschau-URL via URL.createObjectURL.
+ */
 export function stageManualCreateAsset(file: File): CreateAssetUploadDraftValue {
   return {
     draftValue: file.name.trim(),
@@ -76,6 +101,10 @@ export function stageManualCreateAsset(file: File): CreateAssetUploadDraftValue 
   };
 }
 
+/**
+ * Leitet aus dem Content-Type-Header die passende Dateiendung ab. Faellt auf
+ * "jpg" zurueck, wenn kein bekannter Bildtyp erkannt wird.
+ */
 function resolveRemoteAssetExtension(contentType: string): string {
   const normalized = contentType.trim().toLowerCase();
   if (normalized.includes("png")) return "png";
@@ -85,6 +114,10 @@ function resolveRemoteAssetExtension(contentType: string): string {
   return "jpg";
 }
 
+/**
+ * Normalisiert einen Dateinamens-Abschnitt (z. B. Quelle oder ID) fuer die
+ * Verwendung in einem sicheren Dateinamen. Ersetzt Sonderzeichen durch Bindestriche.
+ */
 function sanitizeRemoteAssetSegment(value: string): string {
   return value
     .trim()
@@ -130,6 +163,11 @@ async function convertAvifToJpeg(avifBlob: Blob): Promise<Blob> {
   });
 }
 
+/**
+ * Laedt einen Remote-Asset-Kandidaten ueber den lokalen Proxy herunter und
+ * bereitet ihn als gestaged-Asset vor. Konvertiert AVIF automatisch zu JPEG,
+ * da das Backend kein reines AVIF-Decoding unterstuetzt.
+ */
 export async function stageRemoteCreateAssetCandidate(
   candidate: AdminAnimeAssetSearchCandidate,
   deps: {
@@ -176,6 +214,10 @@ export async function stageRemoteCreateAssetCandidate(
   };
 }
 
+/**
+ * Bereitet eine lokal ausgewaehlte Cover-Datei vor und gibt den Entwurfswert
+ * und die Vorschau-URL zurueck (ohne File-Referenz, nur fuer Cover-Slot).
+ */
 export function stageManualCreateCover(file: File): {
   draftValue: string;
   previewUrl: string;
@@ -187,6 +229,10 @@ export function stageManualCreateCover(file: File): {
   };
 }
 
+/**
+ * Laedt eine einzelne Asset-Datei fuer einen neu erstellten Anime hoch und
+ * verknuepft sie im Backend mit dem passenden Slot. Gibt die Upload-ID zurueck.
+ */
 async function uploadAndLinkCreatedAnimeAsset(
   animeID: number,
   kind: AdminAnimeAssetKind,
@@ -214,6 +260,10 @@ async function uploadAndLinkCreatedAnimeAsset(
   return upload.id;
 }
 
+/**
+ * Loeest eine Asset-Auswahl zu einer rohen File-Instanz auf. Gibt null zurueck,
+ * wenn keine Datei ausgewaehlt wurde.
+ */
 function resolveUploadFile(selection: CreateAssetUploadSelection): File | null {
   if (!selection) {
     return null;
@@ -224,6 +274,10 @@ function resolveUploadFile(selection: CreateAssetUploadSelection): File | null {
   return selection.file;
 }
 
+/**
+ * Laedt das Cover-Bild fuer einen neu erstellten Anime hoch und verknuepft es.
+ * Kurzform von uploadAndLinkCreatedAnimeAsset fuer den Cover-Slot.
+ */
 export async function uploadCreatedAnimeCover(
   animeID: number,
   file: File,
@@ -232,6 +286,11 @@ export async function uploadCreatedAnimeCover(
   return uploadAndLinkCreatedAnimeAsset(animeID, "cover", file, authToken);
 }
 
+/**
+ * Laedt alle gestaged-Assets eines neu erstellten Anime sequenziell hoch und
+ * verknuepft sie mit dem passenden Slot. Gibt ein Ergebnis-Objekt mit den
+ * hochgeladenen Asset-IDs je Slot zurueck.
+ */
 export async function uploadCreatedAnimeAssets(
   animeID: number,
   assets: CreateAssetUploadSelections,

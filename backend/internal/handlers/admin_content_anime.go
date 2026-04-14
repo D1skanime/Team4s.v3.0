@@ -16,6 +16,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CreateAnime verarbeitet POST /api/v1/admin/anime und legt einen neuen Anime-Eintrag an.
+// Nach dem Speichern werden AniSearch-Relationen automatisch nachgezogen, sofern eine AniSearch-Quelle angegeben wurde.
 func (h *AdminContentHandler) CreateAnime(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -47,6 +49,7 @@ func (h *AdminContentHandler) CreateAnime(c *gin.Context) {
 	c.JSON(http.StatusCreated, buildAdminAnimeUpsertResponse(item, aniSearchSummary))
 }
 
+// UpdateAnime verarbeitet PATCH /api/v1/admin/anime/:id und aktualisiert ausgewählte Felder eines Anime-Eintrags.
 func (h *AdminContentHandler) UpdateAnime(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -88,6 +91,8 @@ func (h *AdminContentHandler) UpdateAnime(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": item})
 }
 
+// applyAniSearchCreateFollowThrough wendet AniSearch-Relationen direkt nach dem Anlegen eines Anime an,
+// sofern die Quelle ein "anisearch:"-Präfix hat und Relationen mitgeliefert wurden.
 func (h *AdminContentHandler) applyAniSearchCreateFollowThrough(
 	c *gin.Context,
 	animeID int64,
@@ -117,6 +122,8 @@ func (h *AdminContentHandler) applyAniSearchCreateFollowThrough(
 	return services.BuildAdminAnimeCreateAniSearchSummary(normalizedSource, result.Attempted, result.Applied, result.SkippedExisting, nil)
 }
 
+// buildAdminAnimeUpsertResponse erzeugt die HTTP-Antwort für Anlegen und Bearbeiten eines Anime,
+// optional ergänzt um eine AniSearch-Zusammenfassung.
 func buildAdminAnimeUpsertResponse(
 	item *models.AdminAnimeItem,
 	aniSearchSummary *models.AdminAnimeCreateAniSearchSummary,
@@ -131,6 +138,7 @@ func buildAdminAnimeUpsertResponse(
 	}
 }
 
+// DeleteAnime verarbeitet DELETE /api/v1/admin/anime/:id und entfernt den Anime-Eintrag samt zugehörigem Medienverzeichnis.
 func (h *AdminContentHandler) DeleteAnime(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -159,6 +167,8 @@ func (h *AdminContentHandler) DeleteAnime(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": result})
 }
 
+// cleanupDeletedAnimeDir entfernt das Medienverzeichnis eines gelöschten Anime sicher vom Dateisystem.
+// Path-Traversal-Schutz stellt sicher, dass nur Unterverzeichnisse des konfigurierten Storage-Verzeichnisses gelöscht werden.
 func (h *AdminContentHandler) cleanupDeletedAnimeDir(animeID int64) {
 	if h == nil || animeID <= 0 || strings.TrimSpace(h.mediaStorageDir) == "" {
 		return

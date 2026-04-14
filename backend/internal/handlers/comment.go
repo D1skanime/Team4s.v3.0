@@ -22,14 +22,17 @@ type createCommentRequest struct {
 	Content string `json:"content"`
 }
 
+// CommentHandler verwaltet HTTP-Endpunkte für Kommentare zu Anime-Einträgen.
 type CommentHandler struct {
 	repo *repository.CommentRepository
 }
 
+// NewCommentHandler erstellt einen neuen CommentHandler mit dem angegebenen Repository.
 func NewCommentHandler(repo *repository.CommentRepository) *CommentHandler {
 	return &CommentHandler{repo: repo}
 }
 
+// ListByAnimeID verarbeitet GET /api/v1/anime/:id/comments und gibt eine paginierte Kommentarliste zurück.
 func (h *CommentHandler) ListByAnimeID(c *gin.Context) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
@@ -89,6 +92,7 @@ func (h *CommentHandler) ListByAnimeID(c *gin.Context) {
 	})
 }
 
+// CreateByAnimeID verarbeitet POST /api/v1/anime/:id/comments und legt einen neuen Kommentar an.
 func (h *CommentHandler) CreateByAnimeID(c *gin.Context) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {

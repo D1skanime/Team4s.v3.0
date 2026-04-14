@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// DeleteFansubMedia löscht die Mediendatei (Logo oder Banner) einer Fansub-Gruppe.
 func (h *FansubHandler) DeleteFansubMedia(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

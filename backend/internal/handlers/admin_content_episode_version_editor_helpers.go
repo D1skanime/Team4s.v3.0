@@ -7,6 +7,7 @@ import (
 	"team4s.v3/backend/internal/models"
 )
 
+// episodeVersionEditorResolved fasst alle aufgelösten Abhängigkeiten zusammen, die für den Episodenversionsedit-Kontext benötigt werden.
 type episodeVersionEditorResolved struct {
 	version          *models.EpisodeVersion
 	animeSource      *models.AdminAnimeSyncSource
@@ -16,6 +17,7 @@ type episodeVersionEditorResolved struct {
 	collaborationID  *int64
 }
 
+// loadEpisodeVersionEditorContext löst alle für den Editor benötigten Daten auf und gibt den zusammengestellten Bearbeitungskontext zurück.
 func (h *AdminContentHandler) loadEpisodeVersionEditorContext(
 	ctx context.Context,
 	versionID int64,
@@ -34,6 +36,7 @@ func (h *AdminContentHandler) loadEpisodeVersionEditorContext(
 	}, nil
 }
 
+// resolveEpisodeVersionEditor lädt die Episodenversion sowie alle abhängigen Daten wie Anime-Quelle, Ordnerpfad und Fansub-Gruppen.
 func (h *AdminContentHandler) resolveEpisodeVersionEditor(
 	ctx context.Context,
 	versionID int64,
@@ -68,6 +71,7 @@ func (h *AdminContentHandler) resolveEpisodeVersionEditor(
 	}, nil
 }
 
+// resolveEpisodeVersionFolderPath ermittelt den Dateisystempfad zum Anime-Ordner anhand der Anime-Quelle, bevorzugt Jellyfin-Daten.
 func (h *AdminContentHandler) resolveEpisodeVersionFolderPath(
 	ctx context.Context,
 	animeSource *models.AdminAnimeSyncSource,
@@ -96,6 +100,7 @@ func (h *AdminContentHandler) resolveEpisodeVersionFolderPath(
 	return normalizeNullableStringPtr(derefString(animeSource.FolderName)), "", nil
 }
 
+// resolveEpisodeVersionSelectedGroups ermittelt die ausgewählten Fansub-Gruppen für eine Episodenversion und löst Kollaborationen in ihre Einzelgruppen auf.
 func (h *AdminContentHandler) resolveEpisodeVersionSelectedGroups(
 	ctx context.Context,
 	version *models.EpisodeVersion,
@@ -132,10 +137,12 @@ func (h *AdminContentHandler) resolveEpisodeVersionSelectedGroups(
 	return selected, &collaborationID, nil
 }
 
+// ensureJellyfinConfiguredForEditor prüft, ob Jellyfin-Basis-URL und API-Schlüssel für den Editor konfiguriert sind.
 func (h *AdminContentHandler) ensureJellyfinConfiguredForEditor() bool {
 	return strings.TrimSpace(h.jellyfinBaseURL) != "" && strings.TrimSpace(h.jellyfinAPIKey) != ""
 }
 
+// buildJellyfinEditorStreamURL erstellt die Stream-URL für ein Jellyfin-Medienelement anhand seiner ID.
 func (h *AdminContentHandler) buildJellyfinEditorStreamURL(itemID string) *string {
 	streamURL, err := buildProviderStreamURL(
 		h.jellyfinBaseURL,

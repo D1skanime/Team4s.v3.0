@@ -8,10 +8,15 @@ export const metadata: Metadata = {
   description: 'Anime und Fansub Portal',
 }
 
+/** Props fuer das Root-Layout. */
 interface RootLayoutProps {
   children: ReactNode
 }
 
+/**
+ * Wurzel-Layout der Anwendung.
+ * Definiert die HTML-Basisstruktur mit globalem Stylesheet und setzt die Sprache auf Deutsch.
+ */
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="de">

@@ -42,6 +42,8 @@ func newFansubAliasResolver(candidates []models.AnimeFansubAliasCandidate) *fans
 	return resolver
 }
 
+// Resolve sucht anhand von Dateiname und Pfad eine eindeutige Fansub-Gruppen-ID über bekannte Aliase.
+// Gibt nil zurück, wenn kein eindeutiger Treffer gefunden wird.
 func (r *fansubAliasResolver) Resolve(itemName string, itemPath string) *int64 {
 	if r == nil || len(r.aliases) == 0 {
 		return nil

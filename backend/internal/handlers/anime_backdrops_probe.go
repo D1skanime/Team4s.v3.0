@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// probeJellyfinBackdropProxyURLs prüft vorhandene Backdrop-Bilder in Jellyfin und gibt die entsprechenden Proxy-URLs zurück.
 func (h *AnimeHandler) probeJellyfinBackdropProxyURLs(ctx context.Context, seriesID string) []string {
 	trimmedSeriesID := strings.TrimSpace(seriesID)
 	if trimmedSeriesID == "" {
@@ -46,6 +47,7 @@ func (h *AnimeHandler) probeJellyfinBackdropProxyURLs(ctx context.Context, serie
 	return result
 }
 
+// probeJellyfinThemeVideoProxyURLs ruft die Themenvideos einer Jellyfin-Serie ab und gibt die entsprechenden Proxy-URLs zurück.
 func (h *AnimeHandler) probeJellyfinThemeVideoProxyURLs(ctx context.Context, seriesID string) []string {
 	trimmedSeriesID := strings.TrimSpace(seriesID)
 	if trimmedSeriesID == "" {

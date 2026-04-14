@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// DeleteEpisodeVersion verarbeitet DELETE /api/v1/episode-versions/:versionId und entfernt eine Episodenversion.
 func (h *FansubHandler) DeleteEpisodeVersion(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

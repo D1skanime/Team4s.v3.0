@@ -8,6 +8,8 @@ import (
 	"team4s.v3/backend/internal/repository"
 )
 
+// AnimeMetadataBackfillReport fasst die Ergebnisse eines Metadaten-Backfill-Laufs zusammen
+// und enthält Zähler für verarbeitete Anime, aktualisierte Titel, Genre-Links sowie aufgetretene Fehler.
 type AnimeMetadataBackfillReport struct {
 	AnimeProcessed    int
 	TitlesUpserted    int
@@ -18,14 +20,19 @@ type AnimeMetadataBackfillReport struct {
 	Errors            []string
 }
 
+// AnimeMetadataBackfillService führt den einmaligen Metadaten-Backfill vom Legacy-Schema
+// in die normalisierten Titels- und Genre-Tabellen durch.
 type AnimeMetadataBackfillService struct {
 	repo *repository.AnimeMetadataRepository
 }
 
+// NewAnimeMetadataBackfillService erstellt einen neuen AnimeMetadataBackfillService mit dem angegebenen Repository.
 func NewAnimeMetadataBackfillService(repo *repository.AnimeMetadataRepository) *AnimeMetadataBackfillService {
 	return &AnimeMetadataBackfillService{repo: repo}
 }
 
+// Backfill führt den Metadaten-Backfill für alle Legacy-Anime-Quellen durch und gibt
+// einen Bericht über verarbeitete Anime, Titelupserts und Genrelinks zurück.
 func (s *AnimeMetadataBackfillService) Backfill(ctx context.Context) (*AnimeMetadataBackfillReport, error) {
 	sources, err := s.repo.ListLegacyAnimeMetadataSources(ctx)
 	if err != nil {

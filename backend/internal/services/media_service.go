@@ -22,24 +22,31 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 )
 
+// MediaSaveResult enthält das Ergebnis einer erfolgreichen Medien-Speicheroperation,
+// inklusive der benötigten Eingabedaten für die Datenbank und eines Hinweises bei großen GIFs.
 type MediaSaveResult struct {
 	CreateInput  models.MediaAssetCreateInput
 	GIFLargeHint bool
 }
 
+// MediaValidationError repräsentiert einen Validierungsfehler bei einer Medien-Upload-Operation.
 type MediaValidationError struct {
 	Message string
 }
 
+// Error gibt die Fehlermeldung als String zurück.
 func (e *MediaValidationError) Error() string {
 	return e.Message
 }
 
+// MediaService verwaltet das Speichern und Validieren von Medien-Uploads auf dem Dateisystem.
 type MediaService struct {
 	storageDir    string
 	publicBaseURL string
 }
 
+// NewMediaService erstellt einen neuen MediaService mit dem angegebenen Speicherverzeichnis
+// und der öffentlichen Basis-URL. Leere Werte werden durch sinnvolle Standardwerte ersetzt.
 func NewMediaService(storageDir, publicBaseURL string) *MediaService {
 	dir := strings.TrimSpace(storageDir)
 	if dir == "" {
@@ -57,6 +64,8 @@ func NewMediaService(storageDir, publicBaseURL string) *MediaService {
 	}
 }
 
+// SaveUpload validiert und speichert einen Medien-Upload für die angegebene MediaKind.
+// Gibt ein MediaSaveResult mit Dateiinformationen zurück oder einen MediaValidationError bei ungültigen Daten.
 func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, data []byte) (*MediaSaveResult, error) {
 	if len(data) == 0 {
 		return nil, &MediaValidationError{Message: "datei ist leer"}
@@ -111,6 +120,8 @@ func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, da
 	return result, nil
 }
 
+// detectMimeType erkennt den MIME-Typ der übergebenen Binärdaten mithilfe von Bibliotheks-
+// und HTTP-Erkennung. SVG-Daten werden zuverlässig normalisiert.
 func detectMimeType(data []byte) string {
 	detected := mimetype.Detect(data).String()
 	detected = strings.ToLower(strings.TrimSpace(detected))
@@ -139,6 +150,8 @@ func detectMimeType(data []byte) string {
 	}
 }
 
+// validateMimeForKind prüft, ob der erkannte MIME-Typ für die gegebene MediaKind erlaubt ist.
+// Gibt einen MediaValidationError zurück, wenn das Format nicht zulässig ist.
 func validateMimeForKind(kind models.MediaKind, mimeType string) error {
 	allowedLogo := map[string]struct{}{
 		"image/svg+xml": {},
@@ -173,6 +186,8 @@ func validateMimeForKind(kind models.MediaKind, mimeType string) error {
 	return &MediaValidationError{Message: "ungueltiger media-typ"}
 }
 
+// decodeImageDimensions liest Breite und Höhe eines Bildes aus den Rohdaten.
+// Gibt nil zurück, wenn das Bild nicht dekodiert werden kann.
 func decodeImageDimensions(data []byte) (*int, *int) {
 	cfg, _, err := image.DecodeConfig(bytes.NewReader(data))
 	if err != nil {
@@ -184,6 +199,8 @@ func decodeImageDimensions(data []byte) (*int, *int) {
 	return &width, &height
 }
 
+// extensionFromMime gibt die passende Dateiendung für einen MIME-Typ zurück.
+// Unbekannte Typen erhalten die Endung "bin".
 func extensionFromMime(mimeType string) string {
 	switch mimeType {
 	case "image/svg+xml":
@@ -201,6 +218,9 @@ func extensionFromMime(mimeType string) string {
 	}
 }
 
+// buildFilename erzeugt einen eindeutigen Dateinamen aus MediaKind, Zeitstempel und
+// zufälligen Bytes. Falls die Zufallsgenerierung fehlschlägt, wird ein Fallback mit
+// Nano-Zeitstempel verwendet.
 func buildFilename(kind models.MediaKind, extension string) string {
 	var randomBytes [8]byte
 	if _, err := rand.Read(randomBytes[:]); err != nil {

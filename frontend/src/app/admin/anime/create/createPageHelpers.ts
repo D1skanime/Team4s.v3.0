@@ -1,6 +1,9 @@
-// createPageHelpers.ts: static helper functions extracted from page.tsx to keep
-// the create-route component under the 700-line guardrail. These functions have
-// no component state dependencies and can be imported and tested independently.
+/**
+ * createPageHelpers.ts: Statische Hilfsfunktionen, die aus page.tsx ausgelagert
+ * wurden, um die Create-Route-Komponente unter der 700-Zeilen-Grenze zu halten.
+ * Diese Funktionen haben keine Abhaengigkeiten von Komponentenzustand und koennen
+ * unabhaengig importiert und getestet werden.
+ */
 
 import { ApiError } from "@/lib/api";
 import type {
@@ -14,12 +17,21 @@ import type {
 import type { ManualAnimeDraftValues } from "../hooks/useManualAnimeDraft";
 import { buildManualCreateDraftSnapshot } from "../hooks/useManualAnimeDraft";
 
+/** Verzoegerung in Millisekunden vor der automatischen Weiterleitung nach dem erfolgreichen Erstellen eines Anime. */
 export const CREATE_REDIRECT_DELAY_MS = 1600;
 
+/**
+ * Erstellt den Weiterleitungspfad zur Admin-Anime-Uebersicht nach dem
+ * Erstellen, damit der neue Eintrag direkt sichtbar und angewaehlt ist.
+ */
 export function buildManualCreateRedirectPath(id: number): string {
   return `/admin/anime?created=${id}#anime-${id}`;
 }
 
+/**
+ * Prueft, ob eine AniSearch-Zusammenfassung Warnungen oder ungeklaerte
+ * Relationen enthaelt, die im Erfolgsmeldungstext hervorgehoben werden sollten.
+ */
 function hasAniSearchFollowThroughWarning(
   summary: AdminAnimeCreateAniSearchSummary | undefined,
 ): boolean {
@@ -30,6 +42,11 @@ function hasAniSearchFollowThroughWarning(
   return summary.relations_attempted > accountedRelations;
 }
 
+/**
+ * Erstellt die Erfolgsmeldung nach dem Anlegen eines Anime. Wenn die
+ * AniSearch-Zusammenfassung Warnungen enthaelt, werden Relationsdetails
+ * und Hinweise in die Nachricht aufgenommen.
+ */
 export function buildCreateSuccessMessage(
   response: Pick<AdminAnimeUpsertResponse, "data" | "anisearch">,
 ): string {
@@ -58,6 +75,10 @@ export function buildCreateSuccessMessage(
   return parts.join(" ");
 }
 
+/**
+ * Haengt Jellyfin-Verknuepfungsdaten (Serien-ID als Source und optionaler
+ * Ordnername) an das Create-Payload an, wenn eine Jellyfin-Vorschau aktiv ist.
+ */
 export function appendJellyfinLinkageToCreatePayload(
   payload: AdminAnimeCreateRequest,
   preview: AdminAnimeJellyfinIntakePreviewResult | null,
@@ -76,6 +97,10 @@ export function appendJellyfinLinkageToCreatePayload(
   };
 }
 
+/**
+ * Erstellt einen neuen Anime ueber die API und setzt anschliessend die
+ * Browser-URL auf den Weiterleitungspfad zur Admin-Uebersicht.
+ */
 export async function createManualAnimeAndRedirect(
   payload: AdminAnimeCreateRequest,
   deps: {
@@ -94,6 +119,11 @@ export async function createManualAnimeAndRedirect(
   return response;
 }
 
+/**
+ * Wandelt einen unbekannten Fehler in eine lesbare Fehlermeldung um.
+ * ApiError-Instanzen werden mit Statuscode und Details formatiert;
+ * normale Error-Instanzen mit ihrer Message; sonst wird der Fallback verwendet.
+ */
 export function formatCreatePageError(
   error: unknown,
   fallback: string,

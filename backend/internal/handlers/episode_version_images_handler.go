@@ -13,18 +13,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// EpisodeVersionImagesHandler verwaltet HTTP-Endpunkte für Bilder einer Episodenversion.
 type EpisodeVersionImagesHandler struct {
 	imageRepo *repository.EpisodeVersionImageRepository
 }
 
+// NewEpisodeVersionImagesHandler erstellt einen neuen EpisodeVersionImagesHandler mit dem angegebenen Bild-Repository.
 func NewEpisodeVersionImagesHandler(imageRepo *repository.EpisodeVersionImageRepository) *EpisodeVersionImagesHandler {
 	return &EpisodeVersionImagesHandler{
 		imageRepo: imageRepo,
 	}
 }
 
-// ListReleaseImages returns paginated images for an episode version (release).
-// GET /api/v1/releases/:id/images?cursor=&limit=
+// ListReleaseImages gibt eine paginierte Liste der Bilder einer Episodenversion zurück.
 func (h *EpisodeVersionImagesHandler) ListReleaseImages(c *gin.Context) {
 	releaseIDRaw := c.Param("releaseId")
 	if strings.TrimSpace(releaseIDRaw) == "" {

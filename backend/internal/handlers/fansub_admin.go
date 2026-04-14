@@ -24,6 +24,7 @@ var allowedFansubStatuses = map[string]struct{}{
 	"dissolved": {},
 }
 
+// FansubHandler bündelt alle Handler-Methoden für Fansub-Gruppen, Episodenversionen und Medienproxy-Endpunkte.
 type FansubHandler struct {
 	fansubRepo         *repository.FansubRepository
 	episodeVersionRepo *repository.EpisodeVersionRepository
@@ -42,6 +43,7 @@ type FansubHandler struct {
 	httpClient         *http.Client
 }
 
+// FansubProxyConfig enthält die Konfigurationswerte für den Emby- und Jellyfin-Medienproxy sowie das Stream-Grant-System.
 type FansubProxyConfig struct {
 	EmbyAPIKey             string
 	EmbyBaseURL            string
@@ -53,6 +55,7 @@ type FansubProxyConfig struct {
 	ReleaseGrantTTLSeconds int
 }
 
+// NewFansubHandler erstellt einen neuen FansubHandler mit den angegebenen Repositories und der Proxy-Konfiguration.
 func NewFansubHandler(
 	fansubRepo *repository.FansubRepository,
 	episodeVersionRepo *repository.EpisodeVersionRepository,

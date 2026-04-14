@@ -15,8 +15,7 @@ type addCollaborationMemberRequest struct {
 	MemberGroupID int64 `json:"member_group_id"`
 }
 
-// ListCollaborationMembers returns all member groups of a collaboration.
-// GET /api/v1/fansubs/:id/collaboration-members
+// ListCollaborationMembers gibt alle Mitgliedsgruppen einer Kollaboration zurück.
 func (h *FansubHandler) ListCollaborationMembers(c *gin.Context) {
 	collaborationID, err := parseFansubID(c.Param("id"))
 	if err != nil {
@@ -43,8 +42,7 @@ func (h *FansubHandler) ListCollaborationMembers(c *gin.Context) {
 	})
 }
 
-// AddCollaborationMember adds a member group to a collaboration.
-// POST /api/v1/fansubs/:id/collaboration-members
+// AddCollaborationMember fügt einer Kollaboration eine neue Mitgliedsgruppe hinzu.
 func (h *FansubHandler) AddCollaborationMember(c *gin.Context) {
 	_, ok := h.requireAdmin(c)
 	if !ok {
@@ -117,8 +115,7 @@ func (h *FansubHandler) AddCollaborationMember(c *gin.Context) {
 	})
 }
 
-// RemoveCollaborationMember removes a member group from a collaboration.
-// DELETE /api/v1/fansubs/:id/collaboration-members/:memberGroupId
+// RemoveCollaborationMember entfernt eine Mitgliedsgruppe aus einer Kollaboration.
 func (h *FansubHandler) RemoveCollaborationMember(c *gin.Context) {
 	_, ok := h.requireAdmin(c)
 	if !ok {

@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Play verarbeitet GET /api/v1/episodes/:id/play, autorisiert den Zugriff und leitet den Emby-Stream an den Client weiter.
 func (h *EpisodePlaybackHandler) Play(c *gin.Context) {
 	episodeID, err := parseEpisodeID(c.Param("id"))
 	if err != nil {

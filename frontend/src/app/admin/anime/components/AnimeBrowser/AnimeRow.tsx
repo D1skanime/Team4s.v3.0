@@ -7,6 +7,11 @@ import browserStyles from './AnimeBrowser.module.css'
 
 const styles = { ...sharedStyles, ...browserStyles }
 
+/**
+ * Props der AnimeRow-Komponente.
+ * Enthalten alle Daten und Zustaende fuer eine einzelne Zeile im Anime-Browser
+ * sowie die zugehoerigen Aktions-Callbacks.
+ */
 interface AnimeRowProps {
   anime: AnimeListItem
   isActive: boolean
@@ -20,6 +25,11 @@ interface AnimeRowProps {
   hideNonEssential: boolean
 }
 
+/**
+ * Einzelne Zeile im Anime-Browser.
+ * Rendert Cover-Thumbnail, Titel, ID, Status-Badge und die Aktionsleiste
+ * mit "Kontext laden" sowie optionalem Kontext-Menue (Oeffnen, Synchronisieren).
+ */
 export function AnimeRow({
   anime,
   isActive,

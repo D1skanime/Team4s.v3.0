@@ -1,0 +1,61 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Next.js: Server-Side debuggen (API Routes, RSC)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev -- --port 3002",
+      "cwd": "${workspaceFolder}/frontend",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      "name": "Chrome: Client-Side debuggen (Page, Hooks, useEffect)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3002",
+      "webRoot": "${workspaceFolder}/frontend",
+      "sourceMapPathOverrides": {
+        "webpack://_N_E/*": "${workspaceFolder}/frontend/*",
+        "webpack:///./*": "${workspaceFolder}/frontend/./*"
+      },
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      "name": "Chrome: an laufenden Browser anhängen",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "url": "http://localhost:3002/*",
+      "webRoot": "${workspaceFolder}/frontend",
+      "sourceMapPathOverrides": {
+        "webpack://_N_E/*": "${workspaceFolder}/frontend/*",
+        "webpack:///./*": "${workspaceFolder}/frontend/./*"
+      },
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      "name": "Go: Backend lokal starten",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/backend/cmd/server",
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "DB_HOST": "localhost",
+        "DB_PORT": "5432",
+        "MEDIA_STORAGE_DIR": "${workspaceFolder}/media",
+        "PORT": "8092"
+      },
+      "showLog": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack: Go + Chrome",
+      "configurations": ["Go: Backend lokal starten", "Chrome: Client-Side debuggen (Page, Hooks, useEffect)"],
+      "stopAll": true
+    }
+  ]
+}

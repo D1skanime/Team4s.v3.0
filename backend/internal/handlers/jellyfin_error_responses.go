@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// writeJellyfinErrorResponse schreibt eine strukturierte JSON-Fehlerantwort für Jellyfin-Fehler.
 func writeJellyfinErrorResponse(
 	c *gin.Context,
 	status int,
@@ -31,6 +32,7 @@ func writeJellyfinErrorResponse(
 	})
 }
 
+// normalizeJellyfinErrorDetails bereinigt den Detail-String eines Jellyfin-Fehlers und gibt nil zurück, wenn er leer ist.
 func normalizeJellyfinErrorDetails(details *string) *string {
 	if details == nil {
 		return nil
@@ -44,6 +46,7 @@ func normalizeJellyfinErrorDetails(details *string) *string {
 	return &trimmed
 }
 
+// classifyJellyfinUpstreamError kategorisiert einen Jellyfin-Upstream-Fehler und gibt Nachricht, Code und Details zurück.
 func classifyJellyfinUpstreamError(err error, fallbackMessage string) (string, string, *string) {
 	if err == nil {
 		return fallbackMessage, "jellyfin_request_failed", nil
@@ -76,6 +79,7 @@ func classifyJellyfinUpstreamError(err error, fallbackMessage string) (string, s
 	}
 }
 
+// classifyJellyfinResolutionError ordnet einen Jellyfin-Auflösungsfehler einem maschinenlesbaren Fehlercode zu.
 func classifyJellyfinResolutionError(status int, message string) (string, *string) {
 	switch {
 	case status == http.StatusNotFound && message == "jellyfin serie nicht gefunden":

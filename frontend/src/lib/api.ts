@@ -80,10 +80,16 @@ import {
 import { GroupAssetsResponse } from '@/types/groupAsset'
 import { ReleaseAssetsResponse } from '@/types/mediaAsset'
 
-// Browser needs a host-reachable API URL (e.g. http://localhost:8092).
-// Server-side code inside Docker needs a container-network URL.
+// Browser braucht eine erreichbare Host-URL (z.B. http://localhost:8092).
+// Server-seitiger Code in Docker nutzt die Container-interne Netzwerk-URL.
 const API_PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://localhost:8092'
 
+/**
+ * Normalisiert die interne API-URL für Docker-Umgebungen.
+ * Falls der Hostname "backend" lautet (alter Docker-Compose-Name), wird er auf
+ * "team4sv30-backend" umgeschrieben, damit Server-seitige Fetches den richtigen
+ * Container erreichen. Außerhalb von Docker bleibt die URL unverändert.
+ */
 function normalizeInternalApiBaseUrl(raw: string): string {
   const value = raw.trim()
   if (!value) return ''
@@ -105,10 +111,23 @@ const AUTH_BYPASS_LOCAL = ((process.env.NEXT_PUBLIC_AUTH_BYPASS_LOCAL || '').tri
 const AUTH_BYPASS_TOKEN = 'local-auth-bypass'
 const AUTH_BYPASS_DISPLAY_NAME = 'LocalAdmin'
 
+/**
+ * Gibt die richtige API-Basis-URL zurück — je nachdem ob der Code im Browser
+ * oder auf dem Next.js-Server (SSR/RSC) ausgeführt wird.
+ * - Browser → öffentliche URL (vom Client erreichbar)
+ * - Server  → interne Docker-URL (schneller, kein Umweg über Host)
+ */
 function getApiBaseUrl(): string {
   return typeof window === 'undefined' ? API_INTERNAL_BASE_URL : API_PUBLIC_BASE_URL
 }
 
+/**
+ * Löst eine relative oder absolute Media-URL zu einer vollständig qualifizierten URL auf.
+ * - Absolute URLs (http/https) → unverändert zurückgeben
+ * - Pfade die mit /api/ beginnen → an die öffentliche API-Base anhängen
+ * - Alle anderen Werte (z.B. /media/...) → unverändert zurückgeben
+ * Wird für Cover-, Banner- und Backdrop-Pfade aus der API genutzt.
+ */
 export function resolveApiUrl(value?: string): string {
   const trimmed = (value || '').trim()
   if (!trimmed) {
@@ -137,6 +156,12 @@ const AUTH_TOKEN_STORAGE_KEY = 'team4s.auth.access_token'
 const AUTH_REFRESH_STORAGE_KEY = 'team4s.auth.refresh_token'
 const AUTH_DISPLAY_NAME_STORAGE_KEY = 'team4s.auth.display_name'
 
+/**
+ * Strukturierter API-Fehler — enthält HTTP-Statuscode, Fehlermeldung und
+ * optionale Zusatzinfos wie Retry-Delay, Fehler-Code und Konflikt-Details.
+ * Wird von allen API-Funktionen geworfen wenn der Server einen Fehler zurückgibt,
+ * damit Aufrufer gezielt auf z.B. 401, 409 oder 429 reagieren können.
+ */
 export class ApiError extends Error {
   status: number
   retryAfterSeconds: number | null
@@ -184,6 +209,12 @@ interface FansubListParams {
   per_page?: number
 }
 
+/**
+ * Baut den URL-Query-String für die Anime-Listenabfrage.
+ * Nur gesetzte Parameter werden angehängt — undefined/null-Werte werden
+ * weggelassen damit die URL sauber bleibt. Boolean-Felder (has_cover,
+ * include_disabled) werden nur bei explizitem true/false übergeben.
+ */
 function buildQuery(params: AnimeListParams): string {
   const query = new URLSearchParams()
   if (params.page) query.set('page', String(params.page))
@@ -199,6 +230,7 @@ function buildQuery(params: AnimeListParams): string {
   return query.toString()
 }
 
+/** Baut den Query-String für paginierte Kommentar-Abfragen (page + per_page). */
 function buildCommentQuery(params: CommentListParams): string {
   const query = new URLSearchParams()
   if (params.page) query.set('page', String(params.page))
@@ -207,6 +239,7 @@ function buildCommentQuery(params: CommentListParams): string {
   return query.toString()
 }
 
+/** Baut den Query-String für paginierte Watchlist-Abfragen (page + per_page). */
 function buildWatchlistQuery(params: WatchlistListParams): string {
   const query = new URLSearchParams()
   if (params.page) query.set('page', String(params.page))
@@ -215,6 +248,7 @@ function buildWatchlistQuery(params: WatchlistListParams): string {
   return query.toString()
 }
 
+/** Baut den Query-String für Fansub-Listenabfragen (Suche, Status, Pagination). */
 function buildFansubListQuery(params: FansubListParams): string {
   const query = new URLSearchParams()
   if (params.q) query.set('q', params.q)
@@ -225,6 +259,11 @@ function buildFansubListQuery(params: FansubListParams): string {
   return query.toString()
 }
 
+/**
+ * Liest einen Cookie-Wert aus document.cookie (nur im Browser verfügbar).
+ * Gibt einen leeren String zurück wenn der Cookie nicht existiert oder
+ * der Code serverseitig ausgeführt wird.
+ */
 function readBrowserCookie(name: string): string {
   if (typeof document === 'undefined') {
     return ''
@@ -248,6 +287,11 @@ function readBrowserCookie(name: string): string {
   }
 }
 
+/**
+ * Schreibt einen Cookie mit SameSite=Lax und konfigurierbarer Lebensdauer.
+ * Wird für Auth-Tokens genutzt damit der Token beim Seitenaufruf direkt
+ * verfügbar ist — ohne Roundtrip über localStorage.
+ */
 function writeBrowserCookie(name: string, value: string, maxAgeSeconds: number): void {
   if (typeof document === 'undefined') {
     return
@@ -258,6 +302,10 @@ function writeBrowserCookie(name: string, value: string, maxAgeSeconds: number):
   document.cookie = `${name}=${encodedValue}; Path=/; Max-Age=${maxAge}; SameSite=Lax`
 }
 
+/**
+ * Liest einen Wert aus localStorage (nur im Browser verfügbar).
+ * Fallback wenn Cookies nicht gelesen werden können (z.B. httpOnly-Einschränkungen).
+ */
 function readBrowserStorage(name: string): string {
   if (typeof window === 'undefined') {
     return ''
@@ -270,6 +318,10 @@ function readBrowserStorage(name: string): string {
   }
 }
 
+/**
+ * Schreibt einen Wert in localStorage oder löscht den Eintrag bei leerem Wert.
+ * Fehler werden stillschweigend ignoriert — Cookies bleiben der primäre Speicher.
+ */
 function writeBrowserStorage(name: string, value: string): void {
   if (typeof window === 'undefined') {
     return
@@ -286,6 +338,14 @@ function writeBrowserStorage(name: string, value: string): void {
   }
 }
 
+/**
+ * Ermittelt den aktiven Auth-Token mit folgendem Vorrang:
+ * 1. Explizit übergebener Token (z.B. von Server-Komponenten)
+ * 2. Cookie team4s_access_token (nach Login gesetzt)
+ * 3. localStorage Fallback
+ * 4. Build-time Env-Variable NEXT_PUBLIC_AUTH_TOKEN
+ * 5. Local-Dev-Bypass-Token (nur wenn AUTH_BYPASS_LOCAL=true)
+ */
 function resolveAuthToken(authToken?: string): string {
   const explicitToken = (authToken || '').trim()
   if (explicitToken) {
@@ -315,6 +375,10 @@ function resolveAuthToken(authToken?: string): string {
   return ''
 }
 
+/**
+ * Fügt den Authorization-Header (Bearer-Token) zu einem Header-Objekt hinzu.
+ * Gibt die Headers unverändert zurück wenn kein Token verfügbar ist.
+ */
 function withAuthHeader(headers: Record<string, string>, authToken?: string): Record<string, string> {
   const token = resolveAuthToken(authToken)
   if (token) {
@@ -324,6 +388,11 @@ function withAuthHeader(headers: Record<string, string>, authToken?: string): Re
   return headers
 }
 
+/**
+ * Liest den strukturierten Fehler-Payload aus einer API-Response.
+ * Erwartet JSON mit { error: { message, code?, details? } }.
+ * Bei Parse-Fehlern oder fehlendem message-Feld wird der fallback-Text verwendet.
+ */
 export async function parseApiErrorPayload(response: Response, fallback: string): Promise<ParsedApiErrorPayload> {
   try {
     const body = (await response.json()) as { error?: { message?: string; code?: string; details?: string } }
@@ -345,6 +414,7 @@ export async function parseApiErrorPayload(response: Response, fallback: string)
   }
 }
 
+/** Kurzform von parseApiErrorPayload — gibt nur die Fehlermeldung als String zurück. */
 async function parseApiError(response: Response, fallback: string): Promise<string> {
   const parsed = await parseApiErrorPayload(response, fallback)
   return parsed.message

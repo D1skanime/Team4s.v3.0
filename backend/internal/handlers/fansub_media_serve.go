@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ServeMediaFile liefert eine gespeicherte Mediendatei anhand ihres Dateinamens aus.
 func (h *FansubHandler) ServeMediaFile(c *gin.Context) {
 	if h.mediaRepo == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media service nicht verfuegbar"}})

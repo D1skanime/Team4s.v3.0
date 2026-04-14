@@ -33,6 +33,7 @@ import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
 
 import styles from './page.module.css'
 
+/** Props fuer die Anime-Detailseite mit URL-Parametern und optionalen Such-Parametern. */
 interface AnimeDetailPageProps {
   params:
     | {
@@ -52,6 +53,12 @@ interface AnimeDetailPageProps {
       }>
 }
 
+/**
+ * Fuehrt ein Promise mit einem Zeitlimit aus.
+ * Wirft einen Fehler, wenn das Promise nicht innerhalb von {@link timeoutMs} Millisekunden aufgeloest wird.
+ * @param promise - Das auszufuehrende Promise
+ * @param timeoutMs - Zeitlimit in Millisekunden
+ */
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   return await new Promise<T>((resolve, reject) => {
     const timeoutID = setTimeout(() => {
@@ -70,6 +77,11 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
   })
 }
 
+/**
+ * Anime-Detailseite.
+ * Laedt Anime-Daten, Fansubs, Episoden, Kommentare, Watchlist-Status, Backdrops und Relationen parallel.
+ * Zeigt Poster, Beschreibung, Episodenliste mit Fansub-Filter sowie einen Kommentarbereich.
+ */
 export default async function AnimeDetailPage({ params, searchParams }: AnimeDetailPageProps) {
   const resolvedSearchParams = ((await searchParams) ?? {}) as {
     from?: string | string[]

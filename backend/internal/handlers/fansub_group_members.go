@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ListFansubMembers returns all members of a fansub group.
+// ListFansubMembers gibt alle Mitglieder einer Fansub-Gruppe zurück.
 func (h *FansubHandler) ListFansubMembers(c *gin.Context) {
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
@@ -43,7 +43,7 @@ func (h *FansubHandler) ListFansubMembers(c *gin.Context) {
 	})
 }
 
-// CreateFansubMember adds a new member to a fansub group.
+// CreateFansubMember fügt einer Fansub-Gruppe ein neues Mitglied hinzu.
 func (h *FansubHandler) CreateFansubMember(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -93,7 +93,7 @@ func (h *FansubHandler) CreateFansubMember(c *gin.Context) {
 	})
 }
 
-// UpdateFansubMember modifies an existing member.
+// UpdateFansubMember aktualisiert die Daten eines bestehenden Fansub-Mitglieds.
 func (h *FansubHandler) UpdateFansubMember(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -161,7 +161,7 @@ func (h *FansubHandler) UpdateFansubMember(c *gin.Context) {
 	})
 }
 
-// DeleteFansubMember removes a member from a fansub group.
+// DeleteFansubMember entfernt ein Mitglied aus einer Fansub-Gruppe.
 func (h *FansubHandler) DeleteFansubMember(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

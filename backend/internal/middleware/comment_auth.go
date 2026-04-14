@@ -24,14 +24,18 @@ const (
 
 var localBypassIdentity *AuthIdentity
 
+// AuthIdentity enthält die verifizierten Identitätsdaten eines authentifizierten Benutzers,
+// wie sie im Gin-Kontext nach erfolgreicher Token-Prüfung abgelegt werden.
 type AuthIdentity struct {
-	UserID      int64
-	DisplayName string
-	SessionID   string
-	ExpiresAt   int64
-	TokenHash   string
+	UserID      int64  // Eindeutige Benutzer-ID
+	DisplayName string // Anzeigename des Benutzers
+	SessionID   string // Session-ID für Widerrufsprüfungen
+	ExpiresAt   int64  // Unix-Zeitstempel des Token-Ablaufs
+	TokenHash   string // SHA-256-Hash des Tokens für Redis-Widerruf-Lookups
 }
 
+// ConfigureLocalAuthBypass konfiguriert eine globale Bypass-Identität für lokale Entwicklung,
+// sodass Anfragen ohne gültiges Token als dieser Benutzer behandelt werden.
 func ConfigureLocalAuthBypass(enabled bool, userID int64, displayName string) {
 	if !enabled || userID <= 0 || strings.TrimSpace(displayName) == "" {
 		localBypassIdentity = nil
@@ -57,15 +61,23 @@ func applyLocalAuthBypass(c *gin.Context) bool {
 	return true
 }
 
+// AuthTokenStateChecker definiert die Schnittstelle zur Prüfung des Token- und Session-Status
+// gegen einen externen Store (z.B. Redis).
 type AuthTokenStateChecker interface {
+	// IsAccessTokenRevoked prüft, ob das Token mit dem angegebenen Hash widerrufen wurde.
 	IsAccessTokenRevoked(ctx context.Context, tokenHash string) (bool, error)
+	// IsSessionActive prüft, ob die angegebene Session noch aktiv ist.
 	IsSessionActive(ctx context.Context, sessionID string) (bool, error)
 }
 
+// CommentAuthMiddleware gibt eine Auth-Middleware zurück, die einen gültigen Bearer-Token
+// voraussetzt, aber keine Widerrufsprüfung gegen Redis durchführt.
 func CommentAuthMiddleware(secret string) gin.HandlerFunc {
 	return CommentAuthMiddlewareWithState(secret, nil)
 }
 
+// CommentAuthOptionalMiddlewareWithState gibt eine optionale Auth-Middleware zurück, die einen Token
+// prüft falls vorhanden, aber Anfragen ohne Token ebenfalls durchlässt.
 func CommentAuthOptionalMiddlewareWithState(secret string, checker AuthTokenStateChecker) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rawAuth := strings.TrimSpace(c.GetHeader(commentAuthAuthorizationHeader))
@@ -190,6 +202,8 @@ func CommentAuthOptionalMiddlewareWithState(secret string, checker AuthTokenStat
 	}
 }
 
+// CommentAuthMiddlewareWithState gibt eine Auth-Middleware zurück, die einen gültigen Bearer-Token
+// voraussetzt und zusätzlich Token-Widerruf und Session-Status gegen den checker prüft.
 func CommentAuthMiddlewareWithState(secret string, checker AuthTokenStateChecker) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rawAuth := strings.TrimSpace(c.GetHeader(commentAuthAuthorizationHeader))
@@ -319,6 +333,8 @@ func CommentAuthMiddlewareWithState(secret string, checker AuthTokenStateChecker
 	}
 }
 
+// CommentAuthIdentityFromContext liest die AuthIdentity aus dem Gin-Kontext und gibt
+// sie zurück, falls sie vorhanden und gültig ist.
 func CommentAuthIdentityFromContext(c *gin.Context) (AuthIdentity, bool) {
 	raw, ok := c.Get(commentAuthIdentityContextKey)
 	if !ok {
@@ -351,6 +367,8 @@ func CommentAuthIdentityFromContext(c *gin.Context) (AuthIdentity, bool) {
 	}, true
 }
 
+// CommentAuthUserFromContext liest den Anzeigenamen des authentifizierten Benutzers
+// aus dem Gin-Kontext und gibt ihn zurück.
 func CommentAuthUserFromContext(c *gin.Context) (string, bool) {
 	identity, ok := CommentAuthIdentityFromContext(c)
 	if !ok {

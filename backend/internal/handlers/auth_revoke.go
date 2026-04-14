@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Revoke verarbeitet POST /api/v1/auth/revoke und widerruft das Access-Token sowie die zugehörige Session.
 func (h *AuthHandler) Revoke(c *gin.Context) {
 	identity, ok := middleware.CommentAuthIdentityFromContext(c)
 	if !ok {

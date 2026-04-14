@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
+// writeInternalErrorResponse schreibt eine HTTP-500-Antwort mit einer klassifizierten Fehlermeldung.
 func writeInternalErrorResponse(c *gin.Context, message string, err error, operationDetails string) {
 	errorBody := gin.H{
 		"message": message,
@@ -24,6 +25,7 @@ func writeInternalErrorResponse(c *gin.Context, message string, err error, opera
 	c.JSON(http.StatusInternalServerError, gin.H{"error": errorBody})
 }
 
+// classifyInternalError ordnet einen internen Fehler einem maschinenlesbaren Fehlercode und einer Beschreibung zu.
 func classifyInternalError(err error, operationDetails string) (string, string) {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {

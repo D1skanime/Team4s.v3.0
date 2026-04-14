@@ -6,6 +6,11 @@ import browserStyles from './AnimeBrowser.module.css'
 
 const styles = { ...sharedStyles, ...browserStyles }
 
+/**
+ * Props der AnimeBrowserFilters-Komponente.
+ * Enthalten den aktuellen Sucheingabe-String, den Buchstabenfilter,
+ * den Cover-Filter und die zugehoerigen Aenderungs-Callbacks.
+ */
 interface AnimeBrowserFiltersProps {
   queryInput: string
   letter: string
@@ -18,6 +23,12 @@ interface AnimeBrowserFiltersProps {
   onCoverChange: (value: CoverFilter) => void
 }
 
+/**
+ * Filterleiste des Anime-Browsers.
+ * Rendert Suchfeld mit Enter-Tastatur-Shortcut, Buchstabenfilter-Buttons
+ * (Alle, 0-9, A-Z) und ein Cover-Status-Dropdown. Loest bei Enter
+ * im Suchfeld die Suche aus.
+ */
 export function AnimeBrowserFilters({
   queryInput,
   letter,

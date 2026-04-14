@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ListBackdrops verarbeitet GET /api/v1/anime/:id/backdrops und gibt das Backdrop-Manifest eines Anime zurück, bevorzugt gespeicherte Assets und greift bei Bedarf auf Jellyfin zurück.
 func (h *AnimeHandler) ListBackdrops(c *gin.Context) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {

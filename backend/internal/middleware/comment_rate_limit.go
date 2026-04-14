@@ -21,6 +21,8 @@ const commentRateLimitExceededMessage = "zu viele anfragen, bitte spaeter erneut
 const commentRateLimitInternalErrorMessage = "interner serverfehler"
 const commentRateLimitDegradedHeader = "X-Comment-RateLimit-Degraded"
 
+// ErrCommentRateLimitStoreUnavailable wird zurückgegeben, wenn der Redis-Store für das Rate-Limiting
+// nicht erreichbar ist. In diesem Fall arbeitet die Middleware im Degraded-Modus.
 var ErrCommentRateLimitStoreUnavailable = errors.New("comment rate limit store unavailable")
 
 var commentRateLimitScript = redis.NewScript(`
@@ -35,18 +37,22 @@ type commentRateLimitStore interface {
 	IncrementWindow(ctx context.Context, key string, ttl time.Duration) (int64, error)
 }
 
+// CommentRateLimiter begrenzt die Kommentar-Erstellrate pro Client-IP
+// innerhalb eines gleitenden Zeitfensters mithilfe eines Redis-Stores.
 type CommentRateLimiter struct {
-	store   commentRateLimitStore
-	limit   int
-	window  time.Duration
-	nowFunc func() time.Time
-	prefix  string
+	store   commentRateLimitStore // Store-Implementierung (normalerweise Redis)
+	limit   int                   // Maximale Anzahl erlaubter Anfragen pro Zeitfenster
+	window  time.Duration         // Länge des Zeitfensters
+	nowFunc func() time.Time      // Zeitfunktion, austauschbar für Tests
+	prefix  string                // Redis-Schlüsselpräfix
 }
 
 type redisCommentRateLimitStore struct {
 	client redis.UniversalClient
 }
 
+// NewCommentRateLimiter erstellt einen neuen CommentRateLimiter mit einem Redis-Backend,
+// dem angegebenen Anfrage-Limit und Zeitfenster.
 func NewCommentRateLimiter(client redis.UniversalClient, limit int, window time.Duration) *CommentRateLimiter {
 	return newCommentRateLimiterWithStore(&redisCommentRateLimitStore{client: client}, limit, window)
 }
@@ -69,6 +75,9 @@ func (s *redisCommentRateLimitStore) IncrementWindow(ctx context.Context, key st
 	return count, nil
 }
 
+// Allow prüft, ob der gegebene Schlüssel (normalerweise die Client-IP) das Rate-Limit
+// noch nicht überschritten hat. Gibt zurück, ob die Anfrage erlaubt ist, sowie
+// die Wartezeit bis zum nächsten erlaubten Versuch.
 func (l *CommentRateLimiter) Allow(ctx context.Context, key string) (bool, time.Duration, error) {
 	now := l.nowFunc().UTC()
 	key = strings.TrimSpace(key)
@@ -102,6 +111,8 @@ func (l *CommentRateLimiter) Allow(ctx context.Context, key string) (bool, time.
 	return false, time.Duration(retryAfterSeconds) * time.Second, nil
 }
 
+// CommentCreateRateLimitMiddleware gibt eine Gin-Middleware zurück, die das Kommentar-Erstelllimit
+// pro Client-IP durchsetzt und bei Überschreitung HTTP 429 zurückgibt.
 func CommentCreateRateLimitMiddleware(limiter *CommentRateLimiter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		allowed, retryAfter, err := limiter.Allow(c.Request.Context(), c.ClientIP())

@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ListAnimeFansubs returns all fansub groups linked to an anime.
+// ListAnimeFansubs gibt alle mit einem Anime verknüpften Fansub-Gruppen zurück.
 func (h *FansubHandler) ListAnimeFansubs(c *gin.Context) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
@@ -43,7 +43,7 @@ func (h *FansubHandler) ListAnimeFansubs(c *gin.Context) {
 	})
 }
 
-// AttachAnimeFansub links a fansub group to an anime.
+// AttachAnimeFansub verknüpft eine Fansub-Gruppe mit einem Anime.
 func (h *FansubHandler) AttachAnimeFansub(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -107,7 +107,7 @@ func (h *FansubHandler) AttachAnimeFansub(c *gin.Context) {
 	})
 }
 
-// DetachAnimeFansub removes the link between a fansub group and an anime.
+// DetachAnimeFansub hebt die Verknüpfung zwischen einer Fansub-Gruppe und einem Anime auf.
 func (h *FansubHandler) DetachAnimeFansub(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

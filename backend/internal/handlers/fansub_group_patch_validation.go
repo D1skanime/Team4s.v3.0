@@ -4,6 +4,8 @@ import (
 	"team4s.v3/backend/internal/models"
 )
 
+// validateFansubGroupPatchRequest prüft und normalisiert die Felder eines Patch-Requests für eine Fansub-Gruppe.
+// Gibt das bereinigte Input-Objekt und eine Fehlermeldung zurück; die Meldung ist leer bei Erfolg.
 func validateFansubGroupPatchRequest(req models.FansubGroupPatchInput) (models.FansubGroupPatchInput, string) {
 	if !hasAnyFansubGroupPatchField(req) {
 		return models.FansubGroupPatchInput{}, "mindestens ein feld ist erforderlich"
@@ -97,6 +99,7 @@ func validateFansubGroupPatchRequest(req models.FansubGroupPatchInput) (models.F
 	return req, ""
 }
 
+// hasAnyFansubGroupPatchField gibt true zurück, wenn mindestens ein Feld des Patch-Requests gesetzt ist.
 func hasAnyFansubGroupPatchField(req models.FansubGroupPatchInput) bool {
 	return req.Slug.Set ||
 		req.Name.Set ||

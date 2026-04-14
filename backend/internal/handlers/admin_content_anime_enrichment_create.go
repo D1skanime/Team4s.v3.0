@@ -12,10 +12,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// adminAniSearchCreateEnricher definiert die Schnittstelle für den AniSearch-Anreicherungsdienst beim Erstellen eines neuen Anime.
 type adminAniSearchCreateEnricher interface {
 	Enrich(ctx context.Context, req models.AdminAnimeAniSearchEnrichmentRequest) (any, error)
 }
 
+// LoadAnimeCreateAniSearchEnrichment verarbeitet POST /api/v1/admin/anime/anisearch/enrich und lädt AniSearch-Daten für einen neuen Anime-Entwurf.
 func (h *AdminContentHandler) LoadAnimeCreateAniSearchEnrichment(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

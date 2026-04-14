@@ -1,7 +1,9 @@
 import { AnimeStatus, ContentType, EpisodeStatus } from '@/types/anime'
 
+/** Moegliche Anime-Format-Typen fuer die Kategorisierung eines Eintrags. */
 export type AnimeType = 'tv' | 'film' | 'ova' | 'ona' | 'special' | 'bonus'
 
+/** Kompakte Anime-Datendarstellung fuer die Admin-Listensicht. */
 export interface AdminAnimeItem {
   id: number
   title: string
@@ -17,6 +19,7 @@ export interface AdminAnimeItem {
   cover_image?: string
 }
 
+/** Kompakte Episoden-Datendarstellung fuer die Admin-Listensicht. */
 export interface AdminEpisodeItem {
   id: number
   anime_id: number
@@ -26,6 +29,7 @@ export interface AdminEpisodeItem {
   stream_link?: string
 }
 
+/** Request-Payload zum Erstellen eines neuen Anime-Eintrags im Admin-Bereich. */
 export interface AdminAnimeCreateRequest {
   title: string
   type: AnimeType
@@ -44,6 +48,7 @@ export interface AdminAnimeCreateRequest {
   relations?: AdminAnimeRelation[]
 }
 
+/** Vorgeschlagene Asset-URLs fuer einen Anime-Erstellungs-Draft (Cover, Banner, Logo usw.). */
 export interface AdminAnimeCreateDraftAssetSuggestions {
   cover?: string
   banner?: string
@@ -52,12 +57,14 @@ export interface AdminAnimeCreateDraftAssetSuggestions {
   background_video?: string
 }
 
+/** Alternativer Titel eines Anime mit optionaler Sprache und Art-Kennzeichnung. */
 export interface AdminAnimeAltTitle {
   language?: string
   kind?: string
   title: string
 }
 
+/** Vollstaendiger Payload-Typ fuer einen Anime-Erstellungs-Draft inkl. Alt-Titeln und Asset-Vorschlaegen. */
 export interface AdminAnimeCreateDraftPayload {
   title: string
   title_de?: string
@@ -78,6 +85,7 @@ export interface AdminAnimeCreateDraftPayload {
   asset_suggestions?: AdminAnimeCreateDraftAssetSuggestions
 }
 
+/** Partieller Request-Payload zum Aktualisieren eines bestehenden Anime-Eintrags. */
 export interface AdminAnimePatchRequest {
   title?: string
   title_de?: string | null
@@ -95,6 +103,7 @@ export interface AdminAnimePatchRequest {
   folder_name?: string | null
 }
 
+/** Partieller Draft-Payload fuer die Bearbeitung eines bestehenden Anime-Eintrags. */
 export interface AdminAnimeEditDraftPayload {
   title?: string | null
   title_de?: string | null
@@ -112,12 +121,14 @@ export interface AdminAnimeEditDraftPayload {
   folder_name?: string | null
 }
 
+/** Request zum Anreichern eines bestehenden Anime-Eintrags mit AniSearch-Daten. */
 export interface AdminAnimeAniSearchEditRequest {
   anisearch_id: string
   draft: AdminAnimeEditDraftPayload
   protected_fields?: string[]
 }
 
+/** Ergebnis einer AniSearch-Anreicherung im Draft-Modus mit Feldstatus und Relationsstatistiken. */
 export interface AdminAnimeAniSearchEditResult {
   mode: 'draft'
   anisearch_id: string
@@ -129,6 +140,7 @@ export interface AdminAnimeAniSearchEditResult {
   skipped_protected_fields?: string[]
 }
 
+/** Konflikt-Ergebnis einer AniSearch-Anreicherung: der Eintrag existiert bereits. */
 export interface AdminAnimeAniSearchEditConflictResult {
   mode: 'conflict'
   anisearch_id: string
@@ -137,11 +149,13 @@ export interface AdminAnimeAniSearchEditConflictResult {
   redirect_path: string
 }
 
+/** Request zum Erstellen eines neuen Anime-Eintrags auf Basis von AniSearch-Daten. */
 export interface AdminAnimeAniSearchCreateRequest {
   anisearch_id: string
   draft: AdminAnimeCreateDraftPayload
 }
 
+/** Suchkandidat aus der AniSearch-Suche mit Basis-Metadaten. */
 export interface AdminAnimeAniSearchSearchCandidate {
   anisearch_id: string
   title: string
@@ -149,6 +163,7 @@ export interface AdminAnimeAniSearchSearchCandidate {
   year?: number
 }
 
+/** Zusammenfassung der Provider-Ergebnisse nach einer AniSearch-basierten Erstellung. */
 export interface AdminAnimeAniSearchCreateProviderSummary {
   anisearch_id: string
   jellysync_applied: boolean
@@ -156,6 +171,7 @@ export interface AdminAnimeAniSearchCreateProviderSummary {
   relation_matches: number
 }
 
+/** Draft-Ergebnis nach einer AniSearch-basierten Anime-Erstellung mit gefuellten Feldern. */
 export interface AdminAnimeAniSearchCreateDraftResult {
   mode: 'draft'
   anisearch_id: string
@@ -167,6 +183,7 @@ export interface AdminAnimeAniSearchCreateDraftResult {
   provider: AdminAnimeAniSearchCreateProviderSummary
 }
 
+/** Weiterleitungs-Ergebnis wenn der AniSearch-Eintrag bereits als Anime existiert. */
 export interface AdminAnimeAniSearchCreateConflictResult {
   mode: 'redirect'
   anisearch_id: string
@@ -175,20 +192,25 @@ export interface AdminAnimeAniSearchCreateConflictResult {
   redirect_path: string
 }
 
+/** Union-Typ fuer das Ergebnis einer AniSearch-basierten Anime-Erstellung (Draft oder Weiterleitung). */
 export type AdminAnimeAniSearchCreateResult =
   | AdminAnimeAniSearchCreateDraftResult
   | AdminAnimeAniSearchCreateConflictResult
 
+/** API-Antwort fuer eine AniSearch-basierte Anime-Erstellung. */
 export interface AdminAnimeAniSearchCreateResponse {
   data: AdminAnimeAniSearchCreateResult
 }
 
+/** API-Antwort fuer eine AniSearch-Suche mit einer Liste von Kandidaten. */
 export interface AdminAnimeAniSearchSearchResponse {
   data: AdminAnimeAniSearchSearchCandidate[]
 }
 
+/** Unterstuetzte Bild-Quell-Provider fuer die Asset-Suche. */
 export type AdminAnimeAssetSearchSource = 'tmdb' | 'fanart.tv' | 'zerochan' | 'konachan' | 'anilist' | 'safebooru'
 
+/** Einzelner Bildkandidat aus der provider-uebergreifenden Asset-Suche. */
 export interface AdminAnimeAssetSearchCandidate {
   id: string
   asset_kind: AdminAnimeAssetKind
@@ -202,6 +224,7 @@ export interface AdminAnimeAssetSearchCandidate {
   year?: number
 }
 
+/** Request-Payload fuer eine provider-uebergreifende Asset-Bildsuche. */
 export interface AdminAnimeAssetSearchRequest {
   asset_kind: AdminAnimeAssetKind
   query: string
@@ -210,10 +233,12 @@ export interface AdminAnimeAssetSearchRequest {
   sources?: AdminAnimeAssetSearchSource[]
 }
 
+/** API-Antwort fuer eine Asset-Bildsuche mit Liste von Kandidaten. */
 export interface AdminAnimeAssetSearchResponse {
   data: AdminAnimeAssetSearchCandidate[]
 }
 
+/** Zusammenfassung der AniSearch-Verarbeitungsschritte beim Erstellen eines Anime. */
 export interface AdminAnimeCreateAniSearchSummary {
   source?: string
   relations_attempted: number
@@ -222,6 +247,7 @@ export interface AdminAnimeCreateAniSearchSummary {
   warnings?: string[]
 }
 
+/** Request-Payload zum Erstellen einer neuen Episode im Admin-Bereich. */
 export interface AdminEpisodeCreateRequest {
   anime_id: number
   episode_number: string
@@ -230,6 +256,7 @@ export interface AdminEpisodeCreateRequest {
   stream_link?: string
 }
 
+/** Partieller Request-Payload zum Aktualisieren einer bestehenden Episode. */
 export interface AdminEpisodePatchRequest {
   episode_number?: string
   title?: string | null
@@ -237,6 +264,7 @@ export interface AdminEpisodePatchRequest {
   stream_link?: string | null
 }
 
+/** Request-Parameter fuer den Jellyfin-Sync eines Anime inkl. Steuerungsoptionen. */
 export interface AdminAnimeJellyfinSyncRequest {
   jellyfin_series_id?: string
   season_number?: number
@@ -247,15 +275,18 @@ export interface AdminAnimeJellyfinSyncRequest {
   allow_mismatch?: boolean
 }
 
+/** API-Antwort nach dem Erstellen oder Aktualisieren eines Anime. */
 export interface AdminAnimeUpsertResponse {
   data: AdminAnimeItem
   anisearch?: AdminAnimeCreateAniSearchSummary
 }
 
+/** API-Antwort nach dem Erstellen oder Aktualisieren einer Episode. */
 export interface AdminEpisodeUpsertResponse {
   data: AdminEpisodeItem
 }
 
+/** Ergebnis-Daten nach dem Loeschen einer Episode (inkl. Anzahl geloeschter Versionen). */
 export interface AdminEpisodeDeleteResult {
   episode_id: number
   anime_id: number
@@ -263,26 +294,31 @@ export interface AdminEpisodeDeleteResult {
   deleted_episode_versions: number
 }
 
+/** API-Antwort nach dem Loeschen einer Episode. */
 export interface AdminEpisodeDeleteResponse {
   data: AdminEpisodeDeleteResult
 }
 
+/** Ergebnis-Daten nach dem Loeschen eines Anime-Eintrags. */
 export interface AdminAnimeDeleteResult {
   anime_id: number
   title: string
   orphaned_local_cover_image?: string
 }
 
+/** API-Antwort nach dem Loeschen eines Anime-Eintrags. */
 export interface AdminAnimeDeleteResponse {
   data: AdminAnimeDeleteResult
 }
 
+/** Erlaubte Beziehungslabels zwischen zwei Anime-Eintraegen (auf vier Typen limitiert). */
 export type AdminAnimeRelationLabel =
   | 'Hauptgeschichte'
   | 'Nebengeschichte'
   | 'Fortsetzung'
   | 'Zusammenfassung'
 
+/** Eine Anime-Relation mit Ziel-Anime-Daten und dem Beziehungslabel. */
 export interface AdminAnimeRelation {
   target_anime_id: number
   relation_label: AdminAnimeRelationLabel
@@ -293,6 +329,7 @@ export interface AdminAnimeRelation {
   target_cover_url?: string
 }
 
+/** Ziel-Anime fuer eine Relation-Auswahl im Admin-Bereich. */
 export interface AdminAnimeRelationTarget {
   anime_id: number
   title: string
@@ -302,6 +339,7 @@ export interface AdminAnimeRelationTarget {
   cover_url?: string
 }
 
+/** API-Antwort fuer die Liste aller Relationen eines Anime. */
 export interface AdminAnimeRelationsResponse {
   data: AdminAnimeRelation[]
 }

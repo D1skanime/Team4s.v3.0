@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetEpisodeVersionEditorContext verarbeitet GET /api/v1/admin/episode-versions/:versionId/editor und gibt den vollständigen Bearbeitungskontext einer Episodenversion zurück.
 func (h *AdminContentHandler) GetEpisodeVersionEditorContext(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -36,6 +37,7 @@ func (h *AdminContentHandler) GetEpisodeVersionEditorContext(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": data})
 }
 
+// ScanEpisodeVersionFolder verarbeitet POST /api/v1/admin/episode-versions/:versionId/scan und durchsucht den Jellyfin-Ordner nach zugehörigen Mediendateien.
 func (h *AdminContentHandler) ScanEpisodeVersionFolder(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

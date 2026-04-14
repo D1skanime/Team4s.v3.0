@@ -75,6 +75,7 @@ func (h *AdminContentHandler) loadJellyfinEpisodeSyncSeriesAndEpisodes(
 	return animeSource, series, episodes, true
 }
 
+// findTargetJellyfinEpisode sucht in der Episodenliste nach der Episode mit der angegebenen Nummer, Season und Pfad-Präfix.
 func findTargetJellyfinEpisode(
 	episodes []jellyfinEpisodeItem,
 	seasonNumber int32,

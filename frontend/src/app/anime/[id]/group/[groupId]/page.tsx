@@ -19,6 +19,7 @@ import {
 import { GroupAssetShowcase } from "./GroupAssetShowcase";
 import styles from "./page.module.css";
 
+/** Props fuer die Gruppen-Story-Seite mit Anime- und Gruppen-ID. */
 interface GroupStoryPageProps {
   params:
     | {

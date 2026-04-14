@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// StreamRelease leitet den Videostream einer Release-Version nach Autorisierungsprüfung als Proxy weiter.
 func (h *FansubHandler) StreamRelease(c *gin.Context) {
 	versionID, err := parseEpisodeVersionID(c.Param("id"))
 	if err != nil {

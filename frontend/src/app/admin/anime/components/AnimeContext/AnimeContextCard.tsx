@@ -13,6 +13,11 @@ import contextStyles from './AnimeContext.module.css'
 
 const styles = { ...sharedStyles, ...contextStyles }
 
+/**
+ * Props der AnimeContextCard-Komponente.
+ * Enthalten den aktiven Anime-Kontext, zugehoerige Fansub-Gruppen,
+ * alle Eingabe- und Ladezustaende sowie die Navigations- und Aenderungs-Callbacks.
+ */
 interface AnimeContextCardProps {
   anime: AnimeDetail | null
   fansubs: FansubGroup[]
@@ -30,6 +35,12 @@ interface AnimeContextCardProps {
   contextAnchorRef: RefObject<HTMLDivElement>
 }
 
+/**
+ * Aktiver-Kontext-Panel im Admin-Studio.
+ * Rendert das Suchformular fuer die Anime-ID, zeigt bei geladenem Kontext
+ * Cover, Metadaten, Navigationsbuttons sowie Fansub-Historie und
+ * Fansub-Manager an.
+ */
 export function AnimeContextCard({
   anime,
   fansubs,

@@ -1,5 +1,11 @@
 import styles from '../../../admin.module.css'
 
+/**
+ * Props der AnimeBrowserPagination-Komponente.
+ * Enthalten den aktuellen Seitenstand, ob ein Reset moeglich ist,
+ * ob nicht wesentliche Aktionen versteckt werden sollen,
+ * und die zugehoerigen Steuerungs-Callbacks.
+ */
 interface AnimeBrowserPaginationProps {
   isLoading: boolean
   page: number
@@ -13,6 +19,11 @@ interface AnimeBrowserPaginationProps {
   onReload: () => void
 }
 
+/**
+ * Paginierungsleiste des Anime-Browsers.
+ * Rendert Suchen-, Reset-, Vor-/Zurueck- und Neu-Laden-Schaltflaechen.
+ * Im `editing`-Modus werden Paginierung und Neu-Laden ausgeblendet.
+ */
 export function AnimeBrowserPagination({
   isLoading,
   page,

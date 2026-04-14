@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// UpdateEpisodeVersion aktualisiert eine bestehende Episodenversion (nur für Admins).
 func (h *FansubHandler) UpdateEpisodeVersion(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

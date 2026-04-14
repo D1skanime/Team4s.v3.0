@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// SearchAnimeCreateAniSearchCandidates verarbeitet GET /api/v1/admin/anime/anisearch/search und liefert AniSearch-Kandidaten für die Anime-Erstellung.
 func (h *AdminContentHandler) SearchAnimeCreateAniSearchCandidates(c *gin.Context) {
 	query := strings.TrimSpace(c.Query("q"))
 	if query == "" {

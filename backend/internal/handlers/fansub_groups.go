@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ListFansubs returns a paginated list of fansub groups.
+// ListFansubs gibt eine paginierte Liste aller Fansub-Gruppen zurück.
 func (h *FansubHandler) ListFansubs(c *gin.Context) {
 	page, err := parsePositiveInt(c.DefaultQuery("page", "1"))
 	if err != nil {
@@ -76,7 +76,7 @@ func (h *FansubHandler) ListFansubs(c *gin.Context) {
 	})
 }
 
-// CreateFansub creates a new fansub group.
+// CreateFansub legt eine neue Fansub-Gruppe an.
 func (h *FansubHandler) CreateFansub(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -120,7 +120,7 @@ func (h *FansubHandler) CreateFansub(c *gin.Context) {
 	})
 }
 
-// GetFansubByID returns a fansub group by its ID.
+// GetFansubByID gibt eine Fansub-Gruppe anhand ihrer ID zurück.
 func (h *FansubHandler) GetFansubByID(c *gin.Context) {
 	id, err := parseFansubID(c.Param("id"))
 	if err != nil {
@@ -152,7 +152,7 @@ func (h *FansubHandler) GetFansubByID(c *gin.Context) {
 	})
 }
 
-// GetFansubBySlug returns a fansub group by its slug.
+// GetFansubBySlug gibt eine Fansub-Gruppe anhand ihres Slugs zurück.
 func (h *FansubHandler) GetFansubBySlug(c *gin.Context) {
 	slug := strings.TrimSpace(c.Param("slug"))
 	if slug == "" || len([]rune(slug)) > 120 {
@@ -184,7 +184,7 @@ func (h *FansubHandler) GetFansubBySlug(c *gin.Context) {
 	})
 }
 
-// UpdateFansub modifies an existing fansub group.
+// UpdateFansub aktualisiert eine bestehende Fansub-Gruppe.
 func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -242,7 +242,7 @@ func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 	})
 }
 
-// DeleteFansub removes a fansub group.
+// DeleteFansub löscht eine Fansub-Gruppe.
 func (h *FansubHandler) DeleteFansub(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

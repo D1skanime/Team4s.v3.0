@@ -4,6 +4,8 @@ import (
 	"team4s.v3/backend/internal/models"
 )
 
+// validateFansubAliasCreateRequest prüft und normalisiert die Felder eines Erstellungs-Requests für einen Fansub-Alias.
+// Gibt das bereinigte Input-Objekt und eine Fehlermeldung zurück; die Meldung ist leer bei Erfolg.
 func validateFansubAliasCreateRequest(req fansubAliasCreateRequest) (models.FansubAliasCreateInput, string) {
 	alias := normalizeRequiredString(&req.Alias)
 	if alias == nil || len([]rune(*alias)) > 120 {

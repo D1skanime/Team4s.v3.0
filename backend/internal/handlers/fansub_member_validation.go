@@ -4,6 +4,7 @@ import (
 	"team4s.v3/backend/internal/models"
 )
 
+// validateFansubMemberCreateRequest prüft die Pflichtfelder eines Anlege-Requests für Fansub-Mitglieder.
 func validateFansubMemberCreateRequest(req fansubMemberCreateRequest) (models.FansubMemberCreateInput, string) {
 	handle := normalizeRequiredString(&req.Handle)
 	if handle == nil || len([]rune(*handle)) > 120 {
@@ -34,6 +35,7 @@ func validateFansubMemberCreateRequest(req fansubMemberCreateRequest) (models.Fa
 	}, ""
 }
 
+// validateFansubMemberPatchRequest prüft die Felder eines Patch-Requests für Fansub-Mitglieder.
 func validateFansubMemberPatchRequest(req models.FansubMemberPatchInput) (models.FansubMemberPatchInput, string) {
 	if !req.Handle.Set && !req.Role.Set && !req.SinceYear.Set && !req.UntilYear.Set && !req.Notes.Set {
 		return models.FansubMemberPatchInput{}, "mindestens ein feld ist erforderlich"

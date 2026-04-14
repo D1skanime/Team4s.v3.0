@@ -18,6 +18,7 @@ var allowedMediaImageKinds = map[string]struct{}{
 	"thumb":    {},
 }
 
+// MediaImage liefert ein Bild vom konfigurierten Media-Provider (Jellyfin/Emby) als Proxy-Antwort.
 func (h *FansubHandler) MediaImage(c *gin.Context) {
 	provider := strings.TrimSpace(c.Query("provider"))
 	itemID := strings.TrimSpace(c.Query("item_id"))
@@ -85,6 +86,8 @@ func (h *FansubHandler) MediaImage(c *gin.Context) {
 	}
 }
 
+// parsePositiveIntQuery liest einen optionalen positiven Ganzzahl-Query-Parameter aus dem Request.
+// Gibt nil zurück, wenn der Parameter fehlt; schreibt einen Bad-Request-Fehler und false, wenn der Wert ungültig ist.
 func parsePositiveIntQuery(c *gin.Context, key string, errorMessage string) (*int, bool) {
 	raw := strings.TrimSpace(c.Query(key))
 	if raw == "" {
@@ -99,6 +102,8 @@ func parsePositiveIntQuery(c *gin.Context, key string, errorMessage string) (*in
 	return &value, true
 }
 
+// parseBoundedIntQuery liest einen optionalen Ganzzahl-Query-Parameter innerhalb eines erlaubten Wertebereichs.
+// Gibt nil zurück, wenn der Parameter fehlt; schreibt einen Bad-Request-Fehler und false bei ungültigem Wert.
 func parseBoundedIntQuery(c *gin.Context, key string, minValue int, maxValue int, errorMessage string) (*int, bool) {
 	raw := strings.TrimSpace(c.Query(key))
 	if raw == "" {

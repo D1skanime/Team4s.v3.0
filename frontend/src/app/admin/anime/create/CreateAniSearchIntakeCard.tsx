@@ -10,6 +10,11 @@ import type {
 } from "./createAniSearchControllerHelpers";
 import type { AdminAnimeAniSearchSearchCandidate } from "@/types/admin";
 
+/**
+ * Props der CreateAniSearchIntakeCard-Komponente. Steuert den Zustand und die
+ * Rueckrufe fuer die AniSearch-Suche, ID-Eingabe, Kandidatenauswahl und
+ * Ergebnisanzeige auf der Anime-Erstellen-Seite.
+ */
 interface CreateAniSearchIntakeCardProps {
   anisearchID: string;
   searchQuery: string;
@@ -27,6 +32,12 @@ interface CreateAniSearchIntakeCardProps {
   onSubmit: () => void;
 }
 
+/**
+ * Rendert die AniSearch-Intake-Karte auf der Anime-Erstellen-Seite. Ermoeglicht
+ * die Suche nach Titeln oder das direkte Eingeben einer AniSearch-ID. Zeigt
+ * Treffer als Modal-Liste, Konflikte mit Weiterleitungslink und Ergebnisse
+ * mit aktualisierten Feldern und Relationsnotizen an.
+ */
 export function CreateAniSearchIntakeCard({
   anisearchID,
   searchQuery,

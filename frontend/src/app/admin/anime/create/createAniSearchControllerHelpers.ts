@@ -8,6 +8,11 @@ import { hydrateManualDraftFromAniSearchDraft, type ManualAnimeDraftValues } fro
 import { buildCreateAniSearchDraftSummary } from "./createAniSearchSummary";
 import { resolveCreateAniSearchDraftMergeInputs } from "./createPageHelpers";
 
+/**
+ * Zustand nach einem erfolgreichen AniSearch-Entwurfsabruf. Enthaelt die
+ * AniSearch-ID, Quellenreferenz, Zusammenfassung, aktualisierte Felder,
+ * Relationshinweise und den rohen Entwurf vom Backend.
+ */
 export interface CreateAniSearchDraftState {
   anisearchID: string;
   source: string;
@@ -18,6 +23,11 @@ export interface CreateAniSearchDraftState {
   draft: AdminAnimeAniSearchCreateDraftResult["draft"];
 }
 
+/**
+ * Zustand, wenn eine AniSearch-ID bereits mit einem vorhandenen Anime
+ * verknuepft ist. Enthaelt die Konflikts-ID, vorhandenen Titel und einen
+ * Weiterleitungspfad zum bestehenden Anime.
+ */
 export interface CreateAniSearchConflictState {
   anisearchID: string;
   existingAnimeID: number;
@@ -25,6 +35,11 @@ export interface CreateAniSearchConflictState {
   redirectPath: string;
 }
 
+/**
+ * Erstellt den Controller-Zustand aus einem erfolgreichen AniSearch-
+ * Entwurfsergebnis. Optionale Felder erlauben das Markieren ueberschriebener
+ * Jellyfin-Werte und manuell beibehaltener Felder.
+ */
 export function buildCreateAniSearchDraftState(
   result: AdminAnimeAniSearchCreateDraftResult,
   options?: {
@@ -49,6 +64,10 @@ export function buildCreateAniSearchDraftState(
   };
 }
 
+/**
+ * Erstellt den Konfliktzustand aus einem Backend-Konfliktergebnis, das
+ * zurueckgegeben wird, wenn die AniSearch-ID bereits vergeben ist.
+ */
 export function buildCreateAniSearchConflictState(
   result: AdminAnimeAniSearchCreateConflictResult,
 ): CreateAniSearchConflictState {
@@ -60,6 +79,11 @@ export function buildCreateAniSearchConflictState(
   };
 }
 
+/**
+ * Verarbeitet das vollstaendige AniSearch-Ergebnis im Controller-Kontext.
+ * Bei einem Konflikt wird der Weiterleitungspfad zurueckgegeben; bei Erfolg
+ * wird der naechste Entwurfszustand mit den gemergten Daten berechnet.
+ */
 export function applyCreateAniSearchControllerResult(params: {
   currentDraft: ManualAnimeDraftValues;
   jellyfinSnapshot: ManualAnimeDraftValues | null;

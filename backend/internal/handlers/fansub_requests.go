@@ -1,5 +1,6 @@
 package handlers
 
+// fansubGroupCreateRequest enthält die Felder zum Anlegen einer neuen Fansub-Gruppe.
 type fansubGroupCreateRequest struct {
 	Slug          string  `json:"slug"`
 	Name          string  `json:"name"`
@@ -19,6 +20,7 @@ type fansubGroupCreateRequest struct {
 	Country       *string `json:"country"`
 }
 
+// fansubMemberCreateRequest enthält die Felder zum Anlegen eines neuen Fansub-Mitglieds.
 type fansubMemberCreateRequest struct {
 	Handle    string  `json:"handle"`
 	Role      string  `json:"role"`
@@ -27,10 +29,12 @@ type fansubMemberCreateRequest struct {
 	Notes     *string `json:"notes"`
 }
 
+// fansubAliasCreateRequest enthält das Feld zum Anlegen eines neuen Fansub-Alias.
 type fansubAliasCreateRequest struct {
 	Alias string `json:"alias"`
 }
 
+// animeFansubAttachRequest enthält die Felder zum Verknüpfen eines Anime mit einer Fansub-Gruppe.
 type animeFansubAttachRequest struct {
 	IsPrimary *bool   `json:"is_primary"`
 	Notes     *string `json:"notes"`

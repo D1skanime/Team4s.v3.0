@@ -11,18 +11,33 @@ import type { AnimeListItem } from '@/types/anime'
 
 import styles from '../AdminStudio.module.css'
 
+/**
+ * Props der AdminAnimeOverviewClient-Komponente.
+ * Nimmt die server-seitig vorgeladene Anime-Liste, einen optionalen
+ * Ladezeitfehler sowie die ID eines soeben erstellten Anime entgegen.
+ */
 interface AdminAnimeOverviewClientProps {
   initialItems: AnimeListItem[]
   initialError: string | null
   createdID: number | null
 }
 
+/**
+ * Wandelt einen unbekannten Fehler in eine lesbare Fehlermeldung um.
+ * Gibt bei API-Fehlern den HTTP-Status und die Meldung zurueck,
+ * bei sonstigen Error-Objekten die Nachricht, sonst einen Fallback-Text.
+ */
 function formatError(error: unknown): string {
   if (error instanceof ApiError) return `(${error.status}) ${error.message}`
   if (error instanceof Error && error.message.trim()) return error.message
   return 'Anime konnte nicht geloescht werden.'
 }
 
+/**
+ * Gibt die CSS-Klasse fuer den Status-Badge eines Anime zurueck.
+ * Unterscheidet zwischen aktiv laufenden, abgeschlossenen, abgebrochenen,
+ * lizenzierten und deaktivierten Eintraegen.
+ */
 function resolveStatusTone(status: string): string {
   switch (status) {
     case 'ongoing':
@@ -39,6 +54,13 @@ function resolveStatusTone(status: string): string {
   }
 }
 
+/**
+ * Client-Komponente fuer die Admin-Anime-Uebersicht.
+ * Rendert die Liste aller Anime mit Cover, Metadaten und Aktionen
+ * (Bearbeiten, Public ansehen, Loeschen). Verwaltet Loeschvorgang inkl.
+ * Bestaetigungsdialog, Fehler- und Erfolgsmeldungen sowie den
+ * Hinweis auf einen gerade neu erstellten Anime.
+ */
 export function AdminAnimeOverviewClient({
   initialItems,
   initialError,

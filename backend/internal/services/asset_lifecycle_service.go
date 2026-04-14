@@ -13,16 +13,23 @@ import (
 	"team4s.v3/backend/internal/repository"
 )
 
+// AssetLifecycleStore definiert den Datenbankzugriffsvertrag, den der AssetLifecycleService
+// benötigt, um Subjects nachzuschlagen und Audit-Ereignisse zu speichern.
 type AssetLifecycleStore interface {
 	LookupAssetLifecycleSubject(ctx context.Context, entityType string, entityID int64) (*models.AssetLifecycleSubject, error)
 	RecordAssetLifecycleEvent(ctx context.Context, entry models.AssetLifecycleAuditEntry) error
 }
 
+// AssetLifecycleService verwaltet das kanonische Ordnerlayout für Asset-Uploads und
+// protokolliert alle Provisionierungsoperationen im Audit-Log.
 type AssetLifecycleService struct {
 	store      AssetLifecycleStore
 	storageDir string
 }
 
+// NewAssetLifecycleService erstellt einen neuen AssetLifecycleService mit dem angegebenen
+// Datenbankzugriff und Speicherverzeichnis. Leere Speicherverzeichnisse werden durch
+// "./storage/media" ersetzt.
 func NewAssetLifecycleService(store AssetLifecycleStore, storageDir string) *AssetLifecycleService {
 	dir := strings.TrimSpace(storageDir)
 	if dir == "" {
@@ -35,6 +42,8 @@ func NewAssetLifecycleService(store AssetLifecycleStore, storageDir string) *Ass
 	}
 }
 
+// Phase6AnimeAssetLifecyclePolicy gibt die Asset-Lebenszyklus-Policy für Anime-Entities zurück.
+// Sie definiert erlaubte Asset-Typen und die erforderlichen Unterordner im kanonischen Layout.
 func Phase6AnimeAssetLifecyclePolicy() models.AssetLifecyclePolicy {
 	return models.AssetLifecyclePolicy{
 		EntityType:  "anime",
@@ -50,6 +59,9 @@ func Phase6AnimeAssetLifecyclePolicy() models.AssetLifecyclePolicy {
 	}
 }
 
+// EnsureCanonicalLayout stellt sicher, dass das kanonische Ordnerlayout für eine Entity
+// auf dem Dateisystem vorhanden ist. Fehlende Ordner werden angelegt. Der Vorgang wird
+// im Audit-Log protokolliert.
 func (s *AssetLifecycleService) EnsureCanonicalLayout(
 	ctx context.Context,
 	actorUserID int64,
@@ -114,6 +126,8 @@ func (s *AssetLifecycleService) EnsureCanonicalLayout(
 	return result, nil
 }
 
+// resolvePolicy gibt die Asset-Lifecycle-Policy für den angegebenen Entity-Typ zurück.
+// Derzeit wird nur "anime" unterstützt.
 func (s *AssetLifecycleService) resolvePolicy(entityType string) (models.AssetLifecyclePolicy, error) {
 	if strings.TrimSpace(strings.ToLower(entityType)) != "anime" {
 		return models.AssetLifecyclePolicy{}, &AssetLifecycleError{
@@ -125,6 +139,8 @@ func (s *AssetLifecycleService) resolvePolicy(entityType string) (models.AssetLi
 	return Phase6AnimeAssetLifecyclePolicy(), nil
 }
 
+// resolveCanonicalRoot berechnet und validiert den kanonischen Wurzelpfad für eine Entity.
+// Pfade außerhalb des Speicherverzeichnisses werden mit einem UnsafePath-Fehler abgelehnt.
 func (s *AssetLifecycleService) resolveCanonicalRoot(policy models.AssetLifecyclePolicy, entityID int64) (string, error) {
 	base := filepath.Clean(s.storageDir)
 	target := filepath.Join(base, policy.RootSegment, fmt.Sprintf("%d", entityID))

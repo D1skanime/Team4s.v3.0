@@ -9,11 +9,19 @@ import type {
   AdminAnimeAssetSearchCandidate,
 } from "@/types/admin";
 
+/**
+ * Eingeschraenkte Asset-Arten, fuer die eine Online-Suche unterstuetzt wird.
+ * Schliesst background_video aus, das nicht durchsucht werden kann.
+ */
 type SearchableAssetKind = Extract<
   AdminAnimeAssetKind,
   "cover" | "banner" | "logo" | "background"
 >;
 
+/**
+ * Props des CreateAssetSearchDialog. Steuert Suchzustand, Kandidatenliste,
+ * Auswahlstatus und Aktionen fuer den Asset-Suchdialog auf der Erstellen-Seite.
+ */
 interface CreateAssetSearchDialogProps {
   activeKind: SearchableAssetKind | null;
   query: string;
@@ -32,6 +40,10 @@ interface CreateAssetSearchDialogProps {
   onAdoptSelection: () => void;
 }
 
+/**
+ * Gibt Ueberschrift, Hilfetext und Button-Beschriftung fuer den jeweiligen
+ * Asset-Typ zurueck. Erleichtert das kontextgenaue Beschriften des Dialogs.
+ */
 function getAssetCopy(kind: SearchableAssetKind | null) {
   switch (kind) {
     case "cover":
@@ -67,6 +79,12 @@ function getAssetCopy(kind: SearchableAssetKind | null) {
   }
 }
 
+/**
+ * Rendert den modalen Asset-Suchdialog auf der Anime-Erstellen-Seite. Erlaubt
+ * die Suche nach Cover-, Banner-, Logo- oder Hintergrundbildern aus externen
+ * Quellen. Mehrfachauswahl ist nur fuer Hintergrundbilder erlaubt.
+ * Geschlossen wird der Dialog, wenn kein aktiver Asset-Typ gesetzt ist.
+ */
 export function CreateAssetSearchDialog({
   activeKind,
   query,

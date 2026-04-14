@@ -6,6 +6,11 @@ import browserStyles from './AnimeBrowser.module.css'
 
 const styles = { ...sharedStyles, ...browserStyles }
 
+/**
+ * Props der AnimeBrowserList-Komponente.
+ * Enthalten die anzuzeigenden Anime-Eintraege, Lade- und Sync-Zustaende
+ * sowie Callbacks fuer Auswahl, Sync und Cover-Fehler.
+ */
 interface AnimeBrowserListProps {
   items: AnimeListItem[]
   activeAnimeID: number | null
@@ -20,6 +25,11 @@ interface AnimeBrowserListProps {
   hideNonEssential: boolean
 }
 
+/**
+ * Liste aller Anime-Eintraege im Browser-Panel.
+ * Rendert einen Ladezustand oder einen leeren Hinweis wenn keine
+ * Eintraege vorhanden sind, ansonsten eine AnimeRow pro Eintrag.
+ */
 export function AnimeBrowserList({
   items,
   activeAnimeID,

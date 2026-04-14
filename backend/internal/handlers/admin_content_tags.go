@@ -9,11 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ListTagTokens handles GET /api/v1/admin/tags.
-//
-// Returns normalized tag tokens sorted by usage count descending, with an
-// optional substring filter and configurable limit. Mirrors the genre token
-// endpoint shape so frontend state management stays parallel.
+// ListTagTokens verarbeitet GET /api/v1/admin/tags und gibt normalisierte Tag-Token absteigend nach Verwendungshäufigkeit zurück, mit optionalem Teilstring-Filter und konfigurierbarem Limit.
 func (h *AdminContentHandler) ListTagTokens(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return

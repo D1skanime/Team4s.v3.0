@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// UploadFansubMedia nimmt eine Mediendatei (Logo oder Banner) für eine Fansub-Gruppe entgegen und speichert sie.
 func (h *FansubHandler) UploadFansubMedia(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

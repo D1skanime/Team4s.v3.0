@@ -12,22 +12,29 @@ import (
 )
 
 const (
+	// MaxDisplayNameLengthRune gibt die maximale Zeichenlänge (Runes) für einen Anzeigenamen an.
 	MaxDisplayNameLengthRune = 80
-	MaxSessionIDLengthRune   = 128
+	// MaxSessionIDLengthRune gibt die maximale Zeichenlänge (Runes) für eine Session-ID an.
+	MaxSessionIDLengthRune = 128
 )
 
 var (
-	ErrTokenFormat    = errors.New("token format invalid")
+	// ErrTokenFormat wird zurückgegeben, wenn das Token-Format ungültig ist (z.B. fehlendes Trennzeichen).
+	ErrTokenFormat = errors.New("token format invalid")
+	// ErrTokenSignature wird zurückgegeben, wenn die HMAC-Signatur nicht übereinstimmt.
 	ErrTokenSignature = errors.New("token signature invalid")
-	ErrTokenPayload   = errors.New("token payload invalid")
-	ErrTokenExpired   = errors.New("token expired")
+	// ErrTokenPayload wird zurückgegeben, wenn das Token-Payload fehlerhafte oder unvollständige Daten enthält.
+	ErrTokenPayload = errors.New("token payload invalid")
+	// ErrTokenExpired wird zurückgegeben, wenn das Token abgelaufen ist.
+	ErrTokenExpired = errors.New("token expired")
 )
 
+// Claims enthält die Nutzinformationen eines signierten Tokens.
 type Claims struct {
-	UserID      int64
-	DisplayName string
-	SessionID   string
-	ExpiresAt   int64
+	UserID      int64  // Eindeutige Benutzer-ID
+	DisplayName string // Anzeigename des Benutzers
+	SessionID   string // Optionale Session-ID für Widerrufsprüfungen
+	ExpiresAt   int64  // Unix-Zeitstempel des Ablaufdatums
 }
 
 type signedTokenPayload struct {
@@ -37,6 +44,8 @@ type signedTokenPayload struct {
 	ExpiresAt   int64  `json:"exp"`
 }
 
+// CreateSignedToken erzeugt ein HMAC-SHA256-signiertes Token aus den übergebenen Claims
+// und gibt den Token-String sowie den Unix-Ablaufzeitstempel zurück.
 func CreateSignedToken(claims Claims, secret string, now time.Time, ttl time.Duration) (string, int64, error) {
 	trimmedSecret := strings.TrimSpace(secret)
 	if trimmedSecret == "" || ttl <= 0 {
@@ -71,6 +80,8 @@ func CreateSignedToken(claims Claims, secret string, now time.Time, ttl time.Dur
 	return payloadSegment + "." + signatureSegment, expiresAt, nil
 }
 
+// ParseAndVerifySignedToken parst ein signiertes Token, prüft Signatur und Ablaufzeit
+// und gibt die enthaltenen Claims zurück.
 func ParseAndVerifySignedToken(token string, secret string, now time.Time) (Claims, error) {
 	if strings.TrimSpace(token) == "" || strings.TrimSpace(secret) == "" {
 		return Claims{}, ErrTokenFormat
@@ -125,6 +136,8 @@ func ParseAndVerifySignedToken(token string, secret string, now time.Time) (Clai
 	return normalizedClaims, nil
 }
 
+// HashToken erzeugt einen SHA-256-Hex-Hash des übergebenen Token-Strings
+// und wird für Widerruf-Lookups in Redis verwendet.
 func HashToken(rawToken string) string {
 	hash := sha256.Sum256([]byte(strings.TrimSpace(rawToken)))
 	return hex.EncodeToString(hash[:])

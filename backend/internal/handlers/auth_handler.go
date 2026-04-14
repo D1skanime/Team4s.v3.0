@@ -23,6 +23,7 @@ type revokeAuthRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+// AuthIssueConfig enthält die Konfiguration für die Token-Ausstellung, einschließlich Dev-Modus-Einstellungen.
 type AuthIssueConfig struct {
 	DevMode        bool
 	DevUserID      int64
@@ -30,6 +31,7 @@ type AuthIssueConfig struct {
 	DevKey         string
 }
 
+// AuthHandler verarbeitet alle Authentifizierungs-Endpunkte (Issue, Refresh, Revoke).
 type AuthHandler struct {
 	repo            *repository.AuthRepository
 	tokenSecret     string
@@ -38,6 +40,7 @@ type AuthHandler struct {
 	issueConfig     AuthIssueConfig
 }
 
+// NewAuthHandler erstellt einen neuen AuthHandler mit Repository, Token-Secret und konfigurierten TTL-Werten.
 func NewAuthHandler(
 	repo *repository.AuthRepository,
 	tokenSecret string,

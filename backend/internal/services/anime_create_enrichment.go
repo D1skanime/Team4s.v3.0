@@ -13,17 +13,22 @@ import (
 	"team4s.v3/backend/internal/models"
 )
 
+// AniSearchFetcher definiert die Schnittstelle zum Abrufen und Suchen von Anime-Daten bei AniSearch.
 type AniSearchFetcher interface {
 	FetchAnime(ctx context.Context, aniSearchID string) (AniSearchAnime, error)
 	SearchAnime(ctx context.Context, query string, limit int) ([]AniSearchSearchCandidate, error)
 }
 
+// AnimeCreateEnrichmentRepository definiert die Datenbankoperationen, die der AnimeCreateEnrichmentService
+// zum Suchen und Auflösen von Anime-Quellen und Relationen benötigt.
 type AnimeCreateEnrichmentRepository interface {
 	FindAnimeBySource(ctx context.Context, source string) (*models.AdminAnimeSourceMatch, error)
 	ResolveAdminAnimeRelationTargetsByTitles(ctx context.Context, titles []string) ([]models.AdminAnimeRelationTitleMatch, error)
 	ResolveAdminAnimeRelationTargetsBySources(ctx context.Context, sources []string) ([]models.AdminAnimeSourceMatch, error)
 }
 
+// JellysyncFollowupResult enthält das Ergebnis einer Jellyfin-Synchronisations-Nachfolge-Operation,
+// inklusive des aktualisierten Entwurfs und der Liste befüllter Felder und Assets.
 type JellysyncFollowupResult struct {
 	Draft        models.AdminAnimeCreateDraftPayload
 	FilledFields []string
@@ -31,14 +36,20 @@ type JellysyncFollowupResult struct {
 	Applied      bool
 }
 
+// JellysyncFollowupFunc ist eine Callback-Funktion, die nach dem AniSearch-Anreicherungsschritt
+// aufgerufen wird, um Jellyfin-Daten in den Entwurf einzumischen.
 type JellysyncFollowupFunc func(ctx context.Context, draft models.AdminAnimeCreateDraftPayload) (JellysyncFollowupResult, error)
 
+// AnimeCreateEnrichmentService koordiniert die AniSearch-Anreicherung und optionale
+// Jellyfin-Synchronisation beim Erstellen eines neuen Anime-Entwurfs.
 type AnimeCreateEnrichmentService struct {
 	fetcher  AniSearchFetcher
 	repo     AnimeCreateEnrichmentRepository
 	followup JellysyncFollowupFunc
 }
 
+// NewAnimeCreateEnrichmentService erstellt einen neuen AnimeCreateEnrichmentService mit dem angegebenen
+// AniSearch-Fetcher, Repository und optionalen Jellyfin-Followup-Callback.
 func NewAnimeCreateEnrichmentService(
 	fetcher AniSearchFetcher,
 	repo AnimeCreateEnrichmentRepository,
@@ -51,16 +62,22 @@ func NewAnimeCreateEnrichmentService(
 	}
 }
 
+// AdminAnimeAssetSearchProvider definiert die Schnittstelle für einen Asset-Suchprovider,
+// der Kandidaten für einen bestimmten Asset-Typ (z.B. Cover, Banner) liefert.
 type AdminAnimeAssetSearchProvider interface {
 	Source() models.AdminAnimeAssetSearchSource
 	SupportsAssetKind(assetKind string) bool
 	SearchAssetCandidates(ctx context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error)
 }
 
+// AnimeAssetSearchService koordiniert alle aktiven Asset-Provider und verteilt
+// das Such-Limit gleichmäßig auf die Provider.
 type AnimeAssetSearchService struct {
 	providers map[models.AdminAnimeAssetSearchSource]AdminAnimeAssetSearchProvider
 }
 
+// NewAnimeAssetSearchService erstellt einen neuen AnimeAssetSearchService mit den angegebenen Providern.
+// Nil-Provider werden ignoriert; doppelte Provider-Quellen werden überschrieben.
 func NewAnimeAssetSearchService(providers ...AdminAnimeAssetSearchProvider) *AnimeAssetSearchService {
 	indexed := make(map[models.AdminAnimeAssetSearchSource]AdminAnimeAssetSearchProvider, len(providers))
 	for _, provider := range providers {
@@ -72,6 +89,8 @@ func NewAnimeAssetSearchService(providers ...AdminAnimeAssetSearchProvider) *Ani
 	return &AnimeAssetSearchService{providers: indexed}
 }
 
+// SearchAssetCandidates koordiniert alle aktiven Asset-Provider und gibt eine kombinierte
+// Liste von Asset-Kandidaten zurück, aufgeteilt nach Provider-Limit.
 func (s *AnimeAssetSearchService) SearchAssetCandidates(
 	ctx context.Context,
 	req models.AdminAnimeAssetSearchRequest,

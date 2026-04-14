@@ -1,5 +1,10 @@
 import type { AdminAnimeAniSearchCreateDraftResult } from "@/types/admin";
 
+/**
+ * Parameter fuer die Erstellung einer AniSearch-Entwurfs-Zusammenfassung.
+ * Enthaelt das Ergebnis vom Backend sowie Listen ueberschriebener und
+ * beibehaltener Felder.
+ */
 interface BuildCreateAniSearchDraftSummaryParams {
   result: Pick<
     AdminAnimeAniSearchCreateDraftResult,
@@ -9,6 +14,11 @@ interface BuildCreateAniSearchDraftSummaryParams {
   preservedManualFields: string[];
 }
 
+/**
+ * Strukturierte Zusammenfassung nach dem Laden eines AniSearch-Entwurfs,
+ * bestehend aus einer Hauptnachricht, Detailnotizen, aktualisierten Feldern,
+ * Relationshinweisen und Entwurfsstatusnotizen.
+ */
 export interface CreateAniSearchDraftSummary {
   message: string;
   notes: string[];
@@ -17,10 +27,19 @@ export interface CreateAniSearchDraftSummary {
   draftStatusNotes: string[];
 }
 
+/**
+ * Gibt die Werte als kommagetrennte Zeichenkette zurueck oder den Fallback-
+ * Text, wenn die Liste leer ist. Hilfsfunktion fuer lesbare Zusammenfassungen.
+ */
 function joinOrFallback(values: string[], fallback: string): string {
   return values.length > 0 ? values.join(", ") : fallback;
 }
 
+/**
+ * Erstellt eine strukturierte Zusammenfassung nach dem Laden eines
+ * AniSearch-Entwurfs. Beruecksichtigt ueberschriebene Jellyfin-Felder,
+ * manuell beibehaltene Felder und Relationsstatistiken.
+ */
 export function buildCreateAniSearchDraftSummary({
   result,
   overwrittenJellyfinFields,

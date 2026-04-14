@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ListFansubAliases returns all aliases for a fansub group.
+// ListFansubAliases gibt alle Aliase einer Fansub-Gruppe zurück.
 func (h *FansubHandler) ListFansubAliases(c *gin.Context) {
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
@@ -42,7 +42,7 @@ func (h *FansubHandler) ListFansubAliases(c *gin.Context) {
 	})
 }
 
-// CreateFansubAlias adds a new alias to a fansub group.
+// CreateFansubAlias fügt einer Fansub-Gruppe einen neuen Alias hinzu.
 func (h *FansubHandler) CreateFansubAlias(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -100,7 +100,7 @@ func (h *FansubHandler) CreateFansubAlias(c *gin.Context) {
 	})
 }
 
-// DeleteFansubAlias removes an alias from a fansub group.
+// DeleteFansubAlias entfernt einen Alias aus einer Fansub-Gruppe.
 func (h *FansubHandler) DeleteFansubAlias(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

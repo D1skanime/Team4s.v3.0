@@ -7,12 +7,23 @@ import styles from './AdminStudio.module.css'
 
 export const dynamic = 'force-dynamic'
 
+/**
+ * Props der Admin-Anime-Listenseite.
+ * Optionale searchParams enthalten die ID eines neu angelegten Anime (`created`),
+ * damit dieser nach dem Erstellen in der Liste hervorgehoben werden kann.
+ */
 interface AdminAnimePageProps {
   searchParams?: Promise<{
     created?: string
   }>
 }
 
+/**
+ * Server-Komponente der Admin-Anime-Listenseite.
+ * Laedt die erste Seite der Anime-Liste serverseitig und gibt sie an
+ * `AdminAnimeOverviewClient` weiter. Fehler beim Laden werden als
+ * Fehlermeldung an die Client-Komponente uebergeben.
+ */
 export default async function AdminAnimePage({ searchParams }: AdminAnimePageProps = {}) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined
   const createdID = Number.parseInt(resolvedSearchParams?.created || '', 10)

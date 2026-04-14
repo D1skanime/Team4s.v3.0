@@ -2,21 +2,25 @@ package models
 
 import "time"
 
-// FansubGroupType distinguishes regular groups from collaborations
+// FansubGroupType unterscheidet reguläre Fansub-Gruppen von Kollaborationen.
 type FansubGroupType string
 
 const (
-	FansubGroupTypeGroup         FansubGroupType = "group"
+	// FansubGroupTypeGroup bezeichnet eine normale Fansub-Gruppe.
+	FansubGroupTypeGroup FansubGroupType = "group"
+	// FansubGroupTypeCollaboration bezeichnet eine Kollaborationsgruppe aus mehreren Fansubs.
 	FansubGroupTypeCollaboration FansubGroupType = "collaboration"
 )
 
+// FansubFilter enthält die Filter- und Paginierungsparameter für Fansub-Listenabfragen.
 type FansubFilter struct {
-	Page    int
-	PerPage int
-	Q       string
-	Status  string
+	Page    int    // Seitennummer (1-basiert)
+	PerPage int    // Einträge pro Seite
+	Q       string // Volltextsuchbegriff
+	Status  string // Status-Filter (z.B. "active", "inactive")
 }
 
+// FansubGroup enthält alle Detailfelder einer Fansub-Gruppe.
 type FansubGroup struct {
 	ID                   int64                `json:"id"`
 	Slug                 string               `json:"slug"`
@@ -44,6 +48,8 @@ type FansubGroup struct {
 	CollaborationMembers []FansubGroupSummary `json:"collaboration_members,omitempty"`
 }
 
+// FansubGroupSummary ist eine kompakte Kurzform einer Fansub-Gruppe,
+// die in Listenansichten und Verknüpfungen verwendet wird.
 type FansubGroupSummary struct {
 	ID      int64   `json:"id"`
 	Slug    string  `json:"slug"`
@@ -51,6 +57,7 @@ type FansubGroupSummary struct {
 	LogoURL *string `json:"logo_url,omitempty"`
 }
 
+// FansubMember repräsentiert ein Mitglied einer Fansub-Gruppe mit Rolle und Zeitraum.
 type FansubMember struct {
 	ID            int64     `json:"id"`
 	FansubGroupID int64     `json:"fansub_group_id"`
@@ -63,6 +70,7 @@ type FansubMember struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
+// FansubAlias repräsentiert einen alternativen Namen (Alias) einer Fansub-Gruppe.
 type FansubAlias struct {
 	ID            int64     `json:"id"`
 	FansubGroupID int64     `json:"fansub_group_id"`
@@ -71,6 +79,8 @@ type FansubAlias struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
+// AnimeFansubRelation verknüpft einen Anime mit einer Fansub-Gruppe und gibt an,
+// ob es sich um die primäre Gruppe handelt.
 type AnimeFansubRelation struct {
 	AnimeID       int64               `json:"anime_id"`
 	FansubGroupID int64               `json:"fansub_group_id"`
@@ -80,16 +90,21 @@ type AnimeFansubRelation struct {
 	FansubGroup   *FansubGroupSummary `json:"fansub_group,omitempty"`
 }
 
+// FansubAliasCreateInput enthält die Eingabedaten zum Anlegen eines neuen Fansub-Alias.
 type FansubAliasCreateInput struct {
-	Alias           string
-	NormalizedAlias string
+	Alias           string // Originaler Alias-Text
+	NormalizedAlias string // Normalisierte Vergleichsform des Alias
 }
 
+// AnimeFansubAliasCandidate verknüpft eine Fansub-Gruppe mit einem Alias-Kandidaten
+// und wird bei der automatischen Alias-Erkennung verwendet.
 type AnimeFansubAliasCandidate struct {
-	FansubGroupID int64
-	Alias         string
+	FansubGroupID int64  // ID der zugehörigen Fansub-Gruppe
+	Alias         string // Alias-Text
 }
 
+// FansubGroupCreateInput enthält die Pflicht- und optionalen Felder
+// zum Erstellen einer neuen Fansub-Gruppe.
 type FansubGroupCreateInput struct {
 	Slug          string
 	Name          string
@@ -109,6 +124,8 @@ type FansubGroupCreateInput struct {
 	Country       *string
 }
 
+// FansubGroupPatchInput enthält die patch-fähigen Felder einer Fansub-Gruppe,
+// wobei nur gesetzte Felder (Set=true) aktualisiert werden.
 type FansubGroupPatchInput struct {
 	Slug          OptionalString `json:"slug"`
 	Name          OptionalString `json:"name"`

@@ -1,5 +1,7 @@
 package models
 
+// AuthTokenResponse enthält das vollständige Token-Antwort-Objekt nach erfolgreicher
+// Authentifizierung, inklusive Access- und Refresh-Token mit ihren Ablaufzeiten.
 type AuthTokenResponse struct {
 	TokenType             string `json:"token_type"`
 	AccessToken           string `json:"access_token"`
@@ -12,6 +14,8 @@ type AuthTokenResponse struct {
 	DisplayName           string `json:"display_name"`
 }
 
+// AuthSession repräsentiert eine aktive Benutzersitzung und wird intern
+// für Session-Validierung und Token-Widerruf verwendet.
 type AuthSession struct {
 	SessionID   string
 	UserID      int64

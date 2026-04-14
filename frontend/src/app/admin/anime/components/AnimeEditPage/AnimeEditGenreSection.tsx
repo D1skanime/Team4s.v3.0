@@ -5,11 +5,19 @@ import type { KeyboardEvent } from 'react'
 import styles from '../../AdminStudio.module.css'
 import workspaceStyles from './AnimeEditWorkspace.module.css'
 
+/**
+ * Einzelner Genre-Vorschlag mit Name und Verwendungsanzahl.
+ */
 interface GenreSuggestion {
   name: string
   count: number
 }
 
+/**
+ * Props der AnimeEditGenreSection-Komponente.
+ * Enthalten aktuelle Genre-Tokens, den Eingabedraft, Vorschlaege,
+ * Lade- und Fehlerzustaende des Dropdowns sowie alle Aenderungs-Callbacks.
+ */
 interface AnimeEditGenreSectionProps {
   genreTokens: string[]
   genreDraft: string
@@ -29,6 +37,12 @@ interface AnimeEditGenreSectionProps {
   onApplyToken: (token: string) => void
 }
 
+/**
+ * Genre-Bearbeitungssektion fuer die Anime-Editierseite.
+ * Rendert aktuelle Genre-Chips mit Entfernen-Schaltflaeche,
+ * ein Tag-Eingabefeld mit Autocomplete-Dropdown und Retry-Option
+ * sowie einen Hinweis zur Tastatursteuerung.
+ */
 export function AnimeEditGenreSection({
   genreTokens,
   genreDraft,

@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// MediaVideo leitet einen Video-Stream vom konfigurierten Media-Provider (Jellyfin/Emby) als Proxy weiter.
 func (h *FansubHandler) MediaVideo(c *gin.Context) {
 	provider := strings.TrimSpace(c.Query("provider"))
 	itemID := strings.TrimSpace(c.Query("item_id"))

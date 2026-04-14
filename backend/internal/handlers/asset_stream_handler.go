@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AssetStreamHandler handles streaming of media assets from Jellyfin/Emby
+// AssetStreamHandler verwaltet das Streaming von Medien-Assets aus Jellyfin/Emby.
 type AssetStreamHandler struct {
 	jellyfinAPIKey     string
 	jellyfinBaseURL    string
@@ -20,14 +20,14 @@ type AssetStreamHandler struct {
 	httpClient         *http.Client
 }
 
-// AssetStreamConfig holds configuration for asset streaming
+// AssetStreamConfig enthält die Konfigurationsparameter für das Asset-Streaming.
 type AssetStreamConfig struct {
 	JellyfinAPIKey         string
 	JellyfinBaseURL        string
 	JellyfinStreamPath     string
 }
 
-// NewAssetStreamHandler creates a new AssetStreamHandler
+// NewAssetStreamHandler erstellt einen neuen AssetStreamHandler mit der angegebenen Konfiguration.
 func NewAssetStreamHandler(cfg AssetStreamConfig) *AssetStreamHandler {
 	streamPath := strings.TrimSpace(cfg.JellyfinStreamPath)
 	if streamPath == "" || !strings.Contains(streamPath, "%s") {
@@ -44,7 +44,7 @@ func NewAssetStreamHandler(cfg AssetStreamConfig) *AssetStreamHandler {
 	}
 }
 
-// StreamAsset proxies a stream request to Jellyfin
+// StreamAsset leitet eine Stream-Anfrage an Jellyfin weiter und überträgt die Antwort an den Client.
 func (h *AssetStreamHandler) StreamAsset(c *gin.Context) {
 	identity, ok := middleware.CommentAuthIdentityFromContext(c)
 	if !ok {

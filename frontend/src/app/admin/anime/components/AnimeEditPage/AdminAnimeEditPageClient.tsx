@@ -13,16 +13,30 @@ import { resolveCoverUrl } from '../../utils/anime-helpers'
 import { JellyfinSyncPanel } from '../JellyfinSync/JellyfinSyncPanel'
 import { AnimeEditWorkspace } from './AnimeEditWorkspace'
 
+/**
+ * Props der AdminAnimeEditPageClient-Komponente.
+ * Enthalten die ID des Anime, den serverseitig vorgeladenen
+ * Anime-Datensatz sowie einen optionalen initialen Ladefehler.
+ */
 interface AdminAnimeEditPageClientProps {
   animeID: number | null
   initialAnime: AnimeDetail | null
   initialError: string | null
 }
 
+/**
+ * Erstellt ein kurzes Anzeigelabel fuer einen Anime (ID + Titel).
+ */
 function formatAnimeLabel(anime: AnimeDetail): string {
   return `${String(anime.id).padStart(3, '0')} ${anime.title}`
 }
 
+/**
+ * Client-Hauptkomponente der Anime-Bearbeitungsseite.
+ * Rendert Breadcrumb, Header, Fehler-/Erfolgsmeldungen,
+ * das Bearbeitungsformular (AnimeEditWorkspace) sowie
+ * das Jellyfin-Sync-Panel und das Developer-Panel.
+ */
 export function AdminAnimeEditPageClient({
   animeID,
   initialAnime,

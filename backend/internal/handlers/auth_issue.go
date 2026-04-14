@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Issue verarbeitet POST /api/v1/auth/issue und stellt ein neues JWT-Tokenpaar (Access + Refresh) aus.
 func (h *AuthHandler) Issue(c *gin.Context) {
 	now := time.Now().UTC()
 	userID, displayName, statusCode, message := h.resolveTrustedIssueIdentity(c, now)

@@ -12,6 +12,7 @@ import (
 	"team4s.v3/backend/internal/models"
 )
 
+// scanEpisodeVersionFolder durchsucht den zu einer Episodenversion gehörenden Jellyfin-Ordner und gibt die gefundenen Mediendateien zurück.
 func (h *AdminContentHandler) scanEpisodeVersionFolder(
 	ctx context.Context,
 	versionID int64,
@@ -41,6 +42,7 @@ func (h *AdminContentHandler) scanEpisodeVersionFolder(
 	}, 0, nil
 }
 
+// buildEpisodeVersionMediaFiles erstellt aus einer Liste von Jellyfin-Episoden eine sortierte Liste von Mediendatei-Einträgen für den Editor.
 func buildEpisodeVersionMediaFiles(
 	items []jellyfinEpisodeItem,
 	folderPath *string,
@@ -98,6 +100,7 @@ func buildEpisodeVersionMediaFiles(
 	return files
 }
 
+// extractJellyfinSourceID extrahiert die Jellyfin-Serien-ID aus einem Anime-Quellbezeichner im Format "jellyfin:<id>".
 func extractJellyfinSourceID(source *string) string {
 	raw := strings.TrimSpace(derefString(source))
 	if raw == "" {
@@ -109,6 +112,7 @@ func extractJellyfinSourceID(source *string) string {
 	return strings.TrimSpace(raw[len("jellyfin:"):])
 }
 
+// derefString dereferenziert einen Zeichenkettenzeiger und gibt eine leere Zeichenkette zurück, wenn der Zeiger nil ist.
 func derefString(value *string) string {
 	if value == nil {
 		return ""

@@ -6,11 +6,21 @@ import contextStyles from './AnimeContext.module.css'
 
 const styles = { ...sharedStyles, ...contextStyles }
 
+/**
+ * Props der AnimeContextFansubs-Komponente.
+ * Enthalten die Liste der verknuepften Fansub-Gruppen und
+ * einen Ladezustand.
+ */
 interface AnimeContextFansubsProps {
   fansubs: FansubGroup[]
   isLoading: boolean
 }
 
+/**
+ * Lese-only-Anzeige der Fansub-Historie eines Anime.
+ * Rendert eine kompakte Karte pro Fansub-Gruppe mit
+ * einem Link zur Gruppendetailseite und einer kurzen Story-Vorschau.
+ */
 export function AnimeContextFansubs({ fansubs, isLoading }: AnimeContextFansubsProps) {
   return (
     <div className={styles.contextFansubSection}>

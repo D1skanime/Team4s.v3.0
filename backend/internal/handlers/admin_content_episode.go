@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CreateEpisode verarbeitet POST /api/v1/admin/episodes und legt eine neue Episode für einen Anime an.
 func (h *AdminContentHandler) CreateEpisode(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -45,6 +46,7 @@ func (h *AdminContentHandler) CreateEpisode(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"data": item})
 }
 
+// UpdateEpisode verarbeitet PATCH /api/v1/admin/episodes/:id und aktualisiert die Felder einer bestehenden Episode.
 func (h *AdminContentHandler) UpdateEpisode(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -86,6 +88,7 @@ func (h *AdminContentHandler) UpdateEpisode(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": item})
 }
 
+// DeleteEpisode verarbeitet DELETE /api/v1/admin/episodes/:id und entfernt eine Episode samt zugehöriger Daten.
 func (h *AdminContentHandler) DeleteEpisode(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

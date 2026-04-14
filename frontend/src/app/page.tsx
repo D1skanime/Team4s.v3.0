@@ -1,5 +1,9 @@
 import Link from 'next/link'
 
+/**
+ * Startseite der Anwendung.
+ * Rendert die Einstiegsnavigation mit Links zu Anime-Liste, Watchlist, Auth und Admin.
+ */
 export default function HomePage() {
   return (
     <main className="page-shell">

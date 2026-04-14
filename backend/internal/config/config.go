@@ -6,42 +6,45 @@ import (
 	"strings"
 )
 
+// Config enthält alle Laufzeit-Konfigurationswerte, die beim Serverstart aus Umgebungsvariablen gelesen werden.
 type Config struct {
-	Port                         string
-	RuntimeProfile               string
-	DatabaseURL                  string
-	AuthTokenSecret              string
-	AuthAdminRoleName            string
-	AuthAdminBootstrapUserIDs    []int64
-	EmbyAPIKey                   string
-	EmbyStreamBaseURL            string
-	EmbyStreamPathTemplate       string
-	EmbyAllowedAnimeIDs          []int64
-	JellyfinAPIKey               string
-	JellyfinBaseURL              string
-	JellyfinStreamPathTemplate   string
-	AuthAccessTokenTTLSeconds    int
-	AuthRefreshTokenTTLSeconds   int
-	RedisAddr                    string
-	RedisPassword                string
-	RedisDB                      int
-	AuthIssueDevMode             bool
-	AuthIssueDevUserID           int64
-	AuthIssueDevDisplayName      string
-	AuthIssueDevKey              string
-	AuthBypassLocal              bool
-	ReleaseStreamGrantSecret     string
-	ReleaseStreamGrantTTLSeconds int
-	EpisodePlaybackRateLimit     int
-	EpisodePlaybackRateWindowSec int
-	EpisodePlaybackMaxConcurrent int
-	MediaStorageDir              string
-	MediaPublicBaseURL           string
-	FFmpegPath                   string
-	TMDBAPIKey                   string
-	FanartAPIKey                 string
+	Port                         string  // HTTP-Port auf dem der Server lauscht
+	RuntimeProfile               string  // Laufzeitprofil (z.B. "local", "production")
+	DatabaseURL                  string  // PostgreSQL-Verbindungs-URL
+	AuthTokenSecret              string  // HMAC-Geheimnis für JWT-ähnliche Token
+	AuthAdminRoleName            string  // Rollenname für Admin-Zugriffsprüfung
+	AuthAdminBootstrapUserIDs    []int64 // Benutzer-IDs, denen beim Start die Admin-Rolle zugewiesen wird
+	EmbyAPIKey                   string  // API-Schlüssel für den Emby-Mediaserver
+	EmbyStreamBaseURL            string  // Basis-URL des Emby-Streamingendpunkts
+	EmbyStreamPathTemplate       string  // Pfadvorlage für Emby-Videostreams
+	EmbyAllowedAnimeIDs          []int64 // Erlaubte Anime-IDs für den Emby-Zugriff
+	JellyfinAPIKey               string  // API-Schlüssel für den Jellyfin-Mediaserver
+	JellyfinBaseURL              string  // Basis-URL des Jellyfin-Servers
+	JellyfinStreamPathTemplate   string  // Pfadvorlage für Jellyfin-Videostreams
+	AuthAccessTokenTTLSeconds    int     // Gültigkeitsdauer des Access-Tokens in Sekunden
+	AuthRefreshTokenTTLSeconds   int     // Gültigkeitsdauer des Refresh-Tokens in Sekunden
+	RedisAddr                    string  // Redis-Serveradresse (Host:Port)
+	RedisPassword                string  // Redis-Passwort (leer = kein Passwort)
+	RedisDB                      int     // Redis-Datenbanknummer
+	AuthIssueDevMode             bool    // Aktiviert den Dev-Token-Ausstellungsendpunkt (nur lokal erlaubt)
+	AuthIssueDevUserID           int64   // Benutzer-ID für Dev-Token
+	AuthIssueDevDisplayName      string  // Anzeigename für Dev-Token
+	AuthIssueDevKey              string  // Schlüssel zum Absichern des Dev-Token-Endpunkts
+	AuthBypassLocal              bool    // Überspringt Auth-Middleware im lokalen Profil
+	ReleaseStreamGrantSecret     string  // Geheimnis für Release-Stream-Grants (fällt auf AuthTokenSecret zurück)
+	ReleaseStreamGrantTTLSeconds int     // Gültigkeitsdauer von Release-Stream-Grants in Sekunden
+	EpisodePlaybackRateLimit     int     // Maximale Wiedergabeanfragen pro Zeitfenster
+	EpisodePlaybackRateWindowSec int     // Länge des Rate-Limit-Zeitfensters in Sekunden
+	EpisodePlaybackMaxConcurrent int     // Maximale gleichzeitige Streams pro Nutzer
+	MediaStorageDir              string  // Lokales Verzeichnis für hochgeladene Mediendateien
+	MediaPublicBaseURL           string  // Öffentliche Basis-URL für die Medienauslieferung
+	FFmpegPath                   string  // Dateipfad zur FFmpeg-Binärdatei
+	TMDBAPIKey                   string  // API-Schlüssel für The Movie Database (TMDB)
+	FanartAPIKey                 string  // API-Schlüssel für fanart.tv
 }
 
+// Load liest alle Konfigurationswerte aus Umgebungsvariablen und gibt eine fertig befüllte Config zurück.
+// Fehlende Werte werden durch sinnvolle Standardwerte ersetzt.
 func Load() Config {
 	bootstrapAdminUserIDs := getEnvInt64List("AUTH_ADMIN_BOOTSTRAP_USER_IDS", nil)
 

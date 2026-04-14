@@ -11,6 +11,7 @@ import (
 	"team4s.v3/backend/internal/services"
 )
 
+// adminAnimeCreateRequest enthält die Felder für das Anlegen eines neuen Anime-Eintrags über die Admin-API.
 type adminAnimeCreateRequest struct {
 	Title       string                      `json:"title"`
 	TitleDE     *string                     `json:"title_de"`
@@ -29,6 +30,7 @@ type adminAnimeCreateRequest struct {
 	Relations   []models.AdminAnimeRelation `json:"relations"`
 }
 
+// adminEpisodeCreateRequest enthält die Pflicht- und optionalen Felder für das Anlegen einer neuen Episode.
 type adminEpisodeCreateRequest struct {
 	AnimeID       int64   `json:"anime_id"`
 	EpisodeNumber string  `json:"episode_number"`
@@ -37,6 +39,7 @@ type adminEpisodeCreateRequest struct {
 	StreamLink    *string `json:"stream_link"`
 }
 
+// adminContentRelationRepository definiert den Datenbankzugriff für Anime-Relationen im Admin-Bereich.
 type adminContentRelationRepository interface {
 	ListAdminAnimeRelations(ctx context.Context, animeID int64) ([]models.AdminAnimeRelation, error)
 	SearchAdminAnimeRelationTargets(ctx context.Context, currentAnimeID int64, query string, limit int) ([]models.AdminAnimeRelationTarget, error)
@@ -47,25 +50,31 @@ type adminContentRelationRepository interface {
 	ApplyAdminAnimeEnrichmentRelationsDetailed(ctx context.Context, sourceAnimeID int64, relations []models.AdminAnimeRelation) (repository.AdminAnimeEnrichmentRelationApplyResult, error)
 }
 
+// adminAniSearchRepository definiert den Datenbankzugriff für AniSearch-basierte Anime-Quell-Lookups.
 type adminAniSearchRepository interface {
 	FindAnimeBySource(ctx context.Context, source string) (*models.AdminAnimeSourceMatch, error)
 	ResolveAdminAnimeRelationTargetsByTitles(ctx context.Context, titles []string) ([]models.AdminAnimeRelationTitleMatch, error)
 	ResolveAdminAnimeRelationTargetsBySources(ctx context.Context, sources []string) ([]models.AdminAnimeSourceMatch, error)
 }
 
+// adminAniSearchDraftLoader beschreibt den Service zum Laden von AniSearch-Entwurfsdaten und zur Kandidatensuche.
 type adminAniSearchDraftLoader interface {
 	LoadAniSearchDraft(ctx context.Context, aniSearchID string) (models.AdminAnimeCreateDraftPayload, []models.AdminAnimeRelation, error)
 	SearchAniSearchCandidates(ctx context.Context, query string, limit int) ([]models.AdminAnimeAniSearchSearchCandidate, error)
 }
 
+// adminAnimeAssetSearchService definiert den Service zur Suche nach externen Asset-Kandidaten (Cover, Banner, etc.).
 type adminAnimeAssetSearchService interface {
 	SearchAssetCandidates(ctx context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error)
 }
 
+// adminRoleChecker definiert die Methode zur Prüfung, ob ein Nutzer eine bestimmte Rolle besitzt.
 type adminRoleChecker interface {
 	UserHasRole(ctx context.Context, userID int64, roleName string) (bool, error)
 }
 
+// AdminContentHandler ist der zentrale Handler für alle Admin-Content-Operationen:
+// Anime anlegen/bearbeiten/löschen, Episoden, Assets, Relationen und Jellyfin-Integration.
 type AdminContentHandler struct {
 	repo               *repository.AdminContentRepository
 	relationRepo       adminContentRelationRepository
@@ -84,17 +93,21 @@ type AdminContentHandler struct {
 	assetSearchService adminAnimeAssetSearchService
 }
 
+// AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
 type AdminContentJellyfinConfig struct {
 	APIKey     string
 	BaseURL    string
 	StreamPath string
 }
 
+// AdminContentAssetSearchConfig enthält die API-Schlüssel für externe Asset-Suchprovider (TMDB, FanartTV).
 type AdminContentAssetSearchConfig struct {
 	TMDBAPIKey   string
 	FanartAPIKey string
 }
 
+// NewAdminContentHandler erstellt einen vollständig initialisierten AdminContentHandler inklusive
+// AniSearch-Enrichment-Service und Asset-Suchprovider.
 func NewAdminContentHandler(
 	repo *repository.AdminContentRepository,
 	animeAssetRepo *repository.AnimeAssetRepository,
@@ -142,10 +155,13 @@ func NewAdminContentHandler(
 	return handler
 }
 
+// adminAnimeCreateEnrichmentRepo ist ein interner Adapter, der das AdminContentRepository
+// als adminAniSearchRepository verfügbar macht.
 type adminAnimeCreateEnrichmentRepo struct {
 	repo *repository.AdminContentRepository
 }
 
+// FindAnimeBySource delegiert die Quell-Suche an das zugrundeliegende Repository.
 func (r adminAnimeCreateEnrichmentRepo) FindAnimeBySource(
 	ctx context.Context,
 	source string,
@@ -153,6 +169,7 @@ func (r adminAnimeCreateEnrichmentRepo) FindAnimeBySource(
 	return r.repo.FindAnimeBySource(ctx, source)
 }
 
+// ResolveAdminAnimeRelationTargetsByTitles delegiert die Titelauflösung für Relationen an das Repository.
 func (r adminAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsByTitles(
 	ctx context.Context,
 	titles []string,
@@ -160,6 +177,7 @@ func (r adminAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsByTitles
 	return r.repo.ResolveAdminAnimeRelationTargetsByTitles(ctx, titles)
 }
 
+// ResolveAdminAnimeRelationTargetsBySources delegiert die Quellenauflösung für Relationen an das Repository.
 func (r adminAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsBySources(
 	ctx context.Context,
 	sources []string,

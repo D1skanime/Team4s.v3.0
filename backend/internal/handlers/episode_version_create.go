@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CreateEpisodeVersion verarbeitet POST /api/v1/anime/:id/episodes/:episodeNumber/versions und legt eine neue Episodenversion an.
 func (h *FansubHandler) CreateEpisodeVersion(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {

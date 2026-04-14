@@ -21,10 +21,12 @@ import (
 
 // Jellyfin API response types
 
+// jellyfinSeriesListResponse enthält die Jellyfin-API-Antwort für Seriensuchen.
 type jellyfinSeriesListResponse struct {
 	Items []jellyfinSeriesItem `json:"Items"`
 }
 
+// jellyfinSeriesItem repräsentiert eine einzelne Serie aus der Jellyfin-API.
 type jellyfinSeriesItem struct {
 	ID                string            `json:"Id"`
 	Name              string            `json:"Name"`
@@ -38,10 +40,12 @@ type jellyfinSeriesItem struct {
 	BackdropImageTags []string          `json:"BackdropImageTags"`
 }
 
+// jellyfinEpisodeListResponse enthält die Jellyfin-API-Antwort für Episodenlisten.
 type jellyfinEpisodeListResponse struct {
 	Items []jellyfinEpisodeItem `json:"Items"`
 }
 
+// jellyfinEpisodeItem repräsentiert eine einzelne Episode aus der Jellyfin-API.
 type jellyfinEpisodeItem struct {
 	ID                string                `json:"Id"`
 	Name              string                `json:"Name"`
@@ -52,6 +56,7 @@ type jellyfinEpisodeItem struct {
 	MediaStreams      []jellyfinMediaStream `json:"MediaStreams"`
 }
 
+// jellyfinMediaStream repräsentiert einen Medien-Stream (Video, Audio, Untertitel) innerhalb einer Jellyfin-Episode.
 type jellyfinMediaStream struct {
 	Type   string `json:"Type"`
 	Height *int   `json:"Height"`
@@ -124,6 +129,7 @@ func (h *AdminContentHandler) getJellyfinSeriesByID(
 	return &payload.Items[0], nil
 }
 
+// jellyfinSeriesDetailItem enthält detaillierte Metadaten einer einzelnen Serie aus der Jellyfin-API.
 type jellyfinSeriesDetailItem struct {
 	ID                string            `json:"Id"`
 	Name              string            `json:"Name"`
@@ -338,6 +344,7 @@ func (h *AdminContentHandler) fetchJellyfinJSON(
 	return resp.StatusCode, nil
 }
 
+// normalizeJellyfinResponseEncoding konvertiert einen nicht-UTF-8-kodierten Antwort-Body in UTF-8.
 func normalizeJellyfinResponseEncoding(body []byte, contentType string) []byte {
 	if len(body) == 0 || utf8.Valid(body) {
 		return body
@@ -368,6 +375,7 @@ func normalizeJellyfinResponseEncoding(body []byte, contentType string) []byte {
 	return body
 }
 
+// classifyJellyfinTransportError kategorisiert einen Transportfehler (Timeout, Verbindungsfehler usw.).
 func classifyJellyfinTransportError(err error) string {
 	if err == nil {
 		return "unknown"

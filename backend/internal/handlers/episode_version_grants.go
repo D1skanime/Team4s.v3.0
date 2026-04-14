@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CreateReleaseStreamGrant stellt ein zeitlich begrenztes Stream-Grant-Token für eine Release-Version aus.
 func (h *FansubHandler) CreateReleaseStreamGrant(c *gin.Context) {
 	identity, ok := middleware.CommentAuthIdentityFromContext(c)
 	if !ok {

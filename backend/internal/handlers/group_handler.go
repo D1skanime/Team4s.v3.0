@@ -11,10 +11,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GroupHandler verwaltet HTTP-Anfragen rund um Fansub-Gruppen und deren Releases.
 type GroupHandler struct {
 	repo *repository.GroupRepository
 }
 
+// NewGroupHandler erstellt einen neuen GroupHandler mit dem übergebenen Repository.
 func NewGroupHandler(repo *repository.GroupRepository) *GroupHandler {
 	return &GroupHandler{repo: repo}
 }

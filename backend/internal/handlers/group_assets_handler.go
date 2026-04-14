@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GroupAssetsHandler verwaltet den Abruf von Gruppen-Assets aus Jellyfin.
 type GroupAssetsHandler struct {
 	groupRepo       *repository.GroupRepository
 	jellyfinAPIKey  string
@@ -29,6 +30,7 @@ type groupAssetsLibraryCache struct {
 	expiresAt time.Time
 }
 
+// NewGroupAssetsHandler erstellt einen neuen GroupAssetsHandler mit der übergebenen Konfiguration.
 func NewGroupAssetsHandler(
 	groupRepo *repository.GroupRepository,
 	mediaConfig AnimeMediaConfig,
@@ -44,6 +46,7 @@ func NewGroupAssetsHandler(
 	}
 }
 
+// GetGroupAssets gibt die Jellyfin-Assets einer Fansub-Gruppe für einen Anime zurück.
 func (h *GroupAssetsHandler) GetGroupAssets(c *gin.Context) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {

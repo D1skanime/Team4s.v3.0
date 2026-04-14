@@ -8,6 +8,11 @@ import { AnimeBrowserList } from './AnimeBrowserList'
 import { AnimeBrowserPagination } from './AnimeBrowserPagination'
 import styles from '../../../admin.module.css'
 
+/**
+ * Props des AnimeBrowser-Panels.
+ * Enthalten alle Filterwerte, Paginierungs-, Such- und Sync-Zustaende
+ * sowie die Callback-Funktionen zur Steuerung durch den Eltern-Container.
+ */
 interface AnimeBrowserProps {
   items: AnimeListItem[]
   page: number
@@ -37,6 +42,12 @@ interface AnimeBrowserProps {
   uiMode: 'navigation' | 'editing'
 }
 
+/**
+ * Anime-Browserbereich des Admin-Studios.
+ * Rendert Such- und Filterformular, Trefferanzahl, Paginierung und
+ * die Anime-Liste. Im `editing`-Modus werden nicht wesentliche
+ * Aktionen (z. B. Bulk-Sync) ausgeblendet, um den Workflow zu straffen.
+ */
 export function AnimeBrowser({
   items,
   page,

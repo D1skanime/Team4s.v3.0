@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ListGroupedEpisodes gibt alle Episoden eines Anime gruppiert nach Staffel/Episode zurück, optional mit Versionen und Fansubs.
 func (h *FansubHandler) ListGroupedEpisodes(c *gin.Context) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
@@ -39,6 +40,7 @@ func (h *FansubHandler) ListGroupedEpisodes(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": data})
 }
 
+// GetEpisodeVersionByID gibt eine einzelne Episodenversion anhand ihrer ID zurück.
 func (h *FansubHandler) GetEpisodeVersionByID(c *gin.Context) {
 	versionID, err := parseEpisodeVersionID(c.Param("versionId"))
 	if err != nil {

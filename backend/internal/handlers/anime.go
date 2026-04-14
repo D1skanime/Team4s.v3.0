@@ -27,6 +27,7 @@ var allowedContentTypes = map[string]struct{}{
 	"hentai": {},
 }
 
+// AnimeHandler enthält alle Abhängigkeiten für die öffentlichen und internen Anime-Endpunkte.
 type AnimeHandler struct {
 	repo            *repository.AnimeRepository
 	assetRepo       *repository.AnimeAssetRepository
@@ -35,11 +36,13 @@ type AnimeHandler struct {
 	httpClient      *http.Client
 }
 
+// AnimeMediaConfig hält die Konfigurationswerte für den Jellyfin-Medienzugriff des AnimeHandlers.
 type AnimeMediaConfig struct {
 	JellyfinAPIKey  string
 	JellyfinBaseURL string
 }
 
+// NewAnimeHandler erstellt einen neuen AnimeHandler mit den übergebenen Repository- und Medienkonfigurationsabhängigkeiten.
 func NewAnimeHandler(
 	repo *repository.AnimeRepository,
 	assetRepo *repository.AnimeAssetRepository,
@@ -56,6 +59,7 @@ func NewAnimeHandler(
 	}
 }
 
+// List verarbeitet GET /api/v1/anime und gibt eine paginierte, gefilterte Anime-Liste zurück.
 func (h *AnimeHandler) List(c *gin.Context) {
 	page, err := parsePositiveInt(c.DefaultQuery("page", "1"))
 	if err != nil {
@@ -162,6 +166,7 @@ func (h *AnimeHandler) List(c *gin.Context) {
 	})
 }
 
+// GetByID verarbeitet GET /api/v1/anime/:id und gibt die Detaildaten eines einzelnen Anime zurück.
 func (h *AnimeHandler) GetByID(c *gin.Context) {
 	id, err := parseAnimeID(c.Param("id"))
 	if err != nil {
@@ -194,6 +199,7 @@ func (h *AnimeHandler) GetByID(c *gin.Context) {
 	})
 }
 
+// GetAnimeRelations verarbeitet GET /api/v1/anime/:id/relations und gibt alle Relationen eines Anime zurück.
 func (h *AnimeHandler) GetAnimeRelations(c *gin.Context) {
 	idStr := c.Param("id")
 	animeID, err := parseAnimeID(idStr)
@@ -230,6 +236,7 @@ func (h *AnimeHandler) GetAnimeRelations(c *gin.Context) {
 	})
 }
 
+// parsePositiveInt konvertiert eine Zeichenkette in eine positive Ganzzahl und gibt einen Fehler zurück, wenn der Wert ungültig oder nicht positiv ist.
 func parsePositiveInt(raw string) (int, error) {
 	value, err := strconv.Atoi(raw)
 	if err != nil {
@@ -242,6 +249,7 @@ func parsePositiveInt(raw string) (int, error) {
 	return value, nil
 }
 
+// parseAnimeID konvertiert einen URL-Parameter in eine positive int64-Anime-ID und gibt einen Fehler bei ungültigem Wert zurück.
 func parseAnimeID(raw string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(raw), 10, 64)
 	if err != nil || id <= 0 {
@@ -251,6 +259,7 @@ func parseAnimeID(raw string) (int64, error) {
 	return id, nil
 }
 
+// parseOptionalBoolQuery konvertiert einen optionalen Query-Parameter in einen booleschen Wert und gibt false zurück, wenn der Parameter leer ist.
 func parseOptionalBoolQuery(raw string) (bool, error) {
 	trimmed := strings.TrimSpace(raw)
 	if trimmed == "" {
@@ -264,6 +273,7 @@ func parseOptionalBoolQuery(raw string) (bool, error) {
 	return value, nil
 }
 
+// isValidLetter prüft, ob ein Buchstabenfilter-Parameter leer, "0" oder ein einzelner Großbuchstabe A–Z ist.
 func isValidLetter(letter string) bool {
 	if letter == "" || letter == "0" {
 		return true
@@ -276,6 +286,7 @@ func isValidLetter(letter string) bool {
 	return ch >= 'A' && ch <= 'Z'
 }
 
+// badRequest schreibt eine HTTP-400-Antwort mit der übergebenen Fehlermeldung in das Response-Objekt.
 func badRequest(c *gin.Context, message string) {
 	c.JSON(http.StatusBadRequest, gin.H{
 		"error": gin.H{

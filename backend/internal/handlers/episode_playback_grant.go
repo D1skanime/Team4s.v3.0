@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CreatePlaybackGrant verarbeitet POST /api/v1/episodes/:id/playback-grant und stellt ein signiertes Stream-Grant-Token aus.
 func (h *EpisodePlaybackHandler) CreatePlaybackGrant(c *gin.Context) {
 	identity, ok := middleware.CommentAuthIdentityFromContext(c)
 	if !ok {

@@ -12,6 +12,7 @@ var allowedEpisodeStatuses = map[string]struct{}{
 	"public":   {},
 }
 
+// validateAdminEpisodeCreateRequest prüft und normalisiert die Eingabe einer Episodenerstellungsanfrage und gibt das bereinigte Eingabeobjekt oder eine Fehlermeldung zurück.
 func validateAdminEpisodeCreateRequest(req adminEpisodeCreateRequest) (models.AdminEpisodeCreateInput, string) {
 	if req.AnimeID <= 0 {
 		return models.AdminEpisodeCreateInput{}, "anime_id ist erforderlich"
@@ -39,6 +40,7 @@ func validateAdminEpisodeCreateRequest(req adminEpisodeCreateRequest) (models.Ad
 	}, ""
 }
 
+// validateAdminEpisodePatchRequest prüft und normalisiert die Eingabe einer partiellen Episodenaktualisierungsanfrage und gibt das bereinigte Eingabeobjekt oder eine Fehlermeldung zurück.
 func validateAdminEpisodePatchRequest(req models.AdminEpisodePatchInput) (models.AdminEpisodePatchInput, string) {
 	if !req.EpisodeNumber.Set && !req.Title.Set && !req.Status.Set && !req.StreamLink.Set {
 		return models.AdminEpisodePatchInput{}, "mindestens ein feld ist erforderlich"

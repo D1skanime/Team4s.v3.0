@@ -15,6 +15,11 @@ const PROTECTED_FIELD_OPTIONS = [
   { key: 'genre', label: 'Genres', helper: 'Uebernimmt keine AniSearch-Genres in den Entwurf.' },
 ] as const
 
+/**
+ * Props der AniSearchEnrichmentSection-Komponente.
+ * Enthalten die AniSearch-ID, die Liste geschuetzter Felder,
+ * optionale Lade- und Fehlerzustaende sowie Aenderungs-Callbacks.
+ */
 interface AniSearchEnrichmentSectionProps {
   anisearchID: string
   protectedFields: string[]
@@ -27,6 +32,12 @@ interface AniSearchEnrichmentSectionProps {
   onSubmit: () => void
 }
 
+/**
+ * Sektion zum Laden von AniSearch-Daten in den Anime-Entwurf.
+ * Rendert ein Eingabefeld fuer die AniSearch-ID, eine Checkbox-Liste
+ * zur Feldschutz-Konfiguration und eine Statusanzeige fuer
+ * Konflikte, Fehler oder Erfolgsmeldungen.
+ */
 export function AniSearchEnrichmentSection({
   anisearchID,
   protectedFields,

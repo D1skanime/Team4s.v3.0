@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+// fetchJellyfinJSON sendet eine GET-Anfrage an die Jellyfin-API und deserialisiert die JSON-Antwort in das übergebene Zielobjekt.
 func (h *AnimeHandler) fetchJellyfinJSON(ctx context.Context, apiPath string, query url.Values, target any) (int, error) {
 	targetURL, err := h.buildJellyfinURL(apiPath, query)
 	if err != nil {
@@ -43,6 +44,7 @@ func (h *AnimeHandler) fetchJellyfinJSON(ctx context.Context, apiPath string, qu
 	return resp.StatusCode, nil
 }
 
+// fetchJellyfinStatus sendet eine GET-Anfrage an die Jellyfin-API und gibt nur den HTTP-Statuscode zurück, ohne den Body zu verarbeiten.
 func (h *AnimeHandler) fetchJellyfinStatus(ctx context.Context, apiPath string, query url.Values) (int, error) {
 	targetURL, err := h.buildJellyfinURL(apiPath, query)
 	if err != nil {
@@ -66,6 +68,7 @@ func (h *AnimeHandler) fetchJellyfinStatus(ctx context.Context, apiPath string, 
 	return resp.StatusCode, nil
 }
 
+// buildJellyfinURL baut die vollständige Jellyfin-API-URL aus Basis-URL, Pfad und Query-Parametern zusammen und fügt den API-Schlüssel hinzu.
 func (h *AnimeHandler) buildJellyfinURL(apiPath string, query url.Values) (string, error) {
 	baseURL := strings.TrimSpace(h.jellyfinBaseURL)
 	if baseURL == "" {

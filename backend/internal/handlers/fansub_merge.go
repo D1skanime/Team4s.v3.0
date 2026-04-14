@@ -10,16 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// mergeFansubsRequest enthält die Felder für eine Fansub-Zusammenführungs-Anfrage.
 type mergeFansubsRequest struct {
 	TargetID  int64   `json:"target_id"`
 	SourceIDs []int64 `json:"source_ids"`
 }
 
+// mergeFansubsPreviewRequest enthält die Felder für eine Vorschau-Anfrage der Fansub-Zusammenführung.
 type mergeFansubsPreviewRequest struct {
 	TargetID  int64   `json:"target_id"`
 	SourceIDs []int64 `json:"source_ids"`
 }
 
+// normalizeMergeSourceIDs dedupliziert und validiert die Quell-IDs für eine Zusammenführung.
 func normalizeMergeSourceIDs(targetID int64, sourceIDs []int64) ([]int64, string) {
 	unique := make([]int64, 0, len(sourceIDs))
 	seen := make(map[int64]struct{}, len(sourceIDs))

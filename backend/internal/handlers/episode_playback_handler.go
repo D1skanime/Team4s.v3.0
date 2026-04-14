@@ -10,6 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// EpisodePlaybackConfig enthält alle Konfigurationsparameter für den EpisodePlaybackHandler.
 type EpisodePlaybackConfig struct {
 	EmbyAPIKey              string
 	EmbyStreamBaseURL       string
@@ -23,6 +24,7 @@ type EpisodePlaybackConfig struct {
 	MaxConcurrentStreams    int
 }
 
+// EpisodePlaybackHandler verwaltet HTTP-Endpunkte für Episode-Wiedergabe, Stream-Grants und Rate-Limiting.
 type EpisodePlaybackHandler struct {
 	repo                   *repository.EpisodeRepository
 	embyAPIKey             string
@@ -38,6 +40,7 @@ type EpisodePlaybackHandler struct {
 	auditLogger            *playbackAuditLogger
 }
 
+// NewEpisodePlaybackHandler erstellt einen neuen EpisodePlaybackHandler mit Repository und vollständiger Konfiguration.
 func NewEpisodePlaybackHandler(repo *repository.EpisodeRepository, cfg EpisodePlaybackConfig) *EpisodePlaybackHandler {
 	allowedAnimeIDs := make(map[int64]struct{}, len(cfg.AllowedAnimeIDs))
 	for _, animeID := range cfg.AllowedAnimeIDs {

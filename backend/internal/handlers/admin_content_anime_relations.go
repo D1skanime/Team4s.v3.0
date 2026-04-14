@@ -12,11 +12,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// adminAnimeRelationMutationRequest enthält die Eingabedaten zum Erstellen einer neuen Anime-Relation.
 type adminAnimeRelationMutationRequest struct {
 	TargetAnimeID int64  `json:"target_anime_id"`
 	RelationLabel string `json:"relation_label"`
 }
 
+// adminAnimeRelationUpdateRequest enthält die Eingabedaten zum Aktualisieren einer bestehenden Anime-Relation.
 type adminAnimeRelationUpdateRequest struct {
 	RelationLabel string `json:"relation_label"`
 }
@@ -28,10 +30,12 @@ var allowedAdminRelationLabels = map[string]struct{}{
 	"Zusammenfassung": {},
 }
 
+// normalizeAdminRelationLabel bereinigt einen Relationsbezeichner durch Entfernen führender und nachfolgender Leerzeichen.
 func normalizeAdminRelationLabel(raw string) string {
 	return strings.TrimSpace(raw)
 }
 
+// validateAdminRelationLabel prüft, ob ein Relationsbezeichner zulässig ist, und gibt den normalisierten Wert oder eine Fehlermeldung zurück.
 func validateAdminRelationLabel(raw string) (string, string) {
 	label := normalizeAdminRelationLabel(raw)
 	if label == "" {
@@ -43,6 +47,7 @@ func validateAdminRelationLabel(raw string) (string, string) {
 	return label, ""
 }
 
+// ListAnimeRelations verarbeitet GET /api/v1/admin/anime/:id/relations und gibt alle Relationen eines Anime zurück.
 func (h *AdminContentHandler) ListAnimeRelations(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
@@ -72,6 +77,7 @@ func (h *AdminContentHandler) ListAnimeRelations(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": items})
 }
 
+// SearchAnimeRelationTargets verarbeitet GET /api/v1/admin/anime/:id/relations/search und sucht nach möglichen Ziel-Anime für eine neue Relation.
 func (h *AdminContentHandler) SearchAnimeRelationTargets(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
@@ -121,6 +127,7 @@ func (h *AdminContentHandler) SearchAnimeRelationTargets(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": items})
 }
 
+// CreateAnimeRelation verarbeitet POST /api/v1/admin/anime/:id/relations und legt eine neue Relation zwischen zwei Anime an.
 func (h *AdminContentHandler) CreateAnimeRelation(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
@@ -179,6 +186,7 @@ func (h *AdminContentHandler) CreateAnimeRelation(c *gin.Context) {
 	})
 }
 
+// UpdateAnimeRelation verarbeitet PATCH /api/v1/admin/anime/:id/relations/:targetAnimeId und aktualisiert den Bezeichner einer bestehenden Relation.
 func (h *AdminContentHandler) UpdateAnimeRelation(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
@@ -229,6 +237,7 @@ func (h *AdminContentHandler) UpdateAnimeRelation(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// DeleteAnimeRelation verarbeitet DELETE /api/v1/admin/anime/:id/relations/:targetAnimeId und entfernt eine Relation zwischen zwei Anime.
 func (h *AdminContentHandler) DeleteAnimeRelation(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return

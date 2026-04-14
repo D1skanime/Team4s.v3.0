@@ -14,10 +14,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// adminAnimeJellyfinMetadataRequest enthält die optionale Jellyfin-Serien-ID für Metadaten-Anfragen.
 type adminAnimeJellyfinMetadataRequest struct {
 	JellyfinSeriesID *string `json:"jellyfin_series_id"`
 }
 
+// adminAnimeJellyfinMetadataApplyRequest enthält die Parameter zum Anwenden von Jellyfin-Metadaten auf einen Anime.
 type adminAnimeJellyfinMetadataApplyRequest struct {
 	JellyfinSeriesID *string `json:"jellyfin_series_id"`
 	ApplyCover       *bool   `json:"apply_cover"`
@@ -25,6 +27,7 @@ type adminAnimeJellyfinMetadataApplyRequest struct {
 	ApplyBackgrounds *bool   `json:"apply_backgrounds"`
 }
 
+// validateAdminAnimeJellyfinMetadataSeriesID prüft und bereinigt eine optionale Jellyfin-Serien-ID.
 func validateAdminAnimeJellyfinMetadataSeriesID(raw *string) (string, string) {
 	seriesID := strings.TrimSpace(derefString(raw))
 	if seriesID == "" {
@@ -36,6 +39,7 @@ func validateAdminAnimeJellyfinMetadataSeriesID(raw *string) (string, string) {
 	return seriesID, ""
 }
 
+// GetAnimeJellyfinContext gibt den aktuellen Jellyfin-Verknüpfungs-Kontext eines Anime zurück.
 func (h *AdminContentHandler) GetAnimeJellyfinContext(c *gin.Context) {
 	_, ok := h.requireAdmin(c)
 	if !ok {
@@ -69,6 +73,7 @@ func (h *AdminContentHandler) GetAnimeJellyfinContext(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": contextPayload})
 }
 
+// PreviewAnimeMetadataFromJellyfin zeigt eine Vorschau der Änderungen, die ein Jellyfin-Metadaten-Abgleich bewirken würde.
 func (h *AdminContentHandler) PreviewAnimeMetadataFromJellyfin(c *gin.Context) {
 	_, ok := h.requireAdmin(c)
 	if !ok {
@@ -123,6 +128,7 @@ func (h *AdminContentHandler) PreviewAnimeMetadataFromJellyfin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": preview})
 }
 
+// ApplyAnimeMetadataFromJellyfin wendet Jellyfin-Metadaten auf einen bestehenden Anime an.
 func (h *AdminContentHandler) ApplyAnimeMetadataFromJellyfin(c *gin.Context) {
 	_, ok := h.requireAdmin(c)
 	if !ok {
@@ -382,6 +388,7 @@ func (h *AdminContentHandler) buildAnimeJellyfinMetadataPreview(
 	}, http.StatusOK, nil
 }
 
+// buildMetadataFieldPreview erstellt eine Vorschau-Struktur für ein einzelnes Metadatenfeld mit Vergleich von aktuellem und eingehendem Wert.
 func buildMetadataFieldPreview(field string, label string, current *string, incoming *string) models.AdminAnimeJellyfinMetadataFieldPreview {
 	result := models.AdminAnimeJellyfinMetadataFieldPreview{
 		Field:         field,
@@ -413,6 +420,7 @@ func buildMetadataFieldPreview(field string, label string, current *string, inco
 	return result
 }
 
+// buildJellyfinCoverPreview erstellt eine Cover-Vorschau-Struktur mit aktuellem und eingehendem Bild.
 func buildJellyfinCoverPreview(currentImage *string, incoming models.AdminJellyfinIntakeAssetSlot) models.AdminAnimeJellyfinCoverPreview {
 	incomingURL := normalizeNullableStringPtr(derefString(incoming.URL))
 	currentSource := inferJellyfinCoverSource(currentImage, incomingURL)
@@ -433,6 +441,7 @@ func buildJellyfinCoverPreview(currentImage *string, incoming models.AdminJellyf
 	}
 }
 
+// inferJellyfinCoverSource ermittelt die Herkunft des aktuellen Covers (none, provider oder manual).
 func inferJellyfinCoverSource(currentImage *string, incomingImage *string) string {
 	currentValue := strings.TrimSpace(derefString(currentImage))
 	incomingValue := strings.TrimSpace(derefString(incomingImage))
@@ -446,6 +455,7 @@ func inferJellyfinCoverSource(currentImage *string, incomingImage *string) strin
 	}
 }
 
+// fieldIncomingValue gibt den eingehenden Wert eines bestimmten Metadatenfeldes aus einer Vorschauliste zurück.
 func fieldIncomingValue(fields []models.AdminAnimeJellyfinMetadataFieldPreview, name string) *string {
 	for _, field := range fields {
 		if field.Field == name {
@@ -455,6 +465,7 @@ func fieldIncomingValue(fields []models.AdminAnimeJellyfinMetadataFieldPreview, 
 	return nil
 }
 
+// int16ToStringPtr wandelt einen *int16-Wert in einen *string um.
 func int16ToStringPtr(value *int16) *string {
 	if value == nil {
 		return nil
@@ -462,6 +473,7 @@ func int16ToStringPtr(value *int16) *string {
 	return stringPtrFromValue(strconv.FormatInt(int64(*value), 10))
 }
 
+// int16FromStringPtr parst einen *string in einen *int16-Wert.
 func int16FromStringPtr(value *string) *int16 {
 	trimmed := strings.TrimSpace(derefString(value))
 	if trimmed == "" {
@@ -475,6 +487,7 @@ func int16FromStringPtr(value *string) *int16 {
 	return &next
 }
 
+// stringPtrFromValue gibt einen Zeiger auf den getrimmten String zurück, oder nil wenn er leer ist.
 func stringPtrFromValue(value string) *string {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {
@@ -483,6 +496,7 @@ func stringPtrFromValue(value string) *string {
 	return &trimmed
 }
 
+// mapPersistedAnimeAssets wandelt aufgelöste Anime-Assets in die Admin-Darstellung um.
 func mapPersistedAnimeAssets(value *models.AnimeResolvedAssets) models.AdminAnimePersistedAssets {
 	result := models.AdminAnimePersistedAssets{
 		Backgrounds: []models.AdminAnimePersistedBackgroundState{},
@@ -536,6 +550,7 @@ func mapPersistedAnimeAssets(value *models.AnimeResolvedAssets) models.AdminAnim
 	return result
 }
 
+// providerBannerInput erstellt ein AnimeProviderAssetInput aus einem Intake-Asset-Slot, oder nil wenn kein Asset vorhanden.
 func providerBannerInput(slot models.AdminJellyfinIntakeAssetSlot) *models.AnimeProviderAssetInput {
 	if !slot.Present || slot.URL == nil {
 		return nil
@@ -550,6 +565,7 @@ func providerBannerInput(slot models.AdminJellyfinIntakeAssetSlot) *models.Anime
 	}
 }
 
+// providerBackgroundInputs erstellt eine Liste von AnimeProviderAssetInput aus mehreren Intake-Asset-Slots.
 func providerBackgroundInputs(slots []models.AdminJellyfinIntakeAssetSlot) []models.AnimeProviderAssetInput {
 	result := make([]models.AnimeProviderAssetInput, 0, len(slots))
 	for _, slot := range slots {
@@ -562,6 +578,7 @@ func providerBackgroundInputs(slots []models.AdminJellyfinIntakeAssetSlot) []mod
 	return result
 }
 
+// buildProviderAssetKey erstellt einen eindeutigen Schlüssel für einen Provider-Asset-Slot.
 func buildProviderAssetKey(slot models.AdminJellyfinIntakeAssetSlot) string {
 	base := strings.TrimSpace(slot.Kind)
 	if base == "" {

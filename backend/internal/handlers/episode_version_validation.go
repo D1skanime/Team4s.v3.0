@@ -22,6 +22,8 @@ type episodeVersionCreateRequest struct {
 	StreamURL     *string    `json:"stream_url"`
 }
 
+// validateEpisodeVersionCreateRequest prüft und normalisiert die Felder eines Erstellungs-Requests für eine Episodenversion.
+// Gibt das bereinigte Input-Objekt und eine Fehlermeldung zurück; die Meldung ist leer bei Erfolg.
 func validateEpisodeVersionCreateRequest(req episodeVersionCreateRequest) (models.EpisodeVersionCreateInput, string) {
 	mediaProvider := normalizeRequiredString(&req.MediaProvider)
 	if mediaProvider == nil || len([]rune(*mediaProvider)) > 30 {
@@ -66,6 +68,8 @@ func validateEpisodeVersionCreateRequest(req episodeVersionCreateRequest) (model
 	}, ""
 }
 
+// validateEpisodeVersionPatchRequest prüft und normalisiert die Felder eines Patch-Requests für eine Episodenversion.
+// Gibt das bereinigte Input-Objekt und eine Fehlermeldung zurück; die Meldung ist leer bei Erfolg.
 func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (models.EpisodeVersionPatchInput, string) {
 	if !req.Title.Set &&
 		!req.FansubGroupID.Set &&

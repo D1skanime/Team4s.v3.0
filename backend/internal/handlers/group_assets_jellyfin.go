@@ -85,6 +85,7 @@ func (h *GroupAssetsHandler) resolveGroupAssets(
 	return payload, nil
 }
 
+// buildSubgroupSuffixCandidates erzeugt eine Liste normalisierter Suchkandidaten aus Slug und Name einer Gruppe.
 func buildSubgroupSuffixCandidates(groupSlug string, groupName string) []string {
 	candidates := make([]string, 0, 16)
 	addRawVariants := func(raw string) {
@@ -116,6 +117,7 @@ func buildSubgroupSuffixCandidates(groupSlug string, groupName string) []string 
 	return candidates
 }
 
+// pushUnique fügt einen Wert zur Zielliste hinzu, sofern er noch nicht enthalten ist.
 func pushUnique(target *[]string, value string) {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" || slices.Contains(*target, trimmed) {
@@ -124,6 +126,7 @@ func pushUnique(target *[]string, value string) {
 	*target = append(*target, trimmed)
 }
 
+// normalizeAssetToken normalisiert einen String zu einem kleingeschriebenen, bindestrich-separierten Token.
 func normalizeAssetToken(value string) string {
 	lowered := strings.ToLower(strings.TrimSpace(value))
 	if lowered == "" {
@@ -230,6 +233,7 @@ func (h *GroupAssetsHandler) listPagedGroupItems(
 	return items, nil
 }
 
+// cloneURLValues erstellt eine tiefe Kopie der übergebenen URL-Query-Parameter.
 func cloneURLValues(values url.Values) url.Values {
 	cloned := make(url.Values, len(values))
 	for key, entries := range values {
@@ -293,6 +297,7 @@ func (h *GroupAssetsHandler) setCachedGroupAssetsLibraryID(id string) {
 	}
 }
 
+// scoreSubgroupFolderMatch berechnet einen Übereinstimmungswert zwischen einem Ordnernamen und den Suchkandidaten.
 func scoreSubgroupFolderMatch(normalizedName string, suffixCandidates []string) int {
 	best := -1
 	for _, candidate := range suffixCandidates {
@@ -379,6 +384,7 @@ func (h *GroupAssetsHandler) fetchGroupAssetsJSON(ctx context.Context, apiPath s
 	return nil
 }
 
+// buildGroupAssetHero erstellt das Hero-Asset-Objekt aus dem Jellyfin-Wurzelelement einer Gruppe.
 func buildGroupAssetHero(root jellyfinGroupItem) models.GroupAssetHero {
 	hero := models.GroupAssetHero{}
 	if len(root.BackdropImageTags) > 0 {
@@ -401,6 +407,7 @@ func buildGroupAssetHero(root jellyfinGroupItem) models.GroupAssetHero {
 	return hero
 }
 
+// buildGroupEpisodeAssets ordnet Jellyfin-Items den entsprechenden Episoden-Asset-Strukturen zu.
 func buildGroupEpisodeAssets(rootPath string, items []jellyfinGroupItem) []models.GroupEpisodeAssets {
 	episodes := make(map[int32]*models.GroupEpisodeAssets)
 	for _, item := range items {
@@ -435,6 +442,7 @@ func buildGroupEpisodeAssets(rootPath string, items []jellyfinGroupItem) []model
 	return result
 }
 
+// ensureEpisodeAssets gibt den bestehenden Eintrag zurück oder legt einen neuen an, falls dieser noch nicht existiert.
 func ensureEpisodeAssets(
 	items map[int32]*models.GroupEpisodeAssets,
 	episodeNumber int32,
@@ -454,6 +462,7 @@ func ensureEpisodeAssets(
 	return items[episodeNumber]
 }
 
+// resolveEpisodeFolder ermittelt die Episodennummer und den Ordnernamen aus einem Dateipfad relativ zum Wurzelordner.
 func resolveEpisodeFolder(rootPath string, itemPath string) (int32, string, bool) {
 	relativePath := strings.TrimPrefix(itemPath, strings.TrimRight(rootPath, "/")+"/")
 	if relativePath == itemPath || relativePath == "" {
@@ -471,6 +480,7 @@ func resolveEpisodeFolder(rootPath string, itemPath string) (int32, string, bool
 	return int32(number), parts[0], true
 }
 
+// buildGroupAssetImage erstellt ein GroupAssetImage-Objekt aus einem Jellyfin-Foto-Item.
 func buildGroupAssetImage(order int32, item jellyfinGroupItem) models.GroupAssetImage {
 	return models.GroupAssetImage{
 		ID:           item.ID,
@@ -483,6 +493,7 @@ func buildGroupAssetImage(order int32, item jellyfinGroupItem) models.GroupAsset
 	}
 }
 
+// buildGroupAssetBackdropImages erstellt Backdrop-Image-Objekte aus den Backdrop-Tags eines Jellyfin-Items.
 func buildGroupAssetBackdropImages(orderOffset int32, item jellyfinGroupItem) []models.GroupAssetImage {
 	if len(item.BackdropImageTags) == 0 {
 		return nil
@@ -503,6 +514,7 @@ func buildGroupAssetBackdropImages(orderOffset int32, item jellyfinGroupItem) []
 	return images
 }
 
+// buildGroupAssetMedia erstellt ein GroupAssetMedia-Objekt aus einem Jellyfin-Video-Item.
 func buildGroupAssetMedia(order int32, item jellyfinGroupItem) (models.GroupAssetMedia, bool) {
 	assetType, ok := classifyGroupMediaType(item.Name, item.Path)
 	if !ok {
@@ -519,6 +531,7 @@ func buildGroupAssetMedia(order int32, item jellyfinGroupItem) (models.GroupAsse
 	}, true
 }
 
+// classifyGroupMediaType bestimmt den Medientyp eines Jellyfin-Videos anhand von Name und Pfad.
 func classifyGroupMediaType(name string, itemPath string) (models.GroupAssetMediaType, bool) {
 	normalized := strings.ToLower(strings.TrimSpace(name + " " + itemPath))
 	switch {
@@ -535,6 +548,7 @@ func classifyGroupMediaType(name string, itemPath string) (models.GroupAssetMedi
 	}
 }
 
+// durationSecondsFromTicks wandelt Jellyfin-Ticks (100-Nanosekunden-Einheiten) in Sekunden um.
 func durationSecondsFromTicks(value *int64) *int32 {
 	if value == nil || *value <= 0 {
 		return nil
@@ -543,6 +557,7 @@ func durationSecondsFromTicks(value *int64) *int32 {
 	return &seconds
 }
 
+// buildGroupMediaImageURL erstellt die interne Proxy-URL für ein Jellyfin-Bild.
 func buildGroupMediaImageURL(itemID string, kind string, index *int) string {
 	values := url.Values{}
 	values.Set("provider", "jellyfin")
@@ -554,6 +569,7 @@ func buildGroupMediaImageURL(itemID string, kind string, index *int) string {
 	return "/api/v1/media/image?" + values.Encode()
 }
 
+// buildGroupMediaVideoURL erstellt die interne Proxy-URL für ein Jellyfin-Video.
 func buildGroupMediaVideoURL(itemID string) string {
 	values := url.Values{}
 	values.Set("provider", "jellyfin")
@@ -561,6 +577,7 @@ func buildGroupMediaVideoURL(itemID string) string {
 	return "/api/v1/media/video?" + values.Encode()
 }
 
+// stringPtr gibt einen Zeiger auf den übergebenen String zurück.
 func stringPtr(value string) *string {
 	return &value
 }

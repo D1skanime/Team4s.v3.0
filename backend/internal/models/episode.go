@@ -1,5 +1,7 @@
 package models
 
+// EpisodeDetail enthält die vollständige Detailansicht einer einzelnen Episode inklusive
+// Navigation zur vorherigen und nächsten Episode, wird vom öffentlichen Episoden-Endpunkt geliefert.
 type EpisodeDetail struct {
 	ID                int64    `json:"id"`
 	AnimeID           int64    `json:"anime_id"`

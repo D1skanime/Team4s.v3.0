@@ -2,6 +2,8 @@ package models
 
 import "time"
 
+// EpisodeVersion repräsentiert eine einzelne Release-Version einer Episode,
+// verknüpft mit einer Fansub-Gruppe und einem Medien-Provider (z.B. Jellyfin).
 type EpisodeVersion struct {
 	ID            int64               `json:"id"`
 	AnimeID       int64               `json:"anime_id"`
@@ -18,6 +20,8 @@ type EpisodeVersion struct {
 	UpdatedAt     time.Time           `json:"updated_at"`
 }
 
+// GroupedEpisode fasst alle Versionen einer einzelnen Episode zusammen
+// und wird in der gruppierten Episodenlistenansicht verwendet.
 type GroupedEpisode struct {
 	EpisodeNumber    int32            `json:"episode_number"`
 	EpisodeTitle     *string          `json:"episode_title,omitempty"`
@@ -26,11 +30,15 @@ type GroupedEpisode struct {
 	Versions         []EpisodeVersion `json:"versions"`
 }
 
+// GroupedEpisodesData enthält die gruppierten Episodendaten eines Anime
+// und ist die Antwortstruktur des gruppierten Episodenlistenendpunkts.
 type GroupedEpisodesData struct {
 	AnimeID  int64            `json:"anime_id"`
 	Episodes []GroupedEpisode `json:"episodes"`
 }
 
+// EpisodeVersionCreateInput enthält die Pflicht- und optionalen Felder
+// zum Anlegen einer neuen Episodenversion.
 type EpisodeVersionCreateInput struct {
 	AnimeID       int64
 	EpisodeNumber int32
@@ -44,6 +52,8 @@ type EpisodeVersionCreateInput struct {
 	StreamURL     *string
 }
 
+// EpisodeVersionPatchInput enthält die patch-fähigen Felder einer Episodenversion,
+// wobei nur gesetzte Felder (Set=true) in der Datenbankaktualisierung berücksichtigt werden.
 type EpisodeVersionPatchInput struct {
 	Title         OptionalString `json:"title"`
 	FansubGroupID OptionalInt64  `json:"fansub_group_id"`
@@ -55,6 +65,8 @@ type EpisodeVersionPatchInput struct {
 	StreamURL     OptionalString `json:"stream_url"`
 }
 
+// ReleaseStreamSource enthält die für den Stream-Redirect benötigten Felder
+// einer Episodenversion und wird beim Erstellen von Stream-Grants verwendet.
 type ReleaseStreamSource struct {
 	ID            int64
 	AnimeID       int64
@@ -63,6 +75,8 @@ type ReleaseStreamSource struct {
 	StreamURL     *string
 }
 
+// EpisodeVersionEditorContext liefert alle Kontextdaten für den Admin-Editor
+// einer Episodenversion, inklusive Anime-Pfad und verfügbare Fansub-Gruppen.
 type EpisodeVersionEditorContext struct {
 	Version              EpisodeVersion       `json:"version"`
 	AnimeTitle           string               `json:"anime_title"`
@@ -71,6 +85,8 @@ type EpisodeVersionEditorContext struct {
 	SelectedGroups       []FansubGroupSummary `json:"selected_groups"`
 }
 
+// EpisodeVersionMediaFile repräsentiert eine einzelne Mediendatei aus einem
+// Jellyfin-Ordner-Scan, inklusive erkannter Episodennummer und Qualitätsinformationen.
 type EpisodeVersionMediaFile struct {
 	FileName              string     `json:"file_name"`
 	Path                  string     `json:"path"`
@@ -83,6 +99,8 @@ type EpisodeVersionMediaFile struct {
 	ReleaseName           *string    `json:"release_name,omitempty"`
 }
 
+// EpisodeVersionFolderScanResult enthält das Ergebnis eines Ordner-Scans
+// für eine Episodenversion mit allen gefundenen Mediendateien.
 type EpisodeVersionFolderScanResult struct {
 	VersionID       int64                     `json:"version_id"`
 	AnimeID         int64                     `json:"anime_id"`

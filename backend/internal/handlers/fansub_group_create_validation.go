@@ -4,6 +4,8 @@ import (
 	"team4s.v3/backend/internal/models"
 )
 
+// validateFansubGroupCreateRequest prüft und normalisiert die Felder eines Erstellungs-Requests für eine Fansub-Gruppe.
+// Gibt das bereinigte Input-Objekt und eine Fehlermeldung zurück; die Meldung ist leer bei Erfolg.
 func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.FansubGroupCreateInput, string) {
 	slug := normalizeRequiredString(&req.Slug)
 	if slug == nil || len([]rune(*slug)) > 120 {
