@@ -42,6 +42,10 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 	}
 
 	coverImage := normalizeNullableString(req.CoverImage)
+	bannerImage := normalizeNullableString(req.BannerImage)
+	logoImage := normalizeNullableString(req.LogoImage)
+	backgroundVideoURL := normalizeNullableString(req.BackgroundVideoURL)
+	backgroundImageURLs := normalizeStringSlice(req.BackgroundImageURLs)
 
 	source := normalizeNullableString(req.Source)
 	folderName := normalizeNullableString(req.FolderName)
@@ -75,8 +79,12 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 		Genre:       normalizeNullableString(req.Genre),
 		Tags:        req.Tags,
 		Description: normalizeNullableString(req.Description),
-		CoverImage:  coverImage,
-		Source:      source,
+		CoverImage:          coverImage,
+		BannerImage:         bannerImage,
+		LogoImage:           logoImage,
+		BackgroundVideoURL:  backgroundVideoURL,
+		BackgroundImageURLs: backgroundImageURLs,
+		Source:              source,
 		FolderName:  folderName,
 	}, ""
 }

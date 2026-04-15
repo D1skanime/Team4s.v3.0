@@ -26,4 +26,4 @@ Shared operating notes for human + AI agents working in `Team4sV3`.
 - First task in `TOMORROW.md` must be concrete and <=15 minutes.
 
 ## Current Open Thread
-- Plan and implement the next AniSearch/admin slice as edit-route relation UX on top of the verified Phase-13 create relation baseline.
+- Finish Phase-15 follow-through by verifying that provider-selected create assets persist through save and keep provenance, then choose the next narrow slice from that verified baseline.

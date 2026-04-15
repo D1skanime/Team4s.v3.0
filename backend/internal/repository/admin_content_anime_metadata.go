@@ -260,6 +260,21 @@ func (r *AdminContentRepository) CreateAnime(
 		if err == nil {
 			err = syncAuthoritativeAnimeMetadata(ctx, tx, item.ID, buildAuthoritativeAnimeMetadataCreate(input))
 		}
+		if err == nil {
+			var actorPtr *int64
+			if actorUserID > 0 {
+				actorPtr = &actorUserID
+			}
+			if err = attachAnimeCoverMediaV2(ctx, tx, item.ID, input, actorPtr); err == nil {
+				if err = attachAnimeBannerMediaV2(ctx, tx, item.ID, input, actorPtr); err == nil {
+					if err = attachAnimeLogoMediaV2(ctx, tx, item.ID, input, actorPtr); err == nil {
+						if err = attachAnimeBackgroundVideoMediaV2(ctx, tx, item.ID, input, actorPtr); err == nil {
+							err = attachAnimeBackgroundImageURLsMediaV2(ctx, tx, item.ID, input, actorPtr)
+						}
+					}
+				}
+			}
+		}
 	}
 	if err != nil {
 		return nil, err

@@ -358,7 +358,7 @@ func (p *FanartTVAssetSearchProvider) Source() models.AdminAnimeAssetSearchSourc
 
 func (p *FanartTVAssetSearchProvider) SupportsAssetKind(assetKind string) bool {
 	switch strings.TrimSpace(assetKind) {
-	case "logo", "banner":
+	case "logo", "banner", "background":
 		return true
 	default:
 		return false
@@ -498,11 +498,12 @@ func (p *FanartTVAssetSearchProvider) fetchImages(
 	}
 
 	var payload struct {
-		HDTVLogos     []fanartImage `json:"hdtvlogo"`
-		ClearLogos    []fanartImage `json:"clearlogo"`
-		TVLogos       []fanartImage `json:"tvlogo"`
-		TVBanners     []fanartImage `json:"tvbanner"`
-		SeasonBanners []fanartImage `json:"seasonbanner"`
+		HDTVLogos       []fanartImage `json:"hdtvlogo"`
+		ClearLogos      []fanartImage `json:"clearlogo"`
+		TVLogos         []fanartImage `json:"tvlogo"`
+		TVBanners       []fanartImage `json:"tvbanner"`
+		SeasonBanners   []fanartImage `json:"seasonbanner"`
+		ShowBackgrounds []fanartImage `json:"showbackground"`
 	}
 	if err := json.Unmarshal(body, &payload); err != nil {
 		return nil, fmt.Errorf("decode fanart response: %w", err)
@@ -516,6 +517,8 @@ func (p *FanartTVAssetSearchProvider) fetchImages(
 		images = append(images, payload.TVLogos...)
 	case "banner":
 		images = append(payload.TVBanners, payload.SeasonBanners...)
+	case "background":
+		images = payload.ShowBackgrounds
 	}
 
 	// Paginate locally.
@@ -929,9 +932,9 @@ func (p *SafebooruAssetSearchProvider) SearchAssetCandidates(
 	req models.AdminAnimeAssetSearchRequest,
 ) ([]models.AdminAnimeAssetSearchCandidate, error) {
 	// Derive a deterministic starting offset from the query so different titles
-	// get different starting positions (max 200 pages of variance). Pagination then
-	// steps forward from that base so "Mehr laden" always continues the same sequence.
-	const maxStartOffset = 200
+	// get different starting positions. Limit to 10 pages of variance so niche
+	// anime with small tag pools (< 20 posts) are not skipped entirely.
+	const maxStartOffset = 10
 	startOffset := int(safebooruQueryHash(req.Query) % maxStartOffset)
 	pid := startOffset + (req.Page-1)*req.Limit
 

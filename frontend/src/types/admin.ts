@@ -43,6 +43,10 @@ export interface AdminAnimeCreateRequest {
   tags?: string[]
   description?: string
   cover_image?: string
+  banner_image?: string
+  logo_image?: string
+  background_video_url?: string
+  background_image_urls?: string[]
   source?: string
   folder_name?: string
   relations?: AdminAnimeRelation[]

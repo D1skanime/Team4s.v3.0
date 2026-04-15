@@ -24,8 +24,12 @@ type adminAnimeCreateRequest struct {
 	Genre       *string                     `json:"genre"`
 	Tags        []string                    `json:"tags"`
 	Description *string                     `json:"description"`
-	CoverImage  *string                     `json:"cover_image"`
-	Source      *string                     `json:"source"`
+	CoverImage          *string                     `json:"cover_image"`
+	BannerImage         *string                     `json:"banner_image"`
+	LogoImage           *string                     `json:"logo_image"`
+	BackgroundVideoURL  *string                     `json:"background_video_url"`
+	BackgroundImageURLs []string                    `json:"background_image_urls"`
+	Source              *string                     `json:"source"`
 	FolderName  *string                     `json:"folder_name"`
 	Relations   []models.AdminAnimeRelation `json:"relations"`
 }

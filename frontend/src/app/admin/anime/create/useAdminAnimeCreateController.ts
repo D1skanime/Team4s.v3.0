@@ -587,6 +587,22 @@ export function useAdminAnimeCreateController() {
       payload.cover_image = trimmedCoverImage;
     }
 
+    if (jellyfinAssetSlots?.banner?.present && jellyfinAssetSlots.banner.url && !stagedAssets.banner) {
+      payload.banner_image = jellyfinAssetSlots.banner.url;
+    }
+    if (jellyfinAssetSlots?.logo?.present && jellyfinAssetSlots.logo.url && !stagedAssets.logo) {
+      payload.logo_image = jellyfinAssetSlots.logo.url;
+    }
+    if (jellyfinAssetSlots?.background_video?.present && jellyfinAssetSlots.background_video.url && !stagedAssets.background_video) {
+      payload.background_video_url = jellyfinAssetSlots.background_video.url;
+    }
+    const jellyfinBackgroundURLs = (jellyfinAssetSlots?.backgrounds ?? [])
+      .filter((slot) => slot.present && slot.url)
+      .map((slot) => slot.url as string);
+    if (jellyfinBackgroundURLs.length > 0) {
+      payload.background_image_urls = jellyfinBackgroundURLs;
+    }
+
     if (createYear.trim()) {
       const year = parsePositiveInt(createYear);
       if (!year) {

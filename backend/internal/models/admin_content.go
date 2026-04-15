@@ -83,8 +83,12 @@ type AdminAnimeCreateInput struct {
 	MaxEpisodes *int16
 	Genre       *string
 	Description *string
-	CoverImage  *string
-	Source      *string
+	CoverImage          *string
+	BannerImage         *string
+	LogoImage           *string
+	BackgroundVideoURL  *string
+	BackgroundImageURLs []string
+	Source              *string
 	FolderName  *string
 	Tags        []string
 }

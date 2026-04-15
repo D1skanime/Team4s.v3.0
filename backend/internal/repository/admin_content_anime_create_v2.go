@@ -120,6 +120,18 @@ func (r *AdminContentRepository) createAnimeV2(
 	if err := attachAnimeCoverMediaV2(ctx, tx, animeID, input, modifiedBy); err != nil {
 		return nil, err
 	}
+	if err := attachAnimeBannerMediaV2(ctx, tx, animeID, input, modifiedBy); err != nil {
+		return nil, err
+	}
+	if err := attachAnimeLogoMediaV2(ctx, tx, animeID, input, modifiedBy); err != nil {
+		return nil, err
+	}
+	if err := attachAnimeBackgroundVideoMediaV2(ctx, tx, animeID, input, modifiedBy); err != nil {
+		return nil, err
+	}
+	if err := attachAnimeBackgroundImageURLsMediaV2(ctx, tx, animeID, input, modifiedBy); err != nil {
+		return nil, err
+	}
 
 	return loadAdminAnimeItemV2(ctx, tx, animeID, schema)
 }
@@ -265,17 +277,78 @@ func attachAnimeCoverMediaV2(
 	input models.AdminAnimeCreateInput,
 	actorUserID *int64,
 ) error {
-	coverImage := trimOptionalStringPtr(input.CoverImage)
-	if coverImage == nil {
+	return attachUrlMediaAssetV2(ctx, tx, animeID, input.CoverImage, "poster", input.Title, actorUserID)
+}
+
+func attachAnimeBannerMediaV2(
+	ctx context.Context,
+	tx pgx.Tx,
+	animeID int64,
+	input models.AdminAnimeCreateInput,
+	actorUserID *int64,
+) error {
+	return attachUrlMediaAssetV2(ctx, tx, animeID, input.BannerImage, "banner", input.Title, actorUserID)
+}
+
+func attachAnimeLogoMediaV2(
+	ctx context.Context,
+	tx pgx.Tx,
+	animeID int64,
+	input models.AdminAnimeCreateInput,
+	actorUserID *int64,
+) error {
+	return attachUrlMediaAssetV2(ctx, tx, animeID, input.LogoImage, "logo", input.Title, actorUserID)
+}
+
+func attachAnimeBackgroundVideoMediaV2(
+	ctx context.Context,
+	tx pgx.Tx,
+	animeID int64,
+	input models.AdminAnimeCreateInput,
+	actorUserID *int64,
+) error {
+	return attachUrlMediaAssetV2(ctx, tx, animeID, input.BackgroundVideoURL, "video", input.Title, actorUserID)
+}
+
+func attachAnimeBackgroundImageURLsMediaV2(
+	ctx context.Context,
+	tx pgx.Tx,
+	animeID int64,
+	input models.AdminAnimeCreateInput,
+	actorUserID *int64,
+) error {
+	for _, rawURL := range input.BackgroundImageURLs {
+		u := rawURL
+		if err := attachUrlMediaAssetV2(ctx, tx, animeID, &u, "background", input.Title, actorUserID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// attachUrlMediaAssetV2 legt einen media_assets-Eintrag fuer eine URL an,
+// verknuepft ihn via anime_media und speichert bei Jellyfin-URLs einen
+// media_external-Eintrag. mediaTypeName muss ein gueltiger Wert aus media_types sein.
+func attachUrlMediaAssetV2(
+	ctx context.Context,
+	tx pgx.Tx,
+	animeID int64,
+	rawURL *string,
+	mediaTypeName string,
+	caption string,
+	actorUserID *int64,
+) error {
+	imageURL := trimOptionalStringPtr(rawURL)
+	if imageURL == nil {
 		return nil
 	}
 
 	var mediaTypeID int64
-	if err := tx.QueryRow(ctx, `SELECT id FROM media_types WHERE name = 'poster'`).Scan(&mediaTypeID); err != nil {
-		return fmt.Errorf("resolve poster media type: %w", err)
+	if err := tx.QueryRow(ctx, `SELECT id FROM media_types WHERE name = $1`, mediaTypeName).Scan(&mediaTypeID); err != nil {
+		return fmt.Errorf("resolve %s media type: %w", mediaTypeName, err)
 	}
 
-	mimeType, format := inferImageMetadata(*coverImage)
+	mimeType, format := inferImageMetadata(*imageURL)
 
 	var mediaID int64
 	if err := tx.QueryRow(
@@ -294,14 +367,14 @@ func attachAnimeCoverMediaV2(
 		RETURNING id
 		`,
 		mediaTypeID,
-		*coverImage,
-		input.Title,
+		*imageURL,
+		caption,
 		mimeType,
 		format,
 		actorUserID,
 		actorUserID,
 	).Scan(&mediaID); err != nil {
-		return fmt.Errorf("create cover media asset anime=%d: %w", animeID, err)
+		return fmt.Errorf("create %s media asset anime=%d: %w", mediaTypeName, animeID, err)
 	}
 
 	if _, err := tx.Exec(
@@ -314,11 +387,11 @@ func attachAnimeCoverMediaV2(
 		animeID,
 		mediaID,
 	); err != nil {
-		return fmt.Errorf("link cover media anime=%d media=%d: %w", animeID, mediaID, err)
+		return fmt.Errorf("link %s media anime=%d media=%d: %w", mediaTypeName, animeID, mediaID, err)
 	}
 
-	if external := buildJellyfinMediaExternal(*coverImage); external != nil {
-		metadata, err := buildCoverMediaExternalMetadata(*coverImage)
+	if external := buildJellyfinMediaExternal(*imageURL); external != nil {
+		metadata, err := buildCoverMediaExternalMetadata(*imageURL)
 		if err != nil {
 			return err
 		}
@@ -337,7 +410,7 @@ func attachAnimeCoverMediaV2(
 			external.ExternalType,
 			metadata,
 		); err != nil {
-			return fmt.Errorf("link jellyfin cover media anime=%d media=%d: %w", animeID, mediaID, err)
+			return fmt.Errorf("link jellyfin %s media anime=%d media=%d: %w", mediaTypeName, animeID, mediaID, err)
 		}
 	}
 
@@ -379,12 +452,25 @@ func buildJellyfinMediaExternal(raw string) *mediaExternalRef {
 
 	externalType := strings.TrimSpace(strings.ToLower(query.Get("kind")))
 	if externalType == "" {
-		externalType = "poster"
+		if strings.HasSuffix(parsed.Path, "/video") {
+			externalType = "theme_video"
+		} else {
+			externalType = "poster"
+		}
+	}
+
+	// Backdrops mit Index: external_id eindeutig machen (item_id + "-" + index),
+	// damit mehrere Backdrops desselben Jellyfin-Items nicht kollidieren.
+	externalID := itemID
+	if externalType == "backdrop" {
+		if idx := strings.TrimSpace(query.Get("index")); idx != "" {
+			externalID = itemID + "-" + idx
+		}
 	}
 
 	return &mediaExternalRef{
 		Provider:     "jellyfin",
-		ExternalID:   itemID,
+		ExternalID:   externalID,
 		ExternalType: externalType,
 	}
 }

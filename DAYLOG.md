@@ -350,3 +350,39 @@
 
 ### Next Step
 - Scope the edit-route relation UX slice explicitly before touching broader relation taxonomy changes
+
+## 2026-04-15
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: harden the Phase-15 create-page asset-search follow-through so provider-selected assets survive the authoritative create path, keep provider provenance on imported backgrounds, refresh the root handoff files, and push the current state to GitHub
+
+### Workstreams Touched
+- Phase 15 follow-through on create payload and repository persistence
+- background provider provenance carry-through for staged remote assets
+- asset-search provider tuning (`fanart.tv` backgrounds and Safebooru pagination)
+- root handoff/state refresh and end-of-day closeout
+
+### Goals Intended vs Achieved
+- Intended: close the gap between create-page remote asset selection and the authoritative create/save seam without reopening older slot-specific behavior
+- Achieved: create now carries provider-selected `banner`, `logo`, `background_video`, and `background` URLs into the backend create input, the V2 repository attaches those URLs into `media_assets`/`anime_media`, background uploads can retain their `provider_key`, and the repo-local closeout files now reflect the real Phase-15-plus-follow-through state
+
+### Problems Solved
+- Root cause: Phase 15 could stage remote search results into local files, but the authoritative create payload still only carried `cover_image`, which left non-cover provider selections at risk during create/save
+- Fix: extended the create request/model/validation path so `banner_image`, `logo_image`, `background_video_url`, and `background_image_urls` flow into backend create handling and V2 media attachment
+- Root cause: background assets adopted from online search lost their upstream source context after upload/link, which weakened later provenance reasoning
+- Fix: threaded optional `provider_key` through create-side background upload/linking and upserted matching `media_external` rows during background linking
+- Root cause: `fanart.tv` backgrounds were not exposed through the provider matrix and Safebooru's deterministic offset could skip small result sets too aggressively
+- Fix: enabled `background` support for `fanart.tv`, mapped `showbackground`, and reduced the Safebooru starting-offset variance
+- Root cause: root handoff files still described the older Phase-13 relation thread while `main` had already moved through Phase 14 and Phase 15
+- Fix: refreshed the closeout files to match the actual `main` baseline plus today's dirty follow-through work
+
+### Decisions
+- Treat today's work as Phase-15 follow-through, not as a return to the older edit-route relation thread
+- Keep remote create-page asset adoption on the same upload/link seam by carrying the selected provider URLs and provenance through the normal create contract
+
+### Blockers
+- Verification blocker: local Go tests could not download missing modules inside the sandboxed network path, and Vitest failed on sandbox `spawn EPERM`, so today's code remains unverified in this session
+- Process blocker: live browser UAT for the Phase-15 remote-asset adoption flow is still pending
+
+### Next Step
+- Run one live create-page smoke for remote banner/background adoption and confirm the created anime keeps those assets plus provider provenance after save

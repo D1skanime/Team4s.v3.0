@@ -17,12 +17,14 @@ import type {
 /**
  * Repraesentiert ein lokal vorbereitetes (gestaged) Asset, das noch nicht
  * hochgeladen wurde. Enthaelt den Entwurfsdateinamen, die Datei selbst und
- * die lokale Vorschau-URL.
+ * die lokale Vorschau-URL. providerKey hat das Format "source:id" (z.B.
+ * "tmdb:12345") und ist nur bei Online-Kandidaten gesetzt.
  */
 export interface CreateAssetUploadDraftValue {
   draftValue: string;
   file: File;
   previewUrl: string;
+  providerKey?: string;
 }
 
 /**
@@ -207,10 +209,16 @@ export async function stageRemoteCreateAssetCandidate(
     type: blob.type || "image/jpeg",
   });
 
+  const providerKey =
+    candidate.source && candidate.id
+      ? `${candidate.source}:${candidate.id}`
+      : undefined;
+
   return {
     draftValue: file.name,
     file,
     previewUrl: createObjectURL(file),
+    providerKey,
   };
 }
 
@@ -238,6 +246,7 @@ async function uploadAndLinkCreatedAnimeAsset(
   kind: AdminAnimeAssetKind,
   file: File,
   authToken?: string,
+  providerKey?: string,
 ): Promise<string> {
   const config = CREATE_ASSET_UPLOAD_PLAN[kind];
   const upload = await uploadAdminAnimeMedia({
@@ -253,7 +262,7 @@ async function uploadAndLinkCreatedAnimeAsset(
   } else if (kind === "logo") {
     await assignAdminAnimeLogoAsset(animeID, upload.id, authToken);
   } else if (kind === "background") {
-    await addAdminAnimeBackgroundAsset(animeID, upload.id, authToken);
+    await addAdminAnimeBackgroundAsset(animeID, upload.id, authToken, providerKey);
   } else {
     await assignAdminAnimeBackgroundVideoAsset(animeID, upload.id, authToken);
   }
@@ -343,12 +352,15 @@ export async function uploadCreatedAnimeAssets(
   for (const entry of assets.background || []) {
     const backgroundFile = resolveUploadFile(entry);
     if (!backgroundFile) continue;
+    const providerKey =
+      entry instanceof File ? undefined : (entry?.providerKey ?? undefined);
     uploaded.background.push(
       await uploadAndLinkCreatedAnimeAsset(
         animeID,
         "background",
         backgroundFile,
         authToken,
+        providerKey,
       ),
     );
   }

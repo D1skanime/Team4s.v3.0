@@ -1657,8 +1657,11 @@ export async function addAdminAnimeBackgroundAsset(
   animeID: number,
   mediaID: string,
   authToken?: string,
+  providerKey?: string,
 ): Promise<AdminAnimeBackgroundAssetResponse> {
   const API_BASE_URL = getApiBaseUrl()
+  const body: Record<string, string> = { media_id: mediaID }
+  if (providerKey) body.provider_key = providerKey
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/backgrounds`, {
     method: 'POST',
     headers: withAuthHeader(
@@ -1667,7 +1670,7 @@ export async function addAdminAnimeBackgroundAsset(
       },
       authToken,
     ),
-    body: JSON.stringify({ media_id: mediaID }),
+    body: JSON.stringify(body),
   })
 
   if (!response.ok) {

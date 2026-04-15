@@ -19,9 +19,11 @@ type adminAnimeBannerAssignRequest struct {
 	MediaID string `json:"media_id"`
 }
 
-// adminAnimeBackgroundAssignRequest enthält die MediaID für das Hinzufügen eines Hintergrundbilds zu einem Anime.
+// adminAnimeBackgroundAssignRequest enthält die MediaID und optionale Provider-Informationen
+// für das Hinzufügen eines Hintergrundbilds zu einem Anime.
 type adminAnimeBackgroundAssignRequest struct {
-	MediaID string `json:"media_id"`
+	MediaID     string  `json:"media_id"`
+	ProviderKey *string `json:"provider_key"`
 }
 
 // animeAssetOperation repräsentiert die möglichen Operationen auf einem Anime-Asset (zuweisen, leeren, hinzufügen, entfernen).
@@ -205,7 +207,7 @@ func (h *AdminContentHandler) AddAnimeBackgroundAsset(c *gin.Context) {
 		return
 	}
 
-	item, err := h.animeAssetRepo.AddManualBackground(c.Request.Context(), animeID, req.MediaID)
+	item, err := h.animeAssetRepo.AddManualBackground(c.Request.Context(), animeID, req.MediaID, req.ProviderKey)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "anime oder media asset nicht gefunden"}})
 		return

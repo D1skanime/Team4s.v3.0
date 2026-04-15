@@ -668,13 +668,13 @@ func (r *AnimeAssetRepository) ClearBanner(ctx context.Context, animeID int64) e
 	return nil
 }
 
-func (r *AnimeAssetRepository) AddManualBackground(ctx context.Context, animeID int64, mediaID string) (*models.AnimeBackgroundAsset, error) {
+func (r *AnimeAssetRepository) AddManualBackground(ctx context.Context, animeID int64, mediaID string, providerKey *string) (*models.AnimeBackgroundAsset, error) {
 	useV2Schema, err := r.hasV2AssetSchema(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if useV2Schema {
-		return r.addManualBackgroundV2(ctx, animeID, mediaID)
+		return r.addManualBackgroundV2(ctx, animeID, mediaID, providerKey)
 	}
 
 	trimmedMediaID := strings.TrimSpace(mediaID)
@@ -704,8 +704,14 @@ func (r *AnimeAssetRepository) AddManualBackground(ctx context.Context, animeID 
 		return nil, fmt.Errorf("load next anime background sort for %d: %w", animeID, err)
 	}
 
+	source := "manual"
+	trimmedProviderKey := trimOptionalStringPtr(providerKey)
+	if trimmedProviderKey != nil {
+		source = "provider"
+	}
+
 	var item models.AnimeBackgroundAsset
-	var source string
+	var storedSource string
 	if err := tx.QueryRow(ctx, `
 		INSERT INTO anime_background_assets (
 			anime_id,
@@ -715,12 +721,12 @@ func (r *AnimeAssetRepository) AddManualBackground(ctx context.Context, animeID 
 			provider_key,
 			sort_order
 		)
-		VALUES ($1, $2, 'manual', NULL, NULL, $3)
+		VALUES ($1, $2, $3, NULL, $4, $5)
 		RETURNING id, media_asset_id, source, sort_order, created_at, updated_at
-	`, animeID, trimmedMediaID, nextSort).Scan(
+	`, animeID, trimmedMediaID, source, trimmedProviderKey, nextSort).Scan(
 		&item.ID,
 		&item.MediaID,
-		&source,
+		&storedSource,
 		&item.SortOrder,
 		&item.CreatedAt,
 		&item.UpdatedAt,
@@ -744,7 +750,7 @@ func (r *AnimeAssetRepository) AddManualBackground(ctx context.Context, animeID 
 	}
 
 	item.URL = resolveAnimeAssetURL(item.MediaID, nil, mediaPath)
-	item.Ownership = models.AnimeAssetOwnership(source)
+	item.Ownership = models.AnimeAssetOwnership(storedSource)
 	return &item, nil
 }
 
@@ -1059,7 +1065,7 @@ func (r *AnimeAssetRepository) clearBannerV2(ctx context.Context, animeID int64)
 	return r.clearSingularAssetV2(ctx, animeID, "banner")
 }
 
-func (r *AnimeAssetRepository) addManualBackgroundV2(ctx context.Context, animeID int64, mediaRef string) (*models.AnimeBackgroundAsset, error) {
+func (r *AnimeAssetRepository) addManualBackgroundV2(ctx context.Context, animeID int64, mediaRef string, providerKey *string) (*models.AnimeBackgroundAsset, error) {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("begin add anime background v2 tx: %w", err)
@@ -1080,6 +1086,13 @@ func (r *AnimeAssetRepository) addManualBackgroundV2(ctx context.Context, animeI
 	}
 	if err := upsertAnimeMediaLink(ctx, tx, animeID, mediaID, nextSort); err != nil {
 		return nil, err
+	}
+
+	trimmedProviderKey := trimOptionalStringPtr(providerKey)
+	if trimmedProviderKey != nil {
+		if err := upsertBackgroundMediaExternal(ctx, tx, mediaID, *trimmedProviderKey); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
@@ -1745,4 +1758,28 @@ func reconcileAnimeProviderBackgrounds(
 	}
 
 	return plan
+}
+
+// upsertBackgroundMediaExternal speichert die Provider-Herkunft eines Background-Assets
+// in media_external. providerKey hat das Format "source:external_id" (z.B. "tmdb:12345").
+// Wenn kein Doppelpunkt gefunden wird, wird der gesamte Wert als external_id mit
+// provider="unknown" gespeichert.
+func upsertBackgroundMediaExternal(ctx context.Context, tx pgx.Tx, mediaID int64, providerKey string) error {
+	provider := "unknown"
+	externalID := providerKey
+	if idx := strings.Index(providerKey, ":"); idx > 0 {
+		provider = providerKey[:idx]
+		externalID = providerKey[idx+1:]
+	}
+
+	_, err := tx.Exec(ctx, `
+		INSERT INTO media_external (media_id, provider, external_id, external_type, metadata)
+		VALUES ($1, $2, $3, 'background', NULL)
+		ON CONFLICT (provider, external_id, external_type)
+		DO UPDATE SET media_id = EXCLUDED.media_id
+	`, mediaID, provider, externalID)
+	if err != nil {
+		return fmt.Errorf("upsert background media external media=%d provider=%s: %w", mediaID, provider, err)
+	}
+	return nil
 }

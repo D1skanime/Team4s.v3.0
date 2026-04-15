@@ -1,8 +1,8 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phase 13 is now complete in practice and pushed.
-- Next move is the deliberately chosen edit-route relation UX slice, not a reopen of the verified create relation seam.
+- `main` is already through verified Phase 15.
+- Current dirty work is Phase-15 follow-through: make provider-selected create assets survive the authoritative save path and keep useful provenance.
 
 ## Useful Facts To Keep
 - The verified good seam is now:
@@ -12,19 +12,23 @@
   - edit-route asset actions in the provenance cards
   - `Cover entfernen` / non-cover removal through the same V2 model
   - anime delete cleanup for the current run
+- Phase 14/15 added:
+  - separate provider-search state on create
+  - slot-specific `Online suchen` actions
+  - source-visible chooser results
+  - remote-result adoption by staging local `File` objects instead of inventing a second persistence channel
 - Tags are now part of the create baseline:
   - visible create-page tag card
   - authoritative write on save
   - normalized `tags` + `anime_tags`
   - junction cleanup on anime delete
-- AniSearch create relation follow-through is now part of the baseline too:
-  - create payload keeps AniSearch `relations`
-  - backend follow-through persists them after anime creation
-  - duplicate rows degrade into `skipped_existing` instead of false warnings
-- The last real AniSearch parser bug was not a missing relation page request; it was the `data-graph` JSON decode failing when `manga` / `movie` came back as empty arrays instead of objects.
-- Concrete proof case: `10250` now parses into:
-  - `Hauptgeschichte -> Ace of the Diamond (8674)`
-  - `Fortsetzung -> Ace of the Diamond: Act II (13997)`
+- Today's key follow-through changes:
+  - create payload can now carry `banner_image`, `logo_image`, `background_video_url`, and `background_image_urls`
+  - backend create validation/model path accepts those fields
+  - V2 create now attaches those URLs into `media_assets` / `anime_media`
+  - create-side background upload/linking can keep `providerKey` and persist a `media_external` row
+- `fanart.tv` now serves as a background source too via `showbackground`.
+- Safebooru deterministic start offset was reduced from `200` to `10` to avoid skipping tiny niche result pools.
 - The old `frontend/public/covers` and `/api/admin/upload-cover` paths are legacy traps and should not come back into active flows.
 - Persisted asset resolution in `backend/internal/repository/anime_assets.go` needed `COALESCE(ma.modified_at, ma.created_at)` to stop manual non-cover assets from disappearing in the edit UI.
 - Backgrounds should stay modeled as additive galleries in the UI; trying to force them into a singular compare-card made the interface worse.
@@ -36,6 +40,6 @@
 - Canonical repo is now `C:\Users\admin\Documents\Team4s`; `Team4sV2` was only the recovery workspace.
 
 ## Mental Unload
-- The GitHub baseline is finally clean again, so avoid big repository surgery unless there is a clear reason.
-- The next useful work is to scope edit-route relation UX cleanly, not to drift into "one more tiny AniSearch fix" or ad-hoc taxonomy expansion.
-- Keep the first next step tomorrow to a short scoping task: inspect the current edit-route relation surface and write down the exact UX gaps before planning.
+- The handoff drift was starting to lie about the actual baseline; that is fixed now, so tomorrow should trust the refreshed root files instead of the older story.
+- The most useful next move is verification, not more cleverness: prove that remote-selected non-cover assets really survive create/save.
+- If verification passes, decide calmly whether relation UX is still next or whether create-asset hardening needs one more narrow cleanup slice.

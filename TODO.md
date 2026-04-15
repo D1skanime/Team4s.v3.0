@@ -1,14 +1,14 @@
 # TODO
 
 ## Current Active Work
-- [x] Close Phase 13 AniSearch create relation follow-through and verify DB persistence
-- [x] Fix the AniSearch relation-page parser so mixed node container types no longer discard valid anime relations
-- [x] Push the corrected Phase-13 baseline to GitHub `main`
+- [x] Verify and push Phase 15 create-page asset search baseline on `main`
+- [ ] Verify today's Phase-15 follow-through for provider-selected non-cover assets after create/save
+- [ ] Confirm background provider provenance survives remote adoption through create
 
 ## Next Up
-- [ ] Scope the chosen edit-route relation UX slice explicitly
+- [ ] Re-run targeted backend/frontend checks for today's follow-through in an unrestricted environment
 - [ ] Keep local dev commands and Docker/local verification paths documented as the team-default workflow
-- [ ] Separate any further UI polish or relation-taxonomy expansion from the verified lifecycle/enrichment seam work
+- [ ] Decide the next narrow slice only after the create-side asset-search follow-through is confirmed
 
 ## Parking Lot
 - [ ] Broader v2 rollout for non-anime entities and admin surfaces

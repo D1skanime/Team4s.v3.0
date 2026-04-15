@@ -454,3 +454,29 @@ Edit-route relation UX builds directly on the now-proven persistence baseline an
 ### Follow-ups Required
 - capture the exact edit-route relation UX scope before implementation starts
 - record any future taxonomy expansion as a separate decision before code changes
+
+---
+
+## 2026-04-15 - Provider-Selected Create Assets Must Persist Through The Same Authoritative Create Seam
+
+### Decision
+Keep create-page remote asset adoption on the existing authoritative create/upload seam by carrying the selected provider asset URLs and background provenance through the normal create contract, instead of inventing a second provider-specific persistence path.
+
+### Context
+Phase 15 already let admins search online sources per asset slot and adopt remote candidates into the create draft. The follow-through gap was that the authoritative create payload still only handled `cover_image`, which left non-cover provider selections and background provenance partially outside the trusted save path.
+
+### Options Considered
+- keep remote chooser adoption as a mostly frontend-only staging trick and patch special cases later
+- extend the standard create contract so provider-selected assets flow through the same backend validation and V2 media attachment as the rest of create
+
+### Why This Won
+The project already trusts one generic create/upload/link seam. Extending that seam keeps the behavior durable, avoids new slot-specific provider branches, and preserves provenance where it matters.
+
+### Consequences
+- create requests can now carry `banner_image`, `logo_image`, `background_video_url`, and additive `background_image_urls`
+- backend create handling must stay responsible for turning those URLs into `media_assets` / `anime_media`
+- create-side background imports may persist `provider_key` into `media_external` when the provider identity is known
+
+### Follow-ups Required
+- verify the live browser create flow for remote-selected non-cover assets
+- keep future asset-search follow-ups inside the same create/upload contract
