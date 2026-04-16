@@ -20,6 +20,7 @@ interface CreateAniSearchIntakeCardProps {
   searchQuery: string;
   isLoading: boolean;
   isSearchingCandidates: boolean;
+  filteredExistingCount?: number;
   candidates: AdminAnimeAniSearchSearchCandidate[];
   result: CreateAniSearchDraftState | null;
   conflict: CreateAniSearchConflictState | null;
@@ -43,6 +44,7 @@ export function CreateAniSearchIntakeCard({
   searchQuery,
   isLoading,
   isSearchingCandidates,
+  filteredExistingCount = 0,
   candidates,
   result,
   conflict,
@@ -186,6 +188,12 @@ export function CreateAniSearchIntakeCard({
         ) : errorMessage ? (
           <div className={styles.errorBox}>
             <p>{errorMessage}</p>
+            {filteredExistingCount > 0 ? (
+              <p className={styles.hint}>
+                AniSearch hat Titel gefunden, aber bereits vorhandene Anime werden in der
+                Create-Auswahl ausgeblendet.
+              </p>
+            ) : null}
             <p className={styles.hint}>
               Der aktuelle Entwurf bleibt unveraendert und noch nicht gespeichert.
             </p>

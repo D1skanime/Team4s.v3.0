@@ -209,6 +209,7 @@ export interface AdminAnimeAniSearchCreateResponse {
 /** API-Antwort fuer eine AniSearch-Suche mit einer Liste von Kandidaten. */
 export interface AdminAnimeAniSearchSearchResponse {
   data: AdminAnimeAniSearchSearchCandidate[]
+  filtered_existing_count?: number
 }
 
 /** Unterstuetzte Bild-Quell-Provider fuer die Asset-Suche. */

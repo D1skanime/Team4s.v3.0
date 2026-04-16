@@ -177,6 +177,7 @@ export default function AdminAnimeCreatePage() {
                   searchQuery={controller.anisearch.searchQuery}
                   isLoading={controller.anisearch.isLoading}
                   isSearchingCandidates={controller.anisearch.isSearchingCandidates}
+                  filteredExistingCount={controller.anisearch.filteredExistingCount}
                   candidates={controller.anisearch.candidates}
                   result={controller.anisearch.result}
                   conflict={controller.anisearch.conflict}

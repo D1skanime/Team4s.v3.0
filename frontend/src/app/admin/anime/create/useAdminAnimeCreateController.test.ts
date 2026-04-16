@@ -212,6 +212,7 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
       candidates: [],
       errorMessage:
         'Alle 2 gefundenen AniSearch-Treffer sind bereits als Anime erfasst und wurden ausgeblendet.',
+      filteredExistingCount: 2,
       successMessage: null,
     })
   })
