@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import createStyles from "./page.module.css";
 
 export type AssetSource = "Jellyfin" | "Manuell" | "Online" | "TMDB" | "Zerochan";
@@ -11,7 +12,7 @@ interface CreateAssetCardProps {
   isEmpty?: boolean;
   isRequired?: boolean;
   statusNote?: string;
-  actions?: React.ReactNode;
+  actions?: ReactNode;
 }
 
 export function CreateAssetCard({

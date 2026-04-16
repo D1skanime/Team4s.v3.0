@@ -7,6 +7,7 @@ import createStyles from "./page.module.css";
 import { CreateAssetSearchDialog } from "./CreateAssetSearchDialog";
 import { ManualCreateWorkspace } from "../components/ManualCreate/ManualCreateWorkspace";
 import { CreateAniSearchIntakeCard } from "./CreateAniSearchIntakeCard";
+import { CreateAssetSection } from "./CreateAssetSection";
 import { CreateJellyfinCard } from "./CreateJellyfinCard";
 import {
   buildCreateSuccessMessage,
@@ -226,11 +227,32 @@ export default function AdminAnimeCreatePage() {
             <div>
               <h2 className={createStyles.sectionTitle}>Assets</h2>
               <p className={createStyles.sectionSub}>
-                Prüfe und ergänze die Assets.
+                Prüfe und ergänze die Assets. Du kannst sie aus Jellyfin übernehmen, manuell hochladen oder online suchen.
               </p>
             </div>
+            <button
+              className={createStyles.primaryAction}
+              type="button"
+              onClick={() => { void handlers.handleJellyfinSearch(); }}
+              style={{ marginLeft: "auto" }}
+            >
+              Jellyfin erneut scannen
+            </button>
           </div>
-          {/* Inhalt wird in Plan 17-04 eingesetzt */}
+          <CreateAssetSection
+            stagedCoverPreviewUrl={manualDraft.stagedCover?.previewUrl}
+            stagedBanner={manualDraft.stagedAssets.banner}
+            stagedLogo={manualDraft.stagedAssets.logo}
+            stagedBackgrounds={manualDraft.stagedAssets.background}
+            stagedBackgroundVideo={manualDraft.stagedAssets.background_video}
+            jellyfinDraftAssets={jellyfin.draftAssets}
+            onOpenFileDialog={handlers.openAssetFileDialog}
+            onOpenAssetSearch={handlers.openAssetSearch}
+            onRemoveSingleAsset={handlers.removeSingleAsset}
+            onRemoveBackground={handlers.removeBackground}
+            onRemoveJellyfinAsset={handlers.handleRemoveJellyfinAsset}
+            fileInputRefs={fileInputRefs}
+          />
         </section>
 
         {/* ── Section 3: Details ───────────────────────────────────── */}
