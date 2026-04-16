@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 17-02-PLAN.md
+stopped_at: Completed 17-03-PLAN.md
 last_updated: "2026-04-16T14:20:24.399Z"
 last_activity: 2026-04-16
 progress:
   total_phases: 12
   completed_phases: 9
   total_plans: 41
-  completed_plans: 35
+  completed_plans: 36
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 17 (anime-create-ux-ui-follow-through) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Accumulated Context
 
@@ -79,6 +79,7 @@ Recent durable decisions:
 - [Phase 17]: CreatePageStepper uses anchor links to named section IDs for zero-JS scroll navigation
 - [Phase 17]: statusBar pills removed from create header; status info moves to Section 4 in plan 17-05
 - [Phase 17]: AniSearch card copy uses temporal framing throughout: all Entwurf/draft-product language replaced by create-time alternatives without changing internal variable names
+- [Phase 17]: Jellyfin asset adoption gated behind explicit handleJellyfinAdopt handler rather than auto-hydrating on preview load
 
 ### Pending Todos
 
@@ -128,6 +129,6 @@ Recent durable decisions:
 ## Session Continuity
 
 Last session: 2026-04-16T14:20:24.392Z
-Stopped at: Completed 17-02-PLAN.md
+Stopped at: Completed 17-03-PLAN.md
 Last activity: 2026-04-16
 Resume file: None

@@ -20,6 +20,7 @@ import {
   resolveSourceActionState,
 } from "./createPageHelpers";
 import { useAdminAnimeCreateController } from "./useAdminAnimeCreateController";
+import { CreatePageStepper } from "./CreatePageStepper";
 
 export {
   buildCreateSuccessMessage,
@@ -75,45 +76,28 @@ export default function AdminAnimeCreatePage() {
           <div className={createStyles.pageTitleBlock}>
             <h1 className={createStyles.pageTitle}>Anime erstellen</h1>
             <p className={createStyles.pageIntro}>
-              Pflicht sind nur Titel und Cover. Jellyfin bleibt eine optionale Hilfe.
+              Schritt für Schritt zum perfekten Ergebnis.
             </p>
           </div>
-          <div className={createStyles.statusBar}>
-            <span
-              className={`${createStyles.statusPill} ${
-                manualDraft.missingFields.length === 0
-                  ? createStyles.statusPillReady
-                  : createStyles.statusPillWarning
-              }`}
-            >
-              {manualDraft.readinessLabel}
-            </span>
-            <span className={createStyles.statusPill}>
-              {jellyfin.hasSelectedPreview
-                ? "Jellyfin verknuepft"
-                : jellyfin.showResults
-                  ? `${jellyfin.intake.candidates.length} Treffer`
-                  : "Manuell"}
-            </span>
-            <span
-              className={`${createStyles.statusPill} ${authStatusClassName}`}
-            >
-              {authStatusLabel}
-            </span>
-            {jellyfin.selectedDraftAssetCount > 0 ? (
-              <span className={createStyles.statusPill}>
-                {jellyfin.selectedDraftAssetCount} Assets
-              </span>
-            ) : null}
-          </div>
         </header>
+        <CreatePageStepper activeStep={1} />
 
         {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
         {status.successMessage ? (
           <div className={styles.successBox}>{status.successMessage}</div>
         ) : null}
 
-        <section id="section-1" className={createStyles.workspaceSection}>
+        {/* ── Section 1: Anime finden ──────────────────────────────── */}
+        <section id="section-1" className={createStyles.pageSection}>
+          <div className={createStyles.sectionHeading}>
+            <span className={createStyles.sectionNumber}>1</span>
+            <div>
+              <h2 className={createStyles.sectionTitle}>Anime finden</h2>
+              <p className={createStyles.sectionSub}>
+                Suche den Anime in AniSearch und wähle anschließend den passenden Ordner in Jellyfin aus.
+              </p>
+            </div>
+          </div>
           <ManualCreateWorkspace
             editor={editor}
             title={manualDraft.values.title}
@@ -233,6 +217,48 @@ export default function AdminAnimeCreatePage() {
               onDiscard={handlers.handleDiscardJellyfinPreview}
             />
           </div>
+        </section>
+
+        {/* ── Section 2: Assets ────────────────────────────────────── */}
+        <section id="section-2" className={createStyles.pageSection}>
+          <div className={createStyles.sectionHeading}>
+            <span className={createStyles.sectionNumber}>2</span>
+            <div>
+              <h2 className={createStyles.sectionTitle}>Assets</h2>
+              <p className={createStyles.sectionSub}>
+                Prüfe und ergänze die Assets.
+              </p>
+            </div>
+          </div>
+          {/* Inhalt wird in Plan 17-04 eingesetzt */}
+        </section>
+
+        {/* ── Section 3: Details ───────────────────────────────────── */}
+        <section id="section-3" className={createStyles.pageSection}>
+          <div className={createStyles.sectionHeading}>
+            <span className={createStyles.sectionNumber}>3</span>
+            <div>
+              <h2 className={createStyles.sectionTitle}>Details</h2>
+              <p className={createStyles.sectionSub}>
+                Ergänze die Metadaten und Beschreibung.
+              </p>
+            </div>
+          </div>
+          {/* Metadaten-Formular aus ManualCreateWorkspace wird hier isoliert — Plan 17-04 */}
+        </section>
+
+        {/* ── Section 4: Prüfen & Anlegen ──────────────────────────── */}
+        <section id="section-4" className={createStyles.pageSection}>
+          <div className={createStyles.sectionHeading}>
+            <span className={createStyles.sectionNumber}>4</span>
+            <div>
+              <h2 className={createStyles.sectionTitle}>Prüfen & Anlegen</h2>
+              <p className={createStyles.sectionSub}>
+                Abschließende Kontrolle vor dem Erstellen.
+              </p>
+            </div>
+          </div>
+          {/* Inhalt wird in Plan 17-05 eingesetzt */}
         </section>
 
         <CreateAssetSearchDialog
