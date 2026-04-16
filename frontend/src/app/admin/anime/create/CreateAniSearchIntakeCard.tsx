@@ -64,10 +64,10 @@ export function CreateAniSearchIntakeCard({
       <div className={createStyles.resultsHeader}>
         <div className={createStyles.resultsTitleBlock}>
           <p className={createStyles.resultsEyebrow}>AniSearch</p>
-          <h2 className={createStyles.resultsTitle}>AniSearch Daten laden</h2>
+          <h2 className={createStyles.resultsTitle}>AniSearch</h2>
+          <p className={createStyles.resultsSubtitle}>Basisdaten und eindeutige ID</p>
           <p className={createStyles.resultsText}>
-            Nutze AniSearch entweder direkt per ID oder suche zuerst nach einem Titel
-            und waehle dann den passenden Eintrag aus.
+            AniSearch liefert Titel, Beschreibung, Typ, Jahr, Episodenzahl, Genres und Tags.
           </p>
         </div>
       </div>
@@ -195,7 +195,7 @@ export function CreateAniSearchIntakeCard({
               </p>
             ) : null}
             <p className={styles.hint}>
-              Der aktuelle Entwurf bleibt unveraendert und noch nicht gespeichert.
+              Keine Änderungen am Anime. Der Anime wurde noch nicht erstellt.
             </p>
           </div>
         ) : result ? (
@@ -219,7 +219,7 @@ export function CreateAniSearchIntakeCard({
                 ))}
               </div>
               <div>
-                <strong>Entwurfsstatus</strong>
+                <strong>AniSearch-Status</strong>
                 {result.draftStatusNotes.map((note) => (
                   <p key={note} className={styles.hint}>
                     {note}

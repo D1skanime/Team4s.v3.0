@@ -11,7 +11,7 @@ import { resolveCreateAniSearchDraftMergeInputs } from "./createPageHelpers";
 /**
  * Zustand nach einem erfolgreichen AniSearch-Entwurfsabruf. Enthaelt die
  * AniSearch-ID, Quellenreferenz, Zusammenfassung, aktualisierte Felder,
- * Relationshinweise und den rohen Entwurf vom Backend.
+ * Relationshinweise und die AniSearch-Rohdaten vom Backend.
  */
 export interface CreateAniSearchDraftState {
   anisearchID: string;
@@ -37,7 +37,7 @@ export interface CreateAniSearchConflictState {
 
 /**
  * Erstellt den Controller-Zustand aus einem erfolgreichen AniSearch-
- * Entwurfsergebnis. Optionale Felder erlauben das Markieren ueberschriebener
+ * Ergebnis. Optionale Felder erlauben das Markieren ueberschriebener
  * Jellyfin-Werte und manuell beibehaltener Felder.
  */
 export function buildCreateAniSearchDraftState(
@@ -82,7 +82,7 @@ export function buildCreateAniSearchConflictState(
 /**
  * Verarbeitet das vollstaendige AniSearch-Ergebnis im Controller-Kontext.
  * Bei einem Konflikt wird der Weiterleitungspfad zurueckgegeben; bei Erfolg
- * wird der naechste Entwurfszustand mit den gemergten Daten berechnet.
+ * wird der naechste Ladezustand mit den gemergten Daten berechnet.
  */
 export function applyCreateAniSearchControllerResult(params: {
   currentDraft: ManualAnimeDraftValues;

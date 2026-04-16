@@ -73,12 +73,12 @@ export function buildCreateAniSearchDraftSummary({
   }
 
   draftStatusNotes.push(
-    "Noch nichts gespeichert. Erst Speichern uebernimmt die Daten dauerhaft.",
+    "Wird beim Erstellen übernommen. Der Anime wurde noch nicht erstellt.",
   );
-  notes.push("Noch nichts gespeichert.");
+  notes.push("Wird beim Erstellen übernommen.");
 
   return {
-    message: `AniSearch ID ${result.anisearch_id} hat den Entwurf aktualisiert. Noch nichts gespeichert.`,
+    message: `AniSearch ID ${result.anisearch_id} geladen. Wird beim Erstellen übernommen.`,
     notes,
     updatedFields,
     relationNotes,
