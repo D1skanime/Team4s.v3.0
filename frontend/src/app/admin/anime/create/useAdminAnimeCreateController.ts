@@ -800,6 +800,19 @@ export function useAdminAnimeCreateController() {
     setShowValidationSummary(false);
   }
 
+  function handleJellyfinAdopt() {
+    if (!jellyfinPreview) return;
+    const hydrated = hydrateManualDraftFromJellyfinPreview(
+      manualDraftValues,
+      jellyfinPreview,
+      aniSearchDraftResult ? { mode: "fill" } : undefined,
+    );
+    applyManualDraftValues(hydrated.draft);
+    setJellyfinAssetSlots(hydrated.assetSlots);
+    setShowValidationSummary(false);
+    setSuccessMessage("Jellyfin-Assets wurden zur Prüfung übernommen.");
+  }
+
   function handleDiscardJellyfinPreview() {
     if (jellyfinDraftSnapshot) applyManualDraftValues(jellyfinDraftSnapshot);
     setJellyfinPreview(null);
@@ -809,7 +822,7 @@ export function useAdminAnimeCreateController() {
     jellyfinIntake.resetReview();
     clearMessages();
     clearAniSearchMessage();
-    setSuccessMessage("Jellyfin-Vorschau verworfen. Der Entwurf bleibt ungespeichert.");
+    setSuccessMessage("Jellyfin-Auswahl verworfen. Der Anime wurde noch nicht erstellt.");
   }
 
   async function loadAniSearchDraftByID(anisearchID: string) {
@@ -1223,6 +1236,7 @@ export function useAdminAnimeCreateController() {
       handleCoverUpload,
       handleCreateSubmit,
       handleDiscardJellyfinPreview,
+      handleJellyfinAdopt,
       handleJellyfinCandidateReview,
       handleJellyfinCandidateSelect,
       handleJellyfinSearch,
@@ -1252,7 +1266,7 @@ export function useAdminAnimeCreateController() {
         clearAniSearchMessage();
         setAniSearchConflict(null);
         setSuccessMessage(
-          "Jellyfin-Suche wieder geoeffnet. Der aktuelle Entwurf bleibt bearbeitbar.",
+          "Jellyfin-Suche wieder geöffnet.",
         );
         },
       setAssetSearchQuery,
