@@ -384,3 +384,59 @@
     align-items: stretch;
   }
 }
+
+/* ── Provider Grid (Section 1) ───────────────────────────────────────────── */
+
+.providerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .providerGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.providerCard {
+  background: #fff;
+  border: 1px solid #e2e6ea;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.providerCardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Jellyfin ────────────────────────────────────────────────────────────── */
+
+.jellyfinResultsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jellyfinAdoptBar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.jellyfinAdoptNote {
+  font-size: 13px;
+  color: #15803d;
+  margin: 0;
+  line-height: 1.5;
+}
