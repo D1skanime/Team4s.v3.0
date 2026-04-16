@@ -182,6 +182,7 @@ describe('admin anime api error propagation', () => {
       ok: true,
       status: 200,
       json: vi.fn().mockResolvedValue({
+        filtered_existing_count: 2,
         data: [
           { anisearch_id: '1078', title: 'Bleach', type: 'TV-Serie', year: 2004 },
           {
@@ -198,6 +199,7 @@ describe('admin anime api error propagation', () => {
     await expect(
       searchAdminAnimeCreateAniSearchCandidates('Bleach', { limit: 12 }, 'token'),
     ).resolves.toEqual({
+      filtered_existing_count: 2,
       data: [
         { anisearch_id: '1078', title: 'Bleach', type: 'TV-Serie', year: 2004 },
         {

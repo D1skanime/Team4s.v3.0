@@ -10,6 +10,7 @@ import {
   applyCreateAniSearchControllerResult,
   buildCreateAniSearchConflictState,
 } from './createAniSearchControllerHelpers'
+import { resolveAniSearchCandidateSearchFeedback } from './useAdminAnimeCreateController'
 import { hydrateManualDraftFromAniSearchDraft, hydrateManualDraftFromJellyfinPreview } from '../hooks/useManualAnimeDraft'
 
 const manualLookupDraft = {
@@ -199,6 +200,20 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
     expect(resolved.nextDraft).toEqual(manualLookupDraft)
     expect(resolved.draftResult).toBeNull()
     expect(resolved.redirect).toEqual(conflict)
+  })
+
+  it('explains when AniSearch hits were hidden because they already exist locally', () => {
+    expect(
+      resolveAniSearchCandidateSearchFeedback({
+        data: [],
+        filtered_existing_count: 2,
+      }),
+    ).toEqual({
+      candidates: [],
+      errorMessage:
+        'Alle 2 gefundenen AniSearch-Treffer sind bereits als Anime erfasst und wurden ausgeblendet.',
+      successMessage: null,
+    })
   })
 
   it('keeps AniSearch relations in the final create payload when a draft is saved', () => {

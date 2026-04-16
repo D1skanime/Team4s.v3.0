@@ -138,4 +138,55 @@ describe("CreateAniSearchIntakeCard", () => {
     expect(markup).toContain("Bleach");
     expect(markup).toContain("TV-Serie | 2004 | ID 1078");
   });
+
+  it("renders the filtered-duplicate empty-state copy while keeping duplicate redirect CTA available", () => {
+    const filteredMarkup = renderToStaticMarkup(
+      <CreateAniSearchIntakeCard
+        anisearchID=""
+        searchQuery="Bleach"
+        isLoading={false}
+        isSearchingCandidates={false}
+        candidates={[]}
+        result={null}
+        conflict={null}
+        errorMessage="Alle 2 gefundenen AniSearch-Treffer sind bereits als Anime erfasst und wurden ausgeblendet."
+        onAniSearchIDChange={() => undefined}
+        onSearchQueryChange={() => undefined}
+        onSearchSubmit={() => undefined}
+        onCandidateDismiss={() => undefined}
+        onCandidateSelect={() => undefined}
+        onSubmit={() => undefined}
+      />,
+    );
+
+    expect(filteredMarkup).toContain("Alle 2 gefundenen AniSearch-Treffer sind bereits als Anime erfasst und wurden ausgeblendet.");
+    expect(filteredMarkup).not.toContain("Keine AniSearch-Treffer gefunden");
+
+    const duplicateMarkup = renderToStaticMarkup(
+      <CreateAniSearchIntakeCard
+        anisearchID="12345"
+        searchQuery="Bleach"
+        isLoading={false}
+        isSearchingCandidates={false}
+        candidates={[]}
+        result={null}
+        conflict={{
+          anisearchID: "12345",
+          existingAnimeID: 21,
+          existingTitle: "Monster",
+          redirectPath: "/admin/anime/21/edit",
+        }}
+        errorMessage={null}
+        onAniSearchIDChange={() => undefined}
+        onSearchQueryChange={() => undefined}
+        onSearchSubmit={() => undefined}
+        onCandidateDismiss={() => undefined}
+        onCandidateSelect={() => undefined}
+        onSubmit={() => undefined}
+      />,
+    );
+
+    expect(duplicateMarkup).toContain("Zum vorhandenen Anime wechseln");
+    expect(duplicateMarkup).toContain("/admin/anime/21/edit");
+  });
 });
