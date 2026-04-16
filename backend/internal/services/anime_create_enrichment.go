@@ -1294,14 +1294,40 @@ func (s *AnimeCreateEnrichmentService) SearchAniSearchCandidates(
 	ctx context.Context,
 	query string,
 	limit int,
-) ([]models.AdminAnimeAniSearchSearchCandidate, error) {
+) (models.AdminAnimeAniSearchSearchResult, error) {
 	candidates, err := s.fetcher.SearchAnime(ctx, query, limit)
 	if err != nil {
-		return nil, err
+		return models.AdminAnimeAniSearchSearchResult{}, err
+	}
+
+	sourceKeys := make([]string, 0, len(candidates))
+	for _, candidate := range candidates {
+		aniSearchID := strings.TrimSpace(candidate.AniSearchID)
+		if aniSearchID == "" {
+			continue
+		}
+		sourceKeys = append(sourceKeys, "anisearch:"+aniSearchID)
+	}
+
+	existingMatches := make(map[string]struct{}, len(sourceKeys))
+	if len(sourceKeys) > 0 {
+		sourceMatches, err := s.repo.ResolveAdminAnimeRelationTargetsBySources(ctx, sourceKeys)
+		if err != nil {
+			return models.AdminAnimeAniSearchSearchResult{}, err
+		}
+		for _, match := range sourceMatches {
+			existingMatches[normalizeLookupKey(match.Source)] = struct{}{}
+		}
 	}
 
 	result := make([]models.AdminAnimeAniSearchSearchCandidate, 0, len(candidates))
+	filteredExistingCount := int32(0)
 	for _, candidate := range candidates {
+		sourceKey := normalizeLookupKey("anisearch:" + strings.TrimSpace(candidate.AniSearchID))
+		if _, exists := existingMatches[sourceKey]; exists {
+			filteredExistingCount++
+			continue
+		}
 		result = append(result, models.AdminAnimeAniSearchSearchCandidate{
 			AniSearchID: candidate.AniSearchID,
 			Title:       candidate.Title,
@@ -1309,7 +1335,10 @@ func (s *AnimeCreateEnrichmentService) SearchAniSearchCandidates(
 			Year:        candidate.Year,
 		})
 	}
-	return result, nil
+	return models.AdminAnimeAniSearchSearchResult{
+		Data:                  result,
+		FilteredExistingCount: filteredExistingCount,
+	}, nil
 }
 
 func buildAniSearchDraftPayload(anime AniSearchAnime) models.AdminAnimeCreateDraftPayload {

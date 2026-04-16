@@ -139,6 +139,13 @@ type AdminAnimeAniSearchSearchCandidate struct {
 	Year        *int16 `json:"year,omitempty"`
 }
 
+type AdminAnimeAniSearchSearchResult struct {
+	Data                  []AdminAnimeAniSearchSearchCandidate `json:"data"`
+	FilteredExistingCount int32                                `json:"filtered_existing_count"`
+}
+
+type AdminAnimeAniSearchSearchResponse = AdminAnimeAniSearchSearchResult
+
 type AdminAnimeAssetSearchSource string
 
 const (

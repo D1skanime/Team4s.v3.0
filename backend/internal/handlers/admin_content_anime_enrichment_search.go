@@ -47,5 +47,5 @@ func (h *AdminContentHandler) SearchAnimeCreateAniSearchCandidates(c *gin.Contex
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": results})
+	c.JSON(http.StatusOK, results)
 }

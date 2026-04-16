@@ -164,6 +164,6 @@ func (s editAniSearchDraftLoaderStub) LoadAniSearchDraft(ctx context.Context, an
 	return s.draft, s.relations, nil
 }
 
-func (s editAniSearchDraftLoaderStub) SearchAniSearchCandidates(ctx context.Context, query string, limit int) ([]models.AdminAnimeAniSearchSearchCandidate, error) {
-	return nil, nil
+func (s editAniSearchDraftLoaderStub) SearchAniSearchCandidates(ctx context.Context, query string, limit int) (models.AdminAnimeAniSearchSearchResult, error) {
+	return models.AdminAnimeAniSearchSearchResult{}, nil
 }
