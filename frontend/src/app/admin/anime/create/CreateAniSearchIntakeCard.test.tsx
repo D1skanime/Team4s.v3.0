@@ -45,7 +45,7 @@ describe("CreateAniSearchIntakeCard", () => {
           anisearchID: "12345",
           source: "anisearch:12345",
           summary:
-            "AniSearch ID 12345 hat den Entwurf aktualisiert. Noch nichts gespeichert.",
+            "AniSearch ID 12345 geladen. Wird beim Erstellen übernommen.",
           updatedFields: ["Titel", "Beschreibung", "Genres"],
           relationNotes: [
             "2 von 3 Relationen wurden lokal zugeordnet.",
@@ -69,7 +69,7 @@ describe("CreateAniSearchIntakeCard", () => {
 
     expect(summaryMarkup).toContain("Aktualisierte Felder");
     expect(summaryMarkup).toContain("Relationen");
-    expect(summaryMarkup).toContain("Entwurfsstatus");
+    expect(summaryMarkup).toContain("AniSearch-Status");
     expect(summaryMarkup).toContain("Titel");
     expect(summaryMarkup).toContain("Beschreibung");
     expect(summaryMarkup).toContain("Genres");

@@ -126,10 +126,10 @@ describe("AdminAnimeCreatePage", () => {
 
   it("describes separated provider search instead of reusing the final title field", () => {
     expect(resolveSourceActionState("Naruto").helperText).toContain(
-      "Der finale Titel bleibt Entwurfsdaten.",
+      "Der finale Titel ist vom Provider-Suchfeld getrennt.",
     );
     expect(resolveSourceActionState("Naruto").helperText).toContain(
-      "getrennten Jellyfin- und AniSearch-Suchfeldern",
+      "Jellyfin und AniSearch haben eigene Suchfelder",
     );
   });
 
@@ -145,7 +145,7 @@ describe("AdminAnimeCreatePage", () => {
           anisearchID: "12345",
           source: "anisearch:12345",
           summary:
-            "AniSearch ID 12345 hat den Entwurf aktualisiert. Noch nichts gespeichert.",
+            "AniSearch ID 12345 geladen. Wird beim Erstellen übernommen.",
           updatedFields: ["Titel", "Beschreibung"],
           relationNotes: [
             "1 von 2 Relationen wurde lokal zugeordnet.",
@@ -169,8 +169,8 @@ describe("AdminAnimeCreatePage", () => {
 
     expect(summaryMarkup).toContain("Aktualisierte Felder");
     expect(summaryMarkup).toContain("Relationen");
-    expect(summaryMarkup).toContain("Entwurfsstatus");
-    expect(summaryMarkup).toContain("Noch nichts gespeichert");
+    expect(summaryMarkup).toContain("AniSearch-Status");
+    expect(summaryMarkup).toContain("Wird beim Erstellen übernommen");
     expect(summaryMarkup).toContain(
       "AniSearch hat bestehende Jellyfin-Werte fuer Titel ueberschrieben.",
     );
@@ -226,7 +226,7 @@ describe("AdminAnimeCreatePage", () => {
     );
 
     expect(errorMarkup).toContain("AniSearch-Daten konnten nicht geladen werden.");
-    expect(errorMarkup).toContain("Der aktuelle Entwurf bleibt unveraendert");
+    expect(errorMarkup).toContain("Der Anime wurde noch nicht erstellt");
   });
 
   it("builds the create redirect path for the anime overview route", () => {

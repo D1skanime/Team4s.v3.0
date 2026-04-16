@@ -21,11 +21,11 @@ describe('buildCreateAniSearchDraftSummary', () => {
       preservedManualFields: [],
     })
 
-    expect(summary.message).toContain('AniSearch ID 12345 hat den Entwurf aktualisiert')
+    expect(summary.message).toContain('AniSearch ID 12345 geladen')
     expect(summary.notes).toContain('Aktualisiert: title, description, relations.')
     expect(summary.notes).toContain('Relationen: 1 von 3 AniSearch-Relationen konnten lokal zugeordnet werden.')
     expect(summary.notes).toContain('Jellyfin ersetzt: description.')
-    expect(summary.notes).toContain('Noch nichts gespeichert.')
+    expect(summary.notes).toContain('Wird beim Erstellen übernommen.')
   })
 
   it('mentions preserved manual values when AniSearch leaves them untouched', () => {
