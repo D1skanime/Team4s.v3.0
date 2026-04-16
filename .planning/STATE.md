@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 16-01-PLAN.md
-last_updated: "2026-04-16T07:28:38.504Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 16-02-PLAN.md
+last_updated: "2026-04-16T07:35:18.770Z"
 last_activity: 2026-04-16
 progress:
   total_phases: 11
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 36
-  completed_plans: 32
+  completed_plans: 33
 ---
 
 # Project State
@@ -70,6 +70,8 @@ Recent durable decisions:
 - [Phase 13 prep]: AniSearch create intake is now verified complete, so the remaining relation follow-through breakage should be isolated as its own repair phase instead of reopening the finished create-intake work.
 - [Phase 16]: AniSearch title-search duplicate suppression remains in the backend service by resolving candidate batches through existing anisearch:{id} source ownership.
 - [Phase 16]: The AniSearch search handler now returns a typed response envelope so callers can distinguish no raw hits from all hits being filtered locally.
+- [Phase 16]: Default filtered_existing_count to 0 in the typed AniSearch client so create-route logic can consume a stable envelope.
+- [Phase 16]: Filtered-empty AniSearch title searches reuse the existing create-card status surface with explicit hidden-duplicate copy instead of a new UI mode.
 
 ### Pending Todos
 
@@ -103,6 +105,7 @@ Recent durable decisions:
 | Phase 12 P01 | 6min | 2 tasks | 8 files |
 | Phase 12 P02 | 10min | 2 tasks | 4 files |
 | Phase 16 P01 | 4min | 2 tasks | 7 files |
+| Phase 16 P02 | 3min | 2 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -113,7 +116,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-16T07:28:38.498Z
-Stopped at: Completed 16-01-PLAN.md
+Last session: 2026-04-16T07:35:18.765Z
+Stopped at: Completed 16-02-PLAN.md
 Last activity: 2026-04-16
 Resume file: None
