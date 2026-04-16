@@ -325,6 +325,40 @@ func TestAnimeCreateEnrichmentService_PrefersAniSearchSourceMatchesBeforeTitleFa
 	}
 }
 
+func TestAnimeCreateEnrichmentService_FiltersAlreadyImportedAniSearchSearchCandidates(t *testing.T) {
+	t.Parallel()
+
+	service := NewAnimeCreateEnrichmentService(
+		stubAniSearchFetcher{
+			search: []AniSearchSearchCandidate{
+				{AniSearchID: "1078", Title: "Bleach", Type: "TV-Serie", Year: int16Ptr(2004)},
+				{AniSearchID: "15085", Title: "Bleach: Thousand-Year Blood War", Type: "TV-Serie", Year: int16Ptr(2022)},
+			},
+		},
+		stubAnimeCreateEnrichmentRepo{
+			sources: []models.AdminAnimeSourceMatch{
+				{Source: "anisearch:1078", AnimeID: 21, Title: "Bleach"},
+			},
+		},
+		nil,
+	)
+
+	result, err := service.SearchAniSearchCandidates(context.Background(), "Bleach", 12)
+	if err != nil {
+		t.Fatalf("search anisearch candidates: %v", err)
+	}
+
+	if result.FilteredExistingCount != 1 {
+		t.Fatalf("expected one filtered existing candidate, got %#v", result)
+	}
+	if len(result.Data) != 1 {
+		t.Fatalf("expected one remaining candidate, got %#v", result.Data)
+	}
+	if result.Data[0].AniSearchID != "15085" {
+		t.Fatalf("expected only still-creatable candidate, got %#v", result.Data[0])
+	}
+}
+
 func TestBuildAdminAnimeCreateAniSearchSummary_PreservesSourceAndAppliedCounts(t *testing.T) {
 	t.Parallel()
 
