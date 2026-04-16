@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
-stopped_at: Completed 16-02-PLAN.md
-last_updated: "2026-04-16T07:35:18.770Z"
+status: Ready to execute
+stopped_at: Completed 17-02-PLAN.md
+last_updated: "2026-04-16T14:20:24.399Z"
 last_activity: 2026-04-16
 progress:
-  total_phases: 11
+  total_phases: 12
   completed_phases: 9
-  total_plans: 36
-  completed_plans: 33
+  total_plans: 41
+  completed_plans: 35
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 16 — hide-already-imported-anisearch-candidates-on-create
+**Current focus:** Phase 17 — anime-create-ux-ui-follow-through
 
 ## Current Position
 
-Phase: 16 (hide-already-imported-anisearch-candidates-on-create) — EXECUTING
-Plan: 2 of 2
+Phase: 17 (anime-create-ux-ui-follow-through) — EXECUTING
+Plan: 3 of 5
 
 ## Accumulated Context
 
@@ -68,10 +68,17 @@ Recent durable decisions:
 - [Phase 12]: Create-route AniSearch transitions stay in a small helper module so the controller hook does not absorb more merge logic.
 - [Phase 12]: Final create payload linkage now prefers AniSearch provenance over Jellyfin linkage whenever an AniSearch draft result is active.
 - [Phase 13 prep]: AniSearch create intake is now verified complete, so the remaining relation follow-through breakage should be isolated as its own repair phase instead of reopening the finished create-intake work.
+- [Phase 13]: AniSearch relation follow-through repair is treated as implemented in the active milestone baseline.
+- [Phase 14]: Provider-search separation is treated as implemented in the active milestone baseline, and its UI contract was refreshed on 2026-04-16 to define the final create-page UX.
 - [Phase 16]: AniSearch title-search duplicate suppression remains in the backend service by resolving candidate batches through existing anisearch:{id} source ownership.
 - [Phase 16]: The AniSearch search handler now returns a typed response envelope so callers can distinguish no raw hits from all hits being filtered locally.
 - [Phase 16]: Default filtered_existing_count to 0 in the typed AniSearch client so create-route logic can consume a stable envelope.
 - [Phase 16]: Filtered-empty AniSearch title searches reuse the existing create-card status surface with explicit hidden-duplicate copy instead of a new UI mode.
+- [Phase 16]: Browser UAT confirmed both mixed-result filtering and filtered-empty feedback on `/admin/anime/create`.
+- [Phase 17 prep]: Finalized UX logic for `/admin/anime/create` is now documented: no draft-save concept, AniSearch first for metadata, Jellyfin first for folder/path matching, and Jellyfin assets only after explicit adoption into the shared asset area.
+- [Phase 17]: CreatePageStepper uses anchor links to named section IDs for zero-JS scroll navigation
+- [Phase 17]: statusBar pills removed from create header; status info moves to Section 4 in plan 17-05
+- [Phase 17]: AniSearch card copy uses temporal framing throughout: all Entwurf/draft-product language replaced by create-time alternatives without changing internal variable names
 
 ### Pending Todos
 
@@ -83,10 +90,12 @@ Recent durable decisions:
 - Phase 10 narrowed to create tags and metadata card refactor and is now executed.
 - Phase 11 added: AniSearch edit enrichment and relation persistence.
 - Phase 12 added: Create AniSearch intake reintroduction and draft merge control.
-- Phase 13 added: AniSearch Relation Follow-Through Repair.
-- Phase 14 added: Create provider search separation and result selection.
+- Phase 13 added and now treated as complete in the active milestone baseline.
+- Phase 14 added and now treated as complete in the active milestone baseline.
 - Phase 15 added: Asset-specific online search and selection for create-page anime assets.
 - Phase 15 executed: dedicated asset search seam, Zerochan-backed discovery, and source-aware create-page asset adoption.
+- Phase 16 executed and browser-verified: AniSearch title search now hides already-imported candidates and explains filtered-empty results honestly.
+- Phase 17 added: Anime create UX/UI follow-through based on the refreshed Phase-14 UI contract.
 
 ### Blockers/Concerns
 
@@ -106,6 +115,8 @@ Recent durable decisions:
 | Phase 12 P02 | 10min | 2 tasks | 4 files |
 | Phase 16 P01 | 4min | 2 tasks | 7 files |
 | Phase 16 P02 | 3min | 2 tasks | 8 files |
+| Phase 17 P01 | 2min 22sec | 3 tasks | 3 files |
+| Phase 17 P02 | 8min | 5 tasks | 7 files |
 
 ### Quick Tasks Completed
 
@@ -116,7 +127,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-16T07:35:18.765Z
-Stopped at: Completed 16-02-PLAN.md
+Last session: 2026-04-16T14:20:24.392Z
+Stopped at: Completed 17-02-PLAN.md
 Last activity: 2026-04-16
 Resume file: None
