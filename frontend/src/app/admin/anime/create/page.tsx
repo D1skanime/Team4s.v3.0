@@ -5,10 +5,10 @@ import Link from "next/link";
 import styles from "../../admin.module.css";
 import createStyles from "./page.module.css";
 import { CreateAssetSearchDialog } from "./CreateAssetSearchDialog";
-import { JellyfinDraftAssets } from "../components/ManualCreate/JellyfinDraftAssets";
 import { ManualCreateWorkspace } from "../components/ManualCreate/ManualCreateWorkspace";
 import { CreateAniSearchIntakeCard } from "./CreateAniSearchIntakeCard";
-import { CreateJellyfinResultsPanel } from "./CreateJellyfinResultsPanel";
+import { CreateAssetSection } from "./CreateAssetSection";
+import { CreateJellyfinCard } from "./CreateJellyfinCard";
 import {
   buildCreateSuccessMessage,
   appendJellyfinLinkageToCreatePayload,
@@ -21,6 +21,7 @@ import {
   resolveSourceActionState,
 } from "./createPageHelpers";
 import { useAdminAnimeCreateController } from "./useAdminAnimeCreateController";
+import { CreatePageStepper } from "./CreatePageStepper";
 
 export {
   buildCreateSuccessMessage,
@@ -38,22 +39,6 @@ export {
   stageManualCreateCover,
   uploadCreatedAnimeCover,
 } from "./createAssetUploadPlan";
-
-function CreatePageTypeHint({
-  preview,
-}: {
-  preview: ReturnType<typeof useAdminAnimeCreateController>["jellyfin"]["preview"];
-}) {
-  if (!preview) return null;
-
-  return (
-    <div className={styles.details}>
-      <strong>{preview.type_hint.suggested_type ?? "Typ-Hinweis"}</strong>
-      <p className={styles.hint}>Vertrauen: {preview.type_hint.confidence}</p>
-      <p className={styles.hint}>{preview.type_hint.reasons.join(" ")}</p>
-    </div>
-  );
-}
 
 export default function AdminAnimeCreatePage() {
   const controller = useAdminAnimeCreateController();
@@ -92,45 +77,28 @@ export default function AdminAnimeCreatePage() {
           <div className={createStyles.pageTitleBlock}>
             <h1 className={createStyles.pageTitle}>Anime erstellen</h1>
             <p className={createStyles.pageIntro}>
-              Pflicht sind nur Titel und Cover. Jellyfin bleibt eine optionale Hilfe.
+              Schritt für Schritt zum perfekten Ergebnis.
             </p>
           </div>
-          <div className={createStyles.statusBar}>
-            <span
-              className={`${createStyles.statusPill} ${
-                manualDraft.missingFields.length === 0
-                  ? createStyles.statusPillReady
-                  : createStyles.statusPillWarning
-              }`}
-            >
-              {manualDraft.readinessLabel}
-            </span>
-            <span className={createStyles.statusPill}>
-              {jellyfin.hasSelectedPreview
-                ? "Jellyfin verknuepft"
-                : jellyfin.showResults
-                  ? `${jellyfin.intake.candidates.length} Treffer`
-                  : "Manuell"}
-            </span>
-            <span
-              className={`${createStyles.statusPill} ${authStatusClassName}`}
-            >
-              {authStatusLabel}
-            </span>
-            {jellyfin.selectedDraftAssetCount > 0 ? (
-              <span className={createStyles.statusPill}>
-                {jellyfin.selectedDraftAssetCount} Assets
-              </span>
-            ) : null}
-          </div>
         </header>
+        <CreatePageStepper activeStep={1} />
 
         {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
         {status.successMessage ? (
           <div className={styles.successBox}>{status.successMessage}</div>
         ) : null}
 
-        <section className={createStyles.workspaceSection}>
+        {/* ── Section 1: Anime finden ──────────────────────────────── */}
+        <section id="section-1" className={createStyles.pageSection}>
+          <div className={createStyles.sectionHeading}>
+            <span className={createStyles.sectionNumber}>1</span>
+            <div>
+              <h2 className={createStyles.sectionTitle}>Anime finden</h2>
+              <p className={createStyles.sectionSub}>
+                Suche den Anime in AniSearch und wähle anschließend den passenden Ordner in Jellyfin aus.
+              </p>
+            </div>
+          </div>
           <ManualCreateWorkspace
             editor={editor}
             title={manualDraft.values.title}
@@ -170,110 +138,10 @@ export default function AdminAnimeCreatePage() {
             canLoadMore={manualDraft.suggestions.genre.canLoadMore}
             canResetLimit={manualDraft.suggestions.genre.canResetLimit}
             missingFields={manualDraft.missingFields}
-            titleActions={
-              <div className={createStyles.sourceActionStack}>
-                <CreateAniSearchIntakeCard
-                  anisearchID={controller.anisearch.input}
-                  searchQuery={controller.anisearch.searchQuery}
-                  isLoading={controller.anisearch.isLoading}
-                  isSearchingCandidates={controller.anisearch.isSearchingCandidates}
-                  filteredExistingCount={controller.anisearch.filteredExistingCount}
-                  candidates={controller.anisearch.candidates}
-                  result={controller.anisearch.result}
-                  conflict={controller.anisearch.conflict}
-                  errorMessage={controller.anisearch.errorMessage}
-                  onAniSearchIDChange={handlers.setAniSearchID}
-                  onSearchQueryChange={handlers.setAniSearchSearchQuery}
-                  onSearchSubmit={() => {
-                    void handlers.handleAniSearchCandidateSearch();
-                  }}
-                  onCandidateDismiss={handlers.clearAniSearchState}
-                  onCandidateSelect={(candidate) => {
-                    void handlers.handleAniSearchCandidateSelect(candidate);
-                  }}
-                  onSubmit={() => {
-                    void handlers.handleAniSearchDraftLoad();
-                  }}
-                />
-                <section className={createStyles.resultsPanel}>
-                  <div className={createStyles.resultsHeader}>
-                    <div className={createStyles.resultsTitleBlock}>
-                      <p className={createStyles.resultsEyebrow}>Jellyfin</p>
-                      <h2 className={createStyles.resultsTitle}>Jellyfin suchen</h2>
-                      <p className={createStyles.resultsText}>
-                        Jellyfin nutzt ein eigenes Suchfeld. Der finale Titel im
-                        Entwurf bleibt davon getrennt.
-                      </p>
-                    </div>
-                  </div>
-                  <div className={styles.inputRow}>
-                    <label className={styles.field}>
-                      <span>Jellyfin Suche</span>
-                      <input
-                        value={jellyfin.intake.query}
-                        placeholder="z. B. Serial Experiments Lain"
-                        onChange={(event) =>
-                          handlers.setJellyfinQuery(event.target.value)
-                        }
-                      />
-                    </label>
-                    <button
-                      className={createStyles.primaryAction}
-                      type="button"
-                      disabled={
-                        !jellyfin.searchState.canSearch ||
-                        jellyfin.intake.isSearching ||
-                        status.isSubmittingCreate
-                      }
-                      onClick={() => {
-                        void handlers.handleJellyfinSearch();
-                      }}
-                    >
-                      {jellyfin.intake.isSearching
-                        ? "Jellyfin sucht..."
-                        : "Jellyfin suchen"}
-                    </button>
-                  </div>
-                </section>
-              </div>
-            }
-            titleHint={<p className={styles.hint}>{manualDraft.sourceActionState.helperText}</p>}
-            typeHint={<CreatePageTypeHint preview={jellyfin.preview} />}
-            draftAssets={
-              jellyfin.draftAssets ? (
-                <>
-                  <JellyfinDraftAssets
-                    animeTitle={
-                      manualDraft.values.title.trim() ||
-                      jellyfin.preview?.jellyfin_series_name ||
-                      "Anime"
-                    }
-                    assetSlots={jellyfin.draftAssets}
-                    onRemoveAsset={handlers.handleRemoveJellyfinAsset}
-                  />
-                  {jellyfin.preview ? (
-                    <div className={styles.actions}>
-                      {jellyfin.reviewVisibility.showRestartAction ? (
-                        <button
-                          className={styles.buttonSecondary}
-                          type="button"
-                          onClick={handlers.restartJellyfinReview}
-                        >
-                          Anderen Treffer waehlen
-                        </button>
-                      ) : null}
-                      <button
-                        className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
-                        type="button"
-                        onClick={handlers.handleDiscardJellyfinPreview}
-                      >
-                        Auswahl verwerfen
-                      </button>
-                    </div>
-                  ) : null}
-                </>
-              ) : null
-            }
+            titleActions={undefined}
+            titleHint={undefined}
+            typeHint={undefined}
+            draftAssets={undefined}
             onSubmit={handlers.handleCreateSubmit}
             onTitleChange={handlers.setTitle}
             onTypeChange={handlers.setType}
@@ -313,6 +181,106 @@ export default function AdminAnimeCreatePage() {
             onRemoveSingleAsset={handlers.removeSingleAsset}
             onRemoveBackground={handlers.removeBackground}
           />
+
+          <div className={createStyles.providerGrid}>
+            <CreateAniSearchIntakeCard
+              anisearchID={controller.anisearch.input}
+              searchQuery={controller.anisearch.searchQuery}
+              isLoading={controller.anisearch.isLoading}
+              isSearchingCandidates={controller.anisearch.isSearchingCandidates}
+              candidates={controller.anisearch.candidates}
+              result={controller.anisearch.result}
+              conflict={controller.anisearch.conflict}
+              errorMessage={controller.anisearch.errorMessage}
+              onAniSearchIDChange={handlers.setAniSearchID}
+              onSearchQueryChange={handlers.setAniSearchSearchQuery}
+              onSearchSubmit={() => { void handlers.handleAniSearchCandidateSearch(); }}
+              onCandidateDismiss={handlers.clearAniSearchState}
+              onCandidateSelect={(candidate) => { void handlers.handleAniSearchCandidateSelect(candidate); }}
+              onSubmit={() => { void handlers.handleAniSearchDraftLoad(); }}
+            />
+            <CreateJellyfinCard
+              query={jellyfin.intake.query}
+              candidates={jellyfin.intake.candidates}
+              selectedCandidateID={jellyfin.intake.reviewState.selectedCandidate?.jellyfin_series_id}
+              hasActivePreview={jellyfin.hasSelectedPreview}
+              hasAdoptedAssets={jellyfin.selectedDraftAssetCount > 0}
+              isSearching={jellyfin.intake.isSearching}
+              isLoadingPreview={jellyfin.intake.isLoadingPreview}
+              canSearch={jellyfin.searchState.canSearch}
+              isSubmitting={status.isSubmittingCreate}
+              showResults={jellyfin.showResults}
+              onQueryChange={handlers.setJellyfinQuery}
+              onSearch={() => { void handlers.handleJellyfinSearch(); }}
+              onSelectCandidate={handlers.handleJellyfinCandidateSelect}
+              onLoadCandidatePreview={(id) => { void handlers.handleJellyfinCandidateReview(id); }}
+              onAdopt={handlers.handleJellyfinAdopt}
+              onDiscard={handlers.handleDiscardJellyfinPreview}
+            />
+          </div>
+        </section>
+
+        {/* ── Section 2: Assets ────────────────────────────────────── */}
+        <section id="section-2" className={createStyles.pageSection}>
+          <div className={createStyles.sectionHeading}>
+            <span className={createStyles.sectionNumber}>2</span>
+            <div>
+              <h2 className={createStyles.sectionTitle}>Assets</h2>
+              <p className={createStyles.sectionSub}>
+                Prüfe und ergänze die Assets. Du kannst sie aus Jellyfin übernehmen, manuell hochladen oder online suchen.
+              </p>
+            </div>
+            <button
+              className={createStyles.primaryAction}
+              type="button"
+              onClick={() => { void handlers.handleJellyfinSearch(); }}
+              style={{ marginLeft: "auto" }}
+            >
+              Jellyfin erneut scannen
+            </button>
+          </div>
+          <CreateAssetSection
+            stagedCoverPreviewUrl={manualDraft.stagedCover?.previewUrl}
+            stagedBanner={manualDraft.stagedAssets.banner}
+            stagedLogo={manualDraft.stagedAssets.logo}
+            stagedBackgrounds={manualDraft.stagedAssets.background}
+            stagedBackgroundVideo={manualDraft.stagedAssets.background_video}
+            jellyfinDraftAssets={jellyfin.draftAssets}
+            onOpenFileDialog={handlers.openAssetFileDialog}
+            onOpenAssetSearch={handlers.openAssetSearch}
+            onRemoveSingleAsset={handlers.removeSingleAsset}
+            onRemoveBackground={handlers.removeBackground}
+            onRemoveJellyfinAsset={handlers.handleRemoveJellyfinAsset}
+            fileInputRefs={fileInputRefs}
+          />
+        </section>
+
+        {/* ── Section 3: Details ───────────────────────────────────── */}
+        <section id="section-3" className={createStyles.pageSection}>
+          <div className={createStyles.sectionHeading}>
+            <span className={createStyles.sectionNumber}>3</span>
+            <div>
+              <h2 className={createStyles.sectionTitle}>Details</h2>
+              <p className={createStyles.sectionSub}>
+                Ergänze die Metadaten und Beschreibung.
+              </p>
+            </div>
+          </div>
+          {/* Metadaten-Formular aus ManualCreateWorkspace wird hier isoliert — Plan 17-04 */}
+        </section>
+
+        {/* ── Section 4: Prüfen & Anlegen ──────────────────────────── */}
+        <section id="section-4" className={createStyles.pageSection}>
+          <div className={createStyles.sectionHeading}>
+            <span className={createStyles.sectionNumber}>4</span>
+            <div>
+              <h2 className={createStyles.sectionTitle}>Prüfen & Anlegen</h2>
+              <p className={createStyles.sectionSub}>
+                Abschließende Kontrolle vor dem Erstellen.
+              </p>
+            </div>
+          </div>
+          {/* Inhalt wird in Plan 17-05 eingesetzt */}
         </section>
 
         <CreateAssetSearchDialog
@@ -338,20 +306,6 @@ export default function AdminAnimeCreatePage() {
             void handlers.handleAssetCandidateAdoption();
           }}
         />
-
-        {jellyfin.showResults ? (
-          <CreateJellyfinResultsPanel
-            query={jellyfin.intake.query.trim()}
-            candidates={jellyfin.intake.candidates}
-            selectedCandidateID={jellyfin.intake.reviewState.selectedCandidate?.jellyfin_series_id}
-            hasActivePreview={jellyfin.hasSelectedPreview}
-            isLoadingPreview={jellyfin.intake.isLoadingPreview}
-            onSelectCandidate={handlers.handleJellyfinCandidateSelect}
-            onLoadCandidatePreview={(id) => {
-              void handlers.handleJellyfinCandidateReview(id);
-            }}
-          />
-        ) : null}
 
         {debug.showDebugPanel ? (
           <details className={createStyles.developerDetails}>
