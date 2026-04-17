@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 17-03-PLAN.md
-last_updated: "2026-04-16T14:20:24.399Z"
-last_activity: 2026-04-16
+stopped_at: Completed 17-05-PLAN.md
+last_updated: "2026-04-17T07:40:23.666Z"
+last_activity: 2026-04-17
 progress:
   total_phases: 12
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 41
-  completed_plans: 36
+  completed_plans: 38
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 17 (anime-create-ux-ui-follow-through) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 ## Accumulated Context
 
@@ -80,6 +80,7 @@ Recent durable decisions:
 - [Phase 17]: statusBar pills removed from create header; status info moves to Section 4 in plan 17-05
 - [Phase 17]: AniSearch card copy uses temporal framing throughout: all Entwurf/draft-product language replaced by create-time alternatives without changing internal variable names
 - [Phase 17]: Jellyfin asset adoption gated behind explicit handleJellyfinAdopt handler rather than auto-hydrating on preview load
+- [Phase 17]: reviewMissingFields computed directly in page.tsx to bypass showValidationSummary filter for always-visible review checklist
 
 ### Pending Todos
 
@@ -118,6 +119,7 @@ Recent durable decisions:
 | Phase 16 P02 | 3min | 2 tasks | 8 files |
 | Phase 17 P01 | 2min 22sec | 3 tasks | 3 files |
 | Phase 17 P02 | 8min | 5 tasks | 7 files |
+| Phase 17 P05 | 7min | 4 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -128,7 +130,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-16T14:20:24.392Z
-Stopped at: Completed 17-03-PLAN.md
-Last activity: 2026-04-16
+Last session: 2026-04-17T07:40:23.660Z
+Stopped at: Completed 17-05-PLAN.md
+Last activity: 2026-04-17
 Resume file: None
