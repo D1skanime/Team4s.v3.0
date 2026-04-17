@@ -130,10 +130,11 @@ Recent durable decisions:
 |---|-------------|------|--------|-----------|
 | 260405-kce | Sync Phase-07 completion across roadmap and milestone tracking | 2026-04-05 | uncommitted (dirty workspace) | [260405-kce-sync-phase-07-completion-across-roadmap-](./quick/260405-kce-sync-phase-07-completion-across-roadmap-/) |
 | 260405-pcz | Add tags schema and persistence analogous to genres for anime metadata | 2026-04-05 | uncommitted (dirty workspace) | [260405-pcz-add-tags-schema-and-persistence-analogou](./quick/260405-pcz-add-tags-schema-and-persistence-analogou/) |
+| 260417-qtu | Asset upload UX: leere Slots klickbar, Upload-Hover-Overlay | 2026-04-17 | 136161b | [260417-qtu-asset-upload-ux-leere-slots-klickbar-und](./quick/260417-qtu-asset-upload-ux-leere-slots-klickbar-und/) |
 
 ## Session Continuity
 
-Last session: 2026-04-17T14:40:00.000Z
-Stopped at: Completed 17.1-01-PLAN.md
+Last session: 2026-04-17T15:00:00.000Z
+Stopped at: Completed quick task 260417-qtu (asset upload UX)
 Last activity: 2026-04-17
 Resume file: None
