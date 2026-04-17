@@ -88,6 +88,7 @@ export function CreateAssetSection({
           source={coverSource}
           statusNote={coverPreview ? "Wird beim Erstellen übernommen" : undefined}
           isEmpty={!coverPreview}
+          onEmptyClick={!coverPreview ? () => onOpenFileDialog("cover") : undefined}
           actions={
             <div className={createStyles.assetIconActions}>
               <button
@@ -119,6 +120,7 @@ export function CreateAssetSection({
           source={bannerSource}
           statusNote={bannerPreview ? "Wird beim Erstellen übernommen" : undefined}
           isEmpty={!bannerPreview}
+          onEmptyClick={!bannerPreview ? () => onOpenFileDialog("banner") : undefined}
           actions={
             <div className={createStyles.assetIconActions}>
               <button
@@ -152,6 +154,7 @@ export function CreateAssetSection({
           source={logoSource}
           statusNote={logoPreview ? "Wird beim Erstellen übernommen" : undefined}
           isEmpty={!logoPreview}
+          onEmptyClick={!logoPreview ? () => onOpenFileDialog("logo") : undefined}
           actions={
             <div className={createStyles.assetIconActions}>
               <button
@@ -184,6 +187,7 @@ export function CreateAssetSection({
           source={stagedBackgroundVideo ? "Manuell" : null}
           statusNote={stagedBackgroundVideo ? "Wird beim Erstellen übernommen" : undefined}
           isEmpty={!stagedBackgroundVideo}
+          onEmptyClick={!stagedBackgroundVideo ? () => onOpenFileDialog("background_video") : undefined}
           actions={
             <div className={createStyles.assetIconActions}>
               <button
