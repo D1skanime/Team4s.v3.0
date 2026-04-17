@@ -613,6 +613,31 @@
   padding: 8px;
 }
 
+.assetCardEmptyClickable {
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.assetCardEmptyClickable:hover {
+  background: rgba(109, 74, 255, 0.07);
+}
+
+.assetCardEmptyUploadIcon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(109, 74, 255, 0.35);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.assetCardEmptyClickable:hover .assetCardEmptyUploadIcon {
+  opacity: 1;
+}
+
 .assetCardMeta {
   padding: 10px 12px;
   display: flex;

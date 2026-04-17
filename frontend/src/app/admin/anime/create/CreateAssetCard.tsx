@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Upload } from "lucide-react";
 import createStyles from "./page.module.css";
 
 export type AssetSource = "Jellyfin" | "Manuell" | "Online" | "TMDB" | "Zerochan";
@@ -13,6 +14,7 @@ interface CreateAssetCardProps {
   isRequired?: boolean;
   statusNote?: string;
   actions?: ReactNode;
+  onEmptyClick?: () => void;
 }
 
 export function CreateAssetCard({
@@ -23,6 +25,7 @@ export function CreateAssetCard({
   isRequired,
   statusNote,
   actions,
+  onEmptyClick,
 }: CreateAssetCardProps) {
   const sourceModifierClass: string = (() => {
     if (!source) return "";
@@ -45,6 +48,22 @@ export function CreateAssetCard({
             alt={label}
             className={createStyles.assetCardImage}
           />
+        ) : onEmptyClick ? (
+          <div
+            className={[createStyles.assetCardEmpty, createStyles.assetCardEmptyClickable].join(" ")}
+            onClick={onEmptyClick}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onEmptyClick();
+              }
+            }}
+          >
+            <span>{isEmpty ? (isRequired ? "Cover fehlt" : "Noch nichts ausgewählt") : "–"}</span>
+            <Upload size={20} className={createStyles.assetCardEmptyUploadIcon} />
+          </div>
         ) : (
           <div className={createStyles.assetCardEmpty}>
             <span>{isEmpty ? (isRequired ? "Cover fehlt" : "Noch nichts ausgewählt") : "–"}</span>
