@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
-stopped_at: Completed 17-05-PLAN.md
-last_updated: "2026-04-17T07:44:22.038Z"
+stopped_at: Completed 17.1-01-PLAN.md
+last_updated: "2026-04-17T14:40:00.000Z"
 last_activity: 2026-04-17
 progress:
   total_phases: 12
   completed_phases: 10
-  total_plans: 41
-  completed_plans: 38
+  total_plans: 42
+  completed_plans: 39
 ---
 
 # Project State
@@ -81,6 +81,8 @@ Recent durable decisions:
 - [Phase 17]: AniSearch card copy uses temporal framing throughout: all Entwurf/draft-product language replaced by create-time alternatives without changing internal variable names
 - [Phase 17]: Jellyfin asset adoption gated behind explicit handleJellyfinAdopt handler rather than auto-hydrating on preview load
 - [Phase 17]: reviewMissingFields computed directly in page.tsx to bypass showValidationSummary filter for always-visible review checklist
+- [Phase 17.1]: Worktree branch merged main before applying 17.1 changes since worktree was on an older pre-phase-17 codebase
+- [Phase 17.1]: Source badge overlay on asset card preview uses assetCardSourceOverlay base + source-specific modifier class; icon buttons replace text pill action buttons in CreateAssetSection
 
 ### Pending Todos
 
@@ -120,6 +122,7 @@ Recent durable decisions:
 | Phase 17 P01 | 2min 22sec | 3 tasks | 3 files |
 | Phase 17 P02 | 8min | 5 tasks | 7 files |
 | Phase 17 P05 | 7min | 4 tasks | 4 files |
+| Phase 17.1 P01 | 40min | 2 tasks | 5 files |
 
 ### Quick Tasks Completed
 
@@ -130,7 +133,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-17T07:40:23.660Z
-Stopped at: Completed 17-05-PLAN.md
+Last session: 2026-04-17T14:40:00.000Z
+Stopped at: Completed 17.1-01-PLAN.md
 Last activity: 2026-04-17
 Resume file: None
