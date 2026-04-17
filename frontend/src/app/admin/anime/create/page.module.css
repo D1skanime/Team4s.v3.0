@@ -127,6 +127,13 @@
   color: #667085;
 }
 
+.resultsSubtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #4b5563;
+}
+
 .primaryAction {
   min-height: 44px;
   padding: 10px 16px;
@@ -470,6 +477,11 @@
   scroll-margin-top: 80px;
 }
 
+.detailsStack {
+  display: grid;
+  gap: 20px;
+}
+
 .sectionHeading {
   display: flex;
   align-items: center;
@@ -517,6 +529,15 @@
   .providerGrid {
     grid-template-columns: 1fr;
   }
+
+  .providerInputRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .providerRowCard {
+    grid-template-columns: 1fr;
+  }
 }
 
 .providerCard {
@@ -533,6 +554,101 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.providerInputRow {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+}
+
+.providerFieldGrow {
+  flex: 1 1 auto;
+}
+
+.providerFieldGrow input {
+  width: 100%;
+}
+
+.providerResultsBlock {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #eee2db;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fffaf8 0%, #ffffff 100%);
+}
+
+.providerResultsHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.providerResultsCount {
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a5b49;
+}
+
+.providerList {
+  display: grid;
+  gap: 12px;
+}
+
+.providerRowCard {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid #eaded8;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.providerRowIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6d4aff 0%, #7c5cff 100%);
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.providerRowContent {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.providerRowTitle {
+  font-size: 18px;
+  line-height: 1.2;
+  color: #111827;
+}
+
+.providerRowMeta {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b7280;
+  overflow-wrap: anywhere;
+}
+
+.providerLinkButton {
+  justify-self: start;
+  border: none;
+  background: transparent;
+  color: #6d4aff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0;
 }
 
 /* ── Jellyfin ────────────────────────────────────────────────────────────── */
@@ -563,31 +679,55 @@
 /* ── Asset Section ───────────────────────────────────────────────────────── */
 
 .assetPanel {
-  background: #fff;
+  background:
+    linear-gradient(180deg, rgba(247, 248, 252, 0.92), rgba(255, 255, 255, 1));
   border: 1px solid #e2e6ea;
-  border-radius: 12px;
+  border-radius: 18px;
   padding: 24px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+}
+
+.jellyfinSourceNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+}
+
+.jellyfinSourceText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #166534;
 }
 
 .assetGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
 }
 
 .assetCard {
   background: #fff;
-  border: 1px solid #e2e6ea;
-  border-radius: 10px;
+  border: 1px solid #dbe2ea;
+  border-radius: 18px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+  min-width: 0;
+  height: fit-content;
 }
 
 .assetCardPreview {
   width: 100%;
-  aspect-ratio: 3/4;
-  background: #f4f6f8;
+  background: linear-gradient(180deg, #eef2f7 0%, #f9fbfd 100%);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -598,7 +738,6 @@
 .assetCardImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;
 }
 
 .assetCardEmpty {
@@ -607,10 +746,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: #8a94a6;
   font-size: 12px;
   text-align: center;
-  padding: 8px;
+  padding: 12px;
+}
+
+.assetCardEmptyStandard {
+  background:
+    radial-gradient(circle at top, rgba(109, 74, 255, 0.1), transparent 42%),
+    linear-gradient(180deg, #f4f7fb 0%, #eef2f7 100%);
+}
+
+.assetCardEmptyAdder {
+  background:
+    linear-gradient(135deg, rgba(109, 74, 255, 0.08), rgba(59, 130, 246, 0.06)),
+    linear-gradient(180deg, #f9fbfd 0%, #f2f5fa 100%);
+  color: #5d44d8;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .assetCardEmptyClickable {
@@ -639,15 +793,23 @@
 }
 
 .assetCardMeta {
-  padding: 10px 12px;
+  padding: 12px 14px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+}
+
+.assetCardMetaDefault {
+  background: #ffffff;
+}
+
+.assetCardMetaAdder {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
 }
 
 .assetCardLabel {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: #111827;
 }
 
@@ -662,35 +824,21 @@
 
 .assetCardActions {
   display: flex;
-  gap: 6px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-top: 4px;
-}
-
-.assetCardActions button {
-  font-size: 11px;
-  padding: 3px 8px;
-  border: 1px solid #e2e6ea;
-  border-radius: 6px;
-  background: #fff;
-  cursor: pointer;
-  color: #374151;
-}
-
-.assetCardActions button:hover {
-  background: #f4f6f8;
+  margin-top: 2px;
 }
 
 .assetCardSourceOverlay {
   position: absolute;
-  left: 12px;
-  bottom: 12px;
+  left: 14px;
+  bottom: 14px;
   display: inline-flex;
   align-items: center;
-  min-height: 26px;
+  min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(17, 24, 39, 0.72);
+  background: rgba(17, 24, 39, 0.82);
   color: #ffffff;
   font-size: 11px;
   font-weight: 700;
@@ -729,18 +877,82 @@
   margin-top: 2px;
 }
 
+.assetActionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.assetActionButton,
+.assetActionIconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  border-radius: 10px;
+  border: 1px solid #dde3ea;
+  background: #ffffff;
+  color: #344054;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.assetActionButton {
+  padding: 0 12px;
+}
+
+.assetActionButtonSecondary {
+  background: #f8faff;
+  border-color: #d7ddf7;
+  color: #4c38c2;
+}
+
+.assetActionButton:hover,
+.assetActionIconButton:hover {
+  background: #f8fafc;
+  border-color: #c9d2de;
+}
+
+.assetActionButtonSecondary:hover {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+}
+
+.assetActionIconButton {
+  width: 32px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.assetActionIconButtonDestructive {
+  color: #b42318;
+  border-color: #fecaca;
+}
+
+.assetActionIconButtonDestructive:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
 .assetIconBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  min-width: 34px;
+  height: 34px;
+  border-radius: 10px;
   border: 1px solid #dde3ea;
-  background: #fff;
+  background: #ffffff;
   cursor: pointer;
   color: #374151;
   flex-shrink: 0;
+  padding: 0 10px;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .assetIconBtn:hover {
@@ -756,6 +968,105 @@
 .assetIconBtnDestructive:hover {
   background: #fef2f2;
   border-color: #fca5a5;
+}
+
+.assetCardCover {
+  grid-column: span 3;
+}
+
+.assetCardBanner,
+.assetCardBackground,
+.assetCardBackgroundVideo {
+  grid-column: span 4;
+}
+
+.assetCardLogo,
+.assetCardAdder {
+  grid-column: span 3;
+}
+
+.assetCardPreviewCover {
+  aspect-ratio: 2 / 3;
+}
+
+.assetCardPreviewBanner {
+  aspect-ratio: 16 / 8;
+}
+
+.assetCardPreviewLogo {
+  aspect-ratio: 16 / 9;
+  background:
+    linear-gradient(45deg, #eef2f7 25%, transparent 25%),
+    linear-gradient(-45deg, #eef2f7 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #eef2f7 75%),
+    linear-gradient(-45deg, transparent 75%, #eef2f7 75%);
+  background-size: 28px 28px;
+  background-position: 0 0, 0 14px, 14px -14px, -14px 0;
+  background-color: #fbfcfe;
+}
+
+.assetCardPreviewBackground,
+.assetCardPreviewBackgroundVideo {
+  aspect-ratio: 16 / 9;
+}
+
+.assetCardPreviewAdder {
+  aspect-ratio: 16 / 9;
+  border-bottom: 1px dashed #cfd7e3;
+}
+
+.assetCardImageCover,
+.assetCardImageBanner,
+.assetCardImageBackground,
+.assetCardImageBackgroundVideo {
+  object-fit: cover;
+}
+
+.assetCardImageLogo {
+  object-fit: contain;
+  padding: 22px;
+}
+
+.assetCardAdder {
+  border-style: dashed;
+  border-color: #ccd7ea;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 249, 255, 0.98));
+}
+
+@media (max-width: 1080px) {
+  .assetCardCover,
+  .assetCardLogo,
+  .assetCardAdder {
+    grid-column: span 6;
+  }
+
+  .assetCardBanner,
+  .assetCardBackground,
+  .assetCardBackgroundVideo {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 720px) {
+  .assetPanel {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .assetGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .assetCardCover,
+  .assetCardBanner,
+  .assetCardLogo,
+  .assetCardBackground,
+  .assetCardBackgroundVideo,
+  .assetCardAdder {
+    grid-column: span 1;
+  }
 }
 
 /* ── Review Section ──────────────────────────────────────────────────────── */

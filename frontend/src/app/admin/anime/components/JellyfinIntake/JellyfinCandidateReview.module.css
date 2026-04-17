@@ -50,6 +50,12 @@
   transform: translateY(-1px);
 }
 
+.compactItemSelected {
+  border-color: #ff6a3d;
+  background: #fff3ee;
+  box-shadow: 0 10px 22px rgba(255, 106, 61, 0.14);
+}
+
 .compactMeta {
   display: block;
   overflow-wrap: anywhere;

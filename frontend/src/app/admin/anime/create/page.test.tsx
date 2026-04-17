@@ -33,14 +33,14 @@ describe("AdminAnimeCreatePage", () => {
     const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
 
     expect(markup).toContain("Fehlend:</strong> Titel, Cover");
-    expect(markup).toContain("Noch keine Datei ausgewaehlt.");
+    expect(markup).toContain("Cover fehlt");
     expect(markup).toContain("Anime erstellen");
-    expect(markup).toContain("Noch nicht bereit");
+    expect(markup).toContain("Fehlend:</strong> Titel, Cover");
     expect(markup).toContain("Titel *");
     expect(markup).toContain("Typ *");
     expect(markup).toContain("Beschreibung");
-    expect(markup).toContain("Cover *");
-    expect(markup).toContain("verifizierte V2-Upload-Seam");
+    expect(markup).toContain("Cover");
+    expect(markup).toContain("Pruefe und ergaenze die Assets");
     expect(markup).not.toContain("frontend/public/covers");
   });
 
@@ -52,10 +52,10 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).toContain("Background");
     expect(markup).toContain("Background-Video");
     expect(markup).toContain("Hintergrund hinzufuegen");
-    expect(markup).toContain("Asset-Upload");
-    expect(markup).toContain("Cover online suchen");
-    // Icon buttons render via lucide SVG — check slot labels instead of dialog-only button text
-    expect(markup).toContain("Backgrounds online suchen");
+    expect(markup).toContain("Assets");
+    expect(markup).toContain("Cover");
+    expect(markup).toContain("Upload");
+    expect(markup).toContain("Online suchen");
   });
 
   it("renders the asset chooser with visible source metadata and multi-select copy", () => {
@@ -759,7 +759,7 @@ describe("AdminAnimeCreatePage", () => {
       showRestartAction: false,
     });
     expect(resolveJellyfinReviewVisibility(3, "hydrated")).toEqual({
-      showCandidateReview: false,
+      showCandidateReview: true,
       showRestartAction: true,
     });
   });

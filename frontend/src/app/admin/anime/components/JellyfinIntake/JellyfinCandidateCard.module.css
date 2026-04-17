@@ -1,121 +1,108 @@
 .card {
   display: grid;
-  gap: 14px;
-  padding: 20px;
-  border: 1px solid #eaded8;
-  border-radius: 24px;
-  background: linear-gradient(180deg, #ffffff 0%, #fff9f7 100%);
-  box-shadow: 0 14px 32px rgba(36, 23, 15, 0.06);
-  transition:
-    transform 200ms ease,
-    box-shadow 200ms ease,
-    border-color 200ms ease;
-  min-width: 0;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 38px rgba(36, 23, 15, 0.1);
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid #e7dfd8;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+  align-items: center;
 }
 
 .selected {
   border-color: #ff6a3d;
   box-shadow:
-    0 0 0 1px #ff6a3d,
-    0 18px 38px rgba(255, 106, 61, 0.16);
+    0 0 0 1px rgba(255, 106, 61, 0.28),
+    0 12px 24px rgba(255, 106, 61, 0.1);
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  flex-wrap: wrap;
+.posterWrap {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f2f4f7;
 }
 
-.titleBlock {
+.posterImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.posterEmpty {
   display: grid;
-  gap: 8px;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #8a7b72;
+  font-size: 12px;
+}
+
+.matchBadge {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.82);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.matchBadgeHigh {
+  background: #15803d;
+}
+
+.content {
+  display: grid;
+  gap: 10px;
   min-width: 0;
-  flex: 1 1 220px;
+}
+
+.textBlock {
+  display: grid;
+  gap: 4px;
 }
 
 .title {
   margin: 0;
-  font-size: 20px;
-  line-height: 1.2;
-  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.15;
+  color: #18181b;
 }
 
-.meta {
+.pathText,
+.metaText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #6b7280;
+  overflow-wrap: anywhere;
+}
+
+.importedBox {
   display: grid;
   gap: 4px;
-  font-size: 14px;
-  line-height: 1.4;
-  color: #67574f;
-  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+  background: #fff5f5;
 }
 
-.path {
-  overflow-wrap: anywhere;
-}
-
-.badgeColumn {
-  display: grid;
-  gap: 8px;
-  justify-items: start;
-  align-content: start;
-  flex: 0 0 auto;
-  max-width: 100%;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  background: #ffffff;
-  font-size: 14px;
-  line-height: 1.4;
-  font-weight: 600;
-  border: 1px solid #ebddd6;
-  color: #53423a;
-  max-width: 100%;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-.confidenceHigh {
-  background: #ff6a3d;
-  color: #ffffff;
-}
-
-.typeHint {
-  display: grid;
-  gap: 8px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid #f0e3dd;
-}
-
-.importedState {
-  display: grid;
-  gap: 6px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  border: 1px solid #ffd1c2;
-  background: #fff3ee;
-}
-
-.importedState p {
+.importedBox p {
   margin: 0;
-  color: #7a4030;
+  color: #7f1d1d;
 }
 
 .importedLink {
-  color: #9f3412;
+  color: #b42318;
   font-weight: 700;
   text-decoration: none;
 }
@@ -124,152 +111,49 @@
   text-decoration: underline;
 }
 
-.typeLabel {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.4;
-  font-weight: 600;
-}
-
-.reason {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.previewGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  min-width: 0;
-}
-
-.previewTile {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
-.previewLabel {
-  font-size: 14px;
-  line-height: 1.4;
-  font-weight: 600;
-  text-transform: lowercase;
-  color: #65544b;
-}
-
-.previewFrame {
-  position: relative;
-  min-height: 116px;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #f5efeb;
-  border: 1px solid #f0e4de;
-}
-
-.previewImage {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.emptyFrame {
-  display: grid;
-  place-items: center;
-  min-height: 116px;
-  padding: 12px;
-  border-radius: 16px;
-  background: #ffffff;
-  font-size: 14px;
-  line-height: 1.4;
-  color: #8e776a;
-}
-
-.actions {
+.actionRow {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
-.selectionHint {
+.primaryButton,
+.secondaryButton,
+.disabledButton {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
   font-size: 13px;
-  line-height: 1.45;
-  color: #7a675d;
-  flex: 1 1 180px;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.actionButton {
-  min-height: 44px;
-  padding: 10px 18px;
+.primaryButton {
   border: 1px solid #ff6a3d;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #ff6a3d 0%, #ff8a4f 100%);
+  background: #ff6a3d;
   color: #ffffff;
-  font-size: 15px;
-  line-height: 1.2;
-  font-weight: 600;
-  box-shadow: 0 12px 24px rgba(255, 106, 61, 0.2);
 }
 
-.actionButtonDisabled {
-  min-height: 44px;
-  padding: 10px 18px;
-  border: 1px solid #e7d7d0;
-  border-radius: 14px;
-  background: #f4ece8;
-  color: #7c6458;
-  font-size: 15px;
-  line-height: 1.2;
-  font-weight: 600;
-  cursor: not-allowed;
-}
-
-.actionButtonSecondary {
-  min-height: 44px;
-  padding: 8px 16px;
-  border: 1px solid #e4e4e4;
-  border-radius: 999px;
+.secondaryButton {
+  border: 1px solid #d8dde3;
   background: #ffffff;
-  color: #1c1c1e;
-  font-size: 14px;
-  line-height: 1.5;
-  font-weight: 600;
+  color: #344054;
 }
 
-@media (max-width: 1080px) {
-  .previewGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .previewFrame,
-  .emptyFrame {
-    min-height: 136px;
-  }
+.disabledButton {
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  color: #9ca3af;
 }
 
 @media (max-width: 720px) {
-  .header {
-    gap: 12px;
-  }
-
-  .badgeColumn {
-    width: 100%;
-  }
-
-  .previewGrid {
+  .card {
     grid-template-columns: 1fr;
   }
 
-  .actions {
-    justify-content: stretch;
-  }
-
-  .actionButton,
-  .actionButtonSecondary,
-  .actionButtonDisabled {
-    width: 100%;
+  .posterWrap {
+    aspect-ratio: 16 / 9;
   }
 }

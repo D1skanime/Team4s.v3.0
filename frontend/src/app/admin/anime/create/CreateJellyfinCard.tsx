@@ -2,14 +2,13 @@
 
 import createStyles from "./page.module.css";
 import styles from "../../admin.module.css";
-import { JellyfinCandidateReview } from "../components/JellyfinIntake/JellyfinCandidateReview";
+import { JellyfinCandidateCard } from "../components/JellyfinIntake/JellyfinCandidateCard";
 import type { AdminJellyfinIntakeSearchItem } from "@/types/admin";
 
 interface CreateJellyfinCardProps {
   query: string;
   candidates: AdminJellyfinIntakeSearchItem[];
   selectedCandidateID: string | undefined;
-  hasActivePreview: boolean;
   hasAdoptedAssets: boolean;
   isSearching: boolean;
   isLoadingPreview: boolean;
@@ -19,8 +18,7 @@ interface CreateJellyfinCardProps {
   onQueryChange: (value: string) => void;
   onSearch: () => void;
   onSelectCandidate: (id: string) => void;
-  onLoadCandidatePreview: (id: string) => void;
-  onAdopt: () => void;
+  onAdoptCandidate: (id: string) => void;
   onDiscard: () => void;
 }
 
@@ -28,7 +26,6 @@ export function CreateJellyfinCard({
   query,
   candidates,
   selectedCandidateID,
-  hasActivePreview,
   hasAdoptedAssets,
   isSearching,
   isLoadingPreview,
@@ -38,8 +35,7 @@ export function CreateJellyfinCard({
   onQueryChange,
   onSearch,
   onSelectCandidate,
-  onLoadCandidatePreview,
-  onAdopt,
+  onAdoptCandidate,
   onDiscard,
 }: CreateJellyfinCardProps) {
   return (
@@ -48,16 +44,16 @@ export function CreateJellyfinCard({
         <p className={createStyles.resultsEyebrow}>Jellyfin</p>
         <h2 className={createStyles.resultsTitle}>Jellyfin</h2>
         <p className={createStyles.resultsText}>
-          Dateiordner und ursprüngliche Assets
+          Dateiordner und passende Quelle fuer Cover, Banner, Logo und Hintergruende
         </p>
       </div>
 
-      <div className={styles.inputRow}>
-        <label className={styles.field}>
+      <div className={createStyles.providerInputRow}>
+        <label className={[styles.field, createStyles.providerFieldGrow].join(" ")}>
           <span>Suche</span>
           <input
             value={query}
-            placeholder="z. B. Shingeki no Kyojin"
+            placeholder="z. B. Bleach"
             onChange={(e) => onQueryChange(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && canSearch && !isSearching) onSearch();
@@ -75,36 +71,35 @@ export function CreateJellyfinCard({
       </div>
 
       {showResults && candidates.length > 0 ? (
-        <div className={createStyles.jellyfinResultsWrap}>
-          <p className={createStyles.resultsEyebrow}>
-            Gefundene Ordner &nbsp;
-            <strong>{candidates.length} Treffer</strong>
-          </p>
-          <JellyfinCandidateReview
-            query={query.trim()}
-            candidates={candidates}
-            selectedCandidateID={selectedCandidateID}
-            isLoadingPreview={isLoadingPreview}
-            onSelectCandidate={onSelectCandidate}
-            onLoadCandidatePreview={onLoadCandidatePreview}
-          />
+        <div className={createStyles.providerResultsBlock}>
+          <div className={createStyles.providerResultsHeader}>
+            <p className={createStyles.resultsEyebrow}>Gefundene Ordner</p>
+            <strong className={createStyles.providerResultsCount}>
+              {candidates.length} Treffer
+            </strong>
+          </div>
+          <div className={createStyles.providerList}>
+            {candidates.map((candidate) => (
+              <JellyfinCandidateCard
+                key={candidate.jellyfin_series_id}
+                candidate={candidate}
+                isSelected={candidate.jellyfin_series_id === selectedCandidateID}
+                isLoadingPreview={
+                  isLoadingPreview && candidate.jellyfin_series_id === selectedCandidateID
+                }
+                isAdopted={hasAdoptedAssets && candidate.jellyfin_series_id === selectedCandidateID}
+                onSelect={onSelectCandidate}
+                onAdopt={onAdoptCandidate}
+              />
+            ))}
+          </div>
 
-          {hasActivePreview ? (
-            <div className={createStyles.jellyfinAdoptBar}>
-              <p className={createStyles.jellyfinAdoptNote}>
-                Der ausgewählte Jellyfin-Ordner wird gespeichert und dient als Quelle für originalen Dateipfad, Episoden-Zuordnung und Standard-Assets (Cover, Banner, Logo, Hintergründe, Videos).
+          {hasAdoptedAssets ? (
+            <div className={createStyles.jellyfinSourceNotice}>
+              <p className={createStyles.jellyfinSourceText}>
+                Der ausgewaehlte Jellyfin-Ordner ist jetzt als Quelle gesetzt. Die
+                uebernommenen Assets bearbeitest du direkt im Asset-Bereich.
               </p>
-              {!hasAdoptedAssets ? (
-                <button
-                  className={createStyles.primaryAction}
-                  type="button"
-                  onClick={onAdopt}
-                >
-                  Jellyfin übernehmen
-                </button>
-              ) : (
-                <span className={createStyles.statusPill}>Ausgewählt</span>
-              )}
               <button
                 className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
                 type="button"
@@ -119,7 +114,7 @@ export function CreateJellyfinCard({
 
       {showResults && candidates.length === 0 && !isSearching ? (
         <p className={createStyles.resultsText}>
-          Keine Ordner gefunden. Prüfe die Schreibweise.
+          Keine Ordner gefunden. Pruefe die Schreibweise.
         </p>
       ) : null}
     </section>

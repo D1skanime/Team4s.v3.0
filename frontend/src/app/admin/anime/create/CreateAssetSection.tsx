@@ -1,7 +1,7 @@
 "use client";
 
-import type { RefObject } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import type { RefObject, ReactNode } from "react";
+import { Pencil, Trash2, Upload } from "lucide-react";
 import type { AdminJellyfinIntakeAssetSlots } from "@/types/admin";
 import { resolveJellyfinIntakeAssetUrl } from "../utils/jellyfin-intake-assets";
 import type { JellyfinDraftAssetTarget } from "../hooks/useManualAnimeDraft";
@@ -32,6 +32,67 @@ interface CreateAssetSectionProps {
   };
 }
 
+interface AssetActionRowProps {
+  onUpload?: () => void;
+  onSearch?: () => void;
+  onRemove?: () => void;
+  uploadLabel?: string;
+  searchLabel?: string;
+}
+
+function AssetActionRow({
+  onUpload,
+  onSearch,
+  onRemove,
+  uploadLabel = "Upload",
+  searchLabel = "Online suchen",
+}: AssetActionRowProps) {
+  return (
+    <div className={createStyles.assetActionRow}>
+      {onUpload ? (
+        <button
+          type="button"
+          className={createStyles.assetActionButton}
+          onClick={onUpload}
+        >
+          <Upload size={14} />
+          <span>{uploadLabel}</span>
+        </button>
+      ) : null}
+      {onSearch ? (
+        <button
+          type="button"
+          className={[
+            createStyles.assetActionButton,
+            createStyles.assetActionButtonSecondary,
+          ].join(" ")}
+          onClick={onSearch}
+        >
+          <Pencil size={14} />
+          <span>{searchLabel}</span>
+        </button>
+      ) : null}
+      {onRemove ? (
+        <button
+          type="button"
+          className={[
+            createStyles.assetActionIconButton,
+            createStyles.assetActionIconButtonDestructive,
+          ].join(" ")}
+          title="Asset entfernen"
+          onClick={onRemove}
+        >
+          <Trash2 size={14} />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function buildStatusNote(previewUrl?: string | null): string | undefined {
+  return previewUrl ? "Wird beim Erstellen uebernommen" : undefined;
+}
+
 export function CreateAssetSection({
   stagedCoverPreviewUrl,
   stagedBanner,
@@ -44,7 +105,6 @@ export function CreateAssetSection({
   onRemoveSingleAsset,
   onRemoveBackground,
   onRemoveJellyfinAsset,
-  fileInputRefs,
 }: CreateAssetSectionProps) {
   const jellyfinCoverUrl = jellyfinDraftAssets?.cover.present
     ? resolveJellyfinIntakeAssetUrl(jellyfinDraftAssets.cover.url)
@@ -58,24 +118,60 @@ export function CreateAssetSection({
 
   const coverPreview = stagedCoverPreviewUrl ?? jellyfinCoverUrl;
   const coverSource = stagedCoverPreviewUrl
-    ? "Manuell" as const
+    ? ("Manuell" as const)
     : jellyfinCoverUrl
-      ? "Jellyfin" as const
+      ? ("Jellyfin" as const)
       : null;
 
   const bannerPreview = stagedBanner?.previewUrl ?? jellyfinBannerUrl;
   const bannerSource = stagedBanner
-    ? "Manuell" as const
+    ? ("Manuell" as const)
     : jellyfinBannerUrl
-      ? "Jellyfin" as const
+      ? ("Jellyfin" as const)
       : null;
 
   const logoPreview = stagedLogo?.previewUrl ?? jellyfinLogoUrl;
   const logoSource = stagedLogo
-    ? "Manuell" as const
+    ? ("Manuell" as const)
     : jellyfinLogoUrl
-      ? "Jellyfin" as const
+      ? ("Jellyfin" as const)
       : null;
+
+  const backgroundCards: ReactNode[] = [
+    ...stagedBackgrounds.map((bg, index) => (
+      <CreateAssetCard
+        key={bg.draftValue}
+        label={`Background ${index + 1}`}
+        variant="background"
+        previewUrl={bg.previewUrl}
+        source="Manuell"
+        statusNote="Wird beim Erstellen uebernommen"
+        actions={
+          <AssetActionRow onRemove={() => onRemoveBackground(index)} />
+        }
+      />
+    )),
+    ...(jellyfinDraftAssets?.backgrounds ?? []).map((slot, index) => {
+      const url = resolveJellyfinIntakeAssetUrl(slot.url);
+      if (!url) return null;
+
+      return (
+        <CreateAssetCard
+          key={`jellyfin-bg-${index}`}
+          label={`Background ${stagedBackgrounds.length + index + 1}`}
+          variant="background"
+          previewUrl={url}
+          source="Jellyfin"
+          statusNote="Wird beim Erstellen uebernommen"
+          actions={
+            <AssetActionRow
+              onRemove={() => onRemoveJellyfinAsset({ kind: "background", index })}
+            />
+          }
+        />
+      );
+    }),
+  ].filter(Boolean);
 
   return (
     <div className={createStyles.assetPanel}>
@@ -83,200 +179,112 @@ export function CreateAssetSection({
         {/* Cover */}
         <CreateAssetCard
           label="Cover"
+          variant="cover"
           isRequired
           previewUrl={coverPreview}
           source={coverSource}
-          statusNote={coverPreview ? "Wird beim Erstellen übernommen" : undefined}
+          statusNote={buildStatusNote(coverPreview)}
           isEmpty={!coverPreview}
           onEmptyClick={!coverPreview ? () => onOpenFileDialog("cover") : undefined}
           actions={
-            <div className={createStyles.assetIconActions}>
-              <button
-                type="button"
-                className={createStyles.assetIconBtn}
-                title="Asset bearbeiten"
-                onClick={() => onOpenAssetSearch("cover")}
-              >
-                <Pencil size={15} />
-              </button>
-              {(stagedCoverPreviewUrl || jellyfinCoverUrl) ? (
-                <button
-                  type="button"
-                  className={[createStyles.assetIconBtn, createStyles.assetIconBtnDestructive].join(" ")}
-                  title="Asset entfernen"
-                  onClick={() => onRemoveJellyfinAsset({ kind: "cover" })}
-                >
-                  <Trash2 size={15} />
-                </button>
-              ) : null}
-            </div>
+            <AssetActionRow
+              onUpload={() => onOpenFileDialog("cover")}
+              onSearch={() => onOpenAssetSearch("cover")}
+              onRemove={
+                stagedCoverPreviewUrl || jellyfinCoverUrl
+                  ? () => onRemoveJellyfinAsset({ kind: "cover" })
+                  : undefined
+              }
+            />
           }
         />
 
         {/* Banner */}
         <CreateAssetCard
           label="Banner"
+          variant="banner"
           previewUrl={bannerPreview}
           source={bannerSource}
-          statusNote={bannerPreview ? "Wird beim Erstellen übernommen" : undefined}
+          statusNote={buildStatusNote(bannerPreview)}
           isEmpty={!bannerPreview}
           onEmptyClick={!bannerPreview ? () => onOpenFileDialog("banner") : undefined}
           actions={
-            <div className={createStyles.assetIconActions}>
-              <button
-                type="button"
-                className={createStyles.assetIconBtn}
-                title="Asset bearbeiten"
-                onClick={() => onOpenAssetSearch("banner")}
-              >
-                <Pencil size={15} />
-              </button>
-              {bannerPreview ? (
-                <button
-                  type="button"
-                  className={[createStyles.assetIconBtn, createStyles.assetIconBtnDestructive].join(" ")}
-                  title="Asset entfernen"
-                  onClick={stagedBanner
+            <AssetActionRow
+              onUpload={() => onOpenFileDialog("banner")}
+              onSearch={() => onOpenAssetSearch("banner")}
+              onRemove={
+                bannerPreview
+                  ? stagedBanner
                     ? () => onRemoveSingleAsset("banner")
-                    : () => onRemoveJellyfinAsset({ kind: "banner" })}
-                >
-                  <Trash2 size={15} />
-                </button>
-              ) : null}
-            </div>
+                    : () => onRemoveJellyfinAsset({ kind: "banner" })
+                  : undefined
+              }
+            />
           }
         />
 
         {/* Logo */}
         <CreateAssetCard
           label="Logo"
+          variant="logo"
           previewUrl={logoPreview}
           source={logoSource}
-          statusNote={logoPreview ? "Wird beim Erstellen übernommen" : undefined}
+          statusNote={buildStatusNote(logoPreview)}
           isEmpty={!logoPreview}
           onEmptyClick={!logoPreview ? () => onOpenFileDialog("logo") : undefined}
           actions={
-            <div className={createStyles.assetIconActions}>
-              <button
-                type="button"
-                className={createStyles.assetIconBtn}
-                title="Asset bearbeiten"
-                onClick={() => onOpenAssetSearch("logo")}
-              >
-                <Pencil size={15} />
-              </button>
-              {logoPreview ? (
-                <button
-                  type="button"
-                  className={[createStyles.assetIconBtn, createStyles.assetIconBtnDestructive].join(" ")}
-                  title="Asset entfernen"
-                  onClick={stagedLogo
+            <AssetActionRow
+              onUpload={() => onOpenFileDialog("logo")}
+              onSearch={() => onOpenAssetSearch("logo")}
+              onRemove={
+                logoPreview
+                  ? stagedLogo
                     ? () => onRemoveSingleAsset("logo")
-                    : () => onRemoveJellyfinAsset({ kind: "logo" })}
-                >
-                  <Trash2 size={15} />
-                </button>
-              ) : null}
-            </div>
-          }
-        />
-
-        {/* Background Video */}
-        <CreateAssetCard
-          label="Background-Video"
-          source={stagedBackgroundVideo ? "Manuell" : null}
-          statusNote={stagedBackgroundVideo ? "Wird beim Erstellen übernommen" : undefined}
-          isEmpty={!stagedBackgroundVideo}
-          onEmptyClick={!stagedBackgroundVideo ? () => onOpenFileDialog("background_video") : undefined}
-          actions={
-            <div className={createStyles.assetIconActions}>
-              <button
-                type="button"
-                className={createStyles.assetIconBtn}
-                title="Hochladen"
-                onClick={() => onOpenFileDialog("background_video")}
-              >
-                <Pencil size={15} />
-              </button>
-              {stagedBackgroundVideo ? (
-                <button
-                  type="button"
-                  className={[createStyles.assetIconBtn, createStyles.assetIconBtnDestructive].join(" ")}
-                  title="Asset entfernen"
-                  onClick={() => onRemoveSingleAsset("background_video")}
-                >
-                  <Trash2 size={15} />
-                </button>
-              ) : null}
-            </div>
-          }
-        />
-
-        {/* Staged Backgrounds */}
-        {stagedBackgrounds.map((bg, index) => (
-          <CreateAssetCard
-            key={bg.draftValue}
-            label={`Background ${index + 1}`}
-            previewUrl={bg.previewUrl}
-            source="Manuell"
-            statusNote="Wird beim Erstellen übernommen"
-            actions={
-              <div className={createStyles.assetIconActions}>
-                <button
-                  type="button"
-                  className={[createStyles.assetIconBtn, createStyles.assetIconBtnDestructive].join(" ")}
-                  title="Hintergrund entfernen"
-                  onClick={() => onRemoveBackground(index)}
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            }
-          />
-        ))}
-
-        {/* Jellyfin Backgrounds */}
-        {(jellyfinDraftAssets?.backgrounds ?? []).map((slot, index) => {
-          const url = resolveJellyfinIntakeAssetUrl(slot.url);
-          if (!url) return null;
-          return (
-            <CreateAssetCard
-              key={`jellyfin-bg-${index}`}
-              label={`Background ${stagedBackgrounds.length + index + 1}`}
-              previewUrl={url}
-              source="Jellyfin"
-              statusNote="Wird beim Erstellen übernommen"
-              actions={
-                <div className={createStyles.assetIconActions}>
-                  <button
-                    type="button"
-                    className={[createStyles.assetIconBtn, createStyles.assetIconBtnDestructive].join(" ")}
-                    title="Hintergrund entfernen"
-                    onClick={() => onRemoveJellyfinAsset({ kind: "background", index })}
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
+                    : () => onRemoveJellyfinAsset({ kind: "logo" })
+                  : undefined
               }
             />
-          );
-        })}
+          }
+        />
+
+        {/* Background-Video */}
+        <CreateAssetCard
+          label="Background-Video"
+          variant="backgroundVideo"
+          source={stagedBackgroundVideo ? "Manuell" : null}
+          statusNote={
+            stagedBackgroundVideo ? "Wird beim Erstellen uebernommen" : undefined
+          }
+          isEmpty={!stagedBackgroundVideo}
+          onEmptyClick={
+            !stagedBackgroundVideo ? () => onOpenFileDialog("background_video") : undefined
+          }
+          actions={
+            <AssetActionRow
+              onUpload={() => onOpenFileDialog("background_video")}
+              uploadLabel="Upload"
+              onRemove={
+                stagedBackgroundVideo
+                  ? () => onRemoveSingleAsset("background_video")
+                  : undefined
+              }
+            />
+          }
+        />
+
+        {/* Staged + Jellyfin background tiles */}
+        {backgroundCards}
 
         {/* Add background */}
         <CreateAssetCard
           label="Hintergrund hinzufuegen"
+          variant="adder"
           isEmpty
           actions={
-            <div className={createStyles.assetIconActions}>
-              <button
-                type="button"
-                className={createStyles.assetIconBtn}
-                title="Hochladen"
-                onClick={() => onOpenFileDialog("background")}
-              >
-                <Pencil size={15} />
-              </button>
-            </div>
+            <AssetActionRow
+              onUpload={() => onOpenFileDialog("background")}
+              onSearch={() => onOpenAssetSearch("background")}
+            />
           }
         />
       </div>

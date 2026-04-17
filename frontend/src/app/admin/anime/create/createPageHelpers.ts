@@ -146,7 +146,7 @@ export function resolveJellyfinReviewVisibility(
   const hasCandidates = candidateCount > 0;
 
   return {
-    showCandidateReview: hasCandidates && reviewMode !== "hydrated",
+    showCandidateReview: hasCandidates,
     showRestartAction: hasCandidates && reviewMode === "hydrated",
   };
 }

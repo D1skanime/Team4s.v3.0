@@ -10,11 +10,6 @@ import type {
 } from "./createAniSearchControllerHelpers";
 import type { AdminAnimeAniSearchSearchCandidate } from "@/types/admin";
 
-/**
- * Props der CreateAniSearchIntakeCard-Komponente. Steuert den Zustand und die
- * Rueckrufe fuer die AniSearch-Suche, ID-Eingabe, Kandidatenauswahl und
- * Ergebnisanzeige auf der Anime-Erstellen-Seite.
- */
 interface CreateAniSearchIntakeCardProps {
   anisearchID: string;
   searchQuery: string;
@@ -33,12 +28,6 @@ interface CreateAniSearchIntakeCardProps {
   onSubmit: () => void;
 }
 
-/**
- * Rendert die AniSearch-Intake-Karte auf der Anime-Erstellen-Seite. Ermoeglicht
- * die Suche nach Titeln oder das direkte Eingeben einer AniSearch-ID. Zeigt
- * Treffer als Modal-Liste, Konflikte mit Weiterleitungslink und Ergebnisse
- * mit aktualisierten Feldern und Relationsnotizen an.
- */
 export function CreateAniSearchIntakeCard({
   anisearchID,
   searchQuery,
@@ -67,13 +56,14 @@ export function CreateAniSearchIntakeCard({
           <h2 className={createStyles.resultsTitle}>AniSearch</h2>
           <p className={createStyles.resultsSubtitle}>Basisdaten und eindeutige ID</p>
           <p className={createStyles.resultsText}>
-            AniSearch liefert Titel, Beschreibung, Typ, Jahr, Episodenzahl, Genres und Tags.
+            AniSearch liefert Titel, Beschreibung, Typ, Jahr, Episodenzahl, Genres
+            und Tags.
           </p>
         </div>
       </div>
 
-      <div className={styles.inputRow}>
-        <label className={styles.field}>
+      <div className={createStyles.providerInputRow}>
+        <label className={[styles.field, createStyles.providerFieldGrow].join(" ")}>
           <span>AniSearch Titel</span>
           <input
             value={searchQuery}
@@ -88,12 +78,12 @@ export function CreateAniSearchIntakeCard({
           disabled={isSearchingCandidates || !searchQuery.trim()}
           onClick={onSearchSubmit}
         >
-          {isSearchingCandidates ? "AniSearch sucht..." : "Titel suchen"}
+          {isSearchingCandidates ? "Sucht..." : "Titel suchen"}
         </button>
       </div>
 
-      <div className={styles.inputRow}>
-        <label className={styles.field}>
+      <div className={createStyles.providerInputRow}>
+        <label className={[styles.field, createStyles.providerFieldGrow].join(" ")}>
           <span>AniSearch ID</span>
           <input
             value={anisearchID}
@@ -109,7 +99,7 @@ export function CreateAniSearchIntakeCard({
           disabled={isLoading || !anisearchID.trim()}
           onClick={onSubmit}
         >
-          {isLoading ? "AniSearch laedt..." : "AniSearch laden"}
+          {isLoading ? "Laedt..." : "AniSearch laden"}
         </button>
       </div>
 
@@ -118,56 +108,42 @@ export function CreateAniSearchIntakeCard({
       </p>
 
       {candidates.length > 0 ? (
-        <div
-          className={createStyles.candidateModalBackdrop}
-          role="presentation"
-          onClick={onCandidateDismiss}
-        >
-          <div
-            className={createStyles.candidateModal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="create-anisearch-candidate-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={createStyles.candidateModalHeader}>
-              <div>
-                <h3
-                  id="create-anisearch-candidate-title"
-                  className={createStyles.candidateModalTitle}
-                >
-                  AniSearch Treffer waehlen
-                </h3>
-                <p className={createStyles.candidateModalText}>
-                  Der Detailabruf startet erst nach deiner Auswahl.
-                </p>
-              </div>
-              <button
-                type="button"
-                className={createStyles.secondaryAction}
-                onClick={onCandidateDismiss}
-              >
-                Schliessen
-              </button>
-            </div>
-            <div className={createStyles.candidateList}>
-              {candidates.map((candidate) => (
+        <div className={createStyles.providerResultsBlock}>
+          <div className={createStyles.providerResultsHeader}>
+            <p className={createStyles.resultsEyebrow}>Suchergebnisse</p>
+            <strong className={createStyles.providerResultsCount}>
+              {candidates.length} Treffer
+            </strong>
+          </div>
+          <div className={createStyles.providerList}>
+            {candidates.map((candidate) => (
+              <div key={candidate.anisearch_id} className={createStyles.providerRowCard}>
+                <div className={createStyles.providerRowIcon}>A</div>
+                <div className={createStyles.providerRowContent}>
+                  <strong className={createStyles.providerRowTitle}>{candidate.title}</strong>
+                  <span className={createStyles.providerRowMeta}>
+                    {candidate.year ? `${candidate.year} | ` : ""}
+                    {candidate.type}
+                    {` | AniSearch-ID ${candidate.anisearch_id}`}
+                  </span>
+                </div>
                 <button
-                  key={candidate.anisearch_id}
                   type="button"
-                  className={createStyles.candidateItem}
+                  className={createStyles.secondaryAction}
                   onClick={() => onCandidateSelect(candidate)}
                 >
-                  <strong>{candidate.title}</strong>
-                  <span>
-                    {candidate.type}
-                    {candidate.year ? ` | ${candidate.year}` : ""}
-                    {` | ID ${candidate.anisearch_id}`}
-                  </span>
+                  Auswaehlen
                 </button>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
+          <button
+            type="button"
+            className={createStyles.providerLinkButton}
+            onClick={onCandidateDismiss}
+          >
+            Suche verfeinern
+          </button>
         </div>
       ) : null}
 
@@ -178,10 +154,7 @@ export function CreateAniSearchIntakeCard({
               AniSearch ID {conflict.anisearchID} ist bereits mit{" "}
               <strong>{conflict.existingTitle}</strong> verknuepft.
             </p>
-            <Link
-              href={conflict.redirectPath}
-              className={createStyles.secondaryAction}
-            >
+            <Link href={conflict.redirectPath} className={createStyles.secondaryAction}>
               Zum vorhandenen Anime wechseln
             </Link>
           </div>
@@ -190,12 +163,12 @@ export function CreateAniSearchIntakeCard({
             <p>{errorMessage}</p>
             {filteredExistingCount > 0 ? (
               <p className={styles.hint}>
-                AniSearch hat Titel gefunden, aber bereits vorhandene Anime werden in der
-                Create-Auswahl ausgeblendet.
+                AniSearch hat Titel gefunden, aber bereits vorhandene Anime werden in
+                der Create-Auswahl ausgeblendet.
               </p>
             ) : null}
             <p className={styles.hint}>
-              Keine Änderungen am Anime. Der Anime wurde noch nicht erstellt.
+              Keine Aenderungen am Anime. Der Anime wurde noch nicht erstellt.
             </p>
           </div>
         ) : result ? (

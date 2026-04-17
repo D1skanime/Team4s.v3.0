@@ -225,6 +225,8 @@ export function useAdminAnimeCreateController() {
     useState<AdminAnimeJellyfinIntakePreviewResult | null>(null);
   const [jellyfinAssetSlots, setJellyfinAssetSlots] =
     useState<AdminJellyfinIntakeAssetSlots | null>(null);
+  const [hasAdoptedJellyfinPreview, setHasAdoptedJellyfinPreview] =
+    useState(false);
   const [jellyfinDraftSnapshot, setJellyfinDraftSnapshot] =
     useState<ManualAnimeDraftValues | null>(null);
 
@@ -807,17 +809,11 @@ export function useAdminAnimeCreateController() {
         resolveJellyfinPreviewBaseDraft(manualDraftValues, jellyfinDraftSnapshot),
       );
 
-      const hydrated = hydrateManualDraftFromJellyfinPreview(
-        manualDraftValues,
-        preview,
-        aniSearchDraftResult ? { mode: "fill" } : undefined,
-      );
-      applyManualDraftValues(hydrated.draft);
       setJellyfinPreview(preview);
-      setJellyfinAssetSlots(hydrated.assetSlots);
+      setHasAdoptedJellyfinPreview(false);
       setShowValidationSummary(false);
       setSuccessMessage(
-        `Jellyfin-Vorschau fuer ${preview.jellyfin_series_name} geladen.`,
+        `Jellyfin-Vorschau fuer ${preview.jellyfin_series_name} geladen. Uebernimm den Ordner erst explizit, wenn er wirklich passt.`,
       );
     } catch (error) {
       setErrorMessage(
@@ -834,6 +830,45 @@ export function useAdminAnimeCreateController() {
     setSuccessMessage(
       "Treffer ausgewaehlt. Lade jetzt die Jellyfin-Vorschau, wenn dieser Ordner wirklich passt.",
     );
+  }
+
+  async function handleJellyfinCandidateAdopt(candidateID: string) {
+    clearMessages();
+    clearAniSearchMessage();
+    setAniSearchConflict(null);
+    jellyfinIntake.reviewCandidate(candidateID);
+
+    try {
+      const preview = await jellyfinIntake.loadPreview(candidateID);
+      if (!preview) {
+        setErrorMessage("Jellyfin-Vorschau konnte nicht geladen werden.");
+        return;
+      }
+
+      const nextSnapshot = resolveJellyfinPreviewBaseDraft(
+        manualDraftValues,
+        jellyfinDraftSnapshot,
+      );
+      setJellyfinDraftSnapshot(nextSnapshot);
+      setJellyfinPreview(preview);
+
+      const hydrated = hydrateManualDraftFromJellyfinPreview(
+        manualDraftValues,
+        preview,
+        aniSearchDraftResult ? { mode: "fill" } : undefined,
+      );
+      applyManualDraftValues(hydrated.draft);
+      setJellyfinAssetSlots(hydrated.assetSlots);
+      setHasAdoptedJellyfinPreview(true);
+      setShowValidationSummary(false);
+      setSuccessMessage(
+        `${preview.jellyfin_series_name} wurde als Jellyfin-Quelle uebernommen.`,
+      );
+    } catch (error) {
+      setErrorMessage(
+        formatCreatePageError(error, "Jellyfin-Quelle konnte nicht uebernommen werden."),
+      );
+    }
   }
 
   function handleRemoveJellyfinAsset(target: JellyfinDraftAssetTarget) {
@@ -858,6 +893,7 @@ export function useAdminAnimeCreateController() {
     );
     applyManualDraftValues(hydrated.draft);
     setJellyfinAssetSlots(hydrated.assetSlots);
+    setHasAdoptedJellyfinPreview(true);
     setShowValidationSummary(false);
     setSuccessMessage("Jellyfin-Assets wurden zur Prüfung übernommen.");
   }
@@ -866,6 +902,7 @@ export function useAdminAnimeCreateController() {
     if (jellyfinDraftSnapshot) applyManualDraftValues(jellyfinDraftSnapshot);
     setJellyfinPreview(null);
     setJellyfinAssetSlots(null);
+    setHasAdoptedJellyfinPreview(false);
     setJellyfinDraftSnapshot(null);
     setAniSearchConflict(null);
     jellyfinIntake.resetReview();
@@ -1204,6 +1241,7 @@ export function useAdminAnimeCreateController() {
     },
     jellyfin: {
       draftAssets: jellyfinAssetSlots,
+      hasAdoptedPreview: hasAdoptedJellyfinPreview,
       hasSelectedPreview: hasSelectedJellyfinPreview,
       intake: jellyfinIntake,
       preview: jellyfinPreview,
@@ -1284,6 +1322,7 @@ export function useAdminAnimeCreateController() {
       handleCreateSubmit,
       handleDiscardJellyfinPreview,
       handleJellyfinAdopt,
+      handleJellyfinCandidateAdopt,
       handleJellyfinCandidateReview,
       handleJellyfinCandidateSelect,
       handleJellyfinSearch,
