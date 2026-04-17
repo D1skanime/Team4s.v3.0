@@ -24,6 +24,18 @@ export function CreateAssetCard({
   statusNote,
   actions,
 }: CreateAssetCardProps) {
+  const sourceModifierClass: string = (() => {
+    if (!source) return "";
+    const map: Record<AssetSource, string> = {
+      Jellyfin: createStyles.assetCardSourceOverlayJellyfin,
+      TMDB: createStyles.assetCardSourceOverlayTMDB,
+      Zerochan: createStyles.assetCardSourceOverlayZerochan,
+      Manuell: createStyles.assetCardSourceOverlayManuell,
+      Online: createStyles.assetCardSourceOverlayOnline,
+    };
+    return map[source] ?? "";
+  })();
+
   return (
     <div className={createStyles.assetCard}>
       <div className={createStyles.assetCardPreview}>
@@ -38,15 +50,21 @@ export function CreateAssetCard({
             <span>{isEmpty ? (isRequired ? "Cover fehlt" : "Noch nichts ausgewählt") : "–"}</span>
           </div>
         )}
+        {source ? (
+          <span
+            className={[createStyles.assetCardSourceOverlay, sourceModifierClass]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {source}
+          </span>
+        ) : null}
       </div>
       <div className={createStyles.assetCardMeta}>
         <span className={createStyles.assetCardLabel}>
           {label}
           {isRequired ? <span className={createStyles.assetCardRequired}> *</span> : null}
         </span>
-        {source ? (
-          <span className={createStyles.assetSourceBadge}>{source}</span>
-        ) : null}
         {statusNote ? (
           <span className={createStyles.assetStatusNote}>{statusNote}</span>
         ) : null}

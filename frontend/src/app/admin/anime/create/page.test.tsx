@@ -51,10 +51,10 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).toContain("Logo");
     expect(markup).toContain("Background");
     expect(markup).toContain("Background-Video");
+    expect(markup).toContain("Hintergrund hinzufuegen");
     expect(markup).toContain("Asset-Upload");
     expect(markup).toContain("Cover online suchen");
-    expect(markup).toContain("Banner online suchen");
-    expect(markup).toContain("Logo online suchen");
+    // Icon buttons render via lucide SVG — check slot labels instead of dialog-only button text
     expect(markup).toContain("Backgrounds online suchen");
   });
 

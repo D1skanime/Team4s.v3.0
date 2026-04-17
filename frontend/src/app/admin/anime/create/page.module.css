@@ -562,6 +562,13 @@
 
 /* ── Asset Section ───────────────────────────────────────────────────────── */
 
+.assetPanel {
+  background: #fff;
+  border: 1px solid #e2e6ea;
+  border-radius: 12px;
+  padding: 24px;
+}
+
 .assetGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -585,6 +592,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .assetCardImage {
@@ -646,6 +654,83 @@
 
 .assetCardActions button:hover {
   background: #f4f6f8;
+}
+
+.assetCardSourceOverlay {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.72);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(8px);
+}
+
+.assetCardSourceOverlayJellyfin {
+  background: #15803d;
+  color: #ffffff;
+}
+
+.assetCardSourceOverlayTMDB {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.assetCardSourceOverlayZerochan {
+  background: #c2410c;
+  color: #ffffff;
+}
+
+.assetCardSourceOverlayManuell {
+  background: #374151;
+  color: #ffffff;
+}
+
+.assetCardSourceOverlayOnline {
+  background: #374151;
+  color: #ffffff;
+}
+
+.assetIconActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.assetIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #dde3ea;
+  background: #fff;
+  cursor: pointer;
+  color: #374151;
+  flex-shrink: 0;
+}
+
+.assetIconBtn:hover {
+  background: #f7f8fb;
+  border-color: #c8cfd8;
+}
+
+.assetIconBtnDestructive {
+  color: #b42318;
+  border-color: #fecaca;
+}
+
+.assetIconBtnDestructive:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
 }
 
 /* ── Review Section ──────────────────────────────────────────────────────── */

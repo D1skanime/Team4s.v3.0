@@ -218,14 +218,6 @@ export default function AdminAnimeCreatePage() {
                 Prüfe und ergänze die Assets. Du kannst sie aus Jellyfin übernehmen, manuell hochladen oder online suchen.
               </p>
             </div>
-            <button
-              className={createStyles.primaryAction}
-              type="button"
-              onClick={() => { void handlers.handleJellyfinSearch(); }}
-              style={{ marginLeft: "auto" }}
-            >
-              Jellyfin erneut scannen
-            </button>
           </div>
           <CreateAssetSection
             stagedCoverPreviewUrl={manualDraft.stagedCover?.previewUrl}
