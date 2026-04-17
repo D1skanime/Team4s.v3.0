@@ -100,6 +100,52 @@ function countIncomingDraftAssets(
   return total;
 }
 
+export function resolveAniSearchCandidateSearchFeedback(
+  response: AdminAnimeAniSearchSearchCandidateResponse,
+): {
+  candidates: AdminAnimeAniSearchSearchCandidate[];
+  errorMessage: string | null;
+  filteredExistingCount: number;
+  successMessage: string | null;
+} {
+  const candidates = Array.isArray(response.data) ? response.data : [];
+  const filteredExistingCount =
+    typeof response.filtered_existing_count === "number"
+      ? response.filtered_existing_count
+      : 0;
+
+  if (candidates.length === 0 && filteredExistingCount > 0) {
+    return {
+      candidates,
+      errorMessage: `Alle ${filteredExistingCount} gefundenen AniSearch-Treffer sind bereits als Anime erfasst und wurden ausgeblendet.`,
+      filteredExistingCount,
+      successMessage: null,
+    };
+  }
+
+  if (candidates.length === 0) {
+    return {
+      candidates,
+      errorMessage:
+        "Keine AniSearch-Treffer gefunden. Bitte pruefe den Titel oder nutze die ID direkt.",
+      filteredExistingCount,
+      successMessage: null,
+    };
+  }
+
+  return {
+    candidates,
+    errorMessage: null,
+    filteredExistingCount,
+    successMessage: `${candidates.length} AniSearch-Treffer gefunden. Waehle jetzt den passenden Eintrag aus.`,
+  };
+}
+
+type AdminAnimeAniSearchSearchCandidateResponse = {
+  data: AdminAnimeAniSearchSearchCandidate[];
+  filtered_existing_count?: number;
+};
+
 export function useAdminAnimeCreateController() {
   const [isAuthStateHydrated, setIsAuthStateHydrated] = useState(false);
   const [authStateVersion, setAuthStateVersion] = useState(0);
@@ -145,6 +191,8 @@ export function useAdminAnimeCreateController() {
   const [aniSearchCandidates, setAniSearchCandidates] = useState<
     AdminAnimeAniSearchSearchCandidate[]
   >([]);
+  const [aniSearchFilteredExistingCount, setAniSearchFilteredExistingCount] =
+    useState(0);
   const [aniSearchDraftResult, setAniSearchDraftResult] =
     useState<CreateAniSearchDraftState | null>(null);
   const [aniSearchConflict, setAniSearchConflict] =
@@ -429,6 +477,7 @@ export function useAdminAnimeCreateController() {
     setAniSearchDraftResult(null);
     setAniSearchConflict(null);
     setAniSearchCandidates([]);
+    setAniSearchFilteredExistingCount(0);
     clearAniSearchMessage();
   }
 
@@ -800,6 +849,19 @@ export function useAdminAnimeCreateController() {
     setShowValidationSummary(false);
   }
 
+  function handleJellyfinAdopt() {
+    if (!jellyfinPreview) return;
+    const hydrated = hydrateManualDraftFromJellyfinPreview(
+      manualDraftValues,
+      jellyfinPreview,
+      aniSearchDraftResult ? { mode: "fill" } : undefined,
+    );
+    applyManualDraftValues(hydrated.draft);
+    setJellyfinAssetSlots(hydrated.assetSlots);
+    setShowValidationSummary(false);
+    setSuccessMessage("Jellyfin-Assets wurden zur Prüfung übernommen.");
+  }
+
   function handleDiscardJellyfinPreview() {
     if (jellyfinDraftSnapshot) applyManualDraftValues(jellyfinDraftSnapshot);
     setJellyfinPreview(null);
@@ -809,7 +871,7 @@ export function useAdminAnimeCreateController() {
     jellyfinIntake.resetReview();
     clearMessages();
     clearAniSearchMessage();
-    setSuccessMessage("Jellyfin-Vorschau verworfen. Der Entwurf bleibt ungespeichert.");
+    setSuccessMessage("Jellyfin-Auswahl verworfen. Der Anime wurde noch nicht erstellt.");
   }
 
   async function loadAniSearchDraftByID(anisearchID: string) {
@@ -904,17 +966,14 @@ export function useAdminAnimeCreateController() {
         { limit: 12 },
         runtimeAuthToken,
       );
+      const feedback = resolveAniSearchCandidateSearchFeedback(response);
       setLastResponse(JSON.stringify(response, null, 2));
-      setAniSearchCandidates(response.data);
-      if (response.data.length === 0) {
-        setAniSearchErrorMessage(
-          "Keine AniSearch-Treffer gefunden. Bitte pruefe den Titel oder nutze die ID direkt.",
-        );
-        return;
+      setAniSearchCandidates(feedback.candidates);
+      setAniSearchFilteredExistingCount(feedback.filteredExistingCount);
+      setAniSearchErrorMessage(feedback.errorMessage);
+      if (feedback.successMessage) {
+        setSuccessMessage(feedback.successMessage);
       }
-      setSuccessMessage(
-        `${response.data.length} AniSearch-Treffer gefunden. Waehle jetzt den passenden Eintrag aus.`,
-      );
     } catch (error) {
       setAniSearchErrorMessage(
         formatCreatePageError(error, "AniSearch-Treffer konnten nicht geladen werden."),
@@ -1126,6 +1185,7 @@ export function useAdminAnimeCreateController() {
       candidates: aniSearchCandidates,
       conflict: aniSearchConflict,
       errorMessage: aniSearchErrorMessage,
+      filteredExistingCount: aniSearchFilteredExistingCount,
       input: createAniSearchID,
       isLoading: isLoadingAniSearchDraft,
       isSearchingCandidates: isSearchingAniSearchCandidates,
@@ -1223,6 +1283,7 @@ export function useAdminAnimeCreateController() {
       handleCoverUpload,
       handleCreateSubmit,
       handleDiscardJellyfinPreview,
+      handleJellyfinAdopt,
       handleJellyfinCandidateReview,
       handleJellyfinCandidateSelect,
       handleJellyfinSearch,
@@ -1252,7 +1313,7 @@ export function useAdminAnimeCreateController() {
         clearAniSearchMessage();
         setAniSearchConflict(null);
         setSuccessMessage(
-          "Jellyfin-Suche wieder geoeffnet. Der aktuelle Entwurf bleibt bearbeitbar.",
+          "Jellyfin-Suche wieder geöffnet.",
         );
         },
       setAssetSearchQuery,

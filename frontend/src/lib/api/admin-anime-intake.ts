@@ -69,6 +69,16 @@ function withAuthHeaders(authToken?: string): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
+function normalizeAniSearchSearchResponse(
+  response: AdminAnimeAniSearchSearchResponse,
+): AdminAnimeAniSearchSearchResponse {
+  return {
+    data: Array.isArray(response.data) ? response.data : [],
+    filtered_existing_count:
+      typeof response.filtered_existing_count === 'number' ? response.filtered_existing_count : 0,
+  }
+}
+
 export async function searchAdminJellyfinIntakeCandidates(
   query: string,
   params: { limit?: number } = {},
@@ -181,7 +191,8 @@ export async function searchAdminAnimeCreateAniSearchCandidates(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  return response.json() as Promise<AdminAnimeAniSearchSearchResponse>
+  const payload = (await response.json()) as AdminAnimeAniSearchSearchResponse
+  return normalizeAniSearchSearchResponse(payload)
 }
 
 export async function searchAdminAnimeCreateAssetCandidates(

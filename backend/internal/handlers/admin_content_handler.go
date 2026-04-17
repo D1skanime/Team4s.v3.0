@@ -64,7 +64,7 @@ type adminAniSearchRepository interface {
 // adminAniSearchDraftLoader beschreibt den Service zum Laden von AniSearch-Entwurfsdaten und zur Kandidatensuche.
 type adminAniSearchDraftLoader interface {
 	LoadAniSearchDraft(ctx context.Context, aniSearchID string) (models.AdminAnimeCreateDraftPayload, []models.AdminAnimeRelation, error)
-	SearchAniSearchCandidates(ctx context.Context, query string, limit int) ([]models.AdminAnimeAniSearchSearchCandidate, error)
+	SearchAniSearchCandidates(ctx context.Context, query string, limit int) (models.AdminAnimeAniSearchSearchResult, error)
 }
 
 // adminAnimeAssetSearchService definiert den Service zur Suche nach externen Asset-Kandidaten (Cover, Banner, etc.).

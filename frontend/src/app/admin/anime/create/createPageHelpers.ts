@@ -157,7 +157,7 @@ export function resolveSourceActionState(title: string) {
   return {
     canSync: meaningful,
     helperText: meaningful
-      ? "Der finale Titel bleibt Entwurfsdaten. Nutze die getrennten Jellyfin- und AniSearch-Suchfeldern fuer Provider-Suchen."
+      ? "Der finale Titel ist vom Provider-Suchfeld getrennt. Jellyfin und AniSearch haben eigene Suchfelder."
       : "Der finale Titel ist kein Suchfeld. Nutze die getrennten Jellyfin- und AniSearch-Suchfeldern fuer Provider-Suchen.",
   };
 }

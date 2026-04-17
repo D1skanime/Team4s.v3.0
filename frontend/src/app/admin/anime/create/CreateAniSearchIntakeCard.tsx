@@ -20,6 +20,7 @@ interface CreateAniSearchIntakeCardProps {
   searchQuery: string;
   isLoading: boolean;
   isSearchingCandidates: boolean;
+  filteredExistingCount?: number;
   candidates: AdminAnimeAniSearchSearchCandidate[];
   result: CreateAniSearchDraftState | null;
   conflict: CreateAniSearchConflictState | null;
@@ -43,6 +44,7 @@ export function CreateAniSearchIntakeCard({
   searchQuery,
   isLoading,
   isSearchingCandidates,
+  filteredExistingCount = 0,
   candidates,
   result,
   conflict,
@@ -62,10 +64,10 @@ export function CreateAniSearchIntakeCard({
       <div className={createStyles.resultsHeader}>
         <div className={createStyles.resultsTitleBlock}>
           <p className={createStyles.resultsEyebrow}>AniSearch</p>
-          <h2 className={createStyles.resultsTitle}>AniSearch Daten laden</h2>
+          <h2 className={createStyles.resultsTitle}>AniSearch</h2>
+          <p className={createStyles.resultsSubtitle}>Basisdaten und eindeutige ID</p>
           <p className={createStyles.resultsText}>
-            Nutze AniSearch entweder direkt per ID oder suche zuerst nach einem Titel
-            und waehle dann den passenden Eintrag aus.
+            AniSearch liefert Titel, Beschreibung, Typ, Jahr, Episodenzahl, Genres und Tags.
           </p>
         </div>
       </div>
@@ -186,8 +188,14 @@ export function CreateAniSearchIntakeCard({
         ) : errorMessage ? (
           <div className={styles.errorBox}>
             <p>{errorMessage}</p>
+            {filteredExistingCount > 0 ? (
+              <p className={styles.hint}>
+                AniSearch hat Titel gefunden, aber bereits vorhandene Anime werden in der
+                Create-Auswahl ausgeblendet.
+              </p>
+            ) : null}
             <p className={styles.hint}>
-              Der aktuelle Entwurf bleibt unveraendert und noch nicht gespeichert.
+              Keine Änderungen am Anime. Der Anime wurde noch nicht erstellt.
             </p>
           </div>
         ) : result ? (
@@ -211,7 +219,7 @@ export function CreateAniSearchIntakeCard({
                 ))}
               </div>
               <div>
-                <strong>Entwurfsstatus</strong>
+                <strong>AniSearch-Status</strong>
                 {result.draftStatusNotes.map((note) => (
                   <p key={note} className={styles.hint}>
                     {note}

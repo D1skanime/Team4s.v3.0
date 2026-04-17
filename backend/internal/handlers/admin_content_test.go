@@ -23,7 +23,7 @@ import (
 
 type stubAniSearchCreateEnrichmentService struct {
 	enrich func(context.Context, models.AdminAnimeAniSearchEnrichmentRequest) (any, error)
-	search func(context.Context, string, int) ([]models.AdminAnimeAniSearchSearchCandidate, error)
+	search func(context.Context, string, int) (models.AdminAnimeAniSearchSearchResult, error)
 }
 
 func (s stubAniSearchCreateEnrichmentService) LoadAniSearchDraft(
@@ -47,9 +47,9 @@ func (s stubAniSearchCreateEnrichmentService) SearchAniSearchCandidates(
 	ctx context.Context,
 	query string,
 	limit int,
-) ([]models.AdminAnimeAniSearchSearchCandidate, error) {
+) (models.AdminAnimeAniSearchSearchResult, error) {
 	if s.search == nil {
-		return nil, errors.New("unexpected search call")
+		return models.AdminAnimeAniSearchSearchResult{}, errors.New("unexpected search call")
 	}
 	return s.search(ctx, query, limit)
 }
@@ -203,16 +203,18 @@ func TestSearchAnimeCreateAniSearchCandidates_ReturnsCandidateEnvelope(t *testin
 		authzRepo:     stubAdminRoleChecker{allowed: true},
 		adminRoleName: "admin",
 		enrichmentService: stubAniSearchCreateEnrichmentService{
-			search: func(_ context.Context, query string, limit int) ([]models.AdminAnimeAniSearchSearchCandidate, error) {
+			search: func(_ context.Context, query string, limit int) (models.AdminAnimeAniSearchSearchResult, error) {
 				if query != "Bleach" {
 					t.Fatalf("expected query Bleach, got %q", query)
 				}
 				if limit != 12 {
 					t.Fatalf("expected default limit 12, got %d", limit)
 				}
-				return []models.AdminAnimeAniSearchSearchCandidate{
-					{AniSearchID: "1078", Title: "Bleach", Type: "TV-Serie", Year: int16Ptr(2004)},
-					{AniSearchID: "15085", Title: "Bleach: Thousand-Year Blood War", Type: "TV-Serie", Year: int16Ptr(2022)},
+				return models.AdminAnimeAniSearchSearchResult{
+					Data: []models.AdminAnimeAniSearchSearchCandidate{
+						{AniSearchID: "15085", Title: "Bleach: Thousand-Year Blood War", Type: "TV-Serie", Year: int16Ptr(2022)},
+					},
+					FilteredExistingCount: 1,
 				}, nil
 			},
 		},
@@ -229,17 +231,18 @@ func TestSearchAnimeCreateAniSearchCandidates_ReturnsCandidateEnvelope(t *testin
 		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
 	}
 
-	var payload struct {
-		Data []models.AdminAnimeAniSearchSearchCandidate `json:"data"`
-	}
+	var payload models.AdminAnimeAniSearchSearchResponse
 	if err := json.Unmarshal(recorder.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("decode response: %v", err)
 	}
-	if len(payload.Data) != 2 {
+	if len(payload.Data) != 1 {
 		t.Fatalf("expected 2 candidates, got %#v", payload.Data)
 	}
-	if payload.Data[0].AniSearchID != "1078" || payload.Data[0].Title != "Bleach" {
+	if payload.Data[0].AniSearchID != "15085" || payload.Data[0].Title != "Bleach: Thousand-Year Blood War" {
 		t.Fatalf("unexpected first candidate: %#v", payload.Data[0])
+	}
+	if payload.FilteredExistingCount != 1 {
+		t.Fatalf("expected filtered_existing_count=1, got %#v", payload)
 	}
 }
 

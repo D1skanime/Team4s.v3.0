@@ -3,7 +3,7 @@
 ## Milestones
 
 - [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
-- [ ] **v1.1 Asset Lifecycle Hardening** - Phases 6 through 12 are complete or verified, and Phase 13 is queued to repair AniSearch relation follow-through.
+- [x] **v1.1 Asset Lifecycle Hardening** - Phases 6 through 16 are complete or verified, and Phase 17 is the current next slice for the `/admin/anime/create` UX/UI follow-through. (completed 2026-04-17)
 
 ## Current Direction
 
@@ -18,9 +18,11 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 10: Create Tags And Metadata Card Refactor** - Add normalized tags to anime create and refactor create metadata UI into a maintainable card-based structure.
 - [x] **Phase 11: AniSearch Edit Enrichment And Relation Persistence** - Add AniSearch enrichment to the edit route and persist AniSearch relations once create metadata is stable. (executed 2026-04-09; verification gaps ENR-08 and ENR-10 closed by 11-04 and 11-05)
 - [x] **Phase 12: Create AniSearch Intake Reintroduction And Draft Merge Control** - Restore AniSearch as a first-class create action, preserve `manual > AniSearch > Jellyfin`, and redirect duplicates straight to edit.
-- [ ] **Phase 13: AniSearch Relation Follow-Through Repair** - Repair the still-broken AniSearch relation persistence and follow-through after the create-flow reintroduction shipped.
-- [ ] **Phase 14: Create Provider Search Separation And Result Selection** - Split create-page provider search from final form data so Jellyfin and AniSearch each get their own search flow, candidate selection, and controlled data handoff.
+- [x] **Phase 13: AniSearch Relation Follow-Through Repair** - Repair the still-broken AniSearch relation persistence and follow-through after the create-flow reintroduction shipped.
+- [x] **Phase 14: Create Provider Search Separation And Result Selection** - Split create-page provider search from final form data so Jellyfin and AniSearch each get their own search flow, candidate selection, and controlled data handoff.
 - [x] **Phase 15: Asset-Specific Online Search And Selection For Create-Page Anime Assets** - Let admins search external asset sources per slot, review found images with source visibility, and adopt selected cover/banner/logo/background assets into the create draft without leaving the page.
+- [x] **Phase 16: Hide Already Imported AniSearch Candidates On Create** - Keep AniSearch title search on `/admin/anime/create` focused on still-creatable entries by hiding candidates whose `anisearch:{id}` source already exists locally. (completed and browser-verified 2026-04-16)
+- [x] **Phase 17: Anime Create UX/UI Follow-Through** - Rework `/admin/anime/create` to follow the finalized Phase-14 UX contract: AniSearch as metadata source, Jellyfin as source/folder matcher first, and asset suggestions only after explicit Jellyfin adoption. (completed 2026-04-17)
 
 ## Phase Details
 
@@ -135,15 +137,19 @@ Plans:
 **Goal:** Repair AniSearch relation persistence and follow-through after create so resolvable approved relations are actually written and operator feedback matches reality.
 **Requirements**: ENR-05, ENR-10
 **Depends on:** Phase 12
-**Plans:** 0 plans
+**Status**: Implemented and closed in the active milestone baseline
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] TBD (run `$gsd-plan-phase 13` to break down)
+- [x] `13-01-PLAN.md` - Repair the backend AniSearch relation follow-through write path and preserve approved create-time relation semantics.
+- [x] `13-02-PLAN.md` - Align create/save follow-through feedback and persistence handling with the repaired relation baseline.
+- [x] `13-03-PLAN.md` - Close verification and human-UAT follow-through for repaired AniSearch create relations.
 
 ### Phase 14: Create Provider Search Separation And Result Selection
 **Goal:** Admins can search Jellyfin and AniSearch from separate create-page search controls, select an explicit provider result, and load that result into the draft without reusing the final title field as temporary search text.
 **Requirements**: TBD
 **Depends on:** Phase 13
-**Plans:** 0 plans
+**Status**: Implemented; UI contract refreshed on 2026-04-16 to capture the finalized product UX for the page
+**Plans:** 3/3 plans complete
 **Success Criteria** (what must be TRUE):
   1. Jellyfin and AniSearch no longer reuse the final anime title field as shared search state on `/admin/anime/create`.
   2. Jellyfin has its own dedicated search input and result-selection flow inside the Jellyfin create surface.
@@ -153,7 +159,9 @@ Plans:
   6. The provider search UX stays visually and logically consistent, with clear source boundaries and operator-visible step transitions.
 
 Plans:
-- [ ] TBD (run `$gsd-plan-phase 14` to break down)
+- [x] `14-01-PLAN.md` - Separate provider-local search state from final create fields and define the guarded AniSearch title-search contract.
+- [x] `14-02-PLAN.md` - Implement AniSearch candidate search/select plus dedicated Jellyfin search state in the create controller and API seams.
+- [x] `14-03-PLAN.md` - Ship the create-page provider UI separation and operator-visible result-selection flow.
 
 ### Phase 15: Asset-Specific Online Search And Selection For Create-Page Anime Assets
 **Goal:** Admins can search external image sources per asset slot on `/admin/anime/create`, compare found results with visible source metadata, and adopt one cover/banner/logo or multiple backgrounds into the draft while manual upload remains available.
@@ -173,9 +181,36 @@ Plans:
 - [x] `15-02-PLAN.md` - Implement the backend asset-search orchestrator and initial source adapters for per-slot candidate discovery.
 - [x] `15-03-PLAN.md` - Add the create-page asset search dialogs, source-aware result chooser, busy states, and draft adoption flow.
 
+### Phase 16: Hide Already Imported AniSearch Candidates On Create
+**Goal:** Admins using AniSearch title search on `/admin/anime/create` only see candidates that can still begin a new local draft instead of entries already owned by an existing local anime.
+**Requirements**: TBD
+**Depends on:** Phase 15
+**Status**: Completed and browser-verified on 2026-04-16
+**Plans:** 2/2 plans complete
+**Success Criteria** (what must be TRUE):
+  1. AniSearch title search no longer shows candidates whose `anisearch:{id}` source already belongs to a local anime.
+  2. The filtering lives in the authoritative backend AniSearch search seam so every caller receives the same duplicate-safe candidate list.
+  3. The create UI distinguishes between "AniSearch found no hits" and "AniSearch hits existed but were hidden because those anime are already captured locally."
+
+Plans:
+- [x] `16-01-PLAN.md` - Filter AniSearch search candidates against existing local `anisearch:{id}` ownership in the backend seam and lock that behavior in handler/service tests.
+- [x] `16-02-PLAN.md` - Surface the filtered-result contract in the create AniSearch UI and add regressions for hidden duplicates plus the clarified empty-state copy.
+
+### Phase 17: Anime Create UX/UI Follow-Through
+**Goal:** Bring `/admin/anime/create` onto the finalized UX model so the page reads as one productive admin flow: `Anime finden` -> `Assets` -> `Details` -> `Pruefen & Anlegen`.
+**Requirements**: TBD
+**Depends on:** Phase 16
+**Status**: Current next slice
+**Success Criteria** (what must be TRUE):
+  1. The page no longer implies any saveable draft concept and uses `Anime erstellen` as the single final create action.
+  2. AniSearch is clearly framed and implemented as the metadata/description source for the create flow.
+  3. Jellyfin search initially shows only enough source context to choose the right local folder match: name, path, and preview.
+  4. Jellyfin-derived banner/logo/background/video suggestions appear only after explicit `Jellyfin uebernehmen`.
+  5. All asset suggestions are reviewed in the shared asset area as visual, removable, and replaceable cards without damaging existing create/save seams.
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 10 | 19+ | Phases 6-15 complete, verified, or executed with targeted follow-up notes | - |
+| v1.1 Asset Lifecycle Hardening | 11 | 25+ | Phases 6-16 complete or verified; Phase 17 is the active next UX/UI slice | - |
