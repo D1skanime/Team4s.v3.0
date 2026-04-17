@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 
 import styles from "../../admin.module.css";
@@ -22,6 +23,7 @@ import {
 } from "./createPageHelpers";
 import { useAdminAnimeCreateController } from "./useAdminAnimeCreateController";
 import { CreatePageStepper } from "./CreatePageStepper";
+import { CreateReviewSection } from "./CreateReviewSection";
 
 export {
   buildCreateSuccessMessage,
@@ -43,7 +45,6 @@ export {
 export default function AdminAnimeCreatePage() {
   const controller = useAdminAnimeCreateController();
   const {
-    auth,
     debug,
     editor,
     errorMessage,
@@ -53,18 +54,6 @@ export default function AdminAnimeCreatePage() {
     manualDraft,
     status,
   } = controller;
-  const authStatusReady = auth.isHydrated;
-  const authStatusClassName = authStatusReady
-    ? auth.hasAuthToken
-      ? createStyles.statusPillMuted
-      : createStyles.statusPillWarning
-    : createStyles.statusPillMuted;
-  const authStatusLabel = authStatusReady
-    ? auth.hasAuthToken
-      ? "Auth bereit"
-      : "Auth fehlt"
-    : "Auth wird geladen";
-
   return (
     <main className={styles.page}>
       <p className={styles.backLinks}>
@@ -82,11 +71,6 @@ export default function AdminAnimeCreatePage() {
           </div>
         </header>
         <CreatePageStepper activeStep={1} />
-
-        {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
-        {status.successMessage ? (
-          <div className={styles.successBox}>{status.successMessage}</div>
-        ) : null}
 
         {/* ── Section 1: Anime finden ──────────────────────────────── */}
         <section id="section-1" className={createStyles.pageSection}>
@@ -275,12 +259,25 @@ export default function AdminAnimeCreatePage() {
             <span className={createStyles.sectionNumber}>4</span>
             <div>
               <h2 className={createStyles.sectionTitle}>Prüfen & Anlegen</h2>
-              <p className={createStyles.sectionSub}>
-                Abschließende Kontrolle vor dem Erstellen.
-              </p>
+              <p className={createStyles.sectionSub}>Abschließende Kontrolle.</p>
             </div>
           </div>
-          {/* Inhalt wird in Plan 17-05 eingesetzt */}
+          <CreateReviewSection
+            missingFields={manualDraft.missingFields}
+            hasTitle={manualDraft.values.title.trim().length > 0}
+            hasCover={!!manualDraft.stagedCover || !!manualDraft.values.coverImage}
+            hasAniSearch={!!controller.anisearch.result}
+            hasJellyfin={jellyfin.hasSelectedPreview}
+            assetCount={jellyfin.selectedDraftAssetCount + (manualDraft.stagedAssets.background?.length ?? 0)}
+            isSubmitting={status.isSubmittingCreate}
+            successMessage={status.successMessage}
+            errorMessage={errorMessage}
+            onSubmit={() => {
+              void handlers.handleCreateSubmit({
+                preventDefault: () => undefined,
+              } as React.FormEvent<HTMLFormElement>);
+            }}
+          />
         </section>
 
         <CreateAssetSearchDialog

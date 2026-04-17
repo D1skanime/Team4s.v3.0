@@ -647,3 +647,87 @@
 .assetCardActions button:hover {
   background: #f4f6f8;
 }
+
+/* ── Review Section ──────────────────────────────────────────────────────── */
+
+.reviewCard {
+  background: #fff;
+  border: 1px solid #e2e6ea;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 560px;
+}
+
+.reviewChecklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reviewChecklist li {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reviewCheckOk {
+  color: #15803d;
+}
+
+.reviewCheckWarn {
+  color: #b42318;
+  font-weight: 600;
+}
+
+.reviewCheckMuted {
+  color: #9ca3af;
+}
+
+.reviewMissing {
+  font-size: 13px;
+  color: #b42318;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.reviewNote {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.reviewActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.createCTA {
+  background: #6d4aff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.createCTA:hover:not(:disabled) {
+  background: #5b3de8;
+}
+
+.createCTA:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
