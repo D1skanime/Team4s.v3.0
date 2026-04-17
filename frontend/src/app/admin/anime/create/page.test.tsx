@@ -32,7 +32,7 @@ describe("AdminAnimeCreatePage", () => {
   it("renders an unsaved preview with placeholder title and cover before persistence", () => {
     const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
 
-    expect(markup).toContain("Fehlt: Titel, Cover");
+    expect(markup).toContain("Fehlend:</strong> Titel, Cover");
     expect(markup).toContain("Noch keine Datei ausgewaehlt.");
     expect(markup).toContain("Anime erstellen");
     expect(markup).toContain("Noch nicht bereit");
@@ -110,14 +110,10 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).toContain("AniSearch Titel");
     expect(markup).toContain("Titel suchen");
     expect(markup).toContain("AniSearch laden");
-    expect(markup).toContain("Jellyfin Suche");
-    expect(markup).toContain("Jellyfin suchen");
+    expect(markup).toContain("Scannen");
     expect(markup).toContain("Manuell &gt; AniSearch &gt; Jellyfin");
     expect(markup.indexOf("AniSearch laden")).toBeLessThan(
-      markup.lastIndexOf("Jellyfin suchen"),
-    );
-    expect(markup).toContain(
-      "Der finale Titel ist kein Suchfeld. Nutze die getrennten Jellyfin- und AniSearch-Suchfeldern fuer Provider-Suchen.",
+      markup.lastIndexOf("Scannen"),
     );
     expect(markup).not.toContain("Aus Datei hochladen");
     expect(resolveSourceActionState("").canSync).toBe(false);

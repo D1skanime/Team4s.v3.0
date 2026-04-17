@@ -54,6 +54,10 @@ export default function AdminAnimeCreatePage() {
     manualDraft,
     status,
   } = controller;
+  const reviewMissingFields: string[] = [];
+  if (!manualDraft.values.title.trim()) reviewMissingFields.push("Titel");
+  if (!manualDraft.stagedCover && !manualDraft.values.coverImage.trim()) reviewMissingFields.push("Cover");
+
   return (
     <main className={styles.page}>
       <p className={styles.backLinks}>
@@ -263,7 +267,7 @@ export default function AdminAnimeCreatePage() {
             </div>
           </div>
           <CreateReviewSection
-            missingFields={manualDraft.missingFields}
+            missingFields={reviewMissingFields}
             hasTitle={manualDraft.values.title.trim().length > 0}
             hasCover={!!manualDraft.stagedCover || !!manualDraft.values.coverImage}
             hasAniSearch={!!controller.anisearch.result}
