@@ -24,7 +24,7 @@ Phase 18 must prove the gap between canonical anime episodes and local media fil
 
 Gate is satisfied only when:
 - Backend packages compile with `go test ./internal/services ./internal/repository ./internal/handlers -run "^$"`.
-- Frontend TypeScript compiles with `npx tsc --noEmit --pretty false`.
+- Phase 18 frontend contract files compile with the scoped `npx tsc --noEmit --pretty false ... episodeImport.ts episodeImportMapping.ts episodeImportMapping.test.ts` command from `18-01-PLAN.md`.
 - Expected-red tests fail by assertion or explicit not-implemented behavior, not by compile, import, or setup errors.
 - Red tests include named coverage for parser, repository apply, manual title preservation, preview separation, conflict rejection, and mapping helper conflicts.
 
@@ -61,6 +61,7 @@ Before Phase 18 is considered complete, run:
 
 ```powershell
 cd backend; go test ./internal/handlers ./internal/services ./internal/repository -run "EpisodeImport|AniSearchEpisode"
+cd frontend; npx tsc --noEmit --pretty false --target ES2022 --module ESNext --moduleResolution Bundler --strict --esModuleInterop --skipLibCheck --types vitest src/types/episodeImport.ts "src/app/admin/anime/[id]/episodes/import/episodeImportMapping.ts" "src/app/admin/anime/[id]/episodes/import/episodeImportMapping.test.ts"
 cd frontend; npm test -- episodeImportMapping --run
 cd frontend; npm run build
 ```

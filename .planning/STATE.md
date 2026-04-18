@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
-stopped_at: Phase 18 episode import and mapping builder planned
-last_updated: "2026-04-18T14:20:00.000Z"
+stopped_at: Phase 18 Plan 18-01 contracts and expected-red tests complete
+last_updated: "2026-04-18T16:25:00.000Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 13
   completed_phases: 10
   total_plans: 46
-  completed_plans: 39
+  completed_plans: 40
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 18 episode import and mapping builder is planned; next work should start with Wave 0 contracts/red tests.
+**Current focus:** Phase 18 Plan 18-01 is complete; next work should start Plan 18-02 data model and repository semantics.
 
 ## Current Position
 
 Phase: 18
-Plan: 18-01 ready - Wave 0 contracts and red tests for episode import and mapping
+Plan: 18-02 ready - add episode_version_episodes and repository apply semantics
 
 ## Accumulated Context
 
@@ -102,6 +102,7 @@ Recent durable decisions:
 - Phase 16 executed and browser-verified: AniSearch title search now hides already-imported candidates and explains filtered-empty results honestly.
 - Phase 17 executed: Anime create UX/UI follow-through based on the refreshed Phase-14 UI contract, including reference-style asset layout, hidden AniSearch diagnostics, visible Jellyfin folder path, and additive background videos.
 - Phase 18 planned: Episode Import And Mapping Builder, using AniSearch as canonical episode source, Jellyfin as media/file source, and an explicit manual mapping preview/apply flow.
+- Phase 18 Plan 18-01 executed: contract DTOs and expected-red tests now lock canonical episode rows, media candidates, multi-target mappings, preview separation, conflict rejection, and frontend mapping helper behavior.
 
 ### Blockers/Concerns
 
