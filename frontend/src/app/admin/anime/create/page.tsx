@@ -159,16 +159,17 @@ export default function AdminAnimeCreatePage() {
           </div>
 
           <CreateAssetSection
-            stagedCoverPreviewUrl={manualDraft.stagedCover?.previewUrl}
+            stagedCover={manualDraft.stagedCover}
             stagedBanner={manualDraft.stagedAssets.banner}
             stagedLogo={manualDraft.stagedAssets.logo}
             stagedBackgrounds={manualDraft.stagedAssets.background}
-            stagedBackgroundVideo={manualDraft.stagedAssets.background_video}
+            stagedBackgroundVideos={manualDraft.stagedAssets.background_video}
             jellyfinDraftAssets={jellyfin.draftAssets}
             onOpenFileDialog={handlers.openAssetFileDialog}
             onOpenAssetSearch={handlers.openAssetSearch}
             onRemoveSingleAsset={handlers.removeSingleAsset}
             onRemoveBackground={handlers.removeBackground}
+            onRemoveBackgroundVideo={handlers.removeBackgroundVideo}
             onRemoveJellyfinAsset={handlers.handleRemoveJellyfinAsset}
             fileInputRefs={fileInputRefs}
           />
@@ -218,9 +219,7 @@ export default function AdminAnimeCreatePage() {
             className={styles.fileInput}
             type="file"
             accept="video/*"
-            onChange={(event) =>
-              handlers.handleSingleAssetInputChange("background_video", event)
-            }
+            onChange={handlers.handleBackgroundVideoInputChange}
           />
         </section>
 
@@ -324,19 +323,7 @@ export default function AdminAnimeCreatePage() {
                     ))}
                   </select>
                 </div>
-              </div>
-            </section>
 
-            <section className={workspaceStyles.sectionCard}>
-              <div className={workspaceStyles.sectionHeader}>
-                <p className={workspaceStyles.sectionEyebrow}>Zusatzdaten</p>
-                <h2 className={workspaceStyles.sectionTitle}>Titel und Jahr</h2>
-                <p className={workspaceStyles.sectionText}>
-                  Optionale Angaben fuer Sortierung, Varianten und Kontext.
-                </p>
-              </div>
-
-              <div className={styles.gridTwo}>
                 <div className={styles.field}>
                   <label htmlFor="create-year">Jahr</label>
                   <input
@@ -372,6 +359,17 @@ export default function AdminAnimeCreatePage() {
                     id="create-title-en"
                     value={manualDraft.values.titleEN}
                     onChange={(event) => handlers.setTitleEN(event.target.value)}
+                  />
+                </div>
+
+                <div className={`${styles.field} ${createStyles.folderPathField}`}>
+                  <label htmlFor="create-folder-path">Ordnerpfad</label>
+                  <input
+                    id="create-folder-path"
+                    className={createStyles.folderPathInput}
+                    value={jellyfin.folderPath}
+                    placeholder="Noch kein Jellyfin-Ordner verknuepft"
+                    readOnly
                   />
                 </div>
               </div>

@@ -137,12 +137,9 @@ func (s *AnimeAssetSearchService) SearchAssetCandidates(
 		return nil, nil
 	}
 
-	// Give each provider an equal share with a minimum of 4 so no provider
-	// is squeezed out entirely when the global limit is small.
-	perProvider := limit / len(activeProviders)
-	if perProvider < 4 {
-		perProvider = 4
-	}
+	// Give each provider a fair first-pass share so early providers cannot
+	// exhaust the global limit before later sources are queried.
+	perProvider := (limit + len(activeProviders) - 1) / len(activeProviders)
 
 	results := make([]models.AdminAnimeAssetSearchCandidate, 0, limit)
 	for i, provider := range activeProviders {
@@ -209,6 +206,10 @@ func defaultAssetSearchSourceOrder(assetKind string) []models.AdminAnimeAssetSea
 			models.AdminAnimeAssetSearchSourceZerochan,
 		}
 	}
+}
+
+func normalizeBooruSearchTags(query string) string {
+	return strings.Join(strings.Fields(strings.ToLower(strings.TrimSpace(query))), "_")
 }
 
 type ZerochanAssetSearchProvider struct {
@@ -799,7 +800,7 @@ func (p *KonachanAssetSearchProvider) SearchAssetCandidates(
 		return nil, fmt.Errorf("parse konachan url: %w", err)
 	}
 	qv := url.Values{}
-	qv.Set("tags", strings.TrimSpace(req.Query))
+	qv.Set("tags", normalizeBooruSearchTags(req.Query))
 	qv.Set("limit", fmt.Sprintf("%d", req.Limit*2))
 	if req.Page > 1 {
 		qv.Set("page", fmt.Sprintf("%d", req.Page))
@@ -828,12 +829,12 @@ func (p *KonachanAssetSearchProvider) SearchAssetCandidates(
 	}
 
 	var posts []struct {
-		ID             int64  `json:"id"`
-		Width          int    `json:"width"`
-		Height         int    `json:"height"`
-		SampleURL      string `json:"sample_url"`
-		FileURL        string `json:"file_url"`
-		PreviewURL     string `json:"preview_url"`
+		ID         int64  `json:"id"`
+		Width      int    `json:"width"`
+		Height     int    `json:"height"`
+		SampleURL  string `json:"sample_url"`
+		FileURL    string `json:"file_url"`
+		PreviewURL string `json:"preview_url"`
 	}
 	if err := json.Unmarshal(body, &posts); err != nil {
 		return nil, fmt.Errorf("decode konachan response: %w", err)
@@ -947,7 +948,7 @@ func (p *SafebooruAssetSearchProvider) SearchAssetCandidates(
 	qv.Set("s", "post")
 	qv.Set("q", "index")
 	qv.Set("json", "1")
-	qv.Set("tags", strings.TrimSpace(req.Query))
+	qv.Set("tags", normalizeBooruSearchTags(req.Query))
 	qv.Set("limit", fmt.Sprintf("%d", req.Limit*2))
 	qv.Set("pid", fmt.Sprintf("%d", pid))
 	searchURL.RawQuery = qv.Encode()

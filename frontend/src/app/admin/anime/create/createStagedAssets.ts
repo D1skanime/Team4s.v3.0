@@ -15,7 +15,7 @@ import type { CreateAssetUploadDraftValue } from "./createAssetUploadPlan";
  */
 export type CreateSingleAssetKind = Exclude<
   AdminAnimeAssetKind,
-  "cover" | "background"
+  "cover" | "background" | "background_video"
 >;
 
 /**
@@ -26,7 +26,7 @@ export interface CreateManualStagedAssets {
   banner: CreateAssetUploadDraftValue | null;
   logo: CreateAssetUploadDraftValue | null;
   background: CreateAssetUploadDraftValue[];
-  background_video: CreateAssetUploadDraftValue | null;
+  background_video: CreateAssetUploadDraftValue[];
 }
 
 /**
@@ -39,7 +39,7 @@ export function createEmptyManualStagedAssets(): CreateManualStagedAssets {
     banner: null,
     logo: null,
     background: [],
-    background_video: null,
+    background_video: [],
   };
 }
 
@@ -62,8 +62,10 @@ export function revokeStagedAssetPreview(
 export function revokeStagedAssetPreviews(assets: CreateManualStagedAssets) {
   revokeStagedAssetPreview(assets.banner);
   revokeStagedAssetPreview(assets.logo);
-  revokeStagedAssetPreview(assets.background_video);
   for (const entry of assets.background) {
+    revokeStagedAssetPreview(entry);
+  }
+  for (const entry of assets.background_video) {
     revokeStagedAssetPreview(entry);
   }
 }

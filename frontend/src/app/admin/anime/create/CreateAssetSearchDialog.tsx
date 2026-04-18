@@ -109,6 +109,19 @@ export function CreateAssetSearchDialog({
   const copy = getAssetCopy(activeKind);
   const selectedCount = selectedCandidateIDs.length;
   const canAdopt = selectedCount > 0 && !isAdopting;
+  const candidateGridClass = [
+    createStyles.assetCandidateGrid,
+    activeKind === "cover" ? createStyles.assetCandidateGridCover : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const candidatePreviewClass = [
+    createStyles.assetCandidatePreview,
+    activeKind === "cover" ? createStyles.assetCandidatePreviewCover : "",
+    activeKind === "logo" ? createStyles.assetCandidatePreviewLogo : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div
@@ -186,7 +199,7 @@ export function CreateAssetSearchDialog({
 
         {candidates.length > 0 ? (
           <>
-            <div className={createStyles.assetCandidateGrid}>
+            <div className={candidateGridClass}>
               {candidates.map((candidate) => {
                 const isSelected = selectedCandidateIDs.includes(candidate.id);
                 return (
@@ -198,7 +211,7 @@ export function CreateAssetSearchDialog({
                     }`}
                     onClick={() => onToggleCandidate(candidate.id)}
                   >
-                    <div className={createStyles.assetCandidatePreview}>
+                    <div className={candidatePreviewClass}>
                       <Image
                         src={candidate.preview_url}
                         alt={candidate.title || `${candidate.source} Asset`}
@@ -207,27 +220,27 @@ export function CreateAssetSearchDialog({
                         className={createStyles.assetCandidateImage}
                         unoptimized
                       />
+                      <span className={createStyles.assetSourceBadge}>
+                        {candidate.source}
+                      </span>
+                      {isSelected ? (
+                        <span className={createStyles.assetCandidateSelectedBadge}>
+                          Ausgewaehlt
+                        </span>
+                      ) : null}
                     </div>
                     <div className={createStyles.assetCandidateBody}>
-                      <div className={createStyles.assetCandidateMeta}>
-                        <span className={createStyles.assetSourceBadge}>
-                          {candidate.source}
-                        </span>
-                        {candidate.year ? (
-                          <span className={createStyles.assetMetaText}>
-                            {candidate.year}
-                          </span>
-                        ) : null}
-                      </div>
-                      <strong className={createStyles.assetCandidateTitle}>
-                        {candidate.title || "Ohne Titel"}
-                      </strong>
+                      {candidate.title ? (
+                        <strong className={createStyles.assetCandidateTitle}>
+                          {candidate.title}
+                        </strong>
+                      ) : null}
                       <p className={createStyles.assetMetaText}>
                         {candidate.width && candidate.height
                           ? `${candidate.width} x ${candidate.height}`
                           : "Groesse unbekannt"}
+                        {candidate.year ? ` | ${candidate.year}` : ""}
                       </p>
-                      <p className={createStyles.assetMetaText}>ID {candidate.id}</p>
                     </div>
                   </button>
                 );

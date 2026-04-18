@@ -4,7 +4,16 @@ import type { ReactNode } from "react";
 import { Upload } from "lucide-react";
 import createStyles from "./page.module.css";
 
-export type AssetSource = "Jellyfin" | "Manuell" | "Online" | "TMDB" | "Zerochan";
+export type AssetSource =
+  | "Jellyfin"
+  | "Manuell"
+  | "Online"
+  | "TMDB"
+  | "Zerochan"
+  | "Fanart.tv"
+  | "AniList"
+  | "Konachan"
+  | "Safebooru";
 
 export type CreateAssetCardVariant =
   | "cover"
@@ -43,6 +52,10 @@ export function CreateAssetCard({
       Jellyfin: createStyles.assetCardSourceOverlayJellyfin,
       TMDB: createStyles.assetCardSourceOverlayTMDB,
       Zerochan: createStyles.assetCardSourceOverlayZerochan,
+      "Fanart.tv": createStyles.assetCardSourceOverlayFanart,
+      AniList: createStyles.assetCardSourceOverlayAniList,
+      Konachan: createStyles.assetCardSourceOverlayKonachan,
+      Safebooru: createStyles.assetCardSourceOverlaySafebooru,
       Manuell: createStyles.assetCardSourceOverlayManuell,
       Online: createStyles.assetCardSourceOverlayOnline,
     };
@@ -87,13 +100,34 @@ export function CreateAssetCard({
 
   const emptyClass =
     variant === "adder" ? createStyles.assetCardEmptyAdder : createStyles.assetCardEmptyStandard;
-  const metaClass =
-    variant === "adder" ? createStyles.assetCardMetaAdder : createStyles.assetCardMetaDefault;
 
   return (
     <div className={[createStyles.assetCard, cardVariantClass].join(" ")}>
+      <div className={createStyles.assetCardHeader}>
+        <span className={createStyles.assetCardLabel}>
+          {label}
+          {isRequired ? <span className={createStyles.assetCardRequired}> *</span> : null}
+        </span>
+        {source ? (
+          <span
+            className={[createStyles.assetCardSourcePill, sourceModifierClass]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {source}
+          </span>
+        ) : null}
+      </div>
       <div className={[createStyles.assetCardPreview, previewVariantClass].join(" ")}>
-        {previewUrl ? (
+        {previewUrl && variant === "backgroundVideo" ? (
+          <video
+            src={previewUrl}
+            className={[createStyles.assetCardImage, imageVariantClass].join(" ")}
+            muted
+            playsInline
+            preload="metadata"
+          />
+        ) : previewUrl ? (
           <img
             src={previewUrl}
             alt={label}
@@ -128,9 +162,12 @@ export function CreateAssetCard({
             </span>
           </div>
         )}
+        {actions ? (
+          <div className={createStyles.assetCardActions}>{actions}</div>
+        ) : null}
         {source ? (
           <span
-            className={[createStyles.assetCardSourceOverlay, sourceModifierClass]
+            className={[createStyles.assetCardImageSource, sourceModifierClass]
               .filter(Boolean)
               .join(" ")}
           >
@@ -138,18 +175,11 @@ export function CreateAssetCard({
           </span>
         ) : null}
       </div>
-      <div className={[createStyles.assetCardMeta, metaClass].join(" ")}>
-        <span className={createStyles.assetCardLabel}>
-          {label}
-          {isRequired ? <span className={createStyles.assetCardRequired}> *</span> : null}
-        </span>
-        {statusNote ? (
+      {statusNote ? (
+        <div className={createStyles.assetCardFooter}>
           <span className={createStyles.assetStatusNote}>{statusNote}</span>
-        ) : null}
-        {actions ? (
-          <div className={createStyles.assetCardActions}>{actions}</div>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

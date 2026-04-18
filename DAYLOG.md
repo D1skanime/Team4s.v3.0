@@ -386,3 +386,54 @@
 
 ### Next Step
 - Run one live create-page smoke for remote banner/background adoption and confirm the created anime keeps those assets plus provider provenance after save
+
+## 2026-04-18
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: finish the anime-create UX/UI follow-through, close the create asset persistence/provenance gaps, verify multi background-video handling, deploy Docker for testing, and leave the workspace ready to push.
+
+### Workstreams Touched
+- Anime create Section 1 AniSearch/Jellyfin intake UX
+- Anime create Section 2 asset layout and online asset search presentation
+- Multi background-video staging, upload, linking, persistence, and runtime manifest resolution
+- Create metadata card consolidation and visible Jellyfin folder path
+- Provider provenance for TMDB/Zerochan/Fanart/Konachan/Safebooru/Jellyfin/manual assets
+- Docker deploy and repo-local handoff refresh
+
+### Goals Intended vs Achieved
+- Intended: make `/admin/anime/create` match the reference UI closely enough for operator testing and remove temporary test/debug surfaces.
+- Achieved: Anime create is considered complete for this slice. The asset area now uses the reference-style primary cards, right-side background grid, compact 2-column background-video grid, source badges, image-overlay remove/edit/upload actions, hidden AniSearch diagnostics, and a readonly `Ordnerpfad` field.
+
+### Problems Solved
+- Root cause: background videos were modeled as a singular slot in several frontend/backend seams.
+- Fix: staged background videos are now additive in the create flow, uploaded and linked through the plural backend route, and runtime backdrop resolution exposes all videos.
+- Root cause: provider-selected create assets could lose source identity or fail to persist through the final save seam.
+- Fix: create-side upload/link planning keeps provider keys where available and backend V2 attachment paths preserve provenance for additive backgrounds.
+- Root cause: the asset section layout drifted from the reference design and made videos/backgrounds visually too large or misaligned.
+- Fix: rebuilt Section 2 around primary Cover/Banner/Logo cards, a separated background grid, and compact two-column video cards inside the primary asset width.
+- Root cause: AniSearch test/status details were useful during development but noisy for real use.
+- Fix: removed the rendered technical summary block while keeping duplicate/error feedback.
+- Root cause: operators could not see which Jellyfin folder was linked after adoption.
+- Fix: exposed the Jellyfin series path as readonly `Ordnerpfad` in Basisdaten.
+
+### Decisions
+- Treat Anime Create as complete for the current v1.1 UX/UI follow-through slice.
+- Keep background videos additive, not a single replace-only slot, while preserving the existing `background_video` naming at API boundaries where already established.
+- Keep AniSearch diagnostics hidden in the operator UI; only actionable duplicate/error states remain visible.
+- Keep the folder link visible as metadata (`Ordnerpfad`) rather than a separate debug/status card.
+
+### Verification
+- `cd frontend && npm test -- src/app/admin/anime/create/CreateAniSearchIntakeCard.test.tsx src/app/admin/anime/create/page.test.tsx`
+- `cd frontend && npm test -- createAssetUploadPlan.test.ts`
+- `cd frontend && npm run build`
+- `cd backend && go test ./internal/repository ./internal/handlers ./internal/services`
+- `docker compose up -d --build team4sv30-frontend`
+- Smoke: `http://127.0.0.1:3002/admin/anime/create` returned `200`.
+- Smoke: `http://127.0.0.1:8092/api/v1/anime` returned `200`.
+
+### Blockers
+- No known product blocker remains for Anime Create.
+- Cross-AI review remains unavailable because no independent reviewer CLI is installed locally.
+
+### Next Step
+- Do one short human browser pass on `/admin/anime/create` after the pushed build: create a small test anime, confirm assets/folder path look correct, then delete the test record if needed.

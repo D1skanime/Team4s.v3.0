@@ -520,6 +520,16 @@ export function useAdminAnimeCreateController() {
     setSuccessMessage(`Background vorbereitet: ${staged.draftValue}`);
   }
 
+  function addStagedBackgroundVideo(file: File) {
+    const staged = stageManualCreateAsset(file);
+    setStagedAssets((current) => ({
+      ...current,
+      background_video: [...current.background_video, staged],
+    }));
+    setShowValidationSummary(false);
+    setSuccessMessage(`Background-Video vorbereitet: ${staged.draftValue}`);
+  }
+
   function removeStagedSingleAsset(kind: CreateSingleAssetKind) {
     setStagedAssets((current) => {
       revokeStagedAssetPreview(current[kind]);
@@ -533,6 +543,15 @@ export function useAdminAnimeCreateController() {
       const [removed] = next.splice(index, 1);
       revokeStagedAssetPreview(removed || null);
       return { ...current, background: next };
+    });
+  }
+
+  function removeStagedBackgroundVideo(index: number) {
+    setStagedAssets((current) => {
+      const next = [...current.background_video];
+      const [removed] = next.splice(index, 1);
+      revokeStagedAssetPreview(removed || null);
+      return { ...current, background_video: next };
     });
   }
 
@@ -644,7 +663,7 @@ export function useAdminAnimeCreateController() {
     if (jellyfinAssetSlots?.logo?.present && jellyfinAssetSlots.logo.url && !stagedAssets.logo) {
       payload.logo_image = jellyfinAssetSlots.logo.url;
     }
-    if (jellyfinAssetSlots?.background_video?.present && jellyfinAssetSlots.background_video.url && !stagedAssets.background_video) {
+    if (jellyfinAssetSlots?.background_video?.present && jellyfinAssetSlots.background_video.url && stagedAssets.background_video.length === 0) {
       payload.background_video_url = jellyfinAssetSlots.background_video.url;
     }
     const jellyfinBackgroundURLs = (jellyfinAssetSlots?.backgrounds ?? [])
@@ -757,6 +776,14 @@ export function useAdminAnimeCreateController() {
     if (!file) return;
     clearMessages();
     addStagedBackground(file);
+    event.target.value = "";
+  }
+
+  function handleBackgroundVideoInputChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    clearMessages();
+    addStagedBackgroundVideo(file);
     event.target.value = "";
   }
 
@@ -1241,6 +1268,7 @@ export function useAdminAnimeCreateController() {
     },
     jellyfin: {
       draftAssets: jellyfinAssetSlots,
+      folderPath: jellyfinPreview?.jellyfin_series_path?.trim() ?? "",
       hasAdoptedPreview: hasAdoptedJellyfinPreview,
       hasSelectedPreview: hasSelectedJellyfinPreview,
       intake: jellyfinIntake,
@@ -1315,6 +1343,7 @@ export function useAdminAnimeCreateController() {
       handleAssetCandidateSearch,
       handleLoadMoreAssets,
       handleBackgroundInputChange,
+      handleBackgroundVideoInputChange,
       handleAniSearchCandidateSearch,
       handleAniSearchCandidateSelect,
       handleAniSearchDraftLoad,
@@ -1335,6 +1364,7 @@ export function useAdminAnimeCreateController() {
       openAssetSearch,
       openAssetFileDialog,
       removeBackground: removeStagedBackground,
+      removeBackgroundVideo: removeStagedBackgroundVideo,
       removeGenreToken: (name: string) =>
         setCreateGenreTokens((current) =>
           current.filter((t) => t.toLowerCase() !== name.toLowerCase()),

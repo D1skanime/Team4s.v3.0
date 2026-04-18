@@ -58,7 +58,19 @@ func (h *AnimeHandler) ListBackdrops(c *gin.Context) {
 					result.Provider = "persisted"
 				}
 			}
-			if persistedAssets.BackgroundVideo != nil {
+			if len(persistedAssets.BackgroundVideos) > 0 {
+				result.ThemeVideos = make([]string, 0, len(persistedAssets.BackgroundVideos))
+				for _, item := range persistedAssets.BackgroundVideos {
+					trimmedURL := strings.TrimSpace(item.URL)
+					if trimmedURL == "" {
+						continue
+					}
+					result.ThemeVideos = append(result.ThemeVideos, trimmedURL)
+				}
+				if len(result.ThemeVideos) > 0 {
+					result.Provider = "persisted"
+				}
+			} else if persistedAssets.BackgroundVideo != nil {
 				result.ThemeVideos = []string{persistedAssets.BackgroundVideo.URL}
 				result.Provider = "persisted"
 			}

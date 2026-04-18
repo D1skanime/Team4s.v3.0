@@ -2,25 +2,24 @@
 
 ## Top 3 Risks
 
-### 1. Today's create-side provider-asset follow-through could be pushed without fresh verification
-- **Impact:** Medium
-- **Likelihood:** High
-- **Why it matters:** the worktree now extends the Phase-15 create seam so remote-selected non-cover assets persist through save, but local automated verification was blocked by sandbox/network limits.
-- **Mitigation:** record the lack of fresh verification clearly, run one browser smoke first tomorrow, and re-run targeted tests in an environment that can fetch Go modules and spawn frontend helpers.
-
-### 2. Provider provenance for imported backgrounds can drift if `provider_key` handling is incomplete
-- **Impact:** Medium
+### 1. Final visual density may still need operator tuning
+- **Impact:** Low
 - **Likelihood:** Medium
-- **Why it matters:** the current follow-through now preserves provider identity for uploaded backgrounds, but that only helps if the provider key survives the whole create path consistently.
-- **Mitigation:** verify the persisted create result with a remote background picked from the chooser and keep `provider_key` propagation limited to the documented create/upload seam.
+- **Why it matters:** the asset layout now matches the requested reference much more closely, but final judgment is visual and screen-size dependent.
+- **Mitigation:** run one short browser pass after push and keep any follow-up as CSS-only polish unless a functional regression appears.
 
-### 3. Root instructions can send tomorrow into the wrong thread if stale notes are trusted over the real baseline
-- **Impact:** High
+### 2. Additive background-video behavior must stay aligned across create, edit, and runtime playback
+- **Impact:** Medium
+- **Likelihood:** Low
+- **Why it matters:** create now supports multiple background videos, while older code paths historically treated `background_video` as singular.
+- **Mitigation:** keep the plural backend route and runtime `BackgroundVideos` list as the canonical multi-video path; preserve singular fallback only for compatibility.
+
+### 3. Temporary local artifacts could accidentally pollute future commits
+- **Impact:** Low
 - **Likelihood:** Medium
-- **Why it matters:** older root notes still pointed at edit-route relation UX even though `main` already moved through Phase 14 and Phase 15, which makes the resume point easy to misread.
-- **Mitigation:** trust the refreshed handoff files plus `.planning/STATE.md`, and keep all work in `C:\Users\admin\Documents\Team4s` with the documented runtime commands from `STATUS.md`.
+- **Why it matters:** local screenshot files, Edge profile folders, root `node_modules`, and build caches exist in the working tree.
+- **Mitigation:** do not stage `tmp-*.png`, `frontend/tmp-edge-profile-*`, root `node_modules`, or generated build/cache files unless deliberately needed.
 
 ## Current Blockers
-- No product blocker on the current `main` baseline.
-- Verification blocker: sandboxed local runs could not complete Go module downloads or Vitest helper spawn, so today's work remains unverified here.
-- Process blocker: no independent reviewer CLI for true `$gsd-review`.
+- No known product blocker remains for Anime Create.
+- Cross-AI review remains unavailable because no independent reviewer CLI is installed locally.

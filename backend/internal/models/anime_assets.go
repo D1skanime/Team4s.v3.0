@@ -38,11 +38,12 @@ type AnimeBackgroundAsset struct {
 // AnimeResolvedAssets fasst alle aufgelösten Assets eines Anime zusammen
 // und wird als vollständige Asset-Antwort der Asset-API zurückgegeben.
 type AnimeResolvedAssets struct {
-	Cover           *AnimeResolvedAsset    `json:"cover,omitempty"`
-	Banner          *AnimeResolvedAsset    `json:"banner,omitempty"`
-	Logo            *AnimeResolvedAsset    `json:"logo,omitempty"`
-	BackgroundVideo *AnimeResolvedAsset    `json:"background_video,omitempty"`
-	Backgrounds     []AnimeBackgroundAsset `json:"backgrounds"`
+	Cover            *AnimeResolvedAsset    `json:"cover,omitempty"`
+	Banner           *AnimeResolvedAsset    `json:"banner,omitempty"`
+	Logo             *AnimeResolvedAsset    `json:"logo,omitempty"`
+	BackgroundVideo  *AnimeResolvedAsset    `json:"background_video,omitempty"`
+	BackgroundVideos []AnimeResolvedAsset   `json:"background_videos,omitempty"`
+	Backgrounds      []AnimeBackgroundAsset `json:"backgrounds"`
 }
 
 // AnimeProviderAssetInput enthält die Eingabedaten zum Zuweisen eines Provider-Assets

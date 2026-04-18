@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
-stopped_at: Completed 17.1-01-PLAN.md
-last_updated: "2026-04-17T14:40:00.000Z"
-last_activity: 2026-04-17
+stopped_at: Anime Create UX/UI follow-through completed and Docker-deployed
+last_updated: "2026-04-18T04:00:00.000Z"
+last_activity: 2026-04-18
 progress:
   total_phases: 12
   completed_phases: 10
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 17 — anime-create-ux-ui-follow-through
+**Current focus:** Anime Create UX/UI follow-through closed; choose the next narrow v1.1 slice after one human smoke.
 
 ## Current Position
 
 Phase: 17
-Plan: Not started
+Plan: Complete for Anime Create follow-through
 
 ## Accumulated Context
 
@@ -83,6 +83,7 @@ Recent durable decisions:
 - [Phase 17]: reviewMissingFields computed directly in page.tsx to bypass showValidationSummary filter for always-visible review checklist
 - [Phase 17.1]: Worktree branch merged main before applying 17.1 changes since worktree was on an older pre-phase-17 codebase
 - [Phase 17.1]: Source badge overlay on asset card preview uses assetCardSourceOverlay base + source-specific modifier class; icon buttons replace text pill action buttons in CreateAssetSection
+- [Phase 17 closeout]: Anime Create is complete for the current UX/UI follow-through slice; background videos are additive, AniSearch diagnostics are hidden, and Jellyfin `Ordnerpfad` is visible in Basisdaten.
 
 ### Pending Todos
 
@@ -99,7 +100,7 @@ Recent durable decisions:
 - Phase 15 added: Asset-specific online search and selection for create-page anime assets.
 - Phase 15 executed: dedicated asset search seam, Zerochan-backed discovery, and source-aware create-page asset adoption.
 - Phase 16 executed and browser-verified: AniSearch title search now hides already-imported candidates and explains filtered-empty results honestly.
-- Phase 17 added: Anime create UX/UI follow-through based on the refreshed Phase-14 UI contract.
+- Phase 17 executed: Anime create UX/UI follow-through based on the refreshed Phase-14 UI contract, including reference-style asset layout, hidden AniSearch diagnostics, visible Jellyfin folder path, and additive background videos.
 
 ### Blockers/Concerns
 
@@ -134,7 +135,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-17T19:30:00.000Z
-Stopped at: Resolved CreateAssetSection.tsx merge conflict (AssetActionRow + onEmptyClick combined), commit 6268693. UAT Tests 8-9 still pending.
-Last activity: 2026-04-17
+Last session: 2026-04-18T04:00:00.000Z
+Stopped at: Anime Create UX/UI follow-through complete, local Docker deploy passed, frontend create tests/build passed, backend targeted tests passed during persistence work.
+Last activity: 2026-04-18
 Resume file: None

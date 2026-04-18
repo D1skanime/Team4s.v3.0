@@ -29,6 +29,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.DELETE("/admin/anime/:id/assets/logo", auth, deps.adminContentHandler.DeleteAnimeLogoAsset)
 	v1.PUT("/admin/anime/:id/assets/background_video", auth, deps.adminContentHandler.AssignAnimeBackgroundVideoAsset)
 	v1.DELETE("/admin/anime/:id/assets/background_video", auth, deps.adminContentHandler.DeleteAnimeBackgroundVideoAsset)
+	v1.POST("/admin/anime/:id/assets/background_videos", auth, deps.adminContentHandler.AddAnimeBackgroundVideoAsset)
 	v1.POST("/admin/anime/:id/assets/backgrounds", auth, deps.adminContentHandler.AddAnimeBackgroundAsset)
 	v1.DELETE("/admin/anime/:id/assets/backgrounds/:backgroundId", auth, deps.adminContentHandler.DeleteAnimeBackgroundAsset)
 	v1.GET("/admin/anime/assets/search", auth, deps.adminContentHandler.SearchAnimeCreateAssetCandidates)

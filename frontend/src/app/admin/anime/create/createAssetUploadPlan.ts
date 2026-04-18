@@ -2,7 +2,7 @@
 
 import {
   addAdminAnimeBackgroundAsset,
-  assignAdminAnimeBackgroundVideoAsset,
+  addAdminAnimeBackgroundVideoAsset,
   assignAdminAnimeBannerAsset,
   assignAdminAnimeCoverAsset,
   assignAdminAnimeLogoAsset,
@@ -42,7 +42,7 @@ export interface CreateAssetUploadSelections {
   banner?: CreateAssetUploadSelection;
   logo?: CreateAssetUploadSelection;
   background?: CreateAssetUploadSelection[];
-  background_video?: CreateAssetUploadSelection;
+  background_video?: CreateAssetUploadSelection[];
 }
 
 /**
@@ -79,7 +79,7 @@ const CREATE_ASSET_UPLOAD_PLAN: Record<AdminAnimeAssetKind, CreateAssetUploadPla
   background_video: {
     assetType: "background_video",
     label: "Background-Video",
-    multiple: false,
+    multiple: true,
   },
 };
 
@@ -264,7 +264,7 @@ async function uploadAndLinkCreatedAnimeAsset(
   } else if (kind === "background") {
     await addAdminAnimeBackgroundAsset(animeID, upload.id, authToken, providerKey);
   } else {
-    await assignAdminAnimeBackgroundVideoAsset(animeID, upload.id, authToken);
+    await addAdminAnimeBackgroundVideoAsset(animeID, upload.id, authToken);
   }
   return upload.id;
 }
@@ -365,10 +365,9 @@ export async function uploadCreatedAnimeAssets(
     );
   }
 
-  const backgroundVideoFile = resolveUploadFile(
-    assets.background_video || null,
-  );
-  if (backgroundVideoFile) {
+  for (const entry of assets.background_video || []) {
+    const backgroundVideoFile = resolveUploadFile(entry);
+    if (!backgroundVideoFile) continue;
     uploaded.background_video.push(
       await uploadAndLinkCreatedAnimeAsset(
         animeID,

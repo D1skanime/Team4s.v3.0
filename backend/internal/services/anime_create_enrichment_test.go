@@ -443,10 +443,11 @@ func TestAnimeAssetSearchService_UsesSlotAwareSourceOrderingAndAggregatesResults
 			supports: map[string]bool{"background": true},
 			calls:    &callOrder,
 			search: func(_ context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error) {
-			// With limit=3 and minimum perProvider=4, both providers get 4.
-			if req.Limit != 4 {
-				t.Fatalf("expected limit 4 (minimum per-provider), got %d", req.Limit)
-			}
+				// With limit=3 across two providers, both providers get a fair
+				// first-pass share so later sources are not squeezed out.
+				if req.Limit != 2 {
+					t.Fatalf("expected fair per-provider limit 2, got %d", req.Limit)
+				}
 				return []models.AdminAnimeAssetSearchCandidate{
 					{
 						ID:         "zerochan-1",

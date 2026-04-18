@@ -107,7 +107,7 @@ func TestAnimeAssetCompatibilityUsesV2CoverHelpersWhenLegacySlotsAreGone(t *test
 		"_, err := r.clearcoverwithresult(ctx, animeid)",
 		"return r.assignmanualbannerv2(ctx, animeid, mediaid)",
 		"return r.clearbannerv2(ctx, animeid)",
-		"return r.addmanualbackgroundv2(ctx, animeid, mediaid)",
+		"return r.addmanualbackgroundv2(ctx, animeid, mediaid, providerkey)",
 		"return r.removebackgroundv2(ctx, animeid, backgroundid)",
 		"return r.applyproviderbannerv2(ctx, animeid, input)",
 		"return r.applyproviderbackgroundsv2(ctx, animeid, incoming)",

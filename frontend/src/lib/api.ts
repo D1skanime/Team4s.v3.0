@@ -1587,6 +1587,29 @@ export async function assignAdminAnimeBackgroundVideoAsset(
   return assignAdminAnimeSingularAsset(animeID, 'background_video', mediaID, authToken)
 }
 
+export async function addAdminAnimeBackgroundVideoAsset(
+  animeID: number,
+  mediaID: string,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/background_videos`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify({ media_id: mediaID }),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
 async function assignAdminAnimeSingularAsset(
   animeID: number,
   assetKind: Exclude<AdminAnimeAssetKind, 'background'>,

@@ -51,7 +51,8 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).toContain("Logo");
     expect(markup).toContain("Background");
     expect(markup).toContain("Background-Video");
-    expect(markup).toContain("Hintergrund hinzufuegen");
+    expect(markup).toContain("Hintergründe");
+    expect(markup).toContain("+ Hinzufuegen");
     expect(markup).toContain("Assets");
     expect(markup).toContain("Cover");
     expect(markup).toContain("Upload");
@@ -129,7 +130,7 @@ describe("AdminAnimeCreatePage", () => {
     );
   });
 
-  it("renders AniSearch draft summary, duplicate redirect, and local error states through the intake card", () => {
+  it("hides AniSearch draft diagnostics while keeping duplicate redirect and local error states", () => {
     const summaryMarkup = renderToStaticMarkup(
       <CreateAniSearchIntakeCard
         anisearchID="12345"
@@ -163,14 +164,14 @@ describe("AdminAnimeCreatePage", () => {
       />,
     );
 
-    expect(summaryMarkup).toContain("Aktualisierte Felder");
-    expect(summaryMarkup).toContain("Relationen");
-    expect(summaryMarkup).toContain("AniSearch-Status");
-    expect(summaryMarkup).toContain("Wird beim Erstellen übernommen");
-    expect(summaryMarkup).toContain(
+    expect(summaryMarkup).not.toContain("Aktualisierte Felder");
+    expect(summaryMarkup).not.toContain("Relationen");
+    expect(summaryMarkup).not.toContain("AniSearch-Status");
+    expect(summaryMarkup).not.toContain("Wird beim Erstellen");
+    expect(summaryMarkup).not.toContain(
       "AniSearch hat bestehende Jellyfin-Werte fuer Titel ueberschrieben.",
     );
-    expect(summaryMarkup).toContain(
+    expect(summaryMarkup).not.toContain(
       "Manuell gepflegte Beschreibung bleibt erhalten.",
     );
 

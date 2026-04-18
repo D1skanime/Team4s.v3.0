@@ -352,6 +352,40 @@ func (h *AdminContentHandler) AssignAnimeBackgroundVideoAsset(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+func (h *AdminContentHandler) AddAnimeBackgroundVideoAsset(c *gin.Context) {
+	if _, ok := h.requireAdmin(c); !ok {
+		return
+	}
+	if h.animeAssetRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfuegbar"}})
+		return
+	}
+
+	animeID, err := parseAnimeID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungueltige anime id")
+		return
+	}
+
+	var req adminAnimeBannerAssignRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		badRequest(c, "ungueltige anfrage")
+		return
+	}
+
+	if err := h.animeAssetRepo.AddManualBackgroundVideo(c.Request.Context(), animeID, req.MediaID); err != nil {
+		if message, status := mapAnimeAssetLinkError("background_video", err); message != "" && status != http.StatusInternalServerError {
+			c.JSON(status, gin.H{"error": gin.H{"message": message}})
+			return
+		}
+		log.Printf("admin anime background video add: anime_id=%d: %v", animeID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "background_video konnte nicht hinzugefuegt werden"}})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
 func (h *AdminContentHandler) DeleteAnimeBackgroundVideoAsset(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return

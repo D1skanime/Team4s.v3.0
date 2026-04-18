@@ -29,11 +29,11 @@ describe("CreateAniSearchIntakeCard", () => {
     expect(markup).toContain("AniSearch ID");
     expect(markup).toContain("AniSearch laden");
     expect(markup).toContain("Manuell &gt; AniSearch &gt; Jellyfin");
-    expect(markup).toContain("Noch keine AniSearch-Daten geladen.");
-    expect(markup).toContain("Nichts wird gespeichert");
+    expect(markup).not.toContain("Noch keine AniSearch-Daten geladen.");
+    expect(markup).not.toContain("Nichts wird gespeichert");
   });
 
-  it("renders the required summary groups and duplicate CTA", () => {
+  it("keeps technical draft summary hidden while rendering duplicate CTA", () => {
     const summaryMarkup = renderToStaticMarkup(
       <CreateAniSearchIntakeCard
         anisearchID="12345"
@@ -67,16 +67,13 @@ describe("CreateAniSearchIntakeCard", () => {
       />,
     );
 
-    expect(summaryMarkup).toContain("Aktualisierte Felder");
-    expect(summaryMarkup).toContain("Relationen");
-    expect(summaryMarkup).toContain("AniSearch-Status");
-    expect(summaryMarkup).toContain("Titel");
-    expect(summaryMarkup).toContain("Beschreibung");
-    expect(summaryMarkup).toContain("Genres");
-    expect(summaryMarkup).toContain(
+    expect(summaryMarkup).not.toContain("Aktualisierte Felder");
+    expect(summaryMarkup).not.toContain("Relationen");
+    expect(summaryMarkup).not.toContain("AniSearch-Status");
+    expect(summaryMarkup).not.toContain(
       "AniSearch hat bestehende Jellyfin-Werte fuer Titel und Beschreibung ueberschrieben.",
     );
-    expect(summaryMarkup).toContain("Manuell gepflegte Genres bleiben erhalten.");
+    expect(summaryMarkup).not.toContain("Manuell gepflegte Genres bleiben erhalten.");
 
     const duplicateMarkup = renderToStaticMarkup(
       <CreateAniSearchIntakeCard
@@ -134,9 +131,10 @@ describe("CreateAniSearchIntakeCard", () => {
       />,
     );
 
-    expect(markup).toContain("AniSearch Treffer waehlen");
+    expect(markup).toContain("Suchergebnisse");
     expect(markup).toContain("Bleach");
-    expect(markup).toContain("TV-Serie | 2004 | ID 1078");
+    expect(markup).toContain("2004 | TV-Serie | AniSearch-ID 1078");
+    expect(markup).toContain("Auswaehlen");
   });
 
   it("renders the filtered-duplicate empty-state copy while keeping duplicate redirect CTA available", () => {

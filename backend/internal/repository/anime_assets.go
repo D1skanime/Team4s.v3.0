@@ -289,6 +289,7 @@ func (r *AnimeAssetRepository) getResolvedAssetsV2(ctx context.Context, animeID 
 			if result.BackgroundVideo == nil {
 				result.BackgroundVideo = asset
 			}
+			result.BackgroundVideos = append(result.BackgroundVideos, *asset)
 		case "background":
 			item := models.AnimeBackgroundAsset{
 				ID:          mediaID,
@@ -805,6 +806,17 @@ func (r *AnimeAssetRepository) AssignManualBackgroundVideo(ctx context.Context, 
 	return r.assignManualSingularAssetV2(ctx, animeID, mediaID, "background_video")
 }
 
+func (r *AnimeAssetRepository) AddManualBackgroundVideo(ctx context.Context, animeID int64, mediaID string) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if !useV2Schema {
+		return r.AssignManualBackgroundVideo(ctx, animeID, mediaID)
+	}
+	return r.addManualPluralAssetV2(ctx, animeID, mediaID, "background_video")
+}
+
 func (r *AnimeAssetRepository) ClearBackgroundVideo(ctx context.Context, animeID int64) error {
 	useV2Schema, err := r.hasV2AssetSchema(ctx)
 	if err != nil {
@@ -1306,6 +1318,40 @@ func (r *AnimeAssetRepository) assignManualSingularAssetV2(ctx context.Context, 
 
 	if err := tx.Commit(ctx); err != nil {
 		return fmt.Errorf("commit assign anime %s v2 tx: %w", mediaType, err)
+	}
+	return nil
+}
+
+func (r *AnimeAssetRepository) addManualPluralAssetV2(ctx context.Context, animeID int64, mediaRef string, mediaType string) error {
+	spec, ok := lookupAnimeAssetLinkSpec(mediaType)
+	if !ok {
+		return ErrNotFound
+	}
+
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("begin add anime %s v2 tx: %w", mediaType, err)
+	}
+	defer tx.Rollback(ctx)
+
+	if err := lockAnimeRow(ctx, tx, animeID); err != nil {
+		return err
+	}
+
+	mediaID, err := loadV2AnimeMediaIDByRef(ctx, tx, strings.TrimSpace(mediaRef), spec.MediaType)
+	if err != nil {
+		return err
+	}
+	nextSort, err := loadNextAnimeMediaSortOrderByType(ctx, tx, animeID, spec.MediaType)
+	if err != nil {
+		return err
+	}
+	if err := upsertAnimeMediaLink(ctx, tx, animeID, mediaID, nextSort); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit add anime %s v2 tx: %w", mediaType, err)
 	}
 	return nil
 }

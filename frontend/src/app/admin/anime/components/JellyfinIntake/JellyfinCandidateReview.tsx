@@ -65,7 +65,7 @@ export function JellyfinCandidateReview({
               isLoadingPreview && candidate.jellyfin_series_id === selectedCandidateID
             }
             onSelect={onSelectCandidate}
-            onLoadPreview={onLoadCandidatePreview}
+            onAdopt={onLoadCandidatePreview}
           />
         ))}
       </div>

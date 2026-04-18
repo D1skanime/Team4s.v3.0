@@ -1,6 +1,6 @@
 .pageShell {
   display: grid;
-  gap: 18px;
+  gap: 12px;
 }
 
 .pageHeader {
@@ -87,8 +87,8 @@
 
 .resultsPanel {
   display: grid;
-  gap: 16px;
-  padding: 20px;
+  gap: 12px;
+  padding: 16px;
 }
 
 .resultsHeader {
@@ -283,8 +283,12 @@
 
 .assetCandidateGrid {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+.assetCandidateGridCover {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 }
 
 .assetLoadMoreRow {
@@ -295,13 +299,15 @@
 
 .assetCandidateCard {
   display: grid;
-  gap: 10px;
-  padding: 10px;
-  border-radius: 8px;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 14px;
   border: 1px solid #dfe3e8;
   background: #ffffff;
   text-align: left;
   color: #13161a;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
 }
 
 .assetCandidateCard:hover {
@@ -310,26 +316,50 @@
 }
 
 .assetCandidateCardSelected {
-  border-color: #ff6a3d;
-  box-shadow: inset 0 0 0 1px #ff6a3d;
-  background: #fff7f4;
+  border-color: #6d4aff;
+  box-shadow:
+    0 0 0 2px rgba(109, 74, 255, 0.18),
+    0 12px 26px rgba(109, 74, 255, 0.12);
+  background: #ffffff;
 }
 
 .assetCandidatePreview {
   position: relative;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  border-radius: 8px;
-  background: #f4f4f5;
+  border-radius: 0;
+  background:
+    linear-gradient(45deg, #eef2f7 25%, transparent 25%),
+    linear-gradient(-45deg, #eef2f7 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #eef2f7 75%),
+    linear-gradient(-45deg, transparent 75%, #eef2f7 75%);
+  background-color: #fbfcfe;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+  background-size: 20px 20px;
+}
+
+.assetCandidatePreviewCover {
+  aspect-ratio: 2 / 3;
+}
+
+.assetCandidatePreviewLogo {
+  aspect-ratio: 16 / 8;
 }
 
 .assetCandidateImage {
   object-fit: cover;
 }
 
+.assetCandidatePreviewLogo .assetCandidateImage {
+  object-fit: contain;
+  padding: 14px;
+}
+
 .assetCandidateBody {
   display: grid;
-  gap: 6px;
+  gap: 5px;
+  min-height: 58px;
+  padding: 10px 12px 12px;
 }
 
 .assetCandidateMeta {
@@ -340,6 +370,10 @@
 }
 
 .assetSourceBadge {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   min-height: 24px;
@@ -353,9 +387,31 @@
   line-height: 1;
 }
 
+.assetCandidateSelectedBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #6d4aff;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 8px 16px rgba(109, 74, 255, 0.24);
+}
+
 .assetCandidateTitle {
-  font-size: 14px;
-  line-height: 1.4;
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .assetMetaText {
@@ -401,7 +457,7 @@
   border: 1px solid #e2e6ea;
   border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 32px;
+  margin-bottom: 12px;
 }
 
 .stepperItem {
@@ -473,7 +529,7 @@
 /* ── Sektionsstruktur ────────────────────────────────────────────────────── */
 
 .pageSection {
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   scroll-margin-top: 80px;
 }
 
@@ -482,11 +538,22 @@
   gap: 20px;
 }
 
+.folderPathField {
+  grid-column: 1 / -1;
+}
+
+.folderPathInput {
+  color: #475569;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+
 .sectionHeading {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .sectionNumber {
@@ -521,7 +588,7 @@
 .providerGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 14px;
   align-items: start;
 }
 
@@ -544,10 +611,10 @@
   background: #fff;
   border: 1px solid #e2e6ea;
   border-radius: 12px;
-  padding: 24px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .providerCardHeader {
@@ -679,12 +746,15 @@
 /* ── Asset Section ───────────────────────────────────────────────────────── */
 
 .assetPanel {
-  background:
-    linear-gradient(180deg, rgba(247, 248, 252, 0.92), rgba(255, 255, 255, 1));
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  justify-content: start;
+  background: #ffffff;
   border: 1px solid #e2e6ea;
-  border-radius: 18px;
-  padding: 24px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
 }
 
 .jellyfinSourceNotice {
@@ -706,23 +776,92 @@
   color: #166534;
 }
 
-.assetGrid {
+.assetPrimaryGrid,
+.assetSecondaryGrid {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  gap: 10px;
   align-items: start;
+  width: min(100%, 1120px);
+}
+
+.assetPrimaryGrid {
+  grid-template-columns: 190px 290px 250px;
+  max-width: 750px;
+}
+
+.assetPrimaryGrid .assetCardCover,
+.assetPrimaryGrid .assetCardBanner,
+.assetPrimaryGrid .assetCardLogo {
+  grid-column: auto;
+}
+
+.assetBackgroundSection {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+  width: fit-content;
+  max-width: min(100%, 1120px);
+}
+
+.assetBackgroundHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 34px;
+}
+
+.assetBackgroundTitle {
+  margin: 0;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.assetBackgroundText {
+  margin: 2px 0 0;
+  color: #6b7280;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.assetBackgroundGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: start;
+  width: fit-content;
+  max-width: 1120px;
+}
+
+.assetBackgroundGrid .assetCardBackground,
+.assetBackgroundGrid .assetCardAdder {
+  flex: 0 0 150px;
+  grid-column: auto;
 }
 
 .assetCard {
   background: #fff;
   border: 1px solid #dbe2ea;
-  border-radius: 18px;
+  border-radius: 8px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
   min-width: 0;
   height: fit-content;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.assetCard:hover {
+  border-color: #cfd7e3;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
 }
 
 .assetCardPreview {
@@ -738,6 +877,11 @@
 .assetCardImage {
   width: 100%;
   height: 100%;
+  transition: transform 0.2s ease;
+}
+
+.assetCard:hover .assetCardImage {
+  transform: scale(1.025);
 }
 
 .assetCardEmpty {
@@ -793,14 +937,16 @@
 }
 
 .assetCardMeta {
-  padding: 12px 14px 14px;
+  min-height: 46px;
+  padding: 7px 9px 8px;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
 }
 
 .assetCardMetaDefault {
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #fdfdff 100%);
 }
 
 .assetCardMetaAdder {
@@ -808,8 +954,10 @@
 }
 
 .assetCardLabel {
-  font-size: 13px;
-  font-weight: 700;
+  flex: 1 1 auto;
+  min-width: 80px;
+  font-size: 11.5px;
+  font-weight: 800;
   color: #111827;
 }
 
@@ -818,29 +966,34 @@
 }
 
 .assetStatusNote {
-  font-size: 11px;
-  color: #6b7280;
+  order: 3;
+  flex: 1 0 100%;
+  font-size: 9.5px;
+  color: #7a8494;
+  line-height: 1.2;
 }
 
 .assetCardActions {
   display: flex;
-  gap: 10px;
+  justify-content: flex-end;
+  gap: 4px;
   flex-wrap: wrap;
-  margin-top: 2px;
+  margin-left: auto;
 }
 
 .assetCardSourceOverlay {
   position: absolute;
-  left: 14px;
-  bottom: 14px;
+  left: 8px;
+  bottom: 8px;
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
+  min-height: 20px;
+  padding: 0 7px;
   border-radius: 999px;
-  background: rgba(17, 24, 39, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  background: rgba(17, 24, 39, 0.78);
   color: #ffffff;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.02em;
   backdrop-filter: blur(8px);
@@ -858,6 +1011,26 @@
 
 .assetCardSourceOverlayZerochan {
   background: #c2410c;
+  color: #ffffff;
+}
+
+.assetCardSourceOverlayFanart {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.assetCardSourceOverlayAniList {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.assetCardSourceOverlayKonachan {
+  background: #be185d;
+  color: #ffffff;
+}
+
+.assetCardSourceOverlaySafebooru {
+  background: #7c3aed;
   color: #ffffff;
 }
 
@@ -880,8 +1053,9 @@
 .assetActionRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .assetActionButton,
@@ -889,20 +1063,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 32px;
-  border-radius: 10px;
+  gap: 4px;
+  min-height: 24px;
+  border-radius: 6px;
   border: 1px solid #dde3ea;
   background: #ffffff;
   color: #344054;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 9.5px;
   font-weight: 700;
   line-height: 1;
 }
 
 .assetActionButton {
-  padding: 0 12px;
+  padding: 0 7px;
 }
 
 .assetActionButtonSecondary {
@@ -923,7 +1097,7 @@
 }
 
 .assetActionIconButton {
-  width: 32px;
+  width: 24px;
   padding: 0;
   flex-shrink: 0;
 }
@@ -971,30 +1145,34 @@
 }
 
 .assetCardCover {
-  grid-column: span 3;
-}
-
-.assetCardBanner,
-.assetCardBackground,
-.assetCardBackgroundVideo {
   grid-column: span 4;
 }
 
-.assetCardLogo,
+.assetCardBanner,
+.assetCardLogo {
+  grid-column: span 5;
+}
+
+.assetCardBackground,
 .assetCardAdder {
   grid-column: span 3;
 }
 
+.assetCardBackgroundVideo {
+  grid-column: span 10;
+  max-width: 520px;
+}
+
 .assetCardPreviewCover {
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 16 / 8.4;
 }
 
 .assetCardPreviewBanner {
-  aspect-ratio: 16 / 8;
+  aspect-ratio: 16 / 6.4;
 }
 
 .assetCardPreviewLogo {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 6.4;
   background:
     linear-gradient(45deg, #eef2f7 25%, transparent 25%),
     linear-gradient(-45deg, #eef2f7 25%, transparent 25%),
@@ -1007,11 +1185,11 @@
 
 .assetCardPreviewBackground,
 .assetCardPreviewBackgroundVideo {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 7.2;
 }
 
 .assetCardPreviewAdder {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 7.2;
   border-bottom: 1px dashed #cfd7e3;
 }
 
@@ -1024,7 +1202,7 @@
 
 .assetCardImageLogo {
   object-fit: contain;
-  padding: 22px;
+  padding: 12px;
 }
 
 .assetCardAdder {
@@ -1035,28 +1213,61 @@
 }
 
 @media (max-width: 1080px) {
-  .assetCardCover,
-  .assetCardLogo,
-  .assetCardAdder {
-    grid-column: span 6;
+  .assetPrimaryGrid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    max-width: 100%;
+  }
+
+  .assetBackgroundSection,
+  .assetBackgroundGrid {
+    width: 100%;
+  }
+
+  .assetCardCover {
+    grid-column: span 5;
   }
 
   .assetCardBanner,
+  .assetCardLogo {
+    grid-column: span 6;
+  }
+
   .assetCardBackground,
+  .assetCardAdder {
+    grid-column: span 4;
+  }
+
   .assetCardBackgroundVideo {
-    grid-column: span 12;
+    grid-column: span 10;
   }
 }
 
 @media (max-width: 720px) {
   .assetPanel {
-    padding: 18px;
+    padding: 14px;
     border-radius: 16px;
   }
 
-  .assetGrid {
+  .assetPrimaryGrid,
+  .assetSecondaryGrid {
     grid-template-columns: 1fr;
     gap: 14px;
+  }
+
+  .assetBackgroundGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .assetBackgroundGrid .assetCardBackground,
+  .assetBackgroundGrid .assetCardAdder {
+    flex-basis: auto;
+  }
+
+  .assetBackgroundHeader {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .assetCardCover,
@@ -1066,6 +1277,10 @@
   .assetCardBackgroundVideo,
   .assetCardAdder {
     grid-column: span 1;
+  }
+
+  .assetCardBackgroundVideo {
+    max-width: none;
   }
 }
 
@@ -1096,6 +1311,384 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Reference asset layout override: card headers, image actions, split columns. */
+.assetPanel {
+  justify-content: stretch;
+  padding: 0;
+  overflow: hidden;
+}
+
+.assetBoard {
+  display: grid;
+  grid-template-columns: minmax(0, 780px) minmax(420px, 1fr);
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+}
+
+.assetMainColumn {
+  display: grid;
+  align-content: start;
+}
+
+.assetPrimaryGrid {
+  display: grid;
+  grid-template-columns: 220px 300px 260px;
+  gap: 0;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.assetPrimaryGrid .assetCard {
+  border-top: 0;
+  border-bottom: 1px solid #e5e7eb;
+  border-left: 0;
+  border-right: 1px solid #e5e7eb;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.assetPrimaryGrid .assetCard:first-child {
+  border-top-left-radius: 12px;
+}
+
+.assetPrimaryGrid .assetCard:last-child {
+  border-right: 0;
+}
+
+.assetCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 12px 16px 8px;
+  background: #ffffff;
+}
+
+.assetCardLabel {
+  flex: 0 1 auto;
+  min-width: 0;
+  color: #111827;
+  font-size: 18px;
+  font-weight: 850;
+  line-height: 1.1;
+}
+
+.assetCardRequired {
+  color: #111827;
+}
+
+.assetCardSourcePill,
+.assetCardImageSource {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.assetCardSourcePill.assetCardSourceOverlayJellyfin,
+.assetCardImageSource.assetCardSourceOverlayJellyfin {
+  background: #dff6e8;
+  color: #1f7a42;
+}
+
+.assetCardSourcePill.assetCardSourceOverlayTMDB,
+.assetCardImageSource.assetCardSourceOverlayTMDB {
+  background: #e5f1ff;
+  color: #1d4ed8;
+}
+
+.assetCardSourcePill.assetCardSourceOverlayZerochan,
+.assetCardImageSource.assetCardSourceOverlayZerochan {
+  background: #eee7ff;
+  color: #6d28d9;
+}
+
+.assetCardSourcePill.assetCardSourceOverlayManuell,
+.assetCardSourcePill.assetCardSourceOverlayOnline,
+.assetCardImageSource.assetCardSourceOverlayManuell,
+.assetCardImageSource.assetCardSourceOverlayOnline {
+  background: #eef2f7;
+  color: #374151;
+}
+
+.assetCardPreview {
+  margin: 8px 16px 14px;
+  width: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.assetCardPreviewCover,
+.assetCardPreviewLogo {
+  aspect-ratio: 16 / 10.5;
+}
+
+.assetCardPreviewBanner {
+  aspect-ratio: 16 / 8.1;
+}
+
+.assetCardFooter {
+  display: none;
+}
+
+.assetCardActions {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  margin: 0;
+}
+
+.assetCardActions .assetActionRow {
+  gap: 8px;
+}
+
+.assetCardActions .assetActionButton,
+.assetCardActions .assetActionIconButton {
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  padding: 0;
+  border-radius: 9px;
+  border-color: transparent;
+  box-shadow: 0 12px 22px rgba(15, 23, 42, 0.18);
+}
+
+.assetCardActions .assetActionButton span,
+.assetCardActions .assetActionIconButton span {
+  display: none;
+}
+
+.assetCardActions .assetActionButton {
+  background: rgba(238, 232, 255, 0.96);
+  color: #6d28d9;
+}
+
+.assetCardActions .assetActionIconButtonDestructive {
+  background: rgba(254, 226, 226, 0.96);
+  color: #dc2626;
+}
+
+.assetGroupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 48px;
+  padding: 14px 16px 8px;
+}
+
+.assetBackgroundTitle {
+  margin: 0;
+  color: #111827;
+  font-size: 18px;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.assetBackgroundSection {
+  align-self: start;
+  align-content: start;
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  padding-left: 18px;
+  border-left: 1px solid #e5e7eb;
+}
+
+.assetBackgroundSection .assetGroupHeader {
+  align-items: center;
+  min-height: 42px;
+  padding-top: 12px;
+  padding-bottom: 8px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.assetBackgroundGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px 12px;
+  align-content: start;
+  grid-auto-rows: max-content;
+  width: 100%;
+  max-width: 100%;
+  padding: 6px 14px 16px 0;
+}
+
+.assetBackgroundGrid .assetCard {
+  min-width: 0;
+  border: 0;
+  border-radius: 10px;
+  box-shadow: none;
+  background: transparent;
+}
+
+.assetBackgroundGrid .assetCardHeader,
+.assetBackgroundGrid .assetCardFooter {
+  display: none;
+}
+
+.assetBackgroundGrid .assetCardPreview {
+  margin: 0;
+  border-radius: 10px;
+}
+
+.assetBackgroundGrid .assetCardPreviewBackground,
+.assetBackgroundGrid .assetCardPreviewAdder {
+  aspect-ratio: 16 / 9.2;
+}
+
+.assetCardImageSource {
+  display: none;
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+}
+
+.assetBackgroundGrid .assetCardImageSource {
+  display: inline-flex;
+}
+
+.assetBackgroundGrid .assetCardSourcePill {
+  display: none;
+}
+
+.assetBackgroundGrid .assetCardActions .assetActionButton {
+  display: none;
+}
+
+.assetBackgroundGrid .assetCardActions {
+  right: 8px;
+  bottom: 8px;
+}
+
+.assetBackgroundGrid .assetActionIconButton {
+  background: rgba(15, 23, 42, 0.9);
+  color: #ef4444;
+}
+
+.assetVideoSection {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.assetVideoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 780px;
+  padding: 0 14px 10px;
+}
+
+.assetVideoGrid .assetCard {
+  grid-column: auto;
+  max-width: none;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.assetVideoGrid .assetCardHeader {
+  min-height: 30px;
+  padding: 7px 8px 3px;
+}
+
+.assetVideoGrid .assetCardLabel,
+.assetVideoGrid .assetCardSourcePill {
+  font-size: 11px;
+}
+
+.assetVideoGrid .assetCardSourcePill {
+  min-height: 20px;
+  padding: 0 7px;
+}
+
+.assetVideoGrid .assetCardActions {
+  right: 8px;
+  bottom: 8px;
+}
+
+.assetVideoGrid .assetCardActions .assetActionButton,
+.assetVideoGrid .assetCardActions .assetActionIconButton {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+}
+
+.assetVideoGrid .assetCardPreview {
+  margin: 5px 8px 8px;
+  aspect-ratio: 16 / 5.8;
+}
+
+.assetVideoGrid .assetCardPreviewBackgroundVideo {
+  aspect-ratio: 16 / 5.8;
+}
+
+@media (max-width: 1180px) {
+  .assetBoard {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .assetPrimaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .assetBackgroundSection {
+    width: 100%;
+    max-width: none;
+    padding-left: 0;
+    border-top: 1px solid #e5e7eb;
+    border-left: 0;
+  }
+
+  .assetBackgroundSection .assetGroupHeader {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .assetBackgroundGrid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    padding-left: 16px;
+  }
+}
+
+@media (max-width: 720px) {
+  .assetPrimaryGrid,
+  .assetVideoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .assetBackgroundGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .assetPrimaryGrid .assetCard {
+    border-right: 0;
+    border-radius: 0;
+  }
+
+  .assetCardLabel,
+  .assetBackgroundTitle {
+    font-size: 16px;
+  }
 }
 
 .reviewCheckOk {

@@ -147,7 +147,11 @@ export function CreateAniSearchIntakeCard({
         </div>
       ) : null}
 
-      <div id={statusID} aria-live="polite">
+      <div
+        id={statusID}
+        aria-live="polite"
+        data-loaded={result ? "true" : undefined}
+      >
         {conflict ? (
           <div className={styles.details}>
             <p className={styles.hint}>
@@ -171,44 +175,7 @@ export function CreateAniSearchIntakeCard({
               Keine Aenderungen am Anime. Der Anime wurde noch nicht erstellt.
             </p>
           </div>
-        ) : result ? (
-          <div className={styles.details}>
-            <p className={styles.hint}>{result.summary}</p>
-            <div className={styles.detailsInner}>
-              <div>
-                <strong>Aktualisierte Felder</strong>
-                <p className={styles.hint}>
-                  {result.updatedFields.length > 0
-                    ? result.updatedFields.join(", ")
-                    : "Keine Felder wurden aktualisiert."}
-                </p>
-              </div>
-              <div>
-                <strong>Relationen</strong>
-                {result.relationNotes.map((note) => (
-                  <p key={note} className={styles.hint}>
-                    {note}
-                  </p>
-                ))}
-              </div>
-              <div>
-                <strong>AniSearch-Status</strong>
-                {result.draftStatusNotes.map((note) => (
-                  <p key={note} className={styles.hint}>
-                    {note}
-                  </p>
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className={styles.details}>
-            <p className={styles.hint}>Noch keine AniSearch-Daten geladen.</p>
-            <p className={styles.hint}>
-              Nichts wird gespeichert, bis du den Anime danach normal erstellst.
-            </p>
-          </div>
-        )}
+        ) : null}
       </div>
     </section>
   );

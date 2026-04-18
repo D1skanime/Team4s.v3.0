@@ -38,6 +38,10 @@ export function CreateJellyfinCard({
   onAdoptCandidate,
   onDiscard,
 }: CreateJellyfinCardProps) {
+  const selectedCandidate = selectedCandidateID
+    ? candidates.find((candidate) => candidate.jellyfin_series_id === selectedCandidateID)
+    : null;
+
   return (
     <section className={createStyles.providerCard}>
       <div className={createStyles.providerCardHeader}>
@@ -70,7 +74,22 @@ export function CreateJellyfinCard({
         </button>
       </div>
 
-      {showResults && candidates.length > 0 ? (
+      {hasAdoptedAssets ? (
+        <div className={createStyles.jellyfinSourceNotice}>
+          <p className={createStyles.jellyfinSourceText}>
+            <strong>{selectedCandidate?.name || "Jellyfin-Ordner"}</strong> ist jetzt
+            als Quelle gesetzt. Die uebernommenen Assets bearbeitest du direkt im
+            Asset-Bereich.
+          </p>
+          <button
+            className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
+            type="button"
+            onClick={onDiscard}
+          >
+            Auswahl verwerfen
+          </button>
+        </div>
+      ) : showResults && candidates.length > 0 ? (
         <div className={createStyles.providerResultsBlock}>
           <div className={createStyles.providerResultsHeader}>
             <p className={createStyles.resultsEyebrow}>Gefundene Ordner</p>
@@ -93,26 +112,10 @@ export function CreateJellyfinCard({
               />
             ))}
           </div>
-
-          {hasAdoptedAssets ? (
-            <div className={createStyles.jellyfinSourceNotice}>
-              <p className={createStyles.jellyfinSourceText}>
-                Der ausgewaehlte Jellyfin-Ordner ist jetzt als Quelle gesetzt. Die
-                uebernommenen Assets bearbeitest du direkt im Asset-Bereich.
-              </p>
-              <button
-                className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
-                type="button"
-                onClick={onDiscard}
-              >
-                Auswahl verwerfen
-              </button>
-            </div>
-          ) : null}
         </div>
       ) : null}
 
-      {showResults && candidates.length === 0 && !isSearching ? (
+      {!hasAdoptedAssets && showResults && candidates.length === 0 && !isSearching ? (
         <p className={createStyles.resultsText}>
           Keine Ordner gefunden. Pruefe die Schreibweise.
         </p>

@@ -8,6 +8,7 @@ import {
 
 vi.mock("@/lib/api", () => ({
   addAdminAnimeBackgroundAsset: vi.fn().mockResolvedValue({ data: { id: 1 } }),
+  addAdminAnimeBackgroundVideoAsset: vi.fn().mockResolvedValue(undefined),
   assignAdminAnimeBackgroundVideoAsset: vi.fn().mockResolvedValue(undefined),
   assignAdminAnimeBannerAsset: vi.fn().mockResolvedValue(undefined),
   assignAdminAnimeCoverAsset: vi.fn().mockResolvedValue(undefined),
@@ -64,9 +65,11 @@ describe("createAssetUploadPlan", () => {
       background: [
         new File(["background"], "background.jpg", { type: "image/jpeg" }),
       ],
-      background_video: new File(["video"], "background.mp4", {
-        type: "video/mp4",
-      }),
+      background_video: [
+        new File(["video"], "background.mp4", {
+          type: "video/mp4",
+        }),
+      ],
     }, "token");
 
     expect(api.uploadAdminAnimeMedia).toHaveBeenNthCalledWith(
@@ -91,8 +94,9 @@ describe("createAssetUploadPlan", () => {
       17,
       "background-1",
       "token",
+      undefined,
     );
-    expect(api.assignAdminAnimeBackgroundVideoAsset).toHaveBeenCalledWith(
+    expect(api.addAdminAnimeBackgroundVideoAsset).toHaveBeenCalledWith(
       17,
       "video-1",
       "token",

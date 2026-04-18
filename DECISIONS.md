@@ -480,3 +480,34 @@ The project already trusts one generic create/upload/link seam. Extending that s
 ### Follow-ups Required
 - verify the live browser create flow for remote-selected non-cover assets
 - keep future asset-search follow-ups inside the same create/upload contract
+
+---
+
+## 2026-04-18 - Anime Create Background Videos Are Additive And Operator Diagnostics Stay Hidden
+
+### Decision
+Treat Anime Create as complete for the current UX/UI follow-through slice. Background videos are additive in the create flow, while old singular `background_video` behavior remains only as compatibility fallback. Development-only AniSearch draft diagnostics stay hidden from the operator UI.
+
+### Context
+The create page had converged functionally but still had two recurring issues: background videos behaved like a single oversized slot, and operator-facing cards still exposed test/debug details that were useful during development but noisy in real use. The reference UI also made clear that assets should be visually source-aware and compact, with backgrounds and videos presented as bounded galleries.
+
+### Options Considered
+- keep background video singular and only shrink the card visually
+- add a new video-specific legacy slot model
+- make background videos additive through the same V2 media/link seam and only preserve singular fallback for old callers
+- keep AniSearch draft details visible as reassurance after load
+- hide AniSearch diagnostics and rely on actionable duplicate/error feedback plus the final review section
+
+### Why This Won
+Additive background videos match how backgrounds already work and avoid another legacy slot branch. Hiding diagnostics keeps the create page operator-focused while preserving the actual error/conflict states needed for safe work.
+
+### Consequences
+- create staging stores `background_video` as an array
+- backend exposes a plural admin route for appending background videos
+- runtime backdrop resolution prefers `BackgroundVideos` and falls back to singular `BackgroundVideo`
+- the create page shows folder linkage through readonly `Ordnerpfad` instead of debug/status details
+- future create-page polish should start from this completed baseline, not from the earlier test/debug UI
+
+### Follow-ups Required
+- do one short human smoke after push to confirm the final visual density on the target screen
+- keep any future multi-video edit-page expansion separate unless users explicitly need it next
