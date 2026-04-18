@@ -49,6 +49,12 @@ import {
   EpisodeVersionResponse,
 } from '@/types/episodeVersion'
 import {
+  EpisodeImportApplyInput,
+  EpisodeImportApplyResponse,
+  EpisodeImportContextResponse,
+  EpisodeImportPreviewResponse,
+} from '@/types/episodeImport'
+import {
   AnimeFansubListResponse,
   FansubGroupCreateRequest,
   FansubGroupListResponse,
@@ -1783,6 +1789,74 @@ export async function deleteAdminEpisode(episodeID: number, authToken?: string):
   }
 
   return response.json() as Promise<AdminEpisodeDeleteResponse>
+}
+
+export async function getEpisodeImportContext(
+  animeID: number,
+  authToken?: string,
+): Promise<EpisodeImportContextResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/context`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<EpisodeImportContextResponse>
+}
+
+export async function previewEpisodeImport(
+  animeID: number,
+  payload: { anisearch_id?: string; jellyfin_series_id?: string; season_offset?: number },
+  authToken?: string,
+): Promise<EpisodeImportPreviewResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/preview`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<EpisodeImportPreviewResponse>
+}
+
+export async function applyEpisodeImport(
+  animeID: number,
+  payload: EpisodeImportApplyInput,
+  authToken?: string,
+): Promise<EpisodeImportApplyResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/apply`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<EpisodeImportApplyResponse>
 }
 
 export async function deleteAdminAnime(animeID: number, authToken?: string): Promise<AdminAnimeDeleteResponse> {

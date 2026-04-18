@@ -27,8 +27,10 @@ export interface EpisodeImportMappingRow {
 
 export interface EpisodeImportPreviewResult {
   anime_id: number
+  anime_title: string
   anisearch_id?: string | null
   jellyfin_series_id?: string | null
+  folder_path?: string | null
   canonical_episodes: EpisodeImportCanonicalEpisode[]
   media_candidates: EpisodeImportMediaCandidate[]
   mappings: EpisodeImportMappingRow[]
@@ -36,9 +38,19 @@ export interface EpisodeImportPreviewResult {
   unmapped_media_item_ids?: string[]
 }
 
+export interface EpisodeImportContextResult {
+  anime_id: number
+  anime_title: string
+  anisearch_id?: string | null
+  jellyfin_series_id?: string | null
+  folder_path?: string | null
+  source?: string | null
+}
+
 export interface EpisodeImportApplyInput {
   anime_id: number
   canonical_episodes: EpisodeImportCanonicalEpisode[]
+  media_candidates?: EpisodeImportMediaCandidate[]
   mappings: EpisodeImportMappingRow[]
 }
 
@@ -51,6 +63,18 @@ export interface EpisodeImportApplyResult {
   mappings_applied: number
   skipped: number
   conflicts: number
+}
+
+export interface EpisodeImportContextResponse {
+  data: EpisodeImportContextResult
+}
+
+export interface EpisodeImportPreviewResponse {
+  data: EpisodeImportPreviewResult
+}
+
+export interface EpisodeImportApplyResponse {
+  data: EpisodeImportApplyResult
 }
 
 export interface EpisodeImportPreviewSummary {

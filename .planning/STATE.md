@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
-stopped_at: Phase 18 Plan 18-03 backend preview and apply API complete
-last_updated: "2026-04-18T17:15:00.000Z"
+stopped_at: Phase 18 episode import and mapping builder complete, verified, and Docker-deployed
+last_updated: "2026-04-18T17:50:00.000Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 13
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 46
-  completed_plans: 42
+  completed_plans: 43
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 18 Plan 18-03 is complete; next work should start Plan 18-04 frontend mapping builder.
+**Current focus:** Phase 18 is complete; next narrow slice can start from the verified episode import baseline.
 
 ## Current Position
 
 Phase: 18
-Plan: 18-04 ready - frontend episode import mapping builder
+Plan: Complete for Phase 18 episode import and mapping builder
 
 ## Accumulated Context
 
@@ -105,6 +105,8 @@ Recent durable decisions:
 - Phase 18 Plan 18-01 executed: contract DTOs and expected-red tests now lock canonical episode rows, media candidates, multi-target mappings, preview separation, conflict rejection, and frontend mapping helper behavior.
 - Phase 18 Plan 18-02 executed: `episode_version_episodes` now models authoritative coverage, grouped reads prefer coverage rows, and repository apply semantics preserve the compatibility primary episode number.
 - Phase 18 Plan 18-03 executed: admin episode-import context, preview, and apply routes are wired; preview is read-only and apply delegates confirmed/skipped mappings to the repository.
+- Phase 18 Plan 18-04 executed: `/admin/anime/[id]/episodes/import` provides the frontend mapping builder and is reachable from the episode overview.
+- Phase 18 final verification passed: backend targeted tests, frontend mapping tests, frontend build, Docker rebuild, and smoke checks for frontend/backend routes.
 
 ### Blockers/Concerns
 

@@ -191,6 +191,12 @@ export default function AdminAnimeEpisodesPage() {
             <Link href={`/admin/anime/${anime.id}/edit`} className={`${styles.button} ${styles.buttonSecondary}`}>
               Zurueck zum Anime
             </Link>
+            <Link
+              href={`/admin/anime/${anime.id}/episodes/import`}
+              className={`${styles.button} ${styles.buttonSecondary}`}
+            >
+              Import & Mapping
+            </Link>
             <button
               className={`${styles.button} ${styles.buttonPrimary}`}
               type="button"

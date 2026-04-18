@@ -4,17 +4,31 @@ import type {
   EpisodeImportPreviewSummary,
 } from '../../../../../../types/episodeImport'
 
+export function parseMappingTargets(rawTargets: string): number[] {
+  const targets = rawTargets
+    .split(',')
+    .map((item) => Number.parseInt(item.trim(), 10))
+    .filter((item) => Number.isInteger(item) && item > 0)
+  return [...new Set(targets)].sort((left, right) => left - right)
+}
+
 export function setMappingTargets(
   rows: EpisodeImportMappingRow[],
   mediaItemId: string,
   rawTargets: string,
 ): EpisodeImportMappingRow[] {
-  void rawTargets
+  const targets = parseMappingTargets(rawTargets)
 
-  return rows.map((row) =>
-    row.media_item_id === mediaItemId
-      ? { ...row, status: 'confirmed' }
-      : row,
+  return detectMappingConflicts(
+    rows.map((row) =>
+      row.media_item_id === mediaItemId
+        ? {
+            ...row,
+            target_episode_numbers: targets,
+            status: targets.length > 0 ? 'confirmed' : 'skipped',
+          }
+        : row,
+    ),
   )
 }
 
@@ -22,15 +36,31 @@ export function markMappingSkipped(
   rows: EpisodeImportMappingRow[],
   mediaItemId: string,
 ): EpisodeImportMappingRow[] {
-  return rows.map((row) =>
-    row.media_item_id === mediaItemId
-      ? { ...row, target_episode_numbers: [], status: 'skipped' }
-      : row,
+  return detectMappingConflicts(
+    rows.map((row) =>
+      row.media_item_id === mediaItemId
+        ? { ...row, target_episode_numbers: [], status: 'skipped' }
+        : row,
+    ),
   )
 }
 
 export function detectMappingConflicts(rows: EpisodeImportMappingRow[]): EpisodeImportMappingRow[] {
-  return rows
+  const claimCounts = new Map<number, number>()
+  rows.forEach((row) => {
+    if (row.status === 'skipped') return
+    row.target_episode_numbers.forEach((episodeNumber) => {
+      claimCounts.set(episodeNumber, (claimCounts.get(episodeNumber) ?? 0) + 1)
+    })
+  })
+
+  return rows.map((row) => {
+    if (row.status === 'skipped') return row
+    const hasConflict = row.target_episode_numbers.some((episodeNumber) => (claimCounts.get(episodeNumber) ?? 0) > 1)
+    if (hasConflict) return { ...row, status: 'conflict' }
+    if (row.status === 'conflict') return { ...row, status: 'confirmed' }
+    return row
+  })
 }
 
 export function summarizeImportPreview(

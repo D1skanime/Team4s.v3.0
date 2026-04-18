@@ -214,13 +214,13 @@ Plans:
 **Goal:** Admins can import a canonical episode list from AniSearch, scan Jellyfin files for the linked anime folder, and manually map files to one or more canonical episodes before creating episodes and episode versions.
 **Requirements**: P18-SC1, P18-SC2, P18-SC3, P18-SC4, P18-SC5
 **Depends on:** Phase 17
-**Status**: Current next planning slice
+**Status**: Completed and Docker-deployed on 2026-04-18
 **Plans:** 4 plans
 Plans:
 - [x] `18-01-PLAN.md` - Establish Wave 0 contracts and red tests for canonical episodes, media candidates, mapping rows, and preview/apply behavior.
 - [x] `18-02-PLAN.md` - Add authoritative `episode_version_episodes` coverage persistence while preserving `episode_versions.episode_number` compatibility.
 - [x] `18-03-PLAN.md` - Implement backend AniSearch/Jellyfin preview and manual apply API contracts.
-- [ ] `18-04-PLAN.md` - Build the frontend mapping builder UI and episode overview entry point.
+- [x] `18-04-PLAN.md` - Build the frontend mapping builder UI and episode overview entry point.
 **Success Criteria** (what must be TRUE):
   1. AniSearch is the canonical source for anime episode numbers/titles instead of Jellyfin/TVDB season grouping.
   2. Jellyfin is treated as the media/file source and exposes season/episode/file candidates such as `S03E11` without redefining canonical episode numbers.
@@ -233,4 +233,4 @@ Plans:
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 12 | 25+ | Phases 6-17 complete or verified; Phase 18 is the active next planning slice | - |
+| v1.1 Asset Lifecycle Hardening | 13 | 29+ | Phases 6-18 complete or verified | - |
