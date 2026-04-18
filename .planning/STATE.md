@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
-stopped_at: Anime Create UX/UI follow-through completed and Docker-deployed
-last_updated: "2026-04-18T04:00:00.000Z"
+stopped_at: Phase 18 episode import and mapping builder planned
+last_updated: "2026-04-18T14:20:00.000Z"
 last_activity: 2026-04-18
 progress:
-  total_phases: 12
+  total_phases: 13
   completed_phases: 10
-  total_plans: 42
+  total_plans: 46
   completed_plans: 39
 ---
 
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Anime Create UX/UI follow-through closed; choose the next narrow v1.1 slice after one human smoke.
+**Current focus:** Phase 18 episode import and mapping builder is planned; next work should start with Wave 0 contracts/red tests.
 
 ## Current Position
 
-Phase: 17
-Plan: Complete for Anime Create follow-through
+Phase: 18
+Plan: 18-01 ready - Wave 0 contracts and red tests for episode import and mapping
 
 ## Accumulated Context
 
@@ -101,6 +101,7 @@ Recent durable decisions:
 - Phase 15 executed: dedicated asset search seam, Zerochan-backed discovery, and source-aware create-page asset adoption.
 - Phase 16 executed and browser-verified: AniSearch title search now hides already-imported candidates and explains filtered-empty results honestly.
 - Phase 17 executed: Anime create UX/UI follow-through based on the refreshed Phase-14 UI contract, including reference-style asset layout, hidden AniSearch diagnostics, visible Jellyfin folder path, and additive background videos.
+- Phase 18 planned: Episode Import And Mapping Builder, using AniSearch as canonical episode source, Jellyfin as media/file source, and an explicit manual mapping preview/apply flow.
 
 ### Blockers/Concerns
 

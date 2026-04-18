@@ -1,5 +1,33 @@
 # DECISIONS
 
+## 2026-04-18 - AniSearch Owns Canonical Anime Episodes While Jellyfin Owns Media Evidence
+
+### Decision
+For the anime episode create flow, AniSearch defines canonical episode numbers and titles. Jellyfin is treated as the local media/file source only, and admins must approve a preview mapping before episodes and episode versions are persisted.
+
+### Context
+Jellyfin and TVDB expose anime through season/file structures such as `Bleach S03E11`, while Team4s needs a continuous anime episode order. Some anime releases also combine multiple canonical episodes into one media file, for example a Naruto file covering episodes 9 and 10.
+
+### Options Considered
+- Let Jellyfin season/episode numbering define Team4s episode numbers
+- Import AniSearch canonical episodes and map Jellyfin files onto them
+- Duplicate one Jellyfin media item into several episode-version rows when a file covers multiple episodes
+- Add an authoritative coverage join table for one media/version covering multiple canonical episodes
+
+### Why This Won
+Separating canonical episode identity from local media identity preserves operator control and avoids hiding mismatches behind automation. A join table models multi-episode files directly without creating ambiguous duplicate media identities.
+
+### Consequences
+- Phase 18 starts with a preview/apply episode mapping builder rather than another automatic Jellyfin sync.
+- `episode_version_episodes` should become the authoritative coverage model while `episode_versions.episode_number` remains a compatibility/display primary episode.
+- Apply must preserve existing manually curated episode data unless a later explicit edit flow changes it.
+
+### Follow-ups Required
+- Execute Phase 18 Wave 0 contract/red tests before implementing persistence or UI.
+- Verify AniSearch episode-list parsing with fixtures before relying on live markup.
+
+---
+
 ## 2026-03-26 - Phase 3 Is Closed As Verified Complete
 
 ### Decision
