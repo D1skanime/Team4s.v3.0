@@ -5,19 +5,20 @@ import "time"
 // EpisodeVersion repräsentiert eine einzelne Release-Version einer Episode,
 // verknüpft mit einer Fansub-Gruppe und einem Medien-Provider (z.B. Jellyfin).
 type EpisodeVersion struct {
-	ID            int64               `json:"id"`
-	AnimeID       int64               `json:"anime_id"`
-	EpisodeNumber int32               `json:"episode_number"`
-	Title         *string             `json:"title,omitempty"`
-	FansubGroup   *FansubGroupSummary `json:"fansub_group,omitempty"`
-	MediaProvider string              `json:"media_provider"`
-	MediaItemID   string              `json:"media_item_id"`
-	VideoQuality  *string             `json:"video_quality,omitempty"`
-	SubtitleType  *string             `json:"subtitle_type,omitempty"`
-	ReleaseDate   *time.Time          `json:"release_date,omitempty"`
-	StreamURL     *string             `json:"stream_url,omitempty"`
-	CreatedAt     time.Time           `json:"created_at"`
-	UpdatedAt     time.Time           `json:"updated_at"`
+	ID                    int64               `json:"id"`
+	AnimeID               int64               `json:"anime_id"`
+	EpisodeNumber         int32               `json:"episode_number"`
+	Title                 *string             `json:"title,omitempty"`
+	FansubGroup           *FansubGroupSummary `json:"fansub_group,omitempty"`
+	MediaProvider         string              `json:"media_provider"`
+	MediaItemID           string              `json:"media_item_id"`
+	CoveredEpisodeNumbers []int32             `json:"covered_episode_numbers,omitempty"`
+	VideoQuality          *string             `json:"video_quality,omitempty"`
+	SubtitleType          *string             `json:"subtitle_type,omitempty"`
+	ReleaseDate           *time.Time          `json:"release_date,omitempty"`
+	StreamURL             *string             `json:"stream_url,omitempty"`
+	CreatedAt             time.Time           `json:"created_at"`
+	UpdatedAt             time.Time           `json:"updated_at"`
 }
 
 // GroupedEpisode fasst alle Versionen einer einzelnen Episode zusammen

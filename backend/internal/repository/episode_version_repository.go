@@ -69,7 +69,13 @@ func (r *EpisodeVersionRepository) ListGroupedByAnimeID(
 
 	query := `
 		SELECT
+			COALESCE(CAST(eve_episode.episode_number AS INTEGER), ev.episode_number) AS group_episode_number,
 			ev.id, ev.anime_id, ev.episode_number, ev.title, ev.media_provider, ev.media_item_id,
+			COALESCE(
+				ARRAY_AGG(CAST(covered_episode.episode_number AS INTEGER) ORDER BY eve_all.coverage_order, CAST(covered_episode.episode_number AS INTEGER))
+					FILTER (WHERE covered_episode.episode_number ~ '^[0-9]+$'),
+				ARRAY[ev.episode_number]
+			) AS covered_episode_numbers,
 			ev.video_quality, ev.subtitle_type, ev.release_date, ev.stream_url, ev.created_at, ev.updated_at`
 
 	if includeFansubs {
@@ -78,7 +84,11 @@ func (r *EpisodeVersionRepository) ListGroupedByAnimeID(
 	}
 
 	query += `
-		FROM episode_versions ev`
+		FROM episode_versions ev
+		LEFT JOIN episode_version_episodes eve_group ON eve_group.episode_version_id = ev.id
+		LEFT JOIN episodes eve_episode ON eve_episode.id = eve_group.episode_id AND eve_episode.episode_number ~ '^[0-9]+$'
+		LEFT JOIN episode_version_episodes eve_all ON eve_all.episode_version_id = ev.id
+		LEFT JOIN episodes covered_episode ON covered_episode.id = eve_all.episode_id AND covered_episode.episode_number ~ '^[0-9]+$'`
 
 	if includeFansubs {
 		query += `
@@ -87,7 +97,15 @@ func (r *EpisodeVersionRepository) ListGroupedByAnimeID(
 
 	query += `
 		WHERE ev.anime_id = $1
-		ORDER BY ev.episode_number ASC, ev.release_date DESC NULLS LAST, ev.id ASC
+		GROUP BY
+			group_episode_number,
+			ev.id`
+	if includeFansubs {
+		query += `,
+			fg.id, fg.slug, fg.name, fg.logo_url`
+	}
+	query += `
+		ORDER BY group_episode_number ASC, ev.release_date DESC NULLS LAST, ev.id ASC
 	`
 
 	rows, err := r.db.Query(ctx, query, animeID)
@@ -98,25 +116,26 @@ func (r *EpisodeVersionRepository) ListGroupedByAnimeID(
 
 	groupMap := make(map[int32]*models.GroupedEpisode, 32)
 	for rows.Next() {
+		var groupEpisodeNumber int32
 		var item *models.EpisodeVersion
 		if includeFansubs {
-			item, err = scanEpisodeVersion(rows)
+			item, groupEpisodeNumber, err = scanGroupedEpisodeVersion(rows)
 		} else {
-			item, err = scanEpisodeVersionWithoutFansub(rows)
+			item, groupEpisodeNumber, err = scanGroupedEpisodeVersionWithoutFansub(rows)
 		}
 		if err != nil {
 			return nil, err
 		}
 
-		group, ok := groupMap[item.EpisodeNumber]
+		group, ok := groupMap[groupEpisodeNumber]
 		if !ok {
-			episodeTitle := episodeTitlesByNumber[item.EpisodeNumber]
+			episodeTitle := episodeTitlesByNumber[groupEpisodeNumber]
 			group = &models.GroupedEpisode{
-				EpisodeNumber: item.EpisodeNumber,
+				EpisodeNumber: groupEpisodeNumber,
 				EpisodeTitle:  episodeTitle,
 				Versions:      make([]models.EpisodeVersion, 0, 2),
 			}
-			groupMap[item.EpisodeNumber] = group
+			groupMap[groupEpisodeNumber] = group
 		}
 		group.Versions = append(group.Versions, *item)
 	}
@@ -197,10 +216,18 @@ func (r *EpisodeVersionRepository) countVersionsByEpisodeNumber(
 	rows, err := r.db.Query(
 		ctx,
 		`
-		SELECT episode_number, COUNT(*) as count
-		FROM episode_versions
-		WHERE anime_id = $1
-		GROUP BY episode_number
+		SELECT group_episode_number, COUNT(*) as count
+		FROM (
+			SELECT
+				COALESCE(CAST(e.episode_number AS INTEGER), ev.episode_number) AS group_episode_number,
+				ev.id
+			FROM episode_versions ev
+			LEFT JOIN episode_version_episodes eve ON eve.episode_version_id = ev.id
+			LEFT JOIN episodes e ON e.id = eve.episode_id AND e.episode_number ~ '^[0-9]+$'
+			WHERE ev.anime_id = $1
+			GROUP BY group_episode_number, ev.id
+		) grouped_versions
+		GROUP BY group_episode_number
 		`,
 		animeID,
 	)
@@ -628,6 +655,22 @@ func scanEpisodeVersionWithoutFansub(rows pgx.Rows) (*models.EpisodeVersion, err
 	return &item, nil
 }
 
+func scanGroupedEpisodeVersion(rows pgx.Rows) (*models.EpisodeVersion, int32, error) {
+	item, groupEpisodeNumber, err := scanGroupedEpisodeVersionWithScanner(rows, true)
+	if err != nil {
+		return nil, 0, fmt.Errorf("scan grouped episode version row: %w", err)
+	}
+	return item, groupEpisodeNumber, nil
+}
+
+func scanGroupedEpisodeVersionWithoutFansub(rows pgx.Rows) (*models.EpisodeVersion, int32, error) {
+	item, groupEpisodeNumber, err := scanGroupedEpisodeVersionWithScanner(rows, false)
+	if err != nil {
+		return nil, 0, fmt.Errorf("scan grouped episode version row without fansub: %w", err)
+	}
+	return item, groupEpisodeNumber, nil
+}
+
 func scanEpisodeVersionRow(row pgx.Row) (*models.EpisodeVersion, error) {
 	item, err := scanEpisodeVersionWithScanner(row)
 	if err != nil {
@@ -638,6 +681,50 @@ func scanEpisodeVersionRow(row pgx.Row) (*models.EpisodeVersion, error) {
 
 type rowScanner interface {
 	Scan(dest ...any) error
+}
+
+func scanGroupedEpisodeVersionWithScanner(scanner rowScanner, includeFansub bool) (*models.EpisodeVersion, int32, error) {
+	var item models.EpisodeVersion
+	var groupEpisodeNumber int32
+	var groupID *int64
+	var groupSlug *string
+	var groupName *string
+	var groupLogoURL *string
+
+	dest := []any{
+		&groupEpisodeNumber,
+		&item.ID,
+		&item.AnimeID,
+		&item.EpisodeNumber,
+		&item.Title,
+		&item.MediaProvider,
+		&item.MediaItemID,
+		&item.CoveredEpisodeNumbers,
+		&item.VideoQuality,
+		&item.SubtitleType,
+		&item.ReleaseDate,
+		&item.StreamURL,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+	}
+	if includeFansub {
+		dest = append(dest, &groupID, &groupSlug, &groupName, &groupLogoURL)
+	}
+
+	if err := scanner.Scan(dest...); err != nil {
+		return nil, 0, err
+	}
+
+	if includeFansub && groupID != nil && groupSlug != nil && groupName != nil {
+		item.FansubGroup = &models.FansubGroupSummary{
+			ID:      *groupID,
+			Slug:    *groupSlug,
+			Name:    *groupName,
+			LogoURL: groupLogoURL,
+		}
+	}
+
+	return &item, groupEpisodeNumber, nil
 }
 
 func scanEpisodeVersionWithScanner(scanner rowScanner) (*models.EpisodeVersion, error) {

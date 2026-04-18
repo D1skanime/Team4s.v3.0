@@ -218,7 +218,7 @@ Plans:
 **Plans:** 4 plans
 Plans:
 - [x] `18-01-PLAN.md` - Establish Wave 0 contracts and red tests for canonical episodes, media candidates, mapping rows, and preview/apply behavior.
-- [ ] `18-02-PLAN.md` - Add authoritative `episode_version_episodes` coverage persistence while preserving `episode_versions.episode_number` compatibility.
+- [x] `18-02-PLAN.md` - Add authoritative `episode_version_episodes` coverage persistence while preserving `episode_versions.episode_number` compatibility.
 - [ ] `18-03-PLAN.md` - Implement backend AniSearch/Jellyfin preview and manual apply API contracts.
 - [ ] `18-04-PLAN.md` - Build the frontend mapping builder UI and episode overview entry point.
 **Success Criteria** (what must be TRUE):

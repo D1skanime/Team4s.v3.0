@@ -171,7 +171,15 @@ func (r *AdminContentRepository) DeleteEpisode(
 		if siblingCount == 0 {
 			deleteVersionTag, err := tx.Exec(
 				ctx,
-				`DELETE FROM episode_versions WHERE anime_id = $1 AND episode_number = $2`,
+				`
+				DELETE FROM episode_versions ev
+				WHERE ev.anime_id = $1
+				  AND ev.episode_number = $2
+				  AND NOT EXISTS (
+				      SELECT 1 FROM episode_version_episodes eve
+				      WHERE eve.episode_version_id = ev.id
+				  )
+				`,
 				animeID,
 				episodeNumberValue,
 			)
@@ -330,10 +338,18 @@ func (r *AdminContentRepository) DeleteOrphanedEpisodes(
 	commandTag, err := r.db.Exec(ctx, `
 		DELETE FROM episodes
 		WHERE anime_id = $1
+		  AND episode_number ~ '^[0-9]+$'
 		  AND NOT EXISTS (
 		      SELECT 1 FROM episode_versions ev
+		      LEFT JOIN episode_version_episodes eve ON eve.episode_version_id = ev.id
 		      WHERE ev.anime_id = episodes.anime_id
-		        AND ev.episode_number = CAST(episodes.episode_number AS INTEGER)
+		        AND (
+		            eve.episode_id = episodes.id
+		            OR (
+		                eve.episode_id IS NULL
+		                AND ev.episode_number = CAST(episodes.episode_number AS INTEGER)
+		            )
+		        )
 		  )
 	`, animeID)
 	if err != nil {
@@ -352,10 +368,18 @@ func (r *AdminContentRepository) CountOrphanedEpisodes(
 	err := r.db.QueryRow(ctx, `
 		SELECT COUNT(*) FROM episodes
 		WHERE anime_id = $1
+		  AND episode_number ~ '^[0-9]+$'
 		  AND NOT EXISTS (
 		      SELECT 1 FROM episode_versions ev
+		      LEFT JOIN episode_version_episodes eve ON eve.episode_version_id = ev.id
 		      WHERE ev.anime_id = episodes.anime_id
-		        AND ev.episode_number = CAST(episodes.episode_number AS INTEGER)
+		        AND (
+		            eve.episode_id = episodes.id
+		            OR (
+		                eve.episode_id IS NULL
+		                AND ev.episode_number = CAST(episodes.episode_number AS INTEGER)
+		            )
+		        )
 		  )
 	`, animeID).Scan(&count)
 	if err != nil {
@@ -379,14 +403,28 @@ func (r *AdminContentRepository) CountEpisodesWithOnlyProvider(
 		  AND e.episode_number ~ '^[0-9]+$'
 		  AND EXISTS (
 		      SELECT 1 FROM episode_versions ev
+		      LEFT JOIN episode_version_episodes eve ON eve.episode_version_id = ev.id
 		      WHERE ev.anime_id = e.anime_id
-		        AND ev.episode_number = CAST(e.episode_number AS INTEGER)
+		        AND (
+		            eve.episode_id = e.id
+		            OR (
+		                eve.episode_id IS NULL
+		                AND ev.episode_number = CAST(e.episode_number AS INTEGER)
+		            )
+		        )
 		        AND ev.media_provider = $2
 		  )
 		  AND NOT EXISTS (
 		      SELECT 1 FROM episode_versions ev
+		      LEFT JOIN episode_version_episodes eve ON eve.episode_version_id = ev.id
 		      WHERE ev.anime_id = e.anime_id
-		        AND ev.episode_number = CAST(e.episode_number AS INTEGER)
+		        AND (
+		            eve.episode_id = e.id
+		            OR (
+		                eve.episode_id IS NULL
+		                AND ev.episode_number = CAST(e.episode_number AS INTEGER)
+		            )
+		        )
 		        AND ev.media_provider <> $2
 		  )
 	`, animeID, provider).Scan(&count)

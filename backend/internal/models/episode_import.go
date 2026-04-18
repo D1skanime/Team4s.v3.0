@@ -58,6 +58,7 @@ type EpisodeImportPreviewResult struct {
 type EpisodeImportApplyInput struct {
 	AnimeID           int64                           `json:"anime_id"`
 	CanonicalEpisodes []EpisodeImportCanonicalEpisode `json:"canonical_episodes"`
+	MediaCandidates   []EpisodeImportMediaCandidate   `json:"media_candidates,omitempty"`
 	Mappings          []EpisodeImportMappingRow       `json:"mappings"`
 }
 

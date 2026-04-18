@@ -22,7 +22,21 @@ func TestEpisodeImportApply_CreatesCoverageJoinRowsForMultiEpisodeMedia(t *testi
 		}},
 	}
 
-	t.Fatalf("not implemented: apply one media item as one episode_versions row with compatibility episode_number=9 and coverage rows for %v", input.Mappings[0].TargetEpisodeNumbers)
+	plan, err := buildEpisodeImportApplyPlan(input)
+	if err != nil {
+		t.Fatalf("build apply plan: %v", err)
+	}
+
+	if len(plan.mappings) != 1 {
+		t.Fatalf("expected one mapping, got %d", len(plan.mappings))
+	}
+	targets := plan.mappings[0].TargetEpisodeNumbers
+	if len(targets) != 2 || targets[0] != 9 || targets[1] != 10 {
+		t.Fatalf("expected normalized multi-episode coverage [9 10], got %v", targets)
+	}
+	if primary := targets[0]; primary != 9 {
+		t.Fatalf("expected compatibility primary episode 9, got %d", primary)
+	}
 }
 
 func TestEpisodeImportApply_PreservesExistingManualEpisodeTitle(t *testing.T) {
@@ -39,5 +53,39 @@ func TestEpisodeImportApply_PreservesExistingManualEpisodeTitle(t *testing.T) {
 		}},
 	}
 
-	t.Fatalf("not implemented: apply must preserve existing manual title %q when importing %q for anime %d", existingTitle, incomingTitle, input.AnimeID)
+	plan, err := buildEpisodeImportApplyPlan(input)
+	if err != nil {
+		t.Fatalf("build apply plan: %v", err)
+	}
+
+	canonical := plan.canonicalByNumber[9]
+	if canonical.ExistingTitle == nil || *canonical.ExistingTitle != existingTitle {
+		t.Fatalf("expected existing manual title to stay in apply plan, got %#v", canonical.ExistingTitle)
+	}
+	if canonical.Title == nil || *canonical.Title != incomingTitle {
+		t.Fatalf("expected incoming AniSearch title to remain available for fill-only use, got %#v", canonical.Title)
+	}
+}
+
+func TestEpisodeImportApply_RejectsConflictingCanonicalClaims(t *testing.T) {
+	t.Parallel()
+
+	_, err := buildEpisodeImportApplyPlan(models.EpisodeImportApplyInput{
+		AnimeID: 42,
+		Mappings: []models.EpisodeImportMappingRow{
+			{
+				MediaItemID:          "jellyfin-a",
+				TargetEpisodeNumbers: []int32{9},
+				Status:               models.EpisodeImportMappingStatusConfirmed,
+			},
+			{
+				MediaItemID:          "jellyfin-b",
+				TargetEpisodeNumbers: []int32{9},
+				Status:               models.EpisodeImportMappingStatusConfirmed,
+			},
+		},
+	})
+	if err == nil {
+		t.Fatal("expected conflicting canonical claims to be rejected before mutation")
+	}
 }
