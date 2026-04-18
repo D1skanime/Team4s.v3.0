@@ -200,7 +200,7 @@ Plans:
 **Goal:** Bring `/admin/anime/create` onto the finalized UX model so the page reads as one productive admin flow: `Anime finden` -> `Assets` -> `Details` -> `Pruefen & Anlegen`.
 **Requirements**: TBD
 **Depends on:** Phase 16
-**Status**: Current next slice
+**Status**: Completed and Docker-deployed on 2026-04-18
 **Success Criteria** (what must be TRUE):
   1. The page no longer implies any saveable draft concept and uses `Anime erstellen` as the single final create action.
   2. AniSearch is clearly framed and implemented as the metadata/description source for the create flow.
@@ -208,9 +208,27 @@ Plans:
   4. Jellyfin-derived banner/logo/background/video suggestions appear only after explicit `Jellyfin uebernehmen`.
   5. All asset suggestions are reviewed in the shared asset area as visual, removable, and replaceable cards without damaging existing create/save seams.
 
+### Phase 18: Episode Import And Mapping Builder
+**Goal:** Admins can import a canonical episode list from AniSearch, scan Jellyfin files for the linked anime folder, and manually map files to one or more canonical episodes before creating episodes and episode versions.
+**Requirements**: P18-SC1, P18-SC2, P18-SC3, P18-SC4, P18-SC5
+**Depends on:** Phase 17
+**Status**: Current next planning slice
+**Plans:** 4 plans
+Plans:
+- [ ] `18-01-PLAN.md` - Establish Wave 0 contracts and red tests for canonical episodes, media candidates, mapping rows, and preview/apply behavior.
+- [ ] `18-02-PLAN.md` - Add authoritative `episode_version_episodes` coverage persistence while preserving `episode_versions.episode_number` compatibility.
+- [ ] `18-03-PLAN.md` - Implement backend AniSearch/Jellyfin preview and manual apply API contracts.
+- [ ] `18-04-PLAN.md` - Build the frontend mapping builder UI and episode overview entry point.
+**Success Criteria** (what must be TRUE):
+  1. AniSearch is the canonical source for anime episode numbers/titles instead of Jellyfin/TVDB season grouping.
+  2. Jellyfin is treated as the media/file source and exposes season/episode/file candidates such as `S03E11` without redefining canonical episode numbers.
+  3. The mapping preview can suggest a canonical episode number from Jellyfin season/episode data using configurable offsets or imported AniSearch episode order.
+  4. Admins can manually correct mappings, including one Jellyfin file covering multiple canonical episodes such as Naruto episode 9+10.
+  5. Applying the preview creates missing `episodes` and links media into `episode_versions` without overwriting existing manually curated episode data.
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 11 | 25+ | Phases 6-16 complete or verified; Phase 17 is the active next UX/UI slice | - |
+| v1.1 Asset Lifecycle Hardening | 12 | 25+ | Phases 6-17 complete or verified; Phase 18 is the active next planning slice | - |
