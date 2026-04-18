@@ -45,13 +45,24 @@ type EpisodeImportMappingRow struct {
 // EpisodeImportPreviewResult is the read-only preview payload for the builder.
 type EpisodeImportPreviewResult struct {
 	AnimeID              int64                           `json:"anime_id"`
+	AnimeTitle           string                          `json:"anime_title"`
 	AniSearchID          *string                         `json:"anisearch_id,omitempty"`
 	JellyfinSeriesID     *string                         `json:"jellyfin_series_id,omitempty"`
+	FolderPath           *string                         `json:"folder_path,omitempty"`
 	CanonicalEpisodes    []EpisodeImportCanonicalEpisode `json:"canonical_episodes"`
 	MediaCandidates      []EpisodeImportMediaCandidate   `json:"media_candidates"`
 	Mappings             []EpisodeImportMappingRow       `json:"mappings"`
 	UnmappedEpisodes     []int32                         `json:"unmapped_episodes,omitempty"`
 	UnmappedMediaItemIDs []string                        `json:"unmapped_media_item_ids,omitempty"`
+}
+
+type EpisodeImportContextResult struct {
+	AnimeID          int64   `json:"anime_id"`
+	AnimeTitle       string  `json:"anime_title"`
+	AniSearchID      *string `json:"anisearch_id,omitempty"`
+	JellyfinSeriesID *string `json:"jellyfin_series_id,omitempty"`
+	FolderPath       *string `json:"folder_path,omitempty"`
+	Source           *string `json:"source,omitempty"`
 }
 
 // EpisodeImportApplyInput is the explicit operator-approved mutation payload.

@@ -110,6 +110,7 @@ func main() {
 	watchlistRepo := repository.NewWatchlistRepository(dbPool)
 	watchlistHandler := handlers.NewWatchlistHandler(watchlistRepo)
 	adminContentRepo := repository.NewAdminContentRepository(dbPool)
+	episodeImportRepo := repository.NewEpisodeImportRepository(dbPool)
 	authzRepo := repository.NewAuthzRepository(dbPool)
 	adminBootstrapUserIDs := resolveAdminBootstrapUserIDs(cfg)
 	if err := bootstrapAdminRoleAssignments(ctx, authzRepo, cfg.AuthAdminRoleName, adminBootstrapUserIDs); err != nil {
@@ -124,6 +125,7 @@ func main() {
 		animeAssetRepo,
 		fansubRepo,
 		episodeVersionRepo,
+		episodeImportRepo,
 		authzRepo,
 		cfg.AuthAdminRoleName,
 		cfg.MediaStorageDir,

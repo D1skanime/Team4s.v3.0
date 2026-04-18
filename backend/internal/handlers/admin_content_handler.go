@@ -13,25 +13,25 @@ import (
 
 // adminAnimeCreateRequest enthält die Felder für das Anlegen eines neuen Anime-Eintrags über die Admin-API.
 type adminAnimeCreateRequest struct {
-	Title       string                      `json:"title"`
-	TitleDE     *string                     `json:"title_de"`
-	TitleEN     *string                     `json:"title_en"`
-	Type        string                      `json:"type"`
-	ContentType string                      `json:"content_type"`
-	Status      string                      `json:"status"`
-	Year        *int16                      `json:"year"`
-	MaxEpisodes *int16                      `json:"max_episodes"`
-	Genre       *string                     `json:"genre"`
-	Tags        []string                    `json:"tags"`
-	Description *string                     `json:"description"`
+	Title               string                      `json:"title"`
+	TitleDE             *string                     `json:"title_de"`
+	TitleEN             *string                     `json:"title_en"`
+	Type                string                      `json:"type"`
+	ContentType         string                      `json:"content_type"`
+	Status              string                      `json:"status"`
+	Year                *int16                      `json:"year"`
+	MaxEpisodes         *int16                      `json:"max_episodes"`
+	Genre               *string                     `json:"genre"`
+	Tags                []string                    `json:"tags"`
+	Description         *string                     `json:"description"`
 	CoverImage          *string                     `json:"cover_image"`
 	BannerImage         *string                     `json:"banner_image"`
 	LogoImage           *string                     `json:"logo_image"`
 	BackgroundVideoURL  *string                     `json:"background_video_url"`
 	BackgroundImageURLs []string                    `json:"background_image_urls"`
 	Source              *string                     `json:"source"`
-	FolderName  *string                     `json:"folder_name"`
-	Relations   []models.AdminAnimeRelation `json:"relations"`
+	FolderName          *string                     `json:"folder_name"`
+	Relations           []models.AdminAnimeRelation `json:"relations"`
 }
 
 // adminEpisodeCreateRequest enthält die Pflicht- und optionalen Felder für das Anlegen einer neuen Episode.
@@ -72,6 +72,15 @@ type adminAnimeAssetSearchService interface {
 	SearchAssetCandidates(ctx context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error)
 }
 
+type adminEpisodeImportRepository interface {
+	Apply(ctx context.Context, input models.EpisodeImportApplyInput) (*models.EpisodeImportApplyResult, error)
+	PreviewExistingCoverage(ctx context.Context, animeID int64) (models.EpisodeImportExistingCoverage, error)
+}
+
+type adminAniSearchEpisodeFetcher interface {
+	FetchAnimeEpisodes(ctx context.Context, aniSearchID string) ([]services.AniSearchEpisode, error)
+}
+
 // adminRoleChecker definiert die Methode zur Prüfung, ob ein Nutzer eine bestimmte Rolle besitzt.
 type adminRoleChecker interface {
 	UserHasRole(ctx context.Context, userID int64, roleName string) (bool, error)
@@ -85,6 +94,7 @@ type AdminContentHandler struct {
 	animeAssetRepo     *repository.AnimeAssetRepository
 	fansubRepo         *repository.FansubRepository
 	episodeVersionRepo *repository.EpisodeVersionRepository
+	episodeImportRepo  adminEpisodeImportRepository
 	authzRepo          adminRoleChecker
 	aniSearchRepo      adminAniSearchRepository
 	adminRoleName      string
@@ -94,6 +104,7 @@ type AdminContentHandler struct {
 	jellyfinStreamPath string
 	httpClient         *http.Client
 	enrichmentService  adminAniSearchDraftLoader
+	aniSearchEpisodes  adminAniSearchEpisodeFetcher
 	assetSearchService adminAnimeAssetSearchService
 }
 
@@ -117,6 +128,7 @@ func NewAdminContentHandler(
 	animeAssetRepo *repository.AnimeAssetRepository,
 	fansubRepo *repository.FansubRepository,
 	episodeVersionRepo *repository.EpisodeVersionRepository,
+	episodeImportRepo *repository.EpisodeImportRepository,
 	authzRepo *repository.AuthzRepository,
 	adminRoleName string,
 	mediaStorageDir string,
@@ -129,6 +141,7 @@ func NewAdminContentHandler(
 		animeAssetRepo:     animeAssetRepo,
 		fansubRepo:         fansubRepo,
 		episodeVersionRepo: episodeVersionRepo,
+		episodeImportRepo:  episodeImportRepo,
 		authzRepo:          authzRepo,
 		adminRoleName:      strings.TrimSpace(adminRoleName),
 		mediaStorageDir:    strings.TrimSpace(mediaStorageDir),
@@ -141,6 +154,7 @@ func NewAdminContentHandler(
 	}
 
 	aniSearchClient := services.NewAniSearchClient("https://www.anisearch.de/anime", handler.httpClient)
+	handler.aniSearchEpisodes = aniSearchClient
 	handler.enrichmentService = services.NewAnimeCreateEnrichmentService(
 		aniSearchClient,
 		adminAnimeCreateEnrichmentRepo{repo: repo},
