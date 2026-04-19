@@ -100,7 +100,7 @@ export default function AdminAnimeEpisodeImportPage() {
           <section className={styles.panel}>
             <h2>Kanonische Episoden</h2>
             <div className={styles.list}>
-              {builder.preview.canonical_episodes.map((episode) => (
+              {(builder.preview.canonical_episodes ?? []).map((episode) => (
                 <div className={styles.episodeRow} key={episode.episode_number}>
                   <strong>#{episode.episode_number}</strong>
                   <span>{episode.title ?? episode.existing_title ?? 'Ohne Titel'}</span>
@@ -116,7 +116,7 @@ export default function AdminAnimeEpisodeImportPage() {
           <section className={styles.panel}>
             <h2>Jellyfin Dateien</h2>
             <div className={styles.list}>
-              {builder.preview.media_candidates.map((media) => (
+              {(builder.preview.media_candidates ?? []).map((media) => (
                 <div className={styles.mediaRow} key={media.media_item_id}>
                   <strong>{media.file_name || media.media_item_id}</strong>
                   <span>{formatJellyfinEvidence(media.jellyfin_season_number, media.jellyfin_episode_number)}</span>
@@ -153,14 +153,16 @@ export default function AdminAnimeEpisodeImportPage() {
                   <span className={`${styles.statusPill} ${styles[row.status]}`}>{row.status}</span>
                 </div>
                 <input
-                  defaultValue={row.target_episode_numbers.join(',')}
+                  defaultValue={(row.target_episode_numbers ?? []).join(',')}
                   onBlur={(event) => builder.setTargets(row.media_item_id, event.target.value)}
                   aria-label={`Targets fuer ${row.media_item_id}`}
                 />
                 <button className={styles.secondaryButton} type="button" onClick={() => builder.skipMapping(row.media_item_id)}>
                   Ueberspringen
                 </button>
-                {row.target_episode_numbers.length > 1 ? <p>Diese Datei deckt mehrere kanonische Episoden ab.</p> : null}
+                {(row.target_episode_numbers ?? []).length > 1 ? (
+                  <p>Diese Datei deckt mehrere kanonische Episoden ab.</p>
+                ) : null}
               </div>
             ))}
           </div>

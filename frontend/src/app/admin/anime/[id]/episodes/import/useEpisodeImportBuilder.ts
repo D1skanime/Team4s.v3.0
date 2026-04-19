@@ -99,8 +99,9 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
         },
         authToken,
       )
-      setPreview(response.data)
-      setMappings(detectMappingConflicts(response.data.mappings))
+      const normalizedPreview = normalizePreviewResult(response.data)
+      setPreview(normalizedPreview)
+      setMappings(detectMappingConflicts(normalizedPreview.mappings))
     } catch (error) {
       setErrorMessage(formatEpisodeImportError(error, 'Preview konnte nicht geladen werden.'))
     } finally {
@@ -118,7 +119,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
         {
           anime_id: animeID,
           canonical_episodes: preview.canonical_episodes,
-          media_candidates: preview.media_candidates,
+          media_candidates: preview.media_candidates ?? [],
           mappings,
         },
         authToken,
@@ -150,6 +151,17 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     setSeasonOffset,
     setTargets: (mediaItemID, rawTargets) => setMappings((current) => setMappingTargets(current, mediaItemID, rawTargets)),
     skipMapping: (mediaItemID) => setMappings((current) => markMappingSkipped(current, mediaItemID)),
+  }
+}
+
+function normalizePreviewResult(preview: EpisodeImportPreviewResult): EpisodeImportPreviewResult {
+  return {
+    ...preview,
+    canonical_episodes: preview.canonical_episodes ?? [],
+    media_candidates: preview.media_candidates ?? [],
+    mappings: preview.mappings ?? [],
+    unmapped_episodes: preview.unmapped_episodes ?? [],
+    unmapped_media_item_ids: preview.unmapped_media_item_ids ?? [],
   }
 }
 

@@ -170,11 +170,12 @@ export function appendCreateSourceLinkageToPayload(
   },
 ): AdminAnimeCreateRequest {
   const aniSearchDraft = params.aniSearchDraftResult?.draft;
+  const jellyfinFolderName = normalizeOptionalString(params.jellyfinPreview?.jellyfin_series_path ?? "");
   if (aniSearchDraft?.source?.trim()) {
     return {
       ...payload,
       source: aniSearchDraft.source.trim(),
-      folder_name: normalizeOptionalString(aniSearchDraft.folder_name ?? ""),
+      folder_name: normalizeOptionalString(aniSearchDraft.folder_name ?? "") ?? jellyfinFolderName,
       relations: aniSearchDraft.relations ? [...aniSearchDraft.relations] : undefined,
     };
   }

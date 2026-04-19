@@ -245,6 +245,7 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
     )
 
     expect(payload.source).toBe('anisearch:12345')
+    expect(payload.folder_name).toBe('D:/Anime/Lain')
     expect(payload.relations).toEqual([
       {
         target_anime_id: 42,

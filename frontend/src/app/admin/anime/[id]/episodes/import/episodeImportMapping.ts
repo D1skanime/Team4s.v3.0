@@ -49,14 +49,14 @@ export function detectMappingConflicts(rows: EpisodeImportMappingRow[]): Episode
   const claimCounts = new Map<number, number>()
   rows.forEach((row) => {
     if (row.status === 'skipped') return
-    row.target_episode_numbers.forEach((episodeNumber) => {
+    ;(row.target_episode_numbers ?? []).forEach((episodeNumber) => {
       claimCounts.set(episodeNumber, (claimCounts.get(episodeNumber) ?? 0) + 1)
     })
   })
 
   return rows.map((row) => {
     if (row.status === 'skipped') return row
-    const hasConflict = row.target_episode_numbers.some((episodeNumber) => (claimCounts.get(episodeNumber) ?? 0) > 1)
+    const hasConflict = (row.target_episode_numbers ?? []).some((episodeNumber) => (claimCounts.get(episodeNumber) ?? 0) > 1)
     if (hasConflict) return { ...row, status: 'conflict' }
     if (row.status === 'conflict') return { ...row, status: 'confirmed' }
     return row
@@ -67,12 +67,12 @@ export function summarizeImportPreview(
   preview: EpisodeImportPreviewResult,
 ): EpisodeImportPreviewSummary {
   return {
-    canonical_episode_count: preview.canonical_episodes.length,
-    media_candidate_count: preview.media_candidates.length,
-    suggested_count: preview.mappings.filter((row) => row.status === 'suggested').length,
-    confirmed_count: preview.mappings.filter((row) => row.status === 'confirmed').length,
-    conflict_count: preview.mappings.filter((row) => row.status === 'conflict').length,
-    skipped_count: preview.mappings.filter((row) => row.status === 'skipped').length,
+    canonical_episode_count: (preview.canonical_episodes ?? []).length,
+    media_candidate_count: (preview.media_candidates ?? []).length,
+    suggested_count: (preview.mappings ?? []).filter((row) => row.status === 'suggested').length,
+    confirmed_count: (preview.mappings ?? []).filter((row) => row.status === 'confirmed').length,
+    conflict_count: (preview.mappings ?? []).filter((row) => row.status === 'conflict').length,
+    skipped_count: (preview.mappings ?? []).filter((row) => row.status === 'skipped').length,
     unmapped_episode_count: preview.unmapped_episodes?.length ?? 0,
     unmapped_media_count: preview.unmapped_media_item_ids?.length ?? 0,
   }

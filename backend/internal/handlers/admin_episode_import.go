@@ -226,6 +226,13 @@ func buildEpisodeImportPreview(
 	mediaCandidates []models.EpisodeImportMediaCandidate,
 	seasonOffset int32,
 ) models.EpisodeImportPreviewResult {
+	if canonicalEpisodes == nil {
+		canonicalEpisodes = []models.EpisodeImportCanonicalEpisode{}
+	}
+	if mediaCandidates == nil {
+		mediaCandidates = []models.EpisodeImportMediaCandidate{}
+	}
+
 	canonicalSet := make(map[int32]struct{}, len(canonicalEpisodes))
 	for _, episode := range canonicalEpisodes {
 		if episode.EpisodeNumber > 0 {
