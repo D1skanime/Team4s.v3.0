@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Milestone complete
-stopped_at: Phase 18 episode import and mapping builder complete, verified, and Docker-deployed
-last_updated: "2026-04-18T17:50:00.000Z"
-last_activity: 2026-04-18
+status: Ready to execute
+stopped_at: Completed 19-episode-import-operator-workbench/19-01-PLAN.md
+last_updated: "2026-04-20T11:06:29.453Z"
+last_activity: 2026-04-20
 progress:
-  total_phases: 13
+  total_phases: 14
   completed_phases: 11
-  total_plans: 46
-  completed_plans: 43
+  total_plans: 49
+  completed_plans: 45
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 18 is complete; next narrow slice can start from the verified episode import baseline.
+**Current focus:** Phase 19 — episode-import-operator-workbench
 
 ## Current Position
 
-Phase: 18
-Plan: Complete for Phase 18 episode import and mapping builder
+Phase: 19 (episode-import-operator-workbench) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -84,6 +84,8 @@ Recent durable decisions:
 - [Phase 17.1]: Worktree branch merged main before applying 17.1 changes since worktree was on an older pre-phase-17 codebase
 - [Phase 17.1]: Source badge overlay on asset card preview uses assetCardSourceOverlay base + source-specific modifier class; icon buttons replace text pill action buttons in CreateAssetSection
 - [Phase 17 closeout]: Anime Create is complete for the current UX/UI follow-through slice; background videos are additive, AniSearch diagnostics are hidden, and Jellyfin `Ordnerpfad` is visible in Basisdaten.
+- [Phase 19-episode-import-operator-workbench]: EpisodeImportMappingRow carries file_name and display_path fields populated from media candidates at preview build time
+- [Phase 19-episode-import-operator-workbench]: Apply plan removes exclusive episode-claim check: multiple confirmed rows for same episode are valid parallel versions; duplicate media_item_id still rejected
 
 ### Pending Todos
 
@@ -107,6 +109,8 @@ Recent durable decisions:
 - Phase 18 Plan 18-03 executed: admin episode-import context, preview, and apply routes are wired; preview is read-only and apply delegates confirmed/skipped mappings to the repository.
 - Phase 18 Plan 18-04 executed: `/admin/anime/[id]/episodes/import` provides the frontend mapping builder and is reachable from the episode overview.
 - Phase 18 final verification passed: backend targeted tests, frontend mapping tests, frontend build, Docker rebuild, and smoke checks for frontend/backend routes.
+- Phase 18 live UAT follow-through then found remaining practical blockers: opaque mapping rows, false conflicts for parallel releases, and too much manual skip friction for large libraries.
+- Phase 19 planned: Episode import operator workbench follow-through, focused on readable file evidence, version-friendly mapping, and practical bulk resolution controls.
 
 ### Blockers/Concerns
 
@@ -130,6 +134,7 @@ Recent durable decisions:
 | Phase 17 P02 | 8min | 5 tasks | 7 files |
 | Phase 17 P05 | 7min | 4 tasks | 4 files |
 | Phase 17.1 P01 | 40min | 2 tasks | 5 files |
+| Phase 19-episode-import-operator-workbench P01 | 18min | 2 tasks | 7 files |
 
 ### Quick Tasks Completed
 
@@ -141,7 +146,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-18T04:00:00.000Z
-Stopped at: Anime Create UX/UI follow-through complete, local Docker deploy passed, frontend create tests/build passed, backend targeted tests passed during persistence work.
-Last activity: 2026-04-18
+Last session: 2026-04-20T11:06:29.448Z
+Stopped at: Completed 19-episode-import-operator-workbench/19-01-PLAN.md
+Last activity: 2026-04-20
 Resume file: None

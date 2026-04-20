@@ -2,7 +2,7 @@
 
 ## Milestones
 
-> Current planning note: Phase 17 is complete; Phase 18 is the active episode import and mapping slice.
+> Current planning note: Phase 18 exposed operator-facing import blockers in live UAT; Phase 19 is the next narrow slice to make episode import practical for real releases.
 
 - [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
 - [x] **v1.1 Asset Lifecycle Hardening** - Phases 6 through 16 are complete or verified, and Phase 17 is the current next slice for the `/admin/anime/create` UX/UI follow-through. (completed 2026-04-17)
@@ -214,7 +214,7 @@ Plans:
 **Goal:** Admins can import a canonical episode list from AniSearch, scan Jellyfin files for the linked anime folder, and manually map files to one or more canonical episodes before creating episodes and episode versions.
 **Requirements**: P18-SC1, P18-SC2, P18-SC3, P18-SC4, P18-SC5
 **Depends on:** Phase 17
-**Status**: Completed and Docker-deployed on 2026-04-18
+**Status**: Implemented and Docker-deployed on 2026-04-18, but live UAT remained blocked on operator-readability and real multi-release handling; follow-through continues in Phase 19
 **Plans:** 4 plans
 Plans:
 - [x] `18-01-PLAN.md` - Establish Wave 0 contracts and red tests for canonical episodes, media candidates, mapping rows, and preview/apply behavior.
@@ -228,9 +228,21 @@ Plans:
   4. Admins can manually correct mappings, including one Jellyfin file covering multiple canonical episodes such as Naruto episode 9+10.
   5. Applying the preview creates missing `episodes` and links media into `episode_versions` without overwriting existing manually curated episode data.
 
+### Phase 19: Episode Import Operator Workbench
+**Goal:** Make the episode-import flow practical for real Jellyfin libraries by showing readable file evidence, treating parallel releases as version choices instead of false conflicts, and reducing manual skip work before apply.
+**Requirements**: P19-SC1, P19-SC2, P19-SC3, P19-SC4, P19-SC5
+**Depends on:** Phase 18
+**Status**: Planned on 2026-04-20 from blocked Phase-18 live UAT
+**Success Criteria** (what must be TRUE):
+  1. Mapping rows identify each Jellyfin candidate with readable file evidence such as file name and folder path instead of opaque media IDs.
+  2. Multiple real releases of the same canonical episode can coexist as separate episode versions without being treated as unresolved conflicts.
+  3. The operator can resolve or intentionally skip large candidate sets without repetitive one-row-at-a-time clicking for every alternate release.
+  4. The import surface shows the linked AniSearch source, Jellyfin series, and folder path clearly enough to diagnose wrong linkage before apply.
+  5. Live UAT can complete the import flow end-to-end on a real anime library without crashing or becoming impractical to operate.
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 13 | 29+ | Phases 6-18 complete or verified | - |
+| v1.1 Asset Lifecycle Hardening | 14 | 29+ | Phases 6-18 shipped; Phase 19 planned from blocked live UAT | - |
