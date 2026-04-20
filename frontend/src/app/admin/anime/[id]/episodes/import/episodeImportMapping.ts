@@ -45,6 +45,73 @@ export function markMappingSkipped(
   )
 }
 
+/**
+ * Bulk-skip all rows that are still in 'suggested' state.
+ * Useful for quickly clearing unresolved automatic suggestions.
+ */
+export function markAllSuggestedSkipped(rows: EpisodeImportMappingRow[]): EpisodeImportMappingRow[] {
+  return detectMappingConflicts(
+    rows.map((row) =>
+      row.status === 'suggested'
+        ? { ...row, target_episode_numbers: [], status: 'skipped' }
+        : row,
+    ),
+  )
+}
+
+/**
+ * Bulk-confirm all rows that are still in 'suggested' state.
+ * Accepts the preview suggestion targets as-is.
+ */
+export function markAllSuggestedConfirmed(rows: EpisodeImportMappingRow[]): EpisodeImportMappingRow[] {
+  return detectMappingConflicts(
+    rows.map((row) =>
+      row.status === 'suggested'
+        ? { ...row, status: 'confirmed' }
+        : row,
+    ),
+  )
+}
+
+/**
+ * Confirm all rows that have a given episode number in their suggested targets.
+ * Used for per-episode quick-confirm in the grouped workbench.
+ */
+export function confirmEpisodeMappingRows(
+  rows: EpisodeImportMappingRow[],
+  episodeNumber: number,
+): EpisodeImportMappingRow[] {
+  return detectMappingConflicts(
+    rows.map((row) => {
+      if (
+        (row.status === 'suggested' || row.status === 'conflict') &&
+        (row.suggested_episode_numbers ?? []).includes(episodeNumber)
+      ) {
+        return { ...row, status: 'confirmed' }
+      }
+      return row
+    }),
+  )
+}
+
+/**
+ * Skip all rows that have a given episode number in their suggested targets.
+ * Used for per-episode quick-skip in the grouped workbench.
+ */
+export function skipEpisodeMappingRows(
+  rows: EpisodeImportMappingRow[],
+  episodeNumber: number,
+): EpisodeImportMappingRow[] {
+  return detectMappingConflicts(
+    rows.map((row) => {
+      if ((row.suggested_episode_numbers ?? []).includes(episodeNumber)) {
+        return { ...row, target_episode_numbers: [], status: 'skipped' }
+      }
+      return row
+    }),
+  )
+}
+
 export function detectMappingConflicts(rows: EpisodeImportMappingRow[]): EpisodeImportMappingRow[] {
   const claimCounts = new Map<number, number>()
   rows.forEach((row) => {
