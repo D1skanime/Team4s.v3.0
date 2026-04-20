@@ -160,7 +160,7 @@ func buildEpisodeImportApplyPlan(input models.EpisodeImportApplyInput) (episodeI
 		plan.mediaByID[mediaID] = media
 	}
 
-	claimed := make(map[int32]string, len(input.Mappings))
+	seenMediaIDs := make(map[string]struct{}, len(input.Mappings))
 	for _, mapping := range input.Mappings {
 		mapping.MediaItemID = strings.TrimSpace(mapping.MediaItemID)
 		switch mapping.Status {
@@ -176,6 +176,10 @@ func buildEpisodeImportApplyPlan(input models.EpisodeImportApplyInput) (episodeI
 		if mapping.MediaItemID == "" {
 			return episodeImportApplyPlan{}, fmt.Errorf("media_item_id is required")
 		}
+		if _, ok := seenMediaIDs[mapping.MediaItemID]; ok {
+			return episodeImportApplyPlan{}, fmt.Errorf("duplicate media_item_id %s in mappings", mapping.MediaItemID)
+		}
+		seenMediaIDs[mapping.MediaItemID] = struct{}{}
 		if len(mapping.TargetEpisodeNumbers) == 0 {
 			return episodeImportApplyPlan{}, fmt.Errorf("mapping %s requires at least one target episode", mapping.MediaItemID)
 		}
@@ -191,10 +195,6 @@ func buildEpisodeImportApplyPlan(input models.EpisodeImportApplyInput) (episodeI
 			if _, ok := plan.canonicalByNumber[episodeNumber]; !ok {
 				plan.canonicalByNumber[episodeNumber] = models.EpisodeImportCanonicalEpisode{EpisodeNumber: episodeNumber}
 			}
-			if previousMediaID, exists := claimed[episodeNumber]; exists && previousMediaID != mapping.MediaItemID {
-				return episodeImportApplyPlan{}, fmt.Errorf("episode %d is claimed by both %s and %s", episodeNumber, previousMediaID, mapping.MediaItemID)
-			}
-			claimed[episodeNumber] = mapping.MediaItemID
 		}
 		plan.mappings = append(plan.mappings, mapping)
 	}

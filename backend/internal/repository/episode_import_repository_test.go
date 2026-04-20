@@ -67,25 +67,55 @@ func TestEpisodeImportApply_PreservesExistingManualEpisodeTitle(t *testing.T) {
 	}
 }
 
-func TestEpisodeImportApply_RejectsConflictingCanonicalClaims(t *testing.T) {
+func TestEpisodeImportApply_AllowsParallelReleasesForSameEpisode(t *testing.T) {
 	t.Parallel()
 
-	_, err := buildEpisodeImportApplyPlan(models.EpisodeImportApplyInput{
+	// Multiple distinct Jellyfin files (different release groups) covering the
+	// same canonical episode are valid parallel versions and must not be rejected.
+	plan, err := buildEpisodeImportApplyPlan(models.EpisodeImportApplyInput{
 		AnimeID: 42,
 		Mappings: []models.EpisodeImportMappingRow{
 			{
-				MediaItemID:          "jellyfin-a",
+				MediaItemID:          "jellyfin-group-a",
 				TargetEpisodeNumbers: []int32{9},
 				Status:               models.EpisodeImportMappingStatusConfirmed,
 			},
 			{
-				MediaItemID:          "jellyfin-b",
+				MediaItemID:          "jellyfin-group-b",
 				TargetEpisodeNumbers: []int32{9},
 				Status:               models.EpisodeImportMappingStatusConfirmed,
 			},
 		},
 	})
+	if err != nil {
+		t.Fatalf("expected parallel releases for same episode to be accepted, got: %v", err)
+	}
+	if len(plan.mappings) != 2 {
+		t.Fatalf("expected both parallel release mappings in plan, got %d", len(plan.mappings))
+	}
+}
+
+func TestEpisodeImportApply_RejectsDuplicateMediaItemID(t *testing.T) {
+	t.Parallel()
+
+	// The same media_item_id appearing twice in the mappings list is a structural
+	// error (not a legitimate parallel version), so the plan builder must reject it.
+	_, err := buildEpisodeImportApplyPlan(models.EpisodeImportApplyInput{
+		AnimeID: 42,
+		Mappings: []models.EpisodeImportMappingRow{
+			{
+				MediaItemID:          "jellyfin-same-id",
+				TargetEpisodeNumbers: []int32{9},
+				Status:               models.EpisodeImportMappingStatusConfirmed,
+			},
+			{
+				MediaItemID:          "jellyfin-same-id",
+				TargetEpisodeNumbers: []int32{10},
+				Status:               models.EpisodeImportMappingStatusConfirmed,
+			},
+		},
+	})
 	if err == nil {
-		t.Fatal("expected conflicting canonical claims to be rejected before mutation")
+		t.Fatal("expected duplicate media_item_id to be rejected before mutation")
 	}
 }
