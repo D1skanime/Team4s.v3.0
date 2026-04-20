@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 19-episode-import-operator-workbench/19-01-PLAN.md
-last_updated: "2026-04-20T11:06:29.453Z"
+stopped_at: Completed 19-episode-import-operator-workbench/19-02-PLAN.md
+last_updated: "2026-04-20T11:13:08.600Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 14
   completed_phases: 11
   total_plans: 49
-  completed_plans: 45
+  completed_plans: 46
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 19 (episode-import-operator-workbench) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -86,6 +86,8 @@ Recent durable decisions:
 - [Phase 17 closeout]: Anime Create is complete for the current UX/UI follow-through slice; background videos are additive, AniSearch diagnostics are hidden, and Jellyfin `Ordnerpfad` is visible in Basisdaten.
 - [Phase 19-episode-import-operator-workbench]: EpisodeImportMappingRow carries file_name and display_path fields populated from media candidates at preview build time
 - [Phase 19-episode-import-operator-workbench]: Apply plan removes exclusive episode-claim check: multiple confirmed rows for same episode are valid parallel versions; duplicate media_item_id still rejected
+- [Phase 19-episode-import-operator-workbench]: Episode groups keyed by suggested_episode_numbers[0]; global bulk actions in workbench panel header, per-episode quick-actions inline on group headers
+- [Phase 19-episode-import-operator-workbench]: Context strip keeps AniSearch ID, Jellyfin series, folder path always visible; source panel simplified to two inputs only
 
 ### Pending Todos
 
@@ -135,6 +137,7 @@ Recent durable decisions:
 | Phase 17 P05 | 7min | 4 tasks | 4 files |
 | Phase 17.1 P01 | 40min | 2 tasks | 5 files |
 | Phase 19-episode-import-operator-workbench P01 | 18min | 2 tasks | 7 files |
+| Phase 19-episode-import-operator-workbench P02 | 5min | 2 tasks | 5 files |
 
 ### Quick Tasks Completed
 
@@ -146,7 +149,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-20T11:06:29.448Z
-Stopped at: Completed 19-episode-import-operator-workbench/19-01-PLAN.md
+Last session: 2026-04-20T11:13:08.595Z
+Stopped at: Completed 19-episode-import-operator-workbench/19-02-PLAN.md
 Last activity: 2026-04-20
 Resume file: None
