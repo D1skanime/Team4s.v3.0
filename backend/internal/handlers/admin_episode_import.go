@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"path"
@@ -130,15 +131,106 @@ func (h *AdminContentHandler) loadEpisodeImportContext(c *gin.Context, animeID i
 		return models.EpisodeImportContextResult{}, http.StatusInternalServerError, err
 	}
 	aniSearchID := normalizeStringPtr(extractAniSearchSourceID(source.Source))
+	folderPath := normalizeStringPtr(derefString(source.FolderName))
 	jellyfinSeriesID := normalizeStringPtr(extractJellyfinSourceID(source.Source))
+	if jellyfinSeriesID == nil {
+		animeTitles := uniqueLookupTitles(source.Title, source.TitleDE, source.TitleEN)
+		resolvedItem, resolveErr := h.resolveEpisodeImportSeriesByFolderPath(c.Request.Context(), animeTitles, folderPath)
+		if resolveErr != nil {
+			log.Printf("episode import context jellyfin path resolve failed anime_id=%d path=%q: %v", animeID, derefString(folderPath), resolveErr)
+		} else if resolvedItem != nil {
+			jellyfinSeriesID = normalizeStringPtr(resolvedItem.ID)
+		}
+	}
 	return models.EpisodeImportContextResult{
 		AnimeID:          source.ID,
 		AnimeTitle:       source.Title,
 		AniSearchID:      aniSearchID,
 		JellyfinSeriesID: jellyfinSeriesID,
-		FolderPath:       normalizeStringPtr(derefString(source.FolderName)),
+		FolderPath:       folderPath,
 		Source:           source.Source,
 	}, http.StatusOK, nil
+}
+
+func (h *AdminContentHandler) resolveEpisodeImportSeriesByFolderPath(
+	ctx context.Context,
+	animeTitles []string,
+	folderPath *string,
+) (*jellyfinSeriesItem, error) {
+	normalizedFolderPath := normalizeJellyfinPath(folderPath)
+	if normalizedFolderPath == "" {
+		return nil, nil
+	}
+
+	lookupTerms := make([]string, 0, len(animeTitles)+1)
+	lookupTerms = appendUniqueJellyfinLookupTerms(lookupTerms, animeTitles...)
+	if titleSeed := buildJellyfinFolderNameTitleSeed(folderPath); titleSeed != nil {
+		lookupTerms = appendUniqueJellyfinLookupTerms(lookupTerms, *titleSeed)
+	}
+	if len(lookupTerms) == 0 {
+		return nil, nil
+	}
+
+	candidateByID := make(map[string]jellyfinSeriesItem, len(lookupTerms))
+	for _, term := range lookupTerms {
+		items, err := h.searchJellyfinSeries(ctx, term, 10)
+		if err != nil {
+			return nil, err
+		}
+		for _, item := range findJellyfinSeriesMatchesByPath(items, normalizedFolderPath) {
+			candidateByID[strings.TrimSpace(item.ID)] = item
+		}
+	}
+
+	if len(candidateByID) != 1 {
+		return nil, nil
+	}
+	for _, item := range candidateByID {
+		return &item, nil
+	}
+	return nil, nil
+}
+
+func appendUniqueJellyfinLookupTerms(existing []string, values ...string) []string {
+	seen := make(map[string]struct{}, len(existing)+len(values))
+	for _, value := range existing {
+		normalized := strings.ToLower(strings.TrimSpace(value))
+		if normalized == "" {
+			continue
+		}
+		seen[normalized] = struct{}{}
+	}
+
+	result := existing
+	for _, value := range values {
+		trimmed := strings.TrimSpace(value)
+		if trimmed == "" {
+			continue
+		}
+		normalized := strings.ToLower(trimmed)
+		if _, ok := seen[normalized]; ok {
+			continue
+		}
+		seen[normalized] = struct{}{}
+		result = append(result, trimmed)
+	}
+	return result
+}
+
+func findJellyfinSeriesMatchesByPath(items []jellyfinSeriesItem, normalizedFolderPath string) []jellyfinSeriesItem {
+	if normalizedFolderPath == "" {
+		return []jellyfinSeriesItem{}
+	}
+
+	matches := make([]jellyfinSeriesItem, 0, len(items))
+	for _, item := range items {
+		itemPath := normalizeJellyfinPath(normalizeNullableStringPtr(item.Path))
+		if itemPath == "" || itemPath != normalizedFolderPath {
+			continue
+		}
+		matches = append(matches, item)
+	}
+	return matches
 }
 
 func (h *AdminContentHandler) loadEpisodeImportCanonicalEpisodes(c *gin.Context, aniSearchID string) ([]models.EpisodeImportCanonicalEpisode, error) {
@@ -250,6 +342,8 @@ func buildEpisodeImportPreview(
 		}
 		row := models.EpisodeImportMappingRow{
 			MediaItemID: media.MediaItemID,
+			FileName:    media.FileName,
+			DisplayPath: episodeImportDisplayPath(media.Path, media.FileName),
 			Status:      models.EpisodeImportMappingStatusSkipped,
 		}
 		if target > 0 {
@@ -293,6 +387,28 @@ func episodeImportFileName(item jellyfinEpisodeItem) string {
 		return path.Base(strings.ReplaceAll(itemPath, "\\", "/"))
 	}
 	return strings.TrimSpace(item.Name)
+}
+
+// episodeImportDisplayPath returns a short, operator-readable path label for a
+// media candidate. If the full path ends with the file name the parent directory
+// name is used as a release-group hint (e.g. "[SubGroup]"), otherwise the last
+// two path segments are returned to give enough folder context.
+func episodeImportDisplayPath(fullPath, fileName string) string {
+	normalizedPath := strings.ReplaceAll(strings.TrimSpace(fullPath), "\\", "/")
+	normalizedName := strings.TrimSpace(fileName)
+	if normalizedPath == "" || normalizedPath == normalizedName {
+		return normalizedName
+	}
+	dir := path.Dir(normalizedPath)
+	parent := path.Base(dir)
+	grandparent := path.Base(path.Dir(dir))
+	if grandparent != "" && grandparent != "." && grandparent != "/" {
+		return grandparent + "/" + parent
+	}
+	if parent != "" && parent != "." && parent != "/" {
+		return parent
+	}
+	return normalizedName
 }
 
 func normalizeStringPtr(value string) *string {

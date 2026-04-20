@@ -67,6 +67,7 @@ describe('episodeImportMapping', () => {
   it('summarizes preview counts without hiding unmapped episodes or files', () => {
     const preview: EpisodeImportPreviewResult = {
       anime_id: 42,
+      anime_title: 'Test Anime',
       canonical_episodes: [{ episode_number: 1 }, { episode_number: 2 }],
       media_candidates: [
         { media_item_id: 'jellyfin-1', file_name: 'Episode 1.mkv', path: '/anime/Episode 1.mkv' },

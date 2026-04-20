@@ -35,8 +35,14 @@ type EpisodeImportMediaCandidate struct {
 
 // EpisodeImportMappingRow links one media candidate to zero, one, or many
 // canonical episode numbers after operator review.
+//
+// FileName and DisplayPath are readable operator-facing labels derived from the
+// Jellyfin media candidate so the frontend can identify real files instead of
+// showing opaque media IDs as the primary label.
 type EpisodeImportMappingRow struct {
 	MediaItemID             string                     `json:"media_item_id"`
+	FileName                string                     `json:"file_name,omitempty"`
+	DisplayPath             string                     `json:"display_path,omitempty"`
 	TargetEpisodeNumbers    []int32                    `json:"target_episode_numbers"`
 	SuggestedEpisodeNumbers []int32                    `json:"suggested_episode_numbers"`
 	Status                  EpisodeImportMappingStatus `json:"status"`

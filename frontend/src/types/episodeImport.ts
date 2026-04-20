@@ -20,6 +20,10 @@ export interface EpisodeImportMediaCandidate {
 
 export interface EpisodeImportMappingRow {
   media_item_id: string
+  /** Readable Jellyfin file name derived from the full path (e.g. "Bleach S03E11.mkv"). */
+  file_name?: string
+  /** Short folder-context label to distinguish releases (e.g. "[SubGroup]/Season 01"). */
+  display_path?: string
   target_episode_numbers: number[]
   suggested_episode_numbers: number[]
   status: EpisodeImportMappingStatus
