@@ -10,12 +10,29 @@ import {
 } from '@/lib/api'
 import type {
   EpisodeImportApplyResult,
+  EpisodeImportCanonicalEpisode,
   EpisodeImportContextResult,
   EpisodeImportMappingRow,
   EpisodeImportPreviewResult,
 } from '@/types/episodeImport'
 
-import { detectMappingConflicts, markMappingSkipped, setMappingTargets, summarizeImportPreview } from './episodeImportMapping'
+import {
+  confirmEpisodeMappingRows,
+  detectMappingConflicts,
+  markAllSuggestedConfirmed,
+  markAllSuggestedSkipped,
+  markMappingSkipped,
+  setMappingTargets,
+  skipEpisodeMappingRows,
+  summarizeImportPreview,
+} from './episodeImportMapping'
+
+export interface EpisodeGroup {
+  episodeNumber: number
+  title: string | null
+  existingEpisodeId: number | null
+  rows: EpisodeImportMappingRow[]
+}
 
 interface UseEpisodeImportBuilderState {
   context: EpisodeImportContextResult | null
@@ -30,12 +47,19 @@ interface UseEpisodeImportBuilderState {
   errorMessage: string | null
   summary: ReturnType<typeof summarizeImportPreview> | null
   canApply: boolean
+  hasSuggestedRows: boolean
+  episodeGroups: EpisodeGroup[]
+  unmappedMappingRows: EpisodeImportMappingRow[]
   loadPreview: () => Promise<void>
   applyMappings: () => Promise<void>
   setAniSearchID: (value: string) => void
   setSeasonOffset: (value: string) => void
   setTargets: (mediaItemID: string, rawTargets: string) => void
   skipMapping: (mediaItemID: string) => void
+  skipAllSuggested: () => void
+  confirmAllSuggested: () => void
+  confirmEpisodeRows: (episodeNumber: number) => void
+  skipEpisodeRows: (episodeNumber: number) => void
 }
 
 export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImportBuilderState {
@@ -54,7 +78,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
   useEffect(() => {
     async function loadContext() {
       if (!animeID) {
-        setErrorMessage('Ungueltige Anime-ID.')
+        setErrorMessage('Ungültige Anime-ID.')
         setIsLoadingContext(false)
         return
       }
@@ -85,6 +109,50 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     return mappings.every((row) => row.status === 'confirmed' || row.status === 'skipped')
   }, [preview, mappings])
 
+  const hasSuggestedRows = useMemo(
+    () => mappings.some((row) => row.status === 'suggested'),
+    [mappings],
+  )
+
+  // Build episode groups: group mapping rows by their first suggested episode number
+  const episodeGroups = useMemo<EpisodeGroup[]>(() => {
+    if (!preview) return []
+
+    const canonicalMap = new Map<number, EpisodeImportCanonicalEpisode>()
+    for (const ep of preview.canonical_episodes ?? []) {
+      canonicalMap.set(ep.episode_number, ep)
+    }
+
+    const groupMap = new Map<number, EpisodeImportMappingRow[]>()
+    for (const row of mappings) {
+      const suggested = row.suggested_episode_numbers?.[0]
+      if (suggested != null) {
+        const existing = groupMap.get(suggested) ?? []
+        existing.push(row)
+        groupMap.set(suggested, existing)
+      }
+    }
+
+    return Array.from(groupMap.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([episodeNumber, rows]) => {
+        const ep = canonicalMap.get(episodeNumber)
+        return {
+          episodeNumber,
+          title: ep?.title ?? ep?.existing_title ?? null,
+          existingEpisodeId: ep?.existing_episode_id ?? null,
+          rows,
+        }
+      })
+  }, [preview, mappings])
+
+  // Mapping rows that have no suggested episode (unmapped candidates)
+  const unmappedMappingRows = useMemo<EpisodeImportMappingRow[]>(() => {
+    return mappings.filter(
+      (row) => !row.suggested_episode_numbers || row.suggested_episode_numbers.length === 0,
+    )
+  }, [mappings])
+
   async function loadPreview() {
     if (!animeID) return
     setIsPreviewing(true)
@@ -103,7 +171,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
       setPreview(normalizedPreview)
       setMappings(detectMappingConflicts(normalizedPreview.mappings))
     } catch (error) {
-      setErrorMessage(formatEpisodeImportError(error, 'Preview konnte nicht geladen werden.'))
+      setErrorMessage(formatEpisodeImportError(error, 'Vorschau konnte nicht geladen werden.'))
     } finally {
       setIsPreviewing(false)
     }
@@ -145,12 +213,25 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     errorMessage,
     summary,
     canApply,
+    hasSuggestedRows,
+    episodeGroups,
+    unmappedMappingRows,
     loadPreview,
     applyMappings,
     setAniSearchID,
     setSeasonOffset,
-    setTargets: (mediaItemID, rawTargets) => setMappings((current) => setMappingTargets(current, mediaItemID, rawTargets)),
-    skipMapping: (mediaItemID) => setMappings((current) => markMappingSkipped(current, mediaItemID)),
+    setTargets: (mediaItemID, rawTargets) =>
+      setMappings((current) => setMappingTargets(current, mediaItemID, rawTargets)),
+    skipMapping: (mediaItemID) =>
+      setMappings((current) => markMappingSkipped(current, mediaItemID)),
+    skipAllSuggested: () =>
+      setMappings((current) => markAllSuggestedSkipped(current)),
+    confirmAllSuggested: () =>
+      setMappings((current) => markAllSuggestedConfirmed(current)),
+    confirmEpisodeRows: (episodeNumber) =>
+      setMappings((current) => confirmEpisodeMappingRows(current, episodeNumber)),
+    skipEpisodeRows: (episodeNumber) =>
+      setMappings((current) => skipEpisodeMappingRows(current, episodeNumber)),
   }
 }
 

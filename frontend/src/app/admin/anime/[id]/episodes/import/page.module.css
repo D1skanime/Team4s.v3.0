@@ -1,3 +1,5 @@
+/* ---- Base layout ---- */
+
 .page {
   min-height: 100vh;
   padding: 24px;
@@ -18,35 +20,24 @@
   text-decoration: none;
 }
 
-.hero,
-.panel,
-.success,
-.notice,
-.error {
-  border: 1px solid #ddd5ca;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 18px 50px rgba(52, 43, 34, 0.08);
-}
+/* ---- Hero ---- */
 
 .hero {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
+  border: 1px solid #ddd5ca;
+  border-radius: 18px;
   padding: 26px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 18px 50px rgba(52, 43, 34, 0.08);
 }
 
 .hero h1 {
   margin: 0;
-  font-size: clamp(30px, 4vw, 52px);
+  font-size: clamp(26px, 4vw, 46px);
   letter-spacing: -0.05em;
-}
-
-.hero p,
-.panel p,
-.hint {
-  color: #6f675d;
 }
 
 .eyebrow {
@@ -58,9 +49,74 @@
   text-transform: uppercase;
 }
 
+/* ---- Context strip ---- */
+
+.contextStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 12px;
+  border: 1px solid #ddd5ca;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  overflow: hidden;
+}
+
+.contextField {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1 1 160px;
+  padding: 12px 16px;
+  border-right: 1px solid #e8e1d8;
+}
+
+.contextField:last-child {
+  border-right: none;
+}
+
+.contextFieldLabel {
+  color: #776e63;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.contextFieldValue {
+  color: #312821;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.contextFieldValueMono {
+  color: #312821;
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- Generic panel ---- */
+
 .panel {
-  margin-top: 18px;
+  margin-top: 16px;
+  border: 1px solid #ddd5ca;
+  border-radius: 18px;
   padding: 20px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 18px 50px rgba(52, 43, 34, 0.08);
+}
+
+.panel h2,
+.success h2 {
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.panel p {
+  color: #6f675d;
 }
 
 .panelHeader {
@@ -71,161 +127,274 @@
   margin-bottom: 18px;
 }
 
-.panelHeader h2,
-.panel h2,
-.success h2 {
-  margin: 0;
-  letter-spacing: -0.03em;
-}
-
-.sourceGrid,
-.summaryGrid,
-.contentGrid {
-  display: grid;
-  gap: 14px;
-}
+/* ---- Source inputs ---- */
 
 .sourceGrid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 480px;
 }
 
-.summaryGrid {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  margin-top: 18px;
-}
-
-.contentGrid {
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-}
-
-.field,
-.readonlyField {
+.field {
   display: grid;
   gap: 7px;
 }
 
-.field span,
-.readonlyField span,
-.metric span {
+.field span {
   color: #776e63;
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
 }
 
-.field input,
-.mappingRow input {
+.field input {
   width: 100%;
   border: 1px solid #d8cec0;
   border-radius: 12px;
   padding: 11px 12px;
   background: #fff;
   color: #18130f;
+  box-sizing: border-box;
 }
 
-.readonlyField {
-  border: 1px dashed #d8cec0;
-  border-radius: 12px;
-  padding: 10px 12px;
-  background: #fbfaf8;
+/* ---- Summary strip ---- */
+
+.summaryStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
 }
 
-.primaryButton,
-.secondaryButton {
-  display: inline-flex;
+.summaryPill {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-weight: 800;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.primaryButton {
-  background: #ff6848;
-  color: #fff;
-}
-
-.primaryButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.secondaryButton {
+  gap: 2px;
   border: 1px solid #ddd5ca;
+  border-radius: 14px;
+  padding: 10px 16px;
   background: #fff;
-  color: #312821;
+  min-width: 72px;
 }
 
-.metric {
-  border: 1px solid #ddd5ca;
-  border-radius: 16px;
-  padding: 14px;
-  background: #fff;
+.summaryPill strong {
+  font-size: 22px;
+  letter-spacing: -0.03em;
 }
 
-.metric strong {
-  display: block;
-  margin-top: 5px;
-  font-size: 28px;
+.summaryPill span {
+  color: #776e63;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-.metricDanger {
+.summaryPillGood {
+  border-color: #bce7be;
+  background: #f0fff0;
+}
+
+.summaryPillGood strong {
+  color: #176b2c;
+}
+
+.summaryPillDanger {
   border-color: #ffb6a5;
   background: #fff0eb;
 }
 
-.list,
-.mappingList {
-  display: grid;
-  gap: 10px;
+.summaryPillDanger strong {
+  color: #a92f1e;
 }
 
-.episodeRow,
-.mediaRow,
-.mappingRow {
-  border: 1px solid #e4ddd4;
-  border-radius: 14px;
-  padding: 12px;
-  background: #fff;
+.summaryPillNeutral {
+  border-color: #f0dfa0;
+  background: #fffce8;
 }
 
-.episodeRow,
-.mediaRow {
-  display: grid;
-  gap: 4px;
+.summaryPillNeutral strong {
+  color: #7a5c00;
 }
 
-.episodeRow em,
-.mediaRow small {
-  color: #7f766c;
-  font-size: 12px;
-}
+/* ---- Workbench actions toolbar ---- */
 
-.mappingRow {
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(180px, 260px) auto;
+.workbenchActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   align-items: center;
+}
+
+/* ---- Episode groups ---- */
+
+.episodeGroups {
+  display: grid;
   gap: 12px;
 }
 
-.mappingRow p {
-  grid-column: 1 / -1;
-  margin: 0;
-  color: #a65a23;
+.episodeGroup {
+  border: 1px solid #e4ddd4;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.episodeGroupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #faf7f3;
+  border-bottom: 1px solid #e4ddd4;
+}
+
+.episodeGroupMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.episodeGroupNumber {
   font-size: 13px;
+  font-weight: 800;
+  color: #8060d7;
+  min-width: 32px;
+}
+
+.episodeGroupTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #17130f;
+}
+
+.episodeGroupLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #776e63;
+}
+
+.episodeGroupCount {
+  font-size: 12px;
+  color: #a09890;
+}
+
+.existingBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #5e9e6a;
+  background: #dff8df;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.episodeGroupActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ---- Mapping list and rows ---- */
+
+.mappingList {
+  display: grid;
+  gap: 0;
+}
+
+.mappingRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-top: 1px solid #ede7df;
+  background: #fff;
+}
+
+.mappingRow:first-child {
+  border-top: none;
+}
+
+/* Status-based left accent */
+.mappingRow.suggested {
+  border-left: 3px solid #f5d66a;
+}
+
+.mappingRow.confirmed {
+  border-left: 3px solid #6dce7a;
+}
+
+.mappingRow.conflict {
+  border-left: 3px solid #e8634a;
+  background: #fffaf9;
+}
+
+.mappingRow.skipped {
+  border-left: 3px solid #cfc9c1;
+  background: #faf8f5;
+  opacity: 0.75;
+}
+
+.mappingRowFile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: 13px;
+  font-weight: 700;
+  color: #17130f;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.displayPath {
+  font-size: 11px;
+  color: #9b8e82;
+  font-family: ui-monospace, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.multiEpisodeHint {
+  font-size: 11px;
+  color: #8060d7;
   font-weight: 700;
 }
 
+.targetInput {
+  width: 110px;
+  border: 1px solid #d8cec0;
+  border-radius: 10px;
+  padding: 7px 10px;
+  background: #fff;
+  color: #18130f;
+  font-size: 13px;
+  text-align: center;
+}
+
+.targetInput:disabled {
+  background: #f0ede8;
+  color: #a09890;
+}
+
+/* ---- Status pills ---- */
+
 .statusPill {
   display: inline-flex;
-  margin-left: 10px;
+  align-items: center;
   border-radius: 999px;
-  padding: 4px 9px;
-  font-size: 12px;
+  padding: 4px 10px;
+  font-size: 11px;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .suggested {
@@ -248,11 +417,71 @@
   color: #5e554b;
 }
 
+/* ---- Buttons ---- */
+
+.primaryButton,
+.secondaryButton,
+.microButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 12px;
+  padding: 9px 14px;
+  font-weight: 800;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.primaryButton {
+  background: #ff6848;
+  color: #fff;
+}
+
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.secondaryButton {
+  border: 1px solid #ddd5ca;
+  background: #fff;
+  color: #312821;
+}
+
+.microButton {
+  border: 1px solid #ddd5ca;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #fff;
+  color: #312821;
+}
+
+.microButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.microButtonActive {
+  border-color: #8060d7;
+  background: #f2edff;
+  color: #5a3fc0;
+}
+
+/* ---- Notices ---- */
+
 .notice,
 .error,
 .success {
-  margin-top: 18px;
-  padding: 16px 18px;
+  margin-top: 16px;
+  border: 1px solid #ddd5ca;
+  border-radius: 14px;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.86);
 }
 
 .error {
@@ -264,7 +493,28 @@
 .success {
   border-color: #bce7be;
   background: #f0fff0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
+
+.success h2 {
+  margin: 0;
+}
+
+.success p {
+  margin: 0;
+  flex: 1;
+}
+
+.hint {
+  margin-top: 12px;
+  color: #9b8e82;
+  font-size: 13px;
+}
+
+/* ---- Responsive ---- */
 
 @media (max-width: 980px) {
   .hero,
@@ -272,10 +522,35 @@
     display: grid;
   }
 
-  .sourceGrid,
-  .summaryGrid,
-  .contentGrid,
-  .mappingRow {
+  .workbenchActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sourceGrid {
     grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+
+  .mappingRow {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+  }
+
+  .mappingRowFile {
+    grid-column: 1 / -1;
+  }
+
+  .contextStrip {
+    flex-direction: column;
+  }
+
+  .contextField {
+    border-right: none;
+    border-bottom: 1px solid #e8e1d8;
+  }
+
+  .contextField:last-child {
+    border-bottom: none;
   }
 }
