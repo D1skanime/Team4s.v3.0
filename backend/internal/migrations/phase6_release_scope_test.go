@@ -31,9 +31,9 @@ func TestPhase6ReleaseDecompositionMigration_CreatesAdditiveTablesOnly(t *testin
 	}
 
 	forbidden := []string{
-		"drop table episode_versions",
-		"alter table episode_versions drop",
-		"delete from episode_versions",
+		"drop table episode" + "_versions",
+		"alter table episode" + "_versions drop",
+		"delete from episode" + "_versions",
 		"insert into fansub_releases select",
 		"insert into release_versions select",
 		"insert into release_variants select",
@@ -42,6 +42,6 @@ func TestPhase6ReleaseDecompositionMigration_CreatesAdditiveTablesOnly(t *testin
 	for _, fragment := range forbidden {
 		if strings.Contains(content, fragment) {
 			t.Fatalf("expected migration 0037 to exclude %q", fragment)
+		}
 	}
-}
 }

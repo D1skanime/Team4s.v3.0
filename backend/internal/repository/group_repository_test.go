@@ -116,25 +116,51 @@ func TestGroupRepository_GetGroupReleases(t *testing.T) {
 		t.Fatalf("failed to attach group 2: %v", err)
 	}
 
-	// Create episode versions
-	versionRepo := NewEpisodeVersionRepository(repo.db)
+	// Create release-native rows
 	for i := int32(1); i <= 5; i++ {
-		if _, err := repo.db.Exec(ctx, `
+		var episodeID int64
+		if err := repo.db.QueryRow(ctx, `
 			INSERT INTO episodes (anime_id, episode_number, title, status)
 			VALUES ($1, $2, $3, 'public')
-		`, animeID, fmt.Sprintf("%d", i), fmt.Sprintf("Episode %d", i)); err != nil {
+			RETURNING id
+		`, animeID, fmt.Sprintf("%d", i), fmt.Sprintf("Episode %d", i)).Scan(&episodeID); err != nil {
 			t.Fatalf("failed to create episode row %d: %v", i, err)
 		}
-		_, err := versionRepo.Create(ctx, models.EpisodeVersionCreateInput{
-			AnimeID:       animeID,
-			EpisodeNumber: i,
-			Title:         stringPtr("Episode " + string(rune('0'+i))),
-			FansubGroupID: &group1.ID,
-			MediaProvider: "jellyfin",
-			MediaItemID:   "test-item-" + string(rune('0'+i)),
-		})
-		if err != nil {
-			t.Fatalf("failed to create episode version %d: %v", i, err)
+		var releaseID int64
+		if err := repo.db.QueryRow(ctx, `
+			INSERT INTO fansub_releases (episode_id)
+			VALUES ($1)
+			RETURNING id
+		`, episodeID).Scan(&releaseID); err != nil {
+			t.Fatalf("failed to create release %d: %v", i, err)
+		}
+		var releaseVersionID int64
+		if err := repo.db.QueryRow(ctx, `
+			INSERT INTO release_versions (release_id, version, title)
+			VALUES ($1, 'v1', $2)
+			RETURNING id
+		`, releaseID, fmt.Sprintf("Episode %d", i)).Scan(&releaseVersionID); err != nil {
+			t.Fatalf("failed to create release version %d: %v", i, err)
+		}
+		if _, err := repo.db.Exec(ctx, `
+			INSERT INTO release_version_groups (release_version_id, fansub_group_id, fansubgroup_id)
+			VALUES ($1, $2, $2)
+		`, releaseVersionID, group1.ID); err != nil {
+			t.Fatalf("failed to create release version group %d: %v", i, err)
+		}
+		var variantID int64
+		if err := repo.db.QueryRow(ctx, `
+			INSERT INTO release_variants (release_version_id, filename, video_quality)
+			VALUES ($1, $2, '1080p')
+			RETURNING id
+		`, releaseVersionID, fmt.Sprintf("episode-%d.mkv", i)).Scan(&variantID); err != nil {
+			t.Fatalf("failed to create release variant %d: %v", i, err)
+		}
+		if _, err := repo.db.Exec(ctx, `
+			INSERT INTO release_variant_episodes (release_variant_id, episode_id, position)
+			VALUES ($1, $2, 1)
+		`, variantID, episodeID); err != nil {
+			t.Fatalf("failed to create release coverage %d: %v", i, err)
 		}
 	}
 
@@ -210,20 +236,7 @@ func TestGroupRepository_GetGroupReleases(t *testing.T) {
 		t.Fatalf("expected only episode 4 for numeric search, got total=%d count=%d", total, len(data.Episodes))
 	}
 
-	// Test: Screenshot count + thumbnail
-	if _, err := repo.db.Exec(ctx, `
-		INSERT INTO episode_version_images (episode_version_id, url, thumbnail_url, display_order)
-		VALUES ($1, $2, $3, 1), ($1, $4, $5, 2)
-	`,
-		data.Episodes[0].ID,
-		"https://example.com/full-1.jpg",
-		"https://example.com/thumb-1.jpg",
-		"https://example.com/full-2.jpg",
-		"https://example.com/thumb-2.jpg",
-	); err != nil {
-		t.Fatalf("failed to seed episode_version_images: %v", err)
-	}
-
+	// Test: Release assets are deferred until release-native media linking lands.
 	data, total, err = groupRepo.GetGroupReleases(ctx, animeID, group1.ID, models.GroupReleasesFilter{
 		Page:    1,
 		PerPage: 20,
@@ -233,13 +246,13 @@ func TestGroupRepository_GetGroupReleases(t *testing.T) {
 		t.Fatalf("GetGroupReleases after seeding screenshots failed: %v", err)
 	}
 	if total != 1 {
-		t.Fatalf("expected total 1 after screenshot seed, got %d", total)
+		t.Fatalf("expected total 1 after release-native seed, got %d", total)
 	}
-	if data.Episodes[0].ScreenshotCount != 2 {
-		t.Fatalf("expected screenshot_count 2, got %d", data.Episodes[0].ScreenshotCount)
+	if data.Episodes[0].ScreenshotCount != 0 {
+		t.Fatalf("expected deferred screenshot_count 0, got %d", data.Episodes[0].ScreenshotCount)
 	}
-	if data.Episodes[0].ThumbnailURL == nil || *data.Episodes[0].ThumbnailURL != "https://example.com/thumb-1.jpg" {
-		t.Fatalf("expected first thumbnail_url to be populated, got %v", data.Episodes[0].ThumbnailURL)
+	if data.Episodes[0].ThumbnailURL != nil {
+		t.Fatalf("expected deferred thumbnail_url to be nil, got %v", data.Episodes[0].ThumbnailURL)
 	}
 
 	// Test: Not found

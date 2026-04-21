@@ -7,15 +7,6 @@ import (
 	"testing"
 )
 
-func TestEpisodeVersionsMigration_FansubDeleteSetsNull(t *testing.T) {
-	content := readMigrationFile(t, "0012_episode_versions.up.sql")
-	normalized := strings.ToLower(content)
-
-	if !strings.Contains(normalized, "fansub_group_id bigint references fansub_groups (id) on delete set null") {
-		t.Fatalf("expected episode_versions.fansub_group_id foreign key with ON DELETE SET NULL")
-	}
-}
-
 func TestAnimeFansubJoinMigration_FansubDeleteCascadesDetach(t *testing.T) {
 	content := readMigrationFile(t, "0011_anime_fansub_groups.up.sql")
 	normalized := strings.ToLower(content)

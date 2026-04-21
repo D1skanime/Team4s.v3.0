@@ -124,18 +124,20 @@ func TestAnimeAssetCompatibilityUsesV2CoverHelpersWhenLegacySlotsAreGone(t *test
 	}
 }
 
-func TestReleaseRuntimeAuthorityStillDependsOnEpisodeVersions(t *testing.T) {
+func TestReleaseRuntimeAuthorityUsesReleaseNativeTables(t *testing.T) {
 	repositoryContent := readRepositorySource(t, "episode_version_repository.go")
 	repositoryNormalized := strings.ToLower(repositoryContent)
 
 	requiredRepo := []string{
 		"func (r *episodeversionrepository) getreleasestreamsource(",
-		"select id, anime_id, media_provider, media_item_id, stream_url",
-		"from episode_versions",
+		"from release_versions rev",
+		"join release_variants rv on rv.release_version_id = rev.id",
+		"join release_streams rs on rs.variant_id = rv.id",
+		"join stream_sources ss on ss.id = rs.stream_source_id",
 	}
 	for _, fragment := range requiredRepo {
 		if !strings.Contains(repositoryNormalized, fragment) {
-			t.Fatalf("expected episode version repository to contain %q", fragment)
+			t.Fatalf("expected release repository compatibility path to contain %q", fragment)
 		}
 	}
 
