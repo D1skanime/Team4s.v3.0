@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 20-01-PLAN.md
-last_updated: "2026-04-21T14:33:00.717Z"
+stopped_at: Completed 20-02-PLAN.md
+last_updated: "2026-04-21T14:45:28.597Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 16
   completed_phases: 13
   total_plans: 57
-  completed_plans: 52
+  completed_plans: 53
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 20 (release-native-episode-import-schema) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 ## Accumulated Context
 
@@ -98,6 +98,9 @@ Recent durable decisions:
 - [Phase 20-release-native-episode-import-schema]: Treat Phase 20.1 as the schema foundation for Phase 20 plan 01 rather than recreating migrations or legacy episode-version tables.
 - [Phase 20-release-native-episode-import-schema]: Keep release_streams as the canonical release-bound stream table; the older streams table remains only as an allowed compatibility divergence.
 - [Phase 20-release-native-episode-import-schema]: Shared contracts must use release-native field names where runtime DTOs already moved away from episode-version terminology.
+- [Phase 20-release-native-episode-import-schema]: Episode import apply locates existing Jellyfin-backed release variants through stream_sources(provider_type='jellyfin', external_id=media_item_id) so repeated apply updates coverage instead of duplicating releases.
+- [Phase 20-release-native-episode-import-schema]: Canonical episode display cache follows German, English, Japanese, then generated Episode N, while all parsed language titles are persisted through episode_titles.
+- [Phase 20-release-native-episode-import-schema]: Fansub group joins are created from explicit apply overrides when present, otherwise conservatively derived from bracketed file/path evidence.
 
 ### Pending Todos
 
@@ -159,6 +162,7 @@ Recent durable decisions:
 | Phase 20.1-db-schema-v2-physical-cutover P03 | 14min | 3 tasks | 20 files |
 | Phase 20.1 P04 | 19min | 3 tasks | 4 files |
 | Phase 20-release-native-episode-import-schema P01 | 4min | 3 tasks | 5 files |
+| Phase 20-release-native-episode-import-schema P02 | 8min 38sec | 3 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -170,7 +174,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-21T14:33:00.711Z
-Stopped at: Completed 20-01-PLAN.md
+Last session: 2026-04-21T14:45:28.590Z
+Stopped at: Completed 20-02-PLAN.md
 Last activity: 2026-04-21
 Resume file: None

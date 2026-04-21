@@ -267,11 +267,11 @@ Plans:
 **Goal:** Align episode import persistence with the normalized episode/release schema so real libraries store canonical episodes, multilingual titles, filler metadata, releases, versions, variants, streams, and multi-episode file coverage without relying on legacy `episode_versions` as the only source of truth.
 **Requirements**: P20-SC1, P20-SC2, P20-SC3, P20-SC4, P20-SC5
 **Depends on:** Phase 20.1
-**Status**: In progress; plan 01 completed as a Phase 20.1 verification/bridge pass
-**Plans:** 1/4 plans executed
+**Status**: In progress; plans 01-02 complete with release-native schema verification and backend apply writes
+**Plans:** 2/4 plans executed
 Plans:
 - [x] `20-01-PLAN.md` - Add the controlled local reset and missing schema pieces, including filler fields and normalized release coverage for multi-episode files.
-- [ ] `20-02-PLAN.md` - Move backend episode import apply to the normalized release graph and persist multilingual titles plus filler metadata.
+- [x] `20-02-PLAN.md` - Move backend episode import apply to the normalized release graph and persist multilingual titles plus filler metadata.
 - [ ] `20-03-PLAN.md` - Expose release-native mapping fields, filler status, and multi-target correction in the operator workbench.
 - [ ] `20-04-PLAN.md` - Verify on a clean local Naruto import with filler, multiple releases, and combined episode coverage, then Docker-deploy.
 **Success Criteria** (what must be TRUE):
