@@ -22,6 +22,7 @@ import {
   markAllSuggestedConfirmed,
   markAllSuggestedSkipped,
   markMappingSkipped,
+  resolveEpisodeDisplayTitle,
   setMappingTargets,
   skipEpisodeMappingRows,
   summarizeImportPreview,
@@ -31,6 +32,9 @@ export interface EpisodeGroup {
   episodeNumber: number
   title: string | null
   existingEpisodeId: number | null
+  /** Filler classification for the canonical episode, e.g. "filler", "canon", "mixed", "recap". */
+  fillerType: string | null
+  fillerNote: string | null
   rows: EpisodeImportMappingRow[]
 }
 
@@ -139,8 +143,10 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
         const ep = canonicalMap.get(episodeNumber)
         return {
           episodeNumber,
-          title: ep?.title ?? ep?.existing_title ?? null,
+          title: ep ? resolveEpisodeDisplayTitle(ep) : null,
           existingEpisodeId: ep?.existing_episode_id ?? null,
+          fillerType: ep?.filler_type ?? null,
+          fillerNote: ep?.filler_note ?? null,
           rows,
         }
       })

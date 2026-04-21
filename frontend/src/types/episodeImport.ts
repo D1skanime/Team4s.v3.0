@@ -3,6 +3,12 @@ export type EpisodeImportMappingStatus = 'suggested' | 'confirmed' | 'conflict' 
 export interface EpisodeImportCanonicalEpisode {
   episode_number: number
   title?: string | null
+  /** Multilingual title map keyed by language code, e.g. { "de": "...", "en": "..." }. */
+  titles_by_language?: Record<string, string> | null
+  /** Filler classification: "unknown" | "canon" | "filler" | "mixed" | "recap" */
+  filler_type?: string | null
+  filler_source?: string | null
+  filler_note?: string | null
   anisearch_episode_id?: string | null
   existing_episode_id?: number | null
   existing_title?: string | null

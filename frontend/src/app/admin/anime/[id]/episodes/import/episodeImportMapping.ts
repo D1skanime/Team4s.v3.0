@@ -1,4 +1,5 @@
 import type {
+  EpisodeImportCanonicalEpisode,
   EpisodeImportMappingRow,
   EpisodeImportPreviewResult,
   EpisodeImportPreviewSummary,
@@ -142,5 +143,35 @@ export function summarizeImportPreview(
     skipped_count: (preview.mappings ?? []).filter((row) => row.status === 'skipped').length,
     unmapped_episode_count: preview.unmapped_episodes?.length ?? 0,
     unmapped_media_count: preview.unmapped_media_item_ids?.length ?? 0,
+  }
+}
+
+/**
+ * Return the best display title for a canonical episode using the preference
+ * order: German > English > Japanese > existing_title > fallback.
+ */
+export function resolveEpisodeDisplayTitle(ep: EpisodeImportCanonicalEpisode): string | null {
+  if (ep.titles_by_language) {
+    const preferred = ep.titles_by_language['de'] ?? ep.titles_by_language['en'] ?? ep.titles_by_language['ja']
+    if (preferred) return preferred
+  }
+  return ep.title ?? ep.existing_title ?? null
+}
+
+/**
+ * Return a human-readable filler label for display in the workbench.
+ * Returns null for 'canon' episodes so the badge is not rendered.
+ */
+export function fillerLabel(fillerType: string | null | undefined): string | null {
+  switch (fillerType) {
+    case 'filler': return 'Filler'
+    case 'mixed': return 'Gemischt'
+    case 'recap': return 'Recap'
+    case 'unknown': return 'Unbekannt'
+    case 'canon':
+    case null:
+    case undefined:
+      return null
+    default: return fillerType
   }
 }

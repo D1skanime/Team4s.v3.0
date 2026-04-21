@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
 
 import styles from './page.module.css'
+import { fillerLabel } from './episodeImportMapping'
 import { useEpisodeImportBuilder } from './useEpisodeImportBuilder'
 
 function parsePositiveInt(value: string): number | null {
@@ -205,6 +206,8 @@ interface EpisodeGroupProps {
     episodeNumber: number
     title: string | null
     existingEpisodeId: number | null
+    fillerType: string | null
+    fillerNote: string | null
     rows: import('@/types/episodeImport').EpisodeImportMappingRow[]
   }
   onSetTargets: (mediaItemID: string, rawTargets: string) => void
@@ -223,6 +226,14 @@ function EpisodeGroup({ group, onSetTargets, onSkip, onConfirmEpisode, onSkipEpi
           <span className={styles.episodeGroupNumber}>#{group.episodeNumber}</span>
           <span className={styles.episodeGroupTitle}>{group.title ?? 'Ohne Titel'}</span>
           {group.existingEpisodeId ? <span className={styles.existingBadge}>lokal vorhanden</span> : null}
+          {fillerLabel(group.fillerType) ? (
+            <span
+              className={`${styles.fillerBadge} ${styles[`filler_${group.fillerType ?? ''}`] ?? ''}`}
+              title={group.fillerNote ?? undefined}
+            >
+              {fillerLabel(group.fillerType)}
+            </span>
+          ) : null}
         </div>
         {hasActionable ? (
           <div className={styles.episodeGroupActions}>
@@ -339,3 +350,4 @@ function statusLabel(status: string): string {
     default: return status
   }
 }
+

@@ -4,9 +4,11 @@ import type { EpisodeImportMappingRow, EpisodeImportPreviewResult } from '../../
 import {
   confirmEpisodeMappingRows,
   detectMappingConflicts,
+  fillerLabel,
   markAllSuggestedConfirmed,
   markAllSuggestedSkipped,
   markMappingSkipped,
+  resolveEpisodeDisplayTitle,
   setMappingTargets,
   skipEpisodeMappingRows,
   summarizeImportPreview,
@@ -213,5 +215,59 @@ describe('episodeImportMapping', () => {
 
     expect(result.find((r) => r.media_item_id === 'file-ep1')?.status).toBe('skipped')
     expect(result.find((r) => r.media_item_id === 'file-ep3')?.status).toBe('confirmed')
+  })
+
+  // --- Filler display helpers ---
+
+  it('fillerLabel returns null for canon episodes so no badge is shown', () => {
+    expect(fillerLabel('canon')).toBeNull()
+    expect(fillerLabel(null)).toBeNull()
+    expect(fillerLabel(undefined)).toBeNull()
+  })
+
+  it('fillerLabel returns localized labels for non-canon filler types', () => {
+    expect(fillerLabel('filler')).toBe('Filler')
+    expect(fillerLabel('mixed')).toBe('Gemischt')
+    expect(fillerLabel('recap')).toBe('Recap')
+    expect(fillerLabel('unknown')).toBe('Unbekannt')
+  })
+
+  // --- Canonical episode title resolution ---
+
+  it('resolveEpisodeDisplayTitle prefers German over other languages', () => {
+    const ep = {
+      episode_number: 5,
+      titles_by_language: { de: 'Schicksalstag', en: 'Day of Destiny', ja: '運命の日' },
+    }
+    expect(resolveEpisodeDisplayTitle(ep)).toBe('Schicksalstag')
+  })
+
+  it('resolveEpisodeDisplayTitle falls back to English when German is absent', () => {
+    const ep = {
+      episode_number: 5,
+      titles_by_language: { en: 'Day of Destiny', ja: '運命の日' },
+    }
+    expect(resolveEpisodeDisplayTitle(ep)).toBe('Day of Destiny')
+  })
+
+  it('resolveEpisodeDisplayTitle falls back to title field when no language map is present', () => {
+    const ep = {
+      episode_number: 5,
+      title: 'Day of Destiny',
+    }
+    expect(resolveEpisodeDisplayTitle(ep)).toBe('Day of Destiny')
+  })
+
+  it('resolveEpisodeDisplayTitle falls back to existing_title when title and language map are absent', () => {
+    const ep = {
+      episode_number: 5,
+      existing_title: 'Existing cached title',
+    }
+    expect(resolveEpisodeDisplayTitle(ep)).toBe('Existing cached title')
+  })
+
+  it('resolveEpisodeDisplayTitle returns null when no title data is available', () => {
+    const ep = { episode_number: 5 }
+    expect(resolveEpisodeDisplayTitle(ep)).toBeNull()
   })
 })
