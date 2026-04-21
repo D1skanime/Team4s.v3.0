@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 20.1-03-PLAN.md
-last_updated: "2026-04-21T13:50:22.715Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 20.1-04-PLAN.md
+last_updated: "2026-04-21T14:12:08.249Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 16
-  completed_phases: 12
+  completed_phases: 13
   total_plans: 57
-  completed_plans: 50
+  completed_plans: 51
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 ## Current Position
 
-Phase: 20.1 (db-schema-v2-physical-cutover) — EXECUTING
+Phase: 20.1 (db-schema-v2-physical-cutover) — COMPLETE
 Plan: 4 of 4
 
 ## Accumulated Context
@@ -93,6 +93,8 @@ Recent durable decisions:
 - [Phase 20.1-db-schema-v2-physical-cutover]: Use scripts/schema-v2-contract-check.ps1 as the failing DB Schema v2 contract guard; it allows only the explicit streams and episode-version cleanup leftovers.
 - [Phase 20.1-db-schema-v2-physical-cutover]: Legacy mutation seams now return explicit Phase 20 deferred errors instead of writing replacement partial structures during the cutover.
 - [Phase 20.1-db-schema-v2-physical-cutover]: Fansub/group read surfaces use release-native tables, while release media thumbnail counts stay deferred until release-native media linking lands.
+- [Phase 20.1]: Phase 20 is now unblocked on schema foundation but must own release-native import apply writes.
+- [Phase 20.1]: The old `streams` table remains an allowed compatibility divergence; new import work must target `release_streams`.
 
 ### Pending Todos
 
@@ -121,6 +123,7 @@ Recent durable decisions:
 - Phase 19 UAT passed after fixing frontend conflict detection for parallel releases; import is now practical enough to expose the remaining persistence-schema mismatch.
 - Phase 20 planned: Release-native episode import schema, focused on clean local reset, normalized release graph writes, multilingual episode titles, filler metadata, and Naruto-style multi-episode file coverage.
 - Phase 20.1 planned before Phase 20 execution: build the full documented `docs/architecture/db-schema-v2.md` target as real DB tables, then delete the legacy `episode_versions` table family because only disposable test episode data exists.
+- Phase 20.1 executed and verified: clean migration through 46 migrations passed, legacy episode-version tables are absent, Docker backend/frontend were rebuilt, and Phase 20 is unblocked for release-native import writes.
 
 ### Blockers/Concerns
 
@@ -151,6 +154,7 @@ Recent durable decisions:
 | Phase 19-episode-import-operator-workbench P03 | 5min | 1 tasks | 1 files |
 | Phase 20.1-db-schema-v2-physical-cutover P02 | 6min | 3 tasks | 7 files |
 | Phase 20.1-db-schema-v2-physical-cutover P03 | 14min | 3 tasks | 20 files |
+| Phase 20.1 P04 | 19min | 3 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -162,7 +166,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-21T13:50:22.703Z
-Stopped at: Completed 20.1-03-PLAN.md
+Last session: 2026-04-21T14:12:08.243Z
+Stopped at: Completed 20.1-04-PLAN.md
 Last activity: 2026-04-21
 Resume file: None

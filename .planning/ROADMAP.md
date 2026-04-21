@@ -250,7 +250,7 @@ Plans:
 **Requirements**: P20.1-SC1, P20.1-SC2, P20.1-SC3, P20.1-SC4, P20.1-SC5
 **Depends on:** Phase 19
 **Status**: Completed and Docker-deployed on 2026-04-21; Phase 20 is unblocked for release-native import writes
-**Plans:** 4/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [x] `20.1-01-PLAN.md` - Inventory live-vs-target schema, add controlled local reset, and lock the deletion boundary.
 - [x] `20.1-02-PLAN.md` - Create/reconcile every documented DB Schema v2 target table, column, constraint, index, and lookup value.
