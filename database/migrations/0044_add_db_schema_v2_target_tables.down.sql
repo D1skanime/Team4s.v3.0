@@ -1,0 +1,15 @@
+DROP TABLE IF EXISTS member_episode_notes;
+DROP TABLE IF EXISTS member_anime_notes;
+DROP TABLE IF EXISTS release_member_roles;
+DROP TABLE IF EXISTS contributor_roles;
+DROP TABLE IF EXISTS group_members;
+DROP TABLE IF EXISTS members;
+DROP TABLE IF EXISTS fansub_group_links;
+DROP TABLE IF EXISTS episode_theme_overrides;
+DROP TABLE IF EXISTS theme_segments;
+DROP TABLE IF EXISTS release_theme_assets;
+DROP TABLE IF EXISTS themes;
+DROP TABLE IF EXISTS theme_types;
+DROP TABLE IF EXISTS release_variant_episodes;
+DROP TABLE IF EXISTS episode_filler_types;
+DROP TABLE IF EXISTS users;
