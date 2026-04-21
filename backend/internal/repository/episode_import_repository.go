@@ -2,15 +2,12 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 
 	"team4s.v3/backend/internal/models"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -32,7 +29,7 @@ func (r *EpisodeImportRepository) Apply(
 	if _, err := buildEpisodeImportApplyPlan(input); err != nil {
 		return nil, err
 	}
-	return nil, fmt.Errorf("episode import apply is deferred until Phase 20 release-native writes are implemented")
+	return r.applyReleaseNative(ctx, input)
 }
 
 func (r *EpisodeImportRepository) PreviewExistingCoverage(
@@ -179,44 +176,4 @@ func sortedEpisodeImportNumbers(items map[int32]models.EpisodeImportCanonicalEpi
 		return numbers[i] < numbers[j]
 	})
 	return numbers
-}
-
-func upsertImportEpisode(
-	ctx context.Context,
-	tx pgx.Tx,
-	animeID int64,
-	canonical models.EpisodeImportCanonicalEpisode,
-) (int64, bool, error) {
-	episodeNumber := strconv.Itoa(int(canonical.EpisodeNumber))
-	var existingID int64
-	err := tx.QueryRow(ctx, `
-		SELECT id
-		FROM episodes
-		WHERE anime_id = $1 AND episode_number = $2
-		ORDER BY id ASC
-		LIMIT 1
-		FOR UPDATE
-	`, animeID, episodeNumber).Scan(&existingID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		var createdID int64
-		if err := tx.QueryRow(ctx, `
-			INSERT INTO episodes (anime_id, episode_number, title, status, number, sort_index)
-			VALUES ($1, $2, $3, 'disabled', $4, $4)
-			RETURNING id
-		`, animeID, episodeNumber, canonical.Title, canonical.EpisodeNumber).Scan(&createdID); err != nil {
-			return 0, false, fmt.Errorf("create canonical episode anime=%d number=%s: %w", animeID, episodeNumber, err)
-		}
-		return createdID, true, nil
-	}
-	if err != nil {
-		return 0, false, fmt.Errorf("query canonical episode anime=%d number=%s: %w", animeID, episodeNumber, err)
-	}
-	if _, err := tx.Exec(ctx, `
-		UPDATE episodes
-		SET title = COALESCE(NULLIF(BTRIM(title), ''), $1), updated_at = NOW()
-		WHERE id = $2
-	`, canonical.Title, existingID); err != nil {
-		return 0, false, fmt.Errorf("fill canonical episode title id=%d: %w", existingID, err)
-	}
-	return existingID, false, nil
 }
