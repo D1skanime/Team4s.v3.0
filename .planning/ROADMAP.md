@@ -250,7 +250,7 @@ Plans:
 **Requirements**: P20.1-SC1, P20.1-SC2, P20.1-SC3, P20.1-SC4, P20.1-SC5
 **Depends on:** Phase 19
 **Status**: Planned on 2026-04-21 before Phase 20 execution
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 Plans:
 - [ ] `20.1-01-PLAN.md` - Inventory live-vs-target schema, add controlled local reset, and lock the deletion boundary.
 - [ ] `20.1-02-PLAN.md` - Create/reconcile every documented DB Schema v2 target table, column, constraint, index, and lookup value.

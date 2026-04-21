@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 20.1-02-PLAN.md
-last_updated: "2026-04-21T13:33:42.946Z"
+stopped_at: Completed 20.1-03-PLAN.md
+last_updated: "2026-04-21T13:50:22.715Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 16
   completed_phases: 12
   total_plans: 57
-  completed_plans: 49
+  completed_plans: 50
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 20.1 (db-schema-v2-physical-cutover) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 
 ## Accumulated Context
 
@@ -91,6 +91,8 @@ Recent durable decisions:
 - [Phase 19-episode-import-operator-workbench]: Test 3 create-flow folder_name bug is pre-existing and out of Phase 19 scope; narrowed to minor follow-up quick task
 - [Phase 19-episode-import-operator-workbench]: Phase-18 UAT transitions from blocked to pending-live-retest: Tests 4 and 6 resolved-by-code, Test 7 now practically reachable
 - [Phase 20.1-db-schema-v2-physical-cutover]: Use scripts/schema-v2-contract-check.ps1 as the failing DB Schema v2 contract guard; it allows only the explicit streams and episode-version cleanup leftovers.
+- [Phase 20.1-db-schema-v2-physical-cutover]: Legacy mutation seams now return explicit Phase 20 deferred errors instead of writing replacement partial structures during the cutover.
+- [Phase 20.1-db-schema-v2-physical-cutover]: Fansub/group read surfaces use release-native tables, while release media thumbnail counts stay deferred until release-native media linking lands.
 
 ### Pending Todos
 
@@ -148,6 +150,7 @@ Recent durable decisions:
 | Phase 19-episode-import-operator-workbench P02 | 5min | 2 tasks | 5 files |
 | Phase 19-episode-import-operator-workbench P03 | 5min | 1 tasks | 1 files |
 | Phase 20.1-db-schema-v2-physical-cutover P02 | 6min | 3 tasks | 7 files |
+| Phase 20.1-db-schema-v2-physical-cutover P03 | 14min | 3 tasks | 20 files |
 
 ### Quick Tasks Completed
 
@@ -159,7 +162,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-21T13:33:42.940Z
-Stopped at: Completed 20.1-02-PLAN.md
+Last session: 2026-04-21T13:50:22.703Z
+Stopped at: Completed 20.1-03-PLAN.md
 Last activity: 2026-04-21
 Resume file: None
