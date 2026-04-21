@@ -5517,7 +5517,7 @@ components:
         - episode_id
         - anime_id
         - episode_number
-        - deleted_episode_versions
+        - deleted_release_variants
       properties:
         episode_id:
           type: integer
@@ -5527,7 +5527,7 @@ components:
           format: int64
         episode_number:
           type: string
-        deleted_episode_versions:
+        deleted_release_variants:
           type: integer
           format: int32
     AdminEpisodeDeleteResponse:
@@ -5885,7 +5885,7 @@ components:
         anime_relations_count:
           type: integer
           format: int32
-        episode_versions_count:
+        release_versions_count:
           type: integer
           format: int32
         members_count:

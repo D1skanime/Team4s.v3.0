@@ -384,7 +384,7 @@ types:
     episode_id: int64
     anime_id: int64
     episode_number: string
-    deleted_episode_versions: int32
+    deleted_release_variants: int32
   AdminAnimeJellyfinSyncResponse:
     data: AdminAnimeJellyfinSyncResult
   AdminJellyfinSeriesSearchResponse:
