@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
-stopped_at: Completed 20.1-04-PLAN.md
-last_updated: "2026-04-21T14:12:08.249Z"
+status: Ready to execute
+stopped_at: Completed 20-01-PLAN.md
+last_updated: "2026-04-21T14:33:00.717Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 16
   completed_phases: 13
   total_plans: 57
-  completed_plans: 51
+  completed_plans: 52
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 20.1 — db-schema-v2-physical-cutover
+**Current focus:** Phase 20 — release-native-episode-import-schema
 
 ## Current Position
 
-Phase: 20.1 (db-schema-v2-physical-cutover) — COMPLETE
-Plan: 4 of 4
+Phase: 20 (release-native-episode-import-schema) — EXECUTING
+Plan: 2 of 4
 
 ## Accumulated Context
 
@@ -95,6 +95,9 @@ Recent durable decisions:
 - [Phase 20.1-db-schema-v2-physical-cutover]: Fansub/group read surfaces use release-native tables, while release media thumbnail counts stay deferred until release-native media linking lands.
 - [Phase 20.1]: Phase 20 is now unblocked on schema foundation but must own release-native import apply writes.
 - [Phase 20.1]: The old `streams` table remains an allowed compatibility divergence; new import work must target `release_streams`.
+- [Phase 20-release-native-episode-import-schema]: Treat Phase 20.1 as the schema foundation for Phase 20 plan 01 rather than recreating migrations or legacy episode-version tables.
+- [Phase 20-release-native-episode-import-schema]: Keep release_streams as the canonical release-bound stream table; the older streams table remains only as an allowed compatibility divergence.
+- [Phase 20-release-native-episode-import-schema]: Shared contracts must use release-native field names where runtime DTOs already moved away from episode-version terminology.
 
 ### Pending Todos
 
@@ -155,6 +158,7 @@ Recent durable decisions:
 | Phase 20.1-db-schema-v2-physical-cutover P02 | 6min | 3 tasks | 7 files |
 | Phase 20.1-db-schema-v2-physical-cutover P03 | 14min | 3 tasks | 20 files |
 | Phase 20.1 P04 | 19min | 3 tasks | 4 files |
+| Phase 20-release-native-episode-import-schema P01 | 4min | 3 tasks | 5 files |
 
 ### Quick Tasks Completed
 
@@ -166,7 +170,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-21T14:12:08.243Z
-Stopped at: Completed 20.1-04-PLAN.md
+Last session: 2026-04-21T14:33:00.711Z
+Stopped at: Completed 20-01-PLAN.md
 Last activity: 2026-04-21
 Resume file: None
