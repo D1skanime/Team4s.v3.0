@@ -247,8 +247,12 @@ func (h *AdminContentHandler) loadEpisodeImportCanonicalEpisodes(c *gin.Context,
 			continue
 		}
 		result = append(result, models.EpisodeImportCanonicalEpisode{
-			EpisodeNumber: episode.EpisodeNumber,
-			Title:         episode.Title,
+			EpisodeNumber:    episode.EpisodeNumber,
+			Title:            episode.Title,
+			TitlesByLanguage: episode.TitlesByLanguage,
+			FillerType:       episode.FillerType,
+			FillerSource:     episode.FillerSource,
+			FillerNote:       episode.FillerNote,
 		})
 	}
 	return result, nil

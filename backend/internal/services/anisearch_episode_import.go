@@ -12,8 +12,12 @@ import (
 )
 
 type AniSearchEpisode struct {
-	EpisodeNumber int32
-	Title         *string
+	EpisodeNumber    int32
+	Title            *string
+	TitlesByLanguage map[string]string
+	FillerType       *string
+	FillerSource     *string
+	FillerNote       *string
 }
 
 func (c *AniSearchClient) FetchAnimeEpisodes(ctx context.Context, aniSearchID string) ([]AniSearchEpisode, error) {
@@ -86,9 +90,14 @@ func parseAniSearchEpisodeListHTML(rawHTML string) ([]AniSearchEpisode, error) {
 
 func parseAniSearchEpisodeTableRow(row *xhtml.Node) (AniSearchEpisode, bool) {
 	cells := make([]string, 0, 4)
+	titlesByLanguage := make(map[string]string)
 	for child := row.FirstChild; child != nil; child = child.NextSibling {
 		if child.Type == xhtml.ElementNode && (child.Data == "td" || child.Data == "th") {
-			cells = append(cells, strings.TrimSpace(nodeText(child)))
+			text := strings.TrimSpace(nodeText(child))
+			cells = append(cells, text)
+			if lang := normalizeAniSearchEpisodeLanguage(cellLanguage(child)); lang != "" && text != "" {
+				titlesByLanguage[lang] = text
+			}
 		}
 	}
 	if len(cells) < 2 {
@@ -99,8 +108,19 @@ func parseAniSearchEpisodeTableRow(row *xhtml.Node) (AniSearchEpisode, bool) {
 	if number <= 0 {
 		return AniSearchEpisode{}, false
 	}
-	title := normalizeStringPtr(firstNonEmpty(cells[1], cells[len(cells)-1]))
-	return AniSearchEpisode{EpisodeNumber: number, Title: title}, true
+	if len(titlesByLanguage) == 0 && strings.TrimSpace(cells[1]) != "" {
+		titlesByLanguage["de"] = strings.TrimSpace(cells[1])
+	}
+	title := normalizeStringPtr(episodeDisplayTitle(number, titlesByLanguage, firstNonEmpty(cells[1], cells[len(cells)-1])))
+	fillerType, fillerNote := parseAniSearchEpisodeFiller(cells)
+	return AniSearchEpisode{
+		EpisodeNumber:    number,
+		Title:            title,
+		TitlesByLanguage: titlesByLanguage,
+		FillerType:       fillerType,
+		FillerSource:     normalizeStringPtr("anisearch"),
+		FillerNote:       fillerNote,
+	}, true
 }
 
 func parseAniSearchEpisodeNumber(raw string) int32 {
@@ -113,4 +133,77 @@ func parseAniSearchEpisodeNumber(raw string) int32 {
 		return 0
 	}
 	return int32(parsed)
+}
+
+func cellLanguage(node *xhtml.Node) string {
+	for _, attr := range node.Attr {
+		key := strings.ToLower(strings.TrimSpace(attr.Key))
+		value := strings.TrimSpace(attr.Val)
+		if key == "lang" || key == "data-lang" || key == "data-language" {
+			return value
+		}
+		if key == "class" {
+			for _, part := range strings.Fields(strings.ToLower(value)) {
+				switch part {
+				case "de", "lang-de", "title-de", "german":
+					return "de"
+				case "en", "lang-en", "title-en", "english":
+					return "en"
+				case "ja", "jp", "lang-ja", "title-ja", "japanese":
+					return "ja"
+				}
+			}
+		}
+	}
+	return ""
+}
+
+func normalizeAniSearchEpisodeLanguage(raw string) string {
+	normalized := strings.ToLower(strings.TrimSpace(raw))
+	switch {
+	case normalized == "de" || strings.HasPrefix(normalized, "de-"):
+		return "de"
+	case normalized == "en" || strings.HasPrefix(normalized, "en-"):
+		return "en"
+	case normalized == "ja" || normalized == "jp" || strings.HasPrefix(normalized, "ja-"):
+		return "ja"
+	default:
+		return ""
+	}
+}
+
+func episodeDisplayTitle(number int32, titlesByLanguage map[string]string, fallback string) string {
+	for _, lang := range []string{"de", "en", "ja"} {
+		if title := strings.TrimSpace(titlesByLanguage[lang]); title != "" {
+			return title
+		}
+	}
+	if trimmed := strings.TrimSpace(fallback); trimmed != "" {
+		return trimmed
+	}
+	return fmt.Sprintf("Episode %d", number)
+}
+
+func parseAniSearchEpisodeFiller(cells []string) (*string, *string) {
+	for _, cell := range cells {
+		normalized := strings.ToLower(strings.TrimSpace(cell))
+		if normalized == "" {
+			continue
+		}
+		var fillerType string
+		switch {
+		case strings.Contains(normalized, "mixed"):
+			fillerType = "mixed"
+		case strings.Contains(normalized, "recap"):
+			fillerType = "recap"
+		case strings.Contains(normalized, "filler") || strings.Contains(normalized, "fueller") || strings.Contains(normalized, "füller"):
+			fillerType = "filler"
+		case strings.Contains(normalized, "canon") || strings.Contains(normalized, "kanon"):
+			fillerType = "canon"
+		}
+		if fillerType != "" {
+			return normalizeStringPtr(fillerType), normalizeStringPtr(strings.TrimSpace(cell))
+		}
+	}
+	return nil, nil
 }

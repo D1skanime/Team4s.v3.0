@@ -14,11 +14,15 @@ const (
 // EpisodeImportCanonicalEpisode is an AniSearch-owned canonical episode row.
 // Jellyfin season/index fields must never be used to redefine these numbers.
 type EpisodeImportCanonicalEpisode struct {
-	EpisodeNumber      int32   `json:"episode_number"`
-	Title              *string `json:"title,omitempty"`
-	AniSearchEpisodeID *string `json:"anisearch_episode_id,omitempty"`
-	ExistingEpisodeID  *int64  `json:"existing_episode_id,omitempty"`
-	ExistingTitle      *string `json:"existing_title,omitempty"`
+	EpisodeNumber      int32             `json:"episode_number"`
+	Title              *string           `json:"title,omitempty"`
+	TitlesByLanguage   map[string]string `json:"titles_by_language,omitempty"`
+	FillerType         *string           `json:"filler_type,omitempty"`
+	FillerSource       *string           `json:"filler_source,omitempty"`
+	FillerNote         *string           `json:"filler_note,omitempty"`
+	AniSearchEpisodeID *string           `json:"anisearch_episode_id,omitempty"`
+	ExistingEpisodeID  *int64            `json:"existing_episode_id,omitempty"`
+	ExistingTitle      *string           `json:"existing_title,omitempty"`
 }
 
 // EpisodeImportMediaCandidate is a Jellyfin-owned local media/file candidate.
@@ -46,6 +50,9 @@ type EpisodeImportMappingRow struct {
 	TargetEpisodeNumbers    []int32                    `json:"target_episode_numbers"`
 	SuggestedEpisodeNumbers []int32                    `json:"suggested_episode_numbers"`
 	Status                  EpisodeImportMappingStatus `json:"status"`
+	FansubGroupID           *int64                     `json:"fansub_group_id,omitempty"`
+	FansubGroupName         *string                    `json:"fansub_group_name,omitempty"`
+	ReleaseVersion          *string                    `json:"release_version,omitempty"`
 }
 
 // EpisodeImportPreviewResult is the read-only preview payload for the builder.
