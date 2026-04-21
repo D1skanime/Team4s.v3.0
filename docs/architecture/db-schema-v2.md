@@ -151,6 +151,39 @@ INDEX idx_anime_genre_anime (anime_id)
 INDEX idx_anime_genre_genre (genre_id)
 ```
 
+## Anime Tags
+
+Tags are operator-managed labels used beside genres. Genres describe source/domain classification, while tags can capture local admin/search needs.
+
+```
+Tag
+- id
+- name
+- created_at
+- updated_at
+
+PRIMARY KEY(id)
+
+UNIQUE (name)
+
+INDEX idx_tags_name (name)
+```
+
+```
+AnimeTag
+- anime_id
+- tag_id
+- created_at
+
+PRIMARY KEY(anime_id, tag_id)
+
+FOREIGN KEY (anime_id) REFERENCES Anime(id)
+FOREIGN KEY (tag_id) REFERENCES Tag(id)
+
+INDEX idx_anime_tag_anime (anime_id)
+INDEX idx_anime_tag_tag (tag_id)
+```
+
 # AnimeRelation
 ```
 AnimeRelation
@@ -255,6 +288,31 @@ FOREIGN KEY (media_id) REFERENCES MediaAsset(id)
 INDEX idx_anime_media_anime (anime_id)
 INDEX idx_anime_media_media (media_id)
 ```
+
+```
+AnimeBackgroundAsset
+- id
+- anime_id
+- media_asset_id
+- source
+- resolved_url
+- provider_key
+- sort_order
+- created_at
+- updated_at
+
+PRIMARY KEY(id)
+
+FOREIGN KEY (anime_id) REFERENCES Anime(id)
+FOREIGN KEY (media_asset_id) REFERENCES MediaAsset(id)
+
+UNIQUE (anime_id, provider_key) WHERE provider_key IS NOT NULL
+
+INDEX idx_anime_background_assets_anime_sort (anime_id, sort_order, id)
+INDEX idx_anime_background_assets_media (media_asset_id)
+```
+
+`AnimeBackgroundAsset` is the create/edit asset-gallery seam for additive backgrounds and provider-selected remote backgrounds. `source` distinguishes local/manual/provider origins; `provider_key` preserves dedupe/provenance for external selections.
 
 ```
 EpisodeMedia
@@ -567,6 +625,42 @@ StreamType values
 - episode  
 - preview
 ```
+
+## Live Compatibility Stream Table
+
+`release_streams` is the DB Schema v2 target table for release-bound streams. The older `streams` table can still exist as a compatibility table while older code paths are retired. New episode import and release work should target `release_streams`.
+
+```
+StreamCompatibility
+- id
+- variant_id
+- stream_type_id
+- provider_type
+- external_id
+- stream_url
+- subtitle_language_id
+- audio_language_id
+- visibility_id
+- metadata
+- created_at
+- modified_at
+- modified_by
+
+PRIMARY KEY(id)
+
+FOREIGN KEY (variant_id) REFERENCES ReleaseVariant(id)
+FOREIGN KEY (stream_type_id) REFERENCES StreamType(id)
+FOREIGN KEY (subtitle_language_id) REFERENCES Language(id)
+FOREIGN KEY (audio_language_id) REFERENCES Language(id)
+FOREIGN KEY (visibility_id) REFERENCES Visibility(id)
+FOREIGN KEY (modified_by) REFERENCES User(id)
+
+INDEX idx_streams_variant (variant_id)
+INDEX idx_streams_type (stream_type_id)
+INDEX idx_streams_provider (provider_type)
+INDEX idx_streams_external (external_id)
+```
+
 # Opening / Ending / Kara
 
 
@@ -951,6 +1045,136 @@ Ein Member kann mehrere Rollen haben:
 
 
 ---
+# Live Operational Tables
+
+These tables are part of the running application even though they are not core episode/release domain tables. They must be kept documented so schema drift does not hide in admin, asset, or operational features.
+
+## AdminAnimeMutationAudit
+
+```
+AdminAnimeMutationAudit
+- id
+- anime_id
+- actor_user_id
+- mutation_kind
+- request_payload
+- created_at
+
+PRIMARY KEY(id)
+
+FOREIGN KEY (anime_id) REFERENCES Anime(id)
+FOREIGN KEY (actor_user_id) REFERENCES User(id)
+
+INDEX idx_admin_anime_mutation_audit_anime_id (anime_id)
+INDEX idx_admin_anime_mutation_audit_actor_user_id (actor_user_id)
+INDEX idx_admin_anime_mutation_audit_mutation_kind (mutation_kind)
+INDEX idx_admin_anime_mutation_audit_created_at (created_at DESC)
+```
+
+## Comment
+
+```
+Comment
+- id
+- anime_id
+- author_name
+- content
+- created_at
+- updated_at
+
+PRIMARY KEY(id)
+
+FOREIGN KEY (anime_id) REFERENCES Anime(id)
+
+INDEX idx_comments_anime_id (anime_id)
+INDEX idx_comments_anime_created_at (anime_id, created_at DESC, id DESC)
+```
+
+## WatchlistEntry
+
+```
+WatchlistEntry
+- id
+- anime_id
+- user_id
+- created_at
+- updated_at
+
+PRIMARY KEY(id)
+
+FOREIGN KEY (anime_id) REFERENCES Anime(id)
+FOREIGN KEY (user_id) REFERENCES User(id)
+
+UNIQUE (user_id, anime_id)
+
+INDEX idx_watchlist_user_id_created_at (user_id, created_at DESC, id DESC)
+```
+
+## Runtime Auth Tables
+
+These authz tables are used by the running admin application. They are separate from the contributor-domain `Role` / `contributor_roles` model unless a later phase intentionally unifies them.
+
+```
+RuntimeRole
+- id
+- name
+- created_at
+- updated_at
+
+PRIMARY KEY(id)
+
+UNIQUE (name)
+
+INDEX idx_roles_name (name)
+```
+
+```
+UserRole
+- id
+- user_id
+- role_id
+- created_at
+
+PRIMARY KEY(id)
+
+FOREIGN KEY (user_id) REFERENCES User(id)
+FOREIGN KEY (role_id) REFERENCES RuntimeRole(id)
+
+UNIQUE (user_id, role_id)
+
+INDEX idx_user_roles_user_id (user_id)
+INDEX idx_user_roles_role_id (role_id)
+```
+
+## VisibilityLevel
+
+`Visibility` / `visibilities` is the DB Schema v2 stream visibility target. `VisibilityLevel` / `visibility_levels` remains a live operational lookup used by older visibility paths.
+
+```
+VisibilityLevel
+- id
+- name
+- sort_order
+- created_at
+
+PRIMARY KEY(id)
+
+UNIQUE (name)
+```
+
+## SchemaMigration
+
+```
+SchemaMigration
+- version
+- name
+- applied_at
+
+PRIMARY KEY(version)
+```
+
+---
+
 # Upload-Workflow
 
 ```
