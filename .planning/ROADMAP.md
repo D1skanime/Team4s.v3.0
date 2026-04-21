@@ -28,7 +28,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 
 - [x] **Phase 18: Episode Import And Mapping Builder** - Add AniSearch canonical episode import, Jellyfin media scanning, and manual mapping/apply baseline.
 - [x] **Phase 19: Episode Import Operator Workbench** - Make the import workbench readable and practical for real parallel releases and bulk confirmation.
-- [ ] **Phase 20.1: DB Schema v2 Physical Cutover** - Build the documented DB Schema v2 as real tables and remove legacy episode-version tables before more episode features.
+- [x] **Phase 20.1: DB Schema v2 Physical Cutover** - Build the documented DB Schema v2 as real tables and remove legacy episode-version tables before more episode features.
 - [ ] **Phase 20: Release-Native Episode Import Schema** - Move episode import persistence onto the normalized release graph with filler, multilingual titles, and multi-episode file coverage.
 
 ## Phase Details
@@ -249,13 +249,13 @@ Plans:
 **Goal:** Build the full documented `docs/architecture/db-schema-v2.md` target schema as physical database tables, then remove the legacy `episode_versions` table family so future feature work cannot keep writing to the old flat episode-version model.
 **Requirements**: P20.1-SC1, P20.1-SC2, P20.1-SC3, P20.1-SC4, P20.1-SC5
 **Depends on:** Phase 19
-**Status**: Planned on 2026-04-21 before Phase 20 execution
-**Plans:** 3/4 plans executed
+**Status**: Completed and Docker-deployed on 2026-04-21; Phase 20 is unblocked for release-native import writes
+**Plans:** 4/4 plans executed
 Plans:
-- [ ] `20.1-01-PLAN.md` - Inventory live-vs-target schema, add controlled local reset, and lock the deletion boundary.
-- [ ] `20.1-02-PLAN.md` - Create/reconcile every documented DB Schema v2 target table, column, constraint, index, and lookup value.
-- [ ] `20.1-03-PLAN.md` - Drop `episode_version_episodes`, `episode_version_images`, and `episode_versions`, then remove code/test dependencies.
-- [ ] `20.1-04-PLAN.md` - Verify clean migration, schema audit, Docker rebuild, and handoff for Phase 20.
+- [x] `20.1-01-PLAN.md` - Inventory live-vs-target schema, add controlled local reset, and lock the deletion boundary.
+- [x] `20.1-02-PLAN.md` - Create/reconcile every documented DB Schema v2 target table, column, constraint, index, and lookup value.
+- [x] `20.1-03-PLAN.md` - Drop `episode_version_episodes`, `episode_version_images`, and `episode_versions`, then remove code/test dependencies.
+- [x] `20.1-04-PLAN.md` - Verify clean migration, schema audit, Docker rebuild, and handoff for Phase 20.
 **Success Criteria** (what must be TRUE):
   1. A clean local DB can migrate to the full documented DB Schema v2 target.
   2. `EpisodeFillerType`, episode filler fields, and `ReleaseVariantEpisode` exist physically.
@@ -267,7 +267,7 @@ Plans:
 **Goal:** Align episode import persistence with the normalized episode/release schema so real libraries store canonical episodes, multilingual titles, filler metadata, releases, versions, variants, streams, and multi-episode file coverage without relying on legacy `episode_versions` as the only source of truth.
 **Requirements**: P20-SC1, P20-SC2, P20-SC3, P20-SC4, P20-SC5
 **Depends on:** Phase 20.1
-**Status**: Planned on 2026-04-21 after Phase-19 UAT exposed the remaining schema mismatch; execution waits for Phase 20.1 DB cutover
+**Status**: Planned on 2026-04-21 after Phase-19 UAT exposed the remaining schema mismatch; execution is unblocked by completed Phase 20.1 DB cutover
 **Plans:** 4 plans
 Plans:
 - [ ] `20-01-PLAN.md` - Add the controlled local reset and missing schema pieces, including filler fields and normalized release coverage for multi-episode files.
@@ -287,4 +287,4 @@ Plans:
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 16 | 37+ | Phases 6-19 shipped through UAT; Phase 20.1 planned before Phase 20 import persistence | - |
+| v1.1 Asset Lifecycle Hardening | 17 | 41+ | Phases 6-19 shipped through UAT; Phase 20.1 completed and Phase 20 import persistence is next | - |
