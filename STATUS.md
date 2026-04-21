@@ -39,6 +39,8 @@
 - `cd frontend && npm run build`
 - `powershell -ExecutionPolicy Bypass -File .\scripts\start-backend-dev.ps1 -RunMigrations`
 - `powershell -ExecutionPolicy Bypass -File .\scripts\start-frontend-dev.ps1`
+- `powershell -ExecutionPolicy Bypass -File .\scripts\schema-v2-audit.ps1`
+- `powershell -ExecutionPolicy Bypass -File .\scripts\reset-local-schema-cutover-data.ps1 -ConfirmLocal`
 
 ## Verification Evidence
 - `cd frontend && npm test -- src/app/admin/anime/create/CreateAniSearchIntakeCard.test.tsx src/app/admin/anime/create/page.test.tsx` passed: 38 tests.
