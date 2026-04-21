@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"os"
+	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -67,6 +69,81 @@ func TestEpisodeImportApply_PreservesExistingManualEpisodeTitle(t *testing.T) {
 	}
 }
 
+func TestEpisodeImportDisplayTitle_PrefersGermanEnglishJapaneseGenerated(t *testing.T) {
+	t.Parallel()
+
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
+		EpisodeNumber:    1,
+		TitlesByLanguage: map[string]string{"de": "Deutsch", "en": "English", "ja": "日本語"},
+	}); got != "Deutsch" {
+		t.Fatalf("expected German title, got %q", got)
+	}
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
+		EpisodeNumber:    2,
+		TitlesByLanguage: map[string]string{"en": "English", "ja": "日本語"},
+	}); got != "English" {
+		t.Fatalf("expected English title, got %q", got)
+	}
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
+		EpisodeNumber:    3,
+		TitlesByLanguage: map[string]string{"ja": "日本語"},
+	}); got != "日本語" {
+		t.Fatalf("expected Japanese title, got %q", got)
+	}
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{EpisodeNumber: 4}); got != "Episode 4" {
+		t.Fatalf("expected generated fallback, got %q", got)
+	}
+}
+
+func TestEpisodeImportReleaseGraphHelpers_DeriveGroupAndFilename(t *testing.T) {
+	t.Parallel()
+
+	media := models.EpisodeImportMediaCandidate{
+		FileName:     "[GroupA] Naruto 009-010.mkv",
+		Path:         `D:\Anime\Naruto\[GroupA]\[GroupA] Naruto 009-010.mkv`,
+		VideoQuality: episodeImportTestStringPtr("1080p"),
+	}
+	if got := episodeImportFilename(media); got != "[GroupA] Naruto 009-010.mkv" {
+		t.Fatalf("expected filename from media, got %q", got)
+	}
+	if got := deriveFansubGroupName(media); got != "GroupA" {
+		t.Fatalf("expected derived fansub group, got %q", got)
+	}
+}
+
+func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
+	t.Parallel()
+
+	applyContent, err := os.ReadFile("episode_import_repository_apply.go")
+	if err != nil {
+		t.Fatalf("read apply source: %v", err)
+	}
+	releaseContent, err := os.ReadFile("episode_import_repository_release_helpers.go")
+	if err != nil {
+		t.Fatalf("read release helper source: %v", err)
+	}
+	normalized := strings.ToLower(string(applyContent) + "\n" + string(releaseContent))
+	required := []string{
+		"insert into episodes",
+		"insert into episode_titles",
+		"insert into fansub_releases",
+		"insert into release_versions",
+		"insert into release_variants",
+		"insert into stream_sources",
+		"insert into release_streams",
+		"insert into release_version_groups",
+		"insert into release_variant_episodes",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(normalized, fragment) {
+			t.Fatalf("expected release-native apply source to contain %q", fragment)
+		}
+	}
+	if strings.Contains(normalized, "episode_versions") || strings.Contains(normalized, "episode_version_episodes") {
+		t.Fatalf("release-native apply source must not reference legacy episode version tables")
+	}
+}
+
 func TestEpisodeImportApply_AllowsParallelReleasesForSameEpisode(t *testing.T) {
 	t.Parallel()
 
@@ -118,4 +195,8 @@ func TestEpisodeImportApply_RejectsDuplicateMediaItemID(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected duplicate media_item_id to be rejected before mutation")
 	}
+}
+
+func episodeImportTestStringPtr(value string) *string {
+	return &value
 }
