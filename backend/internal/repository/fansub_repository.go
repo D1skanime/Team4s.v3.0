@@ -931,7 +931,7 @@ func scanFansubGroup(rows pgx.Rows) (*models.FansubGroup, error) {
 }
 
 // MergeGroups merges multiple source fansub groups into a target group.
-// All episode_versions, anime_fansub_groups, and members are migrated.
+// All release group links, anime_fansub_groups, and members are migrated.
 // Source group slugs become aliases on the target.
 // Source groups are then deleted.
 func (r *FansubRepository) MergeGroups(
@@ -977,13 +977,16 @@ func (r *FansubRepository) MergeGroups(
 		AliasesAdded: make([]string, 0, len(sourceIDs)),
 	}
 
-	// 1. Migrate episode_versions
+	// 1. Migrate release group links
 	tag, err := tx.Exec(ctx, `
-		UPDATE episode_versions SET fansub_group_id = $1
+		UPDATE release_version_groups
+		SET fansub_group_id = $1,
+		    fansubgroup_id = $1
 		WHERE fansub_group_id = ANY($2)
+		   OR fansubgroup_id = ANY($2)
 	`, targetID, sourceIDs)
 	if err != nil {
-		return nil, fmt.Errorf("migrate episode versions: %w", err)
+		return nil, fmt.Errorf("migrate release version groups: %w", err)
 	}
 	result.VersionsMigrated = int(tag.RowsAffected())
 
@@ -1235,11 +1238,12 @@ func (r *FansubRepository) GetMergePreview(
 		},
 	}
 
-	// Count episode versions
+	// Count release version group links
 	if err := r.db.QueryRow(ctx, `
-		SELECT COUNT(*) FROM episode_versions WHERE fansub_group_id = ANY($1)
+		SELECT COUNT(*) FROM release_version_groups
+		WHERE fansub_group_id = ANY($1) OR fansubgroup_id = ANY($1)
 	`, sourceIDs).Scan(&result.VersionsMigrated); err != nil {
-		return nil, fmt.Errorf("count episode versions: %w", err)
+		return nil, fmt.Errorf("count release version groups: %w", err)
 	}
 
 	// Count members
@@ -1296,9 +1300,17 @@ func (r *FansubRepository) attachGroupCounts(ctx context.Context, items []models
 
 	if err := r.populateCountMap(
 		ctx,
-		`SELECT fansub_group_id, COUNT(*) FROM episode_versions WHERE fansub_group_id = ANY($1) GROUP BY fansub_group_id`,
+		`
+		SELECT group_id, COUNT(*)
+		FROM (
+			SELECT COALESCE(fansubgroup_id, fansub_group_id) AS group_id
+			FROM release_version_groups
+			WHERE fansub_group_id = ANY($1) OR fansubgroup_id = ANY($1)
+		) grouped
+		GROUP BY group_id
+		`,
 		ids,
-		func(i int, count int) { items[i].EpisodeVersionsCount = count },
+		func(i int, count int) { items[i].ReleaseVersionsCount = count },
 		indexByID,
 	); err != nil {
 		return fmt.Errorf("load episode version counts: %w", err)
@@ -1718,22 +1730,26 @@ func (r *FansubRepository) countMergeVersionConflicts(
 	if err := r.db.QueryRow(ctx, `
 		WITH candidate_versions AS (
 			SELECT
-				anime_id,
-				episode_number,
-				COALESCE(video_quality, '') AS video_quality_key,
-				COALESCE(subtitle_type, '') AS subtitle_type_key,
+				fr.episode_id,
+				rev.id AS release_version_id,
+				COALESCE(rv.video_quality, rv.resolution, '') AS video_quality_key,
+				COALESCE(rv.subtitle_type, '') AS subtitle_type_key,
 				CASE
-					WHEN fansub_group_id = ANY($1) THEN $2
-					ELSE fansub_group_id
+					WHEN COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id) = ANY($1) THEN $2
+					ELSE COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id)
 				END AS target_group_id
-			FROM episode_versions
-			WHERE fansub_group_id = $2 OR fansub_group_id = ANY($1)
+			FROM release_version_groups rvg
+			JOIN release_versions rev ON rev.id = rvg.release_version_id
+			JOIN fansub_releases fr ON fr.id = rev.release_id
+			LEFT JOIN release_variants rv ON rv.release_version_id = rev.id
+			WHERE COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id) = $2
+			   OR COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id) = ANY($1)
 		)
 		SELECT COUNT(*)
 		FROM (
 			SELECT 1
 			FROM candidate_versions
-			GROUP BY anime_id, episode_number, target_group_id, video_quality_key, subtitle_type_key
+			GROUP BY episode_id, release_version_id, target_group_id, video_quality_key, subtitle_type_key
 			HAVING COUNT(*) > 1
 		) conflicts
 	`, sourceIDs, targetID).Scan(&conflicts); err != nil {

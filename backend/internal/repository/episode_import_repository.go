@@ -29,62 +29,10 @@ func (r *EpisodeImportRepository) Apply(
 	if r == nil || r.db == nil {
 		return nil, fmt.Errorf("episode import repository is not configured")
 	}
-	plan, err := buildEpisodeImportApplyPlan(input)
-	if err != nil {
+	if _, err := buildEpisodeImportApplyPlan(input); err != nil {
 		return nil, err
 	}
-
-	tx, err := r.db.Begin(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("begin episode import apply tx anime=%d: %w", input.AnimeID, err)
-	}
-	defer func() {
-		_ = tx.Rollback(ctx)
-	}()
-
-	result := &models.EpisodeImportApplyResult{AnimeID: input.AnimeID}
-	episodeIDsByNumber := make(map[int32]int64, len(plan.canonicalByNumber))
-
-	for _, episodeNumber := range sortedEpisodeImportNumbers(plan.canonicalByNumber) {
-		canonical := plan.canonicalByNumber[episodeNumber]
-		episodeID, created, err := upsertImportEpisode(ctx, tx, input.AnimeID, canonical)
-		if err != nil {
-			return nil, err
-		}
-		episodeIDsByNumber[episodeNumber] = episodeID
-		if created {
-			result.EpisodesCreated++
-		} else {
-			result.EpisodesExisting++
-		}
-	}
-
-	for _, mapping := range plan.mappings {
-		if mapping.Status == models.EpisodeImportMappingStatusSkipped {
-			result.Skipped++
-			continue
-		}
-		primaryEpisodeNumber := mapping.TargetEpisodeNumbers[0]
-		versionID, created, err := upsertImportEpisodeVersion(ctx, tx, input.AnimeID, primaryEpisodeNumber, plan.mediaByID[mapping.MediaItemID])
-		if err != nil {
-			return nil, err
-		}
-		if created {
-			result.VersionsCreated++
-		} else {
-			result.VersionsUpdated++
-		}
-		if err := replaceImportCoverage(ctx, tx, versionID, mapping.TargetEpisodeNumbers, episodeIDsByNumber); err != nil {
-			return nil, err
-		}
-		result.MappingsApplied++
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return nil, fmt.Errorf("commit episode import apply tx anime=%d: %w", input.AnimeID, err)
-	}
-
-	return result, nil
+	return nil, fmt.Errorf("episode import apply is deferred until Phase 20 release-native writes are implemented")
 }
 
 func (r *EpisodeImportRepository) PreviewExistingCoverage(
@@ -96,17 +44,18 @@ func (r *EpisodeImportRepository) PreviewExistingCoverage(
 	}
 
 	rows, err := r.db.Query(ctx, `
-		SELECT ev.media_item_id, COALESCE(
-			ARRAY_AGG(CAST(e.episode_number AS INTEGER) ORDER BY eve.coverage_order, CAST(e.episode_number AS INTEGER))
-				FILTER (WHERE e.episode_number ~ '^[0-9]+$'),
-			ARRAY[ev.episode_number]
-		)
-		FROM episode_versions ev
-		LEFT JOIN episode_version_episodes eve ON eve.episode_version_id = ev.id
-		LEFT JOIN episodes e ON e.id = eve.episode_id
-		WHERE ev.anime_id = $1
-		GROUP BY ev.id
-		ORDER BY ev.episode_number, ev.id
+		SELECT COALESCE(ss.external_id, rs.jellyfin_item_id, ''), ARRAY_AGG(CAST(e.episode_number AS INTEGER) ORDER BY rve.position, CAST(e.episode_number AS INTEGER))
+		FROM release_variants rv
+		JOIN release_versions rev ON rev.id = rv.release_version_id
+		JOIN fansub_releases fr ON fr.id = rev.release_id
+		JOIN release_variant_episodes rve ON rve.release_variant_id = rv.id
+		JOIN episodes e ON e.id = rve.episode_id
+		LEFT JOIN release_streams rs ON rs.variant_id = rv.id
+		LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id
+		WHERE e.anime_id = $1
+		  AND e.episode_number ~ '^[0-9]+$'
+		GROUP BY rv.id, ss.external_id, rs.jellyfin_item_id
+		ORDER BY MIN(CAST(e.episode_number AS INTEGER)), rv.id
 	`, animeID)
 	if err != nil {
 		return models.EpisodeImportExistingCoverage{}, fmt.Errorf("query existing episode import coverage anime=%d: %w", animeID, err)
@@ -270,78 +219,4 @@ func upsertImportEpisode(
 		return 0, false, fmt.Errorf("fill canonical episode title id=%d: %w", existingID, err)
 	}
 	return existingID, false, nil
-}
-
-func upsertImportEpisodeVersion(
-	ctx context.Context,
-	tx pgx.Tx,
-	animeID int64,
-	primaryEpisodeNumber int32,
-	media models.EpisodeImportMediaCandidate,
-) (int64, bool, error) {
-	var existingID int64
-	err := tx.QueryRow(ctx, `
-		SELECT id
-		FROM episode_versions
-		WHERE anime_id = $1 AND media_provider = 'jellyfin' AND media_item_id = $2
-		ORDER BY id ASC
-		LIMIT 1
-		FOR UPDATE
-	`, animeID, media.MediaItemID).Scan(&existingID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		var createdID int64
-		if err := tx.QueryRow(ctx, `
-			INSERT INTO episode_versions (
-				anime_id, episode_number, title, media_provider, media_item_id,
-				video_quality, stream_url
-			)
-			VALUES ($1, $2, NULL, 'jellyfin', $3, $4, $5)
-			RETURNING id
-		`, animeID, primaryEpisodeNumber, media.MediaItemID, media.VideoQuality, media.StreamURL).Scan(&createdID); err != nil {
-			return 0, false, fmt.Errorf("create episode version anime=%d media=%s: %w", animeID, media.MediaItemID, err)
-		}
-		return createdID, true, nil
-	}
-	if err != nil {
-		return 0, false, fmt.Errorf("query episode version anime=%d media=%s: %w", animeID, media.MediaItemID, err)
-	}
-	if _, err := tx.Exec(ctx, `
-		UPDATE episode_versions
-		SET
-			episode_number = $2,
-			video_quality = COALESCE(video_quality, $3),
-			stream_url = COALESCE(stream_url, $4),
-			updated_at = NOW()
-		WHERE id = $1
-	`, existingID, primaryEpisodeNumber, media.VideoQuality, media.StreamURL); err != nil {
-		return 0, false, fmt.Errorf("update episode version id=%d media=%s: %w", existingID, media.MediaItemID, err)
-	}
-	return existingID, false, nil
-}
-
-func replaceImportCoverage(
-	ctx context.Context,
-	tx pgx.Tx,
-	versionID int64,
-	targetEpisodeNumbers []int32,
-	episodeIDsByNumber map[int32]int64,
-) error {
-	if _, err := tx.Exec(ctx, `DELETE FROM episode_version_episodes WHERE episode_version_id = $1`, versionID); err != nil {
-		return fmt.Errorf("delete episode version coverage version=%d: %w", versionID, err)
-	}
-	for index, episodeNumber := range targetEpisodeNumbers {
-		episodeID, ok := episodeIDsByNumber[episodeNumber]
-		if !ok {
-			return fmt.Errorf("missing episode id for coverage episode %d", episodeNumber)
-		}
-		if _, err := tx.Exec(ctx, `
-			INSERT INTO episode_version_episodes (episode_version_id, episode_id, coverage_order)
-			VALUES ($1, $2, $3)
-			ON CONFLICT (episode_version_id, episode_id)
-			DO UPDATE SET coverage_order = EXCLUDED.coverage_order
-		`, versionID, episodeID, index+1); err != nil {
-			return fmt.Errorf("insert episode version coverage version=%d episode=%d: %w", versionID, episodeID, err)
-		}
-	}
-	return nil
 }

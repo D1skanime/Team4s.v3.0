@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"team4s.v3/backend/internal/models"
@@ -146,55 +145,6 @@ func (r *AdminContentRepository) DeleteEpisode(
 		return nil, ErrNotFound
 	}
 
-	var deletedEpisodeVersions int64
-	if episodeNumberValue, ok := parseNumericEpisodeNumber(episodeNumber); ok {
-		var siblingCount int64
-		if err := tx.QueryRow(
-			ctx,
-			`
-			SELECT COUNT(*) FROM episodes
-			WHERE anime_id = $1
-			  AND episode_number ~ '^[0-9]+$'
-			  AND CAST(episode_number AS INTEGER) = $2
-			`,
-			animeID,
-			episodeNumberValue,
-		).Scan(&siblingCount); err != nil {
-			return nil, fmt.Errorf(
-				"count sibling episodes for anime=%d episode_number=%s: %w",
-				animeID,
-				episodeNumber,
-				err,
-			)
-		}
-
-		if siblingCount == 0 {
-			deleteVersionTag, err := tx.Exec(
-				ctx,
-				`
-				DELETE FROM episode_versions ev
-				WHERE ev.anime_id = $1
-				  AND ev.episode_number = $2
-				  AND NOT EXISTS (
-				      SELECT 1 FROM episode_version_episodes eve
-				      WHERE eve.episode_version_id = ev.id
-				  )
-				`,
-				animeID,
-				episodeNumberValue,
-			)
-			if err != nil {
-				return nil, fmt.Errorf(
-					"delete episode versions for anime=%d episode_number=%d: %w",
-					animeID,
-					episodeNumberValue,
-					err,
-				)
-			}
-			deletedEpisodeVersions = deleteVersionTag.RowsAffected()
-		}
-	}
-
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("commit delete episode tx %d: %w", id, err)
 	}
@@ -203,7 +153,7 @@ func (r *AdminContentRepository) DeleteEpisode(
 		EpisodeID:              id,
 		AnimeID:                animeID,
 		EpisodeNumber:          episodeNumber,
-		DeletedEpisodeVersions: int32(deletedEpisodeVersions),
+		DeletedReleaseVariants: 0,
 	}, nil
 }
 
@@ -291,26 +241,6 @@ func streamLinksFromOptionalString(value *string) []string {
 	return []string{trimmed}
 }
 
-func parseNumericEpisodeNumber(raw string) (int32, bool) {
-	trimmed := strings.TrimSpace(raw)
-	if trimmed == "" {
-		return 0, false
-	}
-
-	for _, ch := range trimmed {
-		if ch < '0' || ch > '9' {
-			return 0, false
-		}
-	}
-
-	parsed, err := strconv.Atoi(trimmed)
-	if err != nil || parsed <= 0 {
-		return 0, false
-	}
-
-	return int32(parsed), true
-}
-
 func scanAdminEpisodeItem(scanner interface {
 	Scan(dest ...any) error
 }) (*models.AdminEpisodeItem, error) {
@@ -329,7 +259,7 @@ func scanAdminEpisodeItem(scanner interface {
 	return &item, nil
 }
 
-// DeleteOrphanedEpisodes deletes all episodes for the given anime that have no episode_versions.
+// DeleteOrphanedEpisodes deletes all episodes for the given anime that have no release coverage.
 // Returns the number of deleted episodes.
 func (r *AdminContentRepository) DeleteOrphanedEpisodes(
 	ctx context.Context,
@@ -340,16 +270,8 @@ func (r *AdminContentRepository) DeleteOrphanedEpisodes(
 		WHERE anime_id = $1
 		  AND episode_number ~ '^[0-9]+$'
 		  AND NOT EXISTS (
-		      SELECT 1 FROM episode_versions ev
-		      LEFT JOIN episode_version_episodes eve ON eve.episode_version_id = ev.id
-		      WHERE ev.anime_id = episodes.anime_id
-		        AND (
-		            eve.episode_id = episodes.id
-		            OR (
-		                eve.episode_id IS NULL
-		                AND ev.episode_number = CAST(episodes.episode_number AS INTEGER)
-		            )
-		        )
+		      SELECT 1 FROM release_variant_episodes rve
+		      WHERE rve.episode_id = episodes.id
 		  )
 	`, animeID)
 	if err != nil {
@@ -359,7 +281,7 @@ func (r *AdminContentRepository) DeleteOrphanedEpisodes(
 	return commandTag.RowsAffected(), nil
 }
 
-// CountOrphanedEpisodes counts all episodes for the given anime that have no episode_versions.
+// CountOrphanedEpisodes counts all episodes for the given anime that have no release coverage.
 func (r *AdminContentRepository) CountOrphanedEpisodes(
 	ctx context.Context,
 	animeID int64,
@@ -370,16 +292,8 @@ func (r *AdminContentRepository) CountOrphanedEpisodes(
 		WHERE anime_id = $1
 		  AND episode_number ~ '^[0-9]+$'
 		  AND NOT EXISTS (
-		      SELECT 1 FROM episode_versions ev
-		      LEFT JOIN episode_version_episodes eve ON eve.episode_version_id = ev.id
-		      WHERE ev.anime_id = episodes.anime_id
-		        AND (
-		            eve.episode_id = episodes.id
-		            OR (
-		                eve.episode_id IS NULL
-		                AND ev.episode_number = CAST(episodes.episode_number AS INTEGER)
-		            )
-		        )
+		      SELECT 1 FROM release_variant_episodes rve
+		      WHERE rve.episode_id = episodes.id
 		  )
 	`, animeID).Scan(&count)
 	if err != nil {
@@ -389,8 +303,8 @@ func (r *AdminContentRepository) CountOrphanedEpisodes(
 	return count, nil
 }
 
-// CountEpisodesWithOnlyProvider counts episodes that have versions ONLY from the given provider.
-// These episodes would become orphaned if all versions from that provider are deleted.
+// CountEpisodesWithOnlyProvider counts episodes that have release streams ONLY from the given provider.
+// These episodes would become orphaned if all release streams from that provider are deleted.
 func (r *AdminContentRepository) CountEpisodesWithOnlyProvider(
 	ctx context.Context,
 	animeID int64,
@@ -402,30 +316,20 @@ func (r *AdminContentRepository) CountEpisodesWithOnlyProvider(
 		WHERE e.anime_id = $1
 		  AND e.episode_number ~ '^[0-9]+$'
 		  AND EXISTS (
-		      SELECT 1 FROM episode_versions ev
-		      LEFT JOIN episode_version_episodes eve ON eve.episode_version_id = ev.id
-		      WHERE ev.anime_id = e.anime_id
-		        AND (
-		            eve.episode_id = e.id
-		            OR (
-		                eve.episode_id IS NULL
-		                AND ev.episode_number = CAST(e.episode_number AS INTEGER)
-		            )
-		        )
-		        AND ev.media_provider = $2
+		      SELECT 1
+		      FROM release_variant_episodes rve
+		      JOIN release_streams rs ON rs.variant_id = rve.release_variant_id
+		      JOIN stream_sources ss ON ss.id = rs.stream_source_id
+		      WHERE rve.episode_id = e.id
+		        AND ss.provider_type = $2
 		  )
 		  AND NOT EXISTS (
-		      SELECT 1 FROM episode_versions ev
-		      LEFT JOIN episode_version_episodes eve ON eve.episode_version_id = ev.id
-		      WHERE ev.anime_id = e.anime_id
-		        AND (
-		            eve.episode_id = e.id
-		            OR (
-		                eve.episode_id IS NULL
-		                AND ev.episode_number = CAST(e.episode_number AS INTEGER)
-		            )
-		        )
-		        AND ev.media_provider <> $2
+		      SELECT 1
+		      FROM release_variant_episodes rve
+		      JOIN release_streams rs ON rs.variant_id = rve.release_variant_id
+		      JOIN stream_sources ss ON ss.id = rs.stream_source_id
+		      WHERE rve.episode_id = e.id
+		        AND ss.provider_type <> $2
 		  )
 	`, animeID, provider).Scan(&count)
 	if err != nil {

@@ -100,9 +100,13 @@ func (r *GroupRepository) getGroupStats(
 
 	// Count episodes for this anime
 	err = r.db.QueryRow(ctx, `
-		SELECT COUNT(DISTINCT episode_number)
-		FROM episode_versions
-		WHERE anime_id = $1 AND fansub_group_id = $2
+		SELECT COUNT(DISTINCT e.id)
+		FROM release_version_groups rvg
+		JOIN release_versions rev ON rev.id = rvg.release_version_id
+		JOIN fansub_releases fr ON fr.id = rev.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		WHERE e.anime_id = $1
+		  AND COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id) = $2
 	`, animeID, groupID).Scan(&stats.EpisodeCount)
 	if err != nil {
 		return nil, fmt.Errorf("count group episodes (%d,%d): %w", animeID, groupID, err)
@@ -129,8 +133,11 @@ func (r *GroupRepository) GetGroupReleases(
 
 	// Count total episodes matching filter
 	countQuery := fmt.Sprintf(`
-		SELECT COUNT(DISTINCT ev.id)
-		FROM episode_versions ev
+		SELECT COUNT(DISTINCT rev.id)
+		FROM release_versions rev
+		JOIN fansub_releases fr ON fr.id = rev.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
 		%s
 	`, whereSQL)
 
@@ -146,38 +153,22 @@ func (r *GroupRepository) GetGroupReleases(
 
 	listQuery := fmt.Sprintf(`
 		SELECT
-			ev.id,
-			episode_match.id AS episode_id,
-			ev.episode_number,
-			ev.title,
-			ev.release_date,
-			COALESCE(image_stats.image_count, 0) AS screenshot_count,
-			image_stats.thumbnail_url
-		FROM episode_versions ev
+			rev.id,
+			e.id AS episode_id,
+			CAST(e.episode_number AS INTEGER) AS episode_number,
+			COALESCE(rev.title, e.title) AS title,
+			COALESCE(rev.release_date, fr.release_date) AS release_date,
+			0::BIGINT AS screenshot_count,
+			NULL::TEXT AS thumbnail_url
+		FROM release_versions rev
+		JOIN fansub_releases fr ON fr.id = rev.release_id
+		JOIN episodes e ON e.id = fr.episode_id AND e.episode_number ~ '^[0-9]+$'
+		JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
 		LEFT JOIN LATERAL (
-			SELECT e.id
-			FROM episodes e
-			WHERE e.anime_id = ev.anime_id
-			  AND e.episode_number ~ '^[0-9]+$'
-			  AND CAST(e.episode_number AS INTEGER) = ev.episode_number
-			ORDER BY e.id ASC
-			LIMIT 1
-		) AS episode_match ON TRUE
-		LEFT JOIN LATERAL (
-			SELECT
-				COUNT(*)::BIGINT AS image_count,
-				(
-					SELECT evi.thumbnail_url
-					FROM episode_version_images evi
-					WHERE evi.episode_version_id = ev.id
-					ORDER BY evi.display_order ASC, evi.id ASC
-					LIMIT 1
-				) AS thumbnail_url
-			FROM episode_version_images evi
-			WHERE evi.episode_version_id = ev.id
-		) AS image_stats ON TRUE
+			SELECT 1
+		) AS release_assets_deferred ON TRUE
 		%s
-		ORDER BY ev.episode_number ASC, ev.id ASC
+		ORDER BY CAST(e.episode_number AS INTEGER) ASC, rev.id ASC
 		LIMIT $%d OFFSET $%d
 	`, whereSQL, limitPos, offsetPos)
 
@@ -244,8 +235,8 @@ func (r *GroupRepository) buildReleasesWhere(
 	filter models.GroupReleasesFilter,
 ) (string, []any) {
 	conditions := []string{
-		"ev.anime_id = $1",
-		"ev.fansub_group_id = $2",
+		"e.anime_id = $1",
+		"COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id) = $2",
 	}
 	args := []any{animeID, groupID}
 	argPos := 3
@@ -254,12 +245,12 @@ func (r *GroupRepository) buildReleasesWhere(
 	if filter.Q != "" {
 		trimmedQuery := strings.TrimSpace(filter.Q)
 		if trimmedQuery != "" {
-			searchConditions := []string{fmt.Sprintf("ev.title ILIKE $%d", argPos)}
+			searchConditions := []string{fmt.Sprintf("COALESCE(rev.title, e.title, '') ILIKE $%d", argPos)}
 			args = append(args, "%"+trimmedQuery+"%")
 			argPos++
 
 			if episodeNumber, err := strconv.Atoi(trimmedQuery); err == nil && episodeNumber > 0 {
-				searchConditions = append(searchConditions, fmt.Sprintf("ev.episode_number = $%d", argPos))
+				searchConditions = append(searchConditions, fmt.Sprintf("CAST(e.episode_number AS INTEGER) = $%d", argPos))
 				args = append(args, episodeNumber)
 				argPos++
 			}
@@ -269,19 +260,19 @@ func (r *GroupRepository) buildReleasesWhere(
 	}
 
 	if filter.HasOP != nil {
-		conditions = append(conditions, buildRegexFilterCondition("ev.title", opTitleRegex, argPos, *filter.HasOP))
+		conditions = append(conditions, buildRegexFilterCondition("COALESCE(rev.title, e.title, '')", opTitleRegex, argPos, *filter.HasOP))
 		args = append(args, opTitleRegex)
 		argPos++
 	}
 
 	if filter.HasED != nil {
-		conditions = append(conditions, buildRegexFilterCondition("ev.title", edTitleRegex, argPos, *filter.HasED))
+		conditions = append(conditions, buildRegexFilterCondition("COALESCE(rev.title, e.title, '')", edTitleRegex, argPos, *filter.HasED))
 		args = append(args, edTitleRegex)
 		argPos++
 	}
 
 	if filter.HasKaraoke != nil {
-		conditions = append(conditions, buildRegexFilterCondition("ev.title", karaokeTitleRegex, argPos, *filter.HasKaraoke))
+		conditions = append(conditions, buildRegexFilterCondition("COALESCE(rev.title, e.title, '')", karaokeTitleRegex, argPos, *filter.HasKaraoke))
 		args = append(args, karaokeTitleRegex)
 		argPos++
 	}

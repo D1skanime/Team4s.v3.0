@@ -73,24 +73,24 @@ func (o *OptionalStringSlice) UnmarshalJSON(data []byte) error {
 }
 
 type AdminAnimeCreateInput struct {
-	Title       string
-	TitleDE     *string
-	TitleEN     *string
-	Type        string
-	ContentType string
-	Status      string
-	Year        *int16
-	MaxEpisodes *int16
-	Genre       *string
-	Description *string
+	Title               string
+	TitleDE             *string
+	TitleEN             *string
+	Type                string
+	ContentType         string
+	Status              string
+	Year                *int16
+	MaxEpisodes         *int16
+	Genre               *string
+	Description         *string
 	CoverImage          *string
 	BannerImage         *string
 	LogoImage           *string
 	BackgroundVideoURL  *string
 	BackgroundImageURLs []string
 	Source              *string
-	FolderName  *string
-	Tags        []string
+	FolderName          *string
+	Tags                []string
 }
 
 type AdminAnimeCreateDraftAssetSuggestions struct {
@@ -149,9 +149,9 @@ type AdminAnimeAniSearchSearchResponse = AdminAnimeAniSearchSearchResult
 type AdminAnimeAssetSearchSource string
 
 const (
-	AdminAnimeAssetSearchSourceTMDB     AdminAnimeAssetSearchSource = "tmdb"
-	AdminAnimeAssetSearchSourceFanartTV AdminAnimeAssetSearchSource = "fanart.tv"
-	AdminAnimeAssetSearchSourceZerochan AdminAnimeAssetSearchSource = "zerochan"
+	AdminAnimeAssetSearchSourceTMDB      AdminAnimeAssetSearchSource = "tmdb"
+	AdminAnimeAssetSearchSourceFanartTV  AdminAnimeAssetSearchSource = "fanart.tv"
+	AdminAnimeAssetSearchSourceZerochan  AdminAnimeAssetSearchSource = "zerochan"
 	AdminAnimeAssetSearchSourceKonachan  AdminAnimeAssetSearchSource = "konachan"
 	AdminAnimeAssetSearchSourceAniList   AdminAnimeAssetSearchSource = "anilist"
 	AdminAnimeAssetSearchSourceSafebooru AdminAnimeAssetSearchSource = "safebooru"
@@ -371,7 +371,7 @@ type AdminEpisodeDeleteResult struct {
 	EpisodeID              int64  `json:"episode_id"`
 	AnimeID                int64  `json:"anime_id"`
 	EpisodeNumber          string `json:"episode_number"`
-	DeletedEpisodeVersions int32  `json:"deleted_episode_versions"`
+	DeletedReleaseVariants int32  `json:"deleted_release_variants"`
 }
 
 type AdminAnimeSyncSource struct {
