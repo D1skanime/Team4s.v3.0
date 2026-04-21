@@ -394,6 +394,9 @@ Episode
 - number_decimal  
 - number_text  
 - episode_type_id  
+- filler_type_id
+- filler_source
+- filler_note
 - sort_index  
 - created_at  
 - modified_at  
@@ -403,12 +406,35 @@ PRIMARY KEY(id)
   
 FOREIGN KEY (anime_id) REFERENCES Anime(id)  
 FOREIGN KEY (episode_type_id) REFERENCES EpisodeType(id)  
+FOREIGN KEY (filler_type_id) REFERENCES EpisodeFillerType(id)
 FOREIGN KEY (modified_by) REFERENCES User(id)  
   
 UNIQUE (anime_id, number, episode_type_id)  
   
 INDEX idx_episode_anime (anime_id)  
+INDEX idx_episode_filler_type (filler_type_id)
 INDEX idx_episode_sort (anime_id, sort_index) 
+```
+
+```
+EpisodeFillerType
+- id
+- name
+- is_filler
+- created_at
+
+PRIMARY KEY(id)
+
+UNIQUE (name)
+```
+
+```
+EpisodeFillerType values
+- unknown
+- canon
+- filler
+- mixed
+- recap
 ```
 
 ```
@@ -527,6 +553,28 @@ FOREIGN KEY (modified_by) REFERENCES User(id)
 UNIQUE (release_version_id, filename)
 
 INDEX idx_release_variant_version (release_version_id) 
+```
+## ReleaseVariantEpisode
+
+`ReleaseVariantEpisode` records which canonical episodes a physical release variant covers. This is required for combined files such as one Naruto media file containing episodes 9 and 10 without duplicating the file or losing canonical episode identity.
+
+```
+ReleaseVariantEpisode
+- release_variant_id
+- episode_id
+- position
+- created_at
+
+PRIMARY KEY(release_variant_id, episode_id)
+
+FOREIGN KEY (release_variant_id) REFERENCES ReleaseVariant(id)
+FOREIGN KEY (episode_id) REFERENCES Episode(id)
+
+CHECK (position > 0)
+
+INDEX idx_release_variant_episode_variant (release_variant_id)
+INDEX idx_release_variant_episode_episode (episode_id)
+INDEX idx_release_variant_episode_position (release_variant_id, position)
 ```
 ## ReleaseVersionGroup
 ```
