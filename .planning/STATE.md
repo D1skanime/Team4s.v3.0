@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
-stopped_at: Completed 19-episode-import-operator-workbench/19-03-PLAN.md
-last_updated: "2026-04-20T11:16:36.162Z"
-last_activity: 2026-04-20
+status: Ready to execute
+stopped_at: Completed 20.1-02-PLAN.md
+last_updated: "2026-04-21T13:33:42.946Z"
+last_activity: 2026-04-21
 progress:
-  total_phases: 14
+  total_phases: 16
   completed_phases: 12
-  total_plans: 49
-  completed_plans: 47
+  total_plans: 57
+  completed_plans: 49
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 19 — episode-import-operator-workbench
+**Current focus:** Phase 20.1 — db-schema-v2-physical-cutover
 
 ## Current Position
 
-Phase: 19 (episode-import-operator-workbench) — EXECUTING
-Plan: 3 of 3
+Phase: 20.1 (db-schema-v2-physical-cutover) — EXECUTING
+Plan: 3 of 4
 
 ## Accumulated Context
 
@@ -90,6 +90,7 @@ Recent durable decisions:
 - [Phase 19-episode-import-operator-workbench]: Context strip keeps AniSearch ID, Jellyfin series, folder path always visible; source panel simplified to two inputs only
 - [Phase 19-episode-import-operator-workbench]: Test 3 create-flow folder_name bug is pre-existing and out of Phase 19 scope; narrowed to minor follow-up quick task
 - [Phase 19-episode-import-operator-workbench]: Phase-18 UAT transitions from blocked to pending-live-retest: Tests 4 and 6 resolved-by-code, Test 7 now practically reachable
+- [Phase 20.1-db-schema-v2-physical-cutover]: Use scripts/schema-v2-contract-check.ps1 as the failing DB Schema v2 contract guard; it allows only the explicit streams and episode-version cleanup leftovers.
 
 ### Pending Todos
 
@@ -115,10 +116,15 @@ Recent durable decisions:
 - Phase 18 final verification passed: backend targeted tests, frontend mapping tests, frontend build, Docker rebuild, and smoke checks for frontend/backend routes.
 - Phase 18 live UAT follow-through then found remaining practical blockers: opaque mapping rows, false conflicts for parallel releases, and too much manual skip friction for large libraries.
 - Phase 19 planned: Episode import operator workbench follow-through, focused on readable file evidence, version-friendly mapping, and practical bulk resolution controls.
+- Phase 19 UAT passed after fixing frontend conflict detection for parallel releases; import is now practical enough to expose the remaining persistence-schema mismatch.
+- Phase 20 planned: Release-native episode import schema, focused on clean local reset, normalized release graph writes, multilingual episode titles, filler metadata, and Naruto-style multi-episode file coverage.
+- Phase 20.1 planned before Phase 20 execution: build the full documented `docs/architecture/db-schema-v2.md` target as real DB tables, then delete the legacy `episode_versions` table family because only disposable test episode data exists.
 
 ### Blockers/Concerns
 
 - Cross-AI review remains unavailable until an independent reviewer CLI is installed.
+- Phase 20 must not treat the user-provided `FansubRelease.episode_id` shape as sufficient for combined files; a normalized coverage join is required for cases like Naruto 9+10 in one media file.
+- Phase 20.1 is intentionally destructive for local test episode-version data; it must not delete target identity tables such as `episodes`, `episode_titles`, `episode_types`, or `languages`.
 
 ### Performance Metrics
 
@@ -141,6 +147,7 @@ Recent durable decisions:
 | Phase 19-episode-import-operator-workbench P01 | 18min | 2 tasks | 7 files |
 | Phase 19-episode-import-operator-workbench P02 | 5min | 2 tasks | 5 files |
 | Phase 19-episode-import-operator-workbench P03 | 5min | 1 tasks | 1 files |
+| Phase 20.1-db-schema-v2-physical-cutover P02 | 6min | 3 tasks | 7 files |
 
 ### Quick Tasks Completed
 
@@ -152,7 +159,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-20T11:16:36.157Z
-Stopped at: Completed 19-episode-import-operator-workbench/19-03-PLAN.md
-Last activity: 2026-04-20
+Last session: 2026-04-21T13:33:42.940Z
+Stopped at: Completed 20.1-02-PLAN.md
+Last activity: 2026-04-21
 Resume file: None

@@ -2,7 +2,7 @@
 
 ## Milestones
 
-> Current planning note: Phase 18 exposed operator-facing import blockers in live UAT; Phase 19 is the next narrow slice to make episode import practical for real releases.
+> Current planning note: Phase 19 made the import workbench practical enough for UAT; Phase 20 is the next slice to move persistence onto the normalized release schema.
 
 - [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
 - [x] **v1.1 Asset Lifecycle Hardening** - Phases 6 through 16 are complete or verified, and Phase 17 is the current next slice for the `/admin/anime/create` UX/UI follow-through. (completed 2026-04-17)
@@ -25,6 +25,11 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 15: Asset-Specific Online Search And Selection For Create-Page Anime Assets** - Let admins search external asset sources per slot, review found images with source visibility, and adopt selected cover/banner/logo/background assets into the create draft without leaving the page.
 - [x] **Phase 16: Hide Already Imported AniSearch Candidates On Create** - Keep AniSearch title search on `/admin/anime/create` focused on still-creatable entries by hiding candidates whose `anisearch:{id}` source already exists locally. (completed and browser-verified 2026-04-16)
 - [x] **Phase 17: Anime Create UX/UI Follow-Through** - Rework `/admin/anime/create` to follow the finalized Phase-14 UX contract: AniSearch as metadata source, Jellyfin as source/folder matcher first, and asset suggestions only after explicit Jellyfin adoption. (completed 2026-04-17)
+
+- [x] **Phase 18: Episode Import And Mapping Builder** - Add AniSearch canonical episode import, Jellyfin media scanning, and manual mapping/apply baseline.
+- [x] **Phase 19: Episode Import Operator Workbench** - Make the import workbench readable and practical for real parallel releases and bulk confirmation.
+- [ ] **Phase 20.1: DB Schema v2 Physical Cutover** - Build the documented DB Schema v2 as real tables and remove legacy episode-version tables before more episode features.
+- [ ] **Phase 20: Release-Native Episode Import Schema** - Move episode import persistence onto the normalized release graph with filler, multilingual titles, and multi-episode file coverage.
 
 ## Phase Details
 
@@ -240,9 +245,46 @@ Plans:
   4. The import surface shows the linked AniSearch source, Jellyfin series, and folder path clearly enough to diagnose wrong linkage before apply.
   5. Live UAT can complete the import flow end-to-end on a real anime library without crashing or becoming impractical to operate.
 
+### Phase 20.1: DB Schema v2 Physical Cutover
+**Goal:** Build the full documented `docs/architecture/db-schema-v2.md` target schema as physical database tables, then remove the legacy `episode_versions` table family so future feature work cannot keep writing to the old flat episode-version model.
+**Requirements**: P20.1-SC1, P20.1-SC2, P20.1-SC3, P20.1-SC4, P20.1-SC5
+**Depends on:** Phase 19
+**Status**: Planned on 2026-04-21 before Phase 20 execution
+**Plans:** 2/4 plans executed
+Plans:
+- [ ] `20.1-01-PLAN.md` - Inventory live-vs-target schema, add controlled local reset, and lock the deletion boundary.
+- [ ] `20.1-02-PLAN.md` - Create/reconcile every documented DB Schema v2 target table, column, constraint, index, and lookup value.
+- [ ] `20.1-03-PLAN.md` - Drop `episode_version_episodes`, `episode_version_images`, and `episode_versions`, then remove code/test dependencies.
+- [ ] `20.1-04-PLAN.md` - Verify clean migration, schema audit, Docker rebuild, and handoff for Phase 20.
+**Success Criteria** (what must be TRUE):
+  1. A clean local DB can migrate to the full documented DB Schema v2 target.
+  2. `EpisodeFillerType`, episode filler fields, and `ReleaseVariantEpisode` exist physically.
+  3. Legacy `episode_version_episodes`, `episode_version_images`, and `episode_versions` are absent after migration.
+  4. Backend/frontend code and tests no longer require the dropped tables.
+  5. Phase 20 can start on the normalized schema without preserving old test episode data.
+
+### Phase 20: Release-Native Episode Import Schema
+**Goal:** Align episode import persistence with the normalized episode/release schema so real libraries store canonical episodes, multilingual titles, filler metadata, releases, versions, variants, streams, and multi-episode file coverage without relying on legacy `episode_versions` as the only source of truth.
+**Requirements**: P20-SC1, P20-SC2, P20-SC3, P20-SC4, P20-SC5
+**Depends on:** Phase 20.1
+**Status**: Planned on 2026-04-21 after Phase-19 UAT exposed the remaining schema mismatch; execution waits for Phase 20.1 DB cutover
+**Plans:** 4 plans
+Plans:
+- [ ] `20-01-PLAN.md` - Add the controlled local reset and missing schema pieces, including filler fields and normalized release coverage for multi-episode files.
+- [ ] `20-02-PLAN.md` - Move backend episode import apply to the normalized release graph and persist multilingual titles plus filler metadata.
+- [ ] `20-03-PLAN.md` - Expose release-native mapping fields, filler status, and multi-target correction in the operator workbench.
+- [ ] `20-04-PLAN.md` - Verify on a clean local Naruto import with filler, multiple releases, and combined episode coverage, then Docker-deploy.
+**Success Criteria** (what must be TRUE):
+  1. Local dev anime/episode/import state can be reset reproducibly before verification so old rows do not hide schema bugs.
+  2. `docs/architecture/db-schema-v2.md` is treated as the canonical schema source and is updated for filler metadata plus multi-episode release coverage before migrations are written.
+  3. The database contains every required normalized table/column/constraint for episodes, titles, languages, episode types, releases, versions, variants, release groups, stream sources, release streams, and filler metadata.
+  4. A single real media file can cover more than one canonical episode through normalized release coverage, for example Naruto episode 9+10.
+  5. Episode import apply writes the normalized release graph as the authoritative model while keeping legacy compatibility deliberate and documented.
+  6. Naruto-style verification proves canonical AniSearch numbering, filler persistence, multiple releases per episode, and season-to-canonical mapping correction.
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 14 | 29+ | Phases 6-18 shipped; Phase 19 planned from blocked live UAT | - |
+| v1.1 Asset Lifecycle Hardening | 16 | 37+ | Phases 6-19 shipped through UAT; Phase 20.1 planned before Phase 20 import persistence | - |
