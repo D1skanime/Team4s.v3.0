@@ -33,6 +33,12 @@ export interface EpisodeImportMappingRow {
   target_episode_numbers: number[]
   suggested_episode_numbers: number[]
   status: EpisodeImportMappingStatus
+  /** Optional operator override: ID of the fansub group responsible for this release. */
+  fansub_group_id?: number | null
+  /** Backend-detected or operator-supplied fansub group name for display and lookup. */
+  fansub_group_name?: string | null
+  /** Operator-supplied release version label, e.g. "v2", "BD", "720p". */
+  release_version?: string | null
 }
 
 export interface EpisodeImportPreviewResult {

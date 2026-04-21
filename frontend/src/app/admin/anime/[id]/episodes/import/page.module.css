@@ -416,6 +416,51 @@
   color: #a09890;
 }
 
+/* ---- Release metadata fields (group, version) ---- */
+
+.releaseMetaRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.releaseMeta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.releaseMetaLabel {
+  color: #9b8e82;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.releaseMetaInput {
+  width: 96px;
+  border: 1px solid #e4ddd4;
+  border-radius: 8px;
+  padding: 4px 8px;
+  background: #faf8f5;
+  color: #312821;
+  font-size: 12px;
+}
+
+.releaseMetaInput:disabled {
+  background: #f0ede8;
+  color: #c0b8ae;
+}
+
+.releaseMetaInput:focus {
+  outline: none;
+  border-color: #8060d7;
+  background: #fff;
+}
+
 /* ---- Status pills ---- */
 
 .statusPill {

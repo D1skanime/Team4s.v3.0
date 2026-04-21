@@ -143,6 +143,7 @@ export default function AdminAnimeEpisodeImportPage() {
                 key={group.episodeNumber}
                 group={group}
                 onSetTargets={builder.setTargets}
+                onSetRelease={builder.setReleaseMeta}
                 onSkip={builder.skipMapping}
                 onConfirmEpisode={builder.confirmEpisodeRows}
                 onSkipEpisode={builder.skipEpisodeRows}
@@ -161,6 +162,7 @@ export default function AdminAnimeEpisodeImportPage() {
                       key={row.media_item_id}
                       row={row}
                       onSetTargets={builder.setTargets}
+                      onSetRelease={builder.setReleaseMeta}
                       onSkip={builder.skipMapping}
                     />
                   ))}
@@ -211,12 +213,13 @@ interface EpisodeGroupProps {
     rows: import('@/types/episodeImport').EpisodeImportMappingRow[]
   }
   onSetTargets: (mediaItemID: string, rawTargets: string) => void
+  onSetRelease: (mediaItemID: string, meta: { fansubGroupName?: string; releaseVersion?: string }) => void
   onSkip: (mediaItemID: string) => void
   onConfirmEpisode: (episodeNumber: number) => void
   onSkipEpisode: (episodeNumber: number) => void
 }
 
-function EpisodeGroup({ group, onSetTargets, onSkip, onConfirmEpisode, onSkipEpisode }: EpisodeGroupProps) {
+function EpisodeGroup({ group, onSetTargets, onSetRelease, onSkip, onConfirmEpisode, onSkipEpisode }: EpisodeGroupProps) {
   const hasActionable = group.rows.some((row) => row.status === 'suggested' || row.status === 'conflict')
 
   return (
@@ -260,6 +263,7 @@ function EpisodeGroup({ group, onSetTargets, onSkip, onConfirmEpisode, onSkipEpi
             key={row.media_item_id}
             row={row}
             onSetTargets={onSetTargets}
+            onSetRelease={onSetRelease}
             onSkip={onSkip}
           />
         ))}
@@ -271,10 +275,11 @@ function EpisodeGroup({ group, onSetTargets, onSkip, onConfirmEpisode, onSkipEpi
 interface MappingRowProps {
   row: import('@/types/episodeImport').EpisodeImportMappingRow
   onSetTargets: (mediaItemID: string, rawTargets: string) => void
+  onSetRelease: (mediaItemID: string, meta: { fansubGroupName?: string; releaseVersion?: string }) => void
   onSkip: (mediaItemID: string) => void
 }
 
-function MappingRow({ row, onSetTargets, onSkip }: MappingRowProps) {
+function MappingRow({ row, onSetTargets, onSetRelease, onSkip }: MappingRowProps) {
   const label = row.file_name || row.media_item_id
   const isSkipped = row.status === 'skipped'
 
@@ -286,6 +291,35 @@ function MappingRow({ row, onSetTargets, onSkip }: MappingRowProps) {
         {(row.target_episode_numbers ?? []).length > 1 ? (
           <span className={styles.multiEpisodeHint}>Deckt {row.target_episode_numbers.length} Episoden ab</span>
         ) : null}
+        {/* Release metadata: show detected values and allow operator override */}
+        <div className={styles.releaseMetaRow}>
+          <label className={styles.releaseMeta}>
+            <span className={styles.releaseMetaLabel}>Gruppe</span>
+            <input
+              className={styles.releaseMetaInput}
+              defaultValue={row.fansub_group_name ?? ''}
+              disabled={isSkipped}
+              placeholder="z.B. [SubGroup]"
+              aria-label={`Fansub-Gruppe für ${label}`}
+              onBlur={(event) =>
+                onSetRelease(row.media_item_id, { fansubGroupName: event.target.value })
+              }
+            />
+          </label>
+          <label className={styles.releaseMeta}>
+            <span className={styles.releaseMetaLabel}>Version</span>
+            <input
+              className={styles.releaseMetaInput}
+              defaultValue={row.release_version ?? ''}
+              disabled={isSkipped}
+              placeholder="z.B. v2"
+              aria-label={`Release-Version für ${label}`}
+              onBlur={(event) =>
+                onSetRelease(row.media_item_id, { releaseVersion: event.target.value })
+              }
+            />
+          </label>
+        </div>
       </div>
       <span className={`${styles.statusPill} ${styles[row.status]}`}>{statusLabel(row.status)}</span>
       <input

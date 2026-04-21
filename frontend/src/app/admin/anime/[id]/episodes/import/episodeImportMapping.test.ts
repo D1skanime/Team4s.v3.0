@@ -270,4 +270,39 @@ describe('episodeImportMapping', () => {
     const ep = { episode_number: 5 }
     expect(resolveEpisodeDisplayTitle(ep)).toBeNull()
   })
+
+  // --- Release metadata field preservation ---
+
+  it('setMappingTargets preserves existing fansub_group_name and release_version on the row', () => {
+    const rows: EpisodeImportMappingRow[] = [{
+      media_item_id: 'jellyfin-ep1',
+      target_episode_numbers: [1],
+      suggested_episode_numbers: [1],
+      status: 'suggested',
+      fansub_group_name: '[Commie]',
+      release_version: 'v2',
+    }]
+
+    const result = setMappingTargets(rows, 'jellyfin-ep1', '1,2')
+
+    expect(result[0].fansub_group_name).toBe('[Commie]')
+    expect(result[0].release_version).toBe('v2')
+    expect(result[0].target_episode_numbers).toEqual([1, 2])
+  })
+
+  it('markMappingSkipped preserves release metadata on the skipped row', () => {
+    const rows: EpisodeImportMappingRow[] = [{
+      media_item_id: 'jellyfin-ep5',
+      target_episode_numbers: [5],
+      suggested_episode_numbers: [5],
+      status: 'suggested',
+      fansub_group_name: '[HorribleSubs]',
+      release_version: null,
+    }]
+
+    const result = markMappingSkipped(rows, 'jellyfin-ep5')
+
+    expect(result[0].status).toBe('skipped')
+    expect(result[0].fansub_group_name).toBe('[HorribleSubs]')
+  })
 })

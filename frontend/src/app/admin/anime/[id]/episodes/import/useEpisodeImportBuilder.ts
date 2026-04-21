@@ -59,6 +59,7 @@ interface UseEpisodeImportBuilderState {
   setAniSearchID: (value: string) => void
   setSeasonOffset: (value: string) => void
   setTargets: (mediaItemID: string, rawTargets: string) => void
+  setReleaseMeta: (mediaItemID: string, meta: { fansubGroupName?: string; releaseVersion?: string }) => void
   skipMapping: (mediaItemID: string) => void
   skipAllSuggested: () => void
   confirmAllSuggested: () => void
@@ -228,6 +229,18 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     setSeasonOffset,
     setTargets: (mediaItemID, rawTargets) =>
       setMappings((current) => setMappingTargets(current, mediaItemID, rawTargets)),
+    setReleaseMeta: (mediaItemID, meta) =>
+      setMappings((current) =>
+        current.map((row) =>
+          row.media_item_id === mediaItemID
+            ? {
+                ...row,
+                fansub_group_name: meta.fansubGroupName !== undefined ? (meta.fansubGroupName || null) : row.fansub_group_name,
+                release_version: meta.releaseVersion !== undefined ? (meta.releaseVersion || null) : row.release_version,
+              }
+            : row,
+        ),
+      ),
     skipMapping: (mediaItemID) =>
       setMappings((current) => markMappingSkipped(current, mediaItemID)),
     skipAllSuggested: () =>
