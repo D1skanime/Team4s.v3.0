@@ -1,5 +1,6 @@
 param(
-    [string]$OutputPath = ".planning/phases/20.1-db-schema-v2-physical-cutover/20.1-01-schema-audit.md"
+    [string]$OutputPath = ".planning/phases/20.1-db-schema-v2-physical-cutover/20.1-01-schema-audit.md",
+    [switch]$FailOnContractGaps
 )
 
 $ErrorActionPreference = "Stop"
@@ -208,6 +209,9 @@ foreach ($spec in $targetTables) {
     }
 
     $referenceColumns = @($spec.Columns | Where-Object { $_ -ne "id" -and ($_ -match "_id$" -or $_ -in @("source")) })
+    if ($live -eq "stream_sources") {
+        $referenceColumns = @()
+    }
     if ($constraints.ContainsKey($fkKey)) {
         Add-AuditRow "constraint" "$($spec.Target) foreign keys" $live "present" (($constraints[$fkKey] | Select-Object -ExpandProperty Definition) -join "; ")
     } elseif ($referenceColumns.Count -gt 0) {
@@ -229,6 +233,8 @@ $missing = @($audit | Where-Object { $_.Status -eq "missing" })
 $present = @($audit | Where-Object { $_.Status -eq "present" })
 $legacy = @($audit | Where-Object { $_.Status -eq "legacy-to-delete" })
 $divergent = @($audit | Where-Object { $_.Status -eq "divergent" })
+$blockingDivergent = @($divergent | Where-Object { -not ($_.Kind -eq "table" -and $_.Live -eq "streams") })
+$contractPassed = $missing.Count -eq 0 -and $blockingDivergent.Count -eq 0
 
 $lines = New-Object System.Collections.Generic.List[string]
 $lines.Add("# DB Schema v2 Live-vs-Target Audit")
@@ -245,6 +251,7 @@ $lines.Add("| Present artifacts | $($present.Count) |")
 $lines.Add("| Missing artifacts | $($missing.Count) |")
 $lines.Add("| Divergent artifacts | $($divergent.Count) |")
 $lines.Add("| Legacy deletion targets still present | $($legacy.Count) |")
+$lines.Add("| Contract check | $(if ($contractPassed) { "PASSED" } else { "FAILED" }) |")
 $lines.Add("")
 $lines.Add("## Missing")
 $lines.Add("")
@@ -284,3 +291,14 @@ if ($parent -and -not (Test-Path $parent)) {
 }
 $lines | Set-Content -Path $OutputPath -Encoding UTF8
 Write-Output "Wrote $OutputPath"
+
+if ($FailOnContractGaps -and -not $contractPassed) {
+    $messages = @()
+    foreach ($row in $missing) {
+        $messages += "missing $($row.Kind): $($row.Target) ($($row.Live))"
+    }
+    foreach ($row in $blockingDivergent) {
+        $messages += "divergent $($row.Kind): $($row.Target) ($($row.Live))"
+    }
+    throw "DB Schema v2 contract check failed: $($messages -join '; ')"
+}
