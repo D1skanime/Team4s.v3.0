@@ -305,4 +305,95 @@ describe('episodeImportMapping', () => {
     expect(result[0].status).toBe('skipped')
     expect(result[0].fansub_group_name).toBe('[HorribleSubs]')
   })
+
+  // --- Naruto-scale bulk mapping controls ---
+
+  it('markAllSuggestedConfirmed does not erase multi-target coverage for combined-file rows', () => {
+    // Simulates a Naruto combined file covering episodes 9 and 10
+    const rows: EpisodeImportMappingRow[] = [
+      {
+        media_item_id: 'naruto-s01e09-010',
+        target_episode_numbers: [9, 10],
+        suggested_episode_numbers: [9],
+        status: 'suggested',
+      },
+      {
+        media_item_id: 'naruto-s01e011',
+        target_episode_numbers: [11],
+        suggested_episode_numbers: [11],
+        status: 'suggested',
+      },
+    ]
+
+    const result = markAllSuggestedConfirmed(rows)
+
+    const combined = result.find((r) => r.media_item_id === 'naruto-s01e09-010')
+    expect(combined?.status).toBe('confirmed')
+    // Multi-target coverage must be preserved exactly
+    expect(combined?.target_episode_numbers).toEqual([9, 10])
+
+    expect(result.find((r) => r.media_item_id === 'naruto-s01e011')?.status).toBe('confirmed')
+  })
+
+  it('markAllSuggestedSkipped does not affect already-confirmed multi-target rows', () => {
+    const rows: EpisodeImportMappingRow[] = [
+      {
+        media_item_id: 'naruto-s01e09-010',
+        target_episode_numbers: [9, 10],
+        suggested_episode_numbers: [9],
+        status: 'confirmed',
+      },
+      {
+        media_item_id: 'naruto-s01e012',
+        target_episode_numbers: [12],
+        suggested_episode_numbers: [12],
+        status: 'suggested',
+      },
+    ]
+
+    const result = markAllSuggestedSkipped(rows)
+
+    const combined = result.find((r) => r.media_item_id === 'naruto-s01e09-010')
+    expect(combined?.status).toBe('confirmed')
+    expect(combined?.target_episode_numbers).toEqual([9, 10])
+
+    expect(result.find((r) => r.media_item_id === 'naruto-s01e012')?.status).toBe('skipped')
+  })
+
+  it('canApply equivalent: all rows confirmed or skipped enables apply', () => {
+    // Simulates the canApply condition from the hook
+    const rows: EpisodeImportMappingRow[] = [
+      { media_item_id: 'ep1', target_episode_numbers: [1], suggested_episode_numbers: [1], status: 'confirmed' },
+      { media_item_id: 'ep2', target_episode_numbers: [2, 3], suggested_episode_numbers: [2], status: 'confirmed' },
+      { media_item_id: 'ep4', target_episode_numbers: [], suggested_episode_numbers: [4], status: 'skipped' },
+    ]
+
+    const canApply = rows.every((r) => r.status === 'confirmed' || r.status === 'skipped')
+    expect(canApply).toBe(true)
+  })
+
+  it('canApply equivalent: rows with suggested status block apply', () => {
+    const rows: EpisodeImportMappingRow[] = [
+      { media_item_id: 'ep1', target_episode_numbers: [1], suggested_episode_numbers: [1], status: 'confirmed' },
+      { media_item_id: 'ep2', target_episode_numbers: [2], suggested_episode_numbers: [2], status: 'suggested' },
+    ]
+
+    const canApply = rows.every((r) => r.status === 'confirmed' || r.status === 'skipped')
+    expect(canApply).toBe(false)
+  })
+
+  it('setMappingTargets accepts comma-list season-offset corrections like "141" from a season-split library', () => {
+    // Simulates operator correcting a Jellyfin Season 6 Episode 1 to canonical episode 141
+    const rows: EpisodeImportMappingRow[] = [{
+      media_item_id: 'naruto-s06e01',
+      target_episode_numbers: [127], // wrong: season-indexed suggestion
+      suggested_episode_numbers: [127],
+      status: 'suggested',
+    }]
+
+    const result = setMappingTargets(rows, 'naruto-s06e01', '141')
+
+    expect(result[0].target_episode_numbers).toEqual([141])
+    expect(result[0].status).toBe('confirmed')
+  })
 })
