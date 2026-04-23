@@ -9,6 +9,7 @@ import {
   previewEpisodeImport,
 } from '@/lib/api'
 import type {
+  EpisodeImportApplyInput,
   EpisodeImportApplyResult,
   EpisodeImportCanonicalEpisode,
   EpisodeImportContextResult,
@@ -28,6 +29,7 @@ import {
   markMappingSkipped,
   resolveEpisodeDisplayTitle,
   removeMappingFansubGroup,
+  serializeEpisodeImportMappingRow,
   setMappingReleaseMeta,
   setMappingFansubGroups,
   setMappingTargets,
@@ -229,12 +231,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     try {
       const response = await applyEpisodeImport(
         animeID,
-        {
-          anime_id: animeID,
-          canonical_episodes: preview.canonical_episodes,
-          media_candidates: preview.media_candidates ?? [],
-          mappings,
-        },
+        buildEpisodeImportApplyInput(animeID, preview, mappings),
         authToken,
       )
       setApplyResult(response.data)
@@ -314,6 +311,19 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
       setMappings((current) => confirmEpisodeMappingRows(current, episodeNumber)),
     skipEpisodeRows: (episodeNumber) =>
       setMappings((current) => skipEpisodeMappingRows(current, episodeNumber)),
+  }
+}
+
+export function buildEpisodeImportApplyInput(
+  animeID: number,
+  preview: EpisodeImportPreviewResult,
+  mappings: EpisodeImportMappingRow[],
+): EpisodeImportApplyInput {
+  return {
+    anime_id: animeID,
+    canonical_episodes: preview.canonical_episodes,
+    media_candidates: preview.media_candidates ?? [],
+    mappings: mappings.map((row) => serializeEpisodeImportMappingRow(row)),
   }
 }
 

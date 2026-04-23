@@ -15,6 +15,7 @@ import {
   skipEpisodeMappingRows,
   summarizeImportPreview,
 } from './episodeImportMapping'
+import { buildEpisodeImportApplyInput } from './useEpisodeImportBuilder'
 
 describe('episodeImportMapping', () => {
   it('confirms one media candidate for multiple canonical episodes without duplicating the row', () => {
@@ -529,6 +530,38 @@ describe('episodeImportMapping', () => {
       { name: 'LateNight', slug: null },
     ])
     expect(result[3].fansub_groups).toEqual(result[2].fansub_groups)
+  })
+
+  it('buildEpisodeImportApplyInput keeps free-text chips after row edits', () => {
+    const preview: EpisodeImportPreviewResult = {
+      anime_id: 42,
+      anime_title: 'Test Anime',
+      canonical_episodes: [{ episode_number: 12 }],
+      media_candidates: [{ media_item_id: 'episode-12', file_name: 'Episode 12.mkv', path: '/test/Episode 12.mkv' }],
+      mappings: [],
+    }
+
+    const editedRows = setMappingTargets(
+      [{
+        media_item_id: 'episode-12',
+        target_episode_numbers: [12],
+        suggested_episode_numbers: [12],
+        status: 'confirmed',
+        fansub_groups: [{ name: 'Brand New Group' }, { id: 3, name: 'Known Group', slug: 'known-group' }],
+        release_version: 'v3',
+      }],
+      'episode-12',
+      '12,13',
+    )
+
+    const payload = buildEpisodeImportApplyInput(42, preview, editedRows)
+
+    expect(payload.mappings[0].target_episode_numbers).toEqual([12, 13])
+    expect(payload.mappings[0].fansub_groups).toEqual([
+      { name: 'Brand New Group', slug: null },
+      { id: 3, name: 'Known Group', slug: 'known-group' },
+    ])
+    expect(payload.mappings[0].release_version).toBe('v3')
   })
 
 })
