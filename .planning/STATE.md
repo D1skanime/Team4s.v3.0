@@ -186,6 +186,7 @@ Recent durable decisions:
 | 260405-kce | Sync Phase-07 completion across roadmap and milestone tracking | 2026-04-05 | uncommitted (dirty workspace) | [260405-kce-sync-phase-07-completion-across-roadmap-](./quick/260405-kce-sync-phase-07-completion-across-roadmap-/) |
 | 260405-pcz | Add tags schema and persistence analogous to genres for anime metadata | 2026-04-05 | uncommitted (dirty workspace) | [260405-pcz-add-tags-schema-and-persistence-analogou](./quick/260405-pcz-add-tags-schema-and-persistence-analogou/) |
 | 260417-qtu | Asset upload UX: leere Slots klickbar, Upload-Hover-Overlay | 2026-04-17 | 136161b | [260417-qtu-asset-upload-ux-leere-slots-klickbar-und](./quick/260417-qtu-asset-upload-ux-leere-slots-klickbar-und/) |
+| 260423dxc | Filter bereits importierte Jellyfin-Kandidaten aus Episode-Import Preview heraus | 2026-04-23 | dab72d6 | [260423dxc-filter-already-imported-episode-candidates](./quick/260423dxc-filter-already-imported-episode-candidates/) |
 
 ## Session Continuity
 
