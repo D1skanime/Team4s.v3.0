@@ -142,6 +142,44 @@ func TestParseImportFansubGroupNames_SplitsAndCanonicalizesCollaborations(t *tes
 	}
 }
 
+func TestBuildImportCollaborationName_IsStableAcrossSelectionOrder(t *testing.T) {
+	t.Parallel()
+
+	forward := buildImportCollaborationName([]resolvedImportFansubGroup{
+		{ID: 1, Name: "FlameHazeSubs", Slug: "flamehazesubs"},
+		{ID: 2, Name: "TestGruppe", Slug: "testgruppe"},
+	})
+	reversed := buildImportCollaborationName([]resolvedImportFansubGroup{
+		{ID: 2, Name: "TestGruppe", Slug: "testgruppe"},
+		{ID: 1, Name: "FlameHazeSubs", Slug: "flamehazesubs"},
+	})
+	if forward != "FlameHazeSubs & TestGruppe" {
+		t.Fatalf("expected canonical collaboration name, got %q", forward)
+	}
+	if reversed != forward {
+		t.Fatalf("expected collaboration identity to ignore selection order, got %q vs %q", forward, reversed)
+	}
+}
+
+func TestEpisodeImportReleaseHelpers_SourceCreatesMembersBeforeCollaborationLink(t *testing.T) {
+	t.Parallel()
+
+	content, err := os.ReadFile("episode_import_repository_release_helpers.go")
+	if err != nil {
+		t.Fatalf("read release helper source: %v", err)
+	}
+	source := string(content)
+
+	memberUpsert := strings.Index(source, "collaboration, err := upsertImportFansubGroup(")
+	collaborationLink := strings.Index(source, "INSERT INTO fansub_collaboration_members")
+	if memberUpsert < 0 || collaborationLink < 0 {
+		t.Fatalf("expected source to create member groups before writing collaboration links")
+	}
+	if memberUpsert > collaborationLink {
+		t.Fatalf("expected member groups to be resolved before collaboration links are written")
+	}
+}
+
 func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
 	t.Parallel()
 

@@ -16,6 +16,17 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+type resolvedImportFansubGroup struct {
+	ID   int64
+	Name string
+	Slug string
+}
+
+type resolvedImportFansubSelection struct {
+	EffectiveGroup *resolvedImportFansubGroup
+	MemberGroups   []resolvedImportFansubGroup
+}
+
 func upsertImportReleaseGraph(
 	ctx context.Context,
 	tx pgx.Tx,
@@ -176,104 +187,165 @@ func upsertReleaseVersionGroup(
 	mapping models.EpisodeImportMappingRow,
 	media models.EpisodeImportMediaCandidate,
 ) error {
-	groupID, err := resolveImportFansubGroup(ctx, tx, mapping, media)
-	if err != nil || groupID == nil {
+	selection, err := resolveImportFansubSelection(ctx, tx, mapping, media)
+	if err != nil || selection == nil || selection.EffectiveGroup == nil {
 		return err
+	}
+
+	if _, err := tx.Exec(ctx, `
+		DELETE FROM release_version_groups
+		WHERE release_version_id = $1
+		  AND COALESCE(fansubgroup_id, fansub_group_id) <> $2
+	`, releaseVersionID, selection.EffectiveGroup.ID); err != nil {
+		return fmt.Errorf("reset release version groups version=%d: %w", releaseVersionID, err)
 	}
 	if _, err := tx.Exec(ctx, `
 		INSERT INTO release_version_groups (release_version_id, fansub_group_id, fansubgroup_id)
 		VALUES ($1, $2, $2)
 		ON CONFLICT (release_version_id, fansub_group_id) DO UPDATE
 		SET fansubgroup_id = EXCLUDED.fansubgroup_id
-	`, releaseVersionID, *groupID); err != nil {
-		return fmt.Errorf("upsert release version group version=%d group=%d: %w", releaseVersionID, *groupID, err)
+	`, releaseVersionID, selection.EffectiveGroup.ID); err != nil {
+		return fmt.Errorf("upsert release version group version=%d group=%d: %w", releaseVersionID, selection.EffectiveGroup.ID, err)
 	}
 	return nil
 }
 
-func resolveImportFansubGroup(
+func resolveImportFansubSelection(
 	ctx context.Context,
 	tx pgx.Tx,
 	mapping models.EpisodeImportMappingRow,
 	media models.EpisodeImportMediaCandidate,
-) (*int64, error) {
-	if mapping.FansubGroupID != nil && *mapping.FansubGroupID > 0 {
-		return mapping.FansubGroupID, nil
+) (*resolvedImportFansubSelection, error) {
+	if len(mapping.FansubGroups) > 0 {
+		return resolveImportFansubSelectionFromInputs(ctx, tx, mapping.FansubGroups)
 	}
+
+	if mapping.FansubGroupID != nil && *mapping.FansubGroupID > 0 {
+		group := &resolvedImportFansubGroup{ID: *mapping.FansubGroupID}
+		return &resolvedImportFansubSelection{
+			EffectiveGroup: group,
+			MemberGroups:   []resolvedImportFansubGroup{*group},
+		}, nil
+	}
+
 	name := strings.TrimSpace(derefString(mapping.FansubGroupName))
 	if name == "" {
 		name = deriveFansubGroupName(media)
 	}
-	if name == "" {
+	parsedNames := parseImportFansubGroupNames(name)
+	if len(parsedNames) == 0 {
 		return nil, nil
 	}
-	parsedNames := parseImportFansubGroupNames(name)
-	if len(parsedNames) > 1 {
-		return upsertImportCollaborationGroup(ctx, tx, parsedNames)
+
+	selectedGroups := make([]models.SelectedFansubGroupInput, 0, len(parsedNames))
+	for _, parsedName := range parsedNames {
+		nextName := parsedName
+		selectedGroups = append(selectedGroups, models.SelectedFansubGroupInput{Name: &nextName})
 	}
-	if len(parsedNames) == 1 {
-		name = parsedNames[0]
+	return resolveImportFansubSelectionFromInputs(ctx, tx, selectedGroups)
+}
+
+func resolveImportFansubSelectionFromInputs(
+	ctx context.Context,
+	tx pgx.Tx,
+	inputs []models.SelectedFansubGroupInput,
+) (*resolvedImportFansubSelection, error) {
+	memberGroups := make([]resolvedImportFansubGroup, 0, len(inputs))
+	for _, input := range inputs {
+		group, err := resolveImportSelectedFansubGroup(ctx, tx, input)
+		if err != nil {
+			return nil, err
+		}
+		if group != nil {
+			memberGroups = append(memberGroups, *group)
+		}
 	}
-	return upsertImportFansubGroupByName(ctx, tx, name, models.FansubGroupTypeGroup)
+	memberGroups = canonicalizeResolvedImportFansubGroups(memberGroups)
+	if len(memberGroups) == 0 {
+		return nil, nil
+	}
+	if len(memberGroups) == 1 {
+		return &resolvedImportFansubSelection{
+			EffectiveGroup: &memberGroups[0],
+			MemberGroups:   memberGroups,
+		}, nil
+	}
+
+	collaboration, err := upsertImportCollaborationGroup(ctx, tx, memberGroups)
+	if err != nil || collaboration == nil {
+		return nil, err
+	}
+	return &resolvedImportFansubSelection{
+		EffectiveGroup: collaboration,
+		MemberGroups:   memberGroups,
+	}, nil
 }
 
 func upsertImportCollaborationGroup(
 	ctx context.Context,
 	tx pgx.Tx,
-	memberNames []string,
-) (*int64, error) {
-	memberNames = canonicalizeImportFansubGroupNames(memberNames)
-	if len(memberNames) == 0 {
+	memberGroups []resolvedImportFansubGroup,
+) (*resolvedImportFansubGroup, error) {
+	memberGroups = canonicalizeResolvedImportFansubGroups(memberGroups)
+	if len(memberGroups) == 0 {
 		return nil, nil
 	}
-	if len(memberNames) == 1 {
-		return upsertImportFansubGroupByName(ctx, tx, memberNames[0], models.FansubGroupTypeGroup)
+	if len(memberGroups) == 1 {
+		group := memberGroups[0]
+		return &group, nil
 	}
 
-	memberIDs := make([]int64, 0, len(memberNames))
-	for _, memberName := range memberNames {
-		groupID, err := upsertImportFansubGroupByName(ctx, tx, memberName, models.FansubGroupTypeGroup)
-		if err != nil {
-			return nil, err
-		}
-		if groupID == nil {
-			return nil, nil
-		}
-		memberIDs = append(memberIDs, *groupID)
+	collaboration, err := upsertImportFansubGroup(ctx, tx, buildImportCollaborationName(memberGroups), nil, models.FansubGroupTypeCollaboration)
+	if err != nil || collaboration == nil {
+		return collaboration, err
 	}
-
-	collaborationName := strings.Join(memberNames, " & ")
-	collaborationID, err := upsertImportFansubGroupByName(ctx, tx, collaborationName, models.FansubGroupTypeCollaboration)
-	if err != nil || collaborationID == nil {
-		return collaborationID, err
-	}
-	for _, memberID := range memberIDs {
+	for _, memberGroup := range memberGroups {
 		if _, err := tx.Exec(ctx, `
 			INSERT INTO fansub_collaboration_members (collaboration_id, member_group_id)
 			VALUES ($1, $2)
 			ON CONFLICT (collaboration_id, member_group_id) DO NOTHING
-		`, *collaborationID, memberID); err != nil {
-			return nil, fmt.Errorf("upsert import collaboration member collaboration=%d member=%d: %w", *collaborationID, memberID, err)
+		`, collaboration.ID, memberGroup.ID); err != nil {
+			return nil, fmt.Errorf("upsert import collaboration member collaboration=%d member=%d: %w", collaboration.ID, memberGroup.ID, err)
 		}
 	}
-	return collaborationID, nil
+	return collaboration, nil
 }
 
-func upsertImportFansubGroupByName(
+func resolveImportSelectedFansubGroup(
+	ctx context.Context,
+	tx pgx.Tx,
+	input models.SelectedFansubGroupInput,
+) (*resolvedImportFansubGroup, error) {
+	if input.ID != nil && *input.ID > 0 {
+		group, err := lookupImportFansubGroupByID(ctx, tx, *input.ID)
+		if err != nil {
+			return nil, err
+		}
+		return group, nil
+	}
+	return upsertImportFansubGroup(ctx, tx, derefString(input.Name), input.Slug, models.FansubGroupTypeGroup)
+}
+
+func upsertImportFansubGroup(
 	ctx context.Context,
 	tx pgx.Tx,
 	name string,
+	preferredSlug *string,
 	groupType models.FansubGroupType,
-) (*int64, error) {
+) (*resolvedImportFansubGroup, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		return nil, nil
 	}
-	slug := slugifyAnimeTitle(name)
+	slug := strings.TrimSpace(derefString(preferredSlug))
+	if slug == "" {
+		slug = slugifyAnimeTitle(name)
+	}
 	if slug == "" {
 		return nil, nil
 	}
-	var id int64
+
+	group := resolvedImportFansubGroup{}
 	if err := tx.QueryRow(ctx, `
 		INSERT INTO fansub_groups (slug, name, status, group_type)
 		VALUES ($1, $2, 'active', $3)
@@ -284,11 +356,26 @@ func upsertImportFansubGroupByName(
 		      ELSE fansub_groups.group_type
 		    END,
 		    updated_at = NOW()
-		RETURNING id
-	`, slug, name, groupType).Scan(&id); err != nil {
+		RETURNING id, slug, COALESCE(NULLIF(BTRIM(name), ''), $2)
+	`, slug, name, groupType).Scan(&group.ID, &group.Slug, &group.Name); err != nil {
 		return nil, fmt.Errorf("upsert import fansub group %q: %w", name, err)
 	}
-	return &id, nil
+	return &group, nil
+}
+
+func lookupImportFansubGroupByID(ctx context.Context, tx pgx.Tx, groupID int64) (*resolvedImportFansubGroup, error) {
+	group := resolvedImportFansubGroup{}
+	if err := tx.QueryRow(ctx, `
+		SELECT id, slug, name
+		FROM fansub_groups
+		WHERE id = $1
+	`, groupID).Scan(&group.ID, &group.Slug, &group.Name); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("selected fansub group %d not found: %w", groupID, ErrNotFound)
+		}
+		return nil, fmt.Errorf("lookup selected fansub group %d: %w", groupID, err)
+	}
+	return &group, nil
 }
 
 func parseImportFansubGroupNames(raw string) []string {
@@ -330,6 +417,50 @@ func canonicalizeImportFansubGroupNames(names []string) []string {
 		result = append(result, item.display)
 	}
 	return result
+}
+
+func canonicalizeResolvedImportFansubGroups(groups []resolvedImportFansubGroup) []resolvedImportFansubGroup {
+	unique := make(map[string]resolvedImportFansubGroup, len(groups))
+	for _, group := range groups {
+		if group.ID <= 0 && strings.TrimSpace(group.Name) == "" && strings.TrimSpace(group.Slug) == "" {
+			continue
+		}
+		unique[normalizedImportFansubIdentity(group)] = group
+	}
+	items := make([]resolvedImportFansubGroup, 0, len(unique))
+	for _, group := range unique {
+		items = append(items, group)
+	}
+	sort.Slice(items, func(i, j int) bool {
+		return normalizedImportFansubIdentity(items[i]) < normalizedImportFansubIdentity(items[j])
+	})
+	return items
+}
+
+func normalizedImportFansubIdentity(group resolvedImportFansubGroup) string {
+	if slug := strings.TrimSpace(group.Slug); slug != "" {
+		return strings.ToLower(slug)
+	}
+	if name := strings.TrimSpace(group.Name); name != "" {
+		return strings.ToLower(name)
+	}
+	return fmt.Sprintf("id:%d", group.ID)
+}
+
+func buildImportCollaborationName(groups []resolvedImportFansubGroup) string {
+	canonical := canonicalizeResolvedImportFansubGroups(groups)
+	parts := make([]string, 0, len(canonical))
+	for _, group := range canonical {
+		label := strings.TrimSpace(group.Name)
+		if label == "" {
+			label = strings.TrimSpace(group.Slug)
+		}
+		if label == "" {
+			label = fmt.Sprintf("Group %d", group.ID)
+		}
+		parts = append(parts, label)
+	}
+	return strings.Join(parts, " & ")
 }
 
 func episodeImportFilename(media models.EpisodeImportMediaCandidate) string {
