@@ -63,6 +63,7 @@ interface UseEpisodeImportBuilderState {
   isLoadingContext: boolean
   isPreviewing: boolean
   isApplying: boolean
+  applyingRowId: string | null
   errorMessage: string | null
   summary: ReturnType<typeof summarizeImportPreview> | null
   canApply: boolean
@@ -71,6 +72,7 @@ interface UseEpisodeImportBuilderState {
   unmappedMappingRows: EpisodeImportMappingRow[]
   loadPreview: () => Promise<void>
   applyMappings: () => Promise<void>
+  applyRow: (mediaItemId: string) => Promise<void>
   setAniSearchID: (value: string) => void
   setSeasonOffset: (value: string) => void
   setTargets: (mediaItemID: string, rawTargets: string) => void
@@ -99,6 +101,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
   const [isLoadingContext, setIsLoadingContext] = useState(true)
   const [isPreviewing, setIsPreviewing] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
+  const [applyingRowId, setApplyingRowId] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -242,6 +245,28 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     }
   }
 
+  async function applyRow(mediaItemId: string) {
+    if (!animeID || !preview) return
+    const targetRow = mappings.find((row) => row.media_item_id === mediaItemId)
+    if (!targetRow || targetRow.status !== 'confirmed') return
+
+    setApplyingRowId(mediaItemId)
+    setErrorMessage(null)
+    try {
+      await applyEpisodeImport(
+        animeID,
+        buildEpisodeImportApplyInput(animeID, preview, [targetRow]),
+        authToken,
+      )
+      // Remove the applied row from local state
+      setMappings((current) => current.filter((row) => row.media_item_id !== mediaItemId))
+    } catch (error) {
+      setErrorMessage(formatEpisodeImportError(error, 'Einzelnes Mapping konnte nicht angewendet werden.'))
+    } finally {
+      setApplyingRowId(null)
+    }
+  }
+
   return {
     context,
     preview,
@@ -252,6 +277,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     isLoadingContext,
     isPreviewing,
     isApplying,
+    applyingRowId,
     errorMessage,
     summary,
     canApply,
@@ -260,6 +286,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     unmappedMappingRows,
     loadPreview,
     applyMappings,
+    applyRow,
     setAniSearchID,
     setSeasonOffset,
     setTargets: (mediaItemID, rawTargets) =>

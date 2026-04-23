@@ -8,6 +8,8 @@ import type { FansubGroup } from '@/types/fansub'
 
 import styles from './page.module.css'
 
+const EMPTY_SELECTED_FANSUB_GROUPS: EpisodeImportSelectedFansubGroup[] = []
+
 interface EpisodeImportMappingRowCardProps {
   episodeNumber: number
   row: EpisodeImportMappingRow
@@ -19,6 +21,8 @@ interface EpisodeImportMappingRowCardProps {
   onApplyFansubGroupToEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   onApplyFansubGroupFromEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   onSkip: (mediaItemID: string) => void
+  onApplyRow?: (mediaItemID: string) => void
+  isApplyingRow?: boolean
 }
 
 export function EpisodeImportMappingRowCard({
@@ -32,10 +36,12 @@ export function EpisodeImportMappingRowCard({
   onApplyFansubGroupToEpisode,
   onApplyFansubGroupFromEpisode,
   onSkip,
+  onApplyRow,
+  isApplyingRow,
 }: EpisodeImportMappingRowCardProps) {
   const label = row.file_name || row.media_item_id
   const isSkipped = row.status === 'skipped'
-  const selectedFansubGroups = row.fansub_groups ?? []
+  const selectedFansubGroups = row.fansub_groups ?? EMPTY_SELECTED_FANSUB_GROUPS
 
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<FansubGroup[]>([])
@@ -46,13 +52,15 @@ export function EpisodeImportMappingRowCard({
 
   const selectedGroupKeys = useMemo(
     () =>
-      new Set(
+      Array.from(
+        new Set(
         selectedFansubGroups.map((group) =>
           typeof group.id === 'number' && Number.isFinite(group.id)
             ? `id:${group.id}`
             : `name:${(group.name ?? group.slug ?? '').trim().toLowerCase()}`,
         ),
-      ),
+        ),
+      ).sort(),
     [selectedFansubGroups],
   )
 
@@ -84,7 +92,7 @@ export function EpisodeImportMappingRowCard({
           if (group.group_type === 'collaboration') {
             return false
           }
-          return !selectedGroupKeys.has(`id:${group.id}`)
+          return !selectedGroupKeys.includes(`id:${group.id}`)
         })
         setResults(nextResults)
         if (nextResults.length === 0) {
@@ -274,6 +282,16 @@ export function EpisodeImportMappingRowCard({
       >
         {isSkipped ? 'Reaktivieren' : 'Ueberspringen'}
       </button>
+      {row.status === 'confirmed' && onApplyRow ? (
+        <button
+          className={styles.microButton}
+          type="button"
+          disabled={isApplyingRow}
+          onClick={() => onApplyRow(row.media_item_id)}
+        >
+          {isApplyingRow ? 'Wird angewendet...' : 'Ubernehmen'}
+        </button>
+      ) : null}
     </div>
   )
 }

@@ -170,6 +170,8 @@ export default function AdminAnimeEpisodeImportPage() {
                 onApplyFansubGroupFromEpisode={builder.applyFansubGroupFromEpisode}
                 onSetEpisodeTitle={builder.setEpisodeTitle}
                 onSkip={builder.skipMapping}
+                onApplyRow={(id) => void builder.applyRow(id)}
+                applyingRowId={builder.applyingRowId}
                 onConfirmEpisode={builder.confirmEpisodeRows}
                 onSkipEpisode={builder.skipEpisodeRows}
               />
@@ -194,6 +196,8 @@ export default function AdminAnimeEpisodeImportPage() {
                       onApplyFansubGroupToEpisode={builder.applyFansubGroupToEpisode}
                       onApplyFansubGroupFromEpisode={builder.applyFansubGroupFromEpisode}
                       onSkip={builder.skipMapping}
+                      onApplyRow={(id) => void builder.applyRow(id)}
+                      isApplyingRow={builder.applyingRowId === row.media_item_id}
                     />
                   ))}
                 </div>
@@ -253,6 +257,8 @@ interface EpisodeGroupProps {
   onApplyFansubGroupFromEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   onSetEpisodeTitle: (episodeNumber: number, title: string) => void
   onSkip: (mediaItemID: string) => void
+  onApplyRow: (mediaItemID: string) => void
+  applyingRowId: string | null
   onConfirmEpisode: (episodeNumber: number) => void
   onSkipEpisode: (episodeNumber: number) => void
 }
@@ -269,6 +275,8 @@ function EpisodeGroup({
   onApplyFansubGroupFromEpisode,
   onSetEpisodeTitle,
   onSkip,
+  onApplyRow,
+  applyingRowId,
   onConfirmEpisode,
   onSkipEpisode,
 }: EpisodeGroupProps) {
@@ -353,6 +361,8 @@ function EpisodeGroup({
             onApplyFansubGroupToEpisode={onApplyFansubGroupToEpisode}
             onApplyFansubGroupFromEpisode={onApplyFansubGroupFromEpisode}
             onSkip={onSkip}
+            onApplyRow={onApplyRow}
+            isApplyingRow={applyingRowId === row.media_item_id}
           />
         ))}
       </div>
