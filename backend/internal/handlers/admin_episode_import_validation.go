@@ -32,7 +32,14 @@ func validateEpisodeImportApplyRequest(animeID int64, req adminEpisodeImportAppl
 		MediaCandidates:   req.MediaCandidates,
 		Mappings:          req.Mappings,
 	}
-	for _, mapping := range input.Mappings {
+	for index, mapping := range input.Mappings {
+		if len(mapping.FansubGroups) > 0 {
+			validatedGroups, err := validateSelectedFansubGroups(mapping.FansubGroups)
+			if err != nil {
+				return models.EpisodeImportApplyInput{}, fmt.Errorf("mapping %d: %w", index, err)
+			}
+			input.Mappings[index].FansubGroups = validatedGroups
+		}
 		switch mapping.Status {
 		case models.EpisodeImportMappingStatusConfirmed, models.EpisodeImportMappingStatusSkipped:
 		case models.EpisodeImportMappingStatusSuggested, models.EpisodeImportMappingStatusConflict:
@@ -50,4 +57,40 @@ func extractAniSearchSourceID(source *string) string {
 		return ""
 	}
 	return strings.TrimSpace(raw[len("anisearch:"):])
+}
+
+func validateSelectedFansubGroups(groups []models.SelectedFansubGroupInput) ([]models.SelectedFansubGroupInput, error) {
+	if len(groups) == 0 {
+		return groups, nil
+	}
+
+	validated := make([]models.SelectedFansubGroupInput, 0, len(groups))
+	for _, group := range groups {
+		next := models.SelectedFansubGroupInput{}
+		if group.ID != nil {
+			if *group.ID <= 0 {
+				return nil, fmt.Errorf("ungueltige fansub_groups id")
+			}
+			next.ID = group.ID
+		}
+
+		if name := normalizeNullableString(group.Name); name != nil {
+			if len([]rune(*name)) > 255 {
+				return nil, fmt.Errorf("fansub_groups name ist zu lang")
+			}
+			next.Name = name
+		}
+		if slug := normalizeNullableString(group.Slug); slug != nil {
+			if len([]rune(*slug)) > 255 {
+				return nil, fmt.Errorf("fansub_groups slug ist zu lang")
+			}
+			next.Slug = slug
+		}
+		if next.ID == nil && next.Name == nil {
+			return nil, fmt.Errorf("fansub_groups erfordert id oder name")
+		}
+		validated = append(validated, next)
+	}
+
+	return validated, nil
 }

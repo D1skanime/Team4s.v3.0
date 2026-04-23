@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"bytes"
+	"encoding/json"
+	"time"
+)
 
 // EpisodeVersion repräsentiert eine einzelne Release-Version einer Episode,
 // verknüpft mit einer Fansub-Gruppe und einem Medien-Provider (z.B. Jellyfin).
@@ -44,6 +48,7 @@ type EpisodeVersionCreateInput struct {
 	AnimeID       int64
 	EpisodeNumber int32
 	Title         *string
+	FansubGroups  []SelectedFansubGroupInput
 	FansubGroupID *int64
 	MediaProvider string
 	MediaItemID   string
@@ -57,6 +62,7 @@ type EpisodeVersionCreateInput struct {
 // wobei nur gesetzte Felder (Set=true) in der Datenbankaktualisierung berücksichtigt werden.
 type EpisodeVersionPatchInput struct {
 	Title         OptionalString `json:"title"`
+	FansubGroups  OptionalSelectedFansubGroups `json:"fansub_groups"`
 	FansubGroupID OptionalInt64  `json:"fansub_group_id"`
 	MediaProvider OptionalString `json:"media_provider"`
 	MediaItemID   OptionalString `json:"media_item_id"`
@@ -64,6 +70,28 @@ type EpisodeVersionPatchInput struct {
 	SubtitleType  OptionalString `json:"subtitle_type"`
 	ReleaseDate   OptionalTime   `json:"release_date"`
 	StreamURL     OptionalString `json:"stream_url"`
+}
+
+type OptionalSelectedFansubGroups struct {
+	Set   bool
+	Value []SelectedFansubGroupInput
+}
+
+func (o *OptionalSelectedFansubGroups) UnmarshalJSON(data []byte) error {
+	o.Set = true
+	trimmed := bytes.TrimSpace(data)
+	if bytes.Equal(trimmed, []byte("null")) {
+		o.Value = nil
+		return nil
+	}
+
+	var value []SelectedFansubGroupInput
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		return err
+	}
+
+	o.Value = value
+	return nil
 }
 
 // ReleaseStreamSource enthält die für den Stream-Redirect benötigten Felder

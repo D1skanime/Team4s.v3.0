@@ -13,6 +13,7 @@ var allowedSubtitleTypes = map[string]struct{}{
 
 type episodeVersionCreateRequest struct {
 	Title         *string    `json:"title"`
+	FansubGroups  []models.SelectedFansubGroupInput `json:"fansub_groups"`
 	FansubGroupID *int64     `json:"fansub_group_id"`
 	MediaProvider string     `json:"media_provider"`
 	MediaItemID   string     `json:"media_item_id"`
@@ -38,6 +39,10 @@ func validateEpisodeVersionCreateRequest(req episodeVersionCreateRequest) (model
 	if req.FansubGroupID != nil && *req.FansubGroupID <= 0 {
 		return models.EpisodeVersionCreateInput{}, "ungueltiger fansub_group_id parameter"
 	}
+	fansubGroups, err := validateSelectedFansubGroups(req.FansubGroups)
+	if err != nil {
+		return models.EpisodeVersionCreateInput{}, err.Error()
+	}
 
 	title := normalizeNullableString(req.Title)
 	if title != nil && len([]rune(*title)) > 255 {
@@ -58,6 +63,7 @@ func validateEpisodeVersionCreateRequest(req episodeVersionCreateRequest) (model
 
 	return models.EpisodeVersionCreateInput{
 		Title:         title,
+		FansubGroups:  fansubGroups,
 		FansubGroupID: req.FansubGroupID,
 		MediaProvider: *mediaProvider,
 		MediaItemID:   *mediaItemID,
@@ -72,6 +78,7 @@ func validateEpisodeVersionCreateRequest(req episodeVersionCreateRequest) (model
 // Gibt das bereinigte Input-Objekt und eine Fehlermeldung zurück; die Meldung ist leer bei Erfolg.
 func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (models.EpisodeVersionPatchInput, string) {
 	if !req.Title.Set &&
+		!req.FansubGroups.Set &&
 		!req.FansubGroupID.Set &&
 		!req.MediaProvider.Set &&
 		!req.MediaItemID.Set &&
@@ -87,6 +94,13 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 		if req.Title.Value != nil && len([]rune(*req.Title.Value)) > 255 {
 			return models.EpisodeVersionPatchInput{}, "title ist zu lang"
 		}
+	}
+	if req.FansubGroups.Set {
+		validatedGroups, err := validateSelectedFansubGroups(req.FansubGroups.Value)
+		if err != nil {
+			return models.EpisodeVersionPatchInput{}, err.Error()
+		}
+		req.FansubGroups.Value = validatedGroups
 	}
 	if req.FansubGroupID.Set && req.FansubGroupID.Value != nil && *req.FansubGroupID.Value <= 0 {
 		return models.EpisodeVersionPatchInput{}, "ungueltiger fansub_group_id parameter"

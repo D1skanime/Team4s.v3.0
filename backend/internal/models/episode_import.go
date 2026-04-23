@@ -37,6 +37,14 @@ type EpisodeImportMediaCandidate struct {
 	VideoQuality          *string `json:"video_quality,omitempty"`
 }
 
+// SelectedFansubGroupInput describes one operator-selected fansub group chip.
+// Existing groups can be referenced by ID; newly typed groups can be carried by name.
+type SelectedFansubGroupInput struct {
+	ID   *int64  `json:"id,omitempty"`
+	Name *string `json:"name,omitempty"`
+	Slug *string `json:"slug,omitempty"`
+}
+
 // EpisodeImportMappingRow links one media candidate to zero, one, or many
 // canonical episode numbers after operator review.
 //
@@ -50,6 +58,7 @@ type EpisodeImportMappingRow struct {
 	TargetEpisodeNumbers    []int32                    `json:"target_episode_numbers"`
 	SuggestedEpisodeNumbers []int32                    `json:"suggested_episode_numbers"`
 	Status                  EpisodeImportMappingStatus `json:"status"`
+	FansubGroups            []SelectedFansubGroupInput `json:"fansub_groups,omitempty"`
 	FansubGroupID           *int64                     `json:"fansub_group_id,omitempty"`
 	FansubGroupName         *string                    `json:"fansub_group_name,omitempty"`
 	ReleaseVersion          *string                    `json:"release_version,omitempty"`

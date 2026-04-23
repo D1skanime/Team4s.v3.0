@@ -131,6 +131,44 @@ func TestValidateEpisodeVersionCreateRequest_InvalidSubtitleType(t *testing.T) {
 	}
 }
 
+func TestValidateEpisodeVersionCreateRequest_AcceptsExplicitFansubGroups(t *testing.T) {
+	input, message := validateEpisodeVersionCreateRequest(episodeVersionCreateRequest{
+		MediaProvider: "emby",
+		MediaItemID:   "6425",
+		FansubGroups: []models.SelectedFansubGroupInput{
+			{ID: ptrInt64(12)},
+			{Name: ptrString(" FlameHazeSubs "), Slug: ptrString(" flamehazesubs ")},
+		},
+	})
+	if message != "" {
+		t.Fatalf("expected no validation error, got %q", message)
+	}
+	if len(input.FansubGroups) != 2 {
+		t.Fatalf("expected 2 selected groups, got %d", len(input.FansubGroups))
+	}
+	if input.FansubGroups[1].Name == nil || *input.FansubGroups[1].Name != "FlameHazeSubs" {
+		t.Fatalf("expected trimmed typed group name, got %#v", input.FansubGroups[1].Name)
+	}
+}
+
+func TestValidateEpisodeVersionPatchRequest_AcceptsExplicitFansubGroups(t *testing.T) {
+	var patch models.EpisodeVersionPatchInput
+	if err := json.Unmarshal([]byte(`{"fansub_groups":[{"id":3},{"name":" TestGruppe "} ]}`), &patch); err != nil {
+		t.Fatalf("unmarshal patch: %v", err)
+	}
+
+	validated, message := validateEpisodeVersionPatchRequest(patch)
+	if message != "" {
+		t.Fatalf("expected no validation error, got %q", message)
+	}
+	if !validated.FansubGroups.Set || len(validated.FansubGroups.Value) != 2 {
+		t.Fatalf("expected validated selected groups, got %#v", validated.FansubGroups)
+	}
+	if validated.FansubGroups.Value[1].Name == nil || *validated.FansubGroups.Value[1].Name != "TestGruppe" {
+		t.Fatalf("expected trimmed typed group name, got %#v", validated.FansubGroups.Value[1].Name)
+	}
+}
+
 func TestValidateFansubAliasCreateRequest(t *testing.T) {
 	input, message := validateFansubAliasCreateRequest(fansubAliasCreateRequest{
 		Alias: " B-SH ",
@@ -176,5 +214,9 @@ func TestFansubAliasResolverResolve(t *testing.T) {
 }
 
 func ptrString(value string) *string {
+	return &value
+}
+
+func ptrInt64(value int64) *int64 {
 	return &value
 }
