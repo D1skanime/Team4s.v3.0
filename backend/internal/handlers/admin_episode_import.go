@@ -75,6 +75,15 @@ func (h *AdminContentHandler) PreviewEpisodeImport(c *gin.Context) {
 		return
 	}
 
+	if h.episodeImportRepo != nil {
+		existing, coverageErr := h.episodeImportRepo.PreviewExistingCoverage(c.Request.Context(), animeID)
+		if coverageErr != nil {
+			log.Printf("episode import preview existing coverage failed anime_id=%d: %v", animeID, coverageErr)
+		} else {
+			mediaCandidates = filterAlreadyMappedCandidates(mediaCandidates, existing)
+		}
+	}
+
 	preview := buildEpisodeImportPreview(
 		animeID,
 		contextResult.AnimeTitle,
@@ -568,6 +577,32 @@ func episodeImportDisplayPath(fullPath, fileName string) string {
 		return parent
 	}
 	return normalizedName
+}
+
+// filterAlreadyMappedCandidates removes media candidates whose Jellyfin item ID
+// is already persisted as a stream_source for this anime, so a second preview
+// only shows genuinely new files rather than repeating all prior imports.
+func filterAlreadyMappedCandidates(
+	candidates []models.EpisodeImportMediaCandidate,
+	existing models.EpisodeImportExistingCoverage,
+) []models.EpisodeImportMediaCandidate {
+	if len(existing.Mappings) == 0 {
+		return candidates
+	}
+	alreadyMapped := make(map[string]struct{}, len(existing.Mappings))
+	for _, row := range existing.Mappings {
+		id := strings.TrimSpace(row.MediaItemID)
+		if id != "" {
+			alreadyMapped[id] = struct{}{}
+		}
+	}
+	filtered := make([]models.EpisodeImportMediaCandidate, 0, len(candidates))
+	for _, candidate := range candidates {
+		if _, ok := alreadyMapped[strings.TrimSpace(candidate.MediaItemID)]; !ok {
+			filtered = append(filtered, candidate)
+		}
+	}
+	return filtered
 }
 
 func normalizeStringPtr(value string) *string {

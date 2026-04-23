@@ -455,6 +455,51 @@ func TestAppendUniqueJellyfinLookupTerms_ExpandsCompactNumericSeeds(t *testing.T
 	}
 }
 
+func TestFilterAlreadyMappedCandidates_ExcludesPersistedJellyfinItems(t *testing.T) {
+	t.Parallel()
+
+	candidates := []models.EpisodeImportMediaCandidate{
+		{MediaItemID: "jf-ep01"},
+		{MediaItemID: "jf-ep02"},
+		{MediaItemID: "jf-ep51"},
+		{MediaItemID: "jf-ep52"},
+	}
+	existing := models.EpisodeImportExistingCoverage{
+		AnimeID: 7,
+		Mappings: []models.EpisodeImportMappingRow{
+			{MediaItemID: "jf-ep01", TargetEpisodeNumbers: []int32{1}, Status: models.EpisodeImportMappingStatusConfirmed},
+			{MediaItemID: "jf-ep02", TargetEpisodeNumbers: []int32{2}, Status: models.EpisodeImportMappingStatusConfirmed},
+			{MediaItemID: "", TargetEpisodeNumbers: []int32{3}, Status: models.EpisodeImportMappingStatusConfirmed},
+		},
+	}
+
+	got := filterAlreadyMappedCandidates(candidates, existing)
+
+	if len(got) != 2 {
+		t.Fatalf("expected 2 new candidates, got %d: %+v", len(got), got)
+	}
+	for _, c := range got {
+		if c.MediaItemID == "jf-ep01" || c.MediaItemID == "jf-ep02" {
+			t.Errorf("already-mapped candidate %q must not appear in filtered result", c.MediaItemID)
+		}
+	}
+}
+
+func TestFilterAlreadyMappedCandidates_PassesThroughWhenNoExistingMappings(t *testing.T) {
+	t.Parallel()
+
+	candidates := []models.EpisodeImportMediaCandidate{
+		{MediaItemID: "jf-ep01"},
+		{MediaItemID: "jf-ep02"},
+	}
+
+	got := filterAlreadyMappedCandidates(candidates, models.EpisodeImportExistingCoverage{AnimeID: 7})
+
+	if len(got) != 2 {
+		t.Fatalf("expected all 2 candidates to pass through, got %d", len(got))
+	}
+}
+
 func episodeImportStringPtr(value string) *string {
 	return &value
 }
