@@ -110,22 +110,3 @@ export function buildSnapshot(formState: FormState, selectedGroups: FansubGroupS
     selectedGroupIDs: selectedGroups.map((group) => group.id).sort((left, right) => left - right),
   })
 }
-
-export function buildCollaborationName(selectedGroups: FansubGroupSummary[]): string {
-  const parts = selectedGroups.map((group) => group.name.trim()).filter(Boolean)
-  const label = `Kollaboration: ${parts.join(' + ')}`
-  return label.length <= 120 ? label : `${label.slice(0, 117).trim()}...`
-}
-
-export function buildCollaborationSlug(selectedGroups: FansubGroupSummary[], versionID: number): string {
-  const parts = selectedGroups.map((group) => sanitizeSlugPart(group.slug || group.name)).slice(0, 4)
-  return ['collab', ...parts, `${versionID}-${Date.now().toString(36)}`].join('-').slice(0, 120)
-}
-
-function sanitizeSlugPart(value: string): string {
-  const normalized = value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-  return normalized || 'group'
-}

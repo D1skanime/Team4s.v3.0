@@ -1,4 +1,5 @@
 import { FansubGroupSummary } from '@/types/fansub'
+import type { SelectedFansubGroupInput } from '@/types/episodeImport'
 
 export type SubtitleType = 'hardsub' | 'softsub'
 
@@ -76,6 +77,7 @@ export interface EpisodeVersionFolderScanResponse {
 
 export interface EpisodeVersionCreateRequest {
   title?: string | null
+  fansub_groups?: SelectedFansubGroupInput[]
   fansub_group_id?: number | null
   media_provider: string
   media_item_id: string
@@ -87,6 +89,7 @@ export interface EpisodeVersionCreateRequest {
 
 export interface EpisodeVersionPatchRequest {
   title?: string | null
+  fansub_groups?: SelectedFansubGroupInput[]
   fansub_group_id?: number | null
   media_provider?: string | null
   media_item_id?: string | null

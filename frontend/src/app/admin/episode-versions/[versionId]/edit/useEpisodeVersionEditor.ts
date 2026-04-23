@@ -4,13 +4,10 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
 import {
-  addCollaborationMember,
-  createFansubGroup,
   deleteEpisodeVersion,
   getEpisodeVersionEditorContext,
   getFansubList,
   getRuntimeAuthToken,
-  removeCollaborationMember,
   scanEpisodeVersionFolder,
   updateEpisodeVersion,
 } from '@/lib/api'
@@ -18,8 +15,6 @@ import { EpisodeVersionEditorContext, EpisodeVersionMediaFile } from '@/types/ep
 import { FansubGroup, FansubGroupSummary } from '@/types/fansub'
 
 import {
-  buildCollaborationName,
-  buildCollaborationSlug,
   buildFallbackMediaFile,
   buildInitialFormState,
   buildSnapshot,
@@ -47,7 +42,6 @@ export function useEpisodeVersionEditor() {
     streamURL: '',
   })
   const [selectedGroups, setSelectedGroups] = useState<FansubGroupSummary[]>([])
-  const [collaborationGroupID, setCollaborationGroupID] = useState<number | null>(null)
   const [folderPath, setFolderPath] = useState('')
   const [availableFiles, setAvailableFiles] = useState<EpisodeVersionMediaFile[]>([])
   const [selectedFile, setSelectedFile] = useState<EpisodeVersionMediaFile | null>(null)
@@ -93,7 +87,6 @@ export function useEpisodeVersionEditor() {
         setContextData(nextContext)
         setFormState(nextFormState)
         setSelectedGroups(nextContext.selected_groups)
-        setCollaborationGroupID(nextContext.collaboration_group_id ?? null)
         setFolderPath(nextContext.anime_folder_path || '')
         setAvailableFiles([])
         setSelectedFile(buildFallbackMediaFile(nextContext))
@@ -205,43 +198,6 @@ export function useEpisodeVersionEditor() {
     setSelectedGroups((current) => current.filter((group) => group.id !== groupID))
   }
 
-  async function resolveFansubGroupID(): Promise<number | null> {
-    if (selectedGroups.length === 0) return null
-    if (selectedGroups.length === 1) return selectedGroups[0].id
-    if (!authToken || !versionID) throw new Error('anmeldung erforderlich')
-
-    if (collaborationGroupID) {
-      const nextIDs = new Set(selectedGroups.map((group) => group.id))
-      for (const group of selectedGroups) {
-        if (!(contextData?.selected_groups || []).some((item) => item.id === group.id)) {
-          await addCollaborationMember(collaborationGroupID, { member_group_id: group.id }, authToken)
-        }
-      }
-      for (const group of contextData?.selected_groups || []) {
-        if (!nextIDs.has(group.id)) {
-          await removeCollaborationMember(collaborationGroupID, group.id, authToken)
-        }
-      }
-      return collaborationGroupID
-    }
-
-    const collaboration = await createFansubGroup(
-      {
-        slug: buildCollaborationSlug(selectedGroups, versionID),
-        name: buildCollaborationName(selectedGroups),
-        status: 'active',
-        group_type: 'collaboration',
-      },
-      authToken,
-    )
-
-    for (const group of selectedGroups) {
-      await addCollaborationMember(collaboration.data.id, { member_group_id: group.id }, authToken)
-    }
-
-    return collaboration.data.id
-  }
-
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage(null)
@@ -258,12 +214,11 @@ export function useEpisodeVersionEditor() {
 
     setIsSaving(true)
     try {
-      const resolvedFansubGroupID = await resolveFansubGroupID()
       const response = await updateEpisodeVersion(
         versionID,
         {
           title: normalizeOptional(formState.title),
-          fansub_group_id: resolvedFansubGroupID,
+          fansub_groups: selectedGroups.map((group) => ({ id: group.id })),
           media_provider: formState.mediaProvider.trim(),
           media_item_id: formState.mediaItemID.trim(),
           video_quality: normalizeOptional(formState.videoQuality),
@@ -279,10 +234,9 @@ export function useEpisodeVersionEditor() {
           ...contextData,
           version: response.data,
           selected_groups: selectedGroups,
-          collaboration_group_id: selectedGroups.length > 1 ? resolvedFansubGroupID : null,
+          collaboration_group_id: selectedGroups.length > 1 ? response.data.fansub_group?.id ?? null : null,
         })
       }
-      setCollaborationGroupID(selectedGroups.length > 1 ? resolvedFansubGroupID : null)
       baselineRef.current = buildSnapshot(formState, selectedGroups)
       setSuccessMessage('Version gespeichert.')
     } catch (error) {
