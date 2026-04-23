@@ -17,12 +17,15 @@ import type {
 } from '@/types/episodeImport'
 
 import {
+  applyFansubGroupFromEpisodeDown,
+  applyFansubGroupToEpisodeRows,
   confirmEpisodeMappingRows,
   detectMappingConflicts,
   markAllSuggestedConfirmed,
   markAllSuggestedSkipped,
   markMappingSkipped,
   resolveEpisodeDisplayTitle,
+  setMappingReleaseMeta,
   setMappingTargets,
   skipEpisodeMappingRows,
   summarizeImportPreview,
@@ -35,6 +38,12 @@ export interface EpisodeGroup {
   /** Filler classification for the canonical episode, e.g. "filler", "canon", "mixed", "recap". */
   fillerType: string | null
   fillerNote: string | null
+  coveredEpisodes: Array<{
+    episodeNumber: number
+    title: string | null
+    fillerType: string | null
+  }>
+  lastCoveredEpisodeNumber: number
   rows: EpisodeImportMappingRow[]
 }
 
@@ -60,6 +69,9 @@ interface UseEpisodeImportBuilderState {
   setSeasonOffset: (value: string) => void
   setTargets: (mediaItemID: string, rawTargets: string) => void
   setReleaseMeta: (mediaItemID: string, meta: { fansubGroupName?: string; releaseVersion?: string }) => void
+  applyFansubGroupToEpisode: (episodeNumber: number, fansubGroupName: string) => void
+  applyFansubGroupFromEpisode: (episodeNumber: number, fansubGroupName: string) => void
+  setEpisodeTitle: (episodeNumber: number, title: string) => void
   skipMapping: (mediaItemID: string) => void
   skipAllSuggested: () => void
   confirmAllSuggested: () => void
@@ -148,6 +160,25 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
           existingEpisodeId: ep?.existing_episode_id ?? null,
           fillerType: ep?.filler_type ?? null,
           fillerNote: ep?.filler_note ?? null,
+          coveredEpisodes: Array.from(
+            new Set(
+              rows.flatMap((row) => row.target_episode_numbers ?? []),
+            ),
+          )
+            .filter((number) => number !== episodeNumber)
+            .sort((left, right) => left - right)
+            .map((number) => {
+              const coveredEpisode = canonicalMap.get(number)
+              return {
+                episodeNumber: number,
+                title: coveredEpisode ? resolveEpisodeDisplayTitle(coveredEpisode) : null,
+                fillerType: coveredEpisode?.filler_type ?? null,
+              }
+            }),
+          lastCoveredEpisodeNumber: rows.reduce((maxEpisode, row) => {
+            const rowMax = Math.max(episodeNumber, ...(row.target_episode_numbers ?? [episodeNumber]))
+            return Math.max(maxEpisode, rowMax)
+          }, episodeNumber),
           rows,
         }
       })
@@ -230,17 +261,36 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     setTargets: (mediaItemID, rawTargets) =>
       setMappings((current) => setMappingTargets(current, mediaItemID, rawTargets)),
     setReleaseMeta: (mediaItemID, meta) =>
-      setMappings((current) =>
-        current.map((row) =>
-          row.media_item_id === mediaItemID
-            ? {
-                ...row,
-                fansub_group_name: meta.fansubGroupName !== undefined ? (meta.fansubGroupName || null) : row.fansub_group_name,
-                release_version: meta.releaseVersion !== undefined ? (meta.releaseVersion || null) : row.release_version,
-              }
-            : row,
-        ),
-      ),
+      setMappings((current) => setMappingReleaseMeta(current, mediaItemID, meta)),
+    applyFansubGroupToEpisode: (episodeNumber, fansubGroupName) =>
+      setMappings((current) => applyFansubGroupToEpisodeRows(current, episodeNumber, fansubGroupName)),
+    applyFansubGroupFromEpisode: (episodeNumber, fansubGroupName) =>
+      setMappings((current) => applyFansubGroupFromEpisodeDown(current, episodeNumber, fansubGroupName)),
+    setEpisodeTitle: (episodeNumber, title) =>
+      setPreview((current) => {
+        if (!current) return current
+        const trimmed = title.trim()
+        return {
+          ...current,
+          canonical_episodes: (current.canonical_episodes ?? []).map((episode) => {
+            if (episode.episode_number !== episodeNumber) {
+              return episode
+            }
+            const nextTitlesByLanguage = { ...(episode.titles_by_language ?? {}) }
+            if (trimmed) {
+              nextTitlesByLanguage.de = trimmed
+            } else {
+              delete nextTitlesByLanguage.de
+            }
+            return {
+              ...episode,
+              titles_by_language:
+                Object.keys(nextTitlesByLanguage).length > 0 ? nextTitlesByLanguage : null,
+              title: trimmed || episode.title || episode.existing_title || null,
+            }
+          }),
+        }
+      }),
     skipMapping: (mediaItemID) =>
       setMappings((current) => markMappingSkipped(current, mediaItemID)),
     skipAllSuggested: () =>

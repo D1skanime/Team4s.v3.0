@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 20-03-PLAN.md
-last_updated: "2026-04-21T15:49:29.096Z"
-last_activity: 2026-04-21
+status: Executing
+stopped_at: Phase 20 verified complete; live Docker UAT and normalized-table evidence captured on 2026-04-23
+last_updated: "2026-04-23T20:30:00.000Z"
+last_activity: 2026-04-23
 progress:
   total_phases: 16
   completed_phases: 13
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 20 — release-native-episode-import-schema
+**Current focus:** Post-Phase-20 follow-up selection from the verified release-native import baseline
 
 ## Current Position
 
-Phase: 20 (release-native-episode-import-schema) — EXECUTING
-Plan: 4 of 4
+Phase: 20 (release-native-episode-import-schema) - VERIFIED COMPLETE
+Plan: 4 of 4 complete
 
 ## Accumulated Context
 
@@ -103,6 +103,7 @@ Recent durable decisions:
 - [Phase 20-release-native-episode-import-schema]: Fansub group joins are created from explicit apply overrides when present, otherwise conservatively derived from bracketed file/path evidence.
 - [Phase Phase 20-release-native-episode-import-schema]: Display helpers (fillerLabel, resolveEpisodeDisplayTitle) are extracted to episodeImportMapping.ts rather than living as local page functions so they can be unit-tested.
 - [Phase Phase 20-release-native-episode-import-schema]: Release metadata overrides (fansub_group_name, release_version) are stored directly on EpisodeImportMappingRow and survive setMappingTargets and markMappingSkipped operations.
+- [2026-04-22]: Anime create now keeps an explicitly selected Jellyfin series as authoritative `source=jellyfin:<id>` on save and additionally persists all provider tags in `anime_source_links`, so AniSearch and Jellyfin are both retained durably for later duplicate checks, relation lookups, and import context.
 
 ### Pending Todos
 
@@ -132,12 +133,13 @@ Recent durable decisions:
 - Phase 20 planned: Release-native episode import schema, focused on clean local reset, normalized release graph writes, multilingual episode titles, filler metadata, and Naruto-style multi-episode file coverage.
 - Phase 20.1 planned before Phase 20 execution: build the full documented `docs/architecture/db-schema-v2.md` target as real DB tables, then delete the legacy `episode_versions` table family because only disposable test episode data exists.
 - Phase 20.1 executed and verified: clean migration through 46 migrations passed, legacy episode-version tables are absent, Docker backend/frontend were rebuilt, and Phase 20 is unblocked for release-native import writes.
+- Phase 20 live UAT completed on 2026-04-23: disposable `3×3 Eyes` replay proved normalized-table persistence, multilingual episode titles, release-native stream linkage, and dual-provider anime source persistence.
 
 ### Blockers/Concerns
 
 - Cross-AI review remains unavailable until an independent reviewer CLI is installed.
-- Phase 20 must not treat the user-provided `FansubRelease.episode_id` shape as sufficient for combined files; a normalized coverage join is required for cases like Naruto 9+10 in one media file.
-- Phase 20.1 is intentionally destructive for local test episode-version data; it must not delete target identity tables such as `episodes`, `episode_titles`, `episode_types`, or `languages`.
+- The old `streams` table remains an allowed compatibility divergence beside target `release_streams`; follow-up work must not treat it as authoritative.
+- The post-apply workbench state is still slightly misleading after idempotent success because the action surface remains live instead of clearly finished.
 
 ### Performance Metrics
 
@@ -177,7 +179,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-21T15:49:29.088Z
-Stopped at: Completed 20-03-PLAN.md
-Last activity: 2026-04-21
+Last session: 2026-04-23T20:30:00.000Z
+Stopped at: Phase 20 verified complete with live Docker UAT and SQL evidence
+Last activity: 2026-04-23
 Resume file: None

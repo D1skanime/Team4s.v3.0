@@ -1,5 +1,69 @@
 # DAYLOG
 
+## 2026-04-23
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: finish Phase 20 live verification, harden episode-import/create edge cases, and close the day with a restartable verified baseline
+
+### Workstreams Touched
+- Phase 20 live Docker UAT and SQL evidence capture
+- Episode import preview/apply fixes for AniSearch and multi-episode mapping
+- Anime create/provider persistence for Jellyfin + AniSearch dual linkage
+- Delete/import cleanup and handoff closeout
+
+### Goals Intended vs Achieved
+- Intended: finish the release-native import seam with one honest live replay and stop carrying Phase 20 as "almost done"
+- Achieved: Phase 20 is now verified complete, live Docker replay evidence exists, dual-provider anime linkage persists durably, and handoff files now point at the next post-Phase-20 slice instead of old Naruto-open notes
+
+### Problems Solved
+- Root cause: anime create could only keep one provider in `anime.source`, so explicit Jellyfin linkage and AniSearch provenance fought each other
+- Fix: kept Jellyfin as authoritative runtime `anime.source` and added `anime_source_links` so both provider tags persist durably
+- Root cause: episode import for special title variants like `3x3 Eyes` still relied on brittle Jellyfin title/path re-resolution
+- Fix: strengthened the resolver and then removed the dependency on later guessing by persisting both provider links at create time
+- Root cause: import apply status was easy to mistrust because the UI stayed actionable even after a successful idempotent replay
+- Fix: verified directly in DB that apply really wrote the normalized release graph and recorded that as Phase 20 closure evidence
+
+### Decisions
+- Phase 20 is closed based on live Docker evidence from a disposable `3x3 Eyes` replay
+- `anime.source` stays the authoritative runtime provider link, while `anime_source_links` is the durable multi-provider provenance store
+- The post-apply still-clickable workbench state is a UX follow-up, not a Phase 20 blocker
+
+### Blockers
+- No hard blocker for Phase 20 anymore
+- Cross-AI review is still unavailable locally because no independent reviewer CLI is installed
+
+### Next Step
+- Pick the next narrow follow-up slice from the verified import baseline, with the post-apply workbench UX as the strongest candidate
+
+## 2026-04-21
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: Phase 20 wave-3 code check, wave-4 verification, and an honest UAT/handoff state for release-native episode import
+
+### Workstreams Touched
+- Phase 20 wave-3 frontend reducer audit
+- Phase 20 targeted backend/frontend verification
+- Frontend production build verification
+- Docker rebuild/redeploy for backend/frontend
+- Phase 20 UAT and handoff documentation refresh
+
+### Goals Intended vs Achieved
+- Intended: verify that Wave 3 really matched the release-native contract and continue Wave 4
+- Achieved: found and fixed one real Wave-3 mismatch, refreshed automated verification evidence, rebuilt Docker, and wrote the missing Wave-4 UAT/summary artifacts
+
+### Problems Solved
+- Root cause: Wave-3 UI still marked parallel releases for the same canonical episode as conflicts even though Phase 19/20 backend logic explicitly allows them
+- Fix: simplified `detectMappingConflicts` so overlapping episode claims no longer downgrade valid parallel releases; updated frontend tests accordingly
+- Root cause: Wave-4 had no current UAT artifact or summary, so the closure state was easy to misread
+- Fix: created `20-UAT.md` and `20-04-SUMMARY.md` with explicit automated evidence and the remaining live Naruto replay steps
+- Root cause: sandbox execution blocked Vitest and Docker verification commands
+- Fix: reran the blocked commands with the required escalated permissions
+
+### Open Follow-ups
+- Create or recreate a disposable Naruto record on the local stack
+- Run the live replay in `.planning/phases/20-release-native-episode-import-schema/20-UAT.md`
+- Capture SQL evidence from normalized tables before closing Phase 20
+
 ## 2026-03-26
 - Project: `Team4s.v3.0`
 - Milestone: `Phase 4 - Provenance, Assets, And Safe Resync`

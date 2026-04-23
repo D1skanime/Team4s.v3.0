@@ -37,25 +37,23 @@ export default function AdminAnimeEpisodeImportPage() {
         </div>
         {animeID ? (
           <Link className={styles.secondaryButton} href={`/admin/anime/${animeID}/episodes`}>
-            Zurück zur Übersicht
+            Zurueck zur Uebersicht
           </Link>
         ) : null}
       </header>
 
-      {/* Context strip: always visible once context is loaded */}
       {builder.context ? (
         <div className={styles.contextStrip}>
           <ContextField label="AniSearch ID" value={builder.context.anisearch_id ?? 'nicht gesetzt'} mono />
-          <ContextField label="Jellyfin Serie" value={builder.context.jellyfin_series_id ?? 'nicht verknüpft'} mono />
+          <ContextField label="Jellyfin Serie" value={builder.context.jellyfin_series_id ?? 'nicht verknuepft'} mono />
           <ContextField label="Ordnerpfad" value={builder.context.folder_path ?? 'nicht gesetzt'} mono />
-          <ContextField label="Quelle" value={builder.context.source ?? '—'} />
+          <ContextField label="Quelle" value={builder.context.source ?? '-'} />
         </div>
       ) : null}
 
       {builder.isLoadingContext ? <div className={styles.notice}>Import-Kontext wird geladen...</div> : null}
       {builder.errorMessage ? <div className={styles.error}>{builder.errorMessage}</div> : null}
 
-      {/* Sources panel */}
       <section className={styles.panel}>
         <div className={styles.panelHeader}>
           <div>
@@ -68,7 +66,7 @@ export default function AdminAnimeEpisodeImportPage() {
             disabled={builder.isPreviewing || !animeID}
             onClick={() => void builder.loadPreview()}
           >
-            {builder.isPreviewing ? 'Vorschau lädt...' : 'Vorschau laden'}
+            {builder.isPreviewing ? 'Vorschau laedt...' : 'Vorschau laden'}
           </button>
         </div>
 
@@ -84,28 +82,26 @@ export default function AdminAnimeEpisodeImportPage() {
         </div>
       </section>
 
-      {/* Summary metrics */}
       {builder.summary ? (
         <div className={styles.summaryStrip}>
           <SummaryPill label="Kanonisch" value={builder.summary.canonical_episode_count} />
           <SummaryPill label="Dateien" value={builder.summary.media_candidate_count} />
-          <SummaryPill label="Vorschläge" value={builder.summary.suggested_count} tone="neutral" />
-          <SummaryPill label="Bestätigt" value={builder.summary.confirmed_count} tone="good" />
+          <SummaryPill label="Vorschlaege" value={builder.summary.suggested_count} tone="neutral" />
+          <SummaryPill label="Bestaetigt" value={builder.summary.confirmed_count} tone="good" />
           <SummaryPill label="Konflikte" value={builder.summary.conflict_count} tone={builder.summary.conflict_count ? 'danger' : 'good'} />
-          <SummaryPill label="Übersprungen" value={builder.summary.skipped_count} />
+          <SummaryPill label="Uebersprungen" value={builder.summary.skipped_count} />
           <SummaryPill label="Ohne Datei" value={builder.summary.unmapped_episode_count} tone={builder.summary.unmapped_episode_count ? 'neutral' : undefined} />
         </div>
       ) : null}
 
-      {/* Mapping workbench — main operator surface */}
       {builder.preview ? (
         <section className={styles.panel}>
           <div className={styles.panelHeader}>
             <div>
               <h2>Mapping-Workbench</h2>
               <p>
-                Jede Datei braucht ein Ziel oder wird übersprungen. Mehrere Episodennummern als Kommaliste, z.B.{' '}
-                <code>9,10</code>. Mehrere Dateien für dieselbe Episode sind als parallele Versionen erlaubt.
+                Jede Datei braucht ein Ziel oder wird uebersprungen. Mehrere Episodennummern als Kommaliste, z.B.{' '}
+                <code>9,10</code>. Mehrere Dateien fuer dieselbe Episode sind als parallele Versionen erlaubt.
               </p>
             </div>
             <div className={styles.workbenchActions}>
@@ -115,7 +111,7 @@ export default function AdminAnimeEpisodeImportPage() {
                 onClick={() => builder.skipAllSuggested()}
                 disabled={!builder.hasSuggestedRows}
               >
-                Alle Vorschläge überspringen
+                Alle Vorschlaege ueberspringen
               </button>
               <button
                 className={styles.secondaryButton}
@@ -123,7 +119,7 @@ export default function AdminAnimeEpisodeImportPage() {
                 onClick={() => builder.confirmAllSuggested()}
                 disabled={!builder.hasSuggestedRows}
               >
-                Alle Vorschläge bestätigen
+                Alle Vorschlaege bestaetigen
               </button>
               <button
                 className={styles.primaryButton}
@@ -136,20 +132,25 @@ export default function AdminAnimeEpisodeImportPage() {
             </div>
           </div>
 
-          {/* Episode groups */}
           <div className={styles.episodeGroups}>
-            {builder.episodeGroups.map((group) => (
+            {builder.episodeGroups.map((group, index) => (
               <EpisodeGroup
                 key={group.episodeNumber}
                 group={group}
+                hasVisualGap={
+                  index > 0 &&
+                  group.episodeNumber > builder.episodeGroups[index - 1].lastCoveredEpisodeNumber + 1
+                }
                 onSetTargets={builder.setTargets}
                 onSetRelease={builder.setReleaseMeta}
+                onApplyFansubGroupToEpisode={builder.applyFansubGroupToEpisode}
+                onApplyFansubGroupFromEpisode={builder.applyFansubGroupFromEpisode}
+                onSetEpisodeTitle={builder.setEpisodeTitle}
                 onSkip={builder.skipMapping}
                 onConfirmEpisode={builder.confirmEpisodeRows}
                 onSkipEpisode={builder.skipEpisodeRows}
               />
             ))}
-            {/* Rows with no suggested episode (unmapped candidates) */}
             {builder.unmappedMappingRows.length > 0 ? (
               <div className={styles.episodeGroup}>
                 <div className={styles.episodeGroupHeader}>
@@ -160,9 +161,12 @@ export default function AdminAnimeEpisodeImportPage() {
                   {builder.unmappedMappingRows.map((row) => (
                     <MappingRow
                       key={row.media_item_id}
+                      episodeNumber={0}
                       row={row}
                       onSetTargets={builder.setTargets}
                       onSetRelease={builder.setReleaseMeta}
+                      onApplyFansubGroupToEpisode={builder.applyFansubGroupToEpisode}
+                      onApplyFansubGroupFromEpisode={builder.applyFansubGroupFromEpisode}
                       onSkip={builder.skipMapping}
                     />
                   ))}
@@ -179,7 +183,6 @@ export default function AdminAnimeEpisodeImportPage() {
         </section>
       ) : null}
 
-      {/* Apply result */}
       {builder.applyResult ? (
         <section className={styles.success}>
           <h2>Mapping angewendet</h2>
@@ -192,7 +195,7 @@ export default function AdminAnimeEpisodeImportPage() {
           </p>
           {animeID ? (
             <Link className={styles.secondaryButton} href={`/admin/anime/${animeID}/episodes`}>
-              Zur Episodenübersicht
+              Zur Episodenuebersicht
             </Link>
           ) : null}
         </section>
@@ -201,8 +204,6 @@ export default function AdminAnimeEpisodeImportPage() {
   )
 }
 
-// --- Sub-components ---
-
 interface EpisodeGroupProps {
   group: {
     episodeNumber: number
@@ -210,33 +211,94 @@ interface EpisodeGroupProps {
     existingEpisodeId: number | null
     fillerType: string | null
     fillerNote: string | null
+    coveredEpisodes: Array<{
+      episodeNumber: number
+      title: string | null
+      fillerType: string | null
+    }>
+    lastCoveredEpisodeNumber: number
     rows: import('@/types/episodeImport').EpisodeImportMappingRow[]
   }
+  hasVisualGap: boolean
   onSetTargets: (mediaItemID: string, rawTargets: string) => void
   onSetRelease: (mediaItemID: string, meta: { fansubGroupName?: string; releaseVersion?: string }) => void
+  onApplyFansubGroupToEpisode: (episodeNumber: number, fansubGroupName: string) => void
+  onApplyFansubGroupFromEpisode: (episodeNumber: number, fansubGroupName: string) => void
+  onSetEpisodeTitle: (episodeNumber: number, title: string) => void
   onSkip: (mediaItemID: string) => void
   onConfirmEpisode: (episodeNumber: number) => void
   onSkipEpisode: (episodeNumber: number) => void
 }
 
-function EpisodeGroup({ group, onSetTargets, onSetRelease, onSkip, onConfirmEpisode, onSkipEpisode }: EpisodeGroupProps) {
+function EpisodeGroup({
+  group,
+  hasVisualGap,
+  onSetTargets,
+  onSetRelease,
+  onApplyFansubGroupToEpisode,
+  onApplyFansubGroupFromEpisode,
+  onSetEpisodeTitle,
+  onSkip,
+  onConfirmEpisode,
+  onSkipEpisode,
+}: EpisodeGroupProps) {
   const hasActionable = group.rows.some((row) => row.status === 'suggested' || row.status === 'conflict')
 
   return (
     <div className={styles.episodeGroup}>
-      <div className={styles.episodeGroupHeader}>
+      <div className={`${styles.episodeGroupHeader} ${hasVisualGap ? styles.episodeGroupHeaderGap : ''}`}>
         <div className={styles.episodeGroupMeta}>
-          <span className={styles.episodeGroupNumber}>#{group.episodeNumber}</span>
-          <span className={styles.episodeGroupTitle}>{group.title ?? 'Ohne Titel'}</span>
-          {group.existingEpisodeId ? <span className={styles.existingBadge}>lokal vorhanden</span> : null}
-          {fillerLabel(group.fillerType) ? (
-            <span
-              className={`${styles.fillerBadge} ${styles[`filler_${group.fillerType ?? ''}`] ?? ''}`}
-              title={group.fillerNote ?? undefined}
-            >
-              {fillerLabel(group.fillerType)}
-            </span>
-          ) : null}
+          <span className={`${styles.episodeGroupNumber} ${hasVisualGap ? styles.episodeGroupNumberGap : ''}`}>#{group.episodeNumber}</span>
+          <div className={styles.episodeTitleBlock}>
+            <label className={styles.episodeTitleEditor}>
+              <span className={styles.episodeTitleLabel}>Titel (DE)</span>
+              <textarea
+                className={styles.episodeTitleInput}
+                rows={2}
+                value={group.title ?? ''}
+                placeholder={`Episode ${group.episodeNumber}`}
+                aria-label={`Deutscher Titel fuer Episode ${group.episodeNumber}`}
+                onChange={(event) => onSetEpisodeTitle(group.episodeNumber, event.target.value)}
+              />
+            </label>
+            <div className={styles.episodeGroupBadges}>
+              {group.existingEpisodeId ? <span className={styles.existingBadge}>lokal vorhanden</span> : null}
+              {fillerLabel(group.fillerType) ? (
+                <span
+                  className={`${styles.fillerBadge} ${styles[`filler_${group.fillerType ?? ''}`] ?? ''}`}
+                  title={group.fillerNote ?? undefined}
+                >
+                  {fillerLabel(group.fillerType)}
+                </span>
+              ) : null}
+            </div>
+            {group.coveredEpisodes.length > 0 ? (
+              <div className={styles.coveredEpisodeList}>
+                {group.coveredEpisodes.map((coveredEpisode) => (
+                  <div key={coveredEpisode.episodeNumber} className={styles.coveredEpisodeItem}>
+                    <label className={styles.coveredEpisodeEditor}>
+                      <span className={styles.coveredEpisodeNumber}>#{coveredEpisode.episodeNumber}</span>
+                      <textarea
+                        className={`${styles.episodeTitleInput} ${styles.coveredEpisodeInput}`}
+                        rows={2}
+                        value={coveredEpisode.title ?? ''}
+                        placeholder={`Episode ${coveredEpisode.episodeNumber}`}
+                        aria-label={`Deutscher Titel fuer Episode ${coveredEpisode.episodeNumber}`}
+                        onChange={(event) => onSetEpisodeTitle(coveredEpisode.episodeNumber, event.target.value)}
+                      />
+                    </label>
+                    {fillerLabel(coveredEpisode.fillerType) ? (
+                      <span
+                        className={`${styles.fillerBadge} ${styles[`filler_${coveredEpisode.fillerType ?? ''}`] ?? ''}`}
+                      >
+                        {fillerLabel(coveredEpisode.fillerType)}
+                      </span>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
         {hasActionable ? (
           <div className={styles.episodeGroupActions}>
@@ -245,14 +307,14 @@ function EpisodeGroup({ group, onSetTargets, onSetRelease, onSkip, onConfirmEpis
               type="button"
               onClick={() => onConfirmEpisode(group.episodeNumber)}
             >
-              Alle bestätigen
+              Alle bestaetigen
             </button>
             <button
               className={styles.microButton}
               type="button"
               onClick={() => onSkipEpisode(group.episodeNumber)}
             >
-              Alle überspringen
+              Alle ueberspringen
             </button>
           </div>
         ) : null}
@@ -261,9 +323,12 @@ function EpisodeGroup({ group, onSetTargets, onSetRelease, onSkip, onConfirmEpis
         {group.rows.map((row) => (
           <MappingRow
             key={row.media_item_id}
+            episodeNumber={group.episodeNumber}
             row={row}
             onSetTargets={onSetTargets}
             onSetRelease={onSetRelease}
+            onApplyFansubGroupToEpisode={onApplyFansubGroupToEpisode}
+            onApplyFansubGroupFromEpisode={onApplyFansubGroupFromEpisode}
             onSkip={onSkip}
           />
         ))}
@@ -273,15 +338,27 @@ function EpisodeGroup({ group, onSetTargets, onSetRelease, onSkip, onConfirmEpis
 }
 
 interface MappingRowProps {
+  episodeNumber: number
   row: import('@/types/episodeImport').EpisodeImportMappingRow
   onSetTargets: (mediaItemID: string, rawTargets: string) => void
   onSetRelease: (mediaItemID: string, meta: { fansubGroupName?: string; releaseVersion?: string }) => void
+  onApplyFansubGroupToEpisode: (episodeNumber: number, fansubGroupName: string) => void
+  onApplyFansubGroupFromEpisode: (episodeNumber: number, fansubGroupName: string) => void
   onSkip: (mediaItemID: string) => void
 }
 
-function MappingRow({ row, onSetTargets, onSetRelease, onSkip }: MappingRowProps) {
+function MappingRow({
+  episodeNumber,
+  row,
+  onSetTargets,
+  onSetRelease,
+  onApplyFansubGroupToEpisode,
+  onApplyFansubGroupFromEpisode,
+  onSkip,
+}: MappingRowProps) {
   const label = row.file_name || row.media_item_id
   const isSkipped = row.status === 'skipped'
+  const groupName = row.fansub_group_name ?? ''
 
   return (
     <div className={`${styles.mappingRow} ${styles[row.status]}`}>
@@ -291,30 +368,47 @@ function MappingRow({ row, onSetTargets, onSetRelease, onSkip }: MappingRowProps
         {(row.target_episode_numbers ?? []).length > 1 ? (
           <span className={styles.multiEpisodeHint}>Deckt {row.target_episode_numbers.length} Episoden ab</span>
         ) : null}
-        {/* Release metadata: show detected values and allow operator override */}
         <div className={styles.releaseMetaRow}>
           <label className={styles.releaseMeta}>
             <span className={styles.releaseMetaLabel}>Gruppe</span>
             <input
               className={styles.releaseMetaInput}
-              defaultValue={row.fansub_group_name ?? ''}
+              value={groupName}
               disabled={isSkipped}
               placeholder="z.B. [SubGroup]"
-              aria-label={`Fansub-Gruppe für ${label}`}
-              onBlur={(event) =>
+              aria-label={`Fansub-Gruppe fuer ${label}`}
+              onChange={(event) =>
                 onSetRelease(row.media_item_id, { fansubGroupName: event.target.value })
               }
             />
+            <div className={styles.releaseMetaActions}>
+              <button
+                className={styles.releaseScopeButton}
+                type="button"
+                disabled={isSkipped || episodeNumber <= 0 || !groupName.trim()}
+                onClick={() => onApplyFansubGroupToEpisode(episodeNumber, groupName)}
+              >
+                Episode
+              </button>
+              <button
+                className={styles.releaseScopeButton}
+                type="button"
+                disabled={isSkipped || episodeNumber <= 0 || !groupName.trim()}
+                onClick={() => onApplyFansubGroupFromEpisode(episodeNumber, groupName)}
+              >
+                Ab hier
+              </button>
+            </div>
           </label>
           <label className={styles.releaseMeta}>
             <span className={styles.releaseMetaLabel}>Version</span>
             <input
               className={styles.releaseMetaInput}
-              defaultValue={row.release_version ?? ''}
+              value={row.release_version ?? ''}
               disabled={isSkipped}
               placeholder="z.B. v2"
-              aria-label={`Release-Version für ${label}`}
-              onBlur={(event) =>
+              aria-label={`Release-Version fuer ${label}`}
+              onChange={(event) =>
                 onSetRelease(row.media_item_id, { releaseVersion: event.target.value })
               }
             />
@@ -327,7 +421,7 @@ function MappingRow({ row, onSetTargets, onSetRelease, onSkip }: MappingRowProps
         defaultValue={(row.target_episode_numbers ?? []).join(',')}
         disabled={isSkipped}
         onBlur={(event) => onSetTargets(row.media_item_id, event.target.value)}
-        aria-label={`Ziel-Episoden für ${label}`}
+        aria-label={`Ziel-Episoden fuer ${label}`}
         placeholder="z.B. 1"
       />
       <button
@@ -335,7 +429,7 @@ function MappingRow({ row, onSetTargets, onSetRelease, onSkip }: MappingRowProps
         type="button"
         onClick={() => onSkip(row.media_item_id)}
       >
-        {isSkipped ? 'Reaktivieren' : 'Überspringen'}
+        {isSkipped ? 'Reaktivieren' : 'Ueberspringen'}
       </button>
     </div>
   )
@@ -378,10 +472,9 @@ function SummaryPill({
 function statusLabel(status: string): string {
   switch (status) {
     case 'suggested': return 'Vorschlag'
-    case 'confirmed': return 'Bestätigt'
+    case 'confirmed': return 'Bestaetigt'
     case 'conflict': return 'Konflikt'
-    case 'skipped': return 'Übersprungen'
+    case 'skipped': return 'Uebersprungen'
     default: return status
   }
 }
-

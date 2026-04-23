@@ -1459,7 +1459,7 @@ func TestApplyAniSearchCreateFollowThrough_UsesDetailedRelationOutcomeCounts(t *
 	c, _ := gin.CreateTestContext(recorder)
 	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime", strings.NewReader(`{}`))
 
-	summary := handler.applyAniSearchCreateFollowThrough(c, 77, &source, relationInput)
+	summary := handler.applyAniSearchCreateFollowThrough(c, 77, &source, nil, relationInput)
 
 	if relationRepo.appliedSourceID != 77 {
 		t.Fatalf("expected source anime id to reach relation repo, got %d", relationRepo.appliedSourceID)
@@ -1478,6 +1478,58 @@ func TestApplyAniSearchCreateFollowThrough_UsesDetailedRelationOutcomeCounts(t *
 	}
 	if len(summary.Warnings) != 0 {
 		t.Fatalf("expected no warnings for idempotent follow-through, got %#v", summary.Warnings)
+	}
+}
+
+func TestApplyAniSearchCreateFollowThrough_UsesAniSearchSourceLinksWhenPrimarySourceIsJellyfin(t *testing.T) {
+	t.Parallel()
+
+	jellyfinSource := "jellyfin:series-42"
+	sourceLinks := []string{"jellyfin:series-42", "anisearch:12345"}
+	relationInput := []models.AdminAnimeRelation{
+		{TargetAnimeID: 12, RelationLabel: "Fortsetzung", TargetTitle: "Lain", TargetType: "tv", TargetStatus: "done"},
+	}
+	relationRepo := &relationRepoStub{
+		applyResult: repository.AdminAnimeEnrichmentRelationApplyResult{
+			Attempted: 1,
+			Applied:   1,
+		},
+	}
+
+	handler := &AdminContentHandler{relationRepo: relationRepo}
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime", strings.NewReader(`{}`))
+
+	summary := handler.applyAniSearchCreateFollowThrough(c, 77, &jellyfinSource, sourceLinks, relationInput)
+
+	if summary == nil {
+		t.Fatal("expected anisearch summary")
+	}
+	if summary.Source == nil || *summary.Source != "anisearch:12345" {
+		t.Fatalf("expected anisearch source from source_links, got %#v", summary.Source)
+	}
+}
+
+func TestValidateAdminAnimeCreateRequest_NormalizesSourceLinksAndRetainsPrimary(t *testing.T) {
+	t.Parallel()
+
+	coverImage := "cover_123.webp"
+	source := " jellyfin:series-99 "
+	input, message := validateAdminAnimeCreateRequest(adminAnimeCreateRequest{
+		Title:       "Naruto",
+		Type:        "tv",
+		ContentType: "anime",
+		Status:      "ongoing",
+		CoverImage:  &coverImage,
+		Source:      &source,
+		SourceLinks: []string{" anisearch:2747 ", "jellyfin:series-99", "anisearch:2747"},
+	})
+	if message != "" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+	if !slices.Equal(input.SourceLinks, []string{"jellyfin:series-99", "anisearch:2747"}) {
+		t.Fatalf("expected normalized source links, got %#v", input.SourceLinks)
 	}
 }
 

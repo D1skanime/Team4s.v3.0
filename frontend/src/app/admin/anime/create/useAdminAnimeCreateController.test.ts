@@ -10,7 +10,10 @@ import {
   applyCreateAniSearchControllerResult,
   buildCreateAniSearchConflictState,
 } from './createAniSearchControllerHelpers'
-import { resolveAniSearchCandidateSearchFeedback } from './useAdminAnimeCreateController'
+import {
+  resolveAniSearchCandidateSearchFeedback,
+  resolveCreateCoverState,
+} from './useAdminAnimeCreateController'
 import { hydrateManualDraftFromAniSearchDraft, hydrateManualDraftFromJellyfinPreview } from '../hooks/useManualAnimeDraft'
 
 const manualLookupDraft = {
@@ -217,7 +220,53 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
     })
   })
 
-  it('keeps AniSearch relations in the final create payload when a draft is saved', () => {
+  it('counts a Jellyfin cover as the required create cover when no manual cover was staged', () => {
+    const resolved = resolveCreateCoverState({
+      coverImage: '',
+      stagedCover: null,
+      jellyfinAssetSlots: {
+        ...jellyfinPreview.asset_slots,
+        cover: {
+          present: true,
+          kind: 'cover',
+          source: 'jellyfin',
+          url: '/api/admin/jellyfin/assets/cover/series-42',
+        },
+      },
+    })
+
+    expect(resolved).toEqual({
+      hasCover: true,
+      payloadCoverImage: 'http://localhost:8092/api/admin/jellyfin/assets/cover/series-42',
+    })
+  })
+
+  it('keeps staged covers authoritative over Jellyfin cover URLs', () => {
+    const resolved = resolveCreateCoverState({
+      coverImage: '',
+      stagedCover: {
+        draftValue: 'cover.png',
+        file: new File(['cover'], 'cover.png', { type: 'image/png' }),
+        previewUrl: 'blob:cover-preview',
+      },
+      jellyfinAssetSlots: {
+        ...jellyfinPreview.asset_slots,
+        cover: {
+          present: true,
+          kind: 'cover',
+          source: 'jellyfin',
+          url: '/api/admin/jellyfin/assets/cover/series-42',
+        },
+      },
+    })
+
+    expect(resolved).toEqual({
+      hasCover: true,
+      payloadCoverImage: '',
+    })
+  })
+
+  it('keeps Jellyfin as the authoritative create source while still carrying AniSearch relations', () => {
     const payload = appendCreateSourceLinkageToPayload(
       {
         title: 'Serial Experiments Lain',
@@ -244,7 +293,8 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
       },
     )
 
-    expect(payload.source).toBe('anisearch:12345')
+    expect(payload.source).toBe('jellyfin:series-42')
+    expect(payload.source_links).toEqual(['jellyfin:series-42', 'anisearch:12345'])
     expect(payload.folder_name).toBe('D:/Anime/Lain')
     expect(payload.relations).toEqual([
       {

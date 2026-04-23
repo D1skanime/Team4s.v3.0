@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import type { EpisodeImportMappingRow, EpisodeImportPreviewResult } from '../../../../../../types/episodeImport'
 import {
+  applyFansubGroupFromEpisodeDown,
+  applyFansubGroupToEpisodeRows,
   confirmEpisodeMappingRows,
   detectMappingConflicts,
   fillerLabel,
@@ -49,7 +51,7 @@ describe('episodeImportMapping', () => {
     })
   })
 
-  it('flags conflicts when different active media rows claim the same canonical episode', () => {
+  it('allows different active media rows to claim the same canonical episode as parallel releases', () => {
     const rows: EpisodeImportMappingRow[] = [
       {
         media_item_id: 'jellyfin-a',
@@ -67,7 +69,7 @@ describe('episodeImportMapping', () => {
 
     const result = detectMappingConflicts(rows)
 
-    expect(result.map((row) => row.status)).toEqual(['conflict', 'conflict'])
+    expect(result.map((row) => row.status)).toEqual(['confirmed', 'confirmed'])
   })
 
   it('summarizes preview counts without hiding unmapped episodes or files', () => {
@@ -168,9 +170,7 @@ describe('episodeImportMapping', () => {
 
     const result = markAllSuggestedConfirmed(rows)
 
-    // Parallel releases for the same episode show as conflict when target arrays overlap —
-    // this is expected behaviour: operator sees conflict and resolves per-episode
-    expect(result.map((r) => r.status)).toEqual(['conflict', 'conflict'])
+    expect(result.map((r) => r.status)).toEqual(['confirmed', 'confirmed'])
   })
 
   it('confirmEpisodeMappingRows confirms only rows suggested for that episode number', () => {
@@ -242,12 +242,12 @@ describe('episodeImportMapping', () => {
     expect(resolveEpisodeDisplayTitle(ep)).toBe('Schicksalstag')
   })
 
-  it('resolveEpisodeDisplayTitle falls back to English when German is absent', () => {
+  it('resolveEpisodeDisplayTitle does not surface non-German variants when German is absent', () => {
     const ep = {
       episode_number: 5,
       titles_by_language: { en: 'Day of Destiny', ja: '運命の日' },
     }
-    expect(resolveEpisodeDisplayTitle(ep)).toBe('Day of Destiny')
+    expect(resolveEpisodeDisplayTitle(ep)).toBeNull()
   })
 
   it('resolveEpisodeDisplayTitle falls back to title field when no language map is present', () => {
@@ -382,6 +382,30 @@ describe('episodeImportMapping', () => {
     expect(canApply).toBe(false)
   })
 
+  it('resolveEpisodeDisplayTitle shows only the German title in the UI when multiple languages exist', () => {
+    expect(resolveEpisodeDisplayTitle({
+      episode_number: 3,
+      title: 'Toplist #1628',
+      titles_by_language: {
+        de: 'Sasukes Rivale',
+        en: 'Sasuke and Sakura: Friends or Foes?',
+        ja: '対決! サスケVSサクラ',
+      },
+    })).toBe('Sasukes Rivale')
+  })
+
+  it('resolveEpisodeDisplayTitle falls back without surfacing non-German variants', () => {
+    expect(resolveEpisodeDisplayTitle({
+      episode_number: 4,
+      title: 'Episode 4',
+      titles_by_language: {
+        en: 'Pass or Fail: Survival Test',
+        ja: '試練! サバイバル演習',
+      },
+      existing_title: 'Lokaler Titel',
+    })).toBe('Episode 4')
+  })
+
   it('setMappingTargets accepts comma-list season-offset corrections like "141" from a season-split library', () => {
     // Simulates operator correcting a Jellyfin Season 6 Episode 1 to canonical episode 141
     const rows: EpisodeImportMappingRow[] = [{
@@ -395,5 +419,77 @@ describe('episodeImportMapping', () => {
 
     expect(result[0].target_episode_numbers).toEqual([141])
     expect(result[0].status).toBe('confirmed')
+  })
+
+  it('applyFansubGroupToEpisodeRows limits the patch to one canonical episode group', () => {
+    const rows: EpisodeImportMappingRow[] = [
+      {
+        media_item_id: 'ep-100-a',
+        target_episode_numbers: [100],
+        suggested_episode_numbers: [100],
+        status: 'confirmed',
+        fansub_group_name: 'OldA',
+      },
+      {
+        media_item_id: 'ep-100-b',
+        target_episode_numbers: [100],
+        suggested_episode_numbers: [100],
+        status: 'confirmed',
+        fansub_group_name: 'OldB',
+      },
+      {
+        media_item_id: 'ep-101-a',
+        target_episode_numbers: [101],
+        suggested_episode_numbers: [101],
+        status: 'confirmed',
+        fansub_group_name: 'NextArc',
+      },
+    ]
+
+    const result = applyFansubGroupToEpisodeRows(rows, 100, 'AnimeOwnage')
+
+    expect(result[0].fansub_group_name).toBe('AnimeOwnage')
+    expect(result[1].fansub_group_name).toBe('AnimeOwnage')
+    expect(result[2].fansub_group_name).toBe('NextArc')
+  })
+
+  it('applyFansubGroupFromEpisodeDown patches only the current episode and later groups', () => {
+    const rows: EpisodeImportMappingRow[] = [
+      {
+        media_item_id: 'ep-099-a',
+        target_episode_numbers: [99],
+        suggested_episode_numbers: [99],
+        status: 'confirmed',
+        fansub_group_name: 'AnimeOwnage',
+      },
+      {
+        media_item_id: 'ep-100-a',
+        target_episode_numbers: [100],
+        suggested_episode_numbers: [100],
+        status: 'confirmed',
+        fansub_group_name: 'AnimeOwnage',
+      },
+      {
+        media_item_id: 'ep-101-a',
+        target_episode_numbers: [101],
+        suggested_episode_numbers: [101],
+        status: 'confirmed',
+        fansub_group_name: 'Broken',
+      },
+      {
+        media_item_id: 'ep-102-a',
+        target_episode_numbers: [102],
+        suggested_episode_numbers: [102],
+        status: 'confirmed',
+        fansub_group_name: 'Broken',
+      },
+    ]
+
+    const result = applyFansubGroupFromEpisodeDown(rows, 101, 'NeoTokyoFansub')
+
+    expect(result[0].fansub_group_name).toBe('AnimeOwnage')
+    expect(result[1].fansub_group_name).toBe('AnimeOwnage')
+    expect(result[2].fansub_group_name).toBe('NeoTokyoFansub')
+    expect(result[3].fansub_group_name).toBe('NeoTokyoFansub')
   })
 })

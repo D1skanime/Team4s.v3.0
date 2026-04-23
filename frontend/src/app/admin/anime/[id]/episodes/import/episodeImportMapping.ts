@@ -114,20 +114,55 @@ export function skipEpisodeMappingRows(
 }
 
 export function detectMappingConflicts(rows: EpisodeImportMappingRow[]): EpisodeImportMappingRow[] {
-  const claimCounts = new Map<number, number>()
-  rows.forEach((row) => {
-    if (row.status === 'skipped') return
-    ;(row.target_episode_numbers ?? []).forEach((episodeNumber) => {
-      claimCounts.set(episodeNumber, (claimCounts.get(episodeNumber) ?? 0) + 1)
-    })
-  })
-
   return rows.map((row) => {
     if (row.status === 'skipped') return row
-    const hasConflict = (row.target_episode_numbers ?? []).some((episodeNumber) => (claimCounts.get(episodeNumber) ?? 0) > 1)
-    if (hasConflict) return { ...row, status: 'conflict' }
     if (row.status === 'conflict') return { ...row, status: 'confirmed' }
     return row
+  })
+}
+
+export function setMappingReleaseMeta(
+  rows: EpisodeImportMappingRow[],
+  mediaItemID: string,
+  meta: { fansubGroupName?: string; releaseVersion?: string },
+): EpisodeImportMappingRow[] {
+  return rows.map((row) =>
+    row.media_item_id === mediaItemID
+      ? {
+          ...row,
+          fansub_group_name:
+            meta.fansubGroupName !== undefined ? (meta.fansubGroupName || null) : row.fansub_group_name,
+          release_version:
+            meta.releaseVersion !== undefined ? (meta.releaseVersion || null) : row.release_version,
+        }
+      : row,
+  )
+}
+
+export function applyFansubGroupToEpisodeRows(
+  rows: EpisodeImportMappingRow[],
+  episodeNumber: number,
+  fansubGroupName: string,
+): EpisodeImportMappingRow[] {
+  const normalized = normalizeOptionalText(fansubGroupName)
+  return rows.map((row) =>
+    (row.suggested_episode_numbers ?? []).includes(episodeNumber)
+      ? { ...row, fansub_group_name: normalized }
+      : row,
+  )
+}
+
+export function applyFansubGroupFromEpisodeDown(
+  rows: EpisodeImportMappingRow[],
+  episodeNumber: number,
+  fansubGroupName: string,
+): EpisodeImportMappingRow[] {
+  const normalized = normalizeOptionalText(fansubGroupName)
+  return rows.map((row) => {
+    const suggestedEpisode = row.suggested_episode_numbers?.[0]
+    return suggestedEpisode != null && suggestedEpisode >= episodeNumber
+      ? { ...row, fansub_group_name: normalized }
+      : row
   })
 }
 
@@ -147,13 +182,14 @@ export function summarizeImportPreview(
 }
 
 /**
- * Return the best display title for a canonical episode using the preference
- * order: German > English > Japanese > existing_title > fallback.
+ * Return the operator-facing display title for a canonical episode.
+ * The import UI intentionally shows only the German title when available;
+ * other language variants are still persisted on apply, but not surfaced here.
  */
 export function resolveEpisodeDisplayTitle(ep: EpisodeImportCanonicalEpisode): string | null {
   if (ep.titles_by_language) {
-    const preferred = ep.titles_by_language['de'] ?? ep.titles_by_language['en'] ?? ep.titles_by_language['ja']
-    if (preferred) return preferred
+    const german = ep.titles_by_language['de']
+    if (german) return german
   }
   return ep.title ?? ep.existing_title ?? null
 }
@@ -174,4 +210,9 @@ export function fillerLabel(fillerType: string | null | undefined): string | nul
       return null
     default: return fillerType
   }
+}
+
+function normalizeOptionalText(value: string): string | null {
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
 }

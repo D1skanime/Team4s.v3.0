@@ -48,6 +48,210 @@ func TestPreviewEpisodeImport_SeparatesCanonicalEpisodesAndMediaCandidates(t *te
 	}
 }
 
+func TestPreviewEpisodeImport_AccumulatesSeasonSplitEpisodeSuggestions(t *testing.T) {
+	t.Parallel()
+
+	season1 := int32(1)
+	season2 := int32(2)
+	season3 := int32(3)
+	ep1 := int32(1)
+	ep26 := int32(26)
+	preview := buildEpisodeImportPreview(
+		7,
+		"Naruto",
+		episodeImportStringPtr("2788"),
+		episodeImportStringPtr("naruto-series"),
+		episodeImportStringPtr(`/media/Anime.TV.Sub/Naruto`),
+		[]models.EpisodeImportCanonicalEpisode{
+			{EpisodeNumber: 1},
+			{EpisodeNumber: 26},
+			{EpisodeNumber: 27},
+			{EpisodeNumber: 53},
+		},
+		[]models.EpisodeImportMediaCandidate{
+			{
+				MediaItemID:           "naruto-s01e01",
+				FileName:              "Naruto.S01E01-AnimeOwnage.avi",
+				Path:                  `/media/Anime.TV.Sub/Naruto/Naruto.S01E01-AnimeOwnage.avi`,
+				JellyfinSeasonNumber:  &season1,
+				JellyfinEpisodeNumber: &ep1,
+			},
+			{
+				MediaItemID:           "naruto-s01e26",
+				FileName:              "Naruto.S01E26-AnimeOwnage.avi",
+				Path:                  `/media/Anime.TV.Sub/Naruto/Naruto.S01E26-AnimeOwnage.avi`,
+				JellyfinSeasonNumber:  &season1,
+				JellyfinEpisodeNumber: &ep26,
+			},
+			{
+				MediaItemID:           "naruto-s02e01",
+				FileName:              "Naruto.S02E01-AnimeOwnage.avi",
+				Path:                  `/media/Anime.TV.Sub/Naruto/Naruto.S02E01-AnimeOwnage.avi`,
+				JellyfinSeasonNumber:  &season2,
+				JellyfinEpisodeNumber: &ep1,
+			},
+			{
+				MediaItemID:           "naruto-s02e26",
+				FileName:              "Naruto.S02E26-AnimeOwnage.avi",
+				Path:                  `/media/Anime.TV.Sub/Naruto/Naruto.S02E26-AnimeOwnage.avi`,
+				JellyfinSeasonNumber:  &season2,
+				JellyfinEpisodeNumber: &ep26,
+			},
+			{
+				MediaItemID:           "naruto-s03e01",
+				FileName:              "Naruto.S03E01-Gena.avi",
+				Path:                  `/media/Anime.TV.Sub/Naruto/Naruto.S03E01-Gena.avi`,
+				JellyfinSeasonNumber:  &season3,
+				JellyfinEpisodeNumber: &ep1,
+			},
+		},
+		0,
+	)
+
+	got := make(map[string][]int32, len(preview.Mappings))
+	for _, row := range preview.Mappings {
+		got[row.MediaItemID] = row.SuggestedEpisodeNumbers
+	}
+
+	if want := []int32{1}; len(got["naruto-s01e01"]) != 1 || got["naruto-s01e01"][0] != want[0] {
+		t.Fatalf("expected s01e01 => %v, got %v", want, got["naruto-s01e01"])
+	}
+	if want := []int32{26}; len(got["naruto-s01e26"]) != 1 || got["naruto-s01e26"][0] != want[0] {
+		t.Fatalf("expected s01e26 => %v, got %v", want, got["naruto-s01e26"])
+	}
+	if want := []int32{27}; len(got["naruto-s02e01"]) != 1 || got["naruto-s02e01"][0] != want[0] {
+		t.Fatalf("expected s02e01 => %v, got %v", want, got["naruto-s02e01"])
+	}
+	if want := []int32{52}; len(got["naruto-s02e26"]) != 1 || got["naruto-s02e26"][0] != want[0] {
+		t.Fatalf("expected s02e26 => %v, got %v", want, got["naruto-s02e26"])
+	}
+	if want := []int32{53}; len(got["naruto-s03e01"]) != 1 || got["naruto-s03e01"][0] != want[0] {
+		t.Fatalf("expected s03e01 => %v, got %v", want, got["naruto-s03e01"])
+	}
+}
+
+func TestPreviewEpisodeImport_AddsManualSeasonOffsetAfterSeasonAccumulation(t *testing.T) {
+	t.Parallel()
+
+	season1 := int32(1)
+	season2 := int32(2)
+	ep10 := int32(10)
+	ep2 := int32(2)
+	preview := buildEpisodeImportPreview(
+		9,
+		"Bleach",
+		episodeImportStringPtr("1078"),
+		episodeImportStringPtr("series-bleach"),
+		episodeImportStringPtr(`/media/Bleach`),
+		[]models.EpisodeImportCanonicalEpisode{{EpisodeNumber: 64}},
+		[]models.EpisodeImportMediaCandidate{
+			{
+				MediaItemID:           "bleach-s01e10",
+				FileName:              "Bleach S01E10.mkv",
+				JellyfinSeasonNumber:  &season1,
+				JellyfinEpisodeNumber: &ep10,
+			},
+			{
+				MediaItemID:           "bleach-s02e02",
+				FileName:              "Bleach S02E02.mkv",
+				JellyfinSeasonNumber:  &season2,
+				JellyfinEpisodeNumber: &ep2,
+			},
+		},
+		54,
+	)
+
+	var target []int32
+	for _, row := range preview.Mappings {
+		if row.MediaItemID == "bleach-s02e02" {
+			target = row.SuggestedEpisodeNumbers
+			break
+		}
+	}
+	if len(target) != 1 || target[0] != 66 {
+		t.Fatalf("expected season accumulation plus offset to yield 66, got %v", target)
+	}
+}
+
+func TestPreviewEpisodeImport_ExpandsFilenameEpisodeRangesAcrossSeasonOffsets(t *testing.T) {
+	t.Parallel()
+
+	season1 := int32(1)
+	season2 := int32(2)
+	season3 := int32(3)
+	ep26 := int32(26)
+	ep1 := int32(1)
+	ep12 := int32(12)
+	ep14 := int32(14)
+
+	preview := buildEpisodeImportPreview(
+		3,
+		"Naruto",
+		episodeImportStringPtr("2788"),
+		episodeImportStringPtr("naruto-series"),
+		episodeImportStringPtr(`/media/Anime.TV.Sub/Naruto`),
+		[]models.EpisodeImportCanonicalEpisode{
+			{EpisodeNumber: 95},
+			{EpisodeNumber: 96},
+			{EpisodeNumber: 97},
+			{EpisodeNumber: 98},
+		},
+		[]models.EpisodeImportMediaCandidate{
+			{
+				MediaItemID:           "naruto-s01e26",
+				FileName:              "Naruto.S01E26-AnimeOwnage.avi",
+				Path:                  `/media/Anime.TV.Sub/Naruto/Naruto.S01E26-AnimeOwnage.avi`,
+				JellyfinSeasonNumber:  &season1,
+				JellyfinEpisodeNumber: &ep26,
+			},
+			{
+				MediaItemID:           "naruto-s02e26",
+				FileName:              "Naruto.S02E26-AnimeOwnage.avi",
+				Path:                  `/media/Anime.TV.Sub/Naruto/Naruto.S02E26-AnimeOwnage.avi`,
+				JellyfinSeasonNumber:  &season2,
+				JellyfinEpisodeNumber: &ep26,
+			},
+			{
+				MediaItemID:           "naruto-s03e01",
+				FileName:              "Naruto.S03E01-N!kKrew.avi",
+				Path:                  `/media/Anime.TV.Sub/Naruto/Naruto.S03E01-N!kKrew.avi`,
+				JellyfinSeasonNumber:  &season3,
+				JellyfinEpisodeNumber: &ep1,
+			},
+			{
+				MediaItemID:           "naruto-s03e12-13",
+				FileName:              "Naruto.S03E12-13-N!kKrew.avi",
+				Path:                  `/media/Anime.TV.Sub/Naruto/Naruto.S03E12-13-N!kKrew.avi`,
+				JellyfinSeasonNumber:  &season3,
+				JellyfinEpisodeNumber: &ep12,
+			},
+			{
+				MediaItemID:           "naruto-s03e14",
+				FileName:              "Naruto.S03E14-NarutoSeals.avi",
+				Path:                  `/media/Anime.TV.Sub/Naruto/Naruto.S03E14-NarutoSeals.avi`,
+				JellyfinSeasonNumber:  &season3,
+				JellyfinEpisodeNumber: &ep14,
+			},
+		},
+		31,
+	)
+
+	got := make(map[string][]int32, len(preview.Mappings))
+	for _, row := range preview.Mappings {
+		got[row.MediaItemID] = row.SuggestedEpisodeNumbers
+	}
+
+	if want := []int32{95, 96}; len(got["naruto-s03e12-13"]) != len(want) || got["naruto-s03e12-13"][0] != want[0] || got["naruto-s03e12-13"][1] != want[1] {
+		t.Fatalf("expected s03e12-13 => %v, got %v", want, got["naruto-s03e12-13"])
+	}
+	if want := []int32{97}; len(got["naruto-s03e14"]) != len(want) || got["naruto-s03e14"][0] != want[0] {
+		t.Fatalf("expected s03e14 => %v, got %v", want, got["naruto-s03e14"])
+	}
+	if len(preview.UnmappedEpisodes) != 1 || preview.UnmappedEpisodes[0] != 98 {
+		t.Fatalf("expected episode 98 to stay unmapped until a separate file covers it, got %v", preview.UnmappedEpisodes)
+	}
+}
+
 func TestPreviewEpisodeImport_MappingRowsCarryReadableFileEvidence(t *testing.T) {
 	t.Parallel()
 
@@ -96,6 +300,58 @@ func TestPreviewEpisodeImport_MappingRowsCarryReadableFileEvidence(t *testing.T)
 	}
 }
 
+func TestPreviewEpisodeImport_PrefillsDetectedFansubGroupNames(t *testing.T) {
+	t.Parallel()
+
+	ep1 := int32(1)
+	preview := buildEpisodeImportPreview(
+		99,
+		"11eyes",
+		episodeImportStringPtr("5678"),
+		episodeImportStringPtr("series-11eyes"),
+		episodeImportStringPtr(`D:\Anime\TV\11 eyes mit sub`),
+		[]models.EpisodeImportCanonicalEpisode{{EpisodeNumber: 1}},
+		[]models.EpisodeImportMediaCandidate{
+			{
+				MediaItemID:           "id-bracketed",
+				FileName:              "11eyes_01_[GroupA].mkv",
+				Path:                  `D:\Anime\TV\11 eyes mit sub\[GroupA]\11eyes_01_[GroupA].mkv`,
+				JellyfinEpisodeNumber: &ep1,
+			},
+			{
+				MediaItemID:           "id-suffixed",
+				FileName:              "11eyes.S01E01-FlameHazeSubs.mp4",
+				Path:                  `D:\Anime\TV\11 eyes mit sub\11eyes.S01E01-FlameHazeSubs.mp4`,
+				JellyfinEpisodeNumber: &ep1,
+			},
+			{
+				MediaItemID:           "id-typo",
+				FileName:              "Naruto.S01E01-AnmeOwnage.avi",
+				Path:                  `D:\Anime\Naruto\Naruto.S01E01-AnmeOwnage.avi`,
+				JellyfinEpisodeNumber: &ep1,
+			},
+		},
+		0,
+	)
+
+	got := make(map[string]string, len(preview.Mappings))
+	for _, row := range preview.Mappings {
+		if row.FansubGroupName != nil {
+			got[row.MediaItemID] = *row.FansubGroupName
+		}
+	}
+
+	if got["id-bracketed"] != "GroupA" {
+		t.Fatalf("expected bracketed group GroupA, got %q", got["id-bracketed"])
+	}
+	if got["id-suffixed"] != "FlameHazeSubs" {
+		t.Fatalf("expected suffixed group FlameHazeSubs, got %q", got["id-suffixed"])
+	}
+	if got["id-typo"] != "AnmeOwnage" {
+		t.Fatalf("expected raw typo spelling to be preserved, got %q", got["id-typo"])
+	}
+}
+
 func TestApplyEpisodeImport_RejectsUnconfirmedConflicts(t *testing.T) {
 	t.Parallel()
 
@@ -139,7 +395,7 @@ func TestResolveEpisodeImportSeriesByFolderPath_UsesStoredFolderPathFallback(t *
 			t.Fatalf("expected /Items path, got %s", r.URL.Path)
 		}
 		switch got := r.URL.Query().Get("SearchTerm"); got {
-		case "11eyes", "11 eyes mit sub":
+		case "11eyes", "11", "11eyesmitsub", "11 eyes mit sub":
 			seenTerms[got]++
 		default:
 			t.Fatalf("unexpected SearchTerm=%q", got)
@@ -178,6 +434,24 @@ func TestResolveEpisodeImportSeriesByFolderPath_UsesStoredFolderPathFallback(t *
 	}
 	if seenTerms["11 eyes mit sub"] == 0 {
 		t.Fatalf("expected folder seed lookup to run, got %+v", seenTerms)
+	}
+	if seenTerms["11"] == 0 {
+		t.Fatalf("expected compact lookup seed to run, got %+v", seenTerms)
+	}
+}
+
+func TestAppendUniqueJellyfinLookupTerms_ExpandsCompactNumericSeeds(t *testing.T) {
+	t.Parallel()
+
+	got := appendUniqueJellyfinLookupTerms(nil, "3x3 Eyes")
+	want := []string{"3x3 Eyes", "3x3", "3x3Eyes"}
+	if len(got) != len(want) {
+		t.Fatalf("expected %d lookup terms, got %d: %#v", len(want), len(got), got)
+	}
+	for index := range want {
+		if got[index] != want[index] {
+			t.Fatalf("expected lookup terms %#v, got %#v", want, got)
+		}
 	}
 }
 

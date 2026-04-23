@@ -64,7 +64,7 @@ export default function AdminAnimeCreatePage() {
 
   const reviewMissingFields: string[] = [];
   if (!manualDraft.values.title.trim()) reviewMissingFields.push("Titel");
-  if (!manualDraft.stagedCover && !manualDraft.values.coverImage.trim()) {
+  if (!manualDraft.hasCover) {
     reviewMissingFields.push("Cover");
   }
 
@@ -455,7 +455,7 @@ export default function AdminAnimeCreatePage() {
           <CreateReviewSection
             missingFields={reviewMissingFields}
             hasTitle={manualDraft.values.title.trim().length > 0}
-            hasCover={!!manualDraft.stagedCover || !!manualDraft.values.coverImage}
+            hasCover={manualDraft.hasCover}
             hasAniSearch={!!anisearch.result}
             hasJellyfin={jellyfin.hasAdoptedPreview}
             assetCount={

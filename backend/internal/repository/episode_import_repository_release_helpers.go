@@ -7,8 +7,10 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 
+	"team4s.v3/backend/internal/importutil"
 	"team4s.v3/backend/internal/models"
 
 	"github.com/jackc/pgx/v5"
@@ -205,6 +207,68 @@ func resolveImportFansubGroup(
 	if name == "" {
 		return nil, nil
 	}
+	parsedNames := parseImportFansubGroupNames(name)
+	if len(parsedNames) > 1 {
+		return upsertImportCollaborationGroup(ctx, tx, parsedNames)
+	}
+	if len(parsedNames) == 1 {
+		name = parsedNames[0]
+	}
+	return upsertImportFansubGroupByName(ctx, tx, name, models.FansubGroupTypeGroup)
+}
+
+func upsertImportCollaborationGroup(
+	ctx context.Context,
+	tx pgx.Tx,
+	memberNames []string,
+) (*int64, error) {
+	memberNames = canonicalizeImportFansubGroupNames(memberNames)
+	if len(memberNames) == 0 {
+		return nil, nil
+	}
+	if len(memberNames) == 1 {
+		return upsertImportFansubGroupByName(ctx, tx, memberNames[0], models.FansubGroupTypeGroup)
+	}
+
+	memberIDs := make([]int64, 0, len(memberNames))
+	for _, memberName := range memberNames {
+		groupID, err := upsertImportFansubGroupByName(ctx, tx, memberName, models.FansubGroupTypeGroup)
+		if err != nil {
+			return nil, err
+		}
+		if groupID == nil {
+			return nil, nil
+		}
+		memberIDs = append(memberIDs, *groupID)
+	}
+
+	collaborationName := strings.Join(memberNames, " & ")
+	collaborationID, err := upsertImportFansubGroupByName(ctx, tx, collaborationName, models.FansubGroupTypeCollaboration)
+	if err != nil || collaborationID == nil {
+		return collaborationID, err
+	}
+	for _, memberID := range memberIDs {
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO fansub_collaboration_members (collaboration_id, member_group_id)
+			VALUES ($1, $2)
+			ON CONFLICT (collaboration_id, member_group_id) DO NOTHING
+		`, *collaborationID, memberID); err != nil {
+			return nil, fmt.Errorf("upsert import collaboration member collaboration=%d member=%d: %w", *collaborationID, memberID, err)
+		}
+	}
+	return collaborationID, nil
+}
+
+func upsertImportFansubGroupByName(
+	ctx context.Context,
+	tx pgx.Tx,
+	name string,
+	groupType models.FansubGroupType,
+) (*int64, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, nil
+	}
 	slug := slugifyAnimeTitle(name)
 	if slug == "" {
 		return nil, nil
@@ -212,15 +276,60 @@ func resolveImportFansubGroup(
 	var id int64
 	if err := tx.QueryRow(ctx, `
 		INSERT INTO fansub_groups (slug, name, status, group_type)
-		VALUES ($1, $2, 'active', 'group')
+		VALUES ($1, $2, 'active', $3)
 		ON CONFLICT (slug) DO UPDATE
 		SET name = COALESCE(NULLIF(BTRIM(fansub_groups.name), ''), EXCLUDED.name),
+		    group_type = CASE
+		      WHEN fansub_groups.group_type = 'group' AND EXCLUDED.group_type = 'collaboration' THEN EXCLUDED.group_type
+		      ELSE fansub_groups.group_type
+		    END,
 		    updated_at = NOW()
 		RETURNING id
-	`, slug, name).Scan(&id); err != nil {
+	`, slug, name, groupType).Scan(&id); err != nil {
 		return nil, fmt.Errorf("upsert import fansub group %q: %w", name, err)
 	}
 	return &id, nil
+}
+
+func parseImportFansubGroupNames(raw string) []string {
+	normalized := strings.TrimSpace(raw)
+	if normalized == "" {
+		return nil
+	}
+	splitter := regexp.MustCompile(`(?i)\s*(?:&|\+| und )\s*`)
+	parts := splitter.Split(normalized, -1)
+	return canonicalizeImportFansubGroupNames(parts)
+}
+
+func canonicalizeImportFansubGroupNames(names []string) []string {
+	type namedGroup struct {
+		display    string
+		normalized string
+	}
+	unique := make(map[string]namedGroup, len(names))
+	for _, name := range names {
+		trimmed := strings.TrimSpace(name)
+		if trimmed == "" {
+			continue
+		}
+		normalized := strings.ToLower(trimmed)
+		if _, exists := unique[normalized]; exists {
+			continue
+		}
+		unique[normalized] = namedGroup{display: trimmed, normalized: normalized}
+	}
+	items := make([]namedGroup, 0, len(unique))
+	for _, item := range unique {
+		items = append(items, item)
+	}
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].normalized < items[j].normalized
+	})
+	result := make([]string, 0, len(items))
+	for _, item := range items {
+		result = append(result, item.display)
+	}
+	return result
 }
 
 func episodeImportFilename(media models.EpisodeImportMediaCandidate) string {
@@ -243,10 +352,5 @@ func episodeImportReleaseTitle(mapping models.EpisodeImportMappingRow, media mod
 }
 
 func deriveFansubGroupName(media models.EpisodeImportMediaCandidate) string {
-	evidence := strings.TrimSpace(media.FileName + " " + media.Path)
-	match := regexp.MustCompile(`\[[^\[\]]+\]`).FindString(evidence)
-	if match == "" {
-		return ""
-	}
-	return strings.Trim(match, "[] ")
+	return importutil.DeriveFansubGroupName(media.FileName, media.Path)
 }

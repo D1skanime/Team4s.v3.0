@@ -37,9 +37,11 @@ func (r *AdminContentRepository) FindAnimeBySource(
 	if err := r.db.QueryRow(
 		ctx,
 		`
-		SELECT anime.id, `+displayTitleExpr+`
+		SELECT DISTINCT anime.id, `+displayTitleExpr+`
 		FROM anime
+		LEFT JOIN anime_source_links asl ON asl.anime_id = anime.id
 		WHERE anime.source = $1
+		   OR asl.source = $1
 		LIMIT 1
 		`,
 		normalized,
@@ -78,9 +80,13 @@ func (r *AdminContentRepository) ResolveAdminAnimeRelationTargetsBySources(
 	rows, err := r.db.Query(
 		ctx,
 		`
-		SELECT anime.source, anime.id, `+displayTitleExpr+`
+		SELECT DISTINCT COALESCE(asl.source, anime.source) AS matched_source, anime.id, `+displayTitleExpr+`
 		FROM anime
-		WHERE anime.source = ANY($1::text[])
+		LEFT JOIN anime_source_links asl ON asl.anime_id = anime.id
+		WHERE (
+			anime.source = ANY($1::text[])
+			OR asl.source = ANY($1::text[])
+		)
 		  AND anime.status <> 'disabled'
 		`,
 		normalized,

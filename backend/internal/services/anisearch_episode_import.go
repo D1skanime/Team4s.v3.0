@@ -64,7 +64,7 @@ func parseAniSearchEpisodeListHTML(rawHTML string) ([]AniSearchEpisode, error) {
 		if node == nil {
 			return
 		}
-		if node.Type == xhtml.ElementNode && node.Data == "tr" {
+		if isAniSearchEpisodeRow(node) {
 			if episode, ok := parseAniSearchEpisodeTableRow(node); ok {
 				episodesByNumber[episode.EpisodeNumber] = episode
 			}
@@ -88,15 +88,45 @@ func parseAniSearchEpisodeListHTML(rawHTML string) ([]AniSearchEpisode, error) {
 	return episodes, nil
 }
 
+func isAniSearchEpisodeRow(node *xhtml.Node) bool {
+	if node == nil || node.Type != xhtml.ElementNode || node.Data != "tr" {
+		return false
+	}
+	if strings.EqualFold(strings.TrimSpace(nodeAttribute(node, "data-episode")), "true") {
+		return true
+	}
+	if strings.EqualFold(strings.TrimSpace(nodeAttribute(node, "itemprop")), "episode") {
+		return true
+	}
+	for parent := node.Parent; parent != nil; parent = parent.Parent {
+		if parent.Type != xhtml.ElementNode {
+			continue
+		}
+		if value := strings.ToLower(strings.TrimSpace(nodeAttribute(parent, "id"))); value == "episoden" || value == "episodes" {
+			return true
+		}
+	}
+	return false
+}
+
+func nodeAttribute(node *xhtml.Node, name string) string {
+	for _, attr := range node.Attr {
+		if strings.EqualFold(strings.TrimSpace(attr.Key), name) {
+			return attr.Val
+		}
+	}
+	return ""
+}
+
 func parseAniSearchEpisodeTableRow(row *xhtml.Node) (AniSearchEpisode, bool) {
 	cells := make([]string, 0, 4)
-	titlesByLanguage := make(map[string]string)
+	titleCell := (*xhtml.Node)(nil)
 	for child := row.FirstChild; child != nil; child = child.NextSibling {
 		if child.Type == xhtml.ElementNode && (child.Data == "td" || child.Data == "th") {
 			text := strings.TrimSpace(nodeText(child))
 			cells = append(cells, text)
-			if lang := normalizeAniSearchEpisodeLanguage(cellLanguage(child)); lang != "" && text != "" {
-				titlesByLanguage[lang] = text
+			if strings.EqualFold(strings.TrimSpace(nodeAttribute(child, "data-title")), "Titel") {
+				titleCell = child
 			}
 		}
 	}
@@ -108,10 +138,19 @@ func parseAniSearchEpisodeTableRow(row *xhtml.Node) (AniSearchEpisode, bool) {
 	if number <= 0 {
 		return AniSearchEpisode{}, false
 	}
-	if len(titlesByLanguage) == 0 && strings.TrimSpace(cells[1]) != "" {
-		titlesByLanguage["de"] = strings.TrimSpace(cells[1])
+
+	titlesByLanguage := parseAniSearchEpisodeTitles(titleCell)
+	if len(titlesByLanguage) == 0 {
+		titlesByLanguage = parseAniSearchEpisodeTitles(row)
 	}
-	title := normalizeStringPtr(episodeDisplayTitle(number, titlesByLanguage, firstNonEmpty(cells[1], cells[len(cells)-1])))
+	if len(titlesByLanguage) == 0 && strings.TrimSpace(cells[len(cells)-1]) != "" {
+		titlesByLanguage["de"] = strings.TrimSpace(cells[len(cells)-1])
+	}
+	titleFallback := ""
+	if titleCell != nil {
+		titleFallback = nodeText(titleCell)
+	}
+	title := normalizeStringPtr(episodeDisplayTitle(number, titlesByLanguage, firstNonEmpty(titleFallback, cells[len(cells)-1])))
 	fillerType, fillerNote := parseAniSearchEpisodeFiller(cells)
 	return AniSearchEpisode{
 		EpisodeNumber:    number,
@@ -121,6 +160,32 @@ func parseAniSearchEpisodeTableRow(row *xhtml.Node) (AniSearchEpisode, bool) {
 		FillerSource:     normalizeStringPtr("anisearch"),
 		FillerNote:       fillerNote,
 	}, true
+}
+
+func parseAniSearchEpisodeTitles(cell *xhtml.Node) map[string]string {
+	result := make(map[string]string)
+	if cell == nil {
+		return result
+	}
+
+	var walk func(*xhtml.Node)
+	walk = func(node *xhtml.Node) {
+		if node == nil {
+			return
+		}
+		if node.Type == xhtml.ElementNode {
+			if lang := normalizeAniSearchEpisodeLanguage(cellLanguage(node)); lang != "" {
+				if text := strings.TrimSpace(nodeText(node)); text != "" {
+					result[lang] = text
+				}
+			}
+		}
+		for child := node.FirstChild; child != nil; child = child.NextSibling {
+			walk(child)
+		}
+	}
+	walk(cell)
+	return result
 }
 
 func parseAniSearchEpisodeNumber(raw string) int32 {

@@ -60,8 +60,15 @@ func TestBuildCreateAnimeV2InsertQuery_SkipsMissingRuntimeColumns(t *testing.T) 
 		}
 	}
 
-	if len(args) != 6 {
-		t.Fatalf("expected 6 args for minimal v2 schema, got %d", len(args))
+	required := []string{"title", "type", "anime_type_id", "year", "description", "folder_name", "slug", "modified_by"}
+	for _, fragment := range required {
+		if !strings.Contains(normalized, fragment) {
+			t.Fatalf("expected query to contain %q: %s", fragment, query)
+		}
+	}
+
+	if len(args) != 8 {
+		t.Fatalf("expected 8 args for minimal v2 schema, got %d", len(args))
 	}
 }
 
@@ -86,14 +93,34 @@ func TestBuildCreateAnimeV2InsertQuery_IncludesAvailableRuntimeColumns(t *testin
 	)
 
 	normalized := strings.ToLower(query)
-	required := []string{"content_type", "status", "max_episodes", "source", "folder_name", "slug", "modified_by"}
+	required := []string{"title", "type", "content_type", "status", "max_episodes", "source", "folder_name", "slug", "modified_by"}
 	for _, fragment := range required {
 		if !strings.Contains(normalized, fragment) {
 			t.Fatalf("expected query to contain %q: %s", fragment, query)
 		}
 	}
 
-	if len(args) != 10 {
-		t.Fatalf("expected 10 args for full runtime schema, got %d", len(args))
+	if len(args) != 12 {
+		t.Fatalf("expected 12 args for full runtime schema, got %d", len(args))
+	}
+}
+
+func TestAnimeTypeV2Names_UsesDatabaseLookupValues(t *testing.T) {
+	t.Parallel()
+
+	want := map[string]string{
+		"tv":      "tv",
+		"film":    "film",
+		"ova":     "ova",
+		"ona":     "ona",
+		"special": "special",
+		"bonus":   "bonus",
+		"web":     "web",
+	}
+
+	for input, expected := range want {
+		if got := animeTypeV2Names[input]; got != expected {
+			t.Fatalf("expected animeTypeV2Names[%q] = %q, got %q", input, expected, got)
+		}
 	}
 }

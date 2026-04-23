@@ -89,6 +89,7 @@ type AdminAnimeCreateInput struct {
 	BackgroundVideoURL  *string
 	BackgroundImageURLs []string
 	Source              *string
+	SourceLinks         []string
 	FolderName          *string
 	Tags                []string
 }
@@ -380,6 +381,7 @@ type AdminAnimeSyncSource struct {
 	TitleDE     *string
 	TitleEN     *string
 	Source      *string
+	SourceLinks []string
 	FolderName  *string
 	Year        *int16
 	MaxEpisodes *int16

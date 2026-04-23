@@ -48,6 +48,7 @@ export interface AdminAnimeCreateRequest {
   background_video_url?: string;
   background_image_urls?: string[];
   source?: string;
+  source_links?: string[];
   folder_name?: string;
   relations?: AdminAnimeRelation[];
 }

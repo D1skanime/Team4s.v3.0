@@ -377,6 +377,25 @@ func TestAdminContentRepository_DeleteAnimeSourceWritesAuditBeforeDelete(t *test
 	}
 }
 
+func TestAdminContentRepository_DeleteAnimeSourceCleansPostDeleteV2Orphans(t *testing.T) {
+	content := readRepositorySource(t, "admin_content_anime_delete.go")
+	normalized := strings.ToLower(content)
+
+	requiredFragments := []string{
+		"if usev2schema {",
+		"if err := cleanupafteranimedeletev2(ctx, tx, id); err != nil {",
+		"delete from stream_sources ss",
+		"where not exists (",
+		"select 1 from release_streams rs",
+		"deleteanimeownedmediabypathprefixv2(ctx, tx, animeid)",
+	}
+	for _, fragment := range requiredFragments {
+		if !strings.Contains(normalized, fragment) {
+			t.Fatalf("expected delete source to contain %q, got source:\n%s", fragment, content)
+		}
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Tag normalization, authoritative persistence, token listing, and delete
 // cleanup tests — Task 1 TDD coverage for Plan 10-02.

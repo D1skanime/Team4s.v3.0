@@ -5,9 +5,12 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
+	"team4s.v3/backend/internal/importutil"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
@@ -130,9 +133,15 @@ func (h *AdminContentHandler) loadEpisodeImportContext(c *gin.Context, animeID i
 		}
 		return models.EpisodeImportContextResult{}, http.StatusInternalServerError, err
 	}
-	aniSearchID := normalizeStringPtr(extractAniSearchSourceID(source.Source))
+	aniSearchID := normalizeStringPtr(firstNonEmptyString(
+		extractAniSearchSourceID(source.Source),
+		extractAniSearchIDFromSourceLinks(source.SourceLinks),
+	))
 	folderPath := normalizeStringPtr(derefString(source.FolderName))
-	jellyfinSeriesID := normalizeStringPtr(extractJellyfinSourceID(source.Source))
+	jellyfinSeriesID := normalizeStringPtr(firstNonEmptyString(
+		extractJellyfinSourceID(source.Source),
+		extractJellyfinSeriesIDFromSourceLinks(source.SourceLinks),
+	))
 	if jellyfinSeriesID == nil {
 		animeTitles := uniqueLookupTitles(source.Title, source.TitleDE, source.TitleEN)
 		resolvedItem, resolveErr := h.resolveEpisodeImportSeriesByFolderPath(c.Request.Context(), animeTitles, folderPath)
@@ -150,6 +159,24 @@ func (h *AdminContentHandler) loadEpisodeImportContext(c *gin.Context, animeID i
 		FolderPath:       folderPath,
 		Source:           source.Source,
 	}, http.StatusOK, nil
+}
+
+func extractAniSearchIDFromSourceLinks(sourceLinks []string) string {
+	for _, source := range sourceLinks {
+		if anisearchID := extractAniSearchSourceID(&source); anisearchID != "" {
+			return anisearchID
+		}
+	}
+	return ""
+}
+
+func extractJellyfinSeriesIDFromSourceLinks(sourceLinks []string) string {
+	for _, source := range sourceLinks {
+		if jellyfinID := extractJellyfinSourceID(&source); jellyfinID != "" {
+			return jellyfinID
+		}
+	}
+	return ""
 }
 
 func (h *AdminContentHandler) resolveEpisodeImportSeriesByFolderPath(
@@ -203,16 +230,53 @@ func appendUniqueJellyfinLookupTerms(existing []string, values ...string) []stri
 
 	result := existing
 	for _, value := range values {
-		trimmed := strings.TrimSpace(value)
-		if trimmed == "" {
+		for _, candidate := range expandJellyfinLookupTerms(value) {
+			normalized := strings.ToLower(candidate)
+			if _, ok := seen[normalized]; ok {
+				continue
+			}
+			seen[normalized] = struct{}{}
+			result = append(result, candidate)
+		}
+	}
+	return result
+}
+
+func expandJellyfinLookupTerms(value string) []string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return nil
+	}
+
+	candidates := []string{trimmed}
+	tokens := strings.FieldsFunc(trimmed, func(r rune) bool {
+		return !(r >= '0' && r <= '9' || r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z')
+	})
+	if len(tokens) > 1 {
+		candidates = append(candidates, tokens[0])
+
+		var compact strings.Builder
+		for _, token := range tokens {
+			compact.WriteString(token)
+		}
+		if compact.Len() > 0 {
+			candidates = append(candidates, compact.String())
+		}
+	}
+
+	result := make([]string, 0, len(candidates))
+	seen := make(map[string]struct{}, len(candidates))
+	for _, candidate := range candidates {
+		candidate = strings.TrimSpace(candidate)
+		if candidate == "" {
 			continue
 		}
-		normalized := strings.ToLower(trimmed)
+		normalized := strings.ToLower(candidate)
 		if _, ok := seen[normalized]; ok {
 			continue
 		}
 		seen[normalized] = struct{}{}
-		result = append(result, trimmed)
+		result = append(result, candidate)
 	}
 	return result
 }
@@ -328,6 +392,7 @@ func buildEpisodeImportPreview(
 	if mediaCandidates == nil {
 		mediaCandidates = []models.EpisodeImportMediaCandidate{}
 	}
+	seasonBaseOffsets := buildEpisodeImportSeasonBaseOffsets(mediaCandidates)
 
 	canonicalSet := make(map[int32]struct{}, len(canonicalEpisodes))
 	for _, episode := range canonicalEpisodes {
@@ -340,21 +405,23 @@ func buildEpisodeImportPreview(
 	mappings := make([]models.EpisodeImportMappingRow, 0, len(mediaCandidates))
 	unmappedMedia := make([]string, 0)
 	for _, media := range mediaCandidates {
-		target := int32(0)
-		if media.JellyfinEpisodeNumber != nil {
-			target = *media.JellyfinEpisodeNumber + seasonOffset
-		}
+		targets := resolveEpisodeImportSuggestedTargets(media, seasonOffset, seasonBaseOffsets)
 		row := models.EpisodeImportMappingRow{
 			MediaItemID: media.MediaItemID,
 			FileName:    media.FileName,
 			DisplayPath: episodeImportDisplayPath(media.Path, media.FileName),
 			Status:      models.EpisodeImportMappingStatusSkipped,
 		}
-		if target > 0 {
-			row.TargetEpisodeNumbers = []int32{target}
-			row.SuggestedEpisodeNumbers = []int32{target}
+		if fansubGroupName := strings.TrimSpace(importutil.DeriveFansubGroupName(media.FileName, media.Path)); fansubGroupName != "" {
+			row.FansubGroupName = &fansubGroupName
+		}
+		if len(targets) > 0 {
+			row.TargetEpisodeNumbers = targets
+			row.SuggestedEpisodeNumbers = targets
 			row.Status = models.EpisodeImportMappingStatusSuggested
-			mappedEpisodes[target] = struct{}{}
+			for _, target := range targets {
+				mappedEpisodes[target] = struct{}{}
+			}
 		} else {
 			unmappedMedia = append(unmappedMedia, media.MediaItemID)
 		}
@@ -383,6 +450,94 @@ func buildEpisodeImportPreview(
 		UnmappedEpisodes:     unmappedEpisodes,
 		UnmappedMediaItemIDs: unmappedMedia,
 	}
+}
+
+func resolveEpisodeImportSuggestedTargets(
+	media models.EpisodeImportMediaCandidate,
+	seasonOffset int32,
+	seasonBaseOffsets map[int32]int32,
+) []int32 {
+	if media.JellyfinEpisodeNumber == nil || *media.JellyfinEpisodeNumber <= 0 {
+		return nil
+	}
+
+	targets := []int32{*media.JellyfinEpisodeNumber}
+	if rangeEnd := parseEpisodeImportFilenameRangeEnd(media.FileName); rangeEnd != nil && *rangeEnd > *media.JellyfinEpisodeNumber {
+		targets = make([]int32, 0, *rangeEnd-*media.JellyfinEpisodeNumber+1)
+		for current := *media.JellyfinEpisodeNumber; current <= *rangeEnd; current++ {
+			targets = append(targets, current)
+		}
+	}
+
+	totalOffset := seasonOffset
+	if media.JellyfinSeasonNumber != nil {
+		if seasonBaseOffset, ok := seasonBaseOffsets[*media.JellyfinSeasonNumber]; ok {
+			totalOffset += seasonBaseOffset
+		}
+	}
+
+	resolved := make([]int32, 0, len(targets))
+	for _, target := range targets {
+		resolvedTarget := target + totalOffset
+		if resolvedTarget > 0 {
+			resolved = append(resolved, resolvedTarget)
+		}
+	}
+	return resolved
+}
+
+var episodeImportFilenameRangePattern = regexp.MustCompile(`(?i)e(\d{1,4})-(\d{1,4})`)
+
+func parseEpisodeImportFilenameRangeEnd(fileName string) *int32 {
+	match := episodeImportFilenameRangePattern.FindStringSubmatch(strings.TrimSpace(fileName))
+	if len(match) != 3 {
+		return nil
+	}
+	start, err := strconv.Atoi(match[1])
+	if err != nil || start <= 0 {
+		return nil
+	}
+	end, err := strconv.Atoi(match[2])
+	if err != nil || end <= start {
+		return nil
+	}
+	value := int32(end)
+	return &value
+}
+
+func buildEpisodeImportSeasonBaseOffsets(
+	mediaCandidates []models.EpisodeImportMediaCandidate,
+) map[int32]int32 {
+	maxBySeason := make(map[int32]int32)
+	for _, media := range mediaCandidates {
+		if media.JellyfinSeasonNumber == nil || media.JellyfinEpisodeNumber == nil {
+			continue
+		}
+		seasonNumber := *media.JellyfinSeasonNumber
+		episodeNumber := *media.JellyfinEpisodeNumber
+		if seasonNumber <= 0 || episodeNumber <= 0 {
+			continue
+		}
+		if episodeNumber > maxBySeason[seasonNumber] {
+			maxBySeason[seasonNumber] = episodeNumber
+		}
+	}
+
+	seasons := make([]int32, 0, len(maxBySeason))
+	for seasonNumber := range maxBySeason {
+		seasons = append(seasons, seasonNumber)
+	}
+	sort.Slice(seasons, func(i, j int) bool {
+		return seasons[i] < seasons[j]
+	})
+
+	baseBySeason := make(map[int32]int32, len(seasons))
+	runningTotal := int32(0)
+	for _, seasonNumber := range seasons {
+		baseBySeason[seasonNumber] = runningTotal
+		runningTotal += maxBySeason[seasonNumber]
+	}
+	return baseBySeason
 }
 
 func episodeImportFileName(item jellyfinEpisodeItem) string {

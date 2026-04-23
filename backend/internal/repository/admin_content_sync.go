@@ -47,6 +47,12 @@ func (r *AdminContentRepository) GetAnimeSyncSource(
 		return nil, fmt.Errorf("get anime sync source %d: %w", animeID, err)
 	}
 
+	sourceLinks, err := loadAnimeSourceLinks(ctx, r.db, animeID)
+	if err != nil {
+		return nil, err
+	}
+	item.SourceLinks = sourceLinks
+
 	return &item, nil
 }
 
@@ -135,6 +141,12 @@ func (r *AdminContentRepository) getAnimeSyncSourceV2(ctx context.Context, anime
 	} else if err != nil {
 		return nil, fmt.Errorf("get v2 anime sync source %d: %w", animeID, err)
 	}
+
+	sourceLinks, err := loadAnimeSourceLinks(ctx, r.db, animeID)
+	if err != nil {
+		return nil, err
+	}
+	item.SourceLinks = sourceLinks
 
 	if normalized, err := r.loadNormalizedAnimeMetadata(ctx, animeID); err != nil {
 		return nil, err

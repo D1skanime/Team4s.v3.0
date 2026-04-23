@@ -109,6 +109,37 @@ func TestEpisodeImportReleaseGraphHelpers_DeriveGroupAndFilename(t *testing.T) {
 	if got := deriveFansubGroupName(media); got != "GroupA" {
 		t.Fatalf("expected derived fansub group, got %q", got)
 	}
+
+	suffixed := models.EpisodeImportMediaCandidate{
+		FileName: "11eyes.S01E01-FlameHazeSubs.mp4",
+		Path:     `D:\Anime\11eyes\11eyes.S01E01-FlameHazeSubs.mp4`,
+	}
+	if got := deriveFansubGroupName(suffixed); got != "FlameHazeSubs" {
+		t.Fatalf("expected suffixed fansub group, got %q", got)
+	}
+
+	typo := models.EpisodeImportMediaCandidate{
+		FileName: "Naruto.S01E01-AnmeOwnage.avi",
+		Path:     `D:\Anime\Naruto\Naruto.S01E01-AnmeOwnage.avi`,
+	}
+	if got := deriveFansubGroupName(typo); got != "AnmeOwnage" {
+		t.Fatalf("expected raw typo spelling to stay visible, got %q", got)
+	}
+}
+
+func TestParseImportFansubGroupNames_SplitsAndCanonicalizesCollaborations(t *testing.T) {
+	t.Parallel()
+
+	got := parseImportFansubGroupNames(" ProjectMessiah & AnimeOwnage & animeownage ")
+	want := []string{"AnimeOwnage", "ProjectMessiah"}
+	if len(got) != len(want) {
+		t.Fatalf("expected %d names, got %d: %#v", len(want), len(got), got)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("expected canonicalized names %#v, got %#v", want, got)
+		}
+	}
 }
 
 func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
@@ -133,6 +164,7 @@ func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
 		"insert into release_streams",
 		"insert into release_version_groups",
 		"insert into release_variant_episodes",
+		"insert into fansub_collaboration_members",
 	}
 	for _, fragment := range required {
 		if !strings.Contains(normalized, fragment) {
@@ -141,6 +173,9 @@ func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
 	}
 	if strings.Contains(normalized, "episode_versions") || strings.Contains(normalized, "episode_version_episodes") {
 		t.Fatalf("release-native apply source must not reference legacy episode version tables")
+	}
+	if !strings.Contains(normalized, "models.fansubgrouptypecollaboration") {
+		t.Fatalf("expected release-native apply source to support collaboration fansub groups")
 	}
 }
 

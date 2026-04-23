@@ -2,24 +2,24 @@
 
 ## Top 3 Risks
 
-### 1. Final visual density may still need operator tuning
-- **Impact:** Low
-- **Likelihood:** Medium
-- **Why it matters:** the asset layout now matches the requested reference much more closely, but final judgment is visual and screen-size dependent.
-- **Mitigation:** run one short browser pass after push and keep any follow-up as CSS-only polish unless a functional regression appears.
-
-### 2. Additive background-video behavior must stay aligned across create, edit, and runtime playback
+### 1. Post-apply UX can still mislead operators after a successful idempotent import
 - **Impact:** Medium
-- **Likelihood:** Low
-- **Why it matters:** create now supports multiple background videos, while older code paths historically treated `background_video` as singular.
-- **Mitigation:** keep the plural backend route and runtime `BackgroundVideos` list as the canonical multi-video path; preserve singular fallback only for compatibility.
+- **Likelihood:** High
+- **Why it matters:** the workbench still lets the operator click `Mapping anwenden` again even after the normalized graph was already written and updated correctly.
+- **Mitigation:** treat this as the next likely follow-up slice and make successful applies visually land in a clearly finished state.
 
-### 3. Temporary local artifacts could accidentally pollute future commits
-- **Impact:** Low
+### 2. Compatibility leftovers can still blur the normalized persistence story
+- **Impact:** Medium
 - **Likelihood:** Medium
-- **Why it matters:** local screenshot files, Edge profile folders, root `node_modules`, and build caches exist in the working tree.
-- **Mitigation:** do not stage `tmp-*.png`, `frontend/tmp-edge-profile-*`, root `node_modules`, or generated build/cache files unless deliberately needed.
+- **Why it matters:** the old `streams` table still exists as an allowed compatibility artifact beside `release_streams`.
+- **Mitigation:** keep follow-up verification and future work anchored to `release_streams`, `release_variants`, and `release_variant_episodes`.
+
+### 3. Cross-AI review is still unavailable locally
+- **Impact:** Low
+- **Likelihood:** High
+- **Why it matters:** we cannot currently run the intended independent review lane on this machine.
+- **Mitigation:** keep local verification strong and rerun review once a reviewer CLI is installed.
 
 ## Current Blockers
-- No known product blocker remains for Anime Create.
+- No hard product blocker for Phase 20 remains.
 - Cross-AI review remains unavailable because no independent reviewer CLI is installed locally.

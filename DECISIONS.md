@@ -1,5 +1,28 @@
 # DECISIONS
 
+## 2026-04-21 - Parallel Releases Must Stay Valid In Episode Import UI
+
+### Decision
+Do not treat multiple media files targeting the same canonical episode as a frontend mapping conflict. Parallel releases are valid and should remain confirmable in the episode import workbench.
+
+### Context
+Phase 19 removed the exclusive-episode-claim rule from apply planning, and Phase 20 backend tests explicitly allow parallel releases for the same episode. During the Wave-3 code check, the frontend reducer still downgraded that case to `conflict`, which contradicted the backend contract and blocked the intended operator workflow.
+
+### Options Considered
+- Keep frontend overlap detection and make the operator resolve valid parallel releases manually
+- Align the frontend reducer with the backend contract and keep valid parallel releases confirmed
+
+### Why This Won
+The release-native model is supposed to support multiple distinct real files for the same canonical episode. Surfacing that as a conflict in the workbench creates fake operator friction and misrepresents the persistence model.
+
+### Consequences
+- `episodeImportMapping.ts` no longer auto-flags overlapping episode claims as conflicts.
+- Frontend mapping tests must assert that parallel releases remain confirmed.
+- Future conflict handling in this workbench should be reserved for genuinely invalid states, not for valid multi-release coverage.
+
+### Follow-ups Required
+- Prove the behavior in the live Naruto replay during Phase 20 UAT.
+
 ## 2026-04-18 - AniSearch Owns Canonical Anime Episodes While Jellyfin Owns Media Evidence
 
 ### Decision
@@ -539,3 +562,37 @@ Additive background videos match how backgrounds already work and avoid another 
 ### Follow-ups Required
 - do one short human smoke after push to confirm the final visual density on the target screen
 - keep any future multi-video edit-page expansion separate unless users explicitly need it next
+
+---
+
+## 2026-04-22 - Jellyfin Rename Detection Is Not Stable Enough To Treat File Renames As The Same Imported Release
+
+### Decision
+Treat imported release identity as keyed by Jellyfin `media_item_id`, and assume a filesystem rename may cause Jellyfin to emit a new item ID. For already-imported releases, handle pure rename/path corrections through targeted per-episode or per-version resync/edit flows instead of rerunning the broad import workbench and expecting in-place identity preservation.
+
+### Context
+During live Naruto import verification, we tested Jellyfin behavior before and after renaming a single episode file. `Naruto.S01E05-AnimeOwnage.avi` initially appeared in import preview with Jellyfin item ID `22da2a926ab7ab59dc18989f6205ae3b`. After renaming the file and rescanning Jellyfin, the same logical episode appeared as `Naruto.S01E05-AnimenOwnage.avi` with a different Jellyfin item ID `b12ada24800e12b8296cf825ec7fce70`. That means the current import seam cannot safely assume a filename-only correction will preserve Jellyfin identity.
+
+### Options Considered
+- treat filename/path equality as the authoritative identity for already imported releases
+- assume Jellyfin item IDs survive renames and let broad re-import update existing rows implicitly
+- treat Jellyfin `media_item_id` as authoritative for import identity, and use targeted resync/edit flows for rename corrections
+
+### Why This Won
+The current persistence seam already keys imported release variants through `stream_sources.external_id = media_item_id`. The live Naruto rename test showed that Jellyfin can replace the item ID after a rename, so relying on filename matching would blur true identity and risk accidental duplicate or cross-wired variants. A targeted correction workflow is safer until a dedicated rename-reconciliation slice is designed.
+
+### Consequences
+- a renamed already-imported file may appear as a new candidate in the import preview
+- broad replay imports should be treated as additive workflows for new media, not as the primary correction path for renamed existing media
+- correcting an already imported renamed file should go through a narrow per-episode/per-version Jellyfin resync or edit path
+- any future incremental-import UX should surface "already imported" versus "new Jellyfin item" explicitly instead of assuming stable rename identity
+
+### Follow-ups Required
+- when the incremental-import/correction slice is scoped, include rename reconciliation rules explicitly
+- consider exposing stored `media_item_id` / existing coverage in the import UI so operators can see why a rename is being treated as new evidence
+# 2026-04-22 - Anime Create Persists Explicit Jellyfin Linkage Over AniSearch Source
+
+- Context: Anime create can hydrate fields from both AniSearch and a manually selected Jellyfin series, but the final create payload currently has only one `source` field.
+- Decision: When a Jellyfin series was explicitly selected in the create flow, `source` remains `jellyfin:<series-id>` as the authoritative runtime link, and all normalized provider tags are additionally persisted in `anime_source_links`. AniSearch draft relations still flow into create, but AniSearch no longer overwrites the Jellyfin linkage in the primary `anime.source` field.
+- Why: Episode import, later Jellyfin resync, and provider-based tooling rely on a stable Jellyfin series ID on the anime record. At the same time, AniSearch IDs still need durable lookup coverage for duplicate prevention, relation resolution, and import context. A dedicated source-link table solves the “single field, two providers” conflict cleanly.
+- Follow-up: Source-based lookups should prefer `anime_source_links` as the canonical multi-provider store and treat `anime.source` as the primary runtime source rather than the only persisted provenance.

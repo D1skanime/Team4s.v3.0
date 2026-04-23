@@ -15,13 +15,13 @@ import (
 )
 
 var animeTypeV2Names = map[string]string{
-	"tv":      "TV",
-	"film":    "Movie",
-	"ova":     "OVA",
-	"ona":     "ONA",
-	"special": "Special",
-	"bonus":   "Bonus",
-	"web":     "Web",
+	"tv":      "tv",
+	"film":    "film",
+	"ova":     "ova",
+	"ona":     "ona",
+	"special": "special",
+	"bonus":   "bonus",
+	"web":     "web",
 }
 
 func (r *AdminContentRepository) createAnimeLegacy(
@@ -113,6 +113,10 @@ func (r *AdminContentRepository) createAnimeV2(
 		return nil, fmt.Errorf("create anime v2: %w", err)
 	}
 
+	if err := syncAnimeSourceLinks(ctx, tx, animeID, input.Source, input.SourceLinks); err != nil {
+		return nil, err
+	}
+
 	if err := syncAuthoritativeAnimeMetadata(ctx, tx, animeID, buildAuthoritativeAnimeMetadataCreate(input)); err != nil {
 		return nil, err
 	}
@@ -144,9 +148,13 @@ func buildCreateAnimeV2InsertQuery(
 	modifiedBy *int64,
 ) (string, []any) {
 	columns := []string{
+		"title",
+		"type",
 		"anime_type_id",
 	}
 	args := []any{
+		input.Title,
+		input.Type,
 		animeTypeID,
 	}
 
@@ -363,7 +371,7 @@ func attachUrlMediaAssetV2(
 			uploaded_by,
 			modified_by
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		VALUES ($1, $2, $3, $4, $5, (SELECT id FROM users WHERE id = $6), (SELECT id FROM users WHERE id = $7))
 		RETURNING id
 		`,
 		mediaTypeID,

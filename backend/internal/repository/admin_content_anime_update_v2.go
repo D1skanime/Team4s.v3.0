@@ -235,7 +235,7 @@ func attachAnimePosterMediaV2(
 			uploaded_by,
 			modified_by
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		VALUES ($1, $2, $3, $4, $5, (SELECT id FROM users WHERE id = $6), (SELECT id FROM users WHERE id = $7))
 		RETURNING id
 		`,
 		mediaTypeID,

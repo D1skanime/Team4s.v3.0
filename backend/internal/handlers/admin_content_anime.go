@@ -45,7 +45,7 @@ func (h *AdminContentHandler) CreateAnime(c *gin.Context) {
 		return
 	}
 
-	aniSearchSummary := h.applyAniSearchCreateFollowThrough(c, item.ID, req.Source, req.Relations)
+	aniSearchSummary := h.applyAniSearchCreateFollowThrough(c, item.ID, req.Source, req.SourceLinks, req.Relations)
 	c.JSON(http.StatusCreated, buildAdminAnimeUpsertResponse(item, aniSearchSummary))
 }
 
@@ -97,9 +97,10 @@ func (h *AdminContentHandler) applyAniSearchCreateFollowThrough(
 	c *gin.Context,
 	animeID int64,
 	source *string,
+	sourceLinks []string,
 	relations []models.AdminAnimeRelation,
 ) *models.AdminAnimeCreateAniSearchSummary {
-	normalizedSource := normalizeNullableString(source)
+	normalizedSource := resolveAniSearchCreateSource(source, sourceLinks)
 	if normalizedSource == nil || !strings.HasPrefix(*normalizedSource, "anisearch:") {
 		return nil
 	}
@@ -120,6 +121,20 @@ func (h *AdminContentHandler) applyAniSearchCreateFollowThrough(
 	}
 
 	return services.BuildAdminAnimeCreateAniSearchSummary(normalizedSource, result.Attempted, result.Applied, result.SkippedExisting, nil)
+}
+
+func resolveAniSearchCreateSource(source *string, sourceLinks []string) *string {
+	normalizedSource := normalizeNullableString(source)
+	if normalizedSource != nil && strings.HasPrefix(*normalizedSource, "anisearch:") {
+		return normalizedSource
+	}
+	for _, raw := range sourceLinks {
+		trimmed := strings.TrimSpace(raw)
+		if strings.HasPrefix(trimmed, "anisearch:") {
+			return &trimmed
+		}
+	}
+	return nil
 }
 
 // buildAdminAnimeUpsertResponse erzeugt die HTTP-Antwort für Anlegen und Bearbeiten eines Anime,

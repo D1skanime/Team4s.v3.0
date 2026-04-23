@@ -48,6 +48,10 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 	backgroundImageURLs := normalizeStringSlice(req.BackgroundImageURLs)
 
 	source := normalizeNullableString(req.Source)
+	sourceLinks, sourceLinksMessage := normalizeAdminAnimeSourceLinks(req.SourceLinks, source)
+	if sourceLinksMessage != "" {
+		return models.AdminAnimeCreateInput{}, sourceLinksMessage
+	}
 	folderName := normalizeNullableString(req.FolderName)
 	if folderName != nil && source == nil {
 		return models.AdminAnimeCreateInput{}, "folder_name erfordert source"
@@ -85,6 +89,7 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 		BackgroundVideoURL:  backgroundVideoURL,
 		BackgroundImageURLs: backgroundImageURLs,
 		Source:              source,
+		SourceLinks:         sourceLinks,
 		FolderName:  folderName,
 	}, ""
 }
@@ -210,4 +215,37 @@ func normalizeAdminAnimeSource(raw string) (string, bool) {
 	default:
 		return "", false
 	}
+}
+
+func normalizeAdminAnimeSourceLinks(values []string, primary *string) ([]string, string) {
+	seen := make(map[string]struct{}, len(values)+1)
+	result := make([]string, 0, len(values)+1)
+
+	appendValue := func(raw string) bool {
+		if strings.TrimSpace(raw) == "" {
+			return true
+		}
+		normalized, ok := normalizeAdminAnimeSource(raw)
+		if !ok {
+			return false
+		}
+		key := strings.ToLower(normalized)
+		if _, exists := seen[key]; exists {
+			return true
+		}
+		seen[key] = struct{}{}
+		result = append(result, normalized)
+		return true
+	}
+
+	if primary != nil && !appendValue(*primary) {
+		return nil, "ungueltiger source parameter"
+	}
+	for _, value := range values {
+		if !appendValue(value) {
+			return nil, "ungueltiger source_links parameter"
+		}
+	}
+
+	return result, ""
 }

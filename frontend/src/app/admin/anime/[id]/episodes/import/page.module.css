@@ -243,7 +243,7 @@
 
 .episodeGroupHeader {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   padding: 10px 14px;
@@ -251,11 +251,17 @@
   border-bottom: 1px solid #e4ddd4;
 }
 
+.episodeGroupHeaderGap {
+  background: #f5efff;
+  border-bottom-color: #dac7fb;
+}
+
 .episodeGroupMeta {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
-  flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .episodeGroupNumber {
@@ -263,12 +269,106 @@
   font-weight: 800;
   color: #8060d7;
   min-width: 32px;
+  padding-top: 2px;
 }
 
-.episodeGroupTitle {
+.episodeGroupNumberGap {
+  color: #6b3fd1;
+}
+
+.episodeTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 100%;
+}
+
+.episodeTitleEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  width: min(100%, 820px);
+}
+
+.episodeTitleLabel {
+  font-size: 11px;
+  font-weight: 800;
+  color: #776e63;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.episodeTitleInput {
+  width: 100%;
+  min-height: 72px;
+  border: 1px solid #d8cec0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #fff;
+  color: #17130f;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  box-sizing: border-box;
+  resize: vertical;
+  overflow-wrap: anywhere;
+}
+
+.episodeTitleInput::placeholder {
+  color: #9b8e82;
+  font-weight: 500;
+}
+
+.episodeTitleInput:focus {
+  outline: none;
+  border-color: #8060d7;
+  box-shadow: 0 0 0 3px rgba(128, 96, 215, 0.14);
+}
+
+.episodeGroupBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.coveredEpisodeList {
+  display: grid;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.coveredEpisodeItem {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  border: 1px solid #e4ddd4;
+  border-radius: 10px;
+  padding: 6px 8px;
+  background: #fff;
+}
+
+.coveredEpisodeEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.coveredEpisodeNumber {
+  color: #6b3fd1;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.coveredEpisodeInput {
+  min-height: 64px;
   font-size: 14px;
   font-weight: 600;
-  color: #17130f;
 }
 
 .episodeGroupLabel {
@@ -324,6 +424,8 @@
 
 .episodeGroupActions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 6px;
   flex-shrink: 0;
 }
@@ -431,6 +533,20 @@
   gap: 4px;
 }
 
+.releaseMetaActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.releaseMeta:first-child .releaseMetaInput {
+  width: clamp(180px, 24vw, 320px);
+}
+
+.releaseMeta:last-child .releaseMetaInput {
+  width: 110px;
+}
+
 .releaseMetaLabel {
   color: #9b8e82;
   font-size: 10px;
@@ -459,6 +575,22 @@
   outline: none;
   border-color: #8060d7;
   background: #fff;
+}
+
+.releaseScopeButton {
+  border: 1px solid #ddd5ca;
+  border-radius: 8px;
+  padding: 4px 8px;
+  background: #fff;
+  color: #5e554b;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.releaseScopeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 /* ---- Status pills ---- */
@@ -628,5 +760,105 @@
 
   .contextField:last-child {
     border-bottom: none;
+  }
+
+  .episodeGroupHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .episodeGroupMeta {
+    width: 100%;
+  }
+
+  .episodeGroupActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 16px;
+  }
+
+  .panel,
+  .hero,
+  .success,
+  .notice,
+  .error {
+    padding: 16px;
+  }
+
+  .episodeGroupHeader,
+  .mappingRow {
+    padding: 10px 12px;
+  }
+
+  .episodeGroupMeta {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .episodeGroupNumber {
+    min-width: 0;
+    padding-top: 0;
+  }
+
+  .episodeTitleEditor {
+    width: 100%;
+  }
+
+  .episodeTitleInput {
+    min-height: 84px;
+    font-size: 16px;
+  }
+
+  .episodeGroupActions,
+  .workbenchActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .microButton,
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+  }
+
+  .mappingRow {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    align-items: stretch;
+  }
+
+  .statusPill,
+  .targetInput,
+  .microButton {
+    justify-self: stretch;
+  }
+
+  .targetInput {
+    width: 100%;
+    text-align: left;
+  }
+
+  .releaseMetaRow {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .releaseMeta {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .releaseMetaActions {
+    grid-column: 2;
+  }
+
+  .releaseMetaInput {
+    width: 100%;
   }
 }

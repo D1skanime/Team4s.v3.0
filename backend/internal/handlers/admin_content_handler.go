@@ -30,6 +30,7 @@ type adminAnimeCreateRequest struct {
 	BackgroundVideoURL  *string                     `json:"background_video_url"`
 	BackgroundImageURLs []string                    `json:"background_image_urls"`
 	Source              *string                     `json:"source"`
+	SourceLinks         []string                    `json:"source_links"`
 	FolderName          *string                     `json:"folder_name"`
 	Relations           []models.AdminAnimeRelation `json:"relations"`
 }

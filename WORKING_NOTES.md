@@ -1,36 +1,28 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Anime Create UX/UI follow-through is closed for the current v1.1 slice.
-- The repo is ready to move from create-page polish back into the next narrow roadmap decision.
+- Phase 20 is verified complete.
+- The active thread has shifted from "prove the seam" to "choose the next narrow follow-up from the verified baseline".
 
 ## Useful Facts To Keep
-- The create asset seam now supports:
-  - `cover`
-  - `banner`
-  - `logo`
-  - additive `background`
-  - additive `background_video`
-- Background videos are staged as an array in the frontend, linked through `POST /api/v1/admin/anime/:id/assets/background_videos`, and resolved at runtime via `BackgroundVideos` with singular fallback.
-- The asset UI is intentionally reference-like:
-  - Cover/Banner/Logo primary cards touch as one row.
-  - Backgrounds live in the right grid with a soft divider.
-  - Background videos live below primary cards in a compact two-column grid.
-  - Source badges sit directly on image previews where useful.
-  - Remove buttons sit on the image preview for backgrounds and video cards.
-- AniSearch no longer renders the development-only details block after a load. Duplicate/conflict and error states still render.
-- `Ordnerpfad` comes from `jellyfinPreview.jellyfin_series_path` and is shown readonly in Basisdaten.
-- Basisdaten now includes the formerly separate title/year fields in one card.
-- Provider source labels are normalized from staged provider keys where possible: TMDB, Zerochan, Fanart.tv, AniList, Konachan, Safebooru, Manuell, Online.
-- The backend still preserves compatibility with old singular `BackgroundVideo`, but new multi-video behavior should prefer `BackgroundVideos`.
-- Canonical repo is `C:\Users\admin\Documents\Team4s`; ignore the old `Team4sV2` recovery workspace.
+- Frontend mapping logic now allows parallel releases for the same canonical episode.
+- Anime create now persists both providers cleanly:
+  - `anime.source` stays the authoritative Jellyfin runtime link when explicitly selected
+  - `anime_source_links` stores both Jellyfin and AniSearch tags
+- Phase 20 live replay used `3x3 Eyes` (`anime_id=6`) and proved:
+  - canonical episodes in `episodes`
+  - multilingual titles in `episode_titles`
+  - release-native versions/variants/coverage rows
+  - Jellyfin stream linkage in `release_streams` + `stream_sources`
+- The post-apply workbench still looks actionable after an idempotent success. That is real UX follow-up territory, not a persistence failure.
+- The current Phase-20 closure evidence lives in `.planning/phases/20-release-native-episode-import-schema/20-UAT.md`.
 
 ## Verification Memory
-- Frontend create card/page tests passed after hiding AniSearch diagnostics and after the final spacing/video-grid polish.
-- Frontend production build passed after final CSS changes.
-- Backend repository/handler/service tests passed during the multi-video persistence pass.
-- Docker rebuild succeeded and the local create page responded with `200`.
+- `cd backend && go test ./internal/handlers ./internal/repository -count=1` passed on 2026-04-23.
+- `cd frontend && npm.cmd test -- src/app/admin/anime/create/useAdminAnimeCreateController.test.ts` passed on 2026-04-23.
+- `cd frontend && npm.cmd run build` passed on 2026-04-23.
+- Docker backend/frontend are currently up and both main routes returned `200`.
 
 ## Mental Unload
-- The biggest risk tomorrow is not code, it is over-polishing. If the user likes the final create page, pick the next slice instead of continuing to chase pixels.
-- If another asset issue appears, first check whether it is a CSS/layout issue or a persistence/provenance issue; avoid mixing both in one change unless necessary.
+- We crossed the annoying line today: this is no longer "probably done", it is actually verified.
+- Tomorrow should not reopen Phase 20 by inertia. Start from the follow-up choice, not from replay anxiety.

@@ -171,10 +171,23 @@ export function appendCreateSourceLinkageToPayload(
 ): AdminAnimeCreateRequest {
   const aniSearchDraft = params.aniSearchDraftResult?.draft;
   const jellyfinFolderName = normalizeOptionalString(params.jellyfinPreview?.jellyfin_series_path ?? "");
+  if (params.jellyfinPreview) {
+    const jellyfinSource = `jellyfin:${params.jellyfinPreview.jellyfin_series_id.trim()}`;
+    return {
+      ...payload,
+      source: jellyfinSource,
+      source_links: dedupeSourceTags([jellyfinSource, aniSearchDraft?.source]),
+      folder_name:
+        normalizeOptionalString(aniSearchDraft?.folder_name ?? "") ?? jellyfinFolderName,
+      relations: aniSearchDraft?.relations ? [...aniSearchDraft.relations] : undefined,
+    };
+  }
+
   if (aniSearchDraft?.source?.trim()) {
     return {
       ...payload,
       source: aniSearchDraft.source.trim(),
+      source_links: dedupeSourceTags([aniSearchDraft.source]),
       folder_name: normalizeOptionalString(aniSearchDraft.folder_name ?? "") ?? jellyfinFolderName,
       relations: aniSearchDraft.relations ? [...aniSearchDraft.relations] : undefined,
     };
@@ -208,6 +221,20 @@ export function buildCreateAniSearchDraftSummary(
 function normalizeOptionalString(value: string): string | undefined {
   const trimmed = value.trim()
   return trimmed ? trimmed : undefined
+}
+
+function dedupeSourceTags(values: Array<string | undefined>): string[] | undefined {
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const value of values) {
+    const trimmed = value?.trim()
+    if (!trimmed) continue
+    const key = trimmed.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    result.push(trimmed)
+  }
+  return result.length > 0 ? result : undefined
 }
 
 function parseOptionalPositiveInt(value: string): number | undefined {

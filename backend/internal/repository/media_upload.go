@@ -213,7 +213,7 @@ func (r *MediaUploadRepository) createMediaAssetV2(ctx context.Context, asset *m
 	var mediaID int64
 	if err := r.getConn().QueryRow(ctx, `
 		INSERT INTO media_assets (media_type_id, file_path, mime_type, format, uploaded_by, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		VALUES ($1, $2, $3, $4, (SELECT id FROM users WHERE id = $5), $6)
 		RETURNING id
 	`, mediaTypeID, filePath, asset.MimeType, asset.Format, asset.UploadedBy, asset.CreatedAt).Scan(&mediaID); err != nil {
 		return fmt.Errorf("create media asset: %w", err)

@@ -174,9 +174,9 @@ func upsertImportEpisode(
 				number, number_decimal, number_text, sort_index,
 				filler_type_id, filler_source, filler_note, modified_at
 			)
-			VALUES ($1, $2, $3, 'disabled', $4, $5, $5, $2, $5, $6, $7, $8, NOW())
+			VALUES ($1, $2, $3, 'disabled', $4, $5, $6, $2, $7, $8, $9, $10, NOW())
 			RETURNING id
-		`, animeID, episodeNumber, displayTitle, episodeTypeID, canonical.EpisodeNumber, fillerTypeID, canonical.FillerSource, canonical.FillerNote).Scan(&createdID); err != nil {
+		`, animeID, episodeNumber, displayTitle, episodeTypeID, canonical.EpisodeNumber, float64(canonical.EpisodeNumber), canonical.EpisodeNumber, fillerTypeID, canonical.FillerSource, canonical.FillerNote).Scan(&createdID); err != nil {
 			return 0, false, fmt.Errorf("create canonical episode anime=%d number=%s: %w", animeID, episodeNumber, err)
 		}
 		return createdID, true, nil

@@ -258,6 +258,9 @@ func (r *AdminContentRepository) CreateAnime(
 	} else {
 		item, err = r.createAnimeLegacy(ctx, tx, input)
 		if err == nil {
+			err = syncAnimeSourceLinks(ctx, tx, item.ID, input.Source, input.SourceLinks)
+		}
+		if err == nil {
 			err = syncAuthoritativeAnimeMetadata(ctx, tx, item.ID, buildAuthoritativeAnimeMetadataCreate(input))
 		}
 		if err == nil {

@@ -60,6 +60,11 @@ func (r *AdminContentRepository) DeleteAnime(
 	if deleteTag.RowsAffected() == 0 {
 		return nil, ErrNotFound
 	}
+	if useV2Schema {
+		if err := cleanupAfterAnimeDeleteV2(ctx, tx, id); err != nil {
+			return nil, err
+		}
+	}
 
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("commit delete anime tx %d: %w", id, err)
@@ -102,14 +107,14 @@ func loadAnimeDeleteResultV2(ctx context.Context, tx pgx.Tx, id int64) (*models.
 	query := fmt.Sprintf(
 		`
 		SELECT
-			a.id,
+			anime.id,
 			COALESCE(
 				(
 					SELECT at.title
 					FROM anime_titles at
 					JOIN languages l ON l.id = at.language_id
 					JOIN title_types tt ON tt.id = at.title_type_id
-					WHERE at.anime_id = a.id
+					WHERE at.anime_id = anime.id
 					ORDER BY
 						CASE l.code
 							WHEN 'ja' THEN 0
@@ -136,13 +141,13 @@ func loadAnimeDeleteResultV2(ctx context.Context, tx pgx.Tx, id int64) (*models.
 				FROM anime_media am
 				JOIN media_assets ma ON ma.id = am.media_id
 				JOIN media_types mt ON mt.id = ma.media_type_id
-				WHERE am.anime_id = a.id
+				WHERE am.anime_id = anime.id
 				  AND mt.name = 'poster'
 				ORDER BY am.sort_order ASC, ma.id ASC
 				LIMIT 1
 			) AS cover_file_path
-		FROM anime a
-		WHERE a.id = $1
+		FROM anime
+		WHERE anime.id = $1
 		FOR UPDATE
 		`,
 		v2AnimeTitleFallbackSQL(schema),
@@ -281,6 +286,23 @@ func deleteAnimeOwnedMediaByPathPrefixV2(ctx context.Context, tx pgx.Tx, animeID
 		if _, err := tx.Exec(ctx, `DELETE FROM media_assets WHERE id = $1`, mediaID); err != nil {
 			return fmt.Errorf("delete anime-owned media asset by path prefix %d/%d: %w", animeID, mediaID, err)
 		}
+	}
+
+	return nil
+}
+
+func cleanupAfterAnimeDeleteV2(ctx context.Context, tx pgx.Tx, animeID int64) error {
+	if err := deleteAnimeOwnedMediaByPathPrefixV2(ctx, tx, animeID); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `
+		DELETE FROM stream_sources ss
+		WHERE NOT EXISTS (
+			SELECT 1 FROM release_streams rs
+			WHERE rs.stream_source_id = ss.id
+		)
+	`); err != nil {
+		return fmt.Errorf("delete orphaned stream sources after anime delete %d: %w", animeID, err)
 	}
 
 	return nil

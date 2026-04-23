@@ -40,14 +40,15 @@ func (r *AdminContentRepository) findExistingAnimeByJellyfinIntakeRefsLegacy(
 	paths []string,
 ) ([]ExistingJellyfinAnimeMatch, error) {
 	query := `
-		SELECT id, title, source, folder_name
+		SELECT DISTINCT anime.id, anime.title, anime.source, anime.folder_name
 		FROM anime
+		LEFT JOIN anime_source_links asl ON asl.anime_id = anime.id
 		WHERE (
 			cardinality($1::text[]) > 0
-			AND source = ANY($1::text[])
+			AND (anime.source = ANY($1::text[]) OR asl.source = ANY($1::text[]))
 		) OR (
 			cardinality($2::text[]) > 0
-			AND folder_name = ANY($2::text[])
+			AND anime.folder_name = ANY($2::text[])
 		)
 	`
 
@@ -80,7 +81,7 @@ func (r *AdminContentRepository) findExistingAnimeByJellyfinIntakeRefsV2(
 ) ([]ExistingJellyfinAnimeMatch, error) {
 	displayTitleExpr := primaryNormalizedTitleSQL("anime.id", "anime.slug")
 	sourceSelect := "anime.source"
-	sourceMatchClause := "anime.source = ANY($1::text[])"
+	sourceMatchClause := "(anime.source = ANY($1::text[]) OR EXISTS (SELECT 1 FROM anime_source_links asl WHERE asl.anime_id = anime.id AND asl.source = ANY($1::text[])))"
 	if !schema.HasSource {
 		sourceSelect = `(
 			SELECT 'jellyfin:' || me.external_id

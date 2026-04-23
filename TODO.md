@@ -9,8 +9,8 @@
 - [x] Show Jellyfin `Ordnerpfad` in Basisdaten
 
 ## Next Up
-- [ ] Run one short human smoke on the pushed `/admin/anime/create` page
-- [ ] Choose the next narrow v1.1 slice
+- [ ] Choose the next narrow v1.1 slice from the verified Phase 20 baseline
+- [ ] Tighten the post-apply episode-import UX so successful idempotent runs feel finished
 - [ ] Keep Docker/local verification commands current in `STATUS.md`
 
 ## Parking Lot

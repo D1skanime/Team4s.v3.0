@@ -78,6 +78,7 @@ import {
   splitGenreTokens,
   splitTagTokens,
 } from "../utils/anime-helpers";
+import { resolveJellyfinIntakeAssetUrl } from "../utils/jellyfin-intake-assets";
 
 const DEFAULT_GENRE_LIMIT = 40;
 const DEFAULT_TAG_LIMIT = 40;
@@ -98,6 +99,42 @@ function countIncomingDraftAssets(
   if (assetSlots.background_video.present) total += 1;
   total += assetSlots.backgrounds.length;
   return total;
+}
+
+export function resolveCreateCoverState(params: {
+  coverImage: string;
+  stagedCover: CreateAssetUploadDraftValue | null;
+  jellyfinAssetSlots: AdminJellyfinIntakeAssetSlots | null;
+}): {
+  hasCover: boolean;
+  payloadCoverImage: string;
+} {
+  if (params.stagedCover) {
+    return {
+      hasCover: true,
+      payloadCoverImage: "",
+    };
+  }
+
+  const manualCoverImage = normalizeOptionalString(params.coverImage) ?? "";
+  if (manualCoverImage) {
+    return {
+      hasCover: true,
+      payloadCoverImage: manualCoverImage,
+    };
+  }
+
+  const jellyfinCoverImage =
+    params.jellyfinAssetSlots?.cover.present && params.jellyfinAssetSlots.cover.url
+      ? normalizeOptionalString(
+          resolveJellyfinIntakeAssetUrl(params.jellyfinAssetSlots.cover.url) ?? "",
+        ) ?? ""
+      : "";
+
+  return {
+    hasCover: Boolean(jellyfinCoverImage),
+    payloadCoverImage: jellyfinCoverImage,
+  };
 }
 
 export function resolveAniSearchCandidateSearchFeedback(
@@ -346,7 +383,13 @@ export function useAdminAnimeCreateController() {
     () =>
       resolveManualCreateState({
         title: createTitle,
-        cover_image: createCoverImage,
+        cover_image: resolveCreateCoverState({
+          coverImage: createCoverImage,
+          stagedCover,
+          jellyfinAssetSlots,
+        }).hasCover
+          ? "present"
+          : "",
         year: createYear,
         max_episodes: createMaxEpisodes,
         title_de: createTitleDE,
@@ -363,15 +406,27 @@ export function useAdminAnimeCreateController() {
       createTitleDE,
       createTitleEN,
       createYear,
+      jellyfinAssetSlots,
+      stagedCover,
     ],
+  );
+
+  const coverState = useMemo(
+    () =>
+      resolveCreateCoverState({
+        coverImage: createCoverImage,
+        stagedCover,
+        jellyfinAssetSlots,
+      }),
+    [createCoverImage, jellyfinAssetSlots, stagedCover],
   );
 
   const missingFields = useMemo(() => {
     const fields: string[] = [];
     if (!createTitle.trim()) fields.push("Titel");
-    if (!createCoverImage.trim()) fields.push("Cover");
+    if (!coverState.hasCover) fields.push("Cover");
     return fields;
-  }, [createCoverImage, createTitle]);
+  }, [coverState.hasCover, createTitle]);
 
   const createGenreValue = useMemo(
     () => createGenreTokens.join(", "),
@@ -652,9 +707,8 @@ export function useAdminAnimeCreateController() {
       status: createStatus,
     };
 
-    const trimmedCoverImage = createCoverImage.trim();
-    if (!stagedCover?.file && trimmedCoverImage) {
-      payload.cover_image = trimmedCoverImage;
+    if (!stagedCover?.file && coverState.payloadCoverImage) {
+      payload.cover_image = coverState.payloadCoverImage;
     }
 
     if (jellyfinAssetSlots?.banner?.present && jellyfinAssetSlots.banner.url && !stagedAssets.banner) {
@@ -1279,6 +1333,7 @@ export function useAdminAnimeCreateController() {
       showResults: showJellyfinResults,
     },
     manualDraft: {
+      hasCover: coverState.hasCover,
       missingFields: showValidationSummary ? missingFields : [],
       readinessLabel,
       sourceActionState,
