@@ -2,7 +2,7 @@
 
 ## Milestones
 
-> Current planning note: Phase 19 made the import workbench practical enough for UAT; Phase 20 is the next slice to move persistence onto the normalized release schema.
+> Current planning note: Phase 20 is verified complete with live Docker UAT; Phase 21 is the next slice to harden fansub-group selection and collaboration persistence on top of that release-native import baseline.
 
 - [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
 - [x] **v1.1 Asset Lifecycle Hardening** - Phases 6 through 16 are complete or verified, and Phase 17 is the current next slice for the `/admin/anime/create` UX/UI follow-through. (completed 2026-04-17)
@@ -29,7 +29,8 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 18: Episode Import And Mapping Builder** - Add AniSearch canonical episode import, Jellyfin media scanning, and manual mapping/apply baseline.
 - [x] **Phase 19: Episode Import Operator Workbench** - Make the import workbench readable and practical for real parallel releases and bulk confirmation.
 - [x] **Phase 20.1: DB Schema v2 Physical Cutover** - Build the documented DB Schema v2 as real tables and remove legacy episode-version tables before more episode features.
-- [ ] **Phase 20: Release-Native Episode Import Schema** - Move episode import persistence onto the normalized release graph with filler, multilingual titles, and multi-episode file coverage.
+- [x] **Phase 20: Release-Native Episode Import Schema** - Move episode import persistence onto the normalized release graph with filler, multilingual titles, and multi-episode file coverage. (verified complete 2026-04-23)
+- [ ] **Phase 21: Fansub Group Chips And Collaboration Wiring** - Let operators select existing or new fansub groups as chips during import/manual version work, and build deterministic collaborations plus anime-group linkage behind that UI.
 
 ## Phase Details
 
@@ -267,13 +268,13 @@ Plans:
 **Goal:** Align episode import persistence with the normalized episode/release schema so real libraries store canonical episodes, multilingual titles, filler metadata, releases, versions, variants, streams, and multi-episode file coverage without relying on legacy `episode_versions` as the only source of truth.
 **Requirements**: P20-SC1, P20-SC2, P20-SC3, P20-SC4, P20-SC5
 **Depends on:** Phase 20.1
-**Status**: In progress; plans 01-02 complete with release-native schema verification and backend apply writes
-**Plans:** 2/4 plans executed
+**Status**: Verified complete on 2026-04-23 with live Docker replay and normalized-table SQL evidence
+**Plans:** 4/4 plans executed
 Plans:
 - [x] `20-01-PLAN.md` - Add the controlled local reset and missing schema pieces, including filler fields and normalized release coverage for multi-episode files.
 - [x] `20-02-PLAN.md` - Move backend episode import apply to the normalized release graph and persist multilingual titles plus filler metadata.
-- [ ] `20-03-PLAN.md` - Expose release-native mapping fields, filler status, and multi-target correction in the operator workbench.
-- [ ] `20-04-PLAN.md` - Verify on a clean local Naruto import with filler, multiple releases, and combined episode coverage, then Docker-deploy.
+- [x] `20-03-PLAN.md` - Expose release-native mapping fields, filler status, and multi-target correction in the operator workbench.
+- [x] `20-04-PLAN.md` - Verify on a clean local Naruto import with filler, multiple releases, and combined episode coverage, then Docker-deploy.
 **Success Criteria** (what must be TRUE):
   1. Local dev anime/episode/import state can be reset reproducibly before verification so old rows do not hide schema bugs.
   2. `docs/architecture/db-schema-v2.md` is treated as the canonical schema source and is updated for filler metadata plus multi-episode release coverage before migrations are written.
@@ -282,9 +283,22 @@ Plans:
   5. Episode import apply writes the normalized release graph as the authoritative model while keeping legacy compatibility deliberate and documented.
   6. Naruto-style verification proves canonical AniSearch numbering, filler persistence, multiple releases per episode, and season-to-canonical mapping correction.
 
+### Phase 21: Fansub Group Chips And Collaboration Wiring
+**Goal:** Replace flat fansub-group text entry in episode import and manual version editing with reusable group chips, while keeping backend authority over new-group creation, deterministic collaboration building, and anime-level group linkage.
+**Requirements**: P21-SC1, P21-SC2, P21-SC3, P21-SC4, P21-SC5
+**Depends on:** Phase 20
+**Status**: Planned on 2026-04-23 from Phase-20 follow-up discussion and live `11eyes` collaboration verification
+**Plans:** 1/3 plans executed
+**Success Criteria** (what must be TRUE):
+  1. Episode-import mapping rows can reuse existing fansub groups through chip-style search/select instead of relying only on a flat text field.
+  2. Operators can still type a new group name in the same flow, and apply persists that new group without leaving the workbench.
+  3. Selecting more than one group in import or manual version editing creates or reuses one deterministic collaboration group in the backend, rather than requiring an explicit collaboration chip in the UI.
+  4. Episode-level patch actions such as `Episode` and `Ab hier` copy the selected group chips as a set, not just one text string.
+  5. Persisted release-version group links and `anime_fansub_groups` stay consistent with the effective group/collaboration chosen by the operator.
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 17 | 41+ | Phases 6-19 shipped through UAT; Phase 20.1 completed and Phase 20 import persistence is next | - |
+| v1.1 Asset Lifecycle Hardening | 18 | 41+ | Phases 6-20 verified complete; Phase 21 fansub-group collaboration follow-through is next | - |

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Executing
-stopped_at: Phase 20 verified complete; live Docker UAT and normalized-table evidence captured on 2026-04-23
-last_updated: "2026-04-23T20:30:00.000Z"
+status: Ready to execute
+stopped_at: Completed 21-01-PLAN.md
+last_updated: "2026-04-23T08:32:02.549Z"
 last_activity: 2026-04-23
 progress:
-  total_phases: 16
-  completed_phases: 13
-  total_plans: 57
-  completed_plans: 54
+  total_phases: 17
+  completed_phases: 14
+  total_plans: 60
+  completed_plans: 56
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Post-Phase-20 follow-up selection from the verified release-native import baseline
+**Current focus:** Phase 21 — fansub-group-chip-mapping-and-collaboration-wiring
 
 ## Current Position
 
-Phase: 20 (release-native-episode-import-schema) - VERIFIED COMPLETE
-Plan: 4 of 4 complete
+Phase: 21 (fansub-group-chip-mapping-and-collaboration-wiring) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -104,6 +104,9 @@ Recent durable decisions:
 - [Phase Phase 20-release-native-episode-import-schema]: Display helpers (fillerLabel, resolveEpisodeDisplayTitle) are extracted to episodeImportMapping.ts rather than living as local page functions so they can be unit-tested.
 - [Phase Phase 20-release-native-episode-import-schema]: Release metadata overrides (fansub_group_name, release_version) are stored directly on EpisodeImportMappingRow and survive setMappingTargets and markMappingSkipped operations.
 - [2026-04-22]: Anime create now keeps an explicitly selected Jellyfin series as authoritative `source=jellyfin:<id>` on save and additionally persists all provider tags in `anime_source_links`, so AniSearch and Jellyfin are both retained durably for later duplicate checks, relation lookups, and import context.
+- [Phase 21]: Plan 21-01 prefers explicit fansub_groups lists while keeping singular group fields as rollout compatibility fallbacks.
+- [Phase 21]: Plan 21-01 canonicalizes selected member groups in the backend before collaboration lookup so chip order cannot create divergent collaboration identities.
+- [Phase 21]: Plan 21-01 mirrors persisted release-version group truth into anime_fansub_groups with idempotent inserts for the effective collaboration and each member group.
 
 ### Pending Todos
 
@@ -168,6 +171,7 @@ Recent durable decisions:
 | Phase 20-release-native-episode-import-schema P01 | 4min | 3 tasks | 5 files |
 | Phase 20-release-native-episode-import-schema P02 | 8min 38sec | 3 tasks | 8 files |
 | Phase 20-release-native-episode-import-schema P03 | 6min 32sec | 3 tasks | 6 files |
+| Phase 21 P01 | 32min | 3 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -179,7 +183,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-23T20:30:00.000Z
-Stopped at: Phase 20 verified complete with live Docker UAT and SQL evidence
+Last session: 2026-04-23T08:32:02.543Z
+Stopped at: Completed 21-01-PLAN.md
 Last activity: 2026-04-23
 Resume file: None
