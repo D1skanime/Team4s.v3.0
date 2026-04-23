@@ -207,6 +207,14 @@ func upsertReleaseVersionGroup(
 	`, releaseVersionID, selection.EffectiveGroup.ID); err != nil {
 		return fmt.Errorf("upsert release version group version=%d group=%d: %w", releaseVersionID, selection.EffectiveGroup.ID, err)
 	}
+
+	animeID, err := lookupAnimeIDByReleaseVersion(ctx, tx, releaseVersionID)
+	if err != nil {
+		return err
+	}
+	if err := ensureAnimeFansubGroupLinks(ctx, tx, animeID, *selection); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -378,6 +386,38 @@ func lookupImportFansubGroupByID(ctx context.Context, tx pgx.Tx, groupID int64) 
 	return &group, nil
 }
 
+func lookupAnimeIDByReleaseVersion(ctx context.Context, tx pgx.Tx, releaseVersionID int64) (int64, error) {
+	var animeID int64
+	if err := tx.QueryRow(ctx, `
+		SELECT e.anime_id
+		FROM release_versions rev
+		JOIN fansub_releases fr ON fr.id = rev.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		WHERE rev.id = $1
+	`, releaseVersionID).Scan(&animeID); err != nil {
+		return 0, fmt.Errorf("lookup anime for release version %d: %w", releaseVersionID, err)
+	}
+	return animeID, nil
+}
+
+func ensureAnimeFansubGroupLinks(
+	ctx context.Context,
+	tx pgx.Tx,
+	animeID int64,
+	selection resolvedImportFansubSelection,
+) error {
+	for _, groupID := range buildAnimeFansubLinkGroupIDs(selection) {
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO anime_fansub_groups (anime_id, fansub_group_id, is_primary, notes)
+			VALUES ($1, $2, false, NULL)
+			ON CONFLICT (anime_id, fansub_group_id) DO NOTHING
+		`, animeID, groupID); err != nil {
+			return fmt.Errorf("ensure anime fansub group link anime=%d group=%d: %w", animeID, groupID, err)
+		}
+	}
+	return nil
+}
+
 func parseImportFansubGroupNames(raw string) []string {
 	normalized := strings.TrimSpace(raw)
 	if normalized == "" {
@@ -461,6 +501,32 @@ func buildImportCollaborationName(groups []resolvedImportFansubGroup) string {
 		parts = append(parts, label)
 	}
 	return strings.Join(parts, " & ")
+}
+
+func buildAnimeFansubLinkGroupIDs(selection resolvedImportFansubSelection) []int64 {
+	seen := make(map[int64]struct{}, len(selection.MemberGroups)+1)
+	result := make([]int64, 0, len(selection.MemberGroups)+1)
+	appendGroupID := func(groupID int64) {
+		if groupID <= 0 {
+			return
+		}
+		if _, exists := seen[groupID]; exists {
+			return
+		}
+		seen[groupID] = struct{}{}
+		result = append(result, groupID)
+	}
+
+	if selection.EffectiveGroup != nil {
+		appendGroupID(selection.EffectiveGroup.ID)
+	}
+	for _, group := range selection.MemberGroups {
+		appendGroupID(group.ID)
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i] < result[j]
+	})
+	return result
 }
 
 func episodeImportFilename(media models.EpisodeImportMediaCandidate) string {

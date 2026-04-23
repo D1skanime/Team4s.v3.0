@@ -180,6 +180,50 @@ func TestEpisodeImportReleaseHelpers_SourceCreatesMembersBeforeCollaborationLink
 	}
 }
 
+func TestBuildAnimeFansubLinkGroupIDs_IsIdempotentAcrossRepeatedApply(t *testing.T) {
+	t.Parallel()
+
+	selection := resolvedImportFansubSelection{
+		EffectiveGroup: &resolvedImportFansubGroup{ID: 10, Name: "FlameHazeSubs & TestGruppe"},
+		MemberGroups: []resolvedImportFansubGroup{
+			{ID: 3, Name: "FlameHazeSubs"},
+			{ID: 4, Name: "TestGruppe"},
+			{ID: 3, Name: "FlameHazeSubs"},
+		},
+	}
+
+	seen := make(map[int64]struct{})
+	for attempt := 0; attempt < 2; attempt++ {
+		for _, groupID := range buildAnimeFansubLinkGroupIDs(selection) {
+			seen[groupID] = struct{}{}
+		}
+	}
+
+	if len(seen) != 3 {
+		t.Fatalf("expected effective group plus two members without duplicates, got %v", seen)
+	}
+}
+
+func TestEpisodeImportReleaseHelpers_SourceLinksAnimeFansubsAfterReleaseVersionGroupWrite(t *testing.T) {
+	t.Parallel()
+
+	content, err := os.ReadFile("episode_import_repository_release_helpers.go")
+	if err != nil {
+		t.Fatalf("read release helper source: %v", err)
+	}
+	source := string(content)
+
+	releaseGroupWrite := strings.Index(source, "INSERT INTO release_version_groups")
+	animeFollowThrough := strings.Index(source, "ensureAnimeFansubGroupLinks")
+	animeLinkInsert := strings.Index(source, "INSERT INTO anime_fansub_groups")
+	if releaseGroupWrite < 0 || animeFollowThrough < 0 || animeLinkInsert < 0 {
+		t.Fatalf("expected release version group writes to include anime_fansub_groups follow-through")
+	}
+	if animeFollowThrough < releaseGroupWrite {
+		t.Fatalf("expected anime fansub follow-through to happen after release group persistence is wired")
+	}
+}
+
 func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
 	t.Parallel()
 
