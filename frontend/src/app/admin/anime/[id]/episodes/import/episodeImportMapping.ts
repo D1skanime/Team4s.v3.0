@@ -1,6 +1,7 @@
 import type {
   EpisodeImportCanonicalEpisode,
   EpisodeImportMappingRow,
+  EpisodeImportSelectedFansubGroup,
   EpisodeImportPreviewResult,
   EpisodeImportPreviewSummary,
 } from '../../../../../../types/episodeImport'
@@ -139,15 +140,54 @@ export function setMappingReleaseMeta(
   )
 }
 
+export function setMappingFansubGroups(
+  rows: EpisodeImportMappingRow[],
+  mediaItemID: string,
+  fansubGroups: EpisodeImportSelectedFansubGroup[],
+): EpisodeImportMappingRow[] {
+  return rows.map((row) =>
+    row.media_item_id === mediaItemID
+      ? applyFansubGroupsToRow(row, fansubGroups)
+      : row,
+  )
+}
+
+export function addMappingFansubGroup(
+  rows: EpisodeImportMappingRow[],
+  mediaItemID: string,
+  fansubGroup: EpisodeImportSelectedFansubGroup,
+): EpisodeImportMappingRow[] {
+  return rows.map((row) =>
+    row.media_item_id === mediaItemID
+      ? applyFansubGroupsToRow(row, [...(row.fansub_groups ?? []), fansubGroup])
+      : row,
+  )
+}
+
+export function removeMappingFansubGroup(
+  rows: EpisodeImportMappingRow[],
+  mediaItemID: string,
+  fansubGroup: EpisodeImportSelectedFansubGroup,
+): EpisodeImportMappingRow[] {
+  const targetKey = getFansubGroupKey(fansubGroup)
+  return rows.map((row) => {
+    if (row.media_item_id !== mediaItemID) {
+      return row
+    }
+    const nextGroups = (row.fansub_groups ?? []).filter((group) => getFansubGroupKey(group) !== targetKey)
+    return applyFansubGroupsToRow(row, nextGroups)
+  })
+}
+
 export function applyFansubGroupToEpisodeRows(
   rows: EpisodeImportMappingRow[],
   episodeNumber: number,
-  fansubGroupName: string,
+  fansubGroups: EpisodeImportSelectedFansubGroup[],
 ): EpisodeImportMappingRow[] {
-  const normalized = normalizeOptionalText(fansubGroupName)
+  const normalized = normalizeFansubGroups(fansubGroups)
   return rows.map((row) =>
     (row.suggested_episode_numbers ?? []).includes(episodeNumber)
-      ? { ...row, fansub_group_name: normalized }
+      ? applyFansubGroupsToRow(row, normalized)
       : row,
   )
 }
@@ -155,15 +195,50 @@ export function applyFansubGroupToEpisodeRows(
 export function applyFansubGroupFromEpisodeDown(
   rows: EpisodeImportMappingRow[],
   episodeNumber: number,
-  fansubGroupName: string,
+  fansubGroups: EpisodeImportSelectedFansubGroup[],
 ): EpisodeImportMappingRow[] {
-  const normalized = normalizeOptionalText(fansubGroupName)
+  const normalized = normalizeFansubGroups(fansubGroups)
   return rows.map((row) => {
     const suggestedEpisode = row.suggested_episode_numbers?.[0]
     return suggestedEpisode != null && suggestedEpisode >= episodeNumber
-      ? { ...row, fansub_group_name: normalized }
+      ? applyFansubGroupsToRow(row, normalized)
       : row
   })
+}
+
+export function normalizeFansubGroups(
+  fansubGroups: EpisodeImportSelectedFansubGroup[] | null | undefined,
+): EpisodeImportSelectedFansubGroup[] {
+  const normalized: EpisodeImportSelectedFansubGroup[] = []
+  const seen = new Set<string>()
+
+  for (const group of fansubGroups ?? []) {
+    const normalizedGroup = normalizeFansubGroup(group)
+    if (!normalizedGroup) {
+      continue
+    }
+    const key = getFansubGroupKey(normalizedGroup)
+    if (seen.has(key)) {
+      continue
+    }
+    seen.add(key)
+    normalized.push(normalizedGroup)
+  }
+
+  return normalized
+}
+
+export function serializeEpisodeImportMappingRow(row: EpisodeImportMappingRow): EpisodeImportMappingRow {
+  const fansubGroups = normalizeFansubGroups(row.fansub_groups)
+  const firstGroup = fansubGroups[0]
+  const hasSingleGroup = fansubGroups.length === 1
+
+  return {
+    ...row,
+    fansub_groups: fansubGroups,
+    fansub_group_id: hasSingleGroup ? firstGroup?.id ?? null : null,
+    fansub_group_name: hasSingleGroup ? firstGroup?.name ?? row.fansub_group_name ?? null : null,
+  }
 }
 
 export function summarizeImportPreview(
@@ -215,4 +290,43 @@ export function fillerLabel(fillerType: string | null | undefined): string | nul
 function normalizeOptionalText(value: string): string | null {
   const trimmed = value.trim()
   return trimmed.length > 0 ? trimmed : null
+}
+
+function applyFansubGroupsToRow(
+  row: EpisodeImportMappingRow,
+  fansubGroups: EpisodeImportSelectedFansubGroup[],
+): EpisodeImportMappingRow {
+  return serializeEpisodeImportMappingRow({
+    ...row,
+    fansub_groups: fansubGroups,
+  })
+}
+
+function normalizeFansubGroup(
+  fansubGroup: EpisodeImportSelectedFansubGroup | null | undefined,
+): EpisodeImportSelectedFansubGroup | null {
+  if (!fansubGroup) {
+    return null
+  }
+
+  const id = typeof fansubGroup.id === 'number' && Number.isFinite(fansubGroup.id) ? fansubGroup.id : null
+  const slug = normalizeOptionalText(fansubGroup.slug ?? '')
+  const name = normalizeOptionalText(fansubGroup.name ?? '')
+
+  if (id == null && !name) {
+    return null
+  }
+
+  return {
+    slug,
+    name: name ?? slug ?? null,
+    ...(id != null ? { id } : {}),
+  }
+}
+
+function getFansubGroupKey(fansubGroup: EpisodeImportSelectedFansubGroup): string {
+  if (typeof fansubGroup.id === 'number' && Number.isFinite(fansubGroup.id)) {
+    return `id:${fansubGroup.id}`
+  }
+  return `name:${(fansubGroup.name ?? fansubGroup.slug ?? '').trim().toLowerCase()}`
 }

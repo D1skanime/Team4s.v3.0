@@ -24,11 +24,13 @@ export interface EpisodeImportMediaCandidate {
   video_quality?: string | null
 }
 
-export interface SelectedFansubGroupInput {
+export interface EpisodeImportSelectedFansubGroup {
   id?: number | null
   name?: string | null
   slug?: string | null
 }
+
+export type SelectedFansubGroupInput = EpisodeImportSelectedFansubGroup
 
 export interface EpisodeImportMappingRow {
   media_item_id: string
@@ -39,7 +41,7 @@ export interface EpisodeImportMappingRow {
   target_episode_numbers: number[]
   suggested_episode_numbers: number[]
   status: EpisodeImportMappingStatus
-  fansub_groups?: SelectedFansubGroupInput[]
+  fansub_groups?: EpisodeImportSelectedFansubGroup[]
   /** Optional operator override: ID of the fansub group responsible for this release. */
   fansub_group_id?: number | null
   /** Backend-detected or operator-supplied fansub group name for display and lookup. */

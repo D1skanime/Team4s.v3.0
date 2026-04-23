@@ -14,9 +14,11 @@ import type {
   EpisodeImportContextResult,
   EpisodeImportMappingRow,
   EpisodeImportPreviewResult,
+  EpisodeImportSelectedFansubGroup,
 } from '@/types/episodeImport'
 
 import {
+  addMappingFansubGroup,
   applyFansubGroupFromEpisodeDown,
   applyFansubGroupToEpisodeRows,
   confirmEpisodeMappingRows,
@@ -25,7 +27,9 @@ import {
   markAllSuggestedSkipped,
   markMappingSkipped,
   resolveEpisodeDisplayTitle,
+  removeMappingFansubGroup,
   setMappingReleaseMeta,
+  setMappingFansubGroups,
   setMappingTargets,
   skipEpisodeMappingRows,
   summarizeImportPreview,
@@ -69,8 +73,11 @@ interface UseEpisodeImportBuilderState {
   setSeasonOffset: (value: string) => void
   setTargets: (mediaItemID: string, rawTargets: string) => void
   setReleaseMeta: (mediaItemID: string, meta: { fansubGroupName?: string; releaseVersion?: string }) => void
-  applyFansubGroupToEpisode: (episodeNumber: number, fansubGroupName: string) => void
-  applyFansubGroupFromEpisode: (episodeNumber: number, fansubGroupName: string) => void
+  setSelectedFansubGroups: (mediaItemID: string, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
+  addSelectedFansubGroup: (mediaItemID: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
+  removeSelectedFansubGroup: (mediaItemID: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
+  applyFansubGroupToEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
+  applyFansubGroupFromEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   setEpisodeTitle: (episodeNumber: number, title: string) => void
   skipMapping: (mediaItemID: string) => void
   skipAllSuggested: () => void
@@ -262,10 +269,16 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
       setMappings((current) => setMappingTargets(current, mediaItemID, rawTargets)),
     setReleaseMeta: (mediaItemID, meta) =>
       setMappings((current) => setMappingReleaseMeta(current, mediaItemID, meta)),
-    applyFansubGroupToEpisode: (episodeNumber, fansubGroupName) =>
-      setMappings((current) => applyFansubGroupToEpisodeRows(current, episodeNumber, fansubGroupName)),
-    applyFansubGroupFromEpisode: (episodeNumber, fansubGroupName) =>
-      setMappings((current) => applyFansubGroupFromEpisodeDown(current, episodeNumber, fansubGroupName)),
+    setSelectedFansubGroups: (mediaItemID, fansubGroups) =>
+      setMappings((current) => setMappingFansubGroups(current, mediaItemID, fansubGroups)),
+    addSelectedFansubGroup: (mediaItemID, fansubGroup) =>
+      setMappings((current) => addMappingFansubGroup(current, mediaItemID, fansubGroup)),
+    removeSelectedFansubGroup: (mediaItemID, fansubGroup) =>
+      setMappings((current) => removeMappingFansubGroup(current, mediaItemID, fansubGroup)),
+    applyFansubGroupToEpisode: (episodeNumber, fansubGroups) =>
+      setMappings((current) => applyFansubGroupToEpisodeRows(current, episodeNumber, fansubGroups)),
+    applyFansubGroupFromEpisode: (episodeNumber, fansubGroups) =>
+      setMappings((current) => applyFansubGroupFromEpisodeDown(current, episodeNumber, fansubGroups)),
     setEpisodeTitle: (episodeNumber, title) =>
       setPreview((current) => {
         if (!current) return current

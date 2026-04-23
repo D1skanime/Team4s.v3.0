@@ -533,6 +533,10 @@
   gap: 4px;
 }
 
+.releaseMetaGroup {
+  align-items: flex-start;
+}
+
 .releaseMetaActions {
   display: flex;
   flex-wrap: wrap;
@@ -575,6 +579,92 @@
   outline: none;
   border-color: #8060d7;
   background: #fff;
+}
+
+.groupSelector {
+  display: grid;
+  gap: 6px;
+  min-width: min(360px, 100%);
+}
+
+.groupChipWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 30px;
+}
+
+.groupChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #dac7fb;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: #f5efff;
+  color: #5a3fc0;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.groupChip:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.groupChipRemove {
+  color: #7d60d8;
+}
+
+.groupPlaceholder {
+  color: #9b8e82;
+  font-size: 12px;
+  padding-top: 5px;
+}
+
+.groupInputRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.groupInputRow .releaseMetaInput {
+  width: min(240px, 100%);
+  background: #fff;
+}
+
+.groupSearchState {
+  margin: 0;
+  color: #8a7f73;
+  font-size: 11px;
+}
+
+.groupSearchResults {
+  display: grid;
+  gap: 4px;
+  max-height: 164px;
+  overflow-y: auto;
+}
+
+.groupSearchOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #e4ddd4;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  color: #312821;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.groupSearchMeta {
+  color: #9b8e82;
+  font-size: 11px;
 }
 
 .releaseScopeButton {
@@ -854,11 +944,24 @@
     align-items: center;
   }
 
+  .releaseMetaGroup {
+    align-items: start;
+  }
+
   .releaseMetaActions {
     grid-column: 2;
   }
 
   .releaseMetaInput {
     width: 100%;
+  }
+
+  .groupSelector {
+    min-width: 0;
+  }
+
+  .groupInputRow {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 }
