@@ -273,19 +273,22 @@ describe('episodeImportMapping', () => {
 
   // --- Release metadata field preservation ---
 
-  it('setMappingTargets preserves existing fansub_group_name and release_version on the row', () => {
+  it('setMappingTargets preserves existing fansub groups and release_version on the row', () => {
     const rows: EpisodeImportMappingRow[] = [{
       media_item_id: 'jellyfin-ep1',
       target_episode_numbers: [1],
       suggested_episode_numbers: [1],
       status: 'suggested',
-      fansub_group_name: '[Commie]',
+      fansub_groups: [{ name: '[Commie]' }, { id: 8, name: 'Dual', slug: 'dual' }],
       release_version: 'v2',
     }]
 
     const result = setMappingTargets(rows, 'jellyfin-ep1', '1,2')
 
-    expect(result[0].fansub_group_name).toBe('[Commie]')
+    expect(result[0].fansub_groups).toEqual([
+      { name: '[Commie]' },
+      { id: 8, name: 'Dual', slug: 'dual' },
+    ])
     expect(result[0].release_version).toBe('v2')
     expect(result[0].target_episode_numbers).toEqual([1, 2])
   })
@@ -296,14 +299,14 @@ describe('episodeImportMapping', () => {
       target_episode_numbers: [5],
       suggested_episode_numbers: [5],
       status: 'suggested',
-      fansub_group_name: '[HorribleSubs]',
+      fansub_groups: [{ name: '[HorribleSubs]' }],
       release_version: null,
     }]
 
     const result = markMappingSkipped(rows, 'jellyfin-ep5')
 
     expect(result[0].status).toBe('skipped')
-    expect(result[0].fansub_group_name).toBe('[HorribleSubs]')
+    expect(result[0].fansub_groups).toEqual([{ name: '[HorribleSubs]' }])
   })
 
   // --- Naruto-scale bulk mapping controls ---
@@ -428,29 +431,58 @@ describe('episodeImportMapping', () => {
         target_episode_numbers: [100],
         suggested_episode_numbers: [100],
         status: 'confirmed',
-        fansub_group_name: 'OldA',
+        fansub_groups: [{ name: 'OldA' }],
       },
       {
         media_item_id: 'ep-100-b',
         target_episode_numbers: [100],
         suggested_episode_numbers: [100],
         status: 'confirmed',
-        fansub_group_name: 'OldB',
+        fansub_groups: [{ name: 'OldB' }],
       },
       {
         media_item_id: 'ep-101-a',
         target_episode_numbers: [101],
         suggested_episode_numbers: [101],
         status: 'confirmed',
-        fansub_group_name: 'NextArc',
+        fansub_groups: [{ name: 'NextArc' }],
       },
     ]
 
-    const result = applyFansubGroupToEpisodeRows(rows, 100, 'AnimeOwnage')
+    const result = applyFansubGroupToEpisodeRows(rows, 100, [
+      { id: 4, name: 'AnimeOwnage', slug: 'anime-ownage' },
+      { name: 'Co-Release' },
+    ])
 
-    expect(result[0].fansub_group_name).toBe('AnimeOwnage')
-    expect(result[1].fansub_group_name).toBe('AnimeOwnage')
-    expect(result[2].fansub_group_name).toBe('NextArc')
+    expect(result[0].fansub_groups).toEqual([
+      { id: 4, name: 'AnimeOwnage', slug: 'anime-ownage' },
+      { name: 'Co-Release', slug: null },
+    ])
+    expect(result[1].fansub_groups).toEqual(result[0].fansub_groups)
+    expect(result[2].fansub_groups).toEqual([{ name: 'NextArc' }])
+  })
+
+  it('applyFansubGroupToEpisodeRows keeps chip order stable while deduplicating repeated groups', () => {
+    const rows: EpisodeImportMappingRow[] = [
+      {
+        media_item_id: 'ep-200-a',
+        target_episode_numbers: [200],
+        suggested_episode_numbers: [200],
+        status: 'confirmed',
+      },
+    ]
+
+    const result = applyFansubGroupToEpisodeRows(rows, 200, [
+      { id: 9, name: 'First', slug: 'first' },
+      { name: 'Second' },
+      { id: 9, name: 'First', slug: 'first' },
+      { name: 'second' },
+    ])
+
+    expect(result[0].fansub_groups).toEqual([
+      { id: 9, name: 'First', slug: 'first' },
+      { name: 'Second', slug: null },
+    ])
   })
 
   it('applyFansubGroupFromEpisodeDown patches only the current episode and later groups', () => {
@@ -460,36 +492,43 @@ describe('episodeImportMapping', () => {
         target_episode_numbers: [99],
         suggested_episode_numbers: [99],
         status: 'confirmed',
-        fansub_group_name: 'AnimeOwnage',
+        fansub_groups: [{ name: 'AnimeOwnage' }],
       },
       {
         media_item_id: 'ep-100-a',
         target_episode_numbers: [100],
         suggested_episode_numbers: [100],
         status: 'confirmed',
-        fansub_group_name: 'AnimeOwnage',
+        fansub_groups: [{ name: 'AnimeOwnage' }],
       },
       {
         media_item_id: 'ep-101-a',
         target_episode_numbers: [101],
         suggested_episode_numbers: [101],
         status: 'confirmed',
-        fansub_group_name: 'Broken',
+        fansub_groups: [{ name: 'Broken' }],
       },
       {
         media_item_id: 'ep-102-a',
         target_episode_numbers: [102],
         suggested_episode_numbers: [102],
         status: 'confirmed',
-        fansub_group_name: 'Broken',
+        fansub_groups: [{ name: 'Broken' }],
       },
     ]
 
-    const result = applyFansubGroupFromEpisodeDown(rows, 101, 'NeoTokyoFansub')
+    const result = applyFansubGroupFromEpisodeDown(rows, 101, [
+      { id: 7, name: 'NeoTokyoFansub', slug: 'neo-tokyo-fansub' },
+      { name: 'LateNight' },
+    ])
 
-    expect(result[0].fansub_group_name).toBe('AnimeOwnage')
-    expect(result[1].fansub_group_name).toBe('AnimeOwnage')
-    expect(result[2].fansub_group_name).toBe('NeoTokyoFansub')
-    expect(result[3].fansub_group_name).toBe('NeoTokyoFansub')
+    expect(result[0].fansub_groups).toEqual([{ name: 'AnimeOwnage' }])
+    expect(result[1].fansub_groups).toEqual([{ name: 'AnimeOwnage' }])
+    expect(result[2].fansub_groups).toEqual([
+      { id: 7, name: 'NeoTokyoFansub', slug: 'neo-tokyo-fansub' },
+      { name: 'LateNight', slug: null },
+    ])
+    expect(result[3].fansub_groups).toEqual(result[2].fansub_groups)
   })
+
 })
