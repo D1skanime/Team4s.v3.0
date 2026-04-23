@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 21-02-PLAN.md
-last_updated: "2026-04-23T08:48:17.203Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 21-03-PLAN.md
+last_updated: "2026-04-23T08:57:43.135Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 17
-  completed_phases: 14
+  completed_phases: 15
   total_plans: 60
-  completed_plans: 57
+  completed_plans: 58
 ---
 
 # Project State
@@ -109,6 +109,8 @@ Recent durable decisions:
 - [Phase 21]: Plan 21-01 mirrors persisted release-version group truth into anime_fansub_groups with idempotent inserts for the effective collaboration and each member group.
 - [Phase 21-fansub-group-chip-mapping-and-collaboration-wiring]: Import-row fansub selection now uses searchable member-group chips and excludes collaboration groups from manual choice.
 - [Phase 21-fansub-group-chip-mapping-and-collaboration-wiring]: Episode import apply serializes mapping rows through a dedicated payload builder so free-text and existing fansub chips share one normalized write path.
+- [Phase 21-fansub-group-chip-mapping-and-collaboration-wiring]: Manual episode-version saves now submit fansub_groups directly and let the backend own collaboration identity.
+- [Phase 21-fansub-group-chip-mapping-and-collaboration-wiring]: Manual release-version writes reuse the import-era selected-group resolver so release_version_groups and anime_fansub_groups stay aligned.
 
 ### Pending Todos
 
@@ -175,6 +177,7 @@ Recent durable decisions:
 | Phase 20-release-native-episode-import-schema P03 | 6min 32sec | 3 tasks | 6 files |
 | Phase 21 P01 | 32min | 3 tasks | 8 files |
 | Phase 21-fansub-group-chip-mapping-and-collaboration-wiring P02 | 29min | 3 tasks | 7 files |
+| Phase 21-fansub-group-chip-mapping-and-collaboration-wiring P03 | 28min | 3 tasks | 5 files |
 
 ### Quick Tasks Completed
 
@@ -186,7 +189,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-23T08:48:17.195Z
-Stopped at: Completed 21-02-PLAN.md
+Last session: 2026-04-23T08:57:43.127Z
+Stopped at: Completed 21-03-PLAN.md
 Last activity: 2026-04-23
 Resume file: None
