@@ -288,7 +288,7 @@ Plans:
 **Requirements**: P21-SC1, P21-SC2, P21-SC3, P21-SC4, P21-SC5
 **Depends on:** Phase 20
 **Status**: Planned on 2026-04-23 from Phase-20 follow-up discussion and live `11eyes` collaboration verification
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 **Success Criteria** (what must be TRUE):
   1. Episode-import mapping rows can reuse existing fansub groups through chip-style search/select instead of relying only on a flat text field.
   2. Operators can still type a new group name in the same flow, and apply persists that new group without leaving the workbench.
