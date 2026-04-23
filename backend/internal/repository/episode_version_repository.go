@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"team4s.v3/backend/internal/models"
 
@@ -264,14 +265,139 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 }
 
 func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64) (*models.EpisodeVersion, error) {
-	return nil, phase20ReleaseImportDeferred("get release version", versionID)
+	row := r.db.QueryRow(ctx, `
+		SELECT
+			COALESCE(CAST(primary_episode.episode_number AS INTEGER), 0) AS group_episode_number,
+			rv.id,
+			primary_episode.anime_id,
+			COALESCE(CAST(primary_episode.episode_number AS INTEGER), 0) AS episode_number,
+			COALESCE(rev.title, primary_episode.title) AS title,
+			COALESCE(ss.provider_type, '') AS media_provider,
+			COALESCE(ss.external_id, rs.jellyfin_item_id, '') AS media_item_id,
+			COALESCE(
+				ARRAY_AGG(CAST(covered_episode.episode_number AS INTEGER) ORDER BY rve_all.position, CAST(covered_episode.episode_number AS INTEGER))
+					FILTER (WHERE covered_episode.episode_number ~ '^[0-9]+$'),
+				ARRAY[CAST(primary_episode.episode_number AS INTEGER)]
+			) AS covered_episode_numbers,
+			COALESCE(rv.video_quality, rv.resolution) AS video_quality,
+			rv.subtitle_type,
+			COALESCE(rev.release_date, fr.release_date) AS release_date,
+			ss.url AS stream_url,
+			rv.created_at,
+			COALESCE(rv.updated_at, rv.modified_at, rv.created_at) AS updated_at,
+			fg.id, fg.slug, fg.name, fg.logo_url
+		FROM release_variants rv
+		JOIN release_versions rev ON rev.id = rv.release_version_id
+		JOIN fansub_releases fr ON fr.id = rev.release_id
+		JOIN episodes primary_episode ON primary_episode.id = fr.episode_id AND primary_episode.episode_number ~ '^[0-9]+$'
+		LEFT JOIN release_variant_episodes rve_all ON rve_all.release_variant_id = rv.id
+		LEFT JOIN episodes covered_episode ON covered_episode.id = rve_all.episode_id AND covered_episode.episode_number ~ '^[0-9]+$'
+		LEFT JOIN release_streams rs ON rs.variant_id = rv.id
+		LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id
+		LEFT JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
+		LEFT JOIN fansub_groups fg ON fg.id = COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id)
+		WHERE rv.id = $1 OR rev.id = $1
+		GROUP BY
+			rv.id,
+			primary_episode.anime_id,
+			primary_episode.episode_number,
+			primary_episode.title,
+			rev.title,
+			ss.provider_type,
+			ss.external_id,
+			rs.jellyfin_item_id,
+			rv.video_quality,
+			rv.resolution,
+			rv.subtitle_type,
+			rev.release_date,
+			fr.release_date,
+			ss.url,
+			rv.created_at,
+			rv.updated_at,
+			rv.modified_at,
+			fg.id, fg.slug, fg.name, fg.logo_url
+		ORDER BY rv.id ASC
+		LIMIT 1
+	`, versionID)
+
+	item, _, err := scanReleaseVariantAsEpisodeVersion(row, true)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get release version %d: %w", versionID, err)
+	}
+	return item, nil
 }
 
 func (r *EpisodeVersionRepository) Create(
 	ctx context.Context,
 	input models.EpisodeVersionCreateInput,
 ) (*models.EpisodeVersion, error) {
-	return nil, phase20ReleaseImportDeferred("create release version", input.AnimeID)
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("begin create release version tx anime=%d: %w", input.AnimeID, err)
+	}
+	defer tx.Rollback(ctx)
+
+	episodeID, err := lookupEpisodeIDByAnimeAndNumber(ctx, tx, input.AnimeID, input.EpisodeNumber)
+	if err != nil {
+		return nil, err
+	}
+	sourceID, err := ensureReleaseSourceID(ctx, tx, input.MediaProvider)
+	if err != nil {
+		return nil, err
+	}
+
+	releaseID, err := createFansubRelease(ctx, tx, episodeID, sourceID)
+	if err != nil {
+		return nil, err
+	}
+	releaseVersionID, err := createReleaseVersion(ctx, tx, releaseID, nil, input.Title)
+	if err != nil {
+		if isUniqueViolation(err) {
+			return nil, ErrConflict
+		}
+		return nil, err
+	}
+	if err := applyEpisodeVersionReleaseMetadata(ctx, tx, releaseVersionID, input.Title, input.ReleaseDate); err != nil {
+		return nil, err
+	}
+
+	variantID, err := createReleaseVariant(ctx, tx, releaseVersionID, models.EpisodeImportMediaCandidate{
+		MediaItemID:  input.MediaItemID,
+		StreamURL:    input.StreamURL,
+		VideoQuality: input.VideoQuality,
+		FileName:     strings.TrimSpace(derefString(input.Title)),
+	})
+	if err != nil {
+		if isUniqueViolation(err) {
+			return nil, ErrConflict
+		}
+		return nil, err
+	}
+	if err := applyEpisodeVersionVariantMetadata(ctx, tx, variantID, input.VideoQuality, input.SubtitleType, input.Title); err != nil {
+		return nil, err
+	}
+	if err := ensureEpisodeVersionStream(ctx, tx, variantID, input.MediaProvider, input.MediaItemID, input.StreamURL); err != nil {
+		return nil, err
+	}
+	if err := syncEpisodeVersionSelectedGroups(ctx, tx, releaseVersionID, input.AnimeID, input.FansubGroups, input.FansubGroupID, true); err != nil {
+		return nil, err
+	}
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO release_variant_episodes (release_variant_id, episode_id, position)
+		VALUES ($1, $2, 1)
+		ON CONFLICT (release_variant_id, episode_id) DO UPDATE
+		SET position = EXCLUDED.position
+	`, variantID, episodeID); err != nil {
+		return nil, fmt.Errorf("link release coverage variant=%d episode=%d: %w", variantID, episodeID, err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit create release version anime=%d episode=%d: %w", input.AnimeID, input.EpisodeNumber, err)
+	}
+	return r.GetByID(ctx, variantID)
 }
 
 func (r *EpisodeVersionRepository) Update(
@@ -279,7 +405,95 @@ func (r *EpisodeVersionRepository) Update(
 	versionID int64,
 	input models.EpisodeVersionPatchInput,
 ) (*models.EpisodeVersion, error) {
-	return nil, phase20ReleaseImportDeferred("update release version", versionID)
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("begin update release version tx version=%d: %w", versionID, err)
+	}
+	defer tx.Rollback(ctx)
+
+	state, err := loadEpisodeVersionStateForUpdate(ctx, tx, versionID)
+	if err != nil {
+		return nil, err
+	}
+
+	title := state.Title
+	if input.Title.Set {
+		title = input.Title.Value
+	}
+	releaseDate := state.ReleaseDate
+	if input.ReleaseDate.Set {
+		releaseDate = input.ReleaseDate.Value
+	}
+	if input.Title.Set || input.ReleaseDate.Set {
+		if err := applyEpisodeVersionReleaseMetadata(ctx, tx, state.ReleaseVersionID, title, releaseDate); err != nil {
+			return nil, err
+		}
+	}
+
+	videoQuality := state.VideoQuality
+	if input.VideoQuality.Set {
+		videoQuality = input.VideoQuality.Value
+	}
+	subtitleType := state.SubtitleType
+	if input.SubtitleType.Set {
+		subtitleType = input.SubtitleType.Value
+	}
+	if input.Title.Set || input.VideoQuality.Set || input.SubtitleType.Set {
+		if err := applyEpisodeVersionVariantMetadata(ctx, tx, state.VariantID, videoQuality, subtitleType, title); err != nil {
+			return nil, err
+		}
+	}
+
+	mediaProvider := state.MediaProvider
+	if input.MediaProvider.Set && input.MediaProvider.Value != nil {
+		mediaProvider = *input.MediaProvider.Value
+	}
+	mediaItemID := state.MediaItemID
+	if input.MediaItemID.Set && input.MediaItemID.Value != nil {
+		mediaItemID = *input.MediaItemID.Value
+	}
+	streamURL := state.StreamURL
+	if input.StreamURL.Set {
+		streamURL = input.StreamURL.Value
+	}
+	if input.MediaProvider.Set || input.MediaItemID.Set || input.StreamURL.Set {
+		sourceID, err := ensureReleaseSourceID(ctx, tx, mediaProvider)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := tx.Exec(ctx, `
+			UPDATE fansub_releases
+			SET source_id = $1,
+			    source = $1,
+			    updated_at = NOW(),
+			    modified_at = NOW()
+			WHERE id = $2
+		`, sourceID, state.ReleaseID); err != nil {
+			return nil, fmt.Errorf("update release source release=%d: %w", state.ReleaseID, err)
+		}
+		if err := ensureEpisodeVersionStream(ctx, tx, state.VariantID, mediaProvider, mediaItemID, streamURL); err != nil {
+			return nil, err
+		}
+	}
+
+	if input.FansubGroups.Set || input.FansubGroupID.Set {
+		var selectedGroups []models.SelectedFansubGroupInput
+		var fansubGroupID *int64
+		if input.FansubGroups.Set {
+			selectedGroups = input.FansubGroups.Value
+		}
+		if input.FansubGroupID.Set {
+			fansubGroupID = input.FansubGroupID.Value
+		}
+		if err := syncEpisodeVersionSelectedGroups(ctx, tx, state.ReleaseVersionID, state.AnimeID, selectedGroups, fansubGroupID, input.FansubGroups.Set || input.FansubGroupID.Set); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit update release version %d: %w", versionID, err)
+	}
+	return r.GetByID(ctx, state.VariantID)
 }
 
 func (r *EpisodeVersionRepository) Delete(ctx context.Context, versionID int64) error {
@@ -446,6 +660,290 @@ func normalizeOptionalText(value *string) *string {
 		return nil
 	}
 	return &trimmed
+}
+
+type episodeVersionWriteState struct {
+	VariantID        int64
+	ReleaseVersionID int64
+	ReleaseID        int64
+	AnimeID          int64
+	Title            *string
+	ReleaseDate      *time.Time
+	VideoQuality     *string
+	SubtitleType     *string
+	MediaProvider    string
+	MediaItemID      string
+	StreamURL        *string
+}
+
+func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID int64) (*episodeVersionWriteState, error) {
+	state := episodeVersionWriteState{}
+	if err := tx.QueryRow(ctx, `
+		SELECT
+			rv.id,
+			rev.id,
+			fr.id,
+			e.anime_id,
+			rev.title,
+			COALESCE(rev.release_date, fr.release_date) AS release_date,
+			COALESCE(rv.video_quality, rv.resolution) AS video_quality,
+			rv.subtitle_type,
+			COALESCE(ss.provider_type, ''),
+			COALESCE(ss.external_id, rs.jellyfin_item_id, ''),
+			ss.url
+		FROM release_variants rv
+		JOIN release_versions rev ON rev.id = rv.release_version_id
+		JOIN fansub_releases fr ON fr.id = rev.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		LEFT JOIN release_streams rs ON rs.variant_id = rv.id
+		LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id
+		WHERE rv.id = $1 OR rev.id = $1
+		ORDER BY rv.id ASC
+		LIMIT 1
+		FOR UPDATE OF rv, rev, fr
+	`, versionID).Scan(
+		&state.VariantID,
+		&state.ReleaseVersionID,
+		&state.ReleaseID,
+		&state.AnimeID,
+		&state.Title,
+		&state.ReleaseDate,
+		&state.VideoQuality,
+		&state.SubtitleType,
+		&state.MediaProvider,
+		&state.MediaItemID,
+		&state.StreamURL,
+	); errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	} else if err != nil {
+		return nil, fmt.Errorf("load release version state %d: %w", versionID, err)
+	}
+	return &state, nil
+}
+
+func lookupEpisodeIDByAnimeAndNumber(ctx context.Context, tx pgx.Tx, animeID int64, episodeNumber int32) (int64, error) {
+	var episodeID int64
+	if err := tx.QueryRow(ctx, `
+		SELECT id
+		FROM episodes
+		WHERE anime_id = $1 AND episode_number = $2
+		ORDER BY id ASC
+		LIMIT 1
+		FOR UPDATE
+	`, animeID, strconv.FormatInt(int64(episodeNumber), 10)).Scan(&episodeID); errors.Is(err, pgx.ErrNoRows) {
+		return 0, ErrNotFound
+	} else if err != nil {
+		return 0, fmt.Errorf("lookup episode anime=%d episode=%d: %w", animeID, episodeNumber, err)
+	}
+	return episodeID, nil
+}
+
+func ensureReleaseSourceID(ctx context.Context, tx pgx.Tx, provider string) (int64, error) {
+	provider = strings.TrimSpace(provider)
+	if provider == "" {
+		return 0, fmt.Errorf("release source provider is required")
+	}
+
+	var sourceID int64
+	if err := tx.QueryRow(ctx, `
+		SELECT id
+		FROM release_sources
+		WHERE LOWER(COALESCE(NULLIF(BTRIM(type), ''), NULLIF(BTRIM(source_type), ''), NULLIF(BTRIM(name), ''))) = LOWER($1)
+		ORDER BY id ASC
+		LIMIT 1
+	`, provider).Scan(&sourceID); err == nil {
+		return sourceID, nil
+	} else if !errors.Is(err, pgx.ErrNoRows) {
+		return 0, fmt.Errorf("lookup release source provider=%s: %w", provider, err)
+	}
+
+	if err := tx.QueryRow(ctx, `
+		INSERT INTO release_sources (name, source_type, type)
+		VALUES ($1, $1, $1)
+		RETURNING id
+	`, provider).Scan(&sourceID); err != nil {
+		return 0, fmt.Errorf("create release source provider=%s: %w", provider, err)
+	}
+	return sourceID, nil
+}
+
+func ensureEpisodeStreamTypeID(ctx context.Context, tx pgx.Tx) (int64, error) {
+	var streamTypeID int64
+	if err := tx.QueryRow(ctx, `SELECT id FROM stream_types WHERE name = 'episode' LIMIT 1`).Scan(&streamTypeID); err != nil {
+		return 0, fmt.Errorf("lookup episode stream type: %w", err)
+	}
+	return streamTypeID, nil
+}
+
+func ensureEpisodeVersionStream(
+	ctx context.Context,
+	tx pgx.Tx,
+	variantID int64,
+	mediaProvider string,
+	mediaItemID string,
+	streamURL *string,
+) error {
+	streamTypeID, err := ensureEpisodeStreamTypeID(ctx, tx)
+	if err != nil {
+		return err
+	}
+	streamSourceID, err := ensureStreamSourceID(ctx, tx, mediaProvider, mediaItemID, streamURL)
+	if err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO release_streams (variant_id, stream_type_id, stream_source_id, jellyfin_item_id, modified_at, updated_at)
+		VALUES ($1, $2, $3, NULLIF($4, ''), NOW(), NOW())
+		ON CONFLICT (variant_id, stream_type_id, audio_language_id, subtitle_language_id) DO UPDATE
+		SET stream_source_id = EXCLUDED.stream_source_id,
+		    jellyfin_item_id = EXCLUDED.jellyfin_item_id,
+		    modified_at = NOW(),
+		    updated_at = NOW()
+	`, variantID, streamTypeID, streamSourceID, mediaItemID); err != nil {
+		return fmt.Errorf("upsert release stream variant=%d: %w", variantID, err)
+	}
+	return nil
+}
+
+func ensureStreamSourceID(
+	ctx context.Context,
+	tx pgx.Tx,
+	mediaProvider string,
+	mediaItemID string,
+	streamURL *string,
+) (int64, error) {
+	var streamSourceID int64
+	if err := tx.QueryRow(ctx, `
+		INSERT INTO stream_sources (provider_type, external_id, url)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (provider_type, external_id) DO UPDATE
+		SET url = COALESCE(EXCLUDED.url, stream_sources.url)
+		RETURNING id
+	`, mediaProvider, mediaItemID, streamURL).Scan(&streamSourceID); err != nil {
+		return 0, fmt.Errorf("upsert stream source provider=%s media=%s: %w", mediaProvider, mediaItemID, err)
+	}
+	return streamSourceID, nil
+}
+
+func applyEpisodeVersionReleaseMetadata(
+	ctx context.Context,
+	tx pgx.Tx,
+	releaseVersionID int64,
+	title *string,
+	releaseDate *time.Time,
+) error {
+	if _, err := tx.Exec(ctx, `
+		UPDATE release_versions
+		SET title = $1,
+		    release_date = $2,
+		    updated_at = NOW(),
+		    modified_at = NOW()
+		WHERE id = $3
+	`, title, releaseDate, releaseVersionID); err != nil {
+		return fmt.Errorf("update release version metadata version=%d: %w", releaseVersionID, err)
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE fansub_releases
+		SET release_date = $1,
+		    updated_at = NOW(),
+		    modified_at = NOW()
+		WHERE id = (SELECT release_id FROM release_versions WHERE id = $2)
+	`, releaseDate, releaseVersionID); err != nil {
+		return fmt.Errorf("update release metadata version=%d: %w", releaseVersionID, err)
+	}
+	return nil
+}
+
+func applyEpisodeVersionVariantMetadata(
+	ctx context.Context,
+	tx pgx.Tx,
+	variantID int64,
+	videoQuality *string,
+	subtitleType *string,
+	title *string,
+) error {
+	filename := strings.TrimSpace(derefString(title))
+	container := strings.TrimPrefix(strings.ToLower(pathExt(filename)), ".")
+	if _, err := tx.Exec(ctx, `
+		UPDATE release_variants
+		SET resolution = $1,
+		    video_quality = $1,
+		    subtitle_type = $2,
+		    filename = NULLIF($3, ''),
+		    container = NULLIF($4, ''),
+		    updated_at = NOW(),
+		    modified_at = NOW()
+		WHERE id = $5
+	`, videoQuality, subtitleType, filename, container, variantID); err != nil {
+		return fmt.Errorf("update release variant metadata variant=%d: %w", variantID, err)
+	}
+	return nil
+}
+
+func syncEpisodeVersionSelectedGroups(
+	ctx context.Context,
+	tx pgx.Tx,
+	releaseVersionID int64,
+	animeID int64,
+	fansubGroups []models.SelectedFansubGroupInput,
+	fansubGroupID *int64,
+	reset bool,
+) error {
+	if !reset {
+		return nil
+	}
+
+	var selection *resolvedImportFansubSelection
+	var err error
+	switch {
+	case len(fansubGroups) > 0:
+		selection, err = resolveImportFansubSelectionFromInputs(ctx, tx, fansubGroups)
+	case fansubGroupID != nil && *fansubGroupID > 0:
+		selection = &resolvedImportFansubSelection{
+			EffectiveGroup: &resolvedImportFansubGroup{ID: *fansubGroupID},
+			MemberGroups:   []resolvedImportFansubGroup{{ID: *fansubGroupID}},
+		}
+	default:
+		selection = nil
+	}
+	if err != nil {
+		return err
+	}
+	if selection == nil || selection.EffectiveGroup == nil {
+		if _, err := tx.Exec(ctx, `DELETE FROM release_version_groups WHERE release_version_id = $1`, releaseVersionID); err != nil {
+			return fmt.Errorf("clear release version groups version=%d: %w", releaseVersionID, err)
+		}
+		return nil
+	}
+
+	if _, err := tx.Exec(ctx, `
+		DELETE FROM release_version_groups
+		WHERE release_version_id = $1
+		  AND COALESCE(fansubgroup_id, fansub_group_id) <> $2
+	`, releaseVersionID, selection.EffectiveGroup.ID); err != nil {
+		return fmt.Errorf("reset release version groups version=%d: %w", releaseVersionID, err)
+	}
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO release_version_groups (release_version_id, fansub_group_id, fansubgroup_id)
+		VALUES ($1, $2, $2)
+		ON CONFLICT (release_version_id, fansub_group_id) DO UPDATE
+		SET fansubgroup_id = EXCLUDED.fansubgroup_id
+	`, releaseVersionID, selection.EffectiveGroup.ID); err != nil {
+		return fmt.Errorf("upsert release version group version=%d group=%d: %w", releaseVersionID, selection.EffectiveGroup.ID, err)
+	}
+	return ensureAnimeFansubGroupLinks(ctx, tx, animeID, *selection)
+}
+
+func pathExt(value string) string {
+	lastSlash := strings.LastIndexAny(value, `/\`)
+	if lastSlash >= 0 {
+		value = value[lastSlash+1:]
+	}
+	lastDot := strings.LastIndex(value, ".")
+	if lastDot < 0 {
+		return ""
+	}
+	return value[lastDot:]
 }
 
 func phase20ReleaseImportDeferred(action string, id int64) error {
