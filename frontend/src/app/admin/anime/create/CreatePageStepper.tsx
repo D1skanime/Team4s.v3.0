@@ -11,12 +11,20 @@ const STEPS = [
 
 interface CreatePageStepperProps {
   activeStep?: 1 | 2 | 3 | 4;
+  steps?: ReadonlyArray<{
+    id: 1 | 2 | 3 | 4;
+    label: string;
+    sub: string;
+  }>;
 }
 
-export function CreatePageStepper({ activeStep = 1 }: CreatePageStepperProps) {
+export function CreatePageStepper({
+  activeStep = 1,
+  steps = STEPS,
+}: CreatePageStepperProps) {
   return (
     <nav className={createStyles.stepper} aria-label="Erstellungsschritte">
-      {STEPS.map((step) => {
+      {steps.map((step) => {
         const isActive = step.id === activeStep;
         const isDone = step.id < activeStep;
         return (

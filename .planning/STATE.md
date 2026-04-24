@@ -141,6 +141,7 @@ Recent durable decisions:
 - Phase 20.1 planned before Phase 20 execution: build the full documented `docs/architecture/db-schema-v2.md` target as real DB tables, then delete the legacy `episode_versions` table family because only disposable test episode data exists.
 - Phase 20.1 executed and verified: clean migration through 46 migrations passed, legacy episode-version tables are absent, Docker backend/frontend were rebuilt, and Phase 20 is unblocked for release-native import writes.
 - Phase 20 live UAT completed on 2026-04-23: disposable `3×3 Eyes` replay proved normalized-table persistence, multilingual episode titles, release-native stream linkage, and dual-provider anime source persistence.
+- Phase 23 added: OP/ED Theme Verwaltung — Admins können Opening/Ending-Themes pro Anime mit Episodenbereichen verwalten.
 
 ### Blockers/Concerns
 

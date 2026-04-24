@@ -9,10 +9,6 @@ import { getAnimeByID, getRuntimeAuthToken } from '@/lib/api'
 import { AnimeDetail } from '@/types/anime'
 
 import { AnimeEditWorkspace } from '../../components/AnimeEditPage/AnimeEditWorkspace'
-import { AnimeRelationsSection } from '../../components/AnimeEditPage/AnimeRelationsSection'
-import { AnimeJellyfinMetadataSection } from '../../components/AnimeEditPage/AnimeJellyfinMetadataSection'
-import { JellyfinSyncPanel } from '../../components/JellyfinSync/JellyfinSyncPanel'
-import { useJellyfinSync } from '../../hooks/useJellyfinSync'
 import styles from '../../AdminStudio.module.css'
 import { parsePositiveInt, resolveCoverUrl } from '../../utils/anime-helpers'
 import { formatAdminError } from '../../utils/studio-helpers'
@@ -36,26 +32,6 @@ export default function AdminAnimeEditPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [lastRequest, setLastRequest] = useState<string | null>(null)
   const [lastResponse, setLastResponse] = useState<string | null>(null)
-  const [relationsRefreshToken, setRelationsRefreshToken] = useState(0)
-  const [jellyfinContext, setJellyfinContext] = useState<{
-    source_kind?: 'manual' | 'jellyfin'
-    source?: string
-    folder_name?: string
-    jellyfin_series_id?: string
-    jellyfin_series_name?: string
-    jellyfin_series_path?: string
-  } | null>(null)
-  const jellyfin = useJellyfinSync(
-    authToken,
-    (message) => {
-      setErrorMessage(null)
-      setSuccessMessage(message)
-    },
-    (message) => {
-      setSuccessMessage(null)
-      setErrorMessage(message)
-    },
-  )
 
   useEffect(() => {
     async function loadAnime() {
@@ -102,8 +78,8 @@ export default function AdminAnimeEditPage() {
         <div>
           <h1 className={styles.pageTitle}>Anime bearbeiten</h1>
           <p className={styles.pageSubtitle}>
-            Allgemeiner Kontext fuer den ausgewaehlten Anime: Cover, Beschreibung, Metadaten und Status. Episoden und
-            Versionen bleiben aus dieser Route bewusst ausgelagert.
+            Diese Route basiert jetzt auf dem Create-Flow und ersetzt den alten Edit-Baukasten. Bearbeitet werden nur
+            Stammdaten und Assets des Anime selbst.
           </p>
         </div>
         {anime ? (
@@ -121,7 +97,8 @@ export default function AdminAnimeEditPage() {
             <div>
               <p className={styles.itemTitle}>{anime.title}</p>
               <p className={styles.sectionMeta}>
-                #{String(anime.id).padStart(3, '0')} | Typ {anime.type} | Status {anime.status}
+                #{String(anime.id).padStart(3, '0')} | Typ {anime.type} | Status {anime.status} | Quelle{' '}
+                {anime.source || 'manuell'}
               </p>
             </div>
             <Image className={styles.cover} src={resolveCoverUrl(anime.cover_image)} alt="" width={96} height={136} unoptimized />
@@ -135,45 +112,8 @@ export default function AdminAnimeEditPage() {
 
       {anime ? (
         <>
-          <AnimeJellyfinMetadataSection
-            animeID={anime.id}
-            authToken={authToken}
-            onError={(message) => {
-              setSuccessMessage(null)
-              setErrorMessage(message)
-            }}
-            onSuccess={(message) => {
-              setErrorMessage(null)
-              setSuccessMessage(message)
-            }}
-            onAfterApply={async () => {
-              const refreshed = await getAnimeByID(anime.id, { include_disabled: true })
-              setAnime(refreshed.data)
-            }}
-            onContextLoaded={(context) => {
-              setJellyfinContext(
-                context
-                  ? {
-                      source_kind: context.source_kind,
-                      source: context.source,
-                      folder_name: context.folder_name,
-                      jellyfin_series_id: context.jellyfin_series_id,
-                      jellyfin_series_name: context.jellyfin_series_name,
-                      jellyfin_series_path: context.jellyfin_series_path,
-                    }
-                  : null,
-              )
-            }}
-          />
-
           <AnimeEditWorkspace
-            anime={{
-              ...anime,
-              source: jellyfinContext?.source,
-              folder_name: jellyfinContext?.folder_name,
-              jellyfin_series_id: jellyfinContext?.jellyfin_series_id,
-              jellyfin_series_path: jellyfinContext?.jellyfin_series_path,
-            }}
+            anime={anime}
             authToken={authToken}
             onSaved={(nextAnime, message) => {
               setAnime(nextAnime)
@@ -186,38 +126,7 @@ export default function AdminAnimeEditPage() {
             }}
             onRequest={setLastRequest}
             onResponse={setLastResponse}
-            onRelationsChanged={() => setRelationsRefreshToken((current) => current + 1)}
           />
-
-          <AnimeRelationsSection
-            key={relationsRefreshToken}
-            animeID={anime.id}
-            authToken={authToken}
-            onSuccess={(message) => {
-              setErrorMessage(null)
-              setSuccessMessage(message)
-            }}
-            onError={(message) => {
-              setSuccessMessage(null)
-              setErrorMessage(message)
-            }}
-          />
-
-          <section className={styles.card}>
-            <JellyfinSyncPanel
-              anime={anime}
-              model={jellyfin}
-              onBeforeAction={() => {
-                setErrorMessage(null)
-                setSuccessMessage(null)
-              }}
-              onSynced={async () => {
-                const refreshed = await getAnimeByID(anime.id, { include_disabled: true })
-                setAnime(refreshed.data)
-                setSuccessMessage('Jellyfin Sync abgeschlossen.')
-              }}
-            />
-          </section>
 
           {(lastRequest || lastResponse) ? (
             <section className={styles.card}>

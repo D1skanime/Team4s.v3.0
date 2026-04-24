@@ -115,6 +115,7 @@ function buildAnimePatchPayload(values: AnimePatchValues, clearFlags: AnimePatch
   const titleDE = normalizeOptionalString(values.titleDE)
   const titleEN = normalizeOptionalString(values.titleEN)
   const genre = normalizeOptionalString(values.genreTokens.join(', '))
+  const tags = values.tagTokens.length > 0 ? values.tagTokens : null
   const description = normalizeOptionalString(values.description)
   const coverImage = normalizeOptionalString(values.coverImage)
   const source = normalizeOptionalString(values.source)
@@ -128,6 +129,9 @@ function buildAnimePatchPayload(values: AnimePatchValues, clearFlags: AnimePatch
 
   if (clearFlags.genre) payload.genre = null
   else if (genre) payload.genre = genre
+
+  if (clearFlags.tags) payload.tags = null
+  else if (tags) payload.tags = tags
 
   if (clearFlags.description) payload.description = null
   else if (description) payload.description = description

@@ -2,17 +2,17 @@
 
 ## Top 3 Risks
 
-### 1. Post-apply UX can still mislead operators after a successful idempotent import
+### 1. Phase 22 could stay half-closed if the current anime edit baseline is not judged explicitly
 - **Impact:** Medium
 - **Likelihood:** High
-- **Why it matters:** the workbench still lets the operator click `Mapping anwenden` again even after the normalized graph was already written and updated correctly.
-- **Mitigation:** treat this as the next likely follow-up slice and make successful applies visually land in a clearly finished state.
+- **Why it matters:** a lot of today was live UI cleanup, and without one explicit close/verify decision the team could drift into more unscoped edit polish.
+- **Mitigation:** do one narrow next-day review of `/admin/anime/:id/edit` and either verify Phase 22 or write down the exact remaining gap.
 
-### 2. Compatibility leftovers can still blur the normalized persistence story
-- **Impact:** Medium
+### 2. Local temp/cache/debug artifacts can still pollute the worktree
+- **Impact:** Low
 - **Likelihood:** Medium
-- **Why it matters:** the old `streams` table still exists as an allowed compatibility artifact beside `release_streams`.
-- **Mitigation:** keep follow-up verification and future work anchored to `release_streams`, `release_variants`, and `release_variant_episodes`.
+- **Why it matters:** the repo currently contains untracked screenshot/tmp/cache/debug folders that are not intended history.
+- **Mitigation:** keep staging selective and avoid accidental commits of local artifacts.
 
 ### 3. Cross-AI review is still unavailable locally
 - **Impact:** Low
@@ -21,5 +21,5 @@
 - **Mitigation:** keep local verification strong and rerun review once a reviewer CLI is installed.
 
 ## Current Blockers
-- No hard product blocker for Phase 20 remains.
+- No hard product blocker remains on the current anime edit/admin slice.
 - Cross-AI review remains unavailable because no independent reviewer CLI is installed locally.

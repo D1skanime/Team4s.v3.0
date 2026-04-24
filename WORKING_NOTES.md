@@ -1,28 +1,22 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phase 20 is verified complete.
-- The active thread has shifted from "prove the seam" to "choose the next narrow follow-up from the verified baseline".
+- Phase 21 is complete.
+- Phase 22 is the active thread: make anime edit genuinely use the create-flow foundation and cut the last legacy/admin clutter.
 
 ## Useful Facts To Keep
-- Frontend mapping logic now allows parallel releases for the same canonical episode.
-- Anime create now persists both providers cleanly:
-  - `anime.source` stays the authoritative Jellyfin runtime link when explicitly selected
-  - `anime_source_links` stores both Jellyfin and AniSearch tags
-- Phase 20 live replay used `3x3 Eyes` (`anime_id=6`) and proved:
-  - canonical episodes in `episodes`
-  - multilingual titles in `episode_titles`
-  - release-native versions/variants/coverage rows
-  - Jellyfin stream linkage in `release_streams` + `stream_sources`
-- The post-apply workbench still looks actionable after an idempotent success. That is real UX follow-up territory, not a persistence failure.
-- The current Phase-20 closure evidence lives in `.planning/phases/20-release-native-episode-import-schema/20-UAT.md`.
+- Anime edit now uses the shared create-style workspace and simpler Jellyfin selection flow.
+- The edit asset area must merge manual persisted assets with Jellyfin fallback assets; singular replacement logic was the wrong model for backgrounds and background videos.
+- Dismissing individual Jellyfin assets in edit is now supported at draft level without dropping overall Jellyfin linkage.
+- Episode version delete used to fail because `EpisodeVersionRepository.Delete` was still a Phase-20 deferred placeholder; that backend path is now implemented.
+- Fansub collaboration records are still persisted for release wiring, but the default `/admin/fansubs` list should only show real groups.
 
 ## Verification Memory
-- `cd backend && go test ./internal/handlers ./internal/repository -count=1` passed on 2026-04-23.
-- `cd frontend && npm.cmd test -- src/app/admin/anime/create/useAdminAnimeCreateController.test.ts` passed on 2026-04-23.
-- `cd frontend && npm.cmd run build` passed on 2026-04-23.
-- Docker backend/frontend are currently up and both main routes returned `200`.
+- `cd backend && go test ./internal/repository ./internal/handlers -count=1` passed on 2026-04-24.
+- `cd frontend && npm.cmd test -- src/app/admin/anime/[id]/edit/page.test.tsx` passed on 2026-04-24.
+- `cd frontend && npm.cmd run build` passed on 2026-04-24.
+- Docker backend/frontend are up and the anime edit, anime episodes, and fansub admin routes all returned `200`.
 
 ## Mental Unload
-- We crossed the annoying line today: this is no longer "probably done", it is actually verified.
-- Tomorrow should not reopen Phase 20 by inertia. Start from the follow-up choice, not from replay anxiety.
+- Today was a lot of UI subtraction, which was the right call.
+- Tomorrow should not drift back into legacy edit behavior or broad polish; either close Phase 22 or name the one remaining gap cleanly.

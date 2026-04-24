@@ -3,7 +3,11 @@ import { useMemo } from 'react'
 import type {
   AdminAnimeCreateDraftAssetSuggestions,
   AdminAnimeCreateDraftPayload,
+  AdminAnimeEditorDraftValues,
+  AdminAnimeEditorHydratedState,
+  AdminAnimeEditorHydrationInput,
   AdminAnimeJellyfinIntakePreviewResult,
+  AdminAnimePersistedAssets,
   AdminJellyfinIntakeAssetSlot,
   AdminJellyfinIntakeAssetSlots,
   AnimeType,
@@ -26,20 +30,7 @@ export interface ManualAnimeDraftState {
   canSubmit: boolean
 }
 
-export interface ManualAnimeDraftValues {
-  title: string
-  type: AnimeType
-  contentType: ContentType
-  status: AnimeStatus
-  year: string
-  maxEpisodes: string
-  titleDE: string
-  titleEN: string
-  genreTokens: string[]
-  tagTokens: string[]
-  description: string
-  coverImage: string
-}
+export interface ManualAnimeDraftValues extends AdminAnimeEditorDraftValues {}
 
 export interface HydratedJellyfinDraft {
   draft: ManualAnimeDraftValues
@@ -124,6 +115,14 @@ export function hydrateManualDraftFromJellyfinPreview(
           : draft.tagTokens,
     type: fillOnly && draft.type !== 'tv' ? draft.type : resolvedType,
     coverImage: fillOnly ? draft.coverImage || resolvedCoverImage : resolvedCoverImage || draft.coverImage,
+    source:
+      fillOnly && draft.source.trim()
+        ? draft.source
+        : `jellyfin:${preview.jellyfin_series_id.trim()}`,
+    folderName:
+      fillOnly && draft.folderName.trim()
+        ? draft.folderName
+        : preview.jellyfin_series_path?.trim() || draft.folderName,
   }
 
   return {
@@ -163,6 +162,46 @@ export function hydrateManualDraftFromAniSearchDraft(
     tagTokens: resolvedTagTokens.length > 0 ? resolvedTagTokens : draft.tagTokens,
     description: protectedFieldSet.has('description') ? draft.description : incoming.description?.trim() || draft.description,
     coverImage: incoming.cover_image?.trim() || draft.coverImage,
+    source: incoming.source?.trim() || draft.source,
+    folderName: incoming.folder_name?.trim() || draft.folderName,
+  }
+}
+
+export function hydrateManualDraftFromExistingAnime(
+  input: AdminAnimeEditorHydrationInput,
+): AdminAnimeEditorHydratedState {
+  const persistedAssets: AdminAnimePersistedAssets = {
+    cover: input.persisted_assets?.cover ?? resolvePersistedAssetState(input.cover_image),
+    banner: input.persisted_assets?.banner,
+    logo: input.persisted_assets?.logo,
+    backgrounds: input.persisted_assets?.backgrounds
+      ? [...input.persisted_assets.backgrounds]
+      : [],
+    background_video: input.persisted_assets?.background_video,
+  }
+  const genreSource =
+    Array.isArray(input.genres) && input.genres.length > 0
+      ? input.genres.join(', ')
+      : input.genre ?? ''
+
+  return {
+    values: {
+      title: input.title?.trim() || '',
+      type: (input.type as AnimeType | undefined) ?? 'tv',
+      contentType: input.content_type ?? 'anime',
+      status: input.status ?? 'ongoing',
+      year: Number.isFinite(input.year) ? String(input.year) : '',
+      maxEpisodes: Number.isFinite(input.max_episodes) ? String(input.max_episodes) : '',
+      titleDE: input.title_de?.trim() || '',
+      titleEN: input.title_en?.trim() || '',
+      genreTokens: splitGenreTokens(genreSource),
+      tagTokens: Array.isArray(input.tags) ? [...input.tags] : [],
+      description: input.description?.trim() || '',
+      coverImage: input.cover_image?.trim() || '',
+      source: input.source?.trim() || '',
+      folderName: input.folder_name?.trim() || '',
+    },
+    persistedAssets,
   }
 }
 
@@ -293,6 +332,18 @@ function hasMeaningfulValue(value: unknown): boolean {
   }
 
   return false
+}
+
+function resolvePersistedAssetState(url?: string | null) {
+  const trimmed = url?.trim()
+  if (!trimmed) {
+    return undefined
+  }
+
+  return {
+    url: trimmed,
+    ownership: 'manual' as const,
+  }
 }
 
 export function resolveManualCreateState(input: ManualAnimeDraftInput): ManualAnimeDraftState {

@@ -28,22 +28,20 @@ describe('AdminAnimeEditPage load error formatting', () => {
     expect(source).not.toContain('<strong>Jellyfin-Kontext</strong>')
   })
 
-  it('mounts the relations section inside the edit route after the shared editor workspace', () => {
+  it('keeps legacy relation and jellyfin sync sections out of the edit route', () => {
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
     const source = readFileSync(path.join(currentDir, 'page.tsx'), 'utf8')
 
-    expect(source).toContain('AnimeRelationsSection')
-    expect(source.indexOf('AnimeEditWorkspace')).toBeLessThan(source.indexOf('AnimeRelationsSection'))
+    expect(source).not.toContain('AnimeRelationsSection')
+    expect(source).not.toContain('JellyfinSyncPanel')
   })
 
-  it('inserts the AniSearch enrichment section inside the workspace before title fields', () => {
+  it('keeps AniSearch reload controls out of the edit workspace', () => {
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
-    const source = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeEditWorkspace.tsx'), 'utf8')
-    const sectionUsageIndex = source.lastIndexOf('AniSearchEnrichmentSection')
+    const source = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeEditSharedSections.tsx'), 'utf8')
 
-    expect(source).toContain('AniSearchEnrichmentSection')
-    expect(sectionUsageIndex).toBeGreaterThan(source.indexOf('Basisdaten'))
-    expect(sectionUsageIndex).toBeLessThan(source.indexOf('Titel und Struktur'))
+    expect(source).not.toContain('AniSearchEnrichmentSection')
+    expect(source).toContain('AniSearch-Nachladen ist bewusst nicht Teil des')
   })
 
   it('documents the generic V2 upload seam instead of the legacy public covers path in the edit asset UI', () => {
@@ -54,24 +52,19 @@ describe('AdminAnimeEditPage load error formatting', () => {
     expect(source).not.toContain('frontend/public/covers')
   })
 
-  it('exposes manual upload labels for logo and background video in the reachable edit UI', () => {
+  it('exposes create-like asset actions in the reachable edit asset UI', () => {
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
-    const controlsSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeJellyfinAssetUploadControls.tsx'), 'utf8')
-    const configSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/animeJellyfinAssetUpload.ts'), 'utf8')
+    const assetSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeEditAssetSection.tsx'), 'utf8')
 
-    expect(controlsSource).toContain('EDIT_UPLOAD_TARGETS[target].buttonLabel')
-    expect(configSource).toContain('Logo hochladen')
-    expect(configSource).toContain('Background-Video hochladen')
+    expect(assetSource).toContain('Online suchen')
+    expect(assetSource).toContain('Background-Videos')
+    expect(assetSource).toContain('Hintergründe')
   })
 
-  it('delegates non-cover asset controls out of the metadata shell and removes provider-only copy', () => {
+  it('drops the old jellyfin metadata shell from the reachable edit route', () => {
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
-    const metadataSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeJellyfinMetadataSection.tsx'), 'utf8')
-    const controlsSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeJellyfinAssetUploadControls.tsx'), 'utf8')
+    const routeSource = readFileSync(path.join(currentDir, 'page.tsx'), 'utf8')
 
-    expect(metadataSource).toContain('AnimeJellyfinAssetUploadControls')
-    expect(controlsSource).toContain('formatOwnershipLabel(asset.ownership)')
-    expect(metadataSource).not.toContain('provider-only')
-    expect(controlsSource).not.toContain('provider-only')
+    expect(routeSource).not.toContain('AnimeJellyfinMetadataSection')
   })
 })

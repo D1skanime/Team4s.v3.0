@@ -578,6 +578,49 @@ export interface AdminAnimePersistedAssets {
   background_video?: AdminAnimePersistedAssetState;
 }
 
+export type AdminAnimeEditorMode = "create" | "edit";
+
+export interface AdminAnimeEditorDraftValues {
+  title: string;
+  type: AnimeType;
+  contentType: ContentType;
+  status: AnimeStatus;
+  year: string;
+  maxEpisodes: string;
+  titleDE: string;
+  titleEN: string;
+  genreTokens: string[];
+  tagTokens: string[];
+  description: string;
+  coverImage: string;
+  source: string;
+  folderName: string;
+}
+
+export interface AdminAnimeEditorHydrationInput {
+  title: string;
+  title_de?: string | null;
+  title_en?: string | null;
+  type?: AnimeType | string | null;
+  content_type?: ContentType | null;
+  status?: AnimeStatus | null;
+  year?: number | null;
+  max_episodes?: number | null;
+  genre?: string | null;
+  genres?: string[] | null;
+  tags?: string[] | null;
+  description?: string | null;
+  cover_image?: string | null;
+  source?: string | null;
+  folder_name?: string | null;
+  persisted_assets?: Partial<AdminAnimePersistedAssets> | null;
+}
+
+export interface AdminAnimeEditorHydratedState {
+  values: AdminAnimeEditorDraftValues;
+  persistedAssets: AdminAnimePersistedAssets;
+}
+
 export interface AdminAnimeJellyfinContext {
   anime_id: number;
   linked: boolean;

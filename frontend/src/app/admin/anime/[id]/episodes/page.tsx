@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
-import { createAdminEpisode, getAnimeByID, getRuntimeAuthToken, getGroupedEpisodes, syncEpisode } from '@/lib/api'
+import { createAdminEpisode, getAnimeByID, getRuntimeAuthToken, getGroupedEpisodes } from '@/lib/api'
 import { AnimeDetail, EpisodeStatus } from '@/types/anime'
 import { GroupedEpisode } from '@/types/episodeVersion'
 import { EpisodesOverview } from '@/components/episodes/EpisodesOverview'
@@ -30,8 +30,6 @@ export default function AdminAnimeEpisodesPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [versionsErrorMessage, setVersionsErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [syncingEpisode, setSyncingEpisode] = useState<number | null>(null)
-  const [syncError, setSyncError] = useState<{ episodeNumber: number; message: string } | null>(null)
   const [formState, setFormState] = useState({
     number: '',
     title: '',
@@ -135,33 +133,6 @@ export default function AdminAnimeEpisodesPage() {
       setErrorMessage(formatAdminError(error, 'Episode konnte nicht angelegt werden.'))
     } finally {
       setIsCreating(false)
-    }
-  }
-
-  async function handleSyncEpisode(episodeNumber: number): Promise<void> {
-    if (!animeID || !authToken.trim()) {
-      setSyncError({
-        episodeNumber,
-        message: 'Anmeldung erforderlich.',
-      })
-      return
-    }
-
-    setSyncingEpisode(episodeNumber)
-    setSyncError(null)
-
-    try {
-      await syncEpisode(animeID, episodeNumber, authToken)
-
-      const refreshedVersions = await getGroupedEpisodes(animeID)
-      setGroupedEpisodes(refreshedVersions.data.episodes)
-    } catch (error) {
-      setSyncError({
-        episodeNumber,
-        message: formatAdminError(error, 'Synchronisation fehlgeschlagen.'),
-      })
-    } finally {
-      setSyncingEpisode(null)
     }
   }
 
@@ -303,7 +274,7 @@ export default function AdminAnimeEpisodesPage() {
               <div>
                 <h2 className={styles.sectionTitle}>Episoden mit Versionen</h2>
                 <p className={styles.sectionMeta}>
-                  Accordion-Ansicht mit Version-Counts, Fansub-Badges und direkten Bearbeitungslinks. "Korrektur-Sync" ist nur fuer einzelne Nachbesserungen gedacht; der normale Staffel-Import bleibt der Jellyfin Saison-Sync im Anime-Editor.
+                  Accordion-Ansicht mit Version-Counts, Fansub-Badges und direkten Bearbeitungslinks. Der normale Staffel-Import bleibt der Jellyfin Saison-Sync im Anime-Editor.
                 </p>
               </div>
             </div>
@@ -314,9 +285,6 @@ export default function AdminAnimeEpisodesPage() {
               episodes={groupedEpisodes}
               isLoading={isLoadingVersions}
               error={versionsErrorMessage}
-              onSyncEpisode={handleSyncEpisode}
-              syncingEpisode={syncingEpisode}
-              syncError={syncError}
             />
           </section>
         </>

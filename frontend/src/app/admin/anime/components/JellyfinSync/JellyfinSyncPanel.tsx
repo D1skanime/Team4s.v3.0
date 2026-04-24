@@ -128,7 +128,6 @@ function renderSyncSummaryCards(result: AdminAnimeJellyfinSyncResult) {
 
 export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: JellyfinSyncPanelProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
-  const [hasCopiedSeriesID, setHasCopiedSeriesID] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const prevIsSearching = useRef(model.isSearching)
 
@@ -144,7 +143,6 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
     model.setSearchQuery(anime.title || '')
     model.reset()
     setIsConfirmOpen(false)
-    setHasCopiedSeriesID(false)
     setHasSearched(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anime.id])
@@ -168,7 +166,6 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
   })
 
   const handleSearch = () => {
-    setHasCopiedSeriesID(false)
     setHasSearched(false)
     onBeforeAction()
     void model.search()
@@ -201,24 +198,14 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
     })
   }
 
-  const handleCopySeriesID = () => {
-    if (!selectedSeriesID || typeof navigator === 'undefined' || !navigator.clipboard) {
-      return
-    }
-
-    void navigator.clipboard.writeText(selectedSeriesID).then(() => {
-      setHasCopiedSeriesID(true)
-    })
-  }
-
   return (
     <section className={styles.syncCard}>
       <div className={styles.header}>
         <div className={styles.headerCopy}>
           <p className={styles.eyebrow}>Provider Sync</p>
-          <h2 className={studioStyles.sectionTitle}>Jellyfin Saison-Sync</h2>
-          <p className={styles.description}>Standardpfad fuer komplette Staffeln: Suche, pruefe und synchronisiere in einem klaren Ablauf. Preview kommt immer vor dem Sync.</p>
-          <p className={styles.description}>Gezielte Korrekturen fuer einzelne Folgen laufen separat ueber den Einzelfolgen-Sync im Episodenbereich.</p>
+          <h2 className={studioStyles.sectionTitle}>Jellyfin neu verbinden</h2>
+          <p className={styles.description}>Suche die passende Jellyfin-Serie, lade eine Vorschau und uebernimm die Verknuepfung erst danach bewusst.</p>
+          <p className={styles.description}>Wenn nur ein Treffer gefunden wird, wird er automatisch vorausgewaehlt.</p>
         </div>
         <div className={styles.headerStatus}>
           <span
@@ -255,12 +242,12 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
             <span className={styles.stepIndex}>1</span>
             <div className={styles.stepPanelHeading}>
               <h3 className={styles.stepTitle}>Serie suchen</h3>
-              <p className={styles.stepHelper}>Suche nach Titel oder Ordnername in Jellyfin.</p>
+              <p className={styles.stepHelper}>Gib den Anime-Namen ein und starte die Jellyfin-Suche.</p>
             </div>
           </div>
           <div className={styles.inlineFieldRow}>
             <div className={`${studioStyles.field} ${styles.inlineFieldGrow}`}>
-              <label htmlFor="jellyfin-search-query">Jellyfin Suche (Series)</label>
+              <label htmlFor="jellyfin-search-query">Anime-Titel in Jellyfin</label>
               <input
                 id="jellyfin-search-query"
                 className={studioStyles.input}
@@ -294,11 +281,11 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
             <span className={styles.stepIndex}>2</span>
             <div className={styles.stepPanelHeading}>
               <h3 className={styles.stepTitle}>Treffer waehlen</h3>
-              <p className={styles.stepHelper}>Waehl den passenden Treffer aus der Suchliste.</p>
+              <p className={styles.stepHelper}>Waehle den passenden Treffer. Bei genau einem Treffer passiert das automatisch.</p>
             </div>
           </div>
           <div className={studioStyles.field}>
-            <label htmlFor="jellyfin-series-select">Trefferliste (Name + voller Pfad)</label>
+            <label htmlFor="jellyfin-series-select">Passende Jellyfin-Serie</label>
             {showSearchEmptyState ? (
               <div className={styles.emptyState}>
                 <p className={styles.emptyStateText}>
@@ -311,7 +298,6 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
                 className={studioStyles.select}
                 value={selectedSeriesID}
                 onChange={(event) => {
-                  setHasCopiedSeriesID(false)
                   model.selectSeries(event.target.value)
                 }}
                 disabled={model.isSyncing || model.isSearching || model.isLoadingPreview || !hasSearchResults}
@@ -326,36 +312,18 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
             )}
           </div>
 
-          <div className={styles.readonlyGroup}>
-            <div className={studioStyles.field}>
-              <label htmlFor="jellyfin-series-id">Jellyfin Series ID</label>
-              <div className={styles.inlineFieldRow}>
-                <input
-                  id="jellyfin-series-id"
-                  className={studioStyles.input}
-                  value={selectedSeriesID}
-                  readOnly
-                  placeholder="Wird nach der Auswahl gesetzt"
-                />
-                <button
-                  className={`${studioStyles.button} ${studioStyles.buttonSecondary}`}
-                  type="button"
-                  onClick={handleCopySeriesID}
-                  disabled={!selectedSeriesID}
-                >
-                  {hasCopiedSeriesID ? 'Kopiert' : 'Kopieren'}
-                </button>
-              </div>
-            </div>
-            {selectedSeries ? (
-              <p className={styles.metaLine}>
+          {selectedSeries ? (
+            <div className={styles.previewBox}>
+              <p className={styles.previewEyebrow}>Ausgewaehlter Treffer</p>
+              <p className={styles.previewTitle}>
                 {selectedSeries.name}
-                {selectedSeries.production_year ? ` (${selectedSeries.production_year})` : ''} | {selectedSeries.path?.trim() || '(ohne Pfad)'}
+                {selectedSeries.production_year ? ` (${selectedSeries.production_year})` : ''}
               </p>
-            ) : (
-              <p className={styles.metaLine}>Noch kein Treffer ausgewaehlt.</p>
-            )}
-          </div>
+              <p className={styles.metaLine}>{selectedSeries.path?.trim() || '(ohne Pfad)'}</p>
+            </div>
+          ) : (
+            <p className={styles.metaLine}>Noch kein Treffer ausgewaehlt.</p>
+          )}
         </section>
 
         <section className={styles.stepPanel}>
@@ -363,13 +331,13 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
             <span className={styles.stepIndex}>3</span>
             <div className={styles.stepPanelHeading}>
               <h3 className={styles.stepTitle}>Preview pruefen</h3>
-              <p className={styles.stepHelper}>Standardoptionen setzen, dann zuerst eine Preview laden.</p>
+              <p className={styles.stepHelper}>Meist reicht Season 1. Lade danach die Vorschau.</p>
             </div>
           </div>
 
           <div className={styles.optionGrid}>
             <div className={studioStyles.field}>
-              <label htmlFor="jellyfin-season-number">Season Number</label>
+              <label htmlFor="jellyfin-season-number">Staffel</label>
               <input
                 id="jellyfin-season-number"
                 className={studioStyles.input}
@@ -395,11 +363,12 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
                   </option>
                 ))}
               </select>
+              <p className={styles.compactHelper}>Standard: private</p>
             </div>
 
             <div className={studioStyles.field}>
               <div className={styles.labelRow}>
-                <label htmlFor="jellyfin-sync-rule">Sync-Regel</label>
+                <label htmlFor="jellyfin-sync-rule">Import-Regel</label>
                 <span
                   className={styles.infoBadge}
                   title="Aktuell ist nur DB-first verfuegbar: vorhandene DB-Werte bleiben erhalten."
@@ -472,11 +441,11 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
                   Preview laeuft...
                 </>
               ) : (
-                'Preview laden'
+                'Vorschau laden'
               )}
             </button>
             <span className={styles.actionHint}>
-              {selectedSeriesID ? 'Lade zuerst die Preview fuer den ausgewaehlten Treffer.' : 'Preview wird aktiv, sobald ein Treffer ausgewaehlt ist.'}
+              {selectedSeriesID ? 'Lade jetzt die Vorschau fuer den ausgewaehlten Treffer.' : 'Waehle zuerst einen Treffer aus.'}
             </span>
           </div>
 
@@ -484,13 +453,13 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
             {model.isLoadingPreview ? (
               <div className={styles.emptyState}>
                 <LoadingSpinner />
-                <p className={styles.emptyStateText}>Preview wird geladen...</p>
+                <p className={styles.emptyStateText}>Vorschau wird geladen...</p>
               </div>
             ) : hasFreshPreview && model.previewResult ? (
               <>
                 <div className={styles.previewHeader}>
                   <div className={styles.previewTitleBlock}>
-                    <p className={styles.previewEyebrow}>Preview Summary</p>
+                    <p className={styles.previewEyebrow}>Vorschau</p>
                     <p className={styles.previewTitle}>{model.previewResult.jellyfin_series_name}</p>
                     <p className={styles.metaLine}>{model.previewResult.jellyfin_series_path || '(ohne Pfad)'}</p>
                   </div>
@@ -530,7 +499,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
             <span className={styles.stepIndex}>4</span>
             <div className={styles.stepPanelHeading}>
               <h3 className={styles.stepTitle}>Sync anwenden</h3>
-              <p className={styles.stepHelper}>Der Sync bleibt gesperrt, bis eine aktuelle Preview vorliegt.</p>
+              <p className={styles.stepHelper}>Erst wenn die Vorschau gut aussieht, wird die Verknuepfung uebernommen.</p>
             </div>
           </div>
 
@@ -549,15 +518,15 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
                   Sync laeuft...
                 </>
               ) : (
-                'Sync anwenden'
+                'Verknuepfen & synchronisieren'
               )}
             </button>
             <span className={styles.actionHint}>
               {canSync
                 ? 'Oeffnet zuerst die Bestaetigung.'
                 : hasFreshPreview && !hasSyncablePreview
-                  ? 'Diese Preview enthaelt keine importierbaren Episoden.'
-                  : 'Bitte zuerst eine aktuelle Preview laden.'}
+                  ? 'Diese Vorschau enthaelt keine importierbaren Episoden.'
+                  : 'Bitte zuerst eine aktuelle Vorschau laden.'}
             </span>
           </div>
 

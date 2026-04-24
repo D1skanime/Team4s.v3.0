@@ -116,7 +116,7 @@ func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_MatchesNor
 		t.Fatal("expected genres to be marked authoritative on create")
 	}
 
-	metadata := mergeNormalizedAnimeMetadata(write.normalizedTitleRecords(), write.Genres)
+	metadata := mergeNormalizedAnimeMetadata(write.normalizedTitleRecords(), write.Genres, nil)
 	if metadata == nil {
 		t.Fatal("expected normalized metadata")
 	}
@@ -205,7 +205,7 @@ func TestAdminContentRepository_AuthoritativeTitlePatchReplacesNormalizedReadVal
 		}),
 	)
 
-	metadata := mergeNormalizedAnimeMetadata(updatedTitles, updatedGenres)
+	metadata := mergeNormalizedAnimeMetadata(updatedTitles, updatedGenres, nil)
 	if metadata == nil {
 		t.Fatal("expected normalized metadata after patch")
 	}
@@ -233,7 +233,7 @@ func TestAdminContentRepository_AuthoritativeGenrePatchReplacesAndClearsReadValu
 		}),
 	)
 
-	metadata := mergeNormalizedAnimeMetadata(updatedTitles, updatedGenres)
+	metadata := mergeNormalizedAnimeMetadata(updatedTitles, updatedGenres, nil)
 	wantGenres := []string{"Drama", "Sci-Fi"}
 	if metadata == nil || !reflect.DeepEqual(metadata.Genres, wantGenres) {
 		t.Fatalf("expected replacement genres %#v, got %#v", wantGenres, metadata)
@@ -247,7 +247,7 @@ func TestAdminContentRepository_AuthoritativeGenrePatchReplacesAndClearsReadValu
 		}),
 	)
 
-	clearedMetadata := mergeNormalizedAnimeMetadata(clearedTitles, clearedGenres)
+	clearedMetadata := mergeNormalizedAnimeMetadata(clearedTitles, clearedGenres, nil)
 	if clearedMetadata == nil {
 		t.Fatal("expected title metadata to remain after clearing genres")
 	}

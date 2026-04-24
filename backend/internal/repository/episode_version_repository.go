@@ -497,7 +497,106 @@ func (r *EpisodeVersionRepository) Update(
 }
 
 func (r *EpisodeVersionRepository) Delete(ctx context.Context, versionID int64) error {
-	return phase20ReleaseImportDeferred("delete release version", versionID)
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("begin delete release version tx %d: %w", versionID, err)
+	}
+	defer tx.Rollback(ctx)
+
+	var variantID int64
+	var releaseVersionID int64
+	var releaseID int64
+	if err := tx.QueryRow(ctx, `
+		SELECT rv.id, rev.id, rev.release_id
+		FROM release_variants rv
+		JOIN release_versions rev ON rev.id = rv.release_version_id
+		WHERE rv.id = $1 OR rev.id = $1
+		ORDER BY rv.id ASC
+		LIMIT 1
+	`, versionID).Scan(&variantID, &releaseVersionID, &releaseID); errors.Is(err, pgx.ErrNoRows) {
+		return ErrNotFound
+	} else if err != nil {
+		return fmt.Errorf("resolve delete release version target %d: %w", versionID, err)
+	}
+
+	streamSourceIDs := make([]int64, 0, 2)
+	rows, err := tx.Query(ctx, `
+		SELECT DISTINCT stream_source_id
+		FROM release_streams
+		WHERE variant_id = $1
+		  AND stream_source_id IS NOT NULL
+	`, variantID)
+	if err != nil {
+		return fmt.Errorf("query release stream sources variant=%d: %w", variantID, err)
+	}
+	for rows.Next() {
+		var streamSourceID int64
+		if err := rows.Scan(&streamSourceID); err != nil {
+			rows.Close()
+			return fmt.Errorf("scan release stream source variant=%d: %w", variantID, err)
+		}
+		streamSourceIDs = append(streamSourceIDs, streamSourceID)
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return fmt.Errorf("iterate release stream sources variant=%d: %w", variantID, err)
+	}
+	rows.Close()
+
+	if _, err := tx.Exec(ctx, `DELETE FROM release_variant_episodes WHERE release_variant_id = $1`, variantID); err != nil {
+		return fmt.Errorf("delete release variant episodes variant=%d: %w", variantID, err)
+	}
+	if _, err := tx.Exec(ctx, `DELETE FROM release_streams WHERE variant_id = $1`, variantID); err != nil {
+		return fmt.Errorf("delete release streams variant=%d: %w", variantID, err)
+	}
+	commandTag, err := tx.Exec(ctx, `DELETE FROM release_variants WHERE id = $1`, variantID)
+	if err != nil {
+		return fmt.Errorf("delete release variant %d: %w", variantID, err)
+	}
+	if commandTag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+
+	var remainingVariants int64
+	if err := tx.QueryRow(ctx, `SELECT COUNT(*) FROM release_variants WHERE release_version_id = $1`, releaseVersionID).Scan(&remainingVariants); err != nil {
+		return fmt.Errorf("count remaining release variants version=%d: %w", releaseVersionID, err)
+	}
+	if remainingVariants == 0 {
+		if _, err := tx.Exec(ctx, `DELETE FROM release_version_groups WHERE release_version_id = $1`, releaseVersionID); err != nil {
+			return fmt.Errorf("delete release version groups version=%d: %w", releaseVersionID, err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM release_versions WHERE id = $1`, releaseVersionID); err != nil {
+			return fmt.Errorf("delete release version %d: %w", releaseVersionID, err)
+		}
+
+		var remainingReleaseVersions int64
+		if err := tx.QueryRow(ctx, `SELECT COUNT(*) FROM release_versions WHERE release_id = $1`, releaseID).Scan(&remainingReleaseVersions); err != nil {
+			return fmt.Errorf("count remaining release versions release=%d: %w", releaseID, err)
+		}
+		if remainingReleaseVersions == 0 {
+			if _, err := tx.Exec(ctx, `DELETE FROM fansub_releases WHERE id = $1`, releaseID); err != nil {
+				return fmt.Errorf("delete empty fansub release %d: %w", releaseID, err)
+			}
+		}
+	}
+
+	for _, streamSourceID := range streamSourceIDs {
+		if _, err := tx.Exec(ctx, `
+			DELETE FROM stream_sources ss
+			WHERE ss.id = $1
+			  AND NOT EXISTS (
+				SELECT 1 FROM release_streams rs
+				WHERE rs.stream_source_id = ss.id
+			  )
+		`, streamSourceID); err != nil {
+			return fmt.Errorf("delete orphaned stream source %d after release delete: %w", streamSourceID, err)
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit delete release version %d: %w", versionID, err)
+	}
+	return nil
 }
 
 func (r *EpisodeVersionRepository) DeleteByAnimeAndProvider(ctx context.Context, animeID int64, provider string) (int64, error) {

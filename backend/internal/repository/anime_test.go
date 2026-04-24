@@ -146,6 +146,7 @@ func TestMergeNormalizedAnimeMetadata_PrefersNormalizedTitlesAndGenres(t *testin
 			{LanguageCode: "ja", TitleType: "main", Title: "Shingeki no Kyojin"},
 		},
 		[]string{"Action", "Drama", "action"},
+		nil,
 	)
 	if metadata == nil {
 		t.Fatal("expected normalized metadata")
@@ -172,6 +173,7 @@ func TestMergeNormalizedAnimeMetadata_FallsBackToAvailableTitle(t *testing.T) {
 			{LanguageCode: "en", TitleType: "official", Title: "Frieren"},
 		},
 		nil,
+		nil,
 	)
 	if metadata == nil {
 		t.Fatal("expected normalized metadata")
@@ -190,6 +192,7 @@ func TestMergeNormalizedAnimeMetadata_ReturnsNilWhenEmpty(t *testing.T) {
 			{LanguageCode: "ja", TitleType: "main", Title: "   "},
 		},
 		[]string{" ", ""},
+		nil,
 	)
 	if metadata != nil {
 		t.Fatalf("expected nil metadata, got %#v", metadata)

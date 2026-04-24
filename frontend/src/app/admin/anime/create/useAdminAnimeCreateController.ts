@@ -362,8 +362,17 @@ export function useAdminAnimeCreateController() {
       tagTokens: createTagTokens,
       description: createDescription,
       coverImage: createCoverImage,
+      source:
+        aniSearchDraftResult?.draft.source?.trim() ||
+        (jellyfinPreview ? `jellyfin:${jellyfinPreview.jellyfin_series_id.trim()}` : ""),
+      folderName:
+        aniSearchDraftResult?.draft.folder_name?.trim() ||
+        jellyfinPreview?.jellyfin_series_path?.trim() ||
+        "",
     }),
     [
+      aniSearchDraftResult?.draft.folder_name,
+      aniSearchDraftResult?.draft.source,
       createContentType,
       createCoverImage,
       createDescription,
@@ -376,6 +385,7 @@ export function useAdminAnimeCreateController() {
       createTitleEN,
       createType,
       createYear,
+      jellyfinPreview,
     ],
   );
 
@@ -1363,9 +1373,11 @@ export function useAdminAnimeCreateController() {
         contentType: createContentType,
         coverImage: createCoverImage,
         description: createDescription,
+        folderName: manualDraftValues.folderName,
         genreDraft: createGenreDraft,
         genreTokens: createGenreTokens,
         maxEpisodes: createMaxEpisodes,
+        source: manualDraftValues.source,
         status: createStatus,
         tagDraft: createTagDraft,
         tagTokens: createTagTokens,

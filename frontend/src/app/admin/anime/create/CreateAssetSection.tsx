@@ -91,7 +91,7 @@ function AssetActionRow({
 }
 
 function buildStatusNote(previewUrl?: string | null): string | undefined {
-  return previewUrl ? "Wird beim Erstellen uebernommen" : undefined;
+  return previewUrl ? "Wird beim Erstellen übernommen" : undefined;
 }
 
 function resolveStagedAssetSource(

@@ -1,315 +1,124 @@
 ---
 phase: 21-fansub-group-chip-mapping-and-collaboration-wiring
-verified: pending
-status: ready-for-uat
+verified: 2026-04-23T09:01:30Z
+status: human_needed
+score: 5/5 must-haves verified
+human_verification:
+  - test: "Import an existing fansub group through the chip UI and apply the mapping"
+    expected: "The row uses a chip, apply succeeds, and reload still shows the same group while release_version_groups and anime_fansub_groups match."
+    why_human: "Requires a running frontend/backend plus DB inspection after a real operator action."
+  - test: "Import a mixed existing plus new fansub-group selection such as FlameHazeSubs + TestGruppe"
+    expected: "The backend creates or reuses one deterministic collaboration, fansub_collaboration_members contains the two members once, and reload reflects the member chips."
+    why_human: "Automated code checks prove the resolver path exists, but not that live data and the current DB state produce the expected persisted rows."
+  - test: "Save the same selected groups through the manual episode-version editor and reload"
+    expected: "The save uses fansub_groups only, the effective release group stays backend-derived, and anime_fansub_groups remains aligned."
+    why_human: "Needs a live editor flow plus persisted-state comparison across import and manual edit surfaces."
 ---
 
-# Phase 21 Verification
+# Phase 21: Fansub Group Chip Mapping And Collaboration Wiring Verification Report
 
-## Goal
+**Phase Goal:** Replace flat fansub-group text entry in episode import and manual version editing with reusable group chips, while keeping backend authority over new-group creation, deterministic collaboration building, and anime-level group linkage.
+**Verified:** 2026-04-23T09:01:30Z
+**Status:** human_needed
+**Re-verification:** No - initial verification
 
-Prove that both write surfaces now use the same backend-authoritative fansub-group contract:
+## Goal Achievement
 
-1. import applies existing groups as chips without frontend-owned collaboration identity
-2. import applies a new multi-group collaboration such as `FlameHazeSubs + TestGruppe`
-3. manual episode-version editing persists the same selected groups through save
+### Observable Truths
 
-Every check below should confirm matching truth in:
+| # | Truth | Status | Evidence |
+| --- | --- | --- | --- |
+| 1 | Episode-import mapping rows can reuse existing fansub groups through chip-style search/select instead of relying only on a flat text field. | VERIFIED | [EpisodeImportMappingRow.tsx](/C:/Users/admin/Documents/Team4s/frontend/src/app/admin/anime/[id]/episodes/import/EpisodeImportMappingRow.tsx:79) searches `getFansubList`, filters out collaboration groups at line 84, and renders removable chips at lines 163-174. |
+| 2 | Operators can still type a new group name in the same flow, and apply persists that new group without leaving the workbench. | VERIFIED | Free-text chips are added in [EpisodeImportMappingRow.tsx](/C:/Users/admin/Documents/Team4s/frontend/src/app/admin/anime/[id]/episodes/import/EpisodeImportMappingRow.tsx:110), then serialized into the apply payload in [useEpisodeImportBuilder.ts](/C:/Users/admin/Documents/Team4s/frontend/src/app/admin/anime/[id]/episodes/import/useEpisodeImportBuilder.ts:317) and normalized by [episodeImportMapping.ts](/C:/Users/admin/Documents/Team4s/frontend/src/app/admin/anime/[id]/episodes/import/episodeImportMapping.ts:236). `buildEpisodeImportApplyInput keeps free-text chips after row edits` passes in [episodeImportMapping.test.ts](/C:/Users/admin/Documents/Team4s/frontend/src/app/admin/anime/[id]/episodes/import/episodeImportMapping.test.ts:474). |
+| 3 | Selecting more than one group in import or manual version editing creates or reuses one deterministic collaboration group in the backend, rather than requiring an explicit collaboration chip in the UI. | VERIFIED | Import and manual writes both route through `resolveImportFansubSelectionFromInputs` in [episode_import_repository_release_helpers.go](/C:/Users/admin/Documents/Team4s/backend/internal/repository/episode_import_repository_release_helpers.go:256) and [episode_version_repository.go](/C:/Users/admin/Documents/Team4s/backend/internal/repository/episode_version_repository.go:900). Collaboration membership is written in [episode_import_repository_release_helpers.go](/C:/Users/admin/Documents/Team4s/backend/internal/repository/episode_import_repository_release_helpers.go:312). Order stability is covered by `TestBuildImportCollaborationName_IsStableAcrossSelectionOrder` in [episode_import_repository_test.go](/C:/Users/admin/Documents/Team4s/backend/internal/repository/episode_import_repository_test.go:145). |
+| 4 | Episode-level patch actions such as `Episode` and `Ab hier` copy the selected group chips as a set, not just one text string. | VERIFIED | The row buttons call set-aware handlers in [EpisodeImportMappingRow.tsx](/C:/Users/admin/Documents/Team4s/frontend/src/app/admin/anime/[id]/episodes/import/EpisodeImportMappingRow.tsx:233) and [EpisodeImportMappingRow.tsx](/C:/Users/admin/Documents/Team4s/frontend/src/app/admin/anime/[id]/episodes/import/EpisodeImportMappingRow.tsx:241), which wire to `applyFansubGroupToEpisodeRows` and `applyFansubGroupFromEpisodeDown` in [useEpisodeImportBuilder.ts](/C:/Users/admin/Documents/Team4s/frontend/src/app/admin/anime/[id]/episodes/import/useEpisodeImportBuilder.ts:276). Multi-group patch behavior is covered by passing Vitest cases in [episodeImportMapping.test.ts](/C:/Users/admin/Documents/Team4s/frontend/src/app/admin/anime/[id]/episodes/import/episodeImportMapping.test.ts:388) and [episodeImportMapping.test.ts](/C:/Users/admin/Documents/Team4s/frontend/src/app/admin/anime/[id]/episodes/import/episodeImportMapping.test.ts:434). |
+| 5 | Persisted release-version group links and `anime_fansub_groups` stay consistent with the effective group/collaboration chosen by the operator. | VERIFIED | Import writes `release_version_groups` then calls `ensureAnimeFansubGroupLinks` in [episode_import_repository_release_helpers.go](/C:/Users/admin/Documents/Team4s/backend/internal/repository/episode_import_repository_release_helpers.go:203) and [episode_import_repository_release_helpers.go](/C:/Users/admin/Documents/Team4s/backend/internal/repository/episode_import_repository_release_helpers.go:215). Manual saves do the same through `syncEpisodeVersionSelectedGroups` in [episode_version_repository.go](/C:/Users/admin/Documents/Team4s/backend/internal/repository/episode_version_repository.go:883). Follow-through ordering and idempotence are covered by passing backend tests in [episode_import_repository_test.go](/C:/Users/admin/Documents/Team4s/backend/internal/repository/episode_import_repository_test.go:186) and [episode_import_repository_test.go](/C:/Users/admin/Documents/Team4s/backend/internal/repository/episode_import_repository_test.go:210). |
 
-- `release_version_groups`
-- `fansub_collaboration_members`
-- `anime_fansub_groups`
+**Score:** 5/5 truths verified
 
-## Environment
+### Required Artifacts
 
-Start or refresh the local stack:
+| Artifact | Expected | Status | Details |
+| --- | --- | --- | --- |
+| `frontend/src/app/admin/anime/[id]/episodes/import/EpisodeImportMappingRow.tsx` | Chip-based import-row selector with search, free-text add, and patch actions | VERIFIED | Exists, substantive, and wired from the page. Existing-group search, free-text chips, and `Episode` / `Ab hier` actions are implemented. |
+| `frontend/src/app/admin/anime/[id]/episodes/import/useEpisodeImportBuilder.ts` | Shared import-row state and apply payload wiring for selected-group sets | VERIFIED | Exists, substantive, and calls `applyEpisodeImport` with serialized `fansub_groups`. |
+| `frontend/src/app/admin/anime/[id]/episodes/import/episodeImportMapping.ts` | Set-aware group normalization, dedupe, and row patch helpers | VERIFIED | Exists, substantive, and backed by 29 passing import mapping tests. |
+| `backend/internal/repository/episode_import_repository_release_helpers.go` | Backend-selected group resolver, deterministic collaboration builder, and anime link follow-through | VERIFIED | Exists, substantive, and writes `release_version_groups`, `fansub_collaboration_members`, and `anime_fansub_groups`. |
+| `frontend/src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.ts` | Manual editor save path using the selected-group contract without frontend collaboration creation | VERIFIED | Exists, substantive, and submits `fansub_groups`. Explicit absence check found no `createFansubGroup`, `addCollaborationMember`, or `removeCollaborationMember` usage. |
+| `backend/internal/repository/episode_version_repository.go` | Manual create/update wired through the shared backend resolver and anime link helper | VERIFIED | Exists, substantive, and reuses `resolveImportFansubSelectionFromInputs` plus `ensureAnimeFansubGroupLinks`. |
+| `backend/internal/handlers/admin_content_episode_version_editor_helpers.go` | Editor reload resolves effective collaboration back into selected member chips | VERIFIED | Exists, substantive, and expands collaboration groups via `ListCollaborationMembers` into `selected_groups`. |
 
-```powershell
-docker compose up -d team4sv30-db team4sv30-redis
-docker compose up -d --build team4sv30-backend team4sv30-frontend
-```
+### Key Link Verification
 
-Optional automated confidence before manual checks:
+| From | To | Via | Status | Details |
+| --- | --- | --- | --- | --- |
+| `EpisodeImportMappingRow.tsx` | `getFansubList` | row-local search effect | WIRED | Search call at line 79; collaboration groups filtered from choices at line 84. |
+| `useEpisodeImportBuilder.ts` | `applyEpisodeImport` | `buildEpisodeImportApplyInput` | WIRED | Apply call at lines 232-234; mappings serialized with `serializeEpisodeImportMappingRow` at line 326. |
+| `episode_import_repository_release_helpers.go` | `fansub_collaboration_members` | `upsertImportCollaborationGroup` | WIRED | Collaboration rows inserted at line 312 after canonicalized member resolution. |
+| `episode_import_repository_release_helpers.go` | `anime_fansub_groups` | `ensureAnimeFansubGroupLinks` after release write | WIRED | Release group write at line 203; anime follow-through called at line 215; inserts at line 411. |
+| `useEpisodeVersionEditor.ts` | `updateEpisodeVersion` | `fansub_groups` payload | WIRED | Manual editor save issues `updateEpisodeVersion` at line 217 and sends `fansub_groups` at line 221. |
+| `episode_version_repository.go` | shared group resolver | `resolveImportFansubSelectionFromInputs` | WIRED | Manual repository sync calls shared resolver at line 900, then persists `release_version_groups` at line 927 and anime follow-through at line 934. |
+| `admin_content_episode_version_editor_helpers.go` | collaboration member expansion | `ListCollaborationMembers` | WIRED | Editor context turns effective collaboration groups back into member-chip state for reloads. |
 
-```powershell
-cd backend; go test ./internal/repository ./internal/handlers -count=1
-```
+### Data-Flow Trace (Level 4)
 
-App URLs:
+| Artifact | Data Variable | Source | Produces Real Data | Status |
+| --- | --- | --- | --- | --- |
+| `EpisodeImportMappingRow.tsx` | `selectedFansubGroups`, `results` | `row.fansub_groups` from builder state and `getFansubList()` search results | Yes | FLOWING |
+| `useEpisodeImportBuilder.ts` | `mappings` | Preview state edited through set-aware helpers, then sent to `applyEpisodeImport()` | Yes | FLOWING |
+| `episode_import_repository_release_helpers.go` | `selection.EffectiveGroup`, `selection.MemberGroups` | DB-backed group lookup/upsert plus collaboration-member inserts | Yes | FLOWING |
+| `useEpisodeVersionEditor.ts` | `selectedGroups` | Editor-context `selected_groups`, search results from `getFansubList()`, and save payload to `updateEpisodeVersion()` | Yes | FLOWING |
+| `admin_content_episode_version_editor_helpers.go` | `SelectedGroups` | Effective persisted group from repo, expanded via `ListCollaborationMembers()` when it is a collaboration | Yes | FLOWING |
 
-- Frontend: `http://127.0.0.1:3002`
-- Backend health: `http://127.0.0.1:8092/health`
+### Behavioral Spot-Checks
 
-SQL shell pattern used below:
+| Behavior | Command | Result | Status |
+| --- | --- | --- | --- |
+| Backend selected-group validation, resolver, and repository wiring compile and pass tests | `go test ./internal/repository ./internal/handlers -count=1` | `ok team4s.v3/backend/internal/repository` and `ok team4s.v3/backend/internal/handlers` | PASS |
+| Import mapping set-aware chip helpers and payload builder behave as expected | `npm test -- episodeImportMapping.test.ts` | `29 passed` in `episodeImportMapping.test.ts` | PASS |
+| Live import/manual persistence against the current DB | Not run | Requires operator flow plus DB state inspection | SKIP |
 
-```powershell
-docker compose exec -T team4sv30-db psql -U team4s -d team4s_v2 -c "<SQL>"
-```
+### Requirements Coverage
 
-## Test Data
+| Requirement | Source Plan | Description | Status | Evidence |
+| --- | --- | --- | --- | --- |
+| `P21-SC1` | `21-02-PLAN.md` | Import rows reuse existing fansub groups through chip-style search/select. | SATISFIED | Implemented in `EpisodeImportMappingRow.tsx` search + chip UI. Roadmap-only: ID not present in `.planning/REQUIREMENTS.md`. |
+| `P21-SC2` | `21-01-PLAN.md`, `21-02-PLAN.md` | Operators can type a new group name and apply it from the same flow. | SATISFIED | Free-text chip add plus apply payload serialization are implemented and tested. Roadmap-only: ID not present in `.planning/REQUIREMENTS.md`. |
+| `P21-SC3` | `21-01-PLAN.md`, `21-03-PLAN.md` | Multi-group selections in import or manual editing resolve to one deterministic backend collaboration. | SATISFIED | Shared backend resolver + deterministic collaboration naming test. Roadmap-only: ID not present in `.planning/REQUIREMENTS.md`. |
+| `P21-SC4` | `21-02-PLAN.md` | `Episode` and `Ab hier` patch actions copy selected chips as a set. | SATISFIED | Set-aware patch helpers and passing Vitest coverage. Roadmap-only: ID not present in `.planning/REQUIREMENTS.md`. |
+| `P21-SC5` | `21-01-PLAN.md`, `21-03-PLAN.md` | `release_version_groups` and `anime_fansub_groups` stay aligned with the effective persisted group. | SATISFIED | Import and manual repository paths both write release group state and anime follow-through. Roadmap-only: ID not present in `.planning/REQUIREMENTS.md`. |
 
-Use an anime that already has:
+### Anti-Patterns Found
 
-- an importable Jellyfin series
-- at least one existing local fansub group such as `FlameHazeSubs`
-- permission to create a disposable extra group named `TestGruppe` if it does not exist yet
+| File | Line | Pattern | Severity | Impact |
+| --- | --- | --- | --- | --- |
+| - | - | No blocker anti-patterns found in the phase files. The scan only surfaced benign `placeholder` UI attributes and null-return helper branches. | INFO | No stubbed or hollow implementations detected in the verified phase paths. |
 
-Record the working `anime_id` once chosen:
+### Human Verification Required
 
-```sql
-SELECT id, title
-FROM anime
-ORDER BY id ASC;
-```
+### 1. Import Existing Group Chip
 
-## Case 1: Import Existing Groups As Chips
+**Test:** Open `/admin/anime/{anime_id}/episodes/import`, search/select one existing group chip, apply, then reload the import or version editor surface.  
+**Expected:** The same chip remains selected, no explicit collaboration chip is needed, and the persisted group matches `release_version_groups` plus `anime_fansub_groups`.  
+**Why human:** Requires the live import UI, backend, and DB state after a real apply.
 
-### Manual Steps
+### 2. Import New Collaboration Member Set
 
-1. Open `/admin/anime/{anime_id}/episodes/import`.
-2. Load a preview with a Jellyfin-linked source.
-3. In one mapping row, search the fansub chip field and select exactly one existing group, for example `FlameHazeSubs`.
-4. Apply the mapping.
-5. Confirm the UI reports a successful apply.
+**Test:** In the import workbench, select one existing group plus one newly typed chip such as `FlameHazeSubs` + `TestGruppe`, apply, then inspect `release_version_groups`, `fansub_collaboration_members`, and `anime_fansub_groups`.  
+**Expected:** One backend-owned collaboration is created or reused deterministically, member rows are stored exactly once, and anime links include both members plus the collaboration.  
+**Why human:** The code proves the path exists, but current DB contents and runtime behavior still need confirmation.
 
-### Expected UI Result
+### 3. Manual Editor Save And Reload
 
-- The row uses the selected chip, not free-text-only fallback.
-- Apply succeeds without creating a frontend-authored collaboration.
-- Re-opening the import page or manual editor shows the same selected group persisted.
+**Test:** Open `/admin/episode-versions/{version_id}/edit`, choose the same member groups, save, and reload.  
+**Expected:** The request persists through `fansub_groups`, the effective saved group stays backend-derived, and reload expands the collaboration back into member chips.  
+**Why human:** Needs a real save/reload cycle against the current environment.
 
-### SQL Checks
+### Gaps Summary
 
-Replace `{anime_id}` and optionally narrow by episode number if needed.
+No automated implementation gaps were found. The remaining work is live UAT: the phase now has the code paths, wiring, and tests expected for the goal, but final proof of goal achievement still depends on runtime verification across import, manual save, and database persistence.
 
-```sql
-SELECT
-  e.anime_id,
-  e.episode_number,
-  rev.id AS release_version_id,
-  fg.id AS fansub_group_id,
-  fg.name,
-  fg.group_type
-FROM episodes e
-JOIN fansub_releases fr ON fr.episode_id = e.id
-JOIN release_versions rev ON rev.release_id = fr.id
-JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
-JOIN fansub_groups fg ON fg.id = COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id)
-WHERE e.anime_id = {anime_id}
-ORDER BY e.episode_number::int, rev.id;
-```
-
-Expected:
-
-- the affected `release_version_groups` row points directly to the selected existing group
-- `group_type = 'group'`
+---
 
-```sql
-SELECT
-  afg.anime_id,
-  fg.id AS fansub_group_id,
-  fg.name,
-  fg.group_type
-FROM anime_fansub_groups afg
-JOIN fansub_groups fg ON fg.id = afg.fansub_group_id
-WHERE afg.anime_id = {anime_id}
-ORDER BY fg.name ASC;
-```
-
-Expected:
-
-- the selected existing group is present in `anime_fansub_groups`
-
-```sql
-SELECT
-  collaboration_id,
-  member_group_id
-FROM fansub_collaboration_members
-WHERE collaboration_id IN (
-  SELECT fg.id
-  FROM fansub_groups fg
-  WHERE fg.name = 'FlameHazeSubs'
-);
-```
-
-Expected:
-
-- no new collaboration requirement is introduced for the single-group case
-
-## Case 2: Import A New Multi-Group Collaboration
-
-### Manual Steps
-
-1. Stay on `/admin/anime/{anime_id}/episodes/import`.
-2. Choose one mapping row.
-3. Add two chips: existing `FlameHazeSubs` and new free-text `TestGruppe`.
-4. Apply the mapping.
-5. Confirm the UI reports success.
-
-### Expected UI Result
-
-- The operator selects member groups as chips.
-- No explicit collaboration chip is required in the UI.
-- After apply, reopening the row/editor reflects the two member groups.
-
-### SQL Checks
-
-```sql
-SELECT id, slug, name, group_type
-FROM fansub_groups
-WHERE name IN ('FlameHazeSubs', 'TestGruppe', 'FlameHazeSubs & TestGruppe')
-ORDER BY name ASC;
-```
-
-Expected:
-
-- `FlameHazeSubs` exists as `group`
-- `TestGruppe` exists as `group`
-- `FlameHazeSubs & TestGruppe` exists as `collaboration`
-
-```sql
-SELECT
-  collab.id AS collaboration_id,
-  collab.name AS collaboration_name,
-  member.id AS member_group_id,
-  member.name AS member_group_name
-FROM fansub_groups collab
-JOIN fansub_collaboration_members fcm ON fcm.collaboration_id = collab.id
-JOIN fansub_groups member ON member.id = fcm.member_group_id
-WHERE collab.name = 'FlameHazeSubs & TestGruppe'
-ORDER BY member.name ASC;
-```
-
-Expected:
-
-- `fansub_collaboration_members` contains exactly `FlameHazeSubs` and `TestGruppe`
-
-```sql
-SELECT
-  e.anime_id,
-  e.episode_number,
-  rev.id AS release_version_id,
-  fg.name AS effective_group_name,
-  fg.group_type
-FROM episodes e
-JOIN fansub_releases fr ON fr.episode_id = e.id
-JOIN release_versions rev ON rev.release_id = fr.id
-JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
-JOIN fansub_groups fg ON fg.id = COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id)
-WHERE e.anime_id = {anime_id}
-  AND fg.name = 'FlameHazeSubs & TestGruppe'
-ORDER BY e.episode_number::int, rev.id;
-```
-
-Expected:
-
-- `release_version_groups` stores the effective collaboration group
-
-```sql
-SELECT
-  afg.anime_id,
-  fg.name,
-  fg.group_type
-FROM anime_fansub_groups afg
-JOIN fansub_groups fg ON fg.id = afg.fansub_group_id
-WHERE afg.anime_id = {anime_id}
-  AND fg.name IN ('FlameHazeSubs', 'TestGruppe', 'FlameHazeSubs & TestGruppe')
-ORDER BY fg.name ASC;
-```
-
-Expected:
-
-- `anime_fansub_groups` contains all three links:
-  - `FlameHazeSubs`
-  - `TestGruppe`
-  - `FlameHazeSubs & TestGruppe`
-
-## Case 3: Save The Same Selection Through The Manual Episode-Version Editor
-
-### Manual Steps
-
-1. Open an existing release version from `/admin/anime/{anime_id}/versions` or the grouped episode list.
-2. Open `/admin/episode-versions/{version_id}/edit`.
-3. In the fansub chip field, select the same two member groups: `FlameHazeSubs` and `TestGruppe`.
-4. Save the version.
-5. Reload the page.
-
-### Expected UI Result
-
-- Save succeeds without the frontend calling standalone collaboration create/member mutation flows.
-- Reload shows the same two selected member chips.
-- The effective persisted group on the returned version is still the collaboration chosen by the backend.
-
-### SQL Checks
-
-```sql
-SELECT
-  rv.id AS variant_id,
-  rev.id AS release_version_id,
-  e.anime_id,
-  e.episode_number,
-  fg.id AS effective_group_id,
-  fg.name AS effective_group_name,
-  fg.group_type
-FROM release_variants rv
-JOIN release_versions rev ON rev.id = rv.release_version_id
-JOIN fansub_releases fr ON fr.id = rev.release_id
-JOIN episodes e ON e.id = fr.episode_id
-JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
-JOIN fansub_groups fg ON fg.id = COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id)
-WHERE rv.id = {version_id};
-```
-
-Expected:
-
-- the saved manual edit points at `FlameHazeSubs & TestGruppe`
-- `release_version_groups` matches the import path for the same member-set
-
-```sql
-SELECT
-  collab.name AS collaboration_name,
-  member.name AS member_group_name
-FROM fansub_groups collab
-JOIN fansub_collaboration_members fcm ON fcm.collaboration_id = collab.id
-JOIN fansub_groups member ON member.id = fcm.member_group_id
-WHERE collab.name = 'FlameHazeSubs & TestGruppe'
-ORDER BY member.name ASC;
-```
-
-Expected:
-
-- `fansub_collaboration_members` is unchanged and still authoritative
-
-```sql
-SELECT
-  afg.anime_id,
-  fg.name,
-  fg.group_type
-FROM anime_fansub_groups afg
-JOIN fansub_groups fg ON fg.id = afg.fansub_group_id
-WHERE afg.anime_id = {anime_id}
-  AND fg.name IN ('FlameHazeSubs', 'TestGruppe', 'FlameHazeSubs & TestGruppe')
-ORDER BY fg.name ASC;
-```
-
-Expected:
-
-- manual save preserves the same `anime_fansub_groups` follow-through as import apply
-
-## Pass Criteria
-
-Phase 21 is verified when all three cases are true:
-
-- import and manual editor both submit member-group selections, not frontend-authored collaboration identities
-- `release_version_groups` stores the backend-resolved effective group
-- `fansub_collaboration_members` stores the collaboration membership exactly once
-- `anime_fansub_groups` includes the effective collaboration and member groups for the anime
-
-## Failure Notes To Capture If Anything Breaks
-
-- exact route used
-- `anime_id`
-- `version_id` if the manual editor case fails
-- chip selections used
-- SQL output from all three tables
-- whether the bad state came from import apply, manual save, or only UI reload
+_Verified: 2026-04-23T09:01:30Z_  
+_Verifier: Claude (gsd-verifier)_

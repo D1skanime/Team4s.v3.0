@@ -125,10 +125,16 @@ export function useJellyfinSync(
       setLastSyncResult(null)
       const response = await searchAdminJellyfinSeries(query, { limit: 50 }, authToken)
       setSeriesOptions(response.data)
+      if (response.data.length === 1) {
+        setSelectedSeriesID(response.data[0].jellyfin_series_id)
+      }
       if (response.data.length === 0) {
         onSuccess('Keine Jellyfin-Serien fuer die Suche gefunden.')
       } else {
-        const message = `${response.data.length} Jellyfin-Treffer gefunden.`
+        const message =
+          response.data.length === 1
+            ? '1 Jellyfin-Treffer gefunden und direkt vorausgewaehlt.'
+            : `${response.data.length} Jellyfin-Treffer gefunden.`
         setSearchFeedback(buildJellyfinFeedback('success', message))
         onSuccess(message)
       }

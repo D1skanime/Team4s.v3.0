@@ -260,6 +260,8 @@ function mapManualDraftToCreateDraft(
     tags: values.tagTokens.length > 0 ? [...values.tagTokens] : undefined,
     description: normalizeOptionalString(values.description),
     cover_image: normalizeOptionalString(values.coverImage),
+    source: normalizeOptionalString(values.source),
+    folder_name: normalizeOptionalString(values.folderName),
   }
 }
 

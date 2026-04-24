@@ -27,6 +27,9 @@ interface AniSearchEnrichmentSectionProps {
   conflictResult?: AdminAnimeAniSearchEditConflictResult | null
   statusMessage?: string | null
   errorMessage?: string | null
+  isSourceLocked?: boolean
+  lockedSourceLabel?: string | null
+  submitLabel?: string
   onAniSearchIDChange: (value: string) => void
   onProtectedFieldsChange: (fields: string[]) => void
   onSubmit: () => void
@@ -45,6 +48,9 @@ export function AniSearchEnrichmentSection({
   conflictResult = null,
   statusMessage,
   errorMessage,
+  isSourceLocked = false,
+  lockedSourceLabel = null,
+  submitLabel,
   onAniSearchIDChange,
   onProtectedFieldsChange,
   onSubmit,
@@ -72,6 +78,7 @@ export function AniSearchEnrichmentSection({
             value={anisearchID}
             placeholder="z. B. 12345"
             aria-describedby={`${helperID} ${statusID}`}
+            readOnly={isSourceLocked}
             onChange={(event) => onAniSearchIDChange(event.target.value)}
           />
         </label>
@@ -82,13 +89,16 @@ export function AniSearchEnrichmentSection({
           disabled={isLoading || !anisearchID.trim()}
           onClick={onSubmit}
         >
-          {isLoading ? 'AniSearch laedt...' : 'AniSearch laden'}
+          {isLoading
+            ? 'AniSearch laedt...'
+            : submitLabel || (isSourceLocked ? 'AniSearch erneut laden' : 'AniSearch laden')}
         </button>
       </div>
 
       <p id={helperID} className={workspaceStyles.helperText}>
-        Vorlaeufiger Suchtext gilt nicht als geschuetzter Titel. Nach dem Laden wird der AniSearch-Titel uebernommen,
-        bis du das Feld bewusst schuetzt.
+        {isSourceLocked
+          ? lockedSourceLabel || 'Diese AniSearch-Verknuepfung ist bereits fixiert. Du kannst die Daten erneut laden, aber die ID nicht frei umhaengen.'
+          : 'Vorlaeufiger Suchtext gilt nicht als geschuetzter Titel. Nach dem Laden wird der AniSearch-Titel uebernommen, bis du das Feld bewusst schuetzt.'}
       </p>
 
       <fieldset className={workspaceStyles.protectionFieldset}>

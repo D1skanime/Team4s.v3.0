@@ -6,6 +6,7 @@ import styles from "./JellyfinCandidateCard.module.css";
 
 interface JellyfinCandidateCardProps {
   candidate: AdminJellyfinIntakeSearchItem;
+  currentAnimeID?: number;
   isSelected?: boolean;
   isLoadingPreview?: boolean;
   isAdopted?: boolean;
@@ -26,6 +27,7 @@ function confidenceLabel(confidence: AdminJellyfinIntakeSearchItem["confidence"]
 
 export function JellyfinCandidateCard({
   candidate,
+  currentAnimeID,
   isSelected = false,
   isLoadingPreview = false,
   isAdopted = false,
@@ -33,6 +35,11 @@ export function JellyfinCandidateCard({
   onAdopt,
 }: JellyfinCandidateCardProps) {
   const posterUrl = resolveJellyfinIntakeAssetUrl(candidate.poster_url);
+  const isCurrentAnime =
+    typeof currentAnimeID === "number" &&
+    typeof candidate.existing_anime_id === "number" &&
+    candidate.existing_anime_id === currentAnimeID;
+  const isBlockedImported = candidate.already_imported && !isCurrentAnime;
 
   return (
     <article className={`${styles.card} ${isSelected ? styles.selected : ""}`}>
@@ -69,7 +76,7 @@ export function JellyfinCandidateCard({
           </p>
         </div>
 
-        {candidate.already_imported ? (
+        {isBlockedImported ? (
           <div className={styles.importedBox}>
             <strong>Bereits importiert</strong>
             <p>
@@ -85,6 +92,14 @@ export function JellyfinCandidateCard({
               </Link>
             ) : null}
           </div>
+        ) : isCurrentAnime ? (
+          <div className={styles.importedBox}>
+            <strong>Dieser Anime</strong>
+            <p>
+              {candidate.existing_title || candidate.name}
+              {candidate.existing_anime_id ? ` (#${candidate.existing_anime_id})` : ""}
+            </p>
+          </div>
         ) : null}
 
         <div className={styles.actionRow}>
@@ -96,7 +111,7 @@ export function JellyfinCandidateCard({
             {isSelected ? "Im Fokus" : "Ansehen"}
           </button>
 
-          {candidate.already_imported ? (
+          {isBlockedImported ? (
             <button className={styles.disabledButton} type="button" disabled>
               Bereits importiert
             </button>
@@ -111,7 +126,9 @@ export function JellyfinCandidateCard({
                 ? "Ausgewaehlt"
                 : isLoadingPreview
                   ? "Uebernimmt..."
-                  : "Jellyfin uebernehmen"}
+                  : isCurrentAnime
+                    ? "Mit diesem Anime verknuepfen"
+                    : "Jellyfin uebernehmen"}
             </button>
           )}
         </div>

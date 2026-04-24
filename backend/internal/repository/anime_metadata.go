@@ -18,6 +18,7 @@ type normalizedAnimeMetadata struct {
 	TitleDE *string
 	TitleEN *string
 	Genres  []string
+	Tags    []string
 }
 
 type normalizedAnimeTitleRecord struct {
@@ -94,7 +95,38 @@ func loadNormalizedAnimeMetadata(ctx context.Context, db normalizedAnimeMetadata
 		return nil, fmt.Errorf("iterate normalized anime genres %d: %w", animeID, err)
 	}
 
-	metadata := mergeNormalizedAnimeMetadata(titleRecords, genres)
+	tagRows, err := db.Query(
+		ctx,
+		`
+		SELECT t.name
+		FROM anime_tags at
+		JOIN tags t ON t.id = at.tag_id
+		WHERE at.anime_id = $1
+		ORDER BY t.name ASC
+		`,
+		animeID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("query normalized anime tags %d: %w", animeID, err)
+	}
+	defer tagRows.Close()
+
+	tags := make([]string, 0)
+	for tagRows.Next() {
+		var tag string
+		if err := tagRows.Scan(&tag); err != nil {
+			return nil, fmt.Errorf("scan normalized anime tag %d: %w", animeID, err)
+		}
+		trimmed := strings.TrimSpace(tag)
+		if trimmed != "" {
+			tags = append(tags, trimmed)
+		}
+	}
+	if err := tagRows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate normalized anime tags %d: %w", animeID, err)
+	}
+
+	metadata := mergeNormalizedAnimeMetadata(titleRecords, genres, tags)
 	if metadata == nil {
 		return nil, nil
 	}
@@ -102,7 +134,7 @@ func loadNormalizedAnimeMetadata(ctx context.Context, db normalizedAnimeMetadata
 	return metadata, nil
 }
 
-func mergeNormalizedAnimeMetadata(titleRecords []normalizedAnimeTitleRecord, genres []string) *normalizedAnimeMetadata {
+func mergeNormalizedAnimeMetadata(titleRecords []normalizedAnimeTitleRecord, genres []string, tags []string) *normalizedAnimeMetadata {
 	metadata := &normalizedAnimeMetadata{}
 
 	if title := pickNormalizedTitle(titleRecords, []string{"ja", "romaji"}, []string{"main", "romaji", "official"}); title != "" {
@@ -121,8 +153,11 @@ func mergeNormalizedAnimeMetadata(titleRecords []normalizedAnimeTitleRecord, gen
 	if len(genres) > 0 {
 		metadata.Genres = uniqueSortedGenres(genres)
 	}
+	if len(tags) > 0 {
+		metadata.Tags = uniqueSortedGenres(tags)
+	}
 
-	if metadata.Title == "" && metadata.TitleDE == nil && metadata.TitleEN == nil && len(metadata.Genres) == 0 {
+	if metadata.Title == "" && metadata.TitleDE == nil && metadata.TitleEN == nil && len(metadata.Genres) == 0 && len(metadata.Tags) == 0 {
 		return nil
 	}
 

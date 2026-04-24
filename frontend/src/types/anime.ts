@@ -59,6 +59,7 @@ export interface AnimeDetail {
   max_episodes?: number
   genre?: string
   genres?: string[]
+  tags?: string[]
   description?: string
   cover_image?: string
   source?: string

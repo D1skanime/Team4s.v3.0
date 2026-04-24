@@ -132,6 +132,8 @@ export default function AdminFansubsPage() {
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
+      if (item.group_type === 'collaboration') return false
+
       const statusMatches =
         statusFilter === 'all'
           ? true

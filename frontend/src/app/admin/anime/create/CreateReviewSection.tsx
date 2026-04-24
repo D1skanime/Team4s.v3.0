@@ -14,6 +14,10 @@ interface CreateReviewSectionProps {
   successMessage?: string | null;
   errorMessage?: string | null;
   onSubmit: () => void;
+  submitLabel?: string;
+  submittingLabel?: string;
+  note?: string;
+  hideSubmitButton?: boolean;
 }
 
 export function CreateReviewSection({
@@ -27,6 +31,10 @@ export function CreateReviewSection({
   successMessage,
   errorMessage,
   onSubmit,
+  submitLabel = "Anime erstellen",
+  submittingLabel = "Wird erstellt…",
+  note = "Noch nicht erstellt – der Anime wird erst nach dem Klick auf „Anime erstellen“ angelegt.",
+  hideSubmitButton = false,
 }: CreateReviewSectionProps) {
   const canCreate = hasTitle && hasCover;
 
@@ -60,27 +68,23 @@ export function CreateReviewSection({
         </div>
       ) : null}
 
-      <p className={createStyles.reviewNote}>
-        Noch nicht erstellt — der Anime wird erst nach dem Klick auf „Anime erstellen" angelegt.
-      </p>
+      <p className={createStyles.reviewNote}>{note}</p>
 
-      {errorMessage ? (
-        <div className={styles.errorBox}>{errorMessage}</div>
-      ) : null}
-      {successMessage ? (
-        <div className={styles.successBox}>{successMessage}</div>
-      ) : null}
+      {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
+      {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
 
-      <div className={createStyles.reviewActions}>
-        <button
-          className={createStyles.createCTA}
-          type="button"
-          disabled={!canCreate || isSubmitting}
-          onClick={onSubmit}
-        >
-          {isSubmitting ? "Wird erstellt…" : "Anime erstellen"}
-        </button>
-      </div>
+      {!hideSubmitButton ? (
+        <div className={createStyles.reviewActions}>
+          <button
+            className={createStyles.createCTA}
+            type="button"
+            disabled={!canCreate || isSubmitting}
+            onClick={onSubmit}
+          >
+            {isSubmitting ? submittingLabel : submitLabel}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

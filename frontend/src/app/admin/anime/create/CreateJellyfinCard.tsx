@@ -8,6 +8,7 @@ import type { AdminJellyfinIntakeSearchItem } from "@/types/admin";
 interface CreateJellyfinCardProps {
   query: string;
   candidates: AdminJellyfinIntakeSearchItem[];
+  currentAnimeID?: number;
   selectedCandidateID: string | undefined;
   hasAdoptedAssets: boolean;
   isSearching: boolean;
@@ -25,6 +26,7 @@ interface CreateJellyfinCardProps {
 export function CreateJellyfinCard({
   query,
   candidates,
+  currentAnimeID,
   selectedCandidateID,
   hasAdoptedAssets,
   isSearching,
@@ -102,6 +104,7 @@ export function CreateJellyfinCard({
               <JellyfinCandidateCard
                 key={candidate.jellyfin_series_id}
                 candidate={candidate}
+                currentAnimeID={currentAnimeID}
                 isSelected={candidate.jellyfin_series_id === selectedCandidateID}
                 isLoadingPreview={
                   isLoadingPreview && candidate.jellyfin_series_id === selectedCandidateID

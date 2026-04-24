@@ -1,4 +1,5 @@
 import { AdminAnimeJellyfinPreviewResult, AdminAnimeJellyfinSyncResult, AdminJellyfinSeriesSearchItem, GenreToken } from '@/types/admin'
+import { TagToken } from '@/types/admin'
 import { AnimeDetail, AnimeListItem, EpisodeListItem, EpisodeStatus } from '@/types/anime'
 import { FansubGroup } from '@/types/fansub'
 
@@ -35,6 +36,8 @@ export interface AnimePatchValues {
   titleEN: string
   genreTokens: string[]
   genreDraft: string
+  tagTokens: string[]
+  tagDraft: string
   description: string
   coverImage: string
   source: string
@@ -47,6 +50,7 @@ export interface AnimePatchClearFlags {
   titleDE: boolean
   titleEN: boolean
   genre: boolean
+  tags: boolean
   description: boolean
   coverImage: boolean
 }
@@ -55,11 +59,17 @@ export interface AnimePatchState {
   values: AnimePatchValues
   clearFlags: AnimePatchClearFlags
   genreTokens: GenreToken[]
+  tagTokens: TagToken[]
   genreSuggestions: GenreToken[]
+  tagSuggestions: TagToken[]
   genreSuggestionsTotal: number
+  tagSuggestionsTotal: number
   isLoadingGenreTokens: boolean
+  isLoadingTagTokens: boolean
   genreTokensError: string | null
+  tagTokensError: string | null
   genreSuggestionLimit: number
+  tagSuggestionLimit: number
   isSubmitting: boolean
   isUploadingCover: boolean
   isDirty: boolean

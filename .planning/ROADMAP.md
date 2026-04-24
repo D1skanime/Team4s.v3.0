@@ -2,7 +2,7 @@
 
 ## Milestones
 
-> Current planning note: Phase 20 is verified complete with live Docker UAT; Phase 21 is the next slice to harden fansub-group selection and collaboration persistence on top of that release-native import baseline.
+> Current planning note: Phase 21 is now complete; Phase 22 is the next slice to replace the stale anime edit UI with a create-flow-based editing surface.
 
 - [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
 - [x] **v1.1 Asset Lifecycle Hardening** - Phases 6 through 16 are complete or verified, and Phase 17 is the current next slice for the `/admin/anime/create` UX/UI follow-through. (completed 2026-04-17)
@@ -31,6 +31,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 20.1: DB Schema v2 Physical Cutover** - Build the documented DB Schema v2 as real tables and remove legacy episode-version tables before more episode features.
 - [x] **Phase 20: Release-Native Episode Import Schema** - Move episode import persistence onto the normalized release graph with filler, multilingual titles, and multi-episode file coverage. (verified complete 2026-04-23)
 - [x] **Phase 21: Fansub Group Chips And Collaboration Wiring** - Let operators select existing or new fansub groups as chips during import/manual version work, and build deterministic collaborations plus anime-group linkage behind that UI. (completed 2026-04-23)
+- [ ] **Phase 22: Anime Edit On Create-Flow Foundation** - Replace the divergent anime edit workspace with a shared create-style editor, keeping AniSearch identity fixed while Jellyfin can be re-searched and re-synced.
 
 ## Phase Details
 
@@ -296,9 +297,31 @@ Plans:
   4. Episode-level patch actions such as `Episode` and `Ab hier` copy the selected group chips as a set, not just one text string.
   5. Persisted release-version group links and `anime_fansub_groups` stay consistent with the effective group/collaboration chosen by the operator.
 
+### Phase 23: OP/ED Theme Verwaltung
+**Goal:** Admins können Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren (z.B. OP1 läuft Episode 1–25), und theme_types seeden (OP1, OP2, ED1, ED2, Insert, Outro).
+**Requirements**: P23-SC1, P23-SC2, P23-SC3, P23-SC4
+**Depends on:** Phase 22
+**Success Criteria** (what must be TRUE):
+  1. Admin kann auf der Anime-Edit-Seite OP/ED-Themes anlegen, bearbeiten und löschen.
+  2. Pro Theme kann ein Episodenbereich (von Episode X bis Episode Y) definiert werden.
+  3. theme_types sind geseedet (OP1, OP2, ED1, ED2, Insert, Outro) und auswählbar.
+  4. Bestehende Themes werden beim Öffnen der Edit-Seite korrekt geladen und angezeigt.
+
+### Phase 22: Anime Edit On Create-Flow Foundation
+**Goal:** Replace the stale, divergent anime edit route with a create-flow-based editor that reuses the modern admin anime workspace while preserving edit-specific identity rules.
+**Requirements**: P22-SC1, P22-SC2, P22-SC3, P22-SC4, P22-SC5
+**Depends on:** Phase 21
+**Status**: Planned on 2026-04-23 from post-Phase-21 product direction
+**Success Criteria** (what must be TRUE):
+  1. `/admin/anime/[id]/edit` no longer uses the old standalone edit workspace and instead renders through the same core UI foundation as `/admin/anime/create`.
+  2. The edit route loads existing anime data into that shared workspace so title, localized titles, type, content type, status, year, max episodes, description, genres, tags, and assets can all be reviewed and changed from one consistent surface.
+  3. AniSearch identity is visible on the edit route but not freely rewritable once an anime already has an AniSearch source linked.
+  4. Jellyfin linkage remains operator-controlled: admins can re-search, relink, or re-sync Jellyfin from edit without silently replacing manual values or asset choices.
+  5. Legacy edit-only UI code that duplicates the old form structure is removed or reduced to thin compatibility shells so create and edit stop drifting again.
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 18 | 41+ | Phases 6-20 verified complete; Phase 21 fansub-group collaboration follow-through is next | - |
+| v1.1 Asset Lifecycle Hardening | 20 | 44+ | Phases 6-21 complete; Phase 22 edit unification und Phase 23 OP/ED-Verwaltung geplant | - |

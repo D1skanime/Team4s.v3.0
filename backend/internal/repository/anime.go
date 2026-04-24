@@ -97,7 +97,7 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 
 	query := `
 		SELECT id, title, title_de, title_en, type, content_type, status, year,
-		       max_episodes, genre, description, cover_image, view_count
+		       max_episodes, genre, description, cover_image, source, folder_name, view_count
 		FROM anime
 		WHERE id = $1
 	`
@@ -119,6 +119,8 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 		&anime.Genre,
 		&anime.Description,
 		&anime.CoverImage,
+		&anime.Source,
+		&anime.FolderName,
 		&anime.ViewCount,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -156,6 +158,9 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 			anime.Genres = normalized.Genres
 			joinedGenres := strings.Join(normalized.Genres, ", ")
 			anime.Genre = animeStringPtr(joinedGenres)
+		}
+		if len(normalized.Tags) > 0 {
+			anime.Tags = normalized.Tags
 		}
 	}
 

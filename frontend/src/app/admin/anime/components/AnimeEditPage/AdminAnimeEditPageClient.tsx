@@ -80,8 +80,8 @@ export function AdminAnimeEditPageClient({
         <div>
           <h1 className={styles.pageTitle}>Anime bearbeiten</h1>
           <p className={styles.pageSubtitle}>
-            Allgemeiner Kontext fuer den ausgewaehlten Anime: Cover, Beschreibung, Metadaten und Status. Episoden und
-            Versionen bleiben aus dieser Route bewusst ausgelagert.
+            Die Route nutzt jetzt dieselbe vierteilige Editor-Grundlage wie `/admin/anime/create`: Quelle,
+            Assets, Details und abschliessendes Speichern. Episoden und Versionen bleiben bewusst ausgelagert.
           </p>
         </div>
         {anime ? (

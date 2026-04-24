@@ -1,5 +1,48 @@
 # DAYLOG
 
+## 2026-04-24
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: pull Phase 22 anime-edit work onto the real create-flow foundation, simplify the operator UI aggressively from live feedback, and close one real release-version delete backend bug
+
+### Workstreams Touched
+- Phase 21 UAT completion and planning carry-through
+- Phase 22 anime edit/create-flow foundation execution and live UI correction loop
+- Jellyfin relink/resync simplification in anime edit
+- edit-route asset merge behavior for Jellyfin + manual assets
+- episode-version delete backend implementation
+- fansub admin list cleanup for collaboration visibility
+- repo-local closeout and push preparation
+
+### Goals Intended vs Achieved
+- Intended: make anime edit feel like anime create instead of a legacy side tool, verify it live in Docker, and remove the misleading admin/UI leftovers that still pointed operators into old flows
+- Achieved: anime edit now uses the shared create-style workspace, Jellyfin relink works through a simpler create-like selection flow, Jellyfin/manual assets can coexist visibly in edit, duplicate save/provenance noise was removed, the old per-episode `Korrektur-Sync` action is gone, collaboration pseudo-groups are hidden from the normal fansub list, and episode-version delete no longer fails with a hard 500
+
+### Problems Solved
+- Root cause: the earlier Phase-22 execution only wrapped the old edit route in a new shell instead of actually replacing the legacy operator experience
+- Fix: rewired anime edit around the create-style workspace and then iterated live on the route until the stale AniSearch/Jellyfin/provenance clutter was removed
+- Root cause: Jellyfin asset fallbacks disappeared as soon as one manual background or background video existed
+- Fix: edit asset rendering now merges persisted manual assets with Jellyfin fallback assets instead of replacing the whole set
+- Root cause: operators had no way to reject individual Jellyfin assets in edit when the linked Jellyfin source was only partially correct
+- Fix: added draft-level Jellyfin asset dismissal in anime edit without dropping the overall Jellyfin linkage
+- Root cause: deleting an episode version still hit a deferred repository placeholder and returned `500`
+- Fix: implemented actual release-variant delete cleanup for linked streams, version-group rows, empty parent release records, and orphaned stream sources
+- Root cause: collaboration groups such as `AnimeOwnage & Project Messiah` looked like normal fansub groups in the default admin list
+- Fix: the normal fansub management list now hides collaboration records so the everyday group list only shows real groups
+
+### Decisions
+- Anime edit should copy the create interaction model directly and remove stale helper panels instead of preserving legacy edit-specific UI
+- The per-episode `Korrektur-Sync` action is no longer part of the normal episode admin workflow because import mapping already owns that correction path
+- Collaboration records may stay persisted for release wiring, but they should not appear in the standard fansub group list
+
+### Blockers
+- No hard product blocker remains on the current anime edit slice
+- Cross-AI review is still unavailable locally because no independent reviewer CLI is installed
+- The worktree still contains many untracked local temp/cache/debug artifacts that are not part of the intended commit
+
+### Next Step
+- Finish the next honest Phase-22 pass by deciding whether the remaining anime edit source/context section still needs trimming or whether the current create-style baseline is sufficient to close and verify formally
+
 ## 2026-04-23
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`

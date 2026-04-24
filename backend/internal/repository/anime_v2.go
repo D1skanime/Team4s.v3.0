@@ -116,6 +116,22 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 	if schema.HasMaxEpisodes {
 		maxEpisodesSelect = "anime.max_episodes"
 	}
+	sourceSelect := `(
+			SELECT 'jellyfin:' || me.external_id
+			FROM anime_media am
+			JOIN media_external me ON me.media_id = am.media_id
+			WHERE am.anime_id = anime.id
+			  AND me.provider = 'jellyfin'
+			ORDER BY am.sort_order ASC, me.id ASC
+			LIMIT 1
+		)`
+	if schema.HasSource {
+		sourceSelect = "anime.source"
+	}
+	folderNameSelect := `anime.folder_name`
+	if !schema.HasFolderName {
+		folderNameSelect = `NULL::text`
+	}
 
 	query := `
 		SELECT
@@ -151,7 +167,9 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 			anime.year,
 			` + maxEpisodesSelect + ` AS max_episodes,
 			anime.description,
-			poster.file_path
+			poster.file_path,
+			` + sourceSelect + ` AS source,
+			` + folderNameSelect + ` AS folder_name
 		FROM anime
 		LEFT JOIN anime_types at ON at.id = anime.anime_type_id
 		LEFT JOIN LATERAL (
@@ -182,6 +200,8 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 		&anime.MaxEpisodes,
 		&anime.Description,
 		&anime.CoverImage,
+		&anime.Source,
+		&anime.FolderName,
 	); err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, ErrNotFound
@@ -205,6 +225,9 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 		if len(normalized.Genres) > 0 {
 			joined := strings.Join(normalized.Genres, ", ")
 			anime.Genre = animeStringPtr(joined)
+		}
+		if len(normalized.Tags) > 0 {
+			anime.Tags = normalized.Tags
 		}
 	}
 

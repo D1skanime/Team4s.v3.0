@@ -8,29 +8,16 @@ interface EpisodeAccordionProps {
   episode: GroupedEpisode
   isExpanded: boolean
   onToggle: () => void
-  onSyncEpisode?: (episodeNumber: number) => Promise<void>
-  isSyncing?: boolean
-  syncError?: string | null
 }
 
 export function EpisodeAccordion({
   episode,
   isExpanded,
   onToggle,
-  onSyncEpisode,
-  isSyncing = false,
-  syncError = null,
 }: EpisodeAccordionProps) {
   const episodeId = `episode-${episode.episode_number}`
   const contentId = `${episodeId}-content`
   const paddedNumber = String(episode.episode_number).padStart(2, '0')
-
-  const handleSync = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation()
-    if (onSyncEpisode && !isSyncing) {
-      await onSyncEpisode(episode.episode_number)
-    }
-  }
 
   return (
     <div className={styles.accordionItem}>
@@ -57,28 +44,7 @@ export function EpisodeAccordion({
             v
           </span>
         </button>
-        {onSyncEpisode && (
-          <button
-            type="button"
-            className={styles.episodeSyncButton}
-            onClick={handleSync}
-            disabled={isSyncing}
-            aria-label={`Episode ${episode.episode_number} als Korrektur neu synchronisieren`}
-            title={`Episode ${episode.episode_number} als Korrektur neu synchronisieren`}
-          >
-            {isSyncing ? (
-              <span className={styles.syncSpinner} aria-hidden="true" />
-            ) : null}
-            {isSyncing ? 'Korrektur-Sync...' : 'Korrektur-Sync'}
-          </button>
-        )}
       </div>
-
-      {syncError && (
-        <div className={styles.syncErrorMessage}>
-          {syncError}
-        </div>
-      )}
 
       {isExpanded && (
         <div
