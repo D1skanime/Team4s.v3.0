@@ -63,6 +63,9 @@ type jellyfinMediaStream struct {
 }
 
 // searchJellyfinSeries searches for series by title.
+// When h.jellyfinAllowedLibraryIDs is set, one /Items request is made per library
+// with ParentId filtering and results are deduplicated by item ID.
+// When it is empty, a single global /Items request is made (unchanged behavior).
 func (h *AdminContentHandler) searchJellyfinSeries(
 	ctx context.Context,
 	title string,
@@ -75,20 +78,50 @@ func (h *AdminContentHandler) searchJellyfinSeries(
 	values.Set("Limit", strconv.Itoa(limit))
 	values.Set("Fields", "Path,ProductionYear,Overview")
 
-	var payload jellyfinSeriesListResponse
-	if _, err := h.fetchJellyfinJSON(ctx, "/Items", values, &payload); err != nil {
-		return nil, err
-	}
+	allowedIDs := h.jellyfinAllowedLibraryIDs
 
-	items := make([]jellyfinSeriesItem, 0, len(payload.Items))
-	for _, item := range payload.Items {
-		if strings.TrimSpace(item.ID) == "" {
-			continue
+	if len(allowedIDs) == 0 {
+		// No filter: existing single global request.
+		var payload jellyfinSeriesListResponse
+		if _, err := h.fetchJellyfinJSON(ctx, "/Items", values, &payload); err != nil {
+			return nil, err
 		}
-		items = append(items, item)
+		items := make([]jellyfinSeriesItem, 0, len(payload.Items))
+		for _, item := range payload.Items {
+			if strings.TrimSpace(item.ID) == "" {
+				continue
+			}
+			items = append(items, item)
+		}
+		return items, nil
 	}
 
-	return items, nil
+	// Filtered: one request per allowed library ID, deduplicated by Jellyfin item ID.
+	seen := make(map[string]struct{})
+	var allItems []jellyfinSeriesItem
+	for _, libraryID := range allowedIDs {
+		libValues := url.Values{}
+		for k, v := range values {
+			libValues[k] = v
+		}
+		libValues.Set("ParentId", libraryID)
+		var payload jellyfinSeriesListResponse
+		if _, err := h.fetchJellyfinJSON(ctx, "/Items", libValues, &payload); err != nil {
+			return nil, err
+		}
+		for _, item := range payload.Items {
+			itemID := strings.TrimSpace(item.ID)
+			if itemID == "" {
+				continue
+			}
+			if _, exists := seen[itemID]; exists {
+				continue
+			}
+			seen[itemID] = struct{}{}
+			allItems = append(allItems, item)
+		}
+	}
+	return allItems, nil
 }
 
 // getJellyfinSeriesByID fetches a single series by ID.

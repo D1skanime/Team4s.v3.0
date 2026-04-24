@@ -100,9 +100,10 @@ type AdminContentHandler struct {
 	aniSearchRepo      adminAniSearchRepository
 	adminRoleName      string
 	mediaStorageDir    string
-	jellyfinAPIKey     string
-	jellyfinBaseURL    string
-	jellyfinStreamPath string
+	jellyfinAPIKey              string
+	jellyfinBaseURL             string
+	jellyfinStreamPath          string
+	jellyfinAllowedLibraryIDs   []string
 	httpClient         *http.Client
 	enrichmentService  adminAniSearchDraftLoader
 	aniSearchEpisodes  adminAniSearchEpisodeFetcher
@@ -111,9 +112,10 @@ type AdminContentHandler struct {
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
 type AdminContentJellyfinConfig struct {
-	APIKey     string
-	BaseURL    string
-	StreamPath string
+	APIKey             string
+	BaseURL            string
+	StreamPath         string
+	AllowedLibraryIDs  []string // Optionale Whitelist von Bibliotheks-IDs; nil bedeutet kein Filter
 }
 
 // AdminContentAssetSearchConfig enthält die API-Schlüssel für externe Asset-Suchprovider (TMDB, FanartTV).
@@ -146,9 +148,10 @@ func NewAdminContentHandler(
 		authzRepo:          authzRepo,
 		adminRoleName:      strings.TrimSpace(adminRoleName),
 		mediaStorageDir:    strings.TrimSpace(mediaStorageDir),
-		jellyfinAPIKey:     strings.TrimSpace(jellyfinCfg.APIKey),
-		jellyfinBaseURL:    strings.TrimSpace(jellyfinCfg.BaseURL),
-		jellyfinStreamPath: normalizeStreamPathTemplate(jellyfinCfg.StreamPath),
+		jellyfinAPIKey:            strings.TrimSpace(jellyfinCfg.APIKey),
+		jellyfinBaseURL:           strings.TrimSpace(jellyfinCfg.BaseURL),
+		jellyfinStreamPath:        normalizeStreamPathTemplate(jellyfinCfg.StreamPath),
+		jellyfinAllowedLibraryIDs: jellyfinCfg.AllowedLibraryIDs,
 		httpClient: &http.Client{
 			Timeout: 20 * time.Second,
 		},

@@ -130,9 +130,10 @@ func main() {
 		cfg.AuthAdminRoleName,
 		cfg.MediaStorageDir,
 		handlers.AdminContentJellyfinConfig{
-			APIKey:     cfg.JellyfinAPIKey,
-			BaseURL:    cfg.JellyfinBaseURL,
-			StreamPath: cfg.JellyfinStreamPathTemplate,
+			APIKey:            cfg.JellyfinAPIKey,
+			BaseURL:           cfg.JellyfinBaseURL,
+			StreamPath:        cfg.JellyfinStreamPathTemplate,
+			AllowedLibraryIDs: cfg.JellyfinAllowedLibraryIDs,
 		},
 		handlers.AdminContentAssetSearchConfig{
 			TMDBAPIKey:   cfg.TMDBAPIKey,

@@ -20,7 +20,8 @@ type Config struct {
 	EmbyAllowedAnimeIDs          []int64 // Erlaubte Anime-IDs für den Emby-Zugriff
 	JellyfinAPIKey               string  // API-Schlüssel für den Jellyfin-Mediaserver
 	JellyfinBaseURL              string  // Basis-URL des Jellyfin-Servers
-	JellyfinStreamPathTemplate   string  // Pfadvorlage für Jellyfin-Videostreams
+	JellyfinStreamPathTemplate   string   // Pfadvorlage für Jellyfin-Videostreams
+	JellyfinAllowedLibraryIDs    []string // Optionale Whitelist von Jellyfin-Bibliotheks-IDs (JELLYFIN_ALLOWED_LIBRARY_IDS, kommagetrennt)
 	AuthAccessTokenTTLSeconds    int     // Gültigkeitsdauer des Access-Tokens in Sekunden
 	AuthRefreshTokenTTLSeconds   int     // Gültigkeitsdauer des Refresh-Tokens in Sekunden
 	RedisAddr                    string  // Redis-Serveradresse (Host:Port)
@@ -62,6 +63,7 @@ func Load() Config {
 		JellyfinAPIKey:               strings.TrimSpace(os.Getenv("JELLYFIN_API_KEY")),
 		JellyfinBaseURL:              strings.TrimSpace(os.Getenv("JELLYFIN_BASE_URL")),
 		JellyfinStreamPathTemplate:   getEnv("JELLYFIN_STREAM_PATH_TEMPLATE", "/Videos/%s/stream"),
+		JellyfinAllowedLibraryIDs:    getEnvStringList("JELLYFIN_ALLOWED_LIBRARY_IDS"),
 		AuthAccessTokenTTLSeconds:    getEnvInt("AUTH_ACCESS_TOKEN_TTL_SECONDS", 900),
 		AuthRefreshTokenTTLSeconds:   getEnvInt("AUTH_REFRESH_TOKEN_TTL_SECONDS", 604800),
 		RedisAddr:                    getEnv("REDIS_ADDR", "localhost:6379"),
@@ -134,6 +136,28 @@ func getEnvBool(key string, fallback bool) bool {
 	}
 
 	return parsed
+}
+
+// getEnvStringList parst eine kommagetrennte Umgebungsvariable als String-Slice.
+// Leerstrings und Einträge, die nur Whitespace enthalten, werden übersprungen.
+// Gibt nil zurück wenn die Variable nicht gesetzt oder leer ist.
+func getEnvStringList(key string) []string {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return nil
+	}
+	parts := strings.Split(value, ",")
+	items := make([]string, 0, len(parts))
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			items = append(items, trimmed)
+		}
+	}
+	if len(items) == 0 {
+		return nil
+	}
+	return items
 }
 
 func getEnvInt64List(key string, fallback []int64) []int64 {
