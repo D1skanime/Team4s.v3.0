@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
+status: Executing Phase 22
 stopped_at: Completed 21-03-PLAN.md
-last_updated: "2026-04-23T08:57:43.135Z"
+last_updated: "2026-04-23T14:30:36.046Z"
 last_activity: 2026-04-23
 progress:
-  total_phases: 17
+  total_phases: 18
   completed_phases: 15
-  total_plans: 60
+  total_plans: 63
   completed_plans: 58
 ---
 
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 21 — fansub-group-chip-mapping-and-collaboration-wiring
+**Current focus:** Phase 22 — anime-edit-on-create-flow-foundation
 
 ## Current Position
 
-Phase: 21 (fansub-group-chip-mapping-and-collaboration-wiring) — EXECUTING
-Plan: 3 of 3
+Phase: 22 (anime-edit-on-create-flow-foundation) — EXECUTING
+Plan: 1 of 3
 
 ## Accumulated Context
 
@@ -188,6 +188,7 @@ Recent durable decisions:
 | 260417-qtu | Asset upload UX: leere Slots klickbar, Upload-Hover-Overlay | 2026-04-17 | 136161b | [260417-qtu-asset-upload-ux-leere-slots-klickbar-und](./quick/260417-qtu-asset-upload-ux-leere-slots-klickbar-und/) |
 | 260423dxc | Filter bereits importierte Jellyfin-Kandidaten aus Episode-Import Preview heraus | 2026-04-23 | dab72d6 | [260423dxc-filter-already-imported-episode-candidates](./quick/260423dxc-filter-already-imported-episode-candidates/) |
 | 260423mnv | Per-Reihe "Ubernehmen"-Button im Episode-Import Workbench | 2026-04-23 | 1b3b57d | [260423mnv-per-row-apply-button](./quick/260423mnv-per-row-apply-button/) |
+| 260423qpn | Optionale Jellyfin-Bibliotheksfilterung via JELLYFIN_ALLOWED_LIBRARY_IDS | 2026-04-24 | 6fad43b | [260423qpn-jellyfin-library-filter](./quick/260423qpn-jellyfin-library-filter/) |
 
 ## Session Continuity
 
