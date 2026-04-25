@@ -302,7 +302,7 @@ Plans:
 **Goal:** Admins können Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren (z.B. OP1 läuft Episode 1–25), theme_types seeden (OP1, OP2, ED1, ED2, Insert, Outro), und Fansub-Gruppen können OP/ED-Videos zu ihren Releases hochladen.
 **Requirements**: P23-SC1, P23-SC2, P23-SC3, P23-SC4
 **Depends on:** Phase 22
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 Plans:
 - [ ] `23-01-PLAN.md` -- Migration 0048 + Backend CRUD fuer Anime-Themes (5 Endpunkte)
 - [ ] `23-02-PLAN.md` -- Backend Segment-CRUD (3 Endpunkte) + Frontend AnimeThemesSection auf Edit-Seite
