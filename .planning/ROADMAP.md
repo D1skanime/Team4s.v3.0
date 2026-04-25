@@ -32,6 +32,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 20: Release-Native Episode Import Schema** - Move episode import persistence onto the normalized release graph with filler, multilingual titles, and multi-episode file coverage. (verified complete 2026-04-23)
 - [x] **Phase 21: Fansub Group Chips And Collaboration Wiring** - Let operators select existing or new fansub groups as chips during import/manual version work, and build deterministic collaborations plus anime-group linkage behind that UI. (completed 2026-04-23)
 - [ ] **Phase 22: Anime Edit On Create-Flow Foundation** - Replace the divergent anime edit workspace with a shared create-style editor, keeping AniSearch identity fixed while Jellyfin can be re-searched and re-synced.
+- [ ] **Phase 23: OP/ED Theme Verwaltung** - Admins können Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren, theme_types seeden (OP1, OP2, ED1, ED2, Insert, Outro), und Fansub-Gruppen können OP/ED-Videos hochladen.
 
 ## Phase Details
 
@@ -298,14 +299,15 @@ Plans:
   5. Persisted release-version group links and `anime_fansub_groups` stay consistent with the effective group/collaboration chosen by the operator.
 
 ### Phase 23: OP/ED Theme Verwaltung
-**Goal:** Admins können Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren (z.B. OP1 läuft Episode 1–25), und theme_types seeden (OP1, OP2, ED1, ED2, Insert, Outro).
+**Goal:** Admins können Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren (z.B. OP1 läuft Episode 1–25), theme_types seeden (OP1, OP2, ED1, ED2, Insert, Outro), und Fansub-Gruppen können OP/ED-Videos zu ihren Releases hochladen.
 **Requirements**: P23-SC1, P23-SC2, P23-SC3, P23-SC4
 **Depends on:** Phase 22
-**Plans:** 3 plans
+**Plans:** 4 plans
 Plans:
 - [ ] `23-01-PLAN.md` -- Migration 0048 + Backend CRUD fuer Anime-Themes (5 Endpunkte)
-- [ ] `23-02-PLAN.md` -- Backend Segment-CRUD (3 Endpunkte) + Frontend AnimeThemesSection
-- [ ] `23-03-PLAN.md` -- Unit-Tests, Human UAT, Verification und Planning-State-Update
+- [ ] `23-02-PLAN.md` -- Backend Segment-CRUD (3 Endpunkte) + Frontend AnimeThemesSection auf Edit-Seite
+- [ ] `23-03-PLAN.md` -- Backend release_theme_assets (Video-Upload + Theme-Zuweisung) + Frontend Fansub-Edit-Seite Upload-UI
+- [ ] `23-04-PLAN.md` -- Unit-Tests, Human UAT, Verification und Planning-State-Update
 **Success Criteria** (what must be TRUE):
   1. Admin kann auf der Anime-Edit-Seite OP/ED-Themes anlegen, bearbeiten und löschen.
   2. Pro Theme kann ein Episodenbereich (von Episode X bis Episode Y) definiert werden.
