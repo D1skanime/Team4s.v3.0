@@ -73,4 +73,9 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/fansubs/merge/preview", auth, deps.fansubHandler.MergeFansubsPreview)
 	v1.POST("/admin/upload", auth, deps.mediaUploadHandler.Upload)
 	v1.DELETE("/admin/media/:id", auth, deps.mediaUploadHandler.Delete)
+	v1.GET("/admin/theme-types", auth, deps.adminContentHandler.ListThemeTypes)
+	v1.GET("/admin/anime/:id/themes", auth, deps.adminContentHandler.ListAnimeThemes)
+	v1.POST("/admin/anime/:id/themes", auth, deps.adminContentHandler.CreateAnimeTheme)
+	v1.PATCH("/admin/anime/:id/themes/:themeId", auth, deps.adminContentHandler.UpdateAnimeTheme)
+	v1.DELETE("/admin/anime/:id/themes/:themeId", auth, deps.adminContentHandler.DeleteAnimeTheme)
 }

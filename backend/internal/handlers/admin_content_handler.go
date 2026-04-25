@@ -44,6 +44,18 @@ type adminEpisodeCreateRequest struct {
 	StreamLink    *string `json:"stream_link"`
 }
 
+// adminThemeRepository definiert den Datenbankzugriff für Anime-Themes im Admin-Bereich.
+type adminThemeRepository interface {
+	ListThemeTypes(ctx context.Context) ([]models.AdminThemeType, error)
+	ListAdminAnimeThemes(ctx context.Context, animeID int64) ([]models.AdminAnimeTheme, error)
+	CreateAdminAnimeTheme(ctx context.Context, animeID int64, input models.AdminAnimeThemeCreateInput) (*models.AdminAnimeTheme, error)
+	UpdateAdminAnimeTheme(ctx context.Context, themeID int64, input models.AdminAnimeThemePatchInput) error
+	DeleteAdminAnimeTheme(ctx context.Context, themeID int64) error
+	ListAdminAnimeThemeSegments(ctx context.Context, themeID int64) ([]models.AdminAnimeThemeSegment, error)
+	CreateAdminAnimeThemeSegment(ctx context.Context, themeID int64, input models.AdminAnimeThemeSegmentCreateInput) (*models.AdminAnimeThemeSegment, error)
+	DeleteAdminAnimeThemeSegment(ctx context.Context, segmentID int64) error
+}
+
 // adminContentRelationRepository definiert den Datenbankzugriff für Anime-Relationen im Admin-Bereich.
 type adminContentRelationRepository interface {
 	ListAdminAnimeRelations(ctx context.Context, animeID int64) ([]models.AdminAnimeRelation, error)
@@ -92,6 +104,7 @@ type adminRoleChecker interface {
 type AdminContentHandler struct {
 	repo               *repository.AdminContentRepository
 	relationRepo       adminContentRelationRepository
+	themeRepo          adminThemeRepository
 	animeAssetRepo     *repository.AnimeAssetRepository
 	fansubRepo         *repository.FansubRepository
 	episodeVersionRepo *repository.EpisodeVersionRepository
@@ -141,6 +154,7 @@ func NewAdminContentHandler(
 	handler := &AdminContentHandler{
 		repo:               repo,
 		relationRepo:       repo,
+		themeRepo:          repo,
 		animeAssetRepo:     animeAssetRepo,
 		fansubRepo:         fansubRepo,
 		episodeVersionRepo: episodeVersionRepo,
