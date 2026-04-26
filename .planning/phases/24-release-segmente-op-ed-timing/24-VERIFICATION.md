@@ -1,7 +1,7 @@
 # Phase 24 Verification
 
 **Datum:** 2026-04-26
-**Status:** PASS (Backend/Migration) — UAT ausstehend
+**Status:** PASS — alle vier Success Criteria bestätigt
 
 ## P24-SC2: Segmente CRUD mit plain-integer Episodenbereich
 
@@ -45,12 +45,30 @@ ORDER BY ts.start_time;
 
 Ergebnis: `OP1 | OP1 | 00:01:30 | 00:02:30` — korrekt.
 
-## Offene Punkte (UAT)
+## P24-SC1 + P24-SC3: Manuelle UAT (Tab + Timeline)
 
-P24-SC1 (Tab sichtbar und nutzbar) und P24-SC3 (Timeline-Visualisierung) werden in der manuellen UAT (Task 2) verifiziert.
+**UAT-Datum:** 2026-04-26
+**UAT-Ergebnis:** BESTANDEN — alle 4 Success Criteria vom Admin auf live Docker-Umgebung bestätigt
 
-Zu pruefen auf http://localhost:3002/admin/episode-versions/{ID}/edit:
-- Tab-Leiste mit "Allgemein" und "Segmente" sichtbar
-- Tab-Wechsel funktioniert
-- CRUD-Formular (Add/Edit/Delete) funktioniert
-- Timeline zeigt farbige Bloecke
+| Test | Ergebnis |
+|------|---------|
+| Tab-Leiste "Allgemein" / "Segmente" auf /admin/episode-versions/:id/edit sichtbar | PASS |
+| Tab-Wechsel zwischen "Allgemein" und "Segmente" funktioniert | PASS |
+| "+ Segment hinzufuegen" öffnet Seitenleisten-Formular | PASS |
+| Segment anlegen: Formular ausfüllen, speichern, Eintrag in Tabelle erscheint | PASS |
+| Typ-Badge korrekt (OP=gruen, ED=lila, IN=orange, PV=grau) | PASS |
+| Segment bearbeiten: Stift-Button, Felder vorausgefüllt, speichern, Tabelle aktualisiert | PASS |
+| Timeline-Vorschau: farbige Blöcke proportional zu start_time/end_time sichtbar | PASS |
+| Segment löschen: Papierkorb-Button, Bestätigung, Eintrag verschwindet | PASS |
+| Tab "Allgemein" wieder klicken: Basisdaten-Felder sichtbar | PASS |
+
+## Ergebnis-Zusammenfassung
+
+| Success Criterion | Methode | Ergebnis |
+|---|---|---|
+| P24-SC1: Tab "Segmente" sichtbar und nutzbar | Manuelles UAT | PASS |
+| P24-SC2: Segmente CRUD mit plain-integer Episodenbereich | Automatisiert (curl + SQL) | PASS |
+| P24-SC3: Timeline-Visualisierung als farbige Blöcke | Manuelles UAT | PASS |
+| P24-SC4: Playback-Query-Seam korrekt | SQL-Direktabfrage | PASS |
+
+**Phase 24 ist vollständig verifiziert und als shipped markiert.**
