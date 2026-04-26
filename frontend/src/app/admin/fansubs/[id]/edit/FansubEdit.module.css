@@ -440,6 +440,7 @@
   }
 }
 
+
 @media (min-width: 901px) {
   .fansubEditSectionSummary {
     pointer-events: none;
@@ -449,4 +450,9 @@
   .fansubEditSectionSummary::-webkit-details-marker {
     display: none;
   }
+}
+
+.fansubEditOpEdWrapper {
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
 }

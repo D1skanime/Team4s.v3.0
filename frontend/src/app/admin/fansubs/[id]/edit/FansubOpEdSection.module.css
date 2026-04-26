@@ -1,0 +1,70 @@
+.section {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-card) 90%, transparent);
+}
+
+.animeSelect,
+.uploadForm,
+.formRow,
+.progressWrap,
+.assetList,
+.assetRow,
+.assetMeta {
+  display: grid;
+  gap: 12px;
+}
+
+.formRow {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: end;
+}
+
+.progressWrap {
+  gap: 6px;
+}
+
+.assetList {
+  gap: 10px;
+}
+
+.assetRow {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+}
+
+.assetMeta {
+  gap: 4px;
+}
+
+.errorBox {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-error) 40%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error);
+}
+
+.select {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 26%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-primary);
+}
+
+@media (max-width: 900px) {
+  .formRow,
+  .assetRow {
+    grid-template-columns: 1fr;
+  }
+}

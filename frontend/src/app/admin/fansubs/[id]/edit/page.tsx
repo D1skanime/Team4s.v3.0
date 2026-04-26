@@ -35,6 +35,7 @@ import { FansubAlias, FansubGroup, FansubGroupPatchRequest, FansubGroupType, Fan
 import { buildFansubLogoFallback, buildMediaPreviewURL, EditableMediaValue, MediaUpload } from '@/components/admin/MediaUpload'
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import { FansubOpEdSection } from './FansubOpEdSection'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
@@ -591,6 +592,9 @@ export default function AdminFansubEditPage() {
 
           <div className={styles.fansubEditMobileActionBar}><button type="submit" className={styles.button} disabled={invalid || saving || deleting}>{saving ? 'Speichern...' : 'Speichern'}</button></div>
         </form>
+        <div className={styles.fansubEditOpEdWrapper}>
+          <FansubOpEdSection fansubID={fansubID} authToken={authToken} />
+        </div>
       </section>
     </main>
   )

@@ -702,3 +702,100 @@ export interface AdminMediaUploadResponse {
 export interface AdminAnimeBackgroundAssetResponse {
   data: AdminAnimePersistedBackgroundState;
 }
+
+// --- OP/ED Theme types (Phase 23) ---
+
+export interface AdminThemeType {
+  id: number
+  name: string
+}
+
+export interface AdminAnimeTheme {
+  id: number
+  anime_id: number
+  theme_type_id: number
+  theme_type_name: string
+  title: string | null
+  created_at: string
+}
+
+export interface AdminAnimeThemeSegment {
+  id: number
+  theme_id: number
+  start_episode_id: number | null
+  end_episode_id: number | null
+  start_episode_number: string | null
+  end_episode_number: string | null
+  created_at: string
+}
+
+export interface AdminAnimeThemeCreateRequest {
+  theme_type_id: number
+  title?: string
+}
+
+export interface AdminAnimeThemePatchRequest {
+  theme_type_id?: number
+  title?: string
+}
+
+export interface AdminAnimeThemeSegmentCreateRequest {
+  start_episode_id?: number | null
+  end_episode_id?: number | null
+}
+
+export interface AdminThemeTypesResponse {
+  data: AdminThemeType[]
+}
+
+export interface AdminAnimeThemesResponse {
+  data: AdminAnimeTheme[]
+}
+
+export interface AdminAnimeThemeCreateResponse {
+  data: AdminAnimeTheme
+}
+
+export interface AdminAnimeThemeSegmentsResponse {
+  data: AdminAnimeThemeSegment[]
+}
+
+export interface AdminAnimeThemeSegmentCreateResponse {
+  data: AdminAnimeThemeSegment
+}
+
+// --- Release Theme Assets (Phase 23 Plan 03) ---
+
+export interface AdminFansubAnimeEntry {
+  id: number
+  title: string
+}
+
+export interface AdminFansubAnimeListResponse {
+  data: AdminFansubAnimeEntry[]
+}
+
+export interface AdminReleaseThemeAsset {
+  release_id: number
+  theme_id: number
+  theme_type_name: string
+  theme_title: string | null
+  media_id: number
+  public_url: string
+  mime_type: string
+  size_bytes: number
+  created_at: string
+}
+
+export interface AdminReleaseThemeAssetsResponse {
+  data: AdminReleaseThemeAsset[]
+}
+
+export interface AdminReleaseThemeAssetCreateResponse {
+  data: AdminReleaseThemeAsset
+}
+
+export interface AdminFansubAnimeThemeAssetsResponse {
+  release_id: number | null
+  data: AdminReleaseThemeAsset[]
+}

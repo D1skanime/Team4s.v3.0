@@ -3,6 +3,18 @@ import {
   AdminAnimeAniSearchEditConflictResult,
   AdminAnimeAniSearchEditResult,
   AdminAnimeRelationCreateRequest,
+  AdminAnimeThemeCreateRequest,
+  AdminAnimeThemeCreateResponse,
+  AdminAnimeThemePatchRequest,
+  AdminAnimeThemeSegmentCreateRequest,
+  AdminAnimeThemeSegmentCreateResponse,
+  AdminAnimeThemeSegmentsResponse,
+  AdminAnimeThemesResponse,
+  AdminFansubAnimeListResponse,
+  AdminFansubAnimeThemeAssetsResponse,
+  AdminReleaseThemeAssetCreateResponse,
+  AdminReleaseThemeAssetsResponse,
+  AdminThemeTypesResponse,
   AdminAnimeRelationTargetsResponse,
   AdminAnimeRelationUpdateRequest,
   AdminAnimeRelationsResponse,
@@ -1616,6 +1628,143 @@ export async function addAdminAnimeBackgroundVideoAsset(
   }
 }
 
+export async function getAdminFansubAnime(
+  fansubID: number,
+  authToken?: string,
+): Promise<AdminFansubAnimeListResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminFansubAnimeListResponse>
+}
+
+export async function getAdminReleaseThemeAssets(
+  releaseID: number,
+  authToken?: string,
+): Promise<AdminReleaseThemeAssetsResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/releases/${releaseID}/theme-assets`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminReleaseThemeAssetsResponse>
+}
+
+export async function getAdminFansubAnimeThemeAssets(
+  fansubID: number,
+  animeID: number,
+  authToken?: string,
+): Promise<AdminFansubAnimeThemeAssetsResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/theme-assets`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminFansubAnimeThemeAssetsResponse>
+}
+
+interface AdminReleaseThemeAssetUploadOptions {
+  fansubID: number
+  animeID: number
+  themeID: number
+  file: File
+  authToken?: string
+  onProgress?: (percent: number) => void
+}
+
+export async function uploadAdminReleaseThemeAsset(
+  options: AdminReleaseThemeAssetUploadOptions,
+): Promise<AdminReleaseThemeAssetCreateResponse> {
+  if (typeof window === 'undefined') {
+    throw new ApiError(500, 'upload ist nur im browser verfuegbar')
+  }
+
+  const API_BASE_URL = getApiBaseUrl()
+  const token = resolveAuthToken(options.authToken)
+  const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/anime/${options.animeID}/theme-assets`
+
+  return new Promise<AdminReleaseThemeAssetCreateResponse>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', endpoint, true)
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (!options.onProgress) return
+      if (!event.lengthComputable) return
+      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)))
+      options.onProgress(percent)
+    }
+
+    xhr.onerror = () => {
+      reject(new ApiError(0, 'netzwerkfehler beim upload'))
+    }
+
+    xhr.onload = () => {
+      let payload: unknown = null
+      try {
+        payload = JSON.parse(xhr.responseText)
+      } catch {
+        payload = null
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        options.onProgress?.(100)
+        resolve(payload as AdminReleaseThemeAssetCreateResponse)
+        return
+      }
+
+      const fallback = `API request failed: ${xhr.status}`
+      reject(new ApiError(xhr.status, parsePayloadError(payload, fallback)))
+    }
+
+    const body = new FormData()
+    body.set('theme_id', String(options.themeID))
+    body.set('file', options.file)
+    options.onProgress?.(0)
+    xhr.send(body)
+  })
+}
+
+export async function deleteAdminReleaseThemeAsset(
+  releaseID: number,
+  themeID: number,
+  mediaID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/releases/${releaseID}/theme-assets/${themeID}/${mediaID}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
 async function assignAdminAnimeSingularAsset(
   animeID: number,
   assetKind: Exclude<AdminAnimeAssetKind, 'background'>,
@@ -1970,6 +2119,168 @@ export async function deleteAdminAnimeRelation(
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations/${targetAnimeID}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+export async function getAdminThemeTypes(authToken?: string): Promise<AdminThemeTypesResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/theme-types`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminThemeTypesResponse>
+}
+
+export async function getAdminAnimeThemes(
+  animeID: number,
+  authToken?: string,
+): Promise<AdminAnimeThemesResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeThemesResponse>
+}
+
+export async function createAdminAnimeTheme(
+  animeID: number,
+  payload: AdminAnimeThemeCreateRequest,
+  authToken?: string,
+): Promise<AdminAnimeThemeCreateResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeThemeCreateResponse>
+}
+
+export async function updateAdminAnimeTheme(
+  animeID: number,
+  themeID: number,
+  payload: AdminAnimeThemePatchRequest,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}`, {
+    method: 'PATCH',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+export async function deleteAdminAnimeTheme(
+  animeID: number,
+  themeID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+export async function getAdminAnimeThemeSegments(
+  animeID: number,
+  themeID: number,
+  authToken?: string,
+): Promise<AdminAnimeThemeSegmentsResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}/segments`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeThemeSegmentsResponse>
+}
+
+export async function createAdminAnimeThemeSegment(
+  animeID: number,
+  themeID: number,
+  payload: AdminAnimeThemeSegmentCreateRequest,
+  authToken?: string,
+): Promise<AdminAnimeThemeSegmentCreateResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}/segments`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeThemeSegmentCreateResponse>
+}
+
+export async function deleteAdminAnimeThemeSegment(
+  animeID: number,
+  themeID: number,
+  segmentID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}/segments/${segmentID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
