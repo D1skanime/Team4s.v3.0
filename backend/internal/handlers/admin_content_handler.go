@@ -54,6 +54,13 @@ type adminThemeRepository interface {
 	ListAdminAnimeThemeSegments(ctx context.Context, themeID int64) ([]models.AdminAnimeThemeSegment, error)
 	CreateAdminAnimeThemeSegment(ctx context.Context, themeID int64, input models.AdminAnimeThemeSegmentCreateInput) (*models.AdminAnimeThemeSegment, error)
 	DeleteAdminAnimeThemeSegment(ctx context.Context, segmentID int64) error
+	GetCanonicalFansubAnimeRelease(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, error)
+	GetFansubRelease(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, error)
+	ListFansubAnime(ctx context.Context, fansubGroupID int64) ([]models.AdminFansubAnimeEntry, error)
+	ListReleaseThemeAssets(ctx context.Context, releaseID int64) ([]models.AdminReleaseThemeAsset, error)
+	ListReleaseThemeAssetsByFansubAnime(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, []models.AdminReleaseThemeAsset, error)
+	CreateReleaseThemeAsset(ctx context.Context, input models.AdminReleaseThemeAssetCreateInput) (*models.AdminReleaseThemeAsset, error)
+	DeleteReleaseThemeAsset(ctx context.Context, releaseID int64, themeID int64, mediaID int64) error
 }
 
 // adminContentRelationRepository definiert den Datenbankzugriff für Anime-Relationen im Admin-Bereich.
@@ -110,6 +117,7 @@ type AdminContentHandler struct {
 	episodeVersionRepo *repository.EpisodeVersionRepository
 	episodeImportRepo  adminEpisodeImportRepository
 	authzRepo          adminRoleChecker
+	mediaRepo          *repository.MediaRepository
 	aniSearchRepo      adminAniSearchRepository
 	adminRoleName      string
 	mediaStorageDir    string
@@ -121,6 +129,7 @@ type AdminContentHandler struct {
 	enrichmentService  adminAniSearchDraftLoader
 	aniSearchEpisodes  adminAniSearchEpisodeFetcher
 	assetSearchService adminAnimeAssetSearchService
+	mediaService       *services.MediaService
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
@@ -189,6 +198,14 @@ func NewAdminContentHandler(
 	handler.aniSearchRepo = adminAnimeCreateEnrichmentRepo{repo: repo}
 
 	return handler
+}
+
+// WithMediaDeps verdrahtet Media-Repository und Media-Service nachtraeglich,
+// damit Theme-Video-Uploads dieselben Instanzen wie der Fansub-Handler nutzen.
+func (h *AdminContentHandler) WithMediaDeps(repo *repository.MediaRepository, svc *services.MediaService) *AdminContentHandler {
+	h.mediaRepo = repo
+	h.mediaService = svc
+	return h
 }
 
 // adminAnimeCreateEnrichmentRepo ist ein interner Adapter, der das AdminContentRepository

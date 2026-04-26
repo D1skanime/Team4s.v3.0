@@ -120,6 +120,51 @@ func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, da
 	return result, nil
 }
 
+// SaveVideoUpload validiert und speichert ein Theme-Video fuer OP/ED-Assets.
+func (s *MediaService) SaveVideoUpload(originalName string, data []byte) (*MediaSaveResult, error) {
+	if len(data) == 0 {
+		return nil, &MediaValidationError{Message: "datei ist leer"}
+	}
+	if int64(len(data)) > 500*1024*1024 {
+		return nil, &MediaValidationError{Message: "video ist zu gross (max 500MB)"}
+	}
+
+	detectedMime := detectMimeType(data)
+	allowed := map[string]string{
+		"video/mp4":        "mp4",
+		"video/webm":       "webm",
+		"video/x-matroska": "mkv",
+		"video/x-msvideo":  "avi",
+		"video/quicktime":  "mov",
+	}
+	ext, ok := allowed[detectedMime]
+	if !ok {
+		return nil, &MediaValidationError{Message: "ungueltiges videoformat (erlaubt: mp4, webm, mkv, avi, mov)"}
+	}
+
+	filename := buildFilename(models.MediaKindThemeVideo, ext)
+	absolutePath := filepath.Join(s.storageDir, filename)
+	if err := os.MkdirAll(filepath.Dir(absolutePath), 0o755); err != nil {
+		return nil, fmt.Errorf("create media directory: %w", err)
+	}
+	if err := os.WriteFile(absolutePath, data, fs.FileMode(0o644)); err != nil {
+		return nil, fmt.Errorf("write media file: %w", err)
+	}
+
+	publicURL := fmt.Sprintf("%s/api/v1/media/files/%s", s.publicBaseURL, url.PathEscape(filename))
+	_ = originalName
+
+	return &MediaSaveResult{
+		CreateInput: models.MediaAssetCreateInput{
+			Filename:    filename,
+			StoragePath: absolutePath,
+			PublicURL:   publicURL,
+			MimeType:    detectedMime,
+			SizeBytes:   int64(len(data)),
+		},
+	}, nil
+}
+
 // detectMimeType erkennt den MIME-Typ der übergebenen Binärdaten mithilfe von Bibliotheks-
 // und HTTP-Erkennung. SVG-Daten werden zuverlässig normalisiert.
 func detectMimeType(data []byte) string {

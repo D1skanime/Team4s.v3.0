@@ -58,6 +58,7 @@ var (
 		"background":       "background",
 		"video":            "background_video",
 		"background_video": "background_video",
+		"theme_video":      "theme_video",
 	}
 )
 

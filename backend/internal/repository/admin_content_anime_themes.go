@@ -8,6 +8,7 @@ import (
 
 	"team4s.v3/backend/internal/models"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
@@ -204,6 +205,14 @@ func (r *AdminContentRepository) ListAdminAnimeThemeSegments(ctx context.Context
 		return nil, ErrNotFound
 	}
 
+	var exists bool
+	if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM themes WHERE id = $1)`, themeID).Scan(&exists); err != nil {
+		return nil, fmt.Errorf("check admin anime theme existence id=%d: %w", themeID, err)
+	}
+	if !exists {
+		return nil, ErrNotFound
+	}
+
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			ts.id,
@@ -250,6 +259,14 @@ func (r *AdminContentRepository) ListAdminAnimeThemeSegments(ctx context.Context
 // CreateAdminAnimeThemeSegment legt ein neues Segment für ein Theme an (Plan 02).
 func (r *AdminContentRepository) CreateAdminAnimeThemeSegment(ctx context.Context, themeID int64, input models.AdminAnimeThemeSegmentCreateInput) (*models.AdminAnimeThemeSegment, error) {
 	if themeID <= 0 {
+		return nil, ErrNotFound
+	}
+
+	var exists bool
+	if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM themes WHERE id = $1)`, themeID).Scan(&exists); err != nil {
+		return nil, fmt.Errorf("check admin anime theme existence id=%d: %w", themeID, err)
+	}
+	if !exists {
 		return nil, ErrNotFound
 	}
 
@@ -304,6 +321,255 @@ func (r *AdminContentRepository) DeleteAdminAnimeThemeSegment(ctx context.Contex
 	tag, err := r.db.Exec(ctx, `DELETE FROM theme_segments WHERE id = $1`, segmentID)
 	if err != nil {
 		return fmt.Errorf("delete admin anime theme segment id=%d: %w", segmentID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}
+
+// GetCanonicalFansubAnimeRelease liefert den fruehesten realen Release-Anker fuer Gruppe+Anime.
+func (r *AdminContentRepository) GetCanonicalFansubAnimeRelease(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, error) {
+	var id int64
+	err := r.db.QueryRow(ctx, `
+		SELECT fr.id
+		FROM fansub_releases fr
+		JOIN episodes e ON e.id = fr.episode_id
+		WHERE e.anime_id = $2
+		  AND EXISTS (
+			SELECT 1
+			FROM release_versions rv
+			JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			WHERE rv.release_id = fr.id
+			  AND rvg.fansub_group_id = $1
+		  )
+		ORDER BY COALESCE(e.sort_index, 2147483647), e.id, fr.id
+		LIMIT 1
+	`, fansubGroupID, animeID).Scan(&id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get canonical fansub anime release fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
+	}
+
+	return &id, nil
+}
+
+// GetFansubRelease liefert den kanonischen Release-Anker fuer Gruppe+Anime, falls er existiert.
+func (r *AdminContentRepository) GetFansubRelease(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, error) {
+	return r.GetCanonicalFansubAnimeRelease(ctx, fansubGroupID, animeID)
+}
+
+// ListFansubAnime liefert alle Anime, die einer Fansub-Gruppe bereits zugeordnet sind.
+func (r *AdminContentRepository) ListFansubAnime(ctx context.Context, fansubGroupID int64) ([]models.AdminFansubAnimeEntry, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT a.id, a.title
+		FROM anime_fansub_groups afg
+		JOIN anime a ON a.id = afg.anime_id
+		WHERE afg.fansub_group_id = $1
+		ORDER BY a.title ASC
+	`, fansubGroupID)
+	if err != nil {
+		return nil, fmt.Errorf("list fansub anime fansub=%d: %w", fansubGroupID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.AdminFansubAnimeEntry, 0)
+	for rows.Next() {
+		var item models.AdminFansubAnimeEntry
+		if err := rows.Scan(&item.ID, &item.Title); err != nil {
+			return nil, fmt.Errorf("scan fansub anime fansub=%d: %w", fansubGroupID, err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate fansub anime fansub=%d: %w", fansubGroupID, err)
+	}
+
+	return items, nil
+}
+
+// ListReleaseThemeAssets gibt alle Theme-Videos eines Releases mit Theme- und Media-Metadaten zurueck.
+func (r *AdminContentRepository) ListReleaseThemeAssets(ctx context.Context, releaseID int64) ([]models.AdminReleaseThemeAsset, error) {
+	if releaseID <= 0 {
+		return nil, ErrNotFound
+	}
+
+	var exists bool
+	if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM fansub_releases WHERE id = $1)`, releaseID).Scan(&exists); err != nil {
+		return nil, fmt.Errorf("check release existence id=%d: %w", releaseID, err)
+	}
+	if !exists {
+		return nil, ErrNotFound
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT
+			rta.release_id,
+			rta.theme_id,
+			tt.name,
+			t.title,
+			rta.media_id,
+			ma.public_url,
+			ma.mime_type,
+			ma.size_bytes,
+			rta.created_at
+		FROM release_theme_assets rta
+		JOIN themes t ON t.id = rta.theme_id
+		JOIN theme_types tt ON tt.id = t.theme_type_id
+		JOIN media_assets ma ON ma.id = rta.media_id
+		WHERE rta.release_id = $1
+		ORDER BY rta.created_at ASC
+	`, releaseID)
+	if err != nil {
+		return nil, fmt.Errorf("list release theme assets release=%d: %w", releaseID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.AdminReleaseThemeAsset, 0)
+	for rows.Next() {
+		var item models.AdminReleaseThemeAsset
+		if err := rows.Scan(
+			&item.ReleaseID,
+			&item.ThemeID,
+			&item.ThemeTypeName,
+			&item.ThemeTitle,
+			&item.MediaID,
+			&item.PublicURL,
+			&item.MimeType,
+			&item.SizeBytes,
+			&item.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan release theme asset release=%d: %w", releaseID, err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate release theme assets release=%d: %w", releaseID, err)
+	}
+
+	return items, nil
+}
+
+// ListReleaseThemeAssetsByFansubAnime liefert Release-ID und Theme-Videos fuer eine konkrete Fansub-Anime-Kombination.
+func (r *AdminContentRepository) ListReleaseThemeAssetsByFansubAnime(
+	ctx context.Context,
+	fansubGroupID int64,
+	animeID int64,
+) (*int64, []models.AdminReleaseThemeAsset, error) {
+	releaseID, err := r.GetCanonicalFansubAnimeRelease(ctx, fansubGroupID, animeID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if releaseID == nil {
+		return nil, []models.AdminReleaseThemeAsset{}, nil
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			rta.release_id,
+			rta.theme_id,
+			tt.name,
+			t.title,
+			rta.media_id,
+			ma.public_url,
+			ma.mime_type,
+			ma.size_bytes,
+			rta.created_at
+		FROM release_theme_assets rta
+		JOIN fansub_releases fr ON fr.id = rta.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		JOIN themes t ON t.id = rta.theme_id
+		JOIN theme_types tt ON tt.id = t.theme_type_id
+		JOIN media_assets ma ON ma.id = rta.media_id
+		WHERE e.anime_id = $2
+		  AND EXISTS (
+			SELECT 1
+			FROM release_versions rv
+			JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			WHERE rv.release_id = fr.id
+			  AND rvg.fansub_group_id = $1
+		  )
+		ORDER BY rta.created_at ASC, rta.release_id ASC, rta.media_id ASC
+	`, fansubGroupID, animeID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("list release theme assets by fansub/anime fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.AdminReleaseThemeAsset, 0)
+	for rows.Next() {
+		var item models.AdminReleaseThemeAsset
+		if err := rows.Scan(
+			&item.ReleaseID,
+			&item.ThemeID,
+			&item.ThemeTypeName,
+			&item.ThemeTitle,
+			&item.MediaID,
+			&item.PublicURL,
+			&item.MimeType,
+			&item.SizeBytes,
+			&item.CreatedAt,
+		); err != nil {
+			return nil, nil, fmt.Errorf("scan release theme asset by fansub/anime fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, nil, fmt.Errorf("iterate release theme assets by fansub/anime fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
+	}
+
+	return releaseID, items, nil
+}
+
+// CreateReleaseThemeAsset legt die Release-Theme-Zuordnung an und liefert den neuen Datensatz zurueck.
+func (r *AdminContentRepository) CreateReleaseThemeAsset(ctx context.Context, input models.AdminReleaseThemeAssetCreateInput) (*models.AdminReleaseThemeAsset, error) {
+	var releaseAnimeID int64
+	if err := r.db.QueryRow(ctx, `SELECT anime_id FROM fansub_releases WHERE id = $1`, input.ReleaseID).Scan(&releaseAnimeID); err != nil {
+		return nil, fmt.Errorf("load release anime id release=%d: %w", input.ReleaseID, err)
+	}
+
+	var themeAnimeID int64
+	if err := r.db.QueryRow(ctx, `SELECT anime_id FROM themes WHERE id = $1`, input.ThemeID).Scan(&themeAnimeID); err != nil {
+		return nil, fmt.Errorf("load theme anime id theme=%d: %w", input.ThemeID, err)
+	}
+	if releaseAnimeID != themeAnimeID {
+		return nil, ErrConflict
+	}
+
+	_, err := r.db.Exec(ctx, `
+		INSERT INTO release_theme_assets (release_id, theme_id, media_id)
+		VALUES ($1, $2, $3)
+	`, input.ReleaseID, input.ThemeID, input.MediaID)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && (pgErr.Code == "23503" || pgErr.Code == "23505") {
+			return nil, ErrConflict
+		}
+		return nil, fmt.Errorf("create release theme asset release=%d theme=%d media=%d: %w", input.ReleaseID, input.ThemeID, input.MediaID, err)
+	}
+
+	items, err := r.ListReleaseThemeAssets(ctx, input.ReleaseID)
+	if err != nil {
+		return nil, err
+	}
+	for _, item := range items {
+		if item.ThemeID == input.ThemeID && item.MediaID == input.MediaID {
+			result := item
+			return &result, nil
+		}
+	}
+
+	return nil, ErrNotFound
+}
+
+// DeleteReleaseThemeAsset entfernt genau ein Theme-Video eines Releases.
+func (r *AdminContentRepository) DeleteReleaseThemeAsset(ctx context.Context, releaseID int64, themeID int64, mediaID int64) error {
+	tag, err := r.db.Exec(ctx, `DELETE FROM release_theme_assets WHERE release_id = $1 AND theme_id = $2 AND media_id = $3`, releaseID, themeID, mediaID)
+	if err != nil {
+		return fmt.Errorf("delete release theme asset release=%d theme=%d media=%d: %w", releaseID, themeID, mediaID, err)
 	}
 	if tag.RowsAffected() == 0 {
 		return ErrNotFound

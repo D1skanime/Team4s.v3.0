@@ -5,8 +5,9 @@ import "time"
 type MediaKind string
 
 const (
-	MediaKindLogo   MediaKind = "logo"
-	MediaKindBanner MediaKind = "banner"
+	MediaKindLogo       MediaKind = "logo"
+	MediaKindBanner     MediaKind = "banner"
+	MediaKindThemeVideo MediaKind = "theme_video"
 )
 
 type MediaAsset struct {

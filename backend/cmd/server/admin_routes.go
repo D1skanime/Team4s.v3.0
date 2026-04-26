@@ -78,4 +78,12 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/anime/:id/themes", auth, deps.adminContentHandler.CreateAnimeTheme)
 	v1.PATCH("/admin/anime/:id/themes/:themeId", auth, deps.adminContentHandler.UpdateAnimeTheme)
 	v1.DELETE("/admin/anime/:id/themes/:themeId", auth, deps.adminContentHandler.DeleteAnimeTheme)
+	v1.GET("/admin/anime/:id/themes/:themeId/segments", auth, deps.adminContentHandler.ListAnimeThemeSegments)
+	v1.POST("/admin/anime/:id/themes/:themeId/segments", auth, deps.adminContentHandler.CreateAnimeThemeSegment)
+	v1.DELETE("/admin/anime/:id/themes/:themeId/segments/:segmentId", auth, deps.adminContentHandler.DeleteAnimeThemeSegment)
+	v1.GET("/admin/fansubs/:id/anime", auth, deps.adminContentHandler.ListFansubAnime)
+	v1.GET("/admin/fansubs/:id/anime/:animeId/theme-assets", auth, deps.adminContentHandler.ListFansubAnimeThemeAssets)
+	v1.POST("/admin/fansubs/:id/anime/:animeId/theme-assets", auth, deps.adminContentHandler.UploadReleaseThemeAsset)
+	v1.GET("/admin/releases/:releaseId/theme-assets", auth, deps.adminContentHandler.ListReleaseThemeAssets)
+	v1.DELETE("/admin/releases/:releaseId/theme-assets/:themeId/:mediaId", auth, deps.adminContentHandler.DeleteReleaseThemeAsset)
 }
