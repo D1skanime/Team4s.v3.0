@@ -319,7 +319,11 @@ Plans:
 **Goal:** Admins können auf der Episode-Version-Edit-Seite OP/ED-Segmente für eine Fansub-Gruppe und Version verwalten: Typ (OP/ED/IN/PV), Name, Episodenbereich (plain integers), Zeitbereich im Video (HH:MM:SS), optionale Jellyfin-Quelle. Migration: theme_segments um fansub_group_id, version, start_episode, end_episode, start_time, end_time, source_jellyfin_item_id erweitern. UI wie Mockup: Tab "Segmente" mit Tabelle (Typ-Badges), Seitenleisten-Formular und Timeline-Visualisierung.
 **Requirements**: P24-SC1, P24-SC2, P24-SC3, P24-SC4
 **Depends on:** Phase 23
-**Plans:** planned
+**Plans:** 3 plans
+Plans:
+- [ ] `24-01-PLAN.md` -- Migration 0049 + Backend Segment-CRUD (4 Endpunkte, alte FK-Handler ersetzen)
+- [ ] `24-02-PLAN.md` -- Frontend Typen/API-Helpers + useReleaseSegments Hook + SegmenteTab Komponente + Tab-Integration
+- [ ] `24-03-PLAN.md` -- Verification, Backend-Smoke-Tests, Human UAT
 **Success Criteria** (what must be TRUE):
   1. Admin sieht auf `/admin/episode-versions/:id/edit` einen Tab "Segmente" mit Tabelle (Typ-Badge, Name, Episodenbereich, Zeitbereich, Quelle) und Aktions-Buttons.
   2. Segmente können angelegt, bearbeitet und gelöscht werden; Episodenbereich sind plain integers (keine FK auf episodes).
