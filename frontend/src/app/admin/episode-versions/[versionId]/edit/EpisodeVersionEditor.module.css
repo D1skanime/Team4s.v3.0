@@ -364,3 +364,37 @@
     width: 100%;
   }
 }
+
+.tabNav {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #e1e1e6;
+  margin-bottom: 1.5rem;
+}
+
+.tab {
+  padding: 0.6rem 1.25rem;
+  background: none;
+  border: none;
+  color: #6b6b70;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab:hover {
+  color: #1c1c1e;
+}
+
+.tabActive {
+  padding: 0.6rem 1.25rem;
+  background: none;
+  border: none;
+  color: #1c1c1e;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-bottom: 2px solid #ff6a3d;
+  margin-bottom: -2px;
+}

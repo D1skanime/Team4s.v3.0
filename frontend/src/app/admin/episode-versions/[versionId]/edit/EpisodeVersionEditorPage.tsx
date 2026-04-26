@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
 import { formatBytes, formatDateTime, padEpisodeNumber } from './episodeVersionEditorUtils'
 import { useEpisodeVersionEditor } from './useEpisodeVersionEditor'
+import { SegmenteTab } from './SegmenteTab'
 import styles from './EpisodeVersionEditor.module.css'
 
 function parsePositiveInt(value: string | null): number | null {
@@ -22,6 +24,13 @@ export function EpisodeVersionEditorPage() {
   const version = editor.contextData?.version
   const animeIDFromQuery = parsePositiveInt(searchParams.get('animeId'))
   const episodeIDFromQuery = parsePositiveInt(searchParams.get('episodeId'))
+
+  const [activeTab, setActiveTab] = useState<'allgemein' | 'segmente'>('allgemein')
+
+  const segmentAnimeId = editor.contextData?.version.anime_id ?? null
+  const segmentGroupId = editor.contextData?.selected_groups[0]?.id ?? null
+  // EpisodeVersion has no version string field; default to 'v1' as the release version
+  const segmentVersion: string | null = 'v1'
   const subtitle = version
     ? `Version #${version.id} - ${padEpisodeNumber(version.episode_number)} ${editor.contextData?.anime_title || ''}`.trim()
     : 'Episode-Version bearbeiten'
@@ -59,6 +68,33 @@ export function EpisodeVersionEditorPage() {
           </section>
         ) : version && editor.contextData ? (
           <form className={styles.form} onSubmit={(event) => void editor.handleSave(event)}>
+            <div className={styles.tabNav}>
+              <button
+                type="button"
+                className={activeTab === 'allgemein' ? styles.tabActive : styles.tab}
+                onClick={() => setActiveTab('allgemein')}
+              >
+                Allgemein
+              </button>
+              <button
+                type="button"
+                className={activeTab === 'segmente' ? styles.tabActive : styles.tab}
+                onClick={() => setActiveTab('segmente')}
+              >
+                Segmente
+              </button>
+            </div>
+
+            {activeTab === 'segmente' ? (
+              <SegmenteTab
+                animeId={segmentAnimeId}
+                groupId={segmentGroupId}
+                version={segmentVersion}
+              />
+            ) : null}
+
+            {activeTab === 'allgemein' ? (
+            <>
             <section className={styles.card}>
               <div className={styles.sectionHeader}>
                 <div>
@@ -235,6 +271,7 @@ export function EpisodeVersionEditorPage() {
                 )}
               </div>
             </section>
+            </>) : null}
 
             <section className={styles.actionBar}>
               <Link href={backHref} className={styles.secondaryButton}>
