@@ -12,6 +12,7 @@ import styles from '../../AdminStudio.module.css'
 import { resolveCoverUrl } from '../../utils/anime-helpers'
 import { JellyfinSyncPanel } from '../JellyfinSync/JellyfinSyncPanel'
 import { AnimeEditWorkspace } from './AnimeEditWorkspace'
+import { AnimeThemesSection } from './AnimeThemesSection'
 
 /**
  * Props der AdminAnimeEditPageClient-Komponente.
@@ -89,6 +90,9 @@ export function AdminAnimeEditPageClient({
             <Link href={`/admin/anime/${anime.id}/episodes`} className={`${styles.button} ${styles.buttonPrimary}`}>
               Zu Episoden wechseln
             </Link>
+            <Link href={`/admin/anime/${anime.id}/themes`} className={`${styles.button} ${styles.buttonSecondary}`}>
+              Zu Themes wechseln
+            </Link>
             <Link
               href={`/anime/${anime.id}`}
               className={`${styles.button} ${styles.buttonSecondary}`}
@@ -148,6 +152,13 @@ export function AdminAnimeEditPageClient({
               }}
             />
           </section>
+
+          <AnimeThemesSection
+            animeID={animeID}
+            authToken={authToken}
+            onSuccess={(message) => { setErrorMessage(null); setSuccessMessage(message) }}
+            onError={(message) => { setSuccessMessage(null); setErrorMessage(message) }}
+          />
 
           {(lastRequest || lastResponse) ? (
             <section className={styles.card}>
