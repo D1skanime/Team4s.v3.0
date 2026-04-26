@@ -799,3 +799,51 @@ export interface AdminFansubAnimeThemeAssetsResponse {
   release_id: number | null
   data: AdminReleaseThemeAsset[]
 }
+
+// --- Release-Segmente (OP/ED Timing) (Phase 24) ---
+
+/** Ein Release-Segment (OP/ED Timing) fuer eine Fansub-Gruppe und Version. */
+export interface AdminThemeSegment {
+  id: number
+  theme_id: number
+  anime_id: number
+  theme_title: string | null
+  theme_type_name: string
+  fansub_group_id: number | null
+  version: string
+  start_episode: number | null
+  end_episode: number | null
+  start_time: string | null    // "HH:MM:SS" oder null
+  end_time: string | null      // "HH:MM:SS" oder null
+  source_jellyfin_item_id: string | null
+  created_at: string
+}
+
+/** API-Response fuer Segment-Listen. */
+export interface AdminAnimeSegmentsResponse {
+  data: AdminThemeSegment[]
+}
+
+/** Request zum Anlegen eines neuen Segments. */
+export interface AdminThemeSegmentCreateRequest {
+  theme_id: number
+  fansub_group_id?: number | null
+  version: string
+  start_episode?: number | null
+  end_episode?: number | null
+  start_time?: string | null
+  end_time?: string | null
+  source_jellyfin_item_id?: string | null
+}
+
+/** Request zum partiellen Aktualisieren eines Segments. */
+export interface AdminThemeSegmentPatchRequest {
+  theme_id?: number
+  fansub_group_id?: number | null
+  version?: string
+  start_episode?: number | null
+  end_episode?: number | null
+  start_time?: string | null
+  end_time?: string | null
+  source_jellyfin_item_id?: string | null
+}

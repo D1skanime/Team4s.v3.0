@@ -41,6 +41,10 @@ import {
   AdminEpisodeDeleteResponse,
   AdminEpisodePatchRequest,
   AdminEpisodeUpsertResponse,
+  AdminAnimeSegmentsResponse,
+  AdminThemeSegment,
+  AdminThemeSegmentCreateRequest,
+  AdminThemeSegmentPatchRequest,
 } from '@/types/admin'
 import {
   AnimeBackdropResponse,
@@ -2556,4 +2560,86 @@ export async function getReleaseAssets(releaseID: number): Promise<ReleaseAssets
   }
 
   return response.json() as Promise<ReleaseAssetsResponse>
+}
+
+// --- Release-Segmente (OP/ED Timing) (Phase 24) ---
+
+export async function getAnimeSegments(
+  animeId: number,
+  groupId: number | null,
+  version: string | null,
+  authToken?: string,
+): Promise<AdminAnimeSegmentsResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const params = new URLSearchParams()
+  if (groupId) params.set('group_id', String(groupId))
+  if (version) params.set('version', version)
+  const qs = params.toString() ? `?${params.toString()}` : ''
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments${qs}`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminAnimeSegmentsResponse>
+}
+
+export async function createAnimeSegment(
+  animeId: number,
+  input: AdminThemeSegmentCreateRequest,
+  authToken?: string,
+): Promise<{ data: AdminThemeSegment }> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments`, {
+    method: 'POST',
+    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+    body: JSON.stringify(input),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<{ data: AdminThemeSegment }>
+}
+
+export async function updateAnimeSegment(
+  animeId: number,
+  segmentId: number,
+  input: AdminThemeSegmentPatchRequest,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}`, {
+    method: 'PATCH',
+    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+    body: JSON.stringify(input),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+export async function deleteAnimeSegment(
+  animeId: number,
+  segmentId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
 }
