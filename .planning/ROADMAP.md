@@ -33,6 +33,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 21: Fansub Group Chips And Collaboration Wiring** - Let operators select existing or new fansub groups as chips during import/manual version work, and build deterministic collaborations plus anime-group linkage behind that UI. (completed 2026-04-23)
 - [ ] **Phase 22: Anime Edit On Create-Flow Foundation** - Replace the divergent anime edit workspace with a shared create-style editor, keeping AniSearch identity fixed while Jellyfin can be re-searched and re-synced.
 - [ ] **Phase 23: OP/ED Theme Verwaltung** - Admins können Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren, theme_types seeden (OP1, OP2, ED1, ED2, Insert, Outro), und Fansub-Gruppen können OP/ED-Videos hochladen.
+- [ ] **Phase 24: Release-Segmente (OP/ED Timing)** - Admins können auf der Episode-Version-Edit-Seite OP/ED-Segmente (Typ, Name, Episodenbereich, Zeitbereich im Video, Jellyfin-Quelle) pro Fansub-Gruppe und Version verwalten. UI wie Mockup: Tab "Segmente" mit Tabelle, Seitenleisten-Formular und Timeline-Visualisierung.
 
 ## Phase Details
 
@@ -314,6 +315,17 @@ Plans:
   3. theme_types sind geseedet (OP1, OP2, ED1, ED2, Insert, Outro) und auswählbar.
   4. Bestehende Themes werden beim Öffnen der Edit-Seite korrekt geladen und angezeigt.
 
+### Phase 24: Release-Segmente (OP/ED Timing)
+**Goal:** Admins können auf der Episode-Version-Edit-Seite OP/ED-Segmente für eine Fansub-Gruppe und Version verwalten: Typ (OP/ED/IN/PV), Name, Episodenbereich (plain integers), Zeitbereich im Video (HH:MM:SS), optionale Jellyfin-Quelle. Migration: theme_segments um fansub_group_id, version, start_episode, end_episode, start_time, end_time, source_jellyfin_item_id erweitern. UI wie Mockup: Tab "Segmente" mit Tabelle (Typ-Badges), Seitenleisten-Formular und Timeline-Visualisierung.
+**Requirements**: P24-SC1, P24-SC2, P24-SC3, P24-SC4
+**Depends on:** Phase 23
+**Plans:** planned
+**Success Criteria** (what must be TRUE):
+  1. Admin sieht auf `/admin/episode-versions/:id/edit` einen Tab "Segmente" mit Tabelle (Typ-Badge, Name, Episodenbereich, Zeitbereich, Quelle) und Aktions-Buttons.
+  2. Segmente können angelegt, bearbeitet und gelöscht werden; Episodenbereich sind plain integers (keine FK auf episodes).
+  3. Die Timeline-Vorschau zeigt Segmente als farbige Blöcke proportional zum Zeitbereich.
+  4. Query-Seam für Playback: `WHERE series = (anime, group, version) AND episode BETWEEN start AND end` liefert korrekte Segmente.
+
 ### Phase 22: Anime Edit On Create-Flow Foundation
 **Goal:** Replace the stale, divergent anime edit route with a create-flow-based editor that reuses the modern admin anime workspace while preserving edit-specific identity rules.
 **Requirements**: P22-SC1, P22-SC2, P22-SC3, P22-SC4, P22-SC5
@@ -331,4 +343,4 @@ Plans:
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
-| v1.1 Asset Lifecycle Hardening | 20 | 44+ | Phases 6-21 complete; Phase 22 edit unification und Phase 23 OP/ED-Verwaltung geplant | - |
+| v1.1 Asset Lifecycle Hardening | 21 | 44+ | Phases 6-21 complete; Phase 22 edit unification, Phase 23 OP/ED-Verwaltung, Phase 24 Release-Segmente geplant | - |

@@ -7,7 +7,7 @@ stopped_at: Completed 23-op-ed-theme-verwaltung-23-03-PLAN.md
 last_updated: "2026-04-26T01:35:27.592Z"
 last_activity: 2026-04-26
 progress:
-  total_phases: 19
+  total_phases: 20
   completed_phases: 15
   total_plans: 67
   completed_plans: 61
@@ -146,6 +146,7 @@ Recent durable decisions:
 - Phase 20.1 executed and verified: clean migration through 46 migrations passed, legacy episode-version tables are absent, Docker backend/frontend were rebuilt, and Phase 20 is unblocked for release-native import writes.
 - Phase 20 live UAT completed on 2026-04-23: disposable `3×3 Eyes` replay proved normalized-table persistence, multilingual episode titles, release-native stream linkage, and dual-provider anime source persistence.
 - Phase 23 added: OP/ED Theme Verwaltung — Admins können Opening/Ending-Themes pro Anime mit Episodenbereichen verwalten.
+- Phase 24 added: Release-Segmente (OP/ED Timing) — Tab "Segmente" auf Episode-Version-Edit-Seite; theme_segments um fansub_group_id, version, plain-integer episode range, start_time/end_time im Video und Jellyfin-Source erweitert; UI wie Mockup mit Tabelle, Typ-Badges, Timeline-Visualisierung.
 
 ### Blockers/Concerns
 
