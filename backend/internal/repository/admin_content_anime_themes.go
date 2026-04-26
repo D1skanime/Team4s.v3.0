@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"path/filepath"
 	"strings"
 
 	"team4s.v3/backend/internal/models"
@@ -199,128 +201,263 @@ func (r *AdminContentRepository) DeleteAdminAnimeTheme(ctx context.Context, them
 	return nil
 }
 
-// ListAdminAnimeThemeSegments gibt alle Segmente eines Themes zurück (Plan 02).
-func (r *AdminContentRepository) ListAdminAnimeThemeSegments(ctx context.Context, themeID int64) ([]models.AdminAnimeThemeSegment, error) {
-	if themeID <= 0 {
+// ListAnimeSegments gibt alle Segmente eines Anime gefiltert nach group_id und version zurueck.
+// groupID=0 und version="" bedeutet: kein Filter (alle Segmente des Anime).
+func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID int64, groupID int64, version string) ([]models.AdminThemeSegment, error) {
+	if animeID <= 0 {
 		return nil, ErrNotFound
 	}
 
-	var exists bool
-	if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM themes WHERE id = $1)`, themeID).Scan(&exists); err != nil {
-		return nil, fmt.Errorf("check admin anime theme existence id=%d: %w", themeID, err)
+	exists, err := r.animeExists(ctx, animeID)
+	if err != nil {
+		return nil, err
 	}
 	if !exists {
 		return nil, ErrNotFound
 	}
 
-	rows, err := r.db.Query(ctx, `
+	query := `
 		SELECT
 			ts.id,
 			ts.theme_id,
-			ts.start_episode_id,
-			ts.end_episode_id,
-			se.episode_number AS start_episode_number,
-			ee.episode_number AS end_episode_number,
+			t.anime_id,
+			t.title AS theme_title,
+			tt.name AS theme_type_name,
+			ts.fansub_group_id,
+			ts.version,
+			ts.start_episode,
+			ts.end_episode,
+			ts.start_time::text,
+			ts.end_time::text,
+			ts.source_jellyfin_item_id,
 			ts.created_at
 		FROM theme_segments ts
-		LEFT JOIN episodes se ON se.id = ts.start_episode_id
-		LEFT JOIN episodes ee ON ee.id = ts.end_episode_id
-		WHERE ts.theme_id = $1
-		ORDER BY ts.id
-	`, themeID)
+		JOIN themes t ON t.id = ts.theme_id
+		JOIN theme_types tt ON tt.id = t.theme_type_id
+		WHERE t.anime_id = $1`
+
+	args := []interface{}{animeID}
+	argIdx := 2
+
+	if groupID > 0 {
+		query += fmt.Sprintf(" AND ts.fansub_group_id = $%d", argIdx)
+		args = append(args, groupID)
+		argIdx++
+	}
+	if version != "" {
+		query += fmt.Sprintf(" AND ts.version = $%d", argIdx)
+		args = append(args, version)
+		argIdx++
+	}
+
+	query += " ORDER BY ts.id"
+
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("list admin anime theme segments theme=%d: %w", themeID, err)
+		return nil, fmt.Errorf("list anime segments anime=%d: %w", animeID, err)
 	}
 	defer rows.Close()
 
-	segments := make([]models.AdminAnimeThemeSegment, 0)
+	segments := make([]models.AdminThemeSegment, 0)
 	for rows.Next() {
-		var seg models.AdminAnimeThemeSegment
+		var seg models.AdminThemeSegment
 		if err := rows.Scan(
 			&seg.ID,
 			&seg.ThemeID,
-			&seg.StartEpisodeID,
-			&seg.EndEpisodeID,
-			&seg.StartEpisodeNumber,
-			&seg.EndEpisodeNumber,
+			&seg.AnimeID,
+			&seg.ThemeTitle,
+			&seg.ThemeTypeName,
+			&seg.FansubGroupID,
+			&seg.Version,
+			&seg.StartEpisode,
+			&seg.EndEpisode,
+			&seg.StartTime,
+			&seg.EndTime,
+			&seg.SourceJellyfinItemID,
 			&seg.CreatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("scan admin anime theme segment theme=%d: %w", themeID, err)
+			return nil, fmt.Errorf("scan anime segment anime=%d: %w", animeID, err)
 		}
 		segments = append(segments, seg)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate admin anime theme segments theme=%d: %w", themeID, err)
+		return nil, fmt.Errorf("iterate anime segments anime=%d: %w", animeID, err)
 	}
 
 	return segments, nil
 }
 
-// CreateAdminAnimeThemeSegment legt ein neues Segment für ein Theme an (Plan 02).
-func (r *AdminContentRepository) CreateAdminAnimeThemeSegment(ctx context.Context, themeID int64, input models.AdminAnimeThemeSegmentCreateInput) (*models.AdminAnimeThemeSegment, error) {
-	if themeID <= 0 {
+// CreateAnimeSegment legt ein neues Segment an.
+// Prueft ob das Theme zum animeID gehoert.
+func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput) (*models.AdminThemeSegment, error) {
+	if animeID <= 0 {
 		return nil, ErrNotFound
 	}
 
-	var exists bool
-	if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM themes WHERE id = $1)`, themeID).Scan(&exists); err != nil {
-		return nil, fmt.Errorf("check admin anime theme existence id=%d: %w", themeID, err)
+	// Sicherstellen dass Theme existiert und zum Anime gehoert
+	var themeAnimeID int64
+	if err := r.db.QueryRow(ctx, `SELECT anime_id FROM themes WHERE id = $1`, input.ThemeID).Scan(&themeAnimeID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("check theme anime id theme=%d: %w", input.ThemeID, err)
 	}
-	if !exists {
+	if themeAnimeID != animeID {
 		return nil, ErrNotFound
 	}
 
-	var seg models.AdminAnimeThemeSegment
+	var segID int64
 	err := r.db.QueryRow(ctx, `
-		INSERT INTO theme_segments (theme_id, start_episode_id, end_episode_id)
-		VALUES ($1, $2, $3)
-		RETURNING id, theme_id, start_episode_id, end_episode_id, created_at
-	`, themeID, input.StartEpisodeID, input.EndEpisodeID).Scan(
-		&seg.ID,
-		&seg.ThemeID,
-		&seg.StartEpisodeID,
-		&seg.EndEpisodeID,
-		&seg.CreatedAt,
-	)
+		INSERT INTO theme_segments (theme_id, fansub_group_id, version, start_episode, end_episode, start_time, end_time, source_jellyfin_item_id)
+		VALUES ($1, $2, $3, $4, $5, $6::interval, $7::interval, $8)
+		RETURNING id
+	`, input.ThemeID, input.FansubGroupID, input.Version, input.StartEpisode, input.EndEpisode,
+		input.StartTime, input.EndTime, input.SourceJellyfinItemID).Scan(&segID)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23503" {
 				return nil, ErrConflict
 			}
-			if pgErr.Code == "23505" {
+			if pgErr.Code == "23514" {
 				return nil, ErrConflict
 			}
 		}
-		return nil, fmt.Errorf("create admin anime theme segment theme=%d: %w", themeID, err)
+		return nil, fmt.Errorf("create anime segment anime=%d: %w", animeID, err)
 	}
 
-	// episode_number Werte per Follow-up-Queries auflösen
-	if seg.StartEpisodeID != nil {
-		var epNum string
-		if err := r.db.QueryRow(ctx, `SELECT episode_number FROM episodes WHERE id = $1`, *seg.StartEpisodeID).Scan(&epNum); err == nil {
-			seg.StartEpisodeNumber = &epNum
-		}
-	}
-	if seg.EndEpisodeID != nil {
-		var epNum string
-		if err := r.db.QueryRow(ctx, `SELECT episode_number FROM episodes WHERE id = $1`, *seg.EndEpisodeID).Scan(&epNum); err == nil {
-			seg.EndEpisodeNumber = &epNum
-		}
+	// Vollstaendigen Datensatz per SELECT laden
+	var seg models.AdminThemeSegment
+	if err := r.db.QueryRow(ctx, `
+		SELECT
+			ts.id,
+			ts.theme_id,
+			t.anime_id,
+			t.title AS theme_title,
+			tt.name AS theme_type_name,
+			ts.fansub_group_id,
+			ts.version,
+			ts.start_episode,
+			ts.end_episode,
+			ts.start_time::text,
+			ts.end_time::text,
+			ts.source_jellyfin_item_id,
+			ts.created_at
+		FROM theme_segments ts
+		JOIN themes t ON t.id = ts.theme_id
+		JOIN theme_types tt ON tt.id = t.theme_type_id
+		WHERE ts.id = $1
+	`, segID).Scan(
+		&seg.ID,
+		&seg.ThemeID,
+		&seg.AnimeID,
+		&seg.ThemeTitle,
+		&seg.ThemeTypeName,
+		&seg.FansubGroupID,
+		&seg.Version,
+		&seg.StartEpisode,
+		&seg.EndEpisode,
+		&seg.StartTime,
+		&seg.EndTime,
+		&seg.SourceJellyfinItemID,
+		&seg.CreatedAt,
+	); err != nil {
+		return nil, fmt.Errorf("reload created anime segment id=%d: %w", segID, err)
 	}
 
 	return &seg, nil
 }
 
-// DeleteAdminAnimeThemeSegment löscht ein Theme-Segment anhand seiner ID (Plan 02).
-func (r *AdminContentRepository) DeleteAdminAnimeThemeSegment(ctx context.Context, segmentID int64) error {
+// UpdateAnimeSegment aktualisiert ein Segment (partieller Patch).
+func (r *AdminContentRepository) UpdateAnimeSegment(ctx context.Context, segmentID int64, input models.AdminThemeSegmentPatchInput) error {
+	if segmentID <= 0 {
+		return ErrNotFound
+	}
+
+	setClauses := make([]string, 0, 8)
+	args := make([]interface{}, 0, 9)
+	argIdx := 1
+
+	if input.ThemeID != nil {
+		setClauses = append(setClauses, fmt.Sprintf("theme_id = $%d", argIdx))
+		args = append(args, *input.ThemeID)
+		argIdx++
+	}
+	if input.FansubGroupID != nil {
+		setClauses = append(setClauses, fmt.Sprintf("fansub_group_id = $%d", argIdx))
+		args = append(args, *input.FansubGroupID)
+		argIdx++
+	}
+	if input.Version != nil {
+		setClauses = append(setClauses, fmt.Sprintf("version = $%d", argIdx))
+		args = append(args, *input.Version)
+		argIdx++
+	}
+	if input.StartEpisode != nil {
+		setClauses = append(setClauses, fmt.Sprintf("start_episode = $%d", argIdx))
+		args = append(args, *input.StartEpisode)
+		argIdx++
+	}
+	if input.EndEpisode != nil {
+		setClauses = append(setClauses, fmt.Sprintf("end_episode = $%d", argIdx))
+		args = append(args, *input.EndEpisode)
+		argIdx++
+	}
+	if input.StartTime != nil {
+		setClauses = append(setClauses, fmt.Sprintf("start_time = $%d::interval", argIdx))
+		args = append(args, *input.StartTime)
+		argIdx++
+	}
+	if input.EndTime != nil {
+		setClauses = append(setClauses, fmt.Sprintf("end_time = $%d::interval", argIdx))
+		args = append(args, *input.EndTime)
+		argIdx++
+	}
+	if input.SourceJellyfinItemID != nil {
+		setClauses = append(setClauses, fmt.Sprintf("source_jellyfin_item_id = $%d", argIdx))
+		args = append(args, *input.SourceJellyfinItemID)
+		argIdx++
+	}
+
+	if len(setClauses) == 0 {
+		// Nichts zu aktualisieren — pruefen ob Segment existiert
+		var exists bool
+		if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM theme_segments WHERE id = $1)`, segmentID).Scan(&exists); err != nil {
+			return fmt.Errorf("check segment existence id=%d: %w", segmentID, err)
+		}
+		if !exists {
+			return ErrNotFound
+		}
+		return nil
+	}
+
+	args = append(args, segmentID)
+	query := fmt.Sprintf("UPDATE theme_segments SET %s WHERE id = $%d", strings.Join(setClauses, ", "), argIdx)
+
+	tag, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23514" {
+			return ErrConflict
+		}
+		return fmt.Errorf("update anime segment id=%d: %w", segmentID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}
+
+// DeleteAnimeSegment loescht ein Segment anhand seiner ID.
+func (r *AdminContentRepository) DeleteAnimeSegment(ctx context.Context, segmentID int64) error {
 	if segmentID <= 0 {
 		return ErrNotFound
 	}
 
 	tag, err := r.db.Exec(ctx, `DELETE FROM theme_segments WHERE id = $1`, segmentID)
 	if err != nil {
-		return fmt.Errorf("delete admin anime theme segment id=%d: %w", segmentID, err)
+		return fmt.Errorf("delete anime segment id=%d: %w", segmentID, err)
 	}
 	if tag.RowsAffected() == 0 {
 		return ErrNotFound
@@ -412,9 +549,15 @@ func (r *AdminContentRepository) ListReleaseThemeAssets(ctx context.Context, rel
 			tt.name,
 			t.title,
 			rta.media_id,
-			ma.public_url,
 			ma.mime_type,
-			ma.size_bytes,
+			ma.file_path,
+			COALESCE((
+				SELECT mf.size
+				FROM media_files mf
+				WHERE mf.media_id = ma.id
+				ORDER BY CASE WHEN mf.variant = 'original' THEN 0 ELSE 1 END, mf.id
+				LIMIT 1
+			), 0) AS size_bytes,
 			rta.created_at
 		FROM release_theme_assets rta
 		JOIN themes t ON t.id = rta.theme_id
@@ -437,13 +580,14 @@ func (r *AdminContentRepository) ListReleaseThemeAssets(ctx context.Context, rel
 			&item.ThemeTypeName,
 			&item.ThemeTitle,
 			&item.MediaID,
-			&item.PublicURL,
 			&item.MimeType,
+			&item.PublicURL,
 			&item.SizeBytes,
 			&item.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("scan release theme asset release=%d: %w", releaseID, err)
 		}
+		item.PublicURL = buildThemeAssetPublicURL(item.PublicURL)
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
@@ -468,15 +612,21 @@ func (r *AdminContentRepository) ListReleaseThemeAssetsByFansubAnime(
 	}
 
 	rows, err := r.db.Query(ctx, `
-		SELECT
+		SELECT DISTINCT
 			rta.release_id,
 			rta.theme_id,
 			tt.name,
 			t.title,
 			rta.media_id,
-			ma.public_url,
 			ma.mime_type,
-			ma.size_bytes,
+			ma.file_path,
+			COALESCE((
+				SELECT mf.size
+				FROM media_files mf
+				WHERE mf.media_id = ma.id
+				ORDER BY CASE WHEN mf.variant = 'original' THEN 0 ELSE 1 END, mf.id
+				LIMIT 1
+			), 0) AS size_bytes,
 			rta.created_at
 		FROM release_theme_assets rta
 		JOIN fansub_releases fr ON fr.id = rta.release_id
@@ -508,13 +658,14 @@ func (r *AdminContentRepository) ListReleaseThemeAssetsByFansubAnime(
 			&item.ThemeTypeName,
 			&item.ThemeTitle,
 			&item.MediaID,
-			&item.PublicURL,
 			&item.MimeType,
+			&item.PublicURL,
 			&item.SizeBytes,
 			&item.CreatedAt,
 		); err != nil {
 			return nil, nil, fmt.Errorf("scan release theme asset by fansub/anime fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
 		}
+		item.PublicURL = buildThemeAssetPublicURL(item.PublicURL)
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
@@ -527,7 +678,12 @@ func (r *AdminContentRepository) ListReleaseThemeAssetsByFansubAnime(
 // CreateReleaseThemeAsset legt die Release-Theme-Zuordnung an und liefert den neuen Datensatz zurueck.
 func (r *AdminContentRepository) CreateReleaseThemeAsset(ctx context.Context, input models.AdminReleaseThemeAssetCreateInput) (*models.AdminReleaseThemeAsset, error) {
 	var releaseAnimeID int64
-	if err := r.db.QueryRow(ctx, `SELECT anime_id FROM fansub_releases WHERE id = $1`, input.ReleaseID).Scan(&releaseAnimeID); err != nil {
+	if err := r.db.QueryRow(ctx, `
+		SELECT e.anime_id
+		FROM fansub_releases fr
+		JOIN episodes e ON e.id = fr.episode_id
+		WHERE fr.id = $1
+	`, input.ReleaseID).Scan(&releaseAnimeID); err != nil {
 		return nil, fmt.Errorf("load release anime id release=%d: %w", input.ReleaseID, err)
 	}
 
@@ -576,4 +732,16 @@ func (r *AdminContentRepository) DeleteReleaseThemeAsset(ctx context.Context, re
 	}
 
 	return nil
+}
+
+func buildThemeAssetPublicURL(filePath string) string {
+	trimmed := strings.TrimSpace(filePath)
+	if trimmed == "" {
+		return ""
+	}
+	filename := filepath.Base(trimmed)
+	if filename == "." || filename == string(filepath.Separator) {
+		return ""
+	}
+	return "/api/v1/media/files/" + url.PathEscape(filename)
 }

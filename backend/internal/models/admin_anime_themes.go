@@ -31,19 +31,43 @@ type AdminAnimeThemePatchInput struct {
 	Title       *string `json:"title"`
 }
 
-// AdminAnimeThemeSegment repräsentiert einen Episodenbereich für ein OP/ED-Theme.
-type AdminAnimeThemeSegment struct {
-	ID                 int64     `json:"id"`
-	ThemeID            int64     `json:"theme_id"`
-	StartEpisodeID     *int64    `json:"start_episode_id"`
-	EndEpisodeID       *int64    `json:"end_episode_id"`
-	StartEpisodeNumber *string   `json:"start_episode_number"`
-	EndEpisodeNumber   *string   `json:"end_episode_number"`
-	CreatedAt          time.Time `json:"created_at"`
+// AdminThemeSegment repraesentiert ein Release-Segment (OP/ED-Timing) fuer eine Fansub-Gruppe und Version.
+type AdminThemeSegment struct {
+	ID                   int64     `json:"id"`
+	ThemeID              int64     `json:"theme_id"`
+	AnimeID              int64     `json:"anime_id"`
+	ThemeTitle           *string   `json:"theme_title"`
+	ThemeTypeName        string    `json:"theme_type_name"`
+	FansubGroupID        *int64    `json:"fansub_group_id"`
+	Version              string    `json:"version"`
+	StartEpisode         *int      `json:"start_episode"`
+	EndEpisode           *int      `json:"end_episode"`
+	StartTime            *string   `json:"start_time"`   // Interval als HH:MM:SS-String
+	EndTime              *string   `json:"end_time"`     // Interval als HH:MM:SS-String
+	SourceJellyfinItemID *string   `json:"source_jellyfin_item_id"`
+	CreatedAt            time.Time `json:"created_at"`
 }
 
-// AdminAnimeThemeSegmentCreateInput enthält die Felder zum Anlegen eines neuen Theme-Segments.
-type AdminAnimeThemeSegmentCreateInput struct {
-	StartEpisodeID *int64 `json:"start_episode_id"`
-	EndEpisodeID   *int64 `json:"end_episode_id"`
+// AdminThemeSegmentCreateInput enthaelt die Felder zum Anlegen eines neuen Segments.
+type AdminThemeSegmentCreateInput struct {
+	ThemeID              int64   `json:"theme_id"`
+	FansubGroupID        *int64  `json:"fansub_group_id"`
+	Version              string  `json:"version"`
+	StartEpisode         *int    `json:"start_episode"`
+	EndEpisode           *int    `json:"end_episode"`
+	StartTime            *string `json:"start_time"`
+	EndTime              *string `json:"end_time"`
+	SourceJellyfinItemID *string `json:"source_jellyfin_item_id"`
+}
+
+// AdminThemeSegmentPatchInput enthaelt die optionalen Felder fuer ein Segment-Update.
+type AdminThemeSegmentPatchInput struct {
+	ThemeID              *int64  `json:"theme_id"`
+	FansubGroupID        *int64  `json:"fansub_group_id"`
+	Version              *string `json:"version"`
+	StartEpisode         *int    `json:"start_episode"`
+	EndEpisode           *int    `json:"end_episode"`
+	StartTime            *string `json:"start_time"`
+	EndTime              *string `json:"end_time"`
+	SourceJellyfinItemID *string `json:"source_jellyfin_item_id"`
 }
