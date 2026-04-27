@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"path/filepath"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
 
@@ -12,39 +15,55 @@ import (
 )
 
 type MediaRepository struct {
-	db *pgxpool.Pool
+	db            *pgxpool.Pool
+	publicBaseURL string
 }
 
-func NewMediaRepository(db *pgxpool.Pool) *MediaRepository {
-	return &MediaRepository{db: db}
+func NewMediaRepository(db *pgxpool.Pool, publicBaseURL string) *MediaRepository {
+	return &MediaRepository{
+		db:            db,
+		publicBaseURL: strings.TrimRight(strings.TrimSpace(publicBaseURL), "/"),
+	}
 }
 
 func (r *MediaRepository) CreateMediaAsset(
 	ctx context.Context,
 	input models.MediaAssetCreateInput,
 ) (*models.MediaAsset, error) {
+	filename := strings.TrimSpace(input.Filename)
+	storagePath := strings.TrimSpace(input.StoragePath)
+	if filename == "" {
+		filename = filepath.Base(storagePath)
+	}
+	if storagePath == "" || filename == "" {
+		return nil, fmt.Errorf("create media asset: filename und storage path sind erforderlich")
+	}
+
+	mediaTypeName, err := mediaTypeNameForKind(input.Kind, input.MimeType)
+	if err != nil {
+		return nil, err
+	}
+
+	var mediaTypeID int64
+	if err := r.db.QueryRow(ctx, `
+		SELECT id
+		FROM media_types
+		WHERE name = $1
+		LIMIT 1
+	`, mediaTypeName).Scan(&mediaTypeID); err != nil {
+		return nil, fmt.Errorf("create media asset: load media type %q: %w", mediaTypeName, err)
+	}
+
+	publicURL := r.buildPublicURL(filename)
 	var item models.MediaAsset
 	if err := r.db.QueryRow(ctx, `
-		INSERT INTO media_assets (filename, storage_path, public_url, mime_type, size_bytes, width, height)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING id, filename, storage_path, public_url, mime_type, size_bytes, width, height, created_at
-	`,
-		input.Filename,
-		input.StoragePath,
-		input.PublicURL,
-		input.MimeType,
-		input.SizeBytes,
-		input.Width,
-		input.Height,
-	).Scan(
+		INSERT INTO media_assets (media_type_id, file_path, mime_type, format, created_at)
+		VALUES ($1, $2, $3, $4, NOW())
+		RETURNING id, file_path, mime_type, created_at
+	`, mediaTypeID, storagePath, input.MimeType, mediaFormatForKind(input.Kind)).Scan(
 		&item.ID,
-		&item.Filename,
 		&item.StoragePath,
-		&item.PublicURL,
 		&item.MimeType,
-		&item.SizeBytes,
-		&item.Width,
-		&item.Height,
 		&item.CreatedAt,
 	); err != nil {
 		if isUniqueViolation(err) {
@@ -53,24 +72,25 @@ func (r *MediaRepository) CreateMediaAsset(
 		return nil, fmt.Errorf("create media asset: %w", err)
 	}
 
+	item.Filename = filename
+	item.PublicURL = publicURL
+	item.SizeBytes = input.SizeBytes
+	item.Width = input.Width
+	item.Height = input.Height
+
 	return &item, nil
 }
 
 func (r *MediaRepository) GetMediaAssetByID(ctx context.Context, mediaID int64) (*models.MediaAsset, error) {
 	var item models.MediaAsset
 	if err := r.db.QueryRow(ctx, `
-		SELECT id, filename, storage_path, public_url, mime_type, size_bytes, width, height, created_at
+		SELECT id, file_path, mime_type, created_at
 		FROM media_assets
 		WHERE id = $1
 	`, mediaID).Scan(
 		&item.ID,
-		&item.Filename,
 		&item.StoragePath,
-		&item.PublicURL,
 		&item.MimeType,
-		&item.SizeBytes,
-		&item.Width,
-		&item.Height,
 		&item.CreatedAt,
 	); errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
@@ -78,24 +98,30 @@ func (r *MediaRepository) GetMediaAssetByID(ctx context.Context, mediaID int64) 
 		return nil, fmt.Errorf("get media asset %d: %w", mediaID, err)
 	}
 
+	item.Filename = filepath.Base(item.StoragePath)
+	item.PublicURL = r.buildPublicURL(item.Filename)
 	return &item, nil
 }
 
 func (r *MediaRepository) GetMediaAssetByFilename(ctx context.Context, filename string) (*models.MediaAsset, error) {
+	trimmed := strings.TrimSpace(filename)
+	if trimmed == "" {
+		return nil, ErrNotFound
+	}
+
 	var item models.MediaAsset
 	if err := r.db.QueryRow(ctx, `
-		SELECT id, filename, storage_path, public_url, mime_type, size_bytes, width, height, created_at
+		SELECT id, file_path, mime_type, created_at
 		FROM media_assets
-		WHERE filename = $1
-	`, filename).Scan(
+		WHERE file_path = $1
+		   OR file_path LIKE $2
+		   OR file_path LIKE $3
+		ORDER BY id DESC
+		LIMIT 1
+	`, trimmed, "%/"+trimmed, "%\\"+trimmed).Scan(
 		&item.ID,
-		&item.Filename,
 		&item.StoragePath,
-		&item.PublicURL,
 		&item.MimeType,
-		&item.SizeBytes,
-		&item.Width,
-		&item.Height,
 		&item.CreatedAt,
 	); errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
@@ -103,6 +129,8 @@ func (r *MediaRepository) GetMediaAssetByFilename(ctx context.Context, filename 
 		return nil, fmt.Errorf("get media asset by filename %q: %w", filename, err)
 	}
 
+	item.Filename = filepath.Base(item.StoragePath)
+	item.PublicURL = r.buildPublicURL(item.Filename)
 	return &item, nil
 }
 
@@ -240,4 +268,42 @@ func (r *MediaRepository) ClearFansubMedia(
 		return prevLogoID, nil
 	}
 	return prevBannerID, nil
+}
+
+func (r *MediaRepository) buildPublicURL(filename string) string {
+	trimmed := strings.TrimSpace(filename)
+	if trimmed == "" {
+		return ""
+	}
+	if r.publicBaseURL == "" {
+		return "/api/v1/media/files/" + url.PathEscape(trimmed)
+	}
+	return r.publicBaseURL + "/api/v1/media/files/" + url.PathEscape(trimmed)
+}
+
+func mediaTypeNameForKind(kind models.MediaKind, mimeType string) (string, error) {
+	switch kind {
+	case models.MediaKindLogo:
+		return "logo", nil
+	case models.MediaKindBanner:
+		return "banner", nil
+	case models.MediaKindThemeVideo:
+		return "video", nil
+	case models.MediaKindSegmentAsset:
+		return "video", nil
+	default:
+		if strings.HasPrefix(strings.ToLower(strings.TrimSpace(mimeType)), "video/") {
+			return "video", nil
+		}
+		return "", fmt.Errorf("create media asset: unsupported media kind %q", kind)
+	}
+}
+
+func mediaFormatForKind(kind models.MediaKind) string {
+	switch kind {
+	case models.MediaKindThemeVideo, models.MediaKindSegmentAsset:
+		return "video"
+	default:
+		return "image"
+	}
 }

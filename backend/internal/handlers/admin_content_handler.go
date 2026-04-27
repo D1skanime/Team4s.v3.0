@@ -56,6 +56,8 @@ type adminThemeRepository interface {
 	CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput) (*models.AdminThemeSegment, error)
 	UpdateAnimeSegment(ctx context.Context, segmentID int64, input models.AdminThemeSegmentPatchInput) error
 	DeleteAnimeSegment(ctx context.Context, segmentID int64) error
+	GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64) (*models.AdminThemeSegment, error)
+	ClearSegmentAsset(ctx context.Context, animeID int64, segmentID int64) (*string, error)
 	GetCanonicalFansubAnimeRelease(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, error)
 	GetFansubRelease(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, error)
 	ListFansubAnime(ctx context.Context, fansubGroupID int64) ([]models.AdminFansubAnimeEntry, error)

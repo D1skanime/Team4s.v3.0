@@ -45,6 +45,9 @@ type AdminThemeSegment struct {
 	StartTime            *string   `json:"start_time"`   // Interval als HH:MM:SS-String
 	EndTime              *string   `json:"end_time"`     // Interval als HH:MM:SS-String
 	SourceJellyfinItemID *string   `json:"source_jellyfin_item_id"`
+	SourceType           *string   `json:"source_type,omitempty"`
+	SourceRef            *string   `json:"source_ref,omitempty"`
+	SourceLabel          *string   `json:"source_label,omitempty"`
 	CreatedAt            time.Time `json:"created_at"`
 }
 
@@ -58,6 +61,9 @@ type AdminThemeSegmentCreateInput struct {
 	StartTime            *string `json:"start_time"`
 	EndTime              *string `json:"end_time"`
 	SourceJellyfinItemID *string `json:"source_jellyfin_item_id"`
+	SourceType           *string `json:"source_type"`
+	SourceRef            *string `json:"source_ref"`
+	SourceLabel          *string `json:"source_label"`
 }
 
 // AdminThemeSegmentPatchInput enthaelt die optionalen Felder fuer ein Segment-Update.
@@ -70,4 +76,7 @@ type AdminThemeSegmentPatchInput struct {
 	StartTime            *string `json:"start_time"`
 	EndTime              *string `json:"end_time"`
 	SourceJellyfinItemID *string `json:"source_jellyfin_item_id"`
+	SourceType           *string `json:"source_type"`
+	SourceRef            *string `json:"source_ref"`
+	SourceLabel          *string `json:"source_label"`
 }

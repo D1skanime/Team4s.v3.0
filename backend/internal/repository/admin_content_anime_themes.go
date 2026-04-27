@@ -14,6 +14,100 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
+const (
+	themeSegmentSourceTypeNone         = "none"
+	themeSegmentSourceTypeJellyfin     = "jellyfin_theme"
+	themeSegmentSourceTypeReleaseAsset = "release_asset"
+)
+
+func encodeThemeSegmentSource(sourceType, sourceRef, sourceLabel, legacy *string) *string {
+	trimmedType := strings.TrimSpace(derefString(sourceType))
+	trimmedRef := strings.TrimSpace(derefString(sourceRef))
+	trimmedLabel := strings.TrimSpace(derefString(sourceLabel))
+	trimmedLegacy := strings.TrimSpace(derefString(legacy))
+
+	switch trimmedType {
+	case "", themeSegmentSourceTypeNone:
+		return nil
+	case themeSegmentSourceTypeJellyfin:
+		if trimmedRef != "" {
+			value := themeSegmentSourceTypeJellyfin + ":" + trimmedRef
+			return &value
+		}
+		if trimmedLegacy != "" {
+			if strings.HasPrefix(trimmedLegacy, themeSegmentSourceTypeJellyfin+":") || !strings.Contains(trimmedLegacy, ":") {
+				return legacy
+			}
+		}
+		value := themeSegmentSourceTypeJellyfin
+		if trimmedLabel != "" {
+			value += ":" + trimmedLabel
+		}
+		return &value
+	case themeSegmentSourceTypeReleaseAsset:
+		value := themeSegmentSourceTypeReleaseAsset
+		if trimmedRef != "" {
+			value += ":" + trimmedRef
+		} else if trimmedLabel != "" {
+			value += ":" + trimmedLabel
+		}
+		return &value
+	default:
+		if trimmedLegacy == "" {
+			return nil
+		}
+		return legacy
+	}
+}
+
+func hydrateThemeSegmentSource(seg *models.AdminThemeSegment) {
+	if seg == nil {
+		return
+	}
+	raw := strings.TrimSpace(derefString(seg.SourceJellyfinItemID))
+	if raw == "" {
+		value := themeSegmentSourceTypeNone
+		seg.SourceType = &value
+		seg.SourceRef = nil
+		seg.SourceLabel = nil
+		return
+	}
+	if strings.HasPrefix(raw, themeSegmentSourceTypeReleaseAsset+":") {
+		value := themeSegmentSourceTypeReleaseAsset
+		ref := strings.TrimSpace(strings.TrimPrefix(raw, themeSegmentSourceTypeReleaseAsset+":"))
+		seg.SourceType = &value
+		if ref != "" {
+			seg.SourceRef = &ref
+			label := ref
+			seg.SourceLabel = &label
+		}
+		return
+	}
+	if raw == themeSegmentSourceTypeReleaseAsset {
+		value := themeSegmentSourceTypeReleaseAsset
+		seg.SourceType = &value
+		return
+	}
+	if strings.HasPrefix(raw, themeSegmentSourceTypeJellyfin+":") {
+		value := themeSegmentSourceTypeJellyfin
+		ref := strings.TrimSpace(strings.TrimPrefix(raw, themeSegmentSourceTypeJellyfin+":"))
+		seg.SourceType = &value
+		if ref != "" {
+			seg.SourceRef = &ref
+		}
+		return
+	}
+	if raw == themeSegmentSourceTypeJellyfin {
+		value := themeSegmentSourceTypeJellyfin
+		seg.SourceType = &value
+		return
+	}
+	value := themeSegmentSourceTypeJellyfin
+	ref := raw
+	seg.SourceType = &value
+	seg.SourceRef = &ref
+}
+
 // ListThemeTypes gibt alle Theme-Typen geordnet nach ID zurück.
 func (r *AdminContentRepository) ListThemeTypes(ctx context.Context) ([]models.AdminThemeType, error) {
 	rows, err := r.db.Query(ctx, `SELECT id, name FROM theme_types ORDER BY id`)
@@ -230,6 +324,9 @@ func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID 
 			ts.start_time::text,
 			ts.end_time::text,
 			ts.source_jellyfin_item_id,
+			ts.source_type,
+			ts.source_ref,
+			ts.source_label,
 			ts.created_at
 		FROM theme_segments ts
 		JOIN themes t ON t.id = ts.theme_id
@@ -274,6 +371,9 @@ func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID 
 			&seg.StartTime,
 			&seg.EndTime,
 			&seg.SourceJellyfinItemID,
+			&seg.SourceType,
+			&seg.SourceRef,
+			&seg.SourceLabel,
 			&seg.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("scan anime segment anime=%d: %w", animeID, err)
@@ -307,12 +407,13 @@ func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID
 	}
 
 	var segID int64
+	encodedSource := encodeThemeSegmentSource(input.SourceType, input.SourceRef, input.SourceLabel, input.SourceJellyfinItemID)
 	err := r.db.QueryRow(ctx, `
-		INSERT INTO theme_segments (theme_id, fansub_group_id, version, start_episode, end_episode, start_time, end_time, source_jellyfin_item_id)
-		VALUES ($1, $2, $3, $4, $5, $6::interval, $7::interval, $8)
+		INSERT INTO theme_segments (theme_id, fansub_group_id, version, start_episode, end_episode, start_time, end_time, source_jellyfin_item_id, source_type, source_ref, source_label)
+		VALUES ($1, $2, $3, $4, $5, $6::interval, $7::interval, $8, $9, $10, $11)
 		RETURNING id
 	`, input.ThemeID, input.FansubGroupID, input.Version, input.StartEpisode, input.EndEpisode,
-		input.StartTime, input.EndTime, input.SourceJellyfinItemID).Scan(&segID)
+		input.StartTime, input.EndTime, encodedSource, input.SourceType, input.SourceRef, input.SourceLabel).Scan(&segID)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -326,46 +427,7 @@ func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID
 		return nil, fmt.Errorf("create anime segment anime=%d: %w", animeID, err)
 	}
 
-	// Vollstaendigen Datensatz per SELECT laden
-	var seg models.AdminThemeSegment
-	if err := r.db.QueryRow(ctx, `
-		SELECT
-			ts.id,
-			ts.theme_id,
-			t.anime_id,
-			t.title AS theme_title,
-			tt.name AS theme_type_name,
-			ts.fansub_group_id,
-			ts.version,
-			ts.start_episode,
-			ts.end_episode,
-			ts.start_time::text,
-			ts.end_time::text,
-			ts.source_jellyfin_item_id,
-			ts.created_at
-		FROM theme_segments ts
-		JOIN themes t ON t.id = ts.theme_id
-		JOIN theme_types tt ON tt.id = t.theme_type_id
-		WHERE ts.id = $1
-	`, segID).Scan(
-		&seg.ID,
-		&seg.ThemeID,
-		&seg.AnimeID,
-		&seg.ThemeTitle,
-		&seg.ThemeTypeName,
-		&seg.FansubGroupID,
-		&seg.Version,
-		&seg.StartEpisode,
-		&seg.EndEpisode,
-		&seg.StartTime,
-		&seg.EndTime,
-		&seg.SourceJellyfinItemID,
-		&seg.CreatedAt,
-	); err != nil {
-		return nil, fmt.Errorf("reload created anime segment id=%d: %w", segID, err)
-	}
-
-	return &seg, nil
+	return loadSegmentByID(ctx, r, segID)
 }
 
 // UpdateAnimeSegment aktualisiert ein Segment (partieller Patch).
@@ -414,8 +476,29 @@ func (r *AdminContentRepository) UpdateAnimeSegment(ctx context.Context, segment
 		argIdx++
 	}
 	if input.SourceJellyfinItemID != nil {
+		encodedSource := encodeThemeSegmentSource(input.SourceType, input.SourceRef, input.SourceLabel, input.SourceJellyfinItemID)
 		setClauses = append(setClauses, fmt.Sprintf("source_jellyfin_item_id = $%d", argIdx))
-		args = append(args, *input.SourceJellyfinItemID)
+		args = append(args, encodedSource)
+		argIdx++
+	} else if input.SourceType != nil || input.SourceRef != nil || input.SourceLabel != nil {
+		encodedSource := encodeThemeSegmentSource(input.SourceType, input.SourceRef, input.SourceLabel, nil)
+		setClauses = append(setClauses, fmt.Sprintf("source_jellyfin_item_id = $%d", argIdx))
+		args = append(args, encodedSource)
+		argIdx++
+	}
+	if input.SourceType != nil {
+		setClauses = append(setClauses, fmt.Sprintf("source_type = $%d", argIdx))
+		args = append(args, *input.SourceType)
+		argIdx++
+	}
+	if input.SourceRef != nil {
+		setClauses = append(setClauses, fmt.Sprintf("source_ref = $%d", argIdx))
+		args = append(args, *input.SourceRef)
+		argIdx++
+	}
+	if input.SourceLabel != nil {
+		setClauses = append(setClauses, fmt.Sprintf("source_label = $%d", argIdx))
+		args = append(args, *input.SourceLabel)
 		argIdx++
 	}
 
@@ -466,6 +549,101 @@ func (r *AdminContentRepository) DeleteAnimeSegment(ctx context.Context, segment
 	return nil
 }
 
+// loadSegmentByID laedt ein vollstaendiges Segment per ID.
+func loadSegmentByID(ctx context.Context, r *AdminContentRepository, segID int64) (*models.AdminThemeSegment, error) {
+	var seg models.AdminThemeSegment
+	if err := r.db.QueryRow(ctx, `
+		SELECT
+			ts.id,
+			ts.theme_id,
+			t.anime_id,
+			t.title AS theme_title,
+			tt.name AS theme_type_name,
+			ts.fansub_group_id,
+			ts.version,
+			ts.start_episode,
+			ts.end_episode,
+			ts.start_time::text,
+			ts.end_time::text,
+			ts.source_jellyfin_item_id,
+			ts.source_type,
+			ts.source_ref,
+			ts.source_label,
+			ts.created_at
+		FROM theme_segments ts
+		JOIN themes t ON t.id = ts.theme_id
+		JOIN theme_types tt ON tt.id = t.theme_type_id
+		WHERE ts.id = $1
+	`, segID).Scan(
+		&seg.ID,
+		&seg.ThemeID,
+		&seg.AnimeID,
+		&seg.ThemeTitle,
+		&seg.ThemeTypeName,
+		&seg.FansubGroupID,
+		&seg.Version,
+		&seg.StartEpisode,
+		&seg.EndEpisode,
+		&seg.StartTime,
+		&seg.EndTime,
+		&seg.SourceJellyfinItemID,
+		&seg.SourceType,
+		&seg.SourceRef,
+		&seg.SourceLabel,
+		&seg.CreatedAt,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("load segment by id=%d: %w", segID, err)
+	}
+	return &seg, nil
+}
+
+// GetAnimeSegmentByID laedt ein Segment und prueft, dass es zum angegebenen Anime gehoert.
+func (r *AdminContentRepository) GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64) (*models.AdminThemeSegment, error) {
+	if animeID <= 0 || segmentID <= 0 {
+		return nil, ErrNotFound
+	}
+	seg, err := loadSegmentByID(ctx, r, segmentID)
+	if err != nil {
+		return nil, err
+	}
+	if seg.AnimeID != animeID {
+		return nil, ErrNotFound
+	}
+	return seg, nil
+}
+
+// ClearSegmentAsset setzt source_type, source_ref und source_label auf NULL und
+// gibt den vorherigen source_ref-Wert zurueck (relativer Pfad des Assets).
+func (r *AdminContentRepository) ClearSegmentAsset(ctx context.Context, animeID int64, segmentID int64) (*string, error) {
+	if animeID <= 0 || segmentID <= 0 {
+		return nil, ErrNotFound
+	}
+
+	// Sicherstellen, dass das Segment zum Anime gehoert, und alten source_ref lesen
+	seg, err := r.GetAnimeSegmentByID(ctx, animeID, segmentID)
+	if err != nil {
+		return nil, err
+	}
+	previousRef := seg.SourceRef
+
+	tag, err := r.db.Exec(ctx, `
+		UPDATE theme_segments
+		SET source_type = NULL, source_ref = NULL, source_label = NULL
+		WHERE id = $1
+	`, segmentID)
+	if err != nil {
+		return nil, fmt.Errorf("clear segment asset id=%d: %w", segmentID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return nil, ErrNotFound
+	}
+
+	return previousRef, nil
+}
+
 // ListAnimeSegmentSuggestions gibt Segmente eines Anime zurueck, die den episodeNumber-Bereich abdecken,
 // jedoch nicht die aktuelle (excludeGroupID, excludeVersion)-Kombination.
 // excludeGroupID=0 und excludeVersion="" bedeutet: nichts ausschliessen.
@@ -502,6 +680,9 @@ func (r *AdminContentRepository) ListAnimeSegmentSuggestions(
 			ts.start_time::text,
 			ts.end_time::text,
 			ts.source_jellyfin_item_id,
+			ts.source_type,
+			ts.source_ref,
+			ts.source_label,
 			ts.created_at
 		FROM theme_segments ts
 		JOIN themes t ON t.id = ts.theme_id
@@ -552,6 +733,9 @@ func (r *AdminContentRepository) ListAnimeSegmentSuggestions(
 			&seg.StartTime,
 			&seg.EndTime,
 			&seg.SourceJellyfinItemID,
+			&seg.SourceType,
+			&seg.SourceRef,
+			&seg.SourceLabel,
 			&seg.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("scan anime segment suggestion anime=%d episode=%d: %w", animeID, episodeNumber, err)
