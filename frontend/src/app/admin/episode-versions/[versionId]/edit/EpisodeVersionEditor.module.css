@@ -365,6 +365,12 @@
   }
 }
 
+.stubInfo {
+  display: grid;
+  gap: 6px;
+  padding: 12px 0;
+}
+
 .tabNav {
   display: flex;
   gap: 0;
