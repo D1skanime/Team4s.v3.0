@@ -800,7 +800,10 @@ export interface AdminFansubAnimeThemeAssetsResponse {
   data: AdminReleaseThemeAsset[]
 }
 
-// --- Release-Segmente (OP/ED Timing) (Phase 24) ---
+// --- Release-Segmente (OP/ED Timing) (Phase 24+) ---
+
+/** Expliziter Quelltyp eines Segments: none = manuell, jellyfin_theme = Jellyfin-Theme-Video, release_asset = Release-Asset. */
+export type AdminSegmentSourceType = 'none' | 'jellyfin_theme' | 'release_asset'
 
 /** Ein Release-Segment (OP/ED Timing) fuer eine Fansub-Gruppe und Version. */
 export interface AdminThemeSegment {
@@ -815,12 +818,24 @@ export interface AdminThemeSegment {
   end_episode: number | null
   start_time: string | null    // "HH:MM:SS" oder null
   end_time: string | null      // "HH:MM:SS" oder null
+  /** @deprecated Fuer Rueckwaertskompatibilitaet; neues Frontend soll source_type/source_ref/source_label verwenden */
   source_jellyfin_item_id: string | null
+  /** Expliziter Quelltyp (Phase 25+). */
+  source_type?: AdminSegmentSourceType | null
+  /** Referenz auf die Quell-Ressource (z.B. Jellyfin-Item-ID oder Media-Asset-ID). */
+  source_ref?: string | null
+  /** Lesbares Label der Quelle fuer die UI-Anzeige. */
+  source_label?: string | null
   created_at: string
 }
 
 /** API-Response fuer Segment-Listen. */
 export interface AdminAnimeSegmentsResponse {
+  data: AdminThemeSegment[]
+}
+
+/** API-Response fuer Segment-Vorschlaege aus anderen Releases. */
+export interface AdminSegmentSuggestionsResponse {
   data: AdminThemeSegment[]
 }
 

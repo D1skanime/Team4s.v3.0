@@ -42,6 +42,7 @@ import {
   AdminEpisodePatchRequest,
   AdminEpisodeUpsertResponse,
   AdminAnimeSegmentsResponse,
+  AdminSegmentSuggestionsResponse,
   AdminThemeSegment,
   AdminThemeSegmentCreateRequest,
   AdminThemeSegmentPatchRequest,
@@ -2642,4 +2643,36 @@ export async function deleteAnimeSegment(
     const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
+}
+
+/**
+ * Laedt Segment-Vorschlaege fuer einen Anime und eine Episodennummer aus anderen Releases.
+ * Optional kann die aktuelle (excludeGroupId, excludeVersion)-Kombination ausgeschlossen werden.
+ */
+export async function getAnimeSegmentSuggestions(
+  animeId: number,
+  episode: number,
+  excludeGroupId?: number | null,
+  excludeVersion?: string | null,
+  authToken?: string,
+): Promise<AdminSegmentSuggestionsResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const params = new URLSearchParams()
+  params.set('episode', String(episode))
+  if (excludeGroupId) params.set('exclude_group_id', String(excludeGroupId))
+  if (excludeVersion) params.set('exclude_version', excludeVersion)
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/suggestions?${params.toString()}`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: 'no-store',
+    },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminSegmentSuggestionsResponse>
 }
