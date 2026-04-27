@@ -103,6 +103,7 @@ func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, da
 
 	result := &MediaSaveResult{
 		CreateInput: models.MediaAssetCreateInput{
+			Kind:        kind,
 			Filename:    filename,
 			StoragePath: absolutePath,
 			PublicURL:   publicURL,
@@ -156,6 +157,7 @@ func (s *MediaService) SaveVideoUpload(originalName string, data []byte) (*Media
 
 	return &MediaSaveResult{
 		CreateInput: models.MediaAssetCreateInput{
+			Kind:        models.MediaKindThemeVideo,
 			Filename:    filename,
 			StoragePath: absolutePath,
 			PublicURL:   publicURL,
@@ -163,6 +165,119 @@ func (s *MediaService) SaveVideoUpload(originalName string, data []byte) (*Media
 			SizeBytes:   int64(len(data)),
 		},
 	}, nil
+}
+
+// SegmentAssetContext enthaelt die Kontext-Parameter fuer den deterministischen Segment-Asset-Pfad.
+type SegmentAssetContext struct {
+	AnimeID         int64
+	GroupID         int64
+	Version         string
+	SegmentTypeName string
+}
+
+// SaveSegmentAsset validiert und speichert ein Segment-Asset (OP/ED/Insert-Videodatei).
+// Zielpfad: segments/anime_{animeId}/group_{groupId}/{version}/{segmentTypeLower}/{sanitizedFilename}
+// Erlaubte Formate: mp4, webm, mkv. Groessenlimit: 150 MB.
+func (s *MediaService) SaveSegmentAsset(ctx SegmentAssetContext, originalName string, data []byte) (*MediaSaveResult, error) {
+	if len(data) == 0 {
+		return nil, &MediaValidationError{Message: "datei ist leer"}
+	}
+	const maxSize = int64(150 * 1024 * 1024)
+	if int64(len(data)) > maxSize {
+		return nil, &MediaValidationError{Message: "segment-asset ist zu gross (max 150MB)"}
+	}
+
+	detectedMime := detectMimeType(data)
+	allowedSegment := map[string]string{
+		"video/mp4":        "mp4",
+		"video/webm":       "webm",
+		"video/x-matroska": "mkv",
+	}
+	ext, ok := allowedSegment[detectedMime]
+	if !ok {
+		return nil, &MediaValidationError{Message: "ungueltiges format fuer segment-asset (erlaubt: mp4, webm, mkv)"}
+	}
+
+	sanitized := sanitizeSegmentFilename(originalName, ext)
+	segTypeDir := strings.ToLower(strings.TrimSpace(ctx.SegmentTypeName))
+	if segTypeDir == "" {
+		segTypeDir = "unknown"
+	}
+
+	relPath := filepath.Join(
+		"segments",
+		fmt.Sprintf("anime_%d", ctx.AnimeID),
+		fmt.Sprintf("group_%d", ctx.GroupID),
+		ctx.Version,
+		segTypeDir,
+		sanitized,
+	)
+	// Use forward slashes for storage path keys (cross-platform consistent)
+	relPathFwd := filepath.ToSlash(relPath)
+	absolutePath := filepath.Join(s.storageDir, relPath)
+
+	if err := os.MkdirAll(filepath.Dir(absolutePath), 0o755); err != nil {
+		return nil, fmt.Errorf("create segment asset directory: %w", err)
+	}
+	if err := os.WriteFile(absolutePath, data, fs.FileMode(0o644)); err != nil {
+		return nil, fmt.Errorf("write segment asset file: %w", err)
+	}
+
+	return &MediaSaveResult{
+		CreateInput: models.MediaAssetCreateInput{
+			Kind:        models.MediaKindSegmentAsset,
+			Filename:    relPathFwd,
+			StoragePath: absolutePath,
+			MimeType:    detectedMime,
+			SizeBytes:   int64(len(data)),
+		},
+	}, nil
+}
+
+// sanitizeSegmentFilename normalisiert einen Dateinamen fuer Segment-Assets:
+// lowercase, Leerzeichen -> '-', nur [a-z0-9._-], max 80 Zeichen, Extension beibehalten.
+func sanitizeSegmentFilename(originalName, fallbackExt string) string {
+	name := strings.ToLower(strings.TrimSpace(originalName))
+	if name == "" {
+		return "segment." + fallbackExt
+	}
+
+	// Ersetze Leerzeichen durch Bindestriche
+	name = strings.ReplaceAll(name, " ", "-")
+
+	// Trenne Basis und Extension
+	dotIdx := strings.LastIndex(name, ".")
+	var base, ext string
+	if dotIdx >= 0 {
+		base = name[:dotIdx]
+		ext = name[dotIdx:] // inkl. Punkt
+	} else {
+		base = name
+		ext = "." + fallbackExt
+	}
+
+	// Filtere unerlaubte Zeichen aus Basis und Extension
+	allowed := func(r rune) rune {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '.' || r == '-' || r == '_' {
+			return r
+		}
+		return '-'
+	}
+	base = strings.Map(allowed, base)
+	ext = strings.Map(allowed, ext)
+
+	result := base + ext
+
+	// Maximale Laenge: 80 Zeichen (Extension beibehalten)
+	if len(result) > 80 {
+		maxBase := 80 - len(ext)
+		if maxBase < 1 {
+			maxBase = 1
+		}
+		result = base[:maxBase] + ext
+	}
+
+	return result
 }
 
 // detectMimeType erkennt den MIME-Typ der übergebenen Binärdaten mithilfe von Bibliotheks-

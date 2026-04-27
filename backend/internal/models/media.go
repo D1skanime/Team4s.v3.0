@@ -5,9 +5,10 @@ import "time"
 type MediaKind string
 
 const (
-	MediaKindLogo       MediaKind = "logo"
-	MediaKindBanner     MediaKind = "banner"
-	MediaKindThemeVideo MediaKind = "theme_video"
+	MediaKindLogo         MediaKind = "logo"
+	MediaKindBanner       MediaKind = "banner"
+	MediaKindThemeVideo   MediaKind = "theme_video"
+	MediaKindSegmentAsset MediaKind = "segment_asset"
 )
 
 type MediaAsset struct {
@@ -23,6 +24,7 @@ type MediaAsset struct {
 }
 
 type MediaAssetCreateInput struct {
+	Kind        MediaKind
 	Filename    string
 	StoragePath string
 	PublicURL   string
