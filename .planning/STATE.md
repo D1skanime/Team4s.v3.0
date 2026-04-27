@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Milestone complete
-stopped_at: Completed 25-03-PLAN.md — Unit-Tests (31 PASS) und Browser-UAT bestaetigt; Phase 25 vollstaendig
-last_updated: "2026-04-27T13:56:32.774Z"
+status: Ready to execute
+stopped_at: Completed 26-01-PLAN.md — Migration 0051, SaveSegmentAsset, Repository-Umstellung, Handler-Routen, Frontend-API-Helfer
+last_updated: "2026-04-27T18:36:23.552Z"
 last_activity: 2026-04-27
 progress:
-  total_phases: 21
+  total_phases: 22
   completed_phases: 16
-  total_plans: 73
-  completed_plans: 66
+  total_plans: 76
+  completed_plans: 67
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 25 — segmente-ui-mockup-alignment
+**Current focus:** Phase 26 — segment-source-asset-upload-and-persistence
 
 ## Current Position
 
-Phase: 25
-Plan: Not started
+Phase: 26 (segment-source-asset-upload-and-persistence) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -121,6 +121,11 @@ Recent durable decisions:
 - [Phase 25]: Segment suggestions filter by episode range (NULL-safe); source_jellyfin_item_id retained for backwards compatibility; source_type/source_ref/source_label added as optional Phase-25 fields
 - [Phase 25]: 5-Tab-Layout mit default Informationen-Tab; Uebersicht und Changelog als ehrliche Stubs
 - [Phase 25]: Source-Type-Selector mit drei expliziten Optionen statt freiem Jellyfin-Picker
+- [Phase 26]: Segment-Dateien sollen als Team4s-Assets hinter `release_asset` gespeichert werden; das Segment haelt nur die Referenz und kein eingebettetes Playback.
+- [Phase 26]: Upload lebt zunaechst im Admin-Segmentflow, muss aber so verdrahtet werden, dass spaetere Fansub-Selbstpflege denselben Backend-Kontext wiederverwenden kann.
+- [Phase 26]: Migration 0051 adds real source_type/source_ref/source_label columns to theme_segments; source_jellyfin_item_id retained for backwards compatibility
+- [Phase 26]: SaveSegmentAsset builds deterministic path from AnimeID/GroupID/Version/SegmentType with sanitized filename; only mp4/webm/mkv allowed; 150MB limit
+- [Phase 26]: MediaKindSegmentAsset maps to media_type 'video' reusing existing DB row; no new media_types entry needed
 
 ### Pending Todos
 
@@ -154,6 +159,7 @@ Recent durable decisions:
 - Phase 23 added: OP/ED Theme Verwaltung — Admins können Opening/Ending-Themes pro Anime mit Episodenbereichen verwalten.
 - Phase 24 added: Release-Segmente (OP/ED Timing) — Tab "Segmente" auf Episode-Version-Edit-Seite; theme_segments um fansub_group_id, version, plain-integer episode range, start_time/end_time im Video und Jellyfin-Source erweitert; UI wie Mockup mit Tabelle, Typ-Badges, Timeline-Visualisierung.
 - Phase 25 added: Segmente UI Mockup-Alignment — vollständige Angleichung an Mockup: Breadcrumb-Navigation, 5-Tab-Layout, Typ-Dropdown mit farbigem Badge, Zeitbereich mit Dauer, Vorschläge aus anderen Releases, verbesserter Timeline mit Hauptinhalt-Label, Jellyfin-Item-Suche und Video-Vorschau-Player im Formular.
+- Phase 26 added: Segment Source Asset Upload And Persistence — Team4s-Asset-Upload, Pfadbildung, Segment-Referenz und Delete-Seam fuer OP/ED/Insert-Dateien ohne Playback-Pflicht.
 
 ### Blockers/Concerns
 
@@ -199,6 +205,7 @@ Recent durable decisions:
 | Phase 25 P01 | 8min | 3 tasks | 5 files |
 | Phase 25 P02 | 4min | 2 tasks | 4 files |
 | Phase 25 P03 | 15min | 2 tasks | 2 files |
+| Phase 26 P01 | 7min | 5 tasks | 10 files |
 
 ### Quick Tasks Completed
 
@@ -213,7 +220,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-27T12:00:00.000Z
-Stopped at: Completed 25-03-PLAN.md — Unit-Tests (31 PASS) und Browser-UAT bestaetigt; Phase 25 vollstaendig
+Last session: 2026-04-27T18:36:23.542Z
+Stopped at: Completed 26-01-PLAN.md — Migration 0051, SaveSegmentAsset, Repository-Umstellung, Handler-Routen, Frontend-API-Helfer
 Last activity: 2026-04-27
 Resume file: None

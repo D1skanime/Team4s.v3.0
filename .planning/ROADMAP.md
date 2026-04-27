@@ -35,6 +35,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [ ] **Phase 23: OP/ED Theme Verwaltung** - Admins können Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren, theme_types seeden (OP1, OP2, ED1, ED2, Insert, Outro), und Fansub-Gruppen können OP/ED-Videos hochladen.
 - [x] **Phase 24: Release-Segmente (OP/ED Timing)** - Admins können auf der Episode-Version-Edit-Seite OP/ED-Segmente (Typ, Name, Episodenbereich, Zeitbereich im Video, Jellyfin-Quelle) pro Fansub-Gruppe und Version verwalten. UI wie Mockup: Tab "Segmente" mit Tabelle, Seitenleisten-Formular und Timeline-Visualisierung. (UAT bestanden 2026-04-26)
 - [x] **Phase 25: Segmente UI Mockup-Alignment** - Segmente-Seite vollständig an Mockup angeglichen: Breadcrumb-Navigation, 5-Tab-Layout, Typ-Badge mit Kurzcode, Zeitbereich mit Dauer in Klammern, Vorschläge-Leiste aus anderen Releases, dual-Spur-Timeline mit Hauptinhalt-Label, expliziter Source-Type-Selector. (UAT bestanden 2026-04-27)
+- [ ] **Phase 26: Segment Source Asset Upload And Persistence** - Segmente koennen echte Team4s-Assets als Quelle hinterlegen: Upload, benannter Zielpfad, Asset-Referenz am Segment und kontrolliertes Entfernen ohne Playback-Pflicht.
 
 ## Phase Details
 
@@ -347,6 +348,22 @@ Plans:
 - [x] `25-01-PLAN.md` — Backend: Vorschlaege-Endpunkt + Jellyfin-Item-Suche
 - [x] `25-02-PLAN.md` — Frontend: Breadcrumb, 5 Tabs, SegmenteTab-Verbesserungen, JellyfinItemPicker
 - [x] `25-03-PLAN.md` — Tests + UAT
+
+### Phase 26: Segment Source Asset Upload And Persistence
+**Goal:** Segmente erhalten echte Team4s-Asset-Quellen statt nur symbolischer Source-Typen: Admins koennen Segment-Dateien hochladen, kontrolliert benennen, unter einem deterministischen Team4s-Pfad speichern und dem Segment als `release_asset` zuordnen. Playback bleibt ausser Scope.
+**Requirements**: P26-SC1, P26-SC2, P26-SC3, P26-SC4, P26-SC5
+**Depends on:** Phase 25
+**Success Criteria** (what must be TRUE):
+  1. Ein Segment kann im Episode-Version-Kontext eine echte Asset-Datei als Quelle erhalten, ohne dass dafuer Playback oder Jellyfin noetig ist.
+  2. Der Upload nutzt die bestehende Team4s-Media-Seam und speichert Dateien unter einem deterministischen Pfad auf Basis von Anime, Fansub, Version und Segment-Typ.
+  3. Das Segment speichert die Asset-Referenz autoritativ als `source_type=release_asset` plus lesbare Label-/Ref-Daten.
+  4. Bereits hinterlegte Segment-Assets koennen sichtbar gemacht und kontrolliert wieder entfernt werden, inklusive Dateisystem-/DB-Aufraeumen ueber die bestehende projektkontrollierte Upload-Loesch-Seam.
+  5. Die Umsetzung bleibt rechtebereit fuer spaetere Fansub-Selbstpflege: Upload-/Link-Logik ist release-/gruppenkontextbezogen und nicht an eine breite Fansub-Stammdaten-Seite gebunden.
+**Plans:** 1/3 plans executed
+Plans:
+- [ ] `26-01-PLAN.md` - Backend-Segment-Asset-Contract, Zielpfadgenerator und Upload-/Delete-Verdrahtung auf die bestehende Media-Seam.
+- [ ] `26-02-PLAN.md` - Segment-Editor-UI fuer Asset-Upload, Anzeigename/Dateiname, vorhandene Asset-Auswahl und Entfernen im Episode-Version-Kontext.
+- [ ] `26-03-PLAN.md` - Verifikation, Docker-Live-Test und Rechte-/Handoff-Notizen fuer spaetere Fansub-Selbstpflege.
 
 ### Phase 22: Anime Edit On Create-Flow Foundation
 **Goal:** Replace the stale, divergent anime edit route with a create-flow-based editor that reuses the modern admin anime workspace while preserving edit-specific identity rules.
