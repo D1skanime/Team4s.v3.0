@@ -466,6 +466,105 @@ func (r *AdminContentRepository) DeleteAnimeSegment(ctx context.Context, segment
 	return nil
 }
 
+// ListAnimeSegmentSuggestions gibt Segmente eines Anime zurueck, die den episodeNumber-Bereich abdecken,
+// jedoch nicht die aktuelle (excludeGroupID, excludeVersion)-Kombination.
+// excludeGroupID=0 und excludeVersion="" bedeutet: nichts ausschliessen.
+func (r *AdminContentRepository) ListAnimeSegmentSuggestions(
+	ctx context.Context,
+	animeID int64,
+	episodeNumber int,
+	excludeGroupID int64,
+	excludeVersion string,
+) ([]models.AdminThemeSegment, error) {
+	if animeID <= 0 {
+		return nil, ErrNotFound
+	}
+
+	exists, err := r.animeExists(ctx, animeID)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, ErrNotFound
+	}
+
+	query := `
+		SELECT
+			ts.id,
+			ts.theme_id,
+			t.anime_id,
+			t.title AS theme_title,
+			tt.name AS theme_type_name,
+			ts.fansub_group_id,
+			ts.version,
+			ts.start_episode,
+			ts.end_episode,
+			ts.start_time::text,
+			ts.end_time::text,
+			ts.source_jellyfin_item_id,
+			ts.created_at
+		FROM theme_segments ts
+		JOIN themes t ON t.id = ts.theme_id
+		JOIN theme_types tt ON tt.id = t.theme_type_id
+		WHERE t.anime_id = $1
+		  AND (ts.start_episode IS NULL OR ts.start_episode <= $2)
+		  AND (ts.end_episode IS NULL OR ts.end_episode >= $2)`
+
+	args := []interface{}{animeID, episodeNumber}
+	argIdx := 3
+
+	if excludeGroupID > 0 && excludeVersion != "" {
+		query += fmt.Sprintf(" AND NOT (ts.fansub_group_id = $%d AND ts.version = $%d)", argIdx, argIdx+1)
+		args = append(args, excludeGroupID, excludeVersion)
+		argIdx += 2
+	} else if excludeGroupID > 0 {
+		query += fmt.Sprintf(" AND ts.fansub_group_id != $%d", argIdx)
+		args = append(args, excludeGroupID)
+		argIdx++
+	} else if excludeVersion != "" {
+		query += fmt.Sprintf(" AND ts.version != $%d", argIdx)
+		args = append(args, excludeVersion)
+		argIdx++
+	}
+
+	_ = argIdx // used above
+	query += " ORDER BY ts.id"
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("list anime segment suggestions anime=%d episode=%d: %w", animeID, episodeNumber, err)
+	}
+	defer rows.Close()
+
+	segments := make([]models.AdminThemeSegment, 0)
+	for rows.Next() {
+		var seg models.AdminThemeSegment
+		if err := rows.Scan(
+			&seg.ID,
+			&seg.ThemeID,
+			&seg.AnimeID,
+			&seg.ThemeTitle,
+			&seg.ThemeTypeName,
+			&seg.FansubGroupID,
+			&seg.Version,
+			&seg.StartEpisode,
+			&seg.EndEpisode,
+			&seg.StartTime,
+			&seg.EndTime,
+			&seg.SourceJellyfinItemID,
+			&seg.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan anime segment suggestion anime=%d episode=%d: %w", animeID, episodeNumber, err)
+		}
+		segments = append(segments, seg)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate anime segment suggestions anime=%d episode=%d: %w", animeID, episodeNumber, err)
+	}
+
+	return segments, nil
+}
+
 // GetCanonicalFansubAnimeRelease liefert den fruehesten realen Release-Anker fuer Gruppe+Anime.
 func (r *AdminContentRepository) GetCanonicalFansubAnimeRelease(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, error) {
 	var id int64
