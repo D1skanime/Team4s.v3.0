@@ -2676,3 +2676,58 @@ export async function getAnimeSegmentSuggestions(
 
   return response.json() as Promise<AdminSegmentSuggestionsResponse>
 }
+
+/**
+ * Laedt eine Videodatei als Segment-Asset hoch und aktualisiert die Source-Felder des Segments.
+ * Sendet multipart/form-data mit dem Feld "file".
+ * Gibt das aktualisierte Segment zurueck.
+ */
+export async function uploadSegmentAsset(
+  animeId: number,
+  segmentId: number,
+  file: File,
+  authToken?: string,
+): Promise<{ data: AdminThemeSegment }> {
+  const API_BASE_URL = getApiBaseUrl()
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/asset`,
+    {
+      method: 'POST',
+      headers: withAuthHeader({}, authToken),
+      body: formData,
+    },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<{ data: AdminThemeSegment }>
+}
+
+/**
+ * Loescht das Segment-Asset: leert Source-Felder, loescht Datei und media_assets-Eintrag.
+ */
+export async function deleteSegmentAsset(
+  animeId: number,
+  segmentId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/asset`,
+    {
+      method: 'DELETE',
+      headers: withAuthHeader({}, authToken),
+    },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
