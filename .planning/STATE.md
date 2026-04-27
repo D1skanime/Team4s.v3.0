@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 25-01-PLAN.md — Suggestions-Route und Source-Contract implementiert
-last_updated: "2026-04-27T09:40:54.953Z"
+stopped_at: Completed 25-02-PLAN.md — Breadcrumb, 5-Tab-Layout und SegmenteTab-Verbesserungen
+last_updated: "2026-04-27T09:46:18.701Z"
 last_activity: 2026-04-27
 progress:
   total_phases: 21
   completed_phases: 15
   total_plans: 73
-  completed_plans: 64
+  completed_plans: 65
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 25 (segmente-ui-mockup-alignment) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -119,6 +119,8 @@ Recent durable decisions:
 - [Phase 24-release-segmente-op-ed-timing]: adminThemeRepository-Interface aktualisiert fuer Compilezeit-Verifikation der neuen Segment-CRUD-Methoden
 - [Phase 24-release-segmente-op-ed-timing]: segmentVersion hardcoded to v1 in EpisodeVersionEditorPage; EpisodeVersion type has no version string field
 - [Phase 25]: Segment suggestions filter by episode range (NULL-safe); source_jellyfin_item_id retained for backwards compatibility; source_type/source_ref/source_label added as optional Phase-25 fields
+- [Phase 25]: 5-Tab-Layout mit default Informationen-Tab; Uebersicht und Changelog als ehrliche Stubs
+- [Phase 25]: Source-Type-Selector mit drei expliziten Optionen statt freiem Jellyfin-Picker
 
 ### Pending Todos
 
@@ -195,6 +197,7 @@ Recent durable decisions:
 | Phase 24-release-segmente-op-ed-timing P01 | 25 | 3 tasks | 7 files |
 | Phase 24-release-segmente-op-ed-timing P02 | 25 | 3 tasks | 7 files |
 | Phase 25 P01 | 8min | 3 tasks | 5 files |
+| Phase 25 P02 | 4min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -209,7 +212,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-27T09:40:54.946Z
-Stopped at: Completed 25-01-PLAN.md — Suggestions-Route und Source-Contract implementiert
+Last session: 2026-04-27T09:46:18.693Z
+Stopped at: Completed 25-02-PLAN.md — Breadcrumb, 5-Tab-Layout und SegmenteTab-Verbesserungen
 Last activity: 2026-04-27
 Resume file: None
