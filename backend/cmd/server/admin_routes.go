@@ -79,6 +79,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.PATCH("/admin/anime/:id/themes/:themeId", auth, deps.adminContentHandler.UpdateAnimeTheme)
 	v1.DELETE("/admin/anime/:id/themes/:themeId", auth, deps.adminContentHandler.DeleteAnimeTheme)
 	v1.GET("/admin/anime/:id/segments", auth, deps.adminContentHandler.ListAnimeSegments)
+	v1.GET("/admin/anime/:id/segments/suggestions", auth, deps.adminContentHandler.GetAnimeSegmentSuggestions)
 	v1.POST("/admin/anime/:id/segments", auth, deps.adminContentHandler.CreateAnimeSegment)
 	v1.PATCH("/admin/anime/:id/segments/:segmentId", auth, deps.adminContentHandler.UpdateAnimeSegment)
 	v1.DELETE("/admin/anime/:id/segments/:segmentId", auth, deps.adminContentHandler.DeleteAnimeSegment)
