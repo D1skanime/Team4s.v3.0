@@ -34,6 +34,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [ ] **Phase 22: Anime Edit On Create-Flow Foundation** - Replace the divergent anime edit workspace with a shared create-style editor, keeping AniSearch identity fixed while Jellyfin can be re-searched and re-synced.
 - [ ] **Phase 23: OP/ED Theme Verwaltung** - Admins können Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren, theme_types seeden (OP1, OP2, ED1, ED2, Insert, Outro), und Fansub-Gruppen können OP/ED-Videos hochladen.
 - [x] **Phase 24: Release-Segmente (OP/ED Timing)** - Admins können auf der Episode-Version-Edit-Seite OP/ED-Segmente (Typ, Name, Episodenbereich, Zeitbereich im Video, Jellyfin-Quelle) pro Fansub-Gruppe und Version verwalten. UI wie Mockup: Tab "Segmente" mit Tabelle, Seitenleisten-Formular und Timeline-Visualisierung. (UAT bestanden 2026-04-26)
+- [ ] **Phase 25: Segmente UI Mockup-Alignment** - Segmente-Seite vollständig an Mockup angleichen: Breadcrumb-Navigation (Anime › Episode › Group v2), 5 Tabs, Typ-Dropdown mit farbigem Badge, Zeitbereich mit Dauer in Klammern, Vorschläge aus anderen Releases, verbesserter Timeline mit Hauptinhalt-Label, Jellyfin-Item-Suche und Video-Vorschau-Player im Formular.
 
 ## Phase Details
 
@@ -330,6 +331,17 @@ Plans:
   2. Segmente können angelegt, bearbeitet und gelöscht werden; Episodenbereich sind plain integers (keine FK auf episodes).
   3. Die Timeline-Vorschau zeigt Segmente als farbige Blöcke proportional zum Zeitbereich.
   4. Query-Seam für Playback: `WHERE series = (anime, group, version) AND episode BETWEEN start AND end` liefert korrekte Segmente.
+
+### Phase 25: Segmente UI Mockup-Alignment
+**Goal:** Die Segmente-Verwaltungsseite auf der Episode-Version-Edit-Seite wird vollständig an das Mockup angeglichen — mit Breadcrumb-Navigation, 5-Tab-Layout, poliertem Typ-Dropdown, Vorschläge-System, verbesserter Timeline und eingebettetem Video-Vorschau-Player.
+**Requirements**: P25-SC1, P25-SC2, P25-SC3, P25-SC4, P25-SC5
+**Depends on:** Phase 24
+**Success Criteria** (what must be TRUE):
+  1. Breadcrumb zeigt "Anime › [Name] › Episode [N] › [Gruppe] v[X]" und alle Links funktionieren.
+  2. Seite hat 5 Tabs (Übersicht, Dateien, Informationen, Segmente, Changelog); Segmente-Tab zeigt die Tabelle mit Typ-Badge "Opening (OP)", Dauer in Klammern und Quelle mit Jellyfin-Icon.
+  3. Vorschläge-Leiste erscheint wenn andere Releases desselben Anime Segmente haben; "Übernehmen"-Button kopiert das Segment in die aktuelle Release-Version.
+  4. Timeline zeigt Hauptinhalt-Label zwischen OP und ED, Insert Songs erscheinen als schwebendes Element oberhalb der Hauptlinie.
+  5. Formular-Seitenleiste hat Jellyfin-Item-Suche (klickbar, zeigt Suchergebnisse) und einen eingebetteten Video-Vorschau-Player der das ausgewählte Item abspielt.
 
 ### Phase 22: Anime Edit On Create-Flow Foundation
 **Goal:** Replace the stale, divergent anime edit route with a create-flow-based editor that reuses the modern admin anime workspace while preserving edit-specific identity rules.

@@ -7,7 +7,7 @@ stopped_at: Completed 24-03-PLAN.md
 last_updated: "2026-04-26T20:00:00.000Z"
 last_activity: 2026-04-26
 progress:
-  total_phases: 20
+  total_phases: 21
   completed_phases: 16
   total_plans: 70
   completed_plans: 64
@@ -150,6 +150,7 @@ Recent durable decisions:
 - Phase 20 live UAT completed on 2026-04-23: disposable `3×3 Eyes` replay proved normalized-table persistence, multilingual episode titles, release-native stream linkage, and dual-provider anime source persistence.
 - Phase 23 added: OP/ED Theme Verwaltung — Admins können Opening/Ending-Themes pro Anime mit Episodenbereichen verwalten.
 - Phase 24 added: Release-Segmente (OP/ED Timing) — Tab "Segmente" auf Episode-Version-Edit-Seite; theme_segments um fansub_group_id, version, plain-integer episode range, start_time/end_time im Video und Jellyfin-Source erweitert; UI wie Mockup mit Tabelle, Typ-Badges, Timeline-Visualisierung.
+- Phase 25 added: Segmente UI Mockup-Alignment — vollständige Angleichung an Mockup: Breadcrumb-Navigation, 5-Tab-Layout, Typ-Dropdown mit farbigem Badge, Zeitbereich mit Dauer, Vorschläge aus anderen Releases, verbesserter Timeline mit Hauptinhalt-Label, Jellyfin-Item-Suche und Video-Vorschau-Player im Formular.
 
 ### Blockers/Concerns
 
