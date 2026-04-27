@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 26-01-PLAN.md — Migration 0051, SaveSegmentAsset, Repository-Umstellung, Handler-Routen, Frontend-API-Helfer
-last_updated: "2026-04-27T18:36:23.552Z"
+stopped_at: Completed 26-02-PLAN.md — Upload-UI, Asset-Anzeige und Delete im Segment-Panel
+last_updated: "2026-04-27T18:44:12.421Z"
 last_activity: 2026-04-27
 progress:
   total_phases: 22
   completed_phases: 16
   total_plans: 76
-  completed_plans: 67
+  completed_plans: 68
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 26 (segment-source-asset-upload-and-persistence) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -126,6 +126,8 @@ Recent durable decisions:
 - [Phase 26]: Migration 0051 adds real source_type/source_ref/source_label columns to theme_segments; source_jellyfin_item_id retained for backwards compatibility
 - [Phase 26]: SaveSegmentAsset builds deterministic path from AnimeID/GroupID/Version/SegmentType with sanitized filename; only mp4/webm/mkv allowed; 150MB limit
 - [Phase 26]: MediaKindSegmentAsset maps to media_type 'video' reusing existing DB row; no new media_types entry needed
+- [Phase 26]: SegmentEditPanel extracted as sub-component to keep SegmenteTab.tsx at 450-line CLAUDE.md limit; helpers moved to SegmenteTab.helpers.tsx
+- [Phase 26]: Upload triggers immediately on file selection; asset state refreshed from API response after upload; resolveSourceLabel derives filename from source_ref path when source_label absent
 
 ### Pending Todos
 
@@ -206,6 +208,7 @@ Recent durable decisions:
 | Phase 25 P02 | 4min | 2 tasks | 4 files |
 | Phase 25 P03 | 15min | 2 tasks | 2 files |
 | Phase 26 P01 | 7min | 5 tasks | 10 files |
+| Phase 26 P02 | 6min | 3 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -220,7 +223,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-27T18:36:23.542Z
-Stopped at: Completed 26-01-PLAN.md — Migration 0051, SaveSegmentAsset, Repository-Umstellung, Handler-Routen, Frontend-API-Helfer
+Last session: 2026-04-27T18:44:12.412Z
+Stopped at: Completed 26-02-PLAN.md — Upload-UI, Asset-Anzeige und Delete im Segment-Panel
 Last activity: 2026-04-27
 Resume file: None

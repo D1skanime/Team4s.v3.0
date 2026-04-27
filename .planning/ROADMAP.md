@@ -359,7 +359,7 @@ Plans:
   3. Das Segment speichert die Asset-Referenz autoritativ als `source_type=release_asset` plus lesbare Label-/Ref-Daten.
   4. Bereits hinterlegte Segment-Assets koennen sichtbar gemacht und kontrolliert wieder entfernt werden, inklusive Dateisystem-/DB-Aufraeumen ueber die bestehende projektkontrollierte Upload-Loesch-Seam.
   5. Die Umsetzung bleibt rechtebereit fuer spaetere Fansub-Selbstpflege: Upload-/Link-Logik ist release-/gruppenkontextbezogen und nicht an eine breite Fansub-Stammdaten-Seite gebunden.
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 - [ ] `26-01-PLAN.md` - Backend-Segment-Asset-Contract, Zielpfadgenerator und Upload-/Delete-Verdrahtung auf die bestehende Media-Seam.
 - [ ] `26-02-PLAN.md` - Segment-Editor-UI fuer Asset-Upload, Anzeigename/Dateiname, vorhandene Asset-Auswahl und Entfernen im Episode-Version-Kontext.
