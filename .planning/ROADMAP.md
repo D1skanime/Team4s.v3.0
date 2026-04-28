@@ -401,12 +401,20 @@ Plans:
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
 | v1.1 Asset Lifecycle Hardening | 21 | 44+ | Phases 6-21 complete; Phase 22 edit unification, Phase 23 OP/ED-Verwaltung, Phase 24 Release-Segmente geplant | - |
 
-### Phase 28: Phase 28: Segment Playback Sources From Jellyfin Runtime — Segmente nutzen standardmaessig Episode-Version/Jellyfin-Stream als Playback-Quelle, Zeitgrenzen kommen aus release_variants.duration_seconds, Upload bleibt optionaler Fallback
+### Phase 28: Segment Playback Sources From Jellyfin Runtime — Segmente nutzen standardmaessig Episode-Version/Jellyfin-Stream als Playback-Quelle, Zeitgrenzen kommen aus release_variants.duration_seconds, Upload bleibt optionaler Fallback
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Segmente auf der Episode-Version-Edit-Seite standardmaessig gegen den aktuellen Release-Variant-/Jellyfin-Stream aufloesen, reale Laufzeitgrenzen aus `release_variants.duration_seconds` nutzen und hochgeladene Segmentdateien als expliziten Fallback statt als stillen Default behandeln.
+**Requirements**: P28-SC1, P28-SC2, P28-SC3, P28-SC4, P28-SC5
 **Depends on:** Phase 27
-**Plans:** 0 plans
+**Plans:** 1/3 plans executed
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 28 to break down)
+- [ ] `28-01-PLAN.md` - Backend playback-resolution contract, current release-variant snapshot joins, and runtime-aware validation.
+- [ ] `28-02-PLAN.md` - Frontend segment editor and API contract for default episode-version playback, explicit upload fallback, and runtime-aware UX.
+- [ ] `28-03-PLAN.md` - Verification and live UAT for runtime-known, runtime-null, and fallback-preservation paths.
+**Success Criteria** (what must be TRUE):
+  1. Ein Segment kann auf `/admin/episode-versions/:id/edit` ohne vorherigen Upload gespeichert werden, und die aufgeloeste Playback-Quelle zeigt standardmaessig auf die aktuelle Episode-Version bzw. deren Jellyfin-Stream.
+  2. `theme_segment_playback_sources` speichert fuer diesen Default-Pfad die aktuelle `playback_release_variant_id`, Jellyfin-Identitaet und Offset-/Dauer-Felder autoritativ aus dem aktuellen Editor-Kontext.
+  3. Wenn `release_variants.duration_seconds` bekannt ist, verhindern Frontend und Backend gemeinsam, dass `end_time` ueber die reale Laufzeit hinaus gespeichert wird; wenn die Runtime `NULL` ist, bleibt Segmentbearbeitung weiter moeglich.
+  4. Hochgeladene Segmentdateien bleiben erhalten, werden aber nur durch explizite Operator-Entscheidung zur aktiven Fallback-Playback-Quelle und ersetzen den Episode-Version-Default nicht stillschweigend.
+  5. Verifikation deckt mindestens einen runtime-bekannten Pfad, einen runtime-null Pfad und den expliziten Upload-Fallback mit API- oder SQL-Evidenz ab.

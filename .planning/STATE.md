@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 260428-ddb — Episoden-Laufzeit crawlen und in SegmentTimeline nutzen
-last_updated: "2026-04-28T07:54:22.553Z"
+stopped_at: Completed Phase 28 Plan 01 — backend playback resolution contract
+last_updated: "2026-04-28T20:54:54.559Z"
 last_activity: 2026-04-28
 progress:
-  total_phases: 22
-  completed_phases: 16
-  total_plans: 76
-  completed_plans: 68
+  total_phases: 24
+  completed_phases: 17
+  total_plans: 82
+  completed_plans: 72
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 26 — segment-source-asset-upload-and-persistence
+**Current focus:** Phase 28 — segment-playback-sources-from-jellyfin-runtime
 
 ## Current Position
 
-Phase: 26 (segment-source-asset-upload-and-persistence) — EXECUTING
-Plan: 3 of 3
+Phase: 28 (segment-playback-sources-from-jellyfin-runtime) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -129,6 +129,9 @@ Recent durable decisions:
 - [Phase 26]: SegmentEditPanel extracted as sub-component to keep SegmenteTab.tsx at 450-line CLAUDE.md limit; helpers moved to SegmenteTab.helpers.tsx
 - [Phase 26]: Upload triggers immediately on file selection; asset state refreshed from API response after upload; resolveSourceLabel derives filename from source_ref path when source_label absent
 - [Phase quick-260428-ddb]: duration_seconds bleibt nullable; bestehende Eintraege erhalten NULL und Timeline faellt korrekt zurueck
+- [Phase 28-segment-playback-sources-from-jellyfin-runtime]: loadThemeSegmentPlaybackSnapshotTx uses a CTE to resolve the current release variant from fansub_group+version+anime context; NULL duration hardcodes removed
+- [Phase 28-segment-playback-sources-from-jellyfin-runtime]: syncThemeSegmentPlaybackSourceTx uses explicit precedence: uploaded_asset for explicit release_asset+source_ref, episode_version by default when variant known, jellyfin_theme for legacy explicit selection
+- [Phase 28-segment-playback-sources-from-jellyfin-runtime]: UpdateAnimeSegment returns 200+hydrated DTO; validateSegmentTimes is the shared validation seam for both create and update; nullable runtime means no upper-bound rejection
 
 ### Pending Todos
 
@@ -163,6 +166,8 @@ Recent durable decisions:
 - Phase 24 added: Release-Segmente (OP/ED Timing) — Tab "Segmente" auf Episode-Version-Edit-Seite; theme_segments um fansub_group_id, version, plain-integer episode range, start_time/end_time im Video und Jellyfin-Source erweitert; UI wie Mockup mit Tabelle, Typ-Badges, Timeline-Visualisierung.
 - Phase 25 added: Segmente UI Mockup-Alignment — vollständige Angleichung an Mockup: Breadcrumb-Navigation, 5-Tab-Layout, Typ-Dropdown mit farbigem Badge, Zeitbereich mit Dauer, Vorschläge aus anderen Releases, verbesserter Timeline mit Hauptinhalt-Label, Jellyfin-Item-Suche und Video-Vorschau-Player im Formular.
 - Phase 26 added: Segment Source Asset Upload And Persistence — Team4s-Asset-Upload, Pfadbildung, Segment-Referenz und Delete-Seam fuer OP/ED/Insert-Dateien ohne Playback-Pflicht.
+
+- Phase 28 added: Segment Playback Sources From Jellyfin Runtime â€” Segmente sollen standardmaessig Episode-Version/Jellyfin-Stream als Playback-Quelle mit realer release_variants.duration_seconds-Grenze nutzen; Upload bleibt optionaler Fallback.
 
 ### Blockers/Concerns
 
@@ -210,6 +215,7 @@ Recent durable decisions:
 | Phase 25 P03 | 15min | 2 tasks | 2 files |
 | Phase 26 P01 | 7min | 5 tasks | 10 files |
 | Phase 26 P02 | 6min | 3 tasks | 4 files |
+| Phase 28-segment-playback-sources-from-jellyfin-runtime P01 | 8min | 3 tasks | 5 files |
 
 ### Quick Tasks Completed
 
@@ -225,7 +231,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-28T07:54:18.226Z
-Stopped at: Completed 260428-ddb — Episoden-Laufzeit crawlen und in SegmentTimeline nutzen
-Last activity: 2026-04-27
+Last session: 2026-04-28T20:54:54.550Z
+Stopped at: Completed Phase 28 Plan 01 — backend playback resolution contract
+Last activity: 2026-04-28
 Resume file: None
