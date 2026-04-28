@@ -72,7 +72,15 @@ export function SegmentEditPanel({
   const provenanceDetails = editingSegment ? resolveSegmentProvenanceDetails(editingSegment) : null
   const startSeconds = parseFlexibleTimeInput(formState.startTime)
   const endSeconds = parseFlexibleTimeInput(formState.endTime)
-  const exceedsDuration = durationSeconds != null && endSeconds != null && endSeconds > durationSeconds
+  // Use segment's resolved playback duration as first authority; fall back to page-level version duration
+  const effectiveDuration = editingSegment?.playback_duration_seconds ?? durationSeconds ?? null
+  const exceedsDuration = effectiveDuration != null && endSeconds != null && endSeconds > effectiveDuration
+  const runtimeKnown = effectiveDuration != null
+  const runtimeFromPlayback = editingSegment?.playback_duration_seconds != null
+
+  // Parse backend validation errors for start_time/end_time from formError
+  const isStartTimeError = formError != null && (formError.toLowerCase().includes('start') || formError.toLowerCase().includes('start_time'))
+  const isEndTimeError = formError != null && (formError.toLowerCase().includes('end') || formError.toLowerCase().includes('end_time') || formError.toLowerCase().includes('ende'))
 
   return (
     <>
@@ -150,7 +158,10 @@ export function SegmentEditPanel({
         <div className={styles.panelField}>
           <label>Zeitbereich im Video</label>
           <span className={styles.sourceHelpText}>
-            Eingabe einfach als `1:20`, `12:03` oder Sekunden. {durationSeconds != null ? `Videodauer: ${formatTimeInput(durationSeconds)}.` : 'Wenn bekannt, wird das Ende automatisch auf die Videodauer begrenzt.'}
+            Eingabe einfach als `1:20`, `12:03` oder Sekunden.{' '}
+            {runtimeKnown
+              ? <>Videodauer: <strong>{formatTimeInput(effectiveDuration!)}</strong>{runtimeFromPlayback ? ' (aus Jellyfin/Release)' : ' (aus Version)'}. Das Ende wird automatisch auf diese Grenze begrenzt.</>
+              : 'Keine reale Laufzeit bekannt — Zeitbereich kann frei eingegeben werden.'}
           </span>
         </div>
         <div className={styles.panelFieldRow}>
@@ -167,7 +178,11 @@ export function SegmentEditPanel({
                 const parsed = parseFlexibleTimeInput(e.target.value)
                 if (parsed != null) onFormChange({ startTime: formatTimeInput(parsed) })
               }}
+              style={isStartTimeError ? { borderColor: '#c0392b' } : undefined}
             />
+            {isStartTimeError ? (
+              <span className={styles.assetError} style={{ display: 'block', marginTop: 4 }}>{formError}</span>
+            ) : null}
           </div>
           <div className={styles.panelField}>
             <label htmlFor="seg-time-end">Ende</label>
@@ -181,15 +196,19 @@ export function SegmentEditPanel({
               onBlur={(e) => {
                 const parsed = parseFlexibleTimeInput(e.target.value)
                 if (parsed == null) return
-                const clamped = durationSeconds != null ? Math.min(parsed, durationSeconds) : parsed
+                const clamped = effectiveDuration != null ? Math.min(parsed, effectiveDuration) : parsed
                 onFormChange({ endTime: formatTimeInput(clamped) })
               }}
+              style={isEndTimeError ? { borderColor: '#c0392b' } : undefined}
             />
+            {isEndTimeError ? (
+              <span className={styles.assetError} style={{ display: 'block', marginTop: 4 }}>{formError}</span>
+            ) : null}
           </div>
         </div>
         {exceedsDuration ? (
           <div className={styles.assetError}>
-            Ende liegt ueber der bekannten Videodauer und wird beim Verlassen des Felds auf {formatTimeInput(durationSeconds!)} begrenzt.
+            Ende liegt ueber der bekannten Videodauer und wird beim Verlassen des Felds auf {formatTimeInput(effectiveDuration!)} begrenzt.
           </div>
         ) : null}
         {startSeconds != null && endSeconds != null && endSeconds <= startSeconds ? (

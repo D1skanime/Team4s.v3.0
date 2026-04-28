@@ -252,8 +252,10 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
         setFormError('End-Zeit ist ungueltig. Erlaubt sind z. B. 1:20 oder 00:01:20.')
         return
       }
-      if (durationSeconds != null && parsedEnd != null) {
-        parsedEnd = Math.min(parsedEnd, durationSeconds)
+      // Use segment's resolved playback duration as primary authority; fall back to page-level duration
+      const effectiveDuration = editingSegment?.playback_duration_seconds ?? durationSeconds ?? null
+      if (effectiveDuration != null && parsedEnd != null) {
+        parsedEnd = Math.min(parsedEnd, effectiveDuration)
       }
       if (parsedStart != null && parsedEnd != null && parsedEnd <= parsedStart) {
         setFormError('Ende muss nach dem Start liegen.')
@@ -566,8 +568,23 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
         <div className={styles.timelineHeader}>
           <Clock size={14} />
           Timeline Vorschau
+          {durationSeconds == null && segments.some((s) => s.playback_duration_seconds != null) ? (
+            <span style={{ marginLeft: 8, fontSize: 11, color: '#8a8a93' }}>(Laufzeit aus Playback-Metadaten)</span>
+          ) : durationSeconds == null ? (
+            <span style={{ marginLeft: 8, fontSize: 11, color: '#8a8a93' }}>(Keine reale Laufzeit bekannt)</span>
+          ) : null}
         </div>
-        <SegmentTimeline segments={segments} totalDurationSeconds={durationSeconds} />
+        <SegmentTimeline
+          segments={segments}
+          totalDurationSeconds={
+            durationSeconds ??
+            segments.reduce<number | null>((max, s) => {
+              const d = s.playback_duration_seconds
+              if (d == null) return max
+              return max == null ? d : Math.max(max, d)
+            }, null)
+          }
+        />
       </div>
 
       {/* Side panel overlay */}
