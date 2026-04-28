@@ -18,6 +18,7 @@ export interface EpisodeVersion {
   stream_url?: string | null
   segment_count?: number
   has_segment_asset?: boolean
+  duration_seconds?: number | null
   created_at: string
   updated_at: string
 }

@@ -1,4 +1,4 @@
-import type { AdminThemeSegment } from '@/types/admin'
+import type { AdminSegmentLibraryCandidate, AdminThemeSegment } from '@/types/admin'
 import styles from './SegmenteTab.module.css'
 
 // --- Badge and display helpers ---
@@ -67,13 +67,16 @@ export function formatEpisodeRange(start: number | null, end: number | null): st
   return `${start ?? '?'} \u2013 ${end ?? '?'}`
 }
 
-// --- Source label helper ---
+// --- Source / provenance helpers ---
 
 export function resolveSourceLabel(segment: AdminThemeSegment): string {
+  const provenance = resolveSegmentProvenance(segment)
   if (segment.source_type) {
     switch (segment.source_type) {
-      case 'none': return 'Keine Quelle'
-      case 'jellyfin_theme': return segment.source_label ?? 'Jellyfin Serien-Theme'
+      case 'none':
+        return 'Keine Quelle'
+      case 'jellyfin_theme':
+        return segment.source_label ?? 'Jellyfin Serien-Theme'
       case 'release_asset': {
         const filename = segment.source_ref?.split('/').pop()?.trim() || ''
         const label = segment.source_label?.trim() || ''
@@ -82,10 +85,10 @@ export function resolveSourceLabel(segment: AdminThemeSegment): string {
           label.toLowerCase() === 'release-asset' ||
           label.toLowerCase() === 'datei aus release-ordner'
 
-        if (filename && genericLabel) return `Datei hochgeladen: ${filename}`
-        if (filename && label && label !== filename) return `${label} · ${filename}`
-        if (filename) return filename
-        if (label && !genericLabel) return label
+        if (filename && genericLabel) return provenance ? `${provenance}: ${filename}` : `Datei hochgeladen: ${filename}`
+        if (filename && label && label !== filename) return provenance ? `${provenance}: ${label} · ${filename}` : `${label} · ${filename}`
+        if (filename) return provenance ? `${provenance}: ${filename}` : filename
+        if (label && !genericLabel) return provenance ? `${provenance}: ${label}` : label
         return 'Release-Asset (Upload fehlt)'
       }
     }
@@ -94,6 +97,31 @@ export function resolveSourceLabel(segment: AdminThemeSegment): string {
     return 'Jellyfin Serien-Theme'
   }
   return 'Keine Quelle'
+}
+
+export function resolveSegmentProvenance(segment: AdminThemeSegment): string | null {
+  const attach = segment.library_attach_source?.trim().toLowerCase() || ''
+  if (!attach) return null
+  if (attach === 'reuse_attach' || attach === 'reimport_rebind') return 'Library-Reuse'
+  if (attach === 'local_segment' || attach === 'upload' || attach === 'migrated') return 'Library-Link'
+  return 'Library'
+}
+
+export function resolveSegmentProvenanceDetails(segment: AdminThemeSegment): string | null {
+  if (!segment.library_anime_source_provider || !segment.library_anime_source_external_id) {
+    return null
+  }
+  const bits = [`${segment.library_anime_source_provider}:${segment.library_anime_source_external_id}`]
+  if (segment.library_segment_kind) bits.push(segment.library_segment_kind.toUpperCase())
+  if (segment.library_segment_name?.trim()) bits.push(segment.library_segment_name.trim())
+  return bits.join(' · ')
+}
+
+export function resolveLibraryCandidateLabel(candidate: AdminSegmentLibraryCandidate): string {
+  const filename = candidate.source_ref.split('/').pop()?.trim() || ''
+  const label = candidate.source_label?.trim() || ''
+  if (label && filename && label !== filename) return `${label} · ${filename}`
+  return label || filename || 'Library-Asset'
 }
 
 // --- Episode active check ---
@@ -111,15 +139,20 @@ export function isSegmentActiveForEpisode(segment: AdminThemeSegment, episodeNum
 
 interface SegmentTimelineProps {
   segments: AdminThemeSegment[]
+  totalDurationSeconds?: number | null
 }
 
-export function SegmentTimeline({ segments }: SegmentTimelineProps) {
+export function SegmentTimeline({ segments, totalDurationSeconds }: SegmentTimelineProps) {
   const timedSegments = segments.filter((s) => s.start_time && s.end_time)
   if (timedSegments.length === 0) {
     return <p className={styles.emptyState}>Keine Zeitbereiche fuer Timeline verfuegbar.</p>
   }
 
-  const maxEnd = Math.max(...timedSegments.map((s) => parseTimeToSeconds(s.end_time!)))
+  const segmentMaxEnd = Math.max(...timedSegments.map((s) => parseTimeToSeconds(s.end_time!)))
+  const maxEnd =
+    totalDurationSeconds != null && totalDurationSeconds > segmentMaxEnd
+      ? totalDurationSeconds
+      : segmentMaxEnd
   const upperSegments = timedSegments.filter((s) => isUpperSpur(s.theme_type_name))
   const lowerSegments = timedSegments.filter((s) => !isUpperSpur(s.theme_type_name))
 
@@ -131,7 +164,7 @@ export function SegmentTimeline({ segments }: SegmentTimelineProps) {
   function renderBlock(segment: AdminThemeSegment) {
     const startSec = parseTimeToSeconds(segment.start_time!)
     const endSec = parseTimeToSeconds(segment.end_time!)
-    const leftPct = (startSec / maxEnd) * 100
+    const leftPct = maxEnd > 0 ? (startSec / maxEnd) * 100 : 0
     const widthPct = Math.max(2, ((endSec - startSec) / maxEnd) * 100)
     const color = getTypeColor(segment.theme_type_name)
     return (

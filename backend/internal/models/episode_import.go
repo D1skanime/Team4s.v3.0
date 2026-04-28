@@ -35,6 +35,7 @@ type EpisodeImportMediaCandidate struct {
 	JellyfinEpisodeNumber *int32  `json:"jellyfin_episode_number,omitempty"`
 	StreamURL             *string `json:"stream_url,omitempty"`
 	VideoQuality          *string `json:"video_quality,omitempty"`
+	DurationSeconds       *int32  `json:"duration_seconds,omitempty"`
 }
 
 // SelectedFansubGroupInput describes one operator-selected fansub group chip.

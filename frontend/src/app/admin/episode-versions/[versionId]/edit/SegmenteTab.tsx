@@ -9,14 +9,24 @@ import {
   getTypeBadgeLabel,
   formatDuration,
   formatEpisodeRange,
+  resolveSegmentProvenanceDetails,
+  resolveSegmentProvenance,
   resolveSourceLabel,
   isSegmentActiveForEpisode,
   SegmentTimeline,
 } from './SegmenteTab.helpers'
 import { SegmentEditPanel } from './SegmentEditPanel'
 import type { FormState } from './SegmentEditPanel'
-import { getAnimeSegmentSuggestions, getRuntimeAuthToken, uploadSegmentAsset, deleteSegmentAsset } from '@/lib/api'
+import {
+  attachSegmentLibraryAsset,
+  deleteSegmentAsset,
+  getAnimeSegmentSuggestions,
+  getRuntimeAuthToken,
+  getSegmentLibraryCandidates,
+  uploadSegmentAsset,
+} from '@/lib/api'
 import type {
+  AdminSegmentLibraryCandidate,
   AdminThemeSegment,
   AdminThemeSegmentCreateRequest,
   AdminThemeSegmentPatchRequest,
@@ -28,6 +38,7 @@ interface SegmenteTabProps {
   groupId: number | null
   version: string | null
   episodeNumber?: number | null
+  durationSeconds?: number | null
 }
 
 const EMPTY_FORM: FormState = {
@@ -66,7 +77,7 @@ function segmentFormFromExisting(segment: AdminThemeSegment): FormState {
 }
 
 // --- Main component ---
-export function SegmenteTab({ animeId, groupId, version, episodeNumber }: SegmenteTabProps) {
+export function SegmenteTab({ animeId, groupId, version, episodeNumber, durationSeconds }: SegmenteTabProps) {
   const {
     segments,
     genericThemeOptions,
@@ -91,6 +102,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber }: Segmen
   const [panelOpen, setPanelOpen] = useState(false)
   const [editingSegment, setEditingSegment] = useState<AdminThemeSegment | null>(null)
   const [formState, setFormState] = useState<FormState>(EMPTY_FORM)
+  const [pendingUploadFile, setPendingUploadFile] = useState<File | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -98,6 +110,10 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber }: Segmen
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isDeletingAsset, setIsDeletingAsset] = useState(false)
+  const [reuseCandidates, setReuseCandidates] = useState<AdminSegmentLibraryCandidate[]>([])
+  const [isLoadingReuseCandidates, setIsLoadingReuseCandidates] = useState(false)
+  const [reuseError, setReuseError] = useState<string | null>(null)
+  const [isAttachingReuse, setIsAttachingReuse] = useState(false)
 
   // Load suggestions when episodeNumber changes
   useEffect(() => {
@@ -119,6 +135,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber }: Segmen
     const defaultThemeKind = genericThemeOptions[0]?.key ?? ''
     setFormState({ ...EMPTY_FORM, themeKind: defaultThemeKind })
     setFormError(null)
+    setPendingUploadFile(null)
     setPanelOpen(true)
   }
 
@@ -126,6 +143,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber }: Segmen
     setEditingSegment(segment)
     setFormState(segmentFormFromExisting(segment))
     setFormError(null)
+    setReuseError(null)
+    setPendingUploadFile(null)
     setPanelOpen(true)
   }
 
@@ -135,7 +154,47 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber }: Segmen
     setFormState(EMPTY_FORM)
     setFormError(null)
     setUploadError(null)
+    setReuseCandidates([])
+    setReuseError(null)
+    setPendingUploadFile(null)
   }
+
+  useEffect(() => {
+    if (!panelOpen || !editingSegment || !animeId || !groupId || !authToken) {
+      setReuseCandidates([])
+      return
+    }
+
+    if (formState.sourceType !== 'release_asset' || !formState.themeKind.trim()) {
+      setReuseCandidates([])
+      return
+    }
+
+    setIsLoadingReuseCandidates(true)
+    setReuseError(null)
+    getSegmentLibraryCandidates(
+      animeId,
+      groupId,
+      formState.themeKind,
+      formState.themeTitle,
+      authToken,
+    )
+      .then((res) => {
+        setReuseCandidates(
+          res.data.filter((candidate) => {
+            if (!editingSegment.source_ref?.trim()) return true
+            return candidate.source_ref !== editingSegment.source_ref
+          }),
+        )
+      })
+      .catch((error) => {
+        setReuseCandidates([])
+        setReuseError(error instanceof Error ? error.message : 'Library-Kandidaten konnten nicht geladen werden.')
+      })
+      .finally(() => {
+        setIsLoadingReuseCandidates(false)
+      })
+  }, [animeId, authToken, editingSegment, formState.sourceType, formState.themeKind, formState.themeTitle, groupId, panelOpen])
 
   async function adoptSuggestion(suggestion: AdminThemeSegment) {
     if (!animeId) return
@@ -157,6 +216,10 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber }: Segmen
   }
 
   async function handleSave() {
+    if (!animeId) {
+      setFormError('Anime-Kontext fehlt.')
+      return
+    }
     if (!formState.themeKind) {
       setFormError('Bitte einen Typ auswaehlen.')
       return
@@ -213,10 +276,20 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber }: Segmen
           source_ref: normalizedSourceRef,
           source_label: normalizedSourceLabel,
         }
-        const ok = await create(input)
-        if (ok) closePanel()
-        else setFormError('Segment konnte nicht angelegt werden.')
+        const createdSegment = await create(input)
+        if (!createdSegment) {
+          setFormError('Segment konnte nicht angelegt werden.')
+          return
+        }
+        if (pendingUploadFile && formState.sourceType === 'release_asset') {
+          const res = await uploadSegmentAsset(animeId, createdSegment.id, pendingUploadFile, authToken)
+          await reload()
+          setEditingSegment(res.data)
+        }
+        closePanel()
       }
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'Segment konnte nicht gespeichert werden.')
     } finally {
       setIsSaving(false)
     }
@@ -263,6 +336,32 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber }: Segmen
       setUploadError(err instanceof Error ? err.message : 'Datei konnte nicht entfernt werden.')
     } finally {
       setIsDeletingAsset(false)
+    }
+  }
+
+  async function handleAttachReuseCandidate(candidate: AdminSegmentLibraryCandidate) {
+    if (!animeId || !editingSegment || !authToken) return
+    setIsAttachingReuse(true)
+    setReuseError(null)
+    try {
+      const res = await attachSegmentLibraryAsset(
+        animeId,
+        editingSegment.id,
+        { asset_id: candidate.asset_id },
+        authToken,
+      )
+      await reload()
+      setEditingSegment(res.data)
+      setFormState((current) => ({
+        ...current,
+        sourceType: 'release_asset',
+        sourceRef: res.data.source_ref ?? '',
+        sourceLabel: res.data.source_label ?? '',
+      }))
+    } catch (error) {
+      setReuseError(error instanceof Error ? error.message : 'Library-Datei konnte nicht verknuepft werden.')
+    } finally {
+      setIsAttachingReuse(false)
     }
   }
 
@@ -370,7 +469,15 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber }: Segmen
                           : '\u2014'}
                       </td>
                       <td style={{ fontSize: 13, color: '#6b6b70' }}>
-                        {resolveSourceLabel(segment)}
+                        <div style={{ display: 'grid', gap: 2 }}>
+                          <span>{resolveSourceLabel(segment)}</span>
+                          {resolveSegmentProvenance(segment) ? (
+                            <span style={{ fontSize: 11, color: '#8a8a93' }}>
+                              {resolveSegmentProvenance(segment)}
+                              {resolveSegmentProvenanceDetails(segment) ? ` · ${resolveSegmentProvenanceDetails(segment)}` : ''}
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -424,7 +531,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber }: Segmen
           <Clock size={14} />
           Timeline Vorschau
         </div>
-        <SegmentTimeline segments={segments} />
+        <SegmentTimeline segments={segments} totalDurationSeconds={durationSeconds} />
       </div>
 
       {/* Side panel overlay */}
@@ -432,17 +539,29 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber }: Segmen
         <SegmentEditPanel
           editingSegment={editingSegment}
           formState={formState}
+          pendingUploadFile={pendingUploadFile}
           genericThemeOptions={genericThemeOptions}
           isSaving={isSaving}
           formError={formError}
           isUploading={isUploading}
           isDeletingAsset={isDeletingAsset}
+          isLoadingReuseCandidates={isLoadingReuseCandidates}
+          isAttachingReuse={isAttachingReuse}
           uploadError={uploadError}
+          reuseCandidates={reuseCandidates}
+          reuseError={reuseError}
           onClose={closePanel}
-          onFormChange={(patch) => setFormState((s) => ({ ...s, ...patch }))}
+          onFormChange={(patch) => {
+            if (patch.sourceType && patch.sourceType !== 'release_asset') {
+              setPendingUploadFile(null)
+            }
+            setFormState((s) => ({ ...s, ...patch }))
+          }}
+          onPendingUploadFileChange={setPendingUploadFile}
           onSave={() => void handleSave()}
           onAssetUpload={(file) => void handleAssetUpload(file)}
           onAssetDelete={() => void handleAssetDelete()}
+          onAttachReuseCandidate={(candidate) => void handleAttachReuseCandidate(candidate)}
         />
       ) : null}
     </div>

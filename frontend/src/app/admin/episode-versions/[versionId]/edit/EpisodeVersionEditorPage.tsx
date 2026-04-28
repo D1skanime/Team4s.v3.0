@@ -361,6 +361,7 @@ export function EpisodeVersionEditorPage() {
                 groupId={segmentGroupId}
                 version={segmentVersion}
                 episodeNumber={episodeNumber}
+                durationSeconds={editor.contextData?.version.duration_seconds}
               />
             ) : null}
 
