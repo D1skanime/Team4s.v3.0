@@ -165,6 +165,7 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 			ss.url AS stream_url,
 			COALESCE(seg.segment_count, 0) AS segment_count,
 			COALESCE(seg.has_segment_asset, FALSE) AS has_segment_asset,
+			rv.duration_seconds,
 			rv.created_at,
 			COALESCE(rv.updated_at, rv.modified_at, rv.created_at) AS updated_at`
 
@@ -227,6 +228,7 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 			ss.url,
 			seg.segment_count,
 			seg.has_segment_asset,
+			rv.duration_seconds,
 			rv.created_at,
 			rv.updated_at,
 			rv.modified_at`
@@ -309,6 +311,7 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			ss.url AS stream_url,
 			COALESCE(seg.segment_count, 0) AS segment_count,
 			COALESCE(seg.has_segment_asset, FALSE) AS has_segment_asset,
+			rv.duration_seconds,
 			rv.created_at,
 			COALESCE(rv.updated_at, rv.modified_at, rv.created_at) AS updated_at,
 			fg.id, fg.slug, fg.name, fg.logo_url
@@ -353,6 +356,7 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			ss.url,
 			seg.segment_count,
 			seg.has_segment_asset,
+			rv.duration_seconds,
 			rv.created_at,
 			rv.updated_at,
 			rv.modified_at,
@@ -769,6 +773,7 @@ func scanReleaseVariantAsEpisodeVersion(scanner rowScanner, includeFansub bool) 
 		&item.StreamURL,
 		&item.SegmentCount,
 		&item.HasSegmentAsset,
+		&item.DurationSeconds,
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	}

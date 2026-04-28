@@ -24,6 +24,7 @@ type EpisodeVersion struct {
 	StreamURL             *string             `json:"stream_url,omitempty"`
 	SegmentCount          int32               `json:"segment_count"`
 	HasSegmentAsset       bool                `json:"has_segment_asset"`
+	DurationSeconds       *int32              `json:"duration_seconds,omitempty"`
 	CreatedAt             time.Time           `json:"created_at"`
 	UpdatedAt             time.Time           `json:"updated_at"`
 }
@@ -53,12 +54,13 @@ type EpisodeVersionCreateInput struct {
 	Title         *string
 	FansubGroups  []SelectedFansubGroupInput
 	FansubGroupID *int64
-	MediaProvider string
-	MediaItemID   string
-	VideoQuality  *string
-	SubtitleType  *string
-	ReleaseDate   *time.Time
-	StreamURL     *string
+	MediaProvider   string
+	MediaItemID     string
+	VideoQuality    *string
+	SubtitleType    *string
+	ReleaseDate     *time.Time
+	StreamURL       *string
+	DurationSeconds *int32
 }
 
 // EpisodeVersionPatchInput enthält die patch-fähigen Felder einer Episodenversion,

@@ -54,6 +54,7 @@ type jellyfinEpisodeItem struct {
 	ParentIndexNumber *int                  `json:"ParentIndexNumber"`
 	PremiereDate      *string               `json:"PremiereDate"`
 	MediaStreams      []jellyfinMediaStream `json:"MediaStreams"`
+	RunTimeTicks      *int64                `json:"RunTimeTicks"`
 }
 
 // jellyfinMediaStream repräsentiert einen Medien-Stream (Video, Audio, Untertitel) innerhalb einer Jellyfin-Episode.
@@ -242,7 +243,7 @@ func (h *AdminContentHandler) listJellyfinEpisodes(
 	seriesID string,
 ) ([]jellyfinEpisodeItem, error) {
 	values := url.Values{}
-	values.Set("Fields", "MediaStreams,Path")
+	values.Set("Fields", "MediaStreams,Path,RunTimeTicks")
 	values.Set("EnableUserData", "false")
 
 	var payload jellyfinEpisodeListResponse
