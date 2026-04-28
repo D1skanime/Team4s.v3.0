@@ -235,7 +235,11 @@ func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read release helper source: %v", err)
 	}
-	normalized := strings.ToLower(string(applyContent) + "\n" + string(releaseContent))
+	streamContent, err := os.ReadFile("release_stream_repository_helpers.go")
+	if err != nil {
+		t.Fatalf("read stream helper source: %v", err)
+	}
+	normalized := strings.ToLower(string(applyContent) + "\n" + string(releaseContent) + "\n" + string(streamContent))
 	required := []string{
 		"insert into episodes",
 		"insert into episode_titles",
