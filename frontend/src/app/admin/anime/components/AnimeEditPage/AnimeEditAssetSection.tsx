@@ -104,6 +104,12 @@ function resolveAssetSource(
   return asset.ownership === "provider" ? "Jellyfin" : "Manuell";
 }
 
+function resolvePersistedAssetUrl(
+  asset?: AdminAnimePersistedAssetState | AdminAnimePersistedBackgroundState,
+): string {
+  return normalizeAssetUrl(asset?.url);
+}
+
 function buildPersistedStatusNote(
   asset?: AdminAnimePersistedAssetState | AdminAnimePersistedBackgroundState,
 ): string | undefined {
@@ -111,6 +117,10 @@ function buildPersistedStatusNote(
   return asset.ownership === "provider"
     ? "Persistiert aus Provider-Quelle"
     : "Persistiert als lokales/manuelles Asset";
+}
+
+function normalizeAssetUrl(rawUrl?: string): string {
+  return resolveJellyfinIntakeAssetUrl(rawUrl);
 }
 
 export function AnimeEditAssetSection({
@@ -130,7 +140,7 @@ export function AnimeEditAssetSection({
     persistedAssets.cover ??
     (jellyfinAssetSlots?.cover.present && jellyfinAssetSlots.cover.url
       ? {
-          url: resolveJellyfinIntakeAssetUrl(jellyfinAssetSlots.cover.url),
+          url: normalizeAssetUrl(jellyfinAssetSlots.cover.url),
           ownership: "provider" as const,
         }
       : undefined);
@@ -138,7 +148,7 @@ export function AnimeEditAssetSection({
     persistedAssets.banner ??
     (jellyfinAssetSlots?.banner.present && jellyfinAssetSlots.banner.url
       ? {
-          url: resolveJellyfinIntakeAssetUrl(jellyfinAssetSlots.banner.url),
+          url: normalizeAssetUrl(jellyfinAssetSlots.banner.url),
           ownership: "provider" as const,
         }
       : undefined);
@@ -146,7 +156,7 @@ export function AnimeEditAssetSection({
     persistedAssets.logo ??
     (jellyfinAssetSlots?.logo.present && jellyfinAssetSlots.logo.url
       ? {
-          url: resolveJellyfinIntakeAssetUrl(jellyfinAssetSlots.logo.url),
+          url: normalizeAssetUrl(jellyfinAssetSlots.logo.url),
           ownership: "provider" as const,
         }
       : undefined);
@@ -154,18 +164,18 @@ export function AnimeEditAssetSection({
   const jellyfinBackgroundVideo =
     jellyfinAssetSlots?.background_video.present && jellyfinAssetSlots.background_video.url
       ? {
-          url: resolveJellyfinIntakeAssetUrl(jellyfinAssetSlots.background_video.url),
+          url: normalizeAssetUrl(jellyfinAssetSlots.background_video.url),
           ownership: "provider" as const,
         }
       : undefined;
   const backgrounds = persistedAssets.backgrounds ?? [];
   const persistedBackgroundUrls = new Set(
-    backgrounds.map((background) => background.url).filter(Boolean),
+    backgrounds.map((background) => normalizeAssetUrl(background.url)).filter(Boolean),
   );
   const jellyfinBackgrounds = (jellyfinAssetSlots?.backgrounds ?? [])
     .filter((slot) => slot.present && slot.url)
     .map((slot, index) => ({
-      url: resolveJellyfinIntakeAssetUrl(slot.url),
+      url: normalizeAssetUrl(slot.url),
       ownership: "provider" as const,
       index,
     }))
@@ -177,7 +187,7 @@ export function AnimeEditAssetSection({
         key={background.id}
         label={`Background ${index + 1}`}
         variant="background"
-        previewUrl={background.url}
+        previewUrl={resolvePersistedAssetUrl(background)}
         source={resolveAssetSource(background)}
         statusNote={buildPersistedStatusNote(background)}
         actions={
@@ -214,7 +224,7 @@ export function AnimeEditAssetSection({
             key="persisted-background-video"
             label="Background-Video 1"
             variant="backgroundVideo"
-            previewUrl={backgroundVideo.url}
+            previewUrl={resolvePersistedAssetUrl(backgroundVideo)}
             source={resolveAssetSource(backgroundVideo)}
             statusNote={buildPersistedStatusNote(backgroundVideo)}
             actions={
@@ -228,7 +238,7 @@ export function AnimeEditAssetSection({
         ]
       : []),
     ...(jellyfinBackgroundVideo?.url &&
-    jellyfinBackgroundVideo.url !== backgroundVideo?.url
+    jellyfinBackgroundVideo.url !== normalizeAssetUrl(backgroundVideo?.url)
       ? [
           <CreateAssetCard
             key="jellyfin-background-video"
@@ -258,11 +268,11 @@ export function AnimeEditAssetSection({
               label="Cover"
               variant="cover"
               isRequired
-              previewUrl={cover?.url}
+              previewUrl={resolvePersistedAssetUrl(cover)}
               source={resolveAssetSource(cover)}
               statusNote={buildPersistedStatusNote(cover)}
-              isEmpty={!cover?.url}
-              onEmptyClick={!cover?.url ? () => onOpenFileDialog("cover") : undefined}
+              isEmpty={!resolvePersistedAssetUrl(cover)}
+              onEmptyClick={!resolvePersistedAssetUrl(cover) ? () => onOpenFileDialog("cover") : undefined}
               actions={
                 <AssetActionRow
                   disabled={isBusy}
@@ -282,11 +292,11 @@ export function AnimeEditAssetSection({
             <CreateAssetCard
               label="Banner"
               variant="banner"
-              previewUrl={banner?.url}
+              previewUrl={resolvePersistedAssetUrl(banner)}
               source={resolveAssetSource(banner)}
               statusNote={buildPersistedStatusNote(banner)}
-              isEmpty={!banner?.url}
-              onEmptyClick={!banner?.url ? () => onOpenFileDialog("banner") : undefined}
+              isEmpty={!resolvePersistedAssetUrl(banner)}
+              onEmptyClick={!resolvePersistedAssetUrl(banner) ? () => onOpenFileDialog("banner") : undefined}
               actions={
                 <AssetActionRow
                   disabled={isBusy}
@@ -306,11 +316,11 @@ export function AnimeEditAssetSection({
             <CreateAssetCard
               label="Logo"
               variant="logo"
-              previewUrl={logo?.url}
+              previewUrl={resolvePersistedAssetUrl(logo)}
               source={resolveAssetSource(logo)}
               statusNote={buildPersistedStatusNote(logo)}
-              isEmpty={!logo?.url}
-              onEmptyClick={!logo?.url ? () => onOpenFileDialog("logo") : undefined}
+              isEmpty={!resolvePersistedAssetUrl(logo)}
+              onEmptyClick={!resolvePersistedAssetUrl(logo) ? () => onOpenFileDialog("logo") : undefined}
               actions={
                 <AssetActionRow
                   disabled={isBusy}

@@ -24,7 +24,9 @@ type adminAnimeJellyfinMetadataApplyRequest struct {
 	JellyfinSeriesID *string `json:"jellyfin_series_id"`
 	ApplyCover       *bool   `json:"apply_cover"`
 	ApplyBanner      *bool   `json:"apply_banner"`
+	ApplyLogo        *bool   `json:"apply_logo"`
 	ApplyBackgrounds *bool   `json:"apply_backgrounds"`
+	ApplyBackgroundVideo *bool `json:"apply_background_video"`
 }
 
 // validateAdminAnimeJellyfinMetadataSeriesID prüft und bereinigt eine optionale Jellyfin-Serien-ID.
@@ -182,7 +184,9 @@ func (h *AdminContentHandler) ApplyAnimeMetadataFromJellyfin(c *gin.Context) {
 
 	applyCover := req.ApplyCover != nil && *req.ApplyCover
 	applyBanner := req.ApplyBanner != nil && *req.ApplyBanner
+	applyLogo := req.ApplyLogo != nil && *req.ApplyLogo
 	applyBackgrounds := req.ApplyBackgrounds != nil && *req.ApplyBackgrounds
+	applyBackgroundVideo := req.ApplyBackgroundVideo != nil && *req.ApplyBackgroundVideo
 	if applyCover && !preview.Cover.CanApply {
 		badRequest(c, "jellyfin cover ist fuer diesen anime nicht verfuegbar")
 		return
@@ -237,6 +241,18 @@ func (h *AdminContentHandler) ApplyAnimeMetadataFromJellyfin(c *gin.Context) {
 		}
 	}
 
+	if h.animeAssetRepo != nil && applyLogo {
+		if err := h.animeAssetRepo.ApplyProviderLogo(
+			c.Request.Context(),
+			animeID,
+			providerBannerInput(preview.AssetSlots.Logo),
+		); err != nil {
+			log.Printf("admin_content jellyfin_metadata_apply: apply logo failed (anime_id=%d): %v", animeID, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "logo konnte nicht aktualisiert werden"}})
+			return
+		}
+	}
+
 	if h.animeAssetRepo != nil && applyBackgrounds {
 		if err := h.animeAssetRepo.ApplyProviderBackgrounds(
 			c.Request.Context(),
@@ -245,6 +261,18 @@ func (h *AdminContentHandler) ApplyAnimeMetadataFromJellyfin(c *gin.Context) {
 		); err != nil {
 			log.Printf("admin_content jellyfin_metadata_apply: apply backgrounds failed (anime_id=%d): %v", animeID, err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "backgrounds konnten nicht aktualisiert werden"}})
+			return
+		}
+	}
+
+	if h.animeAssetRepo != nil && applyBackgroundVideo {
+		if err := h.animeAssetRepo.ApplyProviderBackgroundVideo(
+			c.Request.Context(),
+			animeID,
+			providerBannerInput(preview.AssetSlots.BackgroundVideo),
+		); err != nil {
+			log.Printf("admin_content jellyfin_metadata_apply: apply background video failed (anime_id=%d): %v", animeID, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "background-video konnte nicht aktualisiert werden"}})
 			return
 		}
 	}

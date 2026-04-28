@@ -18,7 +18,7 @@ interface AnimePatchActions {
   setGenreSuggestionLimit: (next: number) => void
   setTagSuggestionLimit: (next: number) => void
   resetFromAnime: (anime: AnimeDetail) => void
-  submit: (animeID: number) => Promise<void>
+  submit: (animeID: number) => Promise<boolean>
   uploadAndLinkAsset: (file: File, assetKind: AdminAnimeAssetKind, animeID?: number | null) => Promise<void>
   uploadAndSetCover: (file: File, animeID?: number | null) => Promise<void>
 }

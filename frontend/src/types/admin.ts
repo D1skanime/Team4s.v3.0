@@ -662,7 +662,9 @@ export interface AdminAnimeJellyfinMetadataApplyRequest {
   jellyfin_series_id?: string;
   apply_cover?: boolean;
   apply_banner?: boolean;
+  apply_logo?: boolean;
   apply_backgrounds?: boolean;
+  apply_background_video?: boolean;
 }
 
 export interface AdminAnimeJellyfinMetadataApplyResult {
@@ -826,6 +828,15 @@ export interface AdminThemeSegment {
   source_ref?: string | null
   /** Lesbares Label der Quelle fuer die UI-Anzeige. */
   source_label?: string | null
+  library_definition_id?: number | null
+  library_asset_id?: number | null
+  library_segment_kind?: string | null
+  library_segment_name?: string | null
+  library_anime_source_provider?: string | null
+  library_anime_source_external_id?: string | null
+  library_identity_status?: string | null
+  library_ownership_scope?: string | null
+  library_attach_source?: string | null
   created_at: string
 }
 
@@ -867,4 +878,31 @@ export interface AdminThemeSegmentPatchRequest {
   source_type?: AdminSegmentSourceType | null
   source_ref?: string | null
   source_label?: string | null
+}
+
+export interface AdminSegmentLibraryCandidate {
+  definition_id: number
+  asset_id: number
+  media_asset_id?: number | null
+  anime_source_provider: string
+  anime_source_external_id: string
+  fansub_group_id: number
+  segment_kind: string
+  segment_name?: string | null
+  identity_status: 'verified' | 'legacy_unverified'
+  ownership_scope: 'reusable' | 'local_only'
+  source_ref: string
+  source_label?: string | null
+  asset_attach_source: string
+  current_attach_source?: string | null
+  active_assignment_count: number
+  last_attached_at?: string | null
+}
+
+export interface AdminSegmentLibraryCandidatesResponse {
+  data: AdminSegmentLibraryCandidate[]
+}
+
+export interface AdminSegmentLibraryAttachRequest {
+  asset_id: number
 }

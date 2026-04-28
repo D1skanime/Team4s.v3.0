@@ -116,6 +116,7 @@ func TestAnimeAssetCompatibilityUsesV2CoverHelpersWhenLegacySlotsAreGone(t *test
 		"loadv2animemediaidbyref(ctx, tx, trimmedmediaref, \"poster\")",
 		"removeanimemedialinksbytype(ctx, tx, animeid, \"poster\")",
 		"upsertanimemedialink(ctx, tx, animeid, mediaid, 0)",
+		"v2 remains authoritative once anime_media exists",
 	}
 	for _, fragment := range required {
 		if !strings.Contains(assetNormalized, fragment) {

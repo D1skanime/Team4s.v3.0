@@ -53,11 +53,16 @@ type adminThemeRepository interface {
 	DeleteAdminAnimeTheme(ctx context.Context, themeID int64) error
 	ListAnimeSegments(ctx context.Context, animeID int64, groupID int64, version string) ([]models.AdminThemeSegment, error)
 	ListAnimeSegmentSuggestions(ctx context.Context, animeID int64, episodeNumber int, excludeGroupID int64, excludeVersion string) ([]models.AdminThemeSegment, error)
+	ListSegmentLibraryCandidates(ctx context.Context, animeID int64, fansubGroupID int64, segmentKind string, segmentName string) ([]models.SegmentLibraryCandidate, error)
 	CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput) (*models.AdminThemeSegment, error)
 	UpdateAnimeSegment(ctx context.Context, segmentID int64, input models.AdminThemeSegmentPatchInput) error
 	DeleteAnimeSegment(ctx context.Context, segmentID int64) error
 	GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64) (*models.AdminThemeSegment, error)
+	GetStableSegmentAnimeSource(ctx context.Context, animeID int64) (string, string, error)
 	ClearSegmentAsset(ctx context.Context, animeID int64, segmentID int64) (*string, error)
+	BindUploadedSegmentAsset(ctx context.Context, animeID int64, segmentID int64, mediaAssetID int64, sourceRef string, sourceLabel *string) (*models.AdminThemeSegment, error)
+	AttachSegmentLibraryAsset(ctx context.Context, animeID int64, segmentID int64, input models.SegmentLibraryAttachInput) (*models.AdminThemeSegment, error)
+	IsReusableSegmentAsset(ctx context.Context, sourceRef string) (bool, error)
 	GetCanonicalFansubAnimeRelease(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, error)
 	GetFansubRelease(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, error)
 	ListFansubAnime(ctx context.Context, fansubGroupID int64) ([]models.AdminFansubAnimeEntry, error)
@@ -113,35 +118,35 @@ type adminRoleChecker interface {
 // AdminContentHandler ist der zentrale Handler für alle Admin-Content-Operationen:
 // Anime anlegen/bearbeiten/löschen, Episoden, Assets, Relationen und Jellyfin-Integration.
 type AdminContentHandler struct {
-	repo               *repository.AdminContentRepository
-	relationRepo       adminContentRelationRepository
-	themeRepo          adminThemeRepository
-	animeAssetRepo     *repository.AnimeAssetRepository
-	fansubRepo         *repository.FansubRepository
-	episodeVersionRepo *repository.EpisodeVersionRepository
-	episodeImportRepo  adminEpisodeImportRepository
-	authzRepo          adminRoleChecker
-	mediaRepo          *repository.MediaRepository
-	aniSearchRepo      adminAniSearchRepository
-	adminRoleName      string
-	mediaStorageDir    string
-	jellyfinAPIKey              string
-	jellyfinBaseURL             string
-	jellyfinStreamPath          string
-	jellyfinAllowedLibraryIDs   []string
-	httpClient         *http.Client
-	enrichmentService  adminAniSearchDraftLoader
-	aniSearchEpisodes  adminAniSearchEpisodeFetcher
-	assetSearchService adminAnimeAssetSearchService
-	mediaService       *services.MediaService
+	repo                      *repository.AdminContentRepository
+	relationRepo              adminContentRelationRepository
+	themeRepo                 adminThemeRepository
+	animeAssetRepo            *repository.AnimeAssetRepository
+	fansubRepo                *repository.FansubRepository
+	episodeVersionRepo        *repository.EpisodeVersionRepository
+	episodeImportRepo         adminEpisodeImportRepository
+	authzRepo                 adminRoleChecker
+	mediaRepo                 *repository.MediaRepository
+	aniSearchRepo             adminAniSearchRepository
+	adminRoleName             string
+	mediaStorageDir           string
+	jellyfinAPIKey            string
+	jellyfinBaseURL           string
+	jellyfinStreamPath        string
+	jellyfinAllowedLibraryIDs []string
+	httpClient                *http.Client
+	enrichmentService         adminAniSearchDraftLoader
+	aniSearchEpisodes         adminAniSearchEpisodeFetcher
+	assetSearchService        adminAnimeAssetSearchService
+	mediaService              *services.MediaService
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
 type AdminContentJellyfinConfig struct {
-	APIKey             string
-	BaseURL            string
-	StreamPath         string
-	AllowedLibraryIDs  []string // Optionale Whitelist von Bibliotheks-IDs; nil bedeutet kein Filter
+	APIKey            string
+	BaseURL           string
+	StreamPath        string
+	AllowedLibraryIDs []string // Optionale Whitelist von Bibliotheks-IDs; nil bedeutet kein Filter
 }
 
 // AdminContentAssetSearchConfig enthält die API-Schlüssel für externe Asset-Suchprovider (TMDB, FanartTV).
@@ -165,16 +170,16 @@ func NewAdminContentHandler(
 	assetSearchCfg AdminContentAssetSearchConfig,
 ) *AdminContentHandler {
 	handler := &AdminContentHandler{
-		repo:               repo,
-		relationRepo:       repo,
-		themeRepo:          repo,
-		animeAssetRepo:     animeAssetRepo,
-		fansubRepo:         fansubRepo,
-		episodeVersionRepo: episodeVersionRepo,
-		episodeImportRepo:  episodeImportRepo,
-		authzRepo:          authzRepo,
-		adminRoleName:      strings.TrimSpace(adminRoleName),
-		mediaStorageDir:    strings.TrimSpace(mediaStorageDir),
+		repo:                      repo,
+		relationRepo:              repo,
+		themeRepo:                 repo,
+		animeAssetRepo:            animeAssetRepo,
+		fansubRepo:                fansubRepo,
+		episodeVersionRepo:        episodeVersionRepo,
+		episodeImportRepo:         episodeImportRepo,
+		authzRepo:                 authzRepo,
+		adminRoleName:             strings.TrimSpace(adminRoleName),
+		mediaStorageDir:           strings.TrimSpace(mediaStorageDir),
 		jellyfinAPIKey:            strings.TrimSpace(jellyfinCfg.APIKey),
 		jellyfinBaseURL:           strings.TrimSpace(jellyfinCfg.BaseURL),
 		jellyfinStreamPath:        normalizeStreamPathTemplate(jellyfinCfg.StreamPath),

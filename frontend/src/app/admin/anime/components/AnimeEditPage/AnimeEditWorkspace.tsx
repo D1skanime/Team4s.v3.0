@@ -3,6 +3,7 @@
 import React, { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
+  applyAdminAnimeMetadataFromJellyfin,
   deleteAdminAnimeBackgroundAsset,
   deleteAdminAnimeBackgroundVideoAsset,
   deleteAdminAnimeBannerAsset,
@@ -148,9 +149,7 @@ export function AnimeEditWorkspace({
     savedStateTitle: 'Alles gespeichert',
     savedStateMessage: 'Keine ausstehenden Stammdaten-Änderungen.',
     onSubmit: () => {
-      onRequest?.(null)
-      onResponse?.(null)
-      void patch.submit(anime.id)
+      void handleSave()
     },
   })
 
@@ -198,6 +197,41 @@ export function AnimeEditWorkspace({
   if (!persistedAssets.cover?.url && !patch.values.coverImage.trim()) {
     reviewMissingFields.push('Cover')
   }
+  const adoptedJellyfinPreview = hasAdoptedJellyfinSelection ? jellyfinIntake.previewResult : null
+
+  const handleSave = useCallback(async () => {
+    onRequest?.(null)
+    onResponse?.(null)
+
+    const patchSaved = await patch.submit(anime.id)
+    if (!patchSaved) {
+      return
+    }
+
+    if (!adoptedJellyfinPreview) {
+      return
+    }
+
+    try {
+      await applyAdminAnimeMetadataFromJellyfin(
+        anime.id,
+        {
+          jellyfin_series_id: adoptedJellyfinPreview.jellyfin_series_id,
+          apply_cover: adoptedJellyfinPreview.asset_slots.cover.present,
+          apply_banner: adoptedJellyfinPreview.asset_slots.banner.present,
+          apply_logo: adoptedJellyfinPreview.asset_slots.logo.present,
+          apply_backgrounds: adoptedJellyfinPreview.asset_slots.backgrounds.length > 0,
+          apply_background_video: adoptedJellyfinPreview.asset_slots.background_video.present,
+        },
+        authToken,
+      )
+      jellyfinIntake.resetReview()
+      setHasAdoptedJellyfinSelection(false)
+      await refreshAssetContext()
+    } catch (error) {
+      onError(formatAdminError(error, 'Jellyfin-Assets konnten nicht gespeichert werden.'))
+    }
+  }, [adoptedJellyfinPreview, anime.id, authToken, jellyfinIntake, onError, onRequest, onResponse, patch, refreshAssetContext])
 
   function openAssetFileDialog(kind: AdminAnimeAssetKind) {
     const refs: Record<AdminAnimeAssetKind, React.RefObject<HTMLInputElement | null>> = {
@@ -357,18 +391,25 @@ export function AnimeEditWorkspace({
     }
   }
 
-  const effectiveSource = jellyfinContext?.source || patch.values.source || hydratedState.values.source || ''
-  const effectiveFolderPath =
-    jellyfinContext?.folder_name ||
-    jellyfinContext?.jellyfin_series_path ||
-    patch.values.folderName ||
-    hydratedState.values.folderName ||
-    ''
-  const effectiveJellyfinSeriesID = jellyfinContext?.jellyfin_series_id || anime.jellyfin_series_id || ''
-  const effectiveSourceKind = formatSourceKindLabel(jellyfinContext?.source_kind)
-  const isLinkedToJellyfin = Boolean(jellyfinContext?.linked)
+  const effectiveSource = adoptedJellyfinPreview
+    ? `jellyfin:${adoptedJellyfinPreview.jellyfin_series_id}`
+    : jellyfinContext?.source || patch.values.source || hydratedState.values.source || ''
+  const effectiveFolderPath = adoptedJellyfinPreview?.jellyfin_series_path?.trim()
+    || jellyfinContext?.folder_name
+    || jellyfinContext?.jellyfin_series_path
+    || patch.values.folderName
+    || hydratedState.values.folderName
+    || ''
+  const effectiveJellyfinSeriesID = adoptedJellyfinPreview?.jellyfin_series_id
+    || jellyfinContext?.jellyfin_series_id
+    || anime.jellyfin_series_id
+    || ''
+  const effectiveSourceKind = adoptedJellyfinPreview ? 'Jellyfin' : formatSourceKindLabel(jellyfinContext?.source_kind)
+  const isLinkedToJellyfin = Boolean(adoptedJellyfinPreview?.jellyfin_series_id || jellyfinContext?.linked)
   const coverSourceLabel =
-    jellyfinContext?.cover.current_source === 'provider'
+    adoptedJellyfinPreview?.asset_slots.cover.present
+      ? 'Jellyfin'
+      : jellyfinContext?.cover.current_source === 'provider'
       ? 'Jellyfin'
       : jellyfinContext?.cover.current_source === 'manual'
         ? 'Manuell'
@@ -398,6 +439,7 @@ export function AnimeEditWorkspace({
 
       patch.setField('source', `jellyfin:${preview.jellyfin_series_id}`)
       patch.setField('folderName', preview.jellyfin_series_path?.trim() || '')
+      setVisibleJellyfinAssetSlots(cloneJellyfinAssetSlots(preview.asset_slots))
       setHasAdoptedJellyfinSelection(true)
     } catch (error) {
       onError(formatAdminError(error, 'Jellyfin-Quelle konnte nicht übernommen werden.'))
@@ -409,6 +451,9 @@ export function AnimeEditWorkspace({
     setHasAdoptedJellyfinSelection(false)
     patch.setField('source', jellyfinContext?.source || hydratedState.values.source || '')
     patch.setField('folderName', jellyfinContext?.folder_name || hydratedState.values.folderName || '')
+    setVisibleJellyfinAssetSlots(
+      jellyfinContext?.asset_slots ? cloneJellyfinAssetSlots(jellyfinContext.asset_slots) : null,
+    )
   }
 
   function handleRemoveVisibleJellyfinAsset(target: JellyfinDraftAssetTarget) {
@@ -745,7 +790,7 @@ export function AnimeEditWorkspace({
       note="Prüfe die Änderungen noch einmal, bevor du den bestehenden Anime aktualisierst."
       hideSubmitButton
       onSubmit={() => {
-        void patch.submit(anime.id)
+        void handleSave()
       }}
     />
   )

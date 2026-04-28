@@ -921,6 +921,17 @@ func (r *AnimeAssetRepository) ApplyProviderBanner(ctx context.Context, animeID 
 	return nil
 }
 
+func (r *AnimeAssetRepository) ApplyProviderLogo(ctx context.Context, animeID int64, input *models.AnimeProviderAssetInput) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if useV2Schema {
+		return r.applyProviderSingularAssetV2(ctx, animeID, "logo", input)
+	}
+	return ErrNotFound
+}
+
 func (r *AnimeAssetRepository) ApplyProviderCover(ctx context.Context, animeID int64, input *models.AnimeProviderAssetInput) error {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
@@ -1069,6 +1080,17 @@ func (r *AnimeAssetRepository) ApplyProviderBackgrounds(
 	return nil
 }
 
+func (r *AnimeAssetRepository) ApplyProviderBackgroundVideo(ctx context.Context, animeID int64, input *models.AnimeProviderAssetInput) error {
+	useV2Schema, err := r.hasV2AssetSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if useV2Schema {
+		return r.applyProviderSingularAssetV2(ctx, animeID, "video", input)
+	}
+	return ErrNotFound
+}
+
 func (r *AnimeAssetRepository) assignManualBannerV2(ctx context.Context, animeID int64, mediaRef string) error {
 	return r.assignManualSingularAssetV2(ctx, animeID, mediaRef, "banner")
 }
@@ -1159,31 +1181,35 @@ func (r *AnimeAssetRepository) removeBackgroundV2(ctx context.Context, animeID i
 }
 
 func (r *AnimeAssetRepository) applyProviderBannerV2(ctx context.Context, animeID int64, input *models.AnimeProviderAssetInput) error {
+	return r.applyProviderSingularAssetV2(ctx, animeID, "banner", input)
+}
+
+func (r *AnimeAssetRepository) applyProviderSingularAssetV2(ctx context.Context, animeID int64, mediaType string, input *models.AnimeProviderAssetInput) error {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
-		return fmt.Errorf("begin apply anime banner provider v2 tx: %w", err)
+		return fmt.Errorf("begin apply anime %s provider v2 tx: %w", mediaType, err)
 	}
 	defer tx.Rollback(ctx)
 
 	if err := lockAnimeRow(ctx, tx, animeID); err != nil {
 		return err
 	}
-	if manual, err := hasManualAnimeMediaByType(ctx, tx, animeID, "banner"); err != nil {
+	if manual, err := hasManualAnimeMediaByType(ctx, tx, animeID, mediaType); err != nil {
 		return err
 	} else if manual {
 		return tx.Commit(ctx)
 	}
 
 	if input == nil || strings.TrimSpace(input.URL) == "" {
-		if err := removeAnimeMediaLinksByType(ctx, tx, animeID, "banner"); err != nil {
+		if err := removeAnimeMediaLinksByType(ctx, tx, animeID, mediaType); err != nil {
 			return err
 		}
 	} else {
-		mediaID, err := ensureProviderAnimeMediaV2(ctx, tx, "banner", input)
+		mediaID, err := ensureProviderAnimeMediaV2(ctx, tx, mediaType, input)
 		if err != nil {
 			return err
 		}
-		if err := removeAnimeMediaLinksByType(ctx, tx, animeID, "banner"); err != nil {
+		if err := removeAnimeMediaLinksByType(ctx, tx, animeID, mediaType); err != nil {
 			return err
 		}
 		if err := upsertAnimeMediaLink(ctx, tx, animeID, mediaID, 0); err != nil {
@@ -1192,7 +1218,7 @@ func (r *AnimeAssetRepository) applyProviderBannerV2(ctx context.Context, animeI
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("commit anime banner provider v2 tx: %w", err)
+		return fmt.Errorf("commit anime %s provider v2 tx: %w", mediaType, err)
 	}
 	return nil
 }
@@ -1499,21 +1525,29 @@ func ensureProviderAnimeMediaV2(ctx context.Context, tx pgx.Tx, mediaType string
 		WHERE provider = $1 AND external_id = $2 AND external_type = $3
 		LIMIT 1
 	`, external.Provider, external.ExternalID, external.ExternalType).Scan(&mediaID); errors.Is(err, pgx.ErrNoRows) {
+		format := "image"
+		if mediaType == "video" {
+			format = "video"
+		}
 		if err := tx.QueryRow(ctx, `
 			INSERT INTO media_assets (media_type_id, file_path, format)
-			VALUES ($1, $2, 'image')
+			VALUES ($1, $2, $3)
 			RETURNING id
-		`, mediaTypeID, strings.TrimSpace(input.URL)).Scan(&mediaID); err != nil {
+		`, mediaTypeID, strings.TrimSpace(input.URL), format).Scan(&mediaID); err != nil {
 			return 0, fmt.Errorf("create provider anime %s media: %w", mediaType, err)
 		}
 	} else if err != nil {
 		return 0, fmt.Errorf("load provider anime %s media: %w", mediaType, err)
 	} else {
+		format := "image"
+		if mediaType == "video" {
+			format = "video"
+		}
 		if _, err := tx.Exec(ctx, `
 			UPDATE media_assets
-			SET media_type_id = $2, file_path = $3, format = 'image', modified_at = NOW()
+			SET media_type_id = $2, file_path = $3, format = $4, modified_at = NOW()
 			WHERE id = $1
-		`, mediaID, mediaTypeID, strings.TrimSpace(input.URL)); err != nil {
+		`, mediaID, mediaTypeID, strings.TrimSpace(input.URL), format); err != nil {
 			return 0, fmt.Errorf("update provider anime %s media %d: %w", mediaType, mediaID, err)
 		}
 	}
@@ -1673,20 +1707,9 @@ func (r *AnimeAssetRepository) hasV2AssetSchema(ctx context.Context) (bool, erro
 		return false, nil
 	}
 
-	var hasCoverSlot bool
-	if err := r.db.QueryRow(ctx, `
-		SELECT EXISTS(
-			SELECT 1
-			FROM information_schema.columns
-			WHERE table_schema = current_schema()
-			  AND table_name = 'anime'
-			  AND column_name = 'cover_asset_id'
-		)
-	`).Scan(&hasCoverSlot); err != nil {
-		return false, fmt.Errorf("detect legacy anime asset slots: %w", err)
-	}
-
-	return !hasCoverSlot, nil
+	// V2 remains authoritative once anime_media exists, even if legacy slot columns
+	// still coexist for compatibility and cover_image sync.
+	return true, nil
 }
 
 func (r *AnimeAssetRepository) hasAnimeMediaTable(ctx context.Context) (bool, error) {

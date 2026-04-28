@@ -172,7 +172,7 @@ export function useAnimePatchMutations({
       // }
 
       const payload = buildAnimePatchPayload(values, clearFlags, onError)
-      if (!payload) return
+      if (!payload) return false
 
       try {
         setIsSubmitting(true)
@@ -181,10 +181,12 @@ export function useAnimePatchMutations({
         options.onResponse?.(JSON.stringify(response, null, 2))
         const refreshed = await getAnimeByID(animeID, { include_disabled: true })
         onSuccess(refreshed.data)
+        return true
       } catch (error) {
         if (error instanceof ApiError) onError(formatAdminError(error, 'Anime konnte nicht aktualisiert werden.'))
         else if (error instanceof Error) onError(error.message)
         else onError('Anime konnte nicht aktualisiert werden.')
+        return false
       } finally {
         setIsSubmitting(false)
       }

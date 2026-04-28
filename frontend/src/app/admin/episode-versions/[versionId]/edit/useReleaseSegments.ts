@@ -138,15 +138,15 @@ export function useReleaseSegments({ animeId, groupId, version }: UseReleaseSegm
     return response.data.id
   }
 
-  async function create(input: AdminThemeSegmentCreateRequest): Promise<boolean> {
-    if (!animeId || !authToken) return false
+  async function create(input: AdminThemeSegmentCreateRequest): Promise<AdminThemeSegment | null> {
+    if (!animeId || !authToken) return null
     try {
       const res = await createAnimeSegment(animeId, input, authToken)
       setSegments((current) => [...current, res.data])
-      return true
+      return res.data
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Segment konnte nicht angelegt werden.')
-      return false
+      return null
     }
   }
 

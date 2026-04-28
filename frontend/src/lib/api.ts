@@ -42,6 +42,8 @@ import {
   AdminEpisodePatchRequest,
   AdminEpisodeUpsertResponse,
   AdminAnimeSegmentsResponse,
+  AdminSegmentLibraryAttachRequest,
+  AdminSegmentLibraryCandidatesResponse,
   AdminSegmentSuggestionsResponse,
   AdminThemeSegment,
   AdminThemeSegmentCreateRequest,
@@ -2675,6 +2677,56 @@ export async function getAnimeSegmentSuggestions(
   }
 
   return response.json() as Promise<AdminSegmentSuggestionsResponse>
+}
+
+export async function getSegmentLibraryCandidates(
+  animeId: number,
+  groupId: number,
+  kind: string,
+  name?: string | null,
+  authToken?: string,
+): Promise<AdminSegmentLibraryCandidatesResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const params = new URLSearchParams()
+  params.set('group_id', String(groupId))
+  params.set('kind', kind)
+  if (name?.trim()) params.set('name', name.trim())
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/library-candidates?${params.toString()}`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: 'no-store',
+    },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminSegmentLibraryCandidatesResponse>
+}
+
+export async function attachSegmentLibraryAsset(
+  animeId: number,
+  segmentId: number,
+  payload: AdminSegmentLibraryAttachRequest,
+  authToken?: string,
+): Promise<{ data: AdminThemeSegment }> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/reuse`, {
+    method: 'POST',
+    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<{ data: AdminThemeSegment }>
 }
 
 /**

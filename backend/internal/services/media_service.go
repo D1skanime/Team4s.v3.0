@@ -170,13 +170,18 @@ func (s *MediaService) SaveVideoUpload(originalName string, data []byte) (*Media
 // SegmentAssetContext enthaelt die Kontext-Parameter fuer den deterministischen Segment-Asset-Pfad.
 type SegmentAssetContext struct {
 	AnimeID         int64
+	StableProvider  string
+	StableExternalID string
 	GroupID         int64
 	Version         string
 	SegmentTypeName string
 }
 
 // SaveSegmentAsset validiert und speichert ein Segment-Asset (OP/ED/Insert-Audio- oder Videodatei).
-// Zielpfad: segments/anime_{animeId}/group_{groupId}/{version}/{segmentTypeLower}/{sanitizedFilename}
+// Zielpfad bevorzugt die stabile Anime-Identitaet:
+// segments/library/{provider}/{externalId}/group_{groupId}/{version}/{segmentTypeLower}/{sanitizedFilename}
+// Fallback ohne stabile Quelle:
+// segments/local/anime_{animeId}/group_{groupId}/{version}/{segmentTypeLower}/{sanitizedFilename}
 // Erlaubte Formate: mp4, webm, mkv, mp3, aac, flac, ogg, opus, m4a. Groessenlimit: 150 MB.
 func (s *MediaService) SaveSegmentAsset(ctx SegmentAssetContext, originalName string, data []byte) (*MediaSaveResult, error) {
 	if len(data) == 0 {
@@ -209,14 +214,21 @@ func (s *MediaService) SaveSegmentAsset(ctx SegmentAssetContext, originalName st
 		segTypeDir = "unknown"
 	}
 
-	relPath := filepath.Join(
-		"segments",
-		fmt.Sprintf("anime_%d", ctx.AnimeID),
+	pathParts := []string{"segments"}
+	stableProvider := sanitizeSegmentPathComponent(ctx.StableProvider)
+	stableExternalID := sanitizeSegmentPathComponent(ctx.StableExternalID)
+	if stableProvider != "" && stableExternalID != "" {
+		pathParts = append(pathParts, "library", stableProvider, stableExternalID)
+	} else {
+		pathParts = append(pathParts, "local", fmt.Sprintf("anime_%d", ctx.AnimeID))
+	}
+	pathParts = append(pathParts,
 		fmt.Sprintf("group_%d", ctx.GroupID),
-		ctx.Version,
-		segTypeDir,
+		sanitizeSegmentPathComponent(ctx.Version),
+		sanitizeSegmentPathComponent(segTypeDir),
 		sanitized,
 	)
+	relPath := filepath.Join(pathParts...)
 	// Use forward slashes for storage path keys (cross-platform consistent)
 	relPathFwd := filepath.ToSlash(relPath)
 	absolutePath := filepath.Join(s.storageDir, relPath)
@@ -237,6 +249,24 @@ func (s *MediaService) SaveSegmentAsset(ctx SegmentAssetContext, originalName st
 			SizeBytes:   int64(len(data)),
 		},
 	}, nil
+}
+
+func sanitizeSegmentPathComponent(value string) string {
+	trimmed := strings.ToLower(strings.TrimSpace(value))
+	if trimmed == "" {
+		return ""
+	}
+	sanitized := strings.Map(func(r rune) rune {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '.' || r == '-' || r == '_' {
+			return r
+		}
+		return '-'
+	}, trimmed)
+	sanitized = strings.Trim(sanitized, "-.")
+	if sanitized == "" {
+		return ""
+	}
+	return sanitized
 }
 
 // sanitizeSegmentFilename normalisiert einen Dateinamen fuer Segment-Assets:

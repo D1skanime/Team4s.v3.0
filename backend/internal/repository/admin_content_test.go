@@ -396,6 +396,34 @@ func TestAdminContentRepository_DeleteAnimeSourceCleansPostDeleteV2Orphans(t *te
 	}
 }
 
+func TestAdminContentRepository_DeleteAnimeSourcePreservesReusableSegmentLibraryBeforeDelete(t *testing.T) {
+	content := readRepositorySource(t, "admin_content_anime_delete.go")
+	normalized := strings.ToLower(content)
+
+	requiredFragments := []string{
+		"preservereusablesegmentlibraryrowsforanimedelete(ctx, tx, id)",
+		"anime_source_links",
+		"segment_library_definitions",
+		"segment_library_assets",
+		"segment_library_assignments",
+	}
+	for _, fragment := range requiredFragments {
+		if !strings.Contains(normalized, fragment) {
+			t.Fatalf("expected delete source to contain %q, got source:\n%s", fragment, content)
+		}
+	}
+}
+
+func TestAdminContentRepository_DeleteAnimeSourceProtectsSegmentLibraryMediaFromOrphanCleanup(t *testing.T) {
+	content := readRepositorySource(t, "admin_content_anime_delete.go")
+	normalized := strings.ToLower(content)
+
+	const guard = "not exists (select 1 from segment_library_assets sla where sla.media_asset_id = ma.id)"
+	if count := strings.Count(normalized, guard); count < 2 {
+		t.Fatalf("expected segment library media guard in both orphan cleanup queries, got count=%d\nsource:\n%s", count, content)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Tag normalization, authoritative persistence, token listing, and delete
 // cleanup tests — Task 1 TDD coverage for Plan 10-02.
@@ -534,6 +562,38 @@ func TestAdminContentRepository_DeleteSource_ClearsAnimeTagsLinks(t *testing.T) 
 			"expected admin_content_anime_delete.go to DELETE from anime_tags, got source:\n%s",
 			content,
 		)
+	}
+}
+
+func TestAdminContentRepository_SegmentLibrarySourceContainsLookupAndAttachSeams(t *testing.T) {
+	content := readRepositorySource(t, "admin_content_anime_themes.go")
+	normalized := strings.ToLower(content)
+
+	requiredFragments := []string{
+		"listsegmentlibrarycandidates",
+		"attachsegmentlibraryasset",
+		"segment_library_definitions",
+		"segment_library_assets",
+		"anime_source_links",
+		"reuse_attach",
+	}
+
+	for _, fragment := range requiredFragments {
+		if !strings.Contains(normalized, fragment) {
+			t.Fatalf("expected segment library source to contain %q, got source:\n%s", fragment, content)
+		}
+	}
+}
+
+func TestAdminContentRepository_SegmentLibrarySourceProtectsReusableCleanup(t *testing.T) {
+	content := readRepositorySource(t, "admin_content_anime_themes.go")
+	normalized := strings.ToLower(content)
+
+	if !strings.Contains(normalized, "isreusablesegmentasset") {
+		t.Fatalf("expected reusable segment asset guard in source, got:\n%s", content)
+	}
+	if !strings.Contains(normalized, "ownership_scope = 'reusable'") {
+		t.Fatalf("expected reusable ownership guard in source, got:\n%s", content)
 	}
 }
 

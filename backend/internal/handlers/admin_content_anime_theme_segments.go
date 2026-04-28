@@ -20,10 +20,16 @@ import (
 
 const segmentSourceTypeReleaseAsset = "release_asset"
 
-func cleanupSegmentAssetRef(ctx context.Context, mediaRepo *repository.MediaRepository, mediaStorageDir string, ref string) {
+func cleanupSegmentAssetRef(ctx context.Context, themeRepo adminThemeRepository, mediaRepo *repository.MediaRepository, mediaStorageDir string, ref string) {
 	trimmedRef := strings.TrimSpace(filepath.ToSlash(ref))
 	if trimmedRef == "" {
 		return
+	}
+
+	if themeRepo != nil {
+		if reusable, err := themeRepo.IsReusableSegmentAsset(ctx, trimmedRef); err == nil && reusable {
+			return
+		}
 	}
 
 	absPath := filepath.Join(mediaStorageDir, filepath.FromSlash(trimmedRef))
@@ -68,6 +74,10 @@ type adminAnimeSegmentPatchRequest struct {
 	SourceType           *string `json:"source_type"`
 	SourceRef            *string `json:"source_ref"`
 	SourceLabel          *string `json:"source_label"`
+}
+
+type adminSegmentLibraryAttachRequest struct {
+	AssetID int64 `json:"asset_id"`
 }
 
 // ListAnimeSegments verarbeitet GET /api/v1/admin/anime/:id/segments
@@ -269,7 +279,7 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 			newRef = strings.TrimSpace(*updatedSegment.SourceRef)
 		}
 		if newType != segmentSourceTypeReleaseAsset || newRef == "" || newRef != oldRef {
-			cleanupSegmentAssetRef(c.Request.Context(), h.mediaRepo, h.mediaStorageDir, oldRef)
+			cleanupSegmentAssetRef(c.Request.Context(), h.themeRepo, h.mediaRepo, h.mediaStorageDir, oldRef)
 		}
 	}
 
@@ -304,6 +314,103 @@ func (h *AdminContentHandler) DeleteAnimeSegment(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+// ListSegmentLibraryCandidates verarbeitet
+// GET /api/v1/admin/anime/:id/segments/library-candidates?group_id=...&kind=...&name=...
+func (h *AdminContentHandler) ListSegmentLibraryCandidates(c *gin.Context) {
+	if _, ok := h.requireAdmin(c); !ok {
+		return
+	}
+	if h.themeRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		return
+	}
+
+	animeID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || animeID <= 0 {
+		badRequest(c, "ungueltige anime id")
+		return
+	}
+
+	groupID, err := strconv.ParseInt(strings.TrimSpace(c.Query("group_id")), 10, 64)
+	if err != nil || groupID <= 0 {
+		badRequest(c, "ungueltige group_id")
+		return
+	}
+
+	kind := strings.TrimSpace(c.Query("kind"))
+	if kind == "" {
+		badRequest(c, "kind ist erforderlich")
+		return
+	}
+
+	items, err := h.themeRepo.ListSegmentLibraryCandidates(
+		c.Request.Context(),
+		animeID,
+		groupID,
+		kind,
+		strings.TrimSpace(c.Query("name")),
+	)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "anime nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		log.Printf("segment library candidates: anime=%d group=%d: %v", animeID, groupID, err)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Library-Kandidaten konnten nicht geladen werden.")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": items})
+}
+
+// AttachSegmentLibraryAsset verarbeitet
+// POST /api/v1/admin/anime/:id/segments/:segmentId/reuse
+func (h *AdminContentHandler) AttachSegmentLibraryAsset(c *gin.Context) {
+	if _, ok := h.requireAdmin(c); !ok {
+		return
+	}
+	if h.themeRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		return
+	}
+
+	animeID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || animeID <= 0 {
+		badRequest(c, "ungueltige anime id")
+		return
+	}
+	segmentID, err := strconv.ParseInt(c.Param("segmentId"), 10, 64)
+	if err != nil || segmentID <= 0 {
+		badRequest(c, "ungueltige segment id")
+		return
+	}
+
+	var req adminSegmentLibraryAttachRequest
+	if err := c.ShouldBindJSON(&req); err != nil || req.AssetID <= 0 {
+		badRequest(c, "ungueltiger request body")
+		return
+	}
+
+	updated, err := h.themeRepo.AttachSegmentLibraryAsset(c.Request.Context(), animeID, segmentID, models.SegmentLibraryAttachInput{
+		AssetID: req.AssetID,
+	})
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment oder library-asset nicht gefunden"}})
+		return
+	}
+	if errors.Is(err, repository.ErrConflict) {
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "library-asset passt nicht zu Anime oder Gruppe", "code": "segment_library_conflict"}})
+		return
+	}
+	if err != nil {
+		log.Printf("segment library attach: anime=%d segment=%d asset=%d: %v", animeID, segmentID, req.AssetID, err)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Library-Asset konnte nicht verknuepft werden.")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": updated})
 }
 
 // UploadSegmentAsset verarbeitet POST /api/v1/admin/anime/:id/segments/:segmentId/asset.
@@ -363,12 +470,19 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 	if seg.FansubGroupID != nil {
 		groupID = *seg.FansubGroupID
 	}
+	stableProvider, stableExternalID, err := h.themeRepo.GetStableSegmentAnimeSource(c.Request.Context(), animeID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime-Quellkontext konnte nicht geladen werden.")
+		return
+	}
 
 	saveResult, err := h.mediaService.SaveSegmentAsset(services.SegmentAssetContext{
-		AnimeID:         animeID,
-		GroupID:         groupID,
-		Version:         seg.Version,
-		SegmentTypeName: seg.ThemeTypeName,
+		AnimeID:          animeID,
+		StableProvider:   stableProvider,
+		StableExternalID: stableExternalID,
+		GroupID:          groupID,
+		Version:          seg.Version,
+		SegmentTypeName:  seg.ThemeTypeName,
 	}, fileHeader.Filename, data)
 	if err != nil {
 		var validationErr *services.MediaValidationError
@@ -380,7 +494,7 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 		return
 	}
 
-	_, err = h.mediaRepo.CreateMediaAsset(c.Request.Context(), saveResult.CreateInput)
+	asset, err := h.mediaRepo.CreateMediaAsset(c.Request.Context(), saveResult.CreateInput)
 	if err != nil {
 		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
 		if errors.Is(err, repository.ErrConflict) {
@@ -391,25 +505,19 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 		return
 	}
 
-	// Segment auf release_asset-Quelle patchen
 	relPath := saveResult.CreateInput.Filename
-	sourceType := "release_asset"
 	sourceLabel := fileHeader.Filename
-	patchErr := h.themeRepo.UpdateAnimeSegment(c.Request.Context(), segmentID, models.AdminThemeSegmentPatchInput{
-		SourceType:  &sourceType,
-		SourceRef:   &relPath,
-		SourceLabel: &sourceLabel,
-	})
+	updated, patchErr := h.themeRepo.BindUploadedSegmentAsset(
+		c.Request.Context(),
+		animeID,
+		segmentID,
+		asset.ID,
+		relPath,
+		&sourceLabel,
+	)
 	if patchErr != nil {
-		cleanupSegmentAssetRef(c.Request.Context(), h.mediaRepo, h.mediaStorageDir, relPath)
+		cleanupSegmentAssetRef(c.Request.Context(), h.themeRepo, h.mediaRepo, h.mediaStorageDir, relPath)
 		writeInternalErrorResponse(c, "interner serverfehler", patchErr, "Segment-Quelle konnte nicht aktualisiert werden.")
-		return
-	}
-
-	// Aktualisiertes Segment zurueckgeben
-	updated, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
-	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Aktualisiertes Segment konnte nicht geladen werden.")
 		return
 	}
 
@@ -418,7 +526,7 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 		seg.SourceRef != nil &&
 		strings.TrimSpace(*seg.SourceRef) != "" &&
 		strings.TrimSpace(*seg.SourceRef) != relPath {
-		cleanupSegmentAssetRef(c.Request.Context(), h.mediaRepo, h.mediaStorageDir, *seg.SourceRef)
+		cleanupSegmentAssetRef(c.Request.Context(), h.themeRepo, h.mediaRepo, h.mediaStorageDir, *seg.SourceRef)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": updated})
@@ -458,7 +566,7 @@ func (h *AdminContentHandler) DeleteSegmentAsset(c *gin.Context) {
 	}
 
 	if previousRef != nil && *previousRef != "" {
-		cleanupSegmentAssetRef(c.Request.Context(), h.mediaRepo, h.mediaStorageDir, *previousRef)
+		cleanupSegmentAssetRef(c.Request.Context(), h.themeRepo, h.mediaRepo, h.mediaStorageDir, *previousRef)
 	}
 
 	c.Status(http.StatusNoContent)

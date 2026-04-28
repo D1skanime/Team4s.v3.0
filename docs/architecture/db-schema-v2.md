@@ -762,6 +762,124 @@ INDEX idx_release_theme_stream_release (release_id)
 INDEX idx_release_theme_stream_theme (theme_id)
 ```
 
+## Segment Library Identity
+
+Phase 27 introduces a reusable segment-library layer so OP/ED identity is not owned solely by a transient local `anime.id`. The stable identity anchor is the anime source (`anisearch:{id}` today), the fansub group, the normalized segment kind, and an optional normalized segment name for disambiguation such as `OP 1` vs `Final OP`.
+
+The library is split into three layers:
+- `SegmentLibraryDefinition` = the durable identity
+- `SegmentLibraryAsset` = concrete file/media linkage
+- `SegmentLibraryAssignment` = local usage inside a current anime/release/editor context
+
+`identity_status` and `ownership_scope` are intentionally separate:
+- `identity_status`: `verified` or `legacy_unverified`
+- `ownership_scope`: `reusable` or `local_only`
+
+Legacy rows without trustworthy stable identity should remain excluded from automatic reuse lookups until promoted.
+
+```
+SegmentLibraryDefinition
+- id
+- anime_source_provider
+- anime_source_external_id
+- fansub_group_id
+- segment_kind
+- segment_name
+- normalized_segment_name
+- identity_status
+- ownership_scope
+- created_at
+- updated_at
+
+PRIMARY KEY(id)
+
+FOREIGN KEY (fansub_group_id) REFERENCES FansubGroup(id)
+
+UNIQUE (anime_source_provider, anime_source_external_id, fansub_group_id, segment_kind, normalized_segment_name)
+
+INDEX idx_segment_library_definition_anime_source (anime_source_provider, anime_source_external_id)
+INDEX idx_segment_library_definition_group (fansub_group_id)
+INDEX idx_segment_library_definition_scope (ownership_scope, identity_status)
+```
+
+`normalized_segment_name` is the canonical uniqueness helper:
+- trim surrounding whitespace
+- lowercase
+- empty and NULL collapse to `''`
+
+```
+identity_status values
+- verified
+- legacy_unverified
+```
+
+```
+ownership_scope values
+- reusable
+- local_only
+```
+
+```
+SegmentLibraryAsset
+- id
+- definition_id
+- media_asset_id
+- source_ref
+- source_label
+- attach_source
+- is_primary
+- created_at
+
+PRIMARY KEY(id)
+
+FOREIGN KEY (definition_id) REFERENCES SegmentLibraryDefinition(id)
+FOREIGN KEY (media_asset_id) REFERENCES MediaAsset(id)
+
+UNIQUE (definition_id, source_ref)
+
+INDEX idx_segment_library_asset_media (media_asset_id)
+INDEX idx_segment_library_asset_primary (definition_id, is_primary, id)
+```
+
+```
+attach_source values
+- migrated
+- upload
+- reuse
+- manual_link
+```
+
+```
+SegmentLibraryAssignment
+- id
+- definition_id
+- asset_id
+- anime_id
+- theme_segment_id
+- release_version
+- attach_source
+- attached_at
+- detached_at
+
+PRIMARY KEY(id)
+
+FOREIGN KEY (definition_id) REFERENCES SegmentLibraryDefinition(id)
+FOREIGN KEY (asset_id) REFERENCES SegmentLibraryAsset(id)
+FOREIGN KEY (anime_id) REFERENCES Anime(id)
+FOREIGN KEY (theme_segment_id) REFERENCES ThemeSegment(id)
+
+UNIQUE (theme_segment_id) WHERE theme_segment_id IS NOT NULL
+
+INDEX idx_segment_library_assignment_definition (definition_id, detached_at)
+INDEX idx_segment_library_assignment_anime (anime_id, detached_at)
+```
+
+Delete truth table for Phase 27:
+- reusable definition + active assignments -> preserve definition/assets, detach local assignment only
+- reusable definition + zero assignments -> preserve definition/assets as library inventory
+- local_only definition + zero assignments -> cleanup eligible
+- local_only definition + shared asset reference -> cleanup only after asset has no remaining references
+
 ```
 ThemeSegment
 - id
