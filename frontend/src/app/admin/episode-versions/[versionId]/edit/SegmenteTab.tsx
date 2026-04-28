@@ -492,7 +492,21 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                       </td>
                       <td style={{ fontSize: 13, color: '#6b6b70' }}>
                         <div style={{ display: 'grid', gap: 2 }}>
-                          <span>{resolveSourceLabel(segment)}</span>
+                          {segment.playback_source_kind ? (
+                            <span>
+                              {segment.playback_source_label ?? (
+                                segment.playback_source_kind === 'episode_version'
+                                  ? 'Episode-Version / Jellyfin-Stream'
+                                  : segment.playback_source_kind === 'uploaded_asset'
+                                    ? 'hochgeladener Fallback'
+                                    : segment.playback_source_kind === 'jellyfin_theme'
+                                      ? 'Jellyfin Serien-Theme'
+                                      : segment.playback_source_kind
+                              )}
+                            </span>
+                          ) : (
+                            <span>{resolveSourceLabel(segment)}</span>
+                          )}
                           {resolveSegmentProvenance(segment) ? (
                             <span style={{ fontSize: 11, color: '#8a8a93' }}>
                               {resolveSegmentProvenance(segment)}

@@ -5,7 +5,7 @@ import { X, Upload, FileVideo, XCircle } from 'lucide-react'
 
 import type { AdminThemeSegment, AdminSegmentSourceType, AdminSegmentLibraryCandidate } from '@/types/admin'
 import type { GenericSegmentThemeOption } from './useReleaseSegments'
-import { resolveLibraryCandidateLabel, resolveSegmentProvenance, resolveSegmentProvenanceDetails } from './SegmenteTab.helpers'
+import { formatTimeInput, parseFlexibleTimeInput, resolveLibraryCandidateLabel, resolveSegmentProvenance, resolveSegmentProvenanceDetails } from './SegmenteTab.helpers'
 import styles from './SegmenteTab.module.css'
 
 export interface FormState {
@@ -24,6 +24,7 @@ interface SegmentEditPanelProps {
   editingSegment: AdminThemeSegment | null
   formState: FormState
   pendingUploadFile: File | null
+  durationSeconds?: number | null
   genericThemeOptions: GenericSegmentThemeOption[]
   isSaving: boolean
   formError: string | null
@@ -47,6 +48,7 @@ export function SegmentEditPanel({
   editingSegment,
   formState,
   pendingUploadFile,
+  durationSeconds,
   genericThemeOptions,
   isSaving,
   formError,
@@ -68,6 +70,9 @@ export function SegmentEditPanel({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const provenance = editingSegment ? resolveSegmentProvenance(editingSegment) : null
   const provenanceDetails = editingSegment ? resolveSegmentProvenanceDetails(editingSegment) : null
+  const startSeconds = parseFlexibleTimeInput(formState.startTime)
+  const endSeconds = parseFlexibleTimeInput(formState.endTime)
+  const exceedsDuration = durationSeconds != null && endSeconds != null && endSeconds > durationSeconds
 
   return (
     <>
@@ -144,6 +149,9 @@ export function SegmentEditPanel({
 
         <div className={styles.panelField}>
           <label>Zeitbereich im Video</label>
+          <span className={styles.sourceHelpText}>
+            Eingabe einfach als `1:20`, `12:03` oder Sekunden. {durationSeconds != null ? `Videodauer: ${formatTimeInput(durationSeconds)}.` : 'Wenn bekannt, wird das Ende automatisch auf die Videodauer begrenzt.'}
+          </span>
         </div>
         <div className={styles.panelFieldRow}>
           <div className={styles.panelField}>
@@ -151,9 +159,14 @@ export function SegmentEditPanel({
             <input
               id="seg-time-start"
               type="text"
-              placeholder="00:00:00"
+              inputMode="numeric"
+              placeholder="0:00"
               value={formState.startTime}
               onChange={(e) => onFormChange({ startTime: e.target.value })}
+              onBlur={(e) => {
+                const parsed = parseFlexibleTimeInput(e.target.value)
+                if (parsed != null) onFormChange({ startTime: formatTimeInput(parsed) })
+              }}
             />
           </div>
           <div className={styles.panelField}>
@@ -161,29 +174,71 @@ export function SegmentEditPanel({
             <input
               id="seg-time-end"
               type="text"
-              placeholder="00:01:30"
+              inputMode="numeric"
+              placeholder="1:20"
               value={formState.endTime}
               onChange={(e) => onFormChange({ endTime: e.target.value })}
+              onBlur={(e) => {
+                const parsed = parseFlexibleTimeInput(e.target.value)
+                if (parsed == null) return
+                const clamped = durationSeconds != null ? Math.min(parsed, durationSeconds) : parsed
+                onFormChange({ endTime: formatTimeInput(clamped) })
+              }}
             />
           </div>
         </div>
+        {exceedsDuration ? (
+          <div className={styles.assetError}>
+            Ende liegt ueber der bekannten Videodauer und wird beim Verlassen des Felds auf {formatTimeInput(durationSeconds!)} begrenzt.
+          </div>
+        ) : null}
+        {startSeconds != null && endSeconds != null && endSeconds <= startSeconds ? (
+          <div className={styles.assetError}>
+            Ende muss nach dem Start liegen.
+          </div>
+        ) : null}
 
-        {/* Source type selector - explicit, no free Jellyfin picker */}
+        {/* Resolved playback status when editing an existing segment */}
+        {editingSegment?.playback_source_kind ? (
+          <div className={styles.panelField}>
+            <label>Aktive Playback-Quelle (Standard)</label>
+            <div style={{ padding: '8px 10px', background: '#f0f4ff', borderRadius: 8, fontSize: 13, color: '#2a2a3a' }}>
+              {editingSegment.playback_source_label ?? (
+                editingSegment.playback_source_kind === 'episode_version'
+                  ? 'Episode-Version / Jellyfin-Stream (Standard)'
+                  : editingSegment.playback_source_kind === 'uploaded_asset'
+                    ? 'hochgeladener Fallback'
+                    : editingSegment.playback_source_kind === 'jellyfin_theme'
+                      ? 'Jellyfin Serien-Theme'
+                      : editingSegment.playback_source_kind
+              )}
+              {editingSegment.playback_duration_seconds != null ? (
+                <span style={{ marginLeft: 8, fontSize: 11, color: '#6b6b70' }}>
+                  Laufzeit: {formatTimeInput(editingSegment.playback_duration_seconds)}
+                </span>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Source type selector — Episode-Version/Jellyfin is default; upload is explicit fallback */}
         <div className={styles.panelField}>
-          <label htmlFor="seg-source-type">Quelle</label>
+          <label htmlFor="seg-source-type">Provenance / Fallback-Wahl</label>
           <select
             id="seg-source-type"
             value={formState.sourceType}
             onChange={(e) => onFormChange({ sourceType: e.target.value as AdminSegmentSourceType })}
           >
-            <option value="none">Keine Quelle</option>
-            <option value="jellyfin_theme">Jellyfin Serien-Theme</option>
-            <option value="release_asset">Datei aus Release-Ordner</option>
+            <option value="none">Episode-Version / Jellyfin-Stream (Standard)</option>
+            <option value="release_asset">Hochgeladener Fallback (eigene Datei)</option>
+            <option value="jellyfin_theme">Jellyfin Serien-Theme (Legacy)</option>
           </select>
           {formState.sourceType === 'none' ? (
-            <p className={styles.sourceHelpText}>Keine externe Quelle — Zeitbereich wurde manuell ermittelt.</p>
+            <p className={styles.sourceHelpText}>Standard: Playback laeuft ueber den Jellyfin-Stream der aktuellen Episode-Version. Kein Upload erforderlich.</p>
+          ) : formState.sourceType === 'release_asset' ? (
+            <p className={styles.sourceHelpText}>Hochgeladener Fallback: Eine eigene Segment-Datei wird als explizit gew&auml;hlte Playback-Quelle hinterlegt.</p>
           ) : formState.sourceType === 'jellyfin_theme' ? (
-            <p className={styles.sourceHelpText}>Timing stammt aus einem Jellyfin Serien-Theme-Eintrag. Jellyfin-Verknuepfung wird in einer spaeten Phase editierbar.</p>
+            <p className={styles.sourceHelpText}>Legacy: Timing stammt aus einem Jellyfin Serien-Theme-Eintrag.</p>
           ) : null}
         </div>
 
