@@ -20,6 +20,63 @@ import (
 
 const segmentSourceTypeReleaseAsset = "release_asset"
 
+// validateSegmentTimes validates start_time and end_time for a segment save.
+// Rules:
+//   - start_time >= end_time is always rejected
+//   - if runtime (durationSeconds) is known, end_time beyond runtime is rejected
+//
+// Returns a non-empty validation message if the times are invalid, or "" if valid.
+func validateSegmentTimes(startTime, endTime *string, durationSeconds *int32) string {
+	if startTime == nil && endTime == nil {
+		return ""
+	}
+
+	start := parseClockToSeconds(startTime)
+	end := parseClockToSeconds(endTime)
+
+	if start != nil && end != nil {
+		if *start >= *end {
+			return "start_time muss vor end_time liegen"
+		}
+	}
+
+	if end != nil && durationSeconds != nil && *durationSeconds > 0 {
+		if *end > *durationSeconds {
+			return "end_time ueberschreitet die bekannte Laufzeit der Release-Variante"
+		}
+	}
+
+	return ""
+}
+
+// parseClockToSeconds converts an HH:MM:SS or MM:SS clock string to total seconds.
+// Returns nil if the input is nil, empty, or unparseable.
+func parseClockToSeconds(raw *string) *int32 {
+	if raw == nil {
+		return nil
+	}
+	trimmed := strings.TrimSpace(*raw)
+	if trimmed == "" {
+		return nil
+	}
+	parts := strings.Split(trimmed, ":")
+	if len(parts) == 0 || len(parts) > 3 {
+		return nil
+	}
+	total := 0
+	multiplier := 1
+	for i := len(parts) - 1; i >= 0; i-- {
+		v, err := strconv.Atoi(strings.TrimSpace(parts[i]))
+		if err != nil || v < 0 {
+			return nil
+		}
+		total += v * multiplier
+		multiplier *= 60
+	}
+	s := int32(total)
+	return &s
+}
+
 func cleanupSegmentAssetRef(ctx context.Context, themeRepo adminThemeRepository, mediaRepo *repository.MediaRepository, mediaStorageDir string, ref string) {
 	trimmedRef := strings.TrimSpace(filepath.ToSlash(ref))
 	if trimmedRef == "" {
@@ -157,6 +214,22 @@ func (h *AdminContentHandler) CreateAnimeSegment(c *gin.Context) {
 		version = "v1"
 	}
 
+	// Runtime-aware validation: look up duration_seconds for the current release variant context.
+	var releaseDuration *int32
+	if req.FansubGroupID != nil && *req.FansubGroupID > 0 {
+		dur, durErr := h.themeRepo.GetSegmentReleaseDuration(c.Request.Context(), animeID, *req.FansubGroupID, version)
+		if durErr != nil {
+			log.Printf("admin anime segment create: lookup release duration anime=%d group=%d: %v", animeID, *req.FansubGroupID, durErr)
+			// Non-fatal: continue without duration validation
+		} else {
+			releaseDuration = dur
+		}
+	}
+	if msg := validateSegmentTimes(req.StartTime, req.EndTime, releaseDuration); msg != "" {
+		badRequest(c, msg)
+		return
+	}
+
 	created, err := h.themeRepo.CreateAnimeSegment(c.Request.Context(), animeID, models.AdminThemeSegmentCreateInput{
 		ThemeID:              req.ThemeID,
 		FansubGroupID:        req.FansubGroupID,
@@ -232,6 +305,44 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 		req.SourceLabel = &empty
 	}
 
+	// Resolve effective start_time/end_time for validation: prefer patch values, fall back to existing.
+	effectiveStart := req.StartTime
+	if effectiveStart == nil {
+		effectiveStart = existingSegment.StartTime
+	}
+	effectiveEnd := req.EndTime
+	if effectiveEnd == nil {
+		effectiveEnd = existingSegment.EndTime
+	}
+
+	// Runtime-aware validation using the existing segment's playback duration (from the current variant).
+	// PlaybackDuration is already hydrated from theme_segment_playback_sources / release_variants.
+	var releaseDuration *int32
+	// Prefer the live variant duration lookup when we have the segment's group/version context.
+	effectiveGroupID := existingSegment.FansubGroupID
+	if req.FansubGroupID != nil {
+		effectiveGroupID = req.FansubGroupID
+	}
+	effectiveVersion := existingSegment.Version
+	if req.Version != nil {
+		effectiveVersion = *req.Version
+	}
+	if effectiveGroupID != nil && *effectiveGroupID > 0 {
+		dur, durErr := h.themeRepo.GetSegmentReleaseDuration(c.Request.Context(), animeID, *effectiveGroupID, effectiveVersion)
+		if durErr != nil {
+			log.Printf("admin anime segment update: lookup release duration anime=%d group=%d: %v", animeID, *effectiveGroupID, durErr)
+		} else {
+			releaseDuration = dur
+		}
+	}
+	if releaseDuration == nil {
+		releaseDuration = existingSegment.PlaybackDuration
+	}
+	if msg := validateSegmentTimes(effectiveStart, effectiveEnd, releaseDuration); msg != "" {
+		badRequest(c, msg)
+		return
+	}
+
 	err = h.themeRepo.UpdateAnimeSegment(c.Request.Context(), segmentID, models.AdminThemeSegmentPatchInput{
 		ThemeID:              req.ThemeID,
 		FansubGroupID:        req.FansubGroupID,
@@ -283,7 +394,8 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 		}
 	}
 
-	c.Status(http.StatusNoContent)
+	// Return the fully hydrated segment so the frontend immediately receives updated playback_* fields.
+	c.JSON(http.StatusOK, gin.H{"data": updatedSegment})
 }
 
 // DeleteAnimeSegment verarbeitet DELETE /api/v1/admin/anime/:id/segments/:segmentId.
@@ -516,6 +628,7 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 		&sourceLabel,
 	)
 	if patchErr != nil {
+		log.Printf("segment asset bind failed: anime=%d segment=%d ref=%s: %v", animeID, segmentID, relPath, patchErr)
 		cleanupSegmentAssetRef(c.Request.Context(), h.themeRepo, h.mediaRepo, h.mediaStorageDir, relPath)
 		writeInternalErrorResponse(c, "interner serverfehler", patchErr, "Segment-Quelle konnte nicht aktualisiert werden.")
 		return
