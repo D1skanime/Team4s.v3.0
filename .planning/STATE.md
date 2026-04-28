@@ -5,7 +5,7 @@ milestone_name: milestone
 status: Ready to execute
 stopped_at: Completed 260428-ddb — Episoden-Laufzeit crawlen und in SegmentTimeline nutzen
 last_updated: "2026-04-28T07:54:22.553Z"
-last_activity: 2026-04-27
+last_activity: 2026-04-28
 progress:
   total_phases: 22
   completed_phases: 16
@@ -221,6 +221,7 @@ Recent durable decisions:
 | 260423dxc | Filter bereits importierte Jellyfin-Kandidaten aus Episode-Import Preview heraus | 2026-04-23 | dab72d6 | [260423dxc-filter-already-imported-episode-candidates](./quick/260423dxc-filter-already-imported-episode-candidates/) |
 | 260423mnv | Per-Reihe "Ubernehmen"-Button im Episode-Import Workbench | 2026-04-23 | 1b3b57d | [260423mnv-per-row-apply-button](./quick/260423mnv-per-row-apply-button/) |
 | 260423qpn | Optionale Jellyfin-Bibliotheksfilterung via JELLYFIN_ALLOWED_LIBRARY_IDS | 2026-04-24 | 6fad43b | [260423qpn-jellyfin-library-filter](./quick/260423qpn-jellyfin-library-filter/) |
+| 260428-ddb | Episoden-Laufzeit crawlen und in Timeline-Vorschau proportional anzeigen | 2026-04-28 | 5126a293 | [260428-ddb-episoden-laufzeit-crawlen-und-in-timelin](./quick/260428-ddb-episoden-laufzeit-crawlen-und-in-timelin/) |
 
 ## Session Continuity
 
