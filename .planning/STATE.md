@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 26-02-PLAN.md — Upload-UI, Asset-Anzeige und Delete im Segment-Panel
-last_updated: "2026-04-27T18:44:12.421Z"
+stopped_at: Completed 260428-ddb — Episoden-Laufzeit crawlen und in SegmentTimeline nutzen
+last_updated: "2026-04-28T07:54:22.553Z"
 last_activity: 2026-04-27
 progress:
   total_phases: 22
@@ -128,6 +128,7 @@ Recent durable decisions:
 - [Phase 26]: MediaKindSegmentAsset maps to media_type 'video' reusing existing DB row; no new media_types entry needed
 - [Phase 26]: SegmentEditPanel extracted as sub-component to keep SegmenteTab.tsx at 450-line CLAUDE.md limit; helpers moved to SegmenteTab.helpers.tsx
 - [Phase 26]: Upload triggers immediately on file selection; asset state refreshed from API response after upload; resolveSourceLabel derives filename from source_ref path when source_label absent
+- [Phase quick-260428-ddb]: duration_seconds bleibt nullable; bestehende Eintraege erhalten NULL und Timeline faellt korrekt zurueck
 
 ### Pending Todos
 
@@ -223,7 +224,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-27T18:44:12.412Z
-Stopped at: Completed 26-02-PLAN.md — Upload-UI, Asset-Anzeige und Delete im Segment-Panel
+Last session: 2026-04-28T07:54:18.226Z
+Stopped at: Completed 260428-ddb — Episoden-Laufzeit crawlen und in SegmentTimeline nutzen
 Last activity: 2026-04-27
 Resume file: None
