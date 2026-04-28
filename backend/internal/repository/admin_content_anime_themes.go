@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"team4s.v3/backend/internal/models"
@@ -18,7 +19,26 @@ const (
 	themeSegmentSourceTypeNone         = "none"
 	themeSegmentSourceTypeJellyfin     = "jellyfin_theme"
 	themeSegmentSourceTypeReleaseAsset = "release_asset"
+	themeSegmentPlaybackEpisodeVersion = "episode_version"
+	themeSegmentPlaybackJellyfinTheme  = "jellyfin_theme"
+	themeSegmentPlaybackUploadedAsset  = "uploaded_asset"
 )
+
+type themeSegmentPlaybackSnapshot struct {
+	SegmentID             int64
+	StartTime             *string
+	EndTime               *string
+	SourceJellyfinItemID  *string
+	SourceType            *string
+	SourceRef             *string
+	SourceLabel           *string
+	PlaybackVariantID     *int64
+	PlaybackDuration      *int32
+	ResolvedMediaAssetID  *int64
+	ResolvedJellyfinItem  *string
+	ResolvedPlaybackKind  *string
+	ResolvedPlaybackLabel *string
+}
 
 func encodeThemeSegmentSource(sourceType, sourceRef, sourceLabel, legacy *string) *string {
 	trimmedType := strings.TrimSpace(derefString(sourceType))
@@ -106,6 +126,35 @@ func hydrateThemeSegmentSource(seg *models.AdminThemeSegment) {
 	ref := raw
 	seg.SourceType = &value
 	seg.SourceRef = &ref
+}
+
+func parseSegmentClockSeconds(raw *string) *int32 {
+	trimmed := strings.TrimSpace(derefString(raw))
+	if trimmed == "" {
+		return nil
+	}
+	parts := strings.Split(trimmed, ":")
+	if len(parts) == 0 || len(parts) > 3 {
+		return nil
+	}
+
+	total := 0
+	multiplier := 1
+	for i := len(parts) - 1; i >= 0; i-- {
+		part := strings.TrimSpace(parts[i])
+		if part == "" {
+			return nil
+		}
+		value, err := strconv.Atoi(part)
+		if err != nil || value < 0 {
+			return nil
+		}
+		total += value * multiplier
+		multiplier *= 60
+	}
+
+	seconds := int32(total)
+	return &seconds
 }
 
 // ListThemeTypes gibt alle Theme-Typen geordnet nach ID zurück.
@@ -383,6 +432,9 @@ func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate anime segments anime=%d: %w", animeID, err)
 	}
+	if err := r.hydrateSegmentPlaybackMetadataList(ctx, segments); err != nil {
+		return nil, err
+	}
 	if err := r.hydrateSegmentLibraryMetadataList(ctx, segments); err != nil {
 		return nil, err
 	}
@@ -409,9 +461,17 @@ func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID
 		return nil, ErrNotFound
 	}
 
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin create anime segment anime=%d: %w", animeID, err)
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
 	var segID int64
 	encodedSource := encodeThemeSegmentSource(input.SourceType, input.SourceRef, input.SourceLabel, input.SourceJellyfinItemID)
-	err := r.db.QueryRow(ctx, `
+	err = tx.QueryRow(ctx, `
 		INSERT INTO theme_segments (theme_id, fansub_group_id, version, start_episode, end_episode, start_time, end_time, source_jellyfin_item_id, source_type, source_ref, source_label)
 		VALUES ($1, $2, $3, $4, $5, $6::interval, $7::interval, $8, $9, $10, $11)
 		RETURNING id
@@ -420,14 +480,18 @@ func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			if pgErr.Code == "23503" {
-				return nil, ErrConflict
-			}
-			if pgErr.Code == "23514" {
+			if pgErr.Code == "23503" || pgErr.Code == "23514" {
 				return nil, ErrConflict
 			}
 		}
 		return nil, fmt.Errorf("create anime segment anime=%d: %w", animeID, err)
+	}
+
+	if err := r.syncThemeSegmentPlaybackSourceTx(ctx, tx, segID); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit create anime segment anime=%d segment=%d: %w", animeID, segID, err)
 	}
 
 	return loadSegmentByID(ctx, r, segID)
@@ -535,7 +599,15 @@ func (r *AdminContentRepository) UpdateAnimeSegment(ctx context.Context, segment
 	args = append(args, segmentID)
 	query := fmt.Sprintf("UPDATE theme_segments SET %s WHERE id = $%d", strings.Join(setClauses, ", "), argIdx)
 
-	tag, err := r.db.Exec(ctx, query, args...)
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin update anime segment id=%d: %w", segmentID, err)
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	tag, err := tx.Exec(ctx, query, args...)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23514" {
@@ -545,6 +617,13 @@ func (r *AdminContentRepository) UpdateAnimeSegment(ctx context.Context, segment
 	}
 	if tag.RowsAffected() == 0 {
 		return ErrNotFound
+	}
+
+	if err := r.syncThemeSegmentPlaybackSourceTx(ctx, tx, segmentID); err != nil {
+		return err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit update anime segment id=%d: %w", segmentID, err)
 	}
 
 	return nil
@@ -791,6 +870,9 @@ func (r *AdminContentRepository) AttachSegmentLibraryAsset(
 	`, encodedSource, sourceType, sourceRef, sourceLabel, segmentID); err != nil {
 		return nil, fmt.Errorf("attach segment library asset segment=%d asset=%d: %w", segmentID, input.AssetID, err)
 	}
+	if err := r.syncThemeSegmentPlaybackSourceTx(ctx, tx, segmentID); err != nil {
+		return nil, err
+	}
 
 	if _, err := tx.Exec(ctx, `
 		UPDATE segment_library_assignments
@@ -908,6 +990,9 @@ func loadSegmentByID(ctx context.Context, r *AdminContentRepository, segID int64
 		}
 		return nil, fmt.Errorf("load segment by id=%d: %w", segID, err)
 	}
+	if err := r.hydrateSegmentPlaybackMetadata(ctx, &seg); err != nil {
+		return nil, err
+	}
 	if err := r.hydrateSegmentLibraryMetadata(ctx, &seg); err != nil {
 		return nil, err
 	}
@@ -935,6 +1020,58 @@ func (r *AdminContentRepository) hydrateSegmentLibraryMetadataList(ctx context.C
 			return err
 		}
 	}
+	return nil
+}
+
+func (r *AdminContentRepository) hydrateSegmentPlaybackMetadataList(ctx context.Context, segments []models.AdminThemeSegment) error {
+	for i := range segments {
+		if err := r.hydrateSegmentPlaybackMetadata(ctx, &segments[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *AdminContentRepository) hydrateSegmentPlaybackMetadata(ctx context.Context, seg *models.AdminThemeSegment) error {
+	if seg == nil || seg.ID <= 0 {
+		return nil
+	}
+
+	ok, err := r.segmentPlaybackSourcesTableAvailable(ctx)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+
+	if err := r.db.QueryRow(ctx, `
+		SELECT
+			id,
+			source_kind,
+			release_variant_id,
+			jellyfin_item_id,
+			media_asset_id,
+			source_label,
+			start_offset_seconds,
+			end_offset_seconds,
+			duration_seconds
+		FROM theme_segment_playback_sources
+		WHERE theme_segment_id = $1
+	`, seg.ID).Scan(
+		&seg.PlaybackSourceID,
+		&seg.PlaybackSourceKind,
+		&seg.PlaybackVariantID,
+		&seg.PlaybackJellyfinID,
+		&seg.PlaybackMediaAssetID,
+		&seg.PlaybackSourceLabel,
+		&seg.PlaybackStartSeconds,
+		&seg.PlaybackEndSeconds,
+		&seg.PlaybackDuration,
+	); err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return fmt.Errorf("hydrate segment playback metadata segment=%d: %w", seg.ID, err)
+	}
+
 	return nil
 }
 
@@ -998,6 +1135,10 @@ func (r *AdminContentRepository) segmentLibraryTablesAvailable(ctx context.Conte
 	return r.hasTable(ctx, "segment_library_assignments")
 }
 
+func (r *AdminContentRepository) segmentPlaybackSourcesTableAvailable(ctx context.Context) (bool, error) {
+	return r.hasTable(ctx, "theme_segment_playback_sources")
+}
+
 func (r *AdminContentRepository) hasTable(ctx context.Context, tableName string) (bool, error) {
 	var exists bool
 	if err := r.db.QueryRow(ctx, `
@@ -1011,6 +1152,225 @@ func (r *AdminContentRepository) hasTable(ctx context.Context, tableName string)
 		return false, fmt.Errorf("detect table %s: %w", tableName, err)
 	}
 	return exists, nil
+}
+
+func (r *AdminContentRepository) syncThemeSegmentPlaybackSourceTx(ctx context.Context, tx pgx.Tx, segmentID int64) error {
+	ok, err := hasTableTx(ctx, tx, "theme_segment_playback_sources")
+	if err != nil {
+		return fmt.Errorf("detect theme segment playback source table: %w", err)
+	}
+	if !ok {
+		return nil
+	}
+
+	snapshot, err := loadThemeSegmentPlaybackSnapshotTx(ctx, tx, segmentID)
+	if err != nil {
+		return err
+	}
+	if snapshot == nil {
+		return ErrNotFound
+	}
+
+	startSeconds := parseSegmentClockSeconds(snapshot.StartTime)
+	endSeconds := parseSegmentClockSeconds(snapshot.EndTime)
+	trimmedType := strings.TrimSpace(derefString(snapshot.SourceType))
+	trimmedRef := strings.TrimSpace(derefString(snapshot.SourceRef))
+	trimmedLabel := strings.TrimSpace(derefString(snapshot.SourceLabel))
+
+	var (
+		sourceKind     *string
+		releaseVarID   *int64
+		jellyfinItemID *string
+		mediaAssetID   *int64
+		sourceLabel    *string
+	)
+
+	// Explicit precedence table for playback resolution:
+	//
+	// 1. release_asset source type with a concrete source_ref -> uploaded_asset
+	//    (operator explicitly selected an uploaded file as fallback/primary)
+	// 2. current release variant with a Jellyfin-backed stream resolved -> episode_version
+	//    (default: play the segment from the episode-version stream)
+	// 3. explicit jellyfin_theme with a valid item ID -> jellyfin_theme
+	//    (legacy/explicit Jellyfin theme selection)
+	// 4. uploaded asset discoverable via source_ref (no explicit variant) -> uploaded_asset
+	//    (fallback when no episode-version stream is available)
+	// 5. none -> delete the playback row
+
+	switch {
+	case trimmedType == themeSegmentSourceTypeReleaseAsset && trimmedRef != "":
+		// Explicit operator choice: use the uploaded file as active playback source.
+		if snapshot.ResolvedMediaAssetID != nil && *snapshot.ResolvedMediaAssetID > 0 {
+			value := themeSegmentPlaybackUploadedAsset
+			sourceKind = &value
+			mediaAssetID = snapshot.ResolvedMediaAssetID
+		}
+		// If the media_asset record is not found yet (e.g. upload in progress),
+		// fall through to episode_version if available.
+		if sourceKind == nil && snapshot.PlaybackVariantID != nil && *snapshot.PlaybackVariantID > 0 {
+			value := themeSegmentPlaybackEpisodeVersion
+			sourceKind = &value
+			releaseVarID = snapshot.PlaybackVariantID
+		}
+
+	case snapshot.PlaybackVariantID != nil && *snapshot.PlaybackVariantID > 0:
+		// Default path: episode-version stream (Jellyfin runtime).
+		value := themeSegmentPlaybackEpisodeVersion
+		sourceKind = &value
+		releaseVarID = snapshot.PlaybackVariantID
+
+	case trimmedType == themeSegmentSourceTypeJellyfin:
+		// Legacy explicit Jellyfin-theme selection.
+		var item string
+		if trimmedRef != "" {
+			item = trimmedRef
+		} else if raw := strings.TrimSpace(derefString(snapshot.SourceJellyfinItemID)); raw != "" {
+			if strings.HasPrefix(raw, themeSegmentSourceTypeJellyfin+":") {
+				item = strings.TrimSpace(strings.TrimPrefix(raw, themeSegmentSourceTypeJellyfin+":"))
+			} else {
+				item = raw
+			}
+		}
+		if item != "" {
+			value := themeSegmentPlaybackJellyfinTheme
+			sourceKind = &value
+			jellyfinItemID = &item
+		}
+
+	case snapshot.ResolvedMediaAssetID != nil && *snapshot.ResolvedMediaAssetID > 0:
+		// Fallback: uploaded asset reachable via source_ref, no episode-version stream.
+		value := themeSegmentPlaybackUploadedAsset
+		sourceKind = &value
+		mediaAssetID = snapshot.ResolvedMediaAssetID
+	}
+
+	if trimmedLabel != "" {
+		sourceLabel = &trimmedLabel
+	} else if snapshot.ResolvedPlaybackLabel != nil && strings.TrimSpace(derefString(snapshot.ResolvedPlaybackLabel)) != "" {
+		label := strings.TrimSpace(*snapshot.ResolvedPlaybackLabel)
+		sourceLabel = &label
+	}
+
+	if sourceKind == nil {
+		if _, err := tx.Exec(ctx, `DELETE FROM theme_segment_playback_sources WHERE theme_segment_id = $1`, segmentID); err != nil {
+			return fmt.Errorf("delete theme segment playback source segment=%d: %w", segmentID, err)
+		}
+		return nil
+	}
+
+	_, err = tx.Exec(ctx, `
+		INSERT INTO theme_segment_playback_sources (
+			theme_segment_id,
+			source_kind,
+			release_variant_id,
+			jellyfin_item_id,
+			media_asset_id,
+			source_label,
+			start_offset_seconds,
+			end_offset_seconds,
+			duration_seconds,
+			is_primary,
+			created_at,
+			updated_at
+		)
+		VALUES ($1, $2, $3, NULLIF($4, ''), $5, NULLIF($6, ''), $7, $8, $9, TRUE, NOW(), NOW())
+		ON CONFLICT (theme_segment_id)
+		DO UPDATE SET
+			source_kind = EXCLUDED.source_kind,
+			release_variant_id = EXCLUDED.release_variant_id,
+			jellyfin_item_id = EXCLUDED.jellyfin_item_id,
+			media_asset_id = EXCLUDED.media_asset_id,
+			source_label = EXCLUDED.source_label,
+			start_offset_seconds = EXCLUDED.start_offset_seconds,
+			end_offset_seconds = EXCLUDED.end_offset_seconds,
+			duration_seconds = EXCLUDED.duration_seconds,
+			is_primary = TRUE,
+			updated_at = NOW()
+	`, segmentID, *sourceKind, releaseVarID, jellyfinItemID, mediaAssetID, sourceLabel, startSeconds, endSeconds, snapshot.PlaybackDuration)
+	if err != nil {
+		return fmt.Errorf("upsert theme segment playback source segment=%d: %w", segmentID, err)
+	}
+
+	return nil
+}
+
+func loadThemeSegmentPlaybackSnapshotTx(ctx context.Context, tx pgx.Tx, segmentID int64) (*themeSegmentPlaybackSnapshot, error) {
+	var snapshot themeSegmentPlaybackSnapshot
+	if err := tx.QueryRow(ctx, `
+		WITH resolved_variant AS (
+			-- Resolve the current release variant for this segment's fansub_group+version+anime context.
+			-- Prefer variants with a Jellyfin-backed stream source, then fall back to any variant.
+			-- LIMIT 1 ensures deterministic results when multiple variants match.
+			SELECT
+				rv.id       AS variant_id,
+				rv.duration_seconds,
+				ss.external_id AS jellyfin_external_id,
+				ss.url         AS jellyfin_stream_url
+			FROM theme_segments ts
+			JOIN themes t ON t.id = ts.theme_id
+			JOIN release_version_groups rvg ON rvg.fansub_group_id = ts.fansub_group_id
+			JOIN release_versions rev ON rev.id = rvg.release_version_id
+				AND COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1') = COALESCE(NULLIF(BTRIM(ts.version), ''), 'v1')
+			JOIN fansub_releases fr ON fr.id = rev.release_id
+			JOIN episodes ep ON ep.id = fr.episode_id AND ep.anime_id = t.anime_id
+			JOIN release_variants rv ON rv.release_version_id = rev.id
+			LEFT JOIN release_streams rs ON rs.variant_id = rv.id
+			LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id AND ss.provider_type = 'jellyfin'
+			WHERE ts.id = $1
+			  AND ts.fansub_group_id IS NOT NULL
+			ORDER BY
+				CASE WHEN ss.external_id IS NOT NULL THEN 0 ELSE 1 END,
+				rv.id ASC
+			LIMIT 1
+		)
+		SELECT
+			ts.id,
+			ts.start_time::text,
+			ts.end_time::text,
+			ts.source_jellyfin_item_id,
+			ts.source_type,
+			ts.source_ref,
+			ts.source_label,
+			rv_ctx.variant_id,
+			rv_ctx.duration_seconds,
+			(
+				SELECT ma.id
+				FROM media_assets ma
+				WHERE NULLIF(BTRIM(ts.source_ref), '') IS NOT NULL
+				  AND (
+					ma.file_path = ts.source_ref OR
+					ma.file_path = CONCAT('/', ts.source_ref)
+				  )
+				ORDER BY ma.id DESC
+				LIMIT 1
+			) AS resolved_media_asset_id,
+			rv_ctx.jellyfin_external_id AS resolved_jellyfin_item_id,
+			NULL::TEXT AS resolved_playback_kind,
+			NULL::TEXT AS resolved_playback_label
+		FROM theme_segments ts
+		LEFT JOIN resolved_variant rv_ctx ON TRUE
+		WHERE ts.id = $1
+	`, segmentID).Scan(
+		&snapshot.SegmentID,
+		&snapshot.StartTime,
+		&snapshot.EndTime,
+		&snapshot.SourceJellyfinItemID,
+		&snapshot.SourceType,
+		&snapshot.SourceRef,
+		&snapshot.SourceLabel,
+		&snapshot.PlaybackVariantID,
+		&snapshot.PlaybackDuration,
+		&snapshot.ResolvedMediaAssetID,
+		&snapshot.ResolvedJellyfinItem,
+		&snapshot.ResolvedPlaybackKind,
+		&snapshot.ResolvedPlaybackLabel,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("load theme segment playback snapshot segment=%d: %w", segmentID, err)
+	}
+	return &snapshot, nil
 }
 
 func (r *AdminContentRepository) loadStableSegmentAnimeSource(ctx context.Context, animeID int64) (*segmentStableAnimeSource, error) {
@@ -1123,6 +1483,9 @@ func (r *AdminContentRepository) BindUploadedSegmentAsset(
 	`, encodedSource, sourceType, trimmedRef, trimmedLabel, segmentID); err != nil {
 		return nil, fmt.Errorf("update uploaded segment asset source anime=%d segment=%d: %w", animeID, segmentID, err)
 	}
+	if err := r.syncThemeSegmentPlaybackSourceTx(ctx, tx, segmentID); err != nil {
+		return nil, err
+	}
 
 	hasAssignments, err := hasTableTx(ctx, tx, "segment_library_assignments")
 	if err != nil {
@@ -1203,7 +1566,7 @@ func (r *AdminContentRepository) BindUploadedSegmentAsset(
 					attached_at,
 					detached_at
 				)
-				VALUES ($1, $2, $3, $4, NULLIF($5, ''), 'upload', NOW(), NULL)
+				VALUES ($1, $2, $3, $4, NULLIF($5, ''), 'local_segment', NOW(), NULL)
 				ON CONFLICT (theme_segment_id) WHERE theme_segment_id IS NOT NULL
 				DO UPDATE SET
 					definition_id = EXCLUDED.definition_id,
@@ -1240,7 +1603,15 @@ func (r *AdminContentRepository) ClearSegmentAsset(ctx context.Context, animeID 
 	}
 	previousRef := seg.SourceRef
 
-	tag, err := r.db.Exec(ctx, `
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin clear segment asset id=%d: %w", segmentID, err)
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	tag, err := tx.Exec(ctx, `
 		UPDATE theme_segments
 		SET source_type = NULL, source_ref = NULL, source_label = NULL
 		WHERE id = $1
@@ -1250,6 +1621,12 @@ func (r *AdminContentRepository) ClearSegmentAsset(ctx context.Context, animeID 
 	}
 	if tag.RowsAffected() == 0 {
 		return nil, ErrNotFound
+	}
+	if err := r.syncThemeSegmentPlaybackSourceTx(ctx, tx, segmentID); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit clear segment asset id=%d: %w", segmentID, err)
 	}
 
 	return previousRef, nil
@@ -1356,8 +1733,46 @@ func (r *AdminContentRepository) ListAnimeSegmentSuggestions(
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate anime segment suggestions anime=%d episode=%d: %w", animeID, episodeNumber, err)
 	}
+	if err := r.hydrateSegmentPlaybackMetadataList(ctx, segments); err != nil {
+		return nil, err
+	}
 
 	return segments, nil
+}
+
+// GetSegmentReleaseDuration liefert die bekannte Laufzeit (duration_seconds) der aktuellen
+// Release-Variante fuer die angegebene Anime/Fansub-Gruppe/Version-Kombination.
+// Gibt nil zurueck, wenn keine Variante gefunden wurde oder duration_seconds nicht gesetzt ist.
+func (r *AdminContentRepository) GetSegmentReleaseDuration(ctx context.Context, animeID int64, fansubGroupID int64, version string) (*int32, error) {
+	if animeID <= 0 || fansubGroupID <= 0 {
+		return nil, nil
+	}
+
+	normalizedVersion := strings.TrimSpace(version)
+	if normalizedVersion == "" {
+		normalizedVersion = "v1"
+	}
+
+	var duration *int32
+	err := r.db.QueryRow(ctx, `
+		SELECT rv.duration_seconds
+		FROM release_version_groups rvg
+		JOIN release_versions rev ON rev.id = rvg.release_version_id
+			AND COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1') = $3
+		JOIN fansub_releases fr ON fr.id = rev.release_id
+		JOIN episodes ep ON ep.id = fr.episode_id AND ep.anime_id = $1
+		JOIN release_variants rv ON rv.release_version_id = rev.id
+		WHERE rvg.fansub_group_id = $2
+		ORDER BY rv.duration_seconds IS NOT NULL DESC, rv.id ASC
+		LIMIT 1
+	`, animeID, fansubGroupID, normalizedVersion).Scan(&duration)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get segment release duration anime=%d group=%d version=%q: %w", animeID, fansubGroupID, version, err)
+	}
+	return duration, nil
 }
 
 // GetCanonicalFansubAnimeRelease liefert den fruehesten realen Release-Anker fuer Gruppe+Anime.
