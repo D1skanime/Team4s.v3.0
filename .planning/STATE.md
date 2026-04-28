@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed Phase 28 Plan 01 — backend playback resolution contract
-last_updated: "2026-04-28T20:54:54.559Z"
+stopped_at: Completed Phase 28 Plan 02 — frontend segment playback context wiring
+last_updated: "2026-04-28T21:02:59.210Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 24
   completed_phases: 17
   total_plans: 82
-  completed_plans: 72
+  completed_plans: 73
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 28 (segment-playback-sources-from-jellyfin-runtime) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -132,6 +132,8 @@ Recent durable decisions:
 - [Phase 28-segment-playback-sources-from-jellyfin-runtime]: loadThemeSegmentPlaybackSnapshotTx uses a CTE to resolve the current release variant from fansub_group+version+anime context; NULL duration hardcodes removed
 - [Phase 28-segment-playback-sources-from-jellyfin-runtime]: syncThemeSegmentPlaybackSourceTx uses explicit precedence: uploaded_asset for explicit release_asset+source_ref, episode_version by default when variant known, jellyfin_theme for legacy explicit selection
 - [Phase 28-segment-playback-sources-from-jellyfin-runtime]: UpdateAnimeSegment returns 200+hydrated DTO; validateSegmentTimes is the shared validation seam for both create and update; nullable runtime means no upper-bound rejection
+- [Phase 28-segment-playback-sources-from-jellyfin-runtime]: releaseVariantId passed as query param to segment list/create/update, not in body, to preserve backward compatibility
+- [Phase 28-segment-playback-sources-from-jellyfin-runtime]: effectiveDuration uses playback_duration_seconds first, then page-level durationSeconds as fallback for runtime clamping
 
 ### Pending Todos
 
@@ -216,6 +218,7 @@ Recent durable decisions:
 | Phase 26 P01 | 7min | 5 tasks | 10 files |
 | Phase 26 P02 | 6min | 3 tasks | 4 files |
 | Phase 28-segment-playback-sources-from-jellyfin-runtime P01 | 8min | 3 tasks | 5 files |
+| Phase 28-segment-playback-sources-from-jellyfin-runtime P02 | 5min | 3 tasks | 5 files |
 
 ### Quick Tasks Completed
 
@@ -231,7 +234,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-28T20:54:54.550Z
-Stopped at: Completed Phase 28 Plan 01 — backend playback resolution contract
+Last session: 2026-04-28T21:02:59.202Z
+Stopped at: Completed Phase 28 Plan 02 — frontend segment playback context wiring
 Last activity: 2026-04-28
 Resume file: None
