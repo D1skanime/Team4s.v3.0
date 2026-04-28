@@ -36,6 +36,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 24: Release-Segmente (OP/ED Timing)** - Admins können auf der Episode-Version-Edit-Seite OP/ED-Segmente (Typ, Name, Episodenbereich, Zeitbereich im Video, Jellyfin-Quelle) pro Fansub-Gruppe und Version verwalten. UI wie Mockup: Tab "Segmente" mit Tabelle, Seitenleisten-Formular und Timeline-Visualisierung. (UAT bestanden 2026-04-26)
 - [x] **Phase 25: Segmente UI Mockup-Alignment** - Segmente-Seite vollständig an Mockup angeglichen: Breadcrumb-Navigation, 5-Tab-Layout, Typ-Badge mit Kurzcode, Zeitbereich mit Dauer in Klammern, Vorschläge-Leiste aus anderen Releases, dual-Spur-Timeline mit Hauptinhalt-Label, expliziter Source-Type-Selector. (UAT bestanden 2026-04-27)
 - [ ] **Phase 26: Segment Source Asset Upload And Persistence** - Segmente koennen echte Team4s-Assets als Quelle hinterlegen: Upload, benannter Zielpfad, Asset-Referenz am Segment und kontrolliertes Entfernen ohne Playback-Pflicht.
+- [ ] **Phase 27: Segment Library Identity And Reuse** - Segmentdateien werden fachlich ueber stabile Anime-/Gruppen-Identitaet statt lokaler Anime-IDs verwaltet, koennen nach Reimport wiedergefunden werden, und Anime-Delete entkoppelt nur noch statt wiederverwendbare OP/ED-Assets blind zu vernichten.
 
 ## Phase Details
 
@@ -364,6 +365,22 @@ Plans:
 - [ ] `26-01-PLAN.md` - Backend-Segment-Asset-Contract, Zielpfadgenerator und Upload-/Delete-Verdrahtung auf die bestehende Media-Seam.
 - [ ] `26-02-PLAN.md` - Segment-Editor-UI fuer Asset-Upload, Anzeigename/Dateiname, vorhandene Asset-Auswahl und Entfernen im Episode-Version-Kontext.
 - [ ] `26-03-PLAN.md` - Verifikation, Docker-Live-Test und Rechte-/Handoff-Notizen fuer spaetere Fansub-Selbstpflege.
+
+### Phase 27: Segment Library Identity And Reuse
+**Goal:** Segment-Definitionen und ihre Assets werden an stabile fachliche Identitaet gebunden, damit OP/ED-Dateien nach Anime-Reimport oder lokaler Neuanlage wiederverwendbar bleiben und Delete-Workflows nur ungenutzte oder ausdruecklich lokale Reste vernichten.
+**Requirements**: P27-SC1, P27-SC2, P27-SC3, P27-SC4, P27-SC5
+**Depends on:** Phase 26
+**Success Criteria** (what must be TRUE):
+  1. Ein Segment wird fachlich ueber stabile Identitaet gefunden: AniSearch-Quelle plus AniSearch-ID fuer den Anime, Fansub-Gruppe, Segment-Typ und optionalen Segmentnamen; die lokale `anime.id` ist nicht mehr die einzige Wiederfindungsachse.
+  2. Ein Admin kann fuer dieselbe fachliche Segmentidentitaet entweder ein bestehendes Asset wiederzuordnen oder ein neues Asset hochladen, ohne bewusst doppelte OP/ED-Dateien fuer denselben Anime/Gruppenkontext erzeugen zu muessen.
+  3. Wenn ein lokaler Anime geloescht und spaeter ueber dieselbe AniSearch-Identitaet neu angelegt oder reimportiert wird, bleiben wiederverwendbare Segmentdefinitionen und Segment-Assets auffindbar und koennen erneut zugeordnet werden.
+  4. Anime-Delete loescht wiederverwendbare Segmentbibliotheksdaten nicht blind mit; stattdessen wird zwischen lokaler Entkopplung und echtem Asset-/Definition-Cleanup unterschieden.
+  5. Die UI macht klar, ob ein Segment-Asset neu hochgeladen, aus der Bibliothek wiederverwendet oder nur lokal verknuepft ist, inklusive nachvollziehbarer Provenance-Daten fuer spaetere Fansub-Selbstpflege.
+**Plans:** 0/3 plans complete
+Plans:
+- [ ] `27-01-PLAN.md` - Datenmodell, Delete-Grenzen und Migrationspfad fuer fachlich stabile Segmentdefinitionen und wiederverwendbare Asset-Zuordnung.
+- [ ] `27-02-PLAN.md` - Backend- und Query-Seams fuer Reuse, Wiederanbindung per AniSearch-ID und kontrollierte Cleanup-Regeln.
+- [ ] `27-03-PLAN.md` - Admin-UX fuer Upload-vs-Reuse, Provenance-Anzeige und Live-Verifikation auf Reimport-/Delete-Szenarien.
 
 ### Phase 22: Anime Edit On Create-Flow Foundation
 **Goal:** Replace the stale, divergent anime edit route with a create-flow-based editor that reuses the modern admin anime workspace while preserving edit-specific identity rules.

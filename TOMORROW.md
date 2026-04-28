@@ -1,12 +1,12 @@
 # TOMORROW
 
 ## Top 3 Priorities
-1. Run the final live Phase-26 check on segment file visibility and version-level segment/file badges.
-2. If the live check passes, mark Phase 26 verified instead of reopening broad segment/theme redesign discussion.
-3. Decide the next smallest follow-up for segment-file workflows, likely around later fansub-self-service reuse.
+1. Audit the Phase-27 migration mismatch so `0052` cannot appear applied while `segment_library_*` tables are missing.
+2. Decide whether upload-time segment assets should be inserted into the library immediately or only on delete-detach.
+3. Close the next smallest verified slice without reopening broad theme-management redesign.
 
 ## First 15-Minute Task
-- Open `http://localhost:3002/admin/episode-versions/5/edit` and `http://localhost:3002/admin/anime/4/episodes`, then verify that the same version shows both the uploaded segment filename and the correct segment/file status badges.
+- Run `docker exec team4sv30-db psql -U team4s -d team4s_v2 -c "SELECT schemaname, tablename FROM pg_tables WHERE tablename LIKE 'segment_library_%' ORDER BY tablename;"` and compare it with `docker exec team4sv30-backend ./migrate status` to explain why migration `52` once showed applied before the tables existed.
 
 ## Dependencies To Unblock Early
 - Keep Docker DB/Redis/backend/frontend running.
