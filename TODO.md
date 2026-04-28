@@ -1,8 +1,9 @@
 # TODO
 
 ## Current Active Work
-- [ ] Decide whether the current Phase-22 anime edit baseline is ready for formal verification and closeout
-- [ ] If not, capture the next smallest remaining anime edit gap explicitly
+- [ ] Verify Phase 26 live on `/admin/episode-versions/5/edit` and `/admin/anime/4/episodes`
+- [ ] If the live check passes, close or mark Phase 26 verified
+- [ ] Define the next smallest follow-up for segment-file workflows without reopening broad theme-management scope
 - [ ] Keep Docker/local verification commands current in `STATUS.md`
 
 ## Parking Lot

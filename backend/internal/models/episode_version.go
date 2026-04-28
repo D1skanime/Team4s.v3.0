@@ -13,6 +13,7 @@ type EpisodeVersion struct {
 	AnimeID               int64               `json:"anime_id"`
 	EpisodeNumber         int32               `json:"episode_number"`
 	Title                 *string             `json:"title,omitempty"`
+	ReleaseVersion        *string             `json:"release_version,omitempty"`
 	FansubGroup           *FansubGroupSummary `json:"fansub_group,omitempty"`
 	MediaProvider         string              `json:"media_provider"`
 	MediaItemID           string              `json:"media_item_id"`
@@ -21,6 +22,8 @@ type EpisodeVersion struct {
 	SubtitleType          *string             `json:"subtitle_type,omitempty"`
 	ReleaseDate           *time.Time          `json:"release_date,omitempty"`
 	StreamURL             *string             `json:"stream_url,omitempty"`
+	SegmentCount          int32               `json:"segment_count"`
+	HasSegmentAsset       bool                `json:"has_segment_asset"`
 	CreatedAt             time.Time           `json:"created_at"`
 	UpdatedAt             time.Time           `json:"updated_at"`
 }

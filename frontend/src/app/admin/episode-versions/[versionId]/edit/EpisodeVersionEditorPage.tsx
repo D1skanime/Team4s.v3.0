@@ -31,8 +31,7 @@ export function EpisodeVersionEditorPage() {
 
   const segmentAnimeId = editor.contextData?.version.anime_id ?? null
   const segmentGroupId = editor.contextData?.selected_groups[0]?.id ?? null
-  // EpisodeVersion has no version string field; default to 'v1' as the release version
-  const segmentVersion: string | null = 'v1'
+  const segmentVersion: string | null = editor.contextData?.version.release_version?.trim() || 'v1'
 
   const animeTitle = editor.contextData?.anime_title ?? ''
   const episodeNumber = version?.episode_number ?? null
@@ -58,7 +57,7 @@ export function EpisodeVersionEditorPage() {
     ? `Episode ${padEpisodeNumber(episodeNumber)}`
     : 'Episode'
   const breadcrumbVersionLabel = groupName
-    ? `${groupName} v1`
+    ? `${groupName} ${segmentVersion}`
     : version
       ? `Version #${version.id}`
       : 'Version'
@@ -90,7 +89,7 @@ export function EpisodeVersionEditorPage() {
             {version ? (
               <p className={styles.subtitle}>
                 {breadcrumbEpisodeLabel}
-                {groupName ? ` \u00B7 ${groupName} v1` : ''}
+                {groupName ? ` \u00B7 ${groupName} ${segmentVersion}` : ''}
               </p>
             ) : null}
           </div>

@@ -75,12 +75,18 @@ export function resolveSourceLabel(segment: AdminThemeSegment): string {
       case 'none': return 'Keine Quelle'
       case 'jellyfin_theme': return segment.source_label ?? 'Jellyfin Serien-Theme'
       case 'release_asset': {
-        if (segment.source_label) return segment.source_label
-        if (segment.source_ref) {
-          const filename = segment.source_ref.split('/').pop()
-          return filename ? `Datei: ${filename}` : 'Release-Asset'
-        }
-        return 'Release-Asset (keine Datei)'
+        const filename = segment.source_ref?.split('/').pop()?.trim() || ''
+        const label = segment.source_label?.trim() || ''
+        const genericLabel =
+          label === '' ||
+          label.toLowerCase() === 'release-asset' ||
+          label.toLowerCase() === 'datei aus release-ordner'
+
+        if (filename && genericLabel) return `Datei hochgeladen: ${filename}`
+        if (filename && label && label !== filename) return `${label} · ${filename}`
+        if (filename) return filename
+        if (label && !genericLabel) return label
+        return 'Release-Asset (Upload fehlt)'
       }
     }
   }

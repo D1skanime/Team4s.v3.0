@@ -8,6 +8,7 @@ export interface EpisodeVersion {
   anime_id: number
   episode_number: number
   title?: string | null
+  release_version?: string | null
   fansub_group?: FansubGroupSummary | null
   media_provider: string
   media_item_id: string
@@ -15,6 +16,8 @@ export interface EpisodeVersion {
   subtitle_type?: SubtitleType | null
   release_date?: string | null
   stream_url?: string | null
+  segment_count?: number
+  has_segment_asset?: boolean
   created_at: string
   updated_at: string
 }

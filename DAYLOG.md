@@ -1,5 +1,46 @@
 # DAYLOG
 
+## 2026-04-28
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: close the segment/theme follow-through honestly by moving from theme-global ideas to release-context segment work, wiring real segment asset persistence, and making the operator UI show segment/file status instead of hiding it
+
+### Workstreams Touched
+- Phase 23/24/25 review and correction loop
+- Phase 25 segment editor mockup alignment and live UAT
+- Phase 26 segment source asset upload/persistence execution
+- Segment asset lifecycle hardening after review findings
+- Episode overview segment/file status surfacing
+- Codex local config/agent cleanup for the `agents` startup error
+
+### Goals Intended vs Achieved
+- Intended: stop the OP/ED work from drifting into the wrong data model, make segment work happen in the real release context, and get segment assets to a practical stored-file state
+- Achieved: the old anime-level themes detour was retired, segment editing now lives on episode-version edit, generic segment types (`OP`, `ED`, `Insert`, `Outro`) replaced the brittle `OP1/ED1` mental model, segment source assets can now be uploaded and persisted as Team4s assets, and the UI now shows both uploaded segment file names and per-version segment/file status badges in the episodes overview
+
+### Problems Solved
+- Root cause: the OP/ED work had drifted into a mixed anime-theme/fansub-theme screen that did not match the real release-context workflow
+- Fix: removed the anime themes route from the active operator flow and verified the segment/range logic directly on `/admin/episode-versions/:id/edit`
+- Root cause: segment source persistence was still half-legacy and missing a real upload/delete lifecycle
+- Fix: added the real segment asset upload path, deterministic storage semantics, source metadata persistence, cleanup on source changes, and safer replace behavior
+- Root cause: operators could not tell from the UI whether a segment already had an uploaded file or whether a version already had any segments at all
+- Fix: source labels now surface the uploaded file name in the segment table, and the grouped episode overview now exposes `segment_count` plus `has_segment_asset` as visible badges per version row
+- Root cause: new Codex threads were failing to start because stale local agent config under `.codex/agents` deserialized with invalid absolute path expectations
+- Fix: cleaned `.codex/config.toml`, moved legacy agent `.toml` files out of the active agents folder, and confirmed `$day-start` resumed working in-repo
+
+### Decisions
+- Segment types are generic (`OP`, `ED`, `Insert`, `Outro`) and the free name field carries distinctions like `Naruto OP 1` or `Final OP`
+- Segment structure belongs to the episode-version/release context, not to a separate anime-level themes management page
+- Segment files are Team4s-owned assets behind `release_asset`; Jellyfin is not the primary upload/storage model for this flow
+
+### Blockers
+- No hard product blocker remains on the segment admin slice
+- Phase 26 still needs one honest live verification pass focused on the asset lifecycle and the new status badges
+- Cross-AI review remains unavailable locally because no independent reviewer CLI is installed
+- The worktree still contains many untracked local cache/tmp/debug/screenshot artifacts that are not intended history
+
+### Next Step
+- Open `http://localhost:3002/admin/episode-versions/5/edit` and `http://localhost:3002/admin/anime/4/episodes`, then verify that the segment row shows the uploaded file name and the episode overview shows correct segment/file badges for the same version
+
 ## 2026-04-24
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`

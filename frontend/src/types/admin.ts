@@ -849,6 +849,9 @@ export interface AdminThemeSegmentCreateRequest {
   start_time?: string | null
   end_time?: string | null
   source_jellyfin_item_id?: string | null
+  source_type?: AdminSegmentSourceType | null
+  source_ref?: string | null
+  source_label?: string | null
 }
 
 /** Request zum partiellen Aktualisieren eines Segments. */
@@ -861,4 +864,7 @@ export interface AdminThemeSegmentPatchRequest {
   start_time?: string | null
   end_time?: string | null
   source_jellyfin_item_id?: string | null
+  source_type?: AdminSegmentSourceType | null
+  source_ref?: string | null
+  source_label?: string | null
 }

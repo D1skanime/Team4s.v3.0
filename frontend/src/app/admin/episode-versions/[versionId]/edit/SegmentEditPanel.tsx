@@ -197,11 +197,11 @@ export function SegmentEditPanel({
               </div>
             ) : editingSegment ? (
               <div className={styles.assetUploadArea}>
-                <p className={styles.assetUploadFormats}>Erlaubte Formate: MP4, WebM, MKV &middot; Max. 150 MB</p>
+                <p className={styles.assetUploadFormats}>Erlaubte Formate: MP4, WebM, MKV, MP3, AAC, FLAC, OGG, OPUS, M4A &middot; Max. 150 MB</p>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".mp4,.webm,.mkv,video/mp4,video/webm,video/x-matroska"
+                  accept=".mp4,.webm,.mkv,.mp3,.aac,.flac,.ogg,.opus,.m4a,video/mp4,video/webm,video/x-matroska,audio/mpeg,audio/aac,audio/flac,audio/ogg,audio/mp4"
                   className={styles.assetFileInput}
                   id="segment-asset-file"
                   disabled={isUploading}

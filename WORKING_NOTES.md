@@ -1,22 +1,22 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phase 21 is complete.
-- Phase 22 is the active thread: make anime edit genuinely use the create-flow foundation and cut the last legacy/admin clutter.
+- Phase 25 is effectively complete/UAT-backed.
+- Phase 26 is the active thread: segment source assets as Team4s-owned files, plus clear operator visibility for file/segment state.
 
 ## Useful Facts To Keep
-- Anime edit now uses the shared create-style workspace and simpler Jellyfin selection flow.
-- The edit asset area must merge manual persisted assets with Jellyfin fallback assets; singular replacement logic was the wrong model for backgrounds and background videos.
-- Dismissing individual Jellyfin assets in edit is now supported at draft level without dropping overall Jellyfin linkage.
-- Episode version delete used to fail because `EpisodeVersionRepository.Delete` was still a Phase-20 deferred placeholder; that backend path is now implemented.
-- Fansub collaboration records are still persisted for release wiring, but the default `/admin/fansubs` list should only show real groups.
+- Segment work now lives on the episode-version edit route, not on a separate anime themes admin page.
+- Segment types are generic (`OP`, `ED`, `Insert`, `Outro`); naming like `OP1` or `Final OP` belongs in the free title field.
+- `release_asset` is the real storage path for segment files; Jellyfin should not become the primary segment upload model.
+- Operators needed visible proof both in the segment row and in the episode overview that files/segments already exist; the UI now carries that status.
+- The `.codex/agents` startup issue was worked around by removing the stale `.toml` registrations from the active folder and keeping the repo-local markdown skills usable.
 
 ## Verification Memory
-- `cd backend && go test ./internal/repository ./internal/handlers -count=1` passed on 2026-04-24.
-- `cd frontend && npm.cmd test -- src/app/admin/anime/[id]/edit/page.test.tsx` passed on 2026-04-24.
 - `cd frontend && npm.cmd run build` passed on 2026-04-24.
-- Docker backend/frontend are up and the anime edit, anime episodes, and fansub admin routes all returned `200`.
+- `cd backend && go build ./...` passed on 2026-04-28.
+- `cd frontend && npm.cmd run build` passed on 2026-04-28.
+- Docker backend/frontend are up and the segment editor plus anime episodes routes returned `200`.
 
 ## Mental Unload
-- Today was a lot of UI subtraction, which was the right call.
-- Tomorrow should not drift back into legacy edit behavior or broad polish; either close Phase 22 or name the one remaining gap cleanly.
+- The important UX shift today was not more theme complexity, but making existing segment/file state visible at the places operators already work.
+- Tomorrow should not reopen broad theme-management ideas again before the new Phase-26 status surfaces are judged live.

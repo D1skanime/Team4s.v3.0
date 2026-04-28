@@ -2,11 +2,11 @@
 
 ## Top 3 Risks
 
-### 1. Phase 22 could stay half-closed if the current anime edit baseline is not judged explicitly
+### 1. Phase 26 could stay half-closed if the new segment-file visibility is not judged live
 - **Impact:** Medium
 - **Likelihood:** High
-- **Why it matters:** a lot of today was live UI cleanup, and without one explicit close/verify decision the team could drift into more unscoped edit polish.
-- **Mitigation:** do one narrow next-day review of `/admin/anime/:id/edit` and either verify Phase 22 or write down the exact remaining gap.
+- **Why it matters:** the implementation is technically in place, but the real operator value depends on whether the new file-name and badge surfaces actually read clearly in the live UI.
+- **Mitigation:** do one narrow next-day review of `/admin/episode-versions/:id/edit` and `/admin/anime/:id/episodes`, then either verify Phase 26 or write down the exact remaining gap.
 
 ### 2. Local temp/cache/debug artifacts can still pollute the worktree
 - **Impact:** Low
@@ -21,5 +21,5 @@
 - **Mitigation:** keep local verification strong and rerun review once a reviewer CLI is installed.
 
 ## Current Blockers
-- No hard product blocker remains on the current anime edit/admin slice.
+- No hard product blocker remains on the current segment/admin slice.
 - Cross-AI review remains unavailable because no independent reviewer CLI is installed locally.

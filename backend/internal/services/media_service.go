@@ -175,9 +175,9 @@ type SegmentAssetContext struct {
 	SegmentTypeName string
 }
 
-// SaveSegmentAsset validiert und speichert ein Segment-Asset (OP/ED/Insert-Videodatei).
+// SaveSegmentAsset validiert und speichert ein Segment-Asset (OP/ED/Insert-Audio- oder Videodatei).
 // Zielpfad: segments/anime_{animeId}/group_{groupId}/{version}/{segmentTypeLower}/{sanitizedFilename}
-// Erlaubte Formate: mp4, webm, mkv. Groessenlimit: 150 MB.
+// Erlaubte Formate: mp4, webm, mkv, mp3, aac, flac, ogg, opus, m4a. Groessenlimit: 150 MB.
 func (s *MediaService) SaveSegmentAsset(ctx SegmentAssetContext, originalName string, data []byte) (*MediaSaveResult, error) {
 	if len(data) == 0 {
 		return nil, &MediaValidationError{Message: "datei ist leer"}
@@ -192,10 +192,15 @@ func (s *MediaService) SaveSegmentAsset(ctx SegmentAssetContext, originalName st
 		"video/mp4":        "mp4",
 		"video/webm":       "webm",
 		"video/x-matroska": "mkv",
+		"audio/mpeg":       "mp3",
+		"audio/aac":        "aac",
+		"audio/flac":       "flac",
+		"audio/ogg":        "ogg",
+		"audio/mp4":        "m4a",
 	}
 	ext, ok := allowedSegment[detectedMime]
 	if !ok {
-		return nil, &MediaValidationError{Message: "ungueltiges format fuer segment-asset (erlaubt: mp4, webm, mkv)"}
+		return nil, &MediaValidationError{Message: "ungueltiges format fuer segment-asset (erlaubt: mp4, webm, mkv, mp3, aac, flac, ogg, opus, m4a)"}
 	}
 
 	sanitized := sanitizeSegmentFilename(originalName, ext)

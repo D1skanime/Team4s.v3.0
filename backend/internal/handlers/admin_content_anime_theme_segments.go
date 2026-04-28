@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"io"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
@@ -15,6 +17,30 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+const segmentSourceTypeReleaseAsset = "release_asset"
+
+func cleanupSegmentAssetRef(ctx context.Context, mediaRepo *repository.MediaRepository, mediaStorageDir string, ref string) {
+	trimmedRef := strings.TrimSpace(filepath.ToSlash(ref))
+	if trimmedRef == "" {
+		return
+	}
+
+	absPath := filepath.Join(mediaStorageDir, filepath.FromSlash(trimmedRef))
+	_ = os.Remove(absPath)
+
+	if mediaRepo == nil {
+		return
+	}
+
+	if asset, err := mediaRepo.GetMediaAssetByFilename(ctx, trimmedRef); err == nil {
+		_ = mediaRepo.DeleteMediaAsset(ctx, asset.ID)
+		return
+	}
+	if asset, err := mediaRepo.GetMediaAssetByFilename(ctx, absPath); err == nil {
+		_ = mediaRepo.DeleteMediaAsset(ctx, asset.ID)
+	}
+}
 
 type adminAnimeSegmentCreateRequest struct {
 	ThemeID              int64   `json:"theme_id"`
@@ -162,9 +188,25 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 		return
 	}
 
+	animeID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || animeID <= 0 {
+		badRequest(c, "ungueltige anime id")
+		return
+	}
+
 	segmentID, err := strconv.ParseInt(c.Param("segmentId"), 10, 64)
 	if err != nil || segmentID <= 0 {
 		badRequest(c, "ungueltige segment id")
+		return
+	}
+
+	existingSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht geladen werden.")
 		return
 	}
 
@@ -172,6 +214,12 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		badRequest(c, "ungueltiger request body")
 		return
+	}
+
+	if req.SourceType != nil && *req.SourceType != segmentSourceTypeReleaseAsset {
+		empty := ""
+		req.SourceRef = &empty
+		req.SourceLabel = &empty
 	}
 
 	err = h.themeRepo.UpdateAnimeSegment(c.Request.Context(), segmentID, models.AdminThemeSegmentPatchInput{
@@ -199,6 +247,30 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 		log.Printf("admin anime segment update: segment_id=%d: %v", segmentID, err)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht aktualisiert werden.")
 		return
+	}
+
+	updatedSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Aktualisiertes Segment konnte nicht geladen werden.")
+		return
+	}
+
+	if existingSegment.SourceType != nil &&
+		*existingSegment.SourceType == segmentSourceTypeReleaseAsset &&
+		existingSegment.SourceRef != nil &&
+		strings.TrimSpace(*existingSegment.SourceRef) != "" {
+		oldRef := strings.TrimSpace(*existingSegment.SourceRef)
+		newType := ""
+		if updatedSegment.SourceType != nil {
+			newType = strings.TrimSpace(*updatedSegment.SourceType)
+		}
+		newRef := ""
+		if updatedSegment.SourceRef != nil {
+			newRef = strings.TrimSpace(*updatedSegment.SourceRef)
+		}
+		if newType != segmentSourceTypeReleaseAsset || newRef == "" || newRef != oldRef {
+			cleanupSegmentAssetRef(c.Request.Context(), h.mediaRepo, h.mediaStorageDir, oldRef)
+		}
 	}
 
 	c.Status(http.StatusNoContent)
@@ -268,15 +340,6 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 		return
 	}
 
-	// Falls das Segment bereits ein Asset hat: erst aufraeumt, dann neues speichern
-	if seg.SourceRef != nil && *seg.SourceRef != "" {
-		existingAbsPath := filepath.Join(h.mediaStorageDir, *seg.SourceRef)
-		if existing, lookupErr := h.mediaRepo.GetMediaAssetByFilename(c.Request.Context(), existingAbsPath); lookupErr == nil {
-			_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), existing.ID)
-		}
-		_ = os.Remove(existingAbsPath)
-	}
-
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		badRequest(c, "datei fehlt (field: file)")
@@ -338,7 +401,9 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 		SourceLabel: &sourceLabel,
 	})
 	if patchErr != nil {
-		log.Printf("segment asset upload: segment_id=%d: patch source failed: %v", segmentID, patchErr)
+		cleanupSegmentAssetRef(c.Request.Context(), h.mediaRepo, h.mediaStorageDir, relPath)
+		writeInternalErrorResponse(c, "interner serverfehler", patchErr, "Segment-Quelle konnte nicht aktualisiert werden.")
+		return
 	}
 
 	// Aktualisiertes Segment zurueckgeben
@@ -346,6 +411,14 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Aktualisiertes Segment konnte nicht geladen werden.")
 		return
+	}
+
+	if seg.SourceType != nil &&
+		*seg.SourceType == segmentSourceTypeReleaseAsset &&
+		seg.SourceRef != nil &&
+		strings.TrimSpace(*seg.SourceRef) != "" &&
+		strings.TrimSpace(*seg.SourceRef) != relPath {
+		cleanupSegmentAssetRef(c.Request.Context(), h.mediaRepo, h.mediaStorageDir, *seg.SourceRef)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": updated})
@@ -385,13 +458,7 @@ func (h *AdminContentHandler) DeleteSegmentAsset(c *gin.Context) {
 	}
 
 	if previousRef != nil && *previousRef != "" {
-		absPath := filepath.Join(h.mediaStorageDir, *previousRef)
-		// Datei loeschen — kein Fehler wenn Datei fehlt
-		_ = os.Remove(absPath)
-		// media_assets-Eintrag loeschen — kein Fehler wenn nicht gefunden
-		if asset, lookupErr := h.mediaRepo.GetMediaAssetByFilename(c.Request.Context(), absPath); lookupErr == nil {
-			_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), asset.ID)
-		}
+		cleanupSegmentAssetRef(c.Request.Context(), h.mediaRepo, h.mediaStorageDir, *previousRef)
 	}
 
 	c.Status(http.StatusNoContent)

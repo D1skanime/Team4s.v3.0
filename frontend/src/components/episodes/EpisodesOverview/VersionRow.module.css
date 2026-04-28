@@ -114,6 +114,39 @@
   padding: 0.12rem 0.42rem;
 }
 
+.segmentBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.12rem 0.42rem;
+}
+
+.segmentPresent {
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 42%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: color-mix(in srgb, var(--accent-primary) 82%, var(--text-primary));
+}
+
+.segmentAbsent {
+  border: 1px solid color-mix(in srgb, var(--color-warning) 42%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  color: color-mix(in srgb, var(--color-warning) 82%, var(--text-primary));
+}
+
+.assetPresent {
+  border: 1px solid color-mix(in srgb, var(--color-success) 42%, transparent);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+  color: color-mix(in srgb, var(--color-success) 82%, var(--text-primary));
+}
+
+.assetAbsent {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 26%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-secondary);
+}
+
 /* Version Actions (right side) */
 .versionActions {
   display: flex;

@@ -70,7 +70,7 @@ func main() {
 	episodeRepo := repository.NewEpisodeRepository(dbPool)
 	episodeHandler := handlers.NewEpisodeHandler(episodeRepo)
 	fansubRepo := repository.NewFansubRepository(dbPool)
-	mediaRepo := repository.NewMediaRepository(dbPool)
+	mediaRepo := repository.NewMediaRepository(dbPool, cfg.MediaPublicBaseURL)
 	mediaService := services.NewMediaService(cfg.MediaStorageDir, cfg.MediaPublicBaseURL)
 	episodeVersionRepo := repository.NewEpisodeVersionRepository(dbPool)
 	episodeVersionImageRepo := repository.NewEpisodeVersionImageRepository(dbPool)

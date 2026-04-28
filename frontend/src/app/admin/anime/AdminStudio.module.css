@@ -79,6 +79,11 @@
   gap: 24px;
 }
 
+.stackedCards {
+  display: grid;
+  gap: 16px;
+}
+
 .sectionHeader {
   display: flex;
   flex-wrap: wrap;

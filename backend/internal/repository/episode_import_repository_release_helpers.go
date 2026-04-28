@@ -157,10 +157,7 @@ func createReleaseStream(
 	if err != nil {
 		return err
 	}
-	if _, err := tx.Exec(ctx, `
-		INSERT INTO release_streams (variant_id, stream_type_id, stream_source_id, jellyfin_item_id, modified_at)
-		VALUES ($1, $2, $3, $4, NOW())
-	`, variantID, streamTypeID, streamSourceID, mapping.MediaItemID); err != nil {
+	if err := upsertNormalizedReleaseStream(ctx, tx, variantID, streamTypeID, streamSourceID, mapping.MediaItemID); err != nil {
 		return fmt.Errorf("create release stream variant=%d media=%s: %w", variantID, mapping.MediaItemID, err)
 	}
 	return nil

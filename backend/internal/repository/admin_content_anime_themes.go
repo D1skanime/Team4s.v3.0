@@ -487,19 +487,34 @@ func (r *AdminContentRepository) UpdateAnimeSegment(ctx context.Context, segment
 		argIdx++
 	}
 	if input.SourceType != nil {
-		setClauses = append(setClauses, fmt.Sprintf("source_type = $%d", argIdx))
-		args = append(args, *input.SourceType)
-		argIdx++
+		trimmed := strings.TrimSpace(*input.SourceType)
+		if trimmed == "" {
+			setClauses = append(setClauses, "source_type = NULL")
+		} else {
+			setClauses = append(setClauses, fmt.Sprintf("source_type = $%d", argIdx))
+			args = append(args, trimmed)
+			argIdx++
+		}
 	}
 	if input.SourceRef != nil {
-		setClauses = append(setClauses, fmt.Sprintf("source_ref = $%d", argIdx))
-		args = append(args, *input.SourceRef)
-		argIdx++
+		trimmed := strings.TrimSpace(*input.SourceRef)
+		if trimmed == "" {
+			setClauses = append(setClauses, "source_ref = NULL")
+		} else {
+			setClauses = append(setClauses, fmt.Sprintf("source_ref = $%d", argIdx))
+			args = append(args, trimmed)
+			argIdx++
+		}
 	}
 	if input.SourceLabel != nil {
-		setClauses = append(setClauses, fmt.Sprintf("source_label = $%d", argIdx))
-		args = append(args, *input.SourceLabel)
-		argIdx++
+		trimmed := strings.TrimSpace(*input.SourceLabel)
+		if trimmed == "" {
+			setClauses = append(setClauses, "source_label = NULL")
+		} else {
+			setClauses = append(setClauses, fmt.Sprintf("source_label = $%d", argIdx))
+			args = append(args, trimmed)
+			argIdx++
+		}
 	}
 
 	if len(setClauses) == 0 {

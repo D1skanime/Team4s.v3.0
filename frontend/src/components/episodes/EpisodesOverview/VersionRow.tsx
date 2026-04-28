@@ -15,6 +15,8 @@ export function VersionRow({ version, isDefault = false }: VersionRowProps) {
   const subtitleLabel = version.subtitle_type === 'hardsub' ? 'Hardsub' : 'Softsub'
   const subtitleClass =
     version.subtitle_type === 'hardsub' ? styles.subtitleHardsub : styles.subtitleSoftsub
+  const segmentCount = version.segment_count ?? 0
+  const hasSegmentAsset = version.has_segment_asset === true
 
   const formatDate = (dateStr: string | null | undefined): string => {
     if (!dateStr) return ''
@@ -72,6 +74,22 @@ export function VersionRow({ version, isDefault = false }: VersionRowProps) {
             <span className={`${styles.subtitleBadge} ${subtitleClass}`}>{subtitleLabel}</span>
           )}
           {isDefault && <span className={styles.defaultBadge}>Standard</span>}
+          <span
+            className={`${styles.segmentBadge} ${
+              segmentCount > 0 ? styles.segmentPresent : styles.segmentAbsent
+            }`}
+          >
+            {segmentCount > 0
+              ? `${segmentCount} ${segmentCount === 1 ? 'Segment' : 'Segmente'}`
+              : 'Keine Segmente'}
+          </span>
+          <span
+            className={`${styles.segmentBadge} ${
+              hasSegmentAsset ? styles.assetPresent : styles.assetAbsent
+            }`}
+          >
+            {hasSegmentAsset ? 'Datei vorhanden' : 'Keine Datei'}
+          </span>
         </div>
 
         {version.stream_url ? (

@@ -151,6 +151,7 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 			primary_episode.anime_id,
 			COALESCE(CAST(primary_episode.episode_number AS INTEGER), 0) AS episode_number,
 			COALESCE(rev.title, primary_episode.title) AS title,
+			NULLIF(BTRIM(rev.version), '') AS release_version,
 			COALESCE(ss.provider_type, '') AS media_provider,
 			COALESCE(ss.external_id, rs.jellyfin_item_id, '') AS media_item_id,
 			COALESCE(
@@ -162,6 +163,8 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 			rv.subtitle_type,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			ss.url AS stream_url,
+			COALESCE(seg.segment_count, 0) AS segment_count,
+			COALESCE(seg.has_segment_asset, FALSE) AS has_segment_asset,
 			rv.created_at,
 			COALESCE(rv.updated_at, rv.modified_at, rv.created_at) AS updated_at`
 
@@ -183,7 +186,24 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 	if includeFansubs {
 		query += `
 		LEFT JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
-		LEFT JOIN fansub_groups fg ON fg.id = COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id)`
+		LEFT JOIN fansub_groups fg ON fg.id = COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id)
+		LEFT JOIN LATERAL (
+			SELECT
+				COUNT(ts.id)::INTEGER AS segment_count,
+				COALESCE(BOOL_OR(ts.source_type = 'release_asset' AND NULLIF(BTRIM(ts.source_ref), '') IS NOT NULL), FALSE) AS has_segment_asset
+			FROM theme_segments ts
+			JOIN themes t ON t.id = ts.theme_id
+			WHERE t.anime_id = primary_episode.anime_id
+			  AND COALESCE(ts.fansub_group_id, 0) = COALESCE(COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id), 0)
+			  AND COALESCE(NULLIF(BTRIM(ts.version), ''), 'v1') = COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1')
+			  AND (ts.start_episode IS NULL OR ts.start_episode <= CAST(primary_episode.episode_number AS INTEGER))
+			  AND (ts.end_episode IS NULL OR ts.end_episode >= CAST(primary_episode.episode_number AS INTEGER))
+		) seg ON TRUE`
+	} else {
+		query += `
+		LEFT JOIN LATERAL (
+			SELECT 0::INTEGER AS segment_count, FALSE AS has_segment_asset
+		) seg ON TRUE`
 	}
 
 	query += `
@@ -195,6 +215,7 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 			primary_episode.episode_number,
 			primary_episode.title,
 			rev.title,
+			rev.version,
 			ss.provider_type,
 			ss.external_id,
 			rs.jellyfin_item_id,
@@ -204,6 +225,8 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 			rev.release_date,
 			fr.release_date,
 			ss.url,
+			seg.segment_count,
+			seg.has_segment_asset,
 			rv.created_at,
 			rv.updated_at,
 			rv.modified_at`
@@ -272,6 +295,7 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			primary_episode.anime_id,
 			COALESCE(CAST(primary_episode.episode_number AS INTEGER), 0) AS episode_number,
 			COALESCE(rev.title, primary_episode.title) AS title,
+			NULLIF(BTRIM(rev.version), '') AS release_version,
 			COALESCE(ss.provider_type, '') AS media_provider,
 			COALESCE(ss.external_id, rs.jellyfin_item_id, '') AS media_item_id,
 			COALESCE(
@@ -283,6 +307,8 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			rv.subtitle_type,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			ss.url AS stream_url,
+			COALESCE(seg.segment_count, 0) AS segment_count,
+			COALESCE(seg.has_segment_asset, FALSE) AS has_segment_asset,
 			rv.created_at,
 			COALESCE(rv.updated_at, rv.modified_at, rv.created_at) AS updated_at,
 			fg.id, fg.slug, fg.name, fg.logo_url
@@ -296,6 +322,18 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 		LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id
 		LEFT JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
 		LEFT JOIN fansub_groups fg ON fg.id = COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id)
+		LEFT JOIN LATERAL (
+			SELECT
+				COUNT(ts.id)::INTEGER AS segment_count,
+				COALESCE(BOOL_OR(ts.source_type = 'release_asset' AND NULLIF(BTRIM(ts.source_ref), '') IS NOT NULL), FALSE) AS has_segment_asset
+			FROM theme_segments ts
+			JOIN themes t ON t.id = ts.theme_id
+			WHERE t.anime_id = primary_episode.anime_id
+			  AND COALESCE(ts.fansub_group_id, 0) = COALESCE(COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id), 0)
+			  AND COALESCE(NULLIF(BTRIM(ts.version), ''), 'v1') = COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1')
+			  AND (ts.start_episode IS NULL OR ts.start_episode <= CAST(primary_episode.episode_number AS INTEGER))
+			  AND (ts.end_episode IS NULL OR ts.end_episode >= CAST(primary_episode.episode_number AS INTEGER))
+		) seg ON TRUE
 		WHERE rv.id = $1 OR rev.id = $1
 		GROUP BY
 			rv.id,
@@ -303,6 +341,7 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			primary_episode.episode_number,
 			primary_episode.title,
 			rev.title,
+			rev.version,
 			ss.provider_type,
 			ss.external_id,
 			rs.jellyfin_item_id,
@@ -312,6 +351,8 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			rev.release_date,
 			fr.release_date,
 			ss.url,
+			seg.segment_count,
+			seg.has_segment_asset,
 			rv.created_at,
 			rv.updated_at,
 			rv.modified_at,
@@ -718,6 +759,7 @@ func scanReleaseVariantAsEpisodeVersion(scanner rowScanner, includeFansub bool) 
 		&item.AnimeID,
 		&item.EpisodeNumber,
 		&item.Title,
+		&item.ReleaseVersion,
 		&item.MediaProvider,
 		&item.MediaItemID,
 		&item.CoveredEpisodeNumbers,
@@ -725,6 +767,8 @@ func scanReleaseVariantAsEpisodeVersion(scanner rowScanner, includeFansub bool) 
 		&item.SubtitleType,
 		&item.ReleaseDate,
 		&item.StreamURL,
+		&item.SegmentCount,
+		&item.HasSegmentAsset,
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	}
@@ -890,15 +934,7 @@ func ensureEpisodeVersionStream(
 	if err != nil {
 		return err
 	}
-	if _, err := tx.Exec(ctx, `
-		INSERT INTO release_streams (variant_id, stream_type_id, stream_source_id, jellyfin_item_id, modified_at, updated_at)
-		VALUES ($1, $2, $3, NULLIF($4, ''), NOW(), NOW())
-		ON CONFLICT (variant_id, stream_type_id, audio_language_id, subtitle_language_id) DO UPDATE
-		SET stream_source_id = EXCLUDED.stream_source_id,
-		    jellyfin_item_id = EXCLUDED.jellyfin_item_id,
-		    modified_at = NOW(),
-		    updated_at = NOW()
-	`, variantID, streamTypeID, streamSourceID, mediaItemID); err != nil {
+	if err := upsertNormalizedReleaseStream(ctx, tx, variantID, streamTypeID, streamSourceID, mediaItemID); err != nil {
 		return fmt.Errorf("upsert release stream variant=%d: %w", variantID, err)
 	}
 	return nil

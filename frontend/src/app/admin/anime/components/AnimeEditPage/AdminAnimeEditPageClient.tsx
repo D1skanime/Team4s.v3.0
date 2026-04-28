@@ -90,9 +90,6 @@ export function AdminAnimeEditPageClient({
             <Link href={`/admin/anime/${anime.id}/episodes`} className={`${styles.button} ${styles.buttonPrimary}`}>
               Zu Episoden wechseln
             </Link>
-            <Link href={`/admin/anime/${anime.id}/themes`} className={`${styles.button} ${styles.buttonSecondary}`}>
-              Zu Themes wechseln
-            </Link>
             <Link
               href={`/anime/${anime.id}`}
               className={`${styles.button} ${styles.buttonSecondary}`}
