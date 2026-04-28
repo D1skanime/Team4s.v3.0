@@ -9,6 +9,8 @@ import {
   getTypeBadgeLabel,
   formatDuration,
   formatEpisodeRange,
+  formatTimeInput,
+  parseFlexibleTimeInput,
   resolveSegmentProvenanceDetails,
   resolveSegmentProvenance,
   resolveSourceLabel,
@@ -39,6 +41,7 @@ interface SegmenteTabProps {
   version: string | null
   episodeNumber?: number | null
   durationSeconds?: number | null
+  releaseVariantId?: number | null
 }
 
 const EMPTY_FORM: FormState = {
@@ -77,7 +80,7 @@ function segmentFormFromExisting(segment: AdminThemeSegment): FormState {
 }
 
 // --- Main component ---
-export function SegmenteTab({ animeId, groupId, version, episodeNumber, durationSeconds }: SegmenteTabProps) {
+export function SegmenteTab({ animeId, groupId, version, episodeNumber, durationSeconds, releaseVariantId }: SegmenteTabProps) {
   const {
     segments,
     genericThemeOptions,
@@ -92,6 +95,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     animeId,
     groupId,
     version,
+    releaseVariantId,
   })
 
   const [authToken] = useState(() => getRuntimeAuthToken())
@@ -238,6 +242,24 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           : null)
 
     try {
+      const parsedStart = formState.startTime.trim() ? parseFlexibleTimeInput(formState.startTime) : null
+      if (formState.startTime.trim() && parsedStart == null) {
+        setFormError('Start-Zeit ist ungueltig. Erlaubt sind z. B. 1:20 oder 00:01:20.')
+        return
+      }
+      let parsedEnd = formState.endTime.trim() ? parseFlexibleTimeInput(formState.endTime) : null
+      if (formState.endTime.trim() && parsedEnd == null) {
+        setFormError('End-Zeit ist ungueltig. Erlaubt sind z. B. 1:20 oder 00:01:20.')
+        return
+      }
+      if (durationSeconds != null && parsedEnd != null) {
+        parsedEnd = Math.min(parsedEnd, durationSeconds)
+      }
+      if (parsedStart != null && parsedEnd != null && parsedEnd <= parsedStart) {
+        setFormError('Ende muss nach dem Start liegen.')
+        return
+      }
+
       const resolvedThemeID = await ensureThemeFromSelection(formState.themeKind, formState.themeTitle)
       if (!resolvedThemeID) {
         setFormError('Bitte einen gueltigen Typ auswaehlen.')
@@ -249,8 +271,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           theme_id: resolvedThemeID,
           start_episode: formState.startEpisode ? parseInt(formState.startEpisode, 10) : null,
           end_episode: formState.endEpisode ? parseInt(formState.endEpisode, 10) : null,
-          start_time: formState.startTime || null,
-          end_time: formState.endTime || null,
+          start_time: parsedStart != null ? formatTimeInput(parsedStart) : null,
+          end_time: parsedEnd != null ? formatTimeInput(parsedEnd) : null,
           source_jellyfin_item_id:
             formState.sourceType === 'jellyfin_theme'
               ? normalizedSourceRef ?? editingSegment?.source_jellyfin_item_id ?? null
@@ -259,8 +281,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           source_ref: normalizedSourceRef,
           source_label: normalizedSourceLabel,
         }
-        const ok = await update(editingSegment.id, patch)
-        if (ok) closePanel()
+        const result = await update(editingSegment.id, patch)
+        if (result) closePanel()
         else setFormError('Segment konnte nicht aktualisiert werden.')
       } else {
         const input: AdminThemeSegmentCreateRequest = {
@@ -269,8 +291,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           version: version ?? 'v1',
           start_episode: formState.startEpisode ? parseInt(formState.startEpisode, 10) : null,
           end_episode: formState.endEpisode ? parseInt(formState.endEpisode, 10) : null,
-          start_time: formState.startTime || null,
-          end_time: formState.endTime || null,
+          start_time: parsedStart != null ? formatTimeInput(parsedStart) : null,
+          end_time: parsedEnd != null ? formatTimeInput(parsedEnd) : null,
           source_jellyfin_item_id: formState.sourceType === 'jellyfin_theme' ? normalizedSourceRef : null,
           source_type: formState.sourceType,
           source_ref: normalizedSourceRef,
@@ -540,6 +562,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           editingSegment={editingSegment}
           formState={formState}
           pendingUploadFile={pendingUploadFile}
+          durationSeconds={durationSeconds}
           genericThemeOptions={genericThemeOptions}
           isSaving={isSaving}
           formError={formError}

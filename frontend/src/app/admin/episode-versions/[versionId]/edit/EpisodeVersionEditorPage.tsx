@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
-import { formatBytes, formatDateTime, padEpisodeNumber } from './episodeVersionEditorUtils'
+import { formatBytes, formatDateTime, formatDurationInput, padEpisodeNumber, parseDurationInput } from './episodeVersionEditorUtils'
 import { useEpisodeVersionEditor } from './useEpisodeVersionEditor'
 import { SegmenteTab } from './SegmenteTab'
 import styles from './EpisodeVersionEditor.module.css'
@@ -298,7 +298,22 @@ export function EpisodeVersionEditorPage() {
                     onChange={(event) => editor.setFormState((current) => ({ ...current, videoQuality: event.target.value }))}
                   />
                 </label>
+                <label className={styles.field}>
+                  <span>Gesamtdauer</span>
+                  <input
+                    value={editor.formState.durationSeconds}
+                    placeholder="z. B. 24:10 oder 1450"
+                    onChange={(event) => editor.setFormState((current) => ({ ...current, durationSeconds: event.target.value }))}
+                    onBlur={(event) => {
+                      const parsed = parseDurationInput(event.target.value)
+                      if (parsed != null) {
+                        editor.setFormState((current) => ({ ...current, durationSeconds: formatDurationInput(parsed) }))
+                      }
+                    }}
+                  />
+                </label>
               </div>
+              <p className={styles.helperText}>Akzeptiert `m:ss`, `hh:mm:ss` oder rohe Sekunden. Wird als Grenze fuer Segment-Endzeiten verwendet.</p>
             </section>
 
             <section className={styles.card}>
@@ -362,6 +377,7 @@ export function EpisodeVersionEditorPage() {
                 version={segmentVersion}
                 episodeNumber={episodeNumber}
                 durationSeconds={editor.contextData?.version.duration_seconds}
+                releaseVariantId={editor.contextData?.version.id ?? null}
               />
             ) : null}
 

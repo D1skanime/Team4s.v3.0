@@ -24,6 +24,7 @@ interface UseReleaseSegmentsOptions {
   animeId: number | null
   groupId: number | null
   version: string | null
+  releaseVariantId?: number | null
 }
 
 export type GenericSegmentThemeKind = 'op' | 'ed' | 'insert' | 'outro'
@@ -76,7 +77,7 @@ function deriveGenericThemeOptions(themeTypes: AdminThemeType[]): GenericSegment
     .filter((option): option is GenericSegmentThemeOption => Boolean(option))
 }
 
-export function useReleaseSegments({ animeId, groupId, version }: UseReleaseSegmentsOptions) {
+export function useReleaseSegments({ animeId, groupId, version, releaseVariantId }: UseReleaseSegmentsOptions) {
   const [authToken] = useState(() => getRuntimeAuthToken())
   const [segments, setSegments] = useState<AdminThemeSegment[]>([])
   const [themes, setThemes] = useState<AdminAnimeTheme[]>([])
@@ -90,7 +91,7 @@ export function useReleaseSegments({ animeId, groupId, version }: UseReleaseSegm
     setErrorMessage(null)
     try {
       const [segRes, themeRes, themeTypesRes] = await Promise.all([
-        getAnimeSegments(animeId, groupId, version, authToken),
+        getAnimeSegments(animeId, groupId, version, authToken, releaseVariantId),
         getAdminAnimeThemes(animeId, authToken),
         getAdminThemeTypes(authToken),
       ])
@@ -102,7 +103,7 @@ export function useReleaseSegments({ animeId, groupId, version }: UseReleaseSegm
     } finally {
       setIsLoading(false)
     }
-  }, [animeId, groupId, version, authToken])
+  }, [animeId, groupId, version, authToken, releaseVariantId])
 
   useEffect(() => { void load() }, [load])
 
@@ -141,7 +142,7 @@ export function useReleaseSegments({ animeId, groupId, version }: UseReleaseSegm
   async function create(input: AdminThemeSegmentCreateRequest): Promise<AdminThemeSegment | null> {
     if (!animeId || !authToken) return null
     try {
-      const res = await createAnimeSegment(animeId, input, authToken)
+      const res = await createAnimeSegment(animeId, input, authToken, releaseVariantId)
       setSegments((current) => [...current, res.data])
       return res.data
     } catch (error) {
@@ -150,15 +151,15 @@ export function useReleaseSegments({ animeId, groupId, version }: UseReleaseSegm
     }
   }
 
-  async function update(segmentId: number, input: AdminThemeSegmentPatchRequest): Promise<boolean> {
-    if (!animeId || !authToken) return false
+  async function update(segmentId: number, input: AdminThemeSegmentPatchRequest): Promise<{ data: AdminThemeSegment } | null> {
+    if (!animeId || !authToken) return null
     try {
-      await updateAnimeSegment(animeId, segmentId, input, authToken)
+      const res = await updateAnimeSegment(animeId, segmentId, input, authToken, releaseVariantId)
       await load()
-      return true
+      return res
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Segment konnte nicht aktualisiert werden.')
-      return false
+      return null
     }
   }
 
