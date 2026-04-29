@@ -234,6 +234,7 @@ Recent durable decisions:
 | 260423mnv | Per-Reihe "Ubernehmen"-Button im Episode-Import Workbench | 2026-04-23 | 1b3b57d | [260423mnv-per-row-apply-button](./quick/260423mnv-per-row-apply-button/) |
 | 260423qpn | Optionale Jellyfin-Bibliotheksfilterung via JELLYFIN_ALLOWED_LIBRARY_IDS | 2026-04-24 | 6fad43b | [260423qpn-jellyfin-library-filter](./quick/260423qpn-jellyfin-library-filter/) |
 | 260428-ddb | Episoden-Laufzeit crawlen und in Timeline-Vorschau proportional anzeigen | 2026-04-28 | 5126a293 | [260428-ddb-episoden-laufzeit-crawlen-und-in-timelin](./quick/260428-ddb-episoden-laufzeit-crawlen-und-in-timelin/) |
+| 260429-fnm | Smart-Parser fuer Segment-Zeitfelder: MM:SS, Xm/XmYs, immer HH:MM:SS Ausgabe | 2026-04-29 | 1230bd2c | [260429-fnm-smart-parser-fuer-segment-zeitfelder-mm-](./quick/260429-fnm-smart-parser-fuer-segment-zeitfelder-mm-/) |
 
 ## Session Continuity
 
