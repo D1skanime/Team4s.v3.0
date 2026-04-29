@@ -9,6 +9,8 @@ import {
   isSegmentActiveForEpisode,
 } from './segmenteTabUtils'
 
+import { parseFlexibleTimeInput, formatTimeInput } from './SegmenteTab.helpers'
+
 // ---------------------------------------------------------------------------
 // Helper: minimale AdminThemeSegment-Instanz fuer Tests
 // ---------------------------------------------------------------------------
@@ -201,5 +203,71 @@ describe('isSegmentActiveForEpisode', () => {
     expect(isSegmentActiveForEpisode(segment, 4)).toBe(true)
     expect(isSegmentActiveForEpisode(segment, 9)).toBe(true)
     expect(isSegmentActiveForEpisode(segment, 10)).toBe(false)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// parseFlexibleTimeInput
+// ---------------------------------------------------------------------------
+describe('parseFlexibleTimeInput', () => {
+  it('"90" wird als 90 Sekunden interpretiert', () => {
+    expect(parseFlexibleTimeInput('90')).toBe(90)
+  })
+
+  it('"1:30" wird als MM:SS = 90 Sekunden interpretiert', () => {
+    expect(parseFlexibleTimeInput('1:30')).toBe(90)
+  })
+
+  it('"25:29" wird als MM:SS = 1529 Sekunden interpretiert', () => {
+    expect(parseFlexibleTimeInput('25:29')).toBe(1529)
+  })
+
+  it('"1:1:20" wird als HH:MM:SS = 3680 Sekunden interpretiert', () => {
+    expect(parseFlexibleTimeInput('1:1:20')).toBe(3680)
+  })
+
+  it('"1m30" wird als 90 Sekunden interpretiert', () => {
+    expect(parseFlexibleTimeInput('1m30')).toBe(90)
+  })
+
+  it('"1m30s" wird als 90 Sekunden interpretiert', () => {
+    expect(parseFlexibleTimeInput('1m30s')).toBe(90)
+  })
+
+  it('"2m" wird als 120 Sekunden interpretiert', () => {
+    expect(parseFlexibleTimeInput('2m')).toBe(120)
+  })
+
+  it('"00:01:30" bleibt rueckwaertskompatibel = 90 Sekunden', () => {
+    expect(parseFlexibleTimeInput('00:01:30')).toBe(90)
+  })
+
+  it('leerer String gibt null zurueck', () => {
+    expect(parseFlexibleTimeInput('')).toBeNull()
+  })
+
+  it('"abc" gibt null zurueck', () => {
+    expect(parseFlexibleTimeInput('abc')).toBeNull()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// formatTimeInput
+// ---------------------------------------------------------------------------
+describe('formatTimeInput', () => {
+  it('90 Sekunden => "00:01:30"', () => {
+    expect(formatTimeInput(90)).toBe('00:01:30')
+  })
+
+  it('0 Sekunden => "00:00:00"', () => {
+    expect(formatTimeInput(0)).toBe('00:00:00')
+  })
+
+  it('3661 Sekunden => "01:01:01"', () => {
+    expect(formatTimeInput(3661)).toBe('01:01:01')
+  })
+
+  it('1529 Sekunden => "00:25:29"', () => {
+    expect(formatTimeInput(1529)).toBe('00:25:29')
   })
 })

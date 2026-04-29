@@ -43,6 +43,12 @@ export function parseTimeToSeconds(t: string): number {
   if (parts.length === 3) {
     return (parts[0] ?? 0) * 3600 + (parts[1] ?? 0) * 60 + (parts[2] ?? 0)
   }
+  if (parts.length === 2) {
+    return (parts[0] ?? 0) * 60 + (parts[1] ?? 0)
+  }
+  if (parts.length === 1) {
+    return parts[0] ?? 0
+  }
   return 0
 }
 
@@ -59,6 +65,38 @@ export function formatDuration(startTime: string, endTime: string): string {
   const durationSec = endSec - startSec
   if (durationSec <= 0) return `${startTime} - ${endTime}`
   return `${startTime} - ${endTime} (${formatSeconds(durationSec)})`
+}
+
+export function parseFlexibleTimeInput(value: string): number | null {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  const normalized = trimmed.replace(/\s+/g, '')
+  if (/^\d+$/.test(normalized)) {
+    const secondsOnly = Number.parseInt(normalized, 10)
+    return Number.isFinite(secondsOnly) && secondsOnly >= 0 ? secondsOnly : null
+  }
+  // Kurzform: 1m30s, 1m30, 2m
+  const minuteForm = /^(\d+)m(\d*)s?$/.exec(normalized)
+  if (minuteForm) {
+    const mins = Number.parseInt(minuteForm[1] ?? '0', 10)
+    const secs = minuteForm[2] ? Number.parseInt(minuteForm[2], 10) : 0
+    return Number.isFinite(mins) && Number.isFinite(secs) ? mins * 60 + secs : null
+  }
+  const parts = normalized.split(':')
+  if (parts.length < 1 || parts.length > 3) return null
+  const nums = parts.map((part) => Number.parseInt(part, 10))
+  if (nums.some((num) => !Number.isFinite(num) || num < 0)) return null
+  if (parts.length === 3) return (nums[0] ?? 0) * 3600 + (nums[1] ?? 0) * 60 + (nums[2] ?? 0)
+  if (parts.length === 2) return (nums[0] ?? 0) * 60 + (nums[1] ?? 0)
+  return nums[0] ?? null
+}
+
+export function formatTimeInput(totalSeconds: number): string {
+  const safe = Math.max(0, totalSeconds)
+  const hours = Math.floor(safe / 3600)
+  const minutes = Math.floor((safe % 3600) / 60)
+  const seconds = safe % 60
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }
 
 export function formatEpisodeRange(start: number | null, end: number | null): string {
