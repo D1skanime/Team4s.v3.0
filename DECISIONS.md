@@ -1,5 +1,29 @@
 # DECISIONS
 
+## 2026-04-29 - Episode-Version Duration Input Accepts Shorthand But Must Fail Safe
+
+### Decision
+Accept operator-friendly duration forms such as raw seconds, `m:ss`, `hh:mm:ss`, `2m`, `1m30`, and `1m30s` in the episode-version editor, but treat invalid non-empty input as a validation error instead of serializing `duration_seconds: null`.
+
+### Context
+The UI and product intent had drifted toward faster manual runtime entry, but the first implementation only parsed raw seconds and colon syntax. Worse, malformed text could be serialized as `null` and silently erase previously stored runtime metadata.
+
+### Options Considered
+- keep only raw seconds / colon syntax and leave shorthand unsupported
+- support shorthand forms but allow parse failures to fall through as `null`
+- support shorthand forms and block save when a non-empty value cannot be parsed
+
+### Why This Won
+Operators think in short runtime forms during admin work, so shorthand support genuinely reduces friction. At the same time, runtime metadata is too easy to lose if parse failures are silently coerced to `null`. Fast input and fail-safe persistence are both required.
+
+### Consequences
+- the frontend parser must support both colon syntax and shorthand forms consistently
+- save flows must guard against unparseable duration text before issuing the patch request
+- future UI copy/help text should not advertise duration forms that the parser does not actually implement
+
+### Follow-ups Required
+- capture one real browser/UAT pass that covers both valid shorthand values and an invalid value
+
 ## 2026-04-28 - Segment Types Stay Generic And Naming Carries The Human Distinction
 
 ### Decision

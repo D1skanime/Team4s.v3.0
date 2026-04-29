@@ -48,7 +48,7 @@ describe('admin anime api error propagation', () => {
         status: 'ongoing',
         cover_image: 'lain.jpg',
       }),
-    ).rejects.toMatchObject<ApiError>({
+    ).rejects.toMatchObject({
       status: 500,
       message: 'Interner Serverfehler',
       code: 'db_schema_mismatch',
@@ -72,7 +72,7 @@ describe('admin anime api error propagation', () => {
       }),
     )
 
-    await expect(updateAdminAnime(42, { cover_image: 'lain.jpg' })).rejects.toMatchObject<ApiError>({
+    await expect(updateAdminAnime(42, { cover_image: 'lain.jpg' })).rejects.toMatchObject({
       status: 500,
       message: 'Interner Serverfehler',
       code: 'cover_persist_failed',
@@ -105,7 +105,7 @@ describe('admin anime api error propagation', () => {
         cover_image: 'lain.jpg',
         source: 'jellyfin:series-42',
       }),
-    ).rejects.toMatchObject<ApiError>({
+    ).rejects.toMatchObject({
       status: 500,
       message: 'Interner Serverfehler',
       code: 'source_link_persist_failed',
@@ -490,7 +490,7 @@ describe('admin anime api error propagation', () => {
       }),
     )
 
-    await expect(searchAdminAnimeRelationTargets(42, 'Naruto')).rejects.toMatchObject<ApiError>({
+    await expect(searchAdminAnimeRelationTargets(42, 'Naruto')).rejects.toMatchObject({
       status: 404,
       message: 'anime nicht gefunden',
       code: 'relation_owner_missing',
@@ -519,7 +519,7 @@ describe('admin anime api error propagation', () => {
         target_anime_id: 84,
         relation_label: 'Fortsetzung',
       }),
-    ).rejects.toMatchObject<ApiError>({
+    ).rejects.toMatchObject({
       status: 409,
       message: 'relation existiert bereits oder ist ungueltig',
       code: 'relation_conflict',
@@ -583,7 +583,7 @@ describe('admin anime api error propagation', () => {
       }),
     )
 
-    await expect(assignAdminAnimeLogoAsset(42, 'media-logo')).rejects.toMatchObject<ApiError>({
+    await expect(assignAdminAnimeLogoAsset(42, 'media-logo')).rejects.toMatchObject({
       status: 409,
       message: 'logo konnte nicht gesetzt werden',
       code: 'logo_persist_failed',
@@ -607,7 +607,7 @@ describe('admin anime api error propagation', () => {
       }),
     )
 
-    await expect(assignAdminAnimeBackgroundVideoAsset(42, 'media-video')).rejects.toMatchObject<ApiError>({
+    await expect(assignAdminAnimeBackgroundVideoAsset(42, 'media-video')).rejects.toMatchObject({
       status: 422,
       message: 'background_video konnte nicht gesetzt werden',
       code: 'background_video_persist_failed',
@@ -741,7 +741,7 @@ describe('admin anime api error propagation', () => {
         },
         'token',
       ),
-    ).rejects.toMatchObject<ApiError>({
+    ).rejects.toMatchObject({
       status: 409,
       message: 'AniSearch Quelle ist bereits verknuepft.',
       code: 'anisearch_source_conflict',

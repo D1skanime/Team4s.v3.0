@@ -7,7 +7,6 @@ describe('buildCreateAniSearchDraftSummary', () => {
     const summary = buildCreateAniSearchDraftSummary({
       result: {
         anisearch_id: '12345',
-        source: 'anisearch:12345',
         filled_fields: ['title', 'description', 'relations'],
         manual_fields_kept: [],
         provider: {
@@ -32,7 +31,6 @@ describe('buildCreateAniSearchDraftSummary', () => {
     const summary = buildCreateAniSearchDraftSummary({
       result: {
         anisearch_id: '12345',
-        source: 'anisearch:12345',
         filled_fields: ['title'],
         manual_fields_kept: ['title_de', 'description'],
         provider: {

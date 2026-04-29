@@ -421,7 +421,7 @@ func (r *EpisodeVersionRepository) Create(
 		}
 		return nil, err
 	}
-	if err := applyEpisodeVersionVariantMetadata(ctx, tx, variantID, input.VideoQuality, input.SubtitleType, input.Title); err != nil {
+	if err := applyEpisodeVersionVariantMetadata(ctx, tx, variantID, input.VideoQuality, input.SubtitleType, input.Title, input.DurationSeconds); err != nil {
 		return nil, err
 	}
 	if err := ensureEpisodeVersionStream(ctx, tx, variantID, input.MediaProvider, input.MediaItemID, input.StreamURL); err != nil {
@@ -483,8 +483,12 @@ func (r *EpisodeVersionRepository) Update(
 	if input.SubtitleType.Set {
 		subtitleType = input.SubtitleType.Value
 	}
-	if input.Title.Set || input.VideoQuality.Set || input.SubtitleType.Set {
-		if err := applyEpisodeVersionVariantMetadata(ctx, tx, state.VariantID, videoQuality, subtitleType, title); err != nil {
+	durationSeconds := state.DurationSeconds
+	if input.DurationSeconds.Set {
+		durationSeconds = input.DurationSeconds.Value
+	}
+	if input.Title.Set || input.VideoQuality.Set || input.SubtitleType.Set || input.DurationSeconds.Set {
+		if err := applyEpisodeVersionVariantMetadata(ctx, tx, state.VariantID, videoQuality, subtitleType, title, durationSeconds); err != nil {
 			return nil, err
 		}
 	}
@@ -819,6 +823,7 @@ type episodeVersionWriteState struct {
 	ReleaseDate      *time.Time
 	VideoQuality     *string
 	SubtitleType     *string
+	DurationSeconds  *int32
 	MediaProvider    string
 	MediaItemID      string
 	StreamURL        *string
@@ -836,6 +841,7 @@ func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID 
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			COALESCE(rv.video_quality, rv.resolution) AS video_quality,
 			rv.subtitle_type,
+			rv.duration_seconds,
 			COALESCE(ss.provider_type, ''),
 			COALESCE(ss.external_id, rs.jellyfin_item_id, ''),
 			ss.url
@@ -858,6 +864,7 @@ func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID 
 		&state.ReleaseDate,
 		&state.VideoQuality,
 		&state.SubtitleType,
+		&state.DurationSeconds,
 		&state.MediaProvider,
 		&state.MediaItemID,
 		&state.StreamURL,
@@ -1001,6 +1008,7 @@ func applyEpisodeVersionVariantMetadata(
 	videoQuality *string,
 	subtitleType *string,
 	title *string,
+	durationSeconds *int32,
 ) error {
 	filename := strings.TrimSpace(derefString(title))
 	container := strings.TrimPrefix(strings.ToLower(pathExt(filename)), ".")
@@ -1011,10 +1019,11 @@ func applyEpisodeVersionVariantMetadata(
 		    subtitle_type = $2,
 		    filename = NULLIF($3, ''),
 		    container = NULLIF($4, ''),
+		    duration_seconds = $5,
 		    updated_at = NOW(),
 		    modified_at = NOW()
-		WHERE id = $5
-	`, videoQuality, subtitleType, filename, container, variantID); err != nil {
+		WHERE id = $6
+	`, videoQuality, subtitleType, filename, container, durationSeconds, variantID); err != nil {
 		return fmt.Errorf("update release variant metadata variant=%d: %w", variantID, err)
 	}
 	return nil

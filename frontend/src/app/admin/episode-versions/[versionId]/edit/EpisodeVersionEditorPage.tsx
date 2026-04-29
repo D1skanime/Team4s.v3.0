@@ -313,7 +313,7 @@ export function EpisodeVersionEditorPage() {
                   />
                 </label>
               </div>
-              <p className={styles.helperText}>Akzeptiert `m:ss`, `hh:mm:ss` oder rohe Sekunden. Wird als Grenze fuer Segment-Endzeiten verwendet.</p>
+              <p className={styles.helperText}>Akzeptiert `m:ss`, `hh:mm:ss`, rohe Sekunden sowie Kurzformen wie `2m` oder `1m30s`. Wird als Grenze fuer Segment-Endzeiten verwendet.</p>
             </section>
 
             <section className={styles.card}>

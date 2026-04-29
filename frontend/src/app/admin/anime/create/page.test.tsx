@@ -79,12 +79,14 @@ describe("AdminAnimeCreatePage", () => {
         ]}
         selectedCandidateIDs={["zerochan-123"]}
         errorMessage={null}
+        hasMore={false}
         isOpen
         isSearching={false}
         isAdopting={false}
         onClose={() => undefined}
         onQueryChange={() => undefined}
         onSearch={() => undefined}
+        onLoadMore={() => undefined}
         onToggleCandidate={() => undefined}
         onAdoptSelection={() => undefined}
       />,
@@ -152,6 +154,13 @@ describe("AdminAnimeCreatePage", () => {
             "AniSearch hat bestehende Jellyfin-Werte fuer Titel ueberschrieben.",
             "Manuell gepflegte Beschreibung bleibt erhalten.",
           ],
+          draft: {
+            title: "Cowboy Bebop",
+            type: "tv",
+            content_type: "anime",
+            status: "ongoing",
+            source: "anisearch:12345",
+          },
         }}
         conflict={null}
         errorMessage={null}
@@ -246,6 +255,10 @@ describe("AdminAnimeCreatePage", () => {
     const createAdminAnimeMock = vi.fn().mockResolvedValue({
       data: {
         id: 42,
+        title: "Serial Experiments Lain",
+        type: "tv",
+        content_type: "anime",
+        status: "ongoing",
       },
     });
     const setLocationHref = vi.fn();
@@ -280,7 +293,13 @@ describe("AdminAnimeCreatePage", () => {
   it("builds an operator-visible AniSearch warning summary before redirect", () => {
     expect(
       buildCreateSuccessMessage({
-        data: { id: 42 },
+        data: {
+          id: 42,
+          title: "Lain",
+          type: "tv",
+          content_type: "anime",
+          status: "ongoing",
+        },
         anisearch: {
           source: "anisearch:12345",
           relations_attempted: 3,
@@ -299,7 +318,13 @@ describe("AdminAnimeCreatePage", () => {
   it("keeps the generic create success message when AniSearch follow-through is clean", () => {
     expect(
       buildCreateSuccessMessage({
-        data: { id: 42 },
+        data: {
+          id: 42,
+          title: "Lain",
+          type: "tv",
+          content_type: "anime",
+          status: "ongoing",
+        },
         anisearch: {
           source: "anisearch:12345",
           relations_attempted: 2,
@@ -315,7 +340,13 @@ describe("AdminAnimeCreatePage", () => {
   it("treats skipped-existing AniSearch relations as a clean idempotent outcome", () => {
     expect(
       buildCreateSuccessMessage({
-        data: { id: 42 },
+        data: {
+          id: 42,
+          title: "Lain",
+          type: "tv",
+          content_type: "anime",
+          status: "ongoing",
+        },
         anisearch: {
           source: "anisearch:12345",
           relations_attempted: 2,
@@ -438,6 +469,8 @@ describe("AdminAnimeCreatePage", () => {
       titleEN: "",
       genreTokens: [],
       tagTokens: [],
+      source: "",
+      folderName: "",
       description: "",
       coverImage: "",
     });
@@ -514,6 +547,8 @@ describe("AdminAnimeCreatePage", () => {
       titleEN: "",
       genreTokens: ["Action"],
       tagTokens: [],
+      source: "",
+      folderName: "",
       description: "Alter Text",
       coverImage: "https://img/old-cover.jpg",
     });
@@ -570,6 +605,8 @@ describe("AdminAnimeCreatePage", () => {
       titleEN: "",
       genreTokens: [],
       tagTokens: [],
+      source: "",
+      folderName: "",
       description: "",
       coverImage: "",
     });
@@ -615,6 +652,8 @@ describe("AdminAnimeCreatePage", () => {
       titleEN: "",
       genreTokens: [],
       tagTokens: [],
+      source: "",
+      folderName: "",
       description: "",
       coverImage: "https://img/cover.jpg",
     });
@@ -715,6 +754,8 @@ describe("AdminAnimeCreatePage", () => {
       titleEN: "",
       genreTokens: [],
       tagTokens: [],
+      source: "",
+      folderName: "",
       description: "",
       coverImage: "",
     });
@@ -820,6 +861,8 @@ describe("AdminAnimeCreatePage", () => {
       titleEN: "",
       genreTokens: [],
       tagTokens: [],
+      source: "",
+      folderName: "",
       description: "",
       coverImage: "",
     });
@@ -882,6 +925,8 @@ describe("AdminAnimeCreatePage", () => {
       titleEN: "",
       genreTokens: [],
       tagTokens: [],
+      source: "",
+      folderName: "",
       description: "",
       coverImage: "",
     });
@@ -896,6 +941,8 @@ describe("AdminAnimeCreatePage", () => {
       titleEN: "",
       genreTokens: [],
       tagTokens: [],
+      source: "",
+      folderName: "",
       description: "",
       coverImage: "",
     });

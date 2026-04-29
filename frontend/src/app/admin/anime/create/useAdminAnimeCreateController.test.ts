@@ -27,6 +27,8 @@ const manualLookupDraft = {
   titleEN: '',
   genreTokens: [],
   tagTokens: [],
+  source: '',
+  folderName: '',
   description: '',
   coverImage: '',
 }
@@ -284,7 +286,7 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
                 relation_label: 'Fortsetzung',
                 target_title: 'Serial Experiments Lain',
                 target_type: 'tv',
-                target_status: 'finished',
+                target_status: 'done',
               },
             ],
           },
@@ -302,7 +304,7 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
         relation_label: 'Fortsetzung',
         target_title: 'Serial Experiments Lain',
         target_type: 'tv',
-        target_status: 'finished',
+        target_status: 'done',
       },
     ])
   })

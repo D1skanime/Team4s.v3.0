@@ -49,11 +49,11 @@ type GroupedEpisodesData struct {
 // EpisodeVersionCreateInput enthält die Pflicht- und optionalen Felder
 // zum Anlegen einer neuen Episodenversion.
 type EpisodeVersionCreateInput struct {
-	AnimeID       int64
-	EpisodeNumber int32
-	Title         *string
-	FansubGroups  []SelectedFansubGroupInput
-	FansubGroupID *int64
+	AnimeID         int64
+	EpisodeNumber   int32
+	Title           *string
+	FansubGroups    []SelectedFansubGroupInput
+	FansubGroupID   *int64
 	MediaProvider   string
 	MediaItemID     string
 	VideoQuality    *string
@@ -66,15 +66,16 @@ type EpisodeVersionCreateInput struct {
 // EpisodeVersionPatchInput enthält die patch-fähigen Felder einer Episodenversion,
 // wobei nur gesetzte Felder (Set=true) in der Datenbankaktualisierung berücksichtigt werden.
 type EpisodeVersionPatchInput struct {
-	Title         OptionalString `json:"title"`
-	FansubGroups  OptionalSelectedFansubGroups `json:"fansub_groups"`
-	FansubGroupID OptionalInt64  `json:"fansub_group_id"`
-	MediaProvider OptionalString `json:"media_provider"`
-	MediaItemID   OptionalString `json:"media_item_id"`
-	VideoQuality  OptionalString `json:"video_quality"`
-	SubtitleType  OptionalString `json:"subtitle_type"`
-	ReleaseDate   OptionalTime   `json:"release_date"`
-	StreamURL     OptionalString `json:"stream_url"`
+	Title           OptionalString               `json:"title"`
+	FansubGroups    OptionalSelectedFansubGroups `json:"fansub_groups"`
+	FansubGroupID   OptionalInt64                `json:"fansub_group_id"`
+	MediaProvider   OptionalString               `json:"media_provider"`
+	MediaItemID     OptionalString               `json:"media_item_id"`
+	VideoQuality    OptionalString               `json:"video_quality"`
+	SubtitleType    OptionalString               `json:"subtitle_type"`
+	ReleaseDate     OptionalTime                 `json:"release_date"`
+	StreamURL       OptionalString               `json:"stream_url"`
+	DurationSeconds OptionalInt32                `json:"duration_seconds"`
 }
 
 type OptionalSelectedFansubGroups struct {

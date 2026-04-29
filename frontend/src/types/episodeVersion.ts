@@ -101,4 +101,5 @@ export interface EpisodeVersionPatchRequest {
   subtitle_type?: SubtitleType | null
   release_date?: string | null
   stream_url?: string | null
+  duration_seconds?: number | null
 }

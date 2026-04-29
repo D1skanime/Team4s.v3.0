@@ -828,6 +828,15 @@ export interface AdminThemeSegment {
   source_ref?: string | null
   /** Lesbares Label der Quelle fuer die UI-Anzeige. */
   source_label?: string | null
+  playback_source_id?: number | null
+  playback_source_kind?: 'episode_version' | 'jellyfin_theme' | 'uploaded_asset' | null
+  playback_release_variant_id?: number | null
+  playback_jellyfin_item_id?: string | null
+  playback_media_asset_id?: number | null
+  playback_source_label?: string | null
+  playback_start_offset_seconds?: number | null
+  playback_end_offset_seconds?: number | null
+  playback_duration_seconds?: number | null
   library_definition_id?: number | null
   library_asset_id?: number | null
   library_segment_kind?: string | null

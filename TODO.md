@@ -1,9 +1,9 @@
 # TODO
 
 ## Current Active Work
-- [ ] Verify Phase 26 live on `/admin/episode-versions/5/edit` and `/admin/anime/4/episodes`
-- [ ] If the live check passes, close or mark Phase 26 verified
-- [ ] Define the next smallest follow-up for segment-file workflows without reopening broad theme-management scope
+- [ ] Run the remaining Phase-28 live browser/UAT pass on `/admin/episode-versions/47/edit`
+- [ ] Capture duration-input shorthand and runtime/fallback evidence in the Phase-28 verification artifact
+- [ ] Audit the migration-52 mismatch between migration status and physical `segment_library_*` tables
 - [ ] Keep Docker/local verification commands current in `STATUS.md`
 
 ## Parking Lot

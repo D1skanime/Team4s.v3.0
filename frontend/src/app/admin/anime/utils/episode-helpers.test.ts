@@ -5,6 +5,16 @@ import { FansubGroup } from '@/types/fansub'
 
 import { suggestNextEpisodeNumber, buildFansubStoryPreview } from './episode-helpers'
 
+function buildEpisode(episode_number: string | null): EpisodeListItem {
+  return {
+    id: 1,
+    episode_number: episode_number ?? '',
+    status: 'public',
+    view_count: 0,
+    download_count: 0,
+  }
+}
+
 describe('suggestNextEpisodeNumber', () => {
   it('returns null for empty episode list', () => {
     expect(suggestNextEpisodeNumber([])).toBeNull()
@@ -12,76 +22,76 @@ describe('suggestNextEpisodeNumber', () => {
 
   it('returns null when no numeric episodes exist', () => {
     const episodes: EpisodeListItem[] = [
-      { id: 1, episode_number: 'OVA', status: 'public' } as EpisodeListItem,
-      { id: 2, episode_number: 'Special', status: 'public' } as EpisodeListItem,
+      { ...buildEpisode('OVA'), id: 1 },
+      { ...buildEpisode('Special'), id: 2 },
     ]
     expect(suggestNextEpisodeNumber(episodes)).toBeNull()
   })
 
   it('returns null when episode numbers are empty', () => {
     const episodes: EpisodeListItem[] = [
-      { id: 1, episode_number: '', status: 'public' } as EpisodeListItem,
-      { id: 2, episode_number: null, status: 'public' } as EpisodeListItem,
+      { ...buildEpisode(''), id: 1 },
+      { ...buildEpisode(null), id: 2 },
     ]
-    expect(suggestNextEpisodeNumber(episodes as EpisodeListItem[])).toBeNull()
+    expect(suggestNextEpisodeNumber(episodes)).toBeNull()
   })
 
   it('suggests next number based on max numeric episode', () => {
     const episodes: EpisodeListItem[] = [
-      { id: 1, episode_number: '01', status: 'public' } as EpisodeListItem,
-      { id: 2, episode_number: '02', status: 'public' } as EpisodeListItem,
-      { id: 3, episode_number: '03', status: 'public' } as EpisodeListItem,
+      { ...buildEpisode('01'), id: 1 },
+      { ...buildEpisode('02'), id: 2 },
+      { ...buildEpisode('03'), id: 3 },
     ]
     expect(suggestNextEpisodeNumber(episodes)).toBe('04')
   })
 
   it('preserves zero-padding width', () => {
     const episodes: EpisodeListItem[] = [
-      { id: 1, episode_number: '001', status: 'public' } as EpisodeListItem,
-      { id: 2, episode_number: '002', status: 'public' } as EpisodeListItem,
+      { ...buildEpisode('001'), id: 1 },
+      { ...buildEpisode('002'), id: 2 },
     ]
     expect(suggestNextEpisodeNumber(episodes)).toBe('003')
   })
 
   it('uses minimum width of 2 digits', () => {
     const episodes: EpisodeListItem[] = [
-      { id: 1, episode_number: '1', status: 'public' } as EpisodeListItem,
-      { id: 2, episode_number: '2', status: 'public' } as EpisodeListItem,
+      { ...buildEpisode('1'), id: 1 },
+      { ...buildEpisode('2'), id: 2 },
     ]
     expect(suggestNextEpisodeNumber(episodes)).toBe('03')
   })
 
   it('ignores non-numeric episode numbers', () => {
     const episodes: EpisodeListItem[] = [
-      { id: 1, episode_number: '01', status: 'public' } as EpisodeListItem,
-      { id: 2, episode_number: 'OVA', status: 'public' } as EpisodeListItem,
-      { id: 3, episode_number: '05', status: 'public' } as EpisodeListItem,
-      { id: 4, episode_number: 'Special', status: 'public' } as EpisodeListItem,
+      { ...buildEpisode('01'), id: 1 },
+      { ...buildEpisode('OVA'), id: 2 },
+      { ...buildEpisode('05'), id: 3 },
+      { ...buildEpisode('Special'), id: 4 },
     ]
     expect(suggestNextEpisodeNumber(episodes)).toBe('06')
   })
 
   it('handles whitespace in episode numbers', () => {
     const episodes: EpisodeListItem[] = [
-      { id: 1, episode_number: '  01  ', status: 'public' } as EpisodeListItem,
-      { id: 2, episode_number: '  02  ', status: 'public' } as EpisodeListItem,
+      { ...buildEpisode('  01  '), id: 1 },
+      { ...buildEpisode('  02  '), id: 2 },
     ]
     expect(suggestNextEpisodeNumber(episodes)).toBe('03')
   })
 
   it('ignores zero and negative numbers', () => {
     const episodes: EpisodeListItem[] = [
-      { id: 1, episode_number: '0', status: 'public' } as EpisodeListItem,
-      { id: 2, episode_number: '5', status: 'public' } as EpisodeListItem,
+      { ...buildEpisode('0'), id: 1 },
+      { ...buildEpisode('5'), id: 2 },
     ]
     expect(suggestNextEpisodeNumber(episodes)).toBe('06')
   })
 
   it('handles mixed numeric and special episodes', () => {
     const episodes: EpisodeListItem[] = [
-      { id: 1, episode_number: '12', status: 'public' } as EpisodeListItem,
-      { id: 2, episode_number: '12.5', status: 'public' } as EpisodeListItem,
-      { id: 3, episode_number: '13', status: 'public' } as EpisodeListItem,
+      { ...buildEpisode('12'), id: 1 },
+      { ...buildEpisode('12.5'), id: 2 },
+      { ...buildEpisode('13'), id: 3 },
     ]
     expect(suggestNextEpisodeNumber(episodes)).toBe('14')
   })

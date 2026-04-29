@@ -10,6 +10,7 @@ export interface FormState {
   subtitleType: '' | SubtitleType
   releaseDate: string
   streamURL: string
+  durationSeconds: string
 }
 
 export function parsePositiveInt(raw: string): number | null {
@@ -80,6 +81,7 @@ export function buildInitialFormState(context: EpisodeVersionEditorContext): For
     subtitleType: context.version.subtitle_type || '',
     releaseDate: toDateTimeLocalValue(context.version.release_date),
     streamURL: context.version.stream_url || '',
+    durationSeconds: formatDurationInput(context.version.duration_seconds),
   }
 }
 
@@ -107,6 +109,43 @@ export function buildSnapshot(formState: FormState, selectedGroups: FansubGroupS
     subtitleType: formState.subtitleType || null,
     releaseDate: fromDateTimeLocalValue(formState.releaseDate),
     streamURL: normalizeOptional(formState.streamURL),
+    durationSeconds: parseDurationInput(formState.durationSeconds),
     selectedGroupIDs: selectedGroups.map((group) => group.id).sort((left, right) => left - right),
   })
+}
+
+export function parseDurationInput(value: string): number | null {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  const normalized = trimmed.replace(/\s+/g, '')
+  if (/^\d+$/.test(normalized)) {
+    const secondsOnly = Number.parseInt(normalized, 10)
+    return Number.isFinite(secondsOnly) && secondsOnly > 0 ? secondsOnly : null
+  }
+  const minuteForm = /^(\d+)m(?:(\d+)(?:s)?)?$/.exec(normalized.toLowerCase())
+  if (minuteForm) {
+    const minutes = Number.parseInt(minuteForm[1] ?? '', 10)
+    const seconds = minuteForm[2] ? Number.parseInt(minuteForm[2], 10) : 0
+    if (!Number.isFinite(minutes) || !Number.isFinite(seconds) || seconds < 0 || seconds >= 60) {
+      return null
+    }
+    return minutes > 0 || seconds > 0 ? minutes * 60 + seconds : null
+  }
+  const parts = normalized.split(':')
+  if (parts.length < 1 || parts.length > 3) return null
+  const nums = parts.map((part) => Number.parseInt(part, 10))
+  if (nums.some((num) => !Number.isFinite(num) || num < 0)) return null
+  if ((parts.length === 2 || parts.length === 3) && nums.slice(1).some((num) => num != null && num >= 60)) return null
+  if (parts.length === 3) return (nums[0] ?? 0) * 3600 + (nums[1] ?? 0) * 60 + (nums[2] ?? 0)
+  if (parts.length === 2) return (nums[0] ?? 0) * 60 + (nums[1] ?? 0)
+  return nums[0] && nums[0] > 0 ? nums[0] : null
+}
+
+export function formatDurationInput(totalSeconds?: number | null): string {
+  if (typeof totalSeconds !== 'number' || totalSeconds <= 0) return ''
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  if (hours > 0) return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  return `${minutes}:${String(seconds).padStart(2, '0')}`
 }

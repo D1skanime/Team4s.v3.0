@@ -1,5 +1,44 @@
 # DAYLOG
 
+## 2026-04-29
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: unblock the honest Phase-28 follow-through, repair the stale TypeScript baseline around the segment/runtime work, complete the promised duration-input shorthand fix, and redeploy the local Docker stack
+
+### Workstreams Touched
+- Phase 28 execution-state audit and verification cleanup
+- Frontend TypeScript fixture/test baseline repair
+- Episode-version duration input shorthand + validation hardening
+- Docker rebuild/redeploy and smoke validation
+- Repo-local handoff closeout for a restartable next session
+
+### Goals Intended vs Achieved
+- Intended: make `gsd:execute-phase 28` truthful again, fix the newly reported duration-parser gap instead of hand-waving it, and leave the repo on a restartable pushed baseline
+- Achieved: the stale frontend test fixtures were updated so the current frontend type/build lane is green again, the duration field on episode-version edit now accepts shorthand forms like `2m` and `1m30s`, invalid duration input no longer clears persisted runtime by accident, Docker was rebuilt/redeployed successfully, and the handoff files now reflect the true post-fix state
+
+### Problems Solved
+- Root cause: Phase-28 closeout state was overstated because `tsc` still failed on older frontend test fixtures even though planning notes implied the technical path was effectively complete
+- Fix: updated the stale admin/test fixtures and related type expectations so the current frontend TypeScript/build verification runs pass again
+- Root cause: the first duration-input parser only handled raw seconds and colon forms, even though the UI and intent suggested shorthand input
+- Fix: implemented shorthand parsing for `2m`, `1m30`, and `1m30s`, plus explicit validation for malformed values like `1m90s`
+- Root cause: invalid duration text could previously serialize to `duration_seconds: null` and silently erase the saved runtime on patch
+- Fix: save is now blocked with a validation error whenever the duration field is non-empty but unparseable
+- Root cause: one earlier `tsc` run hit a transient `.next/types/validator.ts` missing `./routes.js` problem that looked like a source regression
+- Fix: a fresh frontend build regenerated the stale Next types and `npx tsc --noEmit` returned to green without further source changes
+
+### Decisions
+- Episode-version duration input should accept fast shorthand forms in addition to colon syntax
+- Invalid duration input must fail safe in the UI and must never clear a stored runtime silently
+
+### Blockers
+- No hard product blocker remains on the duration-input/runtime slice
+- Phase 28 still needs one honest live browser/UAT pass for the runtime playback/fallback scenarios
+- Migration-52 bookkeeping follow-up is still open and should be audited separately
+- The worktree still contains many unrelated local cache/tmp/debug/screenshot artifacts that are not intended Git history
+
+### Next Step
+- Open `http://127.0.0.1:3002/admin/episode-versions/47/edit`, verify `90`, `24:10`, and `1m30s` save correctly, then try `abc` and confirm the UI blocks save with a validation error
+
 ## 2026-04-28
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`

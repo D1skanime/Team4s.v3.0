@@ -22,6 +22,7 @@ import {
   fromDateTimeLocalValue,
   normalizeOptional,
   parsePositiveInt,
+  parseDurationInput,
   FormState,
 } from './episodeVersionEditorUtils'
 
@@ -40,6 +41,7 @@ export function useEpisodeVersionEditor() {
     subtitleType: '',
     releaseDate: '',
     streamURL: '',
+    durationSeconds: '',
   })
   const [selectedGroups, setSelectedGroups] = useState<FansubGroupSummary[]>([])
   const [folderPath, setFolderPath] = useState('')
@@ -211,6 +213,12 @@ export function useEpisodeVersionEditor() {
       setErrorMessage('Bitte zuerst eine Mediendatei aus dem Ordner waehlen oder den Advanced-Bereich ausfuellen.')
       return
     }
+    const rawDurationInput = formState.durationSeconds.trim()
+    const parsedDurationSeconds = parseDurationInput(formState.durationSeconds)
+    if (rawDurationInput && parsedDurationSeconds == null) {
+      setErrorMessage('Gesamtdauer ist ungueltig. Erlaubt sind Sekunden, m:ss, hh:mm:ss sowie Kurzformen wie 2m oder 1m30s.')
+      return
+    }
 
     setIsSaving(true)
     try {
@@ -225,6 +233,7 @@ export function useEpisodeVersionEditor() {
           subtitle_type: formState.subtitleType || null,
           release_date: fromDateTimeLocalValue(formState.releaseDate),
           stream_url: normalizeOptional(formState.streamURL),
+          duration_seconds: parsedDurationSeconds,
         },
         authToken,
       )

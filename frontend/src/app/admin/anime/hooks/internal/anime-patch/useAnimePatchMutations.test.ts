@@ -48,7 +48,7 @@ describe('useAnimePatchMutations', () => {
 
   function captureMutations(
     overrides: Partial<Parameters<typeof useAnimePatchMutations>[0]> = {},
-  ) {
+  ): ReturnType<typeof useAnimePatchMutations> {
     let captured: ReturnType<typeof useAnimePatchMutations> | null = null
 
     function Harness() {
@@ -65,8 +65,13 @@ describe('useAnimePatchMutations', () => {
           titleDE: '',
           titleEN: '',
           genreTokens: [],
+          genreDraft: '',
+          tagTokens: [],
+          tagDraft: '',
           description: '',
           coverImage: '',
+          source: '',
+          folderName: '',
         },
         clearFlags: {
           year: false,
@@ -74,6 +79,7 @@ describe('useAnimePatchMutations', () => {
           titleDE: false,
           titleEN: false,
           genre: false,
+          tags: false,
           description: false,
           coverImage: false,
         },
@@ -95,7 +101,7 @@ describe('useAnimePatchMutations', () => {
 
     renderToStaticMarkup(createElement(Harness))
     if (!captured) throw new Error('Hook capture failed')
-    return captured
+    return captured as ReturnType<typeof useAnimePatchMutations>
   }
 
   it('requires an existing anime ID before using the persisted edit-cover mutation seam', async () => {
@@ -179,8 +185,13 @@ describe('useAnimePatchMutations', () => {
         titleDE: '',
         titleEN: '',
         genreTokens: [],
+        genreDraft: '',
+        tagTokens: [],
+        tagDraft: '',
         description: '',
         coverImage: '',
+        source: '',
+        folderName: '',
       },
     })
 

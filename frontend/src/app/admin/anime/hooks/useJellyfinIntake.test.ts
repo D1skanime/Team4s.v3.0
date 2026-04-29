@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { AdminJellyfinIntakeSearchItem } from '@/types/admin'
 
 import {
   completeJellyfinCandidateTakeover,
@@ -14,11 +15,12 @@ describe('useJellyfinIntake helpers', () => {
   })
 
   it('opens candidate review instead of jumping directly to draft hydration', () => {
-    const candidates = [
+    const candidates: AdminJellyfinIntakeSearchItem[] = [
       {
         jellyfin_series_id: 'series-1',
         name: 'Naruto',
         confidence: 'high',
+        already_imported: false,
         type_hint: {
           confidence: 'high',
           suggested_type: 'tv',
@@ -29,6 +31,7 @@ describe('useJellyfinIntake helpers', () => {
         jellyfin_series_id: 'series-2',
         name: 'Naruto Shippuden',
         confidence: 'medium',
+        already_imported: false,
         type_hint: {
           confidence: 'medium',
           suggested_type: 'tv',
@@ -45,11 +48,12 @@ describe('useJellyfinIntake helpers', () => {
   })
 
   it('marks a selected candidate as takeover-only after preview hydration', () => {
-    const candidates = [
+    const candidates: AdminJellyfinIntakeSearchItem[] = [
       {
         jellyfin_series_id: 'series-1',
         name: 'Naruto',
         confidence: 'high',
+        already_imported: false,
         type_hint: {
           confidence: 'high',
           suggested_type: 'tv',
@@ -60,6 +64,7 @@ describe('useJellyfinIntake helpers', () => {
         jellyfin_series_id: 'series-2',
         name: 'Naruto Shippuden',
         confidence: 'medium',
+        already_imported: false,
         type_hint: {
           confidence: 'medium',
           suggested_type: 'tv',

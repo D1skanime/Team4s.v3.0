@@ -12,15 +12,15 @@ var allowedSubtitleTypes = map[string]struct{}{
 }
 
 type episodeVersionCreateRequest struct {
-	Title         *string    `json:"title"`
+	Title         *string                           `json:"title"`
 	FansubGroups  []models.SelectedFansubGroupInput `json:"fansub_groups"`
-	FansubGroupID *int64     `json:"fansub_group_id"`
-	MediaProvider string     `json:"media_provider"`
-	MediaItemID   string     `json:"media_item_id"`
-	VideoQuality  *string    `json:"video_quality"`
-	SubtitleType  *string    `json:"subtitle_type"`
-	ReleaseDate   *time.Time `json:"release_date"`
-	StreamURL     *string    `json:"stream_url"`
+	FansubGroupID *int64                            `json:"fansub_group_id"`
+	MediaProvider string                            `json:"media_provider"`
+	MediaItemID   string                            `json:"media_item_id"`
+	VideoQuality  *string                           `json:"video_quality"`
+	SubtitleType  *string                           `json:"subtitle_type"`
+	ReleaseDate   *time.Time                        `json:"release_date"`
+	StreamURL     *string                           `json:"stream_url"`
 }
 
 // validateEpisodeVersionCreateRequest prüft und normalisiert die Felder eines Erstellungs-Requests für eine Episodenversion.
@@ -85,7 +85,8 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 		!req.VideoQuality.Set &&
 		!req.SubtitleType.Set &&
 		!req.ReleaseDate.Set &&
-		!req.StreamURL.Set {
+		!req.StreamURL.Set &&
+		!req.DurationSeconds.Set {
 		return models.EpisodeVersionPatchInput{}, "mindestens ein feld ist erforderlich"
 	}
 
@@ -135,6 +136,9 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 	}
 	if req.StreamURL.Set {
 		req.StreamURL.Value = normalizeNullableString(req.StreamURL.Value)
+	}
+	if req.DurationSeconds.Set && req.DurationSeconds.Value != nil && *req.DurationSeconds.Value <= 0 {
+		return models.EpisodeVersionPatchInput{}, "duration_seconds muss groesser als 0 sein"
 	}
 
 	return req, ""

@@ -48,6 +48,15 @@ type AdminThemeSegment struct {
 	SourceType           *string   `json:"source_type,omitempty"`
 	SourceRef            *string   `json:"source_ref,omitempty"`
 	SourceLabel          *string   `json:"source_label,omitempty"`
+	PlaybackSourceID     *int64    `json:"playback_source_id,omitempty"`
+	PlaybackSourceKind   *string   `json:"playback_source_kind,omitempty"`
+	PlaybackVariantID    *int64    `json:"playback_release_variant_id,omitempty"`
+	PlaybackJellyfinID   *string   `json:"playback_jellyfin_item_id,omitempty"`
+	PlaybackMediaAssetID *int64    `json:"playback_media_asset_id,omitempty"`
+	PlaybackSourceLabel  *string   `json:"playback_source_label,omitempty"`
+	PlaybackStartSeconds *int32    `json:"playback_start_offset_seconds,omitempty"`
+	PlaybackEndSeconds   *int32    `json:"playback_end_offset_seconds,omitempty"`
+	PlaybackDuration     *int32    `json:"playback_duration_seconds,omitempty"`
 	LibraryDefinitionID  *int64    `json:"library_definition_id,omitempty"`
 	LibraryAssetID       *int64    `json:"library_asset_id,omitempty"`
 	LibrarySegmentKind   *string   `json:"library_segment_kind,omitempty"`

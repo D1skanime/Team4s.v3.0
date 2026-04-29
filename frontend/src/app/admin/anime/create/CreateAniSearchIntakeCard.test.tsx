@@ -55,6 +55,13 @@ describe("CreateAniSearchIntakeCard", () => {
             "AniSearch hat bestehende Jellyfin-Werte fuer Titel und Beschreibung ueberschrieben.",
             "Manuell gepflegte Genres bleiben erhalten.",
           ],
+          draft: {
+            title: "Bleach",
+            type: "tv",
+            content_type: "anime",
+            status: "ongoing",
+            source: "anisearch:12345",
+          },
         }}
         conflict={null}
         errorMessage={null}
