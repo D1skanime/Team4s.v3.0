@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed Phase 28 Plan 02 — frontend segment playback context wiring
-last_updated: "2026-04-28T21:02:59.210Z"
-last_activity: 2026-04-28
+status: Phase complete — ready for verification
+stopped_at: Completed Phase 28 Plan 03 — verification and live UAT complete
+last_updated: "2026-04-29T08:52:41.200Z"
+last_activity: 2026-04-29
 progress:
   total_phases: 24
-  completed_phases: 17
+  completed_phases: 18
   total_plans: 82
-  completed_plans: 73
+  completed_plans: 74
 ---
 
 # Project State
@@ -134,6 +134,8 @@ Recent durable decisions:
 - [Phase 28-segment-playback-sources-from-jellyfin-runtime]: UpdateAnimeSegment returns 200+hydrated DTO; validateSegmentTimes is the shared validation seam for both create and update; nullable runtime means no upper-bound rejection
 - [Phase 28-segment-playback-sources-from-jellyfin-runtime]: releaseVariantId passed as query param to segment list/create/update, not in body, to preserve backward compatibility
 - [Phase 28-segment-playback-sources-from-jellyfin-runtime]: effectiveDuration uses playback_duration_seconds first, then page-level durationSeconds as fallback for runtime clamping
+- [Phase 28-segment-playback-sources-from-jellyfin-runtime]: UAT Scenario C (explicit upload fallback) deferred — upload path verified at code level in Phase 26; live round-trip not needed to close Phase 28
+- [Phase 28-segment-playback-sources-from-jellyfin-runtime]: Container rebuild is a mandatory pre-UAT step whenever backend commits land after the last Docker build
 
 ### Pending Todos
 
@@ -219,6 +221,7 @@ Recent durable decisions:
 | Phase 26 P02 | 6min | 3 tasks | 4 files |
 | Phase 28-segment-playback-sources-from-jellyfin-runtime P01 | 8min | 3 tasks | 5 files |
 | Phase 28-segment-playback-sources-from-jellyfin-runtime P02 | 5min | 3 tasks | 5 files |
+| Phase 28-segment-playback-sources-from-jellyfin-runtime P03 | 10min | 3 tasks | 2 files |
 
 ### Quick Tasks Completed
 
@@ -234,7 +237,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-28T21:02:59.202Z
-Stopped at: Completed Phase 28 Plan 02 — frontend segment playback context wiring
-Last activity: 2026-04-28
+Last session: 2026-04-29T08:52:41.192Z
+Stopped at: Completed Phase 28 Plan 03 — verification and live UAT complete
+Last activity: 2026-04-29
 Resume file: None
