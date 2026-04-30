@@ -76,6 +76,10 @@ import {
 import {
   AnimeFansubListResponse,
   FansubGroupCreateRequest,
+  FansubGroupLinkCreateRequest,
+  FansubGroupLinkListResponse,
+  FansubGroupLinkPatchRequest,
+  FansubGroupLinkResponse,
   FansubGroupListResponse,
   FansubGroupPatchRequest,
   FansubGroupResponse,
@@ -95,6 +99,9 @@ import {
   AddCollaborationMemberRequest,
   FansubMediaKind,
   FansubMediaUploadResponse,
+  AdminFansubAnimeReleasesResponse,
+  AdminCanonicalFansubAnimeReleaseResponse,
+  AdminReleaseResponse,
 } from '@/types/fansub'
 import { PaginatedWatchlistResponse, WatchlistCreateResponse } from '@/types/watchlist'
 import {
@@ -714,6 +721,85 @@ export async function getFansubAliases(fansubID: number): Promise<FansubAliasLis
   }
 
   return response.json() as Promise<FansubAliasListResponse>
+}
+
+export async function getFansubLinks(fansubID: number, authToken?: string): Promise<FansubGroupLinkListResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubGroupLinkListResponse>
+}
+
+export async function createFansubLink(
+  fansubID: number,
+  payload: FansubGroupLinkCreateRequest,
+  authToken?: string,
+): Promise<FansubGroupLinkResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links`, {
+    method: 'POST',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubGroupLinkResponse>
+}
+
+export async function updateFansubLink(
+  fansubID: number,
+  linkID: number,
+  payload: FansubGroupLinkPatchRequest,
+  authToken?: string,
+): Promise<FansubGroupLinkResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links/${linkID}`, {
+    method: 'PATCH',
+    headers: withAuthHeader(
+      {
+        'Content-Type': 'application/json',
+      },
+      authToken,
+    ),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubGroupLinkResponse>
+}
+
+export async function deleteFansubLink(fansubID: number, linkID: number, authToken?: string): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links/${linkID}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
 }
 
 export async function createFansubAlias(
@@ -1772,6 +1858,70 @@ export async function deleteAdminReleaseThemeAsset(
   }
 }
 
+// --- Explicit release context helpers (Phase 30) ---
+// These helpers load release identity directly from the dedicated release endpoints
+// so callers do not have to infer release_id from theme-asset helper responses.
+
+/** Lists all releases for a fansub + anime combination. */
+export async function getAdminFansubAnimeReleases(
+  fansubID: number,
+  animeID: number,
+  authToken?: string,
+): Promise<AdminFansubAnimeReleasesResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/releases`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminFansubAnimeReleasesResponse>
+}
+
+/** Resolves the canonical release anchor for a fansub + anime combination.
+ * Returns release: null when no canonical release exists — callers must handle the nil case. */
+export async function getAdminCanonicalFansubRelease(
+  fansubID: number,
+  animeID: number,
+  authToken?: string,
+): Promise<AdminCanonicalFansubAnimeReleaseResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/releases/canonical`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminCanonicalFansubAnimeReleaseResponse>
+}
+
+/** Fetches a release summary directly by releaseId. */
+export async function getAdminRelease(
+  releaseID: number,
+  authToken?: string,
+): Promise<AdminReleaseResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/releases/${releaseID}`, {
+    headers: withAuthHeader({}, authToken),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AdminReleaseResponse>
+}
+
 async function assignAdminAnimeSingularAsset(
   animeID: number,
   assetKind: Exclude<AdminAnimeAssetKind, 'background'>,
@@ -2412,9 +2562,13 @@ export async function mergeFansubs(
 }
 
 // Collaboration member operations
-export async function getCollaborationMembers(fansubID: number): Promise<CollaborationMemberListResponse> {
+export async function getCollaborationMembers(
+  fansubID: number,
+  authToken?: string,
+): Promise<CollaborationMemberListResponse> {
   const API_BASE_URL = getApiBaseUrl()
   const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/collaboration-members`, {
+    headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
 
