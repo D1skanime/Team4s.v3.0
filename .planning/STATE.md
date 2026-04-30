@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
-stopped_at: Completed Phase 30 Plan 03 — authority map and verification closeout
-last_updated: "2026-04-30T08:26:58.058Z"
+status: Ready to execute
+stopped_at: Completed Phase 31 Plan 01 — Fansub-Edit Tab-Workspace und ausklappbare Release-Zeilen
+last_updated: "2026-04-30T13:53:46.359Z"
 last_activity: 2026-04-30
 progress:
-  total_phases: 26
+  total_phases: 27
   completed_phases: 20
-  total_plans: 88
-  completed_plans: 80
+  total_plans: 91
+  completed_plans: 81
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 30 — fansub-releases-api-endpunkte
+**Current focus:** Phase 31 — ui-umbau
 
 ## Current Position
 
-Phase: 30 (fansub-releases-api-endpunkte) — EXECUTING
-Plan: 3 of 3
+Phase: 31 (ui-umbau) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -140,6 +140,7 @@ Recent durable decisions:
 - [Phase 30]: ReleaseThemeAssetsSection uses two separate useEffect hooks — one for canonical release context, one for theme assets — to keep concerns cleanly separated
 - [Phase 30]: Upload response no longer overwrites releaseID — canonical release context endpoint is the single source of truth for release identity in ReleaseThemeAssetsSection
 - [Phase 30-fansub-releases-api-endpunkte]: fansub_releases is classified as normalized-first for Phase 30 admin reads in the authority map; fansub_group_media remains blocked for release media; media_assets is the active release-adjacent media seam
+- [Phase 31]: Fansub-Edit wird zu tab-basiertem Workspace mit MainTab-State; FansubReleasesTab als Sub-Komponente extrahiert; expandedReleaseIds in page.tsx als Prop weitergeleitet
 
 ### Pending Todos
 
@@ -230,6 +231,7 @@ Recent durable decisions:
 | Phase 30-fansub-releases-api-endpunkte P01 | 45min | 2 tasks | 7 files |
 | Phase 30 P02 | 12min | 2 tasks | 3 files |
 | Phase 30-fansub-releases-api-endpunkte P03 | 3min | 2 tasks | 4 files |
+| Phase 31 P01 | 14min | 2 tasks | 7 files |
 
 ### Quick Tasks Completed
 
@@ -246,7 +248,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-30T08:26:58.049Z
-Stopped at: Completed Phase 30 Plan 03 — authority map and verification closeout
+Last session: 2026-04-30T13:53:46.339Z
+Stopped at: Completed Phase 31 Plan 01 — Fansub-Edit Tab-Workspace und ausklappbare Release-Zeilen
 Last activity: 2026-04-30
 Resume file: None
