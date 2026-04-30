@@ -37,6 +37,8 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 25: Segmente UI Mockup-Alignment** - Segmente-Seite vollständig an Mockup angeglichen: Breadcrumb-Navigation, 5-Tab-Layout, Typ-Badge mit Kurzcode, Zeitbereich mit Dauer in Klammern, Vorschläge-Leiste aus anderen Releases, dual-Spur-Timeline mit Hauptinhalt-Label, expliziter Source-Type-Selector. (UAT bestanden 2026-04-27)
 - [x] **Phase 26: Segment Source Asset Upload And Persistence** - Segmente koennen echte Team4s-Assets als Quelle hinterlegen: Upload, benannter Zielpfad, Asset-Referenz am Segment und kontrolliertes Entfernen ohne Playback-Pflicht. (implementiert 2026-04-28)
 - [x] **Phase 27: Segment Library Identity And Reuse** - Segmentdateien werden fachlich ueber stabile Anime-/Gruppen-Identitaet statt lokaler Anime-IDs verwaltet, koennen nach Reimport wiedergefunden werden, und Anime-Delete entkoppelt nur noch statt wiederverwendbare OP/ED-Assets blind zu vernichten. (implementiert und UAT bestanden 2026-04-28)
+- [x] **Phase 28: Segment Playback Sources From Jellyfin Runtime** - Segmente nutzen standardmaessig die aktuelle Episode-Version bzw. deren Jellyfin-Stream als Playback-Quelle, respektieren reale `release_variants.duration_seconds` Laufzeitgrenzen wenn vorhanden, und behalten Upload-Dateien nur als expliziten Fallback. (live UAT bestanden 2026-04-29)
+- [ ] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad.
 
 ## Phase Details
 
@@ -406,15 +408,56 @@ Plans:
 **Goal:** Segmente auf der Episode-Version-Edit-Seite standardmaessig gegen den aktuellen Release-Variant-/Jellyfin-Stream aufloesen, reale Laufzeitgrenzen aus `release_variants.duration_seconds` nutzen und hochgeladene Segmentdateien als expliziten Fallback statt als stillen Default behandeln.
 **Requirements**: P28-SC1, P28-SC2, P28-SC3, P28-SC4, P28-SC5
 **Depends on:** Phase 27
+**Status**: Live UAT bestanden am 2026-04-29; Phase aus verified baseline geschlossen
 **Plans:** 3/3 plans complete
 
 Plans:
 - [x] `28-01-PLAN.md` - Backend playback-resolution contract, current release-variant snapshot joins, and runtime-aware validation.
 - [x] `28-02-PLAN.md` - Frontend segment editor and API contract for default episode-version playback, explicit upload fallback, and runtime-aware UX.
-- [ ] `28-03-PLAN.md` - Verification and live UAT for runtime-known, runtime-null, and fallback-preservation paths.
+- [x] `28-03-PLAN.md` - Verification and live UAT for runtime-known, runtime-null, and fallback-preservation paths.
 **Success Criteria** (what must be TRUE):
   1. Ein Segment kann auf `/admin/episode-versions/:id/edit` ohne vorherigen Upload gespeichert werden, und die aufgeloeste Playback-Quelle zeigt standardmaessig auf die aktuelle Episode-Version bzw. deren Jellyfin-Stream.
   2. `theme_segment_playback_sources` speichert fuer diesen Default-Pfad die aktuelle `playback_release_variant_id`, Jellyfin-Identitaet und Offset-/Dauer-Felder autoritativ aus dem aktuellen Editor-Kontext.
   3. Wenn `release_variants.duration_seconds` bekannt ist, verhindern Frontend und Backend gemeinsam, dass `end_time` ueber die reale Laufzeit hinaus gespeichert wird; wenn die Runtime `NULL` ist, bleibt Segmentbearbeitung weiter moeglich.
   4. Hochgeladene Segmentdateien bleiben erhalten, werden aber nur durch explizite Operator-Entscheidung zur aktiven Fallback-Playback-Quelle und ersetzen den Episode-Version-Default nicht stillschweigend.
   5. Verifikation deckt mindestens einen runtime-bekannten Pfad, einen runtime-null Pfad und den expliziten Upload-Fallback mit API- oder SQL-Evidenz ab.
+
+### Phase 29: Fansub Group Model Normalization And Generic Links
+
+**Goal:** Fansub-Gruppen fachlich auf ein kanonisches Profilmodell konsolidieren, generische Community-Links ueber `fansub_group_links` statt fester Einzelspalten verwalten, Kollaborationen explizit administrierbar machen, und Legacy-Doppelfelder kontrolliert in einen Cleanup-Pfad ueberfuehren.
+**Requirements**: P29-SC1, P29-SC2, P29-SC3, P29-SC4, P29-SC5
+**Depends on:** Phase 28
+**Status**: Planned on 2026-04-29 aus live DB-Audit und Produktentscheidung fuer kanonisches Fansub-Modell
+**Plans:** 0/3 plans complete
+
+Plans:
+- [ ] `29-01-PLAN.md` - Backend- und Schema-Contract fuer kanonische Fansub-Gruppen plus generische `fansub_group_links` CRUD und Kompatibilitaetsprojektion.
+- [ ] `29-02-PLAN.md` - Frontend-Fansub-Create/Edit auf generische Links umstellen und explizite Collaboration-Member-Verwaltung ergaenzen.
+- [ ] `29-03-PLAN.md` - Legacy-Doppelfelder, Alias-Reconcile-Reste, Verifikation und handoff-sicheren Cleanup-Pfad dokumentieren und absichern.
+
+**Success Criteria** (what must be TRUE):
+  1. Fansub-CRUD arbeitet fachlich auf einem kanonischen Gruppenprofil und fuehrt keine neuen Produktabhaengigkeiten auf `closed_year`, `history_description` oder Alias-`group_id` ein.
+  2. Community-Links werden autoritativ ueber `fansub_group_links` mit `link_type` verwaltet und unterstuetzen mindestens `website`, `discord`, `twitter`, `github` und `irc`.
+  3. Kollaborationsgruppen (`group_type='collaboration'`) koennen im Admin explizit mit ihren Mitgliedsgruppen gepflegt werden, statt nur indirekt durch Import-/Version-Wiring zu existieren.
+  4. Die Fansub-Create/Edit-Oberflaechen koennen generische Linkzeilen anzeigen, hinzufuegen, bearbeiten und loeschen, ohne auf drei fest eingebaute Linkfelder beschraenkt zu bleiben.
+  5. Legacy-Doppelfelder und Reconcile-Spalten haben einen dokumentierten, verifizierten Cleanup-Pfad, der das aktuelle Produktverhalten nicht heimlich bricht.
+
+### Phase 30: Fansub-Releases API-Endpunkte
+
+**Goal:** `fansub_releases` als explizite Admin-Ressource sichtbar machen, den kanonischen Release-Anker fuer `fansub + anime` direkt aufloesbar machen, und release-nahe Flows wie Theme-Assets von versteckter Release-Discovery entkoppeln.
+**Requirements**: P30-SC1, P30-SC2, P30-SC3, P30-SC4, P30-SC5
+**Depends on:** Phase 29
+**Status**: Planned on 2026-04-30 aus Code-/DB-Audit zu Release-Ankern, `anime_fansub_groups`, `media_assets` und der nicht-aktiven `fansub_group_media`-Seam
+**Plans:** 1/3 plans executed
+
+Plans:
+- [ ] `30-01-PLAN.md` - Backend-DTOs, Repository-Seams und explizite Admin-Read-/Resolve-Endpunkte fuer Fansub-Releases.
+- [ ] `30-02-PLAN.md` - Frontend-Fansub-Edit und Theme-Asset-Flow auf explizite Release-Context-API umstellen statt versteckter `release_id`-Discovery.
+- [ ] `30-03-PLAN.md` - Authority-Map, Media-/Scope-Grenzen, Verifikation und UAT fuer den neuen Release-API-Pfad absichern.
+
+**Success Criteria** (what must be TRUE):
+  1. Admin kann fuer eine Fansub-Anime-Kombination Releases bzw. den kanonischen Release-Anker explizit ueber einen Release-Endpunkt laden, statt ihn nur indirekt aus Theme-Asset- oder Episode-Version-Nebenpfaden zu erhalten.
+  2. Die Release-API gibt einen klaren, typisierten Contract fuer Release-Identitaet, Episode-/Anime-Kontext, Gruppenbezug und zentrale Release-Metadaten zurueck.
+  3. Release-nahe UIs wie der Theme-Asset-Flow beziehen `release_id` und Kontext ueber explizite Release-Endpunkte und verwenden Theme-Asset-Endpunkte nur noch fuer Theme-Assets selbst.
+  4. Die Phase vertieft keine falsche Fansub-Media-Achse: release-nahe Medien bleiben auf dem aktiven `media_assets`-Seam statt `fansub_group_media` zur Produktwahrheit zu machen.
+  5. Dokumentation und Verifikation halten fest, dass `anime_fansub_groups` bereits aktive Scope-Logik ist, `media_assets` die reale Media-Seam bleibt, und `fansub_group_media` hier kein autoritativer Runtime-Pfad ist.

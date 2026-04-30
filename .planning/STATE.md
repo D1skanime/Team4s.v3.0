@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
-stopped_at: Completed Phase 28 Plan 03 — verification and live UAT complete
-last_updated: "2026-04-29T08:52:41.200Z"
-last_activity: 2026-04-29
+status: Ready to execute
+stopped_at: Completed Phase 30 Plan 01 — explicit admin release read API (list, canonical, by-id)
+last_updated: "2026-04-30T08:18:17.998Z"
+last_activity: 2026-04-30
 progress:
-  total_phases: 24
-  completed_phases: 18
-  total_plans: 82
-  completed_plans: 74
+  total_phases: 26
+  completed_phases: 19
+  total_plans: 88
+  completed_plans: 78
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 28 — segment-playback-sources-from-jellyfin-runtime
+**Current focus:** Phase 30 — fansub-releases-api-endpunkte
 
 ## Current Position
 
-Phase: 28 (segment-playback-sources-from-jellyfin-runtime) — EXECUTING
-Plan: 3 of 3
+Phase: 30 (fansub-releases-api-endpunkte) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -136,6 +136,7 @@ Recent durable decisions:
 - [Phase 28-segment-playback-sources-from-jellyfin-runtime]: effectiveDuration uses playback_duration_seconds first, then page-level durationSeconds as fallback for runtime clamping
 - [Phase 28-segment-playback-sources-from-jellyfin-runtime]: UAT Scenario C (explicit upload fallback) deferred — upload path verified at code level in Phase 26; live round-trip not needed to close Phase 28
 - [Phase 28-segment-playback-sources-from-jellyfin-runtime]: Container rebuild is a mandatory pre-UAT step whenever backend commits land after the last Docker build
+- [Phase 30-fansub-releases-api-endpunkte]: Release read methods in dedicated admin_content_fansub_releases.go to respect 450-line file limit; canonical resolve returns nil-safe response with release=null when no anchor exists
 
 ### Pending Todos
 
@@ -143,6 +144,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 30 added: Fansub-Releases API-Endpunkte — Handler und API-Routen für die fansub_releases-Tabelle, die bereits Repository-Code besitzt aber noch keine HTTP-Endpunkte hat.
 - Phase 09 added: Controlled AniSearch ID enrichment before create with fill-only Jellysync follow-up.
 - Phase 10 narrowed to create tags and metadata card refactor and is now executed.
 - Phase 11 added: AniSearch edit enrichment and relation persistence.
@@ -222,6 +224,7 @@ Recent durable decisions:
 | Phase 28-segment-playback-sources-from-jellyfin-runtime P01 | 8min | 3 tasks | 5 files |
 | Phase 28-segment-playback-sources-from-jellyfin-runtime P02 | 5min | 3 tasks | 5 files |
 | Phase 28-segment-playback-sources-from-jellyfin-runtime P03 | 10min | 3 tasks | 2 files |
+| Phase 30-fansub-releases-api-endpunkte P01 | 45min | 2 tasks | 7 files |
 
 ### Quick Tasks Completed
 
@@ -238,7 +241,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-29T08:52:41.192Z
-Stopped at: Completed Phase 28 Plan 03 — verification and live UAT complete
-Last activity: 2026-04-29
+Last session: 2026-04-30T08:18:17.990Z
+Stopped at: Completed Phase 30 Plan 01 — explicit admin release read API (list, canonical, by-id)
+Last activity: 2026-04-30
 Resume file: None
