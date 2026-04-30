@@ -165,12 +165,40 @@ The categories used in this map are:
 **Recovery reading**
 - Phase C schema is present, but runtime authority remains on the transition seam until the cutover brief says otherwise.
 
+## Fansub Release Admin API (Phase 30)
+
+**Classification:** normalized-first for explicit admin release reads
+
+**Primary code path**
+- `backend/internal/repository/admin_content_fansub_releases.go`
+- `backend/internal/handlers/admin_content_fansub_releases_handlers.go`
+
+**Why**
+- Phase 30 added explicit admin release read endpoints grounded directly in `fansub_releases`, `release_versions`, `release_version_groups`, and supporting normalized tables.
+- Release identity is now addressable without going through theme-asset or episode-version side effects.
+- Routes added: `GET /admin/fansubs/:id/anime/:animeId/releases`, `.../canonical`, `GET /admin/releases/:releaseId`.
+
+**Authority facts**
+
+| Seam | Classification | Notes |
+|------|----------------|-------|
+| `fansub_releases` | **normalized-first** (Phase 30 admin reads) | Release root anchor. Lifecycle (create/delete) stays controlled through episode-version operations only. |
+| `anime_fansub_groups` | **normalized-first** (scope axis) | Active product wiring for fansub-anime relationship scope. Phase 30 reads use it as the canonical scoping seam. |
+| `media_assets` | **normalized-first** (release-adjacent media) | Theme assets, segment assets, and other release-adjacent media are stored through `media_assets`. This is the active release media seam. |
+| `fansub_group_media` | **blocked** (not active product path) | Table exists in schema. Not the authoritative runtime seam for fansub-admin or release-adjacent media behavior. Phase 30 does not build against it, and no future release API work should treat it as authoritative without an explicit cutover decision. |
+
+**Recovery reading**
+- Before Phase 30, release identity was discovered implicitly as a side effect of loading theme assets.
+- Phase 30 makes `fansub_releases` an explicit, addressable admin API resource.
+- `fansub_group_media` must not be confused with `media_assets` — only `media_assets` is the active release-media seam.
+
 ## Overall Recovery Verdict
 
 - **Anime/admin metadata authority:** legacy-first
 - **Episode/group composition:** adapter-backed
 - **Release stream/assets authority:** legacy-first
-- **Normalized Phase B and C structures:** blocked for primary runtime authority
+- **Fansub release admin API reads:** normalized-first (Phase 30)
+- **Normalized Phase B and C structures:** blocked for primary runtime authority (except Phase 30 release reads)
 
 ## Implication For Phase 05.1
 

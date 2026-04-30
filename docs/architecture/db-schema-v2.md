@@ -343,6 +343,8 @@ INDEX idx_fansub_group_media_group (group_id)
 INDEX idx_fansub_group_media_media (media_id) 
 ```
 
+> **Runtime authority note (Phase 30):** `fansub_group_media` is not the active seam for fansub-admin or release-adjacent media behavior. Current admin and release media flows use `media_assets` directly. Do not add release API or fansub media writes to `fansub_group_media` without an explicit phase decision to activate it as a product runtime path.
+
 ```
 ReleaseMedia
 - release_id
@@ -475,6 +477,15 @@ PRIMARY KEY(id)
 UNIQUE (name)
 ```
 # FansubRelease
+
+> **Phase 30 authority note:**
+> `fansub_releases` is the release root for admin release APIs. Explicit admin read endpoints now expose releases as addressable resources through `GET /admin/fansubs/:id/anime/:animeId/releases`, `.../canonical`, and `GET /admin/releases/:releaseId`. Release lifecycle (create/delete) stays controlled through episode-version operations only; no free blank release creation is allowed.
+>
+> `anime_fansub_groups` is the active scope seam for fansub-anime relationships and is safe for release scoping queries.
+>
+> `media_assets` is the active release-adjacent media seam. Theme assets and segment assets for a release are persisted through `media_assets`, not through `fansub_group_media`.
+>
+> `fansub_group_media` exists in the schema but is not the authoritative runtime path for fansub-admin or release-adjacent media behavior. Do not route release or fansub media planning through `fansub_group_media`.
 
 - von **0 bis n Fansubgruppen** gesubbt sein
 - Fansubgruppen können **kooperieren**
@@ -921,38 +932,68 @@ INDEX idx_episode_theme_override_episode (episode_id)
 
 # FansubGroup
 
+The live canonical fansub-group profile is broader than the original planning stub. Current product truth lives in `fansub_groups` plus `fansub_group_links`; older duplicate fields remain compatibility-only until a later cleanup slice removes them.
+
 ```
 FansubGroup
 - id
+- slug
 - name
+- description
+- history
+- logo_id
+- banner_id
+- logo_url
+- banner_url
 - founded_year
-- closed_year
-- history_description
+- dissolved_year
+- status
+- group_type
+- country
+- created_at
+- updated_at
 
 PRIMARY KEY(id)
 
+UNIQUE (slug)
 UNIQUE (name)
 
 INDEX idx_fansub_group_name (name)
+INDEX idx_fansub_group_slug (slug)
 ```
+
+Compatibility-only fields that still exist on `fansub_groups`:
+- `closed_year`
+- `history_description`
+- fixed legacy link columns `website_url`, `discord_url`, `irc_url`
+
+These fields should stay readable while old callers retire, but new product writes should target canonical fields and `fansub_group_links`.
 
 ## FansubGroupAlias
 ```
 FansubGroupAlias
 - id
-- group_id
+- fansub_group_id
 - alias
+- normalized_alias
+- created_at
+- updated_at
 
 PRIMARY KEY(id)
 
-FOREIGN KEY (group_id) REFERENCES FansubGroup(id)
+FOREIGN KEY (fansub_group_id) REFERENCES FansubGroup(id)
 
-UNIQUE (group_id, alias)
+UNIQUE (fansub_group_id, normalized_alias)
 
-INDEX idx_fansub_group_alias_group (group_id)
+INDEX idx_fansub_group_alias_group (fansub_group_id)
 ```
 
+Compatibility note:
+- alias-side legacy `group_id` has been removed from the live DB and must not be reintroduced into product-facing contracts.
+
 ## Group Links
+`fansub_group_links` is the canonical write seam for public/community links.
+
 ```
 FansubGroupLink
 - id
@@ -960,6 +1001,7 @@ FansubGroupLink
 - link_type
 - name
 - url
+- created_at
 
 PRIMARY KEY(id)
 
@@ -973,10 +1015,10 @@ INDEX idx_fansub_group_link_type (link_type)
 
 ### link_type values
 ```
-website  
-discord  
-twitter  
-github  
+website
+discord
+twitter
+github
 irc
 ```
 
