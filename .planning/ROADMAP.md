@@ -448,7 +448,7 @@ Plans:
 **Requirements**: P30-SC1, P30-SC2, P30-SC3, P30-SC4, P30-SC5
 **Depends on:** Phase 29
 **Status**: Planned on 2026-04-30 aus Code-/DB-Audit zu Release-Ankern, `anime_fansub_groups`, `media_assets` und der nicht-aktiven `fansub_group_media`-Seam
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] `30-01-PLAN.md` - Backend-DTOs, Repository-Seams und explizite Admin-Read-/Resolve-Endpunkte fuer Fansub-Releases.
