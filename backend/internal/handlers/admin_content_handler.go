@@ -71,6 +71,9 @@ type adminThemeRepository interface {
 	ListReleaseThemeAssetsByFansubAnime(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, []models.AdminReleaseThemeAsset, error)
 	CreateReleaseThemeAsset(ctx context.Context, input models.AdminReleaseThemeAssetCreateInput) (*models.AdminReleaseThemeAsset, error)
 	DeleteReleaseThemeAsset(ctx context.Context, releaseID int64, themeID int64, mediaID int64) error
+	ListFansubAnimeReleases(ctx context.Context, fansubGroupID int64, animeID int64) ([]models.AdminFansubReleaseSummary, error)
+	GetCanonicalFansubAnimeReleaseSummary(ctx context.Context, fansubGroupID int64, animeID int64) (*models.CanonicalFansubAnimeReleaseResponse, error)
+	GetAdminReleaseByID(ctx context.Context, releaseID int64) (*models.AdminFansubReleaseSummary, error)
 }
 
 // adminContentRelationRepository definiert den Datenbankzugriff für Anime-Relationen im Admin-Bereich.

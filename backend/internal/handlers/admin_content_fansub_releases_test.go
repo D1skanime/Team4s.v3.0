@@ -143,7 +143,7 @@ func TestAdminFansubReleases_HandlerMethodsExist(t *testing.T) {
 
 	requiredHandlers := []string{
 		"listfansubanimereleases",
-		"getcanonicalfansubanimereleaseummary",
+		"getcanonicalfansubanimereleasesum",
 		"getadminrelease",
 	}
 	for _, handler := range requiredHandlers {
@@ -160,7 +160,7 @@ func TestAdminFansubReleases_RoutesRegistered(t *testing.T) {
 	if !ok {
 		t.Fatal("resolve test file path")
 	}
-	routesFile := filepath.Join(filepath.Dir(file), "../../../cmd/server/admin_routes.go")
+	routesFile := filepath.Join(filepath.Dir(file), "../../cmd/server/admin_routes.go")
 	content, err := os.ReadFile(routesFile)
 	if err != nil {
 		t.Fatalf("read admin_routes.go: %v", err)
