@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 30-02 — frontend release helpers and ReleaseThemeAssetsSection rewire
-last_updated: "2026-04-30T08:22:52.442Z"
+status: Phase complete — ready for verification
+stopped_at: Completed Phase 30 Plan 03 — authority map and verification closeout
+last_updated: "2026-04-30T08:26:58.058Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 26
-  completed_phases: 19
+  completed_phases: 20
   total_plans: 88
-  completed_plans: 79
+  completed_plans: 80
 ---
 
 # Project State
@@ -139,6 +139,7 @@ Recent durable decisions:
 - [Phase 30-fansub-releases-api-endpunkte]: Release read methods in dedicated admin_content_fansub_releases.go to respect 450-line file limit; canonical resolve returns nil-safe response with release=null when no anchor exists
 - [Phase 30]: ReleaseThemeAssetsSection uses two separate useEffect hooks — one for canonical release context, one for theme assets — to keep concerns cleanly separated
 - [Phase 30]: Upload response no longer overwrites releaseID — canonical release context endpoint is the single source of truth for release identity in ReleaseThemeAssetsSection
+- [Phase 30-fansub-releases-api-endpunkte]: fansub_releases is classified as normalized-first for Phase 30 admin reads in the authority map; fansub_group_media remains blocked for release media; media_assets is the active release-adjacent media seam
 
 ### Pending Todos
 
@@ -228,6 +229,7 @@ Recent durable decisions:
 | Phase 28-segment-playback-sources-from-jellyfin-runtime P03 | 10min | 3 tasks | 2 files |
 | Phase 30-fansub-releases-api-endpunkte P01 | 45min | 2 tasks | 7 files |
 | Phase 30 P02 | 12min | 2 tasks | 3 files |
+| Phase 30-fansub-releases-api-endpunkte P03 | 3min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -244,7 +246,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-30T08:22:52.434Z
-Stopped at: Completed 30-02 — frontend release helpers and ReleaseThemeAssetsSection rewire
+Last session: 2026-04-30T08:26:58.049Z
+Stopped at: Completed Phase 30 Plan 03 — authority map and verification closeout
 Last activity: 2026-04-30
 Resume file: None
