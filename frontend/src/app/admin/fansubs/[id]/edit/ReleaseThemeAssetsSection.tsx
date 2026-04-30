@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 
 import {
   deleteAdminReleaseThemeAsset,
-  getAdminFansubAnimeThemeAssets,
+  getAdminCanonicalFansubRelease,
+  getAdminReleaseThemeAssets,
   uploadAdminReleaseThemeAsset,
 } from '@/lib/api'
 import { AdminAnimeTheme, AdminReleaseThemeAsset } from '@/types/admin'
@@ -39,13 +40,35 @@ export function ReleaseThemeAssetsSection({
     setThemeID(themes[0]?.id ?? 0)
   }, [themes])
 
+  // Load release context explicitly from the dedicated canonical release endpoint.
+  // This replaces the old pattern of inferring release_id from theme-asset responses.
   useEffect(() => {
     if (!authToken) return
     let active = true
-    getAdminFansubAnimeThemeAssets(fansubID, animeID, authToken)
+    getAdminCanonicalFansubRelease(fansubID, animeID, authToken)
+      .then((releaseCtx) => {
+        if (!active) return
+        setReleaseID(releaseCtx.release?.release_id ?? null)
+      })
+      .catch((loadError) => {
+        if (active) {
+          setError(loadError instanceof Error ? loadError.message : 'Release-Kontext konnte nicht geladen werden.')
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [animeID, authToken, fansubID])
+
+  // Load theme assets separately — theme-asset endpoint is now purely about theme assets,
+  // not the source of release identity.
+  useEffect(() => {
+    if (!authToken || releaseID === null) return
+    let active = true
+    getAdminReleaseThemeAssets(releaseID, authToken)
       .then((response) => {
         if (!active) return
-        setReleaseID(response.release_id)
         setAssets(response.data)
       })
       .catch((loadError) => {
@@ -57,11 +80,11 @@ export function ReleaseThemeAssetsSection({
     return () => {
       active = false
     }
-  }, [animeID, authToken, fansubID])
+  }, [authToken, releaseID])
 
   async function reloadAssets() {
-    const response = await getAdminFansubAnimeThemeAssets(fansubID, animeID, authToken || undefined)
-    setReleaseID(response.release_id)
+    if (releaseID === null) return
+    const response = await getAdminReleaseThemeAssets(releaseID, authToken || undefined)
     setAssets(response.data)
   }
 
@@ -70,7 +93,7 @@ export function ReleaseThemeAssetsSection({
     setBusy(true)
     setError(null)
     try {
-      const response = await uploadAdminReleaseThemeAsset({
+      await uploadAdminReleaseThemeAsset({
         fansubID,
         animeID,
         themeID,
@@ -78,7 +101,6 @@ export function ReleaseThemeAssetsSection({
         authToken,
         onProgress: setProgress,
       })
-      setReleaseID(response.data.release_id)
       await reloadAssets()
       setFile(null)
       setProgress(100)
