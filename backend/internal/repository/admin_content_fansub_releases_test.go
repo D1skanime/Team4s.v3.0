@@ -1,21 +1,37 @@
 package repository
 
 import (
+	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
+
+// readFansubReleasesSource laedt eine Quelldatei relativ zur Test-Datei.
+func readFansubReleasesSource(t *testing.T, name string) string {
+	t.Helper()
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("resolve test file path")
+	}
+	content, err := os.ReadFile(filepath.Join(filepath.Dir(file), name))
+	if err != nil {
+		t.Fatalf("read %s: %v", name, err)
+	}
+	return string(content)
+}
 
 // TestAdminContentFansubReleases_DTOsExistInModels verifies that the
 // AdminFansubReleaseSummary and CanonicalFansubAnimeReleaseResponse types are
 // defined in the models package. This test reads the source file directly so it
 // fails before the types exist (RED phase).
 func TestAdminContentFansubReleases_DTOsExistInModels(t *testing.T) {
-	// We test via source inspection because the types live in models/, not in
-	// this package. The acceptance criteria require that
+	// The acceptance criteria require that
 	// `Select-String -Path backend/internal/models/*.go -Pattern
 	//   "AdminFansubRelease|CanonicalRelease"` returns matches.
 
-	releaseModels := readRepositorySource(t, "../models/admin_release_theme_assets.go")
+	releaseModels := readFansubReleasesSource(t, "../models/admin_release_theme_assets.go")
 	normalized := strings.ToLower(releaseModels)
 
 	requiredTypes := []string{
@@ -31,32 +47,32 @@ func TestAdminContentFansubReleases_DTOsExistInModels(t *testing.T) {
 
 // TestAdminContentFansubReleases_RepositoryMethodsExist verifies that
 // ListFansubAnimeReleases, GetCanonicalFansubAnimeReleaseSummary, and
-// GetAdminReleaseByID exist in the admin themes repository file.
+// GetAdminReleaseByID exist in the repository package.
 func TestAdminContentFansubReleases_RepositoryMethodsExist(t *testing.T) {
-	content := readRepositorySource(t, "admin_content_anime_themes.go")
+	// Methods land in admin_content_fansub_releases.go which is the dedicated
+	// Phase-30 release file, consistent with the plan's file_modified list.
+	content := readFansubReleasesSource(t, "admin_content_fansub_releases.go")
 	normalized := strings.ToLower(content)
 
 	requiredMethods := []string{
 		"listfansubanimereleases",
-		"getcanonicalfansubanimereleassummary",
+		"getcanonicalfansubanimereleasesum",
 		"getadminreleasebyid",
 	}
 	for _, method := range requiredMethods {
 		if !strings.Contains(normalized, method) {
-			t.Fatalf("expected repository method %q to exist in admin_content_anime_themes.go", method)
+			t.Fatalf("expected repository method %q to exist in admin_content_fansub_releases.go", method)
 		}
 	}
 }
 
 // TestAdminContentFansubReleases_ReleaseSummaryContainsRequiredFields verifies
-// that the release summary DTO carries the fields the plan requires: release
-// identity, anime context, fansub/group context, episode anchor, source/provider
-// metadata, and version summary.
+// that the release summary DTO carries the fields the plan requires.
 func TestAdminContentFansubReleases_ReleaseSummaryContainsRequiredFields(t *testing.T) {
-	content := readRepositorySource(t, "../models/admin_release_theme_assets.go")
+	content := readFansubReleasesSource(t, "../models/admin_release_theme_assets.go")
 	normalized := strings.ToLower(content)
 
-	// These field names must appear in the DTO definition.
+	// These json tag names must appear in the DTO definition.
 	requiredFields := []string{
 		"release_id",
 		"anime_id",
@@ -67,20 +83,19 @@ func TestAdminContentFansubReleases_ReleaseSummaryContainsRequiredFields(t *test
 	}
 	for _, field := range requiredFields {
 		if !strings.Contains(normalized, field) {
-			t.Fatalf("expected DTO field %q to exist in admin_release_theme_assets.go", field)
+			t.Fatalf("expected DTO json field %q to exist in admin_release_theme_assets.go", field)
 		}
 	}
 }
 
 // TestAdminContentFansubReleases_CanonicalResponseWrapsReleaseSummary verifies
-// that CanonicalFansubAnimeReleaseResponse references or embeds the release
-// summary type so consumers get both canonical status and release metadata in
-// one response.
+// that CanonicalFansubAnimeReleaseResponse references the release summary type.
 func TestAdminContentFansubReleases_CanonicalResponseWrapsReleaseSummary(t *testing.T) {
-	content := readRepositorySource(t, "../models/admin_release_theme_assets.go")
+	content := readFansubReleasesSource(t, "../models/admin_release_theme_assets.go")
 	normalized := strings.ToLower(content)
 
-	if !strings.Contains(normalized, "release *adminfansubreleasesummary") {
-		t.Fatalf("expected CanonicalFansubAnimeReleaseResponse to contain a *AdminFansubReleaseSummary field")
+	// The field name can be any pointer to AdminFansubReleaseSummary.
+	if !strings.Contains(normalized, "*adminfansubreleasesummary") {
+		t.Fatalf("expected CanonicalFansubAnimeReleaseResponse to contain a *AdminFansubReleaseSummary pointer field")
 	}
 }
