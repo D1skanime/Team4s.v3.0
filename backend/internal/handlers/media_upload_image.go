@@ -14,6 +14,21 @@ import (
 	"github.com/disintegration/imaging"
 )
 
+// imageExtFromMime gibt die Dateiendung (ohne Punkt) für einen Bild-MIME-Typ zurück.
+// Unbekannte Typen werden als JPEG behandelt.
+func imageExtFromMime(mimeType string) string {
+	switch mimeType {
+	case "image/png":
+		return "png"
+	case "image/webp":
+		return "webp"
+	case "image/gif":
+		return "gif"
+	default:
+		return "jpg"
+	}
+}
+
 func (h *MediaUploadHandler) processImage(
 	ctx context.Context,
 	file multipart.File,
@@ -33,8 +48,12 @@ func (h *MediaUploadHandler) processImage(
 	originalWidth := bounds.Dx()
 	originalHeight := bounds.Dy()
 
-	originalPath := filepath.Join(storagePath, "original.jpg")
-	originalRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, "original.jpg")
+	ext := imageExtFromMime(mimeType)
+	originalFilename := "original." + ext
+	thumbFilename := "thumb." + ext
+
+	originalPath := filepath.Join(storagePath, originalFilename)
+	originalRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, originalFilename)
 	if format == "gif" && h.isAnimatedGIF(file) {
 		originalPath = filepath.Join(storagePath, "original.gif")
 		originalRelPath = h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, "original.gif")
@@ -54,8 +73,8 @@ func (h *MediaUploadHandler) processImage(
 		Height:  originalHeight,
 	}}
 
-	thumbPath := filepath.Join(storagePath, "thumb.jpg")
-	thumbRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, "thumb.jpg")
+	thumbPath := filepath.Join(storagePath, thumbFilename)
+	thumbRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, thumbFilename)
 	thumb := imaging.Resize(img, thumbWidth, 0, imaging.Lanczos)
 	if err := imaging.Save(thumb, thumbPath); err != nil {
 		return nil, fmt.Errorf("thumbnail speichern: %w", err)
