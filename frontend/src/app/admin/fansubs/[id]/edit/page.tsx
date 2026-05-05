@@ -1496,7 +1496,7 @@ export default function AdminFansubEditPage() {
       ) : null}
       {themeDrawerOpen && selectedReleaseSegment && themeSelectedCard ? (
         <div className={styles.fansubEditReleaseDrawerOverlay} onClick={closeThemeDrawer}>
-          <aside className={styles.fansubEditReleaseDrawer} aria-label="Theme bearbeiten" onClick={(event) => event.stopPropagation()}>
+          <aside className={`${styles.fansubEditReleaseDrawer} ${styles.fansubEditThemeDrawer}`} aria-label="Theme bearbeiten" onClick={(event) => event.stopPropagation()}>
             <header className={styles.fansubEditReleaseDrawerHeader}>
               <div>
                 <p className={styles.fansubEditHint}>{episodeReleaseTitle(selectedReleaseSegment.release)}</p>

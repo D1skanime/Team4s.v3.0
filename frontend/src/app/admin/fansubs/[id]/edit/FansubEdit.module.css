@@ -809,6 +809,10 @@
   overflow: hidden;
 }
 
+.fansubEditThemeDrawer {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
 .fansubEditReleaseDrawerHeader {
   display: flex;
   justify-content: space-between;
@@ -1029,6 +1033,7 @@
 
 .fansubEditReleaseDrawerFooter {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
   padding: 0.85rem 1.25rem;
