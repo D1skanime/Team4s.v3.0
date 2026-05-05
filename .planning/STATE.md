@@ -145,6 +145,7 @@ Recent durable decisions:
 ### Pending Todos
 
 - Decide later whether the old manual-vs-Jellyfin entry-choice page should be restored or formally retired.
+- Fix logo upload PNG to JPG conversion — beim Upload und Crawlen wird PNG mit transparentem Hintergrund fälschlicherweise in JPG konvertiert; Quellformat beibehalten.
 
 ### Roadmap Evolution
 
