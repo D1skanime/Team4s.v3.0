@@ -211,6 +211,10 @@ function isJellyfinLocked(card: ReleaseSegmentCard): boolean {
   return card.segments.some((item) => item.source_type === 'jellyfin_theme' || item.playback_source_kind === 'jellyfin')
 }
 
+function releaseThemeSelectionKey(releaseID: number, themeID: number): string {
+  return `${releaseID}:${themeID}`
+}
+
 function mapGroupToForm(group: FansubGroup): FormState {
   return {
     name: group.name || '',
@@ -463,6 +467,38 @@ export default function AdminFansubEditPage() {
   const releaseRequestSeqRef = useRef(0)
   const releaseRequestByContextRef = useRef<Record<string, number>>({})
   const releaseDrawerRequestSeqRef = useRef(0)
+  const releaseSegmentRequestSeqRef = useRef(0)
+  const releaseSegmentRequestByReleaseRef = useRef<Record<number, number>>({})
+  const themeDrawerOpenRef = useRef(false)
+  const themeDrawerSelectionKeyRef = useRef<string | null>(null)
+
+  const resetReleaseWorkspaceState = () => {
+    setReleasesByAnimeFansubGroupId({})
+    setReleasesLoadingByAnimeFansubGroupId({})
+    setReleasesErrorsByAnimeFansubGroupId({})
+    setExpandedAnimeKeys(new Set())
+    setExpandedReleaseIds(new Set())
+    setReleaseSegmentCards({})
+    setReleaseSegmentLoading({})
+    setReleaseSegmentErrors({})
+    setReleaseDrawerOpen(false)
+    setThemeDrawerOpen(false)
+    setSelectedReleaseSegment(null)
+    setSelectedReleaseId(null)
+    setSelectedAnimeFansubContextKey(null)
+    setSelectedAnimeId(null)
+    setSelectedFansubGroupId(null)
+    setDrawerRelease(null)
+    setDrawerReleaseLoading(false)
+    setDrawerReleaseError(null)
+    setDrawerError(null)
+    setDrawerUploadProgress(null)
+    releaseRequestByContextRef.current = {}
+    releaseSegmentRequestByReleaseRef.current = {}
+    if (themeUploadInputRef.current) {
+      themeUploadInputRef.current.value = ''
+    }
+  }
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 900px)')
@@ -471,6 +507,16 @@ export default function AdminFansubEditPage() {
     media.addEventListener('change', onChange)
     return () => media.removeEventListener('change', onChange)
   }, [])
+
+  useEffect(() => {
+    themeDrawerOpenRef.current = themeDrawerOpen
+  }, [themeDrawerOpen])
+
+  useEffect(() => {
+    themeDrawerSelectionKeyRef.current = themeDrawerOpen && selectedReleaseSegment
+      ? releaseThemeSelectionKey(selectedReleaseSegment.release.release_id, selectedReleaseSegment.card.theme_id)
+      : null
+  }, [themeDrawerOpen, selectedReleaseSegment])
 
   useEffect(() => {
     if (!Number.isFinite(fansubID) || fansubID <= 0) {
@@ -523,22 +569,14 @@ export default function AdminFansubEditPage() {
       setReleaseGroups([])
       setReleaseGroupsError(null)
       setReleaseGroupsLoading(false)
-      setReleasesByAnimeFansubGroupId({})
-      setReleasesLoadingByAnimeFansubGroupId({})
-      setReleasesErrorsByAnimeFansubGroupId({})
-      setExpandedAnimeKeys(new Set())
-      releaseRequestByContextRef.current = {}
+      resetReleaseWorkspaceState()
       return
     }
 
     let active = true
-    releaseRequestByContextRef.current = {}
     setReleaseGroupsLoading(true)
     setReleaseGroupsError(null)
-    setReleasesByAnimeFansubGroupId({})
-    setReleasesLoadingByAnimeFansubGroupId({})
-    setReleasesErrorsByAnimeFansubGroupId({})
-    setExpandedAnimeKeys(new Set())
+    resetReleaseWorkspaceState()
 
     getAdminFansubAnime(fansubID, authToken)
       .then((animeResponse) => {
@@ -562,6 +600,7 @@ export default function AdminFansubEditPage() {
     return () => {
       active = false
       releaseRequestByContextRef.current = {}
+      releaseSegmentRequestByReleaseRef.current = {}
     }
   }, [authToken, fansubID])
 
@@ -640,16 +679,45 @@ export default function AdminFansubEditPage() {
   const canManageCollaborationMembers = group?.group_type === 'collaboration'
   const collaborationCandidates = candidateGroups.filter((candidate) => !collaborationMembers.some((member) => member.member_group_id === candidate.id))
 
+  const clearThemeUploadInput = () => {
+    if (themeUploadInputRef.current) {
+      themeUploadInputRef.current.value = ''
+    }
+  }
+
+  const resetThemeDrawerTransientState = () => {
+    setDrawerError(null)
+    setDrawerUploadProgress(null)
+    clearThemeUploadInput()
+  }
+
+  const closeThemeDrawer = () => {
+    setThemeDrawerOpen(false)
+    resetThemeDrawerTransientState()
+  }
+
+  const openThemeDrawer = (release: AdminFansubRelease, card: ReleaseSegmentCard) => {
+    setSelectedReleaseSegment({ release, card })
+    setThemeDrawerOpen(true)
+    resetThemeDrawerTransientState()
+  }
+
   const loadReleaseSegmentCards = async (release: AdminFansubRelease, force = false): Promise<ReleaseSegmentCard[] | null> => {
     if (!authToken) return null
-    if (!force && (releaseSegmentCards[release.release_id] || releaseSegmentLoading[release.release_id])) return null
+    const releaseID = release.release_id
+    if (!force && (releaseSegmentCards[releaseID] || releaseSegmentLoading[releaseID])) return null
 
-    setReleaseSegmentLoading((current) => ({ ...current, [release.release_id]: true }))
-    setReleaseSegmentErrors((current) => ({ ...current, [release.release_id]: null }))
+    const requestID = releaseSegmentRequestSeqRef.current + 1
+    releaseSegmentRequestSeqRef.current = requestID
+    releaseSegmentRequestByReleaseRef.current[releaseID] = requestID
+    const isCurrentRequest = () => releaseSegmentRequestByReleaseRef.current[releaseID] === requestID
+
+    setReleaseSegmentLoading((current) => ({ ...current, [releaseID]: true }))
+    setReleaseSegmentErrors((current) => ({ ...current, [releaseID]: null }))
     try {
       const [themesResponse, assetsResponse] = await Promise.all([
         getAdminAnimeThemes(release.anime_id, authToken),
-        getAdminReleaseThemeAssets(release.release_id, authToken),
+        getAdminReleaseThemeAssets(releaseID, authToken),
       ])
       const segmentEntries = await Promise.all(
         themesResponse.data.map(async (theme) => {
@@ -658,16 +726,21 @@ export default function AdminFansubEditPage() {
         }),
       )
       const nextCards = mapReleaseSegmentCards(themesResponse.data, assetsResponse.data, new Map(segmentEntries))
+      if (!isCurrentRequest()) return null
       setReleaseSegmentCards((current) => ({
         ...current,
-        [release.release_id]: nextCards,
+        [releaseID]: nextCards,
       }))
       return nextCards
     } catch (nextError) {
-      setReleaseSegmentErrors((current) => ({ ...current, [release.release_id]: errMessage(nextError) }))
+      if (isCurrentRequest()) {
+        setReleaseSegmentErrors((current) => ({ ...current, [releaseID]: errMessage(nextError) }))
+      }
       return null
     } finally {
-      setReleaseSegmentLoading((current) => ({ ...current, [release.release_id]: false }))
+      if (isCurrentRequest()) {
+        setReleaseSegmentLoading((current) => ({ ...current, [releaseID]: false }))
+      }
     }
   }
 
@@ -683,13 +756,9 @@ export default function AdminFansubEditPage() {
     setDrawerRelease(null)
     setDrawerTab('details')
     setDrawerBusy(false)
-    setDrawerUploadProgress(null)
-    setDrawerError(null)
+    resetThemeDrawerTransientState()
     setDrawerReleaseLoading(false)
     setDrawerReleaseError(null)
-    if (themeUploadInputRef.current) {
-      themeUploadInputRef.current.value = ''
-    }
   }
 
   const openReleaseDrawer = (context: ReleaseDrawerContext) => {
@@ -707,15 +776,11 @@ export default function AdminFansubEditPage() {
     setDrawerRelease(release)
     setDrawerTab('details')
     setDrawerBusy(false)
-    setDrawerUploadProgress(null)
-    setDrawerError(null)
+    resetThemeDrawerTransientState()
     setDrawerReleaseError(null)
     setDrawerReleaseLoading(Boolean(authToken))
     setExpandedReleaseIds((current) => new Set(current).add(release.release_id))
     void loadReleaseSegmentCards(release)
-    if (themeUploadInputRef.current) {
-      themeUploadInputRef.current.value = ''
-    }
 
     if (!authToken) {
       setDrawerReleaseLoading(false)
@@ -801,7 +866,16 @@ export default function AdminFansubEditPage() {
     if (!selectedReleaseSegment) return
     const latestCards = releaseSegmentCards[selectedReleaseSegment.release.release_id] ?? []
     const latestCard = latestCards.find((card) => card.theme_id === selectedReleaseSegment.card.theme_id)
-    if (!latestCard) return
+    if (!latestCard) {
+      setSelectedReleaseSegment(null)
+      setThemeDrawerOpen(false)
+      setDrawerError(null)
+      setDrawerUploadProgress(null)
+      if (themeUploadInputRef.current) {
+        themeUploadInputRef.current.value = ''
+      }
+      return
+    }
     if (latestCard === selectedReleaseSegment.card) return
     setSelectedReleaseSegment({ release: selectedReleaseSegment.release, card: latestCard })
   }, [releaseSegmentCards, selectedReleaseSegment])
@@ -809,25 +883,30 @@ export default function AdminFansubEditPage() {
   const handleDrawerUpload = async (file: File | null) => {
     if (!file || !selectedReleaseSegment || !authToken) return
     const release = selectedReleaseSegment.release
+    const themeID = selectedReleaseSegment.card.theme_id
+    const selectionKey = releaseThemeSelectionKey(release.release_id, themeID)
+    const isCurrentSelection = () => themeDrawerOpenRef.current && themeDrawerSelectionKeyRef.current === selectionKey
     setDrawerBusy(true)
     setDrawerError(null)
     setDrawerUploadProgress(0)
     try {
       await uploadAdminReleaseThemeAssetForRelease({
         releaseID: release.release_id,
-        themeID: selectedReleaseSegment.card.theme_id,
+        themeID,
         file,
         authToken,
-        onProgress: setDrawerUploadProgress,
+        onProgress: (progress) => {
+          if (isCurrentSelection()) setDrawerUploadProgress(progress)
+        },
       })
       await loadReleaseSegmentCards(release, true)
       setToast('Theme-Asset gespeichert.')
-      setDrawerUploadProgress(null)
-      if (themeUploadInputRef.current) {
-        themeUploadInputRef.current.value = ''
+      if (isCurrentSelection()) {
+        setDrawerUploadProgress(null)
+        clearThemeUploadInput()
       }
     } catch (nextError) {
-      setDrawerError(errMessage(nextError))
+      if (isCurrentSelection()) setDrawerError(errMessage(nextError))
     } finally {
       setDrawerBusy(false)
     }
@@ -845,15 +924,22 @@ export default function AdminFansubEditPage() {
   const handleDrawerDelete = async () => {
     if (!selectedReleaseSegment || !authToken || !selectedReleaseSegment.card.media_id) return
     const release = selectedReleaseSegment.release
+    const themeID = selectedReleaseSegment.card.theme_id
+    const mediaID = selectedReleaseSegment.card.media_id
+    const selectionKey = releaseThemeSelectionKey(release.release_id, themeID)
+    const isCurrentSelection = () => themeDrawerOpenRef.current && themeDrawerSelectionKeyRef.current === selectionKey
     setDrawerBusy(true)
     setDrawerError(null)
     try {
-      await deleteAdminReleaseThemeAsset(release.release_id, selectedReleaseSegment.card.theme_id, selectedReleaseSegment.card.media_id, authToken)
+      await deleteAdminReleaseThemeAsset(release.release_id, themeID, mediaID, authToken)
       await loadReleaseSegmentCards(release, true)
-      setSelectedReleaseSegment(null)
+      if (isCurrentSelection()) {
+        setSelectedReleaseSegment(null)
+        closeThemeDrawer()
+      }
       setToast('Theme-Asset entfernt.')
     } catch (nextError) {
-      setDrawerError(errMessage(nextError))
+      if (isCurrentSelection()) setDrawerError(errMessage(nextError))
     } finally {
       setDrawerBusy(false)
     }
@@ -1320,8 +1406,7 @@ export default function AdminFansubEditPage() {
                                                 className={`${styles.fansubEditTimelineSegment} ${styles[`fansubEditTimelineSegment${card.status}`]} ${selectedReleaseSegment?.release.release_id === release.release_id && selectedReleaseSegment.card.theme_id === card.theme_id ? styles.fansubEditTimelineSegmentActive : ''}`}
                                                 style={{ left: `${left}%`, width: `${width}%` }}
                                                 onClick={() => {
-                                                  setSelectedReleaseSegment({ release, card })
-                                                  setThemeDrawerOpen(true)
+                                                  openThemeDrawer(release, card)
                                                 }}
                                                 title={lockedByJellyfin ? 'Jellyfin-Quelle gesetzt' : card.source_label || 'Segment'}
                                               >
@@ -1410,7 +1495,7 @@ export default function AdminFansubEditPage() {
         </div>
       ) : null}
       {themeDrawerOpen && selectedReleaseSegment && themeSelectedCard ? (
-        <div className={styles.fansubEditReleaseDrawerOverlay} onClick={() => setThemeDrawerOpen(false)}>
+        <div className={styles.fansubEditReleaseDrawerOverlay} onClick={closeThemeDrawer}>
           <aside className={styles.fansubEditReleaseDrawer} aria-label="Theme bearbeiten" onClick={(event) => event.stopPropagation()}>
             <header className={styles.fansubEditReleaseDrawerHeader}>
               <div>
@@ -1418,7 +1503,7 @@ export default function AdminFansubEditPage() {
                 <h2>{timelineLabelFor(themeSelectedCard.theme_type_name)} bearbeiten</h2>
                 <p>{themeSelectedCard.theme_title || 'Ohne Titel'}</p>
               </div>
-              <button type="button" className={styles.fansubEditReleaseExpandButton} onClick={() => setThemeDrawerOpen(false)} aria-label="Theme Drawer schliessen">
+              <button type="button" className={styles.fansubEditReleaseExpandButton} onClick={closeThemeDrawer} aria-label="Theme Drawer schliessen">
                 <X size={16} />
               </button>
             </header>
@@ -1467,7 +1552,7 @@ export default function AdminFansubEditPage() {
               </div>
             </div>
             <footer className={styles.fansubEditReleaseDrawerFooter}>
-              <button type="button" className={styles.buttonSecondary} onClick={() => setThemeDrawerOpen(false)}>Schliessen</button>
+              <button type="button" className={styles.buttonSecondary} onClick={closeThemeDrawer}>Schliessen</button>
             </footer>
           </aside>
         </div>
