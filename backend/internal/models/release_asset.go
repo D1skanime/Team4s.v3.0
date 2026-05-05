@@ -4,10 +4,12 @@ package models
 type ReleaseAssetType string
 
 const (
-	ReleaseAssetTypeOpening ReleaseAssetType = "opening"
-	ReleaseAssetTypeEnding  ReleaseAssetType = "ending"
-	ReleaseAssetTypeKaraoke ReleaseAssetType = "karaoke"
-	ReleaseAssetTypeInsert  ReleaseAssetType = "insert"
+	ReleaseAssetTypeVideo  ReleaseAssetType = "video"
+	ReleaseAssetTypePoster ReleaseAssetType = "poster"
+	ReleaseAssetTypeBanner ReleaseAssetType = "banner"
+	ReleaseAssetTypeLogo   ReleaseAssetType = "logo"
+	ReleaseAssetTypeImage  ReleaseAssetType = "image"
+	ReleaseAssetTypeOther  ReleaseAssetType = "other"
 )
 
 // ReleaseAsset represents a public media asset linked to a release.

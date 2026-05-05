@@ -9,6 +9,7 @@ import { getAnimeByID, getRuntimeAuthToken } from '@/lib/api'
 import { AnimeDetail } from '@/types/anime'
 
 import { AnimeEditWorkspace } from '../../components/AnimeEditPage/AnimeEditWorkspace'
+import { AnimeRelationsSection } from '../../components/AnimeEditPage/AnimeRelationsSection'
 import styles from '../../AdminStudio.module.css'
 import { parsePositiveInt, resolveCoverUrl } from '../../utils/anime-helpers'
 import { formatAdminError } from '../../utils/studio-helpers'
@@ -127,6 +128,22 @@ export default function AdminAnimeEditPage() {
             onRequest={setLastRequest}
             onResponse={setLastResponse}
           />
+
+          {authToken ? (
+            <AnimeRelationsSection
+              animeID={anime.id}
+              authToken={authToken}
+              defaultOpen
+              onSuccess={(message) => {
+                setErrorMessage(null)
+                setSuccessMessage(message)
+              }}
+              onError={(message) => {
+                setSuccessMessage(null)
+                setErrorMessage(message)
+              }}
+            />
+          ) : null}
 
           {(lastRequest || lastResponse) ? (
             <section className={styles.card}>

@@ -106,7 +106,7 @@ func (r *GroupRepository) getGroupStats(
 		JOIN fansub_releases fr ON fr.id = rev.release_id
 		JOIN episodes e ON e.id = fr.episode_id
 		WHERE e.anime_id = $1
-		  AND COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id) = $2
+		  AND rvg.fansub_group_id = $2
 	`, animeID, groupID).Scan(&stats.EpisodeCount)
 	if err != nil {
 		return nil, fmt.Errorf("count group episodes (%d,%d): %w", animeID, groupID, err)
@@ -236,7 +236,7 @@ func (r *GroupRepository) buildReleasesWhere(
 ) (string, []any) {
 	conditions := []string{
 		"e.anime_id = $1",
-		"COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id) = $2",
+		"rvg.fansub_group_id = $2",
 	}
 	args := []any{animeID, groupID}
 	argPos := 3

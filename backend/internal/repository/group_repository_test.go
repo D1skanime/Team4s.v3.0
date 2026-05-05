@@ -143,8 +143,8 @@ func TestGroupRepository_GetGroupReleases(t *testing.T) {
 			t.Fatalf("failed to create release version %d: %v", i, err)
 		}
 		if _, err := repo.db.Exec(ctx, `
-			INSERT INTO release_version_groups (release_version_id, fansub_group_id, fansubgroup_id)
-			VALUES ($1, $2, $2)
+			INSERT INTO release_version_groups (release_version_id, fansub_group_id)
+			VALUES ($1, $2)
 		`, releaseVersionID, group1.ID); err != nil {
 			t.Fatalf("failed to create release version group %d: %v", i, err)
 		}

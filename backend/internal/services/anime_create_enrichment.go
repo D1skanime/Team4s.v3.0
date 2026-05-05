@@ -1525,13 +1525,15 @@ func (s *AnimeCreateEnrichmentService) resolveRelations(
 	titles := make([]string, 0, len(relations))
 
 	for _, relation := range relations {
-		if !isAllowedAdminRelationLabel(relation.RelationLabel) {
+		normalizedRelationLabel, ok := normalizeAniSearchRelationLabel(relation.RelationLabel)
+		if !ok {
 			continue
 		}
 		title := strings.TrimSpace(relation.Title)
 		if title == "" {
 			continue
 		}
+		relation.RelationLabel = normalizedRelationLabel
 		candidates = append(candidates, relation)
 		titles = append(titles, title)
 		if relation.AniSearchID != "" {
@@ -1697,6 +1699,19 @@ func isAllowedAdminRelationLabel(label string) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func normalizeAniSearchRelationLabel(label string) (string, bool) {
+	trimmed := strings.TrimSpace(label)
+	switch trimmed {
+	case "Alternative Version":
+		return "Nebengeschichte", true
+	default:
+		if isAllowedAdminRelationLabel(trimmed) {
+			return trimmed, true
+		}
+		return "", false
 	}
 }
 

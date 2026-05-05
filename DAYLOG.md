@@ -1,5 +1,51 @@
 # DAYLOG
 
+## 2026-05-05
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: stabilize the repo-local agent operating rules and handoff trail around the current Phase-32 fansub release workspace, then prove the release-theme-asset path end to end against real release data instead of stale assumptions
+
+### Workstreams Touched
+- `AGENTS.md` consolidation for Codex/GSD workflow, stop conditions, domain rules, migration rules, UI rules, and output expectations
+- Repo-local handoff refresh (`CONTEXT.md`, `STATUS.md`, `TOMORROW.md`, `RISKS.md`, `WORKING_NOTES.md`, `TODO.md`, daily summary)
+- Fansub-domain source-of-truth alignment around `docs/architecture/db-schema-fansub-domain.md`
+- Restartability check of the running backend/frontend surfaces
+- Real browser/UAT on `/admin/fansubs/88/edit`
+- Release-theme storage cleanup, structured storage-path follow-through, and global theme-range upload guardrail
+
+### Goals Intended vs Achieved
+- Intended: leave a restartable workspace that reflects the real dirty worktree state instead of the older Phase-29 handoff story, and verify whether the release drawer actually works on real data
+- Achieved: the handoff files now point at the real Phase-32 baseline, `AGENTS.md` carries the repo's explicit Codex/GSD working rules in one place, the release-theme-asset round-trip was proven twice on a real fansub context, storage/delete cleanup now behaves physically, and the guardrails against wrong release overrides were tightened
+
+### Problems Solved
+- Root cause: the root handoff trail still described the repo as if the main open thread were post-Phase-29 cleanup, while planning state and the dirty worktree had already moved into explicit release endpoints, tabbed fansub edit, and the Phase-32 release drawer
+- Fix: rewrote the closeout files around the actual active baseline: Phase 30 explicit release context, Phase 31 tabbed `Anime & Releases`, and Phase 32 drawer follow-through
+- Root cause: agent instructions existed partly in the root file, partly in extra docs, and partly as implicit habits, which made it too easy for future sessions to drift on stop conditions, migration discipline, or wrong-domain persistence
+- Fix: consolidated the default workflow, stop conditions, project-domain rules, migration rules, UI rules, screenshot-to-UI expectations, diff discipline, validation, and output requirements directly into `AGENTS.md`
+- Root cause: the current repo contains multiple simultaneous cleanup-boundary migrations and a large mixed dirty worktree, which raises the chance of accidental schema churn or bad commit boundaries
+- Fix: made that risk explicit in `STATUS.md`, `RISKS.md`, `TODO.md`, and tomorrow's first task
+- Root cause: the original theme upload path relied too heavily on native file-input change behavior, which did not reliably trigger a real upload in the tested browser flow
+- Fix: changed the drawer to use an explicit `Upload starten` action and revalidated the round-trip in the browser
+- Root cause: deleting a release-theme asset removed the UI/DB linkage but left the physical file behind in `media/`
+- Fix: release-theme delete now removes the stored file too, and this was rechecked on two real uploads
+- Root cause: release-theme files were landing flat in `media/`, which would become messy at scale
+- Fix: new uploads now store under `media/release-theme-assets/release_<releaseId>/theme_<themeId>/...`
+- Root cause: one global/admin OP/ED range could still be contradicted later by a release-specific upload on a covered episode
+- Fix: backend upload now rejects those conflicting uploads with `theme_segment_locked`
+
+### Decisions
+- Use `docs/architecture/db-schema-fansub-domain.md` as the first source-of-truth document for fansub/anime/release persistence questions
+- Treat the next session's first meaningful task as migration-boundary audit, not another first-principles UAT pass
+- Treat global/admin episode-range theme segments as authoritative for covered releases; conflicting release uploads must be blocked
+
+### Blockers
+- Cross-AI review remains unavailable because no independent reviewer CLI is installed locally
+- The worktree is intentionally very dirty across product code, planning artifacts, and repo-local GSD/Codex tooling, so commit slicing still needs care
+- One drawer-state/race follow-through slice remains open around release-detail/theme switching and stale UI state
+
+### Next Step
+- Open migrations `0055` to `0057`, compare them against `git status -sb`, and document the cleanup-chain risk before more schema work
+
 ## 2026-04-29
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`

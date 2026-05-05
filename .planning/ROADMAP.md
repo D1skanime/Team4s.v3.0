@@ -468,12 +468,12 @@ Plans:
 **Requirements**: P31-SC1, P31-SC2, P31-SC3, P31-SC4, P31-SC5
 **Depends on:** Phase 30
 **Status**: Planned on 2026-04-30 aus UI-Mockup und Produktentscheidung fuer ausklappbare Release-Zeilen statt globalem Release-Drawer
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans executed
 
 Plans:
-- [ ] `31-01-PLAN.md` - Fansub-Edit `Anime & Releases` als tabbasierte Release-Arbeitsflaeche mit ausklappbaren Release-Zeilen und ohne sichtbaren `Releases neu laden`-Button.
-- [ ] `31-02-PLAN.md` - Theme-/Segment-Kontext im ausgeklappten Release sichtbar machen, inklusive geerbter Admin-Werte, release-spezifischer Werte und klickbarer Segment-Karten.
-- [ ] `31-03-PLAN.md` - Release-spezifische Segment-Bearbeitung und Media-Verdrahtung vorbereiten: bestehende Theme-Asset-Flows wiederverwenden, Prozess-Media sauber auf `release_media`/`media_assets` abgrenzen, Verifikation und UAT.
+- [x] `31-01-PLAN.md` - Fansub-Edit `Anime & Releases` als tabbare Release-Arbeitsflaeche mit ausklappbaren Release-Zeilen und ohne sichtbaren `Releases neu laden`-Button.
+- [x] `31-02-PLAN.md` - Theme-/Segment-Kontext im ausgeklappten Release sichtbar machen, inklusive geerbter Admin-Werte, release-spezifischer Werte und klickbarer Segment-Karten.
+- [x] `31-03-PLAN.md` - Release-spezifische Segment-Bearbeitung und Media-Verdrahtung vorbereiten: bestehende Theme-Asset-Flows wiederverwenden, Prozess-Media sauber auf `release_media`/`media_assets` abgrenzen, Verifikation und UAT.
 
 **Success Criteria** (what must be TRUE):
   1. `/admin/fansubs/:id/edit` hat einen echten `Anime & Releases`-Tab, der verknuepfte Anime und ihre Releases aus den Phase-30-Endpunkten laedt und ohne separaten `Releases neu laden`-Hauptbutton bedienbar ist.
@@ -481,3 +481,21 @@ Plans:
   3. Im aufgeklappten Release-Bereich werden Theme-/Segment-Karten angezeigt, die sichtbar unterscheiden, ob Daten global/admin gesetzt, fuer diese Release gesetzt oder noch fehlend sind.
   4. Klick auf ein Theme-/Segment fuehrt in eine release-spezifische Bearbeitung, die bestehende Theme-/Segment- und Release-Theme-Asset-Seams wiederverwendet, statt eine neue parallele Media-Wahrheit zu erfinden.
   5. Generisches Release-Prozess-Media bleibt fachlich getrennt von OP/ED/Karaoke/Insert: Prozessbilder, GIFs, Screenshots, Toolbilder und Notizen duerfen an `release_media`/`media_assets` haengen, waehrend Theme-Segment-Assets ueber die bestehende Theme-/Segment-Asset-Strecke laufen.
+
+### Phase 32: Fansub Release Side Drawer aus Phase 31: Edit-Drawer fuer Release-Theme-Assets mit vorhandenen DB-Tabellen und APIs, ohne neue Datenmodelle; DB/UI-Differenzen vor Umsetzung diskutieren
+
+**Goal:** Build the Phase 31 Fansub Release edit entry into a right Side Drawer that edits release Theme assets for the concrete selected release using existing `release_theme_assets`/`media_assets` seams, without adding new DB tables or treating `fansub_group_media` as runtime authority.
+**Requirements**: TBD
+**Depends on:** Phase 31
+**Plans:** 2 plans (executed; human UAT pending)
+
+Plans:
+- [x] 32-01 Direct release Theme asset upload API
+- [x] 32-02 Fansub Release Side Drawer UI and upload/delete wiring
+
+**Success Criteria:**
+  1. The release row `Edit` button opens a right Side Drawer; the row chevron remains the subtle preview expander.
+  2. The drawer shows concrete release context without exposing Anime edit actions or making internal release IDs the primary UI label.
+  3. The drawer uses existing Theme/Segment data and does not allow timeline timing edits.
+  4. Missing or release-specific Theme asset slots can upload/delete through a release-scoped API writing to `release_theme_assets`.
+  5. No new DB tables are added, and `fansub_group_media` is not used as authoritative release Theme media state.

@@ -5,9 +5,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react'
 
 import VideoPlayerModal from '@/app/episodes/[id]/components/VideoPlayerModal'
-import { GroupAssetImage, GroupAssetMedia, GroupEpisodeAssets } from '@/types/groupAsset'
+import { GroupAssetImage, GroupAssetMedia, GroupAssetMediaType, GroupEpisodeAssets } from '@/types/groupAsset'
 import { EpisodeReleaseSummary } from '@/types/group'
-import { MediaAsset, MediaAssetType } from '@/types/mediaAsset'
+import { MediaAsset } from '@/types/mediaAsset'
 
 import styles from './GroupAssetsExperience.module.css'
 
@@ -20,7 +20,7 @@ interface GroupAssetsExperienceProps {
   errorMessage?: string | null
 }
 
-const TYPE_LABELS: Record<MediaAssetType, string> = {
+const TYPE_LABELS: Record<GroupAssetMediaType, string> = {
   opening: 'Opening',
   ending: 'Ending',
   karaoke: 'Karaoke',

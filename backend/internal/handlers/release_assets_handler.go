@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -24,8 +23,6 @@ func NewReleaseAssetsHandler(episodeVersionRepo *repository.EpisodeVersionReposi
 }
 
 // ListReleaseAssets returns the public media assets for a release.
-// Until dedicated release-asset storage lands, the endpoint exposes a stable empty contract
-// for existing releases so the frontend can stop depending on mock playback paths.
 func (h *ReleaseAssetsHandler) ListReleaseAssets(c *gin.Context) {
 	releaseIDRaw := c.Param("releaseId")
 	if strings.TrimSpace(releaseIDRaw) == "" {
@@ -38,7 +35,8 @@ func (h *ReleaseAssetsHandler) ListReleaseAssets(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.episodeVersionRepo.GetReleaseStreamSource(c.Request.Context(), releaseID); errors.Is(err, repository.ErrNotFound) {
+	data, err := h.episodeVersionRepo.ListReleaseAssets(c.Request.Context(), releaseID)
+	if errors.Is(err, repository.ErrNotFound) {
 		notFound(c, "release nicht gefunden")
 		return
 	} else if err != nil {
@@ -48,9 +46,6 @@ func (h *ReleaseAssetsHandler) ListReleaseAssets(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": models.ReleaseAssetsData{
-			ReleaseID: releaseID,
-			Assets:    []models.ReleaseAsset{},
-		},
+		"data": data,
 	})
 }

@@ -291,6 +291,7 @@ export interface AdminFansubRelease {
   fansub_name: string;
   episode_id: number;
   episode_number: string;
+  episode_title?: string | null;
   source?: string | null;
   version_count: number;
   has_theme_assets: boolean;

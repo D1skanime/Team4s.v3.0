@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed Phase 31 Plan 01 — Fansub-Edit Tab-Workspace und ausklappbare Release-Zeilen
-last_updated: "2026-04-30T13:53:46.359Z"
+status: Phase 32 executed - human UAT pending
+stopped_at: Phase 33 removed; returning to Phase 32 cleanup and human UAT
+last_updated: "2026-05-02T19:42:31.047Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 27
-  completed_phases: 20
+  completed_phases: 22
   total_plans: 91
-  completed_plans: 81
+  completed_plans: 83
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 31 — ui-umbau
+**Current focus:** Phase 32 — Fansub Release Side Drawer fuer konkrete Release-Theme-Assets
 
 ## Current Position
 
-Phase: 31 (ui-umbau) — EXECUTING
-Plan: 2 of 3
+Phase: 32 (Fansub Release Side Drawer) - HUMAN VERIFICATION PENDING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -149,6 +149,7 @@ Recent durable decisions:
 ### Roadmap Evolution
 
 - Phase 30 added: Fansub-Releases API-Endpunkte — Handler und API-Routen für die fansub_releases-Tabelle, die bereits Repository-Code besitzt aber noch keine HTTP-Endpunkte hat.
+- Phase 32 added: Fansub Release Side Drawer aus Phase 31: Edit-Drawer fuer Release-Theme-Assets mit vorhandenen DB-Tabellen und APIs, ohne neue Datenmodelle; DB/UI-Differenzen vor Umsetzung diskutieren
 - Phase 09 added: Controlled AniSearch ID enrichment before create with fill-only Jellysync follow-up.
 - Phase 10 narrowed to create tags and metadata card refactor and is now executed.
 - Phase 11 added: AniSearch edit enrichment and relation persistence.
@@ -248,7 +249,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-04-30T13:53:46.339Z
-Stopped at: Completed Phase 31 Plan 01 — Fansub-Edit Tab-Workspace und ausklappbare Release-Zeilen
+Last session: 2026-05-02T19:42:31.037Z
+Stopped at: Phase 33 removed; returning to Phase 32 cleanup and human UAT
 Last activity: 2026-04-30
-Resume file: None
+Resume file: .planning/phases/32-fansub-release-side-drawer-aus-phase-31-edit-drawer-fuer-release-theme-assets-mit-vorhandenen-db-tabellen-und-apis-ohne-neue-datenmodelle-db-ui-differenzen-vor-umsetzung-diskutieren/32-VERIFICATION.md

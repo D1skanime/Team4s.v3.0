@@ -724,10 +724,25 @@ export interface AdminAnimeTheme {
 export interface AdminAnimeThemeSegment {
   id: number
   theme_id: number
+  anime_id?: number
+  theme_title?: string | null
+  theme_type_name?: string
+  fansub_group_id?: number | null
+  version?: string
+  start_episode?: number | null
+  end_episode?: number | null
   start_episode_id: number | null
   end_episode_id: number | null
   start_episode_number: string | null
   end_episode_number: string | null
+  start_time?: string | null
+  end_time?: string | null
+  source_jellyfin_item_id?: string | null
+  source_type?: 'none' | 'jellyfin_theme' | 'release_asset' | string | null
+  source_ref?: string | null
+  source_label?: string | null
+  playback_source_kind?: string | null
+  playback_duration_seconds?: number | null
   created_at: string
 }
 
@@ -771,6 +786,7 @@ export interface AdminAnimeThemeSegmentCreateResponse {
 export interface AdminFansubAnimeEntry {
   id: number
   title: string
+  cover_image?: string | null
 }
 
 export interface AdminFansubAnimeListResponse {

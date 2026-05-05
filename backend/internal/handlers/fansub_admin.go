@@ -24,6 +24,14 @@ var allowedFansubStatuses = map[string]struct{}{
 	"dissolved": {},
 }
 
+var allowedFansubLinkTypes = map[string]struct{}{
+	"website": {},
+	"discord": {},
+	"twitter": {},
+	"github":  {},
+	"irc":     {},
+}
+
 // FansubHandler bündelt alle Handler-Methoden für Fansub-Gruppen, Episodenversionen und Medienproxy-Endpunkte.
 type FansubHandler struct {
 	fansubRepo         *repository.FansubRepository
@@ -147,6 +155,14 @@ func parseFansubMemberID(raw string) (int64, error) {
 }
 
 func parseFansubAliasID(raw string) (int64, error) {
+	id, err := strconv.ParseInt(strings.TrimSpace(raw), 10, 64)
+	if err != nil || id <= 0 {
+		return 0, strconv.ErrSyntax
+	}
+	return id, nil
+}
+
+func parseFansubGroupLinkID(raw string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(raw), 10, 64)
 	if err != nil || id <= 0 {
 		return 0, strconv.ErrSyntax

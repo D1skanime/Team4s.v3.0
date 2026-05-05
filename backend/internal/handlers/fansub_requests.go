@@ -1,5 +1,7 @@
 package handlers
 
+import "team4s.v3/backend/internal/models"
+
 // fansubGroupCreateRequest enthält die Felder zum Anlegen einer neuen Fansub-Gruppe.
 type fansubGroupCreateRequest struct {
 	Slug          string  `json:"slug"`
@@ -18,6 +20,18 @@ type fansubGroupCreateRequest struct {
 	DiscordURL    *string `json:"discord_url"`
 	IrcURL        *string `json:"irc_url"`
 	Country       *string `json:"country"`
+}
+
+type fansubGroupLinkCreateRequest struct {
+	LinkType string  `json:"link_type"`
+	Name     *string `json:"name"`
+	URL      string  `json:"url"`
+}
+
+type fansubGroupLinkPatchRequest struct {
+	LinkType models.OptionalString `json:"link_type"`
+	Name     models.OptionalString `json:"name"`
+	URL      models.OptionalString `json:"url"`
 }
 
 // fansubMemberCreateRequest enthält die Felder zum Anlegen eines neuen Fansub-Mitglieds.

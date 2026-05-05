@@ -45,6 +45,11 @@ type MediaService struct {
 	publicBaseURL string
 }
 
+type ReleaseThemeVideoStorageContext struct {
+	ReleaseID int64
+	ThemeID   int64
+}
+
 // NewMediaService erstellt einen neuen MediaService mit dem angegebenen Speicherverzeichnis
 // und der öffentlichen Basis-URL. Leere Werte werden durch sinnvolle Standardwerte ersetzt.
 func NewMediaService(storageDir, publicBaseURL string) *MediaService {
@@ -121,8 +126,8 @@ func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, da
 	return result, nil
 }
 
-// SaveVideoUpload validiert und speichert ein Theme-Video fuer OP/ED-Assets.
-func (s *MediaService) SaveVideoUpload(originalName string, data []byte) (*MediaSaveResult, error) {
+// SaveReleaseThemeVideoUpload validiert und speichert ein release-spezifisches Theme-Video fuer OP/ED-Assets.
+func (s *MediaService) SaveReleaseThemeVideoUpload(ctx ReleaseThemeVideoStorageContext, originalName string, data []byte) (*MediaSaveResult, error) {
 	if len(data) == 0 {
 		return nil, &MediaValidationError{Message: "datei ist leer"}
 	}
@@ -144,7 +149,7 @@ func (s *MediaService) SaveVideoUpload(originalName string, data []byte) (*Media
 	}
 
 	filename := buildFilename(models.MediaKindThemeVideo, ext)
-	absolutePath := filepath.Join(s.storageDir, filename)
+	absolutePath := filepath.Join(s.storageDir, s.releaseThemeVideoRelativeDir(ctx), filename)
 	if err := os.MkdirAll(filepath.Dir(absolutePath), 0o755); err != nil {
 		return nil, fmt.Errorf("create media directory: %w", err)
 	}
@@ -167,14 +172,26 @@ func (s *MediaService) SaveVideoUpload(originalName string, data []byte) (*Media
 	}, nil
 }
 
+func (s *MediaService) releaseThemeVideoRelativeDir(ctx ReleaseThemeVideoStorageContext) string {
+	releaseID := ctx.ReleaseID
+	if releaseID <= 0 {
+		releaseID = 0
+	}
+	themeID := ctx.ThemeID
+	if themeID <= 0 {
+		themeID = 0
+	}
+	return filepath.Join("release-theme-assets", fmt.Sprintf("release_%d", releaseID), fmt.Sprintf("theme_%d", themeID))
+}
+
 // SegmentAssetContext enthaelt die Kontext-Parameter fuer den deterministischen Segment-Asset-Pfad.
 type SegmentAssetContext struct {
-	AnimeID         int64
-	StableProvider  string
+	AnimeID          int64
+	StableProvider   string
 	StableExternalID string
-	GroupID         int64
-	Version         string
-	SegmentTypeName string
+	GroupID          int64
+	Version          string
+	SegmentTypeName  string
 }
 
 // SaveSegmentAsset validiert und speichert ein Segment-Asset (OP/ED/Insert-Audio- oder Videodatei).

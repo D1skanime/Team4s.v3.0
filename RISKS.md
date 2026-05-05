@@ -2,25 +2,25 @@
 
 ## Top 3 Risks
 
-### 1. Phase 28 could be overstated as done before the live runtime/fallback pass actually happens
-- **Impact:** Medium
-- **Likelihood:** High
-- **Why it matters:** the automated build/test lane is green again, but the real product promise for Phase 28 still depends on live playback-source and fallback behavior in the operator UI.
-- **Mitigation:** run one explicit browser/UAT pass on `/admin/episode-versions/47/edit` and record the result in the verification artifact before calling the phase closed.
+### 1. Wrong-domain release or fansub persistence would corrupt the intended model
+- **Impact:** High
+- **Likelihood:** Medium
+- **Why it matters:** anime and episodes must stay neutral; release media belongs on `release_media`, group media belongs on `fansub_group_media`, and `release_version_groups.fansub_group_id` remains the canonical group seam.
+- **Mitigation:** read `docs/architecture/db-schema-fansub-domain.md` first, treat `fansub_group_id` as runtime truth, and stop immediately if a change would attach release or fansub data to the wrong entity.
 
-### 2. Migration bookkeeping around Phase 27 / `0052` is still mistrust-inducing
+### 2. Migration-chain risk is elevated around the cleanup-boundary work
 - **Impact:** Medium
 - **Likelihood:** Medium
-- **Why it matters:** schema state once appeared inconsistent, which makes later debugging and trust in migration status harder than it should be.
-- **Mitigation:** compare the physical DB tables with migration status directly and write down the explanation or repair path before the next schema-moving slice.
+- **Why it matters:** multiple untracked migrations (`0055` to `0057`) are present together, including legacy cleanup for `fansubgroup_id`, so adding more schema work casually could make the chain harder to trust or review.
+- **Mitigation:** inspect migration files plus `git status` before adding any new migration, document the safety SQL for destructive cleanup, and stop if data mismatches appear.
 
-### 3. Local temp/cache/debug artifacts can still pollute the worktree
+### 3. Mixed worktree churn can hide real product risk
 - **Impact:** Low
-- **Likelihood:** Medium
-- **Why it matters:** the repo currently contains untracked screenshot/tmp/cache/debug folders that are not intended history.
-- **Mitigation:** keep staging selective and avoid accidental commits of local artifacts.
+- **Likelihood:** High
+- **Why it matters:** product changes, planning artifacts, and repo-local GSD/Codex tooling changes are all dirty at once, which makes accidental commits and shallow review more likely.
+- **Mitigation:** keep staging selective, document unrelated local artifacts separately, and avoid broad formatting or cleanup commands.
 
 ## Current Blockers
-- No hard product blocker remains on the current duration/runtime code path.
-- Live Phase-28 browser/UAT evidence is still missing.
+- No hard runtime blocker is known for opening the Phase-32 release drawer.
+- Release-theme-asset round-trip is now verified, but one more detail/theme drawer switching pass is still open to close the stale-state risk honestly.
 - Cross-AI review remains unavailable because no independent reviewer CLI is installed locally.

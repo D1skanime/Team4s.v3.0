@@ -2,37 +2,54 @@ package models
 
 import "time"
 
-// FansubGroupType unterscheidet reguläre Fansub-Gruppen von Kollaborationen.
+// FansubGroupType unterscheidet regulaere Fansub-Gruppen von Kollaborationen.
 type FansubGroupType string
+
+// FansubGroupLinkType beschreibt die erlaubten generischen Link-Typen fuer Fansub-Gruppen.
+type FansubGroupLinkType string
 
 const (
 	// FansubGroupTypeGroup bezeichnet eine normale Fansub-Gruppe.
 	FansubGroupTypeGroup FansubGroupType = "group"
 	// FansubGroupTypeCollaboration bezeichnet eine Kollaborationsgruppe aus mehreren Fansubs.
 	FansubGroupTypeCollaboration FansubGroupType = "collaboration"
+
+	// FansubGroupLinkTypeWebsite steht fuer die Haupt-Webseite einer Gruppe.
+	FansubGroupLinkTypeWebsite FansubGroupLinkType = "website"
+	// FansubGroupLinkTypeDiscord steht fuer Discord-Einladungen oder Community-Server.
+	FansubGroupLinkTypeDiscord FansubGroupLinkType = "discord"
+	// FansubGroupLinkTypeTwitter steht fuer X/Twitter-Profile.
+	FansubGroupLinkTypeTwitter FansubGroupLinkType = "twitter"
+	// FansubGroupLinkTypeGitHub steht fuer GitHub-Profile oder Organisationen.
+	FansubGroupLinkTypeGitHub FansubGroupLinkType = "github"
+	// FansubGroupLinkTypeIRC steht fuer IRC-Kontaktadressen.
+	FansubGroupLinkTypeIRC FansubGroupLinkType = "irc"
 )
 
-// FansubFilter enthält die Filter- und Paginierungsparameter für Fansub-Listenabfragen.
+// FansubFilter enthaelt die Filter- und Paginierungsparameter fuer Fansub-Listenabfragen.
 type FansubFilter struct {
-	Page    int    // Seitennummer (1-basiert)
-	PerPage int    // Einträge pro Seite
-	Q       string // Volltextsuchbegriff
-	Status  string // Status-Filter (z.B. "active", "inactive")
+	Page    int
+	PerPage int
+	Q       string
+	Status  string
 }
 
-// FansubGroup enthält alle Detailfelder einer Fansub-Gruppe.
+// FansubGroup enthaelt alle Detailfelder einer Fansub-Gruppe.
+// closed_year und history_description bleiben nur als Kompatibilitaetsfelder lesbar.
 type FansubGroup struct {
 	ID                   int64                `json:"id"`
 	Slug                 string               `json:"slug"`
 	Name                 string               `json:"name"`
 	Description          *string              `json:"description,omitempty"`
 	History              *string              `json:"history,omitempty"`
+	HistoryDescription   *string              `json:"history_description,omitempty"`
 	LogoID               *int64               `json:"logo_id,omitempty"`
 	BannerID             *int64               `json:"banner_id,omitempty"`
 	LogoURL              *string              `json:"logo_url,omitempty"`
 	BannerURL            *string              `json:"banner_url,omitempty"`
 	FoundedYear          *int32               `json:"founded_year,omitempty"`
 	DissolvedYear        *int32               `json:"dissolved_year,omitempty"`
+	ClosedYear           *int32               `json:"closed_year,omitempty"`
 	Status               string               `json:"status"`
 	GroupType            FansubGroupType      `json:"group_type"`
 	WebsiteURL           *string              `json:"website_url,omitempty"`
@@ -45,11 +62,11 @@ type FansubGroup struct {
 	AliasesCount         int                  `json:"aliases_count"`
 	CreatedAt            time.Time            `json:"created_at"`
 	UpdatedAt            time.Time            `json:"updated_at"`
+	Links                []FansubGroupLink    `json:"links,omitempty"`
 	CollaborationMembers []FansubGroupSummary `json:"collaboration_members,omitempty"`
 }
 
-// FansubGroupSummary ist eine kompakte Kurzform einer Fansub-Gruppe,
-// die in Listenansichten und Verknüpfungen verwendet wird.
+// FansubGroupSummary ist eine kompakte Kurzform einer Fansub-Gruppe.
 type FansubGroupSummary struct {
 	ID      int64   `json:"id"`
 	Slug    string  `json:"slug"`
@@ -57,7 +74,7 @@ type FansubGroupSummary struct {
 	LogoURL *string `json:"logo_url,omitempty"`
 }
 
-// FansubMember repräsentiert ein Mitglied einer Fansub-Gruppe mit Rolle und Zeitraum.
+// FansubMember repraesentiert ein Mitglied einer Fansub-Gruppe mit Rolle und Zeitraum.
 type FansubMember struct {
 	ID            int64     `json:"id"`
 	FansubGroupID int64     `json:"fansub_group_id"`
@@ -70,7 +87,7 @@ type FansubMember struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
-// FansubAlias repräsentiert einen alternativen Namen (Alias) einer Fansub-Gruppe.
+// FansubAlias repraesentiert einen alternativen Namen einer Fansub-Gruppe.
 type FansubAlias struct {
 	ID            int64     `json:"id"`
 	FansubGroupID int64     `json:"fansub_group_id"`
@@ -79,8 +96,17 @@ type FansubAlias struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
-// AnimeFansubRelation verknüpft einen Anime mit einer Fansub-Gruppe und gibt an,
-// ob es sich um die primäre Gruppe handelt.
+// FansubGroupLink beschreibt einen generischen Community-Link einer Fansub-Gruppe.
+type FansubGroupLink struct {
+	ID        int64               `json:"id"`
+	GroupID   int64               `json:"group_id"`
+	LinkType  FansubGroupLinkType `json:"link_type"`
+	Name      *string             `json:"name,omitempty"`
+	URL       string              `json:"url"`
+	CreatedAt time.Time           `json:"created_at"`
+}
+
+// AnimeFansubRelation verknuepft einen Anime mit einer Fansub-Gruppe.
 type AnimeFansubRelation struct {
 	AnimeID       int64               `json:"anime_id"`
 	FansubGroupID int64               `json:"fansub_group_id"`
@@ -90,21 +116,19 @@ type AnimeFansubRelation struct {
 	FansubGroup   *FansubGroupSummary `json:"fansub_group,omitempty"`
 }
 
-// FansubAliasCreateInput enthält die Eingabedaten zum Anlegen eines neuen Fansub-Alias.
+// FansubAliasCreateInput enthaelt die Eingabedaten zum Anlegen eines neuen Fansub-Alias.
 type FansubAliasCreateInput struct {
-	Alias           string // Originaler Alias-Text
-	NormalizedAlias string // Normalisierte Vergleichsform des Alias
+	Alias           string
+	NormalizedAlias string
 }
 
-// AnimeFansubAliasCandidate verknüpft eine Fansub-Gruppe mit einem Alias-Kandidaten
-// und wird bei der automatischen Alias-Erkennung verwendet.
+// AnimeFansubAliasCandidate verknuepft eine Fansub-Gruppe mit einem Alias-Kandidaten.
 type AnimeFansubAliasCandidate struct {
-	FansubGroupID int64  // ID der zugehörigen Fansub-Gruppe
-	Alias         string // Alias-Text
+	FansubGroupID int64
+	Alias         string
 }
 
-// FansubGroupCreateInput enthält die Pflicht- und optionalen Felder
-// zum Erstellen einer neuen Fansub-Gruppe.
+// FansubGroupCreateInput enthaelt die Felder zum Erstellen einer neuen Fansub-Gruppe.
 type FansubGroupCreateInput struct {
 	Slug          string
 	Name          string
@@ -124,8 +148,7 @@ type FansubGroupCreateInput struct {
 	Country       *string
 }
 
-// FansubGroupPatchInput enthält die patch-fähigen Felder einer Fansub-Gruppe,
-// wobei nur gesetzte Felder (Set=true) aktualisiert werden.
+// FansubGroupPatchInput enthaelt die patch-faehigen Felder einer Fansub-Gruppe.
 type FansubGroupPatchInput struct {
 	Slug          OptionalString `json:"slug"`
 	Name          OptionalString `json:"name"`
@@ -145,7 +168,21 @@ type FansubGroupPatchInput struct {
 	Country       OptionalString `json:"country"`
 }
 
-// MergeGroupsResult contains statistics from a fansub group merge operation
+// FansubGroupLinkCreateInput enthaelt die Daten zum Anlegen eines generischen Fansub-Links.
+type FansubGroupLinkCreateInput struct {
+	LinkType FansubGroupLinkType
+	Name     *string
+	URL      string
+}
+
+// FansubGroupLinkPatchInput enthaelt patch-faehige Felder eines generischen Fansub-Links.
+type FansubGroupLinkPatchInput struct {
+	LinkType OptionalString `json:"link_type"`
+	Name     OptionalString `json:"name"`
+	URL      OptionalString `json:"url"`
+}
+
+// MergeGroupsResult contains statistics from a fansub group merge operation.
 type MergeGroupsResult struct {
 	MergedCount       int      `json:"merged_count"`
 	VersionsMigrated  int      `json:"versions_migrated"`
@@ -179,7 +216,7 @@ type MergeGroupsPreview struct {
 	Conflicts         MergePreviewConflicts `json:"conflicts"`
 }
 
-// CollaborationMember represents a member group in a collaboration
+// CollaborationMember represents a member group in a collaboration.
 type CollaborationMember struct {
 	CollaborationID int64               `json:"collaboration_id"`
 	MemberGroupID   int64               `json:"member_group_id"`

@@ -21,9 +21,9 @@ import (
 // fansubReleaseThemeRepoStub implements adminThemeRepository for handler tests.
 // It extends the existing stub pattern used in relation tests.
 type fansubReleaseThemeRepoStub struct {
-	listFansubAnimeReleases                func(ctx context.Context, fansubGroupID int64, animeID int64) ([]models.AdminFansubReleaseSummary, error)
-	getCanonicalFansubAnimeReleaseSummary  func(ctx context.Context, fansubGroupID int64, animeID int64) (*models.CanonicalFansubAnimeReleaseResponse, error)
-	getAdminReleaseByID                    func(ctx context.Context, releaseID int64) (*models.AdminFansubReleaseSummary, error)
+	listFansubAnimeReleases               func(ctx context.Context, fansubGroupID int64, animeID int64) ([]models.AdminFansubReleaseSummary, error)
+	getCanonicalFansubAnimeReleaseSummary func(ctx context.Context, fansubGroupID int64, animeID int64) (*models.CanonicalFansubAnimeReleaseResponse, error)
+	getAdminReleaseByID                   func(ctx context.Context, releaseID int64) (*models.AdminFansubReleaseSummary, error)
 }
 
 func (s *fansubReleaseThemeRepoStub) ListThemeTypes(ctx context.Context) ([]models.AdminThemeType, error) {
@@ -94,6 +94,9 @@ func (s *fansubReleaseThemeRepoStub) ListReleaseThemeAssets(ctx context.Context,
 }
 func (s *fansubReleaseThemeRepoStub) ListReleaseThemeAssetsByFansubAnime(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, []models.AdminReleaseThemeAsset, error) {
 	return nil, nil, nil
+}
+func (s *fansubReleaseThemeRepoStub) HasGlobalThemeSegmentCoverageForRelease(ctx context.Context, releaseID int64, themeID int64) (bool, error) {
+	return false, nil
 }
 func (s *fansubReleaseThemeRepoStub) CreateReleaseThemeAsset(ctx context.Context, input models.AdminReleaseThemeAssetCreateInput) (*models.AdminReleaseThemeAsset, error) {
 	return nil, nil
@@ -171,10 +174,29 @@ func TestAdminFansubReleases_RoutesRegistered(t *testing.T) {
 		"/admin/fansubs/:id/anime/:animeid/releases",
 		"/admin/fansubs/:id/anime/:animeid/releases/canonical",
 		"/admin/releases/:releaseid",
+		"post(\"/admin/releases/:releaseid/theme-assets\"",
+		"get(\"/admin/releases/:releaseid/theme-assets\"",
+		"delete(\"/admin/releases/:releaseid/theme-assets/:themeid/:mediaid\"",
 	}
 	for _, route := range requiredRoutes {
 		if !strings.Contains(normalized, route) {
 			t.Fatalf("expected route %q to be registered in admin_routes.go", route)
+		}
+	}
+}
+
+func TestAdminFansubReleases_DirectReleaseThemeUploadHandlerExists(t *testing.T) {
+	content := readFansubReleaseHandlerSource(t, "admin_content_release_theme_assets.go")
+	normalized := strings.ToLower(content)
+
+	required := []string{
+		"uploadreleasethemeassetforrelease",
+		"adminreleasethemeassetcreateinput{",
+		"releaseid: releaseid",
+	}
+	for _, needle := range required {
+		if !strings.Contains(normalized, needle) {
+			t.Fatalf("expected %q in direct release theme upload handler", needle)
 		}
 	}
 }
@@ -190,14 +212,14 @@ func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 		listFansubAnimeReleases: func(_ context.Context, fansubGroupID, animeID int64) ([]models.AdminFansubReleaseSummary, error) {
 			return []models.AdminFansubReleaseSummary{
 				{
-					ReleaseID:     releaseID,
-					AnimeID:       animeID,
-					AnimeTitle:    "Naruto",
-					FansubGroupID: fansubGroupID,
-					FansubName:    "Dattebayo",
-					EpisodeID:     1,
-					EpisodeNumber: "1",
-					VersionCount:  2,
+					ReleaseID:      releaseID,
+					AnimeID:        animeID,
+					AnimeTitle:     "Naruto",
+					FansubGroupID:  fansubGroupID,
+					FansubName:     "Dattebayo",
+					EpisodeID:      1,
+					EpisodeNumber:  "1",
+					VersionCount:   2,
 					HasThemeAssets: true,
 				},
 			}, nil

@@ -1,5 +1,90 @@
 # DECISIONS
 
+## 2026-05-05 - Global Theme Segment Coverage Locks Conflicting Release Uploads
+
+### Decision
+If a global/admin theme segment already covers a release's episode anchor for a given theme, release-specific theme-video uploads for that same theme must be rejected instead of silently overriding the global assignment.
+
+### Why This Won
+The product rule is that one OP/ED definition spanning an episode range such as episodes 1 through 8 must remain authoritative for every covered episode. Allowing a later release-specific upload on episode 2 would fracture that meaning and create hidden conflicts between neutral anime-level segment truth and release-level overrides.
+
+### Consequences
+- backend upload handlers now check whether a global segment with source already covers the release before accepting a release-theme upload
+- blocked uploads return a conflict with code `theme_segment_locked`
+- the release drawer may still show global state, but UI alone is no longer the trust boundary for this rule
+
+### Follow-ups Required
+- complete one more focused drawer-state pass so locked/global themes also feel obviously non-overridable in the UI
+
+## 2026-05-05 - Fansub Domain Agent Work Uses The Repo Schema Reference First
+
+### Decision
+When agents work on fansub, anime, release, or release-media features, they should use `docs/architecture/db-schema-fansub-domain.md` as the first source-of-truth document, then verify the current code and migrations against it before making persistence changes.
+
+### Why This Won
+The current worktree spans Phase 29 through Phase 32 plus cleanup-boundary migrations and repo-local tooling changes. Without one explicit domain reference, it is too easy to reintroduce wrong-domain persistence, hidden release discovery, or legacy-column assumptions.
+
+### Consequences
+- anime and episodes stay neutral in agent reasoning
+- release/process media must stay on `release_media`
+- group media must stay on `fansub_group_media`
+- `release_version_groups.fansub_group_id` stays canonical and `fansubgroup_id` is treated as legacy cleanup only
+- agents should stop instead of guessing when schema or ownership truth conflicts
+
+### Follow-ups Required
+- keep `AGENTS.md`, `STATUS.md`, and closeout files aligned with this rule set whenever the active fansub/release slice changes
+
+## 2026-05-02 - release_version_groups Runtime Uses fansub_group_id Only
+
+### Decision
+Treat `release_version_groups.fansub_group_id` as the only runtime source of truth. Backend runtime code must not read from or write to the legacy duplicate `fansubgroup_id` column while the DB column remains present for a later cleanup migration.
+
+### Final Drop Safety Check
+Run this before the final drop migration:
+
+```sql
+SELECT *
+FROM release_version_groups
+WHERE fansubgroup_id IS NOT NULL
+  AND fansubgroup_id <> fansub_group_id;
+```
+
+## 2026-04-29 - Fansub Group Model Uses One Canonical Group Record Plus Generic Link Entries
+
+### Decision
+Treat `fansub_groups` as the canonical fansub-group record, use `fansub_group_links` as the canonical model for outward community links, and treat duplicate transition columns such as `closed_year`, `history_description`, alias-side `group_id`, and URL-vs-media-ID overlap as cleanup targets rather than product-facing long-term fields.
+
+### Context
+The live database currently exposes a workable fansub-group model, but it also contains several transition-era duplicates: `history` alongside `history_description`, `dissolved_year` alongside `closed_year`, direct URL link columns on `fansub_groups` alongside generic rows in `fansub_group_links`, and a duplicate `group_id` reference in `fansub_group_aliases`. That makes it too easy for frontend/API work to drift into supporting both the intended model and old reconciliation leftovers at the same time.
+
+### Options Considered
+- keep using the current mixed model and let each UI/API surface choose whichever fields are most convenient
+- keep `fansub_groups` canonical for core identity but continue using fixed link columns (`website_url`, `discord_url`, `irc_url`) as the main link model
+- keep `fansub_groups` canonical for identity/metadata and move link management toward generic `fansub_group_links` entries defined by DB link type
+
+### Why This Won
+The DB already defines a more extensible link model with `fansub_group_links` and constrained `link_type` values. Using that as the long-term direction prevents the UI from hardcoding a permanently incomplete link set and lets future support for `twitter`/`github` follow the schema instead of requiring new columns. At the same time, the core fansub record should stay centered on one canonical group row plus aliases, members, and collaboration membership instead of spreading meaning across overlapping transitional fields.
+
+### Consequences
+- core fansub CRUD should be designed around the canonical `fansub_groups` fields that represent identity and profile data
+- outward links should be programmed against `fansub_group_links`, not only against fixed `website_url` / `discord_url` / `irc_url` columns
+- collaboration administration should remain explicit and use `fansub_collaboration_members` rather than hiding that behavior inside normal group fields
+- alias handling should standardize on `fansub_group_aliases.fansub_group_id`; alias-side `group_id` is legacy reconciliation baggage
+- future cleanup should remove or deprecate duplicate fields once the API/UI no longer depend on them
+
+### Phase-29 Update
+- backend and frontend now expose generic community-link CRUD on `/api/v1/admin/fansubs/:id/links`
+- fansub create/edit now manage `website`, `discord`, `twitter`, `github`, and `irc` as generic rows instead of three fixed URL inputs
+- collaboration-member admin is live on the fansub edit page and remains separate from the ordinary profile form
+- `fansub_groups.website_url` / `discord_url` / `irc_url` remain compatibility projections sourced from `fansub_group_links`
+- `closed_year` and `history_description` remain readable transitional fields only; alias-side duplicate `group_id` is now an explicit cleanup boundary and no longer part of the intended live contract
+
+### Follow-ups Required
+- define the exact canonical fansub-group API payload shape before the next fansub-admin implementation slice
+- add generic link CRUD in backend/frontend using `fansub_group_links`
+- add/edit collaboration-member management in the admin UI for `group_type='collaboration'`
+- plan a cleanup migration for `closed_year`, `history_description`, and alias-side `group_id` once no active code depends on them
+
 ## 2026-04-29 - Episode-Version Duration Input Accepts Shorthand But Must Fail Safe
 
 ### Decision

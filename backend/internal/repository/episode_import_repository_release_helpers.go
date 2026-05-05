@@ -193,15 +193,15 @@ func upsertReleaseVersionGroup(
 	if _, err := tx.Exec(ctx, `
 		DELETE FROM release_version_groups
 		WHERE release_version_id = $1
-		  AND COALESCE(fansubgroup_id, fansub_group_id) <> $2
+		  AND fansub_group_id <> $2
 	`, releaseVersionID, selection.EffectiveGroup.ID); err != nil {
 		return fmt.Errorf("reset release version groups version=%d: %w", releaseVersionID, err)
 	}
 	if _, err := tx.Exec(ctx, `
-		INSERT INTO release_version_groups (release_version_id, fansub_group_id, fansubgroup_id)
-		VALUES ($1, $2, $2)
+		INSERT INTO release_version_groups (release_version_id, fansub_group_id)
+		VALUES ($1, $2)
 		ON CONFLICT (release_version_id, fansub_group_id) DO UPDATE
-		SET fansubgroup_id = EXCLUDED.fansubgroup_id
+		SET fansub_group_id = EXCLUDED.fansub_group_id
 	`, releaseVersionID, selection.EffectiveGroup.ID); err != nil {
 		return fmt.Errorf("upsert release version group version=%d group=%d: %w", releaseVersionID, selection.EffectiveGroup.ID, err)
 	}

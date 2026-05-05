@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Play, Film } from 'lucide-react'
 
 import { ApiError, getReleaseAssets } from '@/lib/api'
-import { MediaAsset, MediaAssetType, MediaAssetsByType } from '@/types/mediaAsset'
+import { MediaAsset, MediaAssetsByType, ReleaseMediaAssetType } from '@/types/mediaAsset'
 import VideoPlayerModal from '../VideoPlayerModal'
 
 import styles from './MediaAssetsSection.module.css'
@@ -15,18 +15,22 @@ interface MediaAssetsSectionProps {
   errorMessage?: string | null
 }
 
-const TYPE_LABELS: Record<MediaAssetType, string> = {
-  opening: 'Opening',
-  ending: 'Ending',
-  karaoke: 'Karaoke',
-  insert: 'Insert',
+const TYPE_LABELS: Record<ReleaseMediaAssetType, string> = {
+  video: 'Video',
+  poster: 'Poster',
+  banner: 'Banner',
+  logo: 'Logo',
+  image: 'Bilder',
+  other: 'Extras',
 }
 
-const TYPE_ICON_CLASSES: Record<MediaAssetType, string> = {
-  opening: styles.typeIconOpening,
-  ending: styles.typeIconEnding,
-  karaoke: styles.typeIconKaraoke,
-  insert: styles.typeIconInsert,
+const TYPE_BADGES: Record<ReleaseMediaAssetType, string> = {
+  video: 'VI',
+  poster: 'PO',
+  banner: 'BA',
+  logo: 'LO',
+  image: 'IMG',
+  other: 'EX',
 }
 
 const INITIAL_VISIBLE_COUNT = 2
@@ -39,24 +43,30 @@ function formatDuration(seconds: number): string {
 
 function groupAssetsByType(assets: MediaAsset[]): MediaAssetsByType {
   const grouped: MediaAssetsByType = {
-    opening: [],
-    ending: [],
-    karaoke: [],
-    insert: [],
+    video: [],
+    poster: [],
+    banner: [],
+    logo: [],
+    image: [],
+    other: [],
   }
 
   for (const asset of assets) {
-    if (asset.type in grouped) {
+    if (isReleaseMediaAssetType(asset.type)) {
       grouped[asset.type].push(asset)
     }
   }
 
   // Sort by order within each type
-  for (const type of Object.keys(grouped) as MediaAssetType[]) {
+  for (const type of Object.keys(grouped) as ReleaseMediaAssetType[]) {
     grouped[type].sort((a, b) => a.order - b.order)
   }
 
   return grouped
+}
+
+function isReleaseMediaAssetType(type: MediaAsset['type']): type is ReleaseMediaAssetType {
+  return type === 'video' || type === 'poster' || type === 'banner' || type === 'logo' || type === 'image' || type === 'other'
 }
 
 interface AssetTileProps {
@@ -104,7 +114,7 @@ function AssetTile({ asset, onPlay }: AssetTileProps) {
 }
 
 interface TypeGroupProps {
-  type: MediaAssetType
+  type: ReleaseMediaAssetType
   assets: MediaAsset[]
   onPlayAsset: (asset: MediaAsset) => void
 }
@@ -126,12 +136,7 @@ function TypeGroup({ type, assets, onPlayAsset }: TypeGroupProps) {
   return (
     <div className={styles.typeGroup}>
       <div className={styles.typeHeader}>
-        <div className={`${styles.typeIcon} ${TYPE_ICON_CLASSES[type]}`}>
-          {type === 'opening' && 'OP'}
-          {type === 'ending' && 'ED'}
-          {type === 'karaoke' && 'K'}
-          {type === 'insert' && 'IN'}
-        </div>
+        <div className={`${styles.typeIcon} ${styles.typeIconInsert}`}>{TYPE_BADGES[type]}</div>
         <h3 className={styles.typeTitle}>{TYPE_LABELS[type]}</h3>
         <span className={styles.typeCount}>{assets.length}</span>
       </div>
@@ -253,7 +258,7 @@ export default function MediaAssetsSection({
   }
 
   const groupedAssets = groupAssetsByType(assets)
-  const typeOrder: MediaAssetType[] = ['opening', 'ending', 'karaoke', 'insert']
+  const typeOrder: ReleaseMediaAssetType[] = ['video', 'poster', 'banner', 'logo', 'image', 'other']
 
   return (
     <>

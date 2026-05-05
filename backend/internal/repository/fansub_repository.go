@@ -16,6 +16,14 @@ type FansubRepository struct {
 	db *pgxpool.Pool
 }
 
+var allowedFansubGroupLinkTypes = map[models.FansubGroupLinkType]struct{}{
+	models.FansubGroupLinkTypeWebsite: {},
+	models.FansubGroupLinkTypeDiscord: {},
+	models.FansubGroupLinkTypeTwitter: {},
+	models.FansubGroupLinkTypeGitHub:  {},
+	models.FansubGroupLinkTypeIRC:     {},
+}
+
 func NewFansubRepository(db *pgxpool.Pool) *FansubRepository {
 	return &FansubRepository{db: db}
 }
@@ -38,8 +46,8 @@ func (r *FansubRepository) ListGroups(
 
 	listQuery := fmt.Sprintf(`
 		SELECT
-			id, slug, name, description, history, logo_id, banner_id, logo_url, banner_url,
-			founded_year, dissolved_year, status, group_type, website_url, discord_url, irc_url, country,
+			id, slug, name, description, history, history_description, logo_id, banner_id, logo_url, banner_url,
+			founded_year, dissolved_year, closed_year, status, group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 		FROM fansub_groups
 		%s
@@ -68,6 +76,9 @@ func (r *FansubRepository) ListGroups(
 	if err := r.attachGroupCounts(ctx, items); err != nil {
 		return nil, 0, err
 	}
+	if err := r.attachGroupLinks(ctx, items); err != nil {
+		return nil, 0, err
+	}
 
 	return items, total, nil
 }
@@ -88,8 +99,8 @@ func (r *FansubRepository) CreateGroup(
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		RETURNING
-			id, slug, name, description, history, logo_id, banner_id, logo_url, banner_url,
-			founded_year, dissolved_year, status, group_type, website_url, discord_url, irc_url, country,
+			id, slug, name, description, history, history_description, logo_id, banner_id, logo_url, banner_url,
+			founded_year, dissolved_year, closed_year, status, group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 	`
 
@@ -119,12 +130,14 @@ func (r *FansubRepository) CreateGroup(
 		&item.Name,
 		&item.Description,
 		&item.History,
+		&item.HistoryDescription,
 		&item.LogoID,
 		&item.BannerID,
 		&item.LogoURL,
 		&item.BannerURL,
 		&item.FoundedYear,
 		&item.DissolvedYear,
+		&item.ClosedYear,
 		&item.Status,
 		&item.GroupType,
 		&item.WebsiteURL,
@@ -140,14 +153,18 @@ func (r *FansubRepository) CreateGroup(
 		return nil, fmt.Errorf("create fansub group: %w", err)
 	}
 
+	if err := r.hydrateFansubGroup(ctx, &item); err != nil {
+		return nil, err
+	}
+
 	return &item, nil
 }
 
 func (r *FansubRepository) GetGroupByID(ctx context.Context, id int64) (*models.FansubGroup, error) {
 	query := `
 		SELECT
-			id, slug, name, description, history, logo_id, banner_id, logo_url, banner_url,
-			founded_year, dissolved_year, status, group_type, website_url, discord_url, irc_url, country,
+			id, slug, name, description, history, history_description, logo_id, banner_id, logo_url, banner_url,
+			founded_year, dissolved_year, closed_year, status, group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 		FROM fansub_groups
 		WHERE id = $1
@@ -160,12 +177,14 @@ func (r *FansubRepository) GetGroupByID(ctx context.Context, id int64) (*models.
 		&item.Name,
 		&item.Description,
 		&item.History,
+		&item.HistoryDescription,
 		&item.LogoID,
 		&item.BannerID,
 		&item.LogoURL,
 		&item.BannerURL,
 		&item.FoundedYear,
 		&item.DissolvedYear,
+		&item.ClosedYear,
 		&item.Status,
 		&item.GroupType,
 		&item.WebsiteURL,
@@ -180,14 +199,18 @@ func (r *FansubRepository) GetGroupByID(ctx context.Context, id int64) (*models.
 		return nil, fmt.Errorf("get fansub group %d: %w", id, err)
 	}
 
+	if err := r.hydrateFansubGroup(ctx, &item); err != nil {
+		return nil, err
+	}
+
 	return &item, nil
 }
 
 func (r *FansubRepository) GetGroupBySlug(ctx context.Context, slug string) (*models.FansubGroup, error) {
 	query := `
 		SELECT
-			id, slug, name, description, history, logo_id, banner_id, logo_url, banner_url,
-			founded_year, dissolved_year, status, group_type, website_url, discord_url, irc_url, country,
+			id, slug, name, description, history, history_description, logo_id, banner_id, logo_url, banner_url,
+			founded_year, dissolved_year, closed_year, status, group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 		FROM fansub_groups
 		WHERE slug = $1
@@ -200,12 +223,14 @@ func (r *FansubRepository) GetGroupBySlug(ctx context.Context, slug string) (*mo
 		&item.Name,
 		&item.Description,
 		&item.History,
+		&item.HistoryDescription,
 		&item.LogoID,
 		&item.BannerID,
 		&item.LogoURL,
 		&item.BannerURL,
 		&item.FoundedYear,
 		&item.DissolvedYear,
+		&item.ClosedYear,
 		&item.Status,
 		&item.GroupType,
 		&item.WebsiteURL,
@@ -218,6 +243,10 @@ func (r *FansubRepository) GetGroupBySlug(ctx context.Context, slug string) (*mo
 		return nil, ErrNotFound
 	} else if err != nil {
 		return nil, fmt.Errorf("get fansub group %q: %w", slug, err)
+	}
+
+	if err := r.hydrateFansubGroup(ctx, &item); err != nil {
+		return nil, err
 	}
 
 	return &item, nil
@@ -324,8 +353,8 @@ func (r *FansubRepository) UpdateGroup(
 		SET %s
 		WHERE id = $%d
 		RETURNING
-			id, slug, name, description, history, logo_id, banner_id, logo_url, banner_url,
-			founded_year, dissolved_year, status, group_type, website_url, discord_url, irc_url, country,
+			id, slug, name, description, history, history_description, logo_id, banner_id, logo_url, banner_url,
+			founded_year, dissolved_year, closed_year, status, group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 	`, strings.Join(assignments, ", "), argPos)
 	args = append(args, id)
@@ -337,12 +366,14 @@ func (r *FansubRepository) UpdateGroup(
 		&item.Name,
 		&item.Description,
 		&item.History,
+		&item.HistoryDescription,
 		&item.LogoID,
 		&item.BannerID,
 		&item.LogoURL,
 		&item.BannerURL,
 		&item.FoundedYear,
 		&item.DissolvedYear,
+		&item.ClosedYear,
 		&item.Status,
 		&item.GroupType,
 		&item.WebsiteURL,
@@ -360,6 +391,10 @@ func (r *FansubRepository) UpdateGroup(
 		return nil, fmt.Errorf("update fansub group %d: %w", id, err)
 	}
 
+	if err := r.hydrateFansubGroup(ctx, &item); err != nil {
+		return nil, err
+	}
+
 	return &item, nil
 }
 
@@ -370,6 +405,172 @@ func (r *FansubRepository) DeleteGroup(ctx context.Context, id int64) error {
 	}
 	if commandTag.RowsAffected() == 0 {
 		return ErrNotFound
+	}
+
+	return nil
+}
+
+func (r *FansubRepository) ListGroupLinks(
+	ctx context.Context,
+	groupID int64,
+) ([]models.FansubGroupLink, error) {
+	exists, err := r.fansubGroupExists(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, ErrNotFound
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT id, group_id, link_type, name, url, created_at
+		FROM fansub_group_links
+		WHERE group_id = $1
+		ORDER BY link_type ASC, created_at ASC, id ASC
+	`, groupID)
+	if err != nil {
+		return nil, fmt.Errorf("query fansub links for group %d: %w", groupID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.FansubGroupLink, 0, 8)
+	for rows.Next() {
+		item, err := scanFansubGroupLink(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, *item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate fansub group links: %w", err)
+	}
+
+	return items, nil
+}
+
+func (r *FansubRepository) CreateGroupLink(
+	ctx context.Context,
+	groupID int64,
+	input models.FansubGroupLinkCreateInput,
+) (*models.FansubGroupLink, error) {
+	if err := validateFansubGroupLinkType(input.LinkType); err != nil {
+		return nil, err
+	}
+
+	var item models.FansubGroupLink
+	if err := r.db.QueryRow(ctx, `
+		INSERT INTO fansub_group_links (group_id, link_type, name, url)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, group_id, link_type, name, url, created_at
+	`, groupID, input.LinkType, input.Name, input.URL).Scan(
+		&item.ID,
+		&item.GroupID,
+		&item.LinkType,
+		&item.Name,
+		&item.URL,
+		&item.CreatedAt,
+	); err != nil {
+		if isForeignKeyViolation(err) {
+			return nil, ErrNotFound
+		}
+		if isUniqueViolation(err) {
+			return nil, ErrConflict
+		}
+		return nil, fmt.Errorf("create fansub group link for group %d: %w", groupID, err)
+	}
+
+	if err := r.syncLegacyLinkColumns(ctx, groupID); err != nil {
+		return nil, err
+	}
+
+	return &item, nil
+}
+
+func (r *FansubRepository) UpdateGroupLink(
+	ctx context.Context,
+	groupID int64,
+	linkID int64,
+	input models.FansubGroupLinkPatchInput,
+) (*models.FansubGroupLink, error) {
+	assignments := make([]string, 0, 3)
+	args := make([]any, 0, 5)
+	argPos := 1
+
+	if input.LinkType.Set {
+		if input.LinkType.Value == nil {
+			return nil, fmt.Errorf("update fansub group link %d: invalid link type", linkID)
+		}
+		linkType := models.FansubGroupLinkType(strings.TrimSpace(*input.LinkType.Value))
+		if err := validateFansubGroupLinkType(linkType); err != nil {
+			return nil, err
+		}
+		assignments = append(assignments, fmt.Sprintf("link_type = $%d", argPos))
+		args = append(args, linkType)
+		argPos++
+	}
+	if input.Name.Set {
+		assignments = append(assignments, fmt.Sprintf("name = $%d", argPos))
+		args = append(args, input.Name.Value)
+		argPos++
+	}
+	if input.URL.Set {
+		if input.URL.Value == nil {
+			return nil, fmt.Errorf("update fansub group link %d: invalid url", linkID)
+		}
+		assignments = append(assignments, fmt.Sprintf("url = $%d", argPos))
+		args = append(args, strings.TrimSpace(*input.URL.Value))
+		argPos++
+	}
+	if len(assignments) == 0 {
+		return nil, fmt.Errorf("update fansub group link %d: no patch fields provided", linkID)
+	}
+
+	query := fmt.Sprintf(`
+		UPDATE fansub_group_links
+		SET %s
+		WHERE id = $%d AND group_id = $%d
+		RETURNING id, group_id, link_type, name, url, created_at
+	`, strings.Join(assignments, ", "), argPos, argPos+1)
+	args = append(args, linkID, groupID)
+
+	var item models.FansubGroupLink
+	if err := r.db.QueryRow(ctx, query, args...).Scan(
+		&item.ID,
+		&item.GroupID,
+		&item.LinkType,
+		&item.Name,
+		&item.URL,
+		&item.CreatedAt,
+	); errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	} else if err != nil {
+		if isUniqueViolation(err) {
+			return nil, ErrConflict
+		}
+		return nil, fmt.Errorf("update fansub group link %d: %w", linkID, err)
+	}
+
+	if err := r.syncLegacyLinkColumns(ctx, groupID); err != nil {
+		return nil, err
+	}
+
+	return &item, nil
+}
+
+func (r *FansubRepository) DeleteGroupLink(ctx context.Context, groupID int64, linkID int64) error {
+	tag, err := r.db.Exec(ctx, `
+		DELETE FROM fansub_group_links
+		WHERE id = $1 AND group_id = $2
+	`, linkID, groupID)
+	if err != nil {
+		return fmt.Errorf("delete fansub group link %d: %w", linkID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+
+	if err := r.syncLegacyLinkColumns(ctx, groupID); err != nil {
+		return err
 	}
 
 	return nil
@@ -901,7 +1102,11 @@ func buildFansubGroupWhere(filter models.FansubFilter) (string, []any) {
 	return " WHERE " + strings.Join(conditions, " AND "), args
 }
 
-func scanFansubGroup(rows pgx.Rows) (*models.FansubGroup, error) {
+type fansubRowScanner interface {
+	Scan(dest ...any) error
+}
+
+func scanFansubGroup(rows fansubRowScanner) (*models.FansubGroup, error) {
 	var item models.FansubGroup
 	if err := rows.Scan(
 		&item.ID,
@@ -909,12 +1114,14 @@ func scanFansubGroup(rows pgx.Rows) (*models.FansubGroup, error) {
 		&item.Name,
 		&item.Description,
 		&item.History,
+		&item.HistoryDescription,
 		&item.LogoID,
 		&item.BannerID,
 		&item.LogoURL,
 		&item.BannerURL,
 		&item.FoundedYear,
 		&item.DissolvedYear,
+		&item.ClosedYear,
 		&item.Status,
 		&item.GroupType,
 		&item.WebsiteURL,
@@ -925,6 +1132,22 @@ func scanFansubGroup(rows pgx.Rows) (*models.FansubGroup, error) {
 		&item.UpdatedAt,
 	); err != nil {
 		return nil, fmt.Errorf("scan fansub group row: %w", err)
+	}
+
+	return &item, nil
+}
+
+func scanFansubGroupLink(rows fansubRowScanner) (*models.FansubGroupLink, error) {
+	var item models.FansubGroupLink
+	if err := rows.Scan(
+		&item.ID,
+		&item.GroupID,
+		&item.LinkType,
+		&item.Name,
+		&item.URL,
+		&item.CreatedAt,
+	); err != nil {
+		return nil, fmt.Errorf("scan fansub group link row: %w", err)
 	}
 
 	return &item, nil
@@ -980,10 +1203,8 @@ func (r *FansubRepository) MergeGroups(
 	// 1. Migrate release group links
 	tag, err := tx.Exec(ctx, `
 		UPDATE release_version_groups
-		SET fansub_group_id = $1,
-		    fansubgroup_id = $1
+		SET fansub_group_id = $1
 		WHERE fansub_group_id = ANY($2)
-		   OR fansubgroup_id = ANY($2)
 	`, targetID, sourceIDs)
 	if err != nil {
 		return nil, fmt.Errorf("migrate release version groups: %w", err)
@@ -1241,7 +1462,7 @@ func (r *FansubRepository) GetMergePreview(
 	// Count release version group links
 	if err := r.db.QueryRow(ctx, `
 		SELECT COUNT(*) FROM release_version_groups
-		WHERE fansub_group_id = ANY($1) OR fansubgroup_id = ANY($1)
+		WHERE fansub_group_id = ANY($1)
 	`, sourceIDs).Scan(&result.VersionsMigrated); err != nil {
 		return nil, fmt.Errorf("count release version groups: %w", err)
 	}
@@ -1303,9 +1524,9 @@ func (r *FansubRepository) attachGroupCounts(ctx context.Context, items []models
 		`
 		SELECT group_id, COUNT(*)
 		FROM (
-			SELECT COALESCE(fansubgroup_id, fansub_group_id) AS group_id
+			SELECT fansub_group_id AS group_id
 			FROM release_version_groups
-			WHERE fansub_group_id = ANY($1) OR fansubgroup_id = ANY($1)
+			WHERE fansub_group_id = ANY($1)
 		) grouped
 		GROUP BY group_id
 		`,
@@ -1335,6 +1556,67 @@ func (r *FansubRepository) attachGroupCounts(ctx context.Context, items []models
 	); err != nil {
 		return fmt.Errorf("load alias counts: %w", err)
 	}
+
+	return nil
+}
+
+func (r *FansubRepository) attachGroupLinks(ctx context.Context, items []models.FansubGroup) error {
+	if len(items) == 0 {
+		return nil
+	}
+
+	ids := make([]int64, 0, len(items))
+	indexByID := make(map[int64]int, len(items))
+	for i := range items {
+		ids = append(ids, items[i].ID)
+		indexByID[items[i].ID] = i
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT id, group_id, link_type, name, url, created_at
+		FROM fansub_group_links
+		WHERE group_id = ANY($1)
+		ORDER BY link_type ASC, created_at ASC, id ASC
+	`, ids)
+	if err != nil {
+		return fmt.Errorf("query fansub group links: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		item, err := scanFansubGroupLink(rows)
+		if err != nil {
+			return err
+		}
+		index, ok := indexByID[item.GroupID]
+		if ok {
+			items[index].Links = append(items[index].Links, *item)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate fansub group links: %w", err)
+	}
+
+	for i := range items {
+		applyLegacyLinkProjection(&items[i])
+	}
+
+	return nil
+}
+
+func (r *FansubRepository) hydrateFansubGroup(ctx context.Context, item *models.FansubGroup) error {
+	if item == nil {
+		return nil
+	}
+
+	groups := []models.FansubGroup{*item}
+	if err := r.attachGroupCounts(ctx, groups); err != nil {
+		return err
+	}
+	if err := r.attachGroupLinks(ctx, groups); err != nil {
+		return err
+	}
+	*item = groups[0]
 
 	return nil
 }
@@ -1369,6 +1651,90 @@ func (r *FansubRepository) populateCountMap(
 	}
 
 	return nil
+}
+
+func applyLegacyLinkProjection(item *models.FansubGroup) {
+	if item == nil {
+		return
+	}
+
+	if url := firstLinkURL(item.Links, models.FansubGroupLinkTypeWebsite); url != nil {
+		item.WebsiteURL = url
+	}
+	if url := firstLinkURL(item.Links, models.FansubGroupLinkTypeDiscord); url != nil {
+		item.DiscordURL = url
+	}
+	if url := firstLinkURL(item.Links, models.FansubGroupLinkTypeIRC); url != nil {
+		item.IrcURL = url
+	}
+}
+
+func firstLinkURL(links []models.FansubGroupLink, linkType models.FansubGroupLinkType) *string {
+	for i := range links {
+		if links[i].LinkType != linkType {
+			continue
+		}
+		url := links[i].URL
+		return &url
+	}
+
+	return nil
+}
+
+func validateFansubGroupLinkType(linkType models.FansubGroupLinkType) error {
+	if _, ok := allowedFansubGroupLinkTypes[linkType]; !ok {
+		return fmt.Errorf("invalid fansub link type %q", linkType)
+	}
+
+	return nil
+}
+
+func (r *FansubRepository) syncLegacyLinkColumns(ctx context.Context, groupID int64) error {
+	website, err := r.firstGroupLinkURL(ctx, groupID, models.FansubGroupLinkTypeWebsite)
+	if err != nil {
+		return err
+	}
+	discord, err := r.firstGroupLinkURL(ctx, groupID, models.FansubGroupLinkTypeDiscord)
+	if err != nil {
+		return err
+	}
+	irc, err := r.firstGroupLinkURL(ctx, groupID, models.FansubGroupLinkTypeIRC)
+	if err != nil {
+		return err
+	}
+
+	if _, err := r.db.Exec(ctx, `
+		UPDATE fansub_groups
+		SET website_url = $2,
+		    discord_url = $3,
+		    irc_url = $4
+		WHERE id = $1
+	`, groupID, website, discord, irc); err != nil {
+		return fmt.Errorf("sync legacy fansub link columns for group %d: %w", groupID, err)
+	}
+
+	return nil
+}
+
+func (r *FansubRepository) firstGroupLinkURL(
+	ctx context.Context,
+	groupID int64,
+	linkType models.FansubGroupLinkType,
+) (*string, error) {
+	var url *string
+	if err := r.db.QueryRow(ctx, `
+		SELECT url
+		FROM fansub_group_links
+		WHERE group_id = $1 AND link_type = $2
+		ORDER BY created_at ASC, id ASC
+		LIMIT 1
+	`, groupID, linkType).Scan(&url); errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("query first fansub link url for group %d: %w", groupID, err)
+	}
+
+	return url, nil
 }
 
 func (r *FansubRepository) populateAliasMergePreview(
@@ -1735,15 +2101,15 @@ func (r *FansubRepository) countMergeVersionConflicts(
 				COALESCE(rv.video_quality, rv.resolution, '') AS video_quality_key,
 				COALESCE(rv.subtitle_type, '') AS subtitle_type_key,
 				CASE
-					WHEN COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id) = ANY($1) THEN $2
-					ELSE COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id)
+					WHEN rvg.fansub_group_id = ANY($1) THEN $2
+					ELSE rvg.fansub_group_id
 				END AS target_group_id
 			FROM release_version_groups rvg
 			JOIN release_versions rev ON rev.id = rvg.release_version_id
 			JOIN fansub_releases fr ON fr.id = rev.release_id
 			LEFT JOIN release_variants rv ON rv.release_version_id = rev.id
-			WHERE COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id) = $2
-			   OR COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id) = ANY($1)
+			WHERE rvg.fansub_group_id = $2
+			   OR rvg.fansub_group_id = ANY($1)
 		)
 		SELECT COUNT(*)
 		FROM (

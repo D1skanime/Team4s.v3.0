@@ -156,6 +156,11 @@ export function useAdminAnimeRelations({
       return
     }
 
+    if (relations.some((r) => r.target_anime_id === selectedTarget.anime_id)) {
+      setInlineError('Dieses Anime ist bereits als Relation eingetragen.')
+      return
+    }
+
     setIsSaving(true)
     try {
       await createAdminAnimeRelation(

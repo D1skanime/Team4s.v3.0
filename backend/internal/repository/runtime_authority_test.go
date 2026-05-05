@@ -150,8 +150,13 @@ func TestReleaseRuntimeAuthorityUsesReleaseNativeTables(t *testing.T) {
 
 	assetsHandlerContent := readBackendSource(t, filepath.Join("internal", "handlers", "release_assets_handler.go"))
 	assetsNormalized := strings.ToLower(assetsHandlerContent)
-	if !strings.Contains(assetsNormalized, "episodeversionrepo.getreleasestreamsource") {
-		t.Fatalf("expected release assets handler to validate releases via episodeVersionRepo.GetReleaseStreamSource")
+	if !strings.Contains(repositoryNormalized, "func (r *episodeversionrepository) listreleaseassets(") ||
+		!strings.Contains(repositoryNormalized, "from release_media rm") ||
+		!strings.Contains(repositoryNormalized, "join media_assets ma on ma.id = rm.media_id") {
+		t.Fatalf("expected release assets repository path to read release_media joined to media_assets")
+	}
+	if !strings.Contains(assetsNormalized, "episodeversionrepo.listreleaseassets") {
+		t.Fatalf("expected release assets handler to load assets via episodeVersionRepo.ListReleaseAssets")
 	}
 }
 

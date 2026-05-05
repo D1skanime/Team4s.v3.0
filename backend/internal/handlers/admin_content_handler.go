@@ -69,6 +69,7 @@ type adminThemeRepository interface {
 	ListFansubAnime(ctx context.Context, fansubGroupID int64) ([]models.AdminFansubAnimeEntry, error)
 	ListReleaseThemeAssets(ctx context.Context, releaseID int64) ([]models.AdminReleaseThemeAsset, error)
 	ListReleaseThemeAssetsByFansubAnime(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, []models.AdminReleaseThemeAsset, error)
+	HasGlobalThemeSegmentCoverageForRelease(ctx context.Context, releaseID int64, themeID int64) (bool, error)
 	CreateReleaseThemeAsset(ctx context.Context, input models.AdminReleaseThemeAssetCreateInput) (*models.AdminReleaseThemeAsset, error)
 	DeleteReleaseThemeAsset(ctx context.Context, releaseID int64, themeID int64, mediaID int64) error
 	ListFansubAnimeReleases(ctx context.Context, fansubGroupID int64, animeID int64) ([]models.AdminFansubReleaseSummary, error)

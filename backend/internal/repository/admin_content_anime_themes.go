@@ -1811,9 +1811,30 @@ func (r *AdminContentRepository) GetFansubRelease(ctx context.Context, fansubGro
 // ListFansubAnime liefert alle Anime, die einer Fansub-Gruppe bereits zugeordnet sind.
 func (r *AdminContentRepository) ListFansubAnime(ctx context.Context, fansubGroupID int64) ([]models.AdminFansubAnimeEntry, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT DISTINCT a.id, a.title
+		SELECT DISTINCT
+			a.id,
+			a.title,
+			COALESCE(
+				NULLIF(BTRIM(a.cover_image), ''),
+				poster.file_path,
+				CASE
+					WHEN a.source LIKE 'jellyfin:%' AND BTRIM(REPLACE(a.source, 'jellyfin:', '')) <> ''
+					THEN '/api/v1/media/image?item_id=' || BTRIM(REPLACE(a.source, 'jellyfin:', '')) || '&kind=primary&provider=jellyfin'
+					ELSE NULL
+				END
+			) AS cover_image
 		FROM anime_fansub_groups afg
 		JOIN anime a ON a.id = afg.anime_id
+		LEFT JOIN LATERAL (
+			SELECT ma.file_path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			WHERE am.anime_id = a.id
+			  AND mt.name = 'poster'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) poster ON true
 		WHERE afg.fansub_group_id = $1
 		ORDER BY a.title ASC
 	`, fansubGroupID)
@@ -1825,7 +1846,7 @@ func (r *AdminContentRepository) ListFansubAnime(ctx context.Context, fansubGrou
 	items := make([]models.AdminFansubAnimeEntry, 0)
 	for rows.Next() {
 		var item models.AdminFansubAnimeEntry
-		if err := rows.Scan(&item.ID, &item.Title); err != nil {
+		if err := rows.Scan(&item.ID, &item.Title, &item.CoverImage); err != nil {
 			return nil, fmt.Errorf("scan fansub anime fansub=%d: %w", fansubGroupID, err)
 		}
 		items = append(items, item)
@@ -1982,6 +2003,48 @@ func (r *AdminContentRepository) ListReleaseThemeAssetsByFansubAnime(
 	}
 
 	return releaseID, items, nil
+}
+
+// HasGlobalThemeSegmentCoverageForRelease meldet, ob ein globales Theme-Segment mit Quelle
+// den Episodenanker des Releases bereits abdeckt und damit release-spezifische Uploads sperrt.
+func (r *AdminContentRepository) HasGlobalThemeSegmentCoverageForRelease(ctx context.Context, releaseID int64, themeID int64) (bool, error) {
+	if releaseID <= 0 || themeID <= 0 {
+		return false, ErrNotFound
+	}
+
+	var covered bool
+	if err := r.db.QueryRow(ctx, `
+		WITH release_anchor AS (
+			SELECT
+				COALESCE(
+					ep.sort_index,
+					CASE WHEN COALESCE(ep.episode_number, '') ~ '^[0-9]+$' THEN ep.episode_number::int ELSE NULL END
+				) AS episode_anchor
+			FROM fansub_releases fr
+			JOIN episodes ep ON ep.id = fr.episode_id
+			WHERE fr.id = $1
+		)
+		SELECT EXISTS (
+			SELECT 1
+			FROM release_anchor ra
+			JOIN theme_segments ts ON ts.theme_id = $2
+			WHERE ra.episode_anchor IS NOT NULL
+			  AND ts.fansub_group_id IS NULL
+			  AND COALESCE(NULLIF(BTRIM(ts.version), ''), '') = ''
+			  AND (ts.start_episode IS NULL OR ts.start_episode <= ra.episode_anchor)
+			  AND (ts.end_episode IS NULL OR ts.end_episode >= ra.episode_anchor)
+			  AND (
+				COALESCE(NULLIF(BTRIM(ts.source_ref), ''), '') <> ''
+				OR COALESCE(NULLIF(BTRIM(ts.source_jellyfin_item_id), ''), '') <> ''
+				OR COALESCE(NULLIF(BTRIM(ts.source_label), ''), '') <> ''
+				OR COALESCE(NULLIF(BTRIM(ts.source_type), ''), '') <> ''
+			  )
+		)
+	`, releaseID, themeID).Scan(&covered); err != nil {
+		return false, fmt.Errorf("check global theme segment coverage release=%d theme=%d: %w", releaseID, themeID, err)
+	}
+
+	return covered, nil
 }
 
 // CreateReleaseThemeAsset legt die Release-Theme-Zuordnung an und liefert den neuen Datensatz zurueck.

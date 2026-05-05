@@ -1,6 +1,8 @@
-// Media asset types for episode extras (OP, ED, Karaoke, Insert)
+// Media asset types used across release process media and existing grouped theme extras.
 
-export type MediaAssetType = 'opening' | 'ending' | 'karaoke' | 'insert'
+export type ThemeExtraMediaAssetType = 'opening' | 'ending' | 'karaoke' | 'insert'
+export type ReleaseMediaAssetType = 'video' | 'poster' | 'banner' | 'logo' | 'image' | 'other'
+export type MediaAssetType = ThemeExtraMediaAssetType | ReleaseMediaAssetType
 
 export interface MediaAsset {
   id: string
@@ -13,10 +15,12 @@ export interface MediaAsset {
 }
 
 export interface MediaAssetsByType {
-  opening: MediaAsset[]
-  ending: MediaAsset[]
-  karaoke: MediaAsset[]
-  insert: MediaAsset[]
+  video: MediaAsset[]
+  poster: MediaAsset[]
+  banner: MediaAsset[]
+  logo: MediaAsset[]
+  image: MediaAsset[]
+  other: MediaAsset[]
 }
 
 export interface MediaAssetsSectionProps {

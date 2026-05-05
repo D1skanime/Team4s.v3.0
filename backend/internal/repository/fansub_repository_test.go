@@ -20,3 +20,27 @@ func TestBuildFansubGroupWhere_SearchesAliases(t *testing.T) {
 		t.Fatalf("unexpected search argument: %#v", got)
 	}
 }
+
+func TestApplyLegacyLinkProjection_UsesCanonicalLinks(t *testing.T) {
+	group := models.FansubGroup{
+		WebsiteURL: strPtr("https://legacy.example"),
+		DiscordURL: strPtr("https://legacy.example/discord"),
+		Links: []models.FansubGroupLink{
+			{LinkType: models.FansubGroupLinkTypeWebsite, URL: "https://canonical.example"},
+			{LinkType: models.FansubGroupLinkTypeDiscord, URL: "https://canonical.example/discord"},
+		},
+	}
+
+	applyLegacyLinkProjection(&group)
+
+	if group.WebsiteURL == nil || *group.WebsiteURL != "https://canonical.example" {
+		t.Fatalf("expected projected website url, got %#v", group.WebsiteURL)
+	}
+	if group.DiscordURL == nil || *group.DiscordURL != "https://canonical.example/discord" {
+		t.Fatalf("expected projected discord url, got %#v", group.DiscordURL)
+	}
+}
+
+func strPtr(value string) *string {
+	return &value
+}

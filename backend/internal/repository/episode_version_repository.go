@@ -187,7 +187,7 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 	if includeFansubs {
 		query += `
 		LEFT JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
-		LEFT JOIN fansub_groups fg ON fg.id = COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id)
+		LEFT JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
 		LEFT JOIN LATERAL (
 			SELECT
 				COUNT(ts.id)::INTEGER AS segment_count,
@@ -195,7 +195,7 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 			FROM theme_segments ts
 			JOIN themes t ON t.id = ts.theme_id
 			WHERE t.anime_id = primary_episode.anime_id
-			  AND COALESCE(ts.fansub_group_id, 0) = COALESCE(COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id), 0)
+			  AND COALESCE(ts.fansub_group_id, 0) = COALESCE(rvg.fansub_group_id, 0)
 			  AND COALESCE(NULLIF(BTRIM(ts.version), ''), 'v1') = COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1')
 			  AND (ts.start_episode IS NULL OR ts.start_episode <= CAST(primary_episode.episode_number AS INTEGER))
 			  AND (ts.end_episode IS NULL OR ts.end_episode >= CAST(primary_episode.episode_number AS INTEGER))
@@ -324,7 +324,7 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 		LEFT JOIN release_streams rs ON rs.variant_id = rv.id
 		LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id
 		LEFT JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
-		LEFT JOIN fansub_groups fg ON fg.id = COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id)
+		LEFT JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
 		LEFT JOIN LATERAL (
 			SELECT
 				COUNT(ts.id)::INTEGER AS segment_count,
@@ -332,7 +332,7 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			FROM theme_segments ts
 			JOIN themes t ON t.id = ts.theme_id
 			WHERE t.anime_id = primary_episode.anime_id
-			  AND COALESCE(ts.fansub_group_id, 0) = COALESCE(COALESCE(rvg.fansubgroup_id, rvg.fansub_group_id), 0)
+			  AND COALESCE(ts.fansub_group_id, 0) = COALESCE(rvg.fansub_group_id, 0)
 			  AND COALESCE(NULLIF(BTRIM(ts.version), ''), 'v1') = COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1')
 			  AND (ts.start_episode IS NULL OR ts.start_episode <= CAST(primary_episode.episode_number AS INTEGER))
 			  AND (ts.end_episode IS NULL OR ts.end_episode >= CAST(primary_episode.episode_number AS INTEGER))
@@ -722,6 +722,152 @@ func (r *EpisodeVersionRepository) GetReleaseStreamSource(ctx context.Context, v
 	return &item, nil
 }
 
+func (r *EpisodeVersionRepository) ListReleaseAssets(ctx context.Context, releaseID int64) (*models.ReleaseAssetsData, error) {
+	if releaseID <= 0 {
+		return nil, ErrNotFound
+	}
+
+	var canonicalReleaseID int64
+	err := r.db.QueryRow(ctx, `
+		WITH candidates AS (
+			SELECT fr.id, 0 AS priority
+			FROM fansub_releases fr
+			WHERE fr.id = $1
+			UNION ALL
+			SELECT fr.id, 1 AS priority
+			FROM release_versions rev
+			JOIN fansub_releases fr ON fr.id = rev.release_id
+			WHERE rev.id = $1
+			UNION ALL
+			SELECT fr.id, 2 AS priority
+			FROM release_variants rv
+			JOIN release_versions rev ON rev.id = rv.release_version_id
+			JOIN fansub_releases fr ON fr.id = rev.release_id
+			WHERE rv.id = $1
+		)
+		SELECT id
+		FROM candidates
+		ORDER BY priority, id
+		LIMIT 1
+	`, releaseID).Scan(&canonicalReleaseID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("resolve release assets release=%d: %w", releaseID, err)
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			ma.id,
+			COALESCE(NULLIF(mt.name, ''), 'other') AS media_type,
+			COALESCE(NULLIF(ma.caption, ''), NULLIF(mt.name, ''), 'Release Media') AS title,
+			COALESCE(
+				NULLIF((SELECT mf.path FROM media_files mf WHERE mf.media_id = ma.id AND mf.variant = 'thumb' ORDER BY mf.id ASC LIMIT 1), ''),
+				NULLIF(ma.file_path, '')
+			) AS thumbnail_path,
+			COALESCE(
+				NULLIF((SELECT mf.path FROM media_files mf WHERE mf.media_id = ma.id AND (mf.variant = 'original' OR mf.variant IS NULL) ORDER BY mf.id ASC LIMIT 1), ''),
+				NULLIF(ma.file_path, '')
+			) AS asset_path,
+			COALESCE(rm.sort_order, 0) AS sort_order
+		FROM release_media rm
+		JOIN media_assets ma ON ma.id = rm.media_id
+		LEFT JOIN media_types mt ON mt.id = ma.media_type_id
+		WHERE rm.release_id = $1
+		ORDER BY COALESCE(rm.sort_order, 0), ma.id
+	`, canonicalReleaseID)
+	if err != nil {
+		return nil, fmt.Errorf("list release assets release=%d: %w", canonicalReleaseID, err)
+	}
+	defer rows.Close()
+
+	assets := make([]models.ReleaseAsset, 0)
+	for rows.Next() {
+		var id int64
+		var mediaType string
+		var title string
+		var thumbnailPath *string
+		var assetPath *string
+		var sortOrder int32
+		if err := rows.Scan(&id, &mediaType, &title, &thumbnailPath, &assetPath, &sortOrder); err != nil {
+			return nil, fmt.Errorf("scan release asset release=%d: %w", canonicalReleaseID, err)
+		}
+
+		assetType, ok := normalizeReleaseAssetType(mediaType)
+		if !ok {
+			continue
+		}
+		thumbnailURL := normalizeReleaseAssetPublicPath(thumbnailPath)
+		streamPath := normalizeReleaseAssetPublicPath(assetPath)
+		if streamPath == nil {
+			empty := ""
+			streamPath = &empty
+		}
+
+		assets = append(assets, models.ReleaseAsset{
+			ID:           fmt.Sprintf("%d", id),
+			Type:         assetType,
+			Title:        title,
+			ThumbnailURL: thumbnailURL,
+			Order:        sortOrder,
+			StreamPath:   *streamPath,
+		})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate release assets release=%d: %w", canonicalReleaseID, err)
+	}
+
+	return &models.ReleaseAssetsData{
+		ReleaseID: canonicalReleaseID,
+		Assets:    assets,
+	}, nil
+}
+
+func normalizeReleaseAssetType(raw string) (models.ReleaseAssetType, bool) {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "video":
+		return models.ReleaseAssetTypeVideo, true
+	case "poster":
+		return models.ReleaseAssetTypePoster, true
+	case "banner":
+		return models.ReleaseAssetTypeBanner, true
+	case "logo":
+		return models.ReleaseAssetTypeLogo, true
+	case "background":
+		return models.ReleaseAssetTypeImage, true
+	case "image":
+		return models.ReleaseAssetTypeImage, true
+	default:
+		return models.ReleaseAssetTypeOther, true
+	}
+}
+
+func normalizeReleaseAssetPublicPath(raw *string) *string {
+	if raw == nil {
+		return nil
+	}
+	trimmed := strings.TrimSpace(*raw)
+	if trimmed == "" {
+		return nil
+	}
+	if strings.HasPrefix(trimmed, "http://") ||
+		strings.HasPrefix(trimmed, "https://") ||
+		strings.HasPrefix(trimmed, "/api/") ||
+		strings.HasPrefix(trimmed, "/media/") {
+		return &trimmed
+	}
+	if strings.HasPrefix(trimmed, "/app/media/") {
+		path := "/media/" + strings.TrimPrefix(trimmed, "/app/media/")
+		return &path
+	}
+	if strings.HasPrefix(trimmed, "media/") {
+		path := "/" + trimmed
+		return &path
+	}
+	return &trimmed
+}
+
 func (r *EpisodeVersionRepository) animeExists(ctx context.Context, animeID int64) (bool, error) {
 	var exists bool
 	if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
@@ -1068,15 +1214,15 @@ func syncEpisodeVersionSelectedGroups(
 	if _, err := tx.Exec(ctx, `
 		DELETE FROM release_version_groups
 		WHERE release_version_id = $1
-		  AND COALESCE(fansubgroup_id, fansub_group_id) <> $2
+		  AND fansub_group_id <> $2
 	`, releaseVersionID, selection.EffectiveGroup.ID); err != nil {
 		return fmt.Errorf("reset release version groups version=%d: %w", releaseVersionID, err)
 	}
 	if _, err := tx.Exec(ctx, `
-		INSERT INTO release_version_groups (release_version_id, fansub_group_id, fansubgroup_id)
-		VALUES ($1, $2, $2)
+		INSERT INTO release_version_groups (release_version_id, fansub_group_id)
+		VALUES ($1, $2)
 		ON CONFLICT (release_version_id, fansub_group_id) DO UPDATE
-		SET fansubgroup_id = EXCLUDED.fansubgroup_id
+		SET fansub_group_id = EXCLUDED.fansub_group_id
 	`, releaseVersionID, selection.EffectiveGroup.ID); err != nil {
 		return fmt.Errorf("upsert release version group version=%d group=%d: %w", releaseVersionID, selection.EffectiveGroup.ID, err)
 	}

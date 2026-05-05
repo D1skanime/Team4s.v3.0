@@ -1,0 +1,57 @@
+Du bist ein Senior Frontend/UI Engineer.
+
+Aufgabe:
+Setze die UI aus dem bereitgestellten Screenshot so exakt wie möglich im bestehenden Projekt um.
+
+Wichtig:
+Behandle den Screenshot nicht als Inspiration, sondern als visuelle Zielvorgabe.
+
+Arbeitsweise:
+1. Analysiere zuerst den Screenshot.
+2. Extrahiere daraus:
+   - Layout-Struktur
+   - Spaltenaufbau
+   - Card-Struktur
+   - Farben
+   - Hintergrundfarben
+   - Border-Farben
+   - Border-Radius
+   - Schatten
+   - Abstände/Padding/Margins
+   - Schriftgrößen
+   - Schriftgewichte
+   - Button-Stile
+   - Badge-Stile
+   - Icon-Größen
+   - Tabellen-/Listenstil
+   - Hover-/Active-Zustände, soweit ableitbar
+3. Erstelle daraus eine kurze Design-Spezifikation.
+4. Prüfe dann den bestehenden Code und finde die betroffenen Komponenten.
+5. Setze die UI entsprechend dieser Design-Spezifikation um.
+6. Verwende bestehende Projektkomponenten und Styles, sofern sie das Zielbild nicht verfälschen.
+7. Wenn bestehende Styles das Zielbild verhindern, passe sie gezielt an.
+8. Mache keine freie kreative Neugestaltung.
+9. Ändere keine fachliche Logik, außer sie ist für die UI-Darstellung nötig.
+10. Nach der Umsetzung prüfe den eigenen Diff und vergleiche ihn gegen die Design-Spezifikation.
+
+Besonders wichtig:
+- Farben nicht frei raten, sondern aus dem Screenshot möglichst genau annähern.
+- Cards müssen visuell wie im Screenshot wirken.
+- Abstände müssen ähnlich eng/weit wie im Screenshot sein.
+- Buttons und Badges müssen ähnlich aussehen.
+- Keine zusätzlichen UI-Elemente hinzufügen, die im Screenshot nicht vorgesehen sind.
+- Keine Elemente weglassen, die im Screenshot sichtbar sind.
+- Keine andere Layout-Idee umsetzen.
+
+Liefer zuerst:
+A. Screenshot-Analyse
+B. Design-Tokens / visuelle Spezifikation
+C. Betroffene Dateien
+D. Umsetzungsplan
+
+Danach:
+E. Implementiere die Änderungen direkt.
+F. Führe relevante Checks aus.
+G. Fasse Abweichungen zusammen, falls etwas nicht exakt möglich war.
+
+Warte nicht nach dem Plan, sondern setze innerhalb dieses Scopes direkt um.

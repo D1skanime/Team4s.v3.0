@@ -4,8 +4,9 @@ import "time"
 
 // AdminFansubAnimeEntry beschreibt einen Anime-Eintrag in der Fansub-Adminansicht.
 type AdminFansubAnimeEntry struct {
-	ID    int64  `json:"id"`
-	Title string `json:"title"`
+	ID         int64   `json:"id"`
+	Title      string  `json:"title"`
+	CoverImage *string `json:"cover_image,omitempty"`
 }
 
 // AdminReleaseThemeAsset beschreibt ein Theme-Video eines Fansub-Releases.
@@ -33,16 +34,17 @@ type AdminReleaseThemeAssetCreateInput struct {
 // Episoden-Anker sichtbar, sodass UI-Aufrufer keine Release-ID mehr indirekt aus
 // Theme-Asset-Nebenantworten erraten muessen.
 type AdminFansubReleaseSummary struct {
-	ReleaseID      int64   `json:"release_id"`
-	AnimeID        int64   `json:"anime_id"`
-	AnimeTitle     string  `json:"anime_title"`
-	FansubGroupID  int64   `json:"fansub_group_id"`
-	FansubName     string  `json:"fansub_name"`
-	EpisodeID      int64   `json:"episode_id"`
-	EpisodeNumber  string  `json:"episode_number"`
-	Source         *string `json:"source,omitempty"`
-	VersionCount   int     `json:"version_count"`
-	HasThemeAssets bool    `json:"has_theme_assets"`
+	ReleaseID      int64     `json:"release_id"`
+	AnimeID        int64     `json:"anime_id"`
+	AnimeTitle     string    `json:"anime_title"`
+	FansubGroupID  int64     `json:"fansub_group_id"`
+	FansubName     string    `json:"fansub_name"`
+	EpisodeID      int64     `json:"episode_id"`
+	EpisodeNumber  string    `json:"episode_number"`
+	EpisodeTitle   *string   `json:"episode_title,omitempty"`
+	Source         *string   `json:"source,omitempty"`
+	VersionCount   int       `json:"version_count"`
+	HasThemeAssets bool      `json:"has_theme_assets"`
 	CreatedAt      time.Time `json:"created_at"`
 }
 
@@ -50,7 +52,7 @@ type AdminFansubReleaseSummary struct {
 // Release-Anker einer Fansub-Anime-Kombination. Release ist nil, wenn kein
 // Release-Anker fuer die gegebene Kombination existiert.
 type CanonicalFansubAnimeReleaseResponse struct {
-	FansubGroupID int64                  `json:"fansub_group_id"`
-	AnimeID       int64                  `json:"anime_id"`
+	FansubGroupID int64                      `json:"fansub_group_id"`
+	AnimeID       int64                      `json:"anime_id"`
 	Release       *AdminFansubReleaseSummary `json:"release"`
 }

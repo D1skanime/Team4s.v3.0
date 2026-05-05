@@ -30,6 +30,7 @@ func (r *AdminContentRepository) ListFansubAnimeReleases(
 			fg.name                                     AS fansub_name,
 			ep.id                                       AS episode_id,
 			COALESCE(ep.episode_number, '')             AS episode_number,
+			ep.title                                    AS episode_title,
 			fr.source,
 			(
 				SELECT COUNT(*)
@@ -52,7 +53,7 @@ func (r *AdminContentRepository) ListFansubAnimeReleases(
 		  AND rvg.fansub_group_id = $1
 		GROUP BY
 			fr.id, a.id, a.title, fg.id, fg.name,
-			ep.id, ep.episode_number, fr.source, fr.created_at,
+			ep.id, ep.episode_number, ep.title, fr.source, fr.created_at,
 			ep.sort_index
 		ORDER BY COALESCE(ep.sort_index, 2147483647), ep.id, fr.id
 	`, fansubGroupID, animeID)
@@ -72,6 +73,7 @@ func (r *AdminContentRepository) ListFansubAnimeReleases(
 			&item.FansubName,
 			&item.EpisodeID,
 			&item.EpisodeNumber,
+			&item.EpisodeTitle,
 			&item.Source,
 			&item.VersionCount,
 			&item.HasThemeAssets,
@@ -115,6 +117,7 @@ func (r *AdminContentRepository) GetCanonicalFansubAnimeReleaseSummary(
 			fg.name                                     AS fansub_name,
 			ep.id                                       AS episode_id,
 			COALESCE(ep.episode_number, '')             AS episode_number,
+			ep.title                                    AS episode_title,
 			fr.source,
 			(
 				SELECT COUNT(*)
@@ -137,7 +140,7 @@ func (r *AdminContentRepository) GetCanonicalFansubAnimeReleaseSummary(
 		  AND rvg.fansub_group_id = $1
 		GROUP BY
 			fr.id, a.id, a.title, fg.id, fg.name,
-			ep.id, ep.episode_number, fr.source, fr.created_at,
+			ep.id, ep.episode_number, ep.title, fr.source, fr.created_at,
 			ep.sort_index
 		ORDER BY COALESCE(ep.sort_index, 2147483647), ep.id, fr.id
 		LIMIT 1
@@ -149,6 +152,7 @@ func (r *AdminContentRepository) GetCanonicalFansubAnimeReleaseSummary(
 		&item.FansubName,
 		&item.EpisodeID,
 		&item.EpisodeNumber,
+		&item.EpisodeTitle,
 		&item.Source,
 		&item.VersionCount,
 		&item.HasThemeAssets,
@@ -186,6 +190,7 @@ func (r *AdminContentRepository) GetAdminReleaseByID(
 			COALESCE(MIN(fg.name), '')                  AS fansub_name,
 			ep.id                                       AS episode_id,
 			COALESCE(ep.episode_number, '')             AS episode_number,
+			ep.title                                    AS episode_title,
 			fr.source,
 			(
 				SELECT COUNT(*)
@@ -205,7 +210,7 @@ func (r *AdminContentRepository) GetAdminReleaseByID(
 		LEFT JOIN release_version_groups rvg ON rvg.release_version_id = rv2.id
 		LEFT JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
 		WHERE fr.id = $1
-		GROUP BY fr.id, a.id, a.title, ep.id, ep.episode_number, fr.source, fr.created_at
+		GROUP BY fr.id, a.id, a.title, ep.id, ep.episode_number, ep.title, fr.source, fr.created_at
 	`, releaseID).Scan(
 		&item.ReleaseID,
 		&item.AnimeID,
@@ -214,6 +219,7 @@ func (r *AdminContentRepository) GetAdminReleaseByID(
 		&item.FansubName,
 		&item.EpisodeID,
 		&item.EpisodeNumber,
+		&item.EpisodeTitle,
 		&item.Source,
 		&item.VersionCount,
 		&item.HasThemeAssets,

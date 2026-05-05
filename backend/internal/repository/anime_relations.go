@@ -19,28 +19,34 @@ type AnimeRelation struct {
 // Queries both directions: where anime is source OR target
 // Only returns relations to active anime (not disabled)
 func (r *AnimeRepository) GetAnimeRelations(ctx context.Context, animeID int64) ([]AnimeRelation, error) {
+	// DISTINCT ON ensures each related anime appears once even when both
+	// directions (A→B and B→A) exist in the table with different relation types.
 	query := `
-		SELECT
-			CASE
-				WHEN ar.source_anime_id = $1 THEN ar.target_anime_id
-				ELSE ar.source_anime_id
-			END AS anime_id,
-			a.title,
-			rt.name AS relation_type,
-			a.cover_image,
-			a.year,
-			a.type
-		FROM anime_relations ar
-		JOIN relation_types rt ON ar.relation_type_id = rt.id
-		JOIN anime a ON (
-			CASE
-				WHEN ar.source_anime_id = $1 THEN ar.target_anime_id
-				ELSE ar.source_anime_id
-			END = a.id
-		)
-		WHERE (ar.source_anime_id = $1 OR ar.target_anime_id = $1)
-		  AND a.status != 'disabled'
-		ORDER BY a.year DESC NULLS LAST, a.title
+		SELECT DISTINCT ON (anime_id)
+			anime_id, title, relation_type, cover_image, year, type
+		FROM (
+			SELECT
+				CASE
+					WHEN ar.source_anime_id = $1 THEN ar.target_anime_id
+					ELSE ar.source_anime_id
+				END AS anime_id,
+				a.title,
+				rt.name AS relation_type,
+				a.cover_image,
+				a.year,
+				a.type
+			FROM anime_relations ar
+			JOIN relation_types rt ON ar.relation_type_id = rt.id
+			JOIN anime a ON (
+				CASE
+					WHEN ar.source_anime_id = $1 THEN ar.target_anime_id
+					ELSE ar.source_anime_id
+				END = a.id
+			)
+			WHERE (ar.source_anime_id = $1 OR ar.target_anime_id = $1)
+			  AND a.status != 'disabled'
+		) sub
+		ORDER BY anime_id, year DESC NULLS LAST, title
 	`
 
 	rows, err := r.db.Query(ctx, query, animeID)

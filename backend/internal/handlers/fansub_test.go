@@ -95,6 +95,38 @@ func TestValidateFansubGroupPatchRequest_InvalidGroupType(t *testing.T) {
 	}
 }
 
+func TestValidateFansubGroupLinkCreateRequest(t *testing.T) {
+	input, message := validateFansubGroupLinkCreateRequest(fansubGroupLinkCreateRequest{
+		LinkType: "website",
+		Name:     ptrString(" Hauptseite "),
+		URL:      " https://example.org ",
+	})
+	if message != "" {
+		t.Fatalf("expected no validation error, got %q", message)
+	}
+	if input.LinkType != models.FansubGroupLinkTypeWebsite {
+		t.Fatalf("expected website link type, got %q", input.LinkType)
+	}
+	if input.Name == nil || *input.Name != "Hauptseite" {
+		t.Fatalf("expected trimmed name, got %#v", input.Name)
+	}
+	if input.URL != "https://example.org" {
+		t.Fatalf("expected trimmed url, got %q", input.URL)
+	}
+}
+
+func TestValidateFansubGroupLinkPatchRequest_InvalidType(t *testing.T) {
+	var patch fansubGroupLinkPatchRequest
+	if err := json.Unmarshal([]byte(`{"link_type":"mastodon"}`), &patch); err != nil {
+		t.Fatalf("unmarshal patch: %v", err)
+	}
+
+	_, message := validateFansubGroupLinkPatchRequest(patch)
+	if message != "ungueltiger link_type parameter" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+}
+
 func TestValidateFansubMemberPatchRequest_RequiresField(t *testing.T) {
 	_, message := validateFansubMemberPatchRequest(models.FansubMemberPatchInput{})
 	if message != "mindestens ein feld ist erforderlich" {

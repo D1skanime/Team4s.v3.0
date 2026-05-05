@@ -98,5 +98,6 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/fansubs/:id/anime/:animeId/theme-assets", auth, deps.adminContentHandler.UploadReleaseThemeAsset)
 	v1.GET("/admin/releases/:releaseId", auth, deps.adminContentHandler.GetAdminRelease)
 	v1.GET("/admin/releases/:releaseId/theme-assets", auth, deps.adminContentHandler.ListReleaseThemeAssets)
+	v1.POST("/admin/releases/:releaseId/theme-assets", auth, deps.adminContentHandler.UploadReleaseThemeAssetForRelease)
 	v1.DELETE("/admin/releases/:releaseId/theme-assets/:themeId/:mediaId", auth, deps.adminContentHandler.DeleteReleaseThemeAsset)
 }

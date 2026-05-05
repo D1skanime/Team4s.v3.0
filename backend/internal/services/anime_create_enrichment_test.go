@@ -325,6 +325,51 @@ func TestAnimeCreateEnrichmentService_PrefersAniSearchSourceMatchesBeforeTitleFa
 	}
 }
 
+func TestAnimeCreateEnrichmentService_MapsAniSearchAlternativeVersionToNebengeschichte(t *testing.T) {
+	t.Parallel()
+
+	service := NewAnimeCreateEnrichmentService(
+		stubAniSearchFetcher{
+			anime: AniSearchAnime{
+				AniSearchID:  "5468",
+				PrimaryTitle: "11eyes",
+				Relations: []AniSearchAnimeRelation{
+					{RelationLabel: "Alternative Version", Title: "11eyes: Pink Phantasmagoria", AniSearchID: "6123"},
+				},
+			},
+		},
+		stubAnimeCreateEnrichmentRepo{
+			sources: []models.AdminAnimeSourceMatch{
+				{Source: "anisearch:6123", AnimeID: 14, Title: "11eyes: Pink Phantasmagoria"},
+			},
+		},
+		nil,
+	)
+
+	result, err := service.Enrich(context.Background(), models.AdminAnimeAniSearchEnrichmentRequest{
+		AniSearchID: "5468",
+		Draft: models.AdminAnimeCreateDraftPayload{
+			Title:       "11eyes",
+			Type:        "tv",
+			ContentType: "anime",
+			Status:      "done",
+			Source:      stringPtr("anisearch:5468"),
+		},
+	})
+	if err != nil {
+		t.Fatalf("enrich: %v", err)
+	}
+
+	draftResult := result.(models.AdminAnimeAniSearchEnrichmentDraftResult)
+	if len(draftResult.Draft.Relations) != 1 {
+		t.Fatalf("expected one resolved relation, got %#v", draftResult.Draft.Relations)
+	}
+	relation := draftResult.Draft.Relations[0]
+	if relation.TargetAnimeID != 14 || relation.RelationLabel != "Nebengeschichte" {
+		t.Fatalf("expected 11eyes alternative version to map to Nebengeschichte target 14, got %#v", relation)
+	}
+}
+
 func TestAnimeCreateEnrichmentService_FiltersAlreadyImportedAniSearchSearchCandidates(t *testing.T) {
 	t.Parallel()
 

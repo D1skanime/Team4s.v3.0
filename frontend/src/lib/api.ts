@@ -1785,6 +1785,14 @@ interface AdminReleaseThemeAssetUploadOptions {
   onProgress?: (percent: number) => void
 }
 
+interface AdminReleaseThemeAssetUploadForReleaseOptions {
+  releaseID: number
+  themeID: number
+  file: File
+  authToken?: string
+  onProgress?: (percent: number) => void
+}
+
 export async function uploadAdminReleaseThemeAsset(
   options: AdminReleaseThemeAssetUploadOptions,
 ): Promise<AdminReleaseThemeAssetCreateResponse> {
@@ -1795,6 +1803,61 @@ export async function uploadAdminReleaseThemeAsset(
   const API_BASE_URL = getApiBaseUrl()
   const token = resolveAuthToken(options.authToken)
   const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/anime/${options.animeID}/theme-assets`
+
+  return new Promise<AdminReleaseThemeAssetCreateResponse>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', endpoint, true)
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (!options.onProgress) return
+      if (!event.lengthComputable) return
+      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)))
+      options.onProgress(percent)
+    }
+
+    xhr.onerror = () => {
+      reject(new ApiError(0, 'netzwerkfehler beim upload'))
+    }
+
+    xhr.onload = () => {
+      let payload: unknown = null
+      try {
+        payload = JSON.parse(xhr.responseText)
+      } catch {
+        payload = null
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        options.onProgress?.(100)
+        resolve(payload as AdminReleaseThemeAssetCreateResponse)
+        return
+      }
+
+      const fallback = `API request failed: ${xhr.status}`
+      reject(new ApiError(xhr.status, parsePayloadError(payload, fallback)))
+    }
+
+    const body = new FormData()
+    body.set('theme_id', String(options.themeID))
+    body.set('file', options.file)
+    options.onProgress?.(0)
+    xhr.send(body)
+  })
+}
+
+export async function uploadAdminReleaseThemeAssetForRelease(
+  options: AdminReleaseThemeAssetUploadForReleaseOptions,
+): Promise<AdminReleaseThemeAssetCreateResponse> {
+  if (typeof window === 'undefined') {
+    throw new ApiError(500, 'upload ist nur im browser verfuegbar')
+  }
+
+  const API_BASE_URL = getApiBaseUrl()
+  const token = resolveAuthToken(options.authToken)
+  const endpoint = `${API_BASE_URL}/api/v1/admin/releases/${options.releaseID}/theme-assets`
 
   return new Promise<AdminReleaseThemeAssetCreateResponse>((resolve, reject) => {
     const xhr = new XMLHttpRequest()
@@ -2391,7 +2454,7 @@ export async function getAdminAnimeThemeSegments(
   authToken?: string,
 ): Promise<AdminAnimeThemeSegmentsResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}/segments`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments`, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
@@ -2401,7 +2464,10 @@ export async function getAdminAnimeThemeSegments(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  return response.json() as Promise<AdminAnimeThemeSegmentsResponse>
+  const payload = (await response.json()) as AdminAnimeThemeSegmentsResponse
+  return {
+    data: payload.data.filter((segment) => segment.theme_id === themeID),
+  }
 }
 
 export async function createAdminAnimeThemeSegment(
@@ -2411,7 +2477,7 @@ export async function createAdminAnimeThemeSegment(
   authToken?: string,
 ): Promise<AdminAnimeThemeSegmentCreateResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}/segments`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -2419,7 +2485,7 @@ export async function createAdminAnimeThemeSegment(
       },
       authToken,
     ),
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, theme_id: themeID }),
   })
 
   if (!response.ok) {
@@ -2437,7 +2503,7 @@ export async function deleteAdminAnimeThemeSegment(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}/segments/${segmentID}`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments/${segmentID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
