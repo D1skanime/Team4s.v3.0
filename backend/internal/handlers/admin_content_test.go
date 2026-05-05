@@ -973,6 +973,40 @@ func TestBuildJellyfinEditorStreamURL_MissingConfigReturnsNil(t *testing.T) {
 	}
 }
 
+func TestGetJellyfinEpisodeDurationSeconds_UsesRuntimeTicks(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/Items" {
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+		query := r.URL.Query()
+		if query.Get("api_key") != "media-key" {
+			t.Fatalf("unexpected api key: %q", query.Get("api_key"))
+		}
+		if query.Get("Ids") != "episode-1" {
+			t.Fatalf("unexpected item ids: %q", query.Get("Ids"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"Items":[{"Id":"episode-1","RunTimeTicks":13830497160}],"TotalRecordCount":1}`))
+	}))
+	defer server.Close()
+
+	handler := &AdminContentHandler{
+		jellyfinBaseURL: server.URL,
+		jellyfinAPIKey:  "media-key",
+		httpClient:      server.Client(),
+	}
+
+	durationSeconds, err := handler.getJellyfinEpisodeDurationSeconds(context.Background(), "episode-1")
+	if err != nil {
+		t.Fatalf("get duration: %v", err)
+	}
+	if durationSeconds == nil || *durationSeconds != 1383 {
+		t.Fatalf("expected 1383 seconds, got %#v", durationSeconds)
+	}
+}
+
 func TestAdminContentRequireAdmin_RejectsMissingAuthIdentity(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

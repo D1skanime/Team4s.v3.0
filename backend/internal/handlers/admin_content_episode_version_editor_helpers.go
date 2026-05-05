@@ -27,8 +27,15 @@ func (h *AdminContentHandler) loadEpisodeVersionEditorContext(
 		return nil, err
 	}
 
+	version := *resolved.version
+	if version.DurationSeconds == nil {
+		if durationSeconds, err := h.resolveEpisodeVersionDuration(ctx, &version); err == nil && durationSeconds != nil {
+			version.DurationSeconds = durationSeconds
+		}
+	}
+
 	return &models.EpisodeVersionEditorContext{
-		Version:              *resolved.version,
+		Version:              version,
 		AnimeTitle:           resolved.animeSource.Title,
 		AnimeFolderPath:      resolved.animeFolderPath,
 		CollaborationGroupID: resolved.collaborationID,
@@ -100,7 +107,25 @@ func (h *AdminContentHandler) resolveEpisodeVersionFolderPath(
 	return normalizeNullableStringPtr(derefString(animeSource.FolderName)), "", nil
 }
 
-// resolveEpisodeVersionSelectedGroups ermittelt die ausgewählten Fansub-Gruppen für eine Episodenversion und löst Kollaborationen in ihre Einzelgruppen auf.
+// resolveEpisodeVersionDuration ergaenzt eine fehlende Laufzeit aus der aktuell verknuepften Provider-Datei.
+func (h *AdminContentHandler) resolveEpisodeVersionDuration(
+	ctx context.Context,
+	version *models.EpisodeVersion,
+) (*int32, error) {
+	if version == nil {
+		return nil, nil
+	}
+	if !strings.EqualFold(strings.TrimSpace(version.MediaProvider), "jellyfin") {
+		return nil, nil
+	}
+	mediaItemID := strings.TrimSpace(version.MediaItemID)
+	if mediaItemID == "" || !h.ensureJellyfinConfiguredForEditor() {
+		return nil, nil
+	}
+	return h.getJellyfinEpisodeDurationSeconds(ctx, mediaItemID)
+}
+
+// resolveEpisodeVersionSelectedGroups ermittelt die ausgewaehlten Fansub-Gruppen fuer eine Episodenversion und loest Kollaborationen in ihre Einzelgruppen auf.
 func (h *AdminContentHandler) resolveEpisodeVersionSelectedGroups(
 	ctx context.Context,
 	version *models.EpisodeVersion,

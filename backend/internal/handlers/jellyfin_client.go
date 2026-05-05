@@ -254,6 +254,56 @@ func (h *AdminContentHandler) listJellyfinEpisodes(
 	return payload.Items, nil
 }
 
+// getJellyfinEpisodeDurationSeconds fetches the runtime for one Jellyfin episode item.
+func (h *AdminContentHandler) getJellyfinEpisodeDurationSeconds(
+	ctx context.Context,
+	itemID string,
+) (*int32, error) {
+	trimmedItemID := strings.TrimSpace(itemID)
+	if trimmedItemID == "" {
+		return nil, nil
+	}
+
+	values := url.Values{}
+	values.Set("Ids", trimmedItemID)
+	values.Set("Limit", "1")
+	values.Set("Fields", "RunTimeTicks")
+
+	var payload jellyfinEpisodeListResponse
+	statusCode, err := h.fetchJellyfinJSON(ctx, "/Items", values, &payload)
+	if statusCode == http.StatusNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if len(payload.Items) == 0 {
+		return nil, nil
+	}
+
+	for _, item := range payload.Items {
+		if strings.TrimSpace(item.ID) == trimmedItemID {
+			return jellyfinRuntimeTicksToSeconds(item.RunTimeTicks), nil
+		}
+	}
+
+	return jellyfinRuntimeTicksToSeconds(payload.Items[0].RunTimeTicks), nil
+}
+
+func jellyfinRuntimeTicksToSeconds(ticks *int64) *int32 {
+	const maxInt32 = int64(2147483647)
+
+	if ticks == nil || *ticks <= 0 {
+		return nil
+	}
+	seconds := *ticks / 10_000_000
+	if seconds <= 0 || seconds > maxInt32 {
+		return nil
+	}
+	value := int32(seconds)
+	return &value
+}
+
 func (h *AdminContentHandler) listJellyfinThemeVideoIDs(
 	ctx context.Context,
 	seriesID string,

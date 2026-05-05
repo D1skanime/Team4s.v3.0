@@ -182,8 +182,14 @@ interface SegmentTimelineProps {
 
 export function SegmentTimeline({ segments, totalDurationSeconds }: SegmentTimelineProps) {
   const timedSegments = segments.filter((s) => s.start_time && s.end_time)
+  const untimedSegments = segments.filter((s) => !s.start_time || !s.end_time)
   if (timedSegments.length === 0) {
-    return <p className={styles.emptyState}>Keine Zeitbereiche fuer Timeline verfuegbar.</p>
+    return (
+      <>
+        <p className={styles.emptyState}>Keine Zeitbereiche fuer Timeline verfuegbar.</p>
+        {untimedSegments.length > 0 ? <UntimedSegmentList segments={untimedSegments} /> : null}
+      </>
+    )
   }
 
   const segmentMaxEnd = Math.max(...timedSegments.map((s) => parseTimeToSeconds(s.end_time!)))
@@ -248,6 +254,30 @@ export function SegmentTimeline({ segments, totalDurationSeconds }: SegmentTimel
           </div>
         ) : null}
       </div>
+      {untimedSegments.length > 0 ? <UntimedSegmentList segments={untimedSegments} /> : null}
     </>
+  )
+}
+
+interface UntimedSegmentListProps {
+  segments: AdminThemeSegment[]
+}
+
+function UntimedSegmentList({ segments }: UntimedSegmentListProps) {
+  return (
+    <div className={styles.timelineUntimedList} aria-label="Segmente ohne Zeitbereich">
+      <span className={styles.timelineUntimedLabel}>Ohne Zeitbereich</span>
+      {segments.map((segment) => (
+        <span
+          key={segment.id}
+          className={styles.timelineUntimedChip}
+          style={{ borderColor: getTypeColor(segment.theme_type_name), color: getTypeColor(segment.theme_type_name) }}
+          title={`${segment.theme_type_name}: Start/Ende fehlen`}
+        >
+          {getTypeBadgeLabel(segment.theme_type_name)}
+          {segment.theme_title?.trim() ? ` · ${segment.theme_title.trim()}` : ''}
+        </span>
+      ))}
+    </div>
   )
 }
