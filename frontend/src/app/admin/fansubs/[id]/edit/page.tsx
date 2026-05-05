@@ -207,6 +207,24 @@ function releaseDrawerTitle(release: AdminFansubRelease): string {
   return `${release.anime_title} E${episode}${title ? ` - ${title}` : ''}`
 }
 
+function themeSegmentEpisodeRange(segment?: AdminAnimeThemeSegment | null): string {
+  if (!segment) return 'Keine Episode gesetzt'
+  const start = segment.start_episode_number || (segment.start_episode != null ? String(segment.start_episode) : null)
+  const end = segment.end_episode_number || (segment.end_episode != null ? String(segment.end_episode) : null)
+  if (start && end && start !== end) return `${start} - ${end}`
+  if (start || end) return start || end || 'Keine Episode gesetzt'
+  return 'Keine Episode gesetzt'
+}
+
+function themeSegmentTimeRange(segment?: AdminAnimeThemeSegment | null): string {
+  if (!segment) return 'Keine Zeit gesetzt'
+  const start = segment.start_time?.trim()
+  const end = segment.end_time?.trim()
+  if (start && end) return `${start} - ${end}`
+  if (start || end) return `${start || '?'} - ${end || '?'}`
+  return 'Keine Zeit gesetzt'
+}
+
 function isJellyfinLocked(card: ReleaseSegmentCard): boolean {
   return card.segments.some((item) => item.source_type === 'jellyfin_theme' || item.playback_source_kind === 'jellyfin')
 }
@@ -1076,6 +1094,16 @@ export default function AdminFansubEditPage() {
   const logoPreviewURL = buildMediaPreviewURL(logoMedia)
   const themeSelectedCard = selectedReleaseSegment?.card ?? null
   const themeSelectedLocked = themeSelectedCard ? themeSelectedCard.status === 'global' || isJellyfinLocked(themeSelectedCard) : false
+  const drawerReleaseCards = drawerRelease ? releaseSegmentCards[drawerRelease.release_id] ?? [] : []
+  const drawerReleaseReleaseAssetCount = drawerReleaseCards.filter((card) => card.status === 'release').length
+  const drawerReleaseGlobalAssetCount = drawerReleaseCards.filter((card) => card.status === 'global').length
+  const drawerReleaseMissingAssetCount = drawerReleaseCards.filter((card) => card.status === 'missing').length
+  const drawerReleaseThemeSummary = drawerReleaseCards.length > 0
+    ? `${drawerReleaseReleaseAssetCount} Release / ${drawerReleaseGlobalAssetCount} Global / ${drawerReleaseMissingAssetCount} offen`
+    : drawerRelease?.has_theme_assets
+      ? 'Theme-Assets vorhanden'
+      : 'Keine Theme-Assets'
+  const themePrimarySegment = themeSelectedCard?.segments[0] ?? null
   const releaseDrawerTabs = drawerRelease ? [
     { key: 'details' as const, label: 'Details', disabled: false },
     { key: 'media' as const, label: 'Media', disabled: true },
@@ -1483,6 +1511,23 @@ export default function AdminFansubEditPage() {
                     <label><span>Datum</span><input value={new Date(drawerRelease.created_at).toLocaleDateString('de-CH')} readOnly /></label>
                     <label><span>Status</span><input value="Verknuepft" readOnly /></label>
                   </div>
+                  <div className={styles.fansubEditReleaseDrawerContextGrid}>
+                    <div className={styles.fansubEditReleaseDrawerContextCard}>
+                      <span>Release-Kontext</span>
+                      <strong>{episodeReleaseTitle(drawerRelease)}</strong>
+                      <p>{drawerRelease.fansub_name} - {drawerRelease.anime_title}</p>
+                    </div>
+                    <div className={styles.fansubEditReleaseDrawerContextCard}>
+                      <span>Theme-Uebersicht</span>
+                      <strong>{drawerReleaseThemeSummary}</strong>
+                      <p>{drawerReleaseCards.length > 0 ? `${drawerReleaseCards.length} Theme-Definition${drawerReleaseCards.length === 1 ? '' : 'en'} geladen` : 'Theme-Daten noch nicht geladen'}</p>
+                    </div>
+                    <div className={styles.fansubEditReleaseDrawerContextCard}>
+                      <span>Release-Datum</span>
+                      <strong>{new Date(drawerRelease.created_at).toLocaleDateString('de-CH')}</strong>
+                      <p>{drawerRelease.version_count} Version{drawerRelease.version_count === 1 ? '' : 'en'}</p>
+                    </div>
+                  </div>
                 </div>
               ) : null}
 
@@ -1508,7 +1553,7 @@ export default function AdminFansubEditPage() {
               </button>
             </header>
             <div className={styles.fansubEditReleaseDrawerBody}>
-              <div className={styles.fansubEditReleaseDrawerPanel}>
+              <div className={`${styles.fansubEditReleaseDrawerPanel} ${styles.fansubEditThemeDrawerPanel}`}>
                 {drawerError ? <div className={styles.errorBox}>{drawerError}</div> : null}
                 <div className={styles.fansubEditReleaseDrawerAssetBox}>
                   <p className={styles.fansubEditHint}>Dieser Drawer ist nur fuer OP/ED/IN Theme-Assets. Timeline-Zeiten bleiben unveraendert.</p>
@@ -1549,6 +1594,28 @@ export default function AdminFansubEditPage() {
                     </div>
                   )}
                 </div>
+                <aside className={styles.fansubEditReleaseDrawerContextCard} aria-label="Segment-Kontext">
+                  <span>Segment-Kontext</span>
+                  <strong>{episodeReleaseTitle(selectedReleaseSegment.release)}</strong>
+                  <dl className={styles.fansubEditThemeContextList}>
+                    <div>
+                      <dt>Release</dt>
+                      <dd>#{selectedReleaseSegment.release.release_id}</dd>
+                    </div>
+                    <div>
+                      <dt>Episode</dt>
+                      <dd>{themeSegmentEpisodeRange(themePrimarySegment)}</dd>
+                    </div>
+                    <div>
+                      <dt>Zeitbereich</dt>
+                      <dd>{themeSegmentTimeRange(themePrimarySegment)}</dd>
+                    </div>
+                    <div>
+                      <dt>Quelle</dt>
+                      <dd>{themeSelectedCard.source_label || 'Keine Quelle'}</dd>
+                    </div>
+                  </dl>
+                </aside>
               </div>
             </div>
             <footer className={styles.fansubEditReleaseDrawerFooter}>
