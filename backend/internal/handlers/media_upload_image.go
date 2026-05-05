@@ -20,11 +20,10 @@ func imageExtFromMime(mimeType string) string {
 	switch mimeType {
 	case "image/png":
 		return "png"
-	case "image/webp":
-		return "webp"
 	case "image/gif":
 		return "gif"
 	default:
+		// WebP is decode-only in this upload path for now; imaging.Save cannot encode it.
 		return "jpg"
 	}
 }

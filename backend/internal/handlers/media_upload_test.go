@@ -285,6 +285,64 @@ func TestMediaUploadHandler_UploadPersistsUploadedByFromAuthIdentity(t *testing.
 	}
 }
 
+func TestMediaUploadHandler_UploadPreservesPNGOutputAndAlpha(t *testing.T) {
+	repo := NewMockMediaUploadRepository()
+	tmpDir := t.TempDir()
+	handler := NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg")
+
+	w := performAuthorizedUpload(t, handler, newMediaUploadRequest(t))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var payload models.UploadResponse
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &payload))
+
+	var originalPath string
+	var thumbPath string
+	for _, file := range payload.Files {
+		switch file.Variant {
+		case "original":
+			originalPath = file.Path
+		case "thumb":
+			thumbPath = file.Path
+		}
+	}
+
+	assert.True(t, strings.HasSuffix(originalPath, "/original.png"), originalPath)
+	assert.True(t, strings.HasSuffix(thumbPath, "/thumb.png"), thumbPath)
+
+	diskPath := filepath.Join(tmpDir, filepath.FromSlash(strings.TrimPrefix(originalPath, "/media/")))
+	file, err := os.Open(diskPath)
+	assert.NoError(t, err)
+	defer file.Close()
+
+	img, format, err := image.Decode(file)
+	assert.NoError(t, err)
+	assert.Equal(t, "png", format)
+
+	_, _, _, alpha := img.At(0, 1).RGBA()
+	assert.Equal(t, uint32(0), alpha)
+}
+
+func TestImageExtFromMime(t *testing.T) {
+	tests := []struct {
+		mimeType string
+		want     string
+	}{
+		{mimeType: "image/png", want: "png"},
+		{mimeType: "image/gif", want: "gif"},
+		{mimeType: "image/jpeg", want: "jpg"},
+		{mimeType: "image/webp", want: "jpg"},
+		{mimeType: "image/avif", want: "jpg"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.mimeType, func(t *testing.T) {
+			assert.Equal(t, tt.want, imageExtFromMime(tt.mimeType))
+		})
+	}
+}
+
 type mockAssetLifecycleStore struct {
 	subjects map[int64]bool
 	audit    []models.AssetLifecycleAuditEntry
@@ -538,7 +596,7 @@ func testPNGBytes(t *testing.T) []byte {
 	img := image.NewRGBA(image.Rect(0, 0, 2, 2))
 	img.Set(0, 0, color.RGBA{R: 255, A: 255})
 	img.Set(1, 0, color.RGBA{G: 255, A: 255})
-	img.Set(0, 1, color.RGBA{B: 255, A: 255})
+	img.Set(0, 1, color.RGBA{B: 255, A: 0})
 	img.Set(1, 1, color.RGBA{R: 255, G: 255, B: 255, A: 255})
 	if err := png.Encode(&body, img); err != nil {
 		t.Fatalf("encode png: %v", err)
