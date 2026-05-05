@@ -724,12 +724,55 @@
 }
 
 .fansubEditTimeline {
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--bg-card) 94%, transparent);
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%);
   padding: 0.75rem;
   display: grid;
   gap: 0.7rem;
+}
+
+.fansubEditTimelineLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.8rem;
+  align-items: center;
+}
+
+.fansubEditTimelineLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #6b6b70;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.fansubEditTimelineLegendSwatch {
+  width: 1.15rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  border: 1px solid #d8d8df;
+}
+
+.fansubEditTimelineLegendGlobal {
+  background: linear-gradient(180deg, #ffffff 0%, #f4f4f6 100%);
+}
+
+.fansubEditTimelineLegendRelease {
+  border-color: color-mix(in srgb, var(--accent-primary) 42%, #e1e1e6);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 16%, #fff), color-mix(in srgb, var(--accent-primary) 6%, #fff));
+}
+
+.fansubEditTimelineLegendMissing {
+  border-color: color-mix(in srgb, var(--color-warning) 44%, #e1e1e6);
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 22%, #fff) 0 5px, #fff 5px 10px);
+}
+
+.fansubEditTimelineLegendSelected {
+  border-color: var(--accent-primary);
+  background: #fff;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 
 .fansubEditTimelineScale {
@@ -753,40 +796,59 @@
 
 .fansubEditTimelineTrack {
   position: relative;
-  min-height: 2rem;
-  border-radius: 0.45rem;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--text-secondary) 12%, transparent), color-mix(in srgb, var(--text-secondary) 6%, transparent));
+  min-height: 2.3rem;
+  border: 1px solid #ececf0;
+  border-radius: 10px;
+  background: #fafafa;
   overflow: hidden;
 }
 
 .fansubEditTimelineSegment {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  border: 0;
-  color: #fff;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  border: 1px solid #d8d8df;
+  border-radius: 8px;
+  color: var(--text-primary);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
+  min-width: 2.1rem;
+  overflow: hidden;
+  padding: 0 0.35rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px color-mix(in srgb, #000 8%, transparent);
 }
 
 .fansubEditTimelineSegmentglobal {
-  background: linear-gradient(90deg, #22c55e, #16a34a);
+  background: linear-gradient(180deg, #ffffff 0%, #f4f4f6 100%);
+  color: #3f3f46;
 }
 
 .fansubEditTimelineSegmentrelease {
-  background: linear-gradient(90deg, #f97316, #ea580c);
+  border-color: color-mix(in srgb, var(--accent-primary) 45%, #d8d8df);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 16%, #fff), color-mix(in srgb, var(--accent-primary) 6%, #fff));
+  color: color-mix(in srgb, var(--accent-primary) 84%, var(--text-primary));
 }
 
 .fansubEditTimelineSegmentmissing {
-  background: repeating-linear-gradient(135deg, #f59e0b 0 8px, #d97706 8px 16px);
+  border-color: color-mix(in srgb, var(--color-warning) 48%, #d8d8df);
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 22%, #fff) 0 7px, #fff 7px 14px);
+  color: color-mix(in srgb, var(--color-warning) 76%, var(--text-primary));
 }
 
 .fansubEditTimelineSegmentActive {
-  outline: 2px solid color-mix(in srgb, var(--accent-primary) 80%, white);
-  outline-offset: -2px;
-  filter: brightness(1.08);
+  z-index: 2;
+  border-color: var(--accent-primary);
+  box-shadow:
+    inset 0 0 0 1px #fff,
+    0 0 0 2px color-mix(in srgb, var(--accent-primary) 18%, transparent),
+    0 2px 7px color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 
 .fansubEditReleaseDrawerOverlay {

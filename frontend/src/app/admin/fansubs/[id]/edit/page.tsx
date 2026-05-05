@@ -191,6 +191,12 @@ function timelineLabelFor(name: string): string {
   return name.slice(0, 3).toUpperCase()
 }
 
+function timelineStatusLabelFor(status: ReleaseSegmentStatus): string {
+  if (status === 'global') return 'Global/Admin'
+  if (status === 'release') return 'Release-Asset'
+  return 'Fehlt'
+}
+
 function episodeReleaseTitle(release: AdminFansubRelease): string {
   const episode = `Episode ${release.episode_number || '?'}`
   const title = (release.episode_title || '').trim()
@@ -1412,6 +1418,24 @@ export default function AdminFansubEditPage() {
                                 ) : null}
                                 {cards.length > 0 ? (
                                   <div className={styles.fansubEditTimeline}>
+                                    <div className={styles.fansubEditTimelineLegend} aria-label="Timeline Legende">
+                                      <span className={styles.fansubEditTimelineLegendItem}>
+                                        <span className={`${styles.fansubEditTimelineLegendSwatch} ${styles.fansubEditTimelineLegendGlobal}`} aria-hidden="true" />
+                                        Global/Admin
+                                      </span>
+                                      <span className={styles.fansubEditTimelineLegendItem}>
+                                        <span className={`${styles.fansubEditTimelineLegendSwatch} ${styles.fansubEditTimelineLegendRelease}`} aria-hidden="true" />
+                                        Release-Asset
+                                      </span>
+                                      <span className={styles.fansubEditTimelineLegendItem}>
+                                        <span className={`${styles.fansubEditTimelineLegendSwatch} ${styles.fansubEditTimelineLegendMissing}`} aria-hidden="true" />
+                                        Fehlt
+                                      </span>
+                                      <span className={styles.fansubEditTimelineLegendItem}>
+                                        <span className={`${styles.fansubEditTimelineLegendSwatch} ${styles.fansubEditTimelineLegendSelected}`} aria-hidden="true" />
+                                        Ausgewaehlt
+                                      </span>
+                                    </div>
                                     <div className={styles.fansubEditTimelineScale}>
                                       <span>00:00:00</span>
                                       <span>{new Date(timelineMaxSeconds * 1000).toISOString().slice(11, 19)}</span>
@@ -1427,12 +1451,15 @@ export default function AdminFansubEditPage() {
                                             const left = Math.max(0, Math.min(94, (startSeconds / timelineMaxSeconds) * 100))
                                             const width = Math.max(6, Math.min(100 - left, ((endSeconds - startSeconds) / timelineMaxSeconds) * 100 || 10))
                                             const lockedByJellyfin = card.segments.some((item) => item.source_type === 'jellyfin_theme' || item.playback_source_kind === 'jellyfin')
+                                            const selected = selectedReleaseSegment?.release.release_id === release.release_id && selectedReleaseSegment.card.theme_id === card.theme_id
                                             return (
                                               <button
                                                 key={card.theme_id}
                                                 type="button"
-                                                className={`${styles.fansubEditTimelineSegment} ${styles[`fansubEditTimelineSegment${card.status}`]} ${selectedReleaseSegment?.release.release_id === release.release_id && selectedReleaseSegment.card.theme_id === card.theme_id ? styles.fansubEditTimelineSegmentActive : ''}`}
+                                                className={`${styles.fansubEditTimelineSegment} ${styles[`fansubEditTimelineSegment${card.status}`]} ${selected ? styles.fansubEditTimelineSegmentActive : ''}`}
                                                 style={{ left: `${left}%`, width: `${width}%` }}
+                                                aria-pressed={selected}
+                                                aria-label={`${timelineLabelFor(card.theme_type_name)} ${timelineStatusLabelFor(card.status)}${lockedByJellyfin ? ' Jellyfin-Quelle' : ''}`}
                                                 onClick={() => {
                                                   openThemeDrawer(release, card)
                                                 }}
