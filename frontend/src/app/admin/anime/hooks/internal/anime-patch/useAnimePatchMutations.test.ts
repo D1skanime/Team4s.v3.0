@@ -52,6 +52,8 @@ describe('useAnimePatchMutations', () => {
     let captured: ReturnType<typeof useAnimePatchMutations> | null = null
 
     function Harness() {
+      // Test-only hook harness: renderToStaticMarkup runs synchronously, so capture the hook API for assertions.
+      // eslint-disable-next-line react-hooks/globals
       captured = useAnimePatchMutations({
         authToken: 'token',
         hasAuthToken: true,

@@ -23,6 +23,7 @@ import {
   removeJellyfinDraftAsset,
 } from "../hooks/useManualAnimeDraft";
 import { splitTagTokens } from "../utils/anime-helpers";
+import type { AdminAnimeCreateAniSearchSummary } from "@/types/admin";
 
 describe("AdminAnimeCreatePage", () => {
   beforeEach(() => {
@@ -40,7 +41,7 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).toContain("Typ *");
     expect(markup).toContain("Beschreibung");
     expect(markup).toContain("Cover");
-    expect(markup).toContain("Pruefe und ergaenze die Assets");
+    expect(markup).toContain("Prüfe und ergänze die Assets");
     expect(markup).not.toContain("frontend/public/covers");
   });
 
@@ -362,14 +363,13 @@ describe("AdminAnimeCreatePage", () => {
     // Regression for live UAT failure: backend can omit `warnings` from create enrichment
     // summaries. Without the defensive fix this throws at runtime:
     // "can't access property 'length', summary.warnings is undefined"
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const incompleteAnisearch = {
+    const incompleteAnisearch: AdminAnimeCreateAniSearchSummary = {
       source: "anisearch:99999",
       relations_attempted: 2,
       relations_applied: 2,
       relations_skipped_existing: 0,
       // warnings intentionally absent — mirrors backend omission
-    } as any;
+    };
 
     expect(() =>
       buildCreateSuccessMessage({
@@ -381,13 +381,12 @@ describe("AdminAnimeCreatePage", () => {
 
   it("returns the generic create success message when AniSearch warnings are absent and all relations applied", () => {
     // Regression: helper must fall back to generic copy, not crash, when warnings field is missing.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const incompleteAnisearch = {
+    const incompleteAnisearch: AdminAnimeCreateAniSearchSummary = {
       source: "anisearch:99999",
       relations_attempted: 2,
       relations_applied: 2,
       relations_skipped_existing: 0,
-    } as any;
+    };
 
     expect(
       buildCreateSuccessMessage({
@@ -909,8 +908,8 @@ describe("AdminAnimeCreatePage", () => {
   it("getAdminTagTokens is used for tag suggestion loading (import from admin-anime-intake)", async () => {
     // Verify the helper is importable from the intake module — this proves
     // the page can use the dedicated tag token loader.
-    const module = await import("@/lib/api/admin-anime-intake");
-    expect(typeof module.getAdminTagTokens).toBe("function");
+    const intakeModule = await import("@/lib/api/admin-anime-intake");
+    expect(typeof intakeModule.getAdminTagTokens).toBe("function");
   });
 
   it("keeps the first pre-preview draft snapshot as the restore baseline", () => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -34,16 +34,13 @@ export function GroupEdgeNavigation({
 }: GroupEdgeNavigationProps) {
   const router = useRouter()
   const [hoverDirection, setHoverDirection] = useState<Direction | null>(null)
-  const [loadingDirection, setLoadingDirection] = useState<Direction | null>(null)
+  const [loadingTarget, setLoadingTarget] = useState<{ currentGroupId: number; direction: Direction } | null>(null)
 
   const currentIndex = otherGroups.findIndex((g) => g.id === currentGroupId)
   const previousGroup = currentIndex > 0 ? otherGroups[currentIndex - 1] : null
   const nextGroup = currentIndex >= 0 && currentIndex < otherGroups.length - 1 ? otherGroups[currentIndex + 1] : null
   const previewGroup = hoverDirection === 'prev' ? previousGroup : hoverDirection === 'next' ? nextGroup : null
-
-  useEffect(() => {
-    setLoadingDirection(null)
-  }, [currentGroupId])
+  const loadingDirection = loadingTarget?.currentGroupId === currentGroupId ? loadingTarget.direction : null
 
   if (!previousGroup && !nextGroup) {
     return null
@@ -55,7 +52,7 @@ export function GroupEdgeNavigation({
     const target = direction === 'prev' ? previousGroup : nextGroup
     if (!target) return
 
-    setLoadingDirection(direction)
+    setLoadingTarget({ currentGroupId, direction })
     router.push(getGroupUrl(animeId, target.id, mode))
   }
 

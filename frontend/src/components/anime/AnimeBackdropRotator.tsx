@@ -58,13 +58,15 @@ export function AnimeBackdropRotator({ animeID, coverImage, initialManifest = nu
     const initialBackdrops = normalizeBackdropImageURLs(initialManifest)
     const initialThemeVideos = normalizeThemeVideoURLs(initialManifest)
     if (initialBackdrops.length > 0 || initialThemeVideos.length > 0) {
-      setBackdropUrls(shuffle(initialBackdrops))
-      setActiveIndex(initialBackdrops.length > 0 ? Math.floor(Math.random() * initialBackdrops.length) : 0)
-      setActiveThemeVideoURL(initialThemeVideos[0] ?? null)
-      setThemeVideoMuted(true)
-      setAudioToggleError(null)
-      setShowThemeVideo(initialThemeVideos.length > 0)
-      return
+      const timeout = window.setTimeout(() => {
+        setBackdropUrls(shuffle(initialBackdrops))
+        setActiveIndex(initialBackdrops.length > 0 ? Math.floor(Math.random() * initialBackdrops.length) : 0)
+        setActiveThemeVideoURL(initialThemeVideos[0] ?? null)
+        setThemeVideoMuted(true)
+        setAudioToggleError(null)
+        setShowThemeVideo(initialThemeVideos.length > 0)
+      }, 0)
+      return () => window.clearTimeout(timeout)
     }
 
     let isCancelled = false

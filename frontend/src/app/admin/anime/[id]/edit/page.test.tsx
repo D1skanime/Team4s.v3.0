@@ -28,11 +28,11 @@ describe('AdminAnimeEditPage load error formatting', () => {
     expect(source).not.toContain('<strong>Jellyfin-Kontext</strong>')
   })
 
-  it('keeps legacy relation and jellyfin sync sections out of the edit route', () => {
+  it('keeps the current relation section and legacy jellyfin sync section boundaries explicit', () => {
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
     const source = readFileSync(path.join(currentDir, 'page.tsx'), 'utf8')
 
-    expect(source).not.toContain('AnimeRelationsSection')
+    expect(source).toContain('AnimeRelationsSection')
     expect(source).not.toContain('JellyfinSyncPanel')
   })
 

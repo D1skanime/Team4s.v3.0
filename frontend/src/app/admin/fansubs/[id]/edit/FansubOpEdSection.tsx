@@ -25,8 +25,8 @@ export function FansubOpEdSection({ fansubID, authToken }: FansubOpEdSectionProp
 
   useEffect(() => {
     if (!authToken) {
-      setLoading(false)
-      return
+      const timeout = window.setTimeout(() => setLoading(false), 0)
+      return () => window.clearTimeout(timeout)
     }
 
     let active = true
@@ -54,8 +54,8 @@ export function FansubOpEdSection({ fansubID, authToken }: FansubOpEdSectionProp
 
   useEffect(() => {
     if (!selectedAnimeID || !authToken) {
-      setThemes([])
-      return
+      const timeout = window.setTimeout(() => setThemes([]), 0)
+      return () => window.clearTimeout(timeout)
     }
 
     getAdminAnimeThemes(selectedAnimeID, authToken)

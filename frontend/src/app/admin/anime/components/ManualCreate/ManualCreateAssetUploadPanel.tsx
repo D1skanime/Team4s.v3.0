@@ -83,6 +83,26 @@ function renderStagedAssetSummary(
 export function ManualCreateAssetUploadPanel(
   props: ManualCreateAssetUploadPanelProps,
 ) {
+  const {
+    inputRefs,
+    coverImage,
+    coverPreviewUrl,
+    stagedBanner,
+    stagedLogo,
+    stagedBackgrounds,
+    stagedBackgroundVideo,
+    isSubmitting,
+    isUploadingCover,
+    isMissingCover,
+    onCoverImageChange,
+    onCoverFileChange,
+    onOpenFileDialog,
+    onOpenAssetSearch,
+    onSingleAssetChange,
+    onBackgroundChange,
+    onRemoveSingleAsset,
+    onRemoveBackground,
+  } = props;
   const uploadPlan = buildCreateAssetUploadPlan();
 
   return (
@@ -99,22 +119,24 @@ export function ManualCreateAssetUploadPanel(
         </div>
 
         <AnimeCreateCoverField
-          inputRef={props.inputRefs.cover}
-          coverImage={props.coverImage}
-          coverPreviewUrl={props.coverPreviewUrl}
-          isSubmitting={props.isSubmitting}
-          isUploading={props.isUploadingCover}
-          isMissing={props.isMissingCover}
-          onCoverImageChange={props.onCoverImageChange}
-          onFileChange={props.onCoverFileChange}
-          onOpenFileDialog={() => props.onOpenFileDialog("cover")}
+          // Passing a ref object through to the field is intentional; the component never reads `.current` during render.
+          // eslint-disable-next-line react-hooks/refs
+          inputRef={inputRefs.cover}
+          coverImage={coverImage}
+          coverPreviewUrl={coverPreviewUrl}
+          isSubmitting={isSubmitting}
+          isUploading={isUploadingCover}
+          isMissing={isMissingCover}
+          onCoverImageChange={onCoverImageChange}
+          onFileChange={onCoverFileChange}
+          onOpenFileDialog={() => onOpenFileDialog("cover")}
         />
         <div className={styles.actions}>
           <button
             className={styles.buttonSecondary}
             type="button"
-            disabled={props.isSubmitting}
-            onClick={() => props.onOpenAssetSearch("cover")}
+            disabled={isSubmitting}
+            onClick={() => onOpenAssetSearch("cover")}
           >
             Cover online suchen
           </button>
@@ -139,10 +161,10 @@ export function ManualCreateAssetUploadPanel(
             (kind) => {
               const staged =
                 kind === "banner"
-                  ? props.stagedBanner
+                  ? stagedBanner
                   : kind === "logo"
-                    ? props.stagedLogo
-                    : props.stagedBackgroundVideo;
+                    ? stagedLogo
+                    : stagedBackgroundVideo;
 
               return (
                 <div key={kind} className={styles.field}>
@@ -151,24 +173,24 @@ export function ManualCreateAssetUploadPanel(
                   </label>
                   <input
                     id={`create-${kind}-file`}
-                    ref={props.inputRefs[kind] as RefObject<HTMLInputElement>}
+                    ref={inputRefs[kind] as RefObject<HTMLInputElement>}
                     className={styles.fileInput}
                     type="file"
                     accept={ACCEPT_BY_KIND[kind]}
-                    onChange={(event) => props.onSingleAssetChange(kind, event)}
-                    disabled={props.isSubmitting}
+                    onChange={(event) => onSingleAssetChange(kind, event)}
+                    disabled={isSubmitting}
                   />
                   {renderStagedAssetSummary(
                     "Vorgemerkt",
                     staged,
-                    () => props.onRemoveSingleAsset(kind),
+                    () => onRemoveSingleAsset(kind),
                   )}
                   <div className={styles.actions}>
                     <button
                       className={styles.button}
                       type="button"
-                      disabled={props.isSubmitting}
-                      onClick={() => props.onOpenFileDialog(kind)}
+                      disabled={isSubmitting}
+                      onClick={() => onOpenFileDialog(kind)}
                     >
                       {uploadPlan[kind].label} vorbereiten
                     </button>
@@ -176,8 +198,8 @@ export function ManualCreateAssetUploadPanel(
                       <button
                         className={styles.buttonSecondary}
                         type="button"
-                        disabled={props.isSubmitting}
-                        onClick={() => props.onOpenAssetSearch(kind)}
+                        disabled={isSubmitting}
+                        onClick={() => onOpenAssetSearch(kind)}
                       >
                         {uploadPlan[kind].label} online suchen
                       </button>
@@ -194,18 +216,20 @@ export function ManualCreateAssetUploadPanel(
             </label>
             <input
               id="create-background-file"
-              ref={props.inputRefs.background as RefObject<HTMLInputElement>}
+              // The ref is attached to the input for the external "open file dialog" button.
+              // eslint-disable-next-line react-hooks/refs
+              ref={inputRefs.background as RefObject<HTMLInputElement>}
               className={styles.fileInput}
               type="file"
               accept={ACCEPT_BY_KIND.background}
-              onChange={props.onBackgroundChange}
-              disabled={props.isSubmitting}
+              onChange={onBackgroundChange}
+              disabled={isSubmitting}
             />
             <div className={styles.coverMetaBlock}>
               <span className={styles.coverMetaLabel}>Vorgemerkt</span>
               <code className={styles.coverMetaValue}>
-                {props.stagedBackgrounds.length > 0
-                  ? `${props.stagedBackgrounds.length} Datei(en) vorgemerkt`
+                {stagedBackgrounds.length > 0
+                  ? `${stagedBackgrounds.length} Datei(en) vorgemerkt`
                   : "Noch keine Datei ausgewaehlt."}
               </code>
             </div>
@@ -213,23 +237,23 @@ export function ManualCreateAssetUploadPanel(
               <button
                 className={styles.button}
                 type="button"
-                disabled={props.isSubmitting}
-                onClick={() => props.onOpenFileDialog("background")}
+                disabled={isSubmitting}
+                onClick={() => onOpenFileDialog("background")}
               >
                 Background hinzufuegen
               </button>
               <button
                 className={styles.buttonSecondary}
                 type="button"
-                disabled={props.isSubmitting}
-                onClick={() => props.onOpenAssetSearch("background")}
+                disabled={isSubmitting}
+                onClick={() => onOpenAssetSearch("background")}
               >
                 Backgrounds online suchen
               </button>
             </div>
-            {props.stagedBackgrounds.length > 0 ? (
+            {stagedBackgrounds.length > 0 ? (
               <div className={styles.stack}>
-                {props.stagedBackgrounds.map((entry, index) => (
+                {stagedBackgrounds.map((entry, index) => (
                   <div key={`${entry.draftValue}-${index}`} className={styles.coverMetaBlock}>
                     <span className={styles.coverMetaLabel}>
                       Background {index + 1}
@@ -249,7 +273,7 @@ export function ManualCreateAssetUploadPanel(
                       <button
                         className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
                         type="button"
-                        onClick={() => props.onRemoveBackground(index)}
+                        onClick={() => onRemoveBackground(index)}
                       >
                         Entfernen
                       </button>

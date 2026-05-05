@@ -12,8 +12,6 @@ import type {
   AdminJellyfinIntakeAssetSlots,
   AnimeType,
 } from '@/types/admin'
-import type { AnimeStatus, ContentType } from '@/types/anime'
-
 import { splitGenreTokens, splitTagTokens } from '../utils/anime-helpers'
 import { resolveJellyfinIntakeAssetUrl } from '../utils/jellyfin-intake-assets'
 
@@ -30,7 +28,7 @@ export interface ManualAnimeDraftState {
   canSubmit: boolean
 }
 
-export interface ManualAnimeDraftValues extends AdminAnimeEditorDraftValues {}
+export type ManualAnimeDraftValues = AdminAnimeEditorDraftValues
 
 export interface HydratedJellyfinDraft {
   draft: ManualAnimeDraftValues

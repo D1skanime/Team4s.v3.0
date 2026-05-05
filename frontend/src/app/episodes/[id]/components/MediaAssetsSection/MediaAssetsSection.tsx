@@ -173,23 +173,28 @@ export default function MediaAssetsSection({
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
-    setAssets(initialAssets ?? [])
+    const timeout = window.setTimeout(() => setAssets(initialAssets ?? []), 0)
+    return () => window.clearTimeout(timeout)
   }, [initialAssets])
 
   useEffect(() => {
     if (typeof errorMessage === 'string' && errorMessage.trim()) {
-      setRuntimeError(errorMessage)
-      return
+      const timeout = window.setTimeout(() => setRuntimeError(errorMessage), 0)
+      return () => window.clearTimeout(timeout)
     }
 
     if (!releaseId || initialAssets) {
-      setRuntimeError(null)
-      return
+      const timeout = window.setTimeout(() => setRuntimeError(null), 0)
+      return () => window.clearTimeout(timeout)
     }
 
     let cancelled = false
-    setLoading(true)
-    setRuntimeError(null)
+    const resetTimeout = window.setTimeout(() => {
+      if (!cancelled) {
+        setLoading(true)
+        setRuntimeError(null)
+      }
+    }, 0)
 
     void getReleaseAssets(releaseId)
       .then((response) => {
@@ -216,6 +221,7 @@ export default function MediaAssetsSection({
 
     return () => {
       cancelled = true
+      window.clearTimeout(resetTimeout)
     }
   }, [errorMessage, initialAssets, releaseId])
 

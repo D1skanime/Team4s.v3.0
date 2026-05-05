@@ -53,7 +53,8 @@ export function AnimeRelationsSection({
   onSuccess,
   onError,
 }: AnimeRelationsSectionProps) {
-  const model = modelOverride ?? useAdminAnimeRelations({ animeID, authToken, onSuccess, onError })
+  const liveModel = useAdminAnimeRelations({ animeID, authToken, onSuccess, onError })
+  const model = modelOverride ?? liveModel
 
   return (
     <section className={`${styles.card} ${relationStyles.sectionCard}`}>

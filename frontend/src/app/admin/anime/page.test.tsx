@@ -18,6 +18,7 @@ vi.mock('@/lib/api', () => ({
     ],
     meta: { total: 1, page: 1, per_page: 24, total_pages: 1 },
   }),
+  getRuntimeAuthToken: vi.fn(() => null),
   ApiError: class ApiError extends Error {
     status: number
 
@@ -28,13 +29,19 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    refresh: vi.fn(),
+  }),
+}))
+
 describe('AdminAnimePage', () => {
-  it('renders the updated manual intake copy with the live create CTA text', async () => {
+  it('renders the anime overview shell with the live create CTA text', async () => {
     const markup = renderToStaticMarkup(await AdminAnimePage())
 
     expect(markup).toContain('Anime erstellen')
     expect(markup).toContain('href="/admin/anime/create"')
-    expect(markup).toContain('Titel und Cover reichen fuer den ersten Anime-Eintrag.')
+    expect(markup).toContain('Neue Eintraege anlegen und bestehende Anime verwalten.')
   })
 
   it('renders the anime overview list with edit and public actions', async () => {
@@ -46,12 +53,11 @@ describe('AdminAnimePage', () => {
     expect(markup).toContain('href="/anime/42"')
   })
 
-  it('renders a reserved Jellyfin branch without phase 3 search or preview UI', async () => {
+  it('keeps Jellyfin intake controls out of the anime overview route', async () => {
     const markup = renderToStaticMarkup(await AdminAnimePage())
 
-    expect(markup).toContain('Jellyfin')
     expect(markup).not.toContain('Titel suchen...')
-    expect(markup).toContain('Treffer suchen, dann Vorschau laden')
+    expect(markup).not.toContain('Treffer suchen, dann Vorschau laden')
   })
 
   it('renders an explicit success confirmation when returning from create', async () => {

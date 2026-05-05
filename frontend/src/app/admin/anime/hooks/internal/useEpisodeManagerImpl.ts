@@ -86,9 +86,12 @@ export function useEpisodeManager(
   useEffect(() => {
     if (!selectedID) return
     if (episodes.some((episode) => episode.id === selectedID)) return
-    setSelectedID(null)
-    setEditFormValues({ id: '', number: '', title: '', status: '', streamLink: '' })
-    setEditFormClearFlags({ title: false, streamLink: false })
+    const timeout = window.setTimeout(() => {
+      setSelectedID(null)
+      setEditFormValues({ id: '', number: '', title: '', status: '', streamLink: '' })
+      setEditFormClearFlags({ title: false, streamLink: false })
+    }, 0)
+    return () => window.clearTimeout(timeout)
   }, [episodes, selectedID])
 
   const selectEpisode = (episode: EpisodeListItem) => {
