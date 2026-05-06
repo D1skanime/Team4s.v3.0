@@ -5,7 +5,7 @@
 > Current planning note: Phase 21 is now complete; Phase 22 is the next slice to replace the stale anime edit UI with a create-flow-based editing surface.
 
 - [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
-- [x] **v1.1 Asset Lifecycle Hardening** - Phases 6 through 16 are complete or verified, and Phase 17 is the current next slice for the `/admin/anime/create` UX/UI follow-through. (completed 2026-04-17)
+- [x] **v1.1 Asset Lifecycle Hardening** - Phases 6 through 16 are complete or verified, and Phase 17 is the current next slice for the `/admin/anime/create` UX/UI follow-through. (completed 2026-04-17)
 
 ## Current Direction
 
@@ -24,7 +24,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 14: Create Provider Search Separation And Result Selection** - Split create-page provider search from final form data so Jellyfin and AniSearch each get their own search flow, candidate selection, and controlled data handoff.
 - [x] **Phase 15: Asset-Specific Online Search And Selection For Create-Page Anime Assets** - Let admins search external asset sources per slot, review found images with source visibility, and adopt selected cover/banner/logo/background assets into the create draft without leaving the page.
 - [x] **Phase 16: Hide Already Imported AniSearch Candidates On Create** - Keep AniSearch title search on `/admin/anime/create` focused on still-creatable entries by hiding candidates whose `anisearch:{id}` source already exists locally. (completed and browser-verified 2026-04-16)
-- [x] **Phase 17: Anime Create UX/UI Follow-Through** - Rework `/admin/anime/create` to follow the finalized Phase-14 UX contract: AniSearch as metadata source, Jellyfin as source/folder matcher first, and asset suggestions only after explicit Jellyfin adoption. (completed 2026-04-17)
+- [x] **Phase 17: Anime Create UX/UI Follow-Through** - Rework `/admin/anime/create` to follow the finalized Phase-14 UX contract: AniSearch as metadata source, Jellyfin as source/folder matcher first, and asset suggestions only after explicit Jellyfin adoption. (completed 2026-04-17)
 
 - [x] **Phase 18: Episode Import And Mapping Builder** - Add AniSearch canonical episode import, Jellyfin media scanning, and manual mapping/apply baseline.
 - [x] **Phase 19: Episode Import Operator Workbench** - Make the import workbench readable and practical for real parallel releases and bulk confirmation.
@@ -499,3 +499,20 @@ Plans:
   3. The drawer uses existing Theme/Segment data and does not allow timeline timing edits.
   4. Missing or release-specific Theme asset slots can upload/delete through a release-scoped API writing to `release_theme_assets`.
   5. No new DB tables are added, and `fansub_group_media` is not used as authoritative release Theme media state.
+
+### Phase 33: Release-Theme-Asset size_bytes Persistence Fix
+
+**Goal:** Release-Theme-Asset-Uploads persistieren die tatsaechliche Dateigroesse in media_files, sodass die List-API size_bytes mit dem echten Wert zurueckgibt statt immer 0. Kein DB-Schema-Change, kein Frontend-Touch, kein Backfill.
+**Requirements**: FIX-01, FIX-02, FIX-03
+**Depends on:** Phase 32
+**Plans:** 1 plan
+
+Plans:
+- [ ] `33-01-PLAN.md` - InsertMediaFile-Methode auf MediaRepository hinzufuegen und beide Upload-Handler (fansub-Route + release-Route) nach CreateMediaAsset damit erweitern, mit Rollback bei Fehler.
+
+**Success Criteria** (what must be TRUE):
+  1. Nach einem Release-Theme-Asset-Upload gibt die List-API size_bytes mit dem echten Dateiwert zurueck statt 0.
+  2. InsertMediaFile-Methode existiert auf *MediaRepository mit SQL: INSERT INTO media_files (media_id, variant, path, width, height, size) VALUES ($1, $2, $3, 0, 0, $4).
+  3. Beide Handler (UploadReleaseThemeAsset und UploadReleaseThemeAssetForRelease) rufen InsertMediaFile nach CreateMediaAsset auf.
+  4. Bei InsertMediaFile-Fehler erfolgt Rollback via DeleteMediaAsset + removeFileQuietly.
+  5. Kein Backfill bestehender Assets (nur Testdaten betroffen), kein DB-Schema-Change.
