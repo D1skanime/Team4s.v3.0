@@ -253,6 +253,21 @@ function isJellyfinLocked(card: ReleaseSegmentCard): boolean {
   return card.segments.some((item) => item.source_type === 'jellyfin_theme' || item.playback_source_kind === 'jellyfin')
 }
 
+function releaseAssetRequiredBySegment(segment: AdminAnimeThemeSegment): boolean {
+  return segment.source_type === 'release_asset'
+}
+
+function releaseAssetRequirementLabel(segments: AdminAnimeThemeSegment[]): string {
+  const hasSegmentFallback = segments.some((segment) => {
+    const sourceRef = segment.source_ref?.trim()
+    return Boolean(sourceRef) || segment.playback_source_kind === 'uploaded_asset'
+  })
+
+  return hasSegmentFallback
+    ? 'Segment-Fallback vorhanden - Release-Asset fuer diese Fansubgruppe fehlt'
+    : 'Release-Asset fehlt - Upload durch Fansubgruppe erforderlich'
+}
+
 function releaseThemeSelectionKey(releaseID: number, themeID: number): string {
   return `${releaseID}:${themeID}`
 }
@@ -351,41 +366,52 @@ function mapReleaseSegmentCards(
 ): ReleaseSegmentCard[] {
   const assetByThemeID = new Map(themeAssets.map((asset) => [asset.theme_id, asset]))
 
-    return themes.map((theme) => {
-      const asset = assetByThemeID.get(theme.id)
-      const segments = segmentsByThemeID.get(theme.id) ?? []
-      if (asset) {
-        return {
-          theme_id: theme.id,
-          theme_type_name: theme.theme_type_name,
-          theme_title: theme.title,
-          status: 'release',
-          segments,
-          media_id: asset.media_id,
-          public_url: asset.public_url,
-          source_label: 'Release-Asset vorhanden',
-        }
+  return themes.map((theme) => {
+    const asset = assetByThemeID.get(theme.id)
+    const segments = segmentsByThemeID.get(theme.id) ?? []
+    if (asset) {
+      return {
+        theme_id: theme.id,
+        theme_type_name: theme.theme_type_name,
+        theme_title: theme.title,
+        status: 'release',
+        segments,
+        media_id: asset.media_id,
+        public_url: asset.public_url,
+        source_label: 'Release-Asset vorhanden',
       }
+    }
 
-      if (segments.length > 0) {
-        return {
-          theme_id: theme.id,
-          theme_type_name: theme.theme_type_name,
-          theme_title: theme.title,
-          status: 'global',
-          segments,
-          source_label: `${segments.length} Segment${segments.length === 1 ? '' : 'e'} global/admin gesetzt`,
-        }
-      }
-
-    return {
+    if (segments.some(releaseAssetRequiredBySegment)) {
+      return {
         theme_id: theme.id,
         theme_type_name: theme.theme_type_name,
         theme_title: theme.title,
         status: 'missing',
         segments,
-        source_label: 'Noch kein Segment fuer diese Theme-Definition',
+        source_label: releaseAssetRequirementLabel(segments),
       }
+    }
+
+    if (segments.length > 0) {
+      return {
+        theme_id: theme.id,
+        theme_type_name: theme.theme_type_name,
+        theme_title: theme.title,
+        status: 'global',
+        segments,
+        source_label: `${segments.length} Segment${segments.length === 1 ? '' : 'e'} global/admin gesetzt`,
+      }
+    }
+
+    return {
+      theme_id: theme.id,
+      theme_type_name: theme.theme_type_name,
+      theme_title: theme.title,
+      status: 'missing',
+      segments,
+      source_label: 'Noch kein Segment fuer diese Theme-Definition',
+    }
   })
 }
 
