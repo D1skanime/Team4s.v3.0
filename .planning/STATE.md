@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Phase 32 executed - human UAT pending
-stopped_at: Phase 33 removed; returning to Phase 32 cleanup and human UAT
-last_updated: "2026-05-02T19:42:31.047Z"
+stopped_at: Phase 33 context gathered
+last_updated: "2026-05-06T13:34:43.721Z"
 last_activity: 2026-04-30
 progress:
-  total_phases: 27
+  total_phases: 29
   completed_phases: 22
-  total_plans: 91
-  completed_plans: 83
+  total_plans: 93
+  completed_plans: 85
 ---
 
 # Project State
@@ -149,6 +149,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 33 added: Release-Theme-Asset size_bytes Persistence Fix — beim Upload die tatsächliche Dateigröße persistieren und in der Asset-Listen-Antwort korrekt zurückgeben statt 0.
 - Phase 30 added: Fansub-Releases API-Endpunkte — Handler und API-Routen für die fansub_releases-Tabelle, die bereits Repository-Code besitzt aber noch keine HTTP-Endpunkte hat.
 - Phase 32 added: Fansub Release Side Drawer aus Phase 31: Edit-Drawer fuer Release-Theme-Assets mit vorhandenen DB-Tabellen und APIs, ohne neue Datenmodelle; DB/UI-Differenzen vor Umsetzung diskutieren
 - Phase 09 added: Controlled AniSearch ID enrichment before create with fill-only Jellysync follow-up.
@@ -250,7 +251,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-02T19:42:31.037Z
-Stopped at: Phase 33 removed; returning to Phase 32 cleanup and human UAT
+Last session: 2026-05-06T13:34:43.690Z
+Stopped at: Phase 33 context gathered
 Last activity: 2026-04-30
-Resume file: .planning/phases/32-fansub-release-side-drawer-aus-phase-31-edit-drawer-fuer-release-theme-assets-mit-vorhandenen-db-tabellen-und-apis-ohne-neue-datenmodelle-db-ui-differenzen-vor-umsetzung-diskutieren/32-VERIFICATION.md
+Resume file: .planning/phases/33-release-theme-asset-size-bytes-persistence-fix/33-CONTEXT.md
