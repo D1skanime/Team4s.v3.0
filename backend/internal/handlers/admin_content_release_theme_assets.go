@@ -207,6 +207,19 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 		return
 	}
 
+	if err := h.mediaRepo.InsertMediaFile(
+		c.Request.Context(),
+		mediaAsset.ID,
+		"original",
+		mediaAsset.StoragePath,
+		int64(len(data)),
+	); err != nil {
+		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), mediaAsset.ID)
+		_ = removeFileQuietly(mediaAsset.StoragePath)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Dateigroesse konnte nicht gespeichert werden.")
+		return
+	}
+
 	created, err := h.themeRepo.CreateReleaseThemeAsset(c.Request.Context(), models.AdminReleaseThemeAssetCreateInput{
 		ReleaseID: *releaseID,
 		ThemeID:   themeID,
@@ -306,6 +319,19 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 			return
 		}
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Asset konnte nicht gespeichert werden.")
+		return
+	}
+
+	if err := h.mediaRepo.InsertMediaFile(
+		c.Request.Context(),
+		mediaAsset.ID,
+		"original",
+		mediaAsset.StoragePath,
+		int64(len(data)),
+	); err != nil {
+		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), mediaAsset.ID)
+		_ = removeFileQuietly(mediaAsset.StoragePath)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Dateigroesse konnte nicht gespeichert werden.")
 		return
 	}
 
