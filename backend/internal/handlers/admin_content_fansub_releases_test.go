@@ -208,19 +208,21 @@ func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	releaseID := int64(42)
+	durationSeconds := int32(1383)
 	stub := &fansubReleaseThemeRepoStub{
 		listFansubAnimeReleases: func(_ context.Context, fansubGroupID, animeID int64) ([]models.AdminFansubReleaseSummary, error) {
 			return []models.AdminFansubReleaseSummary{
 				{
-					ReleaseID:      releaseID,
-					AnimeID:        animeID,
-					AnimeTitle:     "Naruto",
-					FansubGroupID:  fansubGroupID,
-					FansubName:     "Dattebayo",
-					EpisodeID:      1,
-					EpisodeNumber:  "1",
-					VersionCount:   2,
-					HasThemeAssets: true,
+					ReleaseID:       releaseID,
+					AnimeID:         animeID,
+					AnimeTitle:      "Naruto",
+					FansubGroupID:   fansubGroupID,
+					FansubName:      "Dattebayo",
+					EpisodeID:       1,
+					EpisodeNumber:   "1",
+					VersionCount:    2,
+					HasThemeAssets:  true,
+					DurationSeconds: &durationSeconds,
 				},
 			}, nil
 		},
@@ -255,6 +257,9 @@ func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 	}
 	if resp.Data[0].ReleaseID != releaseID {
 		t.Fatalf("expected release id %d, got %d", releaseID, resp.Data[0].ReleaseID)
+	}
+	if resp.Data[0].DurationSeconds == nil || *resp.Data[0].DurationSeconds != durationSeconds {
+		t.Fatalf("expected duration_seconds %d, got %v", durationSeconds, resp.Data[0].DurationSeconds)
 	}
 }
 

@@ -80,10 +80,27 @@ func TestAdminContentFansubReleases_ReleaseSummaryContainsRequiredFields(t *test
 		"episode_id",
 		"version_count",
 		"has_theme_assets",
+		"duration_seconds",
 	}
 	for _, field := range requiredFields {
 		if !strings.Contains(normalized, field) {
 			t.Fatalf("expected DTO json field %q to exist in admin_release_theme_assets.go", field)
+		}
+	}
+}
+
+func TestAdminContentFansubReleases_ReleaseSummarySelectsVariantDuration(t *testing.T) {
+	content := readFansubReleasesSource(t, "admin_content_fansub_releases.go")
+	normalized := strings.ToLower(content)
+
+	requiredPatterns := []string{
+		"as duration_seconds",
+		"release_variants",
+		"rv.duration_seconds",
+	}
+	for _, pattern := range requiredPatterns {
+		if !strings.Contains(normalized, pattern) {
+			t.Fatalf("expected repository query to include %q", pattern)
 		}
 	}
 }

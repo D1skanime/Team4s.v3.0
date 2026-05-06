@@ -42,6 +42,16 @@ func (r *AdminContentRepository) ListFansubAnimeReleases(
 				FROM release_theme_assets rta
 				WHERE rta.release_id = fr.id
 			)                                           AS has_theme_assets,
+			(
+				SELECT rv.duration_seconds
+				FROM release_versions rev
+				JOIN release_version_groups rvg_duration ON rvg_duration.release_version_id = rev.id
+				JOIN release_variants rv ON rv.release_version_id = rev.id
+				WHERE rev.release_id = fr.id
+				  AND rvg_duration.fansub_group_id = $1
+				ORDER BY rv.duration_seconds IS NOT NULL DESC, rev.id ASC, rv.id ASC
+				LIMIT 1
+			)                                           AS duration_seconds,
 			fr.created_at
 		FROM fansub_releases fr
 		JOIN episodes ep ON ep.id = fr.episode_id
@@ -77,6 +87,7 @@ func (r *AdminContentRepository) ListFansubAnimeReleases(
 			&item.Source,
 			&item.VersionCount,
 			&item.HasThemeAssets,
+			&item.DurationSeconds,
 			&item.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("scan fansub anime release fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
@@ -129,6 +140,16 @@ func (r *AdminContentRepository) GetCanonicalFansubAnimeReleaseSummary(
 				FROM release_theme_assets rta
 				WHERE rta.release_id = fr.id
 			)                                           AS has_theme_assets,
+			(
+				SELECT rv.duration_seconds
+				FROM release_versions rev
+				JOIN release_version_groups rvg_duration ON rvg_duration.release_version_id = rev.id
+				JOIN release_variants rv ON rv.release_version_id = rev.id
+				WHERE rev.release_id = fr.id
+				  AND rvg_duration.fansub_group_id = $1
+				ORDER BY rv.duration_seconds IS NOT NULL DESC, rev.id ASC, rv.id ASC
+				LIMIT 1
+			)                                           AS duration_seconds,
 			fr.created_at
 		FROM fansub_releases fr
 		JOIN episodes ep ON ep.id = fr.episode_id
@@ -156,6 +177,7 @@ func (r *AdminContentRepository) GetCanonicalFansubAnimeReleaseSummary(
 		&item.Source,
 		&item.VersionCount,
 		&item.HasThemeAssets,
+		&item.DurationSeconds,
 		&item.CreatedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -202,6 +224,14 @@ func (r *AdminContentRepository) GetAdminReleaseByID(
 				FROM release_theme_assets rta
 				WHERE rta.release_id = fr.id
 			)                                           AS has_theme_assets,
+			(
+				SELECT rv.duration_seconds
+				FROM release_versions rev
+				JOIN release_variants rv ON rv.release_version_id = rev.id
+				WHERE rev.release_id = fr.id
+				ORDER BY rv.duration_seconds IS NOT NULL DESC, rev.id ASC, rv.id ASC
+				LIMIT 1
+			)                                           AS duration_seconds,
 			fr.created_at
 		FROM fansub_releases fr
 		JOIN episodes ep ON ep.id = fr.episode_id
@@ -223,6 +253,7 @@ func (r *AdminContentRepository) GetAdminReleaseByID(
 		&item.Source,
 		&item.VersionCount,
 		&item.HasThemeAssets,
+		&item.DurationSeconds,
 		&item.CreatedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {

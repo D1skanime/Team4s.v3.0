@@ -170,6 +170,24 @@ function parseClockSeconds(raw?: string | null): number | null {
   return parts.reduce((total, part) => total * 60 + part, 0)
 }
 
+function knownPositiveSeconds(value?: number | null): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null
+}
+
+function releaseTimelineMaxSeconds(release: AdminFansubRelease, cards: ReleaseSegmentCard[]): number {
+  const knownDurations = [
+    knownPositiveSeconds(release.duration_seconds),
+    ...cards.flatMap((card) =>
+      card.segments.flatMap((segment) => [
+        knownPositiveSeconds(segment.playback_duration_seconds),
+        parseClockSeconds(segment.end_time),
+      ]),
+    ),
+  ].filter((value): value is number => value != null && value > 0)
+
+  return Math.max(1, ...knownDurations)
+}
+
 function compactThemeKind(name: string): 'op' | 'ed' | 'insert' | 'other' {
   const normalized = name.toLowerCase()
   if (normalized.includes('op') || normalized.includes('opening')) return 'op'
@@ -1359,10 +1377,7 @@ export default function AdminFansubEditPage() {
                         const cards = releaseSegmentCards[release.release_id] ?? []
                         const cardsLoading = releaseSegmentLoading[release.release_id]
                         const cardsError = releaseSegmentErrors[release.release_id]
-                        const timelineMaxSeconds = Math.max(
-                          1529,
-                          ...cards.flatMap((card) => card.segments.map((segment) => parseClockSeconds(segment.end_time) ?? 0)),
-                        )
+                        const timelineMaxSeconds = releaseTimelineMaxSeconds(release, cards)
                         const timelineLanes = [
                           { key: 'insert' as const, label: 'EINFUEGER / PV', cards: cards.filter((card) => timelineLaneFor(card.theme_type_name) === 'insert') },
                           { key: 'opEd' as const, label: 'OP / ED', cards: cards.filter((card) => timelineLaneFor(card.theme_type_name) === 'opEd') },

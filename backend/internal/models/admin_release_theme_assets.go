@@ -34,18 +34,19 @@ type AdminReleaseThemeAssetCreateInput struct {
 // Episoden-Anker sichtbar, sodass UI-Aufrufer keine Release-ID mehr indirekt aus
 // Theme-Asset-Nebenantworten erraten muessen.
 type AdminFansubReleaseSummary struct {
-	ReleaseID      int64     `json:"release_id"`
-	AnimeID        int64     `json:"anime_id"`
-	AnimeTitle     string    `json:"anime_title"`
-	FansubGroupID  int64     `json:"fansub_group_id"`
-	FansubName     string    `json:"fansub_name"`
-	EpisodeID      int64     `json:"episode_id"`
-	EpisodeNumber  string    `json:"episode_number"`
-	EpisodeTitle   *string   `json:"episode_title,omitempty"`
-	Source         *string   `json:"source,omitempty"`
-	VersionCount   int       `json:"version_count"`
-	HasThemeAssets bool      `json:"has_theme_assets"`
-	CreatedAt      time.Time `json:"created_at"`
+	ReleaseID       int64     `json:"release_id"`
+	AnimeID         int64     `json:"anime_id"`
+	AnimeTitle      string    `json:"anime_title"`
+	FansubGroupID   int64     `json:"fansub_group_id"`
+	FansubName      string    `json:"fansub_name"`
+	EpisodeID       int64     `json:"episode_id"`
+	EpisodeNumber   string    `json:"episode_number"`
+	EpisodeTitle    *string   `json:"episode_title,omitempty"`
+	Source          *string   `json:"source,omitempty"`
+	VersionCount    int       `json:"version_count"`
+	HasThemeAssets  bool      `json:"has_theme_assets"`
+	DurationSeconds *int32    `json:"duration_seconds,omitempty"`
+	CreatedAt       time.Time `json:"created_at"`
 }
 
 // CanonicalFansubAnimeReleaseResponse beschreibt die Antwort fuer den kanonischen
