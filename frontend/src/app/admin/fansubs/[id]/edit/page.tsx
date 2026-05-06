@@ -415,6 +415,28 @@ function mapReleaseSegmentCards(
   })
 }
 
+function mergeReleaseThemeAssetCard(cards: ReleaseSegmentCard[], asset: AdminReleaseThemeAsset): ReleaseSegmentCard[] {
+  const nextCard = (previous?: ReleaseSegmentCard): ReleaseSegmentCard => ({
+    theme_id: asset.theme_id,
+    theme_type_name: asset.theme_type_name,
+    theme_title: asset.theme_title,
+    status: 'release',
+    segments: previous?.segments ?? [],
+    media_id: asset.media_id,
+    public_url: asset.public_url,
+    source_label: 'Release-Asset vorhanden',
+  })
+
+  let replaced = false
+  const nextCards = cards.map((card) => {
+    if (card.theme_id !== asset.theme_id) return card
+    replaced = true
+    return nextCard(card)
+  })
+
+  return replaced ? nextCards : [...nextCards, nextCard()]
+}
+
 async function syncFansubLinks(
   fansubID: number,
   initialLinks: CommunityLinkDraft[],
@@ -958,7 +980,7 @@ export default function AdminFansubEditPage() {
     setDrawerError(null)
     setDrawerUploadProgress(0)
     try {
-      await uploadAdminReleaseThemeAssetForRelease({
+      const uploadResponse = await uploadAdminReleaseThemeAssetForRelease({
         releaseID: release.release_id,
         themeID,
         file,
@@ -967,7 +989,19 @@ export default function AdminFansubEditPage() {
           if (isCurrentSelection()) setDrawerUploadProgress(progress)
         },
       })
-      await loadReleaseSegmentCards(release, true)
+      setReleaseSegmentErrors((current) => ({ ...current, [release.release_id]: null }))
+      setReleaseSegmentCards((current) => {
+        const existingCards = current[release.release_id]
+        if (!existingCards) return current
+        return {
+          ...current,
+          [release.release_id]: mergeReleaseThemeAssetCard(existingCards, uploadResponse.data),
+        }
+      })
+      const refreshedCards = await loadReleaseSegmentCards(release, true)
+      if (!refreshedCards) {
+        setReleaseSegmentErrors((current) => ({ ...current, [release.release_id]: null }))
+      }
       setToast('Theme-Asset gespeichert.')
       if (isCurrentSelection()) {
         setDrawerUploadProgress(null)
