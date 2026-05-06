@@ -145,6 +145,26 @@ func (r *MediaRepository) DeleteMediaAsset(ctx context.Context, mediaID int64) e
 	return nil
 }
 
+// InsertMediaFile legt einen media_files-Eintrag fuer ein per CreateMediaAsset
+// erstelltes Asset an. width und height werden als 0 gesetzt (fuer Video-Assets).
+// Wird verwendet wenn kein MediaUploadRepository verfuegbar ist.
+func (r *MediaRepository) InsertMediaFile(
+	ctx context.Context,
+	mediaID int64,
+	variant string,
+	path string,
+	size int64,
+) error {
+	_, err := r.db.Exec(ctx, `
+		INSERT INTO media_files (media_id, variant, path, width, height, size)
+		VALUES ($1, $2, $3, 0, 0, $4)
+	`, mediaID, variant, path, size)
+	if err != nil {
+		return fmt.Errorf("insert media file for asset %d: %w", mediaID, err)
+	}
+	return nil
+}
+
 func (r *MediaRepository) IsMediaAssetReferenced(ctx context.Context, mediaID int64) (bool, error) {
 	var count int64
 	if err := r.db.QueryRow(ctx, `
