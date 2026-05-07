@@ -516,3 +516,69 @@ Plans:
   3. Beide Handler (UploadReleaseThemeAsset und UploadReleaseThemeAssetForRelease) rufen InsertMediaFile nach CreateMediaAsset auf.
   4. Bei InsertMediaFile-Fehler erfolgt Rollback via DeleteMediaAsset + removeFileQuietly.
   5. Kein Backfill bestehender Assets (nur Testdaten betroffen), kein DB-Schema-Change.
+
+### Phase 34: Release-Version Media — Schema Foundation
+
+**Goal:** Datenbankgrundlage fuer das Release-Version-Media-Upload-System legen: neue release_version_media-Tabelle, status-Felder in media_assets und media_files, alle Constraints und Indexe. Kein Backend, kein Frontend in dieser Phase.
+**Requirements**: RVM-SCHEMA-01
+**Depends on:** Phase 33
+**Plans:** 1 plan
+
+Plans:
+- [ ] `34-01-PLAN.md` — Migration 0059: CREATE TABLE release_version_media + status-Spalten in media_assets/media_files + Constraints + Indexe
+
+**Success Criteria** (what must be TRUE):
+  1. Tabelle release_version_media existiert mit: id, release_version_id (FK release_versions), media_asset_id (FK media_assets), category (CHECK IN screenshot,typesetting_karaoke,fun_outtake,other), caption, sort_order, is_preview_candidate, uploaded_by_user_id, created_at, updated_at, deleted_at, deleted_by_user_id.
+  2. media_assets hat Spalte status (VARCHAR NOT NULL DEFAULT ready).
+  3. media_files hat Spalte status (VARCHAR NOT NULL DEFAULT ready).
+  4. Index auf release_version_media(release_version_id), (media_asset_id), (category), (deleted_at) existieren.
+  5. Alle bestehenden media_assets- und media_files-Eintraege haben status=ready nach Migration.
+  6. Down-Migration setzt alle Aenderungen sauber zurueck.
+
+### Phase 35: Release-Version Media — Backend Upload Service und API
+
+**Goal:** Go-Backend-Service fuer Release-Version-Media-Uploads implementieren: Validierung, Staging, libvips-basierte Thumbnail-Erzeugung (bimg/govips), GIF-Sonderfall, DB-Transaktion, Rollback. Alle 5 Admin-API-Endpunkte (Upload, List, Patch, Delete, Reorder). Vorerst Admin-only-Berechtigungspruefung.
+**Requirements**: RVM-BACKEND-01
+**Depends on:** Phase 34
+**Plans:** 0 plans
+
+**Success Criteria** (what must be TRUE):
+  1. POST /admin/release-versions/{id}/media akzeptiert multipart/form-data mit category + files[]. Liefert pro Datei {client_file_name, status, media_asset_id, release_version_media_id, thumbnail_url} oder {status:failed, error_code}.
+  2. Jede Datei wird isoliert verarbeitet — Fehler bei Datei A beeinflusst Datei B nicht.
+  3. Animated-GIF-Original bleibt animiert gespeichert; Thumbnail ist statisches Frame-1-Bild via bimg/govips.
+  4. Bei Fehler nach Staging: DB rollback + Staging-Dateien werden geloescht, kein status=ready entsteht.
+  5. GET /admin/release-versions/{id}/media, PATCH, DELETE (soft), POST reorder existieren und antworten korrekt.
+  6. Kategorie-Aenderung via PATCH ist nicht erlaubt (HTTP 422 CATEGORY_CHANGE_NOT_ALLOWED).
+  7. is_preview_candidate=true wird bei category=fun_outtake oder other abgelehnt (HTTP 422 PREVIEW_NOT_ALLOWED_FOR_CATEGORY).
+  8. Maximal ein aktives Vorschaubild pro release_version_id (neues Preview deaktiviert bestehendes transaktionssicher).
+
+### Phase 36: Release-Version Media — Frontend Upload UI und Galerie
+
+**Goal:** Media/Assets Tab im Release-Version-Editor (/admin/episode-versions/[versionId]/edit/) mit Kategorie-zuerst-Upload-Flow, Drag-and-Drop, Per-File-Progress, Retry und editierbarer Galerie (Caption, Sortierung, Preview-Flag, Delete).
+**Requirements**: RVM-FRONTEND-01
+**Depends on:** Phase 35
+**Plans:** 0 plans
+
+**Success Criteria** (what must be TRUE):
+  1. /admin/episode-versions/[versionId]/edit/ zeigt einen Media/Assets Tab.
+  2. Upload-Flow: Kategorie-Dropdown zuerst, dann Datei-Auswahl/Drag-and-Drop, dann Upload-Button.
+  3. Jede Datei zeigt individuellen Fortschritt, Status (ready/failed) und Retry-Button bei Fehler.
+  4. Preview-Schalter ist nur bei screenshot und typesetting_karaoke sichtbar/aktiv.
+  5. Galerie zeigt hochgeladene Bilder mit Thumbnail; Klick zeigt Original.
+  6. Caption, Sortierung und Preview-Flag sind inline editierbar.
+  7. Delete-Aktion entfernt Asset aus der Galerie-Ansicht (soft delete im Backend).
+  8. Keine Business-Regeln ausschliesslich im Frontend erzwungen — Backend-Fehlercodes werden verstaendlich angezeigt.
+
+### Phase 37: Release-Version Media — Cleanup Job und Tests
+
+**Goal:** Periodischer Cleanup-Job fuer verwaiste Staging-Dateien, stale-processing-Assets, fehlende Dateien und Soft-Delete-physisch-Cleanup. Backend- und Frontend-Tests fuer den gesamten Upload-Flow inklusive GIF-Sonderfall und parallele Uploads.
+**Requirements**: RVM-CLEANUP-01
+**Depends on:** Phase 36
+**Plans:** 0 plans
+
+**Success Criteria** (what must be TRUE):
+  1. Cleanup-Job existiert und erkennt: (a) media_assets mit status=processing aelter als N Minuten, (b) Staging-Dateien ohne DB-Eintrag, (c) media_files-Eintraege ohne physische Datei.
+  2. Job setzt betroffene Assets auf status=failed und loescht Staging-Dateien physisch.
+  3. Soft-deleted Assets werden nach definierter Retention physisch geloescht — nur wenn keine andere Relation dasselbe Asset referenziert.
+  4. Backend-Tests decken ab: gueltiger JPEG/PNG/WebP/GIF Upload, GIF-Original animiert, GIF-Thumbnail statisch, SVG abgelehnt, falscher MIME-Type abgelehnt, zu grosse Datei abgelehnt, Preview-Regel verletzt, Teilfehler bei Mehrfach-Upload.
+  5. Frontend-Tests: Kategorie-Pflicht, Per-File-Retry, Preview-Schalter-Sichtbarkeit, Galerie-Update nach Upload.
