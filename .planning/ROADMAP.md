@@ -557,7 +557,13 @@ Plans:
 **Goal:** Media/Assets Tab im Release-Version-Editor (/admin/episode-versions/[versionId]/edit/) mit Kategorie-zuerst-Upload-Flow, Drag-and-Drop, Per-File-Progress, Retry und editierbarer Galerie (Caption, Sortierung, Preview-Flag, Delete).
 **Requirements**: RVM-FRONTEND-01
 **Depends on:** Phase 35
-**Plans:** 0 plans
+**Plans:** 0/4 plans complete
+
+Plans:
+- [ ] `36-01-PLAN.md` - Media/Assets Tab und wiederverwendbare Frontend-Foundations im Episode-Version-Editor anlegen.
+- [ ] `36-02-PLAN.md` - Kategorie-zuerst-Uploadflow mit Mehrfach-Upload, Per-File-Status und Retry in die neue Media-Sektion bringen.
+- [ ] `36-03-PLAN.md` - Galerie, Inline-Edit fuer Caption/Preview/Sortierung und Soft-Delete-UI fuer Release-Version-Media aufbauen.
+- [ ] `36-04-PLAN.md` - Frontend-Regressionen, Editor-Verifikation und handoff-sichere UI-Abschlusspruefung fuer den Release-Version-Media-Flow abschliessen.
 
 **Success Criteria** (what must be TRUE):
   1. /admin/episode-versions/[versionId]/edit/ zeigt einen Media/Assets Tab.
@@ -574,7 +580,13 @@ Plans:
 **Goal:** Periodischer Cleanup-Job fuer verwaiste Staging-Dateien, stale-processing-Assets, fehlende Dateien und Soft-Delete-physisch-Cleanup. Backend- und Frontend-Tests fuer den gesamten Upload-Flow inklusive GIF-Sonderfall und parallele Uploads.
 **Requirements**: RVM-CLEANUP-01
 **Depends on:** Phase 36
-**Plans:** 0 plans
+**Plans:** 0/4 plans complete
+
+Plans:
+- [ ] `37-01-PLAN.md` - Periodischen Cleanup-Worker fuer stale processing assets, orphan staging files, missing files und soft-deleted release-version media aufbauen.
+- [ ] `37-02-PLAN.md` - Backend-Regressionstests fuer Release-Version-Media-Upload, GIF-Sonderfall, Teilerfolge und Preview-Regeln vervollstaendigen.
+- [ ] `37-03-PLAN.md` - Frontend-Regressionstests fuer Kategorie-zuerst-Upload, Retry, Preview-Sichtbarkeit und Galerie-Refresh aufbauen.
+- [ ] `37-04-PLAN.md` - Integrations-, Parallelitaets- und Cleanup-Verifikation zusammenziehen und als handoff-sichere Abschlusspruefung dokumentieren.
 
 **Success Criteria** (what must be TRUE):
   1. Cleanup-Job existiert und erkennt: (a) media_assets mit status=processing aelter als N Minuten, (b) Staging-Dateien ohne DB-Eintrag, (c) media_files-Eintraege ohne physische Datei.

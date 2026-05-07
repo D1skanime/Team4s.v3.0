@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Completed 34-01-PLAN.md
-last_updated: "2026-05-07T14:17:38.132Z"
+stopped_at: Discuss-phase 35 complete — 35-CONTEXT.md written
+last_updated: "2026-05-07T15:00:00.000Z"
 last_activity: 2026-05-07
 progress:
-  total_phases: 33
+  total_phases: 37
   completed_phases: 24
   total_plans: 95
   completed_plans: 87
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 34 — release-version-media-schema-foundation
+**Current focus:** Phase 35 — release-version-media-backend-upload-service-and-api
 
 ## Current Position
 
 Phase: 35
-Plan: Not started
+Plan: Not started (discuss-phase complete, ready for plan-phase)
 
 ## Accumulated Context
 
@@ -143,6 +143,9 @@ Recent durable decisions:
 - [Phase 31]: Fansub-Edit wird zu tab-basiertem Workspace mit MainTab-State; FansubReleasesTab als Sub-Komponente extrahiert; expandedReleaseIds in page.tsx als Prop weitergeleitet
 - [Phase 34-release-version-media-schema-foundation]: ON DELETE RESTRICT for release_version_media.media_asset_id prevents deleting referenced media_assets; user FK columns use ON DELETE SET NULL
 - [Phase 34-release-version-media-schema-foundation]: Max-one-preview per release_version enforced transactionally in Phase 35 backend, not via DB UNIQUE index (soft-delete incompatibility)
+- [Phase 35-release-version-media-backend-upload-service-and-api]: govips (github.com/davidbyttow/govips/v2) chosen over bimg (inactive since 2021); Dockerfile needs libvips-dev
+- [Phase 35-release-version-media-backend-upload-service-and-api]: No physical staging — direct write to final path with status='processing'→'ready' as upload gate
+- [Phase 35-release-version-media-backend-upload-service-and-api]: Route base /admin/release-versions/:versionId/media; new handler file on existing AdminContentHandler
 
 ### Pending Todos
 
