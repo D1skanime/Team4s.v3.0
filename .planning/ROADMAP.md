@@ -505,7 +505,7 @@ Plans:
 **Goal:** Release-Theme-Asset-Uploads persistieren die tatsaechliche Dateigroesse in media_files, sodass die List-API size_bytes mit dem echten Wert zurueckgibt statt immer 0. Kein DB-Schema-Change, kein Frontend-Touch, kein Backfill.
 **Requirements**: FIX-01, FIX-02, FIX-03
 **Depends on:** Phase 32
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] `33-01-PLAN.md` - InsertMediaFile-Methode auf MediaRepository hinzufuegen und beide Upload-Handler (fansub-Route + release-Route) nach CreateMediaAsset damit erweitern, mit Rollback bei Fehler.
