@@ -3,44 +3,39 @@
 ## Project
 - **Name:** Team4s.v3.0
 - **Current workflow:** `v1.1 asset lifecycle hardening`
-- **Current slice:** `Phase 32 fansub release side drawer follow-through plus fansub-domain guardrails`
+- **Current slice:** `Phase 32 fansub release timeline/upload follow-through`
 
 ## Current State
 
 ### What Finished In This Pass
-- Phase 30 explicit fansub-release API routes and canonical release-context loading are implemented and documented.
-- Phase 31 turned fansub edit into a tabbed workspace with `Anime & Releases` as the release-context entry point.
-- Phase 32 added the release side drawer and release-theme-asset upload/delete wiring on top of existing release-native seams.
-- Live browser/UAT was run on a real fansub context (`/admin/fansubs/88/edit`) instead of the stale `/admin/fansubs/7/edit` assumption.
-- Release-theme-asset upload, reload persistence, delete, and physical file cleanup were verified on two real release/theme cases.
-- New release-theme uploads now land under `media/release-theme-assets/release_<releaseId>/theme_<themeId>/...` instead of flat `media/`.
-- Backend guardrails now block release-specific uploads when a global/admin theme segment already covers that episode range.
-- `docs/architecture/db-schema-fansub-domain.md` now exists as a repo-local domain reference for Codex/GSD agents.
-- `AGENTS.md` was consolidated so the default workflow, stop conditions, domain rules, migration rules, UI rules, screenshot-to-UI rules, diff discipline, validation, and output requirements are all explicit in one place.
+- Phase 32 fansub release timeline/upload follow-through (2026-05-06): duration, Fehlt-status, upload-state.
+- Phase 33 (2026-05-07): `InsertMediaFile` on `MediaRepository` — release-theme uploads now persist `size_bytes` correctly in `media_files`. UAT confirmed: media_id 90 = 10906996 bytes.
+- Debugger fix (2026-05-06): PNG logo upload now preserves source format via `imageExtFromMime()` in `media_upload_image.go` — no more silent JPG downgrade.
+- Quick task 260507-de2 (2026-05-07): Theme types renamed OP→OP Kara, ED→ED Kara, Insert→Insert Kara. DB migration 0058 + live UPDATE + frontend labels in `useReleaseSegments.ts`.
+- Docker rebuilt and verified for all changes.
 
 ### What Works
 - Phase 20 remains the verified release-native import baseline.
 - Phase 21 fansub chip/collaboration wiring remains part of the baseline.
-- Phase 28 runtime playback/fallback remains live-verified.
-- Phase 29 canonical fansub-group plus generic-link work is implemented in the dirty worktree.
-- Phase 30 automated verification artifacts are present; the canonical release context is treated as explicit API truth instead of theme-asset side effects.
-- The local backend health endpoint returned `200` on 2026-05-05, and `/admin/fansubs/88/edit` served the verified real UAT path.
-- Release 41 and Release 42 both completed a real theme-asset round-trip: upload, persist after reopen, delete, and physical file removal.
-- Release-theme delete now removes both the DB/link state and the underlying file from `media/`.
-- The upload path is now explicitly user-triggered via `Upload starten` instead of relying only on file-input change behavior.
+- Phase 28 runtime playback/fallback behavior remains live-verified.
+- Phase 30 explicit release endpoints are the release context source instead of hidden theme-asset side effects.
+- Phase 31 `Anime & Releases` is the main fansub release workspace.
+- Phase 32 release drawer can upload/delete release-theme assets through existing `release_theme_assets` APIs.
+- Phase 33 release-theme uploads now write `media_files` (variant='original') so `size_bytes` is non-zero in list responses.
+- PNG logo uploads preserve transparency (no JPEG downgrade).
+- Theme type names in DB and frontend: OP Kara, ED Kara, Insert Kara, Outro.
 
 ### What Is Open
-- The broader release-drawer state/race audit is not fully closed yet; detail/theme drawer switching still deserves one more intentional pass.
-- Migrations `0055` to `0057` exist as untracked cleanup-boundary work and need chain/risk review before further migration work.
-- Transitional fansub fields and the legacy `release_version_groups.fansubgroup_id` cleanup boundary still need follow-through verification.
-- The worktree is intentionally dirty across product code, planning files, and repo-local GSD/Codex tooling.
-- Cross-AI review is still unavailable locally.
+- `npm run lint` passes but still reports 26 unrelated pre-existing warnings.
+- `main` is ahead of `origin/main` by 28 commits — push pending.
+- Many scratch/cache files remain untracked; not intended product changes.
+- Cross-AI review still unavailable locally.
 
 ## Active Planning Context
 - Milestone: `v1.1 Asset Lifecycle Hardening`
 - Active roadmap phase: `32-fansub-release-side-drawer`
-- Current plan position: Phase 32 execution plus real release-theme-asset verification is present in the worktree; cleanup-boundary audit is now the next main open block
-- Immediate next step: audit migrations `0055` to `0057` and the `fansubgroup_id` cleanup boundary before adding more schema work
+- Current plan position: Phase 32 release-native fansub timeline/upload path is implemented, committed, deployed locally, and browser-verified on real Release 41 data.
+- Immediate next step: smoke-test delete/re-upload of one Release 41 theme asset, then decide whether to fix release-theme asset `size_bytes` metadata.
 
 ## Key Decisions In Force
 - AniSearch owns canonical episode identity; Jellyfin provides media evidence.
@@ -51,3 +46,5 @@
 - Anime and episodes stay neutral; release and group media must stay on their existing release/group seams.
 - The release side drawer must reuse existing `release_theme_assets` and release-native APIs instead of inventing new media tables or hidden release discovery.
 - Global/admin theme segments that cover an episode range must lock out conflicting release-specific uploads for the covered releases.
+- In the fansub UI, `release_asset` means release-specific/upload-required until a concrete release-scoped asset exists.
+- Fansub timelines use `release_variants.duration_seconds` as the first duration source.

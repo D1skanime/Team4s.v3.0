@@ -46,6 +46,41 @@
 ### Next Step
 - Open migrations `0055` to `0057`, compare them against `git status -sb`, and document the cleanup-chain risk before more schema work
 
+## 2026-05-07
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: Phase 33 size_bytes-Persistierung, PNG-Transparenz-Bugfix, Kara-Umbenennung, Day-Closeout + Push
+
+### Workstreams Touched
+- Debugger-Fix: PNG-Logo-Uploads wurden still in JPG konvertiert — behoben via `imageExtFromMime()` in `media_upload_image.go`
+- Phase 33: `InsertMediaFile` auf `MediaRepository` implementiert; beide Release-Theme-Upload-Handler schreiben jetzt `media_files (variant='original')` → `size_bytes` ist nicht mehr 0
+- Quick Task 260507-de2: Theme-Types systemweit umbenannt: OP→OP Kara, ED→ED Kara, Insert→Insert Kara (DB-Migration 0058, Live-UPDATE, Frontend-Labels)
+- Day-Closeout + Git-Push: alle Handoff-Dateien aktualisiert, 28 Commits nach `origin/main` gepusht
+
+### Goals Intended vs Achieved
+- Intended: size_bytes-Fix landen, PNG-Transparenz-Bug beheben, Theme-Types umbenennen, alles pushen
+- Achieved: alle drei Fixes implementiert, Docker-deployed, UAT auf Release 41 bestätigt (`size_bytes: 10906996`), 28 Commits gepusht
+
+### Problems Solved
+- Root cause: `CreateMediaAsset` schreibt nur in `media_assets`, nicht in `media_files`; `COALESCE` in `ListReleaseThemeAssets`-SQL liefert 0 wenn kein `media_files`-Record existiert
+- Fix: `InsertMediaFile(ctx, mediaID, "original", storagePath, size)` nach `CreateMediaAsset` in beiden Upload-Handlern; Rollback (DeleteMediaAsset + removeFileQuietly) bei Fehler
+- Root cause: PNG-Logo-Upload nutzte hardcodierte `.jpg`-Extension trotz PNG-Input
+- Fix: `imageExtFromMime(mimeType)` → `png`/`webp`/`jpg` je nach MIME; `originalFilename`/`thumbFilename` dynamisch gesetzt
+- Root cause: Theme-Types in DB und Frontend hatten kurze Namen (OP, ED, Insert) statt Kara-Varianten
+- Fix: Migration 0058 + Live-UPDATE + `useReleaseSegments.ts` Labels
+
+### Decisions
+- Keine Backfill für bestehende `media_files`-Records — nur Test-Daten, kein Produktionsdruck
+- Outro bleibt unverändert (kein Karaoke-Bezug)
+- Phase 33 gilt als abgeschlossen nach UAT-Bestätigung (`size_bytes: 10906996` für media_id 90)
+
+### Blockers
+- Keine bekannten Runtime-Blocker
+- Cross-AI Review weiterhin lokal nicht verfügbar
+
+### Next Step
+- Nächste Phase entscheiden: Segment-Playback-Verbesserungen, Fansub Group Media, oder weitere Asset-Lifecycle-Arbeit
+
 ## 2026-04-29
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`
@@ -670,3 +705,56 @@
 
 ### Next Step
 - Do one short human browser pass on `/admin/anime/create` after the pushed build: create a small test anime, confirm assets/folder path look correct, then delete the test record if needed.
+
+## 2026-05-06
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: finish the Phase-32 fansub release timeline/upload follow-through, deploy it locally, verify the live UI, and leave a restartable handoff.
+
+### Workstreams Touched
+- Fansub edit `Anime & Releases` timeline clarity and release theme asset states
+- Episode-version edit duration hydration and persisted total duration handoff to fansub release summaries
+- Release-theme upload success handling and stale error cleanup
+- Docker rebuild/deploy plus browser verification on real Naruto release data
+- Repo-local closeout and next-step capture
+
+### Goals Intended vs Achieved
+- Intended: make the fansub OP/ED timeline visually understandable and make the fansub page consume the real episode/release duration instead of a fallback.
+- Achieved: Release 41 now shows the correct `00:23:03` duration on the fansub timeline, the timeline rail matches the clearer grey episode-version style, upload-required release assets surface as `Fehlt`, successful uploads immediately become `Release-Asset`, and the stale `Anfrage fehlgeschlagen` state no longer remains after a successful upload.
+
+### Problems Solved
+- Root cause: fansub timeline max duration could fall back to segment end data such as `25:29` instead of the manually/API-filled release duration.
+- Fix: admin fansub release summaries now expose `duration_seconds` from `release_variants.duration_seconds`, and the fansub frontend uses that as the timeline duration source.
+- Root cause: a `release_asset` segment without a release-scoped upload could be displayed as `Global/Admin`, which hid that the fansub group still needed to upload its own file.
+- Fix: missing release-scoped assets now show as `Fehlt`/upload-required while real release uploads show as `Release-Asset`.
+- Root cause: after uploading an OP/Insert file, the browser could still show a stale request failure even though the backend returned `201 Created`.
+- Fix: upload success patches the local release-theme card state from the upload response and clears the stale timeline refresh error.
+- Root cause: the fansub timeline rail was visually lighter and less legible than the episode-version editor.
+- Fix: the fansub timeline track now uses the same grey rail treatment as the episode-version editor so OP/ED segments are easier to read.
+
+### Decisions
+- `release_asset` means release-specific/upload-required in the fansub workflow until a concrete `release_theme_assets` row exists.
+- Fansub timelines should use `release_variants.duration_seconds` as their first duration source, with segment-derived fallback only when no release duration is available.
+- The fansub timeline visual rail follows the episode-version editor's grey baseline for consistency.
+
+### Verification
+- `go test ./internal/models ./internal/repository ./internal/handlers -run "TestAdminContentFansubReleases|TestAdminFansubReleases"` passed.
+- `go test ./...` passed.
+- `cd frontend && npx tsc --noEmit` passed.
+- `cd frontend && npx eslint src/app/admin/fansubs/[id]/edit/page.tsx src/types/fansub.ts` passed.
+- `cd frontend && npx eslint src/app/admin/fansubs/[id]/edit/page.tsx` passed.
+- `cd frontend && npm test -- --run` passed: 37 test files, 357 tests.
+- `cd frontend && npm run lint` passed with 0 errors and 26 pre-existing warnings in unrelated files.
+- `git diff --check` passed.
+- `docker compose up -d --build team4sv30-frontend` passed.
+- Browser verification on `http://127.0.0.1:3002/admin/fansubs/88/edit` confirmed Release 41 duration `00:23:03`, OP/IN `Release-Asset`, no stale request error, and the grey timeline track.
+
+### Blockers
+- No known product blocker remains for the verified Release 41 fansub timeline/upload path.
+- Branch `main` is ahead of `origin/main` by 13 commits.
+- Local scratch/cache files remain untracked and should not be mixed into product commits.
+- `npm run lint` still reports 26 unrelated pre-existing warnings.
+- Release theme asset list metadata currently reports `size_bytes: 0` even though stored files are non-empty; this is a follow-up if asset size display or validation matters.
+
+### Next Step
+- Smoke-test delete/re-upload for one Release 41 release-theme asset from `/admin/fansubs/88/edit`, then decide whether to persist/recover release theme asset `size_bytes` metadata.

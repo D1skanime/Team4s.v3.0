@@ -1,5 +1,24 @@
 # DECISIONS
 
+## 2026-05-06 - Fansub Timeline Uses Release Duration And Release-Asset Semantics
+
+### Decision
+The fansub release timeline should use `release_variants.duration_seconds` as its first duration source. In the fansub UI, a segment with `source_type = release_asset` is treated as release-specific/upload-required until a concrete release-scoped `release_theme_assets` row exists.
+
+### Why This Won
+Operators enter or hydrate the total duration on the episode-version editor, so the fansub release overview must consume the same persisted value instead of deriving a longer timeline from stale or test segment data. Also, `release_asset` describes who still owns the upload work; showing a missing release-specific file as `Global/Admin` hides the action the fansub group still needs to take.
+
+### Consequences
+- `/admin/fansubs/:id/edit` should show the same release duration that `/admin/episode-versions/:id/edit` persists.
+- `Global/Admin` means no release upload is needed.
+- `Release-Asset` means a release-scoped asset exists.
+- `Fehlt` means a release-specific asset is expected but missing.
+- The fansub timeline rail should stay visually aligned with the grey episode-version editor rail unless the design system changes intentionally.
+
+### Follow-ups Required
+- smoke-test delete/re-upload on Release 41 once more after the latest upload-state fix
+- decide whether release theme asset `size_bytes` metadata should be persisted or recovered from related media-file data
+
 ## 2026-05-05 - Global Theme Segment Coverage Locks Conflicting Release Uploads
 
 ### Decision
