@@ -62,11 +62,11 @@ function deriveGenericThemeOptions(themeTypes: AdminThemeType[]): GenericSegment
       key: kind,
       label:
         kind === 'op'
-          ? 'Opening (OP)'
+          ? 'OP Kara'
           : kind === 'ed'
-            ? 'Ending (ED)'
+            ? 'ED Kara'
             : kind === 'insert'
-              ? 'Insert Song'
+              ? 'Insert Kara'
               : 'Outro',
       preferredThemeTypeId: themeType.id,
     })
