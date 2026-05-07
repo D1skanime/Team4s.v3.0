@@ -540,12 +540,18 @@ Plans:
 **Goal:** Go-Backend-Service fuer Release-Version-Media-Uploads implementieren: Validierung, Staging, libvips-basierte Thumbnail-Erzeugung (bimg/govips), GIF-Sonderfall, DB-Transaktion, Rollback. Alle 5 Admin-API-Endpunkte (Upload, List, Patch, Delete, Reorder). Vorerst Admin-only-Berechtigungspruefung.
 **Requirements**: RVM-BACKEND-01
 **Depends on:** Phase 34
-**Plans:** 0 plans
+**Plans:** 4 plans
+
+Plans:
+- [ ] `35-01-PLAN.md` — Dockerfile CGO-Fix + govips Dependency + vips.Startup in main.go
+- [ ] `35-02-PLAN.md` — Repository-Methoden (8 Methoden auf MediaRepository fuer release_version_media CRUD)
+- [ ] `35-03-PLAN.md` — Upload-Handler (POST) mit govips-Thumbnail, GIF-Sonderfall, DB-Transaktion, Rollback
+- [ ] `35-04-PLAN.md` — List/Patch/Delete/Reorder-Handler + Route-Registrierung in admin_routes.go
 
 **Success Criteria** (what must be TRUE):
   1. POST /admin/release-versions/{id}/media akzeptiert multipart/form-data mit category + files[]. Liefert pro Datei {client_file_name, status, media_asset_id, release_version_media_id, thumbnail_url} oder {status:failed, error_code}.
   2. Jede Datei wird isoliert verarbeitet — Fehler bei Datei A beeinflusst Datei B nicht.
-  3. Animated-GIF-Original bleibt animiert gespeichert; Thumbnail ist statisches Frame-1-Bild via bimg/govips.
+  3. Animated-GIF-Original bleibt animiert gespeichert; Thumbnail ist statisches Frame-1-Bild via govips.
   4. Bei Fehler nach Staging: DB rollback + Staging-Dateien werden geloescht, kein status=ready entsteht.
   5. GET /admin/release-versions/{id}/media, PATCH, DELETE (soft), POST reorder existieren und antworten korrekt.
   6. Kategorie-Aenderung via PATCH ist nicht erlaubt (HTTP 422 CATEGORY_CHANGE_NOT_ALLOWED).
