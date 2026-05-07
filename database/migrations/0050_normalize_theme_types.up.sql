@@ -12,7 +12,7 @@ WHERE theme_type_id = 4;
 
 DELETE FROM theme_types WHERE id IN (2, 4);
 
-UPDATE theme_types SET name = 'OP' WHERE id = 1;
-UPDATE theme_types SET name = 'ED' WHERE id = 3;
-UPDATE theme_types SET name = 'Insert' WHERE id = 5;
-UPDATE theme_types SET name = 'Outro' WHERE id = 6;
+UPDATE theme_types SET name = 'OP Kara'     WHERE id = 1;
+UPDATE theme_types SET name = 'ED Kara'     WHERE id = 3;
+UPDATE theme_types SET name = 'Insert Kara' WHERE id = 5;
+UPDATE theme_types SET name = 'Outro'       WHERE id = 6;
