@@ -244,6 +244,7 @@ Recent durable decisions:
 | 260405-pcz | Add tags schema and persistence analogous to genres for anime metadata | 2026-04-05 | uncommitted (dirty workspace) | [260405-pcz-add-tags-schema-and-persistence-analogou](./quick/260405-pcz-add-tags-schema-and-persistence-analogou/) |
 | 260417-qtu | Asset upload UX: leere Slots klickbar, Upload-Hover-Overlay | 2026-04-17 | 136161b | [260417-qtu-asset-upload-ux-leere-slots-klickbar-und](./quick/260417-qtu-asset-upload-ux-leere-slots-klickbar-und/) |
 | 260423dxc | Filter bereits importierte Jellyfin-Kandidaten aus Episode-Import Preview heraus | 2026-04-23 | dab72d6 | [260423dxc-filter-already-imported-episode-candidates](./quick/260423dxc-filter-already-imported-episode-candidates/) |
+| 260507-de2 | Rename theme types OP → OP Kara, ED → ED Kara, Insert → Insert Kara | 2026-05-07 | f918334e | [260507-de2-rename-theme-types-op-to-op-kara-ed-to-e](./quick/260507-de2-rename-theme-types-op-to-op-kara-ed-to-e/) |
 | 260423mnv | Per-Reihe "Ubernehmen"-Button im Episode-Import Workbench | 2026-04-23 | 1b3b57d | [260423mnv-per-row-apply-button](./quick/260423mnv-per-row-apply-button/) |
 | 260423qpn | Optionale Jellyfin-Bibliotheksfilterung via JELLYFIN_ALLOWED_LIBRARY_IDS | 2026-04-24 | 6fad43b | [260423qpn-jellyfin-library-filter](./quick/260423qpn-jellyfin-library-filter/) |
 | 260428-ddb | Episoden-Laufzeit crawlen und in Timeline-Vorschau proportional anzeigen | 2026-04-28 | 5126a293 | [260428-ddb-episoden-laufzeit-crawlen-und-in-timelin](./quick/260428-ddb-episoden-laufzeit-crawlen-und-in-timelin/) |
