@@ -45,6 +45,7 @@ import {
 import { AdminAnimeTheme, AdminAnimeThemeSegment, AdminFansubAnimeEntry, AdminReleaseThemeAsset } from '@/types/admin'
 import { AdminFansubRelease } from '@/types/fansub'
 import { buildFansubLogoFallback, buildMediaPreviewURL, EditableMediaValue, MediaUpload } from '@/components/admin/MediaUpload'
+import { ReleaseVersionMediaDrawerSummary } from './ReleaseVersionMediaDrawerSummary'
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
 
@@ -1190,7 +1191,7 @@ export default function AdminFansubEditPage() {
   const themePrimarySegment = themeSelectedCard?.segments[0] ?? null
   const releaseDrawerTabs = drawerRelease ? [
     { key: 'details' as const, label: 'Details', disabled: false },
-    { key: 'media' as const, label: 'Media', disabled: true },
+    { key: 'media' as const, label: 'Media', disabled: false },
     { key: 'roles' as const, label: 'Mitglieder & Rollen', disabled: true },
     { key: 'versions' as const, label: `Versionen (${drawerRelease.version_count})`, disabled: true },
     { key: 'history' as const, label: 'Historie', disabled: true },
@@ -1630,6 +1631,16 @@ export default function AdminFansubEditPage() {
                       <p>{drawerRelease.version_count} Version{drawerRelease.version_count === 1 ? '' : 'en'}</p>
                     </div>
                   </div>
+                </div>
+              ) : null}
+
+              {drawerTab === 'media' ? (
+                <div className={styles.fansubEditReleaseDrawerPanel}>
+                  <ReleaseVersionMediaDrawerSummary
+                    versionId={drawerRelease.release_id}
+                    fansubName={drawerRelease.fansub_name}
+                    releaseVersionLabel={`Release ${drawerRelease.release_id}`}
+                  />
                 </div>
               ) : null}
 

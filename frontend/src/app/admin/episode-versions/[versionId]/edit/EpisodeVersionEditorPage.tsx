@@ -9,7 +9,7 @@ import { useEpisodeVersionEditor } from './useEpisodeVersionEditor'
 import { SegmenteTab } from './SegmenteTab'
 import styles from './EpisodeVersionEditor.module.css'
 
-type ActiveTab = 'uebersicht' | 'dateien' | 'informationen' | 'segmente' | 'changelog'
+type ActiveTab = 'uebersicht' | 'dateien' | 'informationen' | 'segmente' | 'media' | 'changelog'
 
 function parsePositiveInt(value: string | null): number | null {
   if (!value) return null
@@ -27,7 +27,10 @@ export function EpisodeVersionEditorPage() {
   const animeIDFromQuery = parsePositiveInt(searchParams.get('animeId'))
   const episodeIDFromQuery = parsePositiveInt(searchParams.get('episodeId'))
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>('informationen')
+  const tabFromQuery = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState<ActiveTab>(
+    tabFromQuery === 'media' ? 'media' : 'informationen',
+  )
 
   const segmentAnimeId = editor.contextData?.version.anime_id ?? null
   const segmentGroupId = editor.contextData?.selected_groups[0]?.id ?? null
@@ -134,6 +137,13 @@ export function EpisodeVersionEditorPage() {
                 onClick={() => setActiveTab('segmente')}
               >
                 Segmente
+              </button>
+              <button
+                type="button"
+                className={activeTab === 'media' ? styles.tabActive : styles.tab}
+                onClick={() => setActiveTab('media')}
+              >
+                Media / Assets
               </button>
               <button
                 type="button"
@@ -379,6 +389,27 @@ export function EpisodeVersionEditorPage() {
                 durationSeconds={editor.contextData?.version.duration_seconds}
                 releaseVariantId={editor.contextData?.version.id ?? null}
               />
+            ) : null}
+
+            {/* Media / Assets tab */}
+            {activeTab === 'media' ? (
+              <section className={styles.card}>
+                {/* Context card — D-04/D-07: fansub group + release version title */}
+                <div className={styles.mediaContextCard}>
+                  <span className={styles.mediaContextLabel}>Fansub-Gruppe</span>
+                  <span className={styles.mediaContextValue}>{groupName ?? '–'}</span>
+                  <span className={styles.mediaContextLabel}>Release-Version</span>
+                  <span className={styles.mediaContextValue}>{segmentVersion ?? '–'}</span>
+                </div>
+                {/* Upload section shell — filled in Plan 02 */}
+                <div className={styles.mediaUploadShell}>
+                  <p className={styles.helperText}>Upload-Flow wird in Plan 02 verdrahtet.</p>
+                </div>
+                {/* Gallery shell — filled in Plan 03 */}
+                <div className={styles.mediaGalleryShell}>
+                  <p className={styles.helperText}>Galerie wird in Plan 03 aufgebaut.</p>
+                </div>
+              </section>
             ) : null}
 
             {/* Changelog tab stub */}

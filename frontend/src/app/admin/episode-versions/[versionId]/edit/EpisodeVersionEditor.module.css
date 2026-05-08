@@ -404,3 +404,36 @@
   border-bottom: 2px solid #ff6a3d;
   margin-bottom: -2px;
 }
+
+.mediaContextCard {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+  padding: 12px 16px;
+  border: 1px solid #e1e1e6;
+  border-radius: 8px;
+  background: #f9f9f9;
+  align-items: center;
+}
+
+.mediaContextLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b6b70;
+}
+
+.mediaContextValue {
+  font-size: 14px;
+  color: #1c1c1e;
+  font-weight: 600;
+}
+
+.mediaUploadShell {
+  padding: 12px 0;
+  border-top: 1px solid #e1e1e6;
+}
+
+.mediaGalleryShell {
+  padding: 12px 0;
+  border-top: 1px solid #e1e1e6;
+}
