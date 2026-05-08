@@ -311,6 +311,8 @@ func mediaTypeNameForKind(kind models.MediaKind, mimeType string) (string, error
 		return "video", nil
 	case models.MediaKindSegmentAsset:
 		return "video", nil
+	case models.MediaKindImage:
+		return "image", nil
 	default:
 		if strings.HasPrefix(strings.ToLower(strings.TrimSpace(mimeType)), "video/") {
 			return "video", nil

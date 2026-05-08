@@ -9,6 +9,7 @@ const (
 	MediaKindBanner       MediaKind = "banner"
 	MediaKindThemeVideo   MediaKind = "theme_video"
 	MediaKindSegmentAsset MediaKind = "segment_asset"
+	MediaKindImage        MediaKind = "image"
 )
 
 type MediaAsset struct {
