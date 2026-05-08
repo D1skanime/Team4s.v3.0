@@ -105,6 +105,14 @@ import {
 } from '@/types/fansub'
 import { PaginatedWatchlistResponse, WatchlistCreateResponse } from '@/types/watchlist'
 import {
+  ReleaseVersionMediaCategory,
+  ReleaseVersionMediaListResponse,
+  ReleaseVersionMediaPatchRequest,
+  ReleaseVersionMediaReorderRequest,
+  ReleaseVersionMediaUploadResponse,
+  ReleaseVersionMediaItem,
+} from '@/types/releaseVersionMedia'
+import {
   GroupDetailResponse,
   GroupReleasesResponse,
   GroupReleasesParams,
@@ -3007,6 +3015,160 @@ export async function deleteSegmentAsset(
     {
       method: 'DELETE',
       headers: withAuthHeader({}, authToken),
+    },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+// --- Release-Version Media ---
+
+export async function getReleaseVersionMedia(
+  versionId: number,
+  authToken?: string,
+): Promise<ReleaseVersionMediaListResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: 'no-store',
+    },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<ReleaseVersionMediaListResponse>
+}
+
+export interface UploadReleaseVersionMediaOptions {
+  versionId: number
+  category: ReleaseVersionMediaCategory
+  files: File[]
+  onProgress?: (fileIndex: number, percent: number) => void
+  authToken?: string
+}
+
+export async function uploadReleaseVersionMedia(
+  options: UploadReleaseVersionMediaOptions,
+): Promise<ReleaseVersionMediaUploadResponse> {
+  if (typeof window === 'undefined') {
+    throw new ApiError(500, 'upload ist nur im browser verfuegbar')
+  }
+
+  const API_BASE_URL = getApiBaseUrl()
+  const token = resolveAuthToken(options.authToken)
+  const endpoint = `${API_BASE_URL}/api/v1/admin/release-versions/${options.versionId}/media`
+
+  return new Promise<ReleaseVersionMediaUploadResponse>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', endpoint, true)
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (!options.onProgress) return
+      if (!event.lengthComputable) return
+      // For batch uploads, report progress as file index 0
+      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)))
+      options.onProgress(0, percent)
+    }
+
+    xhr.onerror = () => {
+      reject(new ApiError(0, 'netzwerkfehler beim upload'))
+    }
+
+    xhr.onload = () => {
+      let payload: unknown = null
+      try {
+        payload = JSON.parse(xhr.responseText)
+      } catch {
+        payload = null
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        options.onProgress?.(0, 100)
+        resolve(payload as ReleaseVersionMediaUploadResponse)
+        return
+      }
+
+      const fallback = `API request failed: ${xhr.status}`
+      reject(new ApiError(xhr.status, parsePayloadError(payload, fallback)))
+    }
+
+    const body = new FormData()
+    body.set('category', options.category)
+    for (const file of options.files) {
+      body.append('files', file)
+    }
+    options.onProgress?.(0, 0)
+    xhr.send(body)
+  })
+}
+
+export async function patchReleaseVersionMediaItem(
+  versionId: number,
+  mediaId: number,
+  patch: ReleaseVersionMediaPatchRequest,
+  authToken?: string,
+): Promise<ReleaseVersionMediaItem> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media/${mediaId}`,
+    {
+      method: 'PATCH',
+      headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+      body: JSON.stringify(patch),
+    },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<ReleaseVersionMediaItem>
+}
+
+export async function deleteReleaseVersionMediaItem(
+  versionId: number,
+  mediaId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media/${mediaId}`,
+    {
+      method: 'DELETE',
+      headers: withAuthHeader({}, authToken),
+    },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+export async function reorderReleaseVersionMedia(
+  versionId: number,
+  body: ReleaseVersionMediaReorderRequest,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media/reorder`,
+    {
+      method: 'POST',
+      headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+      body: JSON.stringify(body),
     },
   )
 
