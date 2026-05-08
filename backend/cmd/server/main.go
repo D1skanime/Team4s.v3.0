@@ -17,7 +17,6 @@ import (
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
 
-	"github.com/davidbyttow/govips/v2/vips"
 	"github.com/gin-gonic/gin"
 )
 
@@ -45,13 +44,6 @@ func main() {
 	} else {
 		log.Printf("ffmpeg available at %s", cfg.FFmpegPath)
 	}
-
-	// govips (libvips wrapper) must be initialized before any image processing calls.
-	// vips.Shutdown() is deferred here so it runs after server shutdown completes.
-	if err := vips.Startup(nil); err != nil {
-		log.Fatalf("govips startup failed: %v", err)
-	}
-	defer vips.Shutdown()
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), corsMiddleware())
@@ -183,6 +175,20 @@ func main() {
 	mediaUploadRepo := repository.NewMediaUploadRepository(dbPool)
 	mediaUploadHandler := handlers.NewMediaUploadHandler(mediaUploadRepo, cfg.MediaStorageDir, cfg.MediaPublicBaseURL, cfg.FFmpegPath).
 		WithLifecycleService(assetLifecycleService)
+
+	// Periodic release-version-media cleanup job (stale processing, missing files, soft-delete).
+	// Runs every 10 minutes in a background goroutine; best-effort, never stops the server.
+	rvmCleanupSvc := services.NewRVMCleanupService(mediaRepo, cfg.MediaStorageDir)
+	go func() {
+		ticker := time.NewTicker(services.RVMCleanupInterval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				rvmCleanupSvc.RunOnce(context.Background())
+			}
+		}
+	}()
 
 	v1 := router.Group("/api/v1")
 	v1.POST("/auth/issue", authHandler.Issue)
