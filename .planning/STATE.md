@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: In Progress
-stopped_at: Phase 38 context written — ready for planning
-last_updated: "2026-05-08T15:00:00.000Z"
+status: Ready to execute
+stopped_at: Completed 38-01-PLAN.md
+last_updated: "2026-05-08T20:30:32.976Z"
 last_activity: 2026-05-08
 progress:
   total_phases: 34
-  completed_phases: 26
-  total_plans: 110
-  completed_plans: 99
+  completed_phases: 25
+  total_plans: 112
+  completed_plans: 101
 ---
 
 # Project State
@@ -24,8 +24,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 ## Current Position
 
-Phase: 38
-Plan: Not started
+Phase: 38 (release-version-media-gallery-ux-hover-preview-und-drag-and-drop-reorder) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -159,6 +159,8 @@ Recent durable decisions:
 - [Phase 37]: Both tasks written as a single Green phase since the production implementation was complete before the test plan ran; no production code changes required
 - [Phase 37]: UUID uniqueness test uses 100 sequential calls to prove the same uuid.New() library used by the upload handler; no goroutine coordination needed for isolation proof
 - [Phase 37]: Preview-exclusivity proven via source text index comparison so the test is deterministic without a live DB, consistent with Plan 37-02 source-inspection strategy
+- [Phase 38]: Native HTML5 drag-and-drop chosen over adding a new DnD library: plan preferred project-owned seam first and no concrete blocker was found
+- [Phase 38]: Sort-order form removed from ReleaseVersionMediaDetailPanel; reorder is gallery-only via drag-and-drop within category
 
 ### Pending Todos
 
@@ -263,6 +265,7 @@ Recent durable decisions:
 | Phase 37 P02 | 20min | 2 tasks | 2 files |
 | Phase 37 P03 | 10min | 2 tasks | 2 files |
 | Phase 37 P04 | 15min | 2 tasks | 2 files |
+| Phase 38-release-version-media-gallery-ux-hover-preview-und-drag-and-drop-reorder P01 | 25min | 2 tasks | 10 files |
 
 ### Quick Tasks Completed
 
@@ -280,7 +283,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-08T14:25:14.313Z
-Stopped at: Completed 37-04-PLAN.md
+Last session: 2026-05-08T20:30:32.966Z
+Stopped at: Completed 38-01-PLAN.md
 Last activity: 2026-05-08
 Resume file: None
