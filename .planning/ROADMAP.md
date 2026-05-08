@@ -540,7 +540,7 @@ Plans:
 **Goal:** Go-Backend-Service fuer Release-Version-Media-Uploads implementieren: Validierung, Staging, libvips-basierte Thumbnail-Erzeugung (bimg/govips), GIF-Sonderfall, DB-Transaktion, Rollback. Alle 5 Admin-API-Endpunkte (Upload, List, Patch, Delete, Reorder). Vorerst Admin-only-Berechtigungspruefung.
 **Requirements**: RVM-BACKEND-01
 **Depends on:** Phase 34
-**Plans:** 4 plans
+**Plans:** 3/4 plans executed
 
 Plans:
 - [ ] `35-01-PLAN.md` — Dockerfile CGO-Fix + govips Dependency + vips.Startup in main.go
@@ -560,26 +560,26 @@ Plans:
 
 ### Phase 36: Release-Version Media — Frontend Upload UI und Galerie
 
-**Goal:** Media/Assets Tab im Release-Version-Editor (/admin/episode-versions/[versionId]/edit/) mit Kategorie-zuerst-Upload-Flow, Drag-and-Drop, Per-File-Progress, Retry und editierbarer Galerie (Caption, Sortierung, Preview-Flag, Delete).
+**Goal:** Release-Version-Media im bestehenden Admin-Produktfluss nutzbar machen: kompakter Einstieg im Fansub-Release-Drawer und vollstaendige Verwaltung im Release-Version-Editor (/admin/episode-versions/[versionId]/edit/) mit Kategorie-zuerst-Upload-Flow, Drag-and-Drop, Per-File-Progress, Retry und Galerie-/Detailbearbeitung.
 **Requirements**: RVM-FRONTEND-01
 **Depends on:** Phase 35
 **Plans:** 0/4 plans complete
 
 Plans:
-- [ ] `36-01-PLAN.md` - Media/Assets Tab und wiederverwendbare Frontend-Foundations im Episode-Version-Editor anlegen.
-- [ ] `36-02-PLAN.md` - Kategorie-zuerst-Uploadflow mit Mehrfach-Upload, Per-File-Status und Retry in die neue Media-Sektion bringen.
-- [ ] `36-03-PLAN.md` - Galerie, Inline-Edit fuer Caption/Preview/Sortierung und Soft-Delete-UI fuer Release-Version-Media aufbauen.
-- [ ] `36-04-PLAN.md` - Frontend-Regressionen, Editor-Verifikation und handoff-sichere UI-Abschlusspruefung fuer den Release-Version-Media-Flow abschliessen.
+- [ ] `36-01-PLAN.md` - Shared Release-Version-Media-Foundations plus kompakte Drawer-Zusammenfassung und Media/Assets-Tab im Editor verdrahten.
+- [ ] `36-02-PLAN.md` - Kategorie-zuerst-Uploadflow mit Mehrfach-Upload, Per-File-Status und Retry in die vollstaendige Editor-Media-Sektion bringen.
+- [ ] `36-03-PLAN.md` - Kategorisierte Galerie plus kompakte Karten und Detail-/Edit-Flaeche fuer Release-Version-Media aufbauen.
+- [ ] `36-04-PLAN.md` - Frontend-Regressionen, Drawer/Editor-Verifikation und handoff-sichere UI-Abschlusspruefung fuer den Release-Version-Media-Flow abschliessen.
 
 **Success Criteria** (what must be TRUE):
-  1. /admin/episode-versions/[versionId]/edit/ zeigt einen Media/Assets Tab.
-  2. Upload-Flow: Kategorie-Dropdown zuerst, dann Datei-Auswahl/Drag-and-Drop, dann Upload-Button.
-  3. Jede Datei zeigt individuellen Fortschritt, Status (ready/failed) und Retry-Button bei Fehler.
-  4. Preview-Schalter ist nur bei screenshot und typesetting_karaoke sichtbar/aktiv.
-  5. Galerie zeigt hochgeladene Bilder mit Thumbnail; Klick zeigt Original.
-  6. Caption, Sortierung und Preview-Flag sind inline editierbar.
-  7. Delete-Aktion entfernt Asset aus der Galerie-Ansicht (soft delete im Backend).
-  8. Keine Business-Regeln ausschliesslich im Frontend erzwungen — Backend-Fehlercodes werden verstaendlich angezeigt.
+  1. /admin/fansubs/[id]/edit zeigt im Release-Drawer eine kompakte Release-Version-Media-Zusammenfassung mit klarer Aktion `Media verwalten`.
+  2. /admin/episode-versions/[versionId]/edit/ zeigt einen Media/Assets Tab als vollstaendige Arbeitsflaeche.
+  3. Upload-Flow: Kategorie-Dropdown zuerst, dann Datei-Auswahl/Drag-and-Drop, dann Upload-Button.
+  4. Jede Datei zeigt individuellen Fortschritt, Status (ready/failed) und Retry-Button bei Fehler.
+  5. Preview-Schalter ist nur bei screenshot und typesetting_karaoke sichtbar/aktiv.
+  6. Galerie zeigt hochgeladene Bilder mit Thumbnail; Klick zeigt Original; Kategorien bleiben als sichtbare Abschnitte getrennt statt hinter Tabs versteckt.
+  7. Caption, Sortierung und Preview-Flag sind ueber eine kompakte Detail-/Edit-Flaeche bearbeitbar statt als dichte Voll-Inline-Galerie.
+  8. Delete-Aktion entfernt Asset aus der Galerie-Ansicht erst nach Backend-Erfolg (soft delete im Backend), und keine Business-Regeln werden ausschliesslich im Frontend erzwungen — Backend-Fehlercodes werden verstaendlich angezeigt.
 
 ### Phase 37: Release-Version Media — Cleanup Job und Tests
 

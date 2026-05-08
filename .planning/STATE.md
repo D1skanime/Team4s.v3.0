@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Phase 36 planned — 4 plans in 4 waves, checker passed
-last_updated: "2026-05-08T10:00:00.000Z"
+stopped_at: Completed 35-03-PLAN.md
+last_updated: "2026-05-08T08:53:57.284Z"
 last_activity: 2026-05-08
 progress:
-  total_phases: 37
+  total_phases: 33
   completed_phases: 24
-  total_plans: 103
-  completed_plans: 87
+  total_plans: 107
+  completed_plans: 90
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 35 → 36 — Release-Version Media Backend + Frontend
+**Current focus:** Phase 35 — release-version-media-backend-upload-service-and-api
 
 ## Current Position
 
-Phase: 35 + 36 (both planned, ready to execute in order)
-Plan: Phase 35 — 4 plans (3 waves) | Phase 36 — 4 plans (4 waves)
+Phase: 35 (release-version-media-backend-upload-service-and-api) — EXECUTING
+Plan: 4 of 4
 
 ## Accumulated Context
 
@@ -146,6 +146,10 @@ Recent durable decisions:
 - [Phase 35-release-version-media-backend-upload-service-and-api]: govips (github.com/davidbyttow/govips/v2) chosen over bimg (inactive since 2021); Dockerfile needs libvips-dev
 - [Phase 35-release-version-media-backend-upload-service-and-api]: No physical staging — direct write to final path with status='processing'→'ready' as upload gate
 - [Phase 35-release-version-media-backend-upload-service-and-api]: Route base /admin/release-versions/:versionId/media; new handler file on existing AdminContentHandler
+- [Phase 35]: CGO_ENABLED=1 required for govips in Docker — both go build lines changed; vips.Startup(nil) placed before router init in main.go
+- [Phase 35]: ErrOwnershipMismatch sentinel added to repository package for RVM ownership validation; ValidateReleaseVersionMediaOwnership uses two queries to distinguish missing rows from cross-version mismatch
+- [Phase 35]: MediaKindImage constant added to models/media.go and handled in mediaTypeNameForKind returning 'image'
+- [Phase 35]: pgx import removed from handler file since pgx.Tx resolves transitively through repository method signatures
 
 ### Pending Todos
 
@@ -241,6 +245,9 @@ Recent durable decisions:
 | Phase 30-fansub-releases-api-endpunkte P03 | 3min | 2 tasks | 4 files |
 | Phase 31 P01 | 14min | 2 tasks | 7 files |
 | Phase 34-release-version-media-schema-foundation P01 | 1min | 2 tasks | 2 files |
+| Phase 35 P01 | 2min | 2 tasks | 4 files |
+| Phase 35 P02 | 3min | 2 tasks | 2 files |
+| Phase 35 P03 | 25min | 3 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -258,7 +265,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-07T14:15:12.744Z
-Stopped at: Completed 34-01-PLAN.md
-Last activity: 2026-05-07
+Last session: 2026-05-08T08:53:57.276Z
+Stopped at: Completed 35-03-PLAN.md
+Last activity: 2026-05-08
 Resume file: None
