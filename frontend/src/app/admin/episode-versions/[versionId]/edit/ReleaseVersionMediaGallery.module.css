@@ -1,0 +1,130 @@
+.gallery {
+  display: grid;
+  gap: 20px;
+}
+
+.section {
+  display: grid;
+  gap: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  background: #ffffff;
+}
+
+.headingRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.heading {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.count {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.emptySection {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.cardGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+}
+
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #f8fafc;
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.cardActive {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+.cardDragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.cardDropTarget {
+  border-color: #059669;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+  background: #ecfdf5;
+}
+
+.thumb {
+  width: 100%;
+  min-height: 168px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #e5e7eb;
+  display: grid;
+  place-items: center;
+  padding: 8px;
+}
+
+.thumbImage {
+  width: 100%;
+  height: auto;
+  max-height: 184px;
+  object-fit: contain;
+  display: block;
+}
+
+.placeholder {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.caption {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.previewBadge {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.openLink {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+}

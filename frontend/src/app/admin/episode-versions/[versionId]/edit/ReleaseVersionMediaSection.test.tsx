@@ -463,7 +463,7 @@ describe('ReleaseVersionMediaSection', () => {
   })
 
   it('surfaces patch error near the detail panel when backend rejects an update', async () => {
-    const patchError = new Error('SORT_ORDER_OUT_OF_RANGE')
+    const patchError = new Error('CAPTION_TOO_LONG')
 
     renderSection(
       makeMediaState({
@@ -475,10 +475,10 @@ describe('ReleaseVersionMediaSection', () => {
     fireEvent.click(screen.getByRole('button', { name: /Patch Err Item/i }))
     expect(await screen.findByText('Medium bearbeiten')).not.toBeNull()
 
-    fireEvent.change(screen.getByDisplayValue('10'), { target: { value: '-99' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Sortierung speichern' }))
+    fireEvent.change(screen.getByDisplayValue('Patch Err Item'), { target: { value: 'New Caption' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Beschreibung speichern' }))
 
-    expect(await screen.findByText('SORT_ORDER_OUT_OF_RANGE')).not.toBeNull()
+    expect(await screen.findByText('CAPTION_TOO_LONG')).not.toBeNull()
   })
 
   it('shows delete error in the detail panel when backend soft-delete fails', async () => {
@@ -597,23 +597,63 @@ describe('useReleaseVersionMedia live-resort behavior', () => {
     const item1 = makeItem({ id: 1, sort_order: 10, caption: 'First' })
     const item2 = makeItem({ id: 2, sort_order: 20, caption: 'Second' })
 
-    // StatefulSectionHarness.patchItem re-sorts items after sort_order patch
-    render(
-      <StatefulSectionHarness
-        initialItems={[item1, item2]}
-      />,
+    // Use a stateful harness with an exposed patchItem trigger
+    let patchItemRef!: (id: number, patch: ReleaseVersionMediaPatchRequest) => Promise<void>
+
+    function PatchHarness() {
+      const [items, setItems] = useState([item1, item2])
+      const state = useMemo<UseReleaseVersionMediaResult>(() => {
+        const patchItem = async (mediaId: number, patch: ReleaseVersionMediaPatchRequest) => {
+          setItems((current) => {
+            const next = current.map((item) =>
+              item.id === mediaId ? { ...item, ...patch } : item,
+            )
+            if (patch.sort_order !== undefined) {
+              return [...next].sort((a, b) => a.sort_order - b.sort_order)
+            }
+            return next
+          })
+        }
+        patchItemRef = patchItem
+        return {
+          items,
+          isLoading: false,
+          error: null,
+          reload: vi.fn(),
+          uploadItems: [],
+          startUpload: vi.fn().mockResolvedValue(undefined),
+          retryUpload: vi.fn().mockResolvedValue(undefined),
+          clearUploadQueue: vi.fn(),
+          patchItem,
+          deleteItem: vi.fn().mockResolvedValue(undefined),
+          reorderItems: vi.fn().mockResolvedValue(undefined),
+          patchError: null,
+          deleteError: null,
+        }
+      }, [items])
+      return (
+        <ReleaseVersionMediaSection
+          versionId={42}
+          fansubGroupName="SubGroup"
+          releaseVersionLabel="v1"
+          mediaState={state}
+        />
+      )
+    }
+
+    render(<PatchHarness />)
+
+    // Initially First (sort 10) should appear before Second (sort 20)
+    const initialButtons = () => screen.getAllByRole('button').filter(
+      (btn) => btn.textContent?.includes('First') || btn.textContent?.includes('Second'),
     )
+    expect(initialButtons()[0].textContent).toContain('First')
+    expect(initialButtons()[1].textContent).toContain('Second')
 
-    // Click item1 to open detail panel
-    fireEvent.click(screen.getByRole('button', { name: /First/i }))
-    await screen.findByText('Medium bearbeiten')
-
-    // Change sort_order to 30 (after item2's sort_order of 20)
-    fireEvent.change(screen.getByDisplayValue('10'), { target: { value: '30' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Sortierung speichern' }))
+    // Patch item1 to sort_order=30 — now it should appear after item2
+    await patchItemRef(1, { sort_order: 30 })
 
     await waitFor(() => {
-      // After sort, item2 (sort_order=20) should appear before item1 (sort_order=30)
       const buttons = screen.getAllByRole('button').filter(
         (btn) => btn.textContent?.includes('First') || btn.textContent?.includes('Second'),
       )
@@ -642,6 +682,135 @@ describe('useReleaseVersionMedia live-resort behavior', () => {
         { id: 2, sort_order: 10 },
         { id: 1, sort_order: 20 },
       ],
+    })
+  })
+})
+
+describe('Task 2: DragAndDrop reorder — legacy sort field removed', () => {
+  it('detail panel no longer shows the sort-order number input', async () => {
+    renderSection(
+      makeMediaState({
+        items: [makeItem({ id: 61, category: 'screenshot', caption: 'Sort Gone' })],
+      }),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Sort Gone/i }))
+    await screen.findByText('Medium bearbeiten')
+
+    // The sort-order input (type=number) must NOT be present after Task 2
+    expect(screen.queryByLabelText('Sortierung')).toBeNull()
+    // The "Sortierung speichern" button must NOT be present after Task 2
+    expect(screen.queryByRole('button', { name: 'Sortierung speichern' })).toBeNull()
+  })
+
+  it('gallery cards have draggable attribute to signal drag capability', () => {
+    renderSection(
+      makeMediaState({
+        items: [
+          makeItem({ id: 71, category: 'screenshot', caption: 'Drag Me' }),
+          makeItem({ id: 72, category: 'screenshot', caption: 'Drop Here', sort_order: 20 }),
+        ],
+      }),
+    )
+
+    const dragCard = screen.getByRole('button', { name: /Drag Me/i })
+    // Cards in the gallery must be draggable
+    expect(dragCard.getAttribute('draggable')).toBe('true')
+  })
+
+  it('updates gallery order immediately when a category-local drag drop occurs', async () => {
+    const reorderSpy = vi.fn().mockResolvedValue(undefined)
+
+    function DragHarness() {
+      const [items, setItems] = useState([
+        makeItem({ id: 81, sort_order: 10, caption: 'Alpha', category: 'screenshot' }),
+        makeItem({ id: 82, sort_order: 20, caption: 'Beta', category: 'screenshot' }),
+      ])
+
+      const state = useMemo<UseReleaseVersionMediaResult>(() => ({
+        items,
+        isLoading: false,
+        error: null,
+        reload: vi.fn(),
+        uploadItems: [],
+        startUpload: vi.fn().mockResolvedValue(undefined),
+        retryUpload: vi.fn().mockResolvedValue(undefined),
+        clearUploadQueue: vi.fn(),
+        patchItem: vi.fn().mockResolvedValue(undefined),
+        deleteItem: vi.fn().mockResolvedValue(undefined),
+        reorderItems: async (vid, body) => {
+          await reorderSpy(vid, body)
+          const orderMap = new Map(body.items.map((r) => [r.id, r.sort_order]))
+          setItems((current) =>
+            [...current]
+              .map((item) => {
+                const newOrder = orderMap.get(item.id)
+                return newOrder !== undefined ? { ...item, sort_order: newOrder } : item
+              })
+              .sort((a, b) => a.sort_order - b.sort_order),
+          )
+        },
+        patchError: null,
+        deleteError: null,
+      }), [items])
+
+      return (
+        <ReleaseVersionMediaSection
+          versionId={42}
+          fansubGroupName="SubGroup"
+          releaseVersionLabel="v1"
+          mediaState={state}
+        />
+      )
+    }
+
+    render(<DragHarness />)
+
+    // Simulate drag-drop: drag Alpha onto Beta
+    const alphaCard = screen.getByRole('button', { name: /Alpha/i })
+    const betaCard = screen.getByRole('button', { name: /Beta/i })
+
+    // Native HTML5 DnD events
+    fireEvent.dragStart(alphaCard, { dataTransfer: { setData: vi.fn(), effectAllowed: 'move' } })
+    fireEvent.dragOver(betaCard, { dataTransfer: { dropEffect: 'move' } })
+    fireEvent.drop(betaCard, { dataTransfer: { getData: vi.fn().mockReturnValue('81') } })
+    fireEvent.dragEnd(alphaCard)
+
+    await waitFor(() => {
+      expect(reorderSpy).toHaveBeenCalledWith(42, expect.objectContaining({
+        items: expect.arrayContaining([
+          expect.objectContaining({ id: 81 }),
+          expect.objectContaining({ id: 82 }),
+        ]),
+      }))
+    })
+  })
+
+  it('ignores drop across different categories and does not call reorderItems', async () => {
+    const reorderSpy = vi.fn().mockResolvedValue(undefined)
+
+    renderSection(
+      makeMediaState({
+        items: [
+          makeItem({ id: 91, category: 'screenshot', caption: 'Screenshot Card', sort_order: 10 }),
+          makeItem({ id: 92, category: 'typesetting_karaoke', caption: 'Kara Card', sort_order: 10 }),
+        ],
+        reorderItems: reorderSpy,
+      }),
+    )
+
+    const screenshotCard = screen.getByRole('button', { name: /Screenshot Card/i })
+    const karaCard = screen.getByRole('button', { name: /Kara Card/i })
+
+    // Drag screenshot card onto kara card (cross-category)
+    fireEvent.dragStart(screenshotCard, { dataTransfer: { setData: vi.fn() } })
+    fireEvent.dragOver(karaCard, { dataTransfer: { dropEffect: 'move' } })
+    fireEvent.drop(karaCard, { dataTransfer: { getData: vi.fn().mockReturnValue('91') } })
+    fireEvent.dragEnd(screenshotCard)
+
+    // reorderItems must NOT have been called for cross-category drag
+    await waitFor(() => {
+      expect(reorderSpy).not.toHaveBeenCalled()
     })
   })
 })
