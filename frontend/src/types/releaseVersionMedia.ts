@@ -65,6 +65,11 @@ export interface ReleaseVersionMediaPatchRequest {
   is_preview_candidate?: boolean
 }
 
+export interface ReleaseVersionMediaReorderItem {
+  id: number
+  sort_order: number
+}
+
 export interface ReleaseVersionMediaReorderRequest {
-  ordered_ids: number[]
+  items: ReleaseVersionMediaReorderItem[]
 }

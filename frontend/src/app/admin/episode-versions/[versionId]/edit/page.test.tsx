@@ -104,6 +104,7 @@ function makeMediaState(error: string | null = null): UseReleaseVersionMediaResu
     clearUploadQueue: vi.fn(),
     patchItem: vi.fn().mockResolvedValue(undefined),
     deleteItem: vi.fn().mockResolvedValue(undefined),
+    reorderItems: vi.fn().mockResolvedValue(undefined),
     patchError: null,
     deleteError: null,
   }

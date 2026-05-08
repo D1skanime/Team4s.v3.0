@@ -3106,7 +3106,7 @@ export async function uploadReleaseVersionMedia(
     const body = new FormData()
     body.set('category', options.category)
     for (const file of options.files) {
-      body.append('files', file)
+      body.append('files[]', file)
     }
     options.onProgress?.(0, 0)
     xhr.send(body)
