@@ -1,70 +1,44 @@
-# Phase 36: Release-Version Media — Frontend Upload UI und Galerie — Context
+# Phase 36: Release-Version Media - Frontend Upload UI und Galerie - Context
 
-**Gathered:** 2026-05-07
-**Status:** Ready for planning (after Phase 35 complete)
-**Source:** User discussion
+**Gathered:** 2026-05-08
+**Status:** Ready for planning
 
 <domain>
 ## Phase Boundary
 
-Media/Assets-Bereich im Fansub-Edit-Workflow. Kein neuer Admin-Bereich — Erweiterung des bestehenden Fansub-Workflows.
+Frontend-Oberfläche für Release-Version-Media im bestehenden Admin-Produktfluss: kompakter Einstieg im Fansub-Release-Drawer und vollständige Upload-/Verwaltungsansicht im bestehenden Episode-Version-Editor. Kein neuer separater Admin-Bereich und keine doppelte Upload-/Galerie-Implementierung.
 
 </domain>
 
 <decisions>
 ## Implementation Decisions
 
-### Navigation-Flow (LOCKED)
+### Einstieg und Navigationsfluss
+- **D-01:** Der bestehende Fansub-Release-Drawer in `/admin/fansubs/[id]/edit` bleibt der primäre Einstiegspunkt für Release-Version-Media im Gruppen-/Fansub-Kontext.
+- **D-02:** Der Drawer ist bewusst **nicht** die Vollverwaltung. Er zeigt nur kompakte Übersicht, Mini-Vorschau und einen klaren Einstieg `Media verwalten`.
+- **D-03:** Die vollständige Arbeitsfläche für Upload, Galerie und Bearbeitung lebt im bestehenden Episode-Version-Editor unter `/admin/episode-versions/[versionId]/edit/`.
+- **D-04:** Der Editor muss den Fansub-/Release-Kontext sichtbar mittragen, damit der Sprung aus dem Fansub-Drawer nicht wie ein global entkoppelter Admin-Screen wirkt.
 
-```
-/admin/fansubs/88/edit
-  └── Tab: Anime & Releases
-        └── Episode anklicken → Versionen erscheinen
-              └── [Detail] auf einer Version
-                    └── Version-Detail-Ansicht
-                          └── Bereich: Media / Assets
-```
+### Wiederverwendung und UI-Architektur
+- **D-05:** Upload-, Galerie-, Fehler- und Mutationslogik werden nur einmal gebaut und als wiederverwendbare Release-Version-Media-Sektion strukturiert.
+- **D-06:** Drawer und Episode-Version-Editor sind zwei Host-Oberflächen für denselben inneren Media-Baustein; es darf kein zweiter paralleler Upload-Codepfad entstehen.
 
-Der "Detail"-Klick auf eine Version öffnet eine detaillierte Ansicht dieser Release-Version. Dort ist der Media/Assets-Bereich eingebettet.
+### Große Verwaltungsansicht
+- **D-07:** Die vollständige Media-Verwaltung im Episode-Version-Editor wird in drei klar getrennte Bereiche geschnitten:
+  - Kontextkarte
+  - Upload-Card
+  - Galerie-/Verwaltungsfläche
+- **D-08:** Die Galerie wird nicht über Kategorie-Tabs organisiert, sondern als untereinander angeordnete Kategorien-Abschnitte.
+- **D-09:** Kategorien bleiben getrennt sichtbar: `Release-Screenshot`, `Typesetting-/Karaoke-Beispiel`, `Spaßbild / Outtake`, `Sonstiges`.
 
-### Wo lebt der Version-Detail-View? (OFFEN — in Phase 36 zu entscheiden)
+### Bearbeitung und Feedback
+- **D-10:** Bildbearbeitung erfolgt nicht direkt voll inline auf jeder Karte; die Kartenansicht bleibt kompakt und öffnet für Bearbeitung eine Detailfläche bzw. ein kleines Panel.
+- **D-11:** Uploads werden erst sichtbar, wenn das Backend den Asset-Zustand bestätigt hat (`ready` per Antwort/Refetch). Kein optimistisches Sofort-Einblenden vor bestätigtem Serverzustand.
 
-Optionen:
-- A) Erweiterung des bestehenden Release-Side-Drawers (Drawer wird zu einem Version-Detail-Drawer mit Sub-Tabs: Theme | Media)
-- B) Ein eigener Sub-Screen der innerhalb des Drawers navigiert (Drawer-Stack)
-- C) Neue Seite `/admin/release-versions/[versionId]/` (separate Route)
-
-**Empfehlung für Phase 36:** Option A — den bestehenden Phase-32-Drawer um einen zweiten Tab "Media" erweitern. Fansubber kennen bereits den Drawer aus Phase 32 (Theme-Assets). Minimale UI-Änderung, maximale Kohärenz.
-
-**Muss in Phase 36 mit dem User bestätigt werden.**
-
-### Upload-Flow (LOCKED)
-
-1. Kategorie-Dropdown zuerst (screenshot / Typesetting-Karaoke / Spaßbild / Sonstiges)
-2. Datei-Auswahl oder Drag & Drop (mehrere Dateien erlaubt)
-3. Upload-Button
-4. Pro Datei: Fortschritt, Status, Retry bei Fehler
-
-### Preview-Schalter (LOCKED)
-- Nur sichtbar/aktiv bei screenshot und typesetting_karaoke
-- Bei fun_outtake und other ausgeblendet oder deaktiviert
-
-### Galerie (LOCKED)
-Nach Upload: Thumbnail-Galerie, Klick → Original.
-Inline editierbar: Caption, Sortierung, Preview-Flag, Delete.
-
-### Authentifizierung (LOCKED)
-Vorerst Admin-only. Kein Fansub-Member-Berechtigungscheck in Phase 36.
-`uploaded_by_user_id` = Admin-Session-User-ID aus Phase 35.
-
-### Fehlerbehandlung (LOCKED)
-Backend-Fehlercodes werden verständlich angezeigt.
-Keine Business-Regeln ausschliesslich im Frontend erzwingen.
-
-### Claude's Discretion
-- Genaue Drawer-Implementierung (Tab vs. Sub-Screen)
-- CSS-Module oder Inline-Styles (bestehendes Projekt-Muster verwenden)
-- Drag-and-Drop-Implementierung (vorhandene Komponenten prüfen, sonst native HTML5)
+### the agent's Discretion
+- Konkrete Ausgestaltung der kompakten Drawer-Zusammenfassung: Counts, Preview-Status, leere Zustände und Mini-Thumbnails.
+- Ob die Detailbearbeitung pro Asset als Inline-Expander, Side-Panel innerhalb der Seite oder kompakte Formularfläche unter der Galerie umgesetzt wird.
+- Ob Kategorie-Abschnitte als einfache Cards, Accordions oder flache Section-Container dargestellt werden, solange alle Kategorien gleichzeitig auffindbar bleiben.
 
 </decisions>
 
@@ -73,26 +47,63 @@ Keine Business-Regeln ausschliesslich im Frontend erzwingen.
 
 **Downstream agents MUST read these before planning or implementing.**
 
-### Bestehender Fansub-Edit-Drawer (Phase 32 Baseline)
-- `frontend/src/app/admin/fansubs/[id]/edit/page.tsx` — Fansub-Edit-Seite mit Anime & Releases Tab
-- `backend/internal/handlers/admin_content_release_theme_assets.go` — Theme-Asset-Handler (Pattern-Referenz für Phase 35/36)
+### Produkt- und Phasenquellen
+- `.planning/ROADMAP.md` - Phase-36-Scope, Abhängigkeiten und Success Criteria.
+- `.planning/phases/36-release-version-media-frontend-upload-ui-und-galerie/36-01-PLAN.md` - bestehender Planentwurf für Media-Tab und Foundations; nach diesem Context zu revalidieren.
+- `.planning/phases/36-release-version-media-frontend-upload-ui-und-galerie/36-02-PLAN.md` - bestehender Planentwurf für Upload-Flow; nach diesem Context zu revalidieren.
+- `.planning/phases/36-release-version-media-frontend-upload-ui-und-galerie/36-03-PLAN.md` - bestehender Planentwurf für Galerie und Bearbeitung; nach diesem Context zu revalidieren.
+- `.planning/phases/36-release-version-media-frontend-upload-ui-und-galerie/36-04-PLAN.md` - bestehender Planentwurf für Frontend-Verifikation; nach diesem Context zu revalidieren.
 
-### Bestehende Upload-Komponenten
-- `frontend/src/components/` — nach Upload-Komponenten suchen die wiederverwendbar sind
+### Domain-Regeln
+- `docs/architecture/db-schema-fansub-domain.md` - fachliche Source of Truth für Fansub-, Release- und Release-Version-Zuordnung; Release-Version-Media darf nicht an Episode oder allgemeines Release gehängt werden.
+
+### Bestehende Frontend-Hosts
+- `frontend/src/app/admin/fansubs/[id]/edit/page.tsx` - bestehender Fansub-Edit-Flow mit Release-Drawer; primärer Einstieg für Phase 36.
+- `frontend/src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditorPage.tsx` - bestehender Episode-Version-Editor; Host der vollständigen Media-Verwaltungsansicht.
+
+### Bestehende Release-/Theme-Patterns
+- `backend/internal/handlers/admin_content_release_theme_assets.go` - bestehender release-spezifischer Asset-Handler als Pattern-Referenz für UI-Verhalten und Rückmeldungen.
 
 </canonical_refs>
+
+<code_context>
+## Existing Code Insights
+
+### Reusable Assets
+- `frontend/src/app/admin/fansubs/[id]/edit/page.tsx`: vorhandener Release-Drawer mit Tab-Struktur, Kontextdarstellung und Release-spezifischem Einstieg.
+- `frontend/src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditorPage.tsx`: bestehender Editor mit Tab-Navigation und genügend Fläche für eine vollständige Media-Sektion.
+- `backend/internal/handlers/admin_content_release_theme_assets.go`: existierendes release-spezifisches Asset-Muster, das zeigt, wie gruppen-/release-nahe Medien im Admin bereits bedient werden.
+
+### Established Patterns
+- Fansub-nahe Release-Arbeit startet auf `/admin/fansubs/[id]/edit` und nutzt dort Drawer/Detail-Einstiege statt globaler Listen.
+- Der Episode-Version-Editor ist die bereits etablierte größere Arbeitsfläche für release-version-nahe Pflege mit mehreren Tabs.
+- Release-spezifische Medien und Theme-Assets wurden in früheren Phasen bewusst nicht an Episode oder Fansub-Gruppe allgemein angehängt; Phase 36 muss diese Trennung auch im UI sichtbar respektieren.
+
+### Integration Points
+- Der Drawer braucht eine kompakte Summary-Komponente für Counts, Preview-Status und Mini-Thumbnails plus klaren Link in den Episode-Version-Editor.
+- Der Episode-Version-Editor braucht eine neue vollständige Media-Sektion bzw. einen Media-Tab als Host für Upload, Galerie und Detailbearbeitung.
+- Beide Hosts sollen denselben inneren Frontend-Baustein für Datenladen, Fehlerdarstellung und Mutationen wiederverwenden.
+
+</code_context>
+
+<specifics>
+## Specific Ideas
+
+- Der Nutzer erwartet, dass viele Bilder pro Kategorie möglich sind; ein enger Drawer wird bei mehreren Kategorien, dutzenden Uploads und zusätzlichen Bildbeschreibungen schnell unübersichtlich.
+- Der Drawer soll deshalb eher den Zustand der Release-Version zeigen als die vollständige Asset-Pflege aufnehmen.
+- Die vollständige Verwaltungsansicht soll mehrere Kategorien gleichzeitig sichtbar machen statt per Tabs zu verstecken.
+
+</specifics>
 
 <deferred>
 ## Deferred Ideas
 
-- Fansub-Member-Upload ohne Admin-Rechte (spätere Phase)
-- Responsive Varianten / WebP-Konvertierung der Thumbnails
-- Quotas pro Nutzer/Gruppe
-- Reorder via Drag & Drop (vorerst manuelle Sortierreihenfolge via Eingabefeld oder Buttons)
+- Eine eigenständige dedizierte Route wie `/admin/release-versions/[versionId]/media` wurde nicht gewählt; der bestehende Episode-Version-Editor bleibt die große Host-Fläche.
+- Vollständige Asset-Verwaltung direkt im Drawer wurde bewusst verworfen, weil sie bei mehreren Kategorien und vielen Bildern unübersichtlich würde.
 
 </deferred>
 
 ---
 
 *Phase: 36-release-version-media-frontend-upload-ui-und-galerie*
-*Context gathered: 2026-05-07 via User Discussion*
+*Context gathered: 2026-05-08*

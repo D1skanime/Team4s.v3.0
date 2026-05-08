@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 35 planned — 4 plans in 3 waves, checker passed
-last_updated: "2026-05-07T15:30:00.000Z"
-last_activity: 2026-05-07
+status: Ready to execute
+stopped_at: Phase 36 planned — 4 plans in 4 waves, checker passed
+last_updated: "2026-05-08T10:00:00.000Z"
+last_activity: 2026-05-08
 progress:
   total_phases: 37
   completed_phases: 24
-  total_plans: 95
+  total_plans: 103
   completed_plans: 87
 ---
 
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 35 — release-version-media-backend-upload-service-and-api
+**Current focus:** Phase 35 → 36 — Release-Version Media Backend + Frontend
 
 ## Current Position
 
-Phase: 35
-Plan: Ready to execute (4 plans in 3 waves)
+Phase: 35 + 36 (both planned, ready to execute in order)
+Plan: Phase 35 — 4 plans (3 waves) | Phase 36 — 4 plans (4 waves)
 
 ## Accumulated Context
 
