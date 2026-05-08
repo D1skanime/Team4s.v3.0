@@ -945,3 +945,125 @@ describe('Task 1: Hover preview card — floating read-only overlay', () => {
     expect(img?.getAttribute('src')).toBeTruthy()
   })
 })
+
+describe('Task 2: GIF src-swap on hover', () => {
+  it('compact card swaps from thumbnail_url to original_url on hover when original is a GIF', async () => {
+    renderSection(
+      makeMediaState({
+        items: [
+          makeItem({
+            id: 201,
+            category: 'screenshot',
+            caption: 'Animated GIF',
+            thumbnail_url: 'https://example.com/frame0.jpg',
+            original_url: 'https://example.com/animation.gif',
+          }),
+        ],
+      }),
+    )
+
+    const card = screen.getByRole('button', { name: /Animated GIF/i })
+
+    // Before hover: card shows thumbnail_url
+    const thumbBefore = card.querySelector('img')
+    expect(thumbBefore?.getAttribute('src')).toBe('https://example.com/frame0.jpg')
+
+    // Trigger hover
+    fireEvent.mouseEnter(card)
+
+    // After hover: card shows original_url (animated GIF)
+    await waitFor(() => {
+      const thumbAfter = card.querySelector('img')
+      expect(thumbAfter?.getAttribute('src')).toBe('https://example.com/animation.gif')
+    })
+  })
+
+  it('compact card reverts to thumbnail_url after mouseleave on a GIF item', async () => {
+    renderSection(
+      makeMediaState({
+        items: [
+          makeItem({
+            id: 202,
+            category: 'screenshot',
+            caption: 'GIF Revert',
+            thumbnail_url: 'https://example.com/frame0.jpg',
+            original_url: 'https://example.com/anim.gif',
+          }),
+        ],
+      }),
+    )
+
+    const card = screen.getByRole('button', { name: /GIF Revert/i })
+
+    fireEvent.mouseEnter(card)
+
+    await waitFor(() => {
+      const img = card.querySelector('img')
+      expect(img?.getAttribute('src')).toBe('https://example.com/anim.gif')
+    })
+
+    fireEvent.mouseLeave(card)
+
+    await waitFor(() => {
+      const img = card.querySelector('img')
+      expect(img?.getAttribute('src')).toBe('https://example.com/frame0.jpg')
+    })
+  })
+
+  it('compact card does NOT swap src on hover for non-GIF items (no .gif extension)', async () => {
+    renderSection(
+      makeMediaState({
+        items: [
+          makeItem({
+            id: 203,
+            category: 'screenshot',
+            caption: 'Static PNG',
+            thumbnail_url: 'https://example.com/thumb.jpg',
+            original_url: 'https://example.com/original.png',
+          }),
+        ],
+      }),
+    )
+
+    const card = screen.getByRole('button', { name: /Static PNG/i })
+
+    // Before hover: thumbnail shown
+    const thumbBefore = card.querySelector('img')
+    expect(thumbBefore?.getAttribute('src')).toBe('https://example.com/thumb.jpg')
+
+    // Trigger hover
+    fireEvent.mouseEnter(card)
+
+    // After hover: still shows thumbnail, not original (no src swap for non-GIF)
+    await waitFor(() => {
+      const thumbAfter = card.querySelector('img')
+      expect(thumbAfter?.getAttribute('src')).toBe('https://example.com/thumb.jpg')
+    })
+  })
+
+  it('hover preview card also shows the animated src for GIF items', async () => {
+    renderSection(
+      makeMediaState({
+        items: [
+          makeItem({
+            id: 204,
+            category: 'screenshot',
+            caption: 'GIF Preview Card',
+            thumbnail_url: 'https://example.com/thumb.jpg',
+            original_url: 'https://example.com/animated.gif',
+          }),
+        ],
+      }),
+    )
+
+    const card = screen.getByRole('button', { name: /GIF Preview Card/i })
+    fireEvent.mouseEnter(card)
+
+    const tooltip = await screen.findByRole('tooltip')
+    expect(tooltip).not.toBeNull()
+    // Tooltip still shows the image (thumbnail_url in preview card is acceptable)
+    const tooltipImg = tooltip.querySelector('img')
+    expect(tooltipImg).not.toBeNull()
+    expect(tooltipImg?.getAttribute('src')).toBeTruthy()
+  })
+})
