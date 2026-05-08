@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
-stopped_at: Phase 37 context gathered
-last_updated: "2026-05-08T10:11:35.378Z"
+status: Ready to execute
+stopped_at: Completed 36-01-PLAN.md
+last_updated: "2026-05-08T10:24:51.702Z"
 last_activity: 2026-05-08
 progress:
   total_phases: 33
   completed_phases: 25
   total_plans: 107
-  completed_plans: 91
+  completed_plans: 92
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 35 — release-version-media-backend-upload-service-and-api
+**Current focus:** Phase 36 — release-version-media-frontend-upload-ui-und-galerie
 
 ## Current Position
 
-Phase: 35 (release-version-media-backend-upload-service-and-api) — EXECUTING
-Plan: 4 of 4
+Phase: 36 (release-version-media-frontend-upload-ui-und-galerie) — EXECUTING
+Plan: 2 of 4
 
 ## Accumulated Context
 
@@ -152,6 +152,7 @@ Recent durable decisions:
 - [Phase 35]: pgx import removed from handler file since pgx.Tx resolves transitively through repository method signatures
 - [Phase 35]: errors import added to handler file to support errors.Is pattern for ErrNotFound and ErrOwnershipMismatch
 - [Phase 35]: buildRVMPublicURL is a method on AdminContentHandler (not package-level) to access h.mediaStorageDir; /reorder registered before /:relationId for correct Gin literal-before-param matching
+- [Phase Phase 36]: Drawer media tab re-enabled to surface ReleaseVersionMediaDrawerSummary as compact counts+CTA entry; full management lives in episode-version editor
 
 ### Pending Todos
 
@@ -251,6 +252,7 @@ Recent durable decisions:
 | Phase 35 P02 | 3min | 2 tasks | 2 files |
 | Phase 35 P03 | 25min | 3 tasks | 4 files |
 | Phase 35 P04 | 15min | 2 tasks | 2 files |
+| Phase 36-release-version-media-frontend-upload-ui-und-galerie P01 | 4min | 2 tasks | 7 files |
 
 ### Quick Tasks Completed
 
@@ -268,7 +270,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-08T10:11:35.355Z
-Stopped at: Phase 37 context gathered
+Last session: 2026-05-08T10:24:51.694Z
+Stopped at: Completed 36-01-PLAN.md
 Last activity: 2026-05-08
-Resume file: .planning/phases/37-release-version-media-cleanup-job-und-tests/37-CONTEXT.md
+Resume file: None

@@ -563,7 +563,7 @@ Plans:
 **Goal:** Release-Version-Media im bestehenden Admin-Produktfluss nutzbar machen: kompakter Einstieg im Fansub-Release-Drawer und vollstaendige Verwaltung im Release-Version-Editor (/admin/episode-versions/[versionId]/edit/) mit Kategorie-zuerst-Upload-Flow, Drag-and-Drop, Per-File-Progress, Retry und Galerie-/Detailbearbeitung.
 **Requirements**: RVM-FRONTEND-01
 **Depends on:** Phase 35
-**Plans:** 0/4 plans complete
+**Plans:** 1/4 plans executed
 
 Plans:
 - [ ] `36-01-PLAN.md` - Shared Release-Version-Media-Foundations plus kompakte Drawer-Zusammenfassung und Media/Assets-Tab im Editor verdrahten.
