@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -394,4 +395,314 @@ func (h *AdminContentHandler) processOneRVMFile(
 		ReleaseVersionMediaID: &relationID,
 		ThumbnailURL:          thumbURL,
 	}
+}
+
+// buildRVMPublicURL converts a storage path to a /media/... public URL.
+// Storage path example: /app/media/release-version/3/uuid/original.png
+// Public URL example:   /media/release-version/3/uuid/original.png
+func (h *AdminContentHandler) buildRVMPublicURL(storagePath string) string {
+	rel := strings.TrimPrefix(storagePath, h.mediaStorageDir)
+	rel = strings.TrimPrefix(rel, "/")
+	rel = strings.TrimPrefix(rel, "\\")
+	rel = strings.ReplaceAll(rel, "\\", "/")
+	return "/media/" + rel
+}
+
+// ListReleaseVersionMedia handles GET /api/v1/admin/release-versions/:versionId/media.
+// Returns all non-deleted media for a release version with populated URLs.
+func (h *AdminContentHandler) ListReleaseVersionMedia(c *gin.Context) {
+	if _, ok := h.requireAdmin(c); !ok {
+		return
+	}
+	if h.mediaRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfuegbar"}})
+		return
+	}
+
+	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
+	if err != nil || versionID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige version id"}})
+		return
+	}
+
+	items, err := h.mediaRepo.ListReleaseVersionMedia(c.Request.Context(), versionID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Liste konnte nicht geladen werden.")
+		return
+	}
+
+	// Populate public URLs from storage paths (OriginalFilePath and ThumbFilePath
+	// are populated by the repository's LEFT JOIN on media_files).
+	for i := range items {
+		if items[i].OriginalFilePath != "" {
+			items[i].OriginalURL = h.buildRVMPublicURL(items[i].OriginalFilePath)
+		}
+		if items[i].ThumbFilePath != "" {
+			items[i].ThumbnailURL = h.buildRVMPublicURL(items[i].ThumbFilePath)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": items})
+}
+
+// PatchReleaseVersionMedia handles PATCH /api/v1/admin/release-versions/:versionId/media/:relationId.
+// Rules enforced:
+//   - D-14: category in body → 422 CATEGORY_CHANGE_NOT_ALLOWED
+//   - D-16: is_preview_candidate=true + category not in (screenshot, typesetting_karaoke) → 422 PREVIEW_NOT_ALLOWED_FOR_CATEGORY
+//   - D-15: is_preview_candidate=true → ClearPreviewCandidateForVersion in same transaction
+func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
+	identity, ok := h.requireAdmin(c)
+	if !ok {
+		return
+	}
+	_ = identity // available for future audit logging
+	if h.mediaRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfuegbar"}})
+		return
+	}
+
+	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
+	if err != nil || versionID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige version id"}})
+		return
+	}
+	relationID, err := strconv.ParseInt(c.Param("relationId"), 10, 64)
+	if err != nil || relationID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige relation id"}})
+		return
+	}
+
+	relationMeta, err := h.mediaRepo.GetReleaseVersionMediaRelation(c.Request.Context(), relationID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Relation konnte nicht geladen werden.")
+		return
+	}
+	if relationMeta.ReleaseVersionID != versionID {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation gehoert nicht zu dieser release version"}})
+		return
+	}
+
+	// D-14: detect category key in raw JSON to reject it explicitly
+	var rawBody map[string]interface{}
+	if err := c.ShouldBindJSON(&rawBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige json body"}})
+		return
+	}
+	if _, hasCategory := rawBody["category"]; hasCategory {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
+			"message":    "kategorie kann nicht geaendert werden",
+			"error_code": "CATEGORY_CHANGE_NOT_ALLOWED",
+		}})
+		return
+	}
+
+	// Parse typed fields from the raw map
+	var caption *string
+	var isPreviewCandidate *bool
+	if v, ok := rawBody["caption"]; ok {
+		if v == nil {
+			caption = nil
+		} else if s, ok := v.(string); ok {
+			caption = &s
+		}
+	}
+	if v, ok := rawBody["is_preview_candidate"]; ok {
+		if b, ok := v.(bool); ok {
+			isPreviewCandidate = &b
+		}
+	}
+
+	// D-16: if requesting preview, verify the relation's category allows it.
+	// Use the already loaded relationMeta so route ownership and category validation share one source of truth.
+	if isPreviewCandidate != nil && *isPreviewCandidate {
+		if !rvmPreviewAllowedCategories[relationMeta.Category] {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
+				"message":    "vorschaubild nicht erlaubt fuer diese kategorie",
+				"error_code": "PREVIEW_NOT_ALLOWED_FOR_CATEGORY",
+			}})
+			return
+		}
+	}
+
+	patchInput := repository.ReleaseVersionMediaPatchInput{
+		Caption:            caption,
+		IsPreviewCandidate: isPreviewCandidate,
+	}
+
+	// D-15: if setting preview, use transaction to atomically clear other previews.
+	// Use h.mediaRepo.BeginTx (follows MediaUploadRepoTx encapsulation pattern).
+	if isPreviewCandidate != nil && *isPreviewCandidate {
+		tx, err := h.mediaRepo.BeginTx(c.Request.Context())
+		if err != nil {
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Transaktion konnte nicht gestartet werden.")
+			return
+		}
+		defer tx.Rollback(c.Request.Context()) //nolint:errcheck
+
+		if err := h.mediaRepo.ClearPreviewCandidateForVersion(c.Request.Context(), tx, versionID, relationID); err != nil {
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Preview-Flag konnte nicht zurueckgesetzt werden.")
+			return
+		}
+		if err := h.mediaRepo.PatchReleaseVersionMedia(c.Request.Context(), tx, relationID, patchInput); err != nil {
+			if errors.Is(err, repository.ErrNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden"}})
+				return
+			}
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Patch fehlgeschlagen.")
+			return
+		}
+		if err := tx.Commit(c.Request.Context()); err != nil {
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Commit fehlgeschlagen.")
+			return
+		}
+	} else {
+		// No preview change — still use a transaction for consistency
+		tx, err := h.mediaRepo.BeginTx(c.Request.Context())
+		if err != nil {
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Transaktion konnte nicht gestartet werden.")
+			return
+		}
+		defer tx.Rollback(c.Request.Context()) //nolint:errcheck
+		if err := h.mediaRepo.PatchReleaseVersionMedia(c.Request.Context(), tx, relationID, patchInput); err != nil {
+			if errors.Is(err, repository.ErrNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden"}})
+				return
+			}
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Patch fehlgeschlagen.")
+			return
+		}
+		if err := tx.Commit(c.Request.Context()); err != nil {
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Commit fehlgeschlagen.")
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+// DeleteReleaseVersionMedia handles DELETE /api/v1/admin/release-versions/:versionId/media/:relationId.
+// Soft-deletes the relation. The media_asset is NOT deleted (ON DELETE RESTRICT in schema).
+func (h *AdminContentHandler) DeleteReleaseVersionMedia(c *gin.Context) {
+	identity, ok := h.requireAdmin(c)
+	if !ok {
+		return
+	}
+	if h.mediaRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfuegbar"}})
+		return
+	}
+
+	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
+	if err != nil || versionID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige version id"}})
+		return
+	}
+	relationID, err := strconv.ParseInt(c.Param("relationId"), 10, 64)
+	if err != nil || relationID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige relation id"}})
+		return
+	}
+
+	relationMeta, err := h.mediaRepo.GetReleaseVersionMediaRelation(c.Request.Context(), relationID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden oder bereits geloescht"}})
+		return
+	}
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Relation konnte nicht geladen werden.")
+		return
+	}
+	if relationMeta.ReleaseVersionID != versionID {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation gehoert nicht zu dieser release version"}})
+		return
+	}
+
+	if err := h.mediaRepo.SoftDeleteReleaseVersionMedia(c.Request.Context(), relationID, identity.UserID); err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden oder bereits geloescht"}})
+			return
+		}
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Loeschen fehlgeschlagen.")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "deleted"})
+}
+
+// rvmReorderItem is one entry in the reorder request body.
+type rvmReorderItem struct {
+	ID        int64 `json:"id"`
+	SortOrder int   `json:"sort_order"`
+}
+
+// rvmReorderBody is the JSON body for POST /admin/release-versions/:versionId/media/reorder.
+type rvmReorderBody struct {
+	Items []rvmReorderItem `json:"items"`
+}
+
+// ReorderReleaseVersionMedia handles POST /api/v1/admin/release-versions/:versionId/media/reorder.
+// Accepts {"items": [{"id": 7, "sort_order": 10}, ...]}.
+// Updates sort_order for all provided relation IDs in a single transaction.
+func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
+	if _, ok := h.requireAdmin(c); !ok {
+		return
+	}
+	if h.mediaRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfuegbar"}})
+		return
+	}
+
+	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
+	if err != nil || versionID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige version id"}})
+		return
+	}
+
+	var body rvmReorderBody
+	if err := c.ShouldBindJSON(&body); err != nil || len(body.Items) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "items array fehlt oder leer"}})
+		return
+	}
+
+	reorderItems := make([]repository.ReleaseVersionMediaReorderItem, len(body.Items))
+	relationIDs := make([]int64, len(body.Items))
+	for i, item := range body.Items {
+		reorderItems[i] = repository.ReleaseVersionMediaReorderItem{
+			RelationID: item.ID,
+			SortOrder:  item.SortOrder,
+		}
+		relationIDs[i] = item.ID
+	}
+
+	if err := h.mediaRepo.ValidateReleaseVersionMediaOwnership(c.Request.Context(), versionID, relationIDs); err != nil {
+		if errors.Is(err, repository.ErrNotFound) || errors.Is(err, repository.ErrOwnershipMismatch) {
+			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "eine oder mehrere relationen gehoeren nicht zu dieser release version"}})
+			return
+		}
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Relationen konnten nicht validiert werden.")
+		return
+	}
+
+	tx, err := h.mediaRepo.BeginTx(c.Request.Context())
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Transaktion konnte nicht gestartet werden.")
+		return
+	}
+	defer tx.Rollback(c.Request.Context()) //nolint:errcheck
+
+	if err := h.mediaRepo.ReorderReleaseVersionMedia(c.Request.Context(), tx, reorderItems); err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Reorder fehlgeschlagen.")
+		return
+	}
+
+	if err := tx.Commit(c.Request.Context()); err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Commit fehlgeschlagen.")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }

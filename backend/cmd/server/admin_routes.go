@@ -100,4 +100,11 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.GET("/admin/releases/:releaseId/theme-assets", auth, deps.adminContentHandler.ListReleaseThemeAssets)
 	v1.POST("/admin/releases/:releaseId/theme-assets", auth, deps.adminContentHandler.UploadReleaseThemeAssetForRelease)
 	v1.DELETE("/admin/releases/:releaseId/theme-assets/:themeId/:mediaId", auth, deps.adminContentHandler.DeleteReleaseThemeAsset)
+	// Release-Version Media routes (Phase 35)
+	// NOTE: /reorder must be registered BEFORE /:relationId so Gin matches the literal segment first.
+	v1.POST("/admin/release-versions/:versionId/media", auth, deps.adminContentHandler.UploadReleaseVersionMedia)
+	v1.GET("/admin/release-versions/:versionId/media", auth, deps.adminContentHandler.ListReleaseVersionMedia)
+	v1.POST("/admin/release-versions/:versionId/media/reorder", auth, deps.adminContentHandler.ReorderReleaseVersionMedia)
+	v1.PATCH("/admin/release-versions/:versionId/media/:relationId", auth, deps.adminContentHandler.PatchReleaseVersionMedia)
+	v1.DELETE("/admin/release-versions/:versionId/media/:relationId", auth, deps.adminContentHandler.DeleteReleaseVersionMedia)
 }
