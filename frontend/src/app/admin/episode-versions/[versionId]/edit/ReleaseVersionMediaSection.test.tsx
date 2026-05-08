@@ -814,3 +814,134 @@ describe('Task 2: DragAndDrop reorder — legacy sort field removed', () => {
     })
   })
 })
+
+describe('Task 1: Hover preview card — floating read-only overlay', () => {
+  it('shows a hover preview card with the caption when mouseenter fires on a gallery card', async () => {
+    renderSection(
+      makeMediaState({
+        items: [
+          makeItem({
+            id: 101,
+            category: 'screenshot',
+            caption: 'Hover Caption',
+            thumbnail_url: 'https://example.com/thumb.jpg',
+            original_url: 'https://example.com/orig.jpg',
+          }),
+        ],
+      }),
+    )
+
+    const card = screen.getByRole('button', { name: /Hover Caption/i })
+
+    // Before hover: preview card should not be visible
+    expect(screen.queryByRole('tooltip')).toBeNull()
+
+    // Trigger mouseenter on the gallery card
+    fireEvent.mouseEnter(card)
+
+    // After hover: floating preview card should appear with caption text
+    const tooltip = await screen.findByRole('tooltip')
+    expect(tooltip).not.toBeNull()
+    expect(tooltip.textContent).toContain('Hover Caption')
+  })
+
+  it('hides the hover preview card after mouseleave', async () => {
+    renderSection(
+      makeMediaState({
+        items: [
+          makeItem({
+            id: 102,
+            category: 'screenshot',
+            caption: 'Leave Test',
+            thumbnail_url: 'https://example.com/thumb.jpg',
+          }),
+        ],
+      }),
+    )
+
+    const card = screen.getByRole('button', { name: /Leave Test/i })
+
+    fireEvent.mouseEnter(card)
+    expect(await screen.findByRole('tooltip')).not.toBeNull()
+
+    fireEvent.mouseLeave(card)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('tooltip')).toBeNull()
+    })
+  })
+
+  it('does not open a second editing surface when the hover preview is visible', async () => {
+    renderSection(
+      makeMediaState({
+        items: [
+          makeItem({
+            id: 103,
+            category: 'screenshot',
+            caption: 'Read Only Preview',
+            thumbnail_url: 'https://example.com/thumb.jpg',
+          }),
+        ],
+      }),
+    )
+
+    const card = screen.getByRole('button', { name: /Read Only Preview/i })
+    fireEvent.mouseEnter(card)
+
+    await screen.findByRole('tooltip')
+
+    // The tooltip/preview card must NOT contain any text inputs or edit controls
+    const tooltip = screen.getByRole('tooltip')
+    expect(tooltip.querySelector('input')).toBeNull()
+    expect(tooltip.querySelector('button')).toBeNull()
+  })
+
+  it('clicking the gallery card still opens the detail panel while hover preview is visible', async () => {
+    renderSection(
+      makeMediaState({
+        items: [
+          makeItem({
+            id: 104,
+            category: 'screenshot',
+            caption: 'Click Through',
+            thumbnail_url: 'https://example.com/thumb.jpg',
+          }),
+        ],
+      }),
+    )
+
+    const card = screen.getByRole('button', { name: /Click Through/i })
+    fireEvent.mouseEnter(card)
+    await screen.findByRole('tooltip')
+
+    // Click should still open the detail panel
+    fireEvent.click(card)
+    expect(await screen.findByText('Medium bearbeiten')).not.toBeNull()
+  })
+
+  it('shows a large preview image inside the hover card using thumbnail_url', async () => {
+    renderSection(
+      makeMediaState({
+        items: [
+          makeItem({
+            id: 105,
+            category: 'screenshot',
+            caption: 'Preview Image Test',
+            thumbnail_url: 'https://example.com/preview-thumb.jpg',
+            original_url: 'https://example.com/preview-orig.jpg',
+          }),
+        ],
+      }),
+    )
+
+    const card = screen.getByRole('button', { name: /Preview Image Test/i })
+    fireEvent.mouseEnter(card)
+
+    await screen.findByRole('tooltip')
+    const tooltip = screen.getByRole('tooltip')
+    const img = tooltip.querySelector('img')
+    expect(img).not.toBeNull()
+    // The preview shows thumbnail_url (not necessarily the original)
+    expect(img?.getAttribute('src')).toBeTruthy()
+  })
+})

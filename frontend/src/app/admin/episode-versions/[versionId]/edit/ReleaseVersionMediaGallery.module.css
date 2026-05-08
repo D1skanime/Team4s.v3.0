@@ -43,6 +43,10 @@
   grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
 }
 
+.cardWrapper {
+  position: relative;
+}
+
 .card {
   border: 1px solid #e5e7eb;
   border-radius: 14px;
@@ -52,6 +56,7 @@
   gap: 10px;
   cursor: pointer;
   text-align: left;
+  width: 100%;
 }
 
 .cardActive {
@@ -127,4 +132,48 @@
   font-weight: 700;
   color: #2563eb;
   text-decoration: none;
+}
+
+/* Floating hover preview card */
+.hoverPreview {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 10px);
+  z-index: 100;
+  width: 240px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.08);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.hoverPreviewImageWrapper {
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f1f5f9;
+  display: grid;
+  place-items: center;
+  min-height: 140px;
+}
+
+.hoverPreviewImage {
+  width: 100%;
+  height: auto;
+  max-height: 220px;
+  object-fit: contain;
+  display: block;
+}
+
+.hoverPreviewCaption {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

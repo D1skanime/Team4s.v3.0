@@ -24,6 +24,13 @@ function cardLabel(item: ReleaseVersionMediaItem): string {
   return item.caption?.trim() || `Asset #${item.id}`
 }
 
+function isGif(item: ReleaseVersionMediaItem): boolean {
+  return (
+    item.original_url?.toLowerCase().endsWith('.gif') === true ||
+    (item as unknown as { mime_type?: string }).mime_type === 'image/gif'
+  )
+}
+
 interface DragState {
   draggedId: number | null
   draggedCategory: ReleaseVersionMediaCategory | null
@@ -36,6 +43,10 @@ const INITIAL_DRAG_STATE: DragState = {
   overCategory: null,
 }
 
+interface HoverPreviewState {
+  item: ReleaseVersionMediaItem | null
+}
+
 export function ReleaseVersionMediaGallery({
   items,
   selectedItemId,
@@ -45,6 +56,41 @@ export function ReleaseVersionMediaGallery({
 }: ReleaseVersionMediaGalleryProps) {
   const [dragState, setDragState] = useState<DragState>(INITIAL_DRAG_STATE)
   const dragOverItemIdRef = useRef<number | null>(null)
+  const [hoveredItem, setHoveredItem] = useState<HoverPreviewState>({ item: null })
+  const [gifHoveredIds, setGifHoveredIds] = useState<Set<number>>(new Set())
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function handleMouseEnter(item: ReleaseVersionMediaItem) {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+      hoverTimeoutRef.current = null
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredItem({ item })
+      if (isGif(item)) {
+        setGifHoveredIds((prev) => {
+          const next = new Set(prev)
+          next.add(item.id)
+          return next
+        })
+      }
+    }, 200)
+  }
+
+  function handleMouseLeave(item: ReleaseVersionMediaItem) {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+      hoverTimeoutRef.current = null
+    }
+    setHoveredItem({ item: null })
+    if (isGif(item)) {
+      setGifHoveredIds((prev) => {
+        const next = new Set(prev)
+        next.delete(item.id)
+        return next
+      })
+    }
+  }
 
   function handleDragStart(item: ReleaseVersionMediaItem) {
     setDragState({
@@ -112,6 +158,8 @@ export function ReleaseVersionMediaGallery({
     dragOverItemIdRef.current = null
   }
 
+  const previewItem = hoveredItem.item
+
   return (
     <div className={styles.gallery}>
       {RELEASE_VERSION_MEDIA_CATEGORIES.map((category) => {
@@ -137,63 +185,93 @@ export function ReleaseVersionMediaGallery({
                     dragState.draggedId !== null &&
                     dragState.draggedId !== item.id &&
                     dragState.draggedCategory === item.category
+                  const isGifHovered = gifHoveredIds.has(item.id)
+                  const cardSrc =
+                    isGifHovered && item.original_url ? item.original_url : item.thumbnail_url
 
                   return (
-                    <button
+                    <div
                       key={item.id}
-                      type="button"
-                      draggable={true}
-                      className={[
-                        styles.card,
-                        selectedItemId === item.id ? styles.cardActive : '',
-                        isDragging ? styles.cardDragging : '',
-                        isDropTarget ? styles.cardDropTarget : '',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
-                      onClick={() => onSelectItem(item)}
-                      onDragStart={() => handleDragStart(item)}
-                      onDragOver={(event) => {
-                        event.preventDefault()
-                        handleDragOver(item)
-                      }}
-                      onDrop={(event) => {
-                        event.preventDefault()
-                        handleDrop(item)
-                      }}
-                      onDragEnd={handleDragEnd}
+                      className={styles.cardWrapper}
+                      onMouseEnter={() => handleMouseEnter(item)}
+                      onMouseLeave={() => handleMouseLeave(item)}
                     >
-                      <div className={styles.thumb}>
-                        {item.thumbnail_url ? (
-                          <img
-                            className={styles.thumbImage}
-                            src={item.thumbnail_url}
-                            alt={cardLabel(item)}
-                          />
-                        ) : (
-                          <span className={styles.placeholder}>Kein Thumbnail</span>
-                        )}
-                      </div>
-                      <div className={styles.caption}>{cardLabel(item)}</div>
-                      <div className={styles.metaRow}>
-                        {item.is_preview_candidate ? (
-                          <span className={styles.previewBadge}>Preview</span>
-                        ) : (
-                          <span />
-                        )}
-                        {item.original_url ? (
-                          <a
-                            className={styles.openLink}
-                            href={item.original_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(event) => event.stopPropagation()}
-                          >
-                            Oeffnen
-                          </a>
-                        ) : null}
-                      </div>
-                    </button>
+                      <button
+                        type="button"
+                        draggable={true}
+                        className={[
+                          styles.card,
+                          selectedItemId === item.id ? styles.cardActive : '',
+                          isDragging ? styles.cardDragging : '',
+                          isDropTarget ? styles.cardDropTarget : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                        onClick={() => onSelectItem(item)}
+                        onDragStart={() => handleDragStart(item)}
+                        onDragOver={(event) => {
+                          event.preventDefault()
+                          handleDragOver(item)
+                        }}
+                        onDrop={(event) => {
+                          event.preventDefault()
+                          handleDrop(item)
+                        }}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <div className={styles.thumb}>
+                          {cardSrc ? (
+                            <img
+                              className={styles.thumbImage}
+                              src={cardSrc}
+                              alt={cardLabel(item)}
+                            />
+                          ) : (
+                            <span className={styles.placeholder}>Kein Thumbnail</span>
+                          )}
+                        </div>
+                        <div className={styles.caption}>{cardLabel(item)}</div>
+                        <div className={styles.metaRow}>
+                          {item.is_preview_candidate ? (
+                            <span className={styles.previewBadge}>Preview</span>
+                          ) : (
+                            <span />
+                          )}
+                          {item.original_url ? (
+                            <a
+                              className={styles.openLink}
+                              href={item.original_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              Oeffnen
+                            </a>
+                          ) : null}
+                        </div>
+                      </button>
+
+                      {previewItem?.id === item.id && (
+                        <div
+                          role="tooltip"
+                          className={styles.hoverPreview}
+                          aria-label={`Vorschau: ${cardLabel(item)}`}
+                        >
+                          <div className={styles.hoverPreviewImageWrapper}>
+                            {(item.thumbnail_url || item.original_url) ? (
+                              <img
+                                className={styles.hoverPreviewImage}
+                                src={item.thumbnail_url ?? item.original_url ?? ''}
+                                alt={cardLabel(item)}
+                              />
+                            ) : (
+                              <span className={styles.placeholder}>Kein Bild</span>
+                            )}
+                          </div>
+                          <div className={styles.hoverPreviewCaption}>{cardLabel(item)}</div>
+                        </div>
+                      )}
+                    </div>
                   )
                 })}
               </div>
