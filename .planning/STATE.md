@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Milestone complete
-stopped_at: Completed 37-04-PLAN.md
-last_updated: "2026-05-08T14:29:19.552Z"
+status: In Progress
+stopped_at: Phase 38 context written — ready for planning
+last_updated: "2026-05-08T15:00:00.000Z"
 last_activity: 2026-05-08
 progress:
-  total_phases: 33
+  total_phases: 34
   completed_phases: 26
-  total_plans: 108
+  total_plans: 110
   completed_plans: 99
 ---
 
@@ -20,11 +20,11 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 37 — release-version-media-cleanup-job-und-tests
+**Current focus:** Phase 38 — release-version-media-gallery-ux-hover-preview-und-drag-and-drop-reorder
 
 ## Current Position
 
-Phase: 37
+Phase: 38
 Plan: Not started
 
 ## Accumulated Context

@@ -600,3 +600,21 @@ Plans:
   3. Soft-deleted Assets werden nach definierter Retention physisch geloescht — nur wenn keine andere Relation dasselbe Asset referenziert.
   4. Backend-Tests decken ab: gueltiger JPEG/PNG/WebP/GIF Upload, GIF-Original animiert, GIF-Thumbnail statisch, SVG abgelehnt, falscher MIME-Type abgelehnt, zu grosse Datei abgelehnt, Preview-Regel verletzt, Teilfehler bei Mehrfach-Upload.
   5. Frontend-Tests: Kategorie-Pflicht, Per-File-Retry, Preview-Schalter-Sichtbarkeit, Galerie-Update nach Upload.
+
+### Phase 38: Release-Version Media — Gallery UX: Hover-Preview und Drag-and-Drop-Reorder
+
+**Goal:** Professionelle Galerie-UX fuer Release-Version-Media: Floating Preview Card beim Hover (grosses Bild + Caption, GIF-Animation via src-Swap), Drag-and-Drop-Reorder innerhalb einer Kategorie (ersetzt sort_order-Zahlenfeld), Live-Re-Sort-Bug-Fix.
+**Requirements**: RVM-FRONTEND-01
+**Depends on:** Phase 36, Phase 37
+**Plans:** 0 plans complete
+
+Plans:
+- [ ] `38-01-PLAN.md` - Live-Re-Sort-Bug-Fix und Drag-and-Drop-Reorder innerhalb einer Kategorie implementieren.
+- [ ] `38-02-PLAN.md` - Floating Preview Card mit Hover-Trigger und GIF-Animation via src-Swap aufbauen.
+
+**Success Criteria** (what must be TRUE):
+  1. sort_order-Zahlenfeld ist aus dem Detail-Panel entfernt; Drag-and-Drop innerhalb einer Kategorie funktioniert und persistiert die neue Reihenfolge.
+  2. Nach einem sort_order-Patch sortiert sich die Galerie-Liste sofort neu ohne Reload.
+  3. Hover ueber eine Galerie-Karte zeigt eine Floating Preview Card mit grossem Bild und Caption.
+  4. GIF-Items zeigen beim Hover das animierte Original (original_url) statt dem statischen Thumbnail.
+  5. Cross-Category-Drag ist gesperrt; die Reorder-Aktion bleibt auf die aktuelle Kategorie begrenzt.
