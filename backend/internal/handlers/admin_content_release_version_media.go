@@ -126,7 +126,7 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
-	// Verify release_version exists using ReleaseVersionExistsForRVM (not adminContentRepo)
+	// Verify release_version exists using ReleaseVersionExistsForRVM — uses h.mediaRepo only
 	exists, err := h.mediaRepo.ReleaseVersionExistsForRVM(c.Request.Context(), versionID)
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Release-Version konnte nicht geprueft werden.")
