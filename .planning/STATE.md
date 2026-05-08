@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 35-03-PLAN.md
-last_updated: "2026-05-08T08:53:57.284Z"
+status: Phase complete — ready for verification
+stopped_at: Phase 37 context gathered
+last_updated: "2026-05-08T10:11:35.378Z"
 last_activity: 2026-05-08
 progress:
   total_phases: 33
-  completed_phases: 24
+  completed_phases: 25
   total_plans: 107
-  completed_plans: 90
+  completed_plans: 91
 ---
 
 # Project State
@@ -150,6 +150,8 @@ Recent durable decisions:
 - [Phase 35]: ErrOwnershipMismatch sentinel added to repository package for RVM ownership validation; ValidateReleaseVersionMediaOwnership uses two queries to distinguish missing rows from cross-version mismatch
 - [Phase 35]: MediaKindImage constant added to models/media.go and handled in mediaTypeNameForKind returning 'image'
 - [Phase 35]: pgx import removed from handler file since pgx.Tx resolves transitively through repository method signatures
+- [Phase 35]: errors import added to handler file to support errors.Is pattern for ErrNotFound and ErrOwnershipMismatch
+- [Phase 35]: buildRVMPublicURL is a method on AdminContentHandler (not package-level) to access h.mediaStorageDir; /reorder registered before /:relationId for correct Gin literal-before-param matching
 
 ### Pending Todos
 
@@ -248,6 +250,7 @@ Recent durable decisions:
 | Phase 35 P01 | 2min | 2 tasks | 4 files |
 | Phase 35 P02 | 3min | 2 tasks | 2 files |
 | Phase 35 P03 | 25min | 3 tasks | 4 files |
+| Phase 35 P04 | 15min | 2 tasks | 2 files |
 
 ### Quick Tasks Completed
 
@@ -265,7 +268,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-08T08:53:57.276Z
-Stopped at: Completed 35-03-PLAN.md
+Last session: 2026-05-08T10:11:35.355Z
+Stopped at: Phase 37 context gathered
 Last activity: 2026-05-08
-Resume file: None
+Resume file: .planning/phases/37-release-version-media-cleanup-job-und-tests/37-CONTEXT.md
