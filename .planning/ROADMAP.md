@@ -586,7 +586,7 @@ Plans:
 **Goal:** Periodischer Cleanup-Job fuer verwaiste Staging-Dateien, stale-processing-Assets, fehlende Dateien und Soft-Delete-physisch-Cleanup. Backend- und Frontend-Tests fuer den gesamten Upload-Flow inklusive GIF-Sonderfall und parallele Uploads.
 **Requirements**: RVM-CLEANUP-01
 **Depends on:** Phase 36
-**Plans:** 0/4 plans complete
+**Plans:** 2/4 plans executed
 
 Plans:
 - [ ] `37-01-PLAN.md` - Periodischen Cleanup-Worker fuer stale processing assets, orphan staging files, missing files und soft-deleted release-version media aufbauen.

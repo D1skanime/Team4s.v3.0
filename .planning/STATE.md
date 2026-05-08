@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 36-01-PLAN.md
-last_updated: "2026-05-08T10:24:51.702Z"
+stopped_at: Completed 37-02-PLAN.md
+last_updated: "2026-05-08T14:15:05.928Z"
 last_activity: 2026-05-08
 progress:
   total_phases: 33
   completed_phases: 25
-  total_plans: 107
-  completed_plans: 92
+  total_plans: 108
+  completed_plans: 97
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 36 — release-version-media-frontend-upload-ui-und-galerie
+**Current focus:** Phase 37 — release-version-media-cleanup-job-und-tests
 
 ## Current Position
 
-Phase: 36 (release-version-media-frontend-upload-ui-und-galerie) — EXECUTING
-Plan: 2 of 4
+Phase: 37 (release-version-media-cleanup-job-und-tests) — EXECUTING
+Plan: 3 of 4
 
 ## Accumulated Context
 
@@ -153,6 +153,9 @@ Recent durable decisions:
 - [Phase 35]: errors import added to handler file to support errors.Is pattern for ErrNotFound and ErrOwnershipMismatch
 - [Phase 35]: buildRVMPublicURL is a method on AdminContentHandler (not package-level) to access h.mediaStorageDir; /reorder registered before /:relationId for correct Gin literal-before-param matching
 - [Phase Phase 36]: Drawer media tab re-enabled to surface ReleaseVersionMediaDrawerSummary as compact counts+CTA entry; full management lives in episode-version editor
+- [Phase 37]: RVMCleanupStore interface in services package decouples cleanup from *MediaRepository for mock-based testing; IsMediaAssetReferencedByOtherRVM used as runtime guard even though SQL-level NOT EXISTS subquery already enforces no-shared-asset at selection time
+- [Phase 37]: Handler tests use pure-function and source-inspection testing since mediaRepo is concrete *repository.MediaRepository — no interface mock injection without architectural refactor
+- [Phase 37]: GIF animation invariant in test: synthesize multi-frame GIF in memory, generate thumbnail, assert original byte slice still has all frames and thumbnail decodes as static JPEG
 
 ### Pending Todos
 
@@ -253,6 +256,8 @@ Recent durable decisions:
 | Phase 35 P03 | 25min | 3 tasks | 4 files |
 | Phase 35 P04 | 15min | 2 tasks | 2 files |
 | Phase 36-release-version-media-frontend-upload-ui-und-galerie P01 | 4min | 2 tasks | 7 files |
+| Phase 37 P01 | 25min | 2 tasks | 5 files |
+| Phase 37 P02 | 20min | 2 tasks | 2 files |
 
 ### Quick Tasks Completed
 
@@ -270,7 +275,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-08T10:24:51.694Z
-Stopped at: Completed 36-01-PLAN.md
+Last session: 2026-05-08T14:15:05.920Z
+Stopped at: Completed 37-02-PLAN.md
 Last activity: 2026-05-08
 Resume file: None
