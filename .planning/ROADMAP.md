@@ -606,7 +606,7 @@ Plans:
 **Goal:** Professionelle Galerie-UX fuer Release-Version-Media: Floating Preview Card beim Hover (grosses Bild + Caption, GIF-Animation via src-Swap), Drag-and-Drop-Reorder innerhalb einer Kategorie (ersetzt sort_order-Zahlenfeld), Live-Re-Sort-Bug-Fix.
 **Requirements**: RVM-FRONTEND-01
 **Depends on:** Phase 36, Phase 37
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] `38-01-PLAN.md` - Live-Re-Sort-Bug-Fix und Drag-and-Drop-Reorder innerhalb einer Kategorie implementieren.
