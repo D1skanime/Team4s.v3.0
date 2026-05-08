@@ -17,6 +17,7 @@ import (
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
 
+	"github.com/davidbyttow/govips/v2/vips"
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,6 +45,13 @@ func main() {
 	} else {
 		log.Printf("ffmpeg available at %s", cfg.FFmpegPath)
 	}
+
+	// govips (libvips wrapper) must be initialized before any image processing calls.
+	// vips.Shutdown() is deferred here so it runs after server shutdown completes.
+	if err := vips.Startup(nil); err != nil {
+		log.Fatalf("govips startup failed: %v", err)
+	}
+	defer vips.Shutdown()
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), corsMiddleware())
