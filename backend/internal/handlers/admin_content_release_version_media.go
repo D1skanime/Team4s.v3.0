@@ -1,8 +1,13 @@
 package handlers
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"image"
+	"image/gif"
+	"image/jpeg"
+	_ "image/png"
 	"io"
 	"log"
 	"mime/multipart"
@@ -15,10 +20,11 @@ import (
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 
-	"github.com/davidbyttow/govips/v2/vips"
+	"github.com/disintegration/imaging"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	_ "golang.org/x/image/webp"
 )
 
 const (
@@ -49,6 +55,12 @@ var rvmPreviewAllowedCategories = map[string]bool{
 	"typesetting_karaoke": true,
 }
 
+type rvmImageMetadata struct {
+	Width     int
+	Height    int
+	GIFFrames int
+}
+
 type rvmFileResult struct {
 	ClientFileName        string `json:"client_file_name"`
 	Status                string `json:"status"` // "ready" or "failed"
@@ -73,43 +85,78 @@ func imageExtFromMimeRVM(mimeType string) string {
 	}
 }
 
-// generateRVMThumbnail creates a static JPEG thumbnail from image data.
-// For animated GIFs, only frame 0 is decoded (NumPages.Set(1) prevents loading all frames).
-// Returns JPEG bytes. Caller must handle cleanup on error.
-func generateRVMThumbnail(data []byte, mimeType string) ([]byte, error) {
+func inspectRVMImage(data []byte, mimeType string) (*rvmImageMetadata, error) {
+	cfg, _, err := image.DecodeConfig(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("decode config: %w", err)
+	}
+
+	meta := &rvmImageMetadata{
+		Width:     cfg.Width,
+		Height:    cfg.Height,
+		GIFFrames: 1,
+	}
 	if mimeType == "image/gif" {
-		params := vips.NewImportParams()
-		params.NumPages.Set(1) // Load only frame 0 — avoids stacking all frames
-		img, err := vips.LoadImageFromBuffer(data, params)
+		decoded, err := gif.DecodeAll(bytes.NewReader(data))
 		if err != nil {
-			return nil, fmt.Errorf("gif frame 0 laden: %w", err)
+			return nil, fmt.Errorf("decode gif: %w", err)
 		}
-		defer img.Close() // MUST Close() — govips wraps C memory, not managed by Go GC
-		if err := img.Thumbnail(rvmThumbnailWidth, 0, vips.InterestingNone); err != nil {
-			return nil, fmt.Errorf("gif thumbnail resize: %w", err)
-		}
-		out, _, err := img.ExportJpeg(&vips.JpegExportParams{Quality: 85, StripMetadata: true})
+		meta.GIFFrames = len(decoded.Image)
+	}
+
+	return meta, nil
+}
+
+// generateRVMThumbnail creates a static JPEG thumbnail from image data.
+// Animated GIFs keep their original animation in storage; the thumbnail uses frame 0.
+func generateRVMThumbnail(data []byte, mimeType string) ([]byte, int, int, error) {
+	var src image.Image
+
+	if mimeType == "image/gif" {
+		decoded, err := gif.DecodeAll(bytes.NewReader(data))
 		if err != nil {
-			return nil, fmt.Errorf("gif thumbnail export: %w", err)
+			return nil, 0, 0, fmt.Errorf("gif frame 0 laden: %w", err)
 		}
-		return out, nil
+		if len(decoded.Image) == 0 {
+			return nil, 0, 0, fmt.Errorf("gif enthaelt keine frames")
+		}
+		src = decoded.Image[0]
+	} else {
+		decoded, _, err := image.Decode(bytes.NewReader(data))
+		if err != nil {
+			return nil, 0, 0, fmt.Errorf("bild dekodieren: %w", err)
+		}
+		src = decoded
 	}
-	// Non-GIF: use NewThumbnailFromBuffer (shrink-on-load, more efficient for large inputs)
-	thumb, err := vips.NewThumbnailFromBuffer(data, rvmThumbnailWidth, 0, vips.InterestingNone)
-	if err != nil {
-		return nil, fmt.Errorf("thumbnail erzeugen: %w", err)
+
+	thumb := imaging.Resize(src, rvmThumbnailWidth, 0, imaging.Lanczos)
+	buf := new(bytes.Buffer)
+	if err := jpeg.Encode(buf, thumb, &jpeg.Options{Quality: 85}); err != nil {
+		return nil, 0, 0, fmt.Errorf("thumbnail exportieren: %w", err)
 	}
-	defer thumb.Close()
-	out, _, err := thumb.ExportJpeg(&vips.JpegExportParams{Quality: 85, StripMetadata: true})
-	if err != nil {
-		return nil, fmt.Errorf("thumbnail exportieren: %w", err)
+
+	bounds := thumb.Bounds()
+	return buf.Bytes(), bounds.Dx(), bounds.Dy(), nil
+}
+
+func parseOptionalCaptionField(rawBody map[string]interface{}) (*string, bool, error) {
+	v, ok := rawBody["caption"]
+	if !ok {
+		return nil, false, nil
 	}
-	return out, nil
+	if v == nil {
+		return nil, true, nil
+	}
+	s, ok := v.(string)
+	if !ok {
+		return nil, false, fmt.Errorf("caption muss string oder null sein")
+	}
+	return &s, true, nil
 }
 
 // UploadReleaseVersionMedia handles POST /api/v1/admin/release-versions/:versionId/media.
 // Accepts multipart/form-data with: category (string), files[] (one or more files).
-// Each file is processed independently — a failure on one file does not affect others.
+// Each file is processed independently - a failure on one file does not affect others.
 // Response: {"results": [...]} with one entry per input file.
 func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
@@ -127,7 +174,6 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
-	// Verify release_version exists using ReleaseVersionExistsForRVM — uses h.mediaRepo only
 	exists, err := h.mediaRepo.ReleaseVersionExistsForRVM(c.Request.Context(), versionID)
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Release-Version konnte nicht geprueft werden.")
@@ -158,6 +204,9 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 
 	files := form.File["files[]"]
 	if len(files) == 0 {
+		files = form.File["files"]
+	}
+	if len(files) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "keine dateien hochgeladen"}})
 		return
 	}
@@ -169,7 +218,6 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
-	// Read MAX sort_order once before the file loop (Pattern 10 from RESEARCH.md)
 	maxSortOrder, err := h.mediaRepo.GetMaxRVMSortOrder(c.Request.Context(), versionID)
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Sort-Order konnte nicht ermittelt werden.")
@@ -181,14 +229,7 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 
 	for i, fileHeader := range files {
 		sortOrder := maxSortOrder + (i+1)*10
-		result := h.processOneRVMFile(
-			c,
-			fileHeader,
-			versionID,
-			category,
-			sortOrder,
-			uploadedByUserID,
-		)
+		result := h.processOneRVMFile(c, fileHeader, versionID, category, sortOrder, uploadedByUserID)
 		results = append(results, result)
 	}
 
@@ -196,8 +237,7 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 }
 
 // processOneRVMFile handles one file from the multipart upload in isolation.
-// All errors result in a failed result entry — no error is returned to the caller.
-// Transaction is started via h.mediaRepo.BeginTx (follows MediaUploadRepoTx pattern).
+// All errors result in a failed result entry - no error is returned to the caller.
 func (h *AdminContentHandler) processOneRVMFile(
 	c *gin.Context,
 	fileHeader *multipart.FileHeader,
@@ -215,7 +255,6 @@ func (h *AdminContentHandler) processOneRVMFile(
 	}
 	defer f.Close()
 
-	// Read with size limit (LimitReader reads max+1 bytes so we can detect oversized files)
 	data, err := io.ReadAll(io.LimitReader(f, int64(rvmMaxFileSizeBytes)+1))
 	if err != nil {
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
@@ -224,13 +263,11 @@ func (h *AdminContentHandler) processOneRVMFile(
 	if len(data) > rvmMaxFileSizeBytes {
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "FILE_TOO_LARGE",
-			Message: fmt.Sprintf("datei zu gross: max %d MB", rvmMaxFileSizeBytes/1024/1024)}
+			Message:   fmt.Sprintf("datei zu gross: max %d MB", rvmMaxFileSizeBytes/1024/1024)}
 	}
 
-	// MIME type detection from magic bytes (not file extension)
 	detected := mimetype.Detect(data)
 	mimeType := detected.String()
-	// Strip parameters: "image/jpeg; charset=..." -> "image/jpeg"
 	if idx := strings.Index(mimeType, ";"); idx >= 0 {
 		mimeType = strings.TrimSpace(mimeType[:idx])
 	}
@@ -238,39 +275,39 @@ func (h *AdminContentHandler) processOneRVMFile(
 	if !rvmAllowedMIMETypes[mimeType] {
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "INVALID_MIME_TYPE",
-			Message: fmt.Sprintf("nicht erlaubter dateityp: %s", mimeType)}
+			Message:   fmt.Sprintf("nicht erlaubter dateityp: %s", mimeType)}
 	}
 
-	// Image validation (dimensions + GIF frame count)
-	{
-		img, err := vips.NewImageFromBuffer(data)
-		if err != nil {
-			return rvmFileResult{ClientFileName: clientName, Status: "failed",
-				ErrorCode: "IMAGE_DECODE_FAILED", Message: "bild konnte nicht dekodiert werden"}
-		}
-		w, h2, pages := img.Width(), img.Height(), img.Pages()
-		img.Close()
-		if w > rvmMaxImageWidth || h2 > rvmMaxImageHeight {
-			return rvmFileResult{ClientFileName: clientName, Status: "failed",
-				ErrorCode: "IMAGE_DIMENSIONS_TOO_LARGE",
-				Message: fmt.Sprintf("bild zu gross: max %dx%d px", rvmMaxImageWidth, rvmMaxImageHeight)}
-		}
-		if mimeType == "image/gif" && pages > rvmMaxGIFFrames {
-			return rvmFileResult{ClientFileName: clientName, Status: "failed",
-				ErrorCode: "GIF_TOO_MANY_FRAMES",
-				Message: fmt.Sprintf("gif hat zu viele frames: %d (max %d)", pages, rvmMaxGIFFrames)}
-		}
+	meta, err := inspectRVMImage(data, mimeType)
+	if err != nil {
+		return rvmFileResult{ClientFileName: clientName, Status: "failed",
+			ErrorCode: "IMAGE_DECODE_FAILED", Message: "bild konnte nicht dekodiert werden"}
+	}
+	if meta.Width > rvmMaxImageWidth || meta.Height > rvmMaxImageHeight {
+		return rvmFileResult{ClientFileName: clientName, Status: "failed",
+			ErrorCode: "IMAGE_DIMENSIONS_TOO_LARGE",
+			Message:   fmt.Sprintf("bild zu gross: max %dx%d px", rvmMaxImageWidth, rvmMaxImageHeight)}
+	}
+	// Dekompression-Bomb-Schutz: Pixelzahl-Limit 40 MP.
+	// meta ist bereits bekannt (aus inspectRVMImage), kein zweites Decode noetig.
+	if meta.Width*meta.Height > 40_000_000 {
+		return rvmFileResult{ClientFileName: clientName, Status: "failed",
+			ErrorCode: "IMAGE_TOO_MANY_PIXELS",
+			Message:   "bild enthaelt zu viele pixel (max 40 MP)"}
+	}
+	if mimeType == "image/gif" && meta.GIFFrames > rvmMaxGIFFrames {
+		return rvmFileResult{ClientFileName: clientName, Status: "failed",
+			ErrorCode: "GIF_TOO_MANY_FRAMES",
+			Message:   fmt.Sprintf("gif hat zu viele frames: %d (max %d)", meta.GIFFrames, rvmMaxGIFFrames)}
 	}
 
-	// Generate thumbnail via govips
-	thumbData, err := generateRVMThumbnail(data, mimeType)
+	thumbData, thumbWidth, thumbHeight, err := generateRVMThumbnail(data, mimeType)
 	if err != nil {
 		log.Printf("rvm thumbnail error for %s: %v", clientName, err)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "THUMBNAIL_FAILED", Message: "thumbnail konnte nicht erzeugt werden"}
 	}
 
-	// Build file paths
 	assetUUID := uuid.New().String()
 	ext := imageExtFromMimeRVM(mimeType)
 	versionIDStr := strconv.FormatInt(versionID, 10)
@@ -278,28 +315,40 @@ func (h *AdminContentHandler) processOneRVMFile(
 	originalPath := filepath.Join(assetDir, "original."+ext)
 	thumbPath := filepath.Join(assetDir, "thumb.jpg")
 
-	if err := os.MkdirAll(assetDir, 0755); err != nil {
+	if err := os.MkdirAll(assetDir, 0o755); err != nil {
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "STORAGE_FAILED", Message: "verzeichnis konnte nicht erstellt werden"}
 	}
 
-	// Write original (byte-copy — GIF stays animated, no re-encode)
-	if err := os.WriteFile(originalPath, data, 0644); err != nil {
-		_ = removeFileQuietly(originalPath)
-		return rvmFileResult{ClientFileName: clientName, Status: "failed",
-			ErrorCode: "STORAGE_FAILED", Message: "original konnte nicht gespeichert werden"}
+	// EXIF-Strip fuer JPEG, PNG und WebP: imaging.Save re-enkodiert das Bild
+	// ohne Metadaten. GIF bleibt raw, weil imaging die Animation nicht erhalten kann.
+	if mimeType == "image/gif" {
+		if err := os.WriteFile(originalPath, data, 0o644); err != nil {
+			_ = removeFileQuietly(originalPath)
+			return rvmFileResult{ClientFileName: clientName, Status: "failed",
+				ErrorCode: "STORAGE_FAILED", Message: "original (gif) konnte nicht gespeichert werden"}
+		}
+	} else {
+		decoded, _, err := image.Decode(bytes.NewReader(data))
+		if err != nil {
+			_ = removeFileQuietly(originalPath)
+			return rvmFileResult{ClientFileName: clientName, Status: "failed",
+				ErrorCode: "IMAGE_DECODE_FAILED", Message: "original dekodieren fehlgeschlagen"}
+		}
+		if err := imaging.Save(decoded, originalPath); err != nil {
+			_ = removeFileQuietly(originalPath)
+			return rvmFileResult{ClientFileName: clientName, Status: "failed",
+				ErrorCode: "STORAGE_FAILED", Message: "original (exif-strip) konnte nicht gespeichert werden"}
+		}
 	}
 
-	// Write thumbnail
-	if err := os.WriteFile(thumbPath, thumbData, 0644); err != nil {
+	if err := os.WriteFile(thumbPath, thumbData, 0o644); err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "STORAGE_FAILED", Message: "thumbnail konnte nicht gespeichert werden"}
 	}
 
-	// DB transaction per file (D-17: isolated processing).
-	// BeginTx follows the MediaUploadRepoTx encapsulation pattern from media_upload.go.
 	ctx := c.Request.Context()
 	tx, err := h.mediaRepo.BeginTx(ctx)
 	if err != nil {
@@ -312,15 +361,14 @@ func (h *AdminContentHandler) processOneRVMFile(
 		_ = tx.Rollback(ctx)
 	}()
 
-	// Insert media_asset with status='processing' INSIDE the tx (D-05).
-	// This is critical: if any later insert fails, tx.Rollback removes the asset row too,
-	// so no orphaned media_assets row remains committed.
 	createInput := models.MediaAssetCreateInput{
 		Kind:        models.MediaKindImage,
 		MimeType:    mimeType,
 		Filename:    "original." + ext,
 		StoragePath: originalPath,
 		SizeBytes:   int64(len(data)),
+		Width:       &meta.Width,
+		Height:      &meta.Height,
 	}
 	mediaAsset, err := h.mediaRepo.CreateMediaAssetWithStatusTx(ctx, tx, createInput, "processing")
 	if err != nil {
@@ -330,21 +378,19 @@ func (h *AdminContentHandler) processOneRVMFile(
 			ErrorCode: "DB_FAILED", Message: "media asset konnte nicht erstellt werden"}
 	}
 
-	// Insert media_files rows (original + thumb), both with status='processing'
-	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "original", originalPath, int64(len(data)), "processing"); err != nil {
+	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "original", originalPath, meta.Width, meta.Height, int64(len(data)), "processing"); err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "media file (original) konnte nicht erstellt werden"}
 	}
-	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "thumb", thumbPath, int64(len(thumbData)), "processing"); err != nil {
+	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "thumb", thumbPath, thumbWidth, thumbHeight, int64(len(thumbData)), "processing"); err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "media file (thumb) konnte nicht erstellt werden"}
 	}
 
-	// Insert release_version_media row
 	uploadedBy := uploadedByUserID
 	relationID, err := h.mediaRepo.CreateReleaseVersionMediaAsset(ctx, tx, repository.ReleaseVersionMediaCreateInput{
 		ReleaseVersionID:   versionID,
@@ -352,7 +398,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 		Category:           category,
 		Caption:            nil,
 		SortOrder:          sortOrder,
-		IsPreviewCandidate: false, // Upload never sets preview — use PATCH for that
+		IsPreviewCandidate: false,
 		UploadedByUserID:   &uploadedBy,
 	})
 	if err != nil {
@@ -362,8 +408,6 @@ func (h *AdminContentHandler) processOneRVMFile(
 			ErrorCode: "DB_FAILED", Message: "release version media konnte nicht erstellt werden"}
 	}
 
-	// Promote statuses to ready BEFORE commit so the API never reports "ready"
-	// unless both status transitions commit in the same transaction.
 	if err := h.mediaRepo.UpdateMediaAssetStatusRVMTx(ctx, tx, mediaAsset.ID, "ready"); err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
@@ -384,7 +428,6 @@ func (h *AdminContentHandler) processOneRVMFile(
 			ErrorCode: "DB_FAILED", Message: "transaktion konnte nicht committed werden"}
 	}
 
-	// Build thumbnail public URL
 	thumbRelPath := strings.Join([]string{"release-version", versionIDStr, assetUUID, "thumb.jpg"}, "/")
 	thumbURL := "/media/" + thumbRelPath
 
@@ -430,9 +473,10 @@ func (h *AdminContentHandler) ListReleaseVersionMedia(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Liste konnte nicht geladen werden.")
 		return
 	}
+	if items == nil {
+		items = make([]repository.ReleaseVersionMediaItem, 0)
+	}
 
-	// Populate public URLs from storage paths (OriginalFilePath and ThumbFilePath
-	// are populated by the repository's LEFT JOIN on media_files).
 	for i := range items {
 		if items[i].OriginalFilePath != "" {
 			items[i].OriginalURL = h.buildRVMPublicURL(items[i].OriginalFilePath)
@@ -445,17 +489,34 @@ func (h *AdminContentHandler) ListReleaseVersionMedia(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": items})
 }
 
+func (h *AdminContentHandler) loadReleaseVersionMediaResponseItem(ctx *gin.Context, versionID, relationID int64) (repository.ReleaseVersionMediaItem, error) {
+	items, err := h.mediaRepo.ListReleaseVersionMedia(ctx.Request.Context(), versionID)
+	if err != nil {
+		return repository.ReleaseVersionMediaItem{}, err
+	}
+
+	for i := range items {
+		if items[i].OriginalFilePath != "" {
+			items[i].OriginalURL = h.buildRVMPublicURL(items[i].OriginalFilePath)
+		}
+		if items[i].ThumbFilePath != "" {
+			items[i].ThumbnailURL = h.buildRVMPublicURL(items[i].ThumbFilePath)
+		}
+		if items[i].ID == relationID {
+			return items[i], nil
+		}
+	}
+
+	return repository.ReleaseVersionMediaItem{}, repository.ErrNotFound
+}
+
 // PatchReleaseVersionMedia handles PATCH /api/v1/admin/release-versions/:versionId/media/:relationId.
-// Rules enforced:
-//   - D-14: category in body → 422 CATEGORY_CHANGE_NOT_ALLOWED
-//   - D-16: is_preview_candidate=true + category not in (screenshot, typesetting_karaoke) → 422 PREVIEW_NOT_ALLOWED_FOR_CATEGORY
-//   - D-15: is_preview_candidate=true → ClearPreviewCandidateForVersion in same transaction
 func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
 		return
 	}
-	_ = identity // available for future audit logging
+	_ = identity
 	if h.mediaRepo == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfuegbar"}})
 		return
@@ -486,7 +547,6 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
-	// D-14: detect category key in raw JSON to reject it explicitly
 	var rawBody map[string]interface{}
 	if err := c.ShouldBindJSON(&rawBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige json body"}})
@@ -500,24 +560,18 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
-	// Parse typed fields from the raw map
-	var caption *string
-	var isPreviewCandidate *bool
-	if v, ok := rawBody["caption"]; ok {
-		if v == nil {
-			caption = nil
-		} else if s, ok := v.(string); ok {
-			caption = &s
-		}
+	caption, captionSet, err := parseOptionalCaptionField(rawBody)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
+		return
 	}
+	var isPreviewCandidate *bool
 	if v, ok := rawBody["is_preview_candidate"]; ok {
 		if b, ok := v.(bool); ok {
 			isPreviewCandidate = &b
 		}
 	}
 
-	// D-16: if requesting preview, verify the relation's category allows it.
-	// Use the already loaded relationMeta so route ownership and category validation share one source of truth.
 	if isPreviewCandidate != nil && *isPreviewCandidate {
 		if !rvmPreviewAllowedCategories[relationMeta.Category] {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
@@ -530,11 +584,10 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 
 	patchInput := repository.ReleaseVersionMediaPatchInput{
 		Caption:            caption,
+		CaptionSet:         captionSet,
 		IsPreviewCandidate: isPreviewCandidate,
 	}
 
-	// D-15: if setting preview, use transaction to atomically clear other previews.
-	// Use h.mediaRepo.BeginTx (follows MediaUploadRepoTx encapsulation pattern).
 	if isPreviewCandidate != nil && *isPreviewCandidate {
 		tx, err := h.mediaRepo.BeginTx(c.Request.Context())
 		if err != nil {
@@ -560,7 +613,6 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 			return
 		}
 	} else {
-		// No preview change — still use a transaction for consistency
 		tx, err := h.mediaRepo.BeginTx(c.Request.Context())
 		if err != nil {
 			writeInternalErrorResponse(c, "interner serverfehler", err, "Transaktion konnte nicht gestartet werden.")
@@ -581,11 +633,20 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	item, err := h.loadReleaseVersionMediaResponseItem(c, versionID, relationID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Aktualisierte Relation konnte nicht geladen werden.")
+		return
+	}
+
+	c.JSON(http.StatusOK, item)
 }
 
 // DeleteReleaseVersionMedia handles DELETE /api/v1/admin/release-versions/:versionId/media/:relationId.
-// Soft-deletes the relation. The media_asset is NOT deleted (ON DELETE RESTRICT in schema).
 func (h *AdminContentHandler) DeleteReleaseVersionMedia(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -633,20 +694,16 @@ func (h *AdminContentHandler) DeleteReleaseVersionMedia(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "deleted"})
 }
 
-// rvmReorderItem is one entry in the reorder request body.
 type rvmReorderItem struct {
 	ID        int64 `json:"id"`
 	SortOrder int   `json:"sort_order"`
 }
 
-// rvmReorderBody is the JSON body for POST /admin/release-versions/:versionId/media/reorder.
 type rvmReorderBody struct {
 	Items []rvmReorderItem `json:"items"`
 }
 
 // ReorderReleaseVersionMedia handles POST /api/v1/admin/release-versions/:versionId/media/reorder.
-// Accepts {"items": [{"id": 7, "sort_order": 10}, ...]}.
-// Updates sort_order for all provided relation IDs in a single transaction.
 func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
