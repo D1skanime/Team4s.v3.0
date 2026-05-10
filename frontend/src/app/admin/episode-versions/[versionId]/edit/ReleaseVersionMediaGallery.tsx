@@ -186,8 +186,6 @@ export function ReleaseVersionMediaGallery({
                     dragState.draggedId !== item.id &&
                     dragState.draggedCategory === item.category
                   const isGifHovered = gifHoveredIds.has(item.id)
-                  const cardSrc =
-                    isGifHovered && item.original_url ? item.original_url : item.thumbnail_url
 
                   return (
                     <div
@@ -220,10 +218,10 @@ export function ReleaseVersionMediaGallery({
                         onDragEnd={handleDragEnd}
                       >
                         <div className={styles.thumb}>
-                          {cardSrc ? (
+                          {item.thumbnail_url ? (
                             <img
                               className={styles.thumbImage}
-                              src={cardSrc}
+                              src={item.thumbnail_url}
                               alt={cardLabel(item)}
                             />
                           ) : (
@@ -261,7 +259,11 @@ export function ReleaseVersionMediaGallery({
                             {(item.thumbnail_url || item.original_url) ? (
                               <img
                                 className={styles.hoverPreviewImage}
-                                src={item.thumbnail_url ?? item.original_url ?? ''}
+                                src={
+                                  isGifHovered && item.original_url
+                                    ? item.original_url
+                                    : (item.thumbnail_url ?? item.original_url ?? '')
+                                }
                                 alt={cardLabel(item)}
                               />
                             ) : (
