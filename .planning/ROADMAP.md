@@ -31,7 +31,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 20.1: DB Schema v2 Physical Cutover** - Build the documented DB Schema v2 as real tables and remove legacy episode-version tables before more episode features.
 - [x] **Phase 20: Release-Native Episode Import Schema** - Move episode import persistence onto the normalized release graph with filler, multilingual titles, and multi-episode file coverage. (verified complete 2026-04-23)
 - [x] **Phase 21: Fansub Group Chips And Collaboration Wiring** - Let operators select existing or new fansub groups as chips during import/manual version work, and build deterministic collaborations plus anime-group linkage behind that UI. (completed 2026-04-23)
-- [ ] **Phase 22: Anime Edit On Create-Flow Foundation** - Replace the divergent anime edit workspace with a shared create-style editor, keeping AniSearch identity fixed while Jellyfin can be re-searched and re-synced.
+- [x] **Phase 22: Anime Edit On Create-Flow Foundation** - Replace the divergent anime edit workspace with a shared create-style editor, keeping AniSearch identity fixed while Jellyfin can be re-searched and re-synced. (code verified complete 2026-05-10)
 - [ ] **Phase 23: OP/ED Theme Verwaltung** - Admins können Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren, theme_types seeden (OP1, OP2, ED1, ED2, Insert, Outro), und Fansub-Gruppen können OP/ED-Videos hochladen.
 - [x] **Phase 24: Release-Segmente (OP/ED Timing)** - Admins können auf der Episode-Version-Edit-Seite OP/ED-Segmente (Typ, Name, Episodenbereich, Zeitbereich im Video, Jellyfin-Quelle) pro Fansub-Gruppe und Version verwalten. UI wie Mockup: Tab "Segmente" mit Tabelle, Seitenleisten-Formular und Timeline-Visualisierung. (UAT bestanden 2026-04-26)
 - [x] **Phase 25: Segmente UI Mockup-Alignment** - Segmente-Seite vollständig an Mockup angeglichen: Breadcrumb-Navigation, 5-Tab-Layout, Typ-Badge mit Kurzcode, Zeitbereich mit Dauer in Klammern, Vorschläge-Leiste aus anderen Releases, dual-Spur-Timeline mit Hauptinhalt-Label, expliziter Source-Type-Selector. (UAT bestanden 2026-04-27)
@@ -388,7 +388,7 @@ Plans:
 **Goal:** Replace the stale, divergent anime edit route with a create-flow-based editor that reuses the modern admin anime workspace while preserving edit-specific identity rules.
 **Requirements**: P22-SC1, P22-SC2, P22-SC3, P22-SC4, P22-SC5
 **Depends on:** Phase 21
-**Status**: Planned on 2026-04-23 from post-Phase-21 product direction
+**Status**: Complete — SharedAnimeEditorWorkspace + AnimeEditorShell used by both create and edit routes. Code verified 2026-05-10.
 **Success Criteria** (what must be TRUE):
   1. `/admin/anime/[id]/edit` no longer uses the old standalone edit workspace and instead renders through the same core UI foundation as `/admin/anime/create`.
   2. The edit route loads existing anime data into that shared workspace so title, localized titles, type, content type, status, year, max episodes, description, genres, tags, and assets can all be reviewed and changed from one consistent surface.
