@@ -138,14 +138,14 @@
 .hoverPreview {
   position: absolute;
   top: 0;
-  left: calc(100% + 10px);
+  left: calc(100% + 12px);
   z-index: 100;
-  width: 240px;
+  width: 360px;
   background: #ffffff;
   border: 1px solid #d1d5db;
   border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.08);
-  padding: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.10);
+  padding: 14px;
   display: grid;
   gap: 10px;
   pointer-events: none;
@@ -158,13 +158,13 @@
   background: #f1f5f9;
   display: grid;
   place-items: center;
-  min-height: 140px;
+  min-height: 200px;
 }
 
 .hoverPreviewImage {
   width: 100%;
   height: auto;
-  max-height: 220px;
+  max-height: 340px;
   object-fit: contain;
   display: block;
 }
