@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
+status: Milestone complete
 stopped_at: Completed 38-02-PLAN.md
-last_updated: "2026-05-08T20:39:14.000Z"
-last_activity: 2026-05-08
+last_updated: "2026-05-10T20:00:12.045Z"
+last_activity: 2026-05-10
 progress:
   total_phases: 34
   completed_phases: 26
@@ -24,8 +24,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 ## Current Position
 
-Phase: 38 (release-version-media-gallery-ux-hover-preview-und-drag-and-drop-reorder) — EXECUTING
-Plan: 2 of 2
+Phase: 38
+Plan: Not started
 
 ## Accumulated Context
 
@@ -280,6 +280,7 @@ Recent durable decisions:
 | 260507-de2 | Rename theme types OP → OP Kara, ED → ED Kara, Insert → Insert Kara | 2026-05-07 | f918334e | [260507-de2-rename-theme-types-op-to-op-kara-ed-to-e](./quick/260507-de2-rename-theme-types-op-to-op-kara-ed-to-e/) |
 | 260423mnv | Per-Reihe "Ubernehmen"-Button im Episode-Import Workbench | 2026-04-23 | 1b3b57d | [260423mnv-per-row-apply-button](./quick/260423mnv-per-row-apply-button/) |
 | 260510-t7j | Upload Security Hardening: Security-Header fuer /media, EXIF-Strip, Dekompression-Bomb-Schutz | 2026-05-10 | 09afc913 | [260510-t7j-upload-security-hardening-security-heade](./quick/260510-t7j-upload-security-hardening-security-heade/) |
+| 260510-umt | Beschreibungs-Textarea Fix fuer Release-Version-Media Caption-Feld | 2026-05-10 | pending | [260510-umt-beschreibungs-textarea-fix-fuer-release-](./quick/260510-umt-beschreibungs-textarea-fix-fuer-release-/) |
 | 260423qpn | Optionale Jellyfin-Bibliotheksfilterung via JELLYFIN_ALLOWED_LIBRARY_IDS | 2026-04-24 | 6fad43b | [260423qpn-jellyfin-library-filter](./quick/260423qpn-jellyfin-library-filter/) |
 | 260428-ddb | Episoden-Laufzeit crawlen und in Timeline-Vorschau proportional anzeigen | 2026-04-28 | 5126a293 | [260428-ddb-episoden-laufzeit-crawlen-und-in-timelin](./quick/260428-ddb-episoden-laufzeit-crawlen-und-in-timelin/) |
 | 260429-fnm | Smart-Parser fuer Segment-Zeitfelder: MM:SS, Xm/XmYs, immer HH:MM:SS Ausgabe | 2026-04-29 | 1230bd2c | [260429-fnm-smart-parser-fuer-segment-zeitfelder-mm-](./quick/260429-fnm-smart-parser-fuer-segment-zeitfelder-mm-/) |
@@ -288,5 +289,5 @@ Recent durable decisions:
 
 Last session: 2026-05-08T20:39:13.991Z
 Stopped at: Completed 38-02-PLAN.md
-Last activity: 2026-05-08
+Last activity: 2026-05-10
 Resume file: None

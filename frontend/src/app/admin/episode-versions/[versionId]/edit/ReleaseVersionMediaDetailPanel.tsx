@@ -110,7 +110,7 @@ export function ReleaseVersionMediaDetailPanel({
 
       <label className={styles.field}>
         <span>Beschreibung</span>
-        <input
+        <textarea
           className={styles.input}
           value={caption}
           onChange={(event) => setCaption(event.target.value)}
