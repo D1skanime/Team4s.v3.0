@@ -45,6 +45,11 @@
 
 .cardWrapper {
   position: relative;
+  cursor: grab;
+}
+
+.cardWrapper:active {
+  cursor: grabbing;
 }
 
 .card {
@@ -65,13 +70,18 @@
 }
 
 .cardDragging {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: grabbing;
 }
 
+.cardDragging .card {
+  pointer-events: none;
+}
+
 .cardDropTarget {
-  border-color: #059669;
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+  outline: 2px solid #059669;
+  outline-offset: 3px;
+  border-radius: 14px;
   background: #ecfdf5;
 }
 
@@ -138,33 +148,33 @@
 .hoverPreview {
   position: absolute;
   top: 0;
-  left: calc(100% + 12px);
+  left: calc(100% + 16px);
   z-index: 100;
-  width: 360px;
+  width: 640px;
   background: #ffffff;
   border: 1px solid #d1d5db;
-  border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.10);
-  padding: 14px;
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.20), 0 4px 12px rgba(0, 0, 0, 0.10);
+  padding: 16px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
   pointer-events: none;
 }
 
 .hoverPreviewImageWrapper {
   width: 100%;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   background: #f1f5f9;
   display: grid;
   place-items: center;
-  min-height: 200px;
+  min-height: 280px;
 }
 
 .hoverPreviewImage {
   width: 100%;
   height: auto;
-  max-height: 340px;
+  max-height: 480px;
   object-fit: contain;
   display: block;
 }

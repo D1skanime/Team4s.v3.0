@@ -190,32 +190,36 @@ export function ReleaseVersionMediaGallery({
                   return (
                     <div
                       key={item.id}
-                      className={styles.cardWrapper}
+                      draggable={true}
+                      className={[
+                        styles.cardWrapper,
+                        isDragging ? styles.cardDragging : '',
+                        isDropTarget ? styles.cardDropTarget : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
                       onMouseEnter={() => handleMouseEnter(item)}
                       onMouseLeave={() => handleMouseLeave(item)}
+                      onDragStart={() => handleDragStart(item)}
+                      onDragOver={(event) => {
+                        event.preventDefault()
+                        handleDragOver(item)
+                      }}
+                      onDrop={(event) => {
+                        event.preventDefault()
+                        handleDrop(item)
+                      }}
+                      onDragEnd={handleDragEnd}
                     >
                       <button
                         type="button"
-                        draggable={true}
                         className={[
                           styles.card,
                           selectedItemId === item.id ? styles.cardActive : '',
-                          isDragging ? styles.cardDragging : '',
-                          isDropTarget ? styles.cardDropTarget : '',
                         ]
                           .filter(Boolean)
                           .join(' ')}
                         onClick={() => onSelectItem(item)}
-                        onDragStart={() => handleDragStart(item)}
-                        onDragOver={(event) => {
-                          event.preventDefault()
-                          handleDragOver(item)
-                        }}
-                        onDrop={(event) => {
-                          event.preventDefault()
-                          handleDrop(item)
-                        }}
-                        onDragEnd={handleDragEnd}
                       >
                         <div className={styles.thumb}>
                           {item.thumbnail_url ? (
