@@ -54,8 +54,17 @@ func main() {
 		})
 	})
 
-	// Serve uploaded media files (images, videos) from storage directory
-	router.Static("/media", cfg.MediaStorageDir)
+	// Serve uploaded media files (images, videos) from storage directory.
+	// Security headers are set via middleware before StaticFS delivery.
+	mediaGroup := router.Group("/media")
+	mediaGroup.Use(func(c *gin.Context) {
+		c.Header("X-Content-Type-Options", "nosniff")
+		c.Header("Content-Security-Policy", "default-src 'none'")
+		c.Header("X-Frame-Options", "DENY")
+		c.Header("Cache-Control", "private, no-transform")
+		c.Next()
+	})
+	mediaGroup.StaticFS("", http.Dir(cfg.MediaStorageDir))
 
 	animeRepo := repository.NewAnimeRepository(dbPool)
 	animeAssetRepo := repository.NewAnimeAssetRepository(dbPool)
