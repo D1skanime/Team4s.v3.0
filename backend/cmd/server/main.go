@@ -149,7 +149,8 @@ func main() {
 			FanartAPIKey: cfg.FanartAPIKey,
 		},
 	).WithMediaDeps(mediaRepo, mediaService).
-		WithNoteDeps(repository.NewFansubNotesRepository(dbPool), services.NewMarkdownService())
+		WithNoteDeps(repository.NewFansubNotesRepository(dbPool), services.NewMarkdownService()).
+		WithReleaseVersionNoteDeps(repository.NewReleaseVersionNotesRepository(dbPool))
 	fansubHandler := handlers.NewFansubHandler(
 		fansubRepo,
 		episodeVersionRepo,

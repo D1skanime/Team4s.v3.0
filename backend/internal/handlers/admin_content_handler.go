@@ -145,6 +145,7 @@ type AdminContentHandler struct {
 	assetSearchService        adminAnimeAssetSearchService
 	mediaService              *services.MediaService
 	fansubNotesRepo           *repository.FansubNotesRepository
+	releaseVersionNotesRepo   *repository.ReleaseVersionNotesRepository
 	markdownSvc               *services.MarkdownService
 }
 
@@ -229,6 +230,13 @@ func (h *AdminContentHandler) WithMediaDeps(repo *repository.MediaRepository, sv
 func (h *AdminContentHandler) WithNoteDeps(repo *repository.FansubNotesRepository, svc *services.MarkdownService) *AdminContentHandler {
 	h.fansubNotesRepo = repo
 	h.markdownSvc = svc
+	return h
+}
+
+// WithReleaseVersionNoteDeps verdrahtet das ReleaseVersionNotesRepository nachträglich.
+// markdownSvc wird von WithNoteDeps gesetzt und hier wiederverwendet.
+func (h *AdminContentHandler) WithReleaseVersionNoteDeps(repo *repository.ReleaseVersionNotesRepository) *AdminContentHandler {
+	h.releaseVersionNotesRepo = repo
 	return h
 }
 
