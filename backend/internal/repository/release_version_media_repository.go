@@ -29,8 +29,10 @@ type ReleaseVersionMediaCreateInput struct {
 
 // ReleaseVersionMediaPatchInput holds the patchable fields for a release_version_media row.
 // A nil pointer means "do not change this field".
+// CaptionSet=true with Caption=nil means explicitly clear the caption to NULL.
 type ReleaseVersionMediaPatchInput struct {
 	Caption            *string
+	CaptionSet         bool
 	IsPreviewCandidate *bool
 }
 
@@ -353,13 +355,15 @@ func (r *MediaRepository) InsertMediaFileWithStatus(
 	mediaID int64,
 	variant string,
 	path string,
+	width int,
+	height int,
 	size int64,
 	status string,
 ) error {
 	_, err := tx.Exec(ctx, `
 		INSERT INTO media_files (media_id, variant, path, width, height, size, status)
-		VALUES ($1, $2, $3, 0, 0, $4, $5)
-	`, mediaID, variant, path, size, status)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`, mediaID, variant, path, width, height, size, status)
 	if err != nil {
 		return fmt.Errorf("insert media file with status for asset %d: %w", mediaID, err)
 	}

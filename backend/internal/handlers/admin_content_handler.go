@@ -144,6 +144,8 @@ type AdminContentHandler struct {
 	aniSearchEpisodes         adminAniSearchEpisodeFetcher
 	assetSearchService        adminAnimeAssetSearchService
 	mediaService              *services.MediaService
+	fansubNotesRepo           *repository.FansubNotesRepository
+	markdownSvc               *services.MarkdownService
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
@@ -219,6 +221,14 @@ func NewAdminContentHandler(
 func (h *AdminContentHandler) WithMediaDeps(repo *repository.MediaRepository, svc *services.MediaService) *AdminContentHandler {
 	h.mediaRepo = repo
 	h.mediaService = svc
+	return h
+}
+
+// WithNoteDeps verdrahtet FansubNotesRepository und MarkdownService nachträglich,
+// damit Fansub-Note-Handler auf diese Abhängigkeiten zugreifen können.
+func (h *AdminContentHandler) WithNoteDeps(repo *repository.FansubNotesRepository, svc *services.MarkdownService) *AdminContentHandler {
+	h.fansubNotesRepo = repo
+	h.markdownSvc = svc
 	return h
 }
 
