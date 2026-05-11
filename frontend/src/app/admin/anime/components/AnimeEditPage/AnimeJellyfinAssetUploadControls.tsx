@@ -259,7 +259,7 @@ export function AnimeJellyfinAssetUploadControls({
     if (!imageUrl) {
       return (
         <div className={`${workspaceStyles.assetStateEmpty} ${poster ? workspaceStyles.assetStateEmptyPoster : ''}`}>
-          Noch kein Asset verfuegbar.
+          Noch kein Asset verfügbar.
         </div>
       )
     }
@@ -305,7 +305,7 @@ export function AnimeJellyfinAssetUploadControls({
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Provider-Asset oeffnen
+                    Provider-Asset öffnen
                   </a>
                 ) : null}
               </div>
@@ -335,7 +335,7 @@ export function AnimeJellyfinAssetUploadControls({
                     disabled={isBusy}
                     onClick={triggerCoverUpload}
                   >
-                    {isUploadingCover ? 'Upload laeuft...' : 'Cover hochladen'}
+                    {isUploadingCover ? 'Upload läuft...' : 'Cover hochladen'}
                   </button>
                   <button
                     type="button"
@@ -354,7 +354,7 @@ export function AnimeJellyfinAssetUploadControls({
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Aktives Cover oeffnen
+                      Aktives Cover öffnen
                     </a>
                   </div>
                 ) : null}
@@ -386,11 +386,11 @@ export function AnimeJellyfinAssetUploadControls({
                 </div>
               ) : (
                 <div className={workspaceStyles.assetStateEmpty}>
-                  Keine Provider-Backgrounds verfuegbar.
+                  Keine Provider-Backgrounds verfügbar.
                 </div>
               )}
               <p className={workspaceStyles.helperText}>
-                Provider-Bilder sind nur Vorschlaege. Aktiv gespeichert werden nur die Backgrounds, die du explizit hinzufuegst.
+                Provider-Bilder sind nur Vorschläge. Aktiv gespeichert werden nur die Backgrounds, die du explizit hinzufügst.
               </p>
             </div>
             <div className={workspaceStyles.assetStatePanel}>
@@ -407,7 +407,7 @@ export function AnimeJellyfinAssetUploadControls({
                       </span>
                       <div className={styles.actionsRow}>
                         <a className={`${styles.button} ${styles.buttonGhost}`} href={resolveApiUrl(item.url)} target="_blank" rel="noreferrer">
-                          Oeffnen
+                          Öffnen
                         </a>
                         <button
                           type="button"
@@ -435,7 +435,7 @@ export function AnimeJellyfinAssetUploadControls({
               disabled={isBusy}
               onClick={() => triggerUpload('background')}
             >
-              {uploadTarget === 'background' ? `Background laedt... ${uploadProgress}%` : EDIT_UPLOAD_TARGETS.background.buttonLabel}
+              {uploadTarget === 'background' ? `Background lädt... ${uploadProgress}%` : EDIT_UPLOAD_TARGETS.background.buttonLabel}
             </button>
           </div>
           {uploadTarget === 'background' ? (
@@ -486,10 +486,10 @@ export function AnimeJellyfinAssetUploadControls({
         {uploadTarget === target ? (
           <p className={workspaceStyles.statusNote} aria-live="polite">
             {target === 'banner'
-              ? `Banner laedt... ${uploadProgress}%`
+              ? `Banner lädt... ${uploadProgress}%`
               : target === 'logo'
-                ? `Logo laedt... ${uploadProgress}%`
-                : `Background-Video laedt... ${uploadProgress}%`}
+                ? `Logo lädt... ${uploadProgress}%`
+                : `Background-Video lädt... ${uploadProgress}%`}
           </p>
         ) : null}
         <div className={styles.actionsRow}>
@@ -501,10 +501,10 @@ export function AnimeJellyfinAssetUploadControls({
           >
             {uploadTarget === target
               ? target === 'banner'
-                ? `Banner laedt... ${uploadProgress}%`
+                ? `Banner lädt... ${uploadProgress}%`
                 : target === 'logo'
-                  ? `Logo laedt... ${uploadProgress}%`
-                  : `Background-Video laedt... ${uploadProgress}%`
+                  ? `Logo lädt... ${uploadProgress}%`
+                  : `Background-Video lädt... ${uploadProgress}%`
               : EDIT_UPLOAD_TARGETS[target].buttonLabel}
           </button>
           <button
@@ -522,12 +522,12 @@ export function AnimeJellyfinAssetUploadControls({
               target="_blank"
               rel="noreferrer"
             >
-              Provider oeffnen
+              Provider öffnen
             </a>
           ) : null}
           {asset?.url ? (
             <a className={`${styles.button} ${styles.buttonGhost}`} href={resolveApiUrl(asset.url)} target="_blank" rel="noreferrer">
-              Aktives Asset oeffnen
+              Aktives Asset öffnen
             </a>
           ) : null}
         </div>

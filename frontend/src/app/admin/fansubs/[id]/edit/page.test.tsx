@@ -40,6 +40,7 @@ function makeMediaState(): UseReleaseVersionMediaResult {
     reorderItems: vi.fn().mockResolvedValue(undefined),
     patchError: null,
     deleteError: null,
+    reorderError: null,
   }
 }
 

@@ -55,7 +55,7 @@ function renderStagedAssetSummary(
     <div className={styles.coverMetaBlock}>
       <span className={styles.coverMetaLabel}>{label}</span>
       <code className={styles.coverMetaValue}>
-        {value ? value.draftValue : "Noch keine Datei ausgewaehlt."}
+        {value ? value.draftValue : "Noch keine Datei ausgewählt."}
       </code>
       {value ? (
         <div className={styles.actions}>
@@ -65,7 +65,7 @@ function renderStagedAssetSummary(
             target="_blank"
             rel="noreferrer"
           >
-            Vorschau oeffnen
+            Vorschau öffnen
           </a>
           <button
             className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
@@ -112,7 +112,7 @@ export function ManualCreateAssetUploadPanel(
           <p className={workspaceStyles.sectionEyebrow}>Cover</p>
           <h2 className={workspaceStyles.sectionTitle}>Poster und Datei</h2>
           <p className={workspaceStyles.sectionText}>
-            Poster ist Pflicht. Du kannst das Cover direkt ueber die
+            Poster ist Pflicht. Du kannst das Cover direkt über die
             verifizierte V2-Upload-Seam vorbereiten oder einen vorhandenen
             Dateipfad verwenden.
           </p>
@@ -151,7 +151,7 @@ export function ManualCreateAssetUploadPanel(
           </h2>
           <p className={workspaceStyles.sectionText}>
             Diese Assets bleiben bis zum Speichern lokal vorgemerkt und werden
-            erst nach dem erfolgreichen Create ueber die vorhandene V2-Seam
+            erst nach dem erfolgreichen Create über die vorhandene V2-Seam
             hochgeladen und verlinkt.
           </p>
         </div>
@@ -230,7 +230,7 @@ export function ManualCreateAssetUploadPanel(
               <code className={styles.coverMetaValue}>
                 {stagedBackgrounds.length > 0
                   ? `${stagedBackgrounds.length} Datei(en) vorgemerkt`
-                  : "Noch keine Datei ausgewaehlt."}
+                  : "Noch keine Datei ausgewählt."}
               </code>
             </div>
             <div className={styles.actions}>
@@ -240,7 +240,7 @@ export function ManualCreateAssetUploadPanel(
                 disabled={isSubmitting}
                 onClick={() => onOpenFileDialog("background")}
               >
-                Background hinzufuegen
+                Background hinzufügen
               </button>
               <button
                 className={styles.buttonSecondary}
@@ -268,7 +268,7 @@ export function ManualCreateAssetUploadPanel(
                         target="_blank"
                         rel="noreferrer"
                       >
-                        Vorschau oeffnen
+                        Vorschau öffnen
                       </a>
                       <button
                         className={`${styles.buttonSecondary} ${styles.buttonDanger}`}

@@ -15,7 +15,8 @@ export function ReleaseVersionMediaDrawerSummary({
   fansubName,
   releaseVersionLabel,
 }: ReleaseVersionMediaDrawerSummaryProps) {
-  const { items, isLoading, error } = useReleaseVersionMedia(versionId)
+  const { items: rawItems, isLoading, error } = useReleaseVersionMedia(versionId)
+  const items = Array.isArray(rawItems) ? rawItems : []
 
   const countByCategory = RELEASE_VERSION_MEDIA_CATEGORIES.reduce<Record<ReleaseVersionMediaCategory, number>>(
     (acc, cat) => {

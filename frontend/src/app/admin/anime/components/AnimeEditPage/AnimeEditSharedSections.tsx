@@ -189,7 +189,7 @@ export function AnimeEditCoreDetailsSection({
           <label className={workspaceStyles.field}>
             <span>Type</span>
             <select className={styles.select} value={values.type} onChange={(event) => onFieldChange('type', event.target.value)}>
-              <option value="">-- unveraendert --</option>
+              <option value="">-- unverändert --</option>
               {animeTypes.map((value) => (
                 <option key={value} value={value}>
                   {value}
@@ -200,7 +200,7 @@ export function AnimeEditCoreDetailsSection({
           <label className={workspaceStyles.field}>
             <span>Inhaltstyp</span>
             <select className={styles.select} value={values.contentType} onChange={(event) => onFieldChange('contentType', event.target.value)}>
-              <option value="">-- unveraendert --</option>
+              <option value="">-- unverändert --</option>
               {contentTypes.map((value) => (
                 <option key={value} value={value}>
                   {value}
@@ -211,7 +211,7 @@ export function AnimeEditCoreDetailsSection({
           <label className={workspaceStyles.field}>
             <span>Status</span>
             <select className={styles.select} value={values.status} onChange={(event) => onFieldChange('status', event.target.value)}>
-              <option value="">-- unveraendert --</option>
+              <option value="">-- unverändert --</option>
               {animeStatuses.map((value) => (
                 <option key={value} value={value}>
                   {value}
@@ -294,7 +294,7 @@ export function AnimeEditReviewSection({
             onClick={editor.onSubmit}
             disabled={!editor.canSubmit || editor.isSubmitting}
           >
-            {editor.isSubmitting ? 'Aenderungen werden gespeichert...' : 'Aenderungen speichern'}
+            {editor.isSubmitting ? 'Änderungen werden gespeichert...' : 'Änderungen speichern'}
           </button>
         </div>
       </section>
@@ -314,7 +314,7 @@ export function AnimeEditReviewSection({
             </div>
             <div className={styles.actionsRow}>
               <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={() => onReset(anime)}>
-                Patch-Form aus Kontext neu fuellen
+                Patch-Form aus Kontext neu füllen
               </button>
             </div>
           </div>

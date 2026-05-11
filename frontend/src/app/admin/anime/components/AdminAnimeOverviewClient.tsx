@@ -30,7 +30,7 @@ interface AdminAnimeOverviewClientProps {
 function formatError(error: unknown): string {
   if (error instanceof ApiError) return `(${error.status}) ${error.message}`
   if (error instanceof Error && error.message.trim()) return error.message
-  return 'Anime konnte nicht geloescht werden.'
+  return 'Anime konnte nicht gelöscht werden.'
 }
 
 /**
@@ -80,12 +80,12 @@ export function AdminAnimeOverviewClient({
 
   async function onDelete(anime: AnimeListItem) {
     if (!authToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
     const confirmed = window.confirm(
-      `Anime "${anime.title}" wirklich loeschen?\n\nZugehoerige Episoden, Kommentare und Verknuepfungen werden ebenfalls entfernt.`,
+      `Anime "${anime.title}" wirklich löschen?\n\nZugehörige Episoden, Kommentare und Verknüpfungen werden ebenfalls entfernt.`,
     )
     if (!confirmed) return
 
@@ -112,7 +112,7 @@ export function AdminAnimeOverviewClient({
     <>
       {createdAnime ? (
         <div className={styles.successBox}>
-          Anime #{String(createdAnime.id).padStart(3, '0')} {createdAnime.title} wurde erstellt und ist jetzt in der Uebersicht verankert.
+          Anime #{String(createdAnime.id).padStart(3, '0')} {createdAnime.title} wurde erstellt und ist jetzt in der Übersicht verankert.
         </div>
       ) : null}
 
@@ -163,7 +163,7 @@ export function AdminAnimeOverviewClient({
                     onClick={() => void onDelete(anime)}
                     disabled={deletingAnimeID === anime.id}
                   >
-                    {deletingAnimeID === anime.id ? 'Loescht...' : 'Loeschen'}
+                    {deletingAnimeID === anime.id ? 'Löscht...' : 'Löschen'}
                   </button>
                 </div>
               </div>

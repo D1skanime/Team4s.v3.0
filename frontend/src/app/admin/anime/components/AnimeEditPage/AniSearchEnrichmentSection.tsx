@@ -6,13 +6,13 @@ import styles from '../../AdminStudio.module.css'
 import workspaceStyles from './AnimeEditWorkspace.module.css'
 
 const PROTECTED_FIELD_OPTIONS = [
-  { key: 'title', label: 'Titel', helper: 'Schuetzt den Haupttitel vor AniSearch-Overwrite.' },
-  { key: 'title_de', label: 'Titel DE', helper: 'Behaelt die deutsche Titelvariante unveraendert.' },
-  { key: 'title_en', label: 'Titel EN', helper: 'Behaelt die englische Titelvariante unveraendert.' },
-  { key: 'year', label: 'Jahr', helper: 'Laesst das aktuelle Jahr unveraendert.' },
-  { key: 'max_episodes', label: 'Max. Episoden', helper: 'Ueberschreibt die Episodenanzahl nicht.' },
-  { key: 'description', label: 'Beschreibung', helper: 'Behaelt die aktuelle Beschreibung im Entwurf.' },
-  { key: 'genre', label: 'Genres', helper: 'Uebernimmt keine AniSearch-Genres in den Entwurf.' },
+  { key: 'title', label: 'Titel', helper: 'Schützt den Haupttitel vor AniSearch-Overwrite.' },
+  { key: 'title_de', label: 'Titel DE', helper: 'Behält die deutsche Titelvariante unverändert.' },
+  { key: 'title_en', label: 'Titel EN', helper: 'Behält die englische Titelvariante unverändert.' },
+  { key: 'year', label: 'Jahr', helper: 'Lässt das aktuelle Jahr unverändert.' },
+  { key: 'max_episodes', label: 'Max. Episoden', helper: 'Überschreibt die Episodenanzahl nicht.' },
+  { key: 'description', label: 'Beschreibung', helper: 'Behält die aktuelle Beschreibung im Entwurf.' },
+  { key: 'genre', label: 'Genres', helper: 'Übernimmt keine AniSearch-Genres in den Entwurf.' },
 ] as const
 
 /**
@@ -64,10 +64,10 @@ export function AniSearchEnrichmentSection({
         <div>
           <h2 className={styles.sectionTitle}>AniSearch Daten laden</h2>
           <p className={styles.sectionMeta}>
-            AniSearch ueberschreibt bestehende Werte, ausser du schuetzt Felder vor dem Laden.
+            AniSearch überschreibt bestehende Werte, außer du schützt Felder vor dem Laden.
           </p>
         </div>
-        <span className={workspaceStyles.statusPill}>{isLoading ? 'Laedt...' : 'Entwurf bleibt lokal'}</span>
+        <span className={workspaceStyles.statusPill}>{isLoading ? 'Lädt...' : 'Entwurf bleibt lokal'}</span>
       </div>
 
       <div className={workspaceStyles.aniSearchActionRow}>
@@ -90,19 +90,19 @@ export function AniSearchEnrichmentSection({
           onClick={onSubmit}
         >
           {isLoading
-            ? 'AniSearch laedt...'
+            ? 'AniSearch lädt...'
             : submitLabel || (isSourceLocked ? 'AniSearch erneut laden' : 'AniSearch laden')}
         </button>
       </div>
 
       <p id={helperID} className={workspaceStyles.helperText}>
         {isSourceLocked
-          ? lockedSourceLabel || 'Diese AniSearch-Verknuepfung ist bereits fixiert. Du kannst die Daten erneut laden, aber die ID nicht frei umhaengen.'
-          : 'Vorlaeufiger Suchtext gilt nicht als geschuetzter Titel. Nach dem Laden wird der AniSearch-Titel uebernommen, bis du das Feld bewusst schuetzt.'}
+          ? lockedSourceLabel || 'Diese AniSearch-Verknüpfung ist bereits fixiert. Du kannst die Daten erneut laden, aber die ID nicht frei umhängen.'
+          : 'Vorläufiger Suchtext gilt nicht als geschützter Titel. Nach dem Laden wird der AniSearch-Titel übernommen, bis du das Feld bewusst schützt.'}
       </p>
 
       <fieldset className={workspaceStyles.protectionFieldset}>
-        <legend>Felder schuetzen</legend>
+        <legend>Felder schützen</legend>
         <div className={workspaceStyles.protectionGrid}>
           {PROTECTED_FIELD_OPTIONS.map((option) => {
             const checked = protectedFields.includes(option.key)
@@ -133,7 +133,7 @@ export function AniSearchEnrichmentSection({
         {conflictResult ? (
           <div>
             <p className={workspaceStyles.statusNote}>
-              AniSearch ID {conflictResult.anisearch_id} ist bereits mit {conflictResult.existing_title} verknuepft.
+              AniSearch ID {conflictResult.anisearch_id} ist bereits mit {conflictResult.existing_title} verknüpft.
             </p>
             <a href={conflictResult.redirect_path} className={`${styles.button} ${styles.buttonSecondary}`}>
               Zum vorhandenen Anime wechseln

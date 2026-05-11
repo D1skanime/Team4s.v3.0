@@ -21,7 +21,7 @@ export function EpisodeInlineEdit({ clearTitle, disabled, onToggleClearTitle, on
           onChange={(event) => onToggleClearTitle(event.target.checked)}
           disabled={disabled}
         />
-        Feld zuruecksetzen
+        Feld zurücksetzen
       </label>
       <button className={styles.episodeMiniButton} type="button" disabled={disabled} onClick={onSave}>
         Speichern

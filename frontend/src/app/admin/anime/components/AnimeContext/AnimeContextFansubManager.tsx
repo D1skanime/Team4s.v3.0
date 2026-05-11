@@ -74,7 +74,7 @@ export function AnimeContextFansubManager({
     const trimmedQuery = query.trim()
     if (trimmedQuery.length < 2) {
       setResults([])
-      onError('Bitte mindestens 2 Zeichen fuer die Gruppensuche eingeben.')
+      onError('Bitte mindestens 2 Zeichen für die Gruppensuche eingeben.')
       return
     }
 
@@ -99,7 +99,7 @@ export function AnimeContextFansubManager({
    */
   const handleAttach = async (group: FansubGroup) => {
     if (!authToken.trim()) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
@@ -109,7 +109,7 @@ export function AnimeContextFansubManager({
       await attachAnimeFansub(animeID, group.id, authToken)
       await onChanged()
       setResults((current) => current.filter((item) => item.id !== group.id))
-      onSuccess(`Fansub "${group.name}" wurde mit Anime #${animeID} verknuepft.`)
+      onSuccess(`Fansub "${group.name}" wurde mit Anime #${animeID} verknüpft.`)
     } catch (error) {
       onError(formatError(error, 'Fansub-Verknuepfung fehlgeschlagen.'))
     } finally {
@@ -125,7 +125,7 @@ export function AnimeContextFansubManager({
    */
   const handleDetach = async (group: FansubGroup) => {
     if (!authToken.trim()) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
@@ -155,7 +155,7 @@ export function AnimeContextFansubManager({
       <div className={styles.contextFansubManagerHeader}>
         <p className={styles.contextTitle}>Gruppen manuell verwalten</p>
         <p className={styles.hint}>
-          Mehrere Gruppen pro Folge laufen im aktuellen Modell ueber eine Kollaboration-Gruppe. Diese Gruppe wird dann
+          Mehrere Gruppen pro Folge laufen im aktuellen Modell über eine Kollaboration-Gruppe. Diese Gruppe wird dann
           der Version zugewiesen.
         </p>
       </div>
@@ -198,7 +198,7 @@ export function AnimeContextFansubManager({
                     void handleAttach(group)
                   }}
                 >
-                  {mutatingGroupID === group.id ? 'Verknuepfe...' : 'Zum Anime hinzufuegen'}
+                  {mutatingGroupID === group.id ? 'Verknüpfe...' : 'Zum Anime hinzufügen'}
                 </button>
               </div>
             </article>
@@ -215,7 +215,7 @@ export function AnimeContextFansubManager({
                 <span className={styles.contextFansubMeta}>#{group.id}</span>
               </p>
               <p className={styles.hint}>
-                Typ: {group.group_type === 'collaboration' ? 'Kollaboration' : 'Gruppe'} | Verknuepft mit diesem Anime
+                Typ: {group.group_type === 'collaboration' ? 'Kollaboration' : 'Gruppe'} | Verknüpft mit diesem Anime
               </p>
               {group.group_type === 'collaboration' && group.collaboration_members && group.collaboration_members.length > 0 ? (
                 <p className={styles.contextDescription}>

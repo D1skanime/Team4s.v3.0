@@ -64,6 +64,7 @@ function makeMediaState(
     reorderItems: vi.fn().mockResolvedValue(undefined),
     patchError: null,
     deleteError: null,
+    reorderError: null,
     ...overrides,
   }
 }
@@ -138,6 +139,7 @@ function StatefulSectionHarness({
       reorderItems: vi.fn().mockResolvedValue(undefined),
       patchError: null,
       deleteError: null,
+      reorderError: null,
     }),
     [items, onDeleteSpy, onPatchSpy],
   )
@@ -629,6 +631,7 @@ describe('useReleaseVersionMedia live-resort behavior', () => {
           reorderItems: vi.fn().mockResolvedValue(undefined),
           patchError: null,
           deleteError: null,
+          reorderError: null,
         }
       }, [items])
       return (
@@ -752,6 +755,7 @@ describe('Task 2: DragAndDrop reorder — legacy sort field removed', () => {
         },
         patchError: null,
         deleteError: null,
+        reorderError: null,
       }), [items])
 
       return (
@@ -812,6 +816,20 @@ describe('Task 2: DragAndDrop reorder — legacy sort field removed', () => {
     await waitFor(() => {
       expect(reorderSpy).not.toHaveBeenCalled()
     })
+  })
+
+  it('shows reorder errors in the gallery area when a persisted reorder fails', () => {
+    renderSection(
+      makeMediaState({
+        items: [
+          makeItem({ id: 93, category: 'screenshot', caption: 'Err Card A', sort_order: 10 }),
+          makeItem({ id: 94, category: 'screenshot', caption: 'Err Card B', sort_order: 20 }),
+        ],
+        reorderError: 'REORDER_SAVE_FAILED',
+      }),
+    )
+
+    expect(screen.getByText('Reorder Fehler: REORDER_SAVE_FAILED')).not.toBeNull()
   })
 })
 

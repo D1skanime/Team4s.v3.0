@@ -49,6 +49,25 @@ export interface UseReleaseVersionMediaResult {
   reorderItems: (versionId: number, body: ReleaseVersionMediaReorderRequest) => Promise<void>
   patchError: string | null
   deleteError: string | null
+  reorderError: string | null
+}
+
+function sortMediaItems(items: ReleaseVersionMediaItem[]): ReleaseVersionMediaItem[] {
+  return [...items].sort((a, b) => a.sort_order - b.sort_order)
+}
+
+function applyReorderToItems(
+  current: ReleaseVersionMediaItem[],
+  body: ReleaseVersionMediaReorderRequest,
+): ReleaseVersionMediaItem[] {
+  const orderMap = new Map(body.items.map((item) => [item.id, item.sort_order]))
+
+  return sortMediaItems(
+    current.map((item) => {
+      const nextSortOrder = orderMap.get(item.id)
+      return nextSortOrder !== undefined ? { ...item, sort_order: nextSortOrder } : item
+    }),
+  )
 }
 
 function readUploadError(error: unknown, fallback: string): string {
@@ -68,8 +87,14 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
   const [uploadItems, setUploadItems] = useState<UploadQueueItem[]>([])
   const [patchError, setPatchError] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [reorderError, setReorderError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const lastUploadConfigRef = useRef<UploadConfig | null>(null)
+  const itemsRef = useRef<ReleaseVersionMediaItem[]>([])
+
+  useEffect(() => {
+    itemsRef.current = items
+  }, [items])
 
   const reload = useCallback(() => {
     setReloadKey((k) => k + 1)
@@ -288,7 +313,7 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
           // Re-sort immediately when sort_order was part of the patch so the
           // in-memory list reflects the new order without a full reload.
           if (patch.sort_order !== undefined) {
-            return [...next].sort((a, b) => a.sort_order - b.sort_order)
+            return sortMediaItems(next)
           }
           return next
         })
@@ -303,17 +328,21 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
 
   const reorderItems = useCallback(
     async (targetVersionId: number, body: ReleaseVersionMediaReorderRequest) => {
-      await reorderReleaseVersionMedia(targetVersionId, body)
-      // Apply the new sort_order values into local state immediately
-      setItems((current) => {
-        const orderMap = new Map(body.items.map((r) => [r.id, r.sort_order]))
-        return [...current]
-          .map((item) => {
-            const newOrder = orderMap.get(item.id)
-            return newOrder !== undefined ? { ...item, sort_order: newOrder } : item
-          })
-          .sort((a, b) => a.sort_order - b.sort_order)
-      })
+      const previousItems = itemsRef.current
+      const optimisticItems = applyReorderToItems(previousItems, body)
+
+      setReorderError(null)
+      setItems(optimisticItems)
+
+      try {
+        await reorderReleaseVersionMedia(targetVersionId, body)
+      } catch (reorderItemsError) {
+        setItems(previousItems)
+        setReorderError(
+          readUploadError(reorderItemsError, 'Reihenfolge konnte nicht gespeichert werden.'),
+        )
+        throw reorderItemsError
+      }
     },
     [],
   )
@@ -351,7 +380,7 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
     getReleaseVersionMedia(versionId)
       .then((response) => {
         if (cancelled) return
-        setItems(Array.isArray(response.data) ? response.data : [])
+        setItems(sortMediaItems(Array.isArray(response.data) ? response.data : []))
       })
       .catch((err: unknown) => {
         if (cancelled) return
@@ -383,5 +412,6 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
     reorderItems,
     patchError,
     deleteError,
+    reorderError,
   }
 }

@@ -130,7 +130,7 @@ export function EpisodeEditForm({
         </div>
       ) : (
         <p className={styles.hint}>
-          Ausgewaehlt: Episode #{episodeOpenID} {hasUnsavedChanges ? '| Ungespeicherte Aenderungen' : ''}
+          Ausgewählt: Episode #{episodeOpenID} {hasUnsavedChanges ? '| Ungespeicherte Änderungen' : ''}
         </p>
       )}
 
@@ -152,7 +152,7 @@ export function EpisodeEditForm({
               onChange={(event) => onClearFlagChange('title', event.target.checked)}
               disabled={isUpdating}
             />
-            Feld zuruecksetzen
+            Feld zurücksetzen
           </label>
         </div>
 
@@ -201,14 +201,14 @@ export function EpisodeEditForm({
               onChange={(event) => onClearFlagChange('streamLink', event.target.checked)}
               disabled={isUpdating}
             />
-            Feld zuruecksetzen
+            Feld zurücksetzen
           </label>
         </div>
 
         <div className={styles.gridTwo}>
           <div className={styles.field}>
             <label htmlFor="update-episode-id">Episode-ID (nur lesen)</label>
-            <input id="update-episode-id" value={values.id} readOnly disabled placeholder="aus Liste waehlen" />
+            <input id="update-episode-id" value={values.id} readOnly disabled placeholder="aus Liste wählen" />
           </div>
           <div className={styles.field}>
             <label>Metadaten</label>
@@ -221,7 +221,7 @@ export function EpisodeEditForm({
               <br />
               Quell-Host: {streamDiagnostics.sourceOrigin || 'nicht lesbar'}
               <br />
-              Verknuepfte Item-ID: {streamDiagnostics.itemID || 'nicht lesbar'}
+              Verknüpfte Item-ID: {streamDiagnostics.itemID || 'nicht lesbar'}
               <br />
               Abgeleiteter Stream-Pfad: {streamDiagnostics.derivedStreamPath || 'nicht ableitbar'}
             </p>
@@ -230,9 +230,9 @@ export function EpisodeEditForm({
 
         <div className={styles.field}>
           <label>Versionen und Gruppen</label>
-          {!selectedEpisode ? <p className={styles.hint}>Bitte zuerst eine Episode auswaehlen.</p> : null}
+          {!selectedEpisode ? <p className={styles.hint}>Bitte zuerst eine Episode auswählen.</p> : null}
           {selectedEpisode && selectedEpisodeNumber === null ? (
-            <p className={styles.hint}>Versionsauflistung ist nur fuer numerische Episodennummern verfuegbar.</p>
+            <p className={styles.hint}>Versionsauflistung ist nur für numerische Episodennummern verfügbar.</p>
           ) : null}
           {selectedEpisode && selectedEpisodeNumber !== null && isLoadingVersions ? (
             <p className={styles.hint}>Lade Versionen...</p>
@@ -247,7 +247,7 @@ export function EpisodeEditForm({
           versionMatchMode === 'title' &&
           selectedEpisodeVersions.length > 0 ? (
             <p className={styles.hintWarning}>
-              Kein exakter Nummern-Match fuer Episode {selectedEpisodeNumber}. Es werden Titel-Treffer aus importierter
+              Kein exakter Nummern-Match für Episode {selectedEpisodeNumber}. Es werden Titel-Treffer aus importierter
               Episodennummer {matchedVersionEpisodeNumber ?? '?'} angezeigt.
             </p>
           ) : null}
@@ -256,7 +256,7 @@ export function EpisodeEditForm({
           !isLoadingVersions &&
           !versionsError &&
           selectedEpisodeVersions.length === 0 ? (
-            <p className={styles.hint}>Keine Episode-Versionen fuer diese Episodennummer gefunden.</p>
+            <p className={styles.hint}>Keine Episode-Versionen für diese Episodennummer gefunden.</p>
           ) : null}
           {selectedEpisode &&
           selectedEpisodeNumber !== null &&
@@ -325,11 +325,11 @@ export function EpisodeEditForm({
             type="submit"
             disabled={isUpdating || !parsePositiveInt(values.id) || !hasUnsavedChanges}
           >
-            {isUpdating ? 'Speichern...' : 'Aenderungen speichern'}
+            {isUpdating ? 'Speichern...' : 'Änderungen speichern'}
           </button>
           {episodeOpenID ? (
             <Link href={`/episodes/${episodeOpenID}`} className={styles.buttonSecondary} target="_blank" rel="noreferrer">
-              Episode oeffnen
+              Episode öffnen
             </Link>
           ) : null}
         </div>

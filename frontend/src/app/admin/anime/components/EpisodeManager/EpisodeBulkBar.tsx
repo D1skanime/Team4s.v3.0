@@ -44,9 +44,9 @@ export function EpisodeBulkBar({
           value={bulkStatus}
           onChange={(event) => onBulkStatusChange(event.target.value as EpisodeStatus | '')}
           disabled={isApplyingBulk || isUpdating}
-          aria-label="Status fuer Auswahl"
+          aria-label="Status für Auswahl"
         >
-          <option value="">Status waehlen</option>
+          <option value="">Status wählen</option>
           {statuses.map((value) => (
             <option key={value} value={value}>
               {formatEpisodeStatusLabel(value)}

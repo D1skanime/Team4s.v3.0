@@ -45,7 +45,7 @@ export function AnimeCoverField({
           onChange={(event) => onClearFlagChange('coverImage', event.target.checked)}
           disabled={isSubmitting || isUploadingCover}
         />
-        Wert loeschen (null)
+        Wert löschen (null)
       </label>
       <div className={styles.coverInline}>
         <Image
@@ -64,7 +64,7 @@ export function AnimeCoverField({
             target="_blank"
             rel="noreferrer"
           >
-            Cover oeffnen
+            Cover öffnen
           </a>
         </div>
         <div className={styles.actions}>
@@ -112,7 +112,7 @@ export function AnimeCoverField({
           </button>
         </div>
         <p className={styles.hint}>
-          Hinweis: Cover-Upload nutzt die verifizierte V2-Upload-Seam; Banner, Logo, Backgrounds und Background-Video haengen an derselben Asset-Logik.
+          Hinweis: Cover-Upload nutzt die verifizierte V2-Upload-Seam; Banner, Logo, Backgrounds und Background-Video hängen an derselben Asset-Logik.
         </p>
       </div>
     </div>

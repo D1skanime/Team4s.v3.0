@@ -87,12 +87,12 @@ function AnimeThemeRow({ animeID, theme, episodes, model }: AnimeThemeRowProps) 
                   type="button"
                   className={styles.buttonSecondary}
                   onClick={() => {
-                    if (typeof window === 'undefined' || window.confirm('Theme wirklich loeschen?')) {
+                    if (typeof window === 'undefined' || window.confirm('Theme wirklich löschen?')) {
                       void model.deleteTheme(theme.id)
                     }
                   }}
                 >
-                  Loeschen
+                  Löschen
                 </button>
               </>
             ) : null}
@@ -129,7 +129,7 @@ function AnimeThemeRow({ animeID, theme, episodes, model }: AnimeThemeRowProps) 
           </div>
         ) : (
           <p className={themeStyles.helper}>
-            Theme-Typ <strong>{theme.theme_type_name}</strong> fuer Anime #{animeID}. Segmente nutzen die Episoden-IDs, zeigen aber
+            Theme-Typ <strong>{theme.theme_type_name}</strong> für Anime #{animeID}. Segmente nutzen die Episoden-IDs, zeigen aber
             die Episodennummern an.
           </p>
         )}
@@ -184,7 +184,7 @@ function AnimeThemeRow({ animeID, theme, episodes, model }: AnimeThemeRowProps) 
                 }
               }}
             >
-              Episodenbereich hinzufuegen
+              Episodenbereich hinzufügen
             </button>
           </div>
 
@@ -205,7 +205,7 @@ function AnimeThemeRow({ animeID, theme, episodes, model }: AnimeThemeRowProps) 
                     className={styles.buttonSecondary}
                     onClick={() => void model.deleteSegment(theme.id, segment.id)}
                   >
-                    Loeschen
+                    Löschen
                   </button>
                 </div>
               ))}
@@ -269,7 +269,7 @@ export function AnimeThemesSection({
 
         <div className={themeStyles.content}>
           <p className={themeStyles.helper}>
-            Theme-Typen kommen aus der Datenbank. Segmente zeigen die Episodennummer fuer die Lesbarkeit, senden an die API aber
+            Theme-Typen kommen aus der Datenbank. Segmente zeigen die Episodennummer für die Lesbarkeit, senden an die API aber
             immer die Episode-ID.
           </p>
 
@@ -284,7 +284,7 @@ export function AnimeThemesSection({
                   value={model.newTypeID}
                   onChange={(event) => model.setNewTypeID(Number(event.target.value))}
                 >
-                  <option value={0}>Bitte waehlen</option>
+                  <option value={0}>Bitte wählen</option>
                   {model.themeTypes.map((type) => (
                     <option key={type.id} value={type.id}>
                       {type.name}

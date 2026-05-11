@@ -28,10 +28,10 @@ export function JellyfinCandidateReview({
   return (
     <section className={styles.surface}>
       <div className={styles.compactPicker}>
-        <strong>Jellyfin-Treffer fuer &quot;{query}&quot;</strong>
+        <strong>Jellyfin-Treffer für &quot;{query}&quot;</strong>
         <p className={styles.compactHelp}>
-          Waehle zuerst den passenden Ordner. `Preview laden` zeigt nur den
-          Kandidatenkontext und uebernimmt noch keine Assets in die Create-Seite.
+          Wähle zuerst den passenden Ordner. `Preview laden` zeigt nur den
+          Kandidatenkontext und übernimmt noch keine Assets in die Create-Seite.
         </p>
         <div className={styles.compactList}>
           {candidates.map((candidate) => (

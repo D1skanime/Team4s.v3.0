@@ -224,7 +224,7 @@ export function EpisodeManager({
   const handleSelectEpisode = (episode: EpisodeListItem) => {
     if (manager.selectedID && manager.selectedID !== episode.id && manager.hasEditChanges && typeof window !== 'undefined') {
       const confirmed = window.confirm(
-        'Es gibt ungespeicherte Aenderungen an der aktuellen Episode. Trotzdem wechseln und Aenderungen verwerfen?',
+        'Es gibt ungespeicherte Änderungen an der aktuellen Episode. Trotzdem wechseln und Änderungen verwerfen?',
       )
       if (!confirmed) return
     }

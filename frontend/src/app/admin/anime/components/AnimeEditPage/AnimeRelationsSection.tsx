@@ -63,7 +63,7 @@ export function AnimeRelationsSection({
           <div className={relationStyles.summaryTitle}>
             <div>
               <h2 className={styles.sectionTitle}>Relationen</h2>
-              <p className={styles.sectionMeta}>Bestehende Anime-Verknuepfungen pflegen, ohne die Edit-Route zu verlassen.</p>
+              <p className={styles.sectionMeta}>Bestehende Anime-Verknüpfungen pflegen, ohne die Edit-Route zu verlassen.</p>
             </div>
             <div className={relationStyles.summaryRow}>
               <span>{buildRelationsSummary(model.relations, model.errorMessage)}</span>
@@ -74,7 +74,7 @@ export function AnimeRelationsSection({
 
         <div className={relationStyles.content}>
           <p className={relationStyles.helper}>
-            Der ausgewaehlte Typ beschreibt immer das Ziel-Anime aus Sicht des aktuell bearbeiteten Anime.
+            Der ausgewählte Typ beschreibt immer das Ziel-Anime aus Sicht des aktuell bearbeiteten Anime.
             Beispiel: <strong>Fortsetzung</strong> bedeutet, dass das Ziel die Fortsetzung dieses Anime ist.
           </p>
 
@@ -92,7 +92,7 @@ export function AnimeRelationsSection({
                 />
               </label>
 
-              {model.isSearching ? <p className={relationStyles.emptyState}>Suche laeuft...</p> : null}
+              {model.isSearching ? <p className={relationStyles.emptyState}>Suche läuft...</p> : null}
 
               {model.targets.length > 0 ? (
                 <div className={relationStyles.results}>
@@ -129,10 +129,10 @@ export function AnimeRelationsSection({
 
               {model.selectedTarget ? (
                 <p className={relationStyles.helper}>
-                  Ausgewaehlt: <strong>{model.selectedTarget.title}</strong> ({formatTargetMeta(model.selectedTarget)})
+                  Ausgewählt: <strong>{model.selectedTarget.title}</strong> ({formatTargetMeta(model.selectedTarget)})
                 </p>
               ) : (
-                <p className={relationStyles.helper}>Noch kein Ziel-Anime ausgewaehlt.</p>
+                <p className={relationStyles.helper}>Noch kein Ziel-Anime ausgewählt.</p>
               )}
 
               {model.inlineError ? <p className={relationStyles.errorBox}>{model.inlineError}</p> : null}
@@ -187,12 +187,12 @@ export function AnimeRelationsSection({
                         type="button"
                         className={styles.buttonSecondary}
                         onClick={() => {
-                          if (typeof window === 'undefined' || window.confirm('Relation wirklich loeschen?')) {
+                          if (typeof window === 'undefined' || window.confirm('Relation wirklich löschen?')) {
                             void model.deleteRelation(relation.target_anime_id)
                           }
                         }}
                       >
-                        Loeschen
+                        Löschen
                       </button>
                     </div>
                   )}

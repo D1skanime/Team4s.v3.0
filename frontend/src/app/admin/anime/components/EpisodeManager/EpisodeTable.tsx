@@ -44,7 +44,7 @@ export function EpisodeTable({
   onRemoveEpisode,
 }: EpisodeTableProps) {
   if (episodes.length === 0) {
-    return <p className={styles.episodeEmptyState}>Keine Episoden fuer diesen Filter gefunden.</p>
+    return <p className={styles.episodeEmptyState}>Keine Episoden für diesen Filter gefunden.</p>
   }
 
   return (

@@ -60,7 +60,7 @@ export function AnimeContextCard({
   return (
     <section className={`${styles.panel} ${styles.contextPanel} ${styles.contextColumn}`}>
       <h2>Aktiver Kontext</h2>
-      <p className={styles.hint}>Schritt 2: Kontext laden, dann Episode auswaehlen und bearbeiten.</p>
+      <p className={styles.hint}>Schritt 2: Kontext laden, dann Episode auswählen und bearbeiten.</p>
       <form className={styles.form} onSubmit={onSubmitContext}>
         <div className={styles.gridTwo}>
           <div className={styles.field}>
@@ -108,7 +108,7 @@ export function AnimeContextCard({
               Zu Versionen
             </Link>
             <a href={`/anime/${anime.id}`} className={styles.buttonSecondary} target="_blank" rel="noreferrer">
-              Anime oeffnen
+              Anime öffnen
             </a>
           </div>
           <div className={styles.coverRow}>

@@ -98,7 +98,7 @@ export function AnimeEditGenreSection({
             onFocus={onGenreFocus}
             onBlur={onGenreBlur}
             disabled={isSubmitting || clearGenre}
-            placeholder="Genre tippen und mit Enter oder Komma hinzufuegen"
+            placeholder="Genre tippen und mit Enter oder Komma hinzufügen"
           />
           {isDropdownOpen ? (
             <div className={workspaceStyles.tagDropdown}>

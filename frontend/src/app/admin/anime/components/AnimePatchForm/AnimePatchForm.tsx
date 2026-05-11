@@ -83,7 +83,7 @@ export function AnimePatchForm({
 
     const animeID = parsePositiveInt(animeIDInput) ?? anime?.id ?? null
     if (!animeID) {
-      onError('Anime-ID ist ungueltig.')
+      onError('Anime-ID ist ungültig.')
       return
     }
 
@@ -219,7 +219,7 @@ export function AnimePatchForm({
 
         <div className={styles.actions}>
           <button className={styles.buttonSecondary} type="submit" disabled={patch.isSubmitting || !patch.isDirty}>
-            {patch.isSubmitting ? 'Speichern...' : 'Aenderungen speichern'}
+            {patch.isSubmitting ? 'Speichern...' : 'Änderungen speichern'}
           </button>
           {anime ? (
             <button

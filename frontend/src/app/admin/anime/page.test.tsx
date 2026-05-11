@@ -69,6 +69,6 @@ describe('AdminAnimePage', () => {
       }),
     )
 
-    expect(markup).toContain('Anime #042 Serial Experiments Lain wurde erstellt und ist jetzt in der Uebersicht verankert.')
+    expect(markup).toContain('Anime #042 Serial Experiments Lain wurde erstellt und ist jetzt in der Übersicht verankert.')
   })
 })

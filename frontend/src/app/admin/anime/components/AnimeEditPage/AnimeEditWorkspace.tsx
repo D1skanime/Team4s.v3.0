@@ -297,7 +297,7 @@ export function AnimeEditWorkspace({
 
   async function handleAssetCandidateSearch() {
     if (!activeAssetSearchKind) {
-      setAssetSearchErrorMessage('Bitte zuerst einen Asset-Slot waehlen.')
+      setAssetSearchErrorMessage('Bitte zuerst einen Asset-Slot wählen.')
       return
     }
     if (!assetSearchQuery.trim()) {
@@ -372,7 +372,7 @@ export function AnimeEditWorkspace({
       assetSearchSelectedIDs.includes(candidate.id),
     )
     if (selected.length === 0) {
-      setAssetSearchErrorMessage('Bitte zuerst mindestens ein Asset auswaehlen.')
+      setAssetSearchErrorMessage('Bitte zuerst mindestens ein Asset auswählen.')
       return
     }
 
@@ -385,7 +385,7 @@ export function AnimeEditWorkspace({
       await refreshAssetContext()
       closeAssetSearch()
     } catch (error) {
-      onError(formatAdminError(error, 'Ausgewaehlte Assets konnten nicht uebernommen werden.'))
+      onError(formatAdminError(error, 'Ausgewählte Assets konnten nicht übernommen werden.'))
     } finally {
       setIsApplyingAssetCandidates(false)
     }
@@ -616,7 +616,7 @@ export function AnimeEditWorkspace({
           <p className={workspaceStyles.sectionEyebrow}>Pflichtangaben</p>
           <h2 className={workspaceStyles.sectionTitle}>Basisdaten</h2>
           <p className={workspaceStyles.sectionText}>
-            Dieselbe Kernstruktur wie im Create-Flow, jetzt fuer bestehende Anime.
+            Dieselbe Kernstruktur wie im Create-Flow, jetzt für bestehende Anime.
           </p>
         </div>
 

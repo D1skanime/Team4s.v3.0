@@ -64,7 +64,7 @@ describe('AnimeRelationsSection', () => {
       />,
     )
 
-    expect(markup).toContain('Der ausgewaehlte Typ beschreibt immer das Ziel-Anime')
+    expect(markup).toContain('Der ausgewählte Typ beschreibt immer das Ziel-Anime')
     expect(markup).toContain('Ziel-Anime suchen')
     expect(markup).toContain('Naruto Shippuden')
     expect(markup).toContain('Hauptgeschichte')
@@ -98,7 +98,7 @@ describe('AnimeRelationsSection', () => {
     expect(markup).toContain('Relation existiert bereits oder ist ungueltig')
     expect(markup).toContain('Bestehende Relationen')
     expect(markup).toContain('Bearbeiten')
-    expect(markup).toContain('Loeschen')
+    expect(markup).toContain('Löschen')
   })
 })
 

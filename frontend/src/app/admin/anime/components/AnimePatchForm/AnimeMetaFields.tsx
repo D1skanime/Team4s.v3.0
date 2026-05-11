@@ -85,7 +85,7 @@ export function AnimeMetaFields({
             value={values.genreDraft}
             onChange={(event) => onFieldChange('genreDraft', event.target.value)}
             disabled={isSubmitting || clearFlags.genre}
-            placeholder="Genre hinzufuegen (Komma getrennt)"
+            placeholder="Genre hinzufügen (Komma getrennt)"
             onKeyDown={onGenreInputKeyDown}
           />
           <button
@@ -97,18 +97,18 @@ export function AnimeMetaFields({
               onFieldChange('genreDraft', '')
             }}
           >
-            Hinzufuegen
+            Hinzufügen
           </button>
         </div>
 
-        {isLoadingGenreTokens ? <p className={styles.hint}>Genre-Vorschlaege werden geladen...</p> : null}
+        {isLoadingGenreTokens ? <p className={styles.hint}>Genre-Vorschläge werden geladen...</p> : null}
         {genreTokensError ? <p className={styles.hint}>Hinweis: {genreTokensError}</p> : null}
         {!isLoadingGenreTokens && !clearFlags.genre && genreSuggestions.length > 0 ? (
           <>
             <p className={styles.hint}>
-              Vorschlaege: {genreSuggestions.length}/{genreSuggestionsTotal} (geladen: {loadedGenreCount})
+              Vorschläge: {genreSuggestions.length}/{genreSuggestionsTotal} (geladen: {loadedGenreCount})
             </p>
-            <div className={styles.genreSuggestionBox} aria-label="Genre Vorschlaege">
+            <div className={styles.genreSuggestionBox} aria-label="Genre Vorschläge">
               {Object.entries(groupedSuggestions).map(([group, tokens]) => (
                 <div key={group} className={styles.genreSuggestionGroup}>
                   <p className={styles.genreSuggestionGroupTitle}>{group}</p>
@@ -145,7 +145,7 @@ export function AnimeMetaFields({
                 disabled={isSubmitting || clearFlags.genre || genreSuggestionLimit <= 40}
                 onClick={() => onGenreSuggestionLimitChange(40)}
               >
-                Zuruecksetzen
+                Zurücksetzen
               </button>
               </div>
           </>
@@ -157,7 +157,7 @@ export function AnimeMetaFields({
             onChange={(event) => onClearFlagChange('genre', event.target.checked)}
             disabled={isSubmitting}
           />
-          Wert loeschen (null)
+          Wert löschen (null)
         </label>
         <p className={styles.hint}>Aktuell: {values.genreTokens.join(', ') || '(leer)'}</p>
       </div>
@@ -176,7 +176,7 @@ export function AnimeMetaFields({
             onChange={(event) => onClearFlagChange('description', event.target.checked)}
             disabled={isSubmitting}
           />
-          Wert loeschen (null)
+          Wert löschen (null)
         </label>
       </div>
     </div>

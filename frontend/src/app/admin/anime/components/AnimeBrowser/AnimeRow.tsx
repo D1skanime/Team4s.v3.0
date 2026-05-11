@@ -85,7 +85,7 @@ export function AnimeRow({
                 <summary className={styles.buttonSecondary}>Mehr</summary>
                 <div className={styles.rowContextMenuBody}>
                   <a href={`/anime/${anime.id}`} className={styles.buttonSecondary} target="_blank" rel="noreferrer">
-                    Oeffnen
+                    Öffnen
                   </a>
                   <button className={styles.buttonSecondary} type="button" onClick={onSync} disabled={isSyncDisabled || isSyncing}>
                     {isSyncing ? 'Synchronisiert...' : 'Synchronisieren'}

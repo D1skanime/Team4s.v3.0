@@ -142,18 +142,18 @@ export function EpisodeRow({
 
           <div className={styles.episodeActionsCell}>
             <details className={styles.rowContextMenu}>
-              <summary className={styles.episodeContextTrigger} aria-label={`Aktionen fuer Episode ${episode.episode_number}`}>
+              <summary className={styles.episodeContextTrigger} aria-label={`Aktionen für Episode ${episode.episode_number}`}>
                 <MoreHorizontal size={16} />
               </summary>
               <div className={styles.rowContextMenuBody}>
                 <button className={styles.episodeContextButton} type="button" disabled={rowDisabled || isRemoving} onClick={onSelect}>
-                  Im Editor oeffnen
+                  Im Editor öffnen
                 </button>
                 <button className={styles.episodeContextButton} type="button" disabled={rowDisabled || isRemoving} onClick={onBeginInlineEdit}>
                   Schnell bearbeiten
                 </button>
                 <Link href={`/episodes/${episode.id}`} className={styles.episodeOpenLink} target="_blank" rel="noreferrer">
-                  Oeffnen
+                  Öffnen
                 </Link>
                 <button className={`${styles.episodeContextButton} ${styles.episodeDangerButton}`} type="button" disabled={rowDisabled || isRemoving} onClick={onRemove}>
                   Entfernen

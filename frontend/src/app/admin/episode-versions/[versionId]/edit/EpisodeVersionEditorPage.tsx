@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
 import { formatBytes, formatDateTime, formatDurationInput, padEpisodeNumber, parseDurationInput } from './episodeVersionEditorUtils'
+import { ReleaseVersionMediaSection } from './ReleaseVersionMediaSection'
 import { useEpisodeVersionEditor } from './useEpisodeVersionEditor'
 import { SegmenteTab } from './SegmenteTab'
 import styles from './EpisodeVersionEditor.module.css'
@@ -401,14 +402,11 @@ export function EpisodeVersionEditorPage() {
                   <span className={styles.mediaContextLabel}>Release-Version</span>
                   <span className={styles.mediaContextValue}>{segmentVersion ?? '–'}</span>
                 </div>
-                {/* Upload section shell — filled in Plan 02 */}
-                <div className={styles.mediaUploadShell}>
-                  <p className={styles.helperText}>Upload-Flow wird in Plan 02 verdrahtet.</p>
-                </div>
-                {/* Gallery shell — filled in Plan 03 */}
-                <div className={styles.mediaGalleryShell}>
-                  <p className={styles.helperText}>Galerie wird in Plan 03 aufgebaut.</p>
-                </div>
+                <ReleaseVersionMediaSection
+                  versionId={version.id}
+                  fansubGroupName={groupName ?? '–'}
+                  releaseVersionLabel={segmentVersion ?? '–'}
+                />
               </section>
             ) : null}
 

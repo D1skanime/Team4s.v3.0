@@ -292,6 +292,9 @@ export function ReleaseVersionMediaSection({
       ) : null}
 
       <div className={styles.galleryLayout}>
+        {media.reorderError ? (
+          <div className={styles.errorBox}>Reorder Fehler: {media.reorderError}</div>
+        ) : null}
         <ReleaseVersionMediaGallery
           items={persistedItems}
           selectedItemId={selectedItemId}
@@ -310,7 +313,7 @@ export function ReleaseVersionMediaSection({
         ) : (
           <div className={styles.galleryPlaceholder}>
             <p className={styles.helper}>
-              Waehle eine Karte aus der Galerie, um Beschreibung, Sortierung,
+              Waehle eine Karte aus der Galerie, um Beschreibung,
               Preview-Status oder Delete fuer dieses Medium zu bearbeiten.
             </p>
           </div>

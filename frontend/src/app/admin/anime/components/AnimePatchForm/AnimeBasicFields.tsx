@@ -117,7 +117,7 @@ export function AnimeBasicFields({
               onChange={(event) => onClearFlagChange('year', event.target.checked)}
               disabled={isSubmitting}
             />
-            Wert loeschen (null)
+            Wert löschen (null)
           </label>
         </div>
         <div className={styles.field}>
@@ -135,7 +135,7 @@ export function AnimeBasicFields({
               onChange={(event) => onClearFlagChange('maxEpisodes', event.target.checked)}
               disabled={isSubmitting}
             />
-            Wert loeschen (null)
+            Wert löschen (null)
           </label>
         </div>
         <div className={styles.field}>
@@ -153,7 +153,7 @@ export function AnimeBasicFields({
               onChange={(event) => onClearFlagChange('titleDE', event.target.checked)}
               disabled={isSubmitting}
             />
-            Wert loeschen (null)
+            Wert löschen (null)
           </label>
         </div>
         <div className={styles.field}>
@@ -171,7 +171,7 @@ export function AnimeBasicFields({
               onChange={(event) => onClearFlagChange('titleEN', event.target.checked)}
               disabled={isSubmitting}
             />
-            Wert loeschen (null)
+            Wert löschen (null)
           </label>
         </div>
       </div>

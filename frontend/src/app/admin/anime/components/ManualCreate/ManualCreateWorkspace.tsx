@@ -246,7 +246,7 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
                 <p className={workspaceStyles.sectionEyebrow}>Zusatzdaten</p>
                 <h2 className={workspaceStyles.sectionTitle}>Titel und Jahr</h2>
                 <p className={workspaceStyles.sectionText}>
-                  Optionale Angaben fuer Sortierung, Varianten und Kontext.
+                  Optionale Angaben für Sortierung, Varianten und Kontext.
                 </p>
               </div>
 
@@ -408,7 +408,7 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
             <div className={workspaceStyles.sectionHeader}>
               <p className={workspaceStyles.sectionEyebrow}>Jellyfin</p>
               <h2 className={workspaceStyles.sectionTitle}>
-                Uebernommene Assets
+                Übernommene Assets
               </h2>
               <p className={workspaceStyles.sectionText}>
                 Die Vorschau-Assets liegen bewusst ueber die verfuegbare

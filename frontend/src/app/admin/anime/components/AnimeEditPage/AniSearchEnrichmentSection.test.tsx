@@ -17,9 +17,9 @@ describe('AniSearchEnrichmentSection', () => {
     )
 
     expect(markup).toContain('AniSearch Daten laden')
-    expect(markup).toContain('Felder schuetzen')
+    expect(markup).toContain('Felder schützen')
     expect(markup).toContain('<fieldset')
-    expect(markup).toContain('<legend>Felder schuetzen</legend>')
+    expect(markup).toContain('<legend>Felder schützen</legend>')
     expect(markup).toContain('aria-live="polite"')
     expect(markup).toContain('AniSearch laden')
   })
@@ -42,7 +42,7 @@ describe('AniSearchEnrichmentSection', () => {
       />,
     )
 
-    expect(markup).toContain('AniSearch ID 12345 ist bereits mit Serial Experiments Lain verknuepft.')
+    expect(markup).toContain('AniSearch ID 12345 ist bereits mit Serial Experiments Lain verknüpft.')
     expect(markup).toContain('Zum vorhandenen Anime wechseln')
     expect(markup).toContain('href="/admin/anime/84/edit"')
   })

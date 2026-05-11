@@ -107,6 +107,7 @@ function makeMediaState(error: string | null = null): UseReleaseVersionMediaResu
     reorderItems: vi.fn().mockResolvedValue(undefined),
     patchError: null,
     deleteError: null,
+    reorderError: null,
   }
 }
 

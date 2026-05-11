@@ -48,7 +48,7 @@ export function JellyfinCandidateCard({
           <img
             className={styles.posterImage}
             src={posterUrl}
-            alt={`Poster Vorschau fuer ${candidate.name}`}
+            alt={`Poster Vorschau für ${candidate.name}`}
           />
         ) : (
           <div className={styles.posterEmpty}>Keine Vorschau</div>
@@ -88,7 +88,7 @@ export function JellyfinCandidateCard({
                 className={styles.importedLink}
                 href={`/admin/anime/${candidate.existing_anime_id}/edit`}
               >
-                Bestehenden Anime oeffnen
+                Bestehenden Anime öffnen
               </Link>
             ) : null}
           </div>
@@ -123,12 +123,12 @@ export function JellyfinCandidateCard({
               disabled={isLoadingPreview}
             >
               {isAdopted
-                ? "Ausgewaehlt"
+                ? "Ausgewählt"
                 : isLoadingPreview
-                  ? "Uebernimmt..."
+                  ? "Übernimmt..."
                   : isCurrentAnime
-                    ? "Mit diesem Anime verknuepfen"
-                    : "Jellyfin uebernehmen"}
+                    ? "Mit diesem Anime verknüpfen"
+                    : "Jellyfin übernehmen"}
             </button>
           )}
         </div>

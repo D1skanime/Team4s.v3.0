@@ -26,7 +26,7 @@ export function AnimeContextFansubs({ fansubs, isLoading }: AnimeContextFansubsP
     <div className={styles.contextFansubSection}>
       <p className={styles.hint}>Fansub-Historie ({fansubs.length})</p>
       {isLoading ? <p className={styles.hint}>Fansub-Daten werden geladen...</p> : null}
-      {!isLoading && fansubs.length === 0 ? <p className={styles.hint}>Keine Fansub-Verknuepfung fuer diesen Anime vorhanden.</p> : null}
+      {!isLoading && fansubs.length === 0 ? <p className={styles.hint}>Keine Fansub-Verknüpfung für diesen Anime vorhanden.</p> : null}
       {!isLoading && fansubs.length > 0 ? (
         <div className={styles.contextFansubGrid}>
           {fansubs.map((group) => (

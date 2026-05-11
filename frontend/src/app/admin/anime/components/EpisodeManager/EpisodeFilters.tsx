@@ -64,7 +64,7 @@ export function EpisodeFilters({
           <div className={styles.filterMetaRow}>
             <span className={styles.hint}>{visibleCount} Treffer sichtbar</span>
             <button className={styles.buttonSecondary} type="button" onClick={onToggleAllVisible} disabled={disabled || visibleCount === 0}>
-              {allVisibleSelected ? 'Sichtbare abwaehlen' : 'Sichtbare auswaehlen'}
+              {allVisibleSelected ? 'Sichtbare abwählen' : 'Sichtbare auswählen'}
             </button>
           </div>
           <div className={styles.field}>

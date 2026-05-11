@@ -145,9 +145,9 @@ export function AnimeJellyfinMetadataSection({
       )
       await onAfterApply()
       await refreshContext({ resetPreview: true })
-      onSuccess('Jellyfin-Metadaten wurden uebernommen.')
+      onSuccess('Jellyfin-Metadaten wurden übernommen.')
     } catch (error) {
-      onError(error instanceof Error ? error.message : 'Jellyfin-Metadaten konnten nicht uebernommen werden.')
+      onError(error instanceof Error ? error.message : 'Jellyfin-Metadaten konnten nicht übernommen werden.')
     } finally {
       setIsApplying(false)
     }
@@ -158,7 +158,7 @@ export function AnimeJellyfinMetadataSection({
       <div className={styles.sectionHeader}>
         <div>
           <h2 className={styles.sectionTitle}>Jellyfin Provenance</h2>
-          <p className={styles.sectionMeta}>Linkage, sichere Metadaten-Preview und explizite Uebernahme fuer bestehende Anime.</p>
+          <p className={styles.sectionMeta}>Linkage, sichere Metadaten-Preview und explizite Übernahme für bestehende Anime.</p>
         </div>
       </div>
 
@@ -171,7 +171,7 @@ export function AnimeJellyfinMetadataSection({
               <span>Quelle</span>
               <div className={styles.badgeRow}>
                 <span className={`${styles.badge} ${context.linked ? styles.badgePrimary : styles.badgeMuted}`}>
-                  {context.linked ? 'Mit Jellyfin verknuepft' : 'Manuell gepflegt'}
+                  {context.linked ? 'Mit Jellyfin verknüpft' : 'Manuell gepflegt'}
                 </span>
                 <span className={`${styles.badge} ${styles.badgeMuted}`}>{formatSourceKindLabel(context.source_kind)}</span>
                 <span className={`${styles.badge} ${styles.badgeMuted}`}>{formatCoverSource(context.cover.current_source)}</span>
@@ -204,13 +204,13 @@ export function AnimeJellyfinMetadataSection({
               disabled={!context.linked || isBusy}
               onClick={() => void handlePreview()}
             >
-              {isPreviewing ? 'Preview laeuft...' : 'Metadaten preview laden'}
+              {isPreviewing ? 'Preview läuft...' : 'Metadaten preview laden'}
             </button>
           </div>
 
           {!context.linked ? (
             <p className={workspaceStyles.helperText}>
-              Dieser Anime hat aktuell keinen persistierten Jellyfin-Link. Phase 4 zeigt hier bewusst keine verdeckte Auto-Verknuepfung.
+              Dieser Anime hat aktuell keinen persistierten Jellyfin-Link. Phase 4 zeigt hier bewusst keine verdeckte Auto-Verknüpfung.
             </p>
           ) : null}
         </>
@@ -221,16 +221,16 @@ export function AnimeJellyfinMetadataSection({
           <div className={workspaceStyles.panelHeader}>
             <div>
               <h3 className={styles.sectionTitle}>Preview-Entscheidung</h3>
-              <p className={styles.sectionMeta}>Nur explizit angehakte Provider-Assets duerfen bestehende persistierte Daten ergaenzen oder ersetzen.</p>
+              <p className={styles.sectionMeta}>Nur explizit angehakte Provider-Assets dürfen bestehende persistierte Daten ergänzen oder ersetzen.</p>
             </div>
             <span className={`${styles.badge} ${hasApplicableDiff ? styles.badgeSuccess : styles.badgeMuted}`}>
-              {hasApplicableDiff ? 'Aenderungen verfuegbar' : 'Keine Feld-Diffs'}
+              {hasApplicableDiff ? 'Änderungen verfügbar' : 'Keine Feld-Diffs'}
             </span>
           </div>
           <div className={workspaceStyles.sectionGridTwo}>
             {preview.diff.length === 0 ? (
               <p className={workspaceStyles.helperText}>
-                Keine Feld-Aenderungen vorgesehen. Nutze die Asset-Aktionen unten, wenn du Banner, Logo, Backgrounds oder Background-Videos separat verwalten willst.
+                Keine Feld-Änderungen vorgesehen. Nutze die Asset-Aktionen unten, wenn du Banner, Logo, Backgrounds oder Background-Videos separat verwalten willst.
               </p>
             ) : null}
             {preview.diff.map((item) => (
@@ -238,7 +238,7 @@ export function AnimeJellyfinMetadataSection({
                 <span>{item.label}</span>
                 <div className={styles.badgeRow}>
                   <span className={`${styles.badge} ${item.apply ? styles.badgeSuccess : styles.badgeMuted}`}>
-                    {item.apply ? 'Wird gefuellt' : item.action === 'protect' ? 'Geschuetzt' : 'Keine Aenderung'}
+                    {item.apply ? 'Wird gefüllt' : item.action === 'protect' ? 'Geschützt' : 'Keine Änderung'}
                   </span>
                   {item.reason ? <span className={`${styles.badge} ${styles.badgeMuted}`}>{item.reason}</span> : null}
                 </div>
@@ -258,11 +258,11 @@ export function AnimeJellyfinMetadataSection({
                   onChange={(event) => setApplyCover(event.target.checked)}
                 />
                 <div>
-                  <strong>Jellyfin-Cover uebernehmen</strong>
+                  <strong>Jellyfin-Cover übernehmen</strong>
                   <p className={workspaceStyles.helperText}>
                     {preview.cover.can_apply
                       ? `Aktuell: ${formatCoverSource(preview.cover.current_source)}. Provider-Cover wird nur mit explizitem Haken angewendet.`
-                      : preview.cover.reason || 'Kein Jellyfin-Cover verfuegbar.'}
+                      : preview.cover.reason || 'Kein Jellyfin-Cover verfügbar.'}
                   </p>
                 </div>
               </div>
@@ -277,11 +277,11 @@ export function AnimeJellyfinMetadataSection({
                   onChange={(event) => setApplyBanner(event.target.checked)}
                 />
                 <div>
-                  <strong>Jellyfin-Banner uebernehmen</strong>
+                  <strong>Jellyfin-Banner übernehmen</strong>
                   <p className={workspaceStyles.helperText}>
                     {preview.asset_slots.banner.present
-                      ? 'Provider-Banner wird nur mit explizitem Haken uebernommen. Manuelle Banner bleiben bis zum Entfernen geschuetzt.'
-                      : 'Kein Jellyfin-Banner verfuegbar.'}
+                      ? 'Provider-Banner wird nur mit explizitem Haken übernommen. Manuelle Banner bleiben bis zum Entfernen geschützt.'
+                      : 'Kein Jellyfin-Banner verfügbar.'}
                   </p>
                 </div>
               </div>
@@ -296,11 +296,11 @@ export function AnimeJellyfinMetadataSection({
                   onChange={(event) => setApplyBackgrounds(event.target.checked)}
                 />
                 <div>
-                  <strong>Jellyfin-Backgrounds uebernehmen</strong>
+                  <strong>Jellyfin-Backgrounds übernehmen</strong>
                   <p className={workspaceStyles.helperText}>
                     {preview.asset_slots.backgrounds.length > 0
-                      ? 'Provider-Backgrounds werden nur mit explizitem Haken aktualisiert oder ergaenzt. Manuelle Backgrounds bleiben geschuetzt.'
-                      : 'Keine Jellyfin-Backgrounds verfuegbar.'}
+                      ? 'Provider-Backgrounds werden nur mit explizitem Haken aktualisiert oder ergänzt. Manuelle Backgrounds bleiben geschützt.'
+                      : 'Keine Jellyfin-Backgrounds verfügbar.'}
                   </p>
                 </div>
               </div>
@@ -314,7 +314,7 @@ export function AnimeJellyfinMetadataSection({
               disabled={!canApply || isApplying}
               onClick={() => void handleApply()}
             >
-              {isApplying ? 'Metadaten werden uebernommen...' : 'Preview anwenden'}
+              {isApplying ? 'Metadaten werden übernommen...' : 'Preview anwenden'}
             </button>
           </div>
         </div>
@@ -326,7 +326,7 @@ export function AnimeJellyfinMetadataSection({
             <div>
               <h3 className={styles.sectionTitle}>Asset-Provenance</h3>
               <p className={styles.sectionMeta}>
-                Cover, Banner, Logo, Backgrounds und Background-Video koennen explizit aus Jellyfin uebernommen und manuell ersetzt oder ergaenzt werden.
+                Cover, Banner, Logo, Backgrounds und Background-Video können explizit aus Jellyfin übernommen und manuell ersetzt oder ergänzt werden.
               </p>
             </div>
           </div>

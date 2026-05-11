@@ -49,9 +49,9 @@ function renderAssetPreview(animeTitle: string, kind: JellyfinDraftAssetTarget['
     return (
       <div className={styles.details}>
         <strong>{slotLabel(kind)}</strong>
-        <p className={styles.hint}>Jellyfin-Quelle fuer {animeTitle}</p>
+        <p className={styles.hint}>Jellyfin-Quelle für {animeTitle}</p>
         <a className={styles.buttonSecondary} href={resolvedUrl} target="_blank" rel="noreferrer">
-          Videoquelle oeffnen
+          Videoquelle öffnen
         </a>
       </div>
     )
@@ -64,7 +64,7 @@ function renderAssetPreview(animeTitle: string, kind: JellyfinDraftAssetTarget['
         src={resolvedUrl}
         alt={`${slotLabel(kind)} von Jellyfin fuer ${animeTitle}`}
       />
-      <p className={styles.hint}>Jellyfin-Quelle fuer {animeTitle}</p>
+      <p className={styles.hint}>Jellyfin-Quelle für {animeTitle}</p>
     </div>
   )
 }

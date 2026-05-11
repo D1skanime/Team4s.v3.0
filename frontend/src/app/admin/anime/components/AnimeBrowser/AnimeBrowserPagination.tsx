@@ -50,7 +50,7 @@ export function AnimeBrowserPagination({
             Vorherige Seite
           </button>
           <button className={styles.buttonSecondary} type="button" disabled={isLoading || page >= totalPages} onClick={onNext}>
-            Naechste Seite
+            Nächste Seite
           </button>
           <button className={styles.buttonSecondary} type="button" disabled={isLoading} onClick={onReload}>
             Neu laden

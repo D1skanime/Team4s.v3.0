@@ -33,7 +33,7 @@ describe("JellyfinCandidateCard", () => {
     expect(markup).toContain("OVA | Bonus | Anime");
     expect(markup).toContain("Passend");
     expect(markup).toContain("Ansehen");
-    expect(markup).toContain("Jellyfin uebernehmen");
+    expect(markup).toContain("Jellyfin übernehmen");
   });
 
   it("shows selected and adopted state without a second preview CTA", () => {
@@ -61,7 +61,7 @@ describe("JellyfinCandidateCard", () => {
     );
 
     expect(markup).toContain("Im Fokus");
-    expect(markup).toContain("Ausgewaehlt");
+    expect(markup).toContain("Ausgewählt");
     expect(markup).not.toContain("Preview laden");
   });
 
@@ -92,7 +92,7 @@ describe("JellyfinCandidateCard", () => {
 
     expect(markup).toContain("Bereits importiert");
     expect(markup).toContain("Macross Flash Back 2012");
-    expect(markup).toContain("Bestehenden Anime oeffnen");
-    expect(markup).not.toContain("Jellyfin uebernehmen");
+    expect(markup).toContain("Bestehenden Anime öffnen");
+    expect(markup).not.toContain("Jellyfin übernehmen");
   });
 });
