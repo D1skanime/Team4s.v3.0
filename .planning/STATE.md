@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
+status: In progress
 stopped_at: Completed 40-02-PLAN.md
-last_updated: "2026-05-11T19:25:02.975Z"
+last_updated: "2026-05-11T19:24:00.000Z"
 last_activity: 2026-05-11
 progress:
-  total_phases: 36
-  completed_phases: 28
-  total_plans: 124
+  total_phases: 40
+  completed_phases: 39
+  total_plans: 122
   completed_plans: 106
 ---
 
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 40 — text-und-notizsystem-fuer-fansub-plattform
+**Current focus:** Phase 39 — deutsche-umlaute-durchgaengig-korrigieren (abgeschlossen)
 
 ## Current Position
 
-Phase: 40 (text-und-notizsystem-fuer-fansub-plattform) — EXECUTING
-Plan: 3 of 10
+Phase: 40
+Plan: 02 (abgeschlossen)
 
 ## Accumulated Context
 
@@ -35,6 +35,7 @@ Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
 
+- [Phase 40]: TRUNCATE contributor_roles CASCADE statt additivem INSERT ON CONFLICT — bestehende 6 Seeds sind Test-Daten (User-Entscheidung); DOWN ist No-op weil CASCADE nicht reversibel.
 - Shared admin anime editing stays on one editor surface across create and edit.
 - Jellyfin-assisted intake stays preview-only until explicit save.
 - Manual values and manual replacement assets stay authoritative over later resync behavior.
@@ -162,10 +163,6 @@ Recent durable decisions:
 - [Phase 38]: Native HTML5 drag-and-drop chosen over adding a new DnD library: plan preferred project-owned seam first and no concrete blocker was found
 - [Phase 38]: Sort-order form removed from ReleaseVersionMediaDetailPanel; reorder is gallery-only via drag-and-drop within category
 - [Phase 38]: No new dependency for hover card: project-owned React state + CSS position absolute; 200ms debounce matches CONTEXT.md recommendation; GIF detection via .gif extension check on original_url
-- [Phase 40-01]: Neue Tabellen statt Erweiterung bestehender Strukturen: member_episode_notes und anime_fansub_groups.notes sind zu rudimentär
-- [Phase 40-01]: release_version_notes.role_id NOT NULL mit ON DELETE RESTRICT; member_group_stories.role_id NULLABLE
-- [Phase 40-01]: anime_fansub_project_notes UNIQUE Partial Index WHERE deleted_at IS NULL für MVP Ein-Text-pro-Anime+Gruppe
-- [Phase 40]: TRUNCATE contributor_roles CASCADE statt additivem INSERT ON CONFLICT — bestehende 6 Seeds sind Test-Daten (User-Entscheidung); DOWN ist No-op weil CASCADE nicht reversibel
 
 ### Pending Todos
 
@@ -272,8 +269,6 @@ Recent durable decisions:
 | Phase 37 P04 | 15min | 2 tasks | 2 files |
 | Phase 38-release-version-media-gallery-ux-hover-preview-und-drag-and-drop-reorder P01 | 25min | 2 tasks | 10 files |
 | Phase 38-release-version-media-gallery-ux-hover-preview-und-drag-and-drop-reorder P02 | 5min | 2 tasks | 3 files |
-| Phase 40 P01 | 2min | 4 tasks | 8 files |
-| Phase 40 P02 | 5min | 1 tasks | 2 files |
 
 ### Quick Tasks Completed
 
@@ -296,7 +291,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-11T19:25:02.965Z
-Stopped at: Completed 40-02-PLAN.md
+Last session: 2026-05-11T00:00:00Z
+Stopped at: Phasen 30-38 UAT abgeschlossen und als complete markiert; Phase 39 (Release Multi-Group) geplant
 Last activity: 2026-05-11
 Resume file: None
