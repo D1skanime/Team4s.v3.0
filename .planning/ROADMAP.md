@@ -47,6 +47,8 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 36: Release-Version Media Frontend Upload UI und Galerie** - Kategorie-zuerst-Upload, Per-File-Progress, Preview-Schalter, kategorisierte Galerie, Detail-Panel, Drawer-Summary. (UAT bestanden 2026-05-11)
 - [x] **Phase 37: Release-Version Media Cleanup Job und Tests** - Periodischer Cleanup-Worker, Backend- und Frontend-Regressionstests. (Tests gruen 2026-05-11)
 - [x] **Phase 38: Release-Version Media Gallery UX Hover-Preview und Drag-and-Drop-Reorder** - Floating Preview Card, GIF src-Swap, DnD-Reorder innerhalb Kategorie, Live-Re-Sort-Fix. (UAT bestanden 2026-04-30)
+- [x] **Phase 39: Deutsche Umlaute durchgängig korrigieren** - Alle user-sichtbaren deutschen Texte im Frontend und Backend auf korrekte Umlaute umgestellt. CLAUDE.md + AGENTS.md Regel verankert.
+- [ ] **Phase 40: Text- und Notizsystem für Fansub-Plattform** - Fansub-Gruppen-Texte, Member-Geschichten, Fansubprojekt-Texte, Release-Version-Notizen mit Rollenmodell und Public-Darstellung.
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
@@ -644,3 +646,28 @@ Plans:
   3. CLAUDE.md enthaelt eine explizite Regel: Deutscher UI-Text verwendet immer korrekte Umlaute.
   4. Nach der Aenderung laufen alle bestehenden Tests weiterhin gruen.
   5. Code-Bezeichner (Variablennamen, CSS-Klassen, Funktionsnamen) sind unveraendert.
+
+### Phase 40: Text- und Notizsystem für Fansub-Plattform
+
+**Goal:** Ein sauberes, fachlich abgegrenztes Text-/Notizsystem für vier Ebenen: Fansub-Gruppen-Texte (fansub_group_notes), persönliche Member-Geschichten (member_group_stories), Fansubprojekt-Texte zu einem Anime (anime_fansub_project_notes) und rollenbezogene Release-Version-Notizen (release_version_notes). Vor jeder Implementierung wird die bestehende DB/API/UI-Struktur geprüft und vorhandenes wiederverwendet. Kein Doppelbau. Kein Übermodellieren. Texte in DB, nicht extern.
+
+**Scope:** DB-Migrationen (nur wenn nötig), Go-Backend (Repository, Handler, API), Next.js-Frontend (Admin-Bereiche, Public-Darstellung). Kein Episode-Text. Kein Segment-Text. Kein fansub_group_member_notes.
+
+**Depends on:** 39
+
+**Status**: Geplant 2026-05-11
+
+Plans:
+- [ ] TBD — wird nach Bestandsanalyse definiert
+
+**Success Criteria** (what must be TRUE):
+  1. Bestehende DB/API/UI-Struktur wurde vor Implementierung vollständig geprüft.
+  2. fansub_group_notes existiert (neu oder vorhanden) und wird für offizielle Gruppentexte verwendet.
+  3. member_group_stories existiert (neu oder vorhanden) und wird für persönliche Member-Geschichten verwendet.
+  4. anime_fansub_project_notes existiert (neu oder vorhanden) und wird für Fansubprojekt-Texte verwendet.
+  5. release_version_notes existiert (neu oder vorhanden) und hängt an release_version_id + member_id + role_id.
+  6. Pro Release-Version-Rolle werden passende Hilfetexte und Placeholder angezeigt.
+  7. Public-Ausgabe zeigt nur status=published, visibility=public, deleted_at IS NULL, body nicht leer.
+  8. Rollenmodell ist auf die 11 Kernrollen reduziert; alte Spezialrollen sind gemappt.
+  9. Markdown/HTML wird sicher gerendert und sanitisiert.
+  10. Backend-Tests und Frontend-Tests laufen grün.
