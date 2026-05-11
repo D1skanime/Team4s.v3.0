@@ -148,7 +148,8 @@ func main() {
 			TMDBAPIKey:   cfg.TMDBAPIKey,
 			FanartAPIKey: cfg.FanartAPIKey,
 		},
-	).WithMediaDeps(mediaRepo, mediaService)
+	).WithMediaDeps(mediaRepo, mediaService).
+		WithNoteDeps(repository.NewFansubNotesRepository(dbPool), services.NewMarkdownService())
 	fansubHandler := handlers.NewFansubHandler(
 		fansubRepo,
 		episodeVersionRepo,
