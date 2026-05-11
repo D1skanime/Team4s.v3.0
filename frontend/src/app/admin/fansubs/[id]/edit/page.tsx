@@ -45,6 +45,7 @@ import {
 import { AdminAnimeTheme, AdminAnimeThemeSegment, AdminFansubAnimeEntry, AdminReleaseThemeAsset } from '@/types/admin'
 import { AdminFansubRelease } from '@/types/fansub'
 import { buildFansubLogoFallback, buildMediaPreviewURL, EditableMediaValue, MediaUpload } from '@/components/admin/MediaUpload'
+import { AnimeProjectNotesSection } from './AnimeProjectNotesSection'
 import { ReleaseVersionMediaDrawerSummary } from './ReleaseVersionMediaDrawerSummary'
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -60,7 +61,7 @@ const MARKDOWN_SOFT_LIMIT = 8000
 const URL_PROTOCOLS = new Set(['http:', 'https:', 'irc:', 'ircs:'])
 
 type Tab = 'description' | 'history'
-type SectionKey = 'basic' | 'tags' | 'content' | 'media' | 'links' | 'collaboration' | 'releases'
+type SectionKey = 'basic' | 'tags' | 'content' | 'media' | 'links' | 'collaboration' | 'releases' | 'anime-projekte'
 type MainTab = SectionKey
 type FormState = {
   name: string
@@ -122,6 +123,7 @@ const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: 'links', label: 'Community Links' },
   { key: 'collaboration', label: 'Collaboration Members' },
   { key: 'releases', label: 'Anime & Releases' },
+  { key: 'anime-projekte', label: 'Anime-Projekte' },
 ]
 
 function slugify(value: string): string {
@@ -539,6 +541,7 @@ export default function AdminFansubEditPage() {
     links: true,
     collaboration: true,
     releases: true,
+    'anime-projekte': true,
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -1238,7 +1241,7 @@ export default function AdminFansubEditPage() {
           </nav>
         </header>
 
-        {activeMainTab !== 'releases' ? <form className={styles.fansubEditForm} onSubmit={save}>
+        {activeMainTab !== 'releases' && activeMainTab !== 'anime-projekte' ? <form className={styles.fansubEditForm} onSubmit={save}>
           <div className={styles.fansubEditStickyActions}>
             <button type="submit" className={styles.button} disabled={invalid || saving || deleting}><Save size={14} />{saving ? 'Speichern...' : 'Speichern'}</button>
             <button type="button" className={styles.buttonSecondary} onClick={() => (dirty && !window.confirm('Ungespeicherte Änderungen verwerfen?') ? undefined : (window.location.href = '/admin/fansubs'))}><X size={14} />Abbrechen</button>
@@ -1563,6 +1566,12 @@ export default function AdminFansubEditPage() {
             </div>
           </div>
         </details> : null}
+        {activeMainTab === 'anime-projekte' ? (
+          <AnimeProjectNotesSection
+            fansubId={fansubID}
+            authToken={authToken}
+          />
+        ) : null}
       </section>
       {releaseDrawerOpen && drawerRelease ? (
         <div className={styles.fansubEditReleaseDrawerOverlay} onClick={closeReleaseDrawer}>
