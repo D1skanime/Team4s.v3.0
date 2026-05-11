@@ -49,7 +49,7 @@ export default function AdminAnimeEpisodeImportPage() {
         </div>
         {animeID ? (
           <Link className={styles.secondaryButton} href={`/admin/anime/${animeID}/episodes`}>
-            Zurueck zur Uebersicht
+            Zurück zur Übersicht
           </Link>
         ) : null}
       </header>
@@ -57,7 +57,7 @@ export default function AdminAnimeEpisodeImportPage() {
       {builder.context ? (
         <div className={styles.contextStrip}>
           <ContextField label="AniSearch ID" value={builder.context.anisearch_id ?? 'nicht gesetzt'} mono />
-          <ContextField label="Jellyfin Serie" value={builder.context.jellyfin_series_id ?? 'nicht verknuepft'} mono />
+          <ContextField label="Jellyfin Serie" value={builder.context.jellyfin_series_id ?? 'nicht verknüpft'} mono />
           <ContextField label="Ordnerpfad" value={builder.context.folder_path ?? 'nicht gesetzt'} mono />
           <ContextField label="Quelle" value={builder.context.source ?? '-'} />
         </div>

@@ -311,7 +311,7 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
                 </h2>
                 <p className={workspaceStyles.sectionText}>
                   Genres ordnen den Titel grob ein. Tags helfen bei Suche,
-                  Themen und spaeterer Pflege.
+                  Themen und späterer Pflege.
                 </p>
               </div>
 

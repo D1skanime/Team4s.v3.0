@@ -383,7 +383,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
         sourceLabel: res.data.source_label ?? '',
       }))
     } catch (error) {
-      setReuseError(error instanceof Error ? error.message : 'Library-Datei konnte nicht verknuepft werden.')
+      setReuseError(error instanceof Error ? error.message : 'Library-Datei konnte nicht verknüpft werden.')
     } finally {
       setIsAttachingReuse(false)
     }

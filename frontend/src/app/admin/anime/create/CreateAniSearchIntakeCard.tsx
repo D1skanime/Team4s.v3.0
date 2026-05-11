@@ -156,7 +156,7 @@ export function CreateAniSearchIntakeCard({
           <div className={styles.details}>
             <p className={styles.hint}>
               AniSearch ID {conflict.anisearchID} ist bereits mit{" "}
-              <strong>{conflict.existingTitle}</strong> verknuepft.
+              <strong>{conflict.existingTitle}</strong> verknüpft.
             </p>
             <Link href={conflict.redirectPath} className={createStyles.secondaryAction}>
               Zum vorhandenen Anime wechseln

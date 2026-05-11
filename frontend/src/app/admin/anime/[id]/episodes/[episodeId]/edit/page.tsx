@@ -133,7 +133,7 @@ export default function AdminAnimeEpisodeEditPage() {
     }
 
     const confirmed = window.confirm(
-      `Episode ${episode.episode_number} wirklich loeschen?\n\nZugehoerige Versionen werden ebenfalls entfernt.`,
+      `Episode ${episode.episode_number} wirklich löschen?\n\nZugehörige Versionen werden ebenfalls entfernt.`,
     )
     if (!confirmed) return
 
@@ -168,13 +168,13 @@ export default function AdminAnimeEpisodeEditPage() {
           <h1 className={styles.pageTitle}>Episode bearbeiten</h1>
           <p className={styles.pageSubtitle}>
             Fokus auf genau einer Episode: Titel, Nummer, Status und Streaming-Link. Versionsdetails bleiben auf der
-            naechsten Route.
+            nächsten Route.
           </p>
         </div>
         {anime && episode ? (
           <div className={styles.headerActions}>
             <Link href={`/admin/anime/${anime.id}/episodes`} className={`${styles.button} ${styles.buttonSecondary}`}>
-              Zur Uebersicht
+              Zur Übersicht
             </Link>
             <Link
               href={`/admin/anime/${anime.id}/episodes/${episode.id}/versions`}

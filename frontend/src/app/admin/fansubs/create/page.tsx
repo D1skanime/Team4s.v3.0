@@ -707,7 +707,7 @@ export default function AdminFansubCreatePage() {
                           <button type="button" className={styles.buttonSecondary} onClick={() => void addMemberGroup()} disabled={collaborationBusy || !selectedMemberGroupID}><Plus size={14} />Hinzufuegen</button>
                         </div>
                         <div className={styles.fansubEditCollaborationList}>
-                          {collaborationMembers.length === 0 ? <p className={styles.fansubEditHint}>Noch keine Mitgliedsgruppen verknuepft.</p> : null}
+                          {collaborationMembers.length === 0 ? <p className={styles.fansubEditHint}>Noch keine Mitgliedsgruppen verknüpft.</p> : null}
                           {collaborationMembers.map((member) => (
                             <div key={member.member_group_id} className={styles.fansubEditCollaborationItem}>
                               <div>

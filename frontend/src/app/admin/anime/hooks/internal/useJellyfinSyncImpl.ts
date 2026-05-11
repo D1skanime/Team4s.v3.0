@@ -233,7 +233,7 @@ export function useJellyfinSync(
     if (options.requireFreshPreview !== false && previewResult && previewResult.accepted_unique_episodes === 0) {
       const feedback = buildJellyfinFeedback(
         'error',
-        'Die aktuelle Preview enthaelt keine importierbaren Episoden.',
+        'Die aktuelle Preview enthält keine importierbaren Episoden.',
         'Bitte Season-Nummer oder Serienauswahl pruefen.',
       )
       setSyncFeedback(feedback)

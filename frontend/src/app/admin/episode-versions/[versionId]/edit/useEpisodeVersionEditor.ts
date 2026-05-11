@@ -162,7 +162,7 @@ export function useEpisodeVersionEditor() {
       setSelectedFile(matchedFile)
       setShowFilePanel(true)
       if (files.length === 0) {
-        setSuccessMessage('Keine passenden Mediendateien im verknuepften Ordner gefunden.')
+        setSuccessMessage('Keine passenden Mediendateien im verknüpften Ordner gefunden.')
       }
     } catch (error) {
       setErrorMessage(formatError(error))

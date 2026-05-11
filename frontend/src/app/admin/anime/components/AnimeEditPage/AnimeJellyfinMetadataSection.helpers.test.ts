@@ -90,6 +90,6 @@ describe('AnimeJellyfinMetadataSection helpers', () => {
       summarizeAssetSlotDecision('backgrounds', {
         hasIncoming: true,
       }),
-    ).toBe('Backgrounds koennen explizit aus Jellyfin uebernommen oder manuell ergaenzt werden')
+    ).toBe('Backgrounds können explizit aus Jellyfin übernommen oder manuell ergänzt werden')
   })
 })

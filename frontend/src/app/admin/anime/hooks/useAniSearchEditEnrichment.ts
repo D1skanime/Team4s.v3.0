@@ -66,7 +66,7 @@ export function formatAniSearchEditResultSummary(
     updatedFieldCount: updatedFields.length,
     protectedFieldCount: protectedFields.length,
     relationCount,
-    message: `AniSearch geladen. ${updatedFields.length} Felder aktualisiert, ${protectedFields.length} geschuetzt, ${relationCount} Relationen uebernommen.`,
+    message: `AniSearch geladen. ${updatedFields.length} Felder aktualisiert, ${protectedFields.length} geschützt, ${relationCount} Relationen übernommen.`,
   }
 }
 

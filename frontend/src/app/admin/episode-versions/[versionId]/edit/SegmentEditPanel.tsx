@@ -329,7 +329,7 @@ export function SegmentEditPanel({
                             onClick={() => onAttachReuseCandidate(candidate)}
                           >
                             <FileVideo size={13} />
-                            {isAttachingReuse ? 'Verknuepft...' : 'Dieses Library-Asset verwenden'}
+                            {isAttachingReuse ? 'Verknüpft...' : 'Dieses Library-Asset verwenden'}
                           </button>
                         </div>
                       ))}
@@ -419,7 +419,7 @@ export function SegmentEditPanel({
                 </div>
 
                 <p className={styles.sourceHelpText}>
-                  Wiederverwendbare Library-Dateien koennen nach dem ersten Speichern zusaetzlich verknuepft werden.
+                  Wiederverwendbare Library-Dateien können nach dem ersten Speichern zusätzlich verknüpft werden.
                 </p>
               </div>
             )}

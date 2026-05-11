@@ -68,7 +68,7 @@ export function summarizeAssetSlotDecision(
         : 'Kein Provider-Logo verfuegbar'
     case 'backgrounds':
       return options.hasIncoming
-        ? 'Backgrounds koennen explizit aus Jellyfin uebernommen oder manuell ergaenzt werden'
+        ? 'Backgrounds können explizit aus Jellyfin übernommen oder manuell ergänzt werden'
         : 'Keine Provider-Backgrounds verfuegbar'
     case 'background_video':
       return options.hasIncoming

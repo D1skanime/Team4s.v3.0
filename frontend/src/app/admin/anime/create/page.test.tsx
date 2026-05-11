@@ -312,7 +312,7 @@ describe("AdminAnimeCreatePage", () => {
         },
       }),
     ).toContain(
-      "Anime #42 wurde erstellt. AniSearch anisearch:12345: 1/3 Relationen uebernommen. 1 bereits vorhandene Relationen wurden uebersprungen. 2 AniSearch-Relationen konnten nicht lokal zugeordnet werden. (Weiterleitung zur Uebersicht...)",
+      "Anime #42 wurde erstellt. AniSearch anisearch:12345: 1/3 Relationen übernommen. 1 bereits vorhandene Relationen wurden übersprungen. 2 AniSearch-Relationen konnten nicht lokal zugeordnet werden. (Weiterleitung zur Übersicht...)",
     );
   });
 
@@ -334,7 +334,7 @@ describe("AdminAnimeCreatePage", () => {
           warnings: [],
         },
       }),
-    ).toBe("Anime #42 wurde erstellt. (Weiterleitung zur Uebersicht...)");
+    ).toBe("Anime #42 wurde erstellt. (Weiterleitung zur Übersicht...)");
     expect(CREATE_REDIRECT_DELAY_MS).toBeGreaterThan(0);
   });
 
@@ -356,7 +356,7 @@ describe("AdminAnimeCreatePage", () => {
           warnings: [],
         },
       }),
-    ).toBe("Anime #42 wurde erstellt. (Weiterleitung zur Uebersicht...)");
+    ).toBe("Anime #42 wurde erstellt. (Weiterleitung zur Übersicht...)");
   });
 
   it("does not crash when AniSearch create summary omits the warnings array", () => {
@@ -393,7 +393,7 @@ describe("AdminAnimeCreatePage", () => {
         data: { id: 42 } as never,
         anisearch: incompleteAnisearch,
       }),
-    ).toBe("Anime #42 wurde erstellt. (Weiterleitung zur Uebersicht...)");
+    ).toBe("Anime #42 wurde erstellt. (Weiterleitung zur Übersicht...)");
   });
 
   it("stages the draft cover locally until the anime exists", () => {

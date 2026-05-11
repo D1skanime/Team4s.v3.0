@@ -52,18 +52,18 @@ export function buildCreateSuccessMessage(
 ): string {
   const summary = response.anisearch;
   if (!hasAniSearchFollowThroughWarning(summary)) {
-    return `Anime #${response.data.id} wurde erstellt. (Weiterleitung zur Uebersicht...)`;
+    return `Anime #${response.data.id} wurde erstellt. (Weiterleitung zur Übersicht...)`;
   }
 
   const parts = [`Anime #${response.data.id} wurde erstellt.`];
   const sourceLabel = summary?.source ? `AniSearch ${summary.source}` : "AniSearch";
   parts.push(
-    `${sourceLabel}: ${summary?.relations_applied ?? 0}/${summary?.relations_attempted ?? 0} Relationen uebernommen.`,
+    `${sourceLabel}: ${summary?.relations_applied ?? 0}/${summary?.relations_attempted ?? 0} Relationen übernommen.`,
   );
 
   if ((summary?.relations_skipped_existing ?? 0) > 0) {
     parts.push(
-      `${summary?.relations_skipped_existing} bereits vorhandene Relationen wurden uebersprungen.`,
+      `${summary?.relations_skipped_existing} bereits vorhandene Relationen wurden übersprungen.`,
     );
   }
 
@@ -71,7 +71,7 @@ export function buildCreateSuccessMessage(
     parts.push((summary?.warnings ?? []).join(" "));
   }
 
-  parts.push("(Weiterleitung zur Uebersicht...)");
+  parts.push("(Weiterleitung zur Übersicht...)");
   return parts.join(" ");
 }
 

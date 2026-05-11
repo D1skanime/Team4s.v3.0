@@ -19,7 +19,7 @@ function confidenceLabel(confidence: AdminJellyfinIntakeSearchItem["confidence"]
     case "high":
       return "Passend";
     case "medium":
-      return "Aehnlich";
+      return "Ähnlich";
     default:
       return "Pruefen";
   }

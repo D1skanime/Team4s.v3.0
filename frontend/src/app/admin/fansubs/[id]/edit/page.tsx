@@ -1356,7 +1356,7 @@ export default function AdminFansubEditPage() {
                           <button type="button" className={styles.buttonSecondary} onClick={() => void addMemberGroup()} disabled={collaborationBusy || !selectedMemberGroupID}><Plus size={14} />Hinzufuegen</button>
                         </div>
                         <div className={styles.fansubEditCollaborationList}>
-                          {collaborationMembers.length === 0 ? <p className={styles.fansubEditHint}>Noch keine Mitgliedsgruppen verknuepft.</p> : null}
+                          {collaborationMembers.length === 0 ? <p className={styles.fansubEditHint}>Noch keine Mitgliedsgruppen verknüpft.</p> : null}
                           {collaborationMembers.map((member) => (
                             <div key={member.member_group_id} className={styles.fansubEditCollaborationItem}>
                               <div>
@@ -1384,7 +1384,7 @@ export default function AdminFansubEditPage() {
             {releaseGroupsLoading ? <div className={styles.fansubEditReleaseState}>Anime werden geladen...</div> : null}
             {releaseGroupsError ? <div className={styles.errorBox}>{releaseGroupsError}</div> : null}
             {!releaseGroupsLoading && !releaseGroupsError && releaseGroups.length === 0 ? (
-              <div className={styles.fansubEditReleaseState}>Noch keine Anime/Releases mit dieser Fansubgruppe verknuepft.</div>
+              <div className={styles.fansubEditReleaseState}>Noch keine Anime/Releases mit dieser Fansubgruppe verknüpft.</div>
             ) : null}
             <div className={styles.fansubEditReleaseList}>
               {releaseGroups.map((releaseGroup) => {
@@ -1419,7 +1419,7 @@ export default function AdminFansubEditPage() {
                   ) : null}
                   {animeExpanded && releasesError ? <div className={styles.errorBox}>{releasesError}</div> : null}
                   {animeExpanded && releasesLoaded && !releasesLoading && !releasesError && releases.length === 0 ? (
-                    <p className={styles.fansubEditHint}>Anime ist verknuepft, aber es gibt noch keine Release-Version fuer diese Gruppe.</p>
+                    <p className={styles.fansubEditHint}>Anime ist verknüpft, aber es gibt noch keine Release-Version für diese Gruppe.</p>
                   ) : null}
                   {animeExpanded && !releasesError && releases.length > 0 ? (
                     <div className={styles.fansubEditReleaseRows}>
@@ -1453,7 +1453,7 @@ export default function AdminFansubEditPage() {
                               </div>
                               <span>{release.version_count} Version{release.version_count === 1 ? '' : 'en'}</span>
                               <span>{new Date(release.created_at).toLocaleDateString('de-CH')}</span>
-                              <span className={styles.fansubEditReleaseStatusBadge}>Verknuepft</span>
+                              <span className={styles.fansubEditReleaseStatusBadge}>Verknüpft</span>
                               <span>{release.has_theme_assets ? 'Theme' : '-'}</span>
                               <div className={styles.fansubEditReleaseActions}>
                                 <button
@@ -1571,7 +1571,7 @@ export default function AdminFansubEditPage() {
               <div>
                 <div className={styles.fansubEditReleaseDrawerTitleRow}>
                   <h2>{releaseDrawerTitle(drawerRelease)}</h2>
-                  <span className={styles.fansubEditReleaseStatusBadge}>Verknuepft</span>
+                  <span className={styles.fansubEditReleaseStatusBadge}>Verknüpft</span>
                 </div>
                 <p>{drawerRelease.fansub_name} - {drawerRelease.version_count} Version{drawerRelease.version_count === 1 ? '' : 'en'}</p>
               </div>
@@ -1612,7 +1612,7 @@ export default function AdminFansubEditPage() {
                     <label><span>Titel</span><input value={(drawerRelease.episode_title || '').trim() || 'Ohne Episodentitel'} readOnly /></label>
                     <label><span>Versionen</span><input value={String(drawerRelease.version_count)} readOnly /></label>
                     <label><span>Datum</span><input value={new Date(drawerRelease.created_at).toLocaleDateString('de-CH')} readOnly /></label>
-                    <label><span>Status</span><input value="Verknuepft" readOnly /></label>
+                    <label><span>Status</span><input value="Verknüpft" readOnly /></label>
                   </div>
                   <div className={styles.fansubEditReleaseDrawerContextGrid}>
                     <div className={styles.fansubEditReleaseDrawerContextCard}>

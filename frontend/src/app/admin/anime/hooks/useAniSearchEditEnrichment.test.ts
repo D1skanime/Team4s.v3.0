@@ -46,7 +46,7 @@ describe('buildAniSearchEditRequest', () => {
       updatedFieldCount: 2,
       protectedFieldCount: 1,
       relationCount: 3,
-      message: 'AniSearch geladen. 2 Felder aktualisiert, 1 geschuetzt, 3 Relationen uebernommen.',
+      message: 'AniSearch geladen. 2 Felder aktualisiert, 1 geschützt, 3 Relationen übernommen.',
     })
   })
 
@@ -62,7 +62,7 @@ describe('buildAniSearchEditRequest', () => {
       updatedFieldCount: 0,
       protectedFieldCount: 0,
       relationCount: 1,
-      message: 'AniSearch geladen. 0 Felder aktualisiert, 0 geschuetzt, 1 Relationen uebernommen.',
+      message: 'AniSearch geladen. 0 Felder aktualisiert, 0 geschützt, 1 Relationen übernommen.',
     })
   })
 
@@ -70,7 +70,7 @@ describe('buildAniSearchEditRequest', () => {
     const state = createAniSearchEditFailureState(
       new ApiError(
         409,
-        'AniSearch Quelle ist bereits verknuepft.',
+        'AniSearch Quelle ist bereits verknüpft.',
         null,
         'anisearch_source_conflict',
         null,
@@ -93,7 +93,7 @@ describe('buildAniSearchEditRequest', () => {
         existing_title: 'Serial Experiments Lain',
         redirect_path: '/admin/anime/84/edit',
       },
-      errorMessage: 'AniSearch Quelle ist bereits verknuepft.',
+      errorMessage: 'AniSearch Quelle ist bereits verknüpft.',
     })
   })
 
@@ -101,7 +101,7 @@ describe('buildAniSearchEditRequest', () => {
     const failureState = createAniSearchEditFailureState(
       new ApiError(
         409,
-        'AniSearch Quelle ist bereits verknuepft.',
+        'AniSearch Quelle ist bereits verknüpft.',
         null,
         'anisearch_source_conflict',
         null,

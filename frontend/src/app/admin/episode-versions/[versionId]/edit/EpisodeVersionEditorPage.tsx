@@ -116,7 +116,7 @@ export function EpisodeVersionEditorPage() {
                 className={activeTab === 'uebersicht' ? styles.tabActive : styles.tab}
                 onClick={() => setActiveTab('uebersicht')}
               >
-                Uebersicht
+                Übersicht
               </button>
               <button
                 type="button"
@@ -155,12 +155,12 @@ export function EpisodeVersionEditorPage() {
               </button>
             </div>
 
-            {/* Uebersicht tab stub */}
+            {/* Übersicht tab stub */}
             {activeTab === 'uebersicht' ? (
               <section className={styles.card}>
                 <div className={styles.sectionHeader}>
                   <div>
-                    <h2 className={styles.sectionTitle}>Uebersicht</h2>
+                    <h2 className={styles.sectionTitle}>Übersicht</h2>
                     <p className={styles.helperText}>Zusammenfassung dieser Episode-Version.</p>
                   </div>
                 </div>
@@ -175,7 +175,7 @@ export function EpisodeVersionEditorPage() {
                     <p className={styles.helperText}>Gruppe: {groupName}</p>
                   ) : null}
                   <p className={styles.helperText} style={{ marginTop: 8, fontStyle: 'italic' }}>
-                    Eine detaillierte Uebersicht wird in einem spaeten Plan ergaenzt.
+                    Eine detaillierte Übersicht wird in einem späten Plan ergänzt.
                   </p>
                 </div>
               </section>
@@ -331,7 +331,7 @@ export function EpisodeVersionEditorPage() {
               <div className={styles.sectionHeader}>
                 <div>
                   <h2 className={styles.sectionTitle}>Speicherort</h2>
-                  <p className={styles.helperText}>Der verknuepfte Anime-Ordner zur Plausibilitaetspruefung.</p>
+                  <p className={styles.helperText}>Der verknüpfte Anime-Ordner zur Plausibilitätsprüfung.</p>
                 </div>
               </div>
               <label className={styles.field}>
@@ -420,7 +420,7 @@ export function EpisodeVersionEditorPage() {
                   </div>
                 </div>
                 <p className={styles.helperText} style={{ fontStyle: 'italic' }}>
-                  Changelog-Eintraege werden in einem spaeten Plan ergaenzt.
+                  Changelog-Einträge werden in einem späten Plan ergänzt.
                 </p>
               </section>
             ) : null}

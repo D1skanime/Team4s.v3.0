@@ -470,7 +470,7 @@ export default function MergeFansubsPage() {
         <div className={styles.panel}>
           <h2>1. Zielgruppe waehlen</h2>
           <p>
-            Diese Gruppe bleibt bestehen und erhaelt Daten aus den Quellgruppen.
+            Diese Gruppe bleibt bestehen und erhält Daten aus den Quellgruppen.
           </p>
           <div className={styles.mergeGroupList}>
             {filteredGroups.map((group) => (
@@ -728,7 +728,7 @@ export default function MergeFansubsPage() {
                 {preview.conflicts.duplicate_members_count > 0 && (
                   <ConflictRow
                     title="Duplicate Members"
-                    summary={`${preview.conflicts.duplicate_members_count} moegliche Duplikate erkannt.`}
+                    summary={`${preview.conflicts.duplicate_members_count} mögliche Duplikate erkannt.`}
                     details={preview.conflicts.duplicate_members}
                   />
                 )}

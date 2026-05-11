@@ -315,7 +315,7 @@ export default function AdminAnimeCreatePage() {
               id="create-folder-path"
               className={createStyles.folderPathInput}
               value={jellyfin.folderPath}
-              placeholder="Noch kein Jellyfin-Ordner verknuepft"
+              placeholder="Noch kein Jellyfin-Ordner verknüpft"
               readOnly
             />
           </div>
@@ -330,7 +330,7 @@ export default function AdminAnimeCreatePage() {
           </h2>
           <p className={workspaceStyles.sectionText}>
             Genres ordnen den Titel grob ein. Tags helfen bei Suche, Themen
-            und spaeterer Pflege.
+            und späterer Pflege.
           </p>
         </div>
 

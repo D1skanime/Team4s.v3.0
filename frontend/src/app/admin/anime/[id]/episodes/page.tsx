@@ -151,7 +151,7 @@ export default function AdminAnimeEpisodesPage() {
       <header className={styles.headerCard}>
         <div>
           <p className={styles.eyebrow}>Schritt 3</p>
-          <h1 className={styles.pageTitle}>Episoden-Uebersicht</h1>
+          <h1 className={styles.pageTitle}>Episoden-Übersicht</h1>
           <p className={styles.pageSubtitle}>
             Episoden mit allen Versionen, Fansub-Zuordnungen und Version-Counts pro Episode. Accordion zeigt Details bei
             Bedarf.
