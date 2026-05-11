@@ -119,6 +119,21 @@ import {
 } from '@/types/group'
 import { GroupAssetsResponse } from '@/types/groupAsset'
 import { ReleaseAssetsResponse } from '@/types/mediaAsset'
+import {
+  FansubGroupNote,
+  MemberGroupStory,
+  AnimeFansubProjectNote,
+  CreateFansubGroupNoteRequest,
+  UpdateFansubGroupNoteRequest,
+  CreateMemberGroupStoryRequest,
+  UpdateMemberGroupStoryRequest,
+  UpsertAnimeFansubProjectNoteRequest,
+} from '@/types/fansubNotes'
+import {
+  ReleaseVersionNote,
+  MemberRoleForVersion,
+  BulkUpsertReleaseVersionNotesRequest,
+} from '@/types/releaseVersionNotes'
 
 // Browser braucht eine erreichbare Host-URL (z.B. http://localhost:8092).
 // Server-seitiger Code in Docker nutzt die Container-interne Netzwerk-URL.
@@ -3169,6 +3184,304 @@ export async function reorderReleaseVersionMedia(
       method: 'POST',
       headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
       body: JSON.stringify(body),
+    },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+// ---- Fansub Group Notes ----
+
+export async function listFansubGroupNotes(fansubId: number, authToken?: string): Promise<FansubGroupNote[]> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes`, {
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const json = (await response.json()) as { data: FansubGroupNote[] }
+  return json.data
+}
+
+export async function createFansubGroupNote(
+  fansubId: number,
+  data: CreateFansubGroupNoteRequest,
+  authToken?: string,
+): Promise<FansubGroupNote> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes`, {
+    method: 'POST',
+    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const json = (await response.json()) as { data: FansubGroupNote }
+  return json.data
+}
+
+export async function updateFansubGroupNote(
+  fansubId: number,
+  noteId: number,
+  data: UpdateFansubGroupNoteRequest,
+  authToken?: string,
+): Promise<FansubGroupNote> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes/${noteId}`, {
+    method: 'PATCH',
+    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const json = (await response.json()) as { data: FansubGroupNote }
+  return json.data
+}
+
+export async function deleteFansubGroupNote(
+  fansubId: number,
+  noteId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes/${noteId}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+// ---- Member Group Stories ----
+
+export async function listMemberGroupStories(fansubId: number, authToken?: string): Promise<MemberGroupStory[]> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`, {
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const json = (await response.json()) as { data: MemberGroupStory[] }
+  return json.data
+}
+
+export async function createMemberGroupStory(
+  fansubId: number,
+  data: CreateMemberGroupStoryRequest,
+  authToken?: string,
+): Promise<MemberGroupStory> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`, {
+    method: 'POST',
+    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const json = (await response.json()) as { data: MemberGroupStory }
+  return json.data
+}
+
+export async function updateMemberGroupStory(
+  fansubId: number,
+  storyId: number,
+  data: UpdateMemberGroupStoryRequest,
+  authToken?: string,
+): Promise<MemberGroupStory> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`, {
+    method: 'PATCH',
+    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const json = (await response.json()) as { data: MemberGroupStory }
+  return json.data
+}
+
+export async function deleteMemberGroupStory(
+  fansubId: number,
+  storyId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`, {
+    method: 'DELETE',
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+// ---- Anime Fansub Project Notes ----
+
+export async function getAnimeFansubProjectNote(
+  fansubId: number,
+  animeId: number,
+  authToken?: string,
+): Promise<AnimeFansubProjectNote | null> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`, {
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (response.status === 404) {
+    return null
+  }
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const json = (await response.json()) as { data: AnimeFansubProjectNote }
+  return json.data
+}
+
+export async function upsertAnimeFansubProjectNote(
+  fansubId: number,
+  animeId: number,
+  data: UpsertAnimeFansubProjectNoteRequest,
+  authToken?: string,
+): Promise<AnimeFansubProjectNote> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`, {
+    method: 'PUT',
+    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const json = (await response.json()) as { data: AnimeFansubProjectNote }
+  return json.data
+}
+
+export async function deleteAnimeFansubProjectNote(
+  fansubId: number,
+  animeId: number,
+  noteId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes/${noteId}`,
+    {
+      method: 'DELETE',
+      headers: withAuthHeader({}, authToken),
+    },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
+
+// ---- Release Version Notes ----
+
+export async function listReleaseVersionNotes(versionId: number, authToken?: string): Promise<ReleaseVersionNote[]> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes`, {
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const json = (await response.json()) as { data: ReleaseVersionNote[] }
+  return json.data
+}
+
+export async function getMemberRolesForVersion(
+  versionId: number,
+  authToken?: string,
+): Promise<MemberRoleForVersion[]> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/member-roles`, {
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const json = (await response.json()) as { data: MemberRoleForVersion[] }
+  return json.data
+}
+
+export async function bulkUpsertReleaseVersionNotes(
+  versionId: number,
+  data: BulkUpsertReleaseVersionNotesRequest,
+  authToken?: string,
+): Promise<ReleaseVersionNote[]> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes`, {
+    method: 'POST',
+    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const json = (await response.json()) as { data: ReleaseVersionNote[] }
+  return json.data
+}
+
+export async function deleteReleaseVersionNote(
+  versionId: number,
+  noteId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes/${noteId}`,
+    {
+      method: 'DELETE',
+      headers: withAuthHeader({}, authToken),
     },
   )
 
