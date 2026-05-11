@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Milestone complete
-stopped_at: Completed 39-02-PLAN.md
-last_updated: "2026-05-11T15:40:00.000Z"
+status: In progress
+stopped_at: Completed 40-02-PLAN.md
+last_updated: "2026-05-11T19:24:00.000Z"
 last_activity: 2026-05-11
 progress:
-  total_phases: 39
+  total_phases: 40
   completed_phases: 39
-  total_plans: 112
-  completed_plans: 104
+  total_plans: 122
+  completed_plans: 106
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 ## Current Position
 
-Phase: 39
+Phase: 40
 Plan: 02 (abgeschlossen)
 
 ## Accumulated Context
@@ -35,6 +35,7 @@ Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
 
+- [Phase 40]: TRUNCATE contributor_roles CASCADE statt additivem INSERT ON CONFLICT — bestehende 6 Seeds sind Test-Daten (User-Entscheidung); DOWN ist No-op weil CASCADE nicht reversibel.
 - Shared admin anime editing stays on one editor surface across create and edit.
 - Jellyfin-assisted intake stays preview-only until explicit save.
 - Manual values and manual replacement assets stay authoritative over later resync behavior.
