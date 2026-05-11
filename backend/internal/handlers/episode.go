@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -25,7 +25,7 @@ func NewEpisodeHandler(repo *repository.EpisodeRepository) *EpisodeHandler {
 func (h *EpisodeHandler) GetByID(c *gin.Context) {
 	id, err := parseEpisodeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige episode id")
+		badRequest(c, "ungültige episode id")
 		return
 	}
 

@@ -50,7 +50,7 @@ func (h *AdminContentHandler) GetAnimeJellyfinContext(c *gin.Context) {
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -87,14 +87,14 @@ func (h *AdminContentHandler) PreviewAnimeMetadataFromJellyfin(c *gin.Context) {
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req adminAnimeJellyfinMetadataRequest
 	if body := readBodyForOptionalJSON(c); body != "" {
 		if err := c.ShouldBindJSON(&req); err != nil {
-			badRequest(c, "ungueltiger request body")
+			badRequest(c, "ungültiger request body")
 			return
 		}
 	}
@@ -142,14 +142,14 @@ func (h *AdminContentHandler) ApplyAnimeMetadataFromJellyfin(c *gin.Context) {
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req adminAnimeJellyfinMetadataApplyRequest
 	if body := readBodyForOptionalJSON(c); body != "" {
 		if err := c.ShouldBindJSON(&req); err != nil {
-			badRequest(c, "ungueltiger request body")
+			badRequest(c, "ungültiger request body")
 			return
 		}
 	}
@@ -188,7 +188,7 @@ func (h *AdminContentHandler) ApplyAnimeMetadataFromJellyfin(c *gin.Context) {
 	applyBackgrounds := req.ApplyBackgrounds != nil && *req.ApplyBackgrounds
 	applyBackgroundVideo := req.ApplyBackgroundVideo != nil && *req.ApplyBackgroundVideo
 	if applyCover && !preview.Cover.CanApply {
-		badRequest(c, "jellyfin cover ist fuer diesen anime nicht verfuegbar")
+		badRequest(c, "jellyfin cover ist für diesen anime nicht verfügbar")
 		return
 	}
 
@@ -375,7 +375,7 @@ func (h *AdminContentHandler) buildAnimeJellyfinMetadataPreview(
 		resolvedSeriesID = jellyfinSeriesIDFromSource(animeSource.Source)
 	}
 	if resolvedSeriesID == "" && len(seriesTitles) == 0 {
-		return models.AdminAnimeJellyfinMetadataPreviewResult{}, http.StatusBadRequest, errors.New("kein jellyfin-link fuer diesen anime vorhanden")
+		return models.AdminAnimeJellyfinMetadataPreviewResult{}, http.StatusBadRequest, errors.New("kein jellyfin-link für diesen anime vorhanden")
 	}
 
 	series, statusCode, resolveErr := h.resolveJellyfinSeries(ctx, seriesTitles, resolvedSeriesID)
@@ -433,7 +433,7 @@ func buildMetadataFieldPreview(field string, label string, current *string, inco
 	switch {
 	case incomingValue == "":
 		result.Action = "keep"
-		result.Reason = stringPtrFromValue("Keine Jellyfin-Daten verfuegbar")
+		result.Reason = stringPtrFromValue("Keine Jellyfin-Daten verfügbar")
 	case currentValue == "":
 		result.Action = "fill"
 		result.Apply = true
@@ -442,7 +442,7 @@ func buildMetadataFieldPreview(field string, label string, current *string, inco
 		result.Reason = stringPtrFromValue("Bereits synchron")
 	default:
 		result.Action = "protect"
-		result.Reason = stringPtrFromValue("Vorhandener Wert bleibt geschuetzt")
+		result.Reason = stringPtrFromValue("Vorhandener Wert bleibt geschützt")
 	}
 
 	return result
@@ -455,7 +455,7 @@ func buildJellyfinCoverPreview(currentImage *string, incoming models.AdminJellyf
 	canApply := incoming.Present && incomingURL != nil
 	reason := (*string)(nil)
 	if !canApply {
-		reason = stringPtrFromValue("Kein Jellyfin-Cover verfuegbar")
+		reason = stringPtrFromValue("Kein Jellyfin-Cover verfügbar")
 	}
 
 	return models.AdminAnimeJellyfinCoverPreview{

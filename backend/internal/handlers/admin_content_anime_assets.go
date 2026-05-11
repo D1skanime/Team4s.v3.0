@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -38,7 +38,7 @@ const (
 
 // unsupportedAnimeAssetOperationMessage erzeugt eine Fehlermeldung für nicht unterstützte Asset-Operationen.
 func unsupportedAnimeAssetOperationMessage(slot string, operation animeAssetOperation) string {
-	return strings.TrimSpace(slot) + " unterstuetzt diese aktion nicht"
+	return strings.TrimSpace(slot) + " unterstützt diese aktion nicht"
 }
 
 // mapAnimeAssetLinkError übersetzt Repository-Fehler beim Asset-Verknüpfen in HTTP-Status und Meldung.
@@ -59,19 +59,19 @@ func (h *AdminContentHandler) AssignAnimeCoverAsset(c *gin.Context) {
 		return
 	}
 	if h.animeAssetRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req adminAnimeBannerAssignRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltige anfrage")
+		badRequest(c, "ungültige anfrage")
 		return
 	}
 
@@ -97,13 +97,13 @@ func (h *AdminContentHandler) DeleteAnimeCoverAsset(c *gin.Context) {
 		return
 	}
 	if h.animeAssetRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -113,7 +113,7 @@ func (h *AdminContentHandler) DeleteAnimeCoverAsset(c *gin.Context) {
 		return
 	} else if err != nil {
 		log.Printf("admin anime cover delete: anime_id=%d: %v", animeID, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "cover konnte nicht geloescht werden"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "cover konnte nicht gelöscht werden"}})
 		return
 	}
 	h.cleanupAnimeAssetDirs(result)
@@ -127,19 +127,19 @@ func (h *AdminContentHandler) AssignAnimeBannerAsset(c *gin.Context) {
 		return
 	}
 	if h.animeAssetRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req adminAnimeBannerAssignRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltige anfrage")
+		badRequest(c, "ungültige anfrage")
 		return
 	}
 
@@ -164,13 +164,13 @@ func (h *AdminContentHandler) DeleteAnimeBannerAsset(c *gin.Context) {
 		return
 	}
 	if h.animeAssetRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -179,7 +179,7 @@ func (h *AdminContentHandler) DeleteAnimeBannerAsset(c *gin.Context) {
 		return
 	} else if err != nil {
 		log.Printf("admin anime banner delete: anime_id=%d: %v", animeID, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "banner konnte nicht geloescht werden"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "banner konnte nicht gelöscht werden"}})
 		return
 	}
 
@@ -191,19 +191,19 @@ func (h *AdminContentHandler) AddAnimeBackgroundAsset(c *gin.Context) {
 		return
 	}
 	if h.animeAssetRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req adminAnimeBackgroundAssignRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltige anfrage")
+		badRequest(c, "ungültige anfrage")
 		return
 	}
 
@@ -230,18 +230,18 @@ func (h *AdminContentHandler) DeleteAnimeBackgroundAsset(c *gin.Context) {
 		return
 	}
 	if h.animeAssetRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 	backgroundID, err := parseInt64Param(c.Param("backgroundId"))
 	if err != nil {
-		badRequest(c, "ungueltige background id")
+		badRequest(c, "ungültige background id")
 		return
 	}
 
@@ -250,7 +250,7 @@ func (h *AdminContentHandler) DeleteAnimeBackgroundAsset(c *gin.Context) {
 		return
 	} else if err != nil {
 		log.Printf("admin anime background delete: anime_id=%d background_id=%d: %v", animeID, backgroundID, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "background konnte nicht geloescht werden"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "background konnte nicht gelöscht werden"}})
 		return
 	}
 
@@ -262,19 +262,19 @@ func (h *AdminContentHandler) AssignAnimeLogoAsset(c *gin.Context) {
 		return
 	}
 	if h.animeAssetRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req adminAnimeBannerAssignRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltige anfrage")
+		badRequest(c, "ungültige anfrage")
 		return
 	}
 
@@ -296,13 +296,13 @@ func (h *AdminContentHandler) DeleteAnimeLogoAsset(c *gin.Context) {
 		return
 	}
 	if h.animeAssetRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -311,7 +311,7 @@ func (h *AdminContentHandler) DeleteAnimeLogoAsset(c *gin.Context) {
 		return
 	} else if err != nil {
 		log.Printf("admin anime logo delete: anime_id=%d: %v", animeID, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "logo konnte nicht geloescht werden"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "logo konnte nicht gelöscht werden"}})
 		return
 	}
 
@@ -323,19 +323,19 @@ func (h *AdminContentHandler) AssignAnimeBackgroundVideoAsset(c *gin.Context) {
 		return
 	}
 	if h.animeAssetRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req adminAnimeBannerAssignRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltige anfrage")
+		badRequest(c, "ungültige anfrage")
 		return
 	}
 
@@ -357,19 +357,19 @@ func (h *AdminContentHandler) AddAnimeBackgroundVideoAsset(c *gin.Context) {
 		return
 	}
 	if h.animeAssetRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req adminAnimeBannerAssignRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltige anfrage")
+		badRequest(c, "ungültige anfrage")
 		return
 	}
 
@@ -379,7 +379,7 @@ func (h *AdminContentHandler) AddAnimeBackgroundVideoAsset(c *gin.Context) {
 			return
 		}
 		log.Printf("admin anime background video add: anime_id=%d: %v", animeID, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "background_video konnte nicht hinzugefuegt werden"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "background_video konnte nicht hinzugefügt werden"}})
 		return
 	}
 
@@ -391,13 +391,13 @@ func (h *AdminContentHandler) DeleteAnimeBackgroundVideoAsset(c *gin.Context) {
 		return
 	}
 	if h.animeAssetRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime-asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -406,7 +406,7 @@ func (h *AdminContentHandler) DeleteAnimeBackgroundVideoAsset(c *gin.Context) {
 		return
 	} else if err != nil {
 		log.Printf("admin anime background video delete: anime_id=%d: %v", animeID, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "background_video konnte nicht geloescht werden"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "background_video konnte nicht gelöscht werden"}})
 		return
 	}
 

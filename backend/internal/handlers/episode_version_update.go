@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -20,14 +20,14 @@ func (h *FansubHandler) UpdateEpisodeVersion(c *gin.Context) {
 
 	versionID, err := parseEpisodeVersionID(c.Param("versionId"))
 	if err != nil {
-		badRequest(c, "ungueltige version id")
+		badRequest(c, "ungültige version id")
 		return
 	}
 
 	var req models.EpisodeVersionPatchInput
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("episode version update: bad request (user_id=%d, version_id=%d): %v", identity.UserID, versionID, err)
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 

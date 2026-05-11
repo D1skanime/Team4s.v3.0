@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"bytes"
@@ -118,7 +118,7 @@ func generateRVMThumbnail(data []byte, mimeType string) ([]byte, int, int, error
 			return nil, 0, 0, fmt.Errorf("gif frame 0 laden: %w", err)
 		}
 		if len(decoded.Image) == 0 {
-			return nil, 0, 0, fmt.Errorf("gif enthaelt keine frames")
+			return nil, 0, 0, fmt.Errorf("gif enthält keine frames")
 		}
 		src = decoded.Image[0]
 	} else {
@@ -164,13 +164,13 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 	if h.mediaRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfügbar"}})
 		return
 	}
 
 	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
 	if err != nil || versionID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige version id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige version id"}})
 		return
 	}
 
@@ -196,7 +196,7 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 	category := strings.TrimSpace(c.PostForm("category"))
 	if !rvmValidCategories[category] {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
-			"message":    "ungueltige kategorie",
+			"message":    "ungültige kategorie",
 			"error_code": "INVALID_CATEGORY",
 		}})
 		return
@@ -251,7 +251,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 	f, err := fileHeader.Open()
 	if err != nil {
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
-			ErrorCode: "STORAGE_FAILED", Message: "datei konnte nicht geoeffnet werden"}
+			ErrorCode: "STORAGE_FAILED", Message: "datei konnte nicht geöffnet werden"}
 	}
 	defer f.Close()
 
@@ -293,7 +293,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 	if meta.Width*meta.Height > 40_000_000 {
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "IMAGE_TOO_MANY_PIXELS",
-			Message:   "bild enthaelt zu viele pixel (max 40 MP)"}
+			Message:   "bild enthält zu viele pixel (max 40 MP)"}
 	}
 	if mimeType == "image/gif" && meta.GIFFrames > rvmMaxGIFFrames {
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
@@ -320,7 +320,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 			ErrorCode: "STORAGE_FAILED", Message: "verzeichnis konnte nicht erstellt werden"}
 	}
 
-	// EXIF-Strip fuer JPEG, PNG und WebP: imaging.Save re-enkodiert das Bild
+	// EXIF-Strip für JPEG, PNG und WebP: imaging.Save re-enkodiert das Bild
 	// ohne Metadaten. GIF bleibt raw, weil imaging die Animation nicht erhalten kann.
 	if mimeType == "image/gif" {
 		if err := os.WriteFile(originalPath, data, 0o644); err != nil {
@@ -458,13 +458,13 @@ func (h *AdminContentHandler) ListReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 	if h.mediaRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfügbar"}})
 		return
 	}
 
 	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
 	if err != nil || versionID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige version id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige version id"}})
 		return
 	}
 
@@ -518,18 +518,18 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 	}
 	_ = identity
 	if h.mediaRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfügbar"}})
 		return
 	}
 
 	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
 	if err != nil || versionID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige version id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige version id"}})
 		return
 	}
 	relationID, err := strconv.ParseInt(c.Param("relationId"), 10, 64)
 	if err != nil || relationID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige relation id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige relation id"}})
 		return
 	}
 
@@ -549,7 +549,7 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 
 	var rawBody map[string]interface{}
 	if err := c.ShouldBindJSON(&rawBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige json body"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige json body"}})
 		return
 	}
 	if _, hasCategory := rawBody["category"]; hasCategory {
@@ -575,7 +575,7 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 	if isPreviewCandidate != nil && *isPreviewCandidate {
 		if !rvmPreviewAllowedCategories[relationMeta.Category] {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
-				"message":    "vorschaubild nicht erlaubt fuer diese kategorie",
+				"message":    "vorschaubild nicht erlaubt für diese kategorie",
 				"error_code": "PREVIEW_NOT_ALLOWED_FOR_CATEGORY",
 			}})
 			return
@@ -597,7 +597,7 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		defer tx.Rollback(c.Request.Context()) //nolint:errcheck
 
 		if err := h.mediaRepo.ClearPreviewCandidateForVersion(c.Request.Context(), tx, versionID, relationID); err != nil {
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Preview-Flag konnte nicht zurueckgesetzt werden.")
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Preview-Flag konnte nicht zurückgesetzt werden.")
 			return
 		}
 		if err := h.mediaRepo.PatchReleaseVersionMedia(c.Request.Context(), tx, relationID, patchInput); err != nil {
@@ -653,24 +653,24 @@ func (h *AdminContentHandler) DeleteReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 	if h.mediaRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfügbar"}})
 		return
 	}
 
 	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
 	if err != nil || versionID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige version id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige version id"}})
 		return
 	}
 	relationID, err := strconv.ParseInt(c.Param("relationId"), 10, 64)
 	if err != nil || relationID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige relation id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige relation id"}})
 		return
 	}
 
 	relationMeta, err := h.mediaRepo.GetReleaseVersionMediaRelation(c.Request.Context(), relationID)
 	if errors.Is(err, repository.ErrNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden oder bereits geloescht"}})
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden oder bereits gelöscht"}})
 		return
 	}
 	if err != nil {
@@ -684,10 +684,10 @@ func (h *AdminContentHandler) DeleteReleaseVersionMedia(c *gin.Context) {
 
 	if err := h.mediaRepo.SoftDeleteReleaseVersionMedia(c.Request.Context(), relationID, identity.UserID); err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden oder bereits geloescht"}})
+			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden oder bereits gelöscht"}})
 			return
 		}
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Loeschen fehlgeschlagen.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "löschen fehlgeschlagen.")
 		return
 	}
 
@@ -709,13 +709,13 @@ func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 	if h.mediaRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfügbar"}})
 		return
 	}
 
 	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
 	if err != nil || versionID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige version id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige version id"}})
 		return
 	}
 

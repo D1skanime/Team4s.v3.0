@@ -11,8 +11,8 @@ const (
 	authIssueBearerPrefix        = "Bearer "
 	authIssueDevKeyHeader        = "X-Auth-Issue-Key"
 	authIssueRequiredMessage     = "anmeldung erforderlich"
-	authIssueInvalidTokenMessage = "ungueltiges zugriffstoken"
-	authIssueStateErrorMessage   = "auth-status voruebergehend nicht verfuegbar"
+	authIssueInvalidTokenMessage = "ungültiges zugriffstoken"
+	authIssueStateErrorMessage   = "auth-status vorübergehend nicht verfügbar"
 )
 
 type refreshAuthRequest struct {

@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -33,7 +33,7 @@ func (h *EpisodePlaybackHandler) authorizePlayback(c *gin.Context, episodeID int
 	if strings.TrimSpace(h.releaseGrantSecret) == "" {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"error": gin.H{
-				"message": "stream grant voruebergehend nicht verfuegbar",
+				"message": "stream grant vorübergehend nicht verfügbar",
 			},
 		})
 		return "", false
@@ -51,7 +51,7 @@ func (h *EpisodePlaybackHandler) authorizePlayback(c *gin.Context, episodeID int
 			}
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": gin.H{
-					"message": "ungueltiger stream grant",
+					"message": "ungültiger stream grant",
 				},
 			})
 			return "", false
@@ -62,7 +62,7 @@ func (h *EpisodePlaybackHandler) authorizePlayback(c *gin.Context, episodeID int
 	if err != nil || claims.ReleaseID != episodeID {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": gin.H{
-				"message": "ungueltiger stream grant",
+				"message": "ungültiger stream grant",
 			},
 		})
 		return "", false

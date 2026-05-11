@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -13,20 +13,20 @@ import (
 
 // GetAnimeSegmentSuggestions verarbeitet GET /api/v1/admin/anime/:id/segments/suggestions
 // Query-Parameter: episode (int, Pflicht), exclude_group_id (int, optional), exclude_version (string, optional).
-// Gibt Segmente zurueck, deren Episodenbereich den angegebenen episode-Wert abdeckt,
+// Gibt Segmente zurück, deren Episodenbereich den angegebenen episode-Wert abdeckt,
 // mit Ausnahme der aktuellen (exclude_group_id, exclude_version)-Kombination.
 func (h *AdminContentHandler) GetAnimeSegmentSuggestions(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || animeID <= 0 {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -37,7 +37,7 @@ func (h *AdminContentHandler) GetAnimeSegmentSuggestions(c *gin.Context) {
 	}
 	episode64, err := strconv.ParseInt(rawEpisode, 10, 64)
 	if err != nil || episode64 <= 0 {
-		badRequest(c, "ungueltige episode")
+		badRequest(c, "ungültige episode")
 		return
 	}
 	episodeNumber := int(episode64)
@@ -46,7 +46,7 @@ func (h *AdminContentHandler) GetAnimeSegmentSuggestions(c *gin.Context) {
 	if raw := c.Query("exclude_group_id"); raw != "" {
 		excludeGroupID, err = strconv.ParseInt(raw, 10, 64)
 		if err != nil || excludeGroupID <= 0 {
-			badRequest(c, "ungueltige exclude_group_id")
+			badRequest(c, "ungültige exclude_group_id")
 			return
 		}
 	}

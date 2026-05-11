@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"reflect"
@@ -19,7 +19,7 @@ func TestNormalizeMergeSourceIDs_Deduplicates(t *testing.T) {
 
 func TestNormalizeMergeSourceIDs_RejectsInvalidSource(t *testing.T) {
 	_, message := normalizeMergeSourceIDs(10, []int64{1, 0, 2})
-	if message != "ungueltige source_id" {
+	if message != "ungültige source_id" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }

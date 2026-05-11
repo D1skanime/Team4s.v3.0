@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"team4s.v3/backend/internal/models"
@@ -14,31 +14,31 @@ func validateFansubGroupPatchRequest(req models.FansubGroupPatchInput) (models.F
 	if req.Slug.Set {
 		value := normalizeRequiredString(req.Slug.Value)
 		if value == nil || len([]rune(*value)) > 120 {
-			return models.FansubGroupPatchInput{}, "ungueltiger slug parameter"
+			return models.FansubGroupPatchInput{}, "ungültiger slug parameter"
 		}
 		req.Slug.Value = value
 	}
 	if req.Name.Set {
 		value := normalizeRequiredString(req.Name.Value)
 		if value == nil || len([]rune(*value)) > 120 {
-			return models.FansubGroupPatchInput{}, "ungueltiger name parameter"
+			return models.FansubGroupPatchInput{}, "ungültiger name parameter"
 		}
 		req.Name.Value = value
 	}
 	if req.Status.Set {
 		value := normalizeRequiredString(req.Status.Value)
 		if value == nil {
-			return models.FansubGroupPatchInput{}, "ungueltiger status parameter"
+			return models.FansubGroupPatchInput{}, "ungültiger status parameter"
 		}
 		if _, ok := allowedFansubStatuses[*value]; !ok {
-			return models.FansubGroupPatchInput{}, "ungueltiger status parameter"
+			return models.FansubGroupPatchInput{}, "ungültiger status parameter"
 		}
 		req.Status.Value = value
 	}
 	if req.GroupType.Set {
 		value := normalizeRequiredString(req.GroupType.Value)
 		if value == nil {
-			return models.FansubGroupPatchInput{}, "ungueltiger group_type parameter"
+			return models.FansubGroupPatchInput{}, "ungültiger group_type parameter"
 		}
 
 		parsedGroupType := models.FansubGroupType(*value)
@@ -47,20 +47,20 @@ func validateFansubGroupPatchRequest(req models.FansubGroupPatchInput) (models.F
 			normalizedGroupType := string(parsedGroupType)
 			req.GroupType.Value = &normalizedGroupType
 		default:
-			return models.FansubGroupPatchInput{}, "ungueltiger group_type parameter"
+			return models.FansubGroupPatchInput{}, "ungültiger group_type parameter"
 		}
 	}
 	if req.LogoID.Set && req.LogoID.Value != nil && *req.LogoID.Value <= 0 {
-		return models.FansubGroupPatchInput{}, "ungueltiger logo_id parameter"
+		return models.FansubGroupPatchInput{}, "ungültiger logo_id parameter"
 	}
 	if req.BannerID.Set && req.BannerID.Value != nil && *req.BannerID.Value <= 0 {
-		return models.FansubGroupPatchInput{}, "ungueltiger banner_id parameter"
+		return models.FansubGroupPatchInput{}, "ungültiger banner_id parameter"
 	}
 	if req.FoundedYear.Set && req.FoundedYear.Value != nil && *req.FoundedYear.Value <= 0 {
-		return models.FansubGroupPatchInput{}, "ungueltiger founded_year parameter"
+		return models.FansubGroupPatchInput{}, "ungültiger founded_year parameter"
 	}
 	if req.DissolvedYear.Set && req.DissolvedYear.Value != nil && *req.DissolvedYear.Value <= 0 {
-		return models.FansubGroupPatchInput{}, "ungueltiger dissolved_year parameter"
+		return models.FansubGroupPatchInput{}, "ungültiger dissolved_year parameter"
 	}
 	if req.FoundedYear.Set && req.DissolvedYear.Set && req.FoundedYear.Value != nil && req.DissolvedYear.Value != nil {
 		if *req.DissolvedYear.Value < *req.FoundedYear.Value {

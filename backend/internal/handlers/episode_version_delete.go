@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -19,7 +19,7 @@ func (h *FansubHandler) DeleteEpisodeVersion(c *gin.Context) {
 
 	versionID, err := parseEpisodeVersionID(c.Param("versionId"))
 	if err != nil {
-		badRequest(c, "ungueltige version id")
+		badRequest(c, "ungültige version id")
 		return
 	}
 

@@ -24,7 +24,7 @@ func (h *AdminContentHandler) GetEpisodeImportContext(c *gin.Context) {
 	}
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -42,13 +42,13 @@ func (h *AdminContentHandler) PreviewEpisodeImport(c *gin.Context) {
 	}
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req adminEpisodeImportPreviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 	req = validateEpisodeImportPreviewRequest(req)
@@ -103,7 +103,7 @@ func (h *AdminContentHandler) ApplyEpisodeImport(c *gin.Context) {
 	}
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 	if h.episodeImportRepo == nil {
@@ -113,7 +113,7 @@ func (h *AdminContentHandler) ApplyEpisodeImport(c *gin.Context) {
 
 	var req adminEpisodeImportApplyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 	input, validationErr := validateEpisodeImportApplyRequest(animeID, req)

@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"io"
@@ -13,7 +13,7 @@ import (
 func (h *EpisodePlaybackHandler) Play(c *gin.Context) {
 	episodeID, err := parseEpisodeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige episode id")
+		badRequest(c, "ungültige episode id")
 		return
 	}
 
@@ -34,7 +34,7 @@ func (h *EpisodePlaybackHandler) Play(c *gin.Context) {
 	if strings.TrimSpace(h.embyAPIKey) == "" {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"error": gin.H{
-				"message": "stream derzeit nicht verfuegbar",
+				"message": "stream derzeit nicht verfügbar",
 			},
 		})
 		return

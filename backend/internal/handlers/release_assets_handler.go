@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -31,7 +31,7 @@ func (h *ReleaseAssetsHandler) ListReleaseAssets(c *gin.Context) {
 
 	releaseID, err := strconv.ParseInt(releaseIDRaw, 10, 64)
 	if err != nil || releaseID <= 0 {
-		badRequest(c, "ungueltiger releaseId parameter")
+		badRequest(c, "ungültiger releaseId parameter")
 		return
 	}
 

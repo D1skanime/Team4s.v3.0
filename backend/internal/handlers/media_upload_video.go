@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"context"
@@ -146,7 +146,7 @@ func videoExtensionForMime(mimeType string) (string, error) {
 	case "video/webm":
 		return ".webm", nil
 	default:
-		return "", fmt.Errorf("nicht unterstuetzter video-typ: %s", mimeType)
+		return "", fmt.Errorf("nicht unterstützter video-typ: %s", mimeType)
 	}
 }
 

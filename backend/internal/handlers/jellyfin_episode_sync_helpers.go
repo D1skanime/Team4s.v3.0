@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -146,7 +146,7 @@ func (h *AdminContentHandler) cleanupJellyfinEpisodeProviderVersions(
 		)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": gin.H{
-				"message": "bestehende versionen konnten nicht geloescht werden",
+				"message": "bestehende versionen konnten nicht gelöscht werden",
 			},
 		})
 		return 0, false

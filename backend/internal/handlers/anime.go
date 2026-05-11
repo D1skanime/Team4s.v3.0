@@ -63,13 +63,13 @@ func NewAnimeHandler(
 func (h *AnimeHandler) List(c *gin.Context) {
 	page, err := parsePositiveInt(c.DefaultQuery("page", "1"))
 	if err != nil {
-		badRequest(c, "ungueltiger page parameter")
+		badRequest(c, "ungültiger page parameter")
 		return
 	}
 
 	perPage, err := parsePositiveInt(c.DefaultQuery("per_page", "24"))
 	if err != nil {
-		badRequest(c, "ungueltiger per_page parameter")
+		badRequest(c, "ungültiger per_page parameter")
 		return
 	}
 	if perPage > 100 {
@@ -78,20 +78,20 @@ func (h *AnimeHandler) List(c *gin.Context) {
 
 	q := strings.TrimSpace(c.Query("q"))
 	if len(q) > 100 {
-		badRequest(c, "ungueltiger q parameter")
+		badRequest(c, "ungültiger q parameter")
 		return
 	}
 
 	letter := strings.ToUpper(strings.TrimSpace(c.Query("letter")))
 	if !isValidLetter(letter) {
-		badRequest(c, "ungueltiger letter parameter")
+		badRequest(c, "ungültiger letter parameter")
 		return
 	}
 
 	contentType := strings.TrimSpace(c.Query("content_type"))
 	if contentType != "" {
 		if _, ok := allowedContentTypes[contentType]; !ok {
-			badRequest(c, "ungueltiger content_type parameter")
+			badRequest(c, "ungültiger content_type parameter")
 			return
 		}
 	}
@@ -99,7 +99,7 @@ func (h *AnimeHandler) List(c *gin.Context) {
 	status := strings.TrimSpace(c.Query("status"))
 	if status != "" {
 		if _, ok := allowedAnimeStatuses[status]; !ok {
-			badRequest(c, "ungueltiger status parameter")
+			badRequest(c, "ungültiger status parameter")
 			return
 		}
 	}
@@ -109,7 +109,7 @@ func (h *AnimeHandler) List(c *gin.Context) {
 	if fansubIDRaw != "" {
 		parsedFansubID, err := strconv.ParseInt(fansubIDRaw, 10, 64)
 		if err != nil || parsedFansubID <= 0 {
-			badRequest(c, "ungueltiger fansub_id parameter")
+			badRequest(c, "ungültiger fansub_id parameter")
 			return
 		}
 		fansubGroupID = &parsedFansubID
@@ -117,7 +117,7 @@ func (h *AnimeHandler) List(c *gin.Context) {
 
 	includeDisabled, err := parseOptionalBoolQuery(c.Query("include_disabled"))
 	if err != nil {
-		badRequest(c, "ungueltiger include_disabled parameter")
+		badRequest(c, "ungültiger include_disabled parameter")
 		return
 	}
 
@@ -126,7 +126,7 @@ func (h *AnimeHandler) List(c *gin.Context) {
 	if hasCoverRaw != "" {
 		value, err := strconv.ParseBool(hasCoverRaw)
 		if err != nil {
-			badRequest(c, "ungueltiger has_cover parameter")
+			badRequest(c, "ungültiger has_cover parameter")
 			return
 		}
 		hasCover = &value
@@ -170,13 +170,13 @@ func (h *AnimeHandler) List(c *gin.Context) {
 func (h *AnimeHandler) GetByID(c *gin.Context) {
 	id, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	includeDisabled, err := parseOptionalBoolQuery(c.Query("include_disabled"))
 	if err != nil {
-		badRequest(c, "ungueltiger include_disabled parameter")
+		badRequest(c, "ungültiger include_disabled parameter")
 		return
 	}
 
@@ -204,7 +204,7 @@ func (h *AnimeHandler) GetAnimeRelations(c *gin.Context) {
 	idStr := c.Param("id")
 	animeID, err := parseAnimeID(idStr)
 	if err != nil {
-		badRequest(c, "ungueltige anime-id")
+		badRequest(c, "ungültige anime-id")
 		return
 	}
 

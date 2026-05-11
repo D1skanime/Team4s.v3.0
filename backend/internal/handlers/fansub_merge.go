@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -28,7 +28,7 @@ func normalizeMergeSourceIDs(targetID int64, sourceIDs []int64) ([]int64, string
 	seen := make(map[int64]struct{}, len(sourceIDs))
 	for _, sourceID := range sourceIDs {
 		if sourceID <= 0 {
-			return nil, "ungueltige source_id"
+			return nil, "ungültige source_id"
 		}
 		if sourceID == targetID {
 			return nil, "zielgruppe darf nicht in quellgruppen enthalten sein"
@@ -56,7 +56,7 @@ func (h *FansubHandler) MergeFansubs(c *gin.Context) {
 
 	var req mergeFansubsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -139,7 +139,7 @@ func (h *FansubHandler) MergeFansubsPreview(c *gin.Context) {
 
 	var req mergeFansubsPreviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 

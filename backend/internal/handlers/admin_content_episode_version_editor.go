@@ -19,7 +19,7 @@ func (h *AdminContentHandler) GetEpisodeVersionEditorContext(c *gin.Context) {
 
 	versionID, err := parseEpisodeVersionID(c.Param("versionId"))
 	if err != nil {
-		badRequest(c, "ungueltige version id")
+		badRequest(c, "ungültige version id")
 		return
 	}
 
@@ -46,7 +46,7 @@ func (h *AdminContentHandler) ScanEpisodeVersionFolder(c *gin.Context) {
 
 	versionID, err := parseEpisodeVersionID(c.Param("versionId"))
 	if err != nil {
-		badRequest(c, "ungueltige version id")
+		badRequest(c, "ungültige version id")
 		return
 	}
 

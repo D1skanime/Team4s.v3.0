@@ -145,7 +145,7 @@ func (s *MediaService) SaveReleaseThemeVideoUpload(ctx ReleaseThemeVideoStorageC
 	}
 	ext, ok := allowed[detectedMime]
 	if !ok {
-		return nil, &MediaValidationError{Message: "ungueltiges videoformat (erlaubt: mp4, webm, mkv, avi, mov)"}
+		return nil, &MediaValidationError{Message: "ungültiges videoformat (erlaubt: mp4, webm, mkv, avi, mov)"}
 	}
 
 	filename := buildFilename(models.MediaKindThemeVideo, ext)
@@ -222,7 +222,7 @@ func (s *MediaService) SaveSegmentAsset(ctx SegmentAssetContext, originalName st
 	}
 	ext, ok := allowedSegment[detectedMime]
 	if !ok {
-		return nil, &MediaValidationError{Message: "ungueltiges format fuer segment-asset (erlaubt: mp4, webm, mkv, mp3, aac, flac, ogg, opus, m4a)"}
+		return nil, &MediaValidationError{Message: "ungültiges format für segment-asset (erlaubt: mp4, webm, mkv, mp3, aac, flac, ogg, opus, m4a)"}
 	}
 
 	sanitized := sanitizeSegmentFilename(originalName, ext)
@@ -380,7 +380,7 @@ func validateMimeForKind(kind models.MediaKind, mimeType string) error {
 
 	if kind == models.MediaKindLogo {
 		if _, ok := allowedLogo[mimeType]; !ok {
-			return &MediaValidationError{Message: "ungueltiges dateiformat fuer logo (erlaubt: SVG, PNG, JPG, WEBP)"}
+			return &MediaValidationError{Message: "ungültiges dateiformat für logo (erlaubt: SVG, PNG, JPG, WEBP)"}
 		}
 		return nil
 	}
@@ -388,14 +388,14 @@ func validateMimeForKind(kind models.MediaKind, mimeType string) error {
 	if kind == models.MediaKindBanner {
 		if _, ok := allowedBanner[mimeType]; !ok {
 			if mimeType == "image/svg+xml" {
-				return &MediaValidationError{Message: "svg ist fuer banner nicht erlaubt"}
+				return &MediaValidationError{Message: "svg ist für banner nicht erlaubt"}
 			}
-			return &MediaValidationError{Message: "ungueltiges dateiformat fuer banner (erlaubt: PNG, JPG, WEBP, GIF)"}
+			return &MediaValidationError{Message: "ungültiges dateiformat für banner (erlaubt: PNG, JPG, WEBP, GIF)"}
 		}
 		return nil
 	}
 
-	return &MediaValidationError{Message: "ungueltiger media-typ"}
+	return &MediaValidationError{Message: "ungültiger media-typ"}
 }
 
 // decodeImageDimensions liest Breite und Höhe eines Bildes aus den Rohdaten.

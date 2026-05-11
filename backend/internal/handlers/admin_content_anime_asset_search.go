@@ -16,7 +16,7 @@ import (
 func (h *AdminContentHandler) SearchAnimeCreateAssetCandidates(c *gin.Context) {
 	slot := strings.TrimSpace(c.Query("slot"))
 	if !isSupportedAdminAnimeAssetSearchKind(slot) {
-		badRequest(c, "slot ist ungueltig")
+		badRequest(c, "slot ist ungültig")
 		return
 	}
 
@@ -58,9 +58,9 @@ func (h *AdminContentHandler) SearchAnimeCreateAssetCandidates(c *gin.Context) {
 	if h.assetSearchService == nil {
 		c.JSON(http.StatusNotImplemented, gin.H{
 			"error": gin.H{
-				"message": "asset-suche ist noch nicht verfuegbar",
+				"message": "asset-suche ist noch nicht verfügbar",
 				"code":    "asset_search_not_implemented",
-				"details": "Die Asset-Suchquellen werden im naechsten Phase-15-Schritt verdrahtet.",
+				"details": "Die Asset-Suchquellen werden im nächsten Phase-15-Schritt verdrahtet.",
 			},
 		})
 		return
@@ -111,7 +111,7 @@ func parseAdminAnimeAssetSearchSources(raw string) ([]models.AdminAnimeAssetSear
 			seen[source] = struct{}{}
 			result = append(result, source)
 		default:
-			return nil, fmt.Errorf("sources enthaelt einen ungueltigen wert")
+			return nil, fmt.Errorf("sources enthält einen ungültigen wert")
 		}
 	}
 

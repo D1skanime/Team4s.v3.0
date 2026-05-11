@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -33,7 +33,7 @@ func (h *EpisodeVersionImagesHandler) ListReleaseImages(c *gin.Context) {
 	}
 	releaseID, err := strconv.ParseInt(releaseIDRaw, 10, 64)
 	if err != nil || releaseID <= 0 {
-		badRequest(c, "ungueltiger releaseId parameter")
+		badRequest(c, "ungültiger releaseId parameter")
 		return
 	}
 
@@ -46,7 +46,7 @@ func (h *EpisodeVersionImagesHandler) ListReleaseImages(c *gin.Context) {
 	if limitParam := c.Query("limit"); limitParam != "" {
 		parsed, parseErr := strconv.ParseInt(limitParam, 10, 32)
 		if parseErr != nil || parsed <= 0 {
-			badRequest(c, "ungueltiger limit parameter")
+			badRequest(c, "ungültiger limit parameter")
 			return
 		}
 		limit = int32(parsed)

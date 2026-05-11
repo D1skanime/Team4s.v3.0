@@ -28,7 +28,7 @@ func validateAdminEpisodeCreateRequest(req adminEpisodeCreateRequest) (models.Ad
 
 	status := strings.TrimSpace(req.Status)
 	if _, ok := allowedEpisodeStatuses[status]; !ok {
-		return models.AdminEpisodeCreateInput{}, "ungueltiger status parameter"
+		return models.AdminEpisodeCreateInput{}, "ungültiger status parameter"
 	}
 
 	return models.AdminEpisodeCreateInput{
@@ -62,10 +62,10 @@ func validateAdminEpisodePatchRequest(req models.AdminEpisodePatchInput) (models
 	if req.Status.Set {
 		status := normalizeRequiredString(req.Status.Value)
 		if status == nil {
-			return models.AdminEpisodePatchInput{}, "ungueltiger status parameter"
+			return models.AdminEpisodePatchInput{}, "ungültiger status parameter"
 		}
 		if _, ok := allowedEpisodeStatuses[*status]; !ok {
-			return models.AdminEpisodePatchInput{}, "ungueltiger status parameter"
+			return models.AdminEpisodePatchInput{}, "ungültiger status parameter"
 		}
 		req.Status.Value = status
 	}

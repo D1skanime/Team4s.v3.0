@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -15,7 +15,7 @@ import (
 func (h *FansubHandler) ListFansubLinks(c *gin.Context) {
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 
@@ -41,14 +41,14 @@ func (h *FansubHandler) CreateFansubLink(c *gin.Context) {
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 
 	var req fansubGroupLinkCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("fansub link create: bad request (user_id=%d, fansub_id=%d): %v", identity.UserID, fansubID, err)
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -84,19 +84,19 @@ func (h *FansubHandler) UpdateFansubLink(c *gin.Context) {
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 	linkID, err := parseFansubGroupLinkID(c.Param("linkId"))
 	if err != nil {
-		badRequest(c, "ungueltige link id")
+		badRequest(c, "ungültige link id")
 		return
 	}
 
 	var req fansubGroupLinkPatchRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("fansub link update: bad request (user_id=%d, fansub_id=%d, link_id=%d): %v", identity.UserID, fansubID, linkID, err)
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -132,12 +132,12 @@ func (h *FansubHandler) DeleteFansubLink(c *gin.Context) {
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 	linkID, err := parseFansubGroupLinkID(c.Param("linkId"))
 	if err != nil {
-		badRequest(c, "ungueltige link id")
+		badRequest(c, "ungültige link id")
 		return
 	}
 
@@ -159,12 +159,12 @@ func validateFansubGroupLinkCreateRequest(req fansubGroupLinkCreateRequest) (mod
 		return models.FansubGroupLinkCreateInput{}, "link_type ist erforderlich"
 	}
 	if _, ok := allowedFansubLinkTypes[*linkType]; !ok {
-		return models.FansubGroupLinkCreateInput{}, "ungueltiger link_type parameter"
+		return models.FansubGroupLinkCreateInput{}, "ungültiger link_type parameter"
 	}
 
 	url := normalizeRequiredString(&req.URL)
 	if url == nil || len([]rune(*url)) > 2048 {
-		return models.FansubGroupLinkCreateInput{}, "ungueltiger url parameter"
+		return models.FansubGroupLinkCreateInput{}, "ungültiger url parameter"
 	}
 
 	name := normalizeNullableString(req.Name)
@@ -187,10 +187,10 @@ func validateFansubGroupLinkPatchRequest(req fansubGroupLinkPatchRequest) (model
 	if req.LinkType.Set {
 		value := normalizeRequiredString(req.LinkType.Value)
 		if value == nil {
-			return models.FansubGroupLinkPatchInput{}, "ungueltiger link_type parameter"
+			return models.FansubGroupLinkPatchInput{}, "ungültiger link_type parameter"
 		}
 		if _, ok := allowedFansubLinkTypes[*value]; !ok {
-			return models.FansubGroupLinkPatchInput{}, "ungueltiger link_type parameter"
+			return models.FansubGroupLinkPatchInput{}, "ungültiger link_type parameter"
 		}
 		req.LinkType.Value = value
 	}
@@ -203,7 +203,7 @@ func validateFansubGroupLinkPatchRequest(req fansubGroupLinkPatchRequest) (model
 	if req.URL.Set {
 		value := normalizeRequiredString(req.URL.Value)
 		if value == nil || len([]rune(*value)) > 2048 {
-			return models.FansubGroupLinkPatchInput{}, "ungueltiger url parameter"
+			return models.FansubGroupLinkPatchInput{}, "ungültiger url parameter"
 		}
 		trimmed := strings.TrimSpace(*value)
 		req.URL.Value = &trimmed

@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -14,7 +14,7 @@ import (
 func (h *FansubHandler) ListFansubAliases(c *gin.Context) {
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 
@@ -51,14 +51,14 @@ func (h *FansubHandler) CreateFansubAlias(c *gin.Context) {
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 
 	var req fansubAliasCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("fansub alias create: bad request (user_id=%d, fansub_id=%d): %v", identity.UserID, fansubID, err)
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -109,12 +109,12 @@ func (h *FansubHandler) DeleteFansubAlias(c *gin.Context) {
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 	aliasID, err := parseFansubAliasID(c.Param("aliasId"))
 	if err != nil {
-		badRequest(c, "ungueltige alias id")
+		badRequest(c, "ungültige alias id")
 		return
 	}
 

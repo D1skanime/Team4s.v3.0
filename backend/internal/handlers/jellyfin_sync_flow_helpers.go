@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"fmt"
@@ -50,7 +50,7 @@ func (h *AdminContentHandler) cleanupJellyfinProviderVersions(
 		)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": gin.H{
-				"message": "bestehende versionen konnten nicht geloescht werden",
+				"message": "bestehende versionen konnten nicht gelöscht werden",
 			},
 		})
 		return false

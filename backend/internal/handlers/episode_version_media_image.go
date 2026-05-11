@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"io"
@@ -23,25 +23,25 @@ func (h *FansubHandler) MediaImage(c *gin.Context) {
 	provider := strings.TrimSpace(c.Query("provider"))
 	itemID := strings.TrimSpace(c.Query("item_id"))
 	if provider == "" || itemID == "" {
-		badRequest(c, "ungueltige media parameter")
+		badRequest(c, "ungültige media parameter")
 		return
 	}
 
 	kind := strings.TrimSpace(c.DefaultQuery("kind", "primary"))
 	if _, ok := allowedMediaImageKinds[kind]; !ok {
-		badRequest(c, "ungueltiger kind parameter")
+		badRequest(c, "ungültiger kind parameter")
 		return
 	}
 
-	widthValue, ok := parsePositiveIntQuery(c, "width", "ungueltiger width parameter")
+	widthValue, ok := parsePositiveIntQuery(c, "width", "ungültiger width parameter")
 	if !ok {
 		return
 	}
-	qualityValue, ok := parseBoundedIntQuery(c, "quality", 1, 100, "ungueltiger quality parameter")
+	qualityValue, ok := parseBoundedIntQuery(c, "quality", 1, 100, "ungültiger quality parameter")
 	if !ok {
 		return
 	}
-	indexValue, ok := parseBoundedIntQuery(c, "index", 0, 1<<31-1, "ungueltiger index parameter")
+	indexValue, ok := parseBoundedIntQuery(c, "index", 0, 1<<31-1, "ungültiger index parameter")
 	if !ok {
 		return
 	}

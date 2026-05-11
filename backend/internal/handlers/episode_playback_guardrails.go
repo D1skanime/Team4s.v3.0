@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 
 const (
 	episodePlaybackRateLimitExceededMessage    = "zu viele anfragen, bitte spaeter erneut versuchen"
-	episodePlaybackRateLimitUnavailableMessage = "stream-rate-limit voruebergehend nicht verfuegbar"
+	episodePlaybackRateLimitUnavailableMessage = "stream-rate-limit vorübergehend nicht verfügbar"
 	episodePlaybackOverloadedMessage           = "stream derzeit ueberlastet"
 )
 

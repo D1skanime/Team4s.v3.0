@@ -76,7 +76,7 @@ func (s *AssetLifecycleService) EnsureCanonicalLayout(
 	if _, ok := policy.AllowedAssetTypes[strings.TrimSpace(assetType)]; !ok {
 		return nil, &AssetLifecycleError{
 			Code:    AssetLifecycleCodeInvalidAssetType,
-			Message: "ungueltiger asset_type",
+			Message: "ungültiger asset_type",
 			Details: map[string]any{"asset_type": assetType, "entity_type": entityType},
 		}
 	}
@@ -85,7 +85,7 @@ func (s *AssetLifecycleService) EnsureCanonicalLayout(
 	if errors.Is(err, repository.ErrNotFound) {
 		return nil, &AssetLifecycleError{
 			Code:    AssetLifecycleCodeInvalidEntityID,
-			Message: "ungueltige anime id",
+			Message: "ungültige anime id",
 			Details: map[string]any{"entity_id": entityID},
 		}
 	}
@@ -132,7 +132,7 @@ func (s *AssetLifecycleService) resolvePolicy(entityType string) (models.AssetLi
 	if strings.TrimSpace(strings.ToLower(entityType)) != "anime" {
 		return models.AssetLifecyclePolicy{}, &AssetLifecycleError{
 			Code:    AssetLifecycleCodeInvalidEntityType,
-			Message: "ungueltiger entity_type",
+			Message: "ungültiger entity_type",
 			Details: map[string]any{"entity_type": entityType},
 		}
 	}
@@ -148,7 +148,7 @@ func (s *AssetLifecycleService) resolveCanonicalRoot(policy models.AssetLifecycl
 	if err != nil {
 		return "", &AssetLifecycleError{
 			Code:    AssetLifecycleCodeUnsafePath,
-			Message: "ungueltige pfadangabe",
+			Message: "ungültige pfadangabe",
 			Details: map[string]any{"storage_dir": s.storageDir},
 			Err:     err,
 		}
@@ -156,7 +156,7 @@ func (s *AssetLifecycleService) resolveCanonicalRoot(policy models.AssetLifecycl
 	if !ok {
 		return "", &AssetLifecycleError{
 			Code:    AssetLifecycleCodeUnsafePath,
-			Message: "ungueltige pfadangabe",
+			Message: "ungültige pfadangabe",
 			Details: map[string]any{"storage_dir": s.storageDir},
 		}
 	}

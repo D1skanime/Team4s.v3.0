@@ -55,13 +55,13 @@ func classifyJellyfinUpstreamError(err error, fallbackMessage string) (string, s
 	normalized := strings.ToLower(strings.TrimSpace(err.Error()))
 	switch {
 	case strings.Contains(normalized, "returned status 401"), strings.Contains(normalized, "returned status 403"):
-		details := "Jellyfin API meldet 401/403. Bitte API-Key und Berechtigungen pruefen."
-		return "jellyfin token ungueltig", "jellyfin_auth_invalid", &details
+		details := "Jellyfin API meldet 401/403. Bitte API-Key und Berechtigungen prüfen."
+		return "jellyfin token ungültig", "jellyfin_auth_invalid", &details
 	case strings.Contains(normalized, "context deadline exceeded"),
 		strings.Contains(normalized, "i/o timeout"),
 		strings.Contains(normalized, "operation timed out"),
 		strings.Contains(normalized, "category=timeout"):
-		details := "Die Jellyfin-Anfrage hat das Timeout erreicht. Bitte Netzwerkpfad, Serverlast und Timeout-Konfiguration pruefen."
+		details := "Die Jellyfin-Anfrage hat das Timeout erreicht. Bitte Netzwerkpfad, Serverlast und Timeout-Konfiguration prüfen."
 		return "server nicht erreichbar", "jellyfin_unreachable", &details
 	case strings.Contains(normalized, "call jellyfin:"),
 		strings.Contains(normalized, "connection refused"),
@@ -72,7 +72,7 @@ func classifyJellyfinUpstreamError(err error, fallbackMessage string) (string, s
 	case strings.Contains(normalized, "decode jellyfin response"),
 		strings.Contains(normalized, "read jellyfin response"):
 		details := "Die Jellyfin-Antwort konnte nicht gelesen oder ausgewertet werden."
-		return "ungueltige antwort von jellyfin", "jellyfin_invalid_response", &details
+		return "ungültige antwort von jellyfin", "jellyfin_invalid_response", &details
 	default:
 		details := "Die Anfrage an Jellyfin ist fehlgeschlagen. Bitte Logs pruefen."
 		return fallbackMessage, "jellyfin_request_failed", &details
@@ -83,16 +83,16 @@ func classifyJellyfinUpstreamError(err error, fallbackMessage string) (string, s
 func classifyJellyfinResolutionError(status int, message string) (string, *string) {
 	switch {
 	case status == http.StatusNotFound && message == "jellyfin serie nicht gefunden":
-		details := "Bitte einen anderen Suchbegriff testen oder eine Series ID aus der Trefferliste waehlen."
+		details := "Bitte einen anderen Suchbegriff testen oder eine Series ID aus der Trefferliste wählen."
 		return "jellyfin_series_not_found", &details
 	case status == http.StatusConflict && message == "mehrere jellyfin serien gefunden, bitte jellyfin_series_id angeben":
-		details := "Bitte einen eindeutigen Treffer aus der Jellyfin-Trefferliste auswaehlen."
+		details := "Bitte einen eindeutigen Treffer aus der Jellyfin-Trefferliste auswählen."
 		return "jellyfin_series_ambiguous", &details
 	case status == http.StatusBadGateway && message == "jellyfin serie konnte nicht geladen werden":
-		details := "Der ausgewaehlte Jellyfin-Treffer konnte nicht geladen werden."
+		details := "Der ausgewählte Jellyfin-Treffer konnte nicht geladen werden."
 		return "jellyfin_series_lookup_failed", &details
 	case status == http.StatusBadGateway && message == "jellyfin serien konnten nicht gesucht werden":
-		details := "Die automatische Jellyfin-Serienauflosung ist fehlgeschlagen."
+		details := "Die automatische Jellyfin-Serienauflösung ist fehlgeschlagen."
 		return "jellyfin_series_search_failed", &details
 	default:
 		return "", nil

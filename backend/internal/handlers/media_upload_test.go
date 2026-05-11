@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"bytes"
@@ -463,7 +463,7 @@ func TestMediaUploadHandler_UploadReturnsDetailedValidationErrors(t *testing.T) 
 				return NewMediaUploadHandler(NewMockMediaUploadRepository(), tmpDir, "http://localhost", "/usr/bin/ffmpeg")
 			},
 			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "ungueltiger entity_type",
+			expectedBody:   "ungültiger entity_type",
 		},
 		{
 			name: "invalid entity id",
@@ -478,7 +478,7 @@ func TestMediaUploadHandler_UploadReturnsDetailedValidationErrors(t *testing.T) 
 					WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
 			},
 			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "ungueltige anime id",
+			expectedBody:   "ungültige anime id",
 		},
 		{
 			name: "unsupported asset type",
@@ -493,7 +493,7 @@ func TestMediaUploadHandler_UploadReturnsDetailedValidationErrors(t *testing.T) 
 					WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
 			},
 			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "ungueltiger asset_type",
+			expectedBody:   "ungültiger asset_type",
 		},
 		{
 			name: "reserved folder collision",

@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"context"
@@ -225,7 +225,7 @@ func TestValidateAdminRelationLabel_AllowsOnlyPhase5Labels(t *testing.T) {
 	if _, message := validateAdminRelationLabel("Fortsetzung"); message != "" {
 		t.Fatalf("expected Fortsetzung to validate, got %q", message)
 	}
-	if _, message := validateAdminRelationLabel("Prequel"); message != "ungueltiger relation_label parameter" {
+	if _, message := validateAdminRelationLabel("Prequel"); message != "ungültiger relation_label parameter" {
 		t.Fatalf("unexpected message %q", message)
 	}
 }

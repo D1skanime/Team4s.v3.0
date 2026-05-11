@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -15,7 +15,7 @@ import (
 func (h *FansubHandler) ListAnimeFansubs(c *gin.Context) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -52,12 +52,12 @@ func (h *FansubHandler) AttachAnimeFansub(c *gin.Context) {
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 	fansubID, err := parseFansubID(c.Param("fansubId"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 
@@ -65,7 +65,7 @@ func (h *FansubHandler) AttachAnimeFansub(c *gin.Context) {
 	if body := readBodyForOptionalJSON(c); body != "" {
 		if err := c.ShouldBindJSON(&req); err != nil {
 			log.Printf("anime fansub attach: bad request (user_id=%d, anime_id=%d, fansub_id=%d): %v", identity.UserID, animeID, fansubID, err)
-			badRequest(c, "ungueltiger request body")
+			badRequest(c, "ungültiger request body")
 			return
 		}
 	}
@@ -116,12 +116,12 @@ func (h *FansubHandler) DetachAnimeFansub(c *gin.Context) {
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 	fansubID, err := parseFansubID(c.Param("fansubId"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 

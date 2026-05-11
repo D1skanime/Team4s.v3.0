@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -11,24 +11,24 @@ import (
 )
 
 // ListFansubAnimeReleases verarbeitet GET /api/v1/admin/fansubs/:id/anime/:animeId/releases.
-// Liefert alle Fansub-Releases fuer eine Fansub-Anime-Kombination als explizite Admin-Ressourcen.
+// Liefert alle Fansub-Releases für eine Fansub-Anime-Kombination als explizite Admin-Ressourcen.
 func (h *AdminContentHandler) ListFansubAnimeReleases(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "release service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "release service nicht verfügbar"}})
 		return
 	}
 
 	fansubID, err := parseFansubRouteID(c)
 	if err != nil || fansubID <= 0 {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 	animeID, err := strconv.ParseInt(c.Param("animeId"), 10, 64)
 	if err != nil || animeID <= 0 {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -47,25 +47,25 @@ func (h *AdminContentHandler) ListFansubAnimeReleases(c *gin.Context) {
 
 // GetCanonicalFansubAnimeReleaseSummary verarbeitet
 // GET /api/v1/admin/fansubs/:id/anime/:animeId/releases/canonical.
-// Liefert den kanonischen Release-Anker fuer eine Fansub-Anime-Kombination.
+// Liefert den kanonischen Release-Anker für eine Fansub-Anime-Kombination.
 // Wenn kein Anker existiert, wird 200 mit release=null geliefert.
 func (h *AdminContentHandler) GetCanonicalFansubAnimeReleaseSummary(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "release service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "release service nicht verfügbar"}})
 		return
 	}
 
 	fansubID, err := parseFansubRouteID(c)
 	if err != nil || fansubID <= 0 {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 	animeID, err := strconv.ParseInt(c.Param("animeId"), 10, 64)
 	if err != nil || animeID <= 0 {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -83,19 +83,19 @@ func (h *AdminContentHandler) GetCanonicalFansubAnimeReleaseSummary(c *gin.Conte
 }
 
 // GetAdminRelease verarbeitet GET /api/v1/admin/releases/:releaseId.
-// Liefert eine vollstaendige Release-Summary fuer eine explizit adressierte Release-ID.
+// Liefert eine vollstaendige Release-Summary für eine explizit adressierte Release-ID.
 func (h *AdminContentHandler) GetAdminRelease(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "release service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "release service nicht verfügbar"}})
 		return
 	}
 
 	releaseID, err := strconv.ParseInt(c.Param("releaseId"), 10, 64)
 	if err != nil || releaseID <= 0 {
-		badRequest(c, "ungueltige release id")
+		badRequest(c, "ungültige release id")
 		return
 	}
 

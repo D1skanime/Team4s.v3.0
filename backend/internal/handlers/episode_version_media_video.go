@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"io"
@@ -14,7 +14,7 @@ func (h *FansubHandler) MediaVideo(c *gin.Context) {
 	provider := strings.TrimSpace(c.Query("provider"))
 	itemID := strings.TrimSpace(c.Query("item_id"))
 	if provider == "" || itemID == "" {
-		badRequest(c, "ungueltige media parameter")
+		badRequest(c, "ungültige media parameter")
 		return
 	}
 

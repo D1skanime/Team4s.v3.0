@@ -21,7 +21,7 @@ func (h *AuthHandler) Revoke(c *gin.Context) {
 	var req revokeAuthRequest
 	if c.Request.ContentLength > 0 {
 		if err := c.ShouldBindJSON(&req); err != nil {
-			badRequest(c, "ungueltiger request body")
+			badRequest(c, "ungültiger request body")
 			return
 		}
 	}

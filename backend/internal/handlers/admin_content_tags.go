@@ -21,7 +21,7 @@ func (h *AdminContentHandler) ListTagTokens(c *gin.Context) {
 		q = strings.TrimSpace(c.Query("q"))
 	}
 	if len([]rune(q)) > 100 {
-		badRequest(c, "ungueltiger query parameter")
+		badRequest(c, "ungültiger query parameter")
 		return
 	}
 
@@ -29,7 +29,7 @@ func (h *AdminContentHandler) ListTagTokens(c *gin.Context) {
 	if limitRaw := strings.TrimSpace(c.Query("limit")); limitRaw != "" {
 		value, err := strconv.Atoi(limitRaw)
 		if err != nil || value <= 0 {
-			badRequest(c, "ungueltiger limit parameter")
+			badRequest(c, "ungültiger limit parameter")
 			return
 		}
 		limit = value

@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"context"
@@ -139,7 +139,7 @@ func TestAuthorizePlayback_InvalidGrantID(t *testing.T) {
 	if recorder.Code != http.StatusUnauthorized {
 		t.Fatalf("expected 401, got %d", recorder.Code)
 	}
-	if message := decodeErrorMessage(t, recorder.Body.Bytes()); message != "ungueltiger stream grant" {
+	if message := decodeErrorMessage(t, recorder.Body.Bytes()); message != "ungültiger stream grant" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }

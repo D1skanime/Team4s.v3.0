@@ -58,7 +58,7 @@ func (h *AssetStreamHandler) StreamAsset(c *gin.Context) {
 
 	assetID := strings.TrimSpace(c.Param("assetId"))
 	if assetID == "" {
-		badRequest(c, "ungueltige asset id")
+		badRequest(c, "ungültige asset id")
 		return
 	}
 
@@ -67,7 +67,7 @@ func (h *AssetStreamHandler) StreamAsset(c *gin.Context) {
 	} else {
 		// Also allow non-numeric IDs (Jellyfin can have GUID-based IDs)
 		if len(assetID) > 100 {
-			badRequest(c, "ungueltige asset id")
+			badRequest(c, "ungültige asset id")
 			return
 		}
 	}

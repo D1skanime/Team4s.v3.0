@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -25,13 +25,13 @@ func NewGroupHandler(repo *repository.GroupRepository) *GroupHandler {
 func (h *GroupHandler) GetGroupDetail(c *gin.Context) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	groupID, err := parseGroupID(c.Param("groupId"))
 	if err != nil {
-		badRequest(c, "ungueltige group id")
+		badRequest(c, "ungültige group id")
 		return
 	}
 
@@ -52,19 +52,19 @@ func (h *GroupHandler) GetGroupDetail(c *gin.Context) {
 func (h *GroupHandler) GetGroupReleases(c *gin.Context) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	groupID, err := parseGroupID(c.Param("groupId"))
 	if err != nil {
-		badRequest(c, "ungueltige group id")
+		badRequest(c, "ungültige group id")
 		return
 	}
 
 	filter, err := parseGroupReleasesFilter(c)
 	if err != nil {
-		badRequest(c, "ungueltige filter parameter")
+		badRequest(c, "ungültige filter parameter")
 		return
 	}
 

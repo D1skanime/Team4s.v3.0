@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -30,7 +30,7 @@ func (h *AdminContentHandler) ListThemeTypes(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
@@ -50,13 +50,13 @@ func (h *AdminContentHandler) ListAnimeThemes(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -80,19 +80,19 @@ func (h *AdminContentHandler) CreateAnimeTheme(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req adminAnimeThemeCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -112,7 +112,7 @@ func (h *AdminContentHandler) CreateAnimeTheme(c *gin.Context) {
 		return
 	}
 	if errors.Is(err, repository.ErrConflict) {
-		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "ungueltiger theme_type_id", "code": "invalid_theme_type"}})
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "ungültiger theme_type_id", "code": "invalid_theme_type"}})
 		return
 	}
 	if err != nil {
@@ -130,26 +130,26 @@ func (h *AdminContentHandler) UpdateAnimeTheme(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 	_ = animeID // Anime-ID ist Teil der URL für semantische Klarheit, aber das Update wird via themeID durchgeführt
 
 	themeID, err := strconv.ParseInt(c.Param("themeId"), 10, 64)
 	if err != nil || themeID <= 0 {
-		badRequest(c, "ungueltige theme id")
+		badRequest(c, "ungültige theme id")
 		return
 	}
 
 	var req adminAnimeThemePatchRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -164,7 +164,7 @@ func (h *AdminContentHandler) UpdateAnimeTheme(c *gin.Context) {
 		return
 	}
 	if errors.Is(err, repository.ErrConflict) {
-		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "ungueltiger theme_type_id", "code": "invalid_theme_type"}})
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "ungültiger theme_type_id", "code": "invalid_theme_type"}})
 		return
 	}
 	if err != nil {
@@ -182,20 +182,20 @@ func (h *AdminContentHandler) DeleteAnimeTheme(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 	_ = animeID // Anime-ID ist Teil der URL für semantische Klarheit, aber das Löschen wird via themeID durchgeführt
 
 	themeID, err := strconv.ParseInt(c.Param("themeId"), 10, 64)
 	if err != nil || themeID <= 0 {
-		badRequest(c, "ungueltige theme id")
+		badRequest(c, "ungültige theme id")
 		return
 	}
 
@@ -206,7 +206,7 @@ func (h *AdminContentHandler) DeleteAnimeTheme(c *gin.Context) {
 	}
 	if err != nil {
 		log.Printf("admin anime theme delete: theme_id=%d: %v", themeID, err)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme konnte nicht geloescht werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme konnte nicht gelöscht werden.")
 		return
 	}
 

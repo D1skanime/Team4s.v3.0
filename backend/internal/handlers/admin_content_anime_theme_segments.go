@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"context"
@@ -144,13 +144,13 @@ func (h *AdminContentHandler) ListAnimeSegments(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || animeID <= 0 {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -158,7 +158,7 @@ func (h *AdminContentHandler) ListAnimeSegments(c *gin.Context) {
 	if raw := c.Query("group_id"); raw != "" {
 		groupID, err = strconv.ParseInt(raw, 10, 64)
 		if err != nil || groupID <= 0 {
-			badRequest(c, "ungueltige group_id")
+			badRequest(c, "ungültige group_id")
 			return
 		}
 	}
@@ -188,19 +188,19 @@ func (h *AdminContentHandler) CreateAnimeSegment(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || animeID <= 0 {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req adminAnimeSegmentCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -248,7 +248,7 @@ func (h *AdminContentHandler) CreateAnimeSegment(c *gin.Context) {
 		return
 	}
 	if errors.Is(err, repository.ErrConflict) {
-		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "ungueltige gruppe oder constraint verletzt", "code": "invalid_theme_or_group"}})
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "ungültige gruppe oder constraint verletzt", "code": "invalid_theme_or_group"}})
 		return
 	}
 	if err != nil {
@@ -267,19 +267,19 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || animeID <= 0 {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	segmentID, err := strconv.ParseInt(c.Param("segmentId"), 10, 64)
 	if err != nil || segmentID <= 0 {
-		badRequest(c, "ungueltige segment id")
+		badRequest(c, "ungültige segment id")
 		return
 	}
 
@@ -295,7 +295,7 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 
 	var req adminAnimeSegmentPatchRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -404,13 +404,13 @@ func (h *AdminContentHandler) DeleteAnimeSegment(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	segmentID, err := strconv.ParseInt(c.Param("segmentId"), 10, 64)
 	if err != nil || segmentID <= 0 {
-		badRequest(c, "ungueltige segment id")
+		badRequest(c, "ungültige segment id")
 		return
 	}
 
@@ -421,7 +421,7 @@ func (h *AdminContentHandler) DeleteAnimeSegment(c *gin.Context) {
 	}
 	if err != nil {
 		log.Printf("admin anime segment delete: segment_id=%d: %v", segmentID, err)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht geloescht werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht gelöscht werden.")
 		return
 	}
 
@@ -435,19 +435,19 @@ func (h *AdminContentHandler) ListSegmentLibraryCandidates(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || animeID <= 0 {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	groupID, err := strconv.ParseInt(strings.TrimSpace(c.Query("group_id")), 10, 64)
 	if err != nil || groupID <= 0 {
-		badRequest(c, "ungueltige group_id")
+		badRequest(c, "ungültige group_id")
 		return
 	}
 
@@ -484,24 +484,24 @@ func (h *AdminContentHandler) AttachSegmentLibraryAsset(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || animeID <= 0 {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 	segmentID, err := strconv.ParseInt(c.Param("segmentId"), 10, 64)
 	if err != nil || segmentID <= 0 {
-		badRequest(c, "ungueltige segment id")
+		badRequest(c, "ungültige segment id")
 		return
 	}
 
 	var req adminSegmentLibraryAttachRequest
 	if err := c.ShouldBindJSON(&req); err != nil || req.AssetID <= 0 {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -533,22 +533,22 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil || h.mediaRepo == nil || h.mediaService == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || animeID <= 0 {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 	segmentID, err := strconv.ParseInt(c.Param("segmentId"), 10, 64)
 	if err != nil || segmentID <= 0 {
-		badRequest(c, "ungueltige segment id")
+		badRequest(c, "ungültige segment id")
 		return
 	}
 
-	// Segment laden fuer Kontext (groupID, version, theme_type_name)
+	// Segment laden für Kontext (groupID, version, theme_type_name)
 	seg, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
@@ -652,18 +652,18 @@ func (h *AdminContentHandler) DeleteSegmentAsset(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil || h.mediaRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment asset service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment asset service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || animeID <= 0 {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 	segmentID, err := strconv.ParseInt(c.Param("segmentId"), 10, 64)
 	if err != nil || segmentID <= 0 {
-		badRequest(c, "ungueltige segment id")
+		badRequest(c, "ungültige segment id")
 		return
 	}
 
@@ -674,7 +674,7 @@ func (h *AdminContentHandler) DeleteSegmentAsset(c *gin.Context) {
 		return
 	}
 	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Asset konnte nicht geloescht werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Asset konnte nicht gelöscht werden.")
 		return
 	}
 

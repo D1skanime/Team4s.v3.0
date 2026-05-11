@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"log"
@@ -26,7 +26,7 @@ func (h *EpisodePlaybackHandler) CreatePlaybackGrant(c *gin.Context) {
 
 	episodeID, err := parseEpisodeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige episode id")
+		badRequest(c, "ungültige episode id")
 		return
 	}
 	if !h.enforcePlaybackRateLimit(c, "grant", playbackPrincipalForUserID(identity.UserID)) {
@@ -57,7 +57,7 @@ func (h *EpisodePlaybackHandler) CreatePlaybackGrant(c *gin.Context) {
 		log.Printf("episode playback grant: grant config unavailable (episode_id=%d, user_id=%d)", episodeID, identity.UserID)
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"error": gin.H{
-				"message": "stream grant voruebergehend nicht verfuegbar",
+				"message": "stream grant vorübergehend nicht verfügbar",
 			},
 		})
 		return

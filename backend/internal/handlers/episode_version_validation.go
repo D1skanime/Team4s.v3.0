@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"time"
@@ -28,16 +28,16 @@ type episodeVersionCreateRequest struct {
 func validateEpisodeVersionCreateRequest(req episodeVersionCreateRequest) (models.EpisodeVersionCreateInput, string) {
 	mediaProvider := normalizeRequiredString(&req.MediaProvider)
 	if mediaProvider == nil || len([]rune(*mediaProvider)) > 30 {
-		return models.EpisodeVersionCreateInput{}, "ungueltiger media_provider parameter"
+		return models.EpisodeVersionCreateInput{}, "ungültiger media_provider parameter"
 	}
 
 	mediaItemID := normalizeRequiredString(&req.MediaItemID)
 	if mediaItemID == nil || len([]rune(*mediaItemID)) > 120 {
-		return models.EpisodeVersionCreateInput{}, "ungueltiger media_item_id parameter"
+		return models.EpisodeVersionCreateInput{}, "ungültiger media_item_id parameter"
 	}
 
 	if req.FansubGroupID != nil && *req.FansubGroupID <= 0 {
-		return models.EpisodeVersionCreateInput{}, "ungueltiger fansub_group_id parameter"
+		return models.EpisodeVersionCreateInput{}, "ungültiger fansub_group_id parameter"
 	}
 	fansubGroups, err := validateSelectedFansubGroups(req.FansubGroups)
 	if err != nil {
@@ -57,7 +57,7 @@ func validateEpisodeVersionCreateRequest(req episodeVersionCreateRequest) (model
 	subtitleType := normalizeNullableString(req.SubtitleType)
 	if subtitleType != nil {
 		if _, ok := allowedSubtitleTypes[*subtitleType]; !ok {
-			return models.EpisodeVersionCreateInput{}, "ungueltiger subtitle_type parameter"
+			return models.EpisodeVersionCreateInput{}, "ungültiger subtitle_type parameter"
 		}
 	}
 
@@ -104,19 +104,19 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 		req.FansubGroups.Value = validatedGroups
 	}
 	if req.FansubGroupID.Set && req.FansubGroupID.Value != nil && *req.FansubGroupID.Value <= 0 {
-		return models.EpisodeVersionPatchInput{}, "ungueltiger fansub_group_id parameter"
+		return models.EpisodeVersionPatchInput{}, "ungültiger fansub_group_id parameter"
 	}
 	if req.MediaProvider.Set {
 		value := normalizeRequiredString(req.MediaProvider.Value)
 		if value == nil || len([]rune(*value)) > 30 {
-			return models.EpisodeVersionPatchInput{}, "ungueltiger media_provider parameter"
+			return models.EpisodeVersionPatchInput{}, "ungültiger media_provider parameter"
 		}
 		req.MediaProvider.Value = value
 	}
 	if req.MediaItemID.Set {
 		value := normalizeRequiredString(req.MediaItemID.Value)
 		if value == nil || len([]rune(*value)) > 120 {
-			return models.EpisodeVersionPatchInput{}, "ungueltiger media_item_id parameter"
+			return models.EpisodeVersionPatchInput{}, "ungültiger media_item_id parameter"
 		}
 		req.MediaItemID.Value = value
 	}
@@ -130,7 +130,7 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 		req.SubtitleType.Value = normalizeNullableString(req.SubtitleType.Value)
 		if req.SubtitleType.Value != nil {
 			if _, ok := allowedSubtitleTypes[*req.SubtitleType.Value]; !ok {
-				return models.EpisodeVersionPatchInput{}, "ungueltiger subtitle_type parameter"
+				return models.EpisodeVersionPatchInput{}, "ungültiger subtitle_type parameter"
 			}
 		}
 	}

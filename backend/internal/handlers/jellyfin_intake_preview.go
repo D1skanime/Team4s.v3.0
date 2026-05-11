@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"log"
@@ -40,7 +40,7 @@ func (h *AdminContentHandler) PreviewAnimeIntakeFromJellyfin(c *gin.Context) {
 	var req adminAnimeJellyfinIntakePreviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("admin_content jellyfin_intake_preview: bad request (user_id=%d): %v", identity.UserID, err)
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 

@@ -45,7 +45,7 @@ func validateEpisodeImportApplyRequest(animeID int64, req adminEpisodeImportAppl
 		case models.EpisodeImportMappingStatusSuggested, models.EpisodeImportMappingStatusConflict:
 			return models.EpisodeImportApplyInput{}, fmt.Errorf("alle mappings muessen bestaetigt oder uebersprungen sein")
 		default:
-			return models.EpisodeImportApplyInput{}, fmt.Errorf("ungueltiger mapping status")
+			return models.EpisodeImportApplyInput{}, fmt.Errorf("ungültiger mapping status")
 		}
 	}
 	return input, nil
@@ -69,7 +69,7 @@ func validateSelectedFansubGroups(groups []models.SelectedFansubGroupInput) ([]m
 		next := models.SelectedFansubGroupInput{}
 		if group.ID != nil {
 			if *group.ID <= 0 {
-				return nil, fmt.Errorf("ungueltige fansub_groups id")
+				return nil, fmt.Errorf("ungültige fansub_groups id")
 			}
 			next.ID = group.ID
 		}

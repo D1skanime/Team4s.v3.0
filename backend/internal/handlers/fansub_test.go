@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"encoding/json"
@@ -60,7 +60,7 @@ func TestValidateFansubGroupCreateRequest_InvalidGroupType(t *testing.T) {
 		Status:    "active",
 		GroupType: &groupType,
 	})
-	if message != "ungueltiger group_type parameter" {
+	if message != "ungültiger group_type parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -90,7 +90,7 @@ func TestValidateFansubGroupPatchRequest_InvalidGroupType(t *testing.T) {
 	}
 
 	_, message := validateFansubGroupPatchRequest(patch)
-	if message != "ungueltiger group_type parameter" {
+	if message != "ungültiger group_type parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -122,7 +122,7 @@ func TestValidateFansubGroupLinkPatchRequest_InvalidType(t *testing.T) {
 	}
 
 	_, message := validateFansubGroupLinkPatchRequest(patch)
-	if message != "ungueltiger link_type parameter" {
+	if message != "ungültiger link_type parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -158,7 +158,7 @@ func TestValidateEpisodeVersionCreateRequest_InvalidSubtitleType(t *testing.T) {
 		MediaItemID:   "6425",
 		SubtitleType:  ptrString("dub"),
 	})
-	if message != "ungueltiger subtitle_type parameter" {
+	if message != "ungültiger subtitle_type parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }

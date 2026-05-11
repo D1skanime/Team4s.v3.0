@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -17,13 +17,13 @@ import (
 func (h *FansubHandler) ListFansubs(c *gin.Context) {
 	page, err := parsePositiveInt(c.DefaultQuery("page", "1"))
 	if err != nil {
-		badRequest(c, "ungueltiger page parameter")
+		badRequest(c, "ungültiger page parameter")
 		return
 	}
 
 	perPage, err := parsePositiveInt(c.DefaultQuery("per_page", "24"))
 	if err != nil {
-		badRequest(c, "ungueltiger per_page parameter")
+		badRequest(c, "ungültiger per_page parameter")
 		return
 	}
 	if perPage > 500 {
@@ -32,14 +32,14 @@ func (h *FansubHandler) ListFansubs(c *gin.Context) {
 
 	q := strings.TrimSpace(c.Query("q"))
 	if len([]rune(q)) > 120 {
-		badRequest(c, "ungueltiger q parameter")
+		badRequest(c, "ungültiger q parameter")
 		return
 	}
 
 	status := strings.TrimSpace(c.Query("status"))
 	if status != "" {
 		if _, ok := allowedFansubStatuses[status]; !ok {
-			badRequest(c, "ungueltiger status parameter")
+			badRequest(c, "ungültiger status parameter")
 			return
 		}
 	}
@@ -86,7 +86,7 @@ func (h *FansubHandler) CreateFansub(c *gin.Context) {
 	var req fansubGroupCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("fansub create: bad request (user_id=%d): %v", identity.UserID, err)
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -124,7 +124,7 @@ func (h *FansubHandler) CreateFansub(c *gin.Context) {
 func (h *FansubHandler) GetFansubByID(c *gin.Context) {
 	id, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 
@@ -156,7 +156,7 @@ func (h *FansubHandler) GetFansubByID(c *gin.Context) {
 func (h *FansubHandler) GetFansubBySlug(c *gin.Context) {
 	slug := strings.TrimSpace(c.Param("slug"))
 	if slug == "" || len([]rune(slug)) > 120 {
-		badRequest(c, "ungueltiger fansub slug")
+		badRequest(c, "ungültiger fansub slug")
 		return
 	}
 
@@ -193,14 +193,14 @@ func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 
 	id, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 
 	var req models.FansubGroupPatchInput
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("fansub update: bad request (user_id=%d, fansub_id=%d): %v", identity.UserID, id, err)
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -251,7 +251,7 @@ func (h *FansubHandler) DeleteFansub(c *gin.Context) {
 
 	id, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 

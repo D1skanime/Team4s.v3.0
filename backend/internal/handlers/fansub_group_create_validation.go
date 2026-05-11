@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"team4s.v3/backend/internal/models"
@@ -9,12 +9,12 @@ import (
 func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.FansubGroupCreateInput, string) {
 	slug := normalizeRequiredString(&req.Slug)
 	if slug == nil || len([]rune(*slug)) > 120 {
-		return models.FansubGroupCreateInput{}, "ungueltiger slug parameter"
+		return models.FansubGroupCreateInput{}, "ungültiger slug parameter"
 	}
 
 	name := normalizeRequiredString(&req.Name)
 	if name == nil || len([]rune(*name)) > 120 {
-		return models.FansubGroupCreateInput{}, "ungueltiger name parameter"
+		return models.FansubGroupCreateInput{}, "ungültiger name parameter"
 	}
 
 	status := normalizeRequiredString(&req.Status)
@@ -22,14 +22,14 @@ func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.Fans
 		return models.FansubGroupCreateInput{}, "status ist erforderlich"
 	}
 	if _, ok := allowedFansubStatuses[*status]; !ok {
-		return models.FansubGroupCreateInput{}, "ungueltiger status parameter"
+		return models.FansubGroupCreateInput{}, "ungültiger status parameter"
 	}
 
 	groupType := models.FansubGroupTypeGroup
 	if req.GroupType != nil {
 		value := normalizeRequiredString(req.GroupType)
 		if value == nil {
-			return models.FansubGroupCreateInput{}, "ungueltiger group_type parameter"
+			return models.FansubGroupCreateInput{}, "ungültiger group_type parameter"
 		}
 
 		parsedGroupType := models.FansubGroupType(*value)
@@ -37,21 +37,21 @@ func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.Fans
 		case models.FansubGroupTypeGroup, models.FansubGroupTypeCollaboration:
 			groupType = parsedGroupType
 		default:
-			return models.FansubGroupCreateInput{}, "ungueltiger group_type parameter"
+			return models.FansubGroupCreateInput{}, "ungültiger group_type parameter"
 		}
 	}
 
 	if req.FoundedYear != nil && *req.FoundedYear <= 0 {
-		return models.FansubGroupCreateInput{}, "ungueltiger founded_year parameter"
+		return models.FansubGroupCreateInput{}, "ungültiger founded_year parameter"
 	}
 	if req.LogoID != nil && *req.LogoID <= 0 {
-		return models.FansubGroupCreateInput{}, "ungueltiger logo_id parameter"
+		return models.FansubGroupCreateInput{}, "ungültiger logo_id parameter"
 	}
 	if req.BannerID != nil && *req.BannerID <= 0 {
-		return models.FansubGroupCreateInput{}, "ungueltiger banner_id parameter"
+		return models.FansubGroupCreateInput{}, "ungültiger banner_id parameter"
 	}
 	if req.DissolvedYear != nil && *req.DissolvedYear <= 0 {
-		return models.FansubGroupCreateInput{}, "ungueltiger dissolved_year parameter"
+		return models.FansubGroupCreateInput{}, "ungültiger dissolved_year parameter"
 	}
 	if req.FoundedYear != nil && req.DissolvedYear != nil && *req.DissolvedYear < *req.FoundedYear {
 		return models.FansubGroupCreateInput{}, "dissolved_year muss groesser oder gleich founded_year sein"

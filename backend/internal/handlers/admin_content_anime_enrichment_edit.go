@@ -20,13 +20,13 @@ func (h *AdminContentHandler) LoadAnimeAniSearchEnrichment(c *gin.Context) {
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req models.AdminAnimeAniSearchEditRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 

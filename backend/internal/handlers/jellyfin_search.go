@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"log"
@@ -48,7 +48,7 @@ func (h *AdminContentHandler) SearchJellyfinSeries(c *gin.Context) {
 		return
 	}
 	if len([]rune(query)) > 120 {
-		badRequest(c, "ungueltiger q parameter")
+		badRequest(c, "ungültiger q parameter")
 		return
 	}
 
@@ -57,7 +57,7 @@ func (h *AdminContentHandler) SearchJellyfinSeries(c *gin.Context) {
 	if limitRaw != "" {
 		value, err := strconv.Atoi(limitRaw)
 		if err != nil || value <= 0 {
-			badRequest(c, "ungueltiger limit parameter")
+			badRequest(c, "ungültiger limit parameter")
 			return
 		}
 		limit = value
@@ -112,7 +112,7 @@ func validateAdminAnimeJellyfinSyncRequest(req adminAnimeJellyfinSyncRequest) (a
 
 	if req.SeasonNumber != nil {
 		if *req.SeasonNumber <= 0 {
-			return adminAnimeJellyfinSyncInput{}, "ungueltiger season_number parameter"
+			return adminAnimeJellyfinSyncInput{}, "ungültiger season_number parameter"
 		}
 		input.SeasonNumber = *req.SeasonNumber
 	}
@@ -120,7 +120,7 @@ func validateAdminAnimeJellyfinSyncRequest(req adminAnimeJellyfinSyncRequest) (a
 	if req.EpisodeStatus != nil {
 		status := strings.TrimSpace(*req.EpisodeStatus)
 		if _, ok := allowedEpisodeStatuses[status]; !ok {
-			return adminAnimeJellyfinSyncInput{}, "ungueltiger episode_status parameter"
+			return adminAnimeJellyfinSyncInput{}, "ungültiger episode_status parameter"
 		}
 		input.EpisodeStatus = status
 	}

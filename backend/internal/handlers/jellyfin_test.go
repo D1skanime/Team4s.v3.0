@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ func TestValidateAdminAnimeJellyfinSyncRequest_InvalidSeasonNumberZero(t *testin
 	_, message := validateAdminAnimeJellyfinSyncRequest(adminAnimeJellyfinSyncRequest{
 		SeasonNumber: &season,
 	})
-	if message != "ungueltiger season_number parameter" {
+	if message != "ungültiger season_number parameter" {
 		t.Fatalf("expected season_number error, got %q", message)
 	}
 }
@@ -21,7 +21,7 @@ func TestValidateAdminAnimeJellyfinSyncRequest_InvalidSeasonNumberNegative(t *te
 	_, message := validateAdminAnimeJellyfinSyncRequest(adminAnimeJellyfinSyncRequest{
 		SeasonNumber: &negativeSeason,
 	})
-	if message != "ungueltiger season_number parameter" {
+	if message != "ungültiger season_number parameter" {
 		t.Fatalf("expected season_number error for negative, got %q", message)
 	}
 }
@@ -31,7 +31,7 @@ func TestValidateAdminAnimeJellyfinSyncRequest_InvalidEpisodeStatus(t *testing.T
 	_, message := validateAdminAnimeJellyfinSyncRequest(adminAnimeJellyfinSyncRequest{
 		EpisodeStatus: &invalid,
 	})
-	if message != "ungueltiger episode_status parameter" {
+	if message != "ungültiger episode_status parameter" {
 		t.Fatalf("expected episode_status error, got %q", message)
 	}
 }

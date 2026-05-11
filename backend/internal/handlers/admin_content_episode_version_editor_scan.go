@@ -22,7 +22,7 @@ func (h *AdminContentHandler) scanEpisodeVersionFolder(
 		return nil, 0, err
 	}
 	if resolved.jellyfinSeriesID == "" {
-		return nil, http.StatusBadRequest, fmt.Errorf("ordner-sync ist nur fuer jellyfin-gebundene anime verfuegbar")
+		return nil, http.StatusBadRequest, fmt.Errorf("ordner-sync ist nur für jellyfin-gebundene anime verfügbar")
 	}
 	if !h.ensureJellyfinConfiguredForEditor() {
 		return nil, http.StatusServiceUnavailable, fmt.Errorf("jellyfin ist nicht konfiguriert")

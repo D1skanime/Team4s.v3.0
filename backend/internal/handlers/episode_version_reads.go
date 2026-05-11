@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -14,7 +14,7 @@ import (
 func (h *FansubHandler) ListGroupedEpisodes(c *gin.Context) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -44,7 +44,7 @@ func (h *FansubHandler) ListGroupedEpisodes(c *gin.Context) {
 func (h *FansubHandler) GetEpisodeVersionByID(c *gin.Context) {
 	versionID, err := parseEpisodeVersionID(c.Param("versionId"))
 	if err != nil {
-		badRequest(c, "ungueltige version id")
+		badRequest(c, "ungültige version id")
 		return
 	}
 

@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -42,7 +42,7 @@ func validateAdminRelationLabel(raw string) (string, string) {
 		return "", "relation_label ist erforderlich"
 	}
 	if _, ok := allowedAdminRelationLabels[label]; !ok {
-		return "", "ungueltiger relation_label parameter"
+		return "", "ungültiger relation_label parameter"
 	}
 	return label, ""
 }
@@ -53,13 +53,13 @@ func (h *AdminContentHandler) ListAnimeRelations(c *gin.Context) {
 		return
 	}
 	if h.relationRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "relation service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "relation service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -83,13 +83,13 @@ func (h *AdminContentHandler) SearchAnimeRelationTargets(c *gin.Context) {
 		return
 	}
 	if h.relationRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "relation service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "relation service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -99,7 +99,7 @@ func (h *AdminContentHandler) SearchAnimeRelationTargets(c *gin.Context) {
 		return
 	}
 	if len([]rune(query)) > 100 {
-		badRequest(c, "ungueltiger q parameter")
+		badRequest(c, "ungültiger q parameter")
 		return
 	}
 
@@ -107,7 +107,7 @@ func (h *AdminContentHandler) SearchAnimeRelationTargets(c *gin.Context) {
 	if rawLimit := strings.TrimSpace(c.Query("limit")); rawLimit != "" {
 		parsed, err := strconv.Atoi(rawLimit)
 		if err != nil || parsed <= 0 {
-			badRequest(c, "ungueltiger limit parameter")
+			badRequest(c, "ungültiger limit parameter")
 			return
 		}
 		limit = parsed
@@ -133,19 +133,19 @@ func (h *AdminContentHandler) CreateAnimeRelation(c *gin.Context) {
 		return
 	}
 	if h.relationRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "relation service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "relation service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req adminAnimeRelationMutationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -169,7 +169,7 @@ func (h *AdminContentHandler) CreateAnimeRelation(c *gin.Context) {
 		return
 	}
 	if errors.Is(err, repository.ErrConflict) {
-		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "relation existiert bereits oder ist ungueltig", "code": "relation_conflict"}})
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "relation existiert bereits oder ist ungültig", "code": "relation_conflict"}})
 		return
 	}
 	if err != nil {
@@ -192,24 +192,24 @@ func (h *AdminContentHandler) UpdateAnimeRelation(c *gin.Context) {
 		return
 	}
 	if h.relationRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "relation service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "relation service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 	targetAnimeID, err := parseAnimeID(c.Param("targetAnimeId"))
 	if err != nil {
-		badRequest(c, "ungueltige target anime id")
+		badRequest(c, "ungültige target anime id")
 		return
 	}
 
 	var req adminAnimeRelationUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -225,7 +225,7 @@ func (h *AdminContentHandler) UpdateAnimeRelation(c *gin.Context) {
 		return
 	}
 	if errors.Is(err, repository.ErrConflict) {
-		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "relation ist ungueltig", "code": "relation_conflict"}})
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "relation ist ungültig", "code": "relation_conflict"}})
 		return
 	}
 	if err != nil {
@@ -243,18 +243,18 @@ func (h *AdminContentHandler) DeleteAnimeRelation(c *gin.Context) {
 		return
 	}
 	if h.relationRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "relation service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "relation service nicht verfügbar"}})
 		return
 	}
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 	targetAnimeID, err := parseAnimeID(c.Param("targetAnimeId"))
 	if err != nil {
-		badRequest(c, "ungueltige target anime id")
+		badRequest(c, "ungültige target anime id")
 		return
 	}
 
@@ -265,7 +265,7 @@ func (h *AdminContentHandler) DeleteAnimeRelation(c *gin.Context) {
 	}
 	if err != nil {
 		log.Printf("admin anime relation delete: anime_id=%d target_id=%d: %v", animeID, targetAnimeID, err)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Relation konnte nicht geloescht werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Relation konnte nicht gelöscht werden.")
 		return
 	}
 

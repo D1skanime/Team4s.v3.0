@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -20,7 +20,7 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -40,7 +40,7 @@ func (h *AdminContentHandler) SyncAnimeFromJellyfin(c *gin.Context) {
 	if body := readBodyForOptionalJSON(c); body != "" {
 		if err := c.ShouldBindJSON(&req); err != nil {
 			log.Printf("admin_content jellyfin_sync: bad request (user_id=%d, anime_id=%d): %v", identity.UserID, animeID, err)
-			badRequest(c, "ungueltiger request body")
+			badRequest(c, "ungültiger request body")
 			return
 		}
 	}

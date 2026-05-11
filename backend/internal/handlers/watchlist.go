@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -38,13 +38,13 @@ func (h *WatchlistHandler) ListByUser(c *gin.Context) {
 
 	page, err := parsePositiveInt(c.DefaultQuery("page", "1"))
 	if err != nil {
-		badRequest(c, "ungueltiger page parameter")
+		badRequest(c, "ungültiger page parameter")
 		return
 	}
 
 	perPage, err := parsePositiveInt(c.DefaultQuery("per_page", "20"))
 	if err != nil {
-		badRequest(c, "ungueltiger per_page parameter")
+		badRequest(c, "ungültiger per_page parameter")
 		return
 	}
 	if perPage > 100 {
@@ -95,7 +95,7 @@ func (h *WatchlistHandler) CreateByUser(c *gin.Context) {
 
 	var req createWatchlistRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -142,7 +142,7 @@ func (h *WatchlistHandler) DeleteByUser(c *gin.Context) {
 
 	animeID, err := parseAnimeID(c.Param("anime_id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -179,7 +179,7 @@ func (h *WatchlistHandler) GetByUserAndAnimeID(c *gin.Context) {
 
 	animeID, err := parseAnimeID(c.Param("anime_id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 

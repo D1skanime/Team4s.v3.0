@@ -26,7 +26,7 @@ func (h *AdminContentHandler) LoadAnimeCreateAniSearchEnrichment(c *gin.Context)
 
 	var req models.AdminAnimeAniSearchEnrichmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 

@@ -21,7 +21,7 @@ func (h *AdminContentHandler) CreateEpisode(c *gin.Context) {
 	var req adminEpisodeCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("admin_content create_episode: bad request (user_id=%d): %v", identity.UserID, err)
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -56,14 +56,14 @@ func (h *AdminContentHandler) UpdateEpisode(c *gin.Context) {
 	id, err := parseEpisodeID(c.Param("id"))
 	if err != nil {
 		log.Printf("admin_content update_episode: invalid id %q (user_id=%d): %v", c.Param("id"), identity.UserID, err)
-		badRequest(c, "ungueltige episode id")
+		badRequest(c, "ungültige episode id")
 		return
 	}
 
 	var req models.AdminEpisodePatchInput
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("admin_content update_episode: bad request (user_id=%d, episode_id=%d): %v", identity.UserID, id, err)
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -98,7 +98,7 @@ func (h *AdminContentHandler) DeleteEpisode(c *gin.Context) {
 	id, err := parseEpisodeID(c.Param("id"))
 	if err != nil {
 		log.Printf("admin_content delete_episode: invalid id %q (user_id=%d): %v", c.Param("id"), identity.UserID, err)
-		badRequest(c, "ungueltige episode id")
+		badRequest(c, "ungültige episode id")
 		return
 	}
 

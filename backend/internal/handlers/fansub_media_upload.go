@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -19,19 +19,19 @@ func (h *FansubHandler) UploadFansubMedia(c *gin.Context) {
 		return
 	}
 	if h.mediaRepo == nil || h.mediaService == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media service nicht verfügbar"}})
 		return
 	}
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 
 	kind, err := parseMediaKind(c.PostForm("kind"))
 	if err != nil {
-		badRequest(c, "ungueltiger media-kind")
+		badRequest(c, "ungültiger media-kind")
 		return
 	}
 

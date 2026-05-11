@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"fmt"
@@ -19,14 +19,14 @@ func (h *AdminContentHandler) SyncEpisodeFromJellyfin(c *gin.Context) {
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	episodeIDParam := strings.TrimSpace(c.Param("episodeId"))
 	targetEpisodeNumber, parseErr := strconv.ParseInt(episodeIDParam, 10, 32)
 	if parseErr != nil || targetEpisodeNumber <= 0 {
-		badRequest(c, "ungueltige episode nummer")
+		badRequest(c, "ungültige episode nummer")
 		return
 	}
 
@@ -46,7 +46,7 @@ func (h *AdminContentHandler) SyncEpisodeFromJellyfin(c *gin.Context) {
 	if body := readBodyForOptionalJSON(c); body != "" {
 		if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
 			log.Printf("admin_content jellyfin_episode_sync: bad request (user_id=%d, anime_id=%d, episode=%d): %v", identity.UserID, animeID, targetEpisodeNumber, bindErr)
-			badRequest(c, "ungueltiger request body")
+			badRequest(c, "ungültiger request body")
 			return
 		}
 	}

@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"context"
@@ -360,7 +360,7 @@ func TestSearchAnimeCreateAssetCandidates_RejectsInvalidSourceFilter(t *testing.
 	if recorder.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400, got %d with body %s", recorder.Code, recorder.Body.String())
 	}
-	if !strings.Contains(recorder.Body.String(), "sources enthaelt einen ungueltigen wert") {
+	if !strings.Contains(recorder.Body.String(), "sources enthält einen ungültigen wert") {
 		t.Fatalf("unexpected body: %s", recorder.Body.String())
 	}
 }
@@ -508,7 +508,7 @@ func TestValidateAdminAnimeCreateRequest_RejectsMalformedJellyfinSource(t *testi
 		CoverImage:  &coverImage,
 		Source:      &source,
 	})
-	if message != "ungueltiger source parameter" {
+	if message != "ungültiger source parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -537,7 +537,7 @@ func TestValidateAdminAnimeCreateRequest_InvalidType(t *testing.T) {
 		ContentType: "anime",
 		Status:      "ongoing",
 	})
-	if message != "ungueltiger type parameter" {
+	if message != "ungültiger type parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -624,7 +624,7 @@ func TestValidateAdminAnimeJellyfinSyncRequest_InvalidSeason(t *testing.T) {
 	_, message := validateAdminAnimeJellyfinSyncRequest(adminAnimeJellyfinSyncRequest{
 		SeasonNumber: &season,
 	})
-	if message != "ungueltiger season_number parameter" {
+	if message != "ungültiger season_number parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -887,7 +887,7 @@ func TestClassifyJellyfinUpstreamError_AuthInvalid(t *testing.T) {
 		errors.New("jellyfin returned status 401"),
 		"jellyfin serien konnten nicht gesucht werden",
 	)
-	if message != "jellyfin token ungueltig" {
+	if message != "jellyfin token ungültig" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 	if code != "jellyfin_auth_invalid" {
@@ -1090,14 +1090,14 @@ func TestAssignAnimeCoverAsset_InvalidAnimeIDReturnsGermanOperatorMessage(t *tes
 	if err := json.Unmarshal(recorder.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("decode error payload: %v", err)
 	}
-	if payload.Error.Message != "ungueltige anime id" {
+	if payload.Error.Message != "ungültige anime id" {
 		t.Fatalf("unexpected message %q", payload.Error.Message)
 	}
 }
 
 func TestAdminAnimeAssetUnsupportedOperationMessage_IsExplicit(t *testing.T) {
 	message := unsupportedAnimeAssetOperationMessage("logo", animeAssetOperationAdd)
-	if message != "logo unterstuetzt diese aktion nicht" {
+	if message != "logo unterstützt diese aktion nicht" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1196,7 +1196,7 @@ func TestValidateAdminAnimeCreateRequest_InvalidContentType(t *testing.T) {
 		ContentType: "cartoon",
 		Status:      "ongoing",
 	})
-	if message != "ungueltiger content_type parameter" {
+	if message != "ungültiger content_type parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1208,7 +1208,7 @@ func TestValidateAdminAnimeCreateRequest_InvalidStatus(t *testing.T) {
 		ContentType: "anime",
 		Status:      "completed",
 	})
-	if message != "ungueltiger status parameter" {
+	if message != "ungültiger status parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1224,7 +1224,7 @@ func TestValidateAdminAnimeCreateRequest_InvalidYear(t *testing.T) {
 		Year:        &year,
 		CoverImage:  &coverImage,
 	})
-	if message != "ungueltiger year parameter" {
+	if message != "ungültiger year parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1240,7 +1240,7 @@ func TestValidateAdminAnimeCreateRequest_ZeroYear(t *testing.T) {
 		Year:        &year,
 		CoverImage:  &coverImage,
 	})
-	if message != "ungueltiger year parameter" {
+	if message != "ungültiger year parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1256,7 +1256,7 @@ func TestValidateAdminAnimeCreateRequest_InvalidMaxEpisodes(t *testing.T) {
 		MaxEpisodes: &maxEpisodes,
 		CoverImage:  &coverImage,
 	})
-	if message != "ungueltiger max_episodes parameter" {
+	if message != "ungültiger max_episodes parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1357,7 +1357,7 @@ func TestValidateAdminAnimePatchRequest_InvalidType(t *testing.T) {
 	}
 
 	_, message := validateAdminAnimePatchRequest(patch)
-	if message != "ungueltiger type parameter" {
+	if message != "ungültiger type parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1369,7 +1369,7 @@ func TestValidateAdminAnimePatchRequest_EmptyType(t *testing.T) {
 	}
 
 	_, message := validateAdminAnimePatchRequest(patch)
-	if message != "ungueltiger type parameter" {
+	if message != "ungültiger type parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1381,7 +1381,7 @@ func TestValidateAdminAnimePatchRequest_InvalidContentType(t *testing.T) {
 	}
 
 	_, message := validateAdminAnimePatchRequest(patch)
-	if message != "ungueltiger content_type parameter" {
+	if message != "ungültiger content_type parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1393,7 +1393,7 @@ func TestValidateAdminAnimePatchRequest_InvalidStatus(t *testing.T) {
 	}
 
 	_, message := validateAdminAnimePatchRequest(patch)
-	if message != "ungueltiger status parameter" {
+	if message != "ungültiger status parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1405,7 +1405,7 @@ func TestValidateAdminAnimePatchRequest_InvalidYear(t *testing.T) {
 	}
 
 	_, message := validateAdminAnimePatchRequest(patch)
-	if message != "ungueltiger year parameter" {
+	if message != "ungültiger year parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1417,7 +1417,7 @@ func TestValidateAdminAnimePatchRequest_InvalidMaxEpisodes(t *testing.T) {
 	}
 
 	_, message := validateAdminAnimePatchRequest(patch)
-	if message != "ungueltiger max_episodes parameter" {
+	if message != "ungültiger max_episodes parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1653,7 +1653,7 @@ func TestValidateAdminEpisodeCreateRequest_InvalidStatus(t *testing.T) {
 		EpisodeNumber: "01",
 		Status:        "active",
 	})
-	if message != "ungueltiger status parameter" {
+	if message != "ungültiger status parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1717,7 +1717,7 @@ func TestValidateAdminEpisodePatchRequest_InvalidStatus(t *testing.T) {
 	}
 
 	_, message := validateAdminEpisodePatchRequest(patch)
-	if message != "ungueltiger status parameter" {
+	if message != "ungültiger status parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
@@ -1729,7 +1729,7 @@ func TestValidateAdminEpisodePatchRequest_EmptyStatus(t *testing.T) {
 	}
 
 	_, message := validateAdminEpisodePatchRequest(patch)
-	if message != "ungueltiger status parameter" {
+	if message != "ungültiger status parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }

@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"context"
@@ -50,13 +50,13 @@ func NewGroupAssetsHandler(
 func (h *GroupAssetsHandler) GetGroupAssets(c *gin.Context) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	groupID, err := parseGroupID(c.Param("groupId"))
 	if err != nil {
-		badRequest(c, "ungueltige group id")
+		badRequest(c, "ungültige group id")
 		return
 	}
 

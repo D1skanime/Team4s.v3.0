@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -16,7 +16,7 @@ import (
 func (h *FansubHandler) StreamRelease(c *gin.Context) {
 	versionID, err := parseEpisodeVersionID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige release id")
+		badRequest(c, "ungültige release id")
 		return
 	}
 

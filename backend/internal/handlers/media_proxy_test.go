@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"encoding/json"
@@ -219,7 +219,7 @@ func TestMediaImage_InvalidWidthReturnsBadRequest(t *testing.T) {
 	if resp.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400, got %d", resp.Code)
 	}
-	if message := decodeErrorMessage(t, resp.Body.Bytes()); message != "ungueltiger width parameter" {
+	if message := decodeErrorMessage(t, resp.Body.Bytes()); message != "ungültiger width parameter" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }

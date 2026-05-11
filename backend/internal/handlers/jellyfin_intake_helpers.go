@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"path/filepath"
@@ -233,7 +233,7 @@ func buildJellyfinIntakeTypeHint(name string, rawPath *string) models.AdminJelly
 		return models.AdminJellyfinIntakeTypeHint{SuggestedType: &suggested, Confidence: confidence, Reasons: reasons}
 	default:
 		suggested := "tv"
-		reasons = append(reasons, `Kein spezieller Sonderfall erkannt; Standard-Vorschlag fuer Serienordner.`)
+		reasons = append(reasons, `Kein spezieller Sonderfall erkannt; Standard-Vorschlag für Serienordner.`)
 		return models.AdminJellyfinIntakeTypeHint{SuggestedType: &suggested, Confidence: confidence, Reasons: reasons}
 	}
 }

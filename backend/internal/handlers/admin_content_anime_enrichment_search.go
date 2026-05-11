@@ -35,7 +35,7 @@ func (h *AdminContentHandler) SearchAnimeCreateAniSearchCandidates(c *gin.Contex
 			c,
 			"interner serverfehler",
 			http.ErrNotSupported,
-			"AniSearch-Suche ist aktuell nicht verfuegbar.",
+			"AniSearch-Suche ist aktuell nicht verfügbar.",
 		)
 		return
 	}

@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -24,7 +24,7 @@ func (h *FansubHandler) CreateReleaseStreamGrant(c *gin.Context) {
 
 	versionID, err := parseEpisodeVersionID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige release id")
+		badRequest(c, "ungültige release id")
 		return
 	}
 
@@ -39,7 +39,7 @@ func (h *FansubHandler) CreateReleaseStreamGrant(c *gin.Context) {
 
 	if h.releaseGrantTTL <= 0 || strings.TrimSpace(h.releaseGrantSecret) == "" {
 		log.Printf("release stream grant: grant config unavailable (release_id=%d, user_id=%d)", versionID, identity.UserID)
-		c.JSON(http.StatusServiceUnavailable, gin.H{"error": gin.H{"message": "stream grant voruebergehend nicht verfuegbar"}})
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": gin.H{"message": "stream grant vorübergehend nicht verfügbar"}})
 		return
 	}
 
@@ -74,13 +74,13 @@ func (h *FansubHandler) authorizeReleaseStream(c *gin.Context, versionID int64) 
 	}
 
 	if strings.TrimSpace(h.releaseGrantSecret) == "" {
-		c.JSON(http.StatusServiceUnavailable, gin.H{"error": gin.H{"message": "stream grant voruebergehend nicht verfuegbar"}})
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": gin.H{"message": "stream grant vorübergehend nicht verfügbar"}})
 		return false
 	}
 
 	claims, err := auth.ParseAndVerifyReleaseStreamGrant(grantToken, h.releaseGrantSecret, time.Now())
 	if err != nil || claims.ReleaseID != versionID {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "ungueltiger stream grant"}})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "ungültiger stream grant"}})
 		return false
 	}
 

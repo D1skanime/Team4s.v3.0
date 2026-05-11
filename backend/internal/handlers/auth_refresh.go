@@ -16,7 +16,7 @@ import (
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	var req refreshAuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -34,7 +34,7 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 		h.refreshTokenTTL,
 	)
 	if errors.Is(err, repository.ErrNotFound) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "ungueltiges refresh-token"}})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "ungültiges refresh-token"}})
 		return
 	}
 	if err != nil {

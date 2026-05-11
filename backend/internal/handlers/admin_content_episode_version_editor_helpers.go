@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"context"
@@ -125,7 +125,7 @@ func (h *AdminContentHandler) resolveEpisodeVersionDuration(
 	return h.getJellyfinEpisodeDurationSeconds(ctx, mediaItemID)
 }
 
-// resolveEpisodeVersionSelectedGroups ermittelt die ausgewaehlten Fansub-Gruppen fuer eine Episodenversion und loest Kollaborationen in ihre Einzelgruppen auf.
+// resolveEpisodeVersionSelectedGroups ermittelt die ausgewaehlten Fansub-Gruppen für eine Episodenversion und loest Kollaborationen in ihre Einzelgruppen auf.
 func (h *AdminContentHandler) resolveEpisodeVersionSelectedGroups(
 	ctx context.Context,
 	version *models.EpisodeVersion,

@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"team4s.v3/backend/internal/models"
@@ -9,12 +9,12 @@ import (
 func validateFansubAliasCreateRequest(req fansubAliasCreateRequest) (models.FansubAliasCreateInput, string) {
 	alias := normalizeRequiredString(&req.Alias)
 	if alias == nil || len([]rune(*alias)) > 120 {
-		return models.FansubAliasCreateInput{}, "ungueltiger alias parameter"
+		return models.FansubAliasCreateInput{}, "ungültiger alias parameter"
 	}
 
 	normalizedAlias := normalizeFansubAliasKey(*alias)
 	if normalizedAlias == "" {
-		return models.FansubAliasCreateInput{}, "ungueltiger alias parameter"
+		return models.FansubAliasCreateInput{}, "ungültiger alias parameter"
 	}
 
 	return models.FansubAliasCreateInput{

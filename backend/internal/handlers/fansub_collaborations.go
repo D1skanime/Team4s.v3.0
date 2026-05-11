@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -19,7 +19,7 @@ type addCollaborationMemberRequest struct {
 func (h *FansubHandler) ListCollaborationMembers(c *gin.Context) {
 	collaborationID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 
@@ -51,13 +51,13 @@ func (h *FansubHandler) AddCollaborationMember(c *gin.Context) {
 
 	collaborationID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 
 	var req addCollaborationMemberRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -124,13 +124,13 @@ func (h *FansubHandler) RemoveCollaborationMember(c *gin.Context) {
 
 	collaborationID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 
 	memberGroupID, err := parseFansubID(c.Param("memberGroupId"))
 	if err != nil {
-		badRequest(c, "ungueltige member_group_id")
+		badRequest(c, "ungültige member_group_id")
 		return
 	}
 

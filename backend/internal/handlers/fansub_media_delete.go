@@ -17,18 +17,18 @@ func (h *FansubHandler) DeleteFansubMedia(c *gin.Context) {
 		return
 	}
 	if h.mediaRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media service nicht verfügbar"}})
 		return
 	}
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 	kind, err := parseMediaKind(c.Param("kind"))
 	if err != nil {
-		badRequest(c, "ungueltiger media-kind")
+		badRequest(c, "ungültiger media-kind")
 		return
 	}
 
@@ -39,7 +39,7 @@ func (h *FansubHandler) DeleteFansubMedia(c *gin.Context) {
 	}
 	if err != nil {
 		log.Printf("fansub media delete: clear failed (user_id=%d, fansub_id=%d): %v", identity.UserID, fansubID, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "loeschen fehlgeschlagen"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "löschen fehlgeschlagen"}})
 		return
 	}
 

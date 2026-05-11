@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -27,7 +27,7 @@ func (h *AdminContentHandler) CreateAnime(c *gin.Context) {
 	var req adminAnimeCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("admin_content create_anime: bad request (user_id=%d): %v", identity.UserID, err)
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -59,14 +59,14 @@ func (h *AdminContentHandler) UpdateAnime(c *gin.Context) {
 	id, err := parseAnimeID(c.Param("id"))
 	if err != nil {
 		log.Printf("admin_content update_anime: invalid id %q (user_id=%d): %v", c.Param("id"), identity.UserID, err)
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	var req models.AdminAnimePatchInput
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("admin_content update_anime: bad request (user_id=%d, anime_id=%d): %v", identity.UserID, id, err)
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
@@ -163,7 +163,7 @@ func (h *AdminContentHandler) DeleteAnime(c *gin.Context) {
 	id, err := parseAnimeID(c.Param("id"))
 	if err != nil {
 		log.Printf("admin_content delete_anime: invalid id %q (user_id=%d): %v", c.Param("id"), identity.UserID, err)
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -174,7 +174,7 @@ func (h *AdminContentHandler) DeleteAnime(c *gin.Context) {
 	}
 	if err != nil {
 		log.Printf("admin_content delete_anime: repo error (user_id=%d, anime_id=%d): %v", identity.UserID, id, err)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime konnte nicht geloescht werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime konnte nicht gelöscht werden.")
 		return
 	}
 	h.cleanupDeletedAnimeDir(result.AnimeID)

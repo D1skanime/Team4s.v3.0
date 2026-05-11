@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -19,20 +19,20 @@ func (h *FansubHandler) CreateEpisodeVersion(c *gin.Context) {
 
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	episodeNumber, err := parseEpisodeNumber(c.Param("episodeNumber"))
 	if err != nil {
-		badRequest(c, "ungueltige episode nummer")
+		badRequest(c, "ungültige episode nummer")
 		return
 	}
 
 	var req episodeVersionCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("episode version create: bad request (user_id=%d, anime_id=%d, episode_number=%d): %v", identity.UserID, animeID, episodeNumber, err)
-		badRequest(c, "ungueltiger request body")
+		badRequest(c, "ungültiger request body")
 		return
 	}
 

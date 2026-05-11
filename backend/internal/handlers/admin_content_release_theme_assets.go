@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"errors"
@@ -22,19 +22,19 @@ func parseFansubRouteID(c *gin.Context) (int64, error) {
 	return strconv.ParseInt(raw, 10, 64)
 }
 
-// ListFansubAnime liefert alle Anime einer Fansub-Gruppe fuer den OP/ED-Upload-Flow.
+// ListFansubAnime liefert alle Anime einer Fansub-Gruppe für den OP/ED-Upload-Flow.
 func (h *AdminContentHandler) ListFansubAnime(c *gin.Context) {
 	if _, ok := h.requireAdmin(c); !ok {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	fansubID, err := parseFansubRouteID(c)
 	if err != nil || fansubID <= 0 {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 
@@ -53,13 +53,13 @@ func (h *AdminContentHandler) ListReleaseThemeAssets(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	releaseID, err := strconv.ParseInt(c.Param("releaseId"), 10, 64)
 	if err != nil || releaseID <= 0 {
-		badRequest(c, "ungueltige release id")
+		badRequest(c, "ungültige release id")
 		return
 	}
 
@@ -82,18 +82,18 @@ func (h *AdminContentHandler) ListFansubAnimeThemeAssets(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	fansubID, err := parseFansubRouteID(c)
 	if err != nil || fansubID <= 0 {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 	animeID, err := strconv.ParseInt(c.Param("animeId"), 10, 64)
 	if err != nil || animeID <= 0 {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
@@ -115,23 +115,23 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil || h.mediaRepo == nil || h.mediaService == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme video service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme video service nicht verfügbar"}})
 		return
 	}
 
 	fansubID, err := parseFansubRouteID(c)
 	if err != nil || fansubID <= 0 {
-		badRequest(c, "ungueltige fansub id")
+		badRequest(c, "ungültige fansub id")
 		return
 	}
 	animeID, err := strconv.ParseInt(c.Param("animeId"), 10, 64)
 	if err != nil || animeID <= 0 {
-		badRequest(c, "ungueltige anime id")
+		badRequest(c, "ungültige anime id")
 		return
 	}
 	themeID, err := strconv.ParseInt(c.PostForm("theme_id"), 10, 64)
 	if err != nil || themeID <= 0 {
-		badRequest(c, "ungueltige theme id")
+		badRequest(c, "ungültige theme id")
 		return
 	}
 
@@ -162,7 +162,7 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 	if releaseID == nil {
 		c.JSON(http.StatusConflict, gin.H{
 			"error": gin.H{
-				"message": "keine bestehende release-version fuer diese fansub-anime-kombination gefunden",
+				"message": "keine bestehende release-version für diese fansub-anime-kombination gefunden",
 				"code":    "missing_release_anchor",
 			},
 		})
@@ -176,7 +176,7 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 	}
 	if lockedByGlobalSegment {
 		c.JSON(http.StatusConflict, gin.H{"error": gin.H{
-			"message": "dieses theme ist bereits global fuer den episodenbereich gesetzt und kann hier nicht abweichend hochgeladen werden",
+			"message": "dieses theme ist bereits global für den episodenbereich gesetzt und kann hier nicht abweichend hochgeladen werden",
 			"code":    "theme_segment_locked",
 		}})
 		return
@@ -250,18 +250,18 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 		return
 	}
 	if h.themeRepo == nil || h.mediaRepo == nil || h.mediaService == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme video service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme video service nicht verfügbar"}})
 		return
 	}
 
 	releaseID, err := strconv.ParseInt(c.Param("releaseId"), 10, 64)
 	if err != nil || releaseID <= 0 {
-		badRequest(c, "ungueltige release id")
+		badRequest(c, "ungültige release id")
 		return
 	}
 	themeID, err := strconv.ParseInt(c.PostForm("theme_id"), 10, 64)
 	if err != nil || themeID <= 0 {
-		badRequest(c, "ungueltige theme id")
+		badRequest(c, "ungültige theme id")
 		return
 	}
 
@@ -291,7 +291,7 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 	}
 	if lockedByGlobalSegment {
 		c.JSON(http.StatusConflict, gin.H{"error": gin.H{
-			"message": "dieses theme ist bereits global fuer den episodenbereich gesetzt und kann hier nicht abweichend hochgeladen werden",
+			"message": "dieses theme ist bereits global für den episodenbereich gesetzt und kann hier nicht abweichend hochgeladen werden",
 			"code":    "theme_segment_locked",
 		}})
 		return
@@ -365,23 +365,23 @@ func (h *AdminContentHandler) DeleteReleaseThemeAsset(c *gin.Context) {
 		return
 	}
 	if h.themeRepo == nil || h.mediaRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfuegbar"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
 	}
 
 	releaseID, err := strconv.ParseInt(c.Param("releaseId"), 10, 64)
 	if err != nil || releaseID <= 0 {
-		badRequest(c, "ungueltige release id")
+		badRequest(c, "ungültige release id")
 		return
 	}
 	themeID, err := strconv.ParseInt(c.Param("themeId"), 10, 64)
 	if err != nil || themeID <= 0 {
-		badRequest(c, "ungueltige theme id")
+		badRequest(c, "ungültige theme id")
 		return
 	}
 	mediaID, err := strconv.ParseInt(c.Param("mediaId"), 10, 64)
 	if err != nil || mediaID <= 0 {
-		badRequest(c, "ungueltige media id")
+		badRequest(c, "ungültige media id")
 		return
 	}
 
@@ -397,13 +397,13 @@ func (h *AdminContentHandler) DeleteReleaseThemeAsset(c *gin.Context) {
 		return
 	}
 	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Video konnte nicht geloescht werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Video konnte nicht gelöscht werden.")
 		return
 	}
 
 	if mediaAsset != nil {
 		if err := h.mediaRepo.DeleteMediaAsset(c.Request.Context(), mediaID); err != nil && !errors.Is(err, repository.ErrNotFound) {
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Video-Datei konnte nicht geloescht werden.")
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Video-Datei konnte nicht gelöscht werden.")
 			return
 		}
 		_ = removeFileQuietly(mediaAsset.StoragePath)

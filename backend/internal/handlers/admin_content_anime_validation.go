@@ -28,17 +28,17 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 
 	animeType := strings.TrimSpace(req.Type)
 	if _, ok := allowedAnimeTypes[animeType]; !ok {
-		return models.AdminAnimeCreateInput{}, "ungueltiger type parameter"
+		return models.AdminAnimeCreateInput{}, "ungültiger type parameter"
 	}
 
 	contentType := strings.TrimSpace(req.ContentType)
 	if _, ok := allowedContentTypes[contentType]; !ok {
-		return models.AdminAnimeCreateInput{}, "ungueltiger content_type parameter"
+		return models.AdminAnimeCreateInput{}, "ungültiger content_type parameter"
 	}
 
 	status := strings.TrimSpace(req.Status)
 	if _, ok := allowedAnimeStatuses[status]; !ok {
-		return models.AdminAnimeCreateInput{}, "ungueltiger status parameter"
+		return models.AdminAnimeCreateInput{}, "ungültiger status parameter"
 	}
 
 	coverImage := normalizeNullableString(req.CoverImage)
@@ -59,16 +59,16 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 	if source != nil {
 		normalizedSource, ok := normalizeAdminAnimeSource(*source)
 		if !ok {
-			return models.AdminAnimeCreateInput{}, "ungueltiger source parameter"
+			return models.AdminAnimeCreateInput{}, "ungültiger source parameter"
 		}
 		source = &normalizedSource
 	}
 
 	if req.Year != nil && *req.Year <= 0 {
-		return models.AdminAnimeCreateInput{}, "ungueltiger year parameter"
+		return models.AdminAnimeCreateInput{}, "ungültiger year parameter"
 	}
 	if req.MaxEpisodes != nil && *req.MaxEpisodes <= 0 {
-		return models.AdminAnimeCreateInput{}, "ungueltiger max_episodes parameter"
+		return models.AdminAnimeCreateInput{}, "ungültiger max_episodes parameter"
 	}
 
 	return models.AdminAnimeCreateInput{
@@ -113,38 +113,38 @@ func validateAdminAnimePatchRequest(req models.AdminAnimePatchInput) (models.Adm
 	if req.Type.Set {
 		value := normalizeRequiredString(req.Type.Value)
 		if value == nil {
-			return models.AdminAnimePatchInput{}, "ungueltiger type parameter"
+			return models.AdminAnimePatchInput{}, "ungültiger type parameter"
 		}
 		if _, ok := allowedAnimeTypes[*value]; !ok {
-			return models.AdminAnimePatchInput{}, "ungueltiger type parameter"
+			return models.AdminAnimePatchInput{}, "ungültiger type parameter"
 		}
 		req.Type.Value = value
 	}
 	if req.ContentType.Set {
 		value := normalizeRequiredString(req.ContentType.Value)
 		if value == nil {
-			return models.AdminAnimePatchInput{}, "ungueltiger content_type parameter"
+			return models.AdminAnimePatchInput{}, "ungültiger content_type parameter"
 		}
 		if _, ok := allowedContentTypes[*value]; !ok {
-			return models.AdminAnimePatchInput{}, "ungueltiger content_type parameter"
+			return models.AdminAnimePatchInput{}, "ungültiger content_type parameter"
 		}
 		req.ContentType.Value = value
 	}
 	if req.Status.Set {
 		value := normalizeRequiredString(req.Status.Value)
 		if value == nil {
-			return models.AdminAnimePatchInput{}, "ungueltiger status parameter"
+			return models.AdminAnimePatchInput{}, "ungültiger status parameter"
 		}
 		if _, ok := allowedAnimeStatuses[*value]; !ok {
-			return models.AdminAnimePatchInput{}, "ungueltiger status parameter"
+			return models.AdminAnimePatchInput{}, "ungültiger status parameter"
 		}
 		req.Status.Value = value
 	}
 	if req.Year.Set && req.Year.Value != nil && *req.Year.Value <= 0 {
-		return models.AdminAnimePatchInput{}, "ungueltiger year parameter"
+		return models.AdminAnimePatchInput{}, "ungültiger year parameter"
 	}
 	if req.MaxEpisodes.Set && req.MaxEpisodes.Value != nil && *req.MaxEpisodes.Value <= 0 {
-		return models.AdminAnimePatchInput{}, "ungueltiger max_episodes parameter"
+		return models.AdminAnimePatchInput{}, "ungültiger max_episodes parameter"
 	}
 
 	if req.TitleDE.Set {
@@ -166,7 +166,7 @@ func validateAdminAnimePatchRequest(req models.AdminAnimePatchInput) (models.Adm
 		if req.Source.Value != nil {
 			normalizedSource, ok := normalizeAdminAnimeSource(*req.Source.Value)
 			if !ok {
-				return models.AdminAnimePatchInput{}, "ungueltiger source parameter"
+				return models.AdminAnimePatchInput{}, "ungültiger source parameter"
 			}
 			req.Source.Value = &normalizedSource
 		}
@@ -239,11 +239,11 @@ func normalizeAdminAnimeSourceLinks(values []string, primary *string) ([]string,
 	}
 
 	if primary != nil && !appendValue(*primary) {
-		return nil, "ungueltiger source parameter"
+		return nil, "ungültiger source parameter"
 	}
 	for _, value := range values {
 		if !appendValue(value) {
-			return nil, "ungueltiger source_links parameter"
+			return nil, "ungültiger source_links parameter"
 		}
 	}
 
