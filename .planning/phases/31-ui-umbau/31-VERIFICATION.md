@@ -1,5 +1,5 @@
 ---
-status: human_needed
+status: passed
 phase: 31-ui-umbau
 verified: 2026-04-30
 ---

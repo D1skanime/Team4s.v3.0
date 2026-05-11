@@ -38,6 +38,16 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 26: Segment Source Asset Upload And Persistence** - Segmente koennen echte Team4s-Assets als Quelle hinterlegen: Upload, benannter Zielpfad, Asset-Referenz am Segment und kontrolliertes Entfernen ohne Playback-Pflicht. (implementiert 2026-04-28)
 - [x] **Phase 27: Segment Library Identity And Reuse** - Segmentdateien werden fachlich ueber stabile Anime-/Gruppen-Identitaet statt lokaler Anime-IDs verwaltet, koennen nach Reimport wiedergefunden werden, und Anime-Delete entkoppelt nur noch statt wiederverwendbare OP/ED-Assets blind zu vernichten. (implementiert und UAT bestanden 2026-04-28)
 - [x] **Phase 28: Segment Playback Sources From Jellyfin Runtime** - Segmente nutzen standardmaessig die aktuelle Episode-Version bzw. deren Jellyfin-Stream als Playback-Quelle, respektieren reale `release_variants.duration_seconds` Laufzeitgrenzen wenn vorhanden, und behalten Upload-Dateien nur als expliziten Fallback. (live UAT bestanden 2026-04-29)
+- [x] **Phase 30: Fansub-Releases API-Endpunkte** - Explizite Admin-Endpunkte fuer Fansub-Releases, kanonischer Release-Anker, Release-Kontext-API fuer Theme-Asset-Flow. (UAT bestanden 2026-05-11)
+- [x] **Phase 31: UI Umbau fuer Fansub-Releases und Theme-Kontext** - Fansub-Edit Anime & Releases Tab mit ausklappbaren Release-Zeilen, Theme-/Segment-Kontext im aufgeklappten Release, release-spezifische Bearbeitung. (UAT bestanden 2026-05-11)
+- [x] **Phase 32: Fansub Release Side Drawer** - Rechter Side-Drawer fuer Release-Theme-Asset-Upload und -Verwaltung ueber bestehende release_theme_assets/media_assets Seams ohne neue DB-Tabellen. (UAT bestanden 2026-04-30)
+- [x] **Phase 33: Release-Theme-Asset size_bytes Persistence Fix** - InsertMediaFile nach CreateMediaAsset in beiden Upload-Handlern, Rollback bei Fehler. (implementiert 2026-05-07)
+- [x] **Phase 34: Release-Version Media Schema Foundation** - Migration 0059: release_version_media Tabelle, status-Spalten in media_assets/media_files, Constraints und Indexe. (implementiert 2026-05-01)
+- [x] **Phase 35: Release-Version Media Backend Upload Service und API** - Go-Backend mit govips-Thumbnail, GIF-Sonderfall, DB-Transaktion/Rollback, alle 5 Admin-API-Endpunkte. (UAT bestanden 2026-05-11)
+- [x] **Phase 36: Release-Version Media Frontend Upload UI und Galerie** - Kategorie-zuerst-Upload, Per-File-Progress, Preview-Schalter, kategorisierte Galerie, Detail-Panel, Drawer-Summary. (UAT bestanden 2026-05-11)
+- [x] **Phase 37: Release-Version Media Cleanup Job und Tests** - Periodischer Cleanup-Worker, Backend- und Frontend-Regressionstests. (Tests gruen 2026-05-11)
+- [x] **Phase 38: Release-Version Media Gallery UX Hover-Preview und Drag-and-Drop-Reorder** - Floating Preview Card, GIF src-Swap, DnD-Reorder innerhalb Kategorie, Live-Re-Sort-Fix. (UAT bestanden 2026-04-30)
+
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
 ## Phase Details

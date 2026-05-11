@@ -1,7 +1,7 @@
 ---
 phase: 30-fansub-releases-api-endpunkte
 verified: 2026-04-30T12:00:00Z
-status: human_needed
+status: passed
 score: 5/5 must-haves verified
 human_verification:
   - test: "Scenario 1 — Existing canonical release is discoverable"
