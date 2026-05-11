@@ -65,6 +65,13 @@ Core rules:
 - Document the exact safety SQL or check used before destructive cleanup.
 
 ## UI Rules
+
+### Deutsche UI-Texte: Korrekte Umlaute verwenden
+- User-facing deutsche Strings (JSX-Text, Button-Labels, Fehlermeldungen, Placeholder, Toast-Nachrichten, aria-labels) verwenden immer korrekte Umlaute: ä, ö, ü, Ä, Ö, Ü, ß
+- Niemals ASCII-Ersetzungen in UI-Text: ae/oe/ue/ss statt Umlauten sind verboten (z.B. "wählen" nicht "waehlen", "für" nicht "fuer", "Änderungen" nicht "Aenderungen")
+- Code-Bezeichner (Variablennamen, Funktionsnamen, CSS-Klassen, Dateinamen) sind ausgenommen — diese bleiben ASCII-sicher
+- Gilt für Frontend TSX/TS und Go Backend Strings die in HTTP-Responses landen
+
 - Avoid overloaded admin screens.
 - Use progressive disclosure.
 - Prefer accordion or card structures for overview lists.
