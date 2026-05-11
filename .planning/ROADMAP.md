@@ -625,21 +625,22 @@ Plans:
   4. GIF-Items zeigen beim Hover das animierte Original (original_url) statt dem statischen Thumbnail.
   5. Cross-Category-Drag ist gesperrt; die Reorder-Aktion bleibt auf die aktuelle Kategorie begrenzt.
 
-### Phase 39: Release Multi-Group — Direkte Gruppen-Zuweisung an Releases
+### Phase 39: Deutsche Umlaute durchgaengig korrigieren
 
-**Goal:** Releases koennen direkt mehrere Fansub-Gruppen tragen, ohne eine manuelle Kollaborations-Zwischengruppe anlegen zu muessen. Admins waehlten beim Release-Edit einfach alle beteiligten Gruppen aus einer Liste — unabhaengig davon wie viele es sind.
+**Goal:** Alle user-sichtbaren deutschen Texte im Frontend (TSX/TS) und im Backend (Go-Strings) verwenden korrekte Schweizer/deutsche Standardschrift mit Umlauten (ä, ö, ü, Ä, Ö, Ü). ASCII-Ersetzungen wie ae/oe/ue in UI-Text werden eliminiert. Eine verbindliche CLAUDE.md-Regel stellt sicher dass neu geschriebener Code die Regel von Anfang an einhält.
 
-**Hintergrund (Phase 29 SC3):** Der bisherige Collaboration-Group-Workflow (group_type='collaboration' manuell anlegen, benennen, Mitglieder hinzufuegen) ist bei mehr als 2 Gruppen unzumutbar und wurde in Phase 29 UAT als impraktikabel abgelehnt.
+**Scope:** Nur user-facing Strings (JSX-Text, Button-Labels, Fehlermeldungen, Toast-Nachrichten, Placeholder). Code-Bezeichner (Variablennamen, Funktionsnamen, CSS-Klassen) bleiben unveraendert.
 
-**Depends on:** Phase 29
-**Status**: Geplant 2026-05-11 aus Phase-29-UAT-Feedback
+**Depends on:** -
+**Status**: Geplant 2026-05-11
 
 Plans:
-- [ ] `39-01-PLAN.md` - Schema: release_group_assignments Many-to-Many Tabelle oder ARRAY-Spalte; Backend CRUD; Kompatibilitaet mit bestehendem fansub_group_id FK.
-- [ ] `39-02-PLAN.md` - Frontend: Release-Edit zeigt Multi-Gruppen-Picker; bestehende Einzel-Gruppen-Anzeige auf Multi-Gruppen umstellen.
+- [ ] `39-01-PLAN.md` - CLAUDE.md Regel + systematische Umlaut-Korrektur in Frontend TSX/TS user-facing Strings.
+- [ ] `39-02-PLAN.md` - Umlaut-Korrektur in Go Backend String-Literals (Fehlermeldungen, Response-Texte, Toast/UI-Strings).
 
 **Success Criteria** (what must be TRUE):
-  1. Ein Release kann im Admin mit 1-N Fansub-Gruppen verknuepft werden ohne eine Zwischen-Entitaet anzulegen.
-  2. Beim Speichern mit mehreren Gruppen bleiben alle Zuweisungen nach Reload erhalten.
-  3. Bestehende Releases mit einer Gruppe werden korrekt migriert und zeigen diese Gruppe weiterhin an.
-  4. Die alte Kollaborations-Workflow-UX (group_type='collaboration' manuell pflegen) ist nicht mehr der empfohlene Pfad fuer Release-Kollaborationen.
+  1. Kein user-sichtbarer deutscher Text im Frontend enthaelt ae/oe/ue/ss als Umlaut-Ersatz.
+  2. Kein Go-Backend-String der an den User geht enthaelt ae/oe/ue als Umlaut-Ersatz.
+  3. CLAUDE.md enthaelt eine explizite Regel: Deutscher UI-Text verwendet immer korrekte Umlaute.
+  4. Nach der Aenderung laufen alle bestehenden Tests weiterhin gruen.
+  5. Code-Bezeichner (Variablennamen, CSS-Klassen, Funktionsnamen) sind unveraendert.
