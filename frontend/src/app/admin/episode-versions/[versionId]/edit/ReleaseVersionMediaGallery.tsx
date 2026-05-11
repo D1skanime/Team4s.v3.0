@@ -213,6 +213,7 @@ export function ReleaseVersionMediaGallery({
                     >
                       <button
                         type="button"
+                        draggable={true}
                         className={[
                           styles.card,
                           selectedItemId === item.id ? styles.cardActive : '',
@@ -220,12 +221,14 @@ export function ReleaseVersionMediaGallery({
                           .filter(Boolean)
                           .join(' ')}
                         onClick={() => onSelectItem(item)}
+                        onMouseEnter={() => handleMouseEnter(item)}
+                        onMouseLeave={() => handleMouseLeave(item)}
                       >
                         <div className={styles.thumb}>
-                          {item.thumbnail_url ? (
+                          {(item.thumbnail_url || (isGifHovered && item.original_url)) ? (
                             <img
                               className={styles.thumbImage}
-                              src={item.thumbnail_url}
+                              src={isGifHovered && item.original_url ? item.original_url : (item.thumbnail_url ?? '')}
                               alt={cardLabel(item)}
                             />
                           ) : (
