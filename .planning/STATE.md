@@ -286,6 +286,7 @@ Recent durable decisions:
 | 260428-ddb | Episoden-Laufzeit crawlen und in Timeline-Vorschau proportional anzeigen | 2026-04-28 | 5126a293 | [260428-ddb-episoden-laufzeit-crawlen-und-in-timelin](./quick/260428-ddb-episoden-laufzeit-crawlen-und-in-timelin/) |
 | 260429-fnm | Smart-Parser fuer Segment-Zeitfelder: MM:SS, Xm/XmYs, immer HH:MM:SS Ausgabe | 2026-04-29 | 1230bd2c | [260429-fnm-smart-parser-fuer-segment-zeitfelder-mm-](./quick/260429-fnm-smart-parser-fuer-segment-zeitfelder-mm-/) |
 | 260511-bxr | Fansub-Edit Banner top-crop fix + Logo-Position neben Gruppenname | 2026-05-11 | 72b69bf4 | [260511-bxr-fansub-edit-banner-top-crop-fix](./quick/260511-bxr-fansub-edit-banner-top-crop-fix/) |
+| 260511-hfd | ReleaseVersionMediaGallery 3 Test-Bugs fixen (draggable + GIF src-swap) | 2026-05-11 | 4eab759c | [260511-hfd-releaseversionmediagallery-3-test-bugs-f](./quick/260511-hfd-releaseversionmediagallery-3-test-bugs-f/) |
 
 ## Session Continuity
 
