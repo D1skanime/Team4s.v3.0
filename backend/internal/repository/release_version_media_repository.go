@@ -29,6 +29,7 @@ type ReleaseVersionMediaCreateInput struct {
 
 // ReleaseVersionMediaPatchInput holds the patchable fields for a release_version_media row.
 // A nil pointer means "do not change this field".
+// CaptionSet=true with Caption=nil means explicitly clear the caption to NULL.
 type ReleaseVersionMediaPatchInput struct {
 	Caption            *string
 	CaptionSet         bool
