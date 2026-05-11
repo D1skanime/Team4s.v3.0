@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: In progress
-stopped_at: Completed 40-07-PLAN.md
-last_updated: "2026-05-11T19:53:40.705Z"
+stopped_at: Completed 40-10-PLAN.md
+last_updated: "2026-05-11T20:00:00.000Z"
 last_activity: 2026-05-11
 progress:
   total_phases: 36
   completed_phases: 28
   total_plans: 124
-  completed_plans: 113
+  completed_plans: 114
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 40
-Plan: 04 (abgeschlossen)
+Plan: 10 (abgeschlossen)
 
 ## Accumulated Context
 
@@ -35,6 +35,7 @@ Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
 
+- [Phase 40-10]: flatMap statt map().filter() für typsichere BulkNoteInput-Array-Filterung — vermeidet TS2322/TS2677 bei Null-Rückgaben.
 - [Phase 40-04]: BulkUpsertReleaseVersionNotes liest nach COMMIT via ListReleaseVersionNotes (Pool) zurück — einfacher, konsistenter als In-TX-Lesung.
 - [Phase 40-04]: GetMemberRolesForVersion nutzt JOIN release_versions → fansub_releases → release_member_roles → members + contributor_roles (cr.label AS role_label).
 - [Phase 40]: TRUNCATE contributor_roles CASCADE statt additivem INSERT ON CONFLICT — bestehende 6 Seeds sind Test-Daten (User-Entscheidung); DOWN ist No-op weil CASCADE nicht reversibel.
