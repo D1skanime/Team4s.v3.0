@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: In progress
-stopped_at: Completed 40-10-PLAN.md
-last_updated: "2026-05-11T20:00:00.000Z"
+stopped_at: Completed 40-08-PLAN.md
+last_updated: "2026-05-11T20:04:39.147Z"
 last_activity: 2026-05-11
 progress:
   total_phases: 36
-  completed_phases: 28
+  completed_phases: 29
   total_plans: 124
-  completed_plans: 114
+  completed_plans: 116
 ---
 
 # Project State
@@ -170,6 +170,8 @@ Recent durable decisions:
 - [Phase 40]: WithNoteDeps() statt Konstruktor-Parameter: konsistent mit WithMediaDeps()-Pattern
 - [Phase 40]: WithReleaseVersionNoteDeps() als eigene Methode — Trennung von FansubNotes- und ReleaseVersionNotes-Abhängigkeiten; markdownSvc einmalig via WithNoteDeps gesetzt und wiederverwendet
 - [Phase 40-07]: getAnimeFansubProjectNote gibt null zurück bei 404 — passend für optionales MVP-Einzeltext-Modell ohne Exception-Overhead
+- [Phase 40-08]: NotesTab.helpers.tsx als Split-Datei für CLAUDE.md 450-Zeilen-Limit
+- [Phase 40-08]: notes-Tab ist außerhalb des globalen Fansub-Speichern-Formulars wie der releases-Tab
 
 ### Pending Todos
 
@@ -279,6 +281,7 @@ Recent durable decisions:
 | Phase 40-text-und-notizsystem-fuer-fansub-plattform P40-03 | 8min | 2 tasks | 3 files |
 | Phase 40 P06 | 15min | 3 tasks | 4 files |
 | Phase 40-text-und-notizsystem-fuer-fansub-plattform P07 | 8min | 3 tasks | 3 files |
+| Phase 40 P08 | 18min | 2 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -301,7 +304,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-11T19:53:40.695Z
-Stopped at: Completed 40-07-PLAN.md
+Last session: 2026-05-11T20:04:39.133Z
+Stopped at: Completed 40-08-PLAN.md
 Last activity: 2026-05-11
 Resume file: None
