@@ -86,6 +86,16 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
 ## Observed Tradeoffs
 - Some truth is duplicated across code, contracts, and planning docs, which helps onboarding but raises drift risk.
 - The backend handler package is large and highly feature-dense, so conventions rely on naming discipline more than strict subpackage isolation.
+
+### Sprachqualität
+
+- **Umlaute:** Deutscher UI-Text in Produktcode verwendet immer korrekte Umlaute
+  (ä, ö, ü, Ä, Ö, Ü, ß). ASCII-Ersetzungen wie ae/oe/ue/Ae/Oe/Ue/ss sind in
+  user-facing Strings verboten.
+- **Scope:** Gilt für JSX-Textknoten, Button-Labels, Fehlermeldungen,
+  Placeholder-Attribute, aria-labels, Toast-Nachrichten und Go-Response-Strings.
+- **Ausnahmen:** Code-Bezeichner (Variablennamen, Funktionsnamen, CSS-Klassen,
+  Dateinamen, Kommentare) sind vom Scope ausgenommen — nur String-Inhalte.
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
