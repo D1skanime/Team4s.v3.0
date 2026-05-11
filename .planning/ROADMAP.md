@@ -508,7 +508,7 @@ Plans:
 **Plans:** 1/1 plans complete
 
 Plans:
-- [ ] `33-01-PLAN.md` - InsertMediaFile-Methode auf MediaRepository hinzufuegen und beide Upload-Handler (fansub-Route + release-Route) nach CreateMediaAsset damit erweitern, mit Rollback bei Fehler.
+- [x] `33-01-PLAN.md` - InsertMediaFile-Methode auf MediaRepository hinzufuegen und beide Upload-Handler (fansub-Route + release-Route) nach CreateMediaAsset damit erweitern, mit Rollback bei Fehler.
 
 **Success Criteria** (what must be TRUE):
   1. Nach einem Release-Theme-Asset-Upload gibt die List-API size_bytes mit dem echten Dateiwert zurueck statt 0.
