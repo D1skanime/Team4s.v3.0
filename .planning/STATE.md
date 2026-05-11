@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: In progress
-stopped_at: Completed 40-04-PLAN.md
-last_updated: "2026-05-11T20:00:00.000Z"
+stopped_at: Completed 40-07-PLAN.md
+last_updated: "2026-05-11T19:53:40.705Z"
 last_activity: 2026-05-11
 progress:
   total_phases: 36
   completed_phases: 28
   total_plans: 124
-  completed_plans: 110
+  completed_plans: 113
 ---
 
 # Project State
@@ -166,6 +166,9 @@ Recent durable decisions:
 - [Phase 38]: Sort-order form removed from ReleaseVersionMediaDetailPanel; reorder is gallery-only via drag-and-drop within category
 - [Phase 38]: No new dependency for hover card: project-owned React state + CSS position absolute; 200ms debounce matches CONTEXT.md recommendation; GIF detection via .gif extension check on original_url
 - [Phase 40]: goldmark GFM + bluemonday UGCPolicy als Markdown/Sanitizing-Stack; RenderMarkdown(string)(string,error) als Service-Methode
+- [Phase 40]: WithNoteDeps() statt Konstruktor-Parameter: konsistent mit WithMediaDeps()-Pattern
+- [Phase 40]: WithReleaseVersionNoteDeps() als eigene Methode — Trennung von FansubNotes- und ReleaseVersionNotes-Abhängigkeiten; markdownSvc einmalig via WithNoteDeps gesetzt und wiederverwendet
+- [Phase 40-07]: getAnimeFansubProjectNote gibt null zurück bei 404 — passend für optionales MVP-Einzeltext-Modell ohne Exception-Overhead
 
 ### Pending Todos
 
@@ -273,6 +276,8 @@ Recent durable decisions:
 | Phase 38-release-version-media-gallery-ux-hover-preview-und-drag-and-drop-reorder P01 | 25min | 2 tasks | 10 files |
 | Phase 38-release-version-media-gallery-ux-hover-preview-und-drag-and-drop-reorder P02 | 5min | 2 tasks | 3 files |
 | Phase 40-text-und-notizsystem-fuer-fansub-plattform P40-03 | 8min | 2 tasks | 3 files |
+| Phase 40 P06 | 15min | 3 tasks | 4 files |
+| Phase 40-text-und-notizsystem-fuer-fansub-plattform P07 | 8min | 3 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -295,7 +300,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-11T19:30:04.772Z
-Stopped at: Completed 40-03-PLAN.md
+Last session: 2026-05-11T19:53:40.695Z
+Stopped at: Completed 40-07-PLAN.md
 Last activity: 2026-05-11
 Resume file: None
