@@ -6,11 +6,12 @@ import { useSearchParams } from 'next/navigation'
 
 import { formatBytes, formatDateTime, formatDurationInput, padEpisodeNumber, parseDurationInput } from './episodeVersionEditorUtils'
 import { ReleaseVersionMediaSection } from './ReleaseVersionMediaSection'
+import { ReleaseVersionNotesTab } from './ReleaseVersionNotesTab'
 import { useEpisodeVersionEditor } from './useEpisodeVersionEditor'
 import { SegmenteTab } from './SegmenteTab'
 import styles from './EpisodeVersionEditor.module.css'
 
-type ActiveTab = 'übersicht' | 'dateien' | 'informationen' | 'segmente' | 'media' | 'changelog'
+type ActiveTab = 'übersicht' | 'dateien' | 'informationen' | 'segmente' | 'media' | 'changelog' | 'notizen'
 
 function parsePositiveInt(value: string | null): number | null {
   if (!value) return null
@@ -152,6 +153,13 @@ export function EpisodeVersionEditorPage() {
                 onClick={() => setActiveTab('changelog')}
               >
                 Changelog
+              </button>
+              <button
+                type="button"
+                className={activeTab === 'notizen' ? styles.tabActive : styles.tab}
+                onClick={() => setActiveTab('notizen')}
+              >
+                Notizen / Beiträge
               </button>
             </div>
 
@@ -422,6 +430,19 @@ export function EpisodeVersionEditorPage() {
                 <p className={styles.helperText} style={{ fontStyle: 'italic' }}>
                   Changelog-Einträge werden in einem späten Plan ergänzt.
                 </p>
+              </section>
+            ) : null}
+
+            {/* Notizen / Beiträge tab */}
+            {activeTab === 'notizen' ? (
+              <section className={styles.card}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <h2 className={styles.sectionTitle}>Notizen / Beiträge</h2>
+                    <p className={styles.helperText}>Rollenbezogene Produktionsnotizen der beteiligten Mitglieder.</p>
+                  </div>
+                </div>
+                <ReleaseVersionNotesTab versionId={version.id} />
               </section>
             ) : null}
 
