@@ -1,52 +1,45 @@
-# Phase 29 Verification
+---
+phase: 29-fansub-group-model-normalization-and-generic-links
+verified: 2026-05-11T00:00:00Z
+status: passed
+score: sc1-sc2-sc4-sc5-passed-sc3-redesign-deferred
+re_verification: false
+---
 
-Status: PARTIAL - automated build/test checks passed on 2026-04-29; live browser/UAT for generic links and collaboration-member admin is still pending.
+# Phase 29: Fansub Group Model Normalization And Generic Links — Verification
 
-## Scope
+**Phase Goal:** Fansub-Gruppen auf kanonisches Profilmodell konsolidieren, generische Community-Links ueber fansub_group_links verwalten, Kollaborationen explizit administrierbar machen, Legacy-Doppelfelder in Cleanup-Pfad ueberfuehren.
 
-- Fansub group profile contract is canonicalized around `fansub_groups` plus generic `fansub_group_links`.
-- Fansub admin create/edit uses generic community-link rows for `website`, `discord`, `twitter`, `github`, and `irc`.
-- Collaboration-member management is explicit on the fansub edit page.
-- Legacy duplicate fields are documented as compatibility-only rather than equal product truth.
+**Verified:** 2026-05-11
+**Status:** passed (SC1, SC2, SC4, SC5 live und bestaetigt — SC3 als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
-## Automated Checks
+## UAT Ergebnisse
 
-### Backend Tests
+| SC | Kriterium | Status |
+|---|---|---|
+| SC1 | Fansub-CRUD auf kanonichem Profil, keine neuen Abh. auf closed_year/history_description | bestanden |
+| SC2 | Community-Links ueber fansub_group_links (website, discord, twitter, github, irc) | bestanden (UAT Test 1+2, 2026-05-11) |
+| SC3 | Kollaborationsgruppen mit Mitgliedsgruppen im Admin pflegbar | Redesign noetig — Phase 39 |
+| SC4 | Fansub-Create/Edit zeigt generische Linkzeilen, add/edit/delete | bestanden (UAT Test 1+2, 2026-05-11) |
+| SC5 | Legacy-Doppelfelder haben dokumentierten Cleanup-Pfad | bestanden (kein aktiver Regressionsbefund) |
 
-Command:
-```bash
-cd backend && go test ./internal/repository ./internal/handlers -count=1
-```
+## Warum SC3 nicht passt
 
-Result:
-```text
-ok   team4s.v3/backend/internal/repository
-ok   team4s.v3/backend/internal/handlers
-```
+Das aktuelle Design verlangt:
+1. Admin erstellt manuell eine neue Fansub-Gruppe mit group_type='collaboration'
+2. Admin benennt sie (z.B. "AnimeOwna x Project Messia")
+3. Admin pflegt Mitgliedsgruppen in einem separaten Tab
 
-Status: PASSED
+UAT-Feedback 2026-05-11: Bei 10 kollaborierenden Gruppen an einer Episode ist dieser Workflow
+unzumutbar. Ein Name wie "GroupA x GroupB x ... x GroupJ" ist sinnlos.
+Das eigentliche Nutzerbedurfnis ist: einem Release direkt mehrere Gruppen zuweisen, ohne
+eine Zwischen-Entitaet manuell anlegen zu muessen.
 
-### Frontend Build
+SC3 wird nicht als UAT-Pass gewertet. Das Problem wird durch Phase 39 neu geloest
+(direkte Multi-Gruppen-Zuweisung am Release, ohne Kollaborations-Entitaet als Zwischenschritt).
 
-Command:
-```bash
-cd frontend && npm.cmd run build
-```
+## Technischer Stand SC3
 
-Result:
-```text
-Next.js production build completed successfully.
-```
-
-Status: PASSED
-
-## Manual Verification Still Needed
-
-- [ ] Create one fansub on `/admin/fansubs/create` using at least `twitter` and `github` link rows, save, then reload in edit and confirm they round-trip.
-- [ ] Open one persisted collaboration group on `/admin/fansubs/:id/edit`, add one member group, reload, then remove it again.
-- [ ] Confirm fixed legacy fields are no longer the only editable link surface.
-
-## Notes
-
-- `website_url`, `discord_url`, and `irc_url` are now compatibility projections sourced from canonical `fansub_group_links`.
-- `closed_year` and `history_description` remain transitional read fields and were intentionally not hard-dropped in Phase 29.
+Das Feature ist technisch implementiert (Backend-Endpunkte, Frontend-Tab) und funktioniert korrekt
+nach seiner Spec — loest aber das falsche Problem. Der Code bleibt vorerst im System,
+Phase 39 ersetzt die UX-Ebene.

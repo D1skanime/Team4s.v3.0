@@ -8,7 +8,8 @@ last_updated: "2026-05-10T20:00:12.045Z"
 last_activity: 2026-05-10
 progress:
   total_phases: 34
-  completed_phases: 29
+  completed_phases: 30
+  total_phases: 35
   total_plans: 112
   completed_plans: 102
 ---
@@ -284,10 +285,11 @@ Recent durable decisions:
 | 260423qpn | Optionale Jellyfin-Bibliotheksfilterung via JELLYFIN_ALLOWED_LIBRARY_IDS | 2026-04-24 | 6fad43b | [260423qpn-jellyfin-library-filter](./quick/260423qpn-jellyfin-library-filter/) |
 | 260428-ddb | Episoden-Laufzeit crawlen und in Timeline-Vorschau proportional anzeigen | 2026-04-28 | 5126a293 | [260428-ddb-episoden-laufzeit-crawlen-und-in-timelin](./quick/260428-ddb-episoden-laufzeit-crawlen-und-in-timelin/) |
 | 260429-fnm | Smart-Parser fuer Segment-Zeitfelder: MM:SS, Xm/XmYs, immer HH:MM:SS Ausgabe | 2026-04-29 | 1230bd2c | [260429-fnm-smart-parser-fuer-segment-zeitfelder-mm-](./quick/260429-fnm-smart-parser-fuer-segment-zeitfelder-mm-/) |
+| 260511-bxr | Fansub-Edit Banner top-crop fix + Logo-Position neben Gruppenname | 2026-05-11 | 72b69bf4 | [260511-bxr-fansub-edit-banner-top-crop-fix](./quick/260511-bxr-fansub-edit-banner-top-crop-fix/) |
 
 ## Session Continuity
 
-Last session: 2026-05-08T20:39:13.991Z
-Stopped at: Completed 38-02-PLAN.md
-Last activity: 2026-05-10
+Last session: 2026-05-11T00:00:00Z
+Stopped at: Phase 29 closed; Phase 39 (Release Multi-Group) als Nachfolger eingetragen
+Last activity: 2026-05-11
 Resume file: None

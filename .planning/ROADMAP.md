@@ -38,7 +38,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 26: Segment Source Asset Upload And Persistence** - Segmente koennen echte Team4s-Assets als Quelle hinterlegen: Upload, benannter Zielpfad, Asset-Referenz am Segment und kontrolliertes Entfernen ohne Playback-Pflicht. (implementiert 2026-04-28)
 - [x] **Phase 27: Segment Library Identity And Reuse** - Segmentdateien werden fachlich ueber stabile Anime-/Gruppen-Identitaet statt lokaler Anime-IDs verwaltet, koennen nach Reimport wiedergefunden werden, und Anime-Delete entkoppelt nur noch statt wiederverwendbare OP/ED-Assets blind zu vernichten. (implementiert und UAT bestanden 2026-04-28)
 - [x] **Phase 28: Segment Playback Sources From Jellyfin Runtime** - Segmente nutzen standardmaessig die aktuelle Episode-Version bzw. deren Jellyfin-Stream als Playback-Quelle, respektieren reale `release_variants.duration_seconds` Laufzeitgrenzen wenn vorhanden, und behalten Upload-Dateien nur als expliziten Fallback. (live UAT bestanden 2026-04-29)
-- [ ] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad.
+- [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
 ## Phase Details
 
@@ -428,13 +428,8 @@ Plans:
 **Goal:** Fansub-Gruppen fachlich auf ein kanonisches Profilmodell konsolidieren, generische Community-Links ueber `fansub_group_links` statt fester Einzelspalten verwalten, Kollaborationen explizit administrierbar machen, und Legacy-Doppelfelder kontrolliert in einen Cleanup-Pfad ueberfuehren.
 **Requirements**: P29-SC1, P29-SC2, P29-SC3, P29-SC4, P29-SC5
 **Depends on:** Phase 28
-**Status**: Planned on 2026-04-29 aus live DB-Audit und Produktentscheidung fuer kanonisches Fansub-Modell
-**Plans:** 0/3 plans complete
-
-Plans:
-- [ ] `29-01-PLAN.md` - Backend- und Schema-Contract fuer kanonische Fansub-Gruppen plus generische `fansub_group_links` CRUD und Kompatibilitaetsprojektion.
-- [ ] `29-02-PLAN.md` - Frontend-Fansub-Create/Edit auf generische Links umstellen und explizite Collaboration-Member-Verwaltung ergaenzen.
-- [ ] `29-03-PLAN.md` - Legacy-Doppelfelder, Alias-Reconcile-Reste, Verifikation und handoff-sicheren Cleanup-Pfad dokumentieren und absichern.
+**Status**: UAT bestanden 2026-05-11; SC3 als impraktikabel eingestuft und an Phase 39 delegiert
+**Plans:** implementiert ohne formale PLAN.md-Dateien (Code bereits live)
 
 **Success Criteria** (what must be TRUE):
   1. Fansub-CRUD arbeitet fachlich auf einem kanonischen Gruppenprofil und fuehrt keine neuen Produktabhaengigkeiten auf `closed_year`, `history_description` oder Alias-`group_id` ein.
@@ -619,3 +614,22 @@ Plans:
   3. Hover ueber eine Galerie-Karte zeigt eine Floating Preview Card mit grossem Bild und Caption.
   4. GIF-Items zeigen beim Hover das animierte Original (original_url) statt dem statischen Thumbnail.
   5. Cross-Category-Drag ist gesperrt; die Reorder-Aktion bleibt auf die aktuelle Kategorie begrenzt.
+
+### Phase 39: Release Multi-Group — Direkte Gruppen-Zuweisung an Releases
+
+**Goal:** Releases koennen direkt mehrere Fansub-Gruppen tragen, ohne eine manuelle Kollaborations-Zwischengruppe anlegen zu muessen. Admins waehlten beim Release-Edit einfach alle beteiligten Gruppen aus einer Liste — unabhaengig davon wie viele es sind.
+
+**Hintergrund (Phase 29 SC3):** Der bisherige Collaboration-Group-Workflow (group_type='collaboration' manuell anlegen, benennen, Mitglieder hinzufuegen) ist bei mehr als 2 Gruppen unzumutbar und wurde in Phase 29 UAT als impraktikabel abgelehnt.
+
+**Depends on:** Phase 29
+**Status**: Geplant 2026-05-11 aus Phase-29-UAT-Feedback
+
+Plans:
+- [ ] `39-01-PLAN.md` - Schema: release_group_assignments Many-to-Many Tabelle oder ARRAY-Spalte; Backend CRUD; Kompatibilitaet mit bestehendem fansub_group_id FK.
+- [ ] `39-02-PLAN.md` - Frontend: Release-Edit zeigt Multi-Gruppen-Picker; bestehende Einzel-Gruppen-Anzeige auf Multi-Gruppen umstellen.
+
+**Success Criteria** (what must be TRUE):
+  1. Ein Release kann im Admin mit 1-N Fansub-Gruppen verknuepft werden ohne eine Zwischen-Entitaet anzulegen.
+  2. Beim Speichern mit mehreren Gruppen bleiben alle Zuweisungen nach Reload erhalten.
+  3. Bestehende Releases mit einer Gruppe werden korrekt migriert und zeigen diese Gruppe weiterhin an.
+  4. Die alte Kollaborations-Workflow-UX (group_type='collaboration' manuell pflegen) ist nicht mehr der empfohlene Pfad fuer Release-Kollaborationen.
