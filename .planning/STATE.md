@@ -287,6 +287,7 @@ Recent durable decisions:
 | 260429-fnm | Smart-Parser fuer Segment-Zeitfelder: MM:SS, Xm/XmYs, immer HH:MM:SS Ausgabe | 2026-04-29 | 1230bd2c | [260429-fnm-smart-parser-fuer-segment-zeitfelder-mm-](./quick/260429-fnm-smart-parser-fuer-segment-zeitfelder-mm-/) |
 | 260511-bxr | Fansub-Edit Banner top-crop fix + Logo-Position neben Gruppenname | 2026-05-11 | 72b69bf4 | [260511-bxr-fansub-edit-banner-top-crop-fix](./quick/260511-bxr-fansub-edit-banner-top-crop-fix/) |
 | 260511-hfd | ReleaseVersionMediaGallery 3 Test-Bugs fixen (draggable + GIF src-swap) | 2026-05-11 | 4eab759c | [260511-hfd-releaseversionmediagallery-3-test-bugs-f](./quick/260511-hfd-releaseversionmediagallery-3-test-bugs-f/) |
+| 260511-jjq | Umlaut-Regel in AGENTS.md ergaenzen (Codex-Pendant zu CLAUDE.md) | 2026-05-11 | 58fd4fca | [260511-jjq-umlaut-regel-in-agents-md-ergaenzen](./quick/260511-jjq-umlaut-regel-in-agents-md-ergaenzen/) |
 
 ## Session Continuity
 
