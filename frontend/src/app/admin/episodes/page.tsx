@@ -129,7 +129,7 @@ export default function AdminEpisodesPage() {
       setAnimeSearchResults([])
       setAnimeSearchTotal(0)
       if (normalized.length > 0) {
-        setAnimeSearchError('Bitte mindestens 2 Zeichen fuer die Suche eingeben.')
+        setAnimeSearchError('Bitte mindestens 2 Zeichen für die Suche eingeben.')
       }
       return
     }
@@ -156,7 +156,7 @@ export default function AdminEpisodesPage() {
   function handleSelectAnime(anime: AnimeListItem) {
     setSelectedAnime(anime)
     setCreateAnimeID(String(anime.id))
-    setSuccessMessage(`Anime #${anime.id} ausgewaehlt: ${anime.title}`)
+    setSuccessMessage(`Anime #${anime.id} ausgewählt: ${anime.title}`)
   }
 
   async function handleCreateSubmit(event: FormEvent<HTMLFormElement>) {
@@ -172,7 +172,7 @@ export default function AdminEpisodesPage() {
 
     const animeID = parsePositiveInt(createAnimeID)
     if (!animeID) {
-      setErrorMessage('anime_id ist ungueltig')
+      setErrorMessage('anime_id ist ungültig')
       return
     }
 
@@ -225,7 +225,7 @@ export default function AdminEpisodesPage() {
 
     const episodeID = parsePositiveInt(updateEpisodeID)
     if (!episodeID) {
-      setErrorMessage('Episode-ID ist ungueltig.')
+      setErrorMessage('Episode-ID ist ungültig.')
       return
     }
 
@@ -243,7 +243,7 @@ export default function AdminEpisodesPage() {
     }
 
     if (Object.keys(payload).length === 0) {
-      setErrorMessage('Mindestens ein Feld fuer das Update ausfuellen.')
+      setErrorMessage('Mindestens ein Feld für das Update ausfuellen.')
       return
     }
 
@@ -277,7 +277,7 @@ export default function AdminEpisodesPage() {
         <h1 className={styles.title}>Admin Episoden</h1>
         <p className={styles.subtitle}>Episoden erstellen und bearbeiten (separater Modus).</p>
         <p className={styles.hint}>
-          Fuer den verbundenen Workflow mit Anime-Kontext: <Link href="/admin/anime">/admin/anime</Link>
+          Für den verbundenen Workflow mit Anime-Kontext: <Link href="/admin/anime">/admin/anime</Link>
         </p>
         <p className={styles.tokenPreview}>Token: {hasAuthToken ? tokenPreview : 'nicht vorhanden'}</p>
       </header>
@@ -378,7 +378,7 @@ export default function AdminEpisodesPage() {
                             onClick={() => handleSelectAnime(anime)}
                             disabled={isSubmittingCreate}
                           >
-                            Auswaehlen
+                            Auswählen
                           </button>
                           <a
                             className={styles.buttonSecondary}
@@ -386,7 +386,7 @@ export default function AdminEpisodesPage() {
                             target="_blank"
                             rel="noreferrer"
                           >
-                            Oeffnen
+                            Öffnen
                           </a>
                         </div>
                       </div>
@@ -408,7 +408,7 @@ export default function AdminEpisodesPage() {
               />
               {selectedAnime ? (
                 <p className={styles.hint}>
-                  Ausgewaehlt: #{selectedAnime.id} | {selectedAnime.title}
+                  Ausgewählt: #{selectedAnime.id} | {selectedAnime.title}
                 </p>
               ) : null}
             </div>
@@ -454,7 +454,7 @@ export default function AdminEpisodesPage() {
             </button>
             {parsePositiveInt(createAnimeID) ? (
               <Link href={`/anime/${createAnimeID}`} className={styles.buttonSecondary}>
-                Anime oeffnen
+                Anime öffnen
               </Link>
             ) : null}
           </div>
@@ -464,7 +464,7 @@ export default function AdminEpisodesPage() {
       <section className={styles.panel}>
         <h2>Episode bearbeiten (Patch)</h2>
         <p className={styles.hint}>
-          Nur ausgewaehlte Felder werden gesendet. Fuer nullable Felder kannst du explizit Wert loeschen (null) waehlen.
+          Nur ausgewählte Felder werden gesendet. Für nullable Felder kannst du explizit Wert löschen (null) wählen.
         </p>
         <form className={styles.form} onSubmit={handleUpdateSubmit}>
           <div className={styles.gridTwo}>
@@ -518,7 +518,7 @@ export default function AdminEpisodesPage() {
                   onChange={(event) => setClearUpdateTitle(event.target.checked)}
                   disabled={isSubmittingUpdate}
                 />
-                Wert loeschen (null)
+                Wert löschen (null)
               </label>
             </div>
           </div>
@@ -529,7 +529,7 @@ export default function AdminEpisodesPage() {
             </button>
             {parsePositiveInt(updateEpisodeID) ? (
               <Link href={`/episodes/${updateEpisodeID}`} className={styles.buttonSecondary}>
-                Episode oeffnen
+                Episode öffnen
               </Link>
             ) : null}
           </div>

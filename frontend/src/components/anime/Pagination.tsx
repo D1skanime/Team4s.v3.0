@@ -48,7 +48,7 @@ export function Pagination({ currentPage, totalPages, letter, perPage, contentTy
         aria-disabled={currentPage === 1}
       >
         <ChevronLeft size={16} />
-        Zurueck
+        Zurück
       </Link>
 
       <div className={styles.pages}>

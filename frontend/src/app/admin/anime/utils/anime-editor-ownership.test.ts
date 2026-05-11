@@ -7,7 +7,7 @@ describe('resolveAnimeEditorOwnership', () => {
     expect(resolveAnimeEditorOwnership({ id: 1, title: 'Manual Anime' })).toMatchObject({
       label: 'Manuell gepflegt',
       tone: 'manual',
-      hint: 'Keine persistierte Jellyfin-Verknuepfung aktiv. Aenderungen bleiben manuell gepflegt.',
+      hint: 'Keine persistierte Jellyfin-Verknüpfung aktiv. Änderungen bleiben manuell gepflegt.',
     })
   })
 

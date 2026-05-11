@@ -1,7 +1,7 @@
 import styles from './page.module.css'
 
 /**
- * Ladezustand fuer die Anime-Listenseite.
+ * Ladezustand für die Anime-Listenseite.
  * Wird von Next.js automatisch angezeigt, waehrend die Seite serverseitig geladen wird.
  */
 export default function LoadingAnimePage() {

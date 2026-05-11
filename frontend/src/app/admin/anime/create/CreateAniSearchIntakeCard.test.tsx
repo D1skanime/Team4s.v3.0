@@ -52,7 +52,7 @@ describe("CreateAniSearchIntakeCard", () => {
             "1 AniSearch-Relation konnte nicht lokal zugeordnet werden.",
           ],
           draftStatusNotes: [
-            "AniSearch hat bestehende Jellyfin-Werte fuer Titel und Beschreibung ueberschrieben.",
+            "AniSearch hat bestehende Jellyfin-Werte für Titel und Beschreibung ueberschrieben.",
             "Manuell gepflegte Genres bleiben erhalten.",
           ],
           draft: {
@@ -78,7 +78,7 @@ describe("CreateAniSearchIntakeCard", () => {
     expect(summaryMarkup).not.toContain("Relationen");
     expect(summaryMarkup).not.toContain("AniSearch-Status");
     expect(summaryMarkup).not.toContain(
-      "AniSearch hat bestehende Jellyfin-Werte fuer Titel und Beschreibung ueberschrieben.",
+      "AniSearch hat bestehende Jellyfin-Werte für Titel und Beschreibung ueberschrieben.",
     );
     expect(summaryMarkup).not.toContain("Manuell gepflegte Genres bleiben erhalten.");
 
@@ -141,7 +141,7 @@ describe("CreateAniSearchIntakeCard", () => {
     expect(markup).toContain("Suchergebnisse");
     expect(markup).toContain("Bleach");
     expect(markup).toContain("2004 | TV-Serie | AniSearch-ID 1078");
-    expect(markup).toContain("Auswaehlen");
+    expect(markup).toContain("Auswählen");
   });
 
   it("renders the filtered-duplicate empty-state copy while keeping duplicate redirect CTA available", () => {

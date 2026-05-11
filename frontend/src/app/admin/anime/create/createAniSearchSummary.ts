@@ -1,8 +1,8 @@
 import type { AdminAnimeAniSearchCreateDraftResult } from "@/types/admin";
 
 /**
- * Parameter fuer die Erstellung einer AniSearch-Entwurfs-Zusammenfassung.
- * Enthaelt das Ergebnis vom Backend sowie Listen ueberschriebener und
+ * Parameter für die Erstellung einer AniSearch-Entwurfs-Zusammenfassung.
+ * Enthält das Ergebnis vom Backend sowie Listen ueberschriebener und
  * beibehaltener Felder.
  */
 interface BuildCreateAniSearchDraftSummaryParams {
@@ -28,8 +28,8 @@ export interface CreateAniSearchDraftSummary {
 }
 
 /**
- * Gibt die Werte als kommagetrennte Zeichenkette zurueck oder den Fallback-
- * Text, wenn die Liste leer ist. Hilfsfunktion fuer lesbare Zusammenfassungen.
+ * Gibt die Werte als kommagetrennte Zeichenkette zurück oder den Fallback-
+ * Text, wenn die Liste leer ist. Hilfsfunktion für lesbare Zusammenfassungen.
  */
 function joinOrFallback(values: string[], fallback: string): string {
   return values.length > 0 ? values.join(", ") : fallback;
@@ -51,7 +51,7 @@ export function buildCreateAniSearchDraftSummary({
       ? [
           `${result.provider.relation_matches} von ${result.provider.relation_candidates} AniSearch-Relationen konnten lokal zugeordnet werden.`,
         ]
-      : ["AniSearch hat keine lokalen Relationen fuer diesen Titel gefunden."];
+      : ["AniSearch hat keine lokalen Relationen für diesen Titel gefunden."];
   const draftStatusNotes: string[] = [];
   const notes = [
     `Aktualisiert: ${joinOrFallback(updatedFields, "keine Felder")}.`,
@@ -60,7 +60,7 @@ export function buildCreateAniSearchDraftSummary({
 
   if (overwrittenJellyfinFields.length > 0) {
     draftStatusNotes.push(
-      `AniSearch hat bestehende Jellyfin-Werte fuer ${overwrittenJellyfinFields.join(", ")} ueberschrieben.`,
+      `AniSearch hat bestehende Jellyfin-Werte für ${overwrittenJellyfinFields.join(", ")} ueberschrieben.`,
     );
     notes.push(`Jellyfin ersetzt: ${overwrittenJellyfinFields.join(", ")}.`);
   }

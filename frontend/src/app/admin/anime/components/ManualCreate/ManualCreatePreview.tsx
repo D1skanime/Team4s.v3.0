@@ -30,7 +30,7 @@ export function ManualCreatePreview({ title, coverImage }: ManualCreatePreviewPr
         />
         <div className={styles.coverMeta}>
           <strong>{previewTitle}</strong>
-          <span>{previewCover ? previewCover : 'Noch kein Cover ausgewaehlt'}</span>
+          <span>{previewCover ? previewCover : 'Noch kein Cover ausgewählt'}</span>
         </div>
       </div>
     </section>

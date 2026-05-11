@@ -10,8 +10,8 @@ import type { AdminJellyfinIntakeSearchItem } from "@/types/admin";
 import createStyles from "./page.module.css";
 
 /**
- * Props des CreateJellyfinResultsPanel. Enthaelt die Suchanfrage, gefundene
- * Kandidaten, den aktuell ausgewaehlten Kandidaten und Lade-/Auswahlrueckrufe.
+ * Props des CreateJellyfinResultsPanel. Enthält die Suchanfrage, gefundene
+ * Kandidaten, den aktuell ausgewählten Kandidaten und Lade-/Auswahlrueckrufe.
  */
 interface CreateJellyfinResultsPanelProps {
   query: string;
@@ -44,7 +44,7 @@ export function CreateJellyfinResultsPanel({
           <p className={createStyles.resultsEyebrow}>Jellyfin</p>
           <h2 className={createStyles.resultsTitle}>Treffer pruefen</h2>
           <p className={createStyles.resultsText}>
-            Erst Details pruefen, dann die ausgewaehlte Serie aktiv in den
+            Erst Details pruefen, dann die ausgewählte Serie aktiv in den
             Entwurf laden. Beim Laden wird die bisherige Jellyfin-Vorschau
             vollstaendig ersetzt.
           </p>

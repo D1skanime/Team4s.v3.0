@@ -12,7 +12,7 @@ export function AnimeGrid({ anime, gridQuery }: AnimeGridProps) {
   if (anime.length === 0) {
     return (
       <section className={styles.emptyState}>
-        <h2>Keine Eintraege gefunden</h2>
+        <h2>Keine Einträge gefunden</h2>
         <p>Bitte einen anderen Buchstaben oder Filter ausprobieren.</p>
       </section>
     )

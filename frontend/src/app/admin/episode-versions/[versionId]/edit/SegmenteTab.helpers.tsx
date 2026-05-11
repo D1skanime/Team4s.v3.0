@@ -186,7 +186,7 @@ export function SegmentTimeline({ segments, totalDurationSeconds }: SegmentTimel
   if (timedSegments.length === 0) {
     return (
       <>
-        <p className={styles.emptyState}>Keine Zeitbereiche fuer Timeline verfuegbar.</p>
+        <p className={styles.emptyState}>Keine Zeitbereiche für Timeline verfügbar.</p>
         {untimedSegments.length > 0 ? <UntimedSegmentList segments={untimedSegments} /> : null}
       </>
     )

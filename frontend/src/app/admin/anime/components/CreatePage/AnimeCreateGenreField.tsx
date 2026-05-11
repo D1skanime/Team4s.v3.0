@@ -45,7 +45,7 @@ export function AnimeCreateGenreField({
     <div className={styles.field}>
       <label htmlFor="create-genre">Genre</label>
       {selectedTokens.length > 0 ? (
-        <div className={styles.chipRow} aria-label="Ausgewaehlte Genres">
+        <div className={styles.chipRow} aria-label="Ausgewählte Genres">
           {selectedTokens.map((token) => (
             <button
               key={token}
@@ -83,18 +83,18 @@ export function AnimeCreateGenreField({
           disabled={isSubmitting || draft.trim().length === 0}
           onClick={onAddDraft}
         >
-          Hinzufuegen
+          Hinzufügen
         </button>
       </div>
 
-      {isLoading ? <p className={styles.hint}>Genre-Vorschlaege werden geladen...</p> : null}
+      {isLoading ? <p className={styles.hint}>Genre-Vorschläge werden geladen...</p> : null}
       {error ? <p className={styles.hint}>Hinweis: {error}</p> : null}
       {!isLoading && suggestions.length > 0 ? (
         <>
           <p className={styles.hint}>
-            Vorschlaege: {suggestions.length}/{suggestionsTotal} (geladen: {loadedTokenCount})
+            Vorschläge: {suggestions.length}/{suggestionsTotal} (geladen: {loadedTokenCount})
           </p>
-          <div className={styles.chipBox} aria-label="Genre Vorschlaege">
+          <div className={styles.chipBox} aria-label="Genre Vorschläge">
             <div className={styles.chipRow}>
               {suggestions.map((token) => (
                 <button

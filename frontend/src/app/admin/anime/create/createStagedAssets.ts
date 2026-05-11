@@ -1,5 +1,5 @@
 /**
- * createStagedAssets.ts: Typdefinitionen und Hilfsfunktionen fuer vorbereitete
+ * createStagedAssets.ts: Typdefinitionen und Hilfsfunktionen für vorbereitete
  * (gestagede) Assets auf der Anime-Erstellen-Seite. Ausgelagert, damit die
  * Hauptkomponente unter der 700-Zeilen-Grenze bleibt und die Asset-Logik
  * separat testbar ist.
@@ -30,7 +30,7 @@ export interface CreateManualStagedAssets {
 }
 
 /**
- * Erstellt ein leeres Objekt fuer vorbereitete Assets, bei dem alle Slots null
+ * Erstellt ein leeres Objekt für vorbereitete Assets, bei dem alle Slots null
  * bzw. leer sind. Wird als Anfangszustand beim Erstellen eines neuen Anime
  * verwendet.
  */
@@ -57,7 +57,7 @@ export function revokeStagedAssetPreview(
 
 /**
  * Gibt alle Objekt-URLs aller gestaged-Assets auf einmal frei. Wird beim
- * Unmount der Seite oder beim vollstaendigen Zuruecksetzen der Assets verwendet.
+ * Unmount der Seite oder beim vollstaendigen Zurücksetzen der Assets verwendet.
  */
 export function revokeStagedAssetPreviews(assets: CreateManualStagedAssets) {
   revokeStagedAssetPreview(assets.banner);
@@ -73,7 +73,7 @@ export function revokeStagedAssetPreviews(assets: CreateManualStagedAssets) {
 /**
  * Ersetzt einen einzelnen Asset-Slot mit einer neuen Datei und gibt die
  * vorherige Preview-URL frei. Gibt sowohl das aktualisierte Assets-Objekt
- * als auch den neuen gestaged-Asset-Eintrag zurueck.
+ * als auch den neuen gestaged-Asset-Eintrag zurück.
  */
 export function buildReplacedSingleAsset(
   current: CreateManualStagedAssets,

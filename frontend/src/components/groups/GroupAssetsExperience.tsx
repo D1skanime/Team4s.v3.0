@@ -124,7 +124,7 @@ export function GroupAssetsExperience({
         <div className={styles.groupAssetsHeader}>
           <div>
             <h2 id="group-assets-title" className={styles.groupAssetsTitle}>
-              Episodenuebersicht
+              Episodenübersicht
             </h2>
             <p className={styles.groupAssetsText}>
               Bilder werden als Galerie angezeigt. Opening, Ending, Karaoke und Inserts erscheinen separat als
@@ -136,10 +136,10 @@ export function GroupAssetsExperience({
 
         {errorMessage ? <div className={styles.stateBox}>{errorMessage}</div> : null}
         {!errorMessage && !folderFound ? (
-          <div className={styles.stateBox}>Fuer diese Gruppenversion wurde noch kein Subgroups-Ordner erkannt.</div>
+          <div className={styles.stateBox}>Für diese Gruppenversion wurde noch kein Subgroups-Ordner erkannt.</div>
         ) : null}
         {!errorMessage && folderFound && !hasEpisodes ? (
-          <div className={styles.stateBox}>Der Gruppenordner ist vorhanden, enthaelt aber noch keine Episoden-Assets.</div>
+          <div className={styles.stateBox}>Der Gruppenordner ist vorhanden, enthält aber noch keine Episoden-Assets.</div>
         ) : null}
 
         {episodes.map((episode) => {
@@ -232,7 +232,7 @@ export function GroupAssetsExperience({
         <div className={styles.lightbox} role="dialog" aria-modal="true" aria-label="Bildansicht" onClick={() => setLightboxImages([])}>
           <div className={styles.lightboxContent} onClick={(event) => event.stopPropagation()}>
             <img src={resolveApiUrl(activeImage.image_url)} alt={activeImage.title} className={styles.lightboxImage} />
-            <button type="button" className={styles.closeButton} onClick={() => setLightboxImages([])} aria-label="Schliessen">
+            <button type="button" className={styles.closeButton} onClick={() => setLightboxImages([])} aria-label="Schließen">
               <X size={22} />
             </button>
             <button
@@ -249,7 +249,7 @@ export function GroupAssetsExperience({
               className={`${styles.navButton} ${styles.navButtonRight}`}
               onClick={() => setActiveImageIndex((current) => Math.min(lightboxImages.length - 1, current + 1))}
               disabled={activeImageIndex >= lightboxImages.length - 1}
-              aria-label="Naechstes Bild"
+              aria-label="Nächstes Bild"
             >
               <ChevronRight size={22} />
             </button>

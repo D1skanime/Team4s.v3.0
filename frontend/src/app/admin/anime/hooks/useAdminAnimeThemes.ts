@@ -126,7 +126,7 @@ export function useAdminAnimeThemes({
   async function createTheme(): Promise<void> {
     clearMessages()
     if (newTypeID <= 0) {
-      setInlineError('Bitte zuerst einen Theme-Typ waehlen.')
+      setInlineError('Bitte zuerst einen Theme-Typ wählen.')
       return
     }
 
@@ -160,9 +160,9 @@ export function useAdminAnimeThemes({
       if (editingThemeID === themeID) {
         setEditingThemeID(null)
       }
-      onSuccess?.('Theme geloescht.')
+      onSuccess?.('Theme gelöscht.')
     } catch (error) {
-      const message = formatErrorMessage(error, 'Theme konnte nicht geloescht werden.')
+      const message = formatErrorMessage(error, 'Theme konnte nicht gelöscht werden.')
       setErrorMessage(message)
       onError?.(message)
     } finally {
@@ -262,9 +262,9 @@ export function useAdminAnimeThemes({
         )
         return next
       })
-      onSuccess?.('Episodenbereich geloescht.')
+      onSuccess?.('Episodenbereich gelöscht.')
     } catch (error) {
-      const message = formatErrorMessage(error, 'Episodenbereich konnte nicht geloescht werden.')
+      const message = formatErrorMessage(error, 'Episodenbereich konnte nicht gelöscht werden.')
       setErrorMessage(message)
       onError?.(message)
     } finally {

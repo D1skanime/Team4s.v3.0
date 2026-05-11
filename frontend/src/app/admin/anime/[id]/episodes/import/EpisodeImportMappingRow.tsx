@@ -183,7 +183,7 @@ export function EpisodeImportMappingRowCard({
                     </button>
                   ))
                 ) : (
-                  <span className={styles.groupPlaceholder}>Keine Gruppe gewaehlt.</span>
+                  <span className={styles.groupPlaceholder}>Keine Gruppe gewählt.</span>
                 )}
               </div>
               <div className={styles.groupInputRow}>
@@ -192,7 +192,7 @@ export function EpisodeImportMappingRowCard({
                   value={query}
                   disabled={isSkipped}
                   placeholder="Gruppe suchen oder neu tippen"
-                  aria-label={`Fansub-Gruppen fuer ${label}`}
+                  aria-label={`Fansub-Gruppen für ${label}`}
                   onChange={(event) => setQuery(event.target.value)}
                   onKeyDown={handleGroupInputKeyDown}
                 />
@@ -260,7 +260,7 @@ export function EpisodeImportMappingRowCard({
               value={row.release_version ?? ''}
               disabled={isSkipped}
               placeholder="z.B. v2"
-              aria-label={`Release-Version fuer ${label}`}
+              aria-label={`Release-Version für ${label}`}
               onChange={(event) => onSetRelease(row.media_item_id, { releaseVersion: event.target.value })}
             />
           </label>
@@ -272,7 +272,7 @@ export function EpisodeImportMappingRowCard({
         defaultValue={(row.target_episode_numbers ?? []).join(',')}
         disabled={isSkipped}
         onBlur={(event) => onSetTargets(row.media_item_id, event.target.value)}
-        aria-label={`Ziel-Episoden fuer ${label}`}
+        aria-label={`Ziel-Episoden für ${label}`}
         placeholder="z.B. 1"
       />
       <button
@@ -301,11 +301,11 @@ function statusLabel(status: string): string {
     case 'suggested':
       return 'Vorschlag'
     case 'confirmed':
-      return 'Bestaetigt'
+      return 'Bestätigt'
     case 'conflict':
       return 'Konflikt'
     case 'skipped':
-      return 'Uebersprungen'
+      return 'Übersprungen'
     default:
       return status
   }

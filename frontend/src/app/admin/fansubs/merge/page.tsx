@@ -29,10 +29,10 @@ interface CountSummary {
 }
 
 const WIZARD_STEPS: Array<{ id: WizardStep; title: string }> = [
-  { id: 1, title: "Zielgruppe waehlen" },
-  { id: 2, title: "Quellgruppen waehlen" },
+  { id: 1, title: "Zielgruppe wählen" },
+  { id: 2, title: "Quellgruppen wählen" },
   { id: 3, title: "Vorschau pruefen" },
-  { id: 4, title: "Bestaetigen & zusammenfuehren" },
+  { id: 4, title: "Bestätigen & zusammenfuehren" },
 ];
 
 export default function MergeFansubsPage() {
@@ -461,14 +461,14 @@ export default function MergeFansubsPage() {
 
       {targetGroup && (
         <div className={`${styles.panel} ${styles.mergeSelectedTargetCard}`}>
-          <h2>Ausgewaehlte Zielgruppe</h2>
+          <h2>Ausgewählte Zielgruppe</h2>
           <GroupRowCard group={targetGroup} selectedAs="target" />
         </div>
       )}
 
       {currentStep === 1 && (
         <div className={styles.panel}>
-          <h2>1. Zielgruppe waehlen</h2>
+          <h2>1. Zielgruppe wählen</h2>
           <p>
             Diese Gruppe bleibt bestehen und erhält Daten aus den Quellgruppen.
           </p>
@@ -498,7 +498,7 @@ export default function MergeFansubsPage() {
             ))}
             {filteredGroups.length === 0 && (
               <p className={styles.hint}>
-                Keine Gruppen fuer diese Filter gefunden.
+                Keine Gruppen für diese Filter gefunden.
               </p>
             )}
           </div>
@@ -507,8 +507,8 @@ export default function MergeFansubsPage() {
 
       {currentStep === 2 && (
         <div className={styles.panel}>
-          <h2>2. Quellgruppen waehlen</h2>
-          <p>Quellen werden in die Zielgruppe migriert und danach geloescht.</p>
+          <h2>2. Quellgruppen wählen</h2>
+          <p>Quellen werden in die Zielgruppe migriert und danach gelöscht.</p>
 
           <div className={styles.actions}>
             <button
@@ -517,7 +517,7 @@ export default function MergeFansubsPage() {
               onClick={selectAllFilteredSources}
               disabled={merging || sourceCandidates.length === 0}
             >
-              Alle Treffer waehlen
+              Alle Treffer wählen
             </button>
             <button
               className={styles.buttonSecondary}
@@ -525,7 +525,7 @@ export default function MergeFansubsPage() {
               onClick={clearSourceSelection}
               disabled={merging || sourceIDs.size === 0}
             >
-              Auswahl loeschen
+              Auswahl löschen
             </button>
           </div>
 
@@ -554,7 +554,7 @@ export default function MergeFansubsPage() {
                     />
                     {isTarget && (
                       <p className={styles.mergeInlineHint}>
-                        Zielgruppe kann nicht als Quelle gewaehlt werden.
+                        Zielgruppe kann nicht als Quelle gewählt werden.
                       </p>
                     )}
                   </label>
@@ -562,14 +562,14 @@ export default function MergeFansubsPage() {
               })}
               {filteredGroups.length === 0 && (
                 <p className={styles.hint}>
-                  Keine Gruppen fuer diese Filter gefunden.
+                  Keine Gruppen für diese Filter gefunden.
                 </p>
               )}
             </div>
 
             <aside className={styles.mergeComparePanel}>
               <h3>Vergleich</h3>
-              <p className={styles.hint}>Ziel vs ausgewaehlte Quellen</p>
+              <p className={styles.hint}>Ziel vs ausgewählte Quellen</p>
               <dl className={styles.mergeCompareList}>
                 <dt>Zielgruppe</dt>
                 <dd>
@@ -657,7 +657,7 @@ export default function MergeFansubsPage() {
 
               <div className={styles.mergePreviewDetailGrid}>
                 <div className={styles.mergePreviewDetailCard}>
-                  <h3>Werden geloescht</h3>
+                  <h3>Werden gelöscht</h3>
                   {selectedSourceGroups.length > 0 ? (
                     <ul className={styles.mergeCompactList}>
                       {selectedSourceGroups.map((group) => (
@@ -667,7 +667,7 @@ export default function MergeFansubsPage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className={styles.hint}>Keine Quellen ausgewaehlt.</p>
+                    <p className={styles.hint}>Keine Quellen ausgewählt.</p>
                   )}
                 </div>
 
@@ -677,7 +677,7 @@ export default function MergeFansubsPage() {
                     <strong>{preview.aliases_added.length}</strong> werden
                     hinzugefuegt,{" "}
                     <strong>{preview.aliases_skipped.length}</strong> werden
-                    uebersprungen.
+                    übersprungen.
                   </p>
                   {preview.aliases_added.length > 0 && (
                     <>
@@ -691,7 +691,7 @@ export default function MergeFansubsPage() {
                   )}
                   {preview.aliases_skipped.length > 0 && (
                     <>
-                      <p className={styles.hint}>Uebersprungen</p>
+                      <p className={styles.hint}>Übersprungen</p>
                       <ul className={styles.mergeCompactList}>
                         {preview.aliases_skipped.slice(0, 10).map((alias) => (
                           <li key={`skip-${alias}`}>{alias}</li>
@@ -763,14 +763,14 @@ export default function MergeFansubsPage() {
 
       {currentStep === 4 && (
         <div className={styles.panel}>
-          <h2>4. Bestaetigen & zusammenfuehren</h2>
+          <h2>4. Bestätigen & zusammenfuehren</h2>
           <p>
-            Danger Zone: Quellgruppen werden nach dem Merge dauerhaft geloescht.
+            Danger Zone: Quellgruppen werden nach dem Merge dauerhaft gelöscht.
           </p>
 
           {selectedSourceGroups.length > 0 && (
             <div className={styles.mergeDangerBox}>
-              <h3>Quellgruppen werden geloescht</h3>
+              <h3>Quellgruppen werden gelöscht</h3>
               <ul className={styles.mergeCompactList}>
                 {selectedSourceGroups.map((group) => (
                   <li key={group.id}>
@@ -783,7 +783,7 @@ export default function MergeFansubsPage() {
 
           {!preview && (
             <p className={styles.hintWarning}>
-              Keine Vorschau geladen. Gehe zurueck zu Schritt 3.
+              Keine Vorschau geladen. Gehe zurück zu Schritt 3.
             </p>
           )}
 
@@ -801,7 +801,7 @@ export default function MergeFansubsPage() {
               onChange={(event) => setConfirmDelete(event.target.checked)}
               disabled={merging}
             />
-            Ich bestaetige, dass die Quellgruppen geloescht werden.
+            Ich bestaetige, dass die Quellgruppen gelöscht werden.
           </label>
 
           <div className={styles.field}>
@@ -838,7 +838,7 @@ export default function MergeFansubsPage() {
             onClick={goBack}
             disabled={currentStep === 1 || merging}
           >
-            Zurueck
+            Zurück
           </button>
           {currentStep < 4 ? (
             <button
@@ -850,7 +850,7 @@ export default function MergeFansubsPage() {
               {currentStep === 2
                 ? "Zur Vorschau"
                 : currentStep === 3
-                  ? "Zur Bestaetigung"
+                  ? "Zur Bestätigung"
                   : "Weiter"}
             </button>
           ) : (

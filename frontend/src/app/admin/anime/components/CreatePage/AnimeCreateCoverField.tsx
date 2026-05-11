@@ -73,7 +73,7 @@ export function AnimeCreateCoverField({
           <div className={styles.coverMetaBlock}>
             <span className={styles.coverMetaLabel}>Aktueller Pfad</span>
             <code className={styles.coverMetaValue}>
-              {hasCover ? coverImage : "Noch keine Datei ausgewaehlt."}
+              {hasCover ? coverImage : "Noch keine Datei ausgewählt."}
             </code>
           </div>
 
@@ -107,7 +107,7 @@ export function AnimeCreateCoverField({
                 target="_blank"
                 rel="noreferrer"
               >
-                Cover oeffnen
+                Cover öffnen
               </a>
             ) : null}
           </div>

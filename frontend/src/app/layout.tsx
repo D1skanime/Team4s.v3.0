@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'Anime und Fansub Portal',
 }
 
-/** Props fuer das Root-Layout. */
+/** Props für das Root-Layout. */
 interface RootLayoutProps {
   children: ReactNode
 }

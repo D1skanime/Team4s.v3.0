@@ -33,7 +33,7 @@ import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
 
 import styles from './page.module.css'
 
-/** Props fuer die Anime-Detailseite mit URL-Parametern und optionalen Such-Parametern. */
+/** Props für die Anime-Detailseite mit URL-Parametern und optionalen Such-Parametern. */
 interface AnimeDetailPageProps {
   params:
     | {
@@ -100,7 +100,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
           <p className={styles.backLink}>
             <Link href="/anime">Zur Anime-Liste</Link>
           </p>
-          <div className={styles.errorBox}>Ungueltige Anime-ID.</div>
+          <div className={styles.errorBox}>Ungültige Anime-ID.</div>
         </div>
       </main>
     )

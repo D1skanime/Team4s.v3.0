@@ -64,7 +64,7 @@ export function EditorPanel({
       <header className={styles.editorHeader}>
         <div>
           <h2 className={styles.editorHeaderTitle}>Editor</h2>
-          <p className={styles.editorMeta}>Schritt 3-5: Episode waehlen, bearbeiten und speichern.</p>
+          <p className={styles.editorMeta}>Schritt 3-5: Episode wählen, bearbeiten und speichern.</p>
         </div>
         <div className={styles.editorModeTabs} role="tablist" aria-label="Editor-Modus">
           <button

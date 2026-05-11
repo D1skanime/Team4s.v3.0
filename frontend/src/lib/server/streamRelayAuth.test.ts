@@ -26,7 +26,7 @@ describe('resolveStreamRelayTarget', () => {
     const fetchImpl = async (input: string, init?: RequestInit): Promise<Response> => {
       calls.push({ url: input, init })
       if (input.endsWith('/api/v1/releases/38/grant') && calls.length === 1) {
-        return new Response(JSON.stringify({ error: { message: 'ungueltiges zugriffstoken' } }), { status: 401 })
+        return new Response(JSON.stringify({ error: { message: 'ungültiges zugriffstoken' } }), { status: 401 })
       }
       if (input.endsWith('/api/v1/auth/refresh')) {
         return new Response(
@@ -107,7 +107,7 @@ describe('resolveStreamRelayTarget', () => {
         )
       }
       if (input.endsWith('/api/v1/episodes/76/play/grant')) {
-        return new Response(JSON.stringify({ error: { message: 'stream grant voruebergehend nicht verfuegbar' } }), {
+        return new Response(JSON.stringify({ error: { message: 'stream grant vorübergehend nicht verfügbar' } }), {
           status: 503,
         })
       }
@@ -141,7 +141,7 @@ describe('resolveStreamRelayTarget', () => {
         const rawHeader = (init?.headers as Headers | undefined)?.get('Authorization') || ''
         authHeaders.push(rawHeader)
         if (rawHeader === 'Bearer token-cookie-invalid') {
-          return new Response(JSON.stringify({ error: { message: 'ungueltiges zugriffstoken' } }), { status: 401 })
+          return new Response(JSON.stringify({ error: { message: 'ungültiges zugriffstoken' } }), { status: 401 })
         }
         if (rawHeader === 'Bearer token-env-fallback') {
           return new Response(JSON.stringify({ data: { grant_token: 'grant-from-fallback' } }), { status: 201 })

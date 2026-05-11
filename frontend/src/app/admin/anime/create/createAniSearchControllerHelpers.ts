@@ -9,7 +9,7 @@ import { buildCreateAniSearchDraftSummary } from "./createAniSearchSummary";
 import { resolveCreateAniSearchDraftMergeInputs } from "./createPageHelpers";
 
 /**
- * Zustand nach einem erfolgreichen AniSearch-Entwurfsabruf. Enthaelt die
+ * Zustand nach einem erfolgreichen AniSearch-Entwurfsabruf. Enthält die
  * AniSearch-ID, Quellenreferenz, Zusammenfassung, aktualisierte Felder,
  * Relationshinweise und die AniSearch-Rohdaten vom Backend.
  */
@@ -25,7 +25,7 @@ export interface CreateAniSearchDraftState {
 
 /**
  * Zustand, wenn eine AniSearch-ID bereits mit einem vorhandenen Anime
- * verknuepft ist. Enthaelt die Konflikts-ID, vorhandenen Titel und einen
+ * verknüpft ist. Enthält die Konflikts-ID, vorhandenen Titel und einen
  * Weiterleitungspfad zum bestehenden Anime.
  */
 export interface CreateAniSearchConflictState {
@@ -66,7 +66,7 @@ export function buildCreateAniSearchDraftState(
 
 /**
  * Erstellt den Konfliktzustand aus einem Backend-Konfliktergebnis, das
- * zurueckgegeben wird, wenn die AniSearch-ID bereits vergeben ist.
+ * zurückgegeben wird, wenn die AniSearch-ID bereits vergeben ist.
  */
 export function buildCreateAniSearchConflictState(
   result: AdminAnimeAniSearchCreateConflictResult,
@@ -81,8 +81,8 @@ export function buildCreateAniSearchConflictState(
 
 /**
  * Verarbeitet das vollstaendige AniSearch-Ergebnis im Controller-Kontext.
- * Bei einem Konflikt wird der Weiterleitungspfad zurueckgegeben; bei Erfolg
- * wird der naechste Ladezustand mit den gemergten Daten berechnet.
+ * Bei einem Konflikt wird der Weiterleitungspfad zurückgegeben; bei Erfolg
+ * wird der nächste Ladezustand mit den gemergten Daten berechnet.
  */
 export function applyCreateAniSearchControllerResult(params: {
   currentDraft: ManualAnimeDraftValues;

@@ -265,7 +265,7 @@ function releaseAssetRequirementLabel(segments: AdminAnimeThemeSegment[]): strin
   })
 
   return hasSegmentFallback
-    ? 'Segment-Fallback vorhanden - Release-Asset fuer diese Fansubgruppe fehlt'
+    ? 'Segment-Fallback vorhanden - Release-Asset für diese Fansubgruppe fehlt'
     : 'Release-Asset fehlt - Upload durch Fansubgruppe erforderlich'
 }
 
@@ -411,7 +411,7 @@ function mapReleaseSegmentCards(
       theme_title: theme.title,
       status: 'missing',
       segments,
-      source_label: 'Noch kein Segment fuer diese Theme-Definition',
+      source_label: 'Noch kein Segment für diese Theme-Definition',
     }
   })
 }
@@ -611,7 +611,7 @@ export default function AdminFansubEditPage() {
 
   useEffect(() => {
     if (!Number.isFinite(fansubID) || fansubID <= 0) {
-      setError('Ungueltige Fansub-ID.')
+      setError('Ungültige Fansub-ID.')
       setLoading(false)
       return
     }
@@ -1018,7 +1018,7 @@ export default function AdminFansubEditPage() {
   const handleDrawerUploadClick = async () => {
     const file = themeUploadInputRef.current?.files?.[0] ?? null
     if (!file) {
-      setDrawerError('Bitte zuerst eine Videodatei auswaehlen.')
+      setDrawerError('Bitte zuerst eine Videodatei auswählen.')
       return
     }
     await handleDrawerUpload(file)
@@ -1110,7 +1110,7 @@ export default function AdminFansubEditPage() {
       } else {
         setCollaborationMembers([])
       }
-      setToast('Aenderungen gespeichert.')
+      setToast('Änderungen gespeichert.')
     } catch (nextError) {
       setError(errMessage(nextError))
     } finally {
@@ -1120,7 +1120,7 @@ export default function AdminFansubEditPage() {
 
   const removeGroup = async () => {
     if (!group || !authToken) return
-    if (!window.confirm('Fansub loeschen? Episoden bleiben erhalten, Zuordnung wird entfernt.')) return
+    if (!window.confirm('Fansub löschen? Episoden bleiben erhalten, Zuordnung wird entfernt.')) return
     setDeleting(true)
     try {
       await deleteFansubGroup(group.id, authToken)
@@ -1241,8 +1241,8 @@ export default function AdminFansubEditPage() {
         {activeMainTab !== 'releases' ? <form className={styles.fansubEditForm} onSubmit={save}>
           <div className={styles.fansubEditStickyActions}>
             <button type="submit" className={styles.button} disabled={invalid || saving || deleting}><Save size={14} />{saving ? 'Speichern...' : 'Speichern'}</button>
-            <button type="button" className={styles.buttonSecondary} onClick={() => (dirty && !window.confirm('Ungespeicherte Aenderungen verwerfen?') ? undefined : (window.location.href = '/admin/fansubs'))}><X size={14} />Abbrechen</button>
-            <button type="button" className={`${styles.buttonSecondary} ${styles.buttonDanger}`} onClick={() => void removeGroup()} disabled={saving || deleting}><Trash2 size={14} />{deleting ? 'Loesche...' : 'Loeschen'}</button>
+            <button type="button" className={styles.buttonSecondary} onClick={() => (dirty && !window.confirm('Ungespeicherte Änderungen verwerfen?') ? undefined : (window.location.href = '/admin/fansubs'))}><X size={14} />Abbrechen</button>
+            <button type="button" className={`${styles.buttonSecondary} ${styles.buttonDanger}`} onClick={() => void removeGroup()} disabled={saving || deleting}><Trash2 size={14} />{deleting ? 'Loesche...' : 'Löschen'}</button>
           </div>
           {error ? <div className={styles.errorBox}>{error}</div> : null}
           {!authToken ? <div className={styles.errorBox}>Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.</div> : null}
@@ -1269,7 +1269,7 @@ export default function AdminFansubEditPage() {
                 <summary className={styles.fansubEditSectionSummary}>Tags</summary>
                 <div className={styles.fansubEditSectionBody}>
                   <p className={styles.fansubEditHint}>Alternative Gruppennamen.</p>
-                  <div className={styles.inputRow}><input value={aliasInput} onChange={(e) => { setAliasInput(e.target.value); setAliasError(null) }} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void addAlias() } }} /><button type="button" className={styles.buttonSecondary} onClick={() => void addAlias()} disabled={aliasBusy}>Hinzufuegen</button></div>
+                  <div className={styles.inputRow}><input value={aliasInput} onChange={(e) => { setAliasInput(e.target.value); setAliasError(null) }} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void addAlias() } }} /><button type="button" className={styles.buttonSecondary} onClick={() => void addAlias()} disabled={aliasBusy}>Hinzufügen</button></div>
                   {aliasError ? <p className={styles.fansubEditInlineError}>{aliasError}</p> : null}
                   <div className={styles.chipBox}><div className={styles.chipRow}>{aliases.map((alias) => <button key={alias.id} type="button" className={`${styles.chip} ${styles.aliasChipDanger}`} onClick={() => void removeAlias(alias)} disabled={aliasBusy}>{alias.alias} x</button>)}</div></div>
                 </div>
@@ -1314,7 +1314,7 @@ export default function AdminFansubEditPage() {
                 <summary className={styles.fansubEditSectionSummary}>Community Links</summary>
                 <div className={styles.fansubEditSectionBody}>
                   <div className={styles.fansubEditLinksHeader}>
-                    <p className={styles.fansubEditHint}>Generische Link-Zeilen fuer Website, Discord, Twitter, GitHub und IRC.</p>
+                    <p className={styles.fansubEditHint}>Generische Link-Zeilen für Website, Discord, Twitter, GitHub und IRC.</p>
                     <button type="button" className={styles.buttonSecondary} onClick={() => setLinks((current) => [...current, createEmptyLink()])}><Plus size={14} />Link</button>
                   </div>
                   <div className={styles.fansubEditLinksList}>
@@ -1350,10 +1350,10 @@ export default function AdminFansubEditPage() {
                       <>
                         <div className={styles.fansubEditCollaborationRow}>
                           <select value={selectedMemberGroupID} onChange={(event) => setSelectedMemberGroupID(event.target.value)} disabled={collaborationBusy}>
-                            <option value="">Mitgliedsgruppe waehlen</option>
+                            <option value="">Mitgliedsgruppe wählen</option>
                             {collaborationCandidates.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
                           </select>
-                          <button type="button" className={styles.buttonSecondary} onClick={() => void addMemberGroup()} disabled={collaborationBusy || !selectedMemberGroupID}><Plus size={14} />Hinzufuegen</button>
+                          <button type="button" className={styles.buttonSecondary} onClick={() => void addMemberGroup()} disabled={collaborationBusy || !selectedMemberGroupID}><Plus size={14} />Hinzufügen</button>
                         </div>
                         <div className={styles.fansubEditCollaborationList}>
                           {collaborationMembers.length === 0 ? <p className={styles.fansubEditHint}>Noch keine Mitgliedsgruppen verknüpft.</p> : null}
@@ -1490,7 +1490,7 @@ export default function AdminFansubEditPage() {
                                 {cardsLoading ? <div className={styles.fansubEditReleaseState}>Theme-Segmente werden geladen...</div> : null}
                                 {cardsError ? <div className={styles.errorBox}>{cardsError}</div> : null}
                                 {!cardsLoading && !cardsError && cards.length === 0 ? (
-                                  <div className={styles.fansubEditReleaseState}>Noch keine Theme-Definitionen fuer diesen Anime vorhanden.</div>
+                                  <div className={styles.fansubEditReleaseState}>Noch keine Theme-Definitionen für diesen Anime vorhanden.</div>
                                 ) : null}
                                 {cards.length > 0 ? (
                                   <div className={styles.fansubEditTimeline}>
@@ -1509,7 +1509,7 @@ export default function AdminFansubEditPage() {
                                       </span>
                                       <span className={styles.fansubEditTimelineLegendItem}>
                                         <span className={`${styles.fansubEditTimelineLegendSwatch} ${styles.fansubEditTimelineLegendSelected}`} aria-hidden="true" />
-                                        Ausgewaehlt
+                                        Ausgewählt
                                       </span>
                                     </div>
                                     <div className={styles.fansubEditTimelineScale}>
@@ -1575,7 +1575,7 @@ export default function AdminFansubEditPage() {
                 </div>
                 <p>{drawerRelease.fansub_name} - {drawerRelease.version_count} Version{drawerRelease.version_count === 1 ? '' : 'en'}</p>
               </div>
-              <button type="button" className={styles.fansubEditReleaseExpandButton} onClick={closeReleaseDrawer} aria-label="Drawer schliessen">
+              <button type="button" className={styles.fansubEditReleaseExpandButton} onClick={closeReleaseDrawer} aria-label="Drawer schließen">
                 <X size={16} />
               </button>
             </header>
@@ -1621,7 +1621,7 @@ export default function AdminFansubEditPage() {
                       <p>{drawerRelease.fansub_name} - {drawerRelease.anime_title}</p>
                     </div>
                     <div className={styles.fansubEditReleaseDrawerContextCard}>
-                      <span>Theme-Uebersicht</span>
+                      <span>Theme-Übersicht</span>
                       <strong>{drawerReleaseThemeSummary}</strong>
                       <p>{drawerReleaseCards.length > 0 ? `${drawerReleaseCards.length} Theme-Definition${drawerReleaseCards.length === 1 ? '' : 'en'} geladen` : 'Theme-Daten noch nicht geladen'}</p>
                     </div>
@@ -1647,7 +1647,7 @@ export default function AdminFansubEditPage() {
             </div>
 
             <footer className={styles.fansubEditReleaseDrawerFooter}>
-              <button type="button" className={styles.buttonSecondary} onClick={closeReleaseDrawer}>Schliessen</button>
+              <button type="button" className={styles.buttonSecondary} onClick={closeReleaseDrawer}>Schließen</button>
             </footer>
           </aside>
         </div>
@@ -1661,7 +1661,7 @@ export default function AdminFansubEditPage() {
                 <h2>{timelineLabelFor(themeSelectedCard.theme_type_name)} bearbeiten</h2>
                 <p>{themeSelectedCard.theme_title || 'Ohne Titel'}</p>
               </div>
-              <button type="button" className={styles.fansubEditReleaseExpandButton} onClick={closeThemeDrawer} aria-label="Theme Drawer schliessen">
+              <button type="button" className={styles.fansubEditReleaseExpandButton} onClick={closeThemeDrawer} aria-label="Theme Drawer schließen">
                 <X size={16} />
               </button>
             </header>
@@ -1669,7 +1669,7 @@ export default function AdminFansubEditPage() {
               <div className={`${styles.fansubEditReleaseDrawerPanel} ${styles.fansubEditThemeDrawerPanel}`}>
                 {drawerError ? <div className={styles.errorBox}>{drawerError}</div> : null}
                 <div className={styles.fansubEditReleaseDrawerAssetBox}>
-                  <p className={styles.fansubEditHint}>Dieser Drawer ist nur fuer OP/ED/IN Theme-Assets. Timeline-Zeiten bleiben unveraendert.</p>
+                  <p className={styles.fansubEditHint}>Dieser Drawer ist nur für OP/ED/IN Theme-Assets. Timeline-Zeiten bleiben unveraendert.</p>
                   <div className={styles.fansubEditSegmentEditorGrid}>
                     <div>
                       <span className={styles.fansubEditSegmentEditorLabel}>Status</span>
@@ -1685,7 +1685,7 @@ export default function AdminFansubEditPage() {
                     </div>
                   </div>
                   {themeSelectedCard.public_url ? (
-                    <a href={resolveApiUrl(themeSelectedCard.public_url)} target="_blank" rel="noreferrer" className={styles.fansubEditReleaseDrawerMediaLink}>Aktuelles Asset oeffnen</a>
+                    <a href={resolveApiUrl(themeSelectedCard.public_url)} target="_blank" rel="noreferrer" className={styles.fansubEditReleaseDrawerMediaLink}>Aktuelles Asset öffnen</a>
                   ) : null}
                   {themeSelectedLocked ? (
                     <p className={styles.fansubEditHint}>Global/Jellyfin gesetzt - keine Fansub-Ueberschreibung in diesem Schritt.</p>
@@ -1732,7 +1732,7 @@ export default function AdminFansubEditPage() {
               </div>
             </div>
             <footer className={styles.fansubEditReleaseDrawerFooter}>
-              <button type="button" className={styles.buttonSecondary} onClick={closeThemeDrawer}>Schliessen</button>
+              <button type="button" className={styles.buttonSecondary} onClick={closeThemeDrawer}>Schließen</button>
             </footer>
           </aside>
         </div>

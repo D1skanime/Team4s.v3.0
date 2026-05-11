@@ -200,7 +200,7 @@ function validateFile(type: FansubMediaKind, file: File): string | null {
 
   if (type === 'logo') {
     if (!logoAllowed.has(file.type)) {
-      return 'Ungueltiges Logo-Format. Erlaubt: SVG, PNG, JPG, WEBP.'
+      return 'Ungültiges Logo-Format. Erlaubt: SVG, PNG, JPG, WEBP.'
     }
     if (file.size > 2 * 1024 * 1024) {
       return 'Logo ist zu gross (max. 2MB).'
@@ -209,8 +209,8 @@ function validateFile(type: FansubMediaKind, file: File): string | null {
   }
 
   if (!bannerAllowed.has(file.type)) {
-    if (file.type === 'image/svg+xml') return 'SVG ist fuer Banner nicht erlaubt.'
-    return 'Ungueltiges Banner-Format. Erlaubt: PNG, JPG, WEBP, GIF.'
+    if (file.type === 'image/svg+xml') return 'SVG ist für Banner nicht erlaubt.'
+    return 'Ungültiges Banner-Format. Erlaubt: PNG, JPG, WEBP, GIF.'
   }
   if (file.size > 5 * 1024 * 1024) {
     return 'Banner ist zu gross (max. 5MB).'
@@ -480,7 +480,7 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
       await deleteFansubMedia(fansubID, type, authToken)
       onChange(null)
     } catch (nextError) {
-      setError(readErrorMessage(nextError, 'Loeschen fehlgeschlagen.'))
+      setError(readErrorMessage(nextError, 'Löschen fehlgeschlagen.'))
     } finally {
       setBusyAction(null)
     }
@@ -576,7 +576,7 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
         {busy ? (
           <span className={styles.statusPill} aria-live="polite">
             <Loader2 size={14} className={styles.spinner} />
-            {preparingEdit ? 'Bearbeiten...' : busyAction === 'upload' ? 'Upload...' : 'Loeschen...'}
+            {preparingEdit ? 'Bearbeiten...' : busyAction === 'upload' ? 'Upload...' : 'Löschen...'}
           </span>
         ) : null}
       </div>
@@ -693,7 +693,7 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
           className={styles.buttonDanger}
           onClick={() => void onRemove()}
           disabled={disabled || busy || !hasValue}
-          aria-label={`${title} loeschen`}
+          aria-label={`${title} löschen`}
         >
           <Trash2 size={14} />
           Delete
@@ -708,7 +708,7 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
         className={styles.fileInput}
         type="file"
         accept={acceptedMime}
-        aria-label={`${title} Datei auswaehlen`}
+        aria-label={`${title} Datei auswählen`}
         onChange={(event) => void onInputChange(event)}
       />
 
@@ -726,7 +726,7 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
             ref={cropViewportRef}
             className={styles.cropViewport}
             tabIndex={0}
-            aria-label="Logo-Ausschnitt waehlen"
+            aria-label="Logo-Ausschnitt wählen"
             onKeyDown={onCropViewportKeyDown}
             onPointerDown={onCropPointerDown}
             onPointerMove={onCropPointerMove}
@@ -813,7 +813,7 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
               onClick={onCropReset}
               disabled={!cropImageReady || busy}
             >
-              Position zuruecksetzen
+              Position zurücksetzen
             </button>
             <button type="button" className={styles.buttonPrimary} onClick={() => void cropAndUploadLogo()} disabled={!cropImageReady || busy}>
               Ausschnitt speichern

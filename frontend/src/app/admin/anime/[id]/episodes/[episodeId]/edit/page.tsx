@@ -38,7 +38,7 @@ export default function AdminAnimeEpisodeEditPage() {
   useEffect(() => {
     async function loadData() {
       if (!animeID || !episodeID) {
-        setErrorMessage('Ungueltige Route fuer Anime oder Episode.')
+        setErrorMessage('Ungültige Route für Anime oder Episode.')
         setIsLoading(false)
         return
       }
@@ -84,7 +84,7 @@ export default function AdminAnimeEpisodeEditPage() {
     setSuccessMessage(null)
 
     if (!episodeID) {
-      setErrorMessage('Ungueltige Episode-ID.')
+      setErrorMessage('Ungültige Episode-ID.')
       return
     }
 
@@ -145,7 +145,7 @@ export default function AdminAnimeEpisodeEditPage() {
       await deleteAdminEpisode(episodeID, authToken)
       router.push(`/admin/anime/${animeID}/episodes`)
     } catch (error) {
-      setErrorMessage(formatAdminError(error, 'Episode konnte nicht geloescht werden.'))
+      setErrorMessage(formatAdminError(error, 'Episode konnte nicht gelöscht werden.'))
       setIsDeleting(false)
     }
   }
@@ -270,10 +270,10 @@ export default function AdminAnimeEpisodeEditPage() {
               <p className={styles.metaText}>Aktueller gespeicherter Link: {episode.stream_links?.[0] || 'nicht gesetzt'}</p>
               <div className={styles.actionsRow}>
                 <Link href={`/episodes/${episode.id}`} className={`${styles.button} ${styles.buttonGhost}`} target="_blank" rel="noreferrer">
-                  Public oeffnen
+                  Public öffnen
                 </Link>
                 <button className={`${styles.button} ${styles.buttonDanger}`} type="button" onClick={() => void handleDelete()} disabled={isDeleting}>
-                  {isDeleting ? 'Loescht...' : 'Episode loeschen'}
+                  {isDeleting ? 'Loescht...' : 'Episode löschen'}
                 </button>
               </div>
             </div>

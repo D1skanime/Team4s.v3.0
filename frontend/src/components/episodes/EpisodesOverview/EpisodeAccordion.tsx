@@ -54,7 +54,7 @@ export function EpisodeAccordion({
           aria-labelledby={episodeId}
         >
           {episode.versions.length === 0 ? (
-            <p className={styles.noVersions}>Keine Versionen verfuegbar.</p>
+            <p className={styles.noVersions}>Keine Versionen verfügbar.</p>
           ) : (
             <div className={styles.versionList}>
               {episode.versions.map((version) => (

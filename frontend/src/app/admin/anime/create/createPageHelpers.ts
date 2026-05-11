@@ -1,7 +1,7 @@
 /**
  * createPageHelpers.ts: Statische Hilfsfunktionen, die aus page.tsx ausgelagert
  * wurden, um die Create-Route-Komponente unter der 700-Zeilen-Grenze zu halten.
- * Diese Funktionen haben keine Abhaengigkeiten von Komponentenzustand und koennen
+ * Diese Funktionen haben keine Abhaengigkeiten von Komponentenzustand und können
  * unabhaengig importiert und getestet werden.
  */
 
@@ -21,8 +21,8 @@ import { buildManualCreateDraftSnapshot } from "../hooks/useManualAnimeDraft";
 export const CREATE_REDIRECT_DELAY_MS = 1600;
 
 /**
- * Erstellt den Weiterleitungspfad zur Admin-Anime-Uebersicht nach dem
- * Erstellen, damit der neue Eintrag direkt sichtbar und angewaehlt ist.
+ * Erstellt den Weiterleitungspfad zur Admin-Anime-Übersicht nach dem
+ * Erstellen, damit der neue Eintrag direkt sichtbar und angewählt ist.
  */
 export function buildManualCreateRedirectPath(id: number): string {
   return `/admin/anime?created=${id}#anime-${id}`;
@@ -30,7 +30,7 @@ export function buildManualCreateRedirectPath(id: number): string {
 
 /**
  * Prueft, ob eine AniSearch-Zusammenfassung Warnungen oder ungeklaerte
- * Relationen enthaelt, die im Erfolgsmeldungstext hervorgehoben werden sollten.
+ * Relationen enthält, die im Erfolgsmeldungstext hervorgehoben werden sollten.
  */
 function hasAniSearchFollowThroughWarning(
   summary: AdminAnimeCreateAniSearchSummary | undefined,
@@ -44,7 +44,7 @@ function hasAniSearchFollowThroughWarning(
 
 /**
  * Erstellt die Erfolgsmeldung nach dem Anlegen eines Anime. Wenn die
- * AniSearch-Zusammenfassung Warnungen enthaelt, werden Relationsdetails
+ * AniSearch-Zusammenfassung Warnungen enthält, werden Relationsdetails
  * und Hinweise in die Nachricht aufgenommen.
  */
 export function buildCreateSuccessMessage(
@@ -76,7 +76,7 @@ export function buildCreateSuccessMessage(
 }
 
 /**
- * Haengt Jellyfin-Verknuepfungsdaten (Serien-ID als Source und optionaler
+ * Haengt Jellyfin-Verknüpfungsdaten (Serien-ID als Source und optionaler
  * Ordnername) an das Create-Payload an, wenn eine Jellyfin-Vorschau aktiv ist.
  */
 export function appendJellyfinLinkageToCreatePayload(
@@ -98,8 +98,8 @@ export function appendJellyfinLinkageToCreatePayload(
 }
 
 /**
- * Erstellt einen neuen Anime ueber die API und setzt anschliessend die
- * Browser-URL auf den Weiterleitungspfad zur Admin-Uebersicht.
+ * Erstellt einen neuen Anime ueber die API und setzt anschließend die
+ * Browser-URL auf den Weiterleitungspfad zur Admin-Übersicht.
  */
 export async function createManualAnimeAndRedirect(
   payload: AdminAnimeCreateRequest,
@@ -158,7 +158,7 @@ export function resolveSourceActionState(title: string) {
     canSync: meaningful,
     helperText: meaningful
       ? "Der finale Titel ist vom Provider-Suchfeld getrennt. Jellyfin und AniSearch haben eigene Suchfelder."
-      : "Der finale Titel ist kein Suchfeld. Nutze die getrennten Jellyfin- und AniSearch-Suchfeldern fuer Provider-Suchen.",
+      : "Der finale Titel ist kein Suchfeld. Nutze die getrennten Jellyfin- und AniSearch-Suchfeldern für Provider-Suchen.",
   };
 }
 

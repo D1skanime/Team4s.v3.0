@@ -10,7 +10,7 @@ import type {
 } from "@/types/admin";
 
 /**
- * Eingeschraenkte Asset-Arten, fuer die eine Online-Suche unterstuetzt wird.
+ * Eingeschraenkte Asset-Arten, für die eine Online-Suche unterstützt wird.
  * Schliesst background_video aus, das nicht durchsucht werden kann.
  */
 type SearchableAssetKind = Extract<
@@ -20,7 +20,7 @@ type SearchableAssetKind = Extract<
 
 /**
  * Props des CreateAssetSearchDialog. Steuert Suchzustand, Kandidatenliste,
- * Auswahlstatus und Aktionen fuer den Asset-Suchdialog auf der Erstellen-Seite.
+ * Auswahlstatus und Aktionen für den Asset-Suchdialog auf der Erstellen-Seite.
  */
 interface CreateAssetSearchDialogProps {
   activeKind: SearchableAssetKind | null;
@@ -41,40 +41,40 @@ interface CreateAssetSearchDialogProps {
 }
 
 /**
- * Gibt Ueberschrift, Hilfetext und Button-Beschriftung fuer den jeweiligen
- * Asset-Typ zurueck. Erleichtert das kontextgenaue Beschriften des Dialogs.
+ * Gibt Ueberschrift, Hilfetext und Button-Beschriftung für den jeweiligen
+ * Asset-Typ zurück. Erleichtert das kontextgenaue Beschriften des Dialogs.
  */
 function getAssetCopy(kind: SearchableAssetKind | null) {
   switch (kind) {
     case "cover":
       return {
         title: "Cover online suchen",
-        helper: "Waehle ein Cover aus und uebernimm es in den Entwurf.",
-        action: "Cover uebernehmen",
+        helper: "Wähle ein Cover aus und uebernimm es in den Entwurf.",
+        action: "Cover übernehmen",
       };
     case "banner":
       return {
         title: "Banner online suchen",
-        helper: "Waehle ein Banner aus und uebernimm es in den Entwurf.",
-        action: "Banner uebernehmen",
+        helper: "Wähle ein Banner aus und uebernimm es in den Entwurf.",
+        action: "Banner übernehmen",
       };
     case "logo":
       return {
         title: "Logo online suchen",
-        helper: "Waehle ein Logo aus und uebernimm es in den Entwurf.",
-        action: "Logo uebernehmen",
+        helper: "Wähle ein Logo aus und uebernimm es in den Entwurf.",
+        action: "Logo übernehmen",
       };
     case "background":
       return {
         title: "Backgrounds online suchen",
-        helper: "Du kannst mehrere Backgrounds markieren und gesammelt uebernehmen.",
-        action: "Auswahl uebernehmen",
+        helper: "Du kannst mehrere Backgrounds markieren und gesammelt übernehmen.",
+        action: "Auswahl übernehmen",
       };
     default:
       return {
         title: "Assets online suchen",
         helper: "Suche nach passenden Assets und uebernimm sie in den Entwurf.",
-        action: "Auswahl uebernehmen",
+        action: "Auswahl übernehmen",
       };
   }
 }
@@ -82,7 +82,7 @@ function getAssetCopy(kind: SearchableAssetKind | null) {
 /**
  * Rendert den modalen Asset-Suchdialog auf der Anime-Erstellen-Seite. Erlaubt
  * die Suche nach Cover-, Banner-, Logo- oder Hintergrundbildern aus externen
- * Quellen. Mehrfachauswahl ist nur fuer Hintergrundbilder erlaubt.
+ * Quellen. Mehrfachauswahl ist nur für Hintergrundbilder erlaubt.
  * Geschlossen wird der Dialog, wenn kein aktiver Asset-Typ gesetzt ist.
  */
 export function CreateAssetSearchDialog({
@@ -151,7 +151,7 @@ export function CreateAssetSearchDialog({
             className={createStyles.secondaryAction}
             onClick={onClose}
           >
-            Schliessen
+            Schließen
           </button>
         </div>
 
@@ -180,10 +180,10 @@ export function CreateAssetSearchDialog({
             {isSearching
               ? "Treffer werden geladen..."
               : selectedCount > 0
-                ? `${selectedCount} Treffer ausgewaehlt`
+                ? `${selectedCount} Treffer ausgewählt`
                 : candidates.length > 0
                   ? `${candidates.length} Treffer geladen`
-                  : "Noch nichts ausgewaehlt"}
+                  : "Noch nichts ausgewählt"}
           </p>
           <button
             type="button"
@@ -225,7 +225,7 @@ export function CreateAssetSearchDialog({
                       </span>
                       {isSelected ? (
                         <span className={createStyles.assetCandidateSelectedBadge}>
-                          Ausgewaehlt
+                          Ausgewählt
                         </span>
                       ) : null}
                     </div>

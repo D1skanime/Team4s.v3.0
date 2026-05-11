@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
   const resolvedParams = await context.params
   const episodeID = Number.parseInt((resolvedParams.id || '').trim(), 10)
   if (!Number.isFinite(episodeID) || episodeID <= 0) {
-    return NextResponse.json({ error: { message: 'ungueltige episode id' } }, { status: 400 })
+    return NextResponse.json({ error: { message: 'ungültige episode id' } }, { status: 400 })
   }
 
   const cookieStore = await cookies()

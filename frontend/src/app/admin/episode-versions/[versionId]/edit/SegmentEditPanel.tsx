@@ -88,7 +88,7 @@ export function SegmentEditPanel({
       <div className={styles.panel}>
         <div className={styles.panelHeader}>
           <h3 className={styles.panelTitle}>
-            {editingSegment ? 'Segment bearbeiten' : 'Neues Segment hinzufuegen'}
+            {editingSegment ? 'Segment bearbeiten' : 'Neues Segment hinzufügen'}
           </h3>
           <button type="button" className={styles.panelCloseButton} onClick={onClose}>
             <X size={16} />
@@ -104,7 +104,7 @@ export function SegmentEditPanel({
             value={formState.themeKind}
             onChange={(e) => onFormChange({ themeKind: e.target.value })}
           >
-            <option value="">-- Typ auswaehlen --</option>
+            <option value="">-- Typ auswählen --</option>
             {genericThemeOptions.map((option) => (
               <option key={option.key} value={option.key}>
                 {option.label}
@@ -335,7 +335,7 @@ export function SegmentEditPanel({
                       ))}
                     </div>
                   ) : (
-                    <p className={styles.sourceHelpText}>Noch keine wiederverwendbare Library-Datei fuer diesen AniSearch/Group-Kontext gefunden.</p>
+                    <p className={styles.sourceHelpText}>Noch keine wiederverwendbare Library-Datei für diesen AniSearch/Group-Kontext gefunden.</p>
                   )}
                   {reuseError ? <div className={styles.assetError}>{reuseError}</div> : null}
                 </div>
@@ -362,7 +362,7 @@ export function SegmentEditPanel({
                     className={`${styles.assetUploadButton} ${isUploading ? styles.assetUploadButtonBusy : ''}`}
                   >
                     <Upload size={13} />
-                    {isUploading ? 'Wird hochgeladen...' : 'Neue Datei auswaehlen und hochladen'}
+                    {isUploading ? 'Wird hochgeladen...' : 'Neue Datei auswählen und hochladen'}
                   </label>
                 </div>
               </div>
@@ -390,7 +390,7 @@ export function SegmentEditPanel({
                     className={`${styles.assetUploadButton} ${isSaving ? styles.assetUploadButtonBusy : ''}`}
                   >
                     <Upload size={13} />
-                    Datei fuer neues Segment auswaehlen
+                    Datei für neues Segment auswählen
                   </label>
                   {pendingUploadFile ? (
                     <div className={styles.assetExisting} style={{ marginTop: 10 }}>
@@ -413,7 +413,7 @@ export function SegmentEditPanel({
                     </div>
                   ) : (
                     <p className={styles.assetHintSave}>
-                      Optional kannst du die Segment-Datei schon jetzt auswaehlen. Beim Speichern wird beides in einem Schritt angelegt.
+                      Optional kannst du die Segment-Datei schon jetzt auswählen. Beim Speichern wird beides in einem Schritt angelegt.
                     </p>
                   )}
                 </div>

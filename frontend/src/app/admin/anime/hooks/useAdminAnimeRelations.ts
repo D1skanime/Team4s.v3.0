@@ -152,7 +152,7 @@ export function useAdminAnimeRelations({
   async function createRelation(): Promise<void> {
     clearMessages()
     if (!selectedTarget) {
-      setInlineError('Bitte zuerst ein Ziel-Anime aus der Suche auswaehlen.')
+      setInlineError('Bitte zuerst ein Ziel-Anime aus der Suche auswählen.')
       return
     }
 
@@ -232,9 +232,9 @@ export function useAdminAnimeRelations({
       if (editingTargetID === targetAnimeID) {
         setEditingTargetID(null)
       }
-      onSuccess?.('Relation geloescht.')
+      onSuccess?.('Relation gelöscht.')
     } catch (error) {
-      const message = error instanceof Error && error.message.trim() ? error.message : 'Relation konnte nicht geloescht werden.'
+      const message = error instanceof Error && error.message.trim() ? error.message : 'Relation konnte nicht gelöscht werden.'
       setErrorMessage(message)
       onError?.(message)
     } finally {

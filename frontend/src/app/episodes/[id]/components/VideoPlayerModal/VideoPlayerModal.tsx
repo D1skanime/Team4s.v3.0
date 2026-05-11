@@ -23,8 +23,8 @@ interface ErrorState {
 const ERROR_MESSAGES: Record<Exclude<ErrorType, null>, string> = {
   '401': 'Authentifizierung erforderlich.',
   '404': 'Asset nicht gefunden.',
-  '500': 'Stream nicht verfuegbar.',
-  '503': 'Stream nicht verfuegbar.',
+  '500': 'Stream nicht verfügbar.',
+  '503': 'Stream nicht verfügbar.',
   timeout: 'Zeitueberschreitung.',
 }
 
@@ -207,7 +207,7 @@ export default function VideoPlayerModal({ isOpen, asset, onClose }: VideoPlayer
             ref={closeButtonRef}
             className={styles.closeButton}
             onClick={onClose}
-            aria-label="Modal schliessen"
+            aria-label="Modal schließen"
             type="button"
           >
             <X size={24} />
@@ -239,7 +239,7 @@ export default function VideoPlayerModal({ isOpen, asset, onClose }: VideoPlayer
                   </button>
                 )}
                 <button className={styles.errorButtonSecondary} onClick={onClose} type="button">
-                  Schliessen
+                  Schließen
                 </button>
               </div>
             </div>
@@ -255,7 +255,7 @@ export default function VideoPlayerModal({ isOpen, asset, onClose }: VideoPlayer
             style={{ display: loading || error ? 'none' : 'block' }}
           >
             <source src={streamUrl} type="video/mp4" />
-            Ihr Browser unterstuetzt das Video-Tag nicht.
+            Ihr Browser unterstützt das Video-Tag nicht.
           </video>
         </div>
       </div>

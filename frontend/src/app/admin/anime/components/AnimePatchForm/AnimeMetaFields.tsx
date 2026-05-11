@@ -61,7 +61,7 @@ export function AnimeMetaFields({
       <div className={styles.field}>
         <label htmlFor="update-genre">Genre</label>
         {values.genreTokens.length > 0 ? (
-          <div className={styles.chipRow} aria-label="Ausgewaehlte Genres">
+          <div className={styles.chipRow} aria-label="Ausgewählte Genres">
             {values.genreTokens.map((token) => (
               <button
                 key={token}

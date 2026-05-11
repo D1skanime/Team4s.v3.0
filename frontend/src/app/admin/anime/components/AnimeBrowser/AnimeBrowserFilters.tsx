@@ -9,7 +9,7 @@ const styles = { ...sharedStyles, ...browserStyles }
 /**
  * Props der AnimeBrowserFilters-Komponente.
  * Enthalten den aktuellen Sucheingabe-String, den Buchstabenfilter,
- * den Cover-Filter und die zugehoerigen Aenderungs-Callbacks.
+ * den Cover-Filter und die zugehörigen Änderungs-Callbacks.
  */
 interface AnimeBrowserFiltersProps {
   queryInput: string

@@ -25,7 +25,7 @@ export default function AdminOverviewPage() {
 
       <section className={styles.panel}>
         <h2>Bereiche</h2>
-        <p className={styles.hint}>Empfohlen: zuerst Anime-Kontext waehlen, dann Episoden direkt darin pflegen.</p>
+        <p className={styles.hint}>Empfohlen: zuerst Anime-Kontext wählen, dann Episoden direkt darin pflegen.</p>
         <div className={styles.actions}>
           <Link href="/admin/anime" className={styles.button}>
             Studio (Anime + Episoden)

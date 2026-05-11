@@ -35,14 +35,14 @@ export function resolveAnimeEditorOwnership(anime: AnimeEditorOwnershipInput): A
       label: 'Jellyfin-Provenance aktiv',
       tone: 'linked',
       hint: folderName
-        ? `Fill-only Resync bleibt explizit. Manuelle Assets bleiben geschuetzt. Quelle: ${folderName}`
-        : 'Fill-only Resync bleibt explizit. Manuelle Assets bleiben geschuetzt.',
+        ? `Fill-only Resync bleibt explizit. Manuelle Assets bleiben geschützt. Quelle: ${folderName}`
+        : 'Fill-only Resync bleibt explizit. Manuelle Assets bleiben geschützt.',
     }
   }
 
   return {
     label: 'Manuell gepflegt',
     tone: 'manual',
-    hint: 'Keine persistierte Jellyfin-Verknuepfung aktiv. Aenderungen bleiben manuell gepflegt.',
+    hint: 'Keine persistierte Jellyfin-Verknüpfung aktiv. Änderungen bleiben manuell gepflegt.',
   }
 }

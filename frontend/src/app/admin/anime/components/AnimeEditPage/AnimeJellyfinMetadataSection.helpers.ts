@@ -42,7 +42,7 @@ export function summarizeAssetSlots(slots?: AdminJellyfinIntakeAssetSlots): stri
     return 'Keine Provider-Assets gefunden.'
   }
 
-  return `Verfuegbar: ${parts.join(', ')}`
+  return `Verfügbar: ${parts.join(', ')}`
 }
 
 export function summarizeAssetSlotDecision(
@@ -54,26 +54,26 @@ export function summarizeAssetSlotDecision(
 ): string {
   switch (kind) {
     case 'cover':
-      if (!options.hasIncoming) return 'Kein Provider-Cover verfuegbar'
+      if (!options.hasIncoming) return 'Kein Provider-Cover verfügbar'
       if (options.currentSource === 'provider') return 'Provider-Cover ist bereits aktiv'
-      if (options.currentSource === 'manual') return 'Manuelles Cover bleibt geschuetzt, bis es explizit ersetzt wird'
-      return 'Provider-Cover kann explizit uebernommen werden'
+      if (options.currentSource === 'manual') return 'Manuelles Cover bleibt geschützt, bis es explizit ersetzt wird'
+      return 'Provider-Cover kann explizit übernommen werden'
     case 'banner':
       return options.hasIncoming
-        ? 'Banner kann explizit aus Jellyfin uebernommen oder manuell ersetzt werden'
-        : 'Kein Provider-Banner verfuegbar'
+        ? 'Banner kann explizit aus Jellyfin übernommen oder manuell ersetzt werden'
+        : 'Kein Provider-Banner verfügbar'
     case 'logo':
       return options.hasIncoming
-        ? 'Logo kann manuell ersetzt oder explizit aus Jellyfin uebernommen werden'
-        : 'Kein Provider-Logo verfuegbar'
+        ? 'Logo kann manuell ersetzt oder explizit aus Jellyfin übernommen werden'
+        : 'Kein Provider-Logo verfügbar'
     case 'backgrounds':
       return options.hasIncoming
         ? 'Backgrounds können explizit aus Jellyfin übernommen oder manuell ergänzt werden'
-        : 'Keine Provider-Backgrounds verfuegbar'
+        : 'Keine Provider-Backgrounds verfügbar'
     case 'background_video':
       return options.hasIncoming
-        ? 'Background-Video kann manuell ersetzt oder explizit aus Jellyfin uebernommen werden'
-        : 'Kein Provider-Background-Video verfuegbar'
+        ? 'Background-Video kann manuell ersetzt oder explizit aus Jellyfin übernommen werden'
+        : 'Kein Provider-Background-Video verfügbar'
   }
 }
 

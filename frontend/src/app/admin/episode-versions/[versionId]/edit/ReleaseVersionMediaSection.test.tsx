@@ -348,7 +348,7 @@ describe('ReleaseVersionMediaSection', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /Delete me/i }))
-    fireEvent.click(screen.getByRole('button', { name: 'Medium loeschen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Medium löschen' }))
 
     expect(confirmSpy).toHaveBeenCalled()
     expect(deleteSpy).toHaveBeenCalledWith(22)
@@ -496,7 +496,7 @@ describe('ReleaseVersionMediaSection', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Delete Err Item/i }))
     expect(await screen.findByText('Medium bearbeiten')).not.toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Medium loeschen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Medium löschen' }))
 
     expect(confirmSpy).toHaveBeenCalled()
     // Error text appears inside the detail panel, not swallowed

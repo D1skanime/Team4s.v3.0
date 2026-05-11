@@ -13,7 +13,7 @@ import styles from './page.module.css'
 // Daher wird Next.js gezwungen, die Seite nicht als statisch vorzurendern.
 export const dynamic = 'force-dynamic'
 
-/** Props fuer die Anime-Listenseite mit optionalen URL-Suchparametern. */
+/** Props für die Anime-Listenseite mit optionalen URL-Suchparametern. */
 interface AnimePageProps {
   searchParams:
     | Promise<{
@@ -35,7 +35,7 @@ interface AnimePageProps {
     | undefined
 }
 
-/** Aufgeloeste (nicht mehr Promise-basierte) Such-Parameter fuer die Anime-Listenseite. */
+/** Aufgeloeste (nicht mehr Promise-basierte) Such-Parameter für die Anime-Listenseite. */
 interface ResolvedAnimeSearchParams {
     page?: string | string[]
     per_page?: string | string[]
@@ -51,7 +51,7 @@ const allowedStatuses: AnimeStatus[] = ['ongoing', 'done', 'aborted', 'licensed'
 /**
  * Anime-Listenseite.
  * Laedt die gefilterte Anime-Liste vom Backend und rendert das Raster mit A-Z-Filter und Pagination.
- * Unterstuetzt Query-Parameter: page, per_page, q, letter, content_type, status.
+ * Unterstützt Query-Parameter: page, per_page, q, letter, content_type, status.
  */
 export default async function AnimePage({ searchParams }: AnimePageProps) {
   // Next.js may provide searchParams as a Promise-like value.
@@ -109,7 +109,7 @@ export default async function AnimePage({ searchParams }: AnimePageProps) {
         <p className={styles.kicker}>P0 MVP</p>
         <h1 className={styles.title}>Anime Liste</h1>
         <p className={styles.subtitle}>
-          {response.meta.total.toLocaleString('de-DE')} Eintraege mit A-Z Filter und Pagination
+          {response.meta.total.toLocaleString('de-DE')} Einträge mit A-Z Filter und Pagination
         </p>
       </header>
 

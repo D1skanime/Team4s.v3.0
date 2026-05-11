@@ -132,7 +132,7 @@ export function CreateAniSearchIntakeCard({
                   className={createStyles.secondaryAction}
                   onClick={() => onCandidateSelect(candidate)}
                 >
-                  Auswaehlen
+                  Auswählen
                 </button>
               </div>
             ))}
@@ -172,7 +172,7 @@ export function CreateAniSearchIntakeCard({
               </p>
             ) : null}
             <p className={styles.hint}>
-              Keine Aenderungen am Anime. Der Anime wurde noch nicht erstellt.
+              Keine Änderungen am Anime. Der Anime wurde noch nicht erstellt.
             </p>
           </div>
         ) : null}

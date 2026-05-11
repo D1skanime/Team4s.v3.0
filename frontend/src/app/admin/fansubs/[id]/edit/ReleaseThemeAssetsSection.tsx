@@ -117,7 +117,7 @@ export function ReleaseThemeAssetsSection({
         <label className={styles.field}>
           <span>Theme</span>
           <select className={styles.select} value={themeID} onChange={(event) => setThemeID(Number(event.target.value))}>
-            <option value={0}>Bitte waehlen</option>
+            <option value={0}>Bitte wählen</option>
             {themes.map((theme) => (
               <option key={theme.id} value={theme.id}>
                 {theme.theme_type_name}{theme.title ? ` - ${theme.title}` : ''}
@@ -152,7 +152,7 @@ export function ReleaseThemeAssetsSection({
               <div className={styles.assetMeta}>
                 <strong>{asset.theme_type_name}{asset.theme_title ? ` - ${asset.theme_title}` : ''}</strong>
                 <span>{asset.mime_type} | {Math.round(asset.size_bytes / 1024 / 1024)} MB</span>
-                <a href={asset.public_url} target="_blank" rel="noreferrer">Video oeffnen</a>
+                <a href={asset.public_url} target="_blank" rel="noreferrer">Video öffnen</a>
               </div>
               <button
                 type="button"
@@ -162,7 +162,7 @@ export function ReleaseThemeAssetsSection({
                   await reloadAssets()
                 }}
               >
-                Loeschen
+                Löschen
               </button>
             </div>
           ))}

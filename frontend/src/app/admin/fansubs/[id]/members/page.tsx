@@ -65,7 +65,7 @@ export default function AdminFansubMembersPage() {
 
   async function reload() {
     if (!Number.isFinite(fansubID) || fansubID <= 0) {
-      setErrorMessage('Ungueltige Fansub-ID.')
+      setErrorMessage('Ungültige Fansub-ID.')
       setIsLoading(false)
       return
     }
@@ -153,7 +153,7 @@ export default function AdminFansubMembersPage() {
       return
     }
     if (!editMemberID) {
-      setErrorMessage('Kein Mitglied ausgewaehlt.')
+      setErrorMessage('Kein Mitglied ausgewählt.')
       return
     }
 
@@ -196,13 +196,13 @@ export default function AdminFansubMembersPage() {
       setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
       return
     }
-    const ok = window.confirm(`Mitglied "${item.handle}" loeschen?`)
+    const ok = window.confirm(`Mitglied "${item.handle}" löschen?`)
     if (!ok) return
     setErrorMessage(null)
     setSuccessMessage(null)
     try {
       await deleteFansubMember(fansubID, item.id, authToken)
-      setSuccessMessage('Mitglied geloescht.')
+      setSuccessMessage('Mitglied gelöscht.')
       await reload()
     } catch (error) {
       setErrorMessage(formatError(error))
@@ -293,7 +293,7 @@ export default function AdminFansubMembersPage() {
               </div>
               <div className={styles.actions}>
                 <button type="submit" className={styles.button} disabled={isSubmitting}>
-                  Hinzufuegen
+                  Hinzufügen
                 </button>
               </div>
             </form>
@@ -301,7 +301,7 @@ export default function AdminFansubMembersPage() {
             <div className={styles.sectionDivider} />
 
             <h2>Mitglied bearbeiten</h2>
-            {!editMemberID ? <p className={styles.hint}>Waehle zuerst ein Mitglied aus der Liste.</p> : null}
+            {!editMemberID ? <p className={styles.hint}>Wähle zuerst ein Mitglied aus der Liste.</p> : null}
             {editMemberID ? (
               <form className={styles.form} onSubmit={onUpdate}>
                 <div className={styles.gridTwo}>

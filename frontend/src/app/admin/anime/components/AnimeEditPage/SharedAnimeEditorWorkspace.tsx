@@ -32,15 +32,15 @@ const SECTION_COPY: Record<
   create: {
     sourceTitle: 'Anime finden',
     sourceSub:
-      'Suche den Anime in AniSearch und wähle anschliessend den passenden Ordner in Jellyfin aus.',
+      'Suche den Anime in AniSearch und wähle anschließend den passenden Ordner in Jellyfin aus.',
     assetsSub:
       'Prüfe und ergänze die Assets. Du kannst sie aus Jellyfin übernehmen, manuell hochladen oder online suchen.',
     stepSourceLabel: 'Anime finden',
     stepSourceSub: 'AniSearch & Jellyfin',
     stepReviewLabel: 'Prüfen & Anlegen',
-    stepReviewSub: 'Abschliessende Kontrolle',
+    stepReviewSub: 'Abschließende Kontrolle',
     reviewTitle: 'Prüfen & Anlegen',
-    reviewSub: 'Abschliessende Kontrolle.',
+    reviewSub: 'Abschließende Kontrolle.',
   },
   edit: {
     sourceTitle: 'Quelle & Kontext',
@@ -53,7 +53,7 @@ const SECTION_COPY: Record<
     stepReviewLabel: 'Prüfen & Speichern',
     stepReviewSub: 'Änderungen sichern',
     reviewTitle: 'Prüfen & Speichern',
-    reviewSub: 'Abschliessende Kontrolle vor dem Speichern.',
+    reviewSub: 'Abschließende Kontrolle vor dem Speichern.',
   },
 }
 

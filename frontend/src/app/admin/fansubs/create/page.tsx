@@ -485,12 +485,12 @@ export default function AdminFansubCreatePage() {
 
         await syncFansubLinks(fansubID, [], links, authToken)
         await refreshCreatedState(fansubID)
-        setToast('Fansub angelegt. Medien koennen jetzt direkt ueber den DB-Asset-Flow hochgeladen werden.')
+        setToast('Fansub angelegt. Medien können jetzt direkt ueber den DB-Asset-Flow hochgeladen werden.')
       } else {
         await updateFansubGroup(createdGroup.id, formToPatchPayload(form, logoMedia, bannerMedia), authToken)
         await syncFansubLinks(createdGroup.id, initialLinks, links, authToken)
         await refreshCreatedState(createdGroup.id)
-        setToast('Aenderungen gespeichert.')
+        setToast('Änderungen gespeichert.')
       }
     } catch (nextError) {
       setError(errMessage(nextError))
@@ -583,7 +583,7 @@ export default function AdminFansubCreatePage() {
             <button
               type="button"
               className={styles.buttonSecondary}
-              onClick={() => (dirty && !window.confirm('Ungespeicherte Aenderungen verwerfen?') ? undefined : (window.location.href = '/admin/fansubs'))}
+              onClick={() => (dirty && !window.confirm('Ungespeicherte Änderungen verwerfen?') ? undefined : (window.location.href = '/admin/fansubs'))}
             >
               <X size={14} />
               Abbrechen
@@ -616,7 +616,7 @@ export default function AdminFansubCreatePage() {
                 <summary className={styles.fansubEditSectionSummary}>Tags</summary>
                 <div className={styles.fansubEditSectionBody}>
                   <p className={styles.fansubEditHint}>Alternative Gruppennamen. Vor dem ersten Speichern werden sie lokal gesammelt und danach in dieselbe Alias-Tabelle geschrieben wie im Edit-Flow.</p>
-                  <div className={styles.inputRow}><input value={aliasInput} onChange={(event) => { setAliasInput(event.target.value); setAliasError(null) }} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void addAlias() } }} /><button type="button" className={styles.buttonSecondary} onClick={() => void addAlias()} disabled={aliasBusy}>Hinzufuegen</button></div>
+                  <div className={styles.inputRow}><input value={aliasInput} onChange={(event) => { setAliasInput(event.target.value); setAliasError(null) }} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void addAlias() } }} /><button type="button" className={styles.buttonSecondary} onClick={() => void addAlias()} disabled={aliasBusy}>Hinzufügen</button></div>
                   {aliasError ? <p className={styles.fansubEditInlineError}>{aliasError}</p> : null}
                   <div className={styles.chipBox}><div className={styles.chipRow}>{aliasDrafts.map((alias) => <button key={alias} type="button" className={`${styles.chip} ${styles.aliasChipDanger}`} onClick={() => void removeAlias(alias)} disabled={aliasBusy}>{alias} x</button>)}</div></div>
                 </div>
@@ -665,7 +665,7 @@ export default function AdminFansubCreatePage() {
                 <summary className={styles.fansubEditSectionSummary}>Community Links</summary>
                 <div className={styles.fansubEditSectionBody}>
                   <div className={styles.fansubEditLinksHeader}>
-                    <p className={styles.fansubEditHint}>Generische Link-Zeilen fuer Website, Discord, Twitter, GitHub und IRC.</p>
+                    <p className={styles.fansubEditHint}>Generische Link-Zeilen für Website, Discord, Twitter, GitHub und IRC.</p>
                     <button type="button" className={styles.buttonSecondary} onClick={() => setLinks((current) => [...current, createEmptyLink()])}><Plus size={14} />Link</button>
                   </div>
                   <div className={styles.fansubEditLinksList}>
@@ -701,10 +701,10 @@ export default function AdminFansubCreatePage() {
                       <>
                         <div className={styles.fansubEditCollaborationRow}>
                           <select value={selectedMemberGroupID} onChange={(event) => setSelectedMemberGroupID(event.target.value)} disabled={collaborationBusy || loadingCandidates}>
-                            <option value="">Mitgliedsgruppe waehlen</option>
+                            <option value="">Mitgliedsgruppe wählen</option>
                             {collaborationCandidates.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
                           </select>
-                          <button type="button" className={styles.buttonSecondary} onClick={() => void addMemberGroup()} disabled={collaborationBusy || !selectedMemberGroupID}><Plus size={14} />Hinzufuegen</button>
+                          <button type="button" className={styles.buttonSecondary} onClick={() => void addMemberGroup()} disabled={collaborationBusy || !selectedMemberGroupID}><Plus size={14} />Hinzufügen</button>
                         </div>
                         <div className={styles.fansubEditCollaborationList}>
                           {collaborationMembers.length === 0 ? <p className={styles.fansubEditHint}>Noch keine Mitgliedsgruppen verknüpft.</p> : null}

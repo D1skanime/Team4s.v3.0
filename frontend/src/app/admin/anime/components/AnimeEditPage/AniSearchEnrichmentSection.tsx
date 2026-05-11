@@ -17,8 +17,8 @@ const PROTECTED_FIELD_OPTIONS = [
 
 /**
  * Props der AniSearchEnrichmentSection-Komponente.
- * Enthalten die AniSearch-ID, die Liste geschuetzter Felder,
- * optionale Lade- und Fehlerzustaende sowie Aenderungs-Callbacks.
+ * Enthalten die AniSearch-ID, die Liste geschützter Felder,
+ * optionale Lade- und Fehlerzustaende sowie Änderungs-Callbacks.
  */
 interface AniSearchEnrichmentSectionProps {
   anisearchID: string
@@ -37,8 +37,8 @@ interface AniSearchEnrichmentSectionProps {
 
 /**
  * Sektion zum Laden von AniSearch-Daten in den Anime-Entwurf.
- * Rendert ein Eingabefeld fuer die AniSearch-ID, eine Checkbox-Liste
- * zur Feldschutz-Konfiguration und eine Statusanzeige fuer
+ * Rendert ein Eingabefeld für die AniSearch-ID, eine Checkbox-Liste
+ * zur Feldschutz-Konfiguration und eine Statusanzeige für
  * Konflikte, Fehler oder Erfolgsmeldungen.
  */
 export function AniSearchEnrichmentSection({

@@ -281,7 +281,7 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
     return (
       <main className={styles.page}>
         <p className={styles.backLink}>
-          <Link href={`/anime/${animeID}`}>Zurueck zum Anime</Link>
+          <Link href={`/anime/${animeID}`}>Zurück zum Anime</Link>
         </p>
         <div className={styles.errorBox}>{errorMessage}</div>
       </main>
@@ -292,7 +292,7 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
     return (
       <main className={styles.page}>
         <p className={styles.backLink}>
-          <Link href={`/anime/${animeID}`}>Zurueck zum Anime</Link>
+          <Link href={`/anime/${animeID}`}>Zurück zum Anime</Link>
         </p>
         <div className={styles.loadingState}>Lädt...</div>
       </main>
@@ -313,7 +313,7 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
       {breadcrumbItems.length > 0 && <Breadcrumbs items={breadcrumbItems} />}
 
       <p className={styles.backLink}>
-        <Link href={`/anime/${animeID}/group/${groupID}`}>Zurueck zur Gruppenübersicht</Link>
+        <Link href={`/anime/${animeID}/group/${groupID}`}>Zurück zur Gruppenübersicht</Link>
       </p>
 
       {group && anime && (
@@ -539,7 +539,7 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
                           Episode {episode.episode_number}
                           {episode.title ? `: ${episode.title}` : ''}
                         </h3>
-                        <p className={styles.releaseDate}>Episode-Route nicht verfuegbar.</p>
+                        <p className={styles.releaseDate}>Episode-Route nicht verfügbar.</p>
                       </div>
                     </article>
                   )

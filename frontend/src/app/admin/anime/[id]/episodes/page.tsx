@@ -39,7 +39,7 @@ export default function AdminAnimeEpisodesPage() {
   useEffect(() => {
     async function loadAnime() {
       if (!animeID) {
-        setErrorMessage('Ungueltige Anime-ID.')
+        setErrorMessage('Ungültige Anime-ID.')
         setIsLoadingAnime(false)
         return
       }
@@ -92,7 +92,7 @@ export default function AdminAnimeEpisodesPage() {
     setSuccessMessage(null)
 
     if (!animeID) {
-      setErrorMessage('Ungueltige Anime-ID.')
+      setErrorMessage('Ungültige Anime-ID.')
       return
     }
 
@@ -160,7 +160,7 @@ export default function AdminAnimeEpisodesPage() {
         {anime ? (
           <div className={styles.headerActions}>
             <Link href={`/admin/anime/${anime.id}/edit`} className={`${styles.button} ${styles.buttonSecondary}`}>
-              Zurueck zum Anime
+              Zurück zum Anime
             </Link>
             <Link
               href={`/admin/anime/${anime.id}/episodes/import`}
@@ -173,7 +173,7 @@ export default function AdminAnimeEpisodesPage() {
               type="button"
               onClick={() => setShowCreateForm((current) => !current)}
             >
-              {showCreateForm ? 'Erstellen schliessen' : 'Neue Episode'}
+              {showCreateForm ? 'Erstellen schließen' : 'Neue Episode'}
             </button>
           </div>
         ) : null}

@@ -100,7 +100,7 @@ export default function AdminAnimeEpisodeVersionsPage() {
   useEffect(() => {
     async function loadData() {
       if (!animeID || !episodeID) {
-        setErrorMessage('Ungueltige Route fuer Anime oder Episode.')
+        setErrorMessage('Ungültige Route für Anime oder Episode.')
         setIsLoading(false)
         return
       }
@@ -198,7 +198,7 @@ export default function AdminAnimeEpisodeVersionsPage() {
 
     const parsedEpisodeNumber = parsePositiveInt(episode.episode_number)
     if (!parsedEpisodeNumber) {
-      setErrorMessage('Die Episode hat keine numerische Episodennummer fuer neue Versionen.')
+      setErrorMessage('Die Episode hat keine numerische Episodennummer für neue Versionen.')
       return
     }
 
@@ -237,7 +237,7 @@ export default function AdminAnimeEpisodeVersionsPage() {
         streamURL: '',
       })
       setShowCreateForm(false)
-      setSuccessMessage(`Neue Version fuer Episode ${episode.episode_number} wurde angelegt.`)
+      setSuccessMessage(`Neue Version für Episode ${episode.episode_number} wurde angelegt.`)
     } catch (error) {
       setErrorMessage(formatAdminError(error, 'Version konnte nicht angelegt werden.'))
     } finally {
@@ -252,7 +252,7 @@ export default function AdminAnimeEpisodeVersionsPage() {
     }
 
     const confirmed = window.confirm(
-      `Version #${version.id} wirklich loeschen?\n\nDie Episode bleibt erhalten, nur diese Version wird entfernt.`,
+      `Version #${version.id} wirklich löschen?\n\nDie Episode bleibt erhalten, nur diese Version wird entfernt.`,
     )
     if (!confirmed) return
 
@@ -263,9 +263,9 @@ export default function AdminAnimeEpisodeVersionsPage() {
     try {
       await deleteEpisodeVersion(version.id, authToken)
       await reloadVersions()
-      setSuccessMessage(`Version #${version.id} wurde geloescht.`)
+      setSuccessMessage(`Version #${version.id} wurde gelöscht.`)
     } catch (error) {
-      setErrorMessage(formatAdminError(error, 'Version konnte nicht geloescht werden.'))
+      setErrorMessage(formatAdminError(error, 'Version konnte nicht gelöscht werden.'))
     } finally {
       setDeletingVersionID(null)
     }
@@ -309,7 +309,7 @@ export default function AdminAnimeEpisodeVersionsPage() {
               type="button"
               onClick={() => setShowCreateForm((current) => !current)}
             >
-              {showCreateForm ? 'Erstellen schliessen' : 'Neue Version erstellen'}
+              {showCreateForm ? 'Erstellen schließen' : 'Neue Version erstellen'}
             </button>
           </div>
         ) : null}
@@ -348,7 +348,7 @@ export default function AdminAnimeEpisodeVersionsPage() {
               <div className={styles.sectionHeader}>
                 <div>
                   <h2 className={styles.sectionTitle}>Neue Version erstellen</h2>
-                  <p className={styles.sectionMeta}>Neue Versionsdaten fuer die aktuell ausgewaehlte Episode anlegen.</p>
+                  <p className={styles.sectionMeta}>Neue Versionsdaten für die aktuell ausgewählte Episode anlegen.</p>
                 </div>
               </div>
 
@@ -464,11 +464,11 @@ export default function AdminAnimeEpisodeVersionsPage() {
             <div className={styles.sectionHeader}>
               <div>
                 <h2 className={styles.sectionTitle}>Versionsliste</h2>
-                <p className={styles.sectionMeta}>Pro Version: Badges, Release-Datum und klare Bearbeiten/Loeschen-Aktionen.</p>
+                <p className={styles.sectionMeta}>Pro Version: Badges, Release-Datum und klare Bearbeiten/Löschen-Aktionen.</p>
               </div>
             </div>
 
-            {versions.length === 0 ? <p className={styles.emptyState}>Fuer diese Episode sind aktuell keine Versionen vorhanden.</p> : null}
+            {versions.length === 0 ? <p className={styles.emptyState}>Für diese Episode sind aktuell keine Versionen vorhanden.</p> : null}
 
             {versions.length > 0 ? (
               <div className={styles.stack}>
@@ -507,7 +507,7 @@ export default function AdminAnimeEpisodeVersionsPage() {
                         onClick={() => void handleDelete(version)}
                         disabled={deletingVersionID === version.id}
                       >
-                        {deletingVersionID === version.id ? 'Loescht...' : 'Loeschen'}
+                        {deletingVersionID === version.id ? 'Loescht...' : 'Löschen'}
                       </button>
                     </div>
                   </article>

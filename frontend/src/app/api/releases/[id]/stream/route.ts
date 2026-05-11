@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
   const resolvedParams = await context.params
   const releaseID = Number.parseInt((resolvedParams.id || '').trim(), 10)
   if (!Number.isFinite(releaseID) || releaseID <= 0) {
-    return NextResponse.json({ error: { message: 'ungueltige release id' } }, { status: 400 })
+    return NextResponse.json({ error: { message: 'ungültige release id' } }, { status: 400 })
   }
 
   const cookieStore = await cookies()

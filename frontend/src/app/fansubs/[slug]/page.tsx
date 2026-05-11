@@ -46,7 +46,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
         <p className={styles.backLink}>
           <Link href="/anime">Zur Anime-Liste</Link>
         </p>
-        <div className={styles.errorBox}>Ungueltiger Fansub-Slug.</div>
+        <div className={styles.errorBox}>Ungültiger Fansub-Slug.</div>
       </main>
     )
   }

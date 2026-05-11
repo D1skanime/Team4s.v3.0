@@ -8,8 +8,8 @@ const styles = { ...sharedStyles, ...browserStyles }
 
 /**
  * Props der AnimeBrowserList-Komponente.
- * Enthalten die anzuzeigenden Anime-Eintraege, Lade- und Sync-Zustaende
- * sowie Callbacks fuer Auswahl, Sync und Cover-Fehler.
+ * Enthalten die anzuzeigenden Anime-Einträge, Lade- und Sync-Zustaende
+ * sowie Callbacks für Auswahl, Sync und Cover-Fehler.
  */
 interface AnimeBrowserListProps {
   items: AnimeListItem[]
@@ -26,9 +26,9 @@ interface AnimeBrowserListProps {
 }
 
 /**
- * Liste aller Anime-Eintraege im Browser-Panel.
+ * Liste aller Anime-Einträge im Browser-Panel.
  * Rendert einen Ladezustand oder einen leeren Hinweis wenn keine
- * Eintraege vorhanden sind, ansonsten eine AnimeRow pro Eintrag.
+ * Einträge vorhanden sind, ansonsten eine AnimeRow pro Eintrag.
  */
 export function AnimeBrowserList({
   items,

@@ -78,7 +78,7 @@ export function ReleaseVersionMediaDetailPanel({
       await onDelete(item.id)
       onClose()
     } catch (error) {
-      setLocalError(readError(error, 'Medium konnte nicht geloescht werden.'))
+      setLocalError(readError(error, 'Medium konnte nicht gelöscht werden.'))
     } finally {
       setIsDeleting(false)
     }
@@ -92,7 +92,7 @@ export function ReleaseVersionMediaDetailPanel({
           <p className={styles.helper}>Kategorie: {CATEGORY_LABELS[item.category]}</p>
         </div>
         <button type="button" className={styles.buttonSecondary} onClick={onClose}>
-          Schliessen
+          Schließen
         </button>
       </div>
 
@@ -104,7 +104,7 @@ export function ReleaseVersionMediaDetailPanel({
             alt={item.caption || `Asset ${item.id}`}
           />
         ) : (
-          <span className={styles.placeholder}>Kein Bild verfuegbar</span>
+          <span className={styles.placeholder}>Kein Bild verfügbar</span>
         )}
       </div>
 
@@ -148,7 +148,7 @@ export function ReleaseVersionMediaDetailPanel({
           onClick={() => void handleDelete()}
           disabled={isSaving || isDeleting}
         >
-          {isDeleting ? 'Loeschen...' : 'Medium loeschen'}
+          {isDeleting ? 'Löschen...' : 'Medium löschen'}
         </button>
       </div>
     </aside>

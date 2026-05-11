@@ -56,7 +56,7 @@ export default function AuthPage() {
   async function handleIssue(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canIssueToken) {
-      setErrorMessage('Token-Ausstellung benoetigt hier eine verifizierte Bearer-Identity.')
+      setErrorMessage('Token-Ausstellung benötigt hier eine verifizierte Bearer-Identity.')
       setSuccessMessage(null)
       return
     }
@@ -153,7 +153,7 @@ export default function AuthPage() {
 
       <header className={styles.header}>
         <h1 className={styles.title}>Auth Lifecycle</h1>
-        <p className={styles.subtitle}>Issue, Refresh und Revoke fuer lokale Entwicklung mit Signed Tokens.</p>
+        <p className={styles.subtitle}>Issue, Refresh und Revoke für lokale Entwicklung mit Signed Tokens.</p>
       </header>
 
       <section className={styles.panel}>
@@ -172,7 +172,7 @@ export default function AuthPage() {
         <p>Die Identity kommt serverseitig aus einer vertrauenswuerdigen Quelle (nicht aus Formfeldern).</p>
         {!devFallbackAllowed ? (
           <div className={styles.infoBox}>
-            Dev-Fallback ist deaktiviert. Fuer `POST /api/v1/auth/issue` wird eine gueltige Bearer-Identity erwartet.
+            Dev-Fallback ist deaktiviert. Für `POST /api/v1/auth/issue` wird eine gueltige Bearer-Identity erwartet.
           </div>
         ) : (
           <div className={styles.successBox}>Lokaler Dev-Fallback ist aktiv.</div>
@@ -195,7 +195,7 @@ export default function AuthPage() {
             {isSubmitting ? 'Speichern...' : 'Issue Token'}
           </button>
           {!canIssueToken ? (
-            <p className={styles.hint}>Kein Access-Token vorhanden. Token-Issue ist in diesem Profil ohne Dev-Fallback nicht verfuegbar.</p>
+            <p className={styles.hint}>Kein Access-Token vorhanden. Token-Issue ist in diesem Profil ohne Dev-Fallback nicht verfügbar.</p>
           ) : null}
         </form>
       </section>

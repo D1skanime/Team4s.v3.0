@@ -13,10 +13,10 @@ const DEFAULT_COPY: Record<
   }
 > = {
   edit: {
-    submitLabel: 'Aenderungen speichern',
-    savedStateTitle: 'Alle Aenderungen gespeichert',
+    submitLabel: 'Änderungen speichern',
+    savedStateTitle: 'Alle Änderungen gespeichert',
     savedStateMessage: 'Kein offener Patch im Formular.',
-    dirtyStateTitle: 'Ungespeicherte Aenderungen',
+    dirtyStateTitle: 'Ungespeicherte Änderungen',
     dirtyStateMessage: 'Pruefe die Sektionen und speichere den allgemeinen Anime-Kontext.',
   },
   create: {

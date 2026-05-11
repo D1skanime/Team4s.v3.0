@@ -16,7 +16,7 @@ describe('AnimeJellyfinMetadataSection helpers', () => {
         backgrounds: [{ present: true, kind: 'background', source: 'jellyfin', index: 0 }],
         background_video: { present: false, kind: 'background_video', source: 'jellyfin' },
       }),
-    ).toBe('Verfuegbar: Poster, Banner, 1 Backgrounds')
+    ).toBe('Verfügbar: Poster, Banner, 1 Backgrounds')
   })
 
   it('reports an empty provider asset set explicitly', () => {
@@ -41,7 +41,7 @@ describe('AnimeJellyfinMetadataSection helpers', () => {
         hasIncoming: true,
         currentSource: 'manual',
       }),
-    ).toBe('Manuelles Cover bleibt geschuetzt, bis es explizit ersetzt wird')
+    ).toBe('Manuelles Cover bleibt geschützt, bis es explizit ersetzt wird')
   })
 
   it('describes provider-owned covers as already active', () => {
@@ -58,7 +58,7 @@ describe('AnimeJellyfinMetadataSection helpers', () => {
       summarizeAssetSlotDecision('banner', {
         hasIncoming: false,
       }),
-    ).toBe('Kein Provider-Banner verfuegbar')
+    ).toBe('Kein Provider-Banner verfügbar')
   })
 
   it('marks banner slots as explicitly controllable when provider data exists', () => {
@@ -66,7 +66,7 @@ describe('AnimeJellyfinMetadataSection helpers', () => {
       summarizeAssetSlotDecision('banner', {
         hasIncoming: true,
       }),
-    ).toBe('Banner kann explizit aus Jellyfin uebernommen oder manuell ersetzt werden')
+    ).toBe('Banner kann explizit aus Jellyfin übernommen oder manuell ersetzt werden')
   })
 
   it('describes logo slots as manually replaceable when provider data exists', () => {
@@ -74,7 +74,7 @@ describe('AnimeJellyfinMetadataSection helpers', () => {
       summarizeAssetSlotDecision('logo', {
         hasIncoming: true,
       }),
-    ).toBe('Logo kann manuell ersetzt oder explizit aus Jellyfin uebernommen werden')
+    ).toBe('Logo kann manuell ersetzt oder explizit aus Jellyfin übernommen werden')
   })
 
   it('describes background video slots as manually replaceable when provider data exists', () => {
@@ -82,7 +82,7 @@ describe('AnimeJellyfinMetadataSection helpers', () => {
       summarizeAssetSlotDecision('background_video', {
         hasIncoming: true,
       }),
-    ).toBe('Background-Video kann manuell ersetzt oder explizit aus Jellyfin uebernommen werden')
+    ).toBe('Background-Video kann manuell ersetzt oder explizit aus Jellyfin übernommen werden')
   })
 
   it('keeps backgrounds additive when provider data exists', () => {

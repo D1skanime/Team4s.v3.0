@@ -23,7 +23,7 @@ export function formatJellyfinActionError(error: unknown, fallback: string): Jel
     case 'jellyfin_unreachable':
       return buildJellyfinFeedback('error', 'Server nicht erreichbar.', error.details || undefined)
     case 'jellyfin_auth_invalid':
-      return buildJellyfinFeedback('error', 'Jellyfin Token ungueltig.', error.details || undefined)
+      return buildJellyfinFeedback('error', 'Jellyfin Token ungültig.', error.details || undefined)
     case 'jellyfin_not_configured':
       return buildJellyfinFeedback('error', 'Jellyfin ist nicht konfiguriert.', error.details || undefined)
     case 'jellyfin_series_not_found':

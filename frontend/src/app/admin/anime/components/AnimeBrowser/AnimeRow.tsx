@@ -9,8 +9,8 @@ const styles = { ...sharedStyles, ...browserStyles }
 
 /**
  * Props der AnimeRow-Komponente.
- * Enthalten alle Daten und Zustaende fuer eine einzelne Zeile im Anime-Browser
- * sowie die zugehoerigen Aktions-Callbacks.
+ * Enthalten alle Daten und Zustaende für eine einzelne Zeile im Anime-Browser
+ * sowie die zugehörigen Aktions-Callbacks.
  */
 interface AnimeRowProps {
   anime: AnimeListItem
@@ -28,7 +28,7 @@ interface AnimeRowProps {
 /**
  * Einzelne Zeile im Anime-Browser.
  * Rendert Cover-Thumbnail, Titel, ID, Status-Badge und die Aktionsleiste
- * mit "Kontext laden" sowie optionalem Kontext-Menue (Oeffnen, Synchronisieren).
+ * mit "Kontext laden" sowie optionalem Kontext-Menue (Öffnen, Synchronisieren).
  */
 export function AnimeRow({
   anime,

@@ -207,7 +207,7 @@ export function EpisodeManager({
   const handleRemoveSelected = () => {
     if (manager.selectedCount === 0) return
     if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(`${manager.selectedCount} ausgewaehlte Episoden wirklich entfernen?`)
+      const confirmed = window.confirm(`${manager.selectedCount} ausgewählte Episoden wirklich entfernen?`)
       if (!confirmed) return
     }
 
@@ -237,7 +237,7 @@ export function EpisodeManager({
         <h2 className={styles.episodeHeaderTitle}>Episoden verwalten</h2>
         <p className={styles.episodeHeaderSubtitle}>Anime: {anime.title}</p>
         <p className={styles.episodeHeaderMeta}>{anime.episodes.length} Episoden</p>
-        <p className={styles.episodeHeaderSelection}>{manager.selectedCount} ausgewaehlt</p>
+        <p className={styles.episodeHeaderSelection}>{manager.selectedCount} ausgewählt</p>
       </header>
 
       <div className={styles.episodeManager}>

@@ -69,7 +69,7 @@ export function useEpisodeVersionEditor() {
   useEffect(() => {
     async function loadData() {
       if (!versionID) {
-        setErrorMessage('Ungueltige Version-ID.')
+        setErrorMessage('Ungültige Version-ID.')
         setIsLoading(false)
         return
       }
@@ -182,7 +182,7 @@ export function useEpisodeVersionEditor() {
       videoQuality: file.video_quality || current.videoQuality,
       streamURL: file.stream_url || current.streamURL,
     }))
-    setSuccessMessage('Datei uebernommen. Aenderungen jetzt speichern.')
+    setSuccessMessage('Datei übernommen. Änderungen jetzt speichern.')
     setErrorMessage(null)
   }
 
@@ -210,13 +210,13 @@ export function useEpisodeVersionEditor() {
       return
     }
     if (!formState.mediaProvider.trim() || !formState.mediaItemID.trim()) {
-      setErrorMessage('Bitte zuerst eine Mediendatei aus dem Ordner waehlen oder den Advanced-Bereich ausfuellen.')
+      setErrorMessage('Bitte zuerst eine Mediendatei aus dem Ordner wählen oder den Advanced-Bereich ausfuellen.')
       return
     }
     const rawDurationInput = formState.durationSeconds.trim()
     const parsedDurationSeconds = parseDurationInput(formState.durationSeconds)
     if (rawDurationInput && parsedDurationSeconds == null) {
-      setErrorMessage('Gesamtdauer ist ungueltig. Erlaubt sind Sekunden, m:ss, hh:mm:ss sowie Kurzformen wie 2m oder 1m30s.')
+      setErrorMessage('Gesamtdauer ist ungültig. Erlaubt sind Sekunden, m:ss, hh:mm:ss sowie Kurzformen wie 2m oder 1m30s.')
       return
     }
 
@@ -264,7 +264,7 @@ export function useEpisodeVersionEditor() {
       return
     }
 
-    const ok = window.confirm(`Version #${versionID} wirklich loeschen?\n\nEpisode bleibt erhalten, nur diese Version wird entfernt.`)
+    const ok = window.confirm(`Version #${versionID} wirklich löschen?\n\nEpisode bleibt erhalten, nur diese Version wird entfernt.`)
     if (!ok) return
 
     setIsDeleting(true)

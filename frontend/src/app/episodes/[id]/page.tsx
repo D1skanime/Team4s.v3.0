@@ -60,7 +60,7 @@ export default async function EpisodeDetailPage({ params, searchParams }: Episod
             Zur Anime-Liste
           </Link>
         </p>
-        <div className={styles.errorBox}>Ungueltige Episode-ID.</div>
+        <div className={styles.errorBox}>Ungültige Episode-ID.</div>
       </main>
     )
   }
@@ -177,20 +177,20 @@ export default async function EpisodeDetailPage({ params, searchParams }: Episod
               target="_blank"
               rel="noopener noreferrer"
               className={styles.navButton}
-              aria-label="Folge in Emby oeffnen"
+              aria-label="Folge in Emby öffnen"
             >
               <ExternalLink size={16} />
-              In Emby oeffnen
+              In Emby öffnen
             </a>
           ) : null}
 
           {!hasGroupReleaseContext && episode.next_episode_id ? (
             <Link href={`/episodes/${episode.next_episode_id}`} className={styles.navButton}>
-              Naechste Folge
+              Nächste Folge
             </Link>
           ) : (
             <span className={`${styles.navButton} ${styles.navButtonDisabled}`}>
-              {hasGroupReleaseContext ? 'Zurueck ueber Gruppen-Releases' : 'Keine naechste Folge'}
+              {hasGroupReleaseContext ? 'Zurück ueber Gruppen-Releases' : 'Keine nächste Folge'}
             </span>
           )}
         </div>

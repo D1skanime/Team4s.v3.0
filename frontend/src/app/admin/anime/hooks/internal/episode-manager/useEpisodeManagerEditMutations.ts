@@ -61,7 +61,7 @@ export function useEpisodeManagerEditMutations({
       return
     }
     if (!inlineEditID) {
-      onError('Keine Episode zum Bearbeiten ausgewaehlt.')
+      onError('Keine Episode zum Bearbeiten ausgewählt.')
       return
     }
 
@@ -108,14 +108,14 @@ export function useEpisodeManagerEditMutations({
 
     const episodeID = parsePositiveInt(editFormValues.id)
     if (!episodeID) {
-      onError('Episode-ID ist ungueltig.')
+      onError('Episode-ID ist ungültig.')
       return
     }
 
     const payload = buildEpisodePatchPayload(selectedEpisode, editFormValues, editFormClearFlags)
 
     if (Object.keys(payload).length === 0) {
-      onError('Keine Aenderungen zum Speichern vorhanden.')
+      onError('Keine Änderungen zum Speichern vorhanden.')
       return
     }
 

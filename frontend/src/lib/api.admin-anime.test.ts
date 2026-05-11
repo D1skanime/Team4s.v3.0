@@ -66,7 +66,7 @@ describe('admin anime api error propagation', () => {
           error: {
             message: 'Interner Serverfehler',
             code: 'cover_persist_failed',
-            details: 'Poster-Verknuepfung konnte nicht gespeichert werden.',
+            details: 'Poster-Verknüpfung konnte nicht gespeichert werden.',
           },
         }),
       }),
@@ -76,7 +76,7 @@ describe('admin anime api error propagation', () => {
       status: 500,
       message: 'Interner Serverfehler',
       code: 'cover_persist_failed',
-      details: 'Poster-Verknuepfung konnte nicht gespeichert werden.',
+      details: 'Poster-Verknüpfung konnte nicht gespeichert werden.',
     })
   })
 
@@ -506,7 +506,7 @@ describe('admin anime api error propagation', () => {
         status: 409,
         json: vi.fn().mockResolvedValue({
           error: {
-            message: 'relation existiert bereits oder ist ungueltig',
+            message: 'relation existiert bereits oder ist ungültig',
             code: 'relation_conflict',
             details: 'Die Relation ist doppelt oder verletzt die Richtungsregeln.',
           },
@@ -521,7 +521,7 @@ describe('admin anime api error propagation', () => {
       }),
     ).rejects.toMatchObject({
       status: 409,
-      message: 'relation existiert bereits oder ist ungueltig',
+      message: 'relation existiert bereits oder ist ungültig',
       code: 'relation_conflict',
       details: 'Die Relation ist doppelt oder verletzt die Richtungsregeln.',
     })
@@ -601,7 +601,7 @@ describe('admin anime api error propagation', () => {
           error: {
             message: 'background_video konnte nicht gesetzt werden',
             code: 'background_video_persist_failed',
-            details: 'Das Video konnte nicht mit dem Anime verknuepft werden.',
+            details: 'Das Video konnte nicht mit dem Anime verknüpft werden.',
           },
         }),
       }),
@@ -611,7 +611,7 @@ describe('admin anime api error propagation', () => {
       status: 422,
       message: 'background_video konnte nicht gesetzt werden',
       code: 'background_video_persist_failed',
-      details: 'Das Video konnte nicht mit dem Anime verknuepft werden.',
+      details: 'Das Video konnte nicht mit dem Anime verknüpft werden.',
     })
   })
 
@@ -724,7 +724,7 @@ describe('admin anime api error propagation', () => {
             redirect_path: '/admin/anime/84/edit',
           },
           error: {
-            message: 'AniSearch Quelle ist bereits verknuepft.',
+            message: 'AniSearch Quelle ist bereits verknüpft.',
             code: 'anisearch_source_conflict',
           },
         }),
@@ -743,7 +743,7 @@ describe('admin anime api error propagation', () => {
       ),
     ).rejects.toMatchObject({
       status: 409,
-      message: 'AniSearch Quelle ist bereits verknuepft.',
+      message: 'AniSearch Quelle ist bereits verknüpft.',
       code: 'anisearch_source_conflict',
       conflict: {
         mode: 'conflict',

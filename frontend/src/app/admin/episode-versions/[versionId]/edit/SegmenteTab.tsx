@@ -225,7 +225,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
       return
     }
     if (!formState.themeKind) {
-      setFormError('Bitte einen Typ auswaehlen.')
+      setFormError('Bitte einen Typ auswählen.')
       return
     }
 
@@ -244,12 +244,12 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     try {
       const parsedStart = formState.startTime.trim() ? parseFlexibleTimeInput(formState.startTime) : null
       if (formState.startTime.trim() && parsedStart == null) {
-        setFormError('Start-Zeit ist ungueltig. Erlaubt sind z. B. 1:20 oder 00:01:20.')
+        setFormError('Start-Zeit ist ungültig. Erlaubt sind z. B. 1:20 oder 00:01:20.')
         return
       }
       let parsedEnd = formState.endTime.trim() ? parseFlexibleTimeInput(formState.endTime) : null
       if (formState.endTime.trim() && parsedEnd == null) {
-        setFormError('End-Zeit ist ungueltig. Erlaubt sind z. B. 1:20 oder 00:01:20.')
+        setFormError('End-Zeit ist ungültig. Erlaubt sind z. B. 1:20 oder 00:01:20.')
         return
       }
       // Use segment's resolved playback duration as primary authority; fall back to page-level duration
@@ -264,7 +264,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
 
       const resolvedThemeID = await ensureThemeFromSelection(formState.themeKind, formState.themeTitle)
       if (!resolvedThemeID) {
-        setFormError('Bitte einen gueltigen Typ auswaehlen.')
+        setFormError('Bitte einen gueltigen Typ auswählen.')
         return
       }
 
@@ -320,7 +320,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   }
 
   async function handleDelete(segment: AdminThemeSegment) {
-    const confirmed = window.confirm('Segment wirklich loeschen?')
+    const confirmed = window.confirm('Segment wirklich löschen?')
     if (!confirmed) return
     await remove(segment.id)
   }
@@ -344,7 +344,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
 
   async function handleAssetDelete() {
     if (!animeId || !editingSegment || !authToken) return
-    const confirmed = window.confirm('Segment-Datei wirklich entfernen? Die Quelldaten werden auf "Keine Quelle" zurueckgesetzt.')
+    const confirmed = window.confirm('Segment-Datei wirklich entfernen? Die Quelldaten werden auf "Keine Quelle" zurückgesetzt.')
     if (!confirmed) return
     setIsDeletingAsset(true)
     setUploadError(null)
@@ -389,10 +389,10 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     }
   }
 
-  const episodeLabel = episodeNumber != null ? `Aktive Segmente fuer Episode ${episodeNumber}` : 'Segmente verwalten'
+  const episodeLabel = episodeNumber != null ? `Aktive Segmente für Episode ${episodeNumber}` : 'Segmente verwalten'
   const episodeSubtitle = episodeNumber != null
     ? `Zeigt alle Segmente, deren Episodenbereich Episode ${episodeNumber} abdeckt.`
-    : 'OP/ED-Timing fuer diese Gruppe und Version.'
+    : 'OP/ED-Timing für diese Gruppe und Version.'
 
   return (
     <div className={styles.tabContent}>
@@ -404,19 +404,19 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
         </div>
         <button type="button" className={styles.addButton} onClick={openAddPanel}>
           <Plus size={14} />
-          Segment hinzufuegen
+          Segment hinzufügen
         </button>
       </div>
 
       {/* Suggestions bar */}
       {suggestionsLoading ? (
         <div className={styles.suggestionsBar}>
-          <span className={styles.suggestionsLabel}>Vorschlaege werden geladen...</span>
+          <span className={styles.suggestionsLabel}>Vorschläge werden geladen...</span>
         </div>
       ) : suggestions.length > 0 ? (
         <div className={styles.suggestionsBar}>
           <span className={styles.suggestionsLabel}>
-            Vorschlaege aus anderen Releases fuer Episode {episodeNumber}:
+            Vorschläge aus anderen Releases für Episode {episodeNumber}:
           </span>
           <div className={styles.suggestionsList}>
             {suggestions.map((s) => (
@@ -434,7 +434,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                   className={styles.suggestionAdoptButton}
                   onClick={() => void adoptSuggestion(s)}
                 >
-                  Uebernehmen
+                  Übernehmen
                 </button>
               </div>
             ))}
@@ -465,7 +465,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
               {segments.length === 0 ? (
                 <tr>
                   <td colSpan={6} className={styles.emptyState}>
-                    Noch keine Segmente vorhanden. Klicke &ldquo;Segment hinzufuegen&rdquo; um zu beginnen.
+                    Noch keine Segmente vorhanden. Klicke &ldquo;Segment hinzufügen&rdquo; um zu beginnen.
                   </td>
                 </tr>
               ) : (
@@ -547,7 +547,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                                   }}
                                 >
                                   <Trash2 size={13} />
-                                  Loeschen
+                                  Löschen
                                 </button>
                               </div>
                             ) : null}

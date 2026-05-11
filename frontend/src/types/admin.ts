@@ -1,9 +1,9 @@
 import { AnimeStatus, ContentType, EpisodeStatus } from "@/types/anime";
 
-/** Moegliche Anime-Format-Typen fuer die Kategorisierung eines Eintrags. */
+/** Mögliche Anime-Format-Typen für die Kategorisierung eines Eintrags. */
 export type AnimeType = "tv" | "film" | "ova" | "ona" | "special" | "bonus";
 
-/** Kompakte Anime-Datendarstellung fuer die Admin-Listensicht. */
+/** Kompakte Anime-Datendarstellung für die Admin-Listensicht. */
 export interface AdminAnimeItem {
   id: number;
   title: string;
@@ -19,7 +19,7 @@ export interface AdminAnimeItem {
   cover_image?: string;
 }
 
-/** Kompakte Episoden-Datendarstellung fuer die Admin-Listensicht. */
+/** Kompakte Episoden-Datendarstellung für die Admin-Listensicht. */
 export interface AdminEpisodeItem {
   id: number;
   anime_id: number;
@@ -53,7 +53,7 @@ export interface AdminAnimeCreateRequest {
   relations?: AdminAnimeRelation[];
 }
 
-/** Vorgeschlagene Asset-URLs fuer einen Anime-Erstellungs-Draft (Cover, Banner, Logo usw.). */
+/** Vorgeschlagene Asset-URLs für einen Anime-Erstellungs-Draft (Cover, Banner, Logo usw.). */
 export interface AdminAnimeCreateDraftAssetSuggestions {
   cover?: string;
   banner?: string;
@@ -69,7 +69,7 @@ export interface AdminAnimeAltTitle {
   title: string;
 }
 
-/** Vollstaendiger Payload-Typ fuer einen Anime-Erstellungs-Draft inkl. Alt-Titeln und Asset-Vorschlaegen. */
+/** Vollstaendiger Payload-Typ für einen Anime-Erstellungs-Draft inkl. Alt-Titeln und Asset-Vorschlägen. */
 export interface AdminAnimeCreateDraftPayload {
   title: string;
   title_de?: string;
@@ -108,7 +108,7 @@ export interface AdminAnimePatchRequest {
   folder_name?: string | null;
 }
 
-/** Partieller Draft-Payload fuer die Bearbeitung eines bestehenden Anime-Eintrags. */
+/** Partieller Draft-Payload für die Bearbeitung eines bestehenden Anime-Eintrags. */
 export interface AdminAnimeEditDraftPayload {
   title?: string | null;
   title_de?: string | null;
@@ -197,23 +197,23 @@ export interface AdminAnimeAniSearchCreateConflictResult {
   redirect_path: string;
 }
 
-/** Union-Typ fuer das Ergebnis einer AniSearch-basierten Anime-Erstellung (Draft oder Weiterleitung). */
+/** Union-Typ für das Ergebnis einer AniSearch-basierten Anime-Erstellung (Draft oder Weiterleitung). */
 export type AdminAnimeAniSearchCreateResult =
   | AdminAnimeAniSearchCreateDraftResult
   | AdminAnimeAniSearchCreateConflictResult;
 
-/** API-Antwort fuer eine AniSearch-basierte Anime-Erstellung. */
+/** API-Antwort für eine AniSearch-basierte Anime-Erstellung. */
 export interface AdminAnimeAniSearchCreateResponse {
   data: AdminAnimeAniSearchCreateResult;
 }
 
-/** API-Antwort fuer eine AniSearch-Suche mit einer Liste von Kandidaten. */
+/** API-Antwort für eine AniSearch-Suche mit einer Liste von Kandidaten. */
 export interface AdminAnimeAniSearchSearchResponse {
   data: AdminAnimeAniSearchSearchCandidate[];
   filtered_existing_count?: number;
 }
 
-/** Unterstuetzte Bild-Quell-Provider fuer die Asset-Suche. */
+/** Unterstützte Bild-Quell-Provider für die Asset-Suche. */
 export type AdminAnimeAssetSearchSource =
   | "tmdb"
   | "fanart.tv"
@@ -222,7 +222,7 @@ export type AdminAnimeAssetSearchSource =
   | "anilist"
   | "safebooru";
 
-/** Einzelner Bildkandidat aus der provider-uebergreifenden Asset-Suche. */
+/** Einzelner Bildkandidat aus der provider-übergreifenden Asset-Suche. */
 export interface AdminAnimeAssetSearchCandidate {
   id: string;
   asset_kind: AdminAnimeAssetKind;
@@ -236,7 +236,7 @@ export interface AdminAnimeAssetSearchCandidate {
   year?: number;
 }
 
-/** Request-Payload fuer eine provider-uebergreifende Asset-Bildsuche. */
+/** Request-Payload für eine provider-übergreifende Asset-Bildsuche. */
 export interface AdminAnimeAssetSearchRequest {
   asset_kind: AdminAnimeAssetKind;
   query: string;
@@ -245,7 +245,7 @@ export interface AdminAnimeAssetSearchRequest {
   sources?: AdminAnimeAssetSearchSource[];
 }
 
-/** API-Antwort fuer eine Asset-Bildsuche mit Liste von Kandidaten. */
+/** API-Antwort für eine Asset-Bildsuche mit Liste von Kandidaten. */
 export interface AdminAnimeAssetSearchResponse {
   data: AdminAnimeAssetSearchCandidate[];
 }
@@ -276,7 +276,7 @@ export interface AdminEpisodePatchRequest {
   stream_link?: string | null;
 }
 
-/** Request-Parameter fuer den Jellyfin-Sync eines Anime inkl. Steuerungsoptionen. */
+/** Request-Parameter für den Jellyfin-Sync eines Anime inkl. Steuerungsoptionen. */
 export interface AdminAnimeJellyfinSyncRequest {
   jellyfin_series_id?: string;
   season_number?: number;
@@ -298,7 +298,7 @@ export interface AdminEpisodeUpsertResponse {
   data: AdminEpisodeItem;
 }
 
-/** Ergebnis-Daten nach dem Loeschen einer Episode (inkl. Anzahl geloeschter Versionen). */
+/** Ergebnis-Daten nach dem Löschen einer Episode (inkl. Anzahl gelöschter Versionen). */
 export interface AdminEpisodeDeleteResult {
   episode_id: number;
   anime_id: number;
@@ -306,24 +306,24 @@ export interface AdminEpisodeDeleteResult {
   deleted_release_variants: number;
 }
 
-/** API-Antwort nach dem Loeschen einer Episode. */
+/** API-Antwort nach dem Löschen einer Episode. */
 export interface AdminEpisodeDeleteResponse {
   data: AdminEpisodeDeleteResult;
 }
 
-/** Ergebnis-Daten nach dem Loeschen eines Anime-Eintrags. */
+/** Ergebnis-Daten nach dem Löschen eines Anime-Eintrags. */
 export interface AdminAnimeDeleteResult {
   anime_id: number;
   title: string;
   orphaned_local_cover_image?: string;
 }
 
-/** API-Antwort nach dem Loeschen eines Anime-Eintrags. */
+/** API-Antwort nach dem Löschen eines Anime-Eintrags. */
 export interface AdminAnimeDeleteResponse {
   data: AdminAnimeDeleteResult;
 }
 
-/** Erlaubte Beziehungslabels zwischen zwei Anime-Eintraegen (auf vier Typen limitiert). */
+/** Erlaubte Beziehungslabels zwischen zwei Anime-Einträgen (auf vier Typen limitiert). */
 export type AdminAnimeRelationLabel =
   | "Hauptgeschichte"
   | "Nebengeschichte"
@@ -341,7 +341,7 @@ export interface AdminAnimeRelation {
   target_cover_url?: string;
 }
 
-/** Ziel-Anime fuer eine Relation-Auswahl im Admin-Bereich. */
+/** Ziel-Anime für eine Relation-Auswahl im Admin-Bereich. */
 export interface AdminAnimeRelationTarget {
   anime_id: number;
   title: string;
@@ -351,7 +351,7 @@ export interface AdminAnimeRelationTarget {
   cover_url?: string;
 }
 
-/** API-Antwort fuer die Liste aller Relationen eines Anime. */
+/** API-Antwort für die Liste aller Relationen eines Anime. */
 export interface AdminAnimeRelationsResponse {
   data: AdminAnimeRelation[];
 }
@@ -823,7 +823,7 @@ export interface AdminFansubAnimeThemeAssetsResponse {
 /** Expliziter Quelltyp eines Segments: none = manuell, jellyfin_theme = Jellyfin-Theme-Video, release_asset = Release-Asset. */
 export type AdminSegmentSourceType = 'none' | 'jellyfin_theme' | 'release_asset'
 
-/** Ein Release-Segment (OP/ED Timing) fuer eine Fansub-Gruppe und Version. */
+/** Ein Release-Segment (OP/ED Timing) für eine Fansub-Gruppe und Version. */
 export interface AdminThemeSegment {
   id: number
   theme_id: number
@@ -836,13 +836,13 @@ export interface AdminThemeSegment {
   end_episode: number | null
   start_time: string | null    // "HH:MM:SS" oder null
   end_time: string | null      // "HH:MM:SS" oder null
-  /** @deprecated Fuer Rueckwaertskompatibilitaet; neues Frontend soll source_type/source_ref/source_label verwenden */
+  /** @deprecated Für Rueckwaertskompatibilitaet; neues Frontend soll source_type/source_ref/source_label verwenden */
   source_jellyfin_item_id: string | null
   /** Expliziter Quelltyp (Phase 25+). */
   source_type?: AdminSegmentSourceType | null
   /** Referenz auf die Quell-Ressource (z.B. Jellyfin-Item-ID oder Media-Asset-ID). */
   source_ref?: string | null
-  /** Lesbares Label der Quelle fuer die UI-Anzeige. */
+  /** Lesbares Label der Quelle für die UI-Anzeige. */
   source_label?: string | null
   playback_source_id?: number | null
   playback_source_kind?: 'episode_version' | 'jellyfin_theme' | 'uploaded_asset' | null
@@ -865,12 +865,12 @@ export interface AdminThemeSegment {
   created_at: string
 }
 
-/** API-Response fuer Segment-Listen. */
+/** API-Response für Segment-Listen. */
 export interface AdminAnimeSegmentsResponse {
   data: AdminThemeSegment[]
 }
 
-/** API-Response fuer Segment-Vorschlaege aus anderen Releases. */
+/** API-Response für Segment-Vorschläge aus anderen Releases. */
 export interface AdminSegmentSuggestionsResponse {
   data: AdminThemeSegment[]
 }

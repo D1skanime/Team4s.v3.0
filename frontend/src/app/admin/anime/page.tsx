@@ -51,7 +51,7 @@ export default async function AdminAnimePage({ searchParams }: AdminAnimePagePro
       <header className={styles.headerCard}>
         <div>
           <h1 className={styles.pageTitle}>Anime</h1>
-          <p className={styles.pageSubtitle}>Neue Eintraege anlegen und bestehende Anime verwalten.</p>
+          <p className={styles.pageSubtitle}>Neue Einträge anlegen und bestehende Anime verwalten.</p>
         </div>
         <div className={styles.headerActions}>
           <Link href="/admin/anime/create" className={`${styles.button} ${styles.buttonPrimary}`}>

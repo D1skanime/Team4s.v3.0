@@ -26,7 +26,7 @@ interface AdminAnimeEditPageClientProps {
 }
 
 /**
- * Erstellt ein kurzes Anzeigelabel fuer einen Anime (ID + Titel).
+ * Erstellt ein kurzes Anzeigelabel für einen Anime (ID + Titel).
  */
 function formatAnimeLabel(anime: AnimeDetail): string {
   return `${String(anime.id).padStart(3, '0')} ${anime.title}`
@@ -82,7 +82,7 @@ export function AdminAnimeEditPageClient({
           <h1 className={styles.pageTitle}>Anime bearbeiten</h1>
           <p className={styles.pageSubtitle}>
             Die Route nutzt jetzt dieselbe vierteilige Editor-Grundlage wie `/admin/anime/create`: Quelle,
-            Assets, Details und abschliessendes Speichern. Episoden und Versionen bleiben bewusst ausgelagert.
+            Assets, Details und abschließendes Speichern. Episoden und Versionen bleiben bewusst ausgelagert.
           </p>
         </div>
         {anime ? (

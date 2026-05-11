@@ -46,7 +46,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     form = await request.formData()
   } catch {
-    return Response.json({ error: { message: 'ungueltiger request body' } }, { status: 400 })
+    return Response.json({ error: { message: 'ungültiger request body' } }, { status: 400 })
   }
 
   const file = form.get('file')
@@ -59,7 +59,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   if (!file.type || !file.type.toLowerCase().startsWith('image/')) {
-    return Response.json({ error: { message: 'ungueltiger dateityp (nur bilder)' } }, { status: 400 })
+    return Response.json({ error: { message: 'ungültiger dateityp (nur bilder)' } }, { status: 400 })
   }
 
   const maxBytes = 10 * 1024 * 1024
@@ -94,7 +94,7 @@ export async function DELETE(request: Request): Promise<Response> {
 
   const targetPath = resolveSafeCoverPath(body?.file_name || '')
   if (!targetPath) {
-    return Response.json({ error: { message: 'ungueltiger dateiname' } }, { status: 400 })
+    return Response.json({ error: { message: 'ungültiger dateiname' } }, { status: 400 })
   }
 
   await rm(targetPath, { force: true })

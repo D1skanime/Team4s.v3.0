@@ -1094,7 +1094,7 @@ interface FansubMediaUploadOptions {
 
 export async function uploadFansubMedia(options: FansubMediaUploadOptions): Promise<FansubMediaUploadResponse> {
   if (typeof window === 'undefined') {
-    throw new ApiError(500, 'upload ist nur im browser verfuegbar')
+    throw new ApiError(500, 'upload ist nur im browser verfügbar')
   }
 
   const API_BASE_URL = getApiBaseUrl()
@@ -1625,7 +1625,7 @@ interface AdminAnimeMediaUploadOptions {
 
 export async function uploadAdminAnimeMedia(options: AdminAnimeMediaUploadOptions): Promise<AdminMediaUploadResponse> {
   if (typeof window === 'undefined') {
-    throw new ApiError(500, 'upload ist nur im browser verfuegbar')
+    throw new ApiError(500, 'upload ist nur im browser verfügbar')
   }
 
   const API_BASE_URL = getApiBaseUrl()
@@ -1805,7 +1805,7 @@ export async function uploadAdminReleaseThemeAsset(
   options: AdminReleaseThemeAssetUploadOptions,
 ): Promise<AdminReleaseThemeAssetCreateResponse> {
   if (typeof window === 'undefined') {
-    throw new ApiError(500, 'upload ist nur im browser verfuegbar')
+    throw new ApiError(500, 'upload ist nur im browser verfügbar')
   }
 
   const API_BASE_URL = getApiBaseUrl()
@@ -1860,7 +1860,7 @@ export async function uploadAdminReleaseThemeAssetForRelease(
   options: AdminReleaseThemeAssetUploadForReleaseOptions,
 ): Promise<AdminReleaseThemeAssetCreateResponse> {
   if (typeof window === 'undefined') {
-    throw new ApiError(500, 'upload ist nur im browser verfuegbar')
+    throw new ApiError(500, 'upload ist nur im browser verfügbar')
   }
 
   const API_BASE_URL = getApiBaseUrl()
@@ -2888,7 +2888,7 @@ export async function deleteAnimeSegment(
 }
 
 /**
- * Laedt Segment-Vorschlaege fuer einen Anime und eine Episodennummer aus anderen Releases.
+ * Laedt Segment-Vorschläge für einen Anime und eine Episodennummer aus anderen Releases.
  * Optional kann die aktuelle (excludeGroupId, excludeVersion)-Kombination ausgeschlossen werden.
  */
 export async function getAnimeSegmentSuggestions(
@@ -2972,7 +2972,7 @@ export async function attachSegmentLibraryAsset(
 /**
  * Laedt eine Videodatei als Segment-Asset hoch und aktualisiert die Source-Felder des Segments.
  * Sendet multipart/form-data mit dem Feld "file".
- * Gibt das aktualisierte Segment zurueck.
+ * Gibt das aktualisierte Segment zurück.
  */
 export async function uploadSegmentAsset(
   animeId: number,
@@ -3059,7 +3059,7 @@ export async function uploadReleaseVersionMedia(
   options: UploadReleaseVersionMediaOptions,
 ): Promise<ReleaseVersionMediaUploadResponse> {
   if (typeof window === 'undefined') {
-    throw new ApiError(500, 'upload ist nur im browser verfuegbar')
+    throw new ApiError(500, 'upload ist nur im browser verfügbar')
   }
 
   const API_BASE_URL = getApiBaseUrl()

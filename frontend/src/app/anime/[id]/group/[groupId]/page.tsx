@@ -19,7 +19,7 @@ import {
 import { GroupAssetShowcase } from "./GroupAssetShowcase";
 import styles from "./page.module.css";
 
-/** Props fuer die Gruppen-Story-Seite mit Anime- und Gruppen-ID. */
+/** Props für die Gruppen-Story-Seite mit Anime- und Gruppen-ID. */
 interface GroupStoryPageProps {
   params:
     | {
@@ -69,7 +69,7 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
     return (
       <main className={styles.page}>
         <p className={styles.backLink}>
-          <Link href={`/anime/${animeID}`}>Zurueck zum Anime</Link>
+          <Link href={`/anime/${animeID}`}>Zurück zum Anime</Link>
         </p>
         <div className={styles.errorBox}>
           {errorMessage ?? "Fehler beim Laden der Seite."}
@@ -187,7 +187,7 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
       <Breadcrumbs items={breadcrumbItems} />
 
       <p className={styles.backLink}>
-        <Link href={`/anime/${animeID}`}>Zurueck zum Anime</Link>
+        <Link href={`/anime/${animeID}`}>Zurück zum Anime</Link>
       </p>
 
       <section className={styles.heroShell}>
@@ -267,12 +267,12 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
         <div className={styles.errorBox}>{groupAssetsError}</div>
       ) : !hasGroupFolder ? (
         <div className={styles.errorBox}>
-          Fuer diese Gruppenversion wurde noch kein passender Subgroups-Ordner
+          Für diese Gruppenversion wurde noch kein passender Subgroups-Ordner
           gefunden.
         </div>
       ) : !hasEpisodeAssets ? (
         <div className={styles.errorBox}>
-          Der Subgroups-Ordner wurde gefunden, enthaelt aber noch keine
+          Der Subgroups-Ordner wurde gefunden, enthält aber noch keine
           Episoden-Assets.
         </div>
       ) : (

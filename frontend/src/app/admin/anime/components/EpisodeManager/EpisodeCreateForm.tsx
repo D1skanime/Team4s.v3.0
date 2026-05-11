@@ -47,7 +47,7 @@ export function EpisodeCreateForm({
                 disabled={isCreating}
                 onClick={() => onFieldChange('number', nextEpisodeNumberSuggestion)}
               >
-                Naechste Nummer verwenden: {nextEpisodeNumberSuggestion}
+                Nächste Nummer verwenden: {nextEpisodeNumberSuggestion}
               </button>
             ) : null}
           </div>

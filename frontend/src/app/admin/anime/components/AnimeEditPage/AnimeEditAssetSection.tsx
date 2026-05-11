@@ -246,7 +246,7 @@ export function AnimeEditAssetSection({
             variant="backgroundVideo"
             previewUrl={jellyfinBackgroundVideo.url}
             source="Jellyfin"
-            statusNote="Verfuegbar aus Jellyfin-Quelle"
+            statusNote="Verfügbar aus Jellyfin-Quelle"
             actions={
               <AssetActionRow
                 disabled={isBusy}

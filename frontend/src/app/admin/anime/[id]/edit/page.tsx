@@ -37,7 +37,7 @@ export default function AdminAnimeEditPage() {
   useEffect(() => {
     async function loadAnime() {
       if (!animeID) {
-        setErrorMessage('Ungueltige Anime-ID.')
+        setErrorMessage('Ungültige Anime-ID.')
         setIsLoading(false)
         return
       }

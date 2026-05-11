@@ -44,7 +44,7 @@ export default async function WatchlistPage({ searchParams }: WatchlistPageProps
     response = await getWatchlist({ page, per_page: perPage }, authToken)
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
-      errorMessage = 'Anmeldung abgelaufen oder ungueltig. Bitte auf /auth erneut anmelden.'
+      errorMessage = 'Anmeldung abgelaufen oder ungültig. Bitte auf /auth erneut anmelden.'
     } else if (error instanceof ApiError) {
       errorMessage = error.message
     } else {

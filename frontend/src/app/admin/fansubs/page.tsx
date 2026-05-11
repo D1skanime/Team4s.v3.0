@@ -292,7 +292,7 @@ export default function AdminFansubsPage() {
     }
 
     const ok = window.confirm(
-      `Fansub "${item.name}" wirklich loeschen?\n\nEpisoden bleiben erhalten; fansub_group_id wird entkoppelt.`,
+      `Fansub "${item.name}" wirklich löschen?\n\nEpisoden bleiben erhalten; fansub_group_id wird entkoppelt.`,
     )
     if (!ok) return
 
@@ -301,7 +301,7 @@ export default function AdminFansubsPage() {
     setSuccessMessage(null)
     try {
       await deleteFansubGroup(item.id, authToken)
-      setSuccessMessage(`Fansub "${item.name}" geloescht.`)
+      setSuccessMessage(`Fansub "${item.name}" gelöscht.`)
       await loadList()
     } catch (error) {
       setErrorMessage(formatError(error))
@@ -320,7 +320,7 @@ export default function AdminFansubsPage() {
     if (selected.length === 0) return
 
     const ok = window.confirm(
-      `${selected.length} Fansub-Gruppen wirklich loeschen?\n\nEpisoden bleiben erhalten; fansub_group_id wird entkoppelt.`,
+      `${selected.length} Fansub-Gruppen wirklich löschen?\n\nEpisoden bleiben erhalten; fansub_group_id wird entkoppelt.`,
     )
     if (!ok) return
 
@@ -331,7 +331,7 @@ export default function AdminFansubsPage() {
       for (const item of selected) {
         await deleteFansubGroup(item.id, authToken)
       }
-      setSuccessMessage(`${selected.length} Fansub-Gruppen geloescht.`)
+      setSuccessMessage(`${selected.length} Fansub-Gruppen gelöscht.`)
       await loadList()
     } catch (error) {
       setErrorMessage(formatError(error))
@@ -374,7 +374,7 @@ export default function AdminFansubsPage() {
 
       <header className={styles.header}>
         <h1 className={styles.title}>Fansub Verwaltung</h1>
-        <p className={styles.subtitle}>Gruppen suchen, filtern, bearbeiten und loeschen.</p>
+        <p className={styles.subtitle}>Gruppen suchen, filtern, bearbeiten und löschen.</p>
       </header>
 
       <section className={styles.panel}>
@@ -430,7 +430,7 @@ export default function AdminFansubsPage() {
 
         {selectedIDs.size > 0 ? (
           <div className={styles.fansubBulkBar}>
-            <span className={styles.fansubBulkInfo}>{selectedIDs.size} ausgewaehlt</span>
+            <span className={styles.fansubBulkInfo}>{selectedIDs.size} ausgewählt</span>
             <div className={styles.fansubBulkControls}>
               <select
                 value={bulkStatus}
@@ -460,7 +460,7 @@ export default function AdminFansubsPage() {
                 onClick={() => void onBulkDelete()}
                 disabled={isMutating}
               >
-                Loeschen
+                Löschen
               </button>
             </div>
           </div>
@@ -484,7 +484,7 @@ export default function AdminFansubsPage() {
                         type="checkbox"
                         checked={allOnPageSelected}
                         onChange={toggleSelectAllOnPage}
-                        aria-label="Alle sichtbaren Gruppen auswaehlen"
+                        aria-label="Alle sichtbaren Gruppen auswählen"
                       />
                     </th>
                     <th>
@@ -526,7 +526,7 @@ export default function AdminFansubsPage() {
                             type="checkbox"
                             checked={selectedIDs.has(item.id)}
                             onChange={() => toggleSelection(item.id)}
-                            aria-label={`Gruppe ${item.name} auswaehlen`}
+                            aria-label={`Gruppe ${item.name} auswählen`}
                           />
                         </td>
                         <td className={styles.fansubNameCell}>{item.name}</td>
@@ -602,7 +602,7 @@ export default function AdminFansubsPage() {
                           type="checkbox"
                           checked={selectedIDs.has(item.id)}
                           onChange={() => toggleSelection(item.id)}
-                          aria-label={`Gruppe ${item.name} auswaehlen`}
+                          aria-label={`Gruppe ${item.name} auswählen`}
                         />
                       </label>
                       <div className={styles.fansubCardMeta}>
@@ -665,7 +665,7 @@ export default function AdminFansubsPage() {
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                   disabled={page <= 1}
                 >
-                  Zurueck
+                  Zurück
                 </button>
                 <span className={styles.fansubPaginationLabel}>
                   Seite {page} / {totalPages}

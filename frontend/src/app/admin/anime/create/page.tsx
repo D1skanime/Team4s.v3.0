@@ -422,7 +422,7 @@ export default function AdminAnimeCreatePage() {
       <SharedAnimeEditorWorkspace
         mode="create"
         headerTitle="Anime erstellen"
-        headerIntro="Schritt fuer Schritt zum perfekten Ergebnis."
+        headerIntro="Schritt für Schritt zum perfekten Ergebnis."
         sourceContent={sourceSection}
         assetsContent={assetsSection}
         detailsContent={detailsSection}

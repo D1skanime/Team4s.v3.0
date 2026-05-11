@@ -80,7 +80,7 @@ describe('AnimeRelationsSection', () => {
         authToken="token"
         defaultOpen
         modelOverride={createModel({
-          errorMessage: 'Relation existiert bereits oder ist ungueltig',
+          errorMessage: 'Relation existiert bereits oder ist ungültig',
           relations: [
             {
               target_anime_id: 12,
@@ -95,7 +95,7 @@ describe('AnimeRelationsSection', () => {
       />,
     )
 
-    expect(markup).toContain('Relation existiert bereits oder ist ungueltig')
+    expect(markup).toContain('Relation existiert bereits oder ist ungültig')
     expect(markup).toContain('Bestehende Relationen')
     expect(markup).toContain('Bearbeiten')
     expect(markup).toContain('Löschen')

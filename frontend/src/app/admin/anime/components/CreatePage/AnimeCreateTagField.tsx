@@ -48,7 +48,7 @@ export function AnimeCreateTagField({
   return (
     <div className={styles.field}>
       <label htmlFor="create-tag">Tags</label>
-      <div aria-label="Ausgewaehlte Tags">
+      <div aria-label="Ausgewählte Tags">
         {selectedTokens.length > 0 ? (
           <div className={styles.chipRow}>
             {selectedTokens.map((token) => (
@@ -89,23 +89,23 @@ export function AnimeCreateTagField({
           disabled={isSubmitting || draft.trim().length === 0}
           onClick={onAddDraft}
         >
-          Hinzufuegen
+          Hinzufügen
         </button>
       </div>
 
       {isLoading ? (
-        <p className={styles.hint}>Tag-Vorschlaege werden geladen...</p>
+        <p className={styles.hint}>Tag-Vorschläge werden geladen...</p>
       ) : null}
       {error ? (
         <p className={styles.hint}>
-          Hinweis: Tag-Vorschlaege konnten nicht vollstaendig geladen werden.
+          Hinweis: Tag-Vorschläge konnten nicht vollstaendig geladen werden.
         </p>
       ) : null}
-      <div aria-label="Tag Vorschlaege">
+      <div aria-label="Tag Vorschläge">
         {!isLoading && suggestions.length > 0 ? (
           <>
             <p className={styles.hint}>
-              Vorschlaege: {suggestions.length}/{suggestionsTotal} (geladen:{' '}
+              Vorschläge: {suggestions.length}/{suggestionsTotal} (geladen:{' '}
               {loadedTokenCount})
             </p>
             <div className={styles.chipBox}>

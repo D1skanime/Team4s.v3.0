@@ -50,7 +50,7 @@ export function CreateJellyfinCard({
         <p className={createStyles.resultsEyebrow}>Jellyfin</p>
         <h2 className={createStyles.resultsTitle}>Jellyfin</h2>
         <p className={createStyles.resultsText}>
-          Dateiordner und passende Quelle fuer Cover, Banner, Logo und Hintergruende
+          Dateiordner und passende Quelle für Cover, Banner, Logo und Hintergruende
         </p>
       </div>
 
@@ -80,7 +80,7 @@ export function CreateJellyfinCard({
         <div className={createStyles.jellyfinSourceNotice}>
           <p className={createStyles.jellyfinSourceText}>
             <strong>{selectedCandidate?.name || "Jellyfin-Ordner"}</strong> ist jetzt
-            als Quelle gesetzt. Die uebernommenen Assets bearbeitest du direkt im
+            als Quelle gesetzt. Die übernommenen Assets bearbeitest du direkt im
             Asset-Bereich.
           </p>
           <button

@@ -34,7 +34,7 @@ export function EpisodeBulkBar({
   return (
     <div className={styles.bulkActionBar} role="region" aria-label="Mehrfachaktionen">
       <div className={styles.bulkSummary}>
-        <strong>{selectedCount}</strong> ausgewaehlt
+        <strong>{selectedCount}</strong> ausgewählt
         {isApplyingBulk && bulkProgress ? <span className={styles.bulkProgress}> ({bulkProgress.done}/{bulkProgress.total})</span> : null}
       </div>
 

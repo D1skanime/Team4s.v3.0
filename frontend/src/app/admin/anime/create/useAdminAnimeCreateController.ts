@@ -174,7 +174,7 @@ export function resolveAniSearchCandidateSearchFeedback(
     candidates,
     errorMessage: null,
     filteredExistingCount,
-    successMessage: `${candidates.length} AniSearch-Treffer gefunden. Waehle jetzt den passenden Eintrag aus.`,
+    successMessage: `${candidates.length} AniSearch-Treffer gefunden. Wähle jetzt den passenden Eintrag aus.`,
   };
 }
 
@@ -314,7 +314,7 @@ export function useAdminAnimeCreateController() {
         setGenreTokensError(
           error instanceof ApiError
             ? `(${error.status}) ${error.message}`
-            : "Genre-Vorschlaege konnten nicht geladen werden.",
+            : "Genre-Vorschläge konnten nicht geladen werden.",
         );
       })
       .finally(() => setIsLoadingGenreTokens(false));
@@ -331,7 +331,7 @@ export function useAdminAnimeCreateController() {
         setTagTokensError(
           error instanceof ApiError
             ? `(${error.status}) ${error.message}`
-            : "Tag-Vorschlaege konnten nicht geladen werden.",
+            : "Tag-Vorschläge konnten nicht geladen werden.",
         );
       })
       .finally(() => setIsLoadingTagTokens(false));
@@ -572,7 +572,7 @@ export function useAdminAnimeCreateController() {
       return { ...current, [kind]: staged };
     });
     setShowValidationSummary(false);
-    setSuccessMessage(`${staged.draftValue} fuer ${kind} vorbereitet.`);
+    setSuccessMessage(`${staged.draftValue} für ${kind} vorbereitet.`);
   }
 
   function addStagedBackground(file: File) {
@@ -904,7 +904,7 @@ export function useAdminAnimeCreateController() {
       setHasAdoptedJellyfinPreview(false);
       setShowValidationSummary(false);
       setSuccessMessage(
-        `Jellyfin-Vorschau fuer ${preview.jellyfin_series_name} geladen. Uebernimm den Ordner erst explizit, wenn er wirklich passt.`,
+        `Jellyfin-Vorschau für ${preview.jellyfin_series_name} geladen. Uebernimm den Ordner erst explizit, wenn er wirklich passt.`,
       );
     } catch (error) {
       setErrorMessage(
@@ -919,7 +919,7 @@ export function useAdminAnimeCreateController() {
     setAniSearchConflict(null);
     jellyfinIntake.reviewCandidate(candidateID);
     setSuccessMessage(
-      "Treffer ausgewaehlt. Lade jetzt die Jellyfin-Vorschau, wenn dieser Ordner wirklich passt.",
+      "Treffer ausgewählt. Lade jetzt die Jellyfin-Vorschau, wenn dieser Ordner wirklich passt.",
     );
   }
 
@@ -953,11 +953,11 @@ export function useAdminAnimeCreateController() {
       setHasAdoptedJellyfinPreview(true);
       setShowValidationSummary(false);
       setSuccessMessage(
-        `${preview.jellyfin_series_name} wurde als Jellyfin-Quelle uebernommen.`,
+        `${preview.jellyfin_series_name} wurde als Jellyfin-Quelle übernommen.`,
       );
     } catch (error) {
       setErrorMessage(
-        formatCreatePageError(error, "Jellyfin-Quelle konnte nicht uebernommen werden."),
+        formatCreatePageError(error, "Jellyfin-Quelle konnte nicht übernommen werden."),
       );
     }
   }
@@ -1130,7 +1130,7 @@ export function useAdminAnimeCreateController() {
 
     const query = assetSearchQuery.trim();
     if (!activeAssetSearchKind) {
-      setAssetSearchErrorMessage("Bitte zuerst einen Asset-Slot waehlen.");
+      setAssetSearchErrorMessage("Bitte zuerst einen Asset-Slot wählen.");
       return;
     }
     if (!query) {
@@ -1169,7 +1169,7 @@ export function useAdminAnimeCreateController() {
         return;
       }
       setSuccessMessage(
-        `${response.data.length} Asset-Treffer gefunden. Waehle jetzt die passenden Bilder aus.`,
+        `${response.data.length} Asset-Treffer gefunden. Wähle jetzt die passenden Bilder aus.`,
       );
     } catch (error) {
       setAssetSearchErrorMessage(
@@ -1235,11 +1235,11 @@ export function useAdminAnimeCreateController() {
     setAssetSearchErrorMessage(null);
 
     if (!activeAssetSearchKind) {
-      setAssetSearchErrorMessage("Bitte zuerst einen Asset-Slot waehlen.");
+      setAssetSearchErrorMessage("Bitte zuerst einen Asset-Slot wählen.");
       return;
     }
     if (assetSearchSelectedIDs.length === 0) {
-      setAssetSearchErrorMessage("Bitte zuerst mindestens einen Treffer auswaehlen.");
+      setAssetSearchErrorMessage("Bitte zuerst mindestens einen Treffer auswählen.");
       return;
     }
 
@@ -1288,7 +1288,7 @@ export function useAdminAnimeCreateController() {
       setAssetSearchErrorMessage(
         formatCreatePageError(
           error,
-          "Das gewaehlte Asset konnte nicht uebernommen werden.",
+          "Das gewählte Asset konnte nicht übernommen werden.",
         ),
       );
     } finally {

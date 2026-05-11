@@ -98,14 +98,14 @@ export default function AdminAnimeEpisodeImportPage() {
         <div className={styles.summaryStrip}>
           <SummaryPill label="Kanonisch" value={builder.summary.canonical_episode_count} />
           <SummaryPill label="Dateien" value={builder.summary.media_candidate_count} />
-          <SummaryPill label="Vorschlaege" value={builder.summary.suggested_count} tone="neutral" />
-          <SummaryPill label="Bestaetigt" value={builder.summary.confirmed_count} tone="good" />
+          <SummaryPill label="Vorschläge" value={builder.summary.suggested_count} tone="neutral" />
+          <SummaryPill label="Bestätigt" value={builder.summary.confirmed_count} tone="good" />
           <SummaryPill
             label="Konflikte"
             value={builder.summary.conflict_count}
             tone={builder.summary.conflict_count ? 'danger' : 'good'}
           />
-          <SummaryPill label="Uebersprungen" value={builder.summary.skipped_count} />
+          <SummaryPill label="Übersprungen" value={builder.summary.skipped_count} />
           <SummaryPill
             label="Ohne Datei"
             value={builder.summary.unmapped_episode_count}
@@ -120,8 +120,8 @@ export default function AdminAnimeEpisodeImportPage() {
             <div>
               <h2>Mapping-Workbench</h2>
               <p>
-                Jede Datei braucht ein Ziel oder wird uebersprungen. Mehrere Episodennummern als Kommaliste, z.B.{' '}
-                <code>9,10</code>. Mehrere Dateien fuer dieselbe Episode sind als parallele Versionen erlaubt.
+                Jede Datei braucht ein Ziel oder wird übersprungen. Mehrere Episodennummern als Kommaliste, z.B.{' '}
+                <code>9,10</code>. Mehrere Dateien für dieselbe Episode sind als parallele Versionen erlaubt.
               </p>
             </div>
             <div className={styles.workbenchActions}>
@@ -131,7 +131,7 @@ export default function AdminAnimeEpisodeImportPage() {
                 onClick={() => builder.skipAllSuggested()}
                 disabled={!builder.hasSuggestedRows}
               >
-                Alle Vorschlaege ueberspringen
+                Alle Vorschläge ueberspringen
               </button>
               <button
                 className={styles.secondaryButton}
@@ -139,7 +139,7 @@ export default function AdminAnimeEpisodeImportPage() {
                 onClick={() => builder.confirmAllSuggested()}
                 disabled={!builder.hasSuggestedRows}
               >
-                Alle Vorschlaege bestaetigen
+                Alle Vorschläge bestätigen
               </button>
               <button
                 className={styles.primaryButton}
@@ -223,7 +223,7 @@ export default function AdminAnimeEpisodeImportPage() {
           </p>
           {animeID ? (
             <Link className={styles.secondaryButton} href={`/admin/anime/${animeID}/episodes`}>
-              Zur Episodenuebersicht
+              Zur Episodenübersicht
             </Link>
           ) : null}
         </section>
@@ -295,7 +295,7 @@ function EpisodeGroup({
                 rows={2}
                 value={group.title ?? ''}
                 placeholder={`Episode ${group.episodeNumber}`}
-                aria-label={`Deutscher Titel fuer Episode ${group.episodeNumber}`}
+                aria-label={`Deutscher Titel für Episode ${group.episodeNumber}`}
                 onChange={(event) => onSetEpisodeTitle(group.episodeNumber, event.target.value)}
               />
             </label>
@@ -321,7 +321,7 @@ function EpisodeGroup({
                         rows={2}
                         value={coveredEpisode.title ?? ''}
                         placeholder={`Episode ${coveredEpisode.episodeNumber}`}
-                        aria-label={`Deutscher Titel fuer Episode ${coveredEpisode.episodeNumber}`}
+                        aria-label={`Deutscher Titel für Episode ${coveredEpisode.episodeNumber}`}
                         onChange={(event) => onSetEpisodeTitle(coveredEpisode.episodeNumber, event.target.value)}
                       />
                     </label>
@@ -339,7 +339,7 @@ function EpisodeGroup({
         {hasActionable ? (
           <div className={styles.episodeGroupActions}>
             <button className={styles.microButton} type="button" onClick={() => onConfirmEpisode(group.episodeNumber)}>
-              Alle bestaetigen
+              Alle bestätigen
             </button>
             <button className={styles.microButton} type="button" onClick={() => onSkipEpisode(group.episodeNumber)}>
               Alle ueberspringen

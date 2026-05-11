@@ -209,7 +209,7 @@ describe('useAnimePatchMutations', () => {
         'Interner Serverfehler',
         null,
         'cover_persist_failed',
-        'Poster-Verknuepfung konnte nicht gespeichert werden.',
+        'Poster-Verknüpfung konnte nicht gespeichert werden.',
       ),
     )
 
@@ -218,7 +218,7 @@ describe('useAnimePatchMutations', () => {
     await mutations.uploadAndSetCover(new File(['cover'], 'lain.jpg', { type: 'image/jpeg' }), 42)
 
     expect(onError).toHaveBeenCalledWith(
-      '(500) Interner Serverfehler\nPoster-Verknuepfung konnte nicht gespeichert werden.',
+      '(500) Interner Serverfehler\nPoster-Verknüpfung konnte nicht gespeichert werden.',
     )
   })
 

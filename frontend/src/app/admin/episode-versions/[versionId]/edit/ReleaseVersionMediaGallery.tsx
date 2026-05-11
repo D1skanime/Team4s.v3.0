@@ -250,7 +250,7 @@ export function ReleaseVersionMediaGallery({
                               rel="noreferrer"
                               onClick={(event) => event.stopPropagation()}
                             >
-                              Oeffnen
+                              Öffnen
                             </a>
                           ) : null}
                         </div>

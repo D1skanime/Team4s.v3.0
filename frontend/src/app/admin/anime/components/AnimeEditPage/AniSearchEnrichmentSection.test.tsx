@@ -52,7 +52,7 @@ describe('AniSearchEnrichmentSection', () => {
       <AniSearchEnrichmentSection
         anisearchID="12345"
         protectedFields={[]}
-        statusMessage="AniSearch geladen. 2 Felder aktualisiert, 0 geschuetzt, 1 Relationen uebernommen."
+        statusMessage="AniSearch geladen. 2 Felder aktualisiert, 0 geschützt, 1 Relationen übernommen."
         onAniSearchIDChange={vi.fn()}
         onProtectedFieldsChange={vi.fn()}
         onSubmit={vi.fn()}
@@ -68,7 +68,7 @@ describe('AniSearchEnrichmentSection', () => {
       />,
     )
 
-    expect(successMarkup).toContain('AniSearch geladen. 2 Felder aktualisiert, 0 geschuetzt, 1 Relationen uebernommen.')
+    expect(successMarkup).toContain('AniSearch geladen. 2 Felder aktualisiert, 0 geschützt, 1 Relationen übernommen.')
     expect(successMarkup).not.toContain('Zum vorhandenen Anime wechseln')
     expect(emptyMarkup).toContain('Noch keine AniSearch-Daten geladen.')
   })

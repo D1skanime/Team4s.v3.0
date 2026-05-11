@@ -81,7 +81,7 @@ export function GroupEdgeNavigation({
         onBlur={() => setHoverDirection((current) => (current === 'next' ? null : current))}
         onClick={() => handleNavigate('next')}
         disabled={!nextGroup || loadingDirection !== null}
-        aria-label="Naechste Gruppe"
+        aria-label="Nächste Gruppe"
       >
         <ChevronRight size={22} />
       </button>

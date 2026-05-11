@@ -104,7 +104,7 @@ export function useAnimePatch(
         if (cancelled) return
 
         if (error instanceof Error) setGenreTokensError(error.message)
-        else setGenreTokensError('Genre-Vorschlaege konnten nicht geladen werden.')
+        else setGenreTokensError('Genre-Vorschläge konnten nicht geladen werden.')
       } finally {
         if (!cancelled) {
           setIsLoadingGenreTokens(false)
@@ -137,7 +137,7 @@ export function useAnimePatch(
         if (cancelled) return
 
         if (error instanceof Error) setTagTokensError(error.message)
-        else setTagTokensError('Tag-Vorschlaege konnten nicht geladen werden.')
+        else setTagTokensError('Tag-Vorschläge konnten nicht geladen werden.')
       } finally {
         if (!cancelled) {
           setIsLoadingTagTokens(false)

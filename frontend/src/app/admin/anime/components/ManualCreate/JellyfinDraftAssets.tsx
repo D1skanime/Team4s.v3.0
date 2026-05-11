@@ -62,7 +62,7 @@ function renderAssetPreview(animeTitle: string, kind: JellyfinDraftAssetTarget['
       <img
         className={styles.coverPreviewSmall}
         src={resolvedUrl}
-        alt={`${slotLabel(kind)} von Jellyfin fuer ${animeTitle}`}
+        alt={`${slotLabel(kind)} von Jellyfin für ${animeTitle}`}
       />
       <p className={styles.hint}>Jellyfin-Quelle für {animeTitle}</p>
     </div>

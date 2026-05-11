@@ -10,10 +10,10 @@ function createControllerInput(overrides: Partial<AnimeEditorControllerInput> = 
   return {
     isDirty: false,
     isSubmitting: false,
-    submitLabel: 'Aenderungen speichern',
-    savedStateTitle: 'Alle Aenderungen gespeichert',
+    submitLabel: 'Änderungen speichern',
+    savedStateTitle: 'Alle Änderungen gespeichert',
     savedStateMessage: 'Kein offener Patch im Formular.',
-    dirtyStateTitle: 'Ungespeicherte Aenderungen',
+    dirtyStateTitle: 'Ungespeicherte Änderungen',
     dirtyStateMessage: 'Pruefe die Sektionen und speichere den allgemeinen Anime-Kontext.',
     onSubmit: vi.fn(),
     ...overrides,
@@ -35,12 +35,12 @@ describe('AnimeEditorShell', () => {
     const editMarkup = renderToStaticMarkup(<Harness context="edit" />)
     const createMarkup = renderToStaticMarkup(<Harness context="create" />)
 
-    expect(editMarkup).toContain('Ungespeicherte Aenderungen')
-    expect(editMarkup).toContain('Aenderungen speichern')
+    expect(editMarkup).toContain('Ungespeicherte Änderungen')
+    expect(editMarkup).toContain('Änderungen speichern')
     expect(editMarkup).toContain('data-context="edit"')
 
-    expect(createMarkup).toContain('Alle Aenderungen gespeichert')
-    expect(createMarkup).toContain('Aenderungen speichern')
+    expect(createMarkup).toContain('Alle Änderungen gespeichert')
+    expect(createMarkup).toContain('Änderungen speichern')
     expect(createMarkup).toContain('data-context="create"')
   })
 

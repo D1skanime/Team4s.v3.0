@@ -215,7 +215,7 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes, onActiveFansu
                   <div id={panelID} className={styles.versionList}>
                     {hasNoMatchingVersion ? (
                       <div className={styles.noVersionHint}>
-                        <p className={styles.noVersionText}>Keine Version dieser Gruppe verfuegbar.</p>
+                        <p className={styles.noVersionText}>Keine Version dieser Gruppe verfügbar.</p>
                         <p className={styles.noVersionAction}>Wechseln Sie zu einer anderen Fansub-Gruppe.</p>
                       </div>
                     ) : (

@@ -49,7 +49,7 @@ describe("JellyfinCandidateCard", () => {
           type_hint: {
             confidence: "medium",
             suggested_type: "tv",
-            reasons: ["Standard-Vorschlag fuer Serienordner."],
+            reasons: ["Standard-Vorschlag für Serienordner."],
           },
           already_imported: false,
         }}

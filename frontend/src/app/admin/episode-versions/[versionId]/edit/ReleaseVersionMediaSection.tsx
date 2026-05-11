@@ -148,8 +148,8 @@ export function ReleaseVersionMediaSection({
         <div>
           <h2 className={styles.headline}>Media / Assets verwalten</h2>
           <p className={styles.helper}>
-            Waehle zuerst eine Kategorie. Erst danach koennen Dateien fuer diese konkrete
-            Release-Version ausgewaehlt und hochgeladen werden.
+            Wähle zuerst eine Kategorie. Erst danach können Dateien für diese konkrete
+            Release-Version ausgewählt und hochgeladen werden.
           </p>
         </div>
 
@@ -163,7 +163,7 @@ export function ReleaseVersionMediaSection({
               value={selectedCategory}
               onChange={(event) => handleCategoryChange(event.target.value)}
             >
-              <option value="">Kategorie waehlen</option>
+              <option value="">Kategorie wählen</option>
               {RELEASE_VERSION_MEDIA_CATEGORIES.map((category) => (
                 <option key={category} value={category}>
                   {CATEGORY_LABELS[category]}
@@ -179,7 +179,7 @@ export function ReleaseVersionMediaSection({
                 className={styles.input}
                 value={defaultCaption}
                 onChange={(event) => setDefaultCaption(event.target.value)}
-                placeholder="Optional fuer alle Dateien dieses Uploads"
+                placeholder="Optional für alle Dateien dieses Uploads"
               />
             </label>
           ) : null}
@@ -313,8 +313,8 @@ export function ReleaseVersionMediaSection({
         ) : (
           <div className={styles.galleryPlaceholder}>
             <p className={styles.helper}>
-              Waehle eine Karte aus der Galerie, um Beschreibung,
-              Preview-Status oder Delete fuer dieses Medium zu bearbeiten.
+              Wähle eine Karte aus der Galerie, um Beschreibung,
+              Preview-Status oder Delete für dieses Medium zu bearbeiten.
             </p>
           </div>
         )}

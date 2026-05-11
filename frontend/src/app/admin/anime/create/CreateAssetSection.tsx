@@ -173,7 +173,7 @@ export function CreateAssetSection({
         variant="background"
         previewUrl={bg.previewUrl}
         source={resolveStagedAssetSource(bg)}
-        statusNote="Wird beim Erstellen uebernommen"
+        statusNote="Wird beim Erstellen übernommen"
         actions={
           <AssetActionRow onRemove={() => onRemoveBackground(index)} />
         }
@@ -190,7 +190,7 @@ export function CreateAssetSection({
           variant="background"
           previewUrl={url}
           source="Jellyfin"
-          statusNote="Wird beim Erstellen uebernommen"
+          statusNote="Wird beim Erstellen übernommen"
           actions={
             <AssetActionRow
               onRemove={() => onRemoveJellyfinAsset({ kind: "background", index })}
@@ -209,7 +209,7 @@ export function CreateAssetSection({
         variant="backgroundVideo"
         previewUrl={video.previewUrl}
         source={resolveStagedAssetSource(video)}
-        statusNote="Wird beim Erstellen uebernommen"
+        statusNote="Wird beim Erstellen übernommen"
         actions={
           <AssetActionRow
             onRemove={() => onRemoveBackgroundVideo(index)}
@@ -229,7 +229,7 @@ export function CreateAssetSection({
               jellyfinDraftAssets.background_video.url,
             )}
             source="Jellyfin"
-            statusNote="Wird beim Erstellen uebernommen"
+            statusNote="Wird beim Erstellen übernommen"
             actions={
               <AssetActionRow
                 onRemove={() => onRemoveJellyfinAsset({ kind: "background_video" })}
@@ -321,7 +321,7 @@ export function CreateAssetSection({
               </h3>
               <AssetActionRow
                 onUpload={() => onOpenFileDialog("background_video")}
-                uploadLabel="+ Hinzufuegen"
+                uploadLabel="+ Hinzufügen"
               />
             </div>
             <div className={createStyles.assetVideoGrid}>
@@ -352,7 +352,7 @@ export function CreateAssetSection({
             </h3>
             <AssetActionRow
               onUpload={() => onOpenFileDialog("background")}
-              uploadLabel="+ Hinzufuegen"
+              uploadLabel="+ Hinzufügen"
               onSearch={() => onOpenAssetSearch("background")}
             />
           </div>

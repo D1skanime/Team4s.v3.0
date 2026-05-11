@@ -125,8 +125,8 @@ export function EpisodeEditForm({
       <h3 className={styles.subheading}>Episode bearbeiten</h3>
       {!episodeOpenID ? (
         <div className={styles.contextCard}>
-          <p className={styles.contextTitle}>Keine Episode ausgewaehlt</p>
-          <p className={styles.hint}>Waehle links eine Episode aus, um sie zu bearbeiten.</p>
+          <p className={styles.contextTitle}>Keine Episode ausgewählt</p>
+          <p className={styles.hint}>Wähle links eine Episode aus, um sie zu bearbeiten.</p>
         </div>
       ) : (
         <p className={styles.hint}>

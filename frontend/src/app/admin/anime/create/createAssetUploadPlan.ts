@@ -16,7 +16,7 @@ import type {
 
 /**
  * Repraesentiert ein lokal vorbereitetes (gestaged) Asset, das noch nicht
- * hochgeladen wurde. Enthaelt den Entwurfsdateinamen, die Datei selbst und
+ * hochgeladen wurde. Enthält den Entwurfsdateinamen, die Datei selbst und
  * die lokale Vorschau-URL. providerKey hat das Format "source:id" (z.B.
  * "tmdb:12345") und ist nur bei Online-Kandidaten gesetzt.
  */
@@ -28,14 +28,14 @@ export interface CreateAssetUploadDraftValue {
 }
 
 /**
- * Eine einzelne Asset-Auswahl fuer den Upload: entweder eine rohe Datei,
- * ein vorbereiteter Entwurfswert oder null (kein Asset ausgewaehlt).
+ * Eine einzelne Asset-Auswahl für den Upload: entweder eine rohe Datei,
+ * ein vorbereiteter Entwurfswert oder null (kein Asset ausgewählt).
  */
 type CreateAssetUploadSelection = File | CreateAssetUploadDraftValue | null;
 
 /**
- * Sammelt alle ausgewaehlten Assets fuer die Erstellen-Seite nach Asset-Slot.
- * Hintergrundbilder koennen mehrere Eintraege enthalten.
+ * Sammelt alle ausgewählten Assets für die Erstellen-Seite nach Asset-Slot.
+ * Hintergrundbilder können mehrere Einträge enthalten.
  */
 export interface CreateAssetUploadSelections {
   cover?: CreateAssetUploadSelection;
@@ -46,7 +46,7 @@ export interface CreateAssetUploadSelections {
 }
 
 /**
- * Konfigurationseintrag fuer einen Asset-Upload-Slot: beschreibt den Backend-
+ * Konfigurationseintrag für einen Asset-Upload-Slot: beschreibt den Backend-
  * Asset-Typ, das lesbare Label und ob mehrere Dateien erlaubt sind.
  */
 interface CreateAssetUploadPlanEntry {
@@ -84,8 +84,8 @@ const CREATE_ASSET_UPLOAD_PLAN: Record<AdminAnimeAssetKind, CreateAssetUploadPla
 };
 
 /**
- * Gibt die vollstaendige Upload-Plan-Konfiguration fuer alle Asset-Arten
- * zurueck. Wird vom Controller verwendet, um Asset-Slots zuzuordnen.
+ * Gibt die vollstaendige Upload-Plan-Konfiguration für alle Asset-Arten
+ * zurück. Wird vom Controller verwendet, um Asset-Slots zuzuordnen.
  */
 export function buildCreateAssetUploadPlan() {
   return CREATE_ASSET_UPLOAD_PLAN;
@@ -105,7 +105,7 @@ export function stageManualCreateAsset(file: File): CreateAssetUploadDraftValue 
 
 /**
  * Leitet aus dem Content-Type-Header die passende Dateiendung ab. Faellt auf
- * "jpg" zurueck, wenn kein bekannter Bildtyp erkannt wird.
+ * "jpg" zurück, wenn kein bekannter Bildtyp erkannt wird.
  */
 function resolveRemoteAssetExtension(contentType: string): string {
   const normalized = contentType.trim().toLowerCase();
@@ -117,7 +117,7 @@ function resolveRemoteAssetExtension(contentType: string): string {
 }
 
 /**
- * Normalisiert einen Dateinamens-Abschnitt (z. B. Quelle oder ID) fuer die
+ * Normalisiert einen Dateinamens-Abschnitt (z. B. Quelle oder ID) für die
  * Verwendung in einem sicheren Dateinamen. Ersetzt Sonderzeichen durch Bindestriche.
  */
 function sanitizeRemoteAssetSegment(value: string): string {
@@ -168,7 +168,7 @@ async function convertAvifToJpeg(avifBlob: Blob): Promise<Blob> {
 /**
  * Laedt einen Remote-Asset-Kandidaten ueber den lokalen Proxy herunter und
  * bereitet ihn als gestaged-Asset vor. Konvertiert AVIF automatisch zu JPEG,
- * da das Backend kein reines AVIF-Decoding unterstuetzt.
+ * da das Backend kein reines AVIF-Decoding unterstützt.
  */
 export async function stageRemoteCreateAssetCandidate(
   candidate: AdminAnimeAssetSearchCandidate,
@@ -223,8 +223,8 @@ export async function stageRemoteCreateAssetCandidate(
 }
 
 /**
- * Bereitet eine lokal ausgewaehlte Cover-Datei vor und gibt den Entwurfswert
- * und die Vorschau-URL zurueck (ohne File-Referenz, nur fuer Cover-Slot).
+ * Bereitet eine lokal ausgewählte Cover-Datei vor und gibt den Entwurfswert
+ * und die Vorschau-URL zurück (ohne File-Referenz, nur für Cover-Slot).
  */
 export function stageManualCreateCover(file: File): {
   draftValue: string;
@@ -238,8 +238,8 @@ export function stageManualCreateCover(file: File): {
 }
 
 /**
- * Laedt eine einzelne Asset-Datei fuer einen neu erstellten Anime hoch und
- * verknuepft sie im Backend mit dem passenden Slot. Gibt die Upload-ID zurueck.
+ * Laedt eine einzelne Asset-Datei für einen neu erstellten Anime hoch und
+ * verknüpft sie im Backend mit dem passenden Slot. Gibt die Upload-ID zurück.
  */
 async function uploadAndLinkCreatedAnimeAsset(
   animeID: number,
@@ -270,8 +270,8 @@ async function uploadAndLinkCreatedAnimeAsset(
 }
 
 /**
- * Loeest eine Asset-Auswahl zu einer rohen File-Instanz auf. Gibt null zurueck,
- * wenn keine Datei ausgewaehlt wurde.
+ * Loeest eine Asset-Auswahl zu einer rohen File-Instanz auf. Gibt null zurück,
+ * wenn keine Datei ausgewählt wurde.
  */
 function resolveUploadFile(selection: CreateAssetUploadSelection): File | null {
   if (!selection) {
@@ -284,8 +284,8 @@ function resolveUploadFile(selection: CreateAssetUploadSelection): File | null {
 }
 
 /**
- * Laedt das Cover-Bild fuer einen neu erstellten Anime hoch und verknuepft es.
- * Kurzform von uploadAndLinkCreatedAnimeAsset fuer den Cover-Slot.
+ * Laedt das Cover-Bild für einen neu erstellten Anime hoch und verknüpft es.
+ * Kurzform von uploadAndLinkCreatedAnimeAsset für den Cover-Slot.
  */
 export async function uploadCreatedAnimeCover(
   animeID: number,
@@ -297,8 +297,8 @@ export async function uploadCreatedAnimeCover(
 
 /**
  * Laedt alle gestaged-Assets eines neu erstellten Anime sequenziell hoch und
- * verknuepft sie mit dem passenden Slot. Gibt ein Ergebnis-Objekt mit den
- * hochgeladenen Asset-IDs je Slot zurueck.
+ * verknüpft sie mit dem passenden Slot. Gibt ein Ergebnis-Objekt mit den
+ * hochgeladenen Asset-IDs je Slot zurück.
  */
 export async function uploadCreatedAnimeAssets(
   animeID: number,

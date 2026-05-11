@@ -110,7 +110,7 @@ export function useJellyfinSync(
     }
     const query = searchQuery.trim()
     if (!query) {
-      onError('Bitte einen Suchbegriff fuer Jellyfin angeben.')
+      onError('Bitte einen Suchbegriff für Jellyfin angeben.')
       return
     }
 
@@ -129,11 +129,11 @@ export function useJellyfinSync(
         setSelectedSeriesID(response.data[0].jellyfin_series_id)
       }
       if (response.data.length === 0) {
-        onSuccess('Keine Jellyfin-Serien fuer die Suche gefunden.')
+        onSuccess('Keine Jellyfin-Serien für die Suche gefunden.')
       } else {
         const message =
           response.data.length === 1
-            ? '1 Jellyfin-Treffer gefunden und direkt vorausgewaehlt.'
+            ? '1 Jellyfin-Treffer gefunden und direkt vorausgewählt.'
             : `${response.data.length} Jellyfin-Treffer gefunden.`
         setSearchFeedback(buildJellyfinFeedback('success', message))
         onSuccess(message)
@@ -159,7 +159,7 @@ export function useJellyfinSync(
     }
     const selected = selectedSeriesID.trim()
     if (!selected) {
-      onError('Bitte zuerst einen Jellyfin-Treffer auswaehlen.')
+      onError('Bitte zuerst einen Jellyfin-Treffer auswählen.')
       return
     }
 
@@ -212,7 +212,7 @@ export function useJellyfinSync(
 
     const selected = selectedSeriesID.trim()
     if (!selected) {
-      const feedback = buildJellyfinFeedback('error', 'Bitte zuerst einen Jellyfin-Treffer auswaehlen.')
+      const feedback = buildJellyfinFeedback('error', 'Bitte zuerst einen Jellyfin-Treffer auswählen.')
       setSyncFeedback(feedback)
       onError(feedback.message)
       return false
@@ -224,7 +224,7 @@ export function useJellyfinSync(
         previewResult.jellyfin_series_id !== selected ||
         previewResult.season_number !== seasonNumber)
     ) {
-      const feedback = buildJellyfinFeedback('error', 'Bitte zuerst eine aktuelle Jellyfin-Preview fuer diese Auswahl laden.')
+      const feedback = buildJellyfinFeedback('error', 'Bitte zuerst eine aktuelle Jellyfin-Preview für diese Auswahl laden.')
       setSyncFeedback(feedback)
       onError(feedback.message)
       return false
@@ -255,7 +255,7 @@ export function useJellyfinSync(
       const response = await syncAdminAnimeFromJellyfin(animeID, payload, authToken)
       const result = response.data
       setLastSyncResult(result)
-      const deletedInfo = result.deleted_versions ? ` | Geloescht -${result.deleted_versions}` : ''
+      const deletedInfo = result.deleted_versions ? ` | Gelöscht -${result.deleted_versions}` : ''
       const message = `Jellyfin Sync OK: ${result.jellyfin_series_name} | Episoden +${result.imported_episodes}/~${result.updated_episodes} | Versionen +${result.imported_versions}/~${result.updated_versions}${deletedInfo}`
       setSyncFeedback(buildJellyfinFeedback('success', message))
       onSuccess(message)
@@ -292,11 +292,11 @@ export function useJellyfinSync(
       const response = await syncAdminAnimeFromJellyfin(anime.id, payload, authToken)
       const result = response.data
       onSuccess(
-        `Jellyfin Sync OK fuer #${anime.id} ${anime.title}: Episoden +${result.imported_episodes}/~${result.updated_episodes} | Versionen +${result.imported_versions}/~${result.updated_versions}`,
+        `Jellyfin Sync OK für #${anime.id} ${anime.title}: Episoden +${result.imported_episodes}/~${result.updated_episodes} | Versionen +${result.imported_versions}/~${result.updated_versions}`,
       )
     } catch (error) {
       if (error instanceof Error) onError(error.message)
-      else onError(`Jellyfin Sync fuer #${anime.id} fehlgeschlagen.`)
+      else onError(`Jellyfin Sync für #${anime.id} fehlgeschlagen.`)
     } finally {
       setSyncingAnimeIDs((current) => {
         if (!current[anime.id]) return current

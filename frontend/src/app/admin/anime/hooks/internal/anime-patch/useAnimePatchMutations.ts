@@ -143,7 +143,7 @@ function buildAnimePatchPayload(values: AnimePatchValues, clearFlags: AnimePatch
   if (folderName) payload.folder_name = folderName
 
   if (Object.keys(payload).length === 0) {
-    onError('Mindestens ein Feld fuer das Update ausfuellen.')
+    onError('Mindestens ein Feld für das Update ausfuellen.')
     return null
   }
 

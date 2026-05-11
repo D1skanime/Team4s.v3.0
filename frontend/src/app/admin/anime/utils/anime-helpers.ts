@@ -90,7 +90,7 @@ export function handleCoverImgError(event: React.SyntheticEvent<HTMLImageElement
     return
   }
   img.dataset.fallbackApplied = 'true'
-  img.alt = 'Cover nicht verfuegbar'
+  img.alt = 'Cover nicht verfügbar'
   img.src = '/covers/placeholder.jpg'
 }
 

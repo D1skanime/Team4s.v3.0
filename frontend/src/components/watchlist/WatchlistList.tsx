@@ -33,7 +33,7 @@ export function WatchlistList({ items, meta, page, perPage }: WatchlistListProps
   const [message, setMessage] = useState<string | null>(null)
 
   const totalEntries = useMemo(() => Math.max(meta.total - (items.length - entries.length), 0), [entries.length, items.length, meta.total])
-  const countLabel = useMemo(() => `${totalEntries.toLocaleString('de-DE')} Eintraege`, [totalEntries])
+  const countLabel = useMemo(() => `${totalEntries.toLocaleString('de-DE')} Einträge`, [totalEntries])
   const currentPage = Math.max(meta.page || page, 1)
   const totalPages = Math.max(meta.total_pages, 1)
   const hasPreviousPage = currentPage > 1
@@ -91,10 +91,10 @@ export function WatchlistList({ items, meta, page, perPage }: WatchlistListProps
         <div className={styles.paginationActions}>
           {hasPreviousPage ? (
             <Link className={styles.pageLink} href={buildWatchlistHref(currentPage - 1, perPage)}>
-              Zurueck
+              Zurück
             </Link>
           ) : (
-            <span className={styles.pageLinkDisabled}>Zurueck</span>
+            <span className={styles.pageLinkDisabled}>Zurück</span>
           )}
           {hasNextPage ? (
             <Link className={styles.pageLink} href={buildWatchlistHref(currentPage + 1, perPage)}>
@@ -110,7 +110,7 @@ export function WatchlistList({ items, meta, page, perPage }: WatchlistListProps
 
       {entries.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>Auf dieser Seite gibt es aktuell keine Watchlist-Eintraege.</p>
+          <p>Auf dieser Seite gibt es aktuell keine Watchlist-Einträge.</p>
           {currentPage > 1 ? (
             <p>
               <Link href={buildWatchlistHref(currentPage - 1, perPage)}>Zur vorherigen Seite wechseln</Link>

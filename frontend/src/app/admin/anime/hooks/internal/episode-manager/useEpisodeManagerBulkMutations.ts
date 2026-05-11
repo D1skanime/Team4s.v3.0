@@ -165,7 +165,7 @@ export function useEpisodeManagerBulkMutations({
           setEditFormClearFlags({ title: false, streamLink: false });
         }
         onSuccess(
-          `Episode ${episode.episode_number} wurde entfernt. Geloeschte Release-Zuordnungen: ${response.data.deleted_release_variants}.`,
+          `Episode ${episode.episode_number} wurde entfernt. Gelöschte Release-Zuordnungen: ${response.data.deleted_release_variants}.`,
         );
       } catch (error) {
         if (error instanceof Error) onError(error.message);
@@ -273,7 +273,7 @@ export function useEpisodeManagerBulkMutations({
             ),
           );
           onError(
-            `Bulk-Entfernen teilweise fehlgeschlagen (${failed.length}/${ids.length}). Erfolgreich entfernt: ${removed}, geloeschte Versions-Zuordnungen: ${removedVersionLinks}.`,
+            `Bulk-Entfernen teilweise fehlgeschlagen (${failed.length}/${ids.length}). Erfolgreich entfernt: ${removed}, gelöschte Versions-Zuordnungen: ${removedVersionLinks}.`,
           );
         } else {
           options.onResponse?.(
@@ -284,7 +284,7 @@ export function useEpisodeManagerBulkMutations({
             ),
           );
           onSuccess(
-            `Bulk-Entfernen OK: ${removed} Episoden entfernt, geloeschte Versions-Zuordnungen: ${removedVersionLinks}.`,
+            `Bulk-Entfernen OK: ${removed} Episoden entfernt, gelöschte Versions-Zuordnungen: ${removedVersionLinks}.`,
           );
         }
       } finally {

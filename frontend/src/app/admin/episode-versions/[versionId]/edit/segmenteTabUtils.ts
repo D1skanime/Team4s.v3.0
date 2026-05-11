@@ -25,8 +25,8 @@ export function formatSeconds(totalSeconds: number): string {
 }
 
 /**
- * Berechnet Dauer zwischen zwei Zeitstempeln und gibt sie als "(MM:SS)" zurueck.
- * Gibt "(00:00)" zurueck wenn beide gleich sind.
+ * Berechnet Dauer zwischen zwei Zeitstempeln und gibt sie als "(MM:SS)" zurück.
+ * Gibt "(00:00)" zurück wenn beide gleich sind.
  */
 export function calcDuration(startTime: string, endTime: string): string {
   const startSec = parseTimeToSeconds(startTime)

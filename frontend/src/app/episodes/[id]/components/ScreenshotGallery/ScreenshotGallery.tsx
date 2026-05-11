@@ -214,12 +214,12 @@ export default function ScreenshotGallery({ releaseId }: ScreenshotGalleryProps)
               className={`${styles.screenshotLightboxNav} ${styles.screenshotLightboxNavNext}`}
               onClick={navigateNext}
               disabled={activeIndex === images.length - 1}
-              aria-label="Naechstes Bild"
+              aria-label="Nächstes Bild"
             >
               <ChevronRight size={24} />
             </button>
 
-            <button type="button" className={styles.screenshotLightboxClose} onClick={closeLightbox} aria-label="Lightbox schliessen">
+            <button type="button" className={styles.screenshotLightboxClose} onClick={closeLightbox} aria-label="Lightbox schließen">
               <X size={24} />
             </button>
 

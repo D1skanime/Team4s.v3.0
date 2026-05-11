@@ -18,7 +18,7 @@ describe('formatAdminError', () => {
   })
 
   it('formats ApiError with different status codes', () => {
-    expect(formatAdminError(new ApiError(400, 'Ungueltige Anfrage'))).toBe('(400) Ungueltige Anfrage')
+    expect(formatAdminError(new ApiError(400, 'Ungültige Anfrage'))).toBe('(400) Ungültige Anfrage')
     expect(formatAdminError(new ApiError(500, 'Serverfehler'))).toBe('(500) Serverfehler')
     expect(formatAdminError(new ApiError(401, 'Nicht autorisiert'))).toBe('(401) Nicht autorisiert')
   })

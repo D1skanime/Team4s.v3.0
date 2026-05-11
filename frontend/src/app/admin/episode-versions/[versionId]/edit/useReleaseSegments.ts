@@ -170,7 +170,7 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
       setSegments((current) => current.filter((s) => s.id !== segmentId))
       return true
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Segment konnte nicht geloescht werden.')
+      setErrorMessage(error instanceof Error ? error.message : 'Segment konnte nicht gelöscht werden.')
       return false
     }
   }

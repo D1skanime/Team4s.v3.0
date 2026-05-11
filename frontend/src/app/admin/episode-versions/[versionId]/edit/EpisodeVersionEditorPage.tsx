@@ -10,7 +10,7 @@ import { useEpisodeVersionEditor } from './useEpisodeVersionEditor'
 import { SegmenteTab } from './SegmenteTab'
 import styles from './EpisodeVersionEditor.module.css'
 
-type ActiveTab = 'uebersicht' | 'dateien' | 'informationen' | 'segmente' | 'media' | 'changelog'
+type ActiveTab = 'übersicht' | 'dateien' | 'informationen' | 'segmente' | 'media' | 'changelog'
 
 function parsePositiveInt(value: string | null): number | null {
   if (!value) return null
@@ -97,7 +97,7 @@ export function EpisodeVersionEditorPage() {
               </p>
             ) : null}
           </div>
-          {editor.hasUnsavedChanges ? <span className={styles.unsavedBadge}>Ungespeicherte Aenderungen</span> : null}
+          {editor.hasUnsavedChanges ? <span className={styles.unsavedBadge}>Ungespeicherte Änderungen</span> : null}
         </header>
 
         {editor.errorMessage ? <div className={styles.errorBox}>{editor.errorMessage}</div> : null}
@@ -113,8 +113,8 @@ export function EpisodeVersionEditorPage() {
             <div className={styles.tabNav}>
               <button
                 type="button"
-                className={activeTab === 'uebersicht' ? styles.tabActive : styles.tab}
-                onClick={() => setActiveTab('uebersicht')}
+                className={activeTab === 'übersicht' ? styles.tabActive : styles.tab}
+                onClick={() => setActiveTab('übersicht')}
               >
                 Übersicht
               </button>
@@ -156,7 +156,7 @@ export function EpisodeVersionEditorPage() {
             </div>
 
             {/* Übersicht tab stub */}
-            {activeTab === 'uebersicht' ? (
+            {activeTab === 'übersicht' ? (
               <section className={styles.card}>
                 <div className={styles.sectionHeader}>
                   <div>
@@ -187,7 +187,7 @@ export function EpisodeVersionEditorPage() {
                 <div className={styles.sectionHeader}>
                   <div>
                     <h2 className={styles.sectionTitle}>Dateien</h2>
-                    <p className={styles.helperText}>Medien-Datei-Verwaltung fuer diese Version.</p>
+                    <p className={styles.helperText}>Medien-Datei-Verwaltung für diese Version.</p>
                   </div>
                   <button className={styles.secondaryButton} type="button" onClick={() => void editor.handleScanFolder()} disabled={editor.isScanning}>
                     {editor.isScanning ? 'Ordner wird gelesen...' : 'Ordner synchronisieren'}
@@ -204,9 +204,9 @@ export function EpisodeVersionEditorPage() {
 
                 <div className={styles.fileCard}>
                   <div className={styles.fileCardHeader}>
-                    <h3 className={styles.fileCardTitle}>Ausgewaehlte Datei</h3>
+                    <h3 className={styles.fileCardTitle}>Ausgewählte Datei</h3>
                     <button className={styles.ghostButton} type="button" onClick={() => editor.setShowFilePanel((current) => !current)}>
-                      {editor.showFilePanel ? 'Auswahl schliessen' : 'Datei wechseln'}
+                      {editor.showFilePanel ? 'Auswahl schließen' : 'Datei wechseln'}
                     </button>
                   </div>
                   {editor.selectedFile ? (
@@ -219,7 +219,7 @@ export function EpisodeVersionEditorPage() {
                       <span>Erkannte Episode: {editor.selectedFile.detected_episode_number || 'n/a'}</span>
                     </div>
                   ) : (
-                    <p className={styles.helperText}>Noch keine Datei ausgewaehlt.</p>
+                    <p className={styles.helperText}>Noch keine Datei ausgewählt.</p>
                   )}
                 </div>
 
@@ -270,7 +270,7 @@ export function EpisodeVersionEditorPage() {
               <div className={styles.sectionHeader}>
                 <div>
                   <h2 className={styles.sectionTitle}>Basisdaten</h2>
-                  <p className={styles.helperText}>Release-Metadaten fuer diese Version.</p>
+                  <p className={styles.helperText}>Release-Metadaten für diese Version.</p>
                 </div>
               </div>
               <div className={styles.grid}>
@@ -324,7 +324,7 @@ export function EpisodeVersionEditorPage() {
                   />
                 </label>
               </div>
-              <p className={styles.helperText}>Akzeptiert `m:ss`, `hh:mm:ss`, rohe Sekunden sowie Kurzformen wie `2m` oder `1m30s`. Wird als Grenze fuer Segment-Endzeiten verwendet.</p>
+              <p className={styles.helperText}>Akzeptiert `m:ss`, `hh:mm:ss`, rohe Sekunden sowie Kurzformen wie `2m` oder `1m30s`. Wird als Grenze für Segment-Endzeiten verwendet.</p>
             </section>
 
             <section className={styles.card}>
@@ -336,7 +336,7 @@ export function EpisodeVersionEditorPage() {
               </div>
               <label className={styles.field}>
                 <span>Anime Folder Path</span>
-                <input value={editor.folderPath || 'nicht verfuegbar'} readOnly />
+                <input value={editor.folderPath || 'nicht verfügbar'} readOnly />
               </label>
             </section>
 
@@ -374,7 +374,7 @@ export function EpisodeVersionEditorPage() {
                     </button>
                   ))
                 ) : (
-                  <span className={styles.helperText}>Keine Gruppe ausgewaehlt.</span>
+                  <span className={styles.helperText}>Keine Gruppe ausgewählt.</span>
                 )}
               </div>
             </section>
@@ -416,7 +416,7 @@ export function EpisodeVersionEditorPage() {
                 <div className={styles.sectionHeader}>
                   <div>
                     <h2 className={styles.sectionTitle}>Changelog</h2>
-                    <p className={styles.helperText}>Aenderungshistorie dieser Episode-Version.</p>
+                    <p className={styles.helperText}>Änderungshistorie dieser Episode-Version.</p>
                   </div>
                 </div>
                 <p className={styles.helperText} style={{ fontStyle: 'italic' }}>
@@ -427,7 +427,7 @@ export function EpisodeVersionEditorPage() {
 
             <section className={styles.actionBar}>
               <Link href={backHref} className={styles.secondaryButton}>
-                Zurueck
+                Zurück
               </Link>
               <button className={styles.primaryButton} type="submit" disabled={editor.isSaving}>
                 {editor.isSaving ? <span className={styles.spinner} aria-hidden="true" /> : null}

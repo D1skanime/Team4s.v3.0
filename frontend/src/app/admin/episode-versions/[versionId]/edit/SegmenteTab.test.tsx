@@ -12,7 +12,7 @@ import {
 import { parseFlexibleTimeInput, formatTimeInput } from './SegmenteTab.helpers'
 
 // ---------------------------------------------------------------------------
-// Helper: minimale AdminThemeSegment-Instanz fuer Tests
+// Helper: minimale AdminThemeSegment-Instanz für Tests
 // ---------------------------------------------------------------------------
 function makeSegment(overrides: Partial<AdminThemeSegment> = {}): AdminThemeSegment {
   return {
@@ -40,35 +40,35 @@ function makeSegment(overrides: Partial<AdminThemeSegment> = {}): AdminThemeSegm
 // getTypeBadgeLabel
 // ---------------------------------------------------------------------------
 describe('getTypeBadgeLabel', () => {
-  it('gibt "OP" fuer "OP1"', () => {
+  it('gibt "OP" für "OP1"', () => {
     expect(getTypeBadgeLabel('OP1')).toBe('OP')
   })
 
-  it('gibt "OP" fuer "Opening 1"', () => {
+  it('gibt "OP" für "Opening 1"', () => {
     expect(getTypeBadgeLabel('Opening 1')).toBe('OP')
   })
 
-  it('gibt "ED" fuer "ED2"', () => {
+  it('gibt "ED" für "ED2"', () => {
     expect(getTypeBadgeLabel('ED2')).toBe('ED')
   })
 
-  it('gibt "ED" fuer "ED2" direkt', () => {
+  it('gibt "ED" für "ED2" direkt', () => {
     expect(getTypeBadgeLabel('ED2')).toBe('ED')
   })
 
-  it('gibt "IN" fuer "Insert"', () => {
+  it('gibt "IN" für "Insert"', () => {
     expect(getTypeBadgeLabel('Insert')).toBe('IN')
   })
 
-  it('gibt "PV" fuer "PV"', () => {
+  it('gibt "PV" für "PV"', () => {
     expect(getTypeBadgeLabel('PV')).toBe('PV')
   })
 
-  it('gibt "PV" fuer "Outro"', () => {
+  it('gibt "PV" für "Outro"', () => {
     expect(getTypeBadgeLabel('Outro')).toBe('PV')
   })
 
-  it('gibt den Original-String bei unbekanntem Typ zurueck', () => {
+  it('gibt den Original-String bei unbekanntem Typ zurück', () => {
     expect(getTypeBadgeLabel('Special')).toBe('Special')
   })
 })
@@ -81,7 +81,7 @@ describe('calcDuration', () => {
     expect(calcDuration('00:00:30', '00:01:45')).toBe('(01:15)')
   })
 
-  it('gibt "(00:00)" zurueck wenn Start und Ende gleich sind', () => {
+  it('gibt "(00:00)" zurück wenn Start und Ende gleich sind', () => {
     expect(calcDuration('00:00:00', '00:00:00')).toBe('(00:00)')
   })
 
@@ -92,7 +92,7 @@ describe('calcDuration', () => {
   it('berechnet Dauer ueber eine Stunde korrekt', () => {
     expect(calcDuration('00:00:00', '01:00:00')).toBe('(00:00)')
     // Stunde wird nicht abgeschnitten — eigentlich 60 Minuten
-    // formatSeconds liefert HH:MM:SS; .slice(3) gibt MM:SS -> 00:00 fuer 0sec
+    // formatSeconds liefert HH:MM:SS; .slice(3) gibt MM:SS -> 00:00 für 0sec
   })
 })
 
@@ -104,7 +104,7 @@ describe('formatEpisodeRange', () => {
     expect(formatEpisodeRange(3, 3)).toBe('3')
   })
 
-  it('zeigt Range fuer unterschiedliche Episoden', () => {
+  it('zeigt Range für unterschiedliche Episoden', () => {
     expect(formatEpisodeRange(1, 9)).toBe('1 \u2013 9')
   })
 
@@ -150,12 +150,12 @@ describe('resolveSourceLabel', () => {
     expect(resolveSourceLabel(segment)).toBe('OP1.mkv')
   })
 
-  it('faellt auf Jellyfin-Theme-Label zurueck wenn legacy source_jellyfin_item_id gesetzt', () => {
+  it('faellt auf Jellyfin-Theme-Label zurück wenn legacy source_jellyfin_item_id gesetzt', () => {
     const segment = makeSegment({ source_type: null, source_jellyfin_item_id: 'abc123' })
     expect(resolveSourceLabel(segment)).toBe('Jellyfin Serien-Theme')
   })
 
-  it('gibt "Keine Quelle" zurueck wenn kein source_type und keine legacy-ID', () => {
+  it('gibt "Keine Quelle" zurück wenn kein source_type und keine legacy-ID', () => {
     const segment = makeSegment({ source_type: null, source_jellyfin_item_id: null })
     expect(resolveSourceLabel(segment)).toBe('Keine Quelle')
   })
@@ -165,7 +165,7 @@ describe('resolveSourceLabel', () => {
 // isSegmentActiveForEpisode (Range-Semantik)
 // ---------------------------------------------------------------------------
 describe('isSegmentActiveForEpisode', () => {
-  it('Segment ohne Range ist fuer jede Episode aktiv', () => {
+  it('Segment ohne Range ist für jede Episode aktiv', () => {
     const segment = makeSegment({ start_episode: null, end_episode: null })
     expect(isSegmentActiveForEpisode(segment, 4)).toBe(true)
     expect(isSegmentActiveForEpisode(segment, 100)).toBe(true)
@@ -242,11 +242,11 @@ describe('parseFlexibleTimeInput', () => {
     expect(parseFlexibleTimeInput('00:01:30')).toBe(90)
   })
 
-  it('leerer String gibt null zurueck', () => {
+  it('leerer String gibt null zurück', () => {
     expect(parseFlexibleTimeInput('')).toBeNull()
   })
 
-  it('"abc" gibt null zurueck', () => {
+  it('"abc" gibt null zurück', () => {
     expect(parseFlexibleTimeInput('abc')).toBeNull()
   })
 })

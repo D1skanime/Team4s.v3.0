@@ -24,7 +24,7 @@ interface AdminAnimeOverviewClientProps {
 
 /**
  * Wandelt einen unbekannten Fehler in eine lesbare Fehlermeldung um.
- * Gibt bei API-Fehlern den HTTP-Status und die Meldung zurueck,
+ * Gibt bei API-Fehlern den HTTP-Status und die Meldung zurück,
  * bei sonstigen Error-Objekten die Nachricht, sonst einen Fallback-Text.
  */
 function formatError(error: unknown): string {
@@ -34,9 +34,9 @@ function formatError(error: unknown): string {
 }
 
 /**
- * Gibt die CSS-Klasse fuer den Status-Badge eines Anime zurueck.
+ * Gibt die CSS-Klasse für den Status-Badge eines Anime zurück.
  * Unterscheidet zwischen aktiv laufenden, abgeschlossenen, abgebrochenen,
- * lizenzierten und deaktivierten Eintraegen.
+ * lizenzierten und deaktivierten Einträgen.
  */
 function resolveStatusTone(status: string): string {
   switch (status) {
@@ -55,10 +55,10 @@ function resolveStatusTone(status: string): string {
 }
 
 /**
- * Client-Komponente fuer die Admin-Anime-Uebersicht.
+ * Client-Komponente für die Admin-Anime-Übersicht.
  * Rendert die Liste aller Anime mit Cover, Metadaten und Aktionen
- * (Bearbeiten, Public ansehen, Loeschen). Verwaltet Loeschvorgang inkl.
- * Bestaetigungsdialog, Fehler- und Erfolgsmeldungen sowie den
+ * (Bearbeiten, Public ansehen, Löschen). Verwaltet Loeschvorgang inkl.
+ * Bestätigungsdialog, Fehler- und Erfolgsmeldungen sowie den
  * Hinweis auf einen gerade neu erstellten Anime.
  */
 export function AdminAnimeOverviewClient({
@@ -99,7 +99,7 @@ export function AdminAnimeOverviewClient({
         await deleteUploadedCoverFile(orphanedCoverImage)
       }
       setItems((current) => current.filter((item) => item.id !== anime.id))
-      setSuccessMessage(`Anime "${response.data.title}" geloescht.`)
+      setSuccessMessage(`Anime "${response.data.title}" gelöscht.`)
       router.refresh()
     } catch (error) {
       setErrorMessage(formatError(error))

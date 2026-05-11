@@ -318,7 +318,7 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
           return next
         })
       } catch (patchItemError) {
-        const message = readUploadError(patchItemError, 'Aenderung konnte nicht gespeichert werden.')
+        const message = readUploadError(patchItemError, 'Änderung konnte nicht gespeichert werden.')
         setPatchError(message)
         throw patchItemError
       }
@@ -358,7 +358,7 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
         await deleteReleaseVersionMediaItem(versionId, mediaId)
         setItems((current) => current.filter((item) => item.id !== mediaId))
       } catch (deleteItemError) {
-        const message = readUploadError(deleteItemError, 'Medium konnte nicht geloescht werden.')
+        const message = readUploadError(deleteItemError, 'Medium konnte nicht gelöscht werden.')
         setDeleteError(message)
         throw deleteItemError
       }

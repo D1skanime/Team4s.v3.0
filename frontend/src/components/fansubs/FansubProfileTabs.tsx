@@ -20,7 +20,7 @@ interface FansubProfileTabsProps {
 const tabOrder: FansubTabKey[] = ['overview', 'members', 'projects', 'archive', 'memories']
 
 const tabLabel: Record<FansubTabKey, string> = {
-  overview: 'Uebersicht',
+  overview: 'Übersicht',
   members: 'Mitglieder',
   projects: 'Projekte',
   archive: 'Archiv',

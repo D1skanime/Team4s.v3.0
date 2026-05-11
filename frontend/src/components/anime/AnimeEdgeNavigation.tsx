@@ -148,7 +148,7 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
           aria-label="Vorheriger Anime"
         >
           <ChevronLeft size={22} />
-          <span>Zurueck</span>
+          <span>Zurück</span>
         </button>
         {previewAnime && hoverDirection === 'prev' ? (
           <div className={`${styles.previewCard} ${styles.previewLeft}`}>
@@ -188,7 +188,7 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
           onBlur={() => setHoverDirection((current) => (current === 'next' ? null : current))}
           onClick={() => void handleNavigate('next')}
           disabled={(!nextAnime && hasLoadedNeighborsRef.current) || loadingDirection !== null || isLoadingNeighbors}
-          aria-label="Naechster Anime"
+          aria-label="Nächster Anime"
         >
           <span>Weiter</span>
           <ChevronRight size={22} />

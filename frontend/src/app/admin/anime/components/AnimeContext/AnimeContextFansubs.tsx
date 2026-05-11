@@ -8,7 +8,7 @@ const styles = { ...sharedStyles, ...contextStyles }
 
 /**
  * Props der AnimeContextFansubs-Komponente.
- * Enthalten die Liste der verknuepften Fansub-Gruppen und
+ * Enthalten die Liste der verknüpften Fansub-Gruppen und
  * einen Ladezustand.
  */
 interface AnimeContextFansubsProps {

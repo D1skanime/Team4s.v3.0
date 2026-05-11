@@ -119,7 +119,7 @@ function renderSyncSummaryCards(result: AdminAnimeJellyfinSyncResult) {
         <p className={studioStyles.summaryValue}>{result.updated_versions}</p>
       </div>
       <div className={studioStyles.summaryCard}>
-        <p className={studioStyles.summaryLabel}>Geloescht</p>
+        <p className={studioStyles.summaryLabel}>Gelöscht</p>
         <p className={studioStyles.summaryValue}>{result.deleted_versions ?? 0}</p>
       </div>
     </div>
@@ -204,8 +204,8 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
         <div className={styles.headerCopy}>
           <p className={styles.eyebrow}>Provider Sync</p>
           <h2 className={studioStyles.sectionTitle}>Jellyfin neu verbinden</h2>
-          <p className={styles.description}>Suche die passende Jellyfin-Serie, lade eine Vorschau und uebernimm die Verknuepfung erst danach bewusst.</p>
-          <p className={styles.description}>Wenn nur ein Treffer gefunden wird, wird er automatisch vorausgewaehlt.</p>
+          <p className={styles.description}>Suche die passende Jellyfin-Serie, lade eine Vorschau und uebernimm die Verknüpfung erst danach bewusst.</p>
+          <p className={styles.description}>Wenn nur ein Treffer gefunden wird, wird er automatisch vorausgewählt.</p>
         </div>
         <div className={styles.headerStatus}>
           <span
@@ -314,7 +314,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
 
           {selectedSeries ? (
             <div className={styles.previewBox}>
-              <p className={styles.previewEyebrow}>Ausgewaehlter Treffer</p>
+              <p className={styles.previewEyebrow}>Ausgewählter Treffer</p>
               <p className={styles.previewTitle}>
                 {selectedSeries.name}
                 {selectedSeries.production_year ? ` (${selectedSeries.production_year})` : ''}
@@ -322,7 +322,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
               <p className={styles.metaLine}>{selectedSeries.path?.trim() || '(ohne Pfad)'}</p>
             </div>
           ) : (
-            <p className={styles.metaLine}>Noch kein Treffer ausgewaehlt.</p>
+            <p className={styles.metaLine}>Noch kein Treffer ausgewählt.</p>
           )}
         </section>
 
@@ -499,7 +499,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
             <span className={styles.stepIndex}>4</span>
             <div className={styles.stepPanelHeading}>
               <h3 className={styles.stepTitle}>Sync anwenden</h3>
-              <p className={styles.stepHelper}>Erst wenn die Vorschau gut aussieht, wird die Verknuepfung uebernommen.</p>
+              <p className={styles.stepHelper}>Erst wenn die Vorschau gut aussieht, wird die Verknüpfung übernommen.</p>
             </div>
           </div>
 

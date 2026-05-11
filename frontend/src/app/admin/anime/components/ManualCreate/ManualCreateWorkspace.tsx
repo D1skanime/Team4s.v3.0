@@ -411,7 +411,7 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
                 Übernommene Assets
               </h2>
               <p className={workspaceStyles.sectionText}>
-                Die Vorschau-Assets liegen bewusst ueber die verfuegbare
+                Die Vorschau-Assets liegen bewusst ueber die verfügbare
                 Content-Breite, damit Cover, Banner und Backgrounds ruhig
                 vergleichbar bleiben.
               </p>

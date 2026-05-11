@@ -11,7 +11,7 @@ const styles = { ...sharedStyles, ...contextStyles }
 /**
  * Props des AnimeContextFansubManagers.
  * Enthalten die ID des aktuellen Anime, das Auth-Token, bereits
- * verknuepfte Gruppen sowie Callbacks fuer Aenderungen und Statusmeldungen.
+ * verknüpfte Gruppen sowie Callbacks für Änderungen und Statusmeldungen.
  */
 interface AnimeContextFansubManagerProps {
   animeID: number
@@ -25,7 +25,7 @@ interface AnimeContextFansubManagerProps {
 
 /**
  * Wandelt einen unbekannten Fehler in eine lesbare Fehlermeldung um.
- * Gibt bei API-Fehlern den HTTP-Status und die Meldung zurueck,
+ * Gibt bei API-Fehlern den HTTP-Status und die Meldung zurück,
  * bei sonstigen Error-Objekten die Nachricht, sonst den Fallback-Text.
  */
 function formatError(error: unknown, fallback: string): string {
@@ -39,9 +39,9 @@ function formatError(error: unknown, fallback: string): string {
 }
 
 /**
- * Verwaltungskomponente fuer Fansub-Verknuepfungen eines Anime.
- * Rendert eine Suchmaske fuer Fansub-Gruppen sowie die Liste
- * der bereits verknuepften Gruppen mit Hinzufuegen- und Entfernen-Aktionen.
+ * Verwaltungskomponente für Fansub-Verknüpfungen eines Anime.
+ * Rendert eine Suchmaske für Fansub-Gruppen sowie die Liste
+ * der bereits verknüpften Gruppen mit Hinzufügen- und Entfernen-Aktionen.
  */
 export function AnimeContextFansubManager({
   animeID,
@@ -67,7 +67,7 @@ export function AnimeContextFansubManager({
   /**
    * Sucht Fansub-Gruppen anhand des eingegebenen Suchbegriffs.
    * Mindestens 2 Zeichen sind erforderlich; gefundene, bereits
-   * verknuepfte Gruppen werden aus den Ergebnissen herausgefiltert.
+   * verknüpfte Gruppen werden aus den Ergebnissen herausgefiltert.
    */
   const handleSearch = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -93,7 +93,7 @@ export function AnimeContextFansubManager({
   }
 
   /**
-   * Verknuepft eine Fansub-Gruppe mit dem aktuellen Anime.
+   * Verknüpft eine Fansub-Gruppe mit dem aktuellen Anime.
    * Erfordert ein gueltiges Auth-Token; aktualisiert nach Erfolg
    * die Fansub-Liste und zeigt eine Erfolgsmeldung an.
    */
@@ -111,7 +111,7 @@ export function AnimeContextFansubManager({
       setResults((current) => current.filter((item) => item.id !== group.id))
       onSuccess(`Fansub "${group.name}" wurde mit Anime #${animeID} verknüpft.`)
     } catch (error) {
-      onError(formatError(error, 'Fansub-Verknuepfung fehlgeschlagen.'))
+      onError(formatError(error, 'Fansub-Verknüpfung fehlgeschlagen.'))
     } finally {
       setIsMutating(false)
       setMutatingGroupID(null)
@@ -119,9 +119,9 @@ export function AnimeContextFansubManager({
   }
 
   /**
-   * Loest die Verknuepfung einer Fansub-Gruppe vom aktuellen Anime.
-   * Fordert eine Bestaetigung an, erfordert ein gueltiges Auth-Token
-   * und zeigt nach Erfolg eine Bestaetigung an.
+   * Loest die Verknüpfung einer Fansub-Gruppe vom aktuellen Anime.
+   * Fordert eine Bestätigung an, erfordert ein gueltiges Auth-Token
+   * und zeigt nach Erfolg eine Bestätigung an.
    */
   const handleDetach = async (group: FansubGroup) => {
     if (!authToken.trim()) {
@@ -131,7 +131,7 @@ export function AnimeContextFansubManager({
 
     if (typeof window !== 'undefined') {
       const confirmed = window.confirm(
-        `Fansub "${group.name}" vom Anime entfernen?\n\nVersions-Zuordnungen bleiben erhalten, aber die Gruppe ist nicht mehr als Anime-Verknuepfung gelistet.`,
+        `Fansub "${group.name}" vom Anime entfernen?\n\nVersions-Zuordnungen bleiben erhalten, aber die Gruppe ist nicht mehr als Anime-Verknüpfung gelistet.`,
       )
       if (!confirmed) return
     }

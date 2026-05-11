@@ -41,7 +41,7 @@ describe('AdminAnimePage', () => {
 
     expect(markup).toContain('Anime erstellen')
     expect(markup).toContain('href="/admin/anime/create"')
-    expect(markup).toContain('Neue Eintraege anlegen und bestehende Anime verwalten.')
+    expect(markup).toContain('Neue Einträge anlegen und bestehende Anime verwalten.')
   })
 
   it('renders the anime overview list with edit and public actions', async () => {

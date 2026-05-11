@@ -72,7 +72,7 @@ describe('ReleaseVersionMediaDrawerSummary', () => {
     )
 
     expect(container.querySelector('input[type="file"]')).toBeNull()
-    expect(screen.queryByText(/hochladen|Datei auswaehlen/i)).toBeNull()
+    expect(screen.queryByText(/hochladen|Datei auswählen/i)).toBeNull()
   })
 
   it('treats a null media payload like an empty drawer summary instead of crashing', () => {

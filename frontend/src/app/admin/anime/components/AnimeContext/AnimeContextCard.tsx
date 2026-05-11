@@ -15,8 +15,8 @@ const styles = { ...sharedStyles, ...contextStyles }
 
 /**
  * Props der AnimeContextCard-Komponente.
- * Enthalten den aktiven Anime-Kontext, zugehoerige Fansub-Gruppen,
- * alle Eingabe- und Ladezustaende sowie die Navigations- und Aenderungs-Callbacks.
+ * Enthalten den aktiven Anime-Kontext, zugehörige Fansub-Gruppen,
+ * alle Eingabe- und Ladezustaende sowie die Navigations- und Änderungs-Callbacks.
  */
 interface AnimeContextCardProps {
   anime: AnimeDetail | null
@@ -37,7 +37,7 @@ interface AnimeContextCardProps {
 
 /**
  * Aktiver-Kontext-Panel im Admin-Studio.
- * Rendert das Suchformular fuer die Anime-ID, zeigt bei geladenem Kontext
+ * Rendert das Suchformular für die Anime-ID, zeigt bei geladenem Kontext
  * Cover, Metadaten, Navigationsbuttons sowie Fansub-Historie und
  * Fansub-Manager an.
  */

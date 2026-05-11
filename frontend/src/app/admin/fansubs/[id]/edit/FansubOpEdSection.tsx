@@ -67,7 +67,7 @@ export function FansubOpEdSection({ fansubID, authToken }: FansubOpEdSectionProp
     <section className={styles.section}>
       <div>
         <h2 className={styles.title}>OP/ED Videos</h2>
-        <p className={styles.fansubEditHint}>Anime auswaehlen, Theme setzen, Video hochladen. Der Release-Eintrag wird bei Bedarf automatisch angelegt.</p>
+        <p className={styles.fansubEditHint}>Anime auswählen, Theme setzen, Video hochladen. Der Release-Eintrag wird bei Bedarf automatisch angelegt.</p>
       </div>
 
       {loading ? <p className={styles.fansubEditHint}>Lade Anime...</p> : null}
@@ -80,7 +80,7 @@ export function FansubOpEdSection({ fansubID, authToken }: FansubOpEdSectionProp
           value={selectedAnimeID ?? ''}
           onChange={(event) => setSelectedAnimeID(event.target.value ? Number(event.target.value) : null)}
         >
-          <option value="">{animeList.length === 0 ? 'Kein Anime verfuegbar' : 'Anime waehlen'}</option>
+          <option value="">{animeList.length === 0 ? 'Kein Anime verfügbar' : 'Anime wählen'}</option>
           {animeList.map((anime) => (
             <option key={anime.id} value={anime.id}>
               {anime.title}

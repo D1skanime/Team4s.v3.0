@@ -53,7 +53,7 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).toContain("Background");
     expect(markup).toContain("Background-Video");
     expect(markup).toContain("Hintergründe");
-    expect(markup).toContain("+ Hinzufuegen");
+    expect(markup).toContain("+ Hinzufügen");
     expect(markup).toContain("Assets");
     expect(markup).toContain("Cover");
     expect(markup).toContain("Upload");
@@ -95,8 +95,8 @@ describe("AdminAnimeCreatePage", () => {
 
     expect(markup).toContain("Backgrounds online suchen");
     expect(markup).toContain("zerochan");
-    expect(markup).toContain("1 Treffer ausgewaehlt");
-    expect(markup).toContain("Auswahl uebernehmen");
+    expect(markup).toContain("1 Treffer ausgewählt");
+    expect(markup).toContain("Auswahl übernehmen");
     expect(markup).toContain("1920 x 1080");
   });
 
@@ -149,10 +149,10 @@ describe("AdminAnimeCreatePage", () => {
           updatedFields: ["Titel", "Beschreibung"],
           relationNotes: [
             "1 von 2 Relationen wurde lokal zugeordnet.",
-            "1 Relation wurde uebersprungen.",
+            "1 Relation wurde übersprungen.",
           ],
           draftStatusNotes: [
-            "AniSearch hat bestehende Jellyfin-Werte fuer Titel ueberschrieben.",
+            "AniSearch hat bestehende Jellyfin-Werte für Titel ueberschrieben.",
             "Manuell gepflegte Beschreibung bleibt erhalten.",
           ],
           draft: {
@@ -179,7 +179,7 @@ describe("AdminAnimeCreatePage", () => {
     expect(summaryMarkup).not.toContain("AniSearch-Status");
     expect(summaryMarkup).not.toContain("Wird beim Erstellen");
     expect(summaryMarkup).not.toContain(
-      "AniSearch hat bestehende Jellyfin-Werte fuer Titel ueberschrieben.",
+      "AniSearch hat bestehende Jellyfin-Werte für Titel ueberschrieben.",
     );
     expect(summaryMarkup).not.toContain(
       "Manuell gepflegte Beschreibung bleibt erhalten.",
@@ -811,7 +811,7 @@ describe("AdminAnimeCreatePage", () => {
     const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
 
     expect(markup).toContain("Tags");
-    expect(markup).toContain("Ausgewaehlte Tags");
+    expect(markup).toContain("Ausgewählte Tags");
     expect(markup).toContain("Genre, Tags und Beschreibung");
   });
 
@@ -828,7 +828,7 @@ describe("AdminAnimeCreatePage", () => {
   it("renders the tag suggestion region with the correct aria label", () => {
     const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
 
-    expect(markup).toContain("Tag Vorschlaege");
+    expect(markup).toContain("Tag Vorschläge");
   });
 
   // splitTagTokens helper: comma-separated input must produce a deduplicated

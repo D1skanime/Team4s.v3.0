@@ -15,8 +15,8 @@ interface GenreSuggestion {
 
 /**
  * Props der AnimeEditGenreSection-Komponente.
- * Enthalten aktuelle Genre-Tokens, den Eingabedraft, Vorschlaege,
- * Lade- und Fehlerzustaende des Dropdowns sowie alle Aenderungs-Callbacks.
+ * Enthalten aktuelle Genre-Tokens, den Eingabedraft, Vorschläge,
+ * Lade- und Fehlerzustaende des Dropdowns sowie alle Änderungs-Callbacks.
  */
 interface AnimeEditGenreSectionProps {
   genreTokens: string[]
@@ -38,7 +38,7 @@ interface AnimeEditGenreSectionProps {
 }
 
 /**
- * Genre-Bearbeitungssektion fuer die Anime-Editierseite.
+ * Genre-Bearbeitungssektion für die Anime-Editierseite.
  * Rendert aktuelle Genre-Chips mit Entfernen-Schaltflaeche,
  * ein Tag-Eingabefeld mit Autocomplete-Dropdown und Retry-Option
  * sowie einen Hinweis zur Tastatursteuerung.
