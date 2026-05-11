@@ -94,7 +94,7 @@
 .fansubEditBannerImage {
   min-height: 180px;
   background-size: cover;
-  background-position: center;
+  background-position: top center;
 }
 
 .fansubEditBannerPlaceholder {
@@ -143,7 +143,6 @@
   height: 78px;
   border-radius: 999px;
   border: 3px solid var(--bg-card);
-  margin-top: -48px;
   background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
   display: flex;
   align-items: center;
