@@ -31,6 +31,7 @@ type ReleaseVersionMediaCreateInput struct {
 // A nil pointer means "do not change this field".
 type ReleaseVersionMediaPatchInput struct {
 	Caption            *string
+	CaptionSet         bool
 	IsPreviewCandidate *bool
 }
 
@@ -44,21 +45,21 @@ type ReleaseVersionMediaReorderItem struct {
 // OriginalFilePath and ThumbFilePath are storage-relative paths populated by the JOIN query.
 // The handler is responsible for converting them to ThumbnailURL and OriginalURL.
 type ReleaseVersionMediaItem struct {
-	ID                 int64
-	ReleaseVersionID   int64
-	MediaAssetID       int64
-	Category           string
-	Caption            *string
-	SortOrder          int
-	IsPreviewCandidate bool
-	UploadedByUserID   *int64
-	CreatedAt          time.Time
-	UpdatedAt          *time.Time
-	OriginalFilePath   string // storage path of the original file (from media_files JOIN)
-	ThumbFilePath      string // storage path of the thumb file (from media_files JOIN)
+	ID                 int64      `json:"id"`
+	ReleaseVersionID   int64      `json:"release_version_id"`
+	MediaAssetID       int64      `json:"media_asset_id"`
+	Category           string     `json:"category"`
+	Caption            *string    `json:"caption"`
+	SortOrder          int        `json:"sort_order"`
+	IsPreviewCandidate bool       `json:"is_preview_candidate"`
+	UploadedByUserID   *int64     `json:"uploaded_by_user_id"`
+	CreatedAt          time.Time  `json:"created_at"`
+	UpdatedAt          *time.Time `json:"updated_at,omitempty"`
+	OriginalFilePath   string     `json:"-"` // storage path of the original file (from media_files JOIN)
+	ThumbFilePath      string     `json:"-"` // storage path of the thumb file (from media_files JOIN)
 	// Populated by handler from OriginalFilePath / ThumbFilePath:
-	ThumbnailURL string
-	OriginalURL  string
+	ThumbnailURL string `json:"thumbnail_url"`
+	OriginalURL  string `json:"original_url"`
 }
 
 // ReleaseVersionMediaRelationMeta holds the owning release_version_id and category for one relation.
@@ -88,15 +89,20 @@ func (r *MediaRepository) CreateReleaseVersionMediaAsset(
 	tx pgx.Tx,
 	input ReleaseVersionMediaCreateInput,
 ) (int64, error) {
+	var uploadedByUserID interface{}
+	if input.UploadedByUserID != nil {
+		uploadedByUserID = *input.UploadedByUserID
+	}
+
 	var id int64
 	err := tx.QueryRow(ctx, `
 		INSERT INTO release_version_media
 			(release_version_id, media_asset_id, category, caption, sort_order,
 			 is_preview_candidate, uploaded_by_user_id, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, (SELECT id FROM users WHERE id = $7), NOW())
 		RETURNING id
 	`, input.ReleaseVersionID, input.MediaAssetID, input.Category, input.Caption,
-		input.SortOrder, input.IsPreviewCandidate, input.UploadedByUserID,
+		input.SortOrder, input.IsPreviewCandidate, uploadedByUserID,
 	).Scan(&id)
 	if err != nil {
 		return 0, fmt.Errorf("create release_version_media: %w", err)
@@ -225,12 +231,12 @@ func (r *MediaRepository) PatchReleaseVersionMedia(
 	tag, err := tx.Exec(ctx, `
 		UPDATE release_version_media
 		SET
-			caption              = COALESCE($2, caption),
-			is_preview_candidate = COALESCE($3, is_preview_candidate),
+			caption              = CASE WHEN $2 THEN $3 ELSE caption END,
+			is_preview_candidate = COALESCE($4, is_preview_candidate),
 			updated_at           = NOW()
 		WHERE id = $1
 		  AND deleted_at IS NULL
-	`, relationID, input.Caption, input.IsPreviewCandidate)
+	`, relationID, input.CaptionSet, input.Caption, input.IsPreviewCandidate)
 	if err != nil {
 		return fmt.Errorf("patch release_version_media %d: %w", relationID, err)
 	}
@@ -249,7 +255,7 @@ func (r *MediaRepository) SoftDeleteReleaseVersionMedia(
 ) error {
 	tag, err := r.db.Exec(ctx, `
 		UPDATE release_version_media
-		SET deleted_at = NOW(), deleted_by_user_id = $2
+		SET deleted_at = NOW(), deleted_by_user_id = (SELECT id FROM users WHERE id = $2)
 		WHERE id = $1
 		  AND deleted_at IS NULL
 	`, relationID, deletedByUserID)
@@ -353,13 +359,15 @@ func (r *MediaRepository) InsertMediaFileWithStatus(
 	mediaID int64,
 	variant string,
 	path string,
+	width int,
+	height int,
 	size int64,
 	status string,
 ) error {
 	_, err := tx.Exec(ctx, `
 		INSERT INTO media_files (media_id, variant, path, width, height, size, status)
-		VALUES ($1, $2, $3, 0, 0, $4, $5)
-	`, mediaID, variant, path, size, status)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`, mediaID, variant, path, width, height, size, status)
 	if err != nil {
 		return fmt.Errorf("insert media file with status for asset %d: %w", mediaID, err)
 	}
