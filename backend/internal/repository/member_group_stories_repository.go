@@ -11,33 +11,41 @@ import (
 
 // MemberGroupStory represents one story record from member_group_stories.
 type MemberGroupStory struct {
-	ID              int64
-	FansubGroupID   int64
-	MemberID        int64
-	RoleID          *int64
-	Title           string
-	BodyMarkdown    string
-	BodyHTML        string
-	Visibility      string
-	Status          string
-	SortOrder       int
-	CreatedByUserID *int64
-	UpdatedByUserID *int64
-	CreatedAt       time.Time
-	UpdatedAt       *time.Time
-	DeletedAt       *time.Time
+	ID                   int64
+	FansubGroupID        int64
+	MemberID             int64
+	RoleID               *int64
+	Title                string
+	BodyMarkdown         string
+	BodyHTML             string
+	BodyJSON             []byte
+	BodyText             string
+	EditorType           string
+	ContentSchemaVersion int
+	Visibility           string
+	Status               string
+	SortOrder            int
+	CreatedByUserID      *int64
+	UpdatedByUserID      *int64
+	CreatedAt            time.Time
+	UpdatedAt            *time.Time
+	DeletedAt            *time.Time
 }
 
 // CreateMemberGroupStoryRequest holds the fields for creating a member_group_stories row.
 type CreateMemberGroupStoryRequest struct {
-	MemberID     int64
-	RoleID       *int64
-	Title        string
-	BodyMarkdown string
-	BodyHTML     string
-	Visibility   string
-	Status       string
-	SortOrder    int
+	MemberID             int64
+	RoleID               *int64
+	Title                string
+	BodyMarkdown         string
+	BodyHTML             string
+	BodyJSON             []byte
+	BodyText             string
+	EditorType           string
+	ContentSchemaVersion int
+	Visibility           string
+	Status               string
+	SortOrder            int
 }
 
 // UpdateMemberGroupStoryRequest holds the patchable fields for a member_group_stories row.
@@ -47,6 +55,8 @@ type UpdateMemberGroupStoryRequest struct {
 	Title        *string
 	BodyMarkdown *string
 	BodyHTML     *string
+	BodyJSON     *[]byte
+	BodyText     *string
 	Visibility   *string
 	Status       *string
 	SortOrder    *int
@@ -61,6 +71,7 @@ func (r *FansubNotesRepository) ListMemberGroupStories(
 	rows, err := r.db.Query(ctx, `
 		SELECT id, fansub_group_id, member_id, role_id,
 		       title, body_markdown, body_html,
+		       body_json, body_text, editor_type, content_schema_version,
 		       visibility, status, sort_order,
 		       created_by_user_id, updated_by_user_id,
 		       created_at, updated_at, deleted_at
@@ -80,6 +91,7 @@ func (r *FansubNotesRepository) ListMemberGroupStories(
 		if err := rows.Scan(
 			&s.ID, &s.FansubGroupID, &s.MemberID, &s.RoleID,
 			&s.Title, &s.BodyMarkdown, &s.BodyHTML,
+			&s.BodyJSON, &s.BodyText, &s.EditorType, &s.ContentSchemaVersion,
 			&s.Visibility, &s.Status, &s.SortOrder,
 			&s.CreatedByUserID, &s.UpdatedByUserID,
 			&s.CreatedAt, &s.UpdatedAt, &s.DeletedAt,
@@ -105,19 +117,23 @@ func (r *FansubNotesRepository) CreateMemberGroupStory(
 	err := r.db.QueryRow(ctx, `
 		INSERT INTO member_group_stories
 			(fansub_group_id, member_id, role_id, title, body_markdown, body_html,
+			 body_json, body_text, editor_type, content_schema_version,
 			 visibility, status, sort_order, created_by_user_id, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
 		RETURNING id, fansub_group_id, member_id, role_id,
 		          title, body_markdown, body_html,
+		          body_json, body_text, editor_type, content_schema_version,
 		          visibility, status, sort_order,
 		          created_by_user_id, updated_by_user_id,
 		          created_at, updated_at, deleted_at
 	`, fansubGroupID, req.MemberID, req.RoleID, req.Title,
-		req.BodyMarkdown, req.BodyHTML, req.Visibility, req.Status,
-		req.SortOrder, createdByUserID,
+		req.BodyMarkdown, req.BodyHTML,
+		req.BodyJSON, req.BodyText, req.EditorType, req.ContentSchemaVersion,
+		req.Visibility, req.Status, req.SortOrder, createdByUserID,
 	).Scan(
 		&s.ID, &s.FansubGroupID, &s.MemberID, &s.RoleID,
 		&s.Title, &s.BodyMarkdown, &s.BodyHTML,
+		&s.BodyJSON, &s.BodyText, &s.EditorType, &s.ContentSchemaVersion,
 		&s.Visibility, &s.Status, &s.SortOrder,
 		&s.CreatedByUserID, &s.UpdatedByUserID,
 		&s.CreatedAt, &s.UpdatedAt, &s.DeletedAt,
@@ -144,24 +160,29 @@ func (r *FansubNotesRepository) UpdateMemberGroupStory(
 			title         = COALESCE($4, title),
 			body_markdown = COALESCE($5, body_markdown),
 			body_html     = COALESCE($6, body_html),
-			visibility    = COALESCE($7, visibility),
-			status        = COALESCE($8, status),
-			sort_order    = COALESCE($9, sort_order),
+			body_json     = COALESCE($7, body_json),
+			body_text     = COALESCE($8, body_text),
+			visibility    = COALESCE($9, visibility),
+			status        = COALESCE($10, status),
+			sort_order    = COALESCE($11, sort_order),
 			updated_by_user_id = $2,
 			updated_at    = NOW()
 		WHERE id = $1
 		  AND deleted_at IS NULL
 		RETURNING id, fansub_group_id, member_id, role_id,
 		          title, body_markdown, body_html,
+		          body_json, body_text, editor_type, content_schema_version,
 		          visibility, status, sort_order,
 		          created_by_user_id, updated_by_user_id,
 		          created_at, updated_at, deleted_at
 	`, storyID, userID,
 		req.RoleID, req.Title, req.BodyMarkdown, req.BodyHTML,
+		req.BodyJSON, req.BodyText,
 		req.Visibility, req.Status, req.SortOrder,
 	).Scan(
 		&s.ID, &s.FansubGroupID, &s.MemberID, &s.RoleID,
 		&s.Title, &s.BodyMarkdown, &s.BodyHTML,
+		&s.BodyJSON, &s.BodyText, &s.EditorType, &s.ContentSchemaVersion,
 		&s.Visibility, &s.Status, &s.SortOrder,
 		&s.CreatedByUserID, &s.UpdatedByUserID,
 		&s.CreatedAt, &s.UpdatedAt, &s.DeletedAt,

@@ -148,9 +148,12 @@ func main() {
 			TMDBAPIKey:   cfg.TMDBAPIKey,
 			FanartAPIKey: cfg.FanartAPIKey,
 		},
-	).WithMediaDeps(mediaRepo, mediaService).
+	)
+	tiptapSvc := services.NewTipTapService()
+	adminContentHandler.WithMediaDeps(mediaRepo, mediaService).
 		WithNoteDeps(repository.NewFansubNotesRepository(dbPool), services.NewMarkdownService()).
-		WithReleaseVersionNoteDeps(repository.NewReleaseVersionNotesRepository(dbPool))
+		WithReleaseVersionNoteDeps(repository.NewReleaseVersionNotesRepository(dbPool)).
+		WithTipTapDeps(tiptapSvc)
 	fansubHandler := handlers.NewFansubHandler(
 		fansubRepo,
 		episodeVersionRepo,
