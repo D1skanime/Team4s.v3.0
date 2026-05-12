@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Milestone complete
-stopped_at: Completed 40-08-PLAN.md
-last_updated: "2026-05-11T20:16:28.991Z"
-last_activity: 2026-05-11
+status: Ready to execute
+stopped_at: Completed 41-02-PLAN.md
+last_updated: "2026-05-12T10:55:02.230Z"
+last_activity: 2026-05-12
 progress:
-  total_phases: 36
-  completed_phases: 29
-  total_plans: 124
-  completed_plans: 116
+  total_phases: 37
+  completed_phases: 28
+  total_plans: 133
+  completed_plans: 119
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 39 — deutsche-umlaute-durchgaengig-korrigieren (abgeschlossen)
+**Current focus:** Phase 41 — globalen-tiptap-rich-text-editor-einfuehren
 
 ## Current Position
 
-Phase: 40
-Plan: Not started
+Phase: 41 (globalen-tiptap-rich-text-editor-einfuehren) — EXECUTING
+Plan: 3 of 6
 
 ## Accumulated Context
 
@@ -172,6 +172,9 @@ Recent durable decisions:
 - [Phase 40-07]: getAnimeFansubProjectNote gibt null zurück bei 404 — passend für optionales MVP-Einzeltext-Modell ohne Exception-Overhead
 - [Phase 40-08]: NotesTab.helpers.tsx als Split-Datei für CLAUDE.md 450-Zeilen-Limit
 - [Phase 40-08]: notes-Tab ist außerhalb des globalen Fansub-Speichern-Formulars wie der releases-Tab
+- [Phase 41]: TipTap-Migrations beginnen bei 0067 (0066 durch context_guard belegt); body_json JSONB NULL, body_html/body_markdown bleiben unverändert
+- [Phase 41-02]: Eigener rekursiver Walker fuer TipTap JSON → HTML (keine geeignete Go-Bibliothek verfuegbar)
+- [Phase 41-02]: bluemonday Custom Policy statt UGCPolicy fuer TipTap-HTML-Sanitizing
 
 ### Pending Todos
 
@@ -282,6 +285,8 @@ Recent durable decisions:
 | Phase 40 P06 | 15min | 3 tasks | 4 files |
 | Phase 40-text-und-notizsystem-fuer-fansub-plattform P07 | 8min | 3 tasks | 3 files |
 | Phase 40 P08 | 18min | 2 tasks | 3 files |
+| Phase 41 P01 | 2min | 2 tasks | 8 files |
+| Phase 41-globalen-tiptap-rich-text-editor-einfuehren P02 | 4min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -304,7 +309,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-11T20:04:39.133Z
-Stopped at: Completed 40-08-PLAN.md
-Last activity: 2026-05-11
+Last session: 2026-05-12T10:55:02.197Z
+Stopped at: Completed 41-02-PLAN.md
+Last activity: 2026-05-12
 Resume file: None
