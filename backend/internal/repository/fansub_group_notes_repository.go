@@ -12,29 +12,37 @@ import (
 
 // FansubGroupNote represents one note record from fansub_group_notes.
 type FansubGroupNote struct {
-	ID              int64
-	FansubGroupID   int64
-	Title           string
-	BodyMarkdown    string
-	BodyHTML        string
-	Visibility      string
-	Status          string
-	SortOrder       int
-	CreatedByUserID *int64
-	UpdatedByUserID *int64
-	CreatedAt       time.Time
-	UpdatedAt       *time.Time
-	DeletedAt       *time.Time
+	ID                   int64
+	FansubGroupID        int64
+	Title                string
+	BodyMarkdown         string
+	BodyHTML             string
+	BodyJSON             []byte
+	BodyText             string
+	EditorType           string
+	ContentSchemaVersion int
+	Visibility           string
+	Status               string
+	SortOrder            int
+	CreatedByUserID      *int64
+	UpdatedByUserID      *int64
+	CreatedAt            time.Time
+	UpdatedAt            *time.Time
+	DeletedAt            *time.Time
 }
 
 // CreateFansubGroupNoteRequest holds the fields for creating a fansub_group_notes row.
 type CreateFansubGroupNoteRequest struct {
-	Title        string
-	BodyMarkdown string
-	BodyHTML     string
-	Visibility   string
-	Status       string
-	SortOrder    int
+	Title                string
+	BodyMarkdown         string
+	BodyHTML             string
+	BodyJSON             []byte
+	BodyText             string
+	EditorType           string
+	ContentSchemaVersion int
+	Visibility           string
+	Status               string
+	SortOrder            int
 }
 
 // UpdateFansubGroupNoteRequest holds the patchable fields for a fansub_group_notes row.
@@ -43,6 +51,8 @@ type UpdateFansubGroupNoteRequest struct {
 	Title        *string
 	BodyMarkdown *string
 	BodyHTML     *string
+	BodyJSON     *[]byte
+	BodyText     *string
 	Visibility   *string
 	Status       *string
 	SortOrder    *int
@@ -67,6 +77,7 @@ func (r *FansubNotesRepository) ListFansubGroupNotes(
 ) ([]FansubGroupNote, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, fansub_group_id, title, body_markdown, body_html,
+		       body_json, body_text, editor_type, content_schema_version,
 		       visibility, status, sort_order,
 		       created_by_user_id, updated_by_user_id,
 		       created_at, updated_at, deleted_at
@@ -85,6 +96,7 @@ func (r *FansubNotesRepository) ListFansubGroupNotes(
 		var n FansubGroupNote
 		if err := rows.Scan(
 			&n.ID, &n.FansubGroupID, &n.Title, &n.BodyMarkdown, &n.BodyHTML,
+			&n.BodyJSON, &n.BodyText, &n.EditorType, &n.ContentSchemaVersion,
 			&n.Visibility, &n.Status, &n.SortOrder,
 			&n.CreatedByUserID, &n.UpdatedByUserID,
 			&n.CreatedAt, &n.UpdatedAt, &n.DeletedAt,
@@ -109,17 +121,21 @@ func (r *FansubNotesRepository) CreateFansubGroupNote(
 	var n FansubGroupNote
 	err := r.db.QueryRow(ctx, `
 		INSERT INTO fansub_group_notes
-			(fansub_group_id, title, body_markdown, body_html, visibility, status, sort_order,
-			 created_by_user_id, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+			(fansub_group_id, title, body_markdown, body_html,
+			 body_json, body_text, editor_type, content_schema_version,
+			 visibility, status, sort_order, created_by_user_id, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
 		RETURNING id, fansub_group_id, title, body_markdown, body_html,
+		          body_json, body_text, editor_type, content_schema_version,
 		          visibility, status, sort_order,
 		          created_by_user_id, updated_by_user_id,
 		          created_at, updated_at, deleted_at
 	`, fansubGroupID, req.Title, req.BodyMarkdown, req.BodyHTML,
+		req.BodyJSON, req.BodyText, req.EditorType, req.ContentSchemaVersion,
 		req.Visibility, req.Status, req.SortOrder, createdByUserID,
 	).Scan(
 		&n.ID, &n.FansubGroupID, &n.Title, &n.BodyMarkdown, &n.BodyHTML,
+		&n.BodyJSON, &n.BodyText, &n.EditorType, &n.ContentSchemaVersion,
 		&n.Visibility, &n.Status, &n.SortOrder,
 		&n.CreatedByUserID, &n.UpdatedByUserID,
 		&n.CreatedAt, &n.UpdatedAt, &n.DeletedAt,
@@ -145,22 +161,27 @@ func (r *FansubNotesRepository) UpdateFansubGroupNote(
 			title         = COALESCE($3, title),
 			body_markdown = COALESCE($4, body_markdown),
 			body_html     = COALESCE($5, body_html),
-			visibility    = COALESCE($6, visibility),
-			status        = COALESCE($7, status),
-			sort_order    = COALESCE($8, sort_order),
+			body_json     = COALESCE($6, body_json),
+			body_text     = COALESCE($7, body_text),
+			visibility    = COALESCE($8, visibility),
+			status        = COALESCE($9, status),
+			sort_order    = COALESCE($10, sort_order),
 			updated_by_user_id = $2,
 			updated_at    = NOW()
 		WHERE id = $1
 		  AND deleted_at IS NULL
 		RETURNING id, fansub_group_id, title, body_markdown, body_html,
+		          body_json, body_text, editor_type, content_schema_version,
 		          visibility, status, sort_order,
 		          created_by_user_id, updated_by_user_id,
 		          created_at, updated_at, deleted_at
 	`, noteID, userID,
 		req.Title, req.BodyMarkdown, req.BodyHTML,
+		req.BodyJSON, req.BodyText,
 		req.Visibility, req.Status, req.SortOrder,
 	).Scan(
 		&n.ID, &n.FansubGroupID, &n.Title, &n.BodyMarkdown, &n.BodyHTML,
+		&n.BodyJSON, &n.BodyText, &n.EditorType, &n.ContentSchemaVersion,
 		&n.Visibility, &n.Status, &n.SortOrder,
 		&n.CreatedByUserID, &n.UpdatedByUserID,
 		&n.CreatedAt, &n.UpdatedAt, &n.DeletedAt,

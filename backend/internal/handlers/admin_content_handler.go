@@ -147,6 +147,7 @@ type AdminContentHandler struct {
 	fansubNotesRepo           *repository.FansubNotesRepository
 	releaseVersionNotesRepo   *repository.ReleaseVersionNotesRepository
 	markdownSvc               *services.MarkdownService
+	tiptapSvc                 *services.TipTapService
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
@@ -237,6 +238,13 @@ func (h *AdminContentHandler) WithNoteDeps(repo *repository.FansubNotesRepositor
 // markdownSvc wird von WithNoteDeps gesetzt und hier wiederverwendet.
 func (h *AdminContentHandler) WithReleaseVersionNoteDeps(repo *repository.ReleaseVersionNotesRepository) *AdminContentHandler {
 	h.releaseVersionNotesRepo = repo
+	return h
+}
+
+// WithTipTapDeps verdrahtet den TipTapService nachträglich,
+// damit Fansub-Note-Handler TipTap-Validierung und -Rendering nutzen können.
+func (h *AdminContentHandler) WithTipTapDeps(tiptapSvc *services.TipTapService) *AdminContentHandler {
+	h.tiptapSvc = tiptapSvc
 	return h
 }
 
