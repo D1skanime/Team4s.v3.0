@@ -21,7 +21,7 @@ func (h *AdminContentHandler) requireFansubGroupNoteWriteAccess(c *gin.Context) 
 // ---- Request-Structs: fansub_group_notes ----
 type createFansubGroupNoteRequest struct {
 	Title        string `json:"title"`
-	BodyMarkdown string `json:"body_markdown" binding:"required"`
+	BodyMarkdown string `json:"body_markdown"`
 	Visibility   string `json:"visibility" binding:"required,oneof=public internal"`
 	Status       string `json:"status" binding:"required,oneof=draft published archived deleted"`
 	SortOrder    int    `json:"sort_order"`
@@ -40,7 +40,7 @@ type createMemberGroupStoryRequest struct {
 	MemberID     int64  `json:"member_id" binding:"required"`
 	RoleID       *int64 `json:"role_id"`
 	Title        string `json:"title"`
-	BodyMarkdown string `json:"body_markdown" binding:"required"`
+	BodyMarkdown string `json:"body_markdown"`
 	Visibility   string `json:"visibility" binding:"required,oneof=public internal"`
 	Status       string `json:"status" binding:"required,oneof=draft published archived deleted"`
 	SortOrder    int    `json:"sort_order"`
@@ -58,7 +58,7 @@ type updateMemberGroupStoryRequest struct {
 // ---- Request-Structs: anime_fansub_project_notes ----
 type upsertAnimeFansubProjectNoteRequest struct {
 	Title        string `json:"title"`
-	BodyMarkdown string `json:"body_markdown" binding:"required"`
+	BodyMarkdown string `json:"body_markdown"`
 	Visibility   string `json:"visibility" binding:"required,oneof=public internal"`
 	Status       string `json:"status" binding:"required,oneof=draft published archived deleted"`
 	SortOrder    int    `json:"sort_order"`
