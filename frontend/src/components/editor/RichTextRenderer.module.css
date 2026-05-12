@@ -1,0 +1,71 @@
+.richTextOutput {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text-primary);
+}
+
+.richTextOutput p {
+  margin: 0 0 0.75em;
+}
+
+.richTextOutput p:last-child {
+  margin-bottom: 0;
+}
+
+.richTextOutput h1,
+.richTextOutput h2,
+.richTextOutput h3 {
+  margin: 0.75em 0 0.4em;
+  line-height: 1.3;
+}
+
+.richTextOutput h1 { font-size: 1.5rem; }
+.richTextOutput h2 { font-size: 1.25rem; }
+.richTextOutput h3 { font-size: 1.1rem; }
+
+.richTextOutput ul,
+.richTextOutput ol {
+  padding-left: 1.5em;
+  margin: 0 0 0.75em;
+}
+
+.richTextOutput li + li {
+  margin-top: 0.25em;
+}
+
+.richTextOutput blockquote {
+  border-left: 3px solid color-mix(in srgb, var(--accent-primary) 50%, transparent);
+  margin: 0 0 0.75em;
+  padding: 6px 12px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.richTextOutput hr {
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 25%, transparent);
+  margin: 1em 0;
+}
+
+/* Table — responsive */
+.richTextOutput table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1em;
+  font-size: 0.9rem;
+  overflow-x: auto;
+  display: block;
+}
+
+.richTextOutput th,
+.richTextOutput td {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 25%, transparent);
+  padding: 6px 10px;
+  vertical-align: top;
+  text-align: left;
+}
+
+.richTextOutput th {
+  background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
+  font-weight: 600;
+}

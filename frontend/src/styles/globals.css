@@ -104,3 +104,12 @@ a {
 .primary-link:hover {
   background: var(--color-primary-hover);
 }
+
+/* TipTap Color Tokens — Anwendung in body_html public output */
+.color-token-gray   { color: #6b7280; }
+.color-token-red    { color: #dc2626; }
+.color-token-orange { color: #ea580c; }
+.color-token-yellow { color: #ca8a04; }
+.color-token-green  { color: #16a34a; }
+.color-token-blue   { color: #2563eb; }
+.color-token-purple { color: #9333ea; }
