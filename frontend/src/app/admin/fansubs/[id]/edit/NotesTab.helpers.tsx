@@ -1,6 +1,7 @@
 'use client'
 
-import { type RefObject, useRef } from 'react'
+import { type RefObject, useRef, useMemo } from 'react'
+import { marked } from 'marked'
 import { Bold, Heading1, Heading2, Italic, Link2, List, Save, Trash2 } from 'lucide-react'
 
 import sharedStyles from '../../../admin.module.css'
@@ -86,6 +87,17 @@ export function emptyStoryDraft(): StoryDraft {
   }
 }
 
+// ─── Markdown-Vorschau ────────────────────────────────────────────────────────
+
+function MarkdownPreview({ markdown }: { markdown: string }) {
+  const html = useMemo(() => {
+    if (!markdown.trim()) return ''
+    return marked.parse(markdown) as string
+  }, [markdown])
+  if (!html) return <div className={styles.fansubEditMarkdownPreview} style={{ color: '#888', padding: '8px' }}>Keine Vorschau.</div>
+  return <div className={styles.fansubEditMarkdownPreview} dangerouslySetInnerHTML={{ __html: html }} />
+}
+
 // ─── Markdown-Toolbar ─────────────────────────────────────────────────────────
 
 export function MarkdownToolbarInline({
@@ -152,7 +164,7 @@ export function GroupNoteEditor({
         <MarkdownToolbarInline textareaRef={textareaRef} value={draft.bodyMarkdown} onChange={(next) => onUpdate({ bodyMarkdown: next })} />
         <div className={styles.fansubEditMarkdownSplit}>
           <textarea ref={textareaRef} className={styles.fansubEditMarkdownTextarea} value={draft.bodyMarkdown} onChange={(e) => onUpdate({ bodyMarkdown: e.target.value })} placeholder="Markdown-Inhalt..." />
-          <div className={styles.fansubEditMarkdownPreview}><pre className={styles.fansubEditMarkdownPre}>{draft.bodyMarkdown || 'Keine Vorschau.'}</pre></div>
+          <MarkdownPreview markdown={draft.bodyMarkdown} />
         </div>
         <p className={styles.fansubEditHint}>Zeichen: {draft.bodyMarkdown.length}{draft.bodyMarkdown.length > MARKDOWN_SOFT_LIMIT ? ' (Hinweis: sehr lang)' : ''}</p>
       </div>
@@ -229,7 +241,7 @@ export function StoryEditor({
         <MarkdownToolbarInline textareaRef={textareaRef} value={draft.bodyMarkdown} onChange={(next) => onUpdate({ bodyMarkdown: next })} />
         <div className={styles.fansubEditMarkdownSplit}>
           <textarea ref={textareaRef} className={styles.fansubEditMarkdownTextarea} value={draft.bodyMarkdown} onChange={(e) => onUpdate({ bodyMarkdown: e.target.value })} placeholder="Markdown-Inhalt..." />
-          <div className={styles.fansubEditMarkdownPreview}><pre className={styles.fansubEditMarkdownPre}>{draft.bodyMarkdown || 'Keine Vorschau.'}</pre></div>
+          <MarkdownPreview markdown={draft.bodyMarkdown} />
         </div>
         <p className={styles.fansubEditHint}>Zeichen: {draft.bodyMarkdown.length}{draft.bodyMarkdown.length > MARKDOWN_SOFT_LIMIT ? ' (Hinweis: sehr lang)' : ''}</p>
       </div>
