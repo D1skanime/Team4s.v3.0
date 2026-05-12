@@ -49,6 +49,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 38: Release-Version Media Gallery UX Hover-Preview und Drag-and-Drop-Reorder** - Floating Preview Card, GIF src-Swap, DnD-Reorder innerhalb Kategorie, Live-Re-Sort-Fix. (UAT bestanden 2026-04-30)
 - [x] **Phase 39: Deutsche Umlaute durchgängig korrigieren** - Alle user-sichtbaren deutschen Texte im Frontend und Backend auf korrekte Umlaute umgestellt. CLAUDE.md + AGENTS.md Regel verankert.
 - [x] **Phase 40: Text- und Notizsystem für Fansub-Plattform** - Fansub-Gruppen-Texte, Member-Geschichten, Fansubprojekt-Texte, Release-Version-Notizen mit Rollenmodell und Public-Darstellung. (completed 2026-05-11)
+- [ ] **Phase 41: Globalen TipTap-Rich-Text-Editor einführen** - TipTap als globale Editor-Basis für alle vier Textbereiche; body_json JSONB-Speicherung, body_html für Public-Ausgabe, body_text für Suche, RichTextEditor- und RichTextRenderer-Komponenten, Backend-Validierung und HTML-Sanitizing.
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
@@ -671,3 +672,24 @@ Plans:
   8. Rollenmodell ist auf die 11 Kernrollen reduziert; alte Spezialrollen sind gemappt.
   9. Markdown/HTML wird sicher gerendert und sanitisiert.
   10. Backend-Tests und Frontend-Tests laufen grün.
+
+### Phase 41: Globalen TipTap-Rich-Text-Editor einführen
+
+**Goal:** TipTap als globale Rich-Text-Editor-Basis für alle vier Textbereiche (fansub_group_notes, member_group_stories, anime_fansub_project_notes, release_version_notes). Ersetzt das Markdown-System aus Phase 40 durch JSONB-basierte Speicherung (body_json), serverseitig erzeugtes und sanitisiertes HTML (body_html) sowie Plaintext für Suche/Teaser (body_text). Globale RichTextEditor- und RichTextRenderer-Komponenten. Backend-Validierung gegen erlaubtes TipTap-Schema. Farben nur über definierte Token-Palette.
+**Requirements**: TIPTAP-EDITOR-01
+**Depends on:** 40
+**Plans:** TBD — wird nach Research definiert
+
+**Success Criteria** (what must be TRUE):
+  1. TipTap als globale Editor-Basis eingeführt; RichTextEditor-Komponente existiert.
+  2. RichTextRenderer-Komponente existiert und gibt nur sanitisiertes body_html aus.
+  3. Alle vier Texttabellen haben body_json JSONB, body_html TEXT, body_text TEXT, editor_type TEXT, content_schema_version INT.
+  4. Backend validiert body_json gegen erlaubte TipTap-Nodes/Marks.
+  5. HTML-Sanitizing blockiert script, iframe, on*-Handler, javascript:-URLs, Base64-Bilder.
+  6. Farben nur über Token-Palette (default/gray/red/orange/yellow/green/blue/purple).
+  7. MVP-Toolbar: Paragraph/H1/H2/H3, Bold, Italic, BulletList, OrderedList, Blockquote, Table, Farbe, HorizontalRule, Undo/Redo.
+  8. Tabellen: max. 6 Spalten / 30 Zeilen, keine verschachtelten Tabellen.
+  9. Public-Ausgabe nur bei status=published, visibility=public, deleted_at IS NULL, body_text nicht leer.
+  10. Phase-40-Hilfetexte und rollenbezogene release_version_notes-Texte bleiben erhalten.
+  11. Leere Inhalte werden korrekt erkannt und nicht angezeigt.
+  12. go test ./... und npm run typecheck/lint laufen grün.
