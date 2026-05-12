@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 41-02-PLAN.md
-last_updated: "2026-05-12T10:55:02.230Z"
+stopped_at: Completed 41-04-PLAN.md
+last_updated: "2026-05-12T11:08:10.317Z"
 last_activity: 2026-05-12
 progress:
   total_phases: 37
   completed_phases: 28
   total_plans: 133
-  completed_plans: 119
+  completed_plans: 121
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 41 (globalen-tiptap-rich-text-editor-einfuehren) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 
 ## Accumulated Context
 
@@ -175,6 +175,7 @@ Recent durable decisions:
 - [Phase 41]: TipTap-Migrations beginnen bei 0067 (0066 durch context_guard belegt); body_json JSONB NULL, body_html/body_markdown bleiben unverändert
 - [Phase 41-02]: Eigener rekursiver Walker fuer TipTap JSON → HTML (keine geeignete Go-Bibliothek verfuegbar)
 - [Phase 41-02]: bluemonday Custom Policy statt UGCPolicy fuer TipTap-HTML-Sanitizing
+- [Phase 41]: TextStyle als named export in TipTap 3.x; setContent() ohne Boolean-Positional-Argument; globals.css unter frontend/src/styles/; typecheck-Script zu package.json hinzugefügt
 
 ### Pending Todos
 
@@ -287,6 +288,7 @@ Recent durable decisions:
 | Phase 40 P08 | 18min | 2 tasks | 3 files |
 | Phase 41 P01 | 2min | 2 tasks | 8 files |
 | Phase 41-globalen-tiptap-rich-text-editor-einfuehren P02 | 4min | 2 tasks | 4 files |
+| Phase 41-globalen-tiptap-rich-text-editor-einfuehren P04 | 9min | 2 tasks | 9 files |
 
 ### Quick Tasks Completed
 
@@ -309,7 +311,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-12T10:55:02.197Z
-Stopped at: Completed 41-02-PLAN.md
+Last session: 2026-05-12T11:08:10.305Z
+Stopped at: Completed 41-04-PLAN.md
 Last activity: 2026-05-12
 Resume file: None
