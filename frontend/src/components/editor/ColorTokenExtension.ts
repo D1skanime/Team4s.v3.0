@@ -1,4 +1,4 @@
-import TextStyle from '@tiptap/extension-text-style'
+import { TextStyle } from '@tiptap/extension-text-style'
 
 export const COLOR_TOKENS = [
   'default', 'gray', 'red', 'orange', 'yellow', 'green', 'blue', 'purple',
