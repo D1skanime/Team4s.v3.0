@@ -678,7 +678,15 @@ Plans:
 **Goal:** TipTap als globale Rich-Text-Editor-Basis für alle vier Textbereiche (fansub_group_notes, member_group_stories, anime_fansub_project_notes, release_version_notes). Ersetzt das Markdown-System aus Phase 40 durch JSONB-basierte Speicherung (body_json), serverseitig erzeugtes und sanitisiertes HTML (body_html) sowie Plaintext für Suche/Teaser (body_text). Globale RichTextEditor- und RichTextRenderer-Komponenten. Backend-Validierung gegen erlaubtes TipTap-Schema. Farben nur über definierte Token-Palette.
 **Requirements**: TIPTAP-EDITOR-01
 **Depends on:** 40
-**Plans:** TBD — wird nach Research definiert
+**Plans:** 6 plans
+
+Plans:
+- [ ] `41-01-PLAN.md` — DB-Migrationen 0067-0070: body_json/body_text/editor_type/content_schema_version für alle vier Texttabellen
+- [ ] `41-02-PLAN.md` — Go TipTap Service: Validator, HTML-Renderer, Plaintext-Extractor, IsEmpty
+- [ ] `41-03-PLAN.md` — Go Backend API-Anpassung: Handler-Split, DTOs auf body_json, Repository-Erweiterung
+- [ ] `41-04-PLAN.md` — Frontend globale Komponenten: RichTextEditor, RichTextRenderer, ColorTokenExtension
+- [ ] `41-05-PLAN.md` — Frontend Admin-Integration: alle vier Textbereiche auf RichTextEditor umstellen
+- [ ] `41-06-PLAN.md` — Frontend Tests + Integrations-Check + Browser-UAT Checkpoint
 
 **Success Criteria** (what must be TRUE):
   1. TipTap als globale Editor-Basis eingeführt; RichTextEditor-Komponente existiert.
