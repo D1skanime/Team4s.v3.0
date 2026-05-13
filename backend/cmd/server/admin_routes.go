@@ -117,6 +117,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/fansubs/:id/notes", auth, deps.adminContentHandler.CreateFansubGroupNote)
 	v1.PATCH("/admin/fansubs/:id/notes/:noteId", auth, deps.adminContentHandler.UpdateFansubGroupNote)
 	v1.DELETE("/admin/fansubs/:id/notes/:noteId", auth, deps.adminContentHandler.DeleteFansubGroupNote)
+	v1.GET("/admin/fansubs/:id/member-stories/context", auth, deps.adminContentHandler.GetMemberGroupStoryContext)
 	v1.GET("/admin/fansubs/:id/member-stories", auth, deps.adminContentHandler.ListMemberGroupStories)
 	v1.POST("/admin/fansubs/:id/member-stories", auth, deps.adminContentHandler.CreateMemberGroupStory)
 	v1.PATCH("/admin/fansubs/:id/member-stories/:storyId", auth, deps.adminContentHandler.UpdateMemberGroupStory)

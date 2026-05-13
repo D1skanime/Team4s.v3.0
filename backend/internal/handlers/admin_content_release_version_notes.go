@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -13,34 +14,25 @@ import (
 
 // requireReleaseVersionNoteWriteAccess kapselt die Berechtigungsprüfung für
 // release_version_notes. MVP: Admin-only.
-// Eigene Funktion ermöglicht spätere Erweiterung ohne Änderung an Call-Sites.
 func (h *AdminContentHandler) requireReleaseVersionNoteWriteAccess(c *gin.Context) (middleware.AuthIdentity, bool) {
 	return h.requireAdmin(c)
 }
 
-// ---- Request-Structs ----
-
-// bulkNoteItemRequest beschreibt ein einzelnes Note-Element im Bulk-Save-Array.
-// ID == 0 bedeutet "neu erstellen"; ID > 0 bedeutet "vorhandene Note aktualisieren".
 type bulkNoteItemRequest struct {
-	ID           int64   `json:"id"`
-	MemberID     int64   `json:"member_id" binding:"required"`
-	RoleID       int64   `json:"role_id" binding:"required"`
-	Title        *string `json:"title"`
-	BodyMarkdown string  `json:"body_markdown"`
-	Visibility   string  `json:"visibility" binding:"required,oneof=public internal"`
-	Status       string  `json:"status" binding:"required,oneof=draft published archived deleted"`
-	SortOrder    int     `json:"sort_order"`
+	ID         int64           `json:"id"`
+	MemberID   int64           `json:"member_id" binding:"required"`
+	RoleID     int64           `json:"role_id" binding:"required"`
+	Title      *string         `json:"title"`
+	BodyJSON   json.RawMessage `json:"body_json"`
+	Visibility string          `json:"visibility" binding:"required,oneof=public internal"`
+	Status     string          `json:"status" binding:"required,oneof=draft published archived deleted"`
+	SortOrder  int             `json:"sort_order"`
 }
 
-// bulkUpsertReleaseVersionNotesRequest ist der Request-Body für POST /notes.
 type bulkUpsertReleaseVersionNotesRequest struct {
 	Notes []bulkNoteItemRequest `json:"notes" binding:"required"`
 }
 
-// ---- Handler-Methoden ----
-
-// ListReleaseVersionNotes verarbeitet GET /admin/release-versions/:versionId/notes.
 func (h *AdminContentHandler) ListReleaseVersionNotes(c *gin.Context) {
 	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
 	if err != nil || versionID <= 0 {
@@ -59,9 +51,6 @@ func (h *AdminContentHandler) ListReleaseVersionNotes(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": notes})
 }
 
-// GetMemberRolesForVersion verarbeitet GET /admin/release-versions/:versionId/member-roles.
-// Gibt die beteiligten Member+Rollen für eine Release-Version zurück,
-// damit die Frontend-UI die richtigen Rollenfelder anzeigen kann.
 func (h *AdminContentHandler) GetMemberRolesForVersion(c *gin.Context) {
 	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
 	if err != nil || versionID <= 0 {
@@ -80,10 +69,6 @@ func (h *AdminContentHandler) GetMemberRolesForVersion(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": memberRoles})
 }
 
-// BulkUpsertReleaseVersionNotes verarbeitet POST /admin/release-versions/:versionId/notes.
-// Akzeptiert ein Array von Note-Elementen und speichert alle in einem Request.
-// body_html wird für jede Note automatisch aus body_markdown gerendert.
-// Bei UNIQUE-Verletzung (member+role bereits vorhanden) wird 409 zurückgegeben.
 func (h *AdminContentHandler) BulkUpsertReleaseVersionNotes(c *gin.Context) {
 	identity, ok := h.requireReleaseVersionNoteWriteAccess(c)
 	if !ok {
@@ -104,21 +89,28 @@ func (h *AdminContentHandler) BulkUpsertReleaseVersionNotes(c *gin.Context) {
 
 	inputs := make([]repository.BulkNoteInput, 0, len(req.Notes))
 	for _, note := range req.Notes {
-		bodyHTML, err := h.markdownSvc.RenderMarkdown(note.BodyMarkdown)
-		if err != nil {
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Markdown-Rendering fehlgeschlagen.")
+		bodyJSONStr := string(note.BodyJSON)
+		if err := h.tiptapSvc.ValidateJSON(bodyJSONStr); err != nil {
+			badRequest(c, "nicht erlaubter Editor-Inhalt: "+err.Error())
 			return
 		}
+		bodyHTML, err := h.tiptapSvc.RenderHTML(bodyJSONStr)
+		if err != nil {
+			writeInternalErrorResponse(c, "interner serverfehler", err, "HTML-Rendering fehlgeschlagen.")
+			return
+		}
+		bodyText, _ := h.tiptapSvc.ExtractText(bodyJSONStr)
 		inputs = append(inputs, repository.BulkNoteInput{
-			ID:           note.ID,
-			MemberID:     note.MemberID,
-			RoleID:       note.RoleID,
-			Title:        note.Title,
-			BodyMarkdown: note.BodyMarkdown,
-			BodyHTML:     bodyHTML,
-			Visibility:   note.Visibility,
-			Status:       note.Status,
-			SortOrder:    note.SortOrder,
+			ID:         note.ID,
+			MemberID:   note.MemberID,
+			RoleID:     note.RoleID,
+			Title:      note.Title,
+			BodyJSON:   []byte(note.BodyJSON),
+			BodyHTML:   bodyHTML,
+			BodyText:   bodyText,
+			Visibility: note.Visibility,
+			Status:     note.Status,
+			SortOrder:  note.SortOrder,
 		})
 	}
 
@@ -128,6 +120,12 @@ func (h *AdminContentHandler) BulkUpsertReleaseVersionNotes(c *gin.Context) {
 	if errors.Is(err, repository.ErrConflict) {
 		c.JSON(http.StatusConflict, gin.H{
 			"error": gin.H{"message": "Für dieses Mitglied und diese Rolle existiert bereits eine Notiz"},
+		})
+		return
+	}
+	if errors.Is(err, repository.ErrInvalidReleaseVersionContributorContext) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "Mitglied und Rolle sind für diese Release-Version nicht gültig"},
 		})
 		return
 	}
@@ -145,8 +143,6 @@ func (h *AdminContentHandler) BulkUpsertReleaseVersionNotes(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": updatedNotes})
 }
 
-// DeleteReleaseVersionNote verarbeitet DELETE /admin/release-versions/:versionId/notes/:noteId.
-// Soft-löscht eine einzelne Note.
 func (h *AdminContentHandler) DeleteReleaseVersionNote(c *gin.Context) {
 	identity, ok := h.requireReleaseVersionNoteWriteAccess(c)
 	if !ok {

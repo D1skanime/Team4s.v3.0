@@ -2,8 +2,12 @@ export interface FansubGroupNote {
   id: number;
   fansubGroupId: number;
   title: string;
-  bodyMarkdown: string;
+  bodyMarkdown?: string | null;
   bodyHtml: string;
+  bodyJson: unknown | null;
+  bodyText: string;
+  editorType: string;
+  contentSchemaVersion: number;
   visibility: 'public' | 'internal';
   status: 'draft' | 'published' | 'archived' | 'deleted';
   sortOrder: number;
@@ -20,8 +24,12 @@ export interface MemberGroupStory {
   memberId: number;
   roleId: number | null;
   title: string;
-  bodyMarkdown: string;
+  bodyMarkdown?: string | null;
   bodyHtml: string;
+  bodyJson: unknown | null;
+  bodyText: string;
+  editorType: string;
+  contentSchemaVersion: number;
   visibility: 'public' | 'internal';
   status: 'draft' | 'published' | 'archived' | 'deleted';
   sortOrder: number;
@@ -32,13 +40,33 @@ export interface MemberGroupStory {
   deletedAt: string | null;
 }
 
+export interface MemberStoryContextMember {
+  id: number;
+  nickname: string;
+}
+
+export interface MemberStoryContextRole {
+  id: number;
+  name: string;
+  label: string;
+}
+
+export interface MemberStoryContext {
+  members: MemberStoryContextMember[];
+  roles: MemberStoryContextRole[];
+}
+
 export interface AnimeFansubProjectNote {
   id: number;
   animeId: number;
   fansubGroupId: number;
   title: string;
-  bodyMarkdown: string;
+  bodyMarkdown?: string | null;
   bodyHtml: string;
+  bodyJson: unknown | null;
+  bodyText: string;
+  editorType: string;
+  contentSchemaVersion: number;
   visibility: 'public' | 'internal';
   status: 'draft' | 'published' | 'archived' | 'deleted';
   sortOrder: number;
@@ -51,7 +79,7 @@ export interface AnimeFansubProjectNote {
 
 export interface CreateFansubGroupNoteRequest {
   title: string;
-  bodyMarkdown: string;
+  bodyJson: unknown | null;
   visibility: 'public' | 'internal';
   status: 'draft' | 'published' | 'archived' | 'deleted';
   sortOrder?: number;
@@ -59,7 +87,7 @@ export interface CreateFansubGroupNoteRequest {
 
 export interface UpdateFansubGroupNoteRequest {
   title?: string;
-  bodyMarkdown?: string;
+  bodyJson?: unknown | null;
   visibility?: 'public' | 'internal';
   status?: 'draft' | 'published' | 'archived' | 'deleted';
   sortOrder?: number;
@@ -69,17 +97,15 @@ export interface CreateMemberGroupStoryRequest {
   memberId: number;
   roleId?: number | null;
   title: string;
-  bodyMarkdown: string;
+  bodyJson: unknown | null;
   visibility: 'public' | 'internal';
   status: 'draft' | 'published' | 'archived' | 'deleted';
   sortOrder?: number;
 }
 
 export interface UpdateMemberGroupStoryRequest {
-  memberId?: number;
-  roleId?: number | null;
   title?: string;
-  bodyMarkdown?: string;
+  bodyJson?: unknown | null;
   visibility?: 'public' | 'internal';
   status?: 'draft' | 'published' | 'archived' | 'deleted';
   sortOrder?: number;
@@ -87,7 +113,7 @@ export interface UpdateMemberGroupStoryRequest {
 
 export interface UpsertAnimeFansubProjectNoteRequest {
   title?: string;
-  bodyMarkdown: string;
+  bodyJson: unknown | null;
   visibility: 'public' | 'internal';
   status: 'draft' | 'published' | 'archived' | 'deleted';
   sortOrder?: number;

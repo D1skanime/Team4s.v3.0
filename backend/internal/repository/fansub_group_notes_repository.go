@@ -118,8 +118,13 @@ func (r *FansubNotesRepository) CreateFansubGroupNote(
 	createdByUserID int64,
 	req CreateFansubGroupNoteRequest,
 ) (*FansubGroupNote, error) {
+	resolvedCreatedByUserID, err := resolveOptionalExistingUserID(ctx, r.db, createdByUserID)
+	if err != nil {
+		return nil, fmt.Errorf("create fansub_group_note for group %d: %w", fansubGroupID, err)
+	}
+
 	var n FansubGroupNote
-	err := r.db.QueryRow(ctx, `
+	err = r.db.QueryRow(ctx, `
 		INSERT INTO fansub_group_notes
 			(fansub_group_id, title, body_markdown, body_html,
 			 body_json, body_text, editor_type, content_schema_version,
@@ -132,7 +137,7 @@ func (r *FansubNotesRepository) CreateFansubGroupNote(
 		          created_at, updated_at, deleted_at
 	`, fansubGroupID, req.Title, req.BodyMarkdown, req.BodyHTML,
 		req.BodyJSON, req.BodyText, req.EditorType, req.ContentSchemaVersion,
-		req.Visibility, req.Status, req.SortOrder, createdByUserID,
+		req.Visibility, req.Status, req.SortOrder, resolvedCreatedByUserID,
 	).Scan(
 		&n.ID, &n.FansubGroupID, &n.Title, &n.BodyMarkdown, &n.BodyHTML,
 		&n.BodyJSON, &n.BodyText, &n.EditorType, &n.ContentSchemaVersion,
@@ -151,31 +156,38 @@ func (r *FansubNotesRepository) CreateFansubGroupNote(
 func (r *FansubNotesRepository) UpdateFansubGroupNote(
 	ctx context.Context,
 	noteID int64,
+	fansubGroupID int64,
 	userID int64,
 	req UpdateFansubGroupNoteRequest,
 ) (*FansubGroupNote, error) {
+	resolvedUpdatedByUserID, err := resolveOptionalExistingUserID(ctx, r.db, userID)
+	if err != nil {
+		return nil, fmt.Errorf("update fansub_group_note %d: %w", noteID, err)
+	}
+
 	var n FansubGroupNote
-	err := r.db.QueryRow(ctx, `
+	err = r.db.QueryRow(ctx, `
 		UPDATE fansub_group_notes
 		SET
-			title         = COALESCE($3, title),
-			body_markdown = COALESCE($4, body_markdown),
-			body_html     = COALESCE($5, body_html),
-			body_json     = COALESCE($6, body_json),
-			body_text     = COALESCE($7, body_text),
-			visibility    = COALESCE($8, visibility),
-			status        = COALESCE($9, status),
-			sort_order    = COALESCE($10, sort_order),
-			updated_by_user_id = $2,
+			title         = COALESCE($4, title),
+			body_markdown = COALESCE($5, body_markdown),
+			body_html     = COALESCE($6, body_html),
+			body_json     = COALESCE($7, body_json),
+			body_text     = COALESCE($8, body_text),
+			visibility    = COALESCE($9, visibility),
+			status        = COALESCE($10, status),
+			sort_order    = COALESCE($11, sort_order),
+			updated_by_user_id = $3,
 			updated_at    = NOW()
 		WHERE id = $1
+		  AND fansub_group_id = $2
 		  AND deleted_at IS NULL
 		RETURNING id, fansub_group_id, title, body_markdown, body_html,
 		          body_json, body_text, editor_type, content_schema_version,
 		          visibility, status, sort_order,
 		          created_by_user_id, updated_by_user_id,
 		          created_at, updated_at, deleted_at
-	`, noteID, userID,
+	`, noteID, fansubGroupID, resolvedUpdatedByUserID,
 		req.Title, req.BodyMarkdown, req.BodyHTML,
 		req.BodyJSON, req.BodyText,
 		req.Visibility, req.Status, req.SortOrder,
@@ -199,14 +211,21 @@ func (r *FansubNotesRepository) UpdateFansubGroupNote(
 func (r *FansubNotesRepository) DeleteFansubGroupNote(
 	ctx context.Context,
 	noteID int64,
+	fansubGroupID int64,
 	userID int64,
 ) error {
+	resolvedDeletedByUserID, err := resolveOptionalExistingUserID(ctx, r.db, userID)
+	if err != nil {
+		return fmt.Errorf("delete fansub_group_note %d: %w", noteID, err)
+	}
+
 	tag, err := r.db.Exec(ctx, `
 		UPDATE fansub_group_notes
-		SET deleted_at = NOW(), deleted_by_user_id = $2
+		SET deleted_at = NOW(), deleted_by_user_id = $3
 		WHERE id = $1
+		  AND fansub_group_id = $2
 		  AND deleted_at IS NULL
-	`, noteID, userID)
+	`, noteID, fansubGroupID, resolvedDeletedByUserID)
 	if err != nil {
 		return fmt.Errorf("delete fansub_group_note %d: %w", noteID, err)
 	}

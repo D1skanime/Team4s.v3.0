@@ -23,12 +23,33 @@ type createMemberGroupStoryRequest struct {
 }
 
 type updateMemberGroupStoryRequest struct {
-	RoleID     *int64           `json:"role_id"`
 	Title      *string          `json:"title"`
 	BodyJSON   *json.RawMessage `json:"body_json"`
 	Visibility *string          `json:"visibility"`
 	Status     *string          `json:"status"`
 	SortOrder  *int             `json:"sort_order"`
+}
+
+// GetMemberGroupStoryContext verarbeitet GET /api/v1/admin/fansubs/:id/member-stories/context.
+func (h *AdminContentHandler) GetMemberGroupStoryContext(c *gin.Context) {
+	fansubID, err := parseFansubRouteID(c)
+	if err != nil || fansubID <= 0 {
+		badRequest(c, "ungültige fansub id")
+		return
+	}
+
+	contextData, err := h.fansubNotesRepo.GetMemberGroupStoryContext(c.Request.Context(), fansubID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Kontext für Member-Geschichten konnte nicht geladen werden.")
+		return
+	}
+	if contextData == nil {
+		contextData = &repository.MemberStoryContext{
+			Members: []repository.MemberStoryContextMember{},
+			Roles:   []repository.MemberStoryContextRole{},
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"data": contextData})
 }
 
 // ListMemberGroupStories verarbeitet GET /api/v1/admin/fansubs/:id/member-stories.
@@ -113,6 +134,12 @@ func (h *AdminContentHandler) UpdateMemberGroupStory(c *gin.Context) {
 		return
 	}
 
+	fansubID, err := parseFansubRouteID(c)
+	if err != nil || fansubID <= 0 {
+		badRequest(c, "ungültige fansub id")
+		return
+	}
+
 	storyID, err := strconv.ParseInt(c.Param("storyId"), 10, 64)
 	if err != nil || storyID <= 0 {
 		badRequest(c, "ungültige story id")
@@ -126,7 +153,6 @@ func (h *AdminContentHandler) UpdateMemberGroupStory(c *gin.Context) {
 	}
 
 	repoReq := repository.UpdateMemberGroupStoryRequest{
-		RoleID:     req.RoleID,
 		Title:      req.Title,
 		Visibility: req.Visibility,
 		Status:     req.Status,
@@ -150,7 +176,7 @@ func (h *AdminContentHandler) UpdateMemberGroupStory(c *gin.Context) {
 		repoReq.BodyText = &text
 	}
 
-	story, err := h.fansubNotesRepo.UpdateMemberGroupStory(c.Request.Context(), storyID, identity.UserID, repoReq)
+	story, err := h.fansubNotesRepo.UpdateMemberGroupStory(c.Request.Context(), storyID, fansubID, identity.UserID, repoReq)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "member-geschichte nicht gefunden"}})
 		return
@@ -169,13 +195,19 @@ func (h *AdminContentHandler) DeleteMemberGroupStory(c *gin.Context) {
 		return
 	}
 
+	fansubID, err := parseFansubRouteID(c)
+	if err != nil || fansubID <= 0 {
+		badRequest(c, "ungültige fansub id")
+		return
+	}
+
 	storyID, err := strconv.ParseInt(c.Param("storyId"), 10, 64)
 	if err != nil || storyID <= 0 {
 		badRequest(c, "ungültige story id")
 		return
 	}
 
-	err = h.fansubNotesRepo.DeleteMemberGroupStory(c.Request.Context(), storyID, identity.UserID)
+	err = h.fansubNotesRepo.DeleteMemberGroupStory(c.Request.Context(), storyID, fansubID, identity.UserID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "member-geschichte nicht gefunden"}})
 		return

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,21 +12,25 @@ import (
 
 // ReleaseVersionNote represents one record from release_version_notes.
 type ReleaseVersionNote struct {
-	ID               int64
-	ReleaseVersionID int64
-	MemberID         int64
-	RoleID           int64
-	Title            *string
-	BodyMarkdown     string
-	BodyHTML         string
-	Visibility       string
-	Status           string
-	SortOrder        int
-	CreatedByUserID  *int64
-	UpdatedByUserID  *int64
-	CreatedAt        time.Time
-	UpdatedAt        *time.Time
-	DeletedAt        *time.Time
+	ID                   int64
+	ReleaseVersionID     int64
+	MemberID             int64
+	RoleID               int64
+	Title                *string
+	BodyMarkdown         string
+	BodyHTML             string
+	BodyJSON             []byte
+	BodyText             string
+	EditorType           string
+	ContentSchemaVersion int
+	Visibility           string
+	Status               string
+	SortOrder            int
+	CreatedByUserID      *int64
+	UpdatedByUserID      *int64
+	CreatedAt            time.Time
+	UpdatedAt            *time.Time
+	DeletedAt            *time.Time
 }
 
 // MemberRoleForVersion holds a member+role pair associated with a release version,
@@ -41,15 +46,16 @@ type MemberRoleForVersion struct {
 // BulkNoteInput describes a single note in a bulk upsert operation.
 // ID == 0 means "create new"; ID > 0 means "update existing".
 type BulkNoteInput struct {
-	ID           int64   // 0 = create new
-	MemberID     int64
-	RoleID       int64
-	Title        *string
-	BodyMarkdown string
-	BodyHTML     string
-	Visibility   string
-	Status       string
-	SortOrder    int
+	ID         int64 // 0 = create new
+	MemberID   int64
+	RoleID     int64
+	Title      *string
+	BodyJSON   []byte
+	BodyHTML   string
+	BodyText   string
+	Visibility string
+	Status     string
+	SortOrder  int
 }
 
 // ReleaseVersionNotesRepository provides CRUD and bulk-upsert operations for release_version_notes.
@@ -70,7 +76,8 @@ func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotes(
 ) ([]ReleaseVersionNote, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, release_version_id, member_id, role_id,
-		       title, body_markdown, body_html,
+		       title, body_markdown, body_html, body_json, body_text,
+		       editor_type, content_schema_version,
 		       visibility, status, sort_order,
 		       created_by_user_id, updated_by_user_id,
 		       created_at, updated_at, deleted_at
@@ -89,7 +96,8 @@ func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotes(
 		var n ReleaseVersionNote
 		if err := rows.Scan(
 			&n.ID, &n.ReleaseVersionID, &n.MemberID, &n.RoleID,
-			&n.Title, &n.BodyMarkdown, &n.BodyHTML,
+			&n.Title, &n.BodyMarkdown, &n.BodyHTML, &n.BodyJSON, &n.BodyText,
+			&n.EditorType, &n.ContentSchemaVersion,
 			&n.Visibility, &n.Status, &n.SortOrder,
 			&n.CreatedByUserID, &n.UpdatedByUserID,
 			&n.CreatedAt, &n.UpdatedAt, &n.DeletedAt,
@@ -142,6 +150,69 @@ func (r *ReleaseVersionNotesRepository) GetMemberRolesForVersion(
 	return items, nil
 }
 
+func releaseVersionMemberRoleKey(memberID int64, roleID int64) string {
+	return fmt.Sprintf("%d:%d", memberID, roleID)
+}
+
+func (r *ReleaseVersionNotesRepository) loadValidMemberRoleKeysForVersion(
+	ctx context.Context,
+	releaseVersionID int64,
+) (map[string]struct{}, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT rmr.member_id, rmr.role_id
+		FROM release_member_roles rmr
+		JOIN release_versions rv ON rv.release_id = rmr.release_id
+		WHERE rv.id = $1
+	`, releaseVersionID)
+	if err != nil {
+		return nil, fmt.Errorf("load valid member-role pairs for version %d: %w", releaseVersionID, err)
+	}
+	defer rows.Close()
+
+	validKeys := make(map[string]struct{})
+	for rows.Next() {
+		var memberID int64
+		var roleID int64
+		if err := rows.Scan(&memberID, &roleID); err != nil {
+			return nil, fmt.Errorf("scan valid member-role pair for version %d: %w", releaseVersionID, err)
+		}
+		validKeys[releaseVersionMemberRoleKey(memberID, roleID)] = struct{}{}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate valid member-role pairs for version %d: %w", releaseVersionID, err)
+	}
+	return validKeys, nil
+}
+
+func (r *ReleaseVersionNotesRepository) validateExistingReleaseVersionNoteContributor(
+	ctx context.Context,
+	tx pgx.Tx,
+	noteID int64,
+	releaseVersionID int64,
+	memberID int64,
+	roleID int64,
+) error {
+	var storedMemberID int64
+	var storedRoleID int64
+	err := tx.QueryRow(ctx, `
+		SELECT member_id, role_id
+		FROM release_version_notes
+		WHERE id = $1
+		  AND release_version_id = $2
+		  AND deleted_at IS NULL
+	`, noteID, releaseVersionID).Scan(&storedMemberID, &storedRoleID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("load existing release-version note contributor %d: %w", noteID, err)
+	}
+	if storedMemberID != memberID || storedRoleID != roleID {
+		return ErrInvalidReleaseVersionContributorContext
+	}
+	return nil
+}
+
 // BulkUpsertReleaseVersionNotes processes all notes in a single DB transaction.
 // For each item: if ID == 0 → INSERT; if ID > 0 → UPDATE WHERE id = $x AND release_version_id = $y.
 // A UNIQUE violation on (release_version_id, member_id, role_id) is returned as ErrConflict.
@@ -158,20 +229,33 @@ func (r *ReleaseVersionNotesRepository) BulkUpsertReleaseVersionNotes(
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck
 
+	resolvedUserID, err := resolveOptionalExistingUserID(ctx, tx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("bulk_upsert_release_version_notes for version %d: %w", releaseVersionID, err)
+	}
+
+	validKeys, err := r.loadValidMemberRoleKeysForVersion(ctx, releaseVersionID)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, note := range notes {
+		if _, ok := validKeys[releaseVersionMemberRoleKey(note.MemberID, note.RoleID)]; !ok {
+			return nil, ErrInvalidReleaseVersionContributorContext
+		}
 		if note.ID == 0 {
 			// INSERT new note
 			var newID int64
 			err := tx.QueryRow(ctx, `
 				INSERT INTO release_version_notes
 					(release_version_id, member_id, role_id, title,
-					 body_markdown, body_html, visibility, status, sort_order,
-					 created_by_user_id, created_at)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+					 body_json, body_html, body_text, editor_type, content_schema_version,
+					 visibility, status, sort_order, created_by_user_id, created_at)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, 'tiptap', $8, $9, $10, $11, $12, NOW())
 				RETURNING id
 			`, releaseVersionID, note.MemberID, note.RoleID, note.Title,
-				note.BodyMarkdown, note.BodyHTML, note.Visibility, note.Status,
-				note.SortOrder, userID,
+				note.BodyJSON, note.BodyHTML, note.BodyText, 1,
+				note.Visibility, note.Status, note.SortOrder, resolvedUserID,
 			).Scan(&newID)
 			if isUniqueViolation(err) {
 				return nil, ErrConflict
@@ -181,24 +265,32 @@ func (r *ReleaseVersionNotesRepository) BulkUpsertReleaseVersionNotes(
 					note.MemberID, note.RoleID, err)
 			}
 		} else {
+			if err := r.validateExistingReleaseVersionNoteContributor(
+				ctx, tx, note.ID, releaseVersionID, note.MemberID, note.RoleID,
+			); err != nil {
+				return nil, err
+			}
 			// UPDATE existing note
 			tag, err := tx.Exec(ctx, `
 				UPDATE release_version_notes
 				SET
 					title              = $3,
-					body_markdown      = $4,
+					body_json          = $4,
 					body_html          = $5,
-					visibility         = $6,
-					status             = $7,
-					sort_order         = $8,
-					updated_by_user_id = $9,
+					body_text          = $6,
+					editor_type        = 'tiptap',
+					content_schema_version = 1,
+					visibility         = $7,
+					status             = $8,
+					sort_order         = $9,
+					updated_by_user_id = $10,
 					updated_at         = NOW()
 				WHERE id = $1
 				  AND release_version_id = $2
 				  AND deleted_at IS NULL
 			`, note.ID, releaseVersionID,
-				note.Title, note.BodyMarkdown, note.BodyHTML,
-				note.Visibility, note.Status, note.SortOrder, userID,
+				note.Title, note.BodyJSON, note.BodyHTML, note.BodyText,
+				note.Visibility, note.Status, note.SortOrder, resolvedUserID,
 			)
 			if isUniqueViolation(err) {
 				return nil, ErrConflict
@@ -228,13 +320,18 @@ func (r *ReleaseVersionNotesRepository) DeleteReleaseVersionNote(
 	releaseVersionID int64,
 	userID int64,
 ) error {
+	resolvedDeletedByUserID, err := resolveOptionalExistingUserID(ctx, r.db, userID)
+	if err != nil {
+		return fmt.Errorf("delete release_version_note %d: %w", noteID, err)
+	}
+
 	tag, err := r.db.Exec(ctx, `
 		UPDATE release_version_notes
 		SET deleted_at = NOW(), deleted_by_user_id = $3
 		WHERE id = $1
 		  AND release_version_id = $2
 		  AND deleted_at IS NULL
-	`, noteID, releaseVersionID, userID)
+	`, noteID, releaseVersionID, resolvedDeletedByUserID)
 	if err != nil {
 		return fmt.Errorf("delete release_version_note %d: %w", noteID, err)
 	}
@@ -243,4 +340,3 @@ func (r *ReleaseVersionNotesRepository) DeleteReleaseVersionNote(
 	}
 	return nil
 }
-

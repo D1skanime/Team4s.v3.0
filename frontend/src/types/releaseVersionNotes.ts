@@ -4,8 +4,12 @@ export interface ReleaseVersionNote {
   memberId: number;
   roleId: number;
   title: string | null;
-  bodyMarkdown: string;
+  bodyMarkdown?: string | null;
   bodyHtml: string;
+  bodyJson: unknown | null;
+  bodyText: string;
+  editorType: string;
+  contentSchemaVersion: number;
   visibility: 'public' | 'internal';
   status: 'draft' | 'published' | 'archived' | 'deleted';
   sortOrder: number;
@@ -25,11 +29,11 @@ export interface MemberRoleForVersion {
 }
 
 export interface BulkNoteInput {
-  id: number;          // 0 = neu erstellen
+  id: number;
   memberId: number;
   roleId: number;
   title?: string | null;
-  bodyMarkdown: string;
+  bodyJson: unknown | null;
   visibility: 'public' | 'internal';
   status: 'draft' | 'published' | 'archived' | 'deleted';
   sortOrder?: number;

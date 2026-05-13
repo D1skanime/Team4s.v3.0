@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
+import { RichTextEditor } from '@/components/editor'
 import {
   bulkUpsertReleaseVersionNotes,
   getMemberRolesForVersion,
@@ -31,9 +32,16 @@ const ROLE_HELP_TEXTS: Record<string, { label: string; helpText: string; placeho
   other:           { label: 'Sonstiges',          helpText: 'Nutze dieses Feld nur wenn der Beitrag nicht zu den Standardrollen passt.', placeholder: 'Beispiel: Bei dieser Version gab es eine besondere Unterstützung...' },
 }
 
+function createEmptyRichTextDoc() {
+  return {
+    type: 'doc',
+    content: [{ type: 'paragraph' }],
+  }
+}
+
 type NoteFormState = {
   id: number
-  bodyMarkdown: string
+  bodyJson: unknown | null
   title: string
   visibility: 'public' | 'internal'
   status: 'draft' | 'published' | 'archived' | 'deleted'
@@ -47,6 +55,17 @@ function buildKey(memberId: number, roleId: number): string {
   return `${memberId}-${roleId}`
 }
 
+function ensureRichTextValue(value: unknown | null): unknown {
+  if (value == null) return createEmptyRichTextDoc()
+  return JSON.parse(JSON.stringify(value))
+}
+
+function isRichTextEmpty(value: unknown | null): boolean {
+  if (value == null) return true
+  const serialized = JSON.stringify(value)
+  return serialized === JSON.stringify(createEmptyRichTextDoc())
+}
+
 function buildInitialState(
   memberRoles: MemberRoleForVersion[],
   notes: ReleaseVersionNote[],
@@ -58,7 +77,7 @@ function buildInitialState(
     const existing = notes.find((n) => n.memberId === mr.memberId && n.roleId === mr.roleId)
     state[key] = {
       id: existing?.id ?? 0,
-      bodyMarkdown: existing?.bodyMarkdown ?? '',
+      bodyJson: existing?.bodyJson ?? null,
       title: existing?.title ?? '',
       visibility: existing?.visibility ?? 'internal',
       status: existing?.status ?? 'draft',
@@ -122,35 +141,36 @@ export function ReleaseVersionNotesTab({ versionId }: ReleaseVersionNotesTabProp
     setErrorMessage(null)
     setSuccessMessage(null)
 
-    const notesToSend: BulkNoteInput[] = memberRoles
-      .flatMap((mr) => {
-        const key = buildKey(mr.memberId, mr.roleId)
-        const state = noteStates[key]
-        if (!state) return []
-        // Leere Felder ohne ID nicht mitsenden
-        if (state.id === 0 && state.bodyMarkdown.trim() === '') return []
-        const entry: BulkNoteInput = {
-          id: state.id,
-          memberId: mr.memberId,
-          roleId: mr.roleId,
-          title: state.title.trim() || null,
-          bodyMarkdown: state.bodyMarkdown,
-          visibility: state.visibility,
-          status: state.status,
-          sortOrder: state.sortOrder,
-        }
-        return [entry]
-      })
+    const notesToSend: BulkNoteInput[] = memberRoles.flatMap((mr) => {
+      const key = buildKey(mr.memberId, mr.roleId)
+      const state = noteStates[key]
+      if (!state) return []
+      if (state.id === 0 && isRichTextEmpty(state.bodyJson)) return []
+      return [{
+        id: state.id,
+        memberId: mr.memberId,
+        roleId: mr.roleId,
+        title: state.title.trim() || null,
+        bodyJson: ensureRichTextValue(state.bodyJson),
+        visibility: state.visibility,
+        status: state.status,
+        sortOrder: state.sortOrder,
+      }]
+    })
 
     try {
       const saved = await bulkUpsertReleaseVersionNotes(versionId, { notes: notesToSend })
-      // Neue IDs in State übernehmen
       setNoteStates((prev) => {
         const next = { ...prev }
         for (const note of saved) {
           const key = buildKey(note.memberId, note.roleId)
           if (next[key]) {
-            next[key] = { ...next[key], id: note.id, isDirty: false }
+            next[key] = {
+              ...next[key],
+              id: note.id,
+              bodyJson: note.bodyJson,
+              isDirty: false,
+            }
           }
         }
         return next
@@ -160,6 +180,8 @@ export function ReleaseVersionNotesTab({ versionId }: ReleaseVersionNotesTabProp
       const status = (err as { status?: number })?.status
       if (status === 409) {
         setErrorMessage('Fehler: Für ein Mitglied und eine Rolle existiert bereits eine Notiz.')
+      } else if (status === 400) {
+        setErrorMessage('Fehler: Die gewählte Mitglied-Rollen-Zuordnung passt nicht mehr zu dieser Release-Version.')
       } else {
         setErrorMessage('Fehler beim Speichern. Bitte erneut versuchen.')
       }
@@ -187,7 +209,6 @@ export function ReleaseVersionNotesTab({ versionId }: ReleaseVersionNotesTabProp
     )
   }
 
-  // Mitglieder gruppieren
   const memberMap = new Map<number, { name: string; roles: MemberRoleForVersion[] }>()
   for (const mr of memberRoles) {
     if (!memberMap.has(mr.memberId)) {
@@ -290,33 +311,54 @@ function RoleNoteField({ memberRole, state, onUpdate }: RoleNoteFieldProps) {
   const label = roleInfo?.label ?? memberRole.roleLabel
   const helpText = roleInfo?.helpText ?? ''
   const placeholder = roleInfo?.placeholder ?? ''
-  const charCount = state?.bodyMarkdown.length ?? 0
+  const charCount = state?.bodyJson ? JSON.stringify(state.bodyJson).length : 0
   const isOverLimit = charCount >= CHAR_WARN_LIMIT
 
   return (
     <div>
-      <label style={{ display: 'block', marginBottom: 4, fontWeight: 600, fontSize: 14, color: '#334155' }}>
-        {label}
-      </label>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          marginBottom: 8,
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#475569' }}>
+            Rolle
+          </div>
+          <label style={{ display: 'block', marginTop: 2, fontWeight: 700, fontSize: 16, color: '#0f172a' }}>
+            {label}
+          </label>
+        </div>
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            borderRadius: 999,
+            border: '1px solid #cbd5e1',
+            background: '#f8fafc',
+            color: '#334155',
+            padding: '4px 10px',
+            fontSize: 12,
+            fontWeight: 600,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {memberRole.roleName}
+        </span>
+      </div>
       {helpText ? (
         <p style={{ margin: '0 0 6px', fontSize: 13, color: '#64748b' }}>{helpText}</p>
       ) : null}
-      <textarea
-        rows={4}
-        value={state?.bodyMarkdown ?? ''}
+      <RichTextEditor
+        value={ensureRichTextValue(state?.bodyJson ?? null)}
+        onChange={(value) => onUpdate(key, 'bodyJson', value)}
         placeholder={placeholder}
-        onChange={(e) => onUpdate(key, 'bodyMarkdown', e.target.value)}
-        style={{
-          width: '100%',
-          boxSizing: 'border-box',
-          padding: '8px 10px',
-          fontSize: 14,
-          border: '1px solid #cbd5e1',
-          borderRadius: 6,
-          resize: 'vertical',
-          fontFamily: 'inherit',
-          lineHeight: 1.5,
-        }}
+        mode="shortnote"
+        minHeight={180}
       />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
         <span

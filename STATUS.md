@@ -3,72 +3,53 @@
 ## Project Snapshot
 - **Project:** Team4s.v3.0
 - **Milestone:** `v1.1 Asset Lifecycle Hardening`
-- **Status:** Phase 33 abgeschlossen. Kein aktiver Plan. Nächste Phase noch nicht festgelegt.
-- **Current branch:** `main` — in sync mit `origin/main` nach Push am 2026-05-07.
-- **Current focus:** Entscheiden welche Phase als nächstes kommt.
+- **Status:** Phase 41 UAT ist grün; Phase-40/41-Dokumentationssync und selektiver Push sind der aktuelle Closeout-Fokus.
+- **Current branch:** `main` — selektiver Push für den aktuellen Notiz-/TipTap-Stand läuft.
+- **Current focus:** Nur commitwürdige Produktänderungen für Phase 40/41 sauber nach Git bringen und die Handoff-Lage auf den realen UAT-Stand ziehen.
 
 ## What Works Now
 - Docker frontend is live on `http://127.0.0.1:3002`.
 - Backend API is live on `http://127.0.0.1:8092`.
-- Phase 20 release-native import baseline remains verified complete.
-- Phase 21 fansub group chips and deterministic collaboration wiring are complete and UAT-approved.
-- Phase 28 runtime playback/fallback behavior remains live-verified.
-- Fansub create/edit community links use generic `fansub_group_links` rows for `website`, `discord`, `twitter`, `github`, and `irc`.
-- Phase 30 explicit release endpoints exist for list, canonical release, and release-by-ID reads.
-- Phase 31 fansub edit is a tabbed workspace with `Anime & Releases` as the release-context entry point.
-- Phase 32 adds a release side drawer for concrete release-theme-asset editing without introducing new DB tables.
-- Release-theme-asset upload works through explicit `Upload starten`.
-- Release-theme delete removes the physical stored file as well as the DB/link state.
-- New release-theme uploads store under `media/release-theme-assets/release_<releaseId>/theme_<themeId>/...`.
-- Backend upload rejects conflicting release-specific uploads when a global/admin theme segment already covers the episode range.
-- Fansub timeline status semantics: `Global/Admin` / `Release-Asset` / `Fehlt` (upload-required).
-- Fansub timeline duration consumes `release_variants.duration_seconds`; Release 41 displays `00:23:03`.
-- Phase 33: Release-theme uploads schreiben jetzt `media_files (variant='original')` → `size_bytes` korrekt persistent (UAT: 10906996 bytes für media_id 90).
-- PNG-Logo-Uploads behalten Quellformat (kein stilles JPG-Downgrade mehr).
-- Theme-Types in DB und Frontend: OP Kara, ED Kara, Insert Kara, Outro.
+- Phase 40 note-system baseline is implemented and technically verified.
+- Phase 41 TipTap baseline passed browser UAT on 2026-05-13.
+- Gruppennotizen save works in the browser.
+- Anime-Projekttexte save works in the browser.
+- Release-Version-Notizen save works in the browser for real assigned roles.
+- The backend/frontend note contracts now use the TipTap JSON path instead of only Markdown strings.
+- The Phase-40 note guards and role constraints still remain active in the Phase-41 path.
 
 ## What Is Not Done Yet
-- Nächste Phase noch nicht entschieden (Kandidaten: Segment-Playback, Fansub Group Media, Asset-Lifecycle-Folgearbeit).
-- `fansub_groups.closed_year` und `history_description` — Entscheidung ob hard-drop möglich ist steht aus.
-- Formale Ablösung/Entfernung der alten manual-vs-Jellyfin Entry-Choice-UX steht aus.
-- Cross-AI review weiterhin lokal nicht verfügbar.
-- `npm run lint` passes mit 26 unrelated pre-existing warnings.
+- Phase 40 has no standalone `40-UAT.md`; remaining uncertainty is documentary, not in the main live save paths.
+- Optional mini-retest remains if we want explicit proof for delete-flow, sanitizing behavior, and member-story live path.
+- `42-CONTEXT.md` still says Phase 41 is not fully green and should be corrected before deeper collaboration follow-through.
+- Cross-AI review remains unavailable locally.
 
 ## Valid Commands
 - `docker compose up -d team4sv30-db team4sv30-redis`
 - `docker compose up -d --build team4sv30-backend team4sv30-frontend`
-- `docker compose up -d --build team4sv30-frontend`
-- `go test ./...`
-- `go test ./internal/models ./internal/repository ./internal/handlers -run "TestAdminContentFansubReleases|TestAdminFansubReleases"`
-- `cd frontend && npm test -- --run`
-- `cd frontend && npm run lint`
-- `cd frontend && npm run build`
-- `cd frontend && npx tsc --noEmit`
+- `cd backend && go test ./internal/repository ./internal/handlers -run "FansubNotesRepository|AdminContentFansubNotes|ReleaseVersionNotes|ContributorGuardSourceInvariants|AnimeProjectNotes|ProjectNoteSourceInvariants" -count=1`
+- `cd backend && go test ./internal/services -run TestMarkdownService -count=1`
+- `cd backend && go build ./internal/repository ./internal/handlers`
+- `cd frontend && npm run typecheck`
+- `cd frontend && npx eslint "src/app/admin/fansubs/[id]/edit/NotesTab.tsx" "src/app/admin/fansubs/[id]/edit/NotesTab.helpers.tsx" "src/app/admin/fansubs/[id]/edit/AnimeProjectNotesSection.tsx" "src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionNotesTab.tsx" "src/types/fansubNotes.ts" "src/types/releaseVersionNotes.ts" "src/components/editor/RichTextEditor.tsx" "src/components/editor/ColorTokenExtension.ts" --max-warnings 0`
+- `cd frontend && npx vitest run "src/app/admin/fansubs/[id]/edit/NotesTab.test.tsx" "src/app/admin/fansubs/[id]/edit/AnimeProjectNotesSection.test.tsx" "src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionNotesTab.test.tsx" "src/components/editor/RichTextEditor.test.tsx" "src/components/editor/ColorTokenExtension.test.ts" "src/lib/api.fansubNotes.test.ts" "src/lib/api.releaseVersionNotes.test.ts"`
+- `git diff --check`
 - `http://127.0.0.1:3002/admin/fansubs/88/edit`
-- `http://127.0.0.1:3002/admin/episode-versions/41/edit`
+- `http://127.0.0.1:3002/admin/episode-versions/62/edit`
 
 ## Verification Evidence
-- 2026-05-07: Release 41 re-upload nach Delete → `size_bytes: 10906996` (Phase 33 UAT bestätigt).
-- 2026-05-07: `go test ./internal/handlers -run "TestReleaseThemeAsset_InsertMediaFile"` passed (source-text tests).
-- 2026-05-07: Docker rebuild (`--build team4sv30-backend`) nach Phase-33-Fix erfolgreich.
-- 2026-05-06: `go test ./...` passed.
-- 2026-05-06: `cd frontend && npx tsc --noEmit` passed.
-- 2026-05-06: `cd frontend && npm test -- --run` passed with 37 files / 357 tests.
-- 2026-05-06: `cd frontend && npm run lint` passed with 0 errors and 26 unrelated warnings.
-- 2026-05-06: `docker compose up -d --build team4sv30-frontend` passed.
-- 2026-05-06 browser verification on `/admin/fansubs/88/edit`:
-  - Release 41 right-axis duration is `00:23:03`.
-  - OP/IN cards show `Release-Asset`.
-  - stale `Anfrage fehlgeschlagen` is gone after successful upload.
-  - the timeline rail is grey and visually clear.
+- 2026-05-13: `41-UAT.md` is `passed` with 6/6 tests green.
+- 2026-05-13: Browser save of Gruppennotizen passed after API-mapping and UTF-8 decode fixes.
+- 2026-05-13: Browser save of Anime-Projekttexte passed after API-mapping and UTF-8 decode fixes.
+- 2026-05-13: Browser save of Release-Version-Notizen for real roles passed.
+- Phase-40 technical verification remains green; the remaining gap is documented manual-only coverage, not a known mainline save failure.
 
 ## Top 3 Next
-1. Smoke-test delete/re-upload of one Release 41 release-theme asset on `/admin/fansubs/88/edit`.
-2. Decide whether to fix release-theme asset `size_bytes` metadata currently listed as `0`.
-3. Prepare the 13 ahead commits for push/PR after the final smoke pass.
+1. Update the stale Phase-42 context so it reflects that Phase 41 UAT is green.
+2. Decide whether to record Phase 40 as covered by Phase 41 UAT or add one explicit mini-UAT addendum for delete/sanitizing/member-story.
+3. Pick the next narrow cleanup slice only after the closeout docs match the real verified baseline.
 
 ## Risks / Blockers
-- Wrong-domain persistence remains the biggest product risk: release/fansub media must not drift onto neutral anime or episode entities.
-- Branch `main` is ahead of `origin/main` by 13 commits and should be pushed or wrapped into a PR after final smoke.
-- Untracked scratch/cache files are present locally and should stay out of product commits.
+- The biggest near-term risk is documentary drift between Phase 40, Phase 41, and Phase 42, which can make the next planning step look more blocked than it really is.
+- Selective staging discipline still matters because the local worktree contains agent/cache/temp artifacts that do not belong in product history.
 - Cross-AI review remains unavailable because no independent reviewer CLI is installed locally.

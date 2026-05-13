@@ -2,16 +2,25 @@
 frontend/node_modules/
 frontend/.next/
 frontend/out/
+frontend/tmp-edge-profile-check/
+frontend/tmp-edge-profile-scan-Default/
+frontend/tsconfig.tsbuildinfo
 
 # Backend
 backend/bin/
 backend/.env
 backend/*.exe
+backend/tmp*.go
 
 # Media storage (uploaded files)
 media/
 
 # General
+.cache/
+.claude/
+/node_modules/
+/test-results/
+tmp-*
 *.log
 *.tmp
 .env

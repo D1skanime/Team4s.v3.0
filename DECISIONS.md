@@ -1,5 +1,22 @@
 # DECISIONS
 
+## 2026-05-13 - Phase 40 Does Not Need A Full Separate UAT If Phase 41 Covers The Main Live Paths
+
+### Decision
+Treat Phase 40 as practically covered by the completed Phase-41 UAT unless we explicitly want documentary proof for the smaller residual paths (group-note delete, explicit sanitizing evidence, member-story live path).
+
+### Why This Won
+Phase 40 already has a strong technical verification baseline, and Phase 41's passed browser UAT re-exercised the main operator-critical save flows on the TipTap path: group notes, anime project notes, and release-version notes with real roles. Re-running a full separate Phase-40 UAT would mostly duplicate already-proven behavior.
+
+### Consequences
+- The main uncertainty around Phase 40 is documentary, not a known product failure.
+- Follow-up planning should not treat Phase 40 as broadly unverified.
+- If we want total closure, a mini-UAT addendum is enough; a full second UAT pass is usually unnecessary.
+
+### Follow-ups Required
+- update stale documents that still imply Phase 41 is not fully green
+- decide whether to record a short Phase-40 mini-UAT addendum for delete/sanitizing/member-story coverage
+
 ## 2026-05-06 - Fansub Timeline Uses Release Duration And Release-Asset Semantics
 
 ### Decision

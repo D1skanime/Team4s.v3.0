@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Save } from 'lucide-react'
 
+import { RichTextEditor } from '@/components/editor'
 import {
   ApiError,
   getAdminFansubAnime,
@@ -21,6 +22,11 @@ Mögliche Fragen als Hilfe: Wie war dieses Fansubprojekt? Warum hat die Gruppe d
 Was war besonders? Wie lief die Arbeit? Gab es Coop? Gab es Re-Releases? Gab es Probleme/Abbrüche?
 Welche Rollen waren besonders wichtig? Schöne/schwierige Erinnerungen?`
 
+const EMPTY_RICH_TEXT_DOC = {
+  type: 'doc',
+  content: [{ type: 'paragraph' }],
+} as const
+
 type NoteVisibility = 'public' | 'internal'
 type NoteStatus = 'draft' | 'published' | 'archived' | 'deleted'
 
@@ -31,22 +37,26 @@ interface AnimeEntry {
 
 interface NoteFormState {
   title: string
-  bodyMarkdown: string
+  bodyJson: unknown | null
   visibility: NoteVisibility
   status: NoteStatus
 }
 
 const emptyNoteForm = (): NoteFormState => ({
   title: '',
-  bodyMarkdown: '',
+  bodyJson: null,
   visibility: 'internal',
   status: 'draft',
 })
 
+function ensureRichTextValue(value: unknown | null): unknown {
+  return value ?? EMPTY_RICH_TEXT_DOC
+}
+
 function noteToForm(note: AnimeFansubProjectNote): NoteFormState {
   return {
     title: note.title ?? '',
-    bodyMarkdown: note.bodyMarkdown ?? '',
+    bodyJson: note.bodyJson ?? null,
     visibility: note.visibility,
     status: note.status,
   }
@@ -110,7 +120,7 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
 
     const payload: UpsertAnimeFansubProjectNoteRequest = {
       title: form.title.trim() || undefined,
-      bodyMarkdown: form.bodyMarkdown,
+      bodyJson: ensureRichTextValue(form.bodyJson),
       visibility: form.visibility,
       status: form.status,
     }
@@ -151,13 +161,12 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
 
       <div className={styles.field}>
         <label htmlFor={`note-body-${anime.id}`}>Projekttext</label>
-        <textarea
-          id={`note-body-${anime.id}`}
-          className={styles.fansubEditMarkdownTextarea}
-          value={form.bodyMarkdown}
-          onChange={(e) => setForm((c) => ({ ...c, bodyMarkdown: e.target.value }))}
+        <RichTextEditor
+          value={ensureRichTextValue(form.bodyJson)}
+          onChange={(next) => setForm((c) => ({ ...c, bodyJson: next }))}
           placeholder={ANIME_PROJECT_NOTE_PLACEHOLDER}
-          rows={8}
+          mode="longform"
+          minHeight={240}
         />
       </div>
 
@@ -208,52 +217,22 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
   )
 }
 
-interface AnimeProjectNotesSectionProps {
+interface AnimeProjectNotesSectionBodyProps {
   fansubId: number
   authToken: string | null
-  // Optional: Wenn bereits geladen, als Props übergeben (vermeidet doppelten API-Aufruf)
-  animes?: AnimeEntry[]
+  animes: AnimeEntry[]
+  loading: boolean
+  error: string | null
 }
 
-export function AnimeProjectNotesSection({ fansubId, authToken, animes: animesProp }: AnimeProjectNotesSectionProps) {
-  const [animes, setAnimes] = useState<AnimeEntry[]>(animesProp ?? [])
-  const [loading, setLoading] = useState(!animesProp)
-  const [error, setError] = useState<string | null>(null)
+function AnimeProjectNotesSectionBody({
+  fansubId,
+  authToken,
+  animes,
+  loading,
+  error,
+}: AnimeProjectNotesSectionBodyProps) {
   const [expandedAnimeIds, setExpandedAnimeIds] = useState<Set<number>>(() => new Set())
-
-  useEffect(() => {
-    if (animesProp !== undefined) {
-      setAnimes(animesProp)
-      setLoading(false)
-      return
-    }
-
-    if (!authToken) {
-      setLoading(false)
-      return
-    }
-
-    let active = true
-    setLoading(true)
-    setError(null)
-
-    getAdminFansubAnime(fansubId, authToken)
-      .then((response) => {
-        if (!active) return
-        setAnimes(response.data.map((a) => ({ id: a.id, title: a.title })))
-      })
-      .catch((err: unknown) => {
-        if (!active) return
-        setError(err instanceof ApiError ? err.message : 'Fehler beim Laden der Anime-Zuordnungen.')
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
-
-    return () => {
-      active = false
-    }
-  }, [fansubId, authToken, animesProp])
 
   function toggleAnime(animeId: number) {
     setExpandedAnimeIds((prev) => {
@@ -328,4 +307,72 @@ export function AnimeProjectNotesSection({ fansubId, authToken, animes: animesPr
       </div>
     </details>
   )
+}
+
+interface AnimeProjectNotesSectionRemoteProps {
+  fansubId: number
+  authToken: string | null
+}
+
+function AnimeProjectNotesSectionRemote({ fansubId, authToken }: AnimeProjectNotesSectionRemoteProps) {
+  const [animes, setAnimes] = useState<AnimeEntry[]>([])
+  const [loading, setLoading] = useState(authToken != null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!authToken) {
+      return
+    }
+
+    let active = true
+
+    getAdminFansubAnime(fansubId, authToken)
+      .then((response) => {
+        if (!active) return
+        setAnimes(response.data.map((a) => ({ id: a.id, title: a.title })))
+      })
+      .catch((err: unknown) => {
+        if (!active) return
+        setError(err instanceof ApiError ? err.message : 'Fehler beim Laden der Anime-Zuordnungen.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [fansubId, authToken])
+
+  return (
+    <AnimeProjectNotesSectionBody
+      fansubId={fansubId}
+      authToken={authToken}
+      animes={animes}
+      loading={authToken ? loading : false}
+      error={error}
+    />
+  )
+}
+
+interface AnimeProjectNotesSectionProps {
+  fansubId: number
+  authToken: string | null
+  animes?: AnimeEntry[]
+}
+
+export function AnimeProjectNotesSection({ fansubId, authToken, animes }: AnimeProjectNotesSectionProps) {
+  if (animes !== undefined) {
+    return (
+      <AnimeProjectNotesSectionBody
+        fansubId={fansubId}
+        authToken={authToken}
+        animes={animes}
+        loading={false}
+        error={null}
+      />
+    )
+  }
+
+  return <AnimeProjectNotesSectionRemote fansubId={fansubId} authToken={authToken} />
 }

@@ -120,8 +120,13 @@ func (r *FansubNotesRepository) UpsertAnimeFansubProjectNote(
 		return nil, err
 	}
 
+	resolvedUserID, err := resolveOptionalExistingUserID(ctx, r.db, userID)
+	if err != nil {
+		return nil, fmt.Errorf("upsert anime_fansub_project_note (anime %d, group %d): %w", animeID, fansubGroupID, err)
+	}
+
 	var n AnimeFansubProjectNote
-	err := r.db.QueryRow(ctx, `
+	err = r.db.QueryRow(ctx, `
 		INSERT INTO anime_fansub_project_notes
 			(anime_id, fansub_group_id, title, body_markdown, body_html,
 			 body_json, body_text, editor_type, content_schema_version,
@@ -149,7 +154,7 @@ func (r *FansubNotesRepository) UpsertAnimeFansubProjectNote(
 		          created_at, updated_at, deleted_at
 	`, animeID, fansubGroupID, req.Title, req.BodyMarkdown, req.BodyHTML,
 		req.BodyJSON, req.BodyText, req.EditorType, req.ContentSchemaVersion,
-		req.Visibility, req.Status, req.SortOrder, userID,
+		req.Visibility, req.Status, req.SortOrder, resolvedUserID,
 	).Scan(
 		&n.ID, &n.AnimeID, &n.FansubGroupID,
 		&n.Title, &n.BodyMarkdown, &n.BodyHTML,
@@ -178,6 +183,14 @@ func (r *FansubNotesRepository) DeleteAnimeFansubProjectNote(
 	fansubGroupID int64,
 	userID int64,
 ) error {
+	resolvedDeletedByUserID, err := resolveOptionalExistingUserID(ctx, r.db, userID)
+	if err != nil {
+		return fmt.Errorf(
+			"delete anime_fansub_project_note %d in anime %d / group %d: %w",
+			noteID, animeID, fansubGroupID, err,
+		)
+	}
+
 	tag, err := r.db.Exec(ctx, `
 		UPDATE anime_fansub_project_notes
 		SET deleted_at = NOW(), deleted_by_user_id = $4
@@ -185,7 +198,7 @@ func (r *FansubNotesRepository) DeleteAnimeFansubProjectNote(
 		  AND anime_id = $2
 		  AND fansub_group_id = $3
 		  AND deleted_at IS NULL
-	`, noteID, animeID, fansubGroupID, userID)
+	`, noteID, animeID, fansubGroupID, resolvedDeletedByUserID)
 	if err != nil {
 		return fmt.Errorf(
 			"delete anime_fansub_project_note %d in anime %d / group %d: %w",

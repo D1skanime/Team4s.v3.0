@@ -9,7 +9,9 @@ import {
   createMemberGroupStory,
   deleteFansubGroupNote,
   deleteMemberGroupStory,
+  getMemberGroupStoryContext,
   getRuntimeAuthToken,
+  getRuntimeDisplayName,
   listFansubGroupNotes,
   listMemberGroupStories,
   updateFansubGroupNote,
@@ -20,6 +22,7 @@ import {
   CreateMemberGroupStoryRequest,
   FansubGroupNote,
   MemberGroupStory,
+  MemberStoryContext,
   UpdateFansubGroupNoteRequest,
   UpdateMemberGroupStoryRequest,
 } from '@/types/fansubNotes'
@@ -28,8 +31,9 @@ import fansubEditStyles from './FansubEdit.module.css'
 import {
   emptyGroupNoteDraft,
   emptyStoryDraft,
-  GroupNoteEditor,
+  ensureRichTextValue,
   GroupNoteDraft,
+  GroupNoteEditor,
   StoryDraft,
   StoryEditor,
 } from './NotesTab.helpers'
@@ -40,39 +44,69 @@ function errMessage(error: unknown): string {
   return error instanceof ApiError ? `(${error.status}) ${error.message}` : 'Anfrage fehlgeschlagen.'
 }
 
-function groupNoteFromApi(note: FansubGroupNote): GroupNoteDraft {
+function normalizeGroupNoteDraft(draft: GroupNoteDraft): GroupNoteDraft {
   return {
+    ...draft,
+    visibility: draft.visibility ?? 'public',
+    status: draft.status ?? 'draft',
+  }
+}
+
+function normalizeStoryDraft(draft: StoryDraft): StoryDraft {
+  return {
+    ...draft,
+    visibility: draft.visibility ?? 'public',
+    status: draft.status ?? 'draft',
+  }
+}
+
+function groupNoteFromApi(note: FansubGroupNote): GroupNoteDraft {
+  return normalizeGroupNoteDraft({
     key: String(note.id),
     id: note.id,
     title: note.title,
-    bodyMarkdown: note.bodyMarkdown,
+    bodyJson: note.bodyJson,
     visibility: note.visibility,
     status: note.status,
     sortOrder: String(note.sortOrder),
     saving: false,
     deleting: false,
     error: null,
-  }
+  })
 }
 
 function storyFromApi(story: MemberGroupStory): StoryDraft {
-  return {
+  return normalizeStoryDraft({
     key: String(story.id),
     id: story.id,
     memberId: String(story.memberId),
     roleId: story.roleId != null ? String(story.roleId) : '',
     title: story.title,
-    bodyMarkdown: story.bodyMarkdown,
+    bodyJson: story.bodyJson,
     visibility: story.visibility,
     status: story.status,
     sortOrder: String(story.sortOrder),
     saving: false,
     deleting: false,
     error: null,
-  }
+  })
 }
 
-// ─── NotesTab ────────────────────────────────────────────────────────────────
+function pickDefaultStoryMember(context: MemberStoryContext): string {
+  const displayName = getRuntimeDisplayName().trim().toLowerCase()
+  if (displayName) {
+    const match = context.members.find((member) => member.nickname.trim().toLowerCase() === displayName)
+    if (match) {
+      return String(match.id)
+    }
+  }
+
+  if (context.members.length === 1) {
+    return String(context.members[0].id)
+  }
+
+  return ''
+}
 
 interface NotesTabProps {
   fansubId: number
@@ -84,6 +118,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [groupNotes, setGroupNotes] = useState<GroupNoteDraft[]>([])
   const [stories, setStories] = useState<StoryDraft[]>([])
+  const [storyContext, setStoryContext] = useState<MemberStoryContext>({ members: [], roles: [] })
 
   useEffect(() => {
     let cancelled = false
@@ -108,8 +143,15 @@ export function NotesTab({ fansubId }: NotesTabProps) {
     void (async () => {
       try {
         const token = await getRuntimeAuthToken()
-        const list = await listMemberGroupStories(fansubId, token ?? undefined)
-        if (!cancelled) setStories(list.map(storyFromApi))
+        const [context, list] = await Promise.all([
+          getMemberGroupStoryContext(fansubId, token ?? undefined),
+          listMemberGroupStories(fansubId, token ?? undefined),
+        ])
+
+        if (!cancelled) {
+          setStoryContext(context)
+          setStories(list.map(storyFromApi))
+        }
       } catch (err) {
         if (!cancelled) setLoadError(errMessage(err))
       } finally {
@@ -120,35 +162,38 @@ export function NotesTab({ fansubId }: NotesTabProps) {
   }, [fansubId])
 
   function updateGroupNote(key: string, partial: Partial<GroupNoteDraft>) {
-    setGroupNotes((prev) => prev.map((n) => n.key === key ? { ...n, ...partial } : n))
+    setGroupNotes((prev) => prev.map((note) => note.key === key ? { ...note, ...partial } : note))
   }
 
   async function saveGroupNote(key: string) {
-    const draft = groupNotes.find((n) => n.key === key)
+    const rawDraft = groupNotes.find((note) => note.key === key)
+    const draft = rawDraft ? normalizeGroupNoteDraft(rawDraft) : null
     if (!draft) return
+
     updateGroupNote(key, { saving: true, error: null })
+
     try {
       const token = await getRuntimeAuthToken()
       if (draft.id == null) {
         const req: CreateFansubGroupNoteRequest = {
           title: draft.title,
-          bodyMarkdown: draft.bodyMarkdown,
+          bodyJson: ensureRichTextValue(draft.bodyJson),
           visibility: draft.visibility,
           status: draft.status,
           sortOrder: Number(draft.sortOrder) || 0,
         }
         const created = await createFansubGroupNote(fansubId, req, token ?? undefined)
-        setGroupNotes((prev) => prev.map((n) => n.key === key ? groupNoteFromApi(created) : n))
+        setGroupNotes((prev) => prev.map((note) => note.key === key ? groupNoteFromApi(created) : note))
       } else {
         const req: UpdateFansubGroupNoteRequest = {
           title: draft.title,
-          bodyMarkdown: draft.bodyMarkdown,
+          bodyJson: ensureRichTextValue(draft.bodyJson),
           visibility: draft.visibility,
           status: draft.status,
           sortOrder: Number(draft.sortOrder) || 0,
         }
         const updated = await updateFansubGroupNote(fansubId, draft.id, req, token ?? undefined)
-        setGroupNotes((prev) => prev.map((n) => n.key === key ? groupNoteFromApi(updated) : n))
+        setGroupNotes((prev) => prev.map((note) => note.key === key ? groupNoteFromApi(updated) : note))
       }
     } catch (err) {
       updateGroupNote(key, { saving: false, error: `Fehler beim Speichern: ${errMessage(err)}` })
@@ -156,35 +201,42 @@ export function NotesTab({ fansubId }: NotesTabProps) {
   }
 
   async function deleteGroupNote(key: string) {
-    const draft = groupNotes.find((n) => n.key === key)
+    const draft = groupNotes.find((note) => note.key === key)
     if (!draft || draft.id == null) {
-      setGroupNotes((prev) => prev.filter((n) => n.key !== key))
+      setGroupNotes((prev) => prev.filter((note) => note.key !== key))
       return
     }
+
     if (!window.confirm('Gruppennotiz wirklich löschen?')) return
+
     updateGroupNote(key, { deleting: true, error: null })
+
     try {
       const token = await getRuntimeAuthToken()
       await deleteFansubGroupNote(fansubId, draft.id, token ?? undefined)
-      setGroupNotes((prev) => prev.filter((n) => n.key !== key))
+      setGroupNotes((prev) => prev.filter((note) => note.key !== key))
     } catch (err) {
       updateGroupNote(key, { deleting: false, error: `Fehler beim Löschen: ${errMessage(err)}` })
     }
   }
 
   function updateStory(key: string, partial: Partial<StoryDraft>) {
-    setStories((prev) => prev.map((s) => s.key === key ? { ...s, ...partial } : s))
+    setStories((prev) => prev.map((story) => story.key === key ? { ...story, ...partial } : story))
   }
 
   async function saveStory(key: string) {
-    const draft = stories.find((s) => s.key === key)
+    const rawDraft = stories.find((story) => story.key === key)
+    const draft = rawDraft ? normalizeStoryDraft(rawDraft) : null
     if (!draft) return
+
     const memberIdNum = Number(draft.memberId)
     if (!memberIdNum || !Number.isFinite(memberIdNum) || memberIdNum < 1) {
-      updateStory(key, { error: 'Mitglieds-ID ist erforderlich und muss eine gültige Zahl sein.' })
+      updateStory(key, { error: 'Mitglied ist erforderlich.' })
       return
     }
+
     updateStory(key, { saving: true, error: null })
+
     try {
       const token = await getRuntimeAuthToken()
       const roleIdNum = draft.roleId.trim() ? Number(draft.roleId) : null
@@ -193,25 +245,23 @@ export function NotesTab({ fansubId }: NotesTabProps) {
           memberId: memberIdNum,
           roleId: roleIdNum,
           title: draft.title,
-          bodyMarkdown: draft.bodyMarkdown,
+          bodyJson: ensureRichTextValue(draft.bodyJson),
           visibility: draft.visibility,
           status: draft.status,
           sortOrder: Number(draft.sortOrder) || 0,
         }
         const created = await createMemberGroupStory(fansubId, req, token ?? undefined)
-        setStories((prev) => prev.map((s) => s.key === key ? storyFromApi(created) : s))
+        setStories((prev) => prev.map((story) => story.key === key ? storyFromApi(created) : story))
       } else {
         const req: UpdateMemberGroupStoryRequest = {
-          memberId: memberIdNum,
-          roleId: roleIdNum,
           title: draft.title,
-          bodyMarkdown: draft.bodyMarkdown,
+          bodyJson: ensureRichTextValue(draft.bodyJson),
           visibility: draft.visibility,
           status: draft.status,
           sortOrder: Number(draft.sortOrder) || 0,
         }
         const updated = await updateMemberGroupStory(fansubId, draft.id, req, token ?? undefined)
-        setStories((prev) => prev.map((s) => s.key === key ? storyFromApi(updated) : s))
+        setStories((prev) => prev.map((story) => story.key === key ? storyFromApi(updated) : story))
       }
     } catch (err) {
       updateStory(key, { saving: false, error: `Fehler beim Speichern: ${errMessage(err)}` })
@@ -219,17 +269,20 @@ export function NotesTab({ fansubId }: NotesTabProps) {
   }
 
   async function deleteStory(key: string) {
-    const draft = stories.find((s) => s.key === key)
+    const draft = stories.find((story) => story.key === key)
     if (!draft || draft.id == null) {
-      setStories((prev) => prev.filter((s) => s.key !== key))
+      setStories((prev) => prev.filter((story) => story.key !== key))
       return
     }
+
     if (!window.confirm('Geschichte wirklich löschen?')) return
+
     updateStory(key, { deleting: true, error: null })
+
     try {
       const token = await getRuntimeAuthToken()
       await deleteMemberGroupStory(fansubId, draft.id, token ?? undefined)
-      setStories((prev) => prev.filter((s) => s.key !== key))
+      setStories((prev) => prev.filter((story) => story.key !== key))
     } catch (err) {
       updateStory(key, { deleting: false, error: `Fehler beim Löschen: ${errMessage(err)}` })
     }
@@ -267,7 +320,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
         <button
           type="button"
           className={styles.buttonSecondary}
-          onClick={() => setGroupNotes((prev) => [...prev, emptyGroupNoteDraft()])}
+          onClick={() => setGroupNotes((prev) => [...prev, normalizeGroupNoteDraft(emptyGroupNoteDraft())])}
           style={{ marginTop: '0.5rem' }}
         >
           <Plus size={14} />
@@ -284,6 +337,8 @@ export function NotesTab({ fansubId }: NotesTabProps) {
           <StoryEditor
             key={draft.key}
             draft={draft}
+            members={storyContext.members}
+            roles={storyContext.roles}
             onUpdate={(partial) => updateStory(draft.key, partial)}
             onSave={() => { void saveStory(draft.key) }}
             onDelete={() => { void deleteStory(draft.key) }}
@@ -295,12 +350,21 @@ export function NotesTab({ fansubId }: NotesTabProps) {
         <button
           type="button"
           className={styles.buttonSecondary}
-          onClick={() => setStories((prev) => [...prev, emptyStoryDraft()])}
+          onClick={() => setStories((prev) => [
+            ...prev,
+            normalizeStoryDraft(emptyStoryDraft({ memberId: pickDefaultStoryMember(storyContext) })),
+          ])}
           style={{ marginTop: '0.5rem' }}
+          disabled={storyContext.members.length === 0}
         >
           <Plus size={14} />
           Neue Geschichte hinzufügen
         </button>
+        {storyContext.members.length === 0 ? (
+          <p className={styles.fansubEditHint} style={{ marginTop: '0.5rem' }}>
+            Es sind noch keine auswählbaren Mitglieder vorhanden.
+          </p>
+        ) : null}
       </section>
     </div>
   )

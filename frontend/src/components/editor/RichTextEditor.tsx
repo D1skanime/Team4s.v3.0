@@ -27,6 +27,18 @@ type RichTextEditorProps = {
 const SHORTNOTE_HINT =
   'Diese Notizen beschreiben die konkrete Release-Version. Schreibe kurz, was du in deiner Rolle gemacht hast oder was an dieser Ausgabe besonders war. 2–5 Sätze reichen.'
 
+function createEmptyRichTextDoc() {
+  return {
+    type: 'doc',
+    content: [{ type: 'paragraph' }],
+  }
+}
+
+function cloneRichTextValue(value: unknown | null): object {
+  if (value == null) return createEmptyRichTextDoc()
+  return JSON.parse(JSON.stringify(value)) as object
+}
+
 // ---------- Toolbar ----------
 
 type ToolbarProps = {
@@ -220,6 +232,7 @@ export function RichTextEditor({
   const prevValue = useRef(value)
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         codeBlock: false,
@@ -235,7 +248,7 @@ export function RichTextEditor({
       Placeholder.configure({ placeholder: placeholder ?? 'Hier schreiben…' }),
       CharacterCount,
     ],
-    content: (value as object) ?? { type: 'doc', content: [] },
+    content: cloneRichTextValue(value),
     editable: !disabled,
     onUpdate: ({ editor: ed }) => {
       const json = ed.getJSON()
@@ -249,7 +262,7 @@ export function RichTextEditor({
     if (!editor) return
     if (value === prevValue.current) return
     prevValue.current = value
-    editor.commands.setContent((value as object) ?? { type: 'doc', content: [] })
+    editor.commands.setContent(cloneRichTextValue(value))
   }, [editor, value])
 
   // Sync editable state

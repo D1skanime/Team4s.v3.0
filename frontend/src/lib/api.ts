@@ -122,6 +122,9 @@ import { ReleaseAssetsResponse } from '@/types/mediaAsset'
 import {
   FansubGroupNote,
   MemberGroupStory,
+  MemberStoryContext,
+  MemberStoryContextMember,
+  MemberStoryContextRole,
   AnimeFansubProjectNote,
   CreateFansubGroupNoteRequest,
   UpdateFansubGroupNoteRequest,
@@ -3195,6 +3198,164 @@ export async function reorderReleaseVersionMedia(
 
 // ---- Fansub Group Notes ----
 
+type RawFansubGroupNote = {
+  ID: number
+  FansubGroupID: number
+  Title: string
+  BodyMarkdown?: string | null
+  BodyHTML: string
+  BodyJSON: unknown | null
+  BodyText: string
+  EditorType: string
+  ContentSchemaVersion: number
+  Visibility: 'public' | 'internal'
+  Status: 'draft' | 'published' | 'archived' | 'deleted'
+  SortOrder: number
+  CreatedByUserID: number | null
+  UpdatedByUserID: number | null
+  CreatedAt: string
+  UpdatedAt: string | null
+  DeletedAt: string | null
+}
+
+type RawMemberGroupStory = {
+  ID: number
+  FansubGroupID: number
+  MemberID: number
+  RoleID: number | null
+  Title: string
+  BodyMarkdown?: string | null
+  BodyHTML: string
+  BodyJSON: unknown | null
+  BodyText: string
+  EditorType: string
+  ContentSchemaVersion: number
+  Visibility: 'public' | 'internal'
+  Status: 'draft' | 'published' | 'archived' | 'deleted'
+  SortOrder: number
+  CreatedByUserID: number | null
+  UpdatedByUserID: number | null
+  CreatedAt: string
+  UpdatedAt: string | null
+  DeletedAt: string | null
+}
+
+type RawAnimeFansubProjectNote = {
+  ID: number
+  AnimeID: number
+  FansubGroupID: number
+  Title: string
+  BodyMarkdown?: string | null
+  BodyHTML: string
+  BodyJSON: unknown | null
+  BodyText: string
+  EditorType: string
+  ContentSchemaVersion: number
+  Visibility: 'public' | 'internal'
+  Status: 'draft' | 'published' | 'archived' | 'deleted'
+  SortOrder: number
+  CreatedByUserID: number | null
+  UpdatedByUserID: number | null
+  CreatedAt: string
+  UpdatedAt: string | null
+  DeletedAt: string | null
+}
+
+type RawMemberStoryContextMember = {
+  ID: number
+  Nickname: string
+}
+
+type RawMemberStoryContextRole = {
+  ID: number
+  Name: string
+  Label: string
+}
+
+function mapFansubGroupNote(raw: RawFansubGroupNote): FansubGroupNote {
+  return {
+    id: raw.ID,
+    fansubGroupId: raw.FansubGroupID,
+    title: raw.Title,
+    bodyMarkdown: raw.BodyMarkdown ?? null,
+    bodyHtml: raw.BodyHTML,
+    bodyJson: decodeReleaseVersionBodyJson(raw.BodyJSON),
+    bodyText: raw.BodyText,
+    editorType: raw.EditorType,
+    contentSchemaVersion: raw.ContentSchemaVersion,
+    visibility: raw.Visibility,
+    status: raw.Status,
+    sortOrder: raw.SortOrder,
+    createdByUserId: raw.CreatedByUserID,
+    updatedByUserId: raw.UpdatedByUserID,
+    createdAt: raw.CreatedAt,
+    updatedAt: raw.UpdatedAt,
+    deletedAt: raw.DeletedAt,
+  }
+}
+
+function mapMemberGroupStory(raw: RawMemberGroupStory): MemberGroupStory {
+  return {
+    id: raw.ID,
+    fansubGroupId: raw.FansubGroupID,
+    memberId: raw.MemberID,
+    roleId: raw.RoleID,
+    title: raw.Title,
+    bodyMarkdown: raw.BodyMarkdown ?? null,
+    bodyHtml: raw.BodyHTML,
+    bodyJson: decodeReleaseVersionBodyJson(raw.BodyJSON),
+    bodyText: raw.BodyText,
+    editorType: raw.EditorType,
+    contentSchemaVersion: raw.ContentSchemaVersion,
+    visibility: raw.Visibility,
+    status: raw.Status,
+    sortOrder: raw.SortOrder,
+    createdByUserId: raw.CreatedByUserID,
+    updatedByUserId: raw.UpdatedByUserID,
+    createdAt: raw.CreatedAt,
+    updatedAt: raw.UpdatedAt,
+    deletedAt: raw.DeletedAt,
+  }
+}
+
+function mapAnimeFansubProjectNote(raw: RawAnimeFansubProjectNote): AnimeFansubProjectNote {
+  return {
+    id: raw.ID,
+    animeId: raw.AnimeID,
+    fansubGroupId: raw.FansubGroupID,
+    title: raw.Title,
+    bodyMarkdown: raw.BodyMarkdown ?? null,
+    bodyHtml: raw.BodyHTML,
+    bodyJson: decodeReleaseVersionBodyJson(raw.BodyJSON),
+    bodyText: raw.BodyText,
+    editorType: raw.EditorType,
+    contentSchemaVersion: raw.ContentSchemaVersion,
+    visibility: raw.Visibility,
+    status: raw.Status,
+    sortOrder: raw.SortOrder,
+    createdByUserId: raw.CreatedByUserID,
+    updatedByUserId: raw.UpdatedByUserID,
+    createdAt: raw.CreatedAt,
+    updatedAt: raw.UpdatedAt,
+    deletedAt: raw.DeletedAt,
+  }
+}
+
+function mapMemberStoryContextMember(raw: RawMemberStoryContextMember): MemberStoryContextMember {
+  return {
+    id: raw.ID,
+    nickname: raw.Nickname,
+  }
+}
+
+function mapMemberStoryContextRole(raw: RawMemberStoryContextRole): MemberStoryContextRole {
+  return {
+    id: raw.ID,
+    name: raw.Name,
+    label: raw.Label,
+  }
+}
+
 export async function listFansubGroupNotes(fansubId: number, authToken?: string): Promise<FansubGroupNote[]> {
   const API_BASE_URL = getApiBaseUrl()
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes`, {
@@ -3206,8 +3367,8 @@ export async function listFansubGroupNotes(fansubId: number, authToken?: string)
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  const json = (await response.json()) as { data: FansubGroupNote[] }
-  return json.data
+  const json = (await response.json()) as { data: RawFansubGroupNote[] }
+  return json.data.map(mapFansubGroupNote)
 }
 
 export async function createFansubGroupNote(
@@ -3216,10 +3377,17 @@ export async function createFansubGroupNote(
   authToken?: string,
 ): Promise<FansubGroupNote> {
   const API_BASE_URL = getApiBaseUrl()
+  const payload = {
+    title: data.title,
+    body_json: data.bodyJson,
+    visibility: data.visibility,
+    status: data.status,
+    sort_order: data.sortOrder ?? 0,
+  }
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes`, {
     method: 'POST',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   })
 
   if (!response.ok) {
@@ -3227,8 +3395,8 @@ export async function createFansubGroupNote(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  const json = (await response.json()) as { data: FansubGroupNote }
-  return json.data
+  const json = (await response.json()) as { data: RawFansubGroupNote }
+  return mapFansubGroupNote(json.data)
 }
 
 export async function updateFansubGroupNote(
@@ -3238,10 +3406,17 @@ export async function updateFansubGroupNote(
   authToken?: string,
 ): Promise<FansubGroupNote> {
   const API_BASE_URL = getApiBaseUrl()
+  const payload = {
+    title: data.title,
+    body_json: data.bodyJson,
+    visibility: data.visibility,
+    status: data.status,
+    sort_order: data.sortOrder,
+  }
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes/${noteId}`, {
     method: 'PATCH',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   })
 
   if (!response.ok) {
@@ -3249,8 +3424,8 @@ export async function updateFansubGroupNote(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  const json = (await response.json()) as { data: FansubGroupNote }
-  return json.data
+  const json = (await response.json()) as { data: RawFansubGroupNote }
+  return mapFansubGroupNote(json.data)
 }
 
 export async function deleteFansubGroupNote(
@@ -3283,8 +3458,35 @@ export async function listMemberGroupStories(fansubId: number, authToken?: strin
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  const json = (await response.json()) as { data: MemberGroupStory[] }
-  return json.data
+  const json = (await response.json()) as { data: RawMemberGroupStory[] }
+  return json.data.map(mapMemberGroupStory)
+}
+
+export async function getMemberGroupStoryContext(
+  fansubId: number,
+  authToken?: string,
+): Promise<MemberStoryContext> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/context`, {
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const json = (await response.json()) as {
+    data: {
+      members: RawMemberStoryContextMember[]
+      roles: RawMemberStoryContextRole[]
+    }
+  }
+
+  return {
+    members: json.data.members.map(mapMemberStoryContextMember),
+    roles: json.data.roles.map(mapMemberStoryContextRole),
+  }
 }
 
 export async function createMemberGroupStory(
@@ -3293,10 +3495,19 @@ export async function createMemberGroupStory(
   authToken?: string,
 ): Promise<MemberGroupStory> {
   const API_BASE_URL = getApiBaseUrl()
+  const payload = {
+    member_id: data.memberId,
+    role_id: data.roleId ?? null,
+    title: data.title,
+    body_json: data.bodyJson,
+    visibility: data.visibility,
+    status: data.status,
+    sort_order: data.sortOrder ?? 0,
+  }
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`, {
     method: 'POST',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   })
 
   if (!response.ok) {
@@ -3304,8 +3515,8 @@ export async function createMemberGroupStory(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  const json = (await response.json()) as { data: MemberGroupStory }
-  return json.data
+  const json = (await response.json()) as { data: RawMemberGroupStory }
+  return mapMemberGroupStory(json.data)
 }
 
 export async function updateMemberGroupStory(
@@ -3315,10 +3526,17 @@ export async function updateMemberGroupStory(
   authToken?: string,
 ): Promise<MemberGroupStory> {
   const API_BASE_URL = getApiBaseUrl()
+  const payload = {
+    title: data.title,
+    body_json: data.bodyJson,
+    visibility: data.visibility,
+    status: data.status,
+    sort_order: data.sortOrder,
+  }
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`, {
     method: 'PATCH',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   })
 
   if (!response.ok) {
@@ -3326,8 +3544,8 @@ export async function updateMemberGroupStory(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  const json = (await response.json()) as { data: MemberGroupStory }
-  return json.data
+  const json = (await response.json()) as { data: RawMemberGroupStory }
+  return mapMemberGroupStory(json.data)
 }
 
 export async function deleteMemberGroupStory(
@@ -3368,8 +3586,8 @@ export async function getAnimeFansubProjectNote(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  const json = (await response.json()) as { data: AnimeFansubProjectNote }
-  return json.data
+  const json = (await response.json()) as { data: RawAnimeFansubProjectNote }
+  return mapAnimeFansubProjectNote(json.data)
 }
 
 export async function upsertAnimeFansubProjectNote(
@@ -3379,10 +3597,17 @@ export async function upsertAnimeFansubProjectNote(
   authToken?: string,
 ): Promise<AnimeFansubProjectNote> {
   const API_BASE_URL = getApiBaseUrl()
+  const payload = {
+    title: data.title,
+    body_json: data.bodyJson,
+    visibility: data.visibility,
+    status: data.status,
+    sort_order: data.sortOrder ?? 0,
+  }
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`, {
     method: 'PUT',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   })
 
   if (!response.ok) {
@@ -3390,8 +3615,8 @@ export async function upsertAnimeFansubProjectNote(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  const json = (await response.json()) as { data: AnimeFansubProjectNote }
-  return json.data
+  const json = (await response.json()) as { data: RawAnimeFansubProjectNote }
+  return mapAnimeFansubProjectNote(json.data)
 }
 
 export async function deleteAnimeFansubProjectNote(
@@ -3417,6 +3642,94 @@ export async function deleteAnimeFansubProjectNote(
 
 // ---- Release Version Notes ----
 
+type RawReleaseVersionNote = {
+  ID: number
+  ReleaseVersionID: number
+  MemberID: number
+  RoleID: number
+  Title: string | null
+  BodyMarkdown?: string | null
+  BodyHTML: string
+  BodyJSON: unknown | null
+  BodyText: string
+  EditorType: string
+  ContentSchemaVersion: number
+  Visibility: 'public' | 'internal'
+  Status: 'draft' | 'published' | 'archived' | 'deleted'
+  SortOrder: number
+  CreatedByUserID: number | null
+  UpdatedByUserID: number | null
+  CreatedAt: string
+  UpdatedAt: string | null
+  DeletedAt: string | null
+}
+
+type RawMemberRoleForVersion = {
+  MemberID: number
+  MemberName: string
+  RoleID: number
+  RoleName: string
+  RoleLabel: string
+}
+
+function decodeReleaseVersionBodyJson(value: unknown): unknown | null {
+  if (value == null) return null
+  if (typeof value !== 'string') return value
+
+  const trimmed = value.trim()
+  if (!trimmed) return null
+
+  try {
+    return JSON.parse(trimmed)
+  } catch {
+    // Some backend responses currently serialize []byte JSONB as base64 text.
+  }
+
+  try {
+    const decoded =
+      typeof atob === 'function'
+        ? new TextDecoder().decode(Uint8Array.from(atob(trimmed), (char) => char.charCodeAt(0)))
+        : Buffer.from(trimmed, 'base64').toString('utf-8')
+    return JSON.parse(decoded)
+  } catch {
+    return value
+  }
+}
+
+function mapReleaseVersionNote(raw: RawReleaseVersionNote): ReleaseVersionNote {
+  return {
+    id: raw.ID,
+    releaseVersionId: raw.ReleaseVersionID,
+    memberId: raw.MemberID,
+    roleId: raw.RoleID,
+    title: raw.Title,
+    bodyMarkdown: raw.BodyMarkdown ?? null,
+    bodyHtml: raw.BodyHTML,
+    bodyJson: decodeReleaseVersionBodyJson(raw.BodyJSON),
+    bodyText: raw.BodyText,
+    editorType: raw.EditorType,
+    contentSchemaVersion: raw.ContentSchemaVersion,
+    visibility: raw.Visibility,
+    status: raw.Status,
+    sortOrder: raw.SortOrder,
+    createdByUserId: raw.CreatedByUserID,
+    updatedByUserId: raw.UpdatedByUserID,
+    createdAt: raw.CreatedAt,
+    updatedAt: raw.UpdatedAt,
+    deletedAt: raw.DeletedAt,
+  }
+}
+
+function mapMemberRoleForVersion(raw: RawMemberRoleForVersion): MemberRoleForVersion {
+  return {
+    memberId: raw.MemberID,
+    memberName: raw.MemberName,
+    roleId: raw.RoleID,
+    roleName: raw.RoleName,
+    roleLabel: raw.RoleLabel,
+  }
+}
+
 export async function listReleaseVersionNotes(versionId: number, authToken?: string): Promise<ReleaseVersionNote[]> {
   const API_BASE_URL = getApiBaseUrl()
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes`, {
@@ -3428,8 +3741,8 @@ export async function listReleaseVersionNotes(versionId: number, authToken?: str
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  const json = (await response.json()) as { data: ReleaseVersionNote[] }
-  return json.data
+  const json = (await response.json()) as { data: RawReleaseVersionNote[] }
+  return json.data.map(mapReleaseVersionNote)
 }
 
 export async function getMemberRolesForVersion(
@@ -3446,8 +3759,8 @@ export async function getMemberRolesForVersion(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  const json = (await response.json()) as { data: MemberRoleForVersion[] }
-  return json.data
+  const json = (await response.json()) as { data: RawMemberRoleForVersion[] }
+  return json.data.map(mapMemberRoleForVersion)
 }
 
 export async function bulkUpsertReleaseVersionNotes(
@@ -3456,10 +3769,22 @@ export async function bulkUpsertReleaseVersionNotes(
   authToken?: string,
 ): Promise<ReleaseVersionNote[]> {
   const API_BASE_URL = getApiBaseUrl()
+  const payload = {
+    notes: data.notes.map((note) => ({
+      id: note.id,
+      member_id: note.memberId,
+      role_id: note.roleId,
+      title: note.title ?? null,
+      body_json: note.bodyJson,
+      visibility: note.visibility,
+      status: note.status,
+      sort_order: note.sortOrder ?? 0,
+    })),
+  }
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes`, {
     method: 'POST',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   })
 
   if (!response.ok) {
@@ -3467,8 +3792,8 @@ export async function bulkUpsertReleaseVersionNotes(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
-  const json = (await response.json()) as { data: ReleaseVersionNote[] }
-  return json.data
+  const json = (await response.json()) as { data: RawReleaseVersionNote[] }
+  return json.data.map(mapReleaseVersionNote)
 }
 
 export async function deleteReleaseVersionNote(

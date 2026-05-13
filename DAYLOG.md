@@ -1,5 +1,38 @@
 # DAYLOG
 
+## 2026-05-13
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: Phase-40-UAT-Stand gegen das abgeschlossene Phase-41-UAT abgleichen, den Repo-Closeout auf den echten Notiz-/TipTap-Stand bringen, und nur produktrelevante Änderungen pushen
+
+### Workstreams Touched
+- Artefakt-Audit für Phase 40 / Phase 41 (`40-VERIFICATION`, `40-VALIDATION`, `41-UAT`, Roadmap-Status)
+- Repo-local handoff refresh (`STATUS.md`, `CONTEXT.md`, `TOMORROW.md`, `RISKS.md`, `WORKING_NOTES.md`, `TODO.md`, day summary)
+- Git-Hygiene für lokale Agenten-/Cache-/Temp-Artefakte
+- Selective commit/push preparation for the current note-system and TipTap worktree
+
+### Goals Intended vs Achieved
+- Intended: sauber entscheiden, ob Phase 40 noch eine eigene volle UAT braucht, den Tag restartbar schließen, und nur commitwürdige Änderungen nach Git bringen
+- Achieved: Phase 40 wurde als technisch abgeschlossen und praktisch weitgehend durch Phase 41 abgedeckt eingeordnet, die Handoff-Dateien wurden auf den realen Stand gezogen, und die Git-Selektion wurde auf produktrelevanten Code, Tests, Handoff und Ignore-Hygiene eingegrenzt
+
+### Problems Solved
+- Root cause: der UAT-Status von Phase 40 war leicht missverständlich, weil eine starke technische Verifikation vorlag, aber kein eigenes `40-UAT.md`, während Phase 41 bereits ein bestandenes Live-UAT hatte
+- Fix: die Artefakte wurden gegeneinander gelesen statt isoliert betrachtet; dadurch ist jetzt klar, dass Phase 41 die wichtigsten Live-Pfade aus Phase 40 erneut bestätigt
+- Root cause: der Worktree enthält sehr viel lokalen GSD-/Agenten-/Cache-/Temp-Kram, der versehentlich in Commits geraten könnte
+- Fix: `.gitignore` wurde für diese lokalen Artefakte nachgeschärft und der Commit-Scope bewusst auf produktrelevante Dateien begrenzt
+
+### Decisions
+- Phase 40 braucht voraussichtlich kein eigenes vollständiges Nach-UAT mehr, solange kein formaler Beweis für Delete-/Sanitizing-/Member-Story-Restlücken verlangt wird
+- Der nächste kleine Doku-Schritt ist ein Sync des Phase-42-Kontexts auf den inzwischen grünen Phase-41-UAT-Stand
+- Lokale Agenten-, Cache-, Test- und Temp-Artefakte gehören nicht in Produkt-Commits
+
+### Blockers
+- Kein Produktblocker für den aktuellen Notiz-/TipTap-Stand
+- Es bleibt eine Doku-Unschärfe zwischen Phase 40, 41 und 42, bis der Kontext explizit nachgezogen ist
+
+### Next Step
+- `42-CONTEXT.md` auf die tatsächlich grüne Phase-41-UAT-Lage aktualisieren oder alternativ einen kleinen Phase-40-Mini-UAT-Nachtrag dokumentieren
+
 ## 2026-05-05
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`

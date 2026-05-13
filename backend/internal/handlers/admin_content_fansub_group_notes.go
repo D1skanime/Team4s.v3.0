@@ -116,6 +116,12 @@ func (h *AdminContentHandler) UpdateFansubGroupNote(c *gin.Context) {
 		return
 	}
 
+	fansubID, err := parseFansubRouteID(c)
+	if err != nil || fansubID <= 0 {
+		badRequest(c, "ungültige fansub id")
+		return
+	}
+
 	noteID, err := strconv.ParseInt(c.Param("noteId"), 10, 64)
 	if err != nil || noteID <= 0 {
 		badRequest(c, "ungültige note id")
@@ -152,7 +158,7 @@ func (h *AdminContentHandler) UpdateFansubGroupNote(c *gin.Context) {
 		repoReq.BodyText = &text
 	}
 
-	note, err := h.fansubNotesRepo.UpdateFansubGroupNote(c.Request.Context(), noteID, identity.UserID, repoReq)
+	note, err := h.fansubNotesRepo.UpdateFansubGroupNote(c.Request.Context(), noteID, fansubID, identity.UserID, repoReq)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "notiz nicht gefunden"}})
 		return
@@ -171,13 +177,19 @@ func (h *AdminContentHandler) DeleteFansubGroupNote(c *gin.Context) {
 		return
 	}
 
+	fansubID, err := parseFansubRouteID(c)
+	if err != nil || fansubID <= 0 {
+		badRequest(c, "ungültige fansub id")
+		return
+	}
+
 	noteID, err := strconv.ParseInt(c.Param("noteId"), 10, 64)
 	if err != nil || noteID <= 0 {
 		badRequest(c, "ungültige note id")
 		return
 	}
 
-	err = h.fansubNotesRepo.DeleteFansubGroupNote(c.Request.Context(), noteID, identity.UserID)
+	err = h.fansubNotesRepo.DeleteFansubGroupNote(c.Request.Context(), noteID, fansubID, identity.UserID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "notiz nicht gefunden"}})
 		return

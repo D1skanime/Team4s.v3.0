@@ -51,7 +51,6 @@ type CreateMemberGroupStoryRequest struct {
 // UpdateMemberGroupStoryRequest holds the patchable fields for a member_group_stories row.
 // All pointer fields are optional (nil = do not update).
 type UpdateMemberGroupStoryRequest struct {
-	RoleID       *int64
 	Title        *string
 	BodyMarkdown *string
 	BodyHTML     *string
@@ -113,8 +112,13 @@ func (r *FansubNotesRepository) CreateMemberGroupStory(
 	createdByUserID int64,
 	req CreateMemberGroupStoryRequest,
 ) (*MemberGroupStory, error) {
+	resolvedCreatedByUserID, err := resolveOptionalExistingUserID(ctx, r.db, createdByUserID)
+	if err != nil {
+		return nil, fmt.Errorf("create member_group_story for group %d: %w", fansubGroupID, err)
+	}
+
 	var s MemberGroupStory
-	err := r.db.QueryRow(ctx, `
+	err = r.db.QueryRow(ctx, `
 		INSERT INTO member_group_stories
 			(fansub_group_id, member_id, role_id, title, body_markdown, body_html,
 			 body_json, body_text, editor_type, content_schema_version,
@@ -129,7 +133,7 @@ func (r *FansubNotesRepository) CreateMemberGroupStory(
 	`, fansubGroupID, req.MemberID, req.RoleID, req.Title,
 		req.BodyMarkdown, req.BodyHTML,
 		req.BodyJSON, req.BodyText, req.EditorType, req.ContentSchemaVersion,
-		req.Visibility, req.Status, req.SortOrder, createdByUserID,
+		req.Visibility, req.Status, req.SortOrder, resolvedCreatedByUserID,
 	).Scan(
 		&s.ID, &s.FansubGroupID, &s.MemberID, &s.RoleID,
 		&s.Title, &s.BodyMarkdown, &s.BodyHTML,
@@ -149,14 +153,19 @@ func (r *FansubNotesRepository) CreateMemberGroupStory(
 func (r *FansubNotesRepository) UpdateMemberGroupStory(
 	ctx context.Context,
 	storyID int64,
+	fansubGroupID int64,
 	userID int64,
 	req UpdateMemberGroupStoryRequest,
 ) (*MemberGroupStory, error) {
+	resolvedUpdatedByUserID, err := resolveOptionalExistingUserID(ctx, r.db, userID)
+	if err != nil {
+		return nil, fmt.Errorf("update member_group_story %d: %w", storyID, err)
+	}
+
 	var s MemberGroupStory
-	err := r.db.QueryRow(ctx, `
+	err = r.db.QueryRow(ctx, `
 		UPDATE member_group_stories
 		SET
-			role_id       = COALESCE($3, role_id),
 			title         = COALESCE($4, title),
 			body_markdown = COALESCE($5, body_markdown),
 			body_html     = COALESCE($6, body_html),
@@ -165,9 +174,10 @@ func (r *FansubNotesRepository) UpdateMemberGroupStory(
 			visibility    = COALESCE($9, visibility),
 			status        = COALESCE($10, status),
 			sort_order    = COALESCE($11, sort_order),
-			updated_by_user_id = $2,
+			updated_by_user_id = $3,
 			updated_at    = NOW()
 		WHERE id = $1
+		  AND fansub_group_id = $2
 		  AND deleted_at IS NULL
 		RETURNING id, fansub_group_id, member_id, role_id,
 		          title, body_markdown, body_html,
@@ -175,8 +185,8 @@ func (r *FansubNotesRepository) UpdateMemberGroupStory(
 		          visibility, status, sort_order,
 		          created_by_user_id, updated_by_user_id,
 		          created_at, updated_at, deleted_at
-	`, storyID, userID,
-		req.RoleID, req.Title, req.BodyMarkdown, req.BodyHTML,
+	`, storyID, fansubGroupID, resolvedUpdatedByUserID,
+		req.Title, req.BodyMarkdown, req.BodyHTML,
 		req.BodyJSON, req.BodyText,
 		req.Visibility, req.Status, req.SortOrder,
 	).Scan(
@@ -200,14 +210,21 @@ func (r *FansubNotesRepository) UpdateMemberGroupStory(
 func (r *FansubNotesRepository) DeleteMemberGroupStory(
 	ctx context.Context,
 	storyID int64,
+	fansubGroupID int64,
 	userID int64,
 ) error {
+	resolvedDeletedByUserID, err := resolveOptionalExistingUserID(ctx, r.db, userID)
+	if err != nil {
+		return fmt.Errorf("delete member_group_story %d: %w", storyID, err)
+	}
+
 	tag, err := r.db.Exec(ctx, `
 		UPDATE member_group_stories
-		SET deleted_at = NOW(), deleted_by_user_id = $2
+		SET deleted_at = NOW(), deleted_by_user_id = $3
 		WHERE id = $1
+		  AND fansub_group_id = $2
 		  AND deleted_at IS NULL
-	`, storyID, userID)
+	`, storyID, fansubGroupID, resolvedDeletedByUserID)
 	if err != nil {
 		return fmt.Errorf("delete member_group_story %d: %w", storyID, err)
 	}
