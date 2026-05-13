@@ -1,26 +1,26 @@
 # 2026-05-13 Day Summary
 
 ## What Changed Today
-- Phase-40/41 UAT-Lage wurde gegen die aktuellen Artefakte sauber abgeglichen.
-- Ergebnis: Phase 40 ist technisch verifiziert und inhaltlich weitgehend durch das abgeschlossene Phase-41-UAT mitabgedeckt.
-- Repo-Closeout wurde auf den aktuellen Notiz-/TipTap-Stand vorbereitet.
-- Git-Hygiene wurde nachgeschärft, damit lokale Agenten-, Cache-, Test- und Temp-Artefakte nicht versehentlich mit ins Repo gehen.
+- Die Editorflächen auf der Fansub-Edit-Seite wurden lokal modernisiert und klarer strukturiert.
+- Der gemeinsame `RichTextEditor` bekam eine echte Farbpalette statt des alten Farbauswahl-Selects.
+- Tabellenaktionen wurden sichtbar und verständlich gemacht.
+- Nach dem Speichern springen Gruppennotizen und Mitgliedergeschichten in eine Lesekarte zurück.
+- Die Änderungen wurden live auf `http://localhost:3000/admin/fansubs/88/edit` geprüft.
 
 ## Why It Changed
-- Die offene Frage war, ob Phase 40 noch ein eigenes vollständiges UAT braucht, obwohl Phase 41 bereits ein bestandenes UAT hat.
-- Zusätzlich sollte vor dem Push sichergestellt werden, dass nur produktrelevante Änderungen ins Repo gehen.
+- Das bisherige UI wirkte im echten Gebrauch noch zu stark nach altem Admin-Formular: viel Weiß, technische Toolbar, schwache Hierarchie.
+- Zusätzlich sollte der aktuelle Stand so eingegrenzt werden, dass wir morgen gezielt weiterpolieren und anschließend den Editor global ausrollen können.
 
 ## Verified
-- `41-UAT.md` steht auf `passed` mit 6/6 Tests grün.
-- Die zentralen Live-Pfade aus Phase 40 wurden in Phase 41 erneut praktisch geprüft:
-  Gruppennotiz speichern, Anime-Projekttext speichern, Release-Version-Notizen mit echten Rollen speichern.
-- Die Phase-40-Restlücke ist primär dokumentarisch, nicht produktisch.
+- Farbpalette live getestet auf `/admin/fansubs/88/edit`.
+- Nach `Speichern` wird die Fansub-Notiz wieder als Karte angezeigt.
+- Tabellen konnten live um weitere Spalten/Zeilen erweitert werden.
+- `vitest` grün für `NotesTab`, `AnimeProjectNotesSection` und `RichTextEditor`.
 
 ## Still Needs Follow-Up
-- Falls absolute Dokumentationsvollständigkeit gewünscht ist, bleibt nur ein kleiner Rest-Retest:
-  Delete-Flow für Gruppennotiz, expliziter Sanitizing-Nachweis, Member-Story-Pfad.
-- `42-CONTEXT.md` ist inhaltlich veraltet, weil dort Phase 41 noch als nicht vollständig grün beschrieben wird.
-- Vor dem endgültigen Phasenwechsel sollte entschieden werden, ob Phase 40 formal als durch Phase 41 abgedeckt dokumentiert wird oder einen Mini-UAT-Nachtrag bekommt.
+- Der Editor braucht noch eine Runde visuelle Politur gegen den „zu weiß / langweilig“-Eindruck.
+- Danach soll der heute lokal bewiesene Wrapper global auf weitere `RichTextEditor`-Einsatzorte ausgerollt werden.
+- Bildunterstützung im Editor kommt später und soll den bestehenden globalen Media-/Upload-Flow wiederverwenden.
 
 ## Next
-- Erster nächster kleiner Schritt: die veraltete Aussage in Phase-42-Kontext auf den realen Phase-41-UAT-Stand bringen.
+- Erster nächster kleiner Schritt: in `RichTextEditor.tsx` und `RichTextEditor.module.css` die verbleibenden Weißflächen und zu flachen Toolbar-/Panel-Zustände identifizieren und direkt gegen die Live-Seite nachschärfen.

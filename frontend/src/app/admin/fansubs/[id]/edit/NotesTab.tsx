@@ -34,8 +34,10 @@ import {
   ensureRichTextValue,
   GroupNoteDraft,
   GroupNoteEditor,
+  GroupNotePreview,
   StoryDraft,
   StoryEditor,
+  StoryPreview,
 } from './NotesTab.helpers'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
@@ -66,6 +68,8 @@ function groupNoteFromApi(note: FansubGroupNote): GroupNoteDraft {
     id: note.id,
     title: note.title,
     bodyJson: note.bodyJson,
+    bodyHtml: note.bodyHtml,
+    bodyText: note.bodyText,
     visibility: note.visibility,
     status: note.status,
     sortOrder: String(note.sortOrder),
@@ -83,6 +87,8 @@ function storyFromApi(story: MemberGroupStory): StoryDraft {
     roleId: story.roleId != null ? String(story.roleId) : '',
     title: story.title,
     bodyJson: story.bodyJson,
+    bodyHtml: story.bodyHtml,
+    bodyText: story.bodyText,
     visibility: story.visibility,
     status: story.status,
     sortOrder: String(story.sortOrder),
@@ -119,6 +125,8 @@ export function NotesTab({ fansubId }: NotesTabProps) {
   const [groupNotes, setGroupNotes] = useState<GroupNoteDraft[]>([])
   const [stories, setStories] = useState<StoryDraft[]>([])
   const [storyContext, setStoryContext] = useState<MemberStoryContext>({ members: [], roles: [] })
+  const [editingGroupNoteKeys, setEditingGroupNoteKeys] = useState<Set<string>>(() => new Set())
+  const [editingStoryKeys, setEditingStoryKeys] = useState<Set<string>>(() => new Set())
 
   useEffect(() => {
     let cancelled = false
@@ -165,6 +173,42 @@ export function NotesTab({ fansubId }: NotesTabProps) {
     setGroupNotes((prev) => prev.map((note) => note.key === key ? { ...note, ...partial } : note))
   }
 
+  function updateStory(key: string, partial: Partial<StoryDraft>) {
+    setStories((prev) => prev.map((story) => story.key === key ? { ...story, ...partial } : story))
+  }
+
+  function openGroupNoteEditor(key: string) {
+    setEditingGroupNoteKeys((prev) => {
+      const next = new Set(prev)
+      next.add(key)
+      return next
+    })
+  }
+
+  function closeGroupNoteEditor(key: string) {
+    setEditingGroupNoteKeys((prev) => {
+      const next = new Set(prev)
+      next.delete(key)
+      return next
+    })
+  }
+
+  function openStoryEditor(key: string) {
+    setEditingStoryKeys((prev) => {
+      const next = new Set(prev)
+      next.add(key)
+      return next
+    })
+  }
+
+  function closeStoryEditor(key: string) {
+    setEditingStoryKeys((prev) => {
+      const next = new Set(prev)
+      next.delete(key)
+      return next
+    })
+  }
+
   async function saveGroupNote(key: string) {
     const rawDraft = groupNotes.find((note) => note.key === key)
     const draft = rawDraft ? normalizeGroupNoteDraft(rawDraft) : null
@@ -195,6 +239,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
         const updated = await updateFansubGroupNote(fansubId, draft.id, req, token ?? undefined)
         setGroupNotes((prev) => prev.map((note) => note.key === key ? groupNoteFromApi(updated) : note))
       }
+      closeGroupNoteEditor(key)
     } catch (err) {
       updateGroupNote(key, { saving: false, error: `Fehler beim Speichern: ${errMessage(err)}` })
     }
@@ -204,6 +249,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
     const draft = groupNotes.find((note) => note.key === key)
     if (!draft || draft.id == null) {
       setGroupNotes((prev) => prev.filter((note) => note.key !== key))
+      closeGroupNoteEditor(key)
       return
     }
 
@@ -215,13 +261,10 @@ export function NotesTab({ fansubId }: NotesTabProps) {
       const token = await getRuntimeAuthToken()
       await deleteFansubGroupNote(fansubId, draft.id, token ?? undefined)
       setGroupNotes((prev) => prev.filter((note) => note.key !== key))
+      closeGroupNoteEditor(key)
     } catch (err) {
       updateGroupNote(key, { deleting: false, error: `Fehler beim Löschen: ${errMessage(err)}` })
     }
-  }
-
-  function updateStory(key: string, partial: Partial<StoryDraft>) {
-    setStories((prev) => prev.map((story) => story.key === key ? { ...story, ...partial } : story))
   }
 
   async function saveStory(key: string) {
@@ -263,6 +306,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
         const updated = await updateMemberGroupStory(fansubId, draft.id, req, token ?? undefined)
         setStories((prev) => prev.map((story) => story.key === key ? storyFromApi(updated) : story))
       }
+      closeStoryEditor(key)
     } catch (err) {
       updateStory(key, { saving: false, error: `Fehler beim Speichern: ${errMessage(err)}` })
     }
@@ -272,6 +316,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
     const draft = stories.find((story) => story.key === key)
     if (!draft || draft.id == null) {
       setStories((prev) => prev.filter((story) => story.key !== key))
+      closeStoryEditor(key)
       return
     }
 
@@ -283,6 +328,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
       const token = await getRuntimeAuthToken()
       await deleteMemberGroupStory(fansubId, draft.id, token ?? undefined)
       setStories((prev) => prev.filter((story) => story.key !== key))
+      closeStoryEditor(key)
     } catch (err) {
       updateStory(key, { deleting: false, error: `Fehler beim Löschen: ${errMessage(err)}` })
     }
@@ -306,13 +352,22 @@ export function NotesTab({ fansubId }: NotesTabProps) {
           Offizielle Texte über die Gruppe: Geschichte, Philosophie, Stil, Abschlüsse.
         </p>
         {groupNotes.map((draft) => (
-          <GroupNoteEditor
-            key={draft.key}
-            draft={draft}
-            onUpdate={(partial) => updateGroupNote(draft.key, partial)}
-            onSave={() => { void saveGroupNote(draft.key) }}
-            onDelete={() => { void deleteGroupNote(draft.key) }}
-          />
+          editingGroupNoteKeys.has(draft.key) || draft.id == null ? (
+            <GroupNoteEditor
+              key={draft.key}
+              draft={draft}
+              onUpdate={(partial) => updateGroupNote(draft.key, partial)}
+              onSave={() => { void saveGroupNote(draft.key) }}
+              onDelete={() => { void deleteGroupNote(draft.key) }}
+            />
+          ) : (
+            <GroupNotePreview
+              key={draft.key}
+              draft={draft}
+              onEdit={() => openGroupNoteEditor(draft.key)}
+              onDelete={() => { void deleteGroupNote(draft.key) }}
+            />
+          )
         ))}
         {groupNotes.length === 0 && (
           <p className={styles.fansubEditHint}>Noch keine Gruppennotizen vorhanden.</p>
@@ -320,7 +375,11 @@ export function NotesTab({ fansubId }: NotesTabProps) {
         <button
           type="button"
           className={styles.buttonSecondary}
-          onClick={() => setGroupNotes((prev) => [...prev, normalizeGroupNoteDraft(emptyGroupNoteDraft())])}
+          onClick={() => {
+            const nextDraft = normalizeGroupNoteDraft(emptyGroupNoteDraft())
+            setGroupNotes((prev) => [...prev, nextDraft])
+            openGroupNoteEditor(nextDraft.key)
+          }}
           style={{ marginTop: '0.5rem' }}
         >
           <Plus size={14} />
@@ -334,15 +393,26 @@ export function NotesTab({ fansubId }: NotesTabProps) {
           Persönliche Erinnerungen einzelner Mitglieder in dieser Gruppe.
         </p>
         {stories.map((draft) => (
-          <StoryEditor
-            key={draft.key}
-            draft={draft}
-            members={storyContext.members}
-            roles={storyContext.roles}
-            onUpdate={(partial) => updateStory(draft.key, partial)}
-            onSave={() => { void saveStory(draft.key) }}
-            onDelete={() => { void deleteStory(draft.key) }}
-          />
+          editingStoryKeys.has(draft.key) || draft.id == null ? (
+            <StoryEditor
+              key={draft.key}
+              draft={draft}
+              members={storyContext.members}
+              roles={storyContext.roles}
+              onUpdate={(partial) => updateStory(draft.key, partial)}
+              onSave={() => { void saveStory(draft.key) }}
+              onDelete={() => { void deleteStory(draft.key) }}
+            />
+          ) : (
+            <StoryPreview
+              key={draft.key}
+              draft={draft}
+              members={storyContext.members}
+              roles={storyContext.roles}
+              onEdit={() => openStoryEditor(draft.key)}
+              onDelete={() => { void deleteStory(draft.key) }}
+            />
+          )
         ))}
         {stories.length === 0 && (
           <p className={styles.fansubEditHint}>Noch keine Mitgliedergeschichten vorhanden.</p>
@@ -350,10 +420,11 @@ export function NotesTab({ fansubId }: NotesTabProps) {
         <button
           type="button"
           className={styles.buttonSecondary}
-          onClick={() => setStories((prev) => [
-            ...prev,
-            normalizeStoryDraft(emptyStoryDraft({ memberId: pickDefaultStoryMember(storyContext) })),
-          ])}
+          onClick={() => {
+            const nextDraft = normalizeStoryDraft(emptyStoryDraft({ memberId: pickDefaultStoryMember(storyContext) }))
+            setStories((prev) => [...prev, nextDraft])
+            openStoryEditor(nextDraft.key)
+          }}
           style={{ marginTop: '0.5rem' }}
           disabled={storyContext.members.length === 0}
         >

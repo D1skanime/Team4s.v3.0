@@ -53,6 +53,17 @@ function ensureRichTextValue(value: unknown | null): unknown {
   return value ?? EMPTY_RICH_TEXT_DOC
 }
 
+function noteVisibilityLabel(value: NoteVisibility): string {
+  return value === 'public' ? 'Öffentlich' : 'Intern'
+}
+
+function noteStatusLabel(value: NoteStatus): string {
+  if (value === 'draft') return 'Entwurf'
+  if (value === 'published') return 'Veröffentlicht'
+  if (value === 'archived') return 'Archiviert'
+  return 'Gelöscht'
+}
+
 function noteToForm(note: AnimeFansubProjectNote): NoteFormState {
   return {
     title: note.title ?? '',
@@ -147,54 +158,78 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
   }
 
   return (
-    <div className={styles.fansubEditAnimeProjectNoteForm}>
-      <div className={styles.field}>
-        <label htmlFor={`note-title-${anime.id}`}>Titel <span className={styles.fansubEditHint}>(optional)</span></label>
-        <input
-          id={`note-title-${anime.id}`}
-          type="text"
-          value={form.title}
-          onChange={(e) => setForm((c) => ({ ...c, title: e.target.value }))}
-          placeholder="Titel des Projekttexts (optional)"
-        />
+    <section className={styles.fansubEditorCard}>
+      <div className={styles.fansubEditorCardHeader}>
+        <div className={styles.fansubEditorCardHeading}>
+          <p className={styles.fansubEditorEyebrow}>Anime-Projekttext</p>
+          <h3 className={styles.fansubEditorTitle}>{form.title.trim() || anime.title}</h3>
+        </div>
+        <div className={styles.fansubEditorBadgeRow}>
+          <span className={styles.fansubEditorBadge}>{noteVisibilityLabel(form.visibility)}</span>
+          <span className={styles.fansubEditorBadge}>{noteStatusLabel(form.status)}</span>
+        </div>
       </div>
 
-      <div className={styles.field}>
-        <label htmlFor={`note-body-${anime.id}`}>Projekttext</label>
-        <RichTextEditor
-          value={ensureRichTextValue(form.bodyJson)}
-          onChange={(next) => setForm((c) => ({ ...c, bodyJson: next }))}
-          placeholder={ANIME_PROJECT_NOTE_PLACEHOLDER}
-          mode="longform"
-          minHeight={240}
-        />
-      </div>
-
-      <div className={styles.responsiveFieldGrid}>
+      <div className={styles.fansubEditorMain}>
         <div className={styles.field}>
-          <label htmlFor={`note-visibility-${anime.id}`}>Sichtbarkeit</label>
-          <select
-            id={`note-visibility-${anime.id}`}
-            value={form.visibility}
-            onChange={(e) => setForm((c) => ({ ...c, visibility: e.target.value as NoteVisibility }))}
-          >
-            <option value="internal">Intern</option>
-            <option value="public">Öffentlich</option>
-          </select>
+          <label htmlFor={`note-title-${anime.id}`}>Titel <span className={styles.fansubEditHint}>(optional)</span></label>
+          <input
+            id={`note-title-${anime.id}`}
+            type="text"
+            value={form.title}
+            onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))}
+            placeholder="Titel des Projekttexts (optional)"
+          />
         </div>
 
         <div className={styles.field}>
-          <label htmlFor={`note-status-${anime.id}`}>Status</label>
-          <select
-            id={`note-status-${anime.id}`}
-            value={form.status}
-            onChange={(e) => setForm((c) => ({ ...c, status: e.target.value as NoteStatus }))}
-          >
-            <option value="draft">Entwurf</option>
-            <option value="published">Veröffentlicht</option>
-            <option value="archived">Archiviert</option>
-            <option value="deleted">Gelöscht</option>
-          </select>
+          <label htmlFor={`note-body-${anime.id}`}>Projekttext</label>
+          <div className={styles.fansubEditorSurface}>
+            <RichTextEditor
+              value={ensureRichTextValue(form.bodyJson)}
+              onChange={(next) => setForm((current) => ({ ...current, bodyJson: next }))}
+              placeholder={ANIME_PROJECT_NOTE_PLACEHOLDER}
+              mode="longform"
+              minHeight={240}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.fansubEditorMetaCard}>
+        <div className={styles.fansubEditorMetaHeader}>
+          <div>
+            <p className={styles.fansubEditorEyebrow}>Optionen</p>
+            <h4 className={styles.fansubEditorMetaTitle}>Steuerung für Sichtbarkeit und Status</h4>
+          </div>
+        </div>
+
+        <div className={styles.fansubEditorMetaGrid}>
+          <div className={styles.field}>
+            <label htmlFor={`note-visibility-${anime.id}`}>Sichtbarkeit</label>
+            <select
+              id={`note-visibility-${anime.id}`}
+              value={form.visibility}
+              onChange={(e) => setForm((current) => ({ ...current, visibility: e.target.value as NoteVisibility }))}
+            >
+              <option value="internal">Intern</option>
+              <option value="public">Öffentlich</option>
+            </select>
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor={`note-status-${anime.id}`}>Status</label>
+            <select
+              id={`note-status-${anime.id}`}
+              value={form.status}
+              onChange={(e) => setForm((current) => ({ ...current, status: e.target.value as NoteStatus }))}
+            >
+              <option value="draft">Entwurf</option>
+              <option value="published">Veröffentlicht</option>
+              <option value="archived">Archiviert</option>
+              <option value="deleted">Gelöscht</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -202,7 +237,7 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
       {saveSuccess ? <div className={styles.fansubEditSaveSuccess}>Projekttext gespeichert.</div> : null}
       {noteId !== null ? <p className={styles.fansubEditHint}>Gespeicherter Eintrag (ID: {noteId})</p> : null}
 
-      <div className={styles.fansubEditAnimeProjectNoteActions}>
+      <div className={styles.fansubEditorActionBar}>
         <button
           type="button"
           className={styles.button}
@@ -213,7 +248,7 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
           {saving ? 'Speichern...' : 'Speichern'}
         </button>
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -329,7 +364,7 @@ function AnimeProjectNotesSectionRemote({ fansubId, authToken }: AnimeProjectNot
     getAdminFansubAnime(fansubId, authToken)
       .then((response) => {
         if (!active) return
-        setAnimes(response.data.map((a) => ({ id: a.id, title: a.title })))
+        setAnimes(response.data.map((anime) => ({ id: anime.id, title: anime.title })))
       })
       .catch((err: unknown) => {
         if (!active) return

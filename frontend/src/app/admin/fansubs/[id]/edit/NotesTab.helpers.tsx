@@ -1,8 +1,8 @@
 'use client'
 
-import { Save, Trash2 } from 'lucide-react'
+import { Pencil, Save, Trash2 } from 'lucide-react'
 
-import { RichTextEditor } from '@/components/editor'
+import { RichTextEditor, RichTextRenderer } from '@/components/editor'
 import { MemberStoryContextMember, MemberStoryContextRole } from '@/types/fansubNotes'
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -31,6 +31,8 @@ export type GroupNoteDraft = {
   id: number | null
   title: string
   bodyJson: unknown | null
+  bodyHtml?: string | null
+  bodyText?: string | null
   visibility: 'public' | 'internal'
   status: 'draft' | 'published' | 'archived' | 'deleted'
   sortOrder: string
@@ -46,6 +48,8 @@ export type StoryDraft = {
   roleId: string
   title: string
   bodyJson: unknown | null
+  bodyHtml?: string | null
+  bodyText?: string | null
   visibility: 'public' | 'internal'
   status: 'draft' | 'published' | 'archived' | 'deleted'
   sortOrder: string
@@ -60,6 +64,8 @@ export function emptyGroupNoteDraft(): GroupNoteDraft {
     id: null,
     title: '',
     bodyJson: null,
+    bodyHtml: null,
+    bodyText: null,
     visibility: 'public',
     status: 'draft',
     sortOrder: '0',
@@ -77,6 +83,8 @@ export function emptyStoryDraft(defaults?: Partial<Pick<StoryDraft, 'memberId' |
     roleId: defaults?.roleId ?? '',
     title: '',
     bodyJson: null,
+    bodyHtml: null,
+    bodyText: null,
     visibility: 'public',
     status: 'draft',
     sortOrder: '0',
@@ -88,6 +96,20 @@ export function emptyStoryDraft(defaults?: Partial<Pick<StoryDraft, 'memberId' |
 
 export function ensureRichTextValue(value: unknown | null): unknown {
   return value ?? EMPTY_RICH_TEXT_DOC
+}
+
+function visibilityLabel(value: GroupNoteDraft['visibility'] | StoryDraft['visibility']): string {
+  return value === 'public' ? 'Öffentlich' : 'Intern'
+}
+
+function statusLabel(value: GroupNoteDraft['status'] | StoryDraft['status']): string {
+  return STATUS_OPTIONS.find((option) => option.value === value)?.label ?? value
+}
+
+function previewText(value?: string | null): string {
+  const normalized = (value || '').replace(/\s+/g, ' ').trim()
+  if (!normalized) return 'Noch kein Inhalt vorhanden.'
+  return normalized.length > 240 ? `${normalized.slice(0, 240).trimEnd()}…` : normalized
 }
 
 function findMemberLabel(members: MemberStoryContextMember[], memberId: string): string {
@@ -102,6 +124,48 @@ function findRoleLabel(roles: MemberStoryContextRole[], roleId: string): string 
   return match ? `${match.label} (${match.name})` : ''
 }
 
+export function GroupNotePreview({
+  draft,
+  onEdit,
+  onDelete,
+}: {
+  draft: GroupNoteDraft
+  onEdit: () => void
+  onDelete: () => void
+}) {
+  return (
+    <section className={styles.fansubEditorCard}>
+      {draft.error ? <div className={styles.errorBox}>{draft.error}</div> : null}
+
+      <div className={styles.fansubEditorCardHeader}>
+        <div className={styles.fansubEditorCardHeading}>
+          <p className={styles.fansubEditorEyebrow}>Gruppennotiz</p>
+          <h3 className={styles.fansubEditorTitle}>{draft.title.trim() || 'Unbenannte Notiz'}</h3>
+        </div>
+        <div className={styles.fansubEditorBadgeRow}>
+          <span className={styles.fansubEditorBadge}>{visibilityLabel(draft.visibility)}</span>
+          <span className={styles.fansubEditorBadge}>{statusLabel(draft.status)}</span>
+        </div>
+      </div>
+
+      {draft.bodyHtml?.trim() ? (
+        <RichTextRenderer bodyHtml={draft.bodyHtml} />
+      ) : (
+        <p className={styles.fansubEditorPreviewText}>{previewText(draft.bodyText)}</p>
+      )}
+
+      <div className={styles.fansubEditorActionBar}>
+        <button type="button" className={styles.button} onClick={onEdit}>
+          <Pencil size={14} />Bearbeiten
+        </button>
+        <button type="button" className={`${styles.buttonSecondary} ${styles.fansubEditorGhostButton}`} onClick={onDelete}>
+          <Trash2 size={14} />Löschen
+        </button>
+      </div>
+    </section>
+  )
+}
+
 export function GroupNoteEditor({
   draft,
   onUpdate,
@@ -114,52 +178,77 @@ export function GroupNoteEditor({
   onDelete: () => void
 }) {
   return (
-    <div style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid var(--border-color, #ddd)', borderRadius: '6px' }}>
+    <section className={styles.fansubEditorCard}>
       {draft.error ? <div className={styles.errorBox}>{draft.error}</div> : null}
-      <div className={styles.field}>
-        <label>Titel</label>
-        <input value={draft.title} onChange={(e) => onUpdate({ title: e.target.value })} placeholder="Titel der Notiz" />
-      </div>
 
-      <div className={styles.field}>
-        <label>Inhalt</label>
-        <RichTextEditor
-          value={ensureRichTextValue(draft.bodyJson)}
-          onChange={(next) => onUpdate({ bodyJson: next })}
-          placeholder="Notiztext eingeben..."
-          mode="longform"
-          minHeight={220}
-        />
-      </div>
-
-      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        <div className={styles.field} style={{ flex: '1', minWidth: '160px' }}>
-          <label>Sichtbarkeit</label>
-          <select value={draft.visibility} onChange={(e) => onUpdate({ visibility: e.target.value as 'public' | 'internal' })}>
-            {VISIBILITY_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-          </select>
+      <div className={styles.fansubEditorCardHeader}>
+        <div className={styles.fansubEditorCardHeading}>
+          <p className={styles.fansubEditorEyebrow}>Gruppennotiz</p>
+          <h3 className={styles.fansubEditorTitle}>{draft.title.trim() || 'Unbenannte Notiz'}</h3>
         </div>
-        <div className={styles.field} style={{ flex: '1', minWidth: '160px' }}>
-          <label>Status</label>
-          <select value={draft.status} onChange={(e) => onUpdate({ status: e.target.value as GroupNoteDraft['status'] })}>
-            {STATUS_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-          </select>
-        </div>
-        <div className={styles.field} style={{ flex: '0 0 100px' }}>
-          <label>Reihenfolge</label>
-          <input type="number" value={draft.sortOrder} onChange={(e) => onUpdate({ sortOrder: e.target.value })} min={0} />
+        <div className={styles.fansubEditorBadgeRow}>
+          <span className={styles.fansubEditorBadge}>{visibilityLabel(draft.visibility)}</span>
+          <span className={styles.fansubEditorBadge}>{statusLabel(draft.status)}</span>
         </div>
       </div>
 
-      <div className={styles.inputRow} style={{ marginTop: '0.75rem' }}>
+      <div className={styles.fansubEditorMain}>
+        <div className={styles.field}>
+          <label>Titel</label>
+          <input value={draft.title} onChange={(e) => onUpdate({ title: e.target.value })} placeholder="Titel der Notiz" />
+        </div>
+
+        <div className={styles.field}>
+          <label>Inhalt</label>
+          <div className={styles.fansubEditorSurface}>
+            <RichTextEditor
+              value={ensureRichTextValue(draft.bodyJson)}
+              onChange={(next) => onUpdate({ bodyJson: next })}
+              placeholder="Notiztext eingeben..."
+              mode="longform"
+              minHeight={220}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.fansubEditorMetaCard}>
+        <div className={styles.fansubEditorMetaHeader}>
+          <div>
+            <p className={styles.fansubEditorEyebrow}>Optionen</p>
+            <h4 className={styles.fansubEditorMetaTitle}>Status und Sichtbarkeit</h4>
+          </div>
+        </div>
+
+        <div className={styles.fansubEditorMetaGrid}>
+          <div className={styles.field}>
+            <label>Sichtbarkeit</label>
+            <select value={draft.visibility} onChange={(e) => onUpdate({ visibility: e.target.value as 'public' | 'internal' })}>
+              {VISIBILITY_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label>Status</label>
+            <select value={draft.status} onChange={(e) => onUpdate({ status: e.target.value as GroupNoteDraft['status'] })}>
+              {STATUS_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label>Reihenfolge</label>
+            <input type="number" value={draft.sortOrder} onChange={(e) => onUpdate({ sortOrder: e.target.value })} min={0} />
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.fansubEditorActionBar}>
         <button type="button" className={styles.button} onClick={onSave} disabled={draft.saving || draft.deleting}>
           <Save size={14} />{draft.saving ? 'Speichern...' : 'Speichern'}
         </button>
-        <button type="button" className={styles.buttonSecondary} style={{ color: 'var(--danger-color, #c0392b)' }} onClick={onDelete} disabled={draft.saving || draft.deleting}>
+        <button type="button" className={`${styles.buttonSecondary} ${styles.fansubEditorGhostButton}`} onClick={onDelete} disabled={draft.saving || draft.deleting}>
           <Trash2 size={14} />{draft.id != null ? (draft.deleting ? 'Löschen...' : 'Löschen') : 'Verwerfen'}
         </button>
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -185,80 +274,159 @@ export function StoryEditor({
   const roleInputId = `story-role-${draft.key}`
 
   return (
-    <div style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid var(--border-color, #ddd)', borderRadius: '6px' }}>
+    <section className={styles.fansubEditorCard}>
       {draft.error ? <div className={styles.errorBox}>{draft.error}</div> : null}
-      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        <div className={styles.field} style={{ flex: '1', minWidth: '160px' }}>
-          <label htmlFor={memberInputId}>Mitglied <span className={styles.fansubEditRequired}>*</span></label>
-          <select id={memberInputId} value={draft.memberId} onChange={(e) => onUpdate({ memberId: e.target.value })} disabled={isExistingStory}>
-            <option value="">Mitglied auswählen</option>
-            {members.map((member) => (
-              <option key={member.id} value={String(member.id)}>
-                {member.nickname}
-              </option>
-            ))}
-            {draft.memberId && !memberLabel ? <option value={draft.memberId}>Unbekanntes Mitglied (#{draft.memberId})</option> : null}
-          </select>
-          {isExistingStory ? <p className={styles.fansubEditHint}>Das Mitglied bleibt beim Bearbeiten unverändert.</p> : null}
+
+      <div className={styles.fansubEditorCardHeader}>
+        <div className={styles.fansubEditorCardHeading}>
+          <p className={styles.fansubEditorEyebrow}>Mitgliedergeschichte</p>
+          <h3 className={styles.fansubEditorTitle}>{draft.title.trim() || memberLabel || 'Neue Geschichte'}</h3>
         </div>
-        <div className={styles.field} style={{ flex: '1', minWidth: '160px' }}>
-          <label htmlFor={roleInputId}>Rolle <span className={styles.fansubEditHint}>(optional)</span></label>
-          <select id={roleInputId} value={draft.roleId} onChange={(e) => onUpdate({ roleId: e.target.value })} disabled={isExistingStory}>
-            <option value="">Keine feste Rolle</option>
-            {roles.map((role) => (
-              <option key={role.id} value={String(role.id)}>
-                {role.label} ({role.name})
-              </option>
-            ))}
-            {draft.roleId && !roleLabel ? <option value={draft.roleId}>Unbekannte Rolle (#{draft.roleId})</option> : null}
-          </select>
-          {isExistingStory ? <p className={styles.fansubEditHint}>Die Rolle bleibt beim Bearbeiten unverändert.</p> : null}
+        <div className={styles.fansubEditorBadgeRow}>
+          <span className={styles.fansubEditorBadge}>{visibilityLabel(draft.visibility)}</span>
+          <span className={styles.fansubEditorBadge}>{statusLabel(draft.status)}</span>
         </div>
       </div>
 
-      <div className={styles.field}>
-        <label>Titel</label>
-        <input value={draft.title} onChange={(e) => onUpdate({ title: e.target.value })} placeholder="Titel der Geschichte" />
+      <div className={styles.fansubEditorMain}>
+        <div className={styles.fansubEditorMetaGrid}>
+          <div className={styles.field}>
+            <label htmlFor={memberInputId}>Mitglied <span className={styles.fansubEditRequired}>*</span></label>
+            <select id={memberInputId} value={draft.memberId} onChange={(e) => onUpdate({ memberId: e.target.value })} disabled={isExistingStory}>
+              <option value="">Mitglied auswählen</option>
+              {members.map((member) => (
+                <option key={member.id} value={String(member.id)}>
+                  {member.nickname}
+                </option>
+              ))}
+              {draft.memberId && !memberLabel ? <option value={draft.memberId}>Unbekanntes Mitglied (#{draft.memberId})</option> : null}
+            </select>
+            {isExistingStory ? <p className={styles.fansubEditHint}>Das Mitglied bleibt beim Bearbeiten unverändert.</p> : null}
+          </div>
+          <div className={styles.field}>
+            <label htmlFor={roleInputId}>Rolle <span className={styles.fansubEditHint}>(optional)</span></label>
+            <select id={roleInputId} value={draft.roleId} onChange={(e) => onUpdate({ roleId: e.target.value })} disabled={isExistingStory}>
+              <option value="">Keine feste Rolle</option>
+              {roles.map((role) => (
+                <option key={role.id} value={String(role.id)}>
+                  {role.label} ({role.name})
+                </option>
+              ))}
+              {draft.roleId && !roleLabel ? <option value={draft.roleId}>Unbekannte Rolle (#{draft.roleId})</option> : null}
+            </select>
+            {isExistingStory ? <p className={styles.fansubEditHint}>Die Rolle bleibt beim Bearbeiten unverändert.</p> : null}
+          </div>
+        </div>
+
+        <div className={styles.field}>
+          <label>Titel</label>
+          <input value={draft.title} onChange={(e) => onUpdate({ title: e.target.value })} placeholder="Titel der Geschichte" />
+        </div>
+
+        <div className={styles.field}>
+          <label>Inhalt</label>
+          <div className={styles.fansubEditorSurface}>
+            <RichTextEditor
+              value={ensureRichTextValue(draft.bodyJson)}
+              onChange={(next) => onUpdate({ bodyJson: next })}
+              placeholder="Geschichte eingeben..."
+              mode="longform"
+              minHeight={220}
+            />
+          </div>
+        </div>
       </div>
 
-      <div className={styles.field}>
-        <label>Inhalt</label>
-        <RichTextEditor
-          value={ensureRichTextValue(draft.bodyJson)}
-          onChange={(next) => onUpdate({ bodyJson: next })}
-          placeholder="Geschichte eingeben..."
-          mode="longform"
-          minHeight={220}
-        />
+      <div className={styles.fansubEditorMetaCard}>
+        <div className={styles.fansubEditorMetaHeader}>
+          <div>
+            <p className={styles.fansubEditorEyebrow}>Optionen</p>
+            <h4 className={styles.fansubEditorMetaTitle}>Veröffentlichung und Sortierung</h4>
+          </div>
+          <p className={styles.fansubEditHint}>Die Geschichte bleibt vorne ruhig, die Verwaltung sitzt gesammelt darunter.</p>
+        </div>
+
+        <div className={styles.fansubEditorMetaGrid}>
+          <div className={styles.field}>
+            <label>Sichtbarkeit</label>
+            <select value={draft.visibility} onChange={(e) => onUpdate({ visibility: e.target.value as 'public' | 'internal' })}>
+              {VISIBILITY_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label>Status</label>
+            <select value={draft.status} onChange={(e) => onUpdate({ status: e.target.value as StoryDraft['status'] })}>
+              {STATUS_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label>Reihenfolge</label>
+            <input type="number" value={draft.sortOrder} onChange={(e) => onUpdate({ sortOrder: e.target.value })} min={0} />
+          </div>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        <div className={styles.field} style={{ flex: '1', minWidth: '160px' }}>
-          <label>Sichtbarkeit</label>
-          <select value={draft.visibility} onChange={(e) => onUpdate({ visibility: e.target.value as 'public' | 'internal' })}>
-            {VISIBILITY_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-          </select>
-        </div>
-        <div className={styles.field} style={{ flex: '1', minWidth: '160px' }}>
-          <label>Status</label>
-          <select value={draft.status} onChange={(e) => onUpdate({ status: e.target.value as StoryDraft['status'] })}>
-            {STATUS_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-          </select>
-        </div>
-        <div className={styles.field} style={{ flex: '0 0 100px' }}>
-          <label>Reihenfolge</label>
-          <input type="number" value={draft.sortOrder} onChange={(e) => onUpdate({ sortOrder: e.target.value })} min={0} />
-        </div>
-      </div>
-
-      <div className={styles.inputRow} style={{ marginTop: '0.75rem' }}>
+      <div className={styles.fansubEditorActionBar}>
         <button type="button" className={styles.button} onClick={onSave} disabled={draft.saving || draft.deleting}>
           <Save size={14} />{draft.saving ? 'Speichern...' : 'Speichern'}
         </button>
-        <button type="button" className={styles.buttonSecondary} style={{ color: 'var(--danger-color, #c0392b)' }} onClick={onDelete} disabled={draft.saving || draft.deleting}>
+        <button type="button" className={`${styles.buttonSecondary} ${styles.fansubEditorGhostButton}`} onClick={onDelete} disabled={draft.saving || draft.deleting}>
           <Trash2 size={14} />{draft.id != null ? (draft.deleting ? 'Löschen...' : 'Löschen') : 'Verwerfen'}
         </button>
       </div>
-    </div>
+    </section>
+  )
+}
+
+export function StoryPreview({
+  draft,
+  members,
+  roles,
+  onEdit,
+  onDelete,
+}: {
+  draft: StoryDraft
+  members: MemberStoryContextMember[]
+  roles: MemberStoryContextRole[]
+  onEdit: () => void
+  onDelete: () => void
+}) {
+  const memberLabel = findMemberLabel(members, draft.memberId)
+  const roleLabel = findRoleLabel(roles, draft.roleId)
+
+  return (
+    <section className={styles.fansubEditorCard}>
+      {draft.error ? <div className={styles.errorBox}>{draft.error}</div> : null}
+
+      <div className={styles.fansubEditorCardHeader}>
+        <div className={styles.fansubEditorCardHeading}>
+          <p className={styles.fansubEditorEyebrow}>Mitgliedergeschichte</p>
+          <h3 className={styles.fansubEditorTitle}>{draft.title.trim() || memberLabel || 'Neue Geschichte'}</h3>
+          <p className={styles.fansubEditHint}>
+            {memberLabel || 'Kein Mitglied gewählt'}
+            {roleLabel ? ` • ${roleLabel}` : ''}
+          </p>
+        </div>
+        <div className={styles.fansubEditorBadgeRow}>
+          <span className={styles.fansubEditorBadge}>{visibilityLabel(draft.visibility)}</span>
+          <span className={styles.fansubEditorBadge}>{statusLabel(draft.status)}</span>
+        </div>
+      </div>
+
+      {draft.bodyHtml?.trim() ? (
+        <RichTextRenderer bodyHtml={draft.bodyHtml} />
+      ) : (
+        <p className={styles.fansubEditorPreviewText}>{previewText(draft.bodyText)}</p>
+      )}
+
+      <div className={styles.fansubEditorActionBar}>
+        <button type="button" className={styles.button} onClick={onEdit}>
+          <Pencil size={14} />Weiter bearbeiten
+        </button>
+        <button type="button" className={`${styles.buttonSecondary} ${styles.fansubEditorGhostButton}`} onClick={onDelete}>
+          <Trash2 size={14} />Löschen
+        </button>
+      </div>
+    </section>
   )
 }

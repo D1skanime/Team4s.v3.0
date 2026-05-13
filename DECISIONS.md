@@ -1,5 +1,22 @@
 # DECISIONS
 
+## 2026-05-13 - Rich-Text Editor Images Must Reuse The Existing Media Upload Flow
+
+### Decision
+When editor image support is added, it must reuse the existing Team4s media/upload flow and storage seams instead of inventing a TipTap-specific parallel uploader or persistence path.
+
+### Why This Won
+The editor already appears in many contexts, and media ownership in this repo is domain-sensitive. A special-case upload path inside TipTap would duplicate asset logic, blur storage ownership, and raise the risk of attaching files to the wrong entity.
+
+### Consequences
+- image support needs an explicit owning storage seam before implementation starts
+- the future editor image command should call into existing product upload/media code rather than bypassing it
+- the rollout should be designed so one editor can behave consistently across pages without forking media semantics per screen
+
+### Follow-ups Required
+- inspect the current reusable media upload path before any TipTap image implementation
+- document which entity/storage seam owns editor images in the first implementation slice
+
 ## 2026-05-13 - Phase 40 Does Not Need A Full Separate UAT If Phase 41 Covers The Main Live Paths
 
 ### Decision

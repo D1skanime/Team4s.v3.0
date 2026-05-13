@@ -41,6 +41,9 @@ vi.mock('@/components/editor', () => ({
       {helperText ? <p>{helperText}</p> : null}
     </div>
   ),
+  RichTextRenderer: ({ bodyHtml }: { bodyHtml?: string | null }) => (
+    <div dangerouslySetInnerHTML={{ __html: bodyHtml || '' }} />
+  ),
 }))
 
 vi.mock('@/lib/api', () => ({
@@ -150,8 +153,9 @@ describe('NotesTab', () => {
 
     render(<NotesTab fansubId={8} />)
 
-    expect(await screen.findByDisplayValue('Wie alles begann')).not.toBeNull()
-    expect(await screen.findByDisplayValue('Meine Zeit als Typesetter')).not.toBeNull()
+    expect(await screen.findByText('Wie alles begann')).not.toBeNull()
+    expect(await screen.findByText('Meine Zeit als Typesetter')).not.toBeNull()
+    expect(screen.getAllByRole('button', { name: /bearbeiten/i }).length).toBeGreaterThan(0)
     expect(listFansubGroupNotesMock).toHaveBeenCalledWith(8, 'token-1')
     expect(listMemberGroupStoriesMock).toHaveBeenCalledWith(8, 'token-1')
     expect(getMemberGroupStoryContextMock).toHaveBeenCalledWith(8, 'token-1')
@@ -200,7 +204,8 @@ describe('NotesTab', () => {
       )
     })
 
-    expect(await screen.findByDisplayValue('Unser Stil')).not.toBeNull()
+    expect(await screen.findByText('Unser Stil')).not.toBeNull()
+    expect(screen.queryByPlaceholderText(/titel der notiz/i)).toBeNull()
   })
 
   it('deaktiviert neue geschichten ohne verfügbare mitglieder', async () => {
@@ -303,6 +308,9 @@ describe('NotesTab', () => {
     )
 
     render(<NotesTab fansubId={8} />)
+
+    await screen.findByText('Meine Zeit als Typesetter')
+    fireEvent.click(screen.getByRole('button', { name: /weiter bearbeiten/i }))
 
     const titleInput = await screen.findByDisplayValue('Meine Zeit als Typesetter')
     const memberSelect = screen.getByDisplayValue('Mika')

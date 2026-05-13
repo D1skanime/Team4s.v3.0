@@ -8,8 +8,8 @@ import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
-import { useEffect, useRef } from 'react'
-import { ColorTokenExtension, COLOR_TOKENS } from './ColorTokenExtension'
+import { useEffect, useId, useRef, useState } from 'react'
+import { ColorTokenExtension } from './ColorTokenExtension'
 import type { ColorToken } from './ColorTokenExtension'
 import type { Editor } from '@tiptap/react'
 import styles from './RichTextEditor.module.css'
@@ -45,7 +45,21 @@ type ToolbarProps = {
   editor: Editor
 }
 
+const COLOR_TOKEN_META: Array<{ token: ColorToken; label: string }> = [
+  { token: 'gray', label: 'Grau' },
+  { token: 'red', label: 'Rot' },
+  { token: 'orange', label: 'Orange' },
+  { token: 'yellow', label: 'Gelb' },
+  { token: 'green', label: 'Grün' },
+  { token: 'blue', label: 'Blau' },
+  { token: 'purple', label: 'Lila' },
+]
+
 function EditorToolbar({ editor }: ToolbarProps) {
+  const [colorMenuOpen, setColorMenuOpen] = useState(false)
+  const colorMenuId = useId()
+  const colorMenuRef = useRef<HTMLDivElement | null>(null)
+
   function setHeading(level: 1 | 2 | 3) {
     editor.chain().focus().toggleHeading({ level }).run()
   }
@@ -57,6 +71,37 @@ function EditorToolbar({ editor }: ToolbarProps) {
       editor.chain().focus().setMark('textStyle', { colorToken: token }).run()
     }
   }
+
+  const activeColorToken = (editor.getAttributes('textStyle').colorToken as ColorToken | null) ?? 'default'
+  const activeColorLabel =
+    activeColorToken === 'default'
+      ? 'Standard'
+      : COLOR_TOKEN_META.find((entry) => entry.token === activeColorToken)?.label ?? 'Farbe'
+  const isTableActive = editor.isActive('table')
+
+  useEffect(() => {
+    if (!colorMenuOpen) return
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!colorMenuRef.current?.contains(event.target as Node)) {
+        setColorMenuOpen(false)
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setColorMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleEscape)
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [colorMenuOpen])
 
   return (
     <div className={styles.toolbar} role="toolbar" aria-label="Textformatierung">
@@ -157,6 +202,50 @@ function EditorToolbar({ editor }: ToolbarProps) {
       >
         ⊞
       </button>
+      {isTableActive ? (
+        <>
+          <button
+            type="button"
+            className={styles.toolbarBtn}
+            onClick={() => editor.chain().focus().addColumnAfter().run()}
+            title="Spalte rechts hinzufügen"
+          >
+            Spalte +
+          </button>
+          <button
+            type="button"
+            className={styles.toolbarBtn}
+            onClick={() => editor.chain().focus().deleteColumn().run()}
+            title="Spalte löschen"
+          >
+            Spalte -
+          </button>
+          <button
+            type="button"
+            className={styles.toolbarBtn}
+            onClick={() => editor.chain().focus().addRowAfter().run()}
+            title="Zeile unten hinzufügen"
+          >
+            Zeile +
+          </button>
+          <button
+            type="button"
+            className={styles.toolbarBtn}
+            onClick={() => editor.chain().focus().deleteRow().run()}
+            title="Zeile löschen"
+          >
+            Zeile -
+          </button>
+          <button
+            type="button"
+            className={styles.toolbarBtn}
+            onClick={() => editor.chain().focus().deleteTable().run()}
+            title="Tabelle löschen"
+          >
+            Tabelle löschen
+          </button>
+        </>
+      ) : null}
 
       {/* Trennlinie */}
       <button
@@ -170,28 +259,61 @@ function EditorToolbar({ editor }: ToolbarProps) {
 
       <span className={styles.toolbarSep} />
 
-      {/* Farb-Dropdown */}
-      <select
-        className={styles.toolbarSelect}
-        title="Textfarbe"
-        defaultValue=""
-        onChange={(e) => {
-          const token = e.target.value as ColorToken | ''
-          if (token === '') return
-          setColorToken(token as ColorToken)
-          e.target.value = ''
-        }}
-      >
-        <option value="" disabled>
-          Farbe
-        </option>
-        <option value="default">Farbe entfernen</option>
-        {COLOR_TOKENS.filter((t) => t !== 'default').map((token) => (
-          <option key={token} value={token}>
-            {token.charAt(0).toUpperCase() + token.slice(1)}
-          </option>
-        ))}
-      </select>
+      {/* Farbpalette */}
+      <div className={styles.toolbarMenuWrap} ref={colorMenuRef}>
+        <button
+          type="button"
+          className={`${styles.toolbarBtn} ${styles.toolbarMenuBtn} ${activeColorToken !== 'default' ? styles.toolbarBtnActive : ''}`}
+          onClick={() => setColorMenuOpen((current) => !current)}
+          aria-haspopup="dialog"
+          aria-expanded={colorMenuOpen}
+          aria-controls={colorMenuId}
+          title="Textfarbe"
+        >
+          <span className={styles.toolbarColorPreview} data-color-token={activeColorToken}>
+            A
+          </span>
+          <span className={styles.toolbarMenuLabel}>{activeColorLabel}</span>
+        </button>
+        {colorMenuOpen ? (
+          <div className={styles.colorMenu} id={colorMenuId} role="dialog" aria-label="Textfarbe auswählen">
+            <div className={styles.colorMenuHeader}>
+              <span className={styles.colorMenuTitle}>Textfarbe</span>
+              {activeColorToken !== 'default' ? (
+                <button
+                  type="button"
+                  className={styles.colorMenuReset}
+                  onClick={() => {
+                    setColorToken('default')
+                    setColorMenuOpen(false)
+                  }}
+                >
+                  Farbe entfernen
+                </button>
+              ) : null}
+            </div>
+            <div className={styles.colorSwatchGrid}>
+              {COLOR_TOKEN_META.map(({ token, label }) => (
+                <button
+                  key={token}
+                  type="button"
+                  className={`${styles.colorSwatch} ${activeColorToken === token ? styles.colorSwatchActive : ''}`}
+                  onClick={() => {
+                    setColorToken(token)
+                    setColorMenuOpen(false)
+                  }}
+                  title={label}
+                  aria-label={label}
+                  aria-pressed={activeColorToken === token}
+                >
+                  <span className={styles.colorSwatchDot} data-color-token={token} />
+                  <span className={styles.colorSwatchLabel}>{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
 
       <span className={styles.toolbarSep} />
 

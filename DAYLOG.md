@@ -3,35 +3,44 @@
 ## 2026-05-13
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`
-- Today's focus: Phase-40-UAT-Stand gegen das abgeschlossene Phase-41-UAT abgleichen, den Repo-Closeout auf den echten Notiz-/TipTap-Stand bringen, und nur produktrelevante Änderungen pushen
+- Today's focus: den neuen Fansub-Editor visuell und funktional auf einen glaubwürdigeren modernen Stand bringen, live im Browser gegen den echten Screen prüfen, und den Tag mit sauberem Handoff + selektivem Push schließen
 
 ### Workstreams Touched
-- Artefakt-Audit für Phase 40 / Phase 41 (`40-VERIFICATION`, `40-VALIDATION`, `41-UAT`, Roadmap-Status)
-- Repo-local handoff refresh (`STATUS.md`, `CONTEXT.md`, `TOMORROW.md`, `RISKS.md`, `WORKING_NOTES.md`, `TODO.md`, day summary)
-- Git-Hygiene für lokale Agenten-/Cache-/Temp-Artefakte
-- Selective commit/push preparation for the current note-system and TipTap worktree
+- Lokaler UI-Refresh für die Fansub-Editorflächen auf `/admin/fansubs/88/edit`
+- Globaler Rich-Text-Editor-Feinschliff für Farbauswahl und Tabellenaktionen
+- Save-Flow-Verbesserung: gespeicherte Notizen springen zurück in eine Lesekarte statt offen im Editor zu bleiben
+- Live-Browser-Verifikation auf `http://localhost:3000/admin/fansubs/88/edit`
+- Repo-local handoff refresh + selektive Git-Vorbereitung trotz sehr schmutzigem Worktree
 
 ### Goals Intended vs Achieved
-- Intended: sauber entscheiden, ob Phase 40 noch eine eigene volle UAT braucht, den Tag restartbar schließen, und nur commitwürdige Änderungen nach Git bringen
-- Achieved: Phase 40 wurde als technisch abgeschlossen und praktisch weitgehend durch Phase 41 abgedeckt eingeordnet, die Handoff-Dateien wurden auf den realen Stand gezogen, und die Git-Selektion wurde auf produktrelevanten Code, Tests, Handoff und Ignore-Hygiene eingegrenzt
+- Intended: den noch sehr weißen/alten Editor auf der Fansub-Seite modernisieren, die schlimmsten UX-Kanten live beseitigen, und den Arbeitstag so schließen, dass morgen gezielt weiterpoliert und anschließend globalisiert werden kann
+- Achieved: die Fansub-Editoren sind jetzt klarer gegliedert, die Farbauswahl ist als echte Palette benutzbar, Tabellen lassen sich verständlich erweitern, Speichern führt zurück in eine Vorschaukarte, und die Closeout-Dateien spiegeln jetzt genau diese reale Produktlage statt der älteren Doku-Fokus-Story
 
 ### Problems Solved
-- Root cause: der UAT-Status von Phase 40 war leicht missverständlich, weil eine starke technische Verifikation vorlag, aber kein eigenes `40-UAT.md`, während Phase 41 bereits ein bestandenes Live-UAT hatte
-- Fix: die Artefakte wurden gegeneinander gelesen statt isoliert betrachtet; dadurch ist jetzt klar, dass Phase 41 die wichtigsten Live-Pfade aus Phase 40 erneut bestätigt
-- Root cause: der Worktree enthält sehr viel lokalen GSD-/Agenten-/Cache-/Temp-Kram, der versehentlich in Commits geraten könnte
-- Fix: `.gitignore` wurde für diese lokalen Artefakte nachgeschärft und der Commit-Scope bewusst auf produktrelevante Dateien begrenzt
+- Root cause: die Editorflächen wirkten wie ein klassisches Formular mit zu viel Weißraum, zu wenig Hierarchie und einem „alles gleichzeitig offen“-Gefühl
+- Fix: lokale Card-Struktur, Badges, abgesetzte Optionsbereiche und klarere Action-Bars auf der Fansub-Edit-Seite
+- Root cause: die Farbauswahl im TipTap-Toolbar-Select war technisch, unleserlich und im echten Klicken unangenehm
+- Fix: gemeinsamer Editor nutzt jetzt eine Farbpalette mit Farbpunkten, lesbaren Labels, aktivem Zustand und „Farbe entfernen“
+- Root cause: das Tabellen-Feature war zwar in TipTap vorhanden, aber in der UI nicht wirklich bedienbar oder verständlich
+- Fix: tabellenabhängige Toolbar-Aktionen wurden ergänzt und in verständliche Labels übersetzt (`Spalte +`, `Zeile +`, `Tabelle löschen`)
+- Root cause: nach dem Speichern blieb der Editor offen und vermittelte kaum Abschluss
+- Fix: Gruppennotizen und Mitgliedergeschichten klappen nach dem Speichern zurück in eine ruhige Lesekarte mit `Bearbeiten`
+- Root cause: erklärende UI-Hilfstexte wirkten wie interner Dev-Text
+- Fix: diese Texte wurden vor dem Closeout wieder entfernt
 
 ### Decisions
-- Phase 40 braucht voraussichtlich kein eigenes vollständiges Nach-UAT mehr, solange kein formaler Beweis für Delete-/Sanitizing-/Member-Story-Restlücken verlangt wird
-- Der nächste kleine Doku-Schritt ist ein Sync des Phase-42-Kontexts auf den inzwischen grünen Phase-41-UAT-Stand
-- Lokale Agenten-, Cache-, Test- und Temp-Artefakte gehören nicht in Produkt-Commits
+- Der visuelle Refresh bleibt in diesem Schritt bewusst lokal auf der Fansub-Edit-Seite, bis das Ergebnis noch eine Runde geschärft und dann gezielt globalisiert wird
+- Der gemeinsame Rich-Text-Editor darf global bessere Farb- und Tabellenbedienung bekommen, auch wenn der komplette visuelle Wrapper noch nicht global ausgerollt ist
+- Künftige Editor-Bildunterstützung soll denselben bestehenden Media-/Upload-Flow nutzen wie der Rest des Produkts und keinen parallelen TipTap-Sonderweg einführen
 
 ### Blockers
-- Kein Produktblocker für den aktuellen Notiz-/TipTap-Stand
-- Es bleibt eine Doku-Unschärfe zwischen Phase 40, 41 und 42, bis der Kontext explizit nachgezogen ist
+- Kein akuter Runtime-Blocker auf der Fansub-Edit-Seite
+- Der Editor wirkt trotz der Verbesserungen noch zu weiß und visuell zu flach; eine weitere Politur am gemeinsamen Look ist bewusst auf morgen verschoben
+- Der globale Rollout ist noch offen und sollte erst nach einer letzten Designrunde passieren
+- Bild-Upload im Editor ist absichtlich noch nicht begonnen; dafür braucht es erst die saubere Anbindung an den bestehenden Media-Flow
 
 ### Next Step
-- `42-CONTEXT.md` auf die tatsächlich grüne Phase-41-UAT-Lage aktualisieren oder alternativ einen kleinen Phase-40-Mini-UAT-Nachtrag dokumentieren
+- Im gemeinsamen Editor und den lokalen Fansub-Styles die letzten „zu weiß / zu langweilig“-Flächen identifizieren und die Politur so weit treiben, dass der Wrapper danach guten Gewissens global ausgerollt werden kann
 
 ## 2026-05-05
 - Project: `Team4s.v3.0`
