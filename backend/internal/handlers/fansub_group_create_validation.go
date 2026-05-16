@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"team4s.v3/backend/internal/models"
@@ -65,8 +65,6 @@ func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.Fans
 	return models.FansubGroupCreateInput{
 		Slug:          *slug,
 		Name:          *name,
-		Description:   normalizeNullableString(req.Description),
-		History:       normalizeNullableString(req.History),
 		LogoID:        req.LogoID,
 		BannerID:      req.BannerID,
 		LogoURL:       normalizeNullableString(req.LogoURL),

@@ -50,6 +50,13 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 39: Deutsche Umlaute durchgängig korrigieren** - Alle user-sichtbaren deutschen Texte im Frontend und Backend auf korrekte Umlaute umgestellt. CLAUDE.md + AGENTS.md Regel verankert.
 - [x] **Phase 40: Text- und Notizsystem für Fansub-Plattform** - Fansub-Gruppen-Texte, Member-Geschichten, Fansubprojekt-Texte, Release-Version-Notizen mit Rollenmodell und Public-Darstellung. (completed 2026-05-11)
 - [ ] **Phase 41: Globalen TipTap-Rich-Text-Editor einführen** - TipTap als globale Editor-Basis für alle vier Textbereiche; body_json JSONB-Speicherung, body_html für Public-Ausgabe, body_text für Suche, RichTextEditor- und RichTextRenderer-Komponenten, Backend-Validierung und HTML-Sanitizing.
+- [ ] **Phase 42: TipTap Collaboration MVP fuer fansub_group_notes** - Echtzeit-Kollaboration nur fuer offizielle Gruppennotizen mit note-scope Dokument-ID, Presence-Basis und persistenter Save-Seam zur bestehenden `fansub_group_notes`-Struktur.
+- [ ] **Phase 43: MVP Auth-, User- und Fansub-Lead-Foundation mit Keycloak** - Keycloak als externer IdP im Dev-Stack, internes `app_user`-Modell, globale Plattformrollen, Fansub-Gruppenmitgliedschaften und `fansub_lead` als App-DB-Rolle statt Keycloak-Rolle.
+- [ ] **Phase 44: App Permission Engine fuer Fansub-, Release- und Media-Kontexte** - Zentrale kontextbasierte Permission Engine im Go-Backend, Capabilities fuer das Frontend, group-scope Rollenauswertung aus Team4s-DB und Absicherung der priorisierten Fansub-/Release-/Media-Endpunkte.
+- [ ] **Phase 45: Fansub Member Management MVP** - App-user-basierte Mitglieder- und Rollenverwaltung pro Fansub-Gruppe mit Permission-Engine-Pruefung, Self-Lockout-Schutz, Audit und minimaler Admin-UI auf Capability-Basis.
+- [ ] **Phase 46: Fansub Group Invitations & Join Requests MVP** - Token-basierte Gruppeneinladungen, Verwaltung offener Einladungen, Einladungsannahme fuer eingeloggte App-User und vorbereitende Join-Request-Seams auf Basis der Permission Engine.
+- [ ] **Phase 47: Member Profile & Historical Identity** - Eigenes historisches Fansub-Profil mit Fansub-Name, Avatar, Bio, Member-Story, aktiver Zeit, Gruppenzugehoerigkeiten und Keycloak-Account-Link; strikt getrennt von Gruppenrollen und Keycloak-Accountdaten.
+- [ ] **Phase 48: Meine Gruppen & Contributor Dashboard** - Contributor-Dashboard fuer eigene Gruppen mit sicher gescopten Schnellaktionen in bestehende Gruppen-, Release-, Media- und Description-Funktionen auf Basis der Permission Engine.
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
@@ -701,3 +708,194 @@ Plans:
   10. Phase-40-Hilfetexte und rollenbezogene release_version_notes-Texte bleiben erhalten.
   11. Leere Inhalte werden korrekt erkannt und nicht angezeigt.
   12. go test ./... und npm run typecheck/lint laufen grün.
+
+### Phase 42: TipTap Collaboration MVP fuer fansub_group_notes
+
+**Goal:** Einen schmalen Echtzeit-Kollaborations-MVP fuer offizielle Gruppennotizen (`fansub_group_notes`) auf der bestehenden TipTap-Basis bauen. Mehrere berechtigte Benutzer sollen denselben Gruppennotiz-Text gleichzeitig bearbeiten koennen, ohne Release-/Anime-Domainregeln zu verletzen. Persistente Fachquelle bleibt weiterhin `fansub_group_notes.body_json`; Collaboration fuehrt keinen zweiten konkurrierenden Notizspeicher ein.
+**Requirements**: TIPTAP-COLLAB-01
+**Depends on:** 41
+**Plans:** 0/4 plans executed
+
+Plans:
+- [ ] `42-01-PLAN.md` - Collaboration-Architektur, Dokument-ID-Schema, Auth-Zugriff und persistente Save-Seam fuer fansub_group_notes festziehen.
+- [ ] `42-02-PLAN.md` - Frontend-Integration im Fansub-Notizen-Tab: Collaboration-Provider, Presence-Basis und Editor-Umschaltung fuer bestehende Notizen.
+- [ ] `42-03-PLAN.md` - Mehrbenutzer-UX, Konflikt-/Offline-Verhalten und Recovery fuer den offiziellen Gruppennotiz-Flow absichern.
+- [ ] `42-04-PLAN.md` - Verifikation, Browser-UAT und Sicherheits-/Betriebscheck fuer den Collaboration-MVP abschliessen.
+
+**Success Criteria** (what must be TRUE):
+  1. Collaboration gilt nur fuer `fansub_group_notes`; `member_group_stories`, `anime_fansub_project_notes` und `release_version_notes` bleiben in Phase 42 unveraendert.
+  2. Jede kollaborative Notiz hat eine stabile Dokument-ID, die eindeutig an `fansub_group_notes.id` gebunden ist und nicht an Anime-, Episode- oder Release-Entitaeten driftet.
+  3. Berechtigte Benutzer koennen denselben Gruppennotiz-Text gleichzeitig bearbeiten; unberechtigte Benutzer sehen keinen Edit-Zugang.
+  4. Presence-Basis ist sichtbar (mindestens "wer ist online/aktiv"); Cursor-/Caret-Feinheiten duerfen nachgeordnet sein.
+  5. Persistenz bleibt release-neutral und notiz-zentriert: die fachliche Quelle nach Save/Sync ist weiterhin `fansub_group_notes.body_json`, daraus entstehen serverseitig `body_html` und `body_text`.
+  6. Initialinhalt wird pro Dokument nur einmal gesetzt; Reloads oder parallele Verbindungen duplizieren keinen Inhalt.
+  7. Undo/Redo kollidiert nicht mit Collaboration-History; es wird kein lokaler Verlauf eingesetzt, der fremde Edits zurueckrollt.
+  8. Das Zugriffsmodell ist explizit dokumentiert (z. B. Lead/Editor/Admin edit, andere read-only oder kein Zugang).
+  9. Browser-UAT zeigt eine erfolgreiche Parallelbearbeitung desselben Gruppennotiz-Dokuments in zwei Sessions.
+  10. Sicherheits- und Betriebsmodus ist fuer Team4s als self-hosted/on-prem dokumentiert; ein Cloud-/Platform-Pfad ist in Phase 42 nicht vorgesehen.
+
+### Phase 43: MVP Auth-, User- und Fansub-Lead-Foundation mit Keycloak
+
+**Goal:** Den bisherigen festen Test-Admin-Kontext durch eine echte Authentifizierungs- und User-Grundlage ersetzen. Keycloak liefert Identitaet, Login, Sessions und globale Plattformrollen; Team4s verwaltet interne `app_users`, Fansub-Gruppenmitgliedschaften und fansub-spezifische Rollen wie `fansub_lead` in der App-Datenbank.
+**Requirements**: AUTH-FOUNDATION-01
+**Depends on:** -
+**Plans:** 0/4 plans executed
+
+Plans:
+- [ ] `43-01-PLAN.md` - Docker-/Dev-Stack, automatisierte Keycloak-Realm/Client-Grundlage, JWT-Validierung und `app_users`-Foundation mit Bootstrap-Flow aufbauen.
+- [ ] `43-02-PLAN.md` - Globale App-Rollen, CurrentUser-/Platform-Admin-Seam und geschuetzte `/api/me`- plus Admin-User-APIs vervollstaendigen.
+- [ ] `43-03-PLAN.md` - Fansub-Gruppenmitgliedschaften und `fansub_lead`-Rollenmodell samt Admin-MVP fuer Zuweisung und Anzeige umsetzen.
+- [ ] `43-04-PLAN.md` - Developer-Doku, lokale Bootstrap-Schritte, Browser-UAT und Phase-44-Handoff fuer die spaetere Permission Engine absichern.
+
+**Success Criteria** (what must be TRUE):
+1. `docker compose up` startet zusaetzlich `keycloak` und `keycloak-db` neben dem bestehenden App-Stack.
+2. Keycloak ist lokal als eigener Container erreichbar und verwendet eine eigene persistente PostgreSQL-Datenbank.
+3. Die lokale Keycloak-Grundkonfiguration fuer Realm `team4s`, Client `team4s-frontend` und globale Rollen ist soweit wie praktikabel automatisiert, z. B. per Realm-Importdatei und/oder idempotentem Bootstrap-Skript.
+4. Die Keycloak-Automatisierung legt keine fansub-spezifischen Rollen wie `fansub_lead`, `editor`, `designer` oder gruppenspezifische Rollen an.
+5. Das Frontend kann Login, Logout und Session-Erkennung ueber Keycloak im MVP-Fluss ausfuehren.
+6. API-Calls an das Go-Backend senden einen Bearer-Token; Requests ohne gueltigen Token werden mit 401 abgelehnt.
+7. Das Backend validiert Keycloak-JWTs ueber den Keycloak-Issuer/JWKS-Pfad und baut daraus einen `CurrentUser`-Kontext auf.
+8. Beim ersten gueltigen Login wird ein `app_user` ueber `keycloak_subject` gefunden oder kontrolliert als `pending` angelegt.
+9. Globale Plattformrollen wie `platform_admin` werden in Team4s kontrolliert ausgewertet; Fansub-spezifische Rollen werden nicht in Keycloak gespeichert.
+10. Ein `platform_admin` kann registrierte User sehen und einen User einer Fansub-Gruppe zuweisen.
+11. Ein `platform_admin` kann einem Fansub-Gruppenmitglied fuer die Gruppe die Rolle `fansub_lead` geben und diese in der Detailansicht sehen.
+12. Die Developer-Doku beschreibt `.env`, Compose-Setup, Realm-/Client-Automatisierung, wann ein Keycloak-Volume fuer einen frischen Import geloescht werden muss, ersten `platform_admin`-Bootstrap per SQL und die bewussten Grenzen zu Phase 44.
+
+### Phase 44: App Permission Engine fuer Fansub-, Release- und Media-Kontexte
+
+**Goal:** Eine zentrale, kontextbasierte Permission Engine fuer Team4s einziehen. Das Backend soll fuer Fansub-, Release-, Release-Version-, Media- und beschreibungsbezogene Aktionen ueber `Can(...)` und `RequirePermission(...)` entscheiden, statt verteilte Rollenpruefungen in Handlern oder Frontend-Komponenten zu behalten. Keycloak bleibt Identitaet; fachliche Rollen und Rechte bleiben in Team4s.
+**Requirements**: AUTHZ-ENGINE-01
+**Depends on:** 43
+**Plans:** 0/4 plans executed
+
+Plans:
+- [ ] `44-01-PLAN.md` - Zentrale Permission-Foundation mit Actions, Rollenmatrix, PermissionContext, group-scope Resolvern und `Can`/`RequirePermission` im Backend aufbauen.
+- [ ] `44-02-PLAN.md` - Priorisierte Fansub-/Release-/Release-Version-/Media-/Description-Endpunkte absichern, Capability-Responses ausliefern und ein minimales generisches Audit fuer Berechtigungs-relevante Mutationen verdrahten.
+- [ ] `44-03-PLAN.md` - Admin-Frontend minimal auf Capability-basierte Sichtbarkeit/Deaktivierung und verstaendliche 403-Fehlerbehandlung umstellen, ohne harte Rollenpruefungen im Client zu behalten.
+- [ ] `44-04-PLAN.md` - Permission-Matrix-Tests, Handler-/Capability-Regressionen, Developer-Doku und Live-Verifikation fuer die neue Engine abschliessen.
+
+**Success Criteria** (what must be TRUE):
+1. Zentrale Permission-Codes fuer Fansub-, Release-, Release-Version-, Release-Media- und Description-Aktionen existieren als Backend-Konstanten statt als verteilte Magic Strings.
+2. Eine zentrale statische Rollenmatrix ordnet `platform_admin` sowie die Fansub-Rollen `fansub_lead`, `project_lead`, `translator`, `timer`, `typesetter`, `editor`, `encoder`, `raw_provider`, `quality_checker` und `designer` den Permissions zu.
+3. Eine zentrale Permission-Engine bietet mindestens `Can(user, action, context)` und `RequirePermission(action, context)`.
+4. `fansub_group_member_roles` ist die einzige Quelle fuer App-Berechtigungen innerhalb einer Fansub-Gruppe; fachliche Credit-/Beitragstabellen wie `release_member_roles`, `member_episode_notes` oder `member_anime_notes` werden nicht fuer Permission-Entscheidungen benutzt.
+5. Team4s wertet Fansub-Rollen aus `fansub_group_member_roles` fuer `scope_type = group` korrekt aus; `platform_admin` darf alle geschuetzten Aktionen.
+6. Fansub-Rollen gelten nur innerhalb ihrer Fansub-Gruppe; eine Rolle in Gruppe A gewaehrt keine Rechte in Gruppe B.
+7. Das Backend kann den benoetigten PermissionContext zentral aus Release-, Release-Version-, Release-Media- und Description-Targets selbststaendig zu Release- und Fansub-Kontext aufloesen; vom Frontend gelieferte Kontextfelder werden nicht blind vertraut.
+8. Coop-Release-Versionen mit mehreren beteiligten Fansub-Gruppen erlauben eine Aktion, wenn der User in mindestens einer beteiligten Gruppe eine aktive Rolle mit der benoetigten Permission besitzt; `fansub_group.members.manage` bleibt strikt gruppengebunden.
+9. `Can()` liefert ein strukturiertes Ergebnisobjekt mit mindestens `Allowed`, `ReasonCode`, `Reason` und optional `MatchedRole` / `MatchedScope`; `RequirePermission()` mappt dies konsistent auf 401/403/404.
+10. Ownership fuer `delete_own` wird nur aus DB-Feldern wie `uploaded_by_user_id` oder `created_by_user_id` abgeleitet; `modified_by_user_id` gilt nie als Owner.
+11. Die priorisierten Backend-Endpunkte fuer Fansub-Gruppen, Fansub-Mitglieder, Releases, Release-Versionen, Release-Version-Media und beschreibungsbezogene Mutationen pruefen serverseitig die neue Permission-Engine und liefern bei fehlender Berechtigung 403.
+12. Das Frontend erhaelt Capability-Responses fuer Fansub-Gruppen und Release-Versionen, die intern auf zentrale Actions gemappt sind, nicht global gecacht werden und nach Rollenwechseln, Kontextwechseln, Drawer-Open und relevanten Mutationen neu geladen werden.
+13. Erfolgreiche kritische Mutationen werden auditiert; verweigerte kritische Mutationsversuche werden, soweit die Audit-Struktur es traegt, mit `ReasonCode` geloggt.
+14. Tests decken neben der Rollenmatrix auch Kontextaufloesung, manipulierte Kontextfelder, Coop-Faelle und echtes DB-Ownership fuer `delete_own` ab.
+15. Vor der Umsetzung wurden bestehendes Schema, bestehende Code-Struktur und bestehende Frontend-Seams analysiert; vorhandene Tabellen, Services, Repositories, Middleware und Projektkonventionen werden bevorzugt wiederverwendet.
+16. Neue Migrationen werden nur dann eingefuehrt, wenn die Vorpruefung eine echte Luecke nachweist; die Ausfuehrungsdoku beginnt mit einer kurzen Ist-Analyse der gefundenen Tabellen, Spalten, Auth-Seams und Wiederverwendungsentscheidungen.
+
+### Phase 45: Fansub Member Management MVP
+
+**Goal:** Ein MVP fuer app-user-basierte Mitglieder- und Rollenverwaltung pro Fansub-Gruppe liefern. Berechtigte Nutzer sollen Mitglieder sehen, bestehende App-User hinzufuegen, Rollen vergeben/entziehen, Mitgliedschaften deaktivieren und Self-Lockout-Situationen verhindern. Alle Sicherheitsentscheidungen laufen ueber die Permission Engine aus Phase 44; Keycloak bleibt reine Identity-Schicht.
+**Requirements**: FANSUB-MEMBER-MGMT-01
+**Depends on:** 44
+**Plans:** 0/4 plans executed
+
+Plans:
+- [ ] `45-01-PLAN.md` - Vorpruefung von Schema, Code-Struktur und vorhandenen Member-Seams sowie minimale App-User-/Mitgliedschafts-Foundation fuer die Gruppenverwaltung festziehen.
+- [ ] `45-02-PLAN.md` - Backend-Endpunkte fuer Mitgliederliste, App-User-Suche, Hinzufuegen, Rollenmutation, Deaktivierung, Self-Lockout-Schutz und Audit/Capabilities umsetzen.
+- [ ] `45-03-PLAN.md` - Fansub-Admin-UI minimal auf Mitglieder-&-Rollen-MVP mit Capability-gesteuerter Sichtbarkeit, Suchflow und 401/403/409-UX anschliessen.
+- [ ] `45-04-PLAN.md` - Backend-/Frontend-Regressionen, Self-Lockout-Tests, Developer-Doku und Live-Verifikation abschliessen sowie Phase-46-Handoff fuer Einladungen/Join-Requests vorbereiten.
+
+**Success Criteria** (what must be TRUE):
+1. Vor der Umsetzung wurden Datenbank, Migrationen, Backend- und Frontend-Seams analysiert; die Ausfuehrungsdoku startet mit einer kurzen Ist-Analyse.
+2. Es werden keine unnoetigen Parallelstrukturen gebaut; vorhandene `app_users`, `fansub_group_members`, `fansub_group_member_roles`, Audit- und Capability-Seams werden bevorzugt wiederverwendet.
+3. Falls die app-user-basierte Gruppenmitgliedschaftsstruktur oder die Phase-44-Permission-Seams in der Ausfuehrungs-Branch fehlen, stoppt Phase 45 mit einem klaren BLOCKER statt auf `fansub_members` als Auth-Quelle auszuweichen.
+4. Mitglieder einer Fansub-Gruppe koennen backendseitig angezeigt werden; der Zugriff ist mit `fansub_group.members.view` geschuetzt.
+5. Bestehende App-User koennen zu einer Fansub-Gruppe hinzugefuegt werden; unbekannte Rollen und doppelte aktive Mitgliedschaften werden abgelehnt.
+6. Rollen koennen innerhalb der zentral definierten Rollenliste hinzugefuegt, entfernt und geaendert werden, ohne Keycloak-Rollen anzufassen.
+7. Mitgliedschaften koennen deaktiviert und reaktiviert werden; deaktivierte Mitglieder verlieren ihre aktiven Berechtigungen.
+8. Self-Lockout wird verhindert: der letzte aktive `fansub_lead` oder die letzte aktive verwaltende Rolle kann nicht entfernt bzw. deaktiviert werden; solche Versuche liefern `409 Conflict`.
+9. Fansub-Gruppen-Capabilities enthalten mindestens `canViewMembers` und `canManageMembers`; jedes Feld mappt intern auf zentrale Permission-Actions.
+10. Das Frontend nutzt Capabilities statt Rollenchecks und behandelt 401/403/409 mit verstaendlichen Meldungen.
+11. Audit protokolliert Mitglied hinzugefuegt, Rolle hinzugefuegt/entfernt, Mitglied deaktiviert/reaktiviert und blockierte Self-Lockout-Versuche, soweit eine bestehende oder minimale Audit-Struktur dies traegt.
+12. Tests decken positive und negative Faelle fuer View/Manage-Permissions, unbekannte Rollen, doppelte aktive Mitgliedschaften, deaktivierte Mitglieder und Self-Lockout-Schutz ab.
+
+### Phase 46: Fansub Group Invitations & Join Requests MVP
+
+**Goal:** Ein MVP fuer token-basierte Fansub-Gruppen-Einladungen liefern: berechtigte Nutzer koennen Einladungen erstellen, offene Einladungen einsehen und abbrechen, eingeloggte App-User koennen gueltige Einladungen annehmen. Join Requests duerfen vorbereitend modelliert oder als schmaler optionaler Seam mitgeplant werden, bleiben aber hinter dem Invitation-Flow priorisiert. Alle Rechte laufen ueber die Permission Engine; Keycloak bleibt reine Identity-Schicht.
+**Requirements**: FANSUB-INVITES-01
+**Depends on:** 45
+**Plans:** 0/4 plans executed
+
+Plans:
+- [ ] `46-01-PLAN.md` - Vorpruefung von Invite-/Join-Request-Seams, Token-/Status-Konventionen und minimalem Datenmodell fuer Fansub-Gruppen-Einladungen.
+- [ ] `46-02-PLAN.md` - Backend fuer Einladung erstellen, offene Einladungen verwalten, Einladungsannahme, Permission-Codes, Capability-Erweiterung und Audit umsetzen.
+- [ ] `46-03-PLAN.md` - Fansub-Admin-UI fuer offene Einladungen sowie eingeloggten Accept-Flow minimal auf Capability-Basis anbinden; Join-Request-Seam optional vorbereiten.
+- [ ] `46-04-PLAN.md` - Regressionen, Token-/Expiry-Tests, Developer-Doku, Live-Verifikation und Phase-47-Handoff abschliessen.
+
+**Success Criteria** (what must be TRUE):
+1. Vor der Umsetzung wurden DB, Migrationen, Member-Management-Seams, Permission-Seams und Frontend-Seams analysiert; die Ausfuehrungsdoku startet mit einer kurzen Ist-Analyse.
+2. Es wird keine Parallelstruktur gebaut, wenn bereits geeignete Invitation-/Audit-/Membership-Seams vorhanden sind; neue Migrationen bleiben minimal.
+3. Zentrale Permission-Codes fuer `fansub_group.invitations.view`, `fansub_group.invitations.create`, `fansub_group.invitations.cancel` und `fansub_group.invitations.accept` existieren zentral; Join-Request-Codes sind optional vorbereitbar.
+4. Wenn noch keine passende Tabelle existiert, gibt es eine minimale `fansub_group_invitations`-Struktur mit Hash-only Token-Speicherung, Ablaufdatum, Statusmodell und Audit-kompatiblen Benutzer-/Zeitfeldern.
+5. Token werden kryptografisch sicher erzeugt, nur als Hash gespeichert und nie im Klartext persistiert.
+6. Berechtigte Nutzer koennen Einladungen fuer eine Fansub-Gruppe erstellen; unberechtigte Nutzer erhalten 403.
+7. Offene Einladungen koennen fuer eine Fansub-Gruppe eingesehen und abgebrochen werden; der Zugriff ist serverseitig ueber die Permission Engine geschuetzt.
+8. Ein eingeloggter User kann eine gueltige Einladung annehmen; Annahme erzeugt oder aktiviert die passende Gruppenmitgliedschaft mit den eingeladenen Rollen.
+9. Abgelaufene, bereits angenommene oder abgebrochene Einladungen koennen nicht erneut angenommen werden und liefern verstaendliche Fehler.
+10. Capability-Felder fuer Einladungen werden zentral auf Permission-Codes gemappt; das Frontend nutzt Capabilities statt Rollenchecks.
+11. Audit protokolliert Einladung erstellt, Einladung abgebrochen, Einladung angenommen und verweigerte/ungueltige Annahmeversuche soweit die Audit-Struktur es traegt.
+12. Tests decken positive und negative Faelle fuer Create/View/Cancel/Accept, Expiry, invaliden Token, doppelte Mitgliedschaft und Berechtigungsfehler ab.
+
+### Phase 47: Member Profile & Historical Identity
+
+**Goal:** Ein echtes Member-/User-Profil fuer historische Fansub-Identitaeten schaffen. Eingeloggte User koennen ihr eigenes Archivprofil pflegen, Platform Admins koennen Profile bei Bedarf administrativ sehen/bearbeiten, und die bisher falsch platzierte Profil-/Member-Bearbeitung aus der Fansub-Gruppen-Edit-Seite wird fachlich in einen eigenen Profilbereich verschoben. Keycloak bleibt fuer E-Mail, Passwort, MFA und Account-Sicherheit verantwortlich; Team4s speichert nur archivbezogene Profildaten.
+**Requirements**: MEMBER-PROFILE-01
+**Depends on:** 46
+**Plans:** 0/4 plans executed
+
+Plans:
+- [ ] `47-01-PLAN.md` - Vorpruefung von User-/Member-/Media-/Story-Seams, Profilfeldern und Keycloak-Account-Link-Konventionen sowie minimale Profil-Foundation festziehen.
+- [ ] `47-02-PLAN.md` - Backend fuer eigenes Profil lesen/bearbeiten, Avatar-Upload, Membership-/Credit-Anzeige, optionale Admin-Profilsicht und Audit umsetzen.
+- [ ] `47-03-PLAN.md` - Profil-Frontend, Keycloak-Account-Button und Verschiebung des falsch platzierten Profilbezugs aus der Fansub-Edit-Seite umsetzen.
+- [ ] `47-04-PLAN.md` - Regressionen, Developer-Doku, Live-Verifikation und Phase-48-Handoff fuer Contributor-Dashboard / Meine Gruppen abschliessen.
+
+**Success Criteria** (what must be TRUE):
+1. Vor der Umsetzung wurden bestehende User-/Member-/Media-/Story-Strukturen analysiert; die Ausfuehrungsdoku startet mit einer kurzen Ist-Analyse.
+2. Keine unnoetigen Parallelstrukturen werden gebaut; vorhandene User-, Member-, Story-, Media- und Audit-Seams werden bevorzugt wiederverwendet.
+3. User koennen ihr eigenes Profil lesen und archivbezogene Felder wie Fansub-Name, Display Name, Avatar, Bio, Member Story und aktive Zeit pflegen.
+4. E-Mail, Passwort, MFA, Keycloak Subject und andere Keycloak-Accountdaten werden nicht in Team4s editiert.
+5. Es gibt einen Button oder Link zur Keycloak Account Console; wenn keine URL konfiguriert ist, bleibt der Button verborgen oder zeigt einen klaren Hinweis.
+6. Avatar Upload nutzt die bestehende Media-Architektur und erzeugt keine verwaisten Medienzustaende.
+7. Das Profil zeigt Gruppenzugehoerigkeiten, Rollen und Status aus der Gruppenmitgliedschaft, ohne diese als persoenliche Stammdaten zu vermischen.
+8. Historische Credits wie `release_member_roles`, `member_episode_notes` oder `member_anime_notes` werden hoechstens read-only angezeigt oder vorbereitet und nie als App-Rechte interpretiert.
+9. Der falsch platzierte Profil-/Member-Bezug auf der Fansub-Edit-Seite wird entfernt oder auf einen read-only Profil-Link reduziert; das Bearbeiten des eigenen Profils passiert in einer eigenen Profilroute.
+10. Backend schuetzt eigenes/fremdes Profil korrekt; `platform_admin` kann fremde Profile optional sehen/bearbeiten, normale User nicht.
+11. Profile-Capabilities und/oder saubere Auth-Seams existieren fuer eigenes Profil und Avatar-Upload.
+12. Tests decken positive und negative Faelle fuer Profil lesen/bearbeiten, Avatar-Upload, Keycloak-Feldschutz, Membership-Anzeige und UI-Verschiebung ab.
+
+### Phase 48: Meine Gruppen & Contributor Dashboard
+
+**Goal:** Einen Contributor-Bereich `Meine Gruppen` schaffen, in dem eingeloggte User nur ihre eigenen Fansub-Gruppen, Rollen, Capabilities und relevanten Arbeitskontexte sehen. Bestehende Gruppen-, Release-, Media-, Notes- und Drawer-Funktionen sollen sicher wiederverwendet und fuer Contributor-Kontexte korrekt gescoped werden, statt neu gebaut zu werden. Global Admins behalten ihre Vollsicht.
+**Requirements**: CONTRIBUTOR-DASHBOARD-01
+**Depends on:** 47
+**Plans:** 0/4 plans executed
+
+Plans:
+- [ ] `48-01-PLAN.md` - Vorpruefung von Membership-, Permission-, Release-, Media-, Notes- und Navigations-Seams sowie Contributor-Scoping-Strategie fuer bestehende Komponenten festziehen.
+- [ ] `48-02-PLAN.md` - Backend fuer `GET /api/me/fansub-groups`, Contributor-Group-Detail-Reads, korrekt gescopte Release-/Anime-Kontexte und Capability-Aggregate umsetzen.
+- [ ] `48-03-PLAN.md` - Frontend fuer `/admin/my-groups`, Contributor-Gruppenseite, Navigation/User-Menue und sichere Wiederverwendung bestehender Edit-/Drawer-/Media-/Notes-Komponenten umsetzen.
+- [ ] `48-04-PLAN.md` - Regressionen, Security-/Scoping-Tests, Developer-Doku, Live-Verifikation und Phase-49-Handoff fuer Public Archive Pages abschliessen.
+
+**Success Criteria** (what must be TRUE):
+1. Vor der Umsetzung wurden bestehende Membership-, Permission-, Release-, Media-, Notes- und UI-Seams analysiert; die Ausfuehrungsdoku startet mit einer kurzen Ist-Analyse.
+2. Bestehende Funktionen und Komponenten werden bevorzugt wiederverwendet; keine unnoetigen Parallel-Editoren, Upload-Systeme oder Drawer werden gebaut.
+3. Es gibt eine Seite `Meine Gruppen`, auf der der eingeloggte User nur eigene Fansub-Gruppen sieht.
+4. `GET /api/me/fansub-groups` liefert pro Gruppe Rollen, Status, aktive Zeit, Capabilities und sinnvolle Counts, ohne fremde Gruppen zu leaken.
+5. Disabled User sehen keine Contributor-Gruppen; `platform_admin` behaelt Vollsicht oder eine klar dokumentierte Admin-Sicht.
+6. Contributor-Gruppendetailseiten oder sicher gekapselte Wiederverwendung bestehender Gruppen-Edit-Seiten zeigen nur erlaubte Bereiche und keine global-admin-spezifischen Aktionen.
+7. Release-/Anime-/Release-Version-Kontexte sind strikt auf echte Gruppenmitgliedschaft bzw. Permission-Engine-Kontext gescoped; URL-/ID-Manipulationen auf fremde Gruppen oder Releases werden backendseitig blockiert.
+8. Coop-Releases werden korrekt angezeigt, wenn die eigene Gruppe beteiligt ist, ohne fremde Release-Versionen zu leaken.
+9. Schnellaktionen und UI-Aktionen werden ausschliesslich ueber Capabilities gesteuert, nicht ueber Rollenchecks im Frontend.
+10. Navigation oder User-Menue enthalten `Mein Profil`, `Meine Gruppen`, Keycloak-Account-Link und Logout.
+11. Historische Credits koennen als read-only Abschnitt `Meine Beteiligungen` angezeigt oder sauber vorbereitet werden, ohne neue grosse Datenmodelle zu bauen und ohne App-Rechte daraus abzuleiten.
+12. Tests decken positive und negative Faelle fuer eigene/fremde Gruppen, Scoping, Coop-Kontexte, Capability-Anzeige und Navigation ab.

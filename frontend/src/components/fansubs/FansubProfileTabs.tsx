@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react'
 
 import { AnimeListItem } from '@/types/anime'
 import { FansubGroup, FansubMember } from '@/types/fansub'
+import { buildFansubFactSummary } from '@/lib/fansub-summary'
 
 import styles from './FansubProfileTabs.module.css'
 
@@ -59,6 +60,7 @@ function resolveProjectBucket(status: AnimeListItem['status']): ProjectBucketKey
 }
 
 export function FansubProfileTabs({ group, members, projects }: FansubProfileTabsProps) {
+  const factSummary = buildFansubFactSummary(group)
   const [activeTab, setActiveTab] = useState<FansubTabKey>(() => {
     if (typeof window === 'undefined') return 'overview'
     return normalizeTab(window.location.hash)
@@ -149,7 +151,7 @@ export function FansubProfileTabs({ group, members, projects }: FansubProfileTab
               <dd>{group.dissolved_year || 'aktiv'}</dd>
             </div>
           </dl>
-          <p className={styles.bodyText}>{group.description || 'Keine Beschreibung hinterlegt.'}</p>
+          <p className={styles.bodyText}>{factSummary || 'Keine zusätzlichen Gruppeninformationen hinterlegt.'}</p>
         </div>
       ) : null}
 
@@ -222,12 +224,12 @@ export function FansubProfileTabs({ group, members, projects }: FansubProfileTab
 
       {activeTab === 'memories' ? (
         <div className={styles.panel} role="tabpanel" id="fansub-panel-memories" aria-labelledby="fansub-tab-memories">
-          {group.history ? (
+          {factSummary ? (
             <div className={styles.timelineEntry}>
               <p className={styles.timelineDate}>
                 {group.founded_year || 'n/a'} - {group.dissolved_year || 'heute'}
               </p>
-              <p className={styles.bodyText}>{group.history}</p>
+              <p className={styles.bodyText}>{factSummary}</p>
             </div>
           ) : (
             <p className={styles.empty}>Keine Erinnerungen hinterlegt.</p>

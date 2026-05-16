@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { FansubProfileTabs } from '@/components/fansubs/FansubProfileTabs'
 import { AnimeListItem } from '@/types/anime'
 import { ApiError, getAnimeList, getFansubBySlug, getFansubMembers } from '@/lib/api'
+import { buildFansubFactSummary } from '@/lib/fansub-summary'
 
 import styles from './page.module.css'
 
@@ -93,7 +94,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
       <section className={styles.hero}>
         <p className={styles.slug}>/{group.slug}</p>
         <h1 className={styles.title}>{group.name}</h1>
-        <p className={styles.subtitle}>{group.description || 'Keine Kurzbeschreibung vorhanden.'}</p>
+        <p className={styles.subtitle}>{buildFansubFactSummary(group) || 'Keine Kurzbeschreibung vorhanden.'}</p>
       </section>
 
       <FansubProfileTabs group={group} members={members} projects={projects} />

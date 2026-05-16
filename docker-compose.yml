@@ -93,8 +93,6 @@ services:
       # Media base path for serving uploaded files
       MEDIA_BASE_PATH: /media
     volumes:
-      # Persist uploaded covers to the workspace (local-dev helper writes into public/covers).
-      - ./frontend/public/covers:/app/public/covers
       # New media system - mount media directory
       - ./media:/media
     ports:

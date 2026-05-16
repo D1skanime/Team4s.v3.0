@@ -22,9 +22,6 @@ export interface FansubGroup {
   id: number;
   slug: string;
   name: string;
-  description?: string | null;
-  history?: string | null;
-  history_description?: string | null;
   logo_id?: number | null;
   banner_id?: number | null;
   logo_url?: string | null;
@@ -124,8 +121,6 @@ export interface AnimeFansubListResponse {
 export interface FansubGroupCreateRequest {
   slug: string;
   name: string;
-  description?: string | null;
-  history?: string | null;
   logo_id?: number | null;
   banner_id?: number | null;
   logo_url?: string | null;
@@ -143,8 +138,6 @@ export interface FansubGroupCreateRequest {
 export interface FansubGroupPatchRequest {
   slug?: string | null;
   name?: string | null;
-  description?: string | null;
-  history?: string | null;
   logo_id?: number | null;
   banner_id?: number | null;
   logo_url?: string | null;

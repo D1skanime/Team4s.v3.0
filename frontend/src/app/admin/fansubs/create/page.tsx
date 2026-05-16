@@ -2,8 +2,8 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { Bold, ExternalLink, Heading1, Heading2, Italic, Link2, List, Plus, Save, Trash2, Users, X } from 'lucide-react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { ExternalLink, Plus, Save, Trash2, X } from 'lucide-react'
 
 import {
   addCollaborationMember,
@@ -45,10 +45,8 @@ const GROUP_TYPE_OPTIONS: FansubGroupType[] = ['group', 'collaboration']
 const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = ['website', 'discord', 'twitter', 'github', 'irc']
 const YEAR_MIN = 1900
 const YEAR_MAX = 2100
-const MARKDOWN_SOFT_LIMIT = 8000
 const URL_PROTOCOLS = new Set(['http:', 'https:', 'irc:', 'ircs:'])
 
-type Tab = 'description' | 'history'
 type FormState = {
   name: string
   slug: string
@@ -57,8 +55,6 @@ type FormState = {
   country: string
   foundedYear: string
   dissolvedYear: string
-  description: string
-  history: string
 }
 
 type CommunityLinkDraft = {
@@ -108,8 +104,6 @@ function mapGroupToForm(group: FansubGroup): FormState {
     country: group.country || '',
     foundedYear: group.founded_year ? String(group.founded_year) : '',
     dissolvedYear: group.dissolved_year ? String(group.dissolved_year) : '',
-    description: group.description || '',
-    history: group.history || '',
   }
 }
 
@@ -155,8 +149,6 @@ function emptyForm(): FormState {
     country: '',
     foundedYear: '',
     dissolvedYear: '',
-    description: '',
-    history: '',
   }
 }
 
@@ -179,8 +171,6 @@ function formToCreatePayload(form: FormState): FansubGroupCreateRequest {
     country: toOptional(form.country),
     founded_year: founded === null ? null : founded,
     dissolved_year: dissolved === null ? null : dissolved,
-    description: toOptional(form.description),
-    history: toOptional(form.history),
   }
 }
 
@@ -199,8 +189,6 @@ function formToPatchPayload(form: FormState, logo: EditableMediaValue | null, ba
     banner_id: banner?.id ?? null,
     logo_url: logo?.publicURL?.trim() ? logo.publicURL.trim() : null,
     banner_url: banner?.publicURL?.trim() ? banner.publicURL.trim() : null,
-    description: toOptional(form.description),
-    history: toOptional(form.history),
   }
 }
 
@@ -271,7 +259,6 @@ export default function AdminFansubCreatePage() {
   const [candidateGroups, setCandidateGroups] = useState<FansubGroup[]>([])
   const [collaborationMembers, setCollaborationMembers] = useState<CollaborationMember[]>([])
   const [selectedMemberGroupID, setSelectedMemberGroupID] = useState('')
-  const [activeTab, setActiveTab] = useState<Tab>('description')
   const [manualSlug, setManualSlug] = useState(false)
   const [saving, setSaving] = useState(false)
   const [aliasBusy, setAliasBusy] = useState(false)
@@ -286,7 +273,6 @@ export default function AdminFansubCreatePage() {
   const [loadingCandidates, setLoadingCandidates] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const markdownRef = useRef<HTMLTextAreaElement | null>(null)
 
   useEffect(() => {
     let active = true
@@ -528,18 +514,6 @@ export default function AdminFansubCreatePage() {
     }
   }
 
-  const markdownValue = activeTab === 'description' ? form.description : form.history
-  const insertMarkdown = (prefix: string, suffix = '') => {
-    const textarea = markdownRef.current
-    if (!textarea) return
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selection = markdownValue.slice(start, end) || 'Text'
-    const replacement = `${prefix}${selection}${suffix}`
-    const next = markdownValue.slice(0, start) + replacement + markdownValue.slice(end)
-    setForm((current) => ({ ...current, ...(activeTab === 'description' ? { description: next } : { history: next }) }))
-  }
-
   const logoFallback = buildFansubLogoFallback(form.name)
   const bannerPreviewURL = buildMediaPreviewURL(bannerMedia)
   const logoPreviewURL = buildMediaPreviewURL(logoMedia)
@@ -570,7 +544,7 @@ export default function AdminFansubCreatePage() {
               </div>
               <p className={styles.fansubEditUrlPreview}>/fansubs/{form.slug.trim() || 'slug'}</p>
             </div>
-            {createdGroup ? <Link href={`/admin/fansubs/${createdGroup.id}/members`} className={styles.buttonSecondary}><Users size={14} />Members verwalten</Link> : <span className={styles.fansubEditHint}>Nach dem ersten Speichern werden Media und weitere Admin-Aktionen direkt aktiviert.</span>}
+            <span className={styles.fansubEditHint}>Nach dem ersten Speichern werden Medien und weitere Admin-Aktionen direkt aktiviert. Ein eigener Mitglieder-Bereich folgt später als definierter Reiter.</span>
           </div>
         </header>
 
@@ -622,28 +596,6 @@ export default function AdminFansubCreatePage() {
                 </div>
               </details>
 
-              <details className={styles.fansubEditSection} open>
-                <summary className={styles.fansubEditSectionSummary}>Description / History</summary>
-                <div className={styles.fansubEditSectionBody}>
-                  <div className={styles.fansubEditTabRow}>
-                    <button type="button" className={`${styles.fansubEditTabButton} ${activeTab === 'description' ? styles.fansubEditTabButtonActive : ''}`} onClick={() => setActiveTab('description')}>Description</button>
-                    <button type="button" className={`${styles.fansubEditTabButton} ${activeTab === 'history' ? styles.fansubEditTabButtonActive : ''}`} onClick={() => setActiveTab('history')}>History</button>
-                  </div>
-                  <div className={styles.fansubEditMarkdownToolbar}>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => insertMarkdown('# ')}><Heading1 size={14} /></button>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => insertMarkdown('## ')}><Heading2 size={14} /></button>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => insertMarkdown('**', '**')}><Bold size={14} /></button>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => insertMarkdown('*', '*')}><Italic size={14} /></button>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => insertMarkdown('- ')}><List size={14} /></button>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => insertMarkdown('[', '](https://example.com)')}><Link2 size={14} /></button>
-                  </div>
-                  <div className={styles.fansubEditMarkdownSplit}>
-                    <textarea ref={markdownRef} className={styles.fansubEditMarkdownTextarea} value={markdownValue} onChange={(event) => setForm((current) => ({ ...current, ...(activeTab === 'description' ? { description: event.target.value } : { history: event.target.value }) }))} />
-                    <div className={styles.fansubEditMarkdownPreview}><pre className={styles.fansubEditMarkdownPre}>{markdownValue || 'Keine Vorschau.'}</pre></div>
-                  </div>
-                  <p className={styles.fansubEditHint}>Zeichen: {markdownValue.length}{markdownValue.length > MARKDOWN_SOFT_LIMIT ? ' (Hinweis: sehr lang)' : ''}</p>
-                </div>
-              </details>
             </div>
 
             <div className={styles.fansubEditRightColumn}>

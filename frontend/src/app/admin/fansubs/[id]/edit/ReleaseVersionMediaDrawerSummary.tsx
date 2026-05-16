@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useReleaseVersionMedia } from '@/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia'
 import { CATEGORY_LABELS, ReleaseVersionMediaCategory, RELEASE_VERSION_MEDIA_CATEGORIES } from '@/types/releaseVersionMedia'
+import styles from './FansubEdit.module.css'
 
 interface ReleaseVersionMediaDrawerSummaryProps {
   versionId: number
@@ -30,76 +31,62 @@ export function ReleaseVersionMediaDrawerSummary({
 
   const miniThumbnails = items
     .filter((item) => item.thumbnail_url !== null)
-    .slice(0, 3)
+    .slice(0, 4)
 
   return (
-    <div>
-      <div style={{ marginBottom: 8 }}>
-        <span style={{ fontSize: 12, color: '#6b6b70' }}>{fansubName} &middot; {releaseVersionLabel}</span>
+    <div className={styles.fansubEditReleaseDrawerMediaSummary}>
+      <div className={styles.fansubEditReleaseDrawerMediaIntro}>
+        <span className={styles.fansubEditReleaseDrawerMediaEyebrow}>{fansubName} · {releaseVersionLabel}</span>
+        <h3>Release-Medien im Überblick</h3>
+        <p>Screenshots, Typesetting-Beispiele und weitere Assets auf einen Blick, bevor du in die volle Medienverwaltung springst.</p>
       </div>
 
       {isLoading ? (
-        <p style={{ fontSize: 14, color: '#6b6b70' }}>Lade Medien...</p>
+        <p className={styles.fansubEditReleaseDrawerMediaState}>Lade Medien...</p>
       ) : error ? (
-        <p style={{ fontSize: 14, color: '#dc3545' }}>Fehler: {error}</p>
+        <p className={styles.fansubEditReleaseDrawerMediaError}>Fehler: {error}</p>
       ) : (
         <>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+          <div className={styles.fansubEditReleaseDrawerMediaStats}>
             {RELEASE_VERSION_MEDIA_CATEGORIES.map((cat) => (
-              <span key={cat} style={{ fontSize: 13, color: '#6b6b70' }}>
-                {CATEGORY_LABELS[cat]}: <strong style={{ color: '#1c1c1e' }}>{countByCategory[cat] === 0 ? '–' : countByCategory[cat]}</strong>
-              </span>
+              <article key={cat} className={styles.fansubEditReleaseDrawerMediaStatCard}>
+                <span>{CATEGORY_LABELS[cat]}:</span>
+                <strong>{countByCategory[cat] === 0 ? '–' : countByCategory[cat]}</strong>
+              </article>
             ))}
           </div>
 
           {miniThumbnails.length > 0 ? (
-            <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+            <div className={styles.fansubEditReleaseDrawerMediaPreviewGrid}>
               {miniThumbnails.map((item) => (
                 <img
                   key={item.id}
                   src={item.thumbnail_url!}
                   alt=""
-                  width={32}
-                  height={32}
-                  style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, border: '1px solid #e1e1e6' }}
+                  width={104}
+                  height={104}
+                  className={styles.fansubEditReleaseDrawerMediaPreviewImage}
                 />
               ))}
             </div>
-          ) : null}
+          ) : (
+            <div className={styles.fansubEditReleaseDrawerMediaEmpty}>
+              Noch keine Vorschaubilder geladen. Über die Medienverwaltung kannst du Screenshots und weitere Assets ergänzen.
+            </div>
+          )}
 
-          <div style={{ marginBottom: 8 }}>
-            <span
-              style={{
-                display: 'inline-block',
-                fontSize: 12,
-                padding: '2px 8px',
-                borderRadius: 999,
-                background: hasPreview ? '#d4edda' : '#f8d7da',
-                color: hasPreview ? '#155724' : '#721c24',
-              }}
-            >
-              {hasPreview ? 'Vorschau gesetzt' : 'Kein Vorschau'}
+          <div className={styles.fansubEditReleaseDrawerMediaMetaRow}>
+            <span className={`${styles.fansubEditReleaseDrawerMediaBadge} ${hasPreview ? styles.fansubEditReleaseDrawerMediaBadgeSuccess : styles.fansubEditReleaseDrawerMediaBadgeMuted}`}>
+              {hasPreview ? 'Vorschau gesetzt' : 'Keine Vorschau'}
             </span>
+            <span className={styles.fansubEditReleaseDrawerMediaCount}>{items.length} Medium{items.length === 1 ? '' : 'en'} verfügbar</span>
           </div>
         </>
       )}
 
       <Link
         href={`/admin/episode-versions/${versionId}/edit/?tab=media`}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          minHeight: 36,
-          padding: '0 12px',
-          borderRadius: 6,
-          border: '1px solid #e1e1e6',
-          background: '#ffffff',
-          color: '#1c1c1e',
-          fontSize: 14,
-          fontWeight: 500,
-          textDecoration: 'none',
-          marginTop: 4,
-        }}
+        className={styles.fansubEditReleaseDrawerMediaCTA}
       >
         Media verwalten
       </Link>

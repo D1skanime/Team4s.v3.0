@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"team4s.v3/backend/internal/models"
@@ -68,12 +68,6 @@ func validateFansubGroupPatchRequest(req models.FansubGroupPatchInput) (models.F
 		}
 	}
 
-	if req.Description.Set {
-		req.Description.Value = normalizeNullableString(req.Description.Value)
-	}
-	if req.History.Set {
-		req.History.Value = normalizeNullableString(req.History.Value)
-	}
 	if req.LogoURL.Set {
 		req.LogoURL.Value = normalizeNullableString(req.LogoURL.Value)
 	}
@@ -103,8 +97,6 @@ func validateFansubGroupPatchRequest(req models.FansubGroupPatchInput) (models.F
 func hasAnyFansubGroupPatchField(req models.FansubGroupPatchInput) bool {
 	return req.Slug.Set ||
 		req.Name.Set ||
-		req.Description.Set ||
-		req.History.Set ||
 		req.LogoID.Set ||
 		req.BannerID.Set ||
 		req.LogoURL.Set ||

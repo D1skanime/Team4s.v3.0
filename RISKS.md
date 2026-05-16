@@ -1,38 +1,38 @@
 # RISKS
 
-## Top 3 Risks
+## Top 5 Risks
 
-### 1. Dokumentationsdrift zwischen Phase 40, 41 und 42 kann falsche Folgeentscheidungen auslösen
+### 1. Testdaten bleiben versehentlich als reale Produktdaten stehen
 - **Impact:** Medium
 - **Likelihood:** Medium
-- **Why it matters:** Die heutige Arbeit ist stärker im Code und Live-UI gelandet als in neuen Planungsartefakten. Wenn die Story morgen nicht sauber weitergeführt wird, könnte die nächste Session zu früh zurück in ältere Phase-40/41-Doku-Themen kippen.
-- **Mitigation:** `STATUS.md`, `CONTEXT.md`, `DAYLOG.md` und `TOMORROW.md` jetzt auf den echten Editor-Polish-Stand halten und morgen von dort starten.
+- **Why it matters:** Heute wurde ein echter Upload auf Release-Version 62 gespeichert. Wenn der nur als Verifikationsartefakt gedacht war, sollte er bewusst wieder gelöscht werden.
+- **Mitigation:** Morgen als erste kleine Aufgabe prüfen, ob `release_version_media.id = 20` entfernt werden soll.
 
-### 2. Ein zu früher globaler Rollout könnte einen noch nicht fertig polierten Editor überall verbreiten
+### 2. `3000` und `3002` können unterschiedliche Wahrheiten zeigen
+- **Impact:** Medium
+- **Likelihood:** Medium
+- **Why it matters:** Im heutigen Verlauf war `3002` mehrfach veraltet oder instabil. UI-Entscheidungen können sonst auf dem falschen Stand bewertet werden.
+- **Mitigation:** Für harte UAT zuerst `3000` plus belegten Backend-Stand verwenden; `3002` nur nach frischem Build und Sichtprüfung.
+
+### 3. Ein neuer Vor-43-Slice könnte die Roadmap wieder verwässern
 - **Impact:** High
 - **Likelihood:** Medium
-- **Why it matters:** Der gemeinsame Editor kommt an vielen Stellen vor. Wenn wir den Wrapper sofort überall umlegen, verteilen wir nicht nur die Verbesserungen, sondern auch jede verbleibende Schwäche bei Weißflächen, Kontrast oder Toolbar-Ruhe.
-- **Mitigation:** noch eine gezielte lokale Politur auf der Fansub-Seite, dann Call-Site-Inventar und erst danach der breite Rollout.
+- **Why it matters:** Vor Phase 43 gibt es immer noch verlockende UI- oder Editor-Ideen. Zu viele Zusatzslices könnten den Einstieg in Auth/Rollen erneut verschieben.
+- **Mitigation:** Nur noch sehr kleine Cleanup-Arbeit vor 43 zulassen; keine neue größere Architekturphase davor starten.
 
-### 3. Wrong-domain release or fansub persistence would still be the teuerste Produktregression
+### 4. TipTap-Bildintegration könnte später versehentlich einen Parallel-Upload-Flow bekommen
 - **Impact:** High
 - **Likelihood:** Medium
-- **Why it matters:** anime and episodes must stay neutral; release media belongs on existing release-native seams, group media belongs on `fansub_group_media`, and `release_version_groups.fansub_group_id` remains the canonical group seam.
-- **Mitigation:** read `docs/architecture/db-schema-fansub-domain.md` first, treat `fansub_group_id` as runtime truth.
+- **Why it matters:** Das wurde heute bewusst mehrfach abgegrenzt. Ein Schnellschuss im Editor würde Media-Logik und Ownership wieder aufweichen.
+- **Mitigation:** Den bestehenden Media-Uploader als verpflichtende Grundlage festhalten und erst bei klarer Phasenentscheidung umsetzen.
 
-### 4. Bildunterstützung im Editor könnte versehentlich einen parallelen Upload-Flow erzeugen
-- **Impact:** High
+### 5. Der breite Worktree erhöht weiterhin Commit-/Push-Risiko
+- **Impact:** Medium
 - **Likelihood:** Medium
-- **Why it matters:** Wenn TipTap-Bilder später einen Sonderweg bekommen, drohen doppelte Asset-Logik, unklare Speicherorte und wieder falsche Domain-Anbindung.
-- **Mitigation:** Bildunterstützung erst beginnen, wenn klar ist, welche bestehende Media-/Upload-Strecke und welcher Speicherort wiederverwendet werden.
-
-### 5. Lokale Agenten-/Cache-/Temp-Dateien können versehentlich gestaged werden
-- **Impact:** Low
-- **Likelihood:** Medium
-- **Why it matters:** `.claude/`, `.cache/`, root `node_modules/`, `test-results/`, `tmp-*` und Debug-Dateien gehören nicht in die Produkt-Historie.
-- **Mitigation:** `.gitignore` wurde erweitert; trotzdem nur selektiv stagen und `git status --short` vor Commit/Push prüfen.
+- **Why it matters:** Neben den Produktänderungen liegen viele Planungsartefakte und untracked Dateien im Baum. Ein unbewusster Sammel-Commit kann unnötig laut werden.
+- **Mitigation:** Vor Commit noch einmal bewusst `git status --short` prüfen und nur sinnvolle Session-Artefakte mitnehmen.
 
 ## Current Blockers
-- No known runtime blockers.
-- Die letzte visuelle Politur vor dem globalen Rollout ist noch offen.
+- Kein harter Runtime-Blocker auf dem verifizierten Release-Media-Flow.
 - Cross-AI review unavailable locally.
+- Phase 42 bleibt absichtlich blockiert, bis Phase 43 bis 48 die notwendige Rollen-/User-Basis liefern.

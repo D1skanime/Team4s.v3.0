@@ -1,14 +1,14 @@
 # TOMORROW
 
 ## Top 3 Priorities
-1. Dem Editor den letzten visuellen Schliff geben: weniger Weiß, stärkere Hierarchie, ruhigere Toolbar.
-2. Danach den aktuellen Wrapper gegen alle weiteren `RichTextEditor`-Einsätze inventarisieren und den globalen Rollout planen.
-3. Anschließend die spätere Bildunterstützung so vorbereiten, dass sie denselben bestehenden Media-/Upload-Flow nutzt wie der Rest des Produkts.
+1. Den heutigen Test-Upload auf Release-Version 62 prüfen und entweder löschen oder bewusst als Testdaten stehen lassen.
+2. Entscheiden, ob vor Phase 43 noch ein letzter kleiner UI-Cleanup-Slice sinnvoll ist oder ob direkt in den Auth-/Rollen-Block gewechselt wird.
+3. Phase 42 weiter geparkt lassen und keine Collaboration-Arbeit beginnen, bevor Phase 43 bis 48 die User-/Rollen-Basis liefern.
 
 ## First 15-Minute Task
-- In [RichTextEditor.tsx](/C:/Users/admin/Documents/Team4s/frontend/src/components/editor/RichTextEditor.tsx:48) und [RichTextEditor.module.css](/C:/Users/admin/Documents/Team4s/frontend/src/components/editor/RichTextEditor.module.css:68) alle noch zu weißen Toolbar-/Flächenstellen identifizieren und daneben live auf `http://localhost:3000/admin/fansubs/88/edit` notieren, was zuerst dunkler, wärmer oder kontrastreicher werden soll.
+- Auf `http://localhost:3000/admin/episode-versions/62/edit?tab=media` den heute erzeugten Upload öffnen, die zugehörige Relation `#20` identifizieren und entscheiden, ob sie direkt wieder gelöscht werden soll.
 
 ## Dependencies To Unblock Early
-- Frontend dev server auf `http://localhost:3000` laufen lassen.
-- Work only from `C:\Users\admin\Documents\Team4s`.
-- Für die spätere Bildfunktion zuerst vorhandene Upload-/Media-Pfade im Produkt lesen, damit kein paralleler TipTap-Sonderweg entsteht.
+- `docker compose up -d team4sv30-db team4sv30-redis`
+- Falls der lokale Backend-Bypass gebraucht wird: prüfen, ob `http://localhost:8092/health` antwortet.
+- Für echte UI-UAT bevorzugt mit `3000` arbeiten; `3002` nur verwenden, wenn der Container nachweislich den frischen Stand zeigt.

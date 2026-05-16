@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { MoreHorizontal, Pencil, Trash2, Users } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 
 import {
   ApiError,
@@ -555,14 +555,6 @@ export default function AdminFansubsPage() {
                             >
                               <Pencil size={14} />
                             </Link>
-                            <Link
-                              href={`/admin/fansubs/${item.id}/members`}
-                              className={styles.fansubIconButton}
-                              aria-label={`Members ${item.name}`}
-                              title="Members"
-                            >
-                              <Users size={14} />
-                            </Link>
                             <button
                               type="button"
                               className={`${styles.fansubIconButton} ${styles.fansubIconButtonDanger}`}
@@ -624,10 +616,6 @@ export default function AdminFansubsPage() {
                             <Link href={`/admin/fansubs/${item.id}/edit`} className={styles.fansubMenuItem}>
                               <Pencil size={14} />
                               Edit
-                            </Link>
-                            <Link href={`/admin/fansubs/${item.id}/members`} className={styles.fansubMenuItem}>
-                              <Users size={14} />
-                              Members
                             </Link>
                             <button
                               type="button"

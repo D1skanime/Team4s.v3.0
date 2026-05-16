@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { useMemo, useState } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 import type {
@@ -16,6 +16,13 @@ import type { UploadQueueItem, UseReleaseVersionMediaResult } from './useRelease
 afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
+})
+
+beforeEach(() => {
+  vi.stubGlobal('URL', {
+    createObjectURL: vi.fn(() => 'blob:test-preview'),
+    revokeObjectURL: vi.fn(),
+  })
 })
 
 function makeItem(overrides: Partial<ReleaseVersionMediaItem> = {}): ReleaseVersionMediaItem {
@@ -188,6 +195,49 @@ describe('ReleaseVersionMediaSection', () => {
 
     expect(input).toHaveProperty('disabled', false)
     expect(screen.getByRole('button', { name: 'Upload starten' })).toHaveProperty('disabled', false)
+  })
+
+  it('accepts dropped files and shows local preview thumbnails before upload', () => {
+    renderSection(makeMediaState())
+
+    const previewFile = new File(['demo'], 'preview-ready.png', { type: 'image/png' })
+
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'screenshot' } })
+    fireEvent.drop(screen.getByRole('button', { name: /dateien hier hineinziehen oder klicken/i }), {
+      dataTransfer: {
+        files: [previewFile],
+      },
+      preventDefault: vi.fn(),
+    })
+
+    expect(screen.getByRole('button', { name: 'Upload starten' })).toHaveProperty('disabled', false)
+    expect(screen.getByAltText('Vorschau preview-ready.png')).not.toBeNull()
+  })
+
+  it('keeps existing selected files when more files are added later', () => {
+    renderSection(makeMediaState())
+
+    const firstFile = new File(['a'], 'first-preview.png', { type: 'image/png' })
+    const secondFile = new File(['b'], 'second-preview.png', { type: 'image/png' })
+
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'screenshot' } })
+
+    const input = screen.getByLabelText('Dateien')
+    fireEvent.change(input, {
+      target: {
+        files: [firstFile],
+      },
+    })
+
+    fireEvent.drop(screen.getByRole('button', { name: /dateien hier hineinziehen oder klicken/i }), {
+      dataTransfer: {
+        files: [secondFile],
+      },
+      preventDefault: vi.fn(),
+    })
+
+    expect(screen.getByAltText('Vorschau first-preview.png')).not.toBeNull()
+    expect(screen.getByAltText('Vorschau second-preview.png')).not.toBeNull()
   })
 
   it('shows the preview toggle for screenshot and hides it for fun_outtake', () => {

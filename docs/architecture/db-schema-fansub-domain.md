@@ -240,8 +240,6 @@ Wichtige Spalten:
 id bigint NOT NULL
 slug varchar(120) NOT NULL
 name varchar(120) NOT NULL
-description text
-history text
 logo_url text
 banner_url text
 founded_year integer
@@ -255,7 +253,6 @@ group_type varchar(20) NOT NULL
 logo_id bigint
 banner_id bigint
 closed_year integer
-history_description text
 ```
 
 Checks:
@@ -270,7 +267,7 @@ UI-Mapping:
 
 - Basic Information -> `fansub_groups`
 - Logo/Banner -> `logo_id`, `banner_id`
-- Historie/Kurzbeschreibung -> `description`, `history`, `history_description`
+- Gruppen-Metadaten -> `status`, `country`, `founded_year`, `dissolved_year`
 
 ---
 
@@ -719,9 +716,6 @@ country
 founded_year
 dissolved_year
 closed_year
-description
-history
-history_description
 website_url
 discord_url
 irc_url
@@ -792,14 +786,11 @@ fansub_releases.id
 
 ---
 
-## 4.4 Description / History
+## 4.4 Gruppen- und Kontexttexte
 
-Mögliche bestehende Anker:
+Aktive Anker nach dem Legacy-Cleanup:
 
 ```txt
-fansub_groups.description
-fansub_groups.history
-fansub_groups.history_description
 anime_fansub_groups.notes
 member_anime_notes
 member_episode_notes
@@ -807,7 +798,7 @@ member_episode_notes
 
 Wichtig:
 
-- Gruppentexte gehören zu `fansub_groups`.
+- Legacy-Gruppentexte in `fansub_groups.description/history/history_description` wurden entfernt.
 - Anime-Kontexttexte einer Gruppe sollten fachlich eher an `anime_fansub_groups` hängen als direkt an `anime`.
 - Release-/Rollenbeiträge passen eher zu `member_episode_notes`, da diese an `release_id`, `member_id` und `role_id` hängt.
 
@@ -1031,11 +1022,11 @@ Ziel:
 
 ---
 
-### Phase 6: Description / History
+### Phase 6: Gruppen- und Kontexttexte
 
 Ziel:
 
-- Datenmodell für Gruppen-, Anime-, Rollen- und Release-Texte klären.
+- Datenmodell für Anime-, Rollen- und Release-Texte klären.
 - UI mit Context Tree vorbereiten.
 
 ---

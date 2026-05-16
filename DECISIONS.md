@@ -1,5 +1,22 @@
 # DECISIONS
 
+## 2026-05-16 - Phase 42 Collaboration Stays Parked Until Phases 43 Through 48 Exist
+
+### Decision
+Do not actively continue Phase 42 (`tiptap collaboration mvp fuer fansub group notes`) before Phases 43 through 48 establish the real user, role, and membership foundation.
+
+### Why This Won
+The collaboration slice only makes sense when it can be verified with real user identities, roles, and multiple participants. Building it earlier would create a technically interesting but weakly testable branch of work.
+
+### Consequences
+- the next major workflow should move toward Phase 43 instead of reopening collaboration first
+- collaboration-specific testing should wait for real auth/permission context
+- Phase 42 remains documented, but is intentionally skipped in the short term
+
+### Follow-ups Required
+- revisit Phase 42 after the auth/roles/member phases are in place
+- keep handoff files explicit so future sessions do not restart Phase 42 too early
+
 ## 2026-05-13 - Rich-Text Editor Images Must Reuse The Existing Media Upload Flow
 
 ### Decision

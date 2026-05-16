@@ -557,8 +557,6 @@ types:
   FansubGroupCreateRequest:
     slug: string (required, min: 1, max: 120)
     name: string (required, min: 1, max: 120)
-    description: string | null
-    history: string | null
     logo_id: int64 | null
     banner_id: int64 | null
     logo_url: string | null
@@ -574,8 +572,6 @@ types:
   FansubGroupPatchRequest:
     slug: string (optional, min: 1, max: 120)
     name: string (optional, min: 1, max: 120)
-    description: string | null
-    history: string | null
     logo_id: int64 | null
     banner_id: int64 | null
     logo_url: string | null
@@ -641,8 +637,6 @@ types:
     id: int64
     slug: string
     name: string
-    description: string | null
-    history: string | null
     logo_id: int64 | null
     banner_id: int64 | null
     logo_url: string | null

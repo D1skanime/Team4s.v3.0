@@ -1,5 +1,6 @@
 import { EpisodeListItem } from '@/types/anime'
 import { FansubGroup } from '@/types/fansub'
+import { buildFansubStoryPreview as buildFansubStoryPreviewFromSummary } from '@/lib/fansub-summary'
 
 export function suggestNextEpisodeNumber(episodes: EpisodeListItem[]): string | null {
   const numeric = episodes
@@ -18,10 +19,5 @@ export function suggestNextEpisodeNumber(episodes: EpisodeListItem[]): string | 
 }
 
 export function buildFansubStoryPreview(group: FansubGroup): string {
-  const raw = (group.history || group.description || '').trim()
-  if (!raw) return 'Keine Historie hinterlegt.'
-  const normalized = raw.replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim()
-  const maxLength = 420
-  if (normalized.length <= maxLength) return normalized
-  return `${normalized.slice(0, maxLength).trimEnd()}...`
+  return buildFansubStoryPreviewFromSummary(group)
 }

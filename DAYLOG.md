@@ -1,5 +1,46 @@
 # DAYLOG
 
+## 2026-05-16
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: den neuen Fansub-/Release-Admin-Look weit durchziehen, die Release-Version-Media-Fläche funktional absichern, Phase 42 bewusst hinter die kommenden Auth-/Rollen-Phasen schieben, und den Tag mit belastbarer Live-Verifikation schließen
+
+### Workstreams Touched
+- Globalisierung und Ausweitung des modernen Editor-/Workspace-Looks auf Fansub-Admin und Episode-Version-Media
+- Reiter-/Layout-Bereinigung auf `/admin/fansubs/88/edit`
+- Entfernung der alten `Description / History`-Felder über UI, Backend, Contract und DB
+- Release-Version-Media-Upload-UX: Drag-and-drop, lokale Vorschaubilder, Multi-Upload-Verhalten
+- Live-UAT mit Playwright auf dem echten Release-Version-Media-Flow
+- Echter Persistenznachweis für Release-Version-Media bis in DB und Dateisystem
+- Repo-local handoff refresh + Push-Vorbereitung
+
+### Goals Intended vs Achieved
+- Intended: die heute noch alt wirkenden Admin-Flächen auf ein konsistenteres neues Niveau heben, den Bild-Upload nicht nur hübscher, sondern verlässlich machen, und entscheiden, was vor Phase 43 noch sinnvoll ist
+- Achieved: Fansub- und Release-Media-Admins sind deutlich moderner, der Multi-Upload-Bug ist behoben, lokale Bildvorschauen funktionieren, echte Persistenz wurde live belegt, und Phase 42 ist bewusst als spätere Arbeit hinter Phase 43 bis 48 eingeordnet
+
+### Problems Solved
+- Root cause: mehrere Fansub-Admin-Bereiche wirkten noch wie alte weiße Standardformulare mit zu viel Streufläche und zu kleinen Klickzonen
+- Fix: Reiter reduziert, `Tags / Aliase` und `Community-Links` in `Grunddaten` integriert, Karten/Drawer/Listen auf denselben moderneren Workspace-Look gezogen
+- Root cause: `Description / History` war ein fachlich überholter Restbereich und stand dem neuen TipTap-/Notizmodell im Weg
+- Fix: Felder komplett entfernt aus Frontend, Backend, Contracts und per neuer Migration `0071` aus der DB
+- Root cause: im Release-Version-Media-Upload ersetzte ein nachgezogenes zweites Bild die erste Auswahl, und vor dem Upload war kaum erkennbar, was wirklich hochgeladen würde
+- Fix: Dateiauswahl wird jetzt gemerged statt überschrieben, und lokale Thumbnail-Vorschauen zeigen alle ausgewählten Bilder schon vor dem Persistieren
+- Root cause: die heutige Produktfrage war nicht nur UI, sondern Vertrauen in echte Speicherung
+- Fix: Playwright-Live-UAT plus echter API-Upload gegen Release-Version 62, danach DB- und Dateisystem-Prüfung auf den neu erzeugten Asset-Pfad
+
+### Decisions
+- Phase 42 Collaboration bleibt bewusst geparkt, bis Phase 43 bis 48 echte User-/Rollen-/Mehrbenutzer-Basis liefern
+- TipTap-Bilder bleiben ein eigener späterer Slice und müssen den bestehenden Media-Uploader wiederverwenden
+- Vor Phase 43 sind nur noch kleine Cleanup-/Politur-Slices sinnvoll; kein neuer größerer Architekturblock
+
+### Blockers
+- Kein harter Runtime-Blocker auf dem verifizierten Media-Flow
+- `3002` war für Teile der visuellen Prüfung nicht verlässlich genug; `3000` plus lokales Backend war der ehrlichere Prüfstand
+- Ein echter Test-Upload auf Release-Version 62 ist jetzt vorhanden und muss bei Bedarf wieder entfernt werden
+
+### Next Step
+- Morgen den echten Test-Upload auf Release-Version 62 kurz prüfen und entscheiden, ob er wieder gelöscht wird; danach direkt den Weg in Phase 43 freihalten statt neue Vor-43-Nebenslices aufzublähen
+
 ## 2026-05-13
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`

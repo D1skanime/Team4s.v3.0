@@ -1,6 +1,6 @@
 'use client'
 
-import { ChangeEvent, DragEvent, useMemo, useState } from 'react'
+import { ChangeEvent, DragEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 
 import {
@@ -20,6 +20,18 @@ interface ReleaseVersionMediaSectionProps {
   fansubGroupName: string
   releaseVersionLabel: string
   mediaState?: UseReleaseVersionMediaResult
+}
+
+function fileKey(file: File): string {
+  return `${file.name}:${file.size}:${file.lastModified}`
+}
+
+function buildLocalPreviewURL(file: File): string | null {
+  if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+    return null
+  }
+
+  return URL.createObjectURL(file)
 }
 
 function statusLabel(item: UploadQueueItem): string {
@@ -70,6 +82,22 @@ export function ReleaseVersionMediaSection({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [isDragActive, setIsDragActive] = useState(false)
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const selectedFilePreviews = useMemo(
+    () => selectedFiles.map((file) => ({ file, previewURL: buildLocalPreviewURL(file) })),
+    [selectedFiles],
+  )
+
+  useEffect(() => {
+    return () => {
+      for (const preview of selectedFilePreviews) {
+        if (preview.previewURL && typeof URL !== 'undefined' && typeof URL.revokeObjectURL === 'function') {
+          URL.revokeObjectURL(preview.previewURL)
+        }
+      }
+    }
+  }, [selectedFilePreviews])
 
   const queueItems = useMemo<UploadQueueItem[]>(() => {
     if (media.uploadItems.length > 0) {
@@ -109,12 +137,37 @@ export function ReleaseVersionMediaSection({
   }
 
   function handleFiles(nextFiles: File[]) {
-    setSelectedFiles(nextFiles)
+    setSelectedFiles((current) => {
+      const merged = [...current]
+      const seen = new Set(current.map((file) => fileKey(file)))
+
+      for (const file of nextFiles) {
+        const key = fileKey(file)
+        if (seen.has(key)) continue
+        seen.add(key)
+        merged.push(file)
+      }
+
+      return merged
+    })
     media.clearUploadQueue()
   }
 
   function onFileChange(event: ChangeEvent<HTMLInputElement>) {
     handleFiles(Array.from(event.target.files ?? []))
+    event.target.value = ''
+  }
+
+  function openFilePicker() {
+    if (!canChooseFiles) return
+    fileInputRef.current?.click()
+  }
+
+  function onDropZoneKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      openFilePicker()
+    }
   }
 
   function onDrop(event: DragEvent<HTMLDivElement>) {
@@ -203,8 +256,18 @@ export function ReleaseVersionMediaSection({
             ]
               .filter(Boolean)
               .join(' ')}
+            role="button"
+            tabIndex={canChooseFiles ? 0 : -1}
+            aria-disabled={!canChooseFiles}
+            onClick={() => openFilePicker()}
+            onKeyDown={onDropZoneKeyDown}
+            onDragEnter={(event) => {
+              event.preventDefault()
+              if (canChooseFiles) setIsDragActive(true)
+            }}
             onDragOver={(event) => {
               event.preventDefault()
+              event.dataTransfer.dropEffect = 'copy'
               if (canChooseFiles) setIsDragActive(true)
             }}
             onDragLeave={(event) => {
@@ -213,20 +276,47 @@ export function ReleaseVersionMediaSection({
             }}
             onDrop={onDrop}
           >
-            <p className={styles.helper}>
-              Alle Dateien dieses Upload-Vorgangs landen in derselben Kategorie.
-            </p>
+            <div className={styles.dropZoneHeader}>
+              <p className={styles.helper}>
+                Alle Dateien dieses Upload-Vorgangs landen in derselben Kategorie.
+              </p>
+              <p className={styles.dropZoneCallout}>
+                Dateien hier hineinziehen oder klicken, um Bilder auszuwählen.
+              </p>
+            </div>
             <label className={styles.field}>
               <span>Dateien</span>
               <input
+                ref={fileInputRef}
                 className={styles.fileInput}
                 type="file"
                 multiple
                 accept="image/*"
                 disabled={!canChooseFiles}
                 onChange={onFileChange}
+                onClick={(event) => event.stopPropagation()}
               />
             </label>
+            {selectedFilePreviews.length > 0 ? (
+              <div className={styles.localPreviewGrid}>
+                {selectedFilePreviews.map(({ file, previewURL }) => (
+                  <figure key={`${file.name}-${file.size}-${file.lastModified}`} className={styles.localPreviewCard}>
+                    {previewURL ? (
+                      <img
+                        className={styles.localPreviewImage}
+                        src={previewURL}
+                        alt={`Vorschau ${file.name}`}
+                      />
+                    ) : (
+                      <div className={styles.localPreviewFallback} aria-label={`Vorschau ${file.name}`}>
+                        Keine Vorschau
+                      </div>
+                    )}
+                    <figcaption className={styles.localPreviewCaption}>{file.name}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className={styles.buttonRow}>

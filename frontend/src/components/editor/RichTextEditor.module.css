@@ -1,10 +1,25 @@
 .editorShell {
   display: flex;
   flex-direction: column;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 30%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 22%, var(--accent-primary) 12%);
   border-radius: var(--radius-md);
-  background: var(--bg-card);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-primary) 55%, var(--bg-card)),
+    color-mix(in srgb, var(--bg-card) 92%, var(--bg-primary))
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 58%, transparent),
+    0 12px 30px -24px rgba(15, 23, 42, 0.32);
   overflow: hidden;
+}
+
+.editorShell:focus-within {
+  border-color: color-mix(in srgb, var(--accent-primary) 42%, var(--text-secondary));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 58%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent),
+    0 14px 34px -24px rgba(15, 23, 42, 0.38);
 }
 
 .editorShellDisabled {
@@ -21,8 +36,12 @@
   align-items: center;
   gap: 2px;
   padding: 6px 8px;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 60%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 16%, var(--accent-primary) 12%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-primary) 22%, var(--bg-card)),
+    color-mix(in srgb, var(--bg-primary) 70%, var(--bg-card))
+  );
 }
 
 .toolbarBtn {
@@ -34,17 +53,19 @@
   padding: 0 6px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-primary);
+  background: color-mix(in srgb, var(--bg-card) 35%, transparent);
+  color: color-mix(in srgb, var(--text-primary) 88%, var(--text-secondary));
   font-size: 13px;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
+  transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.12s;
 }
 
 .toolbarBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: color-mix(in srgb, var(--accent-primary) 30%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-card));
+  border-color: color-mix(in srgb, var(--accent-primary) 32%, transparent);
+  color: var(--text-primary);
+  transform: translateY(-1px);
 }
 
 .toolbarBtn:disabled {
@@ -53,9 +74,9 @@
 }
 
 .toolbarBtnActive {
-  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
-  border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
-  color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 18%, var(--bg-card));
+  border-color: color-mix(in srgb, var(--accent-primary) 44%, transparent);
+  color: color-mix(in srgb, var(--accent-primary) 88%, var(--text-primary));
 }
 
 .toolbarSep {
@@ -89,7 +110,7 @@
   height: 18px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 72%, var(--bg-card));
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
@@ -134,9 +155,13 @@
   z-index: 20;
   width: min(280px, calc(100vw - 32px));
   padding: 10px;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, var(--accent-primary) 14%);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--bg-card) 96%, white 4%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-card) 96%, white 4%),
+    color-mix(in srgb, var(--bg-primary) 38%, var(--bg-card))
+  );
   box-shadow: 0 22px 44px -24px rgba(15, 23, 42, 0.45);
 }
 
@@ -178,9 +203,9 @@
   gap: 10px;
   width: 100%;
   padding: 9px 10px;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--bg-primary) 60%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 72%, var(--bg-card));
   color: var(--text-primary);
   cursor: pointer;
   text-align: left;
@@ -188,13 +213,13 @@
 }
 
 .colorSwatch:hover {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-  border-color: color-mix(in srgb, var(--accent-primary) 22%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-card));
+  border-color: color-mix(in srgb, var(--accent-primary) 26%, transparent);
 }
 
 .colorSwatchActive {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  border-color: color-mix(in srgb, var(--accent-primary) 34%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 14%, var(--bg-card));
+  border-color: color-mix(in srgb, var(--accent-primary) 38%, transparent);
 }
 
 .colorSwatchDot {
@@ -244,12 +269,19 @@
 .editorContent {
   padding: 12px 16px;
   overflow-y: auto;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-card) 96%, white 4%),
+      color-mix(in srgb, var(--bg-primary) 32%, var(--bg-card))
+    );
 }
 
 /* ProseMirror base reset */
 .editorContent :global(.ProseMirror) {
   outline: none;
   min-height: inherit;
+  color: var(--text-primary);
 }
 
 .editorContent :global(.ProseMirror p) {
@@ -281,6 +313,7 @@
   border-left: 3px solid color-mix(in srgb, var(--accent-primary) 50%, transparent);
   margin: 0 0 0.75em;
   padding: 6px 12px;
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
   color: var(--text-secondary);
   font-style: italic;
 }
@@ -307,7 +340,7 @@
 }
 
 .editorContent :global(.ProseMirror th) {
-  background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 88%, var(--bg-card));
   font-weight: 600;
 }
 
@@ -328,6 +361,7 @@
   font-size: 0.85rem;
   color: var(--text-secondary);
   border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 72%, var(--bg-card));
 }
 
 .shortnoteHint {
@@ -336,5 +370,5 @@
   font-size: 0.85rem;
   color: var(--text-secondary);
   border-top: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
-  background: color-mix(in srgb, var(--bg-primary) 40%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 72%, var(--bg-card));
 }

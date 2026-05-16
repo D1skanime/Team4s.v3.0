@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Save } from 'lucide-react'
+import { ChevronDown, ChevronRight, Save } from 'lucide-react'
 
 import { RichTextEditor } from '@/components/editor'
 import {
@@ -13,9 +13,10 @@ import {
 import type { AnimeFansubProjectNote, UpsertAnimeFansubProjectNoteRequest } from '@/types/fansubNotes'
 
 import sharedStyles from '../../../admin.module.css'
+import editorScaffoldStyles from '../../../../../components/editor/EditorScaffold.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
 
-const styles = { ...sharedStyles, ...fansubEditStyles }
+const styles = { ...sharedStyles, ...fansubEditStyles, ...editorScaffoldStyles }
 
 const ANIME_PROJECT_NOTE_PLACEHOLDER = `Beschreibe hier das Fansubprojekt dieser Gruppe zu diesem Anime.
 Mögliche Fragen als Hilfe: Wie war dieses Fansubprojekt? Warum hat die Gruppe diesen Anime gemacht?
@@ -158,19 +159,19 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
   }
 
   return (
-    <section className={styles.fansubEditorCard}>
-      <div className={styles.fansubEditorCardHeader}>
-        <div className={styles.fansubEditorCardHeading}>
-          <p className={styles.fansubEditorEyebrow}>Anime-Projekttext</p>
-          <h3 className={styles.fansubEditorTitle}>{form.title.trim() || anime.title}</h3>
+    <section className={styles.editorCard}>
+      <div className={styles.editorCardHeader}>
+        <div className={styles.editorCardHeading}>
+          <p className={styles.editorEyebrow}>Anime-Projekttext</p>
+          <h3 className={styles.editorTitle}>{form.title.trim() || anime.title}</h3>
         </div>
-        <div className={styles.fansubEditorBadgeRow}>
-          <span className={styles.fansubEditorBadge}>{noteVisibilityLabel(form.visibility)}</span>
-          <span className={styles.fansubEditorBadge}>{noteStatusLabel(form.status)}</span>
+        <div className={styles.editorBadgeRow}>
+          <span className={styles.editorBadge}>{noteVisibilityLabel(form.visibility)}</span>
+          <span className={styles.editorBadge}>{noteStatusLabel(form.status)}</span>
         </div>
       </div>
 
-      <div className={styles.fansubEditorMain}>
+      <div className={styles.editorMain}>
         <div className={styles.field}>
           <label htmlFor={`note-title-${anime.id}`}>Titel <span className={styles.fansubEditHint}>(optional)</span></label>
           <input
@@ -184,7 +185,7 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
 
         <div className={styles.field}>
           <label htmlFor={`note-body-${anime.id}`}>Projekttext</label>
-          <div className={styles.fansubEditorSurface}>
+          <div className={styles.editorSurface}>
             <RichTextEditor
               value={ensureRichTextValue(form.bodyJson)}
               onChange={(next) => setForm((current) => ({ ...current, bodyJson: next }))}
@@ -196,15 +197,15 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
         </div>
       </div>
 
-      <div className={styles.fansubEditorMetaCard}>
-        <div className={styles.fansubEditorMetaHeader}>
+      <div className={styles.editorMetaCard}>
+        <div className={styles.editorMetaHeader}>
           <div>
             <p className={styles.fansubEditorEyebrow}>Optionen</p>
             <h4 className={styles.fansubEditorMetaTitle}>Steuerung für Sichtbarkeit und Status</h4>
           </div>
         </div>
 
-        <div className={styles.fansubEditorMetaGrid}>
+        <div className={styles.editorMetaGrid}>
           <div className={styles.field}>
             <label htmlFor={`note-visibility-${anime.id}`}>Sichtbarkeit</label>
             <select
@@ -237,7 +238,7 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
       {saveSuccess ? <div className={styles.fansubEditSaveSuccess}>Projekttext gespeichert.</div> : null}
       {noteId !== null ? <p className={styles.fansubEditHint}>Gespeicherter Eintrag (ID: {noteId})</p> : null}
 
-      <div className={styles.fansubEditorActionBar}>
+      <div className={styles.editorActionBar}>
         <button
           type="button"
           className={styles.button}
@@ -311,20 +312,29 @@ function AnimeProjectNotesSectionBody({
               const expanded = expandedAnimeIds.has(anime.id)
               return (
                 <article key={anime.id} className={styles.fansubEditAnimeProjectNotesCard}>
-                  <div className={styles.fansubEditAnimeProjectNotesCardHeader}>
-                    <h3 className={styles.fansubEditAnimeProjectNotesTitle}>
-                      Projekttext für {anime.title}
-                    </h3>
-                    <button
-                      type="button"
-                      className={styles.fansubEditAnimeToggle}
-                      onClick={() => toggleAnime(anime.id)}
-                      aria-expanded={expanded}
-                      aria-label={expanded ? `${anime.title} einklappen` : `${anime.title} ausklappen`}
-                    >
-                      {expanded ? '▲' : '▼'}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    className={styles.fansubEditAnimeProjectNotesHeaderButton}
+                    onClick={() => toggleAnime(anime.id)}
+                    aria-expanded={expanded}
+                    aria-label={expanded ? `${anime.title} einklappen` : `${anime.title} ausklappen`}
+                  >
+                    <div className={styles.fansubEditAnimeProjectNotesBody}>
+                      <p className={styles.fansubEditAnimeProjectNotesEyebrow}>Anime-Projekttext</p>
+                      <h3 className={styles.fansubEditAnimeProjectNotesTitle}>
+                        Projekttext für {anime.title}
+                      </h3>
+                      <p className={styles.fansubEditAnimeProjectNotesHint}>
+                        Eintrag öffnen, um den Projekttext, Status und die Sichtbarkeit für diesen Anime zu pflegen.
+                      </p>
+                    </div>
+                    <div className={styles.fansubEditAnimeProjectNotesMeta}>
+                      <span>1 Editor</span>
+                      <span className={styles.fansubEditAnimeToggle} aria-hidden="true">
+                        {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                      </span>
+                    </div>
+                  </button>
                   {expanded ? (
                     <div className={styles.fansubEditAnimeProjectNotesCardBody}>
                       <AnimeProjectNoteForm

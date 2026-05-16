@@ -1,23 +1,26 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Der gemeinsame TipTap-Stand ist funktional brauchbar; die aktuelle Front liegt bei UX-/Design-Politur und anschließendem globalem Rollout.
-- Die Fansub-Edit-Seite dient gerade als bewusst lokaler Proving Ground, bevor derselbe Wrapper überall aktiviert wird.
+- Praktisch lief heute ein breiter Follow-through-Slice über Fansub-Admin, Release-Version-Media und die Vorbereitung des nächsten Roadmap-Blocks.
+- Phase 41 ist dokumentarisch weitgehend saubergezogen; Phase 42 wurde bewusst hinter Phase 43 bis 48 geschoben.
 
 ## Useful Facts To Keep
-- `docs/architecture/db-schema-fansub-domain.md` is the first domain-reference stop for fansub/anime/release persistence questions.
-- `release_version_groups.fansub_group_id` is the canonical runtime group column; `fansubgroup_id` is legacy cleanup territory only.
-- Anime and episodes stay neutral; release/process media must not get attached directly to those neutral entities.
-- `http://localhost:3000/admin/fansubs/88/edit` ist die aktuelle Live-Oberfläche für die Editor-Politur; `3002` kann einen älteren Stand zeigen.
-- Die Fansub-Notizflächen haben lokale Card-Wrapper, Badges, Optionsblock und Preview-nach-Save bekommen.
-- Der gemeinsame `RichTextEditor` hat global bereits die bessere Farbpalette und verständliche Tabellenaktionen.
-- Die erklärte Hilfszeile im Optionsblock wurde wieder entfernt; fachfremder UI-Erklärtext soll nicht im Produkt stehen.
-- Der Nutzer will morgen noch eine Runde gegen den „zu weiß / langweilig“-Eindruck gehen und danach den globalen Rollout.
-- Spätere Bildunterstützung im Editor soll denselben globalen Media-/Upload-Flow verwenden wie der Rest des Produkts.
-- Lokale Agenten-/Cache-/Temp-Artefakte sollten über selektives Staging draußen bleiben.
+- `http://localhost:3000` war heute der verlässlichste Frontend-Stand für UAT.
+- Für Live-Prüfung des Release-Version-Media-Flows lief zusätzlich ein lokales Backend auf `:8092` mit Bypass-Kontext.
+- Playwright funktioniert auf diesem Windows-Host zuverlässig mit installiertem `msedge`, nicht mit dem standardmäßigen gebündelten Chromium.
+- Der verifizierte Test-Upload landete hier:
+  - `release_version_media.id = 20`
+  - `media_assets.id = 112`
+  - Pfad: `C:\Users\admin\Documents\Team4s\media\release-version\62\5cc20f1f-9d27-4e73-b0a5-4dd9f15c5489\`
+- Die Media-API für Release-Versionen nutzt weiter sauber die bestehende Kette:
+  - `media_assets`
+  - `media_files`
+  - `release_version_media`
+- `Tags / Aliase` und `Community-Links` sind jetzt Teil von `Grunddaten`; die alten Extra-Reiter dafür sind nicht mehr die Zielstruktur.
+- `Description / History` ist fachlich entfernt und soll nicht wieder auftauchen.
+- TipTap-Bilder bleiben ein später eigener Slice und sollen erst lokal/temporär im Editor leben, dann beim Speichern durch den bestehenden Uploader gehen.
 
 ## Verification Memory
-- 2026-05-13: Farbpalette live auf `/admin/fansubs/88/edit` ausprobiert und als deutlich benutzbarer bestätigt.
-- 2026-05-13: Nach `Speichern` klappt die Gruppennotiz in die Lesekarte zurück.
-- 2026-05-13: Tabellenaktionen im Editor live geprüft; zusätzliche Spalten/Zeilen funktionieren.
-- 2026-05-13: `vitest` grün für `NotesTab`, `AnimeProjectNotesSection` und `RichTextEditor`.
+- 2026-05-16: Playwright-Live-UAT bestätigt `previewCount = 2` nach Auswahl + Drop im Release-Media-Tab.
+- 2026-05-16: echter Upload via API liefert `status=ready`, `media_asset_id=112`, `release_version_media_id=20`.
+- 2026-05-16: List-API liefert `thumbnail_url` und `original_url` für denselben Upload zurück.

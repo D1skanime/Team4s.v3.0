@@ -35,14 +35,10 @@ type FansubFilter struct {
 }
 
 // FansubGroup enthaelt alle Detailfelder einer Fansub-Gruppe.
-// closed_year und history_description bleiben nur als Kompatibilitaetsfelder lesbar.
 type FansubGroup struct {
 	ID                   int64                `json:"id"`
 	Slug                 string               `json:"slug"`
 	Name                 string               `json:"name"`
-	Description          *string              `json:"description,omitempty"`
-	History              *string              `json:"history,omitempty"`
-	HistoryDescription   *string              `json:"history_description,omitempty"`
 	LogoID               *int64               `json:"logo_id,omitempty"`
 	BannerID             *int64               `json:"banner_id,omitempty"`
 	LogoURL              *string              `json:"logo_url,omitempty"`
@@ -132,8 +128,6 @@ type AnimeFansubAliasCandidate struct {
 type FansubGroupCreateInput struct {
 	Slug          string
 	Name          string
-	Description   *string
-	History       *string
 	LogoID        *int64
 	BannerID      *int64
 	LogoURL       *string
@@ -152,8 +146,6 @@ type FansubGroupCreateInput struct {
 type FansubGroupPatchInput struct {
 	Slug          OptionalString `json:"slug"`
 	Name          OptionalString `json:"name"`
-	Description   OptionalString `json:"description"`
-	History       OptionalString `json:"history"`
 	LogoID        OptionalInt64  `json:"logo_id"`
 	BannerID      OptionalInt64  `json:"banner_id"`
 	LogoURL       OptionalString `json:"logo_url"`

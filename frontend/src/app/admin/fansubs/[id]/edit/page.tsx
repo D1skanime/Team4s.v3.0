@@ -4,10 +4,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { Bold, ChevronDown, ChevronRight, ExternalLink, Heading1, Heading2, Italic, Link2, List, Plus, Save, Trash2, Users, X } from 'lucide-react'
+import { ChevronDown, ChevronRight, ExternalLink, Plus, Save, Trash2, X } from 'lucide-react'
 
 import {
-  addCollaborationMember,
   ApiError,
   createFansubAlias,
   createFansubLink,
@@ -21,19 +20,16 @@ import {
   getAdminAnimeThemeSegments,
   getAdminRelease,
   getAdminReleaseThemeAssets,
-  getCollaborationMembers,
   getFansubAliases,
   getFansubByID,
   getFansubList,
   getRuntimeAuthToken,
   resolveApiUrl,
-  removeCollaborationMember,
   updateFansubGroup,
   updateFansubLink,
   uploadAdminReleaseThemeAssetForRelease,
 } from '@/lib/api'
 import {
-  CollaborationMember,
   FansubAlias,
   FansubGroup,
   FansubGroupLink,
@@ -54,15 +50,12 @@ import fansubEditStyles from './FansubEdit.module.css'
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
 const STATUS_OPTIONS: FansubStatus[] = ['active', 'inactive', 'dissolved']
-const GROUP_TYPE_OPTIONS: FansubGroupType[] = ['group', 'collaboration']
 const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = ['website', 'discord', 'twitter', 'github', 'irc']
 const YEAR_MIN = 1900
 const YEAR_MAX = 2100
-const MARKDOWN_SOFT_LIMIT = 8000
 const URL_PROTOCOLS = new Set(['http:', 'https:', 'irc:', 'ircs:'])
 
-type Tab = 'description' | 'history'
-type SectionKey = 'basic' | 'tags' | 'content' | 'media' | 'links' | 'collaboration' | 'releases' | 'anime-projekte' | 'notes'
+type SectionKey = 'basic' | 'media' | 'links' | 'collaboration' | 'releases' | 'anime-projekte' | 'notes'
 type MainTab = SectionKey
 type FormState = {
   name: string
@@ -72,8 +65,6 @@ type FormState = {
   country: string
   foundedYear: string
   dissolvedYear: string
-  description: string
-  history: string
 }
 
 type CommunityLinkDraft = {
@@ -107,7 +98,7 @@ type SelectedReleaseSegment = {
   card: ReleaseSegmentCard
 }
 
-type ReleaseDrawerTab = 'details' | 'media' | 'roles' | 'versions' | 'history'
+type ReleaseDrawerTab = 'details' | 'media'
 
 type ReleaseDrawerContext = {
   release: AdminFansubRelease
@@ -116,17 +107,30 @@ type ReleaseDrawerContext = {
   contextKey: string
 }
 
+type BannerEdgeFills = {
+  left: string
+  right: string
+}
+
+type BannerSideWidths = {
+  left: number
+  right: number
+}
+
 const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
-  { key: 'basic', label: 'Basic Information' },
-  { key: 'tags', label: 'Tags / Aliases' },
-  { key: 'content', label: 'Description / History' },
-  { key: 'media', label: 'Media' },
-  { key: 'links', label: 'Community Links' },
-  { key: 'collaboration', label: 'Collaboration Members' },
-  { key: 'releases', label: 'Anime & Releases' },
-  { key: 'anime-projekte', label: 'Anime-Projekte' },
+  { key: 'basic', label: 'Grunddaten' },
   { key: 'notes', label: 'Notizen' },
+  { key: 'media', label: 'Medien' },
+  { key: 'collaboration', label: 'Mitglieder' },
+  { key: 'releases', label: 'Anime & Veröffentlichungen' },
+  { key: 'anime-projekte', label: 'Anime-Projekte' },
 ]
+
+const STATUS_LABELS: Record<FansubStatus, string> = {
+  active: 'aktiv',
+  inactive: 'inaktiv',
+  dissolved: 'aufgelöst',
+}
 
 function slugify(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+/, '').replace(/-+$/, '')
@@ -286,8 +290,6 @@ function mapGroupToForm(group: FansubGroup): FormState {
     country: group.country || '',
     foundedYear: group.founded_year ? String(group.founded_year) : '',
     dissolvedYear: group.dissolved_year ? String(group.dissolved_year) : '',
-    description: group.description || '',
-    history: group.history || '',
   }
 }
 
@@ -337,8 +339,6 @@ function formToPayload(form: FormState, logo: EditableMediaValue | null, banner:
     banner_id: banner?.id ?? null,
     logo_url: logo?.publicURL?.trim() ? logo.publicURL.trim() : null,
     banner_url: banner?.publicURL?.trim() ? banner.publicURL.trim() : null,
-    description: toOptional(form.description),
-    history: toOptional(form.history),
   }
 }
 
@@ -351,13 +351,44 @@ function emptyForm(): FormState {
     country: '',
     foundedYear: '',
     dissolvedYear: '',
-    description: '',
-    history: '',
   }
 }
 
 function createEmptyLink(): CommunityLinkDraft {
   return { key: `${Date.now()}-${Math.random().toString(16).slice(2)}`, id: null, link_type: 'website', name: '', url: '' }
+}
+
+function labelForFansubStatus(status: FansubStatus): string {
+  return STATUS_LABELS[status] || status
+}
+
+function createBannerEdgeFillDataURL(image: HTMLImageElement, side: 'left' | 'right'): string {
+  const sourceWidth = image.naturalWidth || image.width || 1
+  const sourceHeight = image.naturalHeight || image.height || 1
+  const sampleWidth = Math.max(1, Math.min(3, sourceWidth))
+  const sourceX = side === 'left' ? 0 : Math.max(0, sourceWidth - sampleWidth)
+  const canvas = document.createElement('canvas')
+  canvas.width = sampleWidth
+  canvas.height = sourceHeight
+  const context = canvas.getContext('2d')
+  if (!context) return ''
+  context.drawImage(image, sourceX, 0, sampleWidth, sourceHeight, 0, 0, sampleWidth, sourceHeight)
+  return canvas.toDataURL('image/png')
+}
+
+async function loadBannerEdgeFills(imageURL: string): Promise<BannerEdgeFills | null> {
+  if (!imageURL.trim()) return null
+  return await new Promise<BannerEdgeFills | null>((resolve) => {
+    const image = new window.Image()
+    image.crossOrigin = 'anonymous'
+    image.onload = () =>
+      resolve({
+        left: createBannerEdgeFillDataURL(image, 'left'),
+        right: createBannerEdgeFillDataURL(image, 'right'),
+      })
+    image.onerror = () => resolve(null)
+    image.src = imageURL
+  })
 }
 
 function errMessage(error: unknown): string {
@@ -502,17 +533,12 @@ export default function AdminFansubEditPage() {
   const [aliasError, setAliasError] = useState<string | null>(null)
   const [links, setLinks] = useState<CommunityLinkDraft[]>([])
   const [initialLinks, setInitialLinks] = useState<CommunityLinkDraft[]>([])
-  const [collaborationMembers, setCollaborationMembers] = useState<CollaborationMember[]>([])
   const [releaseGroups, setReleaseGroups] = useState<FansubReleaseGroup[]>([])
   const [releaseGroupsLoading, setReleaseGroupsLoading] = useState(false)
   const [releaseGroupsError, setReleaseGroupsError] = useState<string | null>(null)
   const [releasesByAnimeFansubGroupId, setReleasesByAnimeFansubGroupId] = useState<Record<string, AdminFansubRelease[]>>({})
   const [releasesLoadingByAnimeFansubGroupId, setReleasesLoadingByAnimeFansubGroupId] = useState<Record<string, boolean>>({})
   const [releasesErrorsByAnimeFansubGroupId, setReleasesErrorsByAnimeFansubGroupId] = useState<Record<string, string | null>>({})
-  const [candidateGroups, setCandidateGroups] = useState<FansubGroup[]>([])
-  const [selectedMemberGroupID, setSelectedMemberGroupID] = useState('')
-  const [collaborationBusy, setCollaborationBusy] = useState(false)
-  const [activeTab, setActiveTab] = useState<Tab>('description')
   const [activeMainTab, setActiveMainTab] = useState<MainTab>('basic')
   const [expandedAnimeKeys, setExpandedAnimeKeys] = useState<Set<string>>(() => new Set())
   const [expandedReleaseIds, setExpandedReleaseIds] = useState<Set<number>>(() => new Set())
@@ -537,8 +563,6 @@ export default function AdminFansubEditPage() {
   const [isMobile, setIsMobile] = useState(false)
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
     basic: true,
-    tags: true,
-    content: true,
     media: true,
     links: true,
     collaboration: true,
@@ -552,6 +576,8 @@ export default function AdminFansubEditPage() {
   const [aliasBusy, setAliasBusy] = useState(false)
   const [logoMedia, setLogoMedia] = useState<EditableMediaValue | null>(null)
   const [bannerMedia, setBannerMedia] = useState<EditableMediaValue | null>(null)
+  const [bannerEdgeFills, setBannerEdgeFills] = useState<BannerEdgeFills | null>(null)
+  const [bannerSideWidths, setBannerSideWidths] = useState<BannerSideWidths>({ left: 0, right: 0 })
   const [initialLogoMedia, setInitialLogoMedia] = useState<EditableMediaValue | null>(null)
   const [initialBannerMedia, setInitialBannerMedia] = useState<EditableMediaValue | null>(null)
   const [mediaBusy, setMediaBusy] = useState<Record<'logo' | 'banner', boolean>>({ logo: false, banner: false })
@@ -559,7 +585,8 @@ export default function AdminFansubEditPage() {
   const [slugChecking, setSlugChecking] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const markdownRef = useRef<HTMLTextAreaElement | null>(null)
+  const bannerShellRef = useRef<HTMLDivElement | null>(null)
+  const bannerImageRef = useRef<HTMLImageElement | null>(null)
   const themeUploadInputRef = useRef<HTMLInputElement | null>(null)
   const releaseRequestSeqRef = useRef(0)
   const releaseRequestByContextRef = useRef<Record<string, number>>({})
@@ -623,8 +650,8 @@ export default function AdminFansubEditPage() {
     }
     let active = true
     setLoading(true)
-    Promise.all([getFansubByID(fansubID), getFansubAliases(fansubID), getFansubList({ per_page: 500 })])
-      .then(async ([groupResponse, aliasResponse, listResponse]) => {
+    Promise.all([getFansubByID(fansubID), getFansubAliases(fansubID)])
+      .then(([groupResponse, aliasResponse]) => {
         if (!active) return
         const nextGroup = groupResponse.data
         const nextForm = mapGroupToForm(nextGroup)
@@ -641,14 +668,6 @@ export default function AdminFansubEditPage() {
         setInitialBannerMedia(nextMedia.banner)
         setManualSlug(nextForm.slug !== slugify(nextForm.name))
         setAliases(aliasResponse.data)
-        setCandidateGroups(listResponse.data.filter((item) => item.id !== fansubID && item.group_type === 'group'))
-        if (nextGroup.group_type === 'collaboration') {
-          const members = await getCollaborationMembers(fansubID, authToken)
-          if (!active) return
-          setCollaborationMembers(members.data)
-        } else {
-          setCollaborationMembers([])
-        }
       })
       .catch((nextError) => {
         if (active) setError(errMessage(nextError))
@@ -761,9 +780,9 @@ export default function AdminFansubEditPage() {
   const nameError = form.name.trim().length === 0 ? 'Name ist erforderlich.' : form.name.trim().length < 2 ? 'Mindestens 2 Zeichen.' : null
   const slugValue = form.slug.trim()
   const slugFormatError = slugValue.length === 0 ? 'Slug ist erforderlich.' : !isValidSlug(slugValue) ? 'Slug muss lowercase kebab-case sein.' : null
-  const foundedError = Number.isNaN(years.founded) ? 'Founded Year muss eine Zahl sein.' : years.founded !== null && (years.founded < YEAR_MIN || years.founded > YEAR_MAX) ? `Founded Year muss zwischen ${YEAR_MIN} und ${YEAR_MAX} liegen.` : null
-  const dissolvedError = Number.isNaN(years.dissolved) ? 'Dissolved Year muss eine Zahl sein.' : years.dissolved !== null && (years.dissolved < YEAR_MIN || years.dissolved > YEAR_MAX) ? `Dissolved Year muss zwischen ${YEAR_MIN} und ${YEAR_MAX} liegen.` : null
-  const dissolvedAfterFoundedError = years.founded !== null && years.dissolved !== null && years.dissolved < years.founded ? 'Dissolved Year muss groesser oder gleich Founded Year sein.' : null
+  const foundedError = Number.isNaN(years.founded) ? 'Gründungsjahr muss eine Zahl sein.' : years.founded !== null && (years.founded < YEAR_MIN || years.founded > YEAR_MAX) ? `Gründungsjahr muss zwischen ${YEAR_MIN} und ${YEAR_MAX} liegen.` : null
+  const dissolvedError = Number.isNaN(years.dissolved) ? 'Auflösungsjahr muss eine Zahl sein.' : years.dissolved !== null && (years.dissolved < YEAR_MIN || years.dissolved > YEAR_MAX) ? `Auflösungsjahr muss zwischen ${YEAR_MIN} und ${YEAR_MAX} liegen.` : null
+  const dissolvedAfterFoundedError = years.founded !== null && years.dissolved !== null && years.dissolved < years.founded ? 'Auflösungsjahr muss größer oder gleich dem Gründungsjahr sein.' : null
   const linkErrors = links.map((link) => link.url.trim().length > 0 && !isAbsoluteURL(link.url) ? 'Bitte absolute URL mit Protokoll verwenden.' : null)
   const anyMediaBusy = mediaBusy.logo || mediaBusy.banner
   const invalid = !authToken || Boolean(nameError) || Boolean(slugFormatError) || slugConflict || Boolean(foundedError) || Boolean(dissolvedError) || Boolean(dissolvedAfterFoundedError) || linkErrors.some(Boolean) || slugChecking || anyMediaBusy
@@ -772,9 +791,6 @@ export default function AdminFansubEditPage() {
     if (!isMobile) return
     setOpenSections((current) => ({ ...current, [section]: open }))
   }
-
-  const canManageCollaborationMembers = group?.group_type === 'collaboration'
-  const collaborationCandidates = candidateGroups.filter((candidate) => !collaborationMembers.some((member) => member.member_group_id === candidate.id))
 
   const clearThemeUploadInput = () => {
     if (themeUploadInputRef.current) {
@@ -1110,12 +1126,6 @@ export default function AdminFansubEditPage() {
       setInitialLogoMedia(nextMedia.logo)
       setInitialBannerMedia(nextMedia.banner)
       setManualSlug(next.slug !== slugify(next.name))
-      if (response.data.group_type === 'collaboration') {
-        const members = await getCollaborationMembers(fansubID, authToken)
-        setCollaborationMembers(members.data)
-      } else {
-        setCollaborationMembers([])
-      }
       setToast('Änderungen gespeichert.')
     } catch (nextError) {
       setError(errMessage(nextError))
@@ -1137,52 +1147,66 @@ export default function AdminFansubEditPage() {
     }
   }
 
-  const addMemberGroup = async () => {
-    if (!authToken || !selectedMemberGroupID || !canManageCollaborationMembers) return
-    setCollaborationBusy(true)
-    try {
-      const response = await addCollaborationMember(fansubID, { member_group_id: Number(selectedMemberGroupID) }, authToken)
-      setCollaborationMembers((current) => [...current, response.data].sort((a, b) => (a.member_group?.name || '').localeCompare(b.member_group?.name || '', 'de')))
-      setSelectedMemberGroupID('')
-      setToast('Mitgliedsgruppe hinzugefuegt.')
-    } catch (nextError) {
-      setError(errMessage(nextError))
-    } finally {
-      setCollaborationBusy(false)
-    }
-  }
-
-  const removeMemberGroup = async (memberGroupID: number) => {
-    if (!authToken || !canManageCollaborationMembers) return
-    setCollaborationBusy(true)
-    try {
-      await removeCollaborationMember(fansubID, memberGroupID, authToken)
-      setCollaborationMembers((current) => current.filter((item) => item.member_group_id !== memberGroupID))
-      setToast('Mitgliedsgruppe entfernt.')
-    } catch (nextError) {
-      setError(errMessage(nextError))
-    } finally {
-      setCollaborationBusy(false)
-    }
-  }
-
-  const markdownValue = activeTab === 'description' ? form.description : form.history
-  const insertMarkdown = (prefix: string, suffix = '') => {
-    const textarea = markdownRef.current
-    if (!textarea) return
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selection = markdownValue.slice(start, end) || 'Text'
-    const replacement = `${prefix}${selection}${suffix}`
-    const next = markdownValue.slice(0, start) + replacement + markdownValue.slice(end)
-    setForm((current) => ({ ...current, ...(activeTab === 'description' ? { description: next } : { history: next }) }))
-  }
-
-  if (loading) return <main className={styles.page}><section className={styles.panel}><p>Lade...</p></section></main>
-
   const logoFallback = buildFansubLogoFallback(form.name)
   const bannerPreviewURL = buildMediaPreviewURL(bannerMedia)
   const logoPreviewURL = buildMediaPreviewURL(logoMedia)
+
+  useEffect(() => {
+    let active = true
+    if (!bannerPreviewURL) {
+      setBannerEdgeFills(null)
+      return () => {
+        active = false
+      }
+    }
+
+    void loadBannerEdgeFills(bannerPreviewURL).then((fills) => {
+      if (!active) return
+      setBannerEdgeFills(fills)
+    })
+
+    return () => {
+      active = false
+    }
+  }, [bannerPreviewURL])
+
+  useEffect(() => {
+    const shell = bannerShellRef.current
+    const image = bannerImageRef.current
+    if (!shell || !image) {
+      setBannerSideWidths({ left: 0, right: 0 })
+      return
+    }
+
+    const measure = () => {
+      const shellRect = shell.getBoundingClientRect()
+      const imageRect = image.getBoundingClientRect()
+      const left = Math.max(0, Math.round(imageRect.left - shellRect.left) + 8)
+      const right = Math.max(0, Math.round(shellRect.right - imageRect.right) + 8)
+      setBannerSideWidths((current) => (current.left === left && current.right === right ? current : { left, right }))
+    }
+
+    measure()
+
+    const resizeObserver = new ResizeObserver(() => measure())
+    resizeObserver.observe(shell)
+    resizeObserver.observe(image)
+    window.addEventListener('resize', measure)
+
+    if (!image.complete) {
+      image.addEventListener('load', measure)
+    }
+
+    return () => {
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', measure)
+      image.removeEventListener('load', measure)
+    }
+  }, [bannerPreviewURL])
+
+  if (loading) return <main className={styles.page}><section className={styles.panel}><p>Lade...</p></section></main>
+
+  const showBannerSideFills = bannerSideWidths.left > 12 || bannerSideWidths.right > 12
   const themeSelectedCard = selectedReleaseSegment?.card ?? null
   const themeSelectedLocked = themeSelectedCard ? themeSelectedCard.status === 'global' || isJellyfinLocked(themeSelectedCard) : false
   const drawerReleaseCards = drawerRelease ? releaseSegmentCards[drawerRelease.release_id] ?? [] : []
@@ -1195,12 +1219,12 @@ export default function AdminFansubEditPage() {
       ? 'Theme-Assets vorhanden'
       : 'Keine Theme-Assets'
   const themePrimarySegment = themeSelectedCard?.segments[0] ?? null
+  const tabUsesLeftWorkspace = activeMainTab === 'basic'
+  const tabUsesRightWorkspace = activeMainTab === 'media' || activeMainTab === 'links' || activeMainTab === 'collaboration'
+  const fansubEditColumnsClassName = `${styles.fansubEditColumns}${tabUsesLeftWorkspace ? ` ${styles.fansubEditColumnsSingleLeft}` : ''}${tabUsesRightWorkspace ? ` ${styles.fansubEditColumnsSingleRight}` : ''}`
   const releaseDrawerTabs = drawerRelease ? [
     { key: 'details' as const, label: 'Details', disabled: false },
     { key: 'media' as const, label: 'Media', disabled: false },
-    { key: 'roles' as const, label: 'Mitglieder & Rollen', disabled: true },
-    { key: 'versions' as const, label: `Versionen (${drawerRelease.version_count})`, disabled: true },
-    { key: 'history' as const, label: 'Historie', disabled: true },
   ] : []
 
   return (
@@ -1210,8 +1234,31 @@ export default function AdminFansubEditPage() {
 
       <section className={styles.panel}>
         <header className={styles.fansubEditHeaderCard}>
-          <div className={styles.fansubEditBannerShell}>
-            {bannerPreviewURL ? <div className={styles.fansubEditBannerImage} style={{ backgroundImage: `url(${bannerPreviewURL})` }} /> : <div className={styles.fansubEditBannerPlaceholder}>Kein Banner vorhanden</div>}
+          <div className={styles.fansubEditBannerShell} ref={bannerShellRef}>
+            {bannerPreviewURL ? (
+              <>
+                {showBannerSideFills ? (
+                  <>
+                    <div
+                      className={`${styles.fansubEditBannerSideFill} ${styles.fansubEditBannerSideFillLeft}`}
+                      style={bannerEdgeFills?.left ? { backgroundImage: `url(${bannerEdgeFills.left})`, width: `${bannerSideWidths.left}px` } : undefined}
+                      aria-hidden="true"
+                    />
+                    <div
+                      className={`${styles.fansubEditBannerSideFill} ${styles.fansubEditBannerSideFillRight}`}
+                      style={bannerEdgeFills?.right ? { backgroundImage: `url(${bannerEdgeFills.right})`, width: `${bannerSideWidths.right}px` } : undefined}
+                      aria-hidden="true"
+                    />
+                    <div className={styles.fansubEditBannerEdgeFade} aria-hidden="true" />
+                  </>
+                ) : null}
+                <div className={styles.fansubEditBannerImage}>
+                  <Image ref={bannerImageRef} src={bannerPreviewURL} alt="" className={styles.fansubEditBannerImageElement} width={1200} height={180} unoptimized />
+                </div>
+              </>
+            ) : (
+              <div className={styles.fansubEditBannerPlaceholder}>Kein Banner vorhanden</div>
+            )}
           </div>
           <div className={styles.fansubEditProfileRow}>
             <div className={styles.fansubEditLogoBadge}>
@@ -1224,14 +1271,13 @@ export default function AdminFansubEditPage() {
             <div className={styles.fansubEditIdentity}>
               <div className={styles.fansubEditIdentityTop}>
                 <h1 className={styles.title}>{form.name.trim() || 'Fansub bearbeiten'}</h1>
-                <span className={`${styles.fansubEditStatusBadge} ${form.status === 'active' ? styles.fansubEditStatusActive : form.status === 'inactive' ? styles.fansubEditStatusInactive : styles.fansubEditStatusDissolved}`}>{form.status}</span>
+                <span className={`${styles.fansubEditStatusBadge} ${form.status === 'active' ? styles.fansubEditStatusActive : form.status === 'inactive' ? styles.fansubEditStatusInactive : styles.fansubEditStatusDissolved}`}>{labelForFansubStatus(form.status)}</span>
               </div>
               <p className={styles.fansubEditUrlPreview}>/fansubs/{form.slug.trim() || 'slug'}</p>
             </div>
-            <Link href={`/admin/fansubs/${fansubID}/members`} className={styles.buttonSecondary}><Users size={14} />Members verwalten</Link>
           </div>
           <nav className={styles.fansubEditMainTabRow} aria-label="Fansub Bearbeitungsbereiche">
-            {MAIN_TABS.filter((tab) => tab.key !== 'collaboration' || form.groupType === 'collaboration').map((tab) => (
+            {MAIN_TABS.map((tab) => (
               <button
                 key={tab.key}
                 type="button"
@@ -1253,61 +1299,134 @@ export default function AdminFansubEditPage() {
           {error ? <div className={styles.errorBox}>{error}</div> : null}
           {!authToken ? <div className={styles.errorBox}>Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.</div> : null}
 
-          <div className={styles.fansubEditColumns}>
-            <div className={styles.fansubEditLeftColumn}>
+          <div className={fansubEditColumnsClassName}>
+            {tabUsesLeftWorkspace ? <div className={styles.fansubEditLeftColumn}>
               {activeMainTab === 'basic' ? <details className={styles.fansubEditSection} open={isSectionOpen('basic')} onToggle={(event) => onSectionToggle('basic', event.currentTarget.open)}>
-                <summary className={styles.fansubEditSectionSummary}>Basic Information</summary>
+                <summary className={styles.fansubEditSectionSummary}>Grunddaten</summary>
                 <div className={styles.fansubEditSectionBody}>
-                  <div className={styles.responsiveFieldGrid}>
-                    <div className={styles.field}><label>Name <span className={styles.fansubEditRequired}>*</span></label><input value={form.name} onChange={(e) => setForm((c) => ({ ...c, name: e.target.value }))} required minLength={2} aria-invalid={Boolean(nameError)} className={nameError ? styles.fansubEditInputInvalid : undefined} />{nameError ? <p className={styles.fansubEditInlineError}>{nameError}</p> : null}</div>
-                    <div className={styles.field}><label>Slug <span className={styles.fansubEditRequired}>*</span></label><div className={styles.fansubEditSlugRow}><input value={form.slug} onChange={(e) => { setManualSlug(true); setForm((c) => ({ ...c, slug: e.target.value })) }} aria-invalid={Boolean(slugFormatError) || slugConflict} className={slugFormatError || slugConflict ? styles.fansubEditInputInvalid : undefined} /><button type="button" className={styles.buttonSecondary} onClick={() => { setManualSlug(false); setForm((c) => ({ ...c, slug: slugify(c.name) })) }}>Auto</button></div>{slugChecking ? <p className={styles.fansubEditHint}>Pruefe Slug...</p> : null}{slugFormatError ? <p className={styles.fansubEditInlineError}>{slugFormatError}</p> : null}{!slugFormatError && slugConflict ? <p className={styles.fansubEditInlineError}>Slug ist bereits vergeben.</p> : null}</div>
-                    <div className={styles.field}><label>Status <span className={styles.fansubEditRequired}>*</span></label><select value={form.status} onChange={(e) => setForm((c) => ({ ...c, status: e.target.value as FansubStatus }))}>{STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
-                    <div className={styles.field}><label>Typ <span className={styles.fansubEditRequired}>*</span></label><select value={form.groupType} onChange={(e) => setForm((c) => ({ ...c, groupType: e.target.value as FansubGroupType }))}>{GROUP_TYPE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
-                    <div className={styles.field}><label>Country</label><input value={form.country} onChange={(e) => setForm((c) => ({ ...c, country: e.target.value }))} /></div>
-                    <div className={styles.field}><label>Founded Year</label><input type="number" min={YEAR_MIN} max={YEAR_MAX} inputMode="numeric" value={form.foundedYear} onChange={(e) => setForm((c) => ({ ...c, foundedYear: e.target.value }))} placeholder="YYYY" aria-invalid={Boolean(foundedError)} className={foundedError ? styles.fansubEditInputInvalid : undefined} />{foundedError ? <p className={styles.fansubEditInlineError}>{foundedError}</p> : null}</div>
-                    <div className={styles.field}><label>Dissolved Year</label><input type="number" min={YEAR_MIN} max={YEAR_MAX} inputMode="numeric" value={form.dissolvedYear} onChange={(e) => setForm((c) => ({ ...c, dissolvedYear: e.target.value }))} placeholder="YYYY" aria-invalid={Boolean(dissolvedError) || Boolean(dissolvedAfterFoundedError)} className={dissolvedError || dissolvedAfterFoundedError ? styles.fansubEditInputInvalid : undefined} />{dissolvedError ? <p className={styles.fansubEditInlineError}>{dissolvedError}</p> : null}</div>
+                  <div className={styles.fansubEditBasicIntro}>
+                    <div>
+                      <p className={styles.fansubEditBasicEyebrow}>Profil</p>
+                      <h3 className={styles.fansubEditBasicTitle}>Redaktionelle Kerndaten</h3>
+                      <p className={styles.fansubEditHint}>Name, Slug und zeitliche Einordnung der Fansub-Gruppe. Der Gruppentyp ist hier bewusst ausgeblendet, weil dieser Bereich ausschließlich reguläre Gruppen pflegt.</p>
+                    </div>
+                    <div className={styles.fansubEditBasicStatusCard}>
+                      <span>Aktueller Status</span>
+                      <strong>{labelForFansubStatus(form.status)}</strong>
+                    </div>
+                  </div>
+                  <div className={styles.fansubEditBasicSurface}>
+                    <div className={styles.fansubEditBasicGrid}>
+                      <div className={`${styles.field} ${styles.fansubEditBasicField} ${styles.fansubEditBasicFieldWide}`}>
+                        <label>Name <span className={styles.fansubEditRequired}>*</span></label>
+                        <input value={form.name} onChange={(e) => setForm((c) => ({ ...c, name: e.target.value }))} required minLength={2} aria-invalid={Boolean(nameError)} className={nameError ? styles.fansubEditInputInvalid : undefined} />
+                        {nameError ? <p className={styles.fansubEditInlineError}>{nameError}</p> : null}
+                      </div>
+                      <div className={`${styles.field} ${styles.fansubEditBasicField} ${styles.fansubEditBasicFieldWide}`}>
+                        <label>Slug <span className={styles.fansubEditRequired}>*</span></label>
+                        <div className={styles.fansubEditSlugRow}>
+                          <input value={form.slug} onChange={(e) => { setManualSlug(true); setForm((c) => ({ ...c, slug: e.target.value })) }} aria-invalid={Boolean(slugFormatError) || slugConflict} className={slugFormatError || slugConflict ? styles.fansubEditInputInvalid : undefined} />
+                          <button type="button" className={styles.buttonSecondary} onClick={() => { setManualSlug(false); setForm((c) => ({ ...c, slug: slugify(c.name) })) }}>Auto</button>
+                        </div>
+                        {slugChecking ? <p className={styles.fansubEditHint}>Prüfe Slug...</p> : null}
+                        {slugFormatError ? <p className={styles.fansubEditInlineError}>{slugFormatError}</p> : null}
+                        {!slugFormatError && slugConflict ? <p className={styles.fansubEditInlineError}>Slug ist bereits vergeben.</p> : null}
+                      </div>
+                      <div className={`${styles.field} ${styles.fansubEditBasicField}`}>
+                        <label>Status <span className={styles.fansubEditRequired}>*</span></label>
+                        <select value={form.status} onChange={(e) => setForm((c) => ({ ...c, status: e.target.value as FansubStatus }))}>
+                          {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{labelForFansubStatus(s)}</option>)}
+                        </select>
+                      </div>
+                      <div className={`${styles.field} ${styles.fansubEditBasicField}`}>
+                        <label>Land</label>
+                        <input value={form.country} onChange={(e) => setForm((c) => ({ ...c, country: e.target.value }))} placeholder="z. B. Deutschland" />
+                      </div>
+                      <div className={`${styles.field} ${styles.fansubEditBasicField}`}>
+                        <label>Gründungsjahr</label>
+                        <input type="number" min={YEAR_MIN} max={YEAR_MAX} inputMode="numeric" value={form.foundedYear} onChange={(e) => setForm((c) => ({ ...c, foundedYear: e.target.value }))} placeholder="YYYY" aria-invalid={Boolean(foundedError)} className={foundedError ? styles.fansubEditInputInvalid : undefined} />
+                        {foundedError ? <p className={styles.fansubEditInlineError}>{foundedError}</p> : null}
+                      </div>
+                      <div className={`${styles.field} ${styles.fansubEditBasicField}`}>
+                        <label>Auflösungsjahr</label>
+                        <input type="number" min={YEAR_MIN} max={YEAR_MAX} inputMode="numeric" value={form.dissolvedYear} onChange={(e) => setForm((c) => ({ ...c, dissolvedYear: e.target.value }))} placeholder="YYYY" aria-invalid={Boolean(dissolvedError) || Boolean(dissolvedAfterFoundedError)} className={dissolvedError || dissolvedAfterFoundedError ? styles.fansubEditInputInvalid : undefined} />
+                        {dissolvedError ? <p className={styles.fansubEditInlineError}>{dissolvedError}</p> : null}
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.fansubEditBasicSupplementGrid}>
+                    <div className={styles.fansubEditBasicSupplement}>
+                    <div className={styles.fansubEditBasicSupplementHeader}>
+                      <div>
+                        <p className={styles.fansubEditBasicEyebrow}>Aliase</p>
+                        <h4 className={styles.fansubEditBasicSupplementTitle}>Tags / Aliase direkt am Gruppennamen pflegen</h4>
+                        <p className={styles.fansubEditHint}>Alternative Gruppennamen gehören in denselben Pflegefluss wie Name und Slug.</p>
+                      </div>
+                    </div>
+                    <div className={styles.fansubEditBasicSupplementBody}>
+                      <div className={styles.inputRow}>
+                        <input
+                          value={aliasInput}
+                          onChange={(e) => { setAliasInput(e.target.value); setAliasError(null) }}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void addAlias() } }}
+                          placeholder="Alias hinzufügen"
+                        />
+                        <button type="button" className={styles.buttonSecondary} onClick={() => void addAlias()} disabled={aliasBusy}>Hinzufügen</button>
+                      </div>
+                      {aliasError ? <p className={styles.fansubEditInlineError}>{aliasError}</p> : null}
+                      <div className={styles.chipBox}>
+                        <div className={styles.chipRow}>
+                          {aliases.map((alias) => (
+                            <button key={alias.id} type="button" className={`${styles.chip} ${styles.aliasChipDanger}`} onClick={() => void removeAlias(alias)} disabled={aliasBusy}>
+                              {alias.alias} x
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    </div>
+                    <div className={styles.fansubEditBasicSupplement}>
+                      <div className={styles.fansubEditBasicSupplementHeader}>
+                        <div>
+                          <p className={styles.fansubEditBasicEyebrow}>Community</p>
+                          <h4 className={styles.fansubEditBasicSupplementTitle}>Community-Links direkt im Profil pflegen</h4>
+                          <p className={styles.fansubEditHint}>Website, Discord oder Social-Profile gehören direkt neben die Stammdaten der Gruppe.</p>
+                        </div>
+                        <button type="button" className={styles.buttonSecondary} onClick={() => setLinks((current) => [...current, createEmptyLink()])}><Plus size={14} />Link hinzufügen</button>
+                      </div>
+                      <div className={styles.fansubEditBasicSupplementBody}>
+                        <div className={styles.fansubEditLinksList}>
+                          {links.map((link, index) => {
+                            const url = link.url.trim()
+                            const urlError = linkErrors[index]
+                            return (
+                              <div key={link.key} className={styles.fansubEditLinkRow}>
+                                <select value={link.link_type} onChange={(event) => setLinks((current) => current.map((item) => item.key === link.key ? { ...item, link_type: event.target.value as FansubGroupLinkType } : item))}>
+                                  {LINK_TYPE_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
+                                </select>
+                                <input value={link.name} onChange={(event) => setLinks((current) => current.map((item) => item.key === link.key ? { ...item, name: event.target.value } : item))} placeholder="Name (optional)" />
+                                <div className={`${styles.fansubEditLinkInput} ${urlError ? styles.fansubEditLinkInputInvalid : ''}`}>
+                                  <input value={link.url} onChange={(event) => setLinks((current) => current.map((item) => item.key === link.key ? { ...item, url: event.target.value } : item))} placeholder="https://..." />
+                                  {url && !urlError ? <button type="button" className={styles.fansubEditPreviewLinkButton} onClick={() => window.open(url, '_blank', 'noreferrer')}><ExternalLink size={14} /></button> : null}
+                                </div>
+                                <button type="button" className={`${styles.buttonSecondary} ${styles.buttonDanger}`} onClick={() => setLinks((current) => current.length === 1 ? [createEmptyLink()] : current.filter((item) => item.key !== link.key))}><Trash2 size={14} /></button>
+                                {urlError ? <p className={styles.fansubEditInlineError}>{urlError}</p> : null}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   {dissolvedAfterFoundedError ? <p className={styles.fansubEditInlineError}>{dissolvedAfterFoundedError}</p> : null}
                 </div>
               </details> : null}
 
-              {activeMainTab === 'tags' ? <details className={styles.fansubEditSection} open={isSectionOpen('tags')} onToggle={(event) => onSectionToggle('tags', event.currentTarget.open)}>
-                <summary className={styles.fansubEditSectionSummary}>Tags</summary>
-                <div className={styles.fansubEditSectionBody}>
-                  <p className={styles.fansubEditHint}>Alternative Gruppennamen.</p>
-                  <div className={styles.inputRow}><input value={aliasInput} onChange={(e) => { setAliasInput(e.target.value); setAliasError(null) }} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void addAlias() } }} /><button type="button" className={styles.buttonSecondary} onClick={() => void addAlias()} disabled={aliasBusy}>Hinzufügen</button></div>
-                  {aliasError ? <p className={styles.fansubEditInlineError}>{aliasError}</p> : null}
-                  <div className={styles.chipBox}><div className={styles.chipRow}>{aliases.map((alias) => <button key={alias.id} type="button" className={`${styles.chip} ${styles.aliasChipDanger}`} onClick={() => void removeAlias(alias)} disabled={aliasBusy}>{alias.alias} x</button>)}</div></div>
-                </div>
-              </details> : null}
+            </div> : null}
 
-              {activeMainTab === 'content' ? <details className={styles.fansubEditSection} open={isSectionOpen('content')} onToggle={(event) => onSectionToggle('content', event.currentTarget.open)}>
-                <summary className={styles.fansubEditSectionSummary}>Description / History</summary>
-                <div className={styles.fansubEditSectionBody}>
-                  <div className={styles.fansubEditTabRow}>
-                    <button type="button" className={`${styles.fansubEditTabButton} ${activeTab === 'description' ? styles.fansubEditTabButtonActive : ''}`} onClick={() => setActiveTab('description')}>Description</button>
-                    <button type="button" className={`${styles.fansubEditTabButton} ${activeTab === 'history' ? styles.fansubEditTabButtonActive : ''}`} onClick={() => setActiveTab('history')}>History</button>
-                  </div>
-                  <div className={styles.fansubEditMarkdownToolbar}>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => insertMarkdown('# ')}><Heading1 size={14} /></button>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => insertMarkdown('## ')}><Heading2 size={14} /></button>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => insertMarkdown('**', '**')}><Bold size={14} /></button>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => insertMarkdown('*', '*')}><Italic size={14} /></button>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => insertMarkdown('- ')}><List size={14} /></button>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => insertMarkdown('[', '](https://example.com)')}><Link2 size={14} /></button>
-                  </div>
-                  <div className={styles.fansubEditMarkdownSplit}>
-                    <textarea ref={markdownRef} className={styles.fansubEditMarkdownTextarea} value={markdownValue} onChange={(e) => setForm((c) => ({ ...c, ...(activeTab === 'description' ? { description: e.target.value } : { history: e.target.value }) }))} />
-                    <div className={styles.fansubEditMarkdownPreview}><pre className={styles.fansubEditMarkdownPre}>{markdownValue || 'Keine Vorschau.'}</pre></div>
-                  </div>
-                  <p className={styles.fansubEditHint}>Zeichen: {markdownValue.length}{markdownValue.length > MARKDOWN_SOFT_LIMIT ? ' (Hinweis: sehr lang)' : ''}</p>
-                </div>
-              </details> : null}
-            </div>
-
-            <div className={styles.fansubEditRightColumn}>
+            {tabUsesRightWorkspace ? <div className={styles.fansubEditRightColumn}>
               {activeMainTab === 'media' ? <details className={styles.fansubEditSection} open={isSectionOpen('media')} onToggle={(event) => onSectionToggle('media', event.currentTarget.open)}>
-                <summary className={styles.fansubEditSectionSummary}>Media</summary>
+                <summary className={styles.fansubEditSectionSummary}>Medien</summary>
                 <div className={styles.fansubEditSectionBody}>
                   <div className={styles.fansubEditMediaGrid}>
                     <MediaUpload type="logo" fansubID={fansubID} authToken={authToken} groupName={form.name.trim() || group?.name || ''} value={logoMedia} disabled={!authToken || saving || deleting} onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, logo: isBusy }))} onChange={(nextValue) => { setLogoMedia(nextValue); setInitialLogoMedia(nextValue); setToast(nextValue?.publicURL ? 'Logo aktualisiert.' : 'Logo entfernt.') }} />
@@ -1317,11 +1436,11 @@ export default function AdminFansubEditPage() {
               </details> : null}
 
               {activeMainTab === 'links' ? <details className={styles.fansubEditSection} open={isSectionOpen('links')} onToggle={(event) => onSectionToggle('links', event.currentTarget.open)}>
-                <summary className={styles.fansubEditSectionSummary}>Community Links</summary>
+                <summary className={styles.fansubEditSectionSummary}>Community-Links</summary>
                 <div className={styles.fansubEditSectionBody}>
                   <div className={styles.fansubEditLinksHeader}>
                     <p className={styles.fansubEditHint}>Generische Link-Zeilen für Website, Discord, Twitter, GitHub und IRC.</p>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => setLinks((current) => [...current, createEmptyLink()])}><Plus size={14} />Link</button>
+                    <button type="button" className={styles.buttonSecondary} onClick={() => setLinks((current) => [...current, createEmptyLink()])}><Plus size={14} />Link hinzufügen</button>
                   </div>
                   <div className={styles.fansubEditLinksList}>
                     {links.map((link, index) => {
@@ -1346,45 +1465,26 @@ export default function AdminFansubEditPage() {
                 </div>
               </details> : null}
 
-              {activeMainTab === 'collaboration' && form.groupType === 'collaboration' ? (
+              {activeMainTab === 'collaboration' ? (
                 <details className={styles.fansubEditSection} open={isSectionOpen('collaboration')} onToggle={(event) => onSectionToggle('collaboration', event.currentTarget.open)}>
-                  <summary className={styles.fansubEditSectionSummary}>Collaboration Members</summary>
+                  <summary className={styles.fansubEditSectionSummary}>Mitglieder</summary>
                   <div className={styles.fansubEditSectionBody}>
-                    {!canManageCollaborationMembers ? (
-                      <p className={styles.fansubEditHint}>Diese Gruppe ist lokal schon als Kollaboration markiert, aber noch nicht gespeichert. Bitte zuerst speichern, dann Mitglieder verwalten.</p>
-                    ) : (
-                      <>
-                        <div className={styles.fansubEditCollaborationRow}>
-                          <select value={selectedMemberGroupID} onChange={(event) => setSelectedMemberGroupID(event.target.value)} disabled={collaborationBusy}>
-                            <option value="">Mitgliedsgruppe wählen</option>
-                            {collaborationCandidates.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
-                          </select>
-                          <button type="button" className={styles.buttonSecondary} onClick={() => void addMemberGroup()} disabled={collaborationBusy || !selectedMemberGroupID}><Plus size={14} />Hinzufügen</button>
-                        </div>
-                        <div className={styles.fansubEditCollaborationList}>
-                          {collaborationMembers.length === 0 ? <p className={styles.fansubEditHint}>Noch keine Mitgliedsgruppen verknüpft.</p> : null}
-                          {collaborationMembers.map((member) => (
-                            <div key={member.member_group_id} className={styles.fansubEditCollaborationItem}>
-                              <div>
-                                <strong>{member.member_group?.name || `Gruppe ${member.member_group_id}`}</strong>
-                                <p className={styles.fansubEditHint}>/{member.member_group?.slug || member.member_group_id}</p>
-                              </div>
-                              <button type="button" className={`${styles.buttonSecondary} ${styles.buttonDanger}`} onClick={() => void removeMemberGroup(member.member_group_id)} disabled={collaborationBusy}><Trash2 size={14} />Entfernen</button>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
+                    <p className={styles.fansubEditHint}>Dieser Bereich ist bewusst noch nicht final definiert. Die frühere separate Mitglieder-Verwaltung wurde entfernt, damit hier keine halbfertige Admin-Logik mehr sichtbar ist.</p>
+                    <div className={styles.fansubEditBasicStatusCard}>
+                      <span>Nächster Schritt</span>
+                      <strong>Mitglieder-Reiter später fachlich schärfen</strong>
+                      <p>Welche Daten hier erscheinen und wie sie gepflegt werden, wird in einem späteren Slice festgelegt.</p>
+                    </div>
                   </div>
                 </details>
               ) : null}
-            </div>
+            </div> : null}
           </div>
 
           <div className={styles.fansubEditMobileActionBar}><button type="submit" className={styles.button} disabled={invalid || saving || deleting}>{saving ? 'Speichern...' : 'Speichern'}</button></div>
         </form> : null}
         {activeMainTab === 'releases' ? <details className={styles.fansubEditSection} open={isSectionOpen('releases')} onToggle={(event) => onSectionToggle('releases', event.currentTarget.open)}>
-          <summary className={styles.fansubEditSectionSummary}>Anime & Releases</summary>
+          <summary className={styles.fansubEditSectionSummary}>Anime & Veröffentlichungen</summary>
           <div className={styles.fansubEditSectionBody}>
             <p className={styles.fansubEditHint}>Anime dieser Fansubgruppe und ihre Release-Versionen.</p>
             {releaseGroupsLoading ? <div className={styles.fansubEditReleaseState}>Anime werden geladen...</div> : null}
@@ -1402,24 +1502,25 @@ export default function AdminFansubEditPage() {
                 const releaseCountLabel = releasesLoaded ? String(releases.length) : '-'
                 return (
                 <article key={releaseGroup.key} className={styles.fansubEditAnimeReleaseCard}>
-                  <div className={styles.fansubEditAnimeReleaseHeader}>
-                    <Image src={resolveCoverUrl(releaseGroup.anime.cover_image)} alt="" className={styles.fansubEditAnimePoster} width={54} height={76} unoptimized />
-                    <div>
+                  <button
+                    type="button"
+                    className={styles.fansubEditAnimeReleaseHeader}
+                    onClick={() => toggleAnime(releaseGroup)}
+                    aria-expanded={animeExpanded}
+                    aria-label={animeExpanded ? `${releaseGroup.anime.title} einklappen` : `${releaseGroup.anime.title} ausklappen`}
+                  >
+                    <Image src={resolveCoverUrl(releaseGroup.anime.cover_image)} alt="" className={styles.fansubEditAnimePoster} width={108} height={152} unoptimized />
+                    <div className={styles.fansubEditAnimeReleaseBody}>
                       <h3>{releaseGroup.anime.title}</h3>
+                      <p className={styles.fansubEditAnimeReleaseHint}>Eintrag öffnen, um Release-Versionen und Assets dieser Serie zu sehen.</p>
                     </div>
                     <div className={styles.fansubEditAnimeReleaseMeta}>
                       <span>Releases: {releaseCountLabel}</span>
-                      <button
-                        type="button"
-                        className={styles.fansubEditAnimeToggle}
-                        onClick={() => toggleAnime(releaseGroup)}
-                        aria-expanded={animeExpanded}
-                        aria-label={animeExpanded ? `${releaseGroup.anime.title} einklappen` : `${releaseGroup.anime.title} ausklappen`}
-                      >
+                      <span className={styles.fansubEditAnimeToggle} aria-hidden="true">
                         {animeExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                      </button>
+                      </span>
                     </div>
-                  </div>
+                  </button>
                   {animeExpanded && releasesLoading ? (
                     <div className={styles.fansubEditReleaseState}>Releases werden geladen...</div>
                   ) : null}
@@ -1452,10 +1553,24 @@ export default function AdminFansubEditPage() {
 
                         return (
                           <div key={release.release_id} className={styles.fansubEditReleaseItem}>
-                            <div className={styles.fansubEditReleaseRow}>
+                            <div
+                              className={styles.fansubEditReleaseRow}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => toggleRelease(release)}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                  event.preventDefault()
+                                  toggleRelease(release)
+                                }
+                              }}
+                              aria-expanded={expanded}
+                              aria-label={expanded ? `Release ${release.release_id} einklappen` : `Release ${release.release_id} ausklappen`}
+                            >
                               <strong>{release.episode_number || '?'}</strong>
                               <div className={styles.fansubEditReleaseTitleCell}>
                                 <span>{(release.episode_title || '').trim() || 'Ohne Episodentitel'}</span>
+                                <small className={styles.fansubEditReleaseRowHint}>Zeile öffnen, um Timeline und Assets nach unten aufzuklappen.</small>
                               </div>
                               <span>{release.version_count} Version{release.version_count === 1 ? '' : 'en'}</span>
                               <span>{new Date(release.created_at).toLocaleDateString('de-CH')}</span>
@@ -1465,25 +1580,25 @@ export default function AdminFansubEditPage() {
                                 <button
                                   type="button"
                                   className={styles.fansubEditReleaseEditButton}
-                                  onClick={() => openReleaseDrawer({
-                                    release,
-                                    animeID: releaseGroup.anime.id,
-                                    fansubGroupID: release.fansub_group_id,
-                                    contextKey: releaseGroup.key,
-                                  })}
+                                  onClick={(event) => {
+                                    event.stopPropagation()
+                                    openReleaseDrawer({
+                                      release,
+                                      animeID: releaseGroup.anime.id,
+                                      fansubGroupID: release.fansub_group_id,
+                                      contextKey: releaseGroup.key,
+                                    })
+                                  }}
                                 >
                                   Details
                                 </button>
                               </div>
-                              <button
-                                type="button"
+                              <span
                                 className={styles.fansubEditReleaseExpandButton}
-                                onClick={() => toggleRelease(release)}
-                                aria-expanded={expanded}
-                                aria-label={expanded ? `Release ${release.release_id} einklappen` : `Release ${release.release_id} ausklappen`}
+                                aria-hidden="true"
                               >
                                 {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                              </button>
+                              </span>
                             </div>
                             {expanded ? (
                               <div className={styles.fansubEditReleaseExpanded}>
@@ -1616,16 +1731,16 @@ export default function AdminFansubEditPage() {
               {drawerTab === 'details' ? (
                 <div className={styles.fansubEditReleaseDrawerPanel}>
                   <div className={styles.fansubEditReleaseDrawerFieldGrid}>
-                    <label><span>Release-ID</span><input value={String(selectedReleaseId ?? drawerRelease.release_id)} readOnly /></label>
-                    <label><span>Anime-ID</span><input value={String(selectedAnimeId ?? drawerRelease.anime_id)} readOnly /></label>
-                    <label><span>Fansub-Gruppe</span><input value={String(selectedFansubGroupId ?? drawerRelease.fansub_group_id)} readOnly /></label>
-                    <label><span>Kontext-Key</span><input value={selectedAnimeFansubContextKey ?? animeFansubReleaseContextKey(drawerRelease.fansub_group_id, drawerRelease.anime_id)} readOnly /></label>
-                    <label><span>Anime</span><input value={drawerRelease.anime_title} readOnly /></label>
-                    <label><span>Episode</span><input value={drawerRelease.episode_number || '?'} readOnly /></label>
-                    <label><span>Titel</span><input value={(drawerRelease.episode_title || '').trim() || 'Ohne Episodentitel'} readOnly /></label>
-                    <label><span>Versionen</span><input value={String(drawerRelease.version_count)} readOnly /></label>
-                    <label><span>Datum</span><input value={new Date(drawerRelease.created_at).toLocaleDateString('de-CH')} readOnly /></label>
-                    <label><span>Status</span><input value="Verknüpft" readOnly /></label>
+                    <label><span>Release-ID</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={String(selectedReleaseId ?? drawerRelease.release_id)} readOnly tabIndex={-1} /></label>
+                    <label><span>Anime-ID</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={String(selectedAnimeId ?? drawerRelease.anime_id)} readOnly tabIndex={-1} /></label>
+                    <label><span>Fansub-Gruppe</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={String(selectedFansubGroupId ?? drawerRelease.fansub_group_id)} readOnly tabIndex={-1} /></label>
+                    <label><span>Kontext-Key</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={selectedAnimeFansubContextKey ?? animeFansubReleaseContextKey(drawerRelease.fansub_group_id, drawerRelease.anime_id)} readOnly tabIndex={-1} /></label>
+                    <label><span>Anime</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={drawerRelease.anime_title} readOnly tabIndex={-1} /></label>
+                    <label><span>Episode</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={drawerRelease.episode_number || '?'} readOnly tabIndex={-1} /></label>
+                    <label><span>Titel</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={(drawerRelease.episode_title || '').trim() || 'Ohne Episodentitel'} readOnly tabIndex={-1} /></label>
+                    <label><span>Versionen</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={String(drawerRelease.version_count)} readOnly tabIndex={-1} /></label>
+                    <label><span>Datum</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={new Date(drawerRelease.created_at).toLocaleDateString('de-CH')} readOnly tabIndex={-1} /></label>
+                    <label><span>Status</span><input className={styles.fansubEditReleaseDrawerReadOnly} value="Verknüpft" readOnly tabIndex={-1} /></label>
                   </div>
                   <div className={styles.fansubEditReleaseDrawerContextGrid}>
                     <div className={styles.fansubEditReleaseDrawerContextCard}>

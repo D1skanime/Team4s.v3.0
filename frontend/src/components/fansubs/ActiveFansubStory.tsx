@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 import { FansubGroup, AnimeFansubRelation } from '@/types/fansub'
+import { buildFansubStoryPreview } from '@/lib/fansub-summary'
 
 import styles from './ActiveFansubStory.module.css'
 
@@ -40,16 +41,6 @@ function resolveInitialActiveFansubGroupID(animeID: number, animeFansubs: AnimeF
   } catch {
     return fallback
   }
-}
-
-function buildFansubStoryPreview(group: FansubGroup): string | null {
-  const raw = (group.history || group.description || '').trim()
-  if (!raw) return null
-
-  const normalized = raw.replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim()
-  const maxLength = 520
-  if (normalized.length <= maxLength) return normalized
-  return `${normalized.slice(0, maxLength).trimEnd()}...`
 }
 
 export function ActiveFansubStory({ animeID, fansubGroups, animeFansubs }: ActiveFansubStoryProps) {
@@ -92,7 +83,7 @@ export function ActiveFansubStory({ animeID, fansubGroups, animeFansubs }: Activ
       <h3 className={styles.title}>
         <Link href={`/fansubs/${activeGroup.slug}`} prefetch={false}>{activeGroup.name}</Link>
       </h3>
-      <p className={styles.text}>{preview || 'Keine Fansub-Historie hinterlegt.'}</p>
+      <p className={styles.text}>{preview}</p>
     </article>
   )
 }

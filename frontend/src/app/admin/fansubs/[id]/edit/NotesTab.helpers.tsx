@@ -5,9 +5,10 @@ import { Pencil, Save, Trash2 } from 'lucide-react'
 import { RichTextEditor, RichTextRenderer } from '@/components/editor'
 import { MemberStoryContextMember, MemberStoryContextRole } from '@/types/fansubNotes'
 import sharedStyles from '../../../admin.module.css'
+import editorScaffoldStyles from '../../../../../components/editor/EditorScaffold.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
 
-const styles = { ...sharedStyles, ...fansubEditStyles }
+const styles = { ...sharedStyles, ...fansubEditStyles, ...editorScaffoldStyles }
 
 export const VISIBILITY_OPTIONS: Array<{ value: 'public' | 'internal'; label: string }> = [
   { value: 'public', label: 'Öffentlich' },
@@ -134,31 +135,31 @@ export function GroupNotePreview({
   onDelete: () => void
 }) {
   return (
-    <section className={styles.fansubEditorCard}>
+    <section className={styles.editorCard}>
       {draft.error ? <div className={styles.errorBox}>{draft.error}</div> : null}
 
-      <div className={styles.fansubEditorCardHeader}>
-        <div className={styles.fansubEditorCardHeading}>
-          <p className={styles.fansubEditorEyebrow}>Gruppennotiz</p>
-          <h3 className={styles.fansubEditorTitle}>{draft.title.trim() || 'Unbenannte Notiz'}</h3>
+      <div className={styles.editorCardHeader}>
+        <div className={styles.editorCardHeading}>
+          <p className={styles.editorEyebrow}>Gruppennotiz</p>
+          <h3 className={styles.editorTitle}>{draft.title.trim() || 'Unbenannte Notiz'}</h3>
         </div>
-        <div className={styles.fansubEditorBadgeRow}>
-          <span className={styles.fansubEditorBadge}>{visibilityLabel(draft.visibility)}</span>
-          <span className={styles.fansubEditorBadge}>{statusLabel(draft.status)}</span>
+        <div className={styles.editorBadgeRow}>
+          <span className={styles.editorBadge}>{visibilityLabel(draft.visibility)}</span>
+          <span className={styles.editorBadge}>{statusLabel(draft.status)}</span>
         </div>
       </div>
 
       {draft.bodyHtml?.trim() ? (
         <RichTextRenderer bodyHtml={draft.bodyHtml} />
       ) : (
-        <p className={styles.fansubEditorPreviewText}>{previewText(draft.bodyText)}</p>
+        <p className={styles.editorPreviewText}>{previewText(draft.bodyText)}</p>
       )}
 
-      <div className={styles.fansubEditorActionBar}>
+      <div className={styles.editorActionBar}>
         <button type="button" className={styles.button} onClick={onEdit}>
           <Pencil size={14} />Bearbeiten
         </button>
-        <button type="button" className={`${styles.buttonSecondary} ${styles.fansubEditorGhostButton}`} onClick={onDelete}>
+        <button type="button" className={`${styles.buttonSecondary} ${styles.editorGhostButton}`} onClick={onDelete}>
           <Trash2 size={14} />Löschen
         </button>
       </div>
@@ -178,21 +179,21 @@ export function GroupNoteEditor({
   onDelete: () => void
 }) {
   return (
-    <section className={styles.fansubEditorCard}>
+    <section className={styles.editorCard}>
       {draft.error ? <div className={styles.errorBox}>{draft.error}</div> : null}
 
-      <div className={styles.fansubEditorCardHeader}>
-        <div className={styles.fansubEditorCardHeading}>
-          <p className={styles.fansubEditorEyebrow}>Gruppennotiz</p>
-          <h3 className={styles.fansubEditorTitle}>{draft.title.trim() || 'Unbenannte Notiz'}</h3>
+      <div className={styles.editorCardHeader}>
+        <div className={styles.editorCardHeading}>
+          <p className={styles.editorEyebrow}>Gruppennotiz</p>
+          <h3 className={styles.editorTitle}>{draft.title.trim() || 'Unbenannte Notiz'}</h3>
         </div>
-        <div className={styles.fansubEditorBadgeRow}>
-          <span className={styles.fansubEditorBadge}>{visibilityLabel(draft.visibility)}</span>
-          <span className={styles.fansubEditorBadge}>{statusLabel(draft.status)}</span>
+        <div className={styles.editorBadgeRow}>
+          <span className={styles.editorBadge}>{visibilityLabel(draft.visibility)}</span>
+          <span className={styles.editorBadge}>{statusLabel(draft.status)}</span>
         </div>
       </div>
 
-      <div className={styles.fansubEditorMain}>
+      <div className={styles.editorMain}>
         <div className={styles.field}>
           <label>Titel</label>
           <input value={draft.title} onChange={(e) => onUpdate({ title: e.target.value })} placeholder="Titel der Notiz" />
@@ -200,7 +201,7 @@ export function GroupNoteEditor({
 
         <div className={styles.field}>
           <label>Inhalt</label>
-          <div className={styles.fansubEditorSurface}>
+          <div className={styles.editorSurface}>
             <RichTextEditor
               value={ensureRichTextValue(draft.bodyJson)}
               onChange={(next) => onUpdate({ bodyJson: next })}
@@ -212,15 +213,15 @@ export function GroupNoteEditor({
         </div>
       </div>
 
-      <div className={styles.fansubEditorMetaCard}>
-        <div className={styles.fansubEditorMetaHeader}>
+      <div className={styles.editorMetaCard}>
+        <div className={styles.editorMetaHeader}>
           <div>
-            <p className={styles.fansubEditorEyebrow}>Optionen</p>
-            <h4 className={styles.fansubEditorMetaTitle}>Status und Sichtbarkeit</h4>
+            <p className={styles.editorEyebrow}>Optionen</p>
+            <h4 className={styles.editorMetaTitle}>Status und Sichtbarkeit</h4>
           </div>
         </div>
 
-        <div className={styles.fansubEditorMetaGrid}>
+        <div className={styles.editorMetaGrid}>
           <div className={styles.field}>
             <label>Sichtbarkeit</label>
             <select value={draft.visibility} onChange={(e) => onUpdate({ visibility: e.target.value as 'public' | 'internal' })}>
@@ -240,11 +241,11 @@ export function GroupNoteEditor({
         </div>
       </div>
 
-      <div className={styles.fansubEditorActionBar}>
+      <div className={styles.editorActionBar}>
         <button type="button" className={styles.button} onClick={onSave} disabled={draft.saving || draft.deleting}>
           <Save size={14} />{draft.saving ? 'Speichern...' : 'Speichern'}
         </button>
-        <button type="button" className={`${styles.buttonSecondary} ${styles.fansubEditorGhostButton}`} onClick={onDelete} disabled={draft.saving || draft.deleting}>
+        <button type="button" className={`${styles.buttonSecondary} ${styles.editorGhostButton}`} onClick={onDelete} disabled={draft.saving || draft.deleting}>
           <Trash2 size={14} />{draft.id != null ? (draft.deleting ? 'Löschen...' : 'Löschen') : 'Verwerfen'}
         </button>
       </div>
@@ -274,22 +275,22 @@ export function StoryEditor({
   const roleInputId = `story-role-${draft.key}`
 
   return (
-    <section className={styles.fansubEditorCard}>
+    <section className={styles.editorCard}>
       {draft.error ? <div className={styles.errorBox}>{draft.error}</div> : null}
 
-      <div className={styles.fansubEditorCardHeader}>
-        <div className={styles.fansubEditorCardHeading}>
-          <p className={styles.fansubEditorEyebrow}>Mitgliedergeschichte</p>
-          <h3 className={styles.fansubEditorTitle}>{draft.title.trim() || memberLabel || 'Neue Geschichte'}</h3>
+      <div className={styles.editorCardHeader}>
+        <div className={styles.editorCardHeading}>
+          <p className={styles.editorEyebrow}>Mitgliedergeschichte</p>
+          <h3 className={styles.editorTitle}>{draft.title.trim() || memberLabel || 'Neue Geschichte'}</h3>
         </div>
-        <div className={styles.fansubEditorBadgeRow}>
-          <span className={styles.fansubEditorBadge}>{visibilityLabel(draft.visibility)}</span>
-          <span className={styles.fansubEditorBadge}>{statusLabel(draft.status)}</span>
+        <div className={styles.editorBadgeRow}>
+          <span className={styles.editorBadge}>{visibilityLabel(draft.visibility)}</span>
+          <span className={styles.editorBadge}>{statusLabel(draft.status)}</span>
         </div>
       </div>
 
-      <div className={styles.fansubEditorMain}>
-        <div className={styles.fansubEditorMetaGrid}>
+      <div className={styles.editorMain}>
+        <div className={styles.editorMetaGrid}>
           <div className={styles.field}>
             <label htmlFor={memberInputId}>Mitglied <span className={styles.fansubEditRequired}>*</span></label>
             <select id={memberInputId} value={draft.memberId} onChange={(e) => onUpdate({ memberId: e.target.value })} disabled={isExistingStory}>
@@ -325,7 +326,7 @@ export function StoryEditor({
 
         <div className={styles.field}>
           <label>Inhalt</label>
-          <div className={styles.fansubEditorSurface}>
+          <div className={styles.editorSurface}>
             <RichTextEditor
               value={ensureRichTextValue(draft.bodyJson)}
               onChange={(next) => onUpdate({ bodyJson: next })}
@@ -337,8 +338,8 @@ export function StoryEditor({
         </div>
       </div>
 
-      <div className={styles.fansubEditorMetaCard}>
-        <div className={styles.fansubEditorMetaHeader}>
+      <div className={styles.editorMetaCard}>
+        <div className={styles.editorMetaHeader}>
           <div>
             <p className={styles.fansubEditorEyebrow}>Optionen</p>
             <h4 className={styles.fansubEditorMetaTitle}>Veröffentlichung und Sortierung</h4>
@@ -346,7 +347,7 @@ export function StoryEditor({
           <p className={styles.fansubEditHint}>Die Geschichte bleibt vorne ruhig, die Verwaltung sitzt gesammelt darunter.</p>
         </div>
 
-        <div className={styles.fansubEditorMetaGrid}>
+        <div className={styles.editorMetaGrid}>
           <div className={styles.field}>
             <label>Sichtbarkeit</label>
             <select value={draft.visibility} onChange={(e) => onUpdate({ visibility: e.target.value as 'public' | 'internal' })}>
@@ -366,11 +367,11 @@ export function StoryEditor({
         </div>
       </div>
 
-      <div className={styles.fansubEditorActionBar}>
+      <div className={styles.editorActionBar}>
         <button type="button" className={styles.button} onClick={onSave} disabled={draft.saving || draft.deleting}>
           <Save size={14} />{draft.saving ? 'Speichern...' : 'Speichern'}
         </button>
-        <button type="button" className={`${styles.buttonSecondary} ${styles.fansubEditorGhostButton}`} onClick={onDelete} disabled={draft.saving || draft.deleting}>
+        <button type="button" className={`${styles.buttonSecondary} ${styles.editorGhostButton}`} onClick={onDelete} disabled={draft.saving || draft.deleting}>
           <Trash2 size={14} />{draft.id != null ? (draft.deleting ? 'Löschen...' : 'Löschen') : 'Verwerfen'}
         </button>
       </div>
@@ -395,35 +396,35 @@ export function StoryPreview({
   const roleLabel = findRoleLabel(roles, draft.roleId)
 
   return (
-    <section className={styles.fansubEditorCard}>
+    <section className={styles.editorCard}>
       {draft.error ? <div className={styles.errorBox}>{draft.error}</div> : null}
 
-      <div className={styles.fansubEditorCardHeader}>
-        <div className={styles.fansubEditorCardHeading}>
-          <p className={styles.fansubEditorEyebrow}>Mitgliedergeschichte</p>
-          <h3 className={styles.fansubEditorTitle}>{draft.title.trim() || memberLabel || 'Neue Geschichte'}</h3>
+      <div className={styles.editorCardHeader}>
+        <div className={styles.editorCardHeading}>
+          <p className={styles.editorEyebrow}>Mitgliedergeschichte</p>
+          <h3 className={styles.editorTitle}>{draft.title.trim() || memberLabel || 'Neue Geschichte'}</h3>
           <p className={styles.fansubEditHint}>
             {memberLabel || 'Kein Mitglied gewählt'}
             {roleLabel ? ` • ${roleLabel}` : ''}
           </p>
         </div>
-        <div className={styles.fansubEditorBadgeRow}>
-          <span className={styles.fansubEditorBadge}>{visibilityLabel(draft.visibility)}</span>
-          <span className={styles.fansubEditorBadge}>{statusLabel(draft.status)}</span>
+        <div className={styles.editorBadgeRow}>
+          <span className={styles.editorBadge}>{visibilityLabel(draft.visibility)}</span>
+          <span className={styles.editorBadge}>{statusLabel(draft.status)}</span>
         </div>
       </div>
 
       {draft.bodyHtml?.trim() ? (
         <RichTextRenderer bodyHtml={draft.bodyHtml} />
       ) : (
-        <p className={styles.fansubEditorPreviewText}>{previewText(draft.bodyText)}</p>
+        <p className={styles.editorPreviewText}>{previewText(draft.bodyText)}</p>
       )}
 
-      <div className={styles.fansubEditorActionBar}>
+      <div className={styles.editorActionBar}>
         <button type="button" className={styles.button} onClick={onEdit}>
           <Pencil size={14} />Weiter bearbeiten
         </button>
-        <button type="button" className={`${styles.buttonSecondary} ${styles.fansubEditorGhostButton}`} onClick={onDelete}>
+        <button type="button" className={`${styles.buttonSecondary} ${styles.editorGhostButton}`} onClick={onDelete}>
           <Trash2 size={14} />Löschen
         </button>
       </div>

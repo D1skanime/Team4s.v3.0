@@ -98,145 +98,48 @@ describe('suggestNextEpisodeNumber', () => {
 })
 
 describe('buildFansubStoryPreview', () => {
-  it('returns default message for group with no history or description', () => {
+  it('returns default message when no factual fields are present', () => {
     const group: FansubGroup = {
       id: 1,
       name: 'Test Fansub',
-      description: null,
-      history: null,
+      status: 'active',
+      slug: 'test-fansub',
     } as FansubGroup
-    expect(buildFansubStoryPreview(group)).toBe('Keine Historie hinterlegt.')
+    expect(buildFansubStoryPreview(group)).toBe('aktiv')
   })
 
-  it('returns default message for empty strings', () => {
+  it('builds a combined summary from years, country, and status', () => {
     const group: FansubGroup = {
       id: 1,
       name: 'Test Fansub',
-      description: '',
-      history: '',
+      slug: 'test-fansub',
+      status: 'active',
+      founded_year: 2008,
+      country: 'Schweiz',
     } as FansubGroup
-    expect(buildFansubStoryPreview(group)).toBe('Keine Historie hinterlegt.')
+    expect(buildFansubStoryPreview(group)).toBe('gegründet 2008 • Schweiz • aktiv')
   })
 
-  it('returns default message for whitespace-only strings', () => {
+  it('uses year range when founded and dissolved are known', () => {
     const group: FansubGroup = {
       id: 1,
       name: 'Test Fansub',
-      description: '   ',
-      history: '   ',
+      slug: 'test-fansub',
+      status: 'dissolved',
+      founded_year: 2001,
+      dissolved_year: 2014,
     } as FansubGroup
-    expect(buildFansubStoryPreview(group)).toBe('Keine Historie hinterlegt.')
+    expect(buildFansubStoryPreview(group)).toBe('2001 bis 2014 • aufgelöst')
   })
 
-  it('prefers history over description', () => {
+  it('falls back to country only when no year is set', () => {
     const group: FansubGroup = {
       id: 1,
       name: 'Test Fansub',
-      description: 'This is the description',
-      history: 'This is the history',
+      slug: 'test-fansub',
+      status: 'inactive',
+      country: 'Deutschland',
     } as FansubGroup
-    expect(buildFansubStoryPreview(group)).toBe('This is the history')
-  })
-
-  it('falls back to description when history is empty', () => {
-    const group: FansubGroup = {
-      id: 1,
-      name: 'Test Fansub',
-      description: 'This is the description',
-      history: '',
-    } as FansubGroup
-    expect(buildFansubStoryPreview(group)).toBe('This is the description')
-  })
-
-  it('falls back to description when history is null', () => {
-    const group: FansubGroup = {
-      id: 1,
-      name: 'Test Fansub',
-      description: 'This is the description',
-      history: null,
-    } as FansubGroup
-    expect(buildFansubStoryPreview(group)).toBe('This is the description')
-  })
-
-  it('normalizes Windows-style line endings', () => {
-    const group: FansubGroup = {
-      id: 1,
-      name: 'Test Fansub',
-      history: 'Line 1\r\nLine 2\r\nLine 3',
-    } as FansubGroup
-    expect(buildFansubStoryPreview(group)).toBe('Line 1\nLine 2\nLine 3')
-  })
-
-  it('normalizes old Mac-style line endings', () => {
-    const group: FansubGroup = {
-      id: 1,
-      name: 'Test Fansub',
-      history: 'Line 1\rLine 2\rLine 3',
-    } as FansubGroup
-    expect(buildFansubStoryPreview(group)).toBe('Line 1\nLine 2\nLine 3')
-  })
-
-  it('collapses multiple blank lines to double newline', () => {
-    const group: FansubGroup = {
-      id: 1,
-      name: 'Test Fansub',
-      history: 'Paragraph 1\n\n\n\n\nParagraph 2',
-    } as FansubGroup
-    expect(buildFansubStoryPreview(group)).toBe('Paragraph 1\n\nParagraph 2')
-  })
-
-  it('trims leading and trailing whitespace', () => {
-    const group: FansubGroup = {
-      id: 1,
-      name: 'Test Fansub',
-      history: '   Content here   ',
-    } as FansubGroup
-    expect(buildFansubStoryPreview(group)).toBe('Content here')
-  })
-
-  it('returns full text when under 420 characters', () => {
-    const shortText = 'This is a short history.'
-    const group: FansubGroup = {
-      id: 1,
-      name: 'Test Fansub',
-      history: shortText,
-    } as FansubGroup
-    expect(buildFansubStoryPreview(group)).toBe(shortText)
-  })
-
-  it('truncates text longer than 420 characters with ellipsis', () => {
-    const longText = 'A'.repeat(500)
-    const group: FansubGroup = {
-      id: 1,
-      name: 'Test Fansub',
-      history: longText,
-    } as FansubGroup
-    const result = buildFansubStoryPreview(group)
-    expect(result.length).toBeLessThanOrEqual(423)
-    expect(result).toMatch(/\.\.\.$/u)
-  })
-
-  it('trims trailing whitespace before adding ellipsis', () => {
-    const textWithTrailingSpaces = 'A'.repeat(418) + '   more text here'
-    const group: FansubGroup = {
-      id: 1,
-      name: 'Test Fansub',
-      history: textWithTrailingSpaces,
-    } as FansubGroup
-    const result = buildFansubStoryPreview(group)
-    expect(result).not.toMatch(/\s\.\.\.$/u)
-    expect(result).toMatch(/\.\.\.$/u)
-  })
-
-  it('handles exactly 420 characters without truncation', () => {
-    const exactText = 'A'.repeat(420)
-    const group: FansubGroup = {
-      id: 1,
-      name: 'Test Fansub',
-      history: exactText,
-    } as FansubGroup
-    const result = buildFansubStoryPreview(group)
-    expect(result).toBe(exactText)
-    expect(result.length).toBe(420)
+    expect(buildFansubStoryPreview(group)).toBe('Deutschland • inaktiv')
   })
 })
