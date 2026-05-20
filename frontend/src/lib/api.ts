@@ -57,7 +57,9 @@ import {
   EpisodeDetail,
   PaginatedAnimeResponse,
 } from '@/types/anime'
-import { AuthIssueRequest, AuthRefreshRequest, AuthRevokeRequest, AuthTokenData, AuthTokenResponse } from '@/types/auth'
+import { AuthIssueRequest, AuthRefreshRequest, AuthRevokeRequest, AuthTokenData, AuthTokenResponse, CurrentUserResponse } from '@/types/auth'
+import { ContributorGroupDetailResponse, ContributorGroupsResponse } from '@/types/contributor'
+import { MemberProfileResponse, UpdateMemberProfileRequest } from '@/types/profile'
 import { CommentCreateRequest, CommentCreateResponse, PaginatedCommentResponse } from '@/types/comment'
 import {
   GroupedEpisodesResponse,
@@ -87,6 +89,21 @@ import {
   FansubMemberCreateRequest,
   FansubMemberListResponse,
   FansubMemberPatchRequest,
+  FansubAppMemberCreateRequest,
+  FansubAppMemberCandidateSearchResponse,
+  FansubGroupInvitationListResponse,
+  FansubGroupInvitationCreateRequest,
+  FansubGroupInvitationCreateResponse,
+  FansubGroupInvitationResponse,
+  AcceptFansubInvitationRequest,
+  AcceptFansubInvitationResponse,
+  FansubAppMemberListResponse,
+  FansubAppMemberResponse,
+  FansubAppMemberRoleUpdateRequest,
+  FansubAppMemberStatusUpdateRequest,
+  FansubGroupCapabilitiesResponse,
+  FansubLeadUpdateRequest,
+  AppUserListResponse,
   FansubAliasListResponse,
   FansubAliasResponse,
   FansubAliasCreateRequest,
@@ -111,6 +128,7 @@ import {
   ReleaseVersionMediaReorderRequest,
   ReleaseVersionMediaUploadResponse,
   ReleaseVersionMediaItem,
+  ReleaseVersionCapabilitiesResponse,
 } from '@/types/releaseVersionMedia'
 import {
   GroupDetailResponse,
@@ -137,10 +155,11 @@ import {
   MemberRoleForVersion,
   BulkUpsertReleaseVersionNotesRequest,
 } from '@/types/releaseVersionNotes'
+import { exchangeKeycloakCode, isKeycloakEnabled, logoutFromKeycloak, refreshKeycloakToken, type KeycloakTokenBundle } from '@/lib/keycloakAuth'
 
-// Browser braucht eine erreichbare Host-URL (z.B. http://localhost:8092).
+// Browser braucht eine erreichbare Host-URL (z.B. http://127.0.0.1:8092).
 // Server-seitiger Code in Docker nutzt die Container-interne Netzwerk-URL.
-const API_PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://localhost:8092'
+const API_PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://127.0.0.1:8092'
 
 /**
  * Normalisiert die interne API-URL für Docker-Umgebungen.
@@ -168,6 +187,7 @@ const API_INTERNAL_BASE_URL = normalizeInternalApiBaseUrl(process.env.API_INTERN
 const AUTH_BYPASS_LOCAL = ((process.env.NEXT_PUBLIC_AUTH_BYPASS_LOCAL || '').trim() || 'false').toLowerCase() === 'true'
 const AUTH_BYPASS_TOKEN = 'local-auth-bypass'
 const AUTH_BYPASS_DISPLAY_NAME = 'LocalAdmin'
+export const API_AUTH_SESSION_TOKEN = '__team4s_runtime_auth__'
 
 /**
  * Gibt die richtige API-Basis-URL zurück — je nachdem ob der Code im Browser
@@ -213,6 +233,13 @@ export const AUTH_DISPLAY_NAME_COOKIE_NAME = 'team4s_display_name'
 const AUTH_TOKEN_STORAGE_KEY = 'team4s.auth.access_token'
 const AUTH_REFRESH_STORAGE_KEY = 'team4s.auth.refresh_token'
 const AUTH_DISPLAY_NAME_STORAGE_KEY = 'team4s.auth.display_name'
+const AUTH_SESSION_META_STORAGE_KEY = 'team4s.auth.session_meta'
+export const AUTH_SESSION_EVENT_STORAGE_KEY = 'team4s.auth.session_event'
+export const AUTH_SESSION_CHANGED_EVENT = 'team4s:auth-session-changed'
+export const AUTH_SESSION_SWITCH_EVENT = 'team4s:auth-session-switch'
+export const AUTH_SESSION_SWITCH_CHANNEL_NAME = 'team4s.auth.session_switch'
+const AUTH_SESSION_PRIVATE_META_STORAGE_KEY = 'team4s.auth.private_session_meta'
+const AUTH_REFRESH_BUFFER_SECONDS = 60
 
 /**
  * Strukturierter API-Fehler — enthält HTTP-Statuscode, Fehlermeldung und
@@ -248,6 +275,38 @@ interface ParsedApiErrorPayload {
   message: string
   code: string | null
   details: string | null
+}
+
+interface AuthorizedRequestOptions extends Omit<RequestInit, 'headers'> {
+  authToken?: string
+  headers?: Record<string, string>
+  skipAuthPreflight?: boolean
+  retryAuth401?: boolean
+}
+
+export interface RuntimeSessionMeta {
+  app_user_id: number
+  user_id: number
+  display_name: string
+  session_id: string | null
+}
+
+export interface RuntimeSessionSwitchEvent {
+  type: 'session-switch'
+  timestamp: number
+  previous_app_user_id: number
+  next_app_user_id: number
+}
+
+export interface AuthSessionSnapshot {
+  hasAccessToken: boolean
+  hasRefreshToken: boolean
+  displayName: string
+}
+
+interface RuntimeSessionPrivateMeta {
+  access_token_expires_at: number
+  refresh_token_expires_at: number
 }
 
 interface CommentListParams {
@@ -396,30 +455,202 @@ function writeBrowserStorage(name: string, value: string): void {
   }
 }
 
+function clearLegacyTokenStorage(): void {
+  writeBrowserStorage(AUTH_TOKEN_STORAGE_KEY, '')
+  writeBrowserStorage(AUTH_REFRESH_STORAGE_KEY, '')
+  writeBrowserStorage(AUTH_DISPLAY_NAME_STORAGE_KEY, '')
+}
+
+export function getRuntimeSessionMeta(): RuntimeSessionMeta | null {
+  const raw = readBrowserStorage(AUTH_SESSION_META_STORAGE_KEY)
+  if (!raw) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<RuntimeSessionMeta>
+    if (!Number.isFinite(parsed.app_user_id) || Number(parsed.app_user_id) <= 0) {
+      return null
+    }
+
+    return {
+      app_user_id: Number(parsed.app_user_id),
+      user_id: Number(parsed.user_id || 0),
+      display_name: typeof parsed.display_name === 'string' ? parsed.display_name : '',
+      session_id: typeof parsed.session_id === 'string' ? parsed.session_id : null,
+    }
+  } catch {
+    return null
+  }
+}
+
+function writeRuntimeSessionMeta(authData: AuthTokenData): void {
+  const appUserId = Number(authData.app_user_id || 0)
+  if (!Number.isFinite(appUserId) || appUserId <= 0) {
+    writeBrowserStorage(AUTH_SESSION_META_STORAGE_KEY, '')
+    return
+  }
+
+  writeBrowserStorage(AUTH_SESSION_META_STORAGE_KEY, JSON.stringify({
+    app_user_id: appUserId,
+    user_id: Number(authData.user_id || 0),
+    display_name: authData.display_name || '',
+    session_id: typeof authData.session_id === 'string' ? authData.session_id : null,
+  } satisfies RuntimeSessionMeta))
+}
+
+function readRuntimeSessionPrivateMeta(): RuntimeSessionPrivateMeta | null {
+  const raw = readBrowserStorage(AUTH_SESSION_PRIVATE_META_STORAGE_KEY)
+  if (!raw) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<RuntimeSessionPrivateMeta>
+    const accessExpiresAt = Number(parsed.access_token_expires_at || 0)
+    const refreshExpiresAt = Number(parsed.refresh_token_expires_at || 0)
+    if (!Number.isFinite(accessExpiresAt) || accessExpiresAt <= 0) {
+      return null
+    }
+
+    return {
+      access_token_expires_at: accessExpiresAt,
+      refresh_token_expires_at: Number.isFinite(refreshExpiresAt) && refreshExpiresAt > 0 ? refreshExpiresAt : 0,
+    }
+  } catch {
+    return null
+  }
+}
+
+function writeRuntimeSessionPrivateMeta(authData: AuthTokenData): void {
+  const accessExpiresAt = Number(authData.access_token_expires_at || 0)
+  const refreshExpiresAt = Number(authData.refresh_token_expires_at || 0)
+  if (!Number.isFinite(accessExpiresAt) || accessExpiresAt <= 0) {
+    writeBrowserStorage(AUTH_SESSION_PRIVATE_META_STORAGE_KEY, '')
+    return
+  }
+
+  writeBrowserStorage(AUTH_SESSION_PRIVATE_META_STORAGE_KEY, JSON.stringify({
+    access_token_expires_at: accessExpiresAt,
+    refresh_token_expires_at: Number.isFinite(refreshExpiresAt) && refreshExpiresAt > 0 ? refreshExpiresAt : 0,
+  } satisfies RuntimeSessionPrivateMeta))
+}
+
+function shouldRefreshRuntimeSession(): boolean {
+  const refreshToken = getRuntimeRefreshToken()
+  if (!refreshToken.trim()) {
+    return false
+  }
+
+  const accessToken = resolveAuthToken()
+  if (!accessToken.trim()) {
+    return true
+  }
+
+  const privateMeta = readRuntimeSessionPrivateMeta()
+  if (!privateMeta) {
+    return false
+  }
+
+  const nowSeconds = Math.floor(Date.now() / 1000)
+  return privateMeta.access_token_expires_at <= nowSeconds + AUTH_REFRESH_BUFFER_SECONDS
+}
+
+function publishRuntimeSessionSwitch(previous: RuntimeSessionMeta, next: AuthTokenData): void {
+  const nextAppUserId = Number(next.app_user_id || 0)
+  if (typeof window === 'undefined' || !Number.isFinite(nextAppUserId) || nextAppUserId <= 0) {
+    return
+  }
+
+  const payload: RuntimeSessionSwitchEvent = {
+    type: 'session-switch',
+    timestamp: Date.now(),
+    previous_app_user_id: previous.app_user_id,
+    next_app_user_id: nextAppUserId,
+  }
+
+  try {
+    window.localStorage.setItem(AUTH_SESSION_EVENT_STORAGE_KEY, JSON.stringify(payload))
+  } catch {
+    // Ignore cross-tab event storage write failures.
+  }
+
+  try {
+    window.dispatchEvent(new CustomEvent(AUTH_SESSION_SWITCH_EVENT, { detail: payload }))
+  } catch {
+    // Ignore event dispatch issues; storage remains the source of truth.
+  }
+
+  try {
+    const channel = new BroadcastChannel(AUTH_SESSION_SWITCH_CHANNEL_NAME)
+    channel.postMessage(payload)
+    channel.close()
+  } catch {
+    // Ignore BroadcastChannel failures and rely on storage/custom events.
+  }
+}
+
+export function parseRuntimeSessionSwitchEvent(raw: string): RuntimeSessionSwitchEvent | null {
+  if (!raw.trim()) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<RuntimeSessionSwitchEvent>
+    if (
+      parsed.type !== 'session-switch' ||
+      !Number.isFinite(parsed.timestamp) ||
+      !Number.isFinite(parsed.previous_app_user_id) ||
+      !Number.isFinite(parsed.next_app_user_id) ||
+      Number(parsed.previous_app_user_id) <= 0 ||
+      Number(parsed.next_app_user_id) <= 0
+    ) {
+      return null
+    }
+
+    return {
+      type: 'session-switch',
+      timestamp: Number(parsed.timestamp),
+      previous_app_user_id: Number(parsed.previous_app_user_id),
+      next_app_user_id: Number(parsed.next_app_user_id),
+    }
+  } catch {
+    return null
+  }
+}
+
+function dispatchAuthSessionChanged(): void {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    window.dispatchEvent(new CustomEvent(AUTH_SESSION_CHANGED_EVENT))
+  } catch {
+    // Ignore event dispatch issues; cookies/storage remain the source of truth.
+  }
+}
+
 /**
  * Ermittelt den aktiven Auth-Token mit folgendem Vorrang:
- * 1. Explizit übergebener Token (z.B. von Server-Komponenten)
- * 2. Cookie team4s_access_token (nach Login gesetzt)
- * 3. localStorage Fallback
+ * 1. Browser-Runtime-Token aus Cookie/localStorage
+ * 2. Explizit übergebener Token (z.B. von Server-Komponenten oder SSR)
  * 4. Build-time Env-Variable NEXT_PUBLIC_AUTH_TOKEN
  * 5. Local-Dev-Bypass-Token (nur wenn AUTH_BYPASS_LOCAL=true)
  */
 function resolveAuthToken(authToken?: string): string {
-  const explicitToken = (authToken || '').trim()
-  if (explicitToken) {
-    return explicitToken
-  }
-
   if (typeof window !== 'undefined') {
     const runtimeToken = readBrowserCookie(AUTH_TOKEN_COOKIE_NAME).trim()
     if (runtimeToken) {
       return runtimeToken
     }
 
-    const storedToken = readBrowserStorage(AUTH_TOKEN_STORAGE_KEY)
-    if (storedToken) {
-      return storedToken
-    }
+    clearLegacyTokenStorage()
+  }
+
+  const explicitToken = (authToken || '').trim()
+  if (explicitToken) {
+    return explicitToken === API_AUTH_SESSION_TOKEN ? '' : explicitToken
   }
 
   if (AUTH_BEARER_TOKEN) {
@@ -476,19 +707,6 @@ export async function parseApiErrorPayload(response: Response, fallback: string)
 async function parseApiError(response: Response, fallback: string): Promise<string> {
   const parsed = await parseApiErrorPayload(response, fallback)
   return parsed.message
-}
-
-function parsePayloadError(payload: unknown, fallback: string): string {
-  if (!payload || typeof payload !== 'object') {
-    return fallback
-  }
-
-  const message = (payload as { error?: { message?: unknown } }).error?.message
-  if (typeof message === 'string' && message.trim()) {
-    return message
-  }
-
-  return fallback
 }
 
 function parsePayloadApiError(payload: unknown, fallback: string): ParsedApiErrorPayload {
@@ -550,7 +768,8 @@ export function getRuntimeRefreshToken(): string {
     return ''
   }
 
-  return readBrowserCookie(AUTH_REFRESH_COOKIE_NAME).trim() || readBrowserStorage(AUTH_REFRESH_STORAGE_KEY)
+  clearLegacyTokenStorage()
+  return readBrowserCookie(AUTH_REFRESH_COOKIE_NAME).trim()
 }
 
 export function getRuntimeDisplayName(): string {
@@ -558,7 +777,8 @@ export function getRuntimeDisplayName(): string {
     return AUTH_DISPLAY_NAME
   }
 
-  const displayName = readBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME).trim() || readBrowserStorage(AUTH_DISPLAY_NAME_STORAGE_KEY)
+  clearLegacyTokenStorage()
+  const displayName = readBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME).trim()
   return displayName || AUTH_DISPLAY_NAME
 }
 
@@ -566,22 +786,287 @@ export function hasRuntimeAuthToken(): boolean {
   return getRuntimeAuthToken().length > 0
 }
 
+export function getAuthSessionSnapshot(): AuthSessionSnapshot {
+  const accessToken = getRuntimeAuthToken()
+  const refreshToken = getRuntimeRefreshToken()
+
+  return {
+    hasAccessToken: accessToken.length > 0,
+    hasRefreshToken: refreshToken.length > 0,
+    displayName: getRuntimeDisplayName(),
+  }
+}
+
 export function persistAuthSession(authData: AuthTokenData): void {
+  const previousSession = getRuntimeSessionMeta()
   writeBrowserCookie(AUTH_TOKEN_COOKIE_NAME, authData.access_token, authData.access_token_expires_in)
   writeBrowserCookie(AUTH_REFRESH_COOKIE_NAME, authData.refresh_token, authData.refresh_token_expires_in)
   writeBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME, authData.display_name, authData.refresh_token_expires_in)
-  writeBrowserStorage(AUTH_TOKEN_STORAGE_KEY, authData.access_token)
-  writeBrowserStorage(AUTH_REFRESH_STORAGE_KEY, authData.refresh_token)
-  writeBrowserStorage(AUTH_DISPLAY_NAME_STORAGE_KEY, authData.display_name)
+  clearLegacyTokenStorage()
+  writeRuntimeSessionMeta(authData)
+  writeRuntimeSessionPrivateMeta(authData)
+  if (previousSession && previousSession.app_user_id > 0 && authData.app_user_id && previousSession.app_user_id !== authData.app_user_id) {
+    publishRuntimeSessionSwitch(previousSession, authData)
+  }
+  dispatchAuthSessionChanged()
 }
 
-export function clearAuthSession(): void {
+export function clearAuthSession(options: { broadcast?: boolean } = {}): void {
+  const { broadcast = true } = options
   writeBrowserCookie(AUTH_TOKEN_COOKIE_NAME, '', 0)
   writeBrowserCookie(AUTH_REFRESH_COOKIE_NAME, '', 0)
   writeBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME, '', 0)
   writeBrowserStorage(AUTH_TOKEN_STORAGE_KEY, '')
   writeBrowserStorage(AUTH_REFRESH_STORAGE_KEY, '')
   writeBrowserStorage(AUTH_DISPLAY_NAME_STORAGE_KEY, '')
+  writeBrowserStorage(AUTH_SESSION_META_STORAGE_KEY, '')
+  writeBrowserStorage(AUTH_SESSION_PRIVATE_META_STORAGE_KEY, '')
+  if (broadcast) {
+    dispatchAuthSessionChanged()
+    return
+  }
+}
+
+function toRuntimeAuthData(accessTokenData: KeycloakTokenBundle, currentUser: CurrentUserResponse['data']): AuthTokenData {
+  return {
+    token_type: accessTokenData.tokenType,
+    access_token: accessTokenData.idToken,
+    access_token_expires_at: accessTokenData.accessTokenExpiresAt,
+    access_token_expires_in: accessTokenData.accessTokenExpiresIn,
+    refresh_token: accessTokenData.refreshToken,
+    refresh_token_expires_at: accessTokenData.refreshTokenExpiresAt,
+    refresh_token_expires_in: accessTokenData.refreshTokenExpiresIn,
+    user_id: currentUser.legacy_user_id || 0,
+    app_user_id: currentUser.app_user_id || 0,
+    display_name: currentUser.display_name,
+    session_id: currentUser.session_id ?? null,
+  }
+}
+
+async function revokePreviousRuntimeSession(refreshToken: string): Promise<void> {
+  const trimmedRefreshToken = refreshToken.trim()
+  if (!trimmedRefreshToken) {
+    return
+  }
+
+  try {
+    if (isKeycloakEnabled()) {
+      await logoutFromKeycloak(trimmedRefreshToken)
+    } else {
+      await revokeAuthToken({ refresh_token: trimmedRefreshToken })
+    }
+  } catch {
+    // Best effort only; local session has already moved on.
+  }
+}
+
+async function prepareRuntimeSessionSwitch(nextAuthData: AuthTokenData): Promise<void> {
+  const previousSession = getRuntimeSessionMeta()
+  const previousRefreshToken = getRuntimeRefreshToken()
+  const nextAppUserId = Number(nextAuthData.app_user_id || 0)
+
+  if (!previousSession || previousSession.app_user_id <= 0 || nextAppUserId <= 0 || previousSession.app_user_id === nextAppUserId) {
+    return
+  }
+
+  clearAuthSession({ broadcast: false })
+  await revokePreviousRuntimeSession(previousRefreshToken)
+}
+
+export async function persistResolvedAuthSession(authData: AuthTokenData): Promise<void> {
+  await prepareRuntimeSessionSwitch(authData)
+  persistAuthSession(authData)
+}
+
+function isAuthRelatedError(parsed: ParsedApiErrorPayload): boolean {
+  const haystack = [parsed.message, parsed.code, parsed.details]
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    .join(' ')
+    .toLowerCase()
+
+  if (!haystack) {
+    return true
+  }
+
+  return [
+    'zugriffstoken',
+    'access token',
+    'refresh',
+    'session',
+    'anmeldung',
+    'auth',
+    'bearer',
+    'token',
+    'unauthorized',
+    'invalid',
+    'ungültig',
+    'ungueltig',
+  ].some((needle) => haystack.includes(needle))
+}
+
+async function getCurrentUserWithBearerToken(authToken: string): Promise<CurrentUserResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me`, {
+    headers: withAuthHeader({}, authToken),
+    skipAuthPreflight: true,
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const payload = await response.json() as CurrentUserResponse
+  return normalizeCurrentUserResponse(payload)
+}
+
+export async function resolveCurrentUserFromAuthSession(): Promise<CurrentUserResponse> {
+  return getCurrentUser()
+}
+
+let runtimeSessionRefreshPromise: Promise<string> | null = null
+
+async function refreshRuntimeSession(): Promise<string> {
+  if (runtimeSessionRefreshPromise) {
+    return runtimeSessionRefreshPromise
+  }
+
+  runtimeSessionRefreshPromise = (async () => {
+    const refreshToken = getRuntimeRefreshToken()
+    if (!refreshToken.trim()) {
+      throw new ApiError(401, 'Anmeldung erforderlich. Bitte erneut einloggen.')
+    }
+
+    try {
+      if (isKeycloakEnabled()) {
+        const tokenBundle = await refreshKeycloakToken(refreshToken)
+        const me = await getCurrentUserWithBearerToken(tokenBundle.idToken)
+        persistAuthSession(toRuntimeAuthData(tokenBundle, me.data))
+        return tokenBundle.idToken
+      }
+
+      const response = await refreshAuthToken({ refresh_token: refreshToken })
+      persistAuthSession(response.data)
+      return response.data.access_token
+    } catch (error) {
+      clearAuthSession()
+      if (error instanceof ApiError) {
+        throw error
+      }
+      if (error instanceof Error && error.message.trim()) {
+        throw new ApiError(401, error.message)
+      }
+      throw new ApiError(401, 'Session konnte nicht aktualisiert werden. Bitte erneut einloggen.')
+    } finally {
+      runtimeSessionRefreshPromise = null
+    }
+  })()
+
+  return runtimeSessionRefreshPromise
+}
+
+async function ensureFreshRuntimeSession(): Promise<string> {
+  if (!shouldRefreshRuntimeSession()) {
+    return resolveAuthToken()
+  }
+
+  return refreshRuntimeSession()
+}
+
+export async function completeKeycloakAuthCallback(code: string, state: string): Promise<CurrentUserResponse> {
+  const tokenBundle = await exchangeKeycloakCode(code, state)
+  const me = await getCurrentUserWithBearerToken(tokenBundle.idToken)
+  await persistResolvedAuthSession(toRuntimeAuthData(tokenBundle, me.data))
+  return me
+}
+
+export async function refreshActiveAuthSession(): Promise<CurrentUserResponse | null> {
+  const refreshedToken = await refreshRuntimeSession()
+
+  if (isKeycloakEnabled()) {
+    return getCurrentUserWithBearerToken(refreshedToken)
+  }
+
+  return null
+}
+
+export async function logoutActiveAuthSession(): Promise<void> {
+  const refreshToken = getRuntimeRefreshToken()
+  if (isKeycloakEnabled()) {
+    await logoutFromKeycloak(refreshToken || undefined)
+  } else {
+    await revokeAuthToken(refreshToken ? { refresh_token: refreshToken } : {})
+  }
+
+  clearAuthSession()
+}
+
+async function authorizedFetch(input: string, options: AuthorizedRequestOptions = {}): Promise<Response> {
+  const {
+    authToken,
+    headers = {},
+    skipAuthPreflight = false,
+    retryAuth401 = true,
+    ...init
+  } = options
+
+  const send = (token?: string) => {
+    const requestHeaders = { ...headers }
+    if (token || !requestHeaders.Authorization) {
+      withAuthHeader(requestHeaders, token)
+    }
+    return fetch(input, {
+      ...init,
+      headers: requestHeaders,
+    })
+  }
+
+  if (!skipAuthPreflight) {
+    await ensureFreshRuntimeSession()
+  }
+  const initialToken = skipAuthPreflight && headers.Authorization ? undefined : resolveAuthToken(authToken)
+  let response = await send(initialToken)
+  if (response.status !== 401) {
+    return response
+  }
+
+  const parsed = await parseApiErrorPayload(response.clone(), `API request failed: ${response.status}`)
+  if (!retryAuth401 || !isAuthRelatedError(parsed) || !getRuntimeRefreshToken().trim()) {
+    return response
+  }
+
+  const refreshedToken = await refreshRuntimeSession()
+  response = await send(refreshedToken)
+  return response
+}
+
+export async function apiClientFetch(pathOrUrl: string, options: AuthorizedRequestOptions = {}): Promise<Response> {
+  const input = pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')
+    ? pathOrUrl
+    : `${getApiBaseUrl()}${pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`}`
+
+  return authorizedFetch(input, options)
+}
+
+function normalizeCurrentUserResponse(payload: CurrentUserResponse): CurrentUserResponse {
+  const data = payload?.data
+  const globalRoles = Array.isArray(data?.global_roles)
+    ? data.global_roles.filter((role): role is string => typeof role === 'string')
+    : []
+
+  return {
+    data: {
+      app_user_id: Number(data?.app_user_id || 0),
+      legacy_user_id: Number(data?.legacy_user_id || 0),
+      display_name: typeof data?.display_name === 'string' ? data.display_name : '',
+      email: typeof data?.email === 'string' ? data.email : '',
+      keycloak_subject: typeof data?.keycloak_subject === 'string' ? data.keycloak_subject : '',
+      status: data?.status === 'active' || data?.status === 'disabled' ? data.status : 'pending',
+      global_roles: globalRoles,
+      is_platform_admin: Boolean(data?.is_platform_admin),
+      session_id: typeof data?.session_id === 'string' ? data.session_id : null,
+    },
+  }
 }
 
 interface AnimeListRequestOptions {
@@ -634,7 +1119,7 @@ export async function getAnimeByID(id: number, options: { include_disabled?: boo
 
 export async function getAnimeBackdrops(id: number): Promise<AnimeBackdropResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${id}/backdrops`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${id}/backdrops`, {
     cache: 'no-store',
   })
 
@@ -648,7 +1133,7 @@ export async function getAnimeBackdrops(id: number): Promise<AnimeBackdropRespon
 
 export async function getAnimeRelations(id: number): Promise<AnimeRelationsResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${id}/relations`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${id}/relations`, {
     next: { revalidate: 60 },
   })
 
@@ -665,7 +1150,7 @@ export async function getAnimeRelations(id: number): Promise<AnimeRelationsRespo
 
 export async function getEpisodeByID(id: number): Promise<{ data: EpisodeDetail }> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/episodes/${id}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/episodes/${id}`, {
     next: { revalidate: 30 },
   })
 
@@ -694,7 +1179,7 @@ export async function getFansubList(params: FansubListParams = {}): Promise<Fans
 
 export async function getFansubByID(id: number): Promise<FansubGroupResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${id}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${id}`, {
     cache: 'no-store',
   })
 
@@ -709,7 +1194,7 @@ export async function getFansubByID(id: number): Promise<FansubGroupResponse> {
 export async function getFansubBySlug(slug: string): Promise<FansubGroupResponse> {
   const API_BASE_URL = getApiBaseUrl()
   const encodedSlug = encodeURIComponent(slug)
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansub-slugs/${encodedSlug}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansub-slugs/${encodedSlug}`, {
     cache: 'no-store',
   })
 
@@ -723,7 +1208,7 @@ export async function getFansubBySlug(slug: string): Promise<FansubGroupResponse
 
 export async function getFansubMembers(fansubID: number): Promise<FansubMemberListResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/members`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/members`, {
     cache: 'no-store',
   })
 
@@ -737,7 +1222,7 @@ export async function getFansubMembers(fansubID: number): Promise<FansubMemberLi
 
 export async function getFansubAliases(fansubID: number): Promise<FansubAliasListResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases`, {
     cache: 'no-store',
   })
 
@@ -751,7 +1236,7 @@ export async function getFansubAliases(fansubID: number): Promise<FansubAliasLis
 
 export async function getFansubLinks(fansubID: number, authToken?: string): Promise<FansubGroupLinkListResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links`, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
@@ -770,7 +1255,7 @@ export async function createFansubLink(
   authToken?: string,
 ): Promise<FansubGroupLinkResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -796,7 +1281,7 @@ export async function updateFansubLink(
   authToken?: string,
 ): Promise<FansubGroupLinkResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links/${linkID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links/${linkID}`, {
     method: 'PATCH',
     headers: withAuthHeader(
       {
@@ -817,7 +1302,7 @@ export async function updateFansubLink(
 
 export async function deleteFansubLink(fansubID: number, linkID: number, authToken?: string): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links/${linkID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links/${linkID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -834,7 +1319,7 @@ export async function createFansubAlias(
   authToken?: string,
 ): Promise<FansubAliasResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -855,7 +1340,7 @@ export async function createFansubAlias(
 
 export async function deleteFansubAlias(fansubID: number, aliasID: number, authToken?: string): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases/${aliasID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases/${aliasID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -868,7 +1353,7 @@ export async function deleteFansubAlias(fansubID: number, aliasID: number, authT
 
 export async function getAnimeFansubs(animeID: number): Promise<AnimeFansubListResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${animeID}/fansubs`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/fansubs`, {
     cache: 'no-store',
   })
 
@@ -886,7 +1371,7 @@ export async function attachAnimeFansub(
   authToken?: string,
 ): Promise<{ data: { anime_id: number; fansub_group_id: number } }> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${animeID}/fansubs/${fansubID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/fansubs/${fansubID}`, {
     method: 'POST',
     headers: withAuthHeader({}, authToken),
   })
@@ -901,7 +1386,7 @@ export async function attachAnimeFansub(
 
 export async function detachAnimeFansub(animeID: number, fansubID: number, authToken?: string): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${animeID}/fansubs/${fansubID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/fansubs/${fansubID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -914,7 +1399,7 @@ export async function detachAnimeFansub(animeID: number, fansubID: number, authT
 
 export async function getGroupedEpisodes(animeID: number): Promise<GroupedEpisodesResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${animeID}/episodes`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/episodes`, {
     cache: 'no-store',
   })
 
@@ -928,7 +1413,7 @@ export async function getGroupedEpisodes(animeID: number): Promise<GroupedEpisod
 
 export async function getEpisodeVersionByID(versionID: number): Promise<EpisodeVersionResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/episode-versions/${versionID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/episode-versions/${versionID}`, {
     cache: 'no-store',
   })
 
@@ -945,7 +1430,7 @@ export async function getEpisodeVersionEditorContext(
   authToken?: string,
 ): Promise<EpisodeVersionEditorContextResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/episode-versions/${versionID}/editor-context`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/episode-versions/${versionID}/editor-context`, {
     cache: 'no-store',
     headers: withAuthHeader({}, authToken),
   })
@@ -963,7 +1448,7 @@ export async function scanEpisodeVersionFolder(
   authToken?: string,
 ): Promise<EpisodeVersionFolderScanResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/episode-versions/${versionID}/folder-scan`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/episode-versions/${versionID}/folder-scan`, {
     method: 'POST',
     headers: withAuthHeader({}, authToken),
   })
@@ -983,7 +1468,7 @@ export async function createEpisodeVersion(
   authToken?: string,
 ): Promise<EpisodeVersionResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${animeID}/episodes/${episodeNumber}/versions`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/episodes/${episodeNumber}/versions`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -1008,7 +1493,7 @@ export async function updateEpisodeVersion(
   authToken?: string,
 ): Promise<EpisodeVersionResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/episode-versions/${versionID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/episode-versions/${versionID}`, {
     method: 'PATCH',
     headers: withAuthHeader(
       {
@@ -1029,7 +1514,7 @@ export async function updateEpisodeVersion(
 
 export async function deleteEpisodeVersion(versionID: number, authToken?: string): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/episode-versions/${versionID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/episode-versions/${versionID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -1045,20 +1530,18 @@ export async function createFansubGroup(
   authToken?: string,
 ): Promise<FansubGroupResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs`, {
     method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
+    authToken,
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(payload),
   })
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 
   return response.json() as Promise<FansubGroupResponse>
@@ -1070,7 +1553,7 @@ export async function updateFansubGroup(
   authToken?: string,
 ): Promise<FansubGroupResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}`, {
     method: 'PATCH',
     headers: withAuthHeader(
       {
@@ -1091,7 +1574,7 @@ export async function updateFansubGroup(
 
 export async function deleteFansubGroup(fansubID: number, authToken?: string): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -1110,62 +1593,129 @@ interface FansubMediaUploadOptions {
   onProgress?: (percent: number) => void
 }
 
-export async function uploadFansubMedia(options: FansubMediaUploadOptions): Promise<FansubMediaUploadResponse> {
-  if (typeof window === 'undefined') {
-    throw new ApiError(500, 'upload ist nur im browser verfügbar')
+type UploadRetryEligibility = 'never' | 'auth-before-persistence' | 'idempotent'
+
+interface AuthorizedUploadXhrOptions<T> {
+  endpoint: string
+  authToken?: string
+  buildBody: () => FormData
+  onProgress?: (percent: number) => void
+  retryEligibility: UploadRetryEligibility
+  parsePayload?: (payload: unknown) => T
+}
+
+interface UploadXhrResult {
+  status: number
+  payload: unknown
+}
+
+function parseUploadXhrPayload(responseText: string): unknown {
+  try {
+    return JSON.parse(responseText)
+  } catch {
+    return null
   }
+}
 
-  const API_BASE_URL = getApiBaseUrl()
-  const token = resolveAuthToken(options.authToken)
-  const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/media`
-
-  return new Promise<FansubMediaUploadResponse>((resolve, reject) => {
+function sendAuthorizedUploadXhrOnce<T>(
+  options: AuthorizedUploadXhrOptions<T>,
+  token: string,
+): Promise<UploadXhrResult> {
+  return new Promise<UploadXhrResult>((resolve, reject) => {
     const xhr = new XMLHttpRequest()
-    xhr.open('POST', endpoint, true)
+    xhr.open('POST', options.endpoint, true)
     if (token) {
       xhr.setRequestHeader('Authorization', `Bearer ${token}`)
     }
 
     xhr.upload.onprogress = (event) => {
-      if (!options.onProgress) return
-      if (!event.lengthComputable) return
+      if (!options.onProgress || !event.lengthComputable) return
       const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)))
       options.onProgress(percent)
     }
 
     xhr.onerror = () => {
-      reject(new ApiError(0, 'netzwerkfehler beim upload'))
+      reject(new ApiError(0, 'Netzwerkfehler beim Upload.'))
     }
 
     xhr.onload = () => {
-      let payload: unknown = null
-      try {
-        payload = JSON.parse(xhr.responseText)
-      } catch {
-        payload = null
-      }
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        options.onProgress?.(100)
-        resolve(payload as FansubMediaUploadResponse)
-        return
-      }
-
-      const fallback = `API request failed: ${xhr.status}`
-      reject(new ApiError(xhr.status, parsePayloadError(payload, fallback)))
+      resolve({
+        status: xhr.status,
+        payload: parseUploadXhrPayload(xhr.responseText),
+      })
     }
 
-    const body = new FormData()
-    body.set('kind', options.kind)
-    body.set('file', options.file)
     options.onProgress?.(0)
-    xhr.send(body)
+    xhr.send(options.buildBody())
   })
 }
 
+async function authorizedUploadXhr<T>(options: AuthorizedUploadXhrOptions<T>): Promise<T> {
+  if (typeof window === 'undefined') {
+    throw new ApiError(500, 'Upload ist nur im Browser verfügbar.')
+  }
+
+  await ensureFreshRuntimeSession()
+  const initialToken = resolveAuthToken(options.authToken)
+  const initialResult = await sendAuthorizedUploadXhrOnce(options, initialToken)
+  if (initialResult.status >= 200 && initialResult.status < 300) {
+    options.onProgress?.(100)
+    return options.parsePayload ? options.parsePayload(initialResult.payload) : (initialResult.payload as T)
+  }
+
+  const parsed = parsePayloadApiError(initialResult.payload, `API request failed: ${initialResult.status}`)
+  const canRetry = initialResult.status === 401 &&
+    isAuthRelatedError(parsed) &&
+    options.retryEligibility !== 'never' &&
+    getRuntimeRefreshToken().trim().length > 0
+
+  if (!canRetry) {
+    if (initialResult.status === 401 && options.retryEligibility === 'never') {
+      throw new ApiError(
+        initialResult.status,
+        'Anmeldung abgelaufen. Bitte erneut anmelden und den Upload wiederholen.',
+        null,
+        parsed.code,
+        parsed.details,
+      )
+    }
+    throw new ApiError(initialResult.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const refreshedToken = await refreshRuntimeSession()
+  const retryResult = await sendAuthorizedUploadXhrOnce(options, refreshedToken)
+  if (retryResult.status >= 200 && retryResult.status < 300) {
+    options.onProgress?.(100)
+    return options.parsePayload ? options.parsePayload(retryResult.payload) : (retryResult.payload as T)
+  }
+
+  const retryParsed = parsePayloadApiError(retryResult.payload, `API request failed: ${retryResult.status}`)
+  throw new ApiError(retryResult.status, retryParsed.message, null, retryParsed.code, retryParsed.details)
+}
+
+export async function uploadFansubMedia(options: FansubMediaUploadOptions): Promise<FansubMediaUploadResponse> {
+  if (typeof window === 'undefined') {
+    throw new ApiError(500, 'Upload ist nur im Browser verfügbar.')
+  }
+
+  const API_BASE_URL = getApiBaseUrl()
+  const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/media`
+  return authorizedUploadXhr<FansubMediaUploadResponse>({
+    endpoint,
+    authToken: options.authToken,
+    onProgress: options.onProgress,
+    retryEligibility: 'never',
+    buildBody: () => {
+      const body = new FormData()
+      body.set('kind', options.kind)
+      body.set('file', options.file)
+      return body
+    },
+  })
+}
 export async function deleteFansubMedia(fansubID: number, kind: FansubMediaKind, authToken?: string): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/media/${kind}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/media/${kind}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -1182,7 +1732,7 @@ export async function createFansubMember(
   authToken?: string,
 ): Promise<FansubMemberResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/members`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/members`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -1208,7 +1758,7 @@ export async function updateFansubMember(
   authToken?: string,
 ): Promise<FansubMemberResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/members/${memberID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/members/${memberID}`, {
     method: 'PATCH',
     headers: withAuthHeader(
       {
@@ -1229,7 +1779,7 @@ export async function updateFansubMember(
 
 export async function deleteFansubMember(fansubID: number, memberID: number, authToken?: string): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/members/${memberID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/members/${memberID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -1268,7 +1818,7 @@ export async function createAnimeComment(
     authToken,
   )
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${id}/comments`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${id}/comments`, {
     method: 'POST',
     headers,
     body: JSON.stringify(payload),
@@ -1306,7 +1856,7 @@ export async function getWatchlist(
 
 export async function addWatchlistEntry(animeID: number, authToken?: string): Promise<WatchlistCreateResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/watchlist`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/watchlist`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -1327,7 +1877,7 @@ export async function addWatchlistEntry(animeID: number, authToken?: string): Pr
 
 export async function getWatchlistEntry(animeID: number, authToken?: string): Promise<WatchlistCreateResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/watchlist/${animeID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/watchlist/${animeID}`, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
@@ -1342,7 +1892,7 @@ export async function getWatchlistEntry(animeID: number, authToken?: string): Pr
 
 export async function removeWatchlistEntry(animeID: number, authToken?: string): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/watchlist/${animeID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/watchlist/${animeID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -1416,19 +1966,351 @@ export async function revokeAuthToken(payload: AuthRevokeRequest = {}, authToken
   }
 }
 
+export async function getCurrentUser(authToken?: string): Promise<CurrentUserResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me`, {
+    authToken,
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  const payload = await response.json() as CurrentUserResponse
+  return normalizeCurrentUserResponse(payload)
+}
+
+export async function getOwnProfile(authToken?: string): Promise<MemberProfileResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/profile`, {
+    cache: 'no-store',
+    authToken,
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<MemberProfileResponse>
+}
+
+export async function getMyFansubGroups(authToken?: string): Promise<ContributorGroupsResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/fansub-groups`, {
+    cache: 'no-store',
+    authToken,
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<ContributorGroupsResponse>
+}
+
+export async function getMyFansubGroupDetail(
+  fansubGroupId: number,
+  authToken?: string,
+): Promise<ContributorGroupDetailResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/fansub-groups/${fansubGroupId}`, {
+    cache: 'no-store',
+    authToken,
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<ContributorGroupDetailResponse>
+}
+
+export async function updateOwnProfile(
+  payload: UpdateMemberProfileRequest,
+  authToken?: string,
+): Promise<MemberProfileResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/profile`, {
+    method: 'PUT',
+    authToken,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<MemberProfileResponse>
+}
+
+export async function uploadOwnProfileAvatar(file: File, authToken?: string): Promise<MemberProfileResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const body = new FormData()
+  body.append('file', file)
+
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/profile/avatar`, {
+    method: 'POST',
+    headers: withAuthHeader({}, authToken),
+    retryAuth401: false,
+    body,
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<MemberProfileResponse>
+}
+
+export async function listAdminUsers(authToken?: string): Promise<AppUserListResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/users`, {
+    headers: withAuthHeader({}, authToken),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AppUserListResponse>
+}
+
+export async function listFansubAppMembers(fansubId: number, authToken?: string): Promise<FansubAppMemberListResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members`, {
+    authToken,
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubAppMemberListResponse>
+}
+
+export async function searchFansubAppMemberCandidates(
+  fansubId: number,
+  query: string,
+  authToken?: string,
+): Promise<FansubAppMemberCandidateSearchResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const params = new URLSearchParams()
+  params.set('q', query)
+
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-member-candidates?${params.toString()}`, {
+    authToken,
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubAppMemberCandidateSearchResponse>
+}
+
+export async function getFansubGroupCapabilities(
+  fansubId: number,
+  authToken?: string,
+): Promise<FansubGroupCapabilitiesResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/capabilities`, {
+    authToken,
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubGroupCapabilitiesResponse>
+}
+
+export async function createFansubAppMember(
+  fansubId: number,
+  payload: FansubAppMemberCreateRequest,
+  authToken?: string,
+): Promise<FansubAppMemberResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members`, {
+    method: 'POST',
+    authToken,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubAppMemberResponse>
+}
+
+export async function listFansubGroupInvitations(
+  fansubId: number,
+  authToken?: string,
+): Promise<FansubGroupInvitationListResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/invitations`, {
+    authToken,
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubGroupInvitationListResponse>
+}
+
+export async function createFansubGroupInvitation(
+  fansubId: number,
+  payload: FansubGroupInvitationCreateRequest,
+  authToken?: string,
+): Promise<FansubGroupInvitationCreateResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/invitations`, {
+    method: 'POST',
+    authToken,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubGroupInvitationCreateResponse>
+}
+
+export async function cancelFansubGroupInvitation(
+  fansubId: number,
+  invitationId: number,
+  authToken?: string,
+): Promise<FansubGroupInvitationResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/invitations/${invitationId}/cancel`, {
+    method: 'POST',
+    authToken,
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubGroupInvitationResponse>
+}
+
+export async function acceptFansubInvitation(
+  payload: AcceptFansubInvitationRequest,
+  authToken?: string,
+): Promise<AcceptFansubInvitationResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/invitations/accept`, {
+    method: 'POST',
+    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<AcceptFansubInvitationResponse>
+}
+
+export async function updateFansubLeadRole(
+  fansubId: number,
+  appUserId: number,
+  payload: FansubLeadUpdateRequest,
+  authToken?: string,
+): Promise<FansubAppMemberResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members/${appUserId}/roles/fansub-lead`, {
+    method: 'PUT',
+    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubAppMemberResponse>
+}
+
+export async function updateFansubAppMemberRole(
+  fansubId: number,
+  appUserId: number,
+  payload: FansubAppMemberRoleUpdateRequest,
+  authToken?: string,
+): Promise<FansubAppMemberResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members/${appUserId}/roles`, {
+    method: 'PUT',
+    authToken,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubAppMemberResponse>
+}
+
+export async function updateFansubAppMemberStatus(
+  fansubId: number,
+  appUserId: number,
+  payload: FansubAppMemberStatusUpdateRequest,
+  authToken?: string,
+): Promise<FansubAppMemberResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members/${appUserId}/status`, {
+    method: 'PUT',
+    authToken,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<FansubAppMemberResponse>
+}
+
 export async function createAdminAnime(
   payload: AdminAnimeCreateRequest,
   authToken?: string,
 ): Promise<AdminAnimeUpsertResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime`, {
     method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
+    authToken,
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(payload),
   })
 
@@ -1446,14 +2328,12 @@ export async function updateAdminAnime(
   authToken?: string,
 ): Promise<AdminAnimeUpsertResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}`, {
     method: 'PATCH',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
+    authToken,
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(payload),
   })
 
@@ -1471,7 +2351,7 @@ export async function loadAdminAnimeEditAniSearchEnrichment(
   authToken?: string,
 ): Promise<{ data: AdminAnimeAniSearchEditResult }> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/enrichment/anisearch`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/enrichment/anisearch`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -1498,7 +2378,7 @@ export async function syncAdminAnimeFromJellyfin(
   authToken?: string,
 ): Promise<AdminAnimeJellyfinSyncResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/sync`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/sync`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -1527,7 +2407,7 @@ export async function searchAdminJellyfinSeries(
   search.set('q', query)
   if (params.limit && Number.isFinite(params.limit) && params.limit > 0) search.set('limit', String(params.limit))
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/jellyfin/series?${search.toString()}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/jellyfin/series?${search.toString()}`, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
@@ -1546,7 +2426,7 @@ export async function previewAdminAnimeFromJellyfin(
   authToken?: string,
 ): Promise<AdminAnimeJellyfinPreviewResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/preview`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/preview`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -1570,7 +2450,7 @@ export async function getAdminAnimeJellyfinContext(
   authToken?: string,
 ): Promise<AdminAnimeJellyfinContextResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/context`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/context`, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
@@ -1589,7 +2469,7 @@ export async function previewAdminAnimeMetadataFromJellyfin(
   authToken?: string,
 ): Promise<AdminAnimeJellyfinMetadataPreviewResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/metadata/preview`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/metadata/preview`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -1614,7 +2494,7 @@ export async function applyAdminAnimeMetadataFromJellyfin(
   authToken?: string,
 ): Promise<AdminAnimeJellyfinMetadataApplyResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/metadata/apply`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/metadata/apply`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -1643,55 +2523,26 @@ interface AdminAnimeMediaUploadOptions {
 
 export async function uploadAdminAnimeMedia(options: AdminAnimeMediaUploadOptions): Promise<AdminMediaUploadResponse> {
   if (typeof window === 'undefined') {
-    throw new ApiError(500, 'upload ist nur im browser verfügbar')
+    throw new ApiError(500, 'Upload ist nur im Browser verfügbar.')
   }
 
   const API_BASE_URL = getApiBaseUrl()
-  const token = resolveAuthToken(options.authToken)
   const endpoint = `${API_BASE_URL}/api/v1/admin/upload`
-
-  return new Promise<AdminMediaUploadResponse>((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('POST', endpoint, true)
-    if (token) {
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
-    }
-
-    xhr.upload.onprogress = (event) => {
-      if (!options.onProgress || !event.lengthComputable) return
-      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)))
-      options.onProgress(percent)
-    }
-
-    xhr.onerror = () => reject(new ApiError(0, 'netzwerkfehler beim upload'))
-    xhr.onload = () => {
-      let payload: unknown = null
-      try {
-        payload = JSON.parse(xhr.responseText)
-      } catch {
-        payload = null
-      }
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        options.onProgress?.(100)
-        resolve(payload as AdminMediaUploadResponse)
-        return
-      }
-
-      const parsed = parsePayloadApiError(payload, `API request failed: ${xhr.status}`)
-      reject(new ApiError(xhr.status, parsed.message, null, parsed.code, parsed.details))
-    }
-
-    const body = new FormData()
-    body.set('entity_type', 'anime')
-    body.set('entity_id', String(options.animeID))
-    body.set('asset_type', options.assetType)
-    body.set('file', options.file)
-    options.onProgress?.(0)
-    xhr.send(body)
+  return authorizedUploadXhr<AdminMediaUploadResponse>({
+    endpoint,
+    authToken: options.authToken,
+    onProgress: options.onProgress,
+    retryEligibility: 'never',
+    buildBody: () => {
+      const body = new FormData()
+      body.set('entity_type', 'anime')
+      body.set('entity_id', String(options.animeID))
+      body.set('asset_type', options.assetType)
+      body.set('file', options.file)
+      return body
+    },
   })
 }
-
 export async function assignAdminAnimeBannerAsset(
   animeID: number,
   mediaID: string,
@@ -1730,7 +2581,7 @@ export async function addAdminAnimeBackgroundVideoAsset(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/background_videos`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/background_videos`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -1752,8 +2603,8 @@ export async function getAdminFansubAnime(
   authToken?: string,
 ): Promise<AdminFansubAnimeListResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime`, {
-    headers: withAuthHeader({}, authToken),
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime`, {
+    authToken,
     cache: 'no-store',
   })
 
@@ -1770,8 +2621,8 @@ export async function getAdminReleaseThemeAssets(
   authToken?: string,
 ): Promise<AdminReleaseThemeAssetsResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/releases/${releaseID}/theme-assets`, {
-    headers: withAuthHeader({}, authToken),
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/releases/${releaseID}/theme-assets`, {
+    authToken,
     cache: 'no-store',
   })
 
@@ -1789,8 +2640,8 @@ export async function getAdminFansubAnimeThemeAssets(
   authToken?: string,
 ): Promise<AdminFansubAnimeThemeAssetsResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/theme-assets`, {
-    headers: withAuthHeader({}, authToken),
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/theme-assets`, {
+    authToken,
     cache: 'no-store',
   })
 
@@ -1823,112 +2674,46 @@ export async function uploadAdminReleaseThemeAsset(
   options: AdminReleaseThemeAssetUploadOptions,
 ): Promise<AdminReleaseThemeAssetCreateResponse> {
   if (typeof window === 'undefined') {
-    throw new ApiError(500, 'upload ist nur im browser verfügbar')
+    throw new ApiError(500, 'Upload ist nur im Browser verfügbar.')
   }
 
   const API_BASE_URL = getApiBaseUrl()
-  const token = resolveAuthToken(options.authToken)
   const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/anime/${options.animeID}/theme-assets`
-
-  return new Promise<AdminReleaseThemeAssetCreateResponse>((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('POST', endpoint, true)
-    if (token) {
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
-    }
-
-    xhr.upload.onprogress = (event) => {
-      if (!options.onProgress) return
-      if (!event.lengthComputable) return
-      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)))
-      options.onProgress(percent)
-    }
-
-    xhr.onerror = () => {
-      reject(new ApiError(0, 'netzwerkfehler beim upload'))
-    }
-
-    xhr.onload = () => {
-      let payload: unknown = null
-      try {
-        payload = JSON.parse(xhr.responseText)
-      } catch {
-        payload = null
-      }
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        options.onProgress?.(100)
-        resolve(payload as AdminReleaseThemeAssetCreateResponse)
-        return
-      }
-
-      const fallback = `API request failed: ${xhr.status}`
-      reject(new ApiError(xhr.status, parsePayloadError(payload, fallback)))
-    }
-
-    const body = new FormData()
-    body.set('theme_id', String(options.themeID))
-    body.set('file', options.file)
-    options.onProgress?.(0)
-    xhr.send(body)
+  return authorizedUploadXhr<AdminReleaseThemeAssetCreateResponse>({
+    endpoint,
+    authToken: options.authToken,
+    onProgress: options.onProgress,
+    retryEligibility: 'never',
+    buildBody: () => {
+      const body = new FormData()
+      body.set('theme_id', String(options.themeID))
+      body.set('file', options.file)
+      return body
+    },
   })
 }
-
 export async function uploadAdminReleaseThemeAssetForRelease(
   options: AdminReleaseThemeAssetUploadForReleaseOptions,
 ): Promise<AdminReleaseThemeAssetCreateResponse> {
   if (typeof window === 'undefined') {
-    throw new ApiError(500, 'upload ist nur im browser verfügbar')
+    throw new ApiError(500, 'Upload ist nur im Browser verfügbar.')
   }
 
   const API_BASE_URL = getApiBaseUrl()
-  const token = resolveAuthToken(options.authToken)
   const endpoint = `${API_BASE_URL}/api/v1/admin/releases/${options.releaseID}/theme-assets`
-
-  return new Promise<AdminReleaseThemeAssetCreateResponse>((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('POST', endpoint, true)
-    if (token) {
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
-    }
-
-    xhr.upload.onprogress = (event) => {
-      if (!options.onProgress) return
-      if (!event.lengthComputable) return
-      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)))
-      options.onProgress(percent)
-    }
-
-    xhr.onerror = () => {
-      reject(new ApiError(0, 'netzwerkfehler beim upload'))
-    }
-
-    xhr.onload = () => {
-      let payload: unknown = null
-      try {
-        payload = JSON.parse(xhr.responseText)
-      } catch {
-        payload = null
-      }
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        options.onProgress?.(100)
-        resolve(payload as AdminReleaseThemeAssetCreateResponse)
-        return
-      }
-
-      const fallback = `API request failed: ${xhr.status}`
-      reject(new ApiError(xhr.status, parsePayloadError(payload, fallback)))
-    }
-
-    const body = new FormData()
-    body.set('theme_id', String(options.themeID))
-    body.set('file', options.file)
-    options.onProgress?.(0)
-    xhr.send(body)
+  return authorizedUploadXhr<AdminReleaseThemeAssetCreateResponse>({
+    endpoint,
+    authToken: options.authToken,
+    onProgress: options.onProgress,
+    retryEligibility: 'never',
+    buildBody: () => {
+      const body = new FormData()
+      body.set('theme_id', String(options.themeID))
+      body.set('file', options.file)
+      return body
+    },
   })
 }
-
 export async function deleteAdminReleaseThemeAsset(
   releaseID: number,
   themeID: number,
@@ -1936,9 +2721,9 @@ export async function deleteAdminReleaseThemeAsset(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/releases/${releaseID}/theme-assets/${themeID}/${mediaID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/releases/${releaseID}/theme-assets/${themeID}/${mediaID}`, {
     method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
+    authToken,
   })
 
   if (!response.ok) {
@@ -1958,8 +2743,8 @@ export async function getAdminFansubAnimeReleases(
   authToken?: string,
 ): Promise<AdminFansubAnimeReleasesResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/releases`, {
-    headers: withAuthHeader({}, authToken),
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/releases`, {
+    authToken,
     cache: 'no-store',
   })
 
@@ -1979,8 +2764,8 @@ export async function getAdminCanonicalFansubRelease(
   authToken?: string,
 ): Promise<AdminCanonicalFansubAnimeReleaseResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/releases/canonical`, {
-    headers: withAuthHeader({}, authToken),
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/releases/canonical`, {
+    authToken,
     cache: 'no-store',
   })
 
@@ -1998,8 +2783,8 @@ export async function getAdminRelease(
   authToken?: string,
 ): Promise<AdminReleaseResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/releases/${releaseID}`, {
-    headers: withAuthHeader({}, authToken),
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/releases/${releaseID}`, {
+    authToken,
     cache: 'no-store',
   })
 
@@ -2018,7 +2803,7 @@ async function assignAdminAnimeSingularAsset(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/${assetKind}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/${assetKind}`, {
     method: 'PUT',
     headers: withAuthHeader(
       {
@@ -2037,7 +2822,7 @@ async function assignAdminAnimeSingularAsset(
 
 export async function deleteAdminAnimeCoverAsset(animeID: number, authToken?: string): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/cover`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/cover`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -2066,7 +2851,7 @@ async function deleteAdminAnimeSingularAsset(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/${assetKind}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/${assetKind}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -2086,7 +2871,7 @@ export async function addAdminAnimeBackgroundAsset(
   const API_BASE_URL = getApiBaseUrl()
   const body: Record<string, string> = { media_id: mediaID }
   if (providerKey) body.provider_key = providerKey
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/backgrounds`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/backgrounds`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -2111,7 +2896,7 @@ export async function deleteAdminAnimeBackgroundAsset(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/backgrounds/${backgroundID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/backgrounds/${backgroundID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -2127,7 +2912,7 @@ export async function createAdminEpisode(
   authToken?: string,
 ): Promise<AdminEpisodeUpsertResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/episodes`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/episodes`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -2152,7 +2937,7 @@ export async function updateAdminEpisode(
   authToken?: string,
 ): Promise<AdminEpisodeUpsertResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/episodes/${episodeID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/episodes/${episodeID}`, {
     method: 'PATCH',
     headers: withAuthHeader(
       {
@@ -2173,7 +2958,7 @@ export async function updateAdminEpisode(
 
 export async function deleteAdminEpisode(episodeID: number, authToken?: string): Promise<AdminEpisodeDeleteResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/episodes/${episodeID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/episodes/${episodeID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -2191,8 +2976,8 @@ export async function getEpisodeImportContext(
   authToken?: string,
 ): Promise<EpisodeImportContextResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/context`, {
-    headers: withAuthHeader({}, authToken),
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/context`, {
+    authToken,
     cache: 'no-store',
   })
 
@@ -2210,14 +2995,12 @@ export async function previewEpisodeImport(
   authToken?: string,
 ): Promise<EpisodeImportPreviewResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/preview`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/preview`, {
     method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
+    authToken,
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(payload),
   })
 
@@ -2235,14 +3018,12 @@ export async function applyEpisodeImport(
   authToken?: string,
 ): Promise<EpisodeImportApplyResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/apply`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/apply`, {
     method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
+    authToken,
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(payload),
   })
 
@@ -2256,7 +3037,7 @@ export async function applyEpisodeImport(
 
 export async function deleteAdminAnime(animeID: number, authToken?: string): Promise<AdminAnimeDeleteResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -2274,7 +3055,7 @@ export async function getAdminAnimeRelations(
   authToken?: string,
 ): Promise<AdminAnimeRelationsResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations`, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
@@ -2298,7 +3079,7 @@ export async function searchAdminAnimeRelationTargets(
   search.set('q', query)
   if (params.limit && Number.isFinite(params.limit) && params.limit > 0) search.set('limit', String(params.limit))
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relation-targets?${search.toString()}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relation-targets?${search.toString()}`, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
@@ -2317,7 +3098,7 @@ export async function createAdminAnimeRelation(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -2341,7 +3122,7 @@ export async function updateAdminAnimeRelation(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations/${targetAnimeID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations/${targetAnimeID}`, {
     method: 'PATCH',
     headers: withAuthHeader(
       {
@@ -2364,7 +3145,7 @@ export async function deleteAdminAnimeRelation(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations/${targetAnimeID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations/${targetAnimeID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -2377,7 +3158,7 @@ export async function deleteAdminAnimeRelation(
 
 export async function getAdminThemeTypes(authToken?: string): Promise<AdminThemeTypesResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/theme-types`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/theme-types`, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
@@ -2395,7 +3176,7 @@ export async function getAdminAnimeThemes(
   authToken?: string,
 ): Promise<AdminAnimeThemesResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes`, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
@@ -2414,7 +3195,7 @@ export async function createAdminAnimeTheme(
   authToken?: string,
 ): Promise<AdminAnimeThemeCreateResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -2440,7 +3221,7 @@ export async function updateAdminAnimeTheme(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}`, {
     method: 'PATCH',
     headers: withAuthHeader(
       {
@@ -2463,7 +3244,7 @@ export async function deleteAdminAnimeTheme(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -2480,7 +3261,7 @@ export async function getAdminAnimeThemeSegments(
   authToken?: string,
 ): Promise<AdminAnimeThemeSegmentsResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments`, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
@@ -2503,7 +3284,7 @@ export async function createAdminAnimeThemeSegment(
   authToken?: string,
 ): Promise<AdminAnimeThemeSegmentCreateResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -2529,7 +3310,7 @@ export async function deleteAdminAnimeThemeSegment(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments/${segmentID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments/${segmentID}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -2610,7 +3391,7 @@ export async function mergeFansubsPreview(
   authToken?: string,
 ): Promise<MergeFansubsPreviewResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/merge/preview`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/merge/preview`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -2634,7 +3415,7 @@ export async function mergeFansubs(
   authToken?: string,
 ): Promise<MergeFansubsResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/merge`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/merge`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -2659,7 +3440,7 @@ export async function getCollaborationMembers(
   authToken?: string,
 ): Promise<CollaborationMemberListResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/collaboration-members`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/collaboration-members`, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
@@ -2678,7 +3459,7 @@ export async function addCollaborationMember(
   authToken?: string,
 ): Promise<CollaborationMemberResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/fansubs/${collaborationID}/collaboration-members`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${collaborationID}/collaboration-members`, {
     method: 'POST',
     headers: withAuthHeader(
       {
@@ -2723,7 +3504,7 @@ export async function syncEpisode(
   authToken?: string,
 ): Promise<{ data: { success: boolean; message?: string } }> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episodes/${episodeID}/sync`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episodes/${episodeID}/sync`, {
     method: 'POST',
     headers: withAuthHeader({}, authToken),
   })
@@ -2739,7 +3520,7 @@ export async function syncEpisode(
 // Group operations
 export async function getGroupDetail(animeID: number, groupID: number): Promise<GroupDetailResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}`, {
     cache: 'no-store',
   })
 
@@ -2785,7 +3566,7 @@ export async function getGroupReleases(
 
 export async function getGroupAssets(animeID: number, groupID: number): Promise<GroupAssetsResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/assets`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/assets`, {
     cache: 'no-store',
   })
 
@@ -2799,7 +3580,7 @@ export async function getGroupAssets(animeID: number, groupID: number): Promise<
 
 export async function getReleaseAssets(releaseID: number): Promise<ReleaseAssetsResponse> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/releases/${releaseID}/assets`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/releases/${releaseID}/assets`, {
     cache: 'no-store',
   })
 
@@ -2826,7 +3607,7 @@ export async function getAnimeSegments(
   if (version) params.set('version', version)
   if (releaseVariantId != null) params.set('release_variant_id', String(releaseVariantId))
   const qs = params.toString() ? `?${params.toString()}` : ''
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments${qs}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments${qs}`, {
     headers: withAuthHeader({}, authToken),
     cache: 'no-store',
   })
@@ -2849,7 +3630,7 @@ export async function createAnimeSegment(
   const params = new URLSearchParams()
   if (releaseVariantId != null) params.set('release_variant_id', String(releaseVariantId))
   const qs = params.toString() ? `?${params.toString()}` : ''
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments${qs}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments${qs}`, {
     method: 'POST',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
     body: JSON.stringify(input),
@@ -2874,7 +3655,7 @@ export async function updateAnimeSegment(
   const params = new URLSearchParams()
   if (releaseVariantId != null) params.set('release_variant_id', String(releaseVariantId))
   const qs = params.toString() ? `?${params.toString()}` : ''
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}${qs}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}${qs}`, {
     method: 'PATCH',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
     body: JSON.stringify(input),
@@ -2894,7 +3675,7 @@ export async function deleteAnimeSegment(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -2973,7 +3754,7 @@ export async function attachSegmentLibraryAsset(
   authToken?: string,
 ): Promise<{ data: AdminThemeSegment }> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/reuse`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/reuse`, {
     method: 'POST',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
     body: JSON.stringify(payload),
@@ -3002,14 +3783,12 @@ export async function uploadSegmentAsset(
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await fetch(
-    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/asset`,
-    {
-      method: 'POST',
-      headers: withAuthHeader({}, authToken),
-      body: formData,
-    },
-  )
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/asset`, {
+    method: 'POST',
+    headers: withAuthHeader({}, authToken),
+    retryAuth401: false,
+    body: formData,
+  })
 
   if (!response.ok) {
     const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
@@ -3065,6 +3844,27 @@ export async function getReleaseVersionMedia(
   return response.json() as Promise<ReleaseVersionMediaListResponse>
 }
 
+export async function getReleaseVersionCapabilities(
+  versionId: number,
+  authToken?: string,
+): Promise<ReleaseVersionCapabilitiesResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/capabilities`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: 'no-store',
+    },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+
+  return response.json() as Promise<ReleaseVersionCapabilitiesResponse>
+}
+
 export interface UploadReleaseVersionMediaOptions {
   versionId: number
   category: ReleaseVersionMediaCategory
@@ -3077,60 +3877,26 @@ export async function uploadReleaseVersionMedia(
   options: UploadReleaseVersionMediaOptions,
 ): Promise<ReleaseVersionMediaUploadResponse> {
   if (typeof window === 'undefined') {
-    throw new ApiError(500, 'upload ist nur im browser verfügbar')
+    throw new ApiError(500, 'Upload ist nur im Browser verfügbar.')
   }
 
   const API_BASE_URL = getApiBaseUrl()
-  const token = resolveAuthToken(options.authToken)
   const endpoint = `${API_BASE_URL}/api/v1/admin/release-versions/${options.versionId}/media`
-
-  return new Promise<ReleaseVersionMediaUploadResponse>((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('POST', endpoint, true)
-    if (token) {
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
-    }
-
-    xhr.upload.onprogress = (event) => {
-      if (!options.onProgress) return
-      if (!event.lengthComputable) return
-      // For batch uploads, report progress as file index 0
-      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)))
-      options.onProgress(0, percent)
-    }
-
-    xhr.onerror = () => {
-      reject(new ApiError(0, 'netzwerkfehler beim upload'))
-    }
-
-    xhr.onload = () => {
-      let payload: unknown = null
-      try {
-        payload = JSON.parse(xhr.responseText)
-      } catch {
-        payload = null
+  return authorizedUploadXhr<ReleaseVersionMediaUploadResponse>({
+    endpoint,
+    authToken: options.authToken,
+    retryEligibility: 'never',
+    onProgress: options.onProgress ? (percent) => options.onProgress?.(0, percent) : undefined,
+    buildBody: () => {
+      const body = new FormData()
+      body.set('category', options.category)
+      for (const file of options.files) {
+        body.append('files[]', file)
       }
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        options.onProgress?.(0, 100)
-        resolve(payload as ReleaseVersionMediaUploadResponse)
-        return
-      }
-
-      const fallback = `API request failed: ${xhr.status}`
-      reject(new ApiError(xhr.status, parsePayloadError(payload, fallback)))
-    }
-
-    const body = new FormData()
-    body.set('category', options.category)
-    for (const file of options.files) {
-      body.append('files[]', file)
-    }
-    options.onProgress?.(0, 0)
-    xhr.send(body)
+      return body
+    },
   })
 }
-
 export async function patchReleaseVersionMediaItem(
   versionId: number,
   mediaId: number,
@@ -3358,7 +4124,7 @@ function mapMemberStoryContextRole(raw: RawMemberStoryContextRole): MemberStoryC
 
 export async function listFansubGroupNotes(fansubId: number, authToken?: string): Promise<FansubGroupNote[]> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes`, {
     headers: withAuthHeader({}, authToken),
   })
 
@@ -3384,7 +4150,7 @@ export async function createFansubGroupNote(
     status: data.status,
     sort_order: data.sortOrder ?? 0,
   }
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes`, {
     method: 'POST',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
     body: JSON.stringify(payload),
@@ -3413,7 +4179,7 @@ export async function updateFansubGroupNote(
     status: data.status,
     sort_order: data.sortOrder,
   }
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes/${noteId}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes/${noteId}`, {
     method: 'PATCH',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
     body: JSON.stringify(payload),
@@ -3434,7 +4200,7 @@ export async function deleteFansubGroupNote(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes/${noteId}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes/${noteId}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -3449,7 +4215,7 @@ export async function deleteFansubGroupNote(
 
 export async function listMemberGroupStories(fansubId: number, authToken?: string): Promise<MemberGroupStory[]> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`, {
     headers: withAuthHeader({}, authToken),
   })
 
@@ -3467,7 +4233,7 @@ export async function getMemberGroupStoryContext(
   authToken?: string,
 ): Promise<MemberStoryContext> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/context`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/context`, {
     headers: withAuthHeader({}, authToken),
   })
 
@@ -3504,7 +4270,7 @@ export async function createMemberGroupStory(
     status: data.status,
     sort_order: data.sortOrder ?? 0,
   }
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`, {
     method: 'POST',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
     body: JSON.stringify(payload),
@@ -3533,7 +4299,7 @@ export async function updateMemberGroupStory(
     status: data.status,
     sort_order: data.sortOrder,
   }
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`, {
     method: 'PATCH',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
     body: JSON.stringify(payload),
@@ -3554,7 +4320,7 @@ export async function deleteMemberGroupStory(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`, {
     method: 'DELETE',
     headers: withAuthHeader({}, authToken),
   })
@@ -3573,7 +4339,7 @@ export async function getAnimeFansubProjectNote(
   authToken?: string,
 ): Promise<AnimeFansubProjectNote | null> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`, {
     headers: withAuthHeader({}, authToken),
   })
 
@@ -3604,7 +4370,7 @@ export async function upsertAnimeFansubProjectNote(
     status: data.status,
     sort_order: data.sortOrder ?? 0,
   }
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`, {
     method: 'PUT',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
     body: JSON.stringify(payload),
@@ -3732,7 +4498,7 @@ function mapMemberRoleForVersion(raw: RawMemberRoleForVersion): MemberRoleForVer
 
 export async function listReleaseVersionNotes(versionId: number, authToken?: string): Promise<ReleaseVersionNote[]> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes`, {
     headers: withAuthHeader({}, authToken),
   })
 
@@ -3750,7 +4516,7 @@ export async function getMemberRolesForVersion(
   authToken?: string,
 ): Promise<MemberRoleForVersion[]> {
   const API_BASE_URL = getApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/member-roles`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/member-roles`, {
     headers: withAuthHeader({}, authToken),
   })
 
@@ -3781,7 +4547,7 @@ export async function bulkUpsertReleaseVersionNotes(
       sort_order: note.sortOrder ?? 0,
     })),
   }
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes`, {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes`, {
     method: 'POST',
     headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
     body: JSON.stringify(payload),
