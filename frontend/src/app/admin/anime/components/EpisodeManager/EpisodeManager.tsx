@@ -39,7 +39,6 @@ function normalizeEpisodeLookup(value?: string | null): string {
 interface EpisodeManagerProps {
   anime: AnimeDetail
   fansubs: FansubGroup[]
-  authToken: string
   onRefresh: () => Promise<void>
   onSuccess: (msg: string) => void
   onError: (msg: string) => void
@@ -47,12 +46,12 @@ interface EpisodeManagerProps {
   onResponse?: (response: string | null) => void
   onEditorStateChange?: (state: { selectedEpisodeId: number | null; hasUnsavedChanges: boolean; isSaving: boolean }) => void
   onRegisterSaveAction?: (saveAction: (() => void) | null) => void
+  [key: string]: unknown
 }
 
 export function EpisodeManager({
   anime,
   fansubs,
-  authToken,
   onRefresh,
   onSuccess,
   onError,
@@ -68,7 +67,7 @@ export function EpisodeManager({
   const episodeFilterInputRef = useRef<HTMLInputElement>(null)
   const episodeEditAnchorRef = useRef<HTMLDivElement>(null)
 
-  const manager = useEpisodeManager(authToken, anime.episodes, onRefresh, onSuccess, onError, {
+  const manager = useEpisodeManager(anime.episodes, onRefresh, onSuccess, onError, {
     onRequest,
     onResponse,
   })

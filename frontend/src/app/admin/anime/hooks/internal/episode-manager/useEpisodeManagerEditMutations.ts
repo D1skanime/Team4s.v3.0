@@ -8,8 +8,7 @@ import { normalizeOptionalString, parsePositiveInt } from '../../../utils/anime-
 import { buildEpisodePatchPayload, UseEpisodeManagerOptions } from './shared'
 
 interface UseEpisodeManagerEditMutationsParams {
-  authToken: string
-  hasAuthToken: boolean
+  hasAccessToken: boolean
   selectedEpisode: EpisodeListItem | null
   inlineEditID: number | null
   inlineEditValues: EpisodeManagerState['inlineEditValues']
@@ -30,8 +29,7 @@ interface UseEpisodeManagerEditMutationsParams {
 }
 
 export function useEpisodeManagerEditMutations({
-  authToken,
-  hasAuthToken,
+  hasAccessToken,
   selectedEpisode,
   inlineEditID,
   inlineEditValues,
@@ -56,8 +54,8 @@ export function useEpisodeManagerEditMutations({
   }, [setInlineEditID, setInlineEditValues])
 
   const saveInlineEdit = useCallback(async () => {
-    if (!hasAuthToken) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken) {
+      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
     if (!inlineEditID) {
@@ -76,7 +74,7 @@ export function useEpisodeManagerEditMutations({
     try {
       setIsUpdating(true)
       options.onRequest?.(JSON.stringify(payload, null, 2))
-      const response = await updateAdminEpisode(inlineEditID, payload, authToken)
+      const response = await updateAdminEpisode(inlineEditID, payload)
       options.onResponse?.(JSON.stringify(response, null, 2))
       await onRefresh()
       onSuccess(`Episode #${response.data.id} wurde aktualisiert.`)
@@ -88,9 +86,8 @@ export function useEpisodeManagerEditMutations({
       setIsUpdating(false)
     }
   }, [
-    authToken,
     cancelInlineEdit,
-    hasAuthToken,
+    hasAccessToken,
     inlineEditID,
     inlineEditValues,
     onError,
@@ -101,8 +98,8 @@ export function useEpisodeManagerEditMutations({
   ])
 
   const submitEdit = useCallback(async () => {
-    if (!hasAuthToken) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken) {
+      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
@@ -122,7 +119,7 @@ export function useEpisodeManagerEditMutations({
     try {
       setIsUpdating(true)
       options.onRequest?.(JSON.stringify(payload, null, 2))
-      const response = await updateAdminEpisode(episodeID, payload, authToken)
+      const response = await updateAdminEpisode(episodeID, payload)
       options.onResponse?.(JSON.stringify(response, null, 2))
       await onRefresh()
       onSuccess(`Episode #${response.data.id} wurde aktualisiert.`)
@@ -133,10 +130,9 @@ export function useEpisodeManagerEditMutations({
       setIsUpdating(false)
     }
   }, [
-    authToken,
     editFormClearFlags,
     editFormValues,
-    hasAuthToken,
+    hasAccessToken,
     onError,
     onRefresh,
     onSuccess,
@@ -147,8 +143,8 @@ export function useEpisodeManagerEditMutations({
 
   const submitCreate = useCallback(
     async (animeID: number) => {
-      if (!hasAuthToken) {
-        onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+      if (!hasAccessToken) {
+        onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
         return
       }
       const episodeNumber = createFormValues.number.trim()
@@ -167,7 +163,7 @@ export function useEpisodeManagerEditMutations({
       try {
         setIsCreating(true)
         options.onRequest?.(JSON.stringify(payload, null, 2))
-        const response = await createAdminEpisode(payload, authToken)
+        const response = await createAdminEpisode(payload)
         options.onResponse?.(JSON.stringify(response, null, 2))
         await onRefresh()
         setCreateFormValues({ number: '', title: '', status: 'private' })
@@ -188,9 +184,8 @@ export function useEpisodeManagerEditMutations({
       }
     },
     [
-      authToken,
       createFormValues,
-      hasAuthToken,
+      hasAccessToken,
       onError,
       onRefresh,
       onSuccess,
@@ -209,4 +204,3 @@ export function useEpisodeManagerEditMutations({
     cancelInlineEdit,
   }
 }
-

@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 
-import { createAdminEpisode, getAnimeByID, getRuntimeAuthToken, getGroupedEpisodes } from '@/lib/api'
+import { createAdminEpisode, getAnimeByID, getGroupedEpisodes } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import { AnimeDetail, EpisodeStatus } from '@/types/anime'
 import { GroupedEpisode } from '@/types/episodeVersion'
 import { EpisodesOverview } from '@/components/episodes/EpisodesOverview'
@@ -17,10 +18,9 @@ const EPISODE_STATUSES: EpisodeStatus[] = ['disabled', 'private', 'public']
 
 export default function AdminAnimeEpisodesPage() {
   const params = useParams<{ id: string }>()
-  const router = useRouter()
   const animeID = useMemo(() => parsePositiveInt((params.id || '').trim()), [params.id])
 
-  const [authToken] = useState(() => getRuntimeAuthToken())
+  const { hasAccessToken } = useAuthSession()
   const [anime, setAnime] = useState<AnimeDetail | null>(null)
   const [groupedEpisodes, setGroupedEpisodes] = useState<GroupedEpisode[]>([])
   const [isLoadingAnime, setIsLoadingAnime] = useState(true)
@@ -96,8 +96,8 @@ export default function AdminAnimeEpisodesPage() {
       return
     }
 
-    if (!authToken.trim()) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken) {
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
@@ -116,7 +116,6 @@ export default function AdminAnimeEpisodesPage() {
           title: normalizeOptionalText(formState.title) || undefined,
           status: formState.status,
         },
-        authToken,
       )
 
       const [refreshedAnime, refreshedVersions] = await Promise.all([

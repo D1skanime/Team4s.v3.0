@@ -8,8 +8,7 @@ import { parsePositiveInt } from "../../../utils/anime-helpers";
 import { UseEpisodeManagerOptions } from "./shared";
 
 interface UseEpisodeManagerBulkMutationsParams {
-  authToken: string;
-  hasAuthToken: boolean;
+  hasAccessToken: boolean;
   selectedID: number | null;
   selectedIDs: Record<number, true>;
   editFormValues: EpisodeManagerState["editFormValues"];
@@ -35,8 +34,7 @@ interface UseEpisodeManagerBulkMutationsParams {
 }
 
 export function useEpisodeManagerBulkMutations({
-  authToken,
-  hasAuthToken,
+  hasAccessToken,
   selectedID,
   selectedIDs,
   editFormValues,
@@ -56,9 +54,9 @@ export function useEpisodeManagerBulkMutations({
 }: UseEpisodeManagerBulkMutationsParams) {
   const applyBulkStatus = useCallback(
     async (status: EpisodeStatus) => {
-      if (!hasAuthToken) {
+      if (!hasAccessToken) {
         onError(
-          "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
+          "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
         );
         return;
       }
@@ -80,7 +78,7 @@ export function useEpisodeManagerBulkMutations({
         for (let i = 0; i < ids.length; i += 1) {
           const id = ids[i];
           try {
-            await updateAdminEpisode(id, { status }, authToken);
+            await updateAdminEpisode(id, { status });
           } catch {
             failed.push(id);
           } finally {
@@ -109,8 +107,7 @@ export function useEpisodeManagerBulkMutations({
       }
     },
     [
-      authToken,
-      hasAuthToken,
+      hasAccessToken,
       onError,
       onRefresh,
       onSuccess,
@@ -124,9 +121,9 @@ export function useEpisodeManagerBulkMutations({
   const removeEpisode = useCallback(
     async (episode: EpisodeListItem, animeID: number) => {
       void animeID;
-      if (!hasAuthToken) {
+      if (!hasAccessToken) {
         onError(
-          "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
+          "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
         );
         return;
       }
@@ -141,7 +138,7 @@ export function useEpisodeManagerBulkMutations({
             2,
           ),
         );
-        const response = await deleteAdminEpisode(episode.id, authToken);
+        const response = await deleteAdminEpisode(episode.id);
         options.onResponse?.(JSON.stringify(response, null, 2));
         await onRefresh();
         setSelectedIDs((current) => {
@@ -180,9 +177,8 @@ export function useEpisodeManagerBulkMutations({
       }
     },
     [
-      authToken,
       editFormValues.id,
-      hasAuthToken,
+      hasAccessToken,
       isApplyingBulk,
       isUpdating,
       onError,
@@ -201,9 +197,9 @@ export function useEpisodeManagerBulkMutations({
   const removeSelected = useCallback(
     async (animeID: number) => {
       void animeID;
-      if (!hasAuthToken) {
+      if (!hasAccessToken) {
         onError(
-          "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
+          "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
         );
         return;
       }
@@ -227,7 +223,7 @@ export function useEpisodeManagerBulkMutations({
         for (let i = 0; i < ids.length; i += 1) {
           const id = ids[i];
           try {
-            const response = await deleteAdminEpisode(id, authToken);
+            const response = await deleteAdminEpisode(id);
             removed += 1;
             removedVersionLinks += response.data.deleted_release_variants;
           } catch {
@@ -293,8 +289,7 @@ export function useEpisodeManagerBulkMutations({
       }
     },
     [
-      authToken,
-      hasAuthToken,
+      hasAccessToken,
       onError,
       onRefresh,
       onSuccess,

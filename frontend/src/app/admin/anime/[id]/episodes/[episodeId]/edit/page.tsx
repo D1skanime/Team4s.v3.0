@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
-import { deleteAdminEpisode, getAnimeByID, getRuntimeAuthToken, updateAdminEpisode } from '@/lib/api'
+import { deleteAdminEpisode, getAnimeByID, updateAdminEpisode } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import { AnimeDetail, EpisodeListItem, EpisodeStatus } from '@/types/anime'
 
 import styles from '../../../../AdminStudio.module.css'
@@ -20,7 +21,7 @@ export default function AdminAnimeEpisodeEditPage() {
   const animeID = useMemo(() => parsePositiveInt((params.id || '').trim()), [params.id])
   const episodeID = useMemo(() => parsePositiveInt((params.episodeId || '').trim()), [params.episodeId])
 
-  const [authToken] = useState(() => getRuntimeAuthToken())
+  const { hasAccessToken } = useAuthSession()
   const [anime, setAnime] = useState<AnimeDetail | null>(null)
   const [episode, setEpisode] = useState<EpisodeListItem | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -88,8 +89,8 @@ export default function AdminAnimeEpisodeEditPage() {
       return
     }
 
-    if (!authToken.trim()) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken) {
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
@@ -109,7 +110,6 @@ export default function AdminAnimeEpisodeEditPage() {
           status: formState.status,
           stream_link: normalizeOptionalText(formState.streamLink),
         },
-        authToken,
       )
 
       const refreshed = animeID ? await getAnimeByID(animeID, { include_disabled: true }) : null
@@ -127,8 +127,8 @@ export default function AdminAnimeEpisodeEditPage() {
   async function handleDelete() {
     if (!animeID || !episodeID || !episode) return
 
-    if (!authToken.trim()) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken) {
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
@@ -142,7 +142,7 @@ export default function AdminAnimeEpisodeEditPage() {
     setSuccessMessage(null)
 
     try {
-      await deleteAdminEpisode(episodeID, authToken)
+      await deleteAdminEpisode(episodeID)
       router.push(`/admin/anime/${animeID}/episodes`)
     } catch (error) {
       setErrorMessage(formatAdminError(error, 'Episode konnte nicht gelöscht werden.'))

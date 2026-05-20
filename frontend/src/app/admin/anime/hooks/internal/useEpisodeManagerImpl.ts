@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { EpisodeListItem, EpisodeStatus } from '@/types/anime'
+import { useAuthSession } from '@/lib/useAuthSession'
 
 import { EpisodeManagerState } from '../../types/admin-anime'
 import { buildEpisodePatchPayload, UseEpisodeManagerOptions } from './episode-manager/shared'
@@ -9,7 +10,6 @@ import { useEpisodeManagerEditMutations } from './episode-manager/useEpisodeMana
 import { EpisodeManagerActions } from './episode-manager/types'
 
 export function useEpisodeManager(
-  authToken: string,
   episodes: EpisodeListItem[],
   onRefresh: () => Promise<void>,
   onSuccess: (msg: string) => void,
@@ -47,7 +47,7 @@ export function useEpisodeManager(
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null)
   const [removingIDs, setRemovingIDs] = useState<Record<number, true>>({})
 
-  const hasAuthToken = authToken.trim().length > 0
+  const { hasAccessToken } = useAuthSession()
 
   const visibleEpisodes = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -173,8 +173,7 @@ export function useEpisodeManager(
   }
 
   const { saveInlineEdit, submitEdit, submitCreate, cancelInlineEdit } = useEpisodeManagerEditMutations({
-    authToken,
-    hasAuthToken,
+    hasAccessToken,
     selectedEpisode,
     inlineEditID,
     inlineEditValues,
@@ -195,8 +194,7 @@ export function useEpisodeManager(
   })
 
   const { applyBulkStatus, removeEpisode, removeSelected } = useEpisodeManagerBulkMutations({
-    authToken,
-    hasAuthToken,
+    hasAccessToken,
     selectedID,
     selectedIDs,
     editFormValues,

@@ -10,8 +10,8 @@ import {
   getAnimeByID,
   getAnimeFansubs,
   getGroupedEpisodes,
-  getRuntimeAuthToken,
 } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import { AnimeDetail, EpisodeListItem } from '@/types/anime'
 import { EpisodeVersion, GroupedEpisode, SubtitleType } from '@/types/episodeVersion'
 import { FansubGroupSummary } from '@/types/fansub'
@@ -74,7 +74,7 @@ export default function AdminAnimeEpisodeVersionsPage() {
   const animeID = useMemo(() => parsePositiveInt((params.id || '').trim()), [params.id])
   const episodeID = useMemo(() => parsePositiveInt((params.episodeId || '').trim()), [params.episodeId])
 
-  const [authToken] = useState(() => getRuntimeAuthToken())
+  const { hasAccessToken } = useAuthSession()
   const [anime, setAnime] = useState<AnimeDetail | null>(null)
   const [episode, setEpisode] = useState<EpisodeListItem | null>(null)
   const [groupedEpisode, setGroupedEpisode] = useState<GroupedEpisode | null>(null)
@@ -186,8 +186,8 @@ export default function AdminAnimeEpisodeVersionsPage() {
     setErrorMessage(null)
     setSuccessMessage(null)
 
-    if (!authToken.trim()) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken) {
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
@@ -222,7 +222,6 @@ export default function AdminAnimeEpisodeVersionsPage() {
           release_date: fromDateTimeLocalValue(formState.releaseDate),
           stream_url: normalizeOptionalText(formState.streamURL),
         },
-        authToken,
       )
 
       await reloadVersions()
@@ -246,8 +245,8 @@ export default function AdminAnimeEpisodeVersionsPage() {
   }
 
   async function handleDelete(version: EpisodeVersion) {
-    if (!authToken.trim()) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken) {
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
@@ -261,7 +260,7 @@ export default function AdminAnimeEpisodeVersionsPage() {
     setSuccessMessage(null)
 
     try {
-      await deleteEpisodeVersion(version.id, authToken)
+      await deleteEpisodeVersion(version.id)
       await reloadVersions()
       setSuccessMessage(`Version #${version.id} wurde gelöscht.`)
     } catch (error) {
