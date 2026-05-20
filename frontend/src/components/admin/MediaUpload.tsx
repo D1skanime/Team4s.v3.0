@@ -26,10 +26,10 @@ interface MediaUploadProps {
   fansubID: number
   groupName: string
   value: EditableMediaValue | null
-  authToken?: string
   disabled?: boolean
   onBusyChange?: (isBusy: boolean) => void
   onChange: (nextValue: EditableMediaValue | null) => void
+  [compatProp: string]: unknown
 }
 
 const CROP_VIEW_SIZE = 260
@@ -218,7 +218,7 @@ function validateFile(type: FansubMediaKind, file: File): string | null {
   return null
 }
 
-export function MediaUpload({ type, fansubID, groupName, value, authToken, disabled, onBusyChange, onChange }: MediaUploadProps) {
+export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusyChange, onChange }: MediaUploadProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const cropPanelRef = useRef<HTMLDivElement | null>(null)
   const cropViewportRef = useRef<HTMLDivElement | null>(null)
@@ -295,7 +295,6 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
         fansubID,
         kind: type,
         file,
-        authToken,
         onProgress: setProgress,
       })
 
@@ -477,7 +476,7 @@ export function MediaUpload({ type, fansubID, groupName, value, authToken, disab
     setBusyAction('delete')
 
     try {
-      await deleteFansubMedia(fansubID, type, authToken)
+      await deleteFansubMedia(fansubID, type)
       onChange(null)
     } catch (nextError) {
       setError(readErrorMessage(nextError, 'Löschen fehlgeschlagen.'))
