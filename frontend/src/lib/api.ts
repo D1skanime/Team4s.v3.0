@@ -907,7 +907,7 @@ function isAuthRelatedError(parsed: ParsedApiErrorPayload): boolean {
 async function getCurrentUserWithBearerToken(authToken: string): Promise<CurrentUserResponse> {
   const API_BASE_URL = getApiBaseUrl()
   const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me`, {
-    headers: withAuthHeader({}, authToken),
+    headers: { Authorization: `Bearer ${authToken.trim()}` },
     skipAuthPreflight: true,
   })
 

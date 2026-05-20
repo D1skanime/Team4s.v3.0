@@ -11,6 +11,7 @@ const reloadMock = vi.fn()
 describe('AuthSessionSwitchGuard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.unstubAllGlobals()
     window.localStorage.clear()
     Object.defineProperty(window, 'location', {
       configurable: true,
@@ -33,6 +34,7 @@ describe('AuthSessionSwitchGuard', () => {
 
   afterEach(() => {
     window.localStorage.clear()
+    vi.unstubAllGlobals()
   })
 
   it('clears local auth state and redirects to /auth after a cross-tab session switch', async () => {
@@ -47,6 +49,41 @@ describe('AuthSessionSwitchGuard', () => {
         next_app_user_id: 22,
       }),
     }))
+
+    await waitFor(() => {
+      expect(replaceMock).toHaveBeenCalledWith('/auth')
+    })
+
+    expect(window.localStorage.getItem('team4s.auth.access_token')).toBeNull()
+    expect(window.localStorage.getItem('team4s.auth.refresh_token')).toBeNull()
+    expect(window.localStorage.getItem('team4s.auth.session_meta')).toBeNull()
+  })
+
+  it('clears local auth state after a BroadcastChannel session switch', async () => {
+    class MockBroadcastChannel {
+      static instances: MockBroadcastChannel[] = []
+      onmessage: ((event: MessageEvent) => void) | null = null
+      close = vi.fn()
+
+      constructor(readonly name: string) {
+        MockBroadcastChannel.instances.push(this)
+      }
+    }
+
+    vi.stubGlobal('BroadcastChannel', MockBroadcastChannel)
+
+    render(<AuthSessionSwitchGuard />)
+
+    expect(MockBroadcastChannel.instances[0]?.name).toBe('team4s.auth.session_switch')
+
+    MockBroadcastChannel.instances[0]?.onmessage?.({
+      data: {
+        type: 'session-switch',
+        timestamp: Date.now(),
+        previous_app_user_id: 11,
+        next_app_user_id: 22,
+      },
+    } as MessageEvent)
 
     await waitFor(() => {
       expect(replaceMock).toHaveBeenCalledWith('/auth')

@@ -346,4 +346,95 @@ describe('authorized auth refresh flow', () => {
     expect(MockUploadXhr.instances[0]?.headers.Authorization).toBe('Bearer stale-access-token')
     expect(refreshKeycloakTokenMock).not.toHaveBeenCalled()
   })
+
+  it('preflights upload auth with refresh and preserves progress callbacks', async () => {
+    seedRuntimeSessionExpiringSoon()
+    refreshKeycloakTokenMock.mockResolvedValue(freshKeycloakBundle())
+
+    const fetchMock = vi.fn().mockResolvedValue(makeCurrentUserResponse())
+    vi.stubGlobal('fetch', fetchMock)
+
+    class MockUploadXhr {
+      static instances: MockUploadXhr[] = []
+      status = 0
+      responseText = ''
+      upload: { onprogress: ((event: ProgressEvent) => void) | null } = { onprogress: null }
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      headers: Record<string, string> = {}
+
+      constructor() {
+        MockUploadXhr.instances.push(this)
+      }
+
+      open() {}
+
+      setRequestHeader(name: string, value: string) {
+        this.headers[name] = value
+      }
+
+      send() {
+        this.upload.onprogress?.({ lengthComputable: true, loaded: 1, total: 4 } as ProgressEvent)
+        this.status = 201
+        this.responseText = JSON.stringify({
+          id: 'media-42',
+          status: 'completed',
+          url: '/media/anime/15/poster/media-42/original.png',
+          files: [],
+        })
+        this.onload?.()
+      }
+    }
+
+    vi.stubGlobal('XMLHttpRequest', MockUploadXhr)
+    const progress: number[] = []
+
+    await expect(uploadAdminAnimeMedia({
+      animeID: 15,
+      assetType: 'poster',
+      file: new File(['poster'], 'poster.png', { type: 'image/png' }),
+      onProgress: (percent) => progress.push(percent),
+    })).resolves.toMatchObject({ id: 'media-42' })
+
+    expect(refreshKeycloakTokenMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/me'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer fresh-id-token',
+        }),
+      }),
+    )
+    expect(MockUploadXhr.instances).toHaveLength(1)
+    expect(MockUploadXhr.instances[0]?.headers.Authorization).toBe('Bearer fresh-id-token')
+    expect(progress).toEqual([0, 25, 100])
+  })
+
+  it('rejects unsafe uploads before opening XHR when preflight refresh fails', async () => {
+    seedRuntimeSessionExpiringSoon()
+    refreshKeycloakTokenMock.mockRejectedValue(new Error('Keycloak-Session konnte nicht aktualisiert werden.'))
+
+    class MockUploadXhr {
+      static instances: MockUploadXhr[] = []
+
+      constructor() {
+        MockUploadXhr.instances.push(this)
+      }
+    }
+
+    vi.stubGlobal('XMLHttpRequest', MockUploadXhr)
+
+    await expect(uploadAdminAnimeMedia({
+      animeID: 15,
+      assetType: 'poster',
+      file: new File(['poster'], 'poster.png', { type: 'image/png' }),
+    })).rejects.toMatchObject({
+      status: 401,
+      message: 'Keycloak-Session konnte nicht aktualisiert werden.',
+    })
+
+    expect(MockUploadXhr.instances).toHaveLength(0)
+    expect(window.localStorage.getItem('team4s.auth.access_token')).toBeNull()
+    expect(window.localStorage.getItem('team4s.auth.refresh_token')).toBeNull()
+  })
 })
