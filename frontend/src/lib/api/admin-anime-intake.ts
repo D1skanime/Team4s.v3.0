@@ -11,62 +11,10 @@ import type {
   AdminJellyfinIntakeSearchResponse,
   AdminTagTokensResponse,
 } from '@/types/admin'
-import { ApiError, parseApiErrorPayload } from '@/lib/api'
+import { ApiError, apiClientFetch, parseApiErrorPayload } from '@/lib/api'
 
-function getApiBaseUrl(): string {
-  const publicBase = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://localhost:8092'
-  const internalBase = (process.env.API_INTERNAL_URL || '').trim() || publicBase
-
-  if (typeof window === 'undefined') {
-    try {
-      const parsed = new URL(internalBase)
-      if (parsed.hostname === 'backend') {
-        parsed.hostname = 'team4sv30-backend'
-        return parsed.toString().replace(/\/$/, '')
-      }
-    } catch {
-      return internalBase
-    }
-    return internalBase
-  }
-
-  return publicBase
-}
-
-function readCookie(name: string): string {
-  if (typeof document === 'undefined') return ''
-
-  const prefix = `${name}=`
-  const match = document.cookie
-    .split(';')
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(prefix))
-
-  if (!match) return ''
-
-  const value = match.slice(prefix.length)
-  try {
-    return decodeURIComponent(value)
-  } catch {
-    return value
-  }
-}
-
-function resolveAuthToken(authToken?: string): string {
-  const explicit = (authToken || '').trim()
-  if (explicit) return explicit
-
-  if (typeof window !== 'undefined') {
-    const runtime = readCookie('team4s_access_token').trim()
-    if (runtime) return runtime
-  }
-
-  return (process.env.NEXT_PUBLIC_AUTH_TOKEN || '').trim()
-}
-
-function withAuthHeaders(authToken?: string): Record<string, string> {
-  const token = resolveAuthToken(authToken)
-  return token ? { Authorization: `Bearer ${token}` } : {}
+function ignoreDeprecatedAuthToken(_token?: string): void {
+  void _token
 }
 
 function normalizeAniSearchSearchResponse(
@@ -82,16 +30,17 @@ function normalizeAniSearchSearchResponse(
 export async function searchAdminJellyfinIntakeCandidates(
   query: string,
   params: { limit?: number } = {},
-  authToken?: string,
+  _deprecatedAuthToken?: string,
 ): Promise<AdminJellyfinIntakeSearchResponse> {
+  ignoreDeprecatedAuthToken(_deprecatedAuthToken)
+
   const search = new URLSearchParams()
   search.set('q', query)
   if (params.limit && Number.isFinite(params.limit) && params.limit > 0) {
     search.set('limit', String(params.limit))
   }
 
-  const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/jellyfin/series?${search.toString()}`, {
-    headers: withAuthHeaders(authToken),
+  const response = await apiClientFetch(`/api/v1/admin/jellyfin/series?${search.toString()}`, {
     cache: 'no-store',
   })
 
@@ -105,13 +54,14 @@ export async function searchAdminJellyfinIntakeCandidates(
 
 export async function previewAdminAnimeFromJellyfinIntake(
   payload: AdminAnimeJellyfinIntakePreviewRequest,
-  authToken?: string,
+  _deprecatedAuthToken?: string,
 ): Promise<AdminAnimeJellyfinIntakePreviewResponse> {
-  const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/jellyfin/intake/preview`, {
+  ignoreDeprecatedAuthToken(_deprecatedAuthToken)
+
+  const response = await apiClientFetch('/api/v1/admin/jellyfin/intake/preview', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...withAuthHeaders(authToken),
     },
     body: JSON.stringify(payload),
   })
@@ -126,13 +76,14 @@ export async function previewAdminAnimeFromJellyfinIntake(
 
 export async function createAdminAnimeFromJellyfinDraft(
   payload: AdminAnimeCreateRequest,
-  authToken?: string,
+  _deprecatedAuthToken?: string,
 ): Promise<AdminAnimeUpsertResponse> {
-  const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/anime`, {
+  ignoreDeprecatedAuthToken(_deprecatedAuthToken)
+
+  const response = await apiClientFetch('/api/v1/admin/anime', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...withAuthHeaders(authToken),
     },
     body: JSON.stringify(payload),
   })
@@ -147,13 +98,14 @@ export async function createAdminAnimeFromJellyfinDraft(
 
 export async function loadAdminAnimeCreateAniSearchDraft(
   payload: AdminAnimeAniSearchCreateRequest,
-  authToken?: string,
+  _deprecatedAuthToken?: string,
 ): Promise<AdminAnimeAniSearchCreateResponse> {
-  const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/anime/enrichment/anisearch`, {
+  ignoreDeprecatedAuthToken(_deprecatedAuthToken)
+
+  const response = await apiClientFetch('/api/v1/admin/anime/enrichment/anisearch', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...withAuthHeaders(authToken),
     },
     body: JSON.stringify(payload),
   })
@@ -173,16 +125,17 @@ export async function loadAdminAnimeCreateAniSearchDraft(
 export async function searchAdminAnimeCreateAniSearchCandidates(
   query: string,
   params: { limit?: number } = {},
-  authToken?: string,
+  _deprecatedAuthToken?: string,
 ): Promise<AdminAnimeAniSearchSearchResponse> {
+  ignoreDeprecatedAuthToken(_deprecatedAuthToken)
+
   const search = new URLSearchParams()
   search.set('q', query)
   if (params.limit && Number.isFinite(params.limit) && params.limit > 0) {
     search.set('limit', String(params.limit))
   }
 
-  const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/anime/enrichment/anisearch/search?${search.toString()}`, {
-    headers: withAuthHeaders(authToken),
+  const response = await apiClientFetch(`/api/v1/admin/anime/enrichment/anisearch/search?${search.toString()}`, {
     cache: 'no-store',
   })
 
@@ -197,8 +150,10 @@ export async function searchAdminAnimeCreateAniSearchCandidates(
 
 export async function searchAdminAnimeCreateAssetCandidates(
   payload: AdminAnimeAssetSearchRequest,
-  authToken?: string,
+  _deprecatedAuthToken?: string,
 ): Promise<AdminAnimeAssetSearchResponse> {
+  ignoreDeprecatedAuthToken(_deprecatedAuthToken)
+
   const search = new URLSearchParams()
   search.set('slot', payload.asset_kind)
   search.set('q', payload.query)
@@ -212,8 +167,7 @@ export async function searchAdminAnimeCreateAssetCandidates(
     search.set('sources', payload.sources.join(','))
   }
 
-  const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/anime/assets/search?${search.toString()}`, {
-    headers: withAuthHeaders(authToken),
+  const response = await apiClientFetch(`/api/v1/admin/anime/assets/search?${search.toString()}`, {
     cache: 'no-store',
   })
 
@@ -231,8 +185,10 @@ export async function searchAdminAnimeCreateAssetCandidates(
 // independently callable.
 export async function getAdminTagTokens(
   params: { query?: string; limit?: number } = {},
-  authToken?: string,
+  _deprecatedAuthToken?: string,
 ): Promise<AdminTagTokensResponse> {
+  ignoreDeprecatedAuthToken(_deprecatedAuthToken)
+
   const search = new URLSearchParams()
   const tagQuery = (params.query || '').trim()
   if (tagQuery) search.set('query', tagQuery)
@@ -240,9 +196,8 @@ export async function getAdminTagTokens(
     search.set('limit', String(params.limit))
   }
 
-  const url = `${getApiBaseUrl()}/api/v1/admin/tags${search.toString() ? `?${search.toString()}` : ''}`
-  const response = await fetch(url, {
-    headers: withAuthHeaders(authToken),
+  const url = `/api/v1/admin/tags${search.toString() ? `?${search.toString()}` : ''}`
+  const response = await apiClientFetch(url, {
     cache: 'no-store',
   })
 

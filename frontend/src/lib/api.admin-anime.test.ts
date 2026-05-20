@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
-  ApiError,
   assignAdminAnimeBackgroundVideoAsset,
   assignAdminAnimeLogoAsset,
   createAdminAnime,
@@ -153,7 +152,6 @@ describe('admin anime api error propagation', () => {
           status: 'ongoing',
         },
       },
-      'token',
     )
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -197,7 +195,7 @@ describe('admin anime api error propagation', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
-      searchAdminAnimeCreateAniSearchCandidates('Bleach', { limit: 12 }, 'token'),
+      searchAdminAnimeCreateAniSearchCandidates('Bleach', { limit: 12 }),
     ).resolves.toEqual({
       filtered_existing_count: 2,
       data: [
@@ -259,7 +257,6 @@ describe('admin anime api error propagation', () => {
           limit: 8,
           sources: ['tmdb', 'zerochan'],
         },
-        'token',
       ),
     ).resolves.toEqual({
       data: [

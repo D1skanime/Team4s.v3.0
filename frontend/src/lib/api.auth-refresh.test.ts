@@ -336,6 +336,7 @@ describe('authorized auth refresh flow', () => {
       animeID: 15,
       assetType: 'poster',
       file: new File(['avatar'], 'avatar.png', { type: 'image/png' }),
+      authToken: 'stale-page-owned-token',
     })).rejects.toMatchObject({
       status: 401,
       message: 'Anmeldung abgelaufen. Bitte erneut anmelden und den Upload wiederholen.',

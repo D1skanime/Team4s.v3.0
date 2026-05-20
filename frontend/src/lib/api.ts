@@ -1597,7 +1597,6 @@ type UploadRetryEligibility = 'never' | 'auth-before-persistence' | 'idempotent'
 
 interface AuthorizedUploadXhrOptions<T> {
   endpoint: string
-  authToken?: string
   buildBody: () => FormData
   onProgress?: (percent: number) => void
   retryEligibility: UploadRetryEligibility
@@ -1656,7 +1655,7 @@ async function authorizedUploadXhr<T>(options: AuthorizedUploadXhrOptions<T>): P
   }
 
   await ensureFreshRuntimeSession()
-  const initialToken = resolveAuthToken(options.authToken)
+  const initialToken = resolveAuthToken()
   const initialResult = await sendAuthorizedUploadXhrOnce(options, initialToken)
   if (initialResult.status >= 200 && initialResult.status < 300) {
     options.onProgress?.(100)
@@ -1702,7 +1701,6 @@ export async function uploadFansubMedia(options: FansubMediaUploadOptions): Prom
   const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/media`
   return authorizedUploadXhr<FansubMediaUploadResponse>({
     endpoint,
-    authToken: options.authToken,
     onProgress: options.onProgress,
     retryEligibility: 'never',
     buildBody: () => {
@@ -2530,7 +2528,6 @@ export async function uploadAdminAnimeMedia(options: AdminAnimeMediaUploadOption
   const endpoint = `${API_BASE_URL}/api/v1/admin/upload`
   return authorizedUploadXhr<AdminMediaUploadResponse>({
     endpoint,
-    authToken: options.authToken,
     onProgress: options.onProgress,
     retryEligibility: 'never',
     buildBody: () => {
@@ -2681,7 +2678,6 @@ export async function uploadAdminReleaseThemeAsset(
   const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/anime/${options.animeID}/theme-assets`
   return authorizedUploadXhr<AdminReleaseThemeAssetCreateResponse>({
     endpoint,
-    authToken: options.authToken,
     onProgress: options.onProgress,
     retryEligibility: 'never',
     buildBody: () => {
@@ -2703,7 +2699,6 @@ export async function uploadAdminReleaseThemeAssetForRelease(
   const endpoint = `${API_BASE_URL}/api/v1/admin/releases/${options.releaseID}/theme-assets`
   return authorizedUploadXhr<AdminReleaseThemeAssetCreateResponse>({
     endpoint,
-    authToken: options.authToken,
     onProgress: options.onProgress,
     retryEligibility: 'never',
     buildBody: () => {
@@ -3884,7 +3879,6 @@ export async function uploadReleaseVersionMedia(
   const endpoint = `${API_BASE_URL}/api/v1/admin/release-versions/${options.versionId}/media`
   return authorizedUploadXhr<ReleaseVersionMediaUploadResponse>({
     endpoint,
-    authToken: options.authToken,
     retryEligibility: 'never',
     onProgress: options.onProgress ? (percent) => options.onProgress?.(0, percent) : undefined,
     buildBody: () => {
