@@ -7,10 +7,10 @@ import {
   deleteEpisodeVersion,
   getEpisodeVersionEditorContext,
   getFansubList,
-  getRuntimeAuthToken,
   scanEpisodeVersionFolder,
   updateEpisodeVersion,
 } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import { EpisodeVersionEditorContext, EpisodeVersionMediaFile } from '@/types/episodeVersion'
 import { FansubGroup, FansubGroupSummary } from '@/types/fansub'
 
@@ -31,7 +31,7 @@ export function useEpisodeVersionEditor() {
   const router = useRouter()
 
   const versionID = useMemo(() => parsePositiveInt((params.versionId || '').trim()), [params.versionId])
-  const [authToken] = useState(() => getRuntimeAuthToken())
+  const { hasAccessToken, isClientInitialized } = useAuthSession()
   const [contextData, setContextData] = useState<EpisodeVersionEditorContext | null>(null)
   const [formState, setFormState] = useState<FormState>({
     title: '',
@@ -73,8 +73,11 @@ export function useEpisodeVersionEditor() {
         setIsLoading(false)
         return
       }
-      if (!authToken) {
-        setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+      if (!isClientInitialized) {
+        return
+      }
+      if (!hasAccessToken) {
+        setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
         setIsLoading(false)
         return
       }
@@ -82,7 +85,7 @@ export function useEpisodeVersionEditor() {
       setIsLoading(true)
       setErrorMessage(null)
       try {
-        const response = await getEpisodeVersionEditorContext(versionID, authToken)
+        const response = await getEpisodeVersionEditorContext(versionID)
         const nextContext = response.data
         const nextFormState = buildInitialFormState(nextContext)
 
@@ -107,11 +110,11 @@ export function useEpisodeVersionEditor() {
     }
 
     void loadData()
-  }, [authToken, versionID])
+  }, [hasAccessToken, isClientInitialized, versionID])
 
   useEffect(() => {
     const query = groupQuery.trim()
-    if (!authToken || query.length < 1) {
+    if (!hasAccessToken || query.length < 1) {
       setGroupResults([])
       setSearchMessage(null)
       setIsSearching(false)
@@ -141,11 +144,11 @@ export function useEpisodeVersionEditor() {
       cancelled = true
       window.clearTimeout(timeoutID)
     }
-  }, [authToken, groupQuery, selectedGroups])
+  }, [groupQuery, hasAccessToken, selectedGroups])
 
   async function handleScanFolder() {
-    if (!authToken || !versionID) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken || !versionID) {
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
@@ -153,7 +156,7 @@ export function useEpisodeVersionEditor() {
     setErrorMessage(null)
     setSuccessMessage(null)
     try {
-      const response = await scanEpisodeVersionFolder(versionID, authToken)
+      const response = await scanEpisodeVersionFolder(versionID)
       const files = response.data.files
       const matchedFile = files.find((file) => file.media_item_id === formState.mediaItemID) || selectedFile
 
@@ -205,8 +208,8 @@ export function useEpisodeVersionEditor() {
     setErrorMessage(null)
     setSuccessMessage(null)
 
-    if (!authToken || !versionID) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken || !versionID) {
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
     if (!formState.mediaProvider.trim() || !formState.mediaItemID.trim()) {
@@ -235,7 +238,6 @@ export function useEpisodeVersionEditor() {
           stream_url: normalizeOptional(formState.streamURL),
           duration_seconds: parsedDurationSeconds,
         },
-        authToken,
       )
 
       if (contextData) {
@@ -259,8 +261,8 @@ export function useEpisodeVersionEditor() {
     setErrorMessage(null)
     setSuccessMessage(null)
 
-    if (!authToken || !versionID) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken || !versionID) {
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
@@ -269,7 +271,7 @@ export function useEpisodeVersionEditor() {
 
     setIsDeleting(true)
     try {
-      await deleteEpisodeVersion(versionID, authToken)
+      await deleteEpisodeVersion(versionID)
       router.push(contextData ? `/admin/anime/${contextData.version.anime_id}/versions` : '/admin/anime')
     } catch (error) {
       setErrorMessage(formatError(error))
