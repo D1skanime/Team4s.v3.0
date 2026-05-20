@@ -23,10 +23,10 @@ import {
   attachSegmentLibraryAsset,
   deleteSegmentAsset,
   getAnimeSegmentSuggestions,
-  getRuntimeAuthToken,
   getSegmentLibraryCandidates,
   uploadSegmentAsset,
 } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import type {
   AdminSegmentLibraryCandidate,
   AdminThemeSegment,
@@ -98,7 +98,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     releaseVariantId,
   })
 
-  const [authToken] = useState(() => getRuntimeAuthToken())
+  const { hasAccessToken } = useAuthSession()
   const [suggestions, setSuggestions] = useState<AdminThemeSegment[]>([])
   const [suggestionsLoading, setSuggestionsLoading] = useState(false)
   const [dropdownOpenId, setDropdownOpenId] = useState<number | null>(null)
@@ -121,18 +121,18 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
 
   // Load suggestions when episodeNumber changes
   useEffect(() => {
-    if (!animeId || episodeNumber == null || !authToken) {
+    if (!animeId || episodeNumber == null || !hasAccessToken) {
       setSuggestions([])
       return
     }
     setSuggestionsLoading(true)
     const excludeGroupId = groupId ?? undefined
     const excludeVersion = version ?? undefined
-    getAnimeSegmentSuggestions(animeId, episodeNumber, excludeGroupId ?? undefined, excludeVersion ?? undefined, authToken)
+    getAnimeSegmentSuggestions(animeId, episodeNumber, excludeGroupId ?? undefined, excludeVersion ?? undefined)
       .then((res) => { setSuggestions(res.data) })
       .catch(() => { setSuggestions([]) })
       .finally(() => { setSuggestionsLoading(false) })
-  }, [animeId, episodeNumber, groupId, version, authToken])
+  }, [animeId, episodeNumber, groupId, hasAccessToken, version])
 
   function openAddPanel() {
     setEditingSegment(null)
@@ -164,7 +164,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   }
 
   useEffect(() => {
-    if (!panelOpen || !editingSegment || !animeId || !groupId || !authToken) {
+    if (!panelOpen || !editingSegment || !animeId || !groupId || !hasAccessToken) {
       setReuseCandidates([])
       return
     }
@@ -181,7 +181,6 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
       groupId,
       formState.themeKind,
       formState.themeTitle,
-      authToken,
     )
       .then((res) => {
         setReuseCandidates(
@@ -198,7 +197,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
       .finally(() => {
         setIsLoadingReuseCandidates(false)
       })
-  }, [animeId, authToken, editingSegment, formState.sourceType, formState.themeKind, formState.themeTitle, groupId, panelOpen])
+  }, [animeId, editingSegment, formState.sourceType, formState.themeKind, formState.themeTitle, groupId, hasAccessToken, panelOpen])
 
   async function adoptSuggestion(suggestion: AdminThemeSegment) {
     if (!animeId) return
@@ -306,7 +305,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           return
         }
         if (pendingUploadFile && formState.sourceType === 'release_asset') {
-          const res = await uploadSegmentAsset(animeId, createdSegment.id, pendingUploadFile, authToken)
+          const res = await uploadSegmentAsset(animeId, createdSegment.id, pendingUploadFile)
           await reload()
           setEditingSegment(res.data)
         }
@@ -326,11 +325,11 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   }
 
   async function handleAssetUpload(file: File) {
-    if (!animeId || !editingSegment || !authToken) return
+    if (!animeId || !editingSegment || !hasAccessToken) return
     setIsUploading(true)
     setUploadError(null)
     try {
-      const res = await uploadSegmentAsset(animeId, editingSegment.id, file, authToken)
+      const res = await uploadSegmentAsset(animeId, editingSegment.id, file)
       // Reload so table + panel get fresh data
       await reload()
       // Refresh the editing segment from reloaded list
@@ -343,13 +342,13 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   }
 
   async function handleAssetDelete() {
-    if (!animeId || !editingSegment || !authToken) return
+    if (!animeId || !editingSegment || !hasAccessToken) return
     const confirmed = window.confirm('Segment-Datei wirklich entfernen? Die Quelldaten werden auf "Keine Quelle" zurückgesetzt.')
     if (!confirmed) return
     setIsDeletingAsset(true)
     setUploadError(null)
     try {
-      await deleteSegmentAsset(animeId, editingSegment.id, authToken)
+      await deleteSegmentAsset(animeId, editingSegment.id)
       await reload()
       // Update panel to reflect cleared asset
       setEditingSegment((prev) =>
@@ -364,7 +363,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   }
 
   async function handleAttachReuseCandidate(candidate: AdminSegmentLibraryCandidate) {
-    if (!animeId || !editingSegment || !authToken) return
+    if (!animeId || !editingSegment || !hasAccessToken) return
     setIsAttachingReuse(true)
     setReuseError(null)
     try {
@@ -372,7 +371,6 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
         animeId,
         editingSegment.id,
         { asset_id: candidate.asset_id },
-        authToken,
       )
       await reload()
       setEditingSegment(res.data)

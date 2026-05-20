@@ -1,4 +1,7 @@
-import { describe, it, expect } from 'vitest'
+// @vitest-environment jsdom
+
+import { beforeEach, describe, it, expect, vi } from 'vitest'
+import { renderHook, waitFor } from '@testing-library/react'
 import type { AdminThemeSegment } from '@/types/admin'
 
 import {
@@ -10,6 +13,46 @@ import {
 } from './segmenteTabUtils'
 
 import { parseFlexibleTimeInput, formatTimeInput } from './SegmenteTab.helpers'
+import { useReleaseSegments } from './useReleaseSegments'
+import {
+  getAdminAnimeThemes,
+  getAdminThemeTypes,
+  getAnimeSegments,
+} from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
+
+vi.mock('@/lib/useAuthSession', () => ({
+  useAuthSession: vi.fn(),
+}))
+
+vi.mock('@/lib/api', () => ({
+  getAnimeSegments: vi.fn(),
+  createAnimeSegment: vi.fn(),
+  updateAnimeSegment: vi.fn(),
+  deleteAnimeSegment: vi.fn(),
+  getAdminAnimeThemes: vi.fn(),
+  getAdminThemeTypes: vi.fn(),
+  createAdminAnimeTheme: vi.fn(),
+}))
+
+const mockedUseAuthSession = vi.mocked(useAuthSession)
+const mockedGetAnimeSegments = vi.mocked(getAnimeSegments)
+const mockedGetAdminAnimeThemes = vi.mocked(getAdminAnimeThemes)
+const mockedGetAdminThemeTypes = vi.mocked(getAdminThemeTypes)
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  mockedUseAuthSession.mockReturnValue({
+    authToken: '',
+    hasAccessToken: true,
+    hasRefreshToken: true,
+    displayName: '',
+    isClientInitialized: true,
+  })
+  mockedGetAnimeSegments.mockResolvedValue({ data: [] })
+  mockedGetAdminAnimeThemes.mockResolvedValue({ data: [] })
+  mockedGetAdminThemeTypes.mockResolvedValue({ data: [] })
+})
 
 // ---------------------------------------------------------------------------
 // Helper: minimale AdminThemeSegment-Instanz für Tests
@@ -35,6 +78,27 @@ function makeSegment(overrides: Partial<AdminThemeSegment> = {}): AdminThemeSegm
     ...overrides,
   }
 }
+
+describe('useReleaseSegments auth contract', () => {
+  it('loads release segment data without forwarding token arguments', async () => {
+    renderHook(() =>
+      useReleaseSegments({
+        animeId: 1,
+        groupId: 2,
+        version: 'v2',
+        releaseVariantId: 9,
+      }),
+    )
+
+    await waitFor(() => {
+      expect(mockedGetAnimeSegments).toHaveBeenCalled()
+    })
+
+    expect(mockedGetAnimeSegments).toHaveBeenCalledWith(1, 2, 'v2', undefined, 9)
+    expect(mockedGetAdminAnimeThemes).toHaveBeenCalledWith(1)
+    expect(mockedGetAdminThemeTypes).toHaveBeenCalledWith()
+  })
+})
 
 // ---------------------------------------------------------------------------
 // getTypeBadgeLabel
