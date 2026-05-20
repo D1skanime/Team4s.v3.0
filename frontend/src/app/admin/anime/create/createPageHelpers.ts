@@ -106,15 +106,11 @@ export async function createManualAnimeAndRedirect(
   deps: {
     createAdminAnime: (
       payload: AdminAnimeCreateRequest,
-      authToken?: string,
     ) => Promise<Pick<AdminAnimeUpsertResponse, "data" | "anisearch">>;
     setLocationHref: (value: string) => void;
-    authToken?: string;
   },
 ) {
-  const response = deps.authToken
-    ? await deps.createAdminAnime(payload, deps.authToken)
-    : await deps.createAdminAnime(payload);
+  const response = await deps.createAdminAnime(payload);
   deps.setLocationHref(buildManualCreateRedirectPath(response.data.id));
   return response;
 }

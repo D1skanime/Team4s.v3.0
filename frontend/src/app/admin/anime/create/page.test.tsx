@@ -428,18 +428,18 @@ describe("AdminAnimeCreatePage", () => {
       uploadCreatedAnimeCover(
         9,
         new File(["cover"], "lain.jpg", { type: "image/jpeg" }),
-        "token",
       ),
     ).resolves.toBe("42");
 
-    expect(uploadSpy).toHaveBeenCalledWith(
+    const [uploadOptions] = uploadSpy.mock.calls[0];
+    expect(uploadOptions).toEqual(
       expect.objectContaining({
         animeID: 9,
         assetType: "poster",
-        authToken: "token",
       }),
     );
-    expect(assignSpy).toHaveBeenCalledWith(9, "42", "token");
+    expect(uploadOptions).not.toHaveProperty("authToken");
+    expect(assignSpy).toHaveBeenCalledWith(9, "42");
   });
 
   it("surfaces ApiError details for operator-visible create failures", () => {

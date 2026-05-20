@@ -70,36 +70,31 @@ describe("createAssetUploadPlan", () => {
           type: "video/mp4",
         }),
       ],
-    }, "token");
+    });
 
-    expect(api.uploadAdminAnimeMedia).toHaveBeenNthCalledWith(
-      1,
+    const [firstUploadOptions] = vi.mocked(api.uploadAdminAnimeMedia).mock.calls[0];
+    expect(firstUploadOptions).toEqual(
       expect.objectContaining({
         animeID: 17,
         assetType: "banner",
-        authToken: "token",
       }),
     );
+    expect(firstUploadOptions).not.toHaveProperty("authToken");
     expect(api.assignAdminAnimeBannerAsset).toHaveBeenCalledWith(
       17,
       "banner-1",
-      "token",
     );
     expect(api.assignAdminAnimeLogoAsset).toHaveBeenCalledWith(
       17,
       "logo-1",
-      "token",
     );
     expect(api.addAdminAnimeBackgroundAsset).toHaveBeenCalledWith(
       17,
       "background-1",
-      "token",
-      undefined,
     );
     expect(api.addAdminAnimeBackgroundVideoAsset).toHaveBeenCalledWith(
       17,
       "video-1",
-      "token",
     );
   });
 

@@ -10,8 +10,8 @@ import {
   ApiError,
   createAdminAnime,
   getAdminGenreTokens,
-  getRuntimeAuthToken,
 } from "@/lib/api";
+import { useAuthSession } from "@/lib/useAuthSession";
 import {
   createAdminAnimeFromJellyfinDraft,
   getAdminTagTokens,
@@ -184,8 +184,7 @@ type AdminAnimeAniSearchSearchCandidateResponse = {
 };
 
 export function useAdminAnimeCreateController() {
-  const [isAuthStateHydrated, setIsAuthStateHydrated] = useState(false);
-  const [authStateVersion, setAuthStateVersion] = useState(0);
+  const { hasAccessToken: hasAuthToken, isClientInitialized: isAuthStateHydrated } = useAuthSession();
   const [isSubmittingCreate, setIsSubmittingCreate] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -274,21 +273,6 @@ export function useAdminAnimeCreateController() {
   const backgroundVideoFileInputRef = useRef<HTMLInputElement | null>(null);
   const createRedirectTimeoutRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    const syncAuthState = () => setAuthStateVersion((v) => v + 1);
-    syncAuthState();
-    setIsAuthStateHydrated(true);
-    window.addEventListener("focus", syncAuthState);
-    window.addEventListener("storage", syncAuthState);
-    document.addEventListener("visibilitychange", syncAuthState);
-
-    return () => {
-      window.removeEventListener("focus", syncAuthState);
-      window.removeEventListener("storage", syncAuthState);
-      document.removeEventListener("visibilitychange", syncAuthState);
-    };
-  }, []);
-
   useEffect(
     () => () => {
       if (createRedirectTimeoutRef.current !== null) {
@@ -300,15 +284,12 @@ export function useAdminAnimeCreateController() {
     [stagedAssets, stagedCover],
   );
 
-  const authToken = useMemo(() => getRuntimeAuthToken(), [authStateVersion]);
-  const hasAuthToken = authToken.length > 0;
-
   useEffect(() => {
     if (!hasAuthToken) return;
 
     setIsLoadingGenreTokens(true);
     setGenreTokensError(null);
-    getAdminGenreTokens({ limit: 1000 }, authToken)
+    getAdminGenreTokens({ limit: 1000 })
       .then((response) => setGenreTokens(response.data))
       .catch((error) => {
         setGenreTokensError(
@@ -318,14 +299,14 @@ export function useAdminAnimeCreateController() {
         );
       })
       .finally(() => setIsLoadingGenreTokens(false));
-  }, [authToken, hasAuthToken]);
+  }, [hasAuthToken]);
 
   useEffect(() => {
     if (!hasAuthToken) return;
 
     setIsLoadingTagTokens(true);
     setTagTokensError(null);
-    getAdminTagTokens({ limit: 1000 }, authToken)
+    getAdminTagTokens({ limit: 1000 })
       .then((response) => setTagTokens(response.data))
       .catch((error) => {
         setTagTokensError(
@@ -335,7 +316,7 @@ export function useAdminAnimeCreateController() {
         );
       })
       .finally(() => setIsLoadingTagTokens(false));
-  }, [authToken, hasAuthToken]);
+  }, [hasAuthToken]);
 
   const jellyfinIntake = useJellyfinIntake();
 
@@ -698,8 +679,7 @@ export function useAdminAnimeCreateController() {
       createRedirectTimeoutRef.current = null;
     }
 
-    const runtimeAuthToken = getRuntimeAuthToken();
-    if (!runtimeAuthToken) {
+    if (!hasAuthToken) {
       setErrorMessage(
         "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
       );
@@ -774,7 +754,6 @@ export function useAdminAnimeCreateController() {
           createAdminAnime: jellyfinPreview
             ? createAdminAnimeFromJellyfinDraft
             : createAdminAnime,
-          authToken: runtimeAuthToken,
           setLocationHref: () => undefined,
         },
       );
@@ -788,7 +767,6 @@ export function useAdminAnimeCreateController() {
           background: stagedAssets.background,
           background_video: stagedAssets.background_video,
         },
-        runtimeAuthToken,
       );
 
       setSuccessMessage(buildCreateSuccessMessage(response));
@@ -1013,8 +991,7 @@ export function useAdminAnimeCreateController() {
       return;
     }
 
-    const runtimeAuthToken = getRuntimeAuthToken();
-    if (!runtimeAuthToken) {
+    if (!hasAuthToken) {
       setAniSearchErrorMessage(
         "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
       );
@@ -1033,10 +1010,7 @@ export function useAdminAnimeCreateController() {
       setIsLoadingAniSearchDraft(true);
       setLastRequest(JSON.stringify(requestPayload, null, 2));
 
-      const response = await loadAdminAnimeCreateAniSearchDraft(
-        requestPayload,
-        runtimeAuthToken,
-      );
+      const response = await loadAdminAnimeCreateAniSearchDraft(requestPayload);
       const resolved = applyCreateAniSearchControllerResult({
         currentDraft: manualDraftValues,
         jellyfinSnapshot: jellyfinDraftSnapshot,
@@ -1079,8 +1053,7 @@ export function useAdminAnimeCreateController() {
       return;
     }
 
-    const runtimeAuthToken = getRuntimeAuthToken();
-    if (!runtimeAuthToken) {
+    if (!hasAuthToken) {
       setAniSearchErrorMessage(
         "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
       );
@@ -1092,7 +1065,6 @@ export function useAdminAnimeCreateController() {
       const response = await searchAdminAnimeCreateAniSearchCandidates(
         query,
         { limit: 12 },
-        runtimeAuthToken,
       );
       const feedback = resolveAniSearchCandidateSearchFeedback(response);
       setLastResponse(JSON.stringify(response, null, 2));
@@ -1138,8 +1110,7 @@ export function useAdminAnimeCreateController() {
       return;
     }
 
-    const runtimeAuthToken = getRuntimeAuthToken();
-    if (!runtimeAuthToken) {
+    if (!hasAuthToken) {
       setAssetSearchErrorMessage(
         "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
       );
@@ -1156,7 +1127,6 @@ export function useAdminAnimeCreateController() {
           limit: assetSearchPageLimit,
           page: 1,
         },
-        runtimeAuthToken,
       );
       setLastResponse(JSON.stringify(response, null, 2));
       setAssetSearchCandidates(response.data);
@@ -1184,8 +1154,7 @@ export function useAdminAnimeCreateController() {
     if (!activeAssetSearchKind || isSearchingAssetCandidates) return;
     const query = assetSearchQuery.trim();
     if (!query) return;
-    const runtimeAuthToken = getRuntimeAuthToken();
-    if (!runtimeAuthToken) return;
+    if (!hasAuthToken) return;
 
     const nextPage = assetSearchPage + 1;
     try {
@@ -1198,7 +1167,6 @@ export function useAdminAnimeCreateController() {
           limit: assetSearchPageLimit,
           page: nextPage,
         },
-        runtimeAuthToken,
       );
       setAssetSearchPage(nextPage);
       setAssetSearchCandidates((current) => [...current, ...response.data]);

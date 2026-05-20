@@ -245,7 +245,6 @@ async function uploadAndLinkCreatedAnimeAsset(
   animeID: number,
   kind: AdminAnimeAssetKind,
   file: File,
-  authToken?: string,
   providerKey?: string,
 ): Promise<string> {
   const config = CREATE_ASSET_UPLOAD_PLAN[kind];
@@ -253,18 +252,21 @@ async function uploadAndLinkCreatedAnimeAsset(
     animeID,
     assetType: config.assetType,
     file,
-    authToken,
   });
   if (kind === "cover") {
-    await assignAdminAnimeCoverAsset(animeID, upload.id, authToken);
+    await assignAdminAnimeCoverAsset(animeID, upload.id);
   } else if (kind === "banner") {
-    await assignAdminAnimeBannerAsset(animeID, upload.id, authToken);
+    await assignAdminAnimeBannerAsset(animeID, upload.id);
   } else if (kind === "logo") {
-    await assignAdminAnimeLogoAsset(animeID, upload.id, authToken);
+    await assignAdminAnimeLogoAsset(animeID, upload.id);
   } else if (kind === "background") {
-    await addAdminAnimeBackgroundAsset(animeID, upload.id, authToken, providerKey);
+    if (providerKey) {
+      await addAdminAnimeBackgroundAsset(animeID, upload.id, undefined, providerKey);
+    } else {
+      await addAdminAnimeBackgroundAsset(animeID, upload.id);
+    }
   } else {
-    await addAdminAnimeBackgroundVideoAsset(animeID, upload.id, authToken);
+    await addAdminAnimeBackgroundVideoAsset(animeID, upload.id);
   }
   return upload.id;
 }
@@ -290,9 +292,8 @@ function resolveUploadFile(selection: CreateAssetUploadSelection): File | null {
 export async function uploadCreatedAnimeCover(
   animeID: number,
   file: File,
-  authToken?: string,
 ): Promise<string> {
-  return uploadAndLinkCreatedAnimeAsset(animeID, "cover", file, authToken);
+  return uploadAndLinkCreatedAnimeAsset(animeID, "cover", file);
 }
 
 /**
@@ -303,7 +304,6 @@ export async function uploadCreatedAnimeCover(
 export async function uploadCreatedAnimeAssets(
   animeID: number,
   assets: CreateAssetUploadSelections,
-  authToken?: string,
 ): Promise<Record<AdminAnimeAssetKind, string[]>> {
   const uploaded: Record<AdminAnimeAssetKind, string[]> = {
     cover: [],
@@ -320,7 +320,6 @@ export async function uploadCreatedAnimeAssets(
         animeID,
         "cover",
         coverFile,
-        authToken,
       ),
     );
   }
@@ -332,7 +331,6 @@ export async function uploadCreatedAnimeAssets(
         animeID,
         "banner",
         bannerFile,
-        authToken,
       ),
     );
   }
@@ -344,7 +342,6 @@ export async function uploadCreatedAnimeAssets(
         animeID,
         "logo",
         logoFile,
-        authToken,
       ),
     );
   }
@@ -359,7 +356,6 @@ export async function uploadCreatedAnimeAssets(
         animeID,
         "background",
         backgroundFile,
-        authToken,
         providerKey,
       ),
     );
@@ -373,7 +369,6 @@ export async function uploadCreatedAnimeAssets(
         animeID,
         "background_video",
         backgroundVideoFile,
-        authToken,
       ),
     );
   }
