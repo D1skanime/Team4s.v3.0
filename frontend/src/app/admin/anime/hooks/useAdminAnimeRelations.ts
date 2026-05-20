@@ -44,7 +44,6 @@ export interface UseAdminAnimeRelationsModel {
 
 interface UseAdminAnimeRelationsOptions {
   animeID: number
-  authToken: string
   onSuccess?: (message: string) => void
   onError?: (message: string) => void
 }
@@ -60,7 +59,6 @@ export function buildRelationsSummary(relations: AdminAnimeRelation[], errorMess
 
 export function useAdminAnimeRelations({
   animeID,
-  authToken,
   onSuccess,
   onError,
 }: UseAdminAnimeRelationsOptions): UseAdminAnimeRelationsModel {
@@ -81,7 +79,7 @@ export function useAdminAnimeRelations({
     let active = true
     setIsLoading(true)
 
-    getAdminAnimeRelations(animeID, authToken)
+    getAdminAnimeRelations(animeID)
       .then((response) => {
         if (!active) return
         setRelations(response.data)
@@ -101,7 +99,7 @@ export function useAdminAnimeRelations({
     return () => {
       active = false
     }
-  }, [animeID, authToken, onError])
+  }, [animeID, onError])
 
   useEffect(() => {
     const trimmed = query.trim()
@@ -114,7 +112,7 @@ export function useAdminAnimeRelations({
     let active = true
     const timer = window.setTimeout(() => {
       setIsSearching(true)
-      searchAdminAnimeRelationTargets(animeID, trimmed, { limit: 8 }, authToken)
+      searchAdminAnimeRelationTargets(animeID, trimmed, { limit: 8 })
         .then((response) => {
           if (!active) return
           setTargets(response.data)
@@ -137,7 +135,7 @@ export function useAdminAnimeRelations({
       active = false
       window.clearTimeout(timer)
     }
-  }, [animeID, authToken, onError, query])
+  }, [animeID, onError, query])
 
   function clearMessages() {
     setInlineError(null)
@@ -145,7 +143,7 @@ export function useAdminAnimeRelations({
   }
 
   async function reloadRelations(): Promise<void> {
-    const response = await getAdminAnimeRelations(animeID, authToken)
+    const response = await getAdminAnimeRelations(animeID)
     setRelations(response.data)
   }
 
@@ -169,7 +167,6 @@ export function useAdminAnimeRelations({
           target_anime_id: selectedTarget.anime_id,
           relation_label: relationLabel,
         },
-        authToken,
       )
       await reloadRelations()
       setQuery('')
@@ -209,7 +206,6 @@ export function useAdminAnimeRelations({
         {
           relation_label: editingLabel,
         },
-        authToken,
       )
       await reloadRelations()
       setEditingTargetID(null)
@@ -227,7 +223,7 @@ export function useAdminAnimeRelations({
     clearMessages()
     setIsSaving(true)
     try {
-      await deleteAdminAnimeRelation(animeID, targetAnimeID, authToken)
+      await deleteAdminAnimeRelation(animeID, targetAnimeID)
       await reloadRelations()
       if (editingTargetID === targetAnimeID) {
         setEditingTargetID(null)

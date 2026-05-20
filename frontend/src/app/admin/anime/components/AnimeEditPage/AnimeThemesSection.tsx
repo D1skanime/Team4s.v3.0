@@ -11,11 +11,11 @@ import { UseAdminAnimeThemesModel, useAdminAnimeThemes } from '../../hooks/useAd
 
 interface AnimeThemesSectionProps {
   animeID: number
-  authToken: string
   defaultOpen?: boolean
   modelOverride?: UseAdminAnimeThemesModel
   onSuccess?: (message: string) => void
   onError?: (message: string) => void
+  [legacyProp: string]: unknown
 }
 
 interface EpisodeOption {
@@ -219,13 +219,12 @@ function AnimeThemeRow({ animeID, theme, episodes, model }: AnimeThemeRowProps) 
 
 export function AnimeThemesSection({
   animeID,
-  authToken,
   defaultOpen = false,
   modelOverride,
   onSuccess,
   onError,
 }: AnimeThemesSectionProps) {
-  const hookModel = useAdminAnimeThemes({ animeID, authToken, onSuccess, onError })
+  const hookModel = useAdminAnimeThemes({ animeID, onSuccess, onError })
   const model = modelOverride ?? hookModel
   const [episodes, setEpisodes] = useState<EpisodeOption[]>([])
 

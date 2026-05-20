@@ -1,6 +1,7 @@
 import { FormEvent, useMemo, useState } from 'react'
 
 import { ApiError, attachAnimeFansub, detachAnimeFansub, getFansubList } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import { FansubGroup } from '@/types/fansub'
 
 import sharedStyles from '../../../admin.module.css'
@@ -15,7 +16,6 @@ const styles = { ...sharedStyles, ...contextStyles }
  */
 interface AnimeContextFansubManagerProps {
   animeID: number
-  authToken: string
   attachedFansubs: FansubGroup[]
   disabled: boolean
   onChanged: () => Promise<void>
@@ -45,7 +45,6 @@ function formatError(error: unknown, fallback: string): string {
  */
 export function AnimeContextFansubManager({
   animeID,
-  authToken,
   attachedFansubs,
   disabled,
   onChanged,
@@ -57,6 +56,7 @@ export function AnimeContextFansubManager({
   const [isSearching, setIsSearching] = useState(false)
   const [isMutating, setIsMutating] = useState(false)
   const [mutatingGroupID, setMutatingGroupID] = useState<number | null>(null)
+  const { hasAccessToken } = useAuthSession()
 
   const attachedIDs = useMemo(() => new Set(attachedFansubs.map((group) => group.id)), [attachedFansubs])
   const visibleResults = useMemo(
@@ -98,7 +98,7 @@ export function AnimeContextFansubManager({
    * die Fansub-Liste und zeigt eine Erfolgsmeldung an.
    */
   const handleAttach = async (group: FansubGroup) => {
-    if (!authToken.trim()) {
+    if (!hasAccessToken) {
       onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
@@ -106,7 +106,7 @@ export function AnimeContextFansubManager({
     setIsMutating(true)
     setMutatingGroupID(group.id)
     try {
-      await attachAnimeFansub(animeID, group.id, authToken)
+      await attachAnimeFansub(animeID, group.id)
       await onChanged()
       setResults((current) => current.filter((item) => item.id !== group.id))
       onSuccess(`Fansub "${group.name}" wurde mit Anime #${animeID} verknüpft.`)
@@ -124,7 +124,7 @@ export function AnimeContextFansubManager({
    * und zeigt nach Erfolg eine Bestätigung an.
    */
   const handleDetach = async (group: FansubGroup) => {
-    if (!authToken.trim()) {
+    if (!hasAccessToken) {
       onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
@@ -139,7 +139,7 @@ export function AnimeContextFansubManager({
     setIsMutating(true)
     setMutatingGroupID(group.id)
     try {
-      await detachAnimeFansub(animeID, group.id, authToken)
+      await detachAnimeFansub(animeID, group.id)
       await onChanged()
       onSuccess(`Fansub "${group.name}" wurde vom Anime entfernt.`)
     } catch (error) {

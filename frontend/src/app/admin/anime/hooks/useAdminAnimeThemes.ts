@@ -43,15 +43,16 @@ export interface UseAdminAnimeThemesModel {
 
 interface UseAdminAnimeThemesOptions {
   animeID: number
-  authToken: string
   onSuccess?: (message: string) => void
   onError?: (message: string) => void
 }
 
-export async function loadAdminAnimeThemesData(animeID: number, authToken: string) {
+export async function loadAdminAnimeThemesData(animeID: number, ..._deprecatedArgs: unknown[]) {
+  void _deprecatedArgs
+
   const [themesResponse, typesResponse] = await Promise.all([
-    getAdminAnimeThemes(animeID, authToken),
-    getAdminThemeTypes(authToken),
+    getAdminAnimeThemes(animeID),
+    getAdminThemeTypes(),
   ])
 
   return {
@@ -66,7 +67,6 @@ function formatErrorMessage(error: unknown, fallback: string): string {
 
 export function useAdminAnimeThemes({
   animeID,
-  authToken,
   onSuccess,
   onError,
 }: UseAdminAnimeThemesOptions): UseAdminAnimeThemesModel {
@@ -87,7 +87,7 @@ export function useAdminAnimeThemes({
     let active = true
     setIsLoading(true)
 
-    loadAdminAnimeThemesData(animeID, authToken)
+    loadAdminAnimeThemesData(animeID)
       .then(({ themes: loadedThemes, themeTypes: loadedThemeTypes }) => {
         if (!active) return
         setThemes(loadedThemes)
@@ -111,7 +111,7 @@ export function useAdminAnimeThemes({
     return () => {
       active = false
     }
-  }, [animeID, authToken, onError])
+  }, [animeID, onError])
 
   function clearMessages() {
     setInlineError(null)
@@ -119,7 +119,7 @@ export function useAdminAnimeThemes({
   }
 
   async function reloadThemes(): Promise<void> {
-    const response = await getAdminAnimeThemes(animeID, authToken)
+    const response = await getAdminAnimeThemes(animeID)
     setThemes(response.data)
   }
 
@@ -133,7 +133,7 @@ export function useAdminAnimeThemes({
     setIsSaving(true)
     try {
       const payload = newTitle.trim() ? { theme_type_id: newTypeID, title: newTitle.trim() } : { theme_type_id: newTypeID }
-      const response = await createAdminAnimeTheme(animeID, payload, authToken)
+      const response = await createAdminAnimeTheme(animeID, payload)
       setThemes((current) => [...current, response.data])
       setNewTitle('')
       onSuccess?.('Theme gespeichert.')
@@ -150,7 +150,7 @@ export function useAdminAnimeThemes({
     clearMessages()
     setIsSaving(true)
     try {
-      await deleteAdminAnimeTheme(animeID, themeID, authToken)
+      await deleteAdminAnimeTheme(animeID, themeID)
       setThemes((current) => current.filter((theme) => theme.id !== themeID))
       setSegments((current) => {
         const next = new Map(current)
@@ -192,7 +192,7 @@ export function useAdminAnimeThemes({
       const payload = editingTitle.trim()
         ? { theme_type_id: editingTypeID, title: editingTitle.trim() }
         : { theme_type_id: editingTypeID, title: '' }
-      await updateAdminAnimeTheme(animeID, editingThemeID, payload, authToken)
+      await updateAdminAnimeTheme(animeID, editingThemeID, payload)
       await reloadThemes()
       setEditingThemeID(null)
       onSuccess?.('Theme aktualisiert.')
@@ -207,7 +207,7 @@ export function useAdminAnimeThemes({
 
   async function loadSegments(themeID: number): Promise<void> {
     try {
-      const response = await getAdminAnimeThemeSegments(animeID, themeID, authToken)
+      const response = await getAdminAnimeThemeSegments(animeID, themeID)
       setSegments((current) => {
         const next = new Map(current)
         next.set(themeID, response.data)
@@ -231,7 +231,6 @@ export function useAdminAnimeThemes({
           start_episode_id: startEpisodeID,
           end_episode_id: endEpisodeID,
         },
-        authToken,
       )
       setSegments((current) => {
         const next = new Map(current)
@@ -253,7 +252,7 @@ export function useAdminAnimeThemes({
     clearMessages()
     setIsSaving(true)
     try {
-      await deleteAdminAnimeThemeSegment(animeID, themeID, segmentID, authToken)
+      await deleteAdminAnimeThemeSegment(animeID, themeID, segmentID)
       setSegments((current) => {
         const next = new Map(current)
         next.set(

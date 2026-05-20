@@ -22,11 +22,11 @@ const RELATION_LABELS: AdminAnimeRelationLabel[] = [
 
 interface AnimeRelationsSectionProps {
   animeID: number
-  authToken: string
   defaultOpen?: boolean
   modelOverride?: UseAdminAnimeRelationsModel
   onSuccess?: (message: string) => void
   onError?: (message: string) => void
+  [legacyProp: string]: unknown
 }
 
 function formatTargetMeta(target: AdminAnimeRelationTarget): string {
@@ -47,13 +47,12 @@ function formatRelationMeta(relation: AdminAnimeRelation): string {
 
 export function AnimeRelationsSection({
   animeID,
-  authToken,
   defaultOpen = false,
   modelOverride,
   onSuccess,
   onError,
 }: AnimeRelationsSectionProps) {
-  const liveModel = useAdminAnimeRelations({ animeID, authToken, onSuccess, onError })
+  const liveModel = useAdminAnimeRelations({ animeID, onSuccess, onError })
   const model = modelOverride ?? liveModel
 
   return (

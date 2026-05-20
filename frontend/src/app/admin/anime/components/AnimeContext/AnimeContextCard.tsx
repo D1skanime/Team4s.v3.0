@@ -21,7 +21,6 @@ const styles = { ...sharedStyles, ...contextStyles }
 interface AnimeContextCardProps {
   anime: AnimeDetail | null
   fansubs: FansubGroup[]
-  authToken: string
   isLoading: boolean
   isLoadingFansubs: boolean
   contextAnimeIDInput: string
@@ -33,6 +32,7 @@ interface AnimeContextCardProps {
   onJumpToPatch: () => void
   onJumpToEpisodes: () => void
   contextAnchorRef: RefObject<HTMLDivElement>
+  [legacyProp: string]: unknown
 }
 
 /**
@@ -44,7 +44,6 @@ interface AnimeContextCardProps {
 export function AnimeContextCard({
   anime,
   fansubs,
-  authToken,
   isLoading,
   isLoadingFansubs,
   contextAnimeIDInput,
@@ -131,7 +130,6 @@ export function AnimeContextCard({
           <AnimeContextFansubs fansubs={fansubs} isLoading={isLoadingFansubs} />
           <AnimeContextFansubManager
             animeID={anime.id}
-            authToken={authToken}
             attachedFansubs={fansubs}
             disabled={isLoading || isLoadingFansubs}
             onChanged={onRefreshFansubs}
