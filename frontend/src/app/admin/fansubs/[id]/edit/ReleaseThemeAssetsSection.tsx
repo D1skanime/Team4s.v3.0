@@ -18,14 +18,15 @@ const styles = { ...sharedStyles, ...opEdStyles }
 interface ReleaseThemeAssetsSectionProps {
   fansubID: number
   animeID: number
-  authToken: string | null
+  hasAccessToken?: boolean
   themes: AdminAnimeTheme[]
+  [legacyProp: string]: unknown
 }
 
 export function ReleaseThemeAssetsSection({
   fansubID,
   animeID,
-  authToken,
+  hasAccessToken = false,
   themes,
 }: ReleaseThemeAssetsSectionProps) {
   const [themeID, setThemeID] = useState<number>(themes[0]?.id ?? 0)
@@ -43,9 +44,9 @@ export function ReleaseThemeAssetsSection({
   // Load release context explicitly from the dedicated canonical release endpoint.
   // This replaces the old pattern of inferring release_id from theme-asset responses.
   useEffect(() => {
-    if (!authToken) return
+    if (!hasAccessToken) return
     let active = true
-    getAdminCanonicalFansubRelease(fansubID, animeID, authToken)
+    getAdminCanonicalFansubRelease(fansubID, animeID)
       .then((releaseCtx) => {
         if (!active) return
         setReleaseID(releaseCtx.release?.release_id ?? null)
@@ -59,14 +60,14 @@ export function ReleaseThemeAssetsSection({
     return () => {
       active = false
     }
-  }, [animeID, authToken, fansubID])
+  }, [animeID, hasAccessToken, fansubID])
 
   // Load theme assets separately — theme-asset endpoint is now purely about theme assets,
   // not the source of release identity.
   useEffect(() => {
-    if (!authToken || releaseID === null) return
+    if (!hasAccessToken || releaseID === null) return
     let active = true
-    getAdminReleaseThemeAssets(releaseID, authToken)
+    getAdminReleaseThemeAssets(releaseID)
       .then((response) => {
         if (!active) return
         setAssets(response.data)
@@ -80,16 +81,16 @@ export function ReleaseThemeAssetsSection({
     return () => {
       active = false
     }
-  }, [authToken, releaseID])
+  }, [hasAccessToken, releaseID])
 
   async function reloadAssets() {
     if (releaseID === null) return
-    const response = await getAdminReleaseThemeAssets(releaseID, authToken || undefined)
+    const response = await getAdminReleaseThemeAssets(releaseID)
     setAssets(response.data)
   }
 
   async function handleUpload() {
-    if (!file || !themeID || !authToken) return
+    if (!file || !themeID || !hasAccessToken) return
     setBusy(true)
     setError(null)
     try {
@@ -98,7 +99,6 @@ export function ReleaseThemeAssetsSection({
         animeID,
         themeID,
         file,
-        authToken,
         onProgress: setProgress,
       })
       await reloadAssets()
@@ -136,7 +136,7 @@ export function ReleaseThemeAssetsSection({
           <progress value={progress} max={100} />
         </div>
 
-        <button type="button" className={styles.button} onClick={() => void handleUpload()} disabled={!file || !themeID || busy || !authToken}>
+        <button type="button" className={styles.button} onClick={() => void handleUpload()} disabled={!file || !themeID || busy || !hasAccessToken}>
           {busy ? 'Lade hoch...' : 'Video hochladen'}
         </button>
       </div>
@@ -158,7 +158,7 @@ export function ReleaseThemeAssetsSection({
                 type="button"
                 className={styles.buttonSecondary}
                 onClick={async () => {
-                  await deleteAdminReleaseThemeAsset(asset.release_id, asset.theme_id, asset.media_id, authToken || undefined)
+                  await deleteAdminReleaseThemeAsset(asset.release_id, asset.theme_id, asset.media_id)
                   await reloadAssets()
                 }}
               >

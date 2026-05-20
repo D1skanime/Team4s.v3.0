@@ -13,10 +13,10 @@ const styles = { ...sharedStyles, ...opEdStyles }
 
 interface FansubOpEdSectionProps {
   fansubID: number
-  authToken: string | null
+  hasAccessToken: boolean
 }
 
-export function FansubOpEdSection({ fansubID, authToken }: FansubOpEdSectionProps) {
+export function FansubOpEdSection({ fansubID, hasAccessToken }: FansubOpEdSectionProps) {
   const [animeList, setAnimeList] = useState<AdminFansubAnimeEntry[]>([])
   const [selectedAnimeID, setSelectedAnimeID] = useState<number | null>(null)
   const [themes, setThemes] = useState<AdminAnimeTheme[]>([])
@@ -24,13 +24,13 @@ export function FansubOpEdSection({ fansubID, authToken }: FansubOpEdSectionProp
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!authToken) {
+    if (!hasAccessToken) {
       const timeout = window.setTimeout(() => setLoading(false), 0)
       return () => window.clearTimeout(timeout)
     }
 
     let active = true
-    getAdminFansubAnime(fansubID, authToken)
+    getAdminFansubAnime(fansubID)
       .then((response) => {
         if (!active) return
         setAnimeList(response.data)
@@ -50,18 +50,18 @@ export function FansubOpEdSection({ fansubID, authToken }: FansubOpEdSectionProp
     return () => {
       active = false
     }
-  }, [authToken, fansubID])
+  }, [hasAccessToken, fansubID])
 
   useEffect(() => {
-    if (!selectedAnimeID || !authToken) {
+    if (!selectedAnimeID || !hasAccessToken) {
       const timeout = window.setTimeout(() => setThemes([]), 0)
       return () => window.clearTimeout(timeout)
     }
 
-    getAdminAnimeThemes(selectedAnimeID, authToken)
+    getAdminAnimeThemes(selectedAnimeID)
       .then((response) => setThemes(response.data))
       .catch((nextError) => setError(nextError instanceof Error ? nextError.message : 'Themes konnten nicht geladen werden.'))
-  }, [authToken, selectedAnimeID])
+  }, [hasAccessToken, selectedAnimeID])
 
   return (
     <section className={styles.section}>
@@ -93,7 +93,7 @@ export function FansubOpEdSection({ fansubID, authToken }: FansubOpEdSectionProp
         <ReleaseThemeAssetsSection
           fansubID={fansubID}
           animeID={selectedAnimeID}
-          authToken={authToken}
+          hasAccessToken={hasAccessToken}
           themes={themes}
         />
       ) : null}

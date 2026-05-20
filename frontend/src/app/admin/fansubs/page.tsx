@@ -10,9 +10,9 @@ import {
   getFansubAliases,
   getFansubList,
   getFansubMembers,
-  getRuntimeAuthToken,
   updateFansubGroup,
 } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import { FansubGroup, FansubStatus } from '@/types/fansub'
 
 import sharedStyles from '../admin.module.css'
@@ -69,7 +69,7 @@ function formatPeriod(group: FansubGroup): string {
 }
 
 export default function AdminFansubsPage() {
-  const [authToken] = useState(() => getRuntimeAuthToken())
+  const { hasAccessToken } = useAuthSession()
   const [isLoading, setIsLoading] = useState(false)
   const [isMutating, setIsMutating] = useState(false)
   const [items, setItems] = useState<FansubGroup[]>([])
@@ -286,8 +286,8 @@ export default function AdminFansubsPage() {
   }
 
   async function onDelete(item: FansubGroup) {
-    if (!authToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken) {
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
@@ -300,7 +300,7 @@ export default function AdminFansubsPage() {
     setErrorMessage(null)
     setSuccessMessage(null)
     try {
-      await deleteFansubGroup(item.id, authToken)
+      await deleteFansubGroup(item.id)
       setSuccessMessage(`Fansub "${item.name}" gelöscht.`)
       await loadList()
     } catch (error) {
@@ -311,8 +311,8 @@ export default function AdminFansubsPage() {
   }
 
   async function onBulkDelete() {
-    if (!authToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken) {
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
 
@@ -329,7 +329,7 @@ export default function AdminFansubsPage() {
     setSuccessMessage(null)
     try {
       for (const item of selected) {
-        await deleteFansubGroup(item.id, authToken)
+        await deleteFansubGroup(item.id)
       }
       setSuccessMessage(`${selected.length} Fansub-Gruppen gelöscht.`)
       await loadList()
@@ -341,8 +341,8 @@ export default function AdminFansubsPage() {
   }
 
   async function onBulkStatusChange() {
-    if (!authToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+    if (!hasAccessToken) {
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
     if (selectedIDs.size === 0) return
@@ -353,7 +353,7 @@ export default function AdminFansubsPage() {
     try {
       const selected = items.filter((item) => selectedIDs.has(item.id))
       for (const item of selected) {
-        await updateFansubGroup(item.id, { status: bulkStatus }, authToken)
+        await updateFansubGroup(item.id, { status: bulkStatus })
       }
       setSuccessMessage(`${selected.length} Gruppen auf "${statusLabel(bulkStatus)}" gesetzt.`)
       await loadList()

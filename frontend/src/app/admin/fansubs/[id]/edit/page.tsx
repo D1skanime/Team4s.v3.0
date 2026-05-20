@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useRef, useState, type UIEvent } from 'react'
 import { ChevronDown, ChevronRight, ExternalLink, Plus, Save, Trash2, X } from 'lucide-react'
 
 import {
@@ -23,12 +23,12 @@ import {
   getFansubAliases,
   getFansubByID,
   getFansubList,
-  getRuntimeAuthToken,
   resolveApiUrl,
   updateFansubGroup,
   updateFansubLink,
   uploadAdminReleaseThemeAssetForRelease,
 } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import {
   FansubAlias,
   FansubGroup,
@@ -42,6 +42,7 @@ import { AdminAnimeTheme, AdminAnimeThemeSegment, AdminFansubAnimeEntry, AdminRe
 import { AdminFansubRelease } from '@/types/fansub'
 import { buildFansubLogoFallback, buildMediaPreviewURL, EditableMediaValue, MediaUpload } from '@/components/admin/MediaUpload'
 import { AnimeProjectNotesSection } from './AnimeProjectNotesSection'
+import { FansubAppMembersSection } from './FansubAppMembersSection'
 import { NotesTab } from './NotesTab'
 import { ReleaseVersionMediaDrawerSummary } from './ReleaseVersionMediaDrawerSummary'
 import sharedStyles from '../../../admin.module.css'
@@ -51,6 +52,7 @@ const styles = { ...sharedStyles, ...fansubEditStyles }
 
 const STATUS_OPTIONS: FansubStatus[] = ['active', 'inactive', 'dissolved']
 const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = ['website', 'discord', 'twitter', 'github', 'irc']
+const INITIAL_RELEASE_BATCH_SIZE = 5
 const YEAR_MIN = 1900
 const YEAR_MAX = 2100
 const URL_PROTOCOLS = new Set(['http:', 'https:', 'irc:', 'ircs:'])
@@ -119,11 +121,11 @@ type BannerSideWidths = {
 
 const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: 'basic', label: 'Grunddaten' },
-  { key: 'notes', label: 'Notizen' },
+  { key: 'notes', label: 'Gruppengeschichte' },
   { key: 'media', label: 'Medien' },
   { key: 'collaboration', label: 'Mitglieder' },
   { key: 'releases', label: 'Anime & Veröffentlichungen' },
-  { key: 'anime-projekte', label: 'Anime-Projekte' },
+  { key: 'anime-projekte', label: 'Anime-Einblicke' },
 ]
 
 const STATUS_LABELS: Record<FansubStatus, string> = {
@@ -169,6 +171,27 @@ function resolveCoverUrl(rawCoverImage?: string | null): string {
   if (value.startsWith('/api/')) return resolveApiUrl(value)
   if (value.startsWith('/')) return value
   return `/covers/${value}`
+}
+
+function formatAnimeTypeLabel(type?: AdminFansubAnimeEntry['type'] | null): string | null {
+  switch (type) {
+    case 'film':
+      return 'Film'
+    case 'ova':
+      return 'OVA'
+    case 'ona':
+      return 'ONA'
+    case 'special':
+      return 'Special'
+    case 'bonus':
+      return 'Bonus'
+    case 'web':
+      return 'Web'
+    case 'tv':
+      return 'TV-Serie'
+    default:
+      return null
+  }
 }
 
 function parseClockSeconds(raw?: string | null): number | null {
@@ -219,8 +242,8 @@ function timelineLabelFor(name: string): string {
 }
 
 function timelineStatusLabelFor(status: ReleaseSegmentStatus): string {
-  if (status === 'global') return 'Global/Admin'
-  if (status === 'release') return 'Release-Asset'
+  if (status === 'global') return 'Global'
+  if (status === 'release') return 'Uploadet'
   return 'Fehlt'
 }
 
@@ -273,8 +296,8 @@ function releaseAssetRequirementLabel(segments: AdminAnimeThemeSegment[]): strin
   })
 
   return hasSegmentFallback
-    ? 'Segment-Fallback vorhanden - Release-Asset für diese Fansubgruppe fehlt'
-    : 'Release-Asset fehlt - Upload durch Fansubgruppe erforderlich'
+    ? 'Segment-Fallback vorhanden - Upload für diese Fansubgruppe fehlt'
+    : 'Upload fehlt - Upload durch Fansubgruppe erforderlich'
 }
 
 function releaseThemeSelectionKey(releaseID: number, themeID: number): string {
@@ -414,7 +437,7 @@ function mapReleaseSegmentCards(
         segments,
         media_id: asset.media_id,
         public_url: asset.public_url,
-        source_label: 'Release-Asset vorhanden',
+        source_label: 'Upload vorhanden',
       }
     }
 
@@ -436,7 +459,7 @@ function mapReleaseSegmentCards(
         theme_title: theme.title,
         status: 'global',
         segments,
-        source_label: `${segments.length} Segment${segments.length === 1 ? '' : 'e'} global/admin gesetzt`,
+        source_label: `${segments.length} Segment${segments.length === 1 ? '' : 'e'} global gesetzt`,
       }
     }
 
@@ -460,7 +483,7 @@ function mergeReleaseThemeAssetCard(cards: ReleaseSegmentCard[], asset: AdminRel
     segments: previous?.segments ?? [],
     media_id: asset.media_id,
     public_url: asset.public_url,
-    source_label: 'Release-Asset vorhanden',
+    source_label: 'Upload vorhanden',
   })
 
   let replaced = false
@@ -477,14 +500,13 @@ async function syncFansubLinks(
   fansubID: number,
   initialLinks: CommunityLinkDraft[],
   currentLinks: CommunityLinkDraft[],
-  authToken: string,
 ): Promise<void> {
   const initialById = new Map(initialLinks.filter((item) => item.id != null && item.id > 0).map((item) => [item.id as number, item]))
   const currentById = new Map(currentLinks.filter((item) => item.id != null && item.id > 0).map((item) => [item.id as number, item]))
 
   for (const [id] of initialById) {
     if (!currentById.has(id)) {
-      await deleteFansubLink(fansubID, id, authToken)
+      await deleteFansubLink(fansubID, id)
     }
   }
 
@@ -503,7 +525,6 @@ async function syncFansubLinks(
             name: name || null,
             url,
           },
-          authToken,
         )
       }
       continue
@@ -516,7 +537,6 @@ async function syncFansubLinks(
         name: name || null,
         url,
       },
-      authToken,
     )
   }
 }
@@ -524,7 +544,6 @@ async function syncFansubLinks(
 export default function AdminFansubEditPage() {
   const params = useParams<{ id: string }>()
   const fansubID = Number.parseInt((params.id || '').trim(), 10)
-  const [authToken] = useState(() => getRuntimeAuthToken())
   const [group, setGroup] = useState<FansubGroup | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
   const [initialForm, setInitialForm] = useState<FormState>(emptyForm)
@@ -539,6 +558,7 @@ export default function AdminFansubEditPage() {
   const [releasesByAnimeFansubGroupId, setReleasesByAnimeFansubGroupId] = useState<Record<string, AdminFansubRelease[]>>({})
   const [releasesLoadingByAnimeFansubGroupId, setReleasesLoadingByAnimeFansubGroupId] = useState<Record<string, boolean>>({})
   const [releasesErrorsByAnimeFansubGroupId, setReleasesErrorsByAnimeFansubGroupId] = useState<Record<string, string | null>>({})
+  const [visibleReleaseCountByAnimeKey, setVisibleReleaseCountByAnimeKey] = useState<Record<string, number>>({})
   const [activeMainTab, setActiveMainTab] = useState<MainTab>('basic')
   const [expandedAnimeKeys, setExpandedAnimeKeys] = useState<Set<string>>(() => new Set())
   const [expandedReleaseIds, setExpandedReleaseIds] = useState<Set<number>>(() => new Set())
@@ -559,6 +579,7 @@ export default function AdminFansubEditPage() {
   const [drawerBusy, setDrawerBusy] = useState(false)
   const [drawerUploadProgress, setDrawerUploadProgress] = useState<number | null>(null)
   const [drawerError, setDrawerError] = useState<string | null>(null)
+  const [themeUploadName, setThemeUploadName] = useState('')
   const [manualSlug, setManualSlug] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
@@ -595,11 +616,13 @@ export default function AdminFansubEditPage() {
   const releaseSegmentRequestByReleaseRef = useRef<Record<number, number>>({})
   const themeDrawerOpenRef = useRef(false)
   const themeDrawerSelectionKeyRef = useRef<string | null>(null)
+  const { hasAccessToken, isClientInitialized } = useAuthSession()
 
   const resetReleaseWorkspaceState = () => {
     setReleasesByAnimeFansubGroupId({})
     setReleasesLoadingByAnimeFansubGroupId({})
     setReleasesErrorsByAnimeFansubGroupId({})
+    setVisibleReleaseCountByAnimeKey({})
     setExpandedAnimeKeys(new Set())
     setExpandedReleaseIds(new Set())
     setReleaseSegmentCards({})
@@ -678,10 +701,10 @@ export default function AdminFansubEditPage() {
     return () => {
       active = false
     }
-  }, [authToken, fansubID])
+  }, [fansubID])
 
   useEffect(() => {
-    if (!Number.isFinite(fansubID) || fansubID <= 0 || !authToken) {
+    if (!Number.isFinite(fansubID) || fansubID <= 0 || !hasAccessToken) {
       setReleaseGroups([])
       setReleaseGroupsError(null)
       setReleaseGroupsLoading(false)
@@ -694,7 +717,7 @@ export default function AdminFansubEditPage() {
     setReleaseGroupsError(null)
     resetReleaseWorkspaceState()
 
-    getAdminFansubAnime(fansubID, authToken)
+    getAdminFansubAnime(fansubID)
       .then((animeResponse) => {
         if (!active) return
         setReleaseGroups(
@@ -718,7 +741,7 @@ export default function AdminFansubEditPage() {
       releaseRequestByContextRef.current = {}
       releaseSegmentRequestByReleaseRef.current = {}
     }
-  }, [authToken, fansubID])
+  }, [hasAccessToken, fansubID])
 
   useEffect(() => {
     if (manualSlug) return
@@ -785,7 +808,7 @@ export default function AdminFansubEditPage() {
   const dissolvedAfterFoundedError = years.founded !== null && years.dissolved !== null && years.dissolved < years.founded ? 'Auflösungsjahr muss größer oder gleich dem Gründungsjahr sein.' : null
   const linkErrors = links.map((link) => link.url.trim().length > 0 && !isAbsoluteURL(link.url) ? 'Bitte absolute URL mit Protokoll verwenden.' : null)
   const anyMediaBusy = mediaBusy.logo || mediaBusy.banner
-  const invalid = !authToken || Boolean(nameError) || Boolean(slugFormatError) || slugConflict || Boolean(foundedError) || Boolean(dissolvedError) || Boolean(dissolvedAfterFoundedError) || linkErrors.some(Boolean) || slugChecking || anyMediaBusy
+  const invalid = !hasAccessToken || Boolean(nameError) || Boolean(slugFormatError) || slugConflict || Boolean(foundedError) || Boolean(dissolvedError) || Boolean(dissolvedAfterFoundedError) || linkErrors.some(Boolean) || slugChecking || anyMediaBusy
   const isSectionOpen = (section: SectionKey): boolean => (isMobile ? openSections[section] : true)
   const onSectionToggle = (section: SectionKey, open: boolean) => {
     if (!isMobile) return
@@ -796,6 +819,7 @@ export default function AdminFansubEditPage() {
     if (themeUploadInputRef.current) {
       themeUploadInputRef.current.value = ''
     }
+    setThemeUploadName('')
   }
 
   const resetThemeDrawerTransientState = () => {
@@ -816,7 +840,7 @@ export default function AdminFansubEditPage() {
   }
 
   const loadReleaseSegmentCards = async (release: AdminFansubRelease, force = false): Promise<ReleaseSegmentCard[] | null> => {
-    if (!authToken) return null
+    if (!hasAccessToken) return null
     const releaseID = release.release_id
     if (!force && (releaseSegmentCards[releaseID] || releaseSegmentLoading[releaseID])) return null
 
@@ -829,12 +853,12 @@ export default function AdminFansubEditPage() {
     setReleaseSegmentErrors((current) => ({ ...current, [releaseID]: null }))
     try {
       const [themesResponse, assetsResponse] = await Promise.all([
-        getAdminAnimeThemes(release.anime_id, authToken),
-        getAdminReleaseThemeAssets(releaseID, authToken),
+        getAdminAnimeThemes(release.anime_id),
+        getAdminReleaseThemeAssets(releaseID),
       ])
       const segmentEntries = await Promise.all(
         themesResponse.data.map(async (theme) => {
-          const response = await getAdminAnimeThemeSegments(release.anime_id, theme.id, authToken)
+          const response = await getAdminAnimeThemeSegments(release.anime_id, theme.id)
           return [theme.id, response.data] as const
         }),
       )
@@ -891,16 +915,16 @@ export default function AdminFansubEditPage() {
     setDrawerBusy(false)
     resetThemeDrawerTransientState()
     setDrawerReleaseError(null)
-    setDrawerReleaseLoading(Boolean(authToken))
+    setDrawerReleaseLoading(hasAccessToken)
     setExpandedReleaseIds((current) => new Set(current).add(release.release_id))
     void loadReleaseSegmentCards(release)
 
-    if (!authToken) {
+    if (!hasAccessToken) {
       setDrawerReleaseLoading(false)
       return
     }
 
-    getAdminRelease(release.release_id, authToken)
+    getAdminRelease(release.release_id)
       .then((response) => {
         if (releaseDrawerRequestSeqRef.current !== requestID) return
         setDrawerRelease(response.data)
@@ -916,7 +940,7 @@ export default function AdminFansubEditPage() {
   }
 
   const loadAnimeReleases = async (releaseGroup: FansubReleaseGroup, force = false) => {
-    if (!Number.isFinite(fansubID) || fansubID <= 0 || !authToken) return
+    if (!Number.isFinite(fansubID) || fansubID <= 0 || !hasAccessToken) return
     const contextKey = releaseGroup.key
     if (!force && (releasesByAnimeFansubGroupId[contextKey] || releasesLoadingByAnimeFansubGroupId[contextKey])) return
 
@@ -928,9 +952,10 @@ export default function AdminFansubEditPage() {
     setReleasesErrorsByAnimeFansubGroupId((current) => ({ ...current, [contextKey]: null }))
 
     try {
-      const response = await getAdminFansubAnimeReleases(fansubID, releaseGroup.anime.id, authToken)
+      const response = await getAdminFansubAnimeReleases(fansubID, releaseGroup.anime.id)
       if (releaseRequestByContextRef.current[contextKey] !== requestID) return
       setReleasesByAnimeFansubGroupId((current) => ({ ...current, [contextKey]: response.data }))
+      setVisibleReleaseCountByAnimeKey((current) => ({ ...current, [contextKey]: INITIAL_RELEASE_BATCH_SIZE }))
     } catch (nextError) {
       if (releaseRequestByContextRef.current[contextKey] !== requestID) return
       setReleasesErrorsByAnimeFansubGroupId((current) => ({ ...current, [contextKey]: errMessage(nextError) }))
@@ -954,13 +979,29 @@ export default function AdminFansubEditPage() {
     })
   }
 
+  const handleReleaseRowsScroll = (contextKey: string, totalCount: number, event: UIEvent<HTMLDivElement>) => {
+    const target = event.currentTarget
+    if (target.scrollTop + target.clientHeight < target.scrollHeight - 40) return
+
+    setVisibleReleaseCountByAnimeKey((current) => {
+      const currentCount = current[contextKey] ?? INITIAL_RELEASE_BATCH_SIZE
+      if (currentCount >= totalCount) return current
+      return {
+        ...current,
+        [contextKey]: Math.min(currentCount + INITIAL_RELEASE_BATCH_SIZE, totalCount),
+      }
+    })
+  }
+
   const toggleAnime = (releaseGroup: FansubReleaseGroup) => {
     setExpandedAnimeKeys((current) => {
       const next = new Set(current)
       if (next.has(releaseGroup.key)) {
         next.delete(releaseGroup.key)
+        setVisibleReleaseCountByAnimeKey((visibleCurrent) => ({ ...visibleCurrent, [releaseGroup.key]: INITIAL_RELEASE_BATCH_SIZE }))
       } else {
         next.add(releaseGroup.key)
+        setVisibleReleaseCountByAnimeKey((visibleCurrent) => ({ ...visibleCurrent, [releaseGroup.key]: INITIAL_RELEASE_BATCH_SIZE }))
         void loadAnimeReleases(releaseGroup)
       }
       return next
@@ -994,7 +1035,7 @@ export default function AdminFansubEditPage() {
   }, [releaseSegmentCards, selectedReleaseSegment])
 
   const handleDrawerUpload = async (file: File | null) => {
-    if (!file || !selectedReleaseSegment || !authToken) return
+    if (!file || !selectedReleaseSegment || !hasAccessToken) return
     const release = selectedReleaseSegment.release
     const themeID = selectedReleaseSegment.card.theme_id
     const selectionKey = releaseThemeSelectionKey(release.release_id, themeID)
@@ -1007,7 +1048,6 @@ export default function AdminFansubEditPage() {
         releaseID: release.release_id,
         themeID,
         file,
-        authToken,
         onProgress: (progress) => {
           if (isCurrentSelection()) setDrawerUploadProgress(progress)
         },
@@ -1046,8 +1086,16 @@ export default function AdminFansubEditPage() {
     await handleDrawerUpload(file)
   }
 
+  const handleThemeUploadInputChange = () => {
+    const file = themeUploadInputRef.current?.files?.[0] ?? null
+    setThemeUploadName(file?.name || '')
+    if (file) {
+      setDrawerError(null)
+    }
+  }
+
   const handleDrawerDelete = async () => {
-    if (!selectedReleaseSegment || !authToken || !selectedReleaseSegment.card.media_id) return
+    if (!selectedReleaseSegment || !hasAccessToken || !selectedReleaseSegment.card.media_id) return
     const release = selectedReleaseSegment.release
     const themeID = selectedReleaseSegment.card.theme_id
     const mediaID = selectedReleaseSegment.card.media_id
@@ -1056,7 +1104,7 @@ export default function AdminFansubEditPage() {
     setDrawerBusy(true)
     setDrawerError(null)
     try {
-      await deleteAdminReleaseThemeAsset(release.release_id, themeID, mediaID, authToken)
+      await deleteAdminReleaseThemeAsset(release.release_id, themeID, mediaID)
       await loadReleaseSegmentCards(release, true)
       if (isCurrentSelection()) {
         setSelectedReleaseSegment(null)
@@ -1072,7 +1120,7 @@ export default function AdminFansubEditPage() {
 
   const addAlias = async () => {
     const value = aliasInput.trim()
-    if (!value || !authToken) return
+    if (!value || !hasAccessToken) return
     if (aliases.some((item) => item.alias.toLowerCase() === value.toLowerCase())) {
       setAliasError('Tag existiert bereits.')
       return
@@ -1080,7 +1128,7 @@ export default function AdminFansubEditPage() {
     setAliasBusy(true)
     setAliasError(null)
     try {
-      const response = await createFansubAlias(fansubID, { alias: value }, authToken)
+      const response = await createFansubAlias(fansubID, { alias: value })
       setAliases((current) => [...current, response.data].sort((a, b) => a.alias.localeCompare(b.alias, 'de')))
       setAliasInput('')
     } catch (nextError) {
@@ -1091,11 +1139,11 @@ export default function AdminFansubEditPage() {
   }
 
   const removeAlias = async (alias: FansubAlias) => {
-    if (!authToken) return
+    if (!hasAccessToken) return
     setAliasBusy(true)
     setAliasError(null)
     try {
-      await deleteFansubAlias(fansubID, alias.id, authToken)
+      await deleteFansubAlias(fansubID, alias.id)
       setAliases((current) => current.filter((item) => item.id !== alias.id))
     } catch (nextError) {
       setError(errMessage(nextError))
@@ -1106,12 +1154,12 @@ export default function AdminFansubEditPage() {
 
   const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!authToken || invalid) return
+    if (!hasAccessToken || invalid) return
     setSaving(true)
     setError(null)
     try {
-      await updateFansubGroup(fansubID, formToPayload(form, logoMedia, bannerMedia), authToken)
-      await syncFansubLinks(fansubID, initialLinks, links, authToken)
+      await updateFansubGroup(fansubID, formToPayload(form, logoMedia, bannerMedia))
+      await syncFansubLinks(fansubID, initialLinks, links)
       const response = await getFansubByID(fansubID)
       const next = mapGroupToForm(response.data)
       const nextMedia = mapGroupMedia(response.data)
@@ -1135,11 +1183,11 @@ export default function AdminFansubEditPage() {
   }
 
   const removeGroup = async () => {
-    if (!group || !authToken) return
+    if (!group || !hasAccessToken) return
     if (!window.confirm('Fansub löschen? Episoden bleiben erhalten, Zuordnung wird entfernt.')) return
     setDeleting(true)
     try {
-      await deleteFansubGroup(group.id, authToken)
+      await deleteFansubGroup(group.id)
       window.location.href = '/admin/fansubs'
     } catch (nextError) {
       setError(errMessage(nextError))
@@ -1297,7 +1345,7 @@ export default function AdminFansubEditPage() {
             <button type="button" className={`${styles.buttonSecondary} ${styles.buttonDanger}`} onClick={() => void removeGroup()} disabled={saving || deleting}><Trash2 size={14} />{deleting ? 'Loesche...' : 'Löschen'}</button>
           </div>
           {error ? <div className={styles.errorBox}>{error}</div> : null}
-          {!authToken ? <div className={styles.errorBox}>Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.</div> : null}
+          {isClientInitialized && !hasAccessToken ? <div className={styles.errorBox}>Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.</div> : null}
 
           <div className={fansubEditColumnsClassName}>
             {tabUsesLeftWorkspace ? <div className={styles.fansubEditLeftColumn}>
@@ -1429,8 +1477,8 @@ export default function AdminFansubEditPage() {
                 <summary className={styles.fansubEditSectionSummary}>Medien</summary>
                 <div className={styles.fansubEditSectionBody}>
                   <div className={styles.fansubEditMediaGrid}>
-                    <MediaUpload type="logo" fansubID={fansubID} authToken={authToken} groupName={form.name.trim() || group?.name || ''} value={logoMedia} disabled={!authToken || saving || deleting} onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, logo: isBusy }))} onChange={(nextValue) => { setLogoMedia(nextValue); setInitialLogoMedia(nextValue); setToast(nextValue?.publicURL ? 'Logo aktualisiert.' : 'Logo entfernt.') }} />
-                    <MediaUpload type="banner" fansubID={fansubID} authToken={authToken} groupName={form.name.trim() || group?.name || ''} value={bannerMedia} disabled={!authToken || saving || deleting} onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, banner: isBusy }))} onChange={(nextValue) => { setBannerMedia(nextValue); setInitialBannerMedia(nextValue); setToast(nextValue?.publicURL ? 'Banner aktualisiert.' : 'Banner entfernt.') }} />
+                    <MediaUpload type="logo" fansubID={fansubID} groupName={form.name.trim() || group?.name || ''} value={logoMedia} disabled={!hasAccessToken || saving || deleting} onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, logo: isBusy }))} onChange={(nextValue) => { setLogoMedia(nextValue); setInitialLogoMedia(nextValue); setToast(nextValue?.publicURL ? 'Logo aktualisiert.' : 'Logo entfernt.') }} />
+                    <MediaUpload type="banner" fansubID={fansubID} groupName={form.name.trim() || group?.name || ''} value={bannerMedia} disabled={!hasAccessToken || saving || deleting} onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, banner: isBusy }))} onChange={(nextValue) => { setBannerMedia(nextValue); setInitialBannerMedia(nextValue); setToast(nextValue?.publicURL ? 'Banner aktualisiert.' : 'Banner entfernt.') }} />
                   </div>
                 </div>
               </details> : null}
@@ -1469,12 +1517,7 @@ export default function AdminFansubEditPage() {
                 <details className={styles.fansubEditSection} open={isSectionOpen('collaboration')} onToggle={(event) => onSectionToggle('collaboration', event.currentTarget.open)}>
                   <summary className={styles.fansubEditSectionSummary}>Mitglieder</summary>
                   <div className={styles.fansubEditSectionBody}>
-                    <p className={styles.fansubEditHint}>Dieser Bereich ist bewusst noch nicht final definiert. Die frühere separate Mitglieder-Verwaltung wurde entfernt, damit hier keine halbfertige Admin-Logik mehr sichtbar ist.</p>
-                    <div className={styles.fansubEditBasicStatusCard}>
-                      <span>Nächster Schritt</span>
-                      <strong>Mitglieder-Reiter später fachlich schärfen</strong>
-                      <p>Welche Daten hier erscheinen und wie sie gepflegt werden, wird in einem späteren Slice festgelegt.</p>
-                    </div>
+                    <FansubAppMembersSection fansubId={fansubID} hasAccessToken={hasAccessToken} />
                   </div>
                 </details>
               ) : null}
@@ -1486,7 +1529,6 @@ export default function AdminFansubEditPage() {
         {activeMainTab === 'releases' ? <details className={styles.fansubEditSection} open={isSectionOpen('releases')} onToggle={(event) => onSectionToggle('releases', event.currentTarget.open)}>
           <summary className={styles.fansubEditSectionSummary}>Anime & Veröffentlichungen</summary>
           <div className={styles.fansubEditSectionBody}>
-            <p className={styles.fansubEditHint}>Anime dieser Fansubgruppe und ihre Release-Versionen.</p>
             {releaseGroupsLoading ? <div className={styles.fansubEditReleaseState}>Anime werden geladen...</div> : null}
             {releaseGroupsError ? <div className={styles.errorBox}>{releaseGroupsError}</div> : null}
             {!releaseGroupsLoading && !releaseGroupsError && releaseGroups.length === 0 ? (
@@ -1499,7 +1541,13 @@ export default function AdminFansubEditPage() {
                 const releases = releasesByAnimeFansubGroupId[releaseGroup.key] ?? []
                 const releasesLoading = Boolean(releasesLoadingByAnimeFansubGroupId[releaseGroup.key])
                 const releasesError = releasesErrorsByAnimeFansubGroupId[releaseGroup.key]
-                const releaseCountLabel = releasesLoaded ? String(releases.length) : '-'
+                const visibleReleaseCount = visibleReleaseCountByAnimeKey[releaseGroup.key] ?? INITIAL_RELEASE_BATCH_SIZE
+                const visibleReleases = releases.slice(0, visibleReleaseCount)
+                const releaseCountLabel = releasesLoaded ? `Releases: ${releases.length}` : 'Releases'
+                const animeHeaderVisual = (releaseGroup.anime.header_image || '').trim()
+                const animeVisualUrl = resolveCoverUrl(animeHeaderVisual || releaseGroup.anime.cover_image)
+                const useLandscapeVisual = Boolean((animeVisualUrl || '').trim())
+                const animeTypeLabel = formatAnimeTypeLabel(releaseGroup.anime.type)
                 return (
                 <article key={releaseGroup.key} className={styles.fansubEditAnimeReleaseCard}>
                   <button
@@ -1509,17 +1557,22 @@ export default function AdminFansubEditPage() {
                     aria-expanded={animeExpanded}
                     aria-label={animeExpanded ? `${releaseGroup.anime.title} einklappen` : `${releaseGroup.anime.title} ausklappen`}
                   >
-                    <Image src={resolveCoverUrl(releaseGroup.anime.cover_image)} alt="" className={styles.fansubEditAnimePoster} width={108} height={152} unoptimized />
+                    <Image
+                      src={animeVisualUrl}
+                      alt=""
+                      className={useLandscapeVisual ? styles.fansubEditAnimeLandscape : styles.fansubEditAnimePoster}
+                      width={useLandscapeVisual ? 176 : 108}
+                      height={useLandscapeVisual ? 100 : 152}
+                      unoptimized
+                    />
                     <div className={styles.fansubEditAnimeReleaseBody}>
                       <h3>{releaseGroup.anime.title}</h3>
-                      <p className={styles.fansubEditAnimeReleaseHint}>Eintrag öffnen, um Release-Versionen und Assets dieser Serie zu sehen.</p>
+                      {animeTypeLabel ? <span className={styles.fansubEditAnimeReleaseType}>{animeTypeLabel}</span> : null}
+                      <span className={styles.fansubEditAnimeReleaseCount}>{releaseCountLabel}</span>
                     </div>
-                    <div className={styles.fansubEditAnimeReleaseMeta}>
-                      <span>Releases: {releaseCountLabel}</span>
-                      <span className={styles.fansubEditAnimeToggle} aria-hidden="true">
-                        {animeExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                      </span>
-                    </div>
+                    <span className={styles.fansubEditAnimeToggle} aria-hidden="true">
+                      {animeExpanded ? <ChevronDown size={34} strokeWidth={2.6} /> : <ChevronRight size={34} strokeWidth={2.6} />}
+                    </span>
                   </button>
                   {animeExpanded && releasesLoading ? (
                     <div className={styles.fansubEditReleaseState}>Releases werden geladen...</div>
@@ -1530,26 +1583,24 @@ export default function AdminFansubEditPage() {
                   ) : null}
                   {animeExpanded && !releasesError && releases.length > 0 ? (
                     <div className={styles.fansubEditReleaseRows}>
-                      <div className={styles.fansubEditReleaseTableHeader}>
-                        <span>Episode</span>
-                        <span>Titel</span>
-                        <span>Version</span>
-                        <span>Datum</span>
-                        <span>Status</span>
-                        <span>Assets</span>
-                        <span>Aktionen</span>
-                        <span />
-                      </div>
-                      {releases.map((release) => {
+                      <div
+                        className={styles.fansubEditReleaseRowsScroller}
+                        onScroll={(event) => handleReleaseRowsScroll(releaseGroup.key, releases.length, event)}
+                      >
+                        <div className={styles.fansubEditReleaseTableHeader}>
+                          <span>Episode</span>
+                          <span>Titel</span>
+                          <span>Version</span>
+                          <span>Themes</span>
+                          <span>Aktionen</span>
+                          <span />
+                        </div>
+                      {visibleReleases.map((release) => {
                         const expanded = expandedReleaseIds.has(release.release_id)
                         const cards = releaseSegmentCards[release.release_id] ?? []
                         const cardsLoading = releaseSegmentLoading[release.release_id]
                         const cardsError = releaseSegmentErrors[release.release_id]
                         const timelineMaxSeconds = releaseTimelineMaxSeconds(release, cards)
-                        const timelineLanes = [
-                          { key: 'insert' as const, label: 'EINFUEGER / PV', cards: cards.filter((card) => timelineLaneFor(card.theme_type_name) === 'insert') },
-                          { key: 'opEd' as const, label: 'OP / ED', cards: cards.filter((card) => timelineLaneFor(card.theme_type_name) === 'opEd') },
-                        ].filter((lane) => lane.cards.length > 0)
 
                         return (
                           <div key={release.release_id} className={styles.fansubEditReleaseItem}>
@@ -1568,18 +1619,31 @@ export default function AdminFansubEditPage() {
                               aria-label={expanded ? `Release ${release.release_id} einklappen` : `Release ${release.release_id} ausklappen`}
                             >
                               <strong>{release.episode_number || '?'}</strong>
-                              <div className={styles.fansubEditReleaseTitleCell}>
-                                <span>{(release.episode_title || '').trim() || 'Ohne Episodentitel'}</span>
-                                <small className={styles.fansubEditReleaseRowHint}>Zeile öffnen, um Timeline und Assets nach unten aufzuklappen.</small>
-                              </div>
-                              <span>{release.version_count} Version{release.version_count === 1 ? '' : 'en'}</span>
-                              <span>{new Date(release.created_at).toLocaleDateString('de-CH')}</span>
-                              <span className={styles.fansubEditReleaseStatusBadge}>Verknüpft</span>
-                              <span>{release.has_theme_assets ? 'Theme' : '-'}</span>
+                              <button
+                                type="button"
+                                className={styles.fansubEditReleaseTitleButton}
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  toggleRelease(release)
+                                }}
+                                aria-expanded={expanded}
+                                aria-label={expanded ? `Release ${release.release_id} einklappen` : `Release ${release.release_id} ausklappen`}
+                              >
+                                <div className={styles.fansubEditReleaseTitleCell}>
+                                  <span>{(release.episode_title || '').trim() || 'Ohne Episodentitel'}</span>
+                                </div>
+                                <span className={styles.fansubEditReleaseTitleDisclosure} aria-hidden="true">
+                                  {expanded ? <ChevronDown size={16} strokeWidth={2.2} /> : <ChevronRight size={16} strokeWidth={2.2} />}
+                                </span>
+                              </button>
+                              <span>{release.version_count}</span>
+                              <span>
+                                {release.has_theme_assets ? 'Vorhanden' : <span className={styles.fansubEditThemeMissingMark}><X size={20} strokeWidth={3.2} /></span>}
+                              </span>
                               <div className={styles.fansubEditReleaseActions}>
                                 <button
                                   type="button"
-                                  className={styles.fansubEditReleaseEditButton}
+                                  className={`${styles.button} ${styles.fansubEditReleaseEditButton}`}
                                   onClick={(event) => {
                                     event.stopPropagation()
                                     openReleaseDrawer({
@@ -1590,22 +1654,21 @@ export default function AdminFansubEditPage() {
                                     })
                                   }}
                                 >
-                                  Details
+                                  Editieren
                                 </button>
                               </div>
                               <span
-                                className={styles.fansubEditReleaseExpandButton}
+                                className={styles.fansubEditReleaseRowDisclosure}
                                 aria-hidden="true"
                               >
-                                {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                {expanded ? <ChevronDown size={24} strokeWidth={2.4} /> : <ChevronRight size={24} strokeWidth={2.4} />}
                               </span>
                             </div>
                             {expanded ? (
                               <div className={styles.fansubEditReleaseExpanded}>
                                 <div className={styles.fansubEditReleaseExpandedHeader}>
                                   <div>
-                                    <h4>Timeline Vorschau</h4>
-                                    <p className={styles.fansubEditHint}>{episodeReleaseTitle(release)} - Segmente ansehen und fehlende Assets vorbereiten.</p>
+                                    <h4>Theme-Segmente</h4>
                                   </div>
                                 </div>
                                 {cardsLoading ? <div className={styles.fansubEditReleaseState}>Theme-Segmente werden geladen...</div> : null}
@@ -1617,58 +1680,47 @@ export default function AdminFansubEditPage() {
                                   <div className={styles.fansubEditTimeline}>
                                     <div className={styles.fansubEditTimelineLegend} aria-label="Timeline Legende">
                                       <span className={styles.fansubEditTimelineLegendItem}>
-                                        <span className={`${styles.fansubEditTimelineLegendSwatch} ${styles.fansubEditTimelineLegendGlobal}`} aria-hidden="true" />
-                                        Global/Admin
+                                        <span className={`${styles.fansubEditTimelineLegendBadge} ${styles.fansubEditTimelineLegendBadgeGlobal}`}>Global</span>
                                       </span>
                                       <span className={styles.fansubEditTimelineLegendItem}>
-                                        <span className={`${styles.fansubEditTimelineLegendSwatch} ${styles.fansubEditTimelineLegendRelease}`} aria-hidden="true" />
-                                        Release-Asset
+                                        <span className={`${styles.fansubEditTimelineLegendBadge} ${styles.fansubEditTimelineLegendBadgeRelease}`}>Uploadet</span>
                                       </span>
                                       <span className={styles.fansubEditTimelineLegendItem}>
-                                        <span className={`${styles.fansubEditTimelineLegendSwatch} ${styles.fansubEditTimelineLegendMissing}`} aria-hidden="true" />
-                                        Fehlt
-                                      </span>
-                                      <span className={styles.fansubEditTimelineLegendItem}>
-                                        <span className={`${styles.fansubEditTimelineLegendSwatch} ${styles.fansubEditTimelineLegendSelected}`} aria-hidden="true" />
-                                        Ausgewählt
+                                        <span className={`${styles.fansubEditTimelineLegendBadge} ${styles.fansubEditTimelineLegendBadgeMissing}`}>Fehlt</span>
                                       </span>
                                     </div>
                                     <div className={styles.fansubEditTimelineScale}>
-                                      <span>00:00:00</span>
-                                      <span>{new Date(timelineMaxSeconds * 1000).toISOString().slice(11, 19)}</span>
+                                      <span>Dauer {new Date(timelineMaxSeconds * 1000).toISOString().slice(11, 19)}</span>
                                     </div>
-                                    {timelineLanes.map((lane) => (
-                                      <div key={lane.key} className={styles.fansubEditTimelineLane}>
-                                        <span className={styles.fansubEditTimelineLaneLabel}>{lane.label}</span>
-                                        <div className={styles.fansubEditTimelineTrack}>
-                                          {lane.cards.map((card, index) => {
-                                            const segment = card.segments[0]
-                                            const startSeconds = parseClockSeconds(segment?.start_time) ?? Math.max(0, Math.round((index / Math.max(lane.cards.length, 1)) * timelineMaxSeconds))
-                                            const endSeconds = parseClockSeconds(segment?.end_time) ?? Math.min(timelineMaxSeconds, startSeconds + Math.round(timelineMaxSeconds / Math.max(lane.cards.length + 2, 4)))
-                                            const left = Math.max(0, Math.min(94, (startSeconds / timelineMaxSeconds) * 100))
-                                            const width = Math.max(6, Math.min(100 - left, ((endSeconds - startSeconds) / timelineMaxSeconds) * 100 || 10))
-                                            const lockedByJellyfin = card.segments.some((item) => item.source_type === 'jellyfin_theme' || item.playback_source_kind === 'jellyfin')
-                                            const selected = selectedReleaseSegment?.release.release_id === release.release_id && selectedReleaseSegment.card.theme_id === card.theme_id
-                                            return (
-                                              <button
-                                                key={card.theme_id}
-                                                type="button"
-                                                className={`${styles.fansubEditTimelineSegment} ${styles[`fansubEditTimelineSegment${card.status}`]} ${selected ? styles.fansubEditTimelineSegmentActive : ''}`}
-                                                style={{ left: `${left}%`, width: `${width}%` }}
-                                                aria-pressed={selected}
-                                                aria-label={`${timelineLabelFor(card.theme_type_name)} ${timelineStatusLabelFor(card.status)}${lockedByJellyfin ? ' Jellyfin-Quelle' : ''}`}
-                                                onClick={() => {
-                                                  openThemeDrawer(release, card)
-                                                }}
-                                                title={lockedByJellyfin ? 'Jellyfin-Quelle gesetzt' : card.source_label || 'Segment'}
-                                              >
-                                                {timelineLabelFor(card.theme_type_name)}
-                                              </button>
-                                            )
-                                          })}
-                                        </div>
-                                      </div>
-                                    ))}
+                                    <div className={styles.fansubEditTimelineTrack}>
+                                      <div className={styles.fansubEditTimelineMainContent}>Hauptinhalt</div>
+                                      {cards.map((card, index) => {
+                                        const segment = card.segments[0]
+                                        const startSeconds = parseClockSeconds(segment?.start_time) ?? Math.max(0, Math.round((index / Math.max(cards.length, 1)) * timelineMaxSeconds))
+                                        const endSeconds = parseClockSeconds(segment?.end_time) ?? Math.min(timelineMaxSeconds, startSeconds + Math.round(timelineMaxSeconds / Math.max(cards.length + 2, 4)))
+                                        const left = Math.max(0, Math.min(94, (startSeconds / timelineMaxSeconds) * 100))
+                                        const width = Math.max(6, Math.min(100 - left, ((endSeconds - startSeconds) / timelineMaxSeconds) * 100 || 10))
+                                        const lockedByJellyfin = card.segments.some((item) => item.source_type === 'jellyfin_theme' || item.playback_source_kind === 'jellyfin')
+                                        const selected = selectedReleaseSegment?.release.release_id === release.release_id && selectedReleaseSegment.card.theme_id === card.theme_id
+                                        const themeKind = compactThemeKind(card.theme_type_name)
+                                        return (
+                                          <button
+                                            key={card.theme_id}
+                                            type="button"
+                                            className={`${styles.fansubEditTimelineSegment} ${styles[`fansubEditTimelineSegment${card.status}`]} ${themeKind === 'op' ? styles.fansubEditTimelineSegmentOp : ''} ${themeKind === 'ed' ? styles.fansubEditTimelineSegmentEd : ''} ${themeKind === 'insert' ? styles.fansubEditTimelineSegmentIn : ''} ${selected ? styles.fansubEditTimelineSegmentActive : ''}`}
+                                            style={{ left: `${left}%`, width: `${width}%` }}
+                                            aria-pressed={selected}
+                                            aria-label={`${timelineLabelFor(card.theme_type_name)} ${timelineStatusLabelFor(card.status)}${lockedByJellyfin ? ' Jellyfin-Quelle' : ''}`}
+                                            onClick={() => {
+                                              openThemeDrawer(release, card)
+                                            }}
+                                            title={lockedByJellyfin ? 'Jellyfin-Quelle gesetzt' : card.source_label || 'Segment'}
+                                          >
+                                            {timelineLabelFor(card.theme_type_name)}
+                                          </button>
+                                        )
+                                      })}
+                                    </div>
                                   </div>
                                 ) : null}
                               </div>
@@ -1676,6 +1728,7 @@ export default function AdminFansubEditPage() {
                           </div>
                         )
                       })}
+                      </div>
                     </div>
                   ) : null}
                 </article>
@@ -1687,7 +1740,7 @@ export default function AdminFansubEditPage() {
         {activeMainTab === 'anime-projekte' ? (
           <AnimeProjectNotesSection
             fansubId={fansubID}
-            authToken={authToken}
+            hasAccessToken={hasAccessToken}
           />
         ) : null}
         {activeMainTab === 'notes' ? <NotesTab fansubId={fansubID} /> : null}
@@ -1699,9 +1752,8 @@ export default function AdminFansubEditPage() {
               <div>
                 <div className={styles.fansubEditReleaseDrawerTitleRow}>
                   <h2>{releaseDrawerTitle(drawerRelease)}</h2>
-                  <span className={styles.fansubEditReleaseStatusBadge}>Verknüpft</span>
                 </div>
-                <p>{drawerRelease.fansub_name} - {drawerRelease.version_count} Version{drawerRelease.version_count === 1 ? '' : 'en'}</p>
+                <p>{drawerRelease.fansub_name} · {drawerRelease.version_count} Version{drawerRelease.version_count === 1 ? '' : 'en'}</p>
               </div>
               <button type="button" className={styles.fansubEditReleaseExpandButton} onClick={closeReleaseDrawer} aria-label="Drawer schließen">
                 <X size={16} />
@@ -1730,34 +1782,18 @@ export default function AdminFansubEditPage() {
               {drawerReleaseError ? <div className={styles.errorBox}>{drawerReleaseError}</div> : null}
               {drawerTab === 'details' ? (
                 <div className={styles.fansubEditReleaseDrawerPanel}>
-                  <div className={styles.fansubEditReleaseDrawerFieldGrid}>
-                    <label><span>Release-ID</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={String(selectedReleaseId ?? drawerRelease.release_id)} readOnly tabIndex={-1} /></label>
-                    <label><span>Anime-ID</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={String(selectedAnimeId ?? drawerRelease.anime_id)} readOnly tabIndex={-1} /></label>
-                    <label><span>Fansub-Gruppe</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={String(selectedFansubGroupId ?? drawerRelease.fansub_group_id)} readOnly tabIndex={-1} /></label>
-                    <label><span>Kontext-Key</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={selectedAnimeFansubContextKey ?? animeFansubReleaseContextKey(drawerRelease.fansub_group_id, drawerRelease.anime_id)} readOnly tabIndex={-1} /></label>
-                    <label><span>Anime</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={drawerRelease.anime_title} readOnly tabIndex={-1} /></label>
-                    <label><span>Episode</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={drawerRelease.episode_number || '?'} readOnly tabIndex={-1} /></label>
-                    <label><span>Titel</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={(drawerRelease.episode_title || '').trim() || 'Ohne Episodentitel'} readOnly tabIndex={-1} /></label>
-                    <label><span>Versionen</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={String(drawerRelease.version_count)} readOnly tabIndex={-1} /></label>
-                    <label><span>Datum</span><input className={styles.fansubEditReleaseDrawerReadOnly} value={new Date(drawerRelease.created_at).toLocaleDateString('de-CH')} readOnly tabIndex={-1} /></label>
-                    <label><span>Status</span><input className={styles.fansubEditReleaseDrawerReadOnly} value="Verknüpft" readOnly tabIndex={-1} /></label>
-                  </div>
-                  <div className={styles.fansubEditReleaseDrawerContextGrid}>
-                    <div className={styles.fansubEditReleaseDrawerContextCard}>
-                      <span>Release-Kontext</span>
-                      <strong>{episodeReleaseTitle(drawerRelease)}</strong>
-                      <p>{drawerRelease.fansub_name} - {drawerRelease.anime_title}</p>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerContextCard}>
-                      <span>Theme-Übersicht</span>
-                      <strong>{drawerReleaseThemeSummary}</strong>
-                      <p>{drawerReleaseCards.length > 0 ? `${drawerReleaseCards.length} Theme-Definition${drawerReleaseCards.length === 1 ? '' : 'en'} geladen` : 'Theme-Daten noch nicht geladen'}</p>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerContextCard}>
-                      <span>Release-Datum</span>
-                      <strong>{new Date(drawerRelease.created_at).toLocaleDateString('de-CH')}</strong>
-                      <p>{drawerRelease.version_count} Version{drawerRelease.version_count === 1 ? '' : 'en'}</p>
-                    </div>
+                  <div className={styles.fansubEditReleaseDrawerDetailGrid}>
+                    <div className={styles.fansubEditReleaseDrawerDetailItem}><span>Release-ID</span><strong>{String(selectedReleaseId ?? drawerRelease.release_id)}</strong></div>
+                    <div className={styles.fansubEditReleaseDrawerDetailItem}><span>Anime-ID</span><strong>{String(selectedAnimeId ?? drawerRelease.anime_id)}</strong></div>
+                    <div className={styles.fansubEditReleaseDrawerDetailItem}><span>Fansub-Gruppe</span><strong>{String(selectedFansubGroupId ?? drawerRelease.fansub_group_id)}</strong></div>
+                    <div className={styles.fansubEditReleaseDrawerDetailItem}><span>Kontext-Key</span><strong>{selectedAnimeFansubContextKey ?? animeFansubReleaseContextKey(drawerRelease.fansub_group_id, drawerRelease.anime_id)}</strong></div>
+                    <div className={styles.fansubEditReleaseDrawerDetailItem}><span>Anime</span><strong>{drawerRelease.anime_title}</strong></div>
+                    <div className={styles.fansubEditReleaseDrawerDetailItem}><span>Episode</span><strong>{drawerRelease.episode_number || '?'}</strong></div>
+                    <div className={styles.fansubEditReleaseDrawerDetailItem}><span>Titel</span><strong>{(drawerRelease.episode_title || '').trim() || 'Ohne Episodentitel'}</strong></div>
+                    <div className={styles.fansubEditReleaseDrawerDetailItem}><span>Versionen</span><strong>{String(drawerRelease.version_count)}</strong></div>
+                    <div className={styles.fansubEditReleaseDrawerDetailItem}><span>Datum</span><strong>{new Date(drawerRelease.created_at).toLocaleDateString('de-CH')}</strong></div>
+                    <div className={styles.fansubEditReleaseDrawerDetailItem}><span>Theme-Übersicht</span><strong>{drawerReleaseThemeSummary}</strong></div>
+                    <div className={styles.fansubEditReleaseDrawerDetailItem}><span>Theme-Definitionen</span><strong>{drawerReleaseCards.length > 0 ? `${drawerReleaseCards.length} geladen` : 'Noch keine geladen'}</strong></div>
                   </div>
                 </div>
               ) : null}
@@ -1793,72 +1829,83 @@ export default function AdminFansubEditPage() {
                 <X size={16} />
               </button>
             </header>
-            <div className={styles.fansubEditReleaseDrawerBody}>
-              <div className={`${styles.fansubEditReleaseDrawerPanel} ${styles.fansubEditThemeDrawerPanel}`}>
-                {drawerError ? <div className={styles.errorBox}>{drawerError}</div> : null}
-                <div className={styles.fansubEditReleaseDrawerAssetBox}>
-                  <p className={styles.fansubEditHint}>Dieser Drawer ist nur für OP/ED/IN Theme-Assets. Timeline-Zeiten bleiben unveraendert.</p>
-                  <div className={styles.fansubEditSegmentEditorGrid}>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>Status</span>
-                      <strong>{themeSelectedCard.status === 'global' ? 'Global gesetzt' : themeSelectedCard.status === 'release' ? 'Release-spezifisch' : 'Fehlt noch'}</strong>
+              <div className={styles.fansubEditReleaseDrawerBody}>
+                <div className={`${styles.fansubEditReleaseDrawerPanel} ${styles.fansubEditThemeDrawerPanel}`}>
+                  {drawerError ? <div className={styles.errorBox}>{drawerError}</div> : null}
+                  <div className={styles.fansubEditReleaseDrawerAssetBox}>
+                    <div className={styles.fansubEditSegmentEditorGrid}>
+                      <div>
+                        <span className={styles.fansubEditSegmentEditorLabel}>Status</span>
+                        <strong>{themeSelectedCard.status === 'global' ? 'Global gesetzt' : themeSelectedCard.status === 'release' ? 'Uploadet' : 'Fehlt noch'}</strong>
+                      </div>
+                      <div>
+                        <span className={styles.fansubEditSegmentEditorLabel}>Theme</span>
+                        <strong>{themeSelectedCard.theme_title || 'Ohne Titel'}</strong>
+                      </div>
+                      <div>
+                        <span className={styles.fansubEditSegmentEditorLabel}>Quelle</span>
+                        <strong>{themeSelectedCard.source_label || 'Keine Quelle'}</strong>
+                      </div>
+                      <div>
+                        <span className={styles.fansubEditSegmentEditorLabel}>Release</span>
+                        <strong>#{selectedReleaseSegment.release.release_id}</strong>
+                      </div>
+                      <div>
+                        <span className={styles.fansubEditSegmentEditorLabel}>Episode</span>
+                        <strong>{themeSegmentEpisodeRange(themePrimarySegment)}</strong>
+                      </div>
+                      <div>
+                        <span className={styles.fansubEditSegmentEditorLabel}>Zeitbereich</span>
+                        <strong>{themeSegmentTimeRange(themePrimarySegment)}</strong>
+                      </div>
                     </div>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>Theme</span>
-                      <strong>{themeSelectedCard.theme_title || 'Ohne Titel'}</strong>
-                    </div>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>Quelle</span>
-                      <strong>{themeSelectedCard.source_label || 'Keine Quelle'}</strong>
-                    </div>
-                  </div>
-                  {themeSelectedCard.public_url ? (
-                    <a href={resolveApiUrl(themeSelectedCard.public_url)} target="_blank" rel="noreferrer" className={styles.fansubEditReleaseDrawerMediaLink}>Aktuelles Asset öffnen</a>
-                  ) : null}
+                    {themeSelectedCard.public_url ? (
+                      <a href={resolveApiUrl(themeSelectedCard.public_url)} target="_blank" rel="noreferrer" className={styles.fansubEditReleaseDrawerMediaLink}>Aktuelles Asset öffnen</a>
+                    ) : null}
                   {themeSelectedLocked ? (
-                    <p className={styles.fansubEditHint}>Global/Jellyfin gesetzt - keine Fansub-Ueberschreibung in diesem Schritt.</p>
+                    <p className={styles.fansubEditHint}>Global/Jellyfin gesetzt - keine Fansub-Überschreibung in diesem Schritt.</p>
                   ) : (
                     <div className={styles.fansubEditReleaseDrawerDropzone}>
-                      <label>
-                        <span>Theme-Video hochladen</span>
-                        <input ref={themeUploadInputRef} type="file" accept="video/*" disabled={drawerBusy || !authToken} />
-                      </label>
-                      {drawerUploadProgress !== null ? <p className={styles.fansubEditHint}>Upload: {drawerUploadProgress}%</p> : null}
-                      <button type="button" className={styles.buttonPrimary} onClick={() => void handleDrawerUploadClick()} disabled={drawerBusy || !authToken}>
-                        Upload starten
-                      </button>
-                      {themeSelectedCard.status === 'release' && themeSelectedCard.media_id ? (
-                        <button type="button" className={`${styles.buttonSecondary} ${styles.buttonDanger}`} onClick={() => void handleDrawerDelete()} disabled={drawerBusy}>
-                          Asset entfernen
+                      <div className={styles.fansubEditThemeUploadHeader}>
+                        <strong>Theme-Video hochladen</strong>
+                        {drawerUploadProgress !== null ? <span className={styles.fansubEditThemeUploadMeta}>Upload: {drawerUploadProgress}%</span> : null}
+                      </div>
+                      <input
+                        ref={themeUploadInputRef}
+                        className={styles.fansubEditThemeUploadInput}
+                        type="file"
+                        accept="video/*"
+                        disabled={drawerBusy || !hasAccessToken}
+                        onChange={handleThemeUploadInputChange}
+                      />
+                      <div className={styles.fansubEditThemeUploadPicker}>
+                        <button
+                          type="button"
+                          className={styles.buttonSecondary}
+                          onClick={() => themeUploadInputRef.current?.click()}
+                          disabled={drawerBusy || !hasAccessToken}
+                        >
+                          Datei wählen
                         </button>
-                      ) : null}
+                        <span className={styles.fansubEditThemeUploadFileName}>
+                          {themeUploadName || 'Keine Datei ausgewählt'}
+                        </span>
+                      </div>
+                      <div className={styles.fansubEditThemeUploadActions}>
+                        <button type="button" className={styles.button} onClick={() => void handleDrawerUploadClick()} disabled={drawerBusy || !hasAccessToken}>
+                          Upload starten
+                        </button>
+                        {themeSelectedCard.status === 'release' && themeSelectedCard.media_id ? (
+                          <button type="button" className={`${styles.buttonSecondary} ${styles.buttonDanger}`} onClick={() => void handleDrawerDelete()} disabled={drawerBusy}>
+                            Asset entfernen
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-                <aside className={styles.fansubEditReleaseDrawerContextCard} aria-label="Segment-Kontext">
-                  <span>Segment-Kontext</span>
-                  <strong>{episodeReleaseTitle(selectedReleaseSegment.release)}</strong>
-                  <dl className={styles.fansubEditThemeContextList}>
-                    <div>
-                      <dt>Release</dt>
-                      <dd>#{selectedReleaseSegment.release.release_id}</dd>
-                    </div>
-                    <div>
-                      <dt>Episode</dt>
-                      <dd>{themeSegmentEpisodeRange(themePrimarySegment)}</dd>
-                    </div>
-                    <div>
-                      <dt>Zeitbereich</dt>
-                      <dd>{themeSegmentTimeRange(themePrimarySegment)}</dd>
-                    </div>
-                    <div>
-                      <dt>Quelle</dt>
-                      <dd>{themeSelectedCard.source_label || 'Keine Quelle'}</dd>
-                    </div>
-                  </dl>
-                </aside>
               </div>
-            </div>
             <footer className={styles.fansubEditReleaseDrawerFooter}>
               <button type="button" className={styles.buttonSecondary} onClick={closeThemeDrawer}>Schließen</button>
             </footer>

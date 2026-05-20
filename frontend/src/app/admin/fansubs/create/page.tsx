@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { ExternalLink, Plus, Save, Trash2, X } from 'lucide-react'
 
 import {
@@ -17,11 +17,11 @@ import {
   getFansubAliases,
   getFansubByID,
   getFansubList,
-  getRuntimeAuthToken,
   removeCollaborationMember,
   updateFansubGroup,
   updateFansubLink,
 } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import {
   CollaborationMember,
   FansubAlias,
@@ -137,7 +137,7 @@ function mapGroupLinks(group: FansubGroup): CommunityLinkDraft[] {
         name: link.name || '',
         url: link.url || '',
       }))
-    : [createEmptyLink()]
+    : [createEmptyLink('draft-link-initial')]
 }
 
 function emptyForm(): FormState {
@@ -152,8 +152,8 @@ function emptyForm(): FormState {
   }
 }
 
-function createEmptyLink(): CommunityLinkDraft {
-  return { key: `${Date.now()}-${Math.random().toString(16).slice(2)}`, id: null, link_type: 'website', name: '', url: '' }
+function createEmptyLink(key: string): CommunityLinkDraft {
+  return { key, id: null, link_type: 'website', name: '', url: '' }
 }
 
 function errMessage(error: unknown): string {
@@ -200,14 +200,13 @@ async function syncFansubLinks(
   fansubID: number,
   initialLinks: CommunityLinkDraft[],
   currentLinks: CommunityLinkDraft[],
-  authToken: string,
 ): Promise<void> {
   const initialById = new Map(initialLinks.filter((item) => item.id != null && item.id > 0).map((item) => [item.id as number, item]))
   const currentById = new Map(currentLinks.filter((item) => item.id != null && item.id > 0).map((item) => [item.id as number, item]))
 
   for (const [id] of initialById) {
     if (!currentById.has(id)) {
-      await deleteFansubLink(fansubID, id, authToken)
+      await deleteFansubLink(fansubID, id)
     }
   }
 
@@ -226,7 +225,6 @@ async function syncFansubLinks(
             name: name || null,
             url,
           },
-          authToken,
         )
       }
       continue
@@ -239,13 +237,13 @@ async function syncFansubLinks(
         name: name || null,
         url,
       },
-      authToken,
     )
   }
 }
 
 export default function AdminFansubCreatePage() {
-  const [authToken] = useState(() => getRuntimeAuthToken())
+  const nextDraftLinkKeyRef = useRef(1)
+  const createDraftLink = () => createEmptyLink(`draft-link-${nextDraftLinkKeyRef.current++}`)
   const [createdGroup, setCreatedGroup] = useState<FansubGroup | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
   const [initialForm, setInitialForm] = useState<FormState>(emptyForm)
@@ -254,8 +252,8 @@ export default function AdminFansubCreatePage() {
   const [initialAliasDrafts, setInitialAliasDrafts] = useState<string[]>([])
   const [aliasInput, setAliasInput] = useState('')
   const [aliasError, setAliasError] = useState<string | null>(null)
-  const [links, setLinks] = useState<CommunityLinkDraft[]>([createEmptyLink()])
-  const [initialLinks, setInitialLinks] = useState<CommunityLinkDraft[]>([createEmptyLink()])
+  const [links, setLinks] = useState<CommunityLinkDraft[]>([createEmptyLink('draft-link-initial')])
+  const [initialLinks, setInitialLinks] = useState<CommunityLinkDraft[]>([createEmptyLink('draft-link-initial')])
   const [candidateGroups, setCandidateGroups] = useState<FansubGroup[]>([])
   const [collaborationMembers, setCollaborationMembers] = useState<CollaborationMember[]>([])
   const [selectedMemberGroupID, setSelectedMemberGroupID] = useState('')
@@ -273,6 +271,7 @@ export default function AdminFansubCreatePage() {
   const [loadingCandidates, setLoadingCandidates] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const { hasAccessToken: hasRuntimeAuthToken, isClientInitialized } = useAuthSession()
 
   useEffect(() => {
     let active = true
@@ -341,7 +340,7 @@ export default function AdminFansubCreatePage() {
   const dissolvedAfterFoundedError = years.founded !== null && years.dissolved !== null && years.dissolved < years.founded ? 'Dissolved Year muss groesser oder gleich Founded Year sein.' : null
   const linkErrors = links.map((link) => link.url.trim().length > 0 && !isAbsoluteURL(link.url) ? 'Bitte absolute URL mit Protokoll verwenden.' : null)
   const anyMediaBusy = mediaBusy.logo || mediaBusy.banner
-  const invalid = !authToken || Boolean(nameError) || Boolean(slugFormatError) || slugConflict || Boolean(foundedError) || Boolean(dissolvedError) || Boolean(dissolvedAfterFoundedError) || linkErrors.some(Boolean) || slugChecking || anyMediaBusy
+  const invalid = !hasRuntimeAuthToken || Boolean(nameError) || Boolean(slugFormatError) || slugConflict || Boolean(foundedError) || Boolean(dissolvedError) || Boolean(dissolvedAfterFoundedError) || linkErrors.some(Boolean) || slugChecking || anyMediaBusy
 
   const dirty = useMemo(
     () =>
@@ -386,7 +385,7 @@ export default function AdminFansubCreatePage() {
     setManualSlug(nextForm.slug !== slugify(nextForm.name))
 
     if (nextGroup.group_type === 'collaboration') {
-      const members = await getCollaborationMembers(fansubID, authToken)
+      const members = await getCollaborationMembers(fansubID)
       setCollaborationMembers(members.data)
     } else {
       setCollaborationMembers([])
@@ -404,13 +403,13 @@ export default function AdminFansubCreatePage() {
     setAliasBusy(true)
     setAliasError(null)
     try {
-      if (!createdGroup || !authToken) {
+      if (!createdGroup || !hasRuntimeAuthToken) {
         setAliasDrafts((current) => sortAliases([...current, value]))
         setAliasInput('')
         return
       }
 
-      const response = await createFansubAlias(createdGroup.id, { alias: value }, authToken)
+      const response = await createFansubAlias(createdGroup.id, { alias: value })
       const nextAliases = [...aliases, response.data].sort((a, b) => a.alias.localeCompare(b.alias, 'de'))
       const nextDrafts = nextAliases.map((item) => item.alias)
       setAliases(nextAliases)
@@ -426,7 +425,7 @@ export default function AdminFansubCreatePage() {
   }
 
   const removeAlias = async (aliasValue: string) => {
-    if (!createdGroup || !authToken) {
+    if (!createdGroup || !hasRuntimeAuthToken) {
       setAliasDrafts((current) => current.filter((item) => item !== aliasValue))
       return
     }
@@ -440,7 +439,7 @@ export default function AdminFansubCreatePage() {
     setAliasBusy(true)
     setAliasError(null)
     try {
-      await deleteFansubAlias(createdGroup.id, alias.id, authToken)
+      await deleteFansubAlias(createdGroup.id, alias.id)
       const nextAliases = aliases.filter((item) => item.id !== alias.id)
       const nextDrafts = nextAliases.map((item) => item.alias)
       setAliases(nextAliases)
@@ -456,25 +455,25 @@ export default function AdminFansubCreatePage() {
 
   const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!authToken || invalid) return
+    if (!hasRuntimeAuthToken || invalid) return
 
     setSaving(true)
     setError(null)
     try {
       if (!createdGroup) {
-        const createResponse = await createFansubGroup(formToCreatePayload(form), authToken)
+        const createResponse = await createFansubGroup(formToCreatePayload(form))
         const fansubID = createResponse.data.id
 
         for (const alias of aliasDrafts) {
-          await createFansubAlias(fansubID, { alias }, authToken)
+          await createFansubAlias(fansubID, { alias })
         }
 
-        await syncFansubLinks(fansubID, [], links, authToken)
+        await syncFansubLinks(fansubID, [], links)
         await refreshCreatedState(fansubID)
         setToast('Fansub angelegt. Medien können jetzt direkt ueber den DB-Asset-Flow hochgeladen werden.')
       } else {
-        await updateFansubGroup(createdGroup.id, formToPatchPayload(form, logoMedia, bannerMedia), authToken)
-        await syncFansubLinks(createdGroup.id, initialLinks, links, authToken)
+        await updateFansubGroup(createdGroup.id, formToPatchPayload(form, logoMedia, bannerMedia))
+        await syncFansubLinks(createdGroup.id, initialLinks, links)
         await refreshCreatedState(createdGroup.id)
         setToast('Änderungen gespeichert.')
       }
@@ -486,10 +485,10 @@ export default function AdminFansubCreatePage() {
   }
 
   const addMemberGroup = async () => {
-    if (!authToken || !createdGroup || !selectedMemberGroupID || createdGroup.group_type !== 'collaboration') return
+    if (!hasRuntimeAuthToken || !createdGroup || !selectedMemberGroupID || createdGroup.group_type !== 'collaboration') return
     setCollaborationBusy(true)
     try {
-      const response = await addCollaborationMember(createdGroup.id, { member_group_id: Number(selectedMemberGroupID) }, authToken)
+      const response = await addCollaborationMember(createdGroup.id, { member_group_id: Number(selectedMemberGroupID) })
       setCollaborationMembers((current) => [...current, response.data].sort((a, b) => (a.member_group?.name || '').localeCompare(b.member_group?.name || '', 'de')))
       setSelectedMemberGroupID('')
       setToast('Mitgliedsgruppe hinzugefuegt.')
@@ -501,10 +500,10 @@ export default function AdminFansubCreatePage() {
   }
 
   const removeMemberGroup = async (memberGroupID: number) => {
-    if (!authToken || !createdGroup || createdGroup.group_type !== 'collaboration') return
+    if (!hasRuntimeAuthToken || !createdGroup || createdGroup.group_type !== 'collaboration') return
     setCollaborationBusy(true)
     try {
-      await removeCollaborationMember(createdGroup.id, memberGroupID, authToken)
+      await removeCollaborationMember(createdGroup.id, memberGroupID)
       setCollaborationMembers((current) => current.filter((item) => item.member_group_id !== memberGroupID))
       setToast('Mitgliedsgruppe entfernt.')
     } catch (nextError) {
@@ -566,7 +565,7 @@ export default function AdminFansubCreatePage() {
           </div>
 
           {error ? <div className={styles.errorBox}>{error}</div> : null}
-          {!authToken ? <div className={styles.errorBox}>Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.</div> : null}
+          {isClientInitialized && !hasRuntimeAuthToken ? <div className={styles.errorBox}>Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.</div> : null}
 
           <div className={styles.fansubEditColumns}>
             <div className={styles.fansubEditLeftColumn}>
@@ -604,8 +603,8 @@ export default function AdminFansubCreatePage() {
                 <div className={styles.fansubEditSectionBody}>
                   {createdGroup ? (
                     <div className={styles.fansubEditMediaGrid}>
-                      <MediaUpload type="logo" fansubID={createdGroup.id} authToken={authToken} groupName={form.name.trim() || createdGroup.name} value={logoMedia} disabled={!authToken || saving} onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, logo: isBusy }))} onChange={(nextValue) => { setLogoMedia(nextValue); setInitialLogoMedia(nextValue); setToast(nextValue?.publicURL ? 'Logo aktualisiert.' : 'Logo entfernt.') }} />
-                      <MediaUpload type="banner" fansubID={createdGroup.id} authToken={authToken} groupName={form.name.trim() || createdGroup.name} value={bannerMedia} disabled={!authToken || saving} onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, banner: isBusy }))} onChange={(nextValue) => { setBannerMedia(nextValue); setInitialBannerMedia(nextValue); setToast(nextValue?.publicURL ? 'Banner aktualisiert.' : 'Banner entfernt.') }} />
+                      <MediaUpload type="logo" fansubID={createdGroup.id} groupName={form.name.trim() || createdGroup.name} value={logoMedia} disabled={!hasRuntimeAuthToken || saving} onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, logo: isBusy }))} onChange={(nextValue) => { setLogoMedia(nextValue); setInitialLogoMedia(nextValue); setToast(nextValue?.publicURL ? 'Logo aktualisiert.' : 'Logo entfernt.') }} />
+                      <MediaUpload type="banner" fansubID={createdGroup.id} groupName={form.name.trim() || createdGroup.name} value={bannerMedia} disabled={!hasRuntimeAuthToken || saving} onBusyChange={(isBusy) => setMediaBusy((current) => ({ ...current, banner: isBusy }))} onChange={(nextValue) => { setBannerMedia(nextValue); setInitialBannerMedia(nextValue); setToast(nextValue?.publicURL ? 'Banner aktualisiert.' : 'Banner entfernt.') }} />
                     </div>
                   ) : (
                     <p className={styles.fansubEditHint}>Logo und Banner laufen hier ueber denselben DB-/Media-Asset-Flow wie im Edit-Screen. Nach dem ersten Speichern wird der Upload direkt in dieser Ansicht freigeschaltet.</p>
@@ -618,7 +617,7 @@ export default function AdminFansubCreatePage() {
                 <div className={styles.fansubEditSectionBody}>
                   <div className={styles.fansubEditLinksHeader}>
                     <p className={styles.fansubEditHint}>Generische Link-Zeilen für Website, Discord, Twitter, GitHub und IRC.</p>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => setLinks((current) => [...current, createEmptyLink()])}><Plus size={14} />Link</button>
+                    <button type="button" className={styles.buttonSecondary} onClick={() => setLinks((current) => [...current, createDraftLink()])}><Plus size={14} />Link</button>
                   </div>
                   <div className={styles.fansubEditLinksList}>
                     {links.map((link, index) => {
@@ -634,7 +633,7 @@ export default function AdminFansubCreatePage() {
                             <input value={link.url} onChange={(event) => setLinks((current) => current.map((item) => item.key === link.key ? { ...item, url: event.target.value } : item))} placeholder="https://..." />
                             {url && !urlError ? <button type="button" className={styles.fansubEditPreviewLinkButton} onClick={() => window.open(url, '_blank', 'noreferrer')}><ExternalLink size={14} /></button> : null}
                           </div>
-                          <button type="button" className={`${styles.buttonSecondary} ${styles.buttonDanger}`} onClick={() => setLinks((current) => current.length === 1 ? [createEmptyLink()] : current.filter((item) => item.key !== link.key))}><Trash2 size={14} /></button>
+                          <button type="button" className={`${styles.buttonSecondary} ${styles.buttonDanger}`} onClick={() => setLinks((current) => current.length === 1 ? [createDraftLink()] : current.filter((item) => item.key !== link.key))}><Trash2 size={14} /></button>
                           {urlError ? <p className={styles.fansubEditInlineError}>{urlError}</p> : null}
                         </div>
                       )

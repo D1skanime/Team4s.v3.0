@@ -10,13 +10,13 @@ import {
   deleteFansubGroupNote,
   deleteMemberGroupStory,
   getMemberGroupStoryContext,
-  getRuntimeAuthToken,
   getRuntimeDisplayName,
   listFansubGroupNotes,
   listMemberGroupStories,
   updateFansubGroupNote,
   updateMemberGroupStory,
 } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import {
   CreateFansubGroupNoteRequest,
   CreateMemberGroupStoryRequest,
@@ -119,6 +119,7 @@ interface NotesTabProps {
 }
 
 export function NotesTab({ fansubId }: NotesTabProps) {
+  const { hasAccessToken, isClientInitialized } = useAuthSession()
   const [loadingNotes, setLoadingNotes] = useState(true)
   const [loadingStories, setLoadingStories] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -132,9 +133,14 @@ export function NotesTab({ fansubId }: NotesTabProps) {
     let cancelled = false
     setLoadingNotes(true)
     void (async () => {
+      if (!isClientInitialized) return
+      if (!hasAccessToken) {
+        setGroupNotes([])
+        setLoadingNotes(false)
+        return
+      }
       try {
-        const token = await getRuntimeAuthToken()
-        const notes = await listFansubGroupNotes(fansubId, token ?? undefined)
+        const notes = await listFansubGroupNotes(fansubId)
         if (!cancelled) setGroupNotes(notes.map(groupNoteFromApi))
       } catch (err) {
         if (!cancelled) setLoadError(errMessage(err))
@@ -143,17 +149,23 @@ export function NotesTab({ fansubId }: NotesTabProps) {
       }
     })()
     return () => { cancelled = true }
-  }, [fansubId])
+  }, [hasAccessToken, fansubId, isClientInitialized])
 
   useEffect(() => {
     let cancelled = false
     setLoadingStories(true)
     void (async () => {
+      if (!isClientInitialized) return
+      if (!hasAccessToken) {
+        setStoryContext({ members: [], roles: [] })
+        setStories([])
+        setLoadingStories(false)
+        return
+      }
       try {
-        const token = await getRuntimeAuthToken()
         const [context, list] = await Promise.all([
-          getMemberGroupStoryContext(fansubId, token ?? undefined),
-          listMemberGroupStories(fansubId, token ?? undefined),
+          getMemberGroupStoryContext(fansubId),
+          listMemberGroupStories(fansubId),
         ])
 
         if (!cancelled) {
@@ -167,7 +179,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
       }
     })()
     return () => { cancelled = true }
-  }, [fansubId])
+  }, [hasAccessToken, fansubId, isClientInitialized])
 
   function updateGroupNote(key: string, partial: Partial<GroupNoteDraft>) {
     setGroupNotes((prev) => prev.map((note) => note.key === key ? { ...note, ...partial } : note))
@@ -217,7 +229,6 @@ export function NotesTab({ fansubId }: NotesTabProps) {
     updateGroupNote(key, { saving: true, error: null })
 
     try {
-      const token = await getRuntimeAuthToken()
       if (draft.id == null) {
         const req: CreateFansubGroupNoteRequest = {
           title: draft.title,
@@ -226,7 +237,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
           status: draft.status,
           sortOrder: Number(draft.sortOrder) || 0,
         }
-        const created = await createFansubGroupNote(fansubId, req, token ?? undefined)
+        const created = await createFansubGroupNote(fansubId, req)
         setGroupNotes((prev) => prev.map((note) => note.key === key ? groupNoteFromApi(created) : note))
       } else {
         const req: UpdateFansubGroupNoteRequest = {
@@ -236,7 +247,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
           status: draft.status,
           sortOrder: Number(draft.sortOrder) || 0,
         }
-        const updated = await updateFansubGroupNote(fansubId, draft.id, req, token ?? undefined)
+        const updated = await updateFansubGroupNote(fansubId, draft.id, req)
         setGroupNotes((prev) => prev.map((note) => note.key === key ? groupNoteFromApi(updated) : note))
       }
       closeGroupNoteEditor(key)
@@ -258,8 +269,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
     updateGroupNote(key, { deleting: true, error: null })
 
     try {
-      const token = await getRuntimeAuthToken()
-      await deleteFansubGroupNote(fansubId, draft.id, token ?? undefined)
+      await deleteFansubGroupNote(fansubId, draft.id)
       setGroupNotes((prev) => prev.filter((note) => note.key !== key))
       closeGroupNoteEditor(key)
     } catch (err) {
@@ -281,7 +291,6 @@ export function NotesTab({ fansubId }: NotesTabProps) {
     updateStory(key, { saving: true, error: null })
 
     try {
-      const token = await getRuntimeAuthToken()
       const roleIdNum = draft.roleId.trim() ? Number(draft.roleId) : null
       if (draft.id == null) {
         const req: CreateMemberGroupStoryRequest = {
@@ -293,7 +302,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
           status: draft.status,
           sortOrder: Number(draft.sortOrder) || 0,
         }
-        const created = await createMemberGroupStory(fansubId, req, token ?? undefined)
+        const created = await createMemberGroupStory(fansubId, req)
         setStories((prev) => prev.map((story) => story.key === key ? storyFromApi(created) : story))
       } else {
         const req: UpdateMemberGroupStoryRequest = {
@@ -303,7 +312,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
           status: draft.status,
           sortOrder: Number(draft.sortOrder) || 0,
         }
-        const updated = await updateMemberGroupStory(fansubId, draft.id, req, token ?? undefined)
+        const updated = await updateMemberGroupStory(fansubId, draft.id, req)
         setStories((prev) => prev.map((story) => story.key === key ? storyFromApi(updated) : story))
       }
       closeStoryEditor(key)
@@ -325,8 +334,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
     updateStory(key, { deleting: true, error: null })
 
     try {
-      const token = await getRuntimeAuthToken()
-      await deleteMemberGroupStory(fansubId, draft.id, token ?? undefined)
+      await deleteMemberGroupStory(fansubId, draft.id)
       setStories((prev) => prev.filter((story) => story.key !== key))
       closeStoryEditor(key)
     } catch (err) {

@@ -6,10 +6,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   getFansubList,
-  getRuntimeAuthToken,
   mergeFansubs,
   mergeFansubsPreview,
 } from "@/lib/api";
+import { useAuthSession } from "@/lib/useAuthSession";
 import { FansubGroup, MergeFansubsPreviewResult } from "@/types/fansub";
 import sharedStyles from "../../admin.module.css";
 import mergeStyles from "./MergeWizard.module.css";
@@ -37,7 +37,7 @@ const WIZARD_STEPS: Array<{ id: WizardStep; title: string }> = [
 
 export default function MergeFansubsPage() {
   const router = useRouter();
-  const [authToken] = useState(() => getRuntimeAuthToken());
+  const { hasAccessToken } = useAuthSession();
 
   const [groups, setGroups] = useState<FansubGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -173,13 +173,16 @@ export default function MergeFansubsPage() {
 
   const loadPreview = useCallback(async () => {
     if (!targetID || sourceIDs.size === 0) return;
+    if (!hasAccessToken) {
+      setError("Anmeldung erforderlich. Bitte zuerst auf /auth anmelden.");
+      return;
+    }
 
     try {
       setPreviewLoading(true);
       setError(null);
       const response = await mergeFansubsPreview(
         { target_id: targetID, source_ids: Array.from(sourceIDs) },
-        authToken || undefined,
       );
       setPreview(response.data);
       setPreviewKey(selectionKey);
@@ -192,7 +195,7 @@ export default function MergeFansubsPage() {
     } finally {
       setPreviewLoading(false);
     }
-  }, [authToken, selectionKey, sourceIDs, targetID]);
+  }, [hasAccessToken, selectionKey, sourceIDs, targetID]);
 
   useEffect(() => {
     if (
@@ -218,7 +221,8 @@ export default function MergeFansubsPage() {
       !targetID ||
       sourceIDs.size === 0 ||
       !targetGroup ||
-      !preview?.can_merge
+      !preview?.can_merge ||
+      !hasAccessToken
     ) {
       return;
     }
@@ -233,7 +237,6 @@ export default function MergeFansubsPage() {
 
       const response = await mergeFansubs(
         { target_id: targetID, source_ids: Array.from(sourceIDs) },
-        authToken || undefined,
       );
 
       setSuccess(

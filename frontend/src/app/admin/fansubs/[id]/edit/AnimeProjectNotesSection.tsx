@@ -77,10 +77,10 @@ function noteToForm(note: AnimeFansubProjectNote): NoteFormState {
 interface AnimeProjectNoteFormProps {
   fansubId: number
   anime: AnimeEntry
-  authToken: string | null
+  hasAccessToken: boolean
 }
 
-function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFormProps) {
+function AnimeProjectNoteForm({ fansubId, anime, hasAccessToken }: AnimeProjectNoteFormProps) {
   const [form, setForm] = useState<NoteFormState>(emptyNoteForm())
   const [noteId, setNoteId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
@@ -90,7 +90,7 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
   const [saveSuccess, setSaveSuccess] = useState(false)
 
   useEffect(() => {
-    if (!authToken) {
+    if (!hasAccessToken) {
       setLoading(false)
       return
     }
@@ -99,7 +99,7 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
     setLoading(true)
     setLoadError(null)
 
-    getAnimeFansubProjectNote(fansubId, anime.id, authToken)
+    getAnimeFansubProjectNote(fansubId, anime.id)
       .then((note) => {
         if (!active) return
         if (note) {
@@ -121,10 +121,10 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
     return () => {
       active = false
     }
-  }, [fansubId, anime.id, authToken])
+  }, [fansubId, anime.id, hasAccessToken])
 
   async function handleSave() {
-    if (!authToken) return
+    if (!hasAccessToken) return
 
     setSaving(true)
     setSaveError(null)
@@ -138,7 +138,7 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
     }
 
     try {
-      const saved = await upsertAnimeFansubProjectNote(fansubId, anime.id, payload, authToken)
+      const saved = await upsertAnimeFansubProjectNote(fansubId, anime.id, payload)
       setNoteId(saved.id)
       setForm(noteToForm(saved))
       setSaveSuccess(true)
@@ -243,7 +243,7 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
           type="button"
           className={styles.button}
           onClick={() => void handleSave()}
-          disabled={saving || !authToken}
+          disabled={saving || !hasAccessToken}
         >
           <Save size={14} />
           {saving ? 'Speichern...' : 'Speichern'}
@@ -255,7 +255,7 @@ function AnimeProjectNoteForm({ fansubId, anime, authToken }: AnimeProjectNoteFo
 
 interface AnimeProjectNotesSectionBodyProps {
   fansubId: number
-  authToken: string | null
+  hasAccessToken: boolean
   animes: AnimeEntry[]
   loading: boolean
   error: string | null
@@ -263,7 +263,7 @@ interface AnimeProjectNotesSectionBodyProps {
 
 function AnimeProjectNotesSectionBody({
   fansubId,
-  authToken,
+  hasAccessToken,
   animes,
   loading,
   error,
@@ -290,7 +290,7 @@ function AnimeProjectNotesSectionBody({
           Projekttexte dieser Fansubgruppe zu ihren Anime. Pro Anime kann ein beschreibender Text gespeichert werden.
         </p>
 
-        {!authToken ? (
+        {!hasAccessToken ? (
           <div className={styles.errorBox}>Anmeldung erforderlich. Bitte zuerst ein gültiges Token erstellen.</div>
         ) : null}
 
@@ -340,7 +340,7 @@ function AnimeProjectNotesSectionBody({
                       <AnimeProjectNoteForm
                         fansubId={fansubId}
                         anime={anime}
-                        authToken={authToken}
+                        hasAccessToken={hasAccessToken}
                       />
                     </div>
                   ) : null}
@@ -356,22 +356,22 @@ function AnimeProjectNotesSectionBody({
 
 interface AnimeProjectNotesSectionRemoteProps {
   fansubId: number
-  authToken: string | null
+  hasAccessToken: boolean
 }
 
-function AnimeProjectNotesSectionRemote({ fansubId, authToken }: AnimeProjectNotesSectionRemoteProps) {
+function AnimeProjectNotesSectionRemote({ fansubId, hasAccessToken }: AnimeProjectNotesSectionRemoteProps) {
   const [animes, setAnimes] = useState<AnimeEntry[]>([])
-  const [loading, setLoading] = useState(authToken != null)
+  const [loading, setLoading] = useState(hasAccessToken)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!authToken) {
+    if (!hasAccessToken) {
       return
     }
 
     let active = true
 
-    getAdminFansubAnime(fansubId, authToken)
+    getAdminFansubAnime(fansubId)
       .then((response) => {
         if (!active) return
         setAnimes(response.data.map((anime) => ({ id: anime.id, title: anime.title })))
@@ -387,14 +387,14 @@ function AnimeProjectNotesSectionRemote({ fansubId, authToken }: AnimeProjectNot
     return () => {
       active = false
     }
-  }, [fansubId, authToken])
+  }, [fansubId, hasAccessToken])
 
   return (
     <AnimeProjectNotesSectionBody
       fansubId={fansubId}
-      authToken={authToken}
+      hasAccessToken={hasAccessToken}
       animes={animes}
-      loading={authToken ? loading : false}
+      loading={hasAccessToken ? loading : false}
       error={error}
     />
   )
@@ -402,16 +402,17 @@ function AnimeProjectNotesSectionRemote({ fansubId, authToken }: AnimeProjectNot
 
 interface AnimeProjectNotesSectionProps {
   fansubId: number
-  authToken: string | null
+  hasAccessToken?: boolean
   animes?: AnimeEntry[]
+  [legacyProp: string]: unknown
 }
 
-export function AnimeProjectNotesSection({ fansubId, authToken, animes }: AnimeProjectNotesSectionProps) {
+export function AnimeProjectNotesSection({ fansubId, hasAccessToken = false, animes }: AnimeProjectNotesSectionProps) {
   if (animes !== undefined) {
     return (
       <AnimeProjectNotesSectionBody
         fansubId={fansubId}
-        authToken={authToken}
+        hasAccessToken={hasAccessToken}
         animes={animes}
         loading={false}
         error={null}
@@ -419,5 +420,5 @@ export function AnimeProjectNotesSection({ fansubId, authToken, animes }: AnimeP
     )
   }
 
-  return <AnimeProjectNotesSectionRemote fansubId={fansubId} authToken={authToken} />
+  return <AnimeProjectNotesSectionRemote fansubId={fansubId} hasAccessToken={hasAccessToken} />
 }
