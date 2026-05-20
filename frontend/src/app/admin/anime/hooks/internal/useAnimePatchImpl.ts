@@ -64,7 +64,6 @@ function areStringArraysEqual(left: string[], right: string[]): boolean {
 }
 
 export function useAnimePatch(
-  authToken: string,
   onSuccess: (anime: AnimeDetail) => void,
   onError: (msg: string) => void,
   options: UseAnimePatchOptions = {},
@@ -83,8 +82,6 @@ export function useAnimePatch(
   const [tagSuggestionLimit, setTagSuggestionLimitState] = useState(40)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isUploadingCover, setIsUploadingCover] = useState(false)
-
-  const hasAuthToken = authToken.trim().length > 0
 
   useEffect(() => {
     if (genreTokens.length > 0) return
@@ -321,8 +318,6 @@ export function useAnimePatch(
   }, [])
 
   const { submit, uploadAndLinkAsset, uploadAndSetCover } = useAnimePatchMutations({
-    authToken,
-    hasAuthToken,
     values,
     clearFlags,
     onSuccess,

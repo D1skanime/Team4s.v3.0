@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 
-import { getAnimeByID, getRuntimeAuthToken } from '@/lib/api'
+import { getAnimeByID } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import { AnimeDetail } from '@/types/anime'
 
 import { AnimeEditWorkspace } from '../../components/AnimeEditPage/AnimeEditWorkspace'
@@ -26,7 +27,7 @@ export default function AdminAnimeEditPage() {
   const params = useParams<{ id: string }>()
   const animeID = useMemo(() => parsePositiveInt((params.id || '').trim()), [params.id])
 
-  const [authToken] = useState(() => getRuntimeAuthToken())
+  const { hasAccessToken } = useAuthSession()
   const [anime, setAnime] = useState<AnimeDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -115,7 +116,6 @@ export default function AdminAnimeEditPage() {
         <>
           <AnimeEditWorkspace
             anime={anime}
-            authToken={authToken}
             onSaved={(nextAnime, message) => {
               setAnime(nextAnime)
               setErrorMessage(null)
@@ -129,10 +129,9 @@ export default function AdminAnimeEditPage() {
             onResponse={setLastResponse}
           />
 
-          {authToken ? (
+          {hasAccessToken ? (
             <AnimeRelationsSection
               animeID={anime.id}
-              authToken={authToken}
               defaultOpen
               onSuccess={(message) => {
                 setErrorMessage(null)

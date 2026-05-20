@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 
-import { getAnimeByID, getRuntimeAuthToken } from '@/lib/api'
+import { getAnimeByID } from '@/lib/api'
 import { AnimeDetail } from '@/types/anime'
 
 import { useJellyfinSync } from '../../hooks/useJellyfinSync'
@@ -43,14 +43,12 @@ export function AdminAnimeEditPageClient({
   initialAnime,
   initialError,
 }: AdminAnimeEditPageClientProps) {
-  const [authToken] = useState(() => getRuntimeAuthToken())
   const [anime, setAnime] = useState<AnimeDetail | null>(initialAnime)
   const [errorMessage, setErrorMessage] = useState<string | null>(initialError)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [lastRequest, setLastRequest] = useState<string | null>(null)
   const [lastResponse, setLastResponse] = useState<string | null>(null)
   const jellyfin = useJellyfinSync(
-    authToken,
     (message) => {
       setErrorMessage(null)
       setSuccessMessage(message)
@@ -120,7 +118,6 @@ export function AdminAnimeEditPageClient({
         <>
           <AnimeEditWorkspace
             anime={anime}
-            authToken={authToken}
             onSaved={(nextAnime, message) => {
               setAnime(nextAnime)
               setErrorMessage(null)
@@ -152,7 +149,6 @@ export function AdminAnimeEditPageClient({
 
           <AnimeThemesSection
             animeID={animeID}
-            authToken={authToken}
             onSuccess={(message) => { setErrorMessage(null); setSuccessMessage(message) }}
             onError={(message) => { setSuccessMessage(null); setErrorMessage(message) }}
           />

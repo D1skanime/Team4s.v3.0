@@ -23,7 +23,6 @@ const NON_COVER_ASSET_UPLOADS: Array<{ kind: Exclude<AdminAnimeAssetKind, 'cover
 
 interface AnimePatchFormProps {
   anime: AnimeDetail | null
-  authToken: string
   onSuccess: (anime: AnimeDetail) => void
   onError: (msg: string) => void
   onRequest?: (request: string | null) => void
@@ -34,7 +33,6 @@ interface AnimePatchFormProps {
 
 export function AnimePatchForm({
   anime,
-  authToken,
   onSuccess,
   onError,
   onRequest,
@@ -49,7 +47,7 @@ export function AnimePatchForm({
   const backgroundInputRef = useRef<HTMLInputElement>(null)
   const backgroundVideoInputRef = useRef<HTMLInputElement>(null)
 
-  const patch = useAnimePatch(authToken, onSuccess, onError, {
+  const patch = useAnimePatch(onSuccess, onError, {
     onRequest,
     onResponse,
   })
@@ -95,13 +93,8 @@ export function AnimePatchForm({
       onError('Bitte zuerst einen Anime-Kontext laden.')
       return
     }
-    if (!authToken.trim()) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
-      return
-    }
-
     try {
-      await deleteAdminAnimeCoverAsset(anime.id, authToken)
+      await deleteAdminAnimeCoverAsset(anime.id)
       const refreshed = await getAnimeByID(anime.id, { include_disabled: true })
       patch.setField('coverImage', '')
       patch.setClearFlag('coverImage', false)

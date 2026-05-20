@@ -19,8 +19,6 @@ import { normalizeOptionalString, parsePositiveInt } from '../../../utils/anime-
 import { formatAdminError } from '../../../utils/studio-helpers'
 
 interface UseAnimePatchMutationsParams {
-  authToken: string
-  hasAuthToken: boolean
   values: AnimePatchValues
   clearFlags: AnimePatchClearFlags
   onSuccess: (anime: AnimeDetail) => void
@@ -34,7 +32,7 @@ interface UseAnimePatchMutationsParams {
 
 interface AnimeAssetMutationConfig {
   uploadAssetType: AdminAnimeUploadAssetType
-  linkAsset: (animeID: number, mediaID: string, authToken: string) => Promise<unknown>
+  linkAsset: (animeID: number, mediaID: string) => Promise<unknown>
   errorMessage: string
 }
 
@@ -69,7 +67,6 @@ const ANIME_ASSET_MUTATION_CONFIG: Record<AdminAnimeAssetKind, AnimeAssetMutatio
 async function uploadAndLinkAnimeAsset(
   file: File,
   animeID: number,
-  authToken: string,
   assetKind: AdminAnimeAssetKind,
 ): Promise<string> {
   const config = ANIME_ASSET_MUTATION_CONFIG[assetKind]
@@ -77,10 +74,9 @@ async function uploadAndLinkAnimeAsset(
     animeID,
     assetType: config.uploadAssetType,
     file,
-    authToken,
   })
 
-  await config.linkAsset(animeID, upload.id, authToken)
+  await config.linkAsset(animeID, upload.id)
   return upload.id
 }
 
@@ -151,8 +147,6 @@ function buildAnimePatchPayload(values: AnimePatchValues, clearFlags: AnimePatch
 }
 
 export function useAnimePatchMutations({
-  authToken,
-  hasAuthToken,
   values,
   clearFlags,
   onSuccess,
@@ -165,19 +159,13 @@ export function useAnimePatchMutations({
 }: UseAnimePatchMutationsParams) {
   const submit = useCallback(
     async (animeID: number) => {
-      // TODO: Re-enable auth check before production
-      // if (!hasAuthToken) {
-      //   onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
-      //   return
-      // }
-
       const payload = buildAnimePatchPayload(values, clearFlags, onError)
       if (!payload) return false
 
       try {
         setIsSubmitting(true)
         options.onRequest?.(JSON.stringify(payload, null, 2))
-        const response = await updateAdminAnime(animeID, payload, authToken)
+        const response = await updateAdminAnime(animeID, payload)
         options.onResponse?.(JSON.stringify(response, null, 2))
         const refreshed = await getAnimeByID(animeID, { include_disabled: true })
         onSuccess(refreshed.data)
@@ -191,7 +179,7 @@ export function useAnimePatchMutations({
         setIsSubmitting(false)
       }
     },
-    [authToken, clearFlags, hasAuthToken, onError, onSuccess, options, setIsSubmitting, values],
+    [clearFlags, onError, onSuccess, options, setIsSubmitting, values],
   )
 
   const uploadAndLinkAsset = useCallback(
@@ -205,7 +193,7 @@ export function useAnimePatchMutations({
 
       try {
         setIsUploadingCover(true)
-        const uploadedMediaID = await uploadAndLinkAnimeAsset(file, animeID, authToken, assetKind)
+        const uploadedMediaID = await uploadAndLinkAnimeAsset(file, animeID, assetKind)
         if (assetKind === 'cover') {
           setValues((current) => ({ ...current, coverImage: uploadedMediaID }))
           setClearFlags((current) => ({ ...current, coverImage: false }))
@@ -225,7 +213,7 @@ export function useAnimePatchMutations({
         setIsUploadingCover(false)
       }
     },
-    [authToken, hasAuthToken, onError, onSuccess, setClearFlags, setIsUploadingCover, setValues],
+    [onError, onSuccess, setClearFlags, setIsUploadingCover, setValues],
   )
 
   const uploadAndSetCover = useCallback(

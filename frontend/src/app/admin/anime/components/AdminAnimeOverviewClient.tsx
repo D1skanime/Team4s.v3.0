@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 
-import { ApiError, deleteAdminAnime, deleteUploadedCoverFile, getRuntimeAuthToken } from '@/lib/api'
+import { ApiError, deleteAdminAnime, deleteUploadedCoverFile } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import { getCoverUrl } from '@/lib/utils'
 import type { AnimeListItem } from '@/types/anime'
 
@@ -67,7 +68,7 @@ export function AdminAnimeOverviewClient({
   createdID,
 }: AdminAnimeOverviewClientProps) {
   const router = useRouter()
-  const [authToken] = useState(() => getRuntimeAuthToken())
+  const { hasAccessToken } = useAuthSession()
   const [items, setItems] = useState(initialItems)
   const [errorMessage, setErrorMessage] = useState<string | null>(initialError)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
@@ -79,7 +80,7 @@ export function AdminAnimeOverviewClient({
   )
 
   async function onDelete(anime: AnimeListItem) {
-    if (!authToken) {
+    if (!hasAccessToken) {
       setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
       return
     }
@@ -93,7 +94,7 @@ export function AdminAnimeOverviewClient({
     setErrorMessage(null)
     setSuccessMessage(null)
     try {
-      const response = await deleteAdminAnime(anime.id, authToken)
+      const response = await deleteAdminAnime(anime.id)
       const orphanedCoverImage = response.data.orphaned_local_cover_image?.trim()
       if (orphanedCoverImage) {
         await deleteUploadedCoverFile(orphanedCoverImage)

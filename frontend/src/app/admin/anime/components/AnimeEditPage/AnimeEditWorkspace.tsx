@@ -55,7 +55,6 @@ interface AnimeEditWorkspaceProps {
     tags?: string[]
     persisted_assets?: Partial<AdminAnimePersistedAssets> | null
   }
-  authToken: string
   onSaved: (anime: AnimeDetail, message: string) => void
   onError: (message: string) => void
   onRequest?: (request: string | null) => void
@@ -75,14 +74,12 @@ function formatSourceKindLabel(kind?: 'manual' | 'jellyfin'): string {
 
 export function AnimeEditWorkspace({
   anime,
-  authToken,
   onSaved,
   onError,
   onRequest,
   onResponse,
 }: AnimeEditWorkspaceProps) {
   const patch = useAnimePatch(
-    authToken,
     (nextAnime) => onSaved(nextAnime, `Anime #${nextAnime.id} wurde gespeichert.`),
     onError,
     { onRequest, onResponse },
@@ -129,7 +126,7 @@ export function AnimeEditWorkspace({
   const [assetSearchPage, setAssetSearchPage] = useState(1)
   const [isSearchingAssetCandidates, setIsSearchingAssetCandidates] = useState(false)
   const [isApplyingAssetCandidates, setIsApplyingAssetCandidates] = useState(false)
-  const jellyfinIntake = useJellyfinIntake(authToken)
+  const jellyfinIntake = useJellyfinIntake()
 
   const coverFileInputRef = useRef<HTMLInputElement | null>(null)
   const bannerFileInputRef = useRef<HTMLInputElement | null>(null)
@@ -156,7 +153,7 @@ export function AnimeEditWorkspace({
   const refreshAssetContext = useCallback(async () => {
     try {
       setIsRefreshingAssets(true)
-      const response = await getAdminAnimeJellyfinContext(anime.id, authToken)
+      const response = await getAdminAnimeJellyfinContext(anime.id)
       setJellyfinContext(response.data)
       setPersistedAssets(response.data.persisted_assets || emptyPersistedAssets())
       setVisibleJellyfinAssetSlots((current) =>
@@ -167,7 +164,7 @@ export function AnimeEditWorkspace({
     } finally {
       setIsRefreshingAssets(false)
     }
-  }, [anime.id, authToken, onError])
+  }, [anime.id, onError])
 
   useEffect(() => {
     patch.resetFromAnime(anime)
@@ -223,7 +220,6 @@ export function AnimeEditWorkspace({
           apply_backgrounds: adoptedJellyfinPreview.asset_slots.backgrounds.length > 0,
           apply_background_video: adoptedJellyfinPreview.asset_slots.background_video.present,
         },
-        authToken,
       )
       jellyfinIntake.resetReview()
       setHasAdoptedJellyfinSelection(false)
@@ -231,7 +227,7 @@ export function AnimeEditWorkspace({
     } catch (error) {
       onError(formatAdminError(error, 'Jellyfin-Assets konnten nicht gespeichert werden.'))
     }
-  }, [adoptedJellyfinPreview, anime.id, authToken, jellyfinIntake, onError, onRequest, onResponse, patch, refreshAssetContext])
+  }, [adoptedJellyfinPreview, anime.id, jellyfinIntake, onError, onRequest, onResponse, patch, refreshAssetContext])
 
   function openAssetFileDialog(kind: AdminAnimeAssetKind) {
     const refs: Record<AdminAnimeAssetKind, React.RefObject<HTMLInputElement | null>> = {
@@ -266,18 +262,18 @@ export function AnimeEditWorkspace({
     try {
       switch (kind) {
         case 'cover':
-          await deleteAdminAnimeCoverAsset(anime.id, authToken)
+          await deleteAdminAnimeCoverAsset(anime.id)
           patch.setClearFlag('coverImage', true)
           patch.setField('coverImage', '')
           break
         case 'banner':
-          await deleteAdminAnimeBannerAsset(anime.id, authToken)
+          await deleteAdminAnimeBannerAsset(anime.id)
           break
         case 'logo':
-          await deleteAdminAnimeLogoAsset(anime.id, authToken)
+          await deleteAdminAnimeLogoAsset(anime.id)
           break
         case 'background_video':
-          await deleteAdminAnimeBackgroundVideoAsset(anime.id, authToken)
+          await deleteAdminAnimeBackgroundVideoAsset(anime.id)
           break
       }
       await refreshAssetContext()
@@ -288,7 +284,7 @@ export function AnimeEditWorkspace({
 
   async function handleRemoveBackground(backgroundID: number) {
     try {
-      await deleteAdminAnimeBackgroundAsset(anime.id, backgroundID, authToken)
+      await deleteAdminAnimeBackgroundAsset(anime.id, backgroundID)
       await refreshAssetContext()
     } catch (error) {
       onError(formatAdminError(error, 'Background konnte nicht entfernt werden.'))
@@ -315,7 +311,6 @@ export function AnimeEditWorkspace({
           limit: activeAssetSearchKind === 'background' ? 12 : 8,
           page: 1,
         },
-        authToken,
       )
       setAssetSearchPage(1)
       setAssetSearchCandidates(response.data)
@@ -342,7 +337,6 @@ export function AnimeEditWorkspace({
           limit,
           page: nextPage,
         },
-        authToken,
       )
       setAssetSearchPage(nextPage)
       setAssetSearchCandidates((current) => [...current, ...response.data])

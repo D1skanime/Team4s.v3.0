@@ -55,8 +55,6 @@ describe('useAnimePatchMutations', () => {
       // Test-only hook harness: renderToStaticMarkup runs synchronously, so capture the hook API for assertions.
       // eslint-disable-next-line react-hooks/globals
       captured = useAnimePatchMutations({
-        authToken: 'token',
-        hasAuthToken: true,
         values: {
           title: '',
           type: '',
@@ -127,10 +125,9 @@ describe('useAnimePatchMutations', () => {
       animeID: 42,
       assetType: 'poster',
       file: expect.any(File),
-      authToken: 'token',
     })
-    expect(assignAdminAnimeCoverAsset).toHaveBeenCalledWith(42, '77', 'token')
-    expect(updateAdminAnime).not.toHaveBeenCalledWith(42, { cover_image: 'lain.jpg' }, 'token')
+    expect(assignAdminAnimeCoverAsset).toHaveBeenCalledWith(42, '77')
+    expect(updateAdminAnime).not.toHaveBeenCalledWith(42, { cover_image: 'lain.jpg' }, expect.anything())
     expect(getAnimeByID).toHaveBeenCalledWith(42, { include_disabled: true })
     expect(onSuccess).toHaveBeenCalled()
   })
@@ -146,9 +143,8 @@ describe('useAnimePatchMutations', () => {
       animeID: 42,
       assetType: 'logo',
       file: expect.any(File),
-      authToken: 'token',
     })
-    expect(assignAdminAnimeLogoAsset).toHaveBeenCalledWith(42, '77', 'token')
+    expect(assignAdminAnimeLogoAsset).toHaveBeenCalledWith(42, '77')
     expect(addAdminAnimeBackgroundAsset).not.toHaveBeenCalled()
     expect(getAnimeByID).toHaveBeenCalledWith(42, { include_disabled: true })
   })
@@ -164,9 +160,8 @@ describe('useAnimePatchMutations', () => {
       animeID: 42,
       assetType: 'background',
       file: expect.any(File),
-      authToken: 'token',
     })
-    expect(addAdminAnimeBackgroundAsset).toHaveBeenCalledWith(42, '77', 'token')
+    expect(addAdminAnimeBackgroundAsset).toHaveBeenCalledWith(42, '77')
     expect(assignAdminAnimeCoverAsset).not.toHaveBeenCalled()
     expect(assignAdminAnimeLogoAsset).not.toHaveBeenCalled()
   })

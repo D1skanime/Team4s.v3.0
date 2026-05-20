@@ -23,7 +23,6 @@ export { formatCoverSource, summarizeAssetSlotDecision, summarizeAssetSlots } fr
 
 interface AnimeJellyfinMetadataSectionProps {
   animeID: number
-  authToken: string
   onError: (message: string) => void
   onSuccess: (message: string) => void
   onAfterApply: () => Promise<void>
@@ -32,7 +31,6 @@ interface AnimeJellyfinMetadataSectionProps {
 
 export function AnimeJellyfinMetadataSection({
   animeID,
-  authToken,
   onError,
   onSuccess,
   onAfterApply,
@@ -60,7 +58,7 @@ export function AnimeJellyfinMetadataSection({
 
   async function refreshContext(options?: { resetPreview?: boolean }) {
     const resetPreview = options?.resetPreview ?? false
-    const response = await getAdminAnimeJellyfinContext(animeID, authToken)
+    const response = await getAdminAnimeJellyfinContext(animeID)
     setContext(response.data)
     onContextLoadedRef.current?.(response.data)
     if (resetPreview) {
@@ -83,7 +81,7 @@ export function AnimeJellyfinMetadataSection({
       setApplyBackgrounds(false)
 
       try {
-        const response = await getAdminAnimeJellyfinContext(animeID, authToken)
+        const response = await getAdminAnimeJellyfinContext(animeID)
         if (cancelled) return
         setContext(response.data)
         onContextLoadedRef.current?.(response.data)
@@ -104,7 +102,7 @@ export function AnimeJellyfinMetadataSection({
     return () => {
       cancelled = true
     }
-  }, [animeID, authToken])
+  }, [animeID])
 
   const hasApplicableDiff = useMemo(() => preview?.diff.some((item) => item.apply) ?? false, [preview])
   const canApply = Boolean(preview) && (hasApplicableDiff || applyCover || applyBanner || applyBackgrounds)
@@ -118,7 +116,7 @@ export function AnimeJellyfinMetadataSection({
     setApplyBackgrounds(false)
 
     try {
-      const response = await previewAdminAnimeMetadataFromJellyfin(animeID, {}, authToken)
+      const response = await previewAdminAnimeMetadataFromJellyfin(animeID, {})
       setPreview(response.data)
       onSuccess('Jellyfin-Metadatenvorschau geladen.')
     } catch (error) {
@@ -141,7 +139,6 @@ export function AnimeJellyfinMetadataSection({
           apply_banner: applyBanner,
           apply_backgrounds: applyBackgrounds,
         },
-        authToken,
       )
       await onAfterApply()
       await refreshContext({ resetPreview: true })
@@ -333,7 +330,6 @@ export function AnimeJellyfinMetadataSection({
 
           <AnimeJellyfinAssetUploadControls
             animeID={animeID}
-            authToken={authToken}
             disabled={isBusy}
             assetCards={assetCards}
             coverCurrentImage={context.cover.current_image}

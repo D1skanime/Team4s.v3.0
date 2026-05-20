@@ -26,7 +26,6 @@ import { summarizeAssetSlotDecision } from './AnimeJellyfinMetadataSection.helpe
 
 interface AnimeJellyfinAssetUploadControlsProps {
   animeID: number
-  authToken: string
   disabled?: boolean
   assetCards: AssetCardDescriptor[]
   coverCurrentImage?: string
@@ -43,7 +42,6 @@ function formatOwnershipLabel(value: 'manual' | 'provider'): string {
 
 export function AnimeJellyfinAssetUploadControls({
   animeID,
-  authToken,
   disabled = false,
   assetCards,
   coverCurrentImage,
@@ -75,10 +73,9 @@ export function AnimeJellyfinAssetUploadControls({
         animeID,
         assetType: 'poster',
         file,
-        authToken,
       })
 
-      await assignAdminAnimeCoverAsset(animeID, upload.id, authToken)
+      await assignAdminAnimeCoverAsset(animeID, upload.id)
       await onAfterMutation()
       onSuccess('Cover wurde hochgeladen und als aktives Asset gesetzt.')
     } catch (error) {
@@ -96,7 +93,7 @@ export function AnimeJellyfinAssetUploadControls({
   async function handleRemoveCover() {
     setIsUploadingCover(true)
     try {
-      await deleteAdminAnimeCoverAsset(animeID, authToken)
+      await deleteAdminAnimeCoverAsset(animeID)
       await onAfterMutation()
       onSuccess('Cover wurde entfernt.')
     } catch (error) {
@@ -120,18 +117,17 @@ export function AnimeJellyfinAssetUploadControls({
         animeID,
         assetType: EDIT_UPLOAD_TARGETS[target].assetType,
         file,
-        authToken,
         onProgress: setUploadProgress,
       })
 
       if (target === 'banner') {
-        await assignAdminAnimeBannerAsset(animeID, upload.id, authToken)
+        await assignAdminAnimeBannerAsset(animeID, upload.id)
       } else if (target === 'logo') {
-        await assignAdminAnimeLogoAsset(animeID, upload.id, authToken)
+        await assignAdminAnimeLogoAsset(animeID, upload.id)
       } else if (target === 'background_video') {
-        await assignAdminAnimeBackgroundVideoAsset(animeID, upload.id, authToken)
+        await assignAdminAnimeBackgroundVideoAsset(animeID, upload.id)
       } else {
-        await addAdminAnimeBackgroundAsset(animeID, upload.id, authToken)
+        await addAdminAnimeBackgroundAsset(animeID, upload.id)
       }
 
       await onAfterMutation()
@@ -157,11 +153,11 @@ export function AnimeJellyfinAssetUploadControls({
     setIsMutatingAssets(true)
     try {
       if (target === 'banner') {
-        await deleteAdminAnimeBannerAsset(animeID, authToken)
+        await deleteAdminAnimeBannerAsset(animeID)
       } else if (target === 'logo') {
-        await deleteAdminAnimeLogoAsset(animeID, authToken)
+        await deleteAdminAnimeLogoAsset(animeID)
       } else {
-        await deleteAdminAnimeBackgroundVideoAsset(animeID, authToken)
+        await deleteAdminAnimeBackgroundVideoAsset(animeID)
       }
 
       await onAfterMutation()
@@ -180,7 +176,7 @@ export function AnimeJellyfinAssetUploadControls({
   async function handleRemoveBackground(backgroundID: number) {
     setIsMutatingAssets(true)
     try {
-      await deleteAdminAnimeBackgroundAsset(animeID, backgroundID, authToken)
+      await deleteAdminAnimeBackgroundAsset(animeID, backgroundID)
       await onAfterMutation()
       onSuccess('Background wurde entfernt.')
     } catch (error) {
@@ -376,7 +372,7 @@ export function AnimeJellyfinAssetUploadControls({
               {providerBackgrounds.length > 0 ? (
                 <div className={workspaceStyles.assetGallery}>
                   {providerBackgrounds.map((url, index) => (
-                    <div key={`${url}-${index}`} className={workspaceStyles.assetGalleryItem}>
+                    <div key={url} className={workspaceStyles.assetGalleryItem}>
                       <div className={workspaceStyles.assetGalleryThumb}>
                         <img src={url} alt={`Provider-Background ${index + 1}`} />
                       </div>
