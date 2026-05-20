@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest'
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url))
 const frontendRoot = path.resolve(currentDir, '..', '..')
-const repoRoot = path.resolve(frontendRoot, '..')
 const srcRoot = path.join(frontendRoot, 'src')
 
 const centralClientAllowlist = new Set([
