@@ -1,6 +1,7 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { getAnimeList, previewAdminAnimeFromJellyfin, searchAdminJellyfinSeries, syncAdminAnimeFromJellyfin } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import {
   AdminAnimeJellyfinPreviewResult,
   AdminAnimeJellyfinSyncRequest,
@@ -42,10 +43,27 @@ interface JellyfinSyncActions {
 }
 
 export function useJellyfinSync(
-  authToken: string,
-  onSuccess: (msg: string) => void,
-  onError: (msg: string) => void,
+  deprecatedTokenOrSuccess: string | ((msg: string) => void),
+  maybeSuccessOrError?: (msg: string) => void,
+  maybeError?: (msg: string) => void,
 ): JellyfinSyncState & JellyfinSyncActions {
+  const { hasAccessToken } = useAuthSession()
+  const onSuccess = useMemo(
+    () => (
+      typeof deprecatedTokenOrSuccess === 'function'
+        ? deprecatedTokenOrSuccess
+        : maybeSuccessOrError ?? (() => {})
+    ),
+    [deprecatedTokenOrSuccess, maybeSuccessOrError],
+  )
+  const onError = useMemo(
+    () => (
+      typeof deprecatedTokenOrSuccess === 'function'
+        ? maybeSuccessOrError ?? (() => {})
+        : maybeError ?? (() => {})
+    ),
+    [deprecatedTokenOrSuccess, maybeError, maybeSuccessOrError],
+  )
   const [searchQuery, setSearchQuery] = useState('')
   const [seriesOptions, setSeriesOptions] = useState<AdminJellyfinSeriesSearchItem[]>([])
   const [selectedSeriesID, setSelectedSeriesID] = useState('')
@@ -64,8 +82,6 @@ export function useJellyfinSync(
   const [searchFeedback, setSearchFeedback] = useState<JellyfinSyncFeedback | null>(null)
   const [previewFeedback, setPreviewFeedback] = useState<JellyfinSyncFeedback | null>(null)
   const [syncFeedback, setSyncFeedback] = useState<JellyfinSyncFeedback | null>(null)
-
-  const hasAuthToken = authToken.trim().length > 0
 
   const setSearchQueryValue = useCallback((value: string) => {
     setSearchQuery(value)
@@ -104,7 +120,7 @@ export function useJellyfinSync(
   }, [])
 
   const search = useCallback(async () => {
-    if (!hasAuthToken) {
+    if (!hasAccessToken) {
       onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
       return
     }
@@ -123,7 +139,7 @@ export function useJellyfinSync(
       setSelectedSeriesID('')
       setPreviewResult(null)
       setLastSyncResult(null)
-      const response = await searchAdminJellyfinSeries(query, { limit: 50 }, authToken)
+      const response = await searchAdminJellyfinSeries(query, { limit: 50 })
       setSeriesOptions(response.data)
       if (response.data.length === 1) {
         setSelectedSeriesID(response.data[0].jellyfin_series_id)
@@ -145,10 +161,10 @@ export function useJellyfinSync(
     } finally {
       setIsSearching(false)
     }
-  }, [authToken, hasAuthToken, onError, onSuccess, searchQuery])
+  }, [hasAccessToken, onError, onSuccess, searchQuery])
 
   const preview = useCallback(async (animeID: number) => {
-    if (!hasAuthToken) {
+    if (!hasAccessToken) {
       onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
       return
     }
@@ -174,7 +190,7 @@ export function useJellyfinSync(
       setPreviewFeedback(null)
       setSyncFeedback(null)
       setPreviewResult(null)
-      const response = await previewAdminAnimeFromJellyfin(animeID, payload, authToken)
+      const response = await previewAdminAnimeFromJellyfin(animeID, payload)
       setPreviewResult(response.data)
       if (response.data.accepted_unique_episodes === 0) {
         const feedback = buildJellyfinFeedback(
@@ -196,10 +212,10 @@ export function useJellyfinSync(
     } finally {
       setIsLoadingPreview(false)
     }
-  }, [authToken, episodeStatus, hasAuthToken, onError, onSuccess, seasonInput, selectedSeriesID])
+  }, [episodeStatus, hasAccessToken, onError, onSuccess, seasonInput, selectedSeriesID])
 
   const sync = useCallback(async (animeID: number, options: { requireFreshPreview?: boolean } = {}) => {
-    if (!hasAuthToken) {
+    if (!hasAccessToken) {
       onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
       return false
     }
@@ -252,7 +268,7 @@ export function useJellyfinSync(
     try {
       setIsSyncing(true)
       setSyncFeedback(null)
-      const response = await syncAdminAnimeFromJellyfin(animeID, payload, authToken)
+      const response = await syncAdminAnimeFromJellyfin(animeID, payload)
       const result = response.data
       setLastSyncResult(result)
       const deletedInfo = result.deleted_versions ? ` | Gelöscht -${result.deleted_versions}` : ''
@@ -268,10 +284,10 @@ export function useJellyfinSync(
     } finally {
       setIsSyncing(false)
     }
-  }, [allowMismatch, authToken, cleanupVersions, episodeStatus, hasAuthToken, onError, onSuccess, previewResult, seasonInput, selectedSeriesID])
+  }, [allowMismatch, cleanupVersions, episodeStatus, hasAccessToken, onError, onSuccess, previewResult, seasonInput, selectedSeriesID])
 
   const syncRow = useCallback(async (anime: AnimeListItem, overrideSeriesID?: string) => {
-    if (!hasAuthToken) {
+    if (!hasAccessToken) {
       onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
       return
     }
@@ -289,7 +305,7 @@ export function useJellyfinSync(
 
     try {
       setSyncingAnimeIDs((current) => ({ ...current, [anime.id]: true }))
-      const response = await syncAdminAnimeFromJellyfin(anime.id, payload, authToken)
+      const response = await syncAdminAnimeFromJellyfin(anime.id, payload)
       const result = response.data
       onSuccess(
         `Jellyfin Sync OK für #${anime.id} ${anime.title}: Episoden +${result.imported_episodes}/~${result.updated_episodes} | Versionen +${result.imported_versions}/~${result.updated_versions}`,
@@ -305,7 +321,7 @@ export function useJellyfinSync(
         return next
       })
     }
-  }, [authToken, episodeStatus, hasAuthToken, onError, onSuccess, seasonInput])
+  }, [episodeStatus, hasAccessToken, onError, onSuccess, seasonInput])
 
   const syncGlobal = useCallback(async (options: {
     total: number
@@ -319,7 +335,7 @@ export function useJellyfinSync(
     onContextTouched?: (animeID: number) => Promise<void>
     onBrowserRefresh?: () => Promise<void>
   }) => {
-    if (!hasAuthToken) {
+    if (!hasAccessToken) {
       onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
       return
     }
@@ -364,7 +380,7 @@ export function useJellyfinSync(
 
         for (const anime of pageItems) {
           try {
-            await syncAdminAnimeFromJellyfin(anime.id, payload, authToken)
+            await syncAdminAnimeFromJellyfin(anime.id, payload)
             success += 1
             if (options.contextAnimeID && anime.id === options.contextAnimeID) contextTouched = true
           } catch {
@@ -398,7 +414,7 @@ export function useJellyfinSync(
     } finally {
       setIsBulkSyncing(false)
     }
-  }, [authToken, episodeStatus, hasAuthToken, onError, onSuccess, seasonInput])
+  }, [episodeStatus, hasAccessToken, onError, onSuccess, seasonInput])
 
   const reset = useCallback(() => {
     setSeriesOptions([])

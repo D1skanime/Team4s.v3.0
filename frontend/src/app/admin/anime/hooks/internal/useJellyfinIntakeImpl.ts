@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
 
-import { getRuntimeAuthToken } from '@/lib/api'
 import {
   previewAdminAnimeFromJellyfinIntake,
   searchAdminJellyfinIntakeCandidates,
@@ -73,7 +72,9 @@ export function completeJellyfinCandidateTakeover(
   }
 }
 
-export function useJellyfinIntake(authToken?: string): JellyfinIntakeModel {
+export function useJellyfinIntake(..._deprecatedArgs: unknown[]): JellyfinIntakeModel {
+  void _deprecatedArgs
+
   const [query, setQuery] = useState('')
   const [candidates, setCandidates] = useState<AdminJellyfinIntakeSearchItem[]>([])
   const [reviewState, setReviewState] = useState<JellyfinIntakeReviewState>({
@@ -86,15 +87,6 @@ export function useJellyfinIntake(authToken?: string): JellyfinIntakeModel {
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
 
   const searchState = useMemo(() => deriveJellyfinIntakeSearchState(query), [query])
-  const resolveRequestAuthToken = useCallback(() => {
-    const runtimeToken = getRuntimeAuthToken()
-    if (runtimeToken) {
-      return runtimeToken
-    }
-
-    const explicitToken = (authToken || '').trim()
-    return explicitToken || undefined
-  }, [authToken])
 
   const search = useCallback(async () => {
     if (!searchState.canSearch) {
@@ -109,7 +101,6 @@ export function useJellyfinIntake(authToken?: string): JellyfinIntakeModel {
       const response = await searchAdminJellyfinIntakeCandidates(
         query.trim(),
         { limit: 12 },
-        resolveRequestAuthToken(),
       )
       setCandidates(response.data)
       setReviewState({ mode: 'idle', selectedCandidate: null, shouldHydrateDraft: false })
@@ -117,7 +108,7 @@ export function useJellyfinIntake(authToken?: string): JellyfinIntakeModel {
     } finally {
       setIsSearching(false)
     }
-  }, [query, resolveRequestAuthToken, searchState.canSearch])
+  }, [query, searchState.canSearch])
 
   const reviewCandidate = useCallback((candidateID: string) => {
     setReviewState(openJellyfinCandidateReview(candidates, candidateID))
@@ -133,7 +124,6 @@ export function useJellyfinIntake(authToken?: string): JellyfinIntakeModel {
         {
           jellyfin_series_id: target.jellyfin_series_id,
         },
-        resolveRequestAuthToken(),
       )
       setPreviewResult(response.data)
       setReviewState(completeJellyfinCandidateTakeover(candidates, candidateID))
@@ -141,7 +131,7 @@ export function useJellyfinIntake(authToken?: string): JellyfinIntakeModel {
     } finally {
       setIsLoadingPreview(false)
     }
-  }, [candidates, resolveRequestAuthToken])
+  }, [candidates])
 
   const restartReview = useCallback(() => {
     setReviewState((current) => {

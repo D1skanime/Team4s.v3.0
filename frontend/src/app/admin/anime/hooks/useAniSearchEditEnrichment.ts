@@ -30,9 +30,9 @@ export interface AniSearchEditFeedbackState {
 
 export interface UseAniSearchEditEnrichmentParams {
   animeID: number
-  authToken?: string
   onRequest?: (value: string | null) => void
   onResponse?: (value: string | null) => void
+  [legacyParam: string]: unknown
 }
 
 function normalizeProtectedFields(fields: string[]): string[] {
@@ -105,7 +105,6 @@ export function createAniSearchEditFailureState(error: unknown): AniSearchEditFe
 
 export function useAniSearchEditEnrichment({
   animeID,
-  authToken,
   onRequest,
   onResponse,
 }: UseAniSearchEditEnrichmentParams) {
@@ -141,7 +140,7 @@ export function useAniSearchEditEnrichment({
       onRequest?.(JSON.stringify(payload, null, 2))
 
       try {
-        const response = await loadAdminAnimeEditAniSearchEnrichment(animeID, payload, authToken)
+        const response = await loadAdminAnimeEditAniSearchEnrichment(animeID, payload)
         const successState = createAniSearchEditSuccessState(response.data)
         setResult(successState.result)
         setConflict(successState.conflict)
@@ -158,7 +157,7 @@ export function useAniSearchEditEnrichment({
         setIsLoading(false)
       }
     },
-    [anisearchID, animeID, authToken, onRequest, onResponse, protectedFields],
+    [anisearchID, animeID, onRequest, onResponse, protectedFields],
   )
 
   return {
