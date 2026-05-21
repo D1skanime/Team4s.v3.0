@@ -156,6 +156,7 @@ import {
   BulkUpsertReleaseVersionNotesRequest,
 } from '@/types/releaseVersionNotes'
 import { exchangeKeycloakCode, isKeycloakEnabled, logoutFromKeycloak, refreshKeycloakToken, type KeycloakTokenBundle } from '@/lib/keycloakAuth'
+import { getBrowserApiBaseUrl, resolvePublicApiUrl } from '@/lib/publicApiUrl'
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
 // live frontends from depending on a directly reachable host backend port.
@@ -199,23 +200,6 @@ function getApiBaseUrl(): string {
   return typeof window === 'undefined' ? API_INTERNAL_BASE_URL : getBrowserApiBaseUrl()
 }
 
-function getBrowserApiBaseUrl(): string {
-  if (!API_PUBLIC_BASE_URL) {
-    return ''
-  }
-
-  try {
-    const configured = new URL(API_PUBLIC_BASE_URL)
-    if (configured.hostname === '127.0.0.1' || configured.hostname === 'localhost' || configured.hostname === '[::1]') {
-      return ''
-    }
-  } catch {
-    return API_PUBLIC_BASE_URL
-  }
-
-  return API_PUBLIC_BASE_URL
-}
-
 /**
  * Löst eine relative oder absolute Media-URL zu einer vollständig qualifizierten URL auf.
  * - Absolute URLs (http/https) → unverändert zurückgeben
@@ -234,7 +218,7 @@ export function resolveApiUrl(value?: string): string {
   }
 
   if (trimmed.startsWith('/api/')) {
-    return `${getBrowserApiBaseUrl()}${trimmed}`
+    return resolvePublicApiUrl(trimmed)
   }
 
   return trimmed

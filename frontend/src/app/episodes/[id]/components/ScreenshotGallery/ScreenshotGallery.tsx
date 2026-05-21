@@ -4,14 +4,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 import { ScreenshotImage, ScreenshotImagesResponse } from '@/types/screenshotImage'
+import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
 
 import styles from './ScreenshotGallery.module.css'
 
 interface ScreenshotGalleryProps {
   releaseId: number
 }
-
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://localhost:8092'
 
 export default function ScreenshotGallery({ releaseId }: ScreenshotGalleryProps) {
   const [images, setImages] = useState<ScreenshotImage[]>([])
@@ -38,7 +37,7 @@ export default function ScreenshotGallery({ releaseId }: ScreenshotGalleryProps)
           params.append('cursor', nextCursor)
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/v1/releases/${releaseId}/images?${params.toString()}`)
+        const response = await fetch(resolvePublicApiUrl(`/api/v1/releases/${releaseId}/images?${params.toString()}`))
 
         if (!response.ok) {
           throw new Error('Screenshots konnten nicht geladen werden.')

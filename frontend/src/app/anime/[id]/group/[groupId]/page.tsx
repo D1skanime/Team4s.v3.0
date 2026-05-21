@@ -7,6 +7,7 @@ import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
 import { CollapsibleStory } from "@/components/groups/CollapsibleStory";
 import { GroupEdgeNavigation } from "@/components/groups/GroupEdgeNavigation";
 import { buildGroupNavigationGroups } from "@/lib/groupNavigation";
+import { resolvePublicApiUrl } from "@/lib/publicApiUrl";
 import {
   ApiError,
   getAnimeByID,
@@ -133,8 +134,6 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
     { label: group.fansub.name },
   ];
 
-  const apiBaseUrl =
-    (process.env.NEXT_PUBLIC_API_URL || "").trim() || "http://localhost:8092";
   const firstEpisode = groupAssetsResponse?.data.episodes.find(
     (episode) => episode.episode_number === 1,
   ) ?? groupAssetsResponse?.data.episodes.find((episode) => episode.images.length > 0);
@@ -148,15 +147,15 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
       ? `${group.period?.start ?? "?"} - ${group.period?.end ?? "?"}`
       : null;
   const heroBackdropPath = groupAssetsResponse?.data.hero.backdrop_url ?? null;
-  const heroBackdropUrl = heroBackdropPath ? `${apiBaseUrl}${heroBackdropPath}` : null;
+  const heroBackdropUrl = heroBackdropPath ? resolvePublicApiUrl(heroBackdropPath) : null;
   const infoPanelBackgroundUrl = infoPanelBannerPath
-    ? `${apiBaseUrl}${infoPanelBannerPath}`
+    ? resolvePublicApiUrl(infoPanelBannerPath)
     : infoPanelImage
-      ? `${apiBaseUrl}${infoPanelImage.image_url}`
+      ? resolvePublicApiUrl(infoPanelImage.image_url)
       : null;
   const posterImage =
     (groupAssetsResponse?.data.hero.poster_url
-      ? `${apiBaseUrl}${groupAssetsResponse.data.hero.poster_url}`
+      ? resolvePublicApiUrl(groupAssetsResponse.data.hero.poster_url)
       : null) ??
     anime.cover_image ??
     group.fansub.logo_url ??

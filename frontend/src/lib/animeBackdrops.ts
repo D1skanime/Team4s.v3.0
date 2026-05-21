@@ -1,7 +1,5 @@
 import type { AnimeBackdropManifest } from '@/types/anime'
-
-/** Öffentliche Basis-URL der API, wird aus der Umgebungsvariable gelesen. */
-const API_PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://localhost:8092'
+import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
 
 /**
  * Baut eine absolute Medien-URL aus einem relativen Pfad auf.
@@ -12,17 +10,7 @@ const API_PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'h
  * @returns Vollständige absolute URL als String
  */
 function buildAbsoluteMediaURL(path: string, options?: { width?: number; quality?: number }): string {
-  const base = API_PUBLIC_BASE_URL.endsWith('/') ? API_PUBLIC_BASE_URL : `${API_PUBLIC_BASE_URL}/`
-  const url = new URL(path, base)
-
-  if (options?.width) {
-    url.searchParams.set('width', String(options.width))
-  }
-  if (options?.quality) {
-    url.searchParams.set('quality', String(options.quality))
-  }
-
-  return url.toString()
+  return resolvePublicApiUrl(path, options)
 }
 
 /**

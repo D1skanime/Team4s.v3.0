@@ -8,6 +8,7 @@ import VideoPlayerModal from '@/app/episodes/[id]/components/VideoPlayerModal'
 import { GroupAssetImage, GroupAssetMedia, GroupAssetMediaType, GroupEpisodeAssets } from '@/types/groupAsset'
 import { EpisodeReleaseSummary } from '@/types/group'
 import { MediaAsset } from '@/types/mediaAsset'
+import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
 
 import styles from './GroupAssetsExperience.module.css'
 
@@ -27,8 +28,6 @@ const TYPE_LABELS: Record<GroupAssetMediaType, string> = {
   insert: 'Insert',
 }
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://localhost:8092'
-
 function formatEpisodeNumber(value: number): string {
   return value.toString().padStart(2, '0')
 }
@@ -43,10 +42,7 @@ function formatDuration(seconds?: number | null): string | null {
 }
 
 function resolveApiUrl(path?: string | null): string {
-  const trimmed = (path || '').trim()
-  if (!trimmed) return ''
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed
-  return `${API_BASE_URL}${trimmed}`
+  return resolvePublicApiUrl(path)
 }
 
 function toPlayableAsset(asset: GroupAssetMedia): MediaAsset {
