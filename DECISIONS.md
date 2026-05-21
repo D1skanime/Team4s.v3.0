@@ -1,5 +1,61 @@
 # DECISIONS
 
+## 2026-05-19 - Fansub Anime Release Headers Prefer A Resolved Landscape Image Instead Of Poster-Only Rendering
+
+### Decision
+The fansub release overview endpoint now provides a resolved `header_image` for each anime entry. The release header UI should prefer this wide visual in the order `banner -> first background -> cover fallback`, instead of treating the block as poster-only.
+
+### Why This Won
+The release list header is visually closer to a horizontal media band than to a poster grid. The old `cover_image`-only contract forced portrait artwork even when broader anime assets already existed in Team4s. Reusing existing anime `banner` and `backgrounds` data keeps the change inside documented asset ownership instead of inventing a parallel release-media image source.
+
+### Consequences
+- the `GET /api/v1/admin/fansubs/:id/anime` response may now include `header_image`
+- frontend consumers may prefer `header_image` and fall back to `cover_image`
+- the backend continues to keep `cover_image` for compatibility and poster-style fallbacks
+
+### Follow-ups Required
+- if more screens need the same horizontal anime preview, they should reuse the same resolved `header_image` semantics
+- future UI cleanup can decide whether the release list should become fully landscape-first on mobile as well
+
+## 2026-05-17 - Phase 44 Centralizes Authorization On Team4s Permission Actions And Resolved Group Scope
+
+### Decision
+Phase 44 introduces one Team4s-owned permission engine that evaluates explicit action names against `CurrentUser`, global app roles, and resolved fansub-group context. Handlers and capability endpoints must consume this engine instead of making ad-hoc admin or role decisions.
+
+### Why This Won
+The codebase had already moved identity and membership ownership into Team4s with Phase 43, but authorization was still fragmented across `requireAdmin(...)`, route-local checks, and implicit assumptions about who may mutate release/media data. A central action matrix prevents drift between backend handlers and frontend affordances and keeps group-scope authorization on canonical fansub-release seams instead of legacy `users` or Keycloak claims.
+
+### Consequences
+- `CurrentUser` is the canonical authenticated principal for permission checks
+- `platform_admin` stays global in `app_user_global_roles`
+- group-scoped roles stay in `fansub_group_members` plus `fansub_group_member_roles`
+- release and release-version checks must resolve canonical `fansub_group_id` membership through existing release tables
+- frontend permission-aware UI should consume backend capability endpoints rather than duplicating the policy matrix
+
+### Follow-ups Required
+- future handlers should add new action constants and reuse the permission service instead of adding route-local role checks
+- future UI slices should prefer capability endpoints over client-side role inference
+- later phases can extend beyond `group` scope, but they should keep the same action-and-context seam
+
+## 2026-05-16 - Phase 43 Uses Keycloak For Identity But Keeps Team4s As The Authority For App And Fansub Roles
+
+### Decision
+Phase 43 adopts Keycloak as the external identity and login provider, but Team4s remains the canonical authority for authenticated app users, global app roles, fansub memberships, and `fansub_lead`.
+
+### Why This Won
+The project needs real browser-authenticated users without leaking business authorization into JWT claims or realm configuration. Keeping Keycloak identity-only preserves clean boundaries for the later permission engine and avoids coupling group-scope authorization to external role claims.
+
+### Consequences
+- `app_users` is the new Team4s principal seam for authenticated users
+- `app_user_global_roles` owns `platform_admin`
+- `fansub_group_members` and `fansub_group_member_roles` own group membership and `fansub_lead`
+- `/api/v1/me` is the first stable frontend session seam
+- Keycloak logout invalidates local Team4s auth state, but it does not become the business authorization source
+
+### Follow-ups Required
+- Phase 44 must consume the Phase-43 seams instead of falling back to legacy `users` or Keycloak role claims
+- local docs must stay explicit about the SQL bootstrap path for the first Team4s `platform_admin`
+
 ## 2026-05-16 - Phase 42 Collaboration Stays Parked Until Phases 43 Through 48 Exist
 
 ### Decision
@@ -293,3 +349,27 @@ Create already reflects the intended operator workflow. Reusing that model is si
 
 ### Follow-ups Required
 - finish Phase 22 by deciding whether the remaining source/context card is now lean enough to verify and close
+## 2026-05-17 - Fansub Member Management Uses App Users, Central Permissions, And Backend Self-Lockout Guards
+
+### Decision
+Fansub-Mitgliederverwaltung läuft ausschließlich über `app_users`, `fansub_group_members` und `fansub_group_member_roles`; alle Mutationen werden durch die zentrale Permission-Engine geschützt und der Self-Lockout wird nur im Backend entschieden.
+
+### Context
+Nach Phase 43 und 44 war die Identity- und Permission-Basis vorhanden, aber die sichtbare Mitgliederverwaltung hing noch an einem schmalen MVP und einem veralteten Placeholder im Fansub-Edit-Tab. Gleichzeitig durfte Phase 45 keine neue Parallelstruktur neben `fansub_members` aufbauen.
+
+### Options Considered
+- die Legacy-`fansub_members`-Struktur weiter in Richtung App-Rechte ausbauen
+- eine zweite Membership-/Audit-Struktur nur für die neue UI einführen
+- die vorhandene app-user-basierte Membership-Struktur vollständig zum kanonischen Admin-Seam machen
+
+### Why This Won
+Die vorhandenen Phase-43/44-Seams decken Identität, Rollen und Scope bereits sauber ab. Darauf aufzubauen vermeidet Daten- und Autorisierungsdrift. Der Self-Lockout ist sicherheitsrelevant und muss deshalb serverseitig invariant bleiben statt von der UI vorhergesagt zu werden.
+
+### Consequences
+- `fansub_members` bleibt Legacy-/Contributor-Datenmodell und ist keine Quelle für App-Berechtigungen
+- die Members-UI liest nur Capability-Flags
+- `409 Conflict` mit verständlichen Meldungen ist der offizielle Lockout-Pfad
+- spätere Invitation-/Join-Request-Flows müssen dieselbe Membership-Struktur wiederverwenden
+
+### Follow-ups Required
+- Phase 46 soll auf Einladungen und Join-Requests aufbauen, ohne die Membership-Quelle zu ändern

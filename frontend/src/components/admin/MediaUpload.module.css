@@ -1,11 +1,16 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
-  border: 1px solid #d7dbe3;
-  border-radius: 14px;
-  background: #ffffff;
+  gap: 0.8rem;
+  padding: 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
+  border-radius: calc(var(--radius-md) + 2px);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 98%, #f4efe8 2%), color-mix(in srgb, var(--bg-card) 92%, transparent)),
+    color-mix(in srgb, var(--bg-card) 95%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 48%, transparent),
+    0 18px 34px -30px rgba(17, 24, 39, 0.28);
 }
 
 .headerRow {
@@ -17,9 +22,9 @@
 
 .headerRow h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.98rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .statusPill {
@@ -27,9 +32,9 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.8rem;
-  color: #334155;
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
+  color: color-mix(in srgb, var(--accent-primary) 46%, var(--text-primary));
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-card));
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent);
   border-radius: 999px;
   padding: 0.25rem 0.6rem;
 }
@@ -44,9 +49,11 @@
   align-items: center;
   justify-content: center;
   min-height: 188px;
-  border: 2px dashed #9aa5b1;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #fafcff 0%, #f4f8ff 100%);
+  border: 1px dashed color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  border-radius: calc(var(--radius-md) + 1px);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 96%, #fbf5ee 4%), color-mix(in srgb, var(--bg-secondary) 94%, transparent)),
+    color-mix(in srgb, var(--bg-card) 94%, transparent);
   cursor: pointer;
   transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
   overflow: hidden;
@@ -54,19 +61,25 @@
 
 .dropzone:hover,
 .dropzone:focus-visible {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  border-color: color-mix(in srgb, var(--accent-primary) 48%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent-primary) 10%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 48%, transparent);
   outline: none;
 }
 
 .dropzoneDrag {
-  border-color: #0ea5e9;
-  background: linear-gradient(180deg, #eff9ff 0%, #e0f2fe 100%);
+  border-color: color-mix(in srgb, var(--accent-primary) 54%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 9%, var(--bg-card)), color-mix(in srgb, var(--bg-secondary) 92%, transparent)),
+    color-mix(in srgb, var(--bg-card) 94%, transparent);
 }
 
 .dropzoneError {
-  border-color: #dc2626;
-  background: linear-gradient(180deg, #fff8f8 0%, #ffe8e8 100%);
+  border-color: color-mix(in srgb, var(--color-error) 44%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-error) 4%, var(--bg-card)), color-mix(in srgb, var(--bg-secondary) 93%, transparent)),
+    color-mix(in srgb, var(--bg-card) 94%, transparent);
 }
 
 .dropzoneDisabled {
@@ -80,7 +93,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  color: #1d4ed8;
+  color: color-mix(in srgb, var(--accent-primary) 52%, var(--text-primary));
   font-size: 0.9rem;
   font-weight: 600;
   text-align: center;
@@ -99,8 +112,8 @@
 }
 
 .previewRound {
-  border: 2px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
 }
 
 .previewImageRound {
@@ -119,10 +132,11 @@
   width: 100%;
   max-width: 520px;
   aspect-ratio: 4 / 1;
-  border-radius: 10px;
+  border-radius: calc(var(--radius-sm) + 4px);
   overflow: hidden;
-  border: 2px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 42%, transparent);
 }
 
 .previewImageWide {
@@ -135,12 +149,12 @@
   width: 100%;
   max-width: 520px;
   aspect-ratio: 4 / 1;
-  border-radius: 10px;
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
+  border-radius: calc(var(--radius-sm) + 4px);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
   display: grid;
   place-items: center;
-  color: #475569;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -154,7 +168,7 @@
   position: relative;
   flex: 1;
   height: 8px;
-  background: #e5e7eb;
+  background: color-mix(in srgb, var(--text-secondary) 12%, transparent);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -163,14 +177,14 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 0;
-  background: linear-gradient(90deg, #2563eb 0%, #0ea5e9 100%);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent-primary) 88%, #88a9ff) 0%, color-mix(in srgb, var(--accent-primary) 70%, #3a5ea9) 100%);
   border-radius: inherit;
   transition: width 100ms linear;
 }
 
 .progressLabel {
   font-size: 0.8rem;
-  color: #334155;
+  color: var(--text-secondary);
   min-width: 36px;
   text-align: right;
 }
@@ -179,7 +193,7 @@
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
-  color: #475569;
+  color: var(--text-secondary);
   font-size: 0.82rem;
   min-height: 1rem;
 }
@@ -197,43 +211,53 @@
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  border-radius: 10px;
+  min-height: 36px;
+  border-radius: calc(var(--radius-sm) + 2px);
   font-size: 0.84rem;
   font-weight: 700;
-  padding: 0.45rem 0.75rem;
+  padding: 0.45rem 0.8rem;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
 }
 
 .buttonPrimary {
-  background: #2563eb;
-  border-color: #1d4ed8;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 72%, #9eb5ff), color-mix(in srgb, var(--accent-primary) 88%, #2f4c89));
+  border-color: color-mix(in srgb, var(--accent-primary) 78%, #20345c);
   color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 10px 22px -18px color-mix(in srgb, var(--accent-primary) 45%, transparent);
 }
 
 .buttonPrimary:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 68%, #92acff), color-mix(in srgb, var(--accent-primary) 92%, #284279));
 }
 
 .buttonSecondary {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: #0f172a;
+  background: color-mix(in srgb, white 95%, var(--bg-card));
+  border-color: color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  color: var(--text-primary);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 8px 18px -18px rgba(17, 24, 39, 0.22);
 }
 
 .buttonSecondary:hover:not(:disabled) {
-  background: #eef2f7;
+  background: color-mix(in srgb, white 92%, var(--bg-secondary));
 }
 
 .buttonDanger {
-  background: #fff1f2;
-  border-color: #fecdd3;
-  color: #be123c;
+  background: color-mix(in srgb, var(--color-error) 6%, white);
+  border-color: color-mix(in srgb, var(--color-error) 18%, transparent);
+  color: color-mix(in srgb, var(--color-error) 72%, var(--text-primary));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 8px 18px -18px rgba(127, 29, 29, 0.22);
 }
 
 .buttonDanger:hover:not(:disabled) {
-  background: #ffe4e6;
+  background: color-mix(in srgb, var(--color-error) 9%, white);
 }
 
 .buttonPrimary:disabled,
@@ -251,11 +275,11 @@
 }
 
 .warning {
-  color: #92400e;
+  color: color-mix(in srgb, #b45309 82%, var(--text-primary));
 }
 
 .error {
-  color: #b91c1c;
+  color: color-mix(in srgb, var(--color-error) 82%, var(--text-primary));
 }
 
 .fileInput {
@@ -266,23 +290,25 @@
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  border: 1px solid #bfdbfe;
-  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 18%, transparent);
+  border-radius: calc(var(--radius-sm) + 3px);
   padding: 0.75rem;
-  background: #eff6ff;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 6%, white), color-mix(in srgb, var(--bg-secondary) 92%, transparent)),
+    color-mix(in srgb, var(--bg-card) 94%, transparent);
 }
 
 .cropTitle {
   margin: 0;
   font-size: 0.88rem;
   font-weight: 700;
-  color: #1e3a8a;
+  color: color-mix(in srgb, var(--accent-primary) 64%, var(--text-primary));
 }
 
 .cropHint {
   margin: 0;
   font-size: 0.78rem;
-  color: #334155;
+  color: var(--text-secondary);
 }
 
 .cropViewport {
@@ -291,7 +317,7 @@
   height: 260px;
   margin: 0 auto;
   position: relative;
-  border-radius: 12px;
+  border-radius: calc(var(--radius-sm) + 3px);
   overflow: hidden;
   background: #0f172a;
   touch-action: none;
