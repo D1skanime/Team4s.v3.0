@@ -1,4 +1,4 @@
-# Phase 49 Auth/API Client Boundaries
+﻿# Phase 49 Auth/API Client Boundaries
 
 **Plan:** 49-01
 **Captured:** 2026-05-20

@@ -1,4 +1,4 @@
-# Phase 49 Auth/API Client Inventory
+﻿# Phase 49 Auth/API Client Inventory
 
 **Plan:** 49-01
 **Captured:** 2026-05-20

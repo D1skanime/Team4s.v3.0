@@ -1,4 +1,4 @@
----
+﻿---
 phase: 49-zentraler-auth-api-client-und-token-lifecycle-h-rtung
 plan: "09"
 subsystem: frontend-auth-api-client

@@ -66,6 +66,10 @@
 - **ASTX-02**: Admin can inspect historical asset changes and cleanup outcomes.
 - **ASTX-03**: Admin can configure storage policies such as retention, archive, or soft-delete behavior per asset type.
 
+### Auth/API Lifecycle
+
+- **AUTH-API-CLIENT-01**: Normal frontend API calls use one central Auth/API client that owns token reads, persistence, refresh, 401 retry, request auth headers, upload/XHR auth, and auth-state resync. Pages and components consume token-free session state and must not store or directly read Keycloak or app tokens.
+
 ## Out of Scope
 
 | Feature | Reason |
@@ -108,6 +112,7 @@
 | TAG-03 | Phase 10 | Pending |
 | TAG-04 | Phase 10 | Pending |
 | TAG-05 | Phase 10 | Pending |
+| AUTH-API-CLIENT-01 | Phase 49 | Pending |
 
 **Coverage:**
 - v1 requirements: 28 total
