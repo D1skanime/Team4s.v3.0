@@ -1,5 +1,25 @@
 # DECISIONS
 
+## 2026-05-21 - Phase 49 Central Auth Client Owns Normal Token Lifecycle While SSR And Streaming Stay Separate Boundaries
+
+### Decision
+Normal frontend API calls must use the central Auth/API client for token reads, persistence, refresh coordination, request auth headers, auth-related 401 retry, upload/XHR auth, and auth-state resync. Normal pages/components stay token-free and are protected by static gates. SSR pages and Jellyfin/streaming routes remain explicitly documented server-side boundaries for Phase 49.
+
+### Why This Won
+The Keycloak foundation made identity/session lifecycle real, but distributed token handling in pages/components would keep long-running admin screens vulnerable to stale sessions, wrong-user mutations, duplicated upload auth, and inconsistent logout/session-switch behavior. Centralizing the browser API lifecycle solves that without silently redesigning server-side streaming.
+
+### Consequences
+- New normal browser API helpers should route through the central client instead of accepting raw `authToken` values.
+- Pages/components should use token-free session state, current-user data, and capability responses.
+- `api.no-token-boundary.test.ts` is a durable regression gate, not optional documentation.
+- SSR and streaming allowlists must stay separate from normal page/component allowlists.
+- Future per-user streaming redesign belongs in a separate stream-grant/relay phase.
+
+### Follow-ups Required
+- Reconcile Phase 49 planning metadata drift where roadmap/state/requirements still lag the verification.
+- Keep full-lint failures scoped as unrelated until `ReleaseVersionMediaSection.test.tsx`, `app/dev/ui-system/page.tsx`, and `tmp-live-full-flow*.js` are cleaned.
+- Avoid adding broad token-compatibility parameters outside `frontend/src/lib/api.ts`.
+
 ## 2026-05-19 - Fansub Anime Release Headers Prefer A Resolved Landscape Image Instead Of Poster-Only Rendering
 
 ### Decision

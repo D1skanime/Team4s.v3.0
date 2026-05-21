@@ -1,14 +1,14 @@
 # TOMORROW
 
-## Top 3 Priorities
-1. Den heutigen Test-Upload auf Release-Version 62 prüfen und entweder löschen oder bewusst als Testdaten stehen lassen.
-2. Entscheiden, ob vor Phase 43 noch ein letzter kleiner UI-Cleanup-Slice sinnvoll ist oder ob direkt in den Auth-/Rollen-Block gewechselt wird.
-3. Phase 42 weiter geparkt lassen und keine Collaboration-Arbeit beginnen, bevor Phase 43 bis 48 die User-/Rollen-Basis liefern.
-
 ## First 15-Minute Task
-- Auf `http://localhost:3000/admin/episode-versions/62/edit?tab=media` den heute erzeugten Upload öffnen, die zugehörige Relation `#20` identifizieren und entscheiden, ob sie direkt wieder gelöscht werden soll.
+- Open `.planning/phases/49-zentraler-auth-api-client-und-token-lifecycle-h-rtung/49-VERIFICATION.md` and `docs/frontend/auth-api-client.md`, then write down whether the next slice is Phase 49 metadata reconciliation or unrelated lint cleanup.
+
+## Top 3 Priorities
+1. Start from the verified Phase 49 boundary: central client owns normal token lifecycle; normal pages/components stay token-free.
+2. Reconcile Phase 49 planning metadata drift if `.planning/ROADMAP.md`, `.planning/STATE.md`, or `.planning/REQUIREMENTS.md` still contradict the completed verification.
+3. If choosing lint instead, isolate only the unrelated existing full-lint failures and keep auth/client boundaries unchanged.
 
 ## Dependencies To Unblock Early
-- `docker compose up -d team4sv30-db team4sv30-redis`
-- Falls der lokale Backend-Bypass gebraucht wird: prüfen, ob `http://localhost:8092/health` antwortet.
-- Für echte UI-UAT bevorzugt mit `3000` arbeiten; `3002` nur verwenden, wenn der Container nachweislich den frischen Stand zeigt.
+- Use the Phase 49 verification record before changing auth code.
+- Treat SSR and Jellyfin/streaming as documented separate server-side boundaries.
+- Run targeted Phase 49 checks before and after any auth-adjacent edit.

@@ -1,5 +1,43 @@
 # DAYLOG
 
+## 2026-05-21
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: Phase 49 central Auth/API client and token lifecycle hardening executed, verified, documented, and prepared for Git closeout
+
+### Workstreams Touched
+- Central frontend Auth/API client ownership for normal API calls
+- Token-free page/component consumption through session state and capability/current-user data
+- Upload/XHR auth lifecycle, preflight refresh, progress preservation, and unsafe replay prevention
+- Session switch, cross-tab auth resync, focus/visibility refresh behavior, and auth-page lifecycle tests
+- Static no-token boundary gates with separate allowlists for auth entrypoint, SSR pages, server streaming, tests/docs, and public no-auth fetches
+- Frontend auth docs, streaming handoff docs, and Phase 49 verification/planning artifacts
+
+### Goals Intended vs Achieved
+- Intended: finish the Phase 49 hardening pass so normal frontend code no longer owns raw Keycloak/App tokens and the remaining auth boundaries are explicit.
+- Achieved: Phase 49 verification is `PASS_WITH_NOTES` with 12/12 must-haves verified; final Phase 49 planning artifacts are committed in `b9b078c6` (`docs(49): add auth api planning artifacts`).
+
+### Problems Solved
+- Root cause: auth token reads, refresh, request headers, upload auth, and session resync had been spread across normal pages/components/helpers.
+- Fix: the central Auth/API client owns token reads, persistence, refresh coordination, 401 retry, request auth headers, upload/XHR auth, and auth-state resync for normal API calls.
+- Root cause: future changes could accidentally reintroduce page/component token ownership.
+- Fix: static source-inspection tests now gate normal pages/components from raw token access, direct bearer construction, duplicate XHR auth, and token props/params.
+- Root cause: SSR and Jellyfin/streaming auth are not the same boundary as normal browser API calls.
+- Fix: SSR pages and streaming routes are documented and allowlisted as separate server-side boundaries rather than silently migrated.
+
+### Decisions
+- Normal frontend API calls use the central Auth/API client as the token lifecycle owner.
+- Normal pages/components remain token-free and consume static-gated session/capability state.
+- SSR pages and Jellyfin/streaming routes remain separate documented server-side boundaries for Phase 49.
+
+### Blockers
+- No Phase 49 blocker remains after verification.
+- Full frontend lint still fails on unrelated existing files/scripts: `ReleaseVersionMediaSection.test.tsx`, `app/dev/ui-system/page.tsx`, and `tmp-live-full-flow*.js`.
+- The workspace remains heavily dirty with unrelated product/planning/tooling changes, including `.codex` tooling; closeout intentionally did not touch those.
+
+### Next Step
+- Open `49-VERIFICATION.md` and `docs/frontend/auth-api-client.md`, then choose the next narrow slice: planning metadata reconciliation or a bounded cleanup of the unrelated lint failures.
+
 ## 2026-05-16
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`
