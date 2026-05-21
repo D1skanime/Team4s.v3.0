@@ -1,19 +1,19 @@
 # TODO
 
 ## Current Active Work
-- [x] Fansub-Admin-Workspace visuell modernisieren und wichtige Unterflächen angleichen.
-- [x] `Tags / Aliase` und `Community-Links` in `Grunddaten` integrieren.
-- [x] Legacy `Description / History` aus UI, Backend, Contract und DB entfernen.
-- [x] Release-Version-Media-Upload visuell modernisieren.
-- [x] Lokale Vorschau-Bilder vor dem Upload ergänzen.
-- [x] Multi-Upload-Bug beheben, bei dem neue Bilder die bestehende Auswahl ersetzten.
-- [x] Live-UAT mit Playwright für den Multi-Upload-Fix fahren.
-- [x] Echten Persistenzpfad für Release-Version-Media bis DB + Dateisystem bestätigen.
-- [ ] Test-Upload auf Release-Version 62 löschen oder bewusst stehen lassen.
-- [ ] Entscheiden, ob vor Phase 43 noch ein letzter kleiner Cleanup-Slice sinnvoll ist.
-- [ ] Dann klar in Phase 43 wechseln.
+- [x] Phase 48 contributor dashboard implementieren.
+- [x] Phase 48 mit echten Keycloak-Accounts UAT-testen.
+- [x] Phase 48 gegen Phase 47 zurückprüfen.
+- [x] Phase 48 Validation, Code Review und UI Review dokumentieren.
+- [x] Phase 49 Roadmap-Existenz bestätigen.
+- [x] Docker-Live-API-Proxy-Fix lokal committen.
+- [ ] Aktuellen Closeout-Stand pushen.
+- [ ] Restlichen Dirty Worktree in absichtliche Commit-Slices teilen.
+- [ ] Entscheiden, welche Phase-48/49-Artefakte als nächstes versioniert werden sollen.
 
 ## Parking Lot
-- [ ] TipTap-Bildintegration als eigene neue Phase planen: erst lokal/temporär, dann Persistenz über den bestehenden Media-Uploader beim Speichern.
-- [ ] Phase 42 Collaboration erst nach Phase 43 bis 48 wieder aufnehmen.
-- [ ] Später weitere letzte UI-Politur nur dort, wo sie keinen neuen Architekturblock aufmacht.
+- [ ] Phase 48 UI-Follow-up: lange Release-Listen progressiver begrenzen.
+- [ ] Phase 48 UI-Follow-up: deaktivierte Capability-Badges klarer als fehlende Rechte formulieren.
+- [ ] Phase 48 UI-Follow-up: Medien-Fallbacks visuell hochwertiger machen.
+- [ ] GSD/Codex-Tooling-Update separat reviewen und nicht mit Produktcode vermischen.
+- [ ] Phase 42 Collaboration weiter parken, bis Auth-/Rollen-/Permission-Basis stabil bleibt.

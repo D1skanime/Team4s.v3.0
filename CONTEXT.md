@@ -3,47 +3,42 @@
 ## Project
 - **Name:** Team4s.v3.0
 - **Current workflow:** `v1.1 asset lifecycle hardening`
-- **Current slice:** `Fansub- und Release-Media-Admin auf den neuen Workspace-Look heben, Release-Version-Media live absichern, und die nächste Auth-/Rollen-Phase vorbereiten`
+- **Current branch:** `codex/ui-system-closeout-2026-05-21`
+- **Current slice:** Phase 48 is functionally closed; Phase 48A/49 follow-through is active.
 
 ## Current State
 
 ### What Finished In This Pass
-- Der Fansub-Admin auf `/admin/fansubs/88/edit` wurde breit modernisiert: `Grunddaten`, `Notizen`, `Anime & Veröffentlichungen`, `Anime-Projekte`, Drawer und mehrere Unterflächen nutzen jetzt einen klareren, kontrastreicheren Workspace-Look.
-- `Tags / Aliase` und `Community-Links` wurden aus eigenen Reitern in `Grunddaten` integriert, damit der Basic-Bereich dichter und sinnvoller arbeitet.
-- Alte `Description / History`-Felder wurden end-to-end entfernt: UI, Backend, API-Contract und neue Drop-Migration `0071`.
-- Der Release-Version-Media-Bereich auf `/admin/episode-versions/62/edit?tab=media` wurde modernisiert und funktional erweitert:
-  - klickbare Dropzone
-  - lokale Vorschau-Bilder vor dem Upload
-  - Multi-Upload ersetzt bestehende Auswahl nicht mehr
-- Live-UAT mit Playwright gegen den echten Frontend-/Backend-Flow auf `3000` bestätigt, dass zwei nacheinander hinzugefügte Bilder gleichzeitig sichtbar bleiben.
-- Ein echter Test-Upload gegen `POST /api/v1/admin/release-versions/62/media` wurde erfolgreich persistiert und anschließend in DB + Dateisystem bestätigt.
+- Phase 48 `Meine Gruppen & Contributor Dashboard` was implemented and verified against real Keycloak sessions.
+- Lead account `phase43-member` sees only `AnimeOwnage`, can open member/edit/media/admin seams, and is denied on foreign group `96`.
+- Contributor account `tomoni.member.auto.20260518152444` sees only `Tomoni`, has version-level visibility, no admin/upload/member-management affordances, and is denied on foreign group `88`.
+- Phase 48 now has summary, UAT, validation, code-review, and UI-review artifacts.
+- The UI review scored Phase 48 at `21/24 PASS`, with follow-ups for long release lists, clearer inactive capability badges, and stronger media fallbacks.
+- Phase 49 exists in `ROADMAP.md` as `Zentraler Auth-/API-Client und Token-Lifecycle-Härtung`.
+- Current unpushed commit `04a5f588` fixes Docker live API routing by proxying API requests through the frontend.
 
 ### What Works
-- Fansub-Edit-Workspace wirkt deutlich moderner und weniger wie eine alte weiße Formularseite.
-- Der gemeinsame Editor-Look ist an mehreren Call-Sites vereinheitlicht; Notiz-/Preview-Karten und Meta-Spalten wurden global ruhiger gezogen.
-- Release-Version-Media-Upload verarbeitet Bilder live korrekt:
-  - Asset in `media_assets`
-  - Varianten in `media_files`
-  - Relation in `release_version_media`
-  - Dateien unter `media/release-version/<versionId>/<uuid>/`
-- Playwright-Live-UAT auf `http://localhost:3000/admin/episode-versions/62/edit?tab=media` ist grün für den Multi-Upload-Fix.
-- Ein lokaler Backend-Bypass-Stand auf `:8092` wurde zum Verifizieren hochgezogen und beantwortet Health + Admin-Media-Routen.
+- Docker deploy was rebuilt successfully for the Phase 48/49 live path in the previous session.
+- `/admin/my-groups` and `/admin/my-groups/[id]` work with real Keycloak-authenticated users.
+- Foreign group access returns the expected denied state.
+- `/dev/ui-system` remains the visual source of truth for new UI slices.
+- The frontend proxy fix is already committed locally and ready to push.
 
 ### What Is Open
-- Nicht jede Unterfläche im Fansub-Admin ist bis in den letzten inneren Detailzustand visuell gleich stark; der grobe neue Stil steht, aber letzte Micro-Politur ist noch möglich.
-- `3002` war im Verlauf mehrfach instabil oder veraltet; für echte Debug-/UAT-Arbeit war `3000` plus lokales Backend verlässlicher.
-- Der Test-Upload auf Release-Version 62 ist echt gespeichert und sollte gelöscht werden, wenn die Testdaten sauber bleiben sollen.
-- TipTap-Bildintegration ist bewusst noch **nicht** begonnen und soll als eigene Phase über den bestehenden Media-Uploader laufen.
+- The worktree is very broad and dirty: product files, planning artifacts, Codex/GSD tooling changes, untracked phase docs, and many `.tmp-*` screenshots coexist.
+- Do not stage the entire worktree without a separate review. The safe closeout push should stay narrow.
+- Phase 48 UI follow-ups are documented but not blockers: long release lists, disabled capability copy, media fallback polish.
+- Repository-wide lint/check status is not clean enough to treat the whole tree as one atomic deliverable.
 
 ## Active Planning Context
 - Milestone: `v1.1 Asset Lifecycle Hardening`
-- Praktisch aktiver Themenblock: Abschluss/Follow-through von Phase 41 plus Release-Version-Media-Härtung und UI-Vereinheitlichung
-- Phase 42 (`tiptap collaboration mvp`) wurde bewusst zurückgestellt, bis Phase 43 bis 48 die echte User-/Rollen-Basis liefern.
-- Die nächste größere Produktbewegung soll in Richtung Phase 43 gehen, nicht in einen vorschnellen Collaboration- oder Editor-Image-Slice.
+- Completed/closed in practice: Phase 48 contributor dashboard.
+- Active follow-through: Phase 48A UI foundation and Phase 49 auth/API-client hardening.
+- Phase 42 collaboration remains parked until the auth/member/capability baseline stays stable.
 
 ## Key Decisions In Force
-- `docs/architecture/db-schema-fansub-domain.md` bleibt der erste Referenzpunkt für Persistenzfragen.
-- `release_version_groups.fansub_group_id` bleibt die kanonische Runtime-Spalte.
-- Release-Media bleibt auf der bestehenden `media_assets` / `media_files` / `release_version_media`-Seam.
-- Editor-Bilder sollen später **erst lokal/temporär** im TipTap erscheinen und **erst bei Speichern** über den bestehenden Media-Uploader persistiert werden.
-- Phase 42 bleibt zurückgestellt, bis echte Auth-/Rollen-/Mehrbenutzer-Basis aus Phase 43 bis 48 steht.
+- Keycloak owns identity; Team4s owns app users, global roles, fansub memberships, and permission decisions.
+- Permission-aware frontend screens should consume backend capabilities instead of re-inferring roles.
+- Release/fansub media must stay on canonical release/fansub-group seams, not attach directly to neutral episodes/anime.
+- The global Team4s UI system in `docs/frontend/ui-system.md`, `docs/frontend/ui-inventory.md`, and `/dev/ui-system` is the visual target for new slices.
+- Pushes from this dirty workspace must be explicitly sliced; temp screenshots and broad GSD update noise are not safe default commit material.

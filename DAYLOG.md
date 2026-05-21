@@ -1,5 +1,41 @@
 # DAYLOG
 
+## 2026-05-21
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: Phase 48 nach Live-UAT/UI-Review restartbar abschließen, Phase 48A/49-Stand sauber festhalten, den Docker-Proxy-Fix auf dem aktuellen Branch pushen und den sehr breiten Worktree nicht versehentlich als Sammel-Commit vermischen
+
+### Workstreams Touched
+- Phase 48 `Meine Gruppen & Contributor Dashboard`: realer Keycloak-UAT mit Fansub-Lead und normalem Contributor, Phase-47-Rückprüfung, Validation, Code-Review und UI-Review dokumentiert
+- Phase 48A `UI-Inventar, Design-System-Labor und globale UI-Basis`: globale UI-System-Referenzen bleiben verbindliche visuelle Quelle für neue Slices
+- Phase 49 `Zentraler Auth-/API-Client und Token-Lifecycle-Härtung`: lokaler Fix-Commit `fix(49): proxy docker live api requests through frontend` liegt auf dem aktuellen Branch und wird gepusht
+- Repo-Local-Handoff: `CONTEXT.md`, `STATUS.md`, `WORKING_NOTES.md`, `RISKS.md`, `TOMORROW.md`, `TODO.md`, `DECISIONS.md` und Tageszusammenfassung aktualisiert
+
+### Goals Intended vs Achieved
+- Intended: Tagesabschluss und Push ohne kompletten Server-Neustart oder unkontrollierten Mega-Commit.
+- Achieved: Phase-48-Status ist nach echten Logins und Screenshots dokumentiert, Phase 49 existiert als Roadmap-Phase und aktueller Branch-Kontext, und der Push-Schnitt bleibt bewusst eng statt den gesamten schmutzigen Worktree mitzunehmen.
+
+### Problems Solved
+- Root cause: Phase 48 musste nicht nur technisch, sondern mit echten Keycloak-Accounts und visueller Nähe zum globalen Team4s-UI belegt werden.
+- Fix: UAT/Validation/UI-Review liegen als Phase-Artefakte vor; Lead-User `phase43-member` und Contributor `tomoni.member.auto.20260518152444` wurden live gegen eigene und fremde Gruppen geprüft.
+- Root cause: Docker-Live-Frontend brauchte einen stabileren API-Pfad.
+- Fix: aktueller Commit `04a5f588` proxyt Docker-Live-API-Requests über das Frontend.
+- Root cause: der Worktree enthält sehr viele Produkt-, GSD-, Temp- und Planungsänderungen gleichzeitig.
+- Fix: Closeout hält den Commit-Schnitt explizit fest; nicht blind alles stagen.
+
+### Decisions
+- Phase 49 existiert und bleibt der nächste Auth-/API-Client-Härtungsblock nach Phase 48.
+- Der heutige Push nimmt den bereits erstellten Phase-49-Proxy-Fix und den Closeout mit, aber keine `.tmp-*`, `.tmp-playwright-uat/`, `.clone/` oder breit gestreuten GSD-Tooling-Änderungen ohne eigenen Review.
+- Phase 48 gilt fachlich als UAT-/Validation-/UI-reviewed; offene UI-Punkte sind Follow-ups, keine Slice-Blocker.
+
+### Blockers
+- Kein harter Runtime-Blocker für Phase 48 oder den aktuellen Push.
+- Repo-weiter Lint/Git-Hygiene bleibt durch bestehende, breite Dirty-State-/Tooling-/Temp-Dateien riskant.
+- Der Worktree ist noch nicht PR-sauber; weitere Commit-Slices müssen bewusst ausgewählt werden.
+
+### Next Step
+- Morgen zuerst `git status --short --branch` öffnen und eine Keep/Drop-Liste für untracked Temp- und GSD-Dateien schreiben, bevor weitere Sammel-Commits entstehen.
+
 ## 2026-05-16
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`

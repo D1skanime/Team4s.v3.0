@@ -1,5 +1,22 @@
 # DECISIONS
 
+## 2026-05-21 - Docker Live API Calls Should Flow Through The Frontend Proxy
+
+### Decision
+For Docker/live frontend verification, normal frontend API calls should route through the frontend proxy instead of relying on browser-visible backend topology assumptions.
+
+### Why This Won
+The live container setup can differ from the local dev server topology. Proxying through the frontend keeps the browser-facing API seam stable and avoids false negatives where the UI is correct but the browser cannot reach the backend as assumed.
+
+### Consequences
+- Phase 49 auth/API-client hardening should preserve a central browser-safe request seam.
+- Docker UAT should verify the frontend route and proxy path together.
+- Direct backend calls remain useful for API diagnostics, but not as the only proof that browser UI flows work.
+
+### Follow-ups Required
+- Keep Phase 49 tests focused on token lifecycle, central request behavior, and one-shot auth retry semantics.
+- Do not scatter direct Keycloak/App token handling back into individual pages.
+
 ## 2026-05-19 - Fansub Anime Release Headers Prefer A Resolved Landscape Image Instead Of Poster-Only Rendering
 
 ### Decision

@@ -2,37 +2,36 @@
 
 ## Top 5 Risks
 
-### 1. Testdaten bleiben versehentlich als reale Produktdaten stehen
-- **Impact:** Medium
-- **Likelihood:** Medium
-- **Why it matters:** Heute wurde ein echter Upload auf Release-Version 62 gespeichert. Wenn der nur als Verifikationsartefakt gedacht war, sollte er bewusst wieder gelöscht werden.
-- **Mitigation:** Morgen als erste kleine Aufgabe prüfen, ob `release_version_media.id = 20` entfernt werden soll.
-
-### 2. `3000` und `3002` können unterschiedliche Wahrheiten zeigen
-- **Impact:** Medium
-- **Likelihood:** Medium
-- **Why it matters:** Im heutigen Verlauf war `3002` mehrfach veraltet oder instabil. UI-Entscheidungen können sonst auf dem falschen Stand bewertet werden.
-- **Mitigation:** Für harte UAT zuerst `3000` plus belegten Backend-Stand verwenden; `3002` nur nach frischem Build und Sichtprüfung.
-
-### 3. Ein neuer Vor-43-Slice könnte die Roadmap wieder verwässern
+### 1. Broad dirty worktree causes an accidental mega-commit
 - **Impact:** High
-- **Likelihood:** Medium
-- **Why it matters:** Vor Phase 43 gibt es immer noch verlockende UI- oder Editor-Ideen. Zu viele Zusatzslices könnten den Einstieg in Auth/Rollen erneut verschieben.
-- **Mitigation:** Nur noch sehr kleine Cleanup-Arbeit vor 43 zulassen; keine neue größere Architekturphase davor starten.
+- **Likelihood:** High
+- **Why it matters:** Product code, phase artifacts, migrations, GSD tooling, screenshots, and temp folders are all dirty at once.
+- **Mitigation:** Stage by explicit path only. Never use `git add .` from this state.
 
-### 4. TipTap-Bildintegration könnte später versehentlich einen Parallel-Upload-Flow bekommen
-- **Impact:** High
-- **Likelihood:** Medium
-- **Why it matters:** Das wurde heute bewusst mehrfach abgegrenzt. Ein Schnellschuss im Editor würde Media-Logik und Ownership wieder aufweichen.
-- **Mitigation:** Den bestehenden Media-Uploader als verpflichtende Grundlage festhalten und erst bei klarer Phasenentscheidung umsetzen.
+### 2. Temporary screenshots and UAT artifacts leak into Git unintentionally
+- **Impact:** Medium
+- **Likelihood:** High
+- **Why it matters:** `.tmp-*` and `.tmp-playwright-uat/` are useful local evidence, but noisy and not all intended for version control.
+- **Mitigation:** Keep screenshots referenced in phase docs, but only commit deliberately selected evidence if the repo convention requires it.
 
-### 5. Der breite Worktree erhöht weiterhin Commit-/Push-Risiko
+### 3. GSD/Codex tooling updates mix with product work
+- **Impact:** Medium
+- **Likelihood:** High
+- **Why it matters:** `.codex/get-shit-done`, `.codex/skills`, hooks, and agent files show many changes that deserve a separate tooling review.
+- **Mitigation:** Do not combine tooling updates with Phase 48/49 product commits.
+
+### 4. Phase 48 visual follow-ups get mistaken for blockers
+- **Impact:** Low
+- **Likelihood:** Medium
+- **Why it matters:** UI review found real polish points, but the slice already passes.
+- **Mitigation:** Treat long list handling, disabled capability copy, and media fallback polish as later follow-ups.
+
+### 5. Repo-wide checks are overinterpreted from a dirty tree
 - **Impact:** Medium
 - **Likelihood:** Medium
-- **Why it matters:** Neben den Produktänderungen liegen viele Planungsartefakte und untracked Dateien im Baum. Ein unbewusster Sammel-Commit kann unnötig laut werden.
-- **Mitigation:** Vor Commit noch einmal bewusst `git status --short` prüfen und nur sinnvolle Session-Artefakte mitnehmen.
+- **Why it matters:** Targeted Phase 48 checks passed, but the whole repo has unrelated dirty state and historical lint noise.
+- **Mitigation:** Re-run checks per staged slice and document unrelated failures separately.
 
 ## Current Blockers
-- Kein harter Runtime-Blocker auf dem verifizierten Release-Media-Flow.
-- Cross-AI review unavailable locally.
-- Phase 42 bleibt absichtlich blockiert, bis Phase 43 bis 48 die notwendige Rollen-/User-Basis liefern.
+- No hard runtime blocker for the current closeout push.
+- The remaining blocker is commit hygiene, not product execution.

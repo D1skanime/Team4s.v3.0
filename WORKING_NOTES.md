@@ -1,26 +1,30 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Praktisch lief heute ein breiter Follow-through-Slice über Fansub-Admin, Release-Version-Media und die Vorbereitung des nächsten Roadmap-Blocks.
-- Phase 41 ist dokumentarisch weitgehend saubergezogen; Phase 42 wurde bewusst hinter Phase 43 bis 48 geschoben.
+- Phase 48 contributor dashboard is implemented and verified.
+- Phase 48A UI system foundation remains the visual contract for future slices.
+- Phase 49 exists and is the next auth/API-client hardening phase.
 
 ## Useful Facts To Keep
-- `http://localhost:3000` war heute der verlässlichste Frontend-Stand für UAT.
-- Für Live-Prüfung des Release-Version-Media-Flows lief zusätzlich ein lokales Backend auf `:8092` mit Bypass-Kontext.
-- Playwright funktioniert auf diesem Windows-Host zuverlässig mit installiertem `msedge`, nicht mit dem standardmäßigen gebündelten Chromium.
-- Der verifizierte Test-Upload landete hier:
-  - `release_version_media.id = 20`
-  - `media_assets.id = 112`
-  - Pfad: `C:\Users\admin\Documents\Team4s\media\release-version\62\5cc20f1f-9d27-4e73-b0a5-4dd9f15c5489\`
-- Die Media-API für Release-Versionen nutzt weiter sauber die bestehende Kette:
-  - `media_assets`
-  - `media_files`
-  - `release_version_media`
-- `Tags / Aliase` und `Community-Links` sind jetzt Teil von `Grunddaten`; die alten Extra-Reiter dafür sind nicht mehr die Zielstruktur.
-- `Description / History` ist fachlich entfernt und soll nicht wieder auftauchen.
-- TipTap-Bilder bleiben ein später eigener Slice und sollen erst lokal/temporär im Editor leben, dann beim Speichern durch den bestehenden Uploader gehen.
+- Real Keycloak UAT accounts used for Phase 48:
+  - `phase43-member` / lead context for `AnimeOwnage` group `88`
+  - `tomoni.member.auto.20260518152444` / contributor context for `Tomoni` group `96`
+- Foreign group access checks:
+  - lead user denied on `96`
+  - contributor user denied on `88`
+- Phase 48 screenshots live under `.tmp-playwright-uat/phase48/`.
+- Important Phase 48 docs:
+  - `.planning/phases/48-meine-gruppen-und-contributor-dashboard/48-SUMMARY.md`
+  - `.planning/phases/48-meine-gruppen-und-contributor-dashboard/48-UAT.md`
+  - `.planning/phases/48-meine-gruppen-und-contributor-dashboard/48-VALIDATION.md`
+  - `.planning/phases/48-meine-gruppen-und-contributor-dashboard/48-REVIEW.md`
+  - `.planning/phases/48-meine-gruppen-und-contributor-dashboard/48-UI-REVIEW.md`
+- Current local commit to push:
+  - `04a5f588 fix(49): proxy docker live api requests through frontend`
+- Current branch already tracks `origin/codex/ui-system-closeout-2026-05-21`.
 
 ## Verification Memory
-- 2026-05-16: Playwright-Live-UAT bestätigt `previewCount = 2` nach Auswahl + Drop im Release-Media-Tab.
-- 2026-05-16: echter Upload via API liefert `status=ready`, `media_asset_id=112`, `release_version_media_id=20`.
-- 2026-05-16: List-API liefert `thumbnail_url` und `original_url` für denselben Upload zurück.
+- Phase 48 targeted backend and frontend checks passed in the previous verification pass.
+- Phase 48 real browser UAT passed after fixing the group-detail id fallback for Next client params.
+- Phase 48 UI review scored `21/24 PASS`.
+- `curl -I http://127.0.0.1:3002/admin/my-groups/88` returned `200` after the frontend rebuild in the previous session.
