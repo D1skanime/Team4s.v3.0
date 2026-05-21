@@ -157,9 +157,9 @@ import {
 } from '@/types/releaseVersionNotes'
 import { exchangeKeycloakCode, isKeycloakEnabled, logoutFromKeycloak, refreshKeycloakToken, type KeycloakTokenBundle } from '@/lib/keycloakAuth'
 
-// Browser braucht eine erreichbare Host-URL (z.B. http://127.0.0.1:8092).
-// Server-seitiger Code in Docker nutzt die Container-interne Netzwerk-URL.
-const API_PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim() || 'http://127.0.0.1:8092'
+// Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
+// live frontends from depending on a directly reachable host backend port.
+const API_PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim()
 
 /**
  * Normalisiert die interne API-URL für Docker-Umgebungen.
@@ -196,7 +196,24 @@ export const API_AUTH_SESSION_TOKEN = '__team4s_runtime_auth__'
  * - Server  → interne Docker-URL (schneller, kein Umweg über Host)
  */
 function getApiBaseUrl(): string {
-  return typeof window === 'undefined' ? API_INTERNAL_BASE_URL : API_PUBLIC_BASE_URL
+  return typeof window === 'undefined' ? API_INTERNAL_BASE_URL : getBrowserApiBaseUrl()
+}
+
+function getBrowserApiBaseUrl(): string {
+  if (!API_PUBLIC_BASE_URL) {
+    return ''
+  }
+
+  try {
+    const configured = new URL(API_PUBLIC_BASE_URL)
+    if (configured.hostname === '127.0.0.1' || configured.hostname === 'localhost' || configured.hostname === '[::1]') {
+      return ''
+    }
+  } catch {
+    return API_PUBLIC_BASE_URL
+  }
+
+  return API_PUBLIC_BASE_URL
 }
 
 /**
@@ -217,7 +234,7 @@ export function resolveApiUrl(value?: string): string {
   }
 
   if (trimmed.startsWith('/api/')) {
-    return `${API_PUBLIC_BASE_URL}${trimmed}`
+    return `${getBrowserApiBaseUrl()}${trimmed}`
   }
 
   return trimmed

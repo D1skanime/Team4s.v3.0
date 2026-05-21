@@ -35,6 +35,7 @@ const streamingServerBoundaryAllowlist = new Set([
 
 const publicNoAuthFetchAllowlist = new Set([
   'src/app/api/admin/asset-proxy/route.ts',
+  'src/lib/server/apiProxy.ts',
   'src/app/episodes/[id]/components/ScreenshotGallery/ScreenshotGallery.tsx',
   'src/components/admin/MediaUpload.tsx',
 ])
