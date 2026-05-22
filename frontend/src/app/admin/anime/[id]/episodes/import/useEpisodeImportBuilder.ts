@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   applyEpisodeImport,
   getEpisodeImportContext,
-  getRuntimeAuthToken,
   previewEpisodeImport,
 } from '@/lib/api'
 import type {
@@ -91,7 +90,6 @@ interface UseEpisodeImportBuilderState {
 }
 
 export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImportBuilderState {
-  const [authToken] = useState(() => getRuntimeAuthToken())
   const [context, setContext] = useState<EpisodeImportContextResult | null>(null)
   const [preview, setPreview] = useState<EpisodeImportPreviewResult | null>(null)
   const [mappings, setMappings] = useState<EpisodeImportMappingRow[]>([])
@@ -115,7 +113,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
       setIsLoadingContext(true)
       setErrorMessage(null)
       try {
-        const response = await getEpisodeImportContext(animeID, authToken)
+        const response = await getEpisodeImportContext(animeID)
         setContext(response.data)
         setAniSearchID(response.data.anisearch_id ?? '')
       } catch (error) {
@@ -126,7 +124,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     }
 
     void loadContext()
-  }, [animeID, authToken])
+  }, [animeID])
 
   const summary = useMemo(() => {
     if (!preview) return null
@@ -215,7 +213,6 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
           anisearch_id: anisearchID.trim(),
           season_offset: Number.parseInt(seasonOffset, 10) || 0,
         },
-        authToken,
       )
       const normalizedPreview = normalizePreviewResult(response.data)
       setPreview(normalizedPreview)
@@ -235,7 +232,6 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
       const response = await applyEpisodeImport(
         animeID,
         buildEpisodeImportApplyInput(animeID, preview, mappings),
-        authToken,
       )
       setApplyResult(response.data)
     } catch (error) {
@@ -256,7 +252,6 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
       await applyEpisodeImport(
         animeID,
         buildEpisodeImportApplyInput(animeID, preview, [targetRow]),
-        authToken,
       )
       // Remove the applied row from local state
       setMappings((current) => current.filter((row) => row.media_item_id !== mediaItemId))

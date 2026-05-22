@@ -19,9 +19,27 @@ export interface AuthTokenData {
   refresh_token_expires_at: number
   refresh_token_expires_in: number
   user_id: number
+  app_user_id?: number
   display_name: string
+  session_id?: string | null
 }
 
 export interface AuthTokenResponse {
   data: AuthTokenData
+}
+
+export interface CurrentUserData {
+  app_user_id: number
+  legacy_user_id: number
+  display_name: string
+  email: string
+  keycloak_subject: string
+  status: 'pending' | 'active' | 'disabled'
+  global_roles: string[]
+  is_platform_admin: boolean
+  session_id?: string | null
+}
+
+export interface CurrentUserResponse {
+  data: CurrentUserData
 }

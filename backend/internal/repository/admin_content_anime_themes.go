@@ -1814,7 +1814,14 @@ func (r *AdminContentRepository) ListFansubAnime(ctx context.Context, fansubGrou
 		SELECT DISTINCT
 			a.id,
 			a.title,
+			at.name AS anime_type,
 			COALESCE(
+				NULLIF(BTRIM(a.banner_resolved_url), ''),
+				banner.file_path,
+				background.file_path
+			) AS header_image,
+			COALESCE(
+				NULLIF(BTRIM(a.cover_resolved_url), ''),
 				NULLIF(BTRIM(a.cover_image), ''),
 				poster.file_path,
 				CASE
@@ -1825,6 +1832,27 @@ func (r *AdminContentRepository) ListFansubAnime(ctx context.Context, fansubGrou
 			) AS cover_image
 		FROM anime_fansub_groups afg
 		JOIN anime a ON a.id = afg.anime_id
+		LEFT JOIN anime_types at ON at.id = a.anime_type_id
+		LEFT JOIN LATERAL (
+			SELECT ma.file_path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			WHERE am.anime_id = a.id
+			  AND mt.name = 'banner'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) banner ON true
+		LEFT JOIN LATERAL (
+			SELECT ma.file_path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			WHERE am.anime_id = a.id
+			  AND mt.name = 'background'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) background ON true
 		LEFT JOIN LATERAL (
 			SELECT ma.file_path
 			FROM anime_media am
@@ -1846,9 +1874,11 @@ func (r *AdminContentRepository) ListFansubAnime(ctx context.Context, fansubGrou
 	items := make([]models.AdminFansubAnimeEntry, 0)
 	for rows.Next() {
 		var item models.AdminFansubAnimeEntry
-		if err := rows.Scan(&item.ID, &item.Title, &item.CoverImage); err != nil {
+		var animeType *string
+		if err := rows.Scan(&item.ID, &item.Title, &animeType, &item.HeaderImage, &item.CoverImage); err != nil {
 			return nil, fmt.Errorf("scan fansub anime fansub=%d: %w", fansubGroupID, err)
 		}
+		item.Type = mapAnimeTypeNameToAPI(animeType)
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {

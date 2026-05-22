@@ -74,7 +74,8 @@ export function ReleaseVersionMediaSection({
   releaseVersionLabel,
   mediaState,
 }: ReleaseVersionMediaSectionProps) {
-  const media = mediaState ?? useReleaseVersionMedia(versionId)
+  const internalMedia = useReleaseVersionMedia(versionId)
+  const media = mediaState ?? internalMedia
   const persistedItems = Array.isArray(media.items) ? media.items : []
   const [selectedCategory, setSelectedCategory] = useState<ReleaseVersionMediaCategory | ''>('')
   const [defaultCaption, setDefaultCaption] = useState('')
@@ -116,10 +117,14 @@ export function ReleaseVersionMediaSection({
   const isBusy = media.uploadItems.some(
     (item) => item.status === 'uploading' || item.status === 'processing',
   )
+  const canViewMedia = media.capabilities?.can_view_media ?? false
+  const canUploadMedia = media.capabilities?.can_upload_media ?? false
+  const canUpdateMedia = media.capabilities?.can_update_media ?? false
+  const canDeleteMedia = media.capabilities?.can_delete_media ?? false
   const canShowPreviewToggle =
     selectedCategory !== '' && CATEGORY_ALLOWS_PREVIEW[selectedCategory]
-  const canChooseFiles = selectedCategory !== '' && !isBusy
-  const canUpload = selectedCategory !== '' && selectedFiles.length > 0 && !isBusy
+  const canChooseFiles = canUploadMedia && selectedCategory !== '' && !isBusy
+  const canUpload = canUploadMedia && selectedCategory !== '' && selectedFiles.length > 0 && !isBusy
   const uploadSummaryVisible =
     media.uploadItems.length > 0 && media.uploadItems.every((item) => isTerminalStatus(item.status))
   const successCount = media.uploadItems.filter((item) => item.status === 'ready').length
@@ -207,6 +212,9 @@ export function ReleaseVersionMediaSection({
         </div>
 
         {media.error ? <div className={styles.errorBox}>API Fehler: {media.error}</div> : null}
+        {media.capabilitiesError && !canViewMedia ? (
+          <div className={styles.errorBox}>Diese Release-Version darfst du im Media-Bereich nicht bearbeiten.</div>
+        ) : null}
 
         <div className={styles.controls}>
           <label className={styles.field}>
@@ -340,6 +348,9 @@ export function ReleaseVersionMediaSection({
               Auswahl leeren
             </button>
           </div>
+          {!canUploadMedia && canViewMedia ? (
+            <p className={styles.helper}>Du darfst Medien dieser Release-Version ansehen, aber nicht hochladen.</p>
+          ) : null}
 
           <p className={styles.savedCount}>Persistierte Medien: {persistedItems.length}</p>
         </div>
@@ -348,7 +359,7 @@ export function ReleaseVersionMediaSection({
       {queueItems.length > 0 ? (
         <div className={styles.queue}>
           {queueItems.map((item, index) => (
-            <div key={`${item.file.name}-${index}`} className={styles.queueRow}>
+            <div key={fileKey(item.file)} className={styles.queueRow}>
               <div className={styles.queueMeta}>
                 <span className={styles.filename}>{item.file.name}</span>
                 <div className={styles.statusLine}>
@@ -391,6 +402,7 @@ export function ReleaseVersionMediaSection({
           onSelectItem={(item) => setSelectedItemId(item.id)}
           versionId={versionId}
           onReorder={media.reorderItems}
+          canReorder={canUpdateMedia}
         />
         {selectedItem ? (
           <ReleaseVersionMediaDetailPanel
@@ -399,6 +411,8 @@ export function ReleaseVersionMediaSection({
             onClose={() => setSelectedItemId(null)}
             onPatch={media.patchItem}
             onDelete={media.deleteItem}
+            canEdit={canUpdateMedia}
+            canDelete={canDeleteMedia}
           />
         ) : (
           <div className={styles.galleryPlaceholder}>

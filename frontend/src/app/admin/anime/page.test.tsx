@@ -18,7 +18,7 @@ vi.mock('@/lib/api', () => ({
     ],
     meta: { total: 1, page: 1, per_page: 24, total_pages: 1 },
   }),
-  getRuntimeAuthToken: vi.fn(() => null),
+  getAuthSessionSnapshot: vi.fn(() => ({ hasAccessToken: false, hasRefreshToken: false, displayName: '' })),
   ApiError: class ApiError extends Error {
     status: number
 

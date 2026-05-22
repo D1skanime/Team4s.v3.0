@@ -10,6 +10,7 @@ import {
   getAnimeFansubProjectNote,
   upsertAnimeFansubProjectNote,
 } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
 import type { AnimeFansubProjectNote, UpsertAnimeFansubProjectNoteRequest } from '@/types/fansubNotes'
 
 import sharedStyles from '../../../admin.module.css'
@@ -163,7 +164,7 @@ function AnimeProjectNoteForm({ fansubId, anime, hasAccessToken }: AnimeProjectN
       <div className={styles.editorCardHeader}>
         <div className={styles.editorCardHeading}>
           <p className={styles.editorEyebrow}>Anime-Projekttext</p>
-          <h3 className={styles.editorTitle}>{form.title.trim() || anime.title}</h3>
+          <h3 className={styles.editorTitle}>Projekttext für {anime.title}</h3>
         </div>
         <div className={styles.editorBadgeRow}>
           <span className={styles.editorBadge}>{noteVisibilityLabel(form.visibility)}</span>
@@ -173,7 +174,7 @@ function AnimeProjectNoteForm({ fansubId, anime, hasAccessToken }: AnimeProjectN
 
       <div className={styles.editorMain}>
         <div className={styles.field}>
-          <label htmlFor={`note-title-${anime.id}`}>Titel <span className={styles.fansubEditHint}>(optional)</span></label>
+          <label htmlFor={`note-title-${anime.id}`}>Titel</label>
           <input
             id={`note-title-${anime.id}`}
             type="text"
@@ -185,15 +186,13 @@ function AnimeProjectNoteForm({ fansubId, anime, hasAccessToken }: AnimeProjectN
 
         <div className={styles.field}>
           <label htmlFor={`note-body-${anime.id}`}>Projekttext</label>
-          <div className={styles.editorSurface}>
-            <RichTextEditor
-              value={ensureRichTextValue(form.bodyJson)}
-              onChange={(next) => setForm((current) => ({ ...current, bodyJson: next }))}
-              placeholder={ANIME_PROJECT_NOTE_PLACEHOLDER}
-              mode="longform"
-              minHeight={240}
-            />
-          </div>
+          <RichTextEditor
+            value={ensureRichTextValue(form.bodyJson)}
+            onChange={(next) => setForm((current) => ({ ...current, bodyJson: next }))}
+            placeholder={ANIME_PROJECT_NOTE_PLACEHOLDER}
+            mode="longform"
+            minHeight={240}
+          />
         </div>
       </div>
 
@@ -235,13 +234,15 @@ function AnimeProjectNoteForm({ fansubId, anime, hasAccessToken }: AnimeProjectN
       </div>
 
       {saveError ? <div className={styles.errorBox}>{saveError}</div> : null}
-      {saveSuccess ? <div className={styles.fansubEditSaveSuccess}>Projekttext gespeichert.</div> : null}
-      {noteId !== null ? <p className={styles.fansubEditHint}>Gespeicherter Eintrag (ID: {noteId})</p> : null}
 
       <div className={styles.editorActionBar}>
+        <div className={styles.editorActionMeta}>
+          {saveSuccess ? <div className={styles.fansubEditSaveSuccess}>Projekttext gespeichert.</div> : null}
+          {noteId !== null ? <p className={styles.editorActionHint}>Gespeicherter Eintrag (ID: {noteId})</p> : null}
+        </div>
         <button
           type="button"
-          className={styles.button}
+          className={`${styles.button} ${styles.editorPrimaryAction}`}
           onClick={() => void handleSave()}
           disabled={saving || !hasAccessToken}
         >
@@ -331,7 +332,7 @@ function AnimeProjectNotesSectionBody({
                     <div className={styles.fansubEditAnimeProjectNotesMeta}>
                       <span>1 Editor</span>
                       <span className={styles.fansubEditAnimeToggle} aria-hidden="true">
-                        {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                        {expanded ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
                       </span>
                     </div>
                   </button>
@@ -408,11 +409,14 @@ interface AnimeProjectNotesSectionProps {
 }
 
 export function AnimeProjectNotesSection({ fansubId, hasAccessToken = false, animes }: AnimeProjectNotesSectionProps) {
+  const { hasAccessToken: runtimeHasAccessToken, isClientInitialized } = useAuthSession()
+  const effectiveHasAccessToken = hasAccessToken || (isClientInitialized && runtimeHasAccessToken)
+
   if (animes !== undefined) {
     return (
       <AnimeProjectNotesSectionBody
         fansubId={fansubId}
-        hasAccessToken={hasAccessToken}
+        hasAccessToken={effectiveHasAccessToken}
         animes={animes}
         loading={false}
         error={null}
@@ -420,5 +424,5 @@ export function AnimeProjectNotesSection({ fansubId, hasAccessToken = false, ani
     )
   }
 
-  return <AnimeProjectNotesSectionRemote fansubId={fansubId} hasAccessToken={hasAccessToken} />
+  return <AnimeProjectNotesSectionRemote fansubId={fansubId} hasAccessToken={effectiveHasAccessToken} />
 }

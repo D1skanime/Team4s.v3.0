@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"team4s.v3/backend/internal/middleware"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
 
@@ -49,6 +49,8 @@ type FansubHandler struct {
 	releaseGrantSecret string
 	releaseGrantTTL    time.Duration
 	httpClient         *http.Client
+	permissionSvc      *permissions.Service
+	auditLogRepo       *repository.AuditLogRepository
 }
 
 // FansubProxyConfig enthält die Konfigurationswerte für den Emby- und Jellyfin-Medienproxy sowie das Stream-Grant-System.
@@ -90,52 +92,14 @@ func NewFansubHandler(
 	}
 }
 
+func (h *FansubHandler) WithPermissionDeps(permissionSvc *permissions.Service, auditLogRepo *repository.AuditLogRepository) *FansubHandler {
+	h.permissionSvc = permissionSvc
+	h.auditLogRepo = auditLogRepo
+	return h
+}
+
 func (h *FansubHandler) requireAdmin(c *gin.Context) (middleware.AuthIdentity, bool) {
-	identity, ok := middleware.CommentAuthIdentityFromContext(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": gin.H{
-				"message": "anmeldung erforderlich",
-			},
-		})
-		return middleware.AuthIdentity{}, false
-	}
-
-	if h.authzRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": gin.H{
-				"message": "interner serverfehler",
-			},
-		})
-		return middleware.AuthIdentity{}, false
-	}
-
-	roleName := h.adminRoleName
-	if roleName == "" {
-		roleName = "admin"
-	}
-
-	isAdmin, err := h.authzRepo.UserHasRole(c.Request.Context(), identity.UserID, roleName)
-	if err != nil {
-		log.Printf("fansub require_admin: authz check failed (user_id=%d, role=%q): %v", identity.UserID, roleName, err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": gin.H{
-				"message": "interner serverfehler",
-			},
-		})
-		return middleware.AuthIdentity{}, false
-	}
-
-	if !isAdmin {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": gin.H{
-				"message": "keine berechtigung",
-			},
-		})
-		return middleware.AuthIdentity{}, false
-	}
-
-	return identity, true
+	return requirePlatformAdminIdentity(c, h.authzRepo, h.adminRoleName)
 }
 
 func parseFansubID(raw string) (int64, error) {

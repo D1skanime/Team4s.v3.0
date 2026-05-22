@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,8 @@ import (
 // ListFansubAnimeReleases verarbeitet GET /api/v1/admin/fansubs/:id/anime/:animeId/releases.
 // Liefert alle Fansub-Releases für eine Fansub-Anime-Kombination als explizite Admin-Ressourcen.
 func (h *AdminContentHandler) ListFansubAnimeReleases(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
 		return
 	}
 	if h.themeRepo == nil {
@@ -29,6 +31,16 @@ func (h *AdminContentHandler) ListFansubAnimeReleases(c *gin.Context) {
 	animeID, err := strconv.ParseInt(c.Param("animeId"), 10, 64)
 	if err != nil || animeID <= 0 {
 		badRequest(c, "ungültige anime id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseView, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Release-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -50,7 +62,8 @@ func (h *AdminContentHandler) ListFansubAnimeReleases(c *gin.Context) {
 // Liefert den kanonischen Release-Anker für eine Fansub-Anime-Kombination.
 // Wenn kein Anker existiert, wird 200 mit release=null geliefert.
 func (h *AdminContentHandler) GetCanonicalFansubAnimeReleaseSummary(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
 		return
 	}
 	if h.themeRepo == nil {
@@ -66,6 +79,16 @@ func (h *AdminContentHandler) GetCanonicalFansubAnimeReleaseSummary(c *gin.Conte
 	animeID, err := strconv.ParseInt(c.Param("animeId"), 10, 64)
 	if err != nil || animeID <= 0 {
 		badRequest(c, "ungültige anime id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseView, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Release-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -85,7 +108,8 @@ func (h *AdminContentHandler) GetCanonicalFansubAnimeReleaseSummary(c *gin.Conte
 // GetAdminRelease verarbeitet GET /api/v1/admin/releases/:releaseId.
 // Liefert eine vollstaendige Release-Summary für eine explizit adressierte Release-ID.
 func (h *AdminContentHandler) GetAdminRelease(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
 		return
 	}
 	if h.themeRepo == nil {
@@ -96,6 +120,16 @@ func (h *AdminContentHandler) GetAdminRelease(c *gin.Context) {
 	releaseID, err := strconv.ParseInt(c.Param("releaseId"), 10, 64)
 	if err != nil || releaseID <= 0 {
 		badRequest(c, "ungültige release id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForRelease(c.Request.Context(), actor, permissions.ActionReleaseView, releaseID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Release-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
 		return
 	}
 

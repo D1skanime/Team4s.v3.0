@@ -24,6 +24,54 @@ services:
     ports:
       - "6379:6379"
 
+  keycloak-db:
+    image: postgres:16
+    container_name: team4sv30-keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_dev_password}
+    ports:
+      - "${KEYCLOAK_POSTGRES_PORT:-5434}:5432"
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: team4sv30-keycloak
+    command:
+      - start-dev
+      - --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-db
+      KC_DB_URL_PORT: 5432
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_dev_password}
+      KC_HTTP_PORT: 8080
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-http://127.0.0.1:${KEYCLOAK_PORT:-8081}}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: ${KEYCLOAK_HOSTNAME_BACKCHANNEL_DYNAMIC:-true}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    ports:
+      - "${KEYCLOAK_PORT:-8081}:8080"
+    volumes:
+      - ./infra/keycloak:/opt/keycloak/data/import:ro
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
   team4sv30-backend:
     build:
       context: ./backend
@@ -35,6 +83,11 @@ services:
       DATABASE_URL: postgres://team4s:team4s_dev_password@team4sv30-db:5432/team4s_v2?sslmode=disable
       AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:-team4s-local-dev-secret}
       AUTH_ADMIN_BOOTSTRAP_USER_IDS: ${AUTH_ADMIN_BOOTSTRAP_USER_IDS:-1}
+      KEYCLOAK_ENABLED: ${KEYCLOAK_ENABLED:-true}
+      KEYCLOAK_ISSUER_URL: ${KEYCLOAK_ISSUER_URL:-http://127.0.0.1:${KEYCLOAK_PORT:-8081}/realms/team4s}
+      KEYCLOAK_DISCOVERY_URL: ${KEYCLOAK_DISCOVERY_URL:-http://team4sv30-keycloak:8080/realms/team4s}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-team4s-frontend}
+      KEYCLOAK_ACCOUNT_URL: ${KEYCLOAK_ACCOUNT_URL:-http://127.0.0.1:${KEYCLOAK_PORT:-8081}/realms/team4s/account}
       EMBY_API_KEY: ${EMBY_API_KEY:-}
       EMBY_STREAM_BASE_URL: ${EMBY_STREAM_BASE_URL:-}
       EMBY_STREAM_PATH_TEMPLATE: ${EMBY_STREAM_PATH_TEMPLATE:-/Videos/%s/stream}
@@ -57,7 +110,7 @@ services:
       AUTH_ISSUE_DEV_USER_ID: ${AUTH_ISSUE_DEV_USER_ID:-1}
       AUTH_ISSUE_DEV_DISPLAY_NAME: ${AUTH_ISSUE_DEV_DISPLAY_NAME:-DevUser}
       MEDIA_STORAGE_DIR: /app/media
-      MEDIA_PUBLIC_BASE_URL: ${MEDIA_PUBLIC_BASE_URL:-http://localhost:8092}
+      MEDIA_PUBLIC_BASE_URL: ${MEDIA_PUBLIC_BASE_URL:-http://127.0.0.1:8092}
     ports:
       - "8092:8092"
     volumes:
@@ -68,6 +121,8 @@ services:
         condition: service_healthy
       team4sv30-redis:
         condition: service_started
+      keycloak:
+        condition: service_healthy
 
   team4sv30-frontend:
     build:
@@ -75,21 +130,30 @@ services:
       dockerfile: Dockerfile
       args:
         # Public URL must be reachable from the user's browser on the host.
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8092}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8092}
         NEXT_PUBLIC_AUTH_TOKEN: ${NEXT_PUBLIC_AUTH_TOKEN:-}
         NEXT_PUBLIC_AUTH_DISPLAY_NAME: ${NEXT_PUBLIC_AUTH_DISPLAY_NAME:-}
         NEXT_PUBLIC_RUNTIME_PROFILE: ${RUNTIME_PROFILE:-local}
         NEXT_PUBLIC_AUTH_ISSUE_DEV_MODE: ${AUTH_ISSUE_DEV_MODE:-false}
+        NEXT_PUBLIC_KEYCLOAK_ENABLED: ${NEXT_PUBLIC_KEYCLOAK_ENABLED:-true}
+        NEXT_PUBLIC_KEYCLOAK_BASE_URL: ${NEXT_PUBLIC_KEYCLOAK_BASE_URL:-http://127.0.0.1:8081}
+        NEXT_PUBLIC_KEYCLOAK_REALM: ${NEXT_PUBLIC_KEYCLOAK_REALM:-team4s}
+        NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: ${NEXT_PUBLIC_KEYCLOAK_CLIENT_ID:-team4s-frontend}
     container_name: team4sv30-frontend
     environment:
       # Public URL for client-side requests (browser).
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8092}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8092}
       # Internal URL for server-side requests inside the container.
       API_INTERNAL_URL: ${API_INTERNAL_URL:-http://team4sv30-backend:8092}
       NEXT_PUBLIC_AUTH_TOKEN: ${NEXT_PUBLIC_AUTH_TOKEN:-}
       NEXT_PUBLIC_AUTH_DISPLAY_NAME: ${NEXT_PUBLIC_AUTH_DISPLAY_NAME:-}
       NEXT_PUBLIC_RUNTIME_PROFILE: ${RUNTIME_PROFILE:-local}
       NEXT_PUBLIC_AUTH_ISSUE_DEV_MODE: ${AUTH_ISSUE_DEV_MODE:-false}
+      KEYCLOAK_INTERNAL_URL: ${KEYCLOAK_INTERNAL_URL:-http://team4sv30-keycloak:8080}
+      NEXT_PUBLIC_KEYCLOAK_ENABLED: ${NEXT_PUBLIC_KEYCLOAK_ENABLED:-true}
+      NEXT_PUBLIC_KEYCLOAK_BASE_URL: ${NEXT_PUBLIC_KEYCLOAK_BASE_URL:-http://127.0.0.1:8081}
+      NEXT_PUBLIC_KEYCLOAK_REALM: ${NEXT_PUBLIC_KEYCLOAK_REALM:-team4s}
+      NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: ${NEXT_PUBLIC_KEYCLOAK_CLIENT_ID:-team4s-frontend}
       # Media base path for serving uploaded files
       MEDIA_BASE_PATH: /media
     volumes:
@@ -102,3 +166,4 @@ services:
 
 volumes:
   postgres_data:
+  keycloak_db_data:

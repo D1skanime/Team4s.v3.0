@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 import type {
+  ReleaseVersionCapabilities,
   ReleaseVersionMediaItem,
   ReleaseVersionMediaPatchRequest,
   ReleaseVersionMediaReorderRequest,
@@ -57,6 +58,14 @@ function makeQueueItem(overrides: Partial<UploadQueueItem> = {}): UploadQueueIte
 function makeMediaState(
   overrides: Partial<UseReleaseVersionMediaResult> = {},
 ): UseReleaseVersionMediaResult {
+  const defaultCapabilities: ReleaseVersionCapabilities = {
+    can_view_media: true,
+    can_upload_media: true,
+    can_update_media: true,
+    can_delete_media: true,
+    can_edit_notes: true,
+  }
+
   return {
     items: [],
     isLoading: false,
@@ -72,6 +81,8 @@ function makeMediaState(
     patchError: null,
     deleteError: null,
     reorderError: null,
+    capabilities: defaultCapabilities,
+    capabilitiesError: null,
     ...overrides,
   }
 }
@@ -147,6 +158,14 @@ function StatefulSectionHarness({
       patchError: null,
       deleteError: null,
       reorderError: null,
+      capabilities: {
+        can_view_media: true,
+        can_upload_media: true,
+        can_update_media: true,
+        can_delete_media: true,
+        can_edit_notes: true,
+      },
+      capabilitiesError: null,
     }),
     [items, onDeleteSpy, onPatchSpy],
   )
@@ -178,6 +197,26 @@ describe('ReleaseVersionMediaSection', () => {
   it('keeps file input and upload button disabled until a category is selected', () => {
     renderSection(makeMediaState())
 
+    expect(screen.getByLabelText('Dateien')).toHaveProperty('disabled', true)
+    expect(screen.getByRole('button', { name: 'Upload starten' })).toHaveProperty('disabled', true)
+  })
+
+  it('shows a read-only hint and keeps upload controls disabled without upload permission', () => {
+    renderSection(
+      makeMediaState({
+        capabilities: {
+          can_view_media: true,
+          can_upload_media: false,
+          can_update_media: false,
+          can_delete_media: false,
+          can_edit_notes: false,
+        },
+      }),
+    )
+
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'screenshot' } })
+
+    expect(screen.getByText(/ansehen, aber nicht hochladen/i)).not.toBeNull()
     expect(screen.getByLabelText('Dateien')).toHaveProperty('disabled', true)
     expect(screen.getByRole('button', { name: 'Upload starten' })).toHaveProperty('disabled', true)
   })
@@ -679,11 +718,19 @@ describe('useReleaseVersionMedia live-resort behavior', () => {
           patchItem,
           deleteItem: vi.fn().mockResolvedValue(undefined),
           reorderItems: vi.fn().mockResolvedValue(undefined),
-          patchError: null,
-          deleteError: null,
-          reorderError: null,
-        }
-      }, [items])
+        patchError: null,
+        deleteError: null,
+        reorderError: null,
+        capabilities: {
+          can_view_media: true,
+          can_upload_media: true,
+          can_update_media: true,
+          can_delete_media: true,
+          can_edit_notes: true,
+        },
+        capabilitiesError: null,
+      }
+    }, [items])
       return (
         <ReleaseVersionMediaSection
           versionId={42}
@@ -806,6 +853,14 @@ describe('Task 2: DragAndDrop reorder — legacy sort field removed', () => {
         patchError: null,
         deleteError: null,
         reorderError: null,
+        capabilities: {
+          can_view_media: true,
+          can_upload_media: true,
+          can_update_media: true,
+          can_delete_media: true,
+          can_edit_notes: true,
+        },
+        capabilitiesError: null,
       }), [items])
 
       return (

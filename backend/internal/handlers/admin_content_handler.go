@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
 )
@@ -148,6 +149,8 @@ type AdminContentHandler struct {
 	releaseVersionNotesRepo   *repository.ReleaseVersionNotesRepository
 	markdownSvc               *services.MarkdownService
 	tiptapSvc                 *services.TipTapService
+	permissionSvc             *permissions.Service
+	auditLogRepo              *repository.AuditLogRepository
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
@@ -245,6 +248,12 @@ func (h *AdminContentHandler) WithReleaseVersionNoteDeps(repo *repository.Releas
 // damit Fansub-Note-Handler TipTap-Validierung und -Rendering nutzen können.
 func (h *AdminContentHandler) WithTipTapDeps(tiptapSvc *services.TipTapService) *AdminContentHandler {
 	h.tiptapSvc = tiptapSvc
+	return h
+}
+
+func (h *AdminContentHandler) WithPermissionDeps(permissionSvc *permissions.Service, auditLogRepo *repository.AuditLogRepository) *AdminContentHandler {
+	h.permissionSvc = permissionSvc
+	h.auditLogRepo = auditLogRepo
 	return h
 }
 

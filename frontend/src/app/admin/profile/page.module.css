@@ -1,0 +1,100 @@
+.heroGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+}
+
+.avatarCard {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.avatarPreview {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--accent-primary) 18%, transparent), transparent 55%),
+    color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  display: grid;
+  place-items: center;
+}
+
+.avatarPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatarFallback {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.metaGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.metaCard {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.metaLabel {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.metaValue {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.listCard {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.listStack {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.listItem {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.85rem;
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  display: grid;
+  gap: 0.35rem;
+}
+
+.inlineMeta {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.pill {
+  border-radius: 999px;
+  padding: 0.18rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 900px) {
+  .heroGrid {
+    grid-template-columns: 1fr;
+  }
+}

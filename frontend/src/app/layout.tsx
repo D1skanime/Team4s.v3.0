@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { ReactNode } from 'react'
 
+import { AuthSessionSwitchGuard } from '@/components/auth/AuthSessionSwitchGuard'
+import { LocalhostCanonicalRedirect } from '@/components/auth/LocalhostCanonicalRedirect'
 import '@/styles/globals.css'
 
 export const metadata: Metadata = {
@@ -20,7 +22,11 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="de">
-      <body>{children}</body>
+      <body>
+        <LocalhostCanonicalRedirect />
+        <AuthSessionSwitchGuard />
+        {children}
+      </body>
     </html>
   )
 }

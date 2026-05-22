@@ -19,6 +19,8 @@ const (
 	authRefreshKeyPrefix       = "auth:refresh:"
 	authSessionKeyPrefix       = "auth:session:"
 	authRevokedAccessKeyPrefix = "auth:access:revoked:"
+	authOIDCRevokedSIDPrefix   = "auth:oidc:revoked:sid:"
+	authOIDCRevokedSubPrefix   = "auth:oidc:revoked:sub:"
 	authRandomTokenBytes       = 32
 )
 
@@ -235,6 +237,56 @@ func authSessionKey(sessionID string) string {
 
 func authRevokedAccessKey(tokenHash string) string {
 	return authRevokedAccessKeyPrefix + strings.TrimSpace(tokenHash)
+}
+
+func authOIDCRevokedSessionKey(issuer string, sessionID string) string {
+	return authOIDCRevokedSIDPrefix + strings.TrimSpace(issuer) + ":" + strings.TrimSpace(sessionID)
+}
+
+func authOIDCRevokedSubjectKey(issuer string, subject string) string {
+	return authOIDCRevokedSubPrefix + strings.TrimSpace(issuer) + ":" + strings.TrimSpace(subject)
+}
+
+func (r *AuthRepository) RevokeOIDCSession(ctx context.Context, issuer string, sessionID string, ttl time.Duration) error {
+	if strings.TrimSpace(sessionID) == "" || ttl <= 0 {
+		return nil
+	}
+	if err := r.redis.Set(ctx, authOIDCRevokedSessionKey(issuer, sessionID), "1", ttl).Err(); err != nil {
+		return fmt.Errorf("revoke oidc session: %w", err)
+	}
+	return nil
+}
+
+func (r *AuthRepository) RevokeOIDCSubject(ctx context.Context, issuer string, subject string, ttl time.Duration) error {
+	if strings.TrimSpace(subject) == "" || ttl <= 0 {
+		return nil
+	}
+	if err := r.redis.Set(ctx, authOIDCRevokedSubjectKey(issuer, subject), "1", ttl).Err(); err != nil {
+		return fmt.Errorf("revoke oidc subject: %w", err)
+	}
+	return nil
+}
+
+func (r *AuthRepository) IsOIDCSessionRevoked(ctx context.Context, issuer string, sessionID string) (bool, error) {
+	if strings.TrimSpace(sessionID) == "" {
+		return false, nil
+	}
+	count, err := r.redis.Exists(ctx, authOIDCRevokedSessionKey(issuer, sessionID)).Result()
+	if err != nil {
+		return false, fmt.Errorf("check revoked oidc session: %w", err)
+	}
+	return count > 0, nil
+}
+
+func (r *AuthRepository) IsOIDCSubjectRevoked(ctx context.Context, issuer string, subject string) (bool, error) {
+	if strings.TrimSpace(subject) == "" {
+		return false, nil
+	}
+	count, err := r.redis.Exists(ctx, authOIDCRevokedSubjectKey(issuer, subject)).Result()
+	if err != nil {
+		return false, fmt.Errorf("check revoked oidc subject: %w", err)
+	}
+	return count > 0, nil
 }
 
 func randomToken() (string, error) {

@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/disintegration/imaging"
@@ -159,7 +160,7 @@ func parseOptionalCaptionField(rawBody map[string]interface{}) (*string, bool, e
 // Each file is processed independently - a failure on one file does not affect others.
 // Response: {"results": [...]} with one entry per input file.
 func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
+	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
 		return
 	}
@@ -171,6 +172,17 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
 	if err != nil || versionID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige version id"}})
+		return
+	}
+
+	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpload, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Media-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.upload.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionMediaUpload, result)
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -231,6 +243,18 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 		sortOrder := maxSortOrder + (i+1)*10
 		result := h.processOneRVMFile(c, fileHeader, versionID, category, sortOrder, uploadedByUserID)
 		results = append(results, result)
+		if result.Status == "ready" && result.ReleaseVersionMediaID != nil {
+			_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+				ActorAppUserID:    &identity.AppUserID,
+				ActorLegacyUserID: &identity.UserID,
+				EventType:         "release_version_media.uploaded",
+				TargetType:        "release_version_media",
+				TargetID:          result.ReleaseVersionMediaID,
+				Action:            string(permissions.ActionReleaseVersionMediaUpload),
+				Outcome:           "allowed",
+				Payload:           map[string]any{"version_id": versionID, "category": category, "client_file_name": result.ClientFileName},
+			})
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"results": results})
@@ -454,7 +478,8 @@ func (h *AdminContentHandler) buildRVMPublicURL(storagePath string) string {
 // ListReleaseVersionMedia handles GET /api/v1/admin/release-versions/:versionId/media.
 // Returns all non-deleted media for a release version with populated URLs.
 func (h *AdminContentHandler) ListReleaseVersionMedia(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
 		return
 	}
 	if h.mediaRepo == nil {
@@ -465,6 +490,16 @@ func (h *AdminContentHandler) ListReleaseVersionMedia(c *gin.Context) {
 	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
 	if err != nil || versionID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige version id"}})
+		return
+	}
+
+	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaView, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Media-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -512,11 +547,10 @@ func (h *AdminContentHandler) loadReleaseVersionMediaResponseItem(ctx *gin.Conte
 
 // PatchReleaseVersionMedia handles PATCH /api/v1/admin/release-versions/:versionId/media/:relationId.
 func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
+	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
 		return
 	}
-	_ = identity
 	if h.mediaRepo == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfügbar"}})
 		return
@@ -530,6 +564,17 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 	relationID, err := strconv.ParseInt(c.Param("relationId"), 10, 64)
 	if err != nil || relationID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige relation id"}})
+		return
+	}
+
+	result, err := h.permissionSvc.CanForReleaseVersionMedia(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpdate, relationID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Media-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.update.denied", nil, "release_version_media", &relationID, permissions.ActionReleaseVersionMediaUpdate, result)
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -643,12 +688,23 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID:    &identity.AppUserID,
+		ActorLegacyUserID: &identity.UserID,
+		EventType:         "release_version_media.updated",
+		TargetType:        "release_version_media",
+		TargetID:          &relationID,
+		Action:            string(permissions.ActionReleaseVersionMediaUpdate),
+		Outcome:           "allowed",
+		Payload:           map[string]any{"version_id": versionID},
+	})
+
 	c.JSON(http.StatusOK, item)
 }
 
 // DeleteReleaseVersionMedia handles DELETE /api/v1/admin/release-versions/:versionId/media/:relationId.
 func (h *AdminContentHandler) DeleteReleaseVersionMedia(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
+	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
 		return
 	}
@@ -665,6 +721,17 @@ func (h *AdminContentHandler) DeleteReleaseVersionMedia(c *gin.Context) {
 	relationID, err := strconv.ParseInt(c.Param("relationId"), 10, 64)
 	if err != nil || relationID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige relation id"}})
+		return
+	}
+
+	result, err := h.permissionSvc.CanForReleaseVersionMediaDelete(c.Request.Context(), actor, relationID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Media-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.delete.denied", nil, "release_version_media", &relationID, permissions.ActionReleaseVersionMediaDelete, result)
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -691,6 +758,17 @@ func (h *AdminContentHandler) DeleteReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID:    &identity.AppUserID,
+		ActorLegacyUserID: &identity.UserID,
+		EventType:         "release_version_media.deleted",
+		TargetType:        "release_version_media",
+		TargetID:          &relationID,
+		Action:            string(permissions.ActionReleaseVersionMediaDelete),
+		Outcome:           "allowed",
+		Payload:           map[string]any{"version_id": versionID},
+	})
+
 	c.JSON(http.StatusOK, gin.H{"status": "deleted"})
 }
 
@@ -703,9 +781,18 @@ type rvmReorderBody struct {
 	Items []rvmReorderItem `json:"items"`
 }
 
+type releaseVersionCapabilitiesResponse struct {
+	CanViewMedia   bool `json:"can_view_media"`
+	CanUploadMedia bool `json:"can_upload_media"`
+	CanUpdateMedia bool `json:"can_update_media"`
+	CanDeleteMedia bool `json:"can_delete_media"`
+	CanEditNotes   bool `json:"can_edit_notes"`
+}
+
 // ReorderReleaseVersionMedia handles POST /api/v1/admin/release-versions/:versionId/media/reorder.
 func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
 		return
 	}
 	if h.mediaRepo == nil {
@@ -716,6 +803,17 @@ func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
 	if err != nil || versionID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige version id"}})
+		return
+	}
+
+	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpdate, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Media-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.reorder.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionMediaUpdate, result)
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -761,5 +859,72 @@ func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID:    &identity.AppUserID,
+		ActorLegacyUserID: &identity.UserID,
+		EventType:         "release_version_media.reordered",
+		TargetType:        "release_version",
+		TargetID:          &versionID,
+		Action:            string(permissions.ActionReleaseVersionMediaUpdate),
+		Outcome:           "allowed",
+		Payload:           map[string]any{"items": len(body.Items)},
+	})
+
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+func (h *AdminContentHandler) GetReleaseVersionCapabilities(c *gin.Context) {
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return
+	}
+	if h.mediaRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfügbar"}})
+		return
+	}
+
+	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
+	if err != nil || versionID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige version id"}})
+		return
+	}
+
+	canViewMedia, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaView, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canUploadMedia, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpload, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canUpdateMedia, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpdate, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canDeleteMedia, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaDelete, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canEditNotes, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionNotesWrite, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+
+	if !canViewMedia.Allowed && !canUploadMedia.Allowed && !canUpdateMedia.Allowed && !canDeleteMedia.Allowed && !canEditNotes.Allowed {
+		writePermissionDenied(c, canViewMedia)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": releaseVersionCapabilitiesResponse{
+		CanViewMedia:   canViewMedia.Allowed,
+		CanUploadMedia: canUploadMedia.Allowed,
+		CanUpdateMedia: canUpdateMedia.Allowed,
+		CanDeleteMedia: canDeleteMedia.Allowed,
+		CanEditNotes:   canEditNotes.Allowed,
+	}})
 }

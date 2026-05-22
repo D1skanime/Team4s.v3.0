@@ -64,6 +64,36 @@ export interface FansubMember {
   updated_at: string;
 }
 
+export interface AppUserListItem {
+  id: number;
+  legacy_user_id?: number | null;
+  keycloak_subject: string;
+  email: string;
+  display_name: string;
+  preferred_username?: string | null;
+  given_name?: string | null;
+  family_name?: string | null;
+  status: 'pending' | 'active' | 'disabled';
+  last_login_at?: string | null;
+  last_logout_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  global_roles: string[];
+}
+
+export interface FansubAppMember {
+  id: number;
+  fansub_group_id: number;
+  app_user_id: number;
+  status: 'active' | 'disabled';
+  roles: string[];
+  created_by_app_user_id?: number | null;
+  updated_by_app_user_id?: number | null;
+  created_at: string;
+  updated_at: string;
+  app_user?: AppUserListItem | null;
+}
+
 export interface FansubAlias {
   id: number;
   fansub_group_id: number;
@@ -104,6 +134,33 @@ export interface FansubMemberListResponse {
 
 export interface FansubMemberResponse {
   data: FansubMember;
+}
+
+export interface AppUserListResponse {
+  data: AppUserListItem[];
+}
+
+export interface FansubAppMemberListResponse {
+  data: FansubAppMember[];
+}
+
+export interface FansubAppMemberResponse {
+  data: FansubAppMember;
+}
+
+export interface FansubGroupCapabilities {
+  can_edit_group: boolean;
+  can_manage_links: boolean;
+  can_view_members: boolean;
+  can_manage_members: boolean;
+  can_edit_notes: boolean;
+  can_view_invitations: boolean;
+  can_create_invitation: boolean;
+  can_cancel_invitation: boolean;
+}
+
+export interface FansubGroupCapabilitiesResponse {
+  data: FansubGroupCapabilities;
 }
 
 export interface FansubAliasListResponse {
@@ -179,6 +236,110 @@ export interface FansubMemberPatchRequest {
   until_year?: number | null;
   notes?: string | null;
 }
+
+export interface FansubAppMemberCreateRequest {
+  app_user_id: number;
+  roles: string[];
+}
+
+export interface FansubLeadUpdateRequest {
+  enabled: boolean;
+}
+
+export interface FansubAppMemberRoleUpdateRequest {
+  role: string;
+  enabled: boolean;
+}
+
+export interface FansubAppMemberStatusUpdateRequest {
+  status: 'active' | 'disabled';
+}
+
+export interface FansubAppMemberCandidateSearchResponse {
+  data: AppUserListItem[];
+}
+
+export interface FansubGroupInvitation {
+  id: number;
+  fansub_group_id: number;
+  email: string;
+  invited_role_codes: FansubGroupRoleCode[];
+  status: 'pending' | 'accepted' | 'cancelled' | 'expired';
+  expires_at: string;
+  created_by_app_user_id?: number | null;
+  accepted_by_app_user_id?: number | null;
+  cancelled_by_app_user_id?: number | null;
+  accepted_at?: string | null;
+  cancelled_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FansubGroupInvitationListResponse {
+  data: FansubGroupInvitation[];
+}
+
+export interface FansubGroupInvitationCreateRequest {
+  email: string;
+  invited_role_codes: FansubGroupRoleCode[];
+}
+
+export interface FansubGroupInvitationCreateResponse {
+  data: {
+    id: number;
+    email: string;
+    invited_role_codes: FansubGroupRoleCode[];
+    status: 'pending' | 'accepted' | 'cancelled' | 'expired';
+    expires_at: string;
+    invite_link: string;
+  };
+}
+
+export interface FansubGroupInvitationResponse {
+  data: FansubGroupInvitation;
+}
+
+export interface AcceptFansubInvitationRequest {
+  token: string;
+}
+
+export interface AcceptFansubInvitationResponse {
+  data: {
+    accepted: boolean;
+    fansub_group_id: number;
+  };
+}
+
+export type FansubGroupRoleCode =
+  | 'fansub_lead'
+  | 'project_lead'
+  | 'translator'
+  | 'timer'
+  | 'typesetter'
+  | 'editor'
+  | 'encoder'
+  | 'raw_provider'
+  | 'quality_checker'
+  | 'designer';
+
+export interface FansubGroupRoleOption {
+  code: FansubGroupRoleCode;
+  label: string;
+  description: string;
+}
+
+export const FANSUB_GROUP_ROLE_OPTIONS: FansubGroupRoleOption[] = [
+  { code: 'fansub_lead', label: 'Fansub-Lead', description: 'Voller Gruppenkontext inklusive Mitgliederverwaltung.' },
+  { code: 'project_lead', label: 'Projektleitung', description: 'Kann Projekte koordinieren, aber keine Mitglieder verwalten.' },
+  { code: 'translator', label: 'Übersetzung', description: 'Arbeitet an Text und Release-Notizen.' },
+  { code: 'timer', label: 'Timing', description: 'Pflegt Timing-bezogene Release-Arbeit.' },
+  { code: 'typesetter', label: 'Typesetting', description: 'Bearbeitet Typesetting und Version-Notizen.' },
+  { code: 'editor', label: 'Editing', description: 'Bearbeitet Inhalte und Gruppennotizen.' },
+  { code: 'encoder', label: 'Encoding', description: 'Bearbeitet Release-Versionen ohne Mitgliederrechte.' },
+  { code: 'raw_provider', label: 'Raw-Quelle', description: 'Liefert Quellmaterial ohne Verwaltungsrechte.' },
+  { code: 'quality_checker', label: 'Qualitätscheck', description: 'Prüft Medien und Release-Notizen.' },
+  { code: 'designer', label: 'Design', description: 'Arbeitet an Release-Medien und eigenen Uploads.' },
+];
 
 export interface FansubAliasCreateRequest {
   alias: string;

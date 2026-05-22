@@ -4,9 +4,11 @@ import "time"
 
 // AdminFansubAnimeEntry beschreibt einen Anime-Eintrag in der Fansub-Adminansicht.
 type AdminFansubAnimeEntry struct {
-	ID         int64   `json:"id"`
-	Title      string  `json:"title"`
-	CoverImage *string `json:"cover_image,omitempty"`
+	ID          int64   `json:"id"`
+	Title       string  `json:"title"`
+	Type        string  `json:"type"`
+	HeaderImage *string `json:"header_image,omitempty"`
+	CoverImage  *string `json:"cover_image,omitempty"`
 }
 
 // AdminReleaseThemeAsset beschreibt ein Theme-Video eines Fansub-Releases.

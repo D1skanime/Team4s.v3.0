@@ -21,6 +21,14 @@ func validateRuntimeConfig(cfg config.Config) {
 	if strings.TrimSpace(cfg.AuthTokenSecret) == "" {
 		log.Fatal("AUTH_TOKEN_SECRET is required")
 	}
+	if cfg.KeycloakEnabled {
+		if strings.TrimSpace(cfg.KeycloakIssuerURL) == "" {
+			log.Fatal("KEYCLOAK_ISSUER_URL is required when KEYCLOAK_ENABLED=true")
+		}
+		if strings.TrimSpace(cfg.KeycloakClientID) == "" {
+			log.Fatal("KEYCLOAK_CLIENT_ID is required when KEYCLOAK_ENABLED=true")
+		}
+	}
 	if cfg.AuthAccessTokenTTLSeconds <= 0 {
 		log.Fatal("AUTH_ACCESS_TOKEN_TTL_SECONDS must be greater than 0")
 	}

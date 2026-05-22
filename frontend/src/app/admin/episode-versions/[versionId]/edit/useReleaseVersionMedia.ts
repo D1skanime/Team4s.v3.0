@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ApiError,
+  getReleaseVersionCapabilities,
   deleteReleaseVersionMediaItem,
   getReleaseVersionMedia,
   patchReleaseVersionMediaItem,
@@ -11,6 +12,7 @@ import {
 } from '@/lib/api'
 import {
   ReleaseVersionMediaCategory,
+  ReleaseVersionCapabilities,
   ReleaseVersionMediaItem,
   ReleaseVersionMediaPatchRequest,
   ReleaseVersionMediaReorderRequest,
@@ -50,6 +52,8 @@ export interface UseReleaseVersionMediaResult {
   patchError: string | null
   deleteError: string | null
   reorderError: string | null
+  capabilities?: ReleaseVersionCapabilities | null
+  capabilitiesError?: string | null
 }
 
 function sortMediaItems(items: ReleaseVersionMediaItem[]): ReleaseVersionMediaItem[] {
@@ -88,6 +92,8 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
   const [patchError, setPatchError] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [reorderError, setReorderError] = useState<string | null>(null)
+  const [capabilities, setCapabilities] = useState<ReleaseVersionCapabilities | null>(null)
+  const [capabilitiesError, setCapabilitiesError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const lastUploadConfigRef = useRef<UploadConfig | null>(null)
   const itemsRef = useRef<ReleaseVersionMediaItem[]>([])
@@ -370,22 +376,30 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
     if (versionId === null) {
       setItems([])
       setError(null)
+      setCapabilities(null)
+      setCapabilitiesError(null)
       return
     }
 
     let cancelled = false
     setIsLoading(true)
     setError(null)
+    setCapabilitiesError(null)
 
-    getReleaseVersionMedia(versionId)
-      .then((response) => {
+    Promise.all([
+      getReleaseVersionMedia(versionId),
+      getReleaseVersionCapabilities(versionId),
+    ])
+      .then(([response, capabilitiesResponse]) => {
         if (cancelled) return
         setItems(sortMediaItems(Array.isArray(response.data) ? response.data : []))
+        setCapabilities(capabilitiesResponse.data)
       })
       .catch((err: unknown) => {
         if (cancelled) return
         const message = err instanceof Error ? err.message : String(err)
         setError(message)
+        setCapabilitiesError(message)
       })
       .finally(() => {
         if (!cancelled) {
@@ -413,5 +427,7 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
     patchError,
     deleteError,
     reorderError,
+    capabilities,
+    capabilitiesError,
   }
 }

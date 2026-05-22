@@ -254,7 +254,7 @@ export function ManualCreateAssetUploadPanel(
             {stagedBackgrounds.length > 0 ? (
               <div className={styles.stack}>
                 {stagedBackgrounds.map((entry, index) => (
-                  <div key={`${entry.draftValue}-${index}`} className={styles.coverMetaBlock}>
+                  <div key={`${entry.file.name}:${entry.file.size}:${entry.file.lastModified}`} className={styles.coverMetaBlock}>
                     <span className={styles.coverMetaLabel}>
                       Background {index + 1}
                     </span>

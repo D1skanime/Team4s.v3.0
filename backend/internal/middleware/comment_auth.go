@@ -27,11 +27,18 @@ var localBypassIdentity *AuthIdentity
 // AuthIdentity enthält die verifizierten Identitätsdaten eines authentifizierten Benutzers,
 // wie sie im Gin-Kontext nach erfolgreicher Token-Prüfung abgelegt werden.
 type AuthIdentity struct {
-	UserID      int64  // Eindeutige Benutzer-ID
-	DisplayName string // Anzeigename des Benutzers
-	SessionID   string // Session-ID für Widerrufsprüfungen
-	ExpiresAt   int64  // Unix-Zeitstempel des Token-Ablaufs
-	TokenHash   string // SHA-256-Hash des Tokens für Redis-Widerruf-Lookups
+	UserID           int64    // Legacy users.id für bestehende Runtime-Seams
+	DisplayName      string   // Anzeigename des Benutzers
+	SessionID        string   // Session-ID für Widerrufsprüfungen
+	ExpiresAt        int64    // Unix-Zeitstempel des Token-Ablaufs
+	TokenHash        string   // SHA-256-Hash des Tokens für Redis-Widerruf-Lookups
+	AppUserID        int64    // Kanonischer app_users.id Principal für Phase 43+
+	KeycloakSubject  string   // Externe OIDC-Subject-Bindung
+	Email            string   // Primäre E-Mail aus dem Identity Provider
+	AppUserStatus    string   // pending | active | disabled
+	GlobalRoles      []string // Team4s-eigene globale Rollen
+	IsPlatformAdmin  bool     // Vorberechneter Plattform-Admin-Status
+	LegacyUserLinked bool     // Zeigt an, ob eine users.id-Bridge existiert
 }
 
 // ConfigureLocalAuthBypass konfiguriert eine globale Bypass-Identität für lokale Entwicklung,
@@ -359,11 +366,18 @@ func CommentAuthIdentityFromContext(c *gin.Context) (AuthIdentity, bool) {
 	}
 
 	return AuthIdentity{
-		UserID:      identity.UserID,
-		DisplayName: displayName,
-		SessionID:   strings.TrimSpace(identity.SessionID),
-		ExpiresAt:   identity.ExpiresAt,
-		TokenHash:   strings.TrimSpace(identity.TokenHash),
+		UserID:           identity.UserID,
+		DisplayName:      displayName,
+		SessionID:        strings.TrimSpace(identity.SessionID),
+		ExpiresAt:        identity.ExpiresAt,
+		TokenHash:        strings.TrimSpace(identity.TokenHash),
+		AppUserID:        identity.AppUserID,
+		KeycloakSubject:  strings.TrimSpace(identity.KeycloakSubject),
+		Email:            strings.TrimSpace(identity.Email),
+		AppUserStatus:    strings.TrimSpace(identity.AppUserStatus),
+		GlobalRoles:      append([]string(nil), identity.GlobalRoles...),
+		IsPlatformAdmin:  identity.IsPlatformAdmin,
+		LegacyUserLinked: identity.LegacyUserLinked,
 	}, true
 }
 

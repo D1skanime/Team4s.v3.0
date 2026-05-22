@@ -17,6 +17,8 @@ interface ReleaseVersionMediaDetailPanelProps {
   onClose: () => void
   onPatch: (mediaId: number, patch: ReleaseVersionMediaPatchRequest) => Promise<void>
   onDelete: (mediaId: number) => Promise<void>
+  canEdit: boolean
+  canDelete: boolean
 }
 
 function readError(error: unknown, fallback: string): string {
@@ -32,6 +34,8 @@ export function ReleaseVersionMediaDetailPanel({
   onClose,
   onPatch,
   onDelete,
+  canEdit,
+  canDelete,
 }: ReleaseVersionMediaDetailPanelProps) {
   const [caption, setCaption] = useState(item.caption ?? '')
   const [localError, setLocalError] = useState<string | null>(null)
@@ -114,6 +118,7 @@ export function ReleaseVersionMediaDetailPanel({
           className={styles.input}
           value={caption}
           onChange={(event) => setCaption(event.target.value)}
+          disabled={!canEdit}
         />
       </label>
       <div className={styles.buttonRow}>
@@ -121,7 +126,7 @@ export function ReleaseVersionMediaDetailPanel({
           type="button"
           className={styles.buttonPrimary}
           onClick={() => void saveCaption()}
-          disabled={isSaving || isDeleting}
+          disabled={!canEdit || isSaving || isDeleting}
         >
           Beschreibung speichern
         </button>
@@ -132,7 +137,7 @@ export function ReleaseVersionMediaDetailPanel({
           <input
             type="checkbox"
             checked={item.is_preview_candidate}
-            disabled={isSaving || isDeleting}
+            disabled={!canEdit || isSaving || isDeleting}
             onChange={(event) => void togglePreview(event.target.checked)}
           />
           <span>Als Preview aktiv</span>
@@ -146,7 +151,7 @@ export function ReleaseVersionMediaDetailPanel({
           type="button"
           className={styles.buttonSecondary}
           onClick={() => void handleDelete()}
-          disabled={isSaving || isDeleting}
+          disabled={!canDelete || isSaving || isDeleting}
         >
           {isDeleting ? 'Löschen...' : 'Medium löschen'}
         </button>

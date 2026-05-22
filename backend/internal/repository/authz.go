@@ -80,3 +80,78 @@ func (r *AuthzRepository) AssignRole(ctx context.Context, userID int64, roleName
 
 	return nil
 }
+
+func (r *AuthzRepository) AppUserHasGlobalRole(ctx context.Context, appUserID int64, roleName string) (bool, error) {
+	if appUserID <= 0 {
+		return false, nil
+	}
+	if strings.TrimSpace(roleName) == "" {
+		return false, nil
+	}
+
+	var exists bool
+	err := r.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1
+			FROM app_user_global_roles
+			WHERE app_user_id = $1 AND role = $2
+		)
+	`, appUserID, strings.TrimSpace(roleName)).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("check app role %q for app user %d: %w", roleName, appUserID, err)
+	}
+
+	return exists, nil
+}
+
+func (r *AuthzRepository) ListAppUserGlobalRoles(ctx context.Context, appUserID int64) ([]string, error) {
+	if appUserID <= 0 {
+		return nil, nil
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT role
+		FROM app_user_global_roles
+		WHERE app_user_id = $1
+		ORDER BY role
+	`, appUserID)
+	if err != nil {
+		return nil, fmt.Errorf("list app roles for app user %d: %w", appUserID, err)
+	}
+	defer rows.Close()
+
+	roles := make([]string, 0)
+	for rows.Next() {
+		var role string
+		if err := rows.Scan(&role); err != nil {
+			return nil, fmt.Errorf("list app roles for app user %d: scan: %w", appUserID, err)
+		}
+		roles = append(roles, strings.TrimSpace(role))
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list app roles for app user %d: iterate: %w", appUserID, err)
+	}
+
+	return roles, nil
+}
+
+func (r *AuthzRepository) AssignAppUserGlobalRole(ctx context.Context, appUserID int64, roleName string) error {
+	if appUserID <= 0 {
+		return fmt.Errorf("assign app role: invalid app user id %d", appUserID)
+	}
+
+	role := strings.TrimSpace(roleName)
+	if role == "" {
+		return fmt.Errorf("assign app role: role name is required")
+	}
+
+	if _, err := r.db.Exec(ctx, `
+		INSERT INTO app_user_global_roles (app_user_id, role)
+		VALUES ($1, $2)
+		ON CONFLICT (app_user_id, role) DO NOTHING
+	`, appUserID, role); err != nil {
+		return fmt.Errorf("assign app role %q to app user %d: %w", role, appUserID, err)
+	}
+
+	return nil
+}

@@ -1,0 +1,83 @@
+{
+  "realm": "team4s",
+  "enabled": true,
+  "displayName": "Team4s Local",
+  "registrationAllowed": true,
+  "resetPasswordAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "platform_admin",
+        "description": "Global realm role for local bootstrap only. Team4s still authorizes in its own database."
+      },
+      {
+        "name": "content_admin",
+        "description": "Global realm role for local bootstrap only. Team4s still authorizes in its own database."
+      },
+      {
+        "name": "user",
+        "description": "Default local login role."
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "team4s-frontend",
+      "name": "Team4s Frontend",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://127.0.0.1:3002/auth"
+      ],
+      "webOrigins": [
+        "http://127.0.0.1:3002"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "true"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "phase43-admin",
+      "enabled": true,
+      "email": "phase43-admin@example.local",
+      "emailVerified": true,
+      "firstName": "Phase",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Team4s123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "phase43-member",
+      "enabled": true,
+      "email": "phase43-member@example.local",
+      "emailVerified": true,
+      "firstName": "Phase",
+      "lastName": "Member",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Team4s123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    }
+  ]
+}

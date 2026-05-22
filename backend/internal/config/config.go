@@ -8,40 +8,45 @@ import (
 
 // Config enthält alle Laufzeit-Konfigurationswerte, die beim Serverstart aus Umgebungsvariablen gelesen werden.
 type Config struct {
-	Port                         string  // HTTP-Port auf dem der Server lauscht
-	RuntimeProfile               string  // Laufzeitprofil (z.B. "local", "production")
-	DatabaseURL                  string  // PostgreSQL-Verbindungs-URL
-	AuthTokenSecret              string  // HMAC-Geheimnis für JWT-ähnliche Token
-	AuthAdminRoleName            string  // Rollenname für Admin-Zugriffsprüfung
-	AuthAdminBootstrapUserIDs    []int64 // Benutzer-IDs, denen beim Start die Admin-Rolle zugewiesen wird
-	EmbyAPIKey                   string  // API-Schlüssel für den Emby-Mediaserver
-	EmbyStreamBaseURL            string  // Basis-URL des Emby-Streamingendpunkts
-	EmbyStreamPathTemplate       string  // Pfadvorlage für Emby-Videostreams
-	EmbyAllowedAnimeIDs          []int64 // Erlaubte Anime-IDs für den Emby-Zugriff
-	JellyfinAPIKey               string  // API-Schlüssel für den Jellyfin-Mediaserver
-	JellyfinBaseURL              string  // Basis-URL des Jellyfin-Servers
+	Port                         string   // HTTP-Port auf dem der Server lauscht
+	RuntimeProfile               string   // Laufzeitprofil (z.B. "local", "production")
+	DatabaseURL                  string   // PostgreSQL-Verbindungs-URL
+	AuthTokenSecret              string   // HMAC-Geheimnis für JWT-ähnliche Token
+	KeycloakEnabled              bool     // Aktiviert Keycloak/OIDC als primären Auth-Seam
+	KeycloakIssuerURL            string   // OIDC-Issuer-URL für JWT-Validierung
+	KeycloakDiscoveryURL         string   // Optionaler interner Discovery-Endpunkt fÃ¼r OIDC-Metadaten/JWKS
+	KeycloakClientID             string   // OIDC-Client-ID der Frontend-App
+	KeycloakAccountURL           string   // Optionale URL zur Keycloak-Account-Konsole
+	AuthAdminRoleName            string   // Rollenname für Admin-Zugriffsprüfung
+	AuthAdminBootstrapUserIDs    []int64  // Benutzer-IDs, denen beim Start die Admin-Rolle zugewiesen wird
+	EmbyAPIKey                   string   // API-Schlüssel für den Emby-Mediaserver
+	EmbyStreamBaseURL            string   // Basis-URL des Emby-Streamingendpunkts
+	EmbyStreamPathTemplate       string   // Pfadvorlage für Emby-Videostreams
+	EmbyAllowedAnimeIDs          []int64  // Erlaubte Anime-IDs für den Emby-Zugriff
+	JellyfinAPIKey               string   // API-Schlüssel für den Jellyfin-Mediaserver
+	JellyfinBaseURL              string   // Basis-URL des Jellyfin-Servers
 	JellyfinStreamPathTemplate   string   // Pfadvorlage für Jellyfin-Videostreams
 	JellyfinAllowedLibraryIDs    []string // Optionale Whitelist von Jellyfin-Bibliotheks-IDs (JELLYFIN_ALLOWED_LIBRARY_IDS, kommagetrennt)
-	AuthAccessTokenTTLSeconds    int     // Gültigkeitsdauer des Access-Tokens in Sekunden
-	AuthRefreshTokenTTLSeconds   int     // Gültigkeitsdauer des Refresh-Tokens in Sekunden
-	RedisAddr                    string  // Redis-Serveradresse (Host:Port)
-	RedisPassword                string  // Redis-Passwort (leer = kein Passwort)
-	RedisDB                      int     // Redis-Datenbanknummer
-	AuthIssueDevMode             bool    // Aktiviert den Dev-Token-Ausstellungsendpunkt (nur lokal erlaubt)
-	AuthIssueDevUserID           int64   // Benutzer-ID für Dev-Token
-	AuthIssueDevDisplayName      string  // Anzeigename für Dev-Token
-	AuthIssueDevKey              string  // Schlüssel zum Absichern des Dev-Token-Endpunkts
-	AuthBypassLocal              bool    // Überspringt Auth-Middleware im lokalen Profil
-	ReleaseStreamGrantSecret     string  // Geheimnis für Release-Stream-Grants (fällt auf AuthTokenSecret zurück)
-	ReleaseStreamGrantTTLSeconds int     // Gültigkeitsdauer von Release-Stream-Grants in Sekunden
-	EpisodePlaybackRateLimit     int     // Maximale Wiedergabeanfragen pro Zeitfenster
-	EpisodePlaybackRateWindowSec int     // Länge des Rate-Limit-Zeitfensters in Sekunden
-	EpisodePlaybackMaxConcurrent int     // Maximale gleichzeitige Streams pro Nutzer
-	MediaStorageDir              string  // Lokales Verzeichnis für hochgeladene Mediendateien
-	MediaPublicBaseURL           string  // Öffentliche Basis-URL für die Medienauslieferung
-	FFmpegPath                   string  // Dateipfad zur FFmpeg-Binärdatei
-	TMDBAPIKey                   string  // API-Schlüssel für The Movie Database (TMDB)
-	FanartAPIKey                 string  // API-Schlüssel für fanart.tv
+	AuthAccessTokenTTLSeconds    int      // Gültigkeitsdauer des Access-Tokens in Sekunden
+	AuthRefreshTokenTTLSeconds   int      // Gültigkeitsdauer des Refresh-Tokens in Sekunden
+	RedisAddr                    string   // Redis-Serveradresse (Host:Port)
+	RedisPassword                string   // Redis-Passwort (leer = kein Passwort)
+	RedisDB                      int      // Redis-Datenbanknummer
+	AuthIssueDevMode             bool     // Aktiviert den Dev-Token-Ausstellungsendpunkt (nur lokal erlaubt)
+	AuthIssueDevUserID           int64    // Benutzer-ID für Dev-Token
+	AuthIssueDevDisplayName      string   // Anzeigename für Dev-Token
+	AuthIssueDevKey              string   // Schlüssel zum Absichern des Dev-Token-Endpunkts
+	AuthBypassLocal              bool     // Überspringt Auth-Middleware im lokalen Profil
+	ReleaseStreamGrantSecret     string   // Geheimnis für Release-Stream-Grants (fällt auf AuthTokenSecret zurück)
+	ReleaseStreamGrantTTLSeconds int      // Gültigkeitsdauer von Release-Stream-Grants in Sekunden
+	EpisodePlaybackRateLimit     int      // Maximale Wiedergabeanfragen pro Zeitfenster
+	EpisodePlaybackRateWindowSec int      // Länge des Rate-Limit-Zeitfensters in Sekunden
+	EpisodePlaybackMaxConcurrent int      // Maximale gleichzeitige Streams pro Nutzer
+	MediaStorageDir              string   // Lokales Verzeichnis für hochgeladene Mediendateien
+	MediaPublicBaseURL           string   // Öffentliche Basis-URL für die Medienauslieferung
+	FFmpegPath                   string   // Dateipfad zur FFmpeg-Binärdatei
+	TMDBAPIKey                   string   // API-Schlüssel für The Movie Database (TMDB)
+	FanartAPIKey                 string   // API-Schlüssel für fanart.tv
 }
 
 // Load liest alle Konfigurationswerte aus Umgebungsvariablen und gibt eine fertig befüllte Config zurück.
@@ -54,6 +59,11 @@ func Load() Config {
 		RuntimeProfile:               getEnv("RUNTIME_PROFILE", "local"),
 		DatabaseURL:                  os.Getenv("DATABASE_URL"),
 		AuthTokenSecret:              os.Getenv("AUTH_TOKEN_SECRET"),
+		KeycloakEnabled:              getEnvBool("KEYCLOAK_ENABLED", false),
+		KeycloakIssuerURL:            strings.TrimSpace(os.Getenv("KEYCLOAK_ISSUER_URL")),
+		KeycloakDiscoveryURL:         strings.TrimSpace(os.Getenv("KEYCLOAK_DISCOVERY_URL")),
+		KeycloakClientID:             strings.TrimSpace(os.Getenv("KEYCLOAK_CLIENT_ID")),
+		KeycloakAccountURL:           strings.TrimSpace(os.Getenv("KEYCLOAK_ACCOUNT_URL")),
 		AuthAdminRoleName:            getEnv("AUTH_ADMIN_ROLE_NAME", "admin"),
 		AuthAdminBootstrapUserIDs:    bootstrapAdminUserIDs,
 		EmbyAPIKey:                   strings.TrimSpace(os.Getenv("EMBY_API_KEY")),

@@ -73,3 +73,15 @@ export interface ReleaseVersionMediaReorderItem {
 export interface ReleaseVersionMediaReorderRequest {
   items: ReleaseVersionMediaReorderItem[]
 }
+
+export interface ReleaseVersionCapabilities {
+  can_view_media: boolean
+  can_upload_media: boolean
+  can_update_media: boolean
+  can_delete_media: boolean
+  can_edit_notes: boolean
+}
+
+export interface ReleaseVersionCapabilitiesResponse {
+  data: ReleaseVersionCapabilities
+}

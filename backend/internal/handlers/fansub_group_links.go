@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -34,7 +35,7 @@ func (h *FansubHandler) ListFansubLinks(c *gin.Context) {
 }
 
 func (h *FansubHandler) CreateFansubLink(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
+	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
 		return
 	}
@@ -42,6 +43,17 @@ func (h *FansubHandler) CreateFansubLink(c *gin.Context) {
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
 		badRequest(c, "ungültige fansub id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupLinksManage, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Link-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_link.create.denied", &fansubID, "fansub_group", &fansubID, permissions.ActionFansubGroupLinksManage, result)
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -73,11 +85,23 @@ func (h *FansubHandler) CreateFansubLink(c *gin.Context) {
 		return
 	}
 
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID:    &identity.AppUserID,
+		EventType:         "fansub_group_link.created",
+		ScopeType:         permissions.ScopeTypeGroup,
+		ScopeID:           &fansubID,
+		TargetType:        "fansub_group_link",
+		TargetID:          &item.ID,
+		Action:            string(permissions.ActionFansubGroupLinksManage),
+		Outcome:           "allowed",
+		Payload:           map[string]any{"link_type": item.LinkType},
+	})
+
 	c.JSON(http.StatusCreated, gin.H{"data": item})
 }
 
 func (h *FansubHandler) UpdateFansubLink(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
+	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
 		return
 	}
@@ -93,12 +117,35 @@ func (h *FansubHandler) UpdateFansubLink(c *gin.Context) {
 		return
 	}
 
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupLinksManage, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Link-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_link.update.denied", &fansubID, "fansub_group_link", &linkID, permissions.ActionFansubGroupLinksManage, result)
+		writePermissionDenied(c, result)
+		return
+	}
+
 	var req fansubGroupLinkPatchRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("fansub link update: bad request (user_id=%d, fansub_id=%d, link_id=%d): %v", identity.UserID, fansubID, linkID, err)
 		badRequest(c, "ungültiger request body")
 		return
 	}
+
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID:    &identity.AppUserID,
+		EventType:         "fansub_group_link.updated",
+		ScopeType:         permissions.ScopeTypeGroup,
+		ScopeID:           &fansubID,
+		TargetType:        "fansub_group_link",
+		TargetID:          &linkID,
+		Action:            string(permissions.ActionFansubGroupLinksManage),
+		Outcome:           "allowed",
+		Payload:           map[string]any{"link_type_set": req.LinkType.Set, "url_set": req.URL.Set},
+	})
 
 	input, validationMessage := validateFansubGroupLinkPatchRequest(req)
 	if validationMessage != "" {
@@ -125,7 +172,7 @@ func (h *FansubHandler) UpdateFansubLink(c *gin.Context) {
 }
 
 func (h *FansubHandler) DeleteFansubLink(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
+	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
 		return
 	}
@@ -141,6 +188,17 @@ func (h *FansubHandler) DeleteFansubLink(c *gin.Context) {
 		return
 	}
 
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupLinksManage, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Link-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_link.delete.denied", &fansubID, "fansub_group_link", &linkID, permissions.ActionFansubGroupLinksManage, result)
+		writePermissionDenied(c, result)
+		return
+	}
+
 	if err := h.fansubRepo.DeleteGroupLink(c.Request.Context(), fansubID, linkID); errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "fansub-link nicht gefunden"}})
 		return
@@ -149,6 +207,18 @@ func (h *FansubHandler) DeleteFansubLink(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
 		return
 	}
+
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID:    &identity.AppUserID,
+		EventType:         "fansub_group_link.deleted",
+		ScopeType:         permissions.ScopeTypeGroup,
+		ScopeID:           &fansubID,
+		TargetType:        "fansub_group_link",
+		TargetID:          &linkID,
+		Action:            string(permissions.ActionFansubGroupLinksManage),
+		Outcome:           "allowed",
+		Payload:           map[string]any{},
+	})
 
 	c.Status(http.StatusNoContent)
 }

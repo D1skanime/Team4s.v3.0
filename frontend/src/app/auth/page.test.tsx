@@ -79,4 +79,14 @@ describe('AuthPage', () => {
     expect(await screen.findByText('Phase Admin')).not.toBeNull()
   })
 
+  it('shows the Keycloak login action as completed while a user is signed in', async () => {
+    render(<AuthPage />)
+
+    const signedInButton = await screen.findByRole('button', { name: 'Angemeldet' })
+
+    expect(signedInButton).not.toBeNull()
+    expect((signedInButton as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.queryByRole('button', { name: 'Mit Keycloak anmelden' })).toBeNull()
+  })
+
 })

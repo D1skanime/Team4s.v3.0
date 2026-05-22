@@ -21,6 +21,8 @@ RUN apk add --no-cache vips
 
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/migrate ./migrate
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 EXPOSE 8092
-CMD ["./server"]
+CMD ["./docker-entrypoint.sh"]

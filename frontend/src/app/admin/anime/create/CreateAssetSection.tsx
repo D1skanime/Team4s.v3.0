@@ -185,7 +185,7 @@ export function CreateAssetSection({
 
       return (
         <CreateAssetCard
-          key={`jellyfin-bg-${index}`}
+          key={`jellyfin-bg-${slot.url}`}
           label={`Background ${stagedBackgrounds.length + index + 1}`}
           variant="background"
           previewUrl={url}

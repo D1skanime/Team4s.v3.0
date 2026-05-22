@@ -117,3 +117,26 @@
   color: var(--text-secondary);
   font-size: 0.9rem;
 }
+
+.identityCard {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--surface-color) 95%, white 5%);
+  padding: 0.8rem;
+}
+
+.identityCard div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.identityCard span {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

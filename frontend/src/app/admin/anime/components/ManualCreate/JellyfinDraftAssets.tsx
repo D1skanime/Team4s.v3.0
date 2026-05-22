@@ -103,7 +103,7 @@ export function JellyfinDraftAssets({ animeTitle, assetSlots, onRemoveAsset }: J
           {assetSlots.backgrounds.length > 0 ? (
             <div className={styles.gridTwo}>
               {assetSlots.backgrounds.map((slot, index) => (
-                <div key={`${slot.kind}-${slot.index ?? index}`} className={styles.details}>
+                <div key={`${slot.kind}-${slot.url}`} className={styles.details}>
                   {renderAssetPreview(animeTitle, 'background', slot.url)}
                   <p className={styles.hint}>Background {index + 1}</p>
                   <div className={styles.actions}>

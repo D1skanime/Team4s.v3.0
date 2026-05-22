@@ -10,7 +10,7 @@ const createMemberGroupStoryMock = vi.fn()
 const deleteFansubGroupNoteMock = vi.fn()
 const deleteMemberGroupStoryMock = vi.fn()
 const getMemberGroupStoryContextMock = vi.fn()
-const getRuntimeAuthTokenMock = vi.fn()
+const getAuthSessionSnapshotMock = vi.fn()
 const getRuntimeDisplayNameMock = vi.fn()
 const listFansubGroupNotesMock = vi.fn()
 const listMemberGroupStoriesMock = vi.fn()
@@ -60,7 +60,9 @@ vi.mock('@/lib/api', () => ({
   deleteFansubGroupNote: (...args: unknown[]) => deleteFansubGroupNoteMock(...args),
   deleteMemberGroupStory: (...args: unknown[]) => deleteMemberGroupStoryMock(...args),
   getMemberGroupStoryContext: (...args: unknown[]) => getMemberGroupStoryContextMock(...args),
-  getRuntimeAuthToken: (...args: unknown[]) => getRuntimeAuthTokenMock(...args),
+  API_AUTH_SESSION_TOKEN: 'runtime-auth',
+  AUTH_SESSION_CHANGED_EVENT: 'team4s:auth-session-changed',
+  getAuthSessionSnapshot: (...args: unknown[]) => getAuthSessionSnapshotMock(...args),
   getRuntimeDisplayName: (...args: unknown[]) => getRuntimeDisplayNameMock(...args),
   listFansubGroupNotes: (...args: unknown[]) => listFansubGroupNotesMock(...args),
   listMemberGroupStories: (...args: unknown[]) => listMemberGroupStoriesMock(...args),
@@ -145,7 +147,7 @@ function makeStory(overrides: Partial<MemberGroupStory> = {}): MemberGroupStory 
 
 describe('NotesTab', () => {
   it('lädt Gruppennotizen und Mitgliedergeschichten parallel', async () => {
-    getRuntimeAuthTokenMock.mockResolvedValue('token-1')
+    getAuthSessionSnapshotMock.mockReturnValue({ hasAccessToken: true, hasRefreshToken: true, displayName: 'LocalAdmin' })
     getRuntimeDisplayNameMock.mockReturnValue('LocalAdmin')
     listFansubGroupNotesMock.mockResolvedValue([makeGroupNote()])
     listMemberGroupStoriesMock.mockResolvedValue([makeStory()])
@@ -156,13 +158,13 @@ describe('NotesTab', () => {
     expect(await screen.findByText('Wie alles begann')).not.toBeNull()
     expect(await screen.findByText('Meine Zeit als Typesetter')).not.toBeNull()
     expect(screen.getAllByRole('button', { name: /bearbeiten/i }).length).toBeGreaterThan(0)
-    expect(listFansubGroupNotesMock).toHaveBeenCalledWith(8, 'token-1')
-    expect(listMemberGroupStoriesMock).toHaveBeenCalledWith(8, 'token-1')
-    expect(getMemberGroupStoryContextMock).toHaveBeenCalledWith(8, 'token-1')
+    expect(listFansubGroupNotesMock).toHaveBeenCalledWith(8)
+    expect(listMemberGroupStoriesMock).toHaveBeenCalledWith(8)
+    expect(getMemberGroupStoryContextMock).toHaveBeenCalledWith(8)
   })
 
   it('legt eine neue Gruppennotiz über den bestehenden Save-Flow an', async () => {
-    getRuntimeAuthTokenMock.mockResolvedValue('token-2')
+    getAuthSessionSnapshotMock.mockReturnValue({ hasAccessToken: true, hasRefreshToken: true, displayName: 'LocalAdmin' })
     getRuntimeDisplayNameMock.mockReturnValue('LocalAdmin')
     listFansubGroupNotesMock.mockResolvedValue([])
     listMemberGroupStoriesMock.mockResolvedValue([])
@@ -200,7 +202,6 @@ describe('NotesTab', () => {
           status: 'draft',
           sortOrder: 0,
         },
-        'token-2',
       )
     })
 
@@ -209,7 +210,7 @@ describe('NotesTab', () => {
   })
 
   it('deaktiviert neue geschichten ohne verfügbare mitglieder', async () => {
-    getRuntimeAuthTokenMock.mockResolvedValue('token-3')
+    getAuthSessionSnapshotMock.mockReturnValue({ hasAccessToken: true, hasRefreshToken: true, displayName: 'LocalAdmin' })
     getRuntimeDisplayNameMock.mockReturnValue('LocalAdmin')
     listFansubGroupNotesMock.mockResolvedValue([])
     listMemberGroupStoriesMock.mockResolvedValue([])
@@ -225,7 +226,7 @@ describe('NotesTab', () => {
   })
 
   it('verwendet namen und rollenlisten statt roher ids für neue geschichten', async () => {
-    getRuntimeAuthTokenMock.mockResolvedValue('token-33')
+    getAuthSessionSnapshotMock.mockReturnValue({ hasAccessToken: true, hasRefreshToken: true, displayName: 'LocalAdmin' })
     getRuntimeDisplayNameMock.mockReturnValue('LocalAdmin')
     listFansubGroupNotesMock.mockResolvedValue([])
     listMemberGroupStoriesMock.mockResolvedValue([])
@@ -266,13 +267,12 @@ describe('NotesTab', () => {
           status: 'draft',
           sortOrder: 0,
         },
-        'token-33',
       )
     })
   })
 
   it('kann neue ungespeicherte gruppennotizen wieder verwerfen', async () => {
-    getRuntimeAuthTokenMock.mockResolvedValue('token-5')
+    getAuthSessionSnapshotMock.mockReturnValue({ hasAccessToken: true, hasRefreshToken: true, displayName: 'LocalAdmin' })
     getRuntimeDisplayNameMock.mockReturnValue('LocalAdmin')
     listFansubGroupNotesMock.mockResolvedValue([])
     listMemberGroupStoriesMock.mockResolvedValue([])
@@ -292,7 +292,7 @@ describe('NotesTab', () => {
   })
 
   it('sendet bei bestehenden mitgliedergeschichten kein memberId- oder roleId-update mehr', async () => {
-    getRuntimeAuthTokenMock.mockResolvedValue('token-4')
+    getAuthSessionSnapshotMock.mockReturnValue({ hasAccessToken: true, hasRefreshToken: true, displayName: 'LocalAdmin' })
     getRuntimeDisplayNameMock.mockReturnValue('LocalAdmin')
     listFansubGroupNotesMock.mockResolvedValue([])
     listMemberGroupStoriesMock.mockResolvedValue([makeStory()])
@@ -333,7 +333,6 @@ describe('NotesTab', () => {
           status: 'published',
           sortOrder: 0,
         },
-        'token-4',
       )
     })
   })

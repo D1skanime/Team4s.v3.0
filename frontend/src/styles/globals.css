@@ -1,7 +1,10 @@
 :root {
-  --color-primary: #ff6a3d;
-  --color-primary-hover: #e55a31;
-  --color-primary-active: #cc4d29;
+  --font-sans: Inter, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  --color-primary: #5f84dd;
+  --color-primary-hover: #4d70c9;
+  --color-primary-active: #3f60ad;
   --color-bg-light: #f9f9f9;
   --color-white: #ffffff;
   --color-text-primary: #1c1c1e;
@@ -27,6 +30,19 @@
   --accent-soft: var(--color-primary);
   --accent-dark: var(--color-primary-active);
 
+  --button-primary-start: #7aa0f0;
+  --button-primary-mid: #5f84dd;
+  --button-primary-end: #4363b4;
+  --button-secondary-start: #4b5f8c;
+  --button-secondary-mid: #394a72;
+  --button-secondary-end: #2a3556;
+  --button-danger-start: #82122c;
+  --button-danger-mid: #580c22;
+  --button-danger-end: #3a0e23;
+  --button-success-start: #79e0b5;
+  --button-success-mid: #51c99d;
+  --button-success-end: #2f9b79;
+
   --status-ongoing: var(--color-success);
   --status-done: var(--color-primary);
   --status-aborted: var(--color-error);
@@ -44,6 +60,42 @@
   --space-5: 24px;
   --space-6: 32px;
   --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 80px;
+
+  --surface-canvas: #f6f4ef;
+  --surface-sunken: #f0ece5;
+  --surface-card: #ffffff;
+  --surface-card-muted: #fbfaf8;
+  --surface-overlay: rgba(255, 255, 255, 0.9);
+
+  --text-strong: #171513;
+  --text-body: #2d2926;
+  --text-soft: #625c56;
+  --text-faint: #8c857e;
+
+  --border-subtle: rgba(45, 41, 38, 0.12);
+  --border-strong: rgba(45, 41, 38, 0.24);
+  --border-accent: rgba(255, 106, 61, 0.35);
+
+  --shadow-xs: 0 1px 2px rgba(25, 21, 18, 0.06);
+  --shadow-sm: 0 8px 24px rgba(25, 21, 18, 0.06);
+  --shadow-md: 0 18px 48px rgba(25, 21, 18, 0.1);
+  --shadow-lg: 0 28px 68px rgba(25, 21, 18, 0.16);
+
+  --focus-ring: 0 0 0 3px rgba(255, 106, 61, 0.18);
+  --focus-outline: rgba(255, 106, 61, 0.62);
+
+  --control-height-sm: 36px;
+  --control-height-md: 44px;
+  --control-height-lg: 52px;
+
+  --z-base: 1;
+  --z-dropdown: 20;
+  --z-sticky: 40;
+  --z-drawer: 80;
+  --z-modal: 90;
+  --z-toast: 100;
 }
 
 *,
@@ -60,14 +112,39 @@ body {
 }
 
 body {
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 16px;
   color: var(--text-primary);
   background: var(--bg-primary);
+  line-height: 1.5;
 }
 
 a {
   color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .page-shell {

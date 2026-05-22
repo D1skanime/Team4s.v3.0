@@ -13,6 +13,7 @@ import (
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,28 @@ type fansubReleaseThemeRepoStub struct {
 	listFansubAnimeReleases               func(ctx context.Context, fansubGroupID int64, animeID int64) ([]models.AdminFansubReleaseSummary, error)
 	getCanonicalFansubAnimeReleaseSummary func(ctx context.Context, fansubGroupID int64, animeID int64) (*models.CanonicalFansubAnimeReleaseResponse, error)
 	getAdminReleaseByID                   func(ctx context.Context, releaseID int64) (*models.AdminFansubReleaseSummary, error)
+}
+
+type releasePermissionResolverStub struct{}
+
+func (s releasePermissionResolverStub) ResolveFansubGroup(_ context.Context, fansubGroupID int64) (*permissions.Context, error) {
+	return &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{fansubGroupID}}, nil
+}
+
+func (s releasePermissionResolverStub) ResolveRelease(_ context.Context, _ int64) (*permissions.Context, error) {
+	return &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{5}}, nil
+}
+
+func (s releasePermissionResolverStub) ResolveReleaseVersion(_ context.Context, _ int64) (*permissions.Context, error) {
+	return &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{5}}, nil
+}
+
+func (s releasePermissionResolverStub) ResolveReleaseVersionMedia(_ context.Context, _ int64) (*permissions.Context, error) {
+	return &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{5}}, nil
+}
+
+func (s releasePermissionResolverStub) ListActorGroupRoles(_ context.Context, _ int64, _ int64) ([]string, error) {
+	return []string{permissions.RoleFansubLead}, nil
 }
 
 func (s *fansubReleaseThemeRepoStub) ListThemeTypes(ctx context.Context) ([]models.AdminThemeType, error) {
@@ -230,6 +253,7 @@ func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 	handler := &AdminContentHandler{
 		authzRepo: adminRoleCheckerStub{isAdmin: true},
 		themeRepo: stub,
+		permissionSvc: permissions.NewService(releasePermissionResolverStub{}),
 	}
 
 	recorder := httptest.NewRecorder()
@@ -239,7 +263,7 @@ func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 		{Key: "id", Value: "5"},
 		{Key: "animeId", Value: "10"},
 	}
-	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, DisplayName: "Admin"})
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, AppUserID: 1, DisplayName: "Admin"})
 
 	handler.ListFansubAnimeReleases(c)
 
@@ -281,6 +305,7 @@ func TestAdminFansubReleases_GetCanonicalReturnsNilReleaseWhenNoneExists(t *test
 	handler := &AdminContentHandler{
 		authzRepo: adminRoleCheckerStub{isAdmin: true},
 		themeRepo: stub,
+		permissionSvc: permissions.NewService(releasePermissionResolverStub{}),
 	}
 
 	recorder := httptest.NewRecorder()
@@ -290,7 +315,7 @@ func TestAdminFansubReleases_GetCanonicalReturnsNilReleaseWhenNoneExists(t *test
 		{Key: "id", Value: "5"},
 		{Key: "animeId", Value: "10"},
 	}
-	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, DisplayName: "Admin"})
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, AppUserID: 1, DisplayName: "Admin"})
 
 	handler.GetCanonicalFansubAnimeReleaseSummary(c)
 
@@ -319,13 +344,14 @@ func TestAdminFansubReleases_GetAdminReleaseByIDReturns404WhenMissing(t *testing
 	handler := &AdminContentHandler{
 		authzRepo: adminRoleCheckerStub{isAdmin: true},
 		themeRepo: stub,
+		permissionSvc: permissions.NewService(releasePermissionResolverStub{}),
 	}
 
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
 	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/admin/releases/99", nil)
 	c.Params = gin.Params{{Key: "releaseId", Value: "99"}}
-	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, DisplayName: "Admin"})
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, AppUserID: 1, DisplayName: "Admin"})
 
 	handler.GetAdminRelease(c)
 

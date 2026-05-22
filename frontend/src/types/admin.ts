@@ -1,7 +1,7 @@
 import { AnimeStatus, ContentType, EpisodeStatus } from "@/types/anime";
 
 /** Mögliche Anime-Format-Typen für die Kategorisierung eines Eintrags. */
-export type AnimeType = "tv" | "film" | "ova" | "ona" | "special" | "bonus";
+export type AnimeType = "tv" | "film" | "ova" | "ona" | "special" | "bonus" | "web";
 
 /** Kompakte Anime-Datendarstellung für die Admin-Listensicht. */
 export interface AdminAnimeItem {
@@ -786,6 +786,8 @@ export interface AdminAnimeThemeSegmentCreateResponse {
 export interface AdminFansubAnimeEntry {
   id: number
   title: string
+  type: AnimeType
+  header_image?: string | null
   cover_image?: string | null
 }
 

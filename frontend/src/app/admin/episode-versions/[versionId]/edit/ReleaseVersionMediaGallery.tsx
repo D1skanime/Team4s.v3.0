@@ -18,6 +18,7 @@ interface ReleaseVersionMediaGalleryProps {
   onSelectItem: (item: ReleaseVersionMediaItem) => void
   versionId: number
   onReorder?: (versionId: number, body: ReleaseVersionMediaReorderRequest) => Promise<void>
+  canReorder?: boolean
 }
 
 function cardLabel(item: ReleaseVersionMediaItem): string {
@@ -53,9 +54,10 @@ export function ReleaseVersionMediaGallery({
   onSelectItem,
   versionId,
   onReorder,
+  canReorder = true,
 }: ReleaseVersionMediaGalleryProps) {
   const [dragState, setDragState] = useState<DragState>(INITIAL_DRAG_STATE)
-  const dragOverItemIdRef = useRef<number | null>(null)
+  const [dragOverItemId, setDragOverItemId] = useState<number | null>(null)
   const [hoveredItem, setHoveredItem] = useState<HoverPreviewState>({ item: null })
   const [gifHoveredIds, setGifHoveredIds] = useState<Set<number>>(new Set())
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -101,7 +103,7 @@ export function ReleaseVersionMediaGallery({
   }
 
   function handleDragOver(item: ReleaseVersionMediaItem) {
-    dragOverItemIdRef.current = item.id
+    setDragOverItemId(item.id)
     setDragState((prev) => ({ ...prev, overCategory: item.category }))
   }
 
@@ -110,7 +112,7 @@ export function ReleaseVersionMediaGallery({
 
     // Reset drag state immediately
     setDragState(INITIAL_DRAG_STATE)
-    dragOverItemIdRef.current = null
+    setDragOverItemId(null)
 
     if (draggedId == null || draggedId === targetItem.id) {
       return
@@ -155,7 +157,7 @@ export function ReleaseVersionMediaGallery({
 
   function handleDragEnd() {
     setDragState(INITIAL_DRAG_STATE)
-    dragOverItemIdRef.current = null
+    setDragOverItemId(null)
   }
 
   const previewItem = hoveredItem.item
@@ -181,7 +183,7 @@ export function ReleaseVersionMediaGallery({
                 {categoryItems.map((item) => {
                   const isDragging = dragState.draggedId === item.id
                   const isDropTarget =
-                    dragOverItemIdRef.current === item.id &&
+                    dragOverItemId === item.id &&
                     dragState.draggedId !== null &&
                     dragState.draggedId !== item.id &&
                     dragState.draggedCategory === item.category
@@ -190,7 +192,7 @@ export function ReleaseVersionMediaGallery({
                   return (
                     <div
                       key={item.id}
-                      draggable={true}
+                      draggable={canReorder}
                       className={[
                         styles.cardWrapper,
                         isDragging ? styles.cardDragging : '',
@@ -213,7 +215,7 @@ export function ReleaseVersionMediaGallery({
                     >
                       <button
                         type="button"
-                        draggable={true}
+                        draggable={canReorder}
                         className={[
                           styles.card,
                           selectedItemId === item.id ? styles.cardActive : '',
