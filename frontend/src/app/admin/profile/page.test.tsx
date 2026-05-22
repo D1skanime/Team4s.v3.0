@@ -18,6 +18,28 @@ vi.mock('next/image', () => ({
   default: ({ alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => <img alt={alt} {...props} />,
 }))
 
+vi.mock('@/components/editor', () => ({
+  RichTextEditor: ({
+    value,
+    onChange,
+    placeholder,
+  }: {
+    value: unknown
+    onChange: (next: unknown) => void
+    placeholder?: string
+  }) => (
+    <textarea
+      aria-label="Mitgliedsgeschichte Editor"
+      placeholder={placeholder}
+      value={typeof value === 'object' && value !== null ? JSON.stringify(value) : ''}
+      onChange={(event) => onChange({
+        type: 'doc',
+        content: [{ type: 'paragraph', content: [{ type: 'text', text: event.target.value }] }],
+      })}
+    />
+  ),
+}))
+
 vi.mock('@/lib/api', () => ({
   API_AUTH_SESSION_TOKEN: 'runtime-auth',
   AUTH_SESSION_CHANGED_EVENT: 'team4s:auth-session-changed',
@@ -124,6 +146,23 @@ describe('AdminProfilePage', () => {
       }))
     })
     expect(await screen.findByText('Profil wurde gespeichert.')).not.toBeNull()
+  })
+
+  it('saves the member story through the rich text editor', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+    updateOwnProfileMock.mockResolvedValue(makeProfileResponse({ member_story: 'Neue Profilgeschichte.' }))
+
+    render(<AdminProfilePage />)
+
+    const editor = await screen.findByLabelText('Mitgliedsgeschichte Editor')
+    fireEvent.change(editor, { target: { value: 'Neue Profilgeschichte.' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Profil speichern' }))
+
+    await waitFor(() => {
+      expect(updateOwnProfileMock).toHaveBeenCalledWith(expect.objectContaining({
+        member_story: 'Neue Profilgeschichte.',
+      }))
+    })
   })
 
   it('shows avatar upload errors inline', async () => {

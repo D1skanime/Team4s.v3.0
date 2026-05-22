@@ -7,6 +7,7 @@ import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react'
 import { ApiError, getOwnProfile, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { MemberProfileData, ProfileVisibility } from '@/types/profile'
+import { RichTextEditor } from '@/components/editor'
 
 import sharedStyles from '../admin.module.css'
 import profileStyles from './page.module.css'
@@ -17,7 +18,7 @@ type FormState = {
   displayName: string
   fansubName: string
   bio: string
-  memberStory: string
+  memberStory: unknown
   activeFromYear: string
   activeUntilYear: string
   isCurrentlyActive: boolean
@@ -29,12 +30,48 @@ function toFormState(profile: MemberProfileData): FormState {
     displayName: profile.display_name || '',
     fansubName: profile.fansub_name || '',
     bio: profile.bio || '',
-    memberStory: profile.member_story || '',
+    memberStory: richTextFromPlainText(profile.member_story || ''),
     activeFromYear: profile.active_from_year ? String(profile.active_from_year) : '',
     activeUntilYear: profile.active_until_year ? String(profile.active_until_year) : '',
     isCurrentlyActive: Boolean(profile.is_currently_active),
     profileVisibility: profile.profile_visibility,
   }
+}
+
+function richTextFromPlainText(text: string): unknown {
+  const trimmed = text.trim()
+  return {
+    type: 'doc',
+    content: [
+      {
+        type: 'paragraph',
+        content: trimmed ? [{ type: 'text', text: trimmed }] : [],
+      },
+    ],
+  }
+}
+
+function richTextToPlainText(value: unknown): string {
+  const parts: string[] = []
+
+  function walk(node: unknown) {
+    if (!node || typeof node !== 'object') return
+    const current = node as { text?: unknown; content?: unknown }
+    if (typeof current.text === 'string') {
+      parts.push(current.text)
+    }
+    if (Array.isArray(current.content)) {
+      for (const child of current.content) {
+        walk(child)
+      }
+      if (parts.length > 0) {
+        parts.push('\n')
+      }
+    }
+  }
+
+  walk(value)
+  return parts.join('').replace(/\n{3,}/g, '\n\n').trim()
 }
 
 function parseOptionalYear(raw: string): number | null {
@@ -57,7 +94,7 @@ export default function AdminProfilePage() {
     displayName: '',
     fansubName: '',
     bio: '',
-    memberStory: '',
+    memberStory: richTextFromPlainText(''),
     activeFromYear: '',
     activeUntilYear: '',
     isCurrentlyActive: false,
@@ -121,7 +158,7 @@ export default function AdminProfilePage() {
         display_name: form.displayName.trim() || null,
         fansub_name: form.fansubName.trim() || null,
         bio: form.bio.trim() || null,
-        member_story: form.memberStory.trim() || null,
+        member_story: richTextToPlainText(form.memberStory) || null,
         active_from_year: parseOptionalYear(form.activeFromYear),
         active_until_year: parseOptionalYear(form.activeUntilYear),
         is_currently_active: form.isCurrentlyActive,
@@ -258,7 +295,12 @@ export default function AdminProfilePage() {
                 </div>
                 <div className={styles.field}>
                   <label htmlFor="memberStory">Mitgliedsgeschichte</label>
-                  <textarea id="memberStory" value={form.memberStory} onChange={(event) => setForm((current) => ({ ...current, memberStory: event.target.value }))} placeholder="Wie bist du zur Gruppe gekommen, woran hast du gearbeitet und was bleibt?" />
+                  <RichTextEditor
+                    value={form.memberStory}
+                    onChange={(value) => setForm((current) => ({ ...current, memberStory: value }))}
+                    placeholder="Wie bist du zur Gruppe gekommen, woran hast du gearbeitet und was bleibt?"
+                    minHeight={160}
+                  />
                 </div>
                 <div className={styles.actions}>
                   <button type="submit" className={styles.button} disabled={isSaving || !profile.capabilities.can_edit_own_profile}>
