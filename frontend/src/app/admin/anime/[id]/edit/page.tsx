@@ -1,64 +1,70 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'next/navigation'
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 
-import { getAnimeByID } from '@/lib/api'
-import { useAuthSession } from '@/lib/useAuthSession'
-import { AnimeDetail } from '@/types/anime'
+import { getAnimeByID } from "@/lib/api";
+import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
+import { useAuthSession } from "@/lib/useAuthSession";
+import { AnimeDetail } from "@/types/anime";
 
-import { AnimeEditWorkspace } from '../../components/AnimeEditPage/AnimeEditWorkspace'
-import { AnimeRelationsSection } from '../../components/AnimeEditPage/AnimeRelationsSection'
-import styles from '../../AdminStudio.module.css'
-import { parsePositiveInt, resolveCoverUrl } from '../../utils/anime-helpers'
-import { formatAdminError } from '../../utils/studio-helpers'
+import { AnimeEditWorkspace } from "../../components/AnimeEditPage/AnimeEditWorkspace";
+import { AnimeRelationsSection } from "../../components/AnimeEditPage/AnimeRelationsSection";
+import styles from "../../AdminStudio.module.css";
+import { parsePositiveInt, resolveCoverUrl } from "../../utils/anime-helpers";
+import { formatAdminError } from "../../utils/studio-helpers";
 
 function formatAnimeLabel(anime: AnimeDetail): string {
-  return `${String(anime.id).padStart(3, '0')} ${anime.title}`
+  return `${String(anime.id).padStart(3, "0")} ${anime.title}`;
 }
 
 export function formatEditLoadError(error: unknown): string {
-  return formatAdminError(error, 'Anime konnte nicht geladen werden.')
+  return formatAdminError(error, "Anime konnte nicht geladen werden.");
 }
 
-export default function AdminAnimeEditPage() {
-  const params = useParams<{ id: string }>()
-  const animeID = useMemo(() => parsePositiveInt((params.id || '').trim()), [params.id])
+function AdminAnimeEditContent() {
+  const params = useParams<{ id: string }>();
+  const animeID = useMemo(
+    () => parsePositiveInt((params.id || "").trim()),
+    [params.id],
+  );
 
-  const { hasAccessToken } = useAuthSession()
-  const [anime, setAnime] = useState<AnimeDetail | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [lastRequest, setLastRequest] = useState<string | null>(null)
-  const [lastResponse, setLastResponse] = useState<string | null>(null)
+  const { hasAccessToken } = useAuthSession();
+  const [anime, setAnime] = useState<AnimeDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [lastRequest, setLastRequest] = useState<string | null>(null);
+  const [lastResponse, setLastResponse] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadAnime() {
       if (!animeID) {
-        setErrorMessage('Ungültige Anime-ID.')
-        setIsLoading(false)
-        return
+        setErrorMessage("Ungültige Anime-ID.");
+        setIsLoading(false);
+        return;
       }
 
-      setIsLoading(true)
-      setErrorMessage(null)
+      setIsLoading(true);
+      setErrorMessage(null);
 
       try {
-        const response = await getAnimeByID(animeID, { include_disabled: true })
-        setAnime(response.data)
+        const response = await getAnimeByID(animeID, {
+          include_disabled: true,
+        });
+        setAnime(response.data);
       } catch (error) {
-        setAnime(null)
-        setErrorMessage(formatEditLoadError(error))
+        setAnime(null);
+        setErrorMessage(formatEditLoadError(error));
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    void loadAnime()
-  }, [animeID])
+    void loadAnime();
+  }, [animeID]);
 
   return (
     <main className={styles.page}>
@@ -80,16 +86,25 @@ export default function AdminAnimeEditPage() {
         <div>
           <h1 className={styles.pageTitle}>Anime bearbeiten</h1>
           <p className={styles.pageSubtitle}>
-            Diese Route basiert jetzt auf dem Create-Flow und ersetzt den alten Edit-Baukasten. Bearbeitet werden nur
-            Stammdaten und Assets des Anime selbst.
+            Diese Route basiert jetzt auf dem Create-Flow und ersetzt den alten
+            Edit-Baukasten. Bearbeitet werden nur Stammdaten und Assets des
+            Anime selbst.
           </p>
         </div>
         {anime ? (
           <div className={styles.headerActions}>
-            <Link href={`/admin/anime/${anime.id}/episodes`} className={`${styles.button} ${styles.buttonPrimary}`}>
+            <Link
+              href={`/admin/anime/${anime.id}/episodes`}
+              className={`${styles.button} ${styles.buttonPrimary}`}
+            >
               Zu Episoden wechseln
             </Link>
-            <Link href={`/anime/${anime.id}`} className={`${styles.button} ${styles.buttonSecondary}`} target="_blank" rel="noreferrer">
+            <Link
+              href={`/anime/${anime.id}`}
+              className={`${styles.button} ${styles.buttonSecondary}`}
+              target="_blank"
+              rel="noreferrer"
+            >
               Public ansehen
             </Link>
           </div>
@@ -99,31 +114,44 @@ export default function AdminAnimeEditPage() {
             <div>
               <p className={styles.itemTitle}>{anime.title}</p>
               <p className={styles.sectionMeta}>
-                #{String(anime.id).padStart(3, '0')} | Typ {anime.type} | Status {anime.status} | Quelle{' '}
-                {anime.source || 'manuell'}
+                #{String(anime.id).padStart(3, "0")} | Typ {anime.type} | Status{" "}
+                {anime.status} | Quelle {anime.source || "manuell"}
               </p>
             </div>
-            <Image className={styles.cover} src={resolveCoverUrl(anime.cover_image)} alt="" width={96} height={136} unoptimized />
+            <Image
+              className={styles.cover}
+              src={resolveCoverUrl(anime.cover_image)}
+              alt=""
+              width={96}
+              height={136}
+              unoptimized
+            />
           </div>
         ) : null}
       </header>
 
-      {isLoading ? <div className={styles.noticeBox}>Anime-Daten werden geladen...</div> : null}
-      {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
-      {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
+      {isLoading ? (
+        <div className={styles.noticeBox}>Anime-Daten werden geladen...</div>
+      ) : null}
+      {errorMessage ? (
+        <div className={styles.errorBox}>{errorMessage}</div>
+      ) : null}
+      {successMessage ? (
+        <div className={styles.successBox}>{successMessage}</div>
+      ) : null}
 
       {anime ? (
         <>
           <AnimeEditWorkspace
             anime={anime}
             onSaved={(nextAnime, message) => {
-              setAnime(nextAnime)
-              setErrorMessage(null)
-              setSuccessMessage(message)
+              setAnime(nextAnime);
+              setErrorMessage(null);
+              setSuccessMessage(message);
             }}
             onError={(message) => {
-              setSuccessMessage(null)
-              setErrorMessage(message)
+              setSuccessMessage(null);
+              setErrorMessage(message);
             }}
             onRequest={setLastRequest}
             onResponse={setLastResponse}
@@ -134,23 +162,27 @@ export default function AdminAnimeEditPage() {
               animeID={anime.id}
               defaultOpen
               onSuccess={(message) => {
-                setErrorMessage(null)
-                setSuccessMessage(message)
+                setErrorMessage(null);
+                setSuccessMessage(message);
               }}
               onError={(message) => {
-                setSuccessMessage(null)
-                setErrorMessage(message)
+                setSuccessMessage(null);
+                setErrorMessage(message);
               }}
             />
           ) : null}
 
-          {(lastRequest || lastResponse) ? (
+          {lastRequest || lastResponse ? (
             <section className={styles.card}>
               <details className={styles.developerPanel}>
                 <summary>Developer Panel</summary>
                 <div className={styles.developerPanelContent}>
-                  {lastRequest ? <pre className={styles.codeBlock}>{lastRequest}</pre> : null}
-                  {lastResponse ? <pre className={styles.codeBlock}>{lastResponse}</pre> : null}
+                  {lastRequest ? (
+                    <pre className={styles.codeBlock}>{lastRequest}</pre>
+                  ) : null}
+                  {lastResponse ? (
+                    <pre className={styles.codeBlock}>{lastResponse}</pre>
+                  ) : null}
                 </div>
               </details>
             </section>
@@ -158,5 +190,13 @@ export default function AdminAnimeEditPage() {
         </>
       ) : null}
     </main>
-  )
+  );
+}
+
+export default function AdminAnimeEditPage() {
+  return (
+    <PlatformAdminGate>
+      <AdminAnimeEditContent />
+    </PlatformAdminGate>
+  );
 }

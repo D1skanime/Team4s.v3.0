@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"team4s.v3/backend/internal/middleware"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,29 @@ import (
 // fansub_group_notes und member_group_stories. MVP: Admin-only.
 // Eigene Funktion ermöglicht spätere Erweiterung ohne Änderung an Call-Sites.
 func (h *AdminContentHandler) requireFansubGroupNoteWriteAccess(c *gin.Context) (middleware.AuthIdentity, bool) {
-	return h.requireAdmin(c)
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return middleware.AuthIdentity{}, false
+	}
+
+	fansubID, err := parseFansubRouteID(c)
+	if err != nil || fansubID <= 0 {
+		badRequest(c, "ungültige fansub id")
+		return middleware.AuthIdentity{}, false
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupNotesWrite, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Notiz-Berechtigung konnte nicht geprüft werden.")
+		return middleware.AuthIdentity{}, false
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_note.write.denied", &fansubID, "fansub_group", &fansubID, permissions.ActionFansubGroupNotesWrite, result)
+		writePermissionDenied(c, result)
+		return middleware.AuthIdentity{}, false
+	}
+
+	return identity, true
 }
 
 // ---- Request-Structs: fansub_group_notes ----
@@ -38,6 +61,10 @@ type updateFansubGroupNoteRequest struct {
 
 // ListFansubGroupNotes verarbeitet GET /admin/fansubs/:id/notes.
 func (h *AdminContentHandler) ListFansubGroupNotes(c *gin.Context) {
+	if _, ok := h.requireFansubGroupNoteWriteAccess(c); !ok {
+		return
+	}
+
 	fansubID, err := parseFansubRouteID(c)
 	if err != nil || fansubID <= 0 {
 		badRequest(c, "ungültige fansub id")
@@ -91,15 +118,15 @@ func (h *AdminContentHandler) CreateFansubGroupNote(c *gin.Context) {
 		fansubID,
 		identity.UserID,
 		repository.CreateFansubGroupNoteRequest{
-			Title:     req.Title,
-			BodyJSON:  []byte(req.BodyJSON),
-			BodyText:  bodyText,
-			BodyHTML:  bodyHTML,
-			EditorType:            "tiptap",
-			ContentSchemaVersion:  1,
-			Visibility: req.Visibility,
-			Status:     req.Status,
-			SortOrder:  req.SortOrder,
+			Title:                req.Title,
+			BodyJSON:             []byte(req.BodyJSON),
+			BodyText:             bodyText,
+			BodyHTML:             bodyHTML,
+			EditorType:           "tiptap",
+			ContentSchemaVersion: 1,
+			Visibility:           req.Visibility,
+			Status:               req.Status,
+			SortOrder:            req.SortOrder,
 		},
 	)
 	if err != nil {

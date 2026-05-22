@@ -8,11 +8,15 @@ import (
 
 type adminRouteHandlers struct {
 	adminContentHandler *handlers.AdminContentHandler
+	animeHandler        *handlers.AnimeHandler
 	fansubHandler       *handlers.FansubHandler
 	mediaUploadHandler  *handlers.MediaUploadHandler
+	appAuthHandler      *handlers.AppAuthHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
+	v1.GET("/admin/anime", auth, deps.animeHandler.List)
+	v1.GET("/admin/anime/:id", auth, deps.animeHandler.GetByID)
 	v1.POST("/admin/anime", auth, deps.adminContentHandler.CreateAnime)
 	v1.PATCH("/admin/anime/:id", auth, deps.adminContentHandler.UpdateAnime)
 	v1.DELETE("/admin/anime/:id", auth, deps.adminContentHandler.DeleteAnime)
@@ -103,6 +107,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	// Release-Version Media routes (Phase 35)
 	// NOTE: /reorder must be registered BEFORE /:relationId so Gin matches the literal segment first.
 	v1.POST("/admin/release-versions/:versionId/media", auth, deps.adminContentHandler.UploadReleaseVersionMedia)
+	v1.GET("/admin/release-versions/:versionId/capabilities", auth, deps.adminContentHandler.GetReleaseVersionCapabilities)
 	v1.GET("/admin/release-versions/:versionId/media", auth, deps.adminContentHandler.ListReleaseVersionMedia)
 	v1.POST("/admin/release-versions/:versionId/media/reorder", auth, deps.adminContentHandler.ReorderReleaseVersionMedia)
 	v1.PATCH("/admin/release-versions/:versionId/media/:relationId", auth, deps.adminContentHandler.PatchReleaseVersionMedia)
@@ -112,6 +117,17 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/release-versions/:versionId/notes", auth, deps.adminContentHandler.BulkUpsertReleaseVersionNotes)
 	v1.DELETE("/admin/release-versions/:versionId/notes/:noteId", auth, deps.adminContentHandler.DeleteReleaseVersionNote)
 	v1.GET("/admin/release-versions/:versionId/member-roles", auth, deps.adminContentHandler.GetMemberRolesForVersion)
+	v1.GET("/admin/users", auth, deps.appAuthHandler.ListAppUsers)
+	v1.GET("/admin/fansubs/:id/capabilities", auth, deps.appAuthHandler.GetFansubGroupCapabilities)
+	v1.GET("/admin/fansubs/:id/app-members", auth, deps.appAuthHandler.ListFansubGroupAppMembers)
+	v1.GET("/admin/fansubs/:id/app-member-candidates", auth, deps.appAuthHandler.SearchFansubGroupAppMemberCandidates)
+	v1.POST("/admin/fansubs/:id/app-members", auth, deps.appAuthHandler.CreateFansubGroupAppMember)
+	v1.GET("/admin/fansubs/:id/invitations", auth, deps.appAuthHandler.ListFansubGroupInvitations)
+	v1.POST("/admin/fansubs/:id/invitations", auth, deps.appAuthHandler.CreateFansubGroupInvitation)
+	v1.POST("/admin/fansubs/:id/invitations/:invitationId/cancel", auth, deps.appAuthHandler.CancelFansubGroupInvitation)
+	v1.PUT("/admin/fansubs/:id/app-members/:appUserId/roles", auth, deps.appAuthHandler.SetFansubGroupMemberRole)
+	v1.PUT("/admin/fansubs/:id/app-members/:appUserId/status", auth, deps.appAuthHandler.UpdateFansubGroupMemberStatus)
+	v1.PUT("/admin/fansubs/:id/app-members/:appUserId/roles/fansub-lead", auth, deps.appAuthHandler.SetFansubLead)
 	// Fansub-Notes routes (Phase 40)
 	v1.GET("/admin/fansubs/:id/notes", auth, deps.adminContentHandler.ListFansubGroupNotes)
 	v1.POST("/admin/fansubs/:id/notes", auth, deps.adminContentHandler.CreateFansubGroupNote)

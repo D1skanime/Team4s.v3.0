@@ -22,6 +22,10 @@ type upsertAnimeFansubProjectNoteRequest struct {
 
 // GetAnimeFansubProjectNote verarbeitet GET /api/v1/admin/fansubs/:id/anime/:animeId/notes.
 func (h *AdminContentHandler) GetAnimeFansubProjectNote(c *gin.Context) {
+	if _, ok := h.requireFansubGroupNoteWriteAccess(c); !ok {
+		return
+	}
+
 	fansubID, err := parseFansubRouteID(c)
 	if err != nil || fansubID <= 0 {
 		badRequest(c, "ungültige fansub id")

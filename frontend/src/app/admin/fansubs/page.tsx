@@ -1,8 +1,8 @@
-﻿'use client'
+﻿"use client";
 
-import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import {
   ApiError,
@@ -11,356 +11,390 @@ import {
   getFansubList,
   getFansubMembers,
   updateFansubGroup,
-} from '@/lib/api'
-import { useAuthSession } from '@/lib/useAuthSession'
-import { FansubGroup, FansubStatus } from '@/types/fansub'
+} from "@/lib/api";
+import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
+import { useAuthSession } from "@/lib/useAuthSession";
+import { FansubGroup, FansubStatus } from "@/types/fansub";
 
-import sharedStyles from '../admin.module.css'
-import fansubStyles from './fansubs.module.css'
+import sharedStyles from "../admin.module.css";
+import fansubStyles from "./fansubs.module.css";
 
-const styles = { ...sharedStyles, ...fansubStyles }
+const styles = { ...sharedStyles, ...fansubStyles };
 
-type StatusFilter = 'all' | 'active' | 'inactive' | 'archived'
-type SortKey = 'name' | 'status' | 'period'
-type SortDirection = 'asc' | 'desc'
+type StatusFilter = "all" | "active" | "inactive" | "archived";
+type SortKey = "name" | "status" | "period";
+type SortDirection = "asc" | "desc";
 
-const PAGE_SIZE = 20
-const SEARCH_DEBOUNCE_MS = 300
+const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 300;
 
 const statusFilterOptions: Array<{ value: StatusFilter; label: string }> = [
-  { value: 'all', label: 'Alle Stati' },
-  { value: 'active', label: 'active' },
-  { value: 'inactive', label: 'inactive' },
-  { value: 'archived', label: 'archived' },
-]
+  { value: "all", label: "Alle Stati" },
+  { value: "active", label: "active" },
+  { value: "inactive", label: "inactive" },
+  { value: "archived", label: "archived" },
+];
 
 const bulkStatusOptions: Array<{ value: FansubStatus; label: string }> = [
-  { value: 'active', label: 'active' },
-  { value: 'inactive', label: 'inactive' },
-  { value: 'dissolved', label: 'archived' },
-]
+  { value: "active", label: "active" },
+  { value: "inactive", label: "inactive" },
+  { value: "dissolved", label: "archived" },
+];
 
 function formatError(error: unknown): string {
-  if (error instanceof ApiError) return `(${error.status}) ${error.message}`
-  return 'Anfrage fehlgeschlagen.'
+  if (error instanceof ApiError) return `(${error.status}) ${error.message}`;
+  return "Anfrage fehlgeschlagen.";
 }
 
 function statusLabel(status: FansubStatus): string {
-  if (status === 'dissolved') return 'archived'
-  return status
+  if (status === "dissolved") return "archived";
+  return status;
 }
 
 function statusRank(status: FansubStatus): number {
-  if (status === 'active') return 0
-  if (status === 'inactive') return 1
-  return 2
+  if (status === "active") return 0;
+  if (status === "inactive") return 1;
+  return 2;
 }
 
 function periodValue(group: FansubGroup): number {
-  if (typeof group.founded_year === 'number') return group.founded_year
-  if (typeof group.dissolved_year === 'number') return group.dissolved_year
-  return Number.MAX_SAFE_INTEGER
+  if (typeof group.founded_year === "number") return group.founded_year;
+  if (typeof group.dissolved_year === "number") return group.dissolved_year;
+  return Number.MAX_SAFE_INTEGER;
 }
 
 function formatPeriod(group: FansubGroup): string {
-  const start = group.founded_year ?? 'n/a'
-  const end = group.dissolved_year ?? 'heute'
-  return `${start} - ${end}`
+  const start = group.founded_year ?? "n/a";
+  const end = group.dissolved_year ?? "heute";
+  return `${start} - ${end}`;
 }
 
-export default function AdminFansubsPage() {
-  const { hasAccessToken } = useAuthSession()
-  const [isLoading, setIsLoading] = useState(false)
-  const [isMutating, setIsMutating] = useState(false)
-  const [items, setItems] = useState<FansubGroup[]>([])
-  const [memberCounts, setMemberCounts] = useState<Record<number, number | null>>({})
-  const [aliasesByGroup, setAliasesByGroup] = useState<Record<number, string[] | null>>({})
-  const [queryInput, setQueryInput] = useState('')
-  const [query, setQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [sortKey, setSortKey] = useState<SortKey>('name')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
-  const [page, setPage] = useState(1)
-  const [selectedIDs, setSelectedIDs] = useState<Set<number>>(new Set())
-  const [bulkStatus, setBulkStatus] = useState<FansubStatus>('inactive')
-  const [mobileMenuGroupID, setMobileMenuGroupID] = useState<number | null>(null)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const selectAllRef = useRef<HTMLInputElement | null>(null)
+function AdminFansubsContent() {
+  const { hasAccessToken } = useAuthSession();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isMutating, setIsMutating] = useState(false);
+  const [items, setItems] = useState<FansubGroup[]>([]);
+  const [memberCounts, setMemberCounts] = useState<
+    Record<number, number | null>
+  >({});
+  const [aliasesByGroup, setAliasesByGroup] = useState<
+    Record<number, string[] | null>
+  >({});
+  const [queryInput, setQueryInput] = useState("");
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [page, setPage] = useState(1);
+  const [selectedIDs, setSelectedIDs] = useState<Set<number>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<FansubStatus>("inactive");
+  const [mobileMenuGroupID, setMobileMenuGroupID] = useState<number | null>(
+    null,
+  );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const selectAllRef = useRef<HTMLInputElement | null>(null);
 
   const loadList = useCallback(async () => {
-    setIsLoading(true)
-    setErrorMessage(null)
+    setIsLoading(true);
+    setErrorMessage(null);
 
     try {
-      const perPage = 500
-      let currentPage = 1
-      let totalPages = 1
-      const allItems: FansubGroup[] = []
+      const perPage = 500;
+      let currentPage = 1;
+      let totalPages = 1;
+      const allItems: FansubGroup[] = [];
 
       do {
         const response = await getFansubList({
           page: currentPage,
           per_page: perPage,
-        })
-        allItems.push(...response.data)
-        totalPages = response.meta.total_pages || 1
-        currentPage += 1
-      } while (currentPage <= totalPages)
+        });
+        allItems.push(...response.data);
+        totalPages = response.meta.total_pages || 1;
+        currentPage += 1;
+      } while (currentPage <= totalPages);
 
-      setItems(allItems)
-      setSelectedIDs(new Set<number>())
-      setMemberCounts({})
-      setAliasesByGroup({})
+      setItems(allItems);
+      setSelectedIDs(new Set<number>());
+      setMemberCounts({});
+      setAliasesByGroup({});
     } catch (error) {
-      setErrorMessage(formatError(error))
+      setErrorMessage(formatError(error));
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    void loadList()
-  }, [loadList])
+    void loadList();
+  }, [loadList]);
 
   useEffect(() => {
     const timeoutID = window.setTimeout(() => {
-      setQuery(queryInput.trim().toLowerCase())
-    }, SEARCH_DEBOUNCE_MS)
-    return () => window.clearTimeout(timeoutID)
-  }, [queryInput])
+      setQuery(queryInput.trim().toLowerCase());
+    }, SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(timeoutID);
+  }, [queryInput]);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
-      if (item.group_type === 'collaboration') return false
+      if (item.group_type === "collaboration") return false;
 
       const statusMatches =
-        statusFilter === 'all'
+        statusFilter === "all"
           ? true
-          : statusFilter === 'archived'
-            ? item.status === 'dissolved'
-            : item.status === statusFilter
+          : statusFilter === "archived"
+            ? item.status === "dissolved"
+            : item.status === statusFilter;
 
-      if (!statusMatches) return false
-      if (!query) return true
+      if (!statusMatches) return false;
+      if (!query) return true;
 
-      const name = item.name.toLowerCase()
-      const slug = item.slug.toLowerCase()
-      const aliases = aliasesByGroup[item.id] ?? []
-      const aliasMatches = aliases.some((alias) => alias.toLowerCase().includes(query))
-      return name.includes(query) || slug.includes(query) || aliasMatches
-    })
-  }, [aliasesByGroup, items, query, statusFilter])
+      const name = item.name.toLowerCase();
+      const slug = item.slug.toLowerCase();
+      const aliases = aliasesByGroup[item.id] ?? [];
+      const aliasMatches = aliases.some((alias) =>
+        alias.toLowerCase().includes(query),
+      );
+      return name.includes(query) || slug.includes(query) || aliasMatches;
+    });
+  }, [aliasesByGroup, items, query, statusFilter]);
 
   const sortedItems = useMemo(() => {
-    const next = [...filteredItems]
+    const next = [...filteredItems];
     next.sort((left, right) => {
-      let cmp = 0
-      if (sortKey === 'name') {
-        cmp = left.name.localeCompare(right.name, 'de', { sensitivity: 'base' })
-      } else if (sortKey === 'status') {
-        cmp = statusRank(left.status) - statusRank(right.status)
+      let cmp = 0;
+      if (sortKey === "name") {
+        cmp = left.name.localeCompare(right.name, "de", {
+          sensitivity: "base",
+        });
+      } else if (sortKey === "status") {
+        cmp = statusRank(left.status) - statusRank(right.status);
       } else {
-        cmp = periodValue(left) - periodValue(right)
+        cmp = periodValue(left) - periodValue(right);
       }
 
-      if (cmp === 0) cmp = left.name.localeCompare(right.name, 'de', { sensitivity: 'base' })
-      return sortDirection === 'asc' ? cmp : -cmp
-    })
-    return next
-  }, [filteredItems, sortDirection, sortKey])
+      if (cmp === 0)
+        cmp = left.name.localeCompare(right.name, "de", {
+          sensitivity: "base",
+        });
+      return sortDirection === "asc" ? cmp : -cmp;
+    });
+    return next;
+  }, [filteredItems, sortDirection, sortKey]);
 
-  const totalFiltered = sortedItems.length
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE))
-  const pageStart = (page - 1) * PAGE_SIZE
-  const pageEnd = pageStart + PAGE_SIZE
-  const pagedItems = sortedItems.slice(pageStart, pageEnd)
-  const visibleCount = totalFiltered === 0 ? 0 : Math.min(page * PAGE_SIZE, totalFiltered)
-
-  useEffect(() => {
-    setPage(1)
-  }, [query, statusFilter, sortDirection, sortKey])
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages)
-  }, [page, totalPages])
-
-  const pageIDs = pagedItems.map((item) => item.id)
-  const selectedOnPage = pageIDs.filter((id) => selectedIDs.has(id))
-  const allOnPageSelected = pageIDs.length > 0 && selectedOnPage.length === pageIDs.length
-  const hasPartialPageSelection = selectedOnPage.length > 0 && !allOnPageSelected
+  const totalFiltered = sortedItems.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+  const pageStart = (page - 1) * PAGE_SIZE;
+  const pageEnd = pageStart + PAGE_SIZE;
+  const pagedItems = sortedItems.slice(pageStart, pageEnd);
+  const visibleCount =
+    totalFiltered === 0 ? 0 : Math.min(page * PAGE_SIZE, totalFiltered);
 
   useEffect(() => {
-    if (!selectAllRef.current) return
-    selectAllRef.current.indeterminate = hasPartialPageSelection
-  }, [hasPartialPageSelection])
+    setPage(1);
+  }, [query, statusFilter, sortDirection, sortKey]);
 
   useEffect(() => {
-    const unresolved = pagedItems.filter((item) => memberCounts[item.id] === undefined)
-    if (unresolved.length === 0) return
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
-    let cancelled = false
+  const pageIDs = pagedItems.map((item) => item.id);
+  const selectedOnPage = pageIDs.filter((id) => selectedIDs.has(id));
+  const allOnPageSelected =
+    pageIDs.length > 0 && selectedOnPage.length === pageIDs.length;
+  const hasPartialPageSelection =
+    selectedOnPage.length > 0 && !allOnPageSelected;
+
+  useEffect(() => {
+    if (!selectAllRef.current) return;
+    selectAllRef.current.indeterminate = hasPartialPageSelection;
+  }, [hasPartialPageSelection]);
+
+  useEffect(() => {
+    const unresolved = pagedItems.filter(
+      (item) => memberCounts[item.id] === undefined,
+    );
+    if (unresolved.length === 0) return;
+
+    let cancelled = false;
     void Promise.all(
       unresolved.map(async (item) => {
         try {
-          const response = await getFansubMembers(item.id)
-          return { id: item.id, count: response.data.length as number | null }
+          const response = await getFansubMembers(item.id);
+          return { id: item.id, count: response.data.length as number | null };
         } catch {
-          return { id: item.id, count: null as number | null }
+          return { id: item.id, count: null as number | null };
         }
       }),
     ).then((entries) => {
-      if (cancelled) return
+      if (cancelled) return;
       setMemberCounts((prev) => {
-        const next = { ...prev }
+        const next = { ...prev };
         entries.forEach((entry) => {
-          if (next[entry.id] === undefined) next[entry.id] = entry.count
-        })
-        return next
-      })
-    })
+          if (next[entry.id] === undefined) next[entry.id] = entry.count;
+        });
+        return next;
+      });
+    });
 
     return () => {
-      cancelled = true
-    }
-  }, [memberCounts, pagedItems])
+      cancelled = true;
+    };
+  }, [memberCounts, pagedItems]);
 
   useEffect(() => {
-    const unresolved = pagedItems.filter((item) => aliasesByGroup[item.id] === undefined)
-    if (unresolved.length === 0) return
+    const unresolved = pagedItems.filter(
+      (item) => aliasesByGroup[item.id] === undefined,
+    );
+    if (unresolved.length === 0) return;
 
-    let cancelled = false
+    let cancelled = false;
     void Promise.all(
       unresolved.map(async (item) => {
         try {
-          const response = await getFansubAliases(item.id)
-          return { id: item.id, aliases: response.data.map((entry) => entry.alias) as string[] | null }
+          const response = await getFansubAliases(item.id);
+          return {
+            id: item.id,
+            aliases: response.data.map((entry) => entry.alias) as
+              | string[]
+              | null,
+          };
         } catch {
-          return { id: item.id, aliases: null as string[] | null }
+          return { id: item.id, aliases: null as string[] | null };
         }
       }),
     ).then((entries) => {
-      if (cancelled) return
+      if (cancelled) return;
       setAliasesByGroup((prev) => {
-        const next = { ...prev }
+        const next = { ...prev };
         entries.forEach((entry) => {
-          if (next[entry.id] === undefined) next[entry.id] = entry.aliases
-        })
-        return next
-      })
-    })
+          if (next[entry.id] === undefined) next[entry.id] = entry.aliases;
+        });
+        return next;
+      });
+    });
 
     return () => {
-      cancelled = true
-    }
-  }, [aliasesByGroup, pagedItems])
+      cancelled = true;
+    };
+  }, [aliasesByGroup, pagedItems]);
 
   function toggleSort(nextSortKey: SortKey) {
     if (sortKey === nextSortKey) {
-      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
-      return
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
     }
-    setSortKey(nextSortKey)
-    setSortDirection('asc')
+    setSortKey(nextSortKey);
+    setSortDirection("asc");
   }
 
   function toggleSelection(id: number) {
     setSelectedIDs((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }
 
   function toggleSelectAllOnPage() {
     setSelectedIDs((prev) => {
-      const next = new Set(prev)
+      const next = new Set(prev);
       if (allOnPageSelected) {
-        pageIDs.forEach((id) => next.delete(id))
+        pageIDs.forEach((id) => next.delete(id));
       } else {
-        pageIDs.forEach((id) => next.add(id))
+        pageIDs.forEach((id) => next.add(id));
       }
-      return next
-    })
+      return next;
+    });
   }
 
   async function onDelete(item: FansubGroup) {
     if (!hasAccessToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
-      return
+      setErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+      );
+      return;
     }
 
     const ok = window.confirm(
       `Fansub "${item.name}" wirklich löschen?\n\nEpisoden bleiben erhalten; fansub_group_id wird entkoppelt.`,
-    )
-    if (!ok) return
+    );
+    if (!ok) return;
 
-    setIsMutating(true)
-    setErrorMessage(null)
-    setSuccessMessage(null)
+    setIsMutating(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
     try {
-      await deleteFansubGroup(item.id)
-      setSuccessMessage(`Fansub "${item.name}" gelöscht.`)
-      await loadList()
+      await deleteFansubGroup(item.id);
+      setSuccessMessage(`Fansub "${item.name}" gelöscht.`);
+      await loadList();
     } catch (error) {
-      setErrorMessage(formatError(error))
+      setErrorMessage(formatError(error));
     } finally {
-      setIsMutating(false)
+      setIsMutating(false);
     }
   }
 
   async function onBulkDelete() {
     if (!hasAccessToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
-      return
+      setErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+      );
+      return;
     }
 
-    const selected = items.filter((item) => selectedIDs.has(item.id))
-    if (selected.length === 0) return
+    const selected = items.filter((item) => selectedIDs.has(item.id));
+    if (selected.length === 0) return;
 
     const ok = window.confirm(
       `${selected.length} Fansub-Gruppen wirklich löschen?\n\nEpisoden bleiben erhalten; fansub_group_id wird entkoppelt.`,
-    )
-    if (!ok) return
+    );
+    if (!ok) return;
 
-    setIsMutating(true)
-    setErrorMessage(null)
-    setSuccessMessage(null)
+    setIsMutating(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
     try {
       for (const item of selected) {
-        await deleteFansubGroup(item.id)
+        await deleteFansubGroup(item.id);
       }
-      setSuccessMessage(`${selected.length} Fansub-Gruppen gelöscht.`)
-      await loadList()
+      setSuccessMessage(`${selected.length} Fansub-Gruppen gelöscht.`);
+      await loadList();
     } catch (error) {
-      setErrorMessage(formatError(error))
+      setErrorMessage(formatError(error));
     } finally {
-      setIsMutating(false)
+      setIsMutating(false);
     }
   }
 
   async function onBulkStatusChange() {
     if (!hasAccessToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
-      return
+      setErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+      );
+      return;
     }
-    if (selectedIDs.size === 0) return
+    if (selectedIDs.size === 0) return;
 
-    setIsMutating(true)
-    setErrorMessage(null)
-    setSuccessMessage(null)
+    setIsMutating(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
     try {
-      const selected = items.filter((item) => selectedIDs.has(item.id))
+      const selected = items.filter((item) => selectedIDs.has(item.id));
       for (const item of selected) {
-        await updateFansubGroup(item.id, { status: bulkStatus })
+        await updateFansubGroup(item.id, { status: bulkStatus });
       }
-      setSuccessMessage(`${selected.length} Gruppen auf "${statusLabel(bulkStatus)}" gesetzt.`)
-      await loadList()
+      setSuccessMessage(
+        `${selected.length} Gruppen auf "${statusLabel(bulkStatus)}" gesetzt.`,
+      );
+      await loadList();
     } catch (error) {
-      setErrorMessage(formatError(error))
+      setErrorMessage(formatError(error));
     } finally {
-      setIsMutating(false)
+      setIsMutating(false);
     }
   }
 
@@ -374,15 +408,23 @@ export default function AdminFansubsPage() {
 
       <header className={styles.header}>
         <h1 className={styles.title}>Fansub Verwaltung</h1>
-        <p className={styles.subtitle}>Gruppen suchen, filtern, bearbeiten und löschen.</p>
+        <p className={styles.subtitle}>
+          Gruppen suchen, filtern, bearbeiten und löschen.
+        </p>
       </header>
 
       <section className={styles.panel}>
         <div className={styles.fansubTopActions}>
-          <Link href="/admin/fansubs/create" className={`${styles.button} ${styles.fansubTopActionButton}`}>
+          <Link
+            href="/admin/fansubs/create"
+            className={`${styles.button} ${styles.fansubTopActionButton}`}
+          >
             + Neue Fansubgruppe
           </Link>
-          <Link href="/admin/fansubs/merge" className={`${styles.buttonSecondary} ${styles.fansubTopActionButton}`}>
+          <Link
+            href="/admin/fansubs/merge"
+            className={`${styles.buttonSecondary} ${styles.fansubTopActionButton}`}
+          >
             Gruppen zusammenfuehren
           </Link>
         </div>
@@ -399,7 +441,13 @@ export default function AdminFansubsPage() {
           </div>
           <div className={`${styles.field} ${styles.fansubFilterSelect}`}>
             <label htmlFor="fansub-status">Status</label>
-            <select id="fansub-status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}>
+            <select
+              id="fansub-status"
+              value={statusFilter}
+              onChange={(event) =>
+                setStatusFilter(event.target.value as StatusFilter)
+              }
+            >
               {statusFilterOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -409,7 +457,11 @@ export default function AdminFansubsPage() {
           </div>
           <div className={`${styles.field} ${styles.fansubFilterSelect}`}>
             <label htmlFor="fansub-sort">Sortierung</label>
-            <select id="fansub-sort" value={sortKey} onChange={(event) => setSortKey(event.target.value as SortKey)}>
+            <select
+              id="fansub-sort"
+              value={sortKey}
+              onChange={(event) => setSortKey(event.target.value as SortKey)}
+            >
               <option value="name">Name</option>
               <option value="status">Status</option>
               <option value="period">Zeitraum</option>
@@ -420,7 +472,9 @@ export default function AdminFansubsPage() {
             <select
               id="fansub-direction"
               value={sortDirection}
-              onChange={(event) => setSortDirection(event.target.value as SortDirection)}
+              onChange={(event) =>
+                setSortDirection(event.target.value as SortDirection)
+              }
             >
               <option value="asc">Aufsteigend</option>
               <option value="desc">Absteigend</option>
@@ -430,11 +484,15 @@ export default function AdminFansubsPage() {
 
         {selectedIDs.size > 0 ? (
           <div className={styles.fansubBulkBar}>
-            <span className={styles.fansubBulkInfo}>{selectedIDs.size} ausgewählt</span>
+            <span className={styles.fansubBulkInfo}>
+              {selectedIDs.size} ausgewählt
+            </span>
             <div className={styles.fansubBulkControls}>
               <select
                 value={bulkStatus}
-                onChange={(event) => setBulkStatus(event.target.value as FansubStatus)}
+                onChange={(event) =>
+                  setBulkStatus(event.target.value as FansubStatus)
+                }
                 className={styles.fansubBulkSelect}
               >
                 {bulkStatusOptions.map((option) => (
@@ -451,7 +509,10 @@ export default function AdminFansubsPage() {
               >
                 Status aendern
               </button>
-              <Link href="/admin/fansubs/merge" className={styles.buttonSecondary}>
+              <Link
+                href="/admin/fansubs/merge"
+                className={styles.buttonSecondary}
+              >
                 Zusammenfuehren
               </Link>
               <button
@@ -466,11 +527,17 @@ export default function AdminFansubsPage() {
           </div>
         ) : null}
 
-        {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
-        {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
+        {errorMessage ? (
+          <div className={styles.errorBox}>{errorMessage}</div>
+        ) : null}
+        {successMessage ? (
+          <div className={styles.successBox}>{successMessage}</div>
+        ) : null}
         {isLoading ? <p className={styles.hint}>Lade...</p> : null}
 
-        {!isLoading && filteredItems.length === 0 ? <p className={styles.hint}>Keine Fansubgruppen gefunden.</p> : null}
+        {!isLoading && filteredItems.length === 0 ? (
+          <p className={styles.hint}>Keine Fansubgruppen gefunden.</p>
+        ) : null}
 
         {!isLoading && filteredItems.length > 0 ? (
           <div className={styles.fansubTableShell}>
@@ -488,19 +555,46 @@ export default function AdminFansubsPage() {
                       />
                     </th>
                     <th>
-                      <button type="button" className={styles.fansubSortButton} onClick={() => toggleSort('name')}>
-                        Gruppenname {sortKey === 'name' ? (sortDirection === 'asc' ? '^' : 'v') : ''}
+                      <button
+                        type="button"
+                        className={styles.fansubSortButton}
+                        onClick={() => toggleSort("name")}
+                      >
+                        Gruppenname{" "}
+                        {sortKey === "name"
+                          ? sortDirection === "asc"
+                            ? "^"
+                            : "v"
+                          : ""}
                       </button>
                     </th>
                     <th>Slug</th>
                     <th>
-                      <button type="button" className={styles.fansubSortButton} onClick={() => toggleSort('status')}>
-                        Status {sortKey === 'status' ? (sortDirection === 'asc' ? '^' : 'v') : ''}
+                      <button
+                        type="button"
+                        className={styles.fansubSortButton}
+                        onClick={() => toggleSort("status")}
+                      >
+                        Status{" "}
+                        {sortKey === "status"
+                          ? sortDirection === "asc"
+                            ? "^"
+                            : "v"
+                          : ""}
                       </button>
                     </th>
                     <th>
-                      <button type="button" className={styles.fansubSortButton} onClick={() => toggleSort('period')}>
-                        Zeitraum {sortKey === 'period' ? (sortDirection === 'asc' ? '^' : 'v') : ''}
+                      <button
+                        type="button"
+                        className={styles.fansubSortButton}
+                        onClick={() => toggleSort("period")}
+                      >
+                        Zeitraum{" "}
+                        {sortKey === "period"
+                          ? sortDirection === "asc"
+                            ? "^"
+                            : "v"
+                          : ""}
                       </button>
                     </th>
                     <th>Mitglieder</th>
@@ -509,15 +603,15 @@ export default function AdminFansubsPage() {
                 </thead>
                 <tbody>
                   {pagedItems.map((item) => {
-                    const count = memberCounts[item.id]
-                    const aliases = aliasesByGroup[item.id] ?? []
-                    const primaryAlias = aliases.length > 0 ? aliases[0] : null
+                    const count = memberCounts[item.id];
+                    const aliases = aliasesByGroup[item.id] ?? [];
+                    const primaryAlias = aliases.length > 0 ? aliases[0] : null;
                     const badgeClass =
-                      item.status === 'active'
+                      item.status === "active"
                         ? styles.fansubStatusActive
-                        : item.status === 'inactive'
+                        : item.status === "inactive"
                           ? styles.fansubStatusInactive
-                          : styles.fansubStatusArchived
+                          : styles.fansubStatusArchived;
 
                     return (
                       <tr key={item.id}>
@@ -532,19 +626,36 @@ export default function AdminFansubsPage() {
                         <td className={styles.fansubNameCell}>{item.name}</td>
                         <td className={styles.fansubSlugCell}>
                           <div className={styles.fansubSlugBlock}>
-                            <span className={styles.fansubSlugText}>{item.slug}</span>
+                            <span className={styles.fansubSlugText}>
+                              {item.slug}
+                            </span>
                             {primaryAlias ? (
-                              <span className={styles.fansubAliasTag} title={`Tag: ${primaryAlias}`}>
+                              <span
+                                className={styles.fansubAliasTag}
+                                title={`Tag: ${primaryAlias}`}
+                              >
                                 Tag: {primaryAlias}
                               </span>
                             ) : null}
                           </div>
                         </td>
                         <td>
-                          <span className={`${styles.fansubStatusBadge} ${badgeClass}`}>{statusLabel(item.status)}</span>
+                          <span
+                            className={`${styles.fansubStatusBadge} ${badgeClass}`}
+                          >
+                            {statusLabel(item.status)}
+                          </span>
                         </td>
-                        <td className={styles.fansubPeriodCell}>{formatPeriod(item)}</td>
-                        <td className={styles.fansubMemberCell}>{count === undefined ? '...' : count === null ? 'n/a' : count}</td>
+                        <td className={styles.fansubPeriodCell}>
+                          {formatPeriod(item)}
+                        </td>
+                        <td className={styles.fansubMemberCell}>
+                          {count === undefined
+                            ? "..."
+                            : count === null
+                              ? "n/a"
+                              : count}
+                        </td>
                         <td>
                           <div className={styles.fansubActionGroup}>
                             <Link
@@ -568,7 +679,7 @@ export default function AdminFansubsPage() {
                           </div>
                         </td>
                       </tr>
-                    )
+                    );
                   })}
                 </tbody>
               </table>
@@ -576,15 +687,15 @@ export default function AdminFansubsPage() {
 
             <div className={styles.fansubMobileList}>
               {pagedItems.map((item) => {
-                const count = memberCounts[item.id]
-                const aliases = aliasesByGroup[item.id] ?? []
-                const primaryAlias = aliases.length > 0 ? aliases[0] : null
+                const count = memberCounts[item.id];
+                const aliases = aliasesByGroup[item.id] ?? [];
+                const primaryAlias = aliases.length > 0 ? aliases[0] : null;
                 const badgeClass =
-                  item.status === 'active'
+                  item.status === "active"
                     ? styles.fansubStatusActive
-                    : item.status === 'inactive'
+                    : item.status === "inactive"
                       ? styles.fansubStatusInactive
-                      : styles.fansubStatusArchived
+                      : styles.fansubStatusArchived;
 
                 return (
                   <article key={item.id} className={styles.fansubCard}>
@@ -600,20 +711,31 @@ export default function AdminFansubsPage() {
                       <div className={styles.fansubCardMeta}>
                         <h3 className={styles.fansubCardName}>{item.name}</h3>
                         <p className={styles.fansubCardSlug}>{item.slug}</p>
-                        {primaryAlias ? <p className={styles.fansubCardAlias}>Tag: {primaryAlias}</p> : null}
+                        {primaryAlias ? (
+                          <p className={styles.fansubCardAlias}>
+                            Tag: {primaryAlias}
+                          </p>
+                        ) : null}
                       </div>
                       <div className={styles.fansubCardMenu}>
                         <button
                           type="button"
                           className={styles.fansubMenuButton}
-                          onClick={() => setMobileMenuGroupID((prev) => (prev === item.id ? null : item.id))}
+                          onClick={() =>
+                            setMobileMenuGroupID((prev) =>
+                              prev === item.id ? null : item.id,
+                            )
+                          }
                           aria-label="Aktionen"
                         >
                           <MoreHorizontal size={16} />
                         </button>
                         {mobileMenuGroupID === item.id ? (
                           <div className={styles.fansubMenuPopup}>
-                            <Link href={`/admin/fansubs/${item.id}/edit`} className={styles.fansubMenuItem}>
+                            <Link
+                              href={`/admin/fansubs/${item.id}/edit`}
+                              className={styles.fansubMenuItem}
+                            >
                               <Pencil size={14} />
                               Edit
                             </Link>
@@ -631,14 +753,25 @@ export default function AdminFansubsPage() {
                       </div>
                     </div>
                     <div className={styles.fansubCardData}>
-                      <span className={`${styles.fansubStatusBadge} ${badgeClass}`}>{statusLabel(item.status)}</span>
-                      <span className={styles.fansubCardDetail}>Zeitraum: {formatPeriod(item)}</span>
+                      <span
+                        className={`${styles.fansubStatusBadge} ${badgeClass}`}
+                      >
+                        {statusLabel(item.status)}
+                      </span>
                       <span className={styles.fansubCardDetail}>
-                        Mitglieder: {count === undefined ? '...' : count === null ? 'n/a' : count}
+                        Zeitraum: {formatPeriod(item)}
+                      </span>
+                      <span className={styles.fansubCardDetail}>
+                        Mitglieder:{" "}
+                        {count === undefined
+                          ? "..."
+                          : count === null
+                            ? "n/a"
+                            : count}
                       </span>
                     </div>
                   </article>
-                )
+                );
               })}
             </div>
 
@@ -661,7 +794,9 @@ export default function AdminFansubsPage() {
                 <button
                   type="button"
                   className={styles.buttonSecondary}
-                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                  onClick={() =>
+                    setPage((prev) => Math.min(totalPages, prev + 1))
+                  }
                   disabled={page >= totalPages}
                 >
                   Weiter
@@ -672,5 +807,13 @@ export default function AdminFansubsPage() {
         ) : null}
       </section>
     </main>
-  )
+  );
+}
+
+export default function AdminFansubsPage() {
+  return (
+    <PlatformAdminGate>
+      <AdminFansubsContent />
+    </PlatformAdminGate>
+  );
 }

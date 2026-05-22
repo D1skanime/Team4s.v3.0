@@ -10,10 +10,12 @@ import (
 	"syscall"
 	"time"
 
+	"team4s.v3/backend/internal/auth"
 	"team4s.v3/backend/internal/config"
 	"team4s.v3/backend/internal/database"
 	"team4s.v3/backend/internal/handlers"
 	"team4s.v3/backend/internal/middleware"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
 
@@ -101,9 +103,9 @@ func main() {
 	commentHandler := handlers.NewCommentHandler(commentRepo)
 	commentCreateLimiter := middleware.NewCommentRateLimiter(redisClient, 5, time.Minute)
 	authRepo := repository.NewAuthRepository(redisClient)
-	middleware.ConfigureLocalAuthBypass(cfg.AuthBypassLocal, cfg.AuthIssueDevUserID, strings.TrimSpace(cfg.AuthIssueDevDisplayName))
-	authMiddleware := middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo)
-	authOptionalMiddleware := middleware.CommentAuthOptionalMiddlewareWithState(cfg.AuthTokenSecret, authRepo)
+	appAuthRepo := repository.NewAppAuthRepository(dbPool)
+	memberProfileRepo := repository.NewMemberProfileRepository(dbPool, cfg.MediaPublicBaseURL)
+	contributorDashboardRepo := repository.NewContributorDashboardRepository(dbPool)
 	authHandler := handlers.NewAuthHandler(
 		authRepo,
 		cfg.AuthTokenSecret,
@@ -121,6 +123,41 @@ func main() {
 	adminContentRepo := repository.NewAdminContentRepository(dbPool)
 	episodeImportRepo := repository.NewEpisodeImportRepository(dbPool)
 	authzRepo := repository.NewAuthzRepository(dbPool)
+	permissionSvc := permissions.NewService(authzRepo)
+	auditLogRepo := repository.NewAuditLogRepository(dbPool)
+	groupAppMemberRepo := repository.NewFansubGroupAppMemberRepository(dbPool)
+	groupInvitationRepo := repository.NewFansubGroupInvitationRepository(dbPool, groupAppMemberRepo)
+	var authMiddleware gin.HandlerFunc
+	var authOptionalMiddleware gin.HandlerFunc
+	var keycloakVerifier *auth.KeycloakVerifier
+	if cfg.KeycloakEnabled {
+		keycloakVerifier, err = auth.NewKeycloakVerifier(ctx, cfg.KeycloakIssuerURL, cfg.KeycloakDiscoveryURL, cfg.KeycloakClientID)
+		if err != nil {
+			log.Fatalf("keycloak init failed: %v", err)
+		}
+		currentUserResolver := middleware.NewKeycloakCurrentUserResolver(keycloakVerifier, appAuthRepo, authzRepo, authRepo)
+		authMiddleware = middleware.CurrentUserMiddleware(currentUserResolver)
+		authOptionalMiddleware = middleware.CurrentUserOptionalMiddleware(currentUserResolver)
+	} else {
+		middleware.ConfigureLocalAuthBypass(cfg.AuthBypassLocal, cfg.AuthIssueDevUserID, strings.TrimSpace(cfg.AuthIssueDevDisplayName))
+		authMiddleware = middleware.CommentAuthMiddlewareWithState(cfg.AuthTokenSecret, authRepo)
+		authOptionalMiddleware = middleware.CommentAuthOptionalMiddlewareWithState(cfg.AuthTokenSecret, authRepo)
+	}
+	appAuthHandler := handlers.NewAppAuthHandler(
+		appAuthRepo,
+		authzRepo,
+		authRepo,
+		groupAppMemberRepo,
+		groupInvitationRepo,
+		memberProfileRepo,
+		contributorDashboardRepo,
+		keycloakVerifier,
+		permissionSvc,
+		auditLogRepo,
+		cfg.MediaStorageDir,
+		cfg.MediaPublicBaseURL,
+		cfg.KeycloakAccountURL,
+	)
 	adminBootstrapUserIDs := resolveAdminBootstrapUserIDs(cfg)
 	if err := bootstrapAdminRoleAssignments(ctx, authzRepo, cfg.AuthAdminRoleName, adminBootstrapUserIDs); err != nil {
 		if isUndefinedTableError(err) {
@@ -153,7 +190,8 @@ func main() {
 	adminContentHandler.WithMediaDeps(mediaRepo, mediaService).
 		WithNoteDeps(repository.NewFansubNotesRepository(dbPool), services.NewMarkdownService()).
 		WithReleaseVersionNoteDeps(repository.NewReleaseVersionNotesRepository(dbPool)).
-		WithTipTapDeps(tiptapSvc)
+		WithTipTapDeps(tiptapSvc).
+		WithPermissionDeps(permissionSvc, auditLogRepo)
 	fansubHandler := handlers.NewFansubHandler(
 		fansubRepo,
 		episodeVersionRepo,
@@ -169,7 +207,7 @@ func main() {
 			ReleaseGrantSecret:     resolveReleaseGrantSecret(cfg),
 			ReleaseGrantTTLSeconds: cfg.ReleaseStreamGrantTTLSeconds,
 		},
-	).WithMedia(mediaRepo, mediaService)
+	).WithMedia(mediaRepo, mediaService).WithPermissionDeps(permissionSvc, auditLogRepo)
 	groupRepo := repository.NewGroupRepository(dbPool)
 	groupHandler := handlers.NewGroupHandler(groupRepo)
 	groupAssetsHandler := handlers.NewGroupAssetsHandler(
@@ -208,6 +246,14 @@ func main() {
 	v1.POST("/auth/issue", authHandler.Issue)
 	v1.POST("/auth/refresh", authHandler.Refresh)
 	v1.POST("/auth/revoke", authMiddleware, authHandler.Revoke)
+	v1.POST("/auth/keycloak/backchannel-logout", appAuthHandler.HandleKeycloakBackchannelLogout)
+	v1.GET("/me", authMiddleware, appAuthHandler.GetCurrentUser)
+	v1.GET("/me/profile", authMiddleware, appAuthHandler.GetOwnProfile)
+	v1.PUT("/me/profile", authMiddleware, appAuthHandler.UpdateOwnProfile)
+	v1.POST("/me/profile/avatar", authMiddleware, appAuthHandler.UploadOwnProfileAvatar)
+	v1.GET("/me/fansub-groups", authMiddleware, appAuthHandler.ListMyFansubGroups)
+	v1.GET("/me/fansub-groups/:id", authMiddleware, appAuthHandler.GetMyFansubGroupDetail)
+	v1.POST("/invitations/accept", authMiddleware, appAuthHandler.AcceptFansubInvitation)
 	v1.GET("/anime", animeHandler.List)
 	v1.GET("/anime/:id", animeHandler.GetByID)
 	v1.GET("/anime/:id/backdrops", animeHandler.ListBackdrops)
@@ -276,8 +322,10 @@ func main() {
 	v1.GET("/releases/:id/images", episodeVersionImagesHandler.ListReleaseImages)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
 		adminContentHandler: adminContentHandler,
+		animeHandler:        animeHandler,
 		fansubHandler:       fansubHandler,
 		mediaUploadHandler:  mediaUploadHandler,
+		appAuthHandler:      appAuthHandler,
 	})
 	v1.GET("/fansubs/:id/collaboration-members", fansubHandler.ListCollaborationMembers)
 	v1.POST(

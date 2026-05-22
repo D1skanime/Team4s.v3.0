@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -186,7 +187,7 @@ func (h *FansubHandler) GetFansubBySlug(c *gin.Context) {
 
 // UpdateFansub aktualisiert eine bestehende Fansub-Gruppe.
 func (h *FansubHandler) UpdateFansub(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
+	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
 		return
 	}
@@ -194,6 +195,27 @@ func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 	id, err := parseFansubID(c.Param("id"))
 	if err != nil {
 		badRequest(c, "ungültige fansub id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupEdit, id)
+	if err != nil {
+		writePermissionInternalError(c, err, "Fansub-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group.edit.denied", &id, "fansub_group", &id, permissions.ActionFansubGroupEdit, result)
+		writePermissionDenied(c, result)
+		return
+	}
+	if !actor.IsPlatformAdmin {
+		scopedResult := permissions.Result{
+			Allowed:    false,
+			ReasonCode: permissions.ReasonInsufficientRole,
+			Reason:     "fansubgruppe-stammdaten dürfen nur vom Team4s-Admin geändert werden",
+		}
+		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group.canonical_edit.denied", &id, "fansub_group", &id, permissions.ActionFansubGroupEdit, scopedResult)
+		writePermissionDenied(c, scopedResult)
 		return
 	}
 
@@ -236,6 +258,18 @@ func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 		})
 		return
 	}
+
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID: &identity.AppUserID,
+		EventType:      "fansub_group.updated",
+		ScopeType:      permissions.ScopeTypeGroup,
+		ScopeID:        &id,
+		TargetType:     "fansub_group",
+		TargetID:       &id,
+		Action:         string(permissions.ActionFansubGroupEdit),
+		Outcome:        "allowed",
+		Payload:        map[string]any{"slug_set": req.Slug.Set, "name_set": req.Name.Set},
+	})
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": item,

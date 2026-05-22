@@ -48,7 +48,7 @@ import {
   AdminThemeSegment,
   AdminThemeSegmentCreateRequest,
   AdminThemeSegmentPatchRequest,
-} from '@/types/admin'
+} from "@/types/admin";
 import {
   AnimeBackdropResponse,
   AnimeDetail,
@@ -56,11 +56,28 @@ import {
   AnimeRelationsResponse,
   EpisodeDetail,
   PaginatedAnimeResponse,
-} from '@/types/anime'
-import { AuthIssueRequest, AuthRefreshRequest, AuthRevokeRequest, AuthTokenData, AuthTokenResponse, CurrentUserResponse } from '@/types/auth'
-import { ContributorGroupDetailResponse, ContributorGroupsResponse } from '@/types/contributor'
-import { MemberProfileResponse, UpdateMemberProfileRequest } from '@/types/profile'
-import { CommentCreateRequest, CommentCreateResponse, PaginatedCommentResponse } from '@/types/comment'
+} from "@/types/anime";
+import {
+  AuthIssueRequest,
+  AuthRefreshRequest,
+  AuthRevokeRequest,
+  AuthTokenData,
+  AuthTokenResponse,
+  CurrentUserResponse,
+} from "@/types/auth";
+import {
+  ContributorGroupDetailResponse,
+  ContributorGroupsResponse,
+} from "@/types/contributor";
+import {
+  MemberProfileResponse,
+  UpdateMemberProfileRequest,
+} from "@/types/profile";
+import {
+  CommentCreateRequest,
+  CommentCreateResponse,
+  PaginatedCommentResponse,
+} from "@/types/comment";
 import {
   GroupedEpisodesResponse,
   EpisodeVersionCreateRequest,
@@ -68,13 +85,13 @@ import {
   EpisodeVersionFolderScanResponse,
   EpisodeVersionPatchRequest,
   EpisodeVersionResponse,
-} from '@/types/episodeVersion'
+} from "@/types/episodeVersion";
 import {
   EpisodeImportApplyInput,
   EpisodeImportApplyResponse,
   EpisodeImportContextResponse,
   EpisodeImportPreviewResponse,
-} from '@/types/episodeImport'
+} from "@/types/episodeImport";
 import {
   AnimeFansubListResponse,
   FansubGroupCreateRequest,
@@ -119,8 +136,11 @@ import {
   AdminFansubAnimeReleasesResponse,
   AdminCanonicalFansubAnimeReleaseResponse,
   AdminReleaseResponse,
-} from '@/types/fansub'
-import { PaginatedWatchlistResponse, WatchlistCreateResponse } from '@/types/watchlist'
+} from "@/types/fansub";
+import {
+  PaginatedWatchlistResponse,
+  WatchlistCreateResponse,
+} from "@/types/watchlist";
 import {
   ReleaseVersionMediaCategory,
   ReleaseVersionMediaListResponse,
@@ -129,14 +149,14 @@ import {
   ReleaseVersionMediaUploadResponse,
   ReleaseVersionMediaItem,
   ReleaseVersionCapabilitiesResponse,
-} from '@/types/releaseVersionMedia'
+} from "@/types/releaseVersionMedia";
 import {
   GroupDetailResponse,
   GroupReleasesResponse,
   GroupReleasesParams,
-} from '@/types/group'
-import { GroupAssetsResponse } from '@/types/groupAsset'
-import { ReleaseAssetsResponse } from '@/types/mediaAsset'
+} from "@/types/group";
+import { GroupAssetsResponse } from "@/types/groupAsset";
+import { ReleaseAssetsResponse } from "@/types/mediaAsset";
 import {
   FansubGroupNote,
   MemberGroupStory,
@@ -149,18 +169,24 @@ import {
   CreateMemberGroupStoryRequest,
   UpdateMemberGroupStoryRequest,
   UpsertAnimeFansubProjectNoteRequest,
-} from '@/types/fansubNotes'
+} from "@/types/fansubNotes";
 import {
   ReleaseVersionNote,
   MemberRoleForVersion,
   BulkUpsertReleaseVersionNotesRequest,
-} from '@/types/releaseVersionNotes'
-import { exchangeKeycloakCode, isKeycloakEnabled, logoutFromKeycloak, refreshKeycloakToken, type KeycloakTokenBundle } from '@/lib/keycloakAuth'
-import { getBrowserApiBaseUrl, resolvePublicApiUrl } from '@/lib/publicApiUrl'
+} from "@/types/releaseVersionNotes";
+import {
+  exchangeKeycloakCode,
+  isKeycloakEnabled,
+  logoutFromKeycloak,
+  refreshKeycloakToken,
+  type KeycloakTokenBundle,
+} from "@/lib/keycloakAuth";
+import { getBrowserApiBaseUrl, resolvePublicApiUrl } from "@/lib/publicApiUrl";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
 // live frontends from depending on a directly reachable host backend port.
-const API_PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim()
+const API_PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").trim();
 
 /**
  * Normalisiert die interne API-URL für Docker-Umgebungen.
@@ -169,26 +195,31 @@ const API_PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').trim()
  * Container erreichen. Außerhalb von Docker bleibt die URL unverändert.
  */
 function normalizeInternalApiBaseUrl(raw: string): string {
-  const value = raw.trim()
-  if (!value) return ''
+  const value = raw.trim();
+  if (!value) return "";
 
   try {
-    const parsed = new URL(value)
-    if (parsed.hostname === 'backend') {
-      parsed.hostname = 'team4sv30-backend'
-      return parsed.toString().replace(/\/$/, '')
+    const parsed = new URL(value);
+    if (parsed.hostname === "backend") {
+      parsed.hostname = "team4sv30-backend";
+      return parsed.toString().replace(/\/$/, "");
     }
-    return value
+    return value;
   } catch {
-    return value
+    return value;
   }
 }
 
-const API_INTERNAL_BASE_URL = normalizeInternalApiBaseUrl(process.env.API_INTERNAL_URL || '') || API_PUBLIC_BASE_URL
-const AUTH_BYPASS_LOCAL = ((process.env.NEXT_PUBLIC_AUTH_BYPASS_LOCAL || '').trim() || 'false').toLowerCase() === 'true'
-const AUTH_BYPASS_TOKEN = 'local-auth-bypass'
-const AUTH_BYPASS_DISPLAY_NAME = 'LocalAdmin'
-export const API_AUTH_SESSION_TOKEN = '__team4s_runtime_auth__'
+const API_INTERNAL_BASE_URL =
+  normalizeInternalApiBaseUrl(process.env.API_INTERNAL_URL || "") ||
+  API_PUBLIC_BASE_URL;
+const AUTH_BYPASS_LOCAL =
+  (
+    (process.env.NEXT_PUBLIC_AUTH_BYPASS_LOCAL || "").trim() || "false"
+  ).toLowerCase() === "true";
+const AUTH_BYPASS_TOKEN = "local-auth-bypass";
+const AUTH_BYPASS_DISPLAY_NAME = "LocalAdmin";
+export const API_AUTH_SESSION_TOKEN = "__team4s_runtime_auth__";
 
 /**
  * Gibt die richtige API-Basis-URL zurück — je nachdem ob der Code im Browser
@@ -197,7 +228,9 @@ export const API_AUTH_SESSION_TOKEN = '__team4s_runtime_auth__'
  * - Server  → interne Docker-URL (schneller, kein Umweg über Host)
  */
 function getApiBaseUrl(): string {
-  return typeof window === 'undefined' ? API_INTERNAL_BASE_URL : getBrowserApiBaseUrl()
+  return typeof window === "undefined"
+    ? API_INTERNAL_BASE_URL
+    : getBrowserApiBaseUrl();
 }
 
 /**
@@ -208,39 +241,44 @@ function getApiBaseUrl(): string {
  * Wird für Cover-, Banner- und Backdrop-Pfade aus der API genutzt.
  */
 export function resolveApiUrl(value?: string): string {
-  const trimmed = (value || '').trim()
+  const trimmed = (value || "").trim();
   if (!trimmed) {
-    return ''
+    return "";
   }
 
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-    return trimmed
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
   }
 
-  if (trimmed.startsWith('/api/')) {
-    return resolvePublicApiUrl(trimmed)
+  if (trimmed.startsWith("/api/")) {
+    return resolvePublicApiUrl(trimmed);
   }
 
-  return trimmed
+  return trimmed;
 }
 
-export const AUTH_BEARER_TOKEN = (process.env.NEXT_PUBLIC_AUTH_TOKEN || '').trim()
-export const AUTH_DISPLAY_NAME = (process.env.NEXT_PUBLIC_AUTH_DISPLAY_NAME || '').trim() || (AUTH_BYPASS_LOCAL ? AUTH_BYPASS_DISPLAY_NAME : '')
-export const HAS_AUTH_TOKEN = AUTH_BEARER_TOKEN.length > 0 || AUTH_BYPASS_LOCAL
+export const AUTH_BEARER_TOKEN = (
+  process.env.NEXT_PUBLIC_AUTH_TOKEN || ""
+).trim();
+export const AUTH_DISPLAY_NAME =
+  (process.env.NEXT_PUBLIC_AUTH_DISPLAY_NAME || "").trim() ||
+  (AUTH_BYPASS_LOCAL ? AUTH_BYPASS_DISPLAY_NAME : "");
+export const HAS_AUTH_TOKEN = AUTH_BEARER_TOKEN.length > 0 || AUTH_BYPASS_LOCAL;
 
-export const AUTH_TOKEN_COOKIE_NAME = 'team4s_access_token'
-export const AUTH_REFRESH_COOKIE_NAME = 'team4s_refresh_token'
-export const AUTH_DISPLAY_NAME_COOKIE_NAME = 'team4s_display_name'
-const AUTH_TOKEN_STORAGE_KEY = 'team4s.auth.access_token'
-const AUTH_REFRESH_STORAGE_KEY = 'team4s.auth.refresh_token'
-const AUTH_DISPLAY_NAME_STORAGE_KEY = 'team4s.auth.display_name'
-const AUTH_SESSION_META_STORAGE_KEY = 'team4s.auth.session_meta'
-export const AUTH_SESSION_EVENT_STORAGE_KEY = 'team4s.auth.session_event'
-export const AUTH_SESSION_CHANGED_EVENT = 'team4s:auth-session-changed'
-export const AUTH_SESSION_SWITCH_EVENT = 'team4s:auth-session-switch'
-export const AUTH_SESSION_SWITCH_CHANNEL_NAME = 'team4s.auth.session_switch'
-const AUTH_SESSION_PRIVATE_META_STORAGE_KEY = 'team4s.auth.private_session_meta'
-const AUTH_REFRESH_BUFFER_SECONDS = 60
+export const AUTH_TOKEN_COOKIE_NAME = "team4s_access_token";
+export const AUTH_REFRESH_COOKIE_NAME = "team4s_refresh_token";
+export const AUTH_DISPLAY_NAME_COOKIE_NAME = "team4s_display_name";
+const AUTH_TOKEN_STORAGE_KEY = "team4s.auth.access_token";
+const AUTH_REFRESH_STORAGE_KEY = "team4s.auth.refresh_token";
+const AUTH_DISPLAY_NAME_STORAGE_KEY = "team4s.auth.display_name";
+const AUTH_SESSION_META_STORAGE_KEY = "team4s.auth.session_meta";
+export const AUTH_SESSION_EVENT_STORAGE_KEY = "team4s.auth.session_event";
+export const AUTH_SESSION_CHANGED_EVENT = "team4s:auth-session-changed";
+export const AUTH_SESSION_SWITCH_EVENT = "team4s:auth-session-switch";
+export const AUTH_SESSION_SWITCH_CHANNEL_NAME = "team4s.auth.session_switch";
+const AUTH_SESSION_PRIVATE_META_STORAGE_KEY =
+  "team4s.auth.private_session_meta";
+const AUTH_REFRESH_BUFFER_SECONDS = 60;
 
 /**
  * Strukturierter API-Fehler — enthält HTTP-Statuscode, Fehlermeldung und
@@ -249,11 +287,11 @@ const AUTH_REFRESH_BUFFER_SECONDS = 60
  * damit Aufrufer gezielt auf z.B. 401, 409 oder 429 reagieren können.
  */
 export class ApiError extends Error {
-  status: number
-  retryAfterSeconds: number | null
-  code: string | null
-  details: string | null
-  conflict: AdminAnimeAniSearchEditConflictResult | null
+  status: number;
+  retryAfterSeconds: number | null;
+  code: string | null;
+  details: string | null;
+  conflict: AdminAnimeAniSearchEditConflictResult | null;
 
   constructor(
     status: number,
@@ -263,68 +301,68 @@ export class ApiError extends Error {
     details: string | null = null,
     conflict: AdminAnimeAniSearchEditConflictResult | null = null,
   ) {
-    super(message)
-    this.status = status
-    this.retryAfterSeconds = retryAfterSeconds
-    this.code = code
-    this.details = details
-    this.conflict = conflict
+    super(message);
+    this.status = status;
+    this.retryAfterSeconds = retryAfterSeconds;
+    this.code = code;
+    this.details = details;
+    this.conflict = conflict;
   }
 }
 
 interface ParsedApiErrorPayload {
-  message: string
-  code: string | null
-  details: string | null
+  message: string;
+  code: string | null;
+  details: string | null;
 }
 
-interface AuthorizedRequestOptions extends Omit<RequestInit, 'headers'> {
-  authToken?: string
-  headers?: Record<string, string>
-  skipAuthPreflight?: boolean
-  retryAuth401?: boolean
+interface AuthorizedRequestOptions extends Omit<RequestInit, "headers"> {
+  authToken?: string;
+  headers?: Record<string, string>;
+  skipAuthPreflight?: boolean;
+  retryAuth401?: boolean;
 }
 
 export interface RuntimeSessionMeta {
-  app_user_id: number
-  user_id: number
-  display_name: string
-  session_id: string | null
+  app_user_id: number;
+  user_id: number;
+  display_name: string;
+  session_id: string | null;
 }
 
 export interface RuntimeSessionSwitchEvent {
-  type: 'session-switch'
-  timestamp: number
-  previous_app_user_id: number
-  next_app_user_id: number
+  type: "session-switch";
+  timestamp: number;
+  previous_app_user_id: number;
+  next_app_user_id: number;
 }
 
 export interface AuthSessionSnapshot {
-  hasAccessToken: boolean
-  hasRefreshToken: boolean
-  displayName: string
+  hasAccessToken: boolean;
+  hasRefreshToken: boolean;
+  displayName: string;
 }
 
 interface RuntimeSessionPrivateMeta {
-  access_token_expires_at: number
-  refresh_token_expires_at: number
+  access_token_expires_at: number;
+  refresh_token_expires_at: number;
 }
 
 interface CommentListParams {
-  page?: number
-  per_page?: number
+  page?: number;
+  per_page?: number;
 }
 
 interface WatchlistListParams {
-  page?: number
-  per_page?: number
+  page?: number;
+  per_page?: number;
 }
 
 interface FansubListParams {
-  q?: string
-  status?: FansubStatus
-  page?: number
-  per_page?: number
+  q?: string;
+  status?: FansubStatus;
+  page?: number;
+  per_page?: number;
 }
 
 /**
@@ -334,47 +372,50 @@ interface FansubListParams {
  * include_disabled) werden nur bei explizitem true/false übergeben.
  */
 function buildQuery(params: AnimeListParams): string {
-  const query = new URLSearchParams()
-  if (params.page) query.set('page', String(params.page))
-  if (params.per_page) query.set('per_page', String(params.per_page))
-  if (params.q) query.set('q', params.q)
-  if (params.letter) query.set('letter', params.letter)
-  if (params.content_type) query.set('content_type', params.content_type)
-  if (params.status) query.set('status', params.status)
-  if (typeof params.fansub_id === 'number' && params.fansub_id > 0) query.set('fansub_id', String(params.fansub_id))
-  if (typeof params.has_cover === 'boolean') query.set('has_cover', String(params.has_cover))
-  if (typeof params.include_disabled === 'boolean') query.set('include_disabled', String(params.include_disabled))
+  const query = new URLSearchParams();
+  if (params.page) query.set("page", String(params.page));
+  if (params.per_page) query.set("per_page", String(params.per_page));
+  if (params.q) query.set("q", params.q);
+  if (params.letter) query.set("letter", params.letter);
+  if (params.content_type) query.set("content_type", params.content_type);
+  if (params.status) query.set("status", params.status);
+  if (typeof params.fansub_id === "number" && params.fansub_id > 0)
+    query.set("fansub_id", String(params.fansub_id));
+  if (typeof params.has_cover === "boolean")
+    query.set("has_cover", String(params.has_cover));
+  if (typeof params.include_disabled === "boolean")
+    query.set("include_disabled", String(params.include_disabled));
 
-  return query.toString()
+  return query.toString();
 }
 
 /** Baut den Query-String für paginierte Kommentar-Abfragen (page + per_page). */
 function buildCommentQuery(params: CommentListParams): string {
-  const query = new URLSearchParams()
-  if (params.page) query.set('page', String(params.page))
-  if (params.per_page) query.set('per_page', String(params.per_page))
+  const query = new URLSearchParams();
+  if (params.page) query.set("page", String(params.page));
+  if (params.per_page) query.set("per_page", String(params.per_page));
 
-  return query.toString()
+  return query.toString();
 }
 
 /** Baut den Query-String für paginierte Watchlist-Abfragen (page + per_page). */
 function buildWatchlistQuery(params: WatchlistListParams): string {
-  const query = new URLSearchParams()
-  if (params.page) query.set('page', String(params.page))
-  if (params.per_page) query.set('per_page', String(params.per_page))
+  const query = new URLSearchParams();
+  if (params.page) query.set("page", String(params.page));
+  if (params.per_page) query.set("per_page", String(params.per_page));
 
-  return query.toString()
+  return query.toString();
 }
 
 /** Baut den Query-String für Fansub-Listenabfragen (Suche, Status, Pagination). */
 function buildFansubListQuery(params: FansubListParams): string {
-  const query = new URLSearchParams()
-  if (params.q) query.set('q', params.q)
-  if (params.status) query.set('status', params.status)
-  if (params.page) query.set('page', String(params.page))
-  if (params.per_page) query.set('per_page', String(params.per_page))
+  const query = new URLSearchParams();
+  if (params.q) query.set("q", params.q);
+  if (params.status) query.set("status", params.status);
+  if (params.page) query.set("page", String(params.page));
+  if (params.per_page) query.set("per_page", String(params.per_page));
 
-  return query.toString()
+  return query.toString();
 }
 
 /**
@@ -383,25 +424,25 @@ function buildFansubListQuery(params: FansubListParams): string {
  * der Code serverseitig ausgeführt wird.
  */
 function readBrowserCookie(name: string): string {
-  if (typeof document === 'undefined') {
-    return ''
+  if (typeof document === "undefined") {
+    return "";
   }
 
-  const prefix = `${name}=`
+  const prefix = `${name}=`;
   const cookie = document.cookie
-    .split(';')
+    .split(";")
     .map((item) => item.trim())
-    .find((item) => item.startsWith(prefix))
+    .find((item) => item.startsWith(prefix));
 
   if (!cookie) {
-    return ''
+    return "";
   }
 
-  const value = cookie.slice(prefix.length)
+  const value = cookie.slice(prefix.length);
   try {
-    return decodeURIComponent(value)
+    return decodeURIComponent(value);
   } catch {
-    return value
+    return value;
   }
 }
 
@@ -410,14 +451,21 @@ function readBrowserCookie(name: string): string {
  * Wird für Auth-Tokens genutzt damit der Token beim Seitenaufruf direkt
  * verfügbar ist — ohne Roundtrip über localStorage.
  */
-function writeBrowserCookie(name: string, value: string, maxAgeSeconds: number): void {
-  if (typeof document === 'undefined') {
-    return
+function writeBrowserCookie(
+  name: string,
+  value: string,
+  maxAgeSeconds: number,
+): void {
+  if (typeof document === "undefined") {
+    return;
   }
 
-  const maxAge = Number.isFinite(maxAgeSeconds) && maxAgeSeconds > 0 ? Math.floor(maxAgeSeconds) : 0
-  const encodedValue = encodeURIComponent(value)
-  document.cookie = `${name}=${encodedValue}; Path=/; Max-Age=${maxAge}; SameSite=Lax`
+  const maxAge =
+    Number.isFinite(maxAgeSeconds) && maxAgeSeconds > 0
+      ? Math.floor(maxAgeSeconds)
+      : 0;
+  const encodedValue = encodeURIComponent(value);
+  document.cookie = `${name}=${encodedValue}; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
 }
 
 /**
@@ -425,14 +473,14 @@ function writeBrowserCookie(name: string, value: string, maxAgeSeconds: number):
  * Fallback wenn Cookies nicht gelesen werden können (z.B. httpOnly-Einschränkungen).
  */
 function readBrowserStorage(name: string): string {
-  if (typeof window === 'undefined') {
-    return ''
+  if (typeof window === "undefined") {
+    return "";
   }
 
   try {
-    return (window.localStorage.getItem(name) || '').trim()
+    return (window.localStorage.getItem(name) || "").trim();
   } catch {
-    return ''
+    return "";
   }
 }
 
@@ -441,15 +489,15 @@ function readBrowserStorage(name: string): string {
  * Fehler werden stillschweigend ignoriert — Cookies bleiben der primäre Speicher.
  */
 function writeBrowserStorage(name: string, value: string): void {
-  if (typeof window === 'undefined') {
-    return
+  if (typeof window === "undefined") {
+    return;
   }
 
   try {
     if (value.trim()) {
-      window.localStorage.setItem(name, value)
+      window.localStorage.setItem(name, value);
     } else {
-      window.localStorage.removeItem(name)
+      window.localStorage.removeItem(name);
     }
   } catch {
     // Ignore storage write failures and rely on cookies only.
@@ -457,176 +505,211 @@ function writeBrowserStorage(name: string, value: string): void {
 }
 
 function clearLegacyTokenStorage(): void {
-  writeBrowserStorage(AUTH_TOKEN_STORAGE_KEY, '')
-  writeBrowserStorage(AUTH_REFRESH_STORAGE_KEY, '')
-  writeBrowserStorage(AUTH_DISPLAY_NAME_STORAGE_KEY, '')
+  writeBrowserStorage(AUTH_TOKEN_STORAGE_KEY, "");
+  writeBrowserStorage(AUTH_REFRESH_STORAGE_KEY, "");
+  writeBrowserStorage(AUTH_DISPLAY_NAME_STORAGE_KEY, "");
 }
 
 export function getRuntimeSessionMeta(): RuntimeSessionMeta | null {
-  const raw = readBrowserStorage(AUTH_SESSION_META_STORAGE_KEY)
+  const raw = readBrowserStorage(AUTH_SESSION_META_STORAGE_KEY);
   if (!raw) {
-    return null
+    return null;
   }
 
   try {
-    const parsed = JSON.parse(raw) as Partial<RuntimeSessionMeta>
-    if (!Number.isFinite(parsed.app_user_id) || Number(parsed.app_user_id) <= 0) {
-      return null
+    const parsed = JSON.parse(raw) as Partial<RuntimeSessionMeta>;
+    if (
+      !Number.isFinite(parsed.app_user_id) ||
+      Number(parsed.app_user_id) <= 0
+    ) {
+      return null;
     }
 
     return {
       app_user_id: Number(parsed.app_user_id),
       user_id: Number(parsed.user_id || 0),
-      display_name: typeof parsed.display_name === 'string' ? parsed.display_name : '',
-      session_id: typeof parsed.session_id === 'string' ? parsed.session_id : null,
-    }
+      display_name:
+        typeof parsed.display_name === "string" ? parsed.display_name : "",
+      session_id:
+        typeof parsed.session_id === "string" ? parsed.session_id : null,
+    };
   } catch {
-    return null
+    return null;
   }
 }
 
 function writeRuntimeSessionMeta(authData: AuthTokenData): void {
-  const appUserId = Number(authData.app_user_id || 0)
+  const appUserId = Number(authData.app_user_id || 0);
   if (!Number.isFinite(appUserId) || appUserId <= 0) {
-    writeBrowserStorage(AUTH_SESSION_META_STORAGE_KEY, '')
-    return
+    writeBrowserStorage(AUTH_SESSION_META_STORAGE_KEY, "");
+    return;
   }
 
-  writeBrowserStorage(AUTH_SESSION_META_STORAGE_KEY, JSON.stringify({
-    app_user_id: appUserId,
-    user_id: Number(authData.user_id || 0),
-    display_name: authData.display_name || '',
-    session_id: typeof authData.session_id === 'string' ? authData.session_id : null,
-  } satisfies RuntimeSessionMeta))
+  writeBrowserStorage(
+    AUTH_SESSION_META_STORAGE_KEY,
+    JSON.stringify({
+      app_user_id: appUserId,
+      user_id: Number(authData.user_id || 0),
+      display_name: authData.display_name || "",
+      session_id:
+        typeof authData.session_id === "string" ? authData.session_id : null,
+    } satisfies RuntimeSessionMeta),
+  );
 }
 
 function readRuntimeSessionPrivateMeta(): RuntimeSessionPrivateMeta | null {
-  const raw = readBrowserStorage(AUTH_SESSION_PRIVATE_META_STORAGE_KEY)
+  const raw = readBrowserStorage(AUTH_SESSION_PRIVATE_META_STORAGE_KEY);
   if (!raw) {
-    return null
+    return null;
   }
 
   try {
-    const parsed = JSON.parse(raw) as Partial<RuntimeSessionPrivateMeta>
-    const accessExpiresAt = Number(parsed.access_token_expires_at || 0)
-    const refreshExpiresAt = Number(parsed.refresh_token_expires_at || 0)
+    const parsed = JSON.parse(raw) as Partial<RuntimeSessionPrivateMeta>;
+    const accessExpiresAt = Number(parsed.access_token_expires_at || 0);
+    const refreshExpiresAt = Number(parsed.refresh_token_expires_at || 0);
     if (!Number.isFinite(accessExpiresAt) || accessExpiresAt <= 0) {
-      return null
+      return null;
     }
 
     return {
       access_token_expires_at: accessExpiresAt,
-      refresh_token_expires_at: Number.isFinite(refreshExpiresAt) && refreshExpiresAt > 0 ? refreshExpiresAt : 0,
-    }
+      refresh_token_expires_at:
+        Number.isFinite(refreshExpiresAt) && refreshExpiresAt > 0
+          ? refreshExpiresAt
+          : 0,
+    };
   } catch {
-    return null
+    return null;
   }
 }
 
 function writeRuntimeSessionPrivateMeta(authData: AuthTokenData): void {
-  const accessExpiresAt = Number(authData.access_token_expires_at || 0)
-  const refreshExpiresAt = Number(authData.refresh_token_expires_at || 0)
+  const accessExpiresAt = Number(authData.access_token_expires_at || 0);
+  const refreshExpiresAt = Number(authData.refresh_token_expires_at || 0);
   if (!Number.isFinite(accessExpiresAt) || accessExpiresAt <= 0) {
-    writeBrowserStorage(AUTH_SESSION_PRIVATE_META_STORAGE_KEY, '')
-    return
+    writeBrowserStorage(AUTH_SESSION_PRIVATE_META_STORAGE_KEY, "");
+    return;
   }
 
-  writeBrowserStorage(AUTH_SESSION_PRIVATE_META_STORAGE_KEY, JSON.stringify({
-    access_token_expires_at: accessExpiresAt,
-    refresh_token_expires_at: Number.isFinite(refreshExpiresAt) && refreshExpiresAt > 0 ? refreshExpiresAt : 0,
-  } satisfies RuntimeSessionPrivateMeta))
+  writeBrowserStorage(
+    AUTH_SESSION_PRIVATE_META_STORAGE_KEY,
+    JSON.stringify({
+      access_token_expires_at: accessExpiresAt,
+      refresh_token_expires_at:
+        Number.isFinite(refreshExpiresAt) && refreshExpiresAt > 0
+          ? refreshExpiresAt
+          : 0,
+    } satisfies RuntimeSessionPrivateMeta),
+  );
 }
 
 function shouldRefreshRuntimeSession(): boolean {
-  const refreshToken = getRuntimeRefreshToken()
+  const refreshToken = getRuntimeRefreshToken();
   if (!refreshToken.trim()) {
-    return false
+    return false;
   }
 
-  const accessToken = resolveAuthToken()
+  const accessToken = resolveAuthToken();
   if (!accessToken.trim()) {
-    return true
+    return true;
   }
 
-  const privateMeta = readRuntimeSessionPrivateMeta()
+  const privateMeta = readRuntimeSessionPrivateMeta();
   if (!privateMeta) {
-    return false
+    return false;
   }
 
-  const nowSeconds = Math.floor(Date.now() / 1000)
-  return privateMeta.access_token_expires_at <= nowSeconds + AUTH_REFRESH_BUFFER_SECONDS
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  return (
+    privateMeta.access_token_expires_at <=
+    nowSeconds + AUTH_REFRESH_BUFFER_SECONDS
+  );
 }
 
-function publishRuntimeSessionSwitch(previous: RuntimeSessionMeta, next: AuthTokenData): void {
-  const nextAppUserId = Number(next.app_user_id || 0)
-  if (typeof window === 'undefined' || !Number.isFinite(nextAppUserId) || nextAppUserId <= 0) {
-    return
+function publishRuntimeSessionSwitch(
+  previous: RuntimeSessionMeta,
+  next: AuthTokenData,
+): void {
+  const nextAppUserId = Number(next.app_user_id || 0);
+  if (
+    typeof window === "undefined" ||
+    !Number.isFinite(nextAppUserId) ||
+    nextAppUserId <= 0
+  ) {
+    return;
   }
 
   const payload: RuntimeSessionSwitchEvent = {
-    type: 'session-switch',
+    type: "session-switch",
     timestamp: Date.now(),
     previous_app_user_id: previous.app_user_id,
     next_app_user_id: nextAppUserId,
-  }
+  };
 
   try {
-    window.localStorage.setItem(AUTH_SESSION_EVENT_STORAGE_KEY, JSON.stringify(payload))
+    window.localStorage.setItem(
+      AUTH_SESSION_EVENT_STORAGE_KEY,
+      JSON.stringify(payload),
+    );
   } catch {
     // Ignore cross-tab event storage write failures.
   }
 
   try {
-    window.dispatchEvent(new CustomEvent(AUTH_SESSION_SWITCH_EVENT, { detail: payload }))
+    window.dispatchEvent(
+      new CustomEvent(AUTH_SESSION_SWITCH_EVENT, { detail: payload }),
+    );
   } catch {
     // Ignore event dispatch issues; storage remains the source of truth.
   }
 
   try {
-    const channel = new BroadcastChannel(AUTH_SESSION_SWITCH_CHANNEL_NAME)
-    channel.postMessage(payload)
-    channel.close()
+    const channel = new BroadcastChannel(AUTH_SESSION_SWITCH_CHANNEL_NAME);
+    channel.postMessage(payload);
+    channel.close();
   } catch {
     // Ignore BroadcastChannel failures and rely on storage/custom events.
   }
 }
 
-export function parseRuntimeSessionSwitchEvent(raw: string): RuntimeSessionSwitchEvent | null {
+export function parseRuntimeSessionSwitchEvent(
+  raw: string,
+): RuntimeSessionSwitchEvent | null {
   if (!raw.trim()) {
-    return null
+    return null;
   }
 
   try {
-    const parsed = JSON.parse(raw) as Partial<RuntimeSessionSwitchEvent>
+    const parsed = JSON.parse(raw) as Partial<RuntimeSessionSwitchEvent>;
     if (
-      parsed.type !== 'session-switch' ||
+      parsed.type !== "session-switch" ||
       !Number.isFinite(parsed.timestamp) ||
       !Number.isFinite(parsed.previous_app_user_id) ||
       !Number.isFinite(parsed.next_app_user_id) ||
       Number(parsed.previous_app_user_id) <= 0 ||
       Number(parsed.next_app_user_id) <= 0
     ) {
-      return null
+      return null;
     }
 
     return {
-      type: 'session-switch',
+      type: "session-switch",
       timestamp: Number(parsed.timestamp),
       previous_app_user_id: Number(parsed.previous_app_user_id),
       next_app_user_id: Number(parsed.next_app_user_id),
-    }
+    };
   } catch {
-    return null
+    return null;
   }
 }
 
 function dispatchAuthSessionChanged(): void {
-  if (typeof window === 'undefined') {
-    return
+  if (typeof window === "undefined") {
+    return;
   }
 
   try {
-    window.dispatchEvent(new CustomEvent(AUTH_SESSION_CHANGED_EVENT))
+    window.dispatchEvent(new CustomEvent(AUTH_SESSION_CHANGED_EVENT));
   } catch {
     // Ignore event dispatch issues; cookies/storage remain the source of truth.
   }
@@ -640,42 +723,45 @@ function dispatchAuthSessionChanged(): void {
  * 5. Local-Dev-Bypass-Token (nur wenn AUTH_BYPASS_LOCAL=true)
  */
 function resolveAuthToken(authToken?: string): string {
-  if (typeof window !== 'undefined') {
-    const runtimeToken = readBrowserCookie(AUTH_TOKEN_COOKIE_NAME).trim()
+  if (typeof window !== "undefined") {
+    const runtimeToken = readBrowserCookie(AUTH_TOKEN_COOKIE_NAME).trim();
     if (runtimeToken) {
-      return runtimeToken
+      return runtimeToken;
     }
 
-    clearLegacyTokenStorage()
+    clearLegacyTokenStorage();
   }
 
-  const explicitToken = (authToken || '').trim()
+  const explicitToken = (authToken || "").trim();
   if (explicitToken) {
-    return explicitToken === API_AUTH_SESSION_TOKEN ? '' : explicitToken
+    return explicitToken === API_AUTH_SESSION_TOKEN ? "" : explicitToken;
   }
 
   if (AUTH_BEARER_TOKEN) {
-    return AUTH_BEARER_TOKEN
+    return AUTH_BEARER_TOKEN;
   }
 
   if (AUTH_BYPASS_LOCAL) {
-    return AUTH_BYPASS_TOKEN
+    return AUTH_BYPASS_TOKEN;
   }
 
-  return ''
+  return "";
 }
 
 /**
  * Fügt den Authorization-Header (Bearer-Token) zu einem Header-Objekt hinzu.
  * Gibt die Headers unverändert zurück wenn kein Token verfügbar ist.
  */
-function withAuthHeader(headers: Record<string, string>, authToken?: string): Record<string, string> {
-  const token = resolveAuthToken(authToken)
+function withAuthHeader(
+  headers: Record<string, string>,
+  authToken?: string,
+): Record<string, string> {
+  const token = resolveAuthToken(authToken);
   if (token) {
-    headers.Authorization = `Bearer ${token}`
+    headers.Authorization = `Bearer ${token}`;
   }
 
-  return headers
+  return headers;
 }
 
 /**
@@ -683,15 +769,26 @@ function withAuthHeader(headers: Record<string, string>, authToken?: string): Re
  * Erwartet JSON mit { error: { message, code?, details? } }.
  * Bei Parse-Fehlern oder fehlendem message-Feld wird der fallback-Text verwendet.
  */
-export async function parseApiErrorPayload(response: Response, fallback: string): Promise<ParsedApiErrorPayload> {
+export async function parseApiErrorPayload(
+  response: Response,
+  fallback: string,
+): Promise<ParsedApiErrorPayload> {
   try {
-    const body = (await response.json()) as { error?: { message?: string; code?: string; details?: string } }
+    const body = (await response.json()) as {
+      error?: { message?: string; code?: string; details?: string };
+    };
     if (body.error?.message) {
       return {
         message: body.error.message,
-        code: typeof body.error.code === 'string' && body.error.code.trim() ? body.error.code : null,
-        details: typeof body.error.details === 'string' && body.error.details.trim() ? body.error.details : null,
-      }
+        code:
+          typeof body.error.code === "string" && body.error.code.trim()
+            ? body.error.code
+            : null,
+        details:
+          typeof body.error.details === "string" && body.error.details.trim()
+            ? body.error.details
+            : null,
+      };
     }
   } catch {
     // Keep fallback message.
@@ -701,134 +798,173 @@ export async function parseApiErrorPayload(response: Response, fallback: string)
     message: fallback,
     code: null,
     details: null,
-  }
+  };
 }
 
 /** Kurzform von parseApiErrorPayload — gibt nur die Fehlermeldung als String zurück. */
-async function parseApiError(response: Response, fallback: string): Promise<string> {
-  const parsed = await parseApiErrorPayload(response, fallback)
-  return parsed.message
+async function parseApiError(
+  response: Response,
+  fallback: string,
+): Promise<string> {
+  const parsed = await parseApiErrorPayload(response, fallback);
+  return parsed.message;
 }
 
-function parsePayloadApiError(payload: unknown, fallback: string): ParsedApiErrorPayload {
-  if (!payload || typeof payload !== 'object') {
+function parsePayloadApiError(
+  payload: unknown,
+  fallback: string,
+): ParsedApiErrorPayload {
+  if (!payload || typeof payload !== "object") {
     return {
       message: fallback,
       code: null,
       details: null,
-    }
+    };
   }
 
-  const error = (payload as { error?: { message?: unknown; code?: unknown; details?: unknown } }).error
-  const message = typeof error?.message === 'string' && error.message.trim() ? error.message : fallback
-  const code = typeof error?.code === 'string' && error.code.trim() ? error.code : null
-  const details = typeof error?.details === 'string' && error.details.trim() ? error.details : null
+  const error = (
+    payload as {
+      error?: { message?: unknown; code?: unknown; details?: unknown };
+    }
+  ).error;
+  const message =
+    typeof error?.message === "string" && error.message.trim()
+      ? error.message
+      : fallback;
+  const code =
+    typeof error?.code === "string" && error.code.trim() ? error.code : null;
+  const details =
+    typeof error?.details === "string" && error.details.trim()
+      ? error.details
+      : null;
 
-  return { message, code, details }
+  return { message, code, details };
 }
 
-function parseAniSearchEditConflictPayload(payload: unknown): AdminAnimeAniSearchEditConflictResult | null {
-  if (!payload || typeof payload !== 'object') {
-    return null
+function parseAniSearchEditConflictPayload(
+  payload: unknown,
+): AdminAnimeAniSearchEditConflictResult | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
   }
 
-  const data = (payload as { data?: Record<string, unknown> }).data
-  if (!data || typeof data !== 'object') {
-    return null
+  const data = (payload as { data?: Record<string, unknown> }).data;
+  if (!data || typeof data !== "object") {
+    return null;
   }
 
-  if (data.mode !== 'conflict') {
-    return null
+  if (data.mode !== "conflict") {
+    return null;
   }
 
   if (
-    typeof data.anisearch_id !== 'string' ||
-    typeof data.existing_anime_id !== 'number' ||
-    typeof data.existing_title !== 'string' ||
-    typeof data.redirect_path !== 'string'
+    typeof data.anisearch_id !== "string" ||
+    typeof data.existing_anime_id !== "number" ||
+    typeof data.existing_title !== "string" ||
+    typeof data.redirect_path !== "string"
   ) {
-    return null
+    return null;
   }
 
   return {
-    mode: 'conflict',
+    mode: "conflict",
     anisearch_id: data.anisearch_id,
     existing_anime_id: data.existing_anime_id,
     existing_title: data.existing_title,
     redirect_path: data.redirect_path,
-  }
+  };
 }
 
 export function getRuntimeAuthToken(): string {
-  const runtimeToken = resolveAuthToken()
-  return runtimeToken.trim()
+  const runtimeToken = resolveAuthToken();
+  return runtimeToken.trim();
 }
 
 export function getRuntimeRefreshToken(): string {
-  if (typeof window === 'undefined') {
-    return ''
+  if (typeof window === "undefined") {
+    return "";
   }
 
-  clearLegacyTokenStorage()
-  return readBrowserCookie(AUTH_REFRESH_COOKIE_NAME).trim()
+  clearLegacyTokenStorage();
+  return readBrowserCookie(AUTH_REFRESH_COOKIE_NAME).trim();
 }
 
 export function getRuntimeDisplayName(): string {
-  if (typeof window === 'undefined') {
-    return AUTH_DISPLAY_NAME
+  if (typeof window === "undefined") {
+    return AUTH_DISPLAY_NAME;
   }
 
-  clearLegacyTokenStorage()
-  const displayName = readBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME).trim()
-  return displayName || AUTH_DISPLAY_NAME
+  clearLegacyTokenStorage();
+  const displayName = readBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME).trim();
+  return displayName || AUTH_DISPLAY_NAME;
 }
 
 export function hasRuntimeAuthToken(): boolean {
-  return getRuntimeAuthToken().length > 0
+  return getRuntimeAuthToken().length > 0;
 }
 
 export function getAuthSessionSnapshot(): AuthSessionSnapshot {
-  const accessToken = getRuntimeAuthToken()
-  const refreshToken = getRuntimeRefreshToken()
+  const accessToken = getRuntimeAuthToken();
+  const refreshToken = getRuntimeRefreshToken();
 
   return {
     hasAccessToken: accessToken.length > 0,
     hasRefreshToken: refreshToken.length > 0,
     displayName: getRuntimeDisplayName(),
-  }
+  };
 }
 
 export function persistAuthSession(authData: AuthTokenData): void {
-  const previousSession = getRuntimeSessionMeta()
-  writeBrowserCookie(AUTH_TOKEN_COOKIE_NAME, authData.access_token, authData.access_token_expires_in)
-  writeBrowserCookie(AUTH_REFRESH_COOKIE_NAME, authData.refresh_token, authData.refresh_token_expires_in)
-  writeBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME, authData.display_name, authData.refresh_token_expires_in)
-  clearLegacyTokenStorage()
-  writeRuntimeSessionMeta(authData)
-  writeRuntimeSessionPrivateMeta(authData)
-  if (previousSession && previousSession.app_user_id > 0 && authData.app_user_id && previousSession.app_user_id !== authData.app_user_id) {
-    publishRuntimeSessionSwitch(previousSession, authData)
+  const previousSession = getRuntimeSessionMeta();
+  writeBrowserCookie(
+    AUTH_TOKEN_COOKIE_NAME,
+    authData.access_token,
+    authData.access_token_expires_in,
+  );
+  writeBrowserCookie(
+    AUTH_REFRESH_COOKIE_NAME,
+    authData.refresh_token,
+    authData.refresh_token_expires_in,
+  );
+  writeBrowserCookie(
+    AUTH_DISPLAY_NAME_COOKIE_NAME,
+    authData.display_name,
+    authData.refresh_token_expires_in,
+  );
+  clearLegacyTokenStorage();
+  writeRuntimeSessionMeta(authData);
+  writeRuntimeSessionPrivateMeta(authData);
+  if (
+    previousSession &&
+    previousSession.app_user_id > 0 &&
+    authData.app_user_id &&
+    previousSession.app_user_id !== authData.app_user_id
+  ) {
+    publishRuntimeSessionSwitch(previousSession, authData);
   }
-  dispatchAuthSessionChanged()
+  dispatchAuthSessionChanged();
 }
 
 export function clearAuthSession(options: { broadcast?: boolean } = {}): void {
-  const { broadcast = true } = options
-  writeBrowserCookie(AUTH_TOKEN_COOKIE_NAME, '', 0)
-  writeBrowserCookie(AUTH_REFRESH_COOKIE_NAME, '', 0)
-  writeBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME, '', 0)
-  writeBrowserStorage(AUTH_TOKEN_STORAGE_KEY, '')
-  writeBrowserStorage(AUTH_REFRESH_STORAGE_KEY, '')
-  writeBrowserStorage(AUTH_DISPLAY_NAME_STORAGE_KEY, '')
-  writeBrowserStorage(AUTH_SESSION_META_STORAGE_KEY, '')
-  writeBrowserStorage(AUTH_SESSION_PRIVATE_META_STORAGE_KEY, '')
+  const { broadcast = true } = options;
+  writeBrowserCookie(AUTH_TOKEN_COOKIE_NAME, "", 0);
+  writeBrowserCookie(AUTH_REFRESH_COOKIE_NAME, "", 0);
+  writeBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME, "", 0);
+  writeBrowserStorage(AUTH_TOKEN_STORAGE_KEY, "");
+  writeBrowserStorage(AUTH_REFRESH_STORAGE_KEY, "");
+  writeBrowserStorage(AUTH_DISPLAY_NAME_STORAGE_KEY, "");
+  writeBrowserStorage(AUTH_SESSION_META_STORAGE_KEY, "");
+  writeBrowserStorage(AUTH_SESSION_PRIVATE_META_STORAGE_KEY, "");
   if (broadcast) {
-    dispatchAuthSessionChanged()
-    return
+    dispatchAuthSessionChanged();
+    return;
   }
 }
 
-function toRuntimeAuthData(accessTokenData: KeycloakTokenBundle, currentUser: CurrentUserResponse['data']): AuthTokenData {
+function toRuntimeAuthData(
+  accessTokenData: KeycloakTokenBundle,
+  currentUser: CurrentUserResponse["data"],
+): AuthTokenData {
   return {
     token_type: accessTokenData.tokenType,
     access_token: accessTokenData.idToken,
@@ -841,413 +977,608 @@ function toRuntimeAuthData(accessTokenData: KeycloakTokenBundle, currentUser: Cu
     app_user_id: currentUser.app_user_id || 0,
     display_name: currentUser.display_name,
     session_id: currentUser.session_id ?? null,
-  }
+  };
 }
 
-async function revokePreviousRuntimeSession(refreshToken: string): Promise<void> {
-  const trimmedRefreshToken = refreshToken.trim()
+async function revokePreviousRuntimeSession(
+  refreshToken: string,
+): Promise<void> {
+  const trimmedRefreshToken = refreshToken.trim();
   if (!trimmedRefreshToken) {
-    return
+    return;
   }
 
   try {
     if (isKeycloakEnabled()) {
-      await logoutFromKeycloak(trimmedRefreshToken)
+      await logoutFromKeycloak(trimmedRefreshToken);
     } else {
-      await revokeAuthToken({ refresh_token: trimmedRefreshToken })
+      await revokeAuthToken({ refresh_token: trimmedRefreshToken });
     }
   } catch {
     // Best effort only; local session has already moved on.
   }
 }
 
-async function prepareRuntimeSessionSwitch(nextAuthData: AuthTokenData): Promise<void> {
-  const previousSession = getRuntimeSessionMeta()
-  const previousRefreshToken = getRuntimeRefreshToken()
-  const nextAppUserId = Number(nextAuthData.app_user_id || 0)
+async function prepareRuntimeSessionSwitch(
+  nextAuthData: AuthTokenData,
+): Promise<void> {
+  const previousSession = getRuntimeSessionMeta();
+  const previousRefreshToken = getRuntimeRefreshToken();
+  const nextAppUserId = Number(nextAuthData.app_user_id || 0);
 
-  if (!previousSession || previousSession.app_user_id <= 0 || nextAppUserId <= 0 || previousSession.app_user_id === nextAppUserId) {
-    return
+  if (
+    !previousSession ||
+    previousSession.app_user_id <= 0 ||
+    nextAppUserId <= 0 ||
+    previousSession.app_user_id === nextAppUserId
+  ) {
+    return;
   }
 
-  clearAuthSession({ broadcast: false })
-  await revokePreviousRuntimeSession(previousRefreshToken)
+  clearAuthSession({ broadcast: false });
+  await revokePreviousRuntimeSession(previousRefreshToken);
 }
 
-export async function persistResolvedAuthSession(authData: AuthTokenData): Promise<void> {
-  await prepareRuntimeSessionSwitch(authData)
-  persistAuthSession(authData)
+export async function persistResolvedAuthSession(
+  authData: AuthTokenData,
+): Promise<void> {
+  await prepareRuntimeSessionSwitch(authData);
+  persistAuthSession(authData);
 }
 
 function isAuthRelatedError(parsed: ParsedApiErrorPayload): boolean {
   const haystack = [parsed.message, parsed.code, parsed.details]
-    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
-    .join(' ')
-    .toLowerCase()
+    .filter(
+      (value): value is string =>
+        typeof value === "string" && value.trim().length > 0,
+    )
+    .join(" ")
+    .toLowerCase();
 
   if (!haystack) {
-    return true
+    return true;
   }
 
   return [
-    'zugriffstoken',
-    'access token',
-    'refresh',
-    'session',
-    'anmeldung',
-    'auth',
-    'bearer',
-    'token',
-    'unauthorized',
-    'invalid',
-    'ungültig',
-    'ungueltig',
-  ].some((needle) => haystack.includes(needle))
+    "zugriffstoken",
+    "access token",
+    "refresh",
+    "session",
+    "anmeldung",
+    "auth",
+    "bearer",
+    "token",
+    "unauthorized",
+    "invalid",
+    "ungültig",
+    "ungueltig",
+  ].some((needle) => haystack.includes(needle));
 }
 
-async function getCurrentUserWithBearerToken(authToken: string): Promise<CurrentUserResponse> {
-  const API_BASE_URL = getApiBaseUrl()
+async function getCurrentUserWithBearerToken(
+  authToken: string,
+): Promise<CurrentUserResponse> {
+  const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me`, {
     headers: { Authorization: `Bearer ${authToken.trim()}` },
     skipAuthPreflight: true,
-  })
+  });
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const payload = await response.json() as CurrentUserResponse
-  return normalizeCurrentUserResponse(payload)
+  const payload = (await response.json()) as CurrentUserResponse;
+  return normalizeCurrentUserResponse(payload);
 }
 
 export async function resolveCurrentUserFromAuthSession(): Promise<CurrentUserResponse> {
-  return getCurrentUser()
+  return getCurrentUser();
 }
 
-let runtimeSessionRefreshPromise: Promise<string> | null = null
+let runtimeSessionRefreshPromise: Promise<string> | null = null;
 
 async function refreshRuntimeSession(): Promise<string> {
   if (runtimeSessionRefreshPromise) {
-    return runtimeSessionRefreshPromise
+    return runtimeSessionRefreshPromise;
   }
 
   runtimeSessionRefreshPromise = (async () => {
-    const refreshToken = getRuntimeRefreshToken()
+    const refreshToken = getRuntimeRefreshToken();
     if (!refreshToken.trim()) {
-      throw new ApiError(401, 'Anmeldung erforderlich. Bitte erneut einloggen.')
+      throw new ApiError(
+        401,
+        "Anmeldung erforderlich. Bitte erneut einloggen.",
+      );
     }
 
     try {
       if (isKeycloakEnabled()) {
-        const tokenBundle = await refreshKeycloakToken(refreshToken)
-        const me = await getCurrentUserWithBearerToken(tokenBundle.idToken)
-        persistAuthSession(toRuntimeAuthData(tokenBundle, me.data))
-        return tokenBundle.idToken
+        const tokenBundle = await refreshKeycloakToken(refreshToken);
+        const me = await getCurrentUserWithBearerToken(tokenBundle.idToken);
+        persistAuthSession(toRuntimeAuthData(tokenBundle, me.data));
+        return tokenBundle.idToken;
       }
 
-      const response = await refreshAuthToken({ refresh_token: refreshToken })
-      persistAuthSession(response.data)
-      return response.data.access_token
+      const response = await refreshAuthToken({ refresh_token: refreshToken });
+      persistAuthSession(response.data);
+      return response.data.access_token;
     } catch (error) {
-      clearAuthSession()
+      clearAuthSession();
       if (error instanceof ApiError) {
-        throw error
+        throw error;
       }
       if (error instanceof Error && error.message.trim()) {
-        throw new ApiError(401, error.message)
+        throw new ApiError(401, error.message);
       }
-      throw new ApiError(401, 'Session konnte nicht aktualisiert werden. Bitte erneut einloggen.')
+      throw new ApiError(
+        401,
+        "Session konnte nicht aktualisiert werden. Bitte erneut einloggen.",
+      );
     } finally {
-      runtimeSessionRefreshPromise = null
+      runtimeSessionRefreshPromise = null;
     }
-  })()
+  })();
 
-  return runtimeSessionRefreshPromise
+  return runtimeSessionRefreshPromise;
 }
 
 async function ensureFreshRuntimeSession(): Promise<string> {
   if (!shouldRefreshRuntimeSession()) {
-    return resolveAuthToken()
+    return resolveAuthToken();
   }
 
-  return refreshRuntimeSession()
+  return refreshRuntimeSession();
 }
 
-export async function completeKeycloakAuthCallback(code: string, state: string): Promise<CurrentUserResponse> {
-  const tokenBundle = await exchangeKeycloakCode(code, state)
-  const me = await getCurrentUserWithBearerToken(tokenBundle.idToken)
-  await persistResolvedAuthSession(toRuntimeAuthData(tokenBundle, me.data))
-  return me
+export async function completeKeycloakAuthCallback(
+  code: string,
+  state: string,
+): Promise<CurrentUserResponse> {
+  const tokenBundle = await exchangeKeycloakCode(code, state);
+  const me = await getCurrentUserWithBearerToken(tokenBundle.idToken);
+  await persistResolvedAuthSession(toRuntimeAuthData(tokenBundle, me.data));
+  return me;
 }
 
 export async function refreshActiveAuthSession(): Promise<CurrentUserResponse | null> {
-  const refreshedToken = await refreshRuntimeSession()
+  const refreshedToken = await refreshRuntimeSession();
 
   if (isKeycloakEnabled()) {
-    return getCurrentUserWithBearerToken(refreshedToken)
+    return getCurrentUserWithBearerToken(refreshedToken);
   }
 
-  return null
+  return null;
 }
 
 export async function logoutActiveAuthSession(): Promise<void> {
-  const refreshToken = getRuntimeRefreshToken()
+  const refreshToken = getRuntimeRefreshToken();
   if (isKeycloakEnabled()) {
-    await logoutFromKeycloak(refreshToken || undefined)
+    await logoutFromKeycloak(refreshToken || undefined);
   } else {
-    await revokeAuthToken(refreshToken ? { refresh_token: refreshToken } : {})
+    await revokeAuthToken(refreshToken ? { refresh_token: refreshToken } : {});
   }
 
-  clearAuthSession()
+  clearAuthSession();
 }
 
-async function authorizedFetch(input: string, options: AuthorizedRequestOptions = {}): Promise<Response> {
+async function authorizedFetch(
+  input: string,
+  options: AuthorizedRequestOptions = {},
+): Promise<Response> {
   const {
     authToken,
     headers = {},
     skipAuthPreflight = false,
     retryAuth401 = true,
     ...init
-  } = options
+  } = options;
 
   const send = (token?: string) => {
-    const requestHeaders = { ...headers }
+    const requestHeaders = { ...headers };
     if (token || !requestHeaders.Authorization) {
-      withAuthHeader(requestHeaders, token)
+      withAuthHeader(requestHeaders, token);
     }
     return fetch(input, {
       ...init,
       headers: requestHeaders,
-    })
-  }
+    });
+  };
 
   if (!skipAuthPreflight) {
-    await ensureFreshRuntimeSession()
+    await ensureFreshRuntimeSession();
   }
-  const initialToken = skipAuthPreflight && headers.Authorization ? undefined : resolveAuthToken(authToken)
-  let response = await send(initialToken)
+  const initialToken =
+    skipAuthPreflight && headers.Authorization
+      ? undefined
+      : resolveAuthToken(authToken);
+  let response = await send(initialToken);
   if (response.status !== 401) {
-    return response
+    return response;
   }
 
-  const parsed = await parseApiErrorPayload(response.clone(), `API request failed: ${response.status}`)
-  if (!retryAuth401 || !isAuthRelatedError(parsed) || !getRuntimeRefreshToken().trim()) {
-    return response
+  const parsed = await parseApiErrorPayload(
+    response.clone(),
+    `API request failed: ${response.status}`,
+  );
+  if (
+    !retryAuth401 ||
+    !isAuthRelatedError(parsed) ||
+    !getRuntimeRefreshToken().trim()
+  ) {
+    return response;
   }
 
-  const refreshedToken = await refreshRuntimeSession()
-  response = await send(refreshedToken)
-  return response
+  const refreshedToken = await refreshRuntimeSession();
+  response = await send(refreshedToken);
+  return response;
 }
 
-export async function apiClientFetch(pathOrUrl: string, options: AuthorizedRequestOptions = {}): Promise<Response> {
-  const input = pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')
-    ? pathOrUrl
-    : `${getApiBaseUrl()}${pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`}`
+export async function apiClientFetch(
+  pathOrUrl: string,
+  options: AuthorizedRequestOptions = {},
+): Promise<Response> {
+  const input =
+    pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")
+      ? pathOrUrl
+      : `${getApiBaseUrl()}${pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`}`;
 
-  return authorizedFetch(input, options)
+  return authorizedFetch(input, options);
 }
 
-function normalizeCurrentUserResponse(payload: CurrentUserResponse): CurrentUserResponse {
-  const data = payload?.data
+function normalizeCurrentUserResponse(
+  payload: CurrentUserResponse,
+): CurrentUserResponse {
+  const data = payload?.data;
   const globalRoles = Array.isArray(data?.global_roles)
-    ? data.global_roles.filter((role): role is string => typeof role === 'string')
-    : []
+    ? data.global_roles.filter(
+        (role): role is string => typeof role === "string",
+      )
+    : [];
 
   return {
     data: {
       app_user_id: Number(data?.app_user_id || 0),
       legacy_user_id: Number(data?.legacy_user_id || 0),
-      display_name: typeof data?.display_name === 'string' ? data.display_name : '',
-      email: typeof data?.email === 'string' ? data.email : '',
-      keycloak_subject: typeof data?.keycloak_subject === 'string' ? data.keycloak_subject : '',
-      status: data?.status === 'active' || data?.status === 'disabled' ? data.status : 'pending',
+      display_name:
+        typeof data?.display_name === "string" ? data.display_name : "",
+      email: typeof data?.email === "string" ? data.email : "",
+      keycloak_subject:
+        typeof data?.keycloak_subject === "string" ? data.keycloak_subject : "",
+      status:
+        data?.status === "active" || data?.status === "disabled"
+          ? data.status
+          : "pending",
       global_roles: globalRoles,
       is_platform_admin: Boolean(data?.is_platform_admin),
-      session_id: typeof data?.session_id === 'string' ? data.session_id : null,
+      session_id: typeof data?.session_id === "string" ? data.session_id : null,
     },
-  }
+  };
 }
 
 interface AnimeListRequestOptions {
-  cache?: RequestCache
-  revalidate?: number
+  cache?: RequestCache;
+  revalidate?: number;
 }
 
 export async function getAnimeList(
   params: AnimeListParams,
   options: AnimeListRequestOptions = {},
 ): Promise<PaginatedAnimeResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const query = buildQuery(params)
-  const url = `${API_BASE_URL}/api/v1/anime${query ? `?${query}` : ''}`
-  const requestInit: RequestInit & { next?: { revalidate: number } } = {}
+  const API_BASE_URL = getApiBaseUrl();
+  const query = buildQuery(params);
+  const path =
+    params.include_disabled === true ? "/api/v1/admin/anime" : "/api/v1/anime";
+  const url = `${API_BASE_URL}${path}${query ? `?${query}` : ""}`;
+  const requestInit: AuthorizedRequestOptions & {
+    next?: { revalidate: number };
+  } = {};
   if (options.cache) {
-    requestInit.cache = options.cache
+    requestInit.cache = options.cache;
   }
-  if (typeof options.revalidate === 'number') {
-    requestInit.next = { revalidate: options.revalidate }
-  } else if (options.cache !== 'no-store') {
-    requestInit.next = { revalidate: 30 }
+  if (typeof options.revalidate === "number") {
+    requestInit.next = { revalidate: options.revalidate };
+  } else if (options.cache !== "no-store") {
+    requestInit.next = { revalidate: 30 };
   }
 
-  const response = await fetch(url, requestInit)
+  const response =
+    params.include_disabled === true
+      ? await authorizedFetch(url, requestInit)
+      : await fetch(url, requestInit);
 
   if (!response.ok) {
-    throw new ApiError(response.status, `API request failed: ${response.status}`)
+    throw new ApiError(
+      response.status,
+      `API request failed: ${response.status}`,
+    );
   }
 
-  return response.json() as Promise<PaginatedAnimeResponse>
+  return response.json() as Promise<PaginatedAnimeResponse>;
 }
 
-export async function getAnimeByID(id: number, options: { include_disabled?: boolean } = {}): Promise<{ data: AnimeDetail }> {
-  const API_BASE_URL = getApiBaseUrl()
-  const query = new URLSearchParams()
-  if (typeof options.include_disabled === 'boolean') query.set('include_disabled', String(options.include_disabled))
-  const url = `${API_BASE_URL}/api/v1/anime/${id}${query.toString() ? `?${query.toString()}` : ''}`
-  const response = await fetch(url, {
+export async function getAnimeByID(
+  id: number,
+  options: { include_disabled?: boolean } = {},
+): Promise<{ data: AnimeDetail }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const query = new URLSearchParams();
+  if (typeof options.include_disabled === "boolean")
+    query.set("include_disabled", String(options.include_disabled));
+  const path =
+    options.include_disabled === true
+      ? `/api/v1/admin/anime/${id}`
+      : `/api/v1/anime/${id}`;
+  const url = `${API_BASE_URL}${path}${query.toString() ? `?${query.toString()}` : ""}`;
+  const requestInit = {
     next: { revalidate: 30 },
-  })
+  };
+  const response =
+    options.include_disabled === true
+      ? await authorizedFetch(url, requestInit)
+      : await fetch(url, requestInit);
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<{ data: AnimeDetail }>
+  return response.json() as Promise<{ data: AnimeDetail }>;
 }
 
-export async function getAnimeBackdrops(id: number): Promise<AnimeBackdropResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${id}/backdrops`, {
-    cache: 'no-store',
-  })
+export async function getAnimeBackdrops(
+  id: number,
+): Promise<AnimeBackdropResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${id}/backdrops`,
+    {
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AnimeBackdropResponse>
+  return response.json() as Promise<AnimeBackdropResponse>;
 }
 
-export async function getAnimeRelations(id: number): Promise<AnimeRelationsResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${id}/relations`, {
-    next: { revalidate: 60 },
-  })
+export async function getAnimeRelations(
+  id: number,
+): Promise<AnimeRelationsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${id}/relations`,
+    {
+      next: { revalidate: 60 },
+    },
+  );
 
   if (!response.ok) {
     if (response.status === 404) {
-      return { data: [] }
+      return { data: [] };
     }
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<AnimeRelationsResponse>
+  return response.json() as Promise<AnimeRelationsResponse>;
 }
 
-export async function getEpisodeByID(id: number): Promise<{ data: EpisodeDetail }> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/episodes/${id}`, {
-    next: { revalidate: 30 },
-  })
+export async function getEpisodeByID(
+  id: number,
+): Promise<{ data: EpisodeDetail }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/episodes/${id}`,
+    {
+      next: { revalidate: 30 },
+    },
+  );
 
   if (!response.ok) {
-    throw new ApiError(response.status, `API request failed: ${response.status}`)
+    throw new ApiError(
+      response.status,
+      `API request failed: ${response.status}`,
+    );
   }
 
-  return response.json() as Promise<{ data: EpisodeDetail }>
+  return response.json() as Promise<{ data: EpisodeDetail }>;
 }
 
-export async function getFansubList(params: FansubListParams = {}): Promise<FansubGroupListResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const query = buildFansubListQuery(params)
-  const url = `${API_BASE_URL}/api/v1/fansubs${query ? `?${query}` : ''}`
+export async function getFansubList(
+  params: FansubListParams = {},
+): Promise<FansubGroupListResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const query = buildFansubListQuery(params);
+  const url = `${API_BASE_URL}/api/v1/fansubs${query ? `?${query}` : ""}`;
   const response = await fetch(url, {
-    cache: 'no-store',
-  })
+    cache: "no-store",
+  });
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubGroupListResponse>
+  return response.json() as Promise<FansubGroupListResponse>;
 }
 
 export async function getFansubByID(id: number): Promise<FansubGroupResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${id}`, {
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${id}`,
+    {
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubGroupResponse>
+  return response.json() as Promise<FansubGroupResponse>;
 }
 
-export async function getFansubBySlug(slug: string): Promise<FansubGroupResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const encodedSlug = encodeURIComponent(slug)
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansub-slugs/${encodedSlug}`, {
-    cache: 'no-store',
-  })
+export async function getFansubBySlug(
+  slug: string,
+): Promise<FansubGroupResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const encodedSlug = encodeURIComponent(slug);
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansub-slugs/${encodedSlug}`,
+    {
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubGroupResponse>
+  return response.json() as Promise<FansubGroupResponse>;
 }
 
-export async function getFansubMembers(fansubID: number): Promise<FansubMemberListResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/members`, {
-    cache: 'no-store',
-  })
+export async function getFansubMembers(
+  fansubID: number,
+): Promise<FansubMemberListResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${fansubID}/members`,
+    {
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubMemberListResponse>
+  return response.json() as Promise<FansubMemberListResponse>;
 }
 
-export async function getFansubAliases(fansubID: number): Promise<FansubAliasListResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases`, {
-    cache: 'no-store',
-  })
+export async function getFansubAliases(
+  fansubID: number,
+): Promise<FansubAliasListResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases`,
+    {
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<FansubAliasListResponse>
+  return response.json() as Promise<FansubAliasListResponse>;
 }
 
-export async function getFansubLinks(fansubID: number, authToken?: string): Promise<FansubGroupLinkListResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links`, {
-    headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+export async function getFansubLinks(
+  fansubID: number,
+  authToken?: string,
+): Promise<FansubGroupLinkListResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubGroupLinkListResponse>
+  return response.json() as Promise<FansubGroupLinkListResponse>;
 }
 
 export async function createFansubLink(
@@ -1255,24 +1586,36 @@ export async function createFansubLink(
   payload: FansubGroupLinkCreateRequest,
   authToken?: string,
 ): Promise<FansubGroupLinkResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubGroupLinkResponse>
+  return response.json() as Promise<FansubGroupLinkResponse>;
 }
 
 export async function updateFansubLink(
@@ -1281,36 +1624,64 @@ export async function updateFansubLink(
   payload: FansubGroupLinkPatchRequest,
   authToken?: string,
 ): Promise<FansubGroupLinkResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links/${linkID}`, {
-    method: 'PATCH',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links/${linkID}`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubGroupLinkResponse>
+  return response.json() as Promise<FansubGroupLinkResponse>;
 }
 
-export async function deleteFansubLink(fansubID: number, linkID: number, authToken?: string): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links/${linkID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+export async function deleteFansubLink(
+  fansubID: number,
+  linkID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/links/${linkID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -1319,51 +1690,75 @@ export async function createFansubAlias(
   payload: FansubAliasCreateRequest,
   authToken?: string,
 ): Promise<FansubAliasResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<FansubAliasResponse>
+  return response.json() as Promise<FansubAliasResponse>;
 }
 
-export async function deleteFansubAlias(fansubID: number, aliasID: number, authToken?: string): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases/${aliasID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+export async function deleteFansubAlias(
+  fansubID: number,
+  aliasID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases/${aliasID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 }
 
-export async function getAnimeFansubs(animeID: number): Promise<AnimeFansubListResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/fansubs`, {
-    cache: 'no-store',
-  })
+export async function getAnimeFansubs(
+  animeID: number,
+): Promise<AnimeFansubListResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/fansubs`,
+    {
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<AnimeFansubListResponse>
+  return response.json() as Promise<AnimeFansubListResponse>;
 }
 
 export async function attachAnimeFansub(
@@ -1371,95 +1766,141 @@ export async function attachAnimeFansub(
   fansubID: number,
   authToken?: string,
 ): Promise<{ data: { anime_id: number; fansub_group_id: number } }> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/fansubs/${fansubID}`, {
-    method: 'POST',
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/fansubs/${fansubID}`,
+    {
+      method: "POST",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<{ data: { anime_id: number; fansub_group_id: number } }>
+  return response.json() as Promise<{
+    data: { anime_id: number; fansub_group_id: number };
+  }>;
 }
 
-export async function detachAnimeFansub(animeID: number, fansubID: number, authToken?: string): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/fansubs/${fansubID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+export async function detachAnimeFansub(
+  animeID: number,
+  fansubID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/fansubs/${fansubID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 }
 
-export async function getGroupedEpisodes(animeID: number): Promise<GroupedEpisodesResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/episodes`, {
-    cache: 'no-store',
-  })
+export async function getGroupedEpisodes(
+  animeID: number,
+): Promise<GroupedEpisodesResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/episodes`,
+    {
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<GroupedEpisodesResponse>
+  return response.json() as Promise<GroupedEpisodesResponse>;
 }
 
-export async function getEpisodeVersionByID(versionID: number): Promise<EpisodeVersionResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/episode-versions/${versionID}`, {
-    cache: 'no-store',
-  })
+export async function getEpisodeVersionByID(
+  versionID: number,
+): Promise<EpisodeVersionResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/episode-versions/${versionID}`,
+    {
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<EpisodeVersionResponse>
+  return response.json() as Promise<EpisodeVersionResponse>;
 }
 
 export async function getEpisodeVersionEditorContext(
   versionID: number,
   authToken?: string,
 ): Promise<EpisodeVersionEditorContextResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/episode-versions/${versionID}/editor-context`, {
-    cache: 'no-store',
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/episode-versions/${versionID}/editor-context`,
+    {
+      cache: "no-store",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<EpisodeVersionEditorContextResponse>
+  return response.json() as Promise<EpisodeVersionEditorContextResponse>;
 }
 
 export async function scanEpisodeVersionFolder(
   versionID: number,
   authToken?: string,
 ): Promise<EpisodeVersionFolderScanResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/episode-versions/${versionID}/folder-scan`, {
-    method: 'POST',
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/episode-versions/${versionID}/folder-scan`,
+    {
+      method: "POST",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<EpisodeVersionFolderScanResponse>
+  return response.json() as Promise<EpisodeVersionFolderScanResponse>;
 }
 
 export async function createEpisodeVersion(
@@ -1468,24 +1909,30 @@ export async function createEpisodeVersion(
   payload: EpisodeVersionCreateRequest,
   authToken?: string,
 ): Promise<EpisodeVersionResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/episodes/${episodeNumber}/versions`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/episodes/${episodeNumber}/versions`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<EpisodeVersionResponse>
+  return response.json() as Promise<EpisodeVersionResponse>;
 }
 
 export async function updateEpisodeVersion(
@@ -1493,36 +1940,51 @@ export async function updateEpisodeVersion(
   payload: EpisodeVersionPatchRequest,
   authToken?: string,
 ): Promise<EpisodeVersionResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/episode-versions/${versionID}`, {
-    method: 'PATCH',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/episode-versions/${versionID}`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<EpisodeVersionResponse>
+  return response.json() as Promise<EpisodeVersionResponse>;
 }
 
-export async function deleteEpisodeVersion(versionID: number, authToken?: string): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/episode-versions/${versionID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+export async function deleteEpisodeVersion(
+  versionID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/episode-versions/${versionID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 }
 
@@ -1530,22 +1992,31 @@ export async function createFansubGroup(
   payload: FansubGroupCreateRequest,
   authToken?: string,
 ): Promise<FansubGroupResponse> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs`, {
-    method: 'POST',
+    method: "POST",
     authToken,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
-  })
+  });
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubGroupResponse>
+  return response.json() as Promise<FansubGroupResponse>;
 }
 
 export async function updateFansubGroup(
@@ -1553,67 +2024,85 @@ export async function updateFansubGroup(
   payload: FansubGroupPatchRequest,
   authToken?: string,
 ): Promise<FansubGroupResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}`, {
-    method: 'PATCH',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${fansubID}`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<FansubGroupResponse>
+  return response.json() as Promise<FansubGroupResponse>;
 }
 
-export async function deleteFansubGroup(fansubID: number, authToken?: string): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+export async function deleteFansubGroup(
+  fansubID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${fansubID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 }
 
 interface FansubMediaUploadOptions {
-  fansubID: number
-  kind: FansubMediaKind
-  file: File
-  authToken?: string
-  onProgress?: (percent: number) => void
+  fansubID: number;
+  kind: FansubMediaKind;
+  file: File;
+  authToken?: string;
+  onProgress?: (percent: number) => void;
 }
 
-type UploadRetryEligibility = 'never' | 'auth-before-persistence' | 'idempotent'
+type UploadRetryEligibility =
+  | "never"
+  | "auth-before-persistence"
+  | "idempotent";
 
 interface AuthorizedUploadXhrOptions<T> {
-  endpoint: string
-  buildBody: () => FormData
-  onProgress?: (percent: number) => void
-  retryEligibility: UploadRetryEligibility
-  parsePayload?: (payload: unknown) => T
+  endpoint: string;
+  buildBody: () => FormData;
+  onProgress?: (percent: number) => void;
+  retryEligibility: UploadRetryEligibility;
+  parsePayload?: (payload: unknown) => T;
 }
 
 interface UploadXhrResult {
-  status: number
-  payload: unknown
+  status: number;
+  payload: unknown;
 }
 
 function parseUploadXhrPayload(responseText: string): unknown {
   try {
-    return JSON.parse(responseText)
+    return JSON.parse(responseText);
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -1622,106 +2111,152 @@ function sendAuthorizedUploadXhrOnce<T>(
   token: string,
 ): Promise<UploadXhrResult> {
   return new Promise<UploadXhrResult>((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('POST', options.endpoint, true)
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", options.endpoint, true);
     if (token) {
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
     }
 
     xhr.upload.onprogress = (event) => {
-      if (!options.onProgress || !event.lengthComputable) return
-      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)))
-      options.onProgress(percent)
-    }
+      if (!options.onProgress || !event.lengthComputable) return;
+      const percent = Math.max(
+        0,
+        Math.min(100, Math.round((event.loaded / event.total) * 100)),
+      );
+      options.onProgress(percent);
+    };
 
     xhr.onerror = () => {
-      reject(new ApiError(0, 'Netzwerkfehler beim Upload.'))
-    }
+      reject(new ApiError(0, "Netzwerkfehler beim Upload."));
+    };
 
     xhr.onload = () => {
       resolve({
         status: xhr.status,
         payload: parseUploadXhrPayload(xhr.responseText),
-      })
-    }
+      });
+    };
 
-    options.onProgress?.(0)
-    xhr.send(options.buildBody())
-  })
+    options.onProgress?.(0);
+    xhr.send(options.buildBody());
+  });
 }
 
-async function authorizedUploadXhr<T>(options: AuthorizedUploadXhrOptions<T>): Promise<T> {
-  if (typeof window === 'undefined') {
-    throw new ApiError(500, 'Upload ist nur im Browser verfügbar.')
+async function authorizedUploadXhr<T>(
+  options: AuthorizedUploadXhrOptions<T>,
+): Promise<T> {
+  if (typeof window === "undefined") {
+    throw new ApiError(500, "Upload ist nur im Browser verfügbar.");
   }
 
-  await ensureFreshRuntimeSession()
-  const initialToken = resolveAuthToken()
-  const initialResult = await sendAuthorizedUploadXhrOnce(options, initialToken)
+  await ensureFreshRuntimeSession();
+  const initialToken = resolveAuthToken();
+  const initialResult = await sendAuthorizedUploadXhrOnce(
+    options,
+    initialToken,
+  );
   if (initialResult.status >= 200 && initialResult.status < 300) {
-    options.onProgress?.(100)
-    return options.parsePayload ? options.parsePayload(initialResult.payload) : (initialResult.payload as T)
+    options.onProgress?.(100);
+    return options.parsePayload
+      ? options.parsePayload(initialResult.payload)
+      : (initialResult.payload as T);
   }
 
-  const parsed = parsePayloadApiError(initialResult.payload, `API request failed: ${initialResult.status}`)
-  const canRetry = initialResult.status === 401 &&
+  const parsed = parsePayloadApiError(
+    initialResult.payload,
+    `API request failed: ${initialResult.status}`,
+  );
+  const canRetry =
+    initialResult.status === 401 &&
     isAuthRelatedError(parsed) &&
-    options.retryEligibility !== 'never' &&
-    getRuntimeRefreshToken().trim().length > 0
+    options.retryEligibility !== "never" &&
+    getRuntimeRefreshToken().trim().length > 0;
 
   if (!canRetry) {
-    if (initialResult.status === 401 && options.retryEligibility === 'never') {
+    if (initialResult.status === 401 && options.retryEligibility === "never") {
       throw new ApiError(
         initialResult.status,
-        'Anmeldung abgelaufen. Bitte erneut anmelden und den Upload wiederholen.',
+        "Anmeldung abgelaufen. Bitte erneut anmelden und den Upload wiederholen.",
         null,
         parsed.code,
         parsed.details,
-      )
+      );
     }
-    throw new ApiError(initialResult.status, parsed.message, null, parsed.code, parsed.details)
+    throw new ApiError(
+      initialResult.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const refreshedToken = await refreshRuntimeSession()
-  const retryResult = await sendAuthorizedUploadXhrOnce(options, refreshedToken)
+  const refreshedToken = await refreshRuntimeSession();
+  const retryResult = await sendAuthorizedUploadXhrOnce(
+    options,
+    refreshedToken,
+  );
   if (retryResult.status >= 200 && retryResult.status < 300) {
-    options.onProgress?.(100)
-    return options.parsePayload ? options.parsePayload(retryResult.payload) : (retryResult.payload as T)
+    options.onProgress?.(100);
+    return options.parsePayload
+      ? options.parsePayload(retryResult.payload)
+      : (retryResult.payload as T);
   }
 
-  const retryParsed = parsePayloadApiError(retryResult.payload, `API request failed: ${retryResult.status}`)
-  throw new ApiError(retryResult.status, retryParsed.message, null, retryParsed.code, retryParsed.details)
+  const retryParsed = parsePayloadApiError(
+    retryResult.payload,
+    `API request failed: ${retryResult.status}`,
+  );
+  throw new ApiError(
+    retryResult.status,
+    retryParsed.message,
+    null,
+    retryParsed.code,
+    retryParsed.details,
+  );
 }
 
-export async function uploadFansubMedia(options: FansubMediaUploadOptions): Promise<FansubMediaUploadResponse> {
-  if (typeof window === 'undefined') {
-    throw new ApiError(500, 'Upload ist nur im Browser verfügbar.')
+export async function uploadFansubMedia(
+  options: FansubMediaUploadOptions,
+): Promise<FansubMediaUploadResponse> {
+  if (typeof window === "undefined") {
+    throw new ApiError(500, "Upload ist nur im Browser verfügbar.");
   }
 
-  const API_BASE_URL = getApiBaseUrl()
-  const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/media`
+  const API_BASE_URL = getApiBaseUrl();
+  const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/media`;
   return authorizedUploadXhr<FansubMediaUploadResponse>({
     endpoint,
     onProgress: options.onProgress,
-    retryEligibility: 'never',
+    retryEligibility: "never",
     buildBody: () => {
-      const body = new FormData()
-      body.set('kind', options.kind)
-      body.set('file', options.file)
-      return body
+      const body = new FormData();
+      body.set("kind", options.kind);
+      body.set("file", options.file);
+      return body;
     },
-  })
+  });
 }
-export async function deleteFansubMedia(fansubID: number, kind: FansubMediaKind, authToken?: string): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/media/${kind}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+export async function deleteFansubMedia(
+  fansubID: number,
+  kind: FansubMediaKind,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/media/${kind}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 }
 
@@ -1730,24 +2265,30 @@ export async function createFansubMember(
   payload: FansubMemberCreateRequest,
   authToken?: string,
 ): Promise<FansubMemberResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/members`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${fansubID}/members`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<FansubMemberResponse>
+  return response.json() as Promise<FansubMemberResponse>;
 }
 
 export async function updateFansubMember(
@@ -1756,52 +2297,74 @@ export async function updateFansubMember(
   payload: FansubMemberPatchRequest,
   authToken?: string,
 ): Promise<FansubMemberResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/members/${memberID}`, {
-    method: 'PATCH',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${fansubID}/members/${memberID}`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<FansubMemberResponse>
+  return response.json() as Promise<FansubMemberResponse>;
 }
 
-export async function deleteFansubMember(fansubID: number, memberID: number, authToken?: string): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/members/${memberID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+export async function deleteFansubMember(
+  fansubID: number,
+  memberID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${fansubID}/members/${memberID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 }
 
-export async function getAnimeComments(id: number, params: CommentListParams = {}): Promise<PaginatedCommentResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const query = buildCommentQuery(params)
-  const url = `${API_BASE_URL}/api/v1/anime/${id}/comments${query ? `?${query}` : ''}`
+export async function getAnimeComments(
+  id: number,
+  params: CommentListParams = {},
+): Promise<PaginatedCommentResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const query = buildCommentQuery(params);
+  const url = `${API_BASE_URL}/api/v1/anime/${id}/comments${query ? `?${query}` : ""}`;
   const response = await fetch(url, {
-    cache: 'no-store',
-  })
+    cache: "no-store",
+  });
 
   if (!response.ok) {
-    throw new ApiError(response.status, `API request failed: ${response.status}`)
+    throw new ApiError(
+      response.status,
+      `API request failed: ${response.status}`,
+    );
   }
 
-  return response.json() as Promise<PaginatedCommentResponse>
+  return response.json() as Promise<PaginatedCommentResponse>;
 }
 
 export async function createAnimeComment(
@@ -1809,96 +2372,135 @@ export async function createAnimeComment(
   payload: CommentCreateRequest,
   authToken?: string,
 ): Promise<CommentCreateResponse> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const headers = withAuthHeader(
     {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     authToken,
-  )
+  );
 
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${id}/comments`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(payload),
-  })
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${id}/comments`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const retryAfterHeader = response.headers.get('Retry-After')
-    const retryAfterSeconds = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : Number.NaN
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message, Number.isNaN(retryAfterSeconds) ? null : retryAfterSeconds)
+    const retryAfterHeader = response.headers.get("Retry-After");
+    const retryAfterSeconds = retryAfterHeader
+      ? Number.parseInt(retryAfterHeader, 10)
+      : Number.NaN;
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      message,
+      Number.isNaN(retryAfterSeconds) ? null : retryAfterSeconds,
+    );
   }
 
-  return response.json() as Promise<CommentCreateResponse>
+  return response.json() as Promise<CommentCreateResponse>;
 }
 
 export async function getWatchlist(
   params: WatchlistListParams = {},
   authToken?: string,
 ): Promise<PaginatedWatchlistResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const query = buildWatchlistQuery(params)
-  const url = `${API_BASE_URL}/api/v1/watchlist${query ? `?${query}` : ''}`
+  const API_BASE_URL = getApiBaseUrl();
+  const query = buildWatchlistQuery(params);
+  const url = `${API_BASE_URL}/api/v1/watchlist${query ? `?${query}` : ""}`;
   const response = await fetch(url, {
     headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+    cache: "no-store",
+  });
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<PaginatedWatchlistResponse>
+  return response.json() as Promise<PaginatedWatchlistResponse>;
 }
 
-export async function addWatchlistEntry(animeID: number, authToken?: string): Promise<WatchlistCreateResponse> {
-  const API_BASE_URL = getApiBaseUrl()
+export async function addWatchlistEntry(
+  animeID: number,
+  authToken?: string,
+): Promise<WatchlistCreateResponse> {
+  const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(`${API_BASE_URL}/api/v1/watchlist`, {
-    method: 'POST',
+    method: "POST",
     headers: withAuthHeader(
       {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       authToken,
     ),
     body: JSON.stringify({ anime_id: animeID }),
-  })
+  });
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<WatchlistCreateResponse>
+  return response.json() as Promise<WatchlistCreateResponse>;
 }
 
-export async function getWatchlistEntry(animeID: number, authToken?: string): Promise<WatchlistCreateResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/watchlist/${animeID}`, {
-    headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+export async function getWatchlistEntry(
+  animeID: number,
+  authToken?: string,
+): Promise<WatchlistCreateResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/watchlist/${animeID}`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<WatchlistCreateResponse>
+  return response.json() as Promise<WatchlistCreateResponse>;
 }
 
-export async function removeWatchlistEntry(animeID: number, authToken?: string): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/watchlist/${animeID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+export async function removeWatchlistEntry(
+  animeID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/watchlist/${animeID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 }
 
@@ -1906,194 +2508,307 @@ export async function issueAuthToken(
   payload: AuthIssueRequest = {},
   authToken?: string | null,
 ): Promise<AuthTokenResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const issueKey = (payload.issue_key || '').trim()
-  const headers = authToken === null ? {} : withAuthHeader({}, authToken || undefined)
+  const API_BASE_URL = getApiBaseUrl();
+  const issueKey = (payload.issue_key || "").trim();
+  const headers =
+    authToken === null ? {} : withAuthHeader({}, authToken || undefined);
   if (issueKey) {
-    headers['X-Auth-Issue-Key'] = issueKey
+    headers["X-Auth-Issue-Key"] = issueKey;
   }
 
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/issue`, {
-    method: 'POST',
+    method: "POST",
     headers,
-  })
+  });
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<AuthTokenResponse>
+  return response.json() as Promise<AuthTokenResponse>;
 }
 
-export async function refreshAuthToken(payload: AuthRefreshRequest): Promise<AuthTokenResponse> {
-  const API_BASE_URL = getApiBaseUrl()
+export async function refreshAuthToken(
+  payload: AuthRefreshRequest,
+): Promise<AuthTokenResponse> {
+  const API_BASE_URL = getApiBaseUrl();
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
-  })
+  });
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<AuthTokenResponse>
+  return response.json() as Promise<AuthTokenResponse>;
 }
 
-export async function revokeAuthToken(payload: AuthRevokeRequest = {}, authToken?: string): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
+export async function revokeAuthToken(
+  payload: AuthRevokeRequest = {},
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
   const headers = withAuthHeader(
     {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     authToken,
-  )
+  );
 
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/revoke`, {
-    method: 'POST',
+    method: "POST",
     headers,
     body: JSON.stringify(payload),
-  })
+  });
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 }
 
-export async function getCurrentUser(authToken?: string): Promise<CurrentUserResponse> {
-  const API_BASE_URL = getApiBaseUrl()
+export async function getCurrentUser(
+  authToken?: string,
+): Promise<CurrentUserResponse> {
+  const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me`, {
     authToken,
-  })
+  });
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const payload = await response.json() as CurrentUserResponse
-  return normalizeCurrentUserResponse(payload)
+  const payload = (await response.json()) as CurrentUserResponse;
+  return normalizeCurrentUserResponse(payload);
 }
 
-export async function getOwnProfile(authToken?: string): Promise<MemberProfileResponse> {
-  const API_BASE_URL = getApiBaseUrl()
+export async function getOwnProfile(
+  authToken?: string,
+): Promise<MemberProfileResponse> {
+  const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/profile`, {
-    cache: 'no-store',
+    cache: "no-store",
     authToken,
-  })
+  });
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<MemberProfileResponse>
+  return response.json() as Promise<MemberProfileResponse>;
 }
 
-export async function getMyFansubGroups(authToken?: string): Promise<ContributorGroupsResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/fansub-groups`, {
-    cache: 'no-store',
-    authToken,
-  })
+export async function getMyFansubGroups(
+  authToken?: string,
+): Promise<ContributorGroupsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/fansub-groups`,
+    {
+      cache: "no-store",
+      authToken,
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<ContributorGroupsResponse>
+  return response.json() as Promise<ContributorGroupsResponse>;
 }
 
 export async function getMyFansubGroupDetail(
   fansubGroupId: number,
   authToken?: string,
 ): Promise<ContributorGroupDetailResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/fansub-groups/${fansubGroupId}`, {
-    cache: 'no-store',
-    authToken,
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/fansub-groups/${fansubGroupId}`,
+    {
+      cache: "no-store",
+      authToken,
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<ContributorGroupDetailResponse>
+  return response.json() as Promise<ContributorGroupDetailResponse>;
 }
 
 export async function updateOwnProfile(
   payload: UpdateMemberProfileRequest,
   authToken?: string,
 ): Promise<MemberProfileResponse> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/profile`, {
-    method: 'PUT',
+    method: "PUT",
     authToken,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
-  })
+  });
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<MemberProfileResponse>
+  return response.json() as Promise<MemberProfileResponse>;
 }
 
-export async function uploadOwnProfileAvatar(file: File, authToken?: string): Promise<MemberProfileResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const body = new FormData()
-  body.append('file', file)
+export async function uploadOwnProfileAvatar(
+  file: File,
+  authToken?: string,
+): Promise<MemberProfileResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const body = new FormData();
+  body.append("file", file);
 
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/profile/avatar`, {
-    method: 'POST',
-    headers: withAuthHeader({}, authToken),
-    retryAuth401: false,
-    body,
-  })
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/profile/avatar`,
+    {
+      method: "POST",
+      headers: withAuthHeader({}, authToken),
+      retryAuth401: false,
+      body,
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<MemberProfileResponse>
+  return response.json() as Promise<MemberProfileResponse>;
 }
 
-export async function listAdminUsers(authToken?: string): Promise<AppUserListResponse> {
-  const API_BASE_URL = getApiBaseUrl()
+export async function listAdminUsers(
+  authToken?: string,
+): Promise<AppUserListResponse> {
+  const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/users`, {
     headers: withAuthHeader({}, authToken),
-  })
+  });
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AppUserListResponse>
+  return response.json() as Promise<AppUserListResponse>;
 }
 
-export async function listFansubAppMembers(fansubId: number, authToken?: string): Promise<FansubAppMemberListResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members`, {
-    authToken,
-  })
+export async function listFansubAppMembers(
+  fansubId: number,
+  authToken?: string,
+): Promise<FansubAppMemberListResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members`,
+    {
+      authToken,
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubAppMemberListResponse>
+  return response.json() as Promise<FansubAppMemberListResponse>;
 }
 
 export async function searchFansubAppMemberCandidates(
@@ -2101,39 +2816,63 @@ export async function searchFansubAppMemberCandidates(
   query: string,
   authToken?: string,
 ): Promise<FansubAppMemberCandidateSearchResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const params = new URLSearchParams()
-  params.set('q', query)
+  const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  params.set("q", query);
 
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-member-candidates?${params.toString()}`, {
-    authToken,
-    cache: 'no-store',
-  })
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-member-candidates?${params.toString()}`,
+    {
+      authToken,
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubAppMemberCandidateSearchResponse>
+  return response.json() as Promise<FansubAppMemberCandidateSearchResponse>;
 }
 
 export async function getFansubGroupCapabilities(
   fansubId: number,
   authToken?: string,
 ): Promise<FansubGroupCapabilitiesResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/capabilities`, {
-    authToken,
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/capabilities`,
+    {
+      authToken,
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubGroupCapabilitiesResponse>
+  return response.json() as Promise<FansubGroupCapabilitiesResponse>;
 }
 
 export async function createFansubAppMember(
@@ -2141,38 +2880,62 @@ export async function createFansubAppMember(
   payload: FansubAppMemberCreateRequest,
   authToken?: string,
 ): Promise<FansubAppMemberResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members`, {
-    method: 'POST',
-    authToken,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubAppMemberResponse>
+  return response.json() as Promise<FansubAppMemberResponse>;
 }
 
 export async function listFansubGroupInvitations(
   fansubId: number,
   authToken?: string,
 ): Promise<FansubGroupInvitationListResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/invitations`, {
-    authToken,
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/invitations`,
+    {
+      authToken,
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubGroupInvitationListResponse>
+  return response.json() as Promise<FansubGroupInvitationListResponse>;
 }
 
 export async function createFansubGroupInvitation(
@@ -2180,20 +2943,32 @@ export async function createFansubGroupInvitation(
   payload: FansubGroupInvitationCreateRequest,
   authToken?: string,
 ): Promise<FansubGroupInvitationCreateResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/invitations`, {
-    method: 'POST',
-    authToken,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/invitations`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubGroupInvitationCreateResponse>
+  return response.json() as Promise<FansubGroupInvitationCreateResponse>;
 }
 
 export async function cancelFansubGroupInvitation(
@@ -2201,37 +2976,64 @@ export async function cancelFansubGroupInvitation(
   invitationId: number,
   authToken?: string,
 ): Promise<FansubGroupInvitationResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/invitations/${invitationId}/cancel`, {
-    method: 'POST',
-    authToken,
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/invitations/${invitationId}/cancel`,
+    {
+      method: "POST",
+      authToken,
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubGroupInvitationResponse>
+  return response.json() as Promise<FansubGroupInvitationResponse>;
 }
 
 export async function acceptFansubInvitation(
   payload: AcceptFansubInvitationRequest,
   authToken?: string,
 ): Promise<AcceptFansubInvitationResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/invitations/accept`, {
-    method: 'POST',
-    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/invitations/accept`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AcceptFansubInvitationResponse>
+  return response.json() as Promise<AcceptFansubInvitationResponse>;
 }
 
 export async function updateFansubLeadRole(
@@ -2240,19 +3042,34 @@ export async function updateFansubLeadRole(
   payload: FansubLeadUpdateRequest,
   authToken?: string,
 ): Promise<FansubAppMemberResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members/${appUserId}/roles/fansub-lead`, {
-    method: 'PUT',
-    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members/${appUserId}/roles/fansub-lead`,
+    {
+      method: "PUT",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubAppMemberResponse>
+  return response.json() as Promise<FansubAppMemberResponse>;
 }
 
 export async function updateFansubAppMemberRole(
@@ -2261,20 +3078,32 @@ export async function updateFansubAppMemberRole(
   payload: FansubAppMemberRoleUpdateRequest,
   authToken?: string,
 ): Promise<FansubAppMemberResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members/${appUserId}/roles`, {
-    method: 'PUT',
-    authToken,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members/${appUserId}/roles`,
+    {
+      method: "PUT",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubAppMemberResponse>
+  return response.json() as Promise<FansubAppMemberResponse>;
 }
 
 export async function updateFansubAppMemberStatus(
@@ -2283,42 +3112,63 @@ export async function updateFansubAppMemberStatus(
   payload: FansubAppMemberStatusUpdateRequest,
   authToken?: string,
 ): Promise<FansubAppMemberResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members/${appUserId}/status`, {
-    method: 'PUT',
-    authToken,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members/${appUserId}/status`,
+    {
+      method: "PUT",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<FansubAppMemberResponse>
+  return response.json() as Promise<FansubAppMemberResponse>;
 }
 
 export async function createAdminAnime(
   payload: AdminAnimeCreateRequest,
   authToken?: string,
 ): Promise<AdminAnimeUpsertResponse> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime`, {
-    method: 'POST',
+    method: "POST",
     authToken,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
-  })
+  });
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeUpsertResponse>
+  return response.json() as Promise<AdminAnimeUpsertResponse>;
 }
 
 export async function updateAdminAnime(
@@ -2326,22 +3176,34 @@ export async function updateAdminAnime(
   payload: AdminAnimePatchRequest,
   authToken?: string,
 ): Promise<AdminAnimeUpsertResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}`, {
-    method: 'PATCH',
-    authToken,
-    headers: {
-      'Content-Type': 'application/json',
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}`,
+    {
+      method: "PATCH",
+      authToken,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  })
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeUpsertResponse>
+  return response.json() as Promise<AdminAnimeUpsertResponse>;
 }
 
 export async function loadAdminAnimeEditAniSearchEnrichment(
@@ -2349,26 +3211,40 @@ export async function loadAdminAnimeEditAniSearchEnrichment(
   payload: AdminAnimeAniSearchEditRequest,
   authToken?: string,
 ): Promise<{ data: AdminAnimeAniSearchEditResult }> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/enrichment/anisearch`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/enrichment/anisearch`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as unknown
-    const parsed = parsePayloadApiError(body, `API request failed: ${response.status}`)
-    const conflict = response.status === 409 ? parseAniSearchEditConflictPayload(body) : null
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details, conflict)
+    const body = (await response.json().catch(() => null)) as unknown;
+    const parsed = parsePayloadApiError(
+      body,
+      `API request failed: ${response.status}`,
+    );
+    const conflict =
+      response.status === 409 ? parseAniSearchEditConflictPayload(body) : null;
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+      conflict,
+    );
   }
 
-  return response.json() as Promise<{ data: AdminAnimeAniSearchEditResult }>
+  return response.json() as Promise<{ data: AdminAnimeAniSearchEditResult }>;
 }
 
 export async function syncAdminAnimeFromJellyfin(
@@ -2376,24 +3252,36 @@ export async function syncAdminAnimeFromJellyfin(
   payload: AdminAnimeJellyfinSyncRequest = {},
   authToken?: string,
 ): Promise<AdminAnimeJellyfinSyncResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/sync`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/sync`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeJellyfinSyncResponse>
+  return response.json() as Promise<AdminAnimeJellyfinSyncResponse>;
 }
 
 export async function searchAdminJellyfinSeries(
@@ -2401,22 +3289,35 @@ export async function searchAdminJellyfinSeries(
   params: { limit?: number } = {},
   authToken?: string,
 ): Promise<AdminJellyfinSeriesSearchResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const search = new URLSearchParams()
-  search.set('q', query)
-  if (params.limit && Number.isFinite(params.limit) && params.limit > 0) search.set('limit', String(params.limit))
+  const API_BASE_URL = getApiBaseUrl();
+  const search = new URLSearchParams();
+  search.set("q", query);
+  if (params.limit && Number.isFinite(params.limit) && params.limit > 0)
+    search.set("limit", String(params.limit));
 
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/jellyfin/series?${search.toString()}`, {
-    headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/jellyfin/series?${search.toString()}`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminJellyfinSeriesSearchResponse>
+  return response.json() as Promise<AdminJellyfinSeriesSearchResponse>;
 }
 
 export async function previewAdminAnimeFromJellyfin(
@@ -2424,42 +3325,66 @@ export async function previewAdminAnimeFromJellyfin(
   payload: AdminAnimeJellyfinSyncRequest = {},
   authToken?: string,
 ): Promise<AdminAnimeJellyfinPreviewResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/preview`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/preview`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeJellyfinPreviewResponse>
+  return response.json() as Promise<AdminAnimeJellyfinPreviewResponse>;
 }
 
 export async function getAdminAnimeJellyfinContext(
   animeID: number,
   authToken?: string,
 ): Promise<AdminAnimeJellyfinContextResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/context`, {
-    headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/context`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeJellyfinContextResponse>
+  return response.json() as Promise<AdminAnimeJellyfinContextResponse>;
 }
 
 export async function previewAdminAnimeMetadataFromJellyfin(
@@ -2467,24 +3392,36 @@ export async function previewAdminAnimeMetadataFromJellyfin(
   payload: AdminAnimeJellyfinMetadataPreviewRequest = {},
   authToken?: string,
 ): Promise<AdminAnimeJellyfinMetadataPreviewResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/metadata/preview`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/metadata/preview`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeJellyfinMetadataPreviewResponse>
+  return response.json() as Promise<AdminAnimeJellyfinMetadataPreviewResponse>;
 }
 
 export async function applyAdminAnimeMetadataFromJellyfin(
@@ -2492,61 +3429,75 @@ export async function applyAdminAnimeMetadataFromJellyfin(
   payload: AdminAnimeJellyfinMetadataApplyRequest = {},
   authToken?: string,
 ): Promise<AdminAnimeJellyfinMetadataApplyResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/metadata/apply`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/metadata/apply`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeJellyfinMetadataApplyResponse>
+  return response.json() as Promise<AdminAnimeJellyfinMetadataApplyResponse>;
 }
 
 interface AdminAnimeMediaUploadOptions {
-  animeID: number
-  assetType: AdminAnimeUploadAssetType
-  file: File
-  authToken?: string
-  onProgress?: (percent: number) => void
+  animeID: number;
+  assetType: AdminAnimeUploadAssetType;
+  file: File;
+  authToken?: string;
+  onProgress?: (percent: number) => void;
 }
 
-export async function uploadAdminAnimeMedia(options: AdminAnimeMediaUploadOptions): Promise<AdminMediaUploadResponse> {
-  if (typeof window === 'undefined') {
-    throw new ApiError(500, 'Upload ist nur im Browser verfügbar.')
+export async function uploadAdminAnimeMedia(
+  options: AdminAnimeMediaUploadOptions,
+): Promise<AdminMediaUploadResponse> {
+  if (typeof window === "undefined") {
+    throw new ApiError(500, "Upload ist nur im Browser verfügbar.");
   }
 
-  const API_BASE_URL = getApiBaseUrl()
-  const endpoint = `${API_BASE_URL}/api/v1/admin/upload`
+  const API_BASE_URL = getApiBaseUrl();
+  const endpoint = `${API_BASE_URL}/api/v1/admin/upload`;
   return authorizedUploadXhr<AdminMediaUploadResponse>({
     endpoint,
     onProgress: options.onProgress,
-    retryEligibility: 'never',
+    retryEligibility: "never",
     buildBody: () => {
-      const body = new FormData()
-      body.set('entity_type', 'anime')
-      body.set('entity_id', String(options.animeID))
-      body.set('asset_type', options.assetType)
-      body.set('file', options.file)
-      return body
+      const body = new FormData();
+      body.set("entity_type", "anime");
+      body.set("entity_id", String(options.animeID));
+      body.set("asset_type", options.assetType);
+      body.set("file", options.file);
+      return body;
     },
-  })
+  });
 }
 export async function assignAdminAnimeBannerAsset(
   animeID: number,
   mediaID: string,
   authToken?: string,
 ): Promise<void> {
-  return assignAdminAnimeSingularAsset(animeID, 'banner', mediaID, authToken)
+  return assignAdminAnimeSingularAsset(animeID, "banner", mediaID, authToken);
 }
 
 export async function assignAdminAnimeCoverAsset(
@@ -2554,7 +3505,7 @@ export async function assignAdminAnimeCoverAsset(
   mediaID: string,
   authToken?: string,
 ): Promise<void> {
-  return assignAdminAnimeSingularAsset(animeID, 'cover', mediaID, authToken)
+  return assignAdminAnimeSingularAsset(animeID, "cover", mediaID, authToken);
 }
 
 export async function assignAdminAnimeLogoAsset(
@@ -2562,7 +3513,7 @@ export async function assignAdminAnimeLogoAsset(
   mediaID: string,
   authToken?: string,
 ): Promise<void> {
-  return assignAdminAnimeSingularAsset(animeID, 'logo', mediaID, authToken)
+  return assignAdminAnimeSingularAsset(animeID, "logo", mediaID, authToken);
 }
 
 export async function assignAdminAnimeBackgroundVideoAsset(
@@ -2570,7 +3521,12 @@ export async function assignAdminAnimeBackgroundVideoAsset(
   mediaID: string,
   authToken?: string,
 ): Promise<void> {
-  return assignAdminAnimeSingularAsset(animeID, 'background_video', mediaID, authToken)
+  return assignAdminAnimeSingularAsset(
+    animeID,
+    "background_video",
+    mediaID,
+    authToken,
+  );
 }
 
 export async function addAdminAnimeBackgroundVideoAsset(
@@ -2578,21 +3534,33 @@ export async function addAdminAnimeBackgroundVideoAsset(
   mediaID: string,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/background_videos`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify({ media_id: mediaID }),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/background_videos`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify({ media_id: mediaID }),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -2600,36 +3568,60 @@ export async function getAdminFansubAnime(
   fansubID: number,
   authToken?: string,
 ): Promise<AdminFansubAnimeListResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime`, {
-    authToken,
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime`,
+    {
+      authToken,
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminFansubAnimeListResponse>
+  return response.json() as Promise<AdminFansubAnimeListResponse>;
 }
 
 export async function getAdminReleaseThemeAssets(
   releaseID: number,
   authToken?: string,
 ): Promise<AdminReleaseThemeAssetsResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/releases/${releaseID}/theme-assets`, {
-    authToken,
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/releases/${releaseID}/theme-assets`,
+    {
+      authToken,
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminReleaseThemeAssetsResponse>
+  return response.json() as Promise<AdminReleaseThemeAssetsResponse>;
 }
 
 export async function getAdminFansubAnimeThemeAssets(
@@ -2637,78 +3629,90 @@ export async function getAdminFansubAnimeThemeAssets(
   animeID: number,
   authToken?: string,
 ): Promise<AdminFansubAnimeThemeAssetsResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/theme-assets`, {
-    authToken,
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/theme-assets`,
+    {
+      authToken,
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminFansubAnimeThemeAssetsResponse>
+  return response.json() as Promise<AdminFansubAnimeThemeAssetsResponse>;
 }
 
 interface AdminReleaseThemeAssetUploadOptions {
-  fansubID: number
-  animeID: number
-  themeID: number
-  file: File
-  authToken?: string
-  onProgress?: (percent: number) => void
+  fansubID: number;
+  animeID: number;
+  themeID: number;
+  file: File;
+  authToken?: string;
+  onProgress?: (percent: number) => void;
 }
 
 interface AdminReleaseThemeAssetUploadForReleaseOptions {
-  releaseID: number
-  themeID: number
-  file: File
-  authToken?: string
-  onProgress?: (percent: number) => void
+  releaseID: number;
+  themeID: number;
+  file: File;
+  authToken?: string;
+  onProgress?: (percent: number) => void;
 }
 
 export async function uploadAdminReleaseThemeAsset(
   options: AdminReleaseThemeAssetUploadOptions,
 ): Promise<AdminReleaseThemeAssetCreateResponse> {
-  if (typeof window === 'undefined') {
-    throw new ApiError(500, 'Upload ist nur im Browser verfügbar.')
+  if (typeof window === "undefined") {
+    throw new ApiError(500, "Upload ist nur im Browser verfügbar.");
   }
 
-  const API_BASE_URL = getApiBaseUrl()
-  const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/anime/${options.animeID}/theme-assets`
+  const API_BASE_URL = getApiBaseUrl();
+  const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/anime/${options.animeID}/theme-assets`;
   return authorizedUploadXhr<AdminReleaseThemeAssetCreateResponse>({
     endpoint,
     onProgress: options.onProgress,
-    retryEligibility: 'never',
+    retryEligibility: "never",
     buildBody: () => {
-      const body = new FormData()
-      body.set('theme_id', String(options.themeID))
-      body.set('file', options.file)
-      return body
+      const body = new FormData();
+      body.set("theme_id", String(options.themeID));
+      body.set("file", options.file);
+      return body;
     },
-  })
+  });
 }
 export async function uploadAdminReleaseThemeAssetForRelease(
   options: AdminReleaseThemeAssetUploadForReleaseOptions,
 ): Promise<AdminReleaseThemeAssetCreateResponse> {
-  if (typeof window === 'undefined') {
-    throw new ApiError(500, 'Upload ist nur im Browser verfügbar.')
+  if (typeof window === "undefined") {
+    throw new ApiError(500, "Upload ist nur im Browser verfügbar.");
   }
 
-  const API_BASE_URL = getApiBaseUrl()
-  const endpoint = `${API_BASE_URL}/api/v1/admin/releases/${options.releaseID}/theme-assets`
+  const API_BASE_URL = getApiBaseUrl();
+  const endpoint = `${API_BASE_URL}/api/v1/admin/releases/${options.releaseID}/theme-assets`;
   return authorizedUploadXhr<AdminReleaseThemeAssetCreateResponse>({
     endpoint,
     onProgress: options.onProgress,
-    retryEligibility: 'never',
+    retryEligibility: "never",
     buildBody: () => {
-      const body = new FormData()
-      body.set('theme_id', String(options.themeID))
-      body.set('file', options.file)
-      return body
+      const body = new FormData();
+      body.set("theme_id", String(options.themeID));
+      body.set("file", options.file);
+      return body;
     },
-  })
+  });
 }
 export async function deleteAdminReleaseThemeAsset(
   releaseID: number,
@@ -2716,15 +3720,27 @@ export async function deleteAdminReleaseThemeAsset(
   mediaID: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/releases/${releaseID}/theme-assets/${themeID}/${mediaID}`, {
-    method: 'DELETE',
-    authToken,
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/releases/${releaseID}/theme-assets/${themeID}/${mediaID}`,
+    {
+      method: "DELETE",
+      authToken,
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -2738,18 +3754,30 @@ export async function getAdminFansubAnimeReleases(
   animeID: number,
   authToken?: string,
 ): Promise<AdminFansubAnimeReleasesResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/releases`, {
-    authToken,
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/releases`,
+    {
+      authToken,
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminFansubAnimeReleasesResponse>
+  return response.json() as Promise<AdminFansubAnimeReleasesResponse>;
 }
 
 /** Resolves the canonical release anchor for a fansub + anime combination.
@@ -2759,18 +3787,30 @@ export async function getAdminCanonicalFansubRelease(
   animeID: number,
   authToken?: string,
 ): Promise<AdminCanonicalFansubAnimeReleaseResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/releases/canonical`, {
-    authToken,
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/releases/canonical`,
+    {
+      authToken,
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminCanonicalFansubAnimeReleaseResponse>
+  return response.json() as Promise<AdminCanonicalFansubAnimeReleaseResponse>;
 }
 
 /** Fetches a release summary directly by releaseId. */
@@ -2778,83 +3818,143 @@ export async function getAdminRelease(
   releaseID: number,
   authToken?: string,
 ): Promise<AdminReleaseResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/releases/${releaseID}`, {
-    authToken,
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/releases/${releaseID}`,
+    {
+      authToken,
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminReleaseResponse>
+  return response.json() as Promise<AdminReleaseResponse>;
 }
 
 async function assignAdminAnimeSingularAsset(
   animeID: number,
-  assetKind: Exclude<AdminAnimeAssetKind, 'background'>,
+  assetKind: Exclude<AdminAnimeAssetKind, "background">,
   mediaID: string,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/${assetKind}`, {
-    method: 'PUT',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify({ media_id: mediaID }),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/${assetKind}`,
+    {
+      method: "PUT",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify({ media_id: mediaID }),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
-export async function deleteAdminAnimeCoverAsset(animeID: number, authToken?: string): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/cover`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+export async function deleteAdminAnimeCoverAsset(
+  animeID: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/cover`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
-export async function deleteAdminAnimeBannerAsset(animeID: number, authToken?: string): Promise<void> {
-  return deleteAdminAnimeSingularAsset(animeID, 'banner', authToken)
+export async function deleteAdminAnimeBannerAsset(
+  animeID: number,
+  authToken?: string,
+): Promise<void> {
+  return deleteAdminAnimeSingularAsset(animeID, "banner", authToken);
 }
 
-export async function deleteAdminAnimeLogoAsset(animeID: number, authToken?: string): Promise<void> {
-  return deleteAdminAnimeSingularAsset(animeID, 'logo', authToken)
+export async function deleteAdminAnimeLogoAsset(
+  animeID: number,
+  authToken?: string,
+): Promise<void> {
+  return deleteAdminAnimeSingularAsset(animeID, "logo", authToken);
 }
 
-export async function deleteAdminAnimeBackgroundVideoAsset(animeID: number, authToken?: string): Promise<void> {
-  return deleteAdminAnimeSingularAsset(animeID, 'background_video', authToken)
+export async function deleteAdminAnimeBackgroundVideoAsset(
+  animeID: number,
+  authToken?: string,
+): Promise<void> {
+  return deleteAdminAnimeSingularAsset(animeID, "background_video", authToken);
 }
 
 async function deleteAdminAnimeSingularAsset(
   animeID: number,
-  assetKind: Exclude<AdminAnimeAssetKind, 'background'>,
+  assetKind: Exclude<AdminAnimeAssetKind, "background">,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/${assetKind}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/${assetKind}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -2864,26 +3964,38 @@ export async function addAdminAnimeBackgroundAsset(
   authToken?: string,
   providerKey?: string,
 ): Promise<AdminAnimeBackgroundAssetResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const body: Record<string, string> = { media_id: mediaID }
-  if (providerKey) body.provider_key = providerKey
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/backgrounds`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(body),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const body: Record<string, string> = { media_id: mediaID };
+  if (providerKey) body.provider_key = providerKey;
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/backgrounds`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(body),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeBackgroundAssetResponse>
+  return response.json() as Promise<AdminAnimeBackgroundAssetResponse>;
 }
 
 export async function deleteAdminAnimeBackgroundAsset(
@@ -2891,15 +4003,27 @@ export async function deleteAdminAnimeBackgroundAsset(
   backgroundID: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/backgrounds/${backgroundID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/assets/backgrounds/${backgroundID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -2907,24 +4031,30 @@ export async function createAdminEpisode(
   payload: AdminEpisodeCreateRequest,
   authToken?: string,
 ): Promise<AdminEpisodeUpsertResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/episodes`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/episodes`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<AdminEpisodeUpsertResponse>
+  return response.json() as Promise<AdminEpisodeUpsertResponse>;
 }
 
 export async function updateAdminEpisode(
@@ -2932,80 +4062,123 @@ export async function updateAdminEpisode(
   payload: AdminEpisodePatchRequest,
   authToken?: string,
 ): Promise<AdminEpisodeUpsertResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/episodes/${episodeID}`, {
-    method: 'PATCH',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/episodes/${episodeID}`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<AdminEpisodeUpsertResponse>
+  return response.json() as Promise<AdminEpisodeUpsertResponse>;
 }
 
-export async function deleteAdminEpisode(episodeID: number, authToken?: string): Promise<AdminEpisodeDeleteResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/episodes/${episodeID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+export async function deleteAdminEpisode(
+  episodeID: number,
+  authToken?: string,
+): Promise<AdminEpisodeDeleteResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/episodes/${episodeID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<AdminEpisodeDeleteResponse>
+  return response.json() as Promise<AdminEpisodeDeleteResponse>;
 }
 
 export async function getEpisodeImportContext(
   animeID: number,
   authToken?: string,
 ): Promise<EpisodeImportContextResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/context`, {
-    authToken,
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/context`,
+    {
+      authToken,
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<EpisodeImportContextResponse>
+  return response.json() as Promise<EpisodeImportContextResponse>;
 }
 
 export async function previewEpisodeImport(
   animeID: number,
-  payload: { anisearch_id?: string; jellyfin_series_id?: string; season_offset?: number },
+  payload: {
+    anisearch_id?: string;
+    jellyfin_series_id?: string;
+    season_offset?: number;
+  },
   authToken?: string,
 ): Promise<EpisodeImportPreviewResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/preview`, {
-    method: 'POST',
-    authToken,
-    headers: {
-      'Content-Type': 'application/json',
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/preview`,
+    {
+      method: "POST",
+      authToken,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  })
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<EpisodeImportPreviewResponse>
+  return response.json() as Promise<EpisodeImportPreviewResponse>;
 }
 
 export async function applyEpisodeImport(
@@ -3013,55 +4186,94 @@ export async function applyEpisodeImport(
   payload: EpisodeImportApplyInput,
   authToken?: string,
 ): Promise<EpisodeImportApplyResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/apply`, {
-    method: 'POST',
-    authToken,
-    headers: {
-      'Content-Type': 'application/json',
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-import/apply`,
+    {
+      method: "POST",
+      authToken,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  })
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<EpisodeImportApplyResponse>
+  return response.json() as Promise<EpisodeImportApplyResponse>;
 }
 
-export async function deleteAdminAnime(animeID: number, authToken?: string): Promise<AdminAnimeDeleteResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+export async function deleteAdminAnime(
+  animeID: number,
+  authToken?: string,
+): Promise<AdminAnimeDeleteResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeDeleteResponse>
+  return response.json() as Promise<AdminAnimeDeleteResponse>;
 }
 
 export async function getAdminAnimeRelations(
   animeID: number,
   authToken?: string,
 ): Promise<AdminAnimeRelationsResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations`, {
-    headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeRelationsResponse>
+  return response.json() as Promise<AdminAnimeRelationsResponse>;
 }
 
 export async function searchAdminAnimeRelationTargets(
@@ -3070,22 +4282,35 @@ export async function searchAdminAnimeRelationTargets(
   params: { limit?: number } = {},
   authToken?: string,
 ): Promise<AdminAnimeRelationTargetsResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const search = new URLSearchParams()
-  search.set('q', query)
-  if (params.limit && Number.isFinite(params.limit) && params.limit > 0) search.set('limit', String(params.limit))
+  const API_BASE_URL = getApiBaseUrl();
+  const search = new URLSearchParams();
+  search.set("q", query);
+  if (params.limit && Number.isFinite(params.limit) && params.limit > 0)
+    search.set("limit", String(params.limit));
 
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relation-targets?${search.toString()}`, {
-    headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/relation-targets?${search.toString()}`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeRelationTargetsResponse>
+  return response.json() as Promise<AdminAnimeRelationTargetsResponse>;
 }
 
 export async function createAdminAnimeRelation(
@@ -3093,21 +4318,33 @@ export async function createAdminAnimeRelation(
   payload: AdminAnimeRelationCreateRequest,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -3117,21 +4354,33 @@ export async function updateAdminAnimeRelation(
   payload: AdminAnimeRelationUpdateRequest,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations/${targetAnimeID}`, {
-    method: 'PATCH',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations/${targetAnimeID}`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -3140,49 +4389,87 @@ export async function deleteAdminAnimeRelation(
   targetAnimeID: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations/${targetAnimeID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/relations/${targetAnimeID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
-export async function getAdminThemeTypes(authToken?: string): Promise<AdminThemeTypesResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/theme-types`, {
-    headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+export async function getAdminThemeTypes(
+  authToken?: string,
+): Promise<AdminThemeTypesResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/theme-types`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminThemeTypesResponse>
+  return response.json() as Promise<AdminThemeTypesResponse>;
 }
 
 export async function getAdminAnimeThemes(
   animeID: number,
   authToken?: string,
 ): Promise<AdminAnimeThemesResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes`, {
-    headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeThemesResponse>
+  return response.json() as Promise<AdminAnimeThemesResponse>;
 }
 
 export async function createAdminAnimeTheme(
@@ -3190,24 +4477,36 @@ export async function createAdminAnimeTheme(
   payload: AdminAnimeThemeCreateRequest,
   authToken?: string,
 ): Promise<AdminAnimeThemeCreateResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeThemeCreateResponse>
+  return response.json() as Promise<AdminAnimeThemeCreateResponse>;
 }
 
 export async function updateAdminAnimeTheme(
@@ -3216,21 +4515,33 @@ export async function updateAdminAnimeTheme(
   payload: AdminAnimeThemePatchRequest,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}`, {
-    method: 'PATCH',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -3239,15 +4550,27 @@ export async function deleteAdminAnimeTheme(
   themeID: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes/${themeID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -3256,21 +4579,33 @@ export async function getAdminAnimeThemeSegments(
   themeID: number,
   authToken?: string,
 ): Promise<AdminAnimeThemeSegmentsResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments`, {
-    headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const payload = (await response.json()) as AdminAnimeThemeSegmentsResponse
+  const payload = (await response.json()) as AdminAnimeThemeSegmentsResponse;
   return {
     data: payload.data.filter((segment) => segment.theme_id === themeID),
-  }
+  };
 }
 
 export async function createAdminAnimeThemeSegment(
@@ -3279,24 +4614,36 @@ export async function createAdminAnimeThemeSegment(
   payload: AdminAnimeThemeSegmentCreateRequest,
   authToken?: string,
 ): Promise<AdminAnimeThemeSegmentCreateResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify({ ...payload, theme_id: themeID }),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify({ ...payload, theme_id: themeID }),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeThemeSegmentCreateResponse>
+  return response.json() as Promise<AdminAnimeThemeSegmentCreateResponse>;
 }
 
 export async function deleteAdminAnimeThemeSegment(
@@ -3305,30 +4652,51 @@ export async function deleteAdminAnimeThemeSegment(
   segmentID: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments/${segmentID}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments/${segmentID}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
 export async function deleteUploadedCoverFile(fileName: string): Promise<void> {
-  const response = await fetch('/api/admin/upload-cover', {
-    method: 'DELETE',
+  const response = await fetch("/api/admin/upload-cover", {
+    method: "DELETE",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ file_name: fileName }),
-  })
+  });
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -3336,23 +4704,27 @@ export async function getAdminGenreTokens(
   params: { q?: string; query?: string; limit?: number } = {},
   authToken?: string,
 ): Promise<AdminGenreTokensResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const query = new URLSearchParams()
-  const genreQuery = (params.query || params.q || '').trim()
-  if (genreQuery) query.set('query', genreQuery)
-  if (params.limit && Number.isFinite(params.limit) && params.limit > 0) query.set('limit', String(params.limit))
-  const url = `${API_BASE_URL}/api/v1/genres${query.toString() ? `?${query.toString()}` : ''}`
+  const API_BASE_URL = getApiBaseUrl();
+  const query = new URLSearchParams();
+  const genreQuery = (params.query || params.q || "").trim();
+  if (genreQuery) query.set("query", genreQuery);
+  if (params.limit && Number.isFinite(params.limit) && params.limit > 0)
+    query.set("limit", String(params.limit));
+  const url = `${API_BASE_URL}/api/v1/genres${query.toString() ? `?${query.toString()}` : ""}`;
   const response = await fetch(url, {
     headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+    cache: "no-store",
+  });
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<AdminGenreTokensResponse>
+  return response.json() as Promise<AdminGenreTokensResponse>;
 }
 
 // getAdminTagTokens fetches normalized tag tokens from the dedicated admin tag
@@ -3362,23 +4734,27 @@ export async function getAdminTagTokens(
   params: { query?: string; limit?: number } = {},
   authToken?: string,
 ): Promise<AdminTagTokensResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const query = new URLSearchParams()
-  const tagQuery = (params.query || '').trim()
-  if (tagQuery) query.set('query', tagQuery)
-  if (params.limit && Number.isFinite(params.limit) && params.limit > 0) query.set('limit', String(params.limit))
-  const url = `${API_BASE_URL}/api/v1/admin/tags${query.toString() ? `?${query.toString()}` : ''}`
+  const API_BASE_URL = getApiBaseUrl();
+  const query = new URLSearchParams();
+  const tagQuery = (params.query || "").trim();
+  if (tagQuery) query.set("query", tagQuery);
+  if (params.limit && Number.isFinite(params.limit) && params.limit > 0)
+    query.set("limit", String(params.limit));
+  const url = `${API_BASE_URL}/api/v1/admin/tags${query.toString() ? `?${query.toString()}` : ""}`;
   const response = await fetch(url, {
     headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+    cache: "no-store",
+  });
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<AdminTagTokensResponse>
+  return response.json() as Promise<AdminTagTokensResponse>;
 }
 
 // Fansub merge operations
@@ -3386,48 +4762,60 @@ export async function mergeFansubsPreview(
   payload: MergeFansubsRequest,
   authToken?: string,
 ): Promise<MergeFansubsPreviewResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/merge/preview`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/merge/preview`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<MergeFansubsPreviewResponse>
+  return response.json() as Promise<MergeFansubsPreviewResponse>;
 }
 
 export async function mergeFansubs(
   payload: MergeFansubsRequest,
   authToken?: string,
 ): Promise<MergeFansubsResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/merge`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/merge`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<MergeFansubsResponse>
+  return response.json() as Promise<MergeFansubsResponse>;
 }
 
 // Collaboration member operations
@@ -3435,18 +4823,24 @@ export async function getCollaborationMembers(
   fansubID: number,
   authToken?: string,
 ): Promise<CollaborationMemberListResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${fansubID}/collaboration-members`, {
-    headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${fansubID}/collaboration-members`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<CollaborationMemberListResponse>
+  return response.json() as Promise<CollaborationMemberListResponse>;
 }
 
 export async function addCollaborationMember(
@@ -3454,24 +4848,30 @@ export async function addCollaborationMember(
   payload: AddCollaborationMemberRequest,
   authToken?: string,
 ): Promise<CollaborationMemberResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/fansubs/${collaborationID}/collaboration-members`, {
-    method: 'POST',
-    headers: withAuthHeader(
-      {
-        'Content-Type': 'application/json',
-      },
-      authToken,
-    ),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${collaborationID}/collaboration-members`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<CollaborationMemberResponse>
+  return response.json() as Promise<CollaborationMemberResponse>;
 }
 
 export async function removeCollaborationMember(
@@ -3479,18 +4879,21 @@ export async function removeCollaborationMember(
   memberGroupID: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const response = await fetch(
     `${API_BASE_URL}/api/v1/fansubs/${collaborationID}/collaboration-members/${memberGroupID}`,
     {
-      method: 'DELETE',
+      method: "DELETE",
       headers: withAuthHeader({}, authToken),
     },
-  )
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 }
 
@@ -3499,45 +4902,65 @@ export async function syncEpisode(
   episodeID: number,
   authToken?: string,
 ): Promise<{ data: { success: boolean; message?: string } }> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeID}/episodes/${episodeID}/sync`, {
-    method: 'POST',
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/episodes/${episodeID}/sync`,
+    {
+      method: "POST",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<{ data: { success: boolean; message?: string } }>
+  return response.json() as Promise<{
+    data: { success: boolean; message?: string };
+  }>;
 }
 
 // Group operations
-export async function getGroupDetail(animeID: number, groupID: number): Promise<GroupDetailResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}`, {
-    cache: 'no-store',
-  })
+export async function getGroupDetail(
+  animeID: number,
+  groupID: number,
+): Promise<GroupDetailResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}`,
+    {
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<GroupDetailResponse>
+  return response.json() as Promise<GroupDetailResponse>;
 }
 
 function buildGroupReleasesQuery(params: GroupReleasesParams): string {
-  const query = new URLSearchParams()
-  if (params.page) query.set('page', String(params.page))
-  if (params.per_page) query.set('per_page', String(params.per_page))
-  if (typeof params.has_op === 'boolean') query.set('has_op', String(params.has_op))
-  if (typeof params.has_ed === 'boolean') query.set('has_ed', String(params.has_ed))
-  if (typeof params.has_karaoke === 'boolean') query.set('has_karaoke', String(params.has_karaoke))
-  if (params.q) query.set('q', params.q)
+  const query = new URLSearchParams();
+  if (params.page) query.set("page", String(params.page));
+  if (params.per_page) query.set("per_page", String(params.per_page));
+  if (typeof params.has_op === "boolean")
+    query.set("has_op", String(params.has_op));
+  if (typeof params.has_ed === "boolean")
+    query.set("has_ed", String(params.has_ed));
+  if (typeof params.has_karaoke === "boolean")
+    query.set("has_karaoke", String(params.has_karaoke));
+  if (params.q) query.set("q", params.q);
 
-  return query.toString()
+  return query.toString();
 }
 
 export async function getGroupReleases(
@@ -3545,47 +4968,67 @@ export async function getGroupReleases(
   groupID: number,
   params: GroupReleasesParams = {},
 ): Promise<GroupReleasesResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const query = buildGroupReleasesQuery(params)
-  const url = `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/releases${query ? `?${query}` : ''}`
+  const API_BASE_URL = getApiBaseUrl();
+  const query = buildGroupReleasesQuery(params);
+  const url = `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/releases${query ? `?${query}` : ""}`;
   const response = await fetch(url, {
-    cache: 'no-store',
-  })
+    cache: "no-store",
+  });
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<GroupReleasesResponse>
+  return response.json() as Promise<GroupReleasesResponse>;
 }
 
-export async function getGroupAssets(animeID: number, groupID: number): Promise<GroupAssetsResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/assets`, {
-    cache: 'no-store',
-  })
+export async function getGroupAssets(
+  animeID: number,
+  groupID: number,
+): Promise<GroupAssetsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/assets`,
+    {
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<GroupAssetsResponse>
+  return response.json() as Promise<GroupAssetsResponse>;
 }
 
-export async function getReleaseAssets(releaseID: number): Promise<ReleaseAssetsResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/releases/${releaseID}/assets`, {
-    cache: 'no-store',
-  })
+export async function getReleaseAssets(
+  releaseID: number,
+): Promise<ReleaseAssetsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/releases/${releaseID}/assets`,
+    {
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, message)
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<ReleaseAssetsResponse>
+  return response.json() as Promise<ReleaseAssetsResponse>;
 }
 
 // --- Release-Segmente (OP/ED Timing) (Phase 24) ---
@@ -3597,23 +5040,36 @@ export async function getAnimeSegments(
   authToken?: string,
   releaseVariantId?: number | null,
 ): Promise<AdminAnimeSegmentsResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const params = new URLSearchParams()
-  if (groupId) params.set('group_id', String(groupId))
-  if (version) params.set('version', version)
-  if (releaseVariantId != null) params.set('release_variant_id', String(releaseVariantId))
-  const qs = params.toString() ? `?${params.toString()}` : ''
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments${qs}`, {
-    headers: withAuthHeader({}, authToken),
-    cache: 'no-store',
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  if (groupId) params.set("group_id", String(groupId));
+  if (version) params.set("version", version);
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments${qs}`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminAnimeSegmentsResponse>
+  return response.json() as Promise<AdminAnimeSegmentsResponse>;
 }
 
 export async function createAnimeSegment(
@@ -3622,22 +5078,38 @@ export async function createAnimeSegment(
   authToken?: string,
   releaseVariantId?: number | null,
 ): Promise<{ data: AdminThemeSegment }> {
-  const API_BASE_URL = getApiBaseUrl()
-  const params = new URLSearchParams()
-  if (releaseVariantId != null) params.set('release_variant_id', String(releaseVariantId))
-  const qs = params.toString() ? `?${params.toString()}` : ''
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments${qs}`, {
-    method: 'POST',
-    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(input),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments${qs}`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(input),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<{ data: AdminThemeSegment }>
+  return response.json() as Promise<{ data: AdminThemeSegment }>;
 }
 
 export async function updateAnimeSegment(
@@ -3647,22 +5119,38 @@ export async function updateAnimeSegment(
   authToken?: string,
   releaseVariantId?: number | null,
 ): Promise<{ data: AdminThemeSegment }> {
-  const API_BASE_URL = getApiBaseUrl()
-  const params = new URLSearchParams()
-  if (releaseVariantId != null) params.set('release_variant_id', String(releaseVariantId))
-  const qs = params.toString() ? `?${params.toString()}` : ''
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}${qs}`, {
-    method: 'PATCH',
-    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(input),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}${qs}`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(input),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<{ data: AdminThemeSegment }>
+  return response.json() as Promise<{ data: AdminThemeSegment }>;
 }
 
 export async function deleteAnimeSegment(
@@ -3670,15 +5158,27 @@ export async function deleteAnimeSegment(
   segmentId: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -3693,25 +5193,34 @@ export async function getAnimeSegmentSuggestions(
   excludeVersion?: string | null,
   authToken?: string,
 ): Promise<AdminSegmentSuggestionsResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const params = new URLSearchParams()
-  params.set('episode', String(episode))
-  if (excludeGroupId) params.set('exclude_group_id', String(excludeGroupId))
-  if (excludeVersion) params.set('exclude_version', excludeVersion)
+  const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  params.set("episode", String(episode));
+  if (excludeGroupId) params.set("exclude_group_id", String(excludeGroupId));
+  if (excludeVersion) params.set("exclude_version", excludeVersion);
   const response = await fetch(
     `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/suggestions?${params.toString()}`,
     {
       headers: withAuthHeader({}, authToken),
-      cache: 'no-store',
+      cache: "no-store",
     },
-  )
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminSegmentSuggestionsResponse>
+  return response.json() as Promise<AdminSegmentSuggestionsResponse>;
 }
 
 export async function getSegmentLibraryCandidates(
@@ -3721,26 +5230,35 @@ export async function getSegmentLibraryCandidates(
   name?: string | null,
   authToken?: string,
 ): Promise<AdminSegmentLibraryCandidatesResponse> {
-  const API_BASE_URL = getApiBaseUrl()
-  const params = new URLSearchParams()
-  params.set('group_id', String(groupId))
-  params.set('kind', kind)
-  if (name?.trim()) params.set('name', name.trim())
+  const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  params.set("group_id", String(groupId));
+  params.set("kind", kind);
+  if (name?.trim()) params.set("name", name.trim());
 
   const response = await fetch(
     `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/library-candidates?${params.toString()}`,
     {
       headers: withAuthHeader({}, authToken),
-      cache: 'no-store',
+      cache: "no-store",
     },
-  )
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<AdminSegmentLibraryCandidatesResponse>
+  return response.json() as Promise<AdminSegmentLibraryCandidatesResponse>;
 }
 
 export async function attachSegmentLibraryAsset(
@@ -3749,19 +5267,34 @@ export async function attachSegmentLibraryAsset(
   payload: AdminSegmentLibraryAttachRequest,
   authToken?: string,
 ): Promise<{ data: AdminThemeSegment }> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/reuse`, {
-    method: 'POST',
-    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(payload),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/reuse`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<{ data: AdminThemeSegment }>
+  return response.json() as Promise<{ data: AdminThemeSegment }>;
 }
 
 /**
@@ -3775,23 +5308,35 @@ export async function uploadSegmentAsset(
   file: File,
   authToken?: string,
 ): Promise<{ data: AdminThemeSegment }> {
-  const API_BASE_URL = getApiBaseUrl()
-  const formData = new FormData()
-  formData.append('file', file)
+  const API_BASE_URL = getApiBaseUrl();
+  const formData = new FormData();
+  formData.append("file", file);
 
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/asset`, {
-    method: 'POST',
-    headers: withAuthHeader({}, authToken),
-    retryAuth401: false,
-    body: formData,
-  })
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/asset`,
+    {
+      method: "POST",
+      headers: withAuthHeader({}, authToken),
+      retryAuth401: false,
+      body: formData,
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<{ data: AdminThemeSegment }>
+  return response.json() as Promise<{ data: AdminThemeSegment }>;
 }
 
 /**
@@ -3802,18 +5347,27 @@ export async function deleteSegmentAsset(
   segmentId: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const response = await fetch(
     `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/asset`,
     {
-      method: 'DELETE',
+      method: "DELETE",
       headers: withAuthHeader({}, authToken),
     },
-  )
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -3823,74 +5377,94 @@ export async function getReleaseVersionMedia(
   versionId: number,
   authToken?: string,
 ): Promise<ReleaseVersionMediaListResponse> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const response = await fetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media`,
     {
       headers: withAuthHeader({}, authToken),
-      cache: 'no-store',
+      cache: "no-store",
     },
-  )
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<ReleaseVersionMediaListResponse>
+  return response.json() as Promise<ReleaseVersionMediaListResponse>;
 }
 
 export async function getReleaseVersionCapabilities(
   versionId: number,
   authToken?: string,
 ): Promise<ReleaseVersionCapabilitiesResponse> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const response = await fetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/capabilities`,
     {
       headers: withAuthHeader({}, authToken),
-      cache: 'no-store',
+      cache: "no-store",
     },
-  )
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<ReleaseVersionCapabilitiesResponse>
+  return response.json() as Promise<ReleaseVersionCapabilitiesResponse>;
 }
 
 export interface UploadReleaseVersionMediaOptions {
-  versionId: number
-  category: ReleaseVersionMediaCategory
-  files: File[]
-  onProgress?: (fileIndex: number, percent: number) => void
-  authToken?: string
+  versionId: number;
+  category: ReleaseVersionMediaCategory;
+  files: File[];
+  onProgress?: (fileIndex: number, percent: number) => void;
+  authToken?: string;
 }
 
 export async function uploadReleaseVersionMedia(
   options: UploadReleaseVersionMediaOptions,
 ): Promise<ReleaseVersionMediaUploadResponse> {
-  if (typeof window === 'undefined') {
-    throw new ApiError(500, 'Upload ist nur im Browser verfügbar.')
+  if (typeof window === "undefined") {
+    throw new ApiError(500, "Upload ist nur im Browser verfügbar.");
   }
 
-  const API_BASE_URL = getApiBaseUrl()
-  const endpoint = `${API_BASE_URL}/api/v1/admin/release-versions/${options.versionId}/media`
+  const API_BASE_URL = getApiBaseUrl();
+  const endpoint = `${API_BASE_URL}/api/v1/admin/release-versions/${options.versionId}/media`;
   return authorizedUploadXhr<ReleaseVersionMediaUploadResponse>({
     endpoint,
-    retryEligibility: 'never',
-    onProgress: options.onProgress ? (percent) => options.onProgress?.(0, percent) : undefined,
+    retryEligibility: "never",
+    onProgress: options.onProgress
+      ? (percent) => options.onProgress?.(0, percent)
+      : undefined,
     buildBody: () => {
-      const body = new FormData()
-      body.set('category', options.category)
+      const body = new FormData();
+      body.set("category", options.category);
       for (const file of options.files) {
-        body.append('files[]', file)
+        body.append("files[]", file);
       }
-      return body
+      return body;
     },
-  })
+  });
 }
 export async function patchReleaseVersionMediaItem(
   versionId: number,
@@ -3898,22 +5472,34 @@ export async function patchReleaseVersionMediaItem(
   patch: ReleaseVersionMediaPatchRequest,
   authToken?: string,
 ): Promise<ReleaseVersionMediaItem> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const response = await fetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media/${mediaId}`,
     {
-      method: 'PATCH',
-      headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+      method: "PATCH",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
       body: JSON.stringify(patch),
     },
-  )
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  return response.json() as Promise<ReleaseVersionMediaItem>
+  return response.json() as Promise<ReleaseVersionMediaItem>;
 }
 
 export async function deleteReleaseVersionMediaItem(
@@ -3921,18 +5507,27 @@ export async function deleteReleaseVersionMediaItem(
   mediaId: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const response = await fetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media/${mediaId}`,
     {
-      method: 'DELETE',
+      method: "DELETE",
       headers: withAuthHeader({}, authToken),
     },
-  )
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -3941,97 +5536,109 @@ export async function reorderReleaseVersionMedia(
   body: ReleaseVersionMediaReorderRequest,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const response = await fetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media/reorder`,
     {
-      method: 'POST',
-      headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+      method: "POST",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
       body: JSON.stringify(body),
     },
-  )
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
 // ---- Fansub Group Notes ----
 
 type RawFansubGroupNote = {
-  ID: number
-  FansubGroupID: number
-  Title: string
-  BodyMarkdown?: string | null
-  BodyHTML: string
-  BodyJSON: unknown | null
-  BodyText: string
-  EditorType: string
-  ContentSchemaVersion: number
-  Visibility: 'public' | 'internal'
-  Status: 'draft' | 'published' | 'archived' | 'deleted'
-  SortOrder: number
-  CreatedByUserID: number | null
-  UpdatedByUserID: number | null
-  CreatedAt: string
-  UpdatedAt: string | null
-  DeletedAt: string | null
-}
+  ID: number;
+  FansubGroupID: number;
+  Title: string;
+  BodyMarkdown?: string | null;
+  BodyHTML: string;
+  BodyJSON: unknown | null;
+  BodyText: string;
+  EditorType: string;
+  ContentSchemaVersion: number;
+  Visibility: "public" | "internal";
+  Status: "draft" | "published" | "archived" | "deleted";
+  SortOrder: number;
+  CreatedByUserID: number | null;
+  UpdatedByUserID: number | null;
+  CreatedAt: string;
+  UpdatedAt: string | null;
+  DeletedAt: string | null;
+};
 
 type RawMemberGroupStory = {
-  ID: number
-  FansubGroupID: number
-  MemberID: number
-  RoleID: number | null
-  Title: string
-  BodyMarkdown?: string | null
-  BodyHTML: string
-  BodyJSON: unknown | null
-  BodyText: string
-  EditorType: string
-  ContentSchemaVersion: number
-  Visibility: 'public' | 'internal'
-  Status: 'draft' | 'published' | 'archived' | 'deleted'
-  SortOrder: number
-  CreatedByUserID: number | null
-  UpdatedByUserID: number | null
-  CreatedAt: string
-  UpdatedAt: string | null
-  DeletedAt: string | null
-}
+  ID: number;
+  FansubGroupID: number;
+  MemberID: number;
+  RoleID: number | null;
+  Title: string;
+  BodyMarkdown?: string | null;
+  BodyHTML: string;
+  BodyJSON: unknown | null;
+  BodyText: string;
+  EditorType: string;
+  ContentSchemaVersion: number;
+  Visibility: "public" | "internal";
+  Status: "draft" | "published" | "archived" | "deleted";
+  SortOrder: number;
+  CreatedByUserID: number | null;
+  UpdatedByUserID: number | null;
+  CreatedAt: string;
+  UpdatedAt: string | null;
+  DeletedAt: string | null;
+};
 
 type RawAnimeFansubProjectNote = {
-  ID: number
-  AnimeID: number
-  FansubGroupID: number
-  Title: string
-  BodyMarkdown?: string | null
-  BodyHTML: string
-  BodyJSON: unknown | null
-  BodyText: string
-  EditorType: string
-  ContentSchemaVersion: number
-  Visibility: 'public' | 'internal'
-  Status: 'draft' | 'published' | 'archived' | 'deleted'
-  SortOrder: number
-  CreatedByUserID: number | null
-  UpdatedByUserID: number | null
-  CreatedAt: string
-  UpdatedAt: string | null
-  DeletedAt: string | null
-}
+  ID: number;
+  AnimeID: number;
+  FansubGroupID: number;
+  Title: string;
+  BodyMarkdown?: string | null;
+  BodyHTML: string;
+  BodyJSON: unknown | null;
+  BodyText: string;
+  EditorType: string;
+  ContentSchemaVersion: number;
+  Visibility: "public" | "internal";
+  Status: "draft" | "published" | "archived" | "deleted";
+  SortOrder: number;
+  CreatedByUserID: number | null;
+  UpdatedByUserID: number | null;
+  CreatedAt: string;
+  UpdatedAt: string | null;
+  DeletedAt: string | null;
+};
 
 type RawMemberStoryContextMember = {
-  ID: number
-  Nickname: string
-}
+  ID: number;
+  Nickname: string;
+};
 
 type RawMemberStoryContextRole = {
-  ID: number
-  Name: string
-  Label: string
-}
+  ID: number;
+  Name: string;
+  Label: string;
+};
 
 function mapFansubGroupNote(raw: RawFansubGroupNote): FansubGroupNote {
   return {
@@ -4052,7 +5659,7 @@ function mapFansubGroupNote(raw: RawFansubGroupNote): FansubGroupNote {
     createdAt: raw.CreatedAt,
     updatedAt: raw.UpdatedAt,
     deletedAt: raw.DeletedAt,
-  }
+  };
 }
 
 function mapMemberGroupStory(raw: RawMemberGroupStory): MemberGroupStory {
@@ -4076,10 +5683,12 @@ function mapMemberGroupStory(raw: RawMemberGroupStory): MemberGroupStory {
     createdAt: raw.CreatedAt,
     updatedAt: raw.UpdatedAt,
     deletedAt: raw.DeletedAt,
-  }
+  };
 }
 
-function mapAnimeFansubProjectNote(raw: RawAnimeFansubProjectNote): AnimeFansubProjectNote {
+function mapAnimeFansubProjectNote(
+  raw: RawAnimeFansubProjectNote,
+): AnimeFansubProjectNote {
   return {
     id: raw.ID,
     animeId: raw.AnimeID,
@@ -4099,37 +5708,56 @@ function mapAnimeFansubProjectNote(raw: RawAnimeFansubProjectNote): AnimeFansubP
     createdAt: raw.CreatedAt,
     updatedAt: raw.UpdatedAt,
     deletedAt: raw.DeletedAt,
-  }
+  };
 }
 
-function mapMemberStoryContextMember(raw: RawMemberStoryContextMember): MemberStoryContextMember {
+function mapMemberStoryContextMember(
+  raw: RawMemberStoryContextMember,
+): MemberStoryContextMember {
   return {
     id: raw.ID,
     nickname: raw.Nickname,
-  }
+  };
 }
 
-function mapMemberStoryContextRole(raw: RawMemberStoryContextRole): MemberStoryContextRole {
+function mapMemberStoryContextRole(
+  raw: RawMemberStoryContextRole,
+): MemberStoryContextRole {
   return {
     id: raw.ID,
     name: raw.Name,
     label: raw.Label,
-  }
+  };
 }
 
-export async function listFansubGroupNotes(fansubId: number, authToken?: string): Promise<FansubGroupNote[]> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes`, {
-    headers: withAuthHeader({}, authToken),
-  })
+export async function listFansubGroupNotes(
+  fansubId: number,
+  authToken?: string,
+): Promise<FansubGroupNote[]> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes`,
+    {
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const json = (await response.json()) as { data: RawFansubGroupNote[] }
-  return json.data.map(mapFansubGroupNote)
+  const json = (await response.json()) as { data: RawFansubGroupNote[] };
+  return json.data.map(mapFansubGroupNote);
 }
 
 export async function createFansubGroupNote(
@@ -4137,27 +5765,42 @@ export async function createFansubGroupNote(
   data: CreateFansubGroupNoteRequest,
   authToken?: string,
 ): Promise<FansubGroupNote> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const payload = {
     title: data.title,
     body_json: data.bodyJson,
     visibility: data.visibility,
     status: data.status,
     sort_order: data.sortOrder ?? 0,
-  }
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes`, {
-    method: 'POST',
-    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(payload),
-  })
+  };
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const json = (await response.json()) as { data: RawFansubGroupNote }
-  return mapFansubGroupNote(json.data)
+  const json = (await response.json()) as { data: RawFansubGroupNote };
+  return mapFansubGroupNote(json.data);
 }
 
 export async function updateFansubGroupNote(
@@ -4166,27 +5809,42 @@ export async function updateFansubGroupNote(
   data: UpdateFansubGroupNoteRequest,
   authToken?: string,
 ): Promise<FansubGroupNote> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const payload = {
     title: data.title,
     body_json: data.bodyJson,
     visibility: data.visibility,
     status: data.status,
     sort_order: data.sortOrder,
-  }
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes/${noteId}`, {
-    method: 'PATCH',
-    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(payload),
-  })
+  };
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes/${noteId}`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const json = (await response.json()) as { data: RawFansubGroupNote }
-  return mapFansubGroupNote(json.data)
+  const json = (await response.json()) as { data: RawFansubGroupNote };
+  return mapFansubGroupNote(json.data);
 }
 
 export async function deleteFansubGroupNote(
@@ -4194,60 +5852,99 @@ export async function deleteFansubGroupNote(
   noteId: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes/${noteId}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes/${noteId}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
 // ---- Member Group Stories ----
 
-export async function listMemberGroupStories(fansubId: number, authToken?: string): Promise<MemberGroupStory[]> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`, {
-    headers: withAuthHeader({}, authToken),
-  })
+export async function listMemberGroupStories(
+  fansubId: number,
+  authToken?: string,
+): Promise<MemberGroupStory[]> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`,
+    {
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const json = (await response.json()) as { data: RawMemberGroupStory[] }
-  return json.data.map(mapMemberGroupStory)
+  const json = (await response.json()) as { data: RawMemberGroupStory[] };
+  return json.data.map(mapMemberGroupStory);
 }
 
 export async function getMemberGroupStoryContext(
   fansubId: number,
   authToken?: string,
 ): Promise<MemberStoryContext> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/context`, {
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/context`,
+    {
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
   const json = (await response.json()) as {
     data: {
-      members: RawMemberStoryContextMember[]
-      roles: RawMemberStoryContextRole[]
-    }
-  }
+      members: RawMemberStoryContextMember[];
+      roles: RawMemberStoryContextRole[];
+    };
+  };
 
   return {
     members: json.data.members.map(mapMemberStoryContextMember),
     roles: json.data.roles.map(mapMemberStoryContextRole),
-  }
+  };
 }
 
 export async function createMemberGroupStory(
@@ -4255,7 +5952,7 @@ export async function createMemberGroupStory(
   data: CreateMemberGroupStoryRequest,
   authToken?: string,
 ): Promise<MemberGroupStory> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const payload = {
     member_id: data.memberId,
     role_id: data.roleId ?? null,
@@ -4264,20 +5961,35 @@ export async function createMemberGroupStory(
     visibility: data.visibility,
     status: data.status,
     sort_order: data.sortOrder ?? 0,
-  }
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`, {
-    method: 'POST',
-    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(payload),
-  })
+  };
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const json = (await response.json()) as { data: RawMemberGroupStory }
-  return mapMemberGroupStory(json.data)
+  const json = (await response.json()) as { data: RawMemberGroupStory };
+  return mapMemberGroupStory(json.data);
 }
 
 export async function updateMemberGroupStory(
@@ -4286,27 +5998,42 @@ export async function updateMemberGroupStory(
   data: UpdateMemberGroupStoryRequest,
   authToken?: string,
 ): Promise<MemberGroupStory> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const payload = {
     title: data.title,
     body_json: data.bodyJson,
     visibility: data.visibility,
     status: data.status,
     sort_order: data.sortOrder,
-  }
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`, {
-    method: 'PATCH',
-    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(payload),
-  })
+  };
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const json = (await response.json()) as { data: RawMemberGroupStory }
-  return mapMemberGroupStory(json.data)
+  const json = (await response.json()) as { data: RawMemberGroupStory };
+  return mapMemberGroupStory(json.data);
 }
 
 export async function deleteMemberGroupStory(
@@ -4314,15 +6041,27 @@ export async function deleteMemberGroupStory(
   storyId: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`, {
-    method: 'DELETE',
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
@@ -4333,22 +6072,34 @@ export async function getAnimeFansubProjectNote(
   animeId: number,
   authToken?: string,
 ): Promise<AnimeFansubProjectNote | null> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`, {
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`,
+    {
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (response.status === 404) {
-    return null
+    return null;
   }
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const json = (await response.json()) as { data: RawAnimeFansubProjectNote }
-  return mapAnimeFansubProjectNote(json.data)
+  const json = (await response.json()) as { data: RawAnimeFansubProjectNote };
+  return mapAnimeFansubProjectNote(json.data);
 }
 
 export async function upsertAnimeFansubProjectNote(
@@ -4357,27 +6108,42 @@ export async function upsertAnimeFansubProjectNote(
   data: UpsertAnimeFansubProjectNoteRequest,
   authToken?: string,
 ): Promise<AnimeFansubProjectNote> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const payload = {
     title: data.title,
     body_json: data.bodyJson,
     visibility: data.visibility,
     status: data.status,
     sort_order: data.sortOrder ?? 0,
-  }
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`, {
-    method: 'PUT',
-    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(payload),
-  })
+  };
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`,
+    {
+      method: "PUT",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const json = (await response.json()) as { data: RawAnimeFansubProjectNote }
-  return mapAnimeFansubProjectNote(json.data)
+  const json = (await response.json()) as { data: RawAnimeFansubProjectNote };
+  return mapAnimeFansubProjectNote(json.data);
 }
 
 export async function deleteAnimeFansubProjectNote(
@@ -4386,74 +6152,85 @@ export async function deleteAnimeFansubProjectNote(
   noteId: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const response = await fetch(
     `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes/${noteId}`,
     {
-      method: 'DELETE',
+      method: "DELETE",
       headers: withAuthHeader({}, authToken),
     },
-  )
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
 // ---- Release Version Notes ----
 
 type RawReleaseVersionNote = {
-  ID: number
-  ReleaseVersionID: number
-  MemberID: number
-  RoleID: number
-  Title: string | null
-  BodyMarkdown?: string | null
-  BodyHTML: string
-  BodyJSON: unknown | null
-  BodyText: string
-  EditorType: string
-  ContentSchemaVersion: number
-  Visibility: 'public' | 'internal'
-  Status: 'draft' | 'published' | 'archived' | 'deleted'
-  SortOrder: number
-  CreatedByUserID: number | null
-  UpdatedByUserID: number | null
-  CreatedAt: string
-  UpdatedAt: string | null
-  DeletedAt: string | null
-}
+  ID: number;
+  ReleaseVersionID: number;
+  MemberID: number;
+  RoleID: number;
+  Title: string | null;
+  BodyMarkdown?: string | null;
+  BodyHTML: string;
+  BodyJSON: unknown | null;
+  BodyText: string;
+  EditorType: string;
+  ContentSchemaVersion: number;
+  Visibility: "public" | "internal";
+  Status: "draft" | "published" | "archived" | "deleted";
+  SortOrder: number;
+  CreatedByUserID: number | null;
+  UpdatedByUserID: number | null;
+  CreatedAt: string;
+  UpdatedAt: string | null;
+  DeletedAt: string | null;
+};
 
 type RawMemberRoleForVersion = {
-  MemberID: number
-  MemberName: string
-  RoleID: number
-  RoleName: string
-  RoleLabel: string
-}
+  MemberID: number;
+  MemberName: string;
+  RoleID: number;
+  RoleName: string;
+  RoleLabel: string;
+};
 
 function decodeReleaseVersionBodyJson(value: unknown): unknown | null {
-  if (value == null) return null
-  if (typeof value !== 'string') return value
+  if (value == null) return null;
+  if (typeof value !== "string") return value;
 
-  const trimmed = value.trim()
-  if (!trimmed) return null
+  const trimmed = value.trim();
+  if (!trimmed) return null;
 
   try {
-    return JSON.parse(trimmed)
+    return JSON.parse(trimmed);
   } catch {
     // Some backend responses currently serialize []byte JSONB as base64 text.
   }
 
   try {
     const decoded =
-      typeof atob === 'function'
-        ? new TextDecoder().decode(Uint8Array.from(atob(trimmed), (char) => char.charCodeAt(0)))
-        : Buffer.from(trimmed, 'base64').toString('utf-8')
-    return JSON.parse(decoded)
+      typeof atob === "function"
+        ? new TextDecoder().decode(
+            Uint8Array.from(atob(trimmed), (char) => char.charCodeAt(0)),
+          )
+        : Buffer.from(trimmed, "base64").toString("utf-8");
+    return JSON.parse(decoded);
   } catch {
-    return value
+    return value;
   }
 }
 
@@ -4478,50 +6255,79 @@ function mapReleaseVersionNote(raw: RawReleaseVersionNote): ReleaseVersionNote {
     createdAt: raw.CreatedAt,
     updatedAt: raw.UpdatedAt,
     deletedAt: raw.DeletedAt,
-  }
+  };
 }
 
-function mapMemberRoleForVersion(raw: RawMemberRoleForVersion): MemberRoleForVersion {
+function mapMemberRoleForVersion(
+  raw: RawMemberRoleForVersion,
+): MemberRoleForVersion {
   return {
     memberId: raw.MemberID,
     memberName: raw.MemberName,
     roleId: raw.RoleID,
     roleName: raw.RoleName,
     roleLabel: raw.RoleLabel,
-  }
+  };
 }
 
-export async function listReleaseVersionNotes(versionId: number, authToken?: string): Promise<ReleaseVersionNote[]> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes`, {
-    headers: withAuthHeader({}, authToken),
-  })
+export async function listReleaseVersionNotes(
+  versionId: number,
+  authToken?: string,
+): Promise<ReleaseVersionNote[]> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes`,
+    {
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const json = (await response.json()) as { data: RawReleaseVersionNote[] }
-  return json.data.map(mapReleaseVersionNote)
+  const json = (await response.json()) as { data: RawReleaseVersionNote[] };
+  return json.data.map(mapReleaseVersionNote);
 }
 
 export async function getMemberRolesForVersion(
   versionId: number,
   authToken?: string,
 ): Promise<MemberRoleForVersion[]> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/member-roles`, {
-    headers: withAuthHeader({}, authToken),
-  })
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/member-roles`,
+    {
+      headers: withAuthHeader({}, authToken),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const json = (await response.json()) as { data: RawMemberRoleForVersion[] }
-  return json.data.map(mapMemberRoleForVersion)
+  const json = (await response.json()) as { data: RawMemberRoleForVersion[] };
+  return json.data.map(mapMemberRoleForVersion);
 }
 
 export async function bulkUpsertReleaseVersionNotes(
@@ -4529,7 +6335,7 @@ export async function bulkUpsertReleaseVersionNotes(
   data: BulkUpsertReleaseVersionNotesRequest,
   authToken?: string,
 ): Promise<ReleaseVersionNote[]> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const payload = {
     notes: data.notes.map((note) => ({
       id: note.id,
@@ -4541,20 +6347,35 @@ export async function bulkUpsertReleaseVersionNotes(
       status: note.status,
       sort_order: note.sortOrder ?? 0,
     })),
-  }
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes`, {
-    method: 'POST',
-    headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
-    body: JSON.stringify(payload),
-  })
+  };
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
-  const json = (await response.json()) as { data: RawReleaseVersionNote[] }
-  return json.data.map(mapReleaseVersionNote)
+  const json = (await response.json()) as { data: RawReleaseVersionNote[] };
+  return json.data.map(mapReleaseVersionNote);
 }
 
 export async function deleteReleaseVersionNote(
@@ -4562,17 +6383,26 @@ export async function deleteReleaseVersionNote(
   noteId: number,
   authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = getApiBaseUrl();
   const response = await fetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes/${noteId}`,
     {
-      method: 'DELETE',
+      method: "DELETE",
       headers: withAuthHeader({}, authToken),
     },
-  )
+  );
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }

@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 
+import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import styles from "../../admin.module.css";
 import createStyles from "./page.module.css";
 import workspaceStyles from "../components/ManualCreate/ManualCreateWorkspace.module.css";
@@ -46,9 +47,15 @@ export {
 
 const ANIME_TYPES = ["tv", "film", "ova", "ona", "special", "bonus"] as const;
 const CONTENT_TYPES = ["anime", "hentai"] as const;
-const ANIME_STATUSES = ["disabled", "ongoing", "done", "aborted", "licensed"] as const;
+const ANIME_STATUSES = [
+  "disabled",
+  "ongoing",
+  "done",
+  "aborted",
+  "licensed",
+] as const;
 
-export default function AdminAnimeCreatePage() {
+function AdminAnimeCreateContent() {
   const controller = useAdminAnimeCreateController();
   const {
     anisearch,
@@ -96,7 +103,9 @@ export default function AdminAnimeCreatePage() {
       <CreateJellyfinCard
         query={jellyfin.intake.query}
         candidates={jellyfin.intake.candidates}
-        selectedCandidateID={jellyfin.intake.reviewState.selectedCandidate?.jellyfin_series_id}
+        selectedCandidateID={
+          jellyfin.intake.reviewState.selectedCandidate?.jellyfin_series_id
+        }
         hasAdoptedAssets={jellyfin.hasAdoptedPreview}
         isSearching={jellyfin.intake.isSearching}
         isLoadingPreview={jellyfin.intake.isLoadingPreview}
@@ -154,14 +163,18 @@ export default function AdminAnimeCreatePage() {
         className={styles.fileInput}
         type="file"
         accept="image/*"
-        onChange={(event) => handlers.handleSingleAssetInputChange("banner", event)}
+        onChange={(event) =>
+          handlers.handleSingleAssetInputChange("banner", event)
+        }
       />
       <input
         ref={fileInputRefs.logo}
         className={styles.fileInput}
         type="file"
         accept="image/*"
-        onChange={(event) => handlers.handleSingleAssetInputChange("logo", event)}
+        onChange={(event) =>
+          handlers.handleSingleAssetInputChange("logo", event)
+        }
       />
       <input
         ref={fileInputRefs.background}
@@ -222,7 +235,9 @@ export default function AdminAnimeCreatePage() {
               id="create-type"
               value={manualDraft.values.type}
               onChange={(event) =>
-                handlers.setType(event.target.value as (typeof ANIME_TYPES)[number])
+                handlers.setType(
+                  event.target.value as (typeof ANIME_TYPES)[number],
+                )
               }
             >
               {ANIME_TYPES.map((value) => (
@@ -329,8 +344,8 @@ export default function AdminAnimeCreatePage() {
             Genre, Tags und Beschreibung
           </h2>
           <p className={workspaceStyles.sectionText}>
-            Genres ordnen den Titel grob ein. Tags helfen bei Suche, Themen
-            und späterer Pflege.
+            Genres ordnen den Titel grob ein. Tags helfen bei Suche, Themen und
+            späterer Pflege.
           </p>
         </div>
 
@@ -373,7 +388,9 @@ export default function AdminAnimeCreatePage() {
             onResetLimit={handlers.resetTagLimit}
           />
 
-          <div className={`${styles.field} ${workspaceStyles.descriptionField}`}>
+          <div
+            className={`${styles.field} ${workspaceStyles.descriptionField}`}
+          >
             <label htmlFor="create-description">Beschreibung</label>
             <textarea
               id="create-description"
@@ -477,5 +494,13 @@ export default function AdminAnimeCreatePage() {
         </details>
       ) : null}
     </main>
+  );
+}
+
+export default function AdminAnimeCreatePage() {
+  return (
+    <PlatformAdminGate>
+      <AdminAnimeCreateContent />
+    </PlatformAdminGate>
   );
 }

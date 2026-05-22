@@ -1,263 +1,277 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import Image from "next/image";
+import Link from "next/link";
+import { FormEvent, useEffect, useState } from "react";
 
-import { AnimeListItem, AnimeStatus, EpisodeStatus } from '@/types/anime'
-import { AdminEpisodeCreateRequest, AdminEpisodePatchRequest } from '@/types/admin'
-import { ApiError, createAdminEpisode, getAnimeList, getRuntimeAuthToken, updateAdminEpisode } from '@/lib/api'
-import { getCoverUrl } from '@/lib/utils'
+import { AnimeListItem, AnimeStatus, EpisodeStatus } from "@/types/anime";
+import {
+  AdminEpisodeCreateRequest,
+  AdminEpisodePatchRequest,
+} from "@/types/admin";
+import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
+import {
+  ApiError,
+  createAdminEpisode,
+  getAnimeList,
+  updateAdminEpisode,
+} from "@/lib/api";
+import { useAuthSession } from "@/lib/useAuthSession";
+import { getCoverUrl } from "@/lib/utils";
 
-import sharedStyles from '../admin.module.css'
-import browserStyles from '../anime/components/AnimeBrowser/AnimeBrowser.module.css'
+import sharedStyles from "../admin.module.css";
+import browserStyles from "../anime/components/AnimeBrowser/AnimeBrowser.module.css";
 
-const styles = { ...sharedStyles, ...browserStyles }
+const styles = { ...sharedStyles, ...browserStyles };
 
-const EPISODE_STATUSES: EpisodeStatus[] = ['disabled', 'private', 'public']
-const ANIME_SEARCH_PER_PAGE = 20
+const EPISODE_STATUSES: EpisodeStatus[] = ["disabled", "private", "public"];
+const ANIME_SEARCH_PER_PAGE = 20;
 
 function parsePositiveInt(value: string): number | null {
-  const parsed = Number.parseInt(value, 10)
+  const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed) || parsed <= 0) {
-    return null
+    return null;
   }
 
-  return parsed
+  return parsed;
 }
 
 function normalizeOptionalString(value: string): string | undefined {
-  const trimmed = value.trim()
-  return trimmed ? trimmed : undefined
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
 }
 
 function resolveAnimeStatusClass(status: AnimeStatus): string {
   switch (status) {
-    case 'ongoing':
-      return 'statusOngoing'
-    case 'done':
-      return 'statusDone'
-    case 'aborted':
-      return 'statusAborted'
-    case 'licensed':
-      return 'statusLicensed'
-    case 'disabled':
+    case "ongoing":
+      return "statusOngoing";
+    case "done":
+      return "statusDone";
+    case "aborted":
+      return "statusAborted";
+    case "licensed":
+      return "statusLicensed";
+    case "disabled":
     default:
-      return 'statusDisabled'
+      return "statusDisabled";
   }
 }
 
 function handleCoverImgError(event: React.SyntheticEvent<HTMLImageElement>) {
-  const img = event.currentTarget
-  if (img.dataset.fallbackApplied === 'true') return
-  img.dataset.fallbackApplied = 'true'
-  img.alt = ''
-  img.src = '/covers/placeholder.jpg'
+  const img = event.currentTarget;
+  if (img.dataset.fallbackApplied === "true") return;
+  img.dataset.fallbackApplied = "true";
+  img.alt = "";
+  img.src = "/covers/placeholder.jpg";
 }
 
-export default function AdminEpisodesPage() {
-  const [authToken, setAuthToken] = useState('')
-  const [isSubmittingCreate, setIsSubmittingCreate] = useState(false)
-  const [isSubmittingUpdate, setIsSubmittingUpdate] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [lastRequest, setLastRequest] = useState<string | null>(null)
-  const [lastResponse, setLastResponse] = useState<string | null>(null)
+function AdminEpisodesContent() {
+  const { hasAccessToken, isClientInitialized } = useAuthSession();
+  const [isSubmittingCreate, setIsSubmittingCreate] = useState(false);
+  const [isSubmittingUpdate, setIsSubmittingUpdate] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [lastRequest, setLastRequest] = useState<string | null>(null);
+  const [lastResponse, setLastResponse] = useState<string | null>(null);
 
-  const [createAnimeID, setCreateAnimeID] = useState('')
-  const [createEpisodeNumber, setCreateEpisodeNumber] = useState('')
-  const [createTitle, setCreateTitle] = useState('')
-  const [createStatus, setCreateStatus] = useState<EpisodeStatus>('private')
-  const [selectedAnime, setSelectedAnime] = useState<AnimeListItem | null>(null)
-  const [animeSearchInput, setAnimeSearchInput] = useState('')
-  const [animeSearchQuery, setAnimeSearchQuery] = useState('')
-  const [animeSearchResults, setAnimeSearchResults] = useState<AnimeListItem[]>([])
-  const [animeSearchTotal, setAnimeSearchTotal] = useState(0)
-  const [isSearchingAnime, setIsSearchingAnime] = useState(false)
-  const [animeSearchError, setAnimeSearchError] = useState<string | null>(null)
+  const [createAnimeID, setCreateAnimeID] = useState("");
+  const [createEpisodeNumber, setCreateEpisodeNumber] = useState("");
+  const [createTitle, setCreateTitle] = useState("");
+  const [createStatus, setCreateStatus] = useState<EpisodeStatus>("private");
+  const [selectedAnime, setSelectedAnime] = useState<AnimeListItem | null>(
+    null,
+  );
+  const [animeSearchInput, setAnimeSearchInput] = useState("");
+  const [animeSearchQuery, setAnimeSearchQuery] = useState("");
+  const [animeSearchResults, setAnimeSearchResults] = useState<AnimeListItem[]>(
+    [],
+  );
+  const [animeSearchTotal, setAnimeSearchTotal] = useState(0);
+  const [isSearchingAnime, setIsSearchingAnime] = useState(false);
+  const [animeSearchError, setAnimeSearchError] = useState<string | null>(null);
 
-  const [updateEpisodeID, setUpdateEpisodeID] = useState('')
-  const [updateEpisodeNumber, setUpdateEpisodeNumber] = useState('')
-  const [updateTitle, setUpdateTitle] = useState('')
-  const [updateStatus, setUpdateStatus] = useState('')
-  const [clearUpdateTitle, setClearUpdateTitle] = useState(false)
+  const [updateEpisodeID, setUpdateEpisodeID] = useState("");
+  const [updateEpisodeNumber, setUpdateEpisodeNumber] = useState("");
+  const [updateTitle, setUpdateTitle] = useState("");
+  const [updateStatus, setUpdateStatus] = useState("");
+  const [clearUpdateTitle, setClearUpdateTitle] = useState(false);
 
-  useEffect(() => {
-    setAuthToken(getRuntimeAuthToken())
-  }, [])
-
-  const hasAuthToken = authToken.length > 0
-  const tokenPreview = useMemo(() => {
-    if (!authToken) {
-      return 'n/a'
-    }
-
-    return authToken.length > 24 ? `${authToken.slice(0, 24)}...` : authToken
-  }, [authToken])
+  const hasAuthToken = isClientInitialized && hasAccessToken;
 
   useEffect(() => {
-    const id = parsePositiveInt(createAnimeID)
+    const id = parsePositiveInt(createAnimeID);
     if (!id) {
-      if (selectedAnime) setSelectedAnime(null)
-      return
+      if (selectedAnime) setSelectedAnime(null);
+      return;
     }
     if (selectedAnime && selectedAnime.id !== id) {
-      setSelectedAnime(null)
+      setSelectedAnime(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [createAnimeID])
+  }, [createAnimeID]);
 
   function clearMessages() {
-    setErrorMessage(null)
-    setSuccessMessage(null)
+    setErrorMessage(null);
+    setSuccessMessage(null);
   }
 
   function formatError(error: unknown, fallback: string): string {
     if (error instanceof ApiError) {
-      return `(${error.status}) ${error.message}`
+      return `(${error.status}) ${error.message}`;
     }
-    return fallback
+    return fallback;
   }
 
   async function runAnimeSearch(query: string) {
-    clearMessages()
-    setAnimeSearchError(null)
+    clearMessages();
+    setAnimeSearchError(null);
 
-    const normalized = query.trim()
-    setAnimeSearchQuery(normalized)
+    const normalized = query.trim();
+    setAnimeSearchQuery(normalized);
     if (normalized.length < 2) {
-      setAnimeSearchResults([])
-      setAnimeSearchTotal(0)
+      setAnimeSearchResults([]);
+      setAnimeSearchTotal(0);
       if (normalized.length > 0) {
-        setAnimeSearchError('Bitte mindestens 2 Zeichen für die Suche eingeben.')
+        setAnimeSearchError(
+          "Bitte mindestens 2 Zeichen für die Suche eingeben.",
+        );
       }
-      return
+      return;
     }
 
     try {
-      setIsSearchingAnime(true)
+      setIsSearchingAnime(true);
       const response = await getAnimeList({
         page: 1,
         per_page: ANIME_SEARCH_PER_PAGE,
         q: normalized,
         include_disabled: true,
-      })
-      setAnimeSearchResults(response.data)
-      setAnimeSearchTotal(response.meta.total)
+      });
+      setAnimeSearchResults(response.data);
+      setAnimeSearchTotal(response.meta.total);
     } catch (error) {
-      console.error('admin/episodes: anime search failed', error)
-      if (error instanceof ApiError) setAnimeSearchError(`(${error.status}) ${error.message}`)
-      else setAnimeSearchError('Anime-Suche fehlgeschlagen.')
+      console.error("admin/episodes: anime search failed", error);
+      if (error instanceof ApiError)
+        setAnimeSearchError(`(${error.status}) ${error.message}`);
+      else setAnimeSearchError("Anime-Suche fehlgeschlagen.");
     } finally {
-      setIsSearchingAnime(false)
+      setIsSearchingAnime(false);
     }
   }
 
   function handleSelectAnime(anime: AnimeListItem) {
-    setSelectedAnime(anime)
-    setCreateAnimeID(String(anime.id))
-    setSuccessMessage(`Anime #${anime.id} ausgewählt: ${anime.title}`)
+    setSelectedAnime(anime);
+    setCreateAnimeID(String(anime.id));
+    setSuccessMessage(`Anime #${anime.id} ausgewählt: ${anime.title}`);
   }
 
   async function handleCreateSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    clearMessages()
-    setLastRequest(null)
-    setLastResponse(null)
+    event.preventDefault();
+    clearMessages();
+    setLastRequest(null);
+    setLastResponse(null);
 
     if (!hasAuthToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
-      return
+      setErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+      );
+      return;
     }
 
-    const animeID = parsePositiveInt(createAnimeID)
+    const animeID = parsePositiveInt(createAnimeID);
     if (!animeID) {
-      setErrorMessage('anime_id ist ungültig')
-      return
+      setErrorMessage("anime_id ist ungültig");
+      return;
     }
 
-    const episodeNumber = createEpisodeNumber.trim()
+    const episodeNumber = createEpisodeNumber.trim();
     if (!episodeNumber) {
-      setErrorMessage('episode_number ist erforderlich')
-      return
+      setErrorMessage("episode_number ist erforderlich");
+      return;
     }
 
     const payload: AdminEpisodeCreateRequest = {
       anime_id: animeID,
       episode_number: episodeNumber,
       status: createStatus,
-    }
+    };
 
-    const title = normalizeOptionalString(createTitle)
+    const title = normalizeOptionalString(createTitle);
     if (title) {
-      payload.title = title
+      payload.title = title;
     }
 
     try {
-      setIsSubmittingCreate(true)
-      setLastRequest(JSON.stringify(payload, null, 2))
-      const response = await createAdminEpisode(payload)
-      setSuccessMessage(`Episode #${response.data.id} wurde erstellt.`)
-      setLastResponse(JSON.stringify(response, null, 2))
-      setCreateAnimeID('')
-      setSelectedAnime(null)
-      setCreateEpisodeNumber('')
-      setCreateTitle('')
-      setCreateStatus('private')
+      setIsSubmittingCreate(true);
+      setLastRequest(JSON.stringify(payload, null, 2));
+      const response = await createAdminEpisode(payload);
+      setSuccessMessage(`Episode #${response.data.id} wurde erstellt.`);
+      setLastResponse(JSON.stringify(response, null, 2));
+      setCreateAnimeID("");
+      setSelectedAnime(null);
+      setCreateEpisodeNumber("");
+      setCreateTitle("");
+      setCreateStatus("private");
     } catch (error) {
-      console.error('admin/episodes: create failed', error)
-      setErrorMessage(formatError(error, 'Episode konnte nicht erstellt werden.'))
+      console.error("admin/episodes: create failed", error);
+      setErrorMessage(
+        formatError(error, "Episode konnte nicht erstellt werden."),
+      );
     } finally {
-      setIsSubmittingCreate(false)
+      setIsSubmittingCreate(false);
     }
   }
 
   async function handleUpdateSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    clearMessages()
-    setLastRequest(null)
-    setLastResponse(null)
+    event.preventDefault();
+    clearMessages();
+    setLastRequest(null);
+    setLastResponse(null);
 
     if (!hasAuthToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
-      return
+      setErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+      );
+      return;
     }
 
-    const episodeID = parsePositiveInt(updateEpisodeID)
+    const episodeID = parsePositiveInt(updateEpisodeID);
     if (!episodeID) {
-      setErrorMessage('Episode-ID ist ungültig.')
-      return
+      setErrorMessage("Episode-ID ist ungültig.");
+      return;
     }
 
-    const payload: AdminEpisodePatchRequest = {}
-    const episodeNumber = normalizeOptionalString(updateEpisodeNumber)
-    const title = normalizeOptionalString(updateTitle)
+    const payload: AdminEpisodePatchRequest = {};
+    const episodeNumber = normalizeOptionalString(updateEpisodeNumber);
+    const title = normalizeOptionalString(updateTitle);
 
     if (episodeNumber) {
-      payload.episode_number = episodeNumber
+      payload.episode_number = episodeNumber;
     }
-    if (clearUpdateTitle) payload.title = null
-    else if (title) payload.title = title
+    if (clearUpdateTitle) payload.title = null;
+    else if (title) payload.title = title;
     if (updateStatus) {
-      payload.status = updateStatus as EpisodeStatus
+      payload.status = updateStatus as EpisodeStatus;
     }
 
     if (Object.keys(payload).length === 0) {
-      setErrorMessage('Mindestens ein Feld für das Update ausfuellen.')
-      return
+      setErrorMessage("Mindestens ein Feld für das Update ausfuellen.");
+      return;
     }
 
     try {
-      setIsSubmittingUpdate(true)
-      setLastRequest(JSON.stringify(payload, null, 2))
-      const response = await updateAdminEpisode(episodeID, payload)
-      setSuccessMessage(`Episode #${response.data.id} wurde aktualisiert.`)
-      setLastResponse(JSON.stringify(response, null, 2))
+      setIsSubmittingUpdate(true);
+      setLastRequest(JSON.stringify(payload, null, 2));
+      const response = await updateAdminEpisode(episodeID, payload);
+      setSuccessMessage(`Episode #${response.data.id} wurde aktualisiert.`);
+      setLastResponse(JSON.stringify(response, null, 2));
     } catch (error) {
-      console.error('admin/episodes: update failed', error)
-      setErrorMessage(formatError(error, 'Episode konnte nicht aktualisiert werden.'))
+      console.error("admin/episodes: update failed", error);
+      setErrorMessage(
+        formatError(error, "Episode konnte nicht aktualisiert werden."),
+      );
     } finally {
-      setIsSubmittingUpdate(false)
+      setIsSubmittingUpdate(false);
     }
   }
 
@@ -275,15 +289,27 @@ export default function AdminEpisodesPage() {
 
       <header className={styles.header}>
         <h1 className={styles.title}>Admin Episoden</h1>
-        <p className={styles.subtitle}>Episoden erstellen und bearbeiten (separater Modus).</p>
-        <p className={styles.hint}>
-          Für den verbundenen Workflow mit Anime-Kontext: <Link href="/admin/anime">/admin/anime</Link>
+        <p className={styles.subtitle}>
+          Episoden erstellen und bearbeiten (separater Modus).
         </p>
-        <p className={styles.tokenPreview}>Token: {hasAuthToken ? tokenPreview : 'nicht vorhanden'}</p>
+        <p className={styles.hint}>
+          Für den verbundenen Workflow mit Anime-Kontext:{" "}
+          <Link href="/admin/anime">/admin/anime</Link>
+        </p>
+        <p className={styles.tokenPreview}>
+          Auth:{" "}
+          {isClientInitialized
+            ? hasAuthToken
+              ? "angemeldet"
+              : "nicht vorhanden"
+            : "wird geprüft"}
+        </p>
       </header>
 
       {!hasAuthToken ? (
-        <div className={styles.errorBox}>Kein Access-Token gefunden. Bitte zuerst auf /auth anmelden.</div>
+        <div className={styles.errorBox}>
+          Kein aktiver Login gefunden. Bitte zuerst auf /auth anmelden.
+        </div>
       ) : null}
 
       <section className={styles.panel}>
@@ -300,16 +326,20 @@ export default function AdminEpisodesPage() {
                   disabled={isSubmittingCreate || isSearchingAnime}
                   placeholder="z. B. attack, komödie, yamato"
                   onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault()
-                      runAnimeSearch(animeSearchInput)
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      runAnimeSearch(animeSearchInput);
                     }
                   }}
                 />
                 <button
                   className={styles.buttonSecondary}
                   type="button"
-                  disabled={isSubmittingCreate || isSearchingAnime || animeSearchInput.trim().length < 2}
+                  disabled={
+                    isSubmittingCreate ||
+                    isSearchingAnime ||
+                    animeSearchInput.trim().length < 2
+                  }
                   onClick={() => runAnimeSearch(animeSearchInput)}
                 >
                   Suchen
@@ -317,13 +347,17 @@ export default function AdminEpisodesPage() {
                 <button
                   className={styles.buttonSecondary}
                   type="button"
-                  disabled={isSubmittingCreate || isSearchingAnime || animeSearchInput.length === 0}
+                  disabled={
+                    isSubmittingCreate ||
+                    isSearchingAnime ||
+                    animeSearchInput.length === 0
+                  }
                   onClick={() => {
-                    setAnimeSearchInput('')
-                    setAnimeSearchQuery('')
-                    setAnimeSearchResults([])
-                    setAnimeSearchTotal(0)
-                    setAnimeSearchError(null)
+                    setAnimeSearchInput("");
+                    setAnimeSearchQuery("");
+                    setAnimeSearchResults([]);
+                    setAnimeSearchTotal(0);
+                    setAnimeSearchError(null);
                   }}
                   aria-label="Suche leeren"
                   title="Suche leeren"
@@ -333,22 +367,36 @@ export default function AdminEpisodesPage() {
               </div>
               {animeSearchQuery ? (
                 <p className={styles.hint}>
-                  Suche: {animeSearchQuery} | Treffer: {animeSearchResults.length} (gesamt: {animeSearchTotal})
+                  Suche: {animeSearchQuery} | Treffer:{" "}
+                  {animeSearchResults.length} (gesamt: {animeSearchTotal})
                 </p>
               ) : (
-                <p className={styles.hint}>Tip: Suche reduziert die Notwendigkeit, Anime-IDs manuell zu kennen.</p>
+                <p className={styles.hint}>
+                  Tip: Suche reduziert die Notwendigkeit, Anime-IDs manuell zu
+                  kennen.
+                </p>
               )}
-              {isSearchingAnime ? <p className={styles.hint}>Suche laeuft...</p> : null}
-              {animeSearchError ? <div className={styles.errorBox}>{animeSearchError}</div> : null}
-              {!isSearchingAnime && animeSearchQuery && animeSearchResults.length === 0 && !animeSearchError ? (
+              {isSearchingAnime ? (
+                <p className={styles.hint}>Suche läuft...</p>
+              ) : null}
+              {animeSearchError ? (
+                <div className={styles.errorBox}>{animeSearchError}</div>
+              ) : null}
+              {!isSearchingAnime &&
+              animeSearchQuery &&
+              animeSearchResults.length === 0 &&
+              !animeSearchError ? (
                 <p className={styles.hint}>Keine Anime gefunden.</p>
               ) : null}
               {!isSearchingAnime && animeSearchResults.length > 0 ? (
-                <div className={styles.episodeList} aria-label="Anime Suchergebnisse">
+                <div
+                  className={styles.episodeList}
+                  aria-label="Anime Suchergebnisse"
+                >
                   {animeSearchResults.map((anime) => (
                     <div
                       key={anime.id}
-                      className={`${styles.animeRow} ${selectedAnime?.id === anime.id ? styles.animeRowActive : ''}`}
+                      className={`${styles.animeRow} ${selectedAnime?.id === anime.id ? styles.animeRowActive : ""}`}
                     >
                       <Image
                         className={styles.animeThumb}
@@ -364,12 +412,15 @@ export default function AdminEpisodesPage() {
                           <p className={styles.animeTitleText}>
                             #{anime.id} | {anime.title}
                           </p>
-                          <span className={`${styles.statusBadge} ${styles[resolveAnimeStatusClass(anime.status)]}`}>
+                          <span
+                            className={`${styles.statusBadge} ${styles[resolveAnimeStatusClass(anime.status)]}`}
+                          >
                             {anime.status}
                           </span>
                         </div>
                         <p className={styles.hint}>
-                          Typ: {anime.type} | Jahr: {anime.year ?? '-'} | Max Episoden: {anime.max_episodes ?? '-'}
+                          Typ: {anime.type} | Jahr: {anime.year ?? "-"} | Max
+                          Episoden: {anime.max_episodes ?? "-"}
                         </p>
                         <div className={styles.actions}>
                           <button
@@ -427,7 +478,9 @@ export default function AdminEpisodesPage() {
               <select
                 id="create-status"
                 value={createStatus}
-                onChange={(event) => setCreateStatus(event.target.value as EpisodeStatus)}
+                onChange={(event) =>
+                  setCreateStatus(event.target.value as EpisodeStatus)
+                }
                 disabled={isSubmittingCreate}
               >
                 {EPISODE_STATUSES.map((value) => (
@@ -449,11 +502,18 @@ export default function AdminEpisodesPage() {
           </div>
 
           <div className={styles.actions}>
-            <button className={styles.button} type="submit" disabled={isSubmittingCreate}>
-              {isSubmittingCreate ? 'Speichern...' : 'Episode erstellen'}
+            <button
+              className={styles.button}
+              type="submit"
+              disabled={isSubmittingCreate}
+            >
+              {isSubmittingCreate ? "Speichern..." : "Episode erstellen"}
             </button>
             {parsePositiveInt(createAnimeID) ? (
-              <Link href={`/anime/${createAnimeID}`} className={styles.buttonSecondary}>
+              <Link
+                href={`/anime/${createAnimeID}`}
+                className={styles.buttonSecondary}
+              >
                 Anime öffnen
               </Link>
             ) : null}
@@ -464,7 +524,8 @@ export default function AdminEpisodesPage() {
       <section className={styles.panel}>
         <h2>Episode bearbeiten (Patch)</h2>
         <p className={styles.hint}>
-          Nur ausgewählte Felder werden gesendet. Für nullable Felder kannst du explizit Wert löschen (null) wählen.
+          Nur ausgewählte Felder werden gesendet. Für nullable Felder kannst du
+          explizit Wert löschen (null) wählen.
         </p>
         <form className={styles.form} onSubmit={handleUpdateSubmit}>
           <div className={styles.gridTwo}>
@@ -515,7 +576,9 @@ export default function AdminEpisodesPage() {
                 <input
                   type="checkbox"
                   checked={clearUpdateTitle}
-                  onChange={(event) => setClearUpdateTitle(event.target.checked)}
+                  onChange={(event) =>
+                    setClearUpdateTitle(event.target.checked)
+                  }
                   disabled={isSubmittingUpdate}
                 />
                 Wert löschen (null)
@@ -524,11 +587,18 @@ export default function AdminEpisodesPage() {
           </div>
 
           <div className={styles.actions}>
-            <button className={styles.buttonSecondary} type="submit" disabled={isSubmittingUpdate}>
-              {isSubmittingUpdate ? 'Speichern...' : 'Episode aktualisieren'}
+            <button
+              className={styles.buttonSecondary}
+              type="submit"
+              disabled={isSubmittingUpdate}
+            >
+              {isSubmittingUpdate ? "Speichern..." : "Episode aktualisieren"}
             </button>
             {parsePositiveInt(updateEpisodeID) ? (
-              <Link href={`/episodes/${updateEpisodeID}`} className={styles.buttonSecondary}>
+              <Link
+                href={`/episodes/${updateEpisodeID}`}
+                className={styles.buttonSecondary}
+              >
                 Episode öffnen
               </Link>
             ) : null}
@@ -536,20 +606,32 @@ export default function AdminEpisodesPage() {
         </form>
       </section>
 
-      {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
-      {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
+      {errorMessage ? (
+        <div className={styles.errorBox}>{errorMessage}</div>
+      ) : null}
+      {successMessage ? (
+        <div className={styles.successBox}>{successMessage}</div>
+      ) : null}
       {lastRequest ? (
         <pre className={styles.resultBox}>
-          {'LAST REQUEST\n'}
+          {"LAST REQUEST\n"}
           {lastRequest}
         </pre>
       ) : null}
       {lastResponse ? (
         <pre className={styles.resultBox}>
-          {'LAST RESPONSE\n'}
+          {"LAST RESPONSE\n"}
           {lastResponse}
         </pre>
       ) : null}
     </main>
-  )
+  );
+}
+
+export default function AdminEpisodesPage() {
+  return (
+    <PlatformAdminGate>
+      <AdminEpisodesContent />
+    </PlatformAdminGate>
+  );
 }

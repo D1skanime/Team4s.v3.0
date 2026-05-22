@@ -32,6 +32,10 @@ type updateMemberGroupStoryRequest struct {
 
 // GetMemberGroupStoryContext verarbeitet GET /api/v1/admin/fansubs/:id/member-stories/context.
 func (h *AdminContentHandler) GetMemberGroupStoryContext(c *gin.Context) {
+	if _, ok := h.requireAdmin(c); !ok {
+		return
+	}
+
 	fansubID, err := parseFansubRouteID(c)
 	if err != nil || fansubID <= 0 {
 		badRequest(c, "ungültige fansub id")
@@ -54,6 +58,10 @@ func (h *AdminContentHandler) GetMemberGroupStoryContext(c *gin.Context) {
 
 // ListMemberGroupStories verarbeitet GET /api/v1/admin/fansubs/:id/member-stories.
 func (h *AdminContentHandler) ListMemberGroupStories(c *gin.Context) {
+	if _, ok := h.requireAdmin(c); !ok {
+		return
+	}
+
 	fansubID, err := parseFansubRouteID(c)
 	if err != nil || fansubID <= 0 {
 		badRequest(c, "ungültige fansub id")
@@ -73,7 +81,7 @@ func (h *AdminContentHandler) ListMemberGroupStories(c *gin.Context) {
 
 // CreateMemberGroupStory verarbeitet POST /api/v1/admin/fansubs/:id/member-stories.
 func (h *AdminContentHandler) CreateMemberGroupStory(c *gin.Context) {
-	identity, ok := h.requireFansubGroupNoteWriteAccess(c)
+	identity, ok := h.requireAdmin(c)
 	if !ok {
 		return
 	}
@@ -129,7 +137,7 @@ func (h *AdminContentHandler) CreateMemberGroupStory(c *gin.Context) {
 
 // UpdateMemberGroupStory verarbeitet PATCH /api/v1/admin/fansubs/:id/member-stories/:storyId.
 func (h *AdminContentHandler) UpdateMemberGroupStory(c *gin.Context) {
-	identity, ok := h.requireFansubGroupNoteWriteAccess(c)
+	identity, ok := h.requireAdmin(c)
 	if !ok {
 		return
 	}
@@ -190,7 +198,7 @@ func (h *AdminContentHandler) UpdateMemberGroupStory(c *gin.Context) {
 
 // DeleteMemberGroupStory verarbeitet DELETE /api/v1/admin/fansubs/:id/member-stories/:storyId.
 func (h *AdminContentHandler) DeleteMemberGroupStory(c *gin.Context) {
-	identity, ok := h.requireFansubGroupNoteWriteAccess(c)
+	identity, ok := h.requireAdmin(c)
 	if !ok {
 		return
 	}

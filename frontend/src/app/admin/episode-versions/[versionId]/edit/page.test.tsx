@@ -1,42 +1,70 @@
 // @vitest-environment jsdom
 
-import type { ReactNode } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import type { ReactNode } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
-import type { UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
+import type { UseReleaseVersionMediaResult } from "./useReleaseVersionMedia";
 
-vi.mock('next/link', () => ({
+vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: ReactNode }) => (
     <a href={href}>{children}</a>
   ),
-}))
+}));
 
 const useSearchParamsMock = vi.fn(() => ({
   get: (_key: string) => null as string | null,
-}))
+}));
 
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useSearchParams: () => useSearchParamsMock(),
-}))
+}));
 
-const useEpisodeVersionEditorMock = vi.fn()
-const useReleaseVersionMediaMock = vi.fn<() => UseReleaseVersionMediaResult>()
+const useEpisodeVersionEditorMock = vi.fn();
+const useReleaseVersionMediaMock = vi.fn<() => UseReleaseVersionMediaResult>();
+const getCurrentUserMock = vi.fn();
+const getReleaseVersionCapabilitiesMock = vi.fn();
 
-vi.mock('./useEpisodeVersionEditor', () => ({
+vi.mock("./useEpisodeVersionEditor", () => ({
   useEpisodeVersionEditor: () => useEpisodeVersionEditorMock(),
-}))
+}));
 
-vi.mock('./useReleaseVersionMedia', () => ({
+vi.mock("./useReleaseVersionMedia", () => ({
   useReleaseVersionMedia: () => useReleaseVersionMediaMock(),
-}))
+}));
 
-import { EpisodeVersionEditorPage } from './EpisodeVersionEditorPage'
+vi.mock("@/lib/api", () => ({
+  AUTH_SESSION_CHANGED_EVENT: "team4s:auth-session-changed",
+  getAuthSessionSnapshot: () => ({
+    hasAccessToken: true,
+    hasRefreshToken: true,
+    displayName: "Admin",
+  }),
+  getCurrentUser: () => getCurrentUserMock(),
+  getReleaseVersionCapabilities: () => getReleaseVersionCapabilitiesMock(),
+}));
+
+import { EpisodeVersionEditorPage } from "./EpisodeVersionEditorPage";
 
 afterEach(() => {
-  cleanup()
-  vi.clearAllMocks()
-})
+  cleanup();
+  vi.clearAllMocks();
+});
+
+function mockPlatformAdminScope() {
+  getCurrentUserMock.mockResolvedValue({
+    data: { id: 1, display_name: "Admin", is_platform_admin: true },
+  });
+  getReleaseVersionCapabilitiesMock.mockResolvedValue({
+    data: {
+      can_view_media: true,
+      can_upload_media: true,
+      can_update_media: true,
+      can_delete_media: true,
+      can_edit_notes: true,
+    },
+  });
+}
 
 function makeEditorState() {
   return {
@@ -45,33 +73,35 @@ function makeEditorState() {
         id: 42,
         anime_id: 1,
         episode_number: 1,
-        release_version: 'v1',
+        release_version: "v1",
         duration_seconds: null,
       },
-      selected_groups: [{ id: 10, name: 'SubGroup' }],
-      anime_title: 'Test Anime',
-      anime_folder_path: 'C:/anime/Test Anime',
+      selected_groups: [{ id: 10, name: "SubGroup" }],
+      anime_title: "Test Anime",
+      anime_folder_path: "C:/anime/Test Anime",
     },
     formState: {
-      title: '',
-      mediaProvider: '',
-      mediaItemID: '',
-      videoQuality: '',
-      subtitleType: '',
-      releaseDate: '',
-      streamURL: '',
-      durationSeconds: '',
+      title: "",
+      mediaProvider: "",
+      mediaItemID: "",
+      videoQuality: "",
+      subtitleType: "",
+      releaseDate: "",
+      streamURL: "",
+      durationSeconds: "",
     },
     setFormState: vi.fn(),
-    selectedGroups: [{ id: 10, name: 'SubGroup', slug: 'subgroup', logo_url: null }],
-    folderPath: 'C:/anime/Test Anime',
+    selectedGroups: [
+      { id: 10, name: "SubGroup", slug: "subgroup", logo_url: null },
+    ],
+    folderPath: "C:/anime/Test Anime",
     availableFiles: [],
     selectedFile: null,
     showFilePanel: false,
     setShowFilePanel: vi.fn(),
     advancedMode: false,
     setAdvancedMode: vi.fn(),
-    groupQuery: '',
+    groupQuery: "",
     setGroupQuery: vi.fn(),
     groupResults: [],
     isLoading: false,
@@ -89,10 +119,12 @@ function makeEditorState() {
     removeGroup: vi.fn(),
     handleSave: vi.fn(),
     handleDelete: vi.fn(),
-  }
+  };
 }
 
-function makeMediaState(error: string | null = null): UseReleaseVersionMediaResult {
+function makeMediaState(
+  error: string | null = null,
+): UseReleaseVersionMediaResult {
   return {
     items: [],
     isLoading: false,
@@ -108,39 +140,50 @@ function makeMediaState(error: string | null = null): UseReleaseVersionMediaResu
     patchError: null,
     deleteError: null,
     reorderError: null,
-  }
+  };
 }
 
-describe('EpisodeVersionEditorPage media tab', () => {
-  it('renders the Media / Assets tab button', () => {
-    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState())
-    useReleaseVersionMediaMock.mockReturnValue(makeMediaState())
+describe("EpisodeVersionEditorPage media tab", () => {
+  it("renders the Media / Assets tab button", async () => {
+    mockPlatformAdminScope();
+    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
+    useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
 
-    render(<EpisodeVersionEditorPage />)
+    render(<EpisodeVersionEditorPage />);
 
-    expect(screen.getByRole('button', { name: 'Media / Assets' })).not.toBeNull()
-  })
+    expect(
+      await screen.findByRole("button", { name: "Media / Assets" }),
+    ).not.toBeNull();
+  });
 
-  it('shows the context card with fansub and release version on the media tab', () => {
-    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState())
-    useReleaseVersionMediaMock.mockReturnValue(makeMediaState())
+  it("shows the context card with fansub and release version on the media tab", async () => {
+    mockPlatformAdminScope();
+    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
+    useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
 
-    render(<EpisodeVersionEditorPage />)
-    fireEvent.click(screen.getByRole('button', { name: 'Media / Assets' }))
+    render(<EpisodeVersionEditorPage />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Media / Assets" }),
+    );
 
-    expect(screen.getByText('SubGroup')).not.toBeNull()
-    expect(screen.getByText('v1')).not.toBeNull()
-  })
+    expect(screen.getByText("SubGroup")).not.toBeNull();
+    expect(screen.getByText("v1")).not.toBeNull();
+  });
 
-  it('keeps the editor shell visible when the media section reports an API error', () => {
-    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState())
-    useReleaseVersionMediaMock.mockReturnValue(makeMediaState('API Fehler'))
+  it("keeps the editor shell visible when the media section reports an API error", async () => {
+    mockPlatformAdminScope();
+    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
+    useReleaseVersionMediaMock.mockReturnValue(makeMediaState("API Fehler"));
 
-    render(<EpisodeVersionEditorPage />)
-    fireEvent.click(screen.getByRole('button', { name: 'Media / Assets' }))
+    render(<EpisodeVersionEditorPage />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Media / Assets" }),
+    );
 
-    expect(screen.getByText(/API Fehler/i)).not.toBeNull()
-    expect(screen.getByRole('button', { name: 'Informationen' })).not.toBeNull()
-    expect(screen.getByRole('button', { name: 'Segmente' })).not.toBeNull()
-  })
-})
+    expect(screen.getByText(/API Fehler/i)).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Informationen" }),
+    ).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Segmente" })).not.toBeNull();
+  });
+});

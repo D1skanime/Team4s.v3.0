@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { useParams } from 'next/navigation'
+import Link from "next/link";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 
 import {
   createEpisodeVersion,
@@ -10,263 +10,312 @@ import {
   getAnimeByID,
   getAnimeFansubs,
   getGroupedEpisodes,
-} from '@/lib/api'
-import { useAuthSession } from '@/lib/useAuthSession'
-import { AnimeDetail, EpisodeListItem } from '@/types/anime'
-import { EpisodeVersion, GroupedEpisode, SubtitleType } from '@/types/episodeVersion'
-import { FansubGroupSummary } from '@/types/fansub'
+} from "@/lib/api";
+import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
+import { useAuthSession } from "@/lib/useAuthSession";
+import { AnimeDetail, EpisodeListItem } from "@/types/anime";
+import {
+  EpisodeVersion,
+  GroupedEpisode,
+  SubtitleType,
+} from "@/types/episodeVersion";
+import { FansubGroupSummary } from "@/types/fansub";
 
-import styles from '../../../../AdminStudio.module.css'
-import { parsePositiveInt } from '../../../../utils/anime-helpers'
+import styles from "../../../../AdminStudio.module.css";
+import { parsePositiveInt } from "../../../../utils/anime-helpers";
 import {
   formatAdminError,
   formatDateTime,
   fromDateTimeLocalValue,
   normalizeOptionalText,
   resolveSubtitleLabel,
-} from '../../../../utils/studio-helpers'
+} from "../../../../utils/studio-helpers";
 
 interface CreateFormState {
-  title: string
-  fansubGroupID: string
-  mediaProvider: string
-  mediaItemID: string
-  videoQuality: string
-  subtitleType: '' | SubtitleType
-  releaseDate: string
-  streamURL: string
+  title: string;
+  fansubGroupID: string;
+  mediaProvider: string;
+  mediaItemID: string;
+  videoQuality: string;
+  subtitleType: "" | SubtitleType;
+  releaseDate: string;
+  streamURL: string;
 }
 
-function findGroupedEpisode(targetEpisode: EpisodeListItem, groupedEpisodes: GroupedEpisode[]) {
-  const parsedNumber = parsePositiveInt(targetEpisode.episode_number)
+function findGroupedEpisode(
+  targetEpisode: EpisodeListItem,
+  groupedEpisodes: GroupedEpisode[],
+) {
+  const parsedNumber = parsePositiveInt(targetEpisode.episode_number);
   if (parsedNumber) {
-    const exactMatch = groupedEpisodes.find((item) => item.episode_number === parsedNumber) || null
+    const exactMatch =
+      groupedEpisodes.find((item) => item.episode_number === parsedNumber) ||
+      null;
     if (exactMatch) {
-      return { episode: exactMatch, matchMode: 'exact' as const }
+      return { episode: exactMatch, matchMode: "exact" as const };
     }
   }
 
-  const targetTitle = (targetEpisode.title || '').trim().toLowerCase()
+  const targetTitle = (targetEpisode.title || "").trim().toLowerCase();
   if (!targetTitle) {
-    return { episode: null, matchMode: 'none' as const }
+    return { episode: null, matchMode: "none" as const };
   }
 
   const titleMatch =
     groupedEpisodes.find((item) => {
-      if ((item.episode_title || '').trim().toLowerCase() === targetTitle) return true
-      return item.versions.some((version) => (version.title || '').trim().toLowerCase() === targetTitle)
-    }) || null
+      if ((item.episode_title || "").trim().toLowerCase() === targetTitle)
+        return true;
+      return item.versions.some(
+        (version) => (version.title || "").trim().toLowerCase() === targetTitle,
+      );
+    }) || null;
 
   if (!titleMatch) {
-    return { episode: null, matchMode: 'none' as const }
+    return { episode: null, matchMode: "none" as const };
   }
 
-  return { episode: titleMatch, matchMode: 'title' as const }
+  return { episode: titleMatch, matchMode: "title" as const };
 }
 
 function resolveVersionTitle(version: EpisodeVersion): string {
-  const title = (version.title || '').trim()
-  return title || `Release #${version.id}`
+  const title = (version.title || "").trim();
+  return title || `Release #${version.id}`;
 }
 
-export default function AdminAnimeEpisodeVersionsPage() {
-  const params = useParams<{ id: string; episodeId: string }>()
-  const animeID = useMemo(() => parsePositiveInt((params.id || '').trim()), [params.id])
-  const episodeID = useMemo(() => parsePositiveInt((params.episodeId || '').trim()), [params.episodeId])
+function AdminAnimeEpisodeVersionsContent() {
+  const params = useParams<{ id: string; episodeId: string }>();
+  const animeID = useMemo(
+    () => parsePositiveInt((params.id || "").trim()),
+    [params.id],
+  );
+  const episodeID = useMemo(
+    () => parsePositiveInt((params.episodeId || "").trim()),
+    [params.episodeId],
+  );
 
-  const { hasAccessToken } = useAuthSession()
-  const [anime, setAnime] = useState<AnimeDetail | null>(null)
-  const [episode, setEpisode] = useState<EpisodeListItem | null>(null)
-  const [groupedEpisode, setGroupedEpisode] = useState<GroupedEpisode | null>(null)
-  const [matchMode, setMatchMode] = useState<'exact' | 'title' | 'none'>('none')
-  const [fansubOptions, setFansubOptions] = useState<FansubGroupSummary[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isCreating, setIsCreating] = useState(false)
-  const [deletingVersionID, setDeletingVersionID] = useState<number | null>(null)
-  const [showCreateForm, setShowCreateForm] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const { hasAccessToken } = useAuthSession();
+  const [anime, setAnime] = useState<AnimeDetail | null>(null);
+  const [episode, setEpisode] = useState<EpisodeListItem | null>(null);
+  const [groupedEpisode, setGroupedEpisode] = useState<GroupedEpisode | null>(
+    null,
+  );
+  const [matchMode, setMatchMode] = useState<"exact" | "title" | "none">(
+    "none",
+  );
+  const [fansubOptions, setFansubOptions] = useState<FansubGroupSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [deletingVersionID, setDeletingVersionID] = useState<number | null>(
+    null,
+  );
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formState, setFormState] = useState<CreateFormState>({
-    title: '',
-    fansubGroupID: '',
-    mediaProvider: 'jellyfin',
-    mediaItemID: '',
-    videoQuality: '',
-    subtitleType: '',
-    releaseDate: '',
-    streamURL: '',
-  })
+    title: "",
+    fansubGroupID: "",
+    mediaProvider: "jellyfin",
+    mediaItemID: "",
+    videoQuality: "",
+    subtitleType: "",
+    releaseDate: "",
+    streamURL: "",
+  });
 
   useEffect(() => {
     async function loadData() {
       if (!animeID || !episodeID) {
-        setErrorMessage('Ungültige Route für Anime oder Episode.')
-        setIsLoading(false)
-        return
+        setErrorMessage("Ungültige Route für Anime oder Episode.");
+        setIsLoading(false);
+        return;
       }
 
-      setIsLoading(true)
-      setErrorMessage(null)
+      setIsLoading(true);
+      setErrorMessage(null);
 
       try {
-        const [animeResponse, groupedResponse, fansubsResponse] = await Promise.all([
-          getAnimeByID(animeID, { include_disabled: true }),
-          getGroupedEpisodes(animeID),
-          getAnimeFansubs(animeID),
-        ])
+        const [animeResponse, groupedResponse, fansubsResponse] =
+          await Promise.all([
+            getAnimeByID(animeID, { include_disabled: true }),
+            getGroupedEpisodes(animeID),
+            getAnimeFansubs(animeID),
+          ]);
 
-        const nextAnime = animeResponse.data
-        const nextEpisode = nextAnime.episodes.find((item) => item.id === episodeID) || null
+        const nextAnime = animeResponse.data;
+        const nextEpisode =
+          nextAnime.episodes.find((item) => item.id === episodeID) || null;
         const nextFansubs = fansubsResponse.data
           .map((item) => item.fansub_group)
-          .filter((item): item is FansubGroupSummary => Boolean(item))
+          .filter((item): item is FansubGroupSummary => Boolean(item));
 
-        setAnime(nextAnime)
-        setEpisode(nextEpisode)
-        setFansubOptions(nextFansubs)
+        setAnime(nextAnime);
+        setEpisode(nextEpisode);
+        setFansubOptions(nextFansubs);
 
         if (!nextEpisode) {
-          setGroupedEpisode(null)
-          setMatchMode('none')
-          setErrorMessage('Episode wurde in diesem Anime nicht gefunden.')
-          return
+          setGroupedEpisode(null);
+          setMatchMode("none");
+          setErrorMessage("Episode wurde in diesem Anime nicht gefunden.");
+          return;
         }
 
-        const resolved = findGroupedEpisode(nextEpisode, groupedResponse.data.episodes)
-        setGroupedEpisode(resolved.episode)
-        setMatchMode(resolved.matchMode)
+        const resolved = findGroupedEpisode(
+          nextEpisode,
+          groupedResponse.data.episodes,
+        );
+        setGroupedEpisode(resolved.episode);
+        setMatchMode(resolved.matchMode);
       } catch (error) {
-        setAnime(null)
-        setEpisode(null)
-        setGroupedEpisode(null)
-        setFansubOptions([])
-        setErrorMessage(formatAdminError(error, 'Versionen konnten nicht geladen werden.'))
+        setAnime(null);
+        setEpisode(null);
+        setGroupedEpisode(null);
+        setFansubOptions([]);
+        setErrorMessage(
+          formatAdminError(error, "Versionen konnten nicht geladen werden."),
+        );
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    void loadData()
-  }, [animeID, episodeID])
+    void loadData();
+  }, [animeID, episodeID]);
 
-  const versions = useMemo(() => groupedEpisode?.versions || [], [groupedEpisode])
+  const versions = useMemo(
+    () => groupedEpisode?.versions || [],
+    [groupedEpisode],
+  );
 
   async function reloadVersions() {
-    if (!animeID) return
+    if (!animeID) return;
 
-    const [animeResponse, groupedResponse, fansubsResponse] = await Promise.all([
-      getAnimeByID(animeID, { include_disabled: true }),
-      getGroupedEpisodes(animeID),
-      getAnimeFansubs(animeID),
-    ])
+    const [animeResponse, groupedResponse, fansubsResponse] = await Promise.all(
+      [
+        getAnimeByID(animeID, { include_disabled: true }),
+        getGroupedEpisodes(animeID),
+        getAnimeFansubs(animeID),
+      ],
+    );
 
-    const nextAnime = animeResponse.data
-    const nextEpisode = nextAnime.episodes.find((item) => item.id === episodeID) || null
+    const nextAnime = animeResponse.data;
+    const nextEpisode =
+      nextAnime.episodes.find((item) => item.id === episodeID) || null;
     const nextFansubs = fansubsResponse.data
       .map((item) => item.fansub_group)
-      .filter((item): item is FansubGroupSummary => Boolean(item))
+      .filter((item): item is FansubGroupSummary => Boolean(item));
 
-    setAnime(nextAnime)
-    setEpisode(nextEpisode)
-    setFansubOptions(nextFansubs)
+    setAnime(nextAnime);
+    setEpisode(nextEpisode);
+    setFansubOptions(nextFansubs);
 
     if (!nextEpisode) {
-      setGroupedEpisode(null)
-      setMatchMode('none')
-      return
+      setGroupedEpisode(null);
+      setMatchMode("none");
+      return;
     }
 
-    const resolved = findGroupedEpisode(nextEpisode, groupedResponse.data.episodes)
-    setGroupedEpisode(resolved.episode)
-    setMatchMode(resolved.matchMode)
+    const resolved = findGroupedEpisode(
+      nextEpisode,
+      groupedResponse.data.episodes,
+    );
+    setGroupedEpisode(resolved.episode);
+    setMatchMode(resolved.matchMode);
   }
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setErrorMessage(null)
-    setSuccessMessage(null)
+    event.preventDefault();
+    setErrorMessage(null);
+    setSuccessMessage(null);
 
     if (!hasAccessToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
-      return
+      setErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+      );
+      return;
     }
 
     if (!animeID || !episode) {
-      setErrorMessage('Episode-Kontext fehlt.')
-      return
+      setErrorMessage("Episode-Kontext fehlt.");
+      return;
     }
 
-    const parsedEpisodeNumber = parsePositiveInt(episode.episode_number)
+    const parsedEpisodeNumber = parsePositiveInt(episode.episode_number);
     if (!parsedEpisodeNumber) {
-      setErrorMessage('Die Episode hat keine numerische Episodennummer für neue Versionen.')
-      return
+      setErrorMessage(
+        "Die Episode hat keine numerische Episodennummer für neue Versionen.",
+      );
+      return;
     }
 
     if (!formState.mediaProvider.trim() || !formState.mediaItemID.trim()) {
-      setErrorMessage('Media Provider und Media Item ID sind Pflichtfelder.')
-      return
+      setErrorMessage("Media Provider und Media Item ID sind Pflichtfelder.");
+      return;
     }
 
-    setIsCreating(true)
+    setIsCreating(true);
     try {
-      await createEpisodeVersion(
-        animeID,
-        parsedEpisodeNumber,
-        {
-          title: normalizeOptionalText(formState.title),
-          fansub_group_id: parsePositiveInt(formState.fansubGroupID),
-          media_provider: formState.mediaProvider.trim(),
-          media_item_id: formState.mediaItemID.trim(),
-          video_quality: normalizeOptionalText(formState.videoQuality),
-          subtitle_type: formState.subtitleType || null,
-          release_date: fromDateTimeLocalValue(formState.releaseDate),
-          stream_url: normalizeOptionalText(formState.streamURL),
-        },
-      )
+      await createEpisodeVersion(animeID, parsedEpisodeNumber, {
+        title: normalizeOptionalText(formState.title),
+        fansub_group_id: parsePositiveInt(formState.fansubGroupID),
+        media_provider: formState.mediaProvider.trim(),
+        media_item_id: formState.mediaItemID.trim(),
+        video_quality: normalizeOptionalText(formState.videoQuality),
+        subtitle_type: formState.subtitleType || null,
+        release_date: fromDateTimeLocalValue(formState.releaseDate),
+        stream_url: normalizeOptionalText(formState.streamURL),
+      });
 
-      await reloadVersions()
+      await reloadVersions();
       setFormState({
-        title: '',
-        fansubGroupID: '',
-        mediaProvider: 'jellyfin',
-        mediaItemID: '',
-        videoQuality: '',
-        subtitleType: '',
-        releaseDate: '',
-        streamURL: '',
-      })
-      setShowCreateForm(false)
-      setSuccessMessage(`Neue Version für Episode ${episode.episode_number} wurde angelegt.`)
+        title: "",
+        fansubGroupID: "",
+        mediaProvider: "jellyfin",
+        mediaItemID: "",
+        videoQuality: "",
+        subtitleType: "",
+        releaseDate: "",
+        streamURL: "",
+      });
+      setShowCreateForm(false);
+      setSuccessMessage(
+        `Neue Version für Episode ${episode.episode_number} wurde angelegt.`,
+      );
     } catch (error) {
-      setErrorMessage(formatAdminError(error, 'Version konnte nicht angelegt werden.'))
+      setErrorMessage(
+        formatAdminError(error, "Version konnte nicht angelegt werden."),
+      );
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
   }
 
   async function handleDelete(version: EpisodeVersion) {
     if (!hasAccessToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
-      return
+      setErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+      );
+      return;
     }
 
     const confirmed = window.confirm(
       `Version #${version.id} wirklich löschen?\n\nDie Episode bleibt erhalten, nur diese Version wird entfernt.`,
-    )
-    if (!confirmed) return
+    );
+    if (!confirmed) return;
 
-    setDeletingVersionID(version.id)
-    setErrorMessage(null)
-    setSuccessMessage(null)
+    setDeletingVersionID(version.id);
+    setErrorMessage(null);
+    setSuccessMessage(null);
 
     try {
-      await deleteEpisodeVersion(version.id)
-      await reloadVersions()
-      setSuccessMessage(`Version #${version.id} wurde gelöscht.`)
+      await deleteEpisodeVersion(version.id);
+      await reloadVersions();
+      setSuccessMessage(`Version #${version.id} wurde gelöscht.`);
     } catch (error) {
-      setErrorMessage(formatAdminError(error, 'Version konnte nicht gelöscht werden.'))
+      setErrorMessage(
+        formatAdminError(error, "Version konnte nicht gelöscht werden."),
+      );
     } finally {
-      setDeletingVersionID(null)
+      setDeletingVersionID(null);
     }
   }
 
@@ -277,9 +326,19 @@ export default function AdminAnimeEpisodeVersionsPage() {
         <span>/</span>
         <Link href="/admin/anime">Anime</Link>
         <span>/</span>
-        <Link href={animeID ? `/admin/anime/${animeID}/episodes` : '/admin/anime'}>Episoden</Link>
+        <Link
+          href={animeID ? `/admin/anime/${animeID}/episodes` : "/admin/anime"}
+        >
+          Episoden
+        </Link>
         <span>/</span>
-        <Link href={animeID && episodeID ? `/admin/anime/${animeID}/episodes/${episodeID}/edit` : '/admin/anime'}>
+        <Link
+          href={
+            animeID && episodeID
+              ? `/admin/anime/${animeID}/episodes/${episodeID}/edit`
+              : "/admin/anime"
+          }
+        >
           Episode bearbeiten
         </Link>
         <span>/</span>
@@ -291,8 +350,9 @@ export default function AdminAnimeEpisodeVersionsPage() {
           <p className={styles.eyebrow}>Schritt 5</p>
           <h1 className={styles.pageTitle}>Versionen verwalten</h1>
           <p className={styles.pageSubtitle}>
-            Klare Versionsliste pro Episode mit eindeutigen Aktionen. Keine Inline-Diagnose im Hauptbereich und kein
-            Vermischen mit der Episode-Bearbeitung.
+            Klare Versionsliste pro Episode mit eindeutigen Aktionen. Keine
+            Inline-Diagnose im Hauptbereich und kein Vermischen mit der
+            Episode-Bearbeitung.
           </p>
         </div>
         {anime && episode ? (
@@ -308,15 +368,23 @@ export default function AdminAnimeEpisodeVersionsPage() {
               type="button"
               onClick={() => setShowCreateForm((current) => !current)}
             >
-              {showCreateForm ? 'Erstellen schließen' : 'Neue Version erstellen'}
+              {showCreateForm
+                ? "Erstellen schließen"
+                : "Neue Version erstellen"}
             </button>
           </div>
         ) : null}
       </header>
 
-      {isLoading ? <div className={styles.noticeBox}>Versionen werden geladen...</div> : null}
-      {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
-      {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
+      {isLoading ? (
+        <div className={styles.noticeBox}>Versionen werden geladen...</div>
+      ) : null}
+      {errorMessage ? (
+        <div className={styles.errorBox}>{errorMessage}</div>
+      ) : null}
+      {successMessage ? (
+        <div className={styles.successBox}>{successMessage}</div>
+      ) : null}
 
       {anime && episode ? (
         <>
@@ -335,9 +403,10 @@ export default function AdminAnimeEpisodeVersionsPage() {
                 <p className={styles.summaryValue}>{versions.length}</p>
               </div>
             </div>
-            {matchMode === 'title' ? (
+            {matchMode === "title" ? (
               <p className={styles.noticeBox}>
-                Kein exakter Nummern-Match gefunden. Die Versionsliste wurde ueber den Episodentitel zugeordnet.
+                Kein exakter Nummern-Match gefunden. Die Versionsliste wurde
+                ueber den Episodentitel zugeordnet.
               </p>
             ) : null}
           </section>
@@ -346,19 +415,32 @@ export default function AdminAnimeEpisodeVersionsPage() {
             <section className={styles.card}>
               <div className={styles.sectionHeader}>
                 <div>
-                  <h2 className={styles.sectionTitle}>Neue Version erstellen</h2>
-                  <p className={styles.sectionMeta}>Neue Versionsdaten für die aktuell ausgewählte Episode anlegen.</p>
+                  <h2 className={styles.sectionTitle}>
+                    Neue Version erstellen
+                  </h2>
+                  <p className={styles.sectionMeta}>
+                    Neue Versionsdaten für die aktuell ausgewählte Episode
+                    anlegen.
+                  </p>
                 </div>
               </div>
 
-              <form className={styles.stack} onSubmit={(event) => void handleCreate(event)}>
+              <form
+                className={styles.stack}
+                onSubmit={(event) => void handleCreate(event)}
+              >
                 <div className={styles.formGrid}>
                   <label className={styles.field}>
                     <span>Release-Name</span>
                     <input
                       className={styles.input}
                       value={formState.title}
-                      onChange={(event) => setFormState((current) => ({ ...current, title: event.target.value }))}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          title: event.target.value,
+                        }))
+                      }
                     />
                   </label>
 
@@ -367,7 +449,12 @@ export default function AdminAnimeEpisodeVersionsPage() {
                     <select
                       className={styles.select}
                       value={formState.fansubGroupID}
-                      onChange={(event) => setFormState((current) => ({ ...current, fansubGroupID: event.target.value }))}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          fansubGroupID: event.target.value,
+                        }))
+                      }
                     >
                       <option value="">keine Gruppe</option>
                       {fansubOptions.map((group) => (
@@ -383,7 +470,12 @@ export default function AdminAnimeEpisodeVersionsPage() {
                     <input
                       className={styles.input}
                       value={formState.mediaProvider}
-                      onChange={(event) => setFormState((current) => ({ ...current, mediaProvider: event.target.value }))}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          mediaProvider: event.target.value,
+                        }))
+                      }
                       required
                     />
                   </label>
@@ -393,7 +485,12 @@ export default function AdminAnimeEpisodeVersionsPage() {
                     <input
                       className={styles.input}
                       value={formState.mediaItemID}
-                      onChange={(event) => setFormState((current) => ({ ...current, mediaItemID: event.target.value }))}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          mediaItemID: event.target.value,
+                        }))
+                      }
                       required
                     />
                   </label>
@@ -403,7 +500,12 @@ export default function AdminAnimeEpisodeVersionsPage() {
                     <input
                       className={styles.input}
                       value={formState.videoQuality}
-                      onChange={(event) => setFormState((current) => ({ ...current, videoQuality: event.target.value }))}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          videoQuality: event.target.value,
+                        }))
+                      }
                     />
                   </label>
 
@@ -413,7 +515,10 @@ export default function AdminAnimeEpisodeVersionsPage() {
                       className={styles.select}
                       value={formState.subtitleType}
                       onChange={(event) =>
-                        setFormState((current) => ({ ...current, subtitleType: event.target.value as '' | SubtitleType }))
+                        setFormState((current) => ({
+                          ...current,
+                          subtitleType: event.target.value as "" | SubtitleType,
+                        }))
                       }
                     >
                       <option value="">keiner</option>
@@ -428,7 +533,12 @@ export default function AdminAnimeEpisodeVersionsPage() {
                       className={styles.input}
                       type="datetime-local"
                       value={formState.releaseDate}
-                      onChange={(event) => setFormState((current) => ({ ...current, releaseDate: event.target.value }))}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          releaseDate: event.target.value,
+                        }))
+                      }
                     />
                   </label>
 
@@ -437,14 +547,23 @@ export default function AdminAnimeEpisodeVersionsPage() {
                     <input
                       className={styles.input}
                       value={formState.streamURL}
-                      onChange={(event) => setFormState((current) => ({ ...current, streamURL: event.target.value }))}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          streamURL: event.target.value,
+                        }))
+                      }
                     />
                   </label>
                 </div>
 
                 <div className={styles.actionsRow}>
-                  <button className={`${styles.button} ${styles.buttonPrimary}`} type="submit" disabled={isCreating}>
-                    {isCreating ? 'Speichert...' : 'Version speichern'}
+                  <button
+                    className={`${styles.button} ${styles.buttonPrimary}`}
+                    type="submit"
+                    disabled={isCreating}
+                  >
+                    {isCreating ? "Speichert..." : "Version speichern"}
                   </button>
                   <button
                     className={`${styles.button} ${styles.buttonSecondary}`}
@@ -463,11 +582,18 @@ export default function AdminAnimeEpisodeVersionsPage() {
             <div className={styles.sectionHeader}>
               <div>
                 <h2 className={styles.sectionTitle}>Versionsliste</h2>
-                <p className={styles.sectionMeta}>Pro Version: Badges, Release-Datum und klare Bearbeiten/Löschen-Aktionen.</p>
+                <p className={styles.sectionMeta}>
+                  Pro Version: Badges, Release-Datum und klare
+                  Bearbeiten/Löschen-Aktionen.
+                </p>
               </div>
             </div>
 
-            {versions.length === 0 ? <p className={styles.emptyState}>Für diese Episode sind aktuell keine Versionen vorhanden.</p> : null}
+            {versions.length === 0 ? (
+              <p className={styles.emptyState}>
+                Für diese Episode sind aktuell keine Versionen vorhanden.
+              </p>
+            ) : null}
 
             {versions.length > 0 ? (
               <div className={styles.stack}>
@@ -475,22 +601,35 @@ export default function AdminAnimeEpisodeVersionsPage() {
                   <article key={version.id} className={styles.versionCard}>
                     <div className={styles.sectionHeader}>
                       <div>
-                        <h3 className={styles.itemTitle}>{resolveVersionTitle(version)}</h3>
+                        <h3 className={styles.itemTitle}>
+                          {resolveVersionTitle(version)}
+                        </h3>
                         <p className={styles.metaText}>
-                          Provider {version.media_provider} | Item {version.media_item_id}
+                          Provider {version.media_provider} | Item{" "}
+                          {version.media_item_id}
                         </p>
                       </div>
-                      <p className={styles.metaText}>Release: {formatDateTime(version.release_date)}</p>
+                      <p className={styles.metaText}>
+                        Release: {formatDateTime(version.release_date)}
+                      </p>
                     </div>
 
                     <div className={styles.badgeRow}>
-                      <span className={`${styles.badge} ${styles.badgePrimary}`}>
-                        {version.fansub_group?.name || 'Keine Gruppe'}
+                      <span
+                        className={`${styles.badge} ${styles.badgePrimary}`}
+                      >
+                        {version.fansub_group?.name || "Keine Gruppe"}
                       </span>
-                      <span className={`${styles.badge} ${styles.badgeWarning}`}>
-                        {version.video_quality || 'Qualitaet offen'}
+                      <span
+                        className={`${styles.badge} ${styles.badgeWarning}`}
+                      >
+                        {version.video_quality || "Qualitaet offen"}
                       </span>
-                      <span className={`${styles.badge} ${styles.badgeSuccess}`}>{resolveSubtitleLabel(version.subtitle_type)}</span>
+                      <span
+                        className={`${styles.badge} ${styles.badgeSuccess}`}
+                      >
+                        {resolveSubtitleLabel(version.subtitle_type)}
+                      </span>
                     </div>
 
                     <div className={styles.actionsRow}>
@@ -506,7 +645,9 @@ export default function AdminAnimeEpisodeVersionsPage() {
                         onClick={() => void handleDelete(version)}
                         disabled={deletingVersionID === version.id}
                       >
-                        {deletingVersionID === version.id ? 'Loescht...' : 'Löschen'}
+                        {deletingVersionID === version.id
+                          ? "Loescht..."
+                          : "Löschen"}
                       </button>
                     </div>
                   </article>
@@ -517,5 +658,13 @@ export default function AdminAnimeEpisodeVersionsPage() {
         </>
       ) : null}
     </main>
-  )
+  );
+}
+
+export default function AdminAnimeEpisodeVersionsPage() {
+  return (
+    <PlatformAdminGate>
+      <AdminAnimeEpisodeVersionsContent />
+    </PlatformAdminGate>
+  );
 }

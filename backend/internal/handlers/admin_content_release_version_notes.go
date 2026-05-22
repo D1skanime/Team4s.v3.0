@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"team4s.v3/backend/internal/middleware"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +16,55 @@ import (
 // requireReleaseVersionNoteWriteAccess kapselt die Berechtigungsprüfung für
 // release_version_notes. MVP: Admin-only.
 func (h *AdminContentHandler) requireReleaseVersionNoteWriteAccess(c *gin.Context) (middleware.AuthIdentity, bool) {
-	return h.requireAdmin(c)
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return middleware.AuthIdentity{}, false
+	}
+
+	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
+	if err != nil || versionID <= 0 {
+		badRequest(c, "ungültige version id")
+		return middleware.AuthIdentity{}, false
+	}
+
+	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionNotesWrite, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Notiz-Berechtigung konnte nicht geprüft werden.")
+		return middleware.AuthIdentity{}, false
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_note.write.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionNotesWrite, result)
+		writePermissionDenied(c, result)
+		return middleware.AuthIdentity{}, false
+	}
+
+	return identity, true
+}
+
+func (h *AdminContentHandler) requireReleaseVersionNoteReadAccess(c *gin.Context) (int64, bool) {
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return 0, false
+	}
+
+	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
+	if err != nil || versionID <= 0 {
+		badRequest(c, "ungÃ¼ltige version id")
+		return 0, false
+	}
+
+	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionNotesWrite, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Release-Version-Berechtigung konnte nicht geprÃ¼ft werden.")
+		return 0, false
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_note.read.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionNotesWrite, result)
+		writePermissionDenied(c, result)
+		return 0, false
+	}
+
+	return versionID, true
 }
 
 type bulkNoteItemRequest struct {
@@ -34,9 +83,8 @@ type bulkUpsertReleaseVersionNotesRequest struct {
 }
 
 func (h *AdminContentHandler) ListReleaseVersionNotes(c *gin.Context) {
-	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
-	if err != nil || versionID <= 0 {
-		badRequest(c, "ungültige version id")
+	versionID, ok := h.requireReleaseVersionNoteReadAccess(c)
+	if !ok {
 		return
 	}
 
@@ -52,9 +100,8 @@ func (h *AdminContentHandler) ListReleaseVersionNotes(c *gin.Context) {
 }
 
 func (h *AdminContentHandler) GetMemberRolesForVersion(c *gin.Context) {
-	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
-	if err != nil || versionID <= 0 {
-		badRequest(c, "ungültige version id")
+	versionID, ok := h.requireReleaseVersionNoteReadAccess(c)
+	if !ok {
 		return
 	}
 

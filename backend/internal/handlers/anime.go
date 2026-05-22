@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 
@@ -120,6 +121,10 @@ func (h *AnimeHandler) List(c *gin.Context) {
 		badRequest(c, "ungültiger include_disabled parameter")
 		return
 	}
+	if includeDisabled {
+		identity, ok := middleware.CommentAuthIdentityFromContext(c)
+		includeDisabled = ok && identity.IsPlatformAdmin
+	}
 
 	var hasCover *bool
 	hasCoverRaw := strings.TrimSpace(c.Query("has_cover"))
@@ -178,6 +183,10 @@ func (h *AnimeHandler) GetByID(c *gin.Context) {
 	if err != nil {
 		badRequest(c, "ungültiger include_disabled parameter")
 		return
+	}
+	if includeDisabled {
+		identity, ok := middleware.CommentAuthIdentityFromContext(c)
+		includeDisabled = ok && identity.IsPlatformAdmin
 	}
 
 	anime, err := h.repo.GetByID(c.Request.Context(), id, includeDisabled)

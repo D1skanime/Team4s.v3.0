@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -12,18 +14,37 @@ import (
 
 // GetEpisodeVersionEditorContext verarbeitet GET /api/v1/admin/episode-versions/:versionId/editor und gibt den vollständigen Bearbeitungskontext einer Episodenversion zurück.
 func (h *AdminContentHandler) GetEpisodeVersionEditorContext(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
-	if !ok {
-		return
-	}
-
 	versionID, err := parseEpisodeVersionID(c.Param("versionId"))
 	if err != nil {
 		badRequest(c, "ungültige version id")
 		return
 	}
 
-	data, err := h.loadEpisodeVersionEditorContext(c.Request.Context(), versionID)
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return
+	}
+	var data *models.EpisodeVersionEditorContext
+	if actor.IsPlatformAdmin {
+		data, err = h.loadEpisodeVersionEditorContext(c.Request.Context(), versionID)
+	} else {
+		canViewMedia, permissionErr := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaView, versionID)
+		if permissionErr != nil {
+			writePermissionInternalError(c, permissionErr, "Release-Version-Berechtigung konnte nicht geprüft werden.")
+			return
+		}
+		canEditNotes, permissionErr := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionNotesWrite, versionID)
+		if permissionErr != nil {
+			writePermissionInternalError(c, permissionErr, "Release-Version-Berechtigung konnte nicht geprüft werden.")
+			return
+		}
+		if !canViewMedia.Allowed && !canEditNotes.Allowed {
+			auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_editor_context.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionView, canViewMedia)
+			writePermissionDenied(c, canViewMedia)
+			return
+		}
+		data, err = h.loadEpisodeVersionContributorContext(c.Request.Context(), versionID)
+	}
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "episodenversion nicht gefunden"}})
 		return

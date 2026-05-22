@@ -1,16 +1,21 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { ApiError, deleteAdminAnime, deleteUploadedCoverFile } from '@/lib/api'
-import { useAuthSession } from '@/lib/useAuthSession'
-import { getCoverUrl } from '@/lib/utils'
-import type { AnimeListItem } from '@/types/anime'
+import {
+  ApiError,
+  deleteAdminAnime,
+  deleteUploadedCoverFile,
+  getAnimeList,
+} from "@/lib/api";
+import { useAuthSession } from "@/lib/useAuthSession";
+import { getCoverUrl } from "@/lib/utils";
+import type { AnimeListItem } from "@/types/anime";
 
-import styles from '../AdminStudio.module.css'
+import styles from "../AdminStudio.module.css";
 
 /**
  * Props der AdminAnimeOverviewClient-Komponente.
@@ -18,9 +23,10 @@ import styles from '../AdminStudio.module.css'
  * Ladezeitfehler sowie die ID eines soeben erstellten Anime entgegen.
  */
 interface AdminAnimeOverviewClientProps {
-  initialItems: AnimeListItem[]
-  initialError: string | null
-  createdID: number | null
+  initialItems: AnimeListItem[];
+  initialError: string | null;
+  createdID: number | null;
+  loadOnMount?: boolean;
 }
 
 /**
@@ -29,9 +35,9 @@ interface AdminAnimeOverviewClientProps {
  * bei sonstigen Error-Objekten die Nachricht, sonst einen Fallback-Text.
  */
 function formatError(error: unknown): string {
-  if (error instanceof ApiError) return `(${error.status}) ${error.message}`
-  if (error instanceof Error && error.message.trim()) return error.message
-  return 'Anime konnte nicht gelöscht werden.'
+  if (error instanceof ApiError) return `(${error.status}) ${error.message}`;
+  if (error instanceof Error && error.message.trim()) return error.message;
+  return "Anime konnte nicht gelöscht werden.";
 }
 
 /**
@@ -41,17 +47,17 @@ function formatError(error: unknown): string {
  */
 function resolveStatusTone(status: string): string {
   switch (status) {
-    case 'ongoing':
-      return styles.badgeSuccess
-    case 'done':
-      return styles.badgePrimary
-    case 'disabled':
-    case 'aborted':
-      return styles.badgeDanger
-    case 'licensed':
-      return styles.badgeWarning
+    case "ongoing":
+      return styles.badgeSuccess;
+    case "done":
+      return styles.badgePrimary;
+    case "disabled":
+    case "aborted":
+      return styles.badgeDanger;
+    case "licensed":
+      return styles.badgeWarning;
     default:
-      return styles.badgeMuted
+      return styles.badgeMuted;
   }
 }
 
@@ -66,46 +72,78 @@ export function AdminAnimeOverviewClient({
   initialItems,
   initialError,
   createdID,
+  loadOnMount = false,
 }: AdminAnimeOverviewClientProps) {
-  const router = useRouter()
-  const { hasAccessToken } = useAuthSession()
-  const [items, setItems] = useState(initialItems)
-  const [errorMessage, setErrorMessage] = useState<string | null>(initialError)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [deletingAnimeID, setDeletingAnimeID] = useState<number | null>(null)
+  const router = useRouter();
+  const { hasAccessToken } = useAuthSession();
+  const [items, setItems] = useState(initialItems);
+  const [errorMessage, setErrorMessage] = useState<string | null>(initialError);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [deletingAnimeID, setDeletingAnimeID] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(loadOnMount);
+
+  const loadAnime = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const response = await getAnimeList(
+        { page: 1, per_page: 24, include_disabled: true },
+        { cache: "no-store" },
+      );
+      setItems(response.data);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof ApiError
+          ? `Anime-Liste konnte nicht geladen werden. (${error.status}) ${error.message}`
+          : "Anime-Liste konnte nicht geladen werden.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (loadOnMount) void loadAnime();
+  }, [loadAnime, loadOnMount]);
 
   const createdAnime = useMemo(
-    () => (createdID ? items.find((anime) => anime.id === createdID) ?? null : null),
+    () =>
+      createdID
+        ? (items.find((anime) => anime.id === createdID) ?? null)
+        : null,
     [createdID, items],
-  )
+  );
 
   async function onDelete(anime: AnimeListItem) {
     if (!hasAccessToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
-      return
+      setErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+      );
+      return;
     }
 
     const confirmed = window.confirm(
       `Anime "${anime.title}" wirklich löschen?\n\nZugehörige Episoden, Kommentare und Verknüpfungen werden ebenfalls entfernt.`,
-    )
-    if (!confirmed) return
+    );
+    if (!confirmed) return;
 
-    setDeletingAnimeID(anime.id)
-    setErrorMessage(null)
-    setSuccessMessage(null)
+    setDeletingAnimeID(anime.id);
+    setErrorMessage(null);
+    setSuccessMessage(null);
     try {
-      const response = await deleteAdminAnime(anime.id)
-      const orphanedCoverImage = response.data.orphaned_local_cover_image?.trim()
+      const response = await deleteAdminAnime(anime.id);
+      const orphanedCoverImage =
+        response.data.orphaned_local_cover_image?.trim();
       if (orphanedCoverImage) {
-        await deleteUploadedCoverFile(orphanedCoverImage)
+        await deleteUploadedCoverFile(orphanedCoverImage);
       }
-      setItems((current) => current.filter((item) => item.id !== anime.id))
-      setSuccessMessage(`Anime "${response.data.title}" gelöscht.`)
-      router.refresh()
+      setItems((current) => current.filter((item) => item.id !== anime.id));
+      setSuccessMessage(`Anime "${response.data.title}" gelöscht.`);
+      router.refresh();
     } catch (error) {
-      setErrorMessage(formatError(error))
+      setErrorMessage(formatError(error));
     } finally {
-      setDeletingAnimeID(null)
+      setDeletingAnimeID(null);
     }
   }
 
@@ -113,19 +151,34 @@ export function AdminAnimeOverviewClient({
     <>
       {createdAnime ? (
         <div className={styles.successBox}>
-          Anime #{String(createdAnime.id).padStart(3, '0')} {createdAnime.title} wurde erstellt und ist jetzt in der Übersicht verankert.
+          Anime #{String(createdAnime.id).padStart(3, "0")} {createdAnime.title}{" "}
+          wurde erstellt und ist jetzt in der Übersicht verankert.
         </div>
       ) : null}
 
-      {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
-      {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
+      {errorMessage ? (
+        <div className={styles.errorBox}>{errorMessage}</div>
+      ) : null}
+      {successMessage ? (
+        <div className={styles.successBox}>{successMessage}</div>
+      ) : null}
 
-      {!errorMessage && items.length === 0 ? <p className={styles.emptyState}>Noch keine Anime vorhanden.</p> : null}
+      {isLoading ? (
+        <p className={styles.emptyState}>Anime werden geladen...</p>
+      ) : null}
+
+      {!isLoading && !errorMessage && items.length === 0 ? (
+        <p className={styles.emptyState}>Noch keine Anime vorhanden.</p>
+      ) : null}
 
       {items.length > 0 ? (
         <div className={styles.stack}>
           {items.map((anime) => (
-            <article key={anime.id} id={`anime-${anime.id}`} className={styles.animeCard}>
+            <article
+              key={anime.id}
+              id={`anime-${anime.id}`}
+              className={styles.animeCard}
+            >
               <Image
                 className={styles.cover}
                 src={getCoverUrl(anime.cover_image)}
@@ -138,16 +191,26 @@ export function AdminAnimeOverviewClient({
                 <div>
                   <h3 className={styles.itemTitle}>{anime.title}</h3>
                   <p className={styles.metaText}>
-                    #{String(anime.id).padStart(3, '0')} | {anime.type.toUpperCase()}
-                    {anime.year ? ` | ${anime.year}` : ''}
-                    {anime.max_episodes ? ` | ${anime.max_episodes} Episoden` : ''}
+                    #{String(anime.id).padStart(3, "0")} |{" "}
+                    {anime.type.toUpperCase()}
+                    {anime.year ? ` | ${anime.year}` : ""}
+                    {anime.max_episodes
+                      ? ` | ${anime.max_episodes} Episoden`
+                      : ""}
                   </p>
                 </div>
                 <div className={styles.badgeRow}>
-                  <span className={`${styles.badge} ${resolveStatusTone(anime.status)}`}>{anime.status}</span>
+                  <span
+                    className={`${styles.badge} ${resolveStatusTone(anime.status)}`}
+                  >
+                    {anime.status}
+                  </span>
                 </div>
                 <div className={styles.actionsRow}>
-                  <Link href={`/admin/anime/${anime.id}/edit`} className={`${styles.button} ${styles.buttonPrimary}`}>
+                  <Link
+                    href={`/admin/anime/${anime.id}/edit`}
+                    className={`${styles.button} ${styles.buttonPrimary}`}
+                  >
                     Bearbeiten
                   </Link>
                   <Link
@@ -164,7 +227,7 @@ export function AdminAnimeOverviewClient({
                     onClick={() => void onDelete(anime)}
                     disabled={deletingAnimeID === anime.id}
                   >
-                    {deletingAnimeID === anime.id ? 'Löscht...' : 'Löschen'}
+                    {deletingAnimeID === anime.id ? "Löscht..." : "Löschen"}
                   </button>
                 </div>
               </div>
@@ -173,5 +236,5 @@ export function AdminAnimeOverviewClient({
         </div>
       ) : null}
     </>
-  )
+  );
 }

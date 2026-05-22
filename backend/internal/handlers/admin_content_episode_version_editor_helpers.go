@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"context"
@@ -40,6 +40,48 @@ func (h *AdminContentHandler) loadEpisodeVersionEditorContext(
 		AnimeFolderPath:      resolved.animeFolderPath,
 		CollaborationGroupID: resolved.collaborationID,
 		SelectedGroups:       resolved.selectedGroups,
+	}, nil
+}
+
+// loadEpisodeVersionContributorContext liefert nur den Kontext, den Media- und
+// Notiz-Contributors für die schmale Arbeitsfläche benötigen. Admin-Felder wie
+// Ordnerpfad, Provider-IDs und Stream-URLs bleiben bewusst leer.
+func (h *AdminContentHandler) loadEpisodeVersionContributorContext(
+	ctx context.Context,
+	versionID int64,
+) (*models.EpisodeVersionEditorContext, error) {
+	version, err := h.episodeVersionRepo.GetByID(ctx, versionID)
+	if err != nil {
+		return nil, err
+	}
+
+	animeSource, err := h.repo.GetAnimeSyncSource(ctx, version.AnimeID)
+	if err != nil {
+		return nil, err
+	}
+
+	safeVersion := models.EpisodeVersion{
+		ID:              version.ID,
+		AnimeID:         version.AnimeID,
+		EpisodeNumber:   version.EpisodeNumber,
+		Title:           version.Title,
+		ReleaseVersion:  version.ReleaseVersion,
+		FansubGroup:     version.FansubGroup,
+		DurationSeconds: version.DurationSeconds,
+		CreatedAt:       version.CreatedAt,
+		UpdatedAt:       version.UpdatedAt,
+	}
+
+	selectedGroups, collaborationID, err := h.resolveEpisodeVersionSelectedGroups(ctx, version)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.EpisodeVersionEditorContext{
+		Version:              safeVersion,
+		AnimeTitle:           animeSource.Title,
+		CollaborationGroupID: collaborationID,
+		SelectedGroups:       selectedGroups,
 	}, nil
 }
 

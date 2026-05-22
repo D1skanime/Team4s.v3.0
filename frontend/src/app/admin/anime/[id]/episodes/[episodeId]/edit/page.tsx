@@ -1,152 +1,182 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import Link from "next/link";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 
-import { deleteAdminEpisode, getAnimeByID, updateAdminEpisode } from '@/lib/api'
-import { useAuthSession } from '@/lib/useAuthSession'
-import { AnimeDetail, EpisodeListItem, EpisodeStatus } from '@/types/anime'
+import {
+  deleteAdminEpisode,
+  getAnimeByID,
+  updateAdminEpisode,
+} from "@/lib/api";
+import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
+import { useAuthSession } from "@/lib/useAuthSession";
+import { AnimeDetail, EpisodeListItem, EpisodeStatus } from "@/types/anime";
 
-import styles from '../../../../AdminStudio.module.css'
-import { formatEpisodeStatusLabel, parsePositiveInt } from '../../../../utils/anime-helpers'
-import { formatAdminError, normalizeOptionalText } from '../../../../utils/studio-helpers'
+import styles from "../../../../AdminStudio.module.css";
+import {
+  formatEpisodeStatusLabel,
+  parsePositiveInt,
+} from "../../../../utils/anime-helpers";
+import {
+  formatAdminError,
+  normalizeOptionalText,
+} from "../../../../utils/studio-helpers";
 
-const EPISODE_STATUSES: EpisodeStatus[] = ['disabled', 'private', 'public']
+const EPISODE_STATUSES: EpisodeStatus[] = ["disabled", "private", "public"];
 
-export default function AdminAnimeEpisodeEditPage() {
-  const params = useParams<{ id: string; episodeId: string }>()
-  const router = useRouter()
+function AdminAnimeEpisodeEditContent() {
+  const params = useParams<{ id: string; episodeId: string }>();
+  const router = useRouter();
 
-  const animeID = useMemo(() => parsePositiveInt((params.id || '').trim()), [params.id])
-  const episodeID = useMemo(() => parsePositiveInt((params.episodeId || '').trim()), [params.episodeId])
+  const animeID = useMemo(
+    () => parsePositiveInt((params.id || "").trim()),
+    [params.id],
+  );
+  const episodeID = useMemo(
+    () => parsePositiveInt((params.episodeId || "").trim()),
+    [params.episodeId],
+  );
 
-  const { hasAccessToken } = useAuthSession()
-  const [anime, setAnime] = useState<AnimeDetail | null>(null)
-  const [episode, setEpisode] = useState<EpisodeListItem | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const { hasAccessToken } = useAuthSession();
+  const [anime, setAnime] = useState<AnimeDetail | null>(null);
+  const [episode, setEpisode] = useState<EpisodeListItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formState, setFormState] = useState({
-    number: '',
-    title: '',
-    status: 'disabled' as EpisodeStatus,
-    streamLink: '',
-  })
+    number: "",
+    title: "",
+    status: "disabled" as EpisodeStatus,
+    streamLink: "",
+  });
 
   useEffect(() => {
     async function loadData() {
       if (!animeID || !episodeID) {
-        setErrorMessage('Ungültige Route für Anime oder Episode.')
-        setIsLoading(false)
-        return
+        setErrorMessage("Ungültige Route für Anime oder Episode.");
+        setIsLoading(false);
+        return;
       }
 
-      setIsLoading(true)
-      setErrorMessage(null)
+      setIsLoading(true);
+      setErrorMessage(null);
 
       try {
-        const response = await getAnimeByID(animeID, { include_disabled: true })
-        const nextAnime = response.data
-        const nextEpisode = nextAnime.episodes.find((item) => item.id === episodeID) || null
+        const response = await getAnimeByID(animeID, {
+          include_disabled: true,
+        });
+        const nextAnime = response.data;
+        const nextEpisode =
+          nextAnime.episodes.find((item) => item.id === episodeID) || null;
 
         if (!nextEpisode) {
-          setAnime(nextAnime)
-          setEpisode(null)
-          setErrorMessage('Episode wurde in diesem Anime nicht gefunden.')
-          return
+          setAnime(nextAnime);
+          setEpisode(null);
+          setErrorMessage("Episode wurde in diesem Anime nicht gefunden.");
+          return;
         }
 
-        setAnime(nextAnime)
-        setEpisode(nextEpisode)
+        setAnime(nextAnime);
+        setEpisode(nextEpisode);
         setFormState({
           number: nextEpisode.episode_number,
-          title: nextEpisode.title || '',
+          title: nextEpisode.title || "",
           status: nextEpisode.status,
-          streamLink: nextEpisode.stream_links?.[0] || '',
-        })
+          streamLink: nextEpisode.stream_links?.[0] || "",
+        });
       } catch (error) {
-        setAnime(null)
-        setEpisode(null)
-        setErrorMessage(formatAdminError(error, 'Episode konnte nicht geladen werden.'))
+        setAnime(null);
+        setEpisode(null);
+        setErrorMessage(
+          formatAdminError(error, "Episode konnte nicht geladen werden."),
+        );
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    void loadData()
-  }, [animeID, episodeID])
+    void loadData();
+  }, [animeID, episodeID]);
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setErrorMessage(null)
-    setSuccessMessage(null)
+    event.preventDefault();
+    setErrorMessage(null);
+    setSuccessMessage(null);
 
     if (!episodeID) {
-      setErrorMessage('Ungültige Episode-ID.')
-      return
+      setErrorMessage("Ungültige Episode-ID.");
+      return;
     }
 
     if (!hasAccessToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
-      return
+      setErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+      );
+      return;
     }
 
-    const parsedEpisodeNumber = parsePositiveInt(formState.number)
+    const parsedEpisodeNumber = parsePositiveInt(formState.number);
     if (!parsedEpisodeNumber) {
-      setErrorMessage('Die Episodennummer muss groesser als 0 sein.')
-      return
+      setErrorMessage("Die Episodennummer muss groesser als 0 sein.");
+      return;
     }
 
-    setIsSaving(true)
+    setIsSaving(true);
     try {
-      await updateAdminEpisode(
-        episodeID,
-        {
-          episode_number: String(parsedEpisodeNumber),
-          title: normalizeOptionalText(formState.title),
-          status: formState.status,
-          stream_link: normalizeOptionalText(formState.streamLink),
-        },
-      )
+      await updateAdminEpisode(episodeID, {
+        episode_number: String(parsedEpisodeNumber),
+        title: normalizeOptionalText(formState.title),
+        status: formState.status,
+        stream_link: normalizeOptionalText(formState.streamLink),
+      });
 
-      const refreshed = animeID ? await getAnimeByID(animeID, { include_disabled: true }) : null
-      const refreshedEpisode = refreshed?.data.episodes.find((item) => item.id === episodeID) || null
-      if (refreshed) setAnime(refreshed.data)
-      if (refreshedEpisode) setEpisode(refreshedEpisode)
-      setSuccessMessage(`Episode ${parsedEpisodeNumber} wurde gespeichert.`)
+      const refreshed = animeID
+        ? await getAnimeByID(animeID, { include_disabled: true })
+        : null;
+      const refreshedEpisode =
+        refreshed?.data.episodes.find((item) => item.id === episodeID) || null;
+      if (refreshed) setAnime(refreshed.data);
+      if (refreshedEpisode) setEpisode(refreshedEpisode);
+      setSuccessMessage(`Episode ${parsedEpisodeNumber} wurde gespeichert.`);
     } catch (error) {
-      setErrorMessage(formatAdminError(error, 'Episode konnte nicht gespeichert werden.'))
+      setErrorMessage(
+        formatAdminError(error, "Episode konnte nicht gespeichert werden."),
+      );
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }
 
   async function handleDelete() {
-    if (!animeID || !episodeID || !episode) return
+    if (!animeID || !episodeID || !episode) return;
 
     if (!hasAccessToken) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
-      return
+      setErrorMessage(
+        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+      );
+      return;
     }
 
     const confirmed = window.confirm(
       `Episode ${episode.episode_number} wirklich löschen?\n\nZugehörige Versionen werden ebenfalls entfernt.`,
-    )
-    if (!confirmed) return
+    );
+    if (!confirmed) return;
 
-    setIsDeleting(true)
-    setErrorMessage(null)
-    setSuccessMessage(null)
+    setIsDeleting(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
 
     try {
-      await deleteAdminEpisode(episodeID)
-      router.push(`/admin/anime/${animeID}/episodes`)
+      await deleteAdminEpisode(episodeID);
+      router.push(`/admin/anime/${animeID}/episodes`);
     } catch (error) {
-      setErrorMessage(formatAdminError(error, 'Episode konnte nicht gelöscht werden.'))
-      setIsDeleting(false)
+      setErrorMessage(
+        formatAdminError(error, "Episode konnte nicht gelöscht werden."),
+      );
+      setIsDeleting(false);
     }
   }
 
@@ -157,7 +187,11 @@ export default function AdminAnimeEpisodeEditPage() {
         <span>/</span>
         <Link href="/admin/anime">Anime</Link>
         <span>/</span>
-        <Link href={animeID ? `/admin/anime/${animeID}/episodes` : '/admin/anime'}>Episoden</Link>
+        <Link
+          href={animeID ? `/admin/anime/${animeID}/episodes` : "/admin/anime"}
+        >
+          Episoden
+        </Link>
         <span>/</span>
         <span>Episode bearbeiten</span>
       </nav>
@@ -167,13 +201,16 @@ export default function AdminAnimeEpisodeEditPage() {
           <p className={styles.eyebrow}>Schritt 4</p>
           <h1 className={styles.pageTitle}>Episode bearbeiten</h1>
           <p className={styles.pageSubtitle}>
-            Fokus auf genau einer Episode: Titel, Nummer, Status und Streaming-Link. Versionsdetails bleiben auf der
-            nächsten Route.
+            Fokus auf genau einer Episode: Titel, Nummer, Status und
+            Streaming-Link. Versionsdetails bleiben auf der nächsten Route.
           </p>
         </div>
         {anime && episode ? (
           <div className={styles.headerActions}>
-            <Link href={`/admin/anime/${anime.id}/episodes`} className={`${styles.button} ${styles.buttonSecondary}`}>
+            <Link
+              href={`/admin/anime/${anime.id}/episodes`}
+              className={`${styles.button} ${styles.buttonSecondary}`}
+            >
               Zur Übersicht
             </Link>
             <Link
@@ -186,9 +223,15 @@ export default function AdminAnimeEpisodeEditPage() {
         ) : null}
       </header>
 
-      {isLoading ? <div className={styles.noticeBox}>Episode-Daten werden geladen...</div> : null}
-      {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
-      {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
+      {isLoading ? (
+        <div className={styles.noticeBox}>Episode-Daten werden geladen...</div>
+      ) : null}
+      {errorMessage ? (
+        <div className={styles.errorBox}>{errorMessage}</div>
+      ) : null}
+      {successMessage ? (
+        <div className={styles.successBox}>{successMessage}</div>
+      ) : null}
 
       {anime && episode ? (
         <section className={styles.card}>
@@ -201,14 +244,22 @@ export default function AdminAnimeEpisodeEditPage() {
             </div>
           </div>
 
-          <form className={styles.stack} onSubmit={(event) => void handleSave(event)}>
+          <form
+            className={styles.stack}
+            onSubmit={(event) => void handleSave(event)}
+          >
             <div className={styles.formGrid}>
               <label className={styles.field}>
                 <span>Episodentitel</span>
                 <input
                   className={styles.input}
                   value={formState.title}
-                  onChange={(event) => setFormState((current) => ({ ...current, title: event.target.value }))}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      title: event.target.value,
+                    }))
+                  }
                 />
               </label>
 
@@ -217,7 +268,12 @@ export default function AdminAnimeEpisodeEditPage() {
                 <input
                   className={styles.input}
                   value={formState.number}
-                  onChange={(event) => setFormState((current) => ({ ...current, number: event.target.value }))}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      number: event.target.value,
+                    }))
+                  }
                   required
                 />
               </label>
@@ -228,7 +284,10 @@ export default function AdminAnimeEpisodeEditPage() {
                   className={styles.select}
                   value={formState.status}
                   onChange={(event) =>
-                    setFormState((current) => ({ ...current, status: event.target.value as EpisodeStatus }))
+                    setFormState((current) => ({
+                      ...current,
+                      status: event.target.value as EpisodeStatus,
+                    }))
                   }
                 >
                   {EPISODE_STATUSES.map((status) => (
@@ -244,15 +303,24 @@ export default function AdminAnimeEpisodeEditPage() {
                 <input
                   className={styles.input}
                   value={formState.streamLink}
-                  onChange={(event) => setFormState((current) => ({ ...current, streamLink: event.target.value }))}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      streamLink: event.target.value,
+                    }))
+                  }
                   placeholder="https://.../item?id=..."
                 />
               </label>
             </div>
 
             <div className={styles.actionsRow}>
-              <button className={`${styles.button} ${styles.buttonPrimary}`} type="submit" disabled={isSaving}>
-                {isSaving ? 'Speichert...' : 'Speichern'}
+              <button
+                className={`${styles.button} ${styles.buttonPrimary}`}
+                type="submit"
+                disabled={isSaving}
+              >
+                {isSaving ? "Speichert..." : "Speichern"}
               </button>
               <Link
                 href={`/admin/anime/${anime.id}/episodes/${episode.id}/versions`}
@@ -266,14 +334,29 @@ export default function AdminAnimeEpisodeEditPage() {
           <details className={styles.developerPanel}>
             <summary>Developer Panel</summary>
             <div className={styles.developerPanelContent}>
-              <p className={styles.metaText}>Interne Episode-ID: {episode.id}</p>
-              <p className={styles.metaText}>Aktueller gespeicherter Link: {episode.stream_links?.[0] || 'nicht gesetzt'}</p>
+              <p className={styles.metaText}>
+                Interne Episode-ID: {episode.id}
+              </p>
+              <p className={styles.metaText}>
+                Aktueller gespeicherter Link:{" "}
+                {episode.stream_links?.[0] || "nicht gesetzt"}
+              </p>
               <div className={styles.actionsRow}>
-                <Link href={`/episodes/${episode.id}`} className={`${styles.button} ${styles.buttonGhost}`} target="_blank" rel="noreferrer">
+                <Link
+                  href={`/episodes/${episode.id}`}
+                  className={`${styles.button} ${styles.buttonGhost}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   Public öffnen
                 </Link>
-                <button className={`${styles.button} ${styles.buttonDanger}`} type="button" onClick={() => void handleDelete()} disabled={isDeleting}>
-                  {isDeleting ? 'Loescht...' : 'Episode löschen'}
+                <button
+                  className={`${styles.button} ${styles.buttonDanger}`}
+                  type="button"
+                  onClick={() => void handleDelete()}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Loescht..." : "Episode löschen"}
                 </button>
               </div>
             </div>
@@ -281,5 +364,13 @@ export default function AdminAnimeEpisodeEditPage() {
         </section>
       ) : null}
     </main>
-  )
+  );
+}
+
+export default function AdminAnimeEpisodeEditPage() {
+  return (
+    <PlatformAdminGate>
+      <AdminAnimeEpisodeEditContent />
+    </PlatformAdminGate>
+  );
 }

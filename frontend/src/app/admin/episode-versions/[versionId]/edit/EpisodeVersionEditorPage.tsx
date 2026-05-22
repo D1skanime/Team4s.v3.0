@@ -1,71 +1,167 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
-import { formatBytes, formatDateTime, formatDurationInput, padEpisodeNumber, parseDurationInput } from './episodeVersionEditorUtils'
-import { ReleaseVersionMediaSection } from './ReleaseVersionMediaSection'
-import { ReleaseVersionNotesTab } from './ReleaseVersionNotesTab'
-import { useEpisodeVersionEditor } from './useEpisodeVersionEditor'
-import { SegmenteTab } from './SegmenteTab'
-import styles from './EpisodeVersionEditor.module.css'
+import { getCurrentUser, getReleaseVersionCapabilities } from "@/lib/api";
+import { useAuthSession } from "@/lib/useAuthSession";
+import type { CurrentUserData } from "@/types/auth";
+import type { ReleaseVersionCapabilities } from "@/types/releaseVersionMedia";
 
-type ActiveTab = 'übersicht' | 'dateien' | 'informationen' | 'segmente' | 'media' | 'changelog' | 'notizen'
+import {
+  formatBytes,
+  formatDateTime,
+  formatDurationInput,
+  padEpisodeNumber,
+  parseDurationInput,
+} from "./episodeVersionEditorUtils";
+import { ReleaseVersionMediaSection } from "./ReleaseVersionMediaSection";
+import { ReleaseVersionNotesTab } from "./ReleaseVersionNotesTab";
+import { useEpisodeVersionEditor } from "./useEpisodeVersionEditor";
+import { SegmenteTab } from "./SegmenteTab";
+import styles from "./EpisodeVersionEditor.module.css";
+
+type ActiveTab =
+  | "uebersicht"
+  | "dateien"
+  | "informationen"
+  | "segmente"
+  | "media"
+  | "changelog"
+  | "notizen";
 
 function parsePositiveInt(value: string | null): number | null {
-  if (!value) return null
+  if (!value) return null;
 
-  const parsed = Number.parseInt(value, 10)
-  if (!Number.isFinite(parsed) || parsed <= 0) return null
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
 
-  return parsed
+  return parsed;
 }
 
 export function EpisodeVersionEditorPage() {
-  const searchParams = useSearchParams()
-  const editor = useEpisodeVersionEditor()
-  const version = editor.contextData?.version
-  const animeIDFromQuery = parsePositiveInt(searchParams.get('animeId'))
-  const episodeIDFromQuery = parsePositiveInt(searchParams.get('episodeId'))
+  const searchParams = useSearchParams();
+  const { hasAccessToken, isClientInitialized } = useAuthSession();
+  const editor = useEpisodeVersionEditor();
+  const version = editor.contextData?.version;
+  const [currentUser, setCurrentUser] = useState<CurrentUserData | null>(null);
+  const [releaseCapabilities, setReleaseCapabilities] =
+    useState<ReleaseVersionCapabilities | null>(null);
+  const [scopeError, setScopeError] = useState<string | null>(null);
+  const animeIDFromQuery = parsePositiveInt(searchParams.get("animeId"));
+  const episodeIDFromQuery = parsePositiveInt(searchParams.get("episodeId"));
 
-  const tabFromQuery = searchParams.get('tab')
+  const tabFromQuery = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState<ActiveTab>(
-    tabFromQuery === 'media' ? 'media' : 'informationen',
-  )
+    tabFromQuery === "media" ? "media" : "informationen",
+  );
 
-  const segmentAnimeId = editor.contextData?.version.anime_id ?? null
-  const segmentGroupId = editor.contextData?.selected_groups[0]?.id ?? null
-  const segmentVersion: string | null = editor.contextData?.version.release_version?.trim() || 'v1'
+  useEffect(() => {
+    if (!isClientInitialized || !hasAccessToken || !version?.id) {
+      return;
+    }
 
-  const animeTitle = editor.contextData?.anime_title ?? ''
-  const episodeNumber = version?.episode_number ?? null
-  const groupName = editor.contextData?.selected_groups[0]?.name ?? null
+    let cancelled = false;
+    setScopeError(null);
+    void Promise.all([
+      getCurrentUser(),
+      getReleaseVersionCapabilities(version.id),
+    ])
+      .then(([userResponse, capabilityResponse]) => {
+        if (cancelled) return;
+        setCurrentUser(userResponse.data);
+        setReleaseCapabilities(capabilityResponse.data);
+      })
+      .catch(() => {
+        if (!cancelled)
+          setScopeError(
+            "Berechtigungen für diese Release-Version konnten nicht geladen werden.",
+          );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hasAccessToken, isClientInitialized, version?.id]);
+
+  const segmentAnimeId = editor.contextData?.version.anime_id ?? null;
+  const segmentGroupId = editor.contextData?.selected_groups[0]?.id ?? null;
+  const segmentVersion: string | null =
+    editor.contextData?.version.release_version?.trim() || "v1";
+
+  const animeTitle = editor.contextData?.anime_title ?? "";
+  const episodeNumber = version?.episode_number ?? null;
+  const groupName = editor.contextData?.selected_groups[0]?.name ?? null;
+  const isPlatformAdmin = currentUser?.is_platform_admin === true;
+  const canUseContributorMedia = releaseCapabilities?.can_view_media === true;
+  const canUseContributorNotes = releaseCapabilities?.can_edit_notes === true;
+  const isCapabilityScopeReady =
+    currentUser != null && releaseCapabilities != null;
+  const isContributorScopedEditor =
+    currentUser != null &&
+    !isPlatformAdmin &&
+    (canUseContributorMedia || canUseContributorNotes);
+  const allowedTabs = useMemo(() => {
+    if (isPlatformAdmin) {
+      return new Set<ActiveTab>([
+        "uebersicht",
+        "dateien",
+        "informationen",
+        "segmente",
+        "media",
+        "changelog",
+        "notizen",
+      ]);
+    }
+    const tabs: ActiveTab[] = [];
+    if (canUseContributorMedia) tabs.push("media");
+    if (canUseContributorNotes) tabs.push("notizen");
+    return new Set<ActiveTab>(tabs);
+  }, [
+    canUseContributorMedia,
+    canUseContributorNotes,
+    currentUser,
+    isPlatformAdmin,
+  ]);
+
+  useEffect(() => {
+    if (
+      !version ||
+      currentUser == null ||
+      allowedTabs.size === 0 ||
+      allowedTabs.has(activeTab)
+    ) {
+      return;
+    }
+    setActiveTab(canUseContributorMedia ? "media" : "notizen");
+  }, [activeTab, allowedTabs, canUseContributorMedia, currentUser, version]);
 
   const backHref =
     animeIDFromQuery && episodeIDFromQuery
       ? `/admin/anime/${animeIDFromQuery}/episodes/${episodeIDFromQuery}/versions`
       : editor.contextData
         ? `/admin/anime/${editor.contextData.version.anime_id}/episodes`
-        : '/admin/anime'
+        : "/admin/anime";
 
   const animeHref = editor.contextData
     ? `/admin/anime/${editor.contextData.version.anime_id}/edit`
-    : '/admin/anime'
+    : "/admin/anime";
 
   const episodesHref = editor.contextData
     ? `/admin/anime/${editor.contextData.version.anime_id}/episodes`
-    : '/admin/anime'
+    : "/admin/anime";
 
   // Build breadcrumb parts
-  const breadcrumbEpisodeLabel = episodeNumber != null
-    ? `Episode ${padEpisodeNumber(episodeNumber)}`
-    : 'Episode'
+  const breadcrumbEpisodeLabel =
+    episodeNumber != null
+      ? `Episode ${padEpisodeNumber(episodeNumber)}`
+      : "Episode";
   const breadcrumbVersionLabel = groupName
     ? `${groupName} ${segmentVersion}`
     : version
       ? `Version #${version.id}`
-      : 'Version'
+      : "Version";
 
   return (
     <main className={styles.page}>
@@ -82,123 +178,220 @@ export function EpisodeVersionEditorPage() {
           ) : null}
           <Link href={episodesHref}>{breadcrumbEpisodeLabel}</Link>
           <span>/</span>
-          <span style={{ color: '#1c1c1e' }}>{breadcrumbVersionLabel}</span>
+          <span style={{ color: "#1c1c1e" }}>{breadcrumbVersionLabel}</span>
         </nav>
 
         <header className={styles.header}>
           <div>
-            <p className={styles.eyebrow}>Admin Editor</p>
+            <p className={styles.eyebrow}>
+              {!isCapabilityScopeReady
+                ? "Editor"
+                : isContributorScopedEditor
+                  ? "Contributor Editor"
+                  : "Admin Editor"}
+            </p>
             <h1 className={styles.title}>
-              {animeTitle || 'Episode-Version bearbeiten'}
+              {animeTitle || "Episode-Version bearbeiten"}
             </h1>
             {version ? (
               <p className={styles.subtitle}>
                 {breadcrumbEpisodeLabel}
-                {groupName ? ` \u00B7 ${groupName} ${segmentVersion}` : ''}
+                {groupName ? ` \u00B7 ${groupName} ${segmentVersion}` : ""}
               </p>
             ) : null}
           </div>
-          {editor.hasUnsavedChanges ? <span className={styles.unsavedBadge}>Ungespeicherte Änderungen</span> : null}
+          {editor.hasUnsavedChanges ? (
+            <span className={styles.unsavedBadge}>
+              Ungespeicherte Änderungen
+            </span>
+          ) : null}
         </header>
 
-        {editor.errorMessage ? <div className={styles.errorBox}>{editor.errorMessage}</div> : null}
-        {editor.successMessage ? <div className={styles.successBox}>{editor.successMessage}</div> : null}
+        {scopeError ? (
+          <div className={styles.errorBox}>{scopeError}</div>
+        ) : null}
+        {editor.errorMessage ? (
+          <div className={styles.errorBox}>{editor.errorMessage}</div>
+        ) : null}
+        {editor.successMessage ? (
+          <div className={styles.successBox}>{editor.successMessage}</div>
+        ) : null}
 
         {editor.isLoading ? (
           <section className={styles.card}>
             <p className={styles.helperText}>Lade Editor-Daten...</p>
           </section>
         ) : version && editor.contextData ? (
-          <form className={styles.form} onSubmit={(event) => void editor.handleSave(event)}>
+          <form
+            className={styles.form}
+            onSubmit={(event) => {
+              if (!isPlatformAdmin) {
+                event.preventDefault();
+                return;
+              }
+              void editor.handleSave(event);
+            }}
+          >
             {/* 5-Tab navigation */}
             <div className={styles.tabNav}>
-              <button
-                type="button"
-                className={activeTab === 'übersicht' ? styles.tabActive : styles.tab}
-                onClick={() => setActiveTab('übersicht')}
-              >
-                Übersicht
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'dateien' ? styles.tabActive : styles.tab}
-                onClick={() => setActiveTab('dateien')}
-              >
-                Dateien
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'informationen' ? styles.tabActive : styles.tab}
-                onClick={() => setActiveTab('informationen')}
-              >
-                Informationen
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'segmente' ? styles.tabActive : styles.tab}
-                onClick={() => setActiveTab('segmente')}
-              >
-                Segmente
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'media' ? styles.tabActive : styles.tab}
-                onClick={() => setActiveTab('media')}
-              >
-                Media / Assets
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'changelog' ? styles.tabActive : styles.tab}
-                onClick={() => setActiveTab('changelog')}
-              >
-                Changelog
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'notizen' ? styles.tabActive : styles.tab}
-                onClick={() => setActiveTab('notizen')}
-              >
-                Notizen / Beiträge
-              </button>
+              {!isCapabilityScopeReady ? null : isContributorScopedEditor ? (
+                <>
+                  {allowedTabs.has("media") ? (
+                    <button
+                      type="button"
+                      className={
+                        activeTab === "media" ? styles.tabActive : styles.tab
+                      }
+                      onClick={() => setActiveTab("media")}
+                    >
+                      Media / Assets
+                    </button>
+                  ) : null}
+                  {allowedTabs.has("notizen") ? (
+                    <button
+                      type="button"
+                      className={
+                        activeTab === "notizen" ? styles.tabActive : styles.tab
+                      }
+                      onClick={() => setActiveTab("notizen")}
+                    >
+                      Notizen / Beiträge
+                    </button>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className={
+                      activeTab === "uebersicht" ? styles.tabActive : styles.tab
+                    }
+                    onClick={() => setActiveTab("uebersicht")}
+                  >
+                    Übersicht
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      activeTab === "dateien" ? styles.tabActive : styles.tab
+                    }
+                    onClick={() => setActiveTab("dateien")}
+                  >
+                    Dateien
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      activeTab === "informationen"
+                        ? styles.tabActive
+                        : styles.tab
+                    }
+                    onClick={() => setActiveTab("informationen")}
+                  >
+                    Informationen
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      activeTab === "segmente" ? styles.tabActive : styles.tab
+                    }
+                    onClick={() => setActiveTab("segmente")}
+                  >
+                    Segmente
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      activeTab === "media" ? styles.tabActive : styles.tab
+                    }
+                    onClick={() => setActiveTab("media")}
+                  >
+                    Media / Assets
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      activeTab === "changelog" ? styles.tabActive : styles.tab
+                    }
+                    onClick={() => setActiveTab("changelog")}
+                  >
+                    Changelog
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      activeTab === "notizen" ? styles.tabActive : styles.tab
+                    }
+                    onClick={() => setActiveTab("notizen")}
+                  >
+                    Notizen / Beiträge
+                  </button>
+                </>
+              )}
             </div>
 
+            {allowedTabs.size === 0 ? (
+              <section className={styles.card}>
+                <p className={styles.helperText}>
+                  Berechtigungen werden geladen...
+                </p>
+              </section>
+            ) : null}
+
             {/* Übersicht tab stub */}
-            {activeTab === 'übersicht' ? (
+            {allowedTabs.has("uebersicht") && activeTab === "uebersicht" ? (
               <section className={styles.card}>
                 <div className={styles.sectionHeader}>
                   <div>
                     <h2 className={styles.sectionTitle}>Übersicht</h2>
-                    <p className={styles.helperText}>Zusammenfassung dieser Episode-Version.</p>
+                    <p className={styles.helperText}>
+                      Zusammenfassung dieser Episode-Version.
+                    </p>
                   </div>
                 </div>
                 <div className={styles.stubInfo}>
                   <p className={styles.helperText}>
-                    Anime: {animeTitle || '\u2014'}
+                    Anime: {animeTitle || "\u2014"}
                   </p>
                   <p className={styles.helperText}>
-                    Episode: {episodeNumber != null ? padEpisodeNumber(episodeNumber) : '\u2014'}
+                    Episode:{" "}
+                    {episodeNumber != null
+                      ? padEpisodeNumber(episodeNumber)
+                      : "\u2014"}
                   </p>
                   {groupName ? (
                     <p className={styles.helperText}>Gruppe: {groupName}</p>
                   ) : null}
-                  <p className={styles.helperText} style={{ marginTop: 8, fontStyle: 'italic' }}>
-                    Eine detaillierte Übersicht wird in einem späten Plan ergänzt.
+                  <p
+                    className={styles.helperText}
+                    style={{ marginTop: 8, fontStyle: "italic" }}
+                  >
+                    Eine detaillierte Übersicht wird in einem späten Plan
+                    ergänzt.
                   </p>
                 </div>
               </section>
             ) : null}
 
             {/* Dateien tab stub */}
-            {activeTab === 'dateien' ? (
+            {allowedTabs.has("dateien") && activeTab === "dateien" ? (
               <section className={styles.card}>
                 <div className={styles.sectionHeader}>
                   <div>
                     <h2 className={styles.sectionTitle}>Dateien</h2>
-                    <p className={styles.helperText}>Medien-Datei-Verwaltung für diese Version.</p>
+                    <p className={styles.helperText}>
+                      Medien-Datei-Verwaltung für diese Version.
+                    </p>
                   </div>
-                  <button className={styles.secondaryButton} type="button" onClick={() => void editor.handleScanFolder()} disabled={editor.isScanning}>
-                    {editor.isScanning ? 'Ordner wird gelesen...' : 'Ordner synchronisieren'}
+                  <button
+                    className={styles.secondaryButton}
+                    type="button"
+                    onClick={() => void editor.handleScanFolder()}
+                    disabled={editor.isScanning}
+                  >
+                    {editor.isScanning
+                      ? "Ordner wird gelesen..."
+                      : "Ordner synchronisieren"}
                   </button>
                 </div>
 
@@ -206,28 +399,57 @@ export function EpisodeVersionEditorPage() {
                   <span>Stream Link</span>
                   <input
                     value={editor.formState.streamURL}
-                    onChange={(event) => editor.setFormState((current) => ({ ...current, streamURL: event.target.value }))}
+                    onChange={(event) =>
+                      editor.setFormState((current) => ({
+                        ...current,
+                        streamURL: event.target.value,
+                      }))
+                    }
                   />
                 </label>
 
                 <div className={styles.fileCard}>
                   <div className={styles.fileCardHeader}>
                     <h3 className={styles.fileCardTitle}>Ausgewählte Datei</h3>
-                    <button className={styles.ghostButton} type="button" onClick={() => editor.setShowFilePanel((current) => !current)}>
-                      {editor.showFilePanel ? 'Auswahl schließen' : 'Datei wechseln'}
+                    <button
+                      className={styles.ghostButton}
+                      type="button"
+                      onClick={() =>
+                        editor.setShowFilePanel((current) => !current)
+                      }
+                    >
+                      {editor.showFilePanel
+                        ? "Auswahl schließen"
+                        : "Datei wechseln"}
                     </button>
                   </div>
                   {editor.selectedFile ? (
                     <div className={styles.fileStats}>
                       <span>Datei: {editor.selectedFile.file_name}</span>
-                      <span>Groesse: {formatBytes(editor.selectedFile.file_size_bytes)}</span>
-                      <span>Qualitaet: {editor.selectedFile.video_quality || editor.formState.videoQuality || 'n/a'}</span>
+                      <span>
+                        Größe:{" "}
+                        {formatBytes(editor.selectedFile.file_size_bytes)}
+                      </span>
+                      <span>
+                        Qualität:{" "}
+                        {editor.selectedFile.video_quality ||
+                          editor.formState.videoQuality ||
+                          "n/a"}
+                      </span>
                       <span>Media ID: {editor.selectedFile.media_item_id}</span>
-                      <span>Geaendert: {formatDateTime(editor.selectedFile.last_modified)}</span>
-                      <span>Erkannte Episode: {editor.selectedFile.detected_episode_number || 'n/a'}</span>
+                      <span>
+                        Geändert:{" "}
+                        {formatDateTime(editor.selectedFile.last_modified)}
+                      </span>
+                      <span>
+                        Erkannte Episode:{" "}
+                        {editor.selectedFile.detected_episode_number || "n/a"}
+                      </span>
                     </div>
                   ) : (
-                    <p className={styles.helperText}>Noch keine Datei ausgewählt.</p>
+                    <p className={styles.helperText}>
+                      Noch keine Datei ausgewählt.
+                    </p>
                   )}
                 </div>
 
@@ -235,35 +457,61 @@ export function EpisodeVersionEditorPage() {
                   <div className={styles.filePanel}>
                     {editor.availableFiles.length > 0 ? (
                       editor.availableFiles.map((file) => (
-                        <button key={`${file.media_item_id}-${file.path}`} type="button" className={styles.fileOption} onClick={() => editor.applyFile(file)}>
+                        <button
+                          key={`${file.media_item_id}-${file.path}`}
+                          type="button"
+                          className={styles.fileOption}
+                          onClick={() => editor.applyFile(file)}
+                        >
                           <strong>{file.file_name}</strong>
-                          <span>{file.video_quality || 'n/a'}</span>
+                          <span>{file.video_quality || "n/a"}</span>
                           <span>{formatBytes(file.file_size_bytes)}</span>
                           <span>{formatDateTime(file.last_modified)}</span>
-                          <span>Episode: {file.detected_episode_number || 'n/a'}</span>
+                          <span>
+                            Episode: {file.detected_episode_number || "n/a"}
+                          </span>
                         </button>
                       ))
                     ) : (
-                      <p className={styles.helperText}>Nach der Synchronisierung erscheinen hier auswaehlbare Dateien.</p>
+                      <p className={styles.helperText}>
+                        Nach der Synchronisierung erscheinen hier auswaehlbare
+                        Dateien.
+                      </p>
                     )}
                   </div>
                 ) : null}
 
-                <details className={styles.advancedPanel} open={editor.advancedMode} onToggle={(event) => editor.setAdvancedMode(event.currentTarget.open)}>
+                <details
+                  className={styles.advancedPanel}
+                  open={editor.advancedMode}
+                  onToggle={(event) =>
+                    editor.setAdvancedMode(event.currentTarget.open)
+                  }
+                >
                   <summary>Advanced Mode: manuelle Media-Override</summary>
                   <div className={styles.grid}>
                     <label className={styles.field}>
                       <span>Media Provider</span>
                       <input
                         value={editor.formState.mediaProvider}
-                        onChange={(event) => editor.setFormState((current) => ({ ...current, mediaProvider: event.target.value }))}
+                        onChange={(event) =>
+                          editor.setFormState((current) => ({
+                            ...current,
+                            mediaProvider: event.target.value,
+                          }))
+                        }
                       />
                     </label>
                     <label className={styles.field}>
                       <span>Jellyfin Media ID</span>
                       <input
                         value={editor.formState.mediaItemID}
-                        onChange={(event) => editor.setFormState((current) => ({ ...current, mediaItemID: event.target.value }))}
+                        onChange={(event) =>
+                          editor.setFormState((current) => ({
+                            ...current,
+                            mediaItemID: event.target.value,
+                          }))
+                        }
                       />
                     </label>
                   </div>
@@ -272,124 +520,195 @@ export function EpisodeVersionEditorPage() {
             ) : null}
 
             {/* Informationen tab — main metadata form */}
-            {activeTab === 'informationen' ? (
-            <>
-            <section className={styles.card}>
-              <div className={styles.sectionHeader}>
-                <div>
-                  <h2 className={styles.sectionTitle}>Basisdaten</h2>
-                  <p className={styles.helperText}>Release-Metadaten für diese Version.</p>
-                </div>
-              </div>
-              <div className={styles.grid}>
-                <label className={styles.field}>
-                  <span>Release-Name</span>
-                  <input
-                    value={editor.formState.title}
-                    onChange={(event) => editor.setFormState((current) => ({ ...current, title: event.target.value }))}
-                  />
-                </label>
-                <label className={styles.field}>
-                  <span>Release-Datum</span>
-                  <input
-                    type="datetime-local"
-                    value={editor.formState.releaseDate}
-                    onChange={(event) => editor.setFormState((current) => ({ ...current, releaseDate: event.target.value }))}
-                  />
-                </label>
-                <label className={styles.field}>
-                  <span>Untertitel-Typ</span>
-                  <select
-                    value={editor.formState.subtitleType}
-                    onChange={(event) =>
-                      editor.setFormState((current) => ({ ...current, subtitleType: event.target.value as typeof current.subtitleType }))
-                    }
-                  >
-                    <option value="">keiner</option>
-                    <option value="softsub">softsub</option>
-                    <option value="hardsub">hardsub</option>
-                  </select>
-                </label>
-                <label className={styles.field}>
-                  <span>Aufloesung</span>
-                  <input
-                    value={editor.formState.videoQuality}
-                    onChange={(event) => editor.setFormState((current) => ({ ...current, videoQuality: event.target.value }))}
-                  />
-                </label>
-                <label className={styles.field}>
-                  <span>Gesamtdauer</span>
-                  <input
-                    value={editor.formState.durationSeconds}
-                    placeholder="z. B. 24:10 oder 1450"
-                    onChange={(event) => editor.setFormState((current) => ({ ...current, durationSeconds: event.target.value }))}
-                    onBlur={(event) => {
-                      const parsed = parseDurationInput(event.target.value)
-                      if (parsed != null) {
-                        editor.setFormState((current) => ({ ...current, durationSeconds: formatDurationInput(parsed) }))
+            {allowedTabs.has("informationen") &&
+            activeTab === "informationen" ? (
+              <>
+                <section className={styles.card}>
+                  <div className={styles.sectionHeader}>
+                    <div>
+                      <h2 className={styles.sectionTitle}>Basisdaten</h2>
+                      <p className={styles.helperText}>
+                        Release-Metadaten für diese Version.
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.grid}>
+                    <label className={styles.field}>
+                      <span>Release-Name</span>
+                      <input
+                        value={editor.formState.title}
+                        onChange={(event) =>
+                          editor.setFormState((current) => ({
+                            ...current,
+                            title: event.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>Release-Datum</span>
+                      <input
+                        type="datetime-local"
+                        value={editor.formState.releaseDate}
+                        onChange={(event) =>
+                          editor.setFormState((current) => ({
+                            ...current,
+                            releaseDate: event.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>Untertitel-Typ</span>
+                      <select
+                        value={editor.formState.subtitleType}
+                        onChange={(event) =>
+                          editor.setFormState((current) => ({
+                            ...current,
+                            subtitleType: event.target
+                              .value as typeof current.subtitleType,
+                          }))
+                        }
+                      >
+                        <option value="">keiner</option>
+                        <option value="softsub">softsub</option>
+                        <option value="hardsub">hardsub</option>
+                      </select>
+                    </label>
+                    <label className={styles.field}>
+                      <span>Aufloesung</span>
+                      <input
+                        value={editor.formState.videoQuality}
+                        onChange={(event) =>
+                          editor.setFormState((current) => ({
+                            ...current,
+                            videoQuality: event.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>Gesamtdauer</span>
+                      <input
+                        value={editor.formState.durationSeconds}
+                        placeholder="z. B. 24:10 oder 1450"
+                        onChange={(event) =>
+                          editor.setFormState((current) => ({
+                            ...current,
+                            durationSeconds: event.target.value,
+                          }))
+                        }
+                        onBlur={(event) => {
+                          const parsed = parseDurationInput(event.target.value);
+                          if (parsed != null) {
+                            editor.setFormState((current) => ({
+                              ...current,
+                              durationSeconds: formatDurationInput(parsed),
+                            }));
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <p className={styles.helperText}>
+                    Akzeptiert `m:ss`, `hh:mm:ss`, rohe Sekunden sowie
+                    Kurzformen wie `2m` oder `1m30s`. Wird als Grenze für
+                    Segment-Endzeiten verwendet.
+                  </p>
+                </section>
+
+                <section className={styles.card}>
+                  <div className={styles.sectionHeader}>
+                    <div>
+                      <h2 className={styles.sectionTitle}>Speicherort</h2>
+                      <p className={styles.helperText}>
+                        Der verknüpfte Anime-Ordner zur Plausibilitätsprüfung.
+                      </p>
+                    </div>
+                  </div>
+                  <label className={styles.field}>
+                    <span>Anime Folder Path</span>
+                    <input
+                      value={editor.folderPath || "nicht verfügbar"}
+                      readOnly
+                    />
+                  </label>
+                </section>
+
+                <section className={styles.card}>
+                  <div className={styles.sectionHeader}>
+                    <div>
+                      <h2 className={styles.sectionTitle}>Fansub Gruppen</h2>
+                      <p className={styles.helperText}>
+                        Suche nach Gruppenname oder Alias. Mehrere Gruppen
+                        werden als Kollaboration gespeichert.
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className={styles.field}>
+                    <span>Gruppe suchen</span>
+                    <input
+                      value={editor.groupQuery}
+                      onChange={(event) =>
+                        editor.setGroupQuery(event.target.value)
                       }
-                    }}
-                  />
-                </label>
-              </div>
-              <p className={styles.helperText}>Akzeptiert `m:ss`, `hh:mm:ss`, rohe Sekunden sowie Kurzformen wie `2m` oder `1m30s`. Wird als Grenze für Segment-Endzeiten verwendet.</p>
-            </section>
+                      placeholder="Name oder Alias..."
+                    />
+                  </label>
 
-            <section className={styles.card}>
-              <div className={styles.sectionHeader}>
-                <div>
-                  <h2 className={styles.sectionTitle}>Speicherort</h2>
-                  <p className={styles.helperText}>Der verknüpfte Anime-Ordner zur Plausibilitätsprüfung.</p>
-                </div>
-              </div>
-              <label className={styles.field}>
-                <span>Anime Folder Path</span>
-                <input value={editor.folderPath || 'nicht verfügbar'} readOnly />
-              </label>
-            </section>
+                  {editor.isSearching ? (
+                    <p className={styles.helperText}>Suche läuft...</p>
+                  ) : null}
+                  {editor.searchMessage ? (
+                    <p className={styles.helperText}>{editor.searchMessage}</p>
+                  ) : null}
+                  {editor.groupResults.length > 0 ? (
+                    <div className={styles.groupSearchList}>
+                      {editor.groupResults.map((group) => (
+                        <button
+                          key={group.id}
+                          type="button"
+                          className={styles.groupSearchItem}
+                          onClick={() => editor.addGroup(group)}
+                        >
+                          <strong>{group.name}</strong>
+                          <span>
+                            {group.group_type === "collaboration"
+                              ? "Kollaboration"
+                              : "Gruppe"}{" "}
+                            | {group.slug}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
 
-            <section className={styles.card}>
-              <div className={styles.sectionHeader}>
-                <div>
-                  <h2 className={styles.sectionTitle}>Fansub Gruppen</h2>
-                  <p className={styles.helperText}>Suche nach Gruppenname oder Alias. Mehrere Gruppen werden als Kollaboration gespeichert.</p>
-                </div>
-              </div>
-
-              <label className={styles.field}>
-                <span>Gruppe suchen</span>
-                <input value={editor.groupQuery} onChange={(event) => editor.setGroupQuery(event.target.value)} placeholder="Name oder Alias..." />
-              </label>
-
-              {editor.isSearching ? <p className={styles.helperText}>Suche laeuft...</p> : null}
-              {editor.searchMessage ? <p className={styles.helperText}>{editor.searchMessage}</p> : null}
-              {editor.groupResults.length > 0 ? (
-                <div className={styles.groupSearchList}>
-                  {editor.groupResults.map((group) => (
-                    <button key={group.id} type="button" className={styles.groupSearchItem} onClick={() => editor.addGroup(group)}>
-                      <strong>{group.name}</strong>
-                      <span>{group.group_type === 'collaboration' ? 'Kollaboration' : 'Gruppe'} | {group.slug}</span>
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-
-              <div className={styles.chipRow}>
-                {editor.selectedGroups.length > 0 ? (
-                  editor.selectedGroups.map((group) => (
-                    <button key={group.id} type="button" className={styles.chip} title={`Slug: ${group.slug}`} onClick={() => editor.removeGroup(group.id)}>
-                      {group.name} x
-                    </button>
-                  ))
-                ) : (
-                  <span className={styles.helperText}>Keine Gruppe ausgewählt.</span>
-                )}
-              </div>
-            </section>
-            </>) : null}
+                  <div className={styles.chipRow}>
+                    {editor.selectedGroups.length > 0 ? (
+                      editor.selectedGroups.map((group) => (
+                        <button
+                          key={group.id}
+                          type="button"
+                          className={styles.chip}
+                          title={`Slug: ${group.slug}`}
+                          onClick={() => editor.removeGroup(group.id)}
+                        >
+                          {group.name} x
+                        </button>
+                      ))
+                    ) : (
+                      <span className={styles.helperText}>
+                        Keine Gruppe ausgewählt.
+                      </span>
+                    )}
+                  </div>
+                </section>
+              </>
+            ) : null}
 
             {/* Segmente tab */}
-            {activeTab === 'segmente' ? (
+            {allowedTabs.has("segmente") && activeTab === "segmente" ? (
               <SegmenteTab
                 animeId={segmentAnimeId}
                 groupId={segmentGroupId}
@@ -401,45 +720,61 @@ export function EpisodeVersionEditorPage() {
             ) : null}
 
             {/* Media / Assets tab */}
-            {activeTab === 'media' ? (
+            {allowedTabs.has("media") && activeTab === "media" ? (
               <section className={styles.card}>
                 {/* Context card — D-04/D-07: fansub group + release version title */}
                 <div className={styles.mediaContextCard}>
-                  <span className={styles.mediaContextLabel}>Fansub-Gruppe</span>
-                  <span className={styles.mediaContextValue}>{groupName ?? '–'}</span>
-                  <span className={styles.mediaContextLabel}>Release-Version</span>
-                  <span className={styles.mediaContextValue}>{segmentVersion ?? '–'}</span>
+                  <span className={styles.mediaContextLabel}>
+                    Fansub-Gruppe
+                  </span>
+                  <span className={styles.mediaContextValue}>
+                    {groupName ?? "–"}
+                  </span>
+                  <span className={styles.mediaContextLabel}>
+                    Release-Version
+                  </span>
+                  <span className={styles.mediaContextValue}>
+                    {segmentVersion ?? "–"}
+                  </span>
                 </div>
                 <ReleaseVersionMediaSection
                   versionId={version.id}
-                  fansubGroupName={groupName ?? '–'}
-                  releaseVersionLabel={segmentVersion ?? '–'}
+                  fansubGroupName={groupName ?? "–"}
+                  releaseVersionLabel={segmentVersion ?? "–"}
                 />
               </section>
             ) : null}
 
             {/* Changelog tab stub */}
-            {activeTab === 'changelog' ? (
+            {allowedTabs.has("changelog") && activeTab === "changelog" ? (
               <section className={styles.card}>
                 <div className={styles.sectionHeader}>
                   <div>
                     <h2 className={styles.sectionTitle}>Changelog</h2>
-                    <p className={styles.helperText}>Änderungshistorie dieser Episode-Version.</p>
+                    <p className={styles.helperText}>
+                      Änderungshistorie dieser Episode-Version.
+                    </p>
                   </div>
                 </div>
-                <p className={styles.helperText} style={{ fontStyle: 'italic' }}>
+                <p
+                  className={styles.helperText}
+                  style={{ fontStyle: "italic" }}
+                >
                   Changelog-Einträge werden in einem späten Plan ergänzt.
                 </p>
               </section>
             ) : null}
 
             {/* Notizen / Beiträge tab */}
-            {activeTab === 'notizen' ? (
+            {allowedTabs.has("notizen") && activeTab === "notizen" ? (
               <section className={styles.card}>
                 <div className={styles.sectionHeader}>
                   <div>
                     <h2 className={styles.sectionTitle}>Notizen / Beiträge</h2>
-                    <p className={styles.helperText}>Rollenbezogene Produktionsnotizen der beteiligten Mitglieder.</p>
+                    <p className={styles.helperText}>
+                      Rollenbezogene Produktionsnotizen der beteiligten
+                      Mitglieder.
+                    </p>
                   </div>
                 </div>
                 <ReleaseVersionNotesTab versionId={version.id} />
@@ -450,17 +785,32 @@ export function EpisodeVersionEditorPage() {
               <Link href={backHref} className={styles.secondaryButton}>
                 Zurück
               </Link>
-              <button className={styles.primaryButton} type="submit" disabled={editor.isSaving}>
-                {editor.isSaving ? <span className={styles.spinner} aria-hidden="true" /> : null}
-                {editor.isSaving ? 'Speichert...' : 'Speichern'}
-              </button>
-              <button className={styles.dangerButton} type="button" onClick={() => void editor.handleDelete()} disabled={editor.isDeleting}>
-                {editor.isDeleting ? 'Loescht...' : 'Delete'}
-              </button>
+              {isPlatformAdmin ? (
+                <>
+                  <button
+                    className={styles.primaryButton}
+                    type="submit"
+                    disabled={editor.isSaving}
+                  >
+                    {editor.isSaving ? (
+                      <span className={styles.spinner} aria-hidden="true" />
+                    ) : null}
+                    {editor.isSaving ? "Speichert..." : "Speichern"}
+                  </button>
+                  <button
+                    className={styles.dangerButton}
+                    type="button"
+                    onClick={() => void editor.handleDelete()}
+                    disabled={editor.isDeleting}
+                  >
+                    {editor.isDeleting ? "Löscht..." : "Löschen"}
+                  </button>
+                </>
+              ) : null}
             </section>
           </form>
         ) : null}
       </div>
     </main>
-  )
+  );
 }

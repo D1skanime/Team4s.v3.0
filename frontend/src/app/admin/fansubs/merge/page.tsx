@@ -4,11 +4,8 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  getFansubList,
-  mergeFansubs,
-  mergeFansubsPreview,
-} from "@/lib/api";
+import { getFansubList, mergeFansubs, mergeFansubsPreview } from "@/lib/api";
+import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { FansubGroup, MergeFansubsPreviewResult } from "@/types/fansub";
 import sharedStyles from "../../admin.module.css";
@@ -35,7 +32,7 @@ const WIZARD_STEPS: Array<{ id: WizardStep; title: string }> = [
   { id: 4, title: "Bestätigen & zusammenfuehren" },
 ];
 
-export default function MergeFansubsPage() {
+function MergeFansubsContent() {
   const router = useRouter();
   const { hasAccessToken } = useAuthSession();
 
@@ -181,9 +178,10 @@ export default function MergeFansubsPage() {
     try {
       setPreviewLoading(true);
       setError(null);
-      const response = await mergeFansubsPreview(
-        { target_id: targetID, source_ids: Array.from(sourceIDs) },
-      );
+      const response = await mergeFansubsPreview({
+        target_id: targetID,
+        source_ids: Array.from(sourceIDs),
+      });
       setPreview(response.data);
       setPreviewKey(selectionKey);
     } catch (err) {
@@ -235,9 +233,10 @@ export default function MergeFansubsPage() {
       setError(null);
       setSuccess(null);
 
-      const response = await mergeFansubs(
-        { target_id: targetID, source_ids: Array.from(sourceIDs) },
-      );
+      const response = await mergeFansubs({
+        target_id: targetID,
+        source_ids: Array.from(sourceIDs),
+      });
 
       setSuccess(
         `Merge abgeschlossen: ${response.data.merged_count} Gruppe(n), ${response.data.versions_migrated} Versionen, ` +
@@ -869,6 +868,14 @@ export default function MergeFansubsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MergeFansubsPage() {
+  return (
+    <PlatformAdminGate>
+      <MergeFansubsContent />
+    </PlatformAdminGate>
   );
 }
 
