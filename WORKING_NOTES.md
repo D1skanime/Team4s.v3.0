@@ -1,30 +1,29 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phase 48 contributor dashboard is implemented and verified.
-- Phase 48A UI system foundation remains the visual contract for future slices.
-- Phase 49 exists and is the next auth/API-client hardening phase.
+- Phase 50 platform-admin boundary and contributor-scope governance is active.
+- Phase 48 contributor dashboard and Phase 49 Docker-live API/media proxy follow-through remain the verified baseline.
+- Keep release-native media ownership untouched unless a task explicitly targets it.
 
 ## Useful Facts To Keep
-- Real Keycloak UAT accounts used for Phase 48:
-  - `phase43-member` / lead context for `AnimeOwnage` group `88`
-  - `tomoni.member.auto.20260518152444` / contributor context for `Tomoni` group `96`
-- Foreign group access checks:
-  - lead user denied on `96`
-  - contributor user denied on `88`
-- Phase 48 screenshots live under `.tmp-playwright-uat/phase48/`.
-- Important Phase 48 docs:
-  - `.planning/phases/48-meine-gruppen-und-contributor-dashboard/48-SUMMARY.md`
-  - `.planning/phases/48-meine-gruppen-und-contributor-dashboard/48-UAT.md`
-  - `.planning/phases/48-meine-gruppen-und-contributor-dashboard/48-VALIDATION.md`
-  - `.planning/phases/48-meine-gruppen-und-contributor-dashboard/48-REVIEW.md`
-  - `.planning/phases/48-meine-gruppen-und-contributor-dashboard/48-UI-REVIEW.md`
-- Current local commit to push:
-  - `04a5f588 fix(49): proxy docker live api requests through frontend`
-- Current branch already tracks `origin/codex/ui-system-closeout-2026-05-21`.
+- `frontend/src/app/admin/fansubs/create/page.tsx` and `frontend/src/app/admin/fansubs/merge/page.tsx` already wrap their content in `PlatformAdminGate`.
+- `frontend/src/app/admin/fansubs/direct-access-gate.test.tsx` now proves non-platform direct visits see the admin gate and do not call `getFansubList()`.
+- `EpisodeVersionEditorPage` now has a loaded-scope boundary:
+  - no tab shell until `currentUser` and release capabilities are both loaded
+  - platform admins get the full admin tab set
+  - non-platform users only get `media` and/or `notizen` when capabilities allow
+  - no-capability non-platform users see `Kein Zugriff auf diese Release-Version.`
+- Backend contributor editor context is already narrowed in `loadEpisodeVersionContributorContext`; it omits admin fields such as anime folder path/provider IDs/stream URL.
 
 ## Verification Memory
-- Phase 48 targeted backend and frontend checks passed in the previous verification pass.
-- Phase 48 real browser UAT passed after fixing the group-detail id fallback for Next client params.
-- Phase 48 UI review scored `21/24 PASS`.
-- `curl -I http://127.0.0.1:3002/admin/my-groups/88` returned `200` after the frontend rebuild in the previous session.
+- `cd frontend && npx vitest run src/app/admin/episode-versions/[versionId]/edit/page.test.tsx src/app/admin/fansubs/direct-access-gate.test.tsx` passed (9 tests).
+- `cd frontend && npx eslint src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditorPage.tsx src/app/admin/episode-versions/[versionId]/edit/page.test.tsx src/app/admin/fansubs/direct-access-gate.test.tsx` passed.
+- `cd frontend && npx tsc --noEmit --pretty false` passed.
+- Targeted `git diff --check` passed for the editor/direct-access files.
+- `cd frontend && npm run build` passed after the editor/direct-access changes.
+
+## Commit Hygiene Notes
+- The worktree includes many unrelated dirty paths. Use `git status --short --branch` and explicit-path staging only.
+- `frontend/tsconfig.tsbuildinfo` is dirty after local verification/build.
+- Untracked `frontend/src/components/auth/PlatformAdminGate.test.tsx` appears relevant to the same boundary thread; inspect before deciding whether to include it with the Phase 50 slice.
+- Do not mix `.codex/get-shit-done`, `.codex/skills`, screenshots, `.tmp-*`, `.clone/`, or broad `.planning/` updates with the product/test commit.

@@ -1,6 +1,83 @@
 # DAYLOG
 
-## 2026-05-21
+## 2026-05-25 Capability Regression Test Closeout
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: add narrow frontend regression coverage around contributor-scoped release editing, release-native media links, direct fansub admin visits, and platform-admin gate denial behavior without mixing unrelated dirty worktree changes.
+
+### Workstreams Touched
+- `frontend/src/app/admin/my-groups/[id]/page.test.tsx`: exact `Arbeitsfläche` and `Media` link assertions now require `?tab=media`.
+- `frontend/src/app/admin/episode-versions/[versionId]/edit/page.test.tsx`: contributor editor tests now cover capability-loading, media-only, notes-only, and no-capability states.
+- `frontend/src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditorPage.tsx`: admin tab shell now waits for current user plus release capabilities; non-platform users never enter the admin-tab branch.
+- `frontend/src/app/admin/fansubs/direct-access-gate.test.tsx`: direct visits to `/admin/fansubs/create` and `/admin/fansubs/merge` are pinned behind `PlatformAdminGate` for non-platform users.
+- `frontend/src/components/auth/PlatformAdminGate.test.tsx`: new denial/allow regression proves children that would call `getFansubList()` do not mount when the gate rejects access.
+- Handoff files refreshed for the current broad dirty-worktree reality.
+
+### Goals Intended vs Achieved
+- Intended: implement the recommended next test fixes and leave the repo restartable.
+- Achieved: targeted Vitest slices are green, frontend typecheck is green, targeted lint on changed files is green, frontend build passed after the editor/direct-access slice, and the closeout records the remaining broad dirty-worktree caveats honestly.
+
+### Problems Solved
+- Root cause: my-groups detail coverage could drift away from the release-native media tab target.
+- Fix: test now asserts exact `Arbeitsfläche`/`Media` link labels and exact `/admin/episode-versions/51/edit?tab=media` hrefs.
+- Root cause: non-platform release editor behavior had capability branches without explicit regression coverage.
+- Fix: editor logic now derives a safe visible tab from loaded capabilities; tests prove media-only users see only media, notes-only users see only notes, and no-capability users see no admin/editor actions.
+- Root cause: direct visits to fansub create/merge needed explicit non-platform coverage even though the wrappers already existed.
+- Fix: direct-access tests prove non-platform users see the Team4s-admin gate and the create/merge page bodies do not load group data.
+- Root cause: platform-admin denial must stop child effects, not merely hide UI after child mount.
+- Fix: new gate test mounts a child that would call `getFansubList()` and proves it is not called when the gate denies access.
+
+### Decisions
+- Contributor release-version access should be tested as backend-capability driven, not as a client-side role inference.
+- Platform admin gate denial must prevent child mount side effects, including list-loading API calls such as `getFansubList()`.
+- Release-version editor admin tabs are platform-admin only; contributors may only enter media/notes surfaces granted by backend release capabilities.
+
+### Blockers
+- `npm run lint` still fails repo-wide on existing unrelated issues, including React compiler lint errors in existing source/test files and temporary scripts using `require()`.
+- `npm run build` passed for the later editor/direct-access slice; earlier build lock notes may no longer apply but should be rechecked before treating the whole dirty tree as clean.
+- The worktree remains very broad and dirty across product, planning, Codex/GSD tooling, screenshots, temp folders, and untracked files.
+- `frontend/tsconfig.tsbuildinfo` is dirty after local verification/build and should be included or excluded deliberately.
+
+### Next Step
+- Tomorrow first run `git diff -- frontend/src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditorPage.tsx frontend/src/app/admin/episode-versions/[versionId]/edit/page.test.tsx frontend/src/app/admin/fansubs/direct-access-gate.test.tsx frontend/src/components/auth/PlatformAdminGate.test.tsx frontend/src/app/admin/my-groups/[id]/page.test.tsx` and decide the exact Phase 50 test/fix commit slice before staging.
+
+## 2026-05-21 Phase 49 Docker Live Closeout
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: Phase 49 Auth-/API-Client-Follow-through auf Docker-Live `3002` abschliessen, direkte browserseitige Backend-/Media-Pfade auditieren, echte Proxy-/Runtime-Probleme fixen und den Worktree restartbar dokumentieren
+
+### Workstreams Touched
+- Phase 49 `Zentraler Auth-/API-Client und Token-Lifecycle-Haertung`: zentraler Frontend-API-Proxy fuer Docker-Live plus Public-/Media-URL-Normalisierung
+- Docker-Live `3002`: Keycloak-Codeaustausch war erfolgreich, danach wurde der `/api/v1/me`-Runtime-Pfad von direktem `127.0.0.1:8092` auf same-origin/proxy korrigiert
+- Frontend-Audit: direkte Public-/Media-Pfade in Backdrops, Group Assets, Episode Player, Screenshot Gallery, Jellyfin Intake und Anime-Group-Seiten auf zentrale URL-Aufloesung gezogen
+- Repo-Local-Handoff: `CONTEXT.md`, `STATUS.md`, `WORKING_NOTES.md`, `RISKS.md`, `TOMORROW.md`, `TODO.md`, `DECISIONS.md` und Tageszusammenfassung aktualisiert
+
+### Goals Intended vs Achieved
+- Intended: zentrale Auth-/Token-Verwaltung nicht umbauen, keine seitenlokalen Tokens einfuehren, sondern nur echte Docker-Live Runtime-/Proxy-Pfad-Probleme korrigieren.
+- Achieved: zwei Phase-49-Fix-Commits liegen vor: `04a5f588 fix(49): proxy docker live api requests through frontend` und `4fd519eb fix(49): centralize public api media urls`. Browserseitige Produkt-/Media-Pfade zeigen auf Docker-Live nicht mehr direkt auf `localhost:8092`/`127.0.0.1:8092`.
+
+### Problems Solved
+- Root cause: Docker-Live-Browser konnte `http://127.0.0.1:8092/api/v1/me` nicht erreichen, obwohl der Keycloak-Tokenaustausch erfolgreich war.
+- Fix: zentrale `ApiClient`-Basis nutzt same-origin, und Next `/api/v1/[...path]` proxyt serverseitig an `API_INTERNAL_URL`/internes Backend.
+- Root cause: mehrere browserseitige Public-/Media-Helfer hatten noch direkte `NEXT_PUBLIC_API_URL || http://localhost:8092`-Fallbacks.
+- Fix: `frontend/src/lib/publicApiUrl.ts` normalisiert loopback-hosts im Browser auf same-origin und wird von den Media-/Backdrop-/Player-/Gallery-Aufrufern wiederverwendet.
+- Root cause: der Worktree enthaelt sehr viele Produkt-, GSD-, Temp- und Planungsaenderungen gleichzeitig.
+- Fix: Closeout haelt den engen Phase-49-Commit-Schnitt explizit fest; nicht blind alles stagen.
+
+### Decisions
+- Browser-facing API-/Media-URLs sollen live same-origin oder explizit public-domain sein; Docker-interne Backend-Adressen gehoeren in serverseitige Proxy-/Streaming-Grenzen.
+- `API_INTERNAL_URL` bleibt die serverseitige Docker-Service-Adresse; `NEXT_PUBLIC_API_URL` darf im Live-Browser nicht auf Loopback-Backend-Ports zeigen.
+- Streaming-Routes bleiben eine erlaubte Server-Grenze, aber normale Seiten/Komponenten duerfen keine direkte Token- oder Backend-Topologie verwalten.
+
+### Blockers
+- Kein harter Runtime-Blocker fuer den Phase-49 Docker-Live-Pfad: Frontend und Backend laufen, `/api/v1/me` ueber `3002` liefert korrekt Backend-`401 anmeldung erforderlich` statt Connection Refused.
+- Browser-Re-Login nach dem letzten Docker-Rebuild wurde durch das lokale Browser-Plugin-Typing/Clipboard blockiert; vorheriger Admin-Durchklick war erfolgreich, letzter Smoke pruefte die Ressourcenpfade.
+- Repo-weiter Lint/Git-Hygiene bleibt durch bestehende, breite Dirty-State-/Tooling-/Temp-Dateien riskant.
+
+### Next Step
+- Morgen zuerst `git status --short --branch` oeffnen und nur die Phase-49-Fix-/Handoff-Slices vom restlichen Worktree trennen; danach Live-Domain-Checkliste fuer Reverse Proxy, Keycloak Redirect/Web Origins und `API_INTERNAL_URL`/`NEXT_PUBLIC_API_URL` festhalten.
+
+## 2026-05-21 Earlier Phase 48/49 Snapshot
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`
 - Today's focus: Phase 48 nach Live-UAT/UI-Review restartbar abschließen, Phase 48A/49-Stand sauber festhalten, den Docker-Proxy-Fix auf dem aktuellen Branch pushen und den sehr breiten Worktree nicht versehentlich als Sammel-Commit vermischen

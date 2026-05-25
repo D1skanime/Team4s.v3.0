@@ -1,5 +1,43 @@
 # DECISIONS
 
+## 2026-05-25 - Contributor Release Editors Are Capability-Gated And Platform Gates Must Block Child Effects
+
+### Decision
+Contributor-facing release-version editor access should be driven by backend capability responses, and the editor must not render its admin tab shell until both the current user and release capabilities are loaded. Denied `PlatformAdminGate` access must prevent protected children from mounting at all. Tests should cover the side-effect boundary, including children that would call APIs such as `getFansubList()`.
+
+### Why This Won
+Phase 48/49 established the separation between platform-admin surfaces and contributor-scoped surfaces. Without explicit regression tests, the UI could accidentally show admin tabs to non-platform users, flash admin shell before capability resolution, or let protected child effects start before the gate denies access.
+
+### Consequences
+- Non-platform users with `can_view_media` should only reach the media workspace.
+- Non-platform users with `can_edit_notes` should only reach the notes workspace.
+- Non-platform users with no relevant release capability should see no admin/editor actions.
+- Platform admins get the full release-version editor tab set only after scope is loaded.
+- Direct `/admin/fansubs/create` and `/admin/fansubs/merge` visits remain platform-admin gated.
+- Platform-admin gates must be tested with children that have mount-time side effects, not only static text.
+
+### Follow-ups Required
+- Keep future contributor/admin tests capability-driven instead of inferring roles in the client.
+- If more gated admin pages load lists on mount, add similar denial tests around their highest-level gate.
+
+## 2026-05-21 - Browser-Facing API And Media URLs Stay Same-Origin/Public-Domain
+
+### Decision
+Browser-facing frontend code should resolve normal API and public/media URLs as same-origin or as an explicitly public domain. Docker-internal backend URLs such as `http://team4sv30-backend:8092`, `http://127.0.0.1:8092`, or `http://localhost:8092` belong only in server-side proxy/streaming boundaries, not in pages or components.
+
+### Why This Won
+The Docker-live frontend on `3002` could complete the Keycloak token exchange but then failed to resolve `/api/v1/me` because the browser tried to reach `127.0.0.1:8092` directly. The same class of bug existed in public/media helpers. A same-origin browser seam keeps local Docker, later public-domain deployments, token refresh, and auth resync behind one central Auth/API path.
+
+### Consequences
+- `API_INTERNAL_URL` is the server-side backend target for Next proxy code.
+- `NEXT_PUBLIC_API_URL` must be empty/same-origin or a real public origin for browser users; it must not point at loopback backend ports in live deployments.
+- Pages/components should not store tokens, read Keycloak tokens directly, or special-case auth state.
+- Public/media URL helpers should reuse `frontend/src/lib/publicApiUrl.ts`.
+- Explicit streaming routes remain allowed server-side boundaries and need separate live-domain smoke tests.
+
+### Follow-ups Required
+- Before public domain deployment, verify reverse proxy routing, Keycloak Redirect URIs/Web Origins, HTTPS/cookie behavior, `API_INTERNAL_URL`, `NEXT_PUBLIC_API_URL`, and streaming routes together.
+
 ## 2026-05-21 - Docker Live API Calls Should Flow Through The Frontend Proxy
 
 ### Decision
@@ -159,6 +197,31 @@ The product rule is that one OP/ED definition spanning an episode range such as 
 ### Follow-ups Required
 - complete one more focused drawer-state pass so locked/global themes also feel obviously non-overridable in the UI
 
+## 2026-05-25 - Release-Version-Media Is Canonical For Version-Scoped Process Media
+
+### Decision
+`release_version_media` is the canonical persistence structure for release-version-scoped process media such as release screenshots, typesetting/karaoke examples, fun/outtake images, and other admin/fansub working media. These uploads must still create `media_assets` and `media_files`, but they must not be forced through `release_media`.
+
+`release_media` remains a separate release-level/public/legacy asset seam and must not be used as an implicit substitute for media that belongs to a concrete `release_version_id`.
+
+### Why This Won
+The implemented Phase-34 through Phase-38 flow, permissions, cleanup, UI, and API are built around a concrete release-version context. The live local DB on 2026-05-25 also confirms this shape: `release_version_media` contains data, has `release_version_id -> release_versions.id`, while `release_media` is empty and has no version scope.
+
+Forcing this flow back onto `release_media` would either erase the version scope or require broad schema changes and migration risk. Dual-writing would create two competing truths.
+
+### Consequences
+- Admin Release-Version-Media endpoints remain the correct API surface for this flow.
+- The Fansub Release Drawer must pass a real `release_version_id` or disable the media entry until one is selected.
+- OpenAPI and domain docs must document `/api/v1/admin/release-versions/:versionId/media`.
+- `AGENTS.md` and `docs/architecture/db-schema-fansub-domain.md` must distinguish `release_version_media` from release-level `release_media`.
+- Public Release Assets still need a separate decision if process media should become public.
+
+### Follow-ups Required
+- Fix any drawer `release_id`/`release_version_id` wiring.
+- Update OpenAPI for admin release-version media.
+- Keep agent/domain docs aligned so future agents do not revert the canonical table.
+- Decide whether public release asset reads should ever include or promote from `release_version_media`.
+
 ## 2026-05-05 - Fansub Domain Agent Work Uses The Repo Schema Reference First
 
 ### Decision
@@ -169,7 +232,7 @@ The current worktree spans Phase 29 through Phase 32 plus cleanup-boundary migra
 
 ### Consequences
 - anime and episodes stay neutral in agent reasoning
-- release/process media must stay on `release_media`
+- release-version-scoped process media must stay on `release_version_media`; release-level/public assets may stay on `release_media`
 - group media must stay on `fansub_group_media`
 - `release_version_groups.fansub_group_id` stays canonical and `fansubgroup_id` is treated as legacy cleanup only
 - agents should stop instead of guessing when schema or ownership truth conflicts
@@ -180,10 +243,10 @@ The current worktree spans Phase 29 through Phase 32 plus cleanup-boundary migra
 ## 2026-05-02 - release_version_groups Runtime Uses fansub_group_id Only
 
 ### Decision
-Treat `release_version_groups.fansub_group_id` as the only runtime source of truth. Backend runtime code must not read from or write to the legacy duplicate `fansubgroup_id` column while the DB column remains present for a later cleanup migration.
+Treat `release_version_groups.fansub_group_id` as the only runtime source of truth. Backend runtime code must not read from or write to the legacy duplicate `fansubgroup_id` column. The live local DB checked on 2026-05-25 no longer exposes `release_version_groups.fansubgroup_id`; older target DBs should still be checked before assuming the cleanup already ran everywhere.
 
 ### Final Drop Safety Check
-Run this before the final drop migration:
+Run this before a final drop migration only on a target DB where the legacy column still exists:
 
 ```sql
 SELECT *
