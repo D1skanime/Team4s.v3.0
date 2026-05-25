@@ -89,13 +89,15 @@ Für Release-Prozess-Medien wie:
 ist die fachlich relevante Struktur:
 
 ```txt
-fansub_releases
-release_media
+release_versions
+release_version_media
 media_assets
 media_files
 ```
 
-**Pflichtregel:** Ein Release-Media-Upload gilt erst als vollständig, wenn neben `media_assets` und `media_files` auch `release_media` korrekt befüllt wurde.
+**Pflichtregel:** Ein Release-Version-Media-Upload im Admin-/Fansub-Arbeitsfluss gilt erst als vollständig, wenn neben `media_assets` und `media_files` auch `release_version_media` mit einer echten `release_version_id` korrekt befüllt wurde.
+
+`release_media` bleibt ein separater Release-Level-/Public-/Legacy-Asset-Pfad und ist kein Ersatz für versionierte Prozessmedien.
 
 ---
 
@@ -152,7 +154,7 @@ Fansub-Gruppe
  ├── Media / Gruppenmedia -> fansub_groups.logo_id, banner_id, fansub_group_media
  ├── Anime & Releases -> anime_fansub_groups + anime + episodes + fansub_releases
  ├── Release-Detail -> fansub_releases + release_versions
- ├── Release-Media -> release_media + media_assets + media_files
+ ├── Release-Version-Media -> release_version_media + media_assets + media_files
  └── Rollen-/Beitragsdaten -> release_member_roles, member_episode_notes, member_anime_notes
 ```
 
@@ -343,7 +345,8 @@ UI-Mapping:
 
 - Release-Zeilen unter einem Anime.
 - Release-Drawer-Grundkontext.
-- Release-Media hängt hier über `release_media` an.
+- Release-Version-Media hängt über `release_versions` und `release_version_media` an.
+- `release_media` bleibt ein separater Release-Level-/Public-/Legacy-Pfad.
 
 Wichtige Regel:
 
@@ -402,7 +405,6 @@ Spalten:
 release_version_id bigint NOT NULL
 fansub_group_id bigint NOT NULL
 created_at timestamptz NOT NULL
-fansubgroup_id bigint
 ```
 
 Primary Key:
@@ -416,14 +418,14 @@ Foreign Keys:
 ```txt
 release_version_id -> release_versions.id ON DELETE CASCADE
 fansub_group_id -> fansub_groups.id ON DELETE CASCADE
-fansubgroup_id -> fansub_groups.id ON DELETE CASCADE
 ```
 
-Auffälligkeit:
+Historische Auffälligkeit:
 
-- Es gibt `fansub_group_id` und zusätzlich `fansubgroup_id`.
-- Das wirkt redundant oder historisch gewachsen.
-- Ein Agent darf hier nicht raten, sondern muss prüfen, welches Feld produktiv verwendet wird.
+- Ältere Dumps/Dokumente erwähnten zusätzlich `fansubgroup_id`.
+- Die live geprüfte lokale DB vom 2026-05-25 enthält diese Legacy-Spalte nicht mehr.
+- `fansub_group_id` ist die einzige produktive Spalte für Fansub-Gruppen an Release-Versionen.
+- Ein Agent darf `fansubgroup_id` nicht wieder einführen.
 
 ---
 
@@ -483,7 +485,7 @@ Verwendung:
 
 ## 3.10 `release_media`
 
-Fachliche Bedeutung: Verbindung zwischen Release und Media-Asset.
+Fachliche Bedeutung: Verbindung zwischen Release und Media-Asset für Release-Level-/Public-/Legacy-Assets.
 
 Spalten:
 
@@ -509,19 +511,47 @@ media_id -> media_assets.id ON DELETE CASCADE
 
 UI-Mapping:
 
-- Release-Drawer -> Tab „Media“.
-- Release-Media-Grid.
+- Release-Level-/Public-Asset-Reads.
+- Legacy-/Aggregator-Pfade, solange sie noch existieren.
 - Sortierung über `sort_order`.
 
 Wichtige Regel:
 
-- Release-Media-Uploads müssen diese Tabelle befüllen.
+- Versionierte Admin-/Fansub-Prozessmedien dürfen nicht in diese Tabelle zurückgebogen werden.
+- Wenn der Kontext eine konkrete Release-Version ist, ist `release_version_media` zuständig.
 
 Offen:
 
 - Es gibt im Dump keine direkte Kategorie-Spalte für Bildtypen wie `anime_screenshot`, `history`, `fun`, `nostalgia`.
 - Es gibt im Dump keine direkte Rollen-/Untertyp-Spalte in `release_media`.
-- Es muss entschieden werden, ob solche Metadaten in `media_assets`, einer neuen Mapping-Spalte oder einer separaten Tabelle gespeichert werden.
+- Für versionierte Admin-/Fansub-Prozessmedien ist diese Lücke durch `release_version_media.category` aufgelöst.
+- Für echte Release-Level-/Public-Assets bleibt separat zu entscheiden, ob und wie Kategorien benötigt werden.
+
+---
+
+## 3.10a `release_version_media`
+
+Fachliche Bedeutung: Verbindung zwischen einer konkreten Release-Version und Media-Assets für Admin-/Fansub-Prozessmedien.
+
+Aktueller Runtime-Stand:
+
+```txt
+release_version_id -> release_versions.id
+media_asset_id -> media_assets.id
+category
+caption
+sort_order
+is_preview_candidate
+uploaded_by_user_id
+created_at / updated_at
+deleted_at / deleted_by_user_id
+```
+
+Wichtige Regel:
+
+- Dieser Flow muss mit einer echten `release_version_id` arbeiten.
+- Ein `release_id` darf nicht als Ersatz für `release_version_id` verwendet werden.
+- Diese Struktur nutzt weiterhin `media_assets` und `media_files`.
 
 ---
 
@@ -592,7 +622,8 @@ Hinweis:
 
 - Diese Tabellen existieren.
 - Sie sind nicht automatisch der richtige Ort für Fansub-Prozess-Medien.
-- Release-Prozess-Medien gehören fachlich zu `release_media`.
+- Release-Level-/Public-/Legacy-Assets können hier hängen.
+- Versionierte Admin-/Fansub-Prozessmedien gehören fachlich zu `release_version_media`.
 
 ---
 
@@ -829,14 +860,14 @@ episode_media
 
 ---
 
-### 5.2 Release-Media-Upload Mindestablauf
+### 5.2 Release-Version-Media-Upload Mindestablauf
 
-Ein Release-Media-Upload sollte mindestens:
+Ein Release-Version-Media-Upload im Admin-/Fansub-Arbeitsfluss sollte mindestens:
 
 ```txt
 1. Request validieren
 2. Rechte prüfen
-3. Release-Kontext prüfen
+3. Release-Version-Kontext prüfen
 4. Datei speichern
 5. Datei analysieren
    - MIME-Type
@@ -845,7 +876,7 @@ Ein Release-Media-Upload sollte mindestens:
    - Hash, falls unterstützt
 6. media_assets erstellen
 7. media_files erstellen
-8. release_media erstellen
+8. release_version_media mit echter release_version_id erstellen
 9. Response mit Asset/Media-Daten zurückgeben
 ```
 
@@ -853,7 +884,8 @@ Wichtig:
 
 - DB-Schritte sollten transaktional sein.
 - Bei Fehlern dürfen keine verwaisten Dateien/Assets entstehen.
-- `release_media` ist Pflicht für Release-Kontext.
+- `release_version_media` ist Pflicht für versionierte Admin-/Fansub-Prozessmedien.
+- `release_media` ist kein Ersatz für diesen Flow.
 
 ---
 
@@ -893,13 +925,16 @@ nostalgia
 other
 ```
 
-ist im Dump keine eindeutige Zielspalte in `release_media` oder `fansub_group_media` ersichtlich.
+ist im alten Dump keine eindeutige Zielspalte in `release_media` oder `fansub_group_media` ersichtlich.
+
+Aktueller Stand:
+Für versionierte Admin-/Fansub-Prozessmedien ist `release_version_media.category` die Zielspalte. Für echte Release-Level-/Public-Assets auf `release_media` und für `fansub_group_media` bleibt Kategorie-Metadaten-Design separat zu entscheiden.
 
 Ein Agent muss vor Implementierung prüfen:
 
 - Gibt es `media_types`, die dafür gedacht sind?
 - Reicht `media_assets.caption` nicht aus, weil es nur Text ist?
-- Muss `release_media` erweitert werden?
+- Muss `release_media` für echte Release-Level-/Public-Assets erweitert werden?
 - Muss `fansub_group_media` erweitert werden?
 - Braucht es eine allgemeine Media-Metadatenstruktur?
 
@@ -952,12 +987,12 @@ Nicht ausreichend:
 
 Diese Punkte dürfen Implementierungs-Agenten nicht stillschweigend raten:
 
-1. Hängt zukünftiges Release-Media nur an `fansub_releases` oder optional auch an `release_versions`?
-2. Wo werden Kategorien für `release_media` gespeichert?
+1. Sollen versionierte Admin-/Fansub-Prozessmedien irgendwann öffentlich sichtbar werden oder intern bleiben?
+2. Wo werden Kategorien für echte Release-Level-/Public-Assets auf `release_media` gespeichert, falls sie benötigt werden?
 3. Wo werden Kategorien für `fansub_group_media` gespeichert?
 4. Wird `anime_fansub_groups.notes` als Anime-Hauptbeschreibung im Gruppenkontext genutzt oder braucht es eine neue Struktur?
 5. Wie sollen `member_anime_notes` gruppenspezifisch interpretiert werden, da sie aktuell keinen `fansub_group_id`-Bezug haben?
-6. Sind `fansub_group_id` und `fansubgroup_id` in `release_version_groups` beide produktiv oder ist eines Legacy?
+6. Ist die Legacy-Spalte `release_version_groups.fansubgroup_id` in allen Ziel-DBs bereits entfernt oder braucht es noch eine finale Cleanup-Migration?
 7. Wird Media-Sortierung pro Release global oder pro Kategorie umgesetzt?
 8. Welche Upload-Limits gelten für Bilder, GIFs und Videos?
 9. Sind MP4/WebM Teil des aktuellen Scopes oder später?
@@ -989,28 +1024,29 @@ Ziel:
 
 ---
 
-### Phase 3: Release-Media API/Mapping prüfen
+### Phase 3: Release-Version-Media API/Mapping prüfen
 
 Ziel:
 
 - Bestehende Backend-Routen, Models, Repositories und Tabellen prüfen.
-- Entscheiden, ob `release_media` erweitert werden muss.
+- Sicherstellen, dass Admin-/Fansub-Prozessmedien über `release_version_media` laufen.
+- Entscheiden, ob `release_media` nur für echte Release-Level-/Public-Assets erweitert werden muss.
 
 Keine geratenen Migrationen.
 
 ---
 
-### Phase 4: Release-Media Upload
+### Phase 4: Release-Version-Media Upload
 
 Ziel:
 
 - Upload in Release-Drawer einbauen.
-- `media_assets`, `media_files`, `release_media` korrekt befüllen.
+- `media_assets`, `media_files`, `release_version_media` mit echter `release_version_id` korrekt befüllen.
 - Grid nach Upload aktualisieren.
 
 ---
 
-### Phase 5: Release-Media verwalten
+### Phase 5: Release-Version-Media verwalten
 
 Ziel:
 
@@ -1039,7 +1075,7 @@ Für alle Agenten gilt:
 Prüfe zuerst das aktuelle Schema und bestehende Patterns.
 Nutze bestehende Tabellen.
 Anime und Episode bleiben neutral.
-Release-Media gehört in den Release-Kontext.
+Release-Version-Media gehört in den konkreten Release-Version-Kontext.
 Gruppenmedia gehört in den Gruppenkontext.
 Keine neue Media-Parallelstruktur erfinden.
 Keine Schema-Entscheidungen raten.

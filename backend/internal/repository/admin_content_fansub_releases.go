@@ -24,6 +24,10 @@ func (r *AdminContentRepository) ListFansubAnimeReleases(
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			fr.id                                       AS release_id,
+			CASE
+				WHEN COUNT(DISTINCT rv2.id) = 1 THEN MIN(rv2.id)
+				ELSE 0
+			END                                         AS release_version_id,
 			a.id                                        AS anime_id,
 			a.title                                     AS anime_title,
 			fg.id                                       AS fansub_group_id,
@@ -77,6 +81,7 @@ func (r *AdminContentRepository) ListFansubAnimeReleases(
 		var item models.AdminFansubReleaseSummary
 		if err := rows.Scan(
 			&item.ReleaseID,
+			&item.ReleaseVersionID,
 			&item.AnimeID,
 			&item.AnimeTitle,
 			&item.FansubGroupID,
@@ -122,6 +127,10 @@ func (r *AdminContentRepository) GetCanonicalFansubAnimeReleaseSummary(
 	err := r.db.QueryRow(ctx, `
 		SELECT
 			fr.id                                       AS release_id,
+			CASE
+				WHEN COUNT(DISTINCT rv2.id) = 1 THEN MIN(rv2.id)
+				ELSE 0
+			END                                         AS release_version_id,
 			a.id                                        AS anime_id,
 			a.title                                     AS anime_title,
 			fg.id                                       AS fansub_group_id,
@@ -167,6 +176,7 @@ func (r *AdminContentRepository) GetCanonicalFansubAnimeReleaseSummary(
 		LIMIT 1
 	`, fansubGroupID, animeID).Scan(
 		&item.ReleaseID,
+		&item.ReleaseVersionID,
 		&item.AnimeID,
 		&item.AnimeTitle,
 		&item.FansubGroupID,
@@ -206,6 +216,10 @@ func (r *AdminContentRepository) GetAdminReleaseByID(
 	err := r.db.QueryRow(ctx, `
 		SELECT
 			fr.id                                       AS release_id,
+			CASE
+				WHEN COUNT(DISTINCT rv2.id) = 1 THEN COALESCE(MIN(rv2.id), 0)
+				ELSE 0
+			END                                         AS release_version_id,
 			a.id                                        AS anime_id,
 			a.title                                     AS anime_title,
 			COALESCE(MIN(fg.id), 0)                     AS fansub_group_id,
@@ -243,6 +257,7 @@ func (r *AdminContentRepository) GetAdminReleaseByID(
 		GROUP BY fr.id, a.id, a.title, ep.id, ep.episode_number, ep.title, fr.source, fr.created_at
 	`, releaseID).Scan(
 		&item.ReleaseID,
+		&item.ReleaseVersionID,
 		&item.AnimeID,
 		&item.AnimeTitle,
 		&item.FansubGroupID,

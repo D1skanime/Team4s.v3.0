@@ -439,6 +439,7 @@ export interface FansubMediaUploadResponse {
  * Surfaces release identity, anime context, fansub/group context, and episode anchor. */
 export interface AdminFansubRelease {
   release_id: number;
+  release_version_id: number;
   anime_id: number;
   anime_title: string;
   fansub_group_id: number;

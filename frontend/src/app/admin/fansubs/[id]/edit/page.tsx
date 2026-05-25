@@ -3221,11 +3221,17 @@ function AdminFansubEditContent() {
 
               {drawerTab === "media" ? (
                 <div className={styles.fansubEditReleaseDrawerPanel}>
-                  <ReleaseVersionMediaDrawerSummary
-                    versionId={drawerRelease.release_id}
-                    fansubName={drawerRelease.fansub_name}
-                    releaseVersionLabel={`Release ${drawerRelease.release_id}`}
-                  />
+                  {drawerRelease.release_version_id > 0 ? (
+                    <ReleaseVersionMediaDrawerSummary
+                      versionId={drawerRelease.release_version_id}
+                      fansubName={drawerRelease.fansub_name}
+                      releaseVersionLabel={`Release-Version ${drawerRelease.release_version_id}`}
+                    />
+                  ) : (
+                    <div className={styles.fansubEditReleaseState}>
+                      Für diesen Release ist keine konkrete Release-Version verfügbar.
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>

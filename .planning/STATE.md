@@ -311,6 +311,7 @@ Recent durable decisions:
 | 260511-bxr | Fansub-Edit Banner top-crop fix + Logo-Position neben Gruppenname | 2026-05-11 | 72b69bf4 | [260511-bxr-fansub-edit-banner-top-crop-fix](./quick/260511-bxr-fansub-edit-banner-top-crop-fix/) |
 | 260511-hfd | ReleaseVersionMediaGallery 3 Test-Bugs fixen (draggable + GIF src-swap) | 2026-05-11 | 4eab759c | [260511-hfd-releaseversionmediagallery-3-test-bugs-f](./quick/260511-hfd-releaseversionmediagallery-3-test-bugs-f/) |
 | 260511-jjq | Umlaut-Regel in AGENTS.md ergaenzen (Codex-Pendant zu CLAUDE.md) | 2026-05-11 | 58fd4fca | [260511-jjq-umlaut-regel-in-agents-md-ergaenzen](./quick/260511-jjq-umlaut-regel-in-agents-md-ergaenzen/) |
+| 260525 | Code-Altlasten-Audit WP-02: Fansub-Drawer nutzt release_version_id fuer Release-Version-Media | 2026-05-25 | working tree | [260525-code-altlasten-und-domain-audit](./quick/260525-code-altlasten-und-domain-audit/) |
 
 ## Session Continuity
 

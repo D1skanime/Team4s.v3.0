@@ -236,23 +236,24 @@ func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 		listFansubAnimeReleases: func(_ context.Context, fansubGroupID, animeID int64) ([]models.AdminFansubReleaseSummary, error) {
 			return []models.AdminFansubReleaseSummary{
 				{
-					ReleaseID:       releaseID,
-					AnimeID:         animeID,
-					AnimeTitle:      "Naruto",
-					FansubGroupID:   fansubGroupID,
-					FansubName:      "Dattebayo",
-					EpisodeID:       1,
-					EpisodeNumber:   "1",
-					VersionCount:    2,
-					HasThemeAssets:  true,
-					DurationSeconds: &durationSeconds,
+					ReleaseID:        releaseID,
+					ReleaseVersionID: 142,
+					AnimeID:          animeID,
+					AnimeTitle:       "Naruto",
+					FansubGroupID:    fansubGroupID,
+					FansubName:       "Dattebayo",
+					EpisodeID:        1,
+					EpisodeNumber:    "1",
+					VersionCount:     2,
+					HasThemeAssets:   true,
+					DurationSeconds:  &durationSeconds,
 				},
 			}, nil
 		},
 	}
 	handler := &AdminContentHandler{
-		authzRepo: adminRoleCheckerStub{isAdmin: true},
-		themeRepo: stub,
+		authzRepo:     adminRoleCheckerStub{isAdmin: true},
+		themeRepo:     stub,
 		permissionSvc: permissions.NewService(releasePermissionResolverStub{}),
 	}
 
@@ -282,6 +283,9 @@ func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 	if resp.Data[0].ReleaseID != releaseID {
 		t.Fatalf("expected release id %d, got %d", releaseID, resp.Data[0].ReleaseID)
 	}
+	if resp.Data[0].ReleaseVersionID != 142 {
+		t.Fatalf("expected release version id 142, got %d", resp.Data[0].ReleaseVersionID)
+	}
 	if resp.Data[0].DurationSeconds == nil || *resp.Data[0].DurationSeconds != durationSeconds {
 		t.Fatalf("expected duration_seconds %d, got %v", durationSeconds, resp.Data[0].DurationSeconds)
 	}
@@ -303,8 +307,8 @@ func TestAdminFansubReleases_GetCanonicalReturnsNilReleaseWhenNoneExists(t *test
 		},
 	}
 	handler := &AdminContentHandler{
-		authzRepo: adminRoleCheckerStub{isAdmin: true},
-		themeRepo: stub,
+		authzRepo:     adminRoleCheckerStub{isAdmin: true},
+		themeRepo:     stub,
 		permissionSvc: permissions.NewService(releasePermissionResolverStub{}),
 	}
 
@@ -342,8 +346,8 @@ func TestAdminFansubReleases_GetAdminReleaseByIDReturns404WhenMissing(t *testing
 		},
 	}
 	handler := &AdminContentHandler{
-		authzRepo: adminRoleCheckerStub{isAdmin: true},
-		themeRepo: stub,
+		authzRepo:     adminRoleCheckerStub{isAdmin: true},
+		themeRepo:     stub,
 		permissionSvc: permissions.NewService(releasePermissionResolverStub{}),
 	}
 

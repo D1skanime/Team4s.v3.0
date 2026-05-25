@@ -47,7 +47,8 @@ Core rules:
 - `release_version_groups.fansub_group_id` is the canonical fansub-group column.
 - Do not use or reintroduce legacy `release_version_groups.fansubgroup_id`.
 - Release media must not be attached directly to episodes.
-- Release media must use the existing `media_files`, `media_assets`, and `release_media` structures.
+- Release-version-scoped process media must use `release_version_media` with `media_assets` and `media_files`, and must be addressed by a real `release_version_id`.
+- `release_media` is a separate release-level/public/legacy asset seam and must not be used as a substitute for version-scoped admin/fansub media.
 - Group media must use the existing `fansub_group_media`, `media_assets`, and `media_files` structures where applicable.
 - Do not invent parallel media logic.
 - Do not silently introduce new tables or API contracts without documenting the reason and marking the decision.

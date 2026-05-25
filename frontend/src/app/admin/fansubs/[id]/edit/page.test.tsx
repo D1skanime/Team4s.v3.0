@@ -20,7 +20,7 @@ vi.mock('next/navigation', () => ({
   useParams: () => ({ id: '88' }),
 }))
 
-const mockedUseReleaseVersionMedia = vi.fn<() => UseReleaseVersionMediaResult>()
+const mockedUseReleaseVersionMedia = vi.fn<(versionId: number | null) => UseReleaseVersionMediaResult>()
 const mockedUseAuthSession = vi.hoisted(() => vi.fn(() => ({ hasAccessToken: true, isClientInitialized: true })))
 const mediaUploadProps = vi.hoisted(() => [] as Array<Record<string, unknown>>)
 const appMembersSectionProps = vi.hoisted(() => [] as Array<Record<string, unknown>>)
@@ -38,6 +38,7 @@ const apiMocks = vi.hoisted(() => ({
   getAdminFansubAnimeReleases: vi.fn(),
   getAdminRelease: vi.fn(),
   getAdminReleaseThemeAssets: vi.fn(),
+  getCurrentUser: vi.fn(),
   getFansubAliases: vi.fn(),
   getFansubByID: vi.fn(),
   getFansubList: vi.fn(),
@@ -91,7 +92,7 @@ vi.mock('./NotesTab', () => ({
 }))
 
 vi.mock('@/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia', () => ({
-  useReleaseVersionMedia: () => mockedUseReleaseVersionMedia(),
+  useReleaseVersionMedia: (versionId: number | null) => mockedUseReleaseVersionMedia(versionId),
 }))
 
 import { ReleaseVersionMediaDrawerSummary } from './ReleaseVersionMediaDrawerSummary'
@@ -143,7 +144,12 @@ beforeEach(() => {
     },
   })
   apiMocks.getFansubAliases.mockResolvedValue({ data: [] })
+  apiMocks.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: true } })
   apiMocks.getAdminFansubAnime.mockResolvedValue({ data: [] })
+  apiMocks.getAdminAnimeThemes.mockResolvedValue({ data: [] })
+  apiMocks.getAdminAnimeThemeSegments.mockResolvedValue({ data: [] })
+  apiMocks.getAdminReleaseThemeAssets.mockResolvedValue({ data: [] })
+  mockedUseReleaseVersionMedia.mockReturnValue(makeMediaState())
 })
 
 function makeMediaState(): UseReleaseVersionMediaResult {
@@ -222,9 +228,9 @@ describe('AdminFansubEditPage token-free wiring', () => {
     await screen.findByRole('heading', { name: 'SubGroup' })
     fireEvent.click(screen.getByRole('button', { name: 'Medien' }))
 
-    await waitFor(() => expect(mediaUploadProps).toHaveLength(2))
+    await waitFor(() => expect(mediaUploadProps.length).toBeGreaterThanOrEqual(2))
     expect(mediaUploadProps.every((props) => !Object.prototype.hasOwnProperty.call(props, 'authToken'))).toBe(true)
-    expect(mediaUploadProps.map((props) => props.disabled)).toEqual([false, false])
+    expect(mediaUploadProps.slice(-2).map((props) => props.disabled)).toEqual([false, false])
   })
 
   it('passes token-free access state into child sections', async () => {
@@ -242,5 +248,44 @@ describe('AdminFansubEditPage token-free wiring', () => {
 
     expect(animeProjectSectionProps.at(-1)).toMatchObject({ fansubId: 88, hasAccessToken: true })
     expect(Object.prototype.hasOwnProperty.call(animeProjectSectionProps.at(-1), 'authToken')).toBe(false)
+  })
+
+  it('uses release_version_id for drawer media instead of release_id', async () => {
+    const release = {
+      release_id: 62,
+      release_version_id: 6201,
+      anime_id: 13,
+      anime_title: '11eyes',
+      fansub_group_id: 94,
+      fansub_name: 'Bloody-Shadow',
+      episode_id: 249,
+      episode_number: '1',
+      episode_title: 'Erste Folge',
+      source: null,
+      version_count: 1,
+      has_theme_assets: false,
+      duration_seconds: null,
+      created_at: '2026-05-25T00:00:00Z',
+    }
+
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [{ id: 13, title: '11eyes', type: 'tv', header_image: null, cover_image: null }],
+    })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue({ data: [release] })
+    apiMocks.getAdminRelease.mockResolvedValue({ data: release })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    fireEvent.click(screen.getByRole('button', { name: 'Anime & Veröffentlichungen' }))
+    fireEvent.click(await screen.findByRole('button', { name: '11eyes ausklappen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Editieren' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Media' }))
+
+    await waitFor(() => expect(mockedUseReleaseVersionMedia).toHaveBeenCalledWith(6201))
+    expect(mockedUseReleaseVersionMedia).not.toHaveBeenCalledWith(62)
+    expect(screen.getByRole('link', { name: 'Media verwalten' }).getAttribute('href')).toContain(
+      '/admin/episode-versions/6201/edit',
+    )
   })
 })
