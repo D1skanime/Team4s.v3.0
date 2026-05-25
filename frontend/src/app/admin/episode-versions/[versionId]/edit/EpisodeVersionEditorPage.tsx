@@ -63,13 +63,13 @@ export function EpisodeVersionEditorPage() {
     }
 
     let cancelled = false;
-    setScopeError(null);
     void Promise.all([
       getCurrentUser(),
       getReleaseVersionCapabilities(version.id),
     ])
       .then(([userResponse, capabilityResponse]) => {
         if (cancelled) return;
+        setScopeError(null);
         setCurrentUser(userResponse.data);
         setReleaseCapabilities(capabilityResponse.data);
       })
@@ -98,11 +98,21 @@ export function EpisodeVersionEditorPage() {
   const canUseContributorNotes = releaseCapabilities?.can_edit_notes === true;
   const isCapabilityScopeReady =
     currentUser != null && releaseCapabilities != null;
+  const isCapabilityScopeLoading =
+    version != null && scopeError == null && !isCapabilityScopeReady;
   const isContributorScopedEditor =
-    currentUser != null &&
+    isCapabilityScopeReady &&
     !isPlatformAdmin &&
     (canUseContributorMedia || canUseContributorNotes);
+  const shouldRenderAdminTabs = isCapabilityScopeReady && isPlatformAdmin;
+  const shouldRenderContributorTabs =
+    isCapabilityScopeReady && isContributorScopedEditor;
+  const hasNoVersionEditorAccess =
+    isCapabilityScopeReady && !isPlatformAdmin && !isContributorScopedEditor;
   const allowedTabs = useMemo(() => {
+    if (!isCapabilityScopeReady) {
+      return new Set<ActiveTab>();
+    }
     if (isPlatformAdmin) {
       return new Set<ActiveTab>([
         "uebersicht",
@@ -121,21 +131,16 @@ export function EpisodeVersionEditorPage() {
   }, [
     canUseContributorMedia,
     canUseContributorNotes,
-    currentUser,
+    isCapabilityScopeReady,
     isPlatformAdmin,
   ]);
-
-  useEffect(() => {
-    if (
-      !version ||
-      currentUser == null ||
-      allowedTabs.size === 0 ||
-      allowedTabs.has(activeTab)
-    ) {
-      return;
-    }
-    setActiveTab(canUseContributorMedia ? "media" : "notizen");
-  }, [activeTab, allowedTabs, canUseContributorMedia, currentUser, version]);
+  const visibleActiveTab: ActiveTab = allowedTabs.has(activeTab)
+    ? activeTab
+    : allowedTabs.has("media")
+      ? "media"
+      : allowedTabs.has("notizen")
+        ? "notizen"
+        : activeTab;
 
   const backHref =
     animeIDFromQuery && episodeIDFromQuery
@@ -186,9 +191,11 @@ export function EpisodeVersionEditorPage() {
             <p className={styles.eyebrow}>
               {!isCapabilityScopeReady
                 ? "Editor"
-                : isContributorScopedEditor
-                  ? "Contributor Editor"
-                  : "Admin Editor"}
+                : isPlatformAdmin
+                  ? "Admin Editor"
+                  : isContributorScopedEditor
+                    ? "Contributor Editor"
+                    : "Editor"}
             </p>
             <h1 className={styles.title}>
               {animeTitle || "Episode-Version bearbeiten"}
@@ -233,14 +240,15 @@ export function EpisodeVersionEditorPage() {
             }}
           >
             {/* 5-Tab navigation */}
-            <div className={styles.tabNav}>
-              {!isCapabilityScopeReady ? null : isContributorScopedEditor ? (
+            {shouldRenderAdminTabs || shouldRenderContributorTabs ? (
+              <div className={styles.tabNav}>
+                {shouldRenderContributorTabs ? (
                 <>
                   {allowedTabs.has("media") ? (
                     <button
                       type="button"
                       className={
-                        activeTab === "media" ? styles.tabActive : styles.tab
+                        visibleActiveTab === "media" ? styles.tabActive : styles.tab
                       }
                       onClick={() => setActiveTab("media")}
                     >
@@ -251,7 +259,7 @@ export function EpisodeVersionEditorPage() {
                     <button
                       type="button"
                       className={
-                        activeTab === "notizen" ? styles.tabActive : styles.tab
+                        visibleActiveTab === "notizen" ? styles.tabActive : styles.tab
                       }
                       onClick={() => setActiveTab("notizen")}
                     >
@@ -259,12 +267,12 @@ export function EpisodeVersionEditorPage() {
                     </button>
                   ) : null}
                 </>
-              ) : (
+              ) : shouldRenderAdminTabs ? (
                 <>
                   <button
                     type="button"
                     className={
-                      activeTab === "uebersicht" ? styles.tabActive : styles.tab
+                      visibleActiveTab === "uebersicht" ? styles.tabActive : styles.tab
                     }
                     onClick={() => setActiveTab("uebersicht")}
                   >
@@ -273,7 +281,7 @@ export function EpisodeVersionEditorPage() {
                   <button
                     type="button"
                     className={
-                      activeTab === "dateien" ? styles.tabActive : styles.tab
+                      visibleActiveTab === "dateien" ? styles.tabActive : styles.tab
                     }
                     onClick={() => setActiveTab("dateien")}
                   >
@@ -282,7 +290,7 @@ export function EpisodeVersionEditorPage() {
                   <button
                     type="button"
                     className={
-                      activeTab === "informationen"
+                      visibleActiveTab === "informationen"
                         ? styles.tabActive
                         : styles.tab
                     }
@@ -293,7 +301,7 @@ export function EpisodeVersionEditorPage() {
                   <button
                     type="button"
                     className={
-                      activeTab === "segmente" ? styles.tabActive : styles.tab
+                      visibleActiveTab === "segmente" ? styles.tabActive : styles.tab
                     }
                     onClick={() => setActiveTab("segmente")}
                   >
@@ -302,7 +310,7 @@ export function EpisodeVersionEditorPage() {
                   <button
                     type="button"
                     className={
-                      activeTab === "media" ? styles.tabActive : styles.tab
+                      visibleActiveTab === "media" ? styles.tabActive : styles.tab
                     }
                     onClick={() => setActiveTab("media")}
                   >
@@ -311,7 +319,7 @@ export function EpisodeVersionEditorPage() {
                   <button
                     type="button"
                     className={
-                      activeTab === "changelog" ? styles.tabActive : styles.tab
+                      visibleActiveTab === "changelog" ? styles.tabActive : styles.tab
                     }
                     onClick={() => setActiveTab("changelog")}
                   >
@@ -320,26 +328,34 @@ export function EpisodeVersionEditorPage() {
                   <button
                     type="button"
                     className={
-                      activeTab === "notizen" ? styles.tabActive : styles.tab
+                      visibleActiveTab === "notizen" ? styles.tabActive : styles.tab
                     }
                     onClick={() => setActiveTab("notizen")}
                   >
                     Notizen / Beiträge
                   </button>
                 </>
-              )}
-            </div>
+                ) : null}
+              </div>
+            ) : null}
 
-            {allowedTabs.size === 0 ? (
+            {isCapabilityScopeLoading ? (
               <section className={styles.card}>
                 <p className={styles.helperText}>
                   Berechtigungen werden geladen...
                 </p>
               </section>
             ) : null}
+            {hasNoVersionEditorAccess ? (
+              <section className={styles.card}>
+                <p className={styles.helperText}>
+                  Kein Zugriff auf diese Release-Version.
+                </p>
+              </section>
+            ) : null}
 
             {/* Übersicht tab stub */}
-            {allowedTabs.has("uebersicht") && activeTab === "uebersicht" ? (
+            {allowedTabs.has("uebersicht") && visibleActiveTab === "uebersicht" ? (
               <section className={styles.card}>
                 <div className={styles.sectionHeader}>
                   <div>
@@ -374,7 +390,7 @@ export function EpisodeVersionEditorPage() {
             ) : null}
 
             {/* Dateien tab stub */}
-            {allowedTabs.has("dateien") && activeTab === "dateien" ? (
+            {allowedTabs.has("dateien") && visibleActiveTab === "dateien" ? (
               <section className={styles.card}>
                 <div className={styles.sectionHeader}>
                   <div>
@@ -521,7 +537,7 @@ export function EpisodeVersionEditorPage() {
 
             {/* Informationen tab — main metadata form */}
             {allowedTabs.has("informationen") &&
-            activeTab === "informationen" ? (
+            visibleActiveTab === "informationen" ? (
               <>
                 <section className={styles.card}>
                   <div className={styles.sectionHeader}>
@@ -708,7 +724,7 @@ export function EpisodeVersionEditorPage() {
             ) : null}
 
             {/* Segmente tab */}
-            {allowedTabs.has("segmente") && activeTab === "segmente" ? (
+            {allowedTabs.has("segmente") && visibleActiveTab === "segmente" ? (
               <SegmenteTab
                 animeId={segmentAnimeId}
                 groupId={segmentGroupId}
@@ -720,7 +736,7 @@ export function EpisodeVersionEditorPage() {
             ) : null}
 
             {/* Media / Assets tab */}
-            {allowedTabs.has("media") && activeTab === "media" ? (
+            {allowedTabs.has("media") && visibleActiveTab === "media" ? (
               <section className={styles.card}>
                 {/* Context card — D-04/D-07: fansub group + release version title */}
                 <div className={styles.mediaContextCard}>
@@ -746,7 +762,7 @@ export function EpisodeVersionEditorPage() {
             ) : null}
 
             {/* Changelog tab stub */}
-            {allowedTabs.has("changelog") && activeTab === "changelog" ? (
+            {allowedTabs.has("changelog") && visibleActiveTab === "changelog" ? (
               <section className={styles.card}>
                 <div className={styles.sectionHeader}>
                   <div>
@@ -766,7 +782,7 @@ export function EpisodeVersionEditorPage() {
             ) : null}
 
             {/* Notizen / Beiträge tab */}
-            {allowedTabs.has("notizen") && activeTab === "notizen" ? (
+            {allowedTabs.has("notizen") && visibleActiveTab === "notizen" ? (
               <section className={styles.card}>
                 <div className={styles.sectionHeader}>
                   <div>

@@ -127,12 +127,15 @@ describe("AdminMyGroupDetailPage", () => {
     expect(screen.getByText("Keine App-Rechte")).not.toBeNull();
     expect(screen.getByText("Episode 07: Ankunft")).not.toBeNull();
     expect(screen.getByText("Coop-Release")).not.toBeNull();
-    expect(
-      screen.getByRole("link", { name: /Arbeitsfläche/ }).getAttribute("href"),
-    ).toBe("/admin/episode-versions/51/edit?tab=media");
-    expect(
-      screen.getByRole("link", { name: /Media/ }).getAttribute("href"),
-    ).toBe("/admin/episode-versions/51/edit?tab=media");
+    const workspaceLink = screen.getByRole("link", { name: "Arbeitsfläche" });
+    const mediaLink = screen.getByRole("link", { name: "Media" });
+
+    expect(workspaceLink.getAttribute("href")).toBe(
+      "/admin/episode-versions/51/edit?tab=media",
+    );
+    expect(mediaLink.getAttribute("href")).toBe(
+      "/admin/episode-versions/51/edit?tab=media",
+    );
     expect(getMyFansubGroupDetailMock).toHaveBeenCalledWith(88);
   });
 });
