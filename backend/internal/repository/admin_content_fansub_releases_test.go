@@ -75,6 +75,7 @@ func TestAdminContentFansubReleases_ReleaseSummaryContainsRequiredFields(t *test
 	// These json tag names must appear in the DTO definition.
 	requiredFields := []string{
 		"release_id",
+		"release_version_id",
 		"anime_id",
 		"fansub_group_id",
 		"episode_id",
@@ -86,6 +87,34 @@ func TestAdminContentFansubReleases_ReleaseSummaryContainsRequiredFields(t *test
 		if !strings.Contains(normalized, field) {
 			t.Fatalf("expected DTO json field %q to exist in admin_release_theme_assets.go", field)
 		}
+	}
+}
+
+func TestAdminContentFansubReleases_ReleaseSummarySelectsCanonicalReleaseVersionID(t *testing.T) {
+	content := readFansubReleasesSource(t, "admin_content_fansub_releases.go")
+	normalized := strings.ToLower(content)
+
+	requiredPatterns := []string{
+		"as release_version_id",
+		"count(distinct rv2.id)",
+		"min(rv2.id)",
+	}
+	for _, pattern := range requiredPatterns {
+		if !strings.Contains(normalized, pattern) {
+			t.Fatalf("expected repository query to include %q", pattern)
+		}
+	}
+}
+
+func TestAdminContentFansubReleases_UsesCanonicalFansubGroupColumn(t *testing.T) {
+	content := readFansubReleasesSource(t, "admin_content_fansub_releases.go")
+	normalized := strings.ToLower(content)
+
+	if strings.Contains(normalized, "fansubgroup_id") {
+		t.Fatalf("repository must not use legacy release_version_groups.fansubgroup_id")
+	}
+	if !strings.Contains(normalized, "rvg.fansub_group_id = $1") {
+		t.Fatalf("expected fansub release queries to scope through release_version_groups.fansub_group_id")
 	}
 }
 

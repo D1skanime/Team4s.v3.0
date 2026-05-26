@@ -16,6 +16,22 @@ func TestAnimeFansubJoinMigration_FansubDeleteCascadesDetach(t *testing.T) {
 	}
 }
 
+func TestReleaseVersionGroupsLegacyFansubgroupIDMigrationDropsOnlyAfterSafetyCheck(t *testing.T) {
+	content := readMigrationFile(t, "0057_drop_release_version_groups_fansubgroup_id.up.sql")
+	normalized := strings.ToLower(content)
+
+	requiredPatterns := []string{
+		"mismatched_rows",
+		"fansubgroup_id <> fansub_group_id",
+		"drop column if exists fansubgroup_id",
+	}
+	for _, pattern := range requiredPatterns {
+		if !strings.Contains(normalized, pattern) {
+			t.Fatalf("expected migration 0057 to include %q", pattern)
+		}
+	}
+}
+
 func readMigrationFile(t *testing.T, filename string) string {
 	t.Helper()
 
