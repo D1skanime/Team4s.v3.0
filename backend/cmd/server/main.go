@@ -131,7 +131,7 @@ func main() {
 	var authOptionalMiddleware gin.HandlerFunc
 	var keycloakVerifier *auth.KeycloakVerifier
 	if cfg.KeycloakEnabled {
-		keycloakVerifier, err = auth.NewKeycloakVerifier(ctx, cfg.KeycloakIssuerURL, cfg.KeycloakDiscoveryURL, cfg.KeycloakClientID)
+		keycloakVerifier, err = auth.NewKeycloakVerifier(ctx, cfg.KeycloakIssuerURL, cfg.KeycloakDiscoveryURL, cfg.KeycloakClientID, cfg.KeycloakAPIAudience)
 		if err != nil {
 			log.Fatalf("keycloak init failed: %v", err)
 		}

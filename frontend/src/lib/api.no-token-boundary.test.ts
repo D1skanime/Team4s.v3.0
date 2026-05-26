@@ -229,6 +229,14 @@ describe('Phase 49 no-token ownership boundaries', () => {
     expect(formatMatches(violations)).toBe('')
   })
 
+  it('keeps Keycloak ID tokens out of Team4s API bearer mapping', () => {
+    const apiSource = fs.readFileSync(path.join(srcRoot, 'lib', 'api.ts'), 'utf8')
+
+    expect(apiSource).not.toMatch(/access_token:\s*accessTokenData\.idToken/)
+    expect(apiSource).not.toMatch(/getCurrentUserWithBearerToken\(tokenBundle\.idToken\)/)
+    expect(apiSource).not.toMatch(/return tokenBundle\.idToken/)
+  })
+
   it('keeps docs and tests out of production boundary scans while making those allowlists explicit', () => {
     for (const docPath of docsAllowlist) {
       expect(fs.existsSync(path.resolve(frontendRoot, docPath)) || docPath.includes('auth-api-client.md') || docPath.includes('streaming-auth-handoff.md')).toBe(true)

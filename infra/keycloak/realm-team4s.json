@@ -4,6 +4,9 @@
   "displayName": "Team4s Local",
   "registrationAllowed": true,
   "resetPasswordAllowed": true,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 86400,
+  "ssoSessionMaxLifespan": 86400,
   "roles": {
     "realm": [
       {
@@ -20,6 +23,32 @@
       }
     ]
   },
+  "clientScopes": [
+    {
+      "name": "team4s-api",
+      "description": "Adds the Team4s API audience to frontend-issued access tokens.",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "team4s-api audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "team4s-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
   "clients": [
     {
       "clientId": "team4s-frontend",
@@ -39,7 +68,28 @@
         "pkce.code.challenge.method": "S256",
         "backchannel.logout.session.required": "true",
         "backchannel.logout.revoke.offline.tokens": "true"
-      }
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email",
+        "team4s-api"
+      ]
+    },
+    {
+      "clientId": "team4s-api",
+      "name": "Team4s API",
+      "enabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [],
+      "webOrigins": []
     }
   ],
   "users": [

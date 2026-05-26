@@ -967,7 +967,7 @@ function toRuntimeAuthData(
 ): AuthTokenData {
   return {
     token_type: accessTokenData.tokenType,
-    access_token: accessTokenData.idToken,
+    access_token: accessTokenData.accessToken,
     access_token_expires_at: accessTokenData.accessTokenExpiresAt,
     access_token_expires_in: accessTokenData.accessTokenExpiresIn,
     refresh_token: accessTokenData.refreshToken,
@@ -1105,9 +1105,9 @@ async function refreshRuntimeSession(): Promise<string> {
     try {
       if (isKeycloakEnabled()) {
         const tokenBundle = await refreshKeycloakToken(refreshToken);
-        const me = await getCurrentUserWithBearerToken(tokenBundle.idToken);
+        const me = await getCurrentUserWithBearerToken(tokenBundle.accessToken);
         persistAuthSession(toRuntimeAuthData(tokenBundle, me.data));
-        return tokenBundle.idToken;
+        return tokenBundle.accessToken;
       }
 
       const response = await refreshAuthToken({ refresh_token: refreshToken });
@@ -1146,7 +1146,7 @@ export async function completeKeycloakAuthCallback(
   state: string,
 ): Promise<CurrentUserResponse> {
   const tokenBundle = await exchangeKeycloakCode(code, state);
-  const me = await getCurrentUserWithBearerToken(tokenBundle.idToken);
+  const me = await getCurrentUserWithBearerToken(tokenBundle.accessToken);
   await persistResolvedAuthSession(toRuntimeAuthData(tokenBundle, me.data));
   return me;
 }
@@ -2415,8 +2415,8 @@ export async function getWatchlist(
   const API_BASE_URL = getApiBaseUrl();
   const query = buildWatchlistQuery(params);
   const url = `${API_BASE_URL}/api/v1/watchlist${query ? `?${query}` : ""}`;
-  const response = await fetch(url, {
-    headers: withAuthHeader({}, authToken),
+  const response = await authorizedFetch(url, {
+    authToken,
     cache: "no-store",
   });
 
@@ -4711,8 +4711,8 @@ export async function getAdminGenreTokens(
   if (params.limit && Number.isFinite(params.limit) && params.limit > 0)
     query.set("limit", String(params.limit));
   const url = `${API_BASE_URL}/api/v1/genres${query.toString() ? `?${query.toString()}` : ""}`;
-  const response = await fetch(url, {
-    headers: withAuthHeader({}, authToken),
+  const response = await authorizedFetch(url, {
+    authToken,
     cache: "no-store",
   });
 
@@ -4741,8 +4741,8 @@ export async function getAdminTagTokens(
   if (params.limit && Number.isFinite(params.limit) && params.limit > 0)
     query.set("limit", String(params.limit));
   const url = `${API_BASE_URL}/api/v1/admin/tags${query.toString() ? `?${query.toString()}` : ""}`;
-  const response = await fetch(url, {
-    headers: withAuthHeader({}, authToken),
+  const response = await authorizedFetch(url, {
+    authToken,
     cache: "no-store",
   });
 
@@ -4880,11 +4880,11 @@ export async function removeCollaborationMember(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl();
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/fansubs/${collaborationID}/collaboration-members/${memberGroupID}`,
     {
       method: "DELETE",
-      headers: withAuthHeader({}, authToken),
+      authToken,
     },
   );
 
@@ -5198,10 +5198,10 @@ export async function getAnimeSegmentSuggestions(
   params.set("episode", String(episode));
   if (excludeGroupId) params.set("exclude_group_id", String(excludeGroupId));
   if (excludeVersion) params.set("exclude_version", excludeVersion);
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/suggestions?${params.toString()}`,
     {
-      headers: withAuthHeader({}, authToken),
+      authToken,
       cache: "no-store",
     },
   );
@@ -5236,10 +5236,10 @@ export async function getSegmentLibraryCandidates(
   params.set("kind", kind);
   if (name?.trim()) params.set("name", name.trim());
 
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/library-candidates?${params.toString()}`,
     {
-      headers: withAuthHeader({}, authToken),
+      authToken,
       cache: "no-store",
     },
   );
@@ -5348,11 +5348,11 @@ export async function deleteSegmentAsset(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl();
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/asset`,
     {
       method: "DELETE",
-      headers: withAuthHeader({}, authToken),
+      authToken,
     },
   );
 
@@ -5378,10 +5378,10 @@ export async function getReleaseVersionMedia(
   authToken?: string,
 ): Promise<ReleaseVersionMediaListResponse> {
   const API_BASE_URL = getApiBaseUrl();
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media`,
     {
-      headers: withAuthHeader({}, authToken),
+      authToken,
       cache: "no-store",
     },
   );
@@ -5408,10 +5408,10 @@ export async function getReleaseVersionCapabilities(
   authToken?: string,
 ): Promise<ReleaseVersionCapabilitiesResponse> {
   const API_BASE_URL = getApiBaseUrl();
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/capabilities`,
     {
-      headers: withAuthHeader({}, authToken),
+      authToken,
       cache: "no-store",
     },
   );
@@ -5473,14 +5473,12 @@ export async function patchReleaseVersionMediaItem(
   authToken?: string,
 ): Promise<ReleaseVersionMediaItem> {
   const API_BASE_URL = getApiBaseUrl();
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media/${mediaId}`,
     {
       method: "PATCH",
-      headers: withAuthHeader(
-        { "Content-Type": "application/json" },
-        authToken,
-      ),
+      authToken,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
     },
   );
@@ -5508,11 +5506,11 @@ export async function deleteReleaseVersionMediaItem(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl();
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media/${mediaId}`,
     {
       method: "DELETE",
-      headers: withAuthHeader({}, authToken),
+      authToken,
     },
   );
 
@@ -5537,14 +5535,12 @@ export async function reorderReleaseVersionMedia(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl();
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media/reorder`,
     {
       method: "POST",
-      headers: withAuthHeader(
-        { "Content-Type": "application/json" },
-        authToken,
-      ),
+      authToken,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     },
   );
@@ -6153,11 +6149,11 @@ export async function deleteAnimeFansubProjectNote(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl();
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes/${noteId}`,
     {
       method: "DELETE",
-      headers: withAuthHeader({}, authToken),
+      authToken,
     },
   );
 
@@ -6384,11 +6380,11 @@ export async function deleteReleaseVersionNote(
   authToken?: string,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl();
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes/${noteId}`,
     {
       method: "DELETE",
-      headers: withAuthHeader({}, authToken),
+      authToken,
     },
   );
 

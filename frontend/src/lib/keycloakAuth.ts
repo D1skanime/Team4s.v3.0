@@ -49,19 +49,6 @@ function authRedirectUri(): string {
   return `${window.location.origin}${KEYCLOAK_REDIRECT_PATH}`
 }
 
-function buildBrowserRefreshBody(refreshToken: string): URLSearchParams {
-  const trimmed = refreshToken.trim()
-  if (!trimmed) {
-    throw new Error('Keycloak-Refresh erfordert refresh_token.')
-  }
-
-  const body = new URLSearchParams()
-  body.set('client_id', KEYCLOAK_CLIENT_ID)
-  body.set('grant_type', 'refresh_token')
-  body.set('refresh_token', trimmed)
-  return body
-}
-
 function saveTransientAuthState(verifier: string, state: string): void {
   sessionStorage.setItem(PKCE_VERIFIER_STORAGE_KEY, verifier)
   sessionStorage.setItem(PKCE_STATE_STORAGE_KEY, state)

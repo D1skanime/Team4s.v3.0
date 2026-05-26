@@ -15,6 +15,7 @@ import {
   createFansubGroup,
   getEpisodeImportContext,
   getAuthSessionSnapshot,
+  getReleaseVersionMedia,
   persistAuthSession,
   uploadAdminAnimeMedia,
 } from './api'
@@ -164,7 +165,7 @@ describe('authorized auth refresh flow', () => {
     expect(fetchMock.mock.calls[1]?.[1]).toEqual(
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: 'Bearer fresh-id-token',
+          Authorization: 'Bearer new-access-token',
         }),
       }),
     )
@@ -255,14 +256,45 @@ describe('authorized auth refresh flow', () => {
     expect(fetchMock.mock.calls[2]?.[1]).toEqual(
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: 'Bearer fresh-id-token',
+          Authorization: 'Bearer new-access-token',
         }),
       }),
     )
-    expect(readCookie('team4s_access_token')).toBe('fresh-id-token')
+    expect(readCookie('team4s_access_token')).toBe('new-access-token')
     expect(readCookie('team4s_refresh_token')).toBe('fresh-refresh-token')
     expect(window.localStorage.getItem('team4s.auth.access_token')).toBeNull()
     expect(window.localStorage.getItem('team4s.auth.refresh_token')).toBeNull()
+  })
+
+  it('refreshes and retries release-version media requests after token expiry', async () => {
+    refreshKeycloakTokenMock.mockResolvedValue(freshKeycloakBundle())
+
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(
+        makeResponse({ error: { message: 'ungueltiges zugriffstoken' } }, { ok: false, status: 401 }),
+      )
+      .mockResolvedValueOnce(
+        makeCurrentUserResponse(),
+      )
+      .mockResolvedValueOnce(
+        makeResponse({ data: [] }, { ok: true, status: 200 }),
+      )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(getReleaseVersionMedia(42)).resolves.toEqual({ data: [] })
+
+    expect(refreshKeycloakTokenMock).toHaveBeenCalledWith('refresh-token-1')
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock.mock.calls[2]?.[0]).toEqual(
+      expect.stringContaining('/api/v1/admin/release-versions/42/media'),
+    )
+    expect(fetchMock.mock.calls[2]?.[1]).toEqual(
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer new-access-token',
+        }),
+      }),
+    )
   })
 
   it('clears the local session when refresh fails', async () => {
@@ -401,12 +433,12 @@ describe('authorized auth refresh flow', () => {
       expect.stringContaining('/api/v1/me'),
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: 'Bearer fresh-id-token',
+          Authorization: 'Bearer new-access-token',
         }),
       }),
     )
     expect(MockUploadXhr.instances).toHaveLength(1)
-    expect(MockUploadXhr.instances[0]?.headers.Authorization).toBe('Bearer fresh-id-token')
+    expect(MockUploadXhr.instances[0]?.headers.Authorization).toBe('Bearer new-access-token')
     expect(progress).toEqual([0, 25, 100])
   })
 

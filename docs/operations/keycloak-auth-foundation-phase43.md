@@ -36,6 +36,7 @@ KEYCLOAK_ENABLED=true
 KEYCLOAK_ISSUER_URL=http://127.0.0.1:8081/realms/team4s
 KEYCLOAK_DISCOVERY_URL=http://team4sv30-keycloak:8080/realms/team4s
 KEYCLOAK_CLIENT_ID=team4s-frontend
+KEYCLOAK_API_AUDIENCE=team4s-api
 KEYCLOAK_ADMIN=admin
 KEYCLOAK_ADMIN_PASSWORD=admin
 KEYCLOAK_DB_PASSWORD=keycloak_dev_password
@@ -62,7 +63,9 @@ docker compose up -d --build team4sv30-backend team4sv30-frontend
 - Keycloak Admin Console: `http://127.0.0.1:8081`
 - Realm: `team4s`
 - Client: `team4s-frontend`
+- API-Audience: `team4s-api`
 - Import-Datei: [infra/keycloak/realm-team4s.json](/C:/Users/admin/Documents/Team4s/infra/keycloak/realm-team4s.json)
+- Lokale Session-Zielwerte: Access-Token 5 Minuten, SSO-Idle 24 Stunden, SSO-Max 24 Stunden. Das Frontend soll Access-Tokens automatisch per Refresh erneuern, sodass Benutzer bis zu 24 Stunden angemeldet bleiben, außer sie melden sich aktiv ab.
 
 ### 4. Dokumentierte Testbenutzer
 - `phase43-admin` / `Team4s123!`
@@ -101,7 +104,8 @@ ORDER BY au.id, augr.role;
 
 ## `/api/me` als stabile Session-Seam
 - Frontend nutzt `/api/v1/me` als erste verlässliche Runtime-Prüfung.
-- Erwartung: erfolgreicher Keycloak-Login plus `id_token` als Team4s-Bearer ergibt einen aufgelösten Team4s-`app_user`.
+- Erwartung: erfolgreicher Keycloak-Login plus Keycloak-`access_token` mit `aud` = `team4s-api` als Team4s-Bearer ergibt einen aufgelösten Team4s-`app_user`.
+- `id_token` bleibt ein Login-/Identitätsartefakt für den Client und darf nicht als Team4s-API-Bearer akzeptiert werden.
 - Pending-Benutzer dürfen `/api/me` lesen, aber keine geschützten Admin-Mutationen ausführen.
 - Geschützte Admin-Requests ziehen ein abgelaufenes Access-Token im Frontend transparent genau einmal per Refresh-Token nach und wiederholen dann den ursprünglichen Request einmal.
 
@@ -116,6 +120,8 @@ ORDER BY au.id, augr.role;
 - Standard im Compose-Setup:
   - `KEYCLOAK_ISSUER_URL=http://127.0.0.1:8081/realms/team4s`
   - `KEYCLOAK_DISCOVERY_URL=http://team4sv30-keycloak:8080/realms/team4s`
+  - `KEYCLOAK_CLIENT_ID=team4s-frontend`
+  - `KEYCLOAK_API_AUDIENCE=team4s-api`
 - So bleiben Browser-Redirects und JWT-`iss` stabil, während das Backend JWKS intern ohne Host-Port-Umweg laden kann.
 
 ## Backchannel-Logout
@@ -126,6 +132,14 @@ ORDER BY au.id, augr.role;
 
 ## Wenn Realm-Import nicht neu greift
 Keycloak importiert `realm-team4s.json` nur sauber auf frischem Keycloak-Datenstand. Wenn Realm oder Client schon existieren, ist das bestehende Keycloak-DB-Volume die wahrscheinliche Ursache.
+
+### Nicht-destruktives Update für bestehende lokale Realms
+Wenn das Volume behalten werden soll, muss die API-Audience live ergänzt werden:
+
+1. Client `team4s-api` anlegen.
+2. Client Scope `team4s-api` mit Audience Mapper `included.client.audience=team4s-api` anlegen.
+3. Den Scope als Default Client Scope von `team4s-frontend` hinzufügen.
+4. Danach ein neues Token holen und prüfen, dass `access_token.aud` `team4s-api` enthält, während `id_token.aud` `team4s-frontend` bleibt.
 
 ### Absichtlicher Reset
 ```powershell

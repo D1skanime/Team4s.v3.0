@@ -69,6 +69,7 @@
 ### Auth/API Lifecycle
 
 - **AUTH-API-CLIENT-01**: Normal frontend API calls use one central Auth/API client that owns token reads, persistence, refresh, 401 retry, request auth headers, upload/XHR auth, and auth-state resync. Pages and components consume token-free session state and must not store or directly read Keycloak or app tokens.
+- **AUTH-RESOURCE-SERVER-01**: Keycloak-issued Team4s API calls use real OIDC access tokens with a Team4s API audience. The frontend must not use ID tokens as API bearer tokens, and the backend must validate issuer, JWKS signature, expiry, audience, and authorized-party semantics while Team4s keeps domain authorization in the app database.
 
 ## Out of Scope
 
@@ -113,6 +114,7 @@
 | TAG-04 | Phase 10 | Pending |
 | TAG-05 | Phase 10 | Pending |
 | AUTH-API-CLIENT-01 | Phase 49 | Pending |
+| AUTH-RESOURCE-SERVER-01 | Phase 51 | Pending |
 
 **Coverage:**
 - v1 requirements: 28 total

@@ -16,6 +16,7 @@ type Config struct {
 	KeycloakIssuerURL            string   // OIDC-Issuer-URL für JWT-Validierung
 	KeycloakDiscoveryURL         string   // Optionaler interner Discovery-Endpunkt fÃ¼r OIDC-Metadaten/JWKS
 	KeycloakClientID             string   // OIDC-Client-ID der Frontend-App
+	KeycloakAPIAudience          string   // Erwartete Audience fuer Team4s-API-Access-Tokens
 	KeycloakAccountURL           string   // Optionale URL zur Keycloak-Account-Konsole
 	AuthAdminRoleName            string   // Rollenname für Admin-Zugriffsprüfung
 	AuthAdminBootstrapUserIDs    []int64  // Benutzer-IDs, denen beim Start die Admin-Rolle zugewiesen wird
@@ -63,6 +64,7 @@ func Load() Config {
 		KeycloakIssuerURL:            strings.TrimSpace(os.Getenv("KEYCLOAK_ISSUER_URL")),
 		KeycloakDiscoveryURL:         strings.TrimSpace(os.Getenv("KEYCLOAK_DISCOVERY_URL")),
 		KeycloakClientID:             strings.TrimSpace(os.Getenv("KEYCLOAK_CLIENT_ID")),
+		KeycloakAPIAudience:          getEnv("KEYCLOAK_API_AUDIENCE", "team4s-api"),
 		KeycloakAccountURL:           strings.TrimSpace(os.Getenv("KEYCLOAK_ACCOUNT_URL")),
 		AuthAdminRoleName:            getEnv("AUTH_ADMIN_ROLE_NAME", "admin"),
 		AuthAdminBootstrapUserIDs:    bootstrapAdminUserIDs,

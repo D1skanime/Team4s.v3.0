@@ -57,6 +57,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [ ] **Phase 46: Fansub Group Invitations & Join Requests MVP** - Token-basierte Gruppeneinladungen, Verwaltung offener Einladungen, Einladungsannahme fuer eingeloggte App-User und vorbereitende Join-Request-Seams auf Basis der Permission Engine.
 - [ ] **Phase 47: Member Profile & Historical Identity** - Eigenes historisches Fansub-Profil mit Fansub-Name, Avatar, Bio, Member-Story, aktiver Zeit, Gruppenzugehoerigkeiten und Keycloak-Account-Link; strikt getrennt von Gruppenrollen und Keycloak-Accountdaten.
 - [ ] **Phase 48: Meine Gruppen & Contributor Dashboard** - Contributor-Dashboard fuer eigene Gruppen mit sicher gescopten Schnellaktionen in bestehende Gruppen-, Release-, Media- und Description-Funktionen auf Basis der Permission Engine.
+- [x] **Phase 51: Keycloak Access-Token Resource-Server Boundary** - Keycloak/API-Auth von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umstellen. (completed 2026-05-26)
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
@@ -899,3 +900,28 @@ Plans:
 10. Navigation oder User-Menue enthalten `Mein Profil`, `Meine Gruppen`, Keycloak-Account-Link und Logout.
 11. Historische Credits koennen als read-only Abschnitt `Meine Beteiligungen` angezeigt oder sauber vorbereitet werden, ohne neue grosse Datenmodelle zu bauen und ohne App-Rechte daraus abzuleiten.
 12. Tests decken positive und negative Faelle fuer eigene/fremde Gruppen, Scoping, Coop-Kontexte, Capability-Anzeige und Navigation ab.
+
+### Phase 51: Keycloak Access-Token Resource-Server Boundary
+
+**Goal:** Die Keycloak-Integration von `id_token`-als-API-Bearer auf einen sauberen OIDC Resource-Server-Flow umstellen. Keycloak stellt ein API-taugliches `access_token` mit korrekter Team4s-API-Audience aus; das Frontend speichert und sendet dieses `access_token`; das Backend validiert Signatur, Issuer, Expiry und Audience/Authorized Party. `id_token` bleibt nur fuer Login-/Identitaetsabschluss.
+**Requirements**: AUTH-RESOURCE-SERVER-01
+**Depends on:** 49
+**Plans:** 4/4 plans complete
+
+Plans:
+- [x] `51-01-PLAN.md` - Keycloak-Audience- und Client-Scope-Konfiguration fuer eine Team4s-API-Resource-Server-Audience festziehen.
+- [x] `51-02-PLAN.md` - Backend-Verifier von ID-Token-semantischer Pruefung auf Access-Token-Resource-Server-Pruefung umstellen.
+- [x] `51-03-PLAN.md` - Frontend-Token-Mapping, Speicherung, Refresh und API-Bearer-Versand auf echtes `access_token` umstellen.
+- [x] `51-04-PLAN.md` - Regressionen, Live-UAT, Dokumentationskorrektur und Migration/Deployment-Hinweise fuer die Token-Grenze abschliessen.
+
+**Success Criteria** (what must be TRUE):
+1. Keycloak Realm/Client-Konfiguration stellt ein `access_token` mit Team4s-API-Audience aus, z. B. `team4s-api`.
+2. Das Frontend speichert und sendet fuer Backend-API-Calls wirklich `access_token`, nicht `id_token`.
+3. `id_token` wird nur fuer Login-/Identitaetsabschluss genutzt und nicht als `Authorization: Bearer` an Team4s APIs gesendet.
+4. Das Backend validiert Access Tokens als Resource Server ueber Issuer, JWKS, Expiry und Audience/Authorized Party.
+5. Backend-Tests decken ab, dass `id_token` als API-Bearer abgelehnt und ein korrektes API-`access_token` akzeptiert wird.
+6. Frontend-Tests decken Login, Refresh, Cookie-/Storage-Metadaten und API-Header fuer echtes `access_token` ab.
+7. Die 24h-Login-Zielsetzung bleibt erhalten: Access-Tokens bleiben kurzlebig, Refresh-/SSO-Session bleibt lokal 24 Stunden gueltig, ausser der User meldet sich ab.
+8. Docs korrigieren die bisherige falsche Erwartung aus Phase 43 und beschreiben die neue Keycloak-Audience-/Resource-Server-Grenze.
+9. Keycloak bleibt reine Identity- und Token-Lifecycle-Schicht; Team4s-Domainrollen und Fansub-Rechte bleiben in der App-Datenbank.
+10. Bestehende Backchannel-Logout-, Session-Revocation- und `/api/v1/me`-Flows funktionieren nach der Umstellung weiterhin.

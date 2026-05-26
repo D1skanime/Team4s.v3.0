@@ -1,16 +1,17 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
+milestone_name: Asset Lifecycle Hardening
 status: Ready to execute
 stopped_at: Completed 41-03-PLAN.md
-last_updated: "2026-05-12T11:10:59.495Z"
-last_activity: 2026-05-12
+last_updated: "2026-05-26T09:32:38.000+02:00"
+last_activity: 2026-05-26
 progress:
-  total_phases: 37
-  completed_phases: 29
-  total_plans: 133
-  completed_plans: 123
+  total_phases: 45
+  completed_phases: 30
+  total_plans: 162
+  completed_plans: 125
+  percent: 67
 ---
 
 # Project State
@@ -20,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 41 — globalen-tiptap-rich-text-editor-einfuehren
+**Current focus:** Phase 51 — Keycloak Access-Token Resource-Server Boundary
 
 ## Current Position
 
-Phase: 41 (globalen-tiptap-rich-text-editor-einfuehren) — EXECUTING
-Plan: 5 of 6
+Phase: 51 (Keycloak Access-Token Resource-Server Boundary) — COMPLETE
+Plan: 4 of 4
 
 ## Accumulated Context
 
@@ -186,6 +187,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 51 added: Keycloak Access-Token Resource-Server Boundary — Keycloak/API-Auth wird von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umgestellt.
 - Phase 33 added: Release-Theme-Asset size_bytes Persistence Fix — beim Upload die tatsächliche Dateigröße persistieren und in der Asset-Listen-Antwort korrekt zurückgeben statt 0.
 - Phase 30 added: Fansub-Releases API-Endpunkte — Handler und API-Routen für die fansub_releases-Tabelle, die bereits Repository-Code besitzt aber noch keine HTTP-Endpunkte hat.
 - Phase 32 added: Fansub Release Side Drawer aus Phase 31: Edit-Drawer fuer Release-Theme-Assets mit vorhandenen DB-Tabellen und APIs, ohne neue Datenmodelle; DB/UI-Differenzen vor Umsetzung diskutieren
@@ -317,5 +319,5 @@ Recent durable decisions:
 
 Last session: 2026-05-12T11:10:59.482Z
 Stopped at: Completed 41-03-PLAN.md
-Last activity: 2026-05-12
+Last activity: 2026-05-26
 Resume file: None
