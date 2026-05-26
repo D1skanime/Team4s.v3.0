@@ -925,3 +925,27 @@ Plans:
 8. Docs korrigieren die bisherige falsche Erwartung aus Phase 43 und beschreiben die neue Keycloak-Audience-/Resource-Server-Grenze.
 9. Keycloak bleibt reine Identity- und Token-Lifecycle-Schicht; Team4s-Domainrollen und Fansub-Rechte bleiben in der App-Datenbank.
 10. Bestehende Backchannel-Logout-, Session-Revocation- und `/api/v1/me`-Flows funktionieren nach der Umstellung weiterhin.
+
+### Phase 52: Profile Account Return Refresh Flow
+
+**Goal:** Den Profilseiten-Flow fuer externe Keycloak-Accountaenderungen klaeren: Team4s oeffnet die Keycloak-Kontoverwaltung im neuen Tab, erklaert dem User den Wechsel, aktualisiert nach Rueckkehr/Fokus die Accountkarten ueber die zentrale Auth-/Profil-Seam und zeigt nur bei echten Accountdaten-Aenderungen eine ruhige Erfolgsmeldung. Ungespeicherte Team4s-Profilfelder duerfen dabei nicht ueberschrieben werden.
+**Requirements**: AUTH-PROFILE-ACCOUNT-RETURN-01
+**Depends on:** Phase 51
+**Plans:** 0/3 plans executed
+
+Plans:
+- [ ] `52-01-PLAN.md` - Profilseite mit Fokus-/Visibility-Refresh und Regressionen fuer geaenderte/ungeaenderte Keycloak-Accountdaten absichern.
+- [ ] `52-02-PLAN.md` - Accountdaten-CTA, Rueckkehrhinweis und nicht-dramatische Statusmeldungen auf der Profilseite umsetzen.
+- [ ] `52-03-PLAN.md` - Focused Checks, Browser-UAT und Handoff-Dokumentation fuer den Keycloak-Rueckkehrflow abschliessen.
+
+**Success Criteria** (what must be TRUE):
+1. Der Keycloak-Account-Link auf `/admin/profile` oeffnet weiterhin in einem neuen Tab und bleibt hinter `can_open_keycloak_account` plus `keycloak_account_url` verborgen, wenn die Capability/URL fehlt.
+2. Der sichtbare CTA macht klar, dass E-Mail, Passwort, MFA und Accountname bei Keycloak geaendert werden, nicht im Team4s-Profilformular.
+3. Nach dem Klick auf den Keycloak-Account-Link zeigt Team4s auf der Profilseite einen kurzen Rueckkehrhinweis, dass Keycloak im neuen Tab geoeffnet wurde und Team4s beim Zurueckkehren aktualisiert.
+4. Wenn der Team4s-Tab nach einem Keycloak-Besuch wieder fokussiert oder sichtbar wird, nutzt die Profilseite die vorhandene zentrale Auth-Seam `refreshActiveAuthSession()` und danach `getOwnProfile()`.
+5. Frische Keycloak-Claims duerfen nur ueber die bestehende `/api/v1/me`/App-User-Aufloesung in Team4s landen; UI-Code liest keine Tokens und ruft keine Keycloak-Refresh-Helfer direkt auf.
+6. Wenn sich `account_display_name`, `email`, `account_status` oder `account_global_roles` nach dem Rueckkehrrefresh geaendert haben, aktualisieren sich die read-only Accountkarten und es erscheint `Accountdaten aktualisiert.`
+7. Wenn sich keine Accountdaten geaendert haben, erscheint keine dramatische Erfolgsmeldung und kein Fehlerzustand.
+8. Ein Rueckkehrrefresh ueberschreibt keine ungespeicherten Team4s-Profilfelder wie `Anzeigename`, `Fansub-Name`, `Kurzprofil` oder `Mitgliedsgeschichte`.
+9. Session-/Refresh-Fehler beim Rueckkehrrefresh werden ruhig und lokal behandelt: keine Endlosschleife, kein ungefragtes Logout, vorhandene Profilanzeige bleibt soweit moeglich stabil.
+10. Tests decken neuen Tab, Rueckkehrhinweis, geaenderte Accountdaten, unveraenderte Accountdaten und Dirty-Form-Schutz ab.

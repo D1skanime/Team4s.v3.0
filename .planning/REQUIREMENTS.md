@@ -70,6 +70,7 @@
 
 - **AUTH-API-CLIENT-01**: Normal frontend API calls use one central Auth/API client that owns token reads, persistence, refresh, 401 retry, request auth headers, upload/XHR auth, and auth-state resync. Pages and components consume token-free session state and must not store or directly read Keycloak or app tokens.
 - **AUTH-RESOURCE-SERVER-01**: Keycloak-issued Team4s API calls use real OIDC access tokens with a Team4s API audience. The frontend must not use ID tokens as API bearer tokens, and the backend must validate issuer, JWKS signature, expiry, audience, and authorized-party semantics while Team4s keeps domain authorization in the app database.
+- **AUTH-PROFILE-ACCOUNT-RETURN-01**: The Team4s profile page must make the external Keycloak account-management handoff understandable, open Keycloak account changes in a new tab, refresh Team4s account cards through the central auth/profile seams when the user returns, and avoid overwriting unsaved Team4s profile form edits.
 
 ## Out of Scope
 
@@ -115,6 +116,7 @@
 | TAG-05 | Phase 10 | Pending |
 | AUTH-API-CLIENT-01 | Phase 49 | Pending |
 | AUTH-RESOURCE-SERVER-01 | Phase 51 | Pending |
+| AUTH-PROFILE-ACCOUNT-RETURN-01 | Phase 52 | Pending |
 
 **Coverage:**
 - v1 requirements: 28 total

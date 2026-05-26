@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: Ready to execute
 stopped_at: Completed 41-03-PLAN.md
-last_updated: "2026-05-26T16:12:51.231+02:00"
+last_updated: "2026-05-26T15:54:26.064Z"
 last_activity: 2026-05-26
 progress:
-  total_phases: 45
-  completed_phases: 30
-  total_plans: 162
-  completed_plans: 125
+  total_phases: 46
+  completed_phases: 31
+  total_plans: 165
+  completed_plans: 129
   percent: 67
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 51 — Keycloak Access-Token Resource-Server Boundary
+**Current focus:** Phase 52 - Profile Account Return Refresh Flow
 
 ## Current Position
 
-Phase: 51 (Keycloak Access-Token Resource-Server Boundary) — COMPLETE
-Plan: 4 of 4
+Phase: 52 (Profile Account Return Refresh Flow) - READY TO EXECUTE
+Plan: 0 of 3
 
 ## Accumulated Context
 
@@ -187,6 +187,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 52 added: Profile Account Return Refresh Flow - Profilseite klaert den externen Keycloak-Accountdaten-Wechsel, aktualisiert Accountkarten beim Zurueckkehren ueber zentrale Auth-/Profil-Seams und schuetzt ungespeicherte Team4s-Profilfelder.
 - Phase 51 added: Keycloak Access-Token Resource-Server Boundary — Keycloak/API-Auth wird von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umgestellt.
 - Phase 33 added: Release-Theme-Asset size_bytes Persistence Fix — beim Upload die tatsächliche Dateigröße persistieren und in der Asset-Listen-Antwort korrekt zurückgeben statt 0.
 - Phase 30 added: Fansub-Releases API-Endpunkte — Handler und API-Routen für die fansub_releases-Tabelle, die bereits Repository-Code besitzt aber noch keine HTTP-Endpunkte hat.
@@ -320,5 +321,5 @@ Recent durable decisions:
 
 Last session: 2026-05-12T11:10:59.482Z
 Stopped at: Completed 41-03-PLAN.md
-Last activity: 2026-05-26 - Completed quick task 260526-mhk: next/image Test-Mock fixen und den einzelnen Test laufen lassen
+Last activity: 2026-05-26
 Resume file: None

@@ -4,8 +4,8 @@
 - **Project:** Team4s.v3.0
 - **Milestone:** `v1.1 Asset Lifecycle Hardening`
 - **Branch:** `main`
-- **Status:** Phase 51, Page/Audit cleanup, domain guardrail tests, and the `next/image` mock cleanup are committed. Closeout notes are prepared for push.
-- **Current focus:** Choose Phase 52 or another narrow quick slice.
+- **Status:** Phase 52 `Profile Account Return Refresh Flow` is planned and ready to execute.
+- **Current focus:** Execute the narrow profile/Keycloak return-refresh flow without expanding into a Keycloak theme project.
 
 ## What Works Now
 - Keycloak issues access tokens with `aud` containing `team4s-api`.
@@ -26,10 +26,12 @@
 - Targeted lint warning cleanup for `frontend/src/app/admin/fansubs/[id]/edit/page.tsx` is done.
 - The fansub edit test's `next/image` mock no longer forwards `unoptimized` to a native `img`.
 - Closeout notes record the pushed quick-task baseline and next restart point.
+- Phase 52 has 3 plans for profile return refresh, handoff copy, focused checks, and UAT.
 
 ## What Is Not Done Yet
 - Larger Drawer/Upload/Card UI convergence is intentionally deferred.
 - Older unrelated stashes still exist and should be reviewed before deleting.
+- Keycloak-side `Zurück zu Team4s` Account Console theming is deferred; Phase 52 handles the Team4s-side new-tab and return-refresh flow.
 
 ## Valid Commands
 - `cd backend && go test ./...`
@@ -69,7 +71,7 @@
 - Quick task commits: `ed0254a9 test: clean fansub next image mock` and `65dfec11 docs(quick-260526-mhk): record next image mock cleanup`.
 
 ## Top 3 Next
-1. Decide whether the next planned work is `$gsd-plan-phase 52` or another small `$gsd-quick`.
+1. Run `$gsd-execute-phase 52` to implement the profile/Keycloak return-refresh flow.
 2. Review older unrelated stashes before deleting them.
 3. Keep future UI convergence as small tested slices.
 

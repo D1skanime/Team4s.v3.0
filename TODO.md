@@ -20,7 +20,7 @@
 - [x] Clean `next/image` mock warning for `unoptimized` in fansub edit page tests.
 
 ## Parking Lot
-- [ ] Decide whether the next planned slice is `$gsd-plan-phase 52` or one more small `$gsd-quick`.
+- [ ] Execute Phase 52 profile/Keycloak return-refresh flow.
 - [ ] Larger Drawer/Upload/Card UI convergence, only as small tested slices.
 - [ ] Review older unrelated stashes before deleting them.
 - [ ] Full browser pass on affected admin screens after commit slicing if a local server is available.

@@ -1,7 +1,7 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phase 51, Page/Audit cleanup, and domain guardrail tests are complete on `main`.
+- Phase 52 `Profile Account Return Refresh Flow` is planned and ready to execute on `main`.
 - The pushed GitHub baseline included Phase 51 and audit guardrails through `20eaeeda`; quick-task commits `ed0254a9` and `65dfec11` add the `next/image` mock cleanup.
 - Audit artifacts live in `.planning/quick/260525-code-altlasten-und-domain-audit`.
 - Treat the audit as complete enough to close; create follow-up slices instead of redoing the audit.
@@ -23,6 +23,7 @@
 - Upload guardrail is documented in `AGENTS.md`, `DECISIONS.md`, domain docs, and audit status: reuse existing flows before adding a new upload path.
 - Domain guardrail tests now assert fansub releases expose canonical `release_version_id`, avoid legacy `fansubgroup_id`, and keep migration 0057's mismatch safety check.
 - The fansub edit test's `next/image` mock now consumes `unoptimized` before rendering an `img`, matching the existing `MediaUpload.test.tsx` pattern.
+- Phase 52 intentionally avoids Keycloak Account Console theming. It fixes the Team4s-side flow: new tab, return hint, `refreshActiveAuthSession()`, `getOwnProfile()`, changed-account success message, and dirty-form protection.
 
 ## Verification Memory
 - Phase 51 live smoke: `/api/v1/me` with access token returned `200`; `/api/v1/me` with ID token returned `401`.
@@ -46,4 +47,4 @@
 ## Mental Unload
 - The user asked why multiple agents keep leaving a dirty worktree. Root cause is shared workspace/branch plus broad page edits and generated files. Fix is branch/worktree isolation per agent plus explicit staging and a no-`git add .` rule.
 - The user considers the audit done; future work should not reopen completed route cleanup or drawer race hardening without new evidence.
-- The best next operational slice is choosing Phase 52 or one more narrow quick task.
+- The best next operational slice is `$gsd-execute-phase 52`, starting with `52-01-PLAN.md`.

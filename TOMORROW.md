@@ -2,11 +2,11 @@
 
 ## Top 3 Priorities
 1. Confirm `git status --short --branch` is clean after the closeout push.
-2. Choose the next planned slice: `$gsd-plan-phase 52` or one more small `$gsd-quick`.
+2. Execute Phase 52: profile/Keycloak return-refresh flow.
 3. Review older unrelated stashes before deleting any of them.
 
 ## First 15-Minute Task
-- Run `git status --short --branch`, then choose whether the next work item is `$gsd-plan-phase 52` or a small `$gsd-quick`.
+- Run `git status --short --branch`, then open `.planning/phases/52-profile-account-return-refresh-flow/52-01-PLAN.md` and start the focused profile test slice.
 
 ## Dependencies To Unblock Early
 - Keep unrelated historical stashes intact until they are reviewed.
