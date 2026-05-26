@@ -1,5 +1,49 @@
 # DECISIONS
 
+## 2026-05-26 - Agents Must Use Implementation Contracts Before Adding Parallel Code
+
+### Decision
+Codex and GSD work must use persistent implementation contracts before coding: search for existing seams first, map persisted UI data to semantic controls, keep API contracts aligned, and avoid duplicating helpers, hooks, services, DTOs, upload logic, auth handling, or domain ownership logic.
+
+### Context
+Repeated agent work had drifted in three ways: pages reinterpreted the global UI system, API behavior could be inferred locally instead of updated as a contract, and similar code could be rebuilt in different places for nearby problems.
+
+### Options Considered
+- keep reminding each agent manually in every prompt
+- put only short reminders in `AGENTS.md`
+- create persistent docs plus a project-local Codex/GSD skill that planners and executors can load
+
+### Why This Won
+Persistent docs and a project-local skill make the rule discoverable by both normal Codex work and GSD planning/execution. The instruction lives with the codebase instead of depending on repeated chat context.
+
+### Consequences
+- `AGENTS.md` now points agents to implementation, API, and UI contract rules.
+- `docs/engineering/implementation-contract.md` is the general search-first and reuse gate.
+- `docs/api/api-contracts.md` is the API contract workflow guide.
+- `docs/frontend/ui-system.md` and `docs/agent-guidelines-ui.md` include semantic UI control mapping.
+- `.codex/skills/team4s-implementation-contract/SKILL.md` makes these rules discoverable to GSD agents through project skill discovery.
+
+### Follow-ups Required
+- Future UI/API/code-reuse phases should include these contract docs and existing analog files in `read_first` blocks.
+
+## 2026-05-26 - Upload UI Reuses Existing Domain Flows Instead Of Adding New Parallel Flows
+
+### Decision
+Future upload work must inspect and reuse the existing domain-specific upload flows before adding anything new. `MediaUpload` remains the reusable fansub/group media upload component. Release-version-scoped process media stays in `ReleaseVersionMediaSection` and `useReleaseVersionMedia`, addressed by real `release_version_id`. Anime media keeps using the existing anime create/edit upload planning and Jellyfin asset controls. Shared UI work may extract small primitives such as dropzone, progress, error, or preview components, but it must not merge domain flows or create another upload path beside the existing ones.
+
+### Why This Won
+The current upload flows encode different ownership rules. The risk is that a future agent sees repeated dropzone/progress/error UI and builds another almost-identical upload path. That would increase confusion and could attach media to the wrong entity. A reuse-first rule keeps the domain boundaries clear while still allowing small UI cleanup.
+
+### Consequences
+- New upload features must start by checking the existing upload components, hooks, API helpers, and domain docs.
+- A new upload component, hook, endpoint, or table requires an explicit documented decision.
+- Release-Version-Media must continue to use `release_version_media` with `release_version_id`.
+- Shared upload cleanup should be limited to low-level UI primitives unless a separate decision approves a broader refactor.
+
+### Follow-ups Required
+- If GSD execute starts an upload-related slice, first identify which existing flow owns the target domain.
+- If no existing flow fits, document why before implementing a new one.
+
 ## 2026-05-25 - Contributor Release Editors Are Capability-Gated And Platform Gates Must Block Child Effects
 
 ### Decision
@@ -453,3 +497,27 @@ Die vorhandenen Phase-43/44-Seams decken Identität, Rollen und Scope bereits sa
 
 ### Follow-ups Required
 - Phase 46 soll auf Einladungen und Join-Requests aufbauen, ohne die Membership-Quelle zu ändern
+
+## 2026-05-26 - Team4s API Bearer Tokens Must Be Keycloak Access Tokens
+
+### Decision
+Team4s API calls use Keycloak `access_token` as the bearer token. Keycloak `id_token` remains only a login/identity artifact and must not be accepted as a Team4s API bearer.
+
+### Context
+Phase 51 found that the previous Keycloak flow stored the ID token as the Team4s bearer while using access-token expiry semantics. That mixed the OIDC login identity boundary with the API resource-server boundary and made session behavior confusing.
+
+### Options Considered
+- keep accepting `id_token` as a Team4s bearer and extend local app-token lifetimes
+- make Keycloak issue an API-audience access token and validate that token on the backend
+
+### Why This Won
+The Resource Server model is the correct OIDC boundary: access tokens target APIs, ID tokens target the frontend/client login session. It also allows the 24h login goal to be handled through refresh/SSO lifetime while API access tokens stay short-lived.
+
+### Consequences
+- Keycloak includes `team4s-api` in access-token `aud`.
+- Backend verifies API bearers with `KEYCLOAK_API_AUDIENCE=team4s-api` and `azp=team4s-frontend`.
+- Frontend persists/sends `access_token` for Team4s API calls.
+- Live UAT requires access token `200` and ID token `401` on `/api/v1/me`.
+
+### Follow-ups Required
+- Keep auth regression tests that prevent `id_token` from flowing back into Team4s bearer storage or refresh retry paths.

@@ -1,38 +1,45 @@
 # RISKS
 
-## Top 5 Risks
+## Top Risks
 
 ### 1. Broad dirty worktree causes an accidental mega-commit
 - **Impact:** High
 - **Likelihood:** High
-- **Why it matters:** Product code, phase artifacts, GSD/Codex tooling, screenshots, temp folders, generated files, and tests are all dirty at once.
-- **Mitigation:** Stage by explicit path only. Never use `git add .` from this state.
+- **Why it matters:** Audit files, runtime fixes, backend/auth/infra changes, generated files, and unrelated planning work are dirty at once.
+- **Mitigation:** Stage by explicit path only. Do not use `git add .`.
 
-### 2. Phase 50 boundary tests get mixed with unrelated tooling changes
+### Phase 51 Note
+- The Phase 51 auth slice is verified and should be committed separately from the broader audit/UI/domain work.
+- Safe cleanup path: explicit-path commit for Phase 51, then stash or split unrelated dirty work.
+
+### Agent Hygiene Rule
+- When multiple agents work on page code, use separate branches/worktrees per agent and require each agent to start from `git status --short --branch`, commit its own slice, and leave generated/cache files unstaged.
+
+### 2. Future agents reintroduce the old release-media assumption
 - **Impact:** High
-- **Likelihood:** High
-- **Why it matters:** Admin authorization changes need a clean review story. Mixing them with `.codex/` or planning churn obscures the security boundary.
-- **Mitigation:** Keep the Phase 50 commit to editor/gate tests and directly related source files.
+- **Likelihood:** Medium
+- **Why it matters:** Versioned Admin/Fansub process media belongs to `release_version_media.release_version_id`; using `release_id` or `release_media` here breaks domain ownership.
+- **Mitigation:** Keep `AGENTS.md`, `DECISIONS.md`, domain docs, contracts, and tests aligned. Add domain guardrail tests next.
 
-### 3. `tsconfig.tsbuildinfo` is accidentally committed or discarded without intent
+### 3. New upload flows duplicate existing domain flows
+- **Impact:** High
+- **Likelihood:** Medium
+- **Why it matters:** Parallel upload logic makes media ownership, progress state, and API contracts drift.
+- **Mitigation:** Before any new upload work, inspect `MediaUpload`, `ReleaseVersionMediaSection`/`useReleaseVersionMedia`, anime upload planning, and `api.ts` upload helpers.
+
+### 4. Legacy route deletion misses a hidden link
+- **Impact:** Medium
+- **Likelihood:** Low/Medium
+- **Why it matters:** Removed routes should not be linked from active admin screens.
+- **Mitigation:** Keep `rg` checks in the audit notes and test active route replacements before committing.
+
+### 5. Larger UI convergence gets attempted too broadly
 - **Impact:** Medium
 - **Likelihood:** Medium
-- **Why it matters:** It is dirty after local frontend verification/build and can create noisy diffs if staged casually.
-- **Mitigation:** Decide explicitly tomorrow whether to leave it unstaged, restore it on request, or include it because local project convention wants it.
-
-### 4. Contributor release editor scope regresses back into admin behavior
-- **Impact:** High
-- **Likelihood:** Medium
-- **Why it matters:** Non-platform users must not see admin tabs or admin actions, even on direct `/admin/episode-versions/:id/edit?tab=...` visits.
-- **Mitigation:** Keep backend capability checks as the source of truth and preserve tests for loading, media-only, notes-only, and no-capability cases.
-
-### 5. Release/fansub media ownership is blurred during cleanup
-- **Impact:** High
-- **Likelihood:** Medium
-- **Why it matters:** Current project rules require release media to stay on `media_files`, `media_assets`, and `release_media`/release-version media structures, not neutral episodes/anime.
-- **Mitigation:** Future fixes should inspect `docs/architecture/db-schema-fansub-domain.md` and avoid inventing parallel media logic.
+- **Why it matters:** Drawer, Upload, and Card convergence can create UX/domain regressions if done as one large refactor.
+- **Mitigation:** Keep future UI work as small adoption slices with targeted tests.
 
 ## Current Blockers
-- No hard blocker for today's Phase 50 frontend boundary slice.
+- No product blocker for the completed audit slices.
 - Main blocker is commit hygiene in a broad dirty worktree.
-- Repo-wide checks should be rerun only after slicing; targeted checks are the reliable evidence for today's changed files.
+- Existing `next/image` mock warning remains harmless but noisy.

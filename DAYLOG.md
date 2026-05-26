@@ -954,3 +954,79 @@
 
 ### Next Step
 - Smoke-test delete/re-upload for one Release 41 release-theme asset from `/admin/fansubs/88/edit`, then decide whether to persist/recover release theme asset `size_bytes` metadata.
+
+## 2026-05-26
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: close the code-altlasten/domain audit loop, remove confirmed legacy routes, harden release/fansub media rules, and leave the workspace restartable.
+
+### Workstreams Touched
+- Code-altlasten/domain audit under `.planning/quick/260525-code-altlasten-und-domain-audit`
+- Release-version media domain contract and documentation
+- Legacy admin/manage routes
+- Fansub admin list shared table/state adoption
+- Episode-version segment table shared table adoption
+- Fansub release drawer race-condition hardening and lint cleanup
+- Upload-flow reuse guardrails for future agents
+
+### Goals Intended vs Achieved
+- Intended: use the audit to find old routes, dead code, duplicated UI patterns, domain risks, and safe cleanup slices.
+- Achieved: audit artifacts are in place, the most dangerous domain/routing findings are fixed or documented, small UI adoption slices are implemented, and the release drawer now guards stale async responses.
+
+### Problems Solved
+- Root cause: release-version media could be confused with older release-level media paths.
+- Fix: documented `release_version_media.release_version_id` as canonical for versioned process media, updated API contracts, and kept regression coverage around `release_version_id`.
+- Root cause: confirmed legacy routes were still present or linked.
+- Fix: removed `/admin/anime/[id]/versions`, `/admin/anime/[id]/themes`, `/admin/fansubs/[id]/members`, and `/manage/groups/[id]`; active links now point to valid routes.
+- Root cause: duplicated UI table/state patterns made admin pages harder to maintain.
+- Fix: converted small safe slices to existing shared table/state components without redesigning flows.
+- Root cause: release drawer async responses could finish after the user changed drawer context.
+- Fix: added request/mutation guards and regression coverage for stale drawer detail responses.
+
+### Decisions
+- `release_version_media` remains canonical for versioned Admin/Fansub process media.
+- `release_id` must not be used as a replacement for `release_version_id` in release-version media flows.
+- Do not add new upload flows before checking existing `MediaUpload`, `ReleaseVersionMediaSection`/`useReleaseVersionMedia`, anime upload planning, and `api.ts` upload helpers.
+- Treat the audit as complete enough to close, with follow-up work tracked separately instead of reopening the same audit.
+
+### Verification
+- Frontend targeted tests passed for fansub edit drawer, fansub list, my-groups, episode-version edit page, and segment table slices.
+- `npm run typecheck` passed during the relevant frontend slices.
+- Targeted ESLint passed for the fansub release drawer page after lint cleanup.
+- `git diff --check` passed with only CRLF warnings.
+- DB check confirmed `release_version_groups.fansubgroup_id` is gone locally and migration 0057 is applied.
+- OpenAPI parsed strictly after the contract update.
+
+### Blockers
+- The worktree is broad and dirty with audit changes plus unrelated/pre-existing backend, auth, infra, planning, and generated changes.
+- No surprise commit was created; explicit commit slicing is still needed.
+- A known test warning remains from the `next/image` mock forwarding `unoptimized` to a plain `img`.
+
+### Next Step
+- Start with a 15-minute commit-hygiene pass: list the audit-related changed files, separate them from unrelated dirty work, and decide the first explicit staging slice.
+
+## 2026-05-26 - Phase 51 Auth Closeout
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's added focus: close Phase 51 Keycloak access-token resource-server boundary and prepare a clean commit/push slice.
+
+### Accomplishments
+- Phase 51 is implemented and marked complete in `.planning/ROADMAP.md`.
+- Keycloak now has a `team4s-api` API audience model for access tokens.
+- Frontend stores/sends Keycloak `access_token` for Team4s API calls instead of `id_token`.
+- Backend verifies API bearers as resource-server access tokens and rejects ID-token-shaped API bearers.
+- Formal GSD closure artifacts now exist: `51-UAT.md`, `51-VERIFICATION.md`, `51-SECURITY.md`, and `51-VALIDATION.md`.
+
+### Verification
+- Live local token smoke passed: access token returns `/api/v1/me` `200`, ID token returns `401`.
+- `go test ./...` passed.
+- Focused frontend auth tests passed.
+- Frontend typecheck, focused ESLint, Docker rebuild, and `git diff --check` passed.
+- `gsd-sdk query init.verify-work 51` reports `has_verification: true`.
+
+### Blockers
+- No Phase 51 product blocker remains.
+- Worktree still contains unrelated audit/UI/domain changes that must not be mixed into the Phase 51 commit.
+
+### Next Step
+- Stage and commit only Phase 51 plus current closeout files, then stash or separately handle unrelated dirty work before pushing.

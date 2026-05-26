@@ -1,15 +1,15 @@
 # TOMORROW
 
 ## Top 3 Priorities
-1. Review the Phase 50 frontend boundary diff and choose the exact commit slice.
-2. Re-run targeted tests for the chosen slice before staging.
-3. Keep unrelated `.codex/`, `.planning/`, backend media, screenshots, temp files, and generated artifacts out of the Phase 50 commit.
+1. Confirm Phase 51 commit/push is present on `codex/phase-51-keycloak-auth-boundary`.
+2. Restore or separately process the stashed unrelated dirty work if more audit/UI work should continue.
+3. Plan or implement a small `domain-guardrail-tests` follow-up for release-version media and fansub-group column rules.
 
 ## First 15-Minute Task
-- Run `git diff -- frontend/src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditorPage.tsx frontend/src/app/admin/episode-versions/[versionId]/edit/page.test.tsx frontend/src/app/admin/fansubs/direct-access-gate.test.tsx frontend/src/components/auth/PlatformAdminGate.test.tsx frontend/src/app/admin/my-groups/[id]/page.test.tsx` and write a one-line keep/drop decision for each file.
+- Run `git status --short --branch` and `git stash list`, then confirm the pushed Phase 51 branch is clean and unrelated work is recoverable from stash or a separate slice.
 
 ## Dependencies To Unblock Early
-- Decide whether `frontend/tsconfig.tsbuildinfo` should be staged or ignored for the Phase 50 slice.
-- If including `frontend/src/components/auth/PlatformAdminGate.test.tsx`, re-run that test explicitly because it was not part of the final direct-access verification command.
-- Confirm the branch is still `codex/ui-system-closeout-2026-05-21`.
-- Use explicit-path staging only; do not stage temp screenshots, `.clone/`, generated GSD/Codex files, or broad planning artifacts by accident.
+- Decide whether the audit should become one commit or be split into docs/domain, route cleanup, UI cleanup, and race-hardening commits.
+- Keep unrelated backend/auth/infra/generated changes out of the audit slice unless explicitly reviewed.
+- Do not stage `frontend/tsconfig.tsbuildinfo` casually.
+- Re-run targeted tests for whichever slice is staged.

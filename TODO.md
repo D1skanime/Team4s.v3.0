@@ -1,19 +1,25 @@
 # TODO
 
 ## Current Active Work
-- [x] Verify `/admin/fansubs/create` and `/admin/fansubs/merge` are wrapped in `PlatformAdminGate`.
-- [x] Add direct-access frontend tests for non-platform visits to `/admin/fansubs/create` and `/admin/fansubs/merge`.
-- [x] Update `EpisodeVersionEditorPage` so admin tabs wait for current user plus release capabilities.
-- [x] Add release-version editor tests for loading, media-only, notes-only, and no-capability contributor states.
-- [x] Confirm backend contributor editor context is already narrowed through `loadEpisodeVersionContributorContext`.
-- [x] Run targeted Vitest, ESLint, TypeScript, diff-check, and frontend build for the editor/direct-access slice.
-- [ ] Inspect `frontend/src/components/auth/PlatformAdminGate.test.tsx` and decide whether it belongs in the same Phase 50 commit.
-- [ ] Decide whether `frontend/tsconfig.tsbuildinfo` should remain unstaged or be included.
-- [ ] Stage/commit the exact Phase 50 frontend boundary slice by explicit path.
+- [x] Complete Phase 51 Keycloak access-token resource-server boundary implementation.
+- [x] Add Phase 51 UAT, verification, security, and validation artifacts.
+- [ ] Commit and push Phase 51 plus closeout files from `codex/phase-51-keycloak-auth-boundary`.
+- [ ] Stash or split unrelated dirty audit/UI/domain/generated work after the Phase 51 commit.
+- [x] Reconstruct and maintain `.planning/quick/260525-code-altlasten-und-domain-audit`.
+- [x] Decide and document that `release_version_media` is canonical for versioned process media.
+- [x] Confirm local DB has migration 0057 applied and no `release_version_groups.fansubgroup_id`.
+- [x] Update API contracts for `release_version_id` and release-version media routes.
+- [x] Remove confirmed legacy routes and update active links.
+- [x] Inventory UI duplicate patterns and document reuse candidates.
+- [x] Add upload-flow reuse guardrails for future agents.
+- [x] Convert small safe UI slices to existing shared table/state components.
+- [x] Harden fansub release drawer async request/mutation behavior.
+- [x] Clean targeted lint warnings in the fansub release drawer page.
+- [ ] Split and stage/commit the audit-related changes by explicit path.
+- [ ] Add follow-up domain guardrail tests for release-version media and fansub group column rules.
 
 ## Parking Lot
-- [ ] Rest of dirty worktree: split `.codex/`, `.planning/`, backend media, frontend media/detail, screenshots, temp folders, and generated artifacts into deliberate slices.
-- [ ] Live-domain checklist for reverse proxy, Keycloak, `API_INTERNAL_URL`, `NEXT_PUBLIC_API_URL`, HTTPS/cookies, and streaming routes.
-- [ ] Full authenticated Docker-live admin click-through when browser credential entry is available.
-- [ ] Phase 48 UI follow-up: long release lists, capability badge wording, and media fallbacks.
-- [ ] Phase 42 collaboration remains parked until auth/member/capability baseline stays stable.
+- [ ] Clean `next/image` mock warning for `unoptimized` in fansub edit page tests.
+- [ ] Larger Drawer/Upload/Card UI convergence, only as small tested slices.
+- [ ] Broader dirty worktree review for unrelated backend/auth/infra/generated changes.
+- [ ] Full browser pass on affected admin screens after commit slicing if a local server is available.
