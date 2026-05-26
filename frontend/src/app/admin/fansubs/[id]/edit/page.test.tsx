@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { createElement, type ReactNode } from 'react'
+import { act, createElement, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
@@ -171,6 +171,16 @@ function makeMediaState(): UseReleaseVersionMediaResult {
   }
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve
+    reject = promiseReject
+  })
+  return { promise, resolve, reject }
+}
+
 describe('ReleaseVersionMediaDrawerSummary', () => {
   it('renders the Media verwalten CTA with the release-version editor link', () => {
     mockedUseReleaseVersionMedia.mockReturnValue(makeMediaState())
@@ -287,5 +297,73 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(screen.getByRole('link', { name: 'Media verwalten' }).getAttribute('href')).toContain(
       '/admin/episode-versions/6201/edit',
     )
+  })
+
+  it('ignores stale release drawer detail responses after another release is opened', async () => {
+    const firstRelease = {
+      release_id: 62,
+      release_version_id: 6201,
+      anime_id: 13,
+      anime_title: '11eyes',
+      fansub_group_id: 94,
+      fansub_name: 'Bloody-Shadow',
+      episode_id: 249,
+      episode_number: '1',
+      episode_title: 'Erste Folge',
+      source: null,
+      version_count: 1,
+      has_theme_assets: false,
+      duration_seconds: null,
+      created_at: '2026-05-25T00:00:00Z',
+    }
+    const secondRelease = {
+      ...firstRelease,
+      release_id: 63,
+      release_version_id: 6301,
+      episode_id: 250,
+      episode_number: '2',
+      episode_title: 'Zweite Folge',
+    }
+    const staleFirstResponse = deferred<{ data: typeof firstRelease }>()
+
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [{ id: 13, title: '11eyes', type: 'tv', header_image: null, cover_image: null }],
+    })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue({ data: [firstRelease, secondRelease] })
+    apiMocks.getAdminRelease.mockImplementation((releaseID: number) => {
+      if (releaseID === firstRelease.release_id) return staleFirstResponse.promise
+      return Promise.resolve({
+        data: {
+          ...secondRelease,
+          episode_title: 'Aktuelle Drawer-Details',
+        },
+      })
+    })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    fireEvent.click(screen.getByRole('button', { name: 'Anime & Veröffentlichungen' }))
+    fireEvent.click(await screen.findByRole('button', { name: '11eyes ausklappen' }))
+
+    const editButtons = await screen.findAllByRole('button', { name: 'Editieren' })
+    fireEvent.click(editButtons[0])
+    await waitFor(() => expect(apiMocks.getAdminRelease).toHaveBeenCalledWith(firstRelease.release_id))
+
+    fireEvent.click(editButtons[1])
+    await screen.findByText('Aktuelle Drawer-Details')
+
+    await act(async () => {
+      staleFirstResponse.resolve({
+        data: {
+          ...firstRelease,
+          episode_title: 'Veraltete Drawer-Details',
+        },
+      })
+      await staleFirstResponse.promise
+    })
+
+    expect(screen.queryByText('Veraltete Drawer-Details')).toBeNull()
+    expect(screen.getByText('Aktuelle Drawer-Details')).not.toBeNull()
   })
 })

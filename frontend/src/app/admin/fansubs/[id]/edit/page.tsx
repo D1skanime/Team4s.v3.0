@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   type FormEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -286,11 +287,6 @@ function compactThemeKind(name: string): "op" | "ed" | "insert" | "other" {
   )
     return "insert";
   return "other";
-}
-
-function timelineLaneFor(name: string): "opEd" | "insert" {
-  const kind = compactThemeKind(name);
-  return kind === "insert" || kind === "other" ? "insert" : "opEd";
 }
 
 function timelineLabelFor(name: string): string {
@@ -808,11 +804,21 @@ function AdminFansubEditContent() {
   const releaseDrawerRequestSeqRef = useRef(0);
   const releaseSegmentRequestSeqRef = useRef(0);
   const releaseSegmentRequestByReleaseRef = useRef<Record<number, number>>({});
+  const themeDrawerMutationSeqRef = useRef(0);
   const themeDrawerOpenRef = useRef(false);
   const themeDrawerSelectionKeyRef = useRef<string | null>(null);
   const { hasAccessToken, isClientInitialized } = useAuthSession();
 
-  const resetReleaseWorkspaceState = () => {
+  const invalidateReleaseWorkspaceRequests = useCallback(() => {
+    releaseRequestSeqRef.current += 1;
+    releaseDrawerRequestSeqRef.current += 1;
+    releaseSegmentRequestSeqRef.current += 1;
+    releaseRequestByContextRef.current = {};
+    releaseSegmentRequestByReleaseRef.current = {};
+  }, []);
+
+  const resetReleaseWorkspaceState = useCallback(() => {
+    invalidateReleaseWorkspaceRequests();
     setReleasesByAnimeFansubGroupId({});
     setReleasesLoadingByAnimeFansubGroupId({});
     setReleasesErrorsByAnimeFansubGroupId({});
@@ -834,12 +840,12 @@ function AdminFansubEditContent() {
     setDrawerReleaseError(null);
     setDrawerError(null);
     setDrawerUploadProgress(null);
-    releaseRequestByContextRef.current = {};
-    releaseSegmentRequestByReleaseRef.current = {};
+    setDrawerBusy(false);
+    themeDrawerMutationSeqRef.current += 1;
     if (themeUploadInputRef.current) {
       themeUploadInputRef.current.value = "";
     }
-  };
+  }, [invalidateReleaseWorkspaceRequests]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 900px)");
@@ -936,10 +942,14 @@ function AdminFansubEditContent() {
 
     return () => {
       active = false;
-      releaseRequestByContextRef.current = {};
-      releaseSegmentRequestByReleaseRef.current = {};
+      invalidateReleaseWorkspaceRequests();
     };
-  }, [hasAccessToken, fansubID]);
+  }, [
+    hasAccessToken,
+    fansubID,
+    resetReleaseWorkspaceState,
+    invalidateReleaseWorkspaceRequests,
+  ]);
 
   useEffect(() => {
     if (manualSlug) return;
@@ -1080,7 +1090,9 @@ function AdminFansubEditContent() {
   };
 
   const resetThemeDrawerTransientState = () => {
+    themeDrawerMutationSeqRef.current += 1;
     setDrawerError(null);
+    setDrawerBusy(false);
     setDrawerUploadProgress(null);
     clearThemeUploadInput();
   };
@@ -1379,6 +1391,11 @@ function AdminFansubEditContent() {
     const isCurrentSelection = () =>
       themeDrawerOpenRef.current &&
       themeDrawerSelectionKeyRef.current === selectionKey;
+    const mutationID = themeDrawerMutationSeqRef.current + 1;
+    themeDrawerMutationSeqRef.current = mutationID;
+    const isCurrentMutation = () =>
+      isCurrentSelection() && themeDrawerMutationSeqRef.current === mutationID;
+    if (!isCurrentSelection()) return;
     setDrawerBusy(true);
     setDrawerError(null);
     setDrawerUploadProgress(0);
@@ -1391,6 +1408,7 @@ function AdminFansubEditContent() {
           if (isCurrentSelection()) setDrawerUploadProgress(progress);
         },
       });
+      if (!isCurrentMutation()) return;
       setReleaseSegmentErrors((current) => ({
         ...current,
         [release.release_id]: null,
@@ -1407,6 +1425,7 @@ function AdminFansubEditContent() {
         };
       });
       const refreshedCards = await loadReleaseSegmentCards(release, true);
+      if (!isCurrentMutation()) return;
       if (!refreshedCards) {
         setReleaseSegmentErrors((current) => ({
           ...current,
@@ -1414,14 +1433,12 @@ function AdminFansubEditContent() {
         }));
       }
       setToast("Theme-Asset gespeichert.");
-      if (isCurrentSelection()) {
-        setDrawerUploadProgress(null);
-        clearThemeUploadInput();
-      }
+      setDrawerUploadProgress(null);
+      clearThemeUploadInput();
     } catch (nextError) {
-      if (isCurrentSelection()) setDrawerError(errMessage(nextError));
+      if (isCurrentMutation()) setDrawerError(errMessage(nextError));
     } finally {
-      setDrawerBusy(false);
+      if (isCurrentMutation()) setDrawerBusy(false);
     }
   };
 
@@ -1456,20 +1473,25 @@ function AdminFansubEditContent() {
     const isCurrentSelection = () =>
       themeDrawerOpenRef.current &&
       themeDrawerSelectionKeyRef.current === selectionKey;
+    const mutationID = themeDrawerMutationSeqRef.current + 1;
+    themeDrawerMutationSeqRef.current = mutationID;
+    const isCurrentMutation = () =>
+      isCurrentSelection() && themeDrawerMutationSeqRef.current === mutationID;
+    if (!isCurrentSelection()) return;
     setDrawerBusy(true);
     setDrawerError(null);
     try {
       await deleteAdminReleaseThemeAsset(release.release_id, themeID, mediaID);
+      if (!isCurrentMutation()) return;
       await loadReleaseSegmentCards(release, true);
-      if (isCurrentSelection()) {
-        setSelectedReleaseSegment(null);
-        closeThemeDrawer();
-      }
+      if (!isCurrentMutation()) return;
+      setSelectedReleaseSegment(null);
+      closeThemeDrawer();
       setToast("Theme-Asset entfernt.");
     } catch (nextError) {
-      if (isCurrentSelection()) setDrawerError(errMessage(nextError));
+      if (isCurrentMutation()) setDrawerError(errMessage(nextError));
     } finally {
-      setDrawerBusy(false);
+      if (isCurrentMutation()) setDrawerBusy(false);
     }
   };
 
