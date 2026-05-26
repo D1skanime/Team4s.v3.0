@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act, createElement, type ReactNode } from 'react'
+import { act, createElement, type ImgHTMLAttributes, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
@@ -13,7 +13,10 @@ vi.mock('next/link', () => ({
 }))
 
 vi.mock('next/image', () => ({
-  default: ({ alt = '', ...props }: { alt?: string }) => createElement('img', { alt, ...props }),
+  default: ({ alt = '', unoptimized, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
+    void unoptimized
+    return createElement('img', { alt, ...props })
+  },
 }))
 
 vi.mock('next/navigation', () => ({

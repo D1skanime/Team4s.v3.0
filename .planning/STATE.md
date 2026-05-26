@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: Ready to execute
 stopped_at: Completed 41-03-PLAN.md
-last_updated: "2026-05-26T09:32:38.000+02:00"
+last_updated: "2026-05-26T16:12:51.231+02:00"
 last_activity: 2026-05-26
 progress:
   total_phases: 45
@@ -314,10 +314,11 @@ Recent durable decisions:
 | 260511-hfd | ReleaseVersionMediaGallery 3 Test-Bugs fixen (draggable + GIF src-swap) | 2026-05-11 | 4eab759c | [260511-hfd-releaseversionmediagallery-3-test-bugs-f](./quick/260511-hfd-releaseversionmediagallery-3-test-bugs-f/) |
 | 260511-jjq | Umlaut-Regel in AGENTS.md ergaenzen (Codex-Pendant zu CLAUDE.md) | 2026-05-11 | 58fd4fca | [260511-jjq-umlaut-regel-in-agents-md-ergaenzen](./quick/260511-jjq-umlaut-regel-in-agents-md-ergaenzen/) |
 | 260525 | Code-Altlasten-Audit WP-02: Fansub-Drawer nutzt release_version_id fuer Release-Version-Media | 2026-05-25 | working tree | [260525-code-altlasten-und-domain-audit](./quick/260525-code-altlasten-und-domain-audit/) |
+| 260526-mhk | next/image Test-Mock fixen und den einzelnen Test laufen lassen. danach checks, commit | 2026-05-26 | pending | [260526-mhk-next-image-test-mock-fixen-und-den-einze](./quick/260526-mhk-next-image-test-mock-fixen-und-den-einze/) |
 
 ## Session Continuity
 
 Last session: 2026-05-12T11:10:59.482Z
 Stopped at: Completed 41-03-PLAN.md
-Last activity: 2026-05-26
+Last activity: 2026-05-26 - Completed quick task 260526-mhk: next/image Test-Mock fixen und den einzelnen Test laufen lassen
 Resume file: None
