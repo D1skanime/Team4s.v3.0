@@ -13,6 +13,17 @@ import {
   updateFansubGroup,
 } from "@/lib/api";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { FansubGroup, FansubStatus } from "@/types/fansub";
 
@@ -527,163 +538,171 @@ function AdminFansubsContent() {
           </div>
         ) : null}
 
-        {errorMessage ? (
-          <div className={styles.errorBox}>{errorMessage}</div>
-        ) : null}
+        {errorMessage ? <ErrorState title={errorMessage} description="" /> : null}
         {successMessage ? (
           <div className={styles.successBox}>{successMessage}</div>
         ) : null}
-        {isLoading ? <p className={styles.hint}>Lade...</p> : null}
+        {isLoading ? <LoadingState title="Lade..." description="" /> : null}
 
         {!isLoading && filteredItems.length === 0 ? (
-          <p className={styles.hint}>Keine Fansubgruppen gefunden.</p>
+          <EmptyState
+            title="Keine Fansubgruppen gefunden."
+            description=""
+            variant="compact"
+          />
         ) : null}
 
         {!isLoading && filteredItems.length > 0 ? (
           <div className={styles.fansubTableShell}>
-            <div className={styles.fansubDesktopTableWrap}>
-              <table className={styles.fansubTable}>
-                <thead>
-                  <tr>
-                    <th>
-                      <input
-                        ref={selectAllRef}
-                        type="checkbox"
-                        checked={allOnPageSelected}
-                        onChange={toggleSelectAllOnPage}
-                        aria-label="Alle sichtbaren Gruppen auswählen"
-                      />
-                    </th>
-                    <th>
-                      <button
-                        type="button"
-                        className={styles.fansubSortButton}
-                        onClick={() => toggleSort("name")}
-                      >
-                        Gruppenname{" "}
-                        {sortKey === "name"
-                          ? sortDirection === "asc"
-                            ? "^"
-                            : "v"
-                          : ""}
-                      </button>
-                    </th>
-                    <th>Slug</th>
-                    <th>
-                      <button
-                        type="button"
-                        className={styles.fansubSortButton}
-                        onClick={() => toggleSort("status")}
-                      >
-                        Status{" "}
-                        {sortKey === "status"
-                          ? sortDirection === "asc"
-                            ? "^"
-                            : "v"
-                          : ""}
-                      </button>
-                    </th>
-                    <th>
-                      <button
-                        type="button"
-                        className={styles.fansubSortButton}
-                        onClick={() => toggleSort("period")}
-                      >
-                        Zeitraum{" "}
-                        {sortKey === "period"
-                          ? sortDirection === "asc"
-                            ? "^"
-                            : "v"
-                          : ""}
-                      </button>
-                    </th>
-                    <th>Mitglieder</th>
-                    <th className={styles.fansubActionsHeader}>Aktionen</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pagedItems.map((item) => {
-                    const count = memberCounts[item.id];
-                    const aliases = aliasesByGroup[item.id] ?? [];
-                    const primaryAlias = aliases.length > 0 ? aliases[0] : null;
-                    const badgeClass =
-                      item.status === "active"
-                        ? styles.fansubStatusActive
-                        : item.status === "inactive"
-                          ? styles.fansubStatusInactive
-                          : styles.fansubStatusArchived;
+            <Table
+              className={styles.fansubTable}
+              containerClassName={styles.fansubDesktopTableWrap}
+              variant="withActions"
+            >
+              <TableHead>
+                <TableRow>
+                  <TableHeaderCell>
+                    <input
+                      ref={selectAllRef}
+                      type="checkbox"
+                      checked={allOnPageSelected}
+                      onChange={toggleSelectAllOnPage}
+                      aria-label="Alle sichtbaren Gruppen auswählen"
+                    />
+                  </TableHeaderCell>
+                  <TableHeaderCell>
+                    <button
+                      type="button"
+                      className={styles.fansubSortButton}
+                      onClick={() => toggleSort("name")}
+                    >
+                      Gruppenname{" "}
+                      {sortKey === "name"
+                        ? sortDirection === "asc"
+                          ? "^"
+                          : "v"
+                        : ""}
+                    </button>
+                  </TableHeaderCell>
+                  <TableHeaderCell>Slug</TableHeaderCell>
+                  <TableHeaderCell>
+                    <button
+                      type="button"
+                      className={styles.fansubSortButton}
+                      onClick={() => toggleSort("status")}
+                    >
+                      Status{" "}
+                      {sortKey === "status"
+                        ? sortDirection === "asc"
+                          ? "^"
+                          : "v"
+                        : ""}
+                    </button>
+                  </TableHeaderCell>
+                  <TableHeaderCell>
+                    <button
+                      type="button"
+                      className={styles.fansubSortButton}
+                      onClick={() => toggleSort("period")}
+                    >
+                      Zeitraum{" "}
+                      {sortKey === "period"
+                        ? sortDirection === "asc"
+                          ? "^"
+                          : "v"
+                        : ""}
+                    </button>
+                  </TableHeaderCell>
+                  <TableHeaderCell>Mitglieder</TableHeaderCell>
+                  <TableHeaderCell className={styles.fansubActionsHeader}>
+                    Aktionen
+                  </TableHeaderCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {pagedItems.map((item) => {
+                  const count = memberCounts[item.id];
+                  const aliases = aliasesByGroup[item.id] ?? [];
+                  const primaryAlias = aliases.length > 0 ? aliases[0] : null;
+                  const badgeClass =
+                    item.status === "active"
+                      ? styles.fansubStatusActive
+                      : item.status === "inactive"
+                        ? styles.fansubStatusInactive
+                        : styles.fansubStatusArchived;
 
-                    return (
-                      <tr key={item.id}>
-                        <td>
-                          <input
-                            type="checkbox"
-                            checked={selectedIDs.has(item.id)}
-                            onChange={() => toggleSelection(item.id)}
-                            aria-label={`Gruppe ${item.name} auswählen`}
-                          />
-                        </td>
-                        <td className={styles.fansubNameCell}>{item.name}</td>
-                        <td className={styles.fansubSlugCell}>
-                          <div className={styles.fansubSlugBlock}>
-                            <span className={styles.fansubSlugText}>
-                              {item.slug}
-                            </span>
-                            {primaryAlias ? (
-                              <span
-                                className={styles.fansubAliasTag}
-                                title={`Tag: ${primaryAlias}`}
-                              >
-                                Tag: {primaryAlias}
-                              </span>
-                            ) : null}
-                          </div>
-                        </td>
-                        <td>
-                          <span
-                            className={`${styles.fansubStatusBadge} ${badgeClass}`}
-                          >
-                            {statusLabel(item.status)}
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <input
+                          type="checkbox"
+                          checked={selectedIDs.has(item.id)}
+                          onChange={() => toggleSelection(item.id)}
+                          aria-label={`Gruppe ${item.name} auswählen`}
+                        />
+                      </TableCell>
+                      <TableCell className={styles.fansubNameCell}>
+                        {item.name}
+                      </TableCell>
+                      <TableCell className={styles.fansubSlugCell}>
+                        <div className={styles.fansubSlugBlock}>
+                          <span className={styles.fansubSlugText}>
+                            {item.slug}
                           </span>
-                        </td>
-                        <td className={styles.fansubPeriodCell}>
-                          {formatPeriod(item)}
-                        </td>
-                        <td className={styles.fansubMemberCell}>
-                          {count === undefined
-                            ? "..."
-                            : count === null
-                              ? "n/a"
-                              : count}
-                        </td>
-                        <td>
-                          <div className={styles.fansubActionGroup}>
-                            <Link
-                              href={`/admin/fansubs/${item.id}/edit`}
-                              className={styles.fansubIconButton}
-                              aria-label={`Edit ${item.name}`}
-                              title="Edit"
+                          {primaryAlias ? (
+                            <span
+                              className={styles.fansubAliasTag}
+                              title={`Tag: ${primaryAlias}`}
                             >
-                              <Pencil size={14} />
-                            </Link>
-                            <button
-                              type="button"
-                              className={`${styles.fansubIconButton} ${styles.fansubIconButtonDanger}`}
-                              onClick={() => void onDelete(item)}
-                              disabled={isMutating}
-                              aria-label={`Delete ${item.name}`}
-                              title="Delete"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                              Tag: {primaryAlias}
+                            </span>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`${styles.fansubStatusBadge} ${badgeClass}`}
+                        >
+                          {statusLabel(item.status)}
+                        </span>
+                      </TableCell>
+                      <TableCell className={styles.fansubPeriodCell}>
+                        {formatPeriod(item)}
+                      </TableCell>
+                      <TableCell className={styles.fansubMemberCell}>
+                        {count === undefined
+                          ? "..."
+                          : count === null
+                            ? "n/a"
+                            : count}
+                      </TableCell>
+                      <TableCell>
+                        <div className={styles.fansubActionGroup}>
+                          <Link
+                            href={`/admin/fansubs/${item.id}/edit`}
+                            className={styles.fansubIconButton}
+                            aria-label={`Edit ${item.name}`}
+                            title="Edit"
+                          >
+                            <Pencil size={14} />
+                          </Link>
+                          <button
+                            type="button"
+                            className={`${styles.fansubIconButton} ${styles.fansubIconButtonDanger}`}
+                            onClick={() => void onDelete(item)}
+                            disabled={isMutating}
+                            aria-label={`Delete ${item.name}`}
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
 
             <div className={styles.fansubMobileList}>
               {pagedItems.map((item) => {
