@@ -3,9 +3,9 @@
 ## Project Snapshot
 - **Project:** Team4s.v3.0
 - **Milestone:** `v1.1 Asset Lifecycle Hardening`
-- **Branch:** `codex/phase-51-keycloak-auth-boundary`
-- **Status:** Phase 51 Keycloak access-token resource-server boundary is complete and verified; commit/push hygiene remains open.
-- **Current focus:** Commit Phase 51 plus closeout files explicitly, then keep unrelated dirty work out of that pushed slice.
+- **Branch:** `main`
+- **Status:** Phase 51, Page/Audit cleanup, and domain guardrail tests are committed and pushed to GitHub.
+- **Current focus:** Keep the workspace clean; next small slice is the harmless `next/image` mock warning cleanup.
 
 ## What Works Now
 - Keycloak issues access tokens with `aud` containing `team4s-api`.
@@ -22,15 +22,14 @@
   - `/admin/fansubs` shared page-level state components;
   - `SegmenteTab.tsx` shared table adoption.
 - Fansub release drawer requests and theme upload/delete finalizers are guarded against stale async completions.
+- Domain guardrail tests protect `release_version_id`, `fansub_group_id`, and migration-0057 safety expectations.
 - Targeted lint warning cleanup for `frontend/src/app/admin/fansubs/[id]/edit/page.tsx` is done.
+- `main` tracks `origin/main` and the worktree is clean.
 
 ## What Is Not Done Yet
-- Phase 51 has not yet been committed/pushed from the new branch.
-- The dirty worktree contains unrelated or pre-existing audit/UI/domain/generated changes that should be stashed or committed separately.
-- The audit result has not been fully commit-sliced.
-- Domain guardrail tests are still a recommended follow-up, not part of today's completed audit.
 - Existing test warning remains: `next/image` mock forwards `unoptimized` to a plain `img`.
 - Larger Drawer/Upload/Card UI convergence is intentionally deferred.
+- Older unrelated stashes still exist and should be reviewed before deleting.
 
 ## Valid Commands
 - `cd backend && go test ./...`
@@ -42,6 +41,7 @@
 - `cd frontend && npm run test -- --run "src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.test.tsx"`
 - `cd frontend && npm run test -- --run "src/app/admin/my-groups/page.test.tsx"`
 - `cd frontend && npm run test -- --run "src/app/admin/episode-versions/[versionId]/edit/page.test.tsx"`
+- `cd backend && go test ./internal/repository ./internal/migrations`
 - `cd frontend && npm run typecheck`
 - `cd frontend && npx eslint "src/app/admin/fansubs/[id]/edit/page.tsx"`
 - `git diff --check`
@@ -62,15 +62,16 @@
 - `git diff --check` passed with only CRLF warnings.
 - DB check confirmed local `release_version_groups.fansubgroup_id` is absent and migration 0057 is applied.
 - `shared/contracts/openapi.yaml` parsed strictly after contract updates.
+- `go test ./internal/repository ./internal/migrations` passed for the domain guardrail tests.
+- `main` was pushed to GitHub through commit `20eaeeda`.
 
 ## Top 3 Next
-1. Commit Phase 51 plus closeout files on `codex/phase-51-keycloak-auth-boundary` by explicit path.
-2. Stash or separately commit unrelated audit/UI/domain/generated dirty work before pushing.
-3. Add a small `domain-guardrail-tests` follow-up for release-version media and fansub group column rules.
+1. Fix the `next/image` mock warning in `frontend/src/app/admin/fansubs/[id]/edit/page.test.tsx`.
+2. Run the targeted fansub edit page test after the mock cleanup.
+3. Decide whether the next planned work is `$gsd-plan-phase 52` or another small `$gsd-quick`.
 
 ## Risks / Blockers
-- Broad dirty worktree remains the main operational risk; never use `git add .`.
-- Do not mix Phase 51 auth changes with unrelated audit/UI route cleanup in one commit.
+- Broad dirty worktree remains the main operational risk for future multi-agent sessions; never use `git add .`.
 - Do not let future agents reopen completed WP-06 race hardening from stale roadmap wording; ROADMAP now marks it implemented.
 - Do not collapse versioned release media back onto `release_media`.
 - Do not create a new upload flow unless the reuse guardrail has been checked and a decision is documented.

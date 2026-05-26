@@ -3,8 +3,8 @@
 ## Project
 - **Name:** Team4s.v3.0
 - **Current workflow:** `v1.1 asset lifecycle hardening`
-- **Current branch:** `codex/phase-51-keycloak-auth-boundary`
-- **Current slice:** Phase 51 Keycloak access-token resource-server boundary is complete; commit/push hygiene is the active operational task.
+- **Current branch:** `main`
+- **Current slice:** Phase 51, Page/Audit cleanup, and domain guardrail tests are committed and pushed. Workspace is clean.
 
 ## Current State
 
@@ -28,6 +28,10 @@
   - `SegmenteTab.tsx` uses the existing shared table while preserving active-row/editor behavior.
 - Fansub release drawer loading is hardened against stale async responses and stale upload/delete finalizers.
 - Follow-up lint cleanup removed the unused drawer helper and made release workspace reset callbacks ESLint-clean.
+- Domain guardrail tests now protect release-version media ownership seams:
+  - Admin fansub release summaries must expose canonical `release_version_id`.
+  - Fansub release repository code must use `release_version_groups.fansub_group_id`, not legacy `fansubgroup_id`.
+  - Migration 0057 must keep the mismatch safety check before dropping legacy `fansubgroup_id`.
 - ROADMAP and STATUS for the audit are synchronized through WP-06/WP-06a.
 
 ### What Works
@@ -38,15 +42,14 @@
 - Theme drawer upload/delete completion is guarded by the current selection and mutation id.
 - Existing upload flows are explicitly documented as reusable guardrails for future agents.
 - Targeted frontend tests, typecheck, targeted lint, and diff checks passed for today's final slices.
+- `main` is aligned with `origin/main`; current worktree is clean.
 
 ### What Is Open
-- Phase 51 has no open product gaps. The remaining work is commit hygiene and push.
+- Phase 51 has no open product gaps.
 - The audit is complete enough to close, but follow-up hardening remains valuable:
-  - add domain guardrail tests for `release_version_id`, `fansub_group_id`, and media ownership rules;
   - optionally clean the existing `next/image` test mock warning;
   - only later consider larger Drawer/Upload/Card UI convergence.
-- The worktree is still broad and dirty. Do not use broad staging; commit Phase 51 explicitly and stash or split unrelated changes.
-- Several unrelated or pre-existing changes are present in backend/auth/infra/planning/generated files.
+- Older unrelated stashes remain from prior work; do not drop them without review.
 
 ## Active Planning Context
 - Audit root: `.planning/quick/260525-code-altlasten-und-domain-audit`

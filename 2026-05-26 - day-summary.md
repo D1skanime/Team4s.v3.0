@@ -13,6 +13,7 @@
 - Hardened fansub release drawer async behavior against stale request and stale mutation completions.
 - Cleaned targeted ESLint warnings in the fansub release drawer page.
 - Updated root handoff files for a restartable workspace.
+- Merged and pushed Phase 51, Page/Audit cleanup, and domain guardrail tests to `main`.
 
 ## Why It Changed
 - The previous Keycloak flow mixed login identity tokens with API bearer tokens, causing a brittle auth boundary and short-lived page sessions.
@@ -32,13 +33,13 @@
 - `git diff --check` passed with only CRLF warnings.
 - DB check confirmed `release_version_groups.fansubgroup_id` is gone locally and migration 0057 is applied.
 - `shared/contracts/openapi.yaml` parsed strictly after contract updates.
+- `go test ./internal/repository ./internal/migrations` passed for the domain guardrail tests.
+- Final `git status --short --branch` showed `main...origin/main` with a clean worktree.
 
 ## Follow-Up
-- Commit and push the Phase 51 slice from `codex/phase-51-keycloak-auth-boundary`.
-- Stash or separately commit unrelated audit/UI/domain dirty work so the working tree becomes restartable.
-- First, split the broad dirty worktree into explicit audit-related staging slices.
-- Then add `domain-guardrail-tests` so future changes cannot silently regress to `release_id`, `fansubgroup_id`, or wrong media ownership.
-- Optionally clean the existing `next/image` mock warning in the fansub edit test.
+- Clean the existing `next/image` mock warning in the fansub edit test.
+- Review older unrelated stashes before deleting them.
+- Decide whether the next planned slice is `$gsd-plan-phase 52` or one more small `$gsd-quick`.
 
 ## Restart Notes
 - Phase 51 lives in `.planning/phases/51-keycloak-access-token-resource-server-boundary`.
@@ -46,4 +47,4 @@
 - Start from `.planning/quick/260525-code-altlasten-und-domain-audit/STATUS.md` and `ROADMAP.md`.
 - Treat WP-01 through WP-06a as complete.
 - Do not reopen Race-Condition-Hardening unless new evidence appears; it is documented as done.
-- Use explicit-path staging only; the worktree is broad and dirty.
+- Use explicit-path staging only for future work; the current worktree is clean.

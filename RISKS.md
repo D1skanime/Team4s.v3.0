@@ -4,13 +4,13 @@
 
 ### 1. Broad dirty worktree causes an accidental mega-commit
 - **Impact:** High
-- **Likelihood:** High
-- **Why it matters:** Audit files, runtime fixes, backend/auth/infra changes, generated files, and unrelated planning work are dirty at once.
-- **Mitigation:** Stage by explicit path only. Do not use `git add .`.
+- **Likelihood:** Medium
+- **Why it matters:** Today's workspace is clean, but long GSD chains and multiple agents can quickly dirty page code, planning files, generated files, and docs at once.
+- **Mitigation:** Stage by explicit path only, commit each completed GSD slice, and prefer branch/worktree isolation for parallel agents.
 
 ### Phase 51 Note
-- The Phase 51 auth slice is verified and should be committed separately from the broader audit/UI/domain work.
-- Safe cleanup path: explicit-path commit for Phase 51, then stash or split unrelated dirty work.
+- Phase 51 auth is merged to `main` and pushed.
+- The API bearer truth is now durable: Keycloak `access_token` with `team4s-api` audience, not `id_token`.
 
 ### Agent Hygiene Rule
 - When multiple agents work on page code, use separate branches/worktrees per agent and require each agent to start from `git status --short --branch`, commit its own slice, and leave generated/cache files unstaged.
@@ -19,7 +19,7 @@
 - **Impact:** High
 - **Likelihood:** Medium
 - **Why it matters:** Versioned Admin/Fansub process media belongs to `release_version_media.release_version_id`; using `release_id` or `release_media` here breaks domain ownership.
-- **Mitigation:** Keep `AGENTS.md`, `DECISIONS.md`, domain docs, contracts, and tests aligned. Add domain guardrail tests next.
+- **Mitigation:** Keep `AGENTS.md`, `DECISIONS.md`, domain docs, contracts, and tests aligned. Domain guardrail tests now cover canonical `release_version_id`, `fansub_group_id`, and migration-0057 safety.
 
 ### 3. New upload flows duplicate existing domain flows
 - **Impact:** High
@@ -40,6 +40,7 @@
 - **Mitigation:** Keep future UI work as small adoption slices with targeted tests.
 
 ## Current Blockers
-- No product blocker for the completed audit slices.
-- Main blocker is commit hygiene in a broad dirty worktree.
+- No product blocker for Phase 51, Page/Audit cleanup, or the domain guardrail tests.
+- Worktree is clean and `origin/main` is current.
 - Existing `next/image` mock warning remains harmless but noisy.
+- Older unrelated stashes remain from prior work and should not be dropped blindly.

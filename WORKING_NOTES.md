@@ -1,8 +1,8 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- The active thread is Phase 51 closeout for the Keycloak access-token resource-server boundary, plus commit hygiene for a broad dirty worktree.
-- The code-altlasten/domain audit closeout for `v1.1 asset lifecycle hardening` is still present in the dirty worktree and should remain a separate slice.
+- Phase 51, Page/Audit cleanup, and domain guardrail tests are complete on `main`.
+- The workspace is clean and pushed to GitHub.
 - Audit artifacts live in `.planning/quick/260525-code-altlasten-und-domain-audit`.
 - Treat the audit as complete enough to close; create follow-up slices instead of redoing the audit.
 
@@ -21,6 +21,7 @@
   - `/manage/groups/[id]`
 - Valid group detail route is `/admin/my-groups/[id]`; `/manage/groups` remains the valid list route.
 - Upload guardrail is documented in `AGENTS.md`, `DECISIONS.md`, domain docs, and audit status: reuse existing flows before adding a new upload path.
+- Domain guardrail tests now assert fansub releases expose canonical `release_version_id`, avoid legacy `fansubgroup_id`, and keep migration 0057's mismatch safety check.
 
 ## Verification Memory
 - Phase 51 live smoke: `/api/v1/me` with access token returned `200`; `/api/v1/me` with ID token returned `401`.
@@ -30,16 +31,17 @@
 - `cd frontend && npx eslint "src/app/admin/fansubs/[id]/edit/page.tsx"` passed after WP-06a.
 - `cd frontend && npm run typecheck` passed during the latest slices.
 - Segment table, fansub list, my-groups, and episode-version editor targeted tests passed during their slices.
+- `go test ./internal/repository ./internal/migrations` passed for guardrail coverage.
 - `git diff --check` passed with only CRLF warnings.
+- `main` is aligned with `origin/main` through `20eaeeda`.
 
 ## Commit Hygiene Notes
-- The worktree contains many unrelated dirty files. Use explicit-path staging only.
-- Phase 51 commit should include auth/config/docs/planning files, not unrelated audit UI route cleanup.
-- Audit-related changes include planning docs, domain docs, contracts, legacy route removals, fansub admin UI tests/code, segment table tests/code, and route link updates.
-- There are also unrelated/pre-existing backend/auth/infra/generated changes in the worktree; keep them out of the audit slice unless deliberately reviewed.
+- The worktree is clean at closeout.
+- Future GSD chains should still use explicit-path staging and commit each completed slice.
+- Completed slices were separated into auth, route cleanup, fansub list shared UI, segment shared table, drawer race hardening, docs/contracts guardrails, and domain guardrail tests.
 - `frontend/tsconfig.tsbuildinfo` is dirty and should not be staged casually.
 
 ## Mental Unload
 - The user asked why multiple agents keep leaving a dirty worktree. Root cause is shared workspace/branch plus broad page edits and generated files. Fix is branch/worktree isolation per agent plus explicit staging and a no-`git add .` rule.
-- The user considers the audit essentially done, but wants durable notes so future GSD execute runs do not rebuild duplicate upload flows or reselect completed race-hardening work.
-- The best next engineering slice is probably `domain-guardrail-tests`, after commit hygiene.
+- The user considers the audit done; future work should not reopen completed route cleanup or drawer race hardening without new evidence.
+- The best next tiny engineering slice is cleaning the `next/image` mock warning in the fansub edit test.

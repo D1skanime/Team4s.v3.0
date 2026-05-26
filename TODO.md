@@ -3,8 +3,8 @@
 ## Current Active Work
 - [x] Complete Phase 51 Keycloak access-token resource-server boundary implementation.
 - [x] Add Phase 51 UAT, verification, security, and validation artifacts.
-- [ ] Commit and push Phase 51 plus closeout files from `codex/phase-51-keycloak-auth-boundary`.
-- [ ] Stash or split unrelated dirty audit/UI/domain/generated work after the Phase 51 commit.
+- [x] Commit and push Phase 51 plus closeout files.
+- [x] Split, commit, merge, and push the Page/Audit cleanup slices.
 - [x] Reconstruct and maintain `.planning/quick/260525-code-altlasten-und-domain-audit`.
 - [x] Decide and document that `release_version_media` is canonical for versioned process media.
 - [x] Confirm local DB has migration 0057 applied and no `release_version_groups.fansubgroup_id`.
@@ -15,11 +15,11 @@
 - [x] Convert small safe UI slices to existing shared table/state components.
 - [x] Harden fansub release drawer async request/mutation behavior.
 - [x] Clean targeted lint warnings in the fansub release drawer page.
-- [ ] Split and stage/commit the audit-related changes by explicit path.
-- [ ] Add follow-up domain guardrail tests for release-version media and fansub group column rules.
+- [x] Split and stage/commit the audit-related changes by explicit path.
+- [x] Add follow-up domain guardrail tests for release-version media and fansub group column rules.
 
 ## Parking Lot
 - [ ] Clean `next/image` mock warning for `unoptimized` in fansub edit page tests.
 - [ ] Larger Drawer/Upload/Card UI convergence, only as small tested slices.
-- [ ] Broader dirty worktree review for unrelated backend/auth/infra/generated changes.
+- [ ] Review older unrelated stashes before deleting them.
 - [ ] Full browser pass on affected admin screens after commit slicing if a local server is available.

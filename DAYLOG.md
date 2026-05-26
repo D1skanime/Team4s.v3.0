@@ -1030,3 +1030,28 @@
 
 ### Next Step
 - Stage and commit only Phase 51 plus current closeout files, then stash or separately handle unrelated dirty work before pushing.
+
+## 2026-05-26 - Final GitHub Closeout
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Final focus: land Phase 51, Page/Audit cleanup, and domain guardrail tests on `main`.
+
+### Accomplishments
+- Pushed the local Phase-49/50 basis to `origin/main` so Phase 51 had a clean base.
+- Merged Phase 51 to `main` and pushed.
+- Rebases Page/Audit cleanup onto updated `main`, removed the temporary merge commit, then merged and pushed.
+- Deleted the two completed WIP stashes from today's Phase 51/Page-Audit cleanup.
+- Added domain guardrail tests for canonical `release_version_id`, canonical `fansub_group_id`, and migration 0057 safety.
+- Final branch is `main`, aligned with `origin/main`, with a clean worktree.
+
+### Verification
+- `go test ./internal/repository ./internal/migrations` passed.
+- `git diff --check` passed with only CRLF warnings.
+- Final `git status --short --branch` shows `main...origin/main` and no dirty files.
+
+### Remaining Notes
+- Older unrelated stashes still exist and were intentionally left untouched.
+- Existing `next/image` mock warning remains the smallest good follow-up.
+
+### Next Step
+- Fix the `next/image` mock warning in `frontend/src/app/admin/fansubs/[id]/edit/page.test.tsx`, then run that single targeted test.
