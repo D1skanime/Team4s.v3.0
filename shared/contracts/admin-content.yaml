@@ -330,7 +330,197 @@ endpoints:
       status: 200
       type: AdminGenreTokensResponse
 
+  - name: admin-fansub-anime-releases
+    method: GET
+    path: /api/v1/admin/fansubs/:id/anime/:animeId/releases
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: animeId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: AdminFansubAnimeReleasesResponse
+
+  - name: admin-fansub-anime-release-canonical
+    method: GET
+    path: /api/v1/admin/fansubs/:id/anime/:animeId/releases/canonical
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: animeId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: AdminCanonicalFansubAnimeReleaseResponse
+
+  - name: admin-release-get
+    method: GET
+    path: /api/v1/admin/releases/:releaseId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: releaseId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: AdminReleaseResponse
+
+  - name: admin-release-version-media-list
+    method: GET
+    path: /api/v1/admin/release-versions/:versionId/media
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: ReleaseVersionMediaListResponse
+
+  - name: admin-release-version-media-upload
+    method: POST
+    path: /api/v1/admin/release-versions/:versionId/media
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      content_type: multipart/form-data
+      fields:
+        category: "ReleaseVersionMediaCategory (required)"
+        caption: "string | null"
+        is_preview_candidate: boolean
+        files[]: "binary[] (required, max: 20)"
+    response:
+      status: 200
+      type: ReleaseVersionMediaUploadResponse
+
+  - name: admin-release-version-media-patch
+    method: PATCH
+    path: /api/v1/admin/release-versions/:versionId/media/:relationId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+      - name: relationId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: ReleaseVersionMediaPatchRequest
+    response:
+      status: 200
+      type: ReleaseVersionMediaItem
+
+  - name: admin-release-version-media-delete
+    method: DELETE
+    path: /api/v1/admin/release-versions/:versionId/media/:relationId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+      - name: relationId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: StatusResponse
+
 types:
+  AdminFansubReleaseSummary:
+    release_id: int64
+    release_version_id: "int64 (description: Kanonische Release-Version-ID fuer release_version_media; release_id ist hierfuer nicht gueltig)"
+    anime_id: int64
+    anime_title: string
+    fansub_group_id: int64
+    fansub_name: string
+    episode_id: int64
+    episode_number: string
+    episode_title: string | null
+    source: string | null
+    version_count: int32
+    has_theme_assets: boolean
+    duration_seconds: int32 | null
+    created_at: timestamp
+  AdminFansubAnimeReleasesResponse:
+    data: AdminFansubReleaseSummary[]
+  AdminCanonicalFansubAnimeReleaseResponse:
+    fansub_group_id: int64
+    anime_id: int64
+    release: AdminFansubReleaseSummary | null
+  AdminReleaseResponse:
+    data: AdminFansubReleaseSummary
+  ReleaseVersionMediaCategory:
+    enum: screenshot | typesetting_karaoke | fun_outtake | other
+  ReleaseVersionMediaItem:
+    id: int64
+    release_version_id: int64
+    media_asset_id: int64
+    category: ReleaseVersionMediaCategory
+    caption: string | null
+    sort_order: int32
+    is_preview_candidate: boolean
+    uploaded_by_user_id: int64 | null
+    created_at: timestamp
+    updated_at: timestamp | null
+    thumbnail_url: string | null
+    original_url: string | null
+  ReleaseVersionMediaListResponse:
+    data: ReleaseVersionMediaItem[]
+  ReleaseVersionMediaUploadResponse:
+    results: ReleaseVersionMediaUploadResult[]
+  ReleaseVersionMediaUploadResult:
+    client_file_name: string
+    status: ready | failed
+    media_asset_id: int64 (optional)
+    release_version_media_id: int64 (optional)
+    thumbnail_url: string (optional)
+    error_code: string (optional)
+    message: string (optional)
+  ReleaseVersionMediaPatchRequest:
+    caption: string | null
+    is_preview_candidate: boolean (optional)
+  StatusResponse:
+    status: string
   AdminAnimeCreateRequest:
     title: string (required, min: 1, max: 255)
     title_de: string | null

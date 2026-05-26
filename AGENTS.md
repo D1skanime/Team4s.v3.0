@@ -51,7 +51,34 @@ Core rules:
 - `release_media` is a separate release-level/public/legacy asset seam and must not be used as a substitute for version-scoped admin/fansub media.
 - Group media must use the existing `fansub_group_media`, `media_assets`, and `media_files` structures where applicable.
 - Do not invent parallel media logic.
+- Before adding any upload flow, upload component, upload hook, or upload endpoint, inspect and reuse the existing upload flows when they fit:
+  - `frontend/src/components/admin/MediaUpload.tsx` for fansub/group media.
+  - `frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx` and `useReleaseVersionMedia.ts` for release-version-scoped process media.
+  - Anime create/edit upload planning and Jellyfin asset controls for anime media.
+  - `frontend/src/lib/api.ts` upload helpers/wrappers for browser upload transport and progress behavior.
+- Shared upload UI work may extract small primitives such as dropzone, progress, error, or preview components, but must not merge domain flows or bypass the canonical media tables.
 - Do not silently introduce new tables or API contracts without documenting the reason and marking the decision.
+
+## Implementation Reuse And Contract Rules
+Use `docs/engineering/implementation-contract.md` as the general implementation workflow guide when it is present.
+
+- Before adding a new component, hook, helper, service, repository method, endpoint, DTO, or workflow-specific utility, search for an existing equivalent or near-equivalent.
+- Prefer extending an existing seam over creating a parallel one when the ownership and abstraction still fit.
+- Do not duplicate request parsing, response mapping, upload handling, auth/token handling, media ownership logic, release/fansub lookup logic, or UI control logic in a second location.
+- If similar code already exists but cannot be reused safely, document why in the plan, summary, or decision artifact.
+- GSD plans must include relevant existing analog files in `read_first` before asking executors to build new code.
+- New shared helpers are allowed only when they reduce real duplication without crossing domain ownership boundaries.
+
+## API Contract Rules
+Use `docs/api/api-contracts.md` as the API contract workflow guide when it is present.
+
+- `shared/contracts/openapi.yaml` is the canonical cross-surface OpenAPI contract.
+- `shared/contracts/admin-content.yaml` is the focused admin-content contract where present.
+- `frontend/src/types/*` and `frontend/src/lib/api.ts` must match the documented backend contract.
+- Before changing an endpoint, request payload, response payload, error shape, auth requirement, frontend API helper, or DTO, inspect the existing contract files and update the relevant contract source in the same change.
+- Do not let UI code infer undocumented fields, undocumented status handling, or undocumented fallback behavior from ad hoc `fetch` responses.
+- New or changed API behavior must include focused backend and frontend contract coverage where feasible.
+- If the runtime contract intentionally differs from a shared contract file, document the reason and add a follow-up or decision entry instead of silently drifting.
 
 ## Database And Migration Rules
 - Never edit old historical migrations unless explicitly instructed.
@@ -83,6 +110,9 @@ Core rules:
 - Prevent race conditions when loading data for expandable lists or drawers.
 - Use existing project styling and component patterns.
 - Do not perform large unrelated visual redesigns during functional phases.
+- Before implementing UI for persisted or API-backed data, map each field to a semantic control. Use `docs/frontend/ui-system.md` and `docs/agent-guidelines-ui.md` as the local source of truth.
+- Persisted/domain data must not be represented with placeholder controls: years use a year picker or constrained year control, dates use date controls, enums use select/segmented/radio controls, booleans use switch/checkbox controls, relations use select/combobox controls with labels, media uses the existing media components and ownership-specific APIs.
+- If a matching global UI component exists in `frontend/src/components/ui`, use or extend it before creating local page-specific UI.
 - See `docs/agent-guidelines-ui.md` for additional local UI guidance, but do not use that document as a substitute for the rules in this file.
 
 ## Screenshot-To-UI Rules

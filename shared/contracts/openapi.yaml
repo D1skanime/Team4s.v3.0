@@ -3326,6 +3326,176 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/anime/{animeId}/releases:
+    get:
+      tags: [Admin]
+      summary: List admin release summaries for a fansub anime
+      operationId: listAdminFansubAnimeReleases
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Admin release summaries for the fansub/anime pair
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFansubAnimeReleasesResponse"
+        "400":
+          description: Invalid fansub or anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group or anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/anime/{animeId}/releases/canonical:
+    get:
+      tags: [Admin]
+      summary: Load the canonical admin release summary for a fansub anime
+      operationId: getCanonicalAdminFansubAnimeRelease
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Canonical admin release summary or null release
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCanonicalFansubAnimeReleaseResponse"
+        "400":
+          description: Invalid fansub or anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group or anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/releases/{releaseId}:
+    get:
+      tags: [Admin]
+      summary: Load one admin release summary
+      operationId: getAdminRelease
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: releaseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Admin release summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminReleaseResponse"
+        "400":
+          description: Invalid release id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Release not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/media/files/{filename}:
     get:
       tags: [Releases]
@@ -4086,6 +4256,353 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "503":
           description: Jellyfin unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/release-versions/{versionId}/capabilities:
+    get:
+      tags: [Admin]
+      summary: Load release-version admin capabilities
+      operationId: getReleaseVersionCapabilities
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Release-version capabilities payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseVersionCapabilitiesResponse"
+        "400":
+          description: Invalid version id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: No release-version capability is available for the current actor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/release-versions/{versionId}/media:
+    get:
+      tags: [Admin]
+      summary: List media attached to a release version
+      description: Release-version media is canonical for fansub/admin process media and is scoped by `release_version_id`.
+      operationId: listReleaseVersionMedia
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Release-version media list payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseVersionMediaListResponse"
+        "400":
+          description: Invalid version id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Admin]
+      summary: Upload media for a release version
+      operationId: uploadReleaseVersionMedia
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - category
+                - files[]
+              properties:
+                category:
+                  $ref: "#/components/schemas/ReleaseVersionMediaCategory"
+                caption:
+                  type: string
+                  nullable: true
+                is_preview_candidate:
+                  type: boolean
+                  default: false
+                files[]:
+                  type: array
+                  minItems: 1
+                  maxItems: 20
+                  items:
+                    type: string
+                    format: binary
+            encoding:
+              files:
+                contentType: image/jpeg, image/png, image/webp, image/gif
+      responses:
+        "200":
+          description: Per-file upload result payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseVersionMediaUploadResponse"
+        "400":
+          description: Invalid upload request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/release-versions/{versionId}/media/reorder:
+    post:
+      tags: [Admin]
+      summary: Reorder media for one release version
+      operationId: reorderReleaseVersionMedia
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReleaseVersionMediaReorderRequest"
+      responses:
+        "200":
+          description: Reorder accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "400":
+          description: Invalid reorder request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: One or more media relations do not belong to this release version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/release-versions/{versionId}/media/{relationId}:
+    patch:
+      tags: [Admin]
+      summary: Update release-version media metadata
+      operationId: patchReleaseVersionMedia
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: relationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReleaseVersionMediaPatchRequest"
+      responses:
+        "200":
+          description: Updated release-version media payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseVersionMediaItem"
+        "400":
+          description: Invalid patch request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Media relation not found or not scoped to this release version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Admin]
+      summary: Delete release-version media relation
+      operationId: deleteReleaseVersionMedia
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: relationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Media relation deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Media relation not found or not scoped to this release version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -6631,6 +7148,247 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/EpisodeVersionFolderScanResult"
+    AdminFansubReleaseSummary:
+      type: object
+      required:
+        - release_id
+        - release_version_id
+        - anime_id
+        - anime_title
+        - fansub_group_id
+        - fansub_name
+        - episode_id
+        - episode_number
+        - version_count
+        - has_theme_assets
+        - created_at
+      properties:
+        release_id:
+          type: integer
+          format: int64
+          description: Fansub release id; not valid as a release-version media id.
+        release_version_id:
+          type: integer
+          format: int64
+          description: Concrete release version id used for release-version media.
+        anime_id:
+          type: integer
+          format: int64
+        anime_title:
+          type: string
+        fansub_group_id:
+          type: integer
+          format: int64
+        fansub_name:
+          type: string
+        episode_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: string
+        episode_title:
+          type: string
+          nullable: true
+        source:
+          type: string
+          nullable: true
+        version_count:
+          type: integer
+          format: int32
+        has_theme_assets:
+          type: boolean
+        duration_seconds:
+          type: integer
+          format: int32
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+    AdminFansubAnimeReleasesResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminFansubReleaseSummary"
+    AdminCanonicalFansubAnimeReleaseResponse:
+      type: object
+      required: [fansub_group_id, anime_id, release]
+      properties:
+        fansub_group_id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        release:
+          allOf:
+            - $ref: "#/components/schemas/AdminFansubReleaseSummary"
+          nullable: true
+    AdminReleaseResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AdminFansubReleaseSummary"
+    ReleaseVersionMediaCategory:
+      type: string
+      enum: [screenshot, typesetting_karaoke, fun_outtake, other]
+    ReleaseVersionMediaItem:
+      type: object
+      required:
+        - id
+        - release_version_id
+        - media_asset_id
+        - category
+        - caption
+        - sort_order
+        - is_preview_candidate
+        - uploaded_by_user_id
+        - created_at
+        - thumbnail_url
+        - original_url
+      properties:
+        id:
+          type: integer
+          format: int64
+        release_version_id:
+          type: integer
+          format: int64
+          description: Canonical release-version scope for this media relation.
+        media_asset_id:
+          type: integer
+          format: int64
+        category:
+          $ref: "#/components/schemas/ReleaseVersionMediaCategory"
+        caption:
+          type: string
+          nullable: true
+        sort_order:
+          type: integer
+          format: int32
+        is_preview_candidate:
+          type: boolean
+        uploaded_by_user_id:
+          type: integer
+          format: int64
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+        thumbnail_url:
+          type: string
+          nullable: true
+        original_url:
+          type: string
+          nullable: true
+    ReleaseVersionMediaListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReleaseVersionMediaItem"
+    ReleaseVersionMediaItemResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/ReleaseVersionMediaItem"
+    ReleaseVersionMediaUploadResult:
+      type: object
+      required: [client_file_name, status]
+      properties:
+        client_file_name:
+          type: string
+        status:
+          type: string
+          enum: [ready, failed]
+        media_asset_id:
+          type: integer
+          format: int64
+        release_version_media_id:
+          type: integer
+          format: int64
+        thumbnail_url:
+          type: string
+        error_code:
+          type: string
+        message:
+          type: string
+    ReleaseVersionMediaUploadResponse:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReleaseVersionMediaUploadResult"
+    ReleaseVersionMediaPatchRequest:
+      type: object
+      minProperties: 1
+      properties:
+        caption:
+          type: string
+          nullable: true
+        is_preview_candidate:
+          type: boolean
+    ReleaseVersionMediaReorderItem:
+      type: object
+      required: [id, sort_order]
+      properties:
+        id:
+          type: integer
+          format: int64
+        sort_order:
+          type: integer
+          format: int32
+    ReleaseVersionMediaReorderRequest:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ReleaseVersionMediaReorderItem"
+    ReleaseVersionCapabilities:
+      type: object
+      required:
+        - can_view_media
+        - can_upload_media
+        - can_update_media
+        - can_delete_media
+        - can_edit_notes
+      properties:
+        can_view_media:
+          type: boolean
+        can_upload_media:
+          type: boolean
+        can_update_media:
+          type: boolean
+        can_delete_media:
+          type: boolean
+        can_edit_notes:
+          type: boolean
+    ReleaseVersionCapabilitiesResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/ReleaseVersionCapabilities"
+    StatusResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
     EpisodeVersionResponse:
       type: object
       required: [data]

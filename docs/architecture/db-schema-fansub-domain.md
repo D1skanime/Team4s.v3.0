@@ -847,6 +847,28 @@ Offen:
 
 Agenten dürfen nicht einfach neue Upload- oder Media-Tabellen einführen, wenn bestehende Strukturen nutzbar sind.
 
+Das gilt auch für Frontend- und API-Flows: Vor neuen Upload-Komponenten, Upload-Hooks, Upload-Endpunkten oder Upload-Tabellen müssen die bestehenden Flows geprüft und wiederverwendet werden, sofern sie fachlich passen.
+
+Bestehende Upload-Flows:
+
+```txt
+Fansub-/Group-Media:
+- frontend/src/components/admin/MediaUpload.tsx
+
+Release-Version-Media:
+- frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx
+- frontend/src/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia.ts
+
+Anime-Media:
+- frontend/src/app/admin/anime/create/createAssetUploadPlan.ts
+- frontend/src/app/admin/anime/components/AnimeEditPage/AnimeJellyfinAssetUploadControls.tsx
+
+Browser upload transport/progress:
+- frontend/src/lib/api.ts
+```
+
+Shared UI darf kleine Primitives wie Dropzone, Progress, Error oder Preview extrahieren. Diese Primitives dürfen aber keine Domain-Flows zusammenlegen und keine kanonischen Tabellen umgehen.
+
 Bestehende Media-Basis:
 
 ```txt
