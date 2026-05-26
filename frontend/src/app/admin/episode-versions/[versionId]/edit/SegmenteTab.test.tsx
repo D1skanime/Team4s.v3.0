@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { beforeEach, describe, it, expect, vi } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react'
 import type { AdminThemeSegment } from '@/types/admin'
 
 import {
@@ -17,9 +17,11 @@ import { useReleaseSegments } from './useReleaseSegments'
 import {
   getAdminAnimeThemes,
   getAdminThemeTypes,
+  getAnimeSegmentSuggestions,
   getAnimeSegments,
 } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
+import { SegmenteTab } from './SegmenteTab'
 
 vi.mock('@/lib/useAuthSession', () => ({
   useAuthSession: vi.fn(),
@@ -30,6 +32,11 @@ vi.mock('@/lib/api', () => ({
   createAnimeSegment: vi.fn(),
   updateAnimeSegment: vi.fn(),
   deleteAnimeSegment: vi.fn(),
+  getAnimeSegmentSuggestions: vi.fn(),
+  getSegmentLibraryCandidates: vi.fn(),
+  uploadSegmentAsset: vi.fn(),
+  deleteSegmentAsset: vi.fn(),
+  attachSegmentLibraryAsset: vi.fn(),
   getAdminAnimeThemes: vi.fn(),
   getAdminThemeTypes: vi.fn(),
   createAdminAnimeTheme: vi.fn(),
@@ -37,6 +44,7 @@ vi.mock('@/lib/api', () => ({
 
 const mockedUseAuthSession = vi.mocked(useAuthSession)
 const mockedGetAnimeSegments = vi.mocked(getAnimeSegments)
+const mockedGetAnimeSegmentSuggestions = vi.mocked(getAnimeSegmentSuggestions)
 const mockedGetAdminAnimeThemes = vi.mocked(getAdminAnimeThemes)
 const mockedGetAdminThemeTypes = vi.mocked(getAdminThemeTypes)
 
@@ -50,6 +58,7 @@ beforeEach(() => {
     isClientInitialized: true,
   })
   mockedGetAnimeSegments.mockResolvedValue({ data: [] })
+  mockedGetAnimeSegmentSuggestions.mockResolvedValue({ data: [] })
   mockedGetAdminAnimeThemes.mockResolvedValue({ data: [] })
   mockedGetAdminThemeTypes.mockResolvedValue({ data: [] })
 })
@@ -97,6 +106,45 @@ describe('useReleaseSegments auth contract', () => {
     expect(mockedGetAnimeSegments).toHaveBeenCalledWith(1, 2, 'v2', undefined, 9)
     expect(mockedGetAdminAnimeThemes).toHaveBeenCalledWith(1)
     expect(mockedGetAdminThemeTypes).toHaveBeenCalledWith()
+  })
+})
+
+describe('SegmenteTab table', () => {
+  it('renders segments in the shared table and keeps active rows editable', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 22,
+          theme_title: 'Sakura OP',
+          start_episode: 1,
+          end_episode: 3,
+          start_time: '00:00:10',
+          end_time: '00:01:40',
+          source_type: 'none',
+        }),
+      ],
+    })
+
+    render(
+      <SegmenteTab
+        animeId={1}
+        groupId={2}
+        version="v1"
+        episodeNumber={2}
+        releaseVariantId={9}
+      />,
+    )
+
+    const table = await screen.findByRole('table')
+    expect(within(table).getByRole('columnheader', { name: 'Typ' })).toBeTruthy()
+    expect(within(table).getByText('Sakura OP')).toBeTruthy()
+
+    const activeRow = within(table).getByText('Sakura OP').closest('tr')
+    expect(activeRow?.className).toContain('tableRowActive')
+
+    fireEvent.click(within(activeRow as HTMLTableRowElement).getByTitle('Bearbeiten'))
+
+    expect(await screen.findByText('Segment bearbeiten')).toBeTruthy()
   })
 })
 

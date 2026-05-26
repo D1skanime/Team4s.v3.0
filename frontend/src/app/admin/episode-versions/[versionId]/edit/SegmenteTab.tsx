@@ -26,6 +26,14 @@ import {
   getSegmentLibraryCandidates,
   uploadSegmentAsset,
 } from '@/lib/api'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from '@/components/ui'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type {
   AdminSegmentLibraryCandidate,
@@ -447,50 +455,53 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
       {isLoading ? (
         <p className={styles.emptyState}>Lade Segmente...</p>
       ) : (
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead className={styles.tableHeader}>
-              <tr>
-                <th>Typ</th>
-                <th>Name</th>
-                <th>Episoden</th>
-                <th>Zeitbereich</th>
-                <th>Quelle</th>
-                <th>Aktionen</th>
-              </tr>
-            </thead>
-            <tbody>
-              {segments.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className={styles.emptyState}>
+        <Table
+          className={styles.table}
+          containerClassName={styles.tableWrapper}
+          variant="withActions"
+        >
+          <TableHead className={styles.tableHeader}>
+            <TableRow>
+              <TableHeaderCell>Typ</TableHeaderCell>
+              <TableHeaderCell>Name</TableHeaderCell>
+              <TableHeaderCell>Episoden</TableHeaderCell>
+              <TableHeaderCell>Zeitbereich</TableHeaderCell>
+              <TableHeaderCell>Quelle</TableHeaderCell>
+              <TableHeaderCell>Aktionen</TableHeaderCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {segments.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className={styles.emptyState}>
                     Noch keine Segmente vorhanden. Klicke &ldquo;Segment hinzufügen&rdquo; um zu beginnen.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 segments.map((segment) => {
                   const isActive = episodeNumber != null && isSegmentActiveForEpisode(segment, episodeNumber)
                   return (
-                    <tr
+                    <TableRow
                       key={segment.id}
                       className={`${styles.tableRow} ${isActive ? styles.tableRowActive : ''}`}
                     >
-                      <td>
+                      <TableCell>
                         <span className={`${styles.badge} ${getTypeBadgeClass(segment.theme_type_name)}`}>
                           {getTypeBadgeLabel(segment.theme_type_name)}
                         </span>
-                      </td>
-                      <td style={{ fontSize: 13, color: '#6b6b70' }}>
+                      </TableCell>
+                      <TableCell style={{ fontSize: 13, color: '#6b6b70' }}>
                         {segment.theme_title?.trim() || '\u2014'}
-                      </td>
-                      <td>
+                      </TableCell>
+                      <TableCell>
                         {formatEpisodeRange(segment.start_episode, segment.end_episode)}
-                      </td>
-                      <td style={{ fontFamily: 'monospace', fontSize: 12 }}>
+                      </TableCell>
+                      <TableCell style={{ fontFamily: 'monospace', fontSize: 12 }}>
                         {segment.start_time && segment.end_time
                           ? formatDuration(segment.start_time, segment.end_time)
                           : '\u2014'}
-                      </td>
-                      <td style={{ fontSize: 13, color: '#6b6b70' }}>
+                      </TableCell>
+                      <TableCell style={{ fontSize: 13, color: '#6b6b70' }}>
                         <div style={{ display: 'grid', gap: 2 }}>
                           {segment.playback_source_kind ? (
                             <span>
@@ -514,8 +525,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                             </span>
                           ) : null}
                         </div>
-                      </td>
-                      <td>
+                      </TableCell>
+                      <TableCell>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           <button
                             type="button"
@@ -551,14 +562,13 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                             ) : null}
                           </div>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )
                 })
               )}
-            </tbody>
-          </table>
-        </div>
+          </TableBody>
+        </Table>
       )}
 
       {/* Timeline */}
