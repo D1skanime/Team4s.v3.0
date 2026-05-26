@@ -2,9 +2,9 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { ApiError, getOwnProfile, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar } from '@/lib/api'
+import { ApiError, getOwnProfile, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { MemberProfileData, ProfileVisibility } from '@/types/profile'
 import { RichTextEditor } from '@/components/editor'
@@ -87,6 +87,15 @@ function readErrorMessage(error: unknown, fallback: string): string {
   return fallback
 }
 
+function accountSnapshot(profile: MemberProfileData): string {
+  return JSON.stringify({
+    accountDisplayName: profile.account_display_name || '',
+    email: profile.email || '',
+    status: profile.account_status || '',
+    roles: [...profile.account_global_roles].sort(),
+  })
+}
+
 export default function AdminProfilePage() {
   const { hasAccessToken, isClientInitialized } = useAuthSession()
   const [profile, setProfile] = useState<MemberProfileData | null>(null)
@@ -103,8 +112,66 @@ export default function AdminProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [hasOpenedKeycloakAccount, setHasOpenedKeycloakAccount] = useState(false)
+  const [isRefreshingAccount, setIsRefreshingAccount] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const accountSnapshotRef = useRef<string | null>(null)
+  const hasOpenedKeycloakAccountRef = useRef(false)
+  const isFormDirtyRef = useRef(false)
+  const isRefreshingAccountRef = useRef(false)
+
+  const applyProfile = useCallback((nextProfile: MemberProfileData, options: { syncForm: boolean; resetDirty?: boolean }) => {
+    setProfile(nextProfile)
+    accountSnapshotRef.current = accountSnapshot(nextProfile)
+
+    if (options.syncForm) {
+      setForm(toFormState(nextProfile))
+    }
+
+    if (options.resetDirty) {
+      isFormDirtyRef.current = false
+    }
+  }, [])
+
+  const updateForm = useCallback((updater: (current: FormState) => FormState) => {
+    isFormDirtyRef.current = true
+    setForm(updater)
+  }, [])
+
+  const loadProfile = useCallback(async (options: { syncForm: boolean; resetDirty?: boolean }) => {
+    const response = await getOwnProfile()
+    applyProfile(response.data, options)
+    return response.data
+  }, [applyProfile])
+
+  const refreshAccountAfterReturn = useCallback(async () => {
+    if (!isClientInitialized || !hasAccessToken || !hasOpenedKeycloakAccountRef.current || isRefreshingAccountRef.current) {
+      return
+    }
+
+    isRefreshingAccountRef.current = true
+    setIsRefreshingAccount(true)
+
+    try {
+      setError(null)
+      setSuccess(null)
+      await refreshActiveAuthSession()
+      const previousSnapshot = accountSnapshotRef.current
+      const shouldSyncForm = !isFormDirtyRef.current
+      const nextProfile = await loadProfile({ syncForm: shouldSyncForm, resetDirty: shouldSyncForm })
+      const nextSnapshot = accountSnapshot(nextProfile)
+
+      if (previousSnapshot && previousSnapshot !== nextSnapshot) {
+        setSuccess('Accountdaten aktualisiert.')
+      }
+    } catch (refreshError) {
+      setError(readErrorMessage(refreshError, 'Accountdaten konnten nach der Rückkehr von Keycloak nicht aktualisiert werden.'))
+    } finally {
+      isRefreshingAccountRef.current = false
+      setIsRefreshingAccount(false)
+    }
+  }, [hasAccessToken, isClientInitialized, loadProfile])
 
   useEffect(() => {
     let cancelled = false
@@ -125,8 +192,7 @@ export default function AdminProfilePage() {
         setError(null)
         const response = await getOwnProfile()
         if (cancelled) return
-        setProfile(response.data)
-        setForm(toFormState(response.data))
+        applyProfile(response.data, { syncForm: true, resetDirty: true })
       } catch (loadError) {
         if (!cancelled) {
           setError(readErrorMessage(loadError, 'Profil konnte nicht geladen werden.'))
@@ -142,7 +208,27 @@ export default function AdminProfilePage() {
     return () => {
       cancelled = true
     }
-  }, [hasAccessToken, isClientInitialized])
+  }, [applyProfile, hasAccessToken, isClientInitialized])
+
+  useEffect(() => {
+    function handleFocus() {
+      void refreshAccountAfterReturn()
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        void refreshAccountAfterReturn()
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [refreshAccountAfterReturn])
 
   const avatarURL = useMemo(() => resolveApiUrl(profile?.avatar?.public_url || ''), [profile?.avatar?.public_url])
 
@@ -164,8 +250,7 @@ export default function AdminProfilePage() {
         is_currently_active: form.isCurrentlyActive,
         profile_visibility: form.profileVisibility,
       })
-      setProfile(response.data)
-      setForm(toFormState(response.data))
+      applyProfile(response.data, { syncForm: true, resetDirty: true })
       setSuccess('Profil wurde gespeichert.')
     } catch (saveError) {
       setError(readErrorMessage(saveError, 'Profil konnte nicht gespeichert werden.'))
@@ -185,8 +270,8 @@ export default function AdminProfilePage() {
       setError(null)
       setSuccess(null)
       const response = await uploadOwnProfileAvatar(file)
-      setProfile(response.data)
-      setForm(toFormState(response.data))
+      const shouldSyncForm = !isFormDirtyRef.current
+      applyProfile(response.data, { syncForm: shouldSyncForm, resetDirty: shouldSyncForm })
       setSuccess('Avatar wurde aktualisiert.')
     } catch (uploadError) {
       setError(readErrorMessage(uploadError, 'Avatar konnte nicht hochgeladen werden.'))
@@ -194,6 +279,12 @@ export default function AdminProfilePage() {
     } finally {
       setIsUploadingAvatar(false)
     }
+  }
+
+  function handleKeycloakAccountClick() {
+    hasOpenedKeycloakAccountRef.current = true
+    setHasOpenedKeycloakAccount(true)
+    setSuccess(null)
   }
 
   return (
@@ -228,11 +319,17 @@ export default function AdminProfilePage() {
                   <input type="file" accept="image/*" onChange={handleAvatarChange} disabled={isUploadingAvatar || !profile.capabilities.can_upload_own_avatar} hidden />
                 </label>
                 {profile.capabilities.can_open_keycloak_account && profile.keycloak_account_url ? (
-                  <a className={styles.button} href={profile.keycloak_account_url} target="_blank" rel="noreferrer">
-                    Accountdaten ändern
+                  <a className={styles.button} href={profile.keycloak_account_url} target="_blank" rel="noreferrer" onClick={handleKeycloakAccountClick}>
+                    Accountdaten bei Keycloak ändern
                   </a>
                 ) : null}
               </div>
+              {hasOpenedKeycloakAccount ? (
+                <p className={styles.accountReturnHint}>
+                  Keycloak wurde in einem neuen Tab geöffnet. Speichere dort deine Accountdaten und kehre danach hierher zurück.
+                  {isRefreshingAccount ? ' Aktualisierung läuft...' : ' Team4s aktualisiert die Accountkarten automatisch.'}
+                </p>
+              ) : null}
               <p className={styles.hint}>E-Mail, Passwort und MFA bleiben bei Keycloak. Dieses Profil steuert nur die historische Team4s-Darstellung.</p>
             </div>
 
@@ -260,30 +357,30 @@ export default function AdminProfilePage() {
                 <div className={styles.gridTwo}>
                   <div className={styles.field}>
                     <label htmlFor="displayName">Anzeigename</label>
-                    <input id="displayName" value={form.displayName} onChange={(event) => setForm((current) => ({ ...current, displayName: event.target.value }))} />
+                    <input id="displayName" value={form.displayName} onChange={(event) => updateForm((current) => ({ ...current, displayName: event.target.value }))} />
                   </div>
                   <div className={styles.field}>
                     <label htmlFor="fansubName">Fansub-Name</label>
-                    <input id="fansubName" value={form.fansubName} onChange={(event) => setForm((current) => ({ ...current, fansubName: event.target.value }))} />
+                    <input id="fansubName" value={form.fansubName} onChange={(event) => updateForm((current) => ({ ...current, fansubName: event.target.value }))} />
                   </div>
                   <div className={styles.field}>
                     <label htmlFor="activeFromYear">Aktiv seit</label>
-                    <input id="activeFromYear" inputMode="numeric" value={form.activeFromYear} onChange={(event) => setForm((current) => ({ ...current, activeFromYear: event.target.value }))} />
+                    <input id="activeFromYear" inputMode="numeric" value={form.activeFromYear} onChange={(event) => updateForm((current) => ({ ...current, activeFromYear: event.target.value }))} />
                   </div>
                   <div className={styles.field}>
                     <label htmlFor="activeUntilYear">Aktiv bis</label>
-                    <input id="activeUntilYear" inputMode="numeric" value={form.activeUntilYear} onChange={(event) => setForm((current) => ({ ...current, activeUntilYear: event.target.value }))} />
+                    <input id="activeUntilYear" inputMode="numeric" value={form.activeUntilYear} onChange={(event) => updateForm((current) => ({ ...current, activeUntilYear: event.target.value }))} />
                   </div>
                   <div className={styles.field}>
                     <label htmlFor="profileVisibility">Sichtbarkeit</label>
-                    <select id="profileVisibility" value={form.profileVisibility} onChange={(event) => setForm((current) => ({ ...current, profileVisibility: event.target.value as ProfileVisibility }))}>
+                    <select id="profileVisibility" value={form.profileVisibility} onChange={(event) => updateForm((current) => ({ ...current, profileVisibility: event.target.value as ProfileVisibility }))}>
                       <option value="members_only">Nur intern</option>
                       <option value="public">Öffentlich</option>
                     </select>
                   </div>
                   <div className={styles.field}>
                     <label htmlFor="isCurrentlyActive">Aktuell aktiv</label>
-                    <select id="isCurrentlyActive" value={form.isCurrentlyActive ? 'yes' : 'no'} onChange={(event) => setForm((current) => ({ ...current, isCurrentlyActive: event.target.value === 'yes' }))}>
+                    <select id="isCurrentlyActive" value={form.isCurrentlyActive ? 'yes' : 'no'} onChange={(event) => updateForm((current) => ({ ...current, isCurrentlyActive: event.target.value === 'yes' }))}>
                       <option value="yes">Ja</option>
                       <option value="no">Nein</option>
                     </select>
@@ -291,13 +388,13 @@ export default function AdminProfilePage() {
                 </div>
                 <div className={styles.field}>
                   <label htmlFor="bio">Kurzprofil</label>
-                  <textarea id="bio" value={form.bio} onChange={(event) => setForm((current) => ({ ...current, bio: event.target.value }))} placeholder="Ein kurzer Eindruck deiner Fansub-Rolle." />
+                  <textarea id="bio" value={form.bio} onChange={(event) => updateForm((current) => ({ ...current, bio: event.target.value }))} placeholder="Ein kurzer Eindruck deiner Fansub-Rolle." />
                 </div>
                 <div className={styles.field}>
                   <label htmlFor="memberStory">Mitgliedsgeschichte</label>
                   <RichTextEditor
                     value={form.memberStory}
-                    onChange={(value) => setForm((current) => ({ ...current, memberStory: value }))}
+                    onChange={(value) => updateForm((current) => ({ ...current, memberStory: value }))}
                     placeholder="Wie bist du zur Gruppe gekommen, woran hast du gearbeitet und was bleibt?"
                     minHeight={160}
                   />

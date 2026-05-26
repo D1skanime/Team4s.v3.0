@@ -4,8 +4,8 @@
 - **Project:** Team4s.v3.0
 - **Milestone:** `v1.1 Asset Lifecycle Hardening`
 - **Branch:** `main`
-- **Status:** Phase 52 `Profile Account Return Refresh Flow` is planned and ready to execute.
-- **Current focus:** Execute the narrow profile/Keycloak return-refresh flow without expanding into a Keycloak theme project.
+- **Status:** Phase 52 `Profile Account Return Refresh Flow` is implemented; live Keycloak UAT remains pending.
+- **Current focus:** Push the Phase 52 commit when requested, then live-test the Keycloak return flow with the local auth stack.
 
 ## What Works Now
 - Keycloak issues access tokens with `aud` containing `team4s-api`.
@@ -26,12 +26,13 @@
 - Targeted lint warning cleanup for `frontend/src/app/admin/fansubs/[id]/edit/page.tsx` is done.
 - The fansub edit test's `next/image` mock no longer forwards `unoptimized` to a native `img`.
 - Closeout notes record the pushed quick-task baseline and next restart point.
-- Phase 52 has 3 plans for profile return refresh, handoff copy, focused checks, and UAT.
+- Phase 52 profile flow now opens Keycloak in a new tab, shows a contextual return hint, refreshes the active auth session on return, reloads `/me`, updates account cards, and preserves unsaved Team4s profile form edits.
 
 ## What Is Not Done Yet
 - Larger Drawer/Upload/Card UI convergence is intentionally deferred.
 - Older unrelated stashes still exist and should be reviewed before deleting.
 - Keycloak-side `Zurück zu Team4s` Account Console theming is deferred; Phase 52 handles the Team4s-side new-tab and return-refresh flow.
+- Live Keycloak browser UAT for Phase 52 is still pending until the local auth stack is available.
 
 ## Valid Commands
 - `cd backend && go test ./...`
@@ -69,9 +70,16 @@
 - `main` was pushed to GitHub through commit `20eaeeda`.
 - Quick task `260526-mhk` passed the targeted fansub edit test, focused ESLint, frontend typecheck, and `git diff --check` with only LF/CRLF warnings.
 - Quick task commits: `ed0254a9 test: clean fansub next image mock` and `65dfec11 docs(quick-260526-mhk): record next image mock cleanup`.
+- Phase 52 targeted profile test passed: `cd frontend && npm run test -- --run "src/app/admin/profile/page.test.tsx"`.
+- Phase 52 auth boundary checks passed: `cd frontend && npm test -- --run src/lib/api.no-token-boundary.test.ts src/lib/api.auth-refresh.test.ts`.
+- Phase 52 frontend typecheck passed: `cd frontend && npm run typecheck`.
+- Phase 52 focused ESLint passed on the modified profile/auth-boundary files.
+- Phase 52 frontend build passed: `cd frontend && npm run build`.
+- Phase 52 `git diff --check` passed with only LF/CRLF working-copy warnings.
+- Full frontend lint still fails on unrelated existing issues outside Phase 52; see `.planning/phases/52-profile-account-return-refresh-flow/52-UAT.md`.
 
 ## Top 3 Next
-1. Run `$gsd-execute-phase 52` to implement the profile/Keycloak return-refresh flow.
+1. Push Phase 52 when requested.
 2. Review older unrelated stashes before deleting them.
 3. Keep future UI convergence as small tested slices.
 

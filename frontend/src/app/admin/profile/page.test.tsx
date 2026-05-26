@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 
-import type { ReactNode } from 'react'
+import type { ImgHTMLAttributes, ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import type { MemberProfileResponse } from '@/types/profile'
 
 const getOwnProfileMock = vi.fn()
+const refreshActiveAuthSessionMock = vi.fn()
 const updateOwnProfileMock = vi.fn()
 const uploadOwnProfileAvatarMock = vi.fn()
 
@@ -15,7 +16,11 @@ vi.mock('next/link', () => ({
 }))
 
 vi.mock('next/image', () => ({
-  default: ({ alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => <img alt={alt} {...props} />,
+  default: ({ alt, unoptimized, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
+    void unoptimized
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img alt={alt} {...props} />
+  },
 }))
 
 vi.mock('@/components/editor', () => ({
@@ -52,6 +57,7 @@ vi.mock('@/lib/api', () => ({
   },
   getAuthSessionSnapshot: () => ({ hasAccessToken: true, hasRefreshToken: true, displayName: 'Test User' }),
   getOwnProfile: (...args: unknown[]) => getOwnProfileMock(...args),
+  refreshActiveAuthSession: (...args: unknown[]) => refreshActiveAuthSessionMock(...args),
   updateOwnProfile: (...args: unknown[]) => updateOwnProfileMock(...args),
   uploadOwnProfileAvatar: (...args: unknown[]) => uploadOwnProfileAvatarMock(...args),
   resolveApiUrl: (value: string) => value,
@@ -125,9 +131,102 @@ describe('AdminProfilePage', () => {
     render(<AdminProfilePage />)
 
     expect(await screen.findByDisplayValue('Mika')).not.toBeNull()
-    expect(screen.getByRole('link', { name: 'Accountdaten ändern' }).getAttribute('href')).toContain('/account')
+    const accountLink = screen.getByRole('link', { name: 'Accountdaten bei Keycloak ändern' })
+    expect(accountLink.getAttribute('href')).toContain('/account')
+    expect(accountLink.getAttribute('target')).toBe('_blank')
     expect(screen.getAllByText('Phase Fansubs').length).toBeGreaterThan(0)
     expect(screen.getByText('Typesetter')).not.toBeNull()
+  })
+
+  it('refreshes account cards after returning from Keycloak', async () => {
+    getOwnProfileMock
+      .mockResolvedValueOnce(makeProfileResponse())
+      .mockResolvedValueOnce(makeProfileResponse({
+        account_display_name: 'Mika Keycloak',
+        email: 'mika.changed@example.com',
+      }))
+    refreshActiveAuthSessionMock.mockResolvedValue(undefined)
+
+    render(<AdminProfilePage />)
+
+    const accountLink = await screen.findByRole('link', { name: 'Accountdaten bei Keycloak ändern' })
+    fireEvent.click(accountLink)
+
+    expect(screen.getByText(/Keycloak wurde in einem neuen Tab geöffnet/i)).not.toBeNull()
+    fireEvent.focus(window)
+
+    await waitFor(() => {
+      expect(refreshActiveAuthSessionMock).toHaveBeenCalledTimes(1)
+      expect(getOwnProfileMock).toHaveBeenCalledTimes(2)
+    })
+    expect(await screen.findByText('Mika Keycloak')).not.toBeNull()
+    expect(screen.getByText('mika.changed@example.com')).not.toBeNull()
+    expect(screen.getByText('Accountdaten aktualisiert.')).not.toBeNull()
+  })
+
+  it('does not show an account refresh success when Keycloak data is unchanged', async () => {
+    getOwnProfileMock
+      .mockResolvedValueOnce(makeProfileResponse())
+      .mockResolvedValueOnce(makeProfileResponse())
+    refreshActiveAuthSessionMock.mockResolvedValue(undefined)
+
+    render(<AdminProfilePage />)
+
+    fireEvent.click(await screen.findByRole('link', { name: 'Accountdaten bei Keycloak ändern' }))
+    fireEvent.focus(window)
+
+    await waitFor(() => {
+      expect(refreshActiveAuthSessionMock).toHaveBeenCalledTimes(1)
+      expect(getOwnProfileMock).toHaveBeenCalledTimes(2)
+    })
+    expect(screen.queryByText('Accountdaten aktualisiert.')).toBeNull()
+  })
+
+  it('keeps dirty Team4s profile form fields during the Keycloak return refresh', async () => {
+    getOwnProfileMock
+      .mockResolvedValueOnce(makeProfileResponse())
+      .mockResolvedValueOnce(makeProfileResponse({
+        account_display_name: 'Mika Keycloak',
+        display_name: 'Mika From Server',
+      }))
+    refreshActiveAuthSessionMock.mockResolvedValue(undefined)
+
+    render(<AdminProfilePage />)
+
+    const displayNameInput = await screen.findByLabelText('Anzeigename')
+    fireEvent.change(displayNameInput, { target: { value: 'Ungespeicherter Name' } })
+    fireEvent.click(screen.getByRole('link', { name: 'Accountdaten bei Keycloak ändern' }))
+    fireEvent.focus(window)
+
+    expect(await screen.findByText('Mika Keycloak')).not.toBeNull()
+    expect(screen.getByDisplayValue('Ungespeicherter Name')).not.toBeNull()
+    expect(screen.queryByDisplayValue('Mika From Server')).toBeNull()
+  })
+
+  it('does not run parallel Keycloak return refreshes for duplicate focus events', async () => {
+    let resolveRefresh: () => void = () => undefined
+    getOwnProfileMock
+      .mockResolvedValueOnce(makeProfileResponse())
+      .mockResolvedValueOnce(makeProfileResponse({ account_display_name: 'Mika Keycloak' }))
+    refreshActiveAuthSessionMock.mockReturnValue(new Promise<void>((resolve) => {
+      resolveRefresh = resolve
+    }))
+
+    render(<AdminProfilePage />)
+
+    fireEvent.click(await screen.findByRole('link', { name: 'Accountdaten bei Keycloak ändern' }))
+    fireEvent.focus(window)
+    fireEvent.focus(window)
+
+    await waitFor(() => {
+      expect(refreshActiveAuthSessionMock).toHaveBeenCalledTimes(1)
+    })
+
+    resolveRefresh()
+
+    await waitFor(() => {
+      expect(getOwnProfileMock).toHaveBeenCalledTimes(2)
+    })
   })
 
   it('saves edited own profile fields', async () => {

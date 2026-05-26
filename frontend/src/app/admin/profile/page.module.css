@@ -35,6 +35,17 @@
   color: var(--text-secondary);
 }
 
+.accountReturnHint {
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 22%, transparent);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.75rem;
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--bg-card));
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
 .metaGrid {
   display: grid;
   gap: 0.75rem;

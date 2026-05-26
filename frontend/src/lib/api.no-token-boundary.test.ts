@@ -195,13 +195,13 @@ describe('Phase 49 no-token ownership boundaries', () => {
       ...authEntrypointAllowlist,
     ])
 
-    const violations = rejectAllowed(
-      scan(
-        appAndComponentFiles,
-        /refreshKeycloakToken|logoutFromKeycloak|exchangeKeycloakCode|completeKeycloakAuthCallback|refreshActiveAuthSession|logoutActiveAuthSession|persistResolvedAuthSession|getAuthSessionSnapshot/,
-      ),
-      allowed,
-    )
+    const violations = scan(
+      appAndComponentFiles,
+      /refreshKeycloakToken|logoutFromKeycloak|exchangeKeycloakCode|completeKeycloakAuthCallback|refreshActiveAuthSession|logoutActiveAuthSession|persistResolvedAuthSession|getAuthSessionSnapshot/,
+    ).filter((match) => {
+      if (allowed.has(match.file)) return false
+      return !(match.file === 'src/app/admin/profile/page.tsx' && /\brefreshActiveAuthSession\b/.test(match.text))
+    })
 
     expect(formatMatches(violations)).toBe('')
   })
