@@ -12,6 +12,10 @@
 - Phase 51 auth is merged to `main` and pushed.
 - The API bearer truth is now durable: Keycloak `access_token` with `team4s-api` audience, not `id_token`.
 
+### Local Commit Note
+- The `next/image` mock cleanup is committed as `ed0254a9` plus GSD docs commit `65dfec11`.
+- Closeout handoff edits are committed only after explicit user request.
+
 ### Agent Hygiene Rule
 - When multiple agents work on page code, use separate branches/worktrees per agent and require each agent to start from `git status --short --branch`, commit its own slice, and leave generated/cache files unstaged.
 
@@ -41,6 +45,6 @@
 
 ## Current Blockers
 - No product blocker for Phase 51, Page/Audit cleanup, or the domain guardrail tests.
-- Worktree is clean and `origin/main` is current.
-- Existing `next/image` mock warning remains harmless but noisy.
+- No current product blocker is recorded.
+- Existing `next/image` mock warning is fixed and verified.
 - Older unrelated stashes remain from prior work and should not be dropped blindly.

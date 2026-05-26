@@ -14,6 +14,8 @@
 - Cleaned targeted ESLint warnings in the fansub release drawer page.
 - Updated root handoff files for a restartable workspace.
 - Merged and pushed Phase 51, Page/Audit cleanup, and domain guardrail tests to `main`.
+- Completed quick task `260526-mhk`: cleaned the fansub edit test's `next/image` mock so `unoptimized` is not forwarded to a native `img`.
+- Created commits `ed0254a9` and `65dfec11` for the mock cleanup and GSD quick-task record, then prepared closeout notes for push.
 
 ## Why It Changed
 - The previous Keycloak flow mixed login identity tokens with API bearer tokens, causing a brittle auth boundary and short-lived page sessions.
@@ -21,6 +23,7 @@
 - The audit found real confusion risk around old media paths, old routes, duplicated UI patterns, and drawer race conditions.
 - The user confirmed which routes were dead and that `release_version_media` with `release_version_id` is the correct domain model.
 - Future agents need durable guardrails so they do not rebuild duplicate upload flows or fall back to old `release_id`/`release_media` assumptions.
+- The noisy test warning was removed so the fansub edit regression suite stays easier to read during future drawer/media work.
 
 ## Verified
 - Phase 51 live token smoke passed: access token returns `/api/v1/me` `200`, ID token returns `401`.
@@ -35,9 +38,14 @@
 - `shared/contracts/openapi.yaml` parsed strictly after contract updates.
 - `go test ./internal/repository ./internal/migrations` passed for the domain guardrail tests.
 - Final `git status --short --branch` showed `main...origin/main` with a clean worktree.
+- Quick task verification passed:
+  - `cd frontend && npm run test -- --run "src/app/admin/fansubs/[id]/edit/page.test.tsx"`: 7/7 tests passed.
+  - `cd frontend && npx eslint "src/app/admin/fansubs/[id]/edit/page.test.tsx"` passed.
+  - `cd frontend && npm run typecheck` passed.
+  - `git diff --check` passed with only LF/CRLF warnings.
 
 ## Follow-Up
-- Clean the existing `next/image` mock warning in the fansub edit test.
+- Start the next planned slice: `$gsd-plan-phase 52` or one more narrow `$gsd-quick`.
 - Review older unrelated stashes before deleting them.
 - Decide whether the next planned slice is `$gsd-plan-phase 52` or one more small `$gsd-quick`.
 
@@ -47,4 +55,5 @@
 - Start from `.planning/quick/260525-code-altlasten-und-domain-audit/STATUS.md` and `ROADMAP.md`.
 - Treat WP-01 through WP-06a as complete.
 - Do not reopen Race-Condition-Hardening unless new evidence appears; it is documented as done.
-- Use explicit-path staging only for future work; the current worktree is clean.
+- Use explicit-path staging only for future work.
+- The closeout handoff notes were committed and pushed after user confirmation on the next start.

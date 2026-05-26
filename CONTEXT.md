@@ -4,7 +4,7 @@
 - **Name:** Team4s.v3.0
 - **Current workflow:** `v1.1 asset lifecycle hardening`
 - **Current branch:** `main`
-- **Current slice:** Phase 51, Page/Audit cleanup, and domain guardrail tests are committed and pushed. Workspace is clean.
+- **Current slice:** Phase 51, Page/Audit cleanup, domain guardrail tests, and the `next/image` test-mock cleanup are committed. Closeout notes are prepared for push.
 
 ## Current State
 
@@ -33,6 +33,7 @@
   - Fansub release repository code must use `release_version_groups.fansub_group_id`, not legacy `fansubgroup_id`.
   - Migration 0057 must keep the mismatch safety check before dropping legacy `fansubgroup_id`.
 - ROADMAP and STATUS for the audit are synchronized through WP-06/WP-06a.
+- Quick task `260526-mhk` fixed the fansub edit test's `next/image` mock by consuming `unoptimized` before rendering a native `img`.
 
 ### What Works
 - `/api/v1/me` accepts the live Keycloak access token and rejects the live Keycloak ID token.
@@ -42,13 +43,14 @@
 - Theme drawer upload/delete completion is guarded by the current selection and mutation id.
 - Existing upload flows are explicitly documented as reusable guardrails for future agents.
 - Targeted frontend tests, typecheck, targeted lint, and diff checks passed for today's final slices.
-- `main` is aligned with `origin/main`; current worktree is clean.
+- The focused fansub edit page test now passes without the previous `unoptimized` React DOM warning.
+- Quick task commits are `ed0254a9` and `65dfec11`.
 
 ### What Is Open
 - Phase 51 has no open product gaps.
 - The audit is complete enough to close, but follow-up hardening remains valuable:
-  - optionally clean the existing `next/image` test mock warning;
   - only later consider larger Drawer/Upload/Card UI convergence.
+- Next work is open: choose Phase 52 or one more narrow quick task.
 - Older unrelated stashes remain from prior work; do not drop them without review.
 
 ## Active Planning Context

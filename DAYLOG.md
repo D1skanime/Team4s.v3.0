@@ -1,5 +1,33 @@
 # DAYLOG
 
+## 2026-05-26 Quick Mock Cleanup Closeout
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's final focus: close the harmless `next/image` mock warning follow-up after Phase 51/Page-Audit work.
+
+### Workstreams Touched
+- `frontend/src/app/admin/fansubs/[id]/edit/page.test.tsx`
+- `.planning/quick/260526-mhk-next-image-test-mock-fixen-und-den-einze`
+- Repo-local handoff files for restartability
+
+### Accomplishments
+- Fixed the local `next/image` mock so `unoptimized` is consumed and not forwarded to native `img`.
+- Reused the existing mock pattern from `frontend/src/components/admin/MediaUpload.test.tsx`.
+- Created quick-task commits `ed0254a9` and `65dfec11`.
+
+### Verification
+- `cd frontend && npm run test -- --run "src/app/admin/fansubs/[id]/edit/page.test.tsx"` passed: 7/7 tests.
+- `cd frontend && npx eslint "src/app/admin/fansubs/[id]/edit/page.test.tsx"` passed.
+- `cd frontend && npm run typecheck` passed.
+- `git diff --check` passed with only LF/CRLF warnings.
+
+### Blockers
+- No product blocker remains for the mock cleanup.
+- Closeout files are committed only after explicit user request.
+
+### Next Step
+- Review `git status --short --branch`, then choose whether the next planned slice is Phase 52 or one more small quick task.
+
 ## 2026-05-25 Capability Regression Test Closeout
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`

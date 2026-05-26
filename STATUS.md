@@ -4,8 +4,8 @@
 - **Project:** Team4s.v3.0
 - **Milestone:** `v1.1 Asset Lifecycle Hardening`
 - **Branch:** `main`
-- **Status:** Phase 51, Page/Audit cleanup, and domain guardrail tests are committed and pushed to GitHub.
-- **Current focus:** Keep the workspace clean; next small slice is the harmless `next/image` mock warning cleanup.
+- **Status:** Phase 51, Page/Audit cleanup, domain guardrail tests, and the `next/image` mock cleanup are committed. Closeout notes are prepared for push.
+- **Current focus:** Choose Phase 52 or another narrow quick slice.
 
 ## What Works Now
 - Keycloak issues access tokens with `aud` containing `team4s-api`.
@@ -24,10 +24,10 @@
 - Fansub release drawer requests and theme upload/delete finalizers are guarded against stale async completions.
 - Domain guardrail tests protect `release_version_id`, `fansub_group_id`, and migration-0057 safety expectations.
 - Targeted lint warning cleanup for `frontend/src/app/admin/fansubs/[id]/edit/page.tsx` is done.
-- `main` tracks `origin/main` and the worktree is clean.
+- The fansub edit test's `next/image` mock no longer forwards `unoptimized` to a native `img`.
+- Closeout notes record the pushed quick-task baseline and next restart point.
 
 ## What Is Not Done Yet
-- Existing test warning remains: `next/image` mock forwards `unoptimized` to a plain `img`.
 - Larger Drawer/Upload/Card UI convergence is intentionally deferred.
 - Older unrelated stashes still exist and should be reviewed before deleting.
 
@@ -37,6 +37,7 @@
 - `cd frontend && npx tsc --noEmit --incremental false`
 - `cd frontend && npx eslint src/lib/api.ts src/lib/keycloakAuth.ts src/lib/keycloakAuth.test.ts src/lib/api.auth-refresh.test.ts src/lib/api.no-token-boundary.test.ts`
 - `cd frontend && npm run test -- --run "src/app/admin/fansubs/[id]/edit/page.test.tsx"`
+- `cd frontend && npx eslint "src/app/admin/fansubs/[id]/edit/page.test.tsx"`
 - `cd frontend && npm run test -- --run "src/app/admin/fansubs/page.test.tsx"`
 - `cd frontend && npm run test -- --run "src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.test.tsx"`
 - `cd frontend && npm run test -- --run "src/app/admin/my-groups/page.test.tsx"`
@@ -64,11 +65,13 @@
 - `shared/contracts/openapi.yaml` parsed strictly after contract updates.
 - `go test ./internal/repository ./internal/migrations` passed for the domain guardrail tests.
 - `main` was pushed to GitHub through commit `20eaeeda`.
+- Quick task `260526-mhk` passed the targeted fansub edit test, focused ESLint, frontend typecheck, and `git diff --check` with only LF/CRLF warnings.
+- Quick task commits: `ed0254a9 test: clean fansub next image mock` and `65dfec11 docs(quick-260526-mhk): record next image mock cleanup`.
 
 ## Top 3 Next
-1. Fix the `next/image` mock warning in `frontend/src/app/admin/fansubs/[id]/edit/page.test.tsx`.
-2. Run the targeted fansub edit page test after the mock cleanup.
-3. Decide whether the next planned work is `$gsd-plan-phase 52` or another small `$gsd-quick`.
+1. Decide whether the next planned work is `$gsd-plan-phase 52` or another small `$gsd-quick`.
+2. Review older unrelated stashes before deleting them.
+3. Keep future UI convergence as small tested slices.
 
 ## Risks / Blockers
 - Broad dirty worktree remains the main operational risk for future multi-agent sessions; never use `git add .`.

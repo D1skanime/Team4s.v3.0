@@ -17,9 +17,10 @@
 - [x] Clean targeted lint warnings in the fansub release drawer page.
 - [x] Split and stage/commit the audit-related changes by explicit path.
 - [x] Add follow-up domain guardrail tests for release-version media and fansub group column rules.
+- [x] Clean `next/image` mock warning for `unoptimized` in fansub edit page tests.
 
 ## Parking Lot
-- [ ] Clean `next/image` mock warning for `unoptimized` in fansub edit page tests.
+- [ ] Decide whether the next planned slice is `$gsd-plan-phase 52` or one more small `$gsd-quick`.
 - [ ] Larger Drawer/Upload/Card UI convergence, only as small tested slices.
 - [ ] Review older unrelated stashes before deleting them.
 - [ ] Full browser pass on affected admin screens after commit slicing if a local server is available.
