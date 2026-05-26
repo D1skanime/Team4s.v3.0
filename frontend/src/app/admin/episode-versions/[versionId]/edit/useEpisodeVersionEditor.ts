@@ -272,7 +272,7 @@ export function useEpisodeVersionEditor() {
     setIsDeleting(true)
     try {
       await deleteEpisodeVersion(versionID)
-      router.push(contextData ? `/admin/anime/${contextData.version.anime_id}/versions` : '/admin/anime')
+      router.push(contextData ? `/admin/anime/${contextData.version.anime_id}/episodes` : '/admin/anime')
     } catch (error) {
       setErrorMessage(formatError(error))
     } finally {

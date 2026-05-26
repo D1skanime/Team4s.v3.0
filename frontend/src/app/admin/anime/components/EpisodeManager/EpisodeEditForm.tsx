@@ -307,7 +307,7 @@ export function EpisodeEditForm({
                           Gruppe bearbeiten
                         </Link>
                       ) : null}
-                      <Link href={`/admin/anime/${animeID}/versions#version-${version.id}`} className={styles.buttonSecondary}>
+                      <Link href={`/admin/anime/${animeID}/episodes/${selectedEpisode.id}/versions#version-${version.id}`} className={styles.buttonSecondary}>
                         Im Versionsbrowser
                       </Link>
                     </div>

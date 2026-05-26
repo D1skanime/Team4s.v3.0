@@ -122,7 +122,7 @@ describe("AdminMyGroupsPage", () => {
     expect(screen.queryByRole("link", { name: /Editieren/ })).toBeNull();
     expect(
       screen.getByRole("link", { name: /Öffnen/ }).getAttribute("href"),
-    ).toBe("/manage/groups/88");
+    ).toBe("/admin/my-groups/88");
     expect(screen.getByRole("button", { name: /Öffnen/ })).toHaveProperty(
       "disabled",
       true,

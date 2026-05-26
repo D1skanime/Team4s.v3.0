@@ -280,7 +280,7 @@ export default function AdminMyGroupsPage() {
                         <div className={styles.rowActions}>
                           {group.capabilities.can_open_contributor_group ? (
                             <Button
-                              href={`/manage/groups/${group.id}`}
+                              href={`/admin/my-groups/${group.id}`}
                               size="sm"
                               rightIcon={<ArrowRight size={14} />}
                             >

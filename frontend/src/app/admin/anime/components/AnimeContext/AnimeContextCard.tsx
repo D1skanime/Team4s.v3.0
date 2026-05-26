@@ -103,9 +103,6 @@ export function AnimeContextCard({
             <button className={styles.buttonSecondary} type="button" onClick={onJumpToEpisodes}>
               Zu Episoden
             </button>
-            <Link href={`/admin/anime/${anime.id}/versions`} className={styles.buttonSecondary}>
-              Zu Versionen
-            </Link>
             <a href={`/anime/${anime.id}`} className={styles.buttonSecondary} target="_blank" rel="noreferrer">
               Anime öffnen
             </a>
