@@ -156,6 +156,16 @@ func (r *MemberProfileRepository) AttachUploadedAvatar(
 		return nil, fmt.Errorf("insert avatar media file: %w", err)
 	}
 
+	sourcePath := strings.TrimSpace(input.SourceFilePath)
+	if sourcePath != "" && sourcePath != strings.TrimSpace(input.FilePath) {
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO media_files (media_id, variant, path, width, height, size)
+			VALUES ($1, 'source_original', $2, 0, 0, $3)
+		`, mediaID, sourcePath, input.SourceSizeBytes); err != nil {
+			return nil, fmt.Errorf("insert avatar source media file: %w", err)
+		}
+	}
+
 	if _, err := tx.Exec(ctx, `
 		UPDATE members
 		SET avatar_media_id = $2,
@@ -163,6 +173,15 @@ func (r *MemberProfileRepository) AttachUploadedAvatar(
 		WHERE id = $1
 	`, base.MemberID, mediaID); err != nil {
 		return nil, fmt.Errorf("attach avatar to member %d: %w", base.MemberID, err)
+	}
+
+	if base.Avatar != nil && base.Avatar.ID > 0 {
+		if _, err := tx.Exec(ctx, `DELETE FROM media_files WHERE media_id = $1`, base.Avatar.ID); err != nil {
+			return nil, fmt.Errorf("delete previous avatar media files %d: %w", base.Avatar.ID, err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM media_assets WHERE id = $1`, base.Avatar.ID); err != nil {
+			return nil, fmt.Errorf("delete previous avatar media asset %d: %w", base.Avatar.ID, err)
+		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {

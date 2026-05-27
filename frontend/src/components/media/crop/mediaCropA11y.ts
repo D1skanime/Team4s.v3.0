@@ -27,3 +27,21 @@ export function getFocusTrapNextIndex(currentIndex: number, total: number, shift
 
   return currentIndex === total - 1 ? 0 : currentIndex + 1
 }
+
+export function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  const selector = [
+    'button:not([disabled])',
+    '[href]',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+  ].join(', ')
+
+  return Array.from(container.querySelectorAll<HTMLElement>(selector)).filter((element) => {
+    if (element.getAttribute('aria-hidden') === 'true') return false
+    if (element.hasAttribute('disabled')) return false
+    return true
+  })
+}
+

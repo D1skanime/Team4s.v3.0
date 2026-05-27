@@ -1,6 +1,6 @@
 'use client'
 
-import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { AppShell } from '@/components/layout/AppShell'
 import { Button, Card, ErrorState, LoadingState, SectionHeader } from '@/components/ui'
@@ -76,6 +76,15 @@ function parseOptionalYear(raw: string): number | null {
   const parsed = Number.parseInt(trimmed, 10)
   if (!Number.isFinite(parsed) || parsed < 1970 || parsed > 2100) return null
   return parsed
+}
+
+function validateOptionalYear(raw: string): string | undefined {
+  const trimmed = raw.trim()
+  if (!trimmed) return undefined
+  if (!/^\d{4}$/.test(trimmed)) return 'Bitte ein vierstelliges Jahr eingeben.'
+  const parsed = Number.parseInt(trimmed, 10)
+  if (!Number.isFinite(parsed) || parsed < 1970 || parsed > 2100) return 'Bitte ein Jahr zwischen 1970 und 2100 eingeben.'
+  return undefined
 }
 
 function readErrorMessage(error: unknown, fallback: string): string {
@@ -208,10 +217,20 @@ export default function MyProfilePage() {
     displayName: profile?.account_display_name || profile?.display_name || '',
     email: profile?.email || '',
   }), [profile])
+  const yearErrors = useMemo(() => ({
+    activeFromYear: validateOptionalYear(form.activeFromYear),
+    activeUntilYear: form.isCurrentlyActive ? undefined : validateOptionalYear(form.activeUntilYear),
+  }), [form.activeFromYear, form.activeUntilYear, form.isCurrentlyActive])
+  const hasYearErrors = Boolean(yearErrors.activeFromYear || yearErrors.activeUntilYear)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!hasAccessToken || !profile) return
+    if (hasYearErrors) {
+      setError('Bitte korrigiere die markierten Jahresfelder, bevor du speicherst.')
+      setSuccess(null)
+      return
+    }
 
     try {
       setIsSaving(true)
@@ -237,16 +256,14 @@ export default function MyProfilePage() {
     }
   }
 
-  async function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file || !hasAccessToken) return
+  async function handleAvatarSelected(payload: { sourceFile: File; croppedFile: File }) {
+    if (!hasAccessToken) return
 
     try {
       setIsUploadingAvatar(true)
       setError(null)
       setSuccess(null)
-      const response = await uploadOwnProfileAvatar(file)
+      const response = await uploadOwnProfileAvatar(payload)
       const shouldSyncForm = !isFormDirtyRef.current
       applyProfile(response.data, { syncForm: shouldSyncForm, resetDirty: shouldSyncForm })
       setSuccess('Avatar wurde aktualisiert.')
@@ -281,7 +298,7 @@ export default function MyProfilePage() {
 
         {!isLoading && profile ? (
           <>
-            <MemberProfileHero profile={profile} isDirty={isDirty} isSaving={isSaving} canSave={isDirty && profile.capabilities.can_edit_own_profile} />
+            <MemberProfileHero profile={profile} isDirty={isDirty} isSaving={isSaving} canSave={isDirty && !hasYearErrors && profile.capabilities.can_edit_own_profile} />
             {error ? <div className={styles.errorBox}>{error}</div> : null}
             {success ? <div className={styles.successBox}>{success}</div> : null}
 
@@ -289,7 +306,7 @@ export default function MyProfilePage() {
               <div className={styles.mainColumn}>
                 <Card variant="section">
                   <SectionHeader title="Basisdaten" description="Team4s-eigene Profilfelder. Accountdaten bleiben bei Keycloak." />
-                  <ProfileBasicsForm form={form} disabled={!profile.capabilities.can_edit_own_profile || isSaving} onChange={updateForm} />
+                  <ProfileBasicsForm form={form} disabled={!profile.capabilities.can_edit_own_profile || isSaving} errors={yearErrors} onChange={updateForm} />
                 </Card>
                 <Card variant="section">
                   <ProfileStoryCard value={form.memberStory} disabled={!profile.capabilities.can_edit_own_profile || isSaving} onChange={updateForm} />
@@ -306,7 +323,7 @@ export default function MyProfilePage() {
 
               <aside className={styles.sideColumn}>
                 <Card variant="section" title="Profilbild">
-                  <MemberAvatarCard profile={profile} avatarURL={avatarURL} isUploading={isUploadingAvatar} onAvatarChange={handleAvatarChange} />
+                  <MemberAvatarCard profile={profile} avatarURL={avatarURL} isUploading={isUploadingAvatar} onAvatarSelected={handleAvatarSelected} />
                 </Card>
                 <Card variant="section">
                   <VisibilityCard value={form.profileVisibility} disabled={!profile.capabilities.can_edit_own_profile || isSaving} onChange={updateForm} />

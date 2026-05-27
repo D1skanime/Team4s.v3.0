@@ -6,10 +6,14 @@ import styles from '../page.module.css'
 type ProfileBasicsFormProps = {
   form: MemberProfileFormState
   disabled: boolean
+  errors?: {
+    activeFromYear?: string
+    activeUntilYear?: string
+  }
   onChange: (updater: (current: MemberProfileFormState) => MemberProfileFormState) => void
 }
 
-export function ProfileBasicsForm({ form, disabled, onChange }: ProfileBasicsFormProps) {
+export function ProfileBasicsForm({ form, disabled, errors, onChange }: ProfileBasicsFormProps) {
   const bioLength = form.bio.length
 
   return (
@@ -30,7 +34,12 @@ export function ProfileBasicsForm({ form, disabled, onChange }: ProfileBasicsFor
           onChange={(event) => onChange((current) => ({ ...current, displayName: event.target.value }))}
         />
       </FormField>
-      <FormField label="Aktiv seit" htmlFor="activeFromYear" hint="Jahr, z. B. 2016. Monatsdaten sind noch nicht Teil des Profil-Contracts.">
+      <FormField
+        label="Aktiv seit"
+        htmlFor="activeFromYear"
+        hint="Jahr, z. B. 2016. Monatsdaten sind noch nicht Teil des Profil-Contracts."
+        error={errors?.activeFromYear}
+      >
         <Input
           id="activeFromYear"
           type="number"
@@ -42,7 +51,12 @@ export function ProfileBasicsForm({ form, disabled, onChange }: ProfileBasicsFor
           onChange={(event) => onChange((current) => ({ ...current, activeFromYear: event.target.value }))}
         />
       </FormField>
-      <FormField label="Aktiv bis" htmlFor="activeUntilYear" disabled={form.isCurrentlyActive}>
+      <FormField
+        label="Aktiv bis"
+        htmlFor="activeUntilYear"
+        disabled={form.isCurrentlyActive}
+        error={errors?.activeUntilYear}
+      >
         <Input
           id="activeUntilYear"
           type="number"

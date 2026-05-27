@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -38,6 +39,12 @@ type updateOwnProfileRequest struct {
 	ProfileVisibility models.OptionalString `json:"profile_visibility"`
 	Email             models.OptionalString `json:"email"`
 	KeycloakSubject   models.OptionalString `json:"keycloak_subject"`
+}
+
+var avatarAllowedImageMimeTypes = map[string]bool{
+	"image/jpeg": true,
+	"image/png":  true,
+	"image/webp": true,
 }
 
 func (h *AppAuthHandler) GetOwnProfile(c *gin.Context) {
@@ -135,26 +142,44 @@ func (h *AppAuthHandler) UploadOwnProfileAvatar(c *gin.Context) {
 		return
 	}
 
-	fileHeader, err := c.FormFile("file")
+	sourceHeader, croppedHeader, err := readAvatarUploadFileHeaders(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "keine datei hochgeladen"}})
 		return
 	}
 
-	file, err := fileHeader.Open()
+	croppedFile, err := croppedHeader.Open()
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar-Datei konnte nicht geöffnet werden.")
 		return
 	}
-	defer file.Close()
+	defer croppedFile.Close()
 
-	mimeType, width, height, ext, err := detectAvatarImage(file, fileHeader.Size)
+	mimeType, width, height, ext, err := detectAvatarImage(croppedFile, croppedHeader.Size)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
-	if _, err := file.Seek(0, 0); err != nil {
+	if _, err := croppedFile.Seek(0, 0); err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar-Datei konnte nicht vorbereitet werden.")
+		return
+	}
+
+	sourceFile, err := sourceHeader.Open()
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar-Original konnte nicht geöffnet werden.")
+		return
+	}
+	defer sourceFile.Close()
+
+	sourceMimeType, _, _, sourceExt, err := detectAvatarImage(sourceFile, sourceHeader.Size)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
+		return
+	}
+	sourceExt = avatarSourceExtFromMime(sourceMimeType)
+	if _, err := sourceFile.Seek(0, 0); err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar-Original konnte nicht vorbereitet werden.")
 		return
 	}
 
@@ -167,16 +192,19 @@ func (h *AppAuthHandler) UploadOwnProfileAvatar(c *gin.Context) {
 	mediaID := uuid.New().String()
 	relativeDir := fmt.Sprintf("/media/profile/%d/avatar/%s", profile.MemberID, mediaID)
 	filename := "original." + ext
+	sourceFilename := "source_original." + sourceExt
 	relativePath := relativeDir + "/" + filename
+	relativeSourcePath := relativeDir + "/" + sourceFilename
 	absoluteDir := filepath.Join(h.mediaStorageDir, "profile", fmt.Sprintf("%d", profile.MemberID), "avatar", mediaID)
 	absolutePath := filepath.Join(absoluteDir, filename)
+	absoluteSourcePath := filepath.Join(absoluteDir, sourceFilename)
 
 	if err := os.MkdirAll(absoluteDir, 0755); err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar-Verzeichnis konnte nicht erstellt werden.")
 		return
 	}
 
-	img, _, err := image.Decode(file)
+	img, _, err := image.Decode(croppedFile)
 	if err != nil {
 		_ = os.RemoveAll(absoluteDir)
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "bild konnte nicht gelesen werden"}})
@@ -187,6 +215,11 @@ func (h *AppAuthHandler) UploadOwnProfileAvatar(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar konnte nicht gespeichert werden.")
 		return
 	}
+	if err := copyMultipartFileToPath(sourceFile, absoluteSourcePath); err != nil {
+		_ = os.RemoveAll(absoluteDir)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar-Original konnte nicht gespeichert werden.")
+		return
+	}
 
 	sizeBytes, err := fileSize(absolutePath)
 	if err != nil {
@@ -195,19 +228,31 @@ func (h *AppAuthHandler) UploadOwnProfileAvatar(c *gin.Context) {
 		return
 	}
 
+	sourceSizeBytes, err := fileSize(absoluteSourcePath)
+	if err != nil {
+		_ = os.RemoveAll(absoluteDir)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar-Originalgröße konnte nicht bestimmt werden.")
+		return
+	}
+
 	updatedProfile, err := h.profileRepo.AttachUploadedAvatar(c.Request.Context(), identity.AppUserID, models.MemberProfileAvatarUploadInput{
-		FilePath:  relativePath,
-		PublicURL: strings.TrimRight(h.mediaBaseURL, "/") + relativePath,
-		MimeType:  mimeType,
-		SizeBytes: sizeBytes,
-		Width:     &width,
-		Height:    &height,
+		FilePath:        relativePath,
+		SourceFilePath:  relativeSourcePath,
+		PublicURL:       strings.TrimRight(h.mediaBaseURL, "/") + relativePath,
+		MimeType:        mimeType,
+		SourceMimeType:  sourceMimeType,
+		SizeBytes:       sizeBytes,
+		SourceSizeBytes: sourceSizeBytes,
+		Width:           &width,
+		Height:          &height,
 	})
 	if err != nil {
 		_ = os.RemoveAll(absoluteDir)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar konnte nicht verknüpft werden.")
 		return
 	}
+
+	cleanupPreviousAvatarFiles(h.mediaStorageDir, profile.Avatar)
 
 	h.applyProfileCapabilities(updatedProfile, identity)
 	if h.auditLogRepo != nil {
@@ -267,6 +312,46 @@ func (h *AppAuthHandler) resolveKeycloakAccountURL(identity middleware.AuthIdent
 	}
 	value := strings.TrimRight(issuer, "/") + "/account"
 	return &value
+}
+
+func readAvatarUploadFileHeaders(c *gin.Context) (*multipart.FileHeader, *multipart.FileHeader, error) {
+	croppedHeader, err := c.FormFile("cropped_file")
+	if err == nil {
+		sourceHeader, sourceErr := c.FormFile("source_file")
+		if sourceErr != nil {
+			return nil, nil, sourceErr
+		}
+		return sourceHeader, croppedHeader, nil
+	}
+
+	fileHeader, fallbackErr := c.FormFile("file")
+	if fallbackErr != nil {
+		return nil, nil, fallbackErr
+	}
+	return fileHeader, fileHeader, nil
+}
+
+func copyMultipartFileToPath(file multipart.File, targetPath string) error {
+	target, err := os.Create(targetPath)
+	if err != nil {
+		return err
+	}
+	defer target.Close()
+
+	_, err = io.Copy(target, file)
+	return err
+}
+
+func cleanupPreviousAvatarFiles(mediaStorageDir string, avatar *models.MediaAsset) {
+	if avatar == nil || strings.TrimSpace(avatar.StoragePath) == "" {
+		return
+	}
+	trimmed := strings.TrimPrefix(strings.TrimSpace(avatar.StoragePath), "/")
+	trimmed = strings.TrimPrefix(trimmed, "media/")
+	targetDir := filepath.Dir(filepath.Join(mediaStorageDir, trimmed))
+	if ok, err := isUploadPathWithinBase(mediaStorageDir, targetDir); err == nil && ok {
+		_ = os.RemoveAll(targetDir)
+	}
 }
 
 func (h *AppAuthHandler) auditProfileUpdated(
@@ -330,7 +415,7 @@ func detectAvatarImage(file multipart.File, size int64) (string, int, int, strin
 		return "", 0, 0, "", fmt.Errorf("avatar-typ konnte nicht erkannt werden")
 	}
 	mimeType := strings.ToLower(strings.TrimSpace(detectedMime.String()))
-	if !allowedImageMimeTypes[mimeType] {
+	if !avatarAllowedImageMimeTypes[mimeType] {
 		return "", 0, 0, "", fmt.Errorf("nur bilddateien sind als avatar erlaubt")
 	}
 	if _, err := file.Seek(0, 0); err != nil {
@@ -345,6 +430,17 @@ func detectAvatarImage(file multipart.File, size int64) (string, int, int, strin
 		return "", 0, 0, "", fmt.Errorf("avatar-bild ist ungültig")
 	}
 	return mimeType, cfg.Width, cfg.Height, imageExtFromMime(mimeType), nil
+}
+
+func avatarSourceExtFromMime(mimeType string) string {
+	switch strings.ToLower(strings.TrimSpace(mimeType)) {
+	case "image/png":
+		return "png"
+	case "image/webp":
+		return "webp"
+	default:
+		return "jpg"
+	}
 }
 
 func fileSize(path string) (int64, error) {

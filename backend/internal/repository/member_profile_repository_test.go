@@ -24,4 +24,10 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"historical credits must avoid double-counting the same release across multiple version rows")
 	assert.True(t, strings.Contains(content, "WHERE name = 'avatar'"),
 		"profile avatar uploads must use the avatar media type instead of the generic image type")
+	assert.True(t, strings.Contains(content, "'source_original'"),
+		"profile avatar uploads must retain the uncropped source as a media_files variant")
+	assert.True(t, strings.Contains(content, "DELETE FROM media_files WHERE media_id = $1"),
+		"profile avatar replacement must remove previous avatar media_files after the new avatar is linked")
+	assert.True(t, strings.Contains(content, "DELETE FROM media_assets WHERE id = $1"),
+		"profile avatar replacement must remove the previous avatar media_asset after the new avatar is linked")
 }

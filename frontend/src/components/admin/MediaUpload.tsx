@@ -6,8 +6,8 @@ import { ImagePlus, Loader2, Pencil, RefreshCw, Trash2 } from 'lucide-react'
 
 import { ApiError, deleteFansubMedia, uploadFansubMedia } from '@/lib/api'
 import { FansubMediaKind } from '@/types/fansub'
-import { getCropOffsetDeltaForKey, getFocusTrapNextIndex } from '@/components/admin/mediaUploadA11y'
-import { clampCropOffset, computeCropDrawRect, computeCropMetrics, type CropMetrics } from '@/components/admin/mediaUploadCropMath'
+import { getCropOffsetDeltaForKey, getFocusableElements, getFocusTrapNextIndex } from '@/components/media/crop/mediaCropA11y'
+import { clampCropOffset, computeCropDrawRect, computeCropMetrics, type CropMetrics } from '@/components/media/crop/mediaCropMath'
 
 import styles from './MediaUpload.module.css'
 
@@ -45,23 +45,6 @@ function extensionForMime(mimeType: string): string {
   if (mimeType === 'image/webp') return 'webp'
   if (mimeType === 'image/png') return 'png'
   return 'png'
-}
-
-function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  const selector = [
-    'button:not([disabled])',
-    '[href]',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    'textarea:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
-  ].join(', ')
-
-  return Array.from(container.querySelectorAll<HTMLElement>(selector)).filter((element) => {
-    if (element.getAttribute('aria-hidden') === 'true') return false
-    if (element.hasAttribute('disabled')) return false
-    return true
-  })
 }
 
 function readErrorMessage(error: unknown, fallback: string): string {

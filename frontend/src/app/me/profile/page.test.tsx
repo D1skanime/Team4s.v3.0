@@ -46,6 +46,25 @@ vi.mock('@/components/editor', () => ({
   ),
 }))
 
+vi.mock('@/components/media/crop/AvatarCropDialog', () => ({
+  AvatarCropDialog: ({
+    file,
+    onApply,
+    onCancel,
+  }: {
+    file: File
+    onApply: (payload: { sourceFile: File; croppedFile: File }) => void
+    onCancel: () => void
+  }) => (
+    <div role="dialog" aria-label="Avatar zuschneiden">
+      <button type="button" onClick={() => onApply({ sourceFile: file, croppedFile: new File(['cropped'], 'avatar.png', { type: 'image/png' }) })}>
+        Ausschnitt übernehmen
+      </button>
+      <button type="button" onClick={onCancel}>Abbrechen</button>
+    </div>
+  ),
+}))
+
 vi.mock('@/lib/useAuthSession', () => ({
   useAuthSession: () => useAuthSessionMock(),
 }))
@@ -216,5 +235,41 @@ describe('MyProfilePage', () => {
     expect((await screen.findAllByText('Mika Keycloak')).length).toBeGreaterThan(0)
     expect(screen.getByDisplayValue('Ungespeicherter Name')).not.toBeNull()
     expect(screen.queryByDisplayValue('Mika From Server')).toBeNull()
+  })
+
+  it('blocks invalid activity years instead of coercing them to null', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+
+    render(<MyProfilePage />)
+
+    const activeFromInput = await screen.findByLabelText('Aktiv seit')
+    fireEvent.change(activeFromInput, { target: { value: '2101' } })
+
+    expect(await screen.findByText('Bitte ein Jahr zwischen 1970 und 2100 eingeben.')).not.toBeNull()
+    expect(screen.getByRole('button', { name: /Profil speichern/i })).toHaveProperty('disabled', true)
+    expect(updateOwnProfileMock).not.toHaveBeenCalled()
+  })
+
+  it('keeps avatar upload separate and surfaces upload errors without losing dirty fields', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+    uploadOwnProfileAvatarMock.mockRejectedValue(new Error('SVG ist nicht erlaubt'))
+
+    render(<MyProfilePage />)
+
+    const displayNameInput = await screen.findByLabelText('Anzeigename')
+    fireEvent.change(displayNameInput, { target: { value: 'Ungespeicherter Name' } })
+    fireEvent.change(screen.getByLabelText(/JPG, PNG oder WEBP/i), {
+      target: { files: [new File(['source'], 'avatar.png', { type: 'image/png' })] },
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt übernehmen' }))
+
+    await waitFor(() => expect(uploadOwnProfileAvatarMock).toHaveBeenCalledTimes(1))
+    expect(uploadOwnProfileAvatarMock.mock.calls[0][0]).toMatchObject({
+      sourceFile: expect.any(File),
+      croppedFile: expect.any(File),
+    })
+    expect(await screen.findByText('SVG ist nicht erlaubt')).not.toBeNull()
+    expect(screen.getByDisplayValue('Ungespeicherter Name')).not.toBeNull()
+    expect(updateOwnProfileMock).not.toHaveBeenCalled()
   })
 })

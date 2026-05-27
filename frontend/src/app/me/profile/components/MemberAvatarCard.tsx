@@ -1,7 +1,9 @@
 import Image from 'next/image'
-import type { ChangeEvent } from 'react'
+import { useRef, useState } from 'react'
 import { ImageUp } from 'lucide-react'
 
+import { AvatarCropDialog } from '@/components/media/crop/AvatarCropDialog'
+import { Button } from '@/components/ui'
 import type { MemberProfileData } from '@/types/profile'
 
 import styles from '../page.module.css'
@@ -10,11 +12,15 @@ type MemberAvatarCardProps = {
   profile: MemberProfileData
   avatarURL: string
   isUploading: boolean
-  onAvatarChange: (event: ChangeEvent<HTMLInputElement>) => void
+  onAvatarSelected: (payload: { sourceFile: File; croppedFile: File }) => Promise<void> | void
 }
 
-export function MemberAvatarCard({ profile, avatarURL, isUploading, onAvatarChange }: MemberAvatarCardProps) {
+export function MemberAvatarCard({ profile, avatarURL, isUploading, onAvatarSelected }: MemberAvatarCardProps) {
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const label = profile.display_name || profile.fansub_name || 'Profil'
+  const canUpload = profile.capabilities.can_upload_own_avatar
+  const uploadHintID = 'profile-avatar-upload-hint'
 
   return (
     <div className={styles.avatarStack}>
@@ -25,16 +31,44 @@ export function MemberAvatarCard({ profile, avatarURL, isUploading, onAvatarChan
           <span>{(profile.fansub_name || profile.display_name || '?').slice(0, 1).toUpperCase()}</span>
         )}
       </div>
-      <label className={styles.uploadLabel}>
-        <span className={`${styles.uploadButton} ${!profile.capabilities.can_upload_own_avatar ? styles.uploadButtonDisabled : ''}`}>
-          <ImageUp size={16} aria-hidden="true" />
-          {isUploading ? 'Bild lädt...' : 'Bild ändern'}
-        </span>
-        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={onAvatarChange} disabled={isUploading || !profile.capabilities.can_upload_own_avatar} hidden />
-      </label>
-      <p className={styles.mutedText}>
-        JPG, PNG oder WEBP. Die serverseitige Avatar-Prüfung bleibt autoritativ; Zuschnitt und Varianten sind für Phase 53B vorbereitet.
+      <Button
+        type="button"
+        variant="secondary"
+        leftIcon={<ImageUp size={16} aria-hidden="true" />}
+        loading={isUploading}
+        disabled={isUploading || !canUpload}
+        aria-describedby={uploadHintID}
+        onClick={() => inputRef.current?.click()}
+      >
+        {isUploading ? 'Bild lädt...' : 'Bild ändern'}
+      </Button>
+      <input
+        ref={inputRef}
+        type="file"
+        aria-label="JPG, PNG oder WEBP Avatar-Datei auswählen"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={(event) => {
+          const file = event.target.files?.[0] ?? null
+          event.currentTarget.value = ''
+          if (!file || !canUpload || isUploading) return
+          setSelectedFile(file)
+        }}
+        disabled={isUploading || !canUpload}
+        className={styles.visuallyHiddenInput}
+      />
+      <p id={uploadHintID} className={styles.mutedText}>
+        JPG, PNG oder WEBP bis zum bestehenden serverseitigen Bildlimit von 50 MB. SVG und ungültige Bilder werden serverseitig abgelehnt.
       </p>
+      {selectedFile ? (
+        <AvatarCropDialog
+          file={selectedFile}
+          onCancel={() => setSelectedFile(null)}
+          onApply={async (payload) => {
+            await onAvatarSelected(payload)
+            setSelectedFile(null)
+          }}
+        />
+      ) : null}
     </div>
   )
 }

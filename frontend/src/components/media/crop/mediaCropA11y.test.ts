@@ -1,6 +1,8 @@
+// @vitest-environment jsdom
+
 import { describe, expect, it } from 'vitest'
 
-import { getCropOffsetDeltaForKey, getFocusTrapNextIndex } from './mediaUploadA11y'
+import { getCropOffsetDeltaForKey, getFocusableElements, getFocusTrapNextIndex } from './mediaCropA11y'
 
 describe('getCropOffsetDeltaForKey', () => {
   it('returns fine step deltas for arrow keys', () => {
@@ -39,5 +41,22 @@ describe('getFocusTrapNextIndex', () => {
 
   it('returns -1 for empty focusable lists', () => {
     expect(getFocusTrapNextIndex(0, 0, false)).toBe(-1)
+  })
+})
+
+describe('getFocusableElements', () => {
+  it('filters disabled and hidden dialog controls for focus traps', () => {
+    const root = document.createElement('div')
+    root.innerHTML = `
+      <button>first</button>
+      <button disabled>disabled</button>
+      <a href="/target">link</a>
+      <span tabindex="0" aria-hidden="true">hidden</span>
+      <input />
+    `
+
+    const focusables = getFocusableElements(root)
+
+    expect(focusables.map((element) => element.tagName)).toEqual(['BUTTON', 'A', 'INPUT'])
   })
 })

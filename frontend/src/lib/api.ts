@@ -2722,13 +2722,23 @@ export async function updateOwnProfile(
   return response.json() as Promise<MemberProfileResponse>;
 }
 
+type OwnProfileAvatarUploadInput = File | {
+  sourceFile: File;
+  croppedFile: File;
+};
+
 export async function uploadOwnProfileAvatar(
-  file: File,
+  input: OwnProfileAvatarUploadInput,
   authToken?: string,
 ): Promise<MemberProfileResponse> {
   const API_BASE_URL = getApiBaseUrl();
   const body = new FormData();
-  body.append("file", file);
+  if (input instanceof File) {
+    body.append("file", input);
+  } else {
+    body.append("source_file", input.sourceFile);
+    body.append("cropped_file", input.croppedFile);
+  }
 
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/me/profile/avatar`,

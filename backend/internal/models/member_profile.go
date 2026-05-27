@@ -74,10 +74,13 @@ type MemberProfileUpdateInput struct {
 }
 
 type MemberProfileAvatarUploadInput struct {
-	FilePath  string
-	PublicURL string
-	MimeType  string
-	SizeBytes int64
-	Width     *int
-	Height    *int
+	FilePath        string
+	SourceFilePath  string
+	PublicURL       string
+	MimeType        string
+	SourceMimeType  string
+	SizeBytes       int64
+	SourceSizeBytes int64
+	Width           *int
+	Height          *int
 }

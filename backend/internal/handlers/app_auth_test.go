@@ -3,10 +3,12 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -74,6 +76,7 @@ type profileRepoStub struct {
 	updateCalls   int
 	attachCalls   int
 	lastUpdateArg models.MemberProfileUpdateInput
+	lastAttachArg models.MemberProfileAvatarUploadInput
 }
 
 type contributorRepoStub struct {
@@ -105,8 +108,9 @@ func (s *profileRepoStub) UpdateOwnProfile(_ context.Context, _ int64, input mod
 	return s.updateResp, s.updateErr
 }
 
-func (s *profileRepoStub) AttachUploadedAvatar(_ context.Context, _ int64, _ models.MemberProfileAvatarUploadInput) (*models.MemberProfile, error) {
+func (s *profileRepoStub) AttachUploadedAvatar(_ context.Context, _ int64, input models.MemberProfileAvatarUploadInput) (*models.MemberProfile, error) {
 	s.attachCalls++
+	s.lastAttachArg = input
 	return s.attachResp, s.attachErr
 }
 
@@ -188,6 +192,37 @@ func makeMultipartTestContext(method string, target string, fieldName string, fi
 	c.Request = req
 	c.Set("auth_identity", identity)
 	return c, recorder
+}
+
+func makeMultipartFieldsTestContext(method string, target string, files map[string]struct {
+	filename string
+	content  []byte
+}, identity middleware.AuthIdentity) (*gin.Context, *httptest.ResponseRecorder) {
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	for fieldName, file := range files {
+		part, _ := writer.CreateFormFile(fieldName, file.filename)
+		_, _ = part.Write(file.content)
+	}
+	_ = writer.Close()
+
+	req := httptest.NewRequest(method, target, &body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	c.Request = req
+	c.Set("auth_identity", identity)
+	return c, recorder
+}
+
+func tinyPNGBytes(t *testing.T) []byte {
+	t.Helper()
+	data, err := base64.StdEncoding.DecodeString("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
+	if err != nil {
+		t.Fatalf("decode test png: %v", err)
+	}
+	return data
 }
 
 func TestListFansubGroupAppMembersAllowsOwnGroupLead(t *testing.T) {
@@ -428,6 +463,96 @@ func TestUploadOwnProfileAvatarRejectsInvalidFileType(t *testing.T) {
 	}
 	if profileRepo.attachCalls != 0 {
 		t.Fatalf("expected no avatar attach call, got %d", profileRepo.attachCalls)
+	}
+}
+
+func TestUploadOwnProfileAvatarRejectsSVG(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	profileRepo := &profileRepoStub{}
+	handler := &AppAuthHandler{
+		profileRepo:     profileRepo,
+		mediaStorageDir: t.TempDir(),
+		mediaBaseURL:    "http://localhost:8092",
+	}
+
+	c, recorder := makeMultipartTestContext(http.MethodPost, "/api/v1/me/profile/avatar", "file", "avatar.svg", []byte(`<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>`), middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UploadOwnProfileAvatar(c)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if profileRepo.attachCalls != 0 {
+		t.Fatalf("expected no avatar attach call, got %d", profileRepo.attachCalls)
+	}
+}
+
+func TestUploadOwnProfileAvatarStoresSourceOriginalAndCroppedDisplay(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	updated := &models.MemberProfile{
+		MemberID:           44,
+		AppUserID:          11,
+		DisplayName:        "Mika",
+		FansubName:         "MikaFX",
+		ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+		AccountStatus:      models.AppUserStatusActive,
+		AccountDisplayName: "Mika",
+	}
+	profileRepo := &profileRepoStub{
+		getResp: &models.MemberProfile{
+			MemberID:           44,
+			AppUserID:          11,
+			DisplayName:        "Mika",
+			FansubName:         "MikaFX",
+			ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+			AccountStatus:      models.AppUserStatusActive,
+			AccountDisplayName: "Mika",
+		},
+		attachResp: updated,
+	}
+	handler := &AppAuthHandler{
+		profileRepo:     profileRepo,
+		mediaStorageDir: t.TempDir(),
+		mediaBaseURL:    "http://localhost:8092",
+	}
+
+	png := tinyPNGBytes(t)
+	c, recorder := makeMultipartFieldsTestContext(http.MethodPost, "/api/v1/me/profile/avatar", map[string]struct {
+		filename string
+		content  []byte
+	}{
+		"source_file":  {filename: "source.png", content: png},
+		"cropped_file": {filename: "cropped.png", content: png},
+	}, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UploadOwnProfileAvatar(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if profileRepo.attachCalls != 1 {
+		t.Fatalf("expected one avatar attach call, got %d", profileRepo.attachCalls)
+	}
+	if !strings.Contains(profileRepo.lastAttachArg.FilePath, "/original.png") {
+		t.Fatalf("expected cropped display original path, got %q", profileRepo.lastAttachArg.FilePath)
+	}
+	if !strings.Contains(profileRepo.lastAttachArg.SourceFilePath, "/source_original.png") {
+		t.Fatalf("expected retained source_original path, got %q", profileRepo.lastAttachArg.SourceFilePath)
+	}
+	if strings.Contains(profileRepo.lastAttachArg.PublicURL, "source_original") {
+		t.Fatalf("expected public URL to expose cropped display path, got %q", profileRepo.lastAttachArg.PublicURL)
 	}
 }
 

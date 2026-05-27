@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { clampCropOffset, computeCropDrawRect, computeCropMetrics } from './mediaUploadCropMath'
+import { clampCropOffset, computeCropDrawRect, computeCropMetrics } from './mediaCropMath'
 
 describe('computeCropMetrics', () => {
   it('derives stable metrics from image size, view size, and zoom', () => {
@@ -16,6 +16,13 @@ describe('computeCropMetrics', () => {
 
   it('returns null when image size is not ready', () => {
     expect(computeCropMetrics(null, 260, 1.2)).toBeNull()
+  })
+
+  it('supports square avatar view geometry with symmetric bounds', () => {
+    const metrics = computeCropMetrics({ w: 800, h: 800 }, 320, 1.5)
+
+    expect(metrics?.width).toBeCloseTo(metrics?.height ?? 0, 8)
+    expect(metrics?.maxOffsetX).toBeCloseTo(metrics?.maxOffsetY ?? 0, 8)
   })
 })
 
@@ -70,3 +77,4 @@ describe('computeCropDrawRect', () => {
     expect(draw.drawHeight).toBeCloseTo(563.2, 8)
   })
 })
+

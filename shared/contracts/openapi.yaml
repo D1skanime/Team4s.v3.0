@@ -360,7 +360,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/MemberProfileResponse"
         "400":
-          description: Missing, invalid, unreadable, or oversized avatar file
+          description: Missing, invalid, unreadable, or oversized avatar file. Runtime allows JPG, PNG, and WEBP only; SVG is rejected. The existing shared image limit is 50 MB.
           content:
             application/json:
               schema:
@@ -6591,7 +6591,7 @@ components:
         member_story:
           type: string
           nullable: true
-          description: Plain-text story in the current runtime contract.
+          description: Plain-text story in the current runtime contract. Rich TipTap persistence is deferred until DB fields, backend validation, sanitized HTML, and DTOs move together.
         active_from_year:
           type: integer
           format: int32
@@ -6675,12 +6675,25 @@ components:
           nullable: true
     UploadOwnProfileAvatarRequest:
       type: object
-      required: [file]
+      description: |
+        Preferred Phase 53B contract sends the uncropped `source_file` and the
+        cropped display `cropped_file` to the existing avatar endpoint. Legacy
+        callers may still submit `file`; the backend stores that same file as
+        both source and display. Public/profile reads expose only the cropped
+        display `original` media file, never `source_original`.
       properties:
+        source_file:
+          type: string
+          format: binary
+          description: Internal uncropped source image retained as media_files.variant=source_original.
+        cropped_file:
+          type: string
+          format: binary
+          description: Cropped 1:1 display avatar stored as media_files.variant=original and exposed through avatar.public_url.
         file:
           type: string
           format: binary
-          description: Avatar image file. Runtime accepts the server-side allowed image MIME types and rejects SVG.
+          description: Backward-compatible single avatar file. Runtime accepts JPG, PNG, and WEBP, enforces the shared 50 MB image limit, and rejects SVG.
     FansubMediaUploadResponse:
       type: object
       required: [data]
