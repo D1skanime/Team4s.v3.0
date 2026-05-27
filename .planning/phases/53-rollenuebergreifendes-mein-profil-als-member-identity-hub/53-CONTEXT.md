@@ -88,6 +88,28 @@ Diese Phase liefert nicht:
 - **D-38:** Partielle Fehler werden nur versprochen, wenn Datenquellen/API wirklich getrennt ladbar sind. Wenn `/me/profile` ein Aggregate bleibt, muss der Fehlerzustand ehrlich zum Aggregate passen.
 - **D-39:** Mobile, Tastaturbedienung, sichtbare Fokuszustände, Dialog-Fokusführung, ESC-Schließen und keine Hover-only-Aktionen sind Akzeptanzkriterien.
 
+### Nachdiskussion: 53A-Schnitt und sichtbare Bereiche
+- **D-40:** Phase 53A soll ein breiter Hub-Grundbau sein, nicht nur ein minimaler Routen-Slice. Die komplette Zielstruktur mit Hero, Basisdaten, Story, Avatar-Card, Sichtbarkeit, Account & Sicherheit, Mitgliedschaften und Beiträgen soll sichtbar angelegt werden.
+- **D-41:** Alle Zielbereiche dürfen in 53A sichtbar sein, aber sie müssen ehrlich begrenzt sein: Empty State, deaktivierte Aktion oder klarer Hinweis, wenn Daten oder Contract fehlen. Keine Fake-Daten, keine erfundenen Felder und keine Links ins Leere.
+
+### Nachdiskussion: Story und TipTap
+- **D-42:** `member_story` soll echte TipTap-Persistenz bekommen, aber strikt über den vorhandenen Phase-41-Stack. Vorhandene TipTap-Services, Validierung, Sanitizing, `body_json`/`body_html`/`body_text`-Pattern und `RichTextRenderer` werden wiederverwendet; kein zweiter TipTap-Service, kein neuer Renderer und keine parallele Sanitizing-Logik.
+- **D-43:** Bestehende Plain-Text-`member_story`-Daten müssen weiter lesbar bleiben. 53B muss dafür Migration oder Legacy-Fallback vorsehen, bevor der Profil-Story-Pfad echtes TipTap als Standard nutzt.
+
+### Nachdiskussion: Avatar-Crop und Originalbild
+- **D-44:** Avatar-Crop soll eine clientseitige Crop-/Zoom-/Positionierungs-UX bekommen, aber die Architektur darf das Originalbild nicht verlieren. Backend-/Media-Contract muss Original plus Crop-Ergebnis oder Original plus Crop-Metadaten so behandeln, dass spätere Varianten und Recrop nicht blockiert werden.
+
+### Nachdiskussion: Globale App-Shell
+- **D-45:** Die neue Shell ist global und wiederverwendbar, nicht profil-lokal. `/me/profile` ist der erste Consumer, aber die Shell soll perspektivisch für Dashboard, Verwaltung, Mein Bereich, Einstellungen und weitere App-Flächen nutzbar sein.
+- **D-46:** Die Shell wird dual-state-fähig vorbereitet: `authenticated` wird in 53A produktiv genutzt, `anonymous`/Login/Registrieren werden architektonisch nicht verbaut, aber funktional auf später verschoben.
+- **D-47:** Die eingeloggte Shell-Navigation soll referenznah sein: Public-Bereich, Dashboard, capability-gated Verwaltung, Mein Bereich mit Mein Profil/Meine Gruppen/Meine Beiträge, Einstellungen und User-Footer.
+- **D-48:** 53A migriert nicht die ganze App auf die neue Shell. Nur `/me/profile` nutzt sie als erster Consumer; andere Seiten bleiben vorerst auf bestehender Struktur.
+- **D-49:** Noch nicht existierende Shell-Ziele werden nicht als Fake-Routen verlinkt. Sie dürfen sichtbar vorbereitet werden, aber nur deaktiviert oder als Coming soon.
+- **D-50:** Mobile-Shell-Härtung kommt in 53B. 53A muss Desktop/Tablet sauber und Mobile nicht kaputt liefern, aber ein finaler Drawer/Burger ist keine 53A-Pflicht.
+
+### Nachdiskussion: Umsetzungstaktik
+- **D-51:** Parallelisierung erfolgt nur nach klarer File Ownership. Globale Shell ist ein eigener Block und darf nicht gleichzeitig mit konfliktierenden `/me/profile`-Grundlagen bearbeitet werden; 53B-Backend-/DTO-/OpenAPI-/RichText-/Avatar-Contracts werden seriell oder explizit koordiniert umgesetzt.
+
 </decisions>
 
 <canonical_refs>
@@ -119,11 +141,16 @@ Diese Phase liefert nicht:
 - `frontend/src/app/admin/profile/page.tsx` — aktuelle Profilseite, Keycloak-Link, Dirty-State, Avatar-Upload, RichText-PlainText-Konvertierung.
 - `frontend/src/app/admin/profile/page.test.tsx` — bestehende Profil-Regressionstests.
 - `frontend/src/app/admin/profile/page.module.css` — aktuelle lokale Profilstyles, die reduziert/gezielt ersetzt werden sollen.
+- `frontend/src/app/admin/page.tsx` — aktueller Admin-Startseiten-Link zu `Mein Profil`, muss für `/me/profile` und neue Shell-Entry-Strategie geprüft werden.
+- `frontend/src/app/admin/my-groups/page.tsx` — bestehender `Meine Gruppen`-/Profil-Kontext und GDS-Referenz; bekannte Links zu `/admin/profile` müssen beim Shell-/Route-Umbau geprüft werden.
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubAppMembersSection.tsx` — aktueller Hinweis auf persönliche Profilpflege; darf nicht weiter eine Admin-Profilwelt signalisieren.
 - `frontend/src/lib/api.ts` — `getOwnProfile`, `updateOwnProfile`, `uploadOwnProfileAvatar`, `refreshActiveAuthSession`.
 - `frontend/src/types/profile.ts` — Profil-DTOs und Sichtbarkeitswerte.
 - `frontend/src/components/ui` — globale GDS-Komponenten.
 - `frontend/src/components/editor/RichTextEditor.tsx` — bestehende TipTap-Editor-Komponente.
 - `frontend/src/components/editor/RichTextRenderer.tsx` — bestehender Renderpfad.
+- `backend/internal/handlers/admin_content_member_stories.go` — vorhandene TipTap-Verdrahtung für Member-Stories als Reuse-Referenz für Profil-`member_story`.
+- `backend/internal/repository/member_group_stories_repository.go` — bestehendes `body_json`/`body_html`/`body_text`-Persistenzmuster für Member-bezogene Rich-Text-Stories.
 - `frontend/src/components/admin/MediaUpload.tsx` — bestehende Crop-/Upload-UX als Avatar-Analog.
 - `frontend/src/components/admin/mediaUploadCropMath.ts` — wiederverwendbare Crop-Geometrie.
 - `frontend/src/components/admin/mediaUploadA11y.ts` — wiederverwendbare Crop-A11y-Helfer.
@@ -212,6 +239,17 @@ Phase 53B soll die Härtung liefern:
 - Aktivitätszeitraum nur contract-backed
 - Dirty-State, partielle/aggregate Fehlerlogik, Mobile und Accessibility
 
+### Nachdiskussion 2026-05-27
+
+- 53A soll bewusst breiter werden als ein Minimal-Slice: alle Zielbereiche der Referenz sind sichtbar, auch wenn einzelne Bereiche nur Empty State, deaktivierte Aktion oder Contract-Hinweis zeigen.
+- Die globale Shell ist Teil von 53A, aber nicht als profil-lokale Sidebar. Sie wird als wiederverwendbare, dual-state-fähige Shell vorbereitet und in 53A nur von `/me/profile` produktiv konsumiert.
+- Die Shell zeigt im eingeloggten Zustand referenznah Public-Bereich, Dashboard, capability-gated Verwaltung, Mein Bereich, Einstellungen und User-Footer. Noch nicht existierende Ziele werden Coming soon/deaktiviert dargestellt.
+- Login und Registrieren sollen später in die Shell passen, werden aber in Phase 53 nicht funktional umgesetzt.
+- `member_story` soll nicht bei Plain Text stehen bleiben: 53B soll echte TipTap-Persistenz über den vorhandenen Phase-41-Stack anschließen. Die aktuelle Profilseite nutzt zwar den Editor, speichert aber wieder Plain Text.
+- Der Profil-Story-Umbau darf keinen zweiten TipTap-Service, Renderer oder Sanitizer erzeugen. Vorhandene `TipTapService`-/`RichTextRenderer`-/`body_json`-/`body_html`-Patterns sind zu übernehmen.
+- Avatar-Crop soll clientseitig bedienbar sein, aber das Originalbild darf architektonisch nicht verloren gehen; spätere Varianten und Recrop müssen möglich bleiben.
+- Execution läuft parallel nur nach File Ownership. Die globale Shell ist ein eigener Block; 53B-Contract-Arbeiten werden seriell oder explizit koordiniert.
+
 </specifics>
 
 <deferred>
@@ -220,6 +258,9 @@ Phase 53B soll die Härtung liefern:
 - Vollständige Public-Member-Page `/members/[slug]`.
 - Vollständiger stabiler `member_slug`, falls nicht bereits vorhanden.
 - Vollständige `/me/groups`, `/me/contributions`, `/me/account` Routen.
+- Login-/Registrieren-Einstiege in der globalen Shell; Phase 53 bereitet die Architektur vor, setzt sie aber nicht funktional um.
+- App-weite Migration aller bestehenden Admin-/Contributor-Seiten auf die neue Shell; 53A nutzt die Shell nur für `/me/profile`.
+- Finale Mobile-Drawer-/Burger-Härtung der Shell; einfache Nutzbarkeit bleibt nötig, Detailhärtung liegt in 53B.
 - Paginierter Contributions-Detail-Endpunkt, falls nicht ausdrücklich in Phase 53 umgesetzt.
 - Custom Keycloak Account Console Theme mit `Zurück zu Team4s`.
 - Erweiterte Gruppen-/Rollenverwaltung über den Profil-Hub hinaus.

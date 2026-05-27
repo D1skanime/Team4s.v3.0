@@ -58,3 +58,133 @@
 - Full `/me/groups`, `/me/contributions`, `/me/account` routes.
 - Detailed paginated contributions endpoint unless explicitly scoped into Phase 53.
 - Custom Keycloak Account Console return theme.
+
+---
+
+## Follow-up Discussion: 53A Scope
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Minimaler Foundation-Slice | `/me/profile`, Übergang, Split, echte Daten, Basislayout; Navigation/OpenAPI nur minimal. | |
+| Solider Hub-Grundbau | Zielstruktur ohne neue tiefe Contracts; bekannte Navigation, StoryCard, Account/Memberships/Beiträge. | |
+| Breiter 53A-Abschluss | Vollständige Zielstruktur mit allen Cards, Visibility-/Avatar-/Beiträge-Bereichen und stärkerer Shell-Richtung. | ✓ |
+
+**User's choice:** 53A soll breit laufen.
+**Notes:** Die Breite wird durch Ehrlichkeit begrenzt: keine Fake-Daten, keine erfundenen Felder, keine neuen tiefen Contracts in 53A.
+
+---
+
+## Follow-up Discussion: Sichtbare Bereiche Ohne Contract
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Alle Bereiche sichtbar, ehrlich begrenzt | Cards bleiben sichtbar, zeigen aber Empty State, deaktivierte Aktion oder Contract-Hinweis. | ✓ |
+| Nur echte Bereiche sichtbar | Cards ohne belastbare Daten bleiben aus der UI raus. | |
+| Gemischt | Strukturrelevante Cards sichtbar, Detailbereiche eher als Summary/Empty State. | |
+
+**User's choice:** Alle Bereiche sichtbar, aber ehrlich begrenzt.
+**Notes:** Das passt zur gewünschten Hub-Wirkung, solange nichts fachlich vorgetäuscht wird.
+
+---
+
+## Follow-up Discussion: Story und TipTap
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Konservativ | `member_story` bleibt Plain Text; echte TipTap-Persistenz wird verschoben. | |
+| Reuse-first TipTap-Verdrahtung | Bestehenden Phase-41-TipTap-Stack für Profil-Story übernehmen, ohne neuen Service/Renderer/Sanitizer. | ✓ |
+| Richtige Migration ohne Fallback | Bestehende Plain-Text-Werte vollständig migrieren und nur noch TipTap erlauben. | |
+
+**User's choice:** TipTap soll wirklich verdrahtet werden, aber reuse-first über vorhandene Implementierung.
+**Notes:** Klärung: Der Editor ist bereits eingebaut, aber die Profilseite konvertiert `member_story` beim Laden/Speichern aktuell Plain Text ↔ TipTap JSON. Das Problem ist also die fehlende Persistenz-/Sanitizing-/Render-Verdrahtung, nicht der Editor selbst.
+
+---
+
+## Follow-up Discussion: Avatar-Crop
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Client-side Crop ohne Original | Einfachster Upload, aber spätere Varianten/Recrop nur aus zugeschnittenem Raster. | |
+| Client-side UX plus Original behalten | Frontend bietet Crop-UX; Backend/Media-Contract erhält Original oder Crop-Metadaten für spätere Varianten. | ✓ |
+| Server-side Crop | Original + Crop-Metadaten an Backend, Backend erzeugt Avatar/Varianten sofort. | |
+
+**User's choice:** Clientseitige Crop-UX, aber Original darf architektonisch nicht verloren gehen.
+**Notes:** Bestehende Media-Strukturen bleiben maßgeblich; keine parallele Avatar-Media-Logik.
+
+---
+
+## Follow-up Discussion: Globale Shell
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| App-Shell für eingeloggte User | Nur eingeloggter Zustand; Login/Register später außerhalb. | |
+| Dual-State vorbereiten | Shell kann konzeptionell anonymous/authenticated, 53A nutzt nur authenticated. | ✓ |
+| Vollständige Public/Auth/App-Shell | Public, Login/Register und intern sofort vollständig abdecken. | |
+
+**User's choice:** Dual-state-fähige globale Shell vorbereiten.
+**Notes:** Login/Registrieren sollen später in die Shell passen, werden in Phase 53 aber nicht umgesetzt.
+
+---
+
+## Follow-up Discussion: Shell-Navigation
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Schlank | Public, Dashboard, Mein Profil, Meine Gruppen, Settings/User-Footer. | |
+| Referenznah | Public, Dashboard, Verwaltung capability-gated, Mein Bereich, Settings, User-Footer. | ✓ |
+| Nur Mein Bereich | Fast nur Profil/Gruppen/Beiträge, Admin-Navigation nicht berühren. | |
+
+**User's choice:** Referenznahe Navigation.
+**Notes:** Admin-/Verwaltungslinks bleiben capability-gated.
+
+---
+
+## Follow-up Discussion: Shell-Migration
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Nur Shell bauen + `/me/profile` nutzt sie | Andere Seiten bleiben vorerst wie sie sind. | ✓ |
+| Profilnahe Seiten umstellen | Zusätzlich `/admin/my-groups` oder `/manage/groups` in dieselbe Shell bringen. | |
+| Breite Admin-Migration | Dashboard/Adminseiten nutzen die neue Shell direkt. | |
+
+**User's choice:** Nur `/me/profile` ist erster Consumer.
+**Notes:** Die Shell wird global gebaut, aber Phase 53A wird nicht zur app-weiten Shell-Migration.
+
+---
+
+## Follow-up Discussion: Nicht Existierende Shell-Ziele
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Nicht anzeigen | Ziel erst zeigen, wenn Route existiert. | |
+| Deaktiviert/Coming soon | Zielstruktur sichtbar, aber ehrlich nicht klickbar. | ✓ |
+| Auf Profil-Anker verlinken | Temporär auf Sections in `/me/profile` springen. | |
+
+**User's choice:** Sichtbar vorbereitet, aber deaktiviert/Coming soon.
+**Notes:** Keine Fake-Routen, keine 404-Links.
+
+---
+
+## Follow-up Discussion: Mobile Shell
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Basic responsive in 53A | Desktop/tablet sauber, mobile nicht kaputt, kein finaler Drawer. | |
+| Drawer/Burger direkt in 53A | Mobile Menü-Pattern sofort umsetzen. | |
+| Mobile vollständig in 53B | 53A macht keine Shell-Mobile-Härtung. | ✓ |
+
+**User's choice:** Mobile-Shell-Härtung kommt in 53B.
+**Notes:** 53A muss dennoch nicht kaputt/überlappend sein.
+
+---
+
+## Follow-up Discussion: Execution-Regel
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| 53A parallel, 53B seriell | 53A freier, 53B wegen Contract-Konflikten seriell. | |
+| Alles seriell | Weniger Konflikte, langsamer. | |
+| Parallel nur nach File Ownership | Nur konfliktfreie File-Besitzer parallel; Shell als eigener Block. | ✓ |
+
+**User's choice:** Parallel nur nach klarer File Ownership.
+**Notes:** Globale Shell zuerst/separat; keine parallele Arbeit an Shell-Grundlagen und konfliktierenden `/me/profile`-Dateien.
