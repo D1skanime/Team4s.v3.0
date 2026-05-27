@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: Phase 53 replanned; phases 49-50 registered and reconciled
-stopped_at: Phase 53 ready for execution
-last_updated: "2026-05-27T13:58:05.296Z"
+stopped_at: Completed 53-01-PLAN.md
+last_updated: "2026-05-27T15:27:16.289Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 49
   completed_phases: 42
   total_plans: 185
-  completed_plans: 183
+  completed_plans: 184
   percent: 86
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 53 - Rollenuebergreifendes Mein Profil als Member Identity Hub
+**Current focus:** Phase 53 — rollenuebergreifendes-mein-profil-als-member-identity-hub
 
 ## Current Position
 
-Phase: 53 - PLANNED
-Plan: 0 of 2
+Phase: 53 (rollenuebergreifendes-mein-profil-als-member-identity-hub) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -179,6 +179,8 @@ Recent durable decisions:
 - [Phase 41]: TextStyle als named export in TipTap 3.x; setContent() ohne Boolean-Positional-Argument; globals.css unter frontend/src/styles/; typecheck-Script zu package.json hinzugefügt
 - [Phase 41]: admin_content_fansub_notes.go in 3 Dateien aufgeteilt; requireFansubGroupNoteWriteAccess bleibt in fansub_group_notes da es nur dort referenziert wird
 - [Phase 41]: tiptapSvc als separate WithTipTapDeps()-Methode verdrahtet, nicht in bestehende WithNoteDeps integriert
+- [Phase 53]: [Phase 53-01]: /admin/profile uses an internal transition wrapper around /me/profile, not a duplicate admin implementation. — This preserves transition compatibility while keeping /me/profile as the only own-profile implementation.
+- [Phase 53]: [Phase 53-01]: Future shell/profile destinations stay disabled until stable route and API contracts exist. — The plan forbids fake links and invented contribution/public-profile routes; disabled states keep the UI honest.
 
 ### Pending Todos
 
@@ -301,6 +303,7 @@ Recent durable decisions:
 | Phase 41-globalen-tiptap-rich-text-editor-einfuehren P02 | 4min | 2 tasks | 4 files |
 | Phase 41-globalen-tiptap-rich-text-editor-einfuehren P04 | 9min | 2 tasks | 9 files |
 | Phase 41 P03 | 9min | 2 tasks | 9 files |
+| Phase 53 P01 | 19 min | 6 tasks | 25 files |
 
 ### Quick Tasks Completed
 
@@ -330,7 +333,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-27T13:42:31.905Z
-Stopped at: Phase 53 context updated with remaining execution blockers; replanning required
+Last session: 2026-05-27T15:27:16.260Z
+Stopped at: Completed 53-01-PLAN.md
 Last activity: 2026-05-27
-Resume file: .planning/phases/53-rollenuebergreifendes-mein-profil-als-member-identity-hub/53-CONTEXT.md
+Resume file: None
