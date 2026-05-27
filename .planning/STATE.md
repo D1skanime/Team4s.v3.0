@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: Phase 53 planned; profile roadmap reconciled
-stopped_at: Phase 53 context gathered
-last_updated: "2026-05-27T13:07:23.339+02:00"
+status: Phase 53 planned; Phase 47 retro-verified
+stopped_at: Retro-verified Phase 47 foundation and classified Phase 53 carry-forward
+last_updated: "2026-05-27T13:13:27.3089483+02:00"
 last_activity: 2026-05-27
 progress:
   total_phases: 47
-  completed_phases: 33
+  completed_phases: 34
   total_plans: 167
-  completed_plans: 135
-  percent: 70
+  completed_plans: 139
+  percent: 72
 ---
 
 # Project State
@@ -187,7 +187,8 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
-- Profile roadmap reconciliation completed from the 2026-05-27 audit: Phase 51 requirement traceability is complete; Phase 52 is marked complete on automated evidence with live Keycloak UAT pending; Phase 47/48 stay open with documented runtime evidence and closure drift.
+- Phase 47 retro-verified on 2026-05-27: own-profile foundation is complete from runtime evidence and focused tests; modern `/me/profile` route, Member Identity Hub UX, avatar crop/variants, richer visibility, month/year activity controls, Rich Text safety, OpenAPI coverage, mobile QA, and accessibility carry forward to Phase 53.
+- Profile roadmap reconciliation completed from the 2026-05-27 audit: Phase 51 requirement traceability is complete; Phase 52 is marked complete on automated evidence with live Keycloak UAT pending; Phase 47/48 runtime evidence and closure drift were documented before Phase 47 retro-verification.
 - Phase 53 added: Rollenuebergreifendes Mein Profil als Member Identity Hub - `/me/profile` wird die rollenneutrale Profilroute fuer alle eingeloggten User; `/admin/profile` bleibt nur Uebergang, Keycloak-/Team4s-Datenhoheit, Rollenarten, Sichtbarkeit, Avatar, Rich Text, Mitgliedschaften und Beitraege sind als zwei Teilphasen geplant.
 - Phase 52 added: Profile Account Return Refresh Flow - Profilseite klaert den externen Keycloak-Accountdaten-Wechsel, aktualisiert Accountkarten beim Zurueckkehren ueber zentrale Auth-/Profil-Seams und schuetzt ungespeicherte Team4s-Profilfelder.
 - Phase 51 added: Keycloak Access-Token Resource-Server Boundary — Keycloak/API-Auth wird von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umgestellt.
@@ -319,6 +320,7 @@ Recent durable decisions:
 | 260525 | Code-Altlasten-Audit WP-02: Fansub-Drawer nutzt release_version_id fuer Release-Version-Media | 2026-05-25 | working tree | [260525-code-altlasten-und-domain-audit](./quick/260525-code-altlasten-und-domain-audit/) |
 | 260526-mhk | next/image Test-Mock fixen und den einzelnen Test laufen lassen. danach checks, commit | 2026-05-26 | ed0254a9 | [260526-mhk-next-image-test-mock-fixen-und-den-einze](./quick/260526-mhk-next-image-test-mock-fixen-und-den-einze/) |
 | 260527-i1c | Reconcile profile roadmap statuses from audit | 2026-05-27 | 79b9dd07 | [260527-i1c-reconcile-profile-roadmap-statuses-from-](./quick/260527-i1c-reconcile-profile-roadmap-statuses-from-/) |
+| 260527-iay | Retro-verify Phase 47 member profile foundation | 2026-05-27 | pending | [260527-iay-retro-verify-phase-47-member-profile-fou](./quick/260527-iay-retro-verify-phase-47-member-profile-fou/) |
 
 ## Session Continuity
 

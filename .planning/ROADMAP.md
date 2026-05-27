@@ -55,7 +55,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [ ] **Phase 44: App Permission Engine fuer Fansub-, Release- und Media-Kontexte** - Zentrale kontextbasierte Permission Engine im Go-Backend, Capabilities fuer das Frontend, group-scope Rollenauswertung aus Team4s-DB und Absicherung der priorisierten Fansub-/Release-/Media-Endpunkte.
 - [ ] **Phase 45: Fansub Member Management MVP** - App-user-basierte Mitglieder- und Rollenverwaltung pro Fansub-Gruppe mit Permission-Engine-Pruefung, Self-Lockout-Schutz, Audit und minimaler Admin-UI auf Capability-Basis.
 - [ ] **Phase 46: Fansub Group Invitations & Join Requests MVP** - Token-basierte Gruppeneinladungen, Verwaltung offener Einladungen, Einladungsannahme fuer eingeloggte App-User und vorbereitende Join-Request-Seams auf Basis der Permission Engine.
-- [ ] **Phase 47: Member Profile & Historical Identity** - Eigenes historisches Fansub-Profil mit Fansub-Name, Avatar, Bio, Member-Story, aktiver Zeit, Gruppenzugehoerigkeiten und Keycloak-Account-Link; strikt getrennt von Gruppenrollen und Keycloak-Accountdaten. Runtime-Evidenz vorhanden, aber GSD-Closure/UAT fehlt; Route/UX wird durch Phase 53 abgeloest.
+- [x] **Phase 47: Member Profile & Historical Identity** - Eigenes historisches Fansub-Profil mit Fansub-Name, Avatar, Bio, Member-Story, aktiver Zeit, Gruppenzugehoerigkeiten und Keycloak-Account-Link; strikt getrennt von Gruppenrollen und Keycloak-Accountdaten. Foundation retro-verifiziert am 2026-05-27; moderne Route/UX wird durch Phase 53 abgeloest.
 - [ ] **Phase 48: Meine Gruppen & Contributor Dashboard** - Contributor-Dashboard fuer eigene Gruppen mit sicher gescopten Schnellaktionen in bestehende Gruppen-, Release-, Media- und Description-Funktionen auf Basis der Permission Engine. Teilweise umgesetzt, aber Route/Shell/Closure-Drift bleibt offen.
 - [x] **Phase 51: Keycloak Access-Token Resource-Server Boundary** - Keycloak/API-Auth von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umstellen. (completed 2026-05-26)
 - [x] **Phase 52: Profile Account Return Refresh Flow** - Keycloak-Accountaenderungen werden von der Profilseite aus verstaendlich in einem neuen Tab angestossen und Team4s-Accountkarten beim Zurueckkehren ueber zentrale Auth-/Profil-Seams aktualisiert. (automated verified 2026-05-26; live Keycloak UAT pending)
@@ -854,14 +854,14 @@ Plans:
 **Goal:** Ein echtes Member-/User-Profil fuer historische Fansub-Identitaeten schaffen. Eingeloggte User koennen ihr eigenes Archivprofil pflegen, Platform Admins koennen Profile bei Bedarf administrativ sehen/bearbeiten, und die bisher falsch platzierte Profil-/Member-Bearbeitung aus der Fansub-Gruppen-Edit-Seite wird fachlich in einen eigenen Profilbereich verschoben. Keycloak bleibt fuer E-Mail, Passwort, MFA und Account-Sicherheit verantwortlich; Team4s speichert nur archivbezogene Profildaten.
 **Requirements**: MEMBER-PROFILE-01
 **Depends on:** 46
-**Status:** Runtime evidence exists, but formal GSD closure, UAT, and verification artifacts are missing. Route/UX follow-through is carried into Phase 53.
-**Plans:** 0/4 plans formally closed
+**Status:** Retro-verified foundation complete on 2026-05-27 via `47-RETRO-VERIFICATION.md`. Modern route/UX follow-through is carried into Phase 53.
+**Plans:** 4/4 plans retro-closed
 
 Plans:
-- [ ] `47-01-PLAN.md` - Vorpruefung von User-/Member-/Media-/Story-Seams, Profilfeldern und Keycloak-Account-Link-Konventionen sowie minimale Profil-Foundation festziehen.
-- [ ] `47-02-PLAN.md` - Backend fuer eigenes Profil lesen/bearbeiten, Avatar-Upload, Membership-/Credit-Anzeige, optionale Admin-Profilsicht und Audit umsetzen.
-- [ ] `47-03-PLAN.md` - Profil-Frontend, Keycloak-Account-Button und Verschiebung des falsch platzierten Profilbezugs aus der Fansub-Edit-Seite umsetzen.
-- [ ] `47-04-PLAN.md` - Regressionen, Developer-Doku, Live-Verifikation und Phase-48-Handoff fuer Contributor-Dashboard / Meine Gruppen abschliessen.
+- [x] `47-01-PLAN.md` - Vorpruefung von User-/Member-/Media-/Story-Seams, Profilfeldern und Keycloak-Account-Link-Konventionen sowie minimale Profil-Foundation festziehen.
+- [x] `47-02-PLAN.md` - Backend fuer eigenes Profil lesen/bearbeiten, Avatar-Upload, Membership-/Credit-Anzeige, optionale Admin-Profilsicht und Audit umsetzen.
+- [x] `47-03-PLAN.md` - Profil-Frontend, Keycloak-Account-Button und Verschiebung des falsch platzierten Profilbezugs aus der Fansub-Edit-Seite umsetzen.
+- [x] `47-04-PLAN.md` - Regressionen, Developer-Doku, Live-Verifikation und Phase-48-Handoff fuer Contributor-Dashboard / Meine Gruppen abschliessen.
 
 **Success Criteria** (what must be TRUE):
 1. Vor der Umsetzung wurden bestehende User-/Member-/Media-/Story-Strukturen analysiert; die Ausfuehrungsdoku startet mit einer kurzen Ist-Analyse.
