@@ -3,7 +3,7 @@ quick_id: 260527-ivi
 slug: historical-reconcile-phases-1-46-roadmap
 status: complete
 completed: 2026-05-27
-commit: pending
+commit: e0b9cf91
 ---
 
 # Quick Summary: Historical Reconcile Phases 1-46
