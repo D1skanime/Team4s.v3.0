@@ -21,13 +21,13 @@ plans_reviewed:
 - `uploadOwnProfileAvatar(file: File)` in `frontend/src/lib/api.ts` — sendet `FormData` an `POST /api/v1/me/profile/avatar`
 - `UploadOwnProfileAvatar` Handler in `backend/internal/handlers/app_profile.go` — validiert, speichert `original.{ext}` unter `media/profile/{memberID}/avatar/{mediaID}/`, tracked in DB
 - `detectAvatarImage()` — validiert MIME-Typ und Größe, prüft Bilddimensionen
-- Das Backend speichert bereits das **Original** (`original.{ext}`) — Source-Retention ist kein Problem
+- Das Backend speichert aktuell das **hochgeladene** Bild als `original.{ext}`. Wenn der Client nur ein gecropptes Bild sendet, ist das nicht das ungecroppte Pre-Crop-Original.
 
 ### Was wirklich fehlt (und nur das)
 
 1. **AvatarCropDialog** — Client-seitiger Crop VOR dem Upload:
-   - Nutzer wählt Bild → Dialog öffnet → Crop/Zoom → `canvas.toBlob()` → neues `File`-Objekt
-   - Danach: `uploadOwnProfileAvatar(croppedFile)` — fertig, keine weitere Änderung nötig
+   - Nutzer wählt Bild → Dialog öffnet → Crop/Zoom → `canvas.toBlob()` für das zugeschnittene Ergebnis
+   - Nachträgliche Korrektur durch D-44/D-59: Quelle und Crop-Ergebnis müssen gemeinsam über den bestehenden Profil-Avatar-Endpoint transportiert werden; der Helper darf dafür contract-konform erweitert werden.
    - Geometrie: Crop-Primitives aus `mediaUploadCropMath.ts` wiederverwenden, 1:1-Constraint + Circular-Preview ergänzen
    - Touch-Events: `pointerdown/move/up` zusätzlich zu Mouse-Events
 
@@ -40,10 +40,10 @@ plans_reviewed:
 
 ### Konsequenzen für den Plan
 
-- **Task 1 (53B) vereinfachen:** Kein neues Upload-System, kein komplexer Contract-Entscheid. Nur: AvatarCropDialog bauen → nach Crop `uploadOwnProfileAvatar(croppedFile)` aufrufen.
+- **Task 1 (53B) vereinfachen:** Kein neues Upload-System bauen. Nachträgliche Korrektur durch D-44/D-59: Der bestehende Helper/Endpoint muss aber Source-Retention unterstützen, damit das ungecroppte Pre-Crop-Original erhalten bleibt.
 - **Task 2 (53B) vereinfachen:** Nicht neue Validierungslogik bauen — vorhandene Typ-/Bildvalidierung prüfen, SVG-Ausschluss testen und das akzeptierte 50-MB-Verhalten dokumentieren.
-- **Blocker 2 aus Round 3 entschärft:** `components/media/crop`-Move ist nicht zwingend nötig. `AvatarCropDialog` darf die Crop-Primitives aus `components/admin/` importieren — das ist eine einzelne Dialog-Datei, keine strukturelle Kopplung der Route auf den Admin-Bereich.
-- **Source-Retention:** Das Backend speichert bereits `original.{ext}`. Client-seitiger Crop sendet das gecropte Bild, das Backend speichert es als neues Original. Wenn in einer späteren Phase Recrop gewünscht wird, braucht man eine separate „original vor Crop"-Retention-Strategie. Für Phase 53 ist das nicht nötig — als Hinweis dokumentieren.
+- **Blocker 2 aus Round 3 wieder verschärft durch D-55:** Shared Crop-Primitives werden in `components/media/crop` verschoben; `MediaUpload.tsx`, Avatar-Crop und Tests müssen im selben Change auf den neuen Pfad wechseln.
+- **Source-Retention:** Nachträgliche Korrektur durch D-44/D-59: Pre-Crop-Source-Retention ist Phase-53-Pflicht. Das ungecroppte Original wird intern gespeichert, das gecroppte Bild bleibt die aktive Anzeigevariante, und alte Avatar-Dateien werden erst nach erfolgreichem Replace bereinigt.
 
 ---
 
