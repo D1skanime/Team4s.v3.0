@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: Phase 53 planned; Phase 48 retro-verified
-stopped_at: Retro-verified Phase 48 contributor dashboard foundation and classified carry-forward
-last_updated: "2026-05-27T13:26:24.2525349+02:00"
+status: Phase 53 planned; historical phases 1-46 reconciled
+stopped_at: Historical reconcile completed for phases 1-46; Phase 42 remains planned/deferred
+last_updated: "2026-05-27T13:55:00+02:00"
 last_activity: 2026-05-27
 progress:
   total_phases: 47
-  completed_phases: 35
+  completed_phases: 40
   total_plans: 167
-  completed_plans: 143
-  percent: 74
+  completed_plans: 165
+  percent: 85
 ---
 
 # Project State
@@ -187,6 +187,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Historical reconcile completed on 2026-05-27 for phases 1-46: Phases 41 and 43-46 are retro-closed from runtime evidence; Phase 42 remains planned/deferred; stale v1 requirement Pending rows were reconciled to completed historical baseline; OpenAPI gaps for member management and invitations remain follow-up work.
 - Phase 48 retro-verified on 2026-05-27: contributor dashboard foundation is complete from runtime evidence and focused tests; `/me/groups` route direction, shared `Mein Bereich` shell integration, OpenAPI coverage, broader live UAT, centralized labels, and safer non-admin workspace routing carry forward.
 - Phase 47 retro-verified on 2026-05-27: own-profile foundation is complete from runtime evidence and focused tests; modern `/me/profile` route, Member Identity Hub UX, avatar crop/variants, richer visibility, month/year activity controls, Rich Text safety, OpenAPI coverage, mobile QA, and accessibility carry forward to Phase 53.
 - Profile roadmap reconciliation completed from the 2026-05-27 audit: Phase 51 requirement traceability is complete; Phase 52 is marked complete on automated evidence with live Keycloak UAT pending; Phase 47/48 runtime evidence and closure drift were documented before Phase 47 retro-verification.
@@ -323,6 +324,7 @@ Recent durable decisions:
 | 260527-i1c | Reconcile profile roadmap statuses from audit | 2026-05-27 | 79b9dd07 | [260527-i1c-reconcile-profile-roadmap-statuses-from-](./quick/260527-i1c-reconcile-profile-roadmap-statuses-from-/) |
 | 260527-iay | Retro-verify Phase 47 member profile foundation | 2026-05-27 | 25b88493 | [260527-iay-retro-verify-phase-47-member-profile-fou](./quick/260527-iay-retro-verify-phase-47-member-profile-fou/) |
 | 260527-imk | Retro-verify Phase 48 contributor dashboard | 2026-05-27 | 2811ded0 | [260527-imk-retro-verify-phase-48-contributor-dashbo](./quick/260527-imk-retro-verify-phase-48-contributor-dashbo/) |
+| 260527-ivi | Historical reconcile phases 1-46 roadmap requirements contracts | 2026-05-27 | pending | [260527-ivi-historical-reconcile-phases-1-46-roadmap](./quick/260527-ivi-historical-reconcile-phases-1-46-roadmap/) |
 
 ## Session Continuity
 

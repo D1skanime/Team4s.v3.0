@@ -49,12 +49,12 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 38: Release-Version Media Gallery UX Hover-Preview und Drag-and-Drop-Reorder** - Floating Preview Card, GIF src-Swap, DnD-Reorder innerhalb Kategorie, Live-Re-Sort-Fix. (UAT bestanden 2026-04-30)
 - [x] **Phase 39: Deutsche Umlaute durchgängig korrigieren** - Alle user-sichtbaren deutschen Texte im Frontend und Backend auf korrekte Umlaute umgestellt. CLAUDE.md + AGENTS.md Regel verankert.
 - [x] **Phase 40: Text- und Notizsystem für Fansub-Plattform** - Fansub-Gruppen-Texte, Member-Geschichten, Fansubprojekt-Texte, Release-Version-Notizen mit Rollenmodell und Public-Darstellung. (completed 2026-05-11)
-- [ ] **Phase 41: Globalen TipTap-Rich-Text-Editor einführen** - TipTap als globale Editor-Basis für alle vier Textbereiche; body_json JSONB-Speicherung, body_html für Public-Ausgabe, body_text für Suche, RichTextEditor- und RichTextRenderer-Komponenten, Backend-Validierung und HTML-Sanitizing.
+- [x] **Phase 41: Globalen TipTap-Rich-Text-Editor einführen** - TipTap als globale Editor-Basis für alle vier Textbereiche; body_json JSONB-Speicherung, body_html für Public-Ausgabe, body_text für Suche, RichTextEditor- und RichTextRenderer-Komponenten, Backend-Validierung und HTML-Sanitizing. (runtime/artifacts retro-verified 2026-05-27)
 - [ ] **Phase 42: TipTap Collaboration MVP fuer fansub_group_notes** - Echtzeit-Kollaboration nur fuer offizielle Gruppennotizen mit note-scope Dokument-ID, Presence-Basis und persistenter Save-Seam zur bestehenden `fansub_group_notes`-Struktur.
-- [ ] **Phase 43: MVP Auth-, User- und Fansub-Lead-Foundation mit Keycloak** - Keycloak als externer IdP im Dev-Stack, internes `app_user`-Modell, globale Plattformrollen, Fansub-Gruppenmitgliedschaften und `fansub_lead` als App-DB-Rolle statt Keycloak-Rolle.
-- [ ] **Phase 44: App Permission Engine fuer Fansub-, Release- und Media-Kontexte** - Zentrale kontextbasierte Permission Engine im Go-Backend, Capabilities fuer das Frontend, group-scope Rollenauswertung aus Team4s-DB und Absicherung der priorisierten Fansub-/Release-/Media-Endpunkte.
-- [ ] **Phase 45: Fansub Member Management MVP** - App-user-basierte Mitglieder- und Rollenverwaltung pro Fansub-Gruppe mit Permission-Engine-Pruefung, Self-Lockout-Schutz, Audit und minimaler Admin-UI auf Capability-Basis.
-- [ ] **Phase 46: Fansub Group Invitations & Join Requests MVP** - Token-basierte Gruppeneinladungen, Verwaltung offener Einladungen, Einladungsannahme fuer eingeloggte App-User und vorbereitende Join-Request-Seams auf Basis der Permission Engine.
+- [x] **Phase 43: MVP Auth-, User- und Fansub-Lead-Foundation mit Keycloak** - Keycloak als externer IdP im Dev-Stack, internes `app_user`-Modell, globale Plattformrollen, Fansub-Gruppenmitgliedschaften und `fansub_lead` als App-DB-Rolle statt Keycloak-Rolle. (runtime retro-verified 2026-05-27; API token boundary corrected by Phase 51)
+- [x] **Phase 44: App Permission Engine fuer Fansub-, Release- und Media-Kontexte** - Zentrale kontextbasierte Permission Engine im Go-Backend, Capabilities fuer das Frontend, group-scope Rollenauswertung aus Team4s-DB und Absicherung der priorisierten Fansub-/Release-/Media-Endpunkte. (runtime retro-verified 2026-05-27)
+- [x] **Phase 45: Fansub Member Management MVP** - App-user-basierte Mitglieder- und Rollenverwaltung pro Fansub-Gruppe mit Permission-Engine-Pruefung, Self-Lockout-Schutz, Audit und minimaler Admin-UI auf Capability-Basis. (runtime retro-verified 2026-05-27)
+- [x] **Phase 46: Fansub Group Invitations & Join Requests MVP** - Token-basierte Gruppeneinladungen, Verwaltung offener Einladungen, Einladungsannahme fuer eingeloggte App-User und vorbereitende Join-Request-Seams auf Basis der Permission Engine. (runtime retro-verified 2026-05-27)
 - [x] **Phase 47: Member Profile & Historical Identity** - Eigenes historisches Fansub-Profil mit Fansub-Name, Avatar, Bio, Member-Story, aktiver Zeit, Gruppenzugehoerigkeiten und Keycloak-Account-Link; strikt getrennt von Gruppenrollen und Keycloak-Accountdaten. Foundation retro-verifiziert am 2026-05-27; moderne Route/UX wird durch Phase 53 abgeloest.
 - [x] **Phase 48: Meine Gruppen & Contributor Dashboard** - Contributor-Dashboard fuer eigene Gruppen mit sicher gescopten Schnellaktionen in bestehende Gruppen-, Release-, Media- und Description-Funktionen auf Basis der Permission Engine. Foundation retro-verifiziert am 2026-05-27; Route/Shell-Polish wird nach Phase 53 bzw. Contributor-Shell-Cleanup getragen.
 - [x] **Phase 51: Keycloak Access-Token Resource-Server Boundary** - Keycloak/API-Auth von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umstellen. (completed 2026-05-26)
@@ -688,15 +688,16 @@ Plans:
 **Goal:** TipTap als globale Rich-Text-Editor-Basis für alle vier Textbereiche (fansub_group_notes, member_group_stories, anime_fansub_project_notes, release_version_notes). Ersetzt das Markdown-System aus Phase 40 durch JSONB-basierte Speicherung (body_json), serverseitig erzeugtes und sanitisiertes HTML (body_html) sowie Plaintext für Suche/Teaser (body_text). Globale RichTextEditor- und RichTextRenderer-Komponenten. Backend-Validierung gegen erlaubtes TipTap-Schema. Farben nur über definierte Token-Palette.
 **Requirements**: TIPTAP-EDITOR-01
 **Depends on:** 40
-**Plans:** 4/6 plans executed
+**Status:** Retro-verified complete on 2026-05-27 via runtime evidence, phase summaries, UAT, validation, and security artifacts.
+**Plans:** 6/6 plans retro-closed
 
 Plans:
-- [ ] `41-01-PLAN.md` — DB-Migrationen 0067-0070: body_json/body_text/editor_type/content_schema_version für alle vier Texttabellen
-- [ ] `41-02-PLAN.md` — Go TipTap Service: Validator, HTML-Renderer, Plaintext-Extractor, IsEmpty
-- [ ] `41-03-PLAN.md` — Go Backend API-Anpassung: Handler-Split, DTOs auf body_json, Repository-Erweiterung
-- [ ] `41-04-PLAN.md` — Frontend globale Komponenten: RichTextEditor, RichTextRenderer, ColorTokenExtension
-- [ ] `41-05-PLAN.md` — Frontend Admin-Integration: alle vier Textbereiche auf RichTextEditor umstellen
-- [ ] `41-06-PLAN.md` — Frontend Tests + Integrations-Check + Browser-UAT Checkpoint
+- [x] `41-01-PLAN.md` — DB-Migrationen 0067-0070: body_json/body_text/editor_type/content_schema_version für alle vier Texttabellen
+- [x] `41-02-PLAN.md` — Go TipTap Service: Validator, HTML-Renderer, Plaintext-Extractor, IsEmpty
+- [x] `41-03-PLAN.md` — Go Backend API-Anpassung: Handler-Split, DTOs auf body_json, Repository-Erweiterung
+- [x] `41-04-PLAN.md` — Frontend globale Komponenten: RichTextEditor, RichTextRenderer, ColorTokenExtension
+- [x] `41-05-PLAN.md` — Frontend Admin-Integration: alle vier Textbereiche auf RichTextEditor umstellen
+- [x] `41-06-PLAN.md` — Frontend Tests + Integrations-Check + Browser-UAT Checkpoint
 
 **Success Criteria** (what must be TRUE):
   1. TipTap als globale Editor-Basis eingeführt; RichTextEditor-Komponente existiert.
@@ -717,6 +718,7 @@ Plans:
 **Goal:** Einen schmalen Echtzeit-Kollaborations-MVP fuer offizielle Gruppennotizen (`fansub_group_notes`) auf der bestehenden TipTap-Basis bauen. Mehrere berechtigte Benutzer sollen denselben Gruppennotiz-Text gleichzeitig bearbeiten koennen, ohne Release-/Anime-Domainregeln zu verletzen. Persistente Fachquelle bleibt weiterhin `fansub_group_notes.body_json`; Collaboration fuehrt keinen zweiten konkurrierenden Notizspeicher ein.
 **Requirements**: TIPTAP-COLLAB-01
 **Depends on:** 41
+**Status:** Planned/deferred after historical reconcile on 2026-05-27; no current runtime evidence was found for collaboration provider, Yjs document scope, presence, or multi-session collaboration flow.
 **Plans:** 0/4 plans executed
 
 Plans:
@@ -742,13 +744,14 @@ Plans:
 **Goal:** Den bisherigen festen Test-Admin-Kontext durch eine echte Authentifizierungs- und User-Grundlage ersetzen. Keycloak liefert Identitaet, Login, Sessions und globale Plattformrollen; Team4s verwaltet interne `app_users`, Fansub-Gruppenmitgliedschaften und fansub-spezifische Rollen wie `fansub_lead` in der App-Datenbank.
 **Requirements**: AUTH-FOUNDATION-01
 **Depends on:** -
-**Plans:** 0/4 plans executed
+**Status:** Runtime retro-verified complete on 2026-05-27. Phase 51 supersedes the old API-bearer wording by requiring real Keycloak access tokens with Team4s API audience.
+**Plans:** 4/4 plans retro-closed
 
 Plans:
-- [ ] `43-01-PLAN.md` - Docker-/Dev-Stack, automatisierte Keycloak-Realm/Client-Grundlage, JWT-Validierung und `app_users`-Foundation mit Bootstrap-Flow aufbauen.
-- [ ] `43-02-PLAN.md` - Globale App-Rollen, CurrentUser-/Platform-Admin-Seam und geschuetzte `/api/me`- plus Admin-User-APIs vervollstaendigen.
-- [ ] `43-03-PLAN.md` - Fansub-Gruppenmitgliedschaften und `fansub_lead`-Rollenmodell samt Admin-MVP fuer Zuweisung und Anzeige umsetzen.
-- [ ] `43-04-PLAN.md` - Developer-Doku, lokale Bootstrap-Schritte, Browser-UAT und Phase-44-Handoff fuer die spaetere Permission Engine absichern.
+- [x] `43-01-PLAN.md` - Docker-/Dev-Stack, automatisierte Keycloak-Realm/Client-Grundlage, JWT-Validierung und `app_users`-Foundation mit Bootstrap-Flow aufbauen.
+- [x] `43-02-PLAN.md` - Globale App-Rollen, CurrentUser-/Platform-Admin-Seam und geschuetzte `/api/me`- plus Admin-User-APIs vervollstaendigen.
+- [x] `43-03-PLAN.md` - Fansub-Gruppenmitgliedschaften und `fansub_lead`-Rollenmodell samt Admin-MVP fuer Zuweisung und Anzeige umsetzen.
+- [x] `43-04-PLAN.md` - Developer-Doku, lokale Bootstrap-Schritte, Browser-UAT und Phase-44-Handoff fuer die spaetere Permission Engine absichern.
 
 **Success Criteria** (what must be TRUE):
 1. `docker compose up` startet zusaetzlich `keycloak` und `keycloak-db` neben dem bestehenden App-Stack.
@@ -769,13 +772,14 @@ Plans:
 **Goal:** Eine zentrale, kontextbasierte Permission Engine fuer Team4s einziehen. Das Backend soll fuer Fansub-, Release-, Release-Version-, Media- und beschreibungsbezogene Aktionen ueber `Can(...)` und `RequirePermission(...)` entscheiden, statt verteilte Rollenpruefungen in Handlern oder Frontend-Komponenten zu behalten. Keycloak bleibt Identitaet; fachliche Rollen und Rechte bleiben in Team4s.
 **Requirements**: AUTHZ-ENGINE-01
 **Depends on:** 43
-**Plans:** 0/4 plans executed
+**Status:** Runtime retro-verified complete on 2026-05-27; execution summary artifacts are missing, but permission engine/runtime evidence exists.
+**Plans:** 4/4 plans retro-closed
 
 Plans:
-- [ ] `44-01-PLAN.md` - Zentrale Permission-Foundation mit Actions, Rollenmatrix, PermissionContext, group-scope Resolvern und `Can`/`RequirePermission` im Backend aufbauen.
-- [ ] `44-02-PLAN.md` - Priorisierte Fansub-/Release-/Release-Version-/Media-/Description-Endpunkte absichern, Capability-Responses ausliefern und ein minimales generisches Audit fuer Berechtigungs-relevante Mutationen verdrahten.
-- [ ] `44-03-PLAN.md` - Admin-Frontend minimal auf Capability-basierte Sichtbarkeit/Deaktivierung und verstaendliche 403-Fehlerbehandlung umstellen, ohne harte Rollenpruefungen im Client zu behalten.
-- [ ] `44-04-PLAN.md` - Permission-Matrix-Tests, Handler-/Capability-Regressionen, Developer-Doku und Live-Verifikation fuer die neue Engine abschliessen.
+- [x] `44-01-PLAN.md` - Zentrale Permission-Foundation mit Actions, Rollenmatrix, PermissionContext, group-scope Resolvern und `Can`/`RequirePermission` im Backend aufbauen.
+- [x] `44-02-PLAN.md` - Priorisierte Fansub-/Release-/Release-Version-/Media-/Description-Endpunkte absichern, Capability-Responses ausliefern und ein minimales generisches Audit fuer Berechtigungs-relevante Mutationen verdrahten.
+- [x] `44-03-PLAN.md` - Admin-Frontend minimal auf Capability-basierte Sichtbarkeit/Deaktivierung und verstaendliche 403-Fehlerbehandlung umstellen, ohne harte Rollenpruefungen im Client zu behalten.
+- [x] `44-04-PLAN.md` - Permission-Matrix-Tests, Handler-/Capability-Regressionen, Developer-Doku und Live-Verifikation fuer die neue Engine abschliessen.
 
 **Success Criteria** (what must be TRUE):
 1. Zentrale Permission-Codes fuer Fansub-, Release-, Release-Version-, Release-Media- und Description-Aktionen existieren als Backend-Konstanten statt als verteilte Magic Strings.
@@ -800,13 +804,14 @@ Plans:
 **Goal:** Ein MVP fuer app-user-basierte Mitglieder- und Rollenverwaltung pro Fansub-Gruppe liefern. Berechtigte Nutzer sollen Mitglieder sehen, bestehende App-User hinzufuegen, Rollen vergeben/entziehen, Mitgliedschaften deaktivieren und Self-Lockout-Situationen verhindern. Alle Sicherheitsentscheidungen laufen ueber die Permission Engine aus Phase 44; Keycloak bleibt reine Identity-Schicht.
 **Requirements**: FANSUB-MEMBER-MGMT-01
 **Depends on:** 44
-**Plans:** 0/4 plans executed
+**Status:** Runtime retro-verified complete on 2026-05-27; execution summary artifacts are missing, but member-management runtime evidence exists.
+**Plans:** 4/4 plans retro-closed
 
 Plans:
-- [ ] `45-01-PLAN.md` - Vorpruefung von Schema, Code-Struktur und vorhandenen Member-Seams sowie minimale App-User-/Mitgliedschafts-Foundation fuer die Gruppenverwaltung festziehen.
-- [ ] `45-02-PLAN.md` - Backend-Endpunkte fuer Mitgliederliste, App-User-Suche, Hinzufuegen, Rollenmutation, Deaktivierung, Self-Lockout-Schutz und Audit/Capabilities umsetzen.
-- [ ] `45-03-PLAN.md` - Fansub-Admin-UI minimal auf Mitglieder-&-Rollen-MVP mit Capability-gesteuerter Sichtbarkeit, Suchflow und 401/403/409-UX anschliessen.
-- [ ] `45-04-PLAN.md` - Backend-/Frontend-Regressionen, Self-Lockout-Tests, Developer-Doku und Live-Verifikation abschliessen sowie Phase-46-Handoff fuer Einladungen/Join-Requests vorbereiten.
+- [x] `45-01-PLAN.md` - Vorpruefung von Schema, Code-Struktur und vorhandenen Member-Seams sowie minimale App-User-/Mitgliedschafts-Foundation fuer die Gruppenverwaltung festziehen.
+- [x] `45-02-PLAN.md` - Backend-Endpunkte fuer Mitgliederliste, App-User-Suche, Hinzufuegen, Rollenmutation, Deaktivierung, Self-Lockout-Schutz und Audit/Capabilities umsetzen.
+- [x] `45-03-PLAN.md` - Fansub-Admin-UI minimal auf Mitglieder-&-Rollen-MVP mit Capability-gesteuerter Sichtbarkeit, Suchflow und 401/403/409-UX anschliessen.
+- [x] `45-04-PLAN.md` - Backend-/Frontend-Regressionen, Self-Lockout-Tests, Developer-Doku und Live-Verifikation abschliessen sowie Phase-46-Handoff fuer Einladungen/Join-Requests vorbereiten.
 
 **Success Criteria** (what must be TRUE):
 1. Vor der Umsetzung wurden Datenbank, Migrationen, Backend- und Frontend-Seams analysiert; die Ausfuehrungsdoku startet mit einer kurzen Ist-Analyse.
@@ -827,13 +832,14 @@ Plans:
 **Goal:** Ein MVP fuer token-basierte Fansub-Gruppen-Einladungen liefern: berechtigte Nutzer koennen Einladungen erstellen, offene Einladungen einsehen und abbrechen, eingeloggte App-User koennen gueltige Einladungen annehmen. Join Requests duerfen vorbereitend modelliert oder als schmaler optionaler Seam mitgeplant werden, bleiben aber hinter dem Invitation-Flow priorisiert. Alle Rechte laufen ueber die Permission Engine; Keycloak bleibt reine Identity-Schicht.
 **Requirements**: FANSUB-INVITES-01
 **Depends on:** 45
-**Plans:** 0/4 plans executed
+**Status:** Runtime retro-verified complete on 2026-05-27; execution summary artifacts are missing, but invitation runtime evidence exists.
+**Plans:** 4/4 plans retro-closed
 
 Plans:
-- [ ] `46-01-PLAN.md` - Vorpruefung von Invite-/Join-Request-Seams, Token-/Status-Konventionen und minimalem Datenmodell fuer Fansub-Gruppen-Einladungen.
-- [ ] `46-02-PLAN.md` - Backend fuer Einladung erstellen, offene Einladungen verwalten, Einladungsannahme, Permission-Codes, Capability-Erweiterung und Audit umsetzen.
-- [ ] `46-03-PLAN.md` - Fansub-Admin-UI fuer offene Einladungen sowie eingeloggten Accept-Flow minimal auf Capability-Basis anbinden; Join-Request-Seam optional vorbereiten.
-- [ ] `46-04-PLAN.md` - Regressionen, Token-/Expiry-Tests, Developer-Doku, Live-Verifikation und Phase-47-Handoff abschliessen.
+- [x] `46-01-PLAN.md` - Vorpruefung von Invite-/Join-Request-Seams, Token-/Status-Konventionen und minimalem Datenmodell fuer Fansub-Gruppen-Einladungen.
+- [x] `46-02-PLAN.md` - Backend fuer Einladung erstellen, offene Einladungen verwalten, Einladungsannahme, Permission-Codes, Capability-Erweiterung und Audit umsetzen.
+- [x] `46-03-PLAN.md` - Fansub-Admin-UI fuer offene Einladungen sowie eingeloggten Accept-Flow minimal auf Capability-Basis anbinden; Join-Request-Seam optional vorbereiten.
+- [x] `46-04-PLAN.md` - Regressionen, Token-/Expiry-Tests, Developer-Doku, Live-Verifikation und Phase-47-Handoff abschliessen.
 
 **Success Criteria** (what must be TRUE):
 1. Vor der Umsetzung wurden DB, Migrationen, Member-Management-Seams, Permission-Seams und Frontend-Seams analysiert; die Ausfuehrungsdoku startet mit einer kurzen Ist-Analyse.
