@@ -188,3 +188,20 @@
 
 **User's choice:** Parallel nur nach klarer File Ownership.
 **Notes:** Globale Shell zuerst/separat; keine parallele Arbeit an Shell-Grundlagen und konfliktierenden `/me/profile`-Dateien.
+
+---
+
+## Follow-up Discussion: Sieben Restblocker
+
+| Finding | Decision |
+|---------|----------|
+| Normale Member haben möglicherweise keinen Einstieg zu `/me/profile`, weil bekannte Links im Admin-Kontext liegen. | `/me/profile` braucht einen Nicht-Admin-Einstieg über globale Shell oder auth-nahen Einstieg; Admin-Links allein reichen nicht. |
+| Task 1 führt `src/app/me/profile/page.test.tsx` aus, verlangt aber nicht ausdrücklich, dass Tests geschrieben werden. | Die Datei muss erstellt und mit echten Mindesttests befüllt werden; leere/grüne Datei zählt nicht. |
+| Bestehende Crop-Primitives sind nicht explizit für runde Avatare gedacht. | Avatar-Crop braucht 1:1-Zwang, runde Vorschau und runde Canvas-/Masken-Ausgabe. |
+| `/me/profile` würde aus `components/admin` importieren, wenn Crop-Primitives unverändert genutzt werden. | Shared Crop-Code wird media-/app-neutral verschoben oder die Admin-Kopplung wird als bewusster Übergang dokumentiert. |
+| Avatar-Remove-Endpunkt ist nicht vorhanden. | Kein produktiver Entfernen-Button ohne `DELETE`-/Remove-Contract; Remove wird deferred oder separat contract-backed umgesetzt. |
+| Contributions-Detail-Task kann als optionaler Umsetzungspfad missverstanden werden. | Contributions-Details bleiben in Phase 53 fest deferred; Summary/Empty State ist der Scope. |
+| Migrationen und Avatar-Size-Check sind zu vage. | Migrationen brauchen Nummerierungs-/untracked-Check; Profil-Avatar-Size-Limit wird profil-spezifisch vor Decode/Save geprüft. |
+
+**User's choice:** Alle sieben Punkte in Kontext/Planung übernehmen.
+**Notes:** Kurzprüfung bestätigte: kein offensichtlicher globaler AppShell/User-Menü-Einstieg, Crop-Primitives liegen unter `components/admin`, und Profil-Avatar nutzt aktuell das generische `maxImageSize` aus dem Upload-Pfad.

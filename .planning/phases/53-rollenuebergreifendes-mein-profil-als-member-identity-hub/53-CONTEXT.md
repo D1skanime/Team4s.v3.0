@@ -110,6 +110,15 @@ Diese Phase liefert nicht:
 ### Nachdiskussion: Umsetzungstaktik
 - **D-51:** Parallelisierung erfolgt nur nach klarer File Ownership. Globale Shell ist ein eigener Block und darf nicht gleichzeitig mit konfliktierenden `/me/profile`-Grundlagen bearbeitet werden; 53B-Backend-/DTO-/OpenAPI-/RichText-/Avatar-Contracts werden seriell oder explizit koordiniert umgesetzt.
 
+### Nachdiskussion: Restblocker vor Execution
+- **D-52:** `/me/profile` braucht einen Nicht-Admin-Einstieg. Admin-Kontext-Links allein reichen nicht; die globale Shell oder ein anderer auth-naher Einstieg muss normalen eingeloggten Membern den Weg zu `Mein Profil` geben.
+- **D-53:** `frontend/src/app/me/profile/page.test.tsx` muss in 53A aktiv erstellt und mit Mindesttests befüllt werden. Eine leere/grüne Testdatei erfüllt die Route-Test-Anforderung nicht.
+- **D-54:** Avatar-Crop braucht Avatar-spezifische Geometrie: erzwungener 1:1-Crop, runde Vorschau und runde Canvas-/Masken-Ausgabe. Bestehende Crop-Math darf wiederverwendet werden, muss aber für Avatar-Geometrie erweitert und getestet werden.
+- **D-55:** `/me/profile` darf nicht dauerhaft reusable Crop-Primitives aus `frontend/src/components/admin` importieren. Shared Crop-Code wird in einen media-/app-neutralen Ort verschoben oder eine kurze, bewusste Übergangskopplung wird dokumentiert.
+- **D-56:** Avatar entfernen ist nicht implizit Teil von 53B. Ohne `DELETE`-/Remove-Contract darf kein produktiver Entfernen-Button erscheinen; der Remove-Endpunkt wird explizit deferred oder als eigener Contract umgesetzt.
+- **D-57:** Contributions-Detail-Ausbau bleibt in Phase 53 fest deferred. Task 6 darf kein optionaler Umsetzungspfad für eine neue Detailroute sein; 53 zeigt Summary/Empty State und bereitet höchstens späteres Routing vor.
+- **D-58:** Migrationen und Avatar-Validierung brauchen konkrete Guardrails: vor jeder neuen Migration aktuelle Nummerierung und untracked Migrationen prüfen; Profil-Avatar-Size-Limit wird profil-spezifisch vor Decode/Save validiert und darf nicht still auf dem generischen 50-MB-Image-Limit bleiben.
+
 </decisions>
 
 <canonical_refs>
@@ -144,6 +153,7 @@ Diese Phase liefert nicht:
 - `frontend/src/app/admin/page.tsx` — aktueller Admin-Startseiten-Link zu `Mein Profil`, muss für `/me/profile` und neue Shell-Entry-Strategie geprüft werden.
 - `frontend/src/app/admin/my-groups/page.tsx` — bestehender `Meine Gruppen`-/Profil-Kontext und GDS-Referenz; bekannte Links zu `/admin/profile` müssen beim Shell-/Route-Umbau geprüft werden.
 - `frontend/src/app/admin/fansubs/[id]/edit/FansubAppMembersSection.tsx` — aktueller Hinweis auf persönliche Profilpflege; darf nicht weiter eine Admin-Profilwelt signalisieren.
+- `frontend/src/app/me/profile/page.test.tsx` — muss in 53A neu erstellt und mit echten Route-/State-/No-admin-leak-Tests gefüllt werden.
 - `frontend/src/lib/api.ts` — `getOwnProfile`, `updateOwnProfile`, `uploadOwnProfileAvatar`, `refreshActiveAuthSession`.
 - `frontend/src/types/profile.ts` — Profil-DTOs und Sichtbarkeitswerte.
 - `frontend/src/components/ui` — globale GDS-Komponenten.
@@ -154,6 +164,7 @@ Diese Phase liefert nicht:
 - `frontend/src/components/admin/MediaUpload.tsx` — bestehende Crop-/Upload-UX als Avatar-Analog.
 - `frontend/src/components/admin/mediaUploadCropMath.ts` — wiederverwendbare Crop-Geometrie.
 - `frontend/src/components/admin/mediaUploadA11y.ts` — wiederverwendbare Crop-A11y-Helfer.
+- `frontend/src/components/admin/mediaUploadCropMath.ts` und `frontend/src/components/admin/mediaUploadA11y.ts` — dürfen nicht dauerhaft als Admin-Imports in `/me/profile` landen; bei Reuse in shared/media-neutralen Pfad verschieben oder Übergang dokumentieren.
 - `backend/internal/handlers/app_profile.go` — Profil-Read/Update/Avatar-Handler und aktuelle Avatar-Validierung.
 - `backend/internal/repository/member_profile_repository.go` — Profil-Aggregat, Memberships, Credits, Avatar-Verknüpfung.
 - `backend/internal/models/member_profile.go` — Backend-Profil-DTO und aktuelle `ProfileVisibility`-Konstanten.
@@ -249,6 +260,11 @@ Phase 53B soll die Härtung liefern:
 - Der Profil-Story-Umbau darf keinen zweiten TipTap-Service, Renderer oder Sanitizer erzeugen. Vorhandene `TipTapService`-/`RichTextRenderer`-/`body_json`-/`body_html`-Patterns sind zu übernehmen.
 - Avatar-Crop soll clientseitig bedienbar sein, aber das Originalbild darf architektonisch nicht verloren gehen; spätere Varianten und Recrop müssen möglich bleiben.
 - Execution läuft parallel nur nach File Ownership. Die globale Shell ist ein eigener Block; 53B-Contract-Arbeiten werden seriell oder explizit koordiniert.
+- Normale Member brauchen einen echten Nicht-Admin-Einstieg zu `/me/profile`; Admin-Links allein zählen nicht als Reachability.
+- Die neue `/me/profile`-Testdatei muss Tests enthalten, nicht nur existieren.
+- Avatar-Crop ist nicht nur Reuse vorhandener rechteckiger Medien-Crop-Helfer: Avatar braucht 1:1-Zwang, runde Vorschau/Maskierung und optional shared statt admin-gekoppelten Crop-Code.
+- Avatar-Remove und Contributions-Details bleiben ohne eigenen Contract deferred; keine produktiven Buttons oder Routen vortäuschen.
+- Profil-Avatar-Size-Validierung muss profil-spezifisch vor Decode/Save passieren; Migrationen brauchen vorher Nummerierungs-/untracked-Datei-Check.
 
 </specifics>
 
