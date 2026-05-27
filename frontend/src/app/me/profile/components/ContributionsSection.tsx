@@ -8,6 +8,19 @@ type ContributionsSectionProps = {
   profile: MemberProfileData
 }
 
+const contributionDetailReasonID = 'profile-contribution-detail-reason'
+
+function DisabledContributionDetailAction() {
+  return (
+    <span className={styles.deferredActionWrap}>
+      <Button variant="subtle" disabled aria-describedby={contributionDetailReasonID}>Alle Beiträge anzeigen</Button>
+      <span id={contributionDetailReasonID} className={styles.deferredActionReason}>
+        Detailansichten folgen erst mit einem eigenen Beitrags-Contract.
+      </span>
+    </span>
+  )
+}
+
 export function ContributionsSection({ profile }: ContributionsSectionProps) {
   if (!profile.capabilities.can_view_historical_credits) {
     return (
@@ -22,8 +35,8 @@ export function ContributionsSection({ profile }: ContributionsSectionProps) {
     return (
       <EmptyState
         title="Noch keine Beiträge"
-        description="Detailzeilen sind erst mit einem eigenen Beitrags-Contract geplant. Phase 53A zeigt nur echte Aggregate."
-        action={<Button variant="subtle" disabled>Alle Beiträge anzeigen</Button>}
+        description="Detailzeilen sind erst mit einem eigenen Beitrags-Contract geplant. Phase 53 zeigt nur echte Aggregate."
+        action={<DisabledContributionDetailAction />}
       />
     )
   }
@@ -42,7 +55,7 @@ export function ContributionsSection({ profile }: ContributionsSectionProps) {
           </div>
         </Card>
       ))}
-      <Button variant="subtle" disabled>Alle Beiträge anzeigen</Button>
+      <DisabledContributionDetailAction />
     </div>
   )
 }

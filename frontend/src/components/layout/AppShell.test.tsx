@@ -30,7 +30,7 @@ describe('AppShell', () => {
     expect(screen.getByText('Mika')).not.toBeNull()
   })
 
-  it('does not link capability-gated admin navigation for normal members', () => {
+  it('hides capability-gated admin navigation for normal members', () => {
     render(
       <AppShell currentPath="/me/profile" canAccessAdmin={false}>
         <main>Profilinhalt</main>
@@ -38,7 +38,8 @@ describe('AppShell', () => {
     )
 
     expect(screen.queryByRole('link', { name: /Verwaltung/i })).toBeNull()
-    expect(screen.getByText('geschützt')).not.toBeNull()
+    expect(screen.queryByText('Verwaltung')).toBeNull()
+    expect(screen.queryByText('geschützt')).toBeNull()
   })
 
   it('marks unavailable future member targets without fake routes', () => {
@@ -62,5 +63,17 @@ describe('AppShell', () => {
 
     const adminLink = screen.getByRole('link', { name: /Verwaltung/i })
     expect(adminLink.getAttribute('href')).toBe('/admin')
+  })
+
+  it('keeps mobile navigation collapsed until requested', () => {
+    render(
+      <AppShell currentPath="/me/profile">
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    const navButton = screen.getByRole('button', { name: /Navigation/i })
+    expect(navButton.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByLabelText('Hauptnavigation mobil')).toBeNull()
   })
 })

@@ -13,7 +13,7 @@ export function ProfileStoryCard({ value, disabled, onChange }: ProfileStoryCard
   return (
     <FormField
       label="Meine Fansub-Geschichte"
-      hint="Phase 53A speichert diese Geschichte weiter als Plain Text. Sichere Rich-Text-Persistenz folgt erst mit dem eigenen Contract."
+      hint="Diese Geschichte wird in Phase 53 weiter als Plain Text gespeichert. Sichere TipTap-Persistenz bleibt deferred, bis Migration und Backend-Contract gemeinsam umgesetzt werden."
     >
       <RichTextEditor
         value={value}

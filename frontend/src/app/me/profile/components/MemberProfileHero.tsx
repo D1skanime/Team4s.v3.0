@@ -16,6 +16,7 @@ type MemberProfileHeroProps = {
 export function MemberProfileHero({ profile, isDirty, isSaving, canSave }: MemberProfileHeroProps) {
   const displayName = profile.display_name || profile.fansub_name || 'Mein Profil'
   const roles = profile.account_global_roles.length ? profile.account_global_roles : ['user']
+  const publicProfileReasonID = 'public-profile-action-reason'
 
   return (
     <div className={styles.hero}>
@@ -25,9 +26,14 @@ export function MemberProfileHero({ profile, isDirty, isSaving, canSave }: Membe
         description="Deine Team4s-Identität, Fansub-Geschichte, Mitgliedschaften und Beiträge an einem rollenneutralen Ort."
         actions={
           <>
-            <Button variant="secondary" disabled leftIcon={<Eye size={16} />}>
-              Öffentliches Profil ansehen
-            </Button>
+            <span className={styles.deferredActionWrap}>
+              <Button variant="secondary" disabled leftIcon={<Eye size={16} />} aria-describedby={publicProfileReasonID}>
+                Öffentliches Profil ansehen
+              </Button>
+              <span id={publicProfileReasonID} className={styles.deferredActionReason}>
+                Öffentliche Profilroute ist noch nicht vertraglich freigegeben.
+              </span>
+            </span>
             <Button type="submit" form="member-profile-form" loading={isSaving} disabled={!canSave} leftIcon={<Save size={16} />}>
               Profil speichern
             </Button>
