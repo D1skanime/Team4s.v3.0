@@ -84,7 +84,7 @@ describe("FansubAppMembersSection", () => {
     expect(await screen.findByText("Phase Admin")).not.toBeNull();
     expect(screen.getAllByText("Fansub-Lead").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Editing").length).toBeGreaterThan(0);
-    expect(screen.getByRole("link", { name: "/admin/profile" }).getAttribute("href")).toBe("/admin/profile");
+    expect(screen.getByRole("link", { name: "/me/profile" }).getAttribute("href")).toBe("/me/profile");
   });
 
   it("adds a new member through candidate search with selected roles", async () => {

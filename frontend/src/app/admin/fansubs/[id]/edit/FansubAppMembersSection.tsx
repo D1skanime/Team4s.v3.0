@@ -329,7 +329,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
             Keycloak liefert Identität und Session. Team4s verwaltet die gruppenspezifischen Rollen und schützt alle Aktionen zentral über Capabilities.
           </p>
           <p className={styles.fansubEditHint}>
-            Persönliche Profilpflege läuft separat unter <a href="/admin/profile">/admin/profile</a>, damit diese Gruppenansicht nicht versehentlich zum eigenen Profil-Editor wird.
+            Persönliche Profilpflege läuft separat unter <a href="/me/profile">/me/profile</a>, damit diese Gruppenansicht nicht versehentlich zum eigenen Profil-Editor wird.
           </p>
         </div>
         <div className={styles.fansubEditBasicStatusCard}>

@@ -129,7 +129,7 @@ export default function AdminMyGroupsPage() {
           description="Eigene Fansub-Kontexte, Rollen und sichere Schnellaktionen. Berechtigungen kommen aus Team4s-Capabilities, historische Credits bleiben nur Kontext."
           actions={
             <>
-              <Button href="/admin/profile" variant="secondary" size="sm">
+              <Button href="/me/profile" variant="secondary" size="sm">
                 Mein Profil
               </Button>
               <Button href="/auth" variant="ghost" size="sm">
@@ -203,7 +203,7 @@ export default function AdminMyGroupsPage() {
                 }
                 trailing={
                   <Button
-                    href="/admin/profile"
+                    href="/me/profile"
                     variant="secondary"
                     leftIcon={<Users size={16} />}
                   >

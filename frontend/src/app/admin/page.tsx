@@ -42,7 +42,7 @@ export default function AdminOverviewPage() {
             <Link href="/manage/groups" className={styles.buttonSecondary}>
               Meine Gruppen
             </Link>
-            <Link href="/admin/profile" className={styles.buttonSecondary}>
+            <Link href="/me/profile" className={styles.buttonSecondary}>
               Mein Profil
             </Link>
             <Link href="/admin/episodes" className={styles.buttonSecondary}>
