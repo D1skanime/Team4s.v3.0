@@ -960,6 +960,7 @@ Plans:
 **Goal:** Die bestehende Profilseite wird zu einem modernen, rollenübergreifenden Bereich `Mein Profil` weiterentwickelt. `/me/profile` ist die Zielroute für alle eingeloggten User; `/admin/profile` darf keine eigene Admin-Profilwelt bleiben. Die Seite zeigt Team4s-/Fansub-Identität, Gruppen, Rollen, Beiträge und pflegbare Profilinformationen aus echten Datenquellen, während Login, E-Mail, Passwort, MFA und technische Account-Sicherheit bei Keycloak bleiben.
 **Requirements**: MEMBER-PROFILE-HUB-01
 **Depends on:** Phase 47, Phase 48, Phase 52
+**Context:** `.planning/phases/53-rollenuebergreifendes-mein-profil-als-member-identity-hub/53-CONTEXT.md`
 **Plans:** 0/2 plans executed
 
 Plans:
