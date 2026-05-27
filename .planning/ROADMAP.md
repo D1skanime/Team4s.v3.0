@@ -56,7 +56,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [ ] **Phase 45: Fansub Member Management MVP** - App-user-basierte Mitglieder- und Rollenverwaltung pro Fansub-Gruppe mit Permission-Engine-Pruefung, Self-Lockout-Schutz, Audit und minimaler Admin-UI auf Capability-Basis.
 - [ ] **Phase 46: Fansub Group Invitations & Join Requests MVP** - Token-basierte Gruppeneinladungen, Verwaltung offener Einladungen, Einladungsannahme fuer eingeloggte App-User und vorbereitende Join-Request-Seams auf Basis der Permission Engine.
 - [x] **Phase 47: Member Profile & Historical Identity** - Eigenes historisches Fansub-Profil mit Fansub-Name, Avatar, Bio, Member-Story, aktiver Zeit, Gruppenzugehoerigkeiten und Keycloak-Account-Link; strikt getrennt von Gruppenrollen und Keycloak-Accountdaten. Foundation retro-verifiziert am 2026-05-27; moderne Route/UX wird durch Phase 53 abgeloest.
-- [ ] **Phase 48: Meine Gruppen & Contributor Dashboard** - Contributor-Dashboard fuer eigene Gruppen mit sicher gescopten Schnellaktionen in bestehende Gruppen-, Release-, Media- und Description-Funktionen auf Basis der Permission Engine. Teilweise umgesetzt, aber Route/Shell/Closure-Drift bleibt offen.
+- [x] **Phase 48: Meine Gruppen & Contributor Dashboard** - Contributor-Dashboard fuer eigene Gruppen mit sicher gescopten Schnellaktionen in bestehende Gruppen-, Release-, Media- und Description-Funktionen auf Basis der Permission Engine. Foundation retro-verifiziert am 2026-05-27; Route/Shell-Polish wird nach Phase 53 bzw. Contributor-Shell-Cleanup getragen.
 - [x] **Phase 51: Keycloak Access-Token Resource-Server Boundary** - Keycloak/API-Auth von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umstellen. (completed 2026-05-26)
 - [x] **Phase 52: Profile Account Return Refresh Flow** - Keycloak-Accountaenderungen werden von der Profilseite aus verstaendlich in einem neuen Tab angestossen und Team4s-Accountkarten beim Zurueckkehren ueber zentrale Auth-/Profil-Seams aktualisiert. (automated verified 2026-05-26; live Keycloak UAT pending)
 - [ ] **Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub** - Die bestehende Profilseite wird als `/me/profile` zu einem modernen, rollenübergreifenden Member-Identity-Hub weiterentwickelt: rollenneutrale Route, echte Datenquellen, GDS-basierte Oberfläche, klare Keycloak-/Team4s-Datenhoheit, getrennte Rollenarten, sichere Avatar-/Rich-Text-/Sichtbarkeitsplanung und keine Mockdaten.
@@ -882,14 +882,14 @@ Plans:
 **Goal:** Einen Contributor-Bereich `Meine Gruppen` schaffen, in dem eingeloggte User nur ihre eigenen Fansub-Gruppen, Rollen, Capabilities und relevanten Arbeitskontexte sehen. Bestehende Gruppen-, Release-, Media-, Notes- und Drawer-Funktionen sollen sicher wiederverwendet und fuer Contributor-Kontexte korrekt gescoped werden, statt neu gebaut zu werden. Global Admins behalten ihre Vollsicht.
 **Requirements**: CONTRIBUTOR-DASHBOARD-01
 **Depends on:** 47
-**Status:** Partially implemented with route/closure drift. `/admin/my-groups` and `/manage/groups` evidence exists, but formal GSD closure and full contributor shell verification are still missing.
-**Plans:** 0/4 plans formally closed
+**Status:** Retro-verified foundation complete on 2026-05-27 via `48-RETRO-VERIFICATION.md`. Route/shell follow-through is carried into Phase 53 or later contributor-shell cleanup.
+**Plans:** 4/4 plans retro-closed
 
 Plans:
-- [ ] `48-01-PLAN.md` - Vorpruefung von Membership-, Permission-, Release-, Media-, Notes- und Navigations-Seams sowie Contributor-Scoping-Strategie fuer bestehende Komponenten festziehen.
-- [ ] `48-02-PLAN.md` - Backend fuer `GET /api/me/fansub-groups`, Contributor-Group-Detail-Reads, korrekt gescopte Release-/Anime-Kontexte und Capability-Aggregate umsetzen.
-- [ ] `48-03-PLAN.md` - Frontend fuer `/admin/my-groups`, Contributor-Gruppenseite, Navigation/User-Menue und sichere Wiederverwendung bestehender Edit-/Drawer-/Media-/Notes-Komponenten umsetzen.
-- [ ] `48-04-PLAN.md` - Regressionen, Security-/Scoping-Tests, Developer-Doku, Live-Verifikation und Phase-49-Handoff fuer Public Archive Pages abschliessen.
+- [x] `48-01-PLAN.md` - Vorpruefung von Membership-, Permission-, Release-, Media-, Notes- und Navigations-Seams sowie Contributor-Scoping-Strategie fuer bestehende Komponenten festziehen.
+- [x] `48-02-PLAN.md` - Backend fuer `GET /api/me/fansub-groups`, Contributor-Group-Detail-Reads, korrekt gescopte Release-/Anime-Kontexte und Capability-Aggregate umsetzen.
+- [x] `48-03-PLAN.md` - Frontend fuer `/admin/my-groups`, Contributor-Gruppenseite, Navigation/User-Menue und sichere Wiederverwendung bestehender Edit-/Drawer-/Media-/Notes-Komponenten umsetzen.
+- [x] `48-04-PLAN.md` - Regressionen, Security-/Scoping-Tests, Developer-Doku, Live-Verifikation und Phase-49-Handoff fuer Public Archive Pages abschliessen.
 
 **Success Criteria** (what must be TRUE):
 1. Vor der Umsetzung wurden bestehende Membership-, Permission-, Release-, Media-, Notes- und UI-Seams analysiert; die Ausfuehrungsdoku startet mit einer kurzen Ist-Analyse.
