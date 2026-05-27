@@ -57,6 +57,8 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 46: Fansub Group Invitations & Join Requests MVP** - Token-basierte Gruppeneinladungen, Verwaltung offener Einladungen, Einladungsannahme fuer eingeloggte App-User und vorbereitende Join-Request-Seams auf Basis der Permission Engine. (runtime retro-verified 2026-05-27)
 - [x] **Phase 47: Member Profile & Historical Identity** - Eigenes historisches Fansub-Profil mit Fansub-Name, Avatar, Bio, Member-Story, aktiver Zeit, Gruppenzugehoerigkeiten und Keycloak-Account-Link; strikt getrennt von Gruppenrollen und Keycloak-Accountdaten. Foundation retro-verifiziert am 2026-05-27; moderne Route/UX wird durch Phase 53 abgeloest.
 - [x] **Phase 48: Meine Gruppen & Contributor Dashboard** - Contributor-Dashboard fuer eigene Gruppen mit sicher gescopten Schnellaktionen in bestehende Gruppen-, Release-, Media- und Description-Funktionen auf Basis der Permission Engine. Foundation retro-verifiziert am 2026-05-27; Route/Shell-Polish wird nach Phase 53 bzw. Contributor-Shell-Cleanup getragen.
+- [x] **Phase 49: Zentraler Auth-/API-Client und Token-Lifecycle-Haertung** - Normale Frontend-API-Aufrufe laufen ueber einen zentralen Auth/API-Client mit Token-Besitz, Refresh, 401-Retry, Upload/XHR-Auth und tokenfreier Session-UI. (verified 2026-05-20; registered in active roadmap 2026-05-27)
+- [x] **Phase 50: Platform-Admin Boundaries und Contributor Scope Governance** - Globale Admin-Flaechen werden platform-admin-only, Contributor-Kontexte bleiben capability- und permission-gescoped, und sensible Admin-Daten werden aus Contributor-Editor-Kontexten entfernt. (technical verification passed 2026-05-22; live Keycloak UAT pending)
 - [x] **Phase 51: Keycloak Access-Token Resource-Server Boundary** - Keycloak/API-Auth von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umstellen. (completed 2026-05-26)
 - [x] **Phase 52: Profile Account Return Refresh Flow** - Keycloak-Accountaenderungen werden von der Profilseite aus verstaendlich in einem neuen Tab angestossen und Team4s-Accountkarten beim Zurueckkehren ueber zentrale Auth-/Profil-Seams aktualisiert. (automated verified 2026-05-26; live Keycloak UAT pending)
 - [ ] **Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub** - Die bestehende Profilseite wird als `/me/profile` zu einem modernen, rollenübergreifenden Member-Identity-Hub weiterentwickelt: rollenneutrale Route, echte Datenquellen, GDS-basierte Oberfläche, klare Keycloak-/Team4s-Datenhoheit, getrennte Rollenarten, sichere Avatar-/Rich-Text-/Sichtbarkeitsplanung und keine Mockdaten.
@@ -910,6 +912,50 @@ Plans:
 10. Navigation oder User-Menue enthalten `Mein Profil`, `Meine Gruppen`, Keycloak-Account-Link und Logout.
 11. Historische Credits koennen als read-only Abschnitt `Meine Beteiligungen` angezeigt oder sauber vorbereitet werden, ohne neue grosse Datenmodelle zu bauen und ohne App-Rechte daraus abzuleiten.
 12. Tests decken positive und negative Faelle fuer eigene/fremde Gruppen, Scoping, Coop-Kontexte, Capability-Anzeige und Navigation ab.
+
+### Phase 49: Zentraler Auth-/API-Client und Token-Lifecycle-Haertung
+
+**Goal:** Normale Frontend-API-Aufrufe laufen ueber einen zentralen Auth/API-Client. Seiten, Komponenten und Feature-Hooks konsumieren tokenfreie Session-Daten und duerfen keine Keycloak- oder App-Tokens direkt lesen, speichern, weiterreichen oder Bearer-Header bauen. Streaming/Jellyfin-Relay bleibt eine dokumentierte serverseitige Sondergrenze.
+**Requirements**: AUTH-API-CLIENT-01
+**Depends on:** 48
+**Status:** Complete on 2026-05-20 via `49-VERIFICATION.md`; registered in the active roadmap on 2026-05-27. Phase 51 supersedes only the API token-boundary details by requiring real Keycloak access tokens with Team4s API audience.
+**Plans:** 14/14 plans complete
+
+Plans:
+- [x] `49-01-PLAN.md` through `49-14-PLAN.md` - Inventory, central auth/API client, refresh/retry lifecycle, upload/XHR auth, session resync, no-token static gates, docs, and verification.
+
+**Success Criteria** (what must be TRUE):
+1. Normal protected browser API calls go through the central client boundary.
+2. Pages/components/hooks do not directly read, store, pass, or construct token values for normal API calls.
+3. Refresh, 401 retry, local cleanup, and auth-state resync are centralized.
+4. Upload/XHR auth uses the same central lifecycle without unsafe upload replay.
+5. `useAuthSession` exposes token-free session state.
+6. Streaming/Jellyfin relay auth remains documented as a server-side special boundary.
+7. Static tests guard against new token ownership drift outside allowed boundaries.
+8. Phase 51's access-token resource-server semantics remain the current API bearer contract.
+
+### Phase 50: Platform-Admin Boundaries und Contributor Scope Governance
+
+**Goal:** Globale Admin-Oberflaechen strikt platform-admin-only machen und Contributor-Arbeitsflaechen auf eigene Gruppen, reale Capabilities und serverseitige Permission-Kontexte begrenzen. Contributors sollen keine globalen Admin-Tabs, deaktivierte/public-unpassende Daten oder sensible Release-/Provider-Felder sehen.
+**Requirements**: PLATFORM-ADMIN-BOUNDARY-01
+**Depends on:** 49
+**Status:** Complete-carry-forward on technical evidence from `50-SUMMARY.md`, `50-VERIFICATION.md`, `50-SECURITY.md`, and `50-VALIDATION.md`; live Keycloak UAT remains pending.
+**Plans:** 4/4 plans complete
+
+Plans:
+- [x] `50-01-PLAN.md` - Platform-admin route/data boundaries and contributor scope inventory.
+- [x] `50-02-PLAN.md` - Backend permission and sanitized context hardening.
+- [x] `50-03-PLAN.md` - Frontend gate and contributor workspace hardening.
+- [x] `50-04-PLAN.md` - Verification, security review, validation, UAT, and handoff.
+
+**Success Criteria** (what must be TRUE):
+1. Global admin pages and nested admin data-loading children are gated by platform-admin checks.
+2. Contributor routes and release editors render only capability-allowed surfaces.
+3. Non-platform release-version editor context omits sensitive admin/provider/stream fields.
+4. Backend permission checks protect notes, media, member stories, canonical fansub updates, and disabled anime reads.
+5. Public anime endpoints do not expose disabled rows just because `include_disabled=true` is present.
+6. `/manage/groups` is the preferred contributor entry, while `/admin/my-groups` remains transitional until a redirect cleanup.
+7. Human UAT verifies platform-admin vs fansub lead/member behavior with real Keycloak sessions.
 
 ### Phase 51: Keycloak Access-Token Resource-Server Boundary
 

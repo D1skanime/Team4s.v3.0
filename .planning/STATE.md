@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: Phase 53 planned; historical phases 1-46 reconciled
-stopped_at: Historical reconcile completed for phases 1-46; Phase 42 remains planned/deferred
-last_updated: "2026-05-27T13:55:00+02:00"
+status: Phase 53 planned; phases 49-50 registered and reconciled
+stopped_at: Registered Phase 49/50 in active roadmap; Phase 50 live Keycloak UAT remains pending
+last_updated: "2026-05-27T14:12:00+02:00"
 last_activity: 2026-05-27
 progress:
-  total_phases: 47
-  completed_phases: 40
-  total_plans: 167
-  completed_plans: 165
-  percent: 85
+  total_phases: 49
+  completed_phases: 42
+  total_plans: 185
+  completed_plans: 183
+  percent: 86
 ---
 
 # Project State
@@ -187,6 +187,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 49/50 reconcile completed on 2026-05-27: Phase 49 central Auth/API client is complete from `49-VERIFICATION.md` and `AUTH-API-CLIENT-01` is complete; Phase 50 platform-admin/contributor scope governance is registered as complete-carry-forward with technical verification passed and live Keycloak UAT pending.
 - Historical reconcile completed on 2026-05-27 for phases 1-46: Phases 41 and 43-46 are retro-closed from runtime evidence; Phase 42 remains planned/deferred; stale v1 requirement Pending rows were reconciled to completed historical baseline; OpenAPI gaps for member management and invitations remain follow-up work.
 - Phase 48 retro-verified on 2026-05-27: contributor dashboard foundation is complete from runtime evidence and focused tests; `/me/groups` route direction, shared `Mein Bereich` shell integration, OpenAPI coverage, broader live UAT, centralized labels, and safer non-admin workspace routing carry forward.
 - Phase 47 retro-verified on 2026-05-27: own-profile foundation is complete from runtime evidence and focused tests; modern `/me/profile` route, Member Identity Hub UX, avatar crop/variants, richer visibility, month/year activity controls, Rich Text safety, OpenAPI coverage, mobile QA, and accessibility carry forward to Phase 53.
@@ -325,6 +326,7 @@ Recent durable decisions:
 | 260527-iay | Retro-verify Phase 47 member profile foundation | 2026-05-27 | 25b88493 | [260527-iay-retro-verify-phase-47-member-profile-fou](./quick/260527-iay-retro-verify-phase-47-member-profile-fou/) |
 | 260527-imk | Retro-verify Phase 48 contributor dashboard | 2026-05-27 | 2811ded0 | [260527-imk-retro-verify-phase-48-contributor-dashbo](./quick/260527-imk-retro-verify-phase-48-contributor-dashbo/) |
 | 260527-ivi | Historical reconcile phases 1-46 roadmap requirements contracts | 2026-05-27 | e0b9cf91 | [260527-ivi-historical-reconcile-phases-1-46-roadmap](./quick/260527-ivi-historical-reconcile-phases-1-46-roadmap/) |
+| 260527-jgk | Retro-verify phases 49-50 auth API client and contributor governance roadmap registration | 2026-05-27 | pending | [260527-jgk-retro-verify-phases-49-50-auth-api-clien](./quick/260527-jgk-retro-verify-phases-49-50-auth-api-clien/) |
 
 ## Session Continuity
 

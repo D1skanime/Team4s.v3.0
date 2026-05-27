@@ -75,6 +75,7 @@
 - **FANSUB-MEMBER-MGMT-01**: Authorized users can manage app-user based fansub group memberships and roles through Team4s permissions without storing fansub roles in Keycloak.
 - **FANSUB-INVITES-01**: Authorized users can create, view, cancel, and accept token-hash fansub group invitations that create or activate scoped Team4s memberships.
 - **AUTH-API-CLIENT-01**: Normal frontend API calls use one central Auth/API client that owns token reads, persistence, refresh, 401 retry, request auth headers, upload/XHR auth, and auth-state resync. Pages and components consume token-free session state and must not store or directly read Keycloak or app tokens.
+- **PLATFORM-ADMIN-BOUNDARY-01**: Global admin management surfaces require platform-admin authority, while contributor workspaces expose only scoped group/release capabilities and sanitized context without sensitive admin/provider data.
 - **AUTH-RESOURCE-SERVER-01**: Keycloak-issued Team4s API calls use real OIDC access tokens with a Team4s API audience. The frontend must not use ID tokens as API bearer tokens, and the backend must validate issuer, JWKS signature, expiry, audience, and authorized-party semantics while Team4s keeps domain authorization in the app database.
 - **AUTH-PROFILE-ACCOUNT-RETURN-01**: The Team4s profile page must make the external Keycloak account-management handoff understandable, open Keycloak account changes in a new tab, refresh Team4s account cards through the central auth/profile seams when the user returns, and avoid overwriting unsaved Team4s profile form edits.
 - **MEMBER-PROFILE-01**: Signed-in users can maintain their Team4s/Fansub historical profile independently from Keycloak account data, including fansub name, display name, avatar, bio/story, activity period, memberships, and read-only historical credits.
@@ -129,7 +130,8 @@
 | AUTHZ-ENGINE-01 | Phase 44 | Complete - runtime retro-verified |
 | FANSUB-MEMBER-MGMT-01 | Phase 45 | Complete - runtime retro-verified |
 | FANSUB-INVITES-01 | Phase 46 | Complete - runtime retro-verified |
-| AUTH-API-CLIENT-01 | Phase 49 | Pending |
+| AUTH-API-CLIENT-01 | Phase 49 | Complete - verified 2026-05-20 |
+| PLATFORM-ADMIN-BOUNDARY-01 | Phase 50 | Complete - technical verification passed; live Keycloak UAT pending |
 | MEMBER-PROFILE-01 | Phase 47 | Complete - retro-verified foundation, UX carry-forward to Phase 53 |
 | CONTRIBUTOR-DASHBOARD-01 | Phase 48 | Complete - retro-verified foundation, route/shell carry-forward |
 | AUTH-RESOURCE-SERVER-01 | Phase 51 | Complete |
