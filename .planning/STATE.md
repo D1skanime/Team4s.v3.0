@@ -326,7 +326,7 @@ Recent durable decisions:
 | 260527-iay | Retro-verify Phase 47 member profile foundation | 2026-05-27 | 25b88493 | [260527-iay-retro-verify-phase-47-member-profile-fou](./quick/260527-iay-retro-verify-phase-47-member-profile-fou/) |
 | 260527-imk | Retro-verify Phase 48 contributor dashboard | 2026-05-27 | 2811ded0 | [260527-imk-retro-verify-phase-48-contributor-dashbo](./quick/260527-imk-retro-verify-phase-48-contributor-dashbo/) |
 | 260527-ivi | Historical reconcile phases 1-46 roadmap requirements contracts | 2026-05-27 | e0b9cf91 | [260527-ivi-historical-reconcile-phases-1-46-roadmap](./quick/260527-ivi-historical-reconcile-phases-1-46-roadmap/) |
-| 260527-jgk | Retro-verify phases 49-50 auth API client and contributor governance roadmap registration | 2026-05-27 | pending | [260527-jgk-retro-verify-phases-49-50-auth-api-clien](./quick/260527-jgk-retro-verify-phases-49-50-auth-api-clien/) |
+| 260527-jgk | Retro-verify phases 49-50 auth API client and contributor governance roadmap registration | 2026-05-27 | c4b4a1b6 | [260527-jgk-retro-verify-phases-49-50-auth-api-clien](./quick/260527-jgk-retro-verify-phases-49-50-auth-api-clien/) |
 
 ## Session Continuity
 

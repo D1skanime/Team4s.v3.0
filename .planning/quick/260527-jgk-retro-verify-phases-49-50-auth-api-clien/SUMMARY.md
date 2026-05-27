@@ -3,7 +3,7 @@ quick_id: 260527-jgk
 slug: retro-verify-phases-49-50-auth-api-clien
 status: complete
 completed: 2026-05-27
-commit: pending
+commit: c4b4a1b6
 ---
 
 # Quick Summary: Retro-Verify Phases 49-50
