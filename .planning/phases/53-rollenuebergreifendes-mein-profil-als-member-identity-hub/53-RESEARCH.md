@@ -65,6 +65,7 @@ This research answers what the Phase 53 plans must know before execution. It foc
 - Avatar crop is only a preprocessing UX layer before the existing profile-avatar upload. The actual upload transport, auth, progress/error handling, server validation, media persistence, and storage ownership must keep using existing Team4s media/upload seams.
 - Avatar crop has stricter geometry than generic/group-logo crop: enforced 1:1 output, round preview, and round canvas/mask output. Existing math can be reused only after avatar-specific geometry tests are added.
 - Client-side raster crop can lose the original source. If future variants or recrop matter, the contract must retain original plus crop output/metadata, or document the limitation.
+- Current Phase 53 decision: pre-crop source retention is not required now. The existing backend stores the uploaded cropped result as `original.{ext}`. If a later phase needs recrop from the uncropped original, it needs a separate retention strategy.
 
 ## Activity, Visibility, Memberships, Contributions
 

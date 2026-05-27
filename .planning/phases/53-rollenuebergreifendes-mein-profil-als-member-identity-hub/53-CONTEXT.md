@@ -97,7 +97,7 @@ Diese Phase liefert nicht:
 - **D-43:** Bestehende Plain-Text-`member_story`-Daten müssen weiter lesbar bleiben. 53B muss dafür Migration oder Legacy-Fallback vorsehen, bevor der Profil-Story-Pfad echtes TipTap als Standard nutzt.
 
 ### Nachdiskussion: Avatar-Crop und Originalbild
-- **D-44:** Avatar-Crop soll eine clientseitige Crop-/Zoom-/Positionierungs-UX bekommen, aber die Architektur darf das Originalbild nicht verlieren. Backend-/Media-Contract muss Original plus Crop-Ergebnis oder Original plus Crop-Metadaten so behandeln, dass spätere Varianten und Recrop nicht blockiert werden.
+- **D-44:** Avatar-Crop ist clientseitige Pre-Upload-Verarbeitung: Bild auswählen, Crop/Zoom/Position setzen, `canvas.toBlob()` erzeugt ein neues `File`, danach nutzt der Flow den bestehenden `uploadOwnProfileAvatar(croppedFile)`-Pfad. Das Backend speichert dieses Ergebnis wie bisher als `original.{ext}`. Pre-Crop-Source-Retention für späteren Recrop ist kein Phase-53-Blocker, muss aber als spätere Einschränkung dokumentiert werden.
 
 ### Nachdiskussion: Globale App-Shell
 - **D-45:** Die neue Shell ist global und wiederverwendbar, nicht profil-lokal. `/me/profile` ist der erste Consumer, aber die Shell soll perspektivisch für Dashboard, Verwaltung, Mein Bereich, Einstellungen und weitere App-Flächen nutzbar sein.
@@ -262,7 +262,7 @@ Phase 53B soll die Härtung liefern:
 - Execution läuft parallel nur nach File Ownership. Die globale Shell ist ein eigener Block; 53B-Contract-Arbeiten werden seriell oder explizit koordiniert.
 - Normale Member brauchen einen echten Nicht-Admin-Einstieg zu `/me/profile`; Admin-Links allein zählen nicht als Reachability.
 - Die neue `/me/profile`-Testdatei muss Tests enthalten, nicht nur existieren.
-- Avatar-Crop ist nicht nur Reuse vorhandener rechteckiger Medien-Crop-Helfer: Avatar braucht 1:1-Zwang, runde Vorschau/Maskierung und optional shared statt admin-gekoppelten Crop-Code.
+- Avatar-Crop ist nicht nur Reuse vorhandener rechteckiger Medien-Crop-Helfer: Avatar braucht 1:1-Zwang, runde Vorschau/Maskierung und shared Crop-Code statt dauerhaft admin-gekoppelten Crop-Code.
 - Avatar-Remove und Contributions-Details bleiben ohne eigenen Contract deferred; keine produktiven Buttons oder Routen vortäuschen.
 - Avatar-Size-Verhalten muss bewusst geprüft und dokumentiert werden; das bestehende 50-MB-Limit ist akzeptabel, wenn es explizit so bleibt. Migrationen brauchen vorher Nummerierungs-/untracked-Datei-Check.
 
