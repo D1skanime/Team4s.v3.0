@@ -2,139 +2,141 @@
 phase: 53
 reviewer: claude
 reviewed_at: 2026-05-27
-review_rounds: 2
+review_rounds: 3
 plans_reviewed:
-  - 53-01-PLAN.md (Round 1 + Round 2)
-  - 53-02-PLAN.md (Round 1 + Round 2)
+  - 53-01-PLAN.md (Round 1 + 2 + 3)
+  - 53-02-PLAN.md (Round 1 + 2 + 3)
 ---
 
 # Cross-AI Plan Review — Phase 53: Member Identity Hub
 
 ---
 
-## Round 2 — Was der Plan-Update gelöst hat
+## Round 3 — Was der zweite Plan-Update gelöst hat
 
-Alle 10 HIGH-Concerns aus Round 1 wurden adressiert. Zur Dokumentation:
+Alle Round-2-Concerns wurden adressiert:
 
-| # | Round-1-Concern | Gelöst durch |
-|---|----------------|--------------|
-| 1 | Dateigröße / kein Komponentensplit | `components/`-Verzeichnis + 450-Zeilen-Grenze in Discovery + Task 2 |
-| 2 | Navigation nicht adressiert | `files_modified` + Discovery-Evidenz + Task 1 action + manual verify |
-| 3 | Redirect vs. Re-Export offen | `must_haves.truths` fixiert Re-Export als Execution-Default |
-| 4 | `member_story` verschwunden | Task 3: `ProfileStoryCard` mit Plain-Text-Pfad explizit |
-| 5 | CSS-Modul-Ownership unklar | Discovery + `files_modified` + Acceptance Criteria |
-| 6 | Server/Client-Boundary nicht adressiert | Discovery + Acceptance Criteria + Task 1 action |
-| 7 | Keine Tests für `/me/profile` | Task 1 verify + Acceptance Criteria |
-| 8 | OpenAPI ohne Mindest-Content | Task 5 action: "Minimum contract content: operation IDs, request/response schemas, 200/400/401" |
-| 9 | profileLabels.ts ohne kanonische Heimat | `files_modified` + Task 4 action |
-| 10 | `member_story`-Bestandsdaten-Falle (53B) | Discovery + Task 4: "treat as production data", explicit fallback-renderer decision |
-| 11 | Client-Side-Crop sperrt Varianten-Architektur | Task 1: "Decide explicitly whether original source must be retained" |
-| 12 | Touch-Events fehlen | Discovery + Task 1 action + Acceptance Criteria |
-| 13 | `RichTextRenderer` XSS-Pfad ungepüft | Task 4: "Inspect RichTextRenderer.tsx before using it" |
-| 14 | Wave-2-Konflikte | `<execution_order>` + Acceptance Criteria |
-| 15 | XSS-Smoke-Test fehlt | Task 4 verify: `<script>alert(1)</script>` + iframe + inline events |
-| 16 | Avatar-Varianten-Defer-Kriterium zu weich | Task 2: "Defer if derivative rendering would require a new custom backend path" |
-| 17 | Migration-Reversibilität unklar | Task 3a: "safe down path, nullable/backfilled fields, no destructive conversion" |
-| 18 | Task 3 + 5 zu breit | Task 3a/3b + Task 5a/5b getrennt |
-| 19 | Task 1+2-Coupling fehlte | Task 2: "using the crop/upload contract decided in Task 1" |
+| Round-2-Concern | Gelöst durch |
+|----------------|--------------|
+| Nicht-Admin-Navigationspfad fehlte | Task 0 (AppShell) + D-45–D-52 + `AppShell.tsx` in files_modified |
+| Test-Datei nur ausgeführt, nicht geschrieben | D-53 + Task 1 action: „Actively create ... with assertions for ..." |
+| `'use client'` kein automatisierter Check | Task 1 verify: `Select-String ... 'use client'` |
+| Admin-Tests nicht auditiert | Task 1 action: „Audit admin/profile/page.test.tsx ... remove admin-specific assertions" |
+| Circular-Crop-Geometrie nicht adressiert | D-54 + Task 1: „forced 1:1 avatar output, round preview, round canvas/mask" mit Tests |
+| Admin-Kopplung von Crop-Primitives | D-55 + `frontend/src/components/media/crop` in files_modified + Task 1 action |
+| Avatar-Remove undokumentiert | D-56 + Task 2: „Do not add a production Entfernen-Button unless DELETE contract" |
+| Task 6 optionaler Implementierungspfad | D-57 + Task 6 umgeschrieben zu fixem Defer |
+| Migrations-Nummerierung | D-58 + Task 3a + Task 4: „inspect highest migration number + git status" |
+| TipTap-Stack-Duplikation | D-42 + Task 4: „reuse Phase 41 stack, no second TipTap service" |
+| Avatar-Size-Check-Position | D-58 + Task 2: „before decode/save, use MaxBytesReader" |
+| Quellbild-Verlust | D-44 + Task 1: „Decide explicitly whether original source must be retained" |
 
-**Bewertung der Überarbeitung:** Gründlich. Der überarbeitete Plan ist erheblich solider.
+**Bewertung der zweiten Überarbeitung:** Sehr gründlich. Alle kritischen Punkte aus Round 2 sind eingebaut.
 
 ---
 
-## Round 2 — Verbleibende und neue Concerns
+## Round 3 — Neue und verbleibende Concerns
 
 ---
 
-### Plan 53-01 (53A) — Round 2
+### Plan 53-01 (53A) — Round 3
 
-#### Was noch offen ist
+#### Summary
 
-- **[MEDIUM] Test-Datei muss explizit erstellt werden, nicht nur ausgeführt.**
-  Task 1 verify führt `npm run test -- --run "src/app/me/profile/page.test.tsx"` aus — aber die Datei existiert noch nicht. Vitest läuft bei einer nicht existierenden Testdatei entweder mit 0 Tests durch (und gilt als „bestanden") oder bricht ab, je nach Konfiguration. Das Task 1 `<action>`-Block sagt nicht explizit: „Schreibe neue Tests für `/me/profile/page.tsx`." Ein Executor könnte eine leere Testdatei anlegen, 0 Tests bekommen und das als erfüllt werten. Die Acceptance Criteria fordern „direct route tests for render/load/error behavior and no admin naming leaks" — aber kein Task-Schritt beschreibt den Mindestinhalt dieser Tests.
-
-- **[MEDIUM] `'use client'` hat keinen automatisierten Verify-Schritt.**
-  Acceptance Criteria und Discovery fordern `'use client'` explizit — aber kein Verify-Block überprüft das. Ein Executor der versehentlich einen Server Component anlegt bekommt keinen Fehler bis zur Laufzeit, weil TypeScript und ESLint das nicht flaggen. Empfehlung: einen `grep`-Schritt hinzufügen: `grep -n "'use client'" frontend/src/app/me/profile/page.tsx`.
-
-- **[MEDIUM] Bestehende `admin/profile/page.test.tsx`-Tests wurden nicht auf Admin-spezifische Assertions geprüft.**
-  Die aktuellen Tests testen `AdminProfilePage`. Nach 53A ist `admin/profile/page.tsx` ein Re-Export-Wrapper um `MyProfilePage`. Tests die Admin-spezifischen Text, Heading-Level, Routen oder Component-Namen prüfen (`AdminProfilePage`, `„Admin-Einstellungen"`, Links zu `/admin/...`) werden nach dem Recompose entweder falsch-positiv bestehen oder falsch-negativ brechen. Kein Task-Schritt auditiert die bestehenden Tests vor dem Umbau.
-
-- **[MEDIUM] Navigation-Suche ist offen formuliert.**
-  Task 1 sagt „run a targeted link/navigation search" — aber nicht WAS gesucht wird. Das betrifft vor allem nicht-admin-User: Ein normaler Member öffnet die App und sieht keinen `/admin/*`-Link. Gibt es ein globales Header/User-Menü? Wo ist es? Die bekannten Stellen (`admin/page.tsx`, `my-groups`, `FansubAppMembersSection`) sind Admin-Kontext. Für einen normalen Member ohne Admin-Rechte gibt es möglicherweise gar keinen Einstiegspunkt zu `/me/profile` — das wäre ein Acceptance-Criterion-Bruch. Das Acceptance Criterion „Existing own-profile navigation entry points are updated" deckt diesen Fall nicht ab, wenn der nicht-admin-Einstiegspunkt nie existiert hat.
-
-- **[LOW] `ProfileStoryCard` — welcher Editor?**
-  Task 3 sagt „keep `member_story` visible/editable in a separate `ProfileStoryCard` using the current plain-text persistence behavior." Die aktuelle Seite verwendet `RichTextEditor` mit einer Konvertierung auf Plain Text vor dem Speichern. Soll `ProfileStoryCard` den `RichTextEditor` weiterhin nutzen (mit JSON-Konvertierung, vorhandenem UX) oder einen einfachen `<textarea>` (einfacher, aber anderes UX)? Der Plan ist ambivalent. Wenn ein Executor `<textarea>` wählt, gehen Formatierungseingaben verloren die der User vielleicht schon gemacht hatte.
-
-- **[LOW] OpenAPI-Korrektheit hat keinen Schema-Validator im CI.**
-  Task 5 verify: `git diff --check` prüft nur Whitespace-Konflikte — keine YAML-Syntax, kein Schema-Validator. Ein Executor kann syntaktisch ungültiges OpenAPI schreiben und den Verify bestehen. Wäre ein `npx @apidevtools/swagger-cli validate shared/contracts/openapi.yaml` sinnvoll.
+Der größte Eingriff dieser Überarbeitung ist Task 0: die App-Shell. Das ist richtig — der Nicht-Admin-Einstieg ist ein echter Mangel. Aber Task 0 bringt das potenziell größte Scope-Risiko der gesamten Phase mit sich. Drei neue Concerns betreffen direkt den AppShell-Task.
 
 ---
 
-#### Gesamt-Risiko 53A (Round 2): **LOW–MEDIUM**
+#### Concerns
 
-Der Plan ist strukturell bereit für Execution. Das einzige substanzielle offene Risiko ist der fehlende Nicht-Admin-Navigationspfad zu `/me/profile`. Alle anderen Punkte sind Qualitäts-Checks, keine Blocker.
+- **[HIGH] Task 0 (AppShell) prüft keine bestehenden Next.js `layout.tsx`-Dateien.**
+  Next.js App Router hat ein natives Layout-System: `frontend/src/app/layout.tsx` (Root), `frontend/src/app/me/layout.tsx` (Segment). Wenn bereits ein Root-Layout oder ein `/me`-Segment-Layout existiert, ist `AppShell.tsx` als Component möglicherweise die falsche Architektur — die richtige Lösung wäre ein `layout.tsx` im `/me`-Verzeichnis. Task 0 `<read_first>` enthält `frontend/src/app/auth/page.tsx` und `frontend/src/app/admin/page.tsx`, aber kein `layout.tsx`. Ein Executor der eine redundante `AppShell`-Component baut, während das App-Router-Layout-System ungenutzt liegt, erzeugt technische Schulden und eine inkonsistente Shell-Architektur.
 
----
+- **[HIGH] Crop-Primitives-Verschiebung bricht bestehende Admin-Consumer.**
+  Task 1 (53B) verschiebt `mediaUploadCropMath.ts` und `mediaUploadA11y.ts` nach `frontend/src/components/media/crop`. Aber `frontend/src/components/admin/MediaUpload.tsx` importiert diese Dateien direkt. Wenn die Primitives verschoben werden, bricht `MediaUpload.tsx` sofort — alle Admin-Anime/Gruppen-Cover-Upload-Flächen fallen aus. Die Pläne enthalten keinen Schritt, der die bestehenden Imports in `MediaUpload.tsx` auf den neuen Pfad aktualisiert. Das ist ein Cross-Plan-Risiko: 53B-Task 1 erzeugt eine Regression in der bestehenden Admin-UI, wenn nicht gleichzeitig `MediaUpload.tsx` angepasst wird.
 
-### Plan 53-02 (53B) — Round 2
+- **[MEDIUM] AppShell-Scope-Risiko: D-47 beschreibt eine vollständige App-Navigation.**
+  D-47 definiert: „Public-Bereich, Dashboard, capability-gated Verwaltung, Mein Bereich mit Mein Profil/Meine Gruppen/Meine Beiträge, Einstellungen und User-Footer." Das ist keine minimal reusable Shell — das ist die komplette Navigation der Anwendung. Task 0 sagt „create the smallest reusable `AppShell`-style component" — aber die Entscheidungen D-45–D-49 ziehen eine vollständige Navigationsstruktur nach. Ein Executor wird versuchen, alle genannten Bereiche zu bauen. D-48 begrenzt die Produktion auf `/me/profile`, aber die Shell-Komponente selbst bleibt groß. Das Risiko: Task 0 wird zur größten Aufgabe in 53A und verdrängt die eigentliche Profil-Arbeit.
 
-#### Was noch offen ist
+- **[MEDIUM] `AppShell.test.tsx` ohne Mindest-Test-Spezifikation.**
+  Task 0 verify führt `AppShell.test.tsx` aus — aber die `<action>` beschreibt keine konkreten Tests. Dasselbe Muster wie beim ursprünglichen `me/profile/page.test.tsx`-Problem: ohne explizite Assertions im Action-Block kann ein Executor eine Datei mit einem trivialen Render-Test anlegen und den Verify bestehen.
 
-- **[HIGH] Circular-Crop vs. Rectangular-Crop-Primitives — geometrische Inkompatibilität.**
-  Die bestehenden `mediaUploadCropMath.ts`-Funktionen (`computeCropMetrics`, `computeCropDrawRect`, `clampCropOffset`) wurden für Gruppen-Logo-Uploads gebaut — wahrscheinlich rechteckig mit Seitenverhältniskonstraint. Avatar-Crop muss quadratisch (1:1) und im Preview kreisförmig gerendert werden. Das ist geometrisch ein Sonderfall: die Crop-Region muss erzwungen quadratisch sein, und der Canvas-Export muss das Ergebnis ggf. auf einen Kreis masken. Der Plan sagt „reuse existing crop primitives" — aber wenn die Primitives keine 1:1-Constraint und keine Circular-Mask-Ausgabe unterstützen, ist der Reuse nicht trivial. Es könnte Erweiterungsarbeit sein, keine einfache Wiederverwendung.
+- **[MEDIUM] D-40: „Alle Zielbereiche sichtbar" erhöht die Dateigrößenproblematik erheblich.**
+  Hero, Basisdaten, Story, Avatar-Card, Sichtbarkeits-Card, Account-Sicherheit, Mitgliedschaften und Beitrags-Summary müssen alle in 53A sichtbar angelegt werden. Das ist 8 Bereiche × je ein eigenes Component-File. Der 450-Zeilen-Grenze wird besonders schwer einzuhalten sein, da das `components/`-Verzeichnis nun sicherstellen muss, dass JEDER dieser Bereiche als eigene Datei lebt — bevor `page.tsx` über 450 Zeilen geht. Kein Task spezifiziert die maximale Dateigröße einzelner Component-Files.
 
-- **[HIGH] `AvatarCropDialog` koppelt `me/profile` an `admin/` — kein Plan für Auflösung.**
-  Die Crop-Primitives liegen in `frontend/src/components/admin/mediaUploadCropMath.ts` und `mediaUploadA11y.ts`. Der `AvatarCropDialog` wird in `frontend/src/app/me/profile/` oder `components/` leben. Das erzeugt eine direkte Abhängigkeit vom Profil-Feature-Verzeichnis auf Admin-Komponenten. Das verstößt gegen das Prinzip, dass `/me/profile` nicht admin-abhängig sein soll. Entweder müssen die Primitives in ein gemeinsames Verzeichnis (`frontend/src/components/shared/` o.ä.) verschoben werden, oder die Kopplung muss explizit als akzeptierter Kompromiss dokumentiert werden. Der Plan tut beides nicht.
+- **[MEDIUM] `Select-String` verify ist PowerShell — portabilität fragil.**
+  Task 1 verify: `Select-String -Path "src/app/me/profile/page.tsx" -Pattern "'use client'|\"use client\""` ist PowerShell-Syntax. Auf WSL oder bash schlägt das fehl. Gleichzeitig: wenn `page.tsx` ein dünner Server Component Wrapper ist und `'use client'` im Client-Leaf-Component liegt (z.B. `components/MyProfileClient.tsx`), schlägt dieser Check auch fehl — obwohl die Architektur korrekt ist. Der Check ist sowohl portabilitäts- als auch architekturempfindlich.
 
-- **[MEDIUM] Task 2 neue Validierungstests werden nicht explizit gefordert.**
-  Task 2 action sagt „add focused tests for profile avatar oversize, SVG rejection, invalid image data, and allowed MIME types." Der Verify-Block ist `go test ./internal/handlers ./internal/repository` — er prüft ob Tests BESTEHEN, nicht ob die geforderten Tests EXISTIEREN. Ein Executor, der die neuen Tests nicht schreibt, besteht den Verify trotzdem, wenn die vorhandenen Tests grün sind.
-
-- **[MEDIUM] Avatar-Entfernen-Endpunkt fehlt vollständig.**
-  Ein User der sein Avatar löschen möchte hat keinen API-Pfad. Weder `app_profile.go` noch die Plan-Tasks adressieren `DELETE /api/v1/me/profile/avatar`. Das könnte bewusst deferred sein — aber der Plan sagt das nirgends. Wenn ein Executor `AvatarCard` mit einem „Bild entfernen"-Button baut (was aus UX-Sicht naheliegend ist), wird der Button ins Leere zeigen.
-
-- **[MEDIUM] Task 6 — wer entscheidet „in scope"?**
-  Task 6 sagt: „Default to keeping Phase 53 on aggregate... If detailed contributions are explicitly pulled into scope, add a paginated endpoint." Bei `autonomous: true` entscheidet der Executor selbst. „Explicitly in scope" ist kein klares Signal für einen autonomen Executor. Er könnte die vollständige Pagination implementieren, weil er meint es ist „besser." Die Acceptance Criteria sagen „Contributions remain aggregate-only unless a paginated, contract-backed detail endpoint is deliberately added" — aber das stoppt keinen autonomen Executor aktiv. Empfehlung: Task 6 als „DEFER — aggregate-only in Phase 53, contributions detail is Phase 54+" umschreiben.
-
-- **[MEDIUM] Migrations-Nummerierung nicht adressiert.**
-  Tasks 3a und 4 könnten beide neue Migrations-Dateien anlegen. `database/migrations` steht in `files_modified` ohne konkreten Dateinamen. Wenn beide Tasks eine Migrationsdatei mit der gleichen Nummer anlegen (weil der Executor die aktuelle höchste Nummer nicht kennt), gibt es einen Konflikt. Kein Task hat einen Schritt: „Prüfe die aktuelle höchste Migrationsnummer in `database/migrations/`."
-
-- **[LOW] TipTap-Deferral-Kriterium fehlt.**
-  Wann ist Defer ok? Wenn die DB-Inspektion zeigt, dass `member_story` eine `text`-Spalte mit Plain-Text-Inhalt ist: Defer ist ok. Wenn `tiptap_service.go` bereits JSON-Validierung und HTML-Sanitizing kann, aber kein neues DB-Feld existiert: Defer ist ok (aber muss dokumentiert werden). Wenn alles ready wäre: kein Defer. Der Plan gibt dem Executor keine Entscheidungshilfe, was „bereit" bedeutet.
-
-- **[LOW] Avatar-Größen-Check im Backend-Handler — Position undefiniert.**
-  Task 2 fordert einen 5-MB-Größencheck. Wenn der Check nach `io.ReadAll(r.Body)` oder nach dem Schreiben des Files ins Filesystem läuft, hat der Server bereits den kompletten Upload verarbeitet. Der Check sollte über `http.MaxBytesReader` oder einen Header-Precondition-Check passieren, bevor der Body gelesen wird. Der Plan spezifiziert das nicht.
+- **[LOW] OpenAPI-Korrektheit ohne Validator.**
+  Task 5 verify bleibt `git diff --check` — kein OpenAPI-Schema-Validator. Ein Executor kann YAML mit korrektem Diff erzeugen, das syntaktisch invalid oder semantisch unvollständig ist, ohne einen Fehler zu bekommen.
 
 ---
 
-#### Gesamt-Risiko 53B (Round 2): **MEDIUM**
+#### Gesamt-Risiko 53A (Round 3): **MEDIUM**
 
-Deutlich besser als Round 1. Die beiden verbleibenden HIGH-Concerns (Circular-Crop-Geometrie und Admin-Kopplung) sind vor Execution lösbar: entweder durch einen expliziten Reuse-Check der Primitives auf 1:1-Constraint-Fähigkeit, oder durch eine Entscheidung über das Ziel-Verzeichnis der Primitives. Die MEDIUM-Concerns sind alle behebbar ohne Planumbau.
-
----
-
-## Gesamtbewertung Round 2
-
-| Plan | Round 1 | Round 2 | Verbesserung |
-|------|---------|---------|--------------|
-| 53-01 | HIGH | LOW–MEDIUM | ✅ Substanziell |
-| 53-02 | HIGH | MEDIUM | ✅ Substanziell |
-
-### Top-Priorität vor Execution
-
-**53A:**
-1. Nicht-Admin-Navigationspfad prüfen: Gibt es ein globales Header/User-Menü und hat es einen Einstiegspunkt für normale Member zu `/me/profile`?
-2. Task 1: „Schreibe neue Tests für `/me/profile/page.tsx`" explizit in die `<action>` aufnehmen, Mindestinhalt benennen.
-3. Task 1: `grep 'use client' frontend/src/app/me/profile/page.tsx` als automated verify.
-
-**53B:**
-1. Prüfe ob `mediaUploadCropMath.ts` 1:1-Constraint und Circular-Export unterstützt — wenn nicht, ist das Erweiterungsarbeit, keine reine Wiederverwendung. Das in Task 1 discovery aufnehmen.
-2. Entscheide: Crop-Primitives in `components/shared/` verschieben oder Admin-Kopplung dokumentieren.
-3. Task 6: „DEFER" als festes Ergebnis schreiben — Pagination ist Phase 54+.
-4. Task 2: Schreibe-neue-Tests als expliziten Schritt in die `<action>`, nicht nur im Verify.
-5. Avatar-Remove-Endpunkt: explizit als deferred dokumentieren, damit kein Executor einen funktionslosen Button einbaut.
+Zwei echte Blocker: Next.js Layout-Architektur nicht geprüft (Task 0 könnte falsch bauen) und Crop-Primitives-Move bricht Admin-Consumers (Cross-Plan-Regression). Der AppShell-Scope ist ein Warnsignal, aber kein Blocker, wenn D-48 konsequent durchgesetzt wird.
 
 ---
 
-*Review Round 2 durchgeführt am: 2026-05-27*
+### Plan 53-02 (53B) — Round 3
+
+#### Summary
+
+Der Plan ist substanziell gereift. Die meisten kritischen Lücken aus Round 2 sind geschlossen. Drei neue Concerns sind entstanden, die alle mit der Einführung von `components/media/crop` und dem Phase-41-TipTap-Pattern zusammenhängen.
+
+---
+
+#### Concerns
+
+- **[HIGH] Crop-Primitives-Move ohne Konsistenzpflege für bestehende Imports.**
+  (Identisch mit dem 53A-Concern.) Task 1 plant den Move nach `frontend/src/components/media/crop` — aber `MediaUpload.tsx` importiert die Primitives aus `components/admin`. Der Plan listet `frontend/src/components/admin/MediaUpload.tsx` in `files_modified`, aber die `<action>` erwähnt nicht explizit, dass der Import-Pfad in `MediaUpload.tsx` auf den neuen Ort aktualisiert werden muss. Wenn der Executor die Primitives verschiebt ohne `MediaUpload.tsx` zu aktualisieren, bricht die Admin-Cover-Upload-UX.
+
+- **[MEDIUM] Phase-41-TipTap-Pattern: `body_json`/`body_html`/`body_text` bedeutet 3 neue Spalten.**
+  Task 4 referenziert die „Phase 41 stack" mit dem `body_json`/`body_html`/`body_text`-Pattern. Aber `member_story` ist aktuell eine einzelne `text`-Spalte in der `members`-Tabelle. Das Phase-41-Pattern zu übernehmen bedeutet: Migration mit drei neuen Spalten (`member_story_json`, `member_story_html`, `member_story_text`) plus mögliche Datenmigration von altem Plain-Text-Wert. Der Plan sagt „If schema changes are required, add a new reversible migration" — aber ein Executor der nicht weiß was Phase 41 gebaut hat, wird das „body-triple" vielleicht nicht auf Anhieb richtig bauen. Phase-41-Artifacts fehlen im `@context`-Block von 53-02.
+
+- **[MEDIUM] Task 5b hängt an Task 0 aus 53A — ohne Fallback-Definition.**
+  Task 5b hardens the AppShell for mobile (Drawer/Burger). Aber was passiert, wenn 53A's AppShell nach Task 0 noch kein klares Mobile-Grundgerüst hat? Task 5b in 53B baut auf einer Implementierung auf, die in 53A entsteht — aber die Verbindung zwischen beiden ist nur durch `depends_on: 53-01` definiert, nicht durch eine konkrete Interface-Spezifikation. Wenn 53A's AppShell keine mobile Prop-/Slot-API hat, muss Task 5b die Shell strukturell ändern statt nur zu konfigurieren.
+
+- **[LOW] TipTap-Toolbar-Links: „only if safe link handling is implemented."**
+  Task 4 sagt Links im Toolbar nur wenn sicheres Link-Handling implementiert ist. Was bedeutet „sicher" konkret? Allowlisted `href`-Protokolle (`https://`, keine `javascript:`, kein `data:`)? Backend-seitige Link-Validierung in `tiptap_service.go`? Ein Executor könnte Links mit clientseitiger Validierung implementieren und das als „sicher" werten. Die Definition fehlt.
+
+- **[LOW] Keine explizite Rollback-Simulation für TipTap-Migration.**
+  Task 4 fordert reversible Migration. Aber keine Acceptance Criteria und kein Verify-Schritt fordert, dass die Down-Migration tatsächlich ausgeführt und getestet wurde. „Reversible" bleibt eine papierbasierte Zusicherung ohne verifizierte Prüfung.
+
+---
+
+#### Gesamt-Risiko 53B (Round 3): **LOW–MEDIUM**
+
+Der Crop-Primitives-Move ist der einzige echte HIGH — und er kann durch einen einzigen Satz in Task 1 action gelöst werden: „Update all existing import references to the old path in `MediaUpload.tsx` when primitives are moved." Alle anderen Punkte sind klärungswürdig aber kein Blocker.
+
+---
+
+## Gesamtbewertung aller drei Runden
+
+| Plan | Round 1 | Round 2 | Round 3 |
+|------|---------|---------|---------|
+| 53-01 | HIGH | MEDIUM | MEDIUM |
+| 53-02 | HIGH | MEDIUM | LOW–MEDIUM |
+
+Die Pläne sind nach drei Runden Execution-ready — mit zwei konkreten Fixes vor dem Start:
+
+### Verbleibende Blocker (2 Stück, beide lösbar in 5 Minuten)
+
+**Blocker 1: Next.js-Layout-Architektur in Task 0 prüfen**
+→ `frontend/src/app/layout.tsx` und `frontend/src/app/me/layout.tsx` in `<read_first>` von Task 0 aufnehmen. Wenn Segment-Layouts existieren, ist `layout.tsx` die native Next.js-Lösung; `AppShell` als Component ist dann nur für nicht-layout-basierte Seiten sinnvoll.
+
+**Blocker 2: Crop-Primitives-Move + Import-Update in MediaUpload.tsx**
+→ Task 1 (53B) action ergänzen: „When primitives are moved to `components/media/crop`, update all existing import references in `frontend/src/components/admin/MediaUpload.tsx` to the new path in the same commit."
+
+### Verbleibende Empfehlungen (kein Blocker)
+
+- Task 0 `<action>`: AppShell-Scope begrenzen: „Build only the navigation slots and the Mein Bereich / Mein Profil entry; defer full public-area and settings structure unless it's a trivial placeholder."
+- Task 0 verify: Mindest-Test-Spezifikation für `AppShell.test.tsx` (Render, capability-gated Admin-Eintrag, non-admin visible Mein Profil).
+- Task 4 (53B): Phase-41-Artifacts (`body_json`/`body_html`/`body_text`) als `@context`-Referenz aufnehmen.
+- Task 4 (53B): „Safe links" konkretisieren: erlaubte Protokolle (`https://`, kein `javascript:`, kein `data:`), Backend-Validation in `tiptap_service.go`.
+
+---
+
+*Review Round 3 durchgeführt am: 2026-05-27*
 *Reviewer: Claude (im Auftrag des GSD cross-AI review workflows)*
-*Basis: vollständig überarbeitete 53-01-PLAN.md und 53-02-PLAN.md*
+*Basis: vollständig überarbeitete 53-01-PLAN.md (Round 3) und 53-02-PLAN.md (Round 3)*
