@@ -61,7 +61,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 50: Platform-Admin Boundaries und Contributor Scope Governance** - Globale Admin-Flaechen werden platform-admin-only, Contributor-Kontexte bleiben capability- und permission-gescoped, und sensible Admin-Daten werden aus Contributor-Editor-Kontexten entfernt. (technical verification passed 2026-05-22; live Keycloak UAT pending)
 - [x] **Phase 51: Keycloak Access-Token Resource-Server Boundary** - Keycloak/API-Auth von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umstellen. (completed 2026-05-26)
 - [x] **Phase 52: Profile Account Return Refresh Flow** - Keycloak-Accountaenderungen werden von der Profilseite aus verstaendlich in einem neuen Tab angestossen und Team4s-Accountkarten beim Zurueckkehren ueber zentrale Auth-/Profil-Seams aktualisiert. (automated verified 2026-05-26; live Keycloak UAT pending)
-- [ ] **Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub** - Die bestehende Profilseite wird als `/me/profile` zu einem modernen, rollenübergreifenden Member-Identity-Hub weiterentwickelt: rollenneutrale Route, echte Datenquellen, GDS-basierte Oberfläche, klare Keycloak-/Team4s-Datenhoheit, getrennte Rollenarten, sichere Avatar-/Rich-Text-/Sichtbarkeitsplanung und keine Mockdaten.
+- [x] **Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub** - Die bestehende Profilseite wird als `/me/profile` zu einem modernen, rollenübergreifenden Member-Identity-Hub weiterentwickelt: rollenneutrale Route, echte Datenquellen, GDS-basierte Oberfläche, klare Keycloak-/Team4s-Datenhoheit, getrennte Rollenarten, sichere Avatar-/Rich-Text-/Sichtbarkeitsplanung und keine Mockdaten. (completed 2026-05-27)
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
@@ -1013,11 +1013,11 @@ Plans:
 **Requirements**: MEMBER-PROFILE-HUB-01
 **Depends on:** Phase 47, Phase 48, Phase 52
 **Context:** `.planning/phases/53-rollenuebergreifendes-mein-profil-als-member-identity-hub/53-CONTEXT.md`
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] `53-01-PLAN.md` - Phase 53A: Route `/me/profile`, wiederverwendbare globale Shell als erster Consumer, Nicht-Admin-Einstieg, Datenquellen, rollenneutrale Komponenten, Layout/GDS-Basis, Profil-Hero, Basisdaten, Account & Sicherheit, Mitgliedschaften, Beiträge-Summary und Rollenlabel-Mapping planen und umsetzen.
-- [ ] `53-02-PLAN.md` - Phase 53B: Avatar-Crop mit 1:1-/Circular-Geometrie, shared Crop-Primitives, serverseitige Avatar-Validierung, Varianten-/Originalbild-Entscheidung, Month-/Year-Contract, sichere TipTap-/Rich-Text-Verdrahtung, Sichtbarkeit, Dirty-State, partielle Fehler, Mobile-Shell-QA und Accessibility absichern.
+- [x] `53-02-PLAN.md` - Phase 53B: Avatar-Crop mit 1:1-/Circular-Geometrie, shared Crop-Primitives, serverseitige Avatar-Validierung, Varianten-/Originalbild-Entscheidung, Month-/Year-Contract, sichere TipTap-/Rich-Text-Verdrahtung, Sichtbarkeit, Dirty-State, partielle Fehler, Mobile-Shell-QA und Accessibility absichern.
 
 **Cross-cutting constraints:**
 - `/me/profile` nutzt eine globale/reusable Shell, aber 53A migriert nicht die ganze App.

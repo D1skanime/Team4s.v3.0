@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: Phase 53 replanned; phases 49-50 registered and reconciled
-stopped_at: Completed 53-01-PLAN.md
-last_updated: "2026-05-27T15:27:16.289Z"
+status: Phase 53 complete; ready for verification
+stopped_at: Completed 53-02-PLAN.md
+last_updated: "2026-05-27T16:04:06.891Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 49
-  completed_phases: 42
+  completed_phases: 43
   total_plans: 185
-  completed_plans: 184
-  percent: 86
+  completed_plans: 185
+  percent: 88
 ---
 
 # Project State
@@ -181,6 +181,9 @@ Recent durable decisions:
 - [Phase 41]: tiptapSvc als separate WithTipTapDeps()-Methode verdrahtet, nicht in bestehende WithNoteDeps integriert
 - [Phase 53]: [Phase 53-01]: /admin/profile uses an internal transition wrapper around /me/profile, not a duplicate admin implementation. — This preserves transition compatibility while keeping /me/profile as the only own-profile implementation.
 - [Phase 53]: [Phase 53-01]: Future shell/profile destinations stay disabled until stable route and API contracts exist. — The plan forbids fake links and invented contribution/public-profile routes; disabled states keep the UI honest.
+- [Phase 53-02]: Non-admin users do not see the Verwaltung navigation group; protected disabled admin framing is insufficient for the member profile shell.
+- [Phase 53-02]: Avatar uploads keep existing member avatar endpoint; cropped display is public original and source_original is retained but not exposed.
+- [Phase 53-02]: Month/year activity ranges, third visibility value, TipTap persistence, and contribution details remain deferred until DB/backend/OpenAPI/frontend move together.
 
 ### Pending Todos
 
@@ -304,6 +307,7 @@ Recent durable decisions:
 | Phase 41-globalen-tiptap-rich-text-editor-einfuehren P04 | 9min | 2 tasks | 9 files |
 | Phase 41 P03 | 9min | 2 tasks | 9 files |
 | Phase 53 P01 | 19 min | 6 tasks | 25 files |
+| Phase 53 P02 | ~70min | 8 tasks | 27 files |
 
 ### Quick Tasks Completed
 
@@ -333,7 +337,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-27T15:27:16.260Z
-Stopped at: Completed 53-01-PLAN.md
+Last session: 2026-05-27T16:03:36.085Z
+Stopped at: Completed 53-02-PLAN.md
 Last activity: 2026-05-27
 Resume file: None
