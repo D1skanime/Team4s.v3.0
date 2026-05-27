@@ -15,7 +15,7 @@ plans_reviewed:
 
 ### Summary
 
-Plan 53A ist strukturell solide: es trennt Route-Ownership, GDS-Recompose, Datenmapping, Rollenlabel und Contract-Dokumentation in fünf voneinander abhängige Tasks mit klaren Done-Kriterien. Die Wahl, in 53A keine Avatar-/RichText-/Visibility-Contracts anzufassen, ist richtig — sie schützt den Scope. Ein kritischer Schwachpunkt ist die fehlende Klarheit über den Übergang `/admin/profile → /me/profile`: ob Redirect oder Re-Export ist eine Entscheidung mit Testauswirkungen, die im Plan offengelassen wird. Das OpenAPI-Dokument-Ziel in Task 5 ist für sich allein zu schwach formuliert — es fehlt ein expliziter Definition-of-Done für den Mindestinhalt des Contracts.
+Plan 53A hat die richtige Scope-Grenze: Avatar, RichText und Visibility bleiben in 53B. Die Entscheidungen sind konzeptionell korrekt. Auf Implementierungsebene hat der Plan jedoch fünf konkrete Lücken, die beim ersten Commit aufschlagen: fehlende Komponentenaufteilung, ungeklärte Navigation, offene Behandlung von `member_story`, unklare CSS-Ownership und fehlende Next.js-Client/Server-Grenzregelung.
 
 ---
 
@@ -23,45 +23,60 @@ Plan 53A ist strukturell solide: es trennt Route-Ownership, GDS-Recompose, Daten
 
 - **Wave-Isolation korrekt:** 53A berührt keine Avatar-, RichText- oder Visibility-Contracts; das verhindert, dass 53B-Risiken den stabilen 53A-Scope kontaminieren.
 - **No-fake-data-Invariante konsequent durchgezogen:** Jeder Task enthält die Anforderung, bei fehlendem DTO-Feld einen konservativen Empty State zu zeigen statt Platzhalter zu erfinden.
-- **GDS-Reuse explizit benannt:** Task 2 nennt konkrete Komponenten (`Card`, `Badge`, `EmptyState` etc.) und verweist auf ein bestehendes GDS-Muster (`my-groups/page.tsx`). Das gibt dem Executor eine echte Referenz statt nur "verwende existierende Komponenten".
-- **Dirty-State-Schutz explizit als Akzeptanzkriterium:** Phase-52-Regressions-Risiko wird in den Acceptance Criteria benannt.
-- **AccountSecurityCard-Isolation als explizite Sicherheitsregel:** Das Verbot, Account-Daten in public-profile-fähige Komponenten zu übergeben, steht sowohl in Task 4 als auch in den `must_haves.truths`.
+- **GDS-Reuse mit echter Referenz:** Task 2 nennt konkrete Komponenten und verweist auf `my-groups/page.tsx` als Analogie. Das gibt dem Executor eine echte Referenz.
+- **Dirty-State-Schutz als Akzeptanzkriterium:** Phase-52-Regressions-Risiko ist explizit benannt.
+- **AccountSecurityCard-Isolation als Sicherheitsregel:** Das Verbot, Accountdaten in public-profile-fähige Komponenten zu übergeben, steht in `must_haves.truths`.
 
 ---
 
 ### Concerns
 
-- **[HIGH] Redirect vs. Re-Export: keine Entscheidung getroffen.** Task 1 lässt offen, ob `/admin/profile` einen `redirect('/me/profile')` macht oder die Seite intern re-exportiert. Das hat direkte Auswirkungen auf die bestehenden Tests (`page.test.tsx`), die vermutlich gegen `AdminProfilePage` schreiben. Ein Executor der diese Entscheidung falsch trifft kann entweder existierende Tests brechen (redirect → Tests rennen gegen 302) oder eine versteckte doppelte Implementierung erzeugen. Die Entscheidung muss im Plan stehen, nicht dem Executor überlassen werden.
+- **[HIGH] Dateigröße wird sofort die 450-Zeilen-Grenze sprengen.**
+  `me/profile/page.tsx` muss Hero, ProfileBasicsForm, MembershipList, AccountSecurityCard, ContributionSummaryCard, RoleChips, LoadingState und ErrorState unterbringen. Das sind realistisch 600–800 Zeilen. Der Plan enthält kein Komponentensplit-Schema und keine Dateiliste für Teilkomponenten. Ein Executor schreibt alles in eine Datei; der darauffolgende Review muss aufräumen.
 
-- **[HIGH] Fehlende Testabdeckung für die neue Route `/me/profile`.** Die `verify`-Schritte laufen alle gegen `src/app/admin/profile/page.test.tsx`. Es gibt keinen Task und kein Akzeptanzkriterium, das Tests für `src/app/me/profile/page.tsx` selbst fordert. Wenn die Transition-Wrapper-Lösung gewählt wird, testet das bestehende Testfile die neue Implementierung evtl. gar nicht mehr.
+- **[HIGH] Navigation wird im Plan komplett ignoriert.**
+  Die Acceptance Criteria fordern „Mein Profil muss für alle eingeloggten User erreichbar sein" — aber kein Task benennt, welche Datei die globale Navigation enthält, wo `Mein Profil` eingehängt werden soll, und ob der bestehende Admin-Menüpunkt dabei kaputt geht. Ohne diese Angabe ist das Acceptance Criterion nach Execution nicht prüfbar.
 
-- **[MEDIUM] Task 5 (OpenAPI) hat keinen Mindest-Content-Standard.** Das Ziel ist „dokumentiere die existierenden Endpunkte" — aber es wird nicht spezifiziert, ob das `request body schema`, `response schema`, `error codes` und `required fields` umfasst. Ein Executor könnte einen Stub-Eintrag mit nur `summary` und `operationId` anlegen und Task 5 als erfüllt markieren.
+- **[HIGH] Redirect vs. Re-Export: keine Entscheidung getroffen.**
+  Task 1 lässt offen, ob `/admin/profile` einen `redirect('/me/profile')` macht oder die Seite intern re-exportiert. Das hat direkte Auswirkungen auf die bestehenden Tests (`page.test.tsx`). Ein Redirect macht HTTP 302 — Tests, die gegen `AdminProfilePage` rendern, schlagen dann stumm fehl. Ein Executor der falsch wählt bricht Tests oder erzeugt eine doppelte Implementierung.
 
-- **[MEDIUM] Rollenlabel-Mapping hat keine zentrale Fundstelle.** Task 4 erwähnt, `FANSUB_GROUP_ROLE_OPTIONS` zu nutzen und „ggf. eine kleine shared formatter" hinzuzufügen. Es ist unklar wo diese Formatter leben soll (`types/`? `lib/`? `utils/`?). Ohne Fundstelle riskiert der Executor entweder Duplikation oder eine schlechte Platzierung.
+- **[HIGH] `member_story` (lange Bio) ist im Plan unsichtbar.**
+  Task 3 baut `ProfileBasicsForm` mit `bio` (Kurzbeschreibung). Die lange Fansub-Geschichte (`member_story`) ist aktuell ebenfalls auf der Seite. 53A hat keinen Task dafür — sie bleibt entweder weg (Regression), oder der Executor erfindet eine Lösung außerhalb des Plans. Beides ist unkontrolliert.
 
-- **[MEDIUM] Keine Auth-Guard-Prüfung für `/me/profile`.** Der Plan geht davon aus, dass die neue Route automatisch die bestehende Auth-Middleware erbt. Es gibt keinen expliziten Task-Schritt, der prüft ob `/me/profile` tatsächlich hinter dem gleichen Auth-Guard liegt wie `/admin/profile` — insbesondere wenn die Route durch Next.js App Router neu angelegt wird, ohne einen bestehenden Middleware-Pfad zu erben.
+- **[HIGH] CSS-Modul-Ownership nach Route-Split unklar.**
+  `admin/profile/page.module.css` steht in `files_modified`. Die neue Route ist aber `me/profile/page.tsx`. Importiert die neue Seite CSS aus `../admin/`? Bekommt sie ein eigenes Modul in `me/profile/`? Wird das alte Modul gelöscht oder behalten? Ohne Entscheidung entstehen kaputte Import-Pfade oder tote CSS-Dateien.
 
-- **[LOW] Capability-Check für Memberships und Credits im Plan nicht explizit.** Die Discovery erwähnt `can_view_memberships` und `can_view_historical_credits`, aber Task 4 formuliert das als „if capabilities are false or missing, render a conservative scoped state" — es fehlt ein explizites Prüfschritt, ob diese Capabilities tatsächlich im DTO vorhanden sind, bevor der Executor sie nutzen kann.
+- **[HIGH] Server Component vs. Client Component — nicht adressiert.**
+  Next.js App Router unterscheidet Server und Client Components strikt. Die bestehende Profilseite braucht `'use client'` wegen Dirty-State, Auth-Session und interaktiven Formularen. Beim Recompose in neue Komponentendateien muss diese Grenze explizit erhalten bleiben. Kein Task prüft oder dokumentiert das. Eine falsch klassifizierte Server Component bricht zur Laufzeit.
+
+- **[MEDIUM] Fehlende Testabdeckung für die neue Route `/me/profile`.**
+  Die `verify`-Schritte laufen alle gegen `src/app/admin/profile/page.test.tsx`. Es gibt keinen Task, der Tests für `me/profile/page.tsx` selbst fordert. Wenn die Transition-Wrapper-Lösung gewählt wird, testet das bestehende Testfile die neue Route evtl. überhaupt nicht.
+
+- **[MEDIUM] Task 5 (OpenAPI) hat keinen Mindest-Content-Standard.**
+  Das Ziel ist „dokumentiere die existierenden Endpunkte" — es wird nicht spezifiziert, ob `requestBody` mit Schema, `responses` für 200/400/401 und alle Felder aus `MemberProfileData` als dokumentierte Properties Pflicht sind. Ein Executor könnte einen Stub-Eintrag mit nur `summary` und `operationId` anlegen und Task 5 als erfüllt markieren.
+
+- **[MEDIUM] Rollenlabel-Formatter hat keine kanonische Fundstelle.**
+  Task 4 erwähnt, `FANSUB_GROUP_ROLE_OPTIONS` zu nutzen und „ggf. einen shared formatter" hinzuzufügen. Es ist unklar wo dieser Formatter leben soll (`types/`? `lib/`? `utils/`?). Ohne Fundstelle entsteht Duplikation über mehrere Dateien.
+
+- **[MEDIUM] Kein Auth-Guard-Check für die neue Route.**
+  Der Plan geht davon aus, dass `/me/profile` automatisch die bestehende Auth-Middleware erbt. Bei einer neu angelegten Next.js-Route ist das keine Garantie — insbesondere wenn Middleware-Matching auf `/admin/**` konfiguriert ist und `/me/**` nicht abdeckt. Kein Task prüft das explizit.
 
 ---
 
 ### Suggestions
 
-- **Entscheide Redirect vs. Re-Export im Plan selbst.** Empfehlung: Re-Export mit `export { default } from '../me/profile/page'` (analog zu `manage/groups`), da er mit dem bestehenden Testfile kompatibel ist und keine HTTP-Redirect-Fehler in Tests erzeugt. Dokumentiere die Entscheidung explizit in Task 1.
-
-- **Füge einen separaten Test-Task hinzu** (oder erweitere Task 1 `verify`) der Tests für `me/profile/page.tsx` fordert — mindestens: Render ohne Crash, Load-State, Error-State, keine admin-Naming-Leaks.
-
-- **Schreibe Task 5 mit einem Mindest-Schema-Standard:** z.B. „Jeder Endpunkt braucht `requestBody` mit Schema, `responses` für 200 und 400/401, und alle Felder aus `MemberProfileData` als dokumentierte Properties."
-
-- **Fixiere die Formatter-Platzierung:** Schlage `frontend/src/lib/roleLabels.ts` oder `frontend/src/lib/profileLabels.ts` als kanonische Heimat für deutsche Rollenlabel-Mappings vor, damit kein Executor sie lokal dupliziert.
-
-- **Füge einen `verify`-Schritt für Auth hinzu:** `curl -v http://localhost:3002/me/profile` ohne Session → erwartet 302 zu Login, nicht 200.
+- **Füge ein Komponentensplit-Schema in den Plan ein.** Mindestens: `MyProfilePage` (max. 100 Zeilen, Komposition), `MemberProfileHero`, `ProfileBasicsForm`, `MembershipSection`, `ContributionSummarySection`, `AccountSecurityCard` als separate Dateien unter `me/profile/`. Dateigrenzen im Plan benennen, nicht dem Executor überlassen.
+- **Adressiere Navigation explizit in Task 1.** Benenne die Datei(en) für das User-Menü und schreibe das Einhängen von `Mein Profil` als eigenen Schritt.
+- **Entscheide Re-Export vs. Redirect im Plan.** Empfehlung: Re-Export analog zu `manage/groups/page.tsx` — kompatibel mit bestehendem Testfile, keine HTTP-Redirect-Fehler.
+- **Füge `member_story`-Behandlung in Task 3 ein.** In 53A: behalte den bestehenden Plain-Text-Editor als optisches Element, aber dokumentiere explizit, dass echte Persistenz in 53B kommt. Kein Verschwinden, kein Erfinden.
+- **Kläre CSS-Ownership in Task 2.** Entscheid: neues `me/profile/page.module.css` für layout-spezifisches CSS, altes Admin-Modul wird auf Admin-spezifisches reduziert oder gelöscht.
+- **Ergänze `'use client'`-Prüfung in Task 1 verify:** Stelle sicher, dass `me/profile/page.tsx` dieselbe Client-Boundary hat wie die aktuelle `admin/profile/page.tsx`.
 
 ---
 
 ### Risk Assessment
 
-**MEDIUM** — Die Wave-Aufteilung und No-fake-data-Disziplin sind stark. Das ungelöste Redirect/Re-Export-Problem und die fehlenden Tests für die neue Route sind die zwei konkreten Risiken, die bei falscher Umsetzung Zeit kosten oder Regression erzeugen. Beide sind vor Execution lösbar.
+**HIGH** — Konzeptionell solide, aber auf Implementierungsebene fehlen fünf strukturelle Entscheidungen (Dateisplit, Navigation, CSS-Ownership, `member_story`-Behandlung, Client-Boundary), die alle beim ersten Commit aufschlagen. Keines dieser Probleme ist schwer zu lösen — aber keines löst sich von selbst.
 
 ---
 
@@ -71,58 +86,78 @@ Plan 53A ist strukturell solide: es trennt Route-Ownership, GDS-Recompose, Daten
 
 ### Summary
 
-Plan 53B hat die richtige Schutzphilosophie: jede potentiell gefährliche Feature-Entscheidung (Avatar-Crop-Contract, Visibility-Erweiterung, RichText-Persistenz, Month/Year-Migration) ist explizit als Entscheidungspunkt formuliert, nicht als vorausgesetzte Umsetzung. Das Risikoprofil des Plans ist jedoch strukturell hoch — sechs Tasks mit starken gegenseitigen Contract-Abhängigkeiten, und die meisten öffnen gleichzeitig Backend und Frontend. Task 4 (TipTap) ist besonders riskant: eine falsche Umsetzung ist nicht nur ein UX-Bug, sondern ein XSS-Risiko.
+Plan 53B hat die richtige Schutzphilosophie — jede gefährliche Feature-Entscheidung hat einen expliziten Fallback. Das ist die Stärke. Auf Implementierungsebene hat der Plan jedoch fünf ernste Probleme: eine verdeckte Datenmigrations-Falle bei `member_story`, eine architektonische Langzeit-Falle beim Client-Side-Crop, fehlende Touch-Events im AvatarCropDialog, interne Wave-2-Konflikte und einen ungepatchten XSS-Vektor im bestehenden `RichTextRenderer`.
 
 ---
 
 ### Strengths
 
-- **Explizite Fallback-/Defer-Paths für jede risikobehaftete Entscheidung:** Kein Task setzt voraus, dass eine neue Feature-Entscheidung immer getroffen wird. Jeder Task benennt explizit den Conservative-Path (z.B. „plain text bleibt ehrlich sichtbar wenn TipTap nicht fertig wird").
-- **Crop-Primitive-Reuse klar gefordert:** Task 1 verbietet das Einführen von `react-easy-crop` ohne dokumentierten Blocker und verlangt Extraktion aus bestehenden Primitives — schützt vor einer der häufigsten Scope-Creep-Quellen.
-- **Avatar-Varianten dürfen nicht in parallele Tabellen:** Task 2 expliziert das Verbot paralleler Media-Logik; das schützt die bestehende `media_files.variant`-Architektur.
-- **TipTap-XSS-Risiko benannt:** Security-Invarianten im Discovery-Abschnitt nennen `dangerouslySetInnerHTML` explizit als verboten, und Task 4 wiederholt das Verbot.
-- **Dirty-State-Regressions-Schutz aus Phase 52 explizit als must_have.truth:** Verhindert, dass ein Executor den Keycloak-Return-Refresh-Schutz beim Recompose versehentlich wegräumt.
-- **Contribution-Task 6 als ehrlicher „nicht erfunden"-Wächter:** Der Default ist explizit Aggregate-Only, und der paginierte Endpunkt ist nur als opt-in scope erlaubt.
+- **Explizite Fallback-/Defer-Paths für jede risikobehaftete Entscheidung:** Kein Task setzt voraus, dass eine neue Feature-Entscheidung immer getroffen wird. Jeder Task benennt explizit den Conservative-Path.
+- **Crop-Primitive-Reuse klar gefordert:** Task 1 verbietet das Einführen von `react-easy-crop` ohne dokumentierten Blocker.
+- **Avatar-Varianten dürfen nicht in parallele Tabellen:** Task 2 expliziert das Verbot paralleler Media-Logik.
+- **TipTap-XSS-Risiko benannt:** Security-Invarianten nennen `dangerouslySetInnerHTML` explizit als verboten.
+- **Dirty-State-Regressions-Schutz aus Phase 52 explizit als must_have.truth.**
+- **Contribution-Task 6 als „nicht erfunden"-Wächter:** Default ist Aggregate-Only, paginierter Endpunkt nur als opt-in.
 
 ---
 
 ### Concerns
 
-- **[HIGH] Task 4 (TipTap) enthält keine DB-Migrations-Spezifikation.** Rich Text braucht ein neues Datenbankfeld (TipTap JSON), wahrscheinlich eine weitere Spalte für sanitized HTML/Text, und eine Migration. Der Plan erwähnt „if schema changes are required, add a new migration" — aber es gibt keinen expliziten Schritt, der prüft ob `member_story` aktuell als `text` (plain) gespeichert wird und was genau migriert werden muss. Ein Executor könnte die Migration auslassen und dennoch meinen, Task 4 erfüllt zu haben.
+- **[HIGH] `member_story` ist ein Datenmigrations-Problem, kein Schemaproblem.**
+  Aktuell liegt `member_story` als **Plain Text** in der DB — weil die bestehende Profilseite TipTap-JSON vor dem Speichern zu Plain Text konvertiert. Wenn 53B TipTap verdrahtet und den Konvertierungsschritt entfernt, werden alle vorhandenen Plain-Text-Einträge im TipTap-JSON-Renderer als kaputt angezeigt (der Parser erwartet JSON-Struktur, bekommt Freitext). Der Plan sagt „add a new migration if required" — aber das löst nicht das Bestandsdaten-Problem. Nötig ist eine Datenmigration die existierende Texte in valides TipTap-JSON konvertiert, oder ein Fallback-Renderer für Legacy-Plain-Text. Keines von beidem steht im Plan.
 
-- **[HIGH] Task 1 und Task 2 sind serialisiert, aber ihre Outputs haben keine explizite Abnahme-Schnittstelle.** Task 1 entscheidet den Crop-Contract; Task 2 setzt Avatar-Validierung um. Aber wenn Task 1 den client-side-crop-Weg wählt, muss der Backend-Handler in Task 2 andere Validierungen haben als bei server-side-crop. Dieser Coupling fehlt als expliziter Hinweis zwischen den Tasks.
+- **[HIGH] Client-Side-Crop ist eine architektonische Langzeit-Falle.**
+  Task 1 empfiehlt als „preferred" den Client-Side-Crop-Weg: das Frontend schneidet das Bild vor und sendet ein fertiges Raster-JPEG. Das Backend bekommt das Original nie. Wenn in einer späteren Phase `avatar_256`, `avatar_96` und `avatar_48` als Varianten generiert werden sollen (Task 2, currently deferred), hat das Backend nichts, woraus es die Varianten regenerieren kann — das Original ist weg. Die Entscheidung für Client-Side-Crop schließt serverseitige Variantengenerierung dauerhaft aus, solange kein separater Original-Upload existiert. Das muss explizit im Plan stehen.
 
-- **[HIGH] Keine explizite Sicherheitsprüfung für den `RichTextRenderer`.** Task 4 verbietet `dangerouslySetInnerHTML` für unkontrollierte Quellen — aber der Plan spezifiziert nicht, ob `RichTextRenderer.tsx` derzeit bereits `dangerouslySetInnerHTML` verwendet und ob dieser Pfad für das Profil-Avatar-/Story-Rendering genutzt wird. Wenn der Executor das nicht liest, könnte er den Renderer ungeprüft weiterverwenden.
+- **[HIGH] Touch-Events im AvatarCropDialog fehlen komplett.**
+  Die bestehenden `mediaUploadCropMath.ts`-Primitives wurden für Mouse-Events gebaut. Der AvatarCropDialog soll „drag-to-position" unterstützen — auf Mobile braucht das `touchstart`, `touchmove`, `touchend`. Das ist keine Trivialität, sondern Portierungsarbeit. Der Plan behandelt den Mobile-Crop als erfüllt durch Reuse der bestehenden Primitives. Das stimmt nicht.
 
-- **[MEDIUM] Task 3 (Visibility + Month/Year) enthält zwei orthogonale Entscheidungen in einem Task.** Visibility-Contract und Month/Year-Migration sind unabhängig voneinander, aber in einem Task gebündelt. Das erhöht das Risiko, dass ein Executor eine Entscheidung trifft und die andere implizit mitentscheidet oder ignoriert.
+- **[HIGH] `RichTextRenderer.tsx` nutzt möglicherweise bereits `dangerouslySetInnerHTML` — ungepüft.**
+  Task 4 verbietet unsicheres HTML-Rendering. Aber der Plan enthält keinen Schritt, der prüft ob der bestehende `RichTextRenderer.tsx` aktuell `dangerouslySetInnerHTML` verwendet. Wenn ja, und wenn 53B diesen Renderer für die Profil-Story einsetzt, ist Security-Invariante D-28 bereits beim Verdrahten gebrochen — ohne dass ein Executor das bemerkt.
 
-- **[MEDIUM] Task 5 (Dirty State + Mobile + A11y) ist zu breit.** Drei unterschiedliche Qualitätsdimensionen (Dirty-State-Logik, Mobile-Layout, Keyboard-A11y) in einem Task bedeutet, dass jede einzeln kürzer kommt als sie sollte. Besonders A11y (focus trap, ESC in Crop-Dialog, Radio-Keyboard-Navigation) ist non-trivial und verliert sich in der Breite.
+- **[HIGH] Wave 2 hat 6 Tasks, die in dieselben Dateien greifen.**
+  Tasks 1 und 2 greifen beide auf `backend/internal/handlers/app_profile.go`. Tasks 3 und 4 greifen beide auf `backend/internal/models/member_profile.go` und `shared/contracts/openapi.yaml`. Tasks 4 und Task 3 könnten beide DB-Migrations-Dateien anlegen. Bei paralleler Wave-Ausführung entstehen Merge-Konflikte oder inkonsistente Migrationsnummern. Der Plan benennt keine serielle Abhängigkeit innerhalb Wave 2.
 
-- **[MEDIUM] Kein expliziter Rollback-Plan für die Migration.** Task 3 erwähnt „reversible migration" — aber es gibt kein Kriterium dafür, was „reversible" bedeutet (down-migration vorhanden? Nullable Spalten? Soft default?). Das ist für Postgres-Migrationen wichtig, besonders wenn `is_currently_active` und `active_until_year` betroffen sind.
+- **[MEDIUM] Task 3 enthält zwei orthogonale Contract-Entscheidungen in einem Task.**
+  Visibility-Contract und Month/Year-Migration sind vollständig unabhängig voneinander (verschiedene DB-Felder, verschiedene Backend-Models, verschiedene Frontend-Controls), aber in einem Task gebündelt. Das erhöht die Wahrscheinlichkeit, dass eine Entscheidung implizit mitgezogen wird, ohne eigene Analyse.
 
-- **[LOW] Avatar-Varianten-Defer-Bedingung ist zu weich.** Task 2 sagt „decide now or defer with documented reason" — aber es gibt kein Kriterium für wann man defert. Ein Executor der gerne implementiert wird immer „jetzt umsetzen" wählen, auch wenn Varianten-Generierung den Scope sprengt.
+- **[MEDIUM] Task 5 (Dirty State + Mobile + A11y) ist zu breit.**
+  Dirty-State-Logik ist automatisch testbar und logikintensiv. Mobile-Layout und Keyboard-A11y sind manuell und heuristisch. Beides in einem Task bedeutet, dass Dirty-State-Tests kürzer kommen und A11y-Checks — die für AvatarCropDialog focus trap, Radio-Keyboard-Navigation und ESC-Schließen nicht trivial sind — am Ende des Tasks stehen und unter Zeitdruck wegfallen.
+
+- **[MEDIUM] Kein expliziter Rollback-Plan für Migrationen.**
+  Task 3 erwähnt „reversible migration" — aber es gibt kein Kriterium für was „reversible" bedeutet (down-migration vorhanden? Nullable Spalten? Soft default?). Für Postgres-Produktionsmigrationen ist das relevant.
+
+- **[LOW] Avatar-Varianten-Defer-Kriterium ist zu weich.**
+  „Decide now or defer with documented reason" — aber kein Kriterium für wann man defert. Ein Executor der gerne implementiert wird immer „jetzt umsetzen" wählen, auch wenn das den Scope sprengt.
 
 ---
 
 ### Suggestions
 
-- **Task 4: Füge einen expliziten Schema-Check-Schritt hinzu.** Bevor TipTap verdrahtet wird: lies `database/migrations/` und `member_profile.go` und prüfe den aktuellen Spaltentyp von `member_story`. Entscheide dann ob eine neue `member_story_json TEXT` + `member_story_html TEXT` Spalte nötig ist, und schreibe die Migration bevor der Backend-Code angepasst wird.
+- **Task 4: Füge einen expliziten Bestandsdaten-Check als ersten Schritt hinzu.**
+  Vor jeder Backend-Änderung: lies den aktuellen `member_story`-Spaltentyp und prüfe ob vorhandene Werte Plain Text oder TipTap-JSON sind. Entscheide dann zwischen: (a) neue Spalten `member_story_json` + `member_story_html` mit Migration, wobei alter Plain-Text-Wert als Fallback erhalten bleibt, oder (b) Defer von TipTap-Persistenz mit ehrlichem Plain-Text-Editor.
 
-- **Trenne Task 3 in zwei Tasks:** „T3a: Visibility-Contract finalisieren" und „T3b: Activity-Period-Contract finalisieren". Beide können in Wave 2 parallel laufen, da sie unabhängige Backend-Felder betreffen.
+- **Task 1: Mach die Client-Side-Crop-Konsequenz explizit.**
+  Wenn Client-Side-Crop gewählt wird: dokumentiere im Plan und in einem Code-Kommentar in `app_profile.go`, dass das Backend das Original nicht besitzt und serverseitige Variantengenerierung eine spätere Architekturänderung erfordert. Diese Entscheidung darf nicht stillschweigend getroffen werden.
 
-- **Füge Task 4 einen expliziten Sicherheits-Smoke-Test hinzu:** `<script>alert(1)</script>` als member_story speichern → rendered output darf kein `<script>`-Tag enthalten. Dieser Test fehlt in den `verify`-Blöcken.
+- **Task 1 verify: Touch-Events testen.**
+  Ergänze einen manuellen Verify-Schritt: „AvatarCropDialog auf einem Touch-Gerät oder Chrome DevTools Mobile emulation: drag-to-position und Zoom funktionieren mit Touch." Wenn die Primitives Touch nicht unterstützen, ist das ein expliziter Blocker.
 
-- **Spalte Task 5 auf:** „T5a: Dirty-State + Keycloak-Refresh-Schutz + Tests" (logik-fokussiert, automatisch testbar) und „T5b: Mobile-Layout + A11y QA" (manuell, heuristisch). Das gibt jedem Thema die nötige Aufmerksamkeit.
+- **Task 4 verify: XSS-Smoke-Test hinzufügen.**
+  `<script>alert(1)</script>` als `member_story` speichern → gerenderter Output darf kein ausführbares `<script>`-Tag enthalten. Vor diesem Test: überprüfe ob `RichTextRenderer.tsx` `dangerouslySetInnerHTML` verwendet und wenn ja, welche Sanitizing-Middleware davor liegt.
 
-- **Konkretisiere Task 2 Avatar-Defer-Kriterium:** Varianten werden deferred, wenn das Derivat-Rendering mehr als ~50 Backend-Zeilen Neuroimplementierung erfordert, oder wenn kein bestehender `media_files.variant`-Erzeugungspfad für Avatare existiert. Dokumentiere den Defer als TODO in `app_profile.go` mit einem Verweis auf die spätere Phase.
+- **Serialisiere Wave-2-Tasks explizit:**
+  Tasks 1→2 (Avatar) müssen seriell laufen. Tasks 3a und 3b (Visibility + Month/Year, getrennt) können parallel. Task 4 (TipTap) erst nach Task 3 (wegen möglicher gemeinsamer Migration). Task 5 erst nach Task 4. Task 6 ist unabhängig.
 
-- **Task 1+2 Coupling explizit machen:** „Die Crop-Contract-Entscheidung aus Task 1 bestimmt den erwarteten Content-Type und Payload in Task 2's Backend-Handler. Wer Task 2 implementiert muss Task 1's Entscheidung kennen."
+- **Trenne Task 3 in T3a und T3b:** Visibility-Contract und Activity-Period-Contract als unabhängige Tasks mit je eigenem `verify`-Block.
+
+- **Trenne Task 5 in T5a und T5b:** T5a = Dirty-State-Logik + Tests (automatisch); T5b = Mobile-Layout + A11y QA (manuell). Das gibt A11y die nötige Tiefe.
 
 ---
 
 ### Risk Assessment
 
-**HIGH** — 53B enthält vier Entscheidungspunkte, die alle Backend + Frontend + Contract gleichzeitig berühren, und eine potentiell sicherheitsrelevante Implementierung (TipTap). Der Defer-Path für TipTap schützt gut — aber wenn ein Executor TipTap vollständig umsetzt ohne den DB-Migrations-Schritt explizit zu lesen, entsteht ein inkonsistenter State. Empfehlung: 53B vor Execution um die oben genannten Task-Splits und den DB-Migrations-Check ergänzen.
+**HIGH** — Die Bestandsdaten-Falle bei `member_story`, die Langzeit-Falle des Client-Side-Crops und die fehlenden Touch-Events im Crop-Dialog sind drei Probleme, die bei falscher Umsetzung entweder Produktionsdaten beschädigen, die spätere Varianten-Architektur sperren oder Mobile komplett non-functional lassen. Alle drei sind lösbar — aber keines löst sich durch gute Absichten allein. Der Plan muss diese Punkte vor Execution adressieren.
 
 ---
 
@@ -132,42 +167,52 @@ Plan 53B hat die richtige Schutzphilosophie: jede potentiell gefährliche Featur
 
 ### Agreed Strengths
 
-- **Wave-Isolation (53A vor 53B) ist die richtige Architektur** — kein anderer Reviewer würde das anders sehen. Die Entscheidung, Avatar/RichText/Visibility erst in 53B anzufassen, schützt die 53A-Lieferung.
-- **No-fake-data-Invariante durchgehend konsequent** — in beiden Plänen konsistent als must_have.truth und als Acceptance Criterion formuliert.
-- **Dirty-State-Regressions-Schutz explizit benannt** — Phase-52-Schutz ist in beiden Plänen ein benanntes Risiko.
-- **GDS-Reuse hat echte Referenzpunkte** — bestehende Komponenten und Muster werden namentlich benannt statt abstrakt gefordert.
+- **Wave-Isolation (53A vor 53B) ist die richtige Architektur.** Die Entscheidung, Avatar/RichText/Visibility erst in 53B anzufassen, ist konsequent.
+- **No-fake-data-Invariante durchgehend konsistent.** In beiden Plänen als must_have.truth und Acceptance Criterion formuliert.
+- **Dirty-State-Regressions-Schutz explizit benannt.** Phase-52-Schutz ist in beiden Plänen ein benanntes Risiko.
+- **GDS-Reuse hat echte Referenzpunkte.** Komponenten und Muster werden namentlich benannt.
 
-### Agreed Concerns
+### Agreed Concerns (priorisiert)
 
-1. **Redirect vs. Re-Export für `/admin/profile` muss vor Execution entschieden werden** — dieser offene Punkt ist das größte Ausführungsrisiko in 53A.
-2. **Fehlende Tests für `/me/profile`** — das bestehende Testfile deckt die neue Route nicht ab, solange kein expliziter Test-Task existiert.
-3. **TipTap-Task braucht einen DB-Migrations-Check als expliziten Schritt** — 53B-Task 4 ist ohne diesen Schritt inkomplett.
-4. **Task 3 in 53B ist zu breit** — Visibility und Month/Year sind unabhängige Contracts und sollten getrennte Tasks sein.
+| # | Concern | Plan | Schwere |
+|---|---------|------|---------|
+| 1 | Dateigröße / kein Komponentensplit-Schema | 53A | HIGH |
+| 2 | Navigation nicht adressiert | 53A | HIGH |
+| 3 | `member_story` Bestandsdaten-Migration | 53B | HIGH |
+| 4 | Client-Side-Crop sperrt Varianten-Architektur | 53B | HIGH |
+| 5 | Touch-Events AvatarCropDialog fehlen | 53B | HIGH |
+| 6 | `RichTextRenderer` XSS-Pfad ungepüft | 53B | HIGH |
+| 7 | Wave-2-Konflikte bei paralleler Execution | 53B | HIGH |
+| 8 | Redirect vs. Re-Export nicht entschieden | 53A | HIGH |
+| 9 | Fehlende Tests für `/me/profile` | 53A | MEDIUM |
+| 10 | Task 3+5 in 53B zu breit | 53B | MEDIUM |
 
 ### Divergent Views
 
-*Kein zweiter externer Reviewer verfügbar. Nachfolgende Fragen wären sinnvoll für ein zweites Modell:*
-- Ist die Entscheidung, OpenAPI-Dokumentation bereits in 53A zu fordern (nicht erst in 53B), die richtige Priorisierung?
-- Ist Task 6 (Contributions Detail Expansion) in 53B überhaupt nötig, oder wäre ein reines „document as deferred" in 53A ausreichend?
+*Kein zweiter externer Reviewer verfügbar. Offene Fragen für ein zweites Modell:*
+- Ist die Entscheidung, OpenAPI bereits in 53A zu fordern, die richtige Priorisierung?
+- Wäre eine Server-Side-Crop-only-Strategie (kein Client-Crop) die sicherere Langzeitwahl trotz höherer Backend-Komplexität?
 
 ---
 
-## Empfehlung
+## Empfehlung vor Execution
 
-Vor Execution folgende Änderungen in den Plänen vornehmen:
+**53-01 vor Execution:**
+1. Füge ein Komponentensplit-Schema mit Dateinamen und Zeilengrenzen ein.
+2. Benenne die Navigation-Datei(en) und schreibe das Einhängen als eigenen Task-Schritt.
+3. Entscheide Re-Export vs. Redirect explizit (Empfehlung: Re-Export).
+4. Adressiere `member_story` in Task 3 — mindestens als „bleibt Plain Text, Persistenz in 53B".
+5. Kläre CSS-Modul-Ownership nach Route-Split.
+6. Ergänze `'use client'`-Boundary-Check in Task 1 verify.
 
-**53-01:**
-1. Task 1: Entscheide Re-Export vs. Redirect und dokumentiere die Entscheidung explizit.
-2. Task 1 verify: Füge einen Test-Schritt für `me/profile/page.tsx` hinzu.
-3. Task 5: Spezifiziere Mindest-Schema-Content für OpenAPI.
-4. Task 4: Lege kanonische Fundstelle für Rollenlabel-Formatter fest.
-
-**53-02:**
-1. Task 4: Füge DB-Migrations-Check als expliziten Schritt vor Backend-Änderungen hinzu.
-2. Task 3: Trenne in T3a (Visibility) und T3b (Activity Period).
-3. Task 5: Trenne in T5a (Dirty State/Tests) und T5b (Mobile/A11y QA).
-4. Task 4 verify: Füge XSS-Smoke-Test hinzu.
-5. Task 2: Konkretisiere Avatar-Varianten-Defer-Kriterium.
+**53-02 vor Execution:**
+1. Task 4: Bestandsdaten-Check als ersten Schritt — Plain Text vs. TipTap-JSON im DB prüfen.
+2. Task 1: Client-Side-Crop-Konsequenz für Varianten dokumentieren.
+3. Task 1 verify: Touch-Events explizit testen.
+4. Task 4 verify: XSS-Smoke-Test + `RichTextRenderer` auf `dangerouslySetInnerHTML` prüfen.
+5. Wave-2-Serialisierung explizit machen (1→2 seriell, Task 4 nach Task 3).
+6. Task 3 trennen in T3a (Visibility) + T3b (Activity Period).
+7. Task 5 trennen in T5a (Dirty State/Tests) + T5b (Mobile/A11y QA).
 
 ---
 
