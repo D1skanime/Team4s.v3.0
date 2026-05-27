@@ -61,6 +61,8 @@ This research answers what the Phase 53 plans must know before execution. It foc
   - `mediaUploadA11y.ts`
 - `MediaUpload.tsx` already uses pointer events (`pointerdown`, `pointermove`, `pointerup`) and focus helpers, so mobile/touch support can likely reuse pointer-based behavior.
 - The current crop code lives in an admin directory. `/me/profile` must not permanently import reusable crop primitives from `frontend/src/components/admin`; shared code should move to a media/app-neutral location or the transition must be explicitly documented.
+- If crop primitives move to a shared media/app-neutral location, existing `MediaUpload.tsx` must be updated to import from that new location in the same change. The move must not fork the crop helpers into old admin-local and new avatar-local copies.
+- Avatar crop is only a preprocessing UX layer before the existing profile-avatar upload. The actual upload transport, auth, progress/error handling, server validation, media persistence, and storage ownership must keep using existing Team4s media/upload seams.
 - Avatar crop has stricter geometry than generic/group-logo crop: enforced 1:1 output, round preview, and round canvas/mask output. Existing math can be reused only after avatar-specific geometry tests are added.
 - Client-side raster crop can lose the original source. If future variants or recrop matter, the contract must retain original plus crop output/metadata, or document the limitation.
 
