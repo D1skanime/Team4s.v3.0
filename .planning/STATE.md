@@ -322,7 +322,7 @@ Recent durable decisions:
 | 260526-mhk | next/image Test-Mock fixen und den einzelnen Test laufen lassen. danach checks, commit | 2026-05-26 | ed0254a9 | [260526-mhk-next-image-test-mock-fixen-und-den-einze](./quick/260526-mhk-next-image-test-mock-fixen-und-den-einze/) |
 | 260527-i1c | Reconcile profile roadmap statuses from audit | 2026-05-27 | 79b9dd07 | [260527-i1c-reconcile-profile-roadmap-statuses-from-](./quick/260527-i1c-reconcile-profile-roadmap-statuses-from-/) |
 | 260527-iay | Retro-verify Phase 47 member profile foundation | 2026-05-27 | 25b88493 | [260527-iay-retro-verify-phase-47-member-profile-fou](./quick/260527-iay-retro-verify-phase-47-member-profile-fou/) |
-| 260527-imk | Retro-verify Phase 48 contributor dashboard | 2026-05-27 | pending | [260527-imk-retro-verify-phase-48-contributor-dashbo](./quick/260527-imk-retro-verify-phase-48-contributor-dashbo/) |
+| 260527-imk | Retro-verify Phase 48 contributor dashboard | 2026-05-27 | 2811ded0 | [260527-imk-retro-verify-phase-48-contributor-dashbo](./quick/260527-imk-retro-verify-phase-48-contributor-dashbo/) |
 
 ## Session Continuity
 
