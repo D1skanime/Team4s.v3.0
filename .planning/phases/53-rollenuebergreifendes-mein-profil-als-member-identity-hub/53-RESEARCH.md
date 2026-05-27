@@ -53,7 +53,7 @@ This research answers what the Phase 53 plans must know before execution. It foc
 - Existing profile avatar upload is handled by `backend/internal/handlers/app_profile.go`.
 - `UploadOwnProfileAvatar` calls `detectAvatarImage(file, fileHeader.Size)`.
 - `detectAvatarImage` currently checks `size > maxImageSize`, where `maxImageSize` is the generic 50 MB image upload limit from `media_upload.go`.
-- Phase 53B needs a profile-specific avatar limit, expected around 5 MB, checked before decode/save and not silently inherited from the 50 MB generic image path.
+- Phase 53B does not require changing the current 50 MB generic image limit for profile avatars. The size behavior must be checked, documented, and tested, but 5 MB is not a hard requirement.
 - No profile avatar remove endpoint was found. Avatar remove must be explicitly deferred or implemented as its own DELETE/remove contract; no production remove button without a backend contract.
 - Existing crop primitives are under `frontend/src/components/admin`:
   - `MediaUpload.tsx`
@@ -101,7 +101,7 @@ This research answers what the Phase 53 plans must know before execution. It foc
 
 - shared crop primitive extraction or documented transitional coupling,
 - avatar-specific 1:1/circular geometry tests,
-- profile-specific avatar size limit before decode/save,
+- documented and tested avatar size behavior, with the existing 50 MB limit acceptable if explicitly kept,
 - avatar remove deferred unless a contract is added,
 - original image retention decision for crop/variants,
 - TipTap reuse through existing Phase 41 stack,

@@ -65,7 +65,7 @@ Diese Phase liefert nicht:
 ### Avatar und Media
 - **D-22:** Avatar-Upload bleibt serverseitig autoritativ validiert.
 - **D-23:** Erlaubt sind JPG, PNG und WEBP; SVG bleibt verboten, solange kein robustes Sanitizing-Konzept existiert.
-- **D-24:** Das Profil-Avatar-Limit soll produktnah konkretisiert werden, z. B. 5 MB. Der aktuelle globale Bildpfad nutzt 50 MB und muss geprüft/angepasst werden.
+- **D-24:** Das Profil-Avatar-Limit muss bewusst geprüft und dokumentiert werden; das bestehende globale 50-MB-Bildlimit ist für Avatar akzeptabel, wenn serverseitige Typ-/Bildvalidierung sauber bleibt. 5 MB ist keine harte Phase-53-Vorgabe.
 - **D-25:** Avatar-Crop soll bestehende Projekt-Crop-Primitives aus `MediaUpload`, `mediaUploadCropMath.ts` und `mediaUploadA11y.ts` wiederverwenden oder die Abweichung dokumentieren.
 - **D-26:** Varianten wie `avatar_256`, `avatar_96` und `avatar_48` werden entweder über bestehende `media_files.variant` umgesetzt oder bewusst als Follow-up markiert. Keine parallele Media-Logik.
 
@@ -117,7 +117,7 @@ Diese Phase liefert nicht:
 - **D-55:** `/me/profile` darf nicht dauerhaft reusable Crop-Primitives aus `frontend/src/components/admin` importieren. Shared Crop-Code wird in einen media-/app-neutralen Ort verschoben oder eine kurze, bewusste Übergangskopplung wird dokumentiert.
 - **D-56:** Avatar entfernen ist nicht implizit Teil von 53B. Ohne `DELETE`-/Remove-Contract darf kein produktiver Entfernen-Button erscheinen; der Remove-Endpunkt wird explizit deferred oder als eigener Contract umgesetzt.
 - **D-57:** Contributions-Detail-Ausbau bleibt in Phase 53 fest deferred. Task 6 darf kein optionaler Umsetzungspfad für eine neue Detailroute sein; 53 zeigt Summary/Empty State und bereitet höchstens späteres Routing vor.
-- **D-58:** Migrationen und Avatar-Validierung brauchen konkrete Guardrails: vor jeder neuen Migration aktuelle Nummerierung und untracked Migrationen prüfen; Profil-Avatar-Size-Limit wird profil-spezifisch vor Decode/Save validiert und darf nicht still auf dem generischen 50-MB-Image-Limit bleiben.
+- **D-58:** Migrationen und Avatar-Validierung brauchen konkrete Guardrails: vor jeder neuen Migration aktuelle Nummerierung und untracked Migrationen prüfen; Avatar-Size-Verhalten wird bewusst geprüft und dokumentiert. Das generische 50-MB-Image-Limit darf für Profil-Avatare weiter gelten, wenn dies explizit akzeptiert ist und nicht versehentlich passiert.
 
 </decisions>
 
@@ -264,7 +264,7 @@ Phase 53B soll die Härtung liefern:
 - Die neue `/me/profile`-Testdatei muss Tests enthalten, nicht nur existieren.
 - Avatar-Crop ist nicht nur Reuse vorhandener rechteckiger Medien-Crop-Helfer: Avatar braucht 1:1-Zwang, runde Vorschau/Maskierung und optional shared statt admin-gekoppelten Crop-Code.
 - Avatar-Remove und Contributions-Details bleiben ohne eigenen Contract deferred; keine produktiven Buttons oder Routen vortäuschen.
-- Profil-Avatar-Size-Validierung muss profil-spezifisch vor Decode/Save passieren; Migrationen brauchen vorher Nummerierungs-/untracked-Datei-Check.
+- Avatar-Size-Verhalten muss bewusst geprüft und dokumentiert werden; das bestehende 50-MB-Limit ist akzeptabel, wenn es explizit so bleibt. Migrationen brauchen vorher Nummerierungs-/untracked-Datei-Check.
 
 </specifics>
 

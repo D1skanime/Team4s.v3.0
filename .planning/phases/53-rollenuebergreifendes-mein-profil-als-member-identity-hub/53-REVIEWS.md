@@ -12,6 +12,41 @@ plans_reviewed:
 
 ---
 
+## Plankorrektur — Avatar-Upload-Architektur (nach Round 3)
+
+**Problem:** Der Plan behandelt den Avatar-Upload als offene Architekturentscheidung. Das ist falsch — das Upload-System ist bereits vollständig gebaut und muss nur genutzt werden.
+
+### Was bereits fertig ist (nicht neu bauen)
+
+- `uploadOwnProfileAvatar(file: File)` in `frontend/src/lib/api.ts` — sendet `FormData` an `POST /api/v1/me/profile/avatar`
+- `UploadOwnProfileAvatar` Handler in `backend/internal/handlers/app_profile.go` — validiert, speichert `original.{ext}` unter `media/profile/{memberID}/avatar/{mediaID}/`, tracked in DB
+- `detectAvatarImage()` — validiert MIME-Typ und Größe, prüft Bilddimensionen
+- Das Backend speichert bereits das **Original** (`original.{ext}`) — Source-Retention ist kein Problem
+
+### Was wirklich fehlt (und nur das)
+
+1. **AvatarCropDialog** — Client-seitiger Crop VOR dem Upload:
+   - Nutzer wählt Bild → Dialog öffnet → Crop/Zoom → `canvas.toBlob()` → neues `File`-Objekt
+   - Danach: `uploadOwnProfileAvatar(croppedFile)` — fertig, keine weitere Änderung nötig
+   - Geometrie: Crop-Primitives aus `mediaUploadCropMath.ts` wiederverwenden, 1:1-Constraint + Circular-Preview ergänzen
+   - Touch-Events: `pointerdown/move/up` zusätzlich zu Mouse-Events
+
+2. **Backend-Size-Limit** — bewusst prüfen, aber nicht zwingend ändern:
+   - `detectAvatarImage` nutzt aktuell `maxImageSize` (50 MB aus `media_upload.go`)
+   - 5 MB ist keine harte Phase-53-Vorgabe; 50 MB ist akzeptabel, wenn das bewusst dokumentiert und getestet bleibt
+   - Backend-Änderung ist nur nötig, wenn später produktseitig ein kleineres Avatar-Limit entschieden wird
+
+3. **SVG bereits geblockt** — `allowedImageMimeTypes` in `media_upload.go` filtert schon. Prüfen ob SVG/`image/svg+xml` darin fehlt — wenn ja, eintragen. Wenn nicht, kein Handlungsbedarf.
+
+### Konsequenzen für den Plan
+
+- **Task 1 (53B) vereinfachen:** Kein neues Upload-System, kein komplexer Contract-Entscheid. Nur: AvatarCropDialog bauen → nach Crop `uploadOwnProfileAvatar(croppedFile)` aufrufen.
+- **Task 2 (53B) vereinfachen:** Nicht neue Validierungslogik bauen — vorhandene Typ-/Bildvalidierung prüfen, SVG-Ausschluss testen und das akzeptierte 50-MB-Verhalten dokumentieren.
+- **Blocker 2 aus Round 3 entschärft:** `components/media/crop`-Move ist nicht zwingend nötig. `AvatarCropDialog` darf die Crop-Primitives aus `components/admin/` importieren — das ist eine einzelne Dialog-Datei, keine strukturelle Kopplung der Route auf den Admin-Bereich.
+- **Source-Retention:** Das Backend speichert bereits `original.{ext}`. Client-seitiger Crop sendet das gecropte Bild, das Backend speichert es als neues Original. Wenn in einer späteren Phase Recrop gewünscht wird, braucht man eine separate „original vor Crop"-Retention-Strategie. Für Phase 53 ist das nicht nötig — als Hinweis dokumentieren.
+
+---
+
 ## Round 3 — Was der zweite Plan-Update gelöst hat
 
 Alle Round-2-Concerns wurden adressiert:

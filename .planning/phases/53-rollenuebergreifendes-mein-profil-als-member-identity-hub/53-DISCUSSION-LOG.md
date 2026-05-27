@@ -201,7 +201,7 @@
 | `/me/profile` würde aus `components/admin` importieren, wenn Crop-Primitives unverändert genutzt werden. | Shared Crop-Code wird media-/app-neutral verschoben oder die Admin-Kopplung wird als bewusster Übergang dokumentiert. |
 | Avatar-Remove-Endpunkt ist nicht vorhanden. | Kein produktiver Entfernen-Button ohne `DELETE`-/Remove-Contract; Remove wird deferred oder separat contract-backed umgesetzt. |
 | Contributions-Detail-Task kann als optionaler Umsetzungspfad missverstanden werden. | Contributions-Details bleiben in Phase 53 fest deferred; Summary/Empty State ist der Scope. |
-| Migrationen und Avatar-Size-Check sind zu vage. | Migrationen brauchen Nummerierungs-/untracked-Check; Profil-Avatar-Size-Limit wird profil-spezifisch vor Decode/Save geprüft. |
+| Migrationen und Avatar-Size-Check sind zu vage. | Migrationen brauchen Nummerierungs-/untracked-Check; Avatar-Size-Verhalten wird bewusst geprüft und dokumentiert. Spätere Korrektur: 5 MB ist keine harte Vorgabe, das bestehende 50-MB-Limit ist akzeptabel. |
 
 **User's choice:** Alle sieben Punkte in Kontext/Planung übernehmen.
 **Notes:** Kurzprüfung bestätigte: kein offensichtlicher globaler AppShell/User-Menü-Einstieg, Crop-Primitives liegen unter `components/admin`, und Profil-Avatar nutzt aktuell das generische `maxImageSize` aus dem Upload-Pfad.
