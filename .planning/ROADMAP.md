@@ -58,6 +58,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [ ] **Phase 47: Member Profile & Historical Identity** - Eigenes historisches Fansub-Profil mit Fansub-Name, Avatar, Bio, Member-Story, aktiver Zeit, Gruppenzugehoerigkeiten und Keycloak-Account-Link; strikt getrennt von Gruppenrollen und Keycloak-Accountdaten.
 - [ ] **Phase 48: Meine Gruppen & Contributor Dashboard** - Contributor-Dashboard fuer eigene Gruppen mit sicher gescopten Schnellaktionen in bestehende Gruppen-, Release-, Media- und Description-Funktionen auf Basis der Permission Engine.
 - [x] **Phase 51: Keycloak Access-Token Resource-Server Boundary** - Keycloak/API-Auth von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umstellen. (completed 2026-05-26)
+- [ ] **Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub** - Die bestehende Profilseite wird als `/me/profile` zu einem modernen, rollenübergreifenden Member-Identity-Hub weiterentwickelt: rollenneutrale Route, echte Datenquellen, GDS-basierte Oberfläche, klare Keycloak-/Team4s-Datenhoheit, getrennte Rollenarten, sichere Avatar-/Rich-Text-/Sichtbarkeitsplanung und keine Mockdaten.
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
@@ -949,3 +950,49 @@ Plans:
 8. Ein Rueckkehrrefresh ueberschreibt keine ungespeicherten Team4s-Profilfelder wie `Anzeigename`, `Fansub-Name`, `Kurzprofil` oder `Mitgliedsgeschichte`.
 9. Session-/Refresh-Fehler beim Rueckkehrrefresh werden ruhig und lokal behandelt: keine Endlosschleife, kein ungefragtes Logout, vorhandene Profilanzeige bleibt soweit moeglich stabil.
 10. Tests decken neuen Tab, Rueckkehrhinweis, geaenderte Accountdaten, unveraenderte Accountdaten und Dirty-Form-Schutz ab.
+
+### Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub
+
+**Goal:** Die bestehende Profilseite wird zu einem modernen, rollenübergreifenden Bereich `Mein Profil` weiterentwickelt. `/me/profile` ist die Zielroute für alle eingeloggten User; `/admin/profile` darf keine eigene Admin-Profilwelt bleiben. Die Seite zeigt Team4s-/Fansub-Identität, Gruppen, Rollen, Beiträge und pflegbare Profilinformationen aus echten Datenquellen, während Login, E-Mail, Passwort, MFA und technische Account-Sicherheit bei Keycloak bleiben.
+**Requirements**: MEMBER-PROFILE-HUB-01
+**Depends on:** Phase 47, Phase 48, Phase 52
+**Plans:** 0/2 plans executed
+
+Plans:
+- [ ] `53-01-PLAN.md` - Phase 53A: Route `/me/profile`, Datenquellen, rollenneutrale Komponenten, Layout/GDS-Basis, Profil-Hero, Basisdaten, Account & Sicherheit, Mitgliedschaften, Beiträge-Summary und Rollenlabel-Mapping planen und umsetzen.
+- [ ] `53-02-PLAN.md` - Phase 53B: Avatar-Crop, serverseitige Avatar-Validierung, Variantenplanung, Month-/Year-Contract, sichere TipTap-/Rich-Text-Verdrahtung, Sichtbarkeit, Dirty-State, partielle Fehler, Mobile QA und Accessibility absichern.
+
+**Architecture Decisions** (must remain TRUE):
+1. `/me/profile` ist die Zielroute für alle eingeloggten User.
+2. `/admin/profile` darf keine eigene Admin-Profilwelt bleiben; es leitet weiter oder re-exportiert intern die rollenneutrale Seite.
+3. Keycloak bleibt Quelle für Login, E-Mail, Passwort, MFA und Account-Sicherheit.
+4. Team4s bleibt Quelle für Fansub-Profil, Avatar, Bio, Gruppen, Rollen und Beiträge.
+5. Historische Credits erzeugen keine Berechtigungen.
+6. Rollenarten bleiben getrennt: Plattformrolle, Gruppenrolle, App-Rolle, historische Credit-Rolle und Release-/Projektrolle.
+7. Sichtbarkeit ist konservativ: fehlende oder unklare Sichtbarkeit bedeutet nicht öffentlich.
+8. Sensible Accountdaten gelangen nicht in spätere Public-Komponenten.
+9. Rich Text wird nicht unsanitized gerendert.
+10. Avatar Upload wird serverseitig validiert.
+11. Sidebar/App-Shell wird nicht lokal in `/me/profile` hardgecodet.
+
+**Known Contract / Backend Gaps:**
+1. OpenAPI fehlt aktuell für `/api/v1/me/profile`, `PUT /api/v1/me/profile`, `POST /api/v1/me/profile/avatar`.
+2. Sichtbarkeit kennt aktuell nur `public | members_only`; eine Gruppen-Sichtbarkeit fehlt.
+3. Aktivzeitraum ist aktuell nur Jahr, nicht Monat/Jahr.
+4. Rich Text wird auf der Profilseite aktuell zu Plain Text konvertiert.
+5. Avatar Upload hat keinen Crop-Contract und keine dokumentierten Varianten wie `avatar_256`, `avatar_96`, `avatar_48`.
+6. Gruppenlogo fehlt im Profil-Membership-DTO.
+7. Beiträge sind aktuell aggregiert, nicht als paginierte Anime-/Episode-/Release-Version-Detail-Liste.
+
+**Success Criteria** (what must be TRUE):
+1. `/me/profile` ist als rollenneutrale Profilroute geplant/umgesetzt und für eingeloggte User erreichbar.
+2. `/admin/profile` bleibt nur Übergang/Weiterleitung/Re-Export und erzeugt keine eigene Admin-Profilwelt.
+3. Die Seite nutzt reale vorhandene Datenquellen und zeigt keine dauerhaften Mockdaten oder erfundenen Felder.
+4. Die UI verwendet bestehende GDS-/UI-Komponenten und lokale Styles nur für fachliche Layoutdetails.
+5. Profil-Hero, Basisdaten, Profilbild, Sichtbarkeit, Account & Sicherheit, Mitgliedschaften und Beiträge sind als getrennte, verständliche Bereiche geplant.
+6. Accountdaten sind read-only und klar als Keycloak-verwaltet markiert.
+7. Rollenlabels sind deutsch lesbar und Rollenarten werden im UI nicht vermischt.
+8. Mitgliedschaften und Beiträge zeigen Empty States, wenn Daten fehlen, statt fachlich falsche Daten abzuleiten.
+9. Rich-Text-Rendering ist nur mit validierter/sanitized Ausgabe erlaubt.
+10. Avatar Upload lehnt unsichere Typen serverseitig ab; SVG ist nicht erlaubt, solange kein Sanitizing-Konzept existiert.
+11. Dirty-State, partielle Fehlerzustände, mobile Darstellung und Accessibility sind in Phase 53B explizit abgesichert.

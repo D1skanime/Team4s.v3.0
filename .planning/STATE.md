@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: Phase 52 complete
-stopped_at: Completed 52-03-PLAN.md
-last_updated: "2026-05-26T16:21:11.793Z"
-last_activity: 2026-05-26
+status: Phase 53 planned
+stopped_at: Created 53-01-PLAN.md and 53-02-PLAN.md
+last_updated: "2026-05-27T07:50:31.591Z"
+last_activity: 2026-05-27
 progress:
-  total_phases: 46
+  total_phases: 47
   completed_phases: 32
-  total_plans: 165
+  total_plans: 167
   completed_plans: 132
-  percent: 70
+  percent: 68
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 52 — Profile Account Return Refresh Flow
+**Current focus:** Phase 53 - Rollenuebergreifendes Mein Profil als Member Identity Hub
 
 ## Current Position
 
-Phase: 52 — COMPLETE
-Plan: 3 of 3
+Phase: 53 - PLANNED
+Plan: 0 of 2
 
 ## Accumulated Context
 
@@ -187,6 +187,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 53 added: Rollenuebergreifendes Mein Profil als Member Identity Hub - `/me/profile` wird die rollenneutrale Profilroute fuer alle eingeloggten User; `/admin/profile` bleibt nur Uebergang, Keycloak-/Team4s-Datenhoheit, Rollenarten, Sichtbarkeit, Avatar, Rich Text, Mitgliedschaften und Beitraege sind als zwei Teilphasen geplant.
 - Phase 52 added: Profile Account Return Refresh Flow - Profilseite klaert den externen Keycloak-Accountdaten-Wechsel, aktualisiert Accountkarten beim Zurueckkehren ueber zentrale Auth-/Profil-Seams und schuetzt ungespeicherte Team4s-Profilfelder.
 - Phase 51 added: Keycloak Access-Token Resource-Server Boundary — Keycloak/API-Auth wird von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umgestellt.
 - Phase 33 added: Release-Theme-Asset size_bytes Persistence Fix — beim Upload die tatsächliche Dateigröße persistieren und in der Asset-Listen-Antwort korrekt zurückgeben statt 0.
@@ -321,5 +322,5 @@ Recent durable decisions:
 
 Last session: 2026-05-26T16:20:59.916Z
 Stopped at: Completed 52-03-PLAN.md
-Last activity: 2026-05-26
+Last activity: 2026-05-27
 Resume file: None
