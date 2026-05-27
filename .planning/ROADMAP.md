@@ -1016,8 +1016,13 @@ Plans:
 **Plans:** 0/2 plans executed
 
 Plans:
-- [ ] `53-01-PLAN.md` - Phase 53A: Route `/me/profile`, Datenquellen, rollenneutrale Komponenten, Layout/GDS-Basis, Profil-Hero, Basisdaten, Account & Sicherheit, Mitgliedschaften, Beiträge-Summary und Rollenlabel-Mapping planen und umsetzen.
-- [ ] `53-02-PLAN.md` - Phase 53B: Avatar-Crop, serverseitige Avatar-Validierung, Variantenplanung, Month-/Year-Contract, sichere TipTap-/Rich-Text-Verdrahtung, Sichtbarkeit, Dirty-State, partielle Fehler, Mobile QA und Accessibility absichern.
+- [ ] `53-01-PLAN.md` - Phase 53A: Route `/me/profile`, wiederverwendbare globale Shell als erster Consumer, Nicht-Admin-Einstieg, Datenquellen, rollenneutrale Komponenten, Layout/GDS-Basis, Profil-Hero, Basisdaten, Account & Sicherheit, Mitgliedschaften, Beiträge-Summary und Rollenlabel-Mapping planen und umsetzen.
+- [ ] `53-02-PLAN.md` - Phase 53B: Avatar-Crop mit 1:1-/Circular-Geometrie, shared Crop-Primitives, serverseitige Avatar-Validierung, Varianten-/Originalbild-Entscheidung, Month-/Year-Contract, sichere TipTap-/Rich-Text-Verdrahtung, Sichtbarkeit, Dirty-State, partielle Fehler, Mobile-Shell-QA und Accessibility absichern.
+
+**Cross-cutting constraints:**
+- `/me/profile` nutzt eine globale/reusable Shell, aber 53A migriert nicht die ganze App.
+- Contributions-Detailausbau und Avatar-Remove bleiben deferred, solange kein eigener Contract existiert.
+- 53B-Contract-Arbeiten laufen seriell oder explizit koordiniert, damit Migrationen/OpenAPI/DTOs nicht kollidieren.
 
 **Architecture Decisions** (must remain TRUE):
 1. `/me/profile` ist die Zielroute für alle eingeloggten User.
