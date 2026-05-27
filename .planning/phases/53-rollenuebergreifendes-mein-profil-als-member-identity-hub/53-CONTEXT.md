@@ -97,7 +97,7 @@ Diese Phase liefert nicht:
 - **D-43:** Bestehende Plain-Text-`member_story`-Daten müssen weiter lesbar bleiben. 53B muss dafür Migration oder Legacy-Fallback vorsehen, bevor der Profil-Story-Pfad echtes TipTap als Standard nutzt.
 
 ### Nachdiskussion: Avatar-Crop und Originalbild
-- **D-44:** Avatar-Crop ist clientseitige Pre-Upload-Verarbeitung: Bild auswählen, Crop/Zoom/Position setzen, `canvas.toBlob()` erzeugt ein neues `File`, danach nutzt der Flow den bestehenden `uploadOwnProfileAvatar(croppedFile)`-Pfad. Das Backend speichert dieses Ergebnis wie bisher als `original.{ext}`. Pre-Crop-Source-Retention für späteren Recrop ist kein Phase-53-Blocker, muss aber als spätere Einschränkung dokumentiert werden.
+- **D-44:** Avatar-Crop muss das ungecroppte Original für spätere Korrekturen/Recrop behalten. Der Flow nutzt weiterhin die bestehenden Team4s-Media-/Upload-Seams, erweitert aber den Profil-Avatar-Contract so, dass Quelle und Crop-Ergebnis gemeinsam gespeichert werden: ungecroppte Quelle intern als `media_files.variant='source_original'` oder gleichwertig, aktuelles zugeschnittenes Anzeigebild als bestehende Display-/`original`-Variante bzw. aktive `media_assets.file_path`. Public/Profile-Anzeige darf nie versehentlich die ungecroppte Quelle ausliefern.
 
 ### Nachdiskussion: Globale App-Shell
 - **D-45:** Die neue Shell ist global und wiederverwendbar, nicht profil-lokal. `/me/profile` ist der erste Consumer, aber die Shell soll perspektivisch für Dashboard, Verwaltung, Mein Bereich, Einstellungen und weitere App-Flächen nutzbar sein.
@@ -118,6 +118,7 @@ Diese Phase liefert nicht:
 - **D-56:** Avatar entfernen ist nicht implizit Teil von 53B. Ohne `DELETE`-/Remove-Contract darf kein produktiver Entfernen-Button erscheinen; der Remove-Endpunkt wird explizit deferred oder als eigener Contract umgesetzt.
 - **D-57:** Contributions-Detail-Ausbau bleibt in Phase 53 fest deferred. Task 6 darf kein optionaler Umsetzungspfad für eine neue Detailroute sein; 53 zeigt Summary/Empty State und bereitet höchstens späteres Routing vor.
 - **D-58:** Migrationen und Avatar-Validierung brauchen konkrete Guardrails: vor jeder neuen Migration aktuelle Nummerierung und untracked Migrationen prüfen; Avatar-Size-Verhalten wird bewusst geprüft und dokumentiert. Das generische 50-MB-Image-Limit darf für Profil-Avatare weiter gelten, wenn dies explizit akzeptiert ist und nicht versehentlich passiert.
+- **D-59:** Avatar-Ersetzen muss alte Avatar-Daten und physische Dateien sauber entfernen, aber erst nachdem der neue Avatar vollständig gespeichert und mit dem Member verknüpft wurde. Bei Fehlern bleibt der alte Avatar erhalten. Cleanup nutzt bestehende Media-/Filesystem-Seams und entfernt alte `media_assets`/`media_files` sowie zugehörige Dateien/Verzeichnisse kontrolliert; keine verwaisten Avatar-Dateien oder DB-Zeilen.
 
 </decisions>
 
@@ -259,12 +260,14 @@ Phase 53B soll die Härtung liefern:
 - `member_story` soll nicht bei Plain Text stehen bleiben: 53B soll echte TipTap-Persistenz über den vorhandenen Phase-41-Stack anschließen. Die aktuelle Profilseite nutzt zwar den Editor, speichert aber wieder Plain Text.
 - Der Profil-Story-Umbau darf keinen zweiten TipTap-Service, Renderer oder Sanitizer erzeugen. Vorhandene `TipTapService`-/`RichTextRenderer`-/`body_json`-/`body_html`-Patterns sind zu übernehmen.
 - Avatar-Crop soll clientseitig bedienbar sein, aber das Originalbild darf architektonisch nicht verloren gehen; spätere Varianten und Recrop müssen möglich bleiben.
+- Korrektur: Mit "Originalbild" ist das ungecroppte Pre-Crop-Bild gemeint. Es muss in 53B über bestehende Media-Strukturen mitgespeichert werden, während Profilanzeige und Public-taugliche Komponenten ausschließlich das gecroppte/aktive Anzeigebild nutzen.
 - Execution läuft parallel nur nach File Ownership. Die globale Shell ist ein eigener Block; 53B-Contract-Arbeiten werden seriell oder explizit koordiniert.
 - Normale Member brauchen einen echten Nicht-Admin-Einstieg zu `/me/profile`; Admin-Links allein zählen nicht als Reachability.
 - Die neue `/me/profile`-Testdatei muss Tests enthalten, nicht nur existieren.
 - Avatar-Crop ist nicht nur Reuse vorhandener rechteckiger Medien-Crop-Helfer: Avatar braucht 1:1-Zwang, runde Vorschau/Maskierung und shared Crop-Code statt dauerhaft admin-gekoppelten Crop-Code.
 - Avatar-Remove und Contributions-Details bleiben ohne eigenen Contract deferred; keine produktiven Buttons oder Routen vortäuschen.
 - Avatar-Size-Verhalten muss bewusst geprüft und dokumentiert werden; das bestehende 50-MB-Limit ist akzeptabel, wenn es explizit so bleibt. Migrationen brauchen vorher Nummerierungs-/untracked-Datei-Check.
+- Beim Speichern eines neuen Avatars wird der bisherige Avatar nach erfolgreicher neuer Verknüpfung bereinigt: alte `media_assets`/`media_files` plus physische Dateien/Ordner werden über bestehende Cleanup-/Media-Seams entfernt; bei fehlgeschlagenem Upload bleibt der alte Avatar bestehen.
 
 </specifics>
 

@@ -55,6 +55,7 @@ This research answers what the Phase 53 plans must know before execution. It foc
 - `detectAvatarImage` currently checks `size > maxImageSize`, where `maxImageSize` is the generic 50 MB image upload limit from `media_upload.go`.
 - Phase 53B does not require changing the current 50 MB generic image limit for profile avatars. The size behavior must be checked, documented, and tested, but 5 MB is not a hard requirement.
 - No profile avatar remove endpoint was found. Avatar remove must be explicitly deferred or implemented as its own DELETE/remove contract; no production remove button without a backend contract.
+- Avatar replacement currently needs explicit cleanup semantics: old avatar media/assets/files must be removed only after the new avatar is fully stored and linked. On replacement failure, the old avatar must remain active. Use existing media repository/filesystem cleanup seams rather than inventing a separate cleanup path.
 - Existing crop primitives are under `frontend/src/components/admin`:
   - `MediaUpload.tsx`
   - `mediaUploadCropMath.ts`
@@ -65,7 +66,7 @@ This research answers what the Phase 53 plans must know before execution. It foc
 - Avatar crop is only a preprocessing UX layer before the existing profile-avatar upload. The actual upload transport, auth, progress/error handling, server validation, media persistence, and storage ownership must keep using existing Team4s media/upload seams.
 - Avatar crop has stricter geometry than generic/group-logo crop: enforced 1:1 output, round preview, and round canvas/mask output. Existing math can be reused only after avatar-specific geometry tests are added.
 - Client-side raster crop can lose the original source. If future variants or recrop matter, the contract must retain original plus crop output/metadata, or document the limitation.
-- Current Phase 53 decision: pre-crop source retention is not required now. The existing backend stores the uploaded cropped result as `original.{ext}`. If a later phase needs recrop from the uncropped original, it needs a separate retention strategy.
+- Current Phase 53 decision: pre-crop source retention is required. The existing backend stores one uploaded image as `original.{ext}` today, so the profile avatar contract must be extended without creating a new media system. Store the uncropped source as an internal media file variant such as `source_original`, store the cropped/display avatar as the active `media_assets.file_path`/display variant, and make profile/public reads use the cropped display file rather than the uncropped source.
 
 ## Activity, Visibility, Memberships, Contributions
 
@@ -102,6 +103,8 @@ This research answers what the Phase 53 plans must know before execution. It foc
 
 - shared crop primitive extraction or documented transitional coupling,
 - avatar-specific 1:1/circular geometry tests,
+- pre-crop source retention using existing `media_assets`/`media_files` variants, with display reads using the cropped variant,
+- old-avatar cleanup after successful replacement, including DB rows and physical files, while failed replacement keeps the old avatar,
 - documented and tested avatar size behavior, with the existing 50 MB limit acceptable if explicitly kept,
 - avatar remove deferred unless a contract is added,
 - original image retention decision for crop/variants,
