@@ -55,9 +55,10 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [ ] **Phase 44: App Permission Engine fuer Fansub-, Release- und Media-Kontexte** - Zentrale kontextbasierte Permission Engine im Go-Backend, Capabilities fuer das Frontend, group-scope Rollenauswertung aus Team4s-DB und Absicherung der priorisierten Fansub-/Release-/Media-Endpunkte.
 - [ ] **Phase 45: Fansub Member Management MVP** - App-user-basierte Mitglieder- und Rollenverwaltung pro Fansub-Gruppe mit Permission-Engine-Pruefung, Self-Lockout-Schutz, Audit und minimaler Admin-UI auf Capability-Basis.
 - [ ] **Phase 46: Fansub Group Invitations & Join Requests MVP** - Token-basierte Gruppeneinladungen, Verwaltung offener Einladungen, Einladungsannahme fuer eingeloggte App-User und vorbereitende Join-Request-Seams auf Basis der Permission Engine.
-- [ ] **Phase 47: Member Profile & Historical Identity** - Eigenes historisches Fansub-Profil mit Fansub-Name, Avatar, Bio, Member-Story, aktiver Zeit, Gruppenzugehoerigkeiten und Keycloak-Account-Link; strikt getrennt von Gruppenrollen und Keycloak-Accountdaten.
-- [ ] **Phase 48: Meine Gruppen & Contributor Dashboard** - Contributor-Dashboard fuer eigene Gruppen mit sicher gescopten Schnellaktionen in bestehende Gruppen-, Release-, Media- und Description-Funktionen auf Basis der Permission Engine.
+- [ ] **Phase 47: Member Profile & Historical Identity** - Eigenes historisches Fansub-Profil mit Fansub-Name, Avatar, Bio, Member-Story, aktiver Zeit, Gruppenzugehoerigkeiten und Keycloak-Account-Link; strikt getrennt von Gruppenrollen und Keycloak-Accountdaten. Runtime-Evidenz vorhanden, aber GSD-Closure/UAT fehlt; Route/UX wird durch Phase 53 abgeloest.
+- [ ] **Phase 48: Meine Gruppen & Contributor Dashboard** - Contributor-Dashboard fuer eigene Gruppen mit sicher gescopten Schnellaktionen in bestehende Gruppen-, Release-, Media- und Description-Funktionen auf Basis der Permission Engine. Teilweise umgesetzt, aber Route/Shell/Closure-Drift bleibt offen.
 - [x] **Phase 51: Keycloak Access-Token Resource-Server Boundary** - Keycloak/API-Auth von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umstellen. (completed 2026-05-26)
+- [x] **Phase 52: Profile Account Return Refresh Flow** - Keycloak-Accountaenderungen werden von der Profilseite aus verstaendlich in einem neuen Tab angestossen und Team4s-Accountkarten beim Zurueckkehren ueber zentrale Auth-/Profil-Seams aktualisiert. (automated verified 2026-05-26; live Keycloak UAT pending)
 - [ ] **Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub** - Die bestehende Profilseite wird als `/me/profile` zu einem modernen, rollenübergreifenden Member-Identity-Hub weiterentwickelt: rollenneutrale Route, echte Datenquellen, GDS-basierte Oberfläche, klare Keycloak-/Team4s-Datenhoheit, getrennte Rollenarten, sichere Avatar-/Rich-Text-/Sichtbarkeitsplanung und keine Mockdaten.
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
@@ -853,7 +854,8 @@ Plans:
 **Goal:** Ein echtes Member-/User-Profil fuer historische Fansub-Identitaeten schaffen. Eingeloggte User koennen ihr eigenes Archivprofil pflegen, Platform Admins koennen Profile bei Bedarf administrativ sehen/bearbeiten, und die bisher falsch platzierte Profil-/Member-Bearbeitung aus der Fansub-Gruppen-Edit-Seite wird fachlich in einen eigenen Profilbereich verschoben. Keycloak bleibt fuer E-Mail, Passwort, MFA und Account-Sicherheit verantwortlich; Team4s speichert nur archivbezogene Profildaten.
 **Requirements**: MEMBER-PROFILE-01
 **Depends on:** 46
-**Plans:** 0/4 plans executed
+**Status:** Runtime evidence exists, but formal GSD closure, UAT, and verification artifacts are missing. Route/UX follow-through is carried into Phase 53.
+**Plans:** 0/4 plans formally closed
 
 Plans:
 - [ ] `47-01-PLAN.md` - Vorpruefung von User-/Member-/Media-/Story-Seams, Profilfeldern und Keycloak-Account-Link-Konventionen sowie minimale Profil-Foundation festziehen.
@@ -880,7 +882,8 @@ Plans:
 **Goal:** Einen Contributor-Bereich `Meine Gruppen` schaffen, in dem eingeloggte User nur ihre eigenen Fansub-Gruppen, Rollen, Capabilities und relevanten Arbeitskontexte sehen. Bestehende Gruppen-, Release-, Media-, Notes- und Drawer-Funktionen sollen sicher wiederverwendet und fuer Contributor-Kontexte korrekt gescoped werden, statt neu gebaut zu werden. Global Admins behalten ihre Vollsicht.
 **Requirements**: CONTRIBUTOR-DASHBOARD-01
 **Depends on:** 47
-**Plans:** 0/4 plans executed
+**Status:** Partially implemented with route/closure drift. `/admin/my-groups` and `/manage/groups` evidence exists, but formal GSD closure and full contributor shell verification are still missing.
+**Plans:** 0/4 plans formally closed
 
 Plans:
 - [ ] `48-01-PLAN.md` - Vorpruefung von Membership-, Permission-, Release-, Media-, Notes- und Navigations-Seams sowie Contributor-Scoping-Strategie fuer bestehende Komponenten festziehen.
@@ -932,12 +935,13 @@ Plans:
 **Goal:** Den Profilseiten-Flow fuer externe Keycloak-Accountaenderungen klaeren: Team4s oeffnet die Keycloak-Kontoverwaltung im neuen Tab, erklaert dem User den Wechsel, aktualisiert nach Rueckkehr/Fokus die Accountkarten ueber die zentrale Auth-/Profil-Seam und zeigt nur bei echten Accountdaten-Aenderungen eine ruhige Erfolgsmeldung. Ungespeicherte Team4s-Profilfelder duerfen dabei nicht ueberschrieben werden.
 **Requirements**: AUTH-PROFILE-ACCOUNT-RETURN-01
 **Depends on:** Phase 51
-**Plans:** 0/3 plans executed
+**Status:** Complete on automated evidence; live Keycloak UAT remains pending in `52-UAT.md`.
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] `52-01-PLAN.md` - Profilseite mit Fokus-/Visibility-Refresh und Regressionen fuer geaenderte/ungeaenderte Keycloak-Accountdaten absichern.
-- [ ] `52-02-PLAN.md` - Accountdaten-CTA, Rueckkehrhinweis und nicht-dramatische Statusmeldungen auf der Profilseite umsetzen.
-- [ ] `52-03-PLAN.md` - Focused Checks, Browser-UAT und Handoff-Dokumentation fuer den Keycloak-Rueckkehrflow abschliessen.
+- [x] `52-01-PLAN.md` - Profilseite mit Fokus-/Visibility-Refresh und Regressionen fuer geaenderte/ungeaenderte Keycloak-Accountdaten absichern.
+- [x] `52-02-PLAN.md` - Accountdaten-CTA, Rueckkehrhinweis und nicht-dramatische Statusmeldungen auf der Profilseite umsetzen.
+- [x] `52-03-PLAN.md` - Focused Checks, Browser-UAT und Handoff-Dokumentation fuer den Keycloak-Rueckkehrflow abschliessen.
 
 **Success Criteria** (what must be TRUE):
 1. Der Keycloak-Account-Link auf `/admin/profile` oeffnet weiterhin in einem neuen Tab und bleibt hinter `can_open_keycloak_account` plus `keycloak_account_url` verborgen, wenn die Capability/URL fehlt.

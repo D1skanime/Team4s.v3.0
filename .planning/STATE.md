@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: Phase 53 planned
-stopped_at: Created 53-01-PLAN.md and 53-02-PLAN.md
-last_updated: "2026-05-27T07:50:31.591Z"
+status: Phase 53 planned; profile roadmap reconciled
+stopped_at: Reconciled profile roadmap statuses from 2026-05-27 audit
+last_updated: "2026-05-27T13:00:51.2238033+02:00"
 last_activity: 2026-05-27
 progress:
   total_phases: 47
-  completed_phases: 32
+  completed_phases: 33
   total_plans: 167
-  completed_plans: 132
-  percent: 68
+  completed_plans: 135
+  percent: 70
 ---
 
 # Project State
@@ -187,6 +187,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Profile roadmap reconciliation completed from the 2026-05-27 audit: Phase 51 requirement traceability is complete; Phase 52 is marked complete on automated evidence with live Keycloak UAT pending; Phase 47/48 stay open with documented runtime evidence and closure drift.
 - Phase 53 added: Rollenuebergreifendes Mein Profil als Member Identity Hub - `/me/profile` wird die rollenneutrale Profilroute fuer alle eingeloggten User; `/admin/profile` bleibt nur Uebergang, Keycloak-/Team4s-Datenhoheit, Rollenarten, Sichtbarkeit, Avatar, Rich Text, Mitgliedschaften und Beitraege sind als zwei Teilphasen geplant.
 - Phase 52 added: Profile Account Return Refresh Flow - Profilseite klaert den externen Keycloak-Accountdaten-Wechsel, aktualisiert Accountkarten beim Zurueckkehren ueber zentrale Auth-/Profil-Seams und schuetzt ungespeicherte Team4s-Profilfelder.
 - Phase 51 added: Keycloak Access-Token Resource-Server Boundary — Keycloak/API-Auth wird von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umgestellt.
@@ -317,6 +318,7 @@ Recent durable decisions:
 | 260511-jjq | Umlaut-Regel in AGENTS.md ergaenzen (Codex-Pendant zu CLAUDE.md) | 2026-05-11 | 58fd4fca | [260511-jjq-umlaut-regel-in-agents-md-ergaenzen](./quick/260511-jjq-umlaut-regel-in-agents-md-ergaenzen/) |
 | 260525 | Code-Altlasten-Audit WP-02: Fansub-Drawer nutzt release_version_id fuer Release-Version-Media | 2026-05-25 | working tree | [260525-code-altlasten-und-domain-audit](./quick/260525-code-altlasten-und-domain-audit/) |
 | 260526-mhk | next/image Test-Mock fixen und den einzelnen Test laufen lassen. danach checks, commit | 2026-05-26 | ed0254a9 | [260526-mhk-next-image-test-mock-fixen-und-den-einze](./quick/260526-mhk-next-image-test-mock-fixen-und-den-einze/) |
+| 260527-i1c | Reconcile profile roadmap statuses from audit | 2026-05-27 | pending | [260527-i1c-reconcile-profile-roadmap-statuses-from-](./quick/260527-i1c-reconcile-profile-roadmap-statuses-from-/) |
 
 ## Session Continuity
 
