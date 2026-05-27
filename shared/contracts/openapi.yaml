@@ -21,6 +21,8 @@ tags:
     description: Anime comment endpoints.
   - name: Watchlist
     description: User watchlist endpoints.
+  - name: Profile
+    description: Own member profile and identity hub endpoints.
   - name: Episodes
     description: Episode detail endpoints.
   - name: Fansubs
@@ -229,6 +231,166 @@ paths:
                   value:
                     error:
                       message: auth-status voruebergehend nicht verfuegbar
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/me/profile:
+    get:
+      tags: [Profile]
+      summary: Get own member profile aggregate
+      operationId: getOwnProfile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Own profile aggregate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberProfileResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+        "404":
+          description: Profile bridge or member profile not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: profil wurde nicht gefunden
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [Profile]
+      summary: Update own Team4s member profile fields
+      description: |
+        Updates Team4s-owned profile fields only. Keycloak-owned identity fields
+        such as e-mail and subject are read-only and rejected if submitted.
+      operationId: updateOwnProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMemberProfileRequest"
+      responses:
+        "200":
+          description: Updated own profile aggregate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberProfileResponse"
+        "400":
+          description: Invalid profile fields or read-only identity fields submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidFields:
+                  value:
+                    error:
+                      message: profilfelder sind ungueltig
+                readonlyIdentity:
+                  value:
+                    error:
+                      message: e-mail und keycloak-identitaet sind hier nur lesbar
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Disabled app users cannot mutate their profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                disabledUser:
+                  value:
+                    error:
+                      message: deaktivierte benutzer duerfen ihr profil nicht aendern
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/me/profile/avatar:
+    post:
+      tags: [Profile]
+      summary: Upload own member profile avatar
+      operationId: uploadOwnProfileAvatar
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UploadOwnProfileAvatarRequest"
+      responses:
+        "200":
+          description: Profile aggregate with updated avatar media
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberProfileResponse"
+        "400":
+          description: Missing, invalid, unreadable, or oversized avatar file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingFile:
+                  value:
+                    error:
+                      message: keine datei hochgeladen
+                invalidType:
+                  value:
+                    error:
+                      message: nur bilddateien sind als avatar erlaubt
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Disabled app users cannot upload avatars
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                disabledUser:
+                  value:
+                    error:
+                      message: deaktivierte benutzer duerfen keinen avatar hochladen
         "500":
           description: Internal server error
           content:
@@ -6303,6 +6465,222 @@ components:
         created_at:
           type: string
           format: date-time
+    ProfileVisibility:
+      type: string
+      enum: [public, members_only]
+    MemberProfileCapabilities:
+      type: object
+      required:
+        - can_view_own_profile
+        - can_edit_own_profile
+        - can_upload_own_avatar
+        - can_open_keycloak_account
+        - can_view_memberships
+        - can_view_historical_credits
+      properties:
+        can_view_own_profile:
+          type: boolean
+        can_edit_own_profile:
+          type: boolean
+        can_upload_own_avatar:
+          type: boolean
+        can_open_keycloak_account:
+          type: boolean
+        can_view_memberships:
+          type: boolean
+        can_view_historical_credits:
+          type: boolean
+    MemberProfileMembership:
+      type: object
+      required:
+        - fansub_group_id
+        - fansub_group_name
+        - fansub_group_slug
+        - group_status
+        - has_historical_link
+      properties:
+        fansub_group_id:
+          type: integer
+          format: int64
+        fansub_group_name:
+          type: string
+        fansub_group_slug:
+          type: string
+        group_status:
+          type: string
+        joined_year:
+          type: integer
+          format: int32
+          nullable: true
+        left_year:
+          type: integer
+          format: int32
+          nullable: true
+        app_member_status:
+          type: string
+          nullable: true
+        app_member_roles:
+          type: array
+          items:
+            type: string
+        has_historical_link:
+          type: boolean
+    MemberProfileCredit:
+      type: object
+      required:
+        - fansub_group_id
+        - fansub_group_name
+        - role_name
+        - role_label
+        - release_count
+      properties:
+        fansub_group_id:
+          type: integer
+          format: int64
+        fansub_group_name:
+          type: string
+        role_name:
+          type: string
+        role_label:
+          type: string
+        release_count:
+          type: integer
+          format: int32
+    MemberProfile:
+      type: object
+      required:
+        - member_id
+        - app_user_id
+        - display_name
+        - fansub_name
+        - email
+        - keycloak_subject
+        - is_currently_active
+        - profile_visibility
+        - capabilities
+        - memberships
+        - historical_credits
+        - created_at
+        - updated_at
+        - account_status
+        - account_display_name
+        - account_global_roles
+      properties:
+        member_id:
+          type: integer
+          format: int64
+        app_user_id:
+          type: integer
+          format: int64
+        legacy_user_id:
+          type: integer
+          format: int64
+          nullable: true
+        display_name:
+          type: string
+        fansub_name:
+          type: string
+        email:
+          type: string
+          format: email
+        keycloak_subject:
+          type: string
+        bio:
+          type: string
+          nullable: true
+        member_story:
+          type: string
+          nullable: true
+          description: Plain-text story in the current runtime contract.
+        active_from_year:
+          type: integer
+          format: int32
+          nullable: true
+        active_until_year:
+          type: integer
+          format: int32
+          nullable: true
+        is_currently_active:
+          type: boolean
+        profile_visibility:
+          $ref: "#/components/schemas/ProfileVisibility"
+        avatar:
+          allOf:
+            - $ref: "#/components/schemas/MediaAsset"
+          nullable: true
+        keycloak_account_url:
+          type: string
+          nullable: true
+        capabilities:
+          $ref: "#/components/schemas/MemberProfileCapabilities"
+        memberships:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberProfileMembership"
+        historical_credits:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberProfileCredit"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        account_status:
+          type: string
+          enum: [pending, active, disabled]
+        account_display_name:
+          type: string
+        account_global_roles:
+          type: array
+          items:
+            type: string
+    MemberProfileResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/MemberProfile"
+    UpdateMemberProfileRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        display_name:
+          type: string
+          nullable: true
+        fansub_name:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        member_story:
+          type: string
+          nullable: true
+        active_from_year:
+          type: integer
+          format: int32
+          nullable: true
+        active_until_year:
+          type: integer
+          format: int32
+          nullable: true
+        is_currently_active:
+          type: boolean
+          nullable: true
+        profile_visibility:
+          allOf:
+            - $ref: "#/components/schemas/ProfileVisibility"
+          nullable: true
+    UploadOwnProfileAvatarRequest:
+      type: object
+      required: [file]
+      properties:
+        file:
+          type: string
+          format: binary
+          description: Avatar image file. Runtime accepts the server-side allowed image MIME types and rejects SVG.
     FansubMediaUploadResponse:
       type: object
       required: [data]
