@@ -190,6 +190,7 @@ Recent durable decisions:
 - Decide later whether the old manual-vs-Jellyfin entry-choice page should be restored or formally retired.
 - Fix logo upload PNG to JPG conversion — beim Upload und Crawlen wird PNG mit transparentem Hintergrund fälschlicherweise in JPG konvertiert; Quellformat beibehalten.
 - Plan a global cropper library replacement for own-profile avatar and fansub group media cropping; current in-house cropper remains visually acceptable but functionally unreliable in UAT.
+- Redesign `/me/profile` content model after UAT 3: remove internal/admin copy and unclear badges, simplify memberships, and replace abstract credit aggregates with latest media/text activity.
 
 ### Roadmap Evolution
 

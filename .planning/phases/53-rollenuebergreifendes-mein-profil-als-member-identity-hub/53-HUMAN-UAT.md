@@ -4,7 +4,7 @@ phase: 53-rollenuebergreifendes-mein-profil-als-member-identity-hub
 source:
   - 53-VERIFICATION.md
 started: 2026-05-27T16:12:29Z
-updated: 2026-05-28T11:29:10.0000000+02:00
+updated: 2026-05-28T11:52:00.0000000+02:00
 ---
 
 # Phase 53 Human UAT
@@ -40,6 +40,7 @@ result: issue
 reported: "Header action buttons are visually shifted, especially 'Öffentliches Profil ansehen' and 'Profil speichern'. The activity fields around 'Aktiv seit', 'Aktiv bis', and 'Aktuell aktiv' are also visually shifted."
 severity: major
 fix_progress: "Code fix applied: header action buttons align at the top despite deferred public-profile helper text; activity year fields are grouped in a dedicated two-column year grid and the current-active checkbox spans the row."
+follow_up: "Additional UAT 3 content/UX issues captured for a follow-up phase: remove visible internal/admin helper texts ('Fehlende oder unklare Sichtbarkeit...', TipTap/plain-text defer, Basisdaten/Keycloak contract text, Mitgliedschaften description, Account read-only text); remove or redesign unclear hero badges including member/name/dirty badges; clarify Fansub-Name vs Anzeigename; hide or explain Plattformrollen when none are meaningful; simplify membership cards because group logo is missing, duplicated 'Aktiv' status appears, 'Fansub Lead' is unclear, and 'Gruppenbereich' is too weak as navigation; consider global table-style UI for memberships; replace 'Meine Beiträge' credit aggregate with 'Letzte Aktivitäten' showing latest media uploads and texts/notes the user wrote, backed by a new contract; keep memberships compact on the main page while future detail/drawer direction should be 'Meine Medien'/'Meine Aktivität' rather than duplicating 'Meine Gruppen'."
 
 ### 4. Live Keycloak account-return flow
 
