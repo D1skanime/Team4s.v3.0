@@ -204,7 +204,6 @@
   flex-wrap: wrap;
 }
 
-.buttonPrimary,
 .buttonSecondary,
 .buttonDanger {
   display: inline-flex;
@@ -219,19 +218,6 @@
   border: 1px solid transparent;
   cursor: pointer;
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
-}
-
-.buttonPrimary {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 72%, #9eb5ff), color-mix(in srgb, var(--accent-primary) 88%, #2f4c89));
-  border-color: color-mix(in srgb, var(--accent-primary) 78%, #20345c);
-  color: #ffffff;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 10px 22px -18px color-mix(in srgb, var(--accent-primary) 45%, transparent);
-}
-
-.buttonPrimary:hover:not(:disabled) {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 68%, #92acff), color-mix(in srgb, var(--accent-primary) 92%, #284279));
 }
 
 .buttonSecondary {
@@ -260,7 +246,6 @@
   background: color-mix(in srgb, var(--color-error) 9%, white);
 }
 
-.buttonPrimary:disabled,
 .buttonSecondary:disabled,
 .buttonDanger:disabled {
   opacity: 0.6;
@@ -284,79 +269,6 @@
 
 .fileInput {
   display: none;
-}
-
-.cropPanel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 18%, transparent);
-  border-radius: calc(var(--radius-sm) + 3px);
-  padding: 0.75rem;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 6%, white), color-mix(in srgb, var(--bg-secondary) 92%, transparent)),
-    color-mix(in srgb, var(--bg-card) 94%, transparent);
-}
-
-.cropTitle {
-  margin: 0;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: color-mix(in srgb, var(--accent-primary) 64%, var(--text-primary));
-}
-
-.cropHint {
-  margin: 0;
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-}
-
-.cropViewport {
-  width: 100%;
-  max-width: 260px;
-  height: 260px;
-  margin: 0 auto;
-  position: relative;
-  border-radius: calc(var(--radius-sm) + 3px);
-  overflow: hidden;
-  background: #0f172a;
-  touch-action: none;
-  cursor: grab;
-}
-
-.cropViewport:active {
-  cursor: grabbing;
-}
-
-.cropImage {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  max-width: none;
-  pointer-events: none;
-  user-select: none;
-}
-
-.cropMask {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at center, transparent 49.5%, rgba(0, 0, 0, 0.52) 50.5%),
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.7) 49.8%, transparent 50.3%);
-}
-
-.sliderLabel {
-  display: grid;
-  gap: 0.35rem;
-  font-size: 0.82rem;
-  color: #1f2937;
-  font-weight: 600;
-}
-
-.cropAxisGrid {
-  display: grid;
-  gap: 0.45rem;
 }
 
 @keyframes spin {

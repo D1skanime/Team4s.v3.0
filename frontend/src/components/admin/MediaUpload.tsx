@@ -1,13 +1,13 @@
 'use client'
 
 import Image from 'next/image'
-import { ChangeEvent, KeyboardEvent, PointerEvent, useEffect, useId, useMemo, useRef, useState } from 'react'
+import type { ChangeEvent, DragEvent, KeyboardEvent } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ImagePlus, Loader2, Pencil, RefreshCw, Trash2 } from 'lucide-react'
 
+import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
 import { ApiError, deleteFansubMedia, uploadFansubMedia } from '@/lib/api'
 import { FansubMediaKind } from '@/types/fansub'
-import { getCropOffsetDeltaForKey, getFocusableElements, getFocusTrapNextIndex } from '@/components/media/crop/mediaCropA11y'
-import { clampCropOffset, computeCropDrawRect, computeCropMetrics, type CropMetrics } from '@/components/media/crop/mediaCropMath'
 
 import styles from './MediaUpload.module.css'
 
@@ -32,12 +32,7 @@ interface MediaUploadProps {
   [compatProp: string]: unknown
 }
 
-const CROP_VIEW_SIZE = 260
 const CROP_OUTPUT_SIZE = 512
-const CROP_MIN_ZOOM = 0.2
-const CROP_MAX_ZOOM = 4
-const CROP_DEFAULT_ZOOM = 1.2
-const CROP_OFFSET_SLIDER_STEP = 0.1
 
 function extensionForMime(mimeType: string): string {
   if (mimeType === 'image/jpeg') return 'jpg'
@@ -90,6 +85,11 @@ function appendCacheBustParam(rawURL: string, cacheKey: string): string {
     const separator = rawURL.includes('?') ? '&' : '?'
     return `${rawURL}${separator}v=${encodeURIComponent(cacheKey)}`
   }
+}
+
+function logoCropFilename(sourceName: string): string {
+  const baseName = sourceName.replace(/\.[^.]+$/, '').trim() || 'logo'
+  return `${baseName}.png`
 }
 
 export function buildMediaPreviewURL(value: EditableMediaValue | null): string {
@@ -186,7 +186,7 @@ function validateFile(type: FansubMediaKind, file: File): string | null {
       return 'Ungültiges Logo-Format. Erlaubt: SVG, PNG, JPG, WEBP.'
     }
     if (file.size > 2 * 1024 * 1024) {
-      return 'Logo ist zu gross (max. 2MB).'
+      return 'Logo ist zu groß (max. 2MB).'
     }
     return null
   }
@@ -196,38 +196,20 @@ function validateFile(type: FansubMediaKind, file: File): string | null {
     return 'Ungültiges Banner-Format. Erlaubt: PNG, JPG, WEBP, GIF.'
   }
   if (file.size > 5 * 1024 * 1024) {
-    return 'Banner ist zu gross (max. 5MB).'
+    return 'Banner ist zu groß (max. 5MB).'
   }
   return null
 }
 
 export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusyChange, onChange }: MediaUploadProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const cropPanelRef = useRef<HTMLDivElement | null>(null)
-  const cropViewportRef = useRef<HTMLDivElement | null>(null)
   const [dragging, setDragging] = useState(false)
   const [busyAction, setBusyAction] = useState<'upload' | 'delete' | null>(null)
   const [preparingEdit, setPreparingEdit] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
-
-  const [cropSourceURL, setCropSourceURL] = useState<string | null>(null)
-  const [cropFileName, setCropFileName] = useState('logo.png')
-  const [cropZoom, setCropZoom] = useState(1)
-  const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 })
-  const [cropImageReady, setCropImageReady] = useState(false)
-  const [cropImageSize, setCropImageSize] = useState<{ w: number; h: number } | null>(null)
-  const cropHintID = useId()
-
-  const cropImageRef = useRef<HTMLImageElement | null>(null)
-  const cropDragRef = useRef<{ pointerID: number; startX: number; startY: number; originX: number; originY: number } | null>(null)
-
-  useEffect(() => {
-    return () => {
-      if (cropSourceURL) URL.revokeObjectURL(cropSourceURL)
-    }
-  }, [cropSourceURL])
+  const [cropSourceFile, setCropSourceFile] = useState<File | null>(null)
 
   const fallback = useMemo(() => buildFansubLogoFallback(groupName), [groupName])
   const busy = busyAction !== null || preparingEdit
@@ -235,7 +217,6 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
   const isLogo = type === 'logo'
   const filename = deriveFilename(value)
   const previewURL = buildMediaPreviewURL(value)
-  const cropMetrics = useMemo<CropMetrics | null>(() => computeCropMetrics(cropImageSize, CROP_VIEW_SIZE, cropZoom), [cropImageSize, cropZoom])
 
   const title = isLogo ? 'Logo' : 'Banner'
   const acceptedMime = isLogo ? 'image/svg+xml,image/png,image/jpeg,image/webp' : 'image/png,image/jpeg,image/webp,image/gif'
@@ -250,22 +231,6 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
   useEffect(() => {
     onBusyChange?.(busy)
   }, [busy, onBusyChange])
-
-  useEffect(() => {
-    setCropOffset((current) => {
-      const next = clampCropOffset(current, cropMetrics)
-      if (next.x === current.x && next.y === current.y) return current
-      return next
-    })
-  }, [cropMetrics])
-
-  useEffect(() => {
-    if (!cropSourceURL) return
-    const frameID = window.requestAnimationFrame(() => {
-      cropViewportRef.current?.focus()
-    })
-    return () => window.cancelAnimationFrame(frameID)
-  }, [cropSourceURL])
 
   const submitUpload = async (file: File) => {
     setError(null)
@@ -293,9 +258,9 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
       })
 
       if (response.data.gif_large_warning) {
-        setWarning('Hinweis: Dieses GIF ist gross (>4MB) und kann langsamer laden.')
+        setWarning('Hinweis: Dieses GIF ist groß (>4MB) und kann langsamer laden.')
       } else if (type === 'banner' && media.mime_type === 'image/gif' && media.size_bytes > 4 * 1024 * 1024) {
-        setWarning('Hinweis: Dieses GIF ist gross (>4MB) und kann langsamer laden.')
+        setWarning('Hinweis: Dieses GIF ist groß (>4MB) und kann langsamer laden.')
       }
     } catch (nextError) {
       setError(readErrorMessage(nextError, 'Upload fehlgeschlagen.'))
@@ -303,19 +268,6 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
       setBusyAction(null)
       setProgress(0)
     }
-  }
-
-  const openLogoCropper = (file: File) => {
-    const nextURL = URL.createObjectURL(file)
-    if (cropSourceURL) URL.revokeObjectURL(cropSourceURL)
-    const cleanName = file.name.replace(/\.[^.]+$/, '') || 'logo'
-
-    setCropFileName(`${cleanName}.png`)
-    setCropSourceURL(nextURL)
-    setCropZoom(CROP_DEFAULT_ZOOM)
-    setCropOffset({ x: 0, y: 0 })
-    setCropImageReady(false)
-    setCropImageSize(null)
   }
 
   const onEditCurrentLogo = async () => {
@@ -334,74 +286,19 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
       }
       const blob = await response.blob()
       const mimeType = blob.type || value?.mimeType?.trim() || 'image/png'
+      if (mimeType === 'image/svg+xml') {
+        setError('SVG-Logos können nicht zugeschnitten werden. Lade eine neue SVG-Datei hoch oder ersetze das Logo mit einem Rasterbild.')
+        return
+      }
       const baseName = (filename || 'logo').replace(/\.[^.]+$/, '') || 'logo'
       const editableName = `${baseName}.${extensionForMime(mimeType)}`
       const editableFile = new File([blob], editableName, { type: mimeType })
-      openLogoCropper(editableFile)
+      setCropSourceFile(editableFile)
     } catch (nextError) {
       setError(readErrorMessage(nextError, 'Logo konnte nicht zum Bearbeiten geladen werden.'))
     } finally {
       setPreparingEdit(false)
     }
-  }
-
-  const closeCropper = () => {
-    if (cropSourceURL) URL.revokeObjectURL(cropSourceURL)
-    setCropSourceURL(null)
-    setCropImageReady(false)
-    setCropImageSize(null)
-    cropImageRef.current = null
-    cropDragRef.current = null
-  }
-
-  const cropAndUploadLogo = async () => {
-    if (!cropImageRef.current) {
-      setError('Cropper konnte das Bild nicht laden.')
-      return
-    }
-
-    const image = cropImageRef.current
-    const canvas = document.createElement('canvas')
-    canvas.width = CROP_OUTPUT_SIZE
-    canvas.height = CROP_OUTPUT_SIZE
-
-    const context = canvas.getContext('2d')
-    if (!context) {
-      setError('Cropper konnte nicht initialisiert werden.')
-      return
-    }
-
-    const viewportWidth = cropViewportRef.current?.clientWidth ?? CROP_VIEW_SIZE
-    const viewportHeight = cropViewportRef.current?.clientHeight ?? CROP_VIEW_SIZE
-    const { drawX, drawY, drawWidth, drawHeight } = computeCropDrawRect({
-      imageNatural: { w: image.naturalWidth, h: image.naturalHeight },
-      cropMetrics,
-      cropZoom,
-      cropOffset,
-      viewportWidth,
-      viewportHeight,
-      viewSize: CROP_VIEW_SIZE,
-      outputSize: CROP_OUTPUT_SIZE,
-    })
-
-    context.clearRect(0, 0, CROP_OUTPUT_SIZE, CROP_OUTPUT_SIZE)
-    context.save()
-    context.beginPath()
-    context.arc(CROP_OUTPUT_SIZE / 2, CROP_OUTPUT_SIZE / 2, CROP_OUTPUT_SIZE / 2, 0, Math.PI * 2)
-    context.closePath()
-    context.clip()
-    context.drawImage(image, drawX, drawY, drawWidth, drawHeight)
-    context.restore()
-
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
-    if (!blob) {
-      setError('Cropper konnte das Bild nicht exportieren.')
-      return
-    }
-
-    closeCropper()
-    const croppedFile = new File([blob], cropFileName, { type: 'image/png' })
-    await submitUpload(croppedFile)
   }
 
   const processFile = async (file: File) => {
@@ -415,11 +312,15 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
     }
 
     if (type === 'banner' && file.type === 'image/gif' && file.size > 4 * 1024 * 1024) {
-      setWarning('Hinweis: Dieses GIF ist gross (>4MB) und kann langsamer laden.')
+      setWarning('Hinweis: Dieses GIF ist groß (>4MB) und kann langsamer laden.')
     }
 
     if (type === 'logo') {
-      openLogoCropper(file)
+      if (file.type === 'image/svg+xml') {
+        await submitUpload(file)
+        return
+      }
+      setCropSourceFile(file)
       return
     }
 
@@ -433,7 +334,7 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
     await processFile(file)
   }
 
-  const onDrop = async (event: React.DragEvent<HTMLDivElement>) => {
+  const onDrop = async (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     event.stopPropagation()
     setDragging(false)
@@ -466,89 +367,6 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
     } finally {
       setBusyAction(null)
     }
-  }
-
-  const onCropPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (!cropSourceURL || disabled || busy) return
-    event.preventDefault()
-
-    cropDragRef.current = {
-      pointerID: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      originX: cropOffset.x,
-      originY: cropOffset.y,
-    }
-
-    event.currentTarget.setPointerCapture(event.pointerId)
-  }
-
-  const onCropPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const dragState = cropDragRef.current
-    if (!dragState || dragState.pointerID !== event.pointerId) return
-
-    const deltaX = event.clientX - dragState.startX
-    const deltaY = event.clientY - dragState.startY
-    setCropOffset(clampCropOffset({ x: dragState.originX + deltaX, y: dragState.originY + deltaY }, cropMetrics))
-  }
-
-  const onCropPointerUp = (event: PointerEvent<HTMLDivElement>) => {
-    if (cropDragRef.current?.pointerID === event.pointerId) {
-      cropDragRef.current = null
-      event.currentTarget.releasePointerCapture(event.pointerId)
-    }
-  }
-
-  const onCropViewportKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!cropMetrics) return
-
-    const delta = getCropOffsetDeltaForKey(event.key, event.shiftKey)
-    if (!delta) return
-    event.preventDefault()
-    setCropOffset((current) => clampCropOffset({ x: current.x + delta.x, y: current.y + delta.y }, cropMetrics))
-  }
-
-  const onCropOffsetXChange = (nextValue: number) => {
-    setCropOffset((current) => clampCropOffset({ x: nextValue, y: current.y }, cropMetrics))
-  }
-
-  const onCropOffsetYChange = (nextValue: number) => {
-    setCropOffset((current) => clampCropOffset({ x: current.x, y: nextValue }, cropMetrics))
-  }
-
-  const onCropZoomChange = (nextValue: number) => {
-    if (!Number.isFinite(nextValue)) return
-    const clamped = Math.max(CROP_MIN_ZOOM, Math.min(CROP_MAX_ZOOM, nextValue))
-    setCropZoom(clamped)
-  }
-
-  const onCropReset = () => {
-    cropDragRef.current = null
-    setCropZoom(CROP_DEFAULT_ZOOM)
-    setCropOffset({ x: 0, y: 0 })
-  }
-
-  const onCropPanelKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Escape') {
-      event.preventDefault()
-      closeCropper()
-      return
-    }
-    if (event.key !== 'Tab') return
-
-    const panel = cropPanelRef.current
-    if (!panel) return
-
-    const focusables = getFocusableElements(panel)
-    if (focusables.length === 0) return
-
-    const activeElement = typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null
-    const currentIndex = activeElement ? focusables.indexOf(activeElement) : -1
-    const nextIndex = getFocusTrapNextIndex(currentIndex, focusables.length, event.shiftKey)
-    if (nextIndex < 0) return
-
-    event.preventDefault()
-    focusables[nextIndex]?.focus()
   }
 
   return (
@@ -694,114 +512,28 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
         onChange={(event) => void onInputChange(event)}
       />
 
-      {type === 'logo' && cropSourceURL ? (
-        <div
-          ref={cropPanelRef}
-          className={styles.cropPanel}
-          role="dialog"
-          aria-label="Logo-Cropper"
-          aria-describedby={cropHintID}
-          onKeyDown={onCropPanelKeyDown}
-        >
-          <p className={styles.cropTitle}>Logo zuschneiden (kreisfoermig)</p>
-          <div
-            ref={cropViewportRef}
-            className={styles.cropViewport}
-            tabIndex={0}
-            aria-label="Logo-Ausschnitt wählen"
-            onKeyDown={onCropViewportKeyDown}
-            onPointerDown={onCropPointerDown}
-            onPointerMove={onCropPointerMove}
-            onPointerUp={onCropPointerUp}
-            onPointerCancel={onCropPointerUp}
-          >
-            <Image
-              src={cropSourceURL}
-              alt="Logo Crop"
-              className={styles.cropImage}
-              width={CROP_VIEW_SIZE}
-              height={CROP_VIEW_SIZE}
-              unoptimized
-              onLoad={(event) => {
-                cropImageRef.current = event.currentTarget
-                setCropImageSize({ w: event.currentTarget.naturalWidth, h: event.currentTarget.naturalHeight })
-                setCropImageReady(true)
-              }}
-              style={
-                cropImageSize
-                  ? (() => {
-                      const width = cropMetrics?.width ?? CROP_VIEW_SIZE
-                      const height = cropMetrics?.height ?? CROP_VIEW_SIZE
-                      return {
-                        width: `${width}px`,
-                        height: `${height}px`,
-                        transform: `translate(-50%, -50%) translate(${cropOffset.x}px, ${cropOffset.y}px)`,
-                      }
-                    })()
-                  : { transform: 'translate(-50%, -50%)' }
-              }
-            />
-            <div className={styles.cropMask} />
-          </div>
-          <p id={cropHintID} className={styles.cropHint}>Bild ziehen oder X/Y-Regler nutzen. Zoom erlaubt Verkleinern und Vergroessern. Pfeiltasten: fein, Shift+Pfeil: grob. Esc schliesst den Cropper.</p>
-          <label className={styles.sliderLabel}>
-            Zoom
-            <input
-              type="range"
-              min={CROP_MIN_ZOOM}
-              max={CROP_MAX_ZOOM}
-              step={0.01}
-              value={cropZoom}
-              aria-label="Zoom"
-              onChange={(event) => onCropZoomChange(Number(event.target.value))}
-              disabled={!cropImageReady || busy}
-            />
-          </label>
-          <div className={styles.cropAxisGrid}>
-            <label className={styles.sliderLabel}>
-              X
-              <input
-                type="range"
-                min={-(cropMetrics?.maxOffsetX ?? 0)}
-                max={cropMetrics?.maxOffsetX ?? 0}
-                step={CROP_OFFSET_SLIDER_STEP}
-                value={cropOffset.x}
-                aria-label="X-Verschiebung"
-                onChange={(event) => onCropOffsetXChange(Number(event.target.value))}
-                disabled={!cropImageReady || busy || !cropMetrics || cropMetrics.maxOffsetX <= 0}
-              />
-            </label>
-            <label className={styles.sliderLabel}>
-              Y
-              <input
-                type="range"
-                min={-(cropMetrics?.maxOffsetY ?? 0)}
-                max={cropMetrics?.maxOffsetY ?? 0}
-                step={CROP_OFFSET_SLIDER_STEP}
-                value={cropOffset.y}
-                aria-label="Y-Verschiebung"
-                onChange={(event) => onCropOffsetYChange(Number(event.target.value))}
-                disabled={!cropImageReady || busy || !cropMetrics || cropMetrics.maxOffsetY <= 0}
-              />
-            </label>
-          </div>
-          <div className={styles.actions}>
-            <button type="button" className={styles.buttonSecondary} onClick={closeCropper} disabled={busy}>
-              Abbrechen
-            </button>
-            <button
-              type="button"
-              className={styles.buttonSecondary}
-              onClick={onCropReset}
-              disabled={!cropImageReady || busy}
-            >
-              Position zurücksetzen
-            </button>
-            <button type="button" className={styles.buttonPrimary} onClick={() => void cropAndUploadLogo()} disabled={!cropImageReady || busy}>
-              Ausschnitt speichern
-            </button>
-          </div>
-        </div>
+      {type === 'logo' && cropSourceFile ? (
+        <Team4sCropper
+          file={cropSourceFile}
+          title="Logo zuschneiden"
+          cropAriaLabel="Logo-Ausschnitt wählen"
+          shape="circle"
+          aspectRatio={1}
+          output={{
+            width: CROP_OUTPUT_SIZE,
+            height: CROP_OUTPUT_SIZE,
+            mimeType: 'image/png',
+            filename: logoCropFilename(cropSourceFile.name),
+          }}
+          hint="Bild ziehen oder zoomen. Escape schließt den Cropper."
+          applyLabel="Ausschnitt speichern"
+          disabled={busy}
+          onCancel={() => setCropSourceFile(null)}
+          onApply={async (croppedFile) => {
+            setCropSourceFile(null)
+            await submitUpload(croppedFile)
+          }}
+        />
       ) : null}
     </div>
   )

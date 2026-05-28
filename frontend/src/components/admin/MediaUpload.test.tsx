@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { ReactNode } from 'react'
+import type { ImgHTMLAttributes, ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
@@ -8,7 +8,7 @@ const deleteFansubMediaMock = vi.fn()
 const uploadFansubMediaMock = vi.fn()
 
 vi.mock('next/image', () => ({
-  default: ({ alt, unoptimized, ...props }: React.ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
+  default: ({ alt, unoptimized, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
     void unoptimized
     // eslint-disable-next-line @next/next/no-img-element
     return <img alt={alt} {...props} />
@@ -21,6 +21,27 @@ vi.mock('lucide-react', () => ({
   Pencil: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
   RefreshCw: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
   Trash2: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
+}))
+
+vi.mock('@/components/media/crop/Team4sCropper', () => ({
+  Team4sCropper: ({
+    title,
+    output,
+    onApply,
+    onCancel,
+  }: {
+    title: string
+    output: { filename: string; mimeType?: string }
+    onApply: (file: File) => Promise<void> | void
+    onCancel: () => void
+  }) => (
+    <div role="dialog" aria-label={title}>
+      <button type="button" onClick={() => void onApply(new File(['cropped'], output.filename, { type: output.mimeType }))}>
+        Ausschnitt speichern
+      </button>
+      <button type="button" onClick={onCancel}>Abbrechen</button>
+    </div>
+  ),
 }))
 
 vi.mock('@/lib/api', () => ({
@@ -208,5 +229,71 @@ describe('MediaUpload', () => {
     expect(fetchMock).toHaveBeenCalledWith('https://cdn.example/logo.png', { cache: 'no-store' })
     expect(fetchMock.mock.calls[0][1]).not.toHaveProperty('headers')
     expect(uploadFansubMediaMock).not.toHaveBeenCalled()
+  })
+
+  it('opens the shared cropper for raster logos before upload', async () => {
+    uploadFansubMediaMock.mockResolvedValue({
+      data: {
+        media: {
+          ...uploadedMedia,
+          filename: 'logo.png',
+          public_url: '/media/groups/17/logo.png',
+        },
+        gif_large_warning: false,
+      },
+    })
+
+    render(
+      <MediaUpload
+        type="logo"
+        fansubID={17}
+        groupName="Phase Fansubs"
+        value={null}
+        onChange={vi.fn()}
+      />,
+    )
+
+    fireEvent.change(screen.getByLabelText(/Logo Datei/i), {
+      target: { files: [new File(['logo'], 'logo.webp', { type: 'image/webp' })] },
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt speichern' }))
+
+    await waitFor(() => expect(uploadFansubMediaMock).toHaveBeenCalledTimes(1))
+    const uploadOptions = uploadFansubMediaMock.mock.calls[0][0] as { file: File }
+    expect(uploadOptions.file).toMatchObject({
+      name: 'logo.png',
+      type: 'image/png',
+    })
+  })
+
+  it('uploads SVG logos directly without converting them through the cropper', async () => {
+    uploadFansubMediaMock.mockResolvedValue({
+      data: {
+        media: {
+          ...uploadedMedia,
+          filename: 'logo.svg',
+          mime_type: 'image/svg+xml',
+          public_url: '/media/groups/17/logo.svg',
+        },
+        gif_large_warning: false,
+      },
+    })
+
+    render(
+      <MediaUpload
+        type="logo"
+        fansubID={17}
+        groupName="Phase Fansubs"
+        value={null}
+        onChange={vi.fn()}
+      />,
+    )
+
+    const file = new File(['<svg />'], 'logo.svg', { type: 'image/svg+xml' })
+    fireEvent.change(screen.getByLabelText(/Logo Datei/i), { target: { files: [file] } })
+
+    await waitFor(() => expect(uploadFansubMediaMock).toHaveBeenCalledTimes(1))
+    expect(uploadFansubMediaMock.mock.calls[0][0]).toMatchObject({ file })
+    expect(screen.queryByRole('dialog', { name: 'Logo zuschneiden' })).toBeNull()
   })
 })

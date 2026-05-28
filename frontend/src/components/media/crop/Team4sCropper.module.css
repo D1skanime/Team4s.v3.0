@@ -41,7 +41,7 @@
 }
 
 .hint {
-  margin: 4px 0 0;
+  margin: 8px 0 0;
   color: var(--color-text-muted, #64748b);
   font-size: 0.9rem;
 }
@@ -55,6 +55,11 @@
   cursor: pointer;
 }
 
+.closeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .cropViewport {
   position: relative;
   width: min(100%, 340px);
@@ -63,8 +68,6 @@
   overflow: hidden;
   border-radius: 8px;
   background: #111827;
-  cursor: grab;
-  touch-action: none;
   outline: none;
 }
 
@@ -74,28 +77,26 @@
   outline-offset: 2px;
 }
 
-.cropViewport:active {
-  cursor: grabbing;
-}
-
-.cropImage {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  max-width: none;
-  user-select: none;
-  pointer-events: none;
-}
-
-.cropMask {
+.cropperContainer {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at center, transparent 0 49.5%, rgba(15, 23, 42, 0.62) 50%),
-    linear-gradient(rgba(15, 23, 42, 0.18), rgba(15, 23, 42, 0.18));
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
+  cursor: move;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cropperMedia {
+  max-width: none;
+  will-change: transform;
+}
+
+.cropperArea {
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 0 0 9999em rgba(15, 23, 42, 0.58);
 }
 
 .controls {
@@ -138,5 +139,4 @@
     max-height: calc(100vh - 20px);
     padding: 16px;
   }
-
 }

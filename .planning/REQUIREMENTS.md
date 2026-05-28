@@ -82,7 +82,6 @@
 - **CONTRIBUTOR-DASHBOARD-01**: Signed-in contributors can view their own fansub groups, roles, capabilities, and scoped working contexts without leaking global-admin-only actions or unrelated group data.
 - **MEMBER-PROFILE-HUB-01**: The Team4s own-profile surface must become a role-neutral `/me/profile` Member Identity Hub for all signed-in users, using real profile, account, membership, role, avatar, visibility, and contribution sources without mixing Keycloak identity, Team4s profile data, group roles, app permissions, or historical credits.
 - **MEMBER-PROFILE-STORY-RICH-TEXT-01**: The own-profile member story must persist safe TipTap rich text through one contract-aligned profile seam, including schema migration from existing plain text, backend validation/sanitizing, plaintext extraction, shared OpenAPI/frontend DTO alignment, and token-free protected UI behavior through the central API client.
-- **MEDIA-CROPPER-01**: Profile avatar and fansub group logo cropping should move from fragile project-owned crop math to one shared, maintained-library-backed Team4s cropper component while preserving existing domain-specific upload endpoints, auth seams, and media ownership.
 - **MEDIA-CROPPER-01**: Team4s image cropping must use one reliable shared cropper foundation for own-profile avatars and fansub group logo/media cropping, preserving each domain's existing upload endpoint, auth/API seam, and media ownership while eliminating preview/export parity bugs across desktop, mobile/touch, and keyboard use.
 
 ## Out of Scope
@@ -141,8 +140,7 @@
 | AUTH-PROFILE-ACCOUNT-RETURN-01 | Phase 52 | Complete - live Keycloak UAT pending |
 | MEMBER-PROFILE-HUB-01 | Phase 53 | Complete |
 | MEMBER-PROFILE-STORY-RICH-TEXT-01 | Phase 55 | Planned |
-| MEDIA-CROPPER-01 | Phase 56 | Planned |
-| MEDIA-CROPPER-01 | Phase 56 | Planned |
+| MEDIA-CROPPER-01 | Phase 56 | Implementation verified; authenticated browser UAT pending |
 
 **Coverage:**
 - v1 requirements: 28 total

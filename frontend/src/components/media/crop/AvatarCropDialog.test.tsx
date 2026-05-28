@@ -1,79 +1,70 @@
 // @vitest-environment jsdom
 
-import type { ImgHTMLAttributes, ReactNode } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
-vi.mock('next/image', () => ({
-  default: ({ alt, unoptimized, onLoad, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
-    void unoptimized
+const cropperPropsMock = vi.hoisted(() => vi.fn())
+
+vi.mock('./Team4sCropper', () => ({
+  Team4sCropper: (props: {
+    title: string
+    cropAriaLabel: string
+    output: { filename: string; mimeType?: string }
+    file: File
+    onApply: (file: File) => void
+    onCancel: () => void
+  }) => {
+    cropperPropsMock(props)
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        alt={alt}
-        {...props}
-        onLoad={(event) => {
-          Object.defineProperty(event.currentTarget, 'naturalWidth', { value: 800, configurable: true })
-          Object.defineProperty(event.currentTarget, 'naturalHeight', { value: 600, configurable: true })
-          onLoad?.(event)
-        }}
-      />
+      <div role="dialog" aria-label={props.title}>
+        <span>{props.cropAriaLabel}</span>
+        <button type="button" onClick={() => props.onApply(new File(['cropped'], props.output.filename, { type: props.output.mimeType }))}>
+          Ausschnitt übernehmen
+        </button>
+        <button type="button" onClick={props.onCancel}>Abbrechen</button>
+      </div>
     )
   },
 }))
 
-vi.mock('lucide-react', () => ({
-  X: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
-}))
-
 import { AvatarCropDialog } from './AvatarCropDialog'
-
-beforeEach(() => {
-  vi.stubGlobal('URL', {
-    createObjectURL: vi.fn(() => 'blob:avatar-source'),
-    revokeObjectURL: vi.fn(),
-  })
-})
 
 afterEach(() => {
   cleanup()
-  vi.unstubAllGlobals()
+  vi.clearAllMocks()
 })
 
 describe('AvatarCropDialog', () => {
-  it('renders circular crop controls and closes on Escape', async () => {
-    const onCancel = vi.fn()
+  it('configures the shared cropper for circular avatar output', () => {
+    render(<AvatarCropDialog file={new File(['avatar'], 'avatar.webp', { type: 'image/webp' })} onCancel={vi.fn()} onApply={vi.fn()} />)
 
-    render(<AvatarCropDialog file={new File(['avatar'], 'avatar.png', { type: 'image/png' })} onCancel={onCancel} onApply={vi.fn()} />)
-
-    const viewport = await screen.findByLabelText('Avatar-Ausschnitt wählen')
-    fireEvent.load(screen.getByAltText('Avatar Zuschnitt'))
     expect(screen.getByRole('dialog', { name: 'Avatar zuschneiden' })).not.toBeNull()
-    expect(screen.queryByLabelText('Runde Avatar-Vorschau')).toBeNull()
-    expect(screen.queryByText('Das Original bleibt intern erhalten; angezeigt wird nur der runde Zuschnitt.')).toBeNull()
-
-    fireEvent.keyDown(viewport, { key: 'Escape' })
-    expect(onCancel).toHaveBeenCalledTimes(1)
+    expect(cropperPropsMock).toHaveBeenCalledWith(expect.objectContaining({
+      cropAriaLabel: 'Avatar-Ausschnitt wählen',
+      shape: 'circle',
+      aspectRatio: 1,
+      output: expect.objectContaining({
+        filename: 'avatar-avatar.png',
+        mimeType: 'image/png',
+      }),
+    }))
   })
 
-  it('supports pointer drag and keyboard crop movement without leaving the dialog', async () => {
-    const onCancel = vi.fn()
+  it('preserves the source file when applying the cropped avatar', () => {
+    const sourceFile = new File(['avatar'], 'avatar.png', { type: 'image/png' })
+    const onApply = vi.fn()
 
-    render(<AvatarCropDialog file={new File(['avatar'], 'avatar.png', { type: 'image/png' })} onCancel={onCancel} onApply={vi.fn()} />)
+    render(<AvatarCropDialog file={sourceFile} onCancel={vi.fn()} onApply={onApply} />)
 
-    const viewport = await screen.findByLabelText('Avatar-Ausschnitt wählen')
-    fireEvent.load(screen.getByAltText('Avatar Zuschnitt'))
+    fireEvent.click(screen.getByRole('button', { name: 'Ausschnitt übernehmen' }))
 
-    Object.defineProperty(viewport, 'setPointerCapture', { value: vi.fn(), configurable: true })
-    Object.defineProperty(viewport, 'releasePointerCapture', { value: vi.fn(), configurable: true })
-
-    fireEvent.pointerDown(viewport, { pointerId: 1, clientX: 10, clientY: 10 })
-    fireEvent.pointerMove(viewport, { pointerId: 1, clientX: 30, clientY: 24 })
-    fireEvent.pointerUp(viewport, { pointerId: 1 })
-    fireEvent.keyDown(viewport, { key: 'ArrowRight' })
-    fireEvent.keyDown(screen.getByRole('dialog', { name: 'Avatar zuschneiden' }), { key: 'Tab' })
-
-    await waitFor(() => expect(viewport).toBeTruthy())
-    expect(onCancel).not.toHaveBeenCalled()
+    expect(onApply).toHaveBeenCalledWith({
+      sourceFile,
+      croppedFile: expect.any(File),
+    })
+    expect(onApply.mock.calls[0][0].croppedFile).toMatchObject({
+      name: 'avatar-avatar.png',
+      type: 'image/png',
+    })
   })
 })

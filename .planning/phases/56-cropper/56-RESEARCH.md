@@ -42,9 +42,36 @@ The project README describes responsive crops, touch support, fixed aspect crops
 
 Risk: the README says browser preview/export is not part of the library and points to an example. That keeps more export parity responsibility inside Team4s, which is exactly where the current bug lives.
 
+## Updated Discussion Decision
+
+The user clarified during `$gsd-discuss-phase 56` on 2026-05-28 that Team4s wants a different library because the existing cropper foundation does not perform the required functions well enough. That means the next executor must not treat another patch to the current cropper math as acceptable, and must not treat any previously mentioned candidate as already chosen.
+
+The library selection should be based on the actual functions Team4s needs:
+
+- preview/export/display parity
+- fixed 1:1 and circular crop use
+- mobile/touch and pointer behavior
+- keyboard/focus behavior
+- zoom/reset/apply/cancel controls
+- reliable Blob/File export into the existing upload helpers
+
 ## Recommended Direction
 
-Start with `react-advanced-cropper` behind a small Team4s component:
+`react-easy-crop` was selected during execution on 2026-05-28.
+
+Execution-time package check:
+
+- `react-easy-crop` 5.5.7, MIT, React/React-DOM peer dependency `>=16.4.0`, official package description: React component for cropping images/videos with easy interactions.
+- `react-image-crop` 11.0.10 remains viable for UI accessibility but still leaves preview/export examples outside the library, which keeps too much export parity responsibility in Team4s code.
+- `react-advanced-cropper` 0.20.1 remains powerful, but the user explicitly asked not to continue from the existing cropper foundation/previous candidate without re-evaluation; the smaller `react-easy-crop` adapter meets the required Team4s surface without exposing a broad library API.
+
+Decision rationale:
+
+- The library owns the interactive crop surface: drag, zoom, touch/pointer behavior, keyboard handling, aspect ratio, crop shape, and pixel crop reporting.
+- Team4s owns one narrow canvas-to-`File` adapter because existing upload helpers require client-side `File` payloads. This is deliberately isolated in `Team4sCropper` rather than duplicated in avatar and fansub flows.
+- SVG logo behavior remains explicit: SVG uploads stay on the existing direct upload path and are not silently rasterized through the cropper.
+
+The selected library is wrapped behind a small Team4s component:
 
 - `frontend/src/components/media/crop/Team4sCropper.tsx`
 - `frontend/src/components/media/crop/Team4sCropper.module.css`
@@ -70,7 +97,7 @@ For the fansub logo surface, replace only the inline logo cropper in `MediaUploa
 
 ## Implementation Constraints For Planning
 
-- Add the dependency in a dedicated first plan and isolate the third-party API in one adapter component.
+- Add the dependency in a dedicated first plan after the candidate is chosen, and isolate the third-party API in one adapter component.
 - Do not change backend media handlers unless implementation discovers that the client Blob cannot satisfy parity.
 - Do not add schema migrations.
 - Do not change upload endpoints.

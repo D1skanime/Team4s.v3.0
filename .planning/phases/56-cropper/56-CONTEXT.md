@@ -7,7 +7,7 @@
 <domain>
 ## Phase Boundary
 
-Phase 56 replaces the fragile in-house cropper math with one shared Team4s cropper foundation backed by a maintained React cropper library.
+Phase 56 replaces the fragile in-house cropper math with one shared Team4s cropper foundation backed by a different maintained React cropper library. The reason is functional, not cosmetic: the current cropper foundation does not reliably provide the crop parity, mobile/touch behavior, export behavior, and interaction quality Team4s needs.
 
 This phase delivers:
 - a documented cropper-library choice and dependency introduction
@@ -39,10 +39,10 @@ This phase does not deliver:
 - **D-05:** The new shared cropper must live under a neutral media/component location, not under `/me/profile` or `components/admin`.
 
 ### Library Direction
-- **D-06:** The in-house cropper should not receive another geometry patch as the primary fix; the phase exists to replace it with a maintained library.
-- **D-07:** `react-advanced-cropper` is the initial candidate because its docs cover mobile support, fixed/controlled cropper patterns, stencil customization, and canvas/coordinate output.
-- **D-08:** The final dependency decision must compare at least `react-advanced-cropper`, `react-easy-crop`, and `react-image-crop` against Team4s needs before changing `frontend/package.json`.
-- **D-09:** If the chosen library cannot satisfy parity, keyboard/touch, and responsive requirements, planning must stop or document a different candidate rather than reimplementing custom geometry.
+- **D-06:** The in-house cropper should not receive another geometry patch as the primary fix; the phase exists to replace it because the existing foundation does not perform the required functions well enough.
+- **D-07:** No cropper dependency is locked yet. `react-advanced-cropper` is only a research starting point from prior notes, not a mandate.
+- **D-08:** The final dependency decision must compare maintained cropper libraries against Team4s' real required functions before changing `frontend/package.json`: preview/export parity, fixed 1:1/circular crop, mobile/touch, keyboard/focus behavior, zoom/reset, and reliable Blob/File export.
+- **D-09:** If a candidate library cannot satisfy parity, keyboard/touch, and responsive requirements, planning must reject that candidate and document the different library chosen rather than reimplementing custom geometry.
 
 ### Avatar Crop Contract
 - **D-10:** Avatar upload keeps the Phase 53 source-original plus cropped-display contract.
@@ -132,7 +132,7 @@ This phase does not deliver:
 <specifics>
 ## Specific Ideas
 
-- Evaluate `react-advanced-cropper` first, because its documentation explicitly mentions mobile support and canvas/coordinate output.
+- Choose a different maintained cropper library than the current in-house foundation. `react-advanced-cropper` can remain one candidate to evaluate, but it must win on the required functions rather than being assumed.
 - Keep the Phase 56 first implementation narrow: profile avatar and fansub logo only.
 - Use browser UAT with an obvious asymmetric test image so preview/export parity can be judged visually.
 - If SVG logo crop is awkward, keep SVG upload as a direct non-crop path and document that only raster logos open the cropper.

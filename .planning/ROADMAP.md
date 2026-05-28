@@ -1134,10 +1134,18 @@ Plans:
 **Depends on:** Phase 53, Phase 49
 **Context:** `.planning/phases/56-cropper/56-CONTEXT.md`
 **UI hint**: yes
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd-discuss-phase 56, then /gsd-plan-phase 56)
+**Wave 1**
+- [x] `56-01-PLAN.md` - Cropper-Bibliothek auswaehlen, Dependency einfuehren und gemeinsame Team4s-Cropper-Komponente bauen.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] `56-02-PLAN.md` - Profil-Avatar-Crop auf die gemeinsame Komponente migrieren.
+- [x] `56-03-PLAN.md` - Fansub-Gruppenlogo-Crop in `MediaUpload` auf die gemeinsame Komponente migrieren.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] `56-04-PLAN.md` - Alte Crop-Math-Seams entfernen, Regressionen/UAT abschliessen und Status/Todo-Handoff aktualisieren. (implementation cleanup/checks complete; authenticated browser UAT pending)
 
 **Cross-cutting constraints:**
 - Der Cropper ist nur UI-/Client-Export-Infrastruktur; Profil-Avatar und Fansub-Gruppenmedia behalten ihre vorhandenen API-Helfer, Upload-Endpunkte, Auth-Seams und Media-Ownership.
@@ -1147,7 +1155,7 @@ Plans:
 - Die Bibliothek muss vor Merge gegen Touch/Keyboard/Responsive-Verhalten und Canvas-/Coordinate-Export verifiziert werden; bei nicht ausreichender Eignung wird die Entscheidung im Plan dokumentiert statt weiter custom crop math zu patchen.
 
 **Success Criteria** (what must be TRUE):
-1. Eine gepflegte React-Cropper-Bibliothek ist anhand dokumentierter Kriterien ausgewaehlt; `react-advanced-cropper` ist der Startkandidat, aber die finale Entscheidung ist begruendet.
+1. Eine andere gepflegte React-Cropper-Bibliothek ist anhand dokumentierter Kriterien ausgewaehlt; keine Kandidatenbibliothek ist vorab gelockt, und die finale Entscheidung ist nachweisbar an Preview-/Export-Paritaet, Touch, Tastatur, Zoom und File-Export gemessen.
 2. Es gibt eine gemeinsame Team4s-Cropper-Komponente oder ein kleines Cropper-Adapter-Modul ausserhalb domain-spezifischer Seiten/Admin-Komponenten.
 3. Profil-Avatar-Crop nutzt die gemeinsame Komponente und sendet weiterhin `source_file` plus `cropped_file` ueber `uploadOwnProfileAvatar`.
 4. Fansub-Gruppenlogo-Crop nutzt dieselbe gemeinsame Komponente und sendet weiterhin das gecroppte Logo ueber `uploadFansubMedia`; Banner-Upload bleibt unveraendert, solange kein echter Crop-Contract existiert.
