@@ -31,6 +31,7 @@ import {
 } from '@/components/ui'
 import { RichTextEditor } from '@/components/editor'
 
+import { AppShellDrawerDemoSection } from './AppShellDrawerDemoSection'
 import styles from './page.module.css'
 
 const tokenSwatches = [
@@ -1063,6 +1064,8 @@ export default function UISystemPlaygroundPage() {
           </div>
         </Card>
       </div>
+
+      <AppShellDrawerDemoSection />
 
       <Modal
         open={modalOpen}
