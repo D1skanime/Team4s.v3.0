@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Compass,
   LayoutDashboard,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 
 import { Badge } from '@/components/ui'
+import { getFocusableElements } from '@/components/media/crop/mediaCropA11y'
 
 import styles from './AppShell.module.css'
 
@@ -23,6 +24,7 @@ type AppShellMode = 'authenticated' | 'anonymous'
 type AppShellUser = {
   displayName?: string | null
   email?: string | null
+  avatarUrl?: string | null
 }
 
 type AppShellNavItem = {
@@ -109,6 +111,61 @@ function AppShellNavGroups({ currentPath, canAccessAdmin }: { currentPath?: stri
   )
 }
 
+function AppShellAnonNavGroups({ currentPath }: { currentPath?: string }) {
+  const publicItems: AppShellNavItem[] = [
+    { label: 'Anime entdecken', href: '/anime', icon: <Compass size={17} />, current: isCurrent(currentPath, '/anime') },
+    { label: 'Fansub-Gruppen', icon: <Users size={17} />, disabled: true, badge: 'bald' },
+    { label: 'Suche', icon: <Compass size={17} />, disabled: true, badge: 'bald' },
+  ]
+
+  return (
+    <div className={styles.navGroup}>
+      <p className={styles.navGroupLabel}>Entdecken</p>
+      {publicItems.map((item) => <AppShellNavItemView key={item.label} item={item} />)}
+    </div>
+  )
+}
+
+function DrawerAnonymousFooter() {
+  return (
+    <footer className={styles.anonFooter}>
+      <Link href="/auth" className={styles.btnPrimary}>
+        Anmelden
+      </Link>
+      <Link href="/auth/register" className={styles.btnSecondary}>
+        Registrieren
+      </Link>
+    </footer>
+  )
+}
+
+function DrawerUserFooter({ user }: { user?: AppShellUser | null }) {
+  const displayName = user?.displayName || 'Angemeldetes Mitglied'
+  const email = user?.email || 'Team4s Account'
+
+  return (
+    <footer className={styles.userFooter}>
+      {user?.avatarUrl ? (
+        <img
+          src={user.avatarUrl}
+          alt={`Avatar von ${user?.displayName || 'Mitglied'}`}
+          className={styles.userAvatarImg}
+          width={36}
+          height={36}
+        />
+      ) : (
+        <span className={styles.userAvatar} aria-hidden="true">
+          {(user?.displayName || user?.email || '?').slice(0, 1).toUpperCase()}
+        </span>
+      )}
+      <div>
+        <strong>{displayName}</strong>
+        <span>{email}</span>
+      </div>
+    </footer>
+  )
+}
+
 export function AppShell({
   mode = 'authenticated',
   currentPath,
@@ -116,10 +173,59 @@ export function AppShell({
   canAccessAdmin = false,
   children,
 }: AppShellProps) {
-  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const drawerRef = useRef<HTMLAsideElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!drawerOpen) return
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setDrawerOpen(false)
+        triggerRef.current?.focus()
+        return
+      }
+
+      if (event.key !== 'Tab' || !drawerRef.current) return
+
+      const focusable = getFocusableElements(drawerRef.current)
+      if (focusable.length === 0) return
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+        return
+      }
+
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [drawerOpen])
 
   return (
     <div className={styles.shell} data-shell-mode={mode}>
+      <div
+        className={styles.edgeStrip}
+        role="button"
+        tabIndex={0}
+        aria-expanded={drawerOpen}
+        aria-controls="team4s-nav-drawer"
+        aria-label="Menü öffnen"
+        onMouseEnter={() => setDrawerOpen(true)}
+        onFocus={() => setDrawerOpen(true)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') setDrawerOpen(true)
+        }}
+      />
       <header className={styles.mobileHeader}>
         <div className={styles.brand}>
           <span className={styles.brandMark}>T4</span>
@@ -129,26 +235,37 @@ export function AppShell({
           </div>
         </div>
         <button
+          ref={triggerRef}
           type="button"
           className={styles.mobileNavButton}
-          aria-expanded={mobileNavOpen}
-          aria-controls="team4s-mobile-nav"
-          onClick={() => setMobileNavOpen((current) => !current)}
+          aria-expanded={drawerOpen}
+          aria-controls="team4s-nav-drawer"
+          onClick={() => setDrawerOpen((current) => !current)}
         >
-          {mobileNavOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
+          {drawerOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
           <span>Navigation</span>
         </button>
       </header>
-      {mobileNavOpen ? (
-        <nav
-          id="team4s-mobile-nav"
-          className={`${styles.mobileNav} ${styles.mobileNavOpen}`}
-          aria-label="Hauptnavigation mobil"
-        >
-          <AppShellNavGroups currentPath={currentPath} canAccessAdmin={canAccessAdmin} />
-        </nav>
+      {drawerOpen ? (
+        <button
+          type="button"
+          className={styles.drawerBackdrop}
+          aria-label="Drawer schließen"
+          onClick={() => setDrawerOpen(false)}
+        />
       ) : null}
-      <aside className={styles.sidebar} aria-label="Team4s Navigation">
+      <aside
+        id="team4s-nav-drawer"
+        ref={drawerRef}
+        className={`${styles.drawer} ${drawerOpen ? styles.drawerOpen : ''}`}
+        aria-label="Team4s Navigation"
+        onMouseLeave={() => setDrawerOpen(false)}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            setDrawerOpen(false)
+          }
+        }}
+      >
         <div className={styles.brand}>
           <span className={styles.brandMark}>T4</span>
           <div>
@@ -157,19 +274,15 @@ export function AppShell({
           </div>
         </div>
 
-        <nav className={styles.nav} aria-label="Hauptnavigation">
-          <AppShellNavGroups currentPath={currentPath} canAccessAdmin={canAccessAdmin} />
+        <nav className={styles.nav} aria-label={drawerOpen ? 'Hauptnavigation mobil' : 'Hauptnavigation'}>
+          {mode === 'anonymous' ? (
+            <AppShellAnonNavGroups currentPath={currentPath} />
+          ) : (
+            <AppShellNavGroups currentPath={currentPath} canAccessAdmin={canAccessAdmin} />
+          )}
         </nav>
 
-        <footer className={styles.userFooter}>
-          <span className={styles.userAvatar} aria-hidden="true">
-            {(user?.displayName || user?.email || '?').slice(0, 1).toUpperCase()}
-          </span>
-          <div>
-            <strong>{user?.displayName || 'Angemeldetes Mitglied'}</strong>
-            <span>{user?.email || 'Team4s Account'}</span>
-          </div>
-        </footer>
+        {mode === 'anonymous' ? <DrawerAnonymousFooter /> : <DrawerUserFooter user={user} />}
       </aside>
       <div className={styles.content}>{children}</div>
     </div>
