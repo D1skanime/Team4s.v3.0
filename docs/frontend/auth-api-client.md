@@ -27,18 +27,21 @@ Normal UI code owns only:
 Use `useAuthSession()` for UI gating:
 
 ```tsx
-const { hasAccessToken, isClientInitialized } = useAuthSession()
+const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
+const hasAuthSession = hasAccessToken || hasRefreshToken
 
 if (!isClientInitialized) {
   return null
 }
 
-if (!hasAccessToken) {
+if (!hasAuthSession) {
   return <p>Anmeldung erforderlich.</p>
 }
 
 const response = await getMyFansubGroups()
 ```
+
+Do not gate protected UI on `hasAccessToken` alone. Keycloak access tokens are intentionally short-lived; a valid refresh session must still be treated as an active app session so the central API client can refresh before the protected request is sent. Any phase that touches protected UI or upload flows must include a regression check for: access token expired or absent, refresh token valid, protected view/action still proceeds through the central refresh seam without showing logged-out UI.
 
 Do not read `authToken`, do not add token props, and do not pass token-shaped values into helper calls. The central client resolves and refreshes the active runtime session when the request is sent.
 

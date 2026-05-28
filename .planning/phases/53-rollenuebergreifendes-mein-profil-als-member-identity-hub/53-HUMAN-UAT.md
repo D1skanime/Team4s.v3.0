@@ -4,26 +4,32 @@ phase: 53-rollenuebergreifendes-mein-profil-als-member-identity-hub
 source:
   - 53-VERIFICATION.md
 started: 2026-05-27T16:12:29Z
-updated: 2026-05-27T16:12:29Z
+updated: 2026-05-28T10:08:02.0665353+02:00
 ---
 
 # Phase 53 Human UAT
 
 ## Current Test
 
-Awaiting live human/browser testing for the role-neutral member profile hub.
+number: 2
+name: Live avatar crop/upload smoke
+expected: |
+  JPG/PNG/WEBP avatar upload opens the crop dialog, supports pointer and keyboard interaction, displays the cropped image, rejects SVG, and never exposes `source_original` as the public avatar URL.
+awaiting: user response
 
 ## Tests
 
-### 1. Live non-admin `/me/profile` route and shell smoke
+### 1. Live non-admin `/me/profile` route access smoke
 
-expected: A signed-in non-admin user reaches `/me/profile` through the Member Hub shell, sees no admin framing or `Verwaltung` navigation, profile data renders from the authenticated aggregate, and `/admin/profile` renders only the same transition implementation.
-result: pending
+expected: A signed-in non-admin user can open `/me/profile` successfully without being blocked or redirected away from the profile route.
+result: pass
 
 ### 2. Live avatar crop/upload smoke
 
 expected: JPG/PNG/WEBP avatar upload opens the crop dialog, supports pointer and keyboard interaction, displays the cropped image, rejects SVG, and never exposes `source_original` as the public avatar URL.
-result: pending
+result: issue
+reported: "Avatar crop UI should remove the separate right-side preview circles because the main crop box already shows the round selected area; remove the helper text 'Das Original bleibt intern erhalten; angezeigt wird nur der runde Zuschnitt.' during the fix; at low zoom the image cannot be moved further even though there is still visual room above and below for the circle crop. Even at higher zoom the image cannot be moved left/right with mouse or touchscreen. Panning must work freely in all directions at every zoom level until the image edge touches the circular crop boundary. Attempting to save the avatar showed 'Anmeldung erforderlich. Bitte zuerst einen gültigen Login aufbauen.' even though the user had recently logged in and expects the session to remain valid for 24 hours. After a later successful save, the profile image card shows the uploaded crop and 'Profil wurde gespeichert.', but the large circle avatar in the header still shows the fallback initial instead of the new image. The profile helper text 'JPG, PNG oder WEBP bis zum bestehenden serverseitigen Bildlimit von 50 MB. SVG und ungültige Bilder werden serverseitig abgelehnt.' is too technical/admin-oriented for member profile UX and should be simplified. The hero description 'Deine Team4s-Identität, Fansub-Geschichte, Mitgliedschaften und Beiträge an einem rollenneutralen Ort.' should be removed. After upload, there is no way to edit/re-crop the already uploaded image later."
+severity: blocker
 
 ### 3. Mobile/accessibility visual pass
 
@@ -44,10 +50,24 @@ result: pending
 ## Summary
 
 total: 4
-passed: 0
-issues: 0
-pending: 4
+passed: 1
+issues: 1
+pending: 2
 skipped: 0
 blocked: 0
 
 ## Gaps
+
+- truth: "JPG/PNG/WEBP avatar upload opens the crop dialog, supports pointer and keyboard/touch interaction, displays the cropped image, rejects SVG, and saves successfully for a recently logged-in user."
+  status: failed
+  reason: "User reported: remove the separate preview circles because the main crop box is clear enough; remove the helper text 'Das Original bleibt intern erhalten; angezeigt wird nur der runde Zuschnitt.' during the fix; low-zoom panning stops despite remaining visual room above and below for the circular crop; higher-zoom panning cannot move left/right with mouse or touchscreen; panning must work freely in all directions at every zoom level until the image edge touches the circular crop boundary; saving the avatar reports 'Anmeldung erforderlich. Bitte zuerst einen gültigen Login aufbauen.' despite a recent login and expected 24-hour session; after a later successful save, the profile image card shows the uploaded crop and success message, but the header circle avatar still shows the fallback initial instead of the new image; simplify the technical profile helper text 'JPG, PNG oder WEBP bis zum bestehenden serverseitigen Bildlimit von 50 MB. SVG und ungültige Bilder werden serverseitig abgelehnt.' for member-facing UX; remove the hero description 'Deine Team4s-Identität, Fansub-Geschichte, Mitgliedschaften und Beiträge an einem rollenneutralen Ort.'; add a way to edit/re-crop the already uploaded image later."
+  severity: blocker
+  test: 2
+  artifacts:
+    - frontend/src/app/me/profile/page.tsx
+    - frontend/src/app/me/profile/components/MemberProfileHero.tsx
+    - frontend/src/app/me/profile/components/MemberAvatarCard.tsx
+    - frontend/src/components/media/crop/AvatarCropDialog.tsx
+    - frontend/src/components/media/crop/mediaCropMath.ts
+  missing:
+    - "Retest Test 2 on deployed Docker build."

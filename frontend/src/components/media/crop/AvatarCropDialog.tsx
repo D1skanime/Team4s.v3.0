@@ -215,59 +215,43 @@ export function AvatarCropDialog({ file, onCancel, onApply }: AvatarCropDialogPr
         <header className={styles.header}>
           <div>
             <h2 id={titleID} className={styles.title}>Avatar zuschneiden</h2>
-            <p className={styles.description}>Das Original bleibt intern erhalten; angezeigt wird nur der runde Zuschnitt.</p>
           </div>
           <button type="button" className={styles.closeButton} aria-label="Dialog schließen" onClick={onCancel}>
             <X size={18} aria-hidden="true" />
           </button>
         </header>
 
-        <div className={styles.cropGrid}>
-          <div>
-            <div
-              ref={viewportRef}
-              className={styles.cropViewport}
-              tabIndex={0}
-              aria-label="Avatar-Ausschnitt wählen"
-              onPointerDown={onCropPointerDown}
-              onPointerMove={onCropPointerMove}
-              onPointerUp={onCropPointerUp}
-              onPointerCancel={onCropPointerUp}
-              onKeyDown={onCropKeyDown}
-            >
-              {sourceURL ? (
-                <Image
-                  src={sourceURL}
-                  alt="Avatar Zuschnitt"
-                  className={styles.cropImage}
-                  width={AVATAR_CROP_VIEW_SIZE}
-                  height={AVATAR_CROP_VIEW_SIZE}
-                  unoptimized
-                  onLoad={(event) => {
-                    imageRef.current = event.currentTarget
-                    setImageSize({ w: event.currentTarget.naturalWidth, h: event.currentTarget.naturalHeight })
-                    setImageReady(true)
-                  }}
-                  style={imageStyle}
-                />
-              ) : null}
-              <div className={styles.cropMask} />
-            </div>
-            <p id={hintID} className={styles.hint}>Ziehen oder Pfeiltasten nutzen. Shift+Pfeil bewegt schneller. Escape schließt den Dialog.</p>
+        <div>
+          <div
+            ref={viewportRef}
+            className={styles.cropViewport}
+            tabIndex={0}
+            aria-label="Avatar-Ausschnitt wählen"
+            onPointerDown={onCropPointerDown}
+            onPointerMove={onCropPointerMove}
+            onPointerUp={onCropPointerUp}
+            onPointerCancel={onCropPointerUp}
+            onKeyDown={onCropKeyDown}
+          >
+            {sourceURL ? (
+              <Image
+                src={sourceURL}
+                alt="Avatar Zuschnitt"
+                className={styles.cropImage}
+                width={AVATAR_CROP_VIEW_SIZE}
+                height={AVATAR_CROP_VIEW_SIZE}
+                unoptimized
+                onLoad={(event) => {
+                  imageRef.current = event.currentTarget
+                  setImageSize({ w: event.currentTarget.naturalWidth, h: event.currentTarget.naturalHeight })
+                  setImageReady(true)
+                }}
+                style={imageStyle}
+              />
+            ) : null}
+            <div className={styles.cropMask} />
           </div>
-
-          <div className={styles.previewStack} aria-label="Runde Avatar-Vorschau">
-            <div className={styles.previewCircle}>
-              {sourceURL ? (
-                <Image src={sourceURL} alt="Große Avatar-Vorschau" className={styles.cropImage} width={124} height={124} unoptimized style={imageStyle} />
-              ) : null}
-            </div>
-            <div className={`${styles.previewCircle} ${styles.previewCircleSmall}`}>
-              {sourceURL ? (
-                <Image src={sourceURL} alt="Kleine Avatar-Vorschau" className={styles.cropImage} width={64} height={64} unoptimized style={imageStyle} />
-              ) : null}
-            </div>
-          </div>
+          <p id={hintID} className={styles.hint}>Ziehen oder Pfeiltasten nutzen. Shift+Pfeil bewegt schneller. Escape schließt den Dialog.</p>
         </div>
 
         <div className={styles.controls}>
@@ -308,4 +292,3 @@ export function AvatarCropDialog({ file, onCancel, onApply }: AvatarCropDialogPr
     </div>
   )
 }
-

@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Eye, Save } from 'lucide-react'
 
 import { Badge, Button, PageHeader } from '@/components/ui'
@@ -8,22 +9,23 @@ import styles from '../page.module.css'
 
 type MemberProfileHeroProps = {
   profile: MemberProfileData
+  avatarURL: string
   isDirty: boolean
   isSaving: boolean
   canSave: boolean
 }
 
-export function MemberProfileHero({ profile, isDirty, isSaving, canSave }: MemberProfileHeroProps) {
+export function MemberProfileHero({ profile, avatarURL, isDirty, isSaving, canSave }: MemberProfileHeroProps) {
   const displayName = profile.display_name || profile.fansub_name || 'Mein Profil'
   const roles = profile.account_global_roles.length ? profile.account_global_roles : ['user']
   const publicProfileReasonID = 'public-profile-action-reason'
+  const avatarLabel = profile.display_name || profile.fansub_name || 'Profil'
 
   return (
     <div className={styles.hero}>
       <PageHeader
         eyebrow="Mein Bereich"
         title="Mein Profil"
-        description="Deine Team4s-Identität, Fansub-Geschichte, Mitgliedschaften und Beiträge an einem rollenneutralen Ort."
         actions={
           <>
             <span className={styles.deferredActionWrap}>
@@ -42,8 +44,12 @@ export function MemberProfileHero({ profile, isDirty, isSaving, canSave }: Membe
       />
 
       <div className={styles.heroPanel}>
-        <div className={styles.heroAvatar} aria-hidden="true">
-          {(profile.fansub_name || profile.display_name || '?').slice(0, 1).toUpperCase()}
+        <div className={styles.heroAvatar}>
+          {avatarURL ? (
+            <Image src={avatarURL} alt={`${avatarLabel} Avatar`} width={132} height={132} unoptimized />
+          ) : (
+            <span aria-hidden="true">{(profile.fansub_name || profile.display_name || '?').slice(0, 1).toUpperCase()}</span>
+          )}
         </div>
         <div className={styles.heroCopy}>
           <h2>{displayName}</h2>

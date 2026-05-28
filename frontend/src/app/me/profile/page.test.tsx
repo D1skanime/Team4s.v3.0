@@ -186,6 +186,23 @@ describe('MyProfilePage', () => {
     expect(getOwnProfileMock).not.toHaveBeenCalled()
   })
 
+  it('loads profile data when the access cookie expired but refresh session remains', async () => {
+    useAuthSessionMock.mockReturnValue({
+      authToken: '',
+      hasAccessToken: false,
+      hasRefreshToken: true,
+      displayName: 'Mika',
+      isClientInitialized: true,
+    })
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+
+    render(<MyProfilePage />)
+
+    expect(await screen.findByRole('heading', { name: 'Mein Profil' })).not.toBeNull()
+    expect(getOwnProfileMock).toHaveBeenCalledTimes(1)
+    expect(screen.queryByText('Anmeldung erforderlich')).toBeNull()
+  })
+
   it('renders aggregate load errors honestly', async () => {
     getOwnProfileMock.mockRejectedValue(new Error('Profil API nicht erreichbar'))
 
@@ -258,7 +275,7 @@ describe('MyProfilePage', () => {
 
     const displayNameInput = await screen.findByLabelText('Anzeigename')
     fireEvent.change(displayNameInput, { target: { value: 'Ungespeicherter Name' } })
-    fireEvent.change(screen.getByLabelText(/JPG, PNG oder WEBP/i), {
+    fireEvent.change(screen.getByLabelText('Profilbild auswählen'), {
       target: { files: [new File(['source'], 'avatar.png', { type: 'image/png' })] },
     })
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt übernehmen' }))
@@ -271,5 +288,33 @@ describe('MyProfilePage', () => {
     expect(await screen.findByText('SVG ist nicht erlaubt')).not.toBeNull()
     expect(screen.getByDisplayValue('Ungespeicherter Name')).not.toBeNull()
     expect(updateOwnProfileMock).not.toHaveBeenCalled()
+  })
+
+  it('refreshes the hero avatar from the avatar upload response', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+    uploadOwnProfileAvatarMock.mockResolvedValue(makeProfileResponse({
+      avatar: {
+        id: 137,
+        filename: 'original.png',
+        public_url: '/media/profile/3/avatar/new/original.png',
+        mime_type: 'image/png',
+        size_bytes: 1234,
+        width: 512,
+        height: 512,
+        created_at: '2026-05-28T08:00:00Z',
+      },
+    }))
+
+    render(<MyProfilePage />)
+
+    fireEvent.change(await screen.findByLabelText('Profilbild auswählen'), {
+      target: { files: [new File(['source'], 'avatar.png', { type: 'image/png' })] },
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt übernehmen' }))
+
+    await waitFor(() => expect(uploadOwnProfileAvatarMock).toHaveBeenCalledTimes(1))
+    const avatarImages = await screen.findAllByAltText('Mika Avatar')
+    expect(avatarImages.some((image) => image.getAttribute('src') === '/media/profile/3/avatar/new/original.png')).toBe(true)
+    expect(await screen.findByText('Avatar wurde aktualisiert.')).not.toBeNull()
   })
 })

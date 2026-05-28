@@ -45,7 +45,7 @@ export function MemberAvatarCard({ profile, avatarURL, isUploading, onAvatarSele
       <input
         ref={inputRef}
         type="file"
-        aria-label="JPG, PNG oder WEBP Avatar-Datei auswählen"
+        aria-label="Profilbild auswählen"
         accept="image/jpeg,image/png,image/webp"
         onChange={(event) => {
           const file = event.target.files?.[0] ?? null
@@ -57,7 +57,7 @@ export function MemberAvatarCard({ profile, avatarURL, isUploading, onAvatarSele
         className={styles.visuallyHiddenInput}
       />
       <p id={uploadHintID} className={styles.mutedText}>
-        JPG, PNG oder WEBP bis zum bestehenden serverseitigen Bildlimit von 50 MB. SVG und ungültige Bilder werden serverseitig abgelehnt.
+        Wähle ein Profilbild als JPG, PNG oder WEBP.
       </p>
       {selectedFile ? (
         <AvatarCropDialog

@@ -24,6 +24,15 @@ describe('computeCropMetrics', () => {
     expect(metrics?.width).toBeCloseTo(metrics?.height ?? 0, 8)
     expect(metrics?.maxOffsetX).toBeCloseTo(metrics?.maxOffsetY ?? 0, 8)
   })
+
+  it('keeps panning room when low zoom makes one axis smaller than the viewport', () => {
+    const metrics = computeCropMetrics({ w: 600, h: 336 }, 340, 0.6)
+
+    expect(metrics?.width).toBeCloseTo(364.2857142857, 8)
+    expect(metrics?.height).toBeCloseTo(204, 8)
+    expect(metrics?.maxOffsetX).toBeCloseTo(12.1428571429, 8)
+    expect(metrics?.maxOffsetY).toBeCloseTo(68, 8)
+  })
 })
 
 describe('clampCropOffset', () => {
@@ -77,4 +86,3 @@ describe('computeCropDrawRect', () => {
     expect(draw.drawHeight).toBeCloseTo(563.2, 8)
   })
 })
-

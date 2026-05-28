@@ -49,7 +49,8 @@ describe('AvatarCropDialog', () => {
     const viewport = await screen.findByLabelText('Avatar-Ausschnitt wählen')
     fireEvent.load(screen.getByAltText('Avatar Zuschnitt'))
     expect(screen.getByRole('dialog', { name: 'Avatar zuschneiden' })).not.toBeNull()
-    expect(screen.getByLabelText('Runde Avatar-Vorschau')).not.toBeNull()
+    expect(screen.queryByLabelText('Runde Avatar-Vorschau')).toBeNull()
+    expect(screen.queryByText('Das Original bleibt intern erhalten; angezeigt wird nur der runde Zuschnitt.')).toBeNull()
 
     fireEvent.keyDown(viewport, { key: 'Escape' })
     expect(onCancel).toHaveBeenCalledTimes(1)
@@ -76,4 +77,3 @@ describe('AvatarCropDialog', () => {
     expect(onCancel).not.toHaveBeenCalled()
   })
 })
-

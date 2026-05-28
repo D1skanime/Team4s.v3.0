@@ -28,8 +28,8 @@ export function computeCropMetrics(imageSize: CropSize | null, viewSize: number,
     scale,
     width,
     height,
-    maxOffsetX: Math.max(0, (width - viewSize) / 2),
-    maxOffsetY: Math.max(0, (height - viewSize) / 2),
+    maxOffsetX: Math.abs(width - viewSize) / 2,
+    maxOffsetY: Math.abs(height - viewSize) / 2,
   }
 }
 
@@ -68,4 +68,3 @@ export function computeCropDrawRect(input: {
 
   return { drawX, drawY, drawWidth, drawHeight }
 }
-

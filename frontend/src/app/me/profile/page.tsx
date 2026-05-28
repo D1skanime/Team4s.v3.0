@@ -107,7 +107,7 @@ function canAccessAdmin(profile: MemberProfileData | null): boolean {
 }
 
 export default function MyProfilePage() {
-  const { hasAccessToken, isClientInitialized } = useAuthSession()
+  const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const [profile, setProfile] = useState<MemberProfileData | null>(null)
   const [form, setForm] = useState<MemberProfileFormState>(() => emptyFormState())
   const [isDirty, setIsDirty] = useState(false)
@@ -122,6 +122,7 @@ export default function MyProfilePage() {
   const hasOpenedKeycloakAccountRef = useRef(false)
   const isFormDirtyRef = useRef(false)
   const isRefreshingAccountRef = useRef(false)
+  const hasAuthSession = hasAccessToken || hasRefreshToken
 
   const applyProfile = useCallback((nextProfile: MemberProfileData, options: { syncForm: boolean; resetDirty?: boolean }) => {
     setProfile(nextProfile)
@@ -146,7 +147,7 @@ export default function MyProfilePage() {
   }, [applyProfile])
 
   const refreshAccountAfterReturn = useCallback(async () => {
-    if (!isClientInitialized || !hasAccessToken || !hasOpenedKeycloakAccountRef.current || isRefreshingAccountRef.current) return
+    if (!isClientInitialized || !hasAuthSession || !hasOpenedKeycloakAccountRef.current || isRefreshingAccountRef.current) return
     isRefreshingAccountRef.current = true
     setIsRefreshingAccount(true)
 
@@ -165,14 +166,14 @@ export default function MyProfilePage() {
       isRefreshingAccountRef.current = false
       setIsRefreshingAccount(false)
     }
-  }, [hasAccessToken, isClientInitialized, loadProfile])
+  }, [hasAuthSession, isClientInitialized, loadProfile])
 
   useEffect(() => {
     let cancelled = false
 
     async function load() {
       if (!isClientInitialized) return
-      if (!hasAccessToken) {
+      if (!hasAuthSession) {
         setError('Anmeldung erforderlich. Bitte zuerst einen gültigen Login aufbauen.')
         setIsLoading(false)
         return
@@ -194,7 +195,7 @@ export default function MyProfilePage() {
     return () => {
       cancelled = true
     }
-  }, [applyProfile, hasAccessToken, isClientInitialized])
+  }, [applyProfile, hasAuthSession, isClientInitialized])
 
   useEffect(() => {
     function handleFocus() {
@@ -225,7 +226,7 @@ export default function MyProfilePage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!hasAccessToken || !profile) return
+    if (!hasAuthSession || !profile) return
     if (hasYearErrors) {
       setError('Bitte korrigiere die markierten Jahresfelder, bevor du speicherst.')
       setSuccess(null)
@@ -257,7 +258,7 @@ export default function MyProfilePage() {
   }
 
   async function handleAvatarSelected(payload: { sourceFile: File; croppedFile: File }) {
-    if (!hasAccessToken) return
+    if (!hasAuthSession) return
 
     try {
       setIsUploadingAvatar(true)
@@ -290,7 +291,7 @@ export default function MyProfilePage() {
 
         {!isLoading && error && !profile ? (
           <ErrorState
-            title={hasAccessToken ? 'Profil konnte nicht geladen werden' : 'Anmeldung erforderlich'}
+            title={hasAuthSession ? 'Profil konnte nicht geladen werden' : 'Anmeldung erforderlich'}
             description={error}
             action={<Button href="/auth" variant="secondary">Zur Anmeldung</Button>}
           />
@@ -298,7 +299,7 @@ export default function MyProfilePage() {
 
         {!isLoading && profile ? (
           <>
-            <MemberProfileHero profile={profile} isDirty={isDirty} isSaving={isSaving} canSave={isDirty && !hasYearErrors && profile.capabilities.can_edit_own_profile} />
+            <MemberProfileHero profile={profile} avatarURL={avatarURL} isDirty={isDirty} isSaving={isSaving} canSave={isDirty && !hasYearErrors && profile.capabilities.can_edit_own_profile} />
             {error ? <div className={styles.errorBox}>{error}</div> : null}
             {success ? <div className={styles.successBox}>{success}</div> : null}
 

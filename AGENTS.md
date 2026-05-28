@@ -80,6 +80,15 @@ Use `docs/api/api-contracts.md` as the API contract workflow guide when it is pr
 - New or changed API behavior must include focused backend and frontend contract coverage where feasible.
 - If the runtime contract intentionally differs from a shared contract file, document the reason and add a follow-up or decision entry instead of silently drifting.
 
+## Auth Session Rules
+Use `docs/frontend/auth-api-client.md` as the source of truth for browser auth/API boundaries.
+
+- Protected UI must not treat a missing or expired access token as logged-out when a refresh session is still present.
+- For protected browser views/actions, gate on an active auth session (`hasAccessToken || hasRefreshToken`) and let the central API client refresh before the request.
+- Normal UI code must not call Keycloak refresh helpers directly, read auth cookies/storage directly, or construct bearer headers.
+- Any phase that touches protected UI, upload flows, or auth state must include a regression/security check for: access token expired or absent, refresh token valid, protected view/action proceeds through the central refresh seam without showing logged-out UI.
+- GSD plans for auth-adjacent work must include this case in the threat model or verification/UAT criteria so `$gsd-secure-phase` and `$gsd-verify-work` can catch regressions.
+
 ## Database And Migration Rules
 - Never edit old historical migrations unless explicitly instructed.
 - Add new migrations for schema changes.

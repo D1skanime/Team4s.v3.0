@@ -40,7 +40,6 @@
   font-size: 1.1rem;
 }
 
-.description,
 .hint {
   margin: 4px 0 0;
   color: var(--color-text-muted, #64748b);
@@ -54,13 +53,6 @@
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.8);
   cursor: pointer;
-}
-
-.cropGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 150px;
-  gap: 20px;
-  align-items: start;
 }
 
 .cropViewport {
@@ -106,27 +98,6 @@
   border-radius: 8px;
 }
 
-.previewStack {
-  display: grid;
-  gap: 10px;
-  justify-items: center;
-}
-
-.previewCircle {
-  width: 124px;
-  height: 124px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(100, 116, 139, 0.24);
-  border-radius: 50%;
-  background: #111827;
-}
-
-.previewCircleSmall {
-  width: 64px;
-  height: 64px;
-}
-
 .controls {
   display: grid;
   gap: 12px;
@@ -168,13 +139,4 @@
     padding: 16px;
   }
 
-  .cropGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .previewStack {
-    grid-template-columns: repeat(2, auto);
-    justify-content: center;
-  }
 }
-
