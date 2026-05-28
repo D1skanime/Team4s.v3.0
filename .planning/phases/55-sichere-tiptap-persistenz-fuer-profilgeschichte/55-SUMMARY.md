@@ -1,7 +1,7 @@
 ---
 phase: 55-sichere-tiptap-persistenz-fuer-profilgeschichte
-status: implemented
-completed: 2026-05-28
+status: complete
+completed: 2026-05-29
 requirements:
   - MEMBER-PROFILE-STORY-RICH-TEXT-01
 ---
@@ -39,6 +39,8 @@ requirements:
 6. Seite neu laden.
 7. Prüfen: Formatierung bleibt erhalten.
 8. Wieder `Bearbeiten` klicken und prüfen: Editor öffnet mit gespeichertem Zustand.
+
+Ergebnis: Passed am 2026-05-29 im In-App-Browser unter `http://127.0.0.1:3002/me/profile`.
 
 ## Checks
 

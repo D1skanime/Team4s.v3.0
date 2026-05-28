@@ -1,7 +1,7 @@
 ---
 status: passed
 phase: 55-sichere-tiptap-persistenz-fuer-profilgeschichte
-verified: 2026-05-28
+verified: 2026-05-29
 requirements:
   - MEMBER-PROFILE-STORY-RICH-TEXT-01
 ---
@@ -28,18 +28,13 @@ requirements:
 - Security boundary: handler rejects client-provided `member_story_html` and uses `TipTapService` for validation, rendering, and text extraction.
 - Auth boundary: `/me/profile` still gates on `hasAccessToken || hasRefreshToken` and uses `getOwnProfile`/`updateOwnProfile` from `frontend/src/lib/api.ts`.
 
-## Manual UAT Still Recommended
+## Manual UAT
 
-1. Open `/me/profile`.
-2. Click `Bearbeiten` in `Meine Fansub-Geschichte`.
-3. Add H1/H2/H3 content, a color, and a table.
-4. Save.
-5. Confirm the card returns to read mode with no editor toolbar.
-6. Reload the page.
-7. Confirm formatting is still visible.
-8. Click `Bearbeiten` again and confirm the editor opens with the saved state.
+- Passed on 2026-05-29 in the in-app browser at `http://127.0.0.1:3002/me/profile`.
+- Before the pass, local runtime was corrected by applying migration 78 and rebuilding/restarting backend and frontend containers.
+- User confirmed the live UAT with `pass`.
 
 ## Notes
 
 - Phase 56 Cropper work remains separate and was not part of this verification.
-- The worktree contains unrelated dirty handoff, Phase 54 screenshot, and Phase 56 cropper files; they are not Phase 55 verification blockers.
+- The worktree contains unrelated dirty handoff and Phase 54 screenshot files; they are not Phase 55 verification blockers.

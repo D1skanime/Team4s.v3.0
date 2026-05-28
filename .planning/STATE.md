@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 54 complete (4/4) — ready to discuss Phase 55
-last_updated: 2026-05-28T20:30:55.102Z
-last_activity: 2026-05-28
+stopped_at: Phase 55 complete with live UAT — ready to discuss Phase 56
+last_updated: 2026-05-29T00:00:00+02:00
+last_activity: 2026-05-29
 progress:
-  total_phases: 51
-  completed_phases: 35
-  total_plans: 192
-  completed_plans: 156
+  total_phases: 52
+  completed_phases: 36
+  total_plans: 196
+  completed_plans: 184
   percent: 69
 ---
 
@@ -21,11 +21,11 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 55 — sichere tiptap persistenz fuer profilgeschichte
+**Current focus:** Phase 56 — cropper
 
 ## Current Position
 
-Phase: 55
+Phase: 56
 Plan: Not started
 
 ## Accumulated Context
