@@ -81,6 +81,8 @@ export function ProfileBasicsForm({ form, disabled, errors, onChange }: ProfileB
       <FormField label="Kurzbeschreibung" htmlFor="bio" hint={`${bioLength}/280 Zeichen`}>
         <Textarea
           id="bio"
+          className={styles.bioTextarea}
+          rows={2}
           maxLength={280}
           value={form.bio}
           disabled={disabled}

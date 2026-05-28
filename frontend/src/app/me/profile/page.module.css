@@ -63,6 +63,10 @@
 .heroCopy p {
   max-width: 760px;
   color: rgba(255, 255, 255, 0.84);
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .layoutGrid {
@@ -111,6 +115,13 @@
 .checkboxControl input {
   width: 18px;
   height: 18px;
+}
+
+.formGrid .bioTextarea {
+  height: 76px;
+  min-height: 76px;
+  max-height: 76px;
+  resize: none;
 }
 
 .chipRow {
