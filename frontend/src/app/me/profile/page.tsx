@@ -2,7 +2,6 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { AppShell } from '@/components/layout/AppShell'
 import { Button, Card, ErrorState, LoadingState, SectionHeader } from '@/components/ui'
 import { ApiError, getOwnProfile, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
@@ -98,10 +97,6 @@ function accountSnapshot(profile: MemberProfileData): string {
     status: profile.account_status || '',
     roles: [...profile.account_global_roles].sort(),
   })
-}
-
-function canAccessAdmin(profile: MemberProfileData | null): boolean {
-  return Boolean(profile?.account_global_roles.includes('platform_admin') || profile?.account_global_roles.includes('admin'))
 }
 
 export default function MyProfilePage() {
@@ -216,10 +211,6 @@ export default function MyProfilePage() {
     () => resolveApiUrl(profile?.avatar?.source_original_url || profile?.avatar?.public_url || ''),
     [profile?.avatar?.public_url, profile?.avatar?.source_original_url],
   )
-  const shellUser = useMemo(() => ({
-    displayName: profile?.account_display_name || profile?.fansub_name || '',
-    email: profile?.email || '',
-  }), [profile])
   const yearErrors = useMemo(() => ({
     activeFromYear: validateOptionalYear(form.activeFromYear),
     activeUntilYear: form.isCurrentlyActive ? undefined : validateOptionalYear(form.activeUntilYear),
@@ -284,7 +275,6 @@ export default function MyProfilePage() {
   }
 
   return (
-    <AppShell currentPath="/me/profile" user={shellUser} canAccessAdmin={canAccessAdmin(profile)}>
       <main className={styles.page}>
         {isLoading ? (
           <LoadingState title="Profil wird geladen" description="Team4s lädt deine Profil-, Mitgliedschafts- und Beitragsdaten." />
@@ -349,6 +339,5 @@ export default function MyProfilePage() {
           </>
         ) : null}
       </main>
-    </AppShell>
   )
 }
