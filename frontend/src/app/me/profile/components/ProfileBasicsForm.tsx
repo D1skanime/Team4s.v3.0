@@ -26,6 +26,22 @@ export function ProfileBasicsForm({ form, disabled, errors, onChange }: ProfileB
           onChange={(event) => onChange((current) => ({ ...current, fansubName: event.target.value }))}
         />
       </FormField>
+      <FormField label="Aktuell aktiv" htmlFor="isCurrentlyActive">
+        <label className={styles.checkboxControl}>
+          <input
+            id="isCurrentlyActive"
+            type="checkbox"
+            checked={form.isCurrentlyActive}
+            disabled={disabled}
+            onChange={(event) => onChange((current) => ({
+              ...current,
+              isCurrentlyActive: event.target.checked,
+              activeUntilYear: event.target.checked ? '' : current.activeUntilYear,
+            }))}
+          />
+          <span>Ich bin aktuell in der Fansub-Szene aktiv</span>
+        </label>
+      </FormField>
       <div className={styles.yearGrid}>
         <FormField
           label="Aktiv seit"
@@ -60,24 +76,6 @@ export function ProfileBasicsForm({ form, disabled, errors, onChange }: ProfileB
             disabled={disabled || form.isCurrentlyActive}
             onChange={(event) => onChange((current) => ({ ...current, activeUntilYear: event.target.value }))}
           />
-        </FormField>
-      </div>
-      <div className={styles.fullRow}>
-        <FormField label="Aktuell aktiv" htmlFor="isCurrentlyActive">
-          <label className={styles.checkboxControl}>
-            <input
-              id="isCurrentlyActive"
-              type="checkbox"
-              checked={form.isCurrentlyActive}
-              disabled={disabled}
-              onChange={(event) => onChange((current) => ({
-                ...current,
-                isCurrentlyActive: event.target.checked,
-                activeUntilYear: event.target.checked ? '' : current.activeUntilYear,
-              }))}
-            />
-            <span>Ich bin aktuell in der Fansub-Szene aktiv</span>
-          </label>
         </FormField>
       </div>
       <FormField label="Kurzbeschreibung" htmlFor="bio" hint={`${bioLength}/280 Zeichen`}>
