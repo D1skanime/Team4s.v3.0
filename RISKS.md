@@ -2,49 +2,36 @@
 
 ## Top Risks
 
-### 1. Broad dirty worktree causes an accidental mega-commit
+### 1. Closed planning state drifts after push
+- **Impact:** Medium
+- **Likelihood:** Medium
+- **Why it matters:** Phase 54-56 now span several planning artifacts. A stale checkbox or pending-gate note can mislead the next session.
+- **Mitigation:** Start next session with a 15-minute roadmap/status reconcile and confirm Phase 54-56 are consistently closed.
+
+### 2. Future cropper work accidentally crosses media ownership boundaries
 - **Impact:** High
 - **Likelihood:** Medium
-- **Why it matters:** Today's workspace is clean, but long GSD chains and multiple agents can quickly dirty page code, planning files, generated files, and docs at once.
-- **Mitigation:** Stage by explicit path only, commit each completed GSD slice, and prefer branch/worktree isolation for parallel agents.
+- **Why it matters:** Phase 56 deliberately kept the cropper as UI/export infrastructure only. Uploads still belong to profile avatar and fansub group media seams separately.
+- **Mitigation:** Keep `Team4sCropper` domain-neutral. Profile uploads go through `uploadOwnProfileAvatar`; fansub group media goes through `MediaUpload`/`uploadFansubMedia`; no release/anime/episode media shortcuts.
 
-### Phase 51 Note
-- Phase 51 auth is merged to `main` and pushed.
-- The API bearer truth is now durable: Keycloak `access_token` with `team4s-api` audience, not `id_token`.
-
-### Local Commit Note
-- The `next/image` mock cleanup is committed as `ed0254a9` plus GSD docs commit `65dfec11`.
-- Closeout handoff edits are committed only after explicit user request.
-
-### Agent Hygiene Rule
-- When multiple agents work on page code, use separate branches/worktrees per agent and require each agent to start from `git status --short --branch`, commit its own slice, and leave generated/cache files unstaged.
-
-### 2. Future agents reintroduce the old release-media assumption
+### 3. TipTap profile story persistence regresses to plain-text-only behavior
 - **Impact:** High
-- **Likelihood:** Medium
-- **Why it matters:** Versioned Admin/Fansub process media belongs to `release_version_media.release_version_id`; using `release_id` or `release_media` here breaks domain ownership.
-- **Mitigation:** Keep `AGENTS.md`, `DECISIONS.md`, domain docs, contracts, and tests aligned. Domain guardrail tests now cover canonical `release_version_id`, `fansub_group_id`, and migration-0057 safety.
+- **Likelihood:** Low
+- **Why it matters:** Phase 55 moved profile story persistence onto a real TipTap JSON, server-sanitized HTML, and derived plain text contract.
+- **Mitigation:** Preserve the Phase 55 migration, backend validation/sanitizing, OpenAPI/frontend DTO alignment, and tests when touching `/me/profile`.
 
-### 3. New upload flows duplicate existing domain flows
+### 4. New upload flows duplicate existing domain flows
 - **Impact:** High
 - **Likelihood:** Medium
 - **Why it matters:** Parallel upload logic makes media ownership, progress state, and API contracts drift.
-- **Mitigation:** Before any new upload work, inspect `MediaUpload`, `ReleaseVersionMediaSection`/`useReleaseVersionMedia`, anime upload planning, and `api.ts` upload helpers.
+- **Mitigation:** Before any new upload work, inspect `MediaUpload`, `ReleaseVersionMediaSection`/`useReleaseVersionMedia`, anime upload planning, and `frontend/src/lib/api.ts` upload helpers.
 
-### 4. Legacy route deletion misses a hidden link
-- **Impact:** Medium
-- **Likelihood:** Low/Medium
-- **Why it matters:** Removed routes should not be linked from active admin screens.
-- **Mitigation:** Keep `rg` checks in the audit notes and test active route replacements before committing.
-
-### 5. Larger UI convergence gets attempted too broadly
-- **Impact:** Medium
+### 5. Release-version media is collapsed back onto release-level media
+- **Impact:** High
 - **Likelihood:** Medium
-- **Why it matters:** Drawer, Upload, and Card convergence can create UX/domain regressions if done as one large refactor.
-- **Mitigation:** Keep future UI work as small adoption slices with targeted tests.
+- **Why it matters:** Versioned Admin/Fansub process media belongs to `release_version_media.release_version_id`; using `release_id` or `release_media` here breaks domain ownership.
+- **Mitigation:** Keep `AGENTS.md`, `DECISIONS.md`, domain docs, contracts, and tests aligned.
 
 ## Current Blockers
-- No product blocker for Phase 51, Page/Audit cleanup, or the domain guardrail tests.
-- No current product blocker is recorded.
-- Existing `next/image` mock warning is fixed and verified.
-- Older unrelated stashes remain from prior work and should not be dropped blindly.
+- No known blocker remains for Phase 55 or Phase 56.
+- Older parking-lot tasks remain intentionally deferred.

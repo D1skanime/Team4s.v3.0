@@ -1,5 +1,38 @@
 # DECISIONS
 
+## 2026-05-28 - Profile Story TipTap Persistence Needs A Dedicated Contract Phase
+
+### Decision
+Phase 53 keeps the profile story/description as plain text. Rich TipTap persistence for that field must be planned as a dedicated Phase 55 slice before implementation.
+
+### Why This Won
+Storing TipTap content safely is not only a UI change. It affects database shape, migration of existing plain text, backend request/response DTOs, OpenAPI, frontend types, sanitizer rules, and how the shared editor serializes content. A quick local patch would make the profile surface drift from the API contract.
+
+### Consequences
+- Phase 55 must define the persisted representation before coding.
+- Migration and backend/API contract changes belong in the same phase as the frontend editor change.
+- Existing plain text must keep rendering and migrate predictably.
+- The shared TipTap editor should be reused instead of adding a profile-only rich-text path.
+
+### Follow-ups Required
+- At next Day Start, define Phase 55 with read-first files for profile persistence, existing TipTap flows, migrations, and OpenAPI.
+
+## 2026-05-28 - Avatar Cropping Moves To A Shared Library-Based Component
+
+### Decision
+Stop treating the current avatar cropper as a sequence of small local bugs. Replace it later with one shared cropper component built on a modern maintained cropper library and reuse it for own profile avatar and fansub group images.
+
+### Why This Won
+Human UAT showed that the current in-house cropper can save a different crop from the preview and has unreliable movement constraints. The UI looked acceptable, but the functional behavior is too fragile for reuse.
+
+### Consequences
+- Do not keep patching the current cropper unless it is a tiny unblocker.
+- Future cropper work should define expected behavior explicitly: free movement in all directions until the image edge reaches the circular crop boundary, accurate saved output, touch/mouse/keyboard parity, and reusable ownership-specific upload integration.
+- Fansub group image flows should use the same shared component once available.
+
+### Follow-ups Required
+- Create/execute a future phase or quick slice for global cropper replacement after current UAT flow.
+
 ## 2026-05-26 - Agents Must Use Implementation Contracts Before Adding Parallel Code
 
 ### Decision
@@ -521,3 +554,27 @@ The Resource Server model is the correct OIDC boundary: access tokens target API
 
 ### Follow-ups Required
 - Keep auth regression tests that prevent `id_token` from flowing back into Team4s bearer storage or refresh retry paths.
+
+## 2026-05-29 - Shared Cropper Is UI Export Infrastructure Only
+
+### Decision
+Use `react-easy-crop` behind a shared `Team4sCropper` component, but keep upload, auth, persistence, and media ownership in the existing domain-specific flows.
+
+### Context
+Phase 56 replaced the fragile custom cropper behavior for profile avatars and fansub group raster logos. The same cropper UI was needed in both places, but media ownership must remain separate: profile avatars are member/profile assets, while fansub logos are group media.
+
+### Options Considered
+- make the cropper own upload behavior across profile and fansub group media
+- keep the cropper as a small domain-neutral client-side export component and let callers upload through their existing seams
+
+### Why This Won
+The cropper only needs to solve preview/export parity and interaction quality. Letting it upload would mix profile, fansub group, release, anime, and auth concerns in a shared UI primitive.
+
+### Consequences
+- `Team4sCropper` exports a cropped `File` and performs no persistence.
+- Profile avatar upload keeps source-original plus cropped-display semantics through `uploadOwnProfileAvatar`.
+- Fansub group logo upload stays in `MediaUpload` and `uploadFansubMedia`.
+- SVG group logos bypass canvas/cropper conversion and stay on the existing upload path.
+
+### Follow-ups Required
+- If future domains need cropping, integrate the shared cropper as UI/export only and keep each domain's existing upload and ownership contract.

@@ -1,5 +1,77 @@
 # DAYLOG
 
+## 2026-05-29
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's focus: close Phase 55 TipTap profile-story persistence, execute Phase 56 cropper replacement, finish UAT/security gates, and push a restartable `main`.
+
+### Workstreams Touched
+- Phase 55 secure TipTap persistence for `/me/profile` member story.
+- Phase 56 shared cropper foundation for profile avatar and fansub group logo flows.
+- GSD verification, UAT, security, and closeout artifacts.
+- Repo-local handoff files.
+
+### Accomplishments
+- Phase 55 is complete with validation strategy, UAT evidence, and committed planning artifacts.
+- Phase 56 is complete: `react-easy-crop` is wrapped behind `Team4sCropper`, avatar crop and fansub logo crop use the shared UI foundation, and the old crop parity issue was validated as fixed.
+- Phase 56 functional UAT passed on 2026-05-29.
+- Phase 56 security review passed with `threats_open: 0`; no auth/API, upload endpoint, or media ownership boundary changed.
+- Roadmap, requirements, state, UAT, summary, and security artifacts now mark Phase 56 complete.
+
+### Decisions
+- The cropper is a UI/client export primitive only. It must not become an upload endpoint, auth seam, or media ownership abstraction.
+- Profile avatars continue through `uploadOwnProfileAvatar` with source-original plus cropped-display semantics.
+- Fansub group logo/media continues through `MediaUpload` and `uploadFansubMedia`; SVG logos bypass canvas cropping and stay on the existing upload path.
+
+### Verification
+- Phase 56 verification evidence includes targeted cropper/avatar/media/profile tests, typecheck, focused ESLint, build, and functional UAT.
+- `$gsd-secure-phase 56` completed with `threats_open: 0`.
+- `git diff --check` was rerun during closeout.
+
+### Blockers
+- No known blocker remains for Phase 55 or Phase 56.
+- Phase 54 drawer/header context is complete; screenshots remain as planning evidence.
+- Full frontend lint may still include known unrelated warnings from earlier work.
+
+### Next Step
+- Start with a 15-minute reconcile pass: run `git status --short --branch`, confirm Phase 54-56 are consistently closed, then choose the next narrow cleanup slice.
+
+## 2026-05-28 Phase 53/50 UAT Closeout
+- Project: `Team4s.v3.0`
+- Milestone: `v1.1 Asset Lifecycle Hardening`
+- Today's final focus: Phase 53 Profil-UAT/Validation abschließen, Phase 50 Contributor-UAT nachziehen, Phase 54 als laufenden Kontext festhalten und den nächsten Tag auf Phase 55/TipTap-Persistenz vorbereiten.
+
+### Workstreams Touched
+- Phase 53 `Own Profile / Member Profile`: Human-UAT, UI-Texte, Avatar-Flow, Account-return, Validation-Tests.
+- Phase 50 Contributor-Scope-UAT: non-admin gates, own-group scope, release editor, media upload notes.
+- Phase 54 context: globaler Drawer/Header-Kontext bleibt aktiv; Phase 54 ist noch nicht abgeschlossen.
+- Follow-up backlog: globaler moderner Cropper, Profil-Hub-Inhalte, Contributor-Media-Edit/Delete, TipTap-Profilgeschichte.
+
+### Accomplishments
+- Phase 53 UAT abgeschlossen und in `53-HUMAN-UAT.md` dokumentiert: 2 Passes, 2 Follow-up-Issues.
+- Profil-UX bereinigt: unklare Badges/Texte entfernt, `Fansub-Nick` als editierbares Team4s-Profilfeld geklärt, Anzeigename nicht mehr lokal editierbar, Kurzbeschreibung begrenzt und Avatar-Bedienung verständlicher benannt.
+- Phase 53 Validation erweitert: zusätzliche Profil- und AppShell-Tests, `53-VALIDATION.md` mit bewusstem Partial-Status wegen Browser-/Cropper-Restthemen.
+- Phase 50 UAT nachgezogen und als bestanden dokumentiert; spätere Verbesserung für eigene Uploads/Notizen wurde als Todo festgehalten.
+- Drei konkrete Follow-up-Todos liegen in `.planning/todos/pending/`: globaler Cropper, Profil-Hub-Aktivitäten, Contributor-owned Media/Note Edit/Delete.
+
+### Decisions
+- Der bestehende Avatar-Cropper wird nicht weiter mit Einzelfixes gerettet. Nächster Schritt ist ein global wiederverwendbarer Cropper mit moderner gepflegter Bibliothek für eigenes Profil und Fansubgruppen.
+- Die Profilgeschichte bleibt in Phase 53 bewusst Plain Text. Sichere TipTap-Persistenz wird als eigener Phase-55-Scope geplant, inklusive Migration und Backend-/OpenAPI-Contract.
+- Profil-Hub-Inhalte sollen später eher letzte Medien/Beiträge/Texte zeigen statt unklare Mitgliedschafts- und Rollenblöcke zu wiederholen.
+
+### Verification
+- Phase 53 checks: Profil/AppShell-Tests, Cropper-Tests, Frontend-Typecheck, fokussiertes ESLint, `go test ./internal/handlers ./internal/repository`, `git diff --check`.
+- Phase 50 checks: Human-UAT plus bestehende `NotesTab`-Trennungstestabdeckung.
+- Git-Status beim Closeout: `main...origin/main [ahead 68]`, keine unstaged Änderungen vor dem Handoff-Update.
+
+### Blockers
+- Avatar-Zuschnitt bleibt funktional unzuverlässig: Vorschau und gespeichertes Ergebnis können abweichen; frei verschieben bis Bildrand/Kreisrand ist nicht stabil genug.
+- Full frontend lint hat weiterhin bekannte, nicht heutige Altlasten außerhalb der fokussierten Checks.
+- Phase 54 läuft noch; den Drawer/Header-Kontext morgen nicht versehentlich überspringen.
+
+### Next Step
+- Morgen zuerst Phase 55 definieren: sichere TipTap-Persistenz für Profilgeschichte mit DB-Migration, Backend-Contract, Frontend-DTO und Wiederverwendung des gemeinsamen Editors. Danach Phase 54/Drawer-Kontext wieder aufnehmen.
+
 ## 2026-05-26 Quick Mock Cleanup Closeout
 - Project: `Team4s.v3.0`
 - Milestone: `v1.1 Asset Lifecycle Hardening`

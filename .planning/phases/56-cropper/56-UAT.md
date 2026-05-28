@@ -67,7 +67,7 @@ blocked: 0
 
 ## Security Gate
 
-Security enforcement is enabled and `.planning/phases/56-cropper/56-SECURITY.md` does not exist yet. Functional UAT is complete, but `$gsd-secure-phase 56` should run before advancing through a security-gated workflow.
+Security enforcement is enabled and `.planning/phases/56-cropper/56-SECURITY.md` passed with `threats_open: 0` on 2026-05-29. Functional UAT and security review are complete.
 
 ## Gaps
 
