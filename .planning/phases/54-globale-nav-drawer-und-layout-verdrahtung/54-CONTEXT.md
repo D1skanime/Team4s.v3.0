@@ -30,7 +30,7 @@ Diese Phase liefert nicht:
 ### Drawer-Mechanismus
 
 - **D-01:** Der mobile Drawer ist ein echter Slide-over Overlay, der von links über den Content schiebt. Kein Inline-Panel mehr unter dem Header.
-- **D-02:** Auf Desktop erscheint ein dünner Glasrand (Edge-Strip) am linken Rand. Beim Hover oder Fokus auf diesen Strip klappt der Drawer aus, der Content dahinter wird geblurrt. Wenn die Maus den Drawer verlässt oder der Fokus wechselt, schließt er sich wieder.
+- **D-02:** Auf Desktop erscheint ein **16px breiter** Glasrand (Edge-Strip) am linken Rand. Beim Hover oder Fokus auf diesen Strip klappt der Drawer aus, der Content dahinter wird geblurrt. Wenn die Maus den Drawer verlässt oder der Fokus wechselt, schließt er sich wieder. 16px ist groß genug als verlässliches Hover-/Klick-Ziel, ohne in den Content-Bereich einzudringen.
 - **D-03:** Auf Mobile gibt es weiterhin einen Burger-Button im Header, der den Drawer öffnet und schließt.
 - **D-04:** Der Hover-Trigger auf Desktop ist AUCH per Tastatur (Fokus + Enter) bedienbar. Keine reinen Hover-only-Aktionen (D-39 aus Phase 53 bleibt gültig).
 - **D-05:** Der gesamte Drawer (nicht nur der Header) ist halbtransparent/Glassmorphism — `backdrop-filter: blur(...)` mit `background: rgba(..., 0.X)`. Kein opaker Hintergrund.
