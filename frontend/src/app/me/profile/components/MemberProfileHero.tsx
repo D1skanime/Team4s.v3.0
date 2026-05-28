@@ -1,25 +1,22 @@
 import Image from 'next/image'
 import { Eye, Save } from 'lucide-react'
 
-import { Badge, Button, PageHeader } from '@/components/ui'
+import { Button, PageHeader } from '@/components/ui'
 import type { MemberProfileData } from '@/types/profile'
-import { formatPlatformRoleLabel } from '@/lib/profileLabels'
 
 import styles from '../page.module.css'
 
 type MemberProfileHeroProps = {
   profile: MemberProfileData
   avatarURL: string
-  isDirty: boolean
   isSaving: boolean
   canSave: boolean
 }
 
-export function MemberProfileHero({ profile, avatarURL, isDirty, isSaving, canSave }: MemberProfileHeroProps) {
-  const displayName = profile.display_name || profile.fansub_name || 'Mein Profil'
-  const roles = profile.account_global_roles.length ? profile.account_global_roles : ['user']
+export function MemberProfileHero({ profile, avatarURL, isSaving, canSave }: MemberProfileHeroProps) {
+  const displayName = profile.fansub_name || profile.account_display_name || 'Mein Profil'
   const publicProfileReasonID = 'public-profile-action-reason'
-  const avatarLabel = profile.display_name || profile.fansub_name || 'Profil'
+  const avatarLabel = profile.fansub_name || profile.account_display_name || 'Profil'
 
   return (
     <div className={styles.hero}>
@@ -48,19 +45,12 @@ export function MemberProfileHero({ profile, avatarURL, isDirty, isSaving, canSa
           {avatarURL ? (
             <Image src={avatarURL} alt={`${avatarLabel} Avatar`} width={132} height={132} unoptimized />
           ) : (
-            <span aria-hidden="true">{(profile.fansub_name || profile.display_name || '?').slice(0, 1).toUpperCase()}</span>
+            <span aria-hidden="true">{(profile.fansub_name || profile.account_display_name || '?').slice(0, 1).toUpperCase()}</span>
           )}
         </div>
         <div className={styles.heroCopy}>
           <h2>{displayName}</h2>
           <p>{profile.bio || 'Noch keine Kurzbeschreibung hinterlegt.'}</p>
-          <div className={styles.chipRow}>
-            {roles.map((role) => (
-              <Badge key={role} variant="info">{formatPlatformRoleLabel(role)}</Badge>
-            ))}
-            {profile.fansub_name ? <Badge variant="neutral">{profile.fansub_name}</Badge> : null}
-            {isDirty ? <Badge variant="warning">Ungespeicherte Änderungen</Badge> : null}
-          </div>
         </div>
       </div>
     </div>

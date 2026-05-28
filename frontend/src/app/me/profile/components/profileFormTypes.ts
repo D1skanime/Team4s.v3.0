@@ -1,7 +1,6 @@
 import type { ProfileVisibility } from '@/types/profile'
 
 export type MemberProfileFormState = {
-  displayName: string
   fansubName: string
   bio: string
   memberStory: unknown

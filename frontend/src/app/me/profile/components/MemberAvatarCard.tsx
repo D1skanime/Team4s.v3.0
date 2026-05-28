@@ -38,7 +38,7 @@ export function MemberAvatarCard({
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isPreparingExistingAvatar, setIsPreparingExistingAvatar] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
-  const label = profile.display_name || profile.fansub_name || 'Profil'
+  const label = profile.fansub_name || profile.account_display_name || 'Profil'
   const canUpload = profile.capabilities.can_upload_own_avatar
   const uploadHintID = 'profile-avatar-upload-hint'
   const canEditExistingAvatar = Boolean(canUpload && sourceAvatarURL)
@@ -71,7 +71,7 @@ export function MemberAvatarCard({
         {avatarURL ? (
           <Image src={avatarURL} alt={`${label} Avatar`} width={420} height={420} unoptimized />
         ) : (
-          <span>{(profile.fansub_name || profile.display_name || '?').slice(0, 1).toUpperCase()}</span>
+          <span>{(profile.fansub_name || profile.account_display_name || '?').slice(0, 1).toUpperCase()}</span>
         )}
       </div>
       <Button

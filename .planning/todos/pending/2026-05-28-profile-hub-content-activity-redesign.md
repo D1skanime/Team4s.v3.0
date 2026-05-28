@@ -27,6 +27,7 @@ Specific issues to address:
 - Replace the abstract `Meine Beiträge`/historical credit aggregate with a member-useful activity surface, preferably latest three media uploads plus latest texts/notes the user wrote for media/releases. This likely needs a new backend contract.
 - Drawer direction should not duplicate `Meine Gruppen`; a later drawer/detail surface should focus on `Meine Medien` or `Meine Aktivität` with filters.
 - Consider whether membership belongs on the main page as a compact identity summary, while detailed media/activity belongs in a separate view/drawer.
+- Keep the account/display name out of the editable Team4s profile form. The editable fansub identity field should be labelled `Fansub-Nick` and continue to map to API `fansub_name` / database `members.nickname`.
 
 ## Solution
 

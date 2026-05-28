@@ -18,20 +18,12 @@ export function ProfileBasicsForm({ form, disabled, errors, onChange }: ProfileB
 
   return (
     <div className={styles.formGrid}>
-      <FormField label="Fansub-Name" htmlFor="fansubName">
+      <FormField label="Fansub-Nick" htmlFor="fansubName">
         <Input
           id="fansubName"
           value={form.fansubName}
           disabled={disabled}
           onChange={(event) => onChange((current) => ({ ...current, fansubName: event.target.value }))}
-        />
-      </FormField>
-      <FormField label="Anzeigename" htmlFor="displayName">
-        <Input
-          id="displayName"
-          value={form.displayName}
-          disabled={disabled}
-          onChange={(event) => onChange((current) => ({ ...current, displayName: event.target.value }))}
         />
       </FormField>
       <div className={styles.yearGrid}>

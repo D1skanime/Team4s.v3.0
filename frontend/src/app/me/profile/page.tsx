@@ -46,7 +46,6 @@ function richTextToPlainText(value: unknown): string {
 
 function toFormState(profile: MemberProfileData): MemberProfileFormState {
   return {
-    displayName: profile.display_name || '',
     fansubName: profile.fansub_name || '',
     bio: profile.bio || '',
     memberStory: richTextFromPlainText(profile.member_story || ''),
@@ -59,7 +58,6 @@ function toFormState(profile: MemberProfileData): MemberProfileFormState {
 
 function emptyFormState(): MemberProfileFormState {
   return {
-    displayName: '',
     fansubName: '',
     bio: '',
     memberStory: richTextFromPlainText(''),
@@ -219,7 +217,7 @@ export default function MyProfilePage() {
     [profile?.avatar?.public_url, profile?.avatar?.source_original_url],
   )
   const shellUser = useMemo(() => ({
-    displayName: profile?.account_display_name || profile?.display_name || '',
+    displayName: profile?.account_display_name || profile?.fansub_name || '',
     email: profile?.email || '',
   }), [profile])
   const yearErrors = useMemo(() => ({
@@ -242,7 +240,6 @@ export default function MyProfilePage() {
       setError(null)
       setSuccess(null)
       const response = await updateOwnProfile({
-        display_name: form.displayName.trim() || null,
         fansub_name: form.fansubName.trim() || null,
         bio: form.bio.trim() || null,
         member_story: richTextToPlainText(form.memberStory) || null,
@@ -303,7 +300,7 @@ export default function MyProfilePage() {
 
         {!isLoading && profile ? (
           <>
-            <MemberProfileHero profile={profile} avatarURL={avatarURL} isDirty={isDirty} isSaving={isSaving} canSave={isDirty && !hasYearErrors && profile.capabilities.can_edit_own_profile} />
+            <MemberProfileHero profile={profile} avatarURL={avatarURL} isSaving={isSaving} canSave={isDirty && !hasYearErrors && profile.capabilities.can_edit_own_profile} />
             {error ? <div className={styles.errorBox}>{error}</div> : null}
             {success ? <div className={styles.successBox}>{success}</div> : null}
 

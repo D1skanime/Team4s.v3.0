@@ -215,20 +215,21 @@ describe('MyProfilePage', () => {
 
   it('saves edited Team4s profile fields and keeps account fields read-only', async () => {
     getOwnProfileMock.mockResolvedValue(makeProfileResponse())
-    updateOwnProfileMock.mockResolvedValue(makeProfileResponse({ display_name: 'Mika Nova' }))
+    updateOwnProfileMock.mockResolvedValue(makeProfileResponse({ fansub_name: 'MikaNova' }))
 
     render(<MyProfilePage />)
 
-    const input = await screen.findByLabelText('Anzeigename')
-    fireEvent.change(input, { target: { value: 'Mika Nova' } })
+    const input = await screen.findByLabelText('Fansub-Nick')
+    fireEvent.change(input, { target: { value: 'MikaNova' } })
     fireEvent.click(screen.getByRole('button', { name: 'Profil speichern' }))
 
     await waitFor(() => {
       expect(updateOwnProfileMock).toHaveBeenCalledWith(expect.objectContaining({
-        display_name: 'Mika Nova',
+        fansub_name: 'MikaNova',
       }))
     })
     const payload = updateOwnProfileMock.mock.calls[0]?.[0] as Record<string, unknown>
+    expect(payload.display_name).toBeUndefined()
     expect(payload.email).toBeUndefined()
     expect(payload.keycloak_subject).toBeUndefined()
     expect(await screen.findByText('Profil wurde gespeichert.')).not.toBeNull()
@@ -240,19 +241,20 @@ describe('MyProfilePage', () => {
       .mockResolvedValueOnce(makeProfileResponse({
         account_display_name: 'Mika Keycloak',
         display_name: 'Mika From Server',
+        fansub_name: 'ServerNick',
       }))
     refreshActiveAuthSessionMock.mockResolvedValue(undefined)
 
     render(<MyProfilePage />)
 
-    const displayNameInput = await screen.findByLabelText('Anzeigename')
-    fireEvent.change(displayNameInput, { target: { value: 'Ungespeicherter Name' } })
+    const fansubNickInput = await screen.findByLabelText('Fansub-Nick')
+    fireEvent.change(fansubNickInput, { target: { value: 'Ungespeicherter Nick' } })
     fireEvent.click(screen.getByRole('link', { name: 'Accountdaten verwalten' }))
     fireEvent.focus(window)
 
     expect((await screen.findAllByText('Mika Keycloak')).length).toBeGreaterThan(0)
-    expect(screen.getByDisplayValue('Ungespeicherter Name')).not.toBeNull()
-    expect(screen.queryByDisplayValue('Mika From Server')).toBeNull()
+    expect(screen.getByDisplayValue('Ungespeicherter Nick')).not.toBeNull()
+    expect(screen.queryByDisplayValue('ServerNick')).toBeNull()
   })
 
   it('blocks invalid activity years instead of coercing them to null', async () => {
@@ -274,8 +276,8 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
-    const displayNameInput = await screen.findByLabelText('Anzeigename')
-    fireEvent.change(displayNameInput, { target: { value: 'Ungespeicherter Name' } })
+    const fansubNickInput = await screen.findByLabelText('Fansub-Nick')
+    fireEvent.change(fansubNickInput, { target: { value: 'Ungespeicherter Nick' } })
     fireEvent.change(screen.getByLabelText('Profilbild auswählen'), {
       target: { files: [new File(['source'], 'avatar.png', { type: 'image/png' })] },
     })
@@ -287,7 +289,7 @@ describe('MyProfilePage', () => {
       croppedFile: expect.any(File),
     })
     expect(await screen.findByText('SVG ist nicht erlaubt')).not.toBeNull()
-    expect(screen.getByDisplayValue('Ungespeicherter Name')).not.toBeNull()
+    expect(screen.getByDisplayValue('Ungespeicherter Nick')).not.toBeNull()
     expect(updateOwnProfileMock).not.toHaveBeenCalled()
   })
 
@@ -314,7 +316,7 @@ describe('MyProfilePage', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt übernehmen' }))
 
     await waitFor(() => expect(uploadOwnProfileAvatarMock).toHaveBeenCalledTimes(1))
-    const avatarImages = await screen.findAllByAltText('Mika Avatar')
+    const avatarImages = await screen.findAllByAltText('MikaFX Avatar')
     expect(avatarImages.some((image) => image.getAttribute('src') === '/media/profile/3/avatar/new/original.png')).toBe(true)
     expect(await screen.findByText('Avatar wurde aktualisiert.')).not.toBeNull()
   })
