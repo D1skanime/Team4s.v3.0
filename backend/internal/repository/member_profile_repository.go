@@ -211,31 +211,32 @@ func (r *MemberProfileRepository) ensureProfileBase(ctx context.Context, appUser
 
 func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pgx.Tx, appUserID int64) (*models.MemberProfile, error) {
 	type baseRow struct {
-		appUserID       int64
-		legacyUserID    *int64
-		email           string
-		keycloakSubject string
-		accountName     string
-		accountStatus   string
-		accountRoles    []string
-		memberID        *int64
-		memberDisplay   *string
-		memberNickname  *string
-		memberBio       *string
-		memberStory     *string
-		activeFromYear  *int32
-		activeUntilYear *int32
-		currentlyActive bool
-		visibility      *string
-		avatarID        *int64
-		avatarPath      *string
-		avatarMimeType  *string
-		avatarCreatedAt *time.Time
-		avatarWidth     *int
-		avatarHeight    *int
-		avatarSize      *int64
-		memberCreatedAt *time.Time
-		memberUpdatedAt *time.Time
+		appUserID        int64
+		legacyUserID     *int64
+		email            string
+		keycloakSubject  string
+		accountName      string
+		accountStatus    string
+		accountRoles     []string
+		memberID         *int64
+		memberDisplay    *string
+		memberNickname   *string
+		memberBio        *string
+		memberStory      *string
+		activeFromYear   *int32
+		activeUntilYear  *int32
+		currentlyActive  bool
+		visibility       *string
+		avatarID         *int64
+		avatarPath       *string
+		avatarSourcePath *string
+		avatarMimeType   *string
+		avatarCreatedAt  *time.Time
+		avatarWidth      *int
+		avatarHeight     *int
+		avatarSize       *int64
+		memberCreatedAt  *time.Time
+		memberUpdatedAt  *time.Time
 	}
 
 	var row baseRow
@@ -267,6 +268,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 			m.profile_visibility,
 			m.avatar_media_id,
 			ma.file_path,
+			mf_source.path,
 			ma.mime_type,
 			ma.created_at,
 			NULLIF(mf.width, 0),
@@ -296,6 +298,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		) m ON true
 		LEFT JOIN media_assets ma ON ma.id = m.avatar_media_id
 		LEFT JOIN media_files mf ON mf.media_id = ma.id AND mf.variant = 'original'
+		LEFT JOIN media_files mf_source ON mf_source.media_id = ma.id AND mf_source.variant = 'source_original'
 		WHERE au.id = $1
 		FOR UPDATE OF au
 	`, appUserID).Scan(
@@ -317,6 +320,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		&row.visibility,
 		&row.avatarID,
 		&row.avatarPath,
+		&row.avatarSourcePath,
 		&row.avatarMimeType,
 		&row.avatarCreatedAt,
 		&row.avatarWidth,
@@ -390,16 +394,21 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		AccountGlobalRoles: row.accountRoles,
 	}
 	if row.avatarID != nil && row.avatarPath != nil && row.avatarCreatedAt != nil {
+		sourceOriginalURL := ""
+		if row.avatarSourcePath != nil {
+			sourceOriginalURL = r.publicURLForPath(strings.TrimSpace(*row.avatarSourcePath))
+		}
 		profile.Avatar = &models.MediaAsset{
-			ID:          *row.avatarID,
-			Filename:    filepath.Base(strings.TrimSpace(*row.avatarPath)),
-			PublicURL:   r.publicURLForPath(strings.TrimSpace(*row.avatarPath)),
-			MimeType:    strings.TrimSpace(valueOrDefault(row.avatarMimeType, "")),
-			SizeBytes:   valueOrZeroInt64(row.avatarSize),
-			Width:       row.avatarWidth,
-			Height:      row.avatarHeight,
-			CreatedAt:   *row.avatarCreatedAt,
-			StoragePath: strings.TrimSpace(*row.avatarPath),
+			ID:                *row.avatarID,
+			Filename:          filepath.Base(strings.TrimSpace(*row.avatarPath)),
+			PublicURL:         r.publicURLForPath(strings.TrimSpace(*row.avatarPath)),
+			SourceOriginalURL: sourceOriginalURL,
+			MimeType:          strings.TrimSpace(valueOrDefault(row.avatarMimeType, "")),
+			SizeBytes:         valueOrZeroInt64(row.avatarSize),
+			Width:             row.avatarWidth,
+			Height:            row.avatarHeight,
+			CreatedAt:         *row.avatarCreatedAt,
+			StoragePath:       strings.TrimSpace(*row.avatarPath),
 		}
 	}
 	return profile, nil

@@ -102,6 +102,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
+  vi.unstubAllGlobals()
 })
 
 function makeProfileResponse(overrides: Partial<MemberProfileResponse['data']> = {}): MemberProfileResponse {
@@ -316,5 +317,40 @@ describe('MyProfilePage', () => {
     const avatarImages = await screen.findAllByAltText('Mika Avatar')
     expect(avatarImages.some((image) => image.getAttribute('src') === '/media/profile/3/avatar/new/original.png')).toBe(true)
     expect(await screen.findByText('Avatar wurde aktualisiert.')).not.toBeNull()
+  })
+
+  it('reuses the retained avatar source when editing the existing crop', async () => {
+    const sourceBlob = new Blob(['source'], { type: 'image/jpeg' })
+    const fetchMock = vi.fn().mockResolvedValue(new Response(sourceBlob, {
+      status: 200,
+      headers: { 'Content-Type': 'image/jpeg' },
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      avatar: {
+        id: 137,
+        filename: 'original.png',
+        public_url: '/media/profile/3/avatar/current/original.png',
+        source_original_url: '/media/profile/3/avatar/current/source_original.jpg',
+        mime_type: 'image/png',
+        size_bytes: 1234,
+        width: 512,
+        height: 512,
+        created_at: '2026-05-28T08:00:00Z',
+      },
+    }))
+    uploadOwnProfileAvatarMock.mockResolvedValue(makeProfileResponse())
+
+    render(<MyProfilePage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt bearbeiten' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt übernehmen' }))
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/media/profile/3/avatar/current/source_original.jpg'))
+    await waitFor(() => expect(uploadOwnProfileAvatarMock).toHaveBeenCalledTimes(1))
+    const payload = uploadOwnProfileAvatarMock.mock.calls[0][0] as { sourceFile: File; croppedFile: File }
+    expect(payload.sourceFile.name).toBe('source_original.jpg')
+    expect(payload.sourceFile.type).toBe('image/jpeg')
+    expect(payload.croppedFile.type).toBe('image/png')
   })
 })

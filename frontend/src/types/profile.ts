@@ -47,6 +47,7 @@ export interface MemberProfileData {
     id: number
     filename: string
     public_url: string
+    source_original_url?: string | null
     mime_type: string
     size_bytes: number
     width?: number | null

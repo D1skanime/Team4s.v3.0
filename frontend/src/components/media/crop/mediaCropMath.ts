@@ -28,8 +28,9 @@ export function computeCropMetrics(imageSize: CropSize | null, viewSize: number,
     scale,
     width,
     height,
-    maxOffsetX: Math.abs(width - viewSize) / 2,
-    maxOffsetY: Math.abs(height - viewSize) / 2,
+    // The avatar can be moved until the image edge reaches the crop circle.
+    maxOffsetX: (width + viewSize) / 2,
+    maxOffsetY: (height + viewSize) / 2,
   }
 }
 

@@ -214,6 +214,10 @@ export default function MyProfilePage() {
   }, [refreshAccountAfterReturn])
 
   const avatarURL = useMemo(() => resolveApiUrl(profile?.avatar?.public_url || ''), [profile?.avatar?.public_url])
+  const sourceAvatarURL = useMemo(
+    () => resolveApiUrl(profile?.avatar?.source_original_url || profile?.avatar?.public_url || ''),
+    [profile?.avatar?.public_url, profile?.avatar?.source_original_url],
+  )
   const shellUser = useMemo(() => ({
     displayName: profile?.account_display_name || profile?.display_name || '',
     email: profile?.email || '',
@@ -324,7 +328,13 @@ export default function MyProfilePage() {
 
               <aside className={styles.sideColumn}>
                 <Card variant="section" title="Profilbild">
-                  <MemberAvatarCard profile={profile} avatarURL={avatarURL} isUploading={isUploadingAvatar} onAvatarSelected={handleAvatarSelected} />
+                  <MemberAvatarCard
+                    profile={profile}
+                    avatarURL={avatarURL}
+                    sourceAvatarURL={sourceAvatarURL}
+                    isUploading={isUploadingAvatar}
+                    onAvatarSelected={handleAvatarSelected}
+                  />
                 </Card>
                 <Card variant="section">
                   <VisibilityCard value={form.profileVisibility} disabled={!profile.capabilities.can_edit_own_profile || isSaving} onChange={updateForm} />

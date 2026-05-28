@@ -10,8 +10,8 @@ describe('computeCropMetrics', () => {
     expect(metrics?.scale).toBeCloseTo(0.609375, 8)
     expect(metrics?.width).toBeCloseTo(624, 8)
     expect(metrics?.height).toBeCloseTo(312, 8)
-    expect(metrics?.maxOffsetX).toBeCloseTo(182, 8)
-    expect(metrics?.maxOffsetY).toBeCloseTo(26, 8)
+    expect(metrics?.maxOffsetX).toBeCloseTo(442, 8)
+    expect(metrics?.maxOffsetY).toBeCloseTo(286, 8)
   })
 
   it('returns null when image size is not ready', () => {
@@ -25,13 +25,13 @@ describe('computeCropMetrics', () => {
     expect(metrics?.maxOffsetX).toBeCloseTo(metrics?.maxOffsetY ?? 0, 8)
   })
 
-  it('keeps panning room when low zoom makes one axis smaller than the viewport', () => {
+  it('allows panning until the image edge can touch the crop circle', () => {
     const metrics = computeCropMetrics({ w: 600, h: 336 }, 340, 0.6)
 
     expect(metrics?.width).toBeCloseTo(364.2857142857, 8)
     expect(metrics?.height).toBeCloseTo(204, 8)
-    expect(metrics?.maxOffsetX).toBeCloseTo(12.1428571429, 8)
-    expect(metrics?.maxOffsetY).toBeCloseTo(68, 8)
+    expect(metrics?.maxOffsetX).toBeCloseTo(352.1428571429, 8)
+    expect(metrics?.maxOffsetY).toBeCloseTo(272, 8)
   })
 })
 
@@ -40,7 +40,7 @@ describe('clampCropOffset', () => {
     const metrics = computeCropMetrics({ w: 1024, h: 512 }, 260, 1.2)
     const clamped = clampCropOffset({ x: 999, y: -999 }, metrics)
 
-    expect(clamped).toEqual({ x: 182, y: -26 })
+    expect(clamped).toEqual({ x: 442, y: -286 })
   })
 
   it('resets to zero when metrics are unavailable', () => {

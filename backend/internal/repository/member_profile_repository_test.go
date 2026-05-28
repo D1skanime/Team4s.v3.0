@@ -26,6 +26,8 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"profile avatar uploads must use the avatar media type instead of the generic image type")
 	assert.True(t, strings.Contains(content, "'source_original'"),
 		"profile avatar uploads must retain the uncropped source as a media_files variant")
+	assert.True(t, strings.Contains(content, "mf_source.media_id = ma.id AND mf_source.variant = 'source_original'"),
+		"own profile avatar reads must expose the retained source only through the own-profile aggregate for re-cropping")
 	assert.True(t, strings.Contains(content, "DELETE FROM media_files WHERE media_id = $1"),
 		"profile avatar replacement must remove previous avatar media_files after the new avatar is linked")
 	assert.True(t, strings.Contains(content, "DELETE FROM media_assets WHERE id = $1"),

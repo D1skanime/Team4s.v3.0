@@ -6449,6 +6449,10 @@ components:
           type: string
         public_url:
           type: string
+        source_original_url:
+          type: string
+          nullable: true
+          description: Optional own-profile edit source for re-cropping retained avatar originals; not a public display URL.
         mime_type:
           type: string
         size_bytes:
@@ -6679,8 +6683,9 @@ components:
         Preferred Phase 53B contract sends the uncropped `source_file` and the
         cropped display `cropped_file` to the existing avatar endpoint. Legacy
         callers may still submit `file`; the backend stores that same file as
-        both source and display. Public/profile reads expose only the cropped
-        display `original` media file, never `source_original`.
+        both source and display. Display reads expose the cropped `original`
+        media file as `public_url`; own-profile reads may also expose
+        `source_original_url` only as the edit source for re-cropping.
       properties:
         source_file:
           type: string

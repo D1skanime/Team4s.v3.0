@@ -334,6 +334,7 @@ Recent durable decisions:
 | 260527-imk | Retro-verify Phase 48 contributor dashboard | 2026-05-27 | 2811ded0 | [260527-imk-retro-verify-phase-48-contributor-dashbo](./quick/260527-imk-retro-verify-phase-48-contributor-dashbo/) |
 | 260527-ivi | Historical reconcile phases 1-46 roadmap requirements contracts | 2026-05-27 | e0b9cf91 | [260527-ivi-historical-reconcile-phases-1-46-roadmap](./quick/260527-ivi-historical-reconcile-phases-1-46-roadmap/) |
 | 260527-jgk | Retro-verify phases 49-50 auth API client and contributor governance roadmap registration | 2026-05-27 | c4b4a1b6 | [260527-jgk-retro-verify-phases-49-50-auth-api-clien](./quick/260527-jgk-retro-verify-phases-49-50-auth-api-clien/) |
+| 260528 | UAT 2 Avatar crop panning and recrop fix | 2026-05-28 | this commit | [260528-uat-2-avatar-crop-recrop-fix](./quick/260528-uat-2-avatar-crop-recrop-fix/) |
 
 ## Session Continuity
 
