@@ -1,21 +1,17 @@
 ---
-status: partial
+status: complete
 phase: 53-rollenuebergreifendes-mein-profil-als-member-identity-hub
 source:
   - 53-VERIFICATION.md
 started: 2026-05-27T16:12:29Z
-updated: 2026-05-28T11:56:30.0000000+02:00
+updated: 2026-05-28T14:04:47.4529666+02:00
 ---
 
 # Phase 53 Human UAT
 
 ## Current Test
 
-number: 3
-name: Mobile/accessibility visual pass
-expected: |
-  Desktop, tablet, and mobile layouts have no overlap; controls are touch-sized; focus states are visible; the crop dialog traps focus and closes with Escape.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -46,7 +42,7 @@ decision: "Immediate UAT 3 profile-name cleanup applied: remove the editable Anz
 ### 4. Live Keycloak account-return flow
 
 expected: Opening Keycloak account management in a new tab and returning to Team4s refreshes read-only account cards without overwriting dirty Team4s profile fields.
-result: pending
+result: pass
 
 ## Focus Notes
 
@@ -57,9 +53,9 @@ result: pending
 ## Summary
 
 total: 4
-passed: 1
-issues: 1
-pending: 2
+passed: 2
+issues: 2
+pending: 0
 skipped: 0
 blocked: 0
 
@@ -80,3 +76,18 @@ blocked: 0
     - shared/contracts/openapi.yaml
   missing:
     - "Retest Test 2 on deployed Docker build."
+- truth: "Desktop, tablet, and mobile layouts have no overlap; controls are touch-sized; focus states are visible; the crop dialog traps focus and closes with Escape."
+  status: failed
+  reason: "User reported: header action buttons and activity fields were visually shifted; additional profile hub copy and content issues were found around internal helper text, unclear badges/labels, membership presentation, and activity/contribution content. Several immediate copy/layout fixes were applied; broader profile hub content/activity redesign is captured as a follow-up."
+  severity: major
+  test: 3
+  artifacts:
+    - frontend/src/app/me/profile/page.tsx
+    - frontend/src/app/me/profile/components/MemberProfileHero.tsx
+    - frontend/src/app/me/profile/components/ProfileBasicsForm.tsx
+    - frontend/src/app/me/profile/components/MembershipsSection.tsx
+    - frontend/src/app/me/profile/components/ContributionsSection.tsx
+    - frontend/src/app/me/profile/components/AccountSecurityCard.tsx
+    - .planning/todos/pending/2026-05-28-profile-hub-content-activity-redesign.md
+  missing:
+    - "Follow-up phase for profile hub content and activity redesign."
