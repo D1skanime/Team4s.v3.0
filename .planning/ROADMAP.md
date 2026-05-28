@@ -64,6 +64,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub** - Die bestehende Profilseite wird als `/me/profile` zu einem modernen, rollenübergreifenden Member-Identity-Hub weiterentwickelt: rollenneutrale Route, echte Datenquellen, GDS-basierte Oberfläche, klare Keycloak-/Team4s-Datenhoheit, getrennte Rollenarten, sichere Avatar-/Rich-Text-/Sichtbarkeitsplanung und keine Mockdaten. (completed 2026-05-27)
 - [ ] **Phase 54: Globale Nav Drawer und Layout Verdrahtung** - Die AppShell wird zu einem seitenweiten Drawer-Navigationssystem: echter Slide-over-Drawer, hover-aktivierter Desktop-Glasrand (16px), Root-Layout-Integration für seitenweite Präsenz und Dual-State (anonym/eingeloggt) mit echtem Avatar-Bild.
 - [ ] **Phase 55: Sichere TipTap-Persistenz fuer Profilgeschichte** - Die eigene Profilgeschichte wird von Phase-53-Plain-Text auf release-native-unabhaengige TipTap-Persistenz umgestellt: Migration, Backend-Validierung/Sanitizing, OpenAPI/frontend DTOs, Editor-State und Bestandsdaten-Migration bewegen sich gemeinsam.
+- [ ] **Phase 56: Cropper** - Der fragile eigene Cropper wird durch eine moderne gepflegte React-Cropper-Bibliothek hinter einer gemeinsamen Team4s-Cropper-Komponente ersetzt; Profil-Avatar und Fansub-Gruppenlogo nutzen dieselbe UI-Grundlage, ohne Upload-Endpunkte oder Media-Ownership zu vermischen.
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
@@ -1125,3 +1126,34 @@ Plans:
 8. Dirty-State und Keycloak-Return-Refresh ueberschreiben keine ungespeicherte Profilgeschichte.
 9. Backend- und Frontend-Tests decken Migration/Repository, Handler-Validierung, OpenAPI/DTO-Mapping, Profil-Save und Sanitizing-/Reject-Faelle ab.
 10. Keine neue Text-/Editor-/API-Parallelstruktur entsteht neben den Phase-41-TipTap-Seams.
+
+### Phase 56: Cropper
+
+**Goal:** Den aktuell fragilen, projekt-eigenen Cropper fuer Profil-Avatar und Fansub-Gruppenlogo durch eine gemeinsame Team4s-Cropper-Komponente auf Basis einer gepflegten React-Cropper-Bibliothek ersetzen. Der neue Cropper muss Preview und exportiertes Ergebnis deckungsgleich machen, Mobile/Touch/Keyboard sicher abdecken und die bestehenden domain-spezifischen Upload-Endpunkte sowie Media-Ownership-Seams beibehalten.
+**Requirements**: MEDIA-CROPPER-01
+**Depends on:** Phase 53, Phase 49
+**Context:** `.planning/phases/56-cropper/56-CONTEXT.md`
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-discuss-phase 56, then /gsd-plan-phase 56)
+
+**Cross-cutting constraints:**
+- Der Cropper ist nur UI-/Client-Export-Infrastruktur; Profil-Avatar und Fansub-Gruppenmedia behalten ihre vorhandenen API-Helfer, Upload-Endpunkte, Auth-Seams und Media-Ownership.
+- Kein neuer Upload-Endpoint, keine neue Media-Tabelle, kein Zusammenlegen von Profil-, Gruppen-, Release- oder Release-Version-Media.
+- Profil-Avatar speichert weiterhin source original und cropped display ueber den bestehenden Avatar-Contract; Public/Profile-Anzeige darf nie das ungecroppte Source-Original verwenden.
+- Fansub-Gruppenlogo bleibt Gruppenmedia/`fansub_groups.logo_id`-Kontext und darf nicht in Release- oder Anime-Media umgebogen werden.
+- Die Bibliothek muss vor Merge gegen Touch/Keyboard/Responsive-Verhalten und Canvas-/Coordinate-Export verifiziert werden; bei nicht ausreichender Eignung wird die Entscheidung im Plan dokumentiert statt weiter custom crop math zu patchen.
+
+**Success Criteria** (what must be TRUE):
+1. Eine gepflegte React-Cropper-Bibliothek ist anhand dokumentierter Kriterien ausgewaehlt; `react-advanced-cropper` ist der Startkandidat, aber die finale Entscheidung ist begruendet.
+2. Es gibt eine gemeinsame Team4s-Cropper-Komponente oder ein kleines Cropper-Adapter-Modul ausserhalb domain-spezifischer Seiten/Admin-Komponenten.
+3. Profil-Avatar-Crop nutzt die gemeinsame Komponente und sendet weiterhin `source_file` plus `cropped_file` ueber `uploadOwnProfileAvatar`.
+4. Fansub-Gruppenlogo-Crop nutzt dieselbe gemeinsame Komponente und sendet weiterhin das gecroppte Logo ueber `uploadFansubMedia`; Banner-Upload bleibt unveraendert, solange kein echter Crop-Contract existiert.
+5. Preview, exportiertes Blob/File und gespeicherte Anzeige sind fuer den ausgewaehlten Ausschnitt deckungsgleich genug fuer UAT; der alte Parity-Bug reproduziert nicht mehr.
+6. Der Cropper funktioniert per Maus, Touch/Pointer, Tastatur, Zoom-Control, ESC/Cancel und Apply; Fokusfuehrung und sichtbare Fokuszustaende sind abgesichert.
+7. Responsive/mobile Viewports zeigen keine ueberlappenden Controls, abgeschnittenen Buttons oder unbedienbaren Slider.
+8. Bestehende Auth-/Refresh-Session-Regeln bleiben erhalten; geschuetzte Upload-Aktionen laufen ueber zentrale API-Seams und bauen keine Bearer-Header lokal.
+9. Alte eigene Crop-Math-/A11y-Helfer werden entfernt oder klar als weiterhin benoetigt dokumentiert; keine zweite aktive Cropper-Implementierung bleibt fuer dieselbe Aufgabe zurueck.
+10. Frontend-Tests und Browser-UAT decken Avatar-Crop, Existing-Avatar-Recrop, Fansub-Logo-Crop, Keyboard/Touch-Basis und Upload-Error-Pfade ab.
