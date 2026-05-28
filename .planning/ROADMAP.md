@@ -1067,7 +1067,7 @@ Plans:
 **Depends on:** Phase 53
 **Context:** `.planning/phases/54-globale-nav-drawer-und-layout-verdrahtung/54-CONTEXT.md`
 **UI hint**: yes
-**Plans:** 4 plans
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 1**

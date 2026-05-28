@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: Phase 54 planned; ready to execute
-stopped_at: Phase 54 planning complete (4 plans, 2 waves)
-last_updated: "2026-05-28T15:00:00.000Z"
+stopped_at: Completed 54-02-PLAN.md
+last_updated: "2026-05-28T20:08:00.093Z"
 last_activity: 2026-05-28
 progress:
   total_phases: 49
@@ -184,6 +184,9 @@ Recent durable decisions:
 - [Phase 53-02]: Non-admin users do not see the Verwaltung navigation group; protected disabled admin framing is insufficient for the member profile shell.
 - [Phase 53-02]: Avatar uploads keep existing member avatar endpoint; cropped display is public original and source_original is retained but not exposed.
 - [Phase 53-02]: Month/year activity ranges, third visibility value, TipTap persistence, and contribution details remain deferred until DB/backend/OpenAPI/frontend move together.
+- [Phase 54-02]: AppShellClientWrapper uses the token-free useAuthSession seam and passes no auth tokens into AppShell.
+- [Phase 54-02]: Shell avatar URLs resolve from profile.avatar.public_url through resolveApiUrl, matching the existing profile page pattern.
+- [Phase 54-02]: Shell profile/admin props are derived from the active auth session to avoid stale authenticated UI after logout.
 
 ### Pending Todos
 
@@ -310,6 +313,7 @@ Recent durable decisions:
 | Phase 41 P03 | 9min | 2 tasks | 9 files |
 | Phase 53 P01 | 19 min | 6 tasks | 25 files |
 | Phase 53 P02 | ~70min | 8 tasks | 27 files |
+| Phase 54 P02 | 26min | 1 tasks | 1 files |
 
 ### Quick Tasks Completed
 
@@ -340,7 +344,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-28T12:09:27.117Z
-Stopped at: Phase 54 context gathered
-Last activity: 2026-05-27
-Resume file: .planning/phases/54-globale-nav-drawer-und-layout-verdrahtung/54-CONTEXT.md
+Last session: 2026-05-28T20:08:00.068Z
+Stopped at: Completed 54-02-PLAN.md
+Last activity: 2026-05-28
+Resume file: None
