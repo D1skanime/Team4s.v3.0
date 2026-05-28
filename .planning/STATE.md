@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: Phase 54 planned; ready to execute
-stopped_at: Completed 54-02-PLAN.md
-last_updated: "2026-05-28T20:08:00.093Z"
+stopped_at: Phase 55 context gathered
+last_updated: "2026-05-28T20:18:34.152Z"
 last_activity: 2026-05-28
 progress:
-  total_phases: 49
+  total_phases: 51
   completed_phases: 34
-  total_plans: 189
-  completed_plans: 149
-  percent: 69
+  total_plans: 192
+  completed_plans: 152
+  percent: 67
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 53 — rollenuebergreifendes-mein-profil-als-member-identity-hub
+**Current focus:** Phase 54 — globale-nav-drawer-und-layout-verdrahtung
 
 ## Current Position
 
-Phase: 53 (rollenuebergreifendes-mein-profil-als-member-identity-hub) — EXECUTING
-Plan: 2 of 2
+Phase: 54 (globale-nav-drawer-und-layout-verdrahtung) — EXECUTING
+Plan: 2 of 4
 
 ## Accumulated Context
 
@@ -197,6 +197,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 55 added: Sichere TipTap-Persistenz fuer Profilgeschichte - `/me/profile` darf die Profilgeschichte nicht laenger ad hoc von TipTap nach Plain Text zurueckkonvertieren; Migration, Backend-TipTap-Service, OpenAPI/frontend DTOs, zentraler API-Client, Sanitizing und Bestandsdaten bewegen sich gemeinsam.
 - Phase 49/50 reconcile completed on 2026-05-27: Phase 49 central Auth/API client is complete from `49-VERIFICATION.md` and `AUTH-API-CLIENT-01` is complete; Phase 50 platform-admin/contributor scope governance is registered as complete-carry-forward with technical verification passed and live Keycloak UAT pending.
 - Historical reconcile completed on 2026-05-27 for phases 1-46: Phases 41 and 43-46 are retro-closed from runtime evidence; Phase 42 remains planned/deferred; stale v1 requirement Pending rows were reconciled to completed historical baseline; OpenAPI gaps for member management and invitations remain follow-up work.
 - Phase 48 retro-verified on 2026-05-27: contributor dashboard foundation is complete from runtime evidence and focused tests; `/me/groups` route direction, shared `Mein Bereich` shell integration, OpenAPI coverage, broader live UAT, centralized labels, and safer non-admin workspace routing carry forward.
@@ -344,7 +345,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-28T20:08:00.068Z
-Stopped at: Completed 54-02-PLAN.md
+Last session: 2026-05-28T20:13:22.911Z
+Stopped at: Phase 55 context gathered
 Last activity: 2026-05-28
-Resume file: None
+Resume file: .planning/phases/55-sichere-tiptap-persistenz-fuer-profilgeschichte/55-CONTEXT.md

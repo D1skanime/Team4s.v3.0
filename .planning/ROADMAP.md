@@ -63,6 +63,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 52: Profile Account Return Refresh Flow** - Keycloak-Accountaenderungen werden von der Profilseite aus verstaendlich in einem neuen Tab angestossen und Team4s-Accountkarten beim Zurueckkehren ueber zentrale Auth-/Profil-Seams aktualisiert. (automated verified 2026-05-26; live Keycloak UAT pending)
 - [x] **Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub** - Die bestehende Profilseite wird als `/me/profile` zu einem modernen, rollenübergreifenden Member-Identity-Hub weiterentwickelt: rollenneutrale Route, echte Datenquellen, GDS-basierte Oberfläche, klare Keycloak-/Team4s-Datenhoheit, getrennte Rollenarten, sichere Avatar-/Rich-Text-/Sichtbarkeitsplanung und keine Mockdaten. (completed 2026-05-27)
 - [ ] **Phase 54: Globale Nav Drawer und Layout Verdrahtung** - Die AppShell wird zu einem seitenweiten Drawer-Navigationssystem: echter Slide-over-Drawer, hover-aktivierter Desktop-Glasrand (16px), Root-Layout-Integration für seitenweite Präsenz und Dual-State (anonym/eingeloggt) mit echtem Avatar-Bild.
+- [ ] **Phase 55: Sichere TipTap-Persistenz fuer Profilgeschichte** - Die eigene Profilgeschichte wird von Phase-53-Plain-Text auf release-native-unabhaengige TipTap-Persistenz umgestellt: Migration, Backend-Validierung/Sanitizing, OpenAPI/frontend DTOs, Editor-State und Bestandsdaten-Migration bewegen sich gemeinsam.
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
@@ -1088,3 +1089,39 @@ Plans:
 3. Die AppShell ist in `frontend/src/app/layout.tsx` (Root-Layout) eingebaut, sodass alle Seiten automatisch den Drawer erhalten; Doppel-Shell aus `/me/profile` wird entfernt.
 4. Der Drawer zeigt im anonymen Zustand Login/Registrieren-Buttons und Public-Nav (`/anime`, `/fansubs`, Suche); im eingeloggten Zustand Nutzer-Avatar (aus `GET /api/v1/me/profile`) plus vollständige Nav-Gruppen.
 5. ESC und Backdrop-Klick schließen den Drawer; Focus-Trap, `aria-expanded`, `aria-controls` und sichtbare Fokuszustände sind korrekt verdrahtet; keine reinen Hover-only-Aktionen ohne Tastaturäquivalent.
+
+### Phase 55: Sichere TipTap-Persistenz fuer Profilgeschichte
+
+**Goal:** Die eigene Profilgeschichte auf `/me/profile` speichert echte TipTap-Dokumente sicher und vertragsklar, statt Rich-Text im Browser in Plain Text zurueckzukonvertieren. Schema-Migration, bestehende Plain-Text-Daten, Backend-TipTap-Validierung/Sanitizing, OpenAPI/frontend DTOs, zentrale API-Helfer, Editor-State und Regressionen werden in einem schmalen Profil-Slice zusammen geplant und umgesetzt.
+**Requirements**: MEMBER-PROFILE-STORY-RICH-TEXT-01
+**Depends on:** Phase 53, Phase 41, Phase 49
+**Plans:** 3 plans
+
+Plans:
+**Wave 1**
+- [ ] `55-01-PLAN.md` - Backend-, Datenbank- und OpenAPI-Contract fuer sichere TipTap-Profilgeschichte herstellen.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] `55-02-PLAN.md` - Frontend-Profilgeschichte auf TipTap-Contract und Lese-/Bearbeitungsmodus umstellen.
+
+**Wave 3** *(blocked on Wave 1 and Wave 2 completion)*
+- [ ] `55-03-PLAN.md` - Phase-55-Verifikation, Security Review, UAT-Handoff und Statuspflege abschliessen.
+
+**Cross-cutting constraints:**
+- TipTap JSON bleibt Quelle der Wahrheit; Plain Text ist nur abgeleitet oder Kompatibilitaet.
+- HTML wird serverseitig aus TipTap JSON erzeugt und sanitisiert; UI rendert kein unsicheres Client-HTML.
+- `/me/profile` bleibt tokenfrei und nutzt die zentrale Auth/API-Seam; Refresh-Session ohne Access Token bleibt gueltiger geschuetzter UI-Zustand.
+- Nach Save zeigt die Profilgeschichte Lesemodus; Editor/Toolbar erscheinen nur nach `Bearbeiten`.
+- Cropper, Profil-Aktivitaetsredesign und Contributor-Edit/Delete bleiben ausserhalb von Phase 55.
+
+**Success Criteria** (what must be TRUE):
+1. `members.member_history_description` bleibt als lesbarer Plain-Text-/Kompatibilitaetswert erhalten oder wird eindeutig als `body_text`-Aequivalent weitergefuehrt; neue TipTap-Felder werden per neuer reversibler Migration ergaenzt.
+2. Bestehende Plain-Text-Profilgeschichten werden kontrolliert in ein minimales TipTap-Dokument migriert, ohne Account-, Gruppenrollen- oder Fansub-Gruppen-Daten zu vermischen.
+3. `GET /api/v1/me/profile` liefert die Profilgeschichte vertragsklar als TipTap JSON plus serverseitig sanitisiertes HTML und Plain Text.
+4. `PUT /api/v1/me/profile` akzeptiert fuer die Profilgeschichte nur validiertes TipTap JSON, rendert HTML serverseitig ueber den bestehenden `TipTapService`, extrahiert Plain Text und lehnt nicht erlaubte Nodes/Marks ab.
+5. `shared/contracts/openapi.yaml`, `frontend/src/types/profile.ts` und `frontend/src/lib/api.ts` beschreiben dieselben Request-/Response-Felder und Fehlerfaelle.
+6. `/me/profile` nutzt den bestehenden `RichTextEditor`/`RichTextRenderer` und entfernt die lokale Plain-Text-Konvertierung aus der Profilseite.
+7. Geschuetzte Profilansicht und Speichern funktionieren weiter, wenn das Access Token fehlt oder abgelaufen ist, aber eine Refresh-Session vorhanden ist; UI-Code bleibt tokenfrei und laeuft ueber den zentralen API-Client.
+8. Dirty-State und Keycloak-Return-Refresh ueberschreiben keine ungespeicherte Profilgeschichte.
+9. Backend- und Frontend-Tests decken Migration/Repository, Handler-Validierung, OpenAPI/DTO-Mapping, Profil-Save und Sanitizing-/Reject-Faelle ab.
+10. Keine neue Text-/Editor-/API-Parallelstruktur entsteht neben den Phase-41-TipTap-Seams.
