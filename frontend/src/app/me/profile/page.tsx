@@ -324,7 +324,7 @@ export default function MyProfilePage() {
               </div>
 
               <aside className={styles.sideColumn}>
-                <Card variant="section" title="Profilbild">
+                <Card variant="section" title="Avatar-Bild">
                   <MemberAvatarCard
                     profile={profile}
                     avatarURL={avatarURL}

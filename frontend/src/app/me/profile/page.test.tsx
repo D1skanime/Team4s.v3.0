@@ -278,7 +278,7 @@ describe('MyProfilePage', () => {
 
     const fansubNickInput = await screen.findByLabelText('Fansub-Nick')
     fireEvent.change(fansubNickInput, { target: { value: 'Ungespeicherter Nick' } })
-    fireEvent.change(screen.getByLabelText('Profilbild auswählen'), {
+    fireEvent.change(screen.getByLabelText('Avatar-Bild auswählen'), {
       target: { files: [new File(['source'], 'avatar.png', { type: 'image/png' })] },
     })
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt übernehmen' }))
@@ -310,7 +310,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
-    fireEvent.change(await screen.findByLabelText('Profilbild auswählen'), {
+    fireEvent.change(await screen.findByLabelText('Avatar-Bild auswählen'), {
       target: { files: [new File(['source'], 'avatar.png', { type: 'image/png' })] },
     })
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt übernehmen' }))

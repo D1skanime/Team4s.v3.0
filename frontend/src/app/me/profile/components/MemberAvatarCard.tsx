@@ -49,7 +49,7 @@ export function MemberAvatarCard({
       setLocalError(null)
       setIsPreparingExistingAvatar(true)
       const response = await fetch(sourceAvatarURL)
-      if (!response.ok) throw new Error('Profilbild konnte nicht geladen werden.')
+      if (!response.ok) throw new Error('Avatar-Bild konnte nicht geladen werden.')
       const blob = await response.blob()
       const type = blob.type || profile.avatar?.mime_type || 'image/png'
       const sourceFile = new File(
@@ -59,7 +59,7 @@ export function MemberAvatarCard({
       )
       setSelectedFile(sourceFile)
     } catch (error) {
-      setLocalError(error instanceof Error ? error.message : 'Profilbild konnte nicht geladen werden.')
+      setLocalError(error instanceof Error ? error.message : 'Avatar-Bild konnte nicht geladen werden.')
     } finally {
       setIsPreparingExistingAvatar(false)
     }
@@ -88,7 +88,7 @@ export function MemberAvatarCard({
       {canEditExistingAvatar ? (
         <Button
           type="button"
-          variant="ghost"
+          variant="secondary"
           leftIcon={<Crop size={16} aria-hidden="true" />}
           loading={isPreparingExistingAvatar}
           disabled={isUploading || isPreparingExistingAvatar}
@@ -100,7 +100,7 @@ export function MemberAvatarCard({
       <input
         ref={inputRef}
         type="file"
-        aria-label="Profilbild auswählen"
+        aria-label="Avatar-Bild auswählen"
         accept="image/jpeg,image/png,image/webp"
         onChange={(event) => {
           const file = event.target.files?.[0] ?? null
@@ -113,7 +113,7 @@ export function MemberAvatarCard({
         className={styles.visuallyHiddenInput}
       />
       <p id={uploadHintID} className={styles.mutedText}>
-        Wähle ein Profilbild als JPG, PNG oder WEBP.
+        Wähle ein Avatar-Bild als JPG, PNG oder WEBP.
       </p>
       {localError ? <p role="alert" className={styles.inlineError}>{localError}</p> : null}
       {selectedFile ? (
