@@ -1,9 +1,9 @@
 # Phase 50 UAT
 
 ---
-status: testing
+status: complete
 phase: 50-platform-admin-boundaries-und-contributor-scope-governance
-updated: 2026-05-22T17:07:00+02:00
+updated: 2026-05-28T14:21:23+02:00
 ---
 
 ## Automated UAT
@@ -16,12 +16,12 @@ updated: 2026-05-22T17:07:00+02:00
 ## Manual UAT
 
 1. Log in as Team4s platform admin and confirm global admin pages still open.
-2. Log in as fansub lead/member and confirm `/admin/fansubs` is blocked.
-3. Open `/manage/groups` as fansub lead/member and confirm only own groups are visible.
-4. Open a scoped release editor URL and confirm only Media/Assets and Notizen/Beiträge are visible.
-5. Confirm uploads/notes persist and reload correctly for the scoped release.
+2. Log in as fansub lead/member and confirm `/admin/fansubs` is blocked. **PASS 2026-05-28:** Normaler Member konnte die globale Admin-Fansub-Verwaltung nicht sehen.
+3. Open `/manage/groups` as fansub lead/member and confirm only own groups are visible. **PASS 2026-05-28:** Member sieht nur den erlaubten eigenen Gruppenbereich bzw. keine globale Adminliste.
+4. Open a scoped release editor URL and confirm only Media/Assets and Notizen/Beiträge are visible. **PASS 2026-05-28:** Scoped Release Editor zeigt für den normalen Member nur erlaubte Bereiche ohne globale Adminfelder.
+5. Confirm uploads/notes persist and reload correctly for the scoped release. **PASS 2026-05-28:** Uploads/Notizen speichern und reloaden im erlaubten Kontext korrekt. **Follow-up:** Eigene Uploads können aktuell nicht gelöscht und Texte nicht nachträglich bearbeitet werden; das ist als späterer UX-/Capability-Ausbau festzuhalten.
 6. Open `/admin/profile` and confirm `Mitgliedsgeschichte` uses the rich text editor UI, not a plain textarea.
-7. Open the group notes area and confirm it only contains group-owned `Gruppennotizen`, not personal `Mitgliedergeschichten`.
+7. Open the group notes area and confirm it only contains group-owned `Gruppennotizen`, not personal `Mitgliedergeschichten`. **SKIPPED 2026-05-28 for normal member live UAT:** Der normale Member erreicht aktuell nur `/admin/my-groups/88`; dort gibt es keine Gruppengeschichte-/Gruppennotizen-Fläche und keine sichtbaren persönlichen `Mitgliedergeschichten`. Die eigentliche NotesTab-Trennung ist durch den automatisierten Test `NotesTab.test.tsx` abgedeckt.
 
 ## Issues
 
@@ -40,10 +40,10 @@ verification:
 ## Summary
 
 total: 7
-passed: 2 automated
+passed: 2 automated, 4 manual
 issues: 1 found, 1 fixed locally
-pending: 5 manual
-skipped: 0
+pending: 0
+skipped: 1 manual
 blocked: 0
 
 ## Gaps
