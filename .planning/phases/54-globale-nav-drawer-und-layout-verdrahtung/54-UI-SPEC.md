@@ -58,12 +58,12 @@ Ausnahmen:
 | Rolle | Größe | Gewicht | Zeilenhöhe |
 |-------|-------|---------|-----------|
 | Body | 16px | 400 | 1.5 |
-| Label / Nav-Item | 14.4px (0.9rem) | 650 | 1.4 |
+| Label / Nav-Item / Display Name (Footer) | 14.4px (0.9rem) | 700 | 1.4 |
 | Nav-Group-Label | 11.5px (0.72rem) | 700 | 1.2 |
-| Display Name (Footer) | 15.4px (0.96rem) | 700 | 1.3 |
 | E-Mail / Subtitle (Footer) | 12.5px (0.78rem) | 400 | 1.3 |
 
 Quelle: Bestehende `AppShell.module.css` Werte — nicht neu spezifiziert, bestehende Skala beibehalten.
+Display Name Footer wurde auf 14.4px vereinheitlicht (war 15.4px — kein wahrnehmbarer visueller Unterschied zu Nav-Item). Gewicht 650 entfernt; alle fetten Elemente verwenden 700.
 
 ---
 
@@ -129,7 +129,7 @@ Drawer enthält:
    - "Verwaltung": Verwaltung (`/admin`) — nur wenn `canAccessAdmin === true` (D-15)
    - "Mein Bereich": Mein Profil (`/me/profile`), Meine Gruppen (disabled, Badge "bald"), Meine Beiträge (disabled, Badge "bald") (D-14)
    - "Einstellungen": Account & Sicherheit (`/auth`)
-3. Footer: Avatar-Bild rund (36–40px) + Anzeigename (fett) + E-Mail (gedimmt)
+3. Footer: Avatar-Bild rund (36–40px) + Anzeigename (fett, 14.4px) + E-Mail (gedimmt, 12.5px)
    - Initialen-Fallback-Circle wenn `avatar_url` null/leer (D-16)
    - Avatar-URL aus `getOwnProfile` → Feld `avatar_url` (D-17)
 
