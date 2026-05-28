@@ -1063,10 +1063,17 @@ Plans:
 ### Phase 54: Globale Nav Drawer und Layout Verdrahtung
 
 **Goal:** Die AppShell wird zu einem seitenweiten Drawer-Navigationssystem mit echtem Slide-over-Overlay, hover-aktiviertem Desktop-Glasrand-Drawer (16px Edge-Strip), Dual-State (anonym/eingeloggt) und Root-Layout-Integration für seitenweite Präsenz ohne Einzelinkludierung je Seite.
-**Requirements**: TBD
+**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-11, D-12, D-13, D-14, D-15, D-16, D-17, D-18, D-19
 **Depends on:** Phase 53
 **Context:** `.planning/phases/54-globale-nav-drawer-und-layout-verdrahtung/54-CONTEXT.md`
 **UI hint**: yes
+**Plans:** 4 plans
+
+Plans:
+- [ ] `54-01-PLAN.md` — AppShell Drawer-Mechanismus: Slide-over, Edge-Strip, Dual-State, Avatar-Footer, Tests
+- [ ] `54-02-PLAN.md` — AppShellClientWrapper: Client-Wrapper für Server/Client-Component-Grenze
+- [ ] `54-03-PLAN.md` — Root-Layout-Integration + /me/profile Doppel-Shell-Bereinigung
+- [ ] `54-04-PLAN.md` — Playground-Demo in /dev/ui-system
 
 **Success Criteria** (what must be TRUE):
 1. Der mobile Drawer ist ein echter Slide-over Overlay (von links über den Content) und ersetzt das bisherige Inline-Mobile-Nav-Panel.
