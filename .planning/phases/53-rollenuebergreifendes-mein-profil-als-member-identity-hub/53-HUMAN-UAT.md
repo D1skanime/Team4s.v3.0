@@ -4,17 +4,17 @@ phase: 53-rollenuebergreifendes-mein-profil-als-member-identity-hub
 source:
   - 53-VERIFICATION.md
 started: 2026-05-27T16:12:29Z
-updated: 2026-05-28T11:13:46.3876306+02:00
+updated: 2026-05-28T11:29:10.0000000+02:00
 ---
 
 # Phase 53 Human UAT
 
 ## Current Test
 
-number: 2
-name: Live avatar crop/upload smoke
+number: 3
+name: Mobile/accessibility visual pass
 expected: |
-  JPG/PNG/WEBP avatar upload opens the crop dialog, supports pointer and keyboard interaction, displays the cropped image, rejects SVG, and never exposes `source_original` as the public avatar URL.
+  Desktop, tablet, and mobile layouts have no overlap; controls are touch-sized; focus states are visible; the crop dialog traps focus and closes with Escape.
 awaiting: user response
 
 ## Tests
@@ -36,7 +36,10 @@ follow_up: "Retest after the export-geometry fix still shows the same preview-vs
 ### 3. Mobile/accessibility visual pass
 
 expected: Desktop, tablet, and mobile layouts have no overlap; controls are touch-sized; focus states are visible; the crop dialog traps focus and closes with Escape.
-result: pending
+result: issue
+reported: "Header action buttons are visually shifted, especially 'Öffentliches Profil ansehen' and 'Profil speichern'. The activity fields around 'Aktiv seit', 'Aktiv bis', and 'Aktuell aktiv' are also visually shifted."
+severity: major
+fix_progress: "Code fix applied: header action buttons align at the top despite deferred public-profile helper text; activity year fields are grouped in a dedicated two-column year grid and the current-active checkbox spans the row."
 
 ### 4. Live Keycloak account-return flow
 

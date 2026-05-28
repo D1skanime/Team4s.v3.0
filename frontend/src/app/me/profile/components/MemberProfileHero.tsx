@@ -29,14 +29,14 @@ export function MemberProfileHero({ profile, avatarURL, isDirty, isSaving, canSa
         actions={
           <>
             <span className={styles.deferredActionWrap}>
-              <Button variant="secondary" disabled leftIcon={<Eye size={16} />} aria-describedby={publicProfileReasonID}>
+              <Button className={styles.heroActionButton} variant="secondary" disabled leftIcon={<Eye size={16} />} aria-describedby={publicProfileReasonID}>
                 Öffentliches Profil ansehen
               </Button>
               <span id={publicProfileReasonID} className={styles.deferredActionReason}>
                 Öffentliche Profilroute ist noch nicht vertraglich freigegeben.
               </span>
             </span>
-            <Button type="submit" form="member-profile-form" loading={isSaving} disabled={!canSave} leftIcon={<Save size={16} />}>
+            <Button className={styles.heroActionButton} type="submit" form="member-profile-form" loading={isSaving} disabled={!canSave} leftIcon={<Save size={16} />}>
               Profil speichern
             </Button>
           </>
