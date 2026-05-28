@@ -54,6 +54,8 @@ v1.0 shipped on 2026-04-01 with 6 completed phases and 23 completed plans. The s
 
 The next product thread is no longer intake correctness itself; it is the generic upload/provisioning and asset lifecycle layer that future media types will depend on.
 
+Phase 54 completed on 2026-05-28: the global AppShell now provides the release-independent nav drawer through the root layout, with `/me/profile` no longer nesting its own shell.
+
 ## Current Milestone: v1.1 Asset Lifecycle Hardening
 
 **Goal:** Make admin-managed media lifecycle behavior generic, idempotent, and operator-safe instead of relying on cover-specific seams.
@@ -90,4 +92,4 @@ The next product thread is no longer intake correctness itself; it is the generi
 | Make asset lifecycle behavior generic before adding more upload surfaces | Prevents banner/logo/background/video work from becoming a pile of slot-specific exceptions | Pending |
 
 ---
-*Last updated: 2026-04-02 after v1.1 milestone definition*
+*Last updated: 2026-05-28 after Phase 54 nav drawer completion*
