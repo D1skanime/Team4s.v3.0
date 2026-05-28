@@ -44,9 +44,16 @@
   height: 100vh;
   padding: 0;
   border: 0;
-  background: rgba(255, 255, 255, 0.35);
+  background: linear-gradient(to right, rgba(47, 95, 227, 0.18), rgba(47, 95, 227, 0.04));
+  border-right: 1.5px solid rgba(47, 95, 227, 0.25);
   backdrop-filter: blur(8px);
   cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.edgeStrip:hover {
+  background: linear-gradient(to right, rgba(47, 95, 227, 0.32), rgba(47, 95, 227, 0.08));
+  border-right-color: rgba(47, 95, 227, 0.5);
 }
 
 .edgeStrip:focus-visible {
