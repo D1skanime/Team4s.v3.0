@@ -247,7 +247,7 @@ describe('MyProfilePage', () => {
 
     const displayNameInput = await screen.findByLabelText('Anzeigename')
     fireEvent.change(displayNameInput, { target: { value: 'Ungespeicherter Name' } })
-    fireEvent.click(screen.getByRole('link', { name: 'Account bei Keycloak öffnen' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Accountdaten verwalten' }))
     fireEvent.focus(window)
 
     expect((await screen.findAllByText('Mika Keycloak')).length).toBeGreaterThan(0)

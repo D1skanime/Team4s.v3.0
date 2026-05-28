@@ -44,18 +44,18 @@ export function AccountSecurityCard({
 
       {profile.capabilities.can_open_keycloak_account && profile.keycloak_account_url ? (
         <Button href={profile.keycloak_account_url} target="_blank" rel="noreferrer" variant="secondary" onClick={onKeycloakAccountClick} leftIcon={<ExternalLink size={16} />}>
-          Account bei Keycloak öffnen
+          Accountdaten verwalten
         </Button>
       ) : (
         <Button variant="subtle" disabled>
-          Keycloak-Account nicht verknüpft
+          Accountverwaltung nicht verfügbar
         </Button>
       )}
 
       {hasOpenedKeycloakAccount ? (
         <p className={styles.mutedText}>
-          Keycloak wurde in einem neuen Tab geöffnet.
-          {isRefreshingAccount ? ' Team4s aktualisiert die Accountdaten...' : ' Beim Zurückkehren aktualisiert Team4s diese read-only Accountdaten.'}
+          Die Accountverwaltung wurde in einem neuen Tab geöffnet.
+          {isRefreshingAccount ? ' Team4s aktualisiert die Accountdaten...' : ' Beim Zurückkehren aktualisiert Team4s diese Accountdaten.'}
         </p>
       ) : null}
     </div>

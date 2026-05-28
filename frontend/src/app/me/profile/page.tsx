@@ -161,7 +161,7 @@ export default function MyProfilePage() {
       const nextSnapshot = accountSnapshot(nextProfile)
       if (previousSnapshot && previousSnapshot !== nextSnapshot) setSuccess('Accountdaten aktualisiert.')
     } catch (refreshError) {
-      setError(readErrorMessage(refreshError, 'Accountdaten konnten nach der Rückkehr von Keycloak nicht aktualisiert werden.'))
+      setError(readErrorMessage(refreshError, 'Accountdaten konnten nach der Rückkehr nicht aktualisiert werden.'))
     } finally {
       isRefreshingAccountRef.current = false
       setIsRefreshingAccount(false)
@@ -310,7 +310,7 @@ export default function MyProfilePage() {
             <form id="member-profile-form" className={styles.layoutGrid} onSubmit={handleSubmit}>
               <div className={styles.mainColumn}>
                 <Card variant="section">
-                  <SectionHeader title="Basisdaten" description="Team4s-eigene Profilfelder. Accountdaten bleiben bei Keycloak." />
+                  <SectionHeader title="Basisdaten" />
                   <ProfileBasicsForm form={form} disabled={!profile.capabilities.can_edit_own_profile || isSaving} errors={yearErrors} onChange={updateForm} />
                 </Card>
                 <Card variant="section">
@@ -339,7 +339,7 @@ export default function MyProfilePage() {
                 <Card variant="section">
                   <VisibilityCard value={form.profileVisibility} disabled={!profile.capabilities.can_edit_own_profile || isSaving} onChange={updateForm} />
                 </Card>
-                <Card variant="section" title="Account & Sicherheit" description="Read-only Keycloak-Daten. E-Mail, Passwort und MFA werden nicht in Team4s bearbeitet.">
+                <Card variant="section" title="Account & Sicherheit">
                   <AccountSecurityCard
                     profile={profile}
                     hasOpenedKeycloakAccount={hasOpenedKeycloakAccount}
