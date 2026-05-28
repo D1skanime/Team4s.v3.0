@@ -62,6 +62,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 51: Keycloak Access-Token Resource-Server Boundary** - Keycloak/API-Auth von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umstellen. (completed 2026-05-26)
 - [x] **Phase 52: Profile Account Return Refresh Flow** - Keycloak-Accountaenderungen werden von der Profilseite aus verstaendlich in einem neuen Tab angestossen und Team4s-Accountkarten beim Zurueckkehren ueber zentrale Auth-/Profil-Seams aktualisiert. (automated verified 2026-05-26; live Keycloak UAT pending)
 - [x] **Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub** - Die bestehende Profilseite wird als `/me/profile` zu einem modernen, rollenübergreifenden Member-Identity-Hub weiterentwickelt: rollenneutrale Route, echte Datenquellen, GDS-basierte Oberfläche, klare Keycloak-/Team4s-Datenhoheit, getrennte Rollenarten, sichere Avatar-/Rich-Text-/Sichtbarkeitsplanung und keine Mockdaten. (completed 2026-05-27)
+- [ ] **Phase 54: Globale Nav Drawer und Layout Verdrahtung** - Die AppShell wird zu einem seitenweiten Drawer-Navigationssystem: echter Slide-over-Drawer, hover-aktivierter Desktop-Glasrand (16px), Root-Layout-Integration für seitenweite Präsenz und Dual-State (anonym/eingeloggt) mit echtem Avatar-Bild.
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
@@ -1058,3 +1059,18 @@ Plans:
 9. Rich-Text-Rendering ist nur mit validierter/sanitized Ausgabe erlaubt.
 10. Avatar Upload lehnt unsichere Typen serverseitig ab; SVG ist nicht erlaubt, solange kein Sanitizing-Konzept existiert.
 11. Dirty-State, partielle Fehlerzustände, mobile Darstellung und Accessibility sind in Phase 53B explizit abgesichert.
+
+### Phase 54: Globale Nav Drawer und Layout Verdrahtung
+
+**Goal:** Die AppShell wird zu einem seitenweiten Drawer-Navigationssystem mit echtem Slide-over-Overlay, hover-aktiviertem Desktop-Glasrand-Drawer (16px Edge-Strip), Dual-State (anonym/eingeloggt) und Root-Layout-Integration für seitenweite Präsenz ohne Einzelinkludierung je Seite.
+**Requirements**: TBD
+**Depends on:** Phase 53
+**Context:** `.planning/phases/54-globale-nav-drawer-und-layout-verdrahtung/54-CONTEXT.md`
+**UI hint**: yes
+
+**Success Criteria** (what must be TRUE):
+1. Der mobile Drawer ist ein echter Slide-over Overlay (von links über den Content) und ersetzt das bisherige Inline-Mobile-Nav-Panel.
+2. Auf Desktop erscheint ein 16px breiter Glasrand am linken Bildschirmrand; Hover oder Fokus auf diesen Strip blendet den vollen Drawer ein; Verlassen schließt ihn wieder.
+3. Die AppShell ist in `frontend/src/app/layout.tsx` (Root-Layout) eingebaut, sodass alle Seiten automatisch den Drawer erhalten; Doppel-Shell aus `/me/profile` wird entfernt.
+4. Der Drawer zeigt im anonymen Zustand Login/Registrieren-Buttons und Public-Nav (`/anime`, `/fansubs`, Suche); im eingeloggten Zustand Nutzer-Avatar (aus `GET /api/v1/me/profile`) plus vollständige Nav-Gruppen.
+5. ESC und Backdrop-Klick schließen den Drawer; Focus-Trap, `aria-expanded`, `aria-controls` und sichtbare Fokuszustände sind korrekt verdrahtet; keine reinen Hover-only-Aktionen ohne Tastaturäquivalent.
