@@ -1070,10 +1070,17 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
+**Wave 1**
 - [ ] `54-01-PLAN.md` — AppShell Drawer-Mechanismus: Slide-over, Edge-Strip, Dual-State, Avatar-Footer, Tests
 - [ ] `54-02-PLAN.md` — AppShellClientWrapper: Client-Wrapper für Server/Client-Component-Grenze
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] `54-03-PLAN.md` — Root-Layout-Integration + /me/profile Doppel-Shell-Bereinigung
 - [ ] `54-04-PLAN.md` — Playground-Demo in /dev/ui-system
+
+**Cross-cutting constraints:**
+- `AppShell` bleibt `'use client'`; Root-Layout bleibt Server Component — Client-Wrapper-Grenze darf nicht verletzt werden (D-13)
+- Kein Token als Prop an Shell oder Wrapper übergeben (T-54-02, `auth-api-client.md`)
 
 **Success Criteria** (what must be TRUE):
 1. Der mobile Drawer ist ein echter Slide-over Overlay (von links über den Content) und ersetzt das bisherige Inline-Mobile-Nav-Panel.
