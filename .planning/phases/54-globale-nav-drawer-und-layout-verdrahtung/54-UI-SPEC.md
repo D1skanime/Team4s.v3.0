@@ -273,17 +273,16 @@ Keine externen Komponenten-Registries werden in Phase 54 verwendet. Alle UI-Baus
 
 ## Entwicklungs- und Teststrategie
 
-Kein separater Playground erforderlich. `/me/profile` nutzt AppShell bereits direkt und dient als natürliche Entwicklungs-Testfläche.
+Das Projekt hat eine bestehende Dev-UI unter `frontend/src/app/dev/ui-system/` (`/dev/ui-system`). Diese dient als primäre Entwicklungs-Testfläche für den Drawer — isoliert, ohne Root-Layout-Impact.
 
 **Inkrementelle Integration — Schritte:**
 
-1. Drawer-Logik in `AppShell.tsx` und `AppShell.module.css` iterieren
-2. Live-Test via `/me/profile` (eingeloggt) — zeigt Slide-over, Dual-State, Avatar sofort
-3. Desktop Edge-Strip Hover-Verfeinerung dort
-4. Erst nach stabiler Drawer-Implementierung: Root-Layout-Integration (`layout.tsx`) für alle Seiten
-5. Smoke-Test auf einer öffentlichen Route (z.B. `/anime`) für den anonymen Drawer-Zustand
+1. **Drawer-Demo in `/dev/ui-system` hinzufügen** — AppShell direkt auf dieser Seite rendern, alle States zeigen: Slide-over offen/zu, Desktop Edge-Strip Hover, anonym vs. eingeloggt, Avatar-Fallback, Glassmorphism
+2. Drawer-Logik in `AppShell.tsx` und `AppShell.module.css` iterieren bis visuell und interaktiv korrekt
+3. Erst nach stabiler Drawer-Implementierung: Root-Layout-Integration (`layout.tsx`) für alle Seiten
+4. Smoke-Test auf `/me/profile` (eingeloggt) und `/anime` (anonym)
 
-Begründung: Root-Layout zu früh zu ändern würde alle Seiten gleichzeitig beeinflussen (hoher Blast-Radius). Der inkrementelle Ansatz begrenzt das Risiko.
+Begründung: `/dev/ui-system` ist der projekteigene Komponentenplayground — der richtige Ort für isolierte Komponentenentwicklung vor globaler Integration. Root-Layout zu früh zu ändern würde alle Seiten gleichzeitig beeinflussen (hoher Blast-Radius).
 
 **Migrationsreihenfolge (D-12):**
 Nach Root-Layout-Integration: Eigeninkludierung von AppShell aus `frontend/src/app/me/profile/page.tsx` entfernen, um doppelte Shell zu verhindern.
