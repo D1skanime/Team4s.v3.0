@@ -49,7 +49,7 @@ Ausnahmen:
 - Drawer-Gesamtbreite: 260px (aus bestehendem `.sidebar` `minmax(220px, 260px)`)
 - Avatar im Drawer-Footer: 36–40px Durchmesser (rund, `border-radius: 50%`)
 - Mobile Burger-Button: Mindesthöhe 40px Tap-Target (aus bestehendem `.mobileNavButton`)
-- Nav-Item Mindesthöhe: 38px (aus bestehendem `.navItem`)
+- Nav-Item Mindesthöhe: 40px (4 × 10 — auf Vielfaches von 4 gerundet, konsistent mit Burger-Button)
 
 ---
 
