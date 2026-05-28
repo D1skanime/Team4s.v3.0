@@ -2,13 +2,13 @@
 
 ## Status
 
-Implementation cleanup complete; authenticated browser UAT remains pending.
+Complete on functional UAT evidence; security review remains pending.
 
 ## What Changed
 
 - Removed obsolete `mediaCropMath.ts`, `mediaCropMath.test.ts`, and `AvatarCropDialog.module.css`.
 - Kept `mediaCropA11y.ts` because `AppShell` and `Team4sCropper` still reuse the focusable-element/focus-trap helpers; it is no longer crop geometry.
-- Added `56-UAT.md` with verification evidence and remaining live-UAT gap.
+- Added `56-UAT.md` with verification evidence and the successful authenticated live-UAT result reported on 2026-05-29.
 
 ## Verification
 
@@ -19,7 +19,6 @@ Implementation cleanup complete; authenticated browser UAT remains pending.
 - `npm run build` passed.
 - `git diff --check` passed with CRLF warnings only.
 
-## Known Remaining Gap
+## Remaining Gate
 
-- Full live browser UAT for authenticated avatar crop/export/display parity and fansub group logo crop/export/display parity could not be completed in this local run because `/me/profile` correctly rendered the unauthenticated state and no authenticated local session was available.
-- Because of that, the pending cropper todo and Phase 56 roadmap status should not be closed solely from this commit.
+- `$gsd-secure-phase 56` has not run yet, and security enforcement is enabled.

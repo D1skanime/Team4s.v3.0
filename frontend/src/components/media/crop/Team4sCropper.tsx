@@ -108,7 +108,7 @@ export function Team4sCropper({
   const [sourceURL, setSourceURL] = useState<string | null>(null)
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+  const [croppedArea, setCroppedArea] = useState<Area | null>(null)
   const [isApplying, setIsApplying] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -123,7 +123,7 @@ export function Team4sCropper({
     setSourceURL(nextURL)
     setCrop({ x: 0, y: 0 })
     setZoom(DEFAULT_ZOOM)
-    setCroppedAreaPixels(null)
+    setCroppedArea(null)
     setError(null)
     return () => URL.revokeObjectURL(nextURL)
   }, [file])
@@ -157,7 +157,7 @@ export function Team4sCropper({
   }
 
   async function applyCrop() {
-    if (!sourceURL || !croppedAreaPixels) {
+    if (!sourceURL || !croppedArea) {
       setError('Der Ausschnitt ist noch nicht bereit.')
       return
     }
@@ -166,9 +166,18 @@ export function Team4sCropper({
     setError(null)
     try {
       const image = await loadImage(sourceURL)
+      // croppedArea is in percentage (0–100). Convert to natural pixel coords here
+      // so the canvas drawImage always uses the image's actual resolution, independent
+      // of how react-easy-crop scales the image inside the viewport container.
+      const naturalArea: Area = {
+        x: (croppedArea.x / 100) * image.naturalWidth,
+        y: (croppedArea.y / 100) * image.naturalHeight,
+        width: (croppedArea.width / 100) * image.naturalWidth,
+        height: (croppedArea.height / 100) * image.naturalHeight,
+      }
       const blob = await drawCroppedImage({
         image,
-        area: croppedAreaPixels,
+        area: naturalArea,
         output: outputConfig,
         shape,
       })
@@ -219,7 +228,7 @@ export function Team4sCropper({
                 showGrid={shape !== 'circle'}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
-                onCropComplete={(_, areaPixels) => setCroppedAreaPixels(areaPixels)}
+                onCropComplete={(percentArea) => setCroppedArea(percentArea)}
                 classes={{
                   containerClassName: styles.cropperContainer,
                   mediaClassName: styles.cropperMedia,
@@ -261,7 +270,7 @@ export function Team4sCropper({
           >
             {resetLabel}
           </Button>
-          <Button onClick={() => void applyCrop()} loading={isApplying} disabled={disabled || !croppedAreaPixels}>
+          <Button onClick={() => void applyCrop()} loading={isApplying} disabled={disabled || !croppedArea}>
             {applyLabel}
           </Button>
         </div>

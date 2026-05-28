@@ -12,7 +12,7 @@ vi.mock('react-easy-crop', async () => {
     onCropComplete?: (_area: unknown, areaPixels: { x: number; y: number; width: number; height: number }) => void
   }) {
     React.useEffect(() => {
-      onCropComplete?.({}, { x: 10, y: 20, width: 120, height: 120 })
+      onCropComplete?.({ x: 10, y: 20, width: 40, height: 60 }, { x: 30, y: 40, width: 120, height: 120 })
       // Keep the mock stable: the real cropper reports changes from user interaction.
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -115,6 +115,6 @@ describe('Team4sCropper', () => {
     await waitFor(() => expect(onApply).toHaveBeenCalledTimes(1))
     const croppedFile = onApply.mock.calls[0][0] as File
     expect(croppedFile).toMatchObject({ name: 'avatar.png', type: 'image/png' })
-    expect(drawImageMock).toHaveBeenCalledWith(expect.anything(), 10, 20, 120, 120, 0, 0, 512, 512)
+    expect(drawImageMock).toHaveBeenCalledWith(expect.anything(), 30, 40, 120, 120, 0, 0, 512, 512)
   })
 })

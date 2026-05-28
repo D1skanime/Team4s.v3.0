@@ -64,7 +64,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub** - Die bestehende Profilseite wird als `/me/profile` zu einem modernen, rollenübergreifenden Member-Identity-Hub weiterentwickelt: rollenneutrale Route, echte Datenquellen, GDS-basierte Oberfläche, klare Keycloak-/Team4s-Datenhoheit, getrennte Rollenarten, sichere Avatar-/Rich-Text-/Sichtbarkeitsplanung und keine Mockdaten. (completed 2026-05-27)
 - [x] **Phase 54: Globale Nav Drawer und Layout Verdrahtung** - Die AppShell wird zu einem seitenweiten Drawer-Navigationssystem: echter Slide-over-Drawer, hover-aktivierter Desktop-Glasrand (16px), Root-Layout-Integration für seitenweite Präsenz und Dual-State (anonym/eingeloggt) mit echtem Avatar-Bild. (completed 2026-05-28)
 - [x] **Phase 55: Sichere TipTap-Persistenz fuer Profilgeschichte** - Die eigene Profilgeschichte wird von Phase-53-Plain-Text auf release-native-unabhaengige TipTap-Persistenz umgestellt: Migration, Backend-Validierung/Sanitizing, OpenAPI/frontend DTOs, Editor-State und Bestandsdaten-Migration bewegen sich gemeinsam. (completed 2026-05-29)
-- [ ] **Phase 56: Cropper** - Der fragile eigene Cropper wird durch eine moderne gepflegte React-Cropper-Bibliothek hinter einer gemeinsamen Team4s-Cropper-Komponente ersetzt; Profil-Avatar und Fansub-Gruppenlogo nutzen dieselbe UI-Grundlage, ohne Upload-Endpunkte oder Media-Ownership zu vermischen.
+- [ ] **Phase 56: Cropper** - Der fragile eigene Cropper wird durch eine moderne gepflegte React-Cropper-Bibliothek hinter einer gemeinsamen Team4s-Cropper-Komponente ersetzt; Profil-Avatar und Fansub-Gruppenlogo nutzen dieselbe UI-Grundlage, ohne Upload-Endpunkte oder Media-Ownership zu vermischen. (functional UAT passed 2026-05-29; security review pending)
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
@@ -1145,7 +1145,7 @@ Plans:
 - [x] `56-03-PLAN.md` - Fansub-Gruppenlogo-Crop in `MediaUpload` auf die gemeinsame Komponente migrieren.
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] `56-04-PLAN.md` - Alte Crop-Math-Seams entfernen, Regressionen/UAT abschliessen und Status/Todo-Handoff aktualisieren. (implementation cleanup/checks complete; authenticated browser UAT pending)
+- [x] `56-04-PLAN.md` - Alte Crop-Math-Seams entfernen, Regressionen/UAT abschliessen und Status/Todo-Handoff aktualisieren. (functional UAT passed 2026-05-29; security review pending)
 
 **Cross-cutting constraints:**
 - Der Cropper ist nur UI-/Client-Export-Infrastruktur; Profil-Avatar und Fansub-Gruppenmedia behalten ihre vorhandenen API-Helfer, Upload-Endpunkte, Auth-Seams und Media-Ownership.

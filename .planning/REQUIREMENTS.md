@@ -140,7 +140,7 @@
 | AUTH-PROFILE-ACCOUNT-RETURN-01 | Phase 52 | Complete - live Keycloak UAT pending |
 | MEMBER-PROFILE-HUB-01 | Phase 53 | Complete |
 | MEMBER-PROFILE-STORY-RICH-TEXT-01 | Phase 55 | Complete |
-| MEDIA-CROPPER-01 | Phase 56 | Implementation verified; authenticated browser UAT pending |
+| MEDIA-CROPPER-01 | Phase 56 | Functional UAT passed; security review pending |
 
 **Coverage:**
 - v1 requirements: 28 total

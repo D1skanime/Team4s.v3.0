@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 56 — cropper
+**Current focus:** Phase 56 — Cropper functional UAT passed; security review pending
 
 ## Current Position
 
 Phase: 56
-Plan: Not started
+Plan: 4 of 4 complete; `$gsd-secure-phase 56` pending
 
 ## Accumulated Context
 
@@ -192,13 +192,13 @@ Recent durable decisions:
 
 - Decide later whether the old manual-vs-Jellyfin entry-choice page should be restored or formally retired.
 - Fix logo upload PNG to JPG conversion — beim Upload und Crawlen wird PNG mit transparentem Hintergrund fälschlicherweise in JPG konvertiert; Quellformat beibehalten.
-- Plan a global cropper library replacement for own-profile avatar and fansub group media cropping; current in-house cropper remains visually acceptable but functionally unreliable in UAT.
 - Redesign `/me/profile` content model after UAT 3: remove internal/admin copy and unclear badges, simplify memberships, and replace abstract credit aggregates with latest media/text activity.
 
 ### Roadmap Evolution
 
 - Phase 55 added: Sichere TipTap-Persistenz fuer Profilgeschichte - `/me/profile` darf die Profilgeschichte nicht laenger ad hoc von TipTap nach Plain Text zurueckkonvertieren; Migration, Backend-TipTap-Service, OpenAPI/frontend DTOs, zentraler API-Client, Sanitizing und Bestandsdaten bewegen sich gemeinsam.
 - Phase 56 added: Cropper - der fragile eigene Cropper wird als eigener Folge-Slice mit gepflegter React-Cropper-Bibliothek geplant; Profil-Avatar und Fansub-Gruppenlogo sollen dieselbe gemeinsame Cropper-Komponente nutzen, ohne Upload-Endpunkte oder Media-Ownership zu vermischen.
+- Phase 56 functional UAT passed on 2026-05-29: `react-easy-crop` is wrapped behind `Team4sCropper`, avatar and fansub logo crop flows are migrated, and the original crop parity todo is done; security review remains pending.
 - Phase 49/50 reconcile completed on 2026-05-27: Phase 49 central Auth/API client is complete from `49-VERIFICATION.md` and `AUTH-API-CLIENT-01` is complete; Phase 50 platform-admin/contributor scope governance is registered as complete-carry-forward with technical verification passed and live Keycloak UAT pending.
 - Historical reconcile completed on 2026-05-27 for phases 1-46: Phases 41 and 43-46 are retro-closed from runtime evidence; Phase 42 remains planned/deferred; stale v1 requirement Pending rows were reconciled to completed historical baseline; OpenAPI gaps for member management and invitations remain follow-up work.
 - Phase 48 retro-verified on 2026-05-27: contributor dashboard foundation is complete from runtime evidence and focused tests; `/me/groups` route direction, shared `Mein Bereich` shell integration, OpenAPI coverage, broader live UAT, centralized labels, and safer non-admin workspace routing carry forward.
