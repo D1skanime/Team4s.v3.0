@@ -92,3 +92,114 @@ describe('AppShell', () => {
     expect(screen.getAllByText('Mein Bereich').length).toBeGreaterThanOrEqual(1)
   })
 })
+
+describe('AppShell drawer behavior', () => {
+  it('opens the drawer from the header button', () => {
+    render(
+      <AppShell currentPath="/me/profile">
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    const navButton = screen.getByRole('button', { name: /Navigation/i })
+    fireEvent.click(navButton)
+
+    expect(navButton.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByLabelText('Team4s Navigation')).not.toBeNull()
+  })
+
+  it('closes the open drawer with Escape', () => {
+    render(
+      <AppShell currentPath="/me/profile">
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    const navButton = screen.getByRole('button', { name: /Navigation/i })
+    fireEvent.click(navButton)
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    expect(navButton.getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('closes the open drawer from the backdrop button', () => {
+    render(
+      <AppShell currentPath="/me/profile">
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    const navButton = screen.getByRole('button', { name: /Navigation/i })
+    fireEvent.click(navButton)
+    fireEvent.click(screen.getByRole('button', { name: /Drawer schließen/i }))
+
+    expect(navButton.getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('shows login and register actions in anonymous mode', () => {
+    render(
+      <AppShell mode="anonymous" currentPath="/anime">
+        <main>Anime</main>
+      </AppShell>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
+
+    expect(screen.getByRole('link', { name: /Anmelden/i })).not.toBeNull()
+    expect(screen.getByRole('link', { name: /Registrieren/i })).not.toBeNull()
+  })
+
+  it('shows the provided avatar image for signed-in members', () => {
+    render(
+      <AppShell
+        currentPath="/me/profile"
+        user={{ displayName: 'Mika', email: 'mika@example.com', avatarUrl: 'https://cdn.test.com/av.jpg' }}
+      >
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
+
+    const avatar = screen.getByRole('img', { name: /Avatar von Mika/i })
+    expect(avatar.getAttribute('src')).toBe('https://cdn.test.com/av.jpg')
+  })
+
+  it('falls back to initials when no avatar image exists', () => {
+    render(
+      <AppShell currentPath="/me/profile" user={{ displayName: 'Mika', email: 'mika@example.com' }}>
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
+
+    expect(screen.queryByRole('img', { name: /Avatar von Mika/i })).toBeNull()
+    expect(screen.getByText('M')).not.toBeNull()
+  })
+
+  it('shows the admin link when the caller has the capability', () => {
+    render(
+      <AppShell currentPath="/admin" canAccessAdmin>
+        <main>Admininhalt</main>
+      </AppShell>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
+
+    const adminLink = screen.getByRole('link', { name: /Verwaltung/i })
+    expect(adminLink.getAttribute('href')).toBe('/admin')
+  })
+
+  it('hides the admin link when the caller lacks the capability', () => {
+    render(
+      <AppShell currentPath="/me/profile" canAccessAdmin={false}>
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
+
+    expect(screen.queryByRole('link', { name: /Verwaltung/i })).toBeNull()
+  })
+})
