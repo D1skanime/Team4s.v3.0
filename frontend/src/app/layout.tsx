@@ -3,6 +3,7 @@ import { ReactNode } from 'react'
 
 import { AuthSessionSwitchGuard } from '@/components/auth/AuthSessionSwitchGuard'
 import { LocalhostCanonicalRedirect } from '@/components/auth/LocalhostCanonicalRedirect'
+import { AppShellClientWrapper } from '@/components/layout/AppShellClientWrapper'
 import '@/styles/globals.css'
 
 export const metadata: Metadata = {
@@ -25,7 +26,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <LocalhostCanonicalRedirect />
         <AuthSessionSwitchGuard />
-        {children}
+        <AppShellClientWrapper>{children}</AppShellClientWrapper>
       </body>
     </html>
   )
