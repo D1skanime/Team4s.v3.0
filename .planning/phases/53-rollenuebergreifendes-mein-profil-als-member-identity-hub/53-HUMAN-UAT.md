@@ -4,7 +4,7 @@ phase: 53-rollenuebergreifendes-mein-profil-als-member-identity-hub
 source:
   - 53-VERIFICATION.md
 started: 2026-05-27T16:12:29Z
-updated: 2026-05-28T10:34:56.7147228+02:00
+updated: 2026-05-28T11:13:46.3876306+02:00
 ---
 
 # Phase 53 Human UAT
@@ -31,6 +31,7 @@ result: issue
 reported: "Avatar crop UI should remove the separate right-side preview circles because the main crop box already shows the round selected area; remove the helper text 'Das Original bleibt intern erhalten; angezeigt wird nur der runde Zuschnitt.' during the fix; at low zoom the image cannot be moved further even though there is still visual room above and below for the circle crop. Even at higher zoom the image cannot be moved left/right with mouse or touchscreen. Panning must work freely in all directions at every zoom level until the image edge touches the circular crop boundary. Attempting to save the avatar showed 'Anmeldung erforderlich. Bitte zuerst einen gültigen Login aufbauen.' even though the user had recently logged in and expects the session to remain valid for 24 hours. After a later successful save, the profile image card shows the uploaded crop and 'Profil wurde gespeichert.', but the large circle avatar in the header still shows the fallback initial instead of the new image. The profile helper text 'JPG, PNG oder WEBP bis zum bestehenden serverseitigen Bildlimit von 50 MB. SVG und ungültige Bilder werden serverseitig abgelehnt.' is too technical/admin-oriented for member profile UX and should be simplified. The hero description 'Deine Team4s-Identität, Fansub-Geschichte, Mitgliedschaften und Beiträge an einem rollenneutralen Ort.' should be removed. After upload, there is no way to edit/re-crop the already uploaded image later."
 severity: blocker
 fix_progress: "Code fix applied for remaining avatar crop blockers: panning bounds now allow movement until the image edge reaches the crop circle, and existing avatars can be loaded from retained source_original for re-cropping through the same upload endpoint. Header/Hero global UI alignment is intentionally deferred until UAT is through."
+follow_up: "Retest after the export-geometry fix still shows the same preview-vs-saved crop mismatch. Decision: stop patching the in-house cropper and create a new phase for a global cropper built on a maintained modern library; apply it to both own-profile avatar cropping and fansub group media/logo cropping."
 
 ### 3. Mobile/accessibility visual pass
 
