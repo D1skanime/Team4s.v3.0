@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import type { ReactNode } from 'react'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { AppShell } from './AppShell'
@@ -75,5 +75,20 @@ describe('AppShell', () => {
     const navButton = screen.getByRole('button', { name: /Navigation/i })
     expect(navButton.getAttribute('aria-expanded')).toBe('false')
     expect(screen.queryByLabelText('Hauptnavigation mobil')).toBeNull()
+  })
+
+  it('opens the mobile navigation from the header button', () => {
+    render(
+      <AppShell currentPath="/me/profile">
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    const navButton = screen.getByRole('button', { name: /Navigation/i })
+    fireEvent.click(navButton)
+
+    expect(navButton.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByLabelText('Hauptnavigation mobil')).not.toBeNull()
+    expect(screen.getAllByText('Mein Bereich').length).toBeGreaterThanOrEqual(1)
   })
 })

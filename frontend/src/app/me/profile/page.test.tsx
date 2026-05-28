@@ -204,6 +204,21 @@ describe('MyProfilePage', () => {
     expect(screen.queryByText('Anmeldung erforderlich')).toBeNull()
   })
 
+  it('keeps the account display name out of editable profile fields until Team4s data changes', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      account_display_name: 'Mika Account',
+      display_name: 'Mika Legacy Display',
+      fansub_name: 'MikaFX',
+    }))
+
+    render(<MyProfilePage />)
+
+    expect(await screen.findByLabelText('Fansub-Nick')).not.toBeNull()
+    expect(screen.queryByLabelText('Anzeigename')).toBeNull()
+    expect(screen.getAllByText('Mika Account').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: /Profil speichern/i })).toHaveProperty('disabled', true)
+  })
+
   it('renders aggregate load errors honestly', async () => {
     getOwnProfileMock.mockRejectedValue(new Error('Profil API nicht erreichbar'))
 
