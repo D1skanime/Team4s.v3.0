@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -83,6 +84,11 @@ func (r *MemberProfileRepository) UpdateOwnProfile(
 			active_until_year = CASE WHEN $12 THEN $13 ELSE active_until_year END,
 			is_currently_active = CASE WHEN $14 THEN COALESCE($15, is_currently_active) ELSE is_currently_active END,
 			profile_visibility = CASE WHEN $16 THEN COALESCE(NULLIF($17, ''), profile_visibility) ELSE profile_visibility END,
+			member_story_json = CASE WHEN $18 THEN $19::jsonb ELSE member_story_json END,
+			member_story_html = CASE WHEN $20 THEN NULLIF($21, '') ELSE member_story_html END,
+			member_story_text = CASE WHEN $22 THEN COALESCE($23, '') ELSE member_story_text END,
+			member_story_editor_type = CASE WHEN $24 THEN COALESCE(NULLIF($25, ''), member_story_editor_type) ELSE member_story_editor_type END,
+			member_story_content_schema_version = CASE WHEN $26 THEN COALESCE($27, member_story_content_schema_version) ELSE member_story_content_schema_version END,
 			updated_at = NOW()
 		WHERE id = $1
 		RETURNING updated_at
@@ -96,6 +102,11 @@ func (r *MemberProfileRepository) UpdateOwnProfile(
 		input.ActiveUntilYear.Set, input.ActiveUntilYear.Value,
 		input.IsCurrentlyActive.Set, input.IsCurrentlyActive.Value,
 		input.ProfileVisibility.Set, normalizeOptionalString(input.ProfileVisibility.Value),
+		input.MemberStoryJSON.Set, rawJSONToNullableString(input.MemberStoryJSON.Value),
+		input.MemberStoryHTML.Set, normalizeOptionalString(input.MemberStoryHTML.Value),
+		input.MemberStoryText.Set, normalizeOptionalString(input.MemberStoryText.Value),
+		input.MemberStoryEditorType.Set, normalizeOptionalString(input.MemberStoryEditorType.Value),
+		input.MemberStoryContentSchemaVersion.Set, input.MemberStoryContentSchemaVersion.Value,
 	).Scan(&updatedAt); err != nil {
 		if isCheckViolation(err) {
 			return nil, ErrValidation
@@ -211,32 +222,37 @@ func (r *MemberProfileRepository) ensureProfileBase(ctx context.Context, appUser
 
 func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pgx.Tx, appUserID int64) (*models.MemberProfile, error) {
 	type baseRow struct {
-		appUserID        int64
-		legacyUserID     *int64
-		email            string
-		keycloakSubject  string
-		accountName      string
-		accountStatus    string
-		accountRoles     []string
-		memberID         *int64
-		memberDisplay    *string
-		memberNickname   *string
-		memberBio        *string
-		memberStory      *string
-		activeFromYear   *int32
-		activeUntilYear  *int32
-		currentlyActive  bool
-		visibility       *string
-		avatarID         *int64
-		avatarPath       *string
-		avatarSourcePath *string
-		avatarMimeType   *string
-		avatarCreatedAt  *time.Time
-		avatarWidth      *int
-		avatarHeight     *int
-		avatarSize       *int64
-		memberCreatedAt  *time.Time
-		memberUpdatedAt  *time.Time
+		appUserID                       int64
+		legacyUserID                    *int64
+		email                           string
+		keycloakSubject                 string
+		accountName                     string
+		accountStatus                   string
+		accountRoles                    []string
+		memberID                        *int64
+		memberDisplay                   *string
+		memberNickname                  *string
+		memberBio                       *string
+		memberStory                     *string
+		memberStoryJSON                 []byte
+		memberStoryHTML                 *string
+		memberStoryText                 *string
+		memberStoryEditorType           *string
+		memberStoryContentSchemaVersion *int32
+		activeFromYear                  *int32
+		activeUntilYear                 *int32
+		currentlyActive                 bool
+		visibility                      *string
+		avatarID                        *int64
+		avatarPath                      *string
+		avatarSourcePath                *string
+		avatarMimeType                  *string
+		avatarCreatedAt                 *time.Time
+		avatarWidth                     *int
+		avatarHeight                    *int
+		avatarSize                      *int64
+		memberCreatedAt                 *time.Time
+		memberUpdatedAt                 *time.Time
 	}
 
 	var row baseRow
@@ -262,6 +278,11 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 			m.nickname,
 			m.slogan,
 			m.member_history_description,
+			m.member_story_json,
+			m.member_story_html,
+			m.member_story_text,
+			m.member_story_editor_type,
+			m.member_story_content_schema_version,
 			m.active_from_year,
 			m.active_until_year,
 			COALESCE(m.is_currently_active, false),
@@ -284,6 +305,11 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 				nickname,
 				slogan,
 				member_history_description,
+				member_story_json,
+				member_story_html,
+				member_story_text,
+				member_story_editor_type,
+				member_story_content_schema_version,
 				active_from_year,
 				active_until_year,
 				is_currently_active,
@@ -314,6 +340,11 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		&row.memberNickname,
 		&row.memberBio,
 		&row.memberStory,
+		&row.memberStoryJSON,
+		&row.memberStoryHTML,
+		&row.memberStoryText,
+		&row.memberStoryEditorType,
+		&row.memberStoryContentSchemaVersion,
 		&row.activeFromYear,
 		&row.activeUntilYear,
 		&row.currentlyActive,
@@ -373,25 +404,43 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		row.memberUpdatedAt = &updatedAt
 	}
 
+	memberStory := normalizeLoadedOptionalString(row.memberStoryText)
+	if memberStory == nil {
+		memberStory = normalizeLoadedOptionalString(row.memberStory)
+	}
+	memberStoryJSON := rawJSONMessagePtr(row.memberStoryJSON)
+	memberStoryHTML := normalizeLoadedOptionalString(row.memberStoryHTML)
+	memberStoryText := normalizeLoadedOptionalString(row.memberStoryText)
+	editorType := strings.TrimSpace(valueOrDefault(row.memberStoryEditorType, "tiptap"))
+	contentSchemaVersion := int32(1)
+	if row.memberStoryContentSchemaVersion != nil && *row.memberStoryContentSchemaVersion > 0 {
+		contentSchemaVersion = *row.memberStoryContentSchemaVersion
+	}
+
 	profile := &models.MemberProfile{
-		MemberID:           *row.memberID,
-		AppUserID:          row.appUserID,
-		LegacyUserID:       row.legacyUserID,
-		DisplayName:        strings.TrimSpace(valueOrDefault(row.memberDisplay, row.accountName)),
-		FansubName:         strings.TrimSpace(valueOrDefault(row.memberNickname, row.accountName)),
-		Email:              row.email,
-		KeycloakSubject:    row.keycloakSubject,
-		Bio:                normalizeLoadedOptionalString(row.memberBio),
-		MemberStory:        normalizeLoadedOptionalString(row.memberStory),
-		ActiveFromYear:     row.activeFromYear,
-		ActiveUntilYear:    row.activeUntilYear,
-		IsCurrentlyActive:  row.currentlyActive,
-		ProfileVisibility:  strings.TrimSpace(valueOrDefault(row.visibility, models.ProfileVisibilityMembersOnly)),
-		CreatedAt:          valueOrNow(row.memberCreatedAt),
-		UpdatedAt:          valueOrNow(row.memberUpdatedAt),
-		AccountStatus:      row.accountStatus,
-		AccountDisplayName: row.accountName,
-		AccountGlobalRoles: row.accountRoles,
+		MemberID:                        *row.memberID,
+		AppUserID:                       row.appUserID,
+		LegacyUserID:                    row.legacyUserID,
+		DisplayName:                     strings.TrimSpace(valueOrDefault(row.memberDisplay, row.accountName)),
+		FansubName:                      strings.TrimSpace(valueOrDefault(row.memberNickname, row.accountName)),
+		Email:                           row.email,
+		KeycloakSubject:                 row.keycloakSubject,
+		Bio:                             normalizeLoadedOptionalString(row.memberBio),
+		MemberStory:                     memberStory,
+		MemberStoryJSON:                 memberStoryJSON,
+		MemberStoryHTML:                 memberStoryHTML,
+		MemberStoryText:                 memberStoryText,
+		MemberStoryEditorType:           editorType,
+		MemberStoryContentSchemaVersion: contentSchemaVersion,
+		ActiveFromYear:                  row.activeFromYear,
+		ActiveUntilYear:                 row.activeUntilYear,
+		IsCurrentlyActive:               row.currentlyActive,
+		ProfileVisibility:               strings.TrimSpace(valueOrDefault(row.visibility, models.ProfileVisibilityMembersOnly)),
+		CreatedAt:                       valueOrNow(row.memberCreatedAt),
+		UpdatedAt:                       valueOrNow(row.memberUpdatedAt),
+		AccountStatus:                   row.accountStatus,
+		AccountDisplayName:              row.accountName,
+		AccountGlobalRoles:              row.accountRoles,
 	}
 	if row.avatarID != nil && row.avatarPath != nil && row.avatarCreatedAt != nil {
 		sourceOriginalURL := ""
@@ -551,6 +600,26 @@ func normalizeLoadedOptionalString(value *string) *string {
 		return nil
 	}
 	return &trimmed
+}
+
+func rawJSONToNullableString(value *json.RawMessage) *string {
+	if value == nil {
+		return nil
+	}
+	trimmed := strings.TrimSpace(string(*value))
+	if trimmed == "" || trimmed == "null" {
+		return nil
+	}
+	return &trimmed
+}
+
+func rawJSONMessagePtr(value []byte) *json.RawMessage {
+	trimmed := strings.TrimSpace(string(value))
+	if trimmed == "" || trimmed == "null" {
+		return nil
+	}
+	raw := json.RawMessage(append([]byte(nil), []byte(trimmed)...))
+	return &raw
 }
 
 func valueOrDefault(value *string, fallback string) string {

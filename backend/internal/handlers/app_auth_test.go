@@ -16,6 +16,7 @@ import (
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -423,6 +424,125 @@ func TestUpdateOwnProfileRejectsDisabledUser(t *testing.T) {
 
 	if recorder.Code != http.StatusForbidden {
 		t.Fatalf("expected 403, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if profileRepo.updateCalls != 0 {
+		t.Fatalf("expected no profile update call, got %d", profileRepo.updateCalls)
+	}
+}
+
+func TestUpdateOwnProfileAcceptsTipTapStoryJSON(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	updated := &models.MemberProfile{
+		MemberID:           44,
+		AppUserID:          11,
+		DisplayName:        "Mika",
+		FansubName:         "MikaFX",
+		ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+		AccountStatus:      models.AppUserStatusActive,
+		AccountDisplayName: "Mika",
+	}
+	profileRepo := &profileRepoStub{
+		getResp:    updated,
+		updateResp: updated,
+	}
+	handler := &AppAuthHandler{
+		profileRepo: profileRepo,
+		tiptapSvc:   services.NewTipTapService(),
+	}
+
+	body := []byte(`{
+		"member_story_json":{
+			"type":"doc",
+			"content":[
+				{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"Profil"}]},
+				{"type":"paragraph","content":[{"type":"text","text":"Rot","marks":[{"type":"textStyle","attrs":{"colorToken":"red"}}]}]},
+				{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"Rolle"}]}]}]}]}
+			]
+		}
+	}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPut, "/api/v1/me/profile", body, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UpdateOwnProfile(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if profileRepo.updateCalls != 1 {
+		t.Fatalf("expected one profile update call, got %d", profileRepo.updateCalls)
+	}
+	input := profileRepo.lastUpdateArg
+	if !input.MemberStoryJSON.Set || input.MemberStoryJSON.Value == nil {
+		t.Fatalf("expected member_story_json to be set")
+	}
+	if !strings.Contains(string(*input.MemberStoryJSON.Value), `"table"`) {
+		t.Fatalf("expected table structure to survive in JSON payload, got %s", string(*input.MemberStoryJSON.Value))
+	}
+	if !input.MemberStoryHTML.Set || input.MemberStoryHTML.Value == nil || !strings.Contains(*input.MemberStoryHTML.Value, "<table>") {
+		t.Fatalf("expected rendered HTML table, got %#v", input.MemberStoryHTML.Value)
+	}
+	if !input.MemberStoryText.Set || input.MemberStoryText.Value == nil || !strings.Contains(*input.MemberStoryText.Value, "Profil") {
+		t.Fatalf("expected extracted plain text, got %#v", input.MemberStoryText.Value)
+	}
+}
+
+func TestUpdateOwnProfileRejectsUnknownTipTapNode(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	profileRepo := &profileRepoStub{
+		getResp: &models.MemberProfile{MemberID: 44, AppUserID: 11},
+	}
+	handler := &AppAuthHandler{
+		profileRepo: profileRepo,
+		tiptapSvc:   services.NewTipTapService(),
+	}
+
+	body := []byte(`{"member_story_json":{"type":"doc","content":[{"type":"codeBlock","content":[]}]}}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPut, "/api/v1/me/profile", body, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UpdateOwnProfile(c)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if profileRepo.updateCalls != 0 {
+		t.Fatalf("expected no profile update call, got %d", profileRepo.updateCalls)
+	}
+}
+
+func TestUpdateOwnProfileRejectsClientProvidedStoryHTML(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	profileRepo := &profileRepoStub{
+		getResp: &models.MemberProfile{MemberID: 44, AppUserID: 11},
+	}
+	handler := &AppAuthHandler{
+		profileRepo: profileRepo,
+		tiptapSvc:   services.NewTipTapService(),
+	}
+
+	body := []byte(`{"member_story_html":"<script>alert(1)</script>"}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPut, "/api/v1/me/profile", body, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UpdateOwnProfile(c)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d with body %s", recorder.Code, recorder.Body.String())
 	}
 	if profileRepo.updateCalls != 0 {
 		t.Fatalf("expected no profile update call, got %d", profileRepo.updateCalls)

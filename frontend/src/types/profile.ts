@@ -1,4 +1,5 @@
 export type ProfileVisibility = 'public' | 'members_only'
+export type TipTapDocument = Record<string, unknown>
 
 export interface MemberProfileCapabilities {
   can_view_own_profile: boolean
@@ -39,6 +40,11 @@ export interface MemberProfileData {
   keycloak_subject: string
   bio?: string | null
   member_story?: string | null
+  member_story_json?: TipTapDocument | null
+  member_story_html?: string | null
+  member_story_text?: string | null
+  member_story_editor_type?: 'tiptap'
+  member_story_content_schema_version?: number
   active_from_year?: number | null
   active_until_year?: number | null
   is_currently_active: boolean
@@ -74,6 +80,7 @@ export interface UpdateMemberProfileRequest {
   fansub_name?: string | null
   bio?: string | null
   member_story?: string | null
+  member_story_json?: TipTapDocument | null
   active_from_year?: number | null
   active_until_year?: number | null
   is_currently_active?: boolean | null

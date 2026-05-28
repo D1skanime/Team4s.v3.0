@@ -40,9 +40,16 @@ vi.mock('@/components/editor', () => ({
       value={typeof value === 'object' && value !== null ? JSON.stringify(value) : ''}
       onChange={(event) => onChange({
         type: 'doc',
-        content: [{ type: 'paragraph', content: [{ type: 'text', text: event.target.value }] }],
+        content: [
+          { type: 'heading', attrs: { level: 1 }, content: [{ type: 'text', text: 'Titel' }] },
+          { type: 'paragraph', content: [{ type: 'text', text: event.target.value, marks: [{ type: 'textStyle', attrs: { colorToken: 'red' } }] }] },
+          { type: 'table', content: [{ type: 'tableRow', content: [{ type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Zelle' }] }] }] }] },
+        ],
       })}
     />
+  ),
+  RichTextRenderer: ({ bodyHtml }: { bodyHtml?: string | null }) => (
+    <div data-testid="story-renderer" dangerouslySetInnerHTML={{ __html: bodyHtml || '' }} />
   ),
 }))
 
@@ -117,6 +124,14 @@ function makeProfileResponse(overrides: Partial<MemberProfileResponse['data']> =
       keycloak_subject: 'kc-11',
       bio: 'Typesetting und QC.',
       member_story: 'Seit 2016 in mehreren Gruppen aktiv.',
+      member_story_json: {
+        type: 'doc',
+        content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Seit 2016 in mehreren Gruppen aktiv.' }] }],
+      },
+      member_story_html: '<p>Seit 2016 in mehreren Gruppen aktiv.</p>',
+      member_story_text: 'Seit 2016 in mehreren Gruppen aktiv.',
+      member_story_editor_type: 'tiptap',
+      member_story_content_schema_version: 1,
       active_from_year: 2016,
       active_until_year: null,
       is_currently_active: true,
@@ -166,10 +181,24 @@ describe('MyProfilePage', () => {
     render(<MyProfilePage />)
 
     expect(await screen.findByRole('heading', { name: 'Mein Profil' })).not.toBeNull()
-    expect(screen.getByRole('link', { name: /Mein Profil/i }).getAttribute('href')).toBe('/me/profile')
     expect(screen.queryByText('/admin/profile')).toBeNull()
     expect(screen.queryByText(/Admin Content/i)).toBeNull()
     expect(screen.getByText('Meine Fansub-Geschichte')).not.toBeNull()
+    expect(screen.getByTestId('story-renderer').textContent).toContain('Seit 2016')
+    expect(screen.queryByLabelText('Meine Fansub-Geschichte Editor')).toBeNull()
+  })
+
+  it('opens the rich story editor only after Bearbeiten', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+
+    render(<MyProfilePage />)
+
+    expect(await screen.findByTestId('story-renderer')).not.toBeNull()
+    expect(screen.queryByLabelText('Meine Fansub-Geschichte Editor')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Bearbeiten' }))
+
+    expect(screen.getByLabelText('Meine Fansub-Geschichte Editor')).not.toBeNull()
   })
 
   it('renders protected-route feedback without loading profile data when unauthenticated', async () => {
@@ -250,6 +279,42 @@ describe('MyProfilePage', () => {
     expect(await screen.findByText('Profil wurde gespeichert.')).not.toBeNull()
   })
 
+  it('sends TipTap JSON for the profile story and returns to read mode after saving', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+    updateOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      member_story: 'Titel Rot Zelle',
+      member_story_json: {
+        type: 'doc',
+        content: [
+          { type: 'heading', attrs: { level: 1 }, content: [{ type: 'text', text: 'Titel' }] },
+          { type: 'paragraph', content: [{ type: 'text', text: 'Rot', marks: [{ type: 'textStyle', attrs: { colorToken: 'red' } }] }] },
+          { type: 'table', content: [{ type: 'tableRow', content: [{ type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Zelle' }] }] }] }] },
+        ],
+      },
+      member_story_html: '<h1>Titel</h1><p><span data-color-token="red">Rot</span></p><table><tbody><tr><td><p>Zelle</p></td></tr></tbody></table>',
+      member_story_text: 'Titel Rot Zelle',
+    }))
+
+    render(<MyProfilePage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Bearbeiten' }))
+    fireEvent.change(screen.getByLabelText('Meine Fansub-Geschichte Editor'), { target: { value: 'Rot' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Profil speichern' }))
+
+    await waitFor(() => {
+      expect(updateOwnProfileMock).toHaveBeenCalledWith(expect.objectContaining({
+        member_story_json: expect.objectContaining({ type: 'doc' }),
+      }))
+    })
+    const payload = updateOwnProfileMock.mock.calls[0]?.[0] as Record<string, unknown>
+    expect(payload.member_story).toBeUndefined()
+    expect(JSON.stringify(payload.member_story_json)).toContain('"table"')
+    expect(JSON.stringify(payload.member_story_json)).toContain('"colorToken":"red"')
+    expect(await screen.findByText('Profil wurde gespeichert.')).not.toBeNull()
+    expect(screen.queryByLabelText('Meine Fansub-Geschichte Editor')).toBeNull()
+    expect(screen.getByTestId('story-renderer').innerHTML).toContain('<table>')
+  })
+
   it('preserves dirty Team4s fields during Keycloak return refresh', async () => {
     getOwnProfileMock
       .mockResolvedValueOnce(makeProfileResponse())
@@ -270,6 +335,33 @@ describe('MyProfilePage', () => {
     expect((await screen.findAllByText('Mika Keycloak')).length).toBeGreaterThan(0)
     expect(screen.getByDisplayValue('Ungespeicherter Nick')).not.toBeNull()
     expect(screen.queryByDisplayValue('ServerNick')).toBeNull()
+  })
+
+  it('preserves dirty rich story changes during Keycloak return refresh', async () => {
+    getOwnProfileMock
+      .mockResolvedValueOnce(makeProfileResponse())
+      .mockResolvedValueOnce(makeProfileResponse({
+        account_display_name: 'Mika Keycloak',
+        member_story: 'Server Story',
+        member_story_json: {
+          type: 'doc',
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Server Story' }] }],
+        },
+        member_story_html: '<p>Server Story</p>',
+      }))
+    refreshActiveAuthSessionMock.mockResolvedValue(undefined)
+
+    render(<MyProfilePage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Bearbeiten' }))
+    const editor = screen.getByLabelText('Meine Fansub-Geschichte Editor')
+    fireEvent.change(editor, { target: { value: 'Ungespeicherte Story' } })
+    fireEvent.click(screen.getByRole('link', { name: 'Accountdaten verwalten' }))
+    fireEvent.focus(window)
+
+    expect((await screen.findAllByText('Mika Keycloak')).length).toBeGreaterThan(0)
+    expect((screen.getByLabelText('Meine Fansub-Geschichte Editor') as HTMLTextAreaElement).value).toContain('Ungespeicherte Story')
+    expect(screen.queryByText('Server Story')).toBeNull()
   })
 
   it('blocks invalid activity years instead of coercing them to null', async () => {

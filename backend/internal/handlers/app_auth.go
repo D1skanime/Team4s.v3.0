@@ -12,6 +12,7 @@ import (
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -62,6 +63,7 @@ type AppAuthHandler struct {
 	keycloakVerifier   *backendauth.KeycloakVerifier
 	permissionSvc      *permissions.Service
 	auditLogRepo       auditLogWriter
+	tiptapSvc          *services.TipTapService
 	mediaStorageDir    string
 	mediaBaseURL       string
 	keycloakAccountURL string
@@ -78,6 +80,7 @@ func NewAppAuthHandler(
 	keycloakVerifier *backendauth.KeycloakVerifier,
 	permissionSvc *permissions.Service,
 	auditLogRepo *repository.AuditLogRepository,
+	tiptapSvc *services.TipTapService,
 	mediaStorageDir string,
 	mediaBaseURL string,
 	keycloakAccountURL string,
@@ -93,6 +96,7 @@ func NewAppAuthHandler(
 		keycloakVerifier:   keycloakVerifier,
 		permissionSvc:      permissionSvc,
 		auditLogRepo:       auditLogRepo,
+		tiptapSvc:          tiptapSvc,
 		mediaStorageDir:    strings.TrimSpace(mediaStorageDir),
 		mediaBaseURL:       strings.TrimSpace(mediaBaseURL),
 		keycloakAccountURL: strings.TrimSpace(keycloakAccountURL),

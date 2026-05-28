@@ -28,6 +28,14 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"profile avatar uploads must retain the uncropped source as a media_files variant")
 	assert.True(t, strings.Contains(content, "mf_source.media_id = ma.id AND mf_source.variant = 'source_original'"),
 		"own profile avatar reads must expose the retained source only through the own-profile aggregate for re-cropping")
+	assert.True(t, strings.Contains(content, "m.member_story_json"),
+		"own profile reads must expose the TipTap JSON source for profile story editing")
+	assert.True(t, strings.Contains(content, "member_story_html = CASE"),
+		"own profile updates must persist server-rendered story HTML with the JSON update")
+	assert.True(t, strings.Contains(content, "member_story_text = CASE"),
+		"own profile updates must persist derived plain text with the JSON update")
+	assert.True(t, strings.Contains(content, "member_history_description = CASE"),
+		"legacy member_history_description must remain as the compatibility plain-text field")
 	assert.True(t, strings.Contains(content, "DELETE FROM media_files WHERE media_id = $1"),
 		"profile avatar replacement must remove previous avatar media_files after the new avatar is linked")
 	assert.True(t, strings.Contains(content, "DELETE FROM media_assets WHERE id = $1"),

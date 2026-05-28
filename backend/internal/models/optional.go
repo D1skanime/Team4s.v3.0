@@ -98,3 +98,25 @@ func (o *OptionalTime) UnmarshalJSON(data []byte) error {
 	o.Value = &parsed
 	return nil
 }
+
+type OptionalRawJSON struct {
+	Set   bool
+	Value *json.RawMessage
+}
+
+func (o *OptionalRawJSON) UnmarshalJSON(data []byte) error {
+	o.Set = true
+	trimmed := bytes.TrimSpace(data)
+	if bytes.Equal(trimmed, []byte("null")) {
+		o.Value = nil
+		return nil
+	}
+
+	var value json.RawMessage
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		return err
+	}
+
+	o.Value = &value
+	return nil
+}

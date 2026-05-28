@@ -6595,7 +6595,28 @@ components:
         member_story:
           type: string
           nullable: true
-          description: Plain-text story in the current runtime contract. Rich TipTap persistence is deferred until DB fields, backend validation, sanitized HTML, and DTOs move together.
+          description: Derived plain-text compatibility value for the profile story.
+        member_story_json:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: TipTap JSON document used as the editing source of truth for the profile story.
+        member_story_html:
+          type: string
+          nullable: true
+          description: Server-rendered and sanitized HTML for read-mode display. Clients must not send this field as input.
+        member_story_text:
+          type: string
+          nullable: true
+          description: Derived plain text extracted from member_story_json for compatibility, search, and previews.
+        member_story_editor_type:
+          type: string
+          enum: [tiptap]
+          description: Editor format used for the profile story rich text fields.
+        member_story_content_schema_version:
+          type: integer
+          format: int32
+          description: TipTap content schema version for the profile story.
         active_from_year:
           type: integer
           format: int32
@@ -6662,6 +6683,12 @@ components:
         member_story:
           type: string
           nullable: true
+          description: Compatibility plain-text input. The API converts it to a minimal TipTap document when member_story_json is not supplied.
+        member_story_json:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: TipTap JSON document for the profile story. The backend validates allowed nodes and marks, renders sanitized HTML, and extracts plain text.
         active_from_year:
           type: integer
           format: int32

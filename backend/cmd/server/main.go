@@ -125,6 +125,7 @@ func main() {
 	authzRepo := repository.NewAuthzRepository(dbPool)
 	permissionSvc := permissions.NewService(authzRepo)
 	auditLogRepo := repository.NewAuditLogRepository(dbPool)
+	tiptapSvc := services.NewTipTapService()
 	groupAppMemberRepo := repository.NewFansubGroupAppMemberRepository(dbPool)
 	groupInvitationRepo := repository.NewFansubGroupInvitationRepository(dbPool, groupAppMemberRepo)
 	var authMiddleware gin.HandlerFunc
@@ -154,6 +155,7 @@ func main() {
 		keycloakVerifier,
 		permissionSvc,
 		auditLogRepo,
+		tiptapSvc,
 		cfg.MediaStorageDir,
 		cfg.MediaPublicBaseURL,
 		cfg.KeycloakAccountURL,
@@ -186,7 +188,6 @@ func main() {
 			FanartAPIKey: cfg.FanartAPIKey,
 		},
 	)
-	tiptapSvc := services.NewTipTapService()
 	adminContentHandler.WithMediaDeps(mediaRepo, mediaService).
 		WithNoteDeps(repository.NewFansubNotesRepository(dbPool), services.NewMarkdownService()).
 		WithReleaseVersionNoteDeps(repository.NewReleaseVersionNotesRepository(dbPool)).

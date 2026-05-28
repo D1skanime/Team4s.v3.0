@@ -5,7 +5,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { Button, Card, ErrorState, LoadingState, SectionHeader } from '@/components/ui'
 import { ApiError, getOwnProfile, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
-import type { MemberProfileData } from '@/types/profile'
+import type { MemberProfileData, TipTapDocument } from '@/types/profile'
 
 import { AccountSecurityCard } from './components/AccountSecurityCard'
 import { ContributionsSection } from './components/ContributionsSection'
@@ -18,7 +18,7 @@ import { VisibilityCard } from './components/VisibilityCard'
 import type { MemberProfileFormState } from './components/profileFormTypes'
 import styles from './page.module.css'
 
-function richTextFromPlainText(text: string): unknown {
+function richTextFromPlainText(text: string): TipTapDocument {
   const trimmed = text.trim()
   return {
     type: 'doc',
@@ -26,28 +26,17 @@ function richTextFromPlainText(text: string): unknown {
   }
 }
 
-function richTextToPlainText(value: unknown): string {
-  const parts: string[] = []
-
-  function walk(node: unknown) {
-    if (!node || typeof node !== 'object') return
-    const current = node as { text?: unknown; content?: unknown }
-    if (typeof current.text === 'string') parts.push(current.text)
-    if (Array.isArray(current.content)) {
-      for (const child of current.content) walk(child)
-      if (parts.length > 0) parts.push('\n')
-    }
-  }
-
-  walk(value)
-  return parts.join('').replace(/\n{3,}/g, '\n\n').trim()
+function isTipTapDocument(value: unknown): value is TipTapDocument {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
 }
 
 function toFormState(profile: MemberProfileData): MemberProfileFormState {
   return {
     fansubName: profile.fansub_name || '',
     bio: profile.bio || '',
-    memberStory: richTextFromPlainText(profile.member_story || ''),
+    memberStory: isTipTapDocument(profile.member_story_json)
+      ? profile.member_story_json
+      : richTextFromPlainText(profile.member_story || ''),
     activeFromYear: profile.active_from_year ? String(profile.active_from_year) : '',
     activeUntilYear: profile.active_until_year ? String(profile.active_until_year) : '',
     isCurrentlyActive: Boolean(profile.is_currently_active),
@@ -108,6 +97,7 @@ export default function MyProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [hasOpenedKeycloakAccount, setHasOpenedKeycloakAccount] = useState(false)
+  const [isStoryEditing, setIsStoryEditing] = useState(false)
   const [isRefreshingAccount, setIsRefreshingAccount] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -233,13 +223,14 @@ export default function MyProfilePage() {
       const response = await updateOwnProfile({
         fansub_name: form.fansubName.trim() || null,
         bio: form.bio.trim() || null,
-        member_story: richTextToPlainText(form.memberStory) || null,
+        member_story_json: form.memberStory,
         active_from_year: parseOptionalYear(form.activeFromYear),
         active_until_year: form.isCurrentlyActive ? null : parseOptionalYear(form.activeUntilYear),
         is_currently_active: form.isCurrentlyActive,
         profile_visibility: form.profileVisibility,
       })
       applyProfile(response.data, { syncForm: true, resetDirty: true })
+      setIsStoryEditing(false)
       setSuccess('Profil wurde gespeichert.')
     } catch (saveError) {
       setError(readErrorMessage(saveError, 'Profil konnte nicht gespeichert werden.'))
@@ -301,7 +292,15 @@ export default function MyProfilePage() {
                   <ProfileBasicsForm form={form} disabled={!profile.capabilities.can_edit_own_profile || isSaving} errors={yearErrors} onChange={updateForm} />
                 </Card>
                 <Card variant="section">
-                  <ProfileStoryCard value={form.memberStory} disabled={!profile.capabilities.can_edit_own_profile || isSaving} onChange={updateForm} />
+                  <ProfileStoryCard
+                    value={form.memberStory}
+                    bodyHtml={profile.member_story_html}
+                    plainText={profile.member_story || profile.member_story_text}
+                    disabled={!profile.capabilities.can_edit_own_profile || isSaving}
+                    isEditing={isStoryEditing}
+                    onEdit={() => setIsStoryEditing(true)}
+                    onChange={updateForm}
+                  />
                 </Card>
                 <Card variant="section">
                   <SectionHeader title="Mitgliedschaften" description="Gruppenkontext und aktive App-Rollen, ohne Gruppenverwaltung in dieses Profil zu ziehen." />

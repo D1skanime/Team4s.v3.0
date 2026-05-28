@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -29,16 +30,18 @@ type memberProfileStore interface {
 }
 
 type updateOwnProfileRequest struct {
-	DisplayName       models.OptionalString `json:"display_name"`
-	FansubName        models.OptionalString `json:"fansub_name"`
-	Bio               models.OptionalString `json:"bio"`
-	MemberStory       models.OptionalString `json:"member_story"`
-	ActiveFromYear    models.OptionalInt32  `json:"active_from_year"`
-	ActiveUntilYear   models.OptionalInt32  `json:"active_until_year"`
-	IsCurrentlyActive models.OptionalBool   `json:"is_currently_active"`
-	ProfileVisibility models.OptionalString `json:"profile_visibility"`
-	Email             models.OptionalString `json:"email"`
-	KeycloakSubject   models.OptionalString `json:"keycloak_subject"`
+	DisplayName       models.OptionalString  `json:"display_name"`
+	FansubName        models.OptionalString  `json:"fansub_name"`
+	Bio               models.OptionalString  `json:"bio"`
+	MemberStory       models.OptionalString  `json:"member_story"`
+	MemberStoryJSON   models.OptionalRawJSON `json:"member_story_json"`
+	MemberStoryHTML   models.OptionalString  `json:"member_story_html"`
+	ActiveFromYear    models.OptionalInt32   `json:"active_from_year"`
+	ActiveUntilYear   models.OptionalInt32   `json:"active_until_year"`
+	IsCurrentlyActive models.OptionalBool    `json:"is_currently_active"`
+	ProfileVisibility models.OptionalString  `json:"profile_visibility"`
+	Email             models.OptionalString  `json:"email"`
+	KeycloakSubject   models.OptionalString  `json:"keycloak_subject"`
 }
 
 var avatarAllowedImageMimeTypes = map[string]bool{
@@ -103,7 +106,7 @@ func (h *AppAuthHandler) UpdateOwnProfile(c *gin.Context) {
 		return
 	}
 
-	profile, err := h.profileRepo.UpdateOwnProfile(c.Request.Context(), identity.AppUserID, models.MemberProfileUpdateInput{
+	input := models.MemberProfileUpdateInput{
 		DisplayName:       req.DisplayName,
 		FansubName:        req.FansubName,
 		Bio:               req.Bio,
@@ -112,7 +115,17 @@ func (h *AppAuthHandler) UpdateOwnProfile(c *gin.Context) {
 		ActiveUntilYear:   req.ActiveUntilYear,
 		IsCurrentlyActive: req.IsCurrentlyActive,
 		ProfileVisibility: req.ProfileVisibility,
-	})
+	}
+	if req.MemberStoryHTML.Set {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "profilgeschichte-html wird serverseitig erzeugt"}})
+		return
+	}
+	if err := h.prepareMemberStoryRichText(&input, req.MemberStoryJSON, req.MemberStory); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
+		return
+	}
+
+	profile, err := h.profileRepo.UpdateOwnProfile(c.Request.Context(), identity.AppUserID, input)
 	if err != nil {
 		if errors.Is(err, repository.ErrValidation) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "profilfelder sind ungültig"}})
@@ -125,6 +138,105 @@ func (h *AppAuthHandler) UpdateOwnProfile(c *gin.Context) {
 	h.applyProfileCapabilities(profile, identity)
 	h.auditProfileUpdated(c, identity, before, profile)
 	c.JSON(http.StatusOK, gin.H{"data": profile})
+}
+
+func (h *AppAuthHandler) prepareMemberStoryRichText(
+	input *models.MemberProfileUpdateInput,
+	storyJSON models.OptionalRawJSON,
+	plainStory models.OptionalString,
+) error {
+	if input == nil {
+		return nil
+	}
+	if storyJSON.Set {
+		input.MemberStoryJSON = storyJSON
+		return h.renderMemberStoryRichText(input, storyJSON.Value)
+	}
+	if !plainStory.Set {
+		return nil
+	}
+
+	var raw *json.RawMessage
+	if plainStory.Value != nil {
+		doc, err := plainTextToTipTapDoc(*plainStory.Value)
+		if err != nil {
+			return fmt.Errorf("profilgeschichte konnte nicht vorbereitet werden")
+		}
+		if len(doc) > 0 {
+			raw = &doc
+		}
+	}
+	input.MemberStoryJSON = models.OptionalRawJSON{Set: true, Value: raw}
+	return h.renderMemberStoryRichText(input, raw)
+}
+
+func (h *AppAuthHandler) renderMemberStoryRichText(input *models.MemberProfileUpdateInput, raw *json.RawMessage) error {
+	if input == nil {
+		return nil
+	}
+	text := ""
+	if raw == nil {
+		input.MemberStoryHTML = models.OptionalString{Set: true, Value: nil}
+		input.MemberStoryText = models.OptionalString{Set: true, Value: &text}
+		input.MemberStoryEditorType = models.OptionalString{Set: true, Value: profileStringPtr("tiptap")}
+		input.MemberStoryContentSchemaVersion = models.OptionalInt32{Set: true, Value: profileInt32Ptr(1)}
+		return nil
+	}
+	if h.tiptapSvc == nil {
+		return fmt.Errorf("profilgeschichte-service ist nicht verfügbar")
+	}
+	bodyJSON := strings.TrimSpace(string(*raw))
+	if err := h.tiptapSvc.ValidateJSON(bodyJSON); err != nil {
+		return fmt.Errorf("nicht erlaubter Editor-Inhalt: %w", err)
+	}
+	html, err := h.tiptapSvc.RenderHTML(bodyJSON)
+	if err != nil {
+		return fmt.Errorf("profilgeschichte konnte nicht gerendert werden")
+	}
+	extracted, err := h.tiptapSvc.ExtractText(bodyJSON)
+	if err != nil {
+		return fmt.Errorf("profilgeschichte-text konnte nicht extrahiert werden")
+	}
+	text = extracted
+	input.MemberStoryHTML = models.OptionalString{Set: true, Value: &html}
+	input.MemberStoryText = models.OptionalString{Set: true, Value: &text}
+	input.MemberStoryEditorType = models.OptionalString{Set: true, Value: profileStringPtr("tiptap")}
+	input.MemberStoryContentSchemaVersion = models.OptionalInt32{Set: true, Value: profileInt32Ptr(1)}
+	if input.MemberStory.Value == nil || strings.TrimSpace(*input.MemberStory.Value) == "" {
+		input.MemberStory = models.OptionalString{Set: true, Value: &text}
+	}
+	return nil
+}
+
+func plainTextToTipTapDoc(value string) (json.RawMessage, error) {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return nil, nil
+	}
+	doc := map[string]any{
+		"type": "doc",
+		"content": []map[string]any{
+			{
+				"type": "paragraph",
+				"content": []map[string]any{
+					{"type": "text", "text": trimmed},
+				},
+			},
+		},
+	}
+	data, err := json.Marshal(doc)
+	if err != nil {
+		return nil, err
+	}
+	return json.RawMessage(data), nil
+}
+
+func profileStringPtr(value string) *string {
+	return &value
+}
+
+func profileInt32Ptr(value int32) *int32 {
+	return &value
 }
 
 func (h *AppAuthHandler) UploadOwnProfileAvatar(c *gin.Context) {
