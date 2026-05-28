@@ -85,4 +85,23 @@ describe('computeCropDrawRect', () => {
     expect(draw.drawWidth).toBeCloseTo(976.2133333333, 8)
     expect(draw.drawHeight).toBeCloseTo(563.2, 8)
   })
+
+  it('maps responsive viewport coordinates to the exported canvas without drift', () => {
+    const metrics = computeCropMetrics({ w: 800, h: 600 }, 280, 1)
+    const draw = computeCropDrawRect({
+      imageNatural: { w: 800, h: 600 },
+      cropMetrics: metrics,
+      cropZoom: 1,
+      cropOffset: { x: 42, y: -20 },
+      viewportWidth: 280,
+      viewportHeight: 280,
+      viewSize: 280,
+      outputSize: 512,
+    })
+
+    expect(draw.drawX).toBeCloseTo(-8.5333333333, 8)
+    expect(draw.drawY).toBeCloseTo(-36.5714285714, 8)
+    expect(draw.drawWidth).toBeCloseTo(682.6666666667, 8)
+    expect(draw.drawHeight).toBeCloseTo(512, 8)
+  })
 })

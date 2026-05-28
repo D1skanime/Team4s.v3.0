@@ -39,12 +39,13 @@ export function AvatarCropDialog({ file, onCancel, onApply }: AvatarCropDialogPr
   const [sourceURL, setSourceURL] = useState<string | null>(null)
   const [imageReady, setImageReady] = useState(false)
   const [imageSize, setImageSize] = useState<{ w: number; h: number } | null>(null)
+  const [viewSize, setViewSize] = useState(AVATAR_CROP_VIEW_SIZE)
   const [zoom, setZoom] = useState(AVATAR_CROP_DEFAULT_ZOOM)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [error, setError] = useState<string | null>(null)
   const [isApplying, setIsApplying] = useState(false)
 
-  const cropMetrics = useMemo<CropMetrics | null>(() => computeCropMetrics(imageSize, AVATAR_CROP_VIEW_SIZE, zoom), [imageSize, zoom])
+  const cropMetrics = useMemo<CropMetrics | null>(() => computeCropMetrics(imageSize, viewSize, zoom), [imageSize, viewSize, zoom])
 
   useEffect(() => {
     const nextURL = URL.createObjectURL(file)
@@ -61,6 +62,24 @@ export function AvatarCropDialog({ file, onCancel, onApply }: AvatarCropDialogPr
       viewportRef.current?.focus()
     })
     return () => window.cancelAnimationFrame(frameID)
+  }, [])
+
+  useEffect(() => {
+    const viewport = viewportRef.current
+    if (!viewport) return
+
+    const measureViewport = () => {
+      const measured = viewport.getBoundingClientRect().width || viewport.clientWidth || AVATAR_CROP_VIEW_SIZE
+      if (!Number.isFinite(measured) || measured <= 0) return
+      setViewSize(Math.round(measured))
+    }
+
+    measureViewport()
+    if (typeof ResizeObserver === 'undefined') return
+
+    const observer = new ResizeObserver(measureViewport)
+    observer.observe(viewport)
+    return () => observer.disconnect()
   }, [])
 
   useEffect(() => {
@@ -160,8 +179,8 @@ export function AvatarCropDialog({ file, onCancel, onApply }: AvatarCropDialogPr
       return
     }
 
-    const viewportWidth = viewportRef.current?.clientWidth ?? AVATAR_CROP_VIEW_SIZE
-    const viewportHeight = viewportRef.current?.clientHeight ?? AVATAR_CROP_VIEW_SIZE
+    const viewportWidth = viewSize
+    const viewportHeight = viewSize
     const { drawX, drawY, drawWidth, drawHeight } = computeCropDrawRect({
       imageNatural: { w: image.naturalWidth, h: image.naturalHeight },
       cropMetrics,
@@ -169,7 +188,7 @@ export function AvatarCropDialog({ file, onCancel, onApply }: AvatarCropDialogPr
       cropOffset: offset,
       viewportWidth,
       viewportHeight,
-      viewSize: AVATAR_CROP_VIEW_SIZE,
+      viewSize,
       outputSize: AVATAR_CROP_OUTPUT_SIZE,
     })
 
@@ -238,8 +257,8 @@ export function AvatarCropDialog({ file, onCancel, onApply }: AvatarCropDialogPr
                 src={sourceURL}
                 alt="Avatar Zuschnitt"
                 className={styles.cropImage}
-                width={AVATAR_CROP_VIEW_SIZE}
-                height={AVATAR_CROP_VIEW_SIZE}
+                width={viewSize}
+                height={viewSize}
                 unoptimized
                 onLoad={(event) => {
                   imageRef.current = event.currentTarget
