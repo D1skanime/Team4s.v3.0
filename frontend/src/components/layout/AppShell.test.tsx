@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { ReactNode } from 'react'
+import type { ImgHTMLAttributes, ReactNode } from 'react'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -10,6 +10,14 @@ vi.mock('next/link', () => ({
   default: ({ href, children, ...props }: { href: string; children: ReactNode; className?: string; [key: string]: unknown }) => (
     <a href={href} {...props}>{children}</a>
   ),
+}))
+
+vi.mock('next/image', () => ({
+  default: ({ alt, unoptimized, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
+    void unoptimized
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img alt={alt} {...props} />
+  },
 }))
 
 afterEach(() => {

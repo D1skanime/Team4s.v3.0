@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -146,12 +147,13 @@ function DrawerUserFooter({ user }: { user?: AppShellUser | null }) {
   return (
     <footer className={styles.userFooter}>
       {user?.avatarUrl ? (
-        <img
+        <Image
           src={user.avatarUrl}
           alt={`Avatar von ${user?.displayName || 'Mitglied'}`}
           className={styles.userAvatarImg}
           width={36}
           height={36}
+          unoptimized
         />
       ) : (
         <span className={styles.userAvatar} aria-hidden="true">
