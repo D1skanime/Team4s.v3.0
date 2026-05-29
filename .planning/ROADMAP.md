@@ -1221,12 +1221,31 @@ Plans:
   4. App-Drawer zeigt dynamische Gruppen-Links (Icon und Gruppenname navigieren zu /admin/fansubs/[id]/edit) statt disabled-Platzhalter.
   5. Alle internen Admin-Erklaerungstexte sind durch ehrliche leere Zustaende ersetzt; isPublicView-Prop ist in beiden neuen Sections implementiert.
 
-### Phase 59: Ã–ffentliches Fansub-Member-Profil
+### Phase 59: Öffentliches Fansub-Member-Profil
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Öffentlich zugängliche Profilseite /members/[slug] mit Hintergrundbanner-Upload, server-seitiger Sichtbarkeitsprüfung, globalisierten Profil-Komponenten und allen Phase-58-Sections mit isPublicView=true.
+**Requirements**: P59-SC1, P59-SC2, P59-SC3, P59-SC4, P59-SC5, P59-SC6
 **Depends on:** Phase 58
-**Plans:** 0 plans
+**Plans:** 6 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 59 to break down)
+- [ ] `59-01-PLAN.md` — Typdefinitions-Fundament: DB-Migration 0080, Go-Modell, TypeScript-Interface
+- [ ] `59-02-PLAN.md` — Backend GET /api/v1/members/:slug mit Slug-Auflösung und Sichtbarkeitsprüfung
+
+Wave 2 *(blocked on Wave 1 completion)*
+
+- [ ] `59-03-PLAN.md` — Komponenten-Globalisierung nach /components/profile/ + MembershipsSection
+- [ ] `59-04-PLAN.md` — Öffentliche /members/[slug]-Route (Server Component + Token-Forwarding)
+- [ ] `59-05-PLAN.md` — Hintergrundbild-Upload auf /me/profile + Anzeige als Hero-Banner
+
+Wave 4 *(blocked on Wave 3 completion)*
+
+- [ ] `59-06-PLAN.md` — OpenAPI-Contract-Update
+
+**Success Criteria** (what must be TRUE):
+  1. GET /api/v1/members/:slug gibt public-Profil zurück (fansub_name, Avatar, Bio, Story, Gruppen, RecentMedia, RecentContributions, Hintergrundbild); bei members_only+anonym: {visible:false}.
+  2. /members/[slug] rendert vollständiges Profil mit Hero-Banner für public-Profile; zeigt „Dieses Profil ist nicht öffentlich zugänglich." für members_only+anonym.
+  3. MemberProfileHero, RecentMediaSection, RecentContributionsSection leben in frontend/src/components/profile/ und werden von /me/profile importiert.
+  4. Member kann auf /me/profile ein Hintergrundbild hochladen (Cropper 16:9, kein neues npm-Paket, globaler Upload-Flow); Bild erscheint als breites Hero-Banner auf /members/[slug].
+  5. Fansub-Gruppen-Section auf /members/[slug] zeigt Gruppenlogo, -name und feste Gruppenrollen; Link zu /fansubs/[slug].
+  6. Alle neuen user-facing Strings verwenden korrekte Umlaute.

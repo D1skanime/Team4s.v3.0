@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: ready_to_plan
-stopped_at: Phase 58 complete (3/3) — ready to discuss Phase 59
-last_updated: 2026-05-29T11:51:46.849Z
+status: ready_for_next_slice
+stopped_at: Phase 59 geplant (6 Pläne, 4 Wellen); bereit zur Ausführung
+last_updated: 2026-05-29T00:00:00.000Z
 last_activity: 2026-05-29
 progress:
   total_phases: 55
   completed_phases: 39
-  total_plans: 202
+  total_plans: 208
   completed_plans: 167
   percent: 71
 ---

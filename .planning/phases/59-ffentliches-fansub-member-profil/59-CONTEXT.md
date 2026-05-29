@@ -11,16 +11,16 @@ Phase 59 liefert die öffentlich zugängliche Profilseite für Fansub-Member unt
 Diese Phase liefert:
 - Route `/members/[slug]` als neue Next.js App-Router-Seite
 - Neuer Backend-Endpoint `GET /api/v1/members/[slug]` mit Sichtbarkeitsprüfung
-- Öffentliches Profil zeigt: Fansub-Name, Avatar, Bio, Member-Story (HTML), Aktivzeitraum, Fansub-Gruppen-Section, RecentMediaSection, RecentContributionsSection
+- Öffentliches Profil zeigt: Hintergrundbanner, Fansub-Name, Avatar, Bio, Member-Story (HTML), Aktivzeitraum, Fansub-Gruppen-Section, RecentMediaSection, RecentContributionsSection
 - Fansub-Gruppen-Section: Gruppenlogo + Name + Gruppenrollen des Members, verlinkt auf `/fansubs/[slug]`
 - Sichtbarkeitslogik: `public` → alles sichtbar; `members_only` → nur für eingeloggte Members; anonym + members_only → leere Seite mit Hinweis „Profil nicht öffentlich"
 - Globalisierung von `MemberProfileHero`, `RecentMediaSection`, `RecentContributionsSection` nach `frontend/src/components/profile/`
+- Member-Hintergrundbild: Upload auf `/me/profile` (neue Card), Anzeige als Hero-Banner auf `/members/[slug]`
 
 Diese Phase liefert nicht:
 - Keine Links aus Medien/Beiträgen/Fansub-Mitgliederlisten zur neuen Route (Folge-Phase)
 - Keine SEO/Meta-Tag-Optimierung für öffentliche Profilseiten
-- Keine Bearbeitungs-Funktionen auf `/members/[slug]`
-- Keine Änderungen am `/me/profile`-Endpoint oder Datenbankschema der Profile
+- Keine Bearbeitungs-Funktionen direkt auf `/members/[slug]`
 
 </domain>
 
