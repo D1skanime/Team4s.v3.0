@@ -4,7 +4,7 @@
 - **Project:** Team4s.v3.0
 - **Milestone:** `v1.1 Asset Lifecycle Hardening`
 - **Branch:** `main`
-- **Status:** Phase 54, Phase 55, Phase 56, and Phase 57 are complete. Phase 57 automated verification passed on 2026-05-29; authenticated browser UAT is pending.
+- **Status:** Phase 54, Phase 55, Phase 56, and Phase 57 are complete. Phase 57 automated verification, security review, and Nyquist validation passed on 2026-05-29; authenticated browser UAT is pending.
 - **Current focus:** Leave `main` pushed and restartable; next work should complete Phase 57 authenticated UAT or choose the next narrow cleanup slice from the verified baseline.
 
 ## What Works Now
@@ -45,6 +45,7 @@
 - Phase 56 `npm run typecheck`, focused ESLint, `npm run build`, and functional UAT passed.
 - Phase 56 security review passed with `threats_open: 0`.
 - Phase 57 backend migration/handler/repository tests, profile page tests, typecheck, production build, and `git diff --check` passed.
+- Phase 57 security review passed with `threats_open: 0`, and validation is `nyquist_compliant: true`.
 - Phase 57 browser smoke reached `/me/profile` locally but showed the unauthenticated gate because no browser auth session was available.
 - `git diff --check` passed during closeout.
 

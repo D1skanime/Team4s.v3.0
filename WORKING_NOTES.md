@@ -3,7 +3,7 @@
 ## Current Workflow Phase
 - Phase 55 is complete: profile story persistence is TipTap-contract based, not plain-text-only.
 - Phase 56 is complete: shared cropper foundation shipped, UAT passed, security passed.
-- Phase 57 is complete at automated-verification level: profile activity periods now persist through year-limited DATE fields; authenticated browser UAT remains pending.
+- Phase 57 is complete at automated-verification/security/validation level: profile activity periods now persist through year-limited DATE fields; authenticated browser UAT remains pending.
 - Phase 54 drawer/header work is complete; its screenshots remain as planning evidence.
 
 ## Useful Facts To Keep
@@ -33,6 +33,7 @@
 - Phase 56 functional UAT passed on 2026-05-29.
 - Phase 56 security review passed with `threats_open: 0`.
 - Phase 57 checks passed: `go test ./internal/migrations ./internal/handlers ./internal/repository`, profile page Vitest, frontend typecheck, frontend build, and `git diff --check`.
+- Phase 57 security review passed with `threats_open: 0`; validation is `nyquist_compliant: true`.
 - Phase 57 global `npm run lint` still fails on unrelated existing files and temporary scripts outside the phase scope.
 - Full frontend lint may still have known unrelated warnings outside focused checks.
 

@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_for_next_slice
-stopped_at: Phase 57 implemented and automated-verified; authenticated browser UAT pending
+stopped_at: Phase 57 security and validation passed; authenticated browser UAT pending
 last_updated: 2026-05-29T08:20:00+02:00
 last_activity: 2026-05-29
 progress:
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 57 - profile activity period date fields implemented and automated-verified; authenticated UAT pending
+**Current focus:** Phase 57 - profile activity period date fields implemented, security-verified, and validation-approved; authenticated UAT pending
 
 ## Current Position
 
-Phase: 57 complete at automated-verification level
-Plan: 3 of 3 complete; authenticated `/me/profile` UAT pending because the browser context had no logged-in session
+Phase: 57 complete at automated-verification/security/validation level
+Plan: 3 of 3 complete; `$gsd-secure-phase 57` passed with `threats_open: 0`; `$gsd-validate-phase 57` passed with `nyquist_compliant: true`; authenticated `/me/profile` UAT pending because the browser context had no logged-in session
 
 ## Accumulated Context
 
@@ -348,6 +348,6 @@ Recent durable decisions:
 ## Session Continuity
 
 Last session: 2026-05-29T08:20:00+02:00
-Stopped at: Phase 57 implemented and automated-verified; authenticated browser UAT pending
+Stopped at: Phase 57 security and validation passed; authenticated browser UAT pending
 Last activity: 2026-05-29
 Resume file: .planning/phases/57-profil-aktivzeitraum-als-jahrbegrenzte-datumsfelder/57-CONTEXT.md
