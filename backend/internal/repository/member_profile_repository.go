@@ -949,23 +949,28 @@ func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, appUserID
 
 func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, memberID int64) ([]models.MemberProfileRecentContribution, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT
-			rmr.release_id,
-			a.title,
-			a.id,
-			fg.name,
-			cr.name,
-			cr.label
-		FROM release_member_roles rmr
-		JOIN contributor_roles cr ON cr.id = rmr.role_id
-		JOIN fansub_releases fr ON fr.id = rmr.release_id
-		JOIN episodes e ON e.id = fr.episode_id
-		JOIN anime a ON a.id = e.anime_id
-		JOIN release_versions rv ON rv.release_id = rmr.release_id
-		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
-		JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
-		WHERE rmr.member_id = $1
-		ORDER BY rmr.created_at DESC
+		SELECT release_id, anime_title, anime_id, fansub_group_name, role_name, role_label
+		FROM (
+			SELECT DISTINCT ON (rmr.release_id, rmr.role_id)
+				rmr.release_id,
+				rmr.created_at,
+				a.title   AS anime_title,
+				a.id      AS anime_id,
+				fg.name   AS fansub_group_name,
+				cr.name   AS role_name,
+				cr.label  AS role_label
+			FROM release_member_roles rmr
+			JOIN contributor_roles cr ON cr.id = rmr.role_id
+			JOIN fansub_releases fr ON fr.id = rmr.release_id
+			JOIN episodes e ON e.id = fr.episode_id
+			JOIN anime a ON a.id = e.anime_id
+			JOIN release_versions rv ON rv.release_id = rmr.release_id
+			JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
+			WHERE rmr.member_id = $1
+			ORDER BY rmr.release_id, rmr.role_id, rmr.created_at DESC
+		) deduped
+		ORDER BY created_at DESC
 		LIMIT 3
 	`, memberID)
 	if err != nil {
