@@ -6,14 +6,36 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
+	"unicode"
 
 	"team4s.v3/backend/internal/models"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/text/unicode/norm"
 )
+
+var (
+	memberSlugNonAlphanumeric = regexp.MustCompile(`[^a-z0-9]+`)
+	memberSlugNumeric         = regexp.MustCompile(`^[0-9]+$`)
+)
+
+type publicMemberProfileBaseRow struct {
+	memberID            int64
+	appUserID           *int64
+	fansubName          string
+	bio                 *string
+	memberStoryHTML     *string
+	activeFromDate      *string
+	activeUntilDate     *string
+	isCurrentlyActive   bool
+	profileVisibility   *string
+	avatarPath          *string
+	backgroundImagePath *string
+}
 
 type MemberProfileRepository struct {
 	db            *pgxpool.Pool
@@ -230,6 +252,260 @@ func (r *MemberProfileRepository) AttachUploadedAvatar(
 	return r.GetOwnProfile(ctx, appUserID)
 }
 
+func (r *MemberProfileRepository) AttachUploadedBackground(
+	ctx context.Context,
+	appUserID int64,
+	input models.MemberProfileBackgroundUploadInput,
+) (*models.MemberProfile, error) {
+	base, err := r.ensureProfileBase(ctx, appUserID)
+	if err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(input.FilePath) == "" || strings.TrimSpace(input.MimeType) == "" {
+		return nil, ErrValidation
+	}
+
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("begin profile background attach tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	var mediaTypeID int64
+	if err := tx.QueryRow(ctx, `
+		SELECT id
+		FROM media_types
+		WHERE name = 'background'
+		LIMIT 1
+	`).Scan(&mediaTypeID); err != nil {
+		return nil, fmt.Errorf("load media type background: %w", err)
+	}
+
+	var previousBackgroundID *int64
+	if err := tx.QueryRow(ctx, `
+		SELECT background_media_id
+		FROM members
+		WHERE id = $1
+	`, base.MemberID).Scan(&previousBackgroundID); err != nil {
+		return nil, fmt.Errorf("load previous profile background for member %d: %w", base.MemberID, err)
+	}
+
+	var mediaID int64
+	if err := tx.QueryRow(ctx, `
+		INSERT INTO media_assets (media_type_id, file_path, mime_type, format, uploaded_by, created_at)
+		VALUES ($1, $2, $3, 'image', (SELECT legacy_user_id FROM app_users WHERE id = $4), NOW())
+		RETURNING id
+	`, mediaTypeID, strings.TrimSpace(input.FilePath), strings.TrimSpace(input.MimeType), appUserID).Scan(&mediaID); err != nil {
+		return nil, fmt.Errorf("insert profile background media asset: %w", err)
+	}
+
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO media_files (media_id, variant, path, width, height, size)
+		VALUES ($1, 'original', $2, COALESCE($3, 0), COALESCE($4, 0), $5)
+	`, mediaID, strings.TrimSpace(input.FilePath), input.Width, input.Height, input.SizeBytes); err != nil {
+		return nil, fmt.Errorf("insert profile background media file: %w", err)
+	}
+
+	if _, err := tx.Exec(ctx, `
+		UPDATE members
+		SET background_media_id = $2,
+			updated_at = NOW()
+		WHERE id = $1
+	`, base.MemberID, mediaID); err != nil {
+		return nil, fmt.Errorf("attach profile background to member %d: %w", base.MemberID, err)
+	}
+
+	if previousBackgroundID != nil && *previousBackgroundID > 0 && *previousBackgroundID != mediaID {
+		if _, err := tx.Exec(ctx, `DELETE FROM media_files WHERE media_id = $1`, *previousBackgroundID); err != nil {
+			return nil, fmt.Errorf("delete previous profile background media files %d: %w", *previousBackgroundID, err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM media_assets WHERE id = $1`, *previousBackgroundID); err != nil {
+			return nil, fmt.Errorf("delete previous profile background media asset %d: %w", *previousBackgroundID, err)
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit profile background attach tx: %w", err)
+	}
+
+	return r.GetOwnProfile(ctx, appUserID)
+}
+
+func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, slug string) (*models.PublicMemberProfile, error) {
+	normalizedSlug := normalizeMemberProfileSlug(slug)
+	if normalizedSlug == "" {
+		return nil, ErrNotFound
+	}
+	isNumericSlug := memberSlugNumeric.MatchString(normalizedSlug)
+	var numericID int64
+	if isNumericSlug {
+		if _, err := fmt.Sscan(normalizedSlug, &numericID); err != nil || numericID <= 0 {
+			return nil, ErrNotFound
+		}
+	}
+
+	var row publicMemberProfileBaseRow
+	err := r.db.QueryRow(ctx, `
+		WITH candidates AS (
+			SELECT
+				m.id,
+				au.id AS app_user_id,
+				m.nickname,
+				m.slogan,
+				m.member_story_html,
+				to_char(m.active_from_date, 'YYYY-MM-DD') AS active_from_date,
+				to_char(m.active_until_date, 'YYYY-MM-DD') AS active_until_date,
+				COALESCE(m.is_currently_active, false) AS is_currently_active,
+				m.profile_visibility,
+				avatar.file_path AS avatar_path,
+				background.file_path AS background_image_path,
+				LOWER(TRIM(BOTH '-' FROM REGEXP_REPLACE(TRIM(m.nickname), '[^a-z0-9]+', '-', 'gi'))) AS db_slug
+			FROM members m
+			LEFT JOIN app_users au ON au.legacy_user_id = m.user_id
+			LEFT JOIN media_assets avatar ON avatar.id = m.avatar_media_id
+			LEFT JOIN media_assets background ON background.id = m.background_media_id
+		)
+		SELECT
+			id,
+			app_user_id,
+			nickname,
+			slogan,
+			member_story_html,
+			active_from_date,
+			active_until_date,
+			is_currently_active,
+			profile_visibility,
+			avatar_path,
+			background_image_path
+		FROM candidates
+		WHERE db_slug = $1
+		   OR ($2::bool AND id = $3::bigint)
+		ORDER BY CASE WHEN db_slug = $1 THEN 0 ELSE 1 END, id ASC
+		LIMIT 1
+	`, normalizedSlug, isNumericSlug, numericID).Scan(
+		&row.memberID,
+		&row.appUserID,
+		&row.fansubName,
+		&row.bio,
+		&row.memberStoryHTML,
+		&row.activeFromDate,
+		&row.activeUntilDate,
+		&row.isCurrentlyActive,
+		&row.profileVisibility,
+		&row.avatarPath,
+		&row.backgroundImagePath,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		fallbackRow, fallbackErr := r.findPublicMemberProfileByNormalizedSlug(ctx, normalizedSlug)
+		if fallbackErr != nil {
+			return nil, fallbackErr
+		}
+		row = *fallbackRow
+		err = nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("load public member profile for slug %q: %w", slug, err)
+	}
+
+	appUserID := int64(0)
+	if row.appUserID != nil {
+		appUserID = *row.appUserID
+	}
+	profile := &models.PublicMemberProfile{
+		MemberID:            row.memberID,
+		FansubName:          strings.TrimSpace(row.fansubName),
+		Bio:                 normalizeLoadedOptionalString(row.bio),
+		MemberStoryHTML:     normalizeLoadedOptionalString(row.memberStoryHTML),
+		ActiveFromDate:      profileActivityDateOrYear(row.activeFromDate, nil),
+		ActiveUntilDate:     profileActivityDateOrYear(row.activeUntilDate, nil),
+		IsCurrentlyActive:   row.isCurrentlyActive,
+		ProfileVisibility:   strings.TrimSpace(valueOrDefault(row.profileVisibility, models.ProfileVisibilityMembersOnly)),
+		Memberships:         []models.MemberProfileMembership{},
+		RecentMedia:         []models.MemberProfileRecentMedia{},
+		RecentContributions: []models.MemberProfileRecentContribution{},
+	}
+	if row.avatarPath != nil && strings.TrimSpace(*row.avatarPath) != "" {
+		profile.Avatar = &models.MemberProfileAvatar{
+			PublicURL: r.publicURLForPath(strings.TrimSpace(*row.avatarPath)),
+		}
+	}
+	if row.backgroundImagePath != nil && strings.TrimSpace(*row.backgroundImagePath) != "" {
+		profile.BackgroundImage = &models.MemberProfileBgImage{
+			PublicURL: r.publicURLForPath(strings.TrimSpace(*row.backgroundImagePath)),
+		}
+	}
+
+	var loadErr error
+	profile.Memberships, loadErr = r.loadMemberships(ctx, row.memberID, appUserID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
+	if appUserID > 0 {
+		profile.RecentMedia, loadErr = r.loadRecentMedia(ctx, appUserID)
+		if loadErr != nil {
+			return nil, loadErr
+		}
+	}
+	profile.RecentContributions, loadErr = r.loadRecentContributions(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
+
+	return profile, nil
+}
+
+func (r *MemberProfileRepository) findPublicMemberProfileByNormalizedSlug(ctx context.Context, normalizedSlug string) (*publicMemberProfileBaseRow, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			m.id,
+			au.id AS app_user_id,
+			m.nickname,
+			m.slogan,
+			m.member_story_html,
+			to_char(m.active_from_date, 'YYYY-MM-DD') AS active_from_date,
+			to_char(m.active_until_date, 'YYYY-MM-DD') AS active_until_date,
+			COALESCE(m.is_currently_active, false) AS is_currently_active,
+			m.profile_visibility,
+			avatar.file_path AS avatar_path,
+			background.file_path AS background_image_path
+		FROM members m
+		LEFT JOIN app_users au ON au.legacy_user_id = m.user_id
+		LEFT JOIN media_assets avatar ON avatar.id = m.avatar_media_id
+		LEFT JOIN media_assets background ON background.id = m.background_media_id
+		ORDER BY m.id ASC
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("fallback public member profile slug lookup: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var row publicMemberProfileBaseRow
+		if err := rows.Scan(
+			&row.memberID,
+			&row.appUserID,
+			&row.fansubName,
+			&row.bio,
+			&row.memberStoryHTML,
+			&row.activeFromDate,
+			&row.activeUntilDate,
+			&row.isCurrentlyActive,
+			&row.profileVisibility,
+			&row.avatarPath,
+			&row.backgroundImagePath,
+		); err != nil {
+			return nil, fmt.Errorf("scan fallback public member profile row: %w", err)
+		}
+		if normalizeMemberProfileSlug(row.fansubName) == normalizedSlug {
+			return &row, nil
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate fallback public member profile rows: %w", err)
+	}
+	return nil, ErrNotFound
+}
+
 func (r *MemberProfileRepository) ensureProfileBase(ctx context.Context, appUserID int64) (*models.MemberProfile, error) {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
@@ -281,6 +557,9 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		avatarWidth                     *int
 		avatarHeight                    *int
 		avatarSize                      *int64
+		backgroundID                    *int64
+		backgroundPath                  *string
+		backgroundCreatedAt             *time.Time
 		memberCreatedAt                 *time.Time
 		memberUpdatedAt                 *time.Time
 	}
@@ -327,6 +606,9 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 			NULLIF(mf.width, 0),
 			NULLIF(mf.height, 0),
 			mf.size,
+			m.background_media_id,
+			bg.file_path,
+			bg.created_at,
 			m.created_at,
 			m.updated_at
 		FROM app_users au
@@ -349,6 +631,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 				is_currently_active,
 				profile_visibility,
 				avatar_media_id,
+				background_media_id,
 				created_at,
 				updated_at
 			FROM members
@@ -359,6 +642,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		LEFT JOIN media_assets ma ON ma.id = m.avatar_media_id
 		LEFT JOIN media_files mf ON mf.media_id = ma.id AND mf.variant = 'original'
 		LEFT JOIN media_files mf_source ON mf_source.media_id = ma.id AND mf_source.variant = 'source_original'
+		LEFT JOIN media_assets bg ON bg.id = m.background_media_id
 		WHERE au.id = $1
 		FOR UPDATE OF au
 	`, appUserID).Scan(
@@ -393,6 +677,9 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		&row.avatarWidth,
 		&row.avatarHeight,
 		&row.avatarSize,
+		&row.backgroundID,
+		&row.backgroundPath,
+		&row.backgroundCreatedAt,
 		&row.memberCreatedAt,
 		&row.memberUpdatedAt,
 	)
@@ -498,6 +785,13 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 			StoragePath:       strings.TrimSpace(*row.avatarPath),
 		}
 	}
+	if row.backgroundID != nil && row.backgroundPath != nil && row.backgroundCreatedAt != nil {
+		profile.BackgroundImage = &models.MemberProfileBgImage{
+			ID:          *row.backgroundID,
+			PublicURL:   r.publicURLForPath(strings.TrimSpace(*row.backgroundPath)),
+			StoragePath: strings.TrimSpace(*row.backgroundPath),
+		}
+	}
 	return profile, nil
 }
 
@@ -511,6 +805,7 @@ func (r *MemberProfileRepository) loadMemberships(
 			fg.id,
 			fg.name,
 			fg.slug,
+			fg.logo_url,
 			fg.status,
 			gm.joined_year,
 			gm.left_year,
@@ -548,6 +843,7 @@ func (r *MemberProfileRepository) loadMemberships(
 			&item.FansubGroupID,
 			&item.FansubGroupName,
 			&item.FansubGroupSlug,
+			&item.LogoURL,
 			&item.GroupStatus,
 			&item.JoinedYear,
 			&item.LeftYear,
@@ -710,6 +1006,18 @@ func (r *MemberProfileRepository) publicURLForPath(filePath string) string {
 		trimmed = "/" + trimmed
 	}
 	return r.publicBaseURL + trimmed
+}
+
+func normalizeMemberProfileSlug(value string) string {
+	normalized := norm.NFD.String(strings.ToLower(strings.TrimSpace(value)))
+	runes := make([]rune, 0, len(normalized))
+	for _, r := range normalized {
+		if unicode.Is(unicode.Mn, r) {
+			continue
+		}
+		runes = append(runes, r)
+	}
+	return strings.Trim(memberSlugNonAlphanumeric.ReplaceAllString(string(runes), "-"), "-")
 }
 
 func normalizeOptionalString(value *string) *string {

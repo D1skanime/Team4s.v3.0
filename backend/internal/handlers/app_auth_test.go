@@ -74,10 +74,14 @@ type profileRepoStub struct {
 	updateErr     error
 	attachResp    *models.MemberProfile
 	attachErr     error
+	bgAttachResp  *models.MemberProfile
+	bgAttachErr   error
 	updateCalls   int
 	attachCalls   int
+	bgAttachCalls int
 	lastUpdateArg models.MemberProfileUpdateInput
 	lastAttachArg models.MemberProfileAvatarUploadInput
+	lastBgArg     models.MemberProfileBackgroundUploadInput
 }
 
 type contributorRepoStub struct {
@@ -112,6 +116,15 @@ func (s *profileRepoStub) UpdateOwnProfile(_ context.Context, _ int64, input mod
 func (s *profileRepoStub) AttachUploadedAvatar(_ context.Context, _ int64, input models.MemberProfileAvatarUploadInput) (*models.MemberProfile, error) {
 	s.attachCalls++
 	s.lastAttachArg = input
+	return s.attachResp, s.attachErr
+}
+
+func (s *profileRepoStub) AttachUploadedBackground(_ context.Context, _ int64, input models.MemberProfileBackgroundUploadInput) (*models.MemberProfile, error) {
+	s.bgAttachCalls++
+	s.lastBgArg = input
+	if s.bgAttachResp != nil || s.bgAttachErr != nil {
+		return s.bgAttachResp, s.bgAttachErr
+	}
 	return s.attachResp, s.attachErr
 }
 

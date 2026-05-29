@@ -1226,7 +1226,7 @@ Plans:
 **Goal:** Öffentlich zugängliche Profilseite /members/[slug] mit Hintergrundbanner-Upload, server-seitiger Sichtbarkeitsprüfung, globalisierten Profil-Komponenten und allen Phase-58-Sections mit isPublicView=true.
 **Requirements**: P59-SC1, P59-SC2, P59-SC3, P59-SC4, P59-SC5, P59-SC6
 **Depends on:** Phase 58
-**Plans:** 6 plans
+**Plans:** 6/6 plans complete
 
 Plans:
 - [ ] `59-01-PLAN.md` — Typdefinitions-Fundament: DB-Migration 0080, Go-Modell, TypeScript-Interface

@@ -2,18 +2,19 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { MemberProfileHero } from '@/components/profile/MemberProfileHero'
+import { RecentContributionsSection } from '@/components/profile/RecentContributionsSection'
+import { RecentMediaSection } from '@/components/profile/RecentMediaSection'
 import { Button, Card, ErrorState, LoadingState, SectionHeader } from '@/components/ui'
-import { ApiError, getOwnProfile, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar } from '@/lib/api'
+import { ApiError, getOwnProfile, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar, uploadOwnProfileBackground } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { MemberProfileData, TipTapDocument } from '@/types/profile'
 
 import { AccountSecurityCard } from './components/AccountSecurityCard'
 import { MemberAvatarCard } from './components/MemberAvatarCard'
-import { MemberProfileHero } from './components/MemberProfileHero'
+import { ProfileBackgroundCard } from './components/ProfileBackgroundCard'
 import { ProfileBasicsForm } from './components/ProfileBasicsForm'
 import { ProfileStoryCard } from './components/ProfileStoryCard'
-import { RecentContributionsSection } from './components/RecentContributionsSection'
-import { RecentMediaSection } from './components/RecentMediaSection'
 import { VisibilityCard } from './components/VisibilityCard'
 import type { MemberProfileFormState } from './components/profileFormTypes'
 import styles from './page.module.css'
@@ -103,6 +104,7 @@ export default function MyProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [isUploadingBackground, setIsUploadingBackground] = useState(false)
   const [hasOpenedKeycloakAccount, setHasOpenedKeycloakAccount] = useState(false)
   const [isStoryEditing, setIsStoryEditing] = useState(false)
   const [isRefreshingAccount, setIsRefreshingAccount] = useState(false)
@@ -204,6 +206,7 @@ export default function MyProfilePage() {
   }, [refreshAccountAfterReturn])
 
   const avatarURL = useMemo(() => resolveApiUrl(profile?.avatar?.public_url || ''), [profile?.avatar?.public_url])
+  const backgroundImageURL = useMemo(() => resolveApiUrl(profile?.background_image?.public_url || ''), [profile?.background_image?.public_url])
   const sourceAvatarURL = useMemo(
     () => resolveApiUrl(profile?.avatar?.source_original_url || profile?.avatar?.public_url || ''),
     [profile?.avatar?.public_url, profile?.avatar?.source_original_url],
@@ -266,6 +269,26 @@ export default function MyProfilePage() {
     }
   }
 
+  async function handleBackgroundSelected(croppedFile: File) {
+    if (!hasAuthSession) return
+
+    try {
+      setIsUploadingBackground(true)
+      setError(null)
+      setSuccess(null)
+      const response = await uploadOwnProfileBackground({ croppedFile })
+      const shouldSyncForm = !isFormDirtyRef.current
+      applyProfile(response.data, { syncForm: shouldSyncForm, resetDirty: shouldSyncForm })
+      setSuccess('Hintergrundbild wurde aktualisiert.')
+    } catch (uploadError) {
+      setError(readErrorMessage(uploadError, 'Hintergrundbild konnte nicht hochgeladen werden.'))
+      setSuccess(null)
+      throw uploadError
+    } finally {
+      setIsUploadingBackground(false)
+    }
+  }
+
   function handleKeycloakAccountClick() {
     hasOpenedKeycloakAccountRef.current = true
     setHasOpenedKeycloakAccount(true)
@@ -288,7 +311,7 @@ export default function MyProfilePage() {
 
         {!isLoading && profile ? (
           <>
-            <MemberProfileHero profile={profile} avatarURL={avatarURL} isSaving={isSaving} canSave={isDirty && !hasYearErrors && profile.capabilities.can_edit_own_profile} />
+            <MemberProfileHero profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL} isSaving={isSaving} canSave={isDirty && !hasYearErrors && profile.capabilities.can_edit_own_profile} />
             {error ? <div className={styles.errorBox}>{error}</div> : null}
             {success ? <div className={styles.successBox}>{success}</div> : null}
 
@@ -327,6 +350,14 @@ export default function MyProfilePage() {
                     sourceAvatarURL={sourceAvatarURL}
                     isUploading={isUploadingAvatar}
                     onAvatarSelected={handleAvatarSelected}
+                  />
+                </Card>
+                <Card variant="section" title="Hintergrundbild">
+                  <ProfileBackgroundCard
+                    profile={profile}
+                    backgroundURL={backgroundImageURL}
+                    isUploading={isUploadingBackground}
+                    onBackgroundSelected={handleBackgroundSelected}
                   />
                 </Card>
                 <Card variant="section">

@@ -10,6 +10,7 @@ const getOwnProfileMock = vi.fn()
 const refreshActiveAuthSessionMock = vi.fn()
 const updateOwnProfileMock = vi.fn()
 const uploadOwnProfileAvatarMock = vi.fn()
+const uploadOwnProfileBackgroundMock = vi.fn()
 const useAuthSessionMock = vi.hoisted(() => vi.fn())
 
 vi.mock('next/link', () => ({
@@ -72,6 +73,25 @@ vi.mock('@/components/media/crop/AvatarCropDialog', () => ({
   ),
 }))
 
+vi.mock('@/components/media/crop/Team4sCropper', () => ({
+  Team4sCropper: ({
+    title,
+    onApply,
+    onCancel,
+  }: {
+    title: string
+    onApply: (croppedFile: File) => void
+    onCancel: () => void
+  }) => (
+    <div role="dialog" aria-label={title}>
+      <button type="button" onClick={() => onApply(new File(['background'], 'background.jpg', { type: 'image/jpeg' }))}>
+        Ausschnitt übernehmen
+      </button>
+      <button type="button" onClick={onCancel}>Abbrechen</button>
+    </div>
+  ),
+}))
+
 vi.mock('@/lib/useAuthSession', () => ({
   useAuthSession: () => useAuthSessionMock(),
 }))
@@ -91,6 +111,7 @@ vi.mock('@/lib/api', () => ({
   refreshActiveAuthSession: (...args: unknown[]) => refreshActiveAuthSessionMock(...args),
   updateOwnProfile: (...args: unknown[]) => updateOwnProfileMock(...args),
   uploadOwnProfileAvatar: (...args: unknown[]) => uploadOwnProfileAvatarMock(...args),
+  uploadOwnProfileBackground: (...args: unknown[]) => uploadOwnProfileBackgroundMock(...args),
   resolveApiUrl: (value: string) => value,
 }))
 
@@ -478,6 +499,30 @@ describe('MyProfilePage', () => {
     const avatarImages = await screen.findAllByAltText('MikaFX Avatar')
     expect(avatarImages.some((image) => image.getAttribute('src') === '/media/profile/3/avatar/new/original.png')).toBe(true)
     expect(await screen.findByText('Avatar wurde aktualisiert.')).not.toBeNull()
+  })
+
+  it('uploads and refreshes the profile background image', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+    uploadOwnProfileBackgroundMock.mockResolvedValue(makeProfileResponse({
+      background_image: {
+        public_url: '/media/profile/3/background/new/original.jpg',
+      },
+    }))
+
+    render(<MyProfilePage />)
+
+    fireEvent.change(await screen.findByLabelText('Hintergrundbild auswählen'), {
+      target: { files: [new File(['source'], 'background.png', { type: 'image/png' })] },
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt übernehmen' }))
+
+    await waitFor(() => expect(uploadOwnProfileBackgroundMock).toHaveBeenCalledTimes(1))
+    expect(uploadOwnProfileBackgroundMock.mock.calls[0][0]).toMatchObject({
+      croppedFile: expect.any(File),
+    })
+    const backgroundPreview = await screen.findByAltText('Aktuelles Profil-Hintergrundbild')
+    expect(backgroundPreview.getAttribute('src')).toBe('/media/profile/3/background/new/original.jpg')
+    expect(await screen.findByText('Hintergrundbild wurde aktualisiert.')).not.toBeNull()
   })
 
   it('reuses the retained avatar source when editing the existing crop', async () => {

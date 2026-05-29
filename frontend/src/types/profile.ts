@@ -14,6 +14,7 @@ export interface MemberProfileMembership {
   fansub_group_id: number
   fansub_group_name: string
   fansub_group_slug: string
+  logo_url?: string | null
   group_status: string
   joined_year?: number | null
   left_year?: number | null
@@ -78,6 +79,9 @@ export interface MemberProfileData {
     height?: number | null
     created_at: string
   } | null
+  background_image?: {
+    public_url: string
+  } | null
   keycloak_account_url?: string | null
   capabilities: MemberProfileCapabilities
   memberships: MemberProfileMembership[]
@@ -108,3 +112,27 @@ export interface UpdateMemberProfileRequest {
   is_currently_active?: boolean | null
   profile_visibility?: ProfileVisibility | null
 }
+
+export interface PublicMemberProfileData {
+  member_id: number
+  fansub_name: string
+  bio?: string | null
+  member_story_html?: string | null
+  active_from_date?: string | null
+  active_until_date?: string | null
+  is_currently_active: boolean
+  profile_visibility: ProfileVisibility
+  avatar?: {
+    public_url: string
+  } | null
+  background_image?: {
+    public_url: string
+  } | null
+  memberships: MemberProfileMembership[]
+  recent_media: MemberProfileRecentMedia[]
+  recent_contributions: MemberProfileRecentContribution[]
+}
+
+export type PublicMemberProfileResponse =
+  | { data: PublicMemberProfileData }
+  | { visible: false; reason: string }

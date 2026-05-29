@@ -71,6 +71,7 @@ import {
 } from "@/types/contributor";
 import {
   MemberProfileResponse,
+  PublicMemberProfileResponse,
   UpdateMemberProfileRequest,
 } from "@/types/profile";
 import {
@@ -2634,6 +2635,37 @@ export async function getOwnProfile(
   return response.json() as Promise<MemberProfileResponse>;
 }
 
+export async function getMemberProfile(
+  slug: string,
+  authToken?: string,
+): Promise<PublicMemberProfileResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const encodedSlug = encodeURIComponent(slug);
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/members/${encodedSlug}`,
+    {
+      cache: "no-store",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<PublicMemberProfileResponse>;
+}
+
 export async function getMyFansubGroups(
   authToken?: string,
 ): Promise<ContributorGroupsResponse> {
@@ -2742,6 +2774,49 @@ export async function uploadOwnProfileAvatar(
 
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/me/profile/avatar`,
+    {
+      method: "POST",
+      headers: withAuthHeader({}, authToken),
+      retryAuth401: false,
+      body,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<MemberProfileResponse>;
+}
+
+type OwnProfileBackgroundUploadInput = File | {
+  croppedFile: File;
+};
+
+export async function uploadOwnProfileBackground(
+  input: OwnProfileBackgroundUploadInput,
+  authToken?: string,
+): Promise<MemberProfileResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const body = new FormData();
+  if (input instanceof File) {
+    body.append("file", input);
+  } else {
+    body.append("cropped_file", input.croppedFile);
+  }
+
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/profile/background`,
     {
       method: "POST",
       headers: withAuthHeader({}, authToken),

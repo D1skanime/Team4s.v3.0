@@ -397,6 +397,111 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/me/profile/background:
+    post:
+      tags: [Profile]
+      summary: Upload own member profile background image
+      operationId: uploadOwnProfileBackground
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UploadOwnProfileBackgroundRequest"
+      responses:
+        "200":
+          description: Profile aggregate with updated background image
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberProfileResponse"
+        "400":
+          description: Missing, invalid, unreadable, or oversized background image file. Runtime allows JPG, PNG, and WEBP only; SVG is rejected. The existing shared image limit is 50 MB.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingFile:
+                  value:
+                    error:
+                      message: keine datei hochgeladen
+                invalidType:
+                  value:
+                    error:
+                      message: Nur Bilddateien sind als Hintergrundbild erlaubt
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Disabled app users cannot upload profile backgrounds
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                disabledUser:
+                  value:
+                    error:
+                      message: deaktivierte Benutzer dürfen kein Hintergrundbild hochladen
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/members/{slug}:
+    get:
+      tags: [Profile]
+      summary: Get a public member profile by slug
+      operationId: getMemberProfile
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: Public member profile or visibility notice
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/PublicMemberProfileEnvelope"
+                  - $ref: "#/components/schemas/MemberProfileHidden"
+        "400":
+          description: Empty or invalid slug
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Member profile not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error:
+                      message: mitglied nicht gefunden
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/anime:
     get:
       tags: [Anime]
@@ -6469,6 +6574,13 @@ components:
         created_at:
           type: string
           format: date-time
+    MemberProfileBackgroundImage:
+      type: object
+      required:
+        - public_url
+      properties:
+        public_url:
+          type: string
     ProfileVisibility:
       type: string
       enum: [public, members_only]
@@ -6510,6 +6622,9 @@ components:
           type: string
         fansub_group_slug:
           type: string
+        logo_url:
+          type: string
+          nullable: true
         group_status:
           type: string
         joined_year:
@@ -6688,6 +6803,10 @@ components:
           allOf:
             - $ref: "#/components/schemas/MediaAsset"
           nullable: true
+        background_image:
+          allOf:
+            - $ref: "#/components/schemas/MemberProfileBackgroundImage"
+          nullable: true
         keycloak_account_url:
           type: string
           nullable: true
@@ -6803,6 +6922,103 @@ components:
           type: string
           format: binary
           description: Backward-compatible single avatar file. Runtime accepts JPG, PNG, and WEBP, enforces the shared 50 MB image limit, and rejects SVG.
+    UploadOwnProfileBackgroundRequest:
+      type: object
+      description: |
+        Preferred Phase 59 contract sends a cropped 16:9 display image as
+        `cropped_file` or `background`. Legacy callers may submit `file`.
+        Runtime stores the image through media_assets/media_files and links it
+        from members.background_media_id.
+      properties:
+        background:
+          type: string
+          format: binary
+          description: 16:9 profile background image file.
+        cropped_file:
+          type: string
+          format: binary
+          description: Cropped 16:9 profile background image from the shared cropper.
+        file:
+          type: string
+          format: binary
+          description: Backward-compatible single background image file.
+    PublicMemberProfileEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/PublicMemberProfileData"
+    MemberProfileHidden:
+      type: object
+      required: [visible, reason]
+      properties:
+        visible:
+          type: boolean
+          enum: [false]
+        reason:
+          type: string
+          enum: [members_only]
+    PublicMemberProfileAvatar:
+      type: object
+      required:
+        - public_url
+      properties:
+        public_url:
+          type: string
+    PublicMemberProfileData:
+      type: object
+      required:
+        - member_id
+        - fansub_name
+        - is_currently_active
+        - profile_visibility
+        - memberships
+        - recent_media
+        - recent_contributions
+      properties:
+        member_id:
+          type: integer
+          format: int64
+        fansub_name:
+          type: string
+        bio:
+          type: string
+          nullable: true
+        member_story_html:
+          type: string
+          nullable: true
+        active_from_date:
+          type: string
+          format: date
+          nullable: true
+        active_until_date:
+          type: string
+          format: date
+          nullable: true
+        is_currently_active:
+          type: boolean
+        profile_visibility:
+          $ref: "#/components/schemas/ProfileVisibility"
+        avatar:
+          allOf:
+            - $ref: "#/components/schemas/PublicMemberProfileAvatar"
+          nullable: true
+        background_image:
+          allOf:
+            - $ref: "#/components/schemas/MemberProfileBackgroundImage"
+          nullable: true
+        memberships:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberProfileMembership"
+        recent_media:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberProfileRecentMedia"
+        recent_contributions:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberProfileRecentContribution"
     FansubMediaUploadResponse:
       type: object
       required: [data]
