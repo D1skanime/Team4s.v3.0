@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_for_next_slice
-stopped_at: Phase 57 security and validation passed; authenticated browser UAT pending
-last_updated: 2026-05-29T08:20:00+02:00
+stopped_at: Phase 58 geplant (3 Pläne, 2 Wellen); bereit zur Ausführung
+last_updated: "2026-05-29T00:00:00.000Z"
 last_activity: 2026-05-29
 progress:
-  total_phases: 53
+  total_phases: 54
   completed_phases: 38
-  total_plans: 199
-  completed_plans: 184
+  total_plans: 202
+  completed_plans: 164
   percent: 70
 ---
 
@@ -21,7 +21,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 57 - profile activity period date fields implemented, security-verified, and validation-approved; authenticated UAT pending
+**Current focus:** Phase 58 - Profil-Hub Content, Membership Cards & Activity Preparation — 3 Pläne erstellt, bereit zur Ausführung
 
 ## Current Position
 
@@ -240,6 +240,8 @@ Recent durable decisions:
 - Phase 26 added: Segment Source Asset Upload And Persistence — Team4s-Asset-Upload, Pfadbildung, Segment-Referenz und Delete-Seam fuer OP/ED/Insert-Dateien ohne Playback-Pflicht.
 
 - Phase 28 added: Segment Playback Sources From Jellyfin Runtime â€” Segmente sollen standardmaessig Episode-Version/Jellyfin-Stream als Playback-Quelle mit realer release_variants.duration_seconds-Grenze nutzen; Upload bleibt optionaler Fallback.
+- Phase 58 added: Profil-Hub Content, Membership Cards & Activity Preparation
+- Phase 59 added: Öffentliches Fansub-Member-Profil
 
 ### Blockers/Concerns
 
