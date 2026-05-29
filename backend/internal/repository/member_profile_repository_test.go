@@ -30,6 +30,14 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"own profile avatar reads must expose the retained source only through the own-profile aggregate for re-cropping")
 	assert.True(t, strings.Contains(content, "m.member_story_json"),
 		"own profile reads must expose the TipTap JSON source for profile story editing")
+	assert.True(t, strings.Contains(content, "m.active_from_date"),
+		"own profile reads must use the DATE-backed activity period source")
+	assert.True(t, strings.Contains(content, "active_from_date = CASE"),
+		"own profile updates must persist DATE-backed activity period fields")
+	assert.True(t, strings.Contains(content, "active_from_year = CASE WHEN $10"),
+		"legacy activity year columns may only be mirrored from the DATE update path")
+	assert.True(t, strings.Contains(content, "normalizeProfileActivityDate"),
+		"own profile activity dates must be validated as year-normalized date values")
 	assert.True(t, strings.Contains(content, "member_story_html = CASE"),
 		"own profile updates must persist server-rendered story HTML with the JSON update")
 	assert.True(t, strings.Contains(content, "member_story_text = CASE"),

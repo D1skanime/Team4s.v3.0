@@ -37,8 +37,8 @@ function toFormState(profile: MemberProfileData): MemberProfileFormState {
     memberStory: isTipTapDocument(profile.member_story_json)
       ? profile.member_story_json
       : richTextFromPlainText(profile.member_story || ''),
-    activeFromYear: profile.active_from_year ? String(profile.active_from_year) : '',
-    activeUntilYear: profile.active_until_year ? String(profile.active_until_year) : '',
+    activeFromYear: yearFromProfileDate(profile.active_from_date, profile.active_from_year),
+    activeUntilYear: yearFromProfileDate(profile.active_until_date, profile.active_until_year),
     isCurrentlyActive: Boolean(profile.is_currently_active),
     profileVisibility: profile.profile_visibility || 'members_only',
   }
@@ -56,12 +56,19 @@ function emptyFormState(): MemberProfileFormState {
   }
 }
 
-function parseOptionalYear(raw: string): number | null {
+function yearFromProfileDate(dateValue?: string | null, fallbackYear?: number | null): string {
+  const trimmed = typeof dateValue === 'string' ? dateValue.trim() : ''
+  const match = /^(\d{4})-01-01$/.exec(trimmed)
+  if (match) return match[1]
+  return fallbackYear ? String(fallbackYear) : ''
+}
+
+function normalizedDateFromYear(raw: string): string | null {
   const trimmed = raw.trim()
   if (!trimmed) return null
   const parsed = Number.parseInt(trimmed, 10)
   if (!Number.isFinite(parsed) || parsed < 1970 || parsed > 2100) return null
-  return parsed
+  return `${parsed}-01-01`
 }
 
 function validateOptionalYear(raw: string): string | undefined {
@@ -224,8 +231,8 @@ export default function MyProfilePage() {
         fansub_name: form.fansubName.trim() || null,
         bio: form.bio.trim() || null,
         member_story_json: form.memberStory,
-        active_from_year: parseOptionalYear(form.activeFromYear),
-        active_until_year: form.isCurrentlyActive ? null : parseOptionalYear(form.activeUntilYear),
+        active_from_date: normalizedDateFromYear(form.activeFromYear),
+        active_until_date: form.isCurrentlyActive ? null : normalizedDateFromYear(form.activeUntilYear),
         is_currently_active: form.isCurrentlyActive,
         profile_visibility: form.profileVisibility,
       })

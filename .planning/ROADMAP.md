@@ -65,7 +65,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 54: Globale Nav Drawer und Layout Verdrahtung** - Die AppShell wird zu einem seitenweiten Drawer-Navigationssystem: echter Slide-over-Drawer, hover-aktivierter Desktop-Glasrand (16px), Root-Layout-Integration für seitenweite Präsenz und Dual-State (anonym/eingeloggt) mit echtem Avatar-Bild. (completed 2026-05-28)
 - [x] **Phase 55: Sichere TipTap-Persistenz fuer Profilgeschichte** - Die eigene Profilgeschichte wird von Phase-53-Plain-Text auf release-native-unabhaengige TipTap-Persistenz umgestellt: Migration, Backend-Validierung/Sanitizing, OpenAPI/frontend DTOs, Editor-State und Bestandsdaten-Migration bewegen sich gemeinsam. (completed 2026-05-29)
 - [x] **Phase 56: Cropper** - Der fragile eigene Cropper wird durch eine moderne gepflegte React-Cropper-Bibliothek hinter einer gemeinsamen Team4s-Cropper-Komponente ersetzt; Profil-Avatar und Fansub-Gruppenlogo nutzen dieselbe UI-Grundlage, ohne Upload-Endpunkte oder Media-Ownership zu vermischen. (completed and security-verified 2026-05-29)
-- [ ] **Phase 57: Profil-Aktivzeitraum als jahrbegrenzte Datumsfelder** - `/me/profile` speichert den Fansub-Szene-Aktivzeitraum ueber echte DB-DATE-Spalten, waehrend die UI weiterhin nur Jahresauswahl fuer "von wann bis wann aktiv" erlaubt.
+- [x] **Phase 57: Profil-Aktivzeitraum als jahrbegrenzte Datumsfelder** - `/me/profile` speichert den Fansub-Szene-Aktivzeitraum ueber echte DB-DATE-Spalten, waehrend die UI weiterhin nur Jahresauswahl fuer "von wann bis wann aktiv" erlaubt. (implemented and automated-verified 2026-05-29; authenticated UAT pending)
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
 
@@ -1174,17 +1174,18 @@ Plans:
 **Depends on:** Phase 56
 **Context:** `.planning/phases/57-profil-aktivzeitraum-als-jahrbegrenzte-datumsfelder/57-CONTEXT.md`
 **UI hint**: yes
-**Plans:** 3/3 plans planned
+**Status:** Implemented and automated-verified 2026-05-29; authenticated browser UAT pending.
+**Plans:** 3/3 plans complete
 
 Plans:
 **Wave 1**
-- [ ] `57-01-PLAN.md` - DB-, Backend- und OpenAPI-Contract fuer datumsgespeicherte Profil-Aktivzeit herstellen.
+- [x] `57-01-PLAN.md` - DB-, Backend- und OpenAPI-Contract fuer datumsgespeicherte Profil-Aktivzeit herstellen.
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] `57-02-PLAN.md` - `/me/profile` Frontend-DTOs und jahrbegrenzte UI auf den neuen Date-Contract umstellen.
+- [x] `57-02-PLAN.md` - `/me/profile` Frontend-DTOs und jahrbegrenzte UI auf den neuen Date-Contract umstellen.
 
 **Wave 3** *(blocked on Wave 1 and Wave 2 completion)*
-- [ ] `57-03-PLAN.md` - Phase-57-Regressionen, Migration-Checks, UAT-Handoff und Statuspflege abschliessen.
+- [x] `57-03-PLAN.md` - Phase-57-Regressionen, Migration-Checks, UAT-Handoff und Statuspflege abschliessen.
 
 **Cross-cutting constraints:**
 - Der persistierte neue Source-of-Truth sind `DATE`-Spalten auf `members`; alte `active_from_year`/`active_until_year` duerfen nur als Uebergangs-/Backfill-Kompatibilitaet bleiben.

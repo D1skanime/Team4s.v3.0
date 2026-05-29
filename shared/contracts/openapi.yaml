@@ -6617,14 +6617,28 @@ components:
           type: integer
           format: int32
           description: TipTap content schema version for the profile story.
+        active_from_date:
+          type: string
+          format: date
+          nullable: true
+          description: Year-limited profile activity start date normalized to YYYY-01-01.
+        active_until_date:
+          type: string
+          format: date
+          nullable: true
+          description: Year-limited profile activity end date normalized to YYYY-01-01; null when the member is currently active.
         active_from_year:
           type: integer
           format: int32
           nullable: true
+          deprecated: true
+          description: Deprecated compatibility mirror derived from active_from_date.
         active_until_year:
           type: integer
           format: int32
           nullable: true
+          deprecated: true
+          description: Deprecated compatibility mirror derived from active_until_date.
         is_currently_active:
           type: boolean
         profile_visibility:
@@ -6689,14 +6703,28 @@ components:
           nullable: true
           additionalProperties: true
           description: TipTap JSON document for the profile story. The backend validates allowed nodes and marks, renders sanitized HTML, and extracts plain text.
+        active_from_date:
+          type: string
+          format: date
+          nullable: true
+          description: Activity start year encoded as a date normalized to January 1, e.g. 2016-01-01. Non-normalized month/day values are rejected.
+        active_until_date:
+          type: string
+          format: date
+          nullable: true
+          description: Activity end year encoded as a date normalized to January 1, e.g. 2020-01-01. Send null when is_currently_active is true. Non-normalized month/day values are rejected.
         active_from_year:
           type: integer
           format: int32
           nullable: true
+          deprecated: true
+          description: Deprecated compatibility input. Prefer active_from_date.
         active_until_year:
           type: integer
           format: int32
           nullable: true
+          deprecated: true
+          description: Deprecated compatibility input. Prefer active_until_date.
         is_currently_active:
           type: boolean
           nullable: true

@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: ready_to_execute
-stopped_at: Phase 57 planned - ready to execute date-backed profile activity period
-last_updated: 2026-05-29T07:52:50+02:00
+status: ready_for_next_slice
+stopped_at: Phase 57 implemented and automated-verified; authenticated browser UAT pending
+last_updated: 2026-05-29T08:20:00+02:00
 last_activity: 2026-05-29
 progress:
   total_phases: 53
-  completed_phases: 37
+  completed_phases: 38
   total_plans: 199
   completed_plans: 184
   percent: 70
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 56 - Cropper complete; functional UAT and security review passed
+**Current focus:** Phase 57 - profile activity period date fields implemented and automated-verified; authenticated UAT pending
 
 ## Current Position
 
-Phase: 56 complete
-Plan: 4 of 4 complete; `$gsd-secure-phase 56` passed with `threats_open: 0`
+Phase: 57 complete at automated-verification level
+Plan: 3 of 3 complete; authenticated `/me/profile` UAT pending because the browser context had no logged-in session
 
 ## Accumulated Context
 
@@ -199,7 +199,7 @@ Recent durable decisions:
 - Phase 55 added: Sichere TipTap-Persistenz fuer Profilgeschichte - `/me/profile` darf die Profilgeschichte nicht laenger ad hoc von TipTap nach Plain Text zurueckkonvertieren; Migration, Backend-TipTap-Service, OpenAPI/frontend DTOs, zentraler API-Client, Sanitizing und Bestandsdaten bewegen sich gemeinsam.
 - Phase 56 added: Cropper - der fragile eigene Cropper wird als eigener Folge-Slice mit gepflegter React-Cropper-Bibliothek geplant; Profil-Avatar und Fansub-Gruppenlogo sollen dieselbe gemeinsame Cropper-Komponente nutzen, ohne Upload-Endpunkte oder Media-Ownership zu vermischen.
 - Phase 56 completed on 2026-05-29: `react-easy-crop` is wrapped behind `Team4sCropper`, avatar and fansub logo crop flows are migrated, the original crop parity todo is done, and security review passed with `threats_open: 0`.
-- Phase 57 added: Profil-Aktivzeitraum als jahrbegrenzte Datumsfelder - `/me/profile` soll den Fansub-Szene-Aktivzeitraum ueber echte DB-DATE-Spalten speichern, aber in der UI nur Jahresauswahl fuer "von wann bis wann" anbieten.
+- Phase 57 complete: Profil-Aktivzeitraum als jahrbegrenzte Datumsfelder - `/me/profile` speichert den Fansub-Szene-Aktivzeitraum ueber echte DB-DATE-Spalten, waehrend die UI nur Jahresauswahl fuer "von wann bis wann" anbietet. Authenticated UAT remains pending.
 - Phase 49/50 reconcile completed on 2026-05-27: Phase 49 central Auth/API client is complete from `49-VERIFICATION.md` and `AUTH-API-CLIENT-01` is complete; Phase 50 platform-admin/contributor scope governance is registered as complete-carry-forward with technical verification passed and live Keycloak UAT pending.
 - Historical reconcile completed on 2026-05-27 for phases 1-46: Phases 41 and 43-46 are retro-closed from runtime evidence; Phase 42 remains planned/deferred; stale v1 requirement Pending rows were reconciled to completed historical baseline; OpenAPI gaps for member management and invitations remain follow-up work.
 - Phase 48 retro-verified on 2026-05-27: contributor dashboard foundation is complete from runtime evidence and focused tests; `/me/groups` route direction, shared `Mein Bereich` shell integration, OpenAPI coverage, broader live UAT, centralized labels, and safer non-admin workspace routing carry forward.
@@ -347,7 +347,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-05-29T07:52:50+02:00
-Stopped at: Phase 57 planned - ready to execute date-backed profile activity period
+Last session: 2026-05-29T08:20:00+02:00
+Stopped at: Phase 57 implemented and automated-verified; authenticated browser UAT pending
 Last activity: 2026-05-29
 Resume file: .planning/phases/57-profil-aktivzeitraum-als-jahrbegrenzte-datumsfelder/57-CONTEXT.md

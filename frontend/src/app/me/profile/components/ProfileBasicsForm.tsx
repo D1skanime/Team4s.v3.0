@@ -1,4 +1,4 @@
-import { FormField, Input, Textarea } from '@/components/ui'
+import { FormField, Input, Select, Textarea } from '@/components/ui'
 
 import type { MemberProfileFormState } from './profileFormTypes'
 import styles from '../page.module.css'
@@ -15,6 +15,7 @@ type ProfileBasicsFormProps = {
 
 export function ProfileBasicsForm({ form, disabled, errors, onChange }: ProfileBasicsFormProps) {
   const bioLength = form.bio.length
+  const yearOptions = Array.from({ length: 2100 - 1970 + 1 }, (_, index) => String(2100 - index))
 
   return (
     <div className={styles.formGrid}>
@@ -46,19 +47,20 @@ export function ProfileBasicsForm({ form, disabled, errors, onChange }: ProfileB
         <FormField
           label="Aktiv seit"
           htmlFor="activeFromYear"
-          hint="Jahr, z. B. 2016. Monatsdaten sind noch nicht Teil des Profil-Contracts."
+          hint="Wähle ein Jahr. Monats- und Tagesdaten sind nicht Teil des Profil-Contracts."
           error={errors?.activeFromYear}
         >
-          <Input
+          <Select
             id="activeFromYear"
-            type="number"
-            min={1970}
-            max={2100}
-            inputMode="numeric"
             value={form.activeFromYear}
             disabled={disabled}
             onChange={(event) => onChange((current) => ({ ...current, activeFromYear: event.target.value }))}
-          />
+          >
+            <option value="">Keine Angabe</option>
+            {yearOptions.map((year) => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </Select>
         </FormField>
         <FormField
           label="Aktiv bis"
@@ -66,16 +68,17 @@ export function ProfileBasicsForm({ form, disabled, errors, onChange }: ProfileB
           disabled={form.isCurrentlyActive}
           error={errors?.activeUntilYear}
         >
-          <Input
+          <Select
             id="activeUntilYear"
-            type="number"
-            min={1970}
-            max={2100}
-            inputMode="numeric"
             value={form.activeUntilYear}
             disabled={disabled || form.isCurrentlyActive}
             onChange={(event) => onChange((current) => ({ ...current, activeUntilYear: event.target.value }))}
-          />
+          >
+            <option value="">Keine Angabe</option>
+            {yearOptions.map((year) => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </Select>
         </FormField>
       </div>
       <FormField label="Kurzbeschreibung" htmlFor="bio" hint={`${bioLength}/280 Zeichen`}>

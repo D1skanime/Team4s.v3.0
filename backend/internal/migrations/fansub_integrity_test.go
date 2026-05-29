@@ -32,6 +32,40 @@ func TestReleaseVersionGroupsLegacyFansubgroupIDMigrationDropsOnlyAfterSafetyChe
 	}
 }
 
+func TestMemberProfileActivityDateMigrationKeepsYearLimitedDates(t *testing.T) {
+	upContent := strings.ToLower(readMigrationFile(t, "0079_member_profile_activity_dates.up.sql"))
+	downContent := strings.ToLower(readMigrationFile(t, "0079_member_profile_activity_dates.down.sql"))
+
+	requiredUpPatterns := []string{
+		"add column if not exists active_from_date date",
+		"add column if not exists active_until_date date",
+		"active_from_date = make_date(active_from_year, 1, 1)",
+		"chk_members_active_dates_year_limited",
+		"extract(month from active_from_date) = 1",
+		"extract(day from active_until_date) = 1",
+		"extract(year from active_from_date)::int between 1970 and 2100",
+		"chk_members_active_date_range",
+		"active_until_date >= active_from_date",
+	}
+	for _, pattern := range requiredUpPatterns {
+		if !strings.Contains(upContent, pattern) {
+			t.Fatalf("expected migration 0079 up to include %q", pattern)
+		}
+	}
+
+	requiredDownPatterns := []string{
+		"drop constraint if exists chk_members_active_date_range",
+		"drop constraint if exists chk_members_active_dates_year_limited",
+		"drop column if exists active_from_date",
+		"drop column if exists active_until_date",
+	}
+	for _, pattern := range requiredDownPatterns {
+		if !strings.Contains(downContent, pattern) {
+			t.Fatalf("expected migration 0079 down to include %q", pattern)
+		}
+	}
+}
+
 func readMigrationFile(t *testing.T, filename string) string {
 	t.Helper()
 

@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
@@ -36,6 +37,8 @@ type updateOwnProfileRequest struct {
 	MemberStory       models.OptionalString  `json:"member_story"`
 	MemberStoryJSON   models.OptionalRawJSON `json:"member_story_json"`
 	MemberStoryHTML   models.OptionalString  `json:"member_story_html"`
+	ActiveFromDate    models.OptionalString  `json:"active_from_date"`
+	ActiveUntilDate   models.OptionalString  `json:"active_until_date"`
 	ActiveFromYear    models.OptionalInt32   `json:"active_from_year"`
 	ActiveUntilYear   models.OptionalInt32   `json:"active_until_year"`
 	IsCurrentlyActive models.OptionalBool    `json:"is_currently_active"`
@@ -111,8 +114,8 @@ func (h *AppAuthHandler) UpdateOwnProfile(c *gin.Context) {
 		FansubName:        req.FansubName,
 		Bio:               req.Bio,
 		MemberStory:       req.MemberStory,
-		ActiveFromYear:    req.ActiveFromYear,
-		ActiveUntilYear:   req.ActiveUntilYear,
+		ActiveFromDate:    req.ActiveFromDate,
+		ActiveUntilDate:   req.ActiveUntilDate,
 		IsCurrentlyActive: req.IsCurrentlyActive,
 		ProfileVisibility: req.ProfileVisibility,
 	}
@@ -121,6 +124,10 @@ func (h *AppAuthHandler) UpdateOwnProfile(c *gin.Context) {
 		return
 	}
 	if err := h.prepareMemberStoryRichText(&input, req.MemberStoryJSON, req.MemberStory); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
+		return
+	}
+	if err := prepareProfileActivityDates(&input, req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
@@ -138,6 +145,82 @@ func (h *AppAuthHandler) UpdateOwnProfile(c *gin.Context) {
 	h.applyProfileCapabilities(profile, identity)
 	h.auditProfileUpdated(c, identity, before, profile)
 	c.JSON(http.StatusOK, gin.H{"data": profile})
+}
+
+func prepareProfileActivityDates(input *models.MemberProfileUpdateInput, req updateOwnProfileRequest) error {
+	if input == nil {
+		return nil
+	}
+	if req.ActiveFromDate.Set {
+		dateValue, err := normalizedProfileActivityDate(req.ActiveFromDate.Value)
+		if err != nil {
+			return fmt.Errorf("aktiv-seit-datum ist ungültig")
+		}
+		input.ActiveFromDate = models.OptionalString{Set: true, Value: dateValue}
+	} else if req.ActiveFromYear.Set {
+		dateValue, err := profileActivityDateFromYear(req.ActiveFromYear.Value)
+		if err != nil {
+			return fmt.Errorf("aktiv-seit-jahr ist ungültig")
+		}
+		input.ActiveFromDate = models.OptionalString{Set: true, Value: dateValue}
+	}
+
+	if req.ActiveUntilDate.Set {
+		dateValue, err := normalizedProfileActivityDate(req.ActiveUntilDate.Value)
+		if err != nil {
+			return fmt.Errorf("aktiv-bis-datum ist ungültig")
+		}
+		input.ActiveUntilDate = models.OptionalString{Set: true, Value: dateValue}
+	} else if req.ActiveUntilYear.Set {
+		dateValue, err := profileActivityDateFromYear(req.ActiveUntilYear.Value)
+		if err != nil {
+			return fmt.Errorf("aktiv-bis-jahr ist ungültig")
+		}
+		input.ActiveUntilDate = models.OptionalString{Set: true, Value: dateValue}
+	}
+
+	if req.IsCurrentlyActive.Set && req.IsCurrentlyActive.Value != nil && *req.IsCurrentlyActive.Value {
+		input.ActiveUntilDate = models.OptionalString{Set: true, Value: nil}
+	}
+	if input.ActiveFromDate.Value != nil && input.ActiveUntilDate.Value != nil && *input.ActiveUntilDate.Value < *input.ActiveFromDate.Value {
+		return fmt.Errorf("aktiv-bis-datum darf nicht vor aktiv-seit-datum liegen")
+	}
+	return nil
+}
+
+func normalizedProfileActivityDate(value *string) (*string, error) {
+	if value == nil {
+		return nil, nil
+	}
+	trimmed := strings.TrimSpace(*value)
+	if trimmed == "" {
+		return nil, nil
+	}
+	parsed, err := time.Parse("2006-01-02", trimmed)
+	if err != nil {
+		return nil, err
+	}
+	if parsed.Format("2006-01-02") != trimmed {
+		return nil, fmt.Errorf("date must use YYYY-MM-DD")
+	}
+	if parsed.Month() != time.January || parsed.Day() != 1 {
+		return nil, fmt.Errorf("date must be year-normalized")
+	}
+	if parsed.Year() < 1970 || parsed.Year() > 2100 {
+		return nil, fmt.Errorf("year out of range")
+	}
+	return &trimmed, nil
+}
+
+func profileActivityDateFromYear(value *int32) (*string, error) {
+	if value == nil {
+		return nil, nil
+	}
+	if *value < 1970 || *value > 2100 {
+		return nil, fmt.Errorf("year out of range")
+	}
+	dateValue := fmt.Sprintf("%04d-01-01", *value)
+	return &dateValue, nil
 }
 
 func (h *AppAuthHandler) prepareMemberStoryRichText(

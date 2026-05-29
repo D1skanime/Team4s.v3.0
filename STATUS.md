@@ -4,8 +4,8 @@
 - **Project:** Team4s.v3.0
 - **Milestone:** `v1.1 Asset Lifecycle Hardening`
 - **Branch:** `main`
-- **Status:** Phase 54, Phase 55, and Phase 56 are complete. Phase 56 functional UAT and security review passed on 2026-05-29.
-- **Current focus:** Leave `main` pushed and restartable; next work should choose the next narrow cleanup slice from the verified baseline.
+- **Status:** Phase 54, Phase 55, Phase 56, and Phase 57 are complete. Phase 57 automated verification passed on 2026-05-29; authenticated browser UAT is pending.
+- **Current focus:** Leave `main` pushed and restartable; next work should complete Phase 57 authenticated UAT or choose the next narrow cleanup slice from the verified baseline.
 
 ## What Works Now
 - Keycloak/API token boundary from Phase 51 remains the auth truth: API bearer is Keycloak `access_token`, not `id_token`.
@@ -16,6 +16,7 @@
 - Profile avatar crop uses the shared cropper and still uploads source original plus cropped display through `uploadOwnProfileAvatar`.
 - Fansub group raster logo crop uses the shared cropper and still uploads through `uploadFansubMedia`.
 - SVG group logos bypass canvas cropping and remain on the existing upload path.
+- Profile activity periods now use `members.active_from_date` and `members.active_until_date` as the date source of truth, with year-limited `YYYY-01-01` values and deprecated legacy year mirrors.
 - Release-version media domain guardrails remain in force: use `release_version_media.release_version_id`, not `release_media` or `release_id` substitutes.
 
 ## What Is Not Done Yet
@@ -43,15 +44,19 @@
 - Phase 56 targeted cropper/avatar/media/profile tests passed.
 - Phase 56 `npm run typecheck`, focused ESLint, `npm run build`, and functional UAT passed.
 - Phase 56 security review passed with `threats_open: 0`.
+- Phase 57 backend migration/handler/repository tests, profile page tests, typecheck, production build, and `git diff --check` passed.
+- Phase 57 browser smoke reached `/me/profile` locally but showed the unauthenticated gate because no browser auth session was available.
 - `git diff --check` passed during closeout.
 
 ## Top 3 Next
-1. Run a 15-minute roadmap/requirements reconcile after push and confirm Phase 54-56 remain marked complete.
-2. Check that no stale Phase 56 pending-gate marker remains in planning files.
+1. Run Phase 57 authenticated `/me/profile` UAT: save/reload activity years, then verify `Aktuell aktiv` clears/disables `Aktiv bis`.
+2. Run a 15-minute roadmap/requirements reconcile after push and confirm Phase 54-57 remain marked complete.
 3. Pick the next narrow cleanup slice from the verified baseline.
 
 ## Risks / Blockers
 - Do not collapse versioned release media back onto `release_media`.
 - Do not create a new upload flow unless the reuse guardrail has been checked and a decision is documented.
 - Do not change profile story persistence back to plain-text-only save behavior.
+- Do not reintroduce free text/number activity-period inputs; UI stays year-select only while the persisted contract remains date-backed.
+- `active_from_year` and `active_until_year` are compatibility mirrors only, not the new source of truth.
 - Phase 54 browser screenshots are planning evidence; keep them with the Phase 54 artifacts unless a later cleanup explicitly archives them.

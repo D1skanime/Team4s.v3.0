@@ -2,7 +2,7 @@
 
 import type { ImgHTMLAttributes, ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 import type { MemberProfileResponse } from '@/types/profile'
 
@@ -132,8 +132,8 @@ function makeProfileResponse(overrides: Partial<MemberProfileResponse['data']> =
       member_story_text: 'Seit 2016 in mehreren Gruppen aktiv.',
       member_story_editor_type: 'tiptap',
       member_story_content_schema_version: 1,
-      active_from_year: 2016,
-      active_until_year: null,
+      active_from_date: '2016-01-01',
+      active_until_date: null,
       is_currently_active: true,
       profile_visibility: 'members_only',
       avatar: null,
@@ -270,6 +270,8 @@ describe('MyProfilePage', () => {
     await waitFor(() => {
       expect(updateOwnProfileMock).toHaveBeenCalledWith(expect.objectContaining({
         fansub_name: 'MikaNova',
+        active_from_date: '2016-01-01',
+        active_until_date: null,
       }))
     })
     const payload = updateOwnProfileMock.mock.calls[0]?.[0] as Record<string, unknown>
@@ -277,6 +279,53 @@ describe('MyProfilePage', () => {
     expect(payload.email).toBeUndefined()
     expect(payload.keycloak_subject).toBeUndefined()
     expect(await screen.findByText('Profil wurde gespeichert.')).not.toBeNull()
+  })
+
+  it('saves selected activity years as normalized dates', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      is_currently_active: false,
+      active_until_date: '2019-01-01',
+    }))
+    updateOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      is_currently_active: false,
+      active_from_date: '2015-01-01',
+      active_until_date: '2020-01-01',
+    }))
+
+    render(<MyProfilePage />)
+
+    fireEvent.change(await screen.findByLabelText('Aktiv seit'), { target: { value: '2015' } })
+    fireEvent.change(screen.getByLabelText('Aktiv bis'), { target: { value: '2020' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Profil speichern' }))
+
+    await waitFor(() => {
+      expect(updateOwnProfileMock).toHaveBeenCalledWith(expect.objectContaining({
+        active_from_date: '2015-01-01',
+        active_until_date: '2020-01-01',
+        is_currently_active: false,
+      }))
+    })
+  })
+
+  it('clears the until date payload when currently active is enabled', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      is_currently_active: false,
+      active_until_date: '2019-01-01',
+    }))
+    updateOwnProfileMock.mockResolvedValue(makeProfileResponse())
+
+    render(<MyProfilePage />)
+
+    fireEvent.click(await screen.findByLabelText('Ich bin aktuell in der Fansub-Szene aktiv'))
+    fireEvent.click(screen.getByRole('button', { name: 'Profil speichern' }))
+
+    await waitFor(() => {
+      expect(updateOwnProfileMock).toHaveBeenCalledWith(expect.objectContaining({
+        active_until_date: null,
+        is_currently_active: true,
+      }))
+    })
+    expect(screen.getByLabelText('Aktiv bis')).toHaveProperty('disabled', true)
   })
 
   it('sends TipTap JSON for the profile story and returns to read mode after saving', async () => {
@@ -364,17 +413,18 @@ describe('MyProfilePage', () => {
     expect(screen.queryByText('Server Story')).toBeNull()
   })
 
-  it('blocks invalid activity years instead of coercing them to null', async () => {
+  it('limits activity years to the supported range', async () => {
     getOwnProfileMock.mockResolvedValue(makeProfileResponse())
 
     render(<MyProfilePage />)
 
-    const activeFromInput = await screen.findByLabelText('Aktiv seit')
-    fireEvent.change(activeFromInput, { target: { value: '2101' } })
+    const activeFromSelect = await screen.findByLabelText('Aktiv seit')
 
-    expect(await screen.findByText('Bitte ein Jahr zwischen 1970 und 2100 eingeben.')).not.toBeNull()
-    expect(screen.getByRole('button', { name: /Profil speichern/i })).toHaveProperty('disabled', true)
-    expect(updateOwnProfileMock).not.toHaveBeenCalled()
+    expect(activeFromSelect.tagName).toBe('SELECT')
+    expect(within(activeFromSelect).getByRole('option', { name: '1970' })).not.toBeNull()
+    expect(within(activeFromSelect).getByRole('option', { name: '2100' })).not.toBeNull()
+    expect(within(activeFromSelect).queryByRole('option', { name: '1969' })).toBeNull()
+    expect(within(activeFromSelect).queryByRole('option', { name: '2101' })).toBeNull()
   })
 
   it('keeps avatar upload separate and surfaces upload errors without losing dirty fields', async () => {

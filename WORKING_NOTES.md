@@ -3,6 +3,7 @@
 ## Current Workflow Phase
 - Phase 55 is complete: profile story persistence is TipTap-contract based, not plain-text-only.
 - Phase 56 is complete: shared cropper foundation shipped, UAT passed, security passed.
+- Phase 57 is complete at automated-verification level: profile activity periods now persist through year-limited DATE fields; authenticated browser UAT remains pending.
 - Phase 54 drawer/header work is complete; its screenshots remain as planning evidence.
 
 ## Useful Facts To Keep
@@ -20,6 +21,8 @@
 - Avatar crop keeps source original plus cropped display through `uploadOwnProfileAvatar`.
 - Fansub group logo crop keeps group media ownership through `MediaUpload` and `uploadFansubMedia`.
 - SVG group logos bypass canvas/cropper conversion.
+- Profile activity period source of truth is `members.active_from_date` / `members.active_until_date`, normalized to `YYYY-01-01` and constrained to years 1970-2100.
+- Legacy `active_from_year` / `active_until_year` remain as deprecated compatibility mirrors only.
 
 ## Verification Memory
 - Phase 51 live smoke: `/api/v1/me` with access token returned `200`; `/api/v1/me` with ID token returned `401`.
@@ -29,6 +32,8 @@
 - Phase 56 targeted cropper/avatar/media/profile tests passed.
 - Phase 56 functional UAT passed on 2026-05-29.
 - Phase 56 security review passed with `threats_open: 0`.
+- Phase 57 checks passed: `go test ./internal/migrations ./internal/handlers ./internal/repository`, profile page Vitest, frontend typecheck, frontend build, and `git diff --check`.
+- Phase 57 global `npm run lint` still fails on unrelated existing files and temporary scripts outside the phase scope.
 - Full frontend lint may still have known unrelated warnings outside focused checks.
 
 ## Commit Hygiene Notes
@@ -38,5 +43,5 @@
 
 ## Mental Unload
 - Next session should not rediscover Phase 56; it is closed.
-- Phase 54-56 are the current closed baseline.
-- The safest next task is a short roadmap/status reconciliation, then a deliberate next-slice choice.
+- Phase 54-57 are the current closed baseline, with Phase 57 authenticated UAT still pending.
+- The safest next task is a short authenticated `/me/profile` UAT pass, then roadmap/status reconciliation and a deliberate next-slice choice.

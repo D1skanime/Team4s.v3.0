@@ -54,6 +54,8 @@ type MemberProfile struct {
 	MemberStoryText                 *string                   `json:"member_story_text,omitempty"`
 	MemberStoryEditorType           string                    `json:"member_story_editor_type"`
 	MemberStoryContentSchemaVersion int32                     `json:"member_story_content_schema_version"`
+	ActiveFromDate                  *string                   `json:"active_from_date,omitempty"`
+	ActiveUntilDate                 *string                   `json:"active_until_date,omitempty"`
 	ActiveFromYear                  *int32                    `json:"active_from_year,omitempty"`
 	ActiveUntilYear                 *int32                    `json:"active_until_year,omitempty"`
 	IsCurrentlyActive               bool                      `json:"is_currently_active"`
@@ -80,8 +82,8 @@ type MemberProfileUpdateInput struct {
 	MemberStoryText                 OptionalString  `json:"member_story_text"`
 	MemberStoryEditorType           OptionalString  `json:"member_story_editor_type"`
 	MemberStoryContentSchemaVersion OptionalInt32   `json:"member_story_content_schema_version"`
-	ActiveFromYear                  OptionalInt32   `json:"active_from_year"`
-	ActiveUntilYear                 OptionalInt32   `json:"active_until_year"`
+	ActiveFromDate                  OptionalString  `json:"active_from_date"`
+	ActiveUntilDate                 OptionalString  `json:"active_until_date"`
 	IsCurrentlyActive               OptionalBool    `json:"is_currently_active"`
 	ProfileVisibility               OptionalString  `json:"profile_visibility"`
 }

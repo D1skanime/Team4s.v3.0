@@ -45,6 +45,8 @@ export interface MemberProfileData {
   member_story_text?: string | null
   member_story_editor_type?: 'tiptap'
   member_story_content_schema_version?: number
+  active_from_date?: string | null
+  active_until_date?: string | null
   active_from_year?: number | null
   active_until_year?: number | null
   is_currently_active: boolean
@@ -81,6 +83,8 @@ export interface UpdateMemberProfileRequest {
   bio?: string | null
   member_story?: string | null
   member_story_json?: TipTapDocument | null
+  active_from_date?: string | null
+  active_until_date?: string | null
   active_from_year?: number | null
   active_until_year?: number | null
   is_currently_active?: boolean | null

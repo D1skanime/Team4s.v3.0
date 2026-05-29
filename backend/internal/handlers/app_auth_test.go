@@ -491,6 +491,135 @@ func TestUpdateOwnProfileAcceptsTipTapStoryJSON(t *testing.T) {
 	}
 }
 
+func TestUpdateOwnProfileAcceptsYearNormalizedActivityDates(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	updated := &models.MemberProfile{
+		MemberID:           44,
+		AppUserID:          11,
+		DisplayName:        "Mika",
+		FansubName:         "MikaFX",
+		ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+		AccountStatus:      models.AppUserStatusActive,
+		AccountDisplayName: "Mika",
+	}
+	profileRepo := &profileRepoStub{
+		getResp:    updated,
+		updateResp: updated,
+	}
+	handler := &AppAuthHandler{profileRepo: profileRepo}
+
+	body := []byte(`{"active_from_date":"2016-01-01","active_until_date":"2020-01-01","is_currently_active":false}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPut, "/api/v1/me/profile", body, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UpdateOwnProfile(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	input := profileRepo.lastUpdateArg
+	if !input.ActiveFromDate.Set || input.ActiveFromDate.Value == nil || *input.ActiveFromDate.Value != "2016-01-01" {
+		t.Fatalf("expected active_from_date to be forwarded, got %#v", input.ActiveFromDate)
+	}
+	if !input.ActiveUntilDate.Set || input.ActiveUntilDate.Value == nil || *input.ActiveUntilDate.Value != "2020-01-01" {
+		t.Fatalf("expected active_until_date to be forwarded, got %#v", input.ActiveUntilDate)
+	}
+}
+
+func TestUpdateOwnProfileRejectsNonYearNormalizedActivityDate(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	profileRepo := &profileRepoStub{
+		getResp: &models.MemberProfile{MemberID: 44, AppUserID: 11},
+	}
+	handler := &AppAuthHandler{profileRepo: profileRepo}
+
+	body := []byte(`{"active_from_date":"2016-05-01"}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPut, "/api/v1/me/profile", body, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UpdateOwnProfile(c)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if profileRepo.updateCalls != 0 {
+		t.Fatalf("expected no profile update call, got %d", profileRepo.updateCalls)
+	}
+}
+
+func TestUpdateOwnProfileRejectsInvalidActivityDateRange(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	profileRepo := &profileRepoStub{
+		getResp: &models.MemberProfile{MemberID: 44, AppUserID: 11},
+	}
+	handler := &AppAuthHandler{profileRepo: profileRepo}
+
+	body := []byte(`{"active_from_date":"2021-01-01","active_until_date":"2020-01-01"}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPut, "/api/v1/me/profile", body, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UpdateOwnProfile(c)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if profileRepo.updateCalls != 0 {
+		t.Fatalf("expected no profile update call, got %d", profileRepo.updateCalls)
+	}
+}
+
+func TestUpdateOwnProfileCurrentlyActiveClearsUntilDate(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	updated := &models.MemberProfile{
+		MemberID:           44,
+		AppUserID:          11,
+		DisplayName:        "Mika",
+		FansubName:         "MikaFX",
+		ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+		AccountStatus:      models.AppUserStatusActive,
+		AccountDisplayName: "Mika",
+	}
+	profileRepo := &profileRepoStub{
+		getResp:    updated,
+		updateResp: updated,
+	}
+	handler := &AppAuthHandler{profileRepo: profileRepo}
+
+	body := []byte(`{"active_from_date":"2016-01-01","active_until_date":"2020-01-01","is_currently_active":true}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPut, "/api/v1/me/profile", body, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UpdateOwnProfile(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	input := profileRepo.lastUpdateArg
+	if !input.ActiveUntilDate.Set || input.ActiveUntilDate.Value != nil {
+		t.Fatalf("expected active_until_date to be cleared, got %#v", input.ActiveUntilDate)
+	}
+}
+
 func TestUpdateOwnProfileRejectsUnknownTipTapNode(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

@@ -141,7 +141,7 @@
 | AUTH-PROFILE-ACCOUNT-RETURN-01 | Phase 52 | Complete - live Keycloak UAT pending |
 | MEMBER-PROFILE-HUB-01 | Phase 53 | Complete |
 | MEMBER-PROFILE-STORY-RICH-TEXT-01 | Phase 55 | Complete |
-| MEMBER-PROFILE-ACTIVITY-PERIOD-DATE-01 | Phase 57 | Planned |
+| MEMBER-PROFILE-ACTIVITY-PERIOD-DATE-01 | Phase 57 | Complete - automated verification passed 2026-05-29; authenticated UAT pending |
 | MEDIA-CROPPER-01 | Phase 56 | Complete - functional UAT and security review passed 2026-05-29 |
 
 **Coverage:**

@@ -65,10 +65,28 @@ func (r *MemberProfileRepository) UpdateOwnProfile(
 			return nil, ErrValidation
 		}
 	}
-	if input.ActiveFromYear.Set && input.ActiveFromYear.Value != nil && *input.ActiveFromYear.Value <= 0 {
+	activeFromDate, err := normalizeProfileActivityDate(input.ActiveFromDate.Value)
+	if err != nil {
 		return nil, ErrValidation
 	}
-	if input.ActiveUntilYear.Set && input.ActiveUntilYear.Value != nil && *input.ActiveUntilYear.Value <= 0 {
+	activeUntilDate, err := normalizeProfileActivityDate(input.ActiveUntilDate.Value)
+	if err != nil {
+		return nil, ErrValidation
+	}
+	activeUntilSet := input.ActiveUntilDate.Set
+	if input.IsCurrentlyActive.Set && input.IsCurrentlyActive.Value != nil && *input.IsCurrentlyActive.Value && !activeUntilSet {
+		activeUntilSet = true
+		activeUntilDate = nil
+	}
+	effectiveFrom := base.ActiveFromDate
+	if input.ActiveFromDate.Set {
+		effectiveFrom = activeFromDate
+	}
+	effectiveUntil := base.ActiveUntilDate
+	if activeUntilSet {
+		effectiveUntil = activeUntilDate
+	}
+	if !isValidProfileActivityRange(effectiveFrom, effectiveUntil) {
 		return nil, ErrValidation
 	}
 
@@ -80,8 +98,10 @@ func (r *MemberProfileRepository) UpdateOwnProfile(
 			nickname = CASE WHEN $4 THEN COALESCE(NULLIF($5, ''), nickname) ELSE nickname END,
 			slogan = CASE WHEN $6 THEN NULLIF($7, '') ELSE slogan END,
 			member_history_description = CASE WHEN $8 THEN NULLIF($9, '') ELSE member_history_description END,
-			active_from_year = CASE WHEN $10 THEN $11 ELSE active_from_year END,
-			active_until_year = CASE WHEN $12 THEN $13 ELSE active_until_year END,
+			active_from_date = CASE WHEN $10 THEN $11::date ELSE active_from_date END,
+			active_until_date = CASE WHEN $12 THEN $13::date ELSE active_until_date END,
+			active_from_year = CASE WHEN $10 THEN CASE WHEN $11::date IS NULL THEN NULL ELSE EXTRACT(YEAR FROM $11::date)::int END ELSE active_from_year END,
+			active_until_year = CASE WHEN $12 THEN CASE WHEN $13::date IS NULL THEN NULL ELSE EXTRACT(YEAR FROM $13::date)::int END ELSE active_until_year END,
 			is_currently_active = CASE WHEN $14 THEN COALESCE($15, is_currently_active) ELSE is_currently_active END,
 			profile_visibility = CASE WHEN $16 THEN COALESCE(NULLIF($17, ''), profile_visibility) ELSE profile_visibility END,
 			member_story_json = CASE WHEN $18 THEN $19::jsonb ELSE member_story_json END,
@@ -98,8 +118,8 @@ func (r *MemberProfileRepository) UpdateOwnProfile(
 		input.FansubName.Set, normalizeOptionalString(input.FansubName.Value),
 		input.Bio.Set, normalizeOptionalString(input.Bio.Value),
 		input.MemberStory.Set, normalizeOptionalString(input.MemberStory.Value),
-		input.ActiveFromYear.Set, input.ActiveFromYear.Value,
-		input.ActiveUntilYear.Set, input.ActiveUntilYear.Value,
+		input.ActiveFromDate.Set, activeFromDate,
+		activeUntilSet, activeUntilDate,
 		input.IsCurrentlyActive.Set, input.IsCurrentlyActive.Value,
 		input.ProfileVisibility.Set, normalizeOptionalString(input.ProfileVisibility.Value),
 		input.MemberStoryJSON.Set, rawJSONToNullableString(input.MemberStoryJSON.Value),
@@ -239,6 +259,8 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		memberStoryText                 *string
 		memberStoryEditorType           *string
 		memberStoryContentSchemaVersion *int32
+		activeFromDate                  *string
+		activeUntilDate                 *string
 		activeFromYear                  *int32
 		activeUntilYear                 *int32
 		currentlyActive                 bool
@@ -283,6 +305,8 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 			m.member_story_text,
 			m.member_story_editor_type,
 			m.member_story_content_schema_version,
+			to_char(m.active_from_date, 'YYYY-MM-DD'),
+			to_char(m.active_until_date, 'YYYY-MM-DD'),
 			m.active_from_year,
 			m.active_until_year,
 			COALESCE(m.is_currently_active, false),
@@ -310,6 +334,8 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 				member_story_text,
 				member_story_editor_type,
 				member_story_content_schema_version,
+				active_from_date,
+				active_until_date,
 				active_from_year,
 				active_until_year,
 				is_currently_active,
@@ -345,6 +371,8 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		&row.memberStoryText,
 		&row.memberStoryEditorType,
 		&row.memberStoryContentSchemaVersion,
+		&row.activeFromDate,
+		&row.activeUntilDate,
 		&row.activeFromYear,
 		&row.activeUntilYear,
 		&row.currentlyActive,
@@ -432,6 +460,8 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		MemberStoryText:                 memberStoryText,
 		MemberStoryEditorType:           editorType,
 		MemberStoryContentSchemaVersion: contentSchemaVersion,
+		ActiveFromDate:                  profileActivityDateOrYear(row.activeFromDate, row.activeFromYear),
+		ActiveUntilDate:                 profileActivityDateOrYear(row.activeUntilDate, row.activeUntilYear),
 		ActiveFromYear:                  row.activeFromYear,
 		ActiveUntilYear:                 row.activeUntilYear,
 		IsCurrentlyActive:               row.currentlyActive,
@@ -620,6 +650,47 @@ func rawJSONMessagePtr(value []byte) *json.RawMessage {
 	}
 	raw := json.RawMessage(append([]byte(nil), []byte(trimmed)...))
 	return &raw
+}
+
+func normalizeProfileActivityDate(value *string) (*string, error) {
+	if value == nil {
+		return nil, nil
+	}
+	trimmed := strings.TrimSpace(*value)
+	if trimmed == "" {
+		return nil, nil
+	}
+	parsed, err := time.Parse("2006-01-02", trimmed)
+	if err != nil || parsed.Format("2006-01-02") != trimmed {
+		return nil, ErrValidation
+	}
+	if parsed.Month() != time.January || parsed.Day() != 1 {
+		return nil, ErrValidation
+	}
+	year := parsed.Year()
+	if year < 1970 || year > 2100 {
+		return nil, ErrValidation
+	}
+	return &trimmed, nil
+}
+
+func isValidProfileActivityRange(from *string, until *string) bool {
+	if from == nil || until == nil {
+		return true
+	}
+	return *until >= *from
+}
+
+func profileActivityDateOrYear(dateValue *string, yearValue *int32) *string {
+	if dateValue != nil && strings.TrimSpace(*dateValue) != "" {
+		trimmed := strings.TrimSpace(*dateValue)
+		return &trimmed
+	}
+	if yearValue == nil || *yearValue < 1970 || *yearValue > 2100 {
+		return nil
+	}
+	value := fmt.Sprintf("%04d-01-01", *yearValue)
+	return &value
 }
 
 func valueOrDefault(value *string, fallback string) string {
