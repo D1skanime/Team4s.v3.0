@@ -8,7 +8,7 @@ type EmptyStateVariant = 'default' | 'withAction' | 'compact'
 
 export interface EmptyStateProps {
   title: string
-  description: string
+  description?: string
   action?: ReactNode
   variant?: EmptyStateVariant
 }
@@ -20,7 +20,7 @@ export function EmptyState({ title, description, action, variant = 'default' }: 
         <Inbox size={20} strokeWidth={2} />
       </div>
       <h3 className={styles.stateTitle}>{title}</h3>
-      <p className={styles.stateDescription}>{description}</p>
+      {description ? <p className={styles.stateDescription}>{description}</p> : null}
       {variant === 'withAction' || action ? action : null}
     </div>
   )

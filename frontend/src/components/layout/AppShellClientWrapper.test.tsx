@@ -28,16 +28,22 @@ vi.mock('./AppShell', () => ({
     mode,
     currentPath,
     user,
+    memberships,
     canAccessAdmin,
     children,
   }: {
     mode: 'authenticated' | 'anonymous'
     currentPath?: string
     user?: { displayName?: string; email?: string; avatarUrl?: string } | null
+    memberships?: Array<{
+      fansub_group_id: number
+      fansub_group_name: string
+      fansub_group_slug: string
+    }>
     canAccessAdmin?: boolean
     children: ReactNode
   }) => {
-    appShellRenderMock({ mode, currentPath, user, canAccessAdmin })
+    appShellRenderMock({ mode, currentPath, user, memberships, canAccessAdmin })
 
     return (
       <div
@@ -48,6 +54,7 @@ vi.mock('./AppShell', () => ({
         data-display-name={user?.displayName || ''}
         data-email={user?.email || ''}
         data-avatar-url={user?.avatarUrl || ''}
+        data-membership-count={String(memberships?.length ?? 0)}
       >
         {children}
       </div>
@@ -85,6 +92,7 @@ function makeProfileResponse(overrides: Record<string, unknown> = {}) {
         public_url: '/media/avatar/mika.png',
       },
       account_global_roles: [],
+      memberships: [],
       ...overrides,
     },
   }
@@ -141,6 +149,27 @@ describe('AppShellClientWrapper', () => {
     expect(screen.getByTestId('app-shell').getAttribute('data-avatar-url')).toBe('resolved:/media/avatar/mika.png')
     expect(screen.getByTestId('app-shell').getAttribute('data-can-access-admin')).toBe('true')
     expect(resolveApiUrlMock).toHaveBeenCalledWith('/media/avatar/mika.png')
+  })
+
+  it('passes memberships from getOwnProfile to AppShell without another request', async () => {
+    const memberships = [
+      { fansub_group_id: 42, fansub_group_name: 'Moon Subs', fansub_group_slug: 'moon-subs' },
+      { fansub_group_id: 77, fansub_group_name: 'Kumo Fansubs', fansub_group_slug: 'kumo-fansubs' },
+    ]
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({ memberships }))
+
+    render(
+      <AppShellClientWrapper>
+        <main>Content</main>
+      </AppShellClientWrapper>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('app-shell').getAttribute('data-membership-count')).toBe('2')
+    })
+
+    expect(appShellRenderMock).toHaveBeenLastCalledWith(expect.objectContaining({ memberships }))
+    expect(getOwnProfileMock).toHaveBeenCalledTimes(1)
   })
 
   it('clears stale profile and admin props when the auth session disappears', async () => {

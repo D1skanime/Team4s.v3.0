@@ -48,4 +48,24 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"profile avatar replacement must remove previous avatar media_files after the new avatar is linked")
 	assert.True(t, strings.Contains(content, "DELETE FROM media_assets WHERE id = $1"),
 		"profile avatar replacement must remove the previous avatar media_asset after the new avatar is linked")
+	assert.True(t, strings.Contains(content, "base.RecentMedia, err = r.loadRecentMedia(ctx, appUserID)"),
+		"own profile reads must load recent media by authenticated app user id")
+	assert.True(t, strings.Contains(content, "base.RecentContributions, err = r.loadRecentContributions(ctx, base.MemberID)"),
+		"own profile reads must load recent contributions by authenticated member id")
+	assert.True(t, strings.Contains(content, "WHERE rvm.uploaded_by_user_id = $1"),
+		"recent media must be isolated by release_version_media.uploaded_by_user_id")
+	assert.True(t, strings.Contains(content, "LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = rvm.media_asset_id AND mf_thumb.variant = 'thumb'"),
+		"recent media must use the release-version-media thumbnail variant")
+	assert.True(t, strings.Contains(content, "JOIN episodes e ON e.id = fr.episode_id"),
+		"recent profile activity must resolve anime through fansub_releases -> episodes")
+	assert.True(t, strings.Contains(content, "JOIN anime a ON a.id = e.anime_id"),
+		"recent profile activity must resolve anime through the canonical episodes.anime_id column")
+	assert.False(t, strings.Contains(content, "fr."+"anime_id"),
+		"fansub_releases has no anime_id column; recent profile SQL must not use it")
+	assert.True(t, strings.Contains(content, "ORDER BY rvm.created_at DESC"),
+		"recent media must show newest uploads first")
+	assert.True(t, strings.Contains(content, "ORDER BY rmr.created_at DESC"),
+		"recent contributions must show newest role credits first")
+	assert.True(t, strings.Contains(content, "LIMIT 3"),
+		"profile recent sections must stay capped for hub display")
 }

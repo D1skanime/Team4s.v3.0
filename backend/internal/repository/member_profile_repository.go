@@ -45,6 +45,14 @@ func (r *MemberProfileRepository) GetOwnProfile(ctx context.Context, appUserID i
 	if err != nil {
 		return nil, err
 	}
+	base.RecentMedia, err = r.loadRecentMedia(ctx, appUserID)
+	if err != nil {
+		return nil, err
+	}
+	base.RecentContributions, err = r.loadRecentContributions(ctx, base.MemberID)
+	if err != nil {
+		return nil, err
+	}
 
 	return base, nil
 }
@@ -595,6 +603,97 @@ func (r *MemberProfileRepository) loadHistoricalCredits(ctx context.Context, mem
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate historical credits for member %d: %w", memberID, err)
+	}
+	return items, nil
+}
+
+func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, appUserID int64) ([]models.MemberProfileRecentMedia, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			rvm.id,
+			rvm.category,
+			COALESCE(mf_thumb.path, ''),
+			a.title
+		FROM release_version_media rvm
+		JOIN release_versions rv ON rv.id = rvm.release_version_id
+		JOIN fansub_releases fr ON fr.id = rv.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		JOIN anime a ON a.id = e.anime_id
+		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = rvm.media_asset_id AND mf_thumb.variant = 'thumb'
+		WHERE rvm.uploaded_by_user_id = $1
+		  AND rvm.deleted_at IS NULL
+		ORDER BY rvm.created_at DESC
+		LIMIT 3
+	`, appUserID)
+	if err != nil {
+		return nil, fmt.Errorf("load recent media for user %d: %w", appUserID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.MemberProfileRecentMedia, 0)
+	for rows.Next() {
+		var item models.MemberProfileRecentMedia
+		var thumbnailPath string
+		if err := rows.Scan(
+			&item.ID,
+			&item.Category,
+			&thumbnailPath,
+			&item.AnimeTitle,
+		); err != nil {
+			return nil, fmt.Errorf("scan recent media row: %w", err)
+		}
+		item.ThumbnailURL = r.publicURLForPath(thumbnailPath)
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate recent media for user %d: %w", appUserID, err)
+	}
+	return items, nil
+}
+
+func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, memberID int64) ([]models.MemberProfileRecentContribution, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			rmr.release_id,
+			a.title,
+			a.id,
+			fg.name,
+			cr.name,
+			cr.label
+		FROM release_member_roles rmr
+		JOIN contributor_roles cr ON cr.id = rmr.role_id
+		JOIN fansub_releases fr ON fr.id = rmr.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		JOIN anime a ON a.id = e.anime_id
+		JOIN release_versions rv ON rv.release_id = rmr.release_id
+		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+		JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
+		WHERE rmr.member_id = $1
+		ORDER BY rmr.created_at DESC
+		LIMIT 3
+	`, memberID)
+	if err != nil {
+		return nil, fmt.Errorf("load recent contributions for member %d: %w", memberID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.MemberProfileRecentContribution, 0)
+	for rows.Next() {
+		var item models.MemberProfileRecentContribution
+		if err := rows.Scan(
+			&item.ID,
+			&item.AnimeTitle,
+			&item.AnimeID,
+			&item.FansubGroupName,
+			&item.RoleName,
+			&item.RoleLabel,
+		); err != nil {
+			return nil, fmt.Errorf("scan recent contribution row: %w", err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate recent contributions for member %d: %w", memberID, err)
 	}
 	return items, nil
 }

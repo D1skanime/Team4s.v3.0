@@ -164,6 +164,8 @@ function makeProfileResponse(overrides: Partial<MemberProfileResponse['data']> =
         role_label: 'Typesetter',
         release_count: 12,
       }],
+      recent_media: [],
+      recent_contributions: [],
       created_at: '2026-05-17T10:00:00Z',
       updated_at: '2026-05-17T11:00:00Z',
       account_status: 'active',

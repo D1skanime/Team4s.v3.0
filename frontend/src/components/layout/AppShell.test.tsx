@@ -50,7 +50,7 @@ describe('AppShell', () => {
     expect(screen.queryByText('geschützt')).toBeNull()
   })
 
-  it('marks unavailable future member targets without fake routes', () => {
+  it('hides the groups section when the member has no memberships', () => {
     render(
       <AppShell currentPath="/me/profile">
         <main>Profilinhalt</main>
@@ -58,8 +58,41 @@ describe('AppShell', () => {
     )
 
     expect(screen.queryByRole('link', { name: /Meine Gruppen/i })).toBeNull()
+    expect(screen.queryByText('Meine Gruppen')).toBeNull()
+  })
+
+  it('marks unavailable future member targets without fake routes', () => {
+    render(
+      <AppShell currentPath="/me/profile">
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
     expect(screen.queryByRole('link', { name: /Meine Beiträge/i })).toBeNull()
     expect(screen.getAllByText('bald').length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('renders member group memberships as admin edit links', () => {
+    render(
+      <AppShell
+        currentPath="/admin/fansubs/42/edit"
+        memberships={[
+          { fansub_group_id: 42, fansub_group_name: 'Moon Subs', fansub_group_slug: 'moon-subs' },
+          { fansub_group_id: 77, fansub_group_name: 'Kumo Fansubs', fansub_group_slug: 'kumo-fansubs' },
+        ]}
+      >
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    expect(screen.getByText('Meine Gruppen')).not.toBeNull()
+
+    const moonLink = screen.getByRole('link', { name: /Moon Subs/i })
+    expect(moonLink.getAttribute('href')).toBe('/admin/fansubs/42/edit')
+    expect(moonLink.getAttribute('aria-current')).toBe('page')
+
+    const kumoLink = screen.getByRole('link', { name: /Kumo Fansubs/i })
+    expect(kumoLink.getAttribute('href')).toBe('/admin/fansubs/77/edit')
   })
 
   it('keeps admin navigation available when the caller has the capability', () => {

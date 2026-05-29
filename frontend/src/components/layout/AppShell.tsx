@@ -37,10 +37,17 @@ type AppShellNavItem = {
   badge?: string
 }
 
+type AppShellMembership = {
+  fansub_group_id: number
+  fansub_group_name: string
+  fansub_group_slug: string
+}
+
 export interface AppShellProps {
   mode?: AppShellMode
   currentPath?: string
   user?: AppShellUser | null
+  memberships?: AppShellMembership[]
   canAccessAdmin?: boolean
   children: ReactNode
 }
@@ -77,7 +84,15 @@ function AppShellNavItemView({ item }: { item: AppShellNavItem }) {
   )
 }
 
-function AppShellNavGroups({ currentPath, canAccessAdmin }: { currentPath?: string; canAccessAdmin: boolean }) {
+function AppShellNavGroups({
+  currentPath,
+  memberships = [],
+  canAccessAdmin,
+}: {
+  currentPath?: string
+  memberships?: AppShellMembership[]
+  canAccessAdmin: boolean
+}) {
   const publicItems: AppShellNavItem[] = [
     { label: 'Anime entdecken', href: '/anime', icon: <Compass size={17} />, current: isCurrent(currentPath, '/anime') },
     { label: 'Dashboard', icon: <LayoutDashboard size={17} />, disabled: true, badge: 'bald' },
@@ -87,7 +102,6 @@ function AppShellNavGroups({ currentPath, canAccessAdmin }: { currentPath?: stri
     : []
   const myItems: AppShellNavItem[] = [
     { label: 'Mein Profil', href: '/me/profile', icon: <UserCircle size={17} />, current: isCurrent(currentPath, '/me/profile') },
-    { label: 'Meine Gruppen', icon: <Users size={17} />, disabled: true, badge: 'bald' },
     { label: 'Meine Beiträge', icon: <Compass size={17} />, disabled: true, badge: 'bald' },
   ]
   const settingsItems: AppShellNavItem[] = [
@@ -97,7 +111,6 @@ function AppShellNavGroups({ currentPath, canAccessAdmin }: { currentPath?: stri
     { label: 'Public-Bereich', items: publicItems },
     { label: 'Verwaltung', items: adminItems },
     { label: 'Mein Bereich', items: myItems },
-    { label: 'Einstellungen', items: settingsItems },
   ].filter((group) => group.items.length > 0)
 
   return (
@@ -108,6 +121,30 @@ function AppShellNavGroups({ currentPath, canAccessAdmin }: { currentPath?: stri
           {group.items.map((item) => <AppShellNavItemView key={item.label} item={item} />)}
         </div>
       ))}
+      {memberships.length > 0 ? (
+        <div className={styles.navGroup}>
+          <p className={styles.navGroupLabel}>Meine Gruppen</p>
+          {memberships.map((membership) => {
+            const href = `/admin/fansubs/${membership.fansub_group_id}/edit`
+
+            return (
+              <Link
+                key={membership.fansub_group_id}
+                href={href}
+                className={`${styles.navItem} ${isCurrent(currentPath, href) ? styles.navItemCurrent : ''}`}
+                aria-current={isCurrent(currentPath, href) ? 'page' : undefined}
+              >
+                <span className={styles.navIcon} aria-hidden="true"><Users size={17} /></span>
+                <span>{membership.fansub_group_name}</span>
+              </Link>
+            )
+          })}
+        </div>
+      ) : null}
+      <div className={styles.navGroup}>
+        <p className={styles.navGroupLabel}>Einstellungen</p>
+        {settingsItems.map((item) => <AppShellNavItemView key={item.label} item={item} />)}
+      </div>
     </>
   )
 }
@@ -172,6 +209,7 @@ export function AppShell({
   mode = 'authenticated',
   currentPath,
   user,
+  memberships = [],
   canAccessAdmin = false,
   children,
 }: AppShellProps) {
@@ -280,7 +318,7 @@ export function AppShell({
           {mode === 'anonymous' ? (
             <AppShellAnonNavGroups currentPath={currentPath} />
           ) : (
-            <AppShellNavGroups currentPath={currentPath} canAccessAdmin={canAccessAdmin} />
+            <AppShellNavGroups currentPath={currentPath} memberships={memberships} canAccessAdmin={canAccessAdmin} />
           )}
         </nav>
 

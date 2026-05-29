@@ -13,6 +13,11 @@ interface WrapperProfile {
   displayName?: string
   email?: string
   avatarUrl?: string
+  memberships?: Array<{
+    fansub_group_id: number
+    fansub_group_name: string
+    fansub_group_slug: string
+  }>
   canAdmin?: boolean
 }
 
@@ -47,6 +52,7 @@ export function AppShellClientWrapper({ children }: { children: ReactNode }) {
           displayName: d.account_display_name || d.fansub_name || undefined,
           email: d.email || undefined,
           avatarUrl: resolveApiUrl(d.avatar?.public_url || '') || undefined,
+          memberships: d.memberships ?? [],
           canAdmin: d.account_global_roles.includes('platform_admin') || d.account_global_roles.includes('admin'),
         })
       })
@@ -75,6 +81,7 @@ export function AppShellClientWrapper({ children }: { children: ReactNode }) {
       mode={hasAuthSession ? 'authenticated' : 'anonymous'}
       currentPath={currentPath ?? undefined}
       user={shellUser}
+      memberships={activeProfile?.memberships ?? []}
       canAccessAdmin={activeProfile?.canAdmin ?? false}
     >
       {children}

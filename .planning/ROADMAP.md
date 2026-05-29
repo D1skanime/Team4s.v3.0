@@ -1207,12 +1207,12 @@ Plans:
 **Goal:** `/me/profile` wird von einer strukturell korrekten aber inhaltlich leeren Seite zu einer echten Member-Identitaetsseite: MembershipsSection entfernt, zwei neue Content-Sections (Meine letzten Medien, Meine letzten Beitraege) eingefuehrt, Drawer mit dynamischen Gruppen-Links erweitert, alle Admin-Erklaerungstexte durch ehrliche leere Zustaende ersetzt.
 **Requirements**: P58-SC1, P58-SC2, P58-SC3, P58-SC4, P58-SC5
 **Depends on:** Phase 57
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] `58-01-PLAN.md` -- Backend-Profil-Aggregat und TypeScript-Types um recent_media und recent_contributions erweitern
-- [ ] `58-02-PLAN.md` -- Neue RecentMediaSection und RecentContributionsSection; page.tsx bereinigen
-- [ ] `58-03-PLAN.md` -- AppShell-Drawer um dynamischen Meine-Gruppen-Abschnitt erweitern
+- [x] `58-01-PLAN.md` -- Backend-Profil-Aggregat und TypeScript-Types um recent_media und recent_contributions erweitern
+- [x] `58-02-PLAN.md` -- Neue RecentMediaSection und RecentContributionsSection; page.tsx bereinigen
+- [x] `58-03-PLAN.md` -- AppShell-Drawer um dynamischen Meine-Gruppen-Abschnitt erweitern
 
 **Success Criteria** (what must be TRUE):
   1. GET /api/v1/me/profile gibt recent_media (3 neueste release_version_media-Uploads) und recent_contributions (3 neueste release_member_roles-Eintraege) zurueck.

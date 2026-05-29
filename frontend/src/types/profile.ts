@@ -30,6 +30,22 @@ export interface MemberProfileCredit {
   release_count: number
 }
 
+export interface MemberProfileRecentMedia {
+  id: number
+  category: string
+  thumbnail_url?: string | null
+  anime_title: string
+}
+
+export interface MemberProfileRecentContribution {
+  id: number
+  anime_title: string
+  anime_id: number
+  fansub_group_name: string
+  role_name: string
+  role_label: string
+}
+
 export interface MemberProfileData {
   member_id: number
   app_user_id: number
@@ -66,6 +82,8 @@ export interface MemberProfileData {
   capabilities: MemberProfileCapabilities
   memberships: MemberProfileMembership[]
   historical_credits: MemberProfileCredit[]
+  recent_media: MemberProfileRecentMedia[]
+  recent_contributions: MemberProfileRecentContribution[]
   created_at: string
   updated_at: string
   account_status: 'pending' | 'active' | 'disabled'

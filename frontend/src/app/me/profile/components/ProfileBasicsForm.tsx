@@ -47,7 +47,7 @@ export function ProfileBasicsForm({ form, disabled, errors, onChange }: ProfileB
         <FormField
           label="Aktiv seit"
           htmlFor="activeFromYear"
-          hint="Wähle ein Jahr. Monats- und Tagesdaten sind nicht Teil des Profil-Contracts."
+          hint="Wähle ein Jahr für deinen Fansub-Zeitraum."
           error={errors?.activeFromYear}
         >
           <Select

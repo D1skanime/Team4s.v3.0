@@ -11,8 +11,8 @@ type VisibilityCardProps = {
 }
 
 const OPTIONS: Array<{ value: ProfileVisibility; description: string }> = [
-  { value: 'members_only', description: 'Konservativer Standard: sichtbar nur für angemeldete Mitglieder.' },
-  { value: 'public', description: 'Öffentlich sichtbar, sobald eine stabile Public-Route vorhanden ist.' },
+  { value: 'members_only', description: 'Nur angemeldete Team4s-Mitglieder können dein Profil sehen.' },
+  { value: 'public', description: 'Du erlaubst Team4s, dein Profil außerhalb des Mitgliederbereichs zu zeigen.' },
 ]
 
 export function VisibilityCard({ value, disabled, onChange }: VisibilityCardProps) {
@@ -35,7 +35,7 @@ export function VisibilityCard({ value, disabled, onChange }: VisibilityCardProp
           </span>
         </label>
       ))}
-      <p className={styles.mutedText}>Fehlende oder unklare Sichtbarkeit wird nie als öffentlich behandelt.</p>
+      <p className={styles.mutedText}>Ohne Auswahl bleibt dein Profil nur für Mitglieder sichtbar.</p>
     </fieldset>
   )
 }

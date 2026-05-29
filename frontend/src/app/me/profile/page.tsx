@@ -8,12 +8,12 @@ import { useAuthSession } from '@/lib/useAuthSession'
 import type { MemberProfileData, TipTapDocument } from '@/types/profile'
 
 import { AccountSecurityCard } from './components/AccountSecurityCard'
-import { ContributionsSection } from './components/ContributionsSection'
 import { MemberAvatarCard } from './components/MemberAvatarCard'
 import { MemberProfileHero } from './components/MemberProfileHero'
-import { MembershipsSection } from './components/MembershipsSection'
 import { ProfileBasicsForm } from './components/ProfileBasicsForm'
 import { ProfileStoryCard } from './components/ProfileStoryCard'
+import { RecentContributionsSection } from './components/RecentContributionsSection'
+import { RecentMediaSection } from './components/RecentMediaSection'
 import { VisibilityCard } from './components/VisibilityCard'
 import type { MemberProfileFormState } from './components/profileFormTypes'
 import styles from './page.module.css'
@@ -275,7 +275,7 @@ export default function MyProfilePage() {
   return (
       <main className={styles.page}>
         {isLoading ? (
-          <LoadingState title="Profil wird geladen" description="Team4s lädt deine Profil-, Mitgliedschafts- und Beitragsdaten." />
+          <LoadingState title="Profil wird geladen" description="Team4s lädt dein Profil." />
         ) : null}
 
         {!isLoading && error && !profile ? (
@@ -310,12 +310,12 @@ export default function MyProfilePage() {
                   />
                 </Card>
                 <Card variant="section">
-                  <SectionHeader title="Mitgliedschaften" description="Gruppenkontext und aktive App-Rollen, ohne Gruppenverwaltung in dieses Profil zu ziehen." />
-                  <MembershipsSection profile={profile} />
+                  <SectionHeader title="Meine letzten Medien" />
+                  <RecentMediaSection items={profile.recent_media ?? []} canView={true} isPublicView={false} />
                 </Card>
                 <Card variant="section">
-                  <SectionHeader title="Meine Beiträge" description="Echte historische Credit-Aggregate. Detailansichten bleiben bis zu einem eigenen Contract deaktiviert." />
-                  <ContributionsSection profile={profile} />
+                  <SectionHeader title="Meine letzten Beiträge" />
+                  <RecentContributionsSection items={profile.recent_contributions ?? []} canView={true} isPublicView={false} />
                 </Card>
               </div>
 

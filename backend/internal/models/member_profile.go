@@ -39,37 +39,55 @@ type MemberProfileCredit struct {
 	ReleaseCount    int32  `json:"release_count"`
 }
 
+type MemberProfileRecentMedia struct {
+	ID           int64  `json:"id"`
+	Category     string `json:"category"`
+	ThumbnailURL string `json:"thumbnail_url,omitempty"`
+	AnimeTitle   string `json:"anime_title"`
+}
+
+type MemberProfileRecentContribution struct {
+	ID              int64  `json:"id"`
+	AnimeTitle      string `json:"anime_title"`
+	AnimeID         int64  `json:"anime_id"`
+	FansubGroupName string `json:"fansub_group_name"`
+	RoleName        string `json:"role_name"`
+	RoleLabel       string `json:"role_label"`
+}
+
 type MemberProfile struct {
-	MemberID                        int64                     `json:"member_id"`
-	AppUserID                       int64                     `json:"app_user_id"`
-	LegacyUserID                    *int64                    `json:"legacy_user_id,omitempty"`
-	DisplayName                     string                    `json:"display_name"`
-	FansubName                      string                    `json:"fansub_name"`
-	Email                           string                    `json:"email"`
-	KeycloakSubject                 string                    `json:"keycloak_subject"`
-	Bio                             *string                   `json:"bio,omitempty"`
-	MemberStory                     *string                   `json:"member_story,omitempty"`
-	MemberStoryJSON                 *json.RawMessage          `json:"member_story_json,omitempty"`
-	MemberStoryHTML                 *string                   `json:"member_story_html,omitempty"`
-	MemberStoryText                 *string                   `json:"member_story_text,omitempty"`
-	MemberStoryEditorType           string                    `json:"member_story_editor_type"`
-	MemberStoryContentSchemaVersion int32                     `json:"member_story_content_schema_version"`
-	ActiveFromDate                  *string                   `json:"active_from_date,omitempty"`
-	ActiveUntilDate                 *string                   `json:"active_until_date,omitempty"`
-	ActiveFromYear                  *int32                    `json:"active_from_year,omitempty"`
-	ActiveUntilYear                 *int32                    `json:"active_until_year,omitempty"`
-	IsCurrentlyActive               bool                      `json:"is_currently_active"`
-	ProfileVisibility               string                    `json:"profile_visibility"`
-	Avatar                          *MediaAsset               `json:"avatar,omitempty"`
-	KeycloakAccountURL              *string                   `json:"keycloak_account_url,omitempty"`
-	Capabilities                    MemberProfileCapabilities `json:"capabilities"`
-	Memberships                     []MemberProfileMembership `json:"memberships"`
-	HistoricalCredits               []MemberProfileCredit     `json:"historical_credits"`
-	CreatedAt                       time.Time                 `json:"created_at"`
-	UpdatedAt                       time.Time                 `json:"updated_at"`
-	AccountStatus                   string                    `json:"account_status"`
-	AccountDisplayName              string                    `json:"account_display_name"`
-	AccountGlobalRoles              []string                  `json:"account_global_roles"`
+	MemberID                        int64                             `json:"member_id"`
+	AppUserID                       int64                             `json:"app_user_id"`
+	LegacyUserID                    *int64                            `json:"legacy_user_id,omitempty"`
+	DisplayName                     string                            `json:"display_name"`
+	FansubName                      string                            `json:"fansub_name"`
+	Email                           string                            `json:"email"`
+	KeycloakSubject                 string                            `json:"keycloak_subject"`
+	Bio                             *string                           `json:"bio,omitempty"`
+	MemberStory                     *string                           `json:"member_story,omitempty"`
+	MemberStoryJSON                 *json.RawMessage                  `json:"member_story_json,omitempty"`
+	MemberStoryHTML                 *string                           `json:"member_story_html,omitempty"`
+	MemberStoryText                 *string                           `json:"member_story_text,omitempty"`
+	MemberStoryEditorType           string                            `json:"member_story_editor_type"`
+	MemberStoryContentSchemaVersion int32                             `json:"member_story_content_schema_version"`
+	ActiveFromDate                  *string                           `json:"active_from_date,omitempty"`
+	ActiveUntilDate                 *string                           `json:"active_until_date,omitempty"`
+	ActiveFromYear                  *int32                            `json:"active_from_year,omitempty"`
+	ActiveUntilYear                 *int32                            `json:"active_until_year,omitempty"`
+	IsCurrentlyActive               bool                              `json:"is_currently_active"`
+	ProfileVisibility               string                            `json:"profile_visibility"`
+	Avatar                          *MediaAsset                       `json:"avatar,omitempty"`
+	KeycloakAccountURL              *string                           `json:"keycloak_account_url,omitempty"`
+	Capabilities                    MemberProfileCapabilities         `json:"capabilities"`
+	Memberships                     []MemberProfileMembership         `json:"memberships"`
+	HistoricalCredits               []MemberProfileCredit             `json:"historical_credits"`
+	RecentMedia                     []MemberProfileRecentMedia        `json:"recent_media"`
+	RecentContributions             []MemberProfileRecentContribution `json:"recent_contributions"`
+	CreatedAt                       time.Time                         `json:"created_at"`
+	UpdatedAt                       time.Time                         `json:"updated_at"`
+	AccountStatus                   string                            `json:"account_status"`
+	AccountDisplayName              string                            `json:"account_display_name"`
+	AccountGlobalRoles              []string                          `json:"account_global_roles"`
 }
 
 type MemberProfileUpdateInput struct {
