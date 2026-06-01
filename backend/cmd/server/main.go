@@ -343,6 +343,15 @@ func main() {
 		animeContributionsHandler:   animeContributionsHandler,
 		groupHistoryHandler:         groupHistoryHandler,
 	})
+	contributionsPublicHandler := handlers.NewContributionsPublicHandler(animeContributionsRepo)
+	contributionsMeHandler := handlers.NewContributionsMeHandler(animeContributionsRepo, histGroupMemberRolesRepo, dbPool)
+	v1.GET("/fansubs/:id/contributions", contributionsPublicHandler.GetFansubContributions)
+	v1.GET("/anime/:id/contributions", contributionsPublicHandler.GetAnimeContributions)
+	v1.GET("/members/:slug/contributions", contributionsPublicHandler.GetMemberContributions)
+	v1.GET("/me/anime-contributions", authMiddleware, contributionsMeHandler.ListMyAnimeContributions)
+	v1.GET("/me/group-contributions", authMiddleware, contributionsMeHandler.ListMyGroupContributions)
+	v1.PATCH("/me/anime-contributions/:contributionId/visibility", authMiddleware, contributionsMeHandler.UpdateMyAnimeContributionVisibility)
+	v1.PATCH("/me/group-contributions/:contributionId/visibility", authMiddleware, contributionsMeHandler.UpdateMyGroupContributionVisibility)
 	v1.GET("/fansubs/:id/collaboration-members", fansubHandler.ListCollaborationMembers)
 	v1.POST(
 		"/fansubs/:id/collaboration-members",

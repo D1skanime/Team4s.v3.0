@@ -87,6 +87,42 @@ func (r *HistGroupMemberRolesRepository) ListByMember(ctx context.Context, histF
 	return result, nil
 }
 
+// ListByMemberID returns group member roles for the given member (used by Me-routes).
+func (r *HistGroupMemberRolesRepository) ListByMemberID(ctx context.Context, memberID int64) ([]HistGroupMemberRoleRow, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT r.id, r.hist_fansub_group_member_id, r.role_code, r.started_year, r.ended_year,
+		       r.status, r.visibility, r.confirmed_by, r.confirmed_at, r.source_note, r.created_by, r.created_at, r.updated_at
+		FROM hist_group_member_roles r
+		JOIN hist_fansub_group_members hfgm ON hfgm.id = r.hist_fansub_group_member_id
+		WHERE hfgm.member_id = $1
+		ORDER BY COALESCE(r.started_year, 9999), r.id
+		LIMIT 50
+	`, memberID)
+	if err != nil {
+		return nil, fmt.Errorf("list group member roles by member id: %w", err)
+	}
+	defer rows.Close()
+
+	result := make([]HistGroupMemberRoleRow, 0)
+	for rows.Next() {
+		var row HistGroupMemberRoleRow
+		if err := rows.Scan(
+			&row.ID, &row.HistFansubGroupMemberID, &row.RoleCode,
+			&row.StartedYear, &row.EndedYear,
+			&row.Status, &row.Visibility,
+			&row.ConfirmedBy, &row.ConfirmedAt, &row.SourceNote,
+			&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("list group member roles by member id: scan: %w", err)
+		}
+		result = append(result, row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list group member roles by member id: iterate: %w", err)
+	}
+	return result, nil
+}
+
 func (r *HistGroupMemberRolesRepository) GetByID(ctx context.Context, id int64) (*HistGroupMemberRoleRow, error) {
 	var row HistGroupMemberRoleRow
 	err := r.db.QueryRow(ctx, `
