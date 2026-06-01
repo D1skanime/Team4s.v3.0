@@ -195,11 +195,11 @@
 | P60-SC4 | Phase 60 | Planned |
 | P60-SC5 | Phase 60 | Planned |
 | P60-SC6 | Phase 60 | Planned |
-| P61-SC1 | Phase 61 | Pending |
-| P61-SC2 | Phase 61 | Pending |
-| P61-SC3 | Phase 61 | Pending |
-| P61-SC4 | Phase 61 | Pending |
-| P61-SC5 | Phase 61 | Pending |
+| P61-SC1 | Phase 61 | Complete |
+| P61-SC2 | Phase 61 | Complete |
+| P61-SC3 | Phase 61 | Complete |
+| P61-SC4 | Phase 61 | Complete |
+| P61-SC5 | Phase 61 | Complete |
 | P62-SC1 | Phase 62 | Pending |
 | P62-SC2 | Phase 62 | Pending |
 | P62-SC3 | Phase 62 | Pending |
