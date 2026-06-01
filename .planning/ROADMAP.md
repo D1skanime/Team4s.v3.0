@@ -1269,3 +1269,127 @@ Plans:
   4. Der Invitation-Contract dokumentiert Mail-/Delivery-Verhalten und bleibt zwischen Backend, OpenAPI, Frontend-DTOs und API-Helfer konsistent.
   5. Roh-Invite-Tokens werden nicht persistiert oder geloggt; Audit-Logs enthalten keinen klickbaren Token.
   6. Mailjet ist fuer spaetere Produktion als SMTP-Konfiguration dokumentiert, ohne Secrets im Repo und ohne Amazon-Abhaengigkeit.
+
+---
+
+## Milestone v1.3: Fansub Contributions & Gruppenhistorie
+
+### Phase 61: Fansub Contributions Datenmodell
+
+**Goal:** Datenbankfundament fuer Fansub-Contributions, Gruppenhistorie und Member-Identitaet legen: alle neuen Tabellen, Constraints, Indizes und Role-Definitions in reversiblen Migrationen anlegen. Kein API, kein Frontend in dieser Phase.
+**Requirements**: P61-SC1, P61-SC2, P61-SC3, P61-SC4, P61-SC5
+**Depends on:** Phase 60
+**Plans:** 0 plans
+
+Plans:
+
+**Success Criteria** (what must be TRUE):
+  1. Migrationen fuer members, member_claims, hist_fansub_group_members, hist_group_member_roles, fansub_group_history, anime_contributions, anime_contribution_roles, member_badges und role_definitions sind vorhanden und laufen fehlerfrei durch (up und down).
+  2. role_definitions enthaelt alle Rollencodes mit context-Array; kein role_code existiert doppelt; leader, co_leader, founder sind als group_history-Rollen eingetragen.
+  3. Alle Fremdschluessel-Constraints und kaskadierenden Deletes sind korrekt gesetzt.
+  4. Alle BIGSERIAL-IDs; keine UUIDs ohne Begruendung.
+  5. fansub_group_member_id in anime_contributions ist NOT NULL und referenziert hist_fansub_group_members(id).
+
+### Phase 62: Fansub Contributions Admin-API
+
+**Goal:** Backend-Repositories und Admin-API-Handler fuer Gruppenhistorie, Member-Rollen-Zeitraeume und Anime-Contributions implementieren. Public-Routen fuer Archive-Page-Daten bereitstellen.
+**Requirements**: P62-SC1, P62-SC2, P62-SC3, P62-SC4, P62-SC5
+**Depends on:** Phase 61
+**Plans:** 0 plans
+
+Plans:
+
+**Success Criteria** (what must be TRUE):
+  1. Admin-Routen GET/POST/PATCH/DELETE /api/v1/admin/fansubs/:id/group-members, /member-roles und /anime/:animeId/contributions sind implementiert und durch Auth-Middleware geschuetzt.
+  2. GET/PATCH /api/v1/admin/fansubs/:id/history ist implementiert.
+  3. Public-Routen GET /api/v1/fansubs/:id/contributions, /api/v1/anime/:id/contributions, /api/v1/members/:slug/contributions liefern nur oeffentliche Eintraege zurueck.
+  4. Me-Routen GET /api/v1/me/anime-contributions und /api/v1/me/group-contributions sind implementiert.
+  5. Alle neuen Handler folgen dem bestehenden Gin-Handler-Pattern; keine neue Abstraktion.
+
+### Phase 63: Fansub Contributions Leader-Frontend
+
+**Goal:** Admin-Frontend fuer Fansub-Leader: Mitglieder verwalten, historische Rollen und Leader-Zeitraeume pflegen, Anime-Contributions per Multi-Select zuweisen. Bestehende Admin-UI-Komponenten wiederverwenden, kein neues Design-System.
+**Requirements**: P63-SC1, P63-SC2, P63-SC3, P63-SC4, P63-SC5
+**Depends on:** Phase 62
+**Plans:** 0 plans
+
+Plans:
+
+**Success Criteria** (what must be TRUE):
+  1. Fansub-Admin-Seite hat neue Tabs: Mitglieder, Rollen/Timeline, Anime-Beitraege.
+  2. Mitglieder koennen ohne App-User-Account eingetragen werden (historischer Member); App-User-Verknuepfung ist optional per bestehender MemberSelector-Komponente.
+  3. Leader-Zeitraeume koennen pro Mitglied mit started_year/ended_year und role_code eingetragen werden.
+  4. Anime-Contribution-Formular erlaubt Multi-Select aus Gruppenmitgliedern und Mehrfach-Rollenwahl per bestehenden Role-Chips.
+  5. Sichtbarkeit (intern/oeffentlich) und Status (draft/confirmed/hidden) sind pro Contribution einstellbar.
+
+### Phase 64: Fansub Contributions Member-Dashboard und Public Pages
+
+**Goal:** Member-Dashboard fuer eigene Contributions (sehen, bestaetigen, ablehnen, Sichtbarkeit steuern). Oeffentliche Timelines fuer Gruppenprofil, Member-Profil und Anime-Seite. Einfache abgeleitete Badges.
+**Requirements**: P64-SC1, P64-SC2, P64-SC3, P64-SC4, P64-SC5, P64-SC6
+**Depends on:** Phase 63
+**Plans:** 0 plans
+
+Plans:
+
+**Success Criteria** (what must be TRUE):
+  1. /me/anime-contributions zeigt bestaetigte, ausstehende und eigene Eintraege; Member kann bestaetigen, ablehnen und Sichtbarkeit pro Eintrag steuern.
+  2. Oeffentliches Gruppenprofil (/fansubs/:slug) zeigt Leader-Timeline aus fansub_group_member_roles und Meilensteine aus fansub_group_history.
+  3. Oeffentliches Member-Profil (/members/:slug) zeigt Rollen-Timeline aus Contributions; unverifizierte Eintraege sind mit "(historisch)" markiert.
+  4. Anime-Seite zeigt Contributions-Bereich mit Mitwirkenden und Rollen-Chips pro Fansub-Gruppe.
+  5. member_badges-Tabelle wird befuellt fuer Gründungsmitglied, Historischer Leader und Langjaehriges Mitglied; Badges sind im Member-Profil sichtbar.
+  6. Member kann jeden Badge einzeln ausblenden.
+
+### Phase 65: Member-Vorschlaege und Review-Queue (Post-MVP)
+
+**Goal:** Member kann eigene Contributions vorschlagen. Leader sieht Review-Queue und kann bestaetigen oder ablehnen. Timeout-Handling nach 90 Tagen ohne Reaktion.
+**Requirements**: P65-SC1, P65-SC2, P65-SC3
+**Depends on:** Phase 64
+**Plans:** 0 plans
+
+Plans:
+
+**Success Criteria** (what must be TRUE):
+  1. POST /api/v1/me/contribution-proposals ist implementiert; Vorschlag erhaelt Status proposed.
+  2. Leader sieht Review-Queue im Admin-Frontend und kann Vorschlaege bestaetigen oder ablehnen.
+  3. Nach 90 Tagen ohne Reaktion ist der Vorschlag als unverified oeffentlich schaltbar oder kann an Moderation weitergeleitet werden.
+
+### Phase 66: Claiming und Verifizierung (Post-MVP)
+
+**Goal:** Member kann behaupten, ein historischer Nick zu sein (Claiming). Leader kann per Einladungslink bestaetigen. Verifizierungsstatus im Profil sichtbar. noindex-Steuerung per Member-Einstellung.
+**Requirements**: P66-SC1, P66-SC2, P66-SC3
+**Depends on:** Phase 65
+**Plans:** 0 plans
+
+Plans:
+
+**Success Criteria** (what must be TRUE):
+  1. member_claims-Tabelle unterstuetzt pending/verified/rejected; App-User kann einen Claim einreichen.
+  2. Leader kann einen Einladungslink fuer einen historischen Member-Eintrag generieren; Claim wird nach Bestaetigun auf verified gesetzt.
+  3. noindex-Flag ist pro Member-Profil einstellbar; verified-Status ist im oeffentlichen Profil sichtbar.
+
+### Phase 67: Release- und Episode-Credits (Post-MVP)
+
+**Goal:** Contributions auf Episode- und Release-Version-Ebene erweitern. Verknuepfung mit bestehenden Release-Tabellen. Erweiterte Detailansicht auf der Anime-Seite.
+**Requirements**: P67-SC1, P67-SC2
+**Depends on:** Phase 64
+**Plans:** 0 plans
+
+Plans:
+
+**Success Criteria** (what must be TRUE):
+  1. anime_contributions kann optional an eine episode_id oder release_version_id geknuepft werden (nullable FK, kein Breaking Change).
+  2. Anime-Seite zeigt Contributions aufgeschluesselt nach Episode oder Release-Version wenn vorhanden.
+
+### Phase 68: Badge-Engine und Archiv-Entdeckung (Post-MVP)
+
+**Goal:** Vollstaendige Badge-Berechnung aus Contributions. Gruppen-Meilensteine manuell pflegbar. Erweiterte Archiv-Suche nach Rolle, Zeitraum und Gruppe.
+**Requirements**: P68-SC1, P68-SC2, P68-SC3
+**Depends on:** Phase 64
+**Plans:** 0 plans
+
+Plans:
+
+**Success Criteria** (what must be TRUE):
+  1. Badge-Engine berechnet alle definierten Badges aus Contributions und aktualisiert member_badges bei Datenaenderungen.
+  2. Leader kann Meilensteine fuer die Gruppe manuell eintragen; Meilensteine erscheinen in der Gruppen-Timeline.
+  3. Archiv-Suche erlaubt Filtern nach Rolle, Zeitraum und Gruppe und gibt Member-Profile zurueck.

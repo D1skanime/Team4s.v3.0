@@ -91,6 +91,46 @@
 - **P60-SC5**: Raw invitation tokens are never persisted or written to audit logs; SMTP failures leave no silently active unsent invitation.
 - **P60-SC6**: The future production switch to Mailjet is documented as SMTP configuration without committed provider secrets or Amazon dependency.
 
+- **P61-SC1**: Migrationen fuer members, member_claims, hist_fansub_group_members, hist_group_member_roles, fansub_group_history, anime_contributions, anime_contribution_roles, member_badges und role_definitions sind vorhanden und laufen fehlerfrei durch (up und down).
+- **P61-SC2**: role_definitions enthaelt alle Rollencodes mit context-Array; leader, co_leader, founder sind als group_history-Rollen eingetragen.
+- **P61-SC3**: Alle Fremdschluessel-Constraints und kaskadierenden Deletes sind korrekt gesetzt.
+- **P61-SC4**: Alle IDs sind BIGSERIAL; keine UUIDs ohne Begruendung.
+- **P61-SC5**: fansub_group_member_id in anime_contributions ist NOT NULL und referenziert hist_fansub_group_members(id).
+
+- **P62-SC1**: Admin-Routen GET/POST/PATCH/DELETE /api/v1/admin/fansubs/:id/group-members, /member-roles und /anime/:animeId/contributions sind implementiert und durch Auth-Middleware geschuetzt.
+- **P62-SC2**: GET/PATCH /api/v1/admin/fansubs/:id/history ist implementiert.
+- **P62-SC3**: Public-Routen GET /api/v1/fansubs/:id/contributions, /api/v1/anime/:id/contributions, /api/v1/members/:slug/contributions liefern nur oeffentliche Eintraege zurueck.
+- **P62-SC4**: Me-Routen GET /api/v1/me/anime-contributions und /api/v1/me/group-contributions sind implementiert.
+- **P62-SC5**: Alle neuen Handler folgen dem bestehenden Gin-Handler-Pattern; keine neue Abstraktion.
+
+- **P63-SC1**: Fansub-Admin-Seite hat neue Tabs: Mitglieder, Rollen/Timeline, Anime-Beitraege.
+- **P63-SC2**: Mitglieder koennen ohne App-User-Account eingetragen werden; App-User-Verknuepfung ist optional per bestehender MemberSelector-Komponente.
+- **P63-SC3**: Leader-Zeitraeume koennen pro Mitglied mit started_year/ended_year und role_code eingetragen werden.
+- **P63-SC4**: Anime-Contribution-Formular erlaubt Multi-Select aus Gruppenmitgliedern und Mehrfach-Rollenwahl per bestehenden Role-Chips.
+- **P63-SC5**: Sichtbarkeit (intern/oeffentlich) und Status (draft/confirmed/hidden) sind pro Contribution einstellbar.
+
+- **P64-SC1**: /me/anime-contributions zeigt bestaetigte, ausstehende und eigene Eintraege; Member kann bestaetigen, ablehnen und Sichtbarkeit steuern.
+- **P64-SC2**: Oeffentliches Gruppenprofil zeigt Leader-Timeline und Meilensteine.
+- **P64-SC3**: Oeffentliches Member-Profil zeigt Rollen-Timeline; unverifizierte Eintraege sind mit "(historisch)" markiert.
+- **P64-SC4**: Anime-Seite zeigt Contributions-Bereich mit Mitwirkenden und Rollen-Chips pro Fansub-Gruppe.
+- **P64-SC5**: member_badges wird befuellt fuer Gründungsmitglied, Historischer Leader und Langjaehriges Mitglied.
+- **P64-SC6**: Member kann jeden Badge einzeln ausblenden.
+
+- **P65-SC1**: POST /api/v1/me/contribution-proposals ist implementiert; Vorschlag erhaelt Status proposed.
+- **P65-SC2**: Leader sieht Review-Queue im Admin-Frontend und kann Vorschlaege bestaetigen oder ablehnen.
+- **P65-SC3**: Nach 90 Tagen ohne Reaktion kann Vorschlag als unverified oeffentlich geschaltet oder an Moderation weitergeleitet werden.
+
+- **P66-SC1**: member_claims-Tabelle unterstuetzt pending/verified/rejected; App-User kann Claim einreichen.
+- **P66-SC2**: Leader kann Einladungslink fuer historischen Member-Eintrag generieren; Claim wird nach Bestaetigun auf verified gesetzt.
+- **P66-SC3**: noindex-Flag ist pro Member-Profil einstellbar; verified-Status ist im oeffentlichen Profil sichtbar.
+
+- **P67-SC1**: anime_contributions kann optional an episode_id oder release_version_id geknuepft werden (nullable FK, kein Breaking Change).
+- **P67-SC2**: Anime-Seite zeigt Contributions aufgeschluesselt nach Episode oder Release-Version wenn vorhanden.
+
+- **P68-SC1**: Badge-Engine berechnet alle definierten Badges aus Contributions und aktualisiert member_badges bei Datenaenderungen.
+- **P68-SC2**: Leader kann Meilensteine fuer die Gruppe manuell eintragen; Meilensteine erscheinen in der Gruppen-Timeline.
+- **P68-SC3**: Archiv-Suche erlaubt Filtern nach Rolle, Zeitraum und Gruppe.
+
 ## Out of Scope
 
 | Feature | Reason |
@@ -155,6 +195,38 @@
 | P60-SC4 | Phase 60 | Planned |
 | P60-SC5 | Phase 60 | Planned |
 | P60-SC6 | Phase 60 | Planned |
+| P61-SC1 | Phase 61 | Pending |
+| P61-SC2 | Phase 61 | Pending |
+| P61-SC3 | Phase 61 | Pending |
+| P61-SC4 | Phase 61 | Pending |
+| P61-SC5 | Phase 61 | Pending |
+| P62-SC1 | Phase 62 | Pending |
+| P62-SC2 | Phase 62 | Pending |
+| P62-SC3 | Phase 62 | Pending |
+| P62-SC4 | Phase 62 | Pending |
+| P62-SC5 | Phase 62 | Pending |
+| P63-SC1 | Phase 63 | Pending |
+| P63-SC2 | Phase 63 | Pending |
+| P63-SC3 | Phase 63 | Pending |
+| P63-SC4 | Phase 63 | Pending |
+| P63-SC5 | Phase 63 | Pending |
+| P64-SC1 | Phase 64 | Pending |
+| P64-SC2 | Phase 64 | Pending |
+| P64-SC3 | Phase 64 | Pending |
+| P64-SC4 | Phase 64 | Pending |
+| P64-SC5 | Phase 64 | Pending |
+| P64-SC6 | Phase 64 | Pending |
+| P65-SC1 | Phase 65 | Pending |
+| P65-SC2 | Phase 65 | Pending |
+| P65-SC3 | Phase 65 | Pending |
+| P66-SC1 | Phase 66 | Pending |
+| P66-SC2 | Phase 66 | Pending |
+| P66-SC3 | Phase 66 | Pending |
+| P67-SC1 | Phase 67 | Pending |
+| P67-SC2 | Phase 67 | Pending |
+| P68-SC1 | Phase 68 | Pending |
+| P68-SC2 | Phase 68 | Pending |
+| P68-SC3 | Phase 68 | Pending |
 
 **Coverage:**
 - v1 requirements: 28 total
