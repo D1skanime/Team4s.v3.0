@@ -7,11 +7,15 @@ import (
 )
 
 type adminRouteHandlers struct {
-	adminContentHandler *handlers.AdminContentHandler
-	animeHandler        *handlers.AnimeHandler
-	fansubHandler       *handlers.FansubHandler
-	mediaUploadHandler  *handlers.MediaUploadHandler
-	appAuthHandler      *handlers.AppAuthHandler
+	adminContentHandler          *handlers.AdminContentHandler
+	animeHandler                 *handlers.AnimeHandler
+	fansubHandler                *handlers.FansubHandler
+	mediaUploadHandler           *handlers.MediaUploadHandler
+	appAuthHandler               *handlers.AppAuthHandler
+	histGroupMembersHandler      *handlers.FansubHistGroupMembersHandler
+	histGroupMemberRolesHandler  *handlers.FansubHistGroupMemberRolesHandler
+	animeContributionsHandler    *handlers.FansubAnimeContributionsHandler
+	groupHistoryHandler          *handlers.FansubGroupHistoryHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -141,4 +145,20 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.GET("/admin/fansubs/:id/anime/:animeId/notes", auth, deps.adminContentHandler.GetAnimeFansubProjectNote)
 	v1.PUT("/admin/fansubs/:id/anime/:animeId/notes", auth, deps.adminContentHandler.UpsertAnimeFansubProjectNote)
 	v1.DELETE("/admin/fansubs/:id/anime/:animeId/notes/:noteId", auth, deps.adminContentHandler.DeleteAnimeFansubProjectNote)
+	// Phase 62: Fansub Contributions Admin-API
+	v1.GET("/admin/fansubs/:id/group-members", auth, deps.histGroupMembersHandler.ListHistGroupMembers)
+	v1.POST("/admin/fansubs/:id/group-members", auth, deps.histGroupMembersHandler.CreateHistGroupMember)
+	v1.PATCH("/admin/fansubs/:id/group-members/:memberId", auth, deps.histGroupMembersHandler.UpdateHistGroupMember)
+	v1.DELETE("/admin/fansubs/:id/group-members/:memberId", auth, deps.histGroupMembersHandler.DeleteHistGroupMember)
+	v1.GET("/admin/fansubs/:id/member-roles", auth, deps.histGroupMemberRolesHandler.ListHistGroupMemberRoles)
+	v1.POST("/admin/fansubs/:id/member-roles", auth, deps.histGroupMemberRolesHandler.CreateHistGroupMemberRole)
+	v1.PATCH("/admin/fansubs/:id/member-roles/:roleId", auth, deps.histGroupMemberRolesHandler.UpdateHistGroupMemberRole)
+	v1.DELETE("/admin/fansubs/:id/member-roles/:roleId", auth, deps.histGroupMemberRolesHandler.DeleteHistGroupMemberRole)
+	v1.GET("/admin/fansubs/:id/history", auth, deps.groupHistoryHandler.ListGroupHistory)
+	v1.POST("/admin/fansubs/:id/history", auth, deps.groupHistoryHandler.CreateGroupHistory)
+	v1.PATCH("/admin/fansubs/:id/history/:historyId", auth, deps.groupHistoryHandler.UpdateGroupHistory)
+	v1.GET("/admin/fansubs/:id/anime/:animeId/contributions", auth, deps.animeContributionsHandler.ListAnimeContributions)
+	v1.POST("/admin/fansubs/:id/anime/:animeId/contributions", auth, deps.animeContributionsHandler.CreateAnimeContribution)
+	v1.PATCH("/admin/fansubs/:id/anime/:animeId/contributions/:contributionId", auth, deps.animeContributionsHandler.UpdateAnimeContribution)
+	v1.DELETE("/admin/fansubs/:id/anime/:animeId/contributions/:contributionId", auth, deps.animeContributionsHandler.DeleteAnimeContribution)
 }

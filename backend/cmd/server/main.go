@@ -81,7 +81,7 @@ func main() {
 	episodeRepo := repository.NewEpisodeRepository(dbPool)
 	episodeHandler := handlers.NewEpisodeHandler(episodeRepo)
 	fansubRepo := repository.NewFansubRepository(dbPool)
-	mediaRepo := repository.NewMediaRepository(dbPool, cfg.MediaPublicBaseURL)
+	mediaRepo := repository.NewMediaRepository(dbPool, cfg.MediaPublicBaseURL, cfg.MediaStorageDir)
 	mediaService := services.NewMediaService(cfg.MediaStorageDir, cfg.MediaPublicBaseURL)
 	episodeVersionRepo := repository.NewEpisodeVersionRepository(dbPool)
 	episodeVersionImageRepo := repository.NewEpisodeVersionImageRepository(dbPool)
@@ -324,12 +324,24 @@ func main() {
 	)
 	v1.GET("/releases/:id/assets", releaseAssetsHandler.ListReleaseAssets)
 	v1.GET("/releases/:id/images", episodeVersionImagesHandler.ListReleaseImages)
+	histGroupMembersRepo := repository.NewHistGroupMembersRepository(dbPool)
+	histGroupMemberRolesRepo := repository.NewHistGroupMemberRolesRepository(dbPool)
+	animeContributionsRepo := repository.NewAnimeContributionsRepository(dbPool)
+	fansubGroupHistoryRepo := repository.NewFansubGroupHistoryRepository(dbPool)
+	histGroupMembersHandler := handlers.NewFansubHistGroupMembersHandler(histGroupMembersRepo)
+	histGroupMemberRolesHandler := handlers.NewFansubHistGroupMemberRolesHandler(histGroupMemberRolesRepo)
+	animeContributionsHandler := handlers.NewFansubAnimeContributionsHandler(animeContributionsRepo, histGroupMemberRolesRepo)
+	groupHistoryHandler := handlers.NewFansubGroupHistoryHandler(fansubGroupHistoryRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
-		adminContentHandler: adminContentHandler,
-		animeHandler:        animeHandler,
-		fansubHandler:       fansubHandler,
-		mediaUploadHandler:  mediaUploadHandler,
-		appAuthHandler:      appAuthHandler,
+		adminContentHandler:         adminContentHandler,
+		animeHandler:                animeHandler,
+		fansubHandler:               fansubHandler,
+		mediaUploadHandler:          mediaUploadHandler,
+		appAuthHandler:              appAuthHandler,
+		histGroupMembersHandler:     histGroupMembersHandler,
+		histGroupMemberRolesHandler: histGroupMemberRolesHandler,
+		animeContributionsHandler:   animeContributionsHandler,
+		groupHistoryHandler:         groupHistoryHandler,
 	})
 	v1.GET("/fansubs/:id/collaboration-members", fansubHandler.ListCollaborationMembers)
 	v1.POST(
