@@ -1279,7 +1279,7 @@ Plans:
 **Goal:** Datenbankfundament fuer Fansub-Contributions, Gruppenhistorie und Member-Identitaet legen: alle neuen Tabellen, Constraints, Indizes und Role-Definitions in reversiblen Migrationen anlegen. Kein API, kein Frontend in dieser Phase.
 **Requirements**: P61-SC1, P61-SC2, P61-SC3, P61-SC4, P61-SC5
 **Depends on:** Phase 60
-**Plans:** 0 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 
