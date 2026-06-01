@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: milestone_complete
-stopped_at: Milestone complete (Phase 59 was final phase)
-last_updated: 2026-05-29T13:04:18.607Z
-last_activity: 2026-05-29
+stopped_at: Phase 57 security and validation passed; authenticated browser UAT pending
+last_updated: "2026-06-01T11:54:15.413Z"
+last_activity: 2026-06-01
 progress:
-  total_phases: 55
-  completed_phases: 1
-  total_plans: 208
-  completed_plans: 196
-  percent: 2
+  total_phases: 56
+  completed_phases: 40
+  total_plans: 211
+  completed_plans: 173
+  percent: 71
 ---
 
 # Project State
@@ -351,5 +351,5 @@ Recent durable decisions:
 
 Last session: 2026-05-29T08:20:00+02:00
 Stopped at: Phase 57 security and validation passed; authenticated browser UAT pending
-Last activity: 2026-05-29
+Last activity: 2026-06-01
 Resume file: .planning/phases/57-profil-aktivzeitraum-als-jahrbegrenzte-datumsfelder/57-CONTEXT.md

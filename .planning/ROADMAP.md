@@ -1249,3 +1249,23 @@ Wave 4 *(blocked on Wave 3 completion)*
   4. Member kann auf /me/profile ein Hintergrundbild hochladen (Cropper 16:9, kein neues npm-Paket, globaler Upload-Flow); Bild erscheint als breites Hero-Banner auf /members/[slug].
   5. Fansub-Gruppen-Section auf /members/[slug] zeigt Gruppenlogo, -name und feste Gruppenrollen; Link zu /fansubs/[slug].
   6. Alle neuen user-facing Strings verwenden korrekte Umlaute.
+
+### Phase 60: SMTP-Mailfluss fuer Team4s-Einladungen und Keycloak-Accountmails: lokal Mailpit als gemeinsamer SMTP-Catcher fuer Backend und Keycloak; spaeterer Produktionswechsel auf Mailjet als dokumentierter SMTP-Provider ohne Secrets im Repo.
+
+**Goal:** Lokalen SMTP-Mailfluss fuer Team4s und Keycloak herstellen: Fansub-Gruppeneinladungen werden vom Team4s Backend per SMTP verschickt, Keycloak Account-Mails wie Passwort-Reset gehen ebenfalls ueber SMTP, lokal landen beide in Mailpit und fuer Produktion ist der spaetere Wechsel auf Mailjet als SMTP-Provider dokumentiert.
+**Requirements**: P60-SC1, P60-SC2, P60-SC3, P60-SC4, P60-SC5, P60-SC6
+**Depends on:** Phase 59
+**Plans:** 3/3 plans complete
+
+Plans:
+- [ ] `60-01-PLAN.md` — Lokale SMTP-Infrastruktur: Mailpit, Keycloak-Mailpit-Konfiguration und Env-Doku.
+- [ ] `60-02-PLAN.md` — Backend-Mailer-Service und Fansub-Einladungsversand.
+- [ ] `60-03-PLAN.md` — OpenAPI/Frontend-Contract, Einladungs-UX und Mailjet-Produktionshandoff.
+
+**Success Criteria** (what must be TRUE):
+  1. `docker compose` enthaelt einen Mailpit-Service mit SMTP-Port 1025 und Web-UI-Port 8025.
+  2. Keycloak kann lokale Account-Mails an Mailpit senden.
+  3. Team4s Backend kann Fansub-Gruppeneinladungen per SMTP senden.
+  4. Der Invitation-Contract dokumentiert Mail-/Delivery-Verhalten und bleibt zwischen Backend, OpenAPI, Frontend-DTOs und API-Helfer konsistent.
+  5. Roh-Invite-Tokens werden nicht persistiert oder geloggt; Audit-Logs enthalten keinen klickbaren Token.
+  6. Mailjet ist fuer spaetere Produktion als SMTP-Konfiguration dokumentiert, ohne Secrets im Repo und ohne Amazon-Abhaengigkeit.

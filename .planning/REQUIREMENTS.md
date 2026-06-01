@@ -84,6 +84,12 @@
 - **MEMBER-PROFILE-STORY-RICH-TEXT-01**: The own-profile member story must persist safe TipTap rich text through one contract-aligned profile seam, including schema migration from existing plain text, backend validation/sanitizing, plaintext extraction, shared OpenAPI/frontend DTO alignment, and token-free protected UI behavior through the central API client.
 - **MEMBER-PROFILE-ACTIVITY-PERIOD-DATE-01**: The own-profile activity period must be stored through real date columns while the user-facing `/me/profile` editor remains limited to year precision for the "active from" and "active until" range.
 - **MEDIA-CROPPER-01**: Team4s image cropping must use one reliable shared cropper foundation for own-profile avatars and fansub group logo/media cropping, preserving each domain's existing upload endpoint, auth/API seam, and media ownership while eliminating preview/export parity bugs across desktop, mobile/touch, and keyboard use.
+- **P60-SC1**: Local Docker Compose provides a Mailpit SMTP catcher with SMTP port 1025 and Web UI port 8025 for development mail testing.
+- **P60-SC2**: Keycloak can send local account mails, including password reset, to Mailpit without real outbound delivery.
+- **P60-SC3**: Team4s Backend sends Fansub group invitation mails through a reusable SMTP mailer service.
+- **P60-SC4**: The Fansub invitation create contract documents mail/delivery behavior and stays aligned across backend runtime, OpenAPI, frontend DTOs, and API helper.
+- **P60-SC5**: Raw invitation tokens are never persisted or written to audit logs; SMTP failures leave no silently active unsent invitation.
+- **P60-SC6**: The future production switch to Mailjet is documented as SMTP configuration without committed provider secrets or Amazon dependency.
 
 ## Out of Scope
 
@@ -143,6 +149,12 @@
 | MEMBER-PROFILE-STORY-RICH-TEXT-01 | Phase 55 | Complete |
 | MEMBER-PROFILE-ACTIVITY-PERIOD-DATE-01 | Phase 57 | Complete - automated verification passed 2026-05-29; authenticated UAT pending |
 | MEDIA-CROPPER-01 | Phase 56 | Complete - functional UAT and security review passed 2026-05-29 |
+| P60-SC1 | Phase 60 | Planned |
+| P60-SC2 | Phase 60 | Planned |
+| P60-SC3 | Phase 60 | Planned |
+| P60-SC4 | Phase 60 | Planned |
+| P60-SC5 | Phase 60 | Planned |
+| P60-SC6 | Phase 60 | Planned |
 
 **Coverage:**
 - v1 requirements: 28 total
