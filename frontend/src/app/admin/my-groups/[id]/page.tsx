@@ -23,6 +23,7 @@ import {
 } from "@/components/ui";
 import { ApiError, getMyFansubGroupDetail } from "@/lib/api";
 import { useAuthSession } from "@/lib/useAuthSession";
+import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import type {
   ContributorGroupDetail,
   ContributorReleaseVersionSummary,
@@ -413,6 +414,8 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
                 </div>
               )}
             </Card>
+
+            <GroupHistorySection fansubGroupId={groupId} />
           </>
         ) : null}
       </div>

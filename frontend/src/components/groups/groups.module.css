@@ -1,0 +1,116 @@
+/* Phase 68: Gruppen-Meilenstein-Timeline */
+
+.historyList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.historyRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 8px 12px;
+  background: rgba(30, 41, 59, 0.06);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+
+.historyYear {
+  min-width: 48px;
+  font-size: 13px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.historyEventType {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-soft);
+  min-width: 100px;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.historyTitle {
+  font-size: 14px;
+  color: var(--text-body);
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.historyNote {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+.historyRowActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.historyForm {
+  background: var(--surface-card-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.historyFormField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.historyFormLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-body);
+}
+
+.historyFormRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.historyFormError {
+  font-size: 13px;
+  color: var(--color-error, #dc3545);
+  margin-top: 4px;
+}
+
+.historyFormActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.historySuccessMessage {
+  font-size: 14px;
+  color: var(--color-success, #15803d);
+  padding: 8px 0;
+}
+
+.historyExpanderRow {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .historyFormRow {
+    grid-template-columns: 1fr;
+  }
+}

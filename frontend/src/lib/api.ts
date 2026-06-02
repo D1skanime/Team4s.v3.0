@@ -7813,3 +7813,119 @@ export async function patchMyBadgeVisibility(
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Phase 68 — Gruppen-Meilenstein-CRUD (fansub_group_history)
+// ---------------------------------------------------------------------------
+
+export interface GroupHistoryRow {
+  id: number
+  fansub_group_id: number
+  year: number | null
+  event_type: string
+  title: string | null
+  note: string | null
+  status: string
+  created_by: number | null
+  created_at: string
+}
+
+export interface GroupHistoryCreateRequest {
+  event_type: string
+  title: string
+  year?: number | null
+  note?: string | null
+  status?: string
+}
+
+export interface GroupHistoryUpdateRequest {
+  event_type?: string
+  title?: string | null
+  year?: number | null
+  note?: string | null
+  status?: string
+}
+
+export async function listGroupHistory(
+  fansubGroupId: number,
+  authToken?: string,
+): Promise<GroupHistoryRow[]> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubGroupId}/history`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: 'no-store',
+    },
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+  const body = (await response.json()) as { data: GroupHistoryRow[] }
+  return body.data
+}
+
+export async function createGroupHistory(
+  fansubGroupId: number,
+  payload: GroupHistoryCreateRequest,
+  authToken?: string,
+): Promise<GroupHistoryRow> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubGroupId}/history`,
+    {
+      method: 'POST',
+      headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+      body: JSON.stringify(payload),
+    },
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, 'Meilenstein konnte nicht gespeichert werden. Bitte versuche es erneut.')
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+  const body = (await response.json()) as { data: GroupHistoryRow }
+  return body.data
+}
+
+export async function updateGroupHistory(
+  fansubGroupId: number,
+  historyId: number,
+  payload: GroupHistoryUpdateRequest,
+  authToken?: string,
+): Promise<GroupHistoryRow> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubGroupId}/history/${historyId}`,
+    {
+      method: 'PATCH',
+      headers: withAuthHeader({ 'Content-Type': 'application/json' }, authToken),
+      body: JSON.stringify(payload),
+    },
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, 'Meilenstein konnte nicht gespeichert werden. Bitte versuche es erneut.')
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+  const body = (await response.json()) as { data: GroupHistoryRow }
+  return body.data
+}
+
+export async function deleteGroupHistory(
+  fansubGroupId: number,
+  historyId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubGroupId}/history/${historyId}`,
+    {
+      method: 'DELETE',
+      headers: withAuthHeader({}, authToken),
+    },
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, 'Meilenstein konnte nicht gelöscht werden. Bitte versuche es erneut.')
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+}
