@@ -40,7 +40,7 @@ Verknüpfung echter App-User mit historischen Member-Einträgen über einen Clai
 - **D-10:** `verification_method`-Werte: **`invite_link`** (per Leader-Einladungslink eingelöst) und **`manual_review`** (Self-Service-Claim manuell bestätigt).
 
 ### noindex & verified-Anzeige
-- **D-11:** Steuerung über einen **Toggle in `me/profile`** („Mein Profil von Suchmaschinen indexieren lassen") → PATCH auf `member_profiles.noindex`.
+- **D-11:** Steuerung über einen **Toggle in `me/profile`** („Mein Profil von Suchmaschinen indexieren lassen") → PATCH auf `members.noindex` (nicht `member_profiles.noindex` — das Feld liegt laut RESEARCH Fallstrick 1 direkt in der `members`-Tabelle, Migration 0081; `member_profiles` ist eine separate Tabelle ohne noindex-Spalte).
 - **D-12:** Default-Verhalten: **Beim Verifizieren wird das Profil indexierbar** (`noindex = false` setzen). Der Member kann es jederzeit wieder verstecken (`noindex = true`). (Hinweis: Schema-Default in 0081 ist `noindex = true` — der Verify-Flow überschreibt das bewusst.)
 - **D-13:** `verified`-Status wird als **Häkchen-Badge neben dem Member-Namen** im öffentlichen Profil dargestellt. Für verifizierte Einträge entfällt das `(historisch)`-Label aus Phase 64.
 - **D-14:** `noindex` wirkt in V1 **nur auf das robots-Meta-Tag** (`noindex,nofollow`) der Profilseite. Sitemap-Ausschluss ist späterem Ausbau vorbehalten.
@@ -63,7 +63,7 @@ Verknüpfung echter App-User mit historischen Member-Einträgen über einen Clai
 **Downstream agents MÜSSEN diese Dateien lesen, bevor sie planen oder implementieren.**
 
 ### Claiming-Datenmodell (Basis)
-- `database/migrations/0081_historical_members_identity.up.sql` — `member_claims` (pending/verified/rejected, `verified_by`, `verification_method`, UNIQUE(member_id, app_user_id)) UND `member_profiles.noindex` (Default true)
+- `database/migrations/0081_historical_members_identity.up.sql` — `member_claims` (pending/verified/rejected, `verified_by`, `verification_method`, UNIQUE(member_id, app_user_id)) UND `members.noindex` (Default true — Feld in `members`-Tabelle, nicht in `member_profiles`)
 - `database/migrations/0082_historical_fansub_group_members.up.sql` — `hist_fansub_group_members` (historische Member↔Gruppe)
 - `database/migrations/0077_member_profiles_mvp.up.sql` — `member_profiles`-Basis
 
@@ -98,7 +98,7 @@ Verknüpfung echter App-User mit historischen Member-Einträgen über einen Clai
 - `fansub_group_invitations` (Tabelle 0076 + Repository): vollständiges Token-Link-Muster (SHA-256-`token_hash`, `expires_at`, Status-Lifecycle, eindeutige Indizes) — direkte Vorlage für `member_claim_invitations`.
 - `member_claims` existiert bereits mit allen benötigten Spalten (`claim_status`, `verified_by`, `verification_method`, `verified_at`) — **kein neues Claim-Schema nötig**, nur Handler/Repo + Einladungstabelle.
 - `app_auth.go` + Keycloak-Anbindung: Basis für den Account-/Einlösungs-Flow (D-07).
-- `member_profiles.noindex` existiert (0081) — P66-SC3 braucht nur PATCH-Endpunkt + Toggle + robots-Meta-Tag.
+- `members.noindex` existiert (0081, in `members`-Tabelle direkt) — P66-SC3 braucht nur PATCH-Endpunkt + Toggle + robots-Meta-Tag.
 
 ### Established Patterns
 - Token-Einladungen werden gehasht gespeichert (nie Klartext-Token in DB), mit eindeutigem Index auf `token_hash`.
@@ -107,8 +107,8 @@ Verknüpfung echter App-User mit historischen Member-Einträgen über einen Clai
 ### Integration Points
 - Neuer Endpunkt für Self-Service-Claim (App-User reicht ein) + Nick-Suche.
 - Leader-Endpunkte: Einladungslink erzeugen, Claim-Queue bestätigen/ablehnen, Neuanlage-Anträge prüfen.
-- Einlösungs-Endpunkt: Token validieren → Keycloak-Account-Flow → `member_claims.claim_status = verified`, `noindex = false`.
-- Öffentliches Profil: verified-Badge, robots-Meta-Tag aus `member_profiles.noindex`.
+- Einlösungs-Endpunkt: Token validieren → Keycloak-Account-Flow → `member_claims.claim_status = verified`, `members.noindex = false`.
+- Öffentliches Profil: verified-Badge, robots-Meta-Tag aus `members.noindex`.
 
 </code_context>
 
@@ -142,7 +142,7 @@ Offene Claims (N)
 ### Öffentliches Profil
 ```
 [Nick ✓ verifiziert]        ← Häkchen-Badge (ersetzt (historisch) bei verified)
-robots: noindex,nofollow    ← nur wenn member_profiles.noindex = true
+robots: noindex,nofollow    ← nur wenn members.noindex = true
 ```
 
 ### me/profile Toggle

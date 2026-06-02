@@ -10,8 +10,8 @@
 
 | Neue/geänderte Datei | Rolle | Datenfluss | Nächstes Analog | Match-Qualität |
 |----------------------|-------|------------|-----------------|----------------|
-| `database/migrations/0089_member_claim_invitations.up.sql` | migration | CRUD | `database/migrations/0076_fansub_group_invitations.up.sql` | exact |
-| `database/migrations/0089_member_claim_invitations.down.sql` | migration | — | `database/migrations/0076_fansub_group_invitations.up.sql` | exact |
+| `database/migrations/0091_member_claim_invitations.up.sql` | migration | CRUD | `database/migrations/0076_fansub_group_invitations.up.sql` | exact |
+| `database/migrations/0091_member_claim_invitations.down.sql` | migration | — | `database/migrations/0076_fansub_group_invitations.up.sql` | exact |
 | `backend/internal/repository/member_claims_repository.go` | repository | CRUD | `backend/internal/repository/fansub_group_invitations_repository.go` | role-match |
 | `backend/internal/repository/member_claim_invitations_repository.go` | repository | CRUD + token | `backend/internal/repository/fansub_group_invitations_repository.go` | exact |
 | `backend/internal/handlers/member_claims_handler.go` | handler | request-response | `backend/internal/handlers/contributions_me_handler.go` | role-match |
@@ -29,7 +29,7 @@
 
 ## Pattern Assignments
 
-### `database/migrations/0089_member_claim_invitations.up.sql` (migration, CRUD)
+### `database/migrations/0091_member_claim_invitations.up.sql` (migration, CRUD)
 
 **Analog:** `database/migrations/0076_fansub_group_invitations.up.sql`
 
@@ -66,7 +66,7 @@ CREATE INDEX IF NOT EXISTS idx_fansub_group_invitations_expires_at
     ON fansub_group_invitations (expires_at);
 ```
 
-**Anpassungen für 0089:** Kein `email`/`normalized_email`/`invited_role_codes`-Feld. Stattdessen `member_id BIGINT NOT NULL REFERENCES members(id)` und `fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id)` (Leader-Kontext). Unique-Pending-Index auf `(member_id)` statt `(fansub_group_id, normalized_email)`. CHECK-Constraint beibehalten (gleiche Status-Werte). Token-Hash-Längen-Constraint identisch.
+**Anpassungen für 0091:** Kein `email`/`normalized_email`/`invited_role_codes`-Feld. Stattdessen `member_id BIGINT NOT NULL REFERENCES members(id)` und `fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id)` (Leader-Kontext). Unique-Pending-Index auf `(member_id)` statt `(fansub_group_id, normalized_email)`. CHECK-Constraint beibehalten (gleiche Status-Werte). Token-Hash-Längen-Constraint identisch.
 
 ---
 
