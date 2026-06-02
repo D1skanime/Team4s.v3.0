@@ -28,12 +28,19 @@ files_reviewed_list:
   - frontend/src/types/contributions.ts
   - backend/internal/handlers/contributions_public_handler.go
 findings:
-  critical: 3
+  critical: 0
   warning: 6
   info: 4
   total: 13
-status: issues_found
+blockers_resolved: 3
+status: warnings_open
 ---
+
+> **Resolution 2026-06-02:** Alle 3 BLOCKER behoben.
+> - CR-01: `AnimeContributionRow` mit snake_case JSON-Tags (commit 694b437d) → `/me/anime-contributions` matcht `MeAnimeContribution`.
+> - CR-02/CR-03: `anime_contributions_public_repository.go` neu geschrieben mit kontrakt-korrekten DTOs + Queries (gruppierte Anime-Contributions, Leader-/Rollen-Timelines, Counts, `has_unverified`); Handler liefert strukturierte Responses statt `{data:[...]}`. Defekte `m.slug`-Referenz durch abgeleiteten Slug (nickname-basiert, wie Member-Profil) ersetzt.
+> Verifiziert via `go build`/`go vet`/`go test` + Frontend `tsc`. ACHTUNG: keine Laufzeit-/DB-Verifikation möglich (kein DB-Zugriff) — End-to-End-Test gegen docker-compose steht aus.
+> Offen (Advisory, nicht-blockierend): WR-01..06, IN-01..04.
 
 # Phase 64: Code Review Report
 
@@ -68,7 +75,7 @@ runtime crash. These must be fixed before the feature can work at all.
 
 ## Critical Issues
 
-### CR-01: `/me/anime-contributions` returns PascalCase JSON — frontend dashboard never renders and crashes
+### CR-01: `/me/anime-contributions` returns PascalCase JSON — frontend dashboard never renders and crashes ✅ RESOLVED (694b437d)
 
 **File:** `backend/internal/repository/anime_contributions_repository.go:14-32`, consumed by `backend/internal/handlers/contributions_me_handler.go:99`
 
@@ -106,7 +113,7 @@ type AnimeContributionRow struct {
 }
 ```
 
-### CR-02: Public anime-contributions endpoint returns wrong shape — `AnimeContributionsSection` crashes
+### CR-02: Public anime-contributions endpoint returns wrong shape — `AnimeContributionsSection` crashes ✅ RESOLVED
 
 **File:** `backend/internal/handlers/contributions_public_handler.go:42-56`, `backend/internal/repository/anime_contributions_repository.go:59-67`
 
@@ -135,7 +142,7 @@ hidden_contributor_count), or change the frontend contract to match the flat
 shape. Either way the handler must emit snake_case JSON and the agreed
 structure. At minimum, tag `PublicContributionRow` and reshape the handler.
 
-### CR-03: Fansub & member public contribution endpoints return wrong shape — timelines silently always empty
+### CR-03: Fansub & member public contribution endpoints return wrong shape — timelines silently always empty ✅ RESOLVED
 
 **File:** `backend/internal/handlers/contributions_public_handler.go:24-38, 60-74`
 
