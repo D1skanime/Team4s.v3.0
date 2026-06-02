@@ -15,29 +15,24 @@ type MemberProfileHeroProps = {
 
 export function MemberProfileHero({ profile, avatarURL, isSaving, canSave }: MemberProfileHeroProps) {
   const displayName = profile.fansub_name || profile.account_display_name || 'Mein Profil'
-  const publicProfileReasonID = 'public-profile-action-reason'
   const avatarLabel = profile.fansub_name || profile.account_display_name || 'Profil'
+  const publicProfileHref = `/members/${profile.member_id}`
 
   return (
     <div className={styles.hero}>
       <PageHeader
         eyebrow="Mein Bereich"
         title="Mein Profil"
-        actions={
+        actions={(
           <>
-            <span className={styles.deferredActionWrap}>
-              <Button className={styles.heroActionButton} variant="secondary" disabled leftIcon={<Eye size={16} />} aria-describedby={publicProfileReasonID}>
-                Öffentliches Profil ansehen
-              </Button>
-              <span id={publicProfileReasonID} className={styles.deferredActionReason}>
-                Öffentliche Profilroute ist noch nicht vertraglich freigegeben.
-              </span>
-            </span>
+            <Button className={styles.heroActionButton} href={publicProfileHref} variant="secondary" leftIcon={<Eye size={16} />}>
+              Öffentliches Profil ansehen
+            </Button>
             <Button className={styles.heroActionButton} type="submit" form="member-profile-form" loading={isSaving} disabled={!canSave} leftIcon={<Save size={16} />}>
               Profil speichern
             </Button>
           </>
-        }
+        )}
       />
 
       <div className={styles.heroPanel}>

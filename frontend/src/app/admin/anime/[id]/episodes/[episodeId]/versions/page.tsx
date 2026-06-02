@@ -229,7 +229,7 @@ function AdminAnimeEpisodeVersionsContent() {
 
     if (!hasAccessToken) {
       setErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }
@@ -292,7 +292,7 @@ function AdminAnimeEpisodeVersionsContent() {
   async function handleDelete(version: EpisodeVersion) {
     if (!hasAccessToken) {
       setErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }

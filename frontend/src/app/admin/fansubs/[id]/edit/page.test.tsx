@@ -2,7 +2,7 @@
 
 import { act, createElement, type ImgHTMLAttributes, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 import type { UseReleaseVersionMediaResult } from '@/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia'
 
@@ -44,6 +44,7 @@ const apiMocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
   getFansubAliases: vi.fn(),
   getFansubByID: vi.fn(),
+  getFansubGroupCapabilities: vi.fn(),
   getFansubList: vi.fn(),
   resolveApiUrl: vi.fn((value: string) => value),
   updateFansubGroup: vi.fn(),
@@ -148,6 +149,18 @@ beforeEach(() => {
   })
   apiMocks.getFansubAliases.mockResolvedValue({ data: [] })
   apiMocks.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: true } })
+  apiMocks.getFansubGroupCapabilities.mockResolvedValue({
+    data: {
+      can_edit_group: true,
+      can_manage_links: true,
+      can_view_members: true,
+      can_manage_members: true,
+      can_edit_notes: true,
+      can_view_invitations: true,
+      can_create_invitation: true,
+      can_cancel_invitation: true,
+    },
+  })
   apiMocks.getAdminFansubAnime.mockResolvedValue({ data: [] })
   apiMocks.getAdminAnimeThemes.mockResolvedValue({ data: [] })
   apiMocks.getAdminAnimeThemeSegments.mockResolvedValue({ data: [] })
@@ -235,6 +248,116 @@ describe('ReleaseVersionMediaDrawerSummary', () => {
 })
 
 describe('AdminFansubEditPage token-free wiring', () => {
+  it('allows a non-platform member with group capabilities into the fansub edit workspace', async () => {
+    apiMocks.getCurrentUser.mockResolvedValue({
+      data: { is_platform_admin: false },
+    })
+    apiMocks.getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: true,
+        can_manage_links: false,
+        can_view_members: false,
+        can_manage_members: false,
+        can_edit_notes: false,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+      },
+    })
+
+    render(<AdminFansubEditPage />)
+
+    expect(await screen.findByRole('heading', { name: 'SubGroup' })).not.toBeNull()
+    expect(apiMocks.getFansubGroupCapabilities).toHaveBeenCalledWith(88)
+    expect(
+      screen.queryByText('Diese Ansicht ist dem Team4s-Admin vorbehalten.'),
+    ).toBeNull()
+  })
+
+  it('hides slug management from non-platform fansub leads and saves the group name without slug changes', async () => {
+    apiMocks.getCurrentUser.mockResolvedValue({
+      data: { is_platform_admin: false },
+    })
+    apiMocks.getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: true,
+        can_manage_links: false,
+        can_view_members: false,
+        can_manage_members: false,
+        can_edit_notes: false,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+      },
+    })
+    apiMocks.updateFansubGroup.mockResolvedValue({ data: {} })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    expect(screen.getByLabelText(/Fansubgruppen-Name/i)).not.toBeNull()
+    expect(screen.queryByText('Slug')).toBeNull()
+
+    fireEvent.change(screen.getByLabelText(/Fansubgruppen-Name/i), {
+      target: { value: 'AnimeOwnage' },
+    })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Speichern' })[0])
+
+    await waitFor(() => expect(apiMocks.updateFansubGroup).toHaveBeenCalledTimes(1))
+    expect(apiMocks.updateFansubGroup.mock.calls[0][1]).toMatchObject({
+      name: 'AnimeOwnage',
+    })
+    expect(apiMocks.updateFansubGroup.mock.calls[0][1]).not.toHaveProperty('slug')
+    expect(apiMocks.getFansubList).not.toHaveBeenCalled()
+  })
+
+  it('uses the shared year picker for the founding year', async () => {
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    const foundedYear = screen.getByLabelText('Gründungsjahr') as HTMLButtonElement
+    const currentYear = String(new Date().getFullYear())
+
+    expect(foundedYear.tagName).toBe('BUTTON')
+    expect(screen.queryByLabelText('Gründungsjahr ein Jahr vor')).toBeNull()
+    expect(screen.queryByLabelText('Gründungsjahr ein Jahr zurück')).toBeNull()
+    fireEvent.click(foundedYear)
+    expect(screen.getByRole('button', { name: currentYear })).not.toBeNull()
+    expect(screen.queryByRole('button', { name: '2100' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Keine Angabe' })).not.toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: currentYear }))
+    expect(foundedYear.textContent).toContain(currentYear)
+  })
+
+  it('does not show the group delete action while deletion ownership is unresolved', async () => {
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    expect(screen.queryByRole('button', { name: 'Löschen' })).toBeNull()
+  })
+
+  it('renders aliases as global badge text with a separate remove action', async () => {
+    apiMocks.getFansubAliases.mockResolvedValue({
+      data: [
+        {
+          id: 17,
+          fansub_group_id: 88,
+          alias: 'AO',
+          created_at: '2026-05-01T00:00:00Z',
+          updated_at: '2026-05-01T00:00:00Z',
+        },
+      ],
+    })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    expect(screen.getByText('AO')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Alias AO entfernen' })).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'AO x' })).toBeNull()
+  })
+
   it('passes no token-shaped prop into MediaUpload from the media tab', async () => {
     render(<AdminFansubEditPage />)
 
@@ -300,6 +423,101 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(screen.getByRole('link', { name: 'Media verwalten' }).getAttribute('href')).toContain(
       '/admin/episode-versions/6201/edit',
     )
+  })
+
+  it('opens release theme assets in a closable preview modal', async () => {
+    const release = {
+      release_id: 62,
+      release_version_id: 6201,
+      anime_id: 13,
+      anime_title: 'Naruto',
+      fansub_group_id: 88,
+      fansub_name: 'SubGroup',
+      episode_id: 249,
+      episode_number: '1',
+      episode_title: 'Wer ist Naruto?',
+      source: null,
+      version_count: 1,
+      has_theme_assets: true,
+      duration_seconds: 240,
+      created_at: '2026-05-25T00:00:00Z',
+    }
+
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [{ id: 13, title: 'Naruto', type: 'tv', header_image: null, cover_image: null }],
+    })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue({ data: [release] })
+    apiMocks.getAdminRelease.mockResolvedValue({ data: release })
+    apiMocks.getAdminAnimeThemes.mockResolvedValue({
+      data: [
+        {
+          id: 7,
+          anime_id: 13,
+          theme_type_id: 3,
+          theme_type_name: 'Insert',
+          title: 'Naruto Inserttheme',
+          created_at: '2026-05-25T00:00:00Z',
+        },
+      ],
+    })
+    apiMocks.getAdminAnimeThemeSegments.mockResolvedValue({
+      data: [
+        {
+          id: 70,
+          theme_id: 7,
+          anime_id: 13,
+          theme_title: 'Naruto Inserttheme',
+          theme_type_name: 'Insert',
+          fansub_group_id: 88,
+          version: 'SubGroup',
+          start_episode: 1,
+          end_episode: 1,
+          start_episode_id: 249,
+          end_episode_id: 249,
+          start_episode_number: '1',
+          end_episode_number: '1',
+          start_time: '00:01:00',
+          end_time: '00:02:00',
+          source_type: 'release_asset',
+          source_ref: null,
+          source_label: null,
+          playback_source_kind: 'uploaded_asset',
+          playback_duration_seconds: 240,
+          created_at: '2026-05-25T00:00:00Z',
+        },
+      ],
+    })
+    apiMocks.getAdminReleaseThemeAssets.mockResolvedValue({
+      data: [
+        {
+          release_id: 62,
+          theme_id: 7,
+          theme_type_name: 'Insert',
+          theme_title: 'Naruto Inserttheme',
+          media_id: 700,
+          public_url: '/api/v1/media/files/theme.mp4',
+          mime_type: 'video/mp4',
+          size_bytes: 1234,
+          created_at: '2026-05-25T00:00:00Z',
+        },
+      ],
+    })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    fireEvent.click(screen.getByRole('button', { name: /Anime &/i }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Naruto ausklappen' }))
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Release 62 ausklappen' }))[0])
+    fireEvent.click(await screen.findByRole('button', { name: /IN Uploadet/i }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Aktuelles Asset ansehen' }))
+
+    const dialog = screen.getByRole('dialog', { name: 'Theme-Video ansehen' })
+    expect(within(dialog).getByText(/Episode 1: Wer ist Naruto\?/)).not.toBeNull()
+    expect(dialog.querySelector('video')?.getAttribute('src')).toBe('/api/v1/media/files/theme.mp4')
+
+    fireEvent.click(within(dialog).getAllByRole('button', { name: 'Schließen' })[1])
+    expect(screen.queryByRole('dialog', { name: 'Theme-Video ansehen' })).toBeNull()
   })
 
   it('ignores stale release drawer detail responses after another release is opened', async () => {

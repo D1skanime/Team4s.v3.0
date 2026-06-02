@@ -54,6 +54,7 @@ export interface MeAnimeContribution {
   fansub_group_member_id: number
   status: 'confirmed' | 'proposed' | 'draft' | 'disputed' | 'hidden'
   role_codes: string[]
+  role_labels?: string[]
   started_year: number | null
   ended_year: number | null
   is_public_on_anime_page: boolean

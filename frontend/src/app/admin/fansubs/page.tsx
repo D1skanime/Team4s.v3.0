@@ -325,7 +325,7 @@ function AdminFansubsContent() {
   async function onDelete(item: FansubGroup) {
     if (!hasAccessToken) {
       setErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }
@@ -352,7 +352,7 @@ function AdminFansubsContent() {
   async function onBulkDelete() {
     if (!hasAccessToken) {
       setErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }
@@ -384,7 +384,7 @@ function AdminFansubsContent() {
   async function onBulkStatusChange() {
     if (!hasAccessToken) {
       setErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }

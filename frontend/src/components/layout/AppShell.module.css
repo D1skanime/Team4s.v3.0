@@ -71,7 +71,7 @@
 }
 
 .brand,
-.userFooter {
+.userIdentity {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -166,6 +166,8 @@
 }
 
 .userFooter {
+  display: grid;
+  gap: 12px;
   padding-top: 16px;
   border-top: 1px solid var(--color-border, rgba(100, 116, 139, 0.22));
 }
@@ -184,6 +186,31 @@
   border-radius: 50%;
   object-fit: cover;
   flex: 0 0 auto;
+}
+
+.logoutButton {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(100, 116, 139, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--color-text, #172033);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.logoutButton:hover:not(:disabled) {
+  background: rgba(47, 95, 227, 0.08);
+}
+
+.logoutButton:disabled {
+  cursor: wait;
+  opacity: 0.68;
 }
 
 .anonFooter {

@@ -433,7 +433,7 @@ function AdminAnimeCreateContent() {
     <main className={styles.page}>
       <p className={styles.backLinks}>
         <Link href="/admin">Admin</Link> |{" "}
-        <Link href="/admin/anime">Studio</Link> | <Link href="/auth">Auth</Link>
+        <Link href="/admin/anime">Studio</Link> | <Link href="/login">Anmeldung</Link>
       </p>
 
       <SharedAnimeEditorWorkspace

@@ -56,7 +56,7 @@ export function useEpisodeManagerBulkMutations({
     async (status: EpisodeStatus) => {
       if (!hasAccessToken) {
         onError(
-          "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+          "Anmeldung erforderlich. Bitte zuerst anmelden.",
         );
         return;
       }
@@ -123,7 +123,7 @@ export function useEpisodeManagerBulkMutations({
       void animeID;
       if (!hasAccessToken) {
         onError(
-          "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+          "Anmeldung erforderlich. Bitte zuerst anmelden.",
         );
         return;
       }
@@ -199,7 +199,7 @@ export function useEpisodeManagerBulkMutations({
       void animeID;
       if (!hasAccessToken) {
         onError(
-          "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+          "Anmeldung erforderlich. Bitte zuerst anmelden.",
         );
         return;
       }

@@ -1,4 +1,5 @@
-import { Badge, Card, EmptyState } from '@/components/ui'
+import { Card, EmptyState } from '@/components/ui'
+import { resolveApiUrl } from '@/lib/api'
 import type { MemberProfileRecentMedia } from '@/types/profile'
 
 import styles from './profile.module.css'
@@ -9,6 +10,15 @@ type RecentMediaSectionProps = {
   isPublicView?: boolean
 }
 
+function formatReleaseVersionTitle(item: MemberProfileRecentMedia): string {
+  const releaseVersionID = Number.isFinite(item.release_version_id) ? item.release_version_id : null
+  const label = item.release_version_label?.trim() ?? ''
+  if (releaseVersionID == null) return `Bild aus ${item.anime_title}`
+  return label
+    ? `Release-Version #${releaseVersionID} (${label})`
+    : `Release-Version #${releaseVersionID}`
+}
+
 export function RecentMediaSection({ items, canView }: RecentMediaSectionProps) {
   if (!canView || items.length === 0) {
     return <EmptyState title="Noch keine Medien hochgeladen." />
@@ -16,24 +26,28 @@ export function RecentMediaSection({ items, canView }: RecentMediaSectionProps) 
 
   return (
     <ul className={styles.recentMediaGrid} aria-label="Letzte Medien">
-      {items.slice(0, 3).map((item) => (
-        <li key={item.id}>
-          <Card variant="nested" className={styles.recentMediaCard}>
-            <div className={styles.recentMediaThumb}>
-              {item.thumbnail_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={item.thumbnail_url} alt="" loading="lazy" />
-              ) : (
-                <span aria-hidden="true">{item.category.slice(0, 2).toUpperCase()}</span>
-              )}
-            </div>
-            <div className={styles.recentItemBody}>
-              <Badge variant="info">{item.category}</Badge>
-              <strong>{item.anime_title}</strong>
-            </div>
-          </Card>
-        </li>
-      ))}
+      {items.slice(0, 3).map((item) => {
+        const thumbnailURL = resolveApiUrl(item.thumbnail_url || '')
+
+        return (
+          <li key={item.id}>
+            <Card variant="flat" className={styles.recentMediaCard}>
+              <div className={styles.recentMediaThumb}>
+                {thumbnailURL ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={thumbnailURL} alt={`Medienbild zu ${item.anime_title}`} loading="lazy" />
+                ) : (
+                  <span aria-hidden="true">{item.anime_title.slice(0, 2).toUpperCase()}</span>
+                )}
+              </div>
+              <div className={styles.recentItemBody}>
+                <strong>{formatReleaseVersionTitle(item)}</strong>
+                <span>{item.anime_title}</span>
+              </div>
+            </Card>
+          </li>
+        )
+      })}
     </ul>
   )
 }

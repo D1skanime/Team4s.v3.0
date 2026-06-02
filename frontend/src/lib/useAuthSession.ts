@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
-import { AUTH_SESSION_CHANGED_EVENT, getAuthSessionSnapshot } from '@/lib/api'
+import { AUTH_SESSION_CHANGED_EVENT, getAuthSessionSnapshot, logoutActiveAuthSession } from '@/lib/api'
 
 export interface AuthSessionState {
   /**
@@ -48,4 +48,8 @@ export function useAuthSession(): AuthSessionState {
   }, [])
 
   return state
+}
+
+export function useLogoutAuthSession(): () => Promise<void> {
+  return useCallback(() => logoutActiveAuthSession(), [])
 }

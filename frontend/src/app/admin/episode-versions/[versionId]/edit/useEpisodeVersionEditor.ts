@@ -77,7 +77,7 @@ export function useEpisodeVersionEditor() {
         return
       }
       if (!hasAccessToken) {
-        setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
+        setErrorMessage('Anmeldung erforderlich. Bitte zuerst anmelden.')
         setIsLoading(false)
         return
       }
@@ -148,7 +148,7 @@ export function useEpisodeVersionEditor() {
 
   async function handleScanFolder() {
     if (!hasAccessToken || !versionID) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
 
@@ -209,7 +209,7 @@ export function useEpisodeVersionEditor() {
     setSuccessMessage(null)
 
     if (!hasAccessToken || !versionID) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
     if (!formState.mediaProvider.trim() || !formState.mediaItemID.trim()) {
@@ -262,7 +262,7 @@ export function useEpisodeVersionEditor() {
     setSuccessMessage(null)
 
     if (!hasAccessToken || !versionID) {
-      setErrorMessage('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
+      setErrorMessage('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
 

@@ -113,7 +113,7 @@ function AdminAnimeEpisodeEditContent() {
 
     if (!hasAccessToken) {
       setErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }
@@ -155,7 +155,7 @@ function AdminAnimeEpisodeEditContent() {
 
     if (!hasAccessToken) {
       setErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }

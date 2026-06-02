@@ -2,11 +2,13 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import {
   Compass,
   LayoutDashboard,
+  LogOut,
   Menu,
   Settings,
   ShieldCheck,
@@ -17,6 +19,7 @@ import {
 
 import { Badge } from '@/components/ui'
 import { getFocusableElements } from '@/components/media/crop/mediaCropA11y'
+import { useLogoutAuthSession } from '@/lib/useAuthSession'
 
 import styles from './AppShell.module.css'
 
@@ -105,7 +108,7 @@ function AppShellNavGroups({
     { label: 'Meine Beiträge', icon: <Compass size={17} />, disabled: true, badge: 'bald' },
   ]
   const settingsItems: AppShellNavItem[] = [
-    { label: 'Account & Sicherheit', href: '/auth', icon: <Settings size={17} />, current: isCurrent(currentPath, '/auth') },
+    { label: 'Account & Sicherheit', href: '/me/profile', icon: <Settings size={17} />, current: isCurrent(currentPath, '/me/profile') },
   ]
   const groups = [
     { label: 'Public-Bereich', items: publicItems },
@@ -167,40 +170,56 @@ function AppShellAnonNavGroups({ currentPath }: { currentPath?: string }) {
 function DrawerAnonymousFooter() {
   return (
     <footer className={styles.anonFooter}>
-      <Link href="/auth" className={styles.btnPrimary}>
+      <Link href="/login" className={styles.btnPrimary}>
         Anmelden
-      </Link>
-      <Link href="/auth/register" className={styles.btnSecondary}>
-        Registrieren
       </Link>
     </footer>
   )
 }
 
-function DrawerUserFooter({ user }: { user?: AppShellUser | null }) {
+function DrawerUserFooter({
+  user,
+  isLoggingOut,
+  onLogout,
+}: {
+  user?: AppShellUser | null
+  isLoggingOut: boolean
+  onLogout: () => void
+}) {
   const displayName = user?.displayName || 'Angemeldetes Mitglied'
   const email = user?.email || 'Team4s Account'
 
   return (
     <footer className={styles.userFooter}>
-      {user?.avatarUrl ? (
-        <Image
-          src={user.avatarUrl}
-          alt={`Avatar von ${user?.displayName || 'Mitglied'}`}
-          className={styles.userAvatarImg}
-          width={36}
-          height={36}
-          unoptimized
-        />
-      ) : (
-        <span className={styles.userAvatar} aria-hidden="true">
-          {(user?.displayName || user?.email || '?').slice(0, 1).toUpperCase()}
-        </span>
-      )}
-      <div>
-        <strong>{displayName}</strong>
-        <span>{email}</span>
+      <div className={styles.userIdentity}>
+        {user?.avatarUrl ? (
+          <Image
+            src={user.avatarUrl}
+            alt={`Avatar von ${user?.displayName || 'Mitglied'}`}
+            className={styles.userAvatarImg}
+            width={36}
+            height={36}
+            unoptimized
+          />
+        ) : (
+          <span className={styles.userAvatar} aria-hidden="true">
+            {(user?.displayName || user?.email || '?').slice(0, 1).toUpperCase()}
+          </span>
+        )}
+        <div>
+          <strong>{displayName}</strong>
+          <span>{email}</span>
+        </div>
       </div>
+      <button
+        type="button"
+        className={styles.logoutButton}
+        disabled={isLoggingOut}
+        onClick={onLogout}
+      >
+        <LogOut size={16} aria-hidden="true" />
+        <span>{isLoggingOut ? 'Melde ab...' : 'Abmelden'}</span>
+      </button>
     </footer>
   )
 }
@@ -214,6 +233,9 @@ export function AppShell({
   children,
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const logoutAuthSession = useLogoutAuthSession()
+  const router = useRouter()
   const drawerRef = useRef<HTMLElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
 
@@ -250,6 +272,18 @@ export function AppShell({
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [drawerOpen])
+
+  async function handleLogout() {
+    if (isLoggingOut) return
+    setIsLoggingOut(true)
+    try {
+      await logoutAuthSession()
+    } finally {
+      setDrawerOpen(false)
+      router.push('/login')
+      setIsLoggingOut(false)
+    }
+  }
 
   return (
     <div className={styles.shell} data-shell-mode={mode}>
@@ -322,7 +356,11 @@ export function AppShell({
           )}
         </nav>
 
-        {mode === 'anonymous' ? <DrawerAnonymousFooter /> : <DrawerUserFooter user={user} />}
+        {mode === 'anonymous' ? (
+          <DrawerAnonymousFooter />
+        ) : (
+          <DrawerUserFooter user={user} isLoggingOut={isLoggingOut} onLogout={handleLogout} />
+        )}
       </aside>
       <div className={styles.content}>{children}</div>
     </div>

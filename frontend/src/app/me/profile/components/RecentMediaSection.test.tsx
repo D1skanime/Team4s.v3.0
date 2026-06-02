@@ -17,6 +17,8 @@ function makeMedia(overrides: Partial<MemberProfileRecentMedia> = {}): MemberPro
     category: 'screenshot',
     thumbnail_url: '/media/profile/media-1.jpg',
     anime_title: 'Maboroshi no Fansub',
+    release_version_id: 41,
+    release_version_label: 'v1',
     ...overrides,
   }
 }

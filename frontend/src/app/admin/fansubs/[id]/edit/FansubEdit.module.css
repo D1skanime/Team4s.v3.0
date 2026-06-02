@@ -1,8 +1,3 @@
-.aliasChipDanger {
-  border-color: color-mix(in srgb, var(--color-error) 42%, transparent);
-  color: color-mix(in srgb, var(--color-error) 70%, var(--text-primary));
-}
-
 .inputRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -28,14 +23,14 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.78);
 }
 
-.chipRow {
+.fansubEditAliasBadgeRow {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
   align-items: center;
 }
 
-.chipBox {
+.fansubEditAliasBadgeBox {
   min-height: 3.25rem;
   border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
   border-radius: calc(var(--radius-sm) + 3px);
@@ -47,26 +42,372 @@
   box-shadow: inset 0 1px 0 color-mix(in srgb, white 48%, transparent);
 }
 
-.chip {
+.fansubEditAliasBadgeItem {
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
-  background: color-mix(in srgb, var(--bg-secondary) 94%, #fff);
-  color: var(--text-primary);
-  border-radius: 999px;
-  padding: 0.42rem 0.72rem;
-  cursor: pointer;
-  font-size: 0.84rem;
-  line-height: 1;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.82),
-    0 10px 18px -16px rgba(17, 24, 39, 0.34);
+  gap: 0.15rem;
 }
 
-.chip:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.chipRow {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.fansubEditMembershipSurface {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.fansubEditMembershipIntro,
+.fansubEditMembershipCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.fansubEditMembershipTitle,
+.fansubEditMembershipSubtitle {
+  margin: 0;
+}
+
+.fansubEditMembershipHeaderActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.fansubEditMembershipAssignCard,
+.fansubEditMembershipCard,
+.fansubEditMembershipEmpty {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.fansubEditMembershipList {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.fansubEditMembershipProfile {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 0.9rem;
+  min-width: min(100%, 480px);
+}
+
+.fansubEditMembershipAvatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 32% 20%, color-mix(in srgb, white 18%, transparent), transparent 38%),
+    linear-gradient(145deg, #15254b, #50688f);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.18rem;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
+    0 12px 26px -22px rgba(17, 24, 39, 0.65);
+}
+
+.fansubEditMembershipIdentity {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.fansubEditMembershipIdentity strong,
+.fansubEditMembershipIdentity span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.fansubEditMembershipNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.fansubEditMembershipNameRow strong {
+  font-size: 1.02rem;
+}
+
+.fansubEditMembershipMetaLine {
+  color: var(--text-secondary);
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fansubEditMembershipMetaLine > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+}
+
+.fansubEditMembershipBadgeRow,
+.fansubEditMembershipControls,
+.fansubEditMembershipActionRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.fansubEditMembershipControls {
+  align-self: center;
+  margin-left: auto;
+}
+
+.fansubEditMembershipBody {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
+  padding-top: 0.72rem;
+  flex-wrap: wrap;
+}
+
+.fansubEditMembershipRoleSummary,
+.fansubEditMembershipRoleEditor {
+  display: grid;
+  gap: 0.4rem;
+  min-width: min(100%, 320px);
+}
+
+.fansubEditMembershipRoleSummary > span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+  .fansubEditMembershipProfile {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .fansubEditMembershipAvatar {
+    width: 44px;
+    height: 44px;
+    font-size: 0.95rem;
+  }
+
+  .fansubEditMembershipControls {
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+}
+
+.fansubEditMembershipRoleEditor {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+  padding: 0.7rem;
+}
+
+.fansubEditMembershipModalStack,
+.fansubEditMembershipModalSection {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.fansubEditMembershipModalSection {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 74%, transparent);
+  padding: 0.85rem;
+}
+
+.fansubEditCandidateResults {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.fansubEditCandidateResult {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+
+.fansubEditCandidateResult:hover,
+.fansubEditCandidateResult:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 32%, transparent);
+  box-shadow: 0 12px 24px -22px color-mix(in srgb, var(--accent) 55%, transparent);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.fansubEditCandidateResult span {
+  display: grid;
+  gap: 0.16rem;
+}
+
+.fansubEditCandidateResult strong {
+  font-size: 0.95rem;
+}
+
+.fansubEditCandidateResult small {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.fansubEditCandidateResultSelected {
+  border-color: color-mix(in srgb, var(--accent) 44%, transparent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--bg-primary));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 72%, transparent);
+}
+
+.fansubEditCandidateSelection {
+  display: grid;
+  gap: 0.15rem;
+  border: 1px solid color-mix(in srgb, var(--success) 22%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--success) 8%, var(--bg-primary));
+  padding: 0.7rem 0.8rem;
+}
+
+.fansubEditCandidateSelection span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fansubEditCandidateSelection strong {
+  color: var(--text-primary);
+  font-size: 0.96rem;
+}
+
+.fansubEditRoleBadge {
+  --role-accent: #355481;
+  --role-bg: rgba(240, 246, 255, 0.98);
+  --role-border: rgba(89, 122, 176, 0.22);
+  background: var(--role-bg);
+  border-color: var(--role-border);
+  color: var(--role-accent);
+}
+
+.fansubEditRoleOption {
+  --role-accent: #355481;
+  --role-bg: rgba(240, 246, 255, 0.98);
+  --role-border: rgba(89, 122, 176, 0.22);
+  border-color: var(--role-border);
+  color: var(--role-accent);
+}
+
+.fansubEditRoleOptionSelected {
+  background: var(--role-bg);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 45%, transparent),
+    0 10px 18px -16px color-mix(in srgb, var(--role-accent) 42%, transparent);
+}
+
+.fansubEditRoleLead {
+  --role-accent: #183b7c;
+  --role-bg: linear-gradient(to bottom, rgba(232, 240, 255, 0.98), rgba(203, 219, 252, 0.96));
+  --role-border: rgba(50, 92, 174, 0.26);
+}
+
+.fansubEditRoleProjectLead {
+  --role-accent: #245c88;
+  --role-bg: linear-gradient(to bottom, rgba(231, 247, 255, 0.98), rgba(204, 235, 247, 0.96));
+  --role-border: rgba(54, 129, 171, 0.25);
+}
+
+.fansubEditRoleEditor {
+  --role-accent: #6d3f83;
+  --role-bg: linear-gradient(to bottom, rgba(249, 239, 255, 0.98), rgba(235, 218, 246, 0.96));
+  --role-border: rgba(137, 82, 160, 0.24);
+}
+
+.fansubEditRoleTranslator {
+  --role-accent: #27664f;
+  --role-bg: linear-gradient(to bottom, rgba(236, 251, 245, 0.98), rgba(212, 242, 230, 0.96));
+  --role-border: rgba(68, 143, 111, 0.24);
+}
+
+.fansubEditRoleTimer {
+  --role-accent: #7a5a20;
+  --role-bg: linear-gradient(to bottom, rgba(255, 249, 232, 0.98), rgba(247, 236, 198, 0.96));
+  --role-border: rgba(172, 134, 55, 0.25);
+}
+
+.fansubEditRoleTypesetter {
+  --role-accent: #7b3c4e;
+  --role-bg: linear-gradient(to bottom, rgba(255, 240, 245, 0.98), rgba(247, 219, 229, 0.96));
+  --role-border: rgba(166, 76, 105, 0.24);
+}
+
+.fansubEditRoleQuality {
+  --role-accent: #5f5924;
+  --role-bg: linear-gradient(to bottom, rgba(250, 252, 232, 0.98), rgba(235, 240, 197, 0.96));
+  --role-border: rgba(132, 140, 58, 0.24);
+}
+
+.fansubEditRoleEncoder {
+  --role-accent: #42536d;
+  --role-bg: linear-gradient(to bottom, rgba(242, 246, 251, 0.98), rgba(224, 232, 241, 0.96));
+  --role-border: rgba(99, 116, 141, 0.24);
+}
+
+.fansubEditRoleDefault {
+  --role-accent: #43536e;
+  --role-bg: linear-gradient(to bottom, rgba(248, 250, 253, 0.98), rgba(232, 236, 243, 0.96));
+  --role-border: rgba(92, 105, 131, 0.18);
+}
+
+.fansubEditMembershipMetaGrid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.fansubEditMembershipMetaGrid > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.fansubEditMembershipMetaGrid span {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fansubEditMembershipMetaGrid strong {
+  overflow-wrap: anywhere;
 }
 
 
@@ -559,6 +900,30 @@
     0 10px 18px -20px rgba(17, 24, 39, 0.12);
 }
 
+.fansubEditAliasCard,
+.fansubEditCommunityCard {
+  min-width: 0;
+}
+
+.fansubEditAliasBody,
+.fansubEditCommunityBody {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.fansubEditAliasControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: end;
+}
+
+@media (max-width: 640px) {
+  .fansubEditAliasControls {
+    grid-template-columns: 1fr;
+  }
+}
+
 .fansubEditBasicGrid {
   display: grid;
   gap: 0.8rem;
@@ -799,7 +1164,7 @@
 @media (min-width: 992px) {
   .fansubEditLinkRow {
     grid-template-columns: minmax(150px, 180px) minmax(0, 220px) minmax(0, 1fr) auto;
-    align-items: center;
+    align-items: end;
   }
 }
 
@@ -841,7 +1206,7 @@
   border-radius: calc(var(--radius-sm) + 2px);
   background: color-mix(in srgb, white 92%, var(--bg-card));
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.35rem;
   align-items: center;
   padding: 0 0.55rem;
@@ -873,6 +1238,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.fansubEditLinkRemoveButton {
+  align-self: end;
+  margin-bottom: 0.1rem;
 }
 
 .fansubEditReleaseState {
@@ -1700,17 +2070,20 @@
 
 .fansubEditReleaseDrawerMediaLink {
   justify-self: start;
-  color: var(--accent-primary);
-  font-size: 0.84rem;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
   width: fit-content;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+}
+
+.fansubEditThemePreview {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.fansubEditThemePreviewVideo {
+  width: 100%;
+  max-height: 70vh;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-sm);
+  background: #000;
 }
 
 .fansubEditReleaseDrawerMediaGrid {

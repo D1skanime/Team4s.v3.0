@@ -37,7 +37,7 @@ export function CommentForm({ animeID, onCommentCreated }: CommentFormProps) {
 
     if (!hasRuntimeAuthToken()) {
       setHasAuthToken(false)
-      setErrorMessage('Anmeldung erforderlich. Erstelle zuerst ein Token auf /auth.')
+      setErrorMessage('Anmeldung erforderlich. Bitte melde dich zuerst an.')
       setSuccessMessage(null)
       return
     }

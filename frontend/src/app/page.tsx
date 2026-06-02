@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 /**
  * Startseite der Anwendung.
- * Rendert die Einstiegsnavigation mit Links zu Anime-Liste, Watchlist, Auth und Admin.
+ * Rendert die Einstiegsnavigation mit Links zu Anime-Liste, Watchlist, Login und Admin.
  */
 export default function HomePage() {
   return (
@@ -18,8 +18,8 @@ export default function HomePage() {
           <Link href="/watchlist" className="primary-link">
             Zur Watchlist
           </Link>
-          <Link href="/auth" className="primary-link">
-            Zu Auth
+          <Link href="/login" className="primary-link">
+            Anmelden
           </Link>
           <Link href="/admin" className="primary-link">
             Zu Admin

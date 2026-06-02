@@ -121,7 +121,7 @@ export function useJellyfinSync(
 
   const search = useCallback(async () => {
     if (!hasAccessToken) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+      onError('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
     const query = searchQuery.trim()
@@ -165,7 +165,7 @@ export function useJellyfinSync(
 
   const preview = useCallback(async (animeID: number) => {
     if (!hasAccessToken) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+      onError('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
     const seasonNumber = parsePositiveInt(seasonInput)
@@ -216,7 +216,7 @@ export function useJellyfinSync(
 
   const sync = useCallback(async (animeID: number, options: { requireFreshPreview?: boolean } = {}) => {
     if (!hasAccessToken) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+      onError('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return false
     }
 
@@ -288,7 +288,7 @@ export function useJellyfinSync(
 
   const syncRow = useCallback(async (anime: AnimeListItem, overrideSeriesID?: string) => {
     if (!hasAccessToken) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+      onError('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
     const seasonNumber = parsePositiveInt(seasonInput)
@@ -336,7 +336,7 @@ export function useJellyfinSync(
     onBrowserRefresh?: () => Promise<void>
   }) => {
     if (!hasAccessToken) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.')
+      onError('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
     if (options.total <= 0) {

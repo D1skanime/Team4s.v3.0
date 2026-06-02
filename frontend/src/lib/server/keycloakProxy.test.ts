@@ -23,14 +23,14 @@ describe('keycloakProxy helpers', () => {
     const body = buildTokenRequestBody({
       grant_type: 'authorization_code',
       code: 'abc123',
-      redirect_uri: 'http://localhost:3002/auth',
+      redirect_uri: 'http://localhost:3002/login',
       code_verifier: 'verifier-123',
     }, env)
 
     expect(body.toString()).toContain('client_id=team4s-frontend')
     expect(body.toString()).toContain('grant_type=authorization_code')
     expect(body.toString()).toContain('code=abc123')
-    expect(body.toString()).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A3002%2Fauth')
+    expect(body.toString()).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A3002%2Flogin')
     expect(body.toString()).toContain('code_verifier=verifier-123')
   })
 

@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ChevronDown, ChevronRight, Save } from 'lucide-react'
+import { ChevronDown, ChevronRight, Pencil, Save, Trash2 } from 'lucide-react'
 
-import { RichTextEditor } from '@/components/editor'
+import { RichTextEditor, RichTextRenderer } from '@/components/editor'
 import {
   ApiError,
+  deleteAnimeFansubProjectNote,
   getAdminFansubAnime,
   getAnimeFansubProjectNote,
   upsertAnimeFansubProjectNote,
@@ -66,6 +67,12 @@ function noteStatusLabel(value: NoteStatus): string {
   return 'Gelöscht'
 }
 
+function previewText(value?: string | null): string {
+  const normalized = (value || '').replace(/\s+/g, ' ').trim()
+  if (!normalized) return 'Noch kein Projekttext vorhanden.'
+  return normalized.length > 240 ? `${normalized.slice(0, 240).trimEnd()}...` : normalized
+}
+
 function noteToForm(note: AnimeFansubProjectNote): NoteFormState {
   return {
     title: note.title ?? '',
@@ -75,61 +82,69 @@ function noteToForm(note: AnimeFansubProjectNote): NoteFormState {
   }
 }
 
+interface AnimeProjectNotePreviewProps {
+  anime: AnimeEntry
+  note: AnimeFansubProjectNote
+  deleting: boolean
+  onEdit: () => void
+  onDelete: () => void
+}
+
+function AnimeProjectNotePreview({ anime, note, deleting, onEdit, onDelete }: AnimeProjectNotePreviewProps) {
+  return (
+    <section className={styles.editorCard}>
+      <div className={styles.editorCardHeader}>
+        <div className={styles.editorCardHeading}>
+          <p className={styles.editorEyebrow}>Anime-Projekttext</p>
+          <h3 className={styles.editorTitle}>{note.title?.trim() || `Projekttext für ${anime.title}`}</h3>
+        </div>
+        <div className={styles.editorBadgeRow}>
+          <span className={styles.editorBadge}>{noteVisibilityLabel(note.visibility)}</span>
+          <span className={styles.editorBadge}>{noteStatusLabel(note.status)}</span>
+        </div>
+      </div>
+
+      {note.bodyHtml?.trim() ? (
+        <RichTextRenderer bodyHtml={note.bodyHtml} />
+      ) : (
+        <p className={styles.editorPreviewText}>{previewText(note.bodyText)}</p>
+      )}
+
+      <div className={styles.editorActionBar}>
+        <button type="button" className={styles.button} onClick={onEdit} disabled={deleting}>
+          <Pencil size={14} />Bearbeiten
+        </button>
+        <button
+          type="button"
+          className={`${styles.buttonSecondary} ${styles.editorGhostButton}`}
+          onClick={onDelete}
+          disabled={deleting}
+        >
+          <Trash2 size={14} />{deleting ? 'Löschen...' : 'Löschen'}
+        </button>
+      </div>
+    </section>
+  )
+}
+
 interface AnimeProjectNoteFormProps {
   fansubId: number
   anime: AnimeEntry
   hasAccessToken: boolean
+  initialNote: AnimeFansubProjectNote | null
+  onSaved: (note: AnimeFansubProjectNote) => void
 }
 
-function AnimeProjectNoteForm({ fansubId, anime, hasAccessToken }: AnimeProjectNoteFormProps) {
-  const [form, setForm] = useState<NoteFormState>(emptyNoteForm())
-  const [noteId, setNoteId] = useState<number | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
+function AnimeProjectNoteForm({ fansubId, anime, hasAccessToken, initialNote, onSaved }: AnimeProjectNoteFormProps) {
+  const [form, setForm] = useState<NoteFormState>(() => initialNote ? noteToForm(initialNote) : emptyNoteForm())
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
-  const [saveSuccess, setSaveSuccess] = useState(false)
-
-  useEffect(() => {
-    if (!hasAccessToken) {
-      setLoading(false)
-      return
-    }
-
-    let active = true
-    setLoading(true)
-    setLoadError(null)
-
-    getAnimeFansubProjectNote(fansubId, anime.id)
-      .then((note) => {
-        if (!active) return
-        if (note) {
-          setNoteId(note.id)
-          setForm(noteToForm(note))
-        } else {
-          setNoteId(null)
-          setForm(emptyNoteForm())
-        }
-      })
-      .catch((err: unknown) => {
-        if (!active) return
-        setLoadError(err instanceof ApiError ? err.message : 'Fehler beim Laden des Projekttexts.')
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
-
-    return () => {
-      active = false
-    }
-  }, [fansubId, anime.id, hasAccessToken])
 
   async function handleSave() {
     if (!hasAccessToken) return
 
     setSaving(true)
     setSaveError(null)
-    setSaveSuccess(false)
 
     const payload: UpsertAnimeFansubProjectNoteRequest = {
       title: form.title.trim() || undefined,
@@ -140,23 +155,13 @@ function AnimeProjectNoteForm({ fansubId, anime, hasAccessToken }: AnimeProjectN
 
     try {
       const saved = await upsertAnimeFansubProjectNote(fansubId, anime.id, payload)
-      setNoteId(saved.id)
       setForm(noteToForm(saved))
-      setSaveSuccess(true)
-      setTimeout(() => setSaveSuccess(false), 3000)
+      setSaving(false)
+      onSaved(saved)
     } catch (err: unknown) {
       setSaveError(err instanceof ApiError ? err.message : 'Fehler beim Speichern des Projekttexts.')
-    } finally {
       setSaving(false)
     }
-  }
-
-  if (loading) {
-    return <div className={styles.fansubEditReleaseState}>Projekttext wird geladen...</div>
-  }
-
-  if (loadError) {
-    return <div className={styles.errorBox}>{loadError}</div>
   }
 
   return (
@@ -236,10 +241,7 @@ function AnimeProjectNoteForm({ fansubId, anime, hasAccessToken }: AnimeProjectN
       {saveError ? <div className={styles.errorBox}>{saveError}</div> : null}
 
       <div className={styles.editorActionBar}>
-        <div className={styles.editorActionMeta}>
-          {saveSuccess ? <div className={styles.fansubEditSaveSuccess}>Projekttext gespeichert.</div> : null}
-          {noteId !== null ? <p className={styles.editorActionHint}>Gespeicherter Eintrag (ID: {noteId})</p> : null}
-        </div>
+        <div className={styles.editorActionMeta} />
         <button
           type="button"
           className={`${styles.button} ${styles.editorPrimaryAction}`}
@@ -251,6 +253,103 @@ function AnimeProjectNoteForm({ fansubId, anime, hasAccessToken }: AnimeProjectN
         </button>
       </div>
     </section>
+  )
+}
+
+interface AnimeProjectNoteWorkspaceProps {
+  fansubId: number
+  anime: AnimeEntry
+  hasAccessToken: boolean
+}
+
+function AnimeProjectNoteWorkspace({ fansubId, anime, hasAccessToken }: AnimeProjectNoteWorkspaceProps) {
+  const [note, setNote] = useState<AnimeFansubProjectNote | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  useEffect(() => {
+    if (!hasAccessToken) {
+      setLoading(false)
+      return
+    }
+
+    let active = true
+    setLoading(true)
+    setLoadError(null)
+    setDeleteError(null)
+
+    getAnimeFansubProjectNote(fansubId, anime.id)
+      .then((loadedNote) => {
+        if (!active) return
+        setNote(loadedNote)
+        setIsEditing(loadedNote === null)
+      })
+      .catch((err: unknown) => {
+        if (!active) return
+        setLoadError(err instanceof ApiError ? err.message : 'Fehler beim Laden des Projekttexts.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [fansubId, anime.id, hasAccessToken])
+
+  async function handleDelete() {
+    if (!hasAccessToken || !note) return
+
+    setDeleting(true)
+    setDeleteError(null)
+
+    try {
+      await deleteAnimeFansubProjectNote(fansubId, anime.id, note.id)
+      setNote(null)
+      setIsEditing(true)
+    } catch (err: unknown) {
+      setDeleteError(err instanceof ApiError ? err.message : 'Fehler beim Löschen des Projekttexts.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  if (loading) {
+    return <div className={styles.fansubEditReleaseState}>Projekttext wird geladen...</div>
+  }
+
+  if (loadError) {
+    return <div className={styles.errorBox}>{loadError}</div>
+  }
+
+  return (
+    <>
+      {deleteError ? <div className={styles.errorBox}>{deleteError}</div> : null}
+
+      {note && !isEditing ? (
+        <AnimeProjectNotePreview
+          anime={anime}
+          note={note}
+          deleting={deleting}
+          onEdit={() => setIsEditing(true)}
+          onDelete={() => { void handleDelete() }}
+        />
+      ) : (
+        <AnimeProjectNoteForm
+          fansubId={fansubId}
+          anime={anime}
+          hasAccessToken={hasAccessToken}
+          initialNote={note}
+          onSaved={(saved) => {
+            setNote(saved)
+            setIsEditing(false)
+          }}
+        />
+      )}
+    </>
   )
 }
 
@@ -338,7 +437,7 @@ function AnimeProjectNotesSectionBody({
                   </button>
                   {expanded ? (
                     <div className={styles.fansubEditAnimeProjectNotesCardBody}>
-                      <AnimeProjectNoteForm
+                      <AnimeProjectNoteWorkspace
                         fansubId={fansubId}
                         anime={anime}
                         hasAccessToken={hasAccessToken}

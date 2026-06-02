@@ -51,7 +51,7 @@ function AcceptInvitationContent() {
       ) : null}
       {token && isClientInitialized && !hasAccessToken ? (
         <p>
-          Bitte zuerst über <Link href="/auth">/auth</Link> anmelden und danach zu dieser Seite zurückkehren.
+          Bitte zuerst über <Link href="/login">anmelden</Link> anmelden und danach zu dieser Seite zurückkehren.
         </p>
       ) : null}
       {token && isClientInitialized && hasAccessToken ? (

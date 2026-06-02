@@ -37,7 +37,7 @@ export function WatchlistAddButton({
     }
     if (!hasRuntimeAuthToken()) {
       setHasAuthToken(false)
-      setMessage('Anmeldung erforderlich. Erstelle zuerst ein Token auf /auth.')
+      setMessage('Anmeldung erforderlich. Bitte melde dich zuerst an.')
       return
     }
     setHasAuthToken(true)

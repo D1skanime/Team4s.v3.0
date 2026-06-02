@@ -36,6 +36,8 @@ export interface MemberProfileRecentMedia {
   category: string
   thumbnail_url?: string | null
   anime_title: string
+  release_version_id: number
+  release_version_label: string
 }
 
 export interface MemberProfileRecentContribution {
@@ -81,6 +83,7 @@ export interface MemberProfileData {
   } | null
   background_image?: {
     public_url: string
+    source_original_url?: string | null
   } | null
   keycloak_account_url?: string | null
   capabilities: MemberProfileCapabilities
@@ -127,6 +130,7 @@ export interface PublicMemberProfileData {
   } | null
   background_image?: {
     public_url: string
+    source_original_url?: string | null
   } | null
   memberships: MemberProfileMembership[]
   recent_media: MemberProfileRecentMedia[]

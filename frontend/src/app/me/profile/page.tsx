@@ -16,8 +16,12 @@ import { ProfileBackgroundCard } from './components/ProfileBackgroundCard'
 import { ProfileBasicsForm } from './components/ProfileBasicsForm'
 import { ProfileStoryCard } from './components/ProfileStoryCard'
 import { VisibilityCard } from './components/VisibilityCard'
+import { getMaxActivityYear, MIN_ACTIVITY_YEAR } from './components/activityYears'
 import type { MemberProfileFormState } from './components/profileFormTypes'
 import styles from './page.module.css'
+
+const PROFILE_LOAD_TIMEOUT_MS = 10000
+const AUTH_REQUIRED_MESSAGE = 'Anmeldung erforderlich. Bitte melde dich erneut an.'
 
 function richTextFromPlainText(text: string): TipTapDocument {
   const trimmed = text.trim()
@@ -68,7 +72,7 @@ function normalizedDateFromYear(raw: string): string | null {
   const trimmed = raw.trim()
   if (!trimmed) return null
   const parsed = Number.parseInt(trimmed, 10)
-  if (!Number.isFinite(parsed) || parsed < 1970 || parsed > 2100) return null
+  if (!Number.isFinite(parsed) || parsed < MIN_ACTIVITY_YEAR || parsed > getMaxActivityYear()) return null
   return `${parsed}-01-01`
 }
 
@@ -77,7 +81,9 @@ function validateOptionalYear(raw: string): string | undefined {
   if (!trimmed) return undefined
   if (!/^\d{4}$/.test(trimmed)) return 'Bitte ein vierstelliges Jahr eingeben.'
   const parsed = Number.parseInt(trimmed, 10)
-  if (!Number.isFinite(parsed) || parsed < 1970 || parsed > 2100) return 'Bitte ein Jahr zwischen 1970 und 2100 eingeben.'
+  if (!Number.isFinite(parsed) || parsed < MIN_ACTIVITY_YEAR || parsed > getMaxActivityYear()) {
+    return `Bitte ein Jahr zwischen ${MIN_ACTIVITY_YEAR} und ${getMaxActivityYear()} auswählen.`
+  }
   return undefined
 }
 
@@ -85,6 +91,23 @@ function readErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message
   if (error instanceof Error) return error.message
   return fallback
+}
+
+function isUnauthorizedError(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 401
+}
+
+function withProfileLoadTimeout<T>(promise: Promise<T>): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error('Profil konnte nicht rechtzeitig geladen werden. Bitte melde dich erneut an.'))
+    }, PROFILE_LOAD_TIMEOUT_MS)
+  })
+
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timeoutId) clearTimeout(timeoutId)
+  })
 }
 
 function accountSnapshot(profile: MemberProfileData): string {
@@ -166,7 +189,7 @@ export default function MyProfilePage() {
     async function load() {
       if (!isClientInitialized) return
       if (!hasAuthSession) {
-        setError('Anmeldung erforderlich. Bitte zuerst einen gültigen Login aufbauen.')
+        setError(AUTH_REQUIRED_MESSAGE)
         setIsLoading(false)
         return
       }
@@ -174,10 +197,12 @@ export default function MyProfilePage() {
       try {
         setIsLoading(true)
         setError(null)
-        const response = await getOwnProfile()
+        const response = await withProfileLoadTimeout(getOwnProfile())
         if (!cancelled) applyProfile(response.data, { syncForm: true, resetDirty: true })
       } catch (loadError) {
-        if (!cancelled) setError(readErrorMessage(loadError, 'Profil konnte nicht geladen werden.'))
+        if (!cancelled) {
+          setError(isUnauthorizedError(loadError) ? AUTH_REQUIRED_MESSAGE : readErrorMessage(loadError, 'Profil konnte nicht geladen werden.'))
+        }
       } finally {
         if (!cancelled) setIsLoading(false)
       }
@@ -207,6 +232,10 @@ export default function MyProfilePage() {
 
   const avatarURL = useMemo(() => resolveApiUrl(profile?.avatar?.public_url || ''), [profile?.avatar?.public_url])
   const backgroundImageURL = useMemo(() => resolveApiUrl(profile?.background_image?.public_url || ''), [profile?.background_image?.public_url])
+  const sourceBackgroundURL = useMemo(
+    () => resolveApiUrl(profile?.background_image?.source_original_url || profile?.background_image?.public_url || ''),
+    [profile?.background_image?.public_url, profile?.background_image?.source_original_url],
+  )
   const sourceAvatarURL = useMemo(
     () => resolveApiUrl(profile?.avatar?.source_original_url || profile?.avatar?.public_url || ''),
     [profile?.avatar?.public_url, profile?.avatar?.source_original_url],
@@ -269,14 +298,14 @@ export default function MyProfilePage() {
     }
   }
 
-  async function handleBackgroundSelected(croppedFile: File) {
+  async function handleBackgroundSelected(payload: { sourceFile: File; croppedFile: File }) {
     if (!hasAuthSession) return
 
     try {
       setIsUploadingBackground(true)
       setError(null)
       setSuccess(null)
-      const response = await uploadOwnProfileBackground({ croppedFile })
+      const response = await uploadOwnProfileBackground(payload)
       const shouldSyncForm = !isFormDirtyRef.current
       applyProfile(response.data, { syncForm: shouldSyncForm, resetDirty: shouldSyncForm })
       setSuccess('Hintergrundbild wurde aktualisiert.')
@@ -297,19 +326,25 @@ export default function MyProfilePage() {
 
   return (
       <main className={styles.page}>
-        {isLoading ? (
+        {!isClientInitialized ? (
+          <ErrorState
+            title="Anmeldung wird geprüft"
+            description="Die Profilseite wartet auf deine Browser-Session. Falls die Seite hier stehen bleibt, melde dich bitte erneut an."
+            action={<Button href="/login" variant="secondary">Zur Anmeldung</Button>}
+          />
+        ) : isLoading ? (
           <LoadingState title="Profil wird geladen" description="Team4s lädt dein Profil." />
         ) : null}
 
-        {!isLoading && error && !profile ? (
+        {isClientInitialized && !isLoading && error && !profile ? (
           <ErrorState
-            title={hasAuthSession ? 'Profil konnte nicht geladen werden' : 'Anmeldung erforderlich'}
+            title={!hasAuthSession || error === AUTH_REQUIRED_MESSAGE ? 'Anmeldung erforderlich' : 'Profil konnte nicht geladen werden'}
             description={error}
-            action={<Button href="/auth" variant="secondary">Zur Anmeldung</Button>}
+            action={<Button href="/login" variant="secondary">Zur Anmeldung</Button>}
           />
         ) : null}
 
-        {!isLoading && profile ? (
+        {isClientInitialized && !isLoading && profile ? (
           <>
             <MemberProfileHero profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL} isSaving={isSaving} canSave={isDirty && !hasYearErrors && profile.capabilities.can_edit_own_profile} />
             {error ? <div className={styles.errorBox}>{error}</div> : null}
@@ -356,6 +391,7 @@ export default function MyProfilePage() {
                   <ProfileBackgroundCard
                     profile={profile}
                     backgroundURL={backgroundImageURL}
+                    sourceBackgroundURL={sourceBackgroundURL}
                     isUploading={isUploadingBackground}
                     onBackgroundSelected={handleBackgroundSelected}
                   />

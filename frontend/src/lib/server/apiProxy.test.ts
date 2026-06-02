@@ -1,13 +1,19 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   buildApiProxyTarget,
   copyProxyRequestHeaders,
   copyProxyResponseHeaders,
   getInternalApiBaseUrl,
+  proxyBackendApiRequest,
+  shouldBufferProxyRequestBody,
 } from './apiProxy'
 
 describe('apiProxy', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('uses the Docker-internal backend URL for same-origin API proxy requests', () => {
     expect(getInternalApiBaseUrl({
       API_INTERNAL_URL: 'http://team4sv30-backend:8092',
@@ -53,5 +59,27 @@ describe('apiProxy', () => {
 
     expect(headers.get('Content-Type')).toBe('application/json')
     expect(headers.has('Transfer-Encoding')).toBe(false)
+  })
+
+  it('buffers multipart upload bodies before forwarding to the backend', async () => {
+    const form = new FormData()
+    form.set('theme_id', '1')
+    form.set('file', new Blob(['probe'], { type: 'text/plain' }), 'probe.txt')
+    const request = new Request('http://127.0.0.1:3000/api/v1/admin/releases/1/theme-assets', {
+      method: 'POST',
+      body: form,
+    })
+    let forwardedInit: RequestInit | undefined
+    vi.stubGlobal('fetch', vi.fn(async (_target: string, init: RequestInit) => {
+      forwardedInit = init
+      return Response.json({ data: true }, { status: 201 })
+    }))
+
+    expect(shouldBufferProxyRequestBody(request.clone())).toBe(true)
+    const response = await proxyBackendApiRequest(request, ['admin', 'releases', '1', 'theme-assets'])
+
+    expect(response.status).toBe(201)
+    expect(forwardedInit?.body).toBeInstanceOf(ArrayBuffer)
+    expect('duplex' in (forwardedInit || {})).toBe(false)
   })
 })

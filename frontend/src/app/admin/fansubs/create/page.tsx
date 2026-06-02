@@ -22,6 +22,7 @@ import {
   updateFansubLink,
 } from "@/lib/api";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
+import { YearPicker } from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
 import {
   CollaborationMember,
@@ -56,7 +57,7 @@ const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = [
   "irc",
 ];
 const YEAR_MIN = 1900;
-const YEAR_MAX = 2100;
+const YEAR_MAX = new Date().getFullYear();
 const URL_PROTOCOLS = new Set(["http:", "https:", "irc:", "ircs:"]);
 
 type FormState = {
@@ -429,22 +430,22 @@ function AdminFansubCreateContent() {
         ? "Slug muss lowercase kebab-case sein."
         : null;
   const foundedError = Number.isNaN(years.founded)
-    ? "Founded Year muss eine Zahl sein."
+    ? "Gründungsjahr muss eine Zahl sein."
     : years.founded !== null &&
         (years.founded < YEAR_MIN || years.founded > YEAR_MAX)
-      ? `Founded Year muss zwischen ${YEAR_MIN} und ${YEAR_MAX} liegen.`
+      ? `Gründungsjahr muss zwischen ${YEAR_MIN} und ${YEAR_MAX} liegen.`
       : null;
   const dissolvedError = Number.isNaN(years.dissolved)
-    ? "Dissolved Year muss eine Zahl sein."
+    ? "Auflösungsjahr muss eine Zahl sein."
     : years.dissolved !== null &&
         (years.dissolved < YEAR_MIN || years.dissolved > YEAR_MAX)
-      ? `Dissolved Year muss zwischen ${YEAR_MIN} und ${YEAR_MAX} liegen.`
+      ? `Auflösungsjahr muss zwischen ${YEAR_MIN} und ${YEAR_MAX} liegen.`
       : null;
   const dissolvedAfterFoundedError =
     years.founded !== null &&
     years.dissolved !== null &&
     years.dissolved < years.founded
-      ? "Dissolved Year muss groesser oder gleich Founded Year sein."
+      ? "Auflösungsjahr muss größer oder gleich dem Gründungsjahr sein."
       : null;
   const linkErrors = links.map((link) =>
     link.url.trim().length > 0 && !isAbsoluteURL(link.url)
@@ -803,8 +804,7 @@ function AdminFansubCreateContent() {
           {error ? <div className={styles.errorBox}>{error}</div> : null}
           {isClientInitialized && !hasRuntimeAuthToken ? (
             <div className={styles.errorBox}>
-              Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token
-              erstellen.
+              Anmeldung erforderlich. Bitte zuerst anmelden.
             </div>
           ) : null}
 
@@ -948,25 +948,21 @@ function AdminFansubCreateContent() {
                       />
                     </div>
                     <div className={styles.field}>
-                      <label>Founded Year</label>
-                      <input
-                        type="number"
-                        min={YEAR_MIN}
-                        max={YEAR_MAX}
-                        inputMode="numeric"
+                      <label htmlFor="fansub-group-create-founded-year">
+                        Gründungsjahr
+                      </label>
+                      <YearPicker
+                        id="fansub-group-create-founded-year"
+                        label="Gründungsjahr"
                         value={form.foundedYear}
-                        onChange={(event) =>
+                        minYear={YEAR_MIN}
+                        maxYear={YEAR_MAX}
+                        invalid={Boolean(foundedError)}
+                        onChange={(value) =>
                           setForm((current) => ({
                             ...current,
-                            foundedYear: event.target.value,
+                            foundedYear: value,
                           }))
-                        }
-                        placeholder="YYYY"
-                        aria-invalid={Boolean(foundedError)}
-                        className={
-                          foundedError
-                            ? styles.fansubEditInputInvalid
-                            : undefined
                         }
                       />
                       {foundedError ? (
@@ -976,28 +972,24 @@ function AdminFansubCreateContent() {
                       ) : null}
                     </div>
                     <div className={styles.field}>
-                      <label>Dissolved Year</label>
-                      <input
-                        type="number"
-                        min={YEAR_MIN}
-                        max={YEAR_MAX}
-                        inputMode="numeric"
+                      <label htmlFor="fansub-group-create-dissolved-year">
+                        Auflösungsjahr
+                      </label>
+                      <YearPicker
+                        id="fansub-group-create-dissolved-year"
+                        label="Auflösungsjahr"
                         value={form.dissolvedYear}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            dissolvedYear: event.target.value,
-                          }))
-                        }
-                        placeholder="YYYY"
-                        aria-invalid={
+                        minYear={YEAR_MIN}
+                        maxYear={YEAR_MAX}
+                        invalid={
                           Boolean(dissolvedError) ||
                           Boolean(dissolvedAfterFoundedError)
                         }
-                        className={
-                          dissolvedError || dissolvedAfterFoundedError
-                            ? styles.fansubEditInputInvalid
-                            : undefined
+                        onChange={(value) =>
+                          setForm((current) => ({
+                            ...current,
+                            dissolvedYear: value,
+                          }))
                         }
                       />
                       {dissolvedError ? (

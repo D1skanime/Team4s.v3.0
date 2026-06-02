@@ -173,7 +173,7 @@ function AdminEpisodesContent() {
 
     if (!hasAuthToken) {
       setErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }
@@ -230,7 +230,7 @@ function AdminEpisodesContent() {
 
     if (!hasAuthToken) {
       setErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }
@@ -280,7 +280,7 @@ function AdminEpisodesContent() {
       <p className={styles.backLinks}>
         <Link href="/admin">Admin</Link>
         <span> | </span>
-        <Link href="/auth">Auth</Link>
+        <Link href="/login">Anmeldung</Link>
         <span> | </span>
         <Link href="/admin/anime">Studio</Link>
         <span> | </span>
@@ -308,7 +308,7 @@ function AdminEpisodesContent() {
 
       {!hasAuthToken ? (
         <div className={styles.errorBox}>
-          Kein aktiver Login gefunden. Bitte zuerst auf /auth anmelden.
+          Kein aktiver Login gefunden. Bitte zuerst anmelden.
         </div>
       ) : null}
 

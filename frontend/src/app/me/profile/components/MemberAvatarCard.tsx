@@ -27,6 +27,50 @@ function filenameFromSourceURL(sourceAvatarURL: string, fallbackFilename?: strin
   }
 }
 
+function isGIFFile(file: File): boolean {
+  return file.type.toLowerCase() === 'image/gif' || file.name.toLowerCase().endsWith('.gif')
+}
+
+async function isAnimatedWebPFile(file: File): Promise<boolean> {
+  const isWebP = file.type.toLowerCase() === 'image/webp' || file.name.toLowerCase().endsWith('.webp')
+  if (!isWebP) return false
+  try {
+    const header = new Uint8Array(await readBlobArrayBuffer(file.slice(0, 21)))
+    const isRiff = String.fromCharCode(...header.slice(0, 4)) === 'RIFF'
+    const isWebPContainer = String.fromCharCode(...header.slice(8, 12)) === 'WEBP'
+    const isExtendedWebP = String.fromCharCode(...header.slice(12, 16)) === 'VP8X'
+    return isRiff && isWebPContainer && isExtendedWebP && (header[20] & 0x02) === 0x02
+  } catch {
+    return false
+  }
+}
+
+function readBlobArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
+  if (typeof blob.arrayBuffer === 'function') return blob.arrayBuffer()
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) {
+        resolve(reader.result)
+        return
+      }
+      reject(new Error('Bilddatei konnte nicht gelesen werden.'))
+    }
+    reader.onerror = () => reject(reader.error || new Error('Bilddatei konnte nicht gelesen werden.'))
+    reader.readAsArrayBuffer(blob)
+  })
+}
+
+async function shouldPreserveAnimatedAvatarFile(file: File): Promise<boolean> {
+  return isGIFFile(file) || await isAnimatedWebPFile(file)
+}
+
+function isGIFAvatar(profile: MemberProfileData, sourceAvatarURL: string): boolean {
+  const mimeType = profile.avatar?.mime_type?.toLowerCase()
+  const source = sourceAvatarURL.toLowerCase()
+  return mimeType === 'image/gif' || mimeType === 'image/webp' || source.includes('.gif')
+}
+
 export function MemberAvatarCard({
   profile,
   avatarURL,
@@ -41,7 +85,7 @@ export function MemberAvatarCard({
   const label = profile.fansub_name || profile.account_display_name || 'Profil'
   const canUpload = profile.capabilities.can_upload_own_avatar
   const uploadHintID = 'profile-avatar-upload-hint'
-  const canEditExistingAvatar = Boolean(canUpload && sourceAvatarURL)
+  const canEditExistingAvatar = Boolean(canUpload && sourceAvatarURL && !isGIFAvatar(profile, sourceAvatarURL))
 
   async function handleEditExistingAvatar() {
     if (!canEditExistingAvatar || isUploading || isPreparingExistingAvatar) return
@@ -65,6 +109,20 @@ export function MemberAvatarCard({
     }
   }
 
+  async function handleSelectedFile(file: File) {
+    if (!canUpload || isUploading) return
+    setLocalError(null)
+    if (await shouldPreserveAnimatedAvatarFile(file)) {
+      try {
+        await onAvatarSelected({ sourceFile: file, croppedFile: file })
+      } catch (error) {
+        setLocalError(error instanceof Error ? error.message : 'Avatar-Bild konnte nicht hochgeladen werden.')
+      }
+      return
+    }
+    setSelectedFile(file)
+  }
+
   return (
     <div className={styles.avatarStack}>
       <div className={styles.avatarPreview}>
@@ -83,7 +141,7 @@ export function MemberAvatarCard({
         aria-describedby={uploadHintID}
         onClick={() => inputRef.current?.click()}
       >
-        {isUploading ? 'Bild lädt...' : 'Bild ändern'}
+        {isUploading ? 'Bild lädt...' : avatarURL ? 'Bild ändern' : 'Bild hochladen'}
       </Button>
       {canEditExistingAvatar ? (
         <Button
@@ -101,19 +159,18 @@ export function MemberAvatarCard({
         ref={inputRef}
         type="file"
         aria-label="Avatar-Bild auswählen"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/jpeg,image/png,image/webp,image/gif"
         onChange={(event) => {
           const file = event.target.files?.[0] ?? null
           event.currentTarget.value = ''
           if (!file || !canUpload || isUploading) return
-          setLocalError(null)
-          setSelectedFile(file)
+          void handleSelectedFile(file)
         }}
         disabled={isUploading || isPreparingExistingAvatar || !canUpload}
         className={styles.visuallyHiddenInput}
       />
       <p id={uploadHintID} className={styles.mutedText}>
-        Wähle ein Avatar-Bild als JPG, PNG oder WEBP.
+        Wähle ein Avatar-Bild als JPG, PNG, WEBP, animiertes WebP oder animiertes GIF.
       </p>
       {localError ? <p role="alert" className={styles.inlineError}>{localError}</p> : null}
       {selectedFile ? (

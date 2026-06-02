@@ -14,6 +14,7 @@ interface ContributionCardProps {
 
 // Lesbare Bezeichner für bekannte role_codes
 const ROLE_LABELS: Record<string, string> = {
+  translator: 'Übersetzung',
   translation: 'Übersetzung',
   editing: 'Editing',
   timing: 'Timing',

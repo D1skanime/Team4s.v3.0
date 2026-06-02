@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
 
 import type { ImgHTMLAttributes, ReactNode } from 'react'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { AppShell } from './AppShell'
+
+const routerPushMock = vi.hoisted(() => vi.fn())
+const logoutAuthSessionMock = vi.hoisted(() => vi.fn())
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...props }: { href: string; children: ReactNode; className?: string; [key: string]: unknown }) => (
@@ -12,16 +15,26 @@ vi.mock('next/link', () => ({
   ),
 }))
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: routerPushMock,
+  }),
+}))
+
 vi.mock('next/image', () => ({
   default: ({ alt, unoptimized, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
-    void unoptimized
     // eslint-disable-next-line @next/next/no-img-element
-    return <img alt={alt} {...props} />
+    return <img alt={alt} data-unoptimized={unoptimized ? 'true' : 'false'} {...props} />
   },
+}))
+
+vi.mock('@/lib/useAuthSession', () => ({
+  useLogoutAuthSession: () => logoutAuthSessionMock,
 }))
 
 afterEach(() => {
   cleanup()
+  vi.clearAllMocks()
 })
 
 describe('AppShell', () => {
@@ -72,7 +85,7 @@ describe('AppShell', () => {
     expect(screen.getAllByText('bald').length).toBeGreaterThanOrEqual(2)
   })
 
-  it('renders member group memberships as admin edit links', () => {
+  it('renders member group memberships as fansub edit links', () => {
     render(
       <AppShell
         currentPath="/admin/fansubs/42/edit"
@@ -177,7 +190,7 @@ describe('AppShell drawer behavior', () => {
     expect(navButton.getAttribute('aria-expanded')).toBe('false')
   })
 
-  it('shows login and register actions in anonymous mode', () => {
+  it('shows the login action in anonymous mode', () => {
     render(
       <AppShell mode="anonymous" currentPath="/anime">
         <main>Anime</main>
@@ -187,14 +200,14 @@ describe('AppShell drawer behavior', () => {
     fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
 
     expect(screen.getByRole('link', { name: /Anmelden/i })).not.toBeNull()
-    expect(screen.getByRole('link', { name: /Registrieren/i })).not.toBeNull()
+    expect(screen.queryByRole('link', { name: /Registrieren/i })).toBeNull()
   })
 
   it('shows the provided avatar image for signed-in members', () => {
     render(
       <AppShell
         currentPath="/me/profile"
-        user={{ displayName: 'Mika', email: 'mika@example.com', avatarUrl: 'https://cdn.test.com/av.jpg' }}
+        user={{ displayName: 'Mika', email: 'mika@example.com', avatarUrl: 'https://cdn.test.com/av.gif' }}
       >
         <main>Profilinhalt</main>
       </AppShell>,
@@ -203,7 +216,8 @@ describe('AppShell drawer behavior', () => {
     fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
 
     const avatar = screen.getByRole('img', { name: /Avatar von Mika/i })
-    expect(avatar.getAttribute('src')).toBe('https://cdn.test.com/av.jpg')
+    expect(avatar.getAttribute('src')).toBe('https://cdn.test.com/av.gif')
+    expect(avatar.getAttribute('data-unoptimized')).toBe('true')
   })
 
   it('falls back to initials when no avatar image exists', () => {
@@ -230,6 +244,24 @@ describe('AppShell drawer behavior', () => {
 
     const adminLink = screen.getByRole('link', { name: /Verwaltung/i })
     expect(adminLink.getAttribute('href')).toBe('/admin')
+  })
+
+  it('logs out signed-in members from the drawer footer', async () => {
+    logoutAuthSessionMock.mockResolvedValue(undefined)
+
+    render(
+      <AppShell currentPath="/me/profile" user={{ displayName: 'Mika', email: 'mika@example.com' }}>
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Abmelden/i }))
+
+    await waitFor(() => {
+      expect(logoutAuthSessionMock).toHaveBeenCalledTimes(1)
+      expect(routerPushMock).toHaveBeenCalledWith('/login')
+    })
   })
 
   it('hides the admin link when the caller lacks the capability', () => {

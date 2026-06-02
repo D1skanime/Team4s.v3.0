@@ -681,7 +681,7 @@ export function useAdminAnimeCreateController() {
 
     if (!hasAuthToken) {
       setErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }
@@ -993,7 +993,7 @@ export function useAdminAnimeCreateController() {
 
     if (!hasAuthToken) {
       setAniSearchErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }
@@ -1055,7 +1055,7 @@ export function useAdminAnimeCreateController() {
 
     if (!hasAuthToken) {
       setAniSearchErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }
@@ -1112,7 +1112,7 @@ export function useAdminAnimeCreateController() {
 
     if (!hasAuthToken) {
       setAssetSearchErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst auf /auth ein gueltiges Token erstellen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       return;
     }

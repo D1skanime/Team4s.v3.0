@@ -66,6 +66,11 @@ export function copyProxyResponseHeaders(source: Headers): Headers {
   return headers
 }
 
+export function shouldBufferProxyRequestBody(request: Request): boolean {
+  const contentType = request.headers.get('content-type') || ''
+  return contentType.toLowerCase().startsWith('multipart/form-data')
+}
+
 export async function proxyBackendApiRequest(request: Request, pathSegments: string[]): Promise<Response> {
   const target = buildApiProxyTarget(pathSegments, request.url)
   const hasBody = request.method !== 'GET' && request.method !== 'HEAD'
@@ -77,8 +82,12 @@ export async function proxyBackendApiRequest(request: Request, pathSegments: str
   }
 
   if (hasBody && request.body) {
-    init.body = request.body
-    init.duplex = 'half'
+    if (shouldBufferProxyRequestBody(request)) {
+      init.body = await request.arrayBuffer()
+    } else {
+      init.body = request.body
+      init.duplex = 'half'
+    }
   }
 
   let upstream: Response

@@ -17,13 +17,14 @@ const keycloakAuthAllowlist = new Set([
 ])
 
 const authEntrypointAllowlist = new Set([
-  'src/app/auth/page.tsx',
+  'src/app/login/page.tsx',
   'src/app/api/auth/keycloak/logout/route.ts',
   'src/app/api/auth/keycloak/token/route.ts',
 ])
 
 const ssrServerBoundaryAllowlist = new Set([
   'src/app/anime/[id]/page.tsx',
+  'src/app/members/[slug]/page.tsx',
   'src/app/watchlist/page.tsx',
 ])
 
@@ -37,6 +38,7 @@ const publicNoAuthFetchAllowlist = new Set([
   'src/app/api/admin/asset-proxy/route.ts',
   'src/lib/server/apiProxy.ts',
   'src/app/episodes/[id]/components/ScreenshotGallery/ScreenshotGallery.tsx',
+  'src/app/me/profile/components/MemberAvatarCard.tsx',
   'src/components/admin/MediaUpload.tsx',
 ])
 

@@ -37,7 +37,7 @@ describe('AuthSessionSwitchGuard', () => {
     vi.unstubAllGlobals()
   })
 
-  it('clears local auth state and redirects to /auth after a cross-tab session switch', async () => {
+  it('clears local auth state and redirects to /login after a cross-tab session switch', async () => {
     render(<AuthSessionSwitchGuard />)
 
     window.dispatchEvent(new StorageEvent('storage', {
@@ -51,7 +51,7 @@ describe('AuthSessionSwitchGuard', () => {
     }))
 
     await waitFor(() => {
-      expect(replaceMock).toHaveBeenCalledWith('/auth')
+      expect(replaceMock).toHaveBeenCalledWith('/login')
     })
 
     expect(window.localStorage.getItem('team4s.auth.access_token')).toBeNull()
@@ -86,7 +86,7 @@ describe('AuthSessionSwitchGuard', () => {
     } as MessageEvent)
 
     await waitFor(() => {
-      expect(replaceMock).toHaveBeenCalledWith('/auth')
+      expect(replaceMock).toHaveBeenCalledWith('/login')
     })
 
     expect(window.localStorage.getItem('team4s.auth.access_token')).toBeNull()

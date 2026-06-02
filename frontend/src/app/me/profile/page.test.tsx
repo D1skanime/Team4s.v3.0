@@ -2,7 +2,7 @@
 
 import type { ImgHTMLAttributes, ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 import type { MemberProfileResponse } from '@/types/profile'
 
@@ -19,9 +19,8 @@ vi.mock('next/link', () => ({
 
 vi.mock('next/image', () => ({
   default: ({ alt, unoptimized, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
-    void unoptimized
     // eslint-disable-next-line @next/next/no-img-element
-    return <img alt={alt} {...props} />
+    return <img alt={alt} data-unoptimized={unoptimized ? 'true' : 'false'} {...props} />
   },
 }))
 
@@ -76,14 +75,17 @@ vi.mock('@/components/media/crop/AvatarCropDialog', () => ({
 vi.mock('@/components/media/crop/Team4sCropper', () => ({
   Team4sCropper: ({
     title,
+    output,
     onApply,
     onCancel,
   }: {
     title: string
+    output: { width: number; height: number }
     onApply: (croppedFile: File) => void
     onCancel: () => void
   }) => (
     <div role="dialog" aria-label={title}>
+      <span data-testid="cropper-output-size">{output.width}x{output.height}</span>
       <button type="button" onClick={() => onApply(new File(['background'], 'background.jpg', { type: 'image/jpeg' }))}>
         Ausschnitt übernehmen
       </button>
@@ -115,6 +117,8 @@ vi.mock('@/lib/api', () => ({
   resolveApiUrl: (value: string) => value,
 }))
 
+import { ApiError } from '@/lib/api'
+
 import MyProfilePage from './page'
 
 beforeEach(() => {
@@ -131,6 +135,7 @@ afterEach(() => {
   cleanup()
   vi.clearAllMocks()
   vi.unstubAllGlobals()
+  vi.useRealTimers()
 })
 
 function makeProfileResponse(overrides: Partial<MemberProfileResponse['data']> = {}): MemberProfileResponse {
@@ -197,6 +202,24 @@ function makeProfileResponse(overrides: Partial<MemberProfileResponse['data']> =
   }
 }
 
+async function pickActivityYear(label: string, year: string) {
+  const control = await screen.findByLabelText(label)
+  fireEvent.click(control)
+
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const yearButton = screen.queryByRole('button', { name: year })
+    if (yearButton) {
+      fireEvent.click(yearButton)
+      return
+    }
+    const earlierButton = screen.getByRole('button', { name: 'Früher' }) as HTMLButtonElement
+    if (earlierButton.disabled) break
+    fireEvent.click(earlierButton)
+  }
+
+  throw new Error(`Jahr ${year} wurde im Year-Picker nicht gefunden.`)
+}
+
 describe('MyProfilePage', () => {
   it('loads the own profile route without admin naming leaks', async () => {
     getOwnProfileMock.mockResolvedValue(makeProfileResponse())
@@ -209,6 +232,16 @@ describe('MyProfilePage', () => {
     expect(screen.getByText('Meine Fansub-Geschichte')).not.toBeNull()
     expect(screen.getByTestId('story-renderer').textContent).toContain('Seit 2016')
     expect(screen.queryByLabelText('Meine Fansub-Geschichte Editor')).toBeNull()
+  })
+
+  it('links from the own profile hub to the public member profile', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({ member_id: 4 }))
+
+    render(<MyProfilePage />)
+
+    const publicProfileLink = await screen.findByRole('link', { name: /Öffentliches Profil ansehen/i })
+    expect(publicProfileLink.getAttribute('href')).toBe('/members/4')
+    expect(publicProfileLink.getAttribute('aria-disabled')).toBe('false')
   })
 
   it('opens the rich story editor only after Bearbeiten', async () => {
@@ -254,6 +287,32 @@ describe('MyProfilePage', () => {
     expect(await screen.findByRole('heading', { name: 'Mein Profil' })).not.toBeNull()
     expect(getOwnProfileMock).toHaveBeenCalledTimes(1)
     expect(screen.queryByText('Anmeldung erforderlich')).toBeNull()
+  })
+
+  it('shows the login action when the profile session is rejected', async () => {
+    getOwnProfileMock.mockRejectedValue(new ApiError(401, 'Session abgelaufen.'))
+
+    render(<MyProfilePage />)
+
+    expect(await screen.findByText('Anmeldung erforderlich')).not.toBeNull()
+    expect(screen.getByText('Anmeldung erforderlich. Bitte melde dich erneut an.')).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Zur Anmeldung' }).getAttribute('href')).toBe('/login')
+  })
+
+  it('does not keep the profile loader forever when the request stalls', async () => {
+    vi.useFakeTimers()
+    getOwnProfileMock.mockReturnValue(new Promise(() => undefined))
+
+    render(<MyProfilePage />)
+
+    expect(screen.getByText('Profil wird geladen')).not.toBeNull()
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10000)
+    })
+
+    expect(screen.getByText('Profil konnte nicht geladen werden')).not.toBeNull()
+    expect(screen.getByText('Profil konnte nicht rechtzeitig geladen werden. Bitte melde dich erneut an.')).not.toBeNull()
   })
 
   it('keeps the account display name out of editable profile fields until Team4s data changes', async () => {
@@ -317,8 +376,8 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
-    fireEvent.change(await screen.findByLabelText('Aktiv seit'), { target: { value: '2015' } })
-    fireEvent.change(screen.getByLabelText('Aktiv bis'), { target: { value: '2020' } })
+    await pickActivityYear('Aktiv seit', '2015')
+    await pickActivityYear('Aktiv bis', '2020')
     fireEvent.click(screen.getByRole('button', { name: 'Profil speichern' }))
 
     await waitFor(() => {
@@ -339,7 +398,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
-    fireEvent.click(await screen.findByLabelText('Ich bin aktuell in der Fansub-Szene aktiv'))
+    fireEvent.click(await screen.findByLabelText('Aktuell aktiv'))
     fireEvent.click(screen.getByRole('button', { name: 'Profil speichern' }))
 
     await waitFor(() => {
@@ -441,13 +500,21 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
-    const activeFromSelect = await screen.findByLabelText('Aktiv seit')
+    const currentYear = String(new Date().getFullYear())
+    const activeFromPicker = await screen.findByLabelText('Aktiv seit') as HTMLButtonElement
 
-    expect(activeFromSelect.tagName).toBe('SELECT')
-    expect(within(activeFromSelect).getByRole('option', { name: '1970' })).not.toBeNull()
-    expect(within(activeFromSelect).getByRole('option', { name: '2100' })).not.toBeNull()
-    expect(within(activeFromSelect).queryByRole('option', { name: '1969' })).toBeNull()
-    expect(within(activeFromSelect).queryByRole('option', { name: '2101' })).toBeNull()
+    expect(activeFromPicker.tagName).toBe('BUTTON')
+    expect(screen.queryByLabelText('Aktiv seit ein Jahr vor')).toBeNull()
+    expect(screen.queryByLabelText('Aktiv seit ein Jahr zurück')).toBeNull()
+
+    fireEvent.click(activeFromPicker)
+
+    expect(screen.getByRole('button', { name: currentYear })).not.toBeNull()
+    expect(screen.queryByRole('button', { name: '2100' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Keine Angabe' })).not.toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: currentYear }))
+    expect(activeFromPicker.textContent).toContain(currentYear)
   })
 
   it('keeps avatar upload separate and surfaces upload errors without losing dirty fields', async () => {
@@ -501,6 +568,75 @@ describe('MyProfilePage', () => {
     expect(await screen.findByText('Avatar wurde aktualisiert.')).not.toBeNull()
   })
 
+  it('uploads GIF avatars directly so animation is preserved', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+    uploadOwnProfileAvatarMock.mockResolvedValue(makeProfileResponse({
+      avatar: {
+        id: 138,
+        filename: 'original.gif',
+        public_url: '/media/profile/3/avatar/new/original.gif',
+        mime_type: 'image/gif',
+        size_bytes: 2048,
+        width: 512,
+        height: 512,
+        created_at: '2026-06-02T08:00:00Z',
+      },
+    }))
+
+    render(<MyProfilePage />)
+
+    const gifFile = new File(['gif'], 'avatar.gif', { type: 'image/gif' })
+    fireEvent.change(await screen.findByLabelText('Avatar-Bild auswählen'), {
+      target: { files: [gifFile] },
+    })
+
+    await waitFor(() => expect(uploadOwnProfileAvatarMock).toHaveBeenCalledTimes(1))
+    const payload = uploadOwnProfileAvatarMock.mock.calls[0][0] as { sourceFile: File; croppedFile: File }
+    expect(payload.sourceFile).toBe(gifFile)
+    expect(payload.croppedFile).toBe(gifFile)
+    expect(screen.queryByRole('dialog', { name: 'Avatar zuschneiden' })).toBeNull()
+    const avatarImages = await screen.findAllByAltText('MikaFX Avatar')
+    expect(avatarImages.some((image) => image.getAttribute('src') === '/media/profile/3/avatar/new/original.gif')).toBe(true)
+    expect(avatarImages.every((image) => image.getAttribute('data-unoptimized') === 'true')).toBe(true)
+  })
+
+  it('uploads animated WebP avatars directly so animation is preserved', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+    uploadOwnProfileAvatarMock.mockResolvedValue(makeProfileResponse({
+      avatar: {
+        id: 140,
+        filename: 'original.webp',
+        public_url: '/media/profile/3/avatar/new/original.webp',
+        mime_type: 'image/webp',
+        size_bytes: 2048,
+        width: 512,
+        height: 512,
+        created_at: '2026-06-02T08:00:00Z',
+      },
+    }))
+
+    render(<MyProfilePage />)
+
+    const animatedWebPHeader = new Uint8Array(21)
+    animatedWebPHeader.set([82, 73, 70, 70], 0)
+    animatedWebPHeader.set([87, 69, 66, 80], 8)
+    animatedWebPHeader.set([86, 80, 56, 88], 12)
+    animatedWebPHeader[20] = 0x02
+    const webPFile = new File([animatedWebPHeader], 'avatar.gif.webp', { type: 'image/webp' })
+    fireEvent.change(await screen.findByLabelText('Avatar-Bild auswählen'), {
+      target: { files: [webPFile] },
+    })
+
+    await waitFor(() => expect(uploadOwnProfileAvatarMock).toHaveBeenCalledTimes(1))
+    const payload = uploadOwnProfileAvatarMock.mock.calls[0][0] as { sourceFile: File; croppedFile: File }
+    expect(payload.sourceFile).toBe(webPFile)
+    expect(payload.croppedFile).toBe(webPFile)
+    expect(screen.queryByRole('dialog', { name: 'Avatar zuschneiden' })).toBeNull()
+    const avatarImages = await screen.findAllByAltText('MikaFX Avatar')
+    expect(avatarImages.some((image) => image.getAttribute('src') === '/media/profile/3/avatar/new/original.webp')).toBe(true)
+    expect(avatarImages.every((image) => image.getAttribute('data-unoptimized') === 'true')).toBe(true)
+  })
+
   it('uploads and refreshes the profile background image', async () => {
     getOwnProfileMock.mockResolvedValue(makeProfileResponse())
     uploadOwnProfileBackgroundMock.mockResolvedValue(makeProfileResponse({
@@ -514,15 +650,46 @@ describe('MyProfilePage', () => {
     fireEvent.change(await screen.findByLabelText('Hintergrundbild auswählen'), {
       target: { files: [new File(['source'], 'background.png', { type: 'image/png' })] },
     })
+    expect((await screen.findByTestId('cropper-output-size')).textContent).toBe('1920x384')
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt übernehmen' }))
 
     await waitFor(() => expect(uploadOwnProfileBackgroundMock).toHaveBeenCalledTimes(1))
     expect(uploadOwnProfileBackgroundMock.mock.calls[0][0]).toMatchObject({
+      sourceFile: expect.any(File),
       croppedFile: expect.any(File),
     })
     const backgroundPreview = await screen.findByAltText('Aktuelles Profil-Hintergrundbild')
     expect(backgroundPreview.getAttribute('src')).toBe('/media/profile/3/background/new/original.jpg')
     expect(await screen.findByText('Hintergrundbild wurde aktualisiert.')).not.toBeNull()
+  })
+
+  it('reuses the retained background source when editing the existing crop', async () => {
+    const sourceBlob = new Blob(['background-source'], { type: 'image/jpeg' })
+    const fetchMock = vi.fn().mockResolvedValue(new Response(sourceBlob, {
+      status: 200,
+      headers: { 'Content-Type': 'image/jpeg' },
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      background_image: {
+        public_url: '/media/profile/3/background/current/original.jpg',
+        source_original_url: '/media/profile/3/background/current/source_original.jpg',
+      },
+    }))
+    uploadOwnProfileBackgroundMock.mockResolvedValue(makeProfileResponse())
+
+    render(<MyProfilePage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt bearbeiten' }))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/media/profile/3/background/current/source_original.jpg'))
+    const cropDialog = await screen.findByRole('dialog', { name: 'Hintergrundbild zuschneiden' })
+    fireEvent.click(within(cropDialog).getByRole('button', { name: /Ausschnitt/ }))
+
+    await waitFor(() => expect(uploadOwnProfileBackgroundMock).toHaveBeenCalledTimes(1))
+    const payload = uploadOwnProfileBackgroundMock.mock.calls[0][0] as { sourceFile: File; croppedFile: File }
+    expect(payload.sourceFile.name).toBe('source_original.jpg')
+    expect(payload.sourceFile.type).toBe('image/jpeg')
+    expect(payload.croppedFile.type).toBe('image/jpeg')
   })
 
   it('reuses the retained avatar source when editing the existing crop', async () => {
@@ -558,5 +725,26 @@ describe('MyProfilePage', () => {
     expect(payload.sourceFile.name).toBe('source_original.jpg')
     expect(payload.sourceFile.type).toBe('image/jpeg')
     expect(payload.croppedFile.type).toBe('image/png')
+  })
+
+  it('does not offer re-cropping for existing GIF avatars', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      avatar: {
+        id: 139,
+        filename: 'original.gif',
+        public_url: '/media/profile/3/avatar/current/original.gif',
+        source_original_url: '/media/profile/3/avatar/current/source_original.gif',
+        mime_type: 'image/gif',
+        size_bytes: 2048,
+        width: 512,
+        height: 512,
+        created_at: '2026-06-02T08:00:00Z',
+      },
+    }))
+
+    render(<MyProfilePage />)
+
+    expect((await screen.findAllByAltText('MikaFX Avatar')).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: 'Ausschnitt bearbeiten' })).toBeNull()
   })
 })

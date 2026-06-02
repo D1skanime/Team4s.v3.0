@@ -18,7 +18,7 @@ export default function AdminOverviewPage() {
           <span> | </span>
           <Link href="/anime">Anime</Link>
           <span> | </span>
-          <Link href="/auth">Auth</Link>
+          <Link href="/login">Anmeldung</Link>
         </p>
 
         <header className={styles.header}>

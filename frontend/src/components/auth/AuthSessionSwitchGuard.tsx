@@ -15,8 +15,8 @@ export function AuthSessionSwitchGuard() {
   useEffect(() => {
     const forceLogout = () => {
       clearAuthSession({ broadcast: false })
-      if (window.location.pathname !== '/auth') {
-        window.location.replace('/auth')
+      if (window.location.pathname !== '/login') {
+        window.location.replace('/login')
         return
       }
 

@@ -28,7 +28,7 @@ export default async function WatchlistPage({ searchParams }: WatchlistPageProps
         <header className={styles.header}>
           <h1 className={styles.title}>Watchlist</h1>
           <p className={styles.subtitle}>
-            Anmeldung erforderlich. Erstelle ein Token auf <Link href="/auth">/auth</Link>.
+            Anmeldung erforderlich. Erstelle ein Token auf <Link href="/login">anmelden</Link>.
           </p>
         </header>
       </main>
@@ -44,7 +44,7 @@ export default async function WatchlistPage({ searchParams }: WatchlistPageProps
     response = await getWatchlist({ page, per_page: perPage }, authToken)
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
-      errorMessage = 'Anmeldung abgelaufen oder ungültig. Bitte auf /auth erneut anmelden.'
+      errorMessage = 'Anmeldung abgelaufen oder ungültig. Bitte melde dich erneut an.'
     } else if (error instanceof ApiError) {
       errorMessage = error.message
     } else {
@@ -63,7 +63,7 @@ export default async function WatchlistPage({ searchParams }: WatchlistPageProps
           <p>
             <Link href={`/watchlist?page=${page}&per_page=${perPage}`}>Erneut versuchen</Link>
             <span> | </span>
-            <Link href="/auth">Zu /auth</Link>
+            <Link href="/login">Zur Anmeldung</Link>
           </p>
         </div>
       </main>

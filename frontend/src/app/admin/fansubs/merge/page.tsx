@@ -171,7 +171,7 @@ function MergeFansubsContent() {
   const loadPreview = useCallback(async () => {
     if (!targetID || sourceIDs.size === 0) return;
     if (!hasAccessToken) {
-      setError("Anmeldung erforderlich. Bitte zuerst auf /auth anmelden.");
+      setError("Anmeldung erforderlich. Bitte zuerst anmelden.");
       return;
     }
 

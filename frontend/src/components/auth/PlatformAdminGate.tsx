@@ -20,31 +20,37 @@ export function PlatformAdminGate({ children }: PlatformAdminGateProps) {
 
   useEffect(() => {
     if (!isClientInitialized) return;
-    if (!hasAccessToken) {
-      setIsLoading(false);
-      setCurrentUser(null);
-      setErrorMessage("Anmeldung erforderlich.");
-      return;
-    }
 
     let cancelled = false;
-    setIsLoading(true);
-    setErrorMessage(null);
-    void getCurrentUser()
-      .then((response) => {
+    async function resolveAdminUser() {
+      if (!hasAccessToken) {
+        if (!cancelled) {
+          setIsLoading(false);
+          setCurrentUser(null);
+          setErrorMessage("Anmeldung erforderlich.");
+        }
+        return;
+      }
+
+      setIsLoading(true);
+      setErrorMessage(null);
+      try {
+        const response = await getCurrentUser();
         if (!cancelled) setCurrentUser(response.data);
-      })
-      .catch((error: unknown) => {
-        if (!cancelled)
+      } catch (error: unknown) {
+        if (!cancelled) {
           setErrorMessage(
             error instanceof Error
               ? error.message
               : "Berechtigung konnte nicht geprüft werden.",
           );
-      })
-      .finally(() => {
+        }
+      } finally {
         if (!cancelled) setIsLoading(false);
-      });
+      }
+    }
+
+    void resolveAdminUser();
 
     return () => {
       cancelled = true;
@@ -66,7 +72,7 @@ export function PlatformAdminGate({ children }: PlatformAdminGateProps) {
         <p>
           <Link href="/manage/groups">Zu Meine Gruppen</Link>
           <span> | </span>
-          <Link href="/auth">Zur Anmeldung</Link>
+          <Link href="/login">Zur Anmeldung</Link>
         </p>
       </main>
     );

@@ -99,7 +99,7 @@ export function AnimeContextFansubManager({
    */
   const handleAttach = async (group: FansubGroup) => {
     if (!hasAccessToken) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
+      onError('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
 
@@ -125,7 +125,7 @@ export function AnimeContextFansubManager({
    */
   const handleDetach = async (group: FansubGroup) => {
     if (!hasAccessToken) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
+      onError('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
 

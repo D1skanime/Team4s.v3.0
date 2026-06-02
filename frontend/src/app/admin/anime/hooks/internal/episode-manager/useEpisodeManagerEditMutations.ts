@@ -55,7 +55,7 @@ export function useEpisodeManagerEditMutations({
 
   const saveInlineEdit = useCallback(async () => {
     if (!hasAccessToken) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
+      onError('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
     if (!inlineEditID) {
@@ -99,7 +99,7 @@ export function useEpisodeManagerEditMutations({
 
   const submitEdit = useCallback(async () => {
     if (!hasAccessToken) {
-      onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
+      onError('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
 
@@ -144,7 +144,7 @@ export function useEpisodeManagerEditMutations({
   const submitCreate = useCallback(
     async (animeID: number) => {
       if (!hasAccessToken) {
-        onError('Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges Token erstellen.')
+        onError('Anmeldung erforderlich. Bitte zuerst anmelden.')
         return
       }
       const episodeNumber = createFormValues.number.trim()
