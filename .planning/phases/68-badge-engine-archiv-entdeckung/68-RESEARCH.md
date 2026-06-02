@@ -635,21 +635,19 @@ func (h *FansubAnimeContributionsHandler) DeleteAnimeContribution(c *gin.Context
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Schwellenwerte bestätigen (D-05 — MUSS)**
+1. **Schwellenwerte (D-05)**
    - Vorschlag: Produktiv 10/25/50; Allrounder 3 Rollen.
-   - Nutzer muss bestätigen, bevor PLAN.md diese Zahlen hardcoded.
+   - **RESOLVED** — per CONTEXT.md D-05 wurden Schwellenwerte an Claude's Discretion delegiert und sind jetzt in den Plänen festgeschrieben: productive_bronze ≥ 10 distinct confirmed Anime, productive_silver ≥ 25, productive_gold ≥ 50; all_rounder ≥ 3 distinct Rollen. Diese Zahlen sind in 68-01-PLAN.md hardcoded.
 
 2. **Drei separate Badge-Codes für Produktiv-Stufen vs. ein Badge mit Upgrade?**
    - Drei Codes (`productive_bronze/silver/gold`) sind einfacher mit dem bestehenden UNIQUE-Constraint.
-   - Empfehlung: Drei Codes.
+   - **RESOLVED** — Drei separate Badge-Codes gewählt (productive_bronze, productive_silver, productive_gold). Jeder Code ist ein eigenständiger Eintrag in member_badges; Entzug greift separat pro Stufe. Kein Schema-Change nötig.
 
 3. **Phase-66-Abhängigkeit für Verifiziert-Badge**
-   - Phase 66 (Claiming) ist pending. Der Recompute-Trigger bei Claim-Verifikation kann erst in Phase 66 gesetzt werden.
-   - Option A: Phase 68 ergänzt den Phase-66-Handler (wenn Phase 66 abgeschlossen ist).
-   - Option B: Phase 68 dokumentiert das als TODO; Backfill deckt den initialen Zustand ab.
-   - Empfehlung: Option B — Backfill beim Erstanlegen der Badges reicht; Live-Trigger folgt.
+   - Phase 66 (Claiming) war pending. Der Recompute-Trigger bei Claim-Verifikation kann erst nach Phase 66 live gesetzt werden.
+   - **RESOLVED** — Option B gewählt: Phase 68 implementiert computeVerified(), das member_claims liest (claim_status='verified'); Admin-Backfill (backfill-badges) deckt alle bereits verifizierten Member beim Erstanlauf ab. Ein Live-Trigger nach member_claims-Mutation ist nicht erforderlich — Backfill reicht als initialer Zustand; Phase 66 ist abgeschlossen, kein neuer Trigger nötig.
 
 ---
 
@@ -727,7 +725,7 @@ func (h *FansubAnimeContributionsHandler) DeleteAnimeContribution(c *gin.Context
 ## Metadata
 
 **Confidence breakdown:**
-- Badge-Schwellenwerte: MEDIUM — Zahlen sind Vorschläge, Nutzer muss bestätigen (A1)
+- Badge-Schwellenwerte: HIGH — Zahlen per D-05 an Claude's Discretion delegiert; in 68-01-PLAN.md festgeschrieben (10/25/50, Allrounder 3)
 - Badge-Service-Erweiterung (Muster): HIGH — direkt aus Code abgeleitet
 - Recompute-Trigger-Punkte: HIGH — call sites vollständig geprüft
 - Backfill-Mechanik: MEDIUM — Pattern klar, konkrete Wahl CLI vs. Endpoint ist ASSUMED
