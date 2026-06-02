@@ -428,6 +428,12 @@
   overflow-wrap: anywhere;
 }
 
+.claimStatusStack,
+.claimStatusBody {
+  display: grid;
+  gap: 12px;
+}
+
 .recentList,
 .recentMediaGrid {
   display: grid;

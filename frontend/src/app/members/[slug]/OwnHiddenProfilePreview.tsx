@@ -108,7 +108,7 @@ export function OwnHiddenProfilePreview({ slug }: OwnHiddenProfilePreviewProps) 
         <OwnProfileEditLink publicMemberId={profile.member_id} />
       </div>
 
-      <MemberProfileHero profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL} isPublicView={true} />
+      <MemberProfileHero profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL} isPublicView={true} isVerified={profile.is_verified} />
       <div className={styles.profileGrid}>
         {profile.member_story_html?.trim() ? (
           <Card variant="section" className={styles.storySection} title="Fansub-Geschichte">

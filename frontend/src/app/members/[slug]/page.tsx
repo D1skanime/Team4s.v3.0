@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { cookies } from 'next/headers'
+import type { Metadata } from 'next'
 
 import {
   ApiError,
@@ -36,6 +37,27 @@ interface MemberProfilePageProps {
       }>
 }
 
+async function resolveSlug(params: MemberProfilePageProps['params']): Promise<string> {
+  const resolvedParams = await params
+  return (resolvedParams.slug || '').trim()
+}
+
+export async function generateMetadata({ params }: MemberProfilePageProps): Promise<Metadata> {
+  const slug = await resolveSlug(params)
+  if (!slug) return {}
+
+  try {
+    const response = await getMemberProfile(slug)
+    if ('data' in response && response.data.noindex) {
+      return { robots: { index: false, follow: false } }
+    }
+  } catch {
+    return {}
+  }
+
+  return {}
+}
+
 function renderNotice(message: string) {
   return (
     <main className={styles.page}>
@@ -48,8 +70,7 @@ function renderNotice(message: string) {
 }
 
 export default async function MemberProfilePage({ params }: MemberProfilePageProps) {
-  const resolvedParams = await params
-  const slug = (resolvedParams.slug || '').trim()
+  const slug = await resolveSlug(params)
 
   if (!slug) {
     return renderNotice('Ungültiger Member-Slug.')
@@ -138,7 +159,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         <OwnProfileEditLink publicMemberId={profile.member_id} />
       </div>
 
-      <MemberProfileHero profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL} isPublicView={true} />
+      <MemberProfileHero profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL} isPublicView={true} isVerified={profile.is_verified} />
 
       <MemberBadgeChips
         badges={badges}
@@ -156,7 +177,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
           <MembershipsSection memberships={profile.memberships ?? []} />
         </section>
         <section className={styles.fullWidthSection}>
-          <MemberRoleTimeline entries={roleTimeline} hasUnverified={hasUnverified} />
+          <MemberRoleTimeline entries={roleTimeline} hasUnverified={hasUnverified} isVerified={profile.is_verified} />
         </section>
         <section className={styles.contentSection}>
           <h2>Letzte Medien</h2>

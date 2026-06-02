@@ -6,11 +6,12 @@ import { MemberProfileHero } from '@/components/profile/MemberProfileHero'
 import { RecentContributionsSection } from '@/components/profile/RecentContributionsSection'
 import { RecentMediaSection } from '@/components/profile/RecentMediaSection'
 import { Button, Card, ErrorState, LoadingState, SectionHeader } from '@/components/ui'
-import { ApiError, getOwnProfile, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar, uploadOwnProfileBackground } from '@/lib/api'
+import { ApiError, getOwnProfile, patchNoindex, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar, uploadOwnProfileBackground } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { MemberProfileData, TipTapDocument } from '@/types/profile'
 
 import { AccountSecurityCard } from './components/AccountSecurityCard'
+import { ClaimStatusCard } from './components/ClaimStatusCard'
 import { MemberAvatarCard } from './components/MemberAvatarCard'
 import { ProfileBackgroundCard } from './components/ProfileBackgroundCard'
 import { ProfileBasicsForm } from './components/ProfileBasicsForm'
@@ -120,7 +121,7 @@ function accountSnapshot(profile: MemberProfileData): string {
 }
 
 export default function MyProfilePage() {
-  const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
+  const { authToken, hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const [profile, setProfile] = useState<MemberProfileData | null>(null)
   const [form, setForm] = useState<MemberProfileFormState>(() => emptyFormState())
   const [isDirty, setIsDirty] = useState(false)
@@ -279,6 +280,27 @@ export default function MyProfilePage() {
     }
   }
 
+  async function handleNoindexChange(nextNoindex: boolean) {
+    if (!hasAuthSession || !profile) return
+
+    const previousNoindex = profile.noindex
+    setProfile((current) => current ? { ...current, noindex: nextNoindex } : current)
+
+    try {
+      setIsSaving(true)
+      setError(null)
+      setSuccess(null)
+      await patchNoindex(nextNoindex, authToken || undefined)
+      setSuccess('Sichtbarkeitseinstellung wurde gespeichert.')
+    } catch (visibilityError) {
+      setProfile((current) => current ? { ...current, noindex: previousNoindex } : current)
+      setError(readErrorMessage(visibilityError, 'Sichtbarkeitseinstellung konnte nicht gespeichert werden.'))
+      setSuccess(null)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   async function handleAvatarSelected(payload: { sourceFile: File; croppedFile: File }) {
     if (!hasAuthSession) return
 
@@ -346,7 +368,7 @@ export default function MyProfilePage() {
 
         {isClientInitialized && !isLoading && profile ? (
           <>
-            <MemberProfileHero profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL} isSaving={isSaving} canSave={isDirty && !hasYearErrors && profile.capabilities.can_edit_own_profile} />
+            <MemberProfileHero profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL} isSaving={isSaving} canSave={isDirty && !hasYearErrors && profile.capabilities.can_edit_own_profile} isVerified={profile.is_verified} />
             {error ? <div className={styles.errorBox}>{error}</div> : null}
             {success ? <div className={styles.successBox}>{success}</div> : null}
 
@@ -398,6 +420,15 @@ export default function MyProfilePage() {
                 </Card>
                 <Card variant="section">
                   <VisibilityCard value={form.profileVisibility} disabled={!profile.capabilities.can_edit_own_profile || isSaving} onChange={updateForm} />
+                </Card>
+                <Card variant="section" title="Claim & Indexierung">
+                  <ClaimStatusCard
+                    noindex={profile.noindex}
+                    claimStatus={profile.claim_status}
+                    claimMemberNick={profile.claim_member_nick}
+                    disabled={isSaving}
+                    onNoindexChange={handleNoindexChange}
+                  />
                 </Card>
                 <Card variant="section" title="Account & Sicherheit">
                   <AccountSecurityCard
