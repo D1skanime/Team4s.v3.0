@@ -71,8 +71,13 @@ func (s *ownershipCheckerStub) MemberIDForAnimeContribution(ctx context.Context,
 }
 
 // Hilfsfunktion: setzt Auth-Identität in Gin-Kontext
+// UserID muss > 0 sein (Pflichtfeld in CommentAuthIdentityFromContext).
 func setTestAuthIdentity(c *gin.Context, appUserID int64) {
-	c.Set("auth_identity", middleware.AuthIdentity{AppUserID: appUserID, DisplayName: "Testuser"})
+	c.Set("auth_identity", middleware.AuthIdentity{
+		UserID:      appUserID, // Legacy-UserID muss > 0 sein
+		AppUserID:   appUserID,
+		DisplayName: "Testuser",
+	})
 }
 
 // Hilfsfunktion: baut einen Handler für Tests mit steuerbaren Stubs
