@@ -1,10 +1,141 @@
 package services
 
 import (
+	"bufio"
 	"context"
+	"net"
 	"strings"
 	"testing"
+	"time"
 )
+
+// fakeSMTPServer ist ein minimaler SMTP-Server für Tests. Er akzeptiert eine
+// einzelne Sitzung, sammelt die DATA-Zeilen und stellt sie über done bereit.
+type fakeSMTPServer struct {
+	ln     net.Listener
+	dataCh chan string
+	mailCh chan string
+}
+
+func newFakeSMTPServer(t *testing.T) *fakeSMTPServer {
+	t.Helper()
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("konnte Test-SMTP-Server nicht starten: %v", err)
+	}
+	srv := &fakeSMTPServer{ln: ln, dataCh: make(chan string, 1), mailCh: make(chan string, 1)}
+	go srv.serveOnce(t)
+	return srv
+}
+
+func (s *fakeSMTPServer) addr() (string, int) {
+	host, portStr, _ := net.SplitHostPort(s.ln.Addr().String())
+	var port int
+	for _, c := range portStr {
+		port = port*10 + int(c-'0')
+	}
+	return host, port
+}
+
+func (s *fakeSMTPServer) serveOnce(t *testing.T) {
+	conn, err := s.ln.Accept()
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+	r := bufio.NewReader(conn)
+	w := bufio.NewWriter(conn)
+	write := func(line string) {
+		_, _ = w.WriteString(line + "\r\n")
+		_ = w.Flush()
+	}
+	write("220 fake ESMTP")
+	var body strings.Builder
+	inData := false
+	for {
+		_ = conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+		line, err := r.ReadString('\n')
+		if err != nil {
+			return
+		}
+		trimmed := strings.TrimRight(line, "\r\n")
+		if inData {
+			if trimmed == "." {
+				inData = false
+				s.dataCh <- body.String()
+				write("250 OK queued")
+				continue
+			}
+			body.WriteString(trimmed + "\n")
+			continue
+		}
+		upper := strings.ToUpper(trimmed)
+		switch {
+		case strings.HasPrefix(upper, "EHLO"), strings.HasPrefix(upper, "HELO"):
+			write("250-fake")
+			write("250 OK")
+		case strings.HasPrefix(upper, "MAIL FROM"):
+			s.mailCh <- trimmed
+			write("250 OK")
+		case strings.HasPrefix(upper, "RCPT TO"):
+			write("250 OK")
+		case strings.HasPrefix(upper, "DATA"):
+			write("354 End data with <CR><LF>.<CR><LF>")
+			inData = true
+		case strings.HasPrefix(upper, "QUIT"):
+			write("221 Bye")
+			return
+		default:
+			write("250 OK")
+		}
+	}
+}
+
+// TestSMTPMailerSendUsesPerMessageFromOverride deckt die per-Message-Overrides
+// FromEmail/FromName ab (IN-03) und prüft zugleich den erfolgreichen Send-Pfad
+// inklusive DATA-Close und QUIT (WR-01/WR-04).
+func TestSMTPMailerSendUsesPerMessageFromOverride(t *testing.T) {
+	srv := newFakeSMTPServer(t)
+	host, port := srv.addr()
+
+	m := NewSMTPMailer(MailerConfig{
+		Host:      host,
+		Port:      port,
+		FromEmail: "default@team4s.local",
+		FromName:  "Default",
+	})
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.Send(ctx, MailMessage{
+		To:        "user@example.local",
+		Subject:   "Hallo",
+		BodyText:  "Inhalt",
+		FromEmail: "override@team4s.de",
+		FromName:  "Override",
+	})
+	if err != nil {
+		t.Fatalf("Send sollte erfolgreich sein, bekam: %v", err)
+	}
+
+	select {
+	case mailFrom := <-srv.mailCh:
+		if !strings.Contains(mailFrom, "override@team4s.de") {
+			t.Fatalf("erwartete Override-Absender in MAIL FROM, bekam: %q", mailFrom)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("kein MAIL FROM empfangen")
+	}
+
+	select {
+	case data := <-srv.dataCh:
+		if !strings.Contains(data, "Override <override@team4s.de>") {
+			t.Fatalf("erwartete Override-From-Header, bekam:\n%s", data)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("keine DATA empfangen")
+	}
+}
 
 func TestNoopMailerNeverReturnsError(t *testing.T) {
 	m := NewNoopMailer()
