@@ -12,23 +12,23 @@ import (
 
 // AnimeContributionRow represents a full anime contribution record with associated role codes.
 type AnimeContributionRow struct {
-	ID                      int64
-	FansubGroupID           int64
-	AnimeID                 int64
-	FansubGroupMemberID     int64
-	Status                  string
-	Note                    *string
-	StartedYear             *int
-	EndedYear               *int
-	IsPublicOnAnimePage     bool
-	IsPublicOnMemberProfile bool
-	ConfirmedBy             *int64
-	ConfirmedAt             *time.Time
-	CreatedBy               *int64
-	CreatedAt               time.Time
-	UpdatedBy               *int64
-	UpdatedAt               time.Time
-	RoleCodes               []string
+	ID                      int64      `json:"id"`
+	FansubGroupID           int64      `json:"fansub_group_id"`
+	AnimeID                 int64      `json:"anime_id"`
+	FansubGroupMemberID     int64      `json:"fansub_group_member_id"`
+	Status                  string     `json:"status"`
+	Note                    *string    `json:"note"`
+	StartedYear             *int       `json:"started_year"`
+	EndedYear               *int       `json:"ended_year"`
+	IsPublicOnAnimePage     bool       `json:"is_public_on_anime_page"`
+	IsPublicOnMemberProfile bool       `json:"is_public_on_member_profile"`
+	ConfirmedBy             *int64     `json:"confirmed_by"`
+	ConfirmedAt             *time.Time `json:"confirmed_at"`
+	CreatedBy               *int64     `json:"created_by"`
+	CreatedAt               time.Time  `json:"created_at"`
+	UpdatedBy               *int64     `json:"updated_by"`
+	UpdatedAt               time.Time  `json:"updated_at"`
+	RoleCodes               []string   `json:"role_codes"`
 }
 
 // AnimeContributionInput holds the data required to create a new anime contribution.
@@ -66,6 +66,23 @@ type PublicContributionRow struct {
 	IsVerified        bool
 }
 
+// AnimeContributionDisplayRow is the frontend-facing response type for anime_contributions,
+// enriched with the member display name via JOIN.
+type AnimeContributionDisplayRow struct {
+	ID                      int64     `json:"id"`
+	FansubGroupMemberID     int64     `json:"fansub_group_member_id"`
+	MemberDisplayName       string    `json:"member_display_name"`
+	AnimeID                 int64     `json:"anime_id"`
+	RoleCodes               []string  `json:"role_codes"`
+	StartedYear             *int      `json:"started_year"`
+	EndedYear               *int      `json:"ended_year"`
+	Note                    *string   `json:"note"`
+	IsPublicOnAnimePage     bool      `json:"is_public_on_anime_page"`
+	IsPublicOnMemberProfile bool      `json:"is_public_on_member_profile"`
+	Status                  string    `json:"status"`
+	CreatedAt               time.Time `json:"created_at"`
+}
+
 // AnimeContributionsRepository handles persistence for anime_contributions and anime_contribution_roles.
 type AnimeContributionsRepository struct {
 	db *pgxpool.Pool
@@ -74,6 +91,103 @@ type AnimeContributionsRepository struct {
 // NewAnimeContributionsRepository returns a new AnimeContributionsRepository.
 func NewAnimeContributionsRepository(db *pgxpool.Pool) *AnimeContributionsRepository {
 	return &AnimeContributionsRepository{db: db}
+}
+
+// MemberBelongsToFansub returns true when the hist_fansub_group_member with the given id
+// belongs to the given fansub group. Used to prevent cross-group contribution writes.
+func (r *AnimeContributionsRepository) MemberBelongsToFansub(ctx context.Context, memberID int64, fansubGroupID int64) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1 FROM hist_fansub_group_members
+			WHERE id = $1 AND fansub_group_id = $2
+		)
+	`, memberID, fansubGroupID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("member belongs to fansub check: %w", err)
+	}
+	return exists, nil
+}
+
+const animeContributionDisplayCols = `
+	ac.id,
+	ac.fansub_group_member_id,
+	m.nickname AS member_display_name,
+	ac.anime_id,
+	ac.started_year,
+	ac.ended_year,
+	ac.note,
+	ac.is_public_on_anime_page,
+	ac.is_public_on_member_profile,
+	ac.status,
+	ac.created_at,
+	COALESCE(ARRAY_AGG(acr.role_code) FILTER (WHERE acr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_codes
+`
+
+func scanAnimeContributionDisplayRow(row pgx.Row) (*AnimeContributionDisplayRow, error) {
+	var r AnimeContributionDisplayRow
+	if err := row.Scan(
+		&r.ID, &r.FansubGroupMemberID, &r.MemberDisplayName,
+		&r.AnimeID, &r.StartedYear, &r.EndedYear, &r.Note,
+		&r.IsPublicOnAnimePage, &r.IsPublicOnMemberProfile,
+		&r.Status, &r.CreatedAt, &r.RoleCodes,
+	); err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+// ListByFansubAndAnimeWithDisplay returns contributions for a fansub group and anime,
+// enriched with the member display name.
+func (r *AnimeContributionsRepository) ListByFansubAndAnimeWithDisplay(ctx context.Context, fansubGroupID int64, animeID int64) ([]AnimeContributionDisplayRow, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT `+animeContributionDisplayCols+`
+		FROM anime_contributions ac
+		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		JOIN members m ON m.id = hfgm.member_id
+		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		WHERE ac.fansub_group_id = $1 AND ac.anime_id = $2
+		GROUP BY ac.id, m.nickname
+		ORDER BY ac.created_at
+	`, fansubGroupID, animeID)
+	if err != nil {
+		return nil, fmt.Errorf("list anime contributions with display: %w", err)
+	}
+	defer rows.Close()
+
+	result := make([]AnimeContributionDisplayRow, 0)
+	for rows.Next() {
+		row, err := scanAnimeContributionDisplayRow(rows)
+		if err != nil {
+			return nil, fmt.Errorf("list anime contributions with display: scan: %w", err)
+		}
+		result = append(result, *row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list anime contributions with display: iterate: %w", err)
+	}
+	return result, nil
+}
+
+// GetByIDWithDisplay returns a single anime contribution enriched with the member display name.
+func (r *AnimeContributionsRepository) GetByIDWithDisplay(ctx context.Context, id int64) (*AnimeContributionDisplayRow, error) {
+	row := r.db.QueryRow(ctx, `
+		SELECT `+animeContributionDisplayCols+`
+		FROM anime_contributions ac
+		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		JOIN members m ON m.id = hfgm.member_id
+		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		WHERE ac.id = $1
+		GROUP BY ac.id, m.nickname
+	`, id)
+	result, err := scanAnimeContributionDisplayRow(row)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("get anime contribution with display: %w", err)
+	}
+	return result, nil
 }
 
 const animeContributionSelectCols = `
