@@ -7042,20 +7042,29 @@ export async function getMemberContributions(
 export async function getMyBadges(
   authToken: string,
 ): Promise<MemberBadgesResponse> {
-  // Route aus Phase 62 — falls noch nicht vorhanden, leere Liste zurückgeben
   const API_BASE_URL = getApiBaseUrl();
-  try {
-    const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/badges`, {
-      cache: "no-store",
-      authToken,
-    });
-    if (!response.ok) {
+  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/badges`, {
+    cache: "no-store",
+    authToken,
+  });
+  if (!response.ok) {
+    // 404 (Route nicht vorhanden) tolerieren, alle anderen Fehler propagieren.
+    if (response.status === 404) {
       return { badges: [] };
     }
-    return response.json() as Promise<MemberBadgesResponse>;
-  } catch {
-    return { badges: [] };
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
+  return response.json() as Promise<MemberBadgesResponse>;
 }
 
 export async function patchMyBadgeVisibility(

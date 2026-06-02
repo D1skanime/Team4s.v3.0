@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/repository"
@@ -24,6 +25,55 @@ func NewMemberBadgesHandler(badgeRepo *repository.BadgeRepository) *MemberBadges
 // meBadgeVisibilityPatchRequest ist der Request-Body für PATCH /me/badges/:badgeId/visibility.
 type meBadgeVisibilityPatchRequest struct {
 	Visibility string `json:"visibility"`
+}
+
+// meBadgeResponse ist ein einzelnes Badge in der GET /me/badges-Antwort.
+type meBadgeResponse struct {
+	ID            int64  `json:"id"`
+	BadgeCode     string `json:"badge_code"`
+	BadgeCategory string `json:"badge_category"`
+	Visibility    string `json:"visibility"`
+	AwardedAt     string `json:"awarded_at"`
+}
+
+// GetMyBadges handles GET /api/v1/me/badges
+// Gibt die nicht ausgeblendeten Badges des eingeloggten Members zurück. Ohne
+// verifizierten Member-Account wird eine leere Liste (kein Fehler) geliefert.
+func (h *MemberBadgesHandler) GetMyBadges(c *gin.Context) {
+	identity, ok := middleware.CommentAuthIdentityFromContext(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "Anmeldung erforderlich."}})
+		return
+	}
+
+	memberID, err := resolveBadgeMemberID(c, identity.AppUserID, h.badgeRepo)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			c.JSON(http.StatusOK, gin.H{"badges": []meBadgeResponse{}})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "Interner Serverfehler."}})
+		return
+	}
+
+	rows, err := h.badgeRepo.GetMemberBadges(c.Request.Context(), memberID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "Interner Serverfehler."}})
+		return
+	}
+
+	badges := make([]meBadgeResponse, 0, len(rows))
+	for _, row := range rows {
+		badges = append(badges, meBadgeResponse{
+			ID:            row.ID,
+			BadgeCode:     row.BadgeCode,
+			BadgeCategory: row.BadgeCategory,
+			Visibility:    row.Visibility,
+			AwardedAt:     row.AwardedAt.Format(time.RFC3339),
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"badges": badges})
 }
 
 var allowedBadgeVisibilities = map[string]struct{}{
