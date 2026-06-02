@@ -92,6 +92,18 @@ export interface FansubAppMember {
   created_at: string;
   updated_at: string;
   app_user?: AppUserListItem | null;
+  member?: FansubGroupMemberIdentity | null;
+}
+
+export interface FansubGroupMemberIdentity {
+  member_id: number;
+  fansub_name: string;
+}
+
+export interface FansubGroupMemberCandidate {
+  app_user_id: number;
+  member_id: number;
+  fansub_name: string;
 }
 
 export interface FansubAlias {
@@ -256,7 +268,7 @@ export interface FansubAppMemberStatusUpdateRequest {
 }
 
 export interface FansubAppMemberCandidateSearchResponse {
-  data: AppUserListItem[];
+  data: FansubGroupMemberCandidate[];
 }
 
 export interface FansubGroupInvitation {
@@ -273,6 +285,7 @@ export interface FansubGroupInvitation {
   cancelled_at?: string | null;
   created_at: string;
   updated_at: string;
+  member?: FansubGroupMemberIdentity | null;
 }
 
 export interface FansubGroupInvitationListResponse {
@@ -470,4 +483,118 @@ export interface AdminCanonicalFansubAnimeReleaseResponse {
 /** Direct release fetch by release_id. */
 export interface AdminReleaseResponse {
   data: AdminFansubRelease;
+}
+
+// --- Gruppen-Mitglieder (hist_fansub_group_members) ---
+
+export interface HistFansubGroupMember {
+  id: number;
+  fansub_group_id: number;
+  display_name: string;
+  joined_year: number | null;
+  left_year: number | null;
+  app_user_id: number | null;
+  app_username: string | null;
+  status: "active" | "alumni";
+  created_at: string;
+}
+
+export interface HistFansubGroupMemberListResponse {
+  members: HistFansubGroupMember[];
+}
+
+export interface HistFansubGroupMemberResponse {
+  member: HistFansubGroupMember;
+}
+
+export interface CreateGroupMemberRequest {
+  display_name: string;
+  joined_year: number | null;
+  left_year: number | null;
+  app_user_id: number | null;
+  status: "active" | "alumni";
+}
+
+export interface UpdateGroupMemberRequest {
+  display_name?: string;
+  joined_year?: number | null;
+  left_year?: number | null;
+  app_user_id?: number | null;
+  status?: "active" | "alumni";
+}
+
+// --- Mitglieder-Rollen (hist_group_member_roles) ---
+
+export interface HistGroupMemberRole {
+  id: number;
+  fansub_group_member_id: number;
+  member_display_name: string;
+  role_code: string;
+  role_label: string | null;
+  started_year: number | null;
+  ended_year: number | null;
+  note: string | null;
+  status: "historical" | "confirmed";
+  created_at: string;
+}
+
+export interface HistGroupMemberRoleListResponse {
+  roles: HistGroupMemberRole[];
+}
+
+export interface HistGroupMemberRoleResponse {
+  role: HistGroupMemberRole;
+}
+
+export interface CreateMemberRoleRequest {
+  fansub_group_member_id: number;
+  role_code: string;
+  started_year: number | null;
+  ended_year: number | null;
+  note: string | null;
+  status: "historical" | "confirmed";
+}
+
+export interface UpdateMemberRoleRequest {
+  role_code?: string;
+  started_year?: number | null;
+  ended_year?: number | null;
+  note?: string | null;
+  status?: "historical" | "confirmed";
+}
+
+// --- Anime-Contributions (anime_contributions) ---
+
+export interface AnimeContribution {
+  id: number;
+  fansub_group_member_id: number;
+  member_display_name: string;
+  anime_id: number;
+  role_codes: string[];
+  started_year: number | null;
+  ended_year: number | null;
+  note: string | null;
+  is_public_on_anime_page: boolean;
+  is_public_on_member_profile: boolean;
+  status: "draft" | "confirmed" | "hidden";
+  created_at: string;
+}
+
+export interface AnimeContributionListResponse {
+  contributions: AnimeContribution[];
+}
+
+export interface AnimeContributionResponse {
+  contribution: AnimeContribution;
+}
+
+export interface UpsertAnimeContributionRequest {
+  fansub_group_member_id: number;
+  role_codes: string[];
+  started_year: number | null;
+  ended_year: number | null;
+  note: string | null;
+  is_public_on_anime_page: boolean;
+  is_public_on_member_profile: boolean;
+  status: "draft" | "confirmed" | "hidden";
 }
