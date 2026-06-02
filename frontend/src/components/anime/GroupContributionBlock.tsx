@@ -1,6 +1,7 @@
 import type { AnimeContributionGroup } from '@/types/contributions'
 
 import styles from './GroupContributionBlock.module.css'
+import { ReleaseVersionBreakdown } from './ReleaseVersionBreakdown'
 
 interface GroupContributionBlockProps {
   group: AnimeContributionGroup
@@ -17,12 +18,18 @@ export function GroupContributionBlock({ group, expanded, onToggle }: GroupContr
       ? `Aktiv: ${group.active_from_year ?? '?'}–${group.active_until_year ?? 'heute'}`
       : null
 
+  const hasVersionBreakdown = (group.version_breakdown?.length ?? 0) > 0
+
   return (
     <div className={styles.block}>
       <div className={styles.header}>
         <span className={styles.groupName}>{group.fansub_group_name}</span>
         {activeLabel && <span className={styles.activeRange}>{activeLabel}</span>}
       </div>
+
+      {hasVersionBreakdown && (
+        <span className={styles.generalLabel}>Allgemein an der Serie beteiligt:</span>
+      )}
 
       <ul className={styles.contributorList}>
         {visibleContributors.map((contributor, index) => (
@@ -62,6 +69,10 @@ export function GroupContributionBlock({ group, expanded, onToggle }: GroupContr
         <button type="button" className={styles.toggleButton} onClick={onToggle}>
           Weniger anzeigen
         </button>
+      )}
+
+      {hasVersionBreakdown && group.version_breakdown && (
+        <ReleaseVersionBreakdown breakdown={group.version_breakdown} />
       )}
     </div>
   )

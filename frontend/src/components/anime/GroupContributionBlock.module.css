@@ -25,6 +25,14 @@
   color: var(--color-text-secondary, #999);
 }
 
+.generalLabel {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #999);
+  margin-bottom: 0.5rem;
+}
+
 .contributorList {
   list-style: none;
   padding: 0;

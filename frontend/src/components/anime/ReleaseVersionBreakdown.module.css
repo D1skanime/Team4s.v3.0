@@ -1,0 +1,29 @@
+/* Versions-Detailebene (Phase 67-04). Keine neuen Spacing/Color-Tokens —
+   Werte mappen 1:1 auf die 4er-Skala aus globals.css (UI-SPEC). */
+
+.wrapper {
+  /* Abstand Allgemein-Block -> Versions-Trigger: 12px (--space-3). */
+  margin-top: 0.75rem;
+}
+
+.versionList {
+  margin-top: 0.5rem;
+  /* Einrückung der versions-spezifischen Beiträge: 16px (--space-4). */
+  padding-left: 1rem;
+  display: flex;
+  flex-direction: column;
+  /* Vertikaler Abstand zwischen Episode·Version-Gruppen: 8px (--space-2). */
+  gap: 0.5rem;
+}
+
+.versionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.versionHead {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #e0e0e0);
+}
