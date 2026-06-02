@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
 stopped_at: Phase 70 geplant (7 Plaene, verifiziert)
-last_updated: "2026-06-02T14:19:51.401Z"
+last_updated: "2026-06-02T14:28:36.017Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
   completed_phases: 45
   total_plans: 241
-  completed_plans: 193
+  completed_plans: 194
   percent: 68
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 70 — tiptap-bilder-fuer-member-profilgeschichte
+**Current focus:** Phase 65 — member-vorschlaege-review-queue
 
 ## Current Position
 
-Phase: 70 (tiptap-bilder-fuer-member-profilgeschichte) — EXECUTING
-Plan: 1 of 7
+Phase: 65 (member-vorschlaege-review-queue) — EXECUTING
+Plan: 2 of 4
 
 ## Accumulated Context
 
@@ -36,6 +36,9 @@ Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
 
+- [Phase 65-01]: SelfPublish setzt Status auf 'proposed' (nicht 'confirmed') — Eintrag bleibt unverified/(historisch); confirmed_by wird trotzdem gesetzt fuer Audit-Spur (D-11, D-15).
+- [Phase 65-01]: 90-Tage-Check laeuft serverseitig via SELECT-vor-UPDATE in SelfPublish — Frontend-Gate ist nicht vertrauenswuerdig (T-65-01-01).
+- [Phase 65-01]: Proposal-Repository in eigene Datei ausgelagert (anime_contributions_proposal_repository.go) wegen 450-Zeilen-Limit; Haupt-Repository hat 447 Zeilen.
 - [Phase 40-10]: flatMap statt map().filter() für typsichere BulkNoteInput-Array-Filterung — vermeidet TS2322/TS2677 bei Null-Rückgaben.
 - [Phase 40-04]: BulkUpsertReleaseVersionNotes liest nach COMMIT via ListReleaseVersionNotes (Pool) zurück — einfacher, konsistenter als In-TX-Lesung.
 - [Phase 40-04]: GetMemberRolesForVersion nutzt JOIN release_versions → fansub_releases → release_member_roles → members + contributor_roles (cr.label AS role_label).
@@ -330,6 +333,7 @@ Recent durable decisions:
 | Phase 69 P02 | 12min | 2 tasks | 4 files |
 | Phase 60 P03 | 25min | 3 tasks | 5 files |
 | Phase 69 P03 | 15min | 3 tasks | 4 files |
+| Phase 65 P01 | 12min | 2 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -361,7 +365,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T14:12:59.180Z
+Last session: 2026-06-02T14:28:35.945Z
 Stopped at: Phase 70 geplant (7 Plaene, verifiziert)
 Last activity: 2026-06-02
-Resume file: .planning/phases/70-tiptap-bilder-fuer-member-profilgeschichte/70-01-PLAN.md
+Resume file: None

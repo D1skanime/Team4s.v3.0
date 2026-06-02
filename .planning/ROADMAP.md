@@ -1505,12 +1505,12 @@ Plans:
 **Goal:** Member kann eigene Contributions vorschlagen. Leader sieht Review-Queue und kann bestaetigen oder ablehnen. Timeout-Handling nach 90 Tagen ohne Reaktion.
 **Requirements**: P65-SC1, P65-SC2, P65-SC3
 **Depends on:** Phase 64
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 65-01-PLAN.md — Migration 0089 (review_note-Spalte) und Proposal-Repository-Datei
+- [x] 65-01-PLAN.md — Migration 0089 (review_note-Spalte) und Proposal-Repository-Datei
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
