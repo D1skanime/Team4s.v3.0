@@ -1344,14 +1344,18 @@ Plans:
 **Goal:** Member kann eigene Contributions vorschlagen. Leader sieht Review-Queue und kann bestaetigen oder ablehnen. Timeout-Handling nach 90 Tagen ohne Reaktion.
 **Requirements**: P65-SC1, P65-SC2, P65-SC3
 **Depends on:** Phase 64
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
+- [ ] 65-01-PLAN.md — Migration 0089 (review_note-Spalte) und Proposal-Repository-Datei
+- [ ] 65-02-PLAN.md — Backend Proposal-Me-Handler (CreateProposal + SelfPublish) mit Tests
+- [ ] 65-03-PLAN.md — Backend Review-Handler (ListProposals, Confirm, Reject) mit Tests
+- [ ] 65-04-PLAN.md — Frontend (Typen, API-Calls, ProposalForm, MyProposalsSection, ReviewQueue, CSS-Fixes)
 
 **Success Criteria** (what must be TRUE):
-  1. POST /api/v1/me/contribution-proposals ist implementiert; Vorschlag erhaelt Status proposed.
-  2. Leader sieht Review-Queue im Admin-Frontend und kann Vorschlaege bestaetigen oder ablehnen.
-  3. Nach 90 Tagen ohne Reaktion ist der Vorschlag als unverified oeffentlich schaltbar oder kann an Moderation weitergeleitet werden.
+  1. POST /api/v1/me/contribution-proposals ist implementiert; Vorschlag erhält Status proposed.
+  2. Leader sieht Review-Queue im Admin-Frontend und kann Vorschläge bestätigen oder ablehnen.
+  3. Nach 90 Tagen ohne Reaktion ist der Vorschlag als unverified öffentlich schaltbar (Member-Selbstschaltung, kein automatisches Eskalieren).
 
 ### Phase 66: Claiming und Verifizierung (Post-MVP)
 
