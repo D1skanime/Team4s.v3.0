@@ -1,0 +1,5 @@
+DROP INDEX IF EXISTS idx_member_claim_invitations_expires_at;
+DROP INDEX IF EXISTS idx_member_claim_invitations_member_status;
+DROP INDEX IF EXISTS uq_member_claim_invitations_token_hash;
+DROP INDEX IF EXISTS uq_member_claim_invitations_pending_member;
+DROP TABLE IF EXISTS member_claim_invitations;
