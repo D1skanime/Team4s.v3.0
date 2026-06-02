@@ -26,6 +26,7 @@ endpoints:
     path: /api/v1/fansubs
     auth:
       required: true
+      permission: fansub_group.edit for the addressed fansub group; slug changes require platform_admin
       header:
         name: Authorization
         format: Bearer <signed token>
@@ -72,6 +73,7 @@ endpoints:
     path: /api/v1/fansubs/:id
     auth:
       required: true
+      permission: fansub_group.edit for the addressed fansub group
       header:
         name: Authorization
         format: Bearer <signed token>
@@ -570,7 +572,7 @@ types:
     irc_url: string | null
     country: string | null
   FansubGroupPatchRequest:
-    slug: string (optional, min: 1, max: 120)
+    slug: string (optional, min: 1, max: 120, platform_admin only)
     name: string (optional, min: 1, max: 120)
     logo_id: int64 | null
     banner_id: int64 | null
@@ -709,3 +711,208 @@ types:
       kind: FansubMediaKind
       media: MediaAsset
       gif_large_warning: bool
+
+# ---- Invitation Endpunkte (Phase 60) ----------------------------------------
+
+  - name: fansub-group-invitations-list
+    method: GET
+    path: /api/v1/admin/fansubs/{id}/invitations
+    auth:
+      required: true
+      permission: can_view_invitations for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: FansubGroupInvitationListResponse
+
+  - name: fansub-group-invitations-create
+    method: POST
+    path: /api/v1/admin/fansubs/{id}/invitations
+    description: |
+      Erstellt eine Einladung und sendet die Einladungsmail per SMTP.
+      Schlaegt der SMTP-Versand fehl, wird die Einladung sofort storniert (kein stiller
+      pending-Record) und der Endpunkt gibt 502 mit reason_code=mail_delivery_failed zurueck.
+      invite_link ist ein absoluter Einmal-Link (APP_PUBLIC_URL + Accept-Pfad + Raw-Token)
+      als Entwickler/Copy-Fallback. Der Roh-Token wird weder in der Datenbank noch im
+      Audit-Log gespeichert.
+    auth:
+      required: true
+      permission: can_create_invitation for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: FansubGroupInvitationCreateRequest
+    response:
+      status: 201
+      type: FansubGroupInvitationCreateResponse
+    error_responses:
+      - status: 409
+        description: Offene Einladung fuer diese E-Mail-Adresse existiert bereits
+      - status: 502
+        description: SMTP-Versand fehlgeschlagen; Einladung wurde automatisch storniert (reason_code=mail_delivery_failed)
+
+  - name: fansub-group-invitations-cancel
+    method: POST
+    path: /api/v1/admin/fansubs/{id}/invitations/{invitationId}/cancel
+    auth:
+      required: true
+      permission: can_cancel_invitation for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: invitationId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: FansubGroupInvitationResponse
+
+  - name: fansub-invitation-accept
+    method: POST
+    path: /api/v1/invitations/accept
+    description: |
+      Nimmt eine Fansub-Gruppeneinladung anhand des Einmal-Tokens aus der Einladungsmail oder
+      dem invite_link-Fallback an. Der Token ist einmalig und laeuft nach 7 Tagen ab.
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+    request_body:
+      required: true
+      type: AcceptFansubInvitationRequest
+    response:
+      status: 200
+      type: AcceptFansubInvitationResponse
+
+# ---- App-Member Endpunkte (Phase 45) ----------------------------------------
+
+  - name: fansub-app-members-list
+    method: GET
+    path: /api/v1/admin/fansubs/{id}/app-members
+    auth:
+      required: true
+      permission: can_view_members for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: FansubAppMemberListResponse
+
+  - name: fansub-app-members-create
+    method: POST
+    path: /api/v1/admin/fansubs/{id}/app-members
+    auth:
+      required: true
+      permission: can_manage_members for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: FansubAppMemberCreateRequest
+    response:
+      status: 201
+      type: FansubAppMemberResponse
+
+# ---- Typ-Definitionen fuer App-Member und Invitations -----------------------
+
+types_append:
+  FansubGroupInvitationStatus:
+    enum: [pending, accepted, cancelled, expired]
+  FansubGroupInvitation:
+    id: int64
+    fansub_group_id: int64
+    email: string
+    invited_role_codes: string[]
+    status: FansubGroupInvitationStatus
+    expires_at: datetime
+    created_by_app_user_id: int64 | null
+    accepted_by_app_user_id: int64 | null
+    cancelled_by_app_user_id: int64 | null
+    accepted_at: datetime | null
+    cancelled_at: datetime | null
+    created_at: datetime
+    updated_at: datetime
+    member: FansubGroupMemberIdentitySummary | null
+  FansubGroupMemberIdentitySummary:
+    member_id: int64
+    fansub_name: string
+  FansubGroupInvitationListResponse:
+    data: FansubGroupInvitation[]
+  FansubGroupInvitationCreateRequest:
+    email: string (required, format: email)
+    invited_role_codes: string[] (required, min_items: 1)
+  FansubGroupInvitationCreateData:
+    description: |
+      invite_link ist absoluter Einmal-Link (APP_PUBLIC_URL + Accept-Pfad + Raw-Token).
+      Nur als Dev/Copy-Fallback -- primaerer Kanal ist die Einladungsmail.
+      Der Roh-Token wird nicht in der Datenbank oder im Audit-Log gespeichert.
+    id: int64
+    email: string
+    invited_role_codes: string[]
+    status: FansubGroupInvitationStatus
+    expires_at: datetime
+    invite_link: string
+  FansubGroupInvitationCreateResponse:
+    data: FansubGroupInvitationCreateData
+  FansubGroupInvitationResponse:
+    data: FansubGroupInvitation
+  AcceptFansubInvitationRequest:
+    token: string (required, min_length: 1)
+  AcceptFansubInvitationResponse:
+    data:
+      accepted: bool
+      fansub_group_id: int64
+  FansubAppMember:
+    id: int64
+    fansub_group_id: int64
+    app_user_id: int64
+    status: string (enum: active, disabled)
+    roles: string[]
+    created_at: datetime
+    updated_at: datetime
+    member: FansubGroupMemberIdentitySummary | null
+  FansubAppMemberListResponse:
+    data: FansubAppMember[]
+  FansubAppMemberResponse:
+    data: FansubAppMember
+  FansubAppMemberCreateRequest:
+    app_user_id: int64 (required, minimum: 1)
+    roles: string[] (required, min_items: 1)

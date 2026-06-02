@@ -360,7 +360,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/MemberProfileResponse"
         "400":
-          description: Missing, invalid, unreadable, or oversized avatar file. Runtime allows JPG, PNG, and WEBP only; SVG is rejected. The existing shared image limit is 50 MB.
+          description: Missing, invalid, unreadable, or oversized avatar file. Runtime allows JPG, PNG, WEBP, and GIF; SVG is rejected. Animated GIF and animated WEBP avatars are preserved when submitted as the display file. The existing shared image limit is 50 MB.
           content:
             application/json:
               schema:
@@ -459,6 +459,7 @@ paths:
     get:
       tags: [Profile]
       summary: Get a public member profile by slug
+      description: Returns public profile data. Members-only profiles are only returned to the profile owner as an authenticated preview; other callers receive a visibility notice.
       operationId: getMemberProfile
       security:
         - bearerAuth: []
@@ -472,7 +473,7 @@ paths:
             minLength: 1
       responses:
         "200":
-          description: Public member profile or visibility notice
+          description: Public member profile, owner preview, or visibility notice
           content:
             application/json:
               schema:
@@ -1228,7 +1229,7 @@ paths:
                     error:
                       message: ungueltiges zugriffstoken
         "403":
-          description: Admin permission required
+          description: Fansub group edit permission required
           content:
             application/json:
               schema:
@@ -1314,7 +1315,7 @@ paths:
                     error:
                       message: ungueltiges zugriffstoken
         "403":
-          description: Admin permission required
+          description: Fansub group edit permission required
           content:
             application/json:
               schema:
@@ -2729,7 +2730,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: Admin permission required
+          description: Fansub group edit permission required; slug changes require platform admin
           content:
             application/json:
               schema:
@@ -3583,6 +3584,355 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/app-members:
+    get:
+      tags: [Fansubs]
+      summary: List app members of a fansub group
+      operationId: listFansubAppMembers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: List of app members
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubAppMemberListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Fansubs]
+      summary: Add an app user as fansub group member
+      operationId: createFansubAppMember
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FansubAppMemberCreateRequest"
+      responses:
+        "201":
+          description: Member created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubAppMemberResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User already a member or conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/invitations:
+    get:
+      tags: [Fansubs]
+      summary: List pending and recent invitations for a fansub group
+      operationId: listFansubGroupInvitations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: List of invitations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubGroupInvitationListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Fansubs]
+      summary: Create and send a fansub group invitation by email
+      description: |
+        Creates a pending invitation record, sends an invitation email via SMTP, and returns
+        the new invitation including `invite_link` as a dev/copy fallback.
+
+        **SMTP failure (502):** If the SMTP send fails, the invitation is immediately cancelled
+        (no silent pending record remains) and the endpoint returns 502 with
+        `reason_code: mail_delivery_failed`. Check SMTP configuration in that case.
+
+        **invite_link semantics:** The `invite_link` field in the 201 response is an absolute URL
+        built from `APP_PUBLIC_URL + /invitations/accept?token=<raw_token>`. The raw token only
+        appears here and in the email; it is never stored or logged.
+      operationId: createFansubGroupInvitation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FansubGroupInvitationCreateRequest"
+      responses:
+        "201":
+          description: Invitation created and email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubGroupInvitationCreateResponse"
+        "400":
+          description: Invalid request body or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Pending invitation for this email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: |
+            SMTP delivery failed. The invitation has been cancelled automatically.
+            Check `reason_code: mail_delivery_failed` in the error body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/invitations/{invitationId}/cancel:
+    post:
+      tags: [Fansubs]
+      summary: Cancel a pending fansub group invitation
+      operationId: cancelFansubGroupInvitation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: invitationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Invitation cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubGroupInvitationResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group or invitation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Invitation is not in a cancellable state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/invitations/accept:
+    post:
+      tags: [Fansubs]
+      summary: Accept a fansub group invitation using a one-time token
+      description: |
+        Accepts the invitation identified by the raw token from the invitation email or the
+        `invite_link` dev fallback. The token is single-use and expires after 7 days.
+      operationId: acceptFansubInvitation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptFansubInvitationRequest"
+      responses:
+        "200":
+          description: Invitation accepted and membership created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AcceptFansubInvitationResponse"
+        "400":
+          description: Invalid token or request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Invitation not found or already used/expired
           content:
             application/json:
               schema:
@@ -6581,6 +6931,10 @@ components:
       properties:
         public_url:
           type: string
+        source_original_url:
+          type: string
+          nullable: true
+          description: Optional own-profile edit source for re-cropping retained background originals; not a public display URL.
     ProfileVisibility:
       type: string
       enum: [public, members_only]
@@ -6671,6 +7025,8 @@ components:
         - id
         - category
         - anime_title
+        - release_version_id
+        - release_version_label
       properties:
         id:
           type: integer
@@ -6682,6 +7038,13 @@ components:
           nullable: true
         anime_title:
           type: string
+        release_version_id:
+          type: integer
+          format: int64
+          description: Concrete release version that owns this media relation.
+        release_version_label:
+          type: string
+          description: Human-readable release version label, usually title or version.
     MemberProfileRecentContribution:
       type: object
       required:
@@ -6904,11 +7267,14 @@ components:
       type: object
       description: |
         Preferred Phase 53B contract sends the uncropped `source_file` and the
-        cropped display `cropped_file` to the existing avatar endpoint. Legacy
-        callers may still submit `file`; the backend stores that same file as
-        both source and display. Display reads expose the cropped `original`
-        media file as `public_url`; own-profile reads may also expose
-        `source_original_url` only as the edit source for re-cropping.
+        cropped display `cropped_file` to the existing avatar endpoint. For
+        animated GIF or animated WEBP avatars, callers submit the animated file
+        as the display file so the backend can preserve the animation instead
+        of flattening it through the cropper. Legacy callers may still submit `file`; the backend stores
+        that same file as both source and display. Display reads expose the
+        cropped or preserved `original` media file as `public_url`; own-profile
+        reads may also expose `source_original_url` only as the edit source for
+        re-cropping static avatars.
       properties:
         source_file:
           type: string
@@ -6917,27 +7283,32 @@ components:
         cropped_file:
           type: string
           format: binary
-          description: Cropped 1:1 display avatar stored as media_files.variant=original and exposed through avatar.public_url.
+          description: Cropped 1:1 display avatar, or preserved animated GIF/WEBP display avatar, stored as media_files.variant=original and exposed through avatar.public_url.
         file:
           type: string
           format: binary
-          description: Backward-compatible single avatar file. Runtime accepts JPG, PNG, and WEBP, enforces the shared 50 MB image limit, and rejects SVG.
+          description: Backward-compatible single avatar file. Runtime accepts JPG, PNG, WEBP, and GIF, enforces the shared 50 MB image limit, and rejects SVG.
     UploadOwnProfileBackgroundRequest:
       type: object
       description: |
-        Preferred Phase 59 contract sends a cropped 16:9 display image as
-        `cropped_file` or `background`. Legacy callers may submit `file`.
-        Runtime stores the image through media_assets/media_files and links it
-        from members.background_media_id.
+        Preferred Phase 59 contract sends the uncropped `source_file` plus a
+        cropped profile banner display image as `cropped_file`. Legacy callers may submit
+        `background` or `file`. Runtime stores the display image as
+        media_files.variant=original, keeps source_original for re-cropping,
+        and links the asset from members.background_media_id.
       properties:
+        source_file:
+          type: string
+          format: binary
+          description: Internal uncropped background source retained as media_files.variant=source_original.
         background:
           type: string
           format: binary
-          description: 16:9 profile background image file.
+          description: Backward-compatible profile background image file.
         cropped_file:
           type: string
           format: binary
-          description: Cropped 16:9 profile background image from the shared cropper.
+          description: Cropped profile banner image from the shared cropper.
         file:
           type: string
           format: binary
@@ -7238,6 +7609,7 @@ components:
       properties:
         slug:
           type: string
+          description: Platform-admin-only URL slug. Fansub group editors must not send this field.
           minLength: 1
           maxLength: 120
         name:
@@ -8526,3 +8898,224 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/ReleaseAssetsData"
+    FansubGroupInvitationStatus:
+      type: string
+      enum: [pending, accepted, cancelled, expired]
+    FansubGroupInvitation:
+      type: object
+      required:
+        - id
+        - fansub_group_id
+        - email
+        - invited_role_codes
+        - status
+        - expires_at
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        fansub_group_id:
+          type: integer
+          format: int64
+        email:
+          type: string
+          format: email
+        invited_role_codes:
+          type: array
+          items:
+            type: string
+        status:
+          $ref: "#/components/schemas/FansubGroupInvitationStatus"
+        expires_at:
+          type: string
+          format: date-time
+        created_by_app_user_id:
+          type: integer
+          format: int64
+          nullable: true
+        accepted_by_app_user_id:
+          type: integer
+          format: int64
+          nullable: true
+        cancelled_by_app_user_id:
+          type: integer
+          format: int64
+          nullable: true
+        accepted_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        member:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/FansubGroupMemberIdentitySummary"
+    FansubGroupMemberIdentitySummary:
+      type: object
+      properties:
+        member_id:
+          type: integer
+          format: int64
+        fansub_name:
+          type: string
+    FansubGroupInvitationListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/FansubGroupInvitation"
+    FansubGroupInvitationCreateRequest:
+      type: object
+      required: [email, invited_role_codes]
+      properties:
+        email:
+          type: string
+          format: email
+        invited_role_codes:
+          type: array
+          minItems: 1
+          items:
+            type: string
+    FansubGroupInvitationCreateData:
+      type: object
+      required:
+        - id
+        - email
+        - invited_role_codes
+        - status
+        - expires_at
+        - invite_link
+      description: |
+        Response data for a newly created invitation.
+        `invite_link` is an absolute URL (APP_PUBLIC_URL + accept path + raw token).
+        It is provided as a dev/copy fallback; the primary delivery channel is email.
+        The raw token is never stored in the database or audit log — it only appears here
+        and in the invitation email.
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+          format: email
+        invited_role_codes:
+          type: array
+          items:
+            type: string
+        status:
+          $ref: "#/components/schemas/FansubGroupInvitationStatus"
+        expires_at:
+          type: string
+          format: date-time
+        invite_link:
+          type: string
+          description: Absolute one-time acceptance URL. Dev/copy fallback only.
+    FansubGroupInvitationCreateResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/FansubGroupInvitationCreateData"
+    FansubGroupInvitationResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/FansubGroupInvitation"
+    AcceptFansubInvitationRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+          minLength: 1
+    AcceptFansubInvitationResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [accepted, fansub_group_id]
+          properties:
+            accepted:
+              type: boolean
+            fansub_group_id:
+              type: integer
+              format: int64
+    FansubAppMember:
+      type: object
+      required:
+        - id
+        - fansub_group_id
+        - app_user_id
+        - status
+        - roles
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        fansub_group_id:
+          type: integer
+          format: int64
+        app_user_id:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [active, disabled]
+        roles:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        member:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/FansubGroupMemberIdentitySummary"
+    FansubAppMemberListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/FansubAppMember"
+    FansubAppMemberResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/FansubAppMember"
+    FansubAppMemberCreateRequest:
+      type: object
+      required: [app_user_id, roles]
+      properties:
+        app_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+        roles:
+          type: array
+          minItems: 1
+          items:
+            type: string
