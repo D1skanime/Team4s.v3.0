@@ -357,6 +357,7 @@ Recent durable decisions:
 | 260527-ivi | Historical reconcile phases 1-46 roadmap requirements contracts | 2026-05-27 | e0b9cf91 | [260527-ivi-historical-reconcile-phases-1-46-roadmap](./quick/260527-ivi-historical-reconcile-phases-1-46-roadmap/) |
 | 260527-jgk | Retro-verify phases 49-50 auth API client and contributor governance roadmap registration | 2026-05-27 | c4b4a1b6 | [260527-jgk-retro-verify-phases-49-50-auth-api-clien](./quick/260527-jgk-retro-verify-phases-49-50-auth-api-clien/) |
 | 260528 | UAT 2 Avatar crop panning and recrop fix | 2026-05-28 | this commit | [260528-uat-2-avatar-crop-recrop-fix](./quick/260528-uat-2-avatar-crop-recrop-fix/) |
+| 260602-k94 | Phase 61 bug triage after live UAT: no Phase 61 code bug found; record older empty-database migration-chain finding as unrelated historical-migration risk | 2026-06-02 | afb76c12 | [260602-k94-phase-61-bug-triage-after-live-uat-no-ph](./quick/260602-k94-phase-61-bug-triage-after-live-uat-no-ph/) |
 
 ## Session Continuity
 
