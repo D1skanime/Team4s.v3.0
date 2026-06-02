@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 66 context gathered
-last_updated: "2026-06-02T09:56:53.368Z"
+stopped_at: Completed 69-01 Migration 0088 constraints
+last_updated: "2026-06-02T10:00:15.045Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
   completed_phases: 44
   total_plans: 230
-  completed_plans: 189
+  completed_plans: 190
   percent: 67
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 69 (fansub-contributions-contract-und-permission-haertung) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Accumulated Context
 
@@ -189,6 +189,7 @@ Recent durable decisions:
 - [Phase 54-02]: Shell profile/admin props are derived from the active auth session to avoid stale authenticated UI after logout.
 - [Phase ?]: [Phase 60-02]: Cancel-on-fail fuer SMTP-Fehler in CreateFansubGroupInvitation -- keine Delivery-Migration noetig, D-12 atomar erfuellt
 - [Phase ?]: [Phase 60-02]: Go-Standardbibliothek net/smtp fuer SMTPMailer -- kein externes Mail-Package benoetigt
+- [Phase ?]: [Phase 69-01]: Migration 0088: Composite-FK auf anime_contributions(fansub_group_id, fansub_group_member_id) haertet Cross-Group-Schutz auf DB-Ebene ab
 
 ### Pending Todos
 
@@ -323,6 +324,7 @@ Recent durable decisions:
 | Phase 53 P02 | ~70min | 8 tasks | 27 files |
 | Phase 54 P02 | 26min | 1 tasks | 1 files |
 | Phase 60 P02 | 25min | 3 tasks | 6 files |
+| Phase 69 P01 | 3min | 2 tasks | 2 files |
 
 ### Quick Tasks Completed
 
@@ -353,7 +355,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T09:56:51.294Z
-Stopped at: Phase 66 context gathered
+Last session: 2026-06-02T10:00:15.011Z
+Stopped at: Completed 69-01 Migration 0088 constraints
 Last activity: 2026-06-02
-Resume file: .planning/phases/66-claiming-verifizierung/66-CONTEXT.md
+Resume file: None
