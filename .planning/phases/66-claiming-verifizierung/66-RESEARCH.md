@@ -64,7 +64,7 @@ Drei Kernaufgaben:
 
 1. **Self-Service-Claiming-Flow** (P66-SC1): Nick-Suche → Claim einreichen (POST `/api/v1/me/member-claims`) + Leader/Admin-Review (bestätigen/ablehnen). Eine neue Nick-Suche ist nötig, da kein allgemeiner öffentlicher Member-Suchendpunkt existiert.
 
-2. **Leader-Einladungslink-Flow** (P66-SC2): Neue Tabelle `member_claim_invitations` (Migration 0091) modelliert nach `fansub_group_invitations` (0076). Einlösungsflow dockt an den bestehenden Keycloak-Account-Flow an: der Empfänger landet auf `/claim-invitations/accept?token=…` — ist er nicht eingeloggt, kommt zuerst Login/Registrierung, danach automatische Weiterleitung zurück. Das Token wird im URL-Parameter übergeben; nach Login prüft der Backend-Endpunkt `token_hash`, setzt `member_claims.claim_status = 'verified'` und `members.noindex = false` in einer Transaktion.
+2. **Leader-Einladungslink-Flow** (P66-SC2): Neue Tabelle `member_claim_invitations` (Migration 0092) modelliert nach `fansub_group_invitations` (0076). Einlösungsflow dockt an den bestehenden Keycloak-Account-Flow an: der Empfänger landet auf `/claim-invitations/accept?token=…` — ist er nicht eingeloggt, kommt zuerst Login/Registrierung, danach automatische Weiterleitung zurück. Das Token wird im URL-Parameter übergeben; nach Login prüft der Backend-Endpunkt `token_hash`, setzt `member_claims.claim_status = 'verified'` und `members.noindex = false` in einer Transaktion.
 
 3. **noindex + verified-Badge** (P66-SC3): `members.noindex` existiert bereits. Nötig: PATCH `/api/v1/me/profile/noindex` (oder Erweiterung des bestehenden PUT `/api/v1/me/profile`), Toggle in `me/profile`-Seite, `generateMetadata()`-Funktion in `frontend/src/app/members/[slug]/page.tsx` mit `robots: { index: !noindex }`, verified-Badge (Häkchen) im `MemberProfileHero` und in `GroupContributionBlock`.
 
@@ -157,8 +157,8 @@ App-User (Browser)
 
 ```
 database/migrations/
-├── 0091_member_claim_invitations.up.sql   # neue Tabelle
-├── 0091_member_claim_invitations.down.sql
+├── 0092_member_claim_invitations.up.sql   # neue Tabelle
+├── 0092_member_claim_invitations.down.sql
 
 backend/internal/repository/
 ├── member_claims_repository.go            # CRUD für member_claims
@@ -185,14 +185,14 @@ frontend/src/components/
 
 ## Konkrete technische Befunde
 
-### 1. member_claim_invitations — Schema (D-04, Migration 0091) [VERIFIED: codebase]
+### 1. member_claim_invitations — Schema (D-04, Migration 0092) [VERIFIED: codebase]
 
-Nächste freie Migrationsnummer: **0091** (0089 = anime_contributions_review_note, 0090 = member_story_images sind belegt; per ls verifiziert).
+Nächste freie Migrationsnummer: **0092** (0089, 0090 und 0091 sind belegt; per ls verifiziert).
 
 Empfohlenes Schema, direkt modelliert nach `0076_fansub_group_invitations.up.sql`:
 
 ```sql
--- Migration 0091: Member-Claim-Einladungen (Vorbild: fansub_group_invitations, 0076)
+-- Migration 0092: Member-Claim-Einladungen (Vorbild: fansub_group_invitations, 0076)
 CREATE TABLE IF NOT EXISTS member_claim_invitations (
     id                      BIGSERIAL PRIMARY KEY,
     member_id               BIGINT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
@@ -495,7 +495,7 @@ if alreadyVerified {
 
 | # | Behauptung | Abschnitt | Risiko bei Falschheit |
 |---|-----------|-----------|----------------------|
-| A1 | Unique-Pending-Index auf `member_claim_invitations` pro `member_id` (nur 1 offener Link pro Member gleichzeitig) | Migration 0091 | Falls mehrere Pending-Links erlaubt sein sollen, Index anpassen |
+| A1 | Unique-Pending-Index auf `member_claim_invitations` pro `member_id` (nur 1 offener Link pro Member gleichzeitig) | Migration 0092 | Falls mehrere Pending-Links erlaubt sein sollen, Index anpassen |
 | A2 | Neuanlage-Anträge (D-03) werden als `member_claims` mit `member_id = NULL` modelliert | Fallstrick 6 | Falls eigene Tabelle gewünscht, separate Migration + Handler nötig |
 | A3 | Nick-Suche-Endpunkt heißt `GET /api/v1/me/member-search?q=...` | Nick-Suche | Name frei wählbar, Planner entscheidet |
 | A4 | `generateMetadata()` in Next.js 16 App Router setzt `robots`-Meta-Tag korrekt | noindex | Stabiles Next.js API seit v13, sehr geringes Risiko |
@@ -596,7 +596,7 @@ Step 2.6: SKIPPED — Phase ist rein Code/Config. Keine neuen externen Dienste o
 - `frontend/src/components/anime/GroupContributionBlock.tsx` — `is_verified`-basiertes `(historisch)`-Label
 - `frontend/src/types/profile.ts` — `PublicMemberProfileData` (noch kein `is_verified`, kein `noindex`)
 - `backend/cmd/server/main.go` + `admin_routes.go` — Routen-Verdrahtung
-- Migrations-Nummerierung: letzte ist `0090` (member_story_images) → nächste ist `0091` (per ls database/migrations/ verifiziert)
+- Migrations-Nummerierung: letzte ist `0091` (anime_contributions_release_version) → nächste ist `0092` (per ls database/migrations/ verifiziert)
 
 ### Sekundär (MEDIUM Konfidenz)
 - Next.js 16 App Router `generateMetadata()` API — bekanntes stabiles Pattern seit Next.js 13, [ASSUMED aus Training aber hoch verlässlich]
@@ -609,7 +609,7 @@ Step 2.6: SKIPPED — Phase ist rein Code/Config. Keine neuen externen Dienste o
 - Standard-Stack: HIGH — alle Abhängigkeiten bereits im Projekt vorhanden
 - Architektur: HIGH — direkt aus kanonischen Referenzdateien abgeleitet
 - Fallstricke: HIGH — aus tatsächlichem Code-Lesen identifiziert
-- Migration 0091: HIGH (Muster), MEDIUM (Uniqueness-Strategie = A1)
+- Migration 0092: HIGH (Muster), MEDIUM (Uniqueness-Strategie = A1)
 
 **Research-Datum:** 2026-06-02
 **Gültig bis:** 2026-07-02 (stabiler Stack)

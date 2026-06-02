@@ -1532,10 +1532,11 @@ Plans:
 **Goal:** Member kann behaupten, ein historischer Nick zu sein (Claiming). Leader kann per Einladungslink bestaetigen. Verifizierungsstatus im Profil sichtbar. noindex-Steuerung per Member-Einstellung.
 **Requirements**: P66-SC1, P66-SC2, P66-SC3
 **Depends on:** Phase 65
-**Plans:** 6 plans
+**Plans:** 7 plans
 
 Plans:
-- [ ] `66-01-PLAN.md` - Migration 0090 member_claim_invitations anlegen und anwenden
+- [ ] `66-00-PLAN.md` - Wave-0 Test-Stubs (Nyquist-Validierung) anlegen
+- [ ] `66-01-PLAN.md` - Migration 0092 member_claim_invitations anlegen und anwenden
 - [ ] `66-02-PLAN.md` - Backend-Repositories: member_claims und member_claim_invitations
 - [ ] `66-03-PLAN.md` - Backend-Handler: Claim-Endpunkte und Einladungslink-Endpunkte
 - [ ] `66-04-PLAN.md` - Backend-Verdrahtung und Frontend-Typen und API-Client
