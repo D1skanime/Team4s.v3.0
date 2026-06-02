@@ -133,25 +133,27 @@ export default function AnimeContributionModal({
     setSaving(true)
     setError(null)
     try {
-      for (const memberId of selectedMemberIds) {
-        const existingC = existingContributions.find((c) => c.fansub_group_member_id === memberId)
-        await upsertAnimeContribution(fansubId, animeId, {
-          fansub_group_member_id: memberId,
-          role_codes: rolesByMemberId[memberId] ?? [],
-          started_year: existingC?.started_year ?? null,
-          ended_year: existingC?.ended_year ?? null,
-          note: existingC?.note ?? null,
-          is_public_on_anime_page: visibilityByMemberId[memberId]?.anime ?? false,
-          is_public_on_member_profile: visibilityByMemberId[memberId]?.profile ?? false,
-          status: statusByMemberId[memberId] ?? 'draft',
+      await Promise.all(
+        Array.from(selectedMemberIds).map((memberId) => {
+          const existingC = existingContributions.find((c) => c.fansub_group_member_id === memberId)
+          return upsertAnimeContribution(fansubId, animeId, {
+            fansub_group_member_id: memberId,
+            role_codes: rolesByMemberId[memberId] ?? [],
+            started_year: existingC?.started_year ?? null,
+            ended_year: existingC?.ended_year ?? null,
+            note: existingC?.note ?? null,
+            is_public_on_anime_page: visibilityByMemberId[memberId]?.anime ?? false,
+            is_public_on_member_profile: visibilityByMemberId[memberId]?.profile ?? false,
+            status: statusByMemberId[memberId] ?? 'draft',
+          })
         })
-      }
+      )
 
-      for (const c of existingContributions) {
-        if (!selectedMemberIds.has(c.fansub_group_member_id)) {
-          await deleteAnimeContribution(fansubId, animeId, c.id)
-        }
-      }
+      await Promise.all(
+        existingContributions
+          .filter((c) => !selectedMemberIds.has(c.fansub_group_member_id))
+          .map((c) => deleteAnimeContribution(fansubId, animeId, c.id))
+      )
 
       onSaved()
       onClose()
