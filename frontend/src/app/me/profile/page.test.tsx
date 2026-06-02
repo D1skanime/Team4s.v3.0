@@ -161,6 +161,8 @@ function makeProfileResponse(overrides: Partial<MemberProfileResponse['data']> =
       active_from_date: '2016-01-01',
       active_until_date: null,
       is_currently_active: true,
+      noindex: true,
+      is_verified: false,
       profile_visibility: 'members_only',
       avatar: null,
       keycloak_account_url: 'http://localhost:8081/realms/team4s/account',

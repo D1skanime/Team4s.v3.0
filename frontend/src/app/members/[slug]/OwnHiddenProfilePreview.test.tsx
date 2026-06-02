@@ -71,6 +71,8 @@ function makeOwnProfileResponse(overrides: Partial<MemberProfileResponse['data']
       active_from_date: '2024-01-01',
       active_until_date: null,
       is_currently_active: true,
+      noindex: true,
+      is_verified: false,
       profile_visibility: 'members_only',
       avatar: null,
       background_image: null,

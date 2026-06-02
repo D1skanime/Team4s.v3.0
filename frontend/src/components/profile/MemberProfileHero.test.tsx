@@ -23,6 +23,8 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
     active_from_date: '2016-01-01',
     active_until_date: null,
     is_currently_active: true,
+    noindex: false,
+    is_verified: false,
     profile_visibility: 'public',
     avatar: null,
     background_image: null,

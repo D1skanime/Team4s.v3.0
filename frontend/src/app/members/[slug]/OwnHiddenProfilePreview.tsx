@@ -43,6 +43,8 @@ function toPublicProfile(profile: MemberProfileData): PublicMemberProfileData {
     active_from_date: profile.active_from_date,
     active_until_date: profile.active_until_date,
     is_currently_active: profile.is_currently_active,
+    noindex: profile.noindex,
+    is_verified: profile.is_verified,
     profile_visibility: profile.profile_visibility,
     avatar: profile.avatar?.public_url ? { public_url: profile.avatar.public_url } : null,
     background_image: profile.background_image?.public_url

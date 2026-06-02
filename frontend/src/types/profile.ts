@@ -69,6 +69,10 @@ export interface MemberProfileData {
   active_from_year?: number | null
   active_until_year?: number | null
   is_currently_active: boolean
+  noindex: boolean
+  is_verified: boolean
+  claim_status?: 'pending' | 'verified' | 'rejected' | null
+  claim_member_nick?: string | null
   profile_visibility: ProfileVisibility
   avatar?: {
     id: number
@@ -124,6 +128,8 @@ export interface PublicMemberProfileData {
   active_from_date?: string | null
   active_until_date?: string | null
   is_currently_active: boolean
+  noindex: boolean
+  is_verified: boolean
   profile_visibility: ProfileVisibility
   avatar?: {
     public_url: string
@@ -140,3 +146,36 @@ export interface PublicMemberProfileData {
 export type PublicMemberProfileResponse =
   | { data: PublicMemberProfileData }
   | { visible: false; reason: string }
+
+export interface MemberSearchResult {
+  id: number
+  nickname: string
+  display_name: string
+}
+
+export interface MemberClaimRow {
+  id: number
+  app_user_id: number
+  member_id: number
+  member_nickname: string
+  claim_status: 'pending' | 'verified' | 'rejected'
+  note?: string | null
+  created_at: string
+}
+
+export interface GenerateClaimInvitationResponse {
+  id: number
+  member_id: number
+  fansub_group_id: number
+  status: string
+  expires_at: string
+  invite_link: string
+}
+
+export interface MemberRequestRow {
+  id: number
+  app_user_id: number
+  claim_status: 'pending' | 'verified' | 'rejected'
+  note?: string | null
+  created_at: string
+}

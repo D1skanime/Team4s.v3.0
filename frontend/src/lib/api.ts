@@ -70,7 +70,11 @@ import {
   ContributorGroupsResponse,
 } from "@/types/contributor";
 import {
+  GenerateClaimInvitationResponse,
+  MemberClaimRow,
   MemberProfileResponse,
+  MemberRequestRow,
+  MemberSearchResult,
   PublicMemberProfileResponse,
   UpdateMemberProfileRequest,
 } from "@/types/profile";
@@ -2685,6 +2689,167 @@ export async function getMemberProfile(
   return response.json() as Promise<PublicMemberProfileResponse>;
 }
 
+export async function getMyMemberClaim(
+  authToken?: string,
+): Promise<MemberClaimRow | null> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/member-claim`,
+    {
+      cache: "no-store",
+      authToken,
+    },
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const payload = (await response.json()) as { data: MemberClaimRow };
+  return payload.data;
+}
+
+export async function searchHistoricalMembers(
+  q: string,
+  authToken?: string,
+): Promise<MemberSearchResult[]> {
+  const API_BASE_URL = getApiBaseUrl();
+  const query = encodeURIComponent(q);
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/member-search?q=${query}`,
+    {
+      cache: "no-store",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const payload = (await response.json()) as { data: MemberSearchResult[] };
+  return payload.data;
+}
+
+export async function submitMemberClaim(
+  payload: { member_id: number; note?: string },
+  authToken?: string,
+): Promise<MemberClaimRow> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/member-claims`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const body = (await response.json()) as { data: MemberClaimRow };
+  return body.data;
+}
+
+export async function patchNoindex(
+  noindex: boolean,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/profile/noindex`,
+    {
+      method: "PATCH",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ noindex }),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+export async function submitMemberRequest(
+  payload: { note?: string },
+  authToken?: string,
+): Promise<MemberRequestRow> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/member-requests`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const body = (await response.json()) as { data: MemberRequestRow };
+  return body.data;
+}
+
 export async function getMyFansubGroups(
   authToken?: string,
 ): Promise<ContributorGroupsResponse> {
@@ -3142,6 +3307,248 @@ export async function acceptFansubInvitation(
   }
 
   return response.json() as Promise<AcceptFansubInvitationResponse>;
+}
+
+export async function acceptClaimInvitation(
+  payload: { token: string },
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/claim-invitations/accept`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+export async function generateClaimInvitation(
+  fansubId: number,
+  memberId: number,
+  authToken?: string,
+): Promise<GenerateClaimInvitationResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/group-members/${memberId}/claim-invitations`,
+    {
+      method: "POST",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const payload = (await response.json()) as {
+    data: GenerateClaimInvitationResponse;
+  };
+  return payload.data;
+}
+
+export async function listPendingMemberClaims(
+  fansubId: number,
+  authToken?: string,
+): Promise<MemberClaimRow[]> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-claims`,
+    {
+      cache: "no-store",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const payload = (await response.json()) as { data: MemberClaimRow[] };
+  return payload.data;
+}
+
+export async function verifyMemberClaim(
+  fansubId: number,
+  claimId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-claims/${claimId}/verify`,
+    {
+      method: "POST",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+export async function rejectMemberClaim(
+  fansubId: number,
+  claimId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-claims/${claimId}/reject`,
+    {
+      method: "POST",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+export async function listMemberRequests(
+  authToken?: string,
+): Promise<MemberRequestRow[]> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/member-requests`,
+    {
+      cache: "no-store",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const payload = (await response.json()) as { data: MemberRequestRow[] };
+  return payload.data;
+}
+
+export async function approveMemberRequest(
+  requestId: number,
+  payload: { nickname: string },
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/member-requests/${requestId}/approve`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+export async function rejectMemberRequest(
+  requestId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/member-requests/${requestId}/reject`,
+    {
+      method: "POST",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
 }
 
 export async function updateFansubLeadRole(
