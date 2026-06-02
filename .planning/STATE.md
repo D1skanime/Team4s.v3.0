@@ -205,6 +205,9 @@ Recent durable decisions:
 - [Phase ?]: [Phase 67-02]: Request-Structs nach fansub_contributions_validation.go ausgelagert (450-Zeilen-Limit nach D-03-Validierung); Handler 427 Zeilen.
 - [Phase ?]: [Phase 67-02]: Vierspaltiges ON CONFLICT (fansub_group_id, anime_id, fansub_group_member_id, release_version_id) im Upsert; release_version_id im Conflict-Key, NICHT im DO UPDATE SET (Pitfall 1, T-67-02-DUP).
 - [Phase ?]: [Phase 67-02]: Member-Proposal-Handler-Haertung 67-05 zugeordnet; in 67-02 nur Repository-Schicht (ProposalInput/CreateProposal) additiv vorbereitet.
+- [Phase 67-04]: Dropdown-Endpunkt als Methode am bestehenden FansubAnimeContributionsHandler in neuer Datei (450-Zeilen-Limit); Route in admin_routes.go mit authMiddleware + CanForFansubGroup(MembersView).
+- [Phase 67-04]: AnimeContributionModal nutzt das datei-eigene native <select>+Label-Muster statt der ui-Primitives Select/FormField — die Datei verwendet diese Primitives nirgends; Konsistenz mit dem Bestand schlaegt das Plan-Soll.
+- [Phase 67-04]: Per-Member 422-Feldfehler aus parallelem upsert-Promise.all via try/catch je Member statt globalem Fehlerbanner (D-03 gruppen-fremde Version).
 
 ### Pending Todos
 
@@ -354,6 +357,7 @@ Recent durable decisions:
 | Phase 67 P03 | 4min | 2 tasks | 3 files |
 | Phase 66 P00 | 3 min | 2 tasks | 5 files |
 | Phase 66 P01 | 5 min | 2 tasks | 2 files |
+| Phase 67 P04 | 18min | 3 tasks | 12 files |
 
 ### Quick Tasks Completed
 
