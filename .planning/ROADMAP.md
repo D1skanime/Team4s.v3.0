@@ -1578,7 +1578,7 @@ Plans:
 **Goal:** Vollstaendige Badge-Berechnung aus Contributions. Gruppen-Meilensteine manuell pflegbar. Erweiterte Archiv-Suche nach Rolle, Zeitraum und Gruppe.
 **Requirements**: P68-SC1, P68-SC2, P68-SC3
 **Depends on:** Phase 64
-**Plans:** 0 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 
