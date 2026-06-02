@@ -1,11 +1,12 @@
 ---
 phase: 65
 slug: member-vorschlaege-review-queue
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-02
 revised: 2026-06-02
+reviewed_at: 2026-06-02T00:00:00Z
 ---
 
 # Phase 65 — UI Design Contract
