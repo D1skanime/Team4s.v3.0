@@ -95,7 +95,7 @@ Normal app/component code must not introduce:
 - direct Keycloak refresh/logout helpers
 - duplicate XHR `setRequestHeader('Authorization', ...)` blocks
 
-`frontend/src/lib/api.no-token-boundary.test.ts` enforces these rules with separate allowlists for central client code, Keycloak PKCE/auth helpers, `/auth`, SSR server pages, server streaming routes, tests/docs, and public no-auth fetches.
+`frontend/src/lib/api.no-token-boundary.test.ts` enforces these rules with separate allowlists for central client code, Keycloak PKCE/auth helpers, `/login`, SSR server pages, server streaming routes, tests/docs, and public no-auth fetches.
 
 ## Keycloak Boundary
 
@@ -113,7 +113,7 @@ Do not add frontend-only role checks as a replacement for backend permission che
 
 Phase 49 separates these from normal browser API calls:
 
-- `/auth` may start login and call central auth lifecycle helpers.
+- `/login` may start login and call central auth lifecycle helpers.
 - `/watchlist` and `/anime/[id]` are SSR server page boundaries for render-time cookie reads.
 - Jellyfin/streaming routes are server-side stream relay boundaries and are documented separately in `docs/frontend/streaming-auth-handoff.md`.
 - Public image and remote-source fetches that send no auth remain classified as public no-auth fetches.
