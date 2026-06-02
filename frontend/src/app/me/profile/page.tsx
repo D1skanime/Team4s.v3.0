@@ -6,12 +6,13 @@ import { MemberProfileHero } from '@/components/profile/MemberProfileHero'
 import { RecentContributionsSection } from '@/components/profile/RecentContributionsSection'
 import { RecentMediaSection } from '@/components/profile/RecentMediaSection'
 import { Button, Card, ErrorState, LoadingState, SectionHeader } from '@/components/ui'
-import { ApiError, getOwnProfile, patchNoindex, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar, uploadOwnProfileBackground } from '@/lib/api'
+import { ApiError, getMyMemberClaim, getOwnProfile, patchNoindex, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar, uploadOwnProfileBackground } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
-import type { MemberProfileData, TipTapDocument } from '@/types/profile'
+import type { MemberClaimRow, MemberProfileData, TipTapDocument } from '@/types/profile'
 
 import { AccountSecurityCard } from './components/AccountSecurityCard'
 import { ClaimStatusCard } from './components/ClaimStatusCard'
+import { MemberClaimSection } from './components/MemberClaimSection'
 import { MemberAvatarCard } from './components/MemberAvatarCard'
 import { ProfileBackgroundCard } from './components/ProfileBackgroundCard'
 import { ProfileBasicsForm } from './components/ProfileBasicsForm'
@@ -123,6 +124,7 @@ function accountSnapshot(profile: MemberProfileData): string {
 export default function MyProfilePage() {
   const { authToken, hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const [profile, setProfile] = useState<MemberProfileData | null>(null)
+  const [myClaim, setMyClaim] = useState<MemberClaimRow | null>(null)
   const [form, setForm] = useState<MemberProfileFormState>(() => emptyFormState())
   const [isDirty, setIsDirty] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -157,7 +159,11 @@ export default function MyProfilePage() {
   }, [])
 
   const loadProfile = useCallback(async (options: { syncForm: boolean; resetDirty?: boolean }) => {
-    const response = await getOwnProfile()
+    const [response, claim] = await Promise.all([
+      getOwnProfile(),
+      getMyMemberClaim().catch(() => null),
+    ])
+    setMyClaim(claim)
     applyProfile(response.data, options)
     return response.data
   }, [applyProfile])
@@ -429,6 +435,9 @@ export default function MyProfilePage() {
                     disabled={isSaving}
                     onNoindexChange={handleNoindexChange}
                   />
+                </Card>
+                <Card variant="section" title="Member-Claim">
+                  <MemberClaimSection currentClaim={myClaim} authToken={authToken || undefined} disabled={isSaving} />
                 </Card>
                 <Card variant="section" title="Account & Sicherheit">
                   <AccountSecurityCard

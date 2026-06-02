@@ -30,6 +30,7 @@ import type {
 } from "@/types/contributor";
 
 import styles from "../page.module.css";
+import { ClaimManagementPanel } from "./ClaimManagementPanel";
 
 interface PageProps {
   params?: {
@@ -417,6 +418,7 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
             <Card variant="section">
               <ReviewQueue fansubId={groupId} />
             </Card>
+            <ClaimManagementPanel groupId={groupId} />
           </>
         ) : null}
       </div>
