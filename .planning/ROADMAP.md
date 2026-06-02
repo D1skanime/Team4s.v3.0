@@ -1554,12 +1554,12 @@ Plans:
 **Goal:** Contributions auf Episode- und Release-Version-Ebene erweitern. Verknuepfung mit bestehenden Release-Tabellen. Erweiterte Detailansicht auf der Anime-Seite.
 **Requirements**: P67-SC1, P67-SC2
 **Depends on:** Phase 64
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 - [x] 67-01-PLAN.md — Migration 0090: release_version_id + erweiterter UNIQUE-Constraint + Contract-Test + [BLOCKING] Apply
 - [x] 67-02-PLAN.md — Backend-Schreibpfad: GroupParticipatesInReleaseVersion, Dropdown-Lookup, vierspaltiger Upsert, Leader-Handler D-03-Validierung, Proposal-Input
-- [ ] 67-03-PLAN.md — Public-Query: Ebene-1-Filter (IS NULL) + Versions-Aufschluesselung (attachVersionBreakdowns), DTOs, Repo-Test
+- [x] 67-03-PLAN.md — Public-Query: Ebene-1-Filter (IS NULL) + Versions-Aufschluesselung (attachVersionBreakdowns), DTOs, Repo-Test
 - [ ] 67-04-PLAN.md — Frontend: Dropdown-Endpunkt, api.ts/Typen/OpenAPI, ReleaseVersionBreakdown-Komponente, Leader-Dropdown
 - [ ] 67-05-PLAN.md — Member-Proposal-Backend: release_version_id + D-03-Validierung im Vorschlagspfad (Pitfall 5)
 
