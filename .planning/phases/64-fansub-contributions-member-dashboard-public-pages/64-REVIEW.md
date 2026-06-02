@@ -2,287 +2,308 @@
 phase: 64-fansub-contributions-member-dashboard-public-pages
 reviewed: 2026-06-02T00:00:00Z
 depth: standard
-files_reviewed: 22
+files_reviewed: 23
 files_reviewed_list:
   - backend/cmd/server/main.go
   - backend/internal/handlers/member_badges_handler.go
+  - backend/internal/handlers/contributions_me_handler.go
+  - backend/internal/handlers/fansub_hist_group_members_handler.go
+  - backend/internal/handlers/fansub_hist_group_member_roles_handler.go
   - backend/internal/repository/badge_repository.go
+  - backend/internal/repository/anime_contributions_public_repository.go
   - backend/internal/services/badge_service.go
   - frontend/src/app/anime/[id]/page.tsx
   - frontend/src/app/fansubs/[slug]/page.tsx
   - frontend/src/app/me/contributions/page.tsx
   - frontend/src/app/members/[slug]/page.tsx
-  - frontend/src/components/anime/AnimeContributionsSection.module.css
   - frontend/src/components/anime/AnimeContributionsSection.tsx
-  - frontend/src/components/anime/GroupContributionBlock.module.css
   - frontend/src/components/anime/GroupContributionBlock.tsx
   - frontend/src/components/contributions/ContributionCard.tsx
   - frontend/src/components/contributions/MyContributionsSection.tsx
   - frontend/src/components/contributions/VisibilityDropdown.tsx
-  - frontend/src/components/fansubs/GroupLeaderTimeline.module.css
   - frontend/src/components/fansubs/GroupLeaderTimeline.tsx
   - frontend/src/components/profile/MemberBadgeChips.tsx
   - frontend/src/components/profile/MemberRoleTimeline.tsx
-  - frontend/src/components/profile/profile.module.css
   - frontend/src/lib/api.ts
   - frontend/src/types/contributions.ts
+  - backend/internal/handlers/contributions_public_handler.go
 findings:
-  critical: 0
-  warning: 5
-  info: 3
-  total: 10
-criticals_resolved: 2
-status: warnings_open
+  critical: 3
+  warning: 6
+  info: 4
+  total: 13
+status: issues_found
 ---
-
-> **Resolution 2026-06-02 (commit 705b9439):** Beide kritischen Befunde behoben.
-> CR-01 (confirm/reject) und CR-02 (BadgeService nie ausgelöst) sind gefixt und
-> mit Build/Vet/Tests verifiziert. Die 5 Warnings und 3 Infos bleiben als
-> Advisory offen (nicht-blockierend).
 
 # Phase 64: Code Review Report
 
 **Reviewed:** 2026-06-02
 **Depth:** standard
-**Files Reviewed:** 22
+**Files Reviewed:** 23
 **Status:** issues_found
 
 ## Summary
 
-Phase 64 bringt öffentliche Contribution-Seiten, ein Member-Dashboard, Badge-Verwaltung und den Fansub-Profil-Tab mit Leader-Timeline. Der Backend-Code ist solide strukturiert; die größten Probleme liegen in zwei inhaltlichen Logikfehlern: `confirmAnimeContribution` und `rejectAnimeContribution` missbrauchen das Sichtbarkeits-Endpoint als Bestätigungs-Signal, und der `BadgeService` wird instanziiert, aber die Referenz sofort verworfen, wodurch die Badge-Berechnung nie getriggert werden kann. Weitere Findings betreffen fehlerhafte Bestätigungs-/Ablehnungs-Logik in der UI, eine unsichere CORS-Konfiguration in main.go, und mehrere kleinere Qualitätsprobleme.
+Reviewed the fansub-contributions / member-dashboard / public-pages slice. The
+three previously-flagged fixes are genuinely present and correct in the current
+code:
 
----
+- **CR-01 (confirm/reject):** verified. `contributions_me_handler.go` now has
+  dedicated `ConfirmMyAnimeContribution` (status → `confirmed`, public=true) and
+  `RejectMyAnimeContribution` (status → `disputed`, public=false), routed at
+  `POST /me/anime-contributions/:id/confirm|reject` (main.go:359-360) and called
+  from `confirmAnimeContribution`/`rejectAnimeContribution` in api.ts. Correct.
+- **CR-02 (BadgeService `_ =` discard):** verified. `badgeService` is injected
+  into both hist handlers (main.go:333-334) and `ComputeAndStoreBadges` /
+  `ComputeAndStoreBadgesByMembership` is triggered after every Create/Update.
+- **GET /me/badges + getMyBadges error handling (WR-05):** verified. Endpoint
+  exists (main.go:351), handler returns empty list on missing claim, and api.ts
+  tolerates 404 but propagates all other errors.
+
+However, this review surfaces **three new BLOCKERs**: the public contribution
+endpoints and the `/me/anime-contributions` endpoint serialize Go structs with
+**no JSON tags**, producing PascalCase keys that do not match any frontend type.
+This silently breaks every consumer in this phase — one of them with a hard
+runtime crash. These must be fixed before the feature can work at all.
 
 ## Critical Issues
 
-### CR-01: `confirmAnimeContribution` und `rejectAnimeContribution` sind inhaltlich falsch implementiert ✅ RESOLVED (705b9439)
+### CR-01: `/me/anime-contributions` returns PascalCase JSON — frontend dashboard never renders and crashes
 
-**File:** `frontend/src/lib/api.ts:6909-6921`
-**Issue:** `confirmAnimeContribution` ruft `patchAnimeContributionVisibility(id, true)` auf und `rejectAnimeContribution` ruft `patchAnimeContributionVisibility(id, false)` auf. Beides patcht nur das Feld `is_public_on_member_profile` auf dem Visibility-Endpoint (`PATCH /me/anime-contributions/:id/visibility`). Bestätigen und Ablehnen sind aber konzeptionell andere Aktionen als das Umschalten der öffentlichen Sichtbarkeit. Ein Benutzer, der "Ablehnen" klickt, setzt damit lediglich `is_public_on_member_profile=false` – der Contribution-Status bleibt unverändert auf `proposed` oder `draft`. Das hat zwei direkte Konsequenzen:
+**File:** `backend/internal/repository/anime_contributions_repository.go:14-32`, consumed by `backend/internal/handlers/contributions_me_handler.go:99`
 
-1. Nach dem "Ablehnen" verschwindet der Beitrag aus der pending-Liste (weil `MyContributionsSection` ihn optimistisch filtert), erscheint aber auch nicht in der confirmed-Liste — er ist dauerhaft aus der UI verschwunden, bleibt aber tatsächlich in einem `proposed`-Status in der DB.
-2. Nach dem "Bestätigen" ändert sich der Status nicht auf `confirmed`, weshalb beim nächsten Seitenaufruf der Beitrag erneut in der ausstehenden Liste erscheint.
+**Issue:** `ListMyAnimeContributions` returns `gin.H{"data": items}` where `items`
+is `[]AnimeContributionRow`. `AnimeContributionRow` (lines 14-32) has **no JSON
+struct tags**, so it marshals as `{"ID":..,"FansubGroupID":..,"Status":..,
+"IsPublicOnMemberProfile":..,"RoleCodes":..}` (PascalCase). The frontend type
+`MeAnimeContribution` (types/contributions.ts:50-62) expects snake_case
+(`status`, `role_codes`, `fansub_group_id`, `is_public_on_member_profile`).
 
-Das API-Routing in `main.go:357-358` zeigt, dass es separate Visibility-Patch-Routen für Anime- und Gruppe-Contributions gibt, aber kein explizites Confirm/Reject-Endpoint. Wenn das Backend keine solchen Endpoints hat, muss entweder der Backend-Endpoint nachgezogen werden oder die UI darf "Bestätigen/Ablehnen" nicht anbieten. Die aktuell implementierte Semantik ist inkorrekt und führt zu Datenverlust aus User-Perspektive.
+Consequences in `MyContributionsSection.tsx`:
+- `c.status` is `undefined` for every row → both `confirmed` and `pending`
+  filters (lines 23-24) return empty → the dashboard always shows "0 bestätigte"
+  / "0 ausstehend" even when data exists.
+- When a row *does* slip through, `ContributionCard` destructures `role_codes`
+  (line 39) → `undefined` → `role_codes.length` (line 76) throws
+  `TypeError: Cannot read properties of undefined`, crashing the page.
 
-**Fix:**
-```typescript
-// Option A: Eigene Backend-Endpoints anlegen:
-// POST /api/v1/me/anime-contributions/:id/confirm
-// POST /api/v1/me/anime-contributions/:id/reject
-// und in api.ts:
-export async function confirmAnimeContribution(id: number): Promise<void> {
-  const response = await authorizedFetch(
-    `${getApiBaseUrl()}/api/v1/me/anime-contributions/${id}/confirm`,
-    { method: 'POST' }
-  );
-  if (!response.ok) { /* Fehlerbehandlung */ }
+**Fix:** Add JSON tags to `AnimeContributionRow`, or (cleaner) map to a tagged
+response DTO in the handler. Minimal fix:
+```go
+type AnimeContributionRow struct {
+	ID                      int64    `json:"id"`
+	FansubGroupID           int64    `json:"fansub_group_id"`
+	AnimeID                 int64    `json:"anime_id"`
+	FansubGroupMemberID     int64    `json:"fansub_group_member_id"`
+	Status                  string   `json:"status"`
+	Note                    *string  `json:"note"`
+	StartedYear             *int     `json:"started_year"`
+	EndedYear               *int     `json:"ended_year"`
+	IsPublicOnAnimePage     bool     `json:"is_public_on_anime_page"`
+	IsPublicOnMemberProfile bool     `json:"is_public_on_member_profile"`
+	// ... remaining fields tagged or json:"-"
+	RoleCodes               []string `json:"role_codes"`
 }
-
-// Option B: Wenn Bestätigen/Ablehnen in Phase 64 noch nicht vorgesehen ist,
-// die Buttons aus ContributionCard und MyContributionsSection entfernen.
 ```
 
----
+### CR-02: Public anime-contributions endpoint returns wrong shape — `AnimeContributionsSection` crashes
 
-### CR-02: `BadgeService`-Instanz wird sofort verworfen (`_ = ...`) — Badge-Berechnung nie ausgelöst ✅ RESOLVED (705b9439)
+**File:** `backend/internal/handlers/contributions_public_handler.go:42-56`, `backend/internal/repository/anime_contributions_repository.go:59-67`
 
-**File:** `backend/cmd/server/main.go:347`
-**Issue:**
-```go
-_ = services.NewBadgeService(dbPool, badgeRepo)
-```
-Die `BadgeService`-Instanz wird mit `_` verworfen. `NewBadgeService` registriert keinen Hintergrund-Task und besitzt keine Selbst-Initialisierung — der Service macht nur dann etwas, wenn sein `ComputeAndStoreBadges`-Methode explizit aufgerufen wird. Da die Instanz nicht gespeichert wird, kann niemand die Methode aufrufen. Alle Badge-Berechnungen (`founding_member`, `historical_leader`, `long_term_member`) werden niemals ausgeführt. Die in `badge_repository.go` und `badge_service.go` implementierte Logik ist damit toter Code in der Produktion.
+**Issue:** `GET /anime/:id/contributions` is served by
+`ContributionsPublicHandler.GetAnimeContributions`, which returns
+`gin.H{"data": items}` where `items` is `[]PublicContributionRow`.
+`PublicContributionRow` (repo lines 59-67) has **no JSON tags** → marshals as
+`{"data":[{"MemberDisplayName":..,"RoleCodes":..,"IsVerified":..}]}`.
 
-**Fix:**
-```go
-// Entweder: BadgeService als Dependency übergeben und bei hist_group_member-Mutationen aufrufen:
-badgeSvc := services.NewBadgeService(dbPool, badgeRepo)
-// … und an histGroupMembersHandler oder animeContributionsHandler übergeben
+The frontend (`api.ts:6989` `getAnimeContributions`) declares the return type
+`PublicAnimeContributionsResponse = { groups: AnimeContributionGroup[] }`.
+In `AnimeContributionsSection.tsx:27`, `data.groups` is therefore `undefined`,
+and `setGroups(undefined)` is called. Render then hits `groups.length` (line 52)
+→ `TypeError`. The component's `try/catch` only wraps the fetch (which returns
+200 OK), so the crash is NOT swallowed — the whole anime detail page errors.
 
-// Oder: Einen periodischen Hintergrund-Job hinzufügen, ähnlich wie rvmCleanupSvc:
-badgeSvc := services.NewBadgeService(dbPool, badgeRepo)
-go func() {
-    ticker := time.NewTicker(24 * time.Hour)
-    defer ticker.Stop()
-    for range ticker.C {
-        // recompute badges for active members
-    }
-}()
-```
+Additionally the data is semantically wrong: the frontend expects per-group
+nesting with `role_labels`, `hidden_contributor_count`, `active_from_year`, etc.
+The repo returns a flat per-member list with raw `role_codes` and no grouping —
+the grouping/label-mapping/hidden-count logic the UI depends on does not exist
+on the backend at all.
 
----
+**Fix:** Build a real grouped response DTO with JSON tags matching
+`PublicAnimeContributionsResponse` (groups → contributors → role_labels +
+hidden_contributor_count), or change the frontend contract to match the flat
+shape. Either way the handler must emit snake_case JSON and the agreed
+structure. At minimum, tag `PublicContributionRow` and reshape the handler.
+
+### CR-03: Fansub & member public contribution endpoints return wrong shape — timelines silently always empty
+
+**File:** `backend/internal/handlers/contributions_public_handler.go:24-38, 60-74`
+
+**Issue:** Same root cause as CR-02 for the other two public routes:
+- `GET /fansubs/:id/contributions` returns `{"data":[PublicContributionRow]}`,
+  but `getFansubContributions` (api.ts:6963) expects
+  `PublicGroupContributionsResponse = { leader_timeline, anime_count,
+  member_count }`. In `fansubs/[slug]/page.tsx:79`,
+  `contributionsResponse.leader_timeline` is `undefined` → `?? []`
+  → `GroupLeaderTimeline` always renders "Noch keine Gruppenhistorie".
+- `GET /members/:slug/contributions` returns the same flat shape, but
+  `getMemberContributions` (api.ts:7015) expects
+  `PublicMemberContributionsResponse = { role_timeline, has_unverified }`.
+  In `members/[slug]/page.tsx:108-110`, both fields are `undefined` →
+  `MemberRoleTimeline` always shows the empty state and the unverified
+  disclaimer never appears.
+
+These fail silently (no crash, swallowed by `try/catch`), so the feature looks
+"done" but the leader timeline and member role timeline are permanently blank —
+the data is fetched, discarded, and the UI shows empty states. This is an
+incorrect-behavior / effective data-loss defect, not cosmetic.
+
+**Fix:** Implement the documented response DTOs with JSON tags
+(`leader_timeline`/`anime_count`/`member_count` and
+`role_timeline`/`has_unverified`) and the backend logic to populate them, or
+realign the frontend contract. The current handler cannot satisfy either
+consumer.
 
 ## Warnings
 
-### WR-01: CORS-Wildcard erlaubt Cross-Origin-Zugriff von beliebigen Origins auf authentifizierte Endpunkte
+### WR-01: CORS `Access-Control-Allow-Origin: *` wildcard (still open)
 
-**File:** `backend/cmd/server/main.go:398`
-**Issue:** `corsMiddleware()` setzt `Access-Control-Allow-Origin: *` für alle Routen. Das bedeutet, dass jede beliebige Website CORS-Anfragen an das Backend senden kann. Da Cookies `SameSite=Lax` gesetzt sind, greift der Cookie-Schutz bei einfachen GET-Requests nicht. Mit `Access-Control-Allow-Headers: Authorization` können externe Sites darüber hinaus explizit Bearer-Tokens senden. Für ein internes Admin-System ist ein Wildcard-CORS-Header ein unnötiges Risiko.
+**File:** `backend/cmd/server/main.go:401`
 
-**Fix:**
-```go
-// Erlaubte Origins aus Config lesen oder zumindest auf bekannte Domains beschränken:
-allowedOrigins := []string{"https://team4s.example.com", cfg.FrontendBaseURL}
-// und im Handler:
-origin := c.Request.Header.Get("Origin")
-for _, allowed := range allowedOrigins {
-    if origin == allowed {
-        c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
-        c.Writer.Header().Set("Vary", "Origin")
-        break
-    }
-}
-```
+**Issue:** `corsMiddleware` sets `Access-Control-Allow-Origin: *` for all routes,
+including authenticated `/me/*` endpoints. With `Authorization`-header auth this
+is not a credentialed-cookie bypass, but it does allow any origin to read API
+responses via browser JS, which is inappropriate for an admin-only surface that
+exposes member PII (contributions, badges, profiles). Carried over from prior
+review; still unaddressed.
 
----
+**Fix:** Restrict to an allowlist of known frontend origins read from config
+(e.g. `cfg.AllowedOrigins`), echoing back only matched origins rather than `*`.
 
-### WR-02: `long_term_member`-Badge-Logik ergibt false positives für aktive Einträge ohne zeitliche Untergrenze
+### WR-02: `long_term_member` badge has no time floor for active members (still open)
 
-**File:** `backend/internal/services/badge_service.go:92-99`
-**Issue:**
+**File:** `backend/internal/services/badge_service.go:106-118`
+
+**Issue:** The query awards `long_term_member` ("5+ Jahre Mitglied") to anyone
+with `joined_year IS NOT NULL AND left_year IS NULL` — i.e. any currently-active
+member, even one who joined this year. A member added today with no `left_year`
+immediately gets the "5+ years" badge, which is factually wrong and undermines
+trust in the badge system. Carried over from prior review.
+
+**Fix:** Add a current-year floor for the active branch:
 ```sql
-(joined_year IS NOT NULL AND left_year IS NULL)
-```
-Diese Bedingung ergibt `true` für jeden Member, der jemals einer Gruppe beigetreten ist und noch kein `left_year` hat — unabhängig davon, wie lange er Mitglied ist. Ein Member, der heute beigetreten ist und `left_year IS NULL` hat, erhält sofort das `long_term_member`-Badge. Die Intention des Kommentars lautet "mindestens 5 Jahre oder noch aktiv", aber die SQL-Logik prüft die Aktivdauer für aktive Mitglieder nicht.
-
-**Fix:**
-```sql
-WHERE member_id = $1
-  AND (
-      (joined_year IS NOT NULL AND left_year IS NOT NULL AND left_year - joined_year >= 5)
-      OR
-      (joined_year IS NOT NULL AND left_year IS NULL
-       AND EXTRACT(YEAR FROM NOW()) - joined_year >= 5)
-  )
+OR (joined_year IS NOT NULL AND left_year IS NULL
+    AND (EXTRACT(YEAR FROM NOW())::int - joined_year) >= 5)
 ```
 
----
-
-### WR-03: `MemberBadgeChips` ist ein Server-Component-Kandidat, aber definiert eine async-Funktion in einem Client Component — Badge-Hide schlägt lautlos fehl ohne UI-Feedback
+### WR-03: No UI feedback when hiding a badge fails (still open)
 
 **File:** `frontend/src/components/profile/MemberBadgeChips.tsx:33-41`
-**Issue:** `handleHide` fängt Fehler, aber gibt dem Benutzer keinerlei Rückmeldung:
-```typescript
-} catch {
-  // Fehler ignorieren — Badge bleibt sichtbar
-}
-```
-Der Benutzer klickt "Ausblenden", das Badge verschwindet nicht (weil kein State-Update bei Fehler erfolgt) und es erscheint keine Fehlermeldung. Das ist deswegen besonders problematisch, weil nach einem erfolgreichen Hide-Call ebenfalls kein State-Update stattfindet — `visibleBadges` wird nur aus dem `badges`-Prop gefiltert, das sich nach dem API-Call nicht ändert. Das Badge bleibt nach dem Klick auf "Ausblenden" für den Rest der Seitensession sichtbar, auch wenn der API-Call erfolgreich war. `onVisibilityChanged` würde den Parent informieren, aber dieser Callback wird in `members/[slug]/page.tsx` nicht übergeben.
 
-**Fix:**
-```typescript
-// 1. onVisibilityChanged in page.tsx übergeben oder lokalen State führen
-// 2. Fehler dem User anzeigen:
-async function handleHide(badgeId: number) {
-  if (!token) return
-  try {
-    await patchMyBadgeVisibility(token, badgeId, 'hidden')
-    onVisibilityChanged?.(badgeId, 'hidden')
-    // falls kein onVisibilityChanged: lokalen State aktualisieren
-  } catch {
-    // Fehlermeldung anzeigen, z.B. via setState
-    setError('Badge konnte nicht ausgeblendet werden.')
-  }
-}
-```
+**Issue:** `handleHide` calls `patchMyBadgeVisibility` and swallows any error in
+an empty `catch {}` ("Fehler ignorieren — Badge bleibt sichtbar"). If the PATCH
+fails, the user clicks "Ausblenden", nothing happens, and there is no toast,
+error text, or disabled state. The badge appears to ignore the click. Carried
+over from prior review.
 
----
+**Fix:** Surface failure (local error state with an inline message or a toast)
+and consider an optimistic update with rollback so success/failure is visible.
 
-### WR-04: `GroupContributionBlock` verwendet Array-Indizes als React-Keys für contributors und roles
+### WR-04: Array index used as React key in three list renderers (still open)
 
-**File:** `frontend/src/components/anime/GroupContributionBlock.tsx:28, 37`
-**Issue:**
-```tsx
-<li key={index} className={styles.contributorItem}>
-<span key={roleIndex} className={styles.roleChip}>
-```
-Index-Keys führen zu falschen Diff-Berechnungen beim Expand/Collapse. Wenn `expanded` sich ändert, slicet der Component die `visibleContributors`-Liste neu. Mit Index-Keys wird React die bestehenden DOM-Elemente wiederverwenden und nur Textinhalte patchen, anstatt korrekt zu mounten/unmounten. Falls zukünftig animierte Übergänge hinzugefügt werden, ist dieses Pattern garantiert kaputt.
+**File:** `frontend/src/components/anime/GroupContributionBlock.tsx:29,38`; `frontend/src/components/fansubs/GroupLeaderTimeline.tsx:26`; `frontend/src/components/profile/MemberRoleTimeline.tsx:50`
 
-**Fix:**
-```tsx
-// Contributor hat member_display_name + fansub_group_id als stabilen Key:
-<li key={`${contributor.member_display_name}-${contributor.member_slug ?? index}`}>
-// Role label ist stabil:
-<span key={label}>
-```
+**Issue:** `key={index}` / `key={idx}` / `key={roleIndex}` are used for dynamic
+lists. Because `MemberRoleTimeline` re-sorts entries before rendering
+(`sortEntries`, line 39) and the contributor lists are sliced/expanded, index
+keys cause React to mis-associate DOM nodes on reorder, leading to incorrect
+highlight/expansion state and subtle render bugs. Carried over from prior review.
 
----
+**Fix:** Use a stable identifier from the data (member_slug + role_code +
+started_year composite, or a backend-provided id) instead of the array index.
 
-### WR-05: `getMyBadges` in api.ts swallows alle Fehler und gibt eine leere Liste zurück — 401-Fehler (nicht eingeloggt) und echte Netzwerkfehler werden gleich behandelt
+### WR-05: `internal` badge visibility is unreachable from the UI and leaks onto public profiles
 
-**File:** `frontend/src/lib/api.ts:7004-7021`
-**Issue:**
-```typescript
-export async function getMyBadges(authToken: string): Promise<MemberBadgesResponse> {
-  try {
-    const response = await authorizedFetch(...);
-    if (!response.ok) {
-      return { badges: [] };  // swallows 403, 500, etc.
-    }
-    return response.json() ...
-  } catch {
-    return { badges: [] };    // swallows network errors
-  }
-}
-```
-Der Kommentar "Route aus Phase 62 — falls noch nicht vorhanden" erklärt die Intention, aber in Phase 64 ist der Route definitiv vorhanden (er wird in `main.go:351` registriert und in `badge_repository.go` implementiert). Alle Fehler auf dem Badge-Endpoint werden jetzt dauerhaft versteckt, auch 500er.
+**File:** `frontend/src/components/profile/MemberBadgeChips.tsx:27,50-58`; backend `member_badges_handler.go:79-83`
 
-**Fix:**
-```typescript
-// 404 tolerieren (Route noch nicht vorhanden), alles andere werfen:
-if (!response.ok) {
-  if (response.status === 404) return { badges: [] };
-  const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`);
-  throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
-}
-```
+**Issue:** The backend accepts three visibility values (`public`, `internal`,
+`hidden`) and `MemberBadgeChips` filters out only `hidden` (line 27), so
+`internal` badges render identically to `public` on the public member profile.
+But the only mutation the UI offers is a single "Ausblenden" button that sets
+`hidden`. There is no way to set or honor `internal`, so an `internal` badge
+leaks onto the public profile exactly like a public one. Either the filter or
+the UI is incomplete.
 
----
+**Fix:** Decide the semantics of `internal` for public profiles. If `internal`
+should be hidden from public viewers, filter `badge.visibility === 'public'`
+when rendering the public view. If `internal` is a distinct admin-only state,
+the public profile must not render it.
+
+### WR-06: `member_slug` empty-string vs `null` contract drift
+
+**File:** `backend/internal/repository/anime_contributions_public_repository.go:14` and `backend/internal/repository/anime_contributions_repository.go:62`
+
+**Issue:** The public query uses `COALESCE(m.slug, '')` and
+`PublicContributionRow.MemberSlug` is a plain `string`, so a missing slug
+serializes as `""`. The frontend type `PublicAnimeContribution.member_slug` is
+`string | null`. Consumers that build profile links from `member_slug`
+(truthiness checks) will treat `""` differently from `null` and may render a link
+to `/members/` (empty slug). Lower priority now because the shapes are broken
+anyway (CR-02/CR-03), but it will bite once those are fixed.
+
+**Fix:** Either keep `m.slug` nullable (`*string`) end-to-end, or guard link
+construction on a non-empty slug in the UI.
 
 ## Info
 
-### IN-01: `badge_service.go` — `ComputeAndStoreBadges` gibt immer `nil` zurück, Signatur suggeriert aber echtes Error-Handling
+### IN-01: Misaligned struct fields in `ContributionsMeHandler` (gofmt)
 
-**File:** `backend/internal/services/badge_service.go:31-36`
-**Issue:** Die Methode hat die Signatur `func (...) ComputeAndStoreBadges(...) error` und gibt immer `nil` zurück. Fehler werden nur geloggt. Aufrufer könnten annehmen, dass ein `nil`-Return Erfolg bedeutet. Die Methode sollte entweder keinen Error-Rückgabewert haben (`func (...) ComputeAndStoreBadges(...)`) oder tatsächlich Fehler zurückgeben.
+**File:** `backend/internal/handlers/contributions_me_handler.go:19-22`
 
-**Fix:** Signatur auf `func (s *BadgeService) ComputeAndStoreBadges(ctx context.Context, memberID int64)` ohne `error`-Return ändern.
+**Issue:** The struct fields are over-indented/misaligned relative to gofmt
+(`contributionsRepo`, `groupRolesRepo`, `db` have inconsistent column
+alignment). `gofmt`/`go vet` will reformat this.
 
----
+**Fix:** Run `gofmt -w` on the file.
 
-### IN-02: `MyContributionsSection` enthält einen hard-codierten Stub "Beitrag vorschlagen folgt in Phase 65"
+### IN-02: Hardcoded inline styles throughout the contributions UI
 
-**File:** `frontend/src/components/contributions/MyContributionsSection.tsx:122-125`
-**Issue:**
-```tsx
-<h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 12 }}>
-  Eigene Vorschläge (0)
-</h2>
-<p style={{ color: '#888', fontSize: '0.9rem' }}>
-  Beitrag vorschlagen folgt in Phase 65.
-</p>
-```
-Ein interner Entwicklungshinweis ist im UI-Text für Endnutzer sichtbar. Dieser Text sollte entweder entfernt oder durch einen neutralen Platzhalter ersetzt werden.
+**File:** `frontend/src/components/contributions/ContributionCard.tsx:48-130`; `frontend/src/components/contributions/MyContributionsSection.tsx`; `frontend/src/app/me/contributions/page.tsx:69`
 
-**Fix:** Sektion entweder vollständig entfernen oder durch `<p>Diese Funktion ist noch nicht verfügbar.</p>` ersetzen.
+**Issue:** These components use large inline `style={{...}}` objects with magic
+color/spacing literals (`#fafafa`, `#16a34a`, `#dc2626`, etc.) instead of the
+CSS-module pattern the rest of the codebase follows (per CLAUDE.md frontend
+conventions). This duplicates color tokens and diverges from sibling components
+that use `styles.*` (e.g. `GroupContributionBlock`, `MemberRoleTimeline`).
 
----
+**Fix:** Extract a colocated CSS module (`ContributionCard.module.css`) and use
+class names, consistent with the sibling components.
 
-### IN-03: `members/[slug]/page.tsx` liest zwei unterschiedliche Cookie-Namen für den Auth-Token aus
+### IN-03: `resolveBadgeMemberID` is a redundant pass-through, and the member-claim lookup is duplicated
 
-**File:** `frontend/src/app/members/[slug]/page.tsx:59-63`
-**Issue:**
-```typescript
-const token = (
-  cookieStore.get(AUTH_TOKEN_COOKIE_NAME)?.value ||
-  cookieStore.get('access_token')?.value ||
-  ''
-).trim()
-```
-`AUTH_TOKEN_COOKIE_NAME` ist `'team4s_access_token'`. Der zweite Fallback `'access_token'` ist ein undokumentierter Legacy-Cookie-Name. Andere Server-Komponenten (z.B. `anime/[id]/page.tsx`) lesen nur `AUTH_TOKEN_COOKIE_NAME`. Die Inkonsistenz deutet auf vergessenes Cleanup hin.
+**File:** `backend/internal/handlers/member_badges_handler.go:138-140`; `backend/internal/handlers/contributions_me_handler.go:39-54`
 
-**Fix:** Den zweiten Fallback entfernen und nur `AUTH_TOKEN_COOKIE_NAME` verwenden.
+**Issue:** `resolveBadgeMemberID(c, appUserID, badgeRepo)` simply calls
+`badgeRepo.ResolveMemberIDForAppUser(...)` with no added logic — pure
+indirection. Separately, the verified-member resolution query is duplicated
+verbatim between `BadgeRepository.ResolveMemberIDForAppUser`
+(badge_repository.go:14-29) and `ContributionsMeHandler.resolveVerifiedMemberID`
+(contributions_me_handler.go:39-54) — identical SQL, two copies.
+
+**Fix:** Call the repo method directly, and consolidate the duplicated
+`member_claims` lookup into a single shared repository helper.
+
+### IN-04: `frontend/src/lib/api.ts` is 7098 lines (far over the 450-line guideline)
+
+**File:** `frontend/src/lib/api.ts`
+
+**Issue:** CLAUDE.md mandates production files ≤450 lines; `api.ts` is ~7100
+lines. This phase added more functions to it rather than splitting. Pre-existing,
+but the modularity constraint is now badly violated and should be planned for a
+split (per-domain API modules).
+
+**Fix:** Split `api.ts` into domain-scoped modules (e.g. `api/contributions.ts`,
+`api/badges.ts`) re-exported from a barrel.
 
 ---
 
