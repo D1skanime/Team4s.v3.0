@@ -1327,7 +1327,7 @@ Plans:
 **Goal:** Member-Dashboard fuer eigene Contributions (sehen, bestaetigen, ablehnen, Sichtbarkeit steuern). Oeffentliche Timelines fuer Gruppenprofil, Member-Profil und Anime-Seite. Einfache abgeleitete Badges.
 **Requirements**: P64-SC1, P64-SC2, P64-SC3, P64-SC4, P64-SC5, P64-SC6
 **Depends on:** Phase 63
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 
