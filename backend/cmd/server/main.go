@@ -369,7 +369,7 @@ func main() {
 	)
 	animeContributionsHandler := handlers.NewFansubAnimeContributionsHandler(
 		animeContributionsRepo, histGroupMemberRolesRepo, permissionSvc, auditLogRepo,
-	)
+	).WithBadgeService(badgeService)
 	groupHistoryHandler := handlers.NewFansubGroupHistoryHandler(fansubGroupHistoryRepo)
 	reviewHandler := handlers.NewContributionReviewHandler(animeContributionsRepo, permissionSvc, auditLogRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{

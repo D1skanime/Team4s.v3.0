@@ -1,11 +1,23 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+// parseAnimeIDParam parst den :animeId-Parameter zu int64.
+func parseAnimeIDParam(c *gin.Context) (int64, error) {
+	raw := c.Param("animeId")
+	id, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil || id <= 0 {
+		return 0, fmt.Errorf("ungültige anime id: %q", raw)
+	}
+	return id, nil
+}
 
 // validContributionStatuses sind die erlaubten Werte für das Status-Feld.
 var validContributionStatuses = map[string]struct{}{

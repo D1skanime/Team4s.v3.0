@@ -30,6 +30,8 @@ func main() {
 		runStatus(os.Args[2:])
 	case "backfill-phase-a-metadata":
 		runBackfillPhaseAMetadata(os.Args[2:])
+	case "backfill-badges":
+		runBackfillBadges(os.Args[2:])
 	default:
 		log.Printf("unknown command: %s", command)
 		printUsageAndExit(1)
@@ -181,5 +183,44 @@ func printUsageAndExit(code int) {
 	fmt.Fprintf(os.Stderr, "  migrate down [-steps n] [-dir path] [-database-url url]\n")
 	fmt.Fprintf(os.Stderr, "  migrate status [-dir path] [-database-url url]\n")
 	fmt.Fprintf(os.Stderr, "  migrate backfill-phase-a-metadata [-database-url url]\n")
+	fmt.Fprintf(os.Stderr, "  migrate backfill-badges [-database-url url]\n")
 	os.Exit(code)
+}
+
+func runBackfillBadges(args []string) {
+	fs := flag.NewFlagSet("backfill-badges", flag.ExitOnError)
+	databaseURL := fs.String("database-url", os.Getenv("DATABASE_URL"), "PostgreSQL connection URL")
+	_ = fs.Parse(args)
+
+	cfg := config.Load()
+	if *databaseURL == "" {
+		*databaseURL = cfg.DatabaseURL
+	}
+	if *databaseURL == "" {
+		log.Fatal("DATABASE_URL is required. Set env var or pass -database-url.")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	defer cancel()
+
+	dbPool, err := database.NewPool(ctx, *databaseURL)
+	if err != nil {
+		log.Fatalf("database init failed: %v", err)
+	}
+	defer dbPool.Close()
+
+	badgeRepo := repository.NewBadgeRepository(dbPool)
+	badgeSvc := services.NewBadgeService(dbPool, badgeRepo)
+	backfillSvc := services.NewBadgeBackfillService(dbPool, badgeSvc)
+
+	report, err := backfillSvc.BackfillAll(ctx)
+	if err != nil {
+		log.Fatalf("badge backfill failed: %v", err)
+	}
+
+	log.Printf("badge backfill complete: members_processed=%d errors=%d",
+		report.MembersProcessed, len(report.Errors))
+	for _, e := range report.Errors {
+		log.Printf("badge backfill warning: %s", e)
+	}
 }

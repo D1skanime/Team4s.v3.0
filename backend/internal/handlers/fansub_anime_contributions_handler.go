@@ -9,6 +9,7 @@ import (
 
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,7 @@ type FansubAnimeContributionsHandler struct {
 	rolesRepo         *repository.HistGroupMemberRolesRepository
 	permissionSvc     *permissions.Service
 	auditLogRepo      *repository.AuditLogRepository
+	badgeService      *services.BadgeService // Phase 68: Badge-Recompute
 }
 
 // NewFansubAnimeContributionsHandler erstellt einen neuen FansubAnimeContributionsHandler.
@@ -36,14 +38,10 @@ func NewFansubAnimeContributionsHandler(
 	}
 }
 
-// parseAnimeIDParam parst den :animeId-Parameter zu int64.
-func parseAnimeIDParam(c *gin.Context) (int64, error) {
-	raw := c.Param("animeId")
-	id, err := strconv.ParseInt(raw, 10, 64)
-	if err != nil || id <= 0 {
-		return 0, fmt.Errorf("ungültige anime id: %q", raw)
-	}
-	return id, nil
+// WithBadgeService ergänzt den Badge-Recompute-Trigger (Phase 68).
+func (h *FansubAnimeContributionsHandler) WithBadgeService(svc *services.BadgeService) *FansubAnimeContributionsHandler {
+	h.badgeService = svc
+	return h
 }
 
 // ListAnimeContributions gibt alle Beiträge einer Fansub-Gruppe für ein Anime zurück.
@@ -229,6 +227,11 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 		Payload:        map[string]any{"status": status, "release_version_id": req.ReleaseVersionID},
 	})
 
+	// Badge-Recompute (nicht kritischer Pfad).
+	if h.badgeService != nil {
+		_ = h.badgeService.ComputeAndStoreBadgesByMembership(c.Request.Context(), item.FansubGroupMemberID)
+	}
+
 	c.JSON(http.StatusCreated, gin.H{"data": item})
 }
 
@@ -358,6 +361,11 @@ func (h *FansubAnimeContributionsHandler) UpdateAnimeContribution(c *gin.Context
 		Payload:        updatePayload,
 	})
 
+	// Badge-Recompute (nicht kritischer Pfad).
+	if h.badgeService != nil {
+		_ = h.badgeService.ComputeAndStoreBadgesByMembership(c.Request.Context(), item.FansubGroupMemberID)
+	}
+
 	c.JSON(http.StatusOK, gin.H{"data": item})
 }
 
@@ -398,6 +406,16 @@ func (h *FansubAnimeContributionsHandler) DeleteAnimeContribution(c *gin.Context
 		return
 	}
 
+	// member_id VOR dem Delete sichern (Pitfall 2 aus RESEARCH.md).
+	var memberIDForBadge int64
+	if h.badgeService != nil {
+		if mid, err := h.contributionsRepo.GetMemberIDForContribution(c.Request.Context(), contributionID); err == nil {
+			memberIDForBadge = mid
+		} else if !errors.Is(err, repository.ErrNotFound) {
+			log.Printf("anime contributions delete: badge resolve pre-delete (contribution_id=%d): %v", contributionID, err)
+		}
+	}
+
 	if err := h.contributionsRepo.Delete(c.Request.Context(), contributionID); errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{
@@ -422,6 +440,11 @@ func (h *FansubAnimeContributionsHandler) DeleteAnimeContribution(c *gin.Context
 		Outcome:        "allowed",
 		Payload:        map[string]any{},
 	})
+
+	// Badge-Recompute nach Delete (nicht kritischer Pfad).
+	if memberIDForBadge > 0 && h.badgeService != nil {
+		_ = h.badgeService.ComputeAndStoreBadges(c.Request.Context(), memberIDForBadge)
+	}
 
 	c.Status(http.StatusNoContent)
 }
