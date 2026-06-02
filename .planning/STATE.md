@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 64 complete (4/4) — ready to discuss Phase 65
-last_updated: 2026-06-02T07:58:49.945Z
+stopped_at: Phase 65 context gathered
+last_updated: "2026-06-02T09:48:31.718Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
-  completed_phases: 1
+  completed_phases: 44
   total_plans: 230
-  completed_plans: 210
-  percent: 2
+  completed_plans: 188
+  percent: 67
 ---
 
 # Project State
@@ -350,7 +350,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T07:58:11.285Z
+Last session: 2026-06-02T09:48:26.629Z
 Stopped at: Phase 65 context gathered
 Last activity: 2026-06-02
-Resume file: .planning/phases/65-member-vorschlaege-review-queue/65-CONTEXT.md
+Resume file: None
