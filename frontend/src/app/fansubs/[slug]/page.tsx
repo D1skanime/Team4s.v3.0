@@ -1,8 +1,10 @@
 import Link from 'next/link'
 
 import { FansubProfileTabs } from '@/components/fansubs/FansubProfileTabs'
+import { GroupLeaderTimeline } from '@/components/fansubs/GroupLeaderTimeline'
 import { AnimeListItem } from '@/types/anime'
-import { ApiError, getAnimeList, getFansubBySlug, getFansubMembers } from '@/lib/api'
+import type { PublicFansubLeaderEntry } from '@/types/contributions'
+import { ApiError, getAnimeList, getFansubBySlug, getFansubContributions, getFansubMembers } from '@/lib/api'
 import { buildFansubFactSummary } from '@/lib/fansub-summary'
 
 import styles from './page.module.css'
@@ -56,6 +58,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
   let group: Awaited<ReturnType<typeof getFansubBySlug>>['data'] | null = null
   let members: Awaited<ReturnType<typeof getFansubMembers>>['data'] = []
   let projects: AnimeListItem[] = []
+  let leaderTimeline: PublicFansubLeaderEntry[] = []
 
   try {
     const groupResponse = await getFansubBySlug(slug)
@@ -68,6 +71,15 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
       error instanceof ApiError && error.status === 404
         ? 'Fansubgruppe nicht gefunden.'
         : 'Fansub-Profil konnte nicht geladen werden.'
+  }
+
+  if (group) {
+    try {
+      const contributionsResponse = await getFansubContributions(group.id)
+      leaderTimeline = contributionsResponse.leader_timeline ?? []
+    } catch {
+      // Leader-Timeline überspringen bei Fehler — keine Fehlerseite
+    }
   }
 
   if (!group) {
@@ -96,6 +108,8 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
         <h1 className={styles.title}>{group.name}</h1>
         <p className={styles.subtitle}>{buildFansubFactSummary(group) || 'Keine Kurzbeschreibung vorhanden.'}</p>
       </section>
+
+      <GroupLeaderTimeline entries={leaderTimeline} />
 
       <FansubProfileTabs group={group} members={members} projects={projects} />
     </main>

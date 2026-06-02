@@ -1,0 +1,60 @@
+.timeline {
+  margin-bottom: 1.5rem;
+}
+
+.heading {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--color-text-primary, #e0e0e0);
+}
+
+.empty {
+  color: var(--color-text-secondary, #999);
+  font-size: 0.9rem;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.entry {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.year {
+  color: var(--color-text-secondary, #999);
+  min-width: 4.5rem;
+  flex-shrink: 0;
+}
+
+.separator {
+  color: var(--color-text-secondary, #999);
+}
+
+.name {
+  font-weight: 500;
+  color: var(--color-text-primary, #e0e0e0);
+}
+
+.historicalLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #999);
+  font-weight: 400;
+  margin-left: 0.25rem;
+}
+
+.roleLabel {
+  font-size: 0.8rem;
+  color: var(--color-accent, #7c8cf8);
+  margin-left: auto;
+}

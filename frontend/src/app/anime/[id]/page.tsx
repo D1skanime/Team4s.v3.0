@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { Download, ExternalLink, Eye, Play } from 'lucide-react'
 
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
+import { AnimeContributionsSection } from '@/components/anime/AnimeContributionsSection'
 import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
 import { AnimeRelations } from '@/components/anime/AnimeRelations'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
@@ -418,6 +419,8 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
             </ul>
           )}
         </section>
+
+        <AnimeContributionsSection animeID={anime.id} />
 
         <CommentSection
           key={anime.id}

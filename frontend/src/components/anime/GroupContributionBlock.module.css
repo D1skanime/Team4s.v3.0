@@ -1,0 +1,90 @@
+.block {
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+  padding: 1rem;
+  background: var(--color-surface, rgba(255, 255, 255, 0.04));
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.groupName {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-text-primary, #e0e0e0);
+}
+
+.activeRange {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #999);
+}
+
+.contributorList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.contributorItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.memberName {
+  font-size: 0.875rem;
+  color: var(--color-text-primary, #e0e0e0);
+}
+
+.historicalLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #999);
+  font-weight: 400;
+  margin-left: 0.2rem;
+}
+
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.roleChip {
+  font-size: 0.7rem;
+  background: var(--color-chip-bg, rgba(124, 140, 248, 0.15));
+  color: var(--color-accent, #7c8cf8);
+  border: 1px solid var(--color-accent-dim, rgba(124, 140, 248, 0.3));
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+}
+
+.hiddenRow {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #999);
+  font-style: italic;
+}
+
+.toggleButton {
+  margin-top: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--color-accent, #7c8cf8);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.toggleButton:hover {
+  opacity: 0.8;
+}
