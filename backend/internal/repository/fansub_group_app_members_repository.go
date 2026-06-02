@@ -48,14 +48,14 @@ func (r *FansubGroupAppMemberRepository) SearchCandidates(
 	fansubGroupID int64,
 	query string,
 	limit int,
-) ([]models.AppUserListItem, error) {
+) ([]models.FansubGroupMemberCandidate, error) {
 	if fansubGroupID <= 0 {
 		return nil, fmt.Errorf("search fansub group member candidates: invalid fansub id")
 	}
 
 	search := strings.TrimSpace(query)
 	if len(search) < 2 {
-		return []models.AppUserListItem{}, nil
+		return []models.FansubGroupMemberCandidate{}, nil
 	}
 
 	if limit <= 0 || limit > 25 {
@@ -66,38 +66,19 @@ func (r *FansubGroupAppMemberRepository) SearchCandidates(
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			au.id,
-			au.legacy_user_id,
-			au.keycloak_subject,
-			au.email,
-			au.display_name,
-			au.preferred_username,
-			au.given_name,
-			au.family_name,
-			au.status,
-			au.last_login_at,
-			au.last_logout_at,
-			au.created_at,
-			au.updated_at,
-			COALESCE(
-				ARRAY(
-					SELECT agr.role
-					FROM app_user_global_roles agr
-					WHERE agr.app_user_id = au.id
-					ORDER BY agr.role
-				),
-				ARRAY[]::varchar[]
-			) AS roles
+			m.id,
+			COALESCE(NULLIF(m.nickname, ''), 'Mitglied') AS fansub_name
 		FROM app_users au
+		JOIN members m
+			ON m.user_id = au.legacy_user_id
 		LEFT JOIN fansub_group_members fgm
 			ON fgm.app_user_id = au.id
 			AND fgm.fansub_group_id = $1
 		WHERE fgm.id IS NULL
 		  AND (
-			au.display_name ILIKE $2
-			OR au.email ILIKE $2
-			OR COALESCE(au.preferred_username, '') ILIKE $2
+			m.nickname ILIKE $2
 		  )
-		ORDER BY LOWER(au.display_name), au.id
+		ORDER BY LOWER(COALESCE(NULLIF(m.nickname, ''), 'Mitglied')), au.id
 		LIMIT $3
 	`, fansubGroupID, pattern, limit)
 	if err != nil {
@@ -105,29 +86,16 @@ func (r *FansubGroupAppMemberRepository) SearchCandidates(
 	}
 	defer rows.Close()
 
-	candidates := make([]models.AppUserListItem, 0)
+	candidates := make([]models.FansubGroupMemberCandidate, 0)
 	for rows.Next() {
-		var item models.AppUserListItem
-		var roles []string
+		var item models.FansubGroupMemberCandidate
 		if err := rows.Scan(
-			&item.ID,
-			&item.LegacyUserID,
-			&item.KeycloakSubject,
-			&item.Email,
-			&item.DisplayName,
-			&item.PreferredUsername,
-			&item.GivenName,
-			&item.FamilyName,
-			&item.Status,
-			&item.LastLoginAt,
-			&item.LastLogoutAt,
-			&item.CreatedAt,
-			&item.UpdatedAt,
-			&roles,
+			&item.AppUserID,
+			&item.MemberID,
+			&item.FansubName,
 		); err != nil {
 			return nil, fmt.Errorf("search fansub group member candidates: scan: %w", err)
 		}
-		item.GlobalRoles = normalizeDistinctStrings(roles)
 		candidates = append(candidates, item)
 	}
 
@@ -149,19 +117,8 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			fgm.updated_by_app_user_id,
 			fgm.created_at,
 			fgm.updated_at,
-			au.id,
-			au.legacy_user_id,
-			au.keycloak_subject,
-			au.email,
-			au.display_name,
-			au.preferred_username,
-			au.given_name,
-			au.family_name,
-			au.status,
-			au.last_login_at,
-			au.last_logout_at,
-			au.created_at,
-			au.updated_at,
+			COALESCE(m.id, 0) AS member_id,
+			COALESCE(NULLIF(m.nickname, ''), 'Mitglied') AS fansub_name,
 			COALESCE(
 				ARRAY(
 					SELECT role
@@ -170,20 +127,12 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 					ORDER BY role
 				),
 				ARRAY[]::varchar[]
-			) AS member_roles,
-			COALESCE(
-				ARRAY(
-					SELECT agr.role
-					FROM app_user_global_roles agr
-					WHERE agr.app_user_id = au.id
-					ORDER BY agr.role
-				),
-				ARRAY[]::varchar[]
-			) AS global_roles
+			) AS member_roles
 		FROM fansub_group_members fgm
 		JOIN app_users au ON au.id = fgm.app_user_id
+		LEFT JOIN members m ON m.user_id = au.legacy_user_id
 		WHERE fgm.fansub_group_id = $1
-		ORDER BY LOWER(au.display_name), au.id
+		ORDER BY LOWER(COALESCE(NULLIF(m.nickname, ''), 'Mitglied')), au.id
 	`, fansubGroupID)
 	if err != nil {
 		return nil, fmt.Errorf("list fansub group members: %w", err)
@@ -193,9 +142,8 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 	members := make([]models.FansubGroupAppMember, 0)
 	for rows.Next() {
 		var member models.FansubGroupAppMember
-		var appUser models.AppUser
 		var memberRoles []string
-		var globalRoles []string
+		var memberIdentity models.FansubGroupMemberIdentity
 		if err := rows.Scan(
 			&member.ID,
 			&member.FansubGroupID,
@@ -205,27 +153,16 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			&member.UpdatedByAppUser,
 			&member.CreatedAt,
 			&member.UpdatedAt,
-			&appUser.ID,
-			&appUser.LegacyUserID,
-			&appUser.KeycloakSubject,
-			&appUser.Email,
-			&appUser.DisplayName,
-			&appUser.PreferredUsername,
-			&appUser.GivenName,
-			&appUser.FamilyName,
-			&appUser.Status,
-			&appUser.LastLoginAt,
-			&appUser.LastLogoutAt,
-			&appUser.CreatedAt,
-			&appUser.UpdatedAt,
+			&memberIdentity.MemberID,
+			&memberIdentity.FansubName,
 			&memberRoles,
-			&globalRoles,
 		); err != nil {
 			return nil, fmt.Errorf("list fansub group members: scan: %w", err)
 		}
-		appUser.GlobalRoles = normalizeDistinctStrings(globalRoles)
 		member.Roles = normalizeDistinctStrings(memberRoles)
-		member.AppUser = &appUser
+		if memberIdentity.MemberID > 0 {
+			member.Member = &memberIdentity
+		}
 		members = append(members, member)
 	}
 

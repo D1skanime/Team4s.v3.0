@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"context"
@@ -140,7 +140,7 @@ type adminSegmentLibraryAttachRequest struct {
 // ListAnimeSegments verarbeitet GET /api/v1/admin/anime/:id/segments
 // Query-Parameter: group_id (optional, int64), version (optional, string).
 func (h *AdminContentHandler) ListAnimeSegments(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	if _, _, ok := permissionActorFromContext(c); !ok {
 		return
 	}
 	if h.themeRepo == nil {

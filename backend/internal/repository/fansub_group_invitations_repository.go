@@ -59,23 +59,29 @@ func (r *FansubGroupInvitationRepository) ListByFansubGroup(ctx context.Context,
 
 	rows, err := r.db.Query(ctx, `
 		SELECT
-			id,
-			fansub_group_id,
-			email,
-			invited_role_codes,
-			status,
-			expires_at,
-			created_by_app_user_id,
-			accepted_by_app_user_id,
-			cancelled_by_app_user_id,
-			accepted_at,
-			cancelled_at,
-			created_at,
-			updated_at
-		FROM fansub_group_invitations
-		WHERE fansub_group_id = $1
-		  AND status = 'pending'
-		ORDER BY created_at DESC, id DESC
+			fgi.id,
+			fgi.fansub_group_id,
+			fgi.email,
+			fgi.invited_role_codes,
+			fgi.status,
+			fgi.expires_at,
+			fgi.created_by_app_user_id,
+			fgi.accepted_by_app_user_id,
+			fgi.cancelled_by_app_user_id,
+			fgi.accepted_at,
+			fgi.cancelled_at,
+			fgi.created_at,
+			fgi.updated_at,
+			COALESCE(m.id, 0) AS member_id,
+			COALESCE(NULLIF(m.nickname, ''), '') AS fansub_name
+		FROM fansub_group_invitations fgi
+		LEFT JOIN app_users au
+			ON lower(au.email) = fgi.normalized_email
+		LEFT JOIN members m
+			ON m.user_id = au.legacy_user_id
+		WHERE fgi.fansub_group_id = $1
+		  AND fgi.status = 'pending'
+		ORDER BY fgi.created_at DESC, fgi.id DESC
 	`, fansubGroupID)
 	if err != nil {
 		return nil, fmt.Errorf("list fansub group invitations: %w", err)
@@ -84,7 +90,7 @@ func (r *FansubGroupInvitationRepository) ListByFansubGroup(ctx context.Context,
 
 	invitations := make([]models.FansubGroupInvitation, 0)
 	for rows.Next() {
-		invitation, err := scanFansubGroupInvitation(rows)
+		invitation, err := scanFansubGroupInvitationWithMember(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -413,6 +419,38 @@ func scanFansubGroupInvitation(row invitationScanner) (models.FansubGroupInvitat
 			return models.FansubGroupInvitation{}, err
 		}
 		return models.FansubGroupInvitation{}, fmt.Errorf("scan fansub group invitation: %w", err)
+	}
+	return invitation, nil
+}
+
+func scanFansubGroupInvitationWithMember(row invitationScanner) (models.FansubGroupInvitation, error) {
+	var invitation models.FansubGroupInvitation
+	var memberIdentity models.FansubGroupMemberIdentity
+	err := row.Scan(
+		&invitation.ID,
+		&invitation.FansubGroupID,
+		&invitation.Email,
+		&invitation.InvitedRoleCodes,
+		&invitation.Status,
+		&invitation.ExpiresAt,
+		&invitation.CreatedByAppUserID,
+		&invitation.AcceptedByAppUser,
+		&invitation.CancelledByAppUser,
+		&invitation.AcceptedAt,
+		&invitation.CancelledAt,
+		&invitation.CreatedAt,
+		&invitation.UpdatedAt,
+		&memberIdentity.MemberID,
+		&memberIdentity.FansubName,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.FansubGroupInvitation{}, err
+		}
+		return models.FansubGroupInvitation{}, fmt.Errorf("scan fansub group invitation with member: %w", err)
+	}
+	if memberIdentity.MemberID > 0 && strings.TrimSpace(memberIdentity.FansubName) != "" {
+		invitation.Member = &memberIdentity
 	}
 	return invitation, nil
 }

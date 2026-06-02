@@ -55,3 +55,28 @@ func TestReleaseThemeAsset_InsertMediaFileRollback(t *testing.T) {
 		t.Error("FIX-03: kein DeleteMediaAsset-Rollback nach InsertMediaFile gefunden")
 	}
 }
+
+func TestReleaseThemeAsset_UsesFansubPermissionsForUploadAndDelete(t *testing.T) {
+	handlerSrc := readReleaseThemeHandlerSource(t)
+
+	if strings.Contains(handlerSrc, "func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {\n\tif _, ok := h.requireAdmin(c);") {
+		t.Error("Fansub-Anime-Theme-Upload darf nicht admin-only bleiben")
+	}
+	if strings.Contains(handlerSrc, "func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) {\n\tif _, ok := h.requireAdmin(c);") {
+		t.Error("Release-Theme-Upload darf nicht admin-only bleiben")
+	}
+	if strings.Contains(handlerSrc, "func (h *AdminContentHandler) DeleteReleaseThemeAsset(c *gin.Context) {\n\tif _, ok := h.requireAdmin(c);") {
+		t.Error("Release-Theme-Delete darf nicht admin-only bleiben")
+	}
+
+	expected := []string{
+		"h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpload, fansubID)",
+		"h.permissionSvc.CanForRelease(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpload, releaseID)",
+		"h.permissionSvc.CanForRelease(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaDelete, releaseID)",
+	}
+	for _, needle := range expected {
+		if !strings.Contains(handlerSrc, needle) {
+			t.Errorf("Permission-Check fehlt: %s", needle)
+		}
+	}
+}

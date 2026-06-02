@@ -57,20 +57,32 @@ type KeycloakIdentity struct {
 }
 
 type FansubGroupAppMember struct {
-	ID               int64     `json:"id"`
-	FansubGroupID    int64     `json:"fansub_group_id"`
-	AppUserID        int64     `json:"app_user_id"`
-	Status           string    `json:"status"`
-	Roles            []string  `json:"roles"`
-	CreatedByAppUser *int64    `json:"created_by_app_user_id,omitempty"`
-	UpdatedByAppUser *int64    `json:"updated_by_app_user_id,omitempty"`
-	CreatedAt        time.Time `json:"created_at"`
-	UpdatedAt        time.Time `json:"updated_at"`
-	AppUser          *AppUser  `json:"app_user,omitempty"`
+	ID               int64                      `json:"id"`
+	FansubGroupID    int64                      `json:"fansub_group_id"`
+	AppUserID        int64                      `json:"app_user_id"`
+	Status           string                     `json:"status"`
+	Roles            []string                   `json:"roles"`
+	CreatedByAppUser *int64                     `json:"created_by_app_user_id,omitempty"`
+	UpdatedByAppUser *int64                     `json:"updated_by_app_user_id,omitempty"`
+	CreatedAt        time.Time                  `json:"created_at"`
+	UpdatedAt        time.Time                  `json:"updated_at"`
+	AppUser          *AppUser                   `json:"app_user,omitempty"`
+	Member           *FansubGroupMemberIdentity `json:"member,omitempty"`
 }
 
 type AppUserListItem struct {
 	AppUser
+}
+
+type FansubGroupMemberIdentity struct {
+	MemberID   int64  `json:"member_id"`
+	FansubName string `json:"fansub_name"`
+}
+
+type FansubGroupMemberCandidate struct {
+	AppUserID  int64  `json:"app_user_id"`
+	MemberID   int64  `json:"member_id"`
+	FansubName string `json:"fansub_name"`
 }
 
 type FansubGroupMemberCreateInput struct {
@@ -91,19 +103,20 @@ type FansubGroupMemberStatusUpdateInput struct {
 }
 
 type FansubGroupInvitation struct {
-	ID                 int64      `json:"id"`
-	FansubGroupID      int64      `json:"fansub_group_id"`
-	Email              string     `json:"email"`
-	InvitedRoleCodes   []string   `json:"invited_role_codes"`
-	Status             string     `json:"status"`
-	ExpiresAt          time.Time  `json:"expires_at"`
-	CreatedByAppUserID *int64     `json:"created_by_app_user_id,omitempty"`
-	AcceptedByAppUser  *int64     `json:"accepted_by_app_user_id,omitempty"`
-	CancelledByAppUser *int64     `json:"cancelled_by_app_user_id,omitempty"`
-	AcceptedAt         *time.Time `json:"accepted_at,omitempty"`
-	CancelledAt        *time.Time `json:"cancelled_at,omitempty"`
-	CreatedAt          time.Time  `json:"created_at"`
-	UpdatedAt          time.Time  `json:"updated_at"`
+	ID                 int64                      `json:"id"`
+	FansubGroupID      int64                      `json:"fansub_group_id"`
+	Email              string                     `json:"email"`
+	InvitedRoleCodes   []string                   `json:"invited_role_codes"`
+	Status             string                     `json:"status"`
+	ExpiresAt          time.Time                  `json:"expires_at"`
+	CreatedByAppUserID *int64                     `json:"created_by_app_user_id,omitempty"`
+	AcceptedByAppUser  *int64                     `json:"accepted_by_app_user_id,omitempty"`
+	CancelledByAppUser *int64                     `json:"cancelled_by_app_user_id,omitempty"`
+	AcceptedAt         *time.Time                 `json:"accepted_at,omitempty"`
+	CancelledAt        *time.Time                 `json:"cancelled_at,omitempty"`
+	CreatedAt          time.Time                  `json:"created_at"`
+	UpdatedAt          time.Time                  `json:"updated_at"`
+	Member             *FansubGroupMemberIdentity `json:"member,omitempty"`
 }
 
 type FansubGroupInvitationCreateInput struct {

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 )
 
 // validateFansubGroupPatchRequest prüft und normalisiert die Felder eines Patch-Requests für eine Fansub-Gruppe.
@@ -91,6 +92,19 @@ func validateFansubGroupPatchRequest(req models.FansubGroupPatchInput) (models.F
 	}
 
 	return req, ""
+}
+
+// validateFansubGroupPatchPermission hält Slug-Änderungen auf Plattform-Admins begrenzt.
+func validateFansubGroupPatchPermission(req models.FansubGroupPatchInput, actor permissions.Actor) (permissions.Result, bool) {
+	if actor.IsPlatformAdmin || !req.Slug.Set {
+		return permissions.Result{}, true
+	}
+
+	return permissions.Result{
+		Allowed:    false,
+		ReasonCode: permissions.ReasonInsufficientRole,
+		Reason:     "Slug darf nur vom Team4s-Admin geändert werden.",
+	}, false
 }
 
 // hasAnyFansubGroupPatchField gibt true zurück, wenn mindestens ein Feld des Patch-Requests gesetzt ist.

@@ -41,10 +41,12 @@ type MemberProfileCredit struct {
 }
 
 type MemberProfileRecentMedia struct {
-	ID           int64  `json:"id"`
-	Category     string `json:"category"`
-	ThumbnailURL string `json:"thumbnail_url,omitempty"`
-	AnimeTitle   string `json:"anime_title"`
+	ID                  int64  `json:"id"`
+	Category            string `json:"category"`
+	ThumbnailURL        string `json:"thumbnail_url,omitempty"`
+	AnimeTitle          string `json:"anime_title"`
+	ReleaseVersionID    int64  `json:"release_version_id"`
+	ReleaseVersionLabel string `json:"release_version_label"`
 }
 
 type MemberProfileRecentContribution struct {
@@ -121,12 +123,15 @@ type MemberProfileAvatarUploadInput struct {
 }
 
 type MemberProfileBackgroundUploadInput struct {
-	FilePath  string
-	PublicURL string
-	MimeType  string
-	SizeBytes int64
-	Width     *int
-	Height    *int
+	FilePath        string
+	SourceFilePath  string
+	PublicURL       string
+	MimeType        string
+	SourceMimeType  string
+	SizeBytes       int64
+	SourceSizeBytes int64
+	Width           *int
+	Height          *int
 }
 
 type MemberProfileAvatar struct {
@@ -134,13 +139,15 @@ type MemberProfileAvatar struct {
 }
 
 type MemberProfileBgImage struct {
-	ID          int64  `json:"-"`
-	PublicURL   string `json:"public_url"`
-	StoragePath string `json:"-"`
+	ID                int64  `json:"-"`
+	PublicURL         string `json:"public_url"`
+	SourceOriginalURL string `json:"source_original_url,omitempty"`
+	StoragePath       string `json:"-"`
 }
 
 type PublicMemberProfile struct {
 	MemberID            int64                             `json:"member_id"`
+	AppUserID           int64                             `json:"-"`
 	FansubName          string                            `json:"fansub_name"`
 	Bio                 *string                           `json:"bio,omitempty"`
 	MemberStoryHTML     *string                           `json:"member_story_html,omitempty"`

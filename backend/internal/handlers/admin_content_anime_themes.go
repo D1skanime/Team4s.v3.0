@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
@@ -46,7 +46,7 @@ func (h *AdminContentHandler) ListThemeTypes(c *gin.Context) {
 
 // ListAnimeThemes verarbeitet GET /api/v1/admin/anime/:id/themes und gibt alle Themes eines Anime zurück.
 func (h *AdminContentHandler) ListAnimeThemes(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	if _, _, ok := permissionActorFromContext(c); !ok {
 		return
 	}
 	if h.themeRepo == nil {

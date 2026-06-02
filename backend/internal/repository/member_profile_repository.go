@@ -306,6 +306,15 @@ func (r *MemberProfileRepository) AttachUploadedBackground(
 		return nil, fmt.Errorf("insert profile background media file: %w", err)
 	}
 
+	if strings.TrimSpace(input.SourceFilePath) != "" {
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO media_files (media_id, variant, path, width, height, size)
+			VALUES ($1, 'source_original', $2, 0, 0, $3)
+		`, mediaID, strings.TrimSpace(input.SourceFilePath), input.SourceSizeBytes); err != nil {
+			return nil, fmt.Errorf("insert profile background source media file: %w", err)
+		}
+	}
+
 	if _, err := tx.Exec(ctx, `
 		UPDATE members
 		SET background_media_id = $2,
@@ -413,6 +422,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 	}
 	profile := &models.PublicMemberProfile{
 		MemberID:            row.memberID,
+		AppUserID:           appUserID,
 		FansubName:          strings.TrimSpace(row.fansubName),
 		Bio:                 normalizeLoadedOptionalString(row.bio),
 		MemberStoryHTML:     normalizeLoadedOptionalString(row.memberStoryHTML),
@@ -559,6 +569,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		avatarSize                      *int64
 		backgroundID                    *int64
 		backgroundPath                  *string
+		backgroundSourcePath            *string
 		backgroundCreatedAt             *time.Time
 		memberCreatedAt                 *time.Time
 		memberUpdatedAt                 *time.Time
@@ -608,6 +619,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 			mf.size,
 			m.background_media_id,
 			bg.file_path,
+			bg_source.path,
 			bg.created_at,
 			m.created_at,
 			m.updated_at
@@ -643,6 +655,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		LEFT JOIN media_files mf ON mf.media_id = ma.id AND mf.variant = 'original'
 		LEFT JOIN media_files mf_source ON mf_source.media_id = ma.id AND mf_source.variant = 'source_original'
 		LEFT JOIN media_assets bg ON bg.id = m.background_media_id
+		LEFT JOIN media_files bg_source ON bg_source.media_id = bg.id AND bg_source.variant = 'source_original'
 		WHERE au.id = $1
 		FOR UPDATE OF au
 	`, appUserID).Scan(
@@ -679,6 +692,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		&row.avatarSize,
 		&row.backgroundID,
 		&row.backgroundPath,
+		&row.backgroundSourcePath,
 		&row.backgroundCreatedAt,
 		&row.memberCreatedAt,
 		&row.memberUpdatedAt,
@@ -786,10 +800,15 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		}
 	}
 	if row.backgroundID != nil && row.backgroundPath != nil && row.backgroundCreatedAt != nil {
+		sourceOriginalURL := ""
+		if row.backgroundSourcePath != nil {
+			sourceOriginalURL = r.publicURLForPath(strings.TrimSpace(*row.backgroundSourcePath))
+		}
 		profile.BackgroundImage = &models.MemberProfileBgImage{
-			ID:          *row.backgroundID,
-			PublicURL:   r.publicURLForPath(strings.TrimSpace(*row.backgroundPath)),
-			StoragePath: strings.TrimSpace(*row.backgroundPath),
+			ID:                *row.backgroundID,
+			PublicURL:         r.publicURLForPath(strings.TrimSpace(*row.backgroundPath)),
+			SourceOriginalURL: sourceOriginalURL,
+			StoragePath:       strings.TrimSpace(*row.backgroundPath),
 		}
 	}
 	return profile, nil
@@ -909,7 +928,9 @@ func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, appUserID
 			rvm.id,
 			rvm.category,
 			COALESCE(mf_thumb.path, ''),
-			a.title
+			a.title,
+			rv.id,
+			COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text))
 		FROM release_version_media rvm
 		JOIN release_versions rv ON rv.id = rvm.release_version_id
 		JOIN fansub_releases fr ON fr.id = rv.release_id
@@ -935,6 +956,8 @@ func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, appUserID
 			&item.Category,
 			&thumbnailPath,
 			&item.AnimeTitle,
+			&item.ReleaseVersionID,
+			&item.ReleaseVersionLabel,
 		); err != nil {
 			return nil, fmt.Errorf("scan recent media row: %w", err)
 		}
@@ -1006,6 +1029,14 @@ func (r *MemberProfileRepository) publicURLForPath(filePath string) string {
 	}
 	if strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") {
 		return trimmed
+	}
+	normalized := strings.ReplaceAll(trimmed, "\\", "/")
+	if strings.HasPrefix(normalized, "/app/media/") {
+		trimmed = "/media/" + strings.TrimPrefix(normalized, "/app/media/")
+	} else if strings.HasPrefix(normalized, "app/media/") {
+		trimmed = "/media/" + strings.TrimPrefix(normalized, "app/media/")
+	} else if strings.HasPrefix(normalized, "media/") {
+		trimmed = "/" + normalized
 	}
 	if !strings.HasPrefix(trimmed, "/") {
 		trimmed = "/" + trimmed

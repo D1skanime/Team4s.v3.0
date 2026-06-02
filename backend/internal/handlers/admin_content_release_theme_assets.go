@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
 
@@ -24,7 +25,8 @@ func parseFansubRouteID(c *gin.Context) (int64, error) {
 
 // ListFansubAnime liefert alle Anime einer Fansub-Gruppe für den OP/ED-Upload-Flow.
 func (h *AdminContentHandler) ListFansubAnime(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
 		return
 	}
 	if h.themeRepo == nil {
@@ -35,6 +37,16 @@ func (h *AdminContentHandler) ListFansubAnime(c *gin.Context) {
 	fansubID, err := parseFansubRouteID(c)
 	if err != nil || fansubID <= 0 {
 		badRequest(c, "ungültige fansub id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseView, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Release-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -49,7 +61,8 @@ func (h *AdminContentHandler) ListFansubAnime(c *gin.Context) {
 
 // ListReleaseThemeAssets verarbeitet GET /api/v1/admin/releases/:releaseId/theme-assets.
 func (h *AdminContentHandler) ListReleaseThemeAssets(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
 		return
 	}
 	if h.themeRepo == nil {
@@ -60,6 +73,16 @@ func (h *AdminContentHandler) ListReleaseThemeAssets(c *gin.Context) {
 	releaseID, err := strconv.ParseInt(c.Param("releaseId"), 10, 64)
 	if err != nil || releaseID <= 0 {
 		badRequest(c, "ungültige release id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForRelease(c.Request.Context(), actor, permissions.ActionReleaseView, releaseID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Release-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -78,7 +101,8 @@ func (h *AdminContentHandler) ListReleaseThemeAssets(c *gin.Context) {
 
 // ListFansubAnimeThemeAssets verarbeitet GET /api/v1/admin/fansubs/:id/anime/:animeId/theme-assets.
 func (h *AdminContentHandler) ListFansubAnimeThemeAssets(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
 		return
 	}
 	if h.themeRepo == nil {
@@ -97,6 +121,16 @@ func (h *AdminContentHandler) ListFansubAnimeThemeAssets(c *gin.Context) {
 		return
 	}
 
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseView, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Release-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
+		return
+	}
+
 	releaseID, items, err := h.themeRepo.ListReleaseThemeAssetsByFansubAnime(c.Request.Context(), fansubID, animeID)
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Videos konnten nicht geladen werden.")
@@ -111,7 +145,8 @@ func (h *AdminContentHandler) ListFansubAnimeThemeAssets(c *gin.Context) {
 
 // UploadReleaseThemeAsset verarbeitet POST /api/v1/admin/fansubs/:fansubId/anime/:animeId/theme-assets.
 func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
 		return
 	}
 	if h.themeRepo == nil || h.mediaRepo == nil || h.mediaService == nil {
@@ -132,6 +167,16 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 	themeID, err := strconv.ParseInt(c.PostForm("theme_id"), 10, 64)
 	if err != nil || themeID <= 0 {
 		badRequest(c, "ungültige theme id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpload, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Release-Media-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -246,7 +291,8 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 
 // UploadReleaseThemeAssetForRelease verarbeitet POST /api/v1/admin/releases/:releaseId/theme-assets.
 func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
 		return
 	}
 	if h.themeRepo == nil || h.mediaRepo == nil || h.mediaService == nil {
@@ -262,6 +308,16 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 	themeID, err := strconv.ParseInt(c.PostForm("theme_id"), 10, 64)
 	if err != nil || themeID <= 0 {
 		badRequest(c, "ungültige theme id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForRelease(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpload, releaseID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Release-Media-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -361,7 +417,8 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 
 // DeleteReleaseThemeAsset verarbeitet DELETE /api/v1/admin/releases/:releaseId/theme-assets/:themeId/:mediaId.
 func (h *AdminContentHandler) DeleteReleaseThemeAsset(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
 		return
 	}
 	if h.themeRepo == nil || h.mediaRepo == nil {
@@ -382,6 +439,16 @@ func (h *AdminContentHandler) DeleteReleaseThemeAsset(c *gin.Context) {
 	mediaID, err := strconv.ParseInt(c.Param("mediaId"), 10, 64)
 	if err != nil || mediaID <= 0 {
 		badRequest(c, "ungültige media id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForRelease(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaDelete, releaseID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Release-Media-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
 		return
 	}
 

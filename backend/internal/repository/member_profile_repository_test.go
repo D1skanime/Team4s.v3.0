@@ -54,6 +54,10 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"own profile reads must load recent contributions by authenticated member id")
 	assert.True(t, strings.Contains(content, "WHERE rvm.uploaded_by_user_id = $1"),
 		"recent media must be isolated by release_version_media.uploaded_by_user_id")
+	assert.True(t, strings.Contains(content, "JOIN release_versions rv ON rv.id = rvm.release_version_id"),
+		"recent media must resolve the concrete release version")
+	assert.True(t, strings.Contains(content, "COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text))"),
+		"recent media must expose a readable release version label")
 	assert.True(t, strings.Contains(content, "LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = rvm.media_asset_id AND mf_thumb.variant = 'thumb'"),
 		"recent media must use the release-version-media thumbnail variant")
 	assert.True(t, strings.Contains(content, "JOIN episodes e ON e.id = fr.episode_id"),
@@ -64,8 +68,28 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"fansub_releases has no anime_id column; recent profile SQL must not use it")
 	assert.True(t, strings.Contains(content, "ORDER BY rvm.created_at DESC"),
 		"recent media must show newest uploads first")
-	assert.True(t, strings.Contains(content, "ORDER BY rmr.created_at DESC"),
+	assert.True(t, strings.Contains(content, "ORDER BY created_at DESC"),
 		"recent contributions must show newest role credits first")
 	assert.True(t, strings.Contains(content, "LIMIT 3"),
 		"profile recent sections must stay capped for hub display")
+}
+
+func TestMemberProfileRepositoryPublicURLForPathNormalizesStoragePaths(t *testing.T) {
+	repo := NewMemberProfileRepository(nil, "http://localhost:8092")
+
+	assert.Equal(
+		t,
+		"http://localhost:8092/media/release-version/41/thumb.jpg",
+		repo.publicURLForPath("/app/media/release-version/41/thumb.jpg"),
+	)
+	assert.Equal(
+		t,
+		"http://localhost:8092/media/release-version/41/thumb.jpg",
+		repo.publicURLForPath(`app\media\release-version\41\thumb.jpg`),
+	)
+	assert.Equal(
+		t,
+		"http://cdn.local/media/thumb.jpg",
+		repo.publicURLForPath("http://cdn.local/media/thumb.jpg"),
+	)
 }

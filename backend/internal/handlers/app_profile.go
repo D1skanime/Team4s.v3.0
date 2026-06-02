@@ -52,7 +52,19 @@ var avatarAllowedImageMimeTypes = map[string]bool{
 	"image/jpeg": true,
 	"image/png":  true,
 	"image/webp": true,
+	"image/gif":  true,
 }
+
+var profileBackgroundAllowedImageMimeTypes = map[string]bool{
+	"image/jpeg": true,
+	"image/png":  true,
+	"image/webp": true,
+}
+
+const (
+	profileBackgroundBannerWidth  = 1920
+	profileBackgroundBannerHeight = 384
+)
 
 func (h *AppAuthHandler) GetOwnProfile(c *gin.Context) {
 	identity, ok := middleware.CommentAuthIdentityFromContext(c)
@@ -356,6 +368,7 @@ func (h *AppAuthHandler) UploadOwnProfileAvatar(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
+	ext = avatarSourceExtFromMime(mimeType)
 	if _, err := croppedFile.Seek(0, 0); err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar-Datei konnte nicht vorbereitet werden.")
 		return
@@ -400,16 +413,24 @@ func (h *AppAuthHandler) UploadOwnProfileAvatar(c *gin.Context) {
 		return
 	}
 
-	img, _, err := image.Decode(croppedFile)
-	if err != nil {
-		_ = os.RemoveAll(absoluteDir)
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "bild konnte nicht gelesen werden"}})
-		return
-	}
-	if err := imaging.Save(img, absolutePath); err != nil {
-		_ = os.RemoveAll(absoluteDir)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar konnte nicht gespeichert werden.")
-		return
+	if shouldCopyAvatarDisplayFile(mimeType) {
+		if err := copyMultipartFileToPath(croppedFile, absolutePath); err != nil {
+			_ = os.RemoveAll(absoluteDir)
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar konnte nicht gespeichert werden.")
+			return
+		}
+	} else {
+		img, _, err := image.Decode(croppedFile)
+		if err != nil {
+			_ = os.RemoveAll(absoluteDir)
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "bild konnte nicht gelesen werden"}})
+			return
+		}
+		if err := imaging.Save(img, absolutePath); err != nil {
+			_ = os.RemoveAll(absoluteDir)
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar konnte nicht gespeichert werden.")
+			return
+		}
 	}
 	if err := copyMultipartFileToPath(sourceFile, absoluteSourcePath); err != nil {
 		_ = os.RemoveAll(absoluteDir)
@@ -490,7 +511,7 @@ func (h *AppAuthHandler) UploadOwnProfileBackground(c *gin.Context) {
 		return
 	}
 
-	fileHeader, err := readProfileBackgroundUploadFileHeader(c)
+	sourceHeader, fileHeader, isCroppedUpload, err := readProfileBackgroundUploadFileHeaders(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "keine datei hochgeladen"}})
 		return
@@ -513,6 +534,23 @@ func (h *AppAuthHandler) UploadOwnProfileBackground(c *gin.Context) {
 		return
 	}
 
+	sourceFile, err := sourceHeader.Open()
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Hintergrundbild-Original konnte nicht geöffnet werden.")
+		return
+	}
+	defer sourceFile.Close()
+
+	sourceMimeType, _, _, sourceExt, err := detectProfileBackgroundImage(sourceFile, sourceHeader.Size)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
+		return
+	}
+	if _, err := sourceFile.Seek(0, 0); err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Hintergrundbild-Original konnte nicht vorbereitet werden.")
+		return
+	}
+
 	profile, err := h.profileRepo.GetOwnProfile(c.Request.Context(), identity.AppUserID)
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Profil konnte nicht vor dem Hintergrundbild-Upload geladen werden.")
@@ -521,10 +559,13 @@ func (h *AppAuthHandler) UploadOwnProfileBackground(c *gin.Context) {
 
 	mediaID := uuid.New().String()
 	filename := "original." + ext
+	sourceFilename := "source_original." + sourceExt
 	relativeDir := fmt.Sprintf("/media/profile/%d/background/%s", profile.MemberID, mediaID)
 	relativePath := relativeDir + "/" + filename
+	relativeSourcePath := relativeDir + "/" + sourceFilename
 	absoluteDir := filepath.Join(h.mediaStorageDir, "profile", fmt.Sprintf("%d", profile.MemberID), "background", mediaID)
 	absolutePath := filepath.Join(absoluteDir, filename)
+	absoluteSourcePath := filepath.Join(absoluteDir, sourceFilename)
 
 	if err := os.MkdirAll(absoluteDir, 0755); err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Hintergrundbild-Verzeichnis konnte nicht erstellt werden.")
@@ -537,10 +578,22 @@ func (h *AppAuthHandler) UploadOwnProfileBackground(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "bild konnte nicht gelesen werden"}})
 		return
 	}
-	background := imaging.Fill(img, 1920, 1080, imaging.Center, imaging.Lanczos)
-	if err := imaging.Save(background, absolutePath); err != nil {
+	outputImage := img
+	outputWidth := width
+	outputHeight := height
+	if !isCroppedUpload {
+		outputImage = imaging.Fill(img, profileBackgroundBannerWidth, profileBackgroundBannerHeight, imaging.Center, imaging.Lanczos)
+		outputWidth = profileBackgroundBannerWidth
+		outputHeight = profileBackgroundBannerHeight
+	}
+	if err := imaging.Save(outputImage, absolutePath); err != nil {
 		_ = os.RemoveAll(absoluteDir)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Hintergrundbild konnte nicht gespeichert werden.")
+		return
+	}
+	if err := copyMultipartFileToPath(sourceFile, absoluteSourcePath); err != nil {
+		_ = os.RemoveAll(absoluteDir)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Hintergrundbild-Original konnte nicht gespeichert werden.")
 		return
 	}
 
@@ -551,19 +604,27 @@ func (h *AppAuthHandler) UploadOwnProfileBackground(c *gin.Context) {
 		return
 	}
 
+	sourceSizeBytes, err := fileSize(absoluteSourcePath)
+	if err != nil {
+		_ = os.RemoveAll(absoluteDir)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Hintergrundbild-Originalgröße konnte nicht bestimmt werden.")
+		return
+	}
+
 	storedMimeType := mimeType
 	if ext == "jpg" {
 		storedMimeType = "image/jpeg"
 	}
-	outputWidth := 1920
-	outputHeight := 1080
 	updatedProfile, err := h.profileRepo.AttachUploadedBackground(c.Request.Context(), identity.AppUserID, models.MemberProfileBackgroundUploadInput{
-		FilePath:  relativePath,
-		PublicURL: strings.TrimRight(h.mediaBaseURL, "/") + relativePath,
-		MimeType:  storedMimeType,
-		SizeBytes: sizeBytes,
-		Width:     &outputWidth,
-		Height:    &outputHeight,
+		FilePath:        relativePath,
+		SourceFilePath:  relativeSourcePath,
+		PublicURL:       strings.TrimRight(h.mediaBaseURL, "/") + relativePath,
+		MimeType:        storedMimeType,
+		SourceMimeType:  sourceMimeType,
+		SizeBytes:       sizeBytes,
+		SourceSizeBytes: sourceSizeBytes,
+		Width:           &outputWidth,
+		Height:          &outputHeight,
 	})
 	if err != nil {
 		_ = os.RemoveAll(absoluteDir)
@@ -652,14 +713,22 @@ func readAvatarUploadFileHeaders(c *gin.Context) (*multipart.FileHeader, *multip
 	return fileHeader, fileHeader, nil
 }
 
-func readProfileBackgroundUploadFileHeader(c *gin.Context) (*multipart.FileHeader, error) {
+func readProfileBackgroundUploadFileHeaders(c *gin.Context) (*multipart.FileHeader, *multipart.FileHeader, bool, error) {
 	if croppedHeader, err := c.FormFile("cropped_file"); err == nil {
-		return croppedHeader, nil
+		sourceHeader, sourceErr := c.FormFile("source_file")
+		if sourceErr != nil {
+			return croppedHeader, croppedHeader, true, nil
+		}
+		return sourceHeader, croppedHeader, true, nil
 	}
 	if backgroundHeader, err := c.FormFile("background"); err == nil {
-		return backgroundHeader, nil
+		return backgroundHeader, backgroundHeader, false, nil
 	}
-	return c.FormFile("file")
+	fileHeader, fallbackErr := c.FormFile("file")
+	if fallbackErr != nil {
+		return nil, nil, false, fallbackErr
+	}
+	return fileHeader, fileHeader, false, nil
 }
 
 func copyMultipartFileToPath(file multipart.File, targetPath string) error {
@@ -788,7 +857,7 @@ func detectProfileBackgroundImage(file multipart.File, size int64) (string, int,
 		return "", 0, 0, "", fmt.Errorf("Hintergrundbild-Typ konnte nicht erkannt werden")
 	}
 	mimeType := strings.ToLower(strings.TrimSpace(detectedMime.String()))
-	if !avatarAllowedImageMimeTypes[mimeType] {
+	if !profileBackgroundAllowedImageMimeTypes[mimeType] {
 		return "", 0, 0, "", fmt.Errorf("Nur Bilddateien sind als Hintergrundbild erlaubt")
 	}
 	if _, err := file.Seek(0, 0); err != nil {
@@ -809,10 +878,21 @@ func avatarSourceExtFromMime(mimeType string) string {
 	switch strings.ToLower(strings.TrimSpace(mimeType)) {
 	case "image/png":
 		return "png"
+	case "image/gif":
+		return "gif"
 	case "image/webp":
 		return "webp"
 	default:
 		return "jpg"
+	}
+}
+
+func shouldCopyAvatarDisplayFile(mimeType string) bool {
+	switch strings.ToLower(strings.TrimSpace(mimeType)) {
+	case "image/gif", "image/webp":
+		return true
+	default:
+		return false
 	}
 }
 

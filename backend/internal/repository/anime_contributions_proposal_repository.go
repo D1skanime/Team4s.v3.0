@@ -213,14 +213,24 @@ type MemberContributionWithProposalRow struct {
 // angereichert um CanSelfPublish (berechnet on-read: status='proposed' UND
 // created_at+90d < NOW()) und ReviewNote.
 func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx context.Context, memberID int64) ([]MemberContributionWithProposalRow, error) {
+	reviewNoteExpr := "ac.review_note"
+	hasReviewNote, err := r.hasAnimeContributionReviewNoteColumn(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !hasReviewNote {
+		reviewNoteExpr = "NULL::text AS review_note"
+	}
+
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			`+animeContributionSelectCols+`,
 			(ac.status = 'proposed' AND ac.created_at + INTERVAL '90 days' < NOW()) AS can_self_publish,
-			ac.review_note
+			`+reviewNoteExpr+`
 		FROM anime_contributions ac
 		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
 		WHERE hfgm.member_id = $1
 		GROUP BY ac.id
 		ORDER BY ac.created_at DESC
@@ -252,6 +262,7 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			&row.UpdatedBy,
 			&row.UpdatedAt,
 			&row.RoleCodes,
+			&row.RoleLabels,
 			&row.CanSelfPublish,
 			&row.ReviewNote,
 		); err != nil {
@@ -263,6 +274,22 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 		return nil, fmt.Errorf("contributions mit vorschlagsfeldern: iterate: %w", err)
 	}
 	return result, nil
+}
+
+func (r *AnimeContributionsRepository) hasAnimeContributionReviewNoteColumn(ctx context.Context) (bool, error) {
+	var exists bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM information_schema.columns
+			WHERE table_schema = current_schema()
+			  AND table_name = 'anime_contributions'
+			  AND column_name = 'review_note'
+		)
+	`).Scan(&exists); err != nil {
+		return false, fmt.Errorf("detect anime_contributions.review_note column: %w", err)
+	}
+	return exists, nil
 }
 
 // SelfPublish ermoeglicht einem Member, einen eigenen Vorschlag nach Ablauf der 90-Tage-Frist

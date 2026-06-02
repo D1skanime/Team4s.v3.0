@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -17,12 +19,18 @@ import (
 type MediaRepository struct {
 	db            *pgxpool.Pool
 	publicBaseURL string
+	storageDir    string
 }
 
-func NewMediaRepository(db *pgxpool.Pool, publicBaseURL string) *MediaRepository {
+func NewMediaRepository(db *pgxpool.Pool, publicBaseURL string, storageDir ...string) *MediaRepository {
+	dir := ""
+	if len(storageDir) > 0 {
+		dir = strings.TrimSpace(storageDir[0])
+	}
 	return &MediaRepository{
 		db:            db,
 		publicBaseURL: strings.TrimRight(strings.TrimSpace(publicBaseURL), "/"),
+		storageDir:    dir,
 	}
 }
 
@@ -98,7 +106,8 @@ func (r *MediaRepository) GetMediaAssetByID(ctx context.Context, mediaID int64) 
 		return nil, fmt.Errorf("get media asset %d: %w", mediaID, err)
 	}
 
-	item.Filename = filepath.Base(item.StoragePath)
+	item.StoragePath = r.resolveReadableStoragePath(item.StoragePath)
+	item.Filename = mediaFilename(item.StoragePath)
 	item.PublicURL = r.buildPublicURL(item.Filename)
 	return &item, nil
 }
@@ -129,7 +138,8 @@ func (r *MediaRepository) GetMediaAssetByFilename(ctx context.Context, filename 
 		return nil, fmt.Errorf("get media asset by filename %q: %w", filename, err)
 	}
 
-	item.Filename = filepath.Base(item.StoragePath)
+	item.StoragePath = r.resolveReadableStoragePath(item.StoragePath)
+	item.Filename = mediaFilename(item.StoragePath)
 	item.PublicURL = r.buildPublicURL(item.Filename)
 	return &item, nil
 }
@@ -299,6 +309,34 @@ func (r *MediaRepository) buildPublicURL(filename string) string {
 		return "/api/v1/media/files/" + url.PathEscape(trimmed)
 	}
 	return r.publicBaseURL + "/api/v1/media/files/" + url.PathEscape(trimmed)
+}
+
+func (r *MediaRepository) resolveReadableStoragePath(raw string) string {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return ""
+	}
+	if _, err := os.Stat(trimmed); err == nil {
+		return trimmed
+	}
+	filename := mediaFilename(trimmed)
+	if filename == "" || strings.TrimSpace(r.storageDir) == "" {
+		return trimmed
+	}
+	candidate := filepath.Join(r.storageDir, filename)
+	if _, err := os.Stat(candidate); err == nil {
+		return candidate
+	}
+	return trimmed
+}
+
+func mediaFilename(raw string) string {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return ""
+	}
+	normalized := strings.ReplaceAll(trimmed, "\\", "/")
+	return path.Base(normalized)
 }
 
 func mediaTypeNameForKind(kind models.MediaKind, mimeType string) (string, error) {

@@ -80,8 +80,8 @@ type PublicMemberRoleEntry struct {
 
 // PublicMemberContributionsResponse is the response for GET /members/:slug/contributions.
 type PublicMemberContributionsResponse struct {
-	RoleTimeline []PublicMemberRoleEntry `json:"role_timeline"`
-	HasUnverified bool                   `json:"has_unverified"`
+	RoleTimeline  []PublicMemberRoleEntry `json:"role_timeline"`
+	HasUnverified bool                    `json:"has_unverified"`
 }
 
 // --- (A) GET /anime/:id/contributions ---
@@ -130,10 +130,10 @@ func (r *AnimeContributionsRepository) GetPublicAnimeContributions(ctx context.C
 
 	for rows.Next() {
 		var (
-			fgID      int64
-			fgName    string
-			fgSlug    string
-			contrib   PublicContributorRow
+			fgID    int64
+			fgName  string
+			fgSlug  string
+			contrib PublicContributorRow
 		)
 		if err := rows.Scan(
 			&fgID, &fgName, &fgSlug,
@@ -335,7 +335,7 @@ func (r *AnimeContributionsRepository) GetPublicMemberContributions(ctx context.
 		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
 		WHERE hfgm.member_id = $1 AND ac.is_public_on_member_profile = true
 
-		ORDER BY COALESCE(started_year, 9999)
+		ORDER BY started_year NULLS LAST, fansub_group_name, role_label
 	`
 	rows, err := r.db.Query(ctx, timelineQuery, memberID)
 	if err != nil {

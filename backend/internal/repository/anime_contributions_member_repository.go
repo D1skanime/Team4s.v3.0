@@ -13,6 +13,7 @@ func (r *AnimeContributionsRepository) ListByMemberID(ctx context.Context, membe
 		FROM anime_contributions ac
 		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
 		WHERE hfgm.member_id = $1
 		GROUP BY ac.id
 		ORDER BY ac.created_at DESC

@@ -22,6 +22,7 @@ import (
 // fansubReleaseThemeRepoStub implements adminThemeRepository for handler tests.
 // It extends the existing stub pattern used in relation tests.
 type fansubReleaseThemeRepoStub struct {
+	listFansubAnime                       func(ctx context.Context, fansubGroupID int64) ([]models.AdminFansubAnimeEntry, error)
 	listFansubAnimeReleases               func(ctx context.Context, fansubGroupID int64, animeID int64) ([]models.AdminFansubReleaseSummary, error)
 	getCanonicalFansubAnimeReleaseSummary func(ctx context.Context, fansubGroupID int64, animeID int64) (*models.CanonicalFansubAnimeReleaseResponse, error)
 	getAdminReleaseByID                   func(ctx context.Context, releaseID int64) (*models.AdminFansubReleaseSummary, error)
@@ -110,6 +111,9 @@ func (s *fansubReleaseThemeRepoStub) GetFansubRelease(ctx context.Context, fansu
 	return nil, nil
 }
 func (s *fansubReleaseThemeRepoStub) ListFansubAnime(ctx context.Context, fansubGroupID int64) ([]models.AdminFansubAnimeEntry, error) {
+	if s.listFansubAnime != nil {
+		return s.listFansubAnime(ctx, fansubGroupID)
+	}
 	return nil, nil
 }
 func (s *fansubReleaseThemeRepoStub) ListReleaseThemeAssets(ctx context.Context, releaseID int64) ([]models.AdminReleaseThemeAsset, error) {
@@ -221,6 +225,43 @@ func TestAdminFansubReleases_DirectReleaseThemeUploadHandlerExists(t *testing.T)
 		if !strings.Contains(normalized, needle) {
 			t.Fatalf("expected %q in direct release theme upload handler", needle)
 		}
+	}
+}
+
+func TestAdminFansubReleases_ListFansubAnimeAllowsFansubLead(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	stub := &fansubReleaseThemeRepoStub{
+		listFansubAnime: func(_ context.Context, fansubGroupID int64) ([]models.AdminFansubAnimeEntry, error) {
+			return []models.AdminFansubAnimeEntry{
+				{ID: 10, Title: "Naruto", Type: "tv"},
+			}, nil
+		},
+	}
+	handler := &AdminContentHandler{
+		themeRepo:     stub,
+		permissionSvc: permissions.NewService(releasePermissionResolverStub{}),
+	}
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/admin/fansubs/5/anime", nil)
+	c.Params = gin.Params{{Key: "id", Value: "5"}}
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, AppUserID: 1, DisplayName: "Lead"})
+
+	handler.ListFansubAnime(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", recorder.Code, recorder.Body.String())
+	}
+	var resp struct {
+		Data []models.AdminFansubAnimeEntry `json:"data"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(resp.Data) != 1 || resp.Data[0].Title != "Naruto" {
+		t.Fatalf("unexpected anime response: %+v", resp.Data)
 	}
 }
 

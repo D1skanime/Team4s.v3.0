@@ -97,9 +97,6 @@ func CommentAuthOptionalMiddlewareWithState(secret string, checker AuthTokenStat
 		}
 
 		if !strings.HasPrefix(rawAuth, commentAuthBearerPrefix) {
-			if applyLocalAuthBypass(c) {
-				return
-			}
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": gin.H{
 					"message": commentAuthInvalidTokenMessage,
@@ -112,9 +109,6 @@ func CommentAuthOptionalMiddlewareWithState(secret string, checker AuthTokenStat
 		token := strings.TrimSpace(strings.TrimPrefix(rawAuth, commentAuthBearerPrefix))
 		claims, err := auth.ParseAndVerifySignedToken(token, secret, time.Now())
 		if err != nil {
-			if applyLocalAuthBypass(c) {
-				return
-			}
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": gin.H{
 					"message": commentAuthInvalidTokenMessage,
@@ -135,9 +129,6 @@ func CommentAuthOptionalMiddlewareWithState(secret string, checker AuthTokenStat
 		if checker != nil {
 			revoked, err := checker.IsAccessTokenRevoked(c.Request.Context(), identity.TokenHash)
 			if err != nil {
-				if applyLocalAuthBypass(c) {
-					return
-				}
 				total := observability.IncAuthStateUnavailableCommentAuth()
 				log.Printf(
 					"event=redis_auth_state_unavailable component=comment_auth check=access_token_revoked path=%s method=%s total=%d error=%v",
@@ -155,9 +146,6 @@ func CommentAuthOptionalMiddlewareWithState(secret string, checker AuthTokenStat
 				return
 			}
 			if revoked {
-				if applyLocalAuthBypass(c) {
-					return
-				}
 				c.JSON(http.StatusUnauthorized, gin.H{
 					"error": gin.H{
 						"message": commentAuthInvalidTokenMessage,
@@ -170,9 +158,6 @@ func CommentAuthOptionalMiddlewareWithState(secret string, checker AuthTokenStat
 			if identity.SessionID != "" {
 				active, err := checker.IsSessionActive(c.Request.Context(), identity.SessionID)
 				if err != nil {
-					if applyLocalAuthBypass(c) {
-						return
-					}
 					total := observability.IncAuthStateUnavailableCommentAuth()
 					log.Printf(
 						"event=redis_auth_state_unavailable component=comment_auth check=session_active path=%s method=%s total=%d error=%v",
@@ -190,9 +175,6 @@ func CommentAuthOptionalMiddlewareWithState(secret string, checker AuthTokenStat
 					return
 				}
 				if !active {
-					if applyLocalAuthBypass(c) {
-						return
-					}
 					c.JSON(http.StatusUnauthorized, gin.H{
 						"error": gin.H{
 							"message": commentAuthInvalidTokenMessage,
@@ -228,9 +210,6 @@ func CommentAuthMiddlewareWithState(secret string, checker AuthTokenStateChecker
 		}
 
 		if !strings.HasPrefix(rawAuth, commentAuthBearerPrefix) {
-			if applyLocalAuthBypass(c) {
-				return
-			}
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": gin.H{
 					"message": commentAuthInvalidTokenMessage,
@@ -243,9 +222,6 @@ func CommentAuthMiddlewareWithState(secret string, checker AuthTokenStateChecker
 		token := strings.TrimSpace(strings.TrimPrefix(rawAuth, commentAuthBearerPrefix))
 		claims, err := auth.ParseAndVerifySignedToken(token, secret, time.Now())
 		if err != nil {
-			if applyLocalAuthBypass(c) {
-				return
-			}
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": gin.H{
 					"message": commentAuthInvalidTokenMessage,
@@ -266,9 +242,6 @@ func CommentAuthMiddlewareWithState(secret string, checker AuthTokenStateChecker
 		if checker != nil {
 			revoked, err := checker.IsAccessTokenRevoked(c.Request.Context(), identity.TokenHash)
 			if err != nil {
-				if applyLocalAuthBypass(c) {
-					return
-				}
 				total := observability.IncAuthStateUnavailableCommentAuth()
 				log.Printf(
 					"event=redis_auth_state_unavailable component=comment_auth check=access_token_revoked path=%s method=%s total=%d error=%v",
@@ -286,9 +259,6 @@ func CommentAuthMiddlewareWithState(secret string, checker AuthTokenStateChecker
 				return
 			}
 			if revoked {
-				if applyLocalAuthBypass(c) {
-					return
-				}
 				c.JSON(http.StatusUnauthorized, gin.H{
 					"error": gin.H{
 						"message": commentAuthInvalidTokenMessage,
@@ -301,9 +271,6 @@ func CommentAuthMiddlewareWithState(secret string, checker AuthTokenStateChecker
 			if identity.SessionID != "" {
 				active, err := checker.IsSessionActive(c.Request.Context(), identity.SessionID)
 				if err != nil {
-					if applyLocalAuthBypass(c) {
-						return
-					}
 					total := observability.IncAuthStateUnavailableCommentAuth()
 					log.Printf(
 						"event=redis_auth_state_unavailable component=comment_auth check=session_active path=%s method=%s total=%d error=%v",
@@ -321,9 +288,6 @@ func CommentAuthMiddlewareWithState(secret string, checker AuthTokenStateChecker
 					return
 				}
 				if !active {
-					if applyLocalAuthBypass(c) {
-						return
-					}
 					c.JSON(http.StatusUnauthorized, gin.H{
 						"error": gin.H{
 							"message": commentAuthInvalidTokenMessage,

@@ -208,16 +208,6 @@ func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 		writePermissionDenied(c, result)
 		return
 	}
-	if !actor.IsPlatformAdmin {
-		scopedResult := permissions.Result{
-			Allowed:    false,
-			ReasonCode: permissions.ReasonInsufficientRole,
-			Reason:     "fansubgruppe-stammdaten dürfen nur vom Team4s-Admin geändert werden",
-		}
-		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group.canonical_edit.denied", &id, "fansub_group", &id, permissions.ActionFansubGroupEdit, scopedResult)
-		writePermissionDenied(c, scopedResult)
-		return
-	}
 
 	var req models.FansubGroupPatchInput
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -229,6 +219,11 @@ func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 	input, validationMessage := validateFansubGroupPatchRequest(req)
 	if validationMessage != "" {
 		badRequest(c, validationMessage)
+		return
+	}
+	if scopedResult, ok := validateFansubGroupPatchPermission(input, actor); !ok {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group.slug_edit.denied", &id, "fansub_group", &id, permissions.ActionFansubGroupEdit, scopedResult)
+		writePermissionDenied(c, scopedResult)
 		return
 	}
 

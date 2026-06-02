@@ -29,6 +29,7 @@ type AnimeContributionRow struct {
 	UpdatedBy               *int64     `json:"updated_by"`
 	UpdatedAt               time.Time  `json:"updated_at"`
 	RoleCodes               []string   `json:"role_codes"`
+	RoleLabels              []string   `json:"role_labels"`
 }
 
 // AnimeContributionInput holds the data required to create a new anime contribution.
@@ -198,7 +199,8 @@ const animeContributionSelectCols = `
 	ac.created_at,
 	ac.updated_by,
 	ac.updated_at,
-	COALESCE(ARRAY_AGG(acr.role_code) FILTER (WHERE acr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_codes
+	COALESCE(ARRAY_AGG(acr.role_code) FILTER (WHERE acr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_codes,
+	COALESCE(ARRAY_AGG(COALESCE(rd.label_de, acr.role_code)) FILTER (WHERE acr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_labels
 `
 
 func scanAnimeContributionRow(row pgx.Row) (*AnimeContributionRow, error) {
@@ -221,6 +223,7 @@ func scanAnimeContributionRow(row pgx.Row) (*AnimeContributionRow, error) {
 		&r.UpdatedBy,
 		&r.UpdatedAt,
 		&r.RoleCodes,
+		&r.RoleLabels,
 	); err != nil {
 		return nil, err
 	}
@@ -233,6 +236,7 @@ func (r *AnimeContributionsRepository) ListByFansubAndAnime(ctx context.Context,
 		SELECT `+animeContributionSelectCols+`
 		FROM anime_contributions ac
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
 		WHERE ac.fansub_group_id = $1 AND ac.anime_id = $2
 		GROUP BY ac.id
 		ORDER BY ac.created_at
@@ -270,6 +274,7 @@ func (r *AnimeContributionsRepository) getByIDWithQuerier(ctx context.Context, q
 		SELECT `+animeContributionSelectCols+`
 		FROM anime_contributions ac
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
 		WHERE ac.id = $1
 		GROUP BY ac.id
 	`, id)

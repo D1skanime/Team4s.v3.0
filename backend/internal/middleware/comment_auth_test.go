@@ -338,7 +338,7 @@ func TestCommentAuthMiddleware_AllowsMissingHeaderWhenLocalBypassEnabled(t *test
 	}
 }
 
-func TestCommentAuthMiddleware_AllowsInvalidTokenWhenLocalBypassEnabled(t *testing.T) {
+func TestCommentAuthMiddleware_RejectsInvalidTokenWhenLocalBypassEnabled(t *testing.T) {
 	ConfigureLocalAuthBypass(true, 1, "LocalAdmin")
 	defer ConfigureLocalAuthBypass(false, 0, "")
 
@@ -353,8 +353,8 @@ func TestCommentAuthMiddleware_AllowsInvalidTokenWhenLocalBypassEnabled(t *testi
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusCreated {
-		t.Fatalf("expected status %d, got %d", http.StatusCreated, rec.Code)
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected status %d, got %d", http.StatusUnauthorized, rec.Code)
 	}
 }
 

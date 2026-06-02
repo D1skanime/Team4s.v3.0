@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 )
 
 func TestValidateFansubGroupCreateRequest(t *testing.T) {
@@ -92,6 +93,41 @@ func TestValidateFansubGroupPatchRequest_InvalidGroupType(t *testing.T) {
 	_, message := validateFansubGroupPatchRequest(patch)
 	if message != "ungültiger group_type parameter" {
 		t.Fatalf("unexpected message: %q", message)
+	}
+}
+
+func TestValidateFansubGroupPatchPermission_AllowsLeaderNamePatch(t *testing.T) {
+	var patch models.FansubGroupPatchInput
+	if err := json.Unmarshal([]byte(`{"name":"AnimeOwnage"}`), &patch); err != nil {
+		t.Fatalf("unmarshal patch: %v", err)
+	}
+
+	_, ok := validateFansubGroupPatchPermission(patch, permissions.Actor{
+		AppUserID:       10,
+		Status:          "active",
+		IsPlatformAdmin: false,
+	})
+	if !ok {
+		t.Fatal("expected non-platform fansub editor to patch the group name")
+	}
+}
+
+func TestValidateFansubGroupPatchPermission_DeniesLeaderSlugPatch(t *testing.T) {
+	var patch models.FansubGroupPatchInput
+	if err := json.Unmarshal([]byte(`{"slug":"anime-ownage"}`), &patch); err != nil {
+		t.Fatalf("unmarshal patch: %v", err)
+	}
+
+	result, ok := validateFansubGroupPatchPermission(patch, permissions.Actor{
+		AppUserID:       10,
+		Status:          "active",
+		IsPlatformAdmin: false,
+	})
+	if ok {
+		t.Fatal("expected non-platform fansub editor slug patch to be denied")
+	}
+	if result.ReasonCode != permissions.ReasonInsufficientRole {
+		t.Fatalf("expected insufficient role reason, got %q", result.ReasonCode)
 	}
 }
 

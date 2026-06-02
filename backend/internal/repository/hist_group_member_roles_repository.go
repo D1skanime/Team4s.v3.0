@@ -54,6 +54,64 @@ func NewHistGroupMemberRolesRepository(db *pgxpool.Pool) *HistGroupMemberRolesRe
 	return &HistGroupMemberRolesRepository{db: db}
 }
 
+// HistGroupMemberRoleDisplayRow is the frontend-facing response type enriched with
+// display data joined from hist_fansub_group_members and members.
+type HistGroupMemberRoleDisplayRow struct {
+	ID                  int64     `json:"id"`
+	FansubGroupMemberID int64     `json:"fansub_group_member_id"`
+	MemberDisplayName   string    `json:"member_display_name"`
+	RoleCode            string    `json:"role_code"`
+	RoleLabel           *string   `json:"role_label"`
+	StartedYear         *int      `json:"started_year"`
+	EndedYear           *int      `json:"ended_year"`
+	Note                *string   `json:"note"`
+	Status              string    `json:"status"`
+	CreatedAt           time.Time `json:"created_at"`
+}
+
+// ListByFansubGroup returns all member roles for a fansub group, enriched with display names.
+func (r *HistGroupMemberRolesRepository) ListByFansubGroup(ctx context.Context, fansubGroupID int64) ([]HistGroupMemberRoleDisplayRow, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT r.id,
+		       r.hist_fansub_group_member_id AS fansub_group_member_id,
+		       m.nickname                    AS member_display_name,
+		       r.role_code,
+		       NULL::text                    AS role_label,
+		       r.started_year,
+		       r.ended_year,
+		       r.source_note                 AS note,
+		       r.status,
+		       r.created_at
+		FROM hist_group_member_roles r
+		JOIN hist_fansub_group_members hfgm ON hfgm.id = r.hist_fansub_group_member_id
+		JOIN members m ON m.id = hfgm.member_id
+		WHERE hfgm.fansub_group_id = $1
+		ORDER BY COALESCE(r.started_year, 9999), r.id
+	`, fansubGroupID)
+	if err != nil {
+		return nil, fmt.Errorf("list hist group member roles by fansub: %w", err)
+	}
+	defer rows.Close()
+
+	result := make([]HistGroupMemberRoleDisplayRow, 0)
+	for rows.Next() {
+		var row HistGroupMemberRoleDisplayRow
+		if err := rows.Scan(
+			&row.ID, &row.FansubGroupMemberID, &row.MemberDisplayName,
+			&row.RoleCode, &row.RoleLabel,
+			&row.StartedYear, &row.EndedYear, &row.Note,
+			&row.Status, &row.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("list hist group member roles by fansub: scan: %w", err)
+		}
+		result = append(result, row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list hist group member roles by fansub: iterate: %w", err)
+	}
+	return result, nil
+}
+
 func (r *HistGroupMemberRolesRepository) ListByMember(ctx context.Context, histFansubGroupMemberID int64) ([]HistGroupMemberRoleRow, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, hist_fansub_group_member_id, role_code, started_year, ended_year,

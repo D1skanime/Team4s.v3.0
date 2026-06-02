@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
 
@@ -14,18 +15,28 @@ import (
 
 // UploadFansubMedia nimmt eine Mediendatei (Logo oder Banner) für eine Fansub-Gruppe entgegen und speichert sie.
 func (h *FansubHandler) UploadFansubMedia(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
+	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
-		return
-	}
-	if h.mediaRepo == nil || h.mediaService == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media service nicht verfügbar"}})
 		return
 	}
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
 		badRequest(c, "ungültige fansub id")
+		return
+	}
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupEdit, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Fansub-Media-Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.upload.denied", &fansubID, "fansub_group", &fansubID, permissions.ActionFansubGroupEdit, result)
+		writePermissionDenied(c, result)
+		return
+	}
+	if h.mediaRepo == nil || h.mediaService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media service nicht verfügbar"}})
 		return
 	}
 

@@ -36,7 +36,7 @@ func (h *AppPublicProfileHandler) GetPublicMemberProfile(c *gin.Context) {
 		return
 	}
 
-	_, isAuthenticated := middleware.CommentAuthIdentityFromContext(c)
+	identity, isAuthenticated := middleware.CommentAuthIdentityFromContext(c)
 
 	profile, err := h.profileRepo.GetPublicMemberProfile(c.Request.Context(), slug)
 	if err != nil {
@@ -48,7 +48,11 @@ func (h *AppPublicProfileHandler) GetPublicMemberProfile(c *gin.Context) {
 		return
 	}
 
-	if profile.ProfileVisibility == models.ProfileVisibilityMembersOnly && !isAuthenticated {
+	isOwnerPreview := isAuthenticated &&
+		identity.AppUserID > 0 &&
+		profile.AppUserID > 0 &&
+		identity.AppUserID == profile.AppUserID
+	if profile.ProfileVisibility == models.ProfileVisibilityMembersOnly && !isOwnerPreview {
 		c.JSON(http.StatusOK, gin.H{"visible": false, "reason": "members_only"})
 		return
 	}
