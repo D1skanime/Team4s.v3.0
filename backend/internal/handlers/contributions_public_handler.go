@@ -28,13 +28,13 @@ func (h *ContributionsPublicHandler) GetFansubContributions(c *gin.Context) {
 		return
 	}
 
-	items, err := h.repo.ListPublicByFansub(c.Request.Context(), fansubGroupID)
+	response, err := h.repo.GetPublicGroupContributions(c.Request.Context(), fansubGroupID)
 	if err != nil {
 		internalError(c, "interner serverfehler")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": items})
+	c.JSON(http.StatusOK, response)
 }
 
 // GetAnimeContributions handles GET /api/v1/anime/:id/contributions
@@ -46,13 +46,13 @@ func (h *ContributionsPublicHandler) GetAnimeContributions(c *gin.Context) {
 		return
 	}
 
-	items, err := h.repo.ListPublicByAnime(c.Request.Context(), animeID)
+	response, err := h.repo.GetPublicAnimeContributions(c.Request.Context(), animeID)
 	if err != nil {
 		internalError(c, "interner serverfehler")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": items})
+	c.JSON(http.StatusOK, response)
 }
 
 // GetMemberContributions handles GET /api/v1/members/:slug/contributions
@@ -64,11 +64,11 @@ func (h *ContributionsPublicHandler) GetMemberContributions(c *gin.Context) {
 		return
 	}
 
-	items, err := h.repo.ListPublicByMemberSlug(c.Request.Context(), memberSlug)
+	response, err := h.repo.GetPublicMemberContributions(c.Request.Context(), memberSlug)
 	if err != nil {
 		internalError(c, "interner serverfehler")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": items})
+	c.JSON(http.StatusOK, response)
 }
