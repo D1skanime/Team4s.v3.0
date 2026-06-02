@@ -202,9 +202,9 @@
 | P61-SC5 | Phase 61 | Complete |
 | P62-SC1 | Phase 62 | Pending |
 | P62-SC2 | Phase 62 | Pending |
-| P62-SC3 | Phase 62 | Pending |
-| P62-SC4 | Phase 62 | Pending |
-| P62-SC5 | Phase 62 | Pending |
+| P62-SC3 | Phase 62 | Complete |
+| P62-SC4 | Phase 62 | Complete |
+| P62-SC5 | Phase 62 | Complete |
 | P63-SC1 | Phase 63 | Pending |
 | P63-SC2 | Phase 63 | Pending |
 | P63-SC3 | Phase 63 | Pending |

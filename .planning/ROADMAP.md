@@ -1295,7 +1295,7 @@ Plans:
 **Goal:** Backend-Repositories und Admin-API-Handler fuer Gruppenhistorie, Member-Rollen-Zeitraeume und Anime-Contributions implementieren. Public-Routen fuer Archive-Page-Daten bereitstellen.
 **Requirements**: P62-SC1, P62-SC2, P62-SC3, P62-SC4, P62-SC5
 **Depends on:** Phase 61
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 
