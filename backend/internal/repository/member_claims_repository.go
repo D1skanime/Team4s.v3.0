@@ -133,8 +133,8 @@ func (r *MemberClaimsRepository) SubmitClaim(ctx context.Context, input SubmitCl
 	return &claim, nil
 }
 
-func (r *MemberClaimsRepository) VerifyClaim(ctx context.Context, claimID int64, verifiedByAppUserID int64) error {
-	if claimID <= 0 || verifiedByAppUserID <= 0 {
+func (r *MemberClaimsRepository) VerifyClaim(ctx context.Context, fansubGroupID int64, claimID int64, verifiedByAppUserID int64) error {
+	if fansubGroupID <= 0 || claimID <= 0 || verifiedByAppUserID <= 0 {
 		return fmt.Errorf("verify member claim: invalid ids")
 	}
 
@@ -146,11 +146,13 @@ func (r *MemberClaimsRepository) VerifyClaim(ctx context.Context, claimID int64,
 
 	var memberID int64
 	if err := tx.QueryRow(ctx, `
-		SELECT member_id
-		FROM member_claims
-		WHERE id = $1
+		SELECT mc.member_id
+		FROM member_claims mc
+		JOIN hist_fansub_group_members hgm ON hgm.member_id = mc.member_id
+		WHERE mc.id = $1
+		  AND hgm.fansub_group_id = $2
 		FOR UPDATE
-	`, claimID).Scan(&memberID); err != nil {
+	`, claimID, fansubGroupID).Scan(&memberID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ErrNotFound
 		}
@@ -196,8 +198,8 @@ func (r *MemberClaimsRepository) VerifyClaim(ctx context.Context, claimID int64,
 	return nil
 }
 
-func (r *MemberClaimsRepository) RejectClaim(ctx context.Context, claimID int64, verifiedByAppUserID int64) error {
-	if claimID <= 0 || verifiedByAppUserID <= 0 {
+func (r *MemberClaimsRepository) RejectClaim(ctx context.Context, fansubGroupID int64, claimID int64, verifiedByAppUserID int64) error {
+	if fansubGroupID <= 0 || claimID <= 0 || verifiedByAppUserID <= 0 {
 		return fmt.Errorf("reject member claim: invalid ids")
 	}
 
@@ -209,7 +211,13 @@ func (r *MemberClaimsRepository) RejectClaim(ctx context.Context, claimID int64,
 			updated_at = NOW()
 		WHERE id = $1
 		  AND claim_status = 'pending'
-	`, claimID, verifiedByAppUserID)
+		  AND EXISTS (
+			SELECT 1
+			FROM hist_fansub_group_members hgm
+			WHERE hgm.member_id = member_claims.member_id
+			  AND hgm.fansub_group_id = $3
+		  )
+	`, claimID, verifiedByAppUserID, fansubGroupID)
 	if err != nil {
 		return fmt.Errorf("reject member claim: %w", err)
 	}
@@ -277,6 +285,33 @@ func (r *MemberClaimsRepository) GetMyClaim(ctx context.Context, appUserID int64
 		return nil, fmt.Errorf("get my member claim: %w", err)
 	}
 	return &claim, nil
+}
+
+func (r *MemberClaimsRepository) UpdateNoindex(ctx context.Context, appUserID int64, noindex bool) error {
+	if appUserID <= 0 {
+		return ErrNotFound
+	}
+
+	tag, err := r.db.Exec(ctx, `
+		UPDATE members
+		SET noindex = $1,
+			updated_at = NOW()
+		WHERE id = (
+			SELECT member_id
+			FROM member_claims
+			WHERE app_user_id = $2
+			  AND claim_status = 'verified'
+			ORDER BY verified_at DESC
+			LIMIT 1
+		)
+	`, noindex, appUserID)
+	if err != nil {
+		return fmt.Errorf("update member profile noindex: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 type memberClaimScanner interface {
