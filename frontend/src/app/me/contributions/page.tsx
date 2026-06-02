@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 
 import { MyContributionsSection } from '@/components/contributions/MyContributionsSection'
+import { MyProposalsSection } from '@/components/contributions/MyProposalsSection'
 import { Button, ErrorState, LoadingState } from '@/components/ui'
 import { ApiError, getMyAnimeContributions } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
@@ -68,7 +69,10 @@ export default function MyContributionsPage() {
   return (
     <main style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px' }}>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 24 }}>Meine Beiträge</h1>
-      <MyContributionsSection initialContributions={contributions} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
+        <MyContributionsSection initialContributions={contributions} />
+        <MyProposalsSection />
+      </div>
     </main>
   )
 }

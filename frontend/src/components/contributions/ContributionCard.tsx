@@ -6,7 +6,7 @@ import { VisibilityDropdown } from './VisibilityDropdown'
 
 interface ContributionCardProps {
   contribution: MeAnimeContribution
-  mode: 'confirmed' | 'pending'
+  mode: 'confirmed' | 'pending' | 'proposal'
   onConfirm?: (id: number) => void
   onReject?: (id: number) => void
   onVisibilityChange?: (id: number, isPublic: boolean) => void
@@ -37,7 +37,7 @@ export function ContributionCard({
   onReject,
   onVisibilityChange,
 }: ContributionCardProps) {
-  const { id, anime_id, fansub_group_id, role_codes, started_year, ended_year, is_public_on_member_profile } = contribution
+  const { id, anime_id, fansub_group_id, role_codes, started_year, ended_year, is_public_on_member_profile, status, review_note } = contribution
 
   const yearRange = started_year
     ? ended_year
@@ -92,6 +92,13 @@ export function ContributionCard({
             </span>
           ))}
         </div>
+      )}
+
+      {mode === 'proposal' && status === 'disputed' && review_note && (
+        <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280', fontStyle: 'italic' }}>
+          <strong style={{ fontStyle: 'normal', color: '#4b5563' }}>Ablehngrund:</strong>{' '}
+          {review_note}
+        </p>
       )}
 
       {mode === 'pending' && (

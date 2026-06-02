@@ -21,6 +21,7 @@ import {
   TableRow,
   Toolbar,
 } from "@/components/ui";
+import { ReviewQueue } from "@/components/contributions/ReviewQueue";
 import { ApiError, getMyFansubGroupDetail } from "@/lib/api";
 import { useAuthSession } from "@/lib/useAuthSession";
 import type {
@@ -412,6 +413,9 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
                   ))}
                 </div>
               )}
+            </Card>
+            <Card variant="section">
+              <ReviewQueue fansubId={groupId} />
             </Card>
           </>
         ) : null}
