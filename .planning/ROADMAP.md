@@ -1432,16 +1432,22 @@ Plans:
 ### Phase 70: TipTap-Bilder fuer Member-Profilgeschichte
 
 **Goal:** Member koennen in ihrer eigenen Fansub-Geschichte auf `/me/profile` ein oder mehrere Bilder in den TipTap-Text einfuegen. Bilder werden nicht als Base64 oder externe URLs gespeichert, sondern ueber den bestehenden Team4s-Media-/Upload-Flow persistiert und im TipTap-Dokument per Media-Asset-Referenz eingebettet.
-**Requirements**: TBD
+**Requirements**: D-01..D-24 (aus 70-CONTEXT.md)
 **Depends on:** Phase 69
-**Plans:** 0 plans
+**Plans:** 7 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 70 to break down)
+- [ ] `70-01-PLAN.md` — Wave-0-Teststubs (Backend-Service + Handler + Frontend-Tests, rot)
+- [ ] `70-02-PLAN.md` — DB-Migration 0089: owner_member_id auf media_assets
+- [ ] `70-03-PLAN.md` — Backend TipTap-Service Image-Node (Allowlist, Validator, Renderer, bluemonday-Policy)
+- [ ] `70-04-PLAN.md` — Backend Upload-Handler + Repository-Methoden (POST /me/profile/story-images)
+- [ ] `70-05-PLAN.md` — Frontend StoryImageExtension + NodeView + RichTextEditor-opt-in + Upload-Utility
+- [ ] `70-06-PLAN.md` — Save-Flow-Verdrahtung: IDOR-Check + Cleanup-on-Save + deferred-Batch-Upload in page.tsx
+- [ ] `70-07-PLAN.md` — Verifikation, UAT, ROADMAP-Korrekturen (SC1-Gap, SC5-Override)
 
 **Success Criteria** (what must be TRUE):
-  1. `RichTextEditor` unterstuetzt fuer die Member-Profilgeschichte eine sichere Bild-Einfuegen-Aktion mit Datei-Upload und optionalem Alt-/Caption-Text.
-  2. TipTap-Image-Nodes speichern keine Base64-Daten, keine externen Bild-URLs und kein freies HTML, sondern referenzieren Team4s-Media-Assets.
-  3. Der Upload nutzt bestehende zentrale Auth-/API-/Media-Seams und erzeugt keinen parallelen TipTap-Sonderweg.
-  4. Backend-Validierung und HTML-Rendering erlauben nur die definierte Image-Node-Struktur und liefern weiterhin sanitisiertes HTML.
-  5. Entfernen eines Bildes aus dem Text entfernt zunaechst nur die Editor-Referenz; physisches Cleanup verwaister Media-Assets ist bewusst separat geplant oder dokumentiert.
+  1. [Korrigiert D-05] `RichTextEditor` unterstuetzt fuer die Member-Profilgeschichte eine sichere Bild-Einfuegen-Aktion mit Datei-Upload. Alt-/Caption-Text wurde per User-Entscheidung (D-05) nicht implementiert — dokumentierter Contract-Gap, kandidiert fuer spaetere Barrierefreiheits-Erweiterung.
+  2. TipTap-Image-Nodes speichern keine Base64-Daten, keine externen Bild-URLs und kein freies HTML, sondern referenzieren Team4s-Media-Assets (media_asset_id).
+  3. Der Upload nutzt bestehende zentrale Auth-/API-/Media-Seams (analog UploadOwnProfileAvatar) und erzeugt keinen parallelen TipTap-Sonderweg; RichTextEditor wird nicht geforkt (opt-in per Prop).
+  4. Backend-Validierung und HTML-Rendering erlauben nur die definierte Image-Node-Struktur und liefern weiterhin sanitisiertes HTML (bluemonday-Policy mit src-Regex, style nur width%, class nur story-img-align-*).
+  5. [Ueberschrieben D-13] Cleanup-on-Save ist in Phase 70 implementiert: Beim Speichern der Geschichte wird jedes dereferenzierte Story-Bild sofort physisch aus Dateisystem (/media) und DB (media_assets) entfernt. Urspruenglicher deferred-Status per User-Entscheidung (D-13) ueberschrieben.
