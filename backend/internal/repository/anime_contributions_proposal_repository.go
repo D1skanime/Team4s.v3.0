@@ -1,7 +1,7 @@
 package repository
 
-// Ausgelagert aus anime_contributions_repository.go fuer das 450-Zeilen-Limit.
-// Enthaelt alle Datenbankoperationen fuer Vorschlaege und Review-Aktionen (Phase 65).
+// Ausgelagert aus anime_contributions_repository.go für das 450-Zeilen-Limit.
+// Enthält alle Datenbankoperationen für Vorschläge und Review-Aktionen (Phase 65).
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// ProposalInput enthaelt die Eingabefelder fuer einen neuen Contribution-Vorschlag.
+// ProposalInput enthält die Eingabefelder für einen neuen Contribution-Vorschlag.
 type ProposalInput struct {
 	FansubGroupMemberID int64
 	RoleCodes           []string // min. 1 Eintrag erforderlich
@@ -22,8 +22,8 @@ type ProposalInput struct {
 	AppUserID           int64  // App-User-ID des einreichenden Members (created_by)
 }
 
-// GroupProposalRow ist die Rueckgabe fuer ListProposedByGroup — enthält Member- und
-// Anime-Kontext fuer die Review-Queue.
+// GroupProposalRow ist die Rückgabe für ListProposedByGroup — enthält Member- und
+// Anime-Kontext für die Review-Queue.
 type GroupProposalRow struct {
 	ID                  int64     `json:"id"`
 	FansubGroupMemberID int64     `json:"fansub_group_member_id"`
@@ -38,7 +38,7 @@ type GroupProposalRow struct {
 // CreateProposal legt einen neuen Contribution-Vorschlag an (status='proposed',
 // is_public_on_*=false, created_by=input.AppUserID).
 // Gibt ErrConflict bei Duplikat (gleicher Member+Anime+Gruppe), ErrNotFound bei
-// ungueltigem FK-Bezug zurueck.
+// ungültigem FK-Bezug zurück.
 func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansubGroupID int64, animeID int64, input ProposalInput) (*AnimeContributionRow, error) {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
@@ -97,7 +97,7 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 			if isUniqueViolation(err) {
 				return nil, fmt.Errorf("vorschlag erstellen: doppelte Rolle %q: %w", code, ErrConflict)
 			}
-			return nil, fmt.Errorf("vorschlag erstellen: rolle einfuegen: %w", err)
+			return nil, fmt.Errorf("vorschlag erstellen: rolle einfügen: %w", err)
 		}
 	}
 
@@ -108,16 +108,16 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 	return r.GetByID(ctx, newID)
 }
 
-// ListProposedByGroup gibt alle offenen Vorschlaege (status='proposed') fuer eine Gruppe
-// zurueck, angereichert mit Member-Anzeigename und Anime-Titel.
+// ListProposedByGroup gibt alle offenen Vorschläge (status='proposed') für eine Gruppe
+// zurück, angereichert mit Member-Anzeigename und Anime-Titel.
 func (r *AnimeContributionsRepository) ListProposedByGroup(ctx context.Context, fansubGroupID int64) ([]GroupProposalRow, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			ac.id,
 			ac.fansub_group_member_id,
-			COALESCE(NULLIF(TRIM(hfgm.display_name), ''), m.nickname) AS member_display_name,
+			COALESCE(NULLIF(TRIM(m.display_name), ''), m.nickname) AS member_display_name,
 			ac.anime_id,
-			COALESCE(a.title_de, a.title_romaji, a.title_en, '') AS anime_title,
+			COALESCE(a.title_de, a.title_en, a.title, '') AS anime_title,
 			COALESCE(ARRAY_AGG(acr.role_code) FILTER (WHERE acr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_codes,
 			ac.note,
 			ac.created_at
@@ -127,11 +127,11 @@ func (r *AnimeContributionsRepository) ListProposedByGroup(ctx context.Context, 
 		JOIN anime a ON a.id = ac.anime_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		WHERE ac.status = 'proposed' AND ac.fansub_group_id = $1
-		GROUP BY ac.id, hfgm.display_name, m.nickname, a.title_de, a.title_romaji, a.title_en
+		GROUP BY ac.id, m.display_name, m.nickname, a.title_de, a.title_en, a.title
 		ORDER BY ac.created_at ASC
 	`, fansubGroupID)
 	if err != nil {
-		return nil, fmt.Errorf("vorschlaege nach gruppe: %w", err)
+		return nil, fmt.Errorf("vorschläge nach gruppe: %w", err)
 	}
 	defer rows.Close()
 
@@ -148,19 +148,19 @@ func (r *AnimeContributionsRepository) ListProposedByGroup(ctx context.Context, 
 			&row.Note,
 			&row.CreatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("vorschlaege nach gruppe: scan: %w", err)
+			return nil, fmt.Errorf("vorschläge nach gruppe: scan: %w", err)
 		}
 		result = append(result, row)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("vorschlaege nach gruppe: iterate: %w", err)
+		return nil, fmt.Errorf("vorschläge nach gruppe: iterate: %w", err)
 	}
 	return result, nil
 }
 
-// Confirm bestaetigt einen Vorschlag: status='confirmed', beide Sichtbarkeitsflags=true,
+// Confirm bestätigt einen Vorschlag: status='confirmed', beide Sichtbarkeitsflags=true,
 // confirmed_by=actorAppUserID, confirmed_at=NOW().
-// Gibt ErrNotFound zurueck wenn kein 'proposed'-Eintrag mit der ID existiert.
+// Gibt ErrNotFound zurück wenn kein 'proposed'-Eintrag mit der ID existiert.
 func (r *AnimeContributionsRepository) Confirm(ctx context.Context, contributionID int64, actorAppUserID int64) error {
 	tag, err := r.db.Exec(ctx, `
 		UPDATE anime_contributions
@@ -174,17 +174,17 @@ func (r *AnimeContributionsRepository) Confirm(ctx context.Context, contribution
 		WHERE id = $1 AND status = 'proposed'
 	`, contributionID, actorAppUserID)
 	if err != nil {
-		return fmt.Errorf("vorschlag bestaetigen: %w", err)
+		return fmt.Errorf("vorschlag bestätigen: %w", err)
 	}
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("vorschlag bestaetigen: Eintrag nicht gefunden: %w", ErrNotFound)
+		return fmt.Errorf("vorschlag bestätigen: Eintrag nicht gefunden: %w", ErrNotFound)
 	}
 	return nil
 }
 
 // Reject lehnt einen Vorschlag ab: status='disputed', review_note=$reviewNote.
 // Kein Hard-Delete (Observability-Constraint, D-07).
-// Gibt ErrNotFound zurueck wenn kein 'proposed'-Eintrag mit der ID existiert.
+// Gibt ErrNotFound zurück wenn kein 'proposed'-Eintrag mit der ID existiert.
 func (r *AnimeContributionsRepository) Reject(ctx context.Context, contributionID int64, actorAppUserID int64, reviewNote *string) error {
 	tag, err := r.db.Exec(ctx, `
 		UPDATE anime_contributions
@@ -204,15 +204,15 @@ func (r *AnimeContributionsRepository) Reject(ctx context.Context, contributionI
 }
 
 // MemberContributionWithProposalRow erweitert AnimeContributionRow um proposal-spezifische
-// Felder fuer die Member-Dashboard-Ansicht. CanSelfPublish und ReviewNote werden in der
-// Member-Listen-Query on-read berechnet — sie gehoeren NICHT zu animeContributionSelectCols.
+// Felder für die Member-Dashboard-Ansicht. CanSelfPublish und ReviewNote werden in der
+// Member-Listen-Query on-read berechnet — sie gehören NICHT zu animeContributionSelectCols.
 type MemberContributionWithProposalRow struct {
 	AnimeContributionRow
 	CanSelfPublish bool    `json:"can_self_publish"`
 	ReviewNote     *string `json:"review_note"`
 }
 
-// ListByMemberIDWithProposalFields gibt Contributions fuer einen Member zurueck,
+// ListByMemberIDWithProposalFields gibt Contributions für einen Member zurück,
 // angereichert um CanSelfPublish (berechnet on-read: status='proposed' UND
 // created_at+90d < NOW()) und ReviewNote.
 func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx context.Context, memberID int64) ([]MemberContributionWithProposalRow, error) {
@@ -296,12 +296,12 @@ func (r *AnimeContributionsRepository) hasAnimeContributionReviewNoteColumn(ctx 
 	return exists, nil
 }
 
-// SelfPublish ermoeglicht einem Member, einen eigenen Vorschlag nach Ablauf der 90-Tage-Frist
-// selbst oeffentlich zu schalten. Status bleibt 'proposed' (NICHT 'confirmed'), da der
+// SelfPublish ermöglicht einem Member, einen eigenen Vorschlag nach Ablauf der 90-Tage-Frist
+// selbst öffentlich zu schalten. Status bleibt 'proposed' (NICHT 'confirmed'), da der
 // Eintrag weiterhin als unverified/(historisch) erscheinen soll (D-11, D-15).
 //
-// Prueft serverseitig: status='proposed' AND created_at + 90 Tage < NOW().
-// Bedingung nicht erfuellt → ErrConflict. Eintrag nicht gefunden → ErrNotFound.
+// Prüft serverseitig: status='proposed' AND created_at + 90 Tage < NOW().
+// Bedingung nicht erfüllt → ErrConflict. Eintrag nicht gefunden → ErrNotFound.
 func (r *AnimeContributionsRepository) SelfPublish(ctx context.Context, contributionID int64, appUserID int64) error {
 	// 90-Tage-Check: serverseitig, nicht via Frontend-Gate (T-65-01-01).
 	var checkID int64
@@ -316,9 +316,9 @@ func (r *AnimeContributionsRepository) SelfPublish(ctx context.Context, contribu
 		if err == pgx.ErrNoRows {
 			// Entweder existiert der Eintrag nicht, hat falschen Status oder
 			// die 90 Tage sind noch nicht abgelaufen.
-			return fmt.Errorf("selbst veroeffentlichen: 90-Tage-Frist nicht abgelaufen oder Eintrag nicht gefunden: %w", ErrConflict)
+			return fmt.Errorf("selbst veröffentlichen: 90-Tage-Frist nicht abgelaufen oder Eintrag nicht gefunden: %w", ErrConflict)
 		}
-		return fmt.Errorf("selbst veroeffentlichen: 90-Tage-Check: %w", err)
+		return fmt.Errorf("selbst veröffentlichen: 90-Tage-Check: %w", err)
 	}
 
 	// Status bleibt 'proposed' — nur Sichtbarkeitsflags + confirmed_by setzen.
@@ -333,10 +333,10 @@ func (r *AnimeContributionsRepository) SelfPublish(ctx context.Context, contribu
 		WHERE id = $1 AND status = 'proposed'
 	`, contributionID, appUserID)
 	if err != nil {
-		return fmt.Errorf("selbst veroeffentlichen: update: %w", err)
+		return fmt.Errorf("selbst veröffentlichen: update: %w", err)
 	}
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("selbst veroeffentlichen: Eintrag nicht gefunden: %w", ErrNotFound)
+		return fmt.Errorf("selbst veröffentlichen: Eintrag nicht gefunden: %w", ErrNotFound)
 	}
 	return nil
 }

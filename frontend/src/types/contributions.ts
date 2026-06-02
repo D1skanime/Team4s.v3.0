@@ -72,6 +72,7 @@ export interface ProposalFormData {
   note?: string | null
   started_year?: number | null
   ended_year?: number | null
+  release_version_id?: number | null
 }
 
 export interface GroupProposalRow {

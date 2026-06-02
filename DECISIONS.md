@@ -1,5 +1,23 @@
 # DECISIONS
 
+## 2026-06-02 - Phase 65 Review Queue Belongs In Fansub Edit, Not my-groups
+
+### Decision
+Leader/admin review actions for member contribution proposals belong in the existing internal group workspace at `/admin/fansubs/[id]/edit`. Phase 65 must not continue building the review queue primarily under `/admin/my-groups/[id]`.
+
+### Why This Won
+Live UAT in the Codex in-app browser showed that a logged-in group leader naturally lands in the existing fansub edit workspace when opening their group. The separate `my-groups` route made the feature technically reachable but undiscoverable from the real leader flow. It also risks confusing future public/member group surfaces, which are not yet defined.
+
+### Consequences
+- Put `Offene Vorschläge` and related confirm/reject actions in `/admin/fansubs/[id]/edit`, preferably as a dedicated tab or clearly owned section.
+- Do not add new Phase-65 leader review behavior to `/admin/my-groups/[id]` unless a later decision redefines that route.
+- Treat future public/member group pages as a separate product surface; do not mix public group presentation with internal review/admin actions.
+- UAT for proposal review must start from the real leader workflow: profile/navigation -> group edit workspace -> proposals/review section.
+
+### Follow-ups Required
+- Keep or remove old `my-groups` proposal review code only after deciding the long-term public/member group route.
+- Update Phase-65 verification and UAT notes to use `/admin/fansubs/[id]/edit` as the canonical review path.
+
 ## 2026-05-28 - Profile Story TipTap Persistence Needs A Dedicated Contract Phase
 
 ### Decision

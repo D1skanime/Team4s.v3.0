@@ -6167,6 +6167,11 @@ components:
         ended_year:
           type: integer
           nullable: true
+        release_version_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: Optional release-version scope; selected group must participate in the release version.
     GroupProposalRow:
       type: object
       required: [id, fansub_group_member_id, member_display_name, anime_id, anime_title, role_codes, created_at]

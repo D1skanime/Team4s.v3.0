@@ -1,9 +1,10 @@
 ---
 phase: 65-member-vorschlaege-review-queue
-verified: 2026-06-02T17:15:00Z
-status: human_needed
+verified: 2026-06-02T18:12:59+02:00
+status: complete
 score: 3/3 must-haves verified
 overrides_applied: 0
+human_verification_completed: 2026-06-02T18:12:59+02:00
 human_verification:
   - test: "Anime-Typeahead im ProposalForm im Browser testen"
     expected: "Eingabe ab 2 Zeichen liefert tatsächlich Ergebnisse für reale Anime aus der Datenbank; kein Leerantwort bei vorhandenen Titeln"
@@ -22,11 +23,20 @@ human_verification:
 # Phase 65: Member Vorschläge Review-Queue — Verifikationsbericht
 
 **Phase-Ziel:** Member kann eigene Contributions vorschlagen. Leader sieht Review-Queue und kann bestätigen oder ablehnen. Timeout-Handling nach 90 Tagen ohne Reaktion (Member-Selbstschaltung als unverified).
-**Verifiziert:** 2026-06-02T17:15:00Z
-**Status:** human_needed
+**Verifiziert:** 2026-06-02T18:12:59+02:00
+**Status:** complete
 **Re-Verifikation:** Nein — initiale Verifikation
 
 ---
+
+## Live-UAT-Abschluss
+
+Die zuvor offenen Human-UAT-Punkte wurden am 2026-06-02 im lokalen Codex-/Browser-Setup geprüft und in `65-HUMAN-UAT.md` abgeschlossen. Dabei wurden zwei Live-Befunde direkt behoben:
+
+- Die Leader-Review-Queue gehört in den echten Gruppen-Edit-Flow `/admin/fansubs/[id]/edit`, nicht primär nach `/admin/my-groups/[id]`.
+- `ListProposedByGroup` darf keine nicht vorhandenen Live-Schema-Spalten (`hist_fansub_group_members.display_name`, `anime.title_romaji`) abfragen.
+
+Der Route-Ownership-Entscheid ist in `DECISIONS.md` dokumentiert; die künftige Live-Browser-UAT-Regel steht in `AGENTS.md`.
 
 ## Ziel-Erreichung
 

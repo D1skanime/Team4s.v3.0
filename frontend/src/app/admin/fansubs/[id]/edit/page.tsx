@@ -87,6 +87,7 @@ import { GroupMembersTab } from "./GroupMembersTab";
 import { MemberRolesTab } from "./MemberRolesTab";
 import { NotesTab } from "./NotesTab";
 import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
+import { ReviewQueue } from "@/components/contributions/ReviewQueue";
 import sharedStyles from "../../../admin.module.css";
 import fansubEditStyles from "./FansubEdit.module.css";
 
@@ -115,6 +116,7 @@ type SectionKey =
   | "notes"
   | "mitglieder"
   | "rollen"
+  | "vorschlaege"
   | "anime-beitraege";
 type MainTab = SectionKey;
 type FormState = {
@@ -184,6 +186,7 @@ const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: "collaboration", label: "App-Mitglieder" },
   { key: "mitglieder", label: "Hist. Mitglieder" },
   { key: "rollen", label: "Rollen/Timeline" },
+  { key: "vorschlaege", label: "Vorschläge" },
   { key: "anime-beitraege", label: "Anime-Beiträge" },
   { key: "releases", label: "Anime & Veröffentlichungen" },
   { key: "anime-projekte", label: "Anime-Einblicke" },
@@ -950,6 +953,7 @@ function AdminFansubEditContent({
       notes: true,
       mitglieder: true,
       rollen: true,
+      vorschlaege: true,
       "anime-beitraege": true,
     },
   );
@@ -2137,6 +2141,7 @@ function AdminFansubEditContent({
         activeMainTab !== "notes" &&
         activeMainTab !== "mitglieder" &&
         activeMainTab !== "rollen" &&
+        activeMainTab !== "vorschlaege" &&
         activeMainTab !== "anime-beitraege" ? (
           <form className={styles.fansubEditForm} onSubmit={save}>
             {activeMainTab !== "collaboration" ? (
@@ -3172,6 +3177,7 @@ function AdminFansubEditContent({
         {activeMainTab === "notes" ? <NotesTab fansubId={fansubID} /> : null}
         {activeMainTab === "mitglieder" ? <GroupMembersTab fansubId={fansubID} /> : null}
         {activeMainTab === "rollen" ? <MemberRolesTab fansubId={fansubID} /> : null}
+        {activeMainTab === "vorschlaege" ? <ReviewQueue fansubId={fansubID} /> : null}
         {activeMainTab === "anime-beitraege" ? <AnimeContributionsTab fansubId={fansubID} /> : null}
       </section>
       {releaseDrawerOpen && drawerRelease ? (

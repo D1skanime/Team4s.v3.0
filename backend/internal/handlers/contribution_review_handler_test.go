@@ -20,11 +20,11 @@ import (
 
 // reviewRepoStub implementiert das ReviewRepository-Interface für Tests.
 type reviewRepoStub struct {
-	listResult    []repository.GroupProposalRow
-	listErr       error
-	confirmErr    error
-	rejectErr     error
-	capturedNote  *string
+	listResult   []repository.GroupProposalRow
+	listErr      error
+	confirmErr   error
+	rejectErr    error
+	capturedNote *string
 }
 
 func (s *reviewRepoStub) ListProposedByGroup(ctx context.Context, fansubGroupID int64) ([]repository.GroupProposalRow, error) {
@@ -278,6 +278,34 @@ func TestRejectProposal_WithoutNote(t *testing.T) {
 	}
 	if repo.capturedNote != nil {
 		t.Fatalf("review_note sollte nil sein, ist aber: %q", *repo.capturedNote)
+	}
+}
+
+func TestRejectProposal_MalformedJSON(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	audit := &auditReviewStub{}
+	repo := &reviewRepoStub{rejectErr: nil}
+	handler := buildReviewHandler(
+		&reviewPermissionSvcStub{allowed: true},
+		repo,
+		audit,
+	)
+
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodPost, "/admin/fansubs/1/contribution-proposals/7/reject", strings.NewReader(`{"review_note":`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = gin.Params{{Key: "id", Value: "1"}, {Key: "cid", Value: "7"}}
+	setReviewTestAuth(c, 42)
+
+	handler.RejectProposal(c)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("erwartet 400, erhalten %d — body: %s", rec.Code, rec.Body.String())
+	}
+	if repo.capturedNote != nil {
+		t.Fatalf("Reject darf bei malformed JSON nicht aufgerufen werden")
 	}
 }
 

@@ -124,6 +124,13 @@ Use `docs/frontend/auth-api-client.md` as the source of truth for browser auth/A
 - If a matching global UI component exists in `frontend/src/components/ui`, use or extend it before creating local page-specific UI.
 - See `docs/agent-guidelines-ui.md` for additional local UI guidance, but do not use that document as a substitute for the rules in this file.
 
+### Group Route Ownership
+- The canonical internal leader/admin workspace for a fansub group is `/admin/fansubs/[id]/edit`.
+- Phase-65 proposal review (`Offene Vorschläge`, confirm/reject actions, review queue UX) belongs in `/admin/fansubs/[id]/edit`, not in `/admin/my-groups/[id]`.
+- Do not add or continue leader review/admin behavior in `/admin/my-groups/[id]` unless a later `DECISIONS.md` entry explicitly redefines that route.
+- Treat future public/member group pages as a separate, not-yet-defined product surface; do not mix public group presentation with internal review/admin actions.
+- When testing leader flows, start from the user-visible route the leader actually reaches in the app shell/profile navigation, not from a hidden direct URL.
+
 ## Screenshot-To-UI Rules
 When implementing from a screenshot:
 - Treat the screenshot as the target, not loose inspiration.
@@ -132,6 +139,13 @@ When implementing from a screenshot:
 - Do not freely redesign unless explicitly asked.
 - Do not add visible UI elements that are not present in the target unless they are required by existing data or accessibility.
 - If possible, compare the result visually and list deviations.
+
+## Live Browser UAT Rules
+- For UI/UAT work in Codex Desktop, prefer testing through the Codex in-app browser context whenever user-facing flow, navigation, discoverability, or product fit matters.
+- Treat the in-app browser `Current URL` provided in the chat context as shared state: use it to understand where the user is, and do not assume a route is acceptable just because it works in an isolated Playwright or API test.
+- Provide clickable local links for the exact route under test so the user can open the same view in the Codex browser.
+- Use Playwright/headless checks only as supporting verification; do not let them replace live shared-flow review when the user is actively looking at the app.
+- When a feature is reachable only through a hidden or separate route, record that as a UX/routing issue and verify the intended navigation path with the user before marking UAT complete.
 
 ## Formatting And Diff Rules
 - Keep diffs small and scoped.

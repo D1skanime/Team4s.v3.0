@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
@@ -186,8 +188,17 @@ func (h *ContributionReviewHandler) RejectProposal(c *gin.Context) {
 	}
 
 	var req rejectRequest
-	// ShouldBindJSON: leer / kein Body → kein Fehler; review_note bleibt nil.
-	_ = c.ShouldBindJSON(&req)
+	body, err := c.GetRawData()
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+	if len(strings.TrimSpace(string(body))) > 0 {
+		if err := json.Unmarshal(body, &req); err != nil {
+			badRequest(c, "ungültiger Request-Body")
+			return
+		}
+	}
 
 	if err := h.reviewRepo.Reject(c.Request.Context(), contributionID, identity.AppUserID, req.ReviewNote); err != nil {
 		if errors.Is(err, repository.ErrNotFound) {

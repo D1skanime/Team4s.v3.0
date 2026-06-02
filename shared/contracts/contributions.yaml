@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: |
     OpenAPI contract for member contribution proposal and leader review endpoints.
-    Phase 65: member-vorschlaege-review-queue.
+    Phase 65: member-vorschläge-review-queue.
 
 tags:
   - name: Contributions
@@ -86,7 +86,7 @@ paths:
                 forbidden:
                   value:
                     error:
-                      message: "kein zugriff auf diese gruppe"
+                      message: "keine Berechtigung"
         "409":
           description: Duplicate proposal (same member + anime + group already exists)
           content:
@@ -161,7 +161,7 @@ paths:
                 tooEarly:
                   value:
                     error:
-                      message: "90 Tage noch nicht verstrichen"
+                      message: "Vorschlag kann noch nicht selbst veröffentlicht werden. 90 Tage müssen seit Einreichung vergangen sein."
 
   /api/v1/admin/fansubs/{fansubId}/contribution-proposals:
     get:
@@ -407,6 +407,12 @@ components:
           type: integer
           nullable: true
           minimum: 1900
+        release_version_id:
+          type: integer
+          format: int64
+          nullable: true
+          minimum: 1
+          description: Optional release-version scope; when provided, the selected fansub group must participate in the release version.
 
     GroupProposalRow:
       type: object

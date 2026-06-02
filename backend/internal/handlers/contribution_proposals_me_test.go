@@ -6,6 +6,8 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -18,11 +20,11 @@ import (
 // --- Stub-Implementierungen für Tests ---
 
 type proposalRepoStub struct {
-	createResult    *repository.AnimeContributionRow
-	createErr       error
-	selfPublishErr  error
-	getByIDResult   *repository.AnimeContributionRow
-	getByIDErr      error
+	createResult   *repository.AnimeContributionRow
+	createErr      error
+	selfPublishErr error
+	getByIDResult  *repository.AnimeContributionRow
+	getByIDErr     error
 }
 
 func (s *proposalRepoStub) CreateProposal(ctx context.Context, fansubGroupID, animeID int64, input repository.ProposalInput) (*repository.AnimeContributionRow, error) {
@@ -59,11 +61,23 @@ func (s *memberResolverStub) ResolveVerifiedMemberID(ctx context.Context, appUse
 // ownershipCheckerStub gibt an ob der Ownership-Check bestanden hat.
 type ownershipCheckerStub struct {
 	ownerMemberID int64
+	ownerGroupID  int64
 	err           error
+	groupErr      error
 }
 
 func (s *ownershipCheckerStub) MemberIDForFansubGroupMember(ctx context.Context, fansubGroupMemberID int64) (int64, error) {
 	return s.ownerMemberID, s.err
+}
+
+func (s *ownershipCheckerStub) FansubGroupIDForFansubGroupMember(ctx context.Context, fansubGroupMemberID int64) (int64, error) {
+	if s.groupErr != nil {
+		return 0, s.groupErr
+	}
+	if s.ownerGroupID == 0 {
+		return 1, nil
+	}
+	return s.ownerGroupID, nil
 }
 
 func (s *ownershipCheckerStub) MemberIDForAnimeContribution(ctx context.Context, contributionID int64) (int64, error) {
@@ -102,12 +116,12 @@ func buildTestProposalHandler(
 	ownershipChecker OwnershipChecker,
 ) *ContributionProposalsMeHandler {
 	return &ContributionProposalsMeHandler{
-		proposalRepo:           proposalRepo,
-		rolesRepo:              rolesRepo,
-		auditLogRepo:           repository.NewAuditLogRepository(nil),
-		memberResolver:         memberResolver,
-		ownershipChecker:       ownershipChecker,
-		releaseVersionChecker:  &releaseVersionCheckerStub{participates: true},
+		proposalRepo:          proposalRepo,
+		rolesRepo:             rolesRepo,
+		auditLogRepo:          repository.NewAuditLogRepository(nil),
+		memberResolver:        memberResolver,
+		ownershipChecker:      ownershipChecker,
+		releaseVersionChecker: &releaseVersionCheckerStub{participates: true},
 	}
 }
 
@@ -205,6 +219,26 @@ func TestCreateProposal_ForeignMembershipRejected(t *testing.T) {
 	h.CreateProposal(c)
 	if recorder.Code != http.StatusForbidden {
 		t.Fatalf("erwartet 403, bekommen %d", recorder.Code)
+	}
+}
+
+func TestCreateProposal_MembershipGroupMismatchRejected(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	h := buildTestProposalHandler(
+		&proposalRepoStub{},
+		&rolesRepoStub{exists: true},
+		&memberResolverStub{memberID: 10},
+		&ownershipCheckerStub{ownerMemberID: 10, ownerGroupID: 2},
+	)
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/me/contribution-proposals",
+		strings.NewReader(`{"fansub_group_id":1,"anime_id":2,"fansub_group_member_id":3,"role_codes":["sub"]}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	setTestAuthIdentity(c, 42)
+	h.CreateProposal(c)
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("erwartet 403, bekommen %d (%s)", recorder.Code, recorder.Body.String())
 	}
 }
 
@@ -476,15 +510,29 @@ var _ MembershipsLister = (*membershipsListerStub)(nil)
 var _ ReleaseVersionParticipationChecker = (*releaseVersionCheckerStub)(nil)
 
 // Sicherheitsinvariant: SelfPublish darf status nicht auf 'confirmed' setzen.
-// Dieser Test prüft indirekt, dass der Handler KEINEN confirmed-Status schreibt;
-// die Repository-Methode SelfPublish ist das Gate — sie setzt keinen neuen Status.
+// Dieser Test prüft die Repository-Datei direkt, weil SelfPublish dort das DB-Gate ist.
 func TestSelfPublish_StatusBleibtProposed(t *testing.T) {
-	// Durch Inspektion sichergestellt: SelfPublish-Handler schreibt kein 'confirmed' in die DB.
-	// Der Test ist ein Kommentar-Guard — bricht, wenn der Handler direkten Status-Write einführt.
-	handler := `contribution_proposals_me_handler.go`
-	_ = handler
-	// Wenn dieser Test fehlschlägt, wurde "confirmed" in die Handler-Datei eingeführt — bitte prüfen.
-	t.Log("Invariante: SelfPublish-Handler delegiert 90-Tage-Check und Status-Verwaltung vollständig an proposalRepo.SelfPublish — kein direkter 'confirmed'-Write im Handler.")
+	repoPath := filepath.Join("..", "repository", "anime_contributions_proposal_repository.go")
+	content, err := os.ReadFile(repoPath)
+	if err != nil {
+		t.Fatalf("repository-Datei lesen: %v", err)
+	}
+	source := string(content)
+	start := strings.Index(source, "func (r *AnimeContributionsRepository) SelfPublish")
+	if start < 0 {
+		t.Fatalf("SelfPublish-Methode nicht gefunden")
+	}
+	selfPublishSource := source[start:]
+	if next := strings.Index(selfPublishSource[len("func "):], "\nfunc "); next >= 0 {
+		selfPublishSource = selfPublishSource[:len("func ")+next]
+	}
+	if strings.Contains(selfPublishSource, "status = 'confirmed'") {
+		t.Fatalf("SelfPublish darf status nicht auf confirmed setzen")
+	}
+	if !strings.Contains(selfPublishSource, "is_public_on_anime_page = true") ||
+		!strings.Contains(selfPublishSource, "is_public_on_member_profile = true") {
+		t.Fatalf("SelfPublish muss beide Sichtbarkeitsflags setzen, damit der historische Beitrag öffentlich sichtbar wird")
+	}
 }
 
 // Sicherheitsinvariant: Korrekte Umlaute in Fehlermeldungen.

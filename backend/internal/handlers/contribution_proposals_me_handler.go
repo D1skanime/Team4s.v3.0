@@ -1,6 +1,6 @@
 package handlers
 
-// ContributionProposalsMeHandler liefert Member-seitige Endpunkte fuer Vorschlaege (Phase 65).
+// ContributionProposalsMeHandler liefert Member-seitige Endpunkte für Vorschläge (Phase 65).
 // POST /api/v1/me/contribution-proposals    — Vorschlag einreichen (P65-SC1)
 // POST /api/v1/me/anime-contributions/:id/self-publish — 90-Tage-Selbstschaltung (P65-SC3)
 // GET  /api/v1/me/memberships              — eigene hist_fansub_group_members-Eintraege
@@ -8,6 +8,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -19,35 +20,43 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// ProposalRepository ist das Interface, das ContributionProposalsMeHandler fuer
-// Datenbankoperationen nutzt. Ermoeglicht Stub-Tests ohne echte DB-Verbindung.
+// ProposalRepository ist das Interface, das ContributionProposalsMeHandler für
+// Datenbankoperationen nutzt. Ermöglicht Stub-Tests ohne echte DB-Verbindung.
 type ProposalRepository interface {
 	CreateProposal(ctx context.Context, fansubGroupID, animeID int64, input repository.ProposalInput) (*repository.AnimeContributionRow, error)
 	SelfPublish(ctx context.Context, contributionID, appUserID int64) error
 	GetByID(ctx context.Context, id int64) (*repository.AnimeContributionRow, error)
 }
 
-// RolesRepository ist das Interface fuer die Rollenvalidierung im Handler.
+// RolesRepository ist das Interface für die Rollenvalidierung im Handler.
 type RolesRepository interface {
 	RoleCodeExistsForContext(ctx context.Context, code, contextName string) (bool, error)
 }
 
 // MemberResolver loest eine app_user_id in eine verifiedMemberID auf.
-// Abstraktion ueber die member_claims-DB-Query fuer Stub-Tests.
+// Abstraktion über die member_claims-DB-Query für Stub-Tests.
 type MemberResolver interface {
 	ResolveVerifiedMemberID(ctx context.Context, appUserID int64) (int64, error)
 }
 
-// OwnershipChecker prueft Eigentuemer-Verhaeltnisse ueber hist_fansub_group_members.
-// Abstraktion ueber direkte DB-Queries fuer Stub-Tests.
+// OwnershipChecker prüft Eigentümer-Verhältnisse über hist_fansub_group_members.
+// Abstraktion über direkte DB-Queries für Stub-Tests.
 type OwnershipChecker interface {
 	MemberIDForFansubGroupMember(ctx context.Context, fansubGroupMemberID int64) (int64, error)
+	FansubGroupIDForFansubGroupMember(ctx context.Context, fansubGroupMemberID int64) (int64, error)
 	MemberIDForAnimeContribution(ctx context.Context, contributionID int64) (int64, error)
 }
 
-// MembershipsLister gibt die hist_fansub_group_members eines Members zurueck.
+// MembershipsLister gibt die hist_fansub_group_members eines Members zurück.
 type MembershipsLister interface {
 	ListMembershipsForMember(ctx context.Context, memberID int64) ([]MembershipEntry, error)
+}
+
+// ReleaseVersionParticipationChecker prüft, ob eine Gruppe an einer Release-Version
+// beteiligt ist (D-03). Spiegel des Leader-Pfads, damit der Member-Vorschlag nicht
+// übergangen wird (Pitfall 5). Abstraktion für Stub-Tests.
+type ReleaseVersionParticipationChecker interface {
+	GroupParticipatesInReleaseVersion(ctx context.Context, fansubGroupID, releaseVersionID int64) (bool, error)
 }
 
 // MembershipEntry ist ein Eintrag in der Mitgliedschaftsliste des Members.
@@ -59,12 +68,13 @@ type MembershipEntry struct {
 
 // ContributionProposalsMeHandler verwaltet Member-seitige Vorschlags-Endpunkte.
 type ContributionProposalsMeHandler struct {
-	proposalRepo     ProposalRepository
-	rolesRepo        RolesRepository
-	auditLogRepo     *repository.AuditLogRepository
-	memberResolver   MemberResolver
-	ownershipChecker OwnershipChecker
-	membershipsLister MembershipsLister
+	proposalRepo          ProposalRepository
+	rolesRepo             RolesRepository
+	auditLogRepo          *repository.AuditLogRepository
+	memberResolver        MemberResolver
+	ownershipChecker      OwnershipChecker
+	membershipsLister     MembershipsLister
+	releaseVersionChecker ReleaseVersionParticipationChecker
 }
 
 // NewContributionProposalsMeHandler erstellt einen neuen Handler mit echter DB-Verbindung.
@@ -75,13 +85,18 @@ func NewContributionProposalsMeHandler(
 	auditLogRepo *repository.AuditLogRepository,
 ) *ContributionProposalsMeHandler {
 	dbResolver := &dbMemberResolver{db: db}
+	var releaseVersionChecker ReleaseVersionParticipationChecker
+	if checker, ok := proposalRepo.(ReleaseVersionParticipationChecker); ok {
+		releaseVersionChecker = checker
+	}
 	return &ContributionProposalsMeHandler{
-		proposalRepo:      proposalRepo,
-		rolesRepo:         rolesRepo,
-		auditLogRepo:      auditLogRepo,
-		memberResolver:    dbResolver,
-		ownershipChecker:  &dbOwnershipChecker{db: db},
-		membershipsLister: &dbMembershipsLister{db: db},
+		proposalRepo:          proposalRepo,
+		rolesRepo:             rolesRepo,
+		auditLogRepo:          auditLogRepo,
+		memberResolver:        dbResolver,
+		ownershipChecker:      &dbOwnershipChecker{db: db},
+		membershipsLister:     &dbMembershipsLister{db: db},
+		releaseVersionChecker: releaseVersionChecker,
 	}
 }
 
@@ -126,6 +141,20 @@ func (c *dbOwnershipChecker) MemberIDForFansubGroupMember(ctx context.Context, f
 		return 0, err
 	}
 	return memberID, nil
+}
+
+func (c *dbOwnershipChecker) FansubGroupIDForFansubGroupMember(ctx context.Context, fansubGroupMemberID int64) (int64, error) {
+	var fansubGroupID int64
+	err := c.db.QueryRow(ctx, `
+		SELECT fansub_group_id FROM hist_fansub_group_members WHERE id = $1
+	`, fansubGroupMemberID).Scan(&fansubGroupID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, repository.ErrNotFound
+		}
+		return 0, err
+	}
+	return fansubGroupID, nil
 }
 
 func (c *dbOwnershipChecker) MemberIDForAnimeContribution(ctx context.Context, contributionID int64) (int64, error) {
@@ -184,6 +213,7 @@ type createProposalRequest struct {
 	Note                *string  `json:"note"`
 	StartedYear         *int     `json:"started_year"`
 	EndedYear           *int     `json:"ended_year"`
+	ReleaseVersionID    *int64   `json:"release_version_id"`
 }
 
 // --- Hilfsfunktionen ---
@@ -242,6 +272,40 @@ func (h *ContributionProposalsMeHandler) CreateProposal(c *gin.Context) {
 		return
 	}
 
+	ownerFansubGroupID, err := h.ownershipChecker.FansubGroupIDForFansubGroupMember(c.Request.Context(), req.FansubGroupMemberID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "keine Berechtigung"}})
+		return
+	}
+	if err != nil {
+		internalError(c, "interner Serverfehler")
+		return
+	}
+	if ownerFansubGroupID != req.FansubGroupID {
+		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "keine Berechtigung"}})
+		return
+	}
+
+	if req.ReleaseVersionID != nil {
+		if h.releaseVersionChecker == nil {
+			log.Printf("contribution proposals: release version checker missing (fansub_group_id=%d, release_version_id=%d)", req.FansubGroupID, *req.ReleaseVersionID)
+			internalError(c, "interner Serverfehler")
+			return
+		}
+		participates, err := h.releaseVersionChecker.GroupParticipatesInReleaseVersion(c.Request.Context(), req.FansubGroupID, *req.ReleaseVersionID)
+		if err != nil {
+			log.Printf("contribution proposals: release version participation check error (fansub_group_id=%d, release_version_id=%d): %v", req.FansubGroupID, *req.ReleaseVersionID, err)
+			internalError(c, "interner Serverfehler")
+			return
+		}
+		if !participates {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"error": gin.H{"message": "Diese Gruppe war an der gewählten Release-Version nicht beteiligt."},
+			})
+			return
+		}
+	}
+
 	// Rollenvalidierung — jede role_code muss im anime_contribution-Kontext gueltig sein.
 	for _, code := range req.RoleCodes {
 		valid, err := h.rolesRepo.RoleCodeExistsForContext(c.Request.Context(), code, "anime_contribution")
@@ -263,6 +327,7 @@ func (h *ContributionProposalsMeHandler) CreateProposal(c *gin.Context) {
 		Note:                req.Note,
 		StartedYear:         req.StartedYear,
 		EndedYear:           req.EndedYear,
+		ReleaseVersionID:    req.ReleaseVersionID,
 		AppUserID:           identity.AppUserID,
 	}
 
@@ -365,8 +430,8 @@ func (h *ContributionProposalsMeHandler) SelfPublish(c *gin.Context) {
 }
 
 // ListMemberships verarbeitet GET /api/v1/me/memberships.
-// Gibt die hist_fansub_group_members-Eintraege des verifizierten Members zurueck
-// (Datenpfad fuer ProposalForm.ownGroups im Frontend).
+// Gibt die hist_fansub_group_members-Einträge des verifizierten Members zurück
+// (Datenpfad für ProposalForm.ownGroups im Frontend).
 func (h *ContributionProposalsMeHandler) ListMemberships(c *gin.Context) {
 	identity, ok := requireMeIdentityForProposals(c)
 	if !ok {

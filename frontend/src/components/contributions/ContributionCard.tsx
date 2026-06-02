@@ -15,12 +15,11 @@ interface ContributionCardProps {
 // Lesbare Bezeichner für bekannte role_codes
 const ROLE_LABELS: Record<string, string> = {
   translator: 'Übersetzung',
-  translation: 'Übersetzung',
-  editing: 'Editing',
-  timing: 'Timing',
+  editor: 'Editing',
+  timer: 'Timing',
   typesetting: 'Typesetting',
   encoding: 'Encoding',
-  quality_check: 'Qualitätsprüfung',
+  quality_checker: 'Qualitätsprüfung',
   project_lead: 'Projektleitung',
   leader: 'Gruppenleitung',
   founder: 'Gründer/in',

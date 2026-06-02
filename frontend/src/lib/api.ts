@@ -7428,7 +7428,7 @@ export async function searchAnimeForProposal(
   query: string,
 ): Promise<PaginatedAnimeResponse> {
   return getAnimeList(
-    { q: query, include_disabled: false, per_page: 10 },
+    { q: query, per_page: 8 },
     { cache: "no-store" },
   );
 }
