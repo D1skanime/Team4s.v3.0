@@ -6636,11 +6636,12 @@ export async function deleteGroupMember(
 
 export async function listMemberRoles(
   fansubId: number,
+  memberId: number,
   authToken?: string,
 ): Promise<HistGroupMemberRoleListResponse> {
   const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-roles`,
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-roles?member_id=${memberId}`,
     { authToken },
   );
 
