@@ -45,8 +45,8 @@ created: 2026-06-02
 | 02-T2-invitations-repo | 66-02 | 2 | P66-SC2 | T-66-02-03 | Token gehasht (SHA-256, 64), 7 Tage Ablauf, Lifecycle | unit | `go test ./internal/repository/... -run TestMemberClaimInvitation` | ✅ erstellt in W2 | ✅ green |
 | 03-T1-claims-handler | 66-03 | 3 | P66-SC1 | T-66-03-05 | nur 1 verified-Claim pro historischem Member (FOR UPDATE) | unit | `go test ./internal/handlers/... -run TestMemberClaim` | ✅ erstellt in W3 | ✅ green |
 | 03-T2-noindex-handler | 66-03 | 3 | P66-SC3 | T-66-03-06 | noindex-PATCH nur durch Profil-Eigentümer mit verified Claim | unit | `go test ./internal/handlers/... -run "TestNoindex\|TestVerifyClaim"` | ✅ erstellt in W3 | ✅ green |
-| 04-T1-public-profile | 66-04 | 4 | P66-SC3 | T-66-04-05 | is_verified + noindex in GET /members/:slug Response | build | `go build ./internal/repository/... ./internal/models/...` | ❌ erstellt in W4 | ⬜ pending |
-| 04-T2-wiring | 66-04 | 4 | P66-SC1, P66-SC2, P66-SC3 | T-66-04-01 | Alle Routen verdrahtet; TypeScript sauber | build | `go build ./cmd/server/... && npx tsc --noEmit` | ❌ erstellt in W4 | ⬜ pending |
+| 04-T1-public-profile | 66-04 | 4 | P66-SC3 | T-66-04-05 | is_verified + noindex in GET /members/:slug Response | build | `go build ./internal/repository/... ./internal/models/...` | ✅ erstellt in W4 | ✅ green |
+| 04-T2-wiring | 66-04 | 4 | P66-SC1, P66-SC2, P66-SC3 | T-66-04-01 | Alle Routen verdrahtet; TypeScript sauber | build | `go build ./cmd/server/... && npx tsc --noEmit` | ✅ erstellt in W4 | ✅ green |
 | 05-T1-verified-badge | 66-05 | 5 | P66-SC3 | T-66-05-01 | verified-Badge im öffentlichen Profil sichtbar | component | `npm test -- --run VerifiedBadge` | ❌ erstellt in W5 | ⬜ pending |
 | 05-T2-me-profile | 66-05 | 5 | P66-SC3 | T-66-05-02 | noindex-Toggle nutzt patchNoindex(); generateMetadata korrekt | build | `npm run build` | ❌ erstellt in W5 | ⬜ pending |
 | 06-T1-accept-page | 66-06 | 5 | P66-SC2 | T-66-06-01 | Token nach Erfolg aus URL entfernt; Login-Redirect mit return_to | build | `npx tsc --noEmit` | ❌ erstellt in W5 | ⬜ pending |
