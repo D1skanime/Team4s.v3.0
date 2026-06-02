@@ -44,7 +44,7 @@ Deklarierte Werte aus `globals.css` (`--space-*`), nur Vielfache von 4:
 Ausnahmen:
 - Claim-Karten in der Queue: internes Padding 12px (analog `.radioCard` in `page.module.css`)
 - Hero-Panel: Padding 28px (analog bestehendes `.heroPanel`)
-- Einladungslink-Anzeige (Kopieren-Bereich): Padding 12px 14px (analog `.errorBox`/`.successBox`)
+- Einladungslink-Anzeige (Kopieren-Bereich): Padding 12px 16px (analog `.errorBox`/`.successBox`)
 
 ---
 
@@ -55,10 +55,12 @@ Aus `globals.css` (body: 16px / 1.5) und bestehendem `page.module.css`:
 | Rolle | Größe | Gewicht | Zeilenhöhe |
 |-------|-------|---------|------------|
 | Body | 16px | 400 | 1.5 |
-| Label / Metadaten | 14px | 650 | 1.4 |
+| Label / Metadaten | 14px | 700 | 1.4 |
 | Muted / Hilfstext | 14px (0.88rem) | 400 | 1.4 |
-| Section Heading (h3) | 16px (1rem) | 800 | 1.3 |
-| Page Heading (h2) | 32px (2rem) | 800 | 1.1 |
+| Section Heading (h3) | 16px (1rem) | 700 | 1.3 |
+| Page Heading (h2) | 32px (2rem) | 700 | 1.1 |
+
+Genau 2 Gewichte: `400` (Body, Muted, Hilfstext) und `700` (Labels, Metadaten, Section Headings h3, Page Headings h2).
 
 Quelle: `page.module.css` (`.heroCopy h2`, `.activityPeriodHeader h3`, `.accountGrid span`, `.mutedText`)
 
@@ -72,14 +74,15 @@ Aus `globals.css`:
 |-------|------|------------|
 | Dominant (60%) | `#f6f4ef` (`--surface-canvas`) | Seitenhintergrund, Canvas |
 | Secondary (30%) | `#ffffff` (`--surface-card`) | Cards, Sidebar, Formular-Felder, Queue-Karten |
-| Accent (10%) | `#5f84dd` (`--color-primary`) | Ausschließlich für Primär-CTA, verifiziertes Badge, Token-Kopieren-Button, bestätigter Claim-Status |
+| Accent (10%) | `#5f84dd` (`--color-primary`) | Ausschließlich für Primär-CTA-Buttons, VerifiedBadge-Komponente und `claim_status = verified`-Status-Chip |
 | Destructive | `#dc3545` (`--color-error`) | Ausschließlich Ablehnen-Aktion in der Claim-Queue und Claim-Einladung stornieren |
 
 Accent reserviert für:
 1. Primär-CTA-Buttons (Claim einreichen, Einladungslink generieren, Einladung annehmen)
 2. `VerifiedBadge`-Komponente (Häkchen-Icon neben Member-Namen)
-3. "Link kopieren"-Button im Einladungslink-Bereich
-4. `claim_status = verified`-Badge in der Claim-Queue-Karte
+3. `claim_status = verified`-Badge in der Claim-Queue-Karte
+
+"Link kopieren"-Button im Einladungslink-Bereich: `variant="secondary"` (neutral, kein Accent). Accent bleibt auf die drei oben genannten Elemente beschränkt.
 
 Zusätzliche Semantikfarben:
 - Erfolg/verifiziert: `#28a745` (`--color-success`) — Hintergrund der Erfolgsmeldung (`.successBox`), Status-Chip "Verifiziert"
@@ -182,7 +185,7 @@ Platzierung: In `MemberProfileHero` direkt hinter `<h2>{displayName}</h2>` im `.
 </span>
 ```
 
-Visuell: Inline-Flex, gap 4px, font-size 14px, font-weight 650, color `--color-success` (#28a745). Kein eigener Hintergrund — nur Icon + Text neben dem Namen.
+Visuell: Inline-Flex, gap 4px, font-size 14px, font-weight 700, color `--color-success` (#28a745). Kein eigener Hintergrund — nur Icon + Text neben dem Namen.
 
 **Bedingung (historisch) vs. verifiziert:**
 - `is_verified = true` → verified-Badge, kein `(historisch)`-Suffix
@@ -195,6 +198,8 @@ Visuell: Inline-Flex, gap 4px, font-size 14px, font-weight 650, color `--color-s
 ### 4. Leader-Bereich (manage/groups/[id]) — Einladungslink + Claim-Queue
 
 Eingebettet in die bestehende Gruppendetail-Seite (`frontend/src/app/admin/my-groups/[id]/page.tsx`), als neue Tab-Sektion oder als Accordion-Bereich unterhalb bestehender Inhalte.
+
+**Primärer visueller Eintrittspunkt:** Der `SectionHeader` mit Titel "Member-Claim-Einladungen" ist der primäre visuelle Anker des Erweiterungsbereichs. Er markiert den Beginn des Claim-bezogenen Workflows innerhalb der Gruppendetail-Seite und macht den Bereich für Leader sofort als eigenständige Funktionseinheit erkennbar. Ein zweiter `SectionHeader` "Offene Claims (N)" folgt darunter und signalisiert den Prüf-Workflow durch die angezeigte Claim-Anzahl.
 
 **Einladungslink generieren:**
 ```
@@ -219,6 +224,8 @@ Nach Generierung:
       Der Link läuft in 7 Tagen ab.
     </p>
 ```
+
+"Link kopieren"-Button: `variant="secondary"` (neutral). Kein Accent — Accent bleibt reserviert für Primär-CTA, VerifiedBadge und verified-Status-Chip.
 
 Interaktion: "Link kopieren" → `navigator.clipboard.writeText()` → Button-Label wechselt kurz auf "Kopiert!" (1,5 Sek.), dann zurück.
 
@@ -416,6 +423,7 @@ Keine neuen NPM-Pakete oder externe Registries in Phase 66. Alle Primitiven (`lu
 | `frontend/src/app/me/profile/page.module.css` | Spacing-Werte (28px, 18px, 22px, 12px), errorBox/successBox-Farben, checkboxControl-Pattern |
 | `frontend/src/styles/globals.css` | Alle CSS Custom Properties (Farben, Spacing, Typography) |
 | `frontend/src/app/invitations/accept/page.tsx` | Einlösungs-Seiten-Struktur, Fehlertext-Muster |
+| Revision (2026-06-02) | Typography auf 2 Gewichte normiert (400/700); Spacing 14px → 16px; visueller Anker Leader-Bereich deklariert; "Link kopieren" aus Accent-Reservierung entfernt |
 | User input | keine Fragen gestellt (--auto Modus) |
 
 ---
