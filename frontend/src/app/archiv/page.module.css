@@ -1,0 +1,187 @@
+/* Archiv-Seite — öffentliche Entdeckungsseite für Fansub-Mitwirkende */
+/* Spacing 4-Punkt-konform gemäß 68-UI-SPEC.md */
+
+.archivPage {
+  max-width: min(1280px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 24px 0 48px; /* --space-5 oben, --space-7 unten */
+}
+
+.archivHeader {
+  margin-bottom: 24px; /* --space-5 */
+}
+
+.archivHeader h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-strong, #1a1714);
+  margin: 0 0 8px; /* --space-2 */
+}
+
+.archivHeader p {
+  font-size: 16px;
+  color: var(--text-soft, #625c56);
+  margin: 0;
+}
+
+.archivFilters {
+  padding: 16px 24px; /* --space-4 vertikal, --space-5 horizontal */
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  border-radius: 8px;
+  margin-bottom: 24px; /* --space-5 */
+}
+
+.archivFilterRow {
+  display: flex;
+  gap: 16px; /* --space-4 */
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* --space-1 */
+}
+
+.filterGroup label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-body, #3d3733);
+}
+
+.filterGroup select,
+.filterGroup input {
+  min-height: 44px; /* control-height-md */
+  padding: 0 12px;
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.12));
+  border-radius: 6px;
+  background: var(--surface-canvas, #f6f4ef);
+  color: var(--text-body, #3d3733);
+  font-size: 14px;
+}
+
+.filterActions {
+  display: flex;
+  gap: 8px; /* --space-2 */
+  align-items: flex-end;
+}
+
+.filterSubmitBtn {
+  min-height: 44px;
+  padding: 0 16px;
+  background: var(--color-primary, #5f84dd);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filterSubmitBtn:hover {
+  opacity: 0.9;
+}
+
+.filterResetLink {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  color: var(--text-soft, #625c56);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.filterResetLink:hover {
+  text-decoration: underline;
+}
+
+.archivGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px; /* --space-4 */
+}
+
+.archivPagination {
+  display: flex;
+  gap: 16px; /* --space-4 */
+  align-items: center;
+  justify-content: center;
+  margin-top: 24px; /* --space-5 */
+}
+
+.paginationLink {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.12));
+  border-radius: 6px;
+  color: var(--text-body, #3d3733);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.paginationLink:hover {
+  background: var(--surface-card-muted, #fbfaf8);
+}
+
+.paginationInfo {
+  font-size: 14px;
+  color: var(--text-soft, #625c56);
+}
+
+.archivEmptyState {
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.archivEmptyState h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-strong, #1a1714);
+  margin: 0 0 8px;
+}
+
+.archivEmptyState p {
+  font-size: 16px;
+  color: var(--text-soft, #625c56);
+  margin: 0 0 16px;
+}
+
+.archivErrorState {
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.archivErrorState h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-error, #dc3545);
+  margin: 0 0 8px;
+}
+
+.archivErrorState p {
+  font-size: 16px;
+  color: var(--text-soft, #625c56);
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .archivGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .archivFilterRow {
+    flex-direction: column;
+  }
+
+  .filterGroup select,
+  .filterGroup input {
+    width: 100%;
+  }
+}

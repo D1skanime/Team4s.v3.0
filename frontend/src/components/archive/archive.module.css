@@ -1,0 +1,73 @@
+/* MemberSearchCard — Kompakte Profilkarte für Archiv-Suchergebnisse */
+/* Spacing 4-Punkt-konform gemäß 68-UI-SPEC.md */
+
+.memberSearchCard {
+  padding: 16px; /* --space-4 */
+  display: grid;
+  gap: 8px; /* --space-2 */
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  border-radius: 8px;
+}
+
+.cardHeader {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 8px; /* --space-2 */
+  align-items: center;
+}
+
+.cardAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.cardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* --space-1 */
+  min-width: 0;
+}
+
+.cardName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong, #1a1714);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardRoles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px; /* --space-1 */
+}
+
+.roleChip {
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(95, 132, 221, 0.1);
+  border: 1px solid rgba(95, 132, 221, 0.25);
+  border-radius: 999px;
+  padding: 4px 8px; /* --space-1 vertikal, --space-2 horizontal */
+  color: var(--text-body, #3d3733);
+  white-space: nowrap;
+}
+
+.cardGroups {
+  font-size: 13px;
+  color: var(--text-soft, #625c56);
+}
+
+.cardLink {
+  font-size: 14px;
+  color: var(--color-primary, #5f84dd);
+  text-decoration: none;
+}
+
+.cardLink:hover {
+  text-decoration: underline;
+}

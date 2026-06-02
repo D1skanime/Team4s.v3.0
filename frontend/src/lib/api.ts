@@ -7929,3 +7929,64 @@ export async function deleteGroupHistory(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
 }
+
+// ---------------------------------------------------------------------------
+// Phase 68 — Öffentliche Archiv-Suche (/archiv)
+// ---------------------------------------------------------------------------
+
+export interface ArchiveMemberRow {
+  id: number
+  nickname: string
+  display_name: string
+  slug: string | null
+  avatar_path: string | null
+  is_verified: boolean
+  top_roles: string[]
+  groups: string[]
+}
+
+export interface ArchiveSearchResponse {
+  data: ArchiveMemberRow[]
+  total: number
+  page: number
+}
+
+/**
+ * Sucht öffentliche Member im Archiv nach optionalen Filtern.
+ * Keine Auth erforderlich — öffentlicher Endpunkt (D-15, D-13).
+ * KEIN { next: { revalidate } } — die Seite nutzt export const dynamic = 'force-dynamic'
+ * was revalidate wirkungslos macht; live fetch ohne Cache-Hint.
+ */
+export async function searchArchive(params: {
+  rolle?: string
+  gruppe?: string
+  von?: string | number
+  bis?: string | number
+  page?: number
+}): Promise<ArchiveSearchResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const query = new URLSearchParams()
+  if (params.rolle) query.set('rolle', params.rolle)
+  if (params.gruppe) query.set('gruppe', String(params.gruppe))
+  if (params.von) query.set('von', String(params.von))
+  if (params.bis) query.set('bis', String(params.bis))
+  if (params.page && params.page > 1) query.set('page', String(params.page))
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/archiv${query.toString() ? `?${query.toString()}` : ''}`,
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+  return response.json() as Promise<ArchiveSearchResponse>
+}
+
+/**
+ * Gibt alle Fansub-Gruppen für den Gruppen-Filter der Archiv-Seite zurück.
+ * Kein Auth erforderlich (GET /api/v1/fansubs ist öffentlich, D-14).
+ * Alias für getFansubList ohne Parameter für den Gruppen-Filter-Dropdown.
+ */
+export async function getFansubs(): Promise<FansubGroupListResponse> {
+  return getFansubList()
+}
