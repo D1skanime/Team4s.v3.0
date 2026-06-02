@@ -4,6 +4,7 @@ import { CalendarDays, Eye, Save } from 'lucide-react'
 import { Button, PageHeader } from '@/components/ui'
 import type { MemberProfileData, PublicMemberProfileData } from '@/types/profile'
 
+import { VerifiedBadge } from './VerifiedBadge'
 import styles from './profile.module.css'
 
 type MemberProfileHeroProps = {
@@ -13,6 +14,7 @@ type MemberProfileHeroProps = {
   isPublicView?: boolean
   isSaving?: boolean
   canSave?: boolean
+  isVerified?: boolean
 }
 
 function getAccountDisplayName(profile: MemberProfileData | PublicMemberProfileData): string {
@@ -44,6 +46,7 @@ export function MemberProfileHero({
   isPublicView = false,
   isSaving = false,
   canSave = false,
+  isVerified = false,
 }: MemberProfileHeroProps) {
   const accountDisplayName = getAccountDisplayName(profile)
   const displayName = profile.fansub_name || accountDisplayName || 'Mein Profil'
@@ -82,7 +85,10 @@ export function MemberProfileHero({
           )}
         </div>
         <div className={styles.heroCopy}>
-          <h2>{displayName}</h2>
+          <h2 className={styles.heroTitleRow}>
+            <span>{displayName}</span>
+            {isVerified ? <VerifiedBadge /> : null}
+          </h2>
           <p>{profile.bio || 'Noch keine Kurzbeschreibung hinterlegt.'}</p>
           {publicActivityLabel ? (
             <span className={styles.heroMetaLine}>

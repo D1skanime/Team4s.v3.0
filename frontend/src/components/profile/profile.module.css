@@ -56,6 +56,13 @@
   line-height: 1.1;
 }
 
+.heroTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
 .heroCopy p {
   max-width: 760px;
   color: rgba(255, 255, 255, 0.84);

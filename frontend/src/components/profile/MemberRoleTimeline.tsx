@@ -5,6 +5,7 @@ import styles from './profile.module.css'
 type MemberRoleTimelineProps = {
   entries: PublicMemberRoleEntry[]
   hasUnverified: boolean
+  isVerified?: boolean
 }
 
 function sortEntries(entries: PublicMemberRoleEntry[]): PublicMemberRoleEntry[] {
@@ -23,7 +24,7 @@ function formatYearRange(start: number | null, end: number | null): string {
   return `bis ${end}`
 }
 
-export function MemberRoleTimeline({ entries, hasUnverified }: MemberRoleTimelineProps) {
+export function MemberRoleTimeline({ entries, hasUnverified, isVerified = false }: MemberRoleTimelineProps) {
   if (entries.length === 0) {
     return (
       <section className={styles.roleTimelineSection}>
@@ -55,7 +56,7 @@ export function MemberRoleTimeline({ entries, hasUnverified }: MemberRoleTimelin
               <span className={styles.roleTimelineContent}>
                 <span className={styles.roleTimelineGroup}>
                   {entry.fansub_group_name}
-                  {isHistorical && (
+                  {isHistorical && !isVerified && (
                     <span className={styles.roleTimelineHistorical}> (historisch)</span>
                   )}
                 </span>
