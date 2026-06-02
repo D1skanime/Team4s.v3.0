@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
 stopped_at: Phase 66 geplant und verifiziert (7 Plaene, 6 Wellen)
-last_updated: "2026-06-02T15:13:48.299Z"
+last_updated: "2026-06-02T15:17:58.643Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
   completed_phases: 46
   total_plans: 253
-  completed_plans: 202
+  completed_plans: 203
   percent: 70
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 67 — Release- und Episode-Credits
+**Current focus:** Phase 66 — claiming-verifizierung
 
 ## Current Position
 
-Phase: 67 (Release- und Episode-Credits) — EXECUTING
-Plan: 4 of 5
+Phase: 66 (claiming-verifizierung) — EXECUTING
+Plan: 2 of 7
 
 ## Accumulated Context
 
@@ -352,6 +352,7 @@ Recent durable decisions:
 | Phase 65 P04 | 45min | 3 tasks | 13 files |
 | Phase 67 P02 | 18min | 3 tasks | 10 files |
 | Phase 67 P03 | 4min | 2 tasks | 3 files |
+| Phase 66 P00 | 3 min | 2 tasks | 5 files |
 
 ### Quick Tasks Completed
 

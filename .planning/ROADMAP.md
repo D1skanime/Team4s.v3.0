@@ -1532,7 +1532,7 @@ Plans:
 **Goal:** Member kann behaupten, ein historischer Nick zu sein (Claiming). Leader kann per Einladungslink bestaetigen. Verifizierungsstatus im Profil sichtbar. noindex-Steuerung per Member-Einstellung.
 **Requirements**: P66-SC1, P66-SC2, P66-SC3
 **Depends on:** Phase 65
-**Plans:** 7 plans
+**Plans:** 1/7 plans executed
 
 Plans:
 - [ ] `66-00-PLAN.md` - Wave-0 Test-Stubs (Nyquist-Validierung) anlegen
