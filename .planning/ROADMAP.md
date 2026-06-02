@@ -1505,7 +1505,7 @@ Plans:
 **Goal:** Member kann eigene Contributions vorschlagen. Leader sieht Review-Queue und kann bestaetigen oder ablehnen. Timeout-Handling nach 90 Tagen ohne Reaktion.
 **Requirements**: P65-SC1, P65-SC2, P65-SC3
 **Depends on:** Phase 64
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -1515,7 +1515,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 65-02-PLAN.md — Backend Proposal-Me-Handler (CreateProposal + SelfPublish) mit Tests
-- [ ] 65-03-PLAN.md — Backend Review-Handler (ListProposals, Confirm, Reject) mit Tests
+- [x] 65-03-PLAN.md — Backend Review-Handler (ListProposals, Confirm, Reject) mit Tests
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
