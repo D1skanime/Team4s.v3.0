@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 68 context gathered
-last_updated: "2026-06-02T12:25:23.338Z"
+stopped_at: Phase 70 geplant (7 Plaene, verifiziert)
+last_updated: "2026-06-02T14:19:51.401Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
   completed_phases: 45
-  total_plans: 230
+  total_plans: 241
   completed_plans: 193
   percent: 68
 ---
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 69 — fansub-contributions-contract-und-permission-haertung
+**Current focus:** Phase 70 — tiptap-bilder-fuer-member-profilgeschichte
 
 ## Current Position
 
-Phase: 69 (fansub-contributions-contract-und-permission-haertung) — EXECUTING
-Plan: 5 of 5
+Phase: 70 (tiptap-bilder-fuer-member-profilgeschichte) — EXECUTING
+Plan: 1 of 7
 
 ## Accumulated Context
 
@@ -361,7 +361,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T12:25:23.273Z
-Stopped at: Phase 68 context gathered
+Last session: 2026-06-02T14:12:59.180Z
+Stopped at: Phase 70 geplant (7 Plaene, verifiziert)
 Last activity: 2026-06-02
-Resume file: .planning/phases/68-badge-engine-archiv-entdeckung/68-CONTEXT.md
+Resume file: .planning/phases/70-tiptap-bilder-fuer-member-profilgeschichte/70-01-PLAN.md
