@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
 stopped_at: Completed 69-01 Migration 0088 constraints
-last_updated: "2026-06-02T10:00:15.045Z"
+last_updated: "2026-06-02T10:05:53.262Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
-  completed_phases: 44
+  completed_phases: 45
   total_plans: 230
-  completed_plans: 190
-  percent: 67
+  completed_plans: 192
+  percent: 68
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 69 (fansub-contributions-contract-und-permission-haertung) — EXECUTING
-Plan: 3 of 5
+Plan: 5 of 5
 
 ## Accumulated Context
 
@@ -190,6 +190,8 @@ Recent durable decisions:
 - [Phase ?]: [Phase 60-02]: Cancel-on-fail fuer SMTP-Fehler in CreateFansubGroupInvitation -- keine Delivery-Migration noetig, D-12 atomar erfuellt
 - [Phase ?]: [Phase 60-02]: Go-Standardbibliothek net/smtp fuer SMTPMailer -- kein externes Mail-Package benoetigt
 - [Phase ?]: [Phase 69-01]: Migration 0088: Composite-FK auf anime_contributions(fansub_group_id, fansub_group_member_id) haertet Cross-Group-Schutz auf DB-Ebene ab
+- [Phase 69-02]: CreateWithAutoMember: user_id in members bleibt NULL per Annahme A1 -- kein Mapping app_users(id)->users(id) ohne separaten Join
+- [Phase 69-02]: Extension-Methoden (CreateOrUpdate, ListByMemberID, Delete) in separate Repository-Dateien ausgelagert fuer CLAUDE.md 450-Zeilen-Limit
 
 ### Pending Todos
 
@@ -325,6 +327,8 @@ Recent durable decisions:
 | Phase 54 P02 | 26min | 1 tasks | 1 files |
 | Phase 60 P02 | 25min | 3 tasks | 6 files |
 | Phase 69 P01 | 3min | 2 tasks | 2 files |
+| Phase 69 P02 | 12min | 2 tasks | 4 files |
+| Phase 60 P03 | 25min | 3 tasks | 5 files |
 
 ### Quick Tasks Completed
 
@@ -355,7 +359,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T10:00:15.011Z
+Last session: 2026-06-02T10:05:53.231Z
 Stopped at: Completed 69-01 Migration 0088 constraints
 Last activity: 2026-06-02
 Resume file: None

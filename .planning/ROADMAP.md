@@ -1255,7 +1255,7 @@ Wave 4 *(blocked on Wave 3 completion)*
 **Goal:** Lokalen SMTP-Mailfluss fuer Team4s und Keycloak herstellen: Fansub-Gruppeneinladungen werden vom Team4s Backend per SMTP verschickt, Keycloak Account-Mails wie Passwort-Reset gehen ebenfalls ueber SMTP, lokal landen beide in Mailpit und fuer Produktion ist der spaetere Wechsel auf Mailjet als SMTP-Provider dokumentiert.
 **Requirements**: P60-SC1, P60-SC2, P60-SC3, P60-SC4, P60-SC5, P60-SC6
 **Depends on:** Phase 59
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] `60-01-PLAN.md` � Lokale SMTP-Infrastruktur: Mailpit, Keycloak-Mailpit-Konfiguration und Env-Doku.
@@ -1399,11 +1399,11 @@ Plans:
 **Goal:** Phase 62/63 release-/live-tauglich machen. Frontend und Backend sprechen denselben Contract, der Member-Create-Flow funktioniert fachlich, Admin-Routen pruefen Gruppenberechtigung, und falscher Gruppen-/Member-Kontext sowie Duplikate werden auf DB- und Handler-Ebene verhindert.
 **Requirements**: P69-SC1, P69-SC2, P69-SC3, P69-SC4, P69-SC5, P69-SC6, P69-SC7, P69-SC8, P69-SC9
 **Depends on:** Phase 63
-**Plans:** 1/5 plans executed
+**Plans:** 2/5 plans executed
 
 Plans:
 - [x] 69-01-PLAN.md -- Migration 0088: Unique-Constraint + Composite-FK fuer anime_contributions
-- [ ] 69-02-PLAN.md -- Repository-Erweiterungen: Member-Auto-Create + Status im Contribution-Create + CreateOrUpdate
+- [x] 69-02-PLAN.md -- Repository-Erweiterungen: Member-Auto-Create + Status im Contribution-Create + CreateOrUpdate
 - [ ] 69-03-PLAN.md -- Backend-Handler-Haertung: Permission-Checks, Member-Auto-Create-Flow, Cross-Group-Guards, Status-Durchreichung
 - [ ] 69-04-PLAN.md -- Frontend: Envelope-Korrektur (.data), listMemberRoles mit member_id, seed-konforme Rollencodes
 - [ ] 69-05-PLAN.md -- OpenAPI-Contracts fuer group-members, member-roles und anime/:animeId/contributions
