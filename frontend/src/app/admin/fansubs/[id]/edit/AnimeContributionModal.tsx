@@ -3,9 +3,12 @@
 import { useEffect, useState } from 'react'
 import { Button, Modal } from '@/components/ui'
 import {
+  ApiError,
   deleteAnimeContribution,
+  getFansubAnimeReleaseVersions,
   upsertAnimeContribution,
 } from '@/lib/api'
+import type { FansubAnimeReleaseVersionOption } from '@/types/contributions'
 import {
   AnimeContribution,
   FANSUB_GROUP_ROLE_OPTIONS,
@@ -56,6 +59,12 @@ export default function AnimeContributionModal({
   const [rolesByMemberId, setRolesByMemberId] = useState<Record<number, string[]>>({})
   const [visibilityByMemberId, setVisibilityByMemberId] = useState<Record<number, MemberVisibility>>({})
   const [statusByMemberId, setStatusByMemberId] = useState<Record<number, MemberStatus>>({})
+  // Phase 67-04: optionale Release-Version-Zuordnung pro Member (null = anime-weit).
+  const [releaseVersionByMemberId, setReleaseVersionByMemberId] = useState<Record<number, number | null>>({})
+  const [releaseVersionOptions, setReleaseVersionOptions] = useState<FansubAnimeReleaseVersionOption[]>([])
+  const [releaseVersionsLoadError, setReleaseVersionsLoadError] = useState<string | null>(null)
+  // 422-Feldfehler pro Member (gruppen-fremde Release-Version, D-03).
+  const [versionErrorByMemberId, setVersionErrorByMemberId] = useState<Record<number, string>>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -64,6 +73,7 @@ export default function AnimeContributionModal({
     const roles: Record<number, string[]> = {}
     const visibility: Record<number, MemberVisibility> = {}
     const status: Record<number, MemberStatus> = {}
+    const releaseVersions: Record<number, number | null> = {}
 
     for (const c of existingContributions) {
       ids.add(c.fansub_group_member_id)
@@ -73,13 +83,46 @@ export default function AnimeContributionModal({
         profile: c.is_public_on_member_profile,
       }
       status[c.fansub_group_member_id] = c.status
+      releaseVersions[c.fansub_group_member_id] = c.release_version_id ?? null
     }
 
     setSelectedMemberIds(ids)
     setRolesByMemberId(roles)
     setVisibilityByMemberId(visibility)
     setStatusByMemberId(status)
+    setReleaseVersionByMemberId(releaseVersions)
   }, [existingContributions])
+
+  // Gruppen-gefilterte Release-Versionen laden (serverseitig gefiltert, kein Client-Filter).
+  useEffect(() => {
+    let cancelled = false
+    setReleaseVersionsLoadError(null)
+    getFansubAnimeReleaseVersions(fansubId, animeId)
+      .then((res) => {
+        if (!cancelled) setReleaseVersionOptions(res.data ?? [])
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setReleaseVersionsLoadError(
+            'Release-Versionen konnten nicht geladen werden. Bitte später erneut versuchen.'
+          )
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [fansubId, animeId])
+
+  function setReleaseVersion(memberId: number, value: number | null) {
+    setReleaseVersionByMemberId((prev) => ({ ...prev, [memberId]: value }))
+    // Beim Ändern den evtl. anstehenden 422-Feldfehler dieses Members verwerfen.
+    setVersionErrorByMemberId((prev) => {
+      if (!(memberId in prev)) return prev
+      const next = { ...prev }
+      delete next[memberId]
+      return next
+    })
+  }
 
   function toggleMember(memberId: number) {
     setSelectedMemberIds((prev) => {
@@ -136,22 +179,40 @@ export default function AnimeContributionModal({
   async function handleSave() {
     setSaving(true)
     setError(null)
+    setVersionErrorByMemberId({})
+    const fieldErrors: Record<number, string> = {}
     try {
       await Promise.all(
-        Array.from(selectedMemberIds).map((memberId) => {
+        Array.from(selectedMemberIds).map(async (memberId) => {
           const existingC = existingContributions.find((c) => c.fansub_group_member_id === memberId)
-          return upsertAnimeContribution(fansubId, animeId, {
-            fansub_group_member_id: memberId,
-            role_codes: rolesByMemberId[memberId] ?? [],
-            started_year: existingC?.started_year ?? null,
-            ended_year: existingC?.ended_year ?? null,
-            note: existingC?.note ?? null,
-            is_public_on_anime_page: visibilityByMemberId[memberId]?.anime ?? false,
-            is_public_on_member_profile: visibilityByMemberId[memberId]?.profile ?? false,
-            status: statusByMemberId[memberId] ?? 'draft',
-          })
+          try {
+            await upsertAnimeContribution(fansubId, animeId, {
+              fansub_group_member_id: memberId,
+              role_codes: rolesByMemberId[memberId] ?? [],
+              started_year: existingC?.started_year ?? null,
+              ended_year: existingC?.ended_year ?? null,
+              note: existingC?.note ?? null,
+              is_public_on_anime_page: visibilityByMemberId[memberId]?.anime ?? false,
+              is_public_on_member_profile: visibilityByMemberId[memberId]?.profile ?? false,
+              status: statusByMemberId[memberId] ?? 'draft',
+              release_version_id: releaseVersionByMemberId[memberId] ?? null,
+            })
+          } catch (err) {
+            // 422 = gruppen-fremde Release-Version → Feldfehler unter dem Select (D-03).
+            if (err instanceof ApiError && err.status === 422) {
+              fieldErrors[memberId] =
+                'Diese Gruppe war an der gewählten Release-Version nicht beteiligt. Bitte eine andere Version wählen oder anime-weit lassen.'
+              return
+            }
+            throw err
+          }
         })
       )
+
+      if (Object.keys(fieldErrors).length > 0) {
+        setVersionErrorByMemberId(fieldErrors)
+        return
+      }
 
       await Promise.all(
         existingContributions
@@ -196,6 +257,8 @@ export default function AnimeContributionModal({
           const roles = rolesByMemberId[member.id] ?? []
           const vis = visibilityByMemberId[member.id] ?? { anime: false, profile: false }
           const memberStatus = statusByMemberId[member.id] ?? 'draft'
+          const releaseVersionValue = releaseVersionByMemberId[member.id] ?? null
+          const versionError = versionErrorByMemberId[member.id]
           const statusHint = groupMemberStatusHint(member.status)
 
           return (
@@ -292,6 +355,49 @@ export default function AnimeContributionModal({
                       <option value="confirmed">Bestätigt</option>
                       <option value="hidden">Versteckt</option>
                     </select>
+                  </div>
+
+                  {/* Release-Version (optional, gruppen-gefiltert, Phase 67-04) */}
+                  <div>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', color: '#6b7280' }}>
+                      Release-Version (optional)
+                    </div>
+                    <select
+                      value={releaseVersionValue === null ? '' : String(releaseVersionValue)}
+                      onChange={(e) =>
+                        setReleaseVersion(
+                          member.id,
+                          e.target.value === '' ? null : Number(e.target.value)
+                        )
+                      }
+                      disabled={Boolean(releaseVersionsLoadError)}
+                      style={{
+                        fontSize: '0.8rem',
+                        padding: '4px 8px',
+                        borderRadius: 4,
+                        border: `1px solid ${versionError ? '#dc3545' : '#d1d5db'}`,
+                      }}
+                    >
+                      <option value="">— anime-weit lassen —</option>
+                      {releaseVersionOptions.map((opt) => (
+                        <option key={opt.release_version_id} value={String(opt.release_version_id)}>
+                          Episode {opt.episode_number} · {opt.version}
+                        </option>
+                      ))}
+                    </select>
+                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: 4 }}>
+                      Leer lassen = die Gruppe war allgemein an der Serie beteiligt.
+                    </div>
+                    {releaseVersionsLoadError && (
+                      <div style={{ fontSize: '0.75rem', color: '#dc3545', marginTop: 4 }}>
+                        {releaseVersionsLoadError}
+                      </div>
+                    )}
+                    {versionError && (
+                      <div style={{ fontSize: '0.75rem', color: '#dc3545', marginTop: 4 }}>
+                        {versionError}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
