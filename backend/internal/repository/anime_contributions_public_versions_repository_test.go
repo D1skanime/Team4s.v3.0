@@ -98,3 +98,35 @@ func TestPublicAnimeContributionsVersionBreakdown_SortOrder(t *testing.T) {
 		t.Fatalf("erwartete ORDER-BY-Klausel mit fansub_group_id, NULL-safe sort_index, ep.id, rv.version (D-07)")
 	}
 }
+
+// TestPublicAnimeContributions_Level1FiltersVersionSpecific verifiziert, dass die
+// Ebene-1-Query (GetPublicAnimeContributions) anime-weite Beitraege auf
+// release_version_id IS NULL filtert (verhindert Doppelanzeige, Pitfall 2).
+func TestPublicAnimeContributions_Level1FiltersVersionSpecific(t *testing.T) {
+	content := readPublicVersionsSource(t, "anime_contributions_public_repository.go")
+	normalized := strings.ToLower(content)
+
+	if !strings.Contains(normalized, "ac.release_version_id is null") {
+		t.Fatalf("erwarteter Ebene-1-Filter 'ac.release_version_id IS NULL' in GetPublicAnimeContributions (Pitfall 2)")
+	}
+}
+
+// TestPublicAnimeContributions_AttachVersionBreakdownsWired verifiziert, dass
+// attachVersionBreakdowns nach attachHiddenCounts aufgerufen wird und
+// attachHiddenCounts (gruppenweite Zaehlung) unveraendert bleibt.
+func TestPublicAnimeContributions_AttachVersionBreakdownsWired(t *testing.T) {
+	content := readPublicVersionsSource(t, "anime_contributions_public_repository.go")
+	normalized := strings.ToLower(content)
+
+	hiddenIdx := strings.Index(normalized, "r.attachhiddencounts(")
+	versionIdx := strings.Index(normalized, "r.attachversionbreakdowns(")
+	if hiddenIdx < 0 {
+		t.Fatalf("attachHiddenCounts-Aufruf nicht gefunden (darf nicht entfernt werden)")
+	}
+	if versionIdx < 0 {
+		t.Fatalf("attachVersionBreakdowns-Aufruf in GetPublicAnimeContributions fehlt")
+	}
+	if versionIdx < hiddenIdx {
+		t.Fatalf("attachVersionBreakdowns muss NACH attachHiddenCounts aufgerufen werden")
+	}
+}
