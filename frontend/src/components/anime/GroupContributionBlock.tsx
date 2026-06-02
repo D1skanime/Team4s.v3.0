@@ -26,7 +26,10 @@ export function GroupContributionBlock({ group, expanded, onToggle }: GroupContr
 
       <ul className={styles.contributorList}>
         {visibleContributors.map((contributor, index) => (
-          <li key={index} className={styles.contributorItem}>
+          <li
+            key={`${contributor.member_slug ?? contributor.member_display_name}-${contributor.started_year ?? index}`}
+            className={styles.contributorItem}
+          >
             <span className={styles.memberName}>
               {contributor.member_display_name}
               {!contributor.is_verified && (
@@ -35,7 +38,7 @@ export function GroupContributionBlock({ group, expanded, onToggle }: GroupContr
             </span>
             <div className={styles.roles}>
               {contributor.role_labels.map((label, roleIndex) => (
-                <span key={roleIndex} className={styles.roleChip}>
+                <span key={`${label}-${roleIndex}`} className={styles.roleChip}>
                   {label}
                 </span>
               ))}

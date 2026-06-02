@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 import { patchMyBadgeVisibility } from '@/lib/api'
 import type { MemberBadge } from '@/types/contributions'
 
@@ -24,41 +26,71 @@ export function MemberBadgeChips({
   token,
   onVisibilityChanged,
 }: MemberBadgeChipsProps) {
-  const visibleBadges = badges.filter((b) => b.visibility !== 'hidden')
+  // Optimistisch ausgeblendete Badges (sofortiges UI-Feedback, Rollback bei Fehler).
+  const [hiddenIds, setHiddenIds] = useState<Set<number>>(new Set())
+  const [pendingId, setPendingId] = useState<number | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  // Im eigenen Profil sieht der Member 'public' und 'internal' (nur 'hidden' ist weg);
+  // öffentliche Besucher sehen ausschließlich 'public' — 'internal' darf nicht durchsickern.
+  const visibleBadges = badges.filter((b) => {
+    if (hiddenIds.has(b.id)) return false
+    return isOwnProfile ? b.visibility !== 'hidden' : b.visibility === 'public'
+  })
 
   if (visibleBadges.length === 0) {
     return null
   }
 
   async function handleHide(badgeId: number) {
-    if (!token) return
+    if (!token || pendingId !== null) return
+    setError(null)
+    setPendingId(badgeId)
+    // Optimistisch ausblenden
+    setHiddenIds((prev) => new Set(prev).add(badgeId))
     try {
       await patchMyBadgeVisibility(token, badgeId, 'hidden')
       onVisibilityChanged?.(badgeId, 'hidden')
     } catch {
-      // Fehler ignorieren — Badge bleibt sichtbar
+      // Rollback + Fehlermeldung anzeigen
+      setHiddenIds((prev) => {
+        const next = new Set(prev)
+        next.delete(badgeId)
+        return next
+      })
+      setError('Badge konnte nicht ausgeblendet werden. Bitte versuche es erneut.')
+    } finally {
+      setPendingId(null)
     }
   }
 
   return (
-    <div className={styles.badgeChipsRow}>
-      {visibleBadges.map((badge) => {
-        const label = BADGE_LABELS[badge.badge_code] ?? badge.badge_code
-        return (
-          <span key={badge.id} className={styles.badgeChip}>
-            {label}
-            {isOwnProfile && (
-              <button
-                type="button"
-                className={styles.badgeHideBtn}
-                onClick={() => handleHide(badge.id)}
-              >
-                Ausblenden
-              </button>
-            )}
-          </span>
-        )
-      })}
+    <div>
+      <div className={styles.badgeChipsRow}>
+        {visibleBadges.map((badge) => {
+          const label = BADGE_LABELS[badge.badge_code] ?? badge.badge_code
+          return (
+            <span key={badge.id} className={styles.badgeChip}>
+              {label}
+              {isOwnProfile && (
+                <button
+                  type="button"
+                  className={styles.badgeHideBtn}
+                  onClick={() => handleHide(badge.id)}
+                  disabled={pendingId === badge.id}
+                >
+                  Ausblenden
+                </button>
+              )}
+            </span>
+          )
+        })}
+      </div>
+      {error && (
+        <p role="alert" className={styles.badgeError}>
+          {error}
+        </p>
+      )}
     </div>
   )
 }

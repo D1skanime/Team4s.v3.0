@@ -23,7 +23,10 @@ export function GroupLeaderTimeline({ entries }: GroupLeaderTimelineProps) {
       <h2 className={styles.heading}>Gruppenleitung</h2>
       <ol className={styles.list}>
         {entries.map((entry, index) => (
-          <li key={index} className={styles.entry}>
+          <li
+            key={`${entry.member_slug ?? entry.member_display_name}-${entry.role_code}-${entry.started_year ?? index}`}
+            className={styles.entry}
+          >
             <span className={styles.year}>
               {entry.started_year ?? '?'}
               {entry.ended_year ? `–${entry.ended_year}` : ''}

@@ -47,7 +47,10 @@ export function MemberRoleTimeline({ entries, hasUnverified }: MemberRoleTimelin
           const isHistorical = entry.status === 'historical'
 
           return (
-            <li key={idx} className={styles.roleTimelineEntry}>
+            <li
+              key={`${entry.context}-${entry.fansub_group_slug}-${entry.role_code}-${entry.anime_id ?? 'x'}-${entry.started_year ?? idx}`}
+              className={styles.roleTimelineEntry}
+            >
               <span className={styles.roleTimelineYear}>{yearRange || '–'}</span>
               <span className={styles.roleTimelineContent}>
                 <span className={styles.roleTimelineGroup}>
