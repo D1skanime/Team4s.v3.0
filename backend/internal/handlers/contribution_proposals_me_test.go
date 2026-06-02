@@ -70,6 +70,20 @@ func (s *ownershipCheckerStub) MemberIDForAnimeContribution(ctx context.Context,
 	return s.ownerMemberID, s.err
 }
 
+// releaseVersionCheckerStub steuert die D-03-Beteiligungspruefung im Member-Pfad.
+// participates wird nur abgefragt, wenn der Handler bei gesetztem release_version_id
+// den Check aufruft.
+type releaseVersionCheckerStub struct {
+	participates bool
+	err          error
+	called       bool
+}
+
+func (s *releaseVersionCheckerStub) GroupParticipatesInReleaseVersion(ctx context.Context, fansubGroupID, releaseVersionID int64) (bool, error) {
+	s.called = true
+	return s.participates, s.err
+}
+
 // Hilfsfunktion: setzt Auth-Identität in Gin-Kontext
 // UserID muss > 0 sein (Pflichtfeld in CommentAuthIdentityFromContext).
 func setTestAuthIdentity(c *gin.Context, appUserID int64) {
@@ -88,11 +102,12 @@ func buildTestProposalHandler(
 	ownershipChecker OwnershipChecker,
 ) *ContributionProposalsMeHandler {
 	return &ContributionProposalsMeHandler{
-		proposalRepo:     proposalRepo,
-		rolesRepo:        rolesRepo,
-		auditLogRepo:     repository.NewAuditLogRepository(nil),
-		memberResolver:   memberResolver,
-		ownershipChecker: ownershipChecker,
+		proposalRepo:           proposalRepo,
+		rolesRepo:              rolesRepo,
+		auditLogRepo:           repository.NewAuditLogRepository(nil),
+		memberResolver:         memberResolver,
+		ownershipChecker:       ownershipChecker,
+		releaseVersionChecker:  &releaseVersionCheckerStub{participates: true},
 	}
 }
 
@@ -218,6 +233,96 @@ func TestCreateProposal_Success(t *testing.T) {
 	status, _ := data["status"].(string)
 	if status != "proposed" {
 		t.Fatalf("erwartet status='proposed', bekommen %q", status)
+	}
+}
+
+// TestCreateProposal_ForeignReleaseVersionRejected prüft D-03 im Member-Pfad
+// (Pitfall 5): ist release_version_id gesetzt und die Gruppe war an dieser
+// Version NICHT beteiligt, antwortet der Endpunkt mit 422.
+func TestCreateProposal_ForeignReleaseVersionRejected(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	h := buildTestProposalHandler(
+		&proposalRepoStub{createResult: &repository.AnimeContributionRow{ID: 7, Status: "proposed"}},
+		&rolesRepoStub{exists: true},
+		&memberResolverStub{memberID: 10},
+		&ownershipCheckerStub{ownerMemberID: 10},
+	)
+	// Gruppe ist an der gewählten Version NICHT beteiligt.
+	h.releaseVersionChecker = &releaseVersionCheckerStub{participates: false}
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/me/contribution-proposals",
+		strings.NewReader(`{"fansub_group_id":1,"anime_id":2,"fansub_group_member_id":3,"role_codes":["sub"],"release_version_id":99}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	setTestAuthIdentity(c, 42)
+	h.CreateProposal(c)
+	if recorder.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("erwartet 422, bekommen %d (%s)", recorder.Code, recorder.Body.String())
+	}
+	var body map[string]any
+	json.Unmarshal(recorder.Body.Bytes(), &body)
+	errMap, _ := body["error"].(map[string]any)
+	msg, _ := errMap["message"].(string)
+	if !strings.Contains(msg, "nicht beteiligt") {
+		t.Fatalf("erwartet Beteiligungs-Fehlermeldung, bekommen %q", msg)
+	}
+	// Korrekte Umlaute (D-19): keine ASCII-Ersetzung von ä.
+	if strings.Contains(msg, "gewaehlten") || strings.Contains(msg, "ae") {
+		t.Fatalf("erwartet korrekte Umlaute in Fehlermeldung, bekommen %q", msg)
+	}
+}
+
+// TestCreateProposal_ReleaseVersionParticipatingAccepted prüft, dass bei gesetztem
+// release_version_id und beteiligter Gruppe der Vorschlag normal angelegt wird (201).
+func TestCreateProposal_ReleaseVersionParticipatingAccepted(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	h := buildTestProposalHandler(
+		&proposalRepoStub{createResult: &repository.AnimeContributionRow{ID: 7, Status: "proposed"}},
+		&rolesRepoStub{exists: true},
+		&memberResolverStub{memberID: 10},
+		&ownershipCheckerStub{ownerMemberID: 10},
+	)
+	checker := &releaseVersionCheckerStub{participates: true}
+	h.releaseVersionChecker = checker
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/me/contribution-proposals",
+		strings.NewReader(`{"fansub_group_id":1,"anime_id":2,"fansub_group_member_id":3,"role_codes":["sub"],"release_version_id":99}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	setTestAuthIdentity(c, 42)
+	h.CreateProposal(c)
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("erwartet 201, bekommen %d (%s)", recorder.Code, recorder.Body.String())
+	}
+	if !checker.called {
+		t.Fatalf("erwartet GroupParticipatesInReleaseVersion-Aufruf bei gesetztem release_version_id")
+	}
+}
+
+// TestCreateProposal_NoReleaseVersionSkipsCheck prüft, dass ohne release_version_id
+// die Beteiligungspruefung NICHT aufgerufen wird (additiv, NULL-default).
+func TestCreateProposal_NoReleaseVersionSkipsCheck(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	h := buildTestProposalHandler(
+		&proposalRepoStub{createResult: &repository.AnimeContributionRow{ID: 7, Status: "proposed"}},
+		&rolesRepoStub{exists: true},
+		&memberResolverStub{memberID: 10},
+		&ownershipCheckerStub{ownerMemberID: 10},
+	)
+	checker := &releaseVersionCheckerStub{participates: false} // würde 422 erzwingen, falls aufgerufen
+	h.releaseVersionChecker = checker
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/me/contribution-proposals",
+		strings.NewReader(`{"fansub_group_id":1,"anime_id":2,"fansub_group_member_id":3,"role_codes":["sub"]}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	setTestAuthIdentity(c, 42)
+	h.CreateProposal(c)
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("erwartet 201, bekommen %d (%s)", recorder.Code, recorder.Body.String())
+	}
+	if checker.called {
+		t.Fatalf("erwartet KEINEN Beteiligungs-Check ohne release_version_id")
 	}
 }
 
@@ -368,6 +473,7 @@ var _ RolesRepository = (*rolesRepoStub)(nil)
 var _ MemberResolver = (*memberResolverStub)(nil)
 var _ OwnershipChecker = (*ownershipCheckerStub)(nil)
 var _ MembershipsLister = (*membershipsListerStub)(nil)
+var _ ReleaseVersionParticipationChecker = (*releaseVersionCheckerStub)(nil)
 
 // Sicherheitsinvariant: SelfPublish darf status nicht auf 'confirmed' setzen.
 // Dieser Test prüft indirekt, dass der Handler KEINEN confirmed-Status schreibt;
