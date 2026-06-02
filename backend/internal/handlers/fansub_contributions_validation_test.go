@@ -27,8 +27,11 @@ func readContributionsHandlerSource(t *testing.T, name string) string {
 // TestReleaseVersionValidation_RequestStructsCarryField verifiziert, dass beide
 // Request-Structs ein optionales release_version_id tragen (D-10).
 func TestReleaseVersionValidation_RequestStructsCarryField(t *testing.T) {
-	content := readContributionsHandlerSource(t, "fansub_anime_contributions_handler.go")
-	collapsed := strings.Join(strings.Fields(strings.ToLower(content)), " ")
+	// Request-Structs sind nach fansub_contributions_validation.go ausgelagert
+	// (450-Zeilen-Limit); beide Quellen kombiniert pruefen.
+	handler := readContributionsHandlerSource(t, "fansub_anime_contributions_handler.go")
+	validation := readContributionsHandlerSource(t, "fansub_contributions_validation.go")
+	collapsed := strings.Join(strings.Fields(strings.ToLower(handler+"\n"+validation)), " ")
 
 	required := []string{
 		"releaseversionid *int64",

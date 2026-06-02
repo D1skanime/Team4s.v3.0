@@ -36,36 +36,6 @@ func NewFansubAnimeContributionsHandler(
 	}
 }
 
-// validContributionStatuses sind die erlaubten Werte für das Status-Feld.
-var validContributionStatuses = map[string]struct{}{
-	"draft":     {},
-	"proposed":  {},
-	"confirmed": {},
-	"disputed":  {},
-	"hidden":    {},
-}
-
-type animeContributionCreateRequest struct {
-	FansubGroupMemberID     int64    `json:"fansub_group_member_id"`
-	RoleCodes               []string `json:"role_codes"`
-	Status                  string   `json:"status"`
-	StartedYear             *int     `json:"started_year"`
-	EndedYear               *int     `json:"ended_year"`
-	Note                    *string  `json:"note"`
-	IsPublicOnAnimePage     bool     `json:"is_public_on_anime_page"`
-	IsPublicOnMemberProfile bool     `json:"is_public_on_member_profile"`
-}
-
-type animeContributionPatchRequest struct {
-	RoleCodes               *[]string `json:"role_codes"`
-	StartedYear             **int     `json:"started_year"`
-	EndedYear               **int     `json:"ended_year"`
-	Note                    **string  `json:"note"`
-	IsPublicOnAnimePage     *bool     `json:"is_public_on_anime_page"`
-	IsPublicOnMemberProfile *bool     `json:"is_public_on_member_profile"`
-	Status                  *string   `json:"status"`
-}
-
 // parseAnimeIDParam parst den :animeId-Parameter zu int64.
 func parseAnimeIDParam(c *gin.Context) (int64, error) {
 	raw := c.Param("animeId")
@@ -175,6 +145,11 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 		return
 	}
 
+	// Versions-Beteiligungs-Check (D-03): nur bei gesetztem release_version_id.
+	if !h.validateReleaseVersionParticipation(c, fansubID, req.ReleaseVersionID) {
+		return
+	}
+
 	// Status-Enum-Validierung: nur erlaubte Werte zulassen.
 	status := req.Status
 	if status != "" {
@@ -216,6 +191,7 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 		Note:                    req.Note,
 		IsPublicOnAnimePage:     req.IsPublicOnAnimePage,
 		IsPublicOnMemberProfile: req.IsPublicOnMemberProfile,
+		ReleaseVersionID:        req.ReleaseVersionID,
 	}
 
 	item, err := h.contributionsRepo.CreateOrUpdate(c.Request.Context(), fansubID, animeID, input)
@@ -250,7 +226,7 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 		TargetID:       &item.ID,
 		Action:         string(permissions.ActionFansubGroupMembersManage),
 		Outcome:        "allowed",
-		Payload:        map[string]any{"status": status},
+		Payload:        map[string]any{"status": status, "release_version_id": req.ReleaseVersionID},
 	})
 
 	c.JSON(http.StatusCreated, gin.H{"data": item})
@@ -328,6 +304,15 @@ func (h *FansubAnimeContributionsHandler) UpdateAnimeContribution(c *gin.Context
 		}
 	}
 
+	// Versions-Beteiligungs-Check (D-03): nur wenn der Patch eine konkrete
+	// release_version_id setzt (Doppelpointer non-nil mit non-nil Zielwert).
+	// Auf NULL setzen (*req.ReleaseVersionID == nil) braucht keinen Check.
+	if req.ReleaseVersionID != nil && *req.ReleaseVersionID != nil {
+		if !h.validateReleaseVersionParticipation(c, fansubID, *req.ReleaseVersionID) {
+			return
+		}
+	}
+
 	input := repository.AnimeContributionPatchInput{
 		RoleCodes:               req.RoleCodes,
 		StartedYear:             req.StartedYear,
@@ -335,6 +320,7 @@ func (h *FansubAnimeContributionsHandler) UpdateAnimeContribution(c *gin.Context
 		Note:                    req.Note,
 		IsPublicOnAnimePage:     req.IsPublicOnAnimePage,
 		IsPublicOnMemberProfile: req.IsPublicOnMemberProfile,
+		ReleaseVersionID:        req.ReleaseVersionID,
 		Status:                  req.Status,
 	}
 
@@ -353,6 +339,13 @@ func (h *FansubAnimeContributionsHandler) UpdateAnimeContribution(c *gin.Context
 		return
 	}
 
+	// Audit-Payload: release_version_id nur aufnehmen, wenn der Patch das Feld
+	// beruehrt (Doppelpointer non-nil); innerer Wert kann nil sein (= auf NULL gesetzt).
+	updatePayload := map[string]any{}
+	if req.ReleaseVersionID != nil {
+		updatePayload["release_version_id"] = *req.ReleaseVersionID
+	}
+
 	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
 		ActorAppUserID: &identity.AppUserID,
 		EventType:      "anime_contribution.updated",
@@ -362,7 +355,7 @@ func (h *FansubAnimeContributionsHandler) UpdateAnimeContribution(c *gin.Context
 		TargetID:       &contributionID,
 		Action:         string(permissions.ActionFansubGroupMembersManage),
 		Outcome:        "allowed",
-		Payload:        map[string]any{},
+		Payload:        updatePayload,
 	})
 
 	c.JSON(http.StatusOK, gin.H{"data": item})
