@@ -9,6 +9,25 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// ResolveMemberIDForAppUser ermittelt die member_id des App-Users über member_claims.
+// Gibt ErrNotFound zurück, wenn kein verifizierter Claim vorhanden ist.
+func (r *BadgeRepository) ResolveMemberIDForAppUser(ctx context.Context, appUserID int64) (int64, error) {
+	var memberID int64
+	err := r.db.QueryRow(ctx, `
+		SELECT member_id FROM member_claims
+		WHERE app_user_id = $1 AND claim_status = 'verified'
+		ORDER BY verified_at DESC
+		LIMIT 1
+	`, appUserID).Scan(&memberID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, ErrNotFound
+		}
+		return 0, err
+	}
+	return memberID, nil
+}
+
 // MemberBadgeRow repräsentiert eine Zeile aus member_badges.
 type MemberBadgeRow struct {
 	ID            int64

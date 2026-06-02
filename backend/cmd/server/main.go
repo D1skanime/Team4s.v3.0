@@ -343,8 +343,12 @@ func main() {
 		animeContributionsHandler:   animeContributionsHandler,
 		groupHistoryHandler:         groupHistoryHandler,
 	})
+	badgeRepo := repository.NewBadgeRepository(dbPool)
+	_ = services.NewBadgeService(dbPool, badgeRepo)
+	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	contributionsPublicHandler := handlers.NewContributionsPublicHandler(animeContributionsRepo)
 	contributionsMeHandler := handlers.NewContributionsMeHandler(animeContributionsRepo, histGroupMemberRolesRepo, dbPool)
+	v1.PATCH("/me/badges/:badgeId/visibility", authMiddleware, memberBadgesHandler.PatchBadgeVisibility)
 	v1.GET("/fansubs/:id/contributions", contributionsPublicHandler.GetFansubContributions)
 	v1.GET("/anime/:id/contributions", contributionsPublicHandler.GetAnimeContributions)
 	v1.GET("/members/:slug/contributions", contributionsPublicHandler.GetMemberContributions)
