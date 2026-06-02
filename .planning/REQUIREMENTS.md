@@ -214,8 +214,8 @@
 | P64-SC2 | Phase 64 | Pending |
 | P64-SC3 | Phase 64 | Pending |
 | P64-SC4 | Phase 64 | Pending |
-| P64-SC5 | Phase 64 | Pending |
-| P64-SC6 | Phase 64 | Pending |
+| P64-SC5 | Phase 64 | Complete |
+| P64-SC6 | Phase 64 | Complete |
 | P65-SC1 | Phase 65 | Pending |
 | P65-SC2 | Phase 65 | Pending |
 | P65-SC3 | Phase 65 | Pending |
