@@ -18,8 +18,11 @@ import {
   Toolbar,
 } from '@/components/ui'
 import {
+  ApiError,
   approveMemberRequest,
+  cancelClaimInvitation,
   generateClaimInvitation,
+  listClaimInvitations,
   listGroupMembers,
   listMemberRequests,
   listPendingMemberClaims,
@@ -28,17 +31,42 @@ import {
   verifyMemberClaim,
 } from '@/lib/api'
 import type { HistFansubGroupMember } from '@/types/fansub'
-import type { GenerateClaimInvitationResponse, MemberClaimRow, MemberRequestRow } from '@/types/profile'
+import type {
+  GenerateClaimInvitationResponse,
+  MemberClaimInvitationResponse,
+  MemberClaimRow,
+  MemberRequestRow,
+} from '@/types/profile'
 
-import styles from '../page.module.css'
+import styles from './ClaimManagementPanel.module.css'
 
 type ClaimManagementPanelProps = {
   groupId: number
 }
 
+type CopyState = 'copied' | 'selected'
+
 function formatDate(value: string): string {
   const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('de-DE')
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('de-DE')
+}
+
+function isLocalHost(hostname: string): boolean {
+  return hostname === 'localhost' || hostname === '127.0.0.1'
+}
+
+function normalizeInviteLink(rawLink: string): string {
+  const trimmed = rawLink.trim()
+  if (!trimmed || typeof window === 'undefined') return trimmed
+  try {
+    const parsed = new URL(trimmed, window.location.origin)
+    if (isLocalHost(parsed.hostname) && isLocalHost(window.location.hostname)) {
+      return `${window.location.origin}${parsed.pathname}${parsed.search}${parsed.hash}`
+    }
+    return parsed.toString()
+  } catch {
+    return trimmed
+  }
 }
 
 export function ClaimManagementPanel({ groupId }: ClaimManagementPanelProps) {
@@ -46,7 +74,8 @@ export function ClaimManagementPanel({ groupId }: ClaimManagementPanelProps) {
   const [pendingClaims, setPendingClaims] = useState<MemberClaimRow[]>([])
   const [memberRequests, setMemberRequests] = useState<MemberRequestRow[]>([])
   const [generatedInvites, setGeneratedInvites] = useState<Record<number, GenerateClaimInvitationResponse>>({})
-  const [copyStates, setCopyStates] = useState<Record<number, boolean>>({})
+  const [memberInvitations, setMemberInvitations] = useState<Record<number, MemberClaimInvitationResponse[]>>({})
+  const [copyStates, setCopyStates] = useState<Record<number, CopyState>>({})
   const [approveNicknames, setApproveNicknames] = useState<Record<number, string>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -61,7 +90,19 @@ export function ClaimManagementPanel({ groupId }: ClaimManagementPanelProps) {
         listPendingMemberClaims(groupId),
         listMemberRequests().catch(() => [] as MemberRequestRow[]),
       ])
-      setMembers(memberRes.data ?? [])
+      const loadedMembers = memberRes.data ?? []
+      const invitationEntries = await Promise.all(
+        loadedMembers.map(async (member) => {
+          try {
+            const invitations = await listClaimInvitations(groupId, member.member_id)
+            return [member.id, invitations] as const
+          } catch {
+            return [member.id, [] as MemberClaimInvitationResponse[]] as const
+          }
+        }),
+      )
+      setMembers(loadedMembers)
+      setMemberInvitations(Object.fromEntries(invitationEntries))
       setPendingClaims(claimRes ?? [])
       setMemberRequests(requestRes ?? [])
     } catch (error) {
@@ -75,22 +116,94 @@ export function ClaimManagementPanel({ groupId }: ClaimManagementPanelProps) {
     void loadClaimData()
   }, [loadClaimData])
 
-  async function handleGenerateInvitation(memberId: number) {
+  async function handleGenerateInvitation(rowId: number, memberId: number) {
     try {
       setActionError(null)
       const invite = await generateClaimInvitation(groupId, memberId)
-      setGeneratedInvites((current) => ({ ...current, [memberId]: invite }))
+      setGeneratedInvites((current) => ({ ...current, [rowId]: invite }))
+      setMemberInvitations((current) => ({
+        ...current,
+        [rowId]: [
+          {
+            id: invite.id,
+            member_id: invite.member_id,
+            fansub_group_id: invite.fansub_group_id,
+            status: 'pending',
+            expires_at: invite.expires_at,
+            created_at: new Date().toISOString(),
+          },
+        ],
+      }))
     } catch (error) {
+      if (error instanceof ApiError && error.code === 'pending_invitation_exists') {
+        const invitations = await listClaimInvitations(groupId, memberId).catch(() => [] as MemberClaimInvitationResponse[])
+        setMemberInvitations((current) => ({ ...current, [rowId]: invitations }))
+      }
       setActionError(error instanceof Error ? error.message : 'Einladungslink konnte nicht erstellt werden.')
     }
   }
 
-  async function handleCopyLink(memberId: number, link: string) {
-    await navigator.clipboard.writeText(link)
-    setCopyStates((current) => ({ ...current, [memberId]: true }))
-    window.setTimeout(() => {
-      setCopyStates((current) => ({ ...current, [memberId]: false }))
-    }, 1500)
+  async function handleCancelInvitation(rowId: number, memberId: number, invitationId: number) {
+    if (!window.confirm('Aktive Einladung zurückziehen? Der bisherige Link kann danach nicht mehr verwendet werden.')) return
+    try {
+      setActionError(null)
+      await cancelClaimInvitation(groupId, memberId, invitationId)
+      setGeneratedInvites((current) => {
+        const next = { ...current }
+        delete next[rowId]
+        return next
+      })
+      setMemberInvitations((current) => ({
+        ...current,
+        [rowId]: (current[rowId] ?? []).filter((invitation) => invitation.id !== invitationId),
+      }))
+      setActionError('Aktive Einladung zurückgezogen. Du kannst jetzt einen neuen Link generieren.')
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Einladung konnte nicht zurückgezogen werden.')
+    }
+  }
+
+  function markVisibleInviteLink(rowId: number) {
+    const field = document.getElementById(`claim-invite-link-${rowId}`) as HTMLInputElement | null
+    if (!field) return false
+    field.focus()
+    field.select()
+    return true
+  }
+
+  async function handleCopyLink(rowId: number, link: string) {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link)
+      } else {
+        const field = document.createElement('textarea')
+        field.value = link
+        field.setAttribute('readonly', 'true')
+        field.style.position = 'fixed'
+        field.style.left = '-9999px'
+        document.body.appendChild(field)
+        field.select()
+        const copied = document.execCommand('copy')
+        document.body.removeChild(field)
+        if (!copied) throw new Error('copy command failed')
+      }
+      setActionError(null)
+      setCopyStates((current) => ({ ...current, [rowId]: 'copied' }))
+      window.setTimeout(() => {
+        setCopyStates((current) => {
+          const next = { ...current }
+          delete next[rowId]
+          return next
+        })
+      }, 1500)
+    } catch {
+      if (markVisibleInviteLink(rowId)) {
+        setActionError('Automatisches Kopieren wurde vom Browser blockiert. Der Link ist markiert; kopiere ihn mit Strg+C.')
+        setCopyStates((current) => ({ ...current, [rowId]: 'selected' }))
+        return
+      }
+      setActionError('Automatisches Kopieren wurde vom Browser blockiert. Öffne den Link direkt oder kopiere ihn aus dem Textfeld.')
+    }
   }
 
   async function handleVerifyClaim(claimId: number) {
@@ -142,7 +255,7 @@ export function ClaimManagementPanel({ groupId }: ClaimManagementPanelProps) {
   }
 
   return (
-    <Card variant="section">
+    <Card variant="section" className={styles.claimPanel}>
       <SectionHeader
         eyebrow="Claiming"
         title="Member-Claim-Einladungen"
@@ -156,23 +269,37 @@ export function ClaimManagementPanel({ groupId }: ClaimManagementPanelProps) {
         <div className={styles.stack}>
           {members.map((member) => {
             const invite = generatedInvites[member.id]
+            const inviteLink = invite ? normalizeInviteLink(invite.invite_link) : ''
+            const activeInvitation = (memberInvitations[member.id] ?? []).find((invitation) => invitation.status === 'pending')
             return (
               <Card key={member.id} variant="nested">
                 <Toolbar
                   leading={<strong>{member.display_name}</strong>}
                   trailing={(
-                    <Button variant="secondary" size="sm" leftIcon={<Link2 size={16} />} onClick={() => void handleGenerateInvitation(member.id)}>
+                    <Button variant="secondary" size="sm" leftIcon={<Link2 size={16} />} onClick={() => void handleGenerateInvitation(member.id, member.member_id)}>
                       Einladungslink generieren
                     </Button>
                   )}
                 />
                 {invite ? (
                   <div className={styles.inviteLinkRow}>
-                    <input type="text" readOnly value={invite.invite_link} />
-                    <Button variant="secondary" size="sm" leftIcon={<Copy size={16} />} onClick={() => void handleCopyLink(member.id, invite.invite_link)}>
-                      {copyStates[member.id] ? 'Kopiert!' : 'Link kopieren'}
+                    <input id={`claim-invite-link-${member.id}`} type="text" aria-label={`Einladungslink für ${member.display_name}`} readOnly value={inviteLink} onFocus={(event) => event.currentTarget.select()} />
+                    <Button variant="secondary" size="sm" leftIcon={<Copy size={16} />} onClick={() => void handleCopyLink(member.id, inviteLink)}>
+                      {copyStates[member.id] === 'copied' ? 'Kopiert!' : copyStates[member.id] === 'selected' ? 'Link markiert' : 'Link kopieren'}
+                    </Button>
+                    <Button href={inviteLink} variant="secondary" size="sm" leftIcon={<Link2 size={16} />}>
+                      Öffnen
                     </Button>
                     <p>Teile diesen Link direkt mit dem Mitglied. Der Link läuft in 7 Tagen ab.</p>
+                  </div>
+                ) : null}
+                {!invite && activeInvitation ? (
+                  <div className={styles.pendingInviteRow}>
+                    <Badge variant="muted">Aktive Einladung bis {formatDate(activeInvitation.expires_at)}</Badge>
+                    <Button variant="danger" size="sm" leftIcon={<UserX size={16} />} onClick={() => void handleCancelInvitation(member.id, member.member_id, activeInvitation.id)}>
+                      Aktive Einladung zurückziehen
+                    </Button>
+                    <p>Der ursprüngliche Link kann aus Sicherheitsgründen nicht erneut angezeigt werden. Ziehe ihn zurück und generiere bei Bedarf einen neuen Link.</p>
                   </div>
                 ) : null}
               </Card>
@@ -191,7 +318,7 @@ export function ClaimManagementPanel({ groupId }: ClaimManagementPanelProps) {
             <TableRow key={claim.id}>
               <TableCell>{claim.app_user_id}</TableCell>
               <TableCell>{claim.member_nickname}</TableCell>
-              <TableCell>{claim.note || '—'}</TableCell>
+              <TableCell>{claim.note || '-'}</TableCell>
               <TableCell>{formatDate(claim.created_at)}</TableCell>
               <TableCell><div className={styles.rowActions}><Button size="sm" variant="success" leftIcon={<UserCheck size={16} />} onClick={() => void handleVerifyClaim(claim.id)}>Bestätigen</Button><Button size="sm" variant="danger" leftIcon={<UserX size={16} />} onClick={() => void handleRejectClaim(claim.id, claim.member_nickname)}>Ablehnen</Button></div></TableCell>
             </TableRow>
@@ -208,7 +335,7 @@ export function ClaimManagementPanel({ groupId }: ClaimManagementPanelProps) {
           <TableBody>{memberRequests.map((request) => (
             <TableRow key={request.id}>
               <TableCell>{request.app_user_id}</TableCell>
-              <TableCell>{request.note || '—'}</TableCell>
+              <TableCell>{request.note || '-'}</TableCell>
               <TableCell>{formatDate(request.created_at)}</TableCell>
               <TableCell><input type="text" placeholder="Nickname eingeben..." value={approveNicknames[request.id] || ''} onChange={(event) => setApproveNicknames((current) => ({ ...current, [request.id]: event.target.value }))} /></TableCell>
               <TableCell><div className={styles.rowActions}><Button size="sm" variant="success" leftIcon={<FilePlus size={16} />} onClick={() => void handleApproveRequest(request.id)}>Anlegen</Button><Button size="sm" variant="danger" leftIcon={<UserX size={16} />} onClick={() => void handleRejectRequest(request.id)}>Ablehnen</Button></div></TableCell>

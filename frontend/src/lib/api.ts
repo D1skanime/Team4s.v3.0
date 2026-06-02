@@ -71,6 +71,7 @@ import {
 } from "@/types/contributor";
 import {
   GenerateClaimInvitationResponse,
+  MemberClaimInvitationResponse,
   MemberClaimRow,
   MemberProfileResponse,
   MemberRequestRow,
@@ -3371,6 +3372,70 @@ export async function generateClaimInvitation(
     data: GenerateClaimInvitationResponse;
   };
   return payload.data;
+}
+
+export async function listClaimInvitations(
+  fansubId: number,
+  memberId: number,
+  authToken?: string,
+): Promise<MemberClaimInvitationResponse[]> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/group-members/${memberId}/claim-invitations`,
+    {
+      cache: "no-store",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const payload = (await response.json()) as {
+    data: MemberClaimInvitationResponse[];
+  };
+  return payload.data;
+}
+
+export async function cancelClaimInvitation(
+  fansubId: number,
+  memberId: number,
+  invitationId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/group-members/${memberId}/claim-invitations/${invitationId}/cancel`,
+    {
+      method: "POST",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
 }
 
 export async function listPendingMemberClaims(

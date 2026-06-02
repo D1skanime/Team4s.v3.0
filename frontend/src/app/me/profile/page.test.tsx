@@ -7,6 +7,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import type { MemberProfileResponse } from '@/types/profile'
 
 const getOwnProfileMock = vi.fn()
+const getMyMemberClaimMock = vi.fn()
+const patchNoindexMock = vi.fn()
 const refreshActiveAuthSessionMock = vi.fn()
 const updateOwnProfileMock = vi.fn()
 const uploadOwnProfileAvatarMock = vi.fn()
@@ -109,7 +111,9 @@ vi.mock('@/lib/api', () => ({
     }
   },
   getAuthSessionSnapshot: () => ({ hasAccessToken: true, hasRefreshToken: true, displayName: 'Test User' }),
+  getMyMemberClaim: (...args: unknown[]) => getMyMemberClaimMock(...args),
   getOwnProfile: (...args: unknown[]) => getOwnProfileMock(...args),
+  patchNoindex: (...args: unknown[]) => patchNoindexMock(...args),
   refreshActiveAuthSession: (...args: unknown[]) => refreshActiveAuthSessionMock(...args),
   updateOwnProfile: (...args: unknown[]) => updateOwnProfileMock(...args),
   uploadOwnProfileAvatar: (...args: unknown[]) => uploadOwnProfileAvatarMock(...args),
@@ -129,6 +133,8 @@ beforeEach(() => {
     displayName: 'Mika',
     isClientInitialized: true,
   })
+  getMyMemberClaimMock.mockResolvedValue(null)
+  patchNoindexMock.mockResolvedValue(undefined)
 })
 
 afterEach(() => {
@@ -163,6 +169,8 @@ function makeProfileResponse(overrides: Partial<MemberProfileResponse['data']> =
       is_currently_active: true,
       noindex: true,
       is_verified: false,
+      claim_status: null,
+      claim_member_nick: null,
       profile_visibility: 'members_only',
       avatar: null,
       keycloak_account_url: 'http://localhost:8081/realms/team4s/account',
@@ -330,6 +338,51 @@ describe('MyProfilePage', () => {
     expect(screen.queryByLabelText('Anzeigename')).toBeNull()
     expect(screen.getAllByText('Mika Account').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: /Profil speichern/i })).toHaveProperty('disabled', true)
+  })
+
+  it('disables search indexing changes until the member claim is verified', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      claim_status: null,
+      noindex: true,
+    }))
+
+    render(<MyProfilePage />)
+
+    const indexToggle = await screen.findByRole('checkbox', { name: 'Mein Profil von Suchmaschinen indexieren lassen' })
+    expect(indexToggle).toHaveProperty('disabled', true)
+    expect(screen.getByText('Die Indexierung kann erst nach einem verifizierten Member-Claim geändert werden.')).not.toBeNull()
+  })
+
+  it('saves search indexing changes immediately for verified member claims', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      claim_status: 'verified',
+      claim_member_nick: 'MikaFX',
+      noindex: true,
+    }))
+
+    render(<MyProfilePage />)
+
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'Mein Profil von Suchmaschinen indexieren lassen' }))
+
+    await waitFor(() => {
+      expect(patchNoindexMock).toHaveBeenCalledWith(false, undefined)
+    })
+    expect(await screen.findByText('Sichtbarkeitseinstellung wurde gespeichert.')).not.toBeNull()
+  })
+
+  it('treats is_verified as verified claim status when claim_status is absent', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      is_verified: true,
+      claim_status: null,
+      noindex: false,
+      fansub_name: 'ClaimNick',
+    }))
+
+    render(<MyProfilePage />)
+
+    const indexToggle = await screen.findByRole('checkbox', { name: 'Mein Profil von Suchmaschinen indexieren lassen' })
+    expect(indexToggle).toHaveProperty('disabled', false)
+    expect(screen.getByText('Du bist als ClaimNick verifiziert.')).not.toBeNull()
   })
 
   it('renders aggregate load errors honestly', async () => {

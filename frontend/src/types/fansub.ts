@@ -498,6 +498,7 @@ export type HistoricalContributionVisibility = "internal" | "public";
 export interface HistFansubGroupMember {
   id: number;
   fansub_group_id: number;
+  member_id: number;
   display_name: string;
   joined_year: number | null;
   left_year: number | null;

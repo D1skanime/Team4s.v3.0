@@ -36,6 +36,59 @@ type acceptMemberClaimInvitationRequest struct {
 	Token string `json:"token"`
 }
 
+func (h *MemberClaimInvitationsHandler) ListClaimInvitations(c *gin.Context) {
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return
+	}
+	if h.invitationsRepo == nil || h.permissionSvc == nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	fansubID, err := parseFansubID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "Ungültige fansub-id.")
+		return
+	}
+	memberID, err := parsePositiveID(c.Param("memberId"))
+	if err != nil {
+		badRequest(c, "Ungültige member-id.")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupInvitationsView, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "member_claim_invitation.view.denied", &fansubID, "member", &memberID, permissions.ActionFansubGroupInvitationsView, result)
+		writePermissionDenied(c, result)
+		return
+	}
+
+	invitations, err := h.invitationsRepo.ListInvitationsForMember(c.Request.Context(), memberID)
+	if h.writeInvitationError(c, err, "Einladungen nicht gefunden.") {
+		return
+	}
+	data := make([]gin.H, 0, len(invitations))
+	for _, invitation := range invitations {
+		if invitation.FansubGroupID != fansubID {
+			continue
+		}
+		data = append(data, gin.H{
+			"id":              invitation.ID,
+			"member_id":       invitation.MemberID,
+			"fansub_group_id": invitation.FansubGroupID,
+			"status":          invitation.Status,
+			"expires_at":      invitation.ExpiresAt,
+			"created_at":      invitation.CreatedAt,
+		})
+	}
+	c.JSON(http.StatusOK, gin.H{"data": data})
+}
+
 func (h *MemberClaimInvitationsHandler) CreateClaimInvitation(c *gin.Context) {
 	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
@@ -223,7 +276,7 @@ func memberClaimInvitationMessage(code string, fallback string) string {
 	case "invitation_cancelled":
 		return "Diese Einladung wurde bereits zurückgezogen."
 	case "already_verified":
-		return "Du bist bereits einem historischen Eintrag zugeordnet."
+		return "Dieser historische Member-Eintrag ist bereits einem Team4s-Account zugeordnet."
 	default:
 		return fallback
 	}

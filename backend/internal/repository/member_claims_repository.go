@@ -48,13 +48,13 @@ type MemberSearchResult struct {
 }
 
 type MemberClaimRow struct {
-	ID             int64          `json:"id"`
-	AppUserID      int64          `json:"app_user_id"`
-	MemberID       int64          `json:"member_id"`
-	MemberNickname string         `json:"member_nickname"`
-	ClaimStatus    string         `json:"claim_status"`
-	Note           sql.NullString `json:"note"`
-	CreatedAt      time.Time      `json:"created_at"`
+	ID             int64     `json:"id"`
+	AppUserID      int64     `json:"app_user_id"`
+	MemberID       int64     `json:"member_id"`
+	MemberNickname string    `json:"member_nickname"`
+	ClaimStatus    string    `json:"claim_status"`
+	Note           *string   `json:"note"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 type SubmitClaimInput struct {
@@ -320,28 +320,32 @@ type memberClaimScanner interface {
 
 func scanMemberClaim(row memberClaimScanner) (MemberClaimRow, error) {
 	var claim MemberClaimRow
+	var note sql.NullString
 	err := row.Scan(
 		&claim.ID,
 		&claim.AppUserID,
 		&claim.MemberID,
 		&claim.ClaimStatus,
-		&claim.Note,
+		&note,
 		&claim.CreatedAt,
 	)
+	claim.Note = nullableStringPtr(note)
 	return claim, err
 }
 
 func scanMemberClaimWithMember(row memberClaimScanner) (MemberClaimRow, error) {
 	var claim MemberClaimRow
+	var note sql.NullString
 	err := row.Scan(
 		&claim.ID,
 		&claim.AppUserID,
 		&claim.MemberID,
 		&claim.MemberNickname,
 		&claim.ClaimStatus,
-		&claim.Note,
+		&note,
 		&claim.CreatedAt,
 	)
+	claim.Note = nullableStringPtr(note)
 	return claim, err
 }
 
@@ -349,21 +353,30 @@ func scanMemberClaims(rows pgx.Rows, contextLabel string) ([]MemberClaimRow, err
 	items := make([]MemberClaimRow, 0)
 	for rows.Next() {
 		var claim MemberClaimRow
+		var note sql.NullString
 		if err := rows.Scan(
 			&claim.ID,
 			&claim.AppUserID,
 			&claim.MemberID,
 			&claim.MemberNickname,
 			&claim.ClaimStatus,
-			&claim.Note,
+			&note,
 			&claim.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("%s: scan: %w", contextLabel, err)
 		}
+		claim.Note = nullableStringPtr(note)
 		items = append(items, claim)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("%s: iterate: %w", contextLabel, err)
 	}
 	return items, nil
+}
+
+func nullableStringPtr(value sql.NullString) *string {
+	if !value.Valid {
+		return nil
+	}
+	return &value.String
 }

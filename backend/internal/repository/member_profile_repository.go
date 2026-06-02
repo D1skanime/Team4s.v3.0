@@ -360,7 +360,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 		WITH candidates AS (
 			SELECT
 				m.id,
-				au.id AS app_user_id,
+				COALESCE(claim_user.app_user_id, legacy_user.id) AS app_user_id,
 				m.nickname,
 				m.slogan,
 				m.member_story_html,
@@ -379,7 +379,15 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 				background.file_path AS background_image_path,
 				LOWER(TRIM(BOTH '-' FROM REGEXP_REPLACE(TRIM(m.nickname), '[^a-z0-9]+', '-', 'gi'))) AS db_slug
 			FROM members m
-			LEFT JOIN app_users au ON au.legacy_user_id = m.user_id
+			LEFT JOIN LATERAL (
+				SELECT mc.app_user_id
+				FROM member_claims mc
+				WHERE mc.member_id = m.id
+				  AND mc.claim_status = 'verified'
+				ORDER BY mc.verified_at DESC NULLS LAST, mc.id DESC
+				LIMIT 1
+			) claim_user ON true
+			LEFT JOIN app_users legacy_user ON legacy_user.legacy_user_id = m.user_id
 			LEFT JOIN media_assets avatar ON avatar.id = m.avatar_media_id
 			LEFT JOIN media_assets background ON background.id = m.background_media_id
 		)
@@ -483,7 +491,7 @@ func (r *MemberProfileRepository) findPublicMemberProfileByNormalizedSlug(ctx co
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			m.id,
-			au.id AS app_user_id,
+			COALESCE(claim_user.app_user_id, legacy_user.id) AS app_user_id,
 			m.nickname,
 			m.slogan,
 			m.member_story_html,
@@ -501,7 +509,15 @@ func (r *MemberProfileRepository) findPublicMemberProfileByNormalizedSlug(ctx co
 			avatar.file_path AS avatar_path,
 			background.file_path AS background_image_path
 		FROM members m
-		LEFT JOIN app_users au ON au.legacy_user_id = m.user_id
+		LEFT JOIN LATERAL (
+			SELECT mc.app_user_id
+			FROM member_claims mc
+			WHERE mc.member_id = m.id
+			  AND mc.claim_status = 'verified'
+			ORDER BY mc.verified_at DESC NULLS LAST, mc.id DESC
+			LIMIT 1
+		) claim_user ON true
+		LEFT JOIN app_users legacy_user ON legacy_user.legacy_user_id = m.user_id
 		LEFT JOIN media_assets avatar ON avatar.id = m.avatar_media_id
 		LEFT JOIN media_assets background ON background.id = m.background_media_id
 		ORDER BY m.id ASC
@@ -659,30 +675,34 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		FROM app_users au
 		LEFT JOIN LATERAL (
 			SELECT
-				id,
-				display_name,
-				nickname,
-				slogan,
-				member_history_description,
-				member_story_json,
-				member_story_html,
-				member_story_text,
-				member_story_editor_type,
-				member_story_content_schema_version,
-				active_from_date,
-				active_until_date,
-				active_from_year,
-				active_until_year,
-				is_currently_active,
-				noindex,
-				profile_visibility,
-				avatar_media_id,
-				background_media_id,
-				created_at,
-				updated_at
-			FROM members
-			WHERE user_id = au.legacy_user_id
-			ORDER BY id ASC
+				m.id,
+				m.display_name,
+				m.nickname,
+				m.slogan,
+				m.member_history_description,
+				m.member_story_json,
+				m.member_story_html,
+				m.member_story_text,
+				m.member_story_editor_type,
+				m.member_story_content_schema_version,
+				m.active_from_date,
+				m.active_until_date,
+				m.active_from_year,
+				m.active_until_year,
+				m.is_currently_active,
+				m.noindex,
+				m.profile_visibility,
+				m.avatar_media_id,
+				m.background_media_id,
+				m.created_at,
+				m.updated_at
+			FROM members m
+			LEFT JOIN member_claims mc ON mc.member_id = m.id
+				AND mc.app_user_id = au.id
+				AND mc.claim_status = 'verified'
+			WHERE mc.id IS NOT NULL
+			   OR m.user_id = au.legacy_user_id
+			ORDER BY CASE WHEN mc.id IS NOT NULL THEN 0 ELSE 1 END, m.id ASC
 			LIMIT 1
 		) m ON true
 		LEFT JOIN media_assets ma ON ma.id = m.avatar_media_id

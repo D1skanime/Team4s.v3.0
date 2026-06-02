@@ -430,9 +430,9 @@ export default function MyProfilePage() {
                 <Card variant="section" title="Claim & Indexierung">
                   <ClaimStatusCard
                     noindex={profile.noindex}
-                    claimStatus={profile.claim_status}
-                    claimMemberNick={profile.claim_member_nick}
-                    disabled={isSaving}
+                    claimStatus={profile.claim_status ?? (profile.is_verified ? 'verified' : null)}
+                    claimMemberNick={profile.claim_member_nick ?? profile.fansub_name}
+                    disabled={isSaving || !profile.is_verified}
                     onNoindexChange={handleNoindexChange}
                   />
                 </Card>

@@ -172,6 +172,15 @@ export interface GenerateClaimInvitationResponse {
   invite_link: string
 }
 
+export interface MemberClaimInvitationResponse {
+  id: number
+  member_id: number
+  fansub_group_id: number
+  status: 'pending' | 'accepted' | 'cancelled' | 'expired'
+  expires_at: string
+  created_at: string
+}
+
 export interface MemberRequestRow {
   id: number
   app_user_id: number

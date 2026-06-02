@@ -63,6 +63,11 @@ export function ClaimStatusCard({
         <p className={styles.mutedText}>
           Wenn deaktiviert, wird dein Profil mit "noindex,nofollow" markiert.
         </p>
+        {claimStatus !== 'verified' ? (
+          <p className={styles.mutedText}>
+            Die Indexierung kann erst nach einem verifizierten Member-Claim geändert werden.
+          </p>
+        ) : null}
       </fieldset>
 
       <fieldset className={styles.radioGroup}>

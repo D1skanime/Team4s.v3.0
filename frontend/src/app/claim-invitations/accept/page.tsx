@@ -17,7 +17,7 @@ function claimInvitationErrorMessage(error: unknown): string {
       case 'invitation_cancelled':
         return 'Diese Einladung wurde zurückgezogen.'
       case 'already_verified':
-        return 'Du bist bereits einem historischen Eintrag zugeordnet.'
+        return 'Dieser historische Member-Eintrag ist bereits einem Team4s-Account zugeordnet.'
       default:
         return error.message || 'Aktion konnte nicht durchgeführt werden. Bitte versuche es erneut.'
     }

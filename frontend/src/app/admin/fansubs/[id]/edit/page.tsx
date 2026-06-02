@@ -81,6 +81,7 @@ import {
   YearPicker,
 } from "@/components/ui";
 import { AnimeProjectNotesSection } from "./AnimeProjectNotesSection";
+import { ClaimManagementPanel } from "./ClaimManagementPanel";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 import AnimeContributionsTab from "./AnimeContributionsTab";
 import { GroupMembersTab } from "./GroupMembersTab";
@@ -116,6 +117,7 @@ type SectionKey =
   | "notes"
   | "mitglieder"
   | "rollen"
+  | "claims"
   | "vorschlaege"
   | "anime-beitraege";
 type MainTab = SectionKey;
@@ -186,6 +188,7 @@ const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: "collaboration", label: "App-Mitglieder" },
   { key: "mitglieder", label: "Hist. Mitglieder" },
   { key: "rollen", label: "Rollen/Timeline" },
+  { key: "claims", label: "Claims" },
   { key: "vorschlaege", label: "Vorschläge" },
   { key: "anime-beitraege", label: "Anime-Beiträge" },
   { key: "releases", label: "Anime & Veröffentlichungen" },
@@ -953,6 +956,7 @@ function AdminFansubEditContent({
       notes: true,
       mitglieder: true,
       rollen: true,
+      claims: true,
       vorschlaege: true,
       "anime-beitraege": true,
     },
@@ -3177,6 +3181,7 @@ function AdminFansubEditContent({
         {activeMainTab === "notes" ? <NotesTab fansubId={fansubID} /> : null}
         {activeMainTab === "mitglieder" ? <GroupMembersTab fansubId={fansubID} /> : null}
         {activeMainTab === "rollen" ? <MemberRolesTab fansubId={fansubID} /> : null}
+        {activeMainTab === "claims" ? <ClaimManagementPanel groupId={fansubID} /> : null}
         {activeMainTab === "vorschlaege" ? <ReviewQueue fansubId={fansubID} /> : null}
         {activeMainTab === "anime-beitraege" ? <AnimeContributionsTab fansubId={fansubID} /> : null}
       </section>

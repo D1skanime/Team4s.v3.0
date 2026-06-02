@@ -1,0 +1,85 @@
+.claimPanel {
+  display: grid;
+  gap: 1rem;
+}
+
+.stack {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.inlineError {
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--color-error) 45%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  color: var(--color-error);
+  padding: 0.6rem 0.7rem;
+}
+
+.inviteLinkRow {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+}
+
+.inviteLinkRow input {
+  min-width: 0;
+  min-height: 2.35rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+  color: var(--text-primary);
+  padding: 0.55rem 0.65rem;
+}
+
+.inviteLinkRow p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.pendingInviteRow {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pendingInviteRow p {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.rowActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.tableWrapHeaderLineWine {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.tableWrapHeaderLineWine thead th {
+  background: transparent;
+  border-bottom: 3px solid #82122c;
+}
+
+@media (max-width: 720px) {
+  .inviteLinkRow {
+    grid-template-columns: 1fr;
+  }
+
+  .rowActions {
+    justify-content: flex-start;
+  }
+}

@@ -151,7 +151,7 @@ func (r *MemberClaimInvitationRepository) AcceptInvitation(ctx context.Context, 
 		return fmt.Errorf("accept member claim invitation: check verified invariant: %w", err)
 	}
 	if alreadyVerified {
-		return &ClaimMutationError{Code: "already_verified", Message: "Du bist bereits einem historischen Eintrag zugeordnet.", HTTPStatus: 409}
+		return &ClaimMutationError{Code: "already_verified", Message: "Dieser historische Member-Eintrag ist bereits einem Team4s-Account zugeordnet.", HTTPStatus: 409}
 	}
 
 	if _, err := tx.Exec(ctx, `

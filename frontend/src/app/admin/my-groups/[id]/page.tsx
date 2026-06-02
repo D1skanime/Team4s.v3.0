@@ -21,7 +21,6 @@ import {
   TableRow,
   Toolbar,
 } from "@/components/ui";
-import { ReviewQueue } from "@/components/contributions/ReviewQueue";
 import { ApiError, getMyFansubGroupDetail } from "@/lib/api";
 import { useAuthSession } from "@/lib/useAuthSession";
 import type {
@@ -30,7 +29,6 @@ import type {
 } from "@/types/contributor";
 
 import styles from "../page.module.css";
-import { ClaimManagementPanel } from "./ClaimManagementPanel";
 
 interface PageProps {
   params?: {
@@ -415,10 +413,6 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
                 </div>
               )}
             </Card>
-            <Card variant="section">
-              <ReviewQueue fansubId={groupId} />
-            </Card>
-            <ClaimManagementPanel groupId={groupId} />
           </>
         ) : null}
       </div>
