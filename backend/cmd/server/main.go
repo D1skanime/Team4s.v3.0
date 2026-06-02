@@ -388,8 +388,12 @@ func main() {
 		memberRequestsHandler:         memberRequestsHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
+	archiveRepo := repository.NewMemberArchiveRepository(dbPool)
+	archiveHandler := handlers.NewMemberArchiveHandler(archiveRepo)
 	contributionsPublicHandler := handlers.NewContributionsPublicHandler(animeContributionsRepo)
 	contributionsMeHandler := handlers.NewContributionsMeHandler(animeContributionsRepo, histGroupMemberRolesRepo, dbPool)
+	// Archiv-Suche: oeffentliche Route ohne Auth-Gate (Pitfall 6 aus RESEARCH.md)
+	v1.GET("/archiv", archiveHandler.SearchArchive)
 	v1.GET("/me/badges", authMiddleware, memberBadgesHandler.GetMyBadges)
 	v1.PATCH("/me/badges/:badgeId/visibility", authMiddleware, memberBadgesHandler.PatchBadgeVisibility)
 	v1.GET("/fansubs/:id/contributions", contributionsPublicHandler.GetFansubContributions)
