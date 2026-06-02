@@ -1470,9 +1470,14 @@ Plans:
 **Goal:** Admin-Frontend fuer Fansub-Leader: Mitglieder verwalten, historische Rollen und Leader-Zeitraeume pflegen, Anime-Contributions per Multi-Select zuweisen. Bestehende Admin-UI-Komponenten wiederverwenden, kein neues Design-System.
 **Requirements**: P63-SC1, P63-SC2, P63-SC3, P63-SC4, P63-SC5
 **Depends on:** Phase 62
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
+
+- [ ] `68-01-PLAN.md` - Badge-Engine: RevokeMemberBadge, 4 neue Badge-Compute-Funktionen, Recompute-Trigger in Contribution-Mutations, BackfillService, CLI-Subbefehl backfill-badges.
+- [ ] `68-02-PLAN.md` - Gruppen-Meilensteine: DeleteGroupHistory-Handler, Leader-Auth, DELETE-Route, GroupHistorySection-UI in manage/groups/[id].
+- [ ] `68-03-PLAN.md` - Archiv-Suche: Migration 0092, member_archive_repository, MemberArchiveHandler, /api/v1/archiv Route, /archiv Frontend-Seite, MemberSearchCard, Badge-Chip-Labels.
+- [ ] `68-04-PLAN.md` - Gesamtverifikation: automatische Tests + UAT fuer alle drei Sub-Features.
 
 **Success Criteria** (what must be TRUE):
 
