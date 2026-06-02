@@ -124,7 +124,7 @@
 - **P66-SC2**: Leader kann Einladungslink fuer historischen Member-Eintrag generieren; Claim wird nach Bestaetigun auf verified gesetzt.
 - **P66-SC3**: noindex-Flag ist pro Member-Profil einstellbar; verified-Status ist im oeffentlichen Profil sichtbar.
 
-- **P67-SC1**: anime_contributions kann optional an episode_id oder release_version_id geknuepft werden (nullable FK, kein Breaking Change).
+- **P67-SC1**: anime_contributions kann optional an eine release_version_id geknuepft werden (nullable FK, kein Breaking Change). Episode-Granularitaet ergibt sich transitiv ueber release_version -> fansub_release -> episode; ein separates episode_id entfaellt (Phase-67-Diskussion 2026-06-02).
 - **P67-SC2**: Anime-Seite zeigt Contributions aufgeschluesselt nach Episode oder Release-Version wenn vorhanden.
 
 - **P68-SC1**: Badge-Engine berechnet alle definierten Badges aus Contributions und aktualisiert member_badges bei Datenaenderungen.
