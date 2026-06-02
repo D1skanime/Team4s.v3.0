@@ -35,6 +35,7 @@ type AnimeContributionRow struct {
 type AnimeContributionInput struct {
 	FansubGroupMemberID     int64
 	RoleCodes               []string
+	Status                  string // "draft" | "proposed" | "confirmed" | "disputed" | "hidden"; leer => "draft"
 	StartedYear             *int
 	EndedYear               *int
 	Note                    *string
@@ -54,16 +55,6 @@ type AnimeContributionPatchInput struct {
 	IsPublicOnMemberProfile *bool
 	Status                  *string
 	UpdatedBy               *int64
-}
-
-// PublicContributionRow is the read model returned by public-facing queries.
-type PublicContributionRow struct {
-	MemberDisplayName string
-	MemberSlug        string
-	RoleCodes         []string
-	StartedYear       *int
-	EndedYear         *int
-	IsVerified        bool
 }
 
 // AnimeContributionDisplayRow is the frontend-facing response type for anime_contributions,
@@ -293,7 +284,12 @@ func (r *AnimeContributionsRepository) getByIDWithQuerier(ctx context.Context, q
 }
 
 // Create inserts a new anime contribution and its role codes in a single transaction.
+// Falls input.Status leer ist, wird "draft" als Standardwert verwendet.
 func (r *AnimeContributionsRepository) Create(ctx context.Context, fansubGroupID int64, animeID int64, input AnimeContributionInput) (*AnimeContributionRow, error) {
+	if input.Status == "" {
+		input.Status = "draft"
+	}
+
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("create anime contribution: begin tx: %w", err)
@@ -316,7 +312,7 @@ func (r *AnimeContributionsRepository) Create(ctx context.Context, fansubGroupID
 			updated_by,
 			created_at,
 			updated_at
-		) VALUES ($1, $2, $3, 'draft', $4, $5, $6, $7, $8, $9, $9, NOW(), NOW())
+		) VALUES ($1, $2, $3, $10, $4, $5, $6, $7, $8, $9, $9, NOW(), NOW())
 		RETURNING id
 	`,
 		fansubGroupID,
@@ -328,6 +324,7 @@ func (r *AnimeContributionsRepository) Create(ctx context.Context, fansubGroupID
 		input.IsPublicOnAnimePage,
 		input.IsPublicOnMemberProfile,
 		input.CreatedBy,
+		input.Status,
 	).Scan(&newID)
 	if err != nil {
 		if isForeignKeyViolation(err) {
@@ -447,45 +444,4 @@ func (r *AnimeContributionsRepository) Update(ctx context.Context, id int64, inp
 	return r.GetByID(ctx, id)
 }
 
-// ListByMemberID returns anime contributions for the given member (used by Me-routes).
-func (r *AnimeContributionsRepository) ListByMemberID(ctx context.Context, memberID int64) ([]AnimeContributionRow, error) {
-	rows, err := r.db.Query(ctx, `
-		SELECT `+animeContributionSelectCols+`
-		FROM anime_contributions ac
-		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
-		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
-		WHERE hfgm.member_id = $1
-		GROUP BY ac.id
-		ORDER BY ac.created_at DESC
-		LIMIT 50
-	`, memberID)
-	if err != nil {
-		return nil, fmt.Errorf("list anime contributions by member id: %w", err)
-	}
-	defer rows.Close()
-
-	result := make([]AnimeContributionRow, 0)
-	for rows.Next() {
-		row, err := scanAnimeContributionRow(rows)
-		if err != nil {
-			return nil, fmt.Errorf("list anime contributions by member id: scan: %w", err)
-		}
-		result = append(result, *row)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("list anime contributions by member id: iterate: %w", err)
-	}
-	return result, nil
-}
-
-// Delete removes an anime contribution by ID. Roles are removed via CASCADE.
-func (r *AnimeContributionsRepository) Delete(ctx context.Context, id int64) error {
-	tag, err := r.db.Exec(ctx, `DELETE FROM anime_contributions WHERE id = $1`, id)
-	if err != nil {
-		return fmt.Errorf("delete anime contribution: %w", err)
-	}
-	if tag.RowsAffected() == 0 {
-		return ErrNotFound
-	}
-	return nil
-}
+// ListByMemberID und Delete sind in anime_contributions_member_repository.go ausgelagert.
