@@ -45,10 +45,13 @@ Direct mapping:
   `~/.gsd/defaults.json` are honored automatically by Codex's agent router.
 - `fork_context: false` by default — GSD agents load their own context via `<files_to_read>` blocks
 
-Spawn restriction:
-- Codex restricts `spawn_agent` to cases where the user has explicitly
-  requested sub-agents. When automatic spawning is not permitted, do the
-  work inline in the current agent rather than attempting to force a spawn.
+Spawn policy:
+- When a GSD workflow calls `Task(...)`, use `spawn_agent` when the multi-agent
+  tools are available and the task benefits from isolation, parallelism, or
+  specialist context.
+- Do not ask the user for separate permission just to use sub-agents; the
+  workflow invocation is enough authorization. Fall back inline only when the
+  tool is unavailable or the task is explicitly interactive/inline.
 
 Parallel fan-out:
 - Spawn multiple agents → collect agent IDs → `wait(ids)` for all to complete
