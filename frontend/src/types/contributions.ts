@@ -79,3 +79,35 @@ export interface MeAnimeContributionsResponse {
 export interface MeGroupContributionsResponse {
   data: MeGroupContribution[]
 }
+
+// Typen für öffentliche Member-Rollen-Timeline (Public Member-Profil)
+
+export interface PublicMemberRoleEntry {
+  fansub_group_name: string
+  fansub_group_slug: string
+  role_code: string
+  role_label: string
+  context: 'group_history' | 'anime_contribution'
+  anime_title: string | null
+  anime_id: number | null
+  started_year: number | null
+  ended_year: number | null
+  status: string
+}
+
+export interface PublicMemberContributionsResponse {
+  role_timeline: PublicMemberRoleEntry[]
+  has_unverified: boolean
+}
+
+export interface MemberBadge {
+  id: number
+  badge_code: 'founding_member' | 'historical_leader' | 'long_term_member'
+  badge_category: string
+  visibility: 'public' | 'internal' | 'hidden'
+  awarded_at: string
+}
+
+export interface MemberBadgesResponse {
+  badges: MemberBadge[]
+}

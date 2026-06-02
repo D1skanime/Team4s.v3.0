@@ -199,6 +199,8 @@ import type {
   MeAnimeContributionsResponse,
   PublicGroupContributionsResponse,
   PublicAnimeContributionsResponse,
+  PublicMemberContributionsResponse,
+  MemberBadgesResponse,
 } from "@/types/contributions";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
@@ -6970,4 +6972,80 @@ export async function getAnimeContributions(
   }
 
   return response.json() as Promise<PublicAnimeContributionsResponse>;
+}
+
+export async function getMemberContributions(
+  slug: string,
+): Promise<PublicMemberContributionsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const encodedSlug = encodeURIComponent(slug);
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/members/${encodedSlug}/contributions`,
+    { next: { revalidate: 60 } },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<PublicMemberContributionsResponse>;
+}
+
+export async function getMyBadges(
+  authToken: string,
+): Promise<MemberBadgesResponse> {
+  // Route aus Phase 62 — falls noch nicht vorhanden, leere Liste zurückgeben
+  const API_BASE_URL = getApiBaseUrl();
+  try {
+    const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/badges`, {
+      cache: "no-store",
+      authToken,
+    });
+    if (!response.ok) {
+      return { badges: [] };
+    }
+    return response.json() as Promise<MemberBadgesResponse>;
+  } catch {
+    return { badges: [] };
+  }
+}
+
+export async function patchMyBadgeVisibility(
+  authToken: string,
+  badgeId: number,
+  visibility: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/badges/${badgeId}/visibility`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visibility }),
+      authToken,
+    },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
 }
