@@ -16,9 +16,9 @@ import (
 
 // ContributionsMeHandler verwaltet HTTP-Endpunkte für eigene Contributions des eingeloggten Members.
 type ContributionsMeHandler struct {
-	contributionsRepo    *repository.AnimeContributionsRepository
-	groupRolesRepo       *repository.HistGroupMemberRolesRepository
-	db                   *pgxpool.Pool
+	contributionsRepo *repository.AnimeContributionsRepository
+	groupRolesRepo    *repository.HistGroupMemberRolesRepository
+	db                *pgxpool.Pool
 }
 
 // NewContributionsMeHandler erstellt einen neuen ContributionsMeHandler.

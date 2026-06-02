@@ -58,6 +58,9 @@ type Config struct {
 	SMTPFromName  string // Absender-Anzeigename
 	SMTPStartTLS  bool   // STARTTLS für SMTP-Verbindung verwenden
 	AppPublicURL  string // Öffentliche Basis-URL der App (für absolute Links in Mails)
+	// CORSAllowedOrigins listet die erlaubten Cross-Origin-Quellen (CORS_ALLOWED_ORIGINS,
+	// Komma-getrennt). Default: AppPublicURL. Ersetzt den frueheren Wildcard '*'.
+	CORSAllowedOrigins []string
 }
 
 // Load liest alle Konfigurationswerte aus Umgebungsvariablen und gibt eine fertig befüllte Config zurück.
@@ -115,7 +118,26 @@ func Load() Config {
 		SMTPFromName:                 getEnv("SMTP_FROM_NAME", "Team4s"),
 		SMTPStartTLS:                 getEnvBool("SMTP_STARTTLS", false),
 		AppPublicURL:                 strings.TrimSpace(getEnv("APP_PUBLIC_URL", "http://localhost:3002")),
+		CORSAllowedOrigins: parseAllowedOrigins(
+			getEnv("CORS_ALLOWED_ORIGINS", ""),
+			strings.TrimSpace(getEnv("APP_PUBLIC_URL", "http://localhost:3002")),
+		),
 	}
+}
+
+// parseAllowedOrigins zerlegt eine komma-getrennte Origin-Liste und faellt auf den
+// angegebenen Default-Origin zurueck, wenn nichts Brauchbares gesetzt ist.
+func parseAllowedOrigins(raw, fallback string) []string {
+	origins := make([]string, 0)
+	for _, part := range strings.Split(raw, ",") {
+		if trimmed := strings.TrimSpace(part); trimmed != "" {
+			origins = append(origins, trimmed)
+		}
+	}
+	if len(origins) == 0 && fallback != "" {
+		origins = append(origins, fallback)
+	}
+	return origins
 }
 
 func getEnv(key, fallback string) string {

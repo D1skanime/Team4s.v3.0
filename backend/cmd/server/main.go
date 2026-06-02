@@ -48,7 +48,7 @@ func main() {
 	}
 
 	router := gin.New()
-	router.Use(gin.Logger(), gin.Recovery(), corsMiddleware())
+	router.Use(gin.Logger(), gin.Recovery(), corsMiddleware(cfg.CORSAllowedOrigins))
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -420,9 +420,22 @@ func main() {
 	}
 }
 
-func corsMiddleware() gin.HandlerFunc {
+// corsMiddleware echoet nur explizit erlaubte Origins zurueck (Allowlist), statt einen
+// Wildcard '*' zu setzen. Unbekannte Origins erhalten keinen ACAO-Header und koennen die
+// Antwort damit nicht per Browser-JS auslesen.
+func corsMiddleware(allowedOrigins []string) gin.HandlerFunc {
+	allowed := make(map[string]struct{}, len(allowedOrigins))
+	for _, o := range allowedOrigins {
+		allowed[o] = struct{}{}
+	}
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := c.Request.Header.Get("Origin")
+		if origin != "" {
+			if _, ok := allowed[origin]; ok {
+				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+				c.Writer.Header().Add("Vary", "Origin")
+			}
+		}
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 

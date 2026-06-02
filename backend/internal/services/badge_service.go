@@ -112,7 +112,8 @@ func (s *BadgeService) computeLongTermMember(ctx context.Context, memberID int64
 		  AND (
 		      (joined_year IS NOT NULL AND left_year IS NOT NULL AND left_year - joined_year >= 5)
 		      OR
-		      (joined_year IS NOT NULL AND left_year IS NULL)
+		      (joined_year IS NOT NULL AND left_year IS NULL
+		       AND (EXTRACT(YEAR FROM NOW())::int - joined_year) >= 5)
 		  )
 		LIMIT 1
 	`, memberID).Scan(&rowID)
