@@ -42,6 +42,20 @@ func (r *MemberClaimInvitationRepository) CreateInvitation(ctx context.Context, 
 	if memberID <= 0 || fansubGroupID <= 0 || createdByAppUserID <= 0 {
 		return nil, fmt.Errorf("create member claim invitation: invalid ids")
 	}
+	var belongsToGroup bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1
+			FROM hist_fansub_group_members
+			WHERE member_id = $1
+			  AND fansub_group_id = $2
+		)
+	`, memberID, fansubGroupID).Scan(&belongsToGroup); err != nil {
+		return nil, fmt.Errorf("create member claim invitation: check group membership: %w", err)
+	}
+	if !belongsToGroup {
+		return nil, ErrNotFound
+	}
 	if err := r.expirePendingInvitations(ctx, memberID); err != nil {
 		return nil, err
 	}
@@ -186,8 +200,8 @@ func (r *MemberClaimInvitationRepository) AcceptInvitation(ctx context.Context, 
 	return nil
 }
 
-func (r *MemberClaimInvitationRepository) CancelInvitation(ctx context.Context, invitationID int64, cancelledByAppUserID int64) error {
-	if invitationID <= 0 || cancelledByAppUserID <= 0 {
+func (r *MemberClaimInvitationRepository) CancelInvitation(ctx context.Context, invitationID int64, memberID int64, fansubGroupID int64, cancelledByAppUserID int64) error {
+	if invitationID <= 0 || memberID <= 0 || fansubGroupID <= 0 || cancelledByAppUserID <= 0 {
 		return fmt.Errorf("cancel member claim invitation: invalid ids")
 	}
 	tag, err := r.db.Exec(ctx, `
@@ -197,8 +211,10 @@ func (r *MemberClaimInvitationRepository) CancelInvitation(ctx context.Context, 
 			cancelled_at = NOW(),
 			updated_at = NOW()
 		WHERE id = $1
+		  AND member_id = $3
+		  AND fansub_group_id = $4
 		  AND status = 'pending'
-	`, invitationID, cancelledByAppUserID)
+	`, invitationID, cancelledByAppUserID, memberID, fansubGroupID)
 	if err != nil {
 		return fmt.Errorf("cancel member claim invitation: %w", err)
 	}
