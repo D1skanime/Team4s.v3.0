@@ -202,6 +202,9 @@ import type {
   PublicAnimeContributionsResponse,
   PublicMemberContributionsResponse,
   MemberBadgesResponse,
+  MembershipsResponse,
+  ProposalFormData,
+  GroupProposalsResponse,
 } from "@/types/contributions";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
@@ -6969,6 +6972,185 @@ export async function rejectAnimeContribution(
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/me/anime-contributions/${contributionId}/reject`,
     { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+// ─── Contribution Proposals (Member) ─────────────────────────────────────────
+
+export async function getMyMemberships(
+  authToken?: string,
+): Promise<MembershipsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/memberships`,
+    { cache: "no-store", authToken },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<MembershipsResponse>;
+}
+
+export async function searchAnimeForProposal(
+  query: string,
+): Promise<PaginatedAnimeResponse> {
+  return getAnimeList(
+    { q: query, include_disabled: false, per_page: 10 },
+    { cache: "no-store" },
+  );
+}
+
+export async function createContributionProposal(
+  body: ProposalFormData,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/contribution-proposals`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+export async function selfPublishContribution(
+  contributionId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/anime-contributions/${contributionId}/self-publish`,
+    { method: "POST", authToken },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+// ─── Contribution Proposals (Admin/Review) ────────────────────────────────────
+
+export async function listGroupProposals(
+  fansubId: number,
+  authToken?: string,
+): Promise<GroupProposalsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/contribution-proposals`,
+    { cache: "no-store", authToken },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<GroupProposalsResponse>;
+}
+
+export async function confirmProposal(
+  fansubId: number,
+  cid: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/contribution-proposals/${cid}/confirm`,
+    { method: "POST", authToken },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+export async function rejectProposal(
+  fansubId: number,
+  cid: number,
+  note?: string,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/contribution-proposals/${cid}/reject`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ review_note: note ?? null }),
+      authToken,
+    },
   );
 
   if (!response.ok) {

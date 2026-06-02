@@ -60,6 +60,43 @@ export interface MeAnimeContribution {
   is_public_on_anime_page: boolean
   is_public_on_member_profile: boolean
   note: string | null
+  review_note?: string | null
+  can_self_publish?: boolean
+}
+
+export interface ProposalFormData {
+  fansub_group_id: number
+  anime_id: number
+  fansub_group_member_id: number
+  role_codes: string[]
+  note?: string | null
+  started_year?: number | null
+  ended_year?: number | null
+}
+
+export interface GroupProposalRow {
+  id: number
+  fansub_group_member_id: number
+  member_display_name: string
+  anime_id: number
+  anime_title: string
+  role_codes: string[]
+  note: string | null
+  created_at: string
+}
+
+export interface GroupProposalsResponse {
+  data: GroupProposalRow[]
+}
+
+export interface MembershipEntry {
+  fansub_group_member_id: number
+  fansub_group_id: number
+  group_name: string
+}
+
+export interface MembershipsResponse {
+  data: MembershipEntry[]
 }
 
 export interface MeGroupContribution {
