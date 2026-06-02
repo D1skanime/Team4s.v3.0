@@ -105,6 +105,58 @@ func TestFormatMailAddress(t *testing.T) {
 	}
 }
 
+func TestSMTPMailerRejectsCRLFInRecipient(t *testing.T) {
+	m := NewSMTPMailer(MailerConfig{
+		Host:      "localhost",
+		Port:      1025,
+		FromEmail: "noreply@team4s.local",
+	})
+	err := m.Send(context.Background(), MailMessage{
+		To:       "a@b.com\r\nBcc: victim@x.com",
+		Subject:  "Test",
+		BodyText: "Inhalt",
+	})
+	if err == nil {
+		t.Fatal("SMTPMailer.Send sollte CRLF im Empfaenger ablehnen")
+	}
+}
+
+func TestSMTPMailerRejectsInvalidRecipient(t *testing.T) {
+	m := NewSMTPMailer(MailerConfig{Host: "localhost", Port: 1025, FromEmail: "noreply@team4s.local"})
+	err := m.Send(context.Background(), MailMessage{
+		To:       "kein-valides-format",
+		Subject:  "Test",
+		BodyText: "Inhalt",
+	})
+	if err == nil {
+		t.Fatal("SMTPMailer.Send sollte ungueltige Empfaenger-Adresse ablehnen")
+	}
+}
+
+func TestBuildRawMessageEncodesUmlautSubject(t *testing.T) {
+	msg := buildRawMessage("Team4s <noreply@team4s.local>", "user@example.local", "Einladung für Müller", "Text", "")
+	// Roher UTF-8-Umlaut darf NICHT im Subject-Header stehen; stattdessen RFC-2047.
+	if strings.Contains(msg, "Subject: Einladung für Müller") {
+		t.Fatalf("erwartete RFC-2047-kodierten Subject, bekam roh:\n%s", msg)
+	}
+	if !strings.Contains(msg, "Subject: =?utf-8?q?") {
+		t.Fatalf("erwartete RFC-2047 encoded-word im Subject, bekam:\n%s", msg)
+	}
+}
+
+func TestBuildRawMessageStripsCRLFFromSubject(t *testing.T) {
+	msg := buildRawMessage("Team4s <noreply@team4s.local>", "user@example.local", "Zeile1\r\nInjected: x", "Text", "")
+	// Der injizierte Teil darf nicht als eigene Header-Zeile erscheinen, d.h.
+	// es darf kein CRLF unmittelbar vor "Injected:" stehen.
+	if strings.Contains(msg, "\r\nInjected: x") {
+		t.Fatalf("Subject-Header-Injection nicht verhindert, bekam:\n%s", msg)
+	}
+	// Der gesamte Subject-Inhalt muss auf einer einzigen Header-Zeile bleiben.
+	if !strings.Contains(msg, "Subject: Zeile1  Injected: x\r\n") {
+		t.Fatalf("erwartete gefalteten Subject auf einer Zeile, bekam:\n%s", msg)
+	}
+}
+
 func TestMailerInterfaceCompliance(t *testing.T) {
 	// Sicherstellen, dass beide Implementierungen das Mailer-Interface erfüllen.
 	var _ Mailer = &SMTPMailer{}

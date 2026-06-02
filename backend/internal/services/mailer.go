@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"mime"
 	"net"
+	"net/mail"
 	"net/smtp"
 	"strings"
 	"time"
@@ -34,7 +36,13 @@ type MailerConfig struct {
 	Password  string
 	FromEmail string
 	FromName  string
-	StartTLS  bool
+	// StartTLS erzwingt nach dem Klartext-Verbindungsaufbau ein explizites
+	// STARTTLS-Upgrade. Bietet der Server kein STARTTLS an, wird die
+	// Verbindung abgebrochen (kein stiller Klartext-Fallback).
+	StartTLS bool
+	// ImplicitTLS öffnet direkt eine TLS-Verbindung (SMTPS, typ. Port 465).
+	// Schließt sich mit StartTLS gegenseitig aus.
+	ImplicitTLS bool
 }
 
 // SMTPMailer sendet E-Mails über einen echten SMTP-Server.
@@ -50,8 +58,16 @@ func NewSMTPMailer(cfg MailerConfig) *SMTPMailer {
 // Send sendet eine E-Mail über den konfigurierten SMTP-Server.
 // Der Context-Timeout wird als Dial-Timeout genutzt.
 func (m *SMTPMailer) Send(ctx context.Context, msg MailMessage) error {
-	if strings.TrimSpace(msg.To) == "" {
+	to := strings.TrimSpace(msg.To)
+	if to == "" {
 		return fmt.Errorf("mailer: Empfänger-Adresse fehlt")
+	}
+	// Empfänger validieren und gegen CRLF-Header-Injection absichern (WR-02).
+	if _, err := mail.ParseAddress(to); err != nil {
+		return fmt.Errorf("mailer: ungültige Empfänger-Adresse: %w", err)
+	}
+	if containsCRLF(to) {
+		return fmt.Errorf("mailer: Empfänger-Adresse enthält unzulässige Steuerzeichen")
 	}
 
 	fromEmail := m.cfg.FromEmail
@@ -61,6 +77,9 @@ func (m *SMTPMailer) Send(ctx context.Context, msg MailMessage) error {
 	fromName := m.cfg.FromName
 	if strings.TrimSpace(msg.FromName) != "" {
 		fromName = strings.TrimSpace(msg.FromName)
+	}
+	if containsCRLF(fromEmail) || containsCRLF(fromName) {
+		return fmt.Errorf("mailer: Absender enthält unzulässige Steuerzeichen")
 	}
 
 	addr := fmt.Sprintf("%s:%d", m.cfg.Host, m.cfg.Port)
@@ -75,11 +94,14 @@ func (m *SMTPMailer) Send(ctx context.Context, msg MailMessage) error {
 		}
 	}
 
+	tlsConfig := &tls.Config{ServerName: m.cfg.Host, MinVersion: tls.VersionTLS12}
+
 	var conn net.Conn
 	var dialErr error
 	dialer := &net.Dialer{Timeout: timeout}
-	if m.cfg.StartTLS {
-		conn, dialErr = tls.DialWithDialer(dialer, "tcp", addr, &tls.Config{ServerName: m.cfg.Host})
+	if m.cfg.ImplicitTLS {
+		// Implizites TLS (SMTPS, typ. Port 465): direkt TLS-Handshake.
+		conn, dialErr = tls.DialWithDialer(dialer, "tcp", addr, tlsConfig)
 	} else {
 		conn, dialErr = dialer.DialContext(ctx, "tcp", addr)
 	}
@@ -94,12 +116,14 @@ func (m *SMTPMailer) Send(ctx context.Context, msg MailMessage) error {
 	}
 	defer client.Close()
 
-	if !m.cfg.StartTLS {
-		// STARTTLS anbieten wenn der Server es unterstützt (best-effort für Mailpit-Kompatibilität)
-		if ok, _ := client.Extension("STARTTLS"); ok {
-			if err := client.StartTLS(&tls.Config{ServerName: m.cfg.Host}); err != nil {
-				return fmt.Errorf("mailer: STARTTLS-Upgrade fehlgeschlagen: %w", err)
-			}
+	if m.cfg.StartTLS {
+		// STARTTLS ist erzwungen: Bietet der Server es nicht an, wird die
+		// Verbindung abgebrochen statt im Klartext weiterzusenden (CR-02).
+		if ok, _ := client.Extension("STARTTLS"); !ok {
+			return fmt.Errorf("mailer: Server bietet kein STARTTLS an, Verbindung abgebrochen")
+		}
+		if err := client.StartTLS(tlsConfig); err != nil {
+			return fmt.Errorf("mailer: STARTTLS-Upgrade fehlgeschlagen: %w", err)
 		}
 	}
 
@@ -114,7 +138,7 @@ func (m *SMTPMailer) Send(ctx context.Context, msg MailMessage) error {
 	if err := client.Mail(fromEmail); err != nil {
 		return fmt.Errorf("mailer: MAIL FROM fehlgeschlagen: %w", err)
 	}
-	if err := client.Rcpt(strings.TrimSpace(msg.To)); err != nil {
+	if err := client.Rcpt(to); err != nil {
 		return fmt.Errorf("mailer: RCPT TO fehlgeschlagen: %w", err)
 	}
 
@@ -122,14 +146,32 @@ func (m *SMTPMailer) Send(ctx context.Context, msg MailMessage) error {
 	if err != nil {
 		return fmt.Errorf("mailer: DATA-Befehl fehlgeschlagen: %w", err)
 	}
-	defer wc.Close()
 
-	rawMsg := buildRawMessage(fromHeader, strings.TrimSpace(msg.To), msg.Subject, msg.BodyText, msg.BodyHTML)
+	rawMsg := buildRawMessage(fromHeader, to, msg.Subject, msg.BodyText, msg.BodyHTML)
 	if _, err := wc.Write([]byte(rawMsg)); err != nil {
+		_ = wc.Close()
 		return fmt.Errorf("mailer: Nachricht konnte nicht gesendet werden: %w", err)
+	}
+	// Die finale Server-Antwort (Annehmen/Ablehnen) kommt erst beim Close des
+	// DATA-Writers. Wird der Fehler ignoriert, gilt eine abgelehnte Mail
+	// faelschlich als gesendet (WR-01, D-12).
+	if err := wc.Close(); err != nil {
+		return fmt.Errorf("mailer: Nachricht wurde vom Server abgelehnt: %w", err)
+	}
+
+	// Sitzung sauber mit QUIT beenden, damit die letzte Server-Bestaetigung
+	// beobachtet wird (WR-04).
+	if err := client.Quit(); err != nil {
+		return fmt.Errorf("mailer: QUIT fehlgeschlagen: %w", err)
 	}
 
 	return nil
+}
+
+// containsCRLF prüft, ob ein String CR- oder LF-Zeichen enthält. Solche Werte
+// dürfen nicht in SMTP-Header geschrieben werden (Header-Injection, WR-02).
+func containsCRLF(s string) bool {
+	return strings.ContainsAny(s, "\r\n")
 }
 
 // buildRawMessage erstellt einen MIME-formatierten E-Mail-String.
@@ -138,7 +180,10 @@ func buildRawMessage(from, to, subject, bodyText, bodyHTML string) string {
 	var sb strings.Builder
 	sb.WriteString("From: " + from + "\r\n")
 	sb.WriteString("To: " + to + "\r\n")
-	sb.WriteString("Subject: " + strings.ReplaceAll(subject, "\r\n", " ") + "\r\n")
+	// CR/LF im Subject zuerst neutralisieren, dann RFC-2047-kodieren, damit
+	// Umlaute korrekt übertragen werden (WR-02 + WR-03).
+	cleanSubject := strings.ReplaceAll(strings.ReplaceAll(subject, "\r", " "), "\n", " ")
+	sb.WriteString("Subject: " + mime.QEncoding.Encode("utf-8", cleanSubject) + "\r\n")
 	sb.WriteString("MIME-Version: 1.0\r\n")
 
 	if strings.TrimSpace(bodyHTML) != "" {
@@ -169,13 +214,15 @@ func buildRawMessage(from, to, subject, bodyText, bodyHTML string) string {
 }
 
 // formatMailAddress erstellt einen "Name <email>"-Header-Wert.
+// Der Anzeigename wird bei Bedarf RFC-2047-kodiert, damit Umlaute korrekt
+// im From-Header landen (WR-03).
 func formatMailAddress(name, email string) string {
 	name = strings.TrimSpace(name)
 	email = strings.TrimSpace(email)
 	if name == "" {
 		return email
 	}
-	return fmt.Sprintf("%s <%s>", name, email)
+	return fmt.Sprintf("%s <%s>", mime.QEncoding.Encode("utf-8", name), email)
 }
 
 // NoopMailer verwirft alle E-Mails ohne Versand. Geeignet für Tests und deaktivierten SMTP-Betrieb.
