@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
 
@@ -14,14 +15,29 @@ import (
 
 // FansubHistGroupMemberRolesHandler verwaltet Admin-Endpunkte für hist_group_member_roles.
 type FansubHistGroupMemberRolesHandler struct {
-	rolesRepo    *repository.HistGroupMemberRolesRepository
-	badgeService *services.BadgeService
+	rolesRepo       *repository.HistGroupMemberRolesRepository
+	badgeService    *services.BadgeService
+	permissionSvc   *permissions.Service
+	auditLogRepo    *repository.AuditLogRepository
+	histMembersRepo *repository.HistGroupMembersRepository
 }
 
 // NewFansubHistGroupMemberRolesHandler erstellt einen neuen FansubHistGroupMemberRolesHandler.
 // badgeService darf nil sein; in dem Fall wird die Badge-Neuberechnung übersprungen.
-func NewFansubHistGroupMemberRolesHandler(repo *repository.HistGroupMemberRolesRepository, badgeService *services.BadgeService) *FansubHistGroupMemberRolesHandler {
-	return &FansubHistGroupMemberRolesHandler{rolesRepo: repo, badgeService: badgeService}
+func NewFansubHistGroupMemberRolesHandler(
+	repo *repository.HistGroupMemberRolesRepository,
+	badgeService *services.BadgeService,
+	permissionSvc *permissions.Service,
+	auditLogRepo *repository.AuditLogRepository,
+	histMembersRepo *repository.HistGroupMembersRepository,
+) *FansubHistGroupMemberRolesHandler {
+	return &FansubHistGroupMemberRolesHandler{
+		rolesRepo:       repo,
+		badgeService:    badgeService,
+		permissionSvc:   permissionSvc,
+		auditLogRepo:    auditLogRepo,
+		histMembersRepo: histMembersRepo,
+	}
 }
 
 // recomputeBadges löst die Badge-Neuberechnung für den Member hinter der gegebenen
@@ -35,13 +51,13 @@ func (h *FansubHistGroupMemberRolesHandler) recomputeBadges(c *gin.Context, hist
 }
 
 type histGroupMemberRoleCreateRequest struct {
-	HistFansubGroupMemberID int64   `json:"hist_fansub_group_member_id"`
-	RoleCode                string  `json:"role_code"`
-	StartedYear             *int    `json:"started_year"`
-	EndedYear               *int    `json:"ended_year"`
-	Status                  string  `json:"status"`
-	Visibility              string  `json:"visibility"`
-	SourceNote              *string `json:"source_note"`
+	HistFansubGroupMemberID int64    `json:"hist_fansub_group_member_id"`
+	RoleCode                string   `json:"role_code"`
+	StartedYear             *int     `json:"started_year"`
+	EndedYear               *int     `json:"ended_year"`
+	Status                  string   `json:"status"`
+	Visibility              string   `json:"visibility"`
+	SourceNote              *string  `json:"source_note"`
 }
 
 type histGroupMemberRolePatchRequest struct {
@@ -55,9 +71,25 @@ type histGroupMemberRolePatchRequest struct {
 // ListHistGroupMemberRoles gibt alle Rollen eines Mitglieds zurück.
 // GET /admin/fansubs/:id/member-roles?member_id=N
 func (h *FansubHistGroupMemberRolesHandler) ListHistGroupMemberRoles(c *gin.Context) {
-	_, err := parseFansubID(c.Param("id"))
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return
+	}
+
+	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
 		badRequest(c, "ungültige fansub id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersView, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member_role.list.denied", &fansubID, "hist_fansub_group_member_role", nil, permissions.ActionFansubGroupMembersView, result)
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -85,9 +117,25 @@ func (h *FansubHistGroupMemberRolesHandler) ListHistGroupMemberRoles(c *gin.Cont
 // CreateHistGroupMemberRole legt einen neuen Rolleneintrag für ein historisches Mitglied an.
 // POST /admin/fansubs/:id/member-roles
 func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Context) {
-	_, err := parseFansubID(c.Param("id"))
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return
+	}
+
+	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
 		badRequest(c, "ungültige fansub id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member_role.create.denied", &fansubID, "hist_fansub_group_member_role", nil, permissions.ActionFansubGroupMembersManage, result)
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -103,6 +151,30 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 	}
 	if req.RoleCode == "" {
 		badRequest(c, "role_code ist erforderlich")
+		return
+	}
+
+	// Cross-Group-Guard: prüfen ob das Mitglied zur angegebenen Fansub-Gruppe gehört.
+	memberRow, err := h.histMembersRepo.GetByID(c.Request.Context(), req.HistFansubGroupMemberID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": gin.H{
+				"message": "mitgliedschaftseintrag nicht gefunden",
+			},
+		})
+		return
+	}
+	if err != nil {
+		log.Printf("hist group member roles create: member lookup error (member_id=%d): %v", req.HistFansubGroupMemberID, err)
+		internalError(c, "interner serverfehler")
+		return
+	}
+	if memberRow.FansubGroupID != fansubID {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "mitglied gehört nicht zu dieser fansubgruppe",
+			},
+		})
 		return
 	}
 
@@ -146,6 +218,18 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 		return
 	}
 
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID: &identity.AppUserID,
+		EventType:      "hist_group_member_role.created",
+		ScopeType:      permissions.ScopeTypeGroup,
+		ScopeID:        &fansubID,
+		TargetType:     "hist_fansub_group_member_role",
+		TargetID:       &item.ID,
+		Action:         string(permissions.ActionFansubGroupMembersManage),
+		Outcome:        "allowed",
+		Payload:        map[string]any{"role_code": req.RoleCode},
+	})
+
 	h.recomputeBadges(c, item.HistFansubGroupMemberID)
 
 	c.JSON(http.StatusCreated, gin.H{"data": item})
@@ -154,9 +238,25 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 // UpdateHistGroupMemberRole aktualisiert einen Rolleneintrag.
 // PATCH /admin/fansubs/:id/member-roles/:roleId
 func (h *FansubHistGroupMemberRolesHandler) UpdateHistGroupMemberRole(c *gin.Context) {
-	_, err := parseFansubID(c.Param("id"))
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return
+	}
+
+	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
 		badRequest(c, "ungültige fansub id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member_role.update.denied", &fansubID, "hist_fansub_group_member_role", nil, permissions.ActionFansubGroupMembersManage, result)
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -195,6 +295,18 @@ func (h *FansubHistGroupMemberRolesHandler) UpdateHistGroupMemberRole(c *gin.Con
 		return
 	}
 
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID: &identity.AppUserID,
+		EventType:      "hist_group_member_role.updated",
+		ScopeType:      permissions.ScopeTypeGroup,
+		ScopeID:        &fansubID,
+		TargetType:     "hist_fansub_group_member_role",
+		TargetID:       &roleID,
+		Action:         string(permissions.ActionFansubGroupMembersManage),
+		Outcome:        "allowed",
+		Payload:        map[string]any{},
+	})
+
 	h.recomputeBadges(c, item.HistFansubGroupMemberID)
 
 	c.JSON(http.StatusOK, gin.H{"data": item})
@@ -203,9 +315,25 @@ func (h *FansubHistGroupMemberRolesHandler) UpdateHistGroupMemberRole(c *gin.Con
 // DeleteHistGroupMemberRole entfernt einen Rolleneintrag.
 // DELETE /admin/fansubs/:id/member-roles/:roleId
 func (h *FansubHistGroupMemberRolesHandler) DeleteHistGroupMemberRole(c *gin.Context) {
-	_, err := parseFansubID(c.Param("id"))
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return
+	}
+
+	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
 		badRequest(c, "ungültige fansub id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member_role.delete.denied", &fansubID, "hist_fansub_group_member_role", nil, permissions.ActionFansubGroupMembersManage, result)
+		writePermissionDenied(c, result)
 		return
 	}
 
@@ -227,6 +355,18 @@ func (h *FansubHistGroupMemberRolesHandler) DeleteHistGroupMemberRole(c *gin.Con
 		internalError(c, "interner serverfehler")
 		return
 	}
+
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID: &identity.AppUserID,
+		EventType:      "hist_group_member_role.deleted",
+		ScopeType:      permissions.ScopeTypeGroup,
+		ScopeID:        &fansubID,
+		TargetType:     "hist_fansub_group_member_role",
+		TargetID:       &roleID,
+		Action:         string(permissions.ActionFansubGroupMembersManage),
+		Outcome:        "allowed",
+		Payload:        map[string]any{},
+	})
 
 	c.Status(http.StatusNoContent)
 }
