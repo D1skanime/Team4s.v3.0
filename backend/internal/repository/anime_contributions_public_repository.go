@@ -39,6 +39,9 @@ type PublicAnimeContributionGroup struct {
 	ActiveUntilYear        *int                   `json:"active_until_year"`
 	Contributors           []PublicContributorRow `json:"contributors"`
 	HiddenContributorCount int                    `json:"hidden_contributor_count"`
+	// VersionBreakdown haelt die versions-spezifischen Beitraege (Ebene 2),
+	// befuellt durch attachVersionBreakdowns (anime_contributions_public_versions_repository.go).
+	VersionBreakdown []ReleaseVersionBreakdownGroup `json:"version_breakdown"`
 }
 
 // PublicAnimeContributionsResponse is the response for GET /anime/:id/contributions.
