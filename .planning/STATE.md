@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: milestone_complete
-stopped_at: Phase 57 security and validation passed; authenticated browser UAT pending
-last_updated: "2026-06-02T07:10:20.323Z"
+stopped_at: Phase 65 context gathered
+last_updated: "2026-06-02T07:58:11.316Z"
 last_activity: 2026-06-01
 progress:
-  total_phases: 64
-  completed_phases: 43
-  total_plans: 225
-  completed_plans: 186
+  total_phases: 66
+  completed_phases: 44
+  total_plans: 230
+  completed_plans: 187
   percent: 67
 ---
 
@@ -196,6 +196,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 70 added: TipTap-Bilder fuer Member-Profilgeschichte - Member koennen Bilder in ihre eigene Fansub-Geschichte einfuegen; Bilder werden ueber bestehende Team4s-Media-Seams gespeichert und im TipTap-Dokument per Media-Asset-Referenz eingebettet, ohne Base64/externe URLs oder parallelen Upload-Weg.
 - Phase 55 added: Sichere TipTap-Persistenz fuer Profilgeschichte - `/me/profile` darf die Profilgeschichte nicht laenger ad hoc von TipTap nach Plain Text zurueckkonvertieren; Migration, Backend-TipTap-Service, OpenAPI/frontend DTOs, zentraler API-Client, Sanitizing und Bestandsdaten bewegen sich gemeinsam.
 - Phase 56 added: Cropper - der fragile eigene Cropper wird als eigener Folge-Slice mit gepflegter React-Cropper-Bibliothek geplant; Profil-Avatar und Fansub-Gruppenlogo sollen dieselbe gemeinsame Cropper-Komponente nutzen, ohne Upload-Endpunkte oder Media-Ownership zu vermischen.
 - Phase 56 completed on 2026-05-29: `react-easy-crop` is wrapped behind `Team4sCropper`, avatar and fansub logo crop flows are migrated, the original crop parity todo is done, and security review passed with `threats_open: 0`.
@@ -349,7 +350,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T07:10:20.291Z
-Stopped at: Phase 57 security and validation passed; authenticated browser UAT pending
+Last session: 2026-06-02T07:58:11.285Z
+Stopped at: Phase 65 context gathered
 Last activity: 2026-06-01
-Resume file: None
+Resume file: .planning/phases/65-member-vorschlaege-review-queue/65-CONTEXT.md
