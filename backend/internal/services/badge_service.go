@@ -35,6 +35,25 @@ func (s *BadgeService) ComputeAndStoreBadges(ctx context.Context, memberID int64
 	return nil
 }
 
+// ComputeAndStoreBadgesByMembership ermittelt die member_id zur gegebenen
+// hist_fansub_group_members-ID und berechnet anschließend deren Badges. Wird von
+// Rollen-Mutationen genutzt, die nur die Mitgliedschafts-ID kennen. Fehler werden
+// geloggt, aber nicht zurückgegeben — die Badge-Berechnung ist kein kritischer Pfad.
+func (s *BadgeService) ComputeAndStoreBadgesByMembership(ctx context.Context, histMembershipID int64) error {
+	var memberID int64
+	err := s.db.QueryRow(ctx, `
+		SELECT member_id FROM hist_fansub_group_members WHERE id = $1
+	`, histMembershipID).Scan(&memberID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil
+		}
+		log.Printf("badge_service: resolve member_id by membership error (membership_id=%d): %v", histMembershipID, err)
+		return nil
+	}
+	return s.ComputeAndStoreBadges(ctx, memberID)
+}
+
 // computeFoundingMember vergibt founding_member, wenn der Member im Gründungsjahr der Gruppe beigetreten ist.
 func (s *BadgeService) computeFoundingMember(ctx context.Context, memberID int64) {
 	var rowID int64

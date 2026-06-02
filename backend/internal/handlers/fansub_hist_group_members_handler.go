@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,11 +15,23 @@ import (
 // FansubHistGroupMembersHandler verwaltet Admin-Endpunkte für hist_fansub_group_members.
 type FansubHistGroupMembersHandler struct {
 	histMembersRepo *repository.HistGroupMembersRepository
+	badgeService    *services.BadgeService
 }
 
 // NewFansubHistGroupMembersHandler erstellt einen neuen FansubHistGroupMembersHandler.
-func NewFansubHistGroupMembersHandler(repo *repository.HistGroupMembersRepository) *FansubHistGroupMembersHandler {
-	return &FansubHistGroupMembersHandler{histMembersRepo: repo}
+// badgeService darf nil sein; in dem Fall wird die Badge-Neuberechnung übersprungen.
+func NewFansubHistGroupMembersHandler(repo *repository.HistGroupMembersRepository, badgeService *services.BadgeService) *FansubHistGroupMembersHandler {
+	return &FansubHistGroupMembersHandler{histMembersRepo: repo, badgeService: badgeService}
+}
+
+// recomputeBadges löst die Badge-Neuberechnung für den Member aus. Fehler werden im
+// Service geloggt und nicht propagiert — eine fehlgeschlagene Badge-Berechnung darf
+// die Mitgliedschafts-Mutation nicht scheitern lassen.
+func (h *FansubHistGroupMembersHandler) recomputeBadges(c *gin.Context, memberID int64) {
+	if h.badgeService == nil || memberID <= 0 {
+		return
+	}
+	_ = h.badgeService.ComputeAndStoreBadges(c.Request.Context(), memberID)
 }
 
 type histGroupMemberCreateRequest struct {
@@ -107,6 +120,8 @@ func (h *FansubHistGroupMembersHandler) CreateHistGroupMember(c *gin.Context) {
 		return
 	}
 
+	h.recomputeBadges(c, item.MemberID)
+
 	c.JSON(http.StatusCreated, gin.H{"data": item})
 }
 
@@ -152,6 +167,8 @@ func (h *FansubHistGroupMembersHandler) UpdateHistGroupMember(c *gin.Context) {
 		internalError(c, "interner serverfehler")
 		return
 	}
+
+	h.recomputeBadges(c, item.MemberID)
 
 	c.JSON(http.StatusOK, gin.H{"data": item})
 }

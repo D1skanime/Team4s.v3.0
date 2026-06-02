@@ -328,8 +328,10 @@ func main() {
 	histGroupMemberRolesRepo := repository.NewHistGroupMemberRolesRepository(dbPool)
 	animeContributionsRepo := repository.NewAnimeContributionsRepository(dbPool)
 	fansubGroupHistoryRepo := repository.NewFansubGroupHistoryRepository(dbPool)
-	histGroupMembersHandler := handlers.NewFansubHistGroupMembersHandler(histGroupMembersRepo)
-	histGroupMemberRolesHandler := handlers.NewFansubHistGroupMemberRolesHandler(histGroupMemberRolesRepo)
+	badgeRepo := repository.NewBadgeRepository(dbPool)
+	badgeService := services.NewBadgeService(dbPool, badgeRepo)
+	histGroupMembersHandler := handlers.NewFansubHistGroupMembersHandler(histGroupMembersRepo, badgeService)
+	histGroupMemberRolesHandler := handlers.NewFansubHistGroupMemberRolesHandler(histGroupMemberRolesRepo, badgeService)
 	animeContributionsHandler := handlers.NewFansubAnimeContributionsHandler(animeContributionsRepo, histGroupMemberRolesRepo)
 	groupHistoryHandler := handlers.NewFansubGroupHistoryHandler(fansubGroupHistoryRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
@@ -343,8 +345,6 @@ func main() {
 		animeContributionsHandler:   animeContributionsHandler,
 		groupHistoryHandler:         groupHistoryHandler,
 	})
-	badgeRepo := repository.NewBadgeRepository(dbPool)
-	_ = services.NewBadgeService(dbPool, badgeRepo)
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	contributionsPublicHandler := handlers.NewContributionsPublicHandler(animeContributionsRepo)
 	contributionsMeHandler := handlers.NewContributionsMeHandler(animeContributionsRepo, histGroupMemberRolesRepo, dbPool)
@@ -355,6 +355,8 @@ func main() {
 	v1.GET("/me/anime-contributions", authMiddleware, contributionsMeHandler.ListMyAnimeContributions)
 	v1.GET("/me/group-contributions", authMiddleware, contributionsMeHandler.ListMyGroupContributions)
 	v1.PATCH("/me/anime-contributions/:contributionId/visibility", authMiddleware, contributionsMeHandler.UpdateMyAnimeContributionVisibility)
+	v1.POST("/me/anime-contributions/:contributionId/confirm", authMiddleware, contributionsMeHandler.ConfirmMyAnimeContribution)
+	v1.POST("/me/anime-contributions/:contributionId/reject", authMiddleware, contributionsMeHandler.RejectMyAnimeContribution)
 	v1.PATCH("/me/group-contributions/:contributionId/visibility", authMiddleware, contributionsMeHandler.UpdateMyGroupContributionVisibility)
 	v1.GET("/fansubs/:id/collaboration-members", fansubHandler.ListCollaborationMembers)
 	v1.POST(

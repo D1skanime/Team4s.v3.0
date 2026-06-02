@@ -6909,15 +6909,53 @@ export async function patchAnimeContributionVisibility(
 export async function confirmAnimeContribution(
   contributionId: number,
 ): Promise<void> {
-  // Bestätigen setzt is_public_on_member_profile=true
-  return patchAnimeContributionVisibility(contributionId, true);
+  // Bestätigen setzt den Status der Contribution auf 'confirmed' (Backend aktiviert
+  // zusätzlich die Profil-Sichtbarkeit).
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/anime-contributions/${contributionId}/confirm`,
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
 }
 
 export async function rejectAnimeContribution(
   contributionId: number,
 ): Promise<void> {
-  // Ablehnen setzt is_public_on_member_profile=false (Eintrag bleibt intern erhalten)
-  return patchAnimeContributionVisibility(contributionId, false);
+  // Ablehnen setzt den Status auf 'disputed' und entzieht die Profil-Sichtbarkeit
+  // (Eintrag bleibt intern erhalten).
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/anime-contributions/${contributionId}/reject`,
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
 }
 
 // ─── Public Contributions ────────────────────────────────────────────────────

@@ -7,18 +7,31 @@ import (
 	"strconv"
 
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
 // FansubHistGroupMemberRolesHandler verwaltet Admin-Endpunkte für hist_group_member_roles.
 type FansubHistGroupMemberRolesHandler struct {
-	rolesRepo *repository.HistGroupMemberRolesRepository
+	rolesRepo    *repository.HistGroupMemberRolesRepository
+	badgeService *services.BadgeService
 }
 
 // NewFansubHistGroupMemberRolesHandler erstellt einen neuen FansubHistGroupMemberRolesHandler.
-func NewFansubHistGroupMemberRolesHandler(repo *repository.HistGroupMemberRolesRepository) *FansubHistGroupMemberRolesHandler {
-	return &FansubHistGroupMemberRolesHandler{rolesRepo: repo}
+// badgeService darf nil sein; in dem Fall wird die Badge-Neuberechnung übersprungen.
+func NewFansubHistGroupMemberRolesHandler(repo *repository.HistGroupMemberRolesRepository, badgeService *services.BadgeService) *FansubHistGroupMemberRolesHandler {
+	return &FansubHistGroupMemberRolesHandler{rolesRepo: repo, badgeService: badgeService}
+}
+
+// recomputeBadges löst die Badge-Neuberechnung für den Member hinter der gegebenen
+// Mitgliedschafts-ID aus. Fehler werden im Service geloggt und nicht propagiert —
+// eine fehlgeschlagene Badge-Berechnung darf die Rollen-Mutation nicht scheitern lassen.
+func (h *FansubHistGroupMemberRolesHandler) recomputeBadges(c *gin.Context, histMembershipID int64) {
+	if h.badgeService == nil || histMembershipID <= 0 {
+		return
+	}
+	_ = h.badgeService.ComputeAndStoreBadgesByMembership(c.Request.Context(), histMembershipID)
 }
 
 type histGroupMemberRoleCreateRequest struct {
@@ -133,6 +146,8 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 		return
 	}
 
+	h.recomputeBadges(c, item.HistFansubGroupMemberID)
+
 	c.JSON(http.StatusCreated, gin.H{"data": item})
 }
 
@@ -179,6 +194,8 @@ func (h *FansubHistGroupMemberRolesHandler) UpdateHistGroupMemberRole(c *gin.Con
 		internalError(c, "interner serverfehler")
 		return
 	}
+
+	h.recomputeBadges(c, item.HistFansubGroupMemberID)
 
 	c.JSON(http.StatusOK, gin.H{"data": item})
 }

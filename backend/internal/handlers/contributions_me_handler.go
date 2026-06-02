@@ -125,6 +125,33 @@ func (h *ContributionsMeHandler) ListMyGroupContributions(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": items})
 }
 
+// authorizeAnimeContributionOwner prüft, dass die anime_contribution dem eingeloggten
+// Member gehört (über hist_fansub_group_members.member_id). Bei fehlender Berechtigung,
+// nicht gefundener Contribution oder DB-Fehler wird die passende HTTP-Antwort geschrieben
+// und false zurückgegeben.
+func (h *ContributionsMeHandler) authorizeAnimeContributionOwner(c *gin.Context, contributionID, memberID int64) bool {
+	var ownerMemberID int64
+	err := h.db.QueryRow(c.Request.Context(), `
+		SELECT hfgm.member_id
+		FROM anime_contributions ac
+		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		WHERE ac.id = $1
+	`, contributionID).Scan(&ownerMemberID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		notFound(c, "contribution nicht gefunden")
+		return false
+	}
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return false
+	}
+	if ownerMemberID != memberID {
+		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "keine Berechtigung"}})
+		return false
+	}
+	return true
+}
+
 // UpdateMyAnimeContributionVisibility handles PATCH /api/v1/me/anime-contributions/:contributionId/visibility
 func (h *ContributionsMeHandler) UpdateMyAnimeContributionVisibility(c *gin.Context) {
 	contributionID, err := strconv.ParseInt(c.Param("contributionId"), 10, 64)
@@ -158,24 +185,7 @@ func (h *ContributionsMeHandler) UpdateMyAnimeContributionVisibility(c *gin.Cont
 		return
 	}
 
-	// Ownership-Check: hfgm.member_id muss mit dem eingeloggten Member übereinstimmen
-	var ownerMemberID int64
-	err = h.db.QueryRow(c.Request.Context(), `
-		SELECT hfgm.member_id
-		FROM anime_contributions ac
-		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
-		WHERE ac.id = $1
-	`, contributionID).Scan(&ownerMemberID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		notFound(c, "contribution nicht gefunden")
-		return
-	}
-	if err != nil {
-		internalError(c, "interner serverfehler")
-		return
-	}
-	if ownerMemberID != memberID {
-		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "keine Berechtigung"}})
+	if !h.authorizeAnimeContributionOwner(c, contributionID, memberID) {
 		return
 	}
 
@@ -190,6 +200,62 @@ func (h *ContributionsMeHandler) UpdateMyAnimeContributionVisibility(c *gin.Cont
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Sichtbarkeit aktualisiert"})
+}
+
+// ConfirmMyAnimeContribution handles POST /api/v1/me/anime-contributions/:contributionId/confirm
+// Der Member bestätigt eine über ihn erfasste Contribution: status → 'confirmed' und
+// Sichtbarkeit auf dem eigenen Profil wird aktiviert.
+func (h *ContributionsMeHandler) ConfirmMyAnimeContribution(c *gin.Context) {
+	h.updateMyAnimeContributionStatus(c, "confirmed", true)
+}
+
+// RejectMyAnimeContribution handles POST /api/v1/me/anime-contributions/:contributionId/reject
+// Der Member lehnt eine über ihn erfasste Contribution ab: status → 'disputed' und die
+// öffentliche Profil-Sichtbarkeit wird entzogen. Der Eintrag bleibt intern erhalten.
+func (h *ContributionsMeHandler) RejectMyAnimeContribution(c *gin.Context) {
+	h.updateMyAnimeContributionStatus(c, "disputed", false)
+}
+
+// updateMyAnimeContributionStatus setzt Status und Profil-Sichtbarkeit einer eigenen
+// Anime-Contribution nach Ownership-Prüfung. targetStatus ist 'confirmed' (Bestätigen)
+// oder 'disputed' (Ablehnen).
+func (h *ContributionsMeHandler) updateMyAnimeContributionStatus(c *gin.Context, targetStatus string, publicOnProfile bool) {
+	contributionID, err := strconv.ParseInt(c.Param("contributionId"), 10, 64)
+	if err != nil || contributionID <= 0 {
+		badRequest(c, "ungültige contribution-id")
+		return
+	}
+
+	identity, ok := requireMeIdentity(c)
+	if !ok {
+		return
+	}
+
+	memberID, err := h.resolveVerifiedMemberID(c.Request.Context(), identity.AppUserID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "kein verifizierter Member-Account verknüpft"}})
+		return
+	}
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	if !h.authorizeAnimeContributionOwner(c, contributionID, memberID) {
+		return
+	}
+
+	_, err = h.db.Exec(c.Request.Context(), `
+		UPDATE anime_contributions
+		SET status = $1, is_public_on_member_profile = $2, updated_at = NOW()
+		WHERE id = $3
+	`, targetStatus, publicOnProfile, contributionID)
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Status aktualisiert"})
 }
 
 // UpdateMyGroupContributionVisibility handles PATCH /api/v1/me/group-contributions/:contributionId/visibility
