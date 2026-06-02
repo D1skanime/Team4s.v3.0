@@ -153,6 +153,55 @@ Wenn der Volume-Name lokal anders lautet, zuerst prüfen:
 docker volume ls
 ```
 
+## SMTP und Mailversand (lokal und Produktion)
+
+### Lokale Entwicklung: Mailpit
+
+Der Compose-Service `team4sv30-mailpit` fängt alle ausgehenden Mails ab, ohne sie wirklich zu versenden.
+
+- SMTP-Endpunkt (intern im Compose-Netz): `team4sv30-mailpit:1025`
+- Web-UI zum Lesen empfangener Mails: `http://127.0.0.1:8025`
+
+Beide Dienste -- Backend und Keycloak -- zeigen lokal auf denselben Mailpit-Server, sodass sowohl Team4s-eigene Transaktionsmails als auch Keycloak-Account-Mails (Passwort-Reset, Einladungen) in der Mailpit-UI erscheinen.
+
+Mailpit starten:
+```powershell
+docker compose up -d team4sv30-mailpit
+```
+
+Danach eine Keycloak-Passwort-Reset-Mail auslösen (Keycloak Admin Console oder `/auth`-Seite) und in der Mailpit-UI unter `http://127.0.0.1:8025` prüfen.
+
+#### Lokale Env-Werte (Backend-SMTP)
+
+Die folgenden Standardwerte sind in `.env.example` dokumentiert und per `docker-compose.yml` bereits als Backend-Env gesetzt -- in der lokalen `.env` muss nichts extra konfiguriert werden:
+
+```env
+SMTP_HOST=team4sv30-mailpit
+SMTP_PORT=1025
+SMTP_FROM=noreply@team4s.local
+```
+
+Keycloak bekommt seine lokalen SMTP-Werte direkt aus `docker-compose.yml` (`KC_SMTP_HOST`, `KC_SMTP_PORT`, `KC_SMTP_FROM`). Kein lokales Keycloak-SMTP-Secret nötig.
+
+### Produktion: Mailjet (SMTP-Relay)
+
+Für Produktionsumgebungen wird Mailjet als SMTP-Relay eingesetzt. Die Zugangsdaten kommen als SMTP-Credentials und dürfen **niemals** ins Repository committed werden.
+
+Zu setzende Env-Variablen in der Produktions-Infrastruktur:
+```env
+SMTP_HOST=in-v3.mailjet.com
+SMTP_PORT=587
+SMTP_FROM=noreply@team4s.de
+SMTP_USER=<mailjet-api-key>
+SMTP_PASSWORD=<mailjet-secret-key>
+```
+
+Keycloak in Produktion benötigt analoge `KC_SMTP_*`-Variablen mit demselben Mailjet-Endpunkt.
+
+Vollständige Platzhalter-Dokumentation: siehe `.env.example`.
+
+---
+
 ## Empfohlener schneller Dev/Test-Flow
 1. `/auth` öffnen.
 2. Mit Keycloak anmelden.
