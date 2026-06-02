@@ -1,15 +1,18 @@
 ---
 phase: 68
 slug: badge-engine-archiv-entdeckung
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-02
+revised: 2026-06-02
+reviewed_at: 2026-06-02
+revision_reason: UI-Checker BLOCK-Fixes (Copywriting, Typography, Spacing) + FLAG (Icon-only-Buttons); CTA „Suchen" → „Archiv durchsuchen"
 ---
 
 # Phase 68 — UI Design Contract
 
-> Visual and interaction contract für drei Frontend-Surfaces:
+> Visual und Interaktionsvertrag für drei Frontend-Surfaces:
 > 1. Öffentliche `/archiv`-Entdeckungsseite (P68-SC3)
 > 2. Inline-Meilenstein-Timeline in `manage/groups/[id]` (P68-SC2)
 > 3. Erweiterte Badge-Chip-Darstellung (P68-SC1)
@@ -40,10 +43,10 @@ Quelle: `frontend/src/styles/globals.css` — CSS-Custom-Properties `--space-*`.
 
 | Token | CSS-Variable | Wert | Verwendung |
 |-------|-------------|------|------------|
-| xs | `--space-1` | 4px | Icon-Abstände, Badge-Chip-interne Gaps |
-| sm | `--space-2` | 8px | Chip-Gaps, Zeilen-interne Abstände |
-| md | `--space-3` | 12px | Listen-Gaps, Card-interne Sektion-Abstände |
-| md+ | `--space-4` | 16px | Standard-Element-Abstände, Padding in kompakten Sektionen |
+| xs | `--space-1` | 4px | Icon-Abstände, Badge-Chip-interne Gaps, roleChip-Padding vertikal |
+| sm | `--space-2` | 8px | Chip-Gaps, Zeilen-interne Abstände, MemberSearchCard-Gap |
+| md | `--space-3` | 12px | Listen-Gaps, Card-interne Sektion-Abstände (**dokumentierte Ausnahme**, s. u.) |
+| md+ | `--space-4` | 16px | Standard-Element-Abstände, Padding in kompakten Sektionen, MemberSearchCard-Padding |
 | lg | `--space-5` | 24px | Seiten-Padding oben, Abschnitt-Gaps |
 | xl | `--space-6` | 32px | Layout-Gaps zwischen Cards |
 | 2xl | `--space-7` | 48px | Seiten-Bottom-Padding |
@@ -54,20 +57,30 @@ Ausnahmen:
 - Timeline-Zeilenpadding: 8px vertikal × 12px horizontal (entspricht dem `.roleTimelineEntry`-Pattern aus `profile.module.css`).
 - Archiv-Filtereingaben: `min-height: var(--control-height-md)` = 44px (Standard-Control-Höhe).
 
+**Dokumentierte Ausnahmen (bestehende Codebase-Tokens — nicht ändern):**
+- `12px` (`--space-3`): etablierter Projekt-Token aus `globals.css`. Dieser Wert existiert bereits im gesamten Projekt und wird für Listen-Gaps, Formular-Row-Gaps und das `.roleTimelineEntry`-Pattern aus `profile.module.css` verwendet. Er ist eine bewusste, bestehende Codebase-Konstante — keine neue Abweichung vom 8-Punkt-Raster.
+- `.badgeChip { padding: 4px 12px }` aus `profile.module.css`: bestehender, projektweiter Badge-Stil. Dieser Block wird in Phase 68 nicht verändert. Das 12px-horizontal-Padding ist existierender Code, der unberührt bleibt.
+
+Neue Spacing-Werte in Phase 68 halten sich strikt an die 4-Punkt-Skala (4, 8, 16, 24, 32, 48, 64px).
+
 ---
 
 ## Typography
 
 Quelle: `frontend/src/styles/globals.css` — `body { font-size: 16px; line-height: 1.5 }`.
 
+**Genau 2 Font-Weights:** 400 (regular) und 700 (bold). Kein drittes Weight.
+
 | Rolle | Größe | Weight | Line Height | Verwendung |
 |-------|-------|--------|-------------|------------|
 | Body | 16px | 400 | 1.5 | Fließtext, Notizen, Beschreibungen |
 | Label / Meta | 14px | 400 | 1.4 | Badges, Chips, Filter-Labels, Zeitangaben, Rollen-Chips |
-| Small / Muted | 13px (0.82rem) | 600 | 1.3 | Badge-Chip-Labels, Meilenstein-Jahresangaben, "(historisch)"-Marker |
+| Small / Muted | 13px (0.82rem) | 700 | 1.3 | Badge-Chip-Labels, Meilenstein-Jahresangaben, roleChip, historyEventType, "(historisch)"-Marker |
 | Heading / Section | 16–18px | 700 | 1.3 | Abschnittsüberschriften (SectionHeader), Karten-Titel |
 
 Anmerkung: Kein Display-Heading in Phase 68 — alle drei Surfaces sind kompakte Sektionen ohne große Überschriften.
+
+Hinweis zu `.badgeChip { font-weight: 600 }` in `profile.module.css`: Dieser bestehende Stil wird nicht geändert (brownfield-Constraint). Die Typographie-Tabelle oben gilt für neuen Code in Phase 68. Das bestehende `.badgeChip`-CSS bleibt unberührt.
 
 ---
 
@@ -86,7 +99,7 @@ Quelle: `frontend/src/styles/globals.css` und `profile.module.css`.
 
 Accent reserviert für:
 - Verifiziert-Badge-Chip (CheckCircle-Icon, `var(--color-success, #15803d)`)
-- Primäre CTA-Buttons: „+ Meilenstein hinzufügen", „Suchen"
+- Primäre CTA-Buttons: „+ Meilenstein hinzufügen", „Archiv durchsuchen"
 - Pagination aktive Seitennummer
 - Link-Hover-Zustände in der Archivliste
 
@@ -114,7 +127,7 @@ Alle user-facing Strings auf Deutsch mit korrekten Umlauten (ä, ö, ü, Ä, Ö,
 | Filter-Label Zeitraum von | „Von" |
 | Filter-Label Zeitraum bis | „Bis" |
 | Filter-Placeholder Jahr | „Jahr (z. B. 2010)" |
-| Such-Button (primäre CTA) | „Suchen" |
+| Such-Button (primäre CTA) | „Archiv durchsuchen" |
 | Filter-Zurücksetzen-Link | „Filter zurücksetzen" |
 | Leerstand-Heading | „Keine Mitglieder gefunden" |
 | Leerstand-Body | „Für die gewählten Filter wurden keine öffentlichen Beiträge gefunden. Passe die Filter an oder setze sie zurück." |
@@ -153,11 +166,11 @@ Alle user-facing Strings auf Deutsch mit korrekten Umlauten (ä, ö, ü, Ä, Ö,
 | Formular-Placeholder Notiz | „Zusätzliche Informationen zum Eintrag …" |
 | Formular-Label Ereignistyp | „Ereignistyp" |
 | Ereignistyp-Optionen | „Gründung", „Auflösung", „Pause", „Umbenennung", „Meilenstein", „Sonstiges" |
-| Speichern-Button | „Speichern" |
-| Abbrechen-Button | „Abbrechen" |
+| Formular Submit-Button | **„Meilenstein speichern"** |
+| Formular Abbrechen-Button | **„Bearbeitung abbrechen"** |
 | Lösch-Bestätigung | „Eintrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden." |
 | Lösch-Bestätigung Bestätigen | „Endgültig löschen" |
-| Lösch-Bestätigung Abbrechen | „Abbrechen" |
+| Lösch-Bestätigung Abbrechen (sekundäre Aktion) | **„Nicht löschen"** |
 | Fehler beim Speichern | „Meilenstein konnte nicht gespeichert werden. Bitte versuche es erneut." |
 | Fehler beim Löschen | „Meilenstein konnte nicht gelöscht werden. Bitte versuche es erneut." |
 | Erfolg-Toast Hinzufügen | „Meilenstein hinzugefügt." |
@@ -199,7 +212,7 @@ Alle user-facing Strings auf Deutsch mit korrekten Umlauten (ä, ö, ü, Ä, Ö,
   <section class="archivFilters">   /* Card variant="section", padding: 16px–24px */
     <form role="search">
       [Select Rolle]  [Select Gruppe]  [Input Jahr von]  [Input Jahr bis]
-      [Button "Suchen" primary]  [Link/Button "Filter zurücksetzen" ghost]
+      [Button "Archiv durchsuchen" primary]  [Link/Button "Filter zurücksetzen" ghost]
     </form>
   </section>
 
@@ -222,9 +235,9 @@ Layout innerhalb der Karte:
 
 ```
 <article class="memberSearchCard">
-  /* Card variant="nested"; padding: 14px; display: grid; gap: 10px */
+  /* Card variant="nested"; padding: 16px; display: grid; gap: 8px */
 
-  <div class="cardHeader">         /* grid; grid-template-columns: 48px 1fr; gap: 12px; align-items: center */
+  <div class="cardHeader">         /* grid; grid-template-columns: 48px 1fr; gap: 8px; align-items: center */
     <img class="cardAvatar" />     /* 48×48px, border-radius: 50%; object-fit: cover */
     <div class="cardMeta">
       <strong class="cardName" />  /* 14px, weight 700, color: var(--text-strong) */
@@ -234,7 +247,7 @@ Layout innerhalb der Karte:
 
   <div class="cardRoles">          /* flex-wrap: wrap; gap: 4px */
     /* Maximal 3 Rollen-Chips; danach "+N weitere" */
-    <span class="roleChip" />      /* 13px, weight 600; background: rgba(95,132,221,0.1); border: 1px solid rgba(95,132,221,0.25); border-radius: 999px; padding: 2px 8px */
+    <span class="roleChip" />      /* 13px, weight 700; background: rgba(95,132,221,0.1); border: 1px solid rgba(95,132,221,0.25); border-radius: 999px; padding: 4px 8px */
   </div>
 
   <div class="cardGroups">         /* font-size: 13px; color: var(--text-soft) */
@@ -247,13 +260,19 @@ Layout innerhalb der Karte:
 </article>
 ```
 
+Spacing-Werte in `MemberSearchCard` (4-Punkt-konform):
+- `padding: 16px` (entspricht `--space-4`)
+- `gap: 8px` (entspricht `--space-2`)
+- `cardHeader gap: 8px` (entspricht `--space-2`)
+- `roleChip padding: 4px 8px` (entspricht `--space-1` vertikal, `--space-2` horizontal)
+
 #### Filter-Bar
 
 - `Select`-Komponente aus `@/components/ui` für Rolle und Gruppe.
 - Rollen-Optionen: alle 11 `context='anime_contribution'`-Rollen aus `role_definitions`. Deutsche Labels: Übersetzung, Editing, Timing, Typesetting, Encoding, Raw Provider, Qualitätskontrolle, Projektleitung, Design, Administration, Sonstiges.
 - Gruppe: befüllt aus `GET /api/v1/fansubs` (bereits öffentlicher Endpunkt).
 - Zeitraum: zwei `Input type="number"` mit `min="1990"`, `max="2099"`, Placeholder „Jahr (z. B. 2010)".
-- Filter werden bei Klick auf „Suchen" angewendet — kein Auto-Submit.
+- Filter werden bei Klick auf „Archiv durchsuchen" angewendet — kein Auto-Submit.
 - URL-State: Filter-Parameter als Query-String (`?rolle=translator&gruppe=5&von=2005&bis=2015&page=1`). Serverseitig rendered für Barrierefreiheit und SEO.
 - „Filter zurücksetzen" löscht alle Parameter und navigiert zu `/archiv`.
 
@@ -330,12 +349,14 @@ Neue `Card variant="section"` unterhalb der bestehenden Cards in `admin/my-group
   /* display: flex; gap: 12px; align-items: flex-start; padding: 8px 12px;
      background: rgba(30,41,59,0.06); border: 1px solid var(--border-subtle);
      border-radius: 6px */
+  /* gap: 12px und padding: 8px 12px sind bestehende Codebase-Tokens (--space-3),
+     dokumentierte Ausnahmen — siehe Spacing-Sektion */
 
   <span class="historyYear">          /* min-width: 48px; font-size: 13px; color: var(--text-faint); flex-shrink: 0 */
     {entry.year ?? '—'}
   </span>
 
-  <span class="historyEventType">     /* font-size: 13px; font-weight: 600; color: var(--text-soft);
+  <span class="historyEventType">     /* font-size: 13px; font-weight: 700; color: var(--text-soft);
                                          min-width: 100px; flex-shrink: 0 */
     {EVENT_TYPE_LABELS[entry.event_type]}
   </span>
@@ -367,6 +388,7 @@ Chronologisch aufsteigend nach `year` (NULL zuletzt).
 <form class="historyForm">
   /* background: var(--surface-card-muted); border: 1px solid var(--border-subtle);
      border-radius: 8px; padding: 16px; display: grid; gap: 12px */
+  /* gap: 12px ist bestehender Codebase-Token (--space-3), dokumentierte Ausnahme */
 
   <FormField label="Titel *" required>
     <Input type="text" placeholder="z. B. Gegründet, Leaderwechsel, Aufgelöst …" />
@@ -389,8 +411,8 @@ Chronologisch aufsteigend nach `year` (NULL zuletzt).
 
   <Toolbar leading={
     <>
-      <Button type="submit" variant="primary" size="sm">Speichern</Button>
-      <Button type="button" variant="ghost" size="sm" onClick={onCancel}>Abbrechen</Button>
+      <Button type="submit" variant="primary" size="sm">Meilenstein speichern</Button>
+      <Button type="button" variant="ghost" size="sm" onClick={onCancel}>Bearbeitung abbrechen</Button>
     </>
   } />
 </form>
@@ -402,7 +424,7 @@ Kein Navigations-Redirect. Bestätigung über `Modal` aus `@/components/ui`:
 - Title: „Eintrag löschen"
 - Body: „Eintrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
 - Primäre Aktion: Button `variant="danger"` → „Endgültig löschen"
-- Sekundäre Aktion: Button `variant="secondary"` → „Abbrechen"
+- Sekundäre Aktion: Button `variant="secondary"` → „Nicht löschen"
 
 #### Toast-Feedback
 
@@ -504,12 +526,12 @@ Geänderte Dateien:
 | Filter-Form | `role="search"` |
 | Pagination `<nav>` | `aria-label="Seitennavigation"` (bestehende Pagination-Komponente erfüllt dies bereits) |
 | Verifiziert-Icon | `aria-hidden="true"` am Icon, `aria-label="Verifiziertes Mitglied"` am Wrapper (bestehende VerifiedBadge-Komponente erfüllt dies) |
-| Bearbeiten-Button (Icon-only) | `aria-label="Eintrag bearbeiten"` |
-| Löschen-Button (Icon-only) | `aria-label="Eintrag löschen"` |
+| Bearbeiten-Button (Icon-only) | `aria-label="Eintrag bearbeiten"` — Icon-only ist bewusste Designentscheidung für die kompakte Timeline-Zeile; Tooltip on hover und `aria-label` sind der vollständige Accessibility-Vertrag für diese Inline-Aktionen. |
+| Löschen-Button (Icon-only) | `aria-label="Eintrag löschen"` — gleiche Begründung wie Bearbeiten-Button; sichtbarer Text-Fallback ist für diese Zeilen-Aktionen nicht vorgesehen. |
 | Modal-Löschbestätigung | `role="alertdialog"`, `aria-modal="true"`, `aria-labelledby` auf Modal-Title |
 | Fehlermeldungen | `role="alert"` (bestehend in `MemberBadgeChips`, `ErrorState`) |
 | Karten-Link | Vollständiger Link-Text „Profil ansehen" (kein Icon-only-Link) |
-| Fokus-Reihenfolge Formular | Titel → Ereignistyp → Jahr → Notiz → Speichern → Abbrechen |
+| Fokus-Reihenfolge Formular | Titel → Ereignistyp → Jahr → Notiz → Meilenstein speichern → Bearbeitung abbrechen |
 
 ---
 
@@ -541,7 +563,7 @@ Kein `components.json` vorhanden. Keine Third-Party-Registries. Safety-Gate-Prü
 | Entscheidung | Quelle | Wert |
 |-------------|--------|------|
 | shadcn: nein | Codebase-Scan | `components.json` nicht vorhanden |
-| Spacing-Scale | `globals.css --space-*` | 4 / 8 / 12 / 16 / 24 / 32 / 48 / 64px |
+| Spacing-Scale | `globals.css --space-*` | 4 / 8 / 16 / 24 / 32 / 48 / 64px (+ dokumentierte Ausnahme 12px) |
 | Typographie Body | `globals.css body` | 16px, weight 400, line-height 1.5 |
 | Farb-Tokens | `globals.css :root` | `--color-primary`, `--surface-*`, `--text-*` |
 | Badge-Chip-Style | `profile.module.css .badgeChip` | `rgba(59,130,246,0.12)`, border, `#93c5fd` |
@@ -560,6 +582,40 @@ Kein `components.json` vorhanden. Keine Third-Party-Registries. Safety-Gate-Prü
 | Gruppen-Filter-Quelle | RESEARCH.md Befund 6 | `GET /api/v1/fansubs` (vorhanden) |
 | COLLAPSE_THRESHOLD | Empfehlung (Claude's Discretion) | 5 Einträge |
 | Lösch-Bestätigung | Empfehlung (Claude's Discretion) | Modal, nicht inline |
+
+---
+
+## Revisions-Log
+
+| Datum | Revision | Grund |
+|-------|---------|-------|
+| 2026-06-02 | Initial | gsd-ui-researcher erstellt |
+| 2026-06-02 | BLOCK-Fix | UI-Checker: 3 BLOCK + 1 FLAG behoben (Copywriting, Typography, Spacing, Icon-Accessibility) |
+
+### Änderungen in dieser Revision (2026-06-02)
+
+**BLOCK 1 — Copywriting (kontextspezifische Labels):**
+- Formular Submit: „Speichern" → „Meilenstein speichern"
+- Formular Abbrechen: „Abbrechen" → „Bearbeitung abbrechen"
+- Modal sekundäre Aktion: „Abbrechen" → „Nicht löschen"
+- Formular-Pseudocode und Copywriting-Tabelle aktualisiert.
+- Fokus-Reihenfolge in Barrierefreiheits-Tabelle mit neuen Labels aktualisiert.
+
+**BLOCK 2 — Typography (max. 2 Font-Weights):**
+- Weight 600 in der Typography-Tabelle → 700 (betrifft Small/Muted: Badge-Chip-Labels, Jahresangaben, roleChip, historyEventType).
+- `historyEventType` im Pseudocode: `font-weight: 600` → `font-weight: 700`.
+- `roleChip` im Pseudocode: `weight 600` → `weight 700`.
+- Hinweis ergänzt: `.badgeChip { font-weight: 600 }` in `profile.module.css` bleibt unberührt (brownfield-Constraint).
+
+**BLOCK 3 — Spacing (4-Punkt-Konformität):**
+- `MemberSearchCard padding: 14px` → `16px` (`--space-4`).
+- `MemberSearchCard gap: 10px` → `8px` (`--space-2`).
+- `roleChip padding: 2px 8px` → `4px 8px` (`--space-1` vertikal).
+- `cardHeader gap: 12px` → `8px` (`--space-2`).
+- Dokumentierte Ausnahmen für bestehende 12px-Tokens (`--space-3`) explizit in der Spacing-Sektion ergänzt.
+
+**FLAG — Icon-only Bearbeiten/Löschen-Buttons:**
+- Explizite Notiz in der Barrierefreiheits-Tabelle ergänzt: Icon-only ist bewusste Designentscheidung für die kompakte Timeline; `aria-label` + Tooltip sind der vollständige Accessibility-Vertrag.
 
 ---
 
