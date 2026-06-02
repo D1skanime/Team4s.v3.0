@@ -47,7 +47,8 @@ created: 2026-06-02
 | D-21 | Round-Trip: Insert, Save, Reload → `media_asset_id`, `width_percent`, `alignment` erhalten | integration | `go test ./internal/handlers/... -run TestStoryImageRoundTrip -count=1` | ❌ W0 | ⬜ pending |
 | D-22 | Cleanup-on-Save: Bild entfernt + gespeichert → Datei + DB-Zeile physisch weg, verbleibende unberuehrt | integration | `go test ./internal/handlers/... -run TestStoryImageCleanup -count=1` | ❌ W0 | ⬜ pending |
 | D-16/D-17 | GIF abgelehnt, Dateien >10MB abgelehnt; nur JPG/PNG/WebP | unit | `go test ./internal/handlers/... -run TestStoryImageUpload.*Validation -count=1` | ❌ W0 | ⬜ pending |
-| D-19 | EXIF-Strip + Dekompressions-Bomb-Schutz: hochgeladenes JPEG ohne GPS-Metadaten, ueberdimensionierte Pixel abgelehnt | unit | `go test ./internal/handlers/... -run TestStoryImageUpload.*ExifStrip -count=1` | ❌ W0 | ⬜ pending |
+| D-19 | EXIF-Strip: hochgeladenes JPEG ohne EXIF-APP1-Marker (0xFFE1) in gespeicherter Datei; Behavior-Assert via bytes.Index auf Output-File | unit | `go test ./internal/handlers/... -run TestStoryImageUpload.*ExifStrip -count=1` | ❌ W0 | ⬜ pending |
+| D-14 | Kein Upload-API-Call fuer pending_key-Nodes die vor Save aus dem Editor entfernt wurden; uploadFn-Call-Count = 0 fuer entfernte Bilder | unit | `go test ./internal/handlers/... -run TestStoryImageNoPendingOrphan -count=1` (Backend) · `npm test -- --run storyImageUpload.*noPending` (Frontend) | ❌ W0 | ⬜ pending |
 | D-24 | Public-Profil (Phase 59) rendert `body_html` mit Image korrekt + sanitisiert | smoke/manual | Manuell: `GET /api/v1/members/{slug}/profile` | — | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
@@ -57,9 +58,9 @@ created: 2026-06-02
 ## Wave 0 Requirements
 
 - [ ] `backend/internal/services/tiptap_service_test.go` erweitern — Image-Node-Faelle (ValidateJSON, RenderHTML inkl. URL-Resolver, ExtractText)
-- [ ] `backend/internal/handlers/app_profile_story_image_test.go` — Upload + Cleanup-on-Save + IDOR + MIME/Size/EXIF-Tests
+- [ ] `backend/internal/handlers/app_profile_story_image_test.go` — Upload + Cleanup-on-Save + IDOR + MIME/Size/EXIF-Tests + D-14 (TestStoryImageNoPendingOrphan)
 - [ ] `frontend/src/components/editor/StoryImageExtension.test.ts` — Attribut-Serialisierung (`media_asset_id`, `width_percent`, `alignment`), `pending_key`-Bereinigung
-- [ ] `frontend/src/lib/storyImageUpload.test.ts` — `uploadPendingStoryImages`-Logik (Marker→ID-Tausch, Referenz-Diff)
+- [ ] `frontend/src/lib/storyImageUpload.test.ts` — `uploadPendingStoryImages`-Logik (Marker→ID-Tausch, Referenz-Diff, D-14 kein Upload fuer entfernte Nodes)
 
 ---
 
@@ -69,6 +70,8 @@ created: 2026-06-02
 |----------|---------|------------|-------------------|
 | Public-Profil-Bilddarstellung | D-24 | Cross-Surface-Rendering (Phase 59) ueber serverseitiges `body_html`; visuell zu bestaetigen | Story mit Bild speichern → oeffentliches Member-Profil aufrufen → Bild erscheint korrekt, sanitisiert, mit %-Breite + Ausrichtung |
 | In-Editor-Resize/Align (NodeView) | D-09/D-10 | Drag-Interaktion + visuelle %-Breite/Ausrichtung im Browser nicht headless pruefbar | Bild einfuegen → Ziehgriff zieht Breite → Ausrichtung links/Mitte/rechts → Save/Reload behaelt Werte (D-21) |
+| /me/profile Lesemodus Bilddarstellung | D-12 | Serverseitiges body_html-Rendering im eingeloggten Lesemodus; visuell + API-Response pruefen | Story mit Bild speichern → /me/profile als eingeloggter Member → Bild erscheint mit richtiger Breite/Ausrichtung; GET /api/v1/me/profile → member_story_html enthaelt img-Tag |
+| Upload-Fehler-Atomizitaet | D-06/D-07 | Browser-DevTools-Simulation (Block request URL) nicht automatisierbar im CI | Bild-Endpunkt blockieren → Speichern → Fehlermeldung "Mindestens ein Bild konnte nicht hochgeladen werden..." pruefen; GET /api/v1/me/profile bestaetigt kein partielles body_json persistiert |
 
 ---
 
