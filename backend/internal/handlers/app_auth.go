@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -374,6 +375,48 @@ func (h *AppAuthHandler) CreateFansubGroupInvitation(c *gin.Context) {
 		return
 	}
 
+	// Einladungsmail senden wenn ein Mailer konfiguriert ist.
+	// D-10: Absoluter Link aus AppPublicURL + InviteLink.
+	// D-11: Nur der Roh-Token landet im Mail-Link, nicht in DB oder Audit-Log.
+	// D-12: Bei SMTP-Fehler wird die Einladung sofort storniert (kein stiller fail).
+	if h.mailer != nil {
+		inviteURL := strings.TrimRight(h.appPublicURL, "/") + created.InviteLink
+		mailCtx, mailCancel := context.WithTimeout(c.Request.Context(), 15*time.Second)
+		defer mailCancel()
+
+		mailErr := h.mailer.Send(mailCtx, services.MailMessage{
+			To:       created.Invitation.Email,
+			Subject:  "Einladung zur Fansub-Gruppe",
+			BodyText: fmt.Sprintf("Du wurdest zu einer Fansub-Gruppe eingeladen.\n\nLink zum Annehmen: %s\n\nDieser Link ist 7 Tage gültig.", inviteURL),
+			BodyHTML: fmt.Sprintf(`<p>Du wurdest zu einer Fansub-Gruppe eingeladen.</p><p><a href="%s">Einladung annehmen</a></p><p>Dieser Link ist 7 Tage gültig.</p>`, inviteURL),
+		})
+		if mailErr != nil {
+			// Einladung stornieren damit kein stiller pending-Record verbleibt.
+			_, _ = h.invitationRepo.Cancel(c.Request.Context(), fansubID, created.Invitation.ID, models.FansubGroupInvitationCancelInput{
+				CancelledByAppUserID: &identity.AppUserID,
+			})
+			_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+				ActorAppUserID: &identity.AppUserID,
+				EventType:      "fansub_group_invitation.mail_failed",
+				ScopeType:      permissions.ScopeTypeGroup,
+				ScopeID:        &fansubID,
+				TargetType:     "fansub_group_invitation",
+				TargetID:       &created.Invitation.ID,
+				Action:         string(permissions.ActionFansubGroupInvitationsCreate),
+				Outcome:        "error",
+				Payload: map[string]any{
+					"email": created.Invitation.Email,
+					// Kein Token im Audit-Log (D-11).
+				},
+			})
+			c.JSON(http.StatusBadGateway, gin.H{"error": gin.H{
+				"message":     "Einladung konnte nicht gesendet werden. Bitte prüfe die SMTP-Konfiguration.",
+				"reason_code": "mail_delivery_failed",
+			}})
+			return
+		}
+	}
+
 	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
 		ActorAppUserID: &identity.AppUserID,
 		EventType:      "fansub_group_invitation.created",
@@ -386,6 +429,7 @@ func (h *AppAuthHandler) CreateFansubGroupInvitation(c *gin.Context) {
 		Payload: map[string]any{
 			"email":              created.Invitation.Email,
 			"invited_role_codes": created.Invitation.InvitedRoleCodes,
+			// Kein Roh-Token im Audit-Log (D-11).
 		},
 	})
 

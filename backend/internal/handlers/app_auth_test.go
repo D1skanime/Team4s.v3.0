@@ -5,9 +5,13 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -35,8 +39,8 @@ func (s *memberRepoStub) ListByFansubGroup(_ context.Context, _ int64) ([]models
 	return s.listMembers, s.listErr
 }
 
-func (s *memberRepoStub) SearchCandidates(_ context.Context, _ int64, _ string, _ int) ([]models.AppUserListItem, error) {
-	return []models.AppUserListItem{}, nil
+func (s *memberRepoStub) SearchCandidates(_ context.Context, _ int64, _ string, _ int) ([]models.FansubGroupMemberCandidate, error) {
+	return []models.FansubGroupMemberCandidate{}, nil
 }
 
 func (s *memberRepoStub) Create(_ context.Context, _ int64, _ models.FansubGroupMemberCreateInput) (*models.FansubGroupAppMember, error) {
@@ -235,6 +239,15 @@ func tinyPNGBytes(t *testing.T) []byte {
 	data, err := base64.StdEncoding.DecodeString("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
 	if err != nil {
 		t.Fatalf("decode test png: %v", err)
+	}
+	return data
+}
+
+func tinyGIFBytes(t *testing.T) []byte {
+	t.Helper()
+	data, err := base64.StdEncoding.DecodeString("R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==")
+	if err != nil {
+		t.Fatalf("decode test gif: %v", err)
 	}
 	return data
 }
@@ -818,6 +831,165 @@ func TestUploadOwnProfileAvatarStoresSourceOriginalAndCroppedDisplay(t *testing.
 	}
 }
 
+func TestUploadOwnProfileAvatarStoresAnimatedGIFWithoutFlattening(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	updated := &models.MemberProfile{
+		MemberID:           44,
+		AppUserID:          11,
+		DisplayName:        "Mika",
+		FansubName:         "MikaFX",
+		ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+		AccountStatus:      models.AppUserStatusActive,
+		AccountDisplayName: "Mika",
+	}
+	profileRepo := &profileRepoStub{
+		getResp: &models.MemberProfile{
+			MemberID:           44,
+			AppUserID:          11,
+			DisplayName:        "Mika",
+			FansubName:         "MikaFX",
+			ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+			AccountStatus:      models.AppUserStatusActive,
+			AccountDisplayName: "Mika",
+		},
+		attachResp: updated,
+	}
+	mediaStorageDir := t.TempDir()
+	handler := &AppAuthHandler{
+		profileRepo:     profileRepo,
+		mediaStorageDir: mediaStorageDir,
+		mediaBaseURL:    "http://localhost:8092",
+	}
+
+	gif := tinyGIFBytes(t)
+	c, recorder := makeMultipartFieldsTestContext(http.MethodPost, "/api/v1/me/profile/avatar", map[string]struct {
+		filename string
+		content  []byte
+	}{
+		"source_file":  {filename: "source.gif", content: gif},
+		"cropped_file": {filename: "avatar.gif", content: gif},
+	}, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UploadOwnProfileAvatar(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if profileRepo.attachCalls != 1 {
+		t.Fatalf("expected one avatar attach call, got %d", profileRepo.attachCalls)
+	}
+	if !strings.Contains(profileRepo.lastAttachArg.FilePath, "/original.gif") {
+		t.Fatalf("expected GIF display original path, got %q", profileRepo.lastAttachArg.FilePath)
+	}
+	if !strings.Contains(profileRepo.lastAttachArg.SourceFilePath, "/source_original.gif") {
+		t.Fatalf("expected retained GIF source_original path, got %q", profileRepo.lastAttachArg.SourceFilePath)
+	}
+	if profileRepo.lastAttachArg.MimeType != "image/gif" {
+		t.Fatalf("expected image/gif mime type, got %q", profileRepo.lastAttachArg.MimeType)
+	}
+	if profileRepo.lastAttachArg.SizeBytes != int64(len(gif)) {
+		t.Fatalf("expected original GIF size %d, got %d", len(gif), profileRepo.lastAttachArg.SizeBytes)
+	}
+	relativePath := strings.TrimPrefix(profileRepo.lastAttachArg.FilePath, "/media/")
+	stored, err := os.ReadFile(filepath.Join(mediaStorageDir, relativePath))
+	if err != nil {
+		t.Fatalf("read stored gif: %v", err)
+	}
+	if len(stored) < 3 || !bytes.HasPrefix(stored, []byte("GIF")) {
+		t.Fatalf("expected stored avatar to remain a GIF")
+	}
+}
+
+func TestAvatarDisplayCopyFormatsPreserveAnimatedImages(t *testing.T) {
+	if !shouldCopyAvatarDisplayFile("image/gif") {
+		t.Fatal("expected GIF avatar display files to be copied")
+	}
+	if !shouldCopyAvatarDisplayFile("image/webp") {
+		t.Fatal("expected WebP avatar display files to be copied")
+	}
+	if shouldCopyAvatarDisplayFile("image/png") {
+		t.Fatal("expected PNG avatar display files to stay on the crop encode path")
+	}
+	if avatarSourceExtFromMime("image/webp") != "webp" {
+		t.Fatalf("expected WebP avatar display extension to be webp, got %q", avatarSourceExtFromMime("image/webp"))
+	}
+}
+
+func TestUploadOwnProfileBackgroundStoresSourceOriginalAndCroppedDisplay(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	updated := &models.MemberProfile{
+		MemberID:           44,
+		AppUserID:          11,
+		DisplayName:        "Mika",
+		FansubName:         "MikaFX",
+		ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+		AccountStatus:      models.AppUserStatusActive,
+		AccountDisplayName: "Mika",
+	}
+	profileRepo := &profileRepoStub{
+		getResp: &models.MemberProfile{
+			MemberID:           44,
+			AppUserID:          11,
+			DisplayName:        "Mika",
+			FansubName:         "MikaFX",
+			ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+			AccountStatus:      models.AppUserStatusActive,
+			AccountDisplayName: "Mika",
+		},
+		attachResp: updated,
+	}
+	handler := &AppAuthHandler{
+		profileRepo:     profileRepo,
+		mediaStorageDir: t.TempDir(),
+		mediaBaseURL:    "http://localhost:8092",
+	}
+
+	png := tinyPNGBytes(t)
+	c, recorder := makeMultipartFieldsTestContext(http.MethodPost, "/api/v1/me/profile/background", map[string]struct {
+		filename string
+		content  []byte
+	}{
+		"source_file":  {filename: "source.png", content: png},
+		"cropped_file": {filename: "cropped.png", content: png},
+	}, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UploadOwnProfileBackground(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if profileRepo.bgAttachCalls != 1 {
+		t.Fatalf("expected one background attach call, got %d", profileRepo.bgAttachCalls)
+	}
+	if !strings.Contains(profileRepo.lastBgArg.FilePath, "/original.png") {
+		t.Fatalf("expected cropped display original path, got %q", profileRepo.lastBgArg.FilePath)
+	}
+	if !strings.Contains(profileRepo.lastBgArg.SourceFilePath, "/source_original.png") {
+		t.Fatalf("expected retained source_original path, got %q", profileRepo.lastBgArg.SourceFilePath)
+	}
+	if strings.Contains(profileRepo.lastBgArg.PublicURL, "source_original") {
+		t.Fatalf("expected public URL to expose cropped display path, got %q", profileRepo.lastBgArg.PublicURL)
+	}
+	if profileRepo.lastBgArg.Width == nil || *profileRepo.lastBgArg.Width != 1 {
+		t.Fatalf("expected cropped display width to be retained, got %#v", profileRepo.lastBgArg.Width)
+	}
+	if profileRepo.lastBgArg.Height == nil || *profileRepo.lastBgArg.Height != 1 {
+		t.Fatalf("expected cropped display height to be retained, got %#v", profileRepo.lastBgArg.Height)
+	}
+}
+
 func TestCreateFansubGroupAppMemberMapsDuplicateMembershipConflict(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -1105,4 +1277,207 @@ func TestCreateFansubGroupInvitationReturnsOneTimeInviteLink(t *testing.T) {
 
 func appAuthTestStringPtr(value string) *string {
 	return &value
+}
+
+// --- Mailer-Stubs fuer Einladungs-Mail-Tests ---
+
+type mailerStub struct {
+	sendCalls int
+	sendErr   error
+	lastMsg   services.MailMessage
+}
+
+func (s *mailerStub) Send(_ context.Context, msg services.MailMessage) error {
+	s.sendCalls++
+	s.lastMsg = msg
+	return s.sendErr
+}
+
+func TestCreateFansubGroupInvitationSendsMailOnSuccess(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mailer := &mailerStub{}
+	invitationRepo := &invitationRepoStub{
+		createResp: &models.FansubGroupInvitationCreateResult{
+			Invitation: models.FansubGroupInvitation{
+				ID:               91,
+				FansubGroupID:    88,
+				Email:            "invitee@example.local",
+				InvitedRoleCodes: []string{permissions.RoleFansubLead},
+				Status:           models.FansubGroupInvitationStatusPending,
+				ExpiresAt:        time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC),
+			},
+			InviteLink: "/invitations/accept?token=testtoken123",
+		},
+	}
+	handler := &AppAuthHandler{
+		invitationRepo: invitationRepo,
+		permissionSvc: permissions.NewService(permissionResolverStub{
+			context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+			roles:   map[int64][]string{88: {permissions.RoleFansubLead}},
+		}),
+		auditLogRepo: &auditLogStub{},
+		mailer:       mailer,
+		appPublicURL: "http://team4s.local",
+	}
+
+	body := []byte(`{"email":"invitee@example.local","invited_role_codes":["fansub_lead"]}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPost, "/api/v1/admin/fansubs/88/invitations", body, middleware.AuthIdentity{
+		UserID:        107,
+		AppUserID:     41,
+		DisplayName:   "Invite Lead",
+		AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.CreateFansubGroupInvitation(c)
+
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if mailer.sendCalls != 1 {
+		t.Fatalf("expected exactly one mail send, got %d", mailer.sendCalls)
+	}
+	if mailer.lastMsg.To != "invitee@example.local" {
+		t.Fatalf("expected mail to invitee@example.local, got %q", mailer.lastMsg.To)
+	}
+	// D-10: absoluter Link aus AppPublicURL + InviteLink
+	if !strings.Contains(mailer.lastMsg.BodyText, "http://team4s.local/invitations/accept?token=testtoken123") {
+		t.Fatalf("expected absolute invite URL in mail body, got %q", mailer.lastMsg.BodyText)
+	}
+}
+
+func TestCreateFansubGroupInvitationCancelsOnMailFailure(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	cancelCalls := 0
+	invitationRepo := &invitationRepoStubWithCancelTracking{
+		createResp: &models.FansubGroupInvitationCreateResult{
+			Invitation: models.FansubGroupInvitation{
+				ID:               92,
+				FansubGroupID:    88,
+				Email:            "fail@example.local",
+				InvitedRoleCodes: []string{permissions.RoleFansubLead},
+				Status:           models.FansubGroupInvitationStatusPending,
+				ExpiresAt:        time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC),
+			},
+			InviteLink: "/invitations/accept?token=failing123",
+		},
+		onCancel: func() { cancelCalls++ },
+	}
+	mailer := &mailerStub{sendErr: errors.New("SMTP connection refused")}
+	handler := &AppAuthHandler{
+		invitationRepo: invitationRepo,
+		permissionSvc: permissions.NewService(permissionResolverStub{
+			context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+			roles:   map[int64][]string{88: {permissions.RoleFansubLead}},
+		}),
+		auditLogRepo: &auditLogStub{},
+		mailer:       mailer,
+		appPublicURL: "http://team4s.local",
+	}
+
+	body := []byte(`{"email":"fail@example.local","invited_role_codes":["fansub_lead"]}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPost, "/api/v1/admin/fansubs/88/invitations", body, middleware.AuthIdentity{
+		UserID:        108,
+		AppUserID:     42,
+		DisplayName:   "Invite Lead",
+		AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.CreateFansubGroupInvitation(c)
+
+	// D-12: SMTP-Fehler darf keine stille pending-Einladung hinterlassen
+	if recorder.Code != http.StatusBadGateway {
+		t.Fatalf("expected 502 on mail failure, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if cancelCalls != 1 {
+		t.Fatalf("expected invitation to be cancelled on mail failure, cancel was called %d times", cancelCalls)
+	}
+	payload := decodeBody(t, recorder)
+	errBody, ok := payload["error"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected error body, got %#v", payload)
+	}
+	if errBody["reason_code"] != "mail_delivery_failed" {
+		t.Fatalf("expected reason_code mail_delivery_failed, got %#v", errBody["reason_code"])
+	}
+}
+
+func TestCreateFansubGroupInvitationAuditLogContainsNoRawToken(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	auditLog := &auditLogStub{}
+	mailer := &mailerStub{}
+	invitationRepo := &invitationRepoStub{
+		createResp: &models.FansubGroupInvitationCreateResult{
+			Invitation: models.FansubGroupInvitation{
+				ID:               93,
+				FansubGroupID:    88,
+				Email:            "check@example.local",
+				InvitedRoleCodes: []string{permissions.RoleFansubLead},
+				Status:           models.FansubGroupInvitationStatusPending,
+				ExpiresAt:        time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC),
+			},
+			InviteLink: "/invitations/accept?token=secretrawtoken",
+		},
+	}
+	handler := &AppAuthHandler{
+		invitationRepo: invitationRepo,
+		permissionSvc: permissions.NewService(permissionResolverStub{
+			context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+			roles:   map[int64][]string{88: {permissions.RoleFansubLead}},
+		}),
+		auditLogRepo: auditLog,
+		mailer:       mailer,
+		appPublicURL: "http://team4s.local",
+	}
+
+	body := []byte(`{"email":"check@example.local","invited_role_codes":["fansub_lead"]}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPost, "/api/v1/admin/fansubs/88/invitations", body, middleware.AuthIdentity{
+		UserID:        109,
+		AppUserID:     43,
+		DisplayName:   "Invite Lead",
+		AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.CreateFansubGroupInvitation(c)
+
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d", recorder.Code)
+	}
+
+	// D-11: Roh-Token darf nicht im Audit-Log erscheinen
+	for _, entry := range auditLog.entries {
+		for key, val := range entry.Payload {
+			valStr := fmt.Sprintf("%v", val)
+			if strings.Contains(valStr, "secretrawtoken") {
+				t.Fatalf("audit log entry contains raw token in key %q: %q", key, valStr)
+			}
+		}
+	}
+}
+
+// invitationRepoStubWithCancelTracking ermoeglicht Callback bei Cancel-Aufrufen.
+type invitationRepoStubWithCancelTracking struct {
+	createResp *models.FansubGroupInvitationCreateResult
+	onCancel   func()
+}
+
+func (s *invitationRepoStubWithCancelTracking) ListByFansubGroup(_ context.Context, _ int64) ([]models.FansubGroupInvitation, error) {
+	return nil, nil
+}
+
+func (s *invitationRepoStubWithCancelTracking) Create(_ context.Context, _ int64, _ models.FansubGroupInvitationCreateInput) (*models.FansubGroupInvitationCreateResult, error) {
+	return s.createResp, nil
+}
+
+func (s *invitationRepoStubWithCancelTracking) Cancel(_ context.Context, _ int64, _ int64, _ models.FansubGroupInvitationCancelInput) (*models.FansubGroupInvitation, error) {
+	if s.onCancel != nil {
+		s.onCancel()
+	}
+	return &models.FansubGroupInvitation{}, nil
+}
+
+func (s *invitationRepoStubWithCancelTracking) Accept(_ context.Context, _ models.AcceptFansubInvitationInput) (*models.FansubGroupInvitation, *models.FansubGroupAppMember, error) {
+	return nil, nil, nil
 }
