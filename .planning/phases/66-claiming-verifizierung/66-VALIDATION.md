@@ -47,8 +47,8 @@ created: 2026-06-02
 | 03-T2-noindex-handler | 66-03 | 3 | P66-SC3 | T-66-03-06 | noindex-PATCH nur durch Profil-Eigentümer mit verified Claim | unit | `go test ./internal/handlers/... -run "TestNoindex\|TestVerifyClaim"` | ✅ erstellt in W3 | ✅ green |
 | 04-T1-public-profile | 66-04 | 4 | P66-SC3 | T-66-04-05 | is_verified + noindex in GET /members/:slug Response | build | `go build ./internal/repository/... ./internal/models/...` | ✅ erstellt in W4 | ✅ green |
 | 04-T2-wiring | 66-04 | 4 | P66-SC1, P66-SC2, P66-SC3 | T-66-04-01 | Alle Routen verdrahtet; TypeScript sauber | build | `go build ./cmd/server/... && npx tsc --noEmit` | ✅ erstellt in W4 | ✅ green |
-| 05-T1-verified-badge | 66-05 | 5 | P66-SC3 | T-66-05-01 | verified-Badge im öffentlichen Profil sichtbar | component | `npm test -- --run VerifiedBadge` | ❌ erstellt in W5 | ⬜ pending |
-| 05-T2-me-profile | 66-05 | 5 | P66-SC3 | T-66-05-02 | noindex-Toggle nutzt patchNoindex(); generateMetadata korrekt | build | `npm run build` | ❌ erstellt in W5 | ⬜ pending |
+| 05-T1-verified-badge | 66-05 | 5 | P66-SC3 | T-66-05-01 | verified-Badge im öffentlichen Profil sichtbar | component | `npm test -- --run VerifiedBadge` | ✅ erstellt in W5 | ✅ green |
+| 05-T2-me-profile | 66-05 | 5 | P66-SC3 | T-66-05-02 | noindex-Toggle nutzt patchNoindex(); generateMetadata korrekt | build | `npm run build` | ✅ erstellt in W5 | ✅ green |
 | 06-T1-accept-page | 66-06 | 5 | P66-SC2 | T-66-06-01 | Token nach Erfolg aus URL entfernt; Login-Redirect mit return_to | build | `npx tsc --noEmit` | ❌ erstellt in W5 | ⬜ pending |
 | 06-T2-groups-page | 66-06 | 5 | P66-SC1, P66-SC2 | T-66-06-03 | Claim-Queue + Neuanlage-Antrags-Queue (D-03) sichtbar | build | `npm run build` | ❌ erstellt in W5 | ⬜ pending |
 
