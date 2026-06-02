@@ -18,7 +18,8 @@ type ProposalInput struct {
 	Note                *string
 	StartedYear         *int
 	EndedYear           *int
-	AppUserID           int64 // App-User-ID des einreichenden Members (created_by)
+	ReleaseVersionID    *int64 // nil => anime-weit; gesetzt => versions-spezifisch (Phase 67-02)
+	AppUserID           int64  // App-User-ID des einreichenden Members (created_by)
 }
 
 // GroupProposalRow ist die Rueckgabe fuer ListProposedByGroup — enthält Member- und
@@ -58,11 +59,12 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 			ended_year,
 			is_public_on_anime_page,
 			is_public_on_member_profile,
+			release_version_id,
 			created_by,
 			updated_by,
 			created_at,
 			updated_at
-		) VALUES ($1, $2, $3, 'proposed', $4, $5, $6, false, false, $7, $7, NOW(), NOW())
+		) VALUES ($1, $2, $3, 'proposed', $4, $5, $6, false, false, $8, $7, $7, NOW(), NOW())
 		RETURNING id
 	`,
 		fansubGroupID,
@@ -72,6 +74,7 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 		input.StartedYear,
 		input.EndedYear,
 		createdBy,
+		input.ReleaseVersionID,
 	).Scan(&newID)
 	if err != nil {
 		if isUniqueViolation(err) {
@@ -255,6 +258,7 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			&row.EndedYear,
 			&row.IsPublicOnAnimePage,
 			&row.IsPublicOnMemberProfile,
+			&row.ReleaseVersionID,
 			&row.ConfirmedBy,
 			&row.ConfirmedAt,
 			&row.CreatedBy,

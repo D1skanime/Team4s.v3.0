@@ -8,8 +8,10 @@ import (
 )
 
 // CreateOrUpdate fuehrt einen Upsert fuer eine Anime-Contribution durch.
-// Bei einem UNIQUE-Konflikt auf (fansub_group_id, anime_id, fansub_group_member_id)
-// werden die bestehenden Felder aktualisiert statt einen Fehler zurueckzugeben.
+// Bei einem UNIQUE-Konflikt auf (fansub_group_id, anime_id, fansub_group_member_id, release_version_id)
+// werden die bestehenden Felder aktualisiert statt einen Fehler zurueckzugeben. Das vierspaltige
+// Target (Phase 67-02, Pitfall 1) stellt sicher, dass ein versions-spezifischer Eintrag NICHT den
+// anime-weiten Eintrag (release_version_id IS NULL) desselben Members ueberschreibt.
 // Rollencodes werden dabei atomar ersetzt (DELETE + INSERT in derselben Transaktion).
 // Falls input.Status leer ist, wird "draft" als Standardwert verwendet.
 func (r *AnimeContributionsRepository) CreateOrUpdate(
@@ -40,12 +42,13 @@ func (r *AnimeContributionsRepository) CreateOrUpdate(
 			ended_year,
 			is_public_on_anime_page,
 			is_public_on_member_profile,
+			release_version_id,
 			created_by,
 			updated_by,
 			created_at,
 			updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10, NOW(), NOW())
-		ON CONFLICT (fansub_group_id, anime_id, fansub_group_member_id)
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $11, $10, $10, NOW(), NOW())
+		ON CONFLICT (fansub_group_id, anime_id, fansub_group_member_id, release_version_id)
 		DO UPDATE SET
 			status                      = EXCLUDED.status,
 			note                        = EXCLUDED.note,
@@ -67,6 +70,7 @@ func (r *AnimeContributionsRepository) CreateOrUpdate(
 		input.IsPublicOnAnimePage,
 		input.IsPublicOnMemberProfile,
 		input.CreatedBy,
+		input.ReleaseVersionID,
 	).Scan(&newID)
 	if err != nil {
 		if isForeignKeyViolation(err) {

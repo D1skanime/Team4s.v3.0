@@ -9,7 +9,9 @@ import (
 // Input-/Patch-/Row-Structs das optionale release_version_id tragen (D-10 Roundtrip).
 func TestContributionInputs_ReleaseVersionFieldsExist(t *testing.T) {
 	content := readReleaseLookupSource(t, "anime_contributions_inputs.go")
-	normalized := strings.ToLower(content)
+	// Whitespace zwischen Feldname und Typ kollabieren, damit der Test
+	// unabhaengig von gofmt-Tab-Ausrichtung greift.
+	collapsed := strings.Join(strings.Fields(strings.ToLower(content)), " ")
 
 	requiredFragments := []string{
 		"type animecontributioninput struct",
@@ -20,7 +22,7 @@ func TestContributionInputs_ReleaseVersionFieldsExist(t *testing.T) {
 		`json:"release_version_id"`,
 	}
 	for _, frag := range requiredFragments {
-		if !strings.Contains(normalized, frag) {
+		if !strings.Contains(collapsed, frag) {
 			t.Fatalf("erwartetes Fragment %q in anime_contributions_inputs.go", frag)
 		}
 	}

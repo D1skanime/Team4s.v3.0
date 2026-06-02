@@ -10,53 +10,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// AnimeContributionRow represents a full anime contribution record with associated role codes.
-type AnimeContributionRow struct {
-	ID                      int64      `json:"id"`
-	FansubGroupID           int64      `json:"fansub_group_id"`
-	AnimeID                 int64      `json:"anime_id"`
-	FansubGroupMemberID     int64      `json:"fansub_group_member_id"`
-	Status                  string     `json:"status"`
-	Note                    *string    `json:"note"`
-	StartedYear             *int       `json:"started_year"`
-	EndedYear               *int       `json:"ended_year"`
-	IsPublicOnAnimePage     bool       `json:"is_public_on_anime_page"`
-	IsPublicOnMemberProfile bool       `json:"is_public_on_member_profile"`
-	ConfirmedBy             *int64     `json:"confirmed_by"`
-	ConfirmedAt             *time.Time `json:"confirmed_at"`
-	CreatedBy               *int64     `json:"created_by"`
-	CreatedAt               time.Time  `json:"created_at"`
-	UpdatedBy               *int64     `json:"updated_by"`
-	UpdatedAt               time.Time  `json:"updated_at"`
-	RoleCodes               []string   `json:"role_codes"`
-	RoleLabels              []string   `json:"role_labels"`
-}
-
-// AnimeContributionInput holds the data required to create a new anime contribution.
-type AnimeContributionInput struct {
-	FansubGroupMemberID     int64
-	RoleCodes               []string
-	Status                  string // "draft" | "proposed" | "confirmed" | "disputed" | "hidden"; leer => "draft"
-	StartedYear             *int
-	EndedYear               *int
-	Note                    *string
-	IsPublicOnAnimePage     bool
-	IsPublicOnMemberProfile bool
-	CreatedBy               *int64
-}
-
-// AnimeContributionPatchInput holds optional fields for patching an existing anime contribution.
-// Pointer-to-pointer fields represent nullable values: nil = do not update, non-nil = update (inner pointer may be nil to set NULL).
-type AnimeContributionPatchInput struct {
-	RoleCodes               *[]string
-	StartedYear             **int
-	EndedYear               **int
-	Note                    **string
-	IsPublicOnAnimePage     *bool
-	IsPublicOnMemberProfile *bool
-	Status                  *string
-	UpdatedBy               *int64
-}
+// AnimeContributionRow, AnimeContributionInput und AnimeContributionPatchInput
+// sind nach anime_contributions_inputs.go ausgelagert (450-Zeilen-Limit, Phase 67-02 W1).
 
 // AnimeContributionDisplayRow is the frontend-facing response type for anime_contributions,
 // enriched with the member display name via JOIN.
@@ -193,6 +148,7 @@ const animeContributionSelectCols = `
 	ac.ended_year,
 	ac.is_public_on_anime_page,
 	ac.is_public_on_member_profile,
+	ac.release_version_id,
 	ac.confirmed_by,
 	ac.confirmed_at,
 	ac.created_by,
@@ -216,6 +172,7 @@ func scanAnimeContributionRow(row pgx.Row) (*AnimeContributionRow, error) {
 		&r.EndedYear,
 		&r.IsPublicOnAnimePage,
 		&r.IsPublicOnMemberProfile,
+		&r.ReleaseVersionID,
 		&r.ConfirmedBy,
 		&r.ConfirmedAt,
 		&r.CreatedBy,
@@ -390,6 +347,10 @@ func (r *AnimeContributionsRepository) Update(ctx context.Context, id int64, inp
 	}
 	if input.IsPublicOnMemberProfile != nil {
 		setClauses = append(setClauses, fmt.Sprintf("is_public_on_member_profile = $%d", addArg(*input.IsPublicOnMemberProfile)))
+	}
+	if input.ReleaseVersionID != nil {
+		// Doppelpointer: *nil => auf NULL setzen, *wert => setzen (D-10).
+		setClauses = append(setClauses, fmt.Sprintf("release_version_id = $%d", addArg(*input.ReleaseVersionID)))
 	}
 	setClauses = append(setClauses, fmt.Sprintf("updated_by = $%d", addArg(input.UpdatedBy)))
 	setClauses = append(setClauses, "updated_at = NOW()")
