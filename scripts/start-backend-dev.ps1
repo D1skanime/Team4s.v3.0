@@ -54,6 +54,12 @@ $env:AUTH_ISSUE_DEV_USER_ID = "1"
 $env:AUTH_ISSUE_DEV_DISPLAY_NAME = "LocalAdmin"
 $env:MEDIA_STORAGE_DIR = $mediaDir
 $env:MEDIA_PUBLIC_BASE_URL = "http://localhost:8092"
+$env:KEYCLOAK_ENABLED = "true"
+$env:KEYCLOAK_ISSUER_URL = "http://127.0.0.1:8081/realms/team4s"
+$env:KEYCLOAK_DISCOVERY_URL = "http://127.0.0.1:8081/realms/team4s"
+$env:KEYCLOAK_CLIENT_ID = "team4s-frontend"
+$env:KEYCLOAK_API_AUDIENCE = "team4s-api"
+$env:KEYCLOAK_ACCOUNT_URL = "http://127.0.0.1:8081/realms/team4s/account"
 
 # Local integration config: read optional Jellyfin values from the repo .env so
 # the local backend can exercise provider flows without hand-exporting secrets.
@@ -77,6 +83,8 @@ Write-Host "  PORT=$env:PORT"
 Write-Host "  DATABASE_URL=$env:DATABASE_URL"
 Write-Host "  REDIS_ADDR=$env:REDIS_ADDR"
 Write-Host "  MEDIA_STORAGE_DIR=$env:MEDIA_STORAGE_DIR"
+Write-Host "  KEYCLOAK_ISSUER_URL=$env:KEYCLOAK_ISSUER_URL"
+Write-Host "  KEYCLOAK_API_AUDIENCE=$env:KEYCLOAK_API_AUDIENCE"
 Write-Host "  JELLYFIN_BASE_URL=$($env:JELLYFIN_BASE_URL)"
 Write-Host "  JELLYFIN_API_KEY=$(if ($env:JELLYFIN_API_KEY) { 'configured' } else { 'missing' })"
 
