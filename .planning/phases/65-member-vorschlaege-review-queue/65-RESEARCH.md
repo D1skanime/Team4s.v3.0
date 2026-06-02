@@ -421,21 +421,14 @@ ALTER TABLE anime_contributions
 
 ## Open Questions
 
-1. **D-15 — Modell für „unverified selbst-geschaltet" vs. „leader-confirmed"**
-   - What we know: `is_verified = (status='confirmed')` ist berechnet, kein Flag. Sichtbarkeit braucht `is_public_on_*`. `confirmed_by` ist nullable und kann sowohl Leader als auch Member sein.
-   - What's unclear: Ob es ausreicht, Selbstschaltung über `status='proposed' + public-Flags + confirmed_by=self` zu modellieren, ODER ob ein explizites boolesches Feld (`self_published`) in Migration 0089 sinnvoll ist, um die beiden Fälle datenseitig eindeutig zu unterscheiden (z. B. für spätere Filter/Audits).
-   - Recommendation: **Variante A (kein neues Flag):** Status bleibt `proposed`, Public-Flags an, `confirmed_by=self`. `is_verified` bleibt automatisch false → `(historisch)`-Label korrekt. Minimal-invasiv. **Falls Eindeutigkeit gewünscht (sicherer für Audit/Zukunft):** in 0089 zusätzlich `self_published BOOLEAN NOT NULL DEFAULT false` mitnehmen — kostet eine Spalte, eliminiert die „confirmed_by ist Leader oder Member?"-Mehrdeutigkeit. Vom Planer/User zu bestätigen.
+1. **D-15 — Modell für „unverified selbst-geschaltet“ vs. „leader-confirmed“** (RESOLVED)
+   - Resolution: Variante A wird umgesetzt — Status bleibt `proposed`, Sichtbarkeitsflags werden gesetzt, `confirmed_by` = eigene App-User-ID. `is_verified` bleibt false, `(historisch)`-Label korrekt. Kein `self_published`-Flag in Migration 0089, da minimal-invasiv und ausreichend für V1. Plan 01 Task 2 und Plan 02 Task 1 implementieren entsprechend.
 
-2. **Migrationspfad (ein oder zwei Orte)**
-   - What we know: CLAUDE.md nennt `database/migrations/` (Primär) und `backend/database/migrations/`. 0086–0088 liegen in `database/migrations/`.
-   - What's unclear: Ob `cmd/migrate`/Docker beide Orte ausführt.
-   - Recommendation: Planung verifiziert den tatsächlich genutzten Pfad in `backend/cmd/migrate` und `docker-compose.yml`, bevor 0089 platziert wird.
+2. **Migrationspfad (ein oder zwei Orte)** (RESOLVED)
+   - Resolution: Nur **`database/migrations/`**. Verifiziert durch Lesen von `docker-compose.yml` (Volume-Mount: `./database/migrations:/app/database/migrations:ro`) und `backend/cmd/migrate/main.go`/`backend/internal/migrations/runner.go` (ResolveMigrationsDir sucht `database/migrations/` relativ zum Arbeitsverzeichnis). `backend/database/migrations/` enthält nur eine README und wird vom Migrationssystem nicht genutzt. Migration 0089 gehört ausschließlich in `database/migrations/`.
 
-3. **OpenAPI-Contract-Pflege**
-   - What we know: Contribution-Routen scheinen nicht in `openapi.yaml` als Pfade dokumentiert.
-   - What's unclear: Ob das Team Contract-Drift toleriert oder neue Endpunkte dokumentieren will (CLAUDE.md: „Contracts werden alongside code gepflegt").
-   - Recommendation: Neue Proposal-/Review-Endpunkte in `shared/contracts/` ergänzen (eigene `contributions.yaml` oder openapi.yaml-Erweiterung), um Konsistenz mit der dokumentierten Disziplin zu wahren. Als Plan-Task vorsehen.
-
+3. **OpenAPI-Contract-Pflege** (RESOLVED)
+   - Resolution: Neue Endpunkte (POST /me/contribution-proposals, POST /me/anime-contributions/:cid/self-publish, GET /me/memberships, GET /admin/fansubs/:id/contribution-proposals, POST .../confirm, POST .../reject) werden in einer neuen Datei `shared/contracts/contributions.yaml` dokumentiert und in `shared/contracts/openapi.yaml` als `$ref` eingebunden. Task ist in Plan 04 ergänzt (WARNING 5-Fix).
 ## Validation Architecture
 
 ### Test Framework
