@@ -500,11 +500,11 @@ export interface HistFansubGroupMember {
 }
 
 export interface HistFansubGroupMemberListResponse {
-  members: HistFansubGroupMember[];
+  data: HistFansubGroupMember[];
 }
 
 export interface HistFansubGroupMemberResponse {
-  member: HistFansubGroupMember;
+  data: HistFansubGroupMember;
 }
 
 export interface CreateGroupMemberRequest {
@@ -539,11 +539,11 @@ export interface HistGroupMemberRole {
 }
 
 export interface HistGroupMemberRoleListResponse {
-  roles: HistGroupMemberRole[];
+  data: HistGroupMemberRole[];
 }
 
 export interface HistGroupMemberRoleResponse {
-  role: HistGroupMemberRole;
+  data: HistGroupMemberRole;
 }
 
 export interface CreateMemberRoleRequest {
@@ -581,11 +581,11 @@ export interface AnimeContribution {
 }
 
 export interface AnimeContributionListResponse {
-  contributions: AnimeContribution[];
+  data: AnimeContribution[];
 }
 
 export interface AnimeContributionResponse {
-  contribution: AnimeContribution;
+  data: AnimeContribution;
 }
 
 export interface UpsertAnimeContributionRequest {
