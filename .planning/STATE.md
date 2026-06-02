@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Completed 69-01 Migration 0088 constraints
-last_updated: "2026-06-02T10:13:00.551Z"
+stopped_at: Phase 70 context gathered
+last_updated: "2026-06-02T12:09:34.265Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
@@ -360,7 +360,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T10:13:00.529Z
-Stopped at: Completed 69-01 Migration 0088 constraints
+Last session: 2026-06-02T12:09:34.189Z
+Stopped at: Phase 70 context gathered
 Last activity: 2026-06-02
-Resume file: None
+Resume file: .planning/phases/70-tiptap-bilder-fuer-member-profilgeschichte/70-CONTEXT.md
