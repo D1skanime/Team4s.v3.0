@@ -29,18 +29,21 @@ files_reviewed_list:
   - backend/internal/handlers/contributions_public_handler.go
 findings:
   critical: 0
-  warning: 6
-  info: 4
+  warning: 0
+  info: 3
   total: 13
 blockers_resolved: 3
-status: warnings_open
+warnings_resolved: 6
+status: warnings_resolved
 ---
 
-> **Resolution 2026-06-02:** Alle 3 BLOCKER behoben.
+> **Resolution 2026-06-02:** Alle 3 BLOCKER + alle 6 Warnings behoben.
 > - CR-01: `AnimeContributionRow` mit snake_case JSON-Tags (commit 694b437d) → `/me/anime-contributions` matcht `MeAnimeContribution`.
 > - CR-02/CR-03: `anime_contributions_public_repository.go` neu geschrieben mit kontrakt-korrekten DTOs + Queries (gruppierte Anime-Contributions, Leader-/Rollen-Timelines, Counts, `has_unverified`); Handler liefert strukturierte Responses statt `{data:[...]}`. Defekte `m.slug`-Referenz durch abgeleiteten Slug (nickname-basiert, wie Member-Profil) ersetzt.
+> - WR-01: CORS-Allowlist statt Wildcard (commit 3aba459e). WR-02: long_term_member 5-Jahres-Floor. WR-03: Badge-Hide mit optimistischem Update + Fehler-Feedback. WR-04: stabile React-Keys. WR-05: 'internal'-Badges nicht im öffentlichen Profil. WR-06: member_slug jetzt nullable (`*string`) durch CR-02/CR-03-Rewrite. (Frontend-Fixes commit 1567fe37.)
+> - IN-01: gofmt behoben.
 > Verifiziert via `go build`/`go vet`/`go test` + Frontend `tsc`. ACHTUNG: keine Laufzeit-/DB-Verifikation möglich (kein DB-Zugriff) — End-to-End-Test gegen docker-compose steht aus.
-> Offen (Advisory, nicht-blockierend): WR-01..06, IN-01..04.
+> Bewusst zurückgestellt (eigene Vorhaben, kein Quick-Fix): IN-02 (Inline-Styles → CSS-Module), IN-03 (member_claims-Lookup-Dedup), IN-04 (api.ts ~7100 Zeilen → Domain-Module splitten).
 
 # Phase 64: Code Review Report
 
