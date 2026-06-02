@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
 stopped_at: Phase 66 context gathered
-last_updated: "2026-06-02T09:56:51.347Z"
+last_updated: "2026-06-02T09:56:53.368Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
@@ -188,6 +188,7 @@ Recent durable decisions:
 - [Phase 54-02]: Shell avatar URLs resolve from profile.avatar.public_url through resolveApiUrl, matching the existing profile page pattern.
 - [Phase 54-02]: Shell profile/admin props are derived from the active auth session to avoid stale authenticated UI after logout.
 - [Phase ?]: [Phase 60-02]: Cancel-on-fail fuer SMTP-Fehler in CreateFansubGroupInvitation -- keine Delivery-Migration noetig, D-12 atomar erfuellt
+- [Phase ?]: [Phase 60-02]: Go-Standardbibliothek net/smtp fuer SMTPMailer -- kein externes Mail-Package benoetigt
 
 ### Pending Todos
 

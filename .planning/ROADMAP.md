@@ -1255,7 +1255,7 @@ Wave 4 *(blocked on Wave 3 completion)*
 **Goal:** Lokalen SMTP-Mailfluss fuer Team4s und Keycloak herstellen: Fansub-Gruppeneinladungen werden vom Team4s Backend per SMTP verschickt, Keycloak Account-Mails wie Passwort-Reset gehen ebenfalls ueber SMTP, lokal landen beide in Mailpit und fuer Produktion ist der spaetere Wechsel auf Mailjet als SMTP-Provider dokumentiert.
 **Requirements**: P60-SC1, P60-SC2, P60-SC3, P60-SC4, P60-SC5, P60-SC6
 **Depends on:** Phase 59
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] `60-01-PLAN.md` � Lokale SMTP-Infrastruktur: Mailpit, Keycloak-Mailpit-Konfiguration und Env-Doku.
