@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
 stopped_at: Phase 70 geplant (7 Plaene, verifiziert)
-last_updated: "2026-06-02T14:28:36.017Z"
+last_updated: "2026-06-02T14:38:17.232Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
   completed_phases: 45
-  total_plans: 241
-  completed_plans: 194
+  total_plans: 246
+  completed_plans: 195
   percent: 68
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 65 (member-vorschlaege-review-queue) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 ## Accumulated Context
 
@@ -195,6 +195,7 @@ Recent durable decisions:
 - [Phase ?]: [Phase 69-01]: Migration 0088: Composite-FK auf anime_contributions(fansub_group_id, fansub_group_member_id) haertet Cross-Group-Schutz auf DB-Ebene ab
 - [Phase 69-02]: CreateWithAutoMember: user_id in members bleibt NULL per Annahme A1 -- kein Mapping app_users(id)->users(id) ohne separaten Join
 - [Phase 69-02]: Extension-Methoden (CreateOrUpdate, ListByMemberID, Delete) in separate Repository-Dateien ausgelagert fuer CLAUDE.md 450-Zeilen-Limit
+- [Phase ?]: MemberResolver, OwnershipChecker, MembershipsLister als Interfaces
 
 ### Pending Todos
 
@@ -334,6 +335,7 @@ Recent durable decisions:
 | Phase 60 P03 | 25min | 3 tasks | 5 files |
 | Phase 69 P03 | 15min | 3 tasks | 4 files |
 | Phase 65 P01 | 12min | 2 tasks | 3 files |
+| Phase 65 P02 | 5min | 3 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -365,7 +367,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T14:28:35.945Z
+Last session: 2026-06-02T14:38:12.874Z
 Stopped at: Phase 70 geplant (7 Plaene, verifiziert)
 Last activity: 2026-06-02
 Resume file: None
