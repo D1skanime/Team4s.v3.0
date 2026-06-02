@@ -195,7 +195,11 @@ import {
   type KeycloakTokenBundle,
 } from "@/lib/keycloakAuth";
 import { getBrowserApiBaseUrl, resolvePublicApiUrl } from "@/lib/publicApiUrl";
-import type { MeAnimeContributionsResponse } from "@/types/contributions";
+import type {
+  MeAnimeContributionsResponse,
+  PublicGroupContributionsResponse,
+  PublicAnimeContributionsResponse,
+} from "@/types/contributions";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
 // live frontends from depending on a directly reachable host backend port.
@@ -6912,4 +6916,58 @@ export async function rejectAnimeContribution(
 ): Promise<void> {
   // Ablehnen setzt is_public_on_member_profile=false (Eintrag bleibt intern erhalten)
   return patchAnimeContributionVisibility(contributionId, false);
+}
+
+// ─── Public Contributions ────────────────────────────────────────────────────
+
+export async function getFansubContributions(
+  fansubID: number,
+): Promise<PublicGroupContributionsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/fansubs/${fansubID}/contributions`,
+    { next: { revalidate: 60 } },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<PublicGroupContributionsResponse>;
+}
+
+export async function getAnimeContributions(
+  animeID: number,
+): Promise<PublicAnimeContributionsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/contributions`,
+    { next: { revalidate: 60 } },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<PublicAnimeContributionsResponse>;
 }
