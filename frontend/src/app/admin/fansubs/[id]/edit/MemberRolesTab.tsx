@@ -151,6 +151,11 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
     const startedYear = form.startedYear ? Number(form.startedYear) : null
     const endedYear = form.endedYear ? Number(form.endedYear) : null
 
+    if (startedYear !== null && endedYear !== null && endedYear < startedYear) {
+      setModalError('Bis-Jahr darf nicht vor dem Von-Jahr liegen.')
+      return
+    }
+
     try {
       setSaving(true)
       setModalError(null)

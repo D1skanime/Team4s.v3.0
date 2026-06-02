@@ -26,6 +26,7 @@ export default function AnimeContributionsTab({ fansubId }: Props) {
   const [modalLoading, setModalLoading] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
     async function load() {
       setLoading(true)
       setError(null)
@@ -35,8 +36,10 @@ export default function AnimeContributionsTab({ fansubId }: Props) {
           listGroupMembers(fansubId),
         ])
         const animes = animeResp.data ?? []
-        setAnimeList(animes)
-        setMembers(membersResp.members ?? [])
+        if (!cancelled) {
+          setAnimeList(animes)
+          setMembers(membersResp.members ?? [])
+        }
 
         // Beitragszähler für alle Anime laden
         const counts: Record<number, number> = {}
@@ -50,23 +53,25 @@ export default function AnimeContributionsTab({ fansubId }: Props) {
             }
           })
         )
-        setContributionCountByAnimeId(counts)
+        if (!cancelled) setContributionCountByAnimeId(counts)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Laden fehlgeschlagen.')
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Laden fehlgeschlagen.')
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
     void load()
+    return () => { cancelled = true }
   }, [fansubId])
 
   async function openModal(animeId: number) {
     setModalLoading(true)
-    setModalAnimeId(animeId)
     try {
       const resp = await listAnimeContributions(fansubId, animeId)
       setModalContributions(resp.contributions ?? [])
-    } catch {
+      setModalAnimeId(animeId)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Mitwirkende konnten nicht geladen werden.')
       setModalContributions([])
     } finally {
       setModalLoading(false)

@@ -130,6 +130,15 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
     const leftYear = form.leftYear ? Number(form.leftYear) : null
     const appUserId = form.appUserId ? Number(form.appUserId) : null
 
+    if (appUserId !== null && (!Number.isInteger(appUserId) || appUserId <= 0)) {
+      setModalError('App-Nutzer-ID muss eine positive ganze Zahl sein.')
+      return
+    }
+    if (joinedYear !== null && leftYear !== null && leftYear < joinedYear) {
+      setModalError('Austrittsjahr darf nicht vor dem Beitrittsjahr liegen.')
+      return
+    }
+
     try {
       setSaving(true)
       setModalError(null)
