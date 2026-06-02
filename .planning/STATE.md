@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 70 geplant (7 Plaene, verifiziert)
-last_updated: "2026-06-02T14:44:36.454Z"
+stopped_at: Phase 70-01 abgeschlossen (Wave-0 Tests rot, alle 4 Dateien angelegt)
+last_updated: "2026-06-02T14:46:41.878Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
   completed_phases: 45
-  total_plans: 251
-  completed_plans: 196
+  total_plans: 252
+  completed_plans: 197
   percent: 68
 ---
 
@@ -196,6 +196,8 @@ Recent durable decisions:
 - [Phase 69-02]: CreateWithAutoMember: user_id in members bleibt NULL per Annahme A1 -- kein Mapping app_users(id)->users(id) ohne separaten Join
 - [Phase 69-02]: Extension-Methoden (CreateOrUpdate, ListByMemberID, Delete) in separate Repository-Dateien ausgelagert fuer CLAUDE.md 450-Zeilen-Limit
 - [Phase ?]: MemberResolver, OwnershipChecker, MembershipsLister als Interfaces
+- [Phase ?]: Phase 70-01: RenderHTMLWithResolver als Stub implementiert damit Wave-0-Tests kompilieren ohne Produktionscode zu veraendern
+- [Phase ?]: Phase 70-01: NewTipTapSanitizerPolicy als exportierte Hilfsfunktion in tiptap_image_stubs.go fuer White-Box-Policy-Tests
 
 ### Pending Todos
 
@@ -337,6 +339,7 @@ Recent durable decisions:
 | Phase 65 P01 | 12min | 2 tasks | 3 files |
 | Phase 65 P02 | 5min | 3 tasks | 4 files |
 | Phase 65 P03 | 10min | 2 tasks | 3 files |
+| Phase 70 P01 | 17min | 2 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -368,7 +371,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T14:44:36.429Z
-Stopped at: Phase 70 geplant (7 Plaene, verifiziert)
+Last session: 2026-06-02T14:46:41.846Z
+Stopped at: Phase 70-01 abgeschlossen (Wave-0 Tests rot, alle 4 Dateien angelegt)
 Last activity: 2026-06-02
 Resume file: None
