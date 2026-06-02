@@ -317,6 +317,16 @@ func (h *FansubAnimeContributionsHandler) UpdateAnimeContribution(c *gin.Context
 			}
 		}
 	}
+	if req.Status != nil {
+		if _, ok := validContributionStatuses[*req.Status]; !ok {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"error": gin.H{
+					"message": "ungültiger status-wert",
+				},
+			})
+			return
+		}
+	}
 
 	input := repository.AnimeContributionPatchInput{
 		RoleCodes:               req.RoleCodes,

@@ -39,8 +39,8 @@ type groupHistoryCreateRequest struct {
 }
 
 type groupHistoryPatchRequest struct {
-	Year      **int   `json:"year"`
-	EventType *string `json:"event_type"`
+	Year      **int    `json:"year"`
+	EventType *string  `json:"event_type"`
 	Title     **string `json:"title"`
 	Note      **string `json:"note"`
 	Status    *string  `json:"status"`
@@ -92,13 +92,22 @@ func (h *FansubGroupHistoryHandler) CreateGroupHistory(c *gin.Context) {
 		})
 		return
 	}
+	status, ok := normalizeHistoricalContributionStatus(req.Status)
+	if !ok {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "ungültiger status-wert",
+			},
+		})
+		return
+	}
 
 	input := repository.GroupHistoryInput{
 		Year:      req.Year,
 		EventType: req.EventType,
 		Title:     req.Title,
 		Note:      req.Note,
-		Status:    req.Status,
+		Status:    status,
 	}
 
 	item, err := h.historyRepo.Create(c.Request.Context(), fansubID, input)
@@ -149,6 +158,14 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 			})
 			return
 		}
+	}
+	if req.Status != nil && !validHistoricalContributionStatus(*req.Status) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "ungültiger status-wert",
+			},
+		})
+		return
 	}
 
 	input := repository.GroupHistoryPatchInput{

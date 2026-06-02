@@ -51,13 +51,13 @@ func (h *FansubHistGroupMemberRolesHandler) recomputeBadges(c *gin.Context, hist
 }
 
 type histGroupMemberRoleCreateRequest struct {
-	HistFansubGroupMemberID int64    `json:"hist_fansub_group_member_id"`
-	RoleCode                string   `json:"role_code"`
-	StartedYear             *int     `json:"started_year"`
-	EndedYear               *int     `json:"ended_year"`
-	Status                  string   `json:"status"`
-	Visibility              string   `json:"visibility"`
-	SourceNote              *string  `json:"source_note"`
+	HistFansubGroupMemberID int64   `json:"hist_fansub_group_member_id"`
+	RoleCode                string  `json:"role_code"`
+	StartedYear             *int    `json:"started_year"`
+	EndedYear               *int    `json:"ended_year"`
+	Status                  string  `json:"status"`
+	Visibility              string  `json:"visibility"`
+	SourceNote              *string `json:"source_note"`
 }
 
 type histGroupMemberRolePatchRequest struct {
@@ -153,6 +153,24 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 		badRequest(c, "role_code ist erforderlich")
 		return
 	}
+	status, ok := normalizeHistoricalContributionStatus(req.Status)
+	if !ok {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "ungültiger status-wert",
+			},
+		})
+		return
+	}
+	visibility, ok := normalizeHistoricalContributionVisibility(req.Visibility)
+	if !ok {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "ungültiger visibility-wert",
+			},
+		})
+		return
+	}
 
 	// Cross-Group-Guard: prüfen ob das Mitglied zur angegebenen Fansub-Gruppe gehört.
 	memberRow, err := h.histMembersRepo.GetByID(c.Request.Context(), req.HistFansubGroupMemberID)
@@ -198,8 +216,8 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 		RoleCode:                req.RoleCode,
 		StartedYear:             req.StartedYear,
 		EndedYear:               req.EndedYear,
-		Status:                  req.Status,
-		Visibility:              req.Visibility,
+		Status:                  status,
+		Visibility:              visibility,
 		SourceNote:              req.SourceNote,
 	}
 
@@ -269,6 +287,22 @@ func (h *FansubHistGroupMemberRolesHandler) UpdateHistGroupMemberRole(c *gin.Con
 	var req histGroupMemberRolePatchRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		badRequest(c, "ungültiger request body")
+		return
+	}
+	if req.Status != nil && !validHistoricalContributionStatus(*req.Status) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "ungültiger status-wert",
+			},
+		})
+		return
+	}
+	if req.Visibility != nil && !validHistoricalContributionVisibility(*req.Visibility) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "ungültiger visibility-wert",
+			},
+		})
 		return
 	}
 

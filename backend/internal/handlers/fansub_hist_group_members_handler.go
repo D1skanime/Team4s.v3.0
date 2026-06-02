@@ -49,12 +49,12 @@ func (h *FansubHistGroupMembersHandler) recomputeBadges(c *gin.Context, memberID
 }
 
 type histGroupMemberCreateRequest struct {
-	MemberID    int64   `json:"member_id"`
-	DisplayName string  `json:"display_name"`
-	JoinedYear  *int    `json:"joined_year"`
-	LeftYear    *int    `json:"left_year"`
-	Status      string  `json:"status"`
-	Visibility  string  `json:"visibility"`
+	MemberID    int64  `json:"member_id"`
+	DisplayName string `json:"display_name"`
+	JoinedYear  *int   `json:"joined_year"`
+	LeftYear    *int   `json:"left_year"`
+	Status      string `json:"status"`
+	Visibility  string `json:"visibility"`
 }
 
 type histGroupMemberPatchRequest struct {
@@ -135,14 +135,32 @@ func (h *FansubHistGroupMembersHandler) CreateHistGroupMember(c *gin.Context) {
 		badRequest(c, "display_name ist erforderlich")
 		return
 	}
+	status, ok := normalizeHistoricalContributionStatus(req.Status)
+	if !ok {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "ungültiger status-wert",
+			},
+		})
+		return
+	}
+	visibility, ok := normalizeHistoricalContributionVisibility(req.Visibility)
+	if !ok {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "ungültiger visibility-wert",
+			},
+		})
+		return
+	}
 
 	input := repository.HistGroupMemberAutoCreateInput{
 		FansubGroupID: fansubID,
 		DisplayName:   displayName,
 		JoinedYear:    req.JoinedYear,
 		LeftYear:      req.LeftYear,
-		Status:        req.Status,
-		Visibility:    req.Visibility,
+		Status:        status,
+		Visibility:    visibility,
 		CreatedBy:     &identity.AppUserID,
 	}
 
@@ -220,6 +238,22 @@ func (h *FansubHistGroupMembersHandler) UpdateHistGroupMember(c *gin.Context) {
 	var req histGroupMemberPatchRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		badRequest(c, "ungültiger request body")
+		return
+	}
+	if req.Status != nil && !validHistoricalContributionStatus(*req.Status) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "ungültiger status-wert",
+			},
+		})
+		return
+	}
+	if req.Visibility != nil && !validHistoricalContributionVisibility(*req.Visibility) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "ungültiger visibility-wert",
+			},
+		})
 		return
 	}
 
