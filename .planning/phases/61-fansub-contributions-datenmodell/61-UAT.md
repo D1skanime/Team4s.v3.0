@@ -15,17 +15,18 @@ updated: 2026-06-02T14:33:00+02:00
 
 ## Tests
 
-### 1. Live Browser Smoke
-expected: The local frontend loads in a real browser without client-side crashes, failed requests, or console errors.
+### 1. Automated Headless Browser Smoke
+expected: The local frontend loads in Playwright Chromium without client-side crashes, failed requests, or console errors.
 result: pass
 evidence:
   - URL: http://127.0.0.1:3000/
   - HTTP status: 200
-  - Browser: Playwright Chromium, 1440x1000 viewport
+  - Browser: Playwright Chromium, headless mode, 1440x1000 viewport
   - Console errors: 0
   - Page errors: 0
   - Failed requests: 0
   - Screenshot: phase61-browser-smoke-home.png
+  - Note: This was not a visible Codex Webbrowser UAT with manual click navigation.
 
 ### 2. Phase 61 Schema Applies From Current Baseline
 expected: Starting from the current live schema baseline at migration 80, the Phase 61 schema migrations apply cleanly and create the expected tables, role seeds, NOT NULL contribution member link, and key constraints.

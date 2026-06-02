@@ -48,7 +48,7 @@ Existing infrastructure covers all Phase 61 requirements.
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Live frontend browser smoke | Phase readiness | Phase 61 is schema-only; browser smoke verifies no obvious local app regression but does not inspect DB internals | See `61-UAT.md`, Test 1 |
+| Automated headless frontend browser smoke | Phase readiness | Phase 61 is schema-only; headless browser smoke verifies no obvious local app regression but does not replace visible Codex Webbrowser UAT | See `61-UAT.md`, Test 1 |
 
 ## Validation Audit 2026-06-02
 
