@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   type FormEvent,
+  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -27,7 +28,6 @@ import {
   createFansubAlias,
   createFansubLink,
   deleteFansubAlias,
-  deleteFansubGroup,
   deleteFansubLink,
   deleteAdminReleaseThemeAsset,
   getAdminFansubAnime,
@@ -36,18 +36,20 @@ import {
   getAdminAnimeThemeSegments,
   getAdminRelease,
   getAdminReleaseThemeAssets,
+  getCurrentUser,
   getFansubAliases,
   getFansubByID,
+  getFansubGroupCapabilities,
   getFansubList,
   resolveApiUrl,
   updateFansubGroup,
   updateFansubLink,
   uploadAdminReleaseThemeAssetForRelease,
 } from "@/lib/api";
-import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { useAuthSession } from "@/lib/useAuthSession";
 import {
   FansubAlias,
+  FansubGroupCapabilities,
   FansubGroup,
   FansubGroupLink,
   FansubGroupLinkType,
@@ -68,8 +70,20 @@ import {
   EditableMediaValue,
   MediaUpload,
 } from "@/components/admin/MediaUpload";
+import {
+  Badge,
+  Button,
+  Card,
+  FormField,
+  Input,
+  Modal,
+  Select,
+  YearPicker,
+} from "@/components/ui";
 import { AnimeProjectNotesSection } from "./AnimeProjectNotesSection";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
+import { GroupMembersTab } from "./GroupMembersTab";
+import { MemberRolesTab } from "./MemberRolesTab";
 import { NotesTab } from "./NotesTab";
 import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
 import sharedStyles from "../../../admin.module.css";
@@ -87,7 +101,7 @@ const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = [
 ];
 const INITIAL_RELEASE_BATCH_SIZE = 5;
 const YEAR_MIN = 1900;
-const YEAR_MAX = 2100;
+const YEAR_MAX = new Date().getFullYear();
 const URL_PROTOCOLS = new Set(["http:", "https:", "irc:", "ircs:"]);
 
 type SectionKey =
@@ -97,7 +111,9 @@ type SectionKey =
   | "collaboration"
   | "releases"
   | "anime-projekte"
-  | "notes";
+  | "notes"
+  | "mitglieder"
+  | "rollen";
 type MainTab = SectionKey;
 type FormState = {
   name: string;
@@ -164,6 +180,8 @@ const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: "notes", label: "Gruppengeschichte" },
   { key: "media", label: "Medien" },
   { key: "collaboration", label: "Mitglieder" },
+  { key: "mitglieder", label: "Mitglieder" },
+  { key: "rollen", label: "Rollen/Timeline" },
   { key: "releases", label: "Anime & Veröffentlichungen" },
   { key: "anime-projekte", label: "Anime-Einblicke" },
 ];
@@ -459,12 +477,12 @@ function formToPayload(
   form: FormState,
   logo: EditableMediaValue | null,
   banner: EditableMediaValue | null,
+  options: { includeSlug: boolean },
 ): FansubGroupPatchRequest {
   const founded = parseYear(form.foundedYear);
   const dissolved = parseYear(form.dissolvedYear);
-  return {
+  const payload: FansubGroupPatchRequest = {
     name: form.name.trim(),
-    slug: form.slug.trim(),
     status: form.status,
     group_type: form.groupType,
     country: toOptional(form.country),
@@ -475,6 +493,10 @@ function formToPayload(
     logo_url: logo?.publicURL?.trim() ? logo.publicURL.trim() : null,
     banner_url: banner?.publicURL?.trim() ? banner.publicURL.trim() : null,
   };
+  if (options.includeSlug) {
+    payload.slug = form.slug.trim();
+  }
+  return payload;
 }
 
 function emptyForm(): FormState {
@@ -687,9 +709,162 @@ async function syncFansubLinks(
   }
 }
 
-function AdminFansubEditContent() {
-  const params = useParams<{ id: string }>();
-  const fansubID = Number.parseInt((params.id || "").trim(), 10);
+function hasFansubWorkspaceAccess(
+  capabilities: FansubGroupCapabilities | null,
+): boolean {
+  if (!capabilities) return false;
+  return Object.values(capabilities).some(Boolean);
+}
+
+type FansubEditAccessContext = {
+  isPlatformAdmin: boolean;
+};
+
+function readFansubIDFromParams(params?: { id?: string }): number {
+  return Number.parseInt((params?.id || "").trim(), 10);
+}
+
+function FansubEditAccessGate({
+  children,
+  fansubID,
+}: {
+  children: (context: FansubEditAccessContext) => ReactNode;
+  fansubID: number;
+}) {
+  const { hasAccessToken, hasRefreshToken, isClientInitialized } =
+    useAuthSession();
+  const hasAuthSession = hasAccessToken || hasRefreshToken;
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAllowed, setIsAllowed] = useState(false);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isClientInitialized) return;
+
+    let cancelled = false;
+    async function resolveAccess() {
+      if (!hasAuthSession) {
+        if (!cancelled) {
+          setIsAllowed(false);
+          setIsPlatformAdmin(false);
+          setIsLoading(false);
+          setErrorMessage("Anmeldung erforderlich.");
+        }
+        return;
+      }
+
+      if (!Number.isFinite(fansubID) || fansubID <= 0) {
+        if (!cancelled) {
+          setIsAllowed(false);
+          setIsPlatformAdmin(false);
+          setIsLoading(false);
+          setErrorMessage("Ungültige Fansub-ID.");
+        }
+        return;
+      }
+
+      setIsLoading(true);
+      setErrorMessage(null);
+      try {
+        const currentUserResponse = await getCurrentUser();
+        if (currentUserResponse.data.is_platform_admin) {
+          if (!cancelled) {
+            setIsAllowed(true);
+            setIsPlatformAdmin(true);
+          }
+          return;
+        }
+
+        const capabilitiesResponse =
+          await getFansubGroupCapabilities(fansubID);
+        if (!cancelled) {
+          setIsPlatformAdmin(false);
+          setIsAllowed(hasFansubWorkspaceAccess(capabilitiesResponse.data));
+        }
+      } catch (error: unknown) {
+        if (!cancelled) {
+          setIsAllowed(false);
+          setIsPlatformAdmin(false);
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Berechtigung konnte nicht geprüft werden.",
+          );
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    void resolveAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fansubID, hasAuthSession, isClientInitialized]);
+
+  if (isLoading || !isClientInitialized) {
+    return (
+      <main style={{ padding: 32 }}>
+        <p>Berechtigungen werden geladen...</p>
+      </main>
+    );
+  }
+
+  if (!isAllowed) {
+    return (
+      <main style={{ padding: 32, display: "grid", gap: 16 }}>
+        <p>
+          Du hast für diese Fansub-Gruppe keinen Zugriff auf den
+          Arbeitsbereich.
+        </p>
+        {errorMessage ? <p>{errorMessage}</p> : null}
+        <p>
+          <Link href="/manage/groups">Zu Meine Gruppen</Link>
+          <span> | </span>
+          <Link href="/login">Zur Anmeldung</Link>
+        </p>
+      </main>
+    );
+  }
+
+  return <>{children({ isPlatformAdmin })}</>;
+}
+
+function YearSelectField({
+  error,
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  error?: string | null;
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <YearPicker
+      id={id}
+      label={label}
+      value={value}
+      minYear={YEAR_MIN}
+      maxYear={YEAR_MAX}
+      invalid={Boolean(error)}
+      onChange={onChange}
+    />
+  );
+}
+
+function AdminFansubEditContent({
+  fansubID,
+  isPlatformAdmin,
+}: {
+  fansubID: number;
+  isPlatformAdmin: boolean;
+}) {
   const [group, setGroup] = useState<FansubGroup | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [initialForm, setInitialForm] = useState<FormState>(emptyForm);
@@ -756,6 +931,7 @@ function AdminFansubEditContent() {
   const [drawerUploadProgress, setDrawerUploadProgress] = useState<
     number | null
   >(null);
+  const [themePreviewOpen, setThemePreviewOpen] = useState(false);
   const [drawerError, setDrawerError] = useState<string | null>(null);
   const [themeUploadName, setThemeUploadName] = useState("");
   const [manualSlug, setManualSlug] = useState(false);
@@ -769,11 +945,12 @@ function AdminFansubEditContent() {
       releases: true,
       "anime-projekte": true,
       notes: true,
+      mitglieder: true,
+      rollen: true,
     },
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [aliasBusy, setAliasBusy] = useState(false);
   const [logoMedia, setLogoMedia] = useState<EditableMediaValue | null>(null);
   const [bannerMedia, setBannerMedia] = useState<EditableMediaValue | null>(
@@ -807,7 +984,21 @@ function AdminFansubEditContent() {
   const themeDrawerMutationSeqRef = useRef(0);
   const themeDrawerOpenRef = useRef(false);
   const themeDrawerSelectionKeyRef = useRef<string | null>(null);
-  const { hasAccessToken, isClientInitialized } = useAuthSession();
+  const { hasAccessToken, hasRefreshToken, isClientInitialized } =
+    useAuthSession();
+  const hasAuthSession = hasAccessToken || hasRefreshToken;
+
+  const handleLogoMediaBusyChange = useCallback((isBusy: boolean) => {
+    setMediaBusy((current) =>
+      current.logo === isBusy ? current : { ...current, logo: isBusy },
+    );
+  }, []);
+
+  const handleBannerMediaBusyChange = useCallback((isBusy: boolean) => {
+    setMediaBusy((current) =>
+      current.banner === isBusy ? current : { ...current, banner: isBusy },
+    );
+  }, []);
 
   const invalidateReleaseWorkspaceRequests = useCallback(() => {
     releaseRequestSeqRef.current += 1;
@@ -840,6 +1031,7 @@ function AdminFansubEditContent() {
     setDrawerReleaseError(null);
     setDrawerError(null);
     setDrawerUploadProgress(null);
+    setThemePreviewOpen(false);
     setDrawerBusy(false);
     themeDrawerMutationSeqRef.current += 1;
     if (themeUploadInputRef.current) {
@@ -908,7 +1100,7 @@ function AdminFansubEditContent() {
   }, [fansubID]);
 
   useEffect(() => {
-    if (!Number.isFinite(fansubID) || fansubID <= 0 || !hasAccessToken) {
+    if (!Number.isFinite(fansubID) || fansubID <= 0 || !hasAuthSession) {
       setReleaseGroups([]);
       setReleaseGroupsError(null);
       setReleaseGroupsLoading(false);
@@ -945,18 +1137,24 @@ function AdminFansubEditContent() {
       invalidateReleaseWorkspaceRequests();
     };
   }, [
-    hasAccessToken,
+    hasAuthSession,
     fansubID,
     resetReleaseWorkspaceState,
     invalidateReleaseWorkspaceRequests,
   ]);
 
   useEffect(() => {
+    if (!isPlatformAdmin) return;
     if (manualSlug) return;
     setForm((current) => ({ ...current, slug: slugify(current.name) }));
-  }, [form.name, manualSlug]);
+  }, [form.name, isPlatformAdmin, manualSlug]);
 
   useEffect(() => {
+    if (!isPlatformAdmin) {
+      setSlugChecking(false);
+      setSlugConflict(false);
+      return;
+    }
     const slug = form.slug.trim();
     if (!slug || !isValidSlug(slug)) {
       setSlugChecking(false);
@@ -984,7 +1182,7 @@ function AdminFansubEditContent() {
       active = false;
       window.clearTimeout(timeout);
     };
-  }, [fansubID, form.slug]);
+  }, [fansubID, form.slug, isPlatformAdmin]);
 
   useEffect(() => {
     if (!toast) return;
@@ -1035,7 +1233,9 @@ function AdminFansubEditContent() {
         : null;
   const slugValue = form.slug.trim();
   const slugFormatError =
-    slugValue.length === 0
+    !isPlatformAdmin
+      ? null
+      : slugValue.length === 0
       ? "Slug ist erforderlich."
       : !isValidSlug(slugValue)
         ? "Slug muss lowercase kebab-case sein."
@@ -1065,15 +1265,15 @@ function AdminFansubEditContent() {
   );
   const anyMediaBusy = mediaBusy.logo || mediaBusy.banner;
   const invalid =
-    !hasAccessToken ||
+    !hasAuthSession ||
     Boolean(nameError) ||
-    Boolean(slugFormatError) ||
-    slugConflict ||
+    (isPlatformAdmin && Boolean(slugFormatError)) ||
+    (isPlatformAdmin && slugConflict) ||
     Boolean(foundedError) ||
     Boolean(dissolvedError) ||
     Boolean(dissolvedAfterFoundedError) ||
     linkErrors.some(Boolean) ||
-    slugChecking ||
+    (isPlatformAdmin && slugChecking) ||
     anyMediaBusy;
   const isSectionOpen = (section: SectionKey): boolean =>
     isMobile ? openSections[section] : true;
@@ -1094,6 +1294,7 @@ function AdminFansubEditContent() {
     setDrawerError(null);
     setDrawerBusy(false);
     setDrawerUploadProgress(null);
+    setThemePreviewOpen(false);
     clearThemeUploadInput();
   };
 
@@ -1115,7 +1316,7 @@ function AdminFansubEditContent() {
     release: AdminFansubRelease,
     force = false,
   ): Promise<ReleaseSegmentCard[] | null> => {
-    if (!hasAccessToken) return null;
+    if (!hasAuthSession) return null;
     const releaseID = release.release_id;
     if (
       !force &&
@@ -1208,13 +1409,13 @@ function AdminFansubEditContent() {
     setDrawerBusy(false);
     resetThemeDrawerTransientState();
     setDrawerReleaseError(null);
-    setDrawerReleaseLoading(hasAccessToken);
+    setDrawerReleaseLoading(hasAuthSession);
     setExpandedReleaseIds((current) =>
       new Set(current).add(release.release_id),
     );
     void loadReleaseSegmentCards(release);
 
-    if (!hasAccessToken) {
+    if (!hasAuthSession) {
       setDrawerReleaseLoading(false);
       return;
     }
@@ -1238,7 +1439,7 @@ function AdminFansubEditContent() {
     releaseGroup: FansubReleaseGroup,
     force = false,
   ) => {
-    if (!Number.isFinite(fansubID) || fansubID <= 0 || !hasAccessToken) return;
+    if (!Number.isFinite(fansubID) || fansubID <= 0 || !hasAuthSession) return;
     const contextKey = releaseGroup.key;
     if (
       !force &&
@@ -1384,7 +1585,7 @@ function AdminFansubEditContent() {
   }, [releaseSegmentCards, selectedReleaseSegment]);
 
   const handleDrawerUpload = async (file: File | null) => {
-    if (!file || !selectedReleaseSegment || !hasAccessToken) return;
+    if (!file || !selectedReleaseSegment || !hasAuthSession) return;
     const release = selectedReleaseSegment.release;
     const themeID = selectedReleaseSegment.card.theme_id;
     const selectionKey = releaseThemeSelectionKey(release.release_id, themeID);
@@ -1462,7 +1663,7 @@ function AdminFansubEditContent() {
   const handleDrawerDelete = async () => {
     if (
       !selectedReleaseSegment ||
-      !hasAccessToken ||
+      !hasAuthSession ||
       !selectedReleaseSegment.card.media_id
     )
       return;
@@ -1497,7 +1698,7 @@ function AdminFansubEditContent() {
 
   const addAlias = async () => {
     const value = aliasInput.trim();
-    if (!value || !hasAccessToken) return;
+    if (!value || !hasAuthSession) return;
     if (
       aliases.some((item) => item.alias.toLowerCase() === value.toLowerCase())
     ) {
@@ -1522,7 +1723,7 @@ function AdminFansubEditContent() {
   };
 
   const removeAlias = async (alias: FansubAlias) => {
-    if (!hasAccessToken) return;
+    if (!hasAuthSession) return;
     setAliasBusy(true);
     setAliasError(null);
     try {
@@ -1537,13 +1738,15 @@ function AdminFansubEditContent() {
 
   const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!hasAccessToken || invalid) return;
+    if (!hasAuthSession || invalid) return;
     setSaving(true);
     setError(null);
     try {
       await updateFansubGroup(
         fansubID,
-        formToPayload(form, logoMedia, bannerMedia),
+        formToPayload(form, logoMedia, bannerMedia, {
+          includeSlug: isPlatformAdmin,
+        }),
       );
       await syncFansubLinks(fansubID, initialLinks, links);
       const response = await getFansubByID(fansubID);
@@ -1565,24 +1768,6 @@ function AdminFansubEditContent() {
       setError(errMessage(nextError));
     } finally {
       setSaving(false);
-    }
-  };
-
-  const removeGroup = async () => {
-    if (!group || !hasAccessToken) return;
-    if (
-      !window.confirm(
-        "Fansub löschen? Episoden bleiben erhalten, Zuordnung wird entfernt.",
-      )
-    )
-      return;
-    setDeleting(true);
-    try {
-      await deleteFansubGroup(group.id);
-      window.location.href = "/admin/fansubs";
-    } catch (nextError) {
-      setError(errMessage(nextError));
-      setDeleting(false);
     }
   };
 
@@ -1685,6 +1870,19 @@ function AdminFansubEditContent() {
         ? "Theme-Assets vorhanden"
         : "Keine Theme-Assets";
   const themePrimarySegment = themeSelectedCard?.segments[0] ?? null;
+  const themeAssetPreviewUrl = themeSelectedCard?.public_url
+    ? resolveApiUrl(themeSelectedCard.public_url)
+    : null;
+  const themePreviewDescription =
+    selectedReleaseSegment && themeSelectedCard
+      ? `${episodeReleaseTitle(selectedReleaseSegment.release)} · ${timelineLabelFor(themeSelectedCard.theme_type_name)}`
+      : undefined;
+  const drawerUploadStatusLabel =
+    drawerUploadProgress === null
+      ? null
+      : drawerUploadProgress >= 100
+        ? "Upload angekommen, wird gespeichert..."
+        : `Upload: ${drawerUploadProgress}%`;
   const tabUsesLeftWorkspace = activeMainTab === "basic";
   const tabUsesRightWorkspace =
     activeMainTab === "media" ||
@@ -1697,6 +1895,118 @@ function AdminFansubEditContent() {
         { key: "media" as const, label: "Media", disabled: false },
       ]
     : [];
+  const communityLinksList = (
+    <div className={styles.fansubEditLinksList}>
+      {links.map((link, index) => {
+        const url = link.url.trim();
+        const urlError = linkErrors[index];
+        return (
+          <div key={link.key} className={styles.fansubEditLinkRow}>
+            <FormField label="Typ" htmlFor={`community-link-type-${link.key}`}>
+              <Select
+                id={`community-link-type-${link.key}`}
+                value={link.link_type}
+                onChange={(event) =>
+                  setLinks((current) =>
+                    current.map((item) =>
+                      item.key === link.key
+                        ? {
+                            ...item,
+                            link_type: event.target
+                              .value as FansubGroupLinkType,
+                          }
+                        : item,
+                    ),
+                  )
+                }
+              >
+                {LINK_TYPE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+            <FormField
+              label="Name"
+              htmlFor={`community-link-name-${link.key}`}
+            >
+              <Input
+                id={`community-link-name-${link.key}`}
+                value={link.name}
+                onChange={(event) =>
+                  setLinks((current) =>
+                    current.map((item) =>
+                      item.key === link.key
+                        ? {
+                            ...item,
+                            name: event.target.value,
+                          }
+                        : item,
+                    ),
+                  )
+                }
+                placeholder="Optionaler Anzeigename"
+              />
+            </FormField>
+            <FormField
+              label="URL"
+              htmlFor={`community-link-url-${link.key}`}
+              error={urlError || undefined}
+            >
+              <div className={styles.fansubEditLinkInput}>
+                <Input
+                  id={`community-link-url-${link.key}`}
+                  value={link.url}
+                  invalid={Boolean(urlError)}
+                  onChange={(event) =>
+                    setLinks((current) =>
+                      current.map((item) =>
+                        item.key === link.key
+                          ? {
+                              ...item,
+                              url: event.target.value,
+                            }
+                          : item,
+                      ),
+                    )
+                  }
+                  placeholder="https://..."
+                />
+                {url && !urlError ? (
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    iconOnly
+                    aria-label="Link öffnen"
+                    onClick={() => window.open(url, "_blank", "noreferrer")}
+                    leftIcon={<ExternalLink size={14} />}
+                  />
+                ) : null}
+              </div>
+            </FormField>
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              iconOnly
+              className={styles.fansubEditLinkRemoveButton}
+              aria-label="Link entfernen"
+              onClick={() =>
+                setLinks((current) =>
+                  current.length === 1
+                    ? [createEmptyLink()]
+                    : current.filter((item) => item.key !== link.key),
+                )
+              }
+              leftIcon={<Trash2 size={14} />}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <main className={styles.page}>
@@ -1794,9 +2104,11 @@ function AdminFansubEditContent() {
                   {labelForFansubStatus(form.status)}
                 </span>
               </div>
-              <p className={styles.fansubEditUrlPreview}>
-                /fansubs/{form.slug.trim() || "slug"}
-              </p>
+              {isPlatformAdmin ? (
+                <p className={styles.fansubEditUrlPreview}>
+                  /fansubs/{form.slug.trim() || "slug"}
+                </p>
+              ) : null}
             </div>
           </div>
           <nav
@@ -1818,45 +2130,27 @@ function AdminFansubEditContent() {
 
         {activeMainTab !== "releases" &&
         activeMainTab !== "anime-projekte" &&
-        activeMainTab !== "notes" ? (
+        activeMainTab !== "notes" &&
+        activeMainTab !== "mitglieder" &&
+        activeMainTab !== "rollen" ? (
           <form className={styles.fansubEditForm} onSubmit={save}>
-            <div className={styles.fansubEditStickyActions}>
-              <button
-                type="submit"
-                className={styles.button}
-                disabled={invalid || saving || deleting}
-              >
-                <Save size={14} />
-                {saving ? "Speichern..." : "Speichern"}
-              </button>
-              <button
-                type="button"
-                className={styles.buttonSecondary}
-                onClick={() =>
-                  dirty &&
-                  !window.confirm("Ungespeicherte Änderungen verwerfen?")
-                    ? undefined
-                    : (window.location.href = "/admin/fansubs")
-                }
-              >
-                <X size={14} />
-                Abbrechen
-              </button>
-              <button
-                type="button"
-                className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
-                onClick={() => void removeGroup()}
-                disabled={saving || deleting}
-              >
-                <Trash2 size={14} />
-                {deleting ? "Loesche..." : "Löschen"}
-              </button>
-            </div>
+            {activeMainTab !== "collaboration" ? (
+              <div className={styles.fansubEditStickyActions}>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={invalid || saving}
+                  loading={saving}
+                  leftIcon={<Save size={14} />}
+                >
+                  {saving ? "Speichern..." : "Speichern"}
+                </Button>
+              </div>
+            ) : null}
             {error ? <div className={styles.errorBox}>{error}</div> : null}
-            {isClientInitialized && !hasAccessToken ? (
+            {isClientInitialized && !hasAuthSession ? (
               <div className={styles.errorBox}>
-                Anmeldung erforderlich. Bitte zuerst auf /auth ein gültiges
-                Token erstellen.
+                Anmeldung erforderlich. Bitte zuerst anmelden.
               </div>
             ) : null}
 
@@ -1881,13 +2175,13 @@ function AdminFansubEditContent() {
                               Profil
                             </p>
                             <h3 className={styles.fansubEditBasicTitle}>
-                              Redaktionelle Kerndaten
+                              Fansubgruppe bearbeiten
                             </h3>
                             <p className={styles.fansubEditHint}>
-                              Name, Slug und zeitliche Einordnung der
-                              Fansub-Gruppe. Der Gruppentyp ist hier bewusst
-                              ausgeblendet, weil dieser Bereich ausschließlich
-                              reguläre Gruppen pflegt.
+                              Name und zeitliche Einordnung der Fansubgruppe.
+                              Der Name wird zentral am Gruppendatensatz
+                              gespeichert und in verknüpften Ansichten über
+                              die Gruppen-ID wiederverwendet.
                             </p>
                           </div>
                           <div className={styles.fansubEditBasicStatusCard}>
@@ -1900,13 +2194,14 @@ function AdminFansubEditContent() {
                             <div
                               className={`${styles.field} ${styles.fansubEditBasicField} ${styles.fansubEditBasicFieldWide}`}
                             >
-                              <label>
-                                Name{" "}
+                              <label htmlFor="fansub-group-name">
+                                Fansubgruppen-Name{" "}
                                 <span className={styles.fansubEditRequired}>
                                   *
                                 </span>
                               </label>
                               <input
+                                id="fansub-group-name"
                                 value={form.name}
                                 onChange={(e) =>
                                   setForm((c) => ({
@@ -1929,10 +2224,11 @@ function AdminFansubEditContent() {
                                 </p>
                               ) : null}
                             </div>
-                            <div
-                              className={`${styles.field} ${styles.fansubEditBasicField} ${styles.fansubEditBasicFieldWide}`}
-                            >
-                              <label>
+                            {isPlatformAdmin ? (
+                              <div
+                                className={`${styles.field} ${styles.fansubEditBasicField} ${styles.fansubEditBasicFieldWide}`}
+                              >
+                              <label htmlFor="fansub-group-slug">
                                 Slug{" "}
                                 <span className={styles.fansubEditRequired}>
                                   *
@@ -1940,6 +2236,7 @@ function AdminFansubEditContent() {
                               </label>
                               <div className={styles.fansubEditSlugRow}>
                                 <input
+                                  id="fansub-group-slug"
                                   value={form.slug}
                                   onChange={(e) => {
                                     setManualSlug(true);
@@ -1957,9 +2254,10 @@ function AdminFansubEditContent() {
                                       : undefined
                                   }
                                 />
-                                <button
+                                <Button
                                   type="button"
-                                  className={styles.buttonSecondary}
+                                  variant="secondary"
+                                  size="sm"
                                   onClick={() => {
                                     setManualSlug(false);
                                     setForm((c) => ({
@@ -1969,7 +2267,7 @@ function AdminFansubEditContent() {
                                   }}
                                 >
                                   Auto
-                                </button>
+                                </Button>
                               </div>
                               {slugChecking ? (
                                 <p className={styles.fansubEditHint}>
@@ -1986,17 +2284,19 @@ function AdminFansubEditContent() {
                                   Slug ist bereits vergeben.
                                 </p>
                               ) : null}
-                            </div>
+                              </div>
+                            ) : null}
                             <div
                               className={`${styles.field} ${styles.fansubEditBasicField}`}
                             >
-                              <label>
+                              <label htmlFor="fansub-group-status">
                                 Status{" "}
                                 <span className={styles.fansubEditRequired}>
                                   *
                                 </span>
                               </label>
                               <select
+                                id="fansub-group-status"
                                 value={form.status}
                                 onChange={(e) =>
                                   setForm((c) => ({
@@ -2015,8 +2315,9 @@ function AdminFansubEditContent() {
                             <div
                               className={`${styles.field} ${styles.fansubEditBasicField}`}
                             >
-                              <label>Land</label>
+                              <label htmlFor="fansub-group-country">Land</label>
                               <input
+                                id="fansub-group-country"
                                 value={form.country}
                                 onChange={(e) =>
                                   setForm((c) => ({
@@ -2030,25 +2331,19 @@ function AdminFansubEditContent() {
                             <div
                               className={`${styles.field} ${styles.fansubEditBasicField}`}
                             >
-                              <label>Gründungsjahr</label>
-                              <input
-                                type="number"
-                                min={YEAR_MIN}
-                                max={YEAR_MAX}
-                                inputMode="numeric"
+                              <label htmlFor="fansub-group-founded-year">
+                                Gründungsjahr
+                              </label>
+                              <YearSelectField
+                                id="fansub-group-founded-year"
+                                label="Gründungsjahr"
                                 value={form.foundedYear}
-                                onChange={(e) =>
-                                  setForm((c) => ({
-                                    ...c,
-                                    foundedYear: e.target.value,
+                                error={foundedError}
+                                onChange={(value) =>
+                                  setForm((current) => ({
+                                    ...current,
+                                    foundedYear: value,
                                   }))
-                                }
-                                placeholder="YYYY"
-                                aria-invalid={Boolean(foundedError)}
-                                className={
-                                  foundedError
-                                    ? styles.fansubEditInputInvalid
-                                    : undefined
                                 }
                               />
                               {foundedError ? (
@@ -2060,28 +2355,21 @@ function AdminFansubEditContent() {
                             <div
                               className={`${styles.field} ${styles.fansubEditBasicField}`}
                             >
-                              <label>Auflösungsjahr</label>
-                              <input
-                                type="number"
-                                min={YEAR_MIN}
-                                max={YEAR_MAX}
-                                inputMode="numeric"
+                              <label htmlFor="fansub-group-dissolved-year">
+                                Auflösungsjahr
+                              </label>
+                              <YearSelectField
+                                id="fansub-group-dissolved-year"
+                                label="Auflösungsjahr"
                                 value={form.dissolvedYear}
-                                onChange={(e) =>
-                                  setForm((c) => ({
-                                    ...c,
-                                    dissolvedYear: e.target.value,
-                                  }))
-                                }
-                                placeholder="YYYY"
-                                aria-invalid={
-                                  Boolean(dissolvedError) ||
-                                  Boolean(dissolvedAfterFoundedError)
-                                }
-                                className={
+                                error={
                                   dissolvedError || dissolvedAfterFoundedError
-                                    ? styles.fansubEditInputInvalid
-                                    : undefined
+                                }
+                                onChange={(value) =>
+                                  setForm((current) => ({
+                                    ...current,
+                                    dissolvedYear: value,
+                                  }))
                                 }
                               />
                               {dissolvedError ? (
@@ -2093,228 +2381,114 @@ function AdminFansubEditContent() {
                           </div>
                         </div>
                         <div className={styles.fansubEditBasicSupplementGrid}>
-                          <div className={styles.fansubEditBasicSupplement}>
-                            <div
-                              className={styles.fansubEditBasicSupplementHeader}
-                            >
-                              <div>
-                                <p className={styles.fansubEditBasicEyebrow}>
-                                  Aliase
-                                </p>
-                                <h4
-                                  className={
-                                    styles.fansubEditBasicSupplementTitle
-                                  }
-                                >
-                                  Tags / Aliase direkt am Gruppennamen pflegen
-                                </h4>
-                                <p className={styles.fansubEditHint}>
-                                  Alternative Gruppennamen gehören in denselben
-                                  Pflegefluss wie Name und Slug.
-                                </p>
-                              </div>
-                            </div>
-                            <div
-                              className={styles.fansubEditBasicSupplementBody}
-                            >
-                              <div className={styles.inputRow}>
-                                <input
-                                  value={aliasInput}
-                                  onChange={(e) => {
-                                    setAliasInput(e.target.value);
-                                    setAliasError(null);
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      e.preventDefault();
-                                      void addAlias();
-                                    }
-                                  }}
-                                  placeholder="Alias hinzufügen"
-                                />
-                                <button
-                                  type="button"
-                                  className={styles.buttonSecondary}
-                                  onClick={() => void addAlias()}
-                                  disabled={aliasBusy}
-                                >
-                                  Hinzufügen
-                                </button>
-                              </div>
-                              {aliasError ? (
-                                <p className={styles.fansubEditInlineError}>
-                                  {aliasError}
-                                </p>
-                              ) : null}
-                              <div className={styles.chipBox}>
-                                <div className={styles.chipRow}>
+                          <Card
+                            variant="section"
+                            className={styles.fansubEditAliasCard}
+                            title="Aliase"
+                            description="Alternative Gruppennamen gehören direkt zu den Stammdaten der Gruppe."
+                          >
+                            <div className={styles.fansubEditAliasBody}>
+                              <FormField
+                                label="Alias"
+                                htmlFor="fansub-group-alias-input"
+                                error={aliasError || undefined}
+                              >
+                                <div className={styles.fansubEditAliasControls}>
+                                  <Input
+                                    id="fansub-group-alias-input"
+                                    value={aliasInput}
+                                    invalid={Boolean(aliasError)}
+                                    onChange={(e) => {
+                                      setAliasInput(e.target.value);
+                                      setAliasError(null);
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        void addAlias();
+                                      }
+                                    }}
+                                    placeholder="Alias hinzufügen"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="secondary"
+                                    leftIcon={<Plus size={14} />}
+                                    onClick={() => void addAlias()}
+                                    disabled={aliasBusy}
+                                  >
+                                    Hinzufügen
+                                  </Button>
+                                </div>
+                              </FormField>
+                              <div className={styles.fansubEditAliasBadgeBox}>
+                                <div className={styles.fansubEditAliasBadgeRow}>
                                   {aliases.map((alias) => (
-                                    <button
+                                    <span
                                       key={alias.id}
-                                      type="button"
-                                      className={`${styles.chip} ${styles.aliasChipDanger}`}
-                                      onClick={() => void removeAlias(alias)}
-                                      disabled={aliasBusy}
+                                      className={styles.fansubEditAliasBadgeItem}
                                     >
-                                      {alias.alias} x
-                                    </button>
+                                      <Badge variant="muted">
+                                        {alias.alias}
+                                      </Badge>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        iconOnly
+                                        aria-label={`Alias ${alias.alias} entfernen`}
+                                        onClick={() => void removeAlias(alias)}
+                                        disabled={aliasBusy}
+                                        leftIcon={<X size={14} />}
+                                      />
+                                    </span>
                                   ))}
                                 </div>
                               </div>
                             </div>
-                          </div>
-                          <div className={styles.fansubEditBasicSupplement}>
-                            <div
-                              className={styles.fansubEditBasicSupplementHeader}
-                            >
-                              <div>
-                                <p className={styles.fansubEditBasicEyebrow}>
-                                  Community
-                                </p>
-                                <h4
-                                  className={
-                                    styles.fansubEditBasicSupplementTitle
+                          </Card>
+                          <Card
+                            variant="section"
+                            className={styles.fansubEditCommunityCard}
+                            header={
+                              <>
+                                <div>
+                                  <p className={styles.fansubEditBasicEyebrow}>
+                                    Community
+                                  </p>
+                                  <h4
+                                    className={
+                                      styles.fansubEditBasicSupplementTitle
+                                    }
+                                  >
+                                    Community-Links
+                                  </h4>
+                                  <p className={styles.fansubEditHint}>
+                                    Website, Discord oder Social-Profile der
+                                    Gruppe.
+                                  </p>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  leftIcon={<Plus size={14} />}
+                                  onClick={() =>
+                                    setLinks((current) => [
+                                      ...current,
+                                      createEmptyLink(),
+                                    ])
                                   }
                                 >
-                                  Community-Links direkt im Profil pflegen
-                                </h4>
-                                <p className={styles.fansubEditHint}>
-                                  Website, Discord oder Social-Profile gehören
-                                  direkt neben die Stammdaten der Gruppe.
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                className={styles.buttonSecondary}
-                                onClick={() =>
-                                  setLinks((current) => [
-                                    ...current,
-                                    createEmptyLink(),
-                                  ])
-                                }
-                              >
-                                <Plus size={14} />
-                                Link hinzufügen
-                              </button>
+                                  Link hinzufügen
+                                </Button>
+                              </>
+                            }
+                          >
+                            <div className={styles.fansubEditCommunityBody}>
+                              {communityLinksList}
                             </div>
-                            <div
-                              className={styles.fansubEditBasicSupplementBody}
-                            >
-                              <div className={styles.fansubEditLinksList}>
-                                {links.map((link, index) => {
-                                  const url = link.url.trim();
-                                  const urlError = linkErrors[index];
-                                  return (
-                                    <div
-                                      key={link.key}
-                                      className={styles.fansubEditLinkRow}
-                                    >
-                                      <select
-                                        value={link.link_type}
-                                        onChange={(event) =>
-                                          setLinks((current) =>
-                                            current.map((item) =>
-                                              item.key === link.key
-                                                ? {
-                                                    ...item,
-                                                    link_type: event.target
-                                                      .value as FansubGroupLinkType,
-                                                  }
-                                                : item,
-                                            ),
-                                          )
-                                        }
-                                      >
-                                        {LINK_TYPE_OPTIONS.map((option) => (
-                                          <option key={option} value={option}>
-                                            {option}
-                                          </option>
-                                        ))}
-                                      </select>
-                                      <input
-                                        value={link.name}
-                                        onChange={(event) =>
-                                          setLinks((current) =>
-                                            current.map((item) =>
-                                              item.key === link.key
-                                                ? {
-                                                    ...item,
-                                                    name: event.target.value,
-                                                  }
-                                                : item,
-                                            ),
-                                          )
-                                        }
-                                        placeholder="Name (optional)"
-                                      />
-                                      <div
-                                        className={`${styles.fansubEditLinkInput} ${urlError ? styles.fansubEditLinkInputInvalid : ""}`}
-                                      >
-                                        <input
-                                          value={link.url}
-                                          onChange={(event) =>
-                                            setLinks((current) =>
-                                              current.map((item) =>
-                                                item.key === link.key
-                                                  ? {
-                                                      ...item,
-                                                      url: event.target.value,
-                                                    }
-                                                  : item,
-                                              ),
-                                            )
-                                          }
-                                          placeholder="https://..."
-                                        />
-                                        {url && !urlError ? (
-                                          <button
-                                            type="button"
-                                            className={
-                                              styles.fansubEditPreviewLinkButton
-                                            }
-                                            onClick={() =>
-                                              window.open(
-                                                url,
-                                                "_blank",
-                                                "noreferrer",
-                                              )
-                                            }
-                                          >
-                                            <ExternalLink size={14} />
-                                          </button>
-                                        ) : null}
-                                      </div>
-                                      <button
-                                        type="button"
-                                        className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
-                                        onClick={() =>
-                                          setLinks((current) =>
-                                            current.length === 1
-                                              ? [createEmptyLink()]
-                                              : current.filter(
-                                                  (item) =>
-                                                    item.key !== link.key,
-                                                ),
-                                          )
-                                        }
-                                      >
-                                        <Trash2 size={14} />
-                                      </button>
-                                      {urlError ? (
-                                        <p
-                                          className={
-                                            styles.fansubEditInlineError
-                                          }
-                                        >
-                                          {urlError}
-                                        </p>
-                                      ) : null}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </div>
+                          </Card>
                         </div>
                         {dissolvedAfterFoundedError ? (
                           <p className={styles.fansubEditInlineError}>
@@ -2347,13 +2521,8 @@ function AdminFansubEditContent() {
                             fansubID={fansubID}
                             groupName={form.name.trim() || group?.name || ""}
                             value={logoMedia}
-                            disabled={!hasAccessToken || saving || deleting}
-                            onBusyChange={(isBusy) =>
-                              setMediaBusy((current) => ({
-                                ...current,
-                                logo: isBusy,
-                              }))
-                            }
+                            disabled={!hasAuthSession || saving}
+                            onBusyChange={handleLogoMediaBusyChange}
                             onChange={(nextValue) => {
                               setLogoMedia(nextValue);
                               setInitialLogoMedia(nextValue);
@@ -2369,13 +2538,8 @@ function AdminFansubEditContent() {
                             fansubID={fansubID}
                             groupName={form.name.trim() || group?.name || ""}
                             value={bannerMedia}
-                            disabled={!hasAccessToken || saving || deleting}
-                            onBusyChange={(isBusy) =>
-                              setMediaBusy((current) => ({
-                                ...current,
-                                banner: isBusy,
-                              }))
-                            }
+                            disabled={!hasAuthSession || saving}
+                            onBusyChange={handleBannerMediaBusyChange}
                             onChange={(nextValue) => {
                               setBannerMedia(nextValue);
                               setInitialBannerMedia(nextValue);
@@ -2408,9 +2572,11 @@ function AdminFansubEditContent() {
                             Generische Link-Zeilen für Website, Discord,
                             Twitter, GitHub und IRC.
                           </p>
-                          <button
+                          <Button
                             type="button"
-                            className={styles.buttonSecondary}
+                            variant="secondary"
+                            size="sm"
+                            leftIcon={<Plus size={14} />}
                             onClick={() =>
                               setLinks((current) => [
                                 ...current,
@@ -2418,114 +2584,10 @@ function AdminFansubEditContent() {
                               ])
                             }
                           >
-                            <Plus size={14} />
                             Link hinzufügen
-                          </button>
+                          </Button>
                         </div>
-                        <div className={styles.fansubEditLinksList}>
-                          {links.map((link, index) => {
-                            const url = link.url.trim();
-                            const urlError = linkErrors[index];
-                            return (
-                              <div
-                                key={link.key}
-                                className={styles.fansubEditLinkRow}
-                              >
-                                <select
-                                  value={link.link_type}
-                                  onChange={(event) =>
-                                    setLinks((current) =>
-                                      current.map((item) =>
-                                        item.key === link.key
-                                          ? {
-                                              ...item,
-                                              link_type: event.target
-                                                .value as FansubGroupLinkType,
-                                            }
-                                          : item,
-                                      ),
-                                    )
-                                  }
-                                >
-                                  {LINK_TYPE_OPTIONS.map((option) => (
-                                    <option key={option} value={option}>
-                                      {option}
-                                    </option>
-                                  ))}
-                                </select>
-                                <input
-                                  value={link.name}
-                                  onChange={(event) =>
-                                    setLinks((current) =>
-                                      current.map((item) =>
-                                        item.key === link.key
-                                          ? {
-                                              ...item,
-                                              name: event.target.value,
-                                            }
-                                          : item,
-                                      ),
-                                    )
-                                  }
-                                  placeholder="Name (optional)"
-                                />
-                                <div
-                                  className={`${styles.fansubEditLinkInput} ${urlError ? styles.fansubEditLinkInputInvalid : ""}`}
-                                >
-                                  <input
-                                    value={link.url}
-                                    onChange={(event) =>
-                                      setLinks((current) =>
-                                        current.map((item) =>
-                                          item.key === link.key
-                                            ? {
-                                                ...item,
-                                                url: event.target.value,
-                                              }
-                                            : item,
-                                        ),
-                                      )
-                                    }
-                                    placeholder="https://..."
-                                  />
-                                  {url && !urlError ? (
-                                    <button
-                                      type="button"
-                                      className={
-                                        styles.fansubEditPreviewLinkButton
-                                      }
-                                      onClick={() =>
-                                        window.open(url, "_blank", "noreferrer")
-                                      }
-                                    >
-                                      <ExternalLink size={14} />
-                                    </button>
-                                  ) : null}
-                                </div>
-                                <button
-                                  type="button"
-                                  className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
-                                  onClick={() =>
-                                    setLinks((current) =>
-                                      current.length === 1
-                                        ? [createEmptyLink()]
-                                        : current.filter(
-                                            (item) => item.key !== link.key,
-                                          ),
-                                    )
-                                  }
-                                >
-                                  <Trash2 size={14} />
-                                </button>
-                                {urlError ? (
-                                  <p className={styles.fansubEditInlineError}>
-                                    {urlError}
-                                  </p>
-                                ) : null}
-                              </div>
-                            );
-                          })}
-                        </div>
+                        {communityLinksList}
                       </div>
                     </details>
                   ) : null}
@@ -2547,7 +2609,7 @@ function AdminFansubEditContent() {
                       <div className={styles.fansubEditSectionBody}>
                         <FansubAppMembersSection
                           fansubId={fansubID}
-                          hasAccessToken={hasAccessToken}
+                          hasAccessToken={hasAuthSession}
                         />
                       </div>
                     </details>
@@ -2556,15 +2618,19 @@ function AdminFansubEditContent() {
               ) : null}
             </div>
 
-            <div className={styles.fansubEditMobileActionBar}>
-              <button
-                type="submit"
-                className={styles.button}
-                disabled={invalid || saving || deleting}
-              >
-                {saving ? "Speichern..." : "Speichern"}
-              </button>
-            </div>
+            {activeMainTab !== "collaboration" ? (
+              <div className={styles.fansubEditMobileActionBar}>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={invalid || saving}
+                  loading={saving}
+                  fullWidth
+                >
+                  {saving ? "Speichern..." : "Speichern"}
+                </Button>
+              </div>
+            ) : null}
           </form>
         ) : null}
         {activeMainTab === "releases" ? (
@@ -2722,7 +2788,7 @@ function AdminFansubEditContent() {
                               <span>Aktionen</span>
                               <span />
                             </div>
-                            {visibleReleases.map((release) => {
+                            {visibleReleases.map((release, releaseIndex) => {
                               const expanded = expandedReleaseIds.has(
                                 release.release_id,
                               );
@@ -2737,7 +2803,7 @@ function AdminFansubEditContent() {
 
                               return (
                                 <div
-                                  key={release.release_id}
+                                  key={`${releaseGroup.key}:${release.release_id}:${releaseIndex}`}
                                   className={styles.fansubEditReleaseItem}
                                 >
                                   <div
@@ -3046,7 +3112,7 @@ function AdminFansubEditContent() {
                                                 );
                                               return (
                                                 <button
-                                                  key={card.theme_id}
+                                                  key={`${release.release_id}:${card.theme_id}:${index}`}
                                                   type="button"
                                                   className={`${styles.fansubEditTimelineSegment} ${styles[`fansubEditTimelineSegment${card.status}`]} ${themeKind === "op" ? styles.fansubEditTimelineSegmentOp : ""} ${themeKind === "ed" ? styles.fansubEditTimelineSegmentEd : ""} ${themeKind === "insert" ? styles.fansubEditTimelineSegmentIn : ""} ${selected ? styles.fansubEditTimelineSegmentActive : ""}`}
                                                   style={{
@@ -3095,10 +3161,12 @@ function AdminFansubEditContent() {
         {activeMainTab === "anime-projekte" ? (
           <AnimeProjectNotesSection
             fansubId={fansubID}
-            hasAccessToken={hasAccessToken}
+            hasAccessToken={hasAuthSession}
           />
         ) : null}
         {activeMainTab === "notes" ? <NotesTab fansubId={fansubID} /> : null}
+        {activeMainTab === "mitglieder" ? <GroupMembersTab fansubId={fansubID} /> : null}
+        {activeMainTab === "rollen" ? <MemberRolesTab fansubId={fansubID} /> : null}
       </section>
       {releaseDrawerOpen && drawerRelease ? (
         <div
@@ -3259,13 +3327,13 @@ function AdminFansubEditContent() {
             </div>
 
             <footer className={styles.fansubEditReleaseDrawerFooter}>
-              <button
+              <Button
                 type="button"
-                className={styles.buttonSecondary}
+                variant="secondary"
                 onClick={closeReleaseDrawer}
               >
                 Schließen
-              </button>
+              </Button>
             </footer>
           </aside>
         </div>
@@ -3362,15 +3430,17 @@ function AdminFansubEditContent() {
                       </strong>
                     </div>
                   </div>
-                  {themeSelectedCard.public_url ? (
-                    <a
-                      href={resolveApiUrl(themeSelectedCard.public_url)}
-                      target="_blank"
-                      rel="noreferrer"
+                  {themeAssetPreviewUrl ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      leftIcon={<ExternalLink size={16} />}
                       className={styles.fansubEditReleaseDrawerMediaLink}
+                      onClick={() => setThemePreviewOpen(true)}
                     >
-                      Aktuelles Asset öffnen
-                    </a>
+                      Aktuelles Asset ansehen
+                    </Button>
                   ) : null}
                   {themeSelectedLocked ? (
                     <p className={styles.fansubEditHint}>
@@ -3381,9 +3451,9 @@ function AdminFansubEditContent() {
                     <div className={styles.fansubEditReleaseDrawerDropzone}>
                       <div className={styles.fansubEditThemeUploadHeader}>
                         <strong>Theme-Video hochladen</strong>
-                        {drawerUploadProgress !== null ? (
+                        {drawerUploadStatusLabel ? (
                           <span className={styles.fansubEditThemeUploadMeta}>
-                            Upload: {drawerUploadProgress}%
+                            {drawerUploadStatusLabel}
                           </span>
                         ) : null}
                       </div>
@@ -3392,41 +3462,44 @@ function AdminFansubEditContent() {
                         className={styles.fansubEditThemeUploadInput}
                         type="file"
                         accept="video/*"
-                        disabled={drawerBusy || !hasAccessToken}
+                        disabled={drawerBusy || !hasAuthSession}
                         onChange={handleThemeUploadInputChange}
                       />
                       <div className={styles.fansubEditThemeUploadPicker}>
-                        <button
+                        <Button
                           type="button"
-                          className={styles.buttonSecondary}
+                          variant="secondary"
+                          size="sm"
                           onClick={() => themeUploadInputRef.current?.click()}
-                          disabled={drawerBusy || !hasAccessToken}
+                          disabled={drawerBusy || !hasAuthSession}
                         >
                           Datei wählen
-                        </button>
+                        </Button>
                         <span className={styles.fansubEditThemeUploadFileName}>
                           {themeUploadName || "Keine Datei ausgewählt"}
                         </span>
                       </div>
                       <div className={styles.fansubEditThemeUploadActions}>
-                        <button
+                        <Button
                           type="button"
-                          className={styles.button}
+                          variant="primary"
                           onClick={() => void handleDrawerUploadClick()}
-                          disabled={drawerBusy || !hasAccessToken}
+                          disabled={drawerBusy || !hasAuthSession}
+                          loading={drawerBusy}
                         >
                           Upload starten
-                        </button>
+                        </Button>
                         {themeSelectedCard.status === "release" &&
                         themeSelectedCard.media_id ? (
-                          <button
+                          <Button
                             type="button"
-                            className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
+                            variant="danger"
                             onClick={() => void handleDrawerDelete()}
                             disabled={drawerBusy}
+                            loading={drawerBusy}
                           >
                             Asset entfernen
-                          </button>
+                          </Button>
                         ) : null}
                       </div>
                     </div>
@@ -3435,25 +3508,59 @@ function AdminFansubEditContent() {
               </div>
             </div>
             <footer className={styles.fansubEditReleaseDrawerFooter}>
-              <button
+              <Button
                 type="button"
-                className={styles.buttonSecondary}
+                variant="secondary"
                 onClick={closeThemeDrawer}
               >
                 Schließen
-              </button>
+              </Button>
             </footer>
           </aside>
         </div>
+      ) : null}
+      {themeAssetPreviewUrl ? (
+        <Modal
+          open={themePreviewOpen}
+          onClose={() => setThemePreviewOpen(false)}
+          title="Theme-Video ansehen"
+          description={themePreviewDescription}
+          footer={
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setThemePreviewOpen(false)}
+            >
+              Schließen
+            </Button>
+          }
+        >
+          <div className={styles.fansubEditThemePreview}>
+            <video
+              className={styles.fansubEditThemePreviewVideo}
+              src={themeAssetPreviewUrl}
+              controls
+              preload="metadata"
+            />
+          </div>
+        </Modal>
       ) : null}
     </main>
   );
 }
 
 export default function AdminFansubEditPage() {
+  const params = useParams<{ id: string }>();
+  const fansubID = readFansubIDFromParams(params);
+
   return (
-    <PlatformAdminGate>
-      <AdminFansubEditContent />
-    </PlatformAdminGate>
+    <FansubEditAccessGate fansubID={fansubID}>
+      {({ isPlatformAdmin }) => (
+        <AdminFansubEditContent
+          fansubID={fansubID}
+          isPlatformAdmin={isPlatformAdmin}
+        />
+      )}
+    </FansubEditAccessGate>
   );
 }
