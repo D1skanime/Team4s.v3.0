@@ -7,15 +7,18 @@ import (
 )
 
 type adminRouteHandlers struct {
-	adminContentHandler          *handlers.AdminContentHandler
-	animeHandler                 *handlers.AnimeHandler
-	fansubHandler                *handlers.FansubHandler
-	mediaUploadHandler           *handlers.MediaUploadHandler
-	appAuthHandler               *handlers.AppAuthHandler
-	histGroupMembersHandler      *handlers.FansubHistGroupMembersHandler
-	histGroupMemberRolesHandler  *handlers.FansubHistGroupMemberRolesHandler
-	animeContributionsHandler    *handlers.FansubAnimeContributionsHandler
-	groupHistoryHandler          *handlers.FansubGroupHistoryHandler
+	adminContentHandler           *handlers.AdminContentHandler
+	animeHandler                  *handlers.AnimeHandler
+	fansubHandler                 *handlers.FansubHandler
+	mediaUploadHandler            *handlers.MediaUploadHandler
+	appAuthHandler                *handlers.AppAuthHandler
+	histGroupMembersHandler       *handlers.FansubHistGroupMembersHandler
+	histGroupMemberRolesHandler   *handlers.FansubHistGroupMemberRolesHandler
+	animeContributionsHandler     *handlers.FansubAnimeContributionsHandler
+	groupHistoryHandler           *handlers.FansubGroupHistoryHandler
+	memberClaimsHandler           *handlers.MemberClaimsHandler
+	memberClaimInvitationsHandler *handlers.MemberClaimInvitationsHandler
+	memberRequestsHandler         *handlers.MemberRequestsHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -161,4 +164,13 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/fansubs/:id/anime/:animeId/contributions", auth, deps.animeContributionsHandler.CreateAnimeContribution)
 	v1.PATCH("/admin/fansubs/:id/anime/:animeId/contributions/:contributionId", auth, deps.animeContributionsHandler.UpdateAnimeContribution)
 	v1.DELETE("/admin/fansubs/:id/anime/:animeId/contributions/:contributionId", auth, deps.animeContributionsHandler.DeleteAnimeContribution)
+	// Phase 66: Claiming und Verifizierung
+	v1.GET("/admin/fansubs/:id/member-claims", auth, deps.memberClaimsHandler.ListPendingClaimsForGroup)
+	v1.POST("/admin/fansubs/:id/member-claims/:claimId/verify", auth, deps.memberClaimsHandler.VerifyClaim)
+	v1.POST("/admin/fansubs/:id/member-claims/:claimId/reject", auth, deps.memberClaimsHandler.RejectClaim)
+	v1.POST("/admin/fansubs/:id/group-members/:memberId/claim-invitations", auth, deps.memberClaimInvitationsHandler.CreateClaimInvitation)
+	v1.POST("/admin/fansubs/:id/group-members/:memberId/claim-invitations/:invitationId/cancel", auth, deps.memberClaimInvitationsHandler.CancelClaimInvitation)
+	v1.GET("/admin/member-requests", auth, deps.memberRequestsHandler.ListRequests)
+	v1.POST("/admin/member-requests/:requestId/approve", auth, deps.memberRequestsHandler.ApproveRequest)
+	v1.POST("/admin/member-requests/:requestId/reject", auth, deps.memberRequestsHandler.RejectRequest)
 }

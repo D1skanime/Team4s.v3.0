@@ -125,6 +125,13 @@ func main() {
 	authzRepo := repository.NewAuthzRepository(dbPool)
 	permissionSvc := permissions.NewService(authzRepo)
 	auditLogRepo := repository.NewAuditLogRepository(dbPool)
+	memberClaimsRepo := repository.NewMemberClaimsRepository(dbPool)
+	memberClaimInvitationsRepo := repository.NewMemberClaimInvitationRepository(dbPool, cfg.AppPublicURL)
+	memberRequestsRepo := repository.NewMemberRequestsRepository(dbPool)
+	memberClaimsHandler := handlers.NewMemberClaimsHandler(memberClaimsRepo, permissionSvc, auditLogRepo)
+	memberClaimInvitationsHandler := handlers.NewMemberClaimInvitationsHandler(memberClaimInvitationsRepo, permissionSvc, auditLogRepo, cfg.AppPublicURL)
+	memberProfileNoindexHandler := handlers.NewMemberProfileNoindexHandler(memberClaimsRepo)
+	memberRequestsHandler := handlers.NewMemberRequestsHandler(memberRequestsRepo, permissionSvc, auditLogRepo)
 	tiptapSvc := services.NewTipTapService()
 	var mailerSvc services.Mailer
 	if cfg.SMTPEnabled {
@@ -276,6 +283,12 @@ func main() {
 	v1.GET("/me/fansub-groups", authMiddleware, appAuthHandler.ListMyFansubGroups)
 	v1.GET("/me/fansub-groups/:id", authMiddleware, appAuthHandler.GetMyFansubGroupDetail)
 	v1.POST("/invitations/accept", authMiddleware, appAuthHandler.AcceptFansubInvitation)
+	v1.GET("/me/member-search", authMiddleware, memberClaimsHandler.SearchMembers)
+	v1.GET("/me/member-claim", authMiddleware, memberClaimsHandler.GetMyClaim)
+	v1.POST("/me/member-claims", authMiddleware, memberClaimsHandler.SubmitClaim)
+	v1.POST("/me/member-requests", authMiddleware, memberRequestsHandler.SubmitRequest)
+	v1.PATCH("/me/profile/noindex", authMiddleware, memberProfileNoindexHandler.PatchNoindex)
+	v1.POST("/claim-invitations/accept", authMiddleware, memberClaimInvitationsHandler.AcceptClaimInvitation)
 	v1.GET("/anime", animeHandler.List)
 	v1.GET("/anime/:id", animeHandler.GetByID)
 	v1.GET("/anime/:id/backdrops", animeHandler.ListBackdrops)
@@ -360,15 +373,18 @@ func main() {
 	groupHistoryHandler := handlers.NewFansubGroupHistoryHandler(fansubGroupHistoryRepo)
 	reviewHandler := handlers.NewContributionReviewHandler(animeContributionsRepo, permissionSvc, auditLogRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
-		adminContentHandler:         adminContentHandler,
-		animeHandler:                animeHandler,
-		fansubHandler:               fansubHandler,
-		mediaUploadHandler:          mediaUploadHandler,
-		appAuthHandler:              appAuthHandler,
-		histGroupMembersHandler:     histGroupMembersHandler,
-		histGroupMemberRolesHandler: histGroupMemberRolesHandler,
-		animeContributionsHandler:   animeContributionsHandler,
-		groupHistoryHandler:         groupHistoryHandler,
+		adminContentHandler:           adminContentHandler,
+		animeHandler:                  animeHandler,
+		fansubHandler:                 fansubHandler,
+		mediaUploadHandler:            mediaUploadHandler,
+		appAuthHandler:                appAuthHandler,
+		histGroupMembersHandler:       histGroupMembersHandler,
+		histGroupMemberRolesHandler:   histGroupMemberRolesHandler,
+		animeContributionsHandler:     animeContributionsHandler,
+		groupHistoryHandler:           groupHistoryHandler,
+		memberClaimsHandler:           memberClaimsHandler,
+		memberClaimInvitationsHandler: memberClaimInvitationsHandler,
+		memberRequestsHandler:         memberRequestsHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	contributionsPublicHandler := handlers.NewContributionsPublicHandler(animeContributionsRepo)
