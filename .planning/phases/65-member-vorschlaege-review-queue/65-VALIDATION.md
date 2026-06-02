@@ -1,10 +1,12 @@
 ---
 phase: 65
 slug: member-vorschlaege-review-queue
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+# Wave-0 test files created in Plans 02+03 via tdd tasks.
+wave_0_complete: true
 created: 2026-06-02
+updated: 2026-06-02
 ---
 
 # Phase 65 — Validation Strategy

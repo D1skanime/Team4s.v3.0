@@ -5854,6 +5854,255 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── Contribution Proposals (Phase 65) ───────────────────────────────────────
+
+  /api/v1/me/memberships:
+    get:
+      tags: [Profile]
+      summary: List own group memberships
+      description: Returns the authenticated member's hist_fansub_group_members entries with fansub_group_member_id.
+      operationId: getMyMemberships
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of membership entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembershipsResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No verified member account linked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/me/contribution-proposals:
+    post:
+      tags: [Profile]
+      summary: Create a contribution proposal
+      description: Submits a new anime contribution proposal. Returns 409 for duplicate proposals.
+      operationId: createContributionProposal
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProposalFormData"
+      responses:
+        "201":
+          description: Proposal created
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Member does not belong to specified group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate proposal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/me/anime-contributions/{contributionId}/self-publish:
+    post:
+      tags: [Profile]
+      summary: Self-publish a contribution after 90-day timeout
+      operationId: selfPublishContribution
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: contributionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Contribution self-published
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Contribution does not belong to member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Contribution not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: 90-day timeout not yet elapsed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/admin/fansubs/{fansubId}/contribution-proposals:
+    get:
+      tags: [Admin]
+      summary: List open contribution proposals for a group
+      operationId: listGroupContributionProposals
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fansubId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: List of open proposals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupProposalsResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient group permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/admin/fansubs/{fansubId}/contribution-proposals/{cid}/confirm:
+    post:
+      tags: [Admin]
+      summary: Confirm a contribution proposal
+      operationId: confirmContributionProposal
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fansubId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Proposal confirmed
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Contribution not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/admin/fansubs/{fansubId}/contribution-proposals/{cid}/reject:
+    post:
+      tags: [Admin]
+      summary: Reject a contribution proposal
+      operationId: rejectContributionProposal
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fansubId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                review_note:
+                  type: string
+                  nullable: true
+      responses:
+        "200":
+          description: Proposal rejected
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Contribution not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -5870,6 +6119,90 @@ components:
         format: int64
         minimum: 1
   schemas:
+    # ─── Contribution Proposal Schemas (Phase 65) ──────────────────────────────
+    MembershipEntry:
+      type: object
+      required: [fansub_group_member_id, fansub_group_id, group_name]
+      properties:
+        fansub_group_member_id:
+          type: integer
+          format: int64
+        fansub_group_id:
+          type: integer
+          format: int64
+        group_name:
+          type: string
+    MembershipsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/MembershipEntry"
+    ProposalFormData:
+      type: object
+      required: [fansub_group_id, anime_id, fansub_group_member_id, role_codes]
+      properties:
+        fansub_group_id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        fansub_group_member_id:
+          type: integer
+          format: int64
+        role_codes:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        note:
+          type: string
+          nullable: true
+        started_year:
+          type: integer
+          nullable: true
+        ended_year:
+          type: integer
+          nullable: true
+    GroupProposalRow:
+      type: object
+      required: [id, fansub_group_member_id, member_display_name, anime_id, anime_title, role_codes, created_at]
+      properties:
+        id:
+          type: integer
+          format: int64
+        fansub_group_member_id:
+          type: integer
+          format: int64
+        member_display_name:
+          type: string
+        anime_id:
+          type: integer
+          format: int64
+        anime_title:
+          type: string
+        role_codes:
+          type: array
+          items:
+            type: string
+        note:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+    GroupProposalsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupProposalRow"
+    # ─────────────────────────────────────────────────────────────────────────────
     HealthResponse:
       type: object
       required: [status]
