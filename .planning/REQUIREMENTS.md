@@ -226,7 +226,7 @@
 | P67-SC2 | Phase 67 | Complete |
 | P68-SC1 | Phase 68 | Complete |
 | P68-SC2 | Phase 68 | Complete |
-| P68-SC3 | Phase 68 | Pending |
+| P68-SC3 | Phase 68 | Complete |
 
 **Coverage:**
 - v1 requirements: 28 total
