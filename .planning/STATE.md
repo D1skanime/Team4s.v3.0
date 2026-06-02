@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
 stopped_at: Phase 67-01 abgeschlossen (Migration 0091 angewendet + verifiziert, Contract-Test gruen)
-last_updated: "2026-06-02T14:54:36.970Z"
+last_updated: "2026-06-02T15:00:52.990Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
-  completed_phases: 45
+  completed_phases: 46
   total_plans: 253
-  completed_plans: 199
-  percent: 68
+  completed_plans: 200
+  percent: 70
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 67 (Release- und Episode-Credits) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Accumulated Context
 
@@ -201,6 +201,7 @@ Recent durable decisions:
 - [Phase ?]: MemberResolver, OwnershipChecker, MembershipsLister als Interfaces
 - [Phase ?]: Phase 70-01: RenderHTMLWithResolver als Stub implementiert damit Wave-0-Tests kompilieren ohne Produktionscode zu veraendern
 - [Phase ?]: Phase 70-01: NewTipTapSanitizerPolicy als exportierte Hilfsfunktion in tiptap_image_stubs.go fuer White-Box-Policy-Tests
+- [Phase ?]: ProposalForm-Rollenquelle: Statische role_definitions-Liste in MyProposalsSection (aus Migration 0085) statt neuem API-Endpunkt
 
 ### Pending Todos
 
@@ -345,6 +346,7 @@ Recent durable decisions:
 | Phase 70 P01 | 17min | 2 tasks | 6 files |
 | Phase 70-tiptap-bilder-fuer-member-profilgeschichte P02 | 5min | 1 tasks | 2 files |
 | 67 | 01 | 17min | 3 | 3 |
+| Phase 65 P04 | 45min | 3 tasks | 13 files |
 
 ### Quick Tasks Completed
 
@@ -376,7 +378,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T14:54:36.938Z
+Last session: 2026-06-02T15:00:43.689Z
 Stopped at: Phase 67-01 abgeschlossen (Migration 0091 angewendet + verifiziert, Contract-Test gruen)
 Last activity: 2026-06-02
 Resume file: None
