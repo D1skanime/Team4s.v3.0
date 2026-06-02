@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 65 context gathered
-last_updated: "2026-06-02T09:48:31.718Z"
+stopped_at: Phase 66 context gathered
+last_updated: "2026-06-02T09:56:51.347Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
   completed_phases: 44
   total_plans: 230
-  completed_plans: 188
+  completed_plans: 189
   percent: 67
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 65 — member vorschlaege review queue
+**Current focus:** Phase 69 — fansub-contributions-contract-und-permission-haertung
 
 ## Current Position
 
-Phase: 65
-Plan: Not started
+Phase: 69 (fansub-contributions-contract-und-permission-haertung) — EXECUTING
+Plan: 2 of 5
 
 ## Accumulated Context
 
@@ -187,6 +187,7 @@ Recent durable decisions:
 - [Phase 54-02]: AppShellClientWrapper uses the token-free useAuthSession seam and passes no auth tokens into AppShell.
 - [Phase 54-02]: Shell avatar URLs resolve from profile.avatar.public_url through resolveApiUrl, matching the existing profile page pattern.
 - [Phase 54-02]: Shell profile/admin props are derived from the active auth session to avoid stale authenticated UI after logout.
+- [Phase ?]: [Phase 60-02]: Cancel-on-fail fuer SMTP-Fehler in CreateFansubGroupInvitation -- keine Delivery-Migration noetig, D-12 atomar erfuellt
 
 ### Pending Todos
 
@@ -320,6 +321,7 @@ Recent durable decisions:
 | Phase 53 P01 | 19 min | 6 tasks | 25 files |
 | Phase 53 P02 | ~70min | 8 tasks | 27 files |
 | Phase 54 P02 | 26min | 1 tasks | 1 files |
+| Phase 60 P02 | 25min | 3 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -350,7 +352,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T09:48:26.629Z
-Stopped at: Phase 65 context gathered
+Last session: 2026-06-02T09:56:51.294Z
+Stopped at: Phase 66 context gathered
 Last activity: 2026-06-02
-Resume file: None
+Resume file: .planning/phases/66-claiming-verifizierung/66-CONTEXT.md
