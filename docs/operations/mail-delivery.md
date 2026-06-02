@@ -43,24 +43,28 @@ in `docker-compose.yml` zeigen bereits auf Mailpit:
 
 | Variable | Lokaler Default | Beschreibung |
 |----------|-----------------|--------------|
-| `SMTP_ENABLED` | `false` | `true` aktiviert echten SMTP-Versand |
+| `SMTP_ENABLED` | `true` | `true` aktiviert echten SMTP-Versand (`docker-compose.yml`-Default) |
 | `SMTP_HOST` | `team4sv30-mailpit` | SMTP-Server-Hostname |
 | `SMTP_PORT` | `1025` | SMTP-Port |
-| `SMTP_FROM_EMAIL` | `noreply@team4s.local` | Absender-Adresse |
+| `SMTP_FROM` | `noreply@team4s.local` | Absender-Adresse |
 | `SMTP_FROM_NAME` | `Team4s` | Absender-Anzeigename |
-| `SMTP_USERNAME` | *(leer)* | SMTP-Auth-Benutzername |
+| `SMTP_USER` | *(leer)* | SMTP-Auth-Benutzername |
 | `SMTP_PASSWORD` | *(leer)* | SMTP-Auth-Passwort |
-| `SMTP_STARTTLS` | `false` | STARTTLS-Verbindung verwenden |
-| `APP_PUBLIC_URL` | `http://localhost:3002` | Basis-URL für absolute Links in Mails |
+| `SMTP_STARTTLS` | `false` | STARTTLS-Upgrade erzwingen (lokal aus; Produktion auf `true`) |
+| `APP_PUBLIC_URL` | `http://127.0.0.1:3002` | Basis-URL für absolute Links in Mails |
 
-Um den lokalen Mailversand zu aktivieren, setze in `.env`:
+> **Hinweis:** Die Config liest primär die kanonischen Namen `SMTP_FROM` und
+> `SMTP_USER`. Die früheren Namen `SMTP_FROM_EMAIL` und `SMTP_USERNAME` werden aus
+> Kompatibilitätsgründen weiterhin als Fallback akzeptiert.
+
+Der lokale Mailversand ist über `docker-compose.yml` standardmäßig aktiviert
+(`SMTP_ENABLED=true`). Um ihn zu deaktivieren, setze in `.env`:
 
 ```dotenv
-SMTP_ENABLED=true
-APP_PUBLIC_URL=http://localhost:3002
+SMTP_ENABLED=false
 ```
 
-Wenn `SMTP_ENABLED=false` (Standard), nutzt das Backend einen `NoopMailer`:
+Wenn `SMTP_ENABLED=false`, nutzt das Backend einen `NoopMailer`:
 alle Mails werden lautlos verworfen. Der Einladungs-`invite_link` im Response
 kann dann als Entwickler-Fallback genutzt werden.
 
@@ -96,13 +100,12 @@ automatisch in Mailpit sichtbar — kein manueller Admin-UI-Schritt nötig.
 
 ### Lokaler Test-Ablauf
 
-1. `docker compose up -d` starten.
-2. In `.env` `SMTP_ENABLED=true` setzen und Backend neu starten.
-3. Fansub-Einladung über Admin-UI oder API erstellen.
-4. Mailpit Web-UI unter `http://127.0.0.1:8025` öffnen → Einladungsmail erscheint.
-5. Einladungslink in der Mail klicken → Weiterleitung zur Annahme-Seite.
-6. Keycloak-Passwort-Reset auslösen (z.B. über `http://127.0.0.1:8081`).
-7. Reset-Mail in Mailpit prüfen → Link funktioniert lokal.
+1. `docker compose up -d` starten (`SMTP_ENABLED=true` ist Compose-Default).
+2. Fansub-Einladung über Admin-UI oder API erstellen.
+3. Mailpit Web-UI unter `http://127.0.0.1:8025` öffnen → Einladungsmail erscheint.
+4. Einladungslink in der Mail klicken → Weiterleitung zur Annahme-Seite.
+5. Keycloak-Passwort-Reset auslösen (z.B. über `http://127.0.0.1:8081`).
+6. Reset-Mail in Mailpit prüfen → Link funktioniert lokal.
 
 ---
 
@@ -119,15 +122,15 @@ nötig — nur Env-Variablen werden umgestellt.
 SMTP_ENABLED=true
 SMTP_HOST=in-v3.mailjet.com
 SMTP_PORT=587
-SMTP_FROM_EMAIL=noreply@team4s.de
+SMTP_FROM=noreply@team4s.de
 SMTP_FROM_NAME=Team4s
-SMTP_USERNAME=<mailjet-api-key>
+SMTP_USER=<mailjet-api-key>
 SMTP_PASSWORD=<mailjet-secret-key>
 SMTP_STARTTLS=true
 APP_PUBLIC_URL=https://team4s.de
 ```
 
-> **Sicherheitshinweis:** `SMTP_USERNAME` und `SMTP_PASSWORD` sind Mailjet-API-Key und
+> **Sicherheitshinweis:** `SMTP_USER` und `SMTP_PASSWORD` sind Mailjet-API-Key und
 > Secret-Key. Diese dürfen **niemals** in das Repository committed werden.
 > Env-Variablen in `.env` sind in `.gitignore` ausgenommen; Produktionswerte kommen
 > aus dem Deployment-Secret-Management.
