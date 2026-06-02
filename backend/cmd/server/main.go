@@ -348,9 +348,15 @@ func main() {
 	fansubGroupHistoryRepo := repository.NewFansubGroupHistoryRepository(dbPool)
 	badgeRepo := repository.NewBadgeRepository(dbPool)
 	badgeService := services.NewBadgeService(dbPool, badgeRepo)
-	histGroupMembersHandler := handlers.NewFansubHistGroupMembersHandler(histGroupMembersRepo, badgeService)
-	histGroupMemberRolesHandler := handlers.NewFansubHistGroupMemberRolesHandler(histGroupMemberRolesRepo, badgeService)
-	animeContributionsHandler := handlers.NewFansubAnimeContributionsHandler(animeContributionsRepo, histGroupMemberRolesRepo)
+	histGroupMembersHandler := handlers.NewFansubHistGroupMembersHandler(
+		histGroupMembersRepo, badgeService, permissionSvc, auditLogRepo,
+	)
+	histGroupMemberRolesHandler := handlers.NewFansubHistGroupMemberRolesHandler(
+		histGroupMemberRolesRepo, badgeService, permissionSvc, auditLogRepo, histGroupMembersRepo,
+	)
+	animeContributionsHandler := handlers.NewFansubAnimeContributionsHandler(
+		animeContributionsRepo, histGroupMemberRolesRepo, permissionSvc, auditLogRepo,
+	)
 	groupHistoryHandler := handlers.NewFansubGroupHistoryHandler(fansubGroupHistoryRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
 		adminContentHandler:         adminContentHandler,
