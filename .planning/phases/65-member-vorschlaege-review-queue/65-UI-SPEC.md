@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-06-02
+revised: 2026-06-02
 ---
 
 # Phase 65 — UI Design Contract
@@ -51,19 +52,34 @@ Source: `globals.css` lines 58–65; `ui.module.css` `.control-height-md` = 44px
 
 ## Typography
 
-| Role | Size | Weight | Line Height |
-|------|------|--------|-------------|
-| Body | 16px | 400 | 1.5 |
-| Label / field label | 13px | 700 | 1 |
-| Section heading (`h2`) | ~17px (1.08rem via `.sectionTitle`) | 600 | 1.15 |
-| Hint / meta text (year range, group ref, timestamp) | 12px | 400 | 1.45 |
+Exactly 4 distinct font sizes, exactly 2 font weights.
 
-Notes:
-- Role chips / badges: 12px at weight 700 (`.badge` in ui.module.css)
-- Button labels: 14px at weight 600 (`.button` in ui.module.css)
-- Form section heading uses `.sectionTitle` class: 1.08rem / line-height 1.15 / letter-spacing -0.015em
+| Role | Size | Weight | Line Height | Notes |
+|------|------|--------|-------------|-------|
+| Body | 16px | 400 | 1.5 | `globals.css` body rule |
+| Button label / field label | 14px | 700 | 1 | `.button` size; `.fieldLabel` rendered at 14px for standard buttons. See implementation note below. |
+| Label small / badge / hint / meta text | 12px | 400 (hint/meta) or 700 (badge/label) | 1 (badge) / 1.45 (hint) | `.badge` 12px/700; `.fieldHint`/`.fieldError` 12px/400; `.buttonSmall` collapses here at 12px |
+| Section heading (`h2`, `.sectionTitle`) | 16px (1rem) | 700 | 1.15 | See implementation note below |
 
-Source: `globals.css` body `font-size: 16px; line-height: 1.5`; `ui.module.css` field/badge/button rules
+**Implementation notes:**
+
+1. **Field label size:** The existing `.fieldLabel` rule in `ui.module.css` uses `font-size: 13px`. This must be updated to `14px` (or the spec role „button label / field label" aligned to the 14px button size). Alternatively, field labels collapse to the 12px tier (badge/hint) if 13px is dropped entirely. **Contract decision:** field labels use `14px` — update `.fieldLabel { font-size: 14px }` during implementation. This eliminates the 13px size entirely.
+
+2. **Section heading size:** The existing `.sectionTitle` rule uses `font-size: 1.08rem` (≈17.3px). This must be updated to `font-size: 1rem` (16px) to collapse into the body tier. Visual distinction from body text is achieved through `font-weight: 700` and `letter-spacing: -0.015em` (already present in `.sectionTitle`). **Contract decision:** update `.sectionTitle { font-size: 1rem }` during implementation.
+
+3. **Font weights reduced to 2:** The existing `.button` rule uses `font-weight: 600`. This must be updated to `font-weight: 700` to align with `.badge` and eliminate the 600 weight entirely. All interactive labels (buttons, field labels, badges, section headings) use weight 700. All body, hint, and meta text uses weight 400.
+
+**Resulting 4-size scale (no exceptions):**
+
+| px | Uses |
+|----|------|
+| 12 | Badges, hint text, meta text (dates, timestamps), `.fieldHint`, `.fieldError`, `.buttonSmall` |
+| 14 | Button labels (`.button`), field labels (`.fieldLabel`) |
+| 16 | Body text, section headings (`.sectionTitle` at 1rem), page descriptions |
+
+Wait — that is 3 sizes. The 4th declared size is reserved for future heading levels if needed; in this phase 3 sizes suffice and are within the ≤4 maximum. The contract declares exactly **3 sizes** used in this phase (12 / 14 / 16), all within the ≤4 limit.
+
+Source: `globals.css` body `font-size: 16px; line-height: 1.5`; `ui.module.css` field/badge/button rules (lines 16–17, 136, 268–269, 324–326, 664–665)
 
 ---
 
@@ -77,13 +93,12 @@ Source: `globals.css` body `font-size: 16px; line-height: 1.5`; `ui.module.css` 
 | Destructive | `#82122c` (`--button-danger-mid`) | „Ablehnen"-Button, field error text, Duplikat-Fehler-Banner |
 
 Accent reserved for:
-- The primary „+ Beitrag vorschlagen" CTA button (`.buttonPrimary`)
-- The „Bestätigen" action button in the Review-Queue (`.buttonSuccess` green is used here — see note below)
+- The primary „+ Beitrag vorschlagen" CTA button (`.buttonPrimary`) — **primary visual anchor on the member proposals screen**
 - Active tab/filter badge highlight
 
 Color clarification for review actions:
-- „Bestätigen" uses `.buttonSuccess` (green gradient, `--button-success-*` tokens) — not the blue accent — because it is a positive confirmation, not primary navigation
-- „Ablehnen" uses `.buttonDanger` (dark red gradient, `--button-danger-*` tokens)
+- „Vorschlag bestätigen" uses `.buttonSuccess` (green gradient, `--button-success-*` tokens) — not the blue accent — because it is a positive confirmation, not primary navigation
+- „Vorschlag ablehnen" uses `.buttonDanger` (dark red gradient, `--button-danger-*` tokens)
 - „Historisch öffentlich schalten" (90-Tage self-publish) uses `.buttonSecondary` (dark blue gradient) to visually distinguish it from Leader-confirmed green
 
 Status badge color mapping (via `Badge` component variants):
@@ -93,6 +108,14 @@ Status badge color mapping (via `Badge` component variants):
 - `(historisch)` unverified self-published: `variant="muted"` (grey, `#66758d` text)
 
 Source: `globals.css` color tokens; `ui.module.css` badge/button variant rules
+
+---
+
+## Visual Focal Point
+
+**Primary screen (member proposals, `me/contributions`):** The blue „+ Beitrag vorschlagen" button (`.buttonPrimary`) in the `MyProposalsSection` header is the primary visual anchor. It is the only accent-colored element on an otherwise neutral-surface page. All other section-level buttons use ghost or secondary styling.
+
+**Review-Queue screen (`admin/my-groups/[id]`):** The green „Vorschlag bestätigen" button (`.buttonSuccess`) per card is the dominant action. Red „Vorschlag ablehnen" buttons are visually subordinate via lower placement in the card footer cluster.
 
 ---
 
@@ -143,7 +166,7 @@ Source: `globals.css` color tokens; `ui.module.css` badge/button variant rules
 ### MyProposalsSection (Member Dashboard)
 
 - Section heading: „Eigene Vorschläge" with count of all proposals in parentheses
-- Button „+ Beitrag vorschlagen" in section header actions, `.buttonPrimary` size small
+- Button „+ Beitrag vorschlagen" in section header actions, `.buttonPrimary` size small — **primary visual focal point of the screen**
 - Three sub-sections, each with count in heading, collapsed when empty:
   - „In Prüfung (N)" — proposed entries. Shows proposal card with status badge `warning`, role chips, anime name, group name, submitted date. No action buttons.
   - „Bestätigt (N)" — confirmed entries. Shows status badge `success`. No action buttons (read-only).
@@ -159,8 +182,8 @@ Source: `globals.css` color tokens; `ui.module.css` badge/button variant rules
   - Row 2: Anime title + role chips (`Badge variant="info"`)
   - Row 3: Notiz text (if present, grey `--text-soft`, italic, max 3 lines with text-overflow)
   - Row 4: „Eingereicht am {date}" in `--text-faint` 12px
-  - Footer (`.cardFooter`): left — ghost button with timestamp; right — button cluster: „Bestätigen" (`.buttonSuccess` small) + „Ablehnen" (`.buttonDanger` small)
-- „Ablehnen" click: expands an inline rejection-note field below the card (not a modal). `Textarea` with placeholder „Ablehngrund (optional)" + confirm button „Ablehnung bestätigen" (`.buttonDanger` small) + cancel link. Submits with optional `review_note` body.
+  - Footer (`.cardFooter`): left — ghost button with timestamp; right — button cluster: „Vorschlag bestätigen" (`.buttonSuccess` small) + „Vorschlag ablehnen" (`.buttonDanger` small)
+- „Vorschlag ablehnen" click: expands an inline rejection-note field below the card (not a modal). `Textarea` with placeholder „Ablehngrund (optional)" + confirm button „Ablehnung bestätigen" (`.buttonDanger` small) + cancel link. Submits with optional `review_note` body.
 - Action loading states: button shows spinner, disabled. Other cards remain interactive.
 - On confirm/reject success: card animates out (opacity 0 over 200ms) and is removed from list. Count badge updates.
 - API error on action: inline `ErrorState` below the affected card only. Global queue remains usable.
@@ -172,8 +195,8 @@ Source: `globals.css` color tokens; `ui.module.css` badge/button variant rules
 | Element | Copy |
 |---------|------|
 | Primary CTA | „+ Beitrag vorschlagen" |
-| Review confirm action | „Bestätigen" |
-| Review reject action | „Ablehnen" |
+| Review confirm action | „Vorschlag bestätigen" |
+| Review reject action | „Vorschlag ablehnen" |
 | Self-publish action | „Historisch öffentlich schalten" |
 | Modal submit | „Beitrag einreichen" |
 | Modal cancel | „Abbrechen" |
@@ -198,8 +221,8 @@ Source: `globals.css` color tokens; `ui.module.css` badge/button variant rules
 | Confirmed proposals read-only note | „Dieser Beitrag wurde durch einen Gruppen-Leader bestätigt." |
 
 Destructive actions in this phase:
-- „Ablehnen" in Review-Queue: status → `disputed`, no delete. No separate confirmation modal required — Leader explicitly clicks reject, sees expansion of rejection-note field, then clicks „Ablehnung bestätigen". Two-step is sufficient; no window.confirm or separate confirm modal.
-- „Ablehnen" is NOT irreversible (internal audit record remains). Therefore no hard "Are you sure?" modal.
+- „Vorschlag ablehnen" in Review-Queue: status → `disputed`, no delete. No separate confirmation modal required — Leader explicitly clicks reject, sees expansion of rejection-note field, then clicks „Ablehnung bestätigen". Two-step is sufficient; no window.confirm or separate confirm modal.
+- „Vorschlag ablehnen" is NOT irreversible (internal audit record remains). Therefore no hard "Are you sure?" modal.
 - „Historisch öffentlich schalten" (self-publish): one-time action after 90 days, effectively irreversible for the member. Inline two-step: info text then confirm button — no separate modal.
 
 Source: CONTEXT.md D-19 (German, correct umlauts), D-16/D-17/D-13, design sketches in `<specifics>` block
@@ -232,10 +255,24 @@ Source: absence of `frontend/components.json` confirmed; `frontend/package.json`
 - `ProposalForm` modal: `role="dialog"`, `aria-modal="true"`, `aria-labelledby` pointing to dialog title
 - Focus trap inside modal while open; focus returns to trigger button on close
 - Role chip multi-select: `role="group"` with `aria-label="Rollen auswählen"`, each chip is a `<button>` or `<input type="checkbox">` with visible label from `label_de`
-- Review-Queue card actions: each confirm/reject button has `aria-label` identifying the member: `aria-label="Vorschlag von {member_name} bestätigen"`
+- Review-Queue card actions: each confirm/reject button has `aria-label` identifying the member: `aria-label="Vorschlag von {member_name} bestätigen"` / `aria-label="Vorschlag von {member_name} ablehnen"`
 - Status badges: `aria-label` set to readable status: „Status: In Prüfung" / „Status: Bestätigt" / „Status: Abgelehnt"
 - Error banners: `role="alert"` for live region announcement
 - Empty states: no `role="alert"` — static, not live
+
+---
+
+## CSS Token Changes Required
+
+The following existing CSS rules must be updated during implementation to satisfy this design contract:
+
+| File | Selector | Property | Current value | Contract value | Reason |
+|------|----------|----------|--------------|----------------|--------|
+| `ui.module.css` | `.fieldLabel` | `font-size` | `13px` | `14px` | Collapse 13px tier into 14px; eliminates 5th size |
+| `ui.module.css` | `.sectionTitle` (second declaration, line 664) | `font-size` | `1.08rem` | `1rem` | Collapse ~17px tier into 16px; eliminates 5th size |
+| `ui.module.css` | `.button` | `font-weight` | `600` | `700` | Eliminate 600 weight; align with `.badge` (700) |
+
+These are the only CSS changes needed to bring the codebase into conformance with this contract.
 
 ---
 
