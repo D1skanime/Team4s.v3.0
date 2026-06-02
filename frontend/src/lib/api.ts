@@ -210,6 +210,7 @@ import type {
   MembershipsResponse,
   ProposalFormData,
   GroupProposalsResponse,
+  FansubAnimeReleaseVersionsResponse,
 } from "@/types/contributions";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
@@ -7288,6 +7289,40 @@ export async function listAnimeContributions(
   }
 
   return response.json() as Promise<AnimeContributionListResponse>;
+}
+
+/** Lädt die gruppen-gefilterten Release-Versionen eines Anime für das optionale
+ * Release-Version-Dropdown im Leader-Contribution-Formular (Phase 67-04).
+ * Serverseitig gefiltert (release_version_groups) — kein Client-Filter. */
+export async function getFansubAnimeReleaseVersions(
+  fansubId: number,
+  animeId: number,
+  authToken?: string,
+): Promise<FansubAnimeReleaseVersionsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/release-versions`,
+    {
+      authToken,
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<FansubAnimeReleaseVersionsResponse>;
 }
 
 export async function upsertAnimeContribution(

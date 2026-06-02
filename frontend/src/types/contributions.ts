@@ -31,6 +31,16 @@ export interface PublicGroupContributionsResponse {
   member_count: number
 }
 
+// Versions-Detailebene (Phase 67-04): pro Release-Version eine Aufschlüsselung
+// der versions-spezifischen Beiträge einer Gruppe (Spiegel zu
+// ReleaseVersionBreakdownGroup im Backend).
+export interface ReleaseVersionBreakdown {
+  release_version_id: number
+  episode_number: string
+  version: string
+  contributors: PublicAnimeContribution[]
+}
+
 export interface AnimeContributionGroup {
   fansub_group_id: number
   fansub_group_name: string
@@ -39,6 +49,21 @@ export interface AnimeContributionGroup {
   active_until_year: number | null
   contributors: PublicAnimeContribution[]
   hidden_contributor_count: number
+  // Versions-spezifische Beiträge (anime-weite Beiträge bleiben in contributors).
+  // Leer/undefined wenn keine versions-spezifischen Beiträge existieren.
+  version_breakdown?: ReleaseVersionBreakdown[]
+}
+
+// Eine Dropdown-Option für das gruppen-gefilterte Release-Version-Select
+// im Leader-Contribution-Formular (Spiegel zu GroupReleaseVersionOption im Backend).
+export interface FansubAnimeReleaseVersionOption {
+  release_version_id: number
+  episode_number: string
+  version: string
+}
+
+export interface FansubAnimeReleaseVersionsResponse {
+  data: FansubAnimeReleaseVersionOption[]
 }
 
 export interface PublicAnimeContributionsResponse {
@@ -62,6 +87,7 @@ export interface MeAnimeContribution {
   note: string | null
   review_note?: string | null
   can_self_publish?: boolean
+  release_version_id: number | null
 }
 
 export interface ProposalFormData {

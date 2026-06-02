@@ -6103,6 +6103,57 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/v1/admin/fansubs/{id}/anime/{animeId}/release-versions:
+    get:
+      tags: [Admin]
+      summary: List group-filtered release versions for an anime (contribution dropdown)
+      description: >-
+        Returns the release versions the given fansub group participates in for
+        the given anime, used to populate the optional release-version dropdown
+        in the leader contribution form. Server-side filtered via
+        release_version_groups; never client-filtered (Phase 67-04).
+      operationId: listGroupReleaseVersionsForAnime
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Group-filtered release-version options
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FansubAnimeReleaseVersionOption"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -6172,6 +6223,112 @@ components:
           format: int64
           nullable: true
           description: Optional release-version scope; selected group must participate in the release version.
+    # ─── Release-Version Contribution Schemas (Phase 67-04) ─────────────────────
+    FansubAnimeReleaseVersionOption:
+      type: object
+      required: [release_version_id, episode_number, version]
+      description: One dropdown option for the leader contribution form's release-version select.
+      properties:
+        release_version_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: string
+        version:
+          type: string
+    UpsertAnimeContributionRequest:
+      type: object
+      required:
+        - fansub_group_member_id
+        - role_codes
+        - is_public_on_anime_page
+        - is_public_on_member_profile
+        - status
+      properties:
+        fansub_group_member_id:
+          type: integer
+          format: int64
+        role_codes:
+          type: array
+          items:
+            type: string
+        started_year:
+          type: integer
+          nullable: true
+        ended_year:
+          type: integer
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        is_public_on_anime_page:
+          type: boolean
+        is_public_on_member_profile:
+          type: boolean
+        status:
+          type: string
+          enum: [draft, confirmed, hidden]
+        release_version_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: >-
+            Optional release-version scope. Null = group contributed to the
+            series in general (anime-wide). The selected group must participate
+            in the release version (422 otherwise).
+    ReleaseVersionBreakdownGroup:
+      type: object
+      required: [release_version_id, episode_number, version, contributors]
+      description: >-
+        One release-version slice of a fansub group's anime-page contributions
+        (level 2 of the public anime contributions breakdown, Phase 67-04).
+      properties:
+        release_version_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: string
+        version:
+          type: string
+        contributors:
+          type: array
+          items:
+            type: object
+            required: [member_display_name, roles, role_labels, is_verified]
+            properties:
+              member_display_name:
+                type: string
+              member_slug:
+                type: string
+                nullable: true
+              roles:
+                type: array
+                items:
+                  type: string
+              role_labels:
+                type: array
+                items:
+                  type: string
+              started_year:
+                type: integer
+                nullable: true
+              ended_year:
+                type: integer
+                nullable: true
+              is_verified:
+                type: boolean
+    AnimeContributionGroupVersionBreakdown:
+      type: object
+      description: >-
+        Documentation stub — the public AnimeContributionGroup payload carries an
+        optional version_breakdown array (Phase 67-04). Anime-wide contributors
+        (release_version_id IS NULL) stay on the group; version-specific ones are
+        grouped here, sorted by episode then version.
+      properties:
+        version_breakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReleaseVersionBreakdownGroup"
     GroupProposalRow:
       type: object
       required: [id, fansub_group_member_id, member_display_name, anime_id, anime_title, role_codes, created_at]
