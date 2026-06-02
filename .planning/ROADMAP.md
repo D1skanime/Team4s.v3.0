@@ -32,9 +32,9 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 20: Release-Native Episode Import Schema** - Move episode import persistence onto the normalized release graph with filler, multilingual titles, and multi-episode file coverage. (verified complete 2026-04-23)
 - [x] **Phase 21: Fansub Group Chips And Collaboration Wiring** - Let operators select existing or new fansub groups as chips during import/manual version work, and build deterministic collaborations plus anime-group linkage behind that UI. (completed 2026-04-23)
 - [x] **Phase 22: Anime Edit On Create-Flow Foundation** - Replace the divergent anime edit workspace with a shared create-style editor, keeping AniSearch identity fixed while Jellyfin can be re-searched and re-synced. (code verified complete 2026-05-10)
-- [x] **Phase 23: OP/ED Theme Verwaltung** - Admins kÃ¶nnen Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren, theme_types seeden, und Fansub-Gruppen kÃ¶nnen OP/ED-Videos hochladen. (Foundation durch Phasen 24â€“28 Ã¼berholt und vollstÃ¤ndig ersetzt; Unit-Tests 2026-05-11)
-- [x] **Phase 24: Release-Segmente (OP/ED Timing)** - Admins kÃ¶nnen auf der Episode-Version-Edit-Seite OP/ED-Segmente (Typ, Name, Episodenbereich, Zeitbereich im Video, Jellyfin-Quelle) pro Fansub-Gruppe und Version verwalten. UI wie Mockup: Tab "Segmente" mit Tabelle, Seitenleisten-Formular und Timeline-Visualisierung. (UAT bestanden 2026-04-26)
-- [x] **Phase 25: Segmente UI Mockup-Alignment** - Segmente-Seite vollstÃ¤ndig an Mockup angeglichen: Breadcrumb-Navigation, 5-Tab-Layout, Typ-Badge mit Kurzcode, Zeitbereich mit Dauer in Klammern, VorschlÃ¤ge-Leiste aus anderen Releases, dual-Spur-Timeline mit Hauptinhalt-Label, expliziter Source-Type-Selector. (UAT bestanden 2026-04-27)
+- [x] **Phase 23: OP/ED Theme Verwaltung** - Admins können Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren, theme_types seeden, und Fansub-Gruppen können OP/ED-Videos hochladen. (Foundation durch Phasen 24–28 überholt und vollständig ersetzt; Unit-Tests 2026-05-11)
+- [x] **Phase 24: Release-Segmente (OP/ED Timing)** - Admins können auf der Episode-Version-Edit-Seite OP/ED-Segmente (Typ, Name, Episodenbereich, Zeitbereich im Video, Jellyfin-Quelle) pro Fansub-Gruppe und Version verwalten. UI wie Mockup: Tab "Segmente" mit Tabelle, Seitenleisten-Formular und Timeline-Visualisierung. (UAT bestanden 2026-04-26)
+- [x] **Phase 25: Segmente UI Mockup-Alignment** - Segmente-Seite vollständig an Mockup angeglichen: Breadcrumb-Navigation, 5-Tab-Layout, Typ-Badge mit Kurzcode, Zeitbereich mit Dauer in Klammern, Vorschläge-Leiste aus anderen Releases, dual-Spur-Timeline mit Hauptinhalt-Label, expliziter Source-Type-Selector. (UAT bestanden 2026-04-27)
 - [x] **Phase 26: Segment Source Asset Upload And Persistence** - Segmente koennen echte Team4s-Assets als Quelle hinterlegen: Upload, benannter Zielpfad, Asset-Referenz am Segment und kontrolliertes Entfernen ohne Playback-Pflicht. (implementiert 2026-04-28)
 - [x] **Phase 27: Segment Library Identity And Reuse** - Segmentdateien werden fachlich ueber stabile Anime-/Gruppen-Identitaet statt lokaler Anime-IDs verwaltet, koennen nach Reimport wiedergefunden werden, und Anime-Delete entkoppelt nur noch statt wiederverwendbare OP/ED-Assets blind zu vernichten. (implementiert und UAT bestanden 2026-04-28)
 - [x] **Phase 28: Segment Playback Sources From Jellyfin Runtime** - Segmente nutzen standardmaessig die aktuelle Episode-Version bzw. deren Jellyfin-Stream als Playback-Quelle, respektieren reale `release_variants.duration_seconds` Laufzeitgrenzen wenn vorhanden, und behalten Upload-Dateien nur als expliziten Fallback. (live UAT bestanden 2026-04-29)
@@ -47,10 +47,10 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 36: Release-Version Media Frontend Upload UI und Galerie** - Kategorie-zuerst-Upload, Per-File-Progress, Preview-Schalter, kategorisierte Galerie, Detail-Panel, Drawer-Summary. (UAT bestanden 2026-05-11)
 - [x] **Phase 37: Release-Version Media Cleanup Job und Tests** - Periodischer Cleanup-Worker, Backend- und Frontend-Regressionstests. (Tests gruen 2026-05-11)
 - [x] **Phase 38: Release-Version Media Gallery UX Hover-Preview und Drag-and-Drop-Reorder** - Floating Preview Card, GIF src-Swap, DnD-Reorder innerhalb Kategorie, Live-Re-Sort-Fix. (UAT bestanden 2026-04-30)
-- [x] **Phase 39: Deutsche Umlaute durchgÃ¤ngig korrigieren** - Alle user-sichtbaren deutschen Texte im Frontend und Backend auf korrekte Umlaute umgestellt. CLAUDE.md + AGENTS.md Regel verankert.
-- [x] **Phase 40: Text- und Notizsystem fÃ¼r Fansub-Plattform** - Fansub-Gruppen-Texte, Member-Geschichten, Fansubprojekt-Texte, Release-Version-Notizen mit Rollenmodell und Public-Darstellung.
+- [x] **Phase 39: Deutsche Umlaute durchgängig korrigieren** - Alle user-sichtbaren deutschen Texte im Frontend und Backend auf korrekte Umlaute umgestellt. CLAUDE.md + AGENTS.md Regel verankert.
+- [x] **Phase 40: Text- und Notizsystem für Fansub-Plattform** - Fansub-Gruppen-Texte, Member-Geschichten, Fansubprojekt-Texte, Release-Version-Notizen mit Rollenmodell und Public-Darstellung.
  (completed 2026-05-11)
-- [x] **Phase 41: Globalen TipTap-Rich-Text-Editor einfÃ¼hren** - TipTap als globale Editor-Basis fÃ¼r alle vier Textbereiche; body_json JSONB-Speicherung, body_html fÃ¼r Public-Ausgabe, body_text fÃ¼r Suche, RichTextEditor- und RichTextRenderer-Komponenten, Backend-Validierung und HTML-Sanitizing. (runtime/artifacts retro-verified 2026-05-27)
+- [x] **Phase 41: Globalen TipTap-Rich-Text-Editor einführen** - TipTap als globale Editor-Basis für alle vier Textbereiche; body_json JSONB-Speicherung, body_html für Public-Ausgabe, body_text für Suche, RichTextEditor- und RichTextRenderer-Komponenten, Backend-Validierung und HTML-Sanitizing. (runtime/artifacts retro-verified 2026-05-27)
 - [ ] **Phase 42: TipTap Collaboration MVP fuer fansub_group_notes** - Echtzeit-Kollaboration nur fuer offizielle Gruppennotizen mit note-scope Dokument-ID, Presence-Basis und persistenter Save-Seam zur bestehenden `fansub_group_notes`-Struktur.
 - [x] **Phase 43: MVP Auth-, User- und Fansub-Lead-Foundation mit Keycloak** - Keycloak als externer IdP im Dev-Stack, internes `app_user`-Modell, globale Plattformrollen, Fansub-Gruppenmitgliedschaften und `fansub_lead` als App-DB-Rolle statt Keycloak-Rolle. (runtime retro-verified 2026-05-27; API token boundary corrected by Phase 51)
 - [x] **Phase 44: App Permission Engine fuer Fansub-, Release- und Media-Kontexte** - Zentrale kontextbasierte Permission Engine im Go-Backend, Capabilities fuer das Frontend, group-scope Rollenauswertung aus Team4s-DB und Absicherung der priorisierten Fansub-/Release-/Media-Endpunkte. (runtime retro-verified 2026-05-27)
@@ -62,8 +62,8 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 50: Platform-Admin Boundaries und Contributor Scope Governance** - Globale Admin-Flaechen werden platform-admin-only, Contributor-Kontexte bleiben capability- und permission-gescoped, und sensible Admin-Daten werden aus Contributor-Editor-Kontexten entfernt. (technical verification passed 2026-05-22; live Keycloak UAT pending)
 - [x] **Phase 51: Keycloak Access-Token Resource-Server Boundary** - Keycloak/API-Auth von `id_token`-als-Team4s-Bearer auf echte API-`access_token`-Verifikation mit Team4s-API-Audience umstellen. (completed 2026-05-26)
 - [x] **Phase 52: Profile Account Return Refresh Flow** - Keycloak-Accountaenderungen werden von der Profilseite aus verstaendlich in einem neuen Tab angestossen und Team4s-Accountkarten beim Zurueckkehren ueber zentrale Auth-/Profil-Seams aktualisiert. (automated verified 2026-05-26; live Keycloak UAT pending)
-- [x] **Phase 53: RollenÃ¼bergreifendes Mein Profil als Member Identity Hub** - Die bestehende Profilseite wird als `/me/profile` zu einem modernen, rollenÃ¼bergreifenden Member-Identity-Hub weiterentwickelt: rollenneutrale Route, echte Datenquellen, GDS-basierte OberflÃ¤che, klare Keycloak-/Team4s-Datenhoheit, getrennte Rollenarten, sichere Avatar-/Rich-Text-/Sichtbarkeitsplanung und keine Mockdaten. (completed 2026-05-27)
-- [x] **Phase 54: Globale Nav Drawer und Layout Verdrahtung** - Die AppShell wird zu einem seitenweiten Drawer-Navigationssystem: echter Slide-over-Drawer, hover-aktivierter Desktop-Glasrand (16px), Root-Layout-Integration fÃ¼r seitenweite PrÃ¤senz und Dual-State (anonym/eingeloggt) mit echtem Avatar-Bild. (completed 2026-05-28)
+- [x] **Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub** - Die bestehende Profilseite wird als `/me/profile` zu einem modernen, rollenübergreifenden Member-Identity-Hub weiterentwickelt: rollenneutrale Route, echte Datenquellen, GDS-basierte Oberfläche, klare Keycloak-/Team4s-Datenhoheit, getrennte Rollenarten, sichere Avatar-/Rich-Text-/Sichtbarkeitsplanung und keine Mockdaten. (completed 2026-05-27)
+- [x] **Phase 54: Globale Nav Drawer und Layout Verdrahtung** - Die AppShell wird zu einem seitenweiten Drawer-Navigationssystem: echter Slide-over-Drawer, hover-aktivierter Desktop-Glasrand (16px), Root-Layout-Integration für seitenweite Präsenz und Dual-State (anonym/eingeloggt) mit echtem Avatar-Bild. (completed 2026-05-28)
 - [x] **Phase 55: Sichere TipTap-Persistenz fuer Profilgeschichte** - Die eigene Profilgeschichte wird von Phase-53-Plain-Text auf release-native-unabhaengige TipTap-Persistenz umgestellt: Migration, Backend-Validierung/Sanitizing, OpenAPI/frontend DTOs, Editor-State und Bestandsdaten-Migration bewegen sich gemeinsam. (completed 2026-05-29)
 - [x] **Phase 56: Cropper** - Der fragile eigene Cropper wird durch eine moderne gepflegte React-Cropper-Bibliothek hinter einer gemeinsamen Team4s-Cropper-Komponente ersetzt; Profil-Avatar und Fansub-Gruppenlogo nutzen dieselbe UI-Grundlage, ohne Upload-Endpunkte oder Media-Ownership zu vermischen. (completed and security-verified 2026-05-29)
 - [x] **Phase 57: Profil-Aktivzeitraum als jahrbegrenzte Datumsfelder** - `/me/profile` speichert den Fansub-Szene-Aktivzeitraum ueber echte DB-DATE-Spalten, waehrend die UI weiterhin nur Jahresauswahl fuer "von wann bis wann aktiv" erlaubt. (implemented, security-verified, and validation-approved 2026-05-29; authenticated UAT pending)
@@ -335,27 +335,27 @@ Plans:
   5. Persisted release-version group links and `anime_fansub_groups` stay consistent with the effective group/collaboration chosen by the operator.
 
 ### Phase 23: OP/ED Theme Verwaltung
-**Goal:** Admins kÃ¶nnen Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren (z.B. OP1 lÃ¤uft Episode 1â€“25), theme_types seeden (OP1, OP2, ED1, ED2, Insert, Outro), und Fansub-Gruppen kÃ¶nnen OP/ED-Videos zu ihren Releases hochladen.
+**Goal:** Admins können Opening- und Ending-Themes pro Anime anlegen, Episodenbereiche definieren (z.B. OP1 läuft Episode 1–25), theme_types seeden (OP1, OP2, ED1, ED2, Insert, Outro), und Fansub-Gruppen können OP/ED-Videos zu ihren Releases hochladen.
 **Requirements**: P23-SC1, P23-SC2, P23-SC3, P23-SC4
 **Depends on:** Phase 22
 **Plans:** 4/4 plans complete
-**Status:** superseded-complete 2026-05-11 â€” UAT nicht separat durchgefÃ¼hrt, Substanz durch Phasen 24â€“28 UAT-Sessions bestÃ¤tigt
+**Status:** superseded-complete 2026-05-11 — UAT nicht separat durchgeführt, Substanz durch Phasen 24–28 UAT-Sessions bestätigt
 Plans:
 - [x] `23-01-PLAN.md` -- Migration 0048 + Backend CRUD fuer Anime-Themes (5 Endpunkte)
 - [x] `23-02-PLAN.md` -- Backend Segment-CRUD (3 Endpunkte) + Frontend AnimeThemesSection auf Edit-Seite
 - [x] `23-03-PLAN.md` -- Backend release_theme_assets (Video-Upload + Theme-Zuweisung) + Frontend Fansub-Edit-Seite Upload-UI
-- [x] `23-04-PLAN.md` -- Unit-Tests (11/11 grÃ¼n), Verification, Phase-Close
+- [x] `23-04-PLAN.md` -- Unit-Tests (11/11 grün), Verification, Phase-Close
 **Success Criteria** (what must be TRUE):
-  1. Admin kann auf der Anime-Edit-Seite OP/ED-Themes anlegen, bearbeiten und lÃ¶schen.
+  1. Admin kann auf der Anime-Edit-Seite OP/ED-Themes anlegen, bearbeiten und löschen.
   2. Pro Theme kann ein Episodenbereich (von Episode X bis Episode Y) definiert werden.
-  3. theme_types sind geseedet (OP1, OP2, ED1, ED2, Insert, Outro) und auswÃ¤hlbar.
-  4. Bestehende Themes werden beim Ã–ffnen der Edit-Seite korrekt geladen und angezeigt.
+  3. theme_types sind geseedet (OP1, OP2, ED1, ED2, Insert, Outro) und auswählbar.
+  4. Bestehende Themes werden beim Öffnen der Edit-Seite korrekt geladen und angezeigt.
 
 ### Phase 24: Release-Segmente (OP/ED Timing)
-**Goal:** Admins kÃ¶nnen auf der Episode-Version-Edit-Seite OP/ED-Segmente fÃ¼r eine Fansub-Gruppe und Version verwalten: Typ (OP/ED/IN/PV), Name, Episodenbereich (plain integers), Zeitbereich im Video (HH:MM:SS), optionale Jellyfin-Quelle. Migration: theme_segments um fansub_group_id, version, start_episode, end_episode, start_time, end_time, source_jellyfin_item_id erweitern. UI wie Mockup: Tab "Segmente" mit Tabelle (Typ-Badges), Seitenleisten-Formular und Timeline-Visualisierung.
+**Goal:** Admins können auf der Episode-Version-Edit-Seite OP/ED-Segmente für eine Fansub-Gruppe und Version verwalten: Typ (OP/ED/IN/PV), Name, Episodenbereich (plain integers), Zeitbereich im Video (HH:MM:SS), optionale Jellyfin-Quelle. Migration: theme_segments um fansub_group_id, version, start_episode, end_episode, start_time, end_time, source_jellyfin_item_id erweitern. UI wie Mockup: Tab "Segmente" mit Tabelle (Typ-Badges), Seitenleisten-Formular und Timeline-Visualisierung.
 **Requirements**: P24-SC1, P24-SC2, P24-SC3, P24-SC4
 **Depends on:** Phase 23
-**Status**: UAT bestanden 2026-04-26; alle 4 Success Criteria auf live Docker-Umgebung bestÃ¤tigt
+**Status**: UAT bestanden 2026-04-26; alle 4 Success Criteria auf live Docker-Umgebung bestätigt
 **Plans:** 3/3 plans complete
 Plans:
 - [x] `24-01-PLAN.md` -- Migration 0049 + Backend Segment-CRUD (4 Endpunkte, alte FK-Handler ersetzen)
@@ -363,25 +363,25 @@ Plans:
 - [x] `24-03-PLAN.md` -- Verification, Backend-Smoke-Tests, Human UAT
 **Success Criteria** (what must be TRUE):
   1. Admin sieht auf `/admin/episode-versions/:id/edit` einen Tab "Segmente" mit Tabelle (Typ-Badge, Name, Episodenbereich, Zeitbereich, Quelle) und Aktions-Buttons.
-  2. Segmente kÃ¶nnen angelegt, bearbeitet und gelÃ¶scht werden; Episodenbereich sind plain integers (keine FK auf episodes).
-  3. Die Timeline-Vorschau zeigt Segmente als farbige BlÃ¶cke proportional zum Zeitbereich.
-  4. Query-Seam fÃ¼r Playback: `WHERE series = (anime, group, version) AND episode BETWEEN start AND end` liefert korrekte Segmente.
+  2. Segmente können angelegt, bearbeitet und gelöscht werden; Episodenbereich sind plain integers (keine FK auf episodes).
+  3. Die Timeline-Vorschau zeigt Segmente als farbige Blöcke proportional zum Zeitbereich.
+  4. Query-Seam für Playback: `WHERE series = (anime, group, version) AND episode BETWEEN start AND end` liefert korrekte Segmente.
 
 ### Phase 25: Segmente UI Mockup-Alignment
-**Goal:** Die Segmente-Verwaltungsseite auf der Episode-Version-Edit-Seite wird vollstÃ¤ndig an das Mockup angeglichen â€” mit Breadcrumb-Navigation, 5-Tab-Layout, poliertem Typ-Dropdown, VorschlÃ¤ge-System, verbesserter Timeline und eingebettetem Video-Vorschau-Player.
+**Goal:** Die Segmente-Verwaltungsseite auf der Episode-Version-Edit-Seite wird vollständig an das Mockup angeglichen — mit Breadcrumb-Navigation, 5-Tab-Layout, poliertem Typ-Dropdown, Vorschläge-System, verbesserter Timeline und eingebettetem Video-Vorschau-Player.
 **Requirements**: P25-SC1, P25-SC2, P25-SC3, P25-SC4, P25-SC5
 **Depends on:** Phase 24
 **Success Criteria** (what must be TRUE):
-  1. Breadcrumb zeigt "Anime â€º [Name] â€º Episode [N] â€º [Gruppe] v[X]" und alle Links funktionieren.
-  2. Seite hat 5 Tabs (Ãœbersicht, Dateien, Informationen, Segmente, Changelog); Segmente-Tab zeigt die Tabelle mit Typ-Badge "Opening (OP)", Dauer in Klammern und Quelle mit Jellyfin-Icon.
-  3. VorschlÃ¤ge-Leiste erscheint wenn andere Releases desselben Anime Segmente haben; "Ãœbernehmen"-Button kopiert das Segment in die aktuelle Release-Version.
+  1. Breadcrumb zeigt "Anime › [Name] › Episode [N] › [Gruppe] v[X]" und alle Links funktionieren.
+  2. Seite hat 5 Tabs (Übersicht, Dateien, Informationen, Segmente, Changelog); Segmente-Tab zeigt die Tabelle mit Typ-Badge "Opening (OP)", Dauer in Klammern und Quelle mit Jellyfin-Icon.
+  3. Vorschläge-Leiste erscheint wenn andere Releases desselben Anime Segmente haben; "Übernehmen"-Button kopiert das Segment in die aktuelle Release-Version.
   4. Timeline zeigt Hauptinhalt-Label zwischen OP und ED, Insert Songs erscheinen als schwebendes Element oberhalb der Hauptlinie.
-  5. Formular-Seitenleiste hat Jellyfin-Item-Suche (klickbar, zeigt Suchergebnisse) und einen eingebetteten Video-Vorschau-Player der das ausgewÃ¤hlte Item abspielt.
+  5. Formular-Seitenleiste hat Jellyfin-Item-Suche (klickbar, zeigt Suchergebnisse) und einen eingebetteten Video-Vorschau-Player der das ausgewählte Item abspielt.
 **Plans:** 3/3 plans complete
 Plans:
-- [x] `25-01-PLAN.md` â€” Backend: Vorschlaege-Endpunkt + Jellyfin-Item-Suche
-- [x] `25-02-PLAN.md` â€” Frontend: Breadcrumb, 5 Tabs, SegmenteTab-Verbesserungen, JellyfinItemPicker
-- [x] `25-03-PLAN.md` â€” Tests + UAT
+- [x] `25-01-PLAN.md` — Backend: Vorschlaege-Endpunkt + Jellyfin-Item-Suche
+- [x] `25-02-PLAN.md` — Frontend: Breadcrumb, 5 Tabs, SegmenteTab-Verbesserungen, JellyfinItemPicker
+- [x] `25-03-PLAN.md` — Tests + UAT
 
 ### Phase 26: Segment Source Asset Upload And Persistence
 **Goal:** Segmente erhalten echte Team4s-Asset-Quellen statt nur symbolischer Source-Typen: Admins koennen Segment-Dateien hochladen, kontrolliert benennen, unter einem deterministischen Team4s-Pfad speichern und dem Segment als `release_asset` zuordnen. Playback bleibt ausser Scope.
@@ -419,7 +419,7 @@ Plans:
 **Goal:** Replace the stale, divergent anime edit route with a create-flow-based editor that reuses the modern admin anime workspace while preserving edit-specific identity rules.
 **Requirements**: P22-SC1, P22-SC2, P22-SC3, P22-SC4, P22-SC5
 **Depends on:** Phase 21
-**Status**: Complete â€” SharedAnimeEditorWorkspace + AnimeEditorShell used by both create and edit routes. Code verified 2026-05-10.
+**Status**: Complete — SharedAnimeEditorWorkspace + AnimeEditorShell used by both create and edit routes. Code verified 2026-05-10.
 **Success Criteria** (what must be TRUE):
   1. `/admin/anime/[id]/edit` no longer uses the old standalone edit workspace and instead renders through the same core UI foundation as `/admin/anime/create`.
   2. The edit route loads existing anime data into that shared workspace so title, localized titles, type, content type, status, year, max episodes, description, genres, tags, and assets can all be reviewed and changed from one consistent surface.
@@ -434,7 +434,7 @@ Plans:
 | v1.0 Admin Anime Intake | 6 | 23 | Complete | 2026-04-01 |
 | v1.1 Asset Lifecycle Hardening | 21 | 44+ | Phases 6-21 complete; Phase 22 edit unification, Phase 23 OP/ED-Verwaltung, Phase 24 Release-Segmente geplant | - |
 
-### Phase 28: Segment Playback Sources From Jellyfin Runtime â€” Segmente nutzen standardmaessig Episode-Version/Jellyfin-Stream als Playback-Quelle, Zeitgrenzen kommen aus release_variants.duration_seconds, Upload bleibt optionaler Fallback
+### Phase 28: Segment Playback Sources From Jellyfin Runtime — Segmente nutzen standardmaessig Episode-Version/Jellyfin-Stream als Playback-Quelle, Zeitgrenzen kommen aus release_variants.duration_seconds, Upload bleibt optionaler Fallback
 
 **Goal:** Segmente auf der Episode-Version-Edit-Seite standardmaessig gegen den aktuellen Release-Variant-/Jellyfin-Stream aufloesen, reale Laufzeitgrenzen aus `release_variants.duration_seconds` nutzen und hochgeladene Segmentdateien als expliziten Fallback statt als stillen Default behandeln.
 **Requirements**: P28-SC1, P28-SC2, P28-SC3, P28-SC4, P28-SC5
@@ -543,7 +543,7 @@ Plans:
   4. Bei InsertMediaFile-Fehler erfolgt Rollback via DeleteMediaAsset + removeFileQuietly.
   5. Kein Backfill bestehender Assets (nur Testdaten betroffen), kein DB-Schema-Change.
 
-### Phase 34: Release-Version Media â€” Schema Foundation
+### Phase 34: Release-Version Media — Schema Foundation
 
 **Goal:** Datenbankgrundlage fuer das Release-Version-Media-Upload-System legen: neue release_version_media-Tabelle, status-Felder in media_assets und media_files, alle Constraints und Indexe. Kein Backend, kein Frontend in dieser Phase.
 **Requirements**: RVM-SCHEMA-01
@@ -551,7 +551,7 @@ Plans:
 **Plans:** 1/1 plans complete
 
 Plans:
-- [ ] `34-01-PLAN.md` â€” Migration 0059: CREATE TABLE release_version_media + status-Spalten in media_assets/media_files + Constraints + Indexe
+- [ ] `34-01-PLAN.md` — Migration 0059: CREATE TABLE release_version_media + status-Spalten in media_assets/media_files + Constraints + Indexe
 
 **Success Criteria** (what must be TRUE):
   1. Tabelle release_version_media existiert mit: id, release_version_id (FK release_versions), media_asset_id (FK media_assets), category (CHECK IN screenshot,typesetting_karaoke,fun_outtake,other), caption, sort_order, is_preview_candidate, uploaded_by_user_id, created_at, updated_at, deleted_at, deleted_by_user_id.
@@ -561,7 +561,7 @@ Plans:
   5. Alle bestehenden media_assets- und media_files-Eintraege haben status=ready nach Migration.
   6. Down-Migration setzt alle Aenderungen sauber zurueck.
 
-### Phase 35: Release-Version Media â€” Backend Upload Service und API
+### Phase 35: Release-Version Media — Backend Upload Service und API
 
 **Goal:** Go-Backend-Service fuer Release-Version-Media-Uploads implementieren: Validierung, Staging, libvips-basierte Thumbnail-Erzeugung (bimg/govips), GIF-Sonderfall, DB-Transaktion, Rollback. Alle 5 Admin-API-Endpunkte (Upload, List, Patch, Delete, Reorder). Vorerst Admin-only-Berechtigungspruefung.
 **Requirements**: RVM-BACKEND-01
@@ -569,14 +569,14 @@ Plans:
 **Plans:** 3/4 plans executed
 
 Plans:
-- [ ] `35-01-PLAN.md` â€” Dockerfile CGO-Fix + govips Dependency + vips.Startup in main.go
-- [ ] `35-02-PLAN.md` â€” Repository-Methoden (8 Methoden auf MediaRepository fuer release_version_media CRUD)
-- [ ] `35-03-PLAN.md` â€” Upload-Handler (POST) mit govips-Thumbnail, GIF-Sonderfall, DB-Transaktion, Rollback
-- [ ] `35-04-PLAN.md` â€” List/Patch/Delete/Reorder-Handler + Route-Registrierung in admin_routes.go
+- [ ] `35-01-PLAN.md` — Dockerfile CGO-Fix + govips Dependency + vips.Startup in main.go
+- [ ] `35-02-PLAN.md` — Repository-Methoden (8 Methoden auf MediaRepository fuer release_version_media CRUD)
+- [ ] `35-03-PLAN.md` — Upload-Handler (POST) mit govips-Thumbnail, GIF-Sonderfall, DB-Transaktion, Rollback
+- [ ] `35-04-PLAN.md` — List/Patch/Delete/Reorder-Handler + Route-Registrierung in admin_routes.go
 
 **Success Criteria** (what must be TRUE):
   1. POST /admin/release-versions/{id}/media akzeptiert multipart/form-data mit category + files[]. Liefert pro Datei {client_file_name, status, media_asset_id, release_version_media_id, thumbnail_url} oder {status:failed, error_code}.
-  2. Jede Datei wird isoliert verarbeitet â€” Fehler bei Datei A beeinflusst Datei B nicht.
+  2. Jede Datei wird isoliert verarbeitet — Fehler bei Datei A beeinflusst Datei B nicht.
   3. Animated-GIF-Original bleibt animiert gespeichert; Thumbnail ist statisches Frame-1-Bild via govips.
   4. Bei Fehler nach Staging: DB rollback + Staging-Dateien werden geloescht, kein status=ready entsteht.
   5. GET /admin/release-versions/{id}/media, PATCH, DELETE (soft), POST reorder existieren und antworten korrekt.
@@ -584,7 +584,7 @@ Plans:
   7. is_preview_candidate=true wird bei category=fun_outtake oder other abgelehnt (HTTP 422 PREVIEW_NOT_ALLOWED_FOR_CATEGORY).
   8. Maximal ein aktives Vorschaubild pro release_version_id (neues Preview deaktiviert bestehendes transaktionssicher).
 
-### Phase 36: Release-Version Media â€” Frontend Upload UI und Galerie
+### Phase 36: Release-Version Media — Frontend Upload UI und Galerie
 
 **Goal:** Release-Version-Media im bestehenden Admin-Produktfluss nutzbar machen: kompakter Einstieg im Fansub-Release-Drawer und vollstaendige Verwaltung im Release-Version-Editor (/admin/episode-versions/[versionId]/edit/) mit Kategorie-zuerst-Upload-Flow, Drag-and-Drop, Per-File-Progress, Retry und Galerie-/Detailbearbeitung.
 **Requirements**: RVM-FRONTEND-01
@@ -605,9 +605,9 @@ Plans:
   5. Preview-Schalter ist nur bei screenshot und typesetting_karaoke sichtbar/aktiv.
   6. Galerie zeigt hochgeladene Bilder mit Thumbnail; Klick zeigt Original; Kategorien bleiben als sichtbare Abschnitte getrennt statt hinter Tabs versteckt.
   7. Caption, Sortierung und Preview-Flag sind ueber eine kompakte Detail-/Edit-Flaeche bearbeitbar statt als dichte Voll-Inline-Galerie.
-  8. Delete-Aktion entfernt Asset aus der Galerie-Ansicht erst nach Backend-Erfolg (soft delete im Backend), und keine Business-Regeln werden ausschliesslich im Frontend erzwungen â€” Backend-Fehlercodes werden verstaendlich angezeigt.
+  8. Delete-Aktion entfernt Asset aus der Galerie-Ansicht erst nach Backend-Erfolg (soft delete im Backend), und keine Business-Regeln werden ausschliesslich im Frontend erzwungen — Backend-Fehlercodes werden verstaendlich angezeigt.
 
-### Phase 37: Release-Version Media â€” Cleanup Job und Tests
+### Phase 37: Release-Version Media — Cleanup Job und Tests
 
 **Goal:** Periodischer Cleanup-Job fuer verwaiste Staging-Dateien, stale-processing-Assets, fehlende Dateien und Soft-Delete-physisch-Cleanup. Backend- und Frontend-Tests fuer den gesamten Upload-Flow inklusive GIF-Sonderfall und parallele Uploads.
 **Requirements**: RVM-CLEANUP-01
@@ -623,11 +623,11 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Cleanup-Job existiert und erkennt: (a) media_assets mit status=processing aelter als N Minuten, (b) Staging-Dateien ohne DB-Eintrag, (c) media_files-Eintraege ohne physische Datei.
   2. Job setzt betroffene Assets auf status=failed und loescht Staging-Dateien physisch.
-  3. Soft-deleted Assets werden nach definierter Retention physisch geloescht â€” nur wenn keine andere Relation dasselbe Asset referenziert.
+  3. Soft-deleted Assets werden nach definierter Retention physisch geloescht — nur wenn keine andere Relation dasselbe Asset referenziert.
   4. Backend-Tests decken ab: gueltiger JPEG/PNG/WebP/GIF Upload, GIF-Original animiert, GIF-Thumbnail statisch, SVG abgelehnt, falscher MIME-Type abgelehnt, zu grosse Datei abgelehnt, Preview-Regel verletzt, Teilfehler bei Mehrfach-Upload.
   5. Frontend-Tests: Kategorie-Pflicht, Per-File-Retry, Preview-Schalter-Sichtbarkeit, Galerie-Update nach Upload.
 
-### Phase 38: Release-Version Media â€” Gallery UX: Hover-Preview und Drag-and-Drop-Reorder
+### Phase 38: Release-Version Media — Gallery UX: Hover-Preview und Drag-and-Drop-Reorder
 
 **Goal:** Professionelle Galerie-UX fuer Release-Version-Media: Floating Preview Card beim Hover (grosses Bild + Caption, GIF-Animation via src-Swap), Drag-and-Drop-Reorder innerhalb einer Kategorie (ersetzt sort_order-Zahlenfeld), Live-Re-Sort-Bug-Fix.
 **Requirements**: RVM-FRONTEND-01
@@ -647,7 +647,7 @@ Plans:
 
 ### Phase 39: Deutsche Umlaute durchgaengig korrigieren
 
-**Goal:** Alle user-sichtbaren deutschen Texte im Frontend (TSX/TS) und im Backend (Go-Strings) verwenden korrekte Schweizer/deutsche Standardschrift mit Umlauten (Ã¤, Ã¶, Ã¼, Ã„, Ã–, Ãœ). ASCII-Ersetzungen wie ae/oe/ue in UI-Text werden eliminiert. Eine verbindliche CLAUDE.md-Regel stellt sicher dass neu geschriebener Code die Regel von Anfang an einhÃ¤lt.
+**Goal:** Alle user-sichtbaren deutschen Texte im Frontend (TSX/TS) und im Backend (Go-Strings) verwenden korrekte Schweizer/deutsche Standardschrift mit Umlauten (ä, ö, ü, Ä, Ö, Ü). ASCII-Ersetzungen wie ae/oe/ue in UI-Text werden eliminiert. Eine verbindliche CLAUDE.md-Regel stellt sicher dass neu geschriebener Code die Regel von Anfang an einhält.
 
 **Scope:** Nur user-facing Strings (JSX-Text, Button-Labels, Fehlermeldungen, Toast-Nachrichten, Placeholder). Code-Bezeichner (Variablennamen, Funktionsnamen, CSS-Klassen) bleiben unveraendert.
 
@@ -665,60 +665,60 @@ Plans:
   4. Nach der Aenderung laufen alle bestehenden Tests weiterhin gruen.
   5. Code-Bezeichner (Variablennamen, CSS-Klassen, Funktionsnamen) sind unveraendert.
 
-### Phase 40: Text- und Notizsystem fÃ¼r Fansub-Plattform
+### Phase 40: Text- und Notizsystem für Fansub-Plattform
 
-**Goal:** Ein sauberes, fachlich abgegrenztes Text-/Notizsystem fÃ¼r vier Ebenen: Fansub-Gruppen-Texte (fansub_group_notes), persÃ¶nliche Member-Geschichten (member_group_stories), Fansubprojekt-Texte zu einem Anime (anime_fansub_project_notes) und rollenbezogene Release-Version-Notizen (release_version_notes). Vor jeder Implementierung wird die bestehende DB/API/UI-Struktur geprÃ¼ft und vorhandenes wiederverwendet. Kein Doppelbau. Kein Ãœbermodellieren. Texte in DB, nicht extern.
+**Goal:** Ein sauberes, fachlich abgegrenztes Text-/Notizsystem für vier Ebenen: Fansub-Gruppen-Texte (fansub_group_notes), persönliche Member-Geschichten (member_group_stories), Fansubprojekt-Texte zu einem Anime (anime_fansub_project_notes) und rollenbezogene Release-Version-Notizen (release_version_notes). Vor jeder Implementierung wird die bestehende DB/API/UI-Struktur geprüft und vorhandenes wiederverwendet. Kein Doppelbau. Kein Übermodellieren. Texte in DB, nicht extern.
 
-**Scope:** DB-Migrationen (nur wenn nÃ¶tig), Go-Backend (Repository, Handler, API), Next.js-Frontend (Admin-Bereiche, Public-Darstellung). Kein Episode-Text. Kein Segment-Text. Kein fansub_group_member_notes.
+**Scope:** DB-Migrationen (nur wenn nötig), Go-Backend (Repository, Handler, API), Next.js-Frontend (Admin-Bereiche, Public-Darstellung). Kein Episode-Text. Kein Segment-Text. Kein fansub_group_member_notes.
 
 **Depends on:** 39
 
 **Status**: Geplant 2026-05-11
 
 Plans:
-- [ ] TBD â€” wird nach Bestandsanalyse definiert
+- [ ] TBD — wird nach Bestandsanalyse definiert
 
 **Success Criteria** (what must be TRUE):
-  1. Bestehende DB/API/UI-Struktur wurde vor Implementierung vollstÃ¤ndig geprÃ¼ft.
-  2. fansub_group_notes existiert (neu oder vorhanden) und wird fÃ¼r offizielle Gruppentexte verwendet.
-  3. member_group_stories existiert (neu oder vorhanden) und wird fÃ¼r persÃ¶nliche Member-Geschichten verwendet.
-  4. anime_fansub_project_notes existiert (neu oder vorhanden) und wird fÃ¼r Fansubprojekt-Texte verwendet.
-  5. release_version_notes existiert (neu oder vorhanden) und hÃ¤ngt an release_version_id + member_id + role_id.
+  1. Bestehende DB/API/UI-Struktur wurde vor Implementierung vollständig geprüft.
+  2. fansub_group_notes existiert (neu oder vorhanden) und wird für offizielle Gruppentexte verwendet.
+  3. member_group_stories existiert (neu oder vorhanden) und wird für persönliche Member-Geschichten verwendet.
+  4. anime_fansub_project_notes existiert (neu oder vorhanden) und wird für Fansubprojekt-Texte verwendet.
+  5. release_version_notes existiert (neu oder vorhanden) und hängt an release_version_id + member_id + role_id.
   6. Pro Release-Version-Rolle werden passende Hilfetexte und Placeholder angezeigt.
   7. Public-Ausgabe zeigt nur status=published, visibility=public, deleted_at IS NULL, body nicht leer.
   8. Rollenmodell ist auf die 11 Kernrollen reduziert; alte Spezialrollen sind gemappt.
   9. Markdown/HTML wird sicher gerendert und sanitisiert.
-  10. Backend-Tests und Frontend-Tests laufen grÃ¼n.
+  10. Backend-Tests und Frontend-Tests laufen grün.
 
-### Phase 41: Globalen TipTap-Rich-Text-Editor einfÃ¼hren
+### Phase 41: Globalen TipTap-Rich-Text-Editor einführen
 
-**Goal:** TipTap als globale Rich-Text-Editor-Basis fÃ¼r alle vier Textbereiche (fansub_group_notes, member_group_stories, anime_fansub_project_notes, release_version_notes). Ersetzt das Markdown-System aus Phase 40 durch JSONB-basierte Speicherung (body_json), serverseitig erzeugtes und sanitisiertes HTML (body_html) sowie Plaintext fÃ¼r Suche/Teaser (body_text). Globale RichTextEditor- und RichTextRenderer-Komponenten. Backend-Validierung gegen erlaubtes TipTap-Schema. Farben nur Ã¼ber definierte Token-Palette.
+**Goal:** TipTap als globale Rich-Text-Editor-Basis für alle vier Textbereiche (fansub_group_notes, member_group_stories, anime_fansub_project_notes, release_version_notes). Ersetzt das Markdown-System aus Phase 40 durch JSONB-basierte Speicherung (body_json), serverseitig erzeugtes und sanitisiertes HTML (body_html) sowie Plaintext für Suche/Teaser (body_text). Globale RichTextEditor- und RichTextRenderer-Komponenten. Backend-Validierung gegen erlaubtes TipTap-Schema. Farben nur über definierte Token-Palette.
 **Requirements**: TIPTAP-EDITOR-01
 **Depends on:** 40
 **Status:** Retro-verified complete on 2026-05-27 via runtime evidence, phase summaries, UAT, validation, and security artifacts.
 **Plans:** 6/6 plans retro-closed
 
 Plans:
-- [x] `41-01-PLAN.md` â€” DB-Migrationen 0067-0070: body_json/body_text/editor_type/content_schema_version fÃ¼r alle vier Texttabellen
-- [x] `41-02-PLAN.md` â€” Go TipTap Service: Validator, HTML-Renderer, Plaintext-Extractor, IsEmpty
-- [x] `41-03-PLAN.md` â€” Go Backend API-Anpassung: Handler-Split, DTOs auf body_json, Repository-Erweiterung
-- [x] `41-04-PLAN.md` â€” Frontend globale Komponenten: RichTextEditor, RichTextRenderer, ColorTokenExtension
-- [x] `41-05-PLAN.md` â€” Frontend Admin-Integration: alle vier Textbereiche auf RichTextEditor umstellen
-- [x] `41-06-PLAN.md` â€” Frontend Tests + Integrations-Check + Browser-UAT Checkpoint
+- [x] `41-01-PLAN.md` — DB-Migrationen 0067-0070: body_json/body_text/editor_type/content_schema_version für alle vier Texttabellen
+- [x] `41-02-PLAN.md` — Go TipTap Service: Validator, HTML-Renderer, Plaintext-Extractor, IsEmpty
+- [x] `41-03-PLAN.md` — Go Backend API-Anpassung: Handler-Split, DTOs auf body_json, Repository-Erweiterung
+- [x] `41-04-PLAN.md` — Frontend globale Komponenten: RichTextEditor, RichTextRenderer, ColorTokenExtension
+- [x] `41-05-PLAN.md` — Frontend Admin-Integration: alle vier Textbereiche auf RichTextEditor umstellen
+- [x] `41-06-PLAN.md` — Frontend Tests + Integrations-Check + Browser-UAT Checkpoint
 
 **Success Criteria** (what must be TRUE):
-  1. TipTap als globale Editor-Basis eingefÃ¼hrt; RichTextEditor-Komponente existiert.
+  1. TipTap als globale Editor-Basis eingeführt; RichTextEditor-Komponente existiert.
   2. RichTextRenderer-Komponente existiert und gibt nur sanitisiertes body_html aus.
   3. Alle vier Texttabellen haben body_json JSONB, body_html TEXT, body_text TEXT, editor_type TEXT, content_schema_version INT.
   4. Backend validiert body_json gegen erlaubte TipTap-Nodes/Marks.
   5. HTML-Sanitizing blockiert script, iframe, on*-Handler, javascript:-URLs, Base64-Bilder.
-  6. Farben nur Ã¼ber Token-Palette (default/gray/red/orange/yellow/green/blue/purple).
+  6. Farben nur über Token-Palette (default/gray/red/orange/yellow/green/blue/purple).
   7. MVP-Toolbar: Paragraph/H1/H2/H3, Bold, Italic, BulletList, OrderedList, Blockquote, Table, Farbe, HorizontalRule, Undo/Redo.
   8. Tabellen: max. 6 Spalten / 30 Zeilen, keine verschachtelten Tabellen.
   9. Public-Ausgabe nur bei status=published, visibility=public, deleted_at IS NULL, body_text nicht leer.
   10. Phase-40-Hilfetexte und rollenbezogene release_version_notes-Texte bleiben erhalten.
   11. Leere Inhalte werden korrekt erkannt und nicht angezeigt.
-  12. go test ./... und npm run typecheck/lint laufen grÃ¼n.
+  12. go test ./... und npm run typecheck/lint laufen grün.
 
 ### Phase 42: TipTap Collaboration MVP fuer fansub_group_notes
 
@@ -1012,16 +1012,16 @@ Plans:
 9. Session-/Refresh-Fehler beim Rueckkehrrefresh werden ruhig und lokal behandelt: keine Endlosschleife, kein ungefragtes Logout, vorhandene Profilanzeige bleibt soweit moeglich stabil.
 10. Tests decken neuen Tab, Rueckkehrhinweis, geaenderte Accountdaten, unveraenderte Accountdaten und Dirty-Form-Schutz ab.
 
-### Phase 53: RollenÃ¼bergreifendes Mein Profil als Member Identity Hub
+### Phase 53: Rollenübergreifendes Mein Profil als Member Identity Hub
 
-**Goal:** Die bestehende Profilseite wird zu einem modernen, rollenÃ¼bergreifenden Bereich `Mein Profil` weiterentwickelt. `/me/profile` ist die Zielroute fÃ¼r alle eingeloggten User; `/admin/profile` darf keine eigene Admin-Profilwelt bleiben. Die Seite zeigt Team4s-/Fansub-IdentitÃ¤t, Gruppen, Rollen, BeitrÃ¤ge und pflegbare Profilinformationen aus echten Datenquellen, wÃ¤hrend Login, E-Mail, Passwort, MFA und technische Account-Sicherheit bei Keycloak bleiben.
+**Goal:** Die bestehende Profilseite wird zu einem modernen, rollenübergreifenden Bereich `Mein Profil` weiterentwickelt. `/me/profile` ist die Zielroute für alle eingeloggten User; `/admin/profile` darf keine eigene Admin-Profilwelt bleiben. Die Seite zeigt Team4s-/Fansub-Identität, Gruppen, Rollen, Beiträge und pflegbare Profilinformationen aus echten Datenquellen, während Login, E-Mail, Passwort, MFA und technische Account-Sicherheit bei Keycloak bleiben.
 **Requirements**: MEMBER-PROFILE-HUB-01
 **Depends on:** Phase 47, Phase 48, Phase 52
 **Context:** `.planning/phases/53-rollenuebergreifendes-mein-profil-als-member-identity-hub/53-CONTEXT.md`
 **Plans:** 2/2 plans complete
 
 Plans:
-- [x] `53-01-PLAN.md` - Phase 53A: Route `/me/profile`, wiederverwendbare globale Shell als erster Consumer, Nicht-Admin-Einstieg, Datenquellen, rollenneutrale Komponenten, Layout/GDS-Basis, Profil-Hero, Basisdaten, Account & Sicherheit, Mitgliedschaften, BeitrÃ¤ge-Summary und Rollenlabel-Mapping planen und umsetzen.
+- [x] `53-01-PLAN.md` - Phase 53A: Route `/me/profile`, wiederverwendbare globale Shell als erster Consumer, Nicht-Admin-Einstieg, Datenquellen, rollenneutrale Komponenten, Layout/GDS-Basis, Profil-Hero, Basisdaten, Account & Sicherheit, Mitgliedschaften, Beiträge-Summary und Rollenlabel-Mapping planen und umsetzen.
 - [x] `53-02-PLAN.md` - Phase 53B: Avatar-Crop mit 1:1-/Circular-Geometrie, shared Crop-Primitives, serverseitige Avatar-Validierung, Varianten-/Originalbild-Entscheidung, Month-/Year-Contract, sichere TipTap-/Rich-Text-Verdrahtung, Sichtbarkeit, Dirty-State, partielle Fehler, Mobile-Shell-QA und Accessibility absichern.
 
 **Cross-cutting constraints:**
@@ -1030,43 +1030,43 @@ Plans:
 - 53B-Contract-Arbeiten laufen seriell oder explizit koordiniert, damit Migrationen/OpenAPI/DTOs nicht kollidieren.
 
 **Architecture Decisions** (must remain TRUE):
-1. `/me/profile` ist die Zielroute fÃ¼r alle eingeloggten User.
+1. `/me/profile` ist die Zielroute für alle eingeloggten User.
 2. `/admin/profile` darf keine eigene Admin-Profilwelt bleiben; es leitet weiter oder re-exportiert intern die rollenneutrale Seite.
-3. Keycloak bleibt Quelle fÃ¼r Login, E-Mail, Passwort, MFA und Account-Sicherheit.
-4. Team4s bleibt Quelle fÃ¼r Fansub-Profil, Avatar, Bio, Gruppen, Rollen und BeitrÃ¤ge.
+3. Keycloak bleibt Quelle für Login, E-Mail, Passwort, MFA und Account-Sicherheit.
+4. Team4s bleibt Quelle für Fansub-Profil, Avatar, Bio, Gruppen, Rollen und Beiträge.
 5. Historische Credits erzeugen keine Berechtigungen.
 6. Rollenarten bleiben getrennt: Plattformrolle, Gruppenrolle, App-Rolle, historische Credit-Rolle und Release-/Projektrolle.
-7. Sichtbarkeit ist konservativ: fehlende oder unklare Sichtbarkeit bedeutet nicht Ã¶ffentlich.
-8. Sensible Accountdaten gelangen nicht in spÃ¤tere Public-Komponenten.
+7. Sichtbarkeit ist konservativ: fehlende oder unklare Sichtbarkeit bedeutet nicht öffentlich.
+8. Sensible Accountdaten gelangen nicht in spätere Public-Komponenten.
 9. Rich Text wird nicht unsanitized gerendert.
 10. Avatar Upload wird serverseitig validiert.
 11. Sidebar/App-Shell wird nicht lokal in `/me/profile` hardgecodet.
 
 **Known Contract / Backend Gaps:**
-1. OpenAPI fehlt aktuell fÃ¼r `/api/v1/me/profile`, `PUT /api/v1/me/profile`, `POST /api/v1/me/profile/avatar`.
+1. OpenAPI fehlt aktuell für `/api/v1/me/profile`, `PUT /api/v1/me/profile`, `POST /api/v1/me/profile/avatar`.
 2. Sichtbarkeit kennt aktuell nur `public | members_only`; eine Gruppen-Sichtbarkeit fehlt.
 3. Aktivzeitraum ist aktuell nur Jahr, nicht Monat/Jahr.
 4. Rich Text wird auf der Profilseite aktuell zu Plain Text konvertiert.
 5. Avatar Upload hat keinen Crop-Contract und keine dokumentierten Varianten wie `avatar_256`, `avatar_96`, `avatar_48`.
 6. Gruppenlogo fehlt im Profil-Membership-DTO.
-7. BeitrÃ¤ge sind aktuell aggregiert, nicht als paginierte Anime-/Episode-/Release-Version-Detail-Liste.
+7. Beiträge sind aktuell aggregiert, nicht als paginierte Anime-/Episode-/Release-Version-Detail-Liste.
 
 **Success Criteria** (what must be TRUE):
-1. `/me/profile` ist als rollenneutrale Profilroute geplant/umgesetzt und fÃ¼r eingeloggte User erreichbar.
-2. `/admin/profile` bleibt nur Ãœbergang/Weiterleitung/Re-Export und erzeugt keine eigene Admin-Profilwelt.
+1. `/me/profile` ist als rollenneutrale Profilroute geplant/umgesetzt und für eingeloggte User erreichbar.
+2. `/admin/profile` bleibt nur Übergang/Weiterleitung/Re-Export und erzeugt keine eigene Admin-Profilwelt.
 3. Die Seite nutzt reale vorhandene Datenquellen und zeigt keine dauerhaften Mockdaten oder erfundenen Felder.
-4. Die UI verwendet bestehende GDS-/UI-Komponenten und lokale Styles nur fÃ¼r fachliche Layoutdetails.
-5. Profil-Hero, Basisdaten, Profilbild, Sichtbarkeit, Account & Sicherheit, Mitgliedschaften und BeitrÃ¤ge sind als getrennte, verstÃ¤ndliche Bereiche geplant.
+4. Die UI verwendet bestehende GDS-/UI-Komponenten und lokale Styles nur für fachliche Layoutdetails.
+5. Profil-Hero, Basisdaten, Profilbild, Sichtbarkeit, Account & Sicherheit, Mitgliedschaften und Beiträge sind als getrennte, verständliche Bereiche geplant.
 6. Accountdaten sind read-only und klar als Keycloak-verwaltet markiert.
 7. Rollenlabels sind deutsch lesbar und Rollenarten werden im UI nicht vermischt.
-8. Mitgliedschaften und BeitrÃ¤ge zeigen Empty States, wenn Daten fehlen, statt fachlich falsche Daten abzuleiten.
+8. Mitgliedschaften und Beiträge zeigen Empty States, wenn Daten fehlen, statt fachlich falsche Daten abzuleiten.
 9. Rich-Text-Rendering ist nur mit validierter/sanitized Ausgabe erlaubt.
 10. Avatar Upload lehnt unsichere Typen serverseitig ab; SVG ist nicht erlaubt, solange kein Sanitizing-Konzept existiert.
-11. Dirty-State, partielle FehlerzustÃ¤nde, mobile Darstellung und Accessibility sind in Phase 53B explizit abgesichert.
+11. Dirty-State, partielle Fehlerzustände, mobile Darstellung und Accessibility sind in Phase 53B explizit abgesichert.
 
 ### Phase 54: Globale Nav Drawer und Layout Verdrahtung
 
-**Goal:** Die AppShell wird zu einem seitenweiten Drawer-Navigationssystem mit echtem Slide-over-Overlay, hover-aktiviertem Desktop-Glasrand-Drawer (16px Edge-Strip), Dual-State (anonym/eingeloggt) und Root-Layout-Integration fÃ¼r seitenweite PrÃ¤senz ohne Einzelinkludierung je Seite.
+**Goal:** Die AppShell wird zu einem seitenweiten Drawer-Navigationssystem mit echtem Slide-over-Overlay, hover-aktiviertem Desktop-Glasrand-Drawer (16px Edge-Strip), Dual-State (anonym/eingeloggt) und Root-Layout-Integration für seitenweite Präsenz ohne Einzelinkludierung je Seite.
 **Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-11, D-12, D-13, D-14, D-15, D-16, D-17, D-18, D-19
 **Depends on:** Phase 53
 **Context:** `.planning/phases/54-globale-nav-drawer-und-layout-verdrahtung/54-CONTEXT.md`
@@ -1075,23 +1075,23 @@ Plans:
 
 Plans:
 **Wave 1**
-- [x] `54-01-PLAN.md` â€” AppShell Drawer-Mechanismus: Slide-over, Edge-Strip, Dual-State, Avatar-Footer, Tests
-- [x] `54-02-PLAN.md` â€” AppShellClientWrapper: Client-Wrapper fÃ¼r Server/Client-Component-Grenze
+- [x] `54-01-PLAN.md` — AppShell Drawer-Mechanismus: Slide-over, Edge-Strip, Dual-State, Avatar-Footer, Tests
+- [x] `54-02-PLAN.md` — AppShellClientWrapper: Client-Wrapper für Server/Client-Component-Grenze
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [x] `54-03-PLAN.md` â€” Root-Layout-Integration + /me/profile Doppel-Shell-Bereinigung
-- [x] `54-04-PLAN.md` â€” Playground-Demo in /dev/ui-system
+- [x] `54-03-PLAN.md` — Root-Layout-Integration + /me/profile Doppel-Shell-Bereinigung
+- [x] `54-04-PLAN.md` — Playground-Demo in /dev/ui-system
 
 **Cross-cutting constraints:**
-- `AppShell` bleibt `'use client'`; Root-Layout bleibt Server Component â€” Client-Wrapper-Grenze darf nicht verletzt werden (D-13)
-- Kein Token als Prop an Shell oder Wrapper Ã¼bergeben (T-54-02, `auth-api-client.md`)
+- `AppShell` bleibt `'use client'`; Root-Layout bleibt Server Component — Client-Wrapper-Grenze darf nicht verletzt werden (D-13)
+- Kein Token als Prop an Shell oder Wrapper übergeben (T-54-02, `auth-api-client.md`)
 
 **Success Criteria** (what must be TRUE):
-1. Der mobile Drawer ist ein echter Slide-over Overlay (von links Ã¼ber den Content) und ersetzt das bisherige Inline-Mobile-Nav-Panel.
-2. Auf Desktop erscheint ein 16px breiter Glasrand am linken Bildschirmrand; Hover oder Fokus auf diesen Strip blendet den vollen Drawer ein; Verlassen schlieÃŸt ihn wieder.
+1. Der mobile Drawer ist ein echter Slide-over Overlay (von links über den Content) und ersetzt das bisherige Inline-Mobile-Nav-Panel.
+2. Auf Desktop erscheint ein 16px breiter Glasrand am linken Bildschirmrand; Hover oder Fokus auf diesen Strip blendet den vollen Drawer ein; Verlassen schließt ihn wieder.
 3. Die AppShell ist in `frontend/src/app/layout.tsx` (Root-Layout) eingebaut, sodass alle Seiten automatisch den Drawer erhalten; Doppel-Shell aus `/me/profile` wird entfernt.
-4. Der Drawer zeigt im anonymen Zustand Login/Registrieren-Buttons und Public-Nav (`/anime`, `/fansubs`, Suche); im eingeloggten Zustand Nutzer-Avatar (aus `GET /api/v1/me/profile`) plus vollstÃ¤ndige Nav-Gruppen.
-5. ESC und Backdrop-Klick schlieÃŸen den Drawer; Focus-Trap, `aria-expanded`, `aria-controls` und sichtbare FokuszustÃ¤nde sind korrekt verdrahtet; keine reinen Hover-only-Aktionen ohne TastaturÃ¤quivalent.
+4. Der Drawer zeigt im anonymen Zustand Login/Registrieren-Buttons und Public-Nav (`/anime`, `/fansubs`, Suche); im eingeloggten Zustand Nutzer-Avatar (aus `GET /api/v1/me/profile`) plus vollständige Nav-Gruppen.
+5. ESC und Backdrop-Klick schließen den Drawer; Focus-Trap, `aria-expanded`, `aria-controls` und sichtbare Fokuszustände sind korrekt verdrahtet; keine reinen Hover-only-Aktionen ohne Tastaturäquivalent.
 
 ### Phase 55: Sichere TipTap-Persistenz fuer Profilgeschichte
 
@@ -1221,30 +1221,30 @@ Plans:
   4. App-Drawer zeigt dynamische Gruppen-Links (Icon und Gruppenname navigieren zu /admin/fansubs/[id]/edit) statt disabled-Platzhalter.
   5. Alle internen Admin-Erklaerungstexte sind durch ehrliche leere Zustaende ersetzt; isPublicView-Prop ist in beiden neuen Sections implementiert.
 
-### Phase 59: Öffentliches Fansub-Member-Profil
+### Phase 59: �ffentliches Fansub-Member-Profil
 
-**Goal:** Öffentlich zugängliche Profilseite /members/[slug] mit Hintergrundbanner-Upload, server-seitiger Sichtbarkeitsprüfung, globalisierten Profil-Komponenten und allen Phase-58-Sections mit isPublicView=true.
+**Goal:** �ffentlich zug�ngliche Profilseite /members/[slug] mit Hintergrundbanner-Upload, server-seitiger Sichtbarkeitspr�fung, globalisierten Profil-Komponenten und allen Phase-58-Sections mit isPublicView=true.
 **Requirements**: P59-SC1, P59-SC2, P59-SC3, P59-SC4, P59-SC5, P59-SC6
 **Depends on:** Phase 58
 **Plans:** 6/6 plans complete
 
 Plans:
-- [ ] `59-01-PLAN.md` — Typdefinitions-Fundament: DB-Migration 0080, Go-Modell, TypeScript-Interface
-- [ ] `59-02-PLAN.md` — Backend GET /api/v1/members/:slug mit Slug-Auflösung und Sichtbarkeitsprüfung
+- [ ] `59-01-PLAN.md` � Typdefinitions-Fundament: DB-Migration 0080, Go-Modell, TypeScript-Interface
+- [ ] `59-02-PLAN.md` � Backend GET /api/v1/members/:slug mit Slug-Aufl�sung und Sichtbarkeitspr�fung
 
 Wave 2 *(blocked on Wave 1 completion)*
 
-- [ ] `59-03-PLAN.md` — Komponenten-Globalisierung nach /components/profile/ + MembershipsSection
-- [ ] `59-04-PLAN.md` — Öffentliche /members/[slug]-Route (Server Component + Token-Forwarding)
-- [ ] `59-05-PLAN.md` — Hintergrundbild-Upload auf /me/profile + Anzeige als Hero-Banner
+- [ ] `59-03-PLAN.md` � Komponenten-Globalisierung nach /components/profile/ + MembershipsSection
+- [ ] `59-04-PLAN.md` � �ffentliche /members/[slug]-Route (Server Component + Token-Forwarding)
+- [ ] `59-05-PLAN.md` � Hintergrundbild-Upload auf /me/profile + Anzeige als Hero-Banner
 
 Wave 4 *(blocked on Wave 3 completion)*
 
-- [ ] `59-06-PLAN.md` — OpenAPI-Contract-Update
+- [ ] `59-06-PLAN.md` � OpenAPI-Contract-Update
 
 **Success Criteria** (what must be TRUE):
-  1. GET /api/v1/members/:slug gibt public-Profil zurück (fansub_name, Avatar, Bio, Story, Gruppen, RecentMedia, RecentContributions, Hintergrundbild); bei members_only+anonym: {visible:false}.
-  2. /members/[slug] rendert vollständiges Profil mit Hero-Banner für public-Profile; zeigt „Dieses Profil ist nicht öffentlich zugänglich." für members_only+anonym.
+  1. GET /api/v1/members/:slug gibt public-Profil zur�ck (fansub_name, Avatar, Bio, Story, Gruppen, RecentMedia, RecentContributions, Hintergrundbild); bei members_only+anonym: {visible:false}.
+  2. /members/[slug] rendert vollst�ndiges Profil mit Hero-Banner f�r public-Profile; zeigt �Dieses Profil ist nicht �ffentlich zug�nglich." f�r members_only+anonym.
   3. MemberProfileHero, RecentMediaSection, RecentContributionsSection leben in frontend/src/components/profile/ und werden von /me/profile importiert.
   4. Member kann auf /me/profile ein Hintergrundbild hochladen (Cropper 16:9, kein neues npm-Paket, globaler Upload-Flow); Bild erscheint als breites Hero-Banner auf /members/[slug].
   5. Fansub-Gruppen-Section auf /members/[slug] zeigt Gruppenlogo, -name und feste Gruppenrollen; Link zu /fansubs/[slug].
@@ -1258,9 +1258,9 @@ Wave 4 *(blocked on Wave 3 completion)*
 **Plans:** 3/3 plans complete
 
 Plans:
-- [ ] `60-01-PLAN.md` — Lokale SMTP-Infrastruktur: Mailpit, Keycloak-Mailpit-Konfiguration und Env-Doku.
-- [ ] `60-02-PLAN.md` — Backend-Mailer-Service und Fansub-Einladungsversand.
-- [ ] `60-03-PLAN.md` — OpenAPI/Frontend-Contract, Einladungs-UX und Mailjet-Produktionshandoff.
+- [ ] `60-01-PLAN.md` � Lokale SMTP-Infrastruktur: Mailpit, Keycloak-Mailpit-Konfiguration und Env-Doku.
+- [ ] `60-02-PLAN.md` � Backend-Mailer-Service und Fansub-Einladungsversand.
+- [ ] `60-03-PLAN.md` � OpenAPI/Frontend-Contract, Einladungs-UX und Mailjet-Produktionshandoff.
 
 **Success Criteria** (what must be TRUE):
   1. `docker compose` enthaelt einen Mailpit-Service mit SMTP-Port 1025 und Web-UI-Port 8025.
@@ -1336,7 +1336,7 @@ Plans:
   2. Oeffentliches Gruppenprofil (/fansubs/:slug) zeigt Leader-Timeline aus fansub_group_member_roles und Meilensteine aus fansub_group_history.
   3. Oeffentliches Member-Profil (/members/:slug) zeigt Rollen-Timeline aus Contributions; unverifizierte Eintraege sind mit "(historisch)" markiert.
   4. Anime-Seite zeigt Contributions-Bereich mit Mitwirkenden und Rollen-Chips pro Fansub-Gruppe.
-  5. member_badges-Tabelle wird befuellt fuer Gründungsmitglied, Historischer Leader und Langjaehriges Mitglied; Badges sind im Member-Profil sichtbar.
+  5. member_badges-Tabelle wird befuellt fuer Gr�ndungsmitglied, Historischer Leader und Langjaehriges Mitglied; Badges sind im Member-Profil sichtbar.
   6. Member kann jeden Badge einzeln ausblenden.
 
 ### Phase 65: Member-Vorschlaege und Review-Queue (Post-MVP)
@@ -1393,3 +1393,34 @@ Plans:
   1. Badge-Engine berechnet alle definierten Badges aus Contributions und aktualisiert member_badges bei Datenaenderungen.
   2. Leader kann Meilensteine fuer die Gruppe manuell eintragen; Meilensteine erscheinen in der Gruppen-Timeline.
   3. Archiv-Suche erlaubt Filtern nach Rolle, Zeitraum und Gruppe und gibt Member-Profile zurueck.
+
+### Phase 69: Fansub Contributions Contract- und Permission-Haertung
+
+**Goal:** Phase 62/63 release-/live-tauglich machen. Frontend und Backend sprechen denselben Contract, der Member-Create-Flow funktioniert fachlich, Admin-Routen pruefen Gruppenberechtigung, und falscher Gruppen-/Member-Kontext sowie Duplikate werden auf DB- und Handler-Ebene verhindert.
+**Requirements**: P69-SC1, P69-SC2, P69-SC3, P69-SC4, P69-SC5, P69-SC6, P69-SC7, P69-SC8, P69-SC9
+**Depends on:** Phase 63
+**Plans:** 5 plans
+
+Plans:
+- [ ] 69-01-PLAN.md -- Migration 0088: Unique-Constraint + Composite-FK fuer anime_contributions
+- [ ] 69-02-PLAN.md -- Repository-Erweiterungen: Member-Auto-Create + Status im Contribution-Create + CreateOrUpdate
+- [ ] 69-03-PLAN.md -- Backend-Handler-Haertung: Permission-Checks, Member-Auto-Create-Flow, Cross-Group-Guards, Status-Durchreichung
+- [ ] 69-04-PLAN.md -- Frontend: Envelope-Korrektur (.data), listMemberRoles mit member_id, seed-konforme Rollencodes
+- [ ] 69-05-PLAN.md -- OpenAPI-Contracts fuer group-members, member-roles und anime/:animeId/contributions
+
+**Locked Decisions** (aus Discuss-Phase, nicht erneut aufrollen):
+  - D1: Member-Create-Flow legt bei `display_name`-Eingabe automatisch eine `members`-Zeile an (optional mit `app_user_id`-Verknuepfung), dann die historische Mitgliedschaft. Kein Umbau auf reinen Member-Picker.
+  - D2: Cross-Group-Schutz und Duplikat-Schutz werden per neuer append-only Migration 0088 auf DB-Ebene durchgesetzt (Unique-Key + Composite-FK), zusaetzlich zu Handler-Guards. (0087 ist bereits vergeben.)
+  - D3: Envelope-Richtung folgt der projektweiten Konvention `{"data": ...}`; Frontend (api.ts + fansub.ts + Tabs) wird angepasst, Backend behaelt `{"data": ...}` und nutzt die bereits vorhandenen *WithDisplay-Repo-Methoden.
+
+
+**Success Criteria** (what must be TRUE):
+  1. Alle sechs Phase-62-Admin-Endpunkte (group-members, member-roles, anime/:animeId/contributions in List/Create/Update) liefern das projektweite `{"data": ...}`-Envelope, und das Frontend (api.ts, fansub.ts, GroupMembersTab, MemberRolesTab, AnimeContributionsTab) konsumiert `.data` korrekt; alle drei Tabs laden ohne Laufzeitfehler.
+  2. POST /api/v1/admin/fansubs/:id/group-members akzeptiert `display_name` (+ optional `app_user_id`), legt bei Bedarf eine `members`-Zeile an und erstellt die historische Mitgliedschaft; GET nutzt die Display-Enrichment-Methode (ListByFansubGroupWithDisplay) statt der nicht angereicherten Liste.
+  3. Der Rollen-Tab ruft GET /api/v1/admin/fansubs/:id/member-roles immer mit `?member_id=N` auf (kein 400 mehr), und die Rolleneingabe nutzt feste, seed-konforme role_codes per Auswahl statt Freitext.
+  4. Alle Phase-62/63-Admin-Handler pruefen Gruppenberechtigung via `permissionSvc.CanForFansubGroup` analog der bestehenden Fansub-Flows und auditieren Denials; reine Authentifizierung genuegt nicht mehr.
+  5. Contributions und Rollen mit einem `fansub_group_member_id`, das nicht zur Route-`fansubID` gehoert, werden abgelehnt (MemberBelongsToFansub), und Migration 0088 ergaenzt einen Composite-FK fuer Gruppen-/Member-Konsistenz.
+  6. Migration 0088 fuegt einen Unique-Key auf (fansub_group_id, anime_id, fansub_group_member_id) hinzu; der Create-Pfad reagiert auf erneutes Speichern mit definiertem Verhalten (Konflikt oder echtes Upsert) statt Duplikaten.
+  7. Der vom Contribution-Modal gesendete Status wird beim Create uebernommen; kein hartcodiertes `'draft'` mehr, wenn ein gueltiger Status uebergeben wird.
+  8. Die im Frontend angebotenen role_codes stimmen mit den in der DB geseedeten Codes ueberein (z. B. `quality_checker` statt `qc`); ungueltige Codes sind nicht auswaehlbar.
+  9. shared/contracts (openapi.yaml, fansubs.yaml, admin-content.yaml) enthaelt Definitionen fuer group-members, member-roles und anime/:animeId/contributions, konsistent mit fansub.ts und api.ts.
