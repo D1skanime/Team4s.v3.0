@@ -118,6 +118,7 @@ func (r *AnimeContributionsRepository) GetPublicAnimeContributions(ctx context.C
 		WHERE ac.anime_id = $1
 		  AND ac.is_public_on_anime_page = true
 		  AND hfgm.visibility = 'public'
+		  AND ac.release_version_id IS NULL
 		GROUP BY ac.id, fg.id, fg.name, fg.slug, m.display_name, m.nickname, ac.started_year, ac.ended_year, ac.status
 		ORDER BY fg.name, COALESCE(ac.started_year, 9999), member_display_name
 	`
@@ -167,7 +168,14 @@ func (r *AnimeContributionsRepository) GetPublicAnimeContributions(ctx context.C
 		return nil, fmt.Errorf("public anime contributions: iterate: %w", err)
 	}
 
+	// attachHiddenCounts bleibt gruppenweit (KEINE Trennung nach Ebene -> sonst Doppelzaehlung, Pitfall 2).
 	if err := r.attachHiddenCounts(ctx, animeID, groups, groupIndex); err != nil {
+		return nil, err
+	}
+
+	// Ebene 2: versions-spezifische Beitraege anhaengen. Kann neue Gruppen anlegen,
+	// daher Pointer auf den Slice (groupIndex wird mitgepflegt).
+	if err := r.attachVersionBreakdowns(ctx, animeID, &groups, groupIndex); err != nil {
 		return nil, err
 	}
 
