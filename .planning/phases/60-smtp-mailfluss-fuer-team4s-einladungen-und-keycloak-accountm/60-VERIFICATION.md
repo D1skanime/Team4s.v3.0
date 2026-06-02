@@ -1,9 +1,11 @@
 ---
 phase: 60-smtp-mailfluss-fuer-team4s-einladungen-und-keycloak-accountm
 verified: 2026-06-02T12:00:00Z
-status: human_needed
+status: passed
 score: 6/6
 overrides_applied: 0
+human_verification_completed: 2026-06-02T14:35:00+02:00
+human_verification_result: "3/3 passed — siehe 60-HUMAN-UAT.md (Einladung E2E, Keycloak-Reset, Cancel-on-fail alle gruen)"
 human_verification:
   - test: "Fansub-Einladung per Admin-UI erstellen und Einladungsmail in Mailpit prüfen"
     expected: "Mail erscheint in Mailpit Web-UI (http://127.0.0.1:8025) mit absolutem Einladungslink, der auf http://127.0.0.1:3002/invitations/accept?token=... zeigt"
