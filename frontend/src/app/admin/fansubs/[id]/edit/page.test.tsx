@@ -250,7 +250,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     render(<AdminFansubEditPage />)
 
     await screen.findByRole('heading', { name: 'SubGroup' })
-    fireEvent.click(screen.getByRole('button', { name: 'Mitglieder' }))
+    fireEvent.click(screen.getByRole('button', { name: 'App-Mitglieder' }))
     expect(await screen.findByTestId('app-members-section')).not.toBeNull()
 
     expect(appMembersSectionProps.at(-1)).toMatchObject({ fansubId: 88, hasAccessToken: true })

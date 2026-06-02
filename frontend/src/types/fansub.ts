@@ -487,6 +487,14 @@ export interface AdminReleaseResponse {
 
 // --- Gruppen-Mitglieder (hist_fansub_group_members) ---
 
+export type HistoricalContributionStatus =
+  | "draft"
+  | "historical"
+  | "confirmed"
+  | "disputed";
+
+export type HistoricalContributionVisibility = "internal" | "public";
+
 export interface HistFansubGroupMember {
   id: number;
   fansub_group_id: number;
@@ -495,7 +503,8 @@ export interface HistFansubGroupMember {
   left_year: number | null;
   app_user_id: number | null;
   app_username: string | null;
-  status: "active" | "alumni";
+  status: HistoricalContributionStatus;
+  visibility?: HistoricalContributionVisibility;
   created_at: string;
 }
 
@@ -512,7 +521,8 @@ export interface CreateGroupMemberRequest {
   joined_year: number | null;
   left_year: number | null;
   app_user_id: number | null;
-  status: "active" | "alumni";
+  status: HistoricalContributionStatus;
+  visibility: HistoricalContributionVisibility;
 }
 
 export interface UpdateGroupMemberRequest {
@@ -520,7 +530,8 @@ export interface UpdateGroupMemberRequest {
   joined_year?: number | null;
   left_year?: number | null;
   app_user_id?: number | null;
-  status?: "active" | "alumni";
+  status?: HistoricalContributionStatus;
+  visibility?: HistoricalContributionVisibility;
 }
 
 // --- Mitglieder-Rollen (hist_group_member_roles) ---
@@ -547,20 +558,22 @@ export interface HistGroupMemberRoleResponse {
 }
 
 export interface CreateMemberRoleRequest {
-  fansub_group_member_id: number;
+  hist_fansub_group_member_id: number;
   role_code: string;
   started_year: number | null;
   ended_year: number | null;
-  note: string | null;
+  source_note: string | null;
   status: "historical" | "confirmed";
+  visibility: HistoricalContributionVisibility;
 }
 
 export interface UpdateMemberRoleRequest {
   role_code?: string;
   started_year?: number | null;
   ended_year?: number | null;
-  note?: string | null;
+  source_note?: string | null;
   status?: "historical" | "confirmed";
+  visibility?: HistoricalContributionVisibility;
 }
 
 // --- Anime-Contributions (anime_contributions) ---

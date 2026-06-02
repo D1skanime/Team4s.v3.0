@@ -11,7 +11,12 @@ import {
   listGroupMembers,
   updateGroupMember,
 } from '@/lib/api'
-import type { CreateGroupMemberRequest, HistFansubGroupMember } from '@/types/fansub'
+import type {
+  CreateGroupMemberRequest,
+  HistFansubGroupMember,
+  HistoricalContributionStatus,
+  HistoricalContributionVisibility,
+} from '@/types/fansub'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -39,12 +44,18 @@ function formatZeitraum(member: HistFansubGroupMember): string {
   return `${von} – ${bis}`
 }
 
-function statusBadgeVariant(status: HistFansubGroupMember['status']): 'success' | 'muted' {
-  return status === 'active' ? 'success' : 'muted'
+function statusBadgeVariant(status: HistFansubGroupMember['status']): 'success' | 'warning' | 'info' | 'muted' {
+  if (status === 'confirmed') return 'success'
+  if (status === 'disputed') return 'warning'
+  if (status === 'draft') return 'muted'
+  return 'info'
 }
 
 function statusLabel(status: HistFansubGroupMember['status']): string {
-  return status === 'active' ? 'aktiv' : 'Alumnus'
+  if (status === 'confirmed') return 'bestätigt'
+  if (status === 'disputed') return 'umstritten'
+  if (status === 'draft') return 'Entwurf'
+  return 'historisch'
 }
 
 type FormFields = {
@@ -52,7 +63,8 @@ type FormFields = {
   joinedYear: string
   leftYear: string
   appUserId: string
-  status: 'active' | 'alumni'
+  status: HistoricalContributionStatus
+  visibility: HistoricalContributionVisibility
 }
 
 const EMPTY_FORM: FormFields = {
@@ -60,7 +72,8 @@ const EMPTY_FORM: FormFields = {
   joinedYear: '',
   leftYear: '',
   appUserId: '',
-  status: 'active',
+  status: 'historical',
+  visibility: 'internal',
 }
 
 function memberToForm(m: HistFansubGroupMember): FormFields {
@@ -70,6 +83,7 @@ function memberToForm(m: HistFansubGroupMember): FormFields {
     leftYear: m.left_year != null ? String(m.left_year) : '',
     appUserId: m.app_user_id != null ? String(m.app_user_id) : '',
     status: m.status,
+    visibility: m.visibility ?? 'internal',
   }
 }
 
@@ -150,6 +164,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
           left_year: leftYear,
           app_user_id: appUserId,
           status: form.status,
+          visibility: form.visibility,
         })
       } else {
         const body: CreateGroupMemberRequest = {
@@ -158,6 +173,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
           left_year: leftYear,
           app_user_id: appUserId,
           status: form.status,
+          visibility: form.visibility,
         }
         await createGroupMember(fansubId, body)
       }
@@ -315,11 +331,31 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
             <span className={styles.fansubEditHint}>Status</span>
             <select
               value={form.status}
-              onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as 'active' | 'alumni' }))}
+              onChange={(e) => setForm((f) => ({
+                ...f,
+                status: e.target.value as HistoricalContributionStatus,
+              }))}
               aria-label="Status"
             >
-              <option value="active">aktiv</option>
-              <option value="alumni">Alumnus</option>
+              <option value="historical">historisch</option>
+              <option value="confirmed">bestätigt</option>
+              <option value="draft">Entwurf</option>
+              <option value="disputed">umstritten</option>
+            </select>
+          </label>
+
+          <label>
+            <span className={styles.fansubEditHint}>Sichtbarkeit</span>
+            <select
+              value={form.visibility}
+              onChange={(e) => setForm((f) => ({
+                ...f,
+                visibility: e.target.value as HistoricalContributionVisibility,
+              }))}
+              aria-label="Sichtbarkeit"
+            >
+              <option value="internal">intern</option>
+              <option value="public">öffentlich</option>
             </select>
           </label>
 

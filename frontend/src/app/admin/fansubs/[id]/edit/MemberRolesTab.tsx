@@ -17,7 +17,6 @@ import type {
   HistFansubGroupMember,
   HistGroupMemberRole,
 } from '@/types/fansub'
-import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -33,6 +32,14 @@ const YEAR_OPTIONS: number[] = []
 for (let y = CURRENT_YEAR; y >= 1980; y--) {
   YEAR_OPTIONS.push(y)
 }
+
+const GROUP_HISTORY_ROLE_OPTIONS = [
+  { code: 'founder', label: 'Gründer/in' },
+  { code: 'leader', label: 'Gruppenleitung' },
+  { code: 'co_leader', label: 'Co-Leitung' },
+  { code: 'project_lead', label: 'Projektleitung' },
+  { code: 'project_manager', label: 'Projektmanagement' },
+]
 
 function formatApiError(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message
@@ -102,7 +109,12 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
       const roleResponses = await Promise.all(
         allMembers.map((m) => listMemberRoles(fansubId, m.id))
       )
-      const allRoles = roleResponses.flatMap((r) => r.data ?? [])
+      const allRoles = roleResponses.flatMap((r, index) =>
+        (r.data ?? []).map((role) => ({
+          ...role,
+          member_display_name: role.member_display_name || allMembers[index]?.display_name || '',
+        }))
+      )
       const sorted = [...allRoles].sort((a, b) => {
         const ay = a.started_year ?? 0
         const by = b.started_year ?? 0
@@ -168,17 +180,19 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
           role_code: form.roleCode.trim(),
           started_year: startedYear,
           ended_year: endedYear,
-          note: form.note.trim() || null,
+          source_note: form.note.trim() || null,
           status: form.status,
+          visibility: 'internal',
         })
       } else {
         const body: CreateMemberRoleRequest = {
-          fansub_group_member_id: Number(form.memberId),
+          hist_fansub_group_member_id: Number(form.memberId),
           role_code: form.roleCode.trim(),
           started_year: startedYear,
           ended_year: endedYear,
-          note: form.note.trim() || null,
+          source_note: form.note.trim() || null,
           status: form.status,
+          visibility: 'internal',
         }
         await createMemberRole(fansubId, body)
       }
@@ -308,7 +322,7 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
               aria-label="Rolle auswählen"
             >
               <option value="">Rolle auswählen…</option>
-              {FANSUB_GROUP_ROLE_OPTIONS.map((opt) => (
+              {GROUP_HISTORY_ROLE_OPTIONS.map((opt) => (
                 <option key={opt.code} value={opt.code}>{opt.label}</option>
               ))}
             </select>

@@ -36,6 +36,13 @@ type Props = {
   onSaved: () => void
 }
 
+function groupMemberStatusHint(status: HistFansubGroupMember['status']): string | null {
+  if (status === 'confirmed') return null
+  if (status === 'draft') return 'Entwurf'
+  if (status === 'disputed') return 'umstritten'
+  return 'historisch'
+}
+
 export default function AnimeContributionModal({
   fansubId,
   animeId,
@@ -189,6 +196,7 @@ export default function AnimeContributionModal({
           const roles = rolesByMemberId[member.id] ?? []
           const vis = visibilityByMemberId[member.id] ?? { anime: false, profile: false }
           const memberStatus = statusByMemberId[member.id] ?? 'draft'
+          const statusHint = groupMemberStatusHint(member.status)
 
           return (
             <div
@@ -209,8 +217,8 @@ export default function AnimeContributionModal({
                   onChange={() => toggleMember(member.id)}
                 />
                 <span style={{ fontWeight: isSelected ? 600 : 400 }}>{member.display_name}</span>
-                {member.status === 'alumni' && (
-                  <span style={{ fontSize: '0.75rem', color: '#888' }}>(Alumni)</span>
+                {statusHint && (
+                  <span style={{ fontSize: '0.75rem', color: '#888' }}>({statusHint})</span>
                 )}
               </label>
 

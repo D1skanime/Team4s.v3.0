@@ -141,6 +141,7 @@ import {
   HistFansubGroupMemberResponse,
   CreateGroupMemberRequest,
   UpdateGroupMemberRequest,
+  HistGroupMemberRole,
   HistGroupMemberRoleListResponse,
   HistGroupMemberRoleResponse,
   CreateMemberRoleRequest,
@@ -6634,6 +6635,23 @@ export async function deleteGroupMember(
 
 // --- Mitglieder-Rollen ---
 
+function normalizeHistGroupMemberRole(raw: Record<string, unknown>): HistGroupMemberRole {
+  return {
+    id: Number(raw.id ?? raw.ID),
+    fansub_group_member_id: Number(
+      raw.fansub_group_member_id ?? raw.HistFansubGroupMemberID,
+    ),
+    member_display_name: String(raw.member_display_name ?? raw.MemberDisplayName ?? ""),
+    role_code: String(raw.role_code ?? raw.RoleCode ?? ""),
+    role_label: (raw.role_label ?? raw.RoleLabel ?? null) as string | null,
+    started_year: (raw.started_year ?? raw.StartedYear ?? null) as number | null,
+    ended_year: (raw.ended_year ?? raw.EndedYear ?? null) as number | null,
+    note: (raw.note ?? raw.SourceNote ?? null) as string | null,
+    status: (raw.status ?? raw.Status) as HistGroupMemberRole["status"],
+    created_at: String(raw.created_at ?? raw.CreatedAt ?? ""),
+  };
+}
+
 export async function listMemberRoles(
   fansubId: number,
   memberId: number,
@@ -6659,7 +6677,10 @@ export async function listMemberRoles(
     );
   }
 
-  return response.json() as Promise<HistGroupMemberRoleListResponse>;
+  const payload = (await response.json()) as { data?: Record<string, unknown>[] };
+  return {
+    data: (payload.data ?? []).map(normalizeHistGroupMemberRole),
+  };
 }
 
 export async function createMemberRole(
@@ -6692,7 +6713,10 @@ export async function createMemberRole(
     );
   }
 
-  return response.json() as Promise<HistGroupMemberRoleResponse>;
+  const payload = (await response.json()) as { data: Record<string, unknown> };
+  return {
+    data: normalizeHistGroupMemberRole(payload.data),
+  };
 }
 
 export async function updateMemberRole(
@@ -6726,7 +6750,10 @@ export async function updateMemberRole(
     );
   }
 
-  return response.json() as Promise<HistGroupMemberRoleResponse>;
+  const payload = (await response.json()) as { data: Record<string, unknown> };
+  return {
+    data: normalizeHistGroupMemberRole(payload.data),
+  };
 }
 
 export async function deleteMemberRole(
