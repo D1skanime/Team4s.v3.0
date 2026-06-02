@@ -2,10 +2,30 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
 )
+
+// GetMemberIDForContribution ermittelt die member_id zu einer anime_contribution-ID.
+// Gibt ErrNotFound zurück, wenn keine Zeile existiert.
+func (r *AnimeContributionsRepository) GetMemberIDForContribution(ctx context.Context, contributionID int64) (int64, error) {
+	var memberID int64
+	err := r.db.QueryRow(ctx, `
+		SELECT hfgm.member_id
+		FROM anime_contributions ac
+		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		WHERE ac.id = $1
+	`, contributionID).Scan(&memberID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, ErrNotFound
+		}
+		return 0, fmt.Errorf("get member_id for contribution %d: %w", contributionID, err)
+	}
+	return memberID, nil
+}
 
 // CreateOrUpdate fuehrt einen Upsert fuer eine Anime-Contribution durch.
 // Bei einem UNIQUE-Konflikt auf (fansub_group_id, anime_id, fansub_group_member_id, release_version_id)

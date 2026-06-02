@@ -73,6 +73,20 @@ func (r *BadgeRepository) UpsertMemberBadge(
 	return err
 }
 
+// RevokeMemberBadge setzt den Status eines aktiven Badges auf 'revoked'.
+// Nur Badges mit status='active' werden berührt; pending- und bereits-revoked-Badges bleiben unverändert.
+// Die visibility-Spalte wird bewusst NICHT gesetzt (D-07).
+func (r *BadgeRepository) RevokeMemberBadge(ctx context.Context, memberID int64, badgeCode string) error {
+	_, err := r.db.Exec(ctx, `
+		UPDATE member_badges
+		SET status = 'revoked'
+		WHERE member_id = $1
+		  AND badge_code = $2
+		  AND status = 'active'
+	`, memberID, badgeCode)
+	return err
+}
+
 // SetBadgeVisibility setzt die Sichtbarkeit eines Badges, sofern der Member der Eigentümer ist.
 // Erlaubte Werte: 'public', 'internal', 'hidden'.
 // Gibt ErrNotFound zurück, wenn kein passender Eintrag gefunden wurde (fehlende Ownership oder Badge).

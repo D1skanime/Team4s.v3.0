@@ -25,13 +25,17 @@ func NewBadgeService(db *pgxpool.Pool, repo *repository.BadgeRepository) *BadgeS
 	}
 }
 
-// ComputeAndStoreBadges berechnet alle drei abgeleiteten Badges für den gegebenen Member
-// und speichert sie in member_badges. Fehler werden geloggt, aber nicht zurückgegeben —
+// ComputeAndStoreBadges berechnet alle Badges für den gegebenen Member und speichert
+// sie in member_badges. Fehler werden geloggt, aber nicht zurückgegeben —
 // die Badge-Berechnung ist kein kritischer Pfad.
 func (s *BadgeService) ComputeAndStoreBadges(ctx context.Context, memberID int64) error {
 	s.computeFoundingMember(ctx, memberID)
 	s.computeHistoricalLeader(ctx, memberID)
 	s.computeLongTermMember(ctx, memberID)
+	s.computeFirstContribution(ctx, memberID)
+	s.computeProductiveTiers(ctx, memberID)
+	s.computeAllRounder(ctx, memberID)
+	s.computeVerified(ctx, memberID)
 	return nil
 }
 
@@ -126,5 +130,124 @@ func (s *BadgeService) computeLongTermMember(ctx context.Context, memberID int64
 	}
 	if err := s.repo.UpsertMemberBadge(ctx, memberID, "long_term_member", "historical_achievement", "hist_fansub_group_member", rowID); err != nil {
 		log.Printf("badge_service: upsert long_term_member error (member_id=%d): %v", memberID, err)
+	}
+}
+
+// computeFirstContribution vergibt first_contribution, wenn der Member mindestens eine bestätigte
+// Anime-Contribution hat (D-03, Schwelle: 1). Bei nicht-erfüllter Bedingung wird der Badge entzogen (D-08).
+func (s *BadgeService) computeFirstContribution(ctx context.Context, memberID int64) {
+	var rowID int64
+	err := s.db.QueryRow(ctx, `
+		SELECT ac.id
+		FROM anime_contributions ac
+		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		WHERE hfgm.member_id = $1
+		  AND ac.status = 'confirmed'
+		LIMIT 1
+	`, memberID).Scan(&rowID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		_ = s.repo.RevokeMemberBadge(ctx, memberID, "first_contribution")
+		return
+	}
+	if err != nil {
+		log.Printf("badge_service: first_contribution query error (member_id=%d): %v", memberID, err)
+		return
+	}
+	if err := s.repo.UpsertMemberBadge(ctx, memberID, "first_contribution",
+		"historical_achievement", "anime_contribution", rowID); err != nil {
+		log.Printf("badge_service: upsert first_contribution error (member_id=%d): %v", memberID, err)
+	}
+}
+
+// computeProductiveTiers vergibt productive_bronze (≥10), productive_silver (≥25) und
+// productive_gold (≥50) abhängig von der Anzahl bestätigter distinct-Anime-Beiträge (D-03, D-05).
+// Jede Stufe wird einzeln geprüft und bei Nichterfüllung entzogen (D-08).
+func (s *BadgeService) computeProductiveTiers(ctx context.Context, memberID int64) {
+	var animeCount int
+	err := s.db.QueryRow(ctx, `
+		SELECT COUNT(DISTINCT ac.anime_id)
+		FROM anime_contributions ac
+		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		WHERE hfgm.member_id = $1
+		  AND ac.status = 'confirmed'
+	`, memberID).Scan(&animeCount)
+	if err != nil {
+		log.Printf("badge_service: productive tier query error (member_id=%d): %v", memberID, err)
+		return
+	}
+	tiers := []struct {
+		code      string
+		threshold int
+	}{
+		{"productive_bronze", 10},
+		{"productive_silver", 25},
+		{"productive_gold", 50},
+	}
+	for _, t := range tiers {
+		if animeCount >= t.threshold {
+			if err := s.repo.UpsertMemberBadge(ctx, memberID, t.code,
+				"historical_achievement", "anime_contribution", 0); err != nil {
+				log.Printf("badge_service: upsert %s error (member_id=%d): %v", t.code, memberID, err)
+			}
+		} else {
+			if err := s.repo.RevokeMemberBadge(ctx, memberID, t.code); err != nil {
+				log.Printf("badge_service: revoke %s error (member_id=%d): %v", t.code, memberID, err)
+			}
+		}
+	}
+}
+
+// computeAllRounder vergibt all_rounder, wenn der Member mindestens 3 verschiedene Rollen in
+// bestätigten Contributions hat (D-03, D-05). Bei Nichterfüllung wird der Badge entzogen (D-08).
+func (s *BadgeService) computeAllRounder(ctx context.Context, memberID int64) {
+	var roleCount int
+	err := s.db.QueryRow(ctx, `
+		SELECT COUNT(DISTINCT acr.role_code)
+		FROM anime_contributions ac
+		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		WHERE hfgm.member_id = $1
+		  AND ac.status = 'confirmed'
+	`, memberID).Scan(&roleCount)
+	if err != nil {
+		log.Printf("badge_service: all_rounder query error (member_id=%d): %v", memberID, err)
+		return
+	}
+	if roleCount >= 3 {
+		if err := s.repo.UpsertMemberBadge(ctx, memberID, "all_rounder",
+			"historical_achievement", "anime_contribution", 0); err != nil {
+			log.Printf("badge_service: upsert all_rounder error (member_id=%d): %v", memberID, err)
+		}
+	} else {
+		if err := s.repo.RevokeMemberBadge(ctx, memberID, "all_rounder"); err != nil {
+			log.Printf("badge_service: revoke all_rounder error (member_id=%d): %v", memberID, err)
+		}
+	}
+}
+
+// computeVerified vergibt verified, wenn mindestens ein verifi­zierter member_claim vorhanden ist
+// (D-03; claim_status='verified'). Bei Nichterfüllung wird der Badge entzogen (D-08).
+func (s *BadgeService) computeVerified(ctx context.Context, memberID int64) {
+	var exists bool
+	err := s.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1 FROM member_claims
+			WHERE member_id = $1
+			  AND claim_status = 'verified'
+		)
+	`, memberID).Scan(&exists)
+	if err != nil {
+		log.Printf("badge_service: verified query error (member_id=%d): %v", memberID, err)
+		return
+	}
+	if exists {
+		if err := s.repo.UpsertMemberBadge(ctx, memberID, "verified",
+			"platform", "member_claim", 0); err != nil {
+			log.Printf("badge_service: upsert verified error (member_id=%d): %v", memberID, err)
+		}
+	} else {
+		if err := s.repo.RevokeMemberBadge(ctx, memberID, "verified"); err != nil {
+			log.Printf("badge_service: revoke verified error (member_id=%d): %v", memberID, err)
+		}
 	}
 }
