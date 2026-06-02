@@ -64,15 +64,9 @@ describe("FansubAppMembersSection", () => {
           roles: ["fansub_lead", "editor"],
           created_at: "2026-05-16T08:10:00Z",
           updated_at: "2026-05-16T08:20:00Z",
-          app_user: {
-            id: 11,
-            email: "phase-admin@example.local",
-            display_name: "Phase Admin",
-            keycloak_subject: "sub-11",
-            status: "active",
-            created_at: "2026-05-16T08:00:00Z",
-            updated_at: "2026-05-16T08:00:00Z",
-            global_roles: ["platform_admin"],
+          member: {
+            member_id: 44,
+            fansub_name: "Phase Admin",
           },
         },
       ],
@@ -84,7 +78,9 @@ describe("FansubAppMembersSection", () => {
     expect(await screen.findByText("Phase Admin")).not.toBeNull();
     expect(screen.getAllByText("Fansub-Lead").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Editing").length).toBeGreaterThan(0);
-    expect(screen.getByRole("link", { name: "/me/profile" }).getAttribute("href")).toBe("/me/profile");
+    expect(screen.getByText("Aktiv")).not.toBeNull();
+    expect(screen.queryByText("phase-admin@example.local")).toBeNull();
+    expect(screen.queryByText(/phase 45 mvp/i)).toBeNull();
   });
 
   it("adds a new member through candidate search with selected roles", async () => {
@@ -112,15 +108,9 @@ describe("FansubAppMembersSection", () => {
             roles: ["fansub_lead", "editor"],
             created_at: "2026-05-16T08:15:00Z",
             updated_at: "2026-05-16T08:15:00Z",
-            app_user: {
-              id: 12,
-              email: "phase-member@example.local",
-              display_name: "Phase Member",
-              keycloak_subject: "sub-12",
-              status: "active",
-              created_at: "2026-05-16T08:00:00Z",
-              updated_at: "2026-05-16T08:00:00Z",
-              global_roles: [],
+            member: {
+              member_id: 45,
+              fansub_name: "Phase Member",
             },
           },
         ],
@@ -128,14 +118,9 @@ describe("FansubAppMembersSection", () => {
     searchFansubAppMemberCandidates.mockResolvedValue({
       data: [
         {
-          id: 12,
-          email: "phase-member@example.local",
-          display_name: "Phase Member",
-          keycloak_subject: "sub-12",
-          status: "active",
-          created_at: "2026-05-16T08:00:00Z",
-          updated_at: "2026-05-16T08:00:00Z",
-          global_roles: [],
+          app_user_id: 12,
+          member_id: 45,
+          fansub_name: "Phase Member",
         },
       ],
     });
@@ -143,20 +128,26 @@ describe("FansubAppMembersSection", () => {
 
     render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
 
+    fireEvent.click(await screen.findByRole("button", { name: "Mitglied hinzufügen" }));
+
     const searchInput = await screen.findByRole("searchbox", {
-      name: "App-Benutzer nach Name oder E-Mail suchen",
+      name: "Fansub-Nick suchen",
     });
     fireEvent.change(searchInput, { target: { value: "phase" } });
 
-    expect(await screen.findByRole("option", { name: /Phase Member/ })).not.toBeNull();
+    const candidateButton = await screen.findByRole("button", { name: /Phase Member/ });
+    fireEvent.click(candidateButton);
+
+    expect(screen.getByText("Ausgewähltes Profil")).not.toBeNull();
+    expect(screen.getByText("Aufgabe auswählen")).not.toBeNull();
 
     fireEvent.click(screen.getAllByRole("button", { name: /Editing/ })[0]);
-    fireEvent.click(screen.getByRole("button", { name: "Mitglied hinzufügen" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Mitglied hinzufügen" }).at(-1) as HTMLElement);
 
     await waitFor(() => {
       expect(createFansubAppMember).toHaveBeenCalledWith(
         88,
-        { app_user_id: 12, roles: ["fansub_lead", "editor"] },
+        { app_user_id: 12, roles: ["editor"] },
       );
     });
   });
@@ -188,6 +179,10 @@ describe("FansubAppMembersSection", () => {
             expires_at: "2026-05-23T12:00:00Z",
             created_at: "2026-05-16T12:00:00Z",
             updated_at: "2026-05-16T12:00:00Z",
+            member: {
+              member_id: 46,
+              fansub_name: "InviteeNick",
+            },
           },
         ],
       });
@@ -204,6 +199,8 @@ describe("FansubAppMembersSection", () => {
 
     render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
 
+    fireEvent.click(await screen.findByRole("button", { name: "Mitglied hinzufügen" }));
+
     fireEvent.change(
       await screen.findByRole("textbox", { name: "E-Mail-Adresse für die Einladung" }),
       { target: { value: "invitee@example.local" } },
@@ -216,11 +213,53 @@ describe("FansubAppMembersSection", () => {
         88,
         {
           email: "invitee@example.local",
-          invited_role_codes: ["fansub_lead", "editor"],
+          invited_role_codes: ["editor"],
         },
       );
     });
 
+    // Erfolgsmeldung zeigt Mailversand, nicht Copy/Paste-Workaround
+    expect(await screen.findByText("Einladung wurde gesendet.")).not.toBeNull();
+    // invite_link bleibt als Entwickler-Fallback im DOM (details/code), aber nicht als primaerer Hinweis
     expect(await screen.findByText(/\/invitations\/accept\?token=abc123/)).not.toBeNull();
+    expect(await screen.findByText("InviteeNick")).not.toBeNull();
+    expect(screen.getByText("invitee@example.local")).not.toBeNull();
+  });
+
+  it("shows smtp error message on 502 invitation failure", async () => {
+    getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: true,
+        can_manage_links: true,
+        can_view_members: true,
+        can_manage_members: false,
+        can_edit_notes: true,
+        can_view_invitations: true,
+        can_create_invitation: true,
+        can_cancel_invitation: true,
+      },
+    });
+    listFansubAppMembers.mockResolvedValue({ data: [] });
+    listFansubGroupInvitations.mockResolvedValue({ data: [] });
+
+    const { ApiError: MockApiError } = await import("@/lib/api");
+    createFansubGroupInvitation.mockRejectedValue(
+      new MockApiError(502, "Einladung konnte nicht gesendet werden. Bitte prüfe die SMTP-Konfiguration."),
+    );
+
+    render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Mitglied hinzufügen" }));
+
+    fireEvent.change(
+      await screen.findByRole("textbox", { name: "E-Mail-Adresse für die Einladung" }),
+      { target: { value: "smtp-fail@example.local" } },
+    );
+    fireEvent.click(screen.getAllByRole("button", { name: /Editing/ }).at(-1) as HTMLElement);
+    fireEvent.click(screen.getByRole("button", { name: "Einladung erstellen" }));
+
+    expect(
+      await screen.findByText("Einladungsmail konnte nicht zugestellt werden. Bitte SMTP-Konfiguration prüfen."),
+    ).not.toBeNull();
   });
 });
