@@ -383,6 +383,12 @@ func main() {
 	v1.POST("/me/anime-contributions/:contributionId/confirm", authMiddleware, contributionsMeHandler.ConfirmMyAnimeContribution)
 	v1.POST("/me/anime-contributions/:contributionId/reject", authMiddleware, contributionsMeHandler.RejectMyAnimeContribution)
 	v1.PATCH("/me/group-contributions/:contributionId/visibility", authMiddleware, contributionsMeHandler.UpdateMyGroupContributionVisibility)
+	proposalsMeHandler := handlers.NewContributionProposalsMeHandler(
+		animeContributionsRepo, histGroupMemberRolesRepo, dbPool, auditLogRepo,
+	)
+	v1.GET("/me/memberships", authMiddleware, proposalsMeHandler.ListMemberships)
+	v1.POST("/me/contribution-proposals", authMiddleware, proposalsMeHandler.CreateProposal)
+	v1.POST("/me/anime-contributions/:contributionId/self-publish", authMiddleware, proposalsMeHandler.SelfPublish)
 	v1.GET("/fansubs/:id/collaboration-members", fansubHandler.ListCollaborationMembers)
 	v1.POST(
 		"/fansubs/:id/collaboration-members",
