@@ -1424,3 +1424,20 @@ Plans:
   7. Der vom Contribution-Modal gesendete Status wird beim Create uebernommen; kein hartcodiertes `'draft'` mehr, wenn ein gueltiger Status uebergeben wird.
   8. Die im Frontend angebotenen role_codes stimmen mit den in der DB geseedeten Codes ueberein (z. B. `quality_checker` statt `qc`); ungueltige Codes sind nicht auswaehlbar.
   9. shared/contracts (openapi.yaml, fansubs.yaml, admin-content.yaml) enthaelt Definitionen fuer group-members, member-roles und anime/:animeId/contributions, konsistent mit fansub.ts und api.ts.
+
+### Phase 70: TipTap-Bilder fuer Member-Profilgeschichte
+
+**Goal:** Member koennen in ihrer eigenen Fansub-Geschichte auf `/me/profile` ein oder mehrere Bilder in den TipTap-Text einfuegen. Bilder werden nicht als Base64 oder externe URLs gespeichert, sondern ueber den bestehenden Team4s-Media-/Upload-Flow persistiert und im TipTap-Dokument per Media-Asset-Referenz eingebettet.
+**Requirements**: TBD
+**Depends on:** Phase 69
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 70 to break down)
+
+**Success Criteria** (what must be TRUE):
+  1. `RichTextEditor` unterstuetzt fuer die Member-Profilgeschichte eine sichere Bild-Einfuegen-Aktion mit Datei-Upload und optionalem Alt-/Caption-Text.
+  2. TipTap-Image-Nodes speichern keine Base64-Daten, keine externen Bild-URLs und kein freies HTML, sondern referenzieren Team4s-Media-Assets.
+  3. Der Upload nutzt bestehende zentrale Auth-/API-/Media-Seams und erzeugt keinen parallelen TipTap-Sonderweg.
+  4. Backend-Validierung und HTML-Rendering erlauben nur die definierte Image-Node-Struktur und liefern weiterhin sanitisiertes HTML.
+  5. Entfernen eines Bildes aus dem Text entfernt zunaechst nur die Editor-Referenz; physisches Cleanup verwaister Media-Assets ist bewusst separat geplant oder dokumentiert.
