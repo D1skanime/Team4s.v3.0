@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 67-01 abgeschlossen (Migration 0091 angewendet + verifiziert, Contract-Test gruen)
-last_updated: "2026-06-02T15:00:52.990Z"
+stopped_at: Phase 67-02 abgeschlossen (release_version_id Schreibpfad + D-03-Validierung, Tests gruen)
+last_updated: "2026-06-02T15:07:21.029Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
-  completed_phases: 46
+  completed_phases: 45
   total_plans: 253
   completed_plans: 200
-  percent: 70
+  percent: 68
 ---
 
 # Project State
@@ -202,6 +202,9 @@ Recent durable decisions:
 - [Phase ?]: Phase 70-01: RenderHTMLWithResolver als Stub implementiert damit Wave-0-Tests kompilieren ohne Produktionscode zu veraendern
 - [Phase ?]: Phase 70-01: NewTipTapSanitizerPolicy als exportierte Hilfsfunktion in tiptap_image_stubs.go fuer White-Box-Policy-Tests
 - [Phase ?]: ProposalForm-Rollenquelle: Statische role_definitions-Liste in MyProposalsSection (aus Migration 0085) statt neuem API-Endpunkt
+- [Phase ?]: [Phase 67-02]: Request-Structs nach fansub_contributions_validation.go ausgelagert (450-Zeilen-Limit nach D-03-Validierung); Handler 427 Zeilen.
+- [Phase ?]: [Phase 67-02]: Vierspaltiges ON CONFLICT (fansub_group_id, anime_id, fansub_group_member_id, release_version_id) im Upsert; release_version_id im Conflict-Key, NICHT im DO UPDATE SET (Pitfall 1, T-67-02-DUP).
+- [Phase ?]: [Phase 67-02]: Member-Proposal-Handler-Haertung 67-05 zugeordnet; in 67-02 nur Repository-Schicht (ProposalInput/CreateProposal) additiv vorbereitet.
 
 ### Pending Todos
 
@@ -347,6 +350,7 @@ Recent durable decisions:
 | Phase 70-tiptap-bilder-fuer-member-profilgeschichte P02 | 5min | 1 tasks | 2 files |
 | 67 | 01 | 17min | 3 | 3 |
 | Phase 65 P04 | 45min | 3 tasks | 13 files |
+| Phase 67 P02 | 18min | 3 tasks | 10 files |
 
 ### Quick Tasks Completed
 
@@ -378,7 +382,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T15:00:43.689Z
-Stopped at: Phase 67-01 abgeschlossen (Migration 0091 angewendet + verifiziert, Contract-Test gruen)
+Last session: 2026-06-02T15:07:21.001Z
+Stopped at: Phase 67-02 abgeschlossen (release_version_id Schreibpfad + D-03-Validierung, Tests gruen)
 Last activity: 2026-06-02
 Resume file: None
