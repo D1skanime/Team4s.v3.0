@@ -1,10 +1,11 @@
 ---
 phase: 66
 slug: claiming-verifizierung
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-02
+reviewed_at: 2026-06-02
 ---
 
 # Phase 66 — UI Design Contract: Claiming und Verifizierung
@@ -45,6 +46,7 @@ Ausnahmen:
 - Claim-Karten in der Queue: internes Padding 12px (analog `.radioCard` in `page.module.css`)
 - Hero-Panel: Padding 28px (analog bestehendes `.heroPanel`)
 - Einladungslink-Anzeige (Kopieren-Bereich): Padding 12px 16px (analog `.errorBox`/`.successBox`)
+- Accept-Seite (`/claim-invitations/accept`): Layout-Padding 48px 20px (analog bestehende `invitations/accept`-Seite; 20px = 5×4, Vielfaches von 4)
 
 ---
 
@@ -74,15 +76,16 @@ Aus `globals.css`:
 |-------|------|------------|
 | Dominant (60%) | `#f6f4ef` (`--surface-canvas`) | Seitenhintergrund, Canvas |
 | Secondary (30%) | `#ffffff` (`--surface-card`) | Cards, Sidebar, Formular-Felder, Queue-Karten |
-| Accent (10%) | `#5f84dd` (`--color-primary`) | Ausschließlich für Primär-CTA-Buttons, VerifiedBadge-Komponente und `claim_status = verified`-Status-Chip |
+| Accent (10%) | `#5f84dd` (`--color-primary`) | Ausschließlich für Primär-CTA-Buttons und `claim_status = verified`-Status-Chip |
 | Destructive | `#dc3545` (`--color-error`) | Ausschließlich Ablehnen-Aktion in der Claim-Queue und Claim-Einladung stornieren |
 
 Accent reserviert für:
 1. Primär-CTA-Buttons (Claim einreichen, Einladungslink generieren, Einladung annehmen)
-2. `VerifiedBadge`-Komponente (Häkchen-Icon neben Member-Namen)
-3. `claim_status = verified`-Badge in der Claim-Queue-Karte
+2. `claim_status = verified`-Status-Chip in der Claim-Queue-Karte
 
-"Link kopieren"-Button im Einladungslink-Bereich: `variant="secondary"` (neutral, kein Accent). Accent bleibt auf die drei oben genannten Elemente beschränkt.
+`VerifiedBadge` (Häkchen-Icon neben Member-Namen) nutzt die semantische Erfolgsfarbe `#28a745` (`--color-success`), **nicht** den Accent — "verifiziert = grün" ist konsistent mit den Status-Chips.
+
+"Link kopieren"-Button im Einladungslink-Bereich: `variant="secondary"` (neutral, kein Accent). Accent bleibt auf die zwei oben genannten Elemente beschränkt.
 
 Zusätzliche Semantikfarben:
 - Erfolg/verifiziert: `#28a745` (`--color-success`) — Hintergrund der Erfolgsmeldung (`.successBox`), Status-Chip "Verifiziert"
