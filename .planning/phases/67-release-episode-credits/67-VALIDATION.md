@@ -1,8 +1,8 @@
 ---
 phase: 67
 slug: release-episode-credits
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-02
 ---
@@ -38,9 +38,21 @@ created: 2026-06-02
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| {planner fills} | — | — | P67-SC1 | T-67-01 / — | D-03: gruppen-fremde Version → 422 | unit/handler | `go test ./backend/internal/handlers/... -run ReleaseVersion -count=1` | ❌ W0 | ⬜ pending |
+| 67-01-01 | 01 | 1 | P67-SC1 | — | Additive nullable FK SET NULL + vierspaltiger UNIQUE NULLS NOT DISTINCT | migration-contract | `node -e "...0090 up/down Form-Assertion..."` | ❌ W0 | ⬜ pending |
+| 67-01-02 | 01 | 1 | P67-SC1 | — | Migration-Form idempotent up/down | migration-contract | `cd backend && go test ./internal/migrations/... -run Phase67 -count=1` | ❌ W0 | ⬜ pending |
+| 67-01-03 | 01 | 1 | P67-SC1 | — | [BLOCKING] reale Spalte vor Repo-Verifikation vorhanden | manual checkpoint | — (Docker migrate-apply) | ❌ W0 | ⬜ pending |
+| 67-02-01 | 02 | 2 | P67-SC1 | T-67-02-SQLI | GroupParticipatesInReleaseVersion + Dropdown-Query (parametrisiert) | unit (repo) | `cd backend && go test ./internal/repository/... -run ReleaseVersion -count=1` | ❌ W0 | ⬜ pending |
+| 67-02-02 | 02 | 2 | P67-SC1 | T-67-02-DUP | Vierspaltiges ON CONFLICT (kein Overwrite); Read-DTO trägt release_version_id | unit (repo, DB) | `cd backend && go test ./internal/repository/... -run "ReleaseVersion\|Contribution" -count=1` | ❌ W0 | ⬜ pending |
+| 67-02-03 | 02 | 2 | P67-SC1 | T-67-02-CG | D-03 Leader-Pfad: gruppen-fremde Version → 422 | unit/handler | `cd backend && go test ./internal/handlers/... -run ReleaseVersion -count=1` | ❌ W0 | ⬜ pending |
+| 67-03-01 | 03 | 2 | P67-SC2 | — | Ebene-2-Versions-Aggregation + DTOs | unit (repo) | `cd backend && go test ./internal/repository/... -run PublicAnimeContributions -count=1` | ❌ W0 | ⬜ pending |
+| 67-03-02 | 03 | 2 | P67-SC2 | — | Ebene-1 `IS NULL`-Filter, keine Doppelanzeige, Sortierung Episode→Version | unit (repo) | `cd backend && go test ./internal/repository/... -run PublicAnimeContributions -count=1` | ❌ W0 | ⬜ pending |
+| 67-04-01 | 04 | 3 | P67-SC2, P67-SC1 | T-67-04-AUTH | Dropdown-Endpunkt permission-geschützt; Typen/OpenAPI | build+typecheck | `cd backend && go build ./... && cd ../frontend && npm run typecheck` | ❌ W0 | ⬜ pending |
+| 67-04-02 | 04 | 3 | P67-SC2 | T-67-04-ID | Aufklappbare Versions-Ebene, anime-weit zuerst | component | `cd frontend && npm run test -- GroupContributionBlock` | ❌ W0 | ⬜ pending |
+| 67-04-03 | 04 | 3 | P67-SC1 | T-67-04-CLIENTFILTER | Gruppen-gefiltertes Dropdown (serverseitig), 422-Feldfehler | typecheck | `cd frontend && npm run typecheck` | ❌ W0 | ⬜ pending |
+| 67-04-04 | 04 | 4 | P67-SC2, P67-SC1 | — | [BLOCKING] Browser-UAT (Anzeige + Leader-Dropdown end-to-end) | manual checkpoint | — (Docker rebuild + Browser) | ❌ W0 | ⬜ pending |
+| 67-05-01 | 05 | 3 | P67-SC1 | T-67-02-CG | D-03 Member-Proposal-Pfad: gruppen-fremde Version → 422 | unit/handler | `cd backend && go test ./internal/handlers/... -run "CreateProposal\|ReleaseVersion" -count=1` | ❌ W0 | ⬜ pending |
 
-*Der Planner verfeinert diese Tabelle pro Task. Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky. `File Exists: ❌ W0` = Testdatei wird im jeweiligen Task (Wave 0 innerhalb der Phase) angelegt; `wave_0_complete` wird zur Laufzeit auf true gesetzt, sobald alle Testdateien existieren. Sampling-Kontinuität erfüllt: keine 3 aufeinanderfolgenden auto-Tasks ohne automated verify (nur die zwei blockierenden Checkpoints 67-01-03 und 67-04-04 sind manuell).*
 
 ---
 
@@ -77,11 +89,11 @@ created: 2026-06-02
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (alle auto/tdd-Tasks haben automated; nur 67-01-03 + 67-04-04 sind bewusste blockierende Human-Checkpoints)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (Migration-Test, Lookup-Test, Public-Query-Test, GroupContributionBlock-Test in den jeweiligen Tasks)
+- [x] No watch-mode flags (alle Commands nutzen `-count=1` bzw. einmaligen Lauf, kein `--watch`)
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-06-02 (Per-Task-Map aus 5 Plänen finalisiert; `wave_0_complete` bleibt false bis die Testdateien zur Ausführungszeit angelegt sind)

@@ -19,16 +19,17 @@
 | MOD | `backend/internal/repository/anime_contributions_upsert_repository.go` (104 Z.) | repository | CRUD (upsert) | sich selbst (`CreateOrUpdate`, Z. 32-70) | exact |
 | MOD | `backend/internal/repository/anime_contributions_public_repository.go` (389 Z.) | repository | CRUD (read/aggregate) | `GetPublicAnimeContributions` (Z. 93-172) | exact |
 | MOD | `backend/internal/handlers/fansub_anime_contributions_handler.go` (434 Z.) | handler | request-response | `MemberBelongsToFansub`-Guard (Z. 162-176) | exact |
-| MOD | `backend/internal/handlers/contributions_me_handler.go` (329 Z.) | handler | request-response | `resolveVerifiedMemberID` + me-Ownership (Z. 39-54) | role-match |
+| MOD | `backend/internal/handlers/contribution_proposals_me_handler.go` (393 Z.) | handler | request-response | `CreateProposal`/`createProposalRequest`/`ProposalInput` + me-Ownership | role-match |
 | MOD | `shared/contracts/openapi.yaml` | config | — | bestehende contribution-DTOs | role-match |
 | MOD | `frontend/src/types/contributions.ts` | model | — | `AnimeContributionGroup` (Z. 34-42) | exact |
 | MOD | `frontend/src/types/fansub.ts` (`UpsertAnimeContributionRequest` Z. 604) | model | — | sich selbst | exact |
 | NEU | `frontend/src/components/anime/ReleaseVersionBreakdown.tsx` | component | event-driven (Client-State) | `GroupContributionBlock.tsx` + `AnimeContributionsSection.tsx` (expandedGroupId) | exact |
 | MOD | `frontend/src/components/anime/GroupContributionBlock.tsx` (68 Z.) | component | event-driven | sich selbst | exact |
-| MOD | `frontend/src/app/admin/fansubs/[id]/edit/AnimeContributionModal.tsx` + `frontend/src/app/me/contributions/page.tsx` | component | event-driven | `AnimeContributionModal` (bestehendes Formular) | exact |
+| MOD | `frontend/src/app/admin/fansubs/[id]/edit/AnimeContributionModal.tsx` | component | event-driven | `AnimeContributionModal` (bestehendes Formular) | exact |
+| DEFERRED | `frontend/src/app/me/contributions/page.tsx` (nur Liste, kein Submit-Formular) | component | — | — | Phase-65-Restscope: Member-Vorschlags-UI existiert noch nicht; Member-Dropdown folgt, sobald das Formular gebaut ist (Backend in 67-05 gehaertet) |
 | MOD | `frontend/src/lib/api.ts` | service | request-response | `getAdminFansubAnimeReleases` (Z. 3857) + `upsertAnimeContribution` (Z. 6818) | exact |
 
-> **450-Zeilen-Flag:** `anime_contributions_repository.go` (447 Z.) und `fansub_anime_contributions_handler.go` (434 Z.) sind hart am Limit. Neue Repo-Methoden (`GroupParticipatesInReleaseVersion`, Dropdown-Query, Ebene-2-Aggregation) MÜSSEN in die zwei NEUEN Repo-Dateien ausgelagert werden — nicht in die bestehenden. `anime_contributions_public_repository.go` (389 Z.) verträgt minimale Edits (nur den `AND ac.release_version_id IS NULL`-Filter), die Aggregation selbst gehört in die neue Versions-Datei.
+> **450-Zeilen-Flag:** `anime_contributions_repository.go` (452 Z. — BEREITS ueber dem Limit, Input/Patch/Row-Structs in 67-02 Task 2 nach `anime_contributions_inputs.go` auslagern) und `fansub_anime_contributions_handler.go` (434 Z.) sind hart am Limit. Neue Repo-Methoden (`GroupParticipatesInReleaseVersion`, Dropdown-Query, Ebene-2-Aggregation) MÜSSEN in die zwei NEUEN Repo-Dateien ausgelagert werden — nicht in die bestehenden. `anime_contributions_public_repository.go` (389 Z.) verträgt minimale Edits (nur den `AND ac.release_version_id IS NULL`-Filter), die Aggregation selbst gehört in die neue Versions-Datei.
 
 ## Pattern Assignments
 
@@ -182,7 +183,7 @@ if !belongs {
 
 ---
 
-### `backend/internal/handlers/contributions_me_handler.go` (MOD) — Member-Proposal-Pfad (Pitfall 5)
+### `backend/internal/handlers/contribution_proposals_me_handler.go` (MOD) — Member-Proposal-Pfad (Pitfall 5)
 
 **Analog:** me-Ownership-Muster `resolveVerifiedMemberID` (Z. 39-54) + `requireMeIdentity` (Z. 67-74). Member-Proposal-Persistenz (Phase 65 `CreateProposal`) muss dasselbe `GroupParticipatesInReleaseVersion` aufrufen, wenn `release_version_id` gesetzt ist — gemeinsamer Validierungs-Baustein mit dem Leader-Handler. Ownership/Eigengruppen-Bindung (Phase 65 D-01) bleibt; Version-Check ist additiv vorgelagert.
 
@@ -213,7 +214,7 @@ export interface ReleaseVersionBreakdown {
 
 ---
 
-### `frontend/src/app/admin/fansubs/[id]/edit/AnimeContributionModal.tsx` + `frontend/src/app/me/contributions/page.tsx` (MOD) — abhängiges Dropdown
+### `frontend/src/app/admin/fansubs/[id]/edit/AnimeContributionModal.tsx` (MOD) — abhängiges Dropdown (Leader). `me/contributions/page.tsx` ist DEFERRED (Phase-65-Restscope, kein Submit-Formular vorhanden)
 
 **Analog (Formular-State pro Member):** `AnimeContributionModal.tsx` (Z. 55-70) — `rolesByMemberId`/`statusByMemberId`-Record-Pattern. Optionales `releaseVersionByMemberId: Record<number, number | null>` analog ergänzen.
 **Datenquelle:** neuer api.ts-Fetch (gruppen-gefiltert, server-seitig — KEIN Client-Filter, Anti-Pattern). Dropdown-Default-Option "— anime-weit lassen —" (D-09).
