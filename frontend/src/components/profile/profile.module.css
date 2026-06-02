@@ -65,6 +65,20 @@
   -webkit-line-clamp: 2;
 }
 
+.heroMetaLine {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 7px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.heroMetaLine svg {
+  flex: 0 0 auto;
+}
+
 .deferredActionWrap {
   position: relative;
   display: inline-flex;
@@ -104,7 +118,7 @@
 }
 
 .recentMediaGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
 .recentMediaCard,
@@ -114,9 +128,15 @@
   gap: 10px;
 }
 
+.recentItemBody span {
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.9rem;
+}
+
 .recentMediaCard {
   grid-template-rows: auto 1fr;
   height: 100%;
+  padding: 12px;
 }
 
 .recentMediaThumb {
@@ -144,6 +164,7 @@
 
 .membershipsList {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 12px;
   margin: 0;
   padding: 0;
@@ -151,14 +172,14 @@
 }
 
 .membershipCard {
-  display: grid;
-  gap: 12px;
+  height: 100%;
+  padding: 14px;
 }
 
 .membershipLink {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  gap: 14px;
   align-items: center;
   color: inherit;
   text-decoration: none;
@@ -172,18 +193,22 @@
 .membershipLogo {
   width: 52px;
   height: 52px;
+  flex: 0 0 52px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 999px;
   background: rgba(47, 95, 227, 0.1);
   color: var(--color-primary, #2f5fe3);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
 }
 
 .membershipLogo img {
   width: 100%;
   height: 100%;
+  border-radius: inherit;
   object-fit: cover;
 }
 
@@ -194,6 +219,21 @@
 
 .membershipName strong {
   overflow-wrap: anywhere;
+}
+
+.membershipName span {
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.9rem;
+}
+
+.membershipAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-primary, #2f5fe3);
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .emptyText {
@@ -215,4 +255,112 @@
     width: 104px;
     height: 104px;
   }
+}
+
+/* ---- Badge-Chips ---- */
+
+.badgeChipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+
+.badgeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #93c5fd;
+}
+
+.badgeHideBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  text-decoration: underline;
+}
+
+.badgeHideBtn:hover {
+  color: #e2e8f0;
+}
+
+/* ---- Rollen-Timeline ---- */
+
+.roleTimelineSection {
+  margin-top: 16px;
+}
+
+.roleTimelineHeading {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: #e2e8f0;
+}
+
+.roleTimelineList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.roleTimelineEntry {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  padding: 8px 12px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(100, 116, 139, 0.18);
+  border-radius: 6px;
+}
+
+.roleTimelineYear {
+  min-width: 80px;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.roleTimelineContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.roleTimelineGroup {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.roleTimelineHistorical {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
+.roleTimelineRole {
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.roleTimelineAnime {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.roleTimelineDisclaimer {
+  margin: 10px 0 0;
+  font-size: 0.75rem;
+  color: #64748b;
 }

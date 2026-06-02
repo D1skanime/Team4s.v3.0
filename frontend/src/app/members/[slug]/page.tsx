@@ -5,14 +5,25 @@ import {
   ApiError,
   AUTH_TOKEN_COOKIE_NAME,
   getMemberProfile,
+  getMemberContributions,
+  getMyBadges,
+  getOwnProfile,
   resolveApiUrl,
 } from '@/lib/api'
+import { RichTextRenderer } from '@/components/editor'
 import { MemberProfileHero } from '@/components/profile/MemberProfileHero'
+import { MemberBadgeChips } from '@/components/profile/MemberBadgeChips'
+import { MemberRoleTimeline } from '@/components/profile/MemberRoleTimeline'
 import { MembershipsSection } from '@/components/profile/MembershipsSection'
 import { RecentContributionsSection } from '@/components/profile/RecentContributionsSection'
 import { RecentMediaSection } from '@/components/profile/RecentMediaSection'
+import { Card } from '@/components/ui'
+import type { MemberBadge } from '@/types/contributions'
+import type { PublicMemberRoleEntry } from '@/types/contributions'
 import type { PublicMemberProfileData } from '@/types/profile'
 
+import { OwnHiddenProfilePreview } from './OwnHiddenProfilePreview'
+import { OwnProfileEditLink } from './OwnProfileEditLink'
 import styles from './page.module.css'
 
 interface MemberProfilePageProps {
@@ -70,7 +81,14 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
   }
 
   if (isHidden) {
-    return renderNotice('Dieses Profil ist nicht öffentlich zugänglich.')
+    return (
+      <main className={styles.page}>
+        <p className={styles.backLink}>
+          <Link href="/anime">Zur Anime-Liste</Link>
+        </p>
+        <OwnHiddenProfilePreview slug={slug} />
+      </main>
+    )
   }
 
   if (!profile) {
@@ -80,20 +98,65 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
   const avatarURL = resolveApiUrl(profile.avatar?.public_url || '')
   const backgroundImageURL = resolveApiUrl(profile.background_image?.public_url || '')
 
+  // Contributions und Badges laden
+  let roleTimeline: PublicMemberRoleEntry[] = []
+  let hasUnverified = false
+  let badges: MemberBadge[] = []
+  let isOwnProfile = false
+
+  try {
+    const contributionsData = await getMemberContributions(slug)
+    roleTimeline = contributionsData.role_timeline ?? []
+    hasUnverified = contributionsData.has_unverified ?? false
+  } catch {
+    // Keine Contributions — leere Timeline anzeigen
+  }
+
+  if (token) {
+    try {
+      const ownProfileData = await getOwnProfile(token)
+      if (ownProfileData.data.member_id === profile.member_id) {
+        isOwnProfile = true
+        const badgesData = await getMyBadges(token)
+        badges = badgesData.badges ?? []
+      }
+    } catch {
+      // Nicht eingeloggt oder Fehler — kein eigenes Profil
+    }
+  }
+
   return (
     <main className={styles.page}>
-      <nav className={styles.breadcrumb}>
-        <Link href="/anime">Anime</Link>
-        <span>&gt;</span>
-        <span>Members</span>
-        <span>&gt;</span>
-        <span>{profile.fansub_name}</span>
-      </nav>
+      <div className={styles.profileToolbar}>
+        <nav className={styles.breadcrumb}>
+          <Link href="/anime">Anime</Link>
+          <span>&gt;</span>
+          <span>Members</span>
+          <span>&gt;</span>
+          <span>{profile.fansub_name}</span>
+        </nav>
+        <OwnProfileEditLink publicMemberId={profile.member_id} />
+      </div>
 
       <MemberProfileHero profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL} isPublicView={true} />
+
+      <MemberBadgeChips
+        badges={badges}
+        isOwnProfile={isOwnProfile}
+        token={isOwnProfile ? token : undefined}
+      />
+
       <div className={styles.profileGrid}>
+        {profile.member_story_html?.trim() ? (
+          <Card variant="section" className={styles.storySection} title="Fansub-Geschichte">
+            <RichTextRenderer bodyHtml={profile.member_story_html} editorType="tiptap" contentSchemaVersion={1} />
+          </Card>
+        ) : null}
         <section className={styles.fullWidthSection}>
           <MembershipsSection memberships={profile.memberships ?? []} />
+        </section>
+        <section className={styles.fullWidthSection}>
+          <MemberRoleTimeline entries={roleTimeline} hasUnverified={hasUnverified} />
         </section>
         <section className={styles.contentSection}>
           <h2>Letzte Medien</h2>
