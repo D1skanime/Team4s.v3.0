@@ -32,6 +32,8 @@ type publicMemberProfileBaseRow struct {
 	activeFromDate      *string
 	activeUntilDate     *string
 	isCurrentlyActive   bool
+	noindex             bool
+	isVerified          bool
 	profileVisibility   *string
 	avatarPath          *string
 	backgroundImagePath *string
@@ -365,6 +367,13 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 				to_char(m.active_from_date, 'YYYY-MM-DD') AS active_from_date,
 				to_char(m.active_until_date, 'YYYY-MM-DD') AS active_until_date,
 				COALESCE(m.is_currently_active, false) AS is_currently_active,
+				COALESCE(m.noindex, true) AS noindex,
+				EXISTS(
+					SELECT 1
+					FROM member_claims mc
+					WHERE mc.member_id = m.id
+					  AND mc.claim_status = 'verified'
+				) AS is_verified,
 				m.profile_visibility,
 				avatar.file_path AS avatar_path,
 				background.file_path AS background_image_path,
@@ -383,6 +392,8 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 			active_from_date,
 			active_until_date,
 			is_currently_active,
+			noindex,
+			is_verified,
 			profile_visibility,
 			avatar_path,
 			background_image_path
@@ -400,6 +411,8 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 		&row.activeFromDate,
 		&row.activeUntilDate,
 		&row.isCurrentlyActive,
+		&row.noindex,
+		&row.isVerified,
 		&row.profileVisibility,
 		&row.avatarPath,
 		&row.backgroundImagePath,
@@ -429,6 +442,8 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 		ActiveFromDate:      profileActivityDateOrYear(row.activeFromDate, nil),
 		ActiveUntilDate:     profileActivityDateOrYear(row.activeUntilDate, nil),
 		IsCurrentlyActive:   row.isCurrentlyActive,
+		Noindex:             row.noindex,
+		IsVerified:          row.isVerified,
 		ProfileVisibility:   strings.TrimSpace(valueOrDefault(row.profileVisibility, models.ProfileVisibilityMembersOnly)),
 		Memberships:         []models.MemberProfileMembership{},
 		RecentMedia:         []models.MemberProfileRecentMedia{},
@@ -475,6 +490,13 @@ func (r *MemberProfileRepository) findPublicMemberProfileByNormalizedSlug(ctx co
 			to_char(m.active_from_date, 'YYYY-MM-DD') AS active_from_date,
 			to_char(m.active_until_date, 'YYYY-MM-DD') AS active_until_date,
 			COALESCE(m.is_currently_active, false) AS is_currently_active,
+			COALESCE(m.noindex, true) AS noindex,
+			EXISTS(
+				SELECT 1
+				FROM member_claims mc
+				WHERE mc.member_id = m.id
+				  AND mc.claim_status = 'verified'
+			) AS is_verified,
 			m.profile_visibility,
 			avatar.file_path AS avatar_path,
 			background.file_path AS background_image_path
@@ -500,6 +522,8 @@ func (r *MemberProfileRepository) findPublicMemberProfileByNormalizedSlug(ctx co
 			&row.activeFromDate,
 			&row.activeUntilDate,
 			&row.isCurrentlyActive,
+			&row.noindex,
+			&row.isVerified,
 			&row.profileVisibility,
 			&row.avatarPath,
 			&row.backgroundImagePath,
@@ -558,6 +582,8 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		activeFromYear                  *int32
 		activeUntilYear                 *int32
 		currentlyActive                 bool
+		noindex                         bool
+		isVerified                      bool
 		visibility                      *string
 		avatarID                        *int64
 		avatarPath                      *string
@@ -608,6 +634,13 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 			m.active_from_year,
 			m.active_until_year,
 			COALESCE(m.is_currently_active, false),
+			COALESCE(m.noindex, true),
+			EXISTS(
+				SELECT 1
+				FROM member_claims mc
+				WHERE mc.app_user_id = au.id
+				  AND mc.claim_status = 'verified'
+			) AS is_verified,
 			m.profile_visibility,
 			m.avatar_media_id,
 			ma.file_path,
@@ -641,6 +674,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 				active_from_year,
 				active_until_year,
 				is_currently_active,
+				noindex,
 				profile_visibility,
 				avatar_media_id,
 				background_media_id,
@@ -681,6 +715,8 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		&row.activeFromYear,
 		&row.activeUntilYear,
 		&row.currentlyActive,
+		&row.noindex,
+		&row.isVerified,
 		&row.visibility,
 		&row.avatarID,
 		&row.avatarPath,
@@ -737,6 +773,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		row.memberNickname = &nickname
 		row.memberDisplay = &displayName
 		row.visibility = &visibility
+		row.noindex = true
 		row.memberCreatedAt = &createdAt
 		row.memberUpdatedAt = &updatedAt
 	}
@@ -774,6 +811,8 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		ActiveFromYear:                  row.activeFromYear,
 		ActiveUntilYear:                 row.activeUntilYear,
 		IsCurrentlyActive:               row.currentlyActive,
+		Noindex:                         row.noindex,
+		IsVerified:                      row.isVerified,
 		ProfileVisibility:               strings.TrimSpace(valueOrDefault(row.visibility, models.ProfileVisibilityMembersOnly)),
 		CreatedAt:                       valueOrNow(row.memberCreatedAt),
 		UpdatedAt:                       valueOrNow(row.memberUpdatedAt),

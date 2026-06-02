@@ -78,6 +78,8 @@ type MemberProfile struct {
 	ActiveFromYear                  *int32                            `json:"active_from_year,omitempty"`
 	ActiveUntilYear                 *int32                            `json:"active_until_year,omitempty"`
 	IsCurrentlyActive               bool                              `json:"is_currently_active"`
+	Noindex                         bool                              `json:"noindex"`
+	IsVerified                      bool                              `json:"is_verified"`
 	ProfileVisibility               string                            `json:"profile_visibility"`
 	Avatar                          *MediaAsset                       `json:"avatar,omitempty"`
 	BackgroundImage                 *MemberProfileBgImage             `json:"background_image,omitempty"`
@@ -154,6 +156,8 @@ type PublicMemberProfile struct {
 	ActiveFromDate      *string                           `json:"active_from_date,omitempty"`
 	ActiveUntilDate     *string                           `json:"active_until_date,omitempty"`
 	IsCurrentlyActive   bool                              `json:"is_currently_active"`
+	Noindex             bool                              `json:"noindex"`
+	IsVerified          bool                              `json:"is_verified"`
 	ProfileVisibility   string                            `json:"profile_visibility"`
 	Avatar              *MemberProfileAvatar              `json:"avatar,omitempty"`
 	BackgroundImage     *MemberProfileBgImage             `json:"background_image,omitempty"`
