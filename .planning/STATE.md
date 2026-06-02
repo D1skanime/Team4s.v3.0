@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 70-01 abgeschlossen (Wave-0 Tests rot, alle 4 Dateien angelegt)
-last_updated: "2026-06-02T14:49:16.775Z"
+stopped_at: Phase 67-01 abgeschlossen (Migration 0091 angewendet + verifiziert, Contract-Test gruen)
+last_updated: "2026-06-02T14:54:36.970Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
   completed_phases: 45
-  total_plans: 252
-  completed_plans: 198
+  total_plans: 253
+  completed_plans: 199
   percent: 68
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 65 — member-vorschlaege-review-queue
+**Current focus:** Phase 67 — Release- und Episode-Credits
 
 ## Current Position
 
-Phase: 65 (member-vorschlaege-review-queue) — EXECUTING
-Plan: 4 of 4
+Phase: 67 (Release- und Episode-Credits) — EXECUTING
+Plan: 2 of 5
 
 ## Accumulated Context
 
@@ -36,6 +36,9 @@ Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
 
+- [Phase 67-01]: Migrationsnummer 0091 statt geplanter 0090 — 0090 ist durch Phase 70 (member_story_images) belegt (Pitfall 4); Inhalt/Form unveraendert.
+- [Phase 67-01]: ON DELETE SET NULL fuer release_version_id — historisches Faktum bleibt erhalten, faellt auf anime-weit zurueck (kein CASCADE/RESTRICT).
+- [Phase 67-01]: uq_anime_contribution_member auf 4 Spalten mit NULLS NOT DISTINCT erweitert — derselbe Member je Version genau einmal und anime-weit genau einmal.
 - [Phase 65-01]: SelfPublish setzt Status auf 'proposed' (nicht 'confirmed') — Eintrag bleibt unverified/(historisch); confirmed_by wird trotzdem gesetzt fuer Audit-Spur (D-11, D-15).
 - [Phase 65-01]: 90-Tage-Check laeuft serverseitig via SELECT-vor-UPDATE in SelfPublish — Frontend-Gate ist nicht vertrauenswuerdig (T-65-01-01).
 - [Phase 65-01]: Proposal-Repository in eigene Datei ausgelagert (anime_contributions_proposal_repository.go) wegen 450-Zeilen-Limit; Haupt-Repository hat 447 Zeilen.
@@ -341,6 +344,7 @@ Recent durable decisions:
 | Phase 65 P03 | 10min | 2 tasks | 3 files |
 | Phase 70 P01 | 17min | 2 tasks | 6 files |
 | Phase 70-tiptap-bilder-fuer-member-profilgeschichte P02 | 5min | 1 tasks | 2 files |
+| 67 | 01 | 17min | 3 | 3 |
 
 ### Quick Tasks Completed
 
@@ -372,7 +376,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-02T14:49:16.653Z
-Stopped at: Phase 70-01 abgeschlossen (Wave-0 Tests rot, alle 4 Dateien angelegt)
+Last session: 2026-06-02T14:54:36.938Z
+Stopped at: Phase 67-01 abgeschlossen (Migration 0091 angewendet + verifiziert, Contract-Test gruen)
 Last activity: 2026-06-02
 Resume file: None
