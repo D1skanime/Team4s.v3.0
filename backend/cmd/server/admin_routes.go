@@ -160,6 +160,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.GET("/admin/fansubs/:id/history", auth, deps.groupHistoryHandler.ListGroupHistory)
 	v1.POST("/admin/fansubs/:id/history", auth, deps.groupHistoryHandler.CreateGroupHistory)
 	v1.PATCH("/admin/fansubs/:id/history/:historyId", auth, deps.groupHistoryHandler.UpdateGroupHistory)
+	v1.DELETE("/admin/fansubs/:id/history/:historyId", auth, deps.groupHistoryHandler.DeleteGroupHistory)
 	v1.GET("/admin/fansubs/:id/anime/:animeId/contributions", auth, deps.animeContributionsHandler.ListAnimeContributions)
 	v1.POST("/admin/fansubs/:id/anime/:animeId/contributions", auth, deps.animeContributionsHandler.CreateAnimeContribution)
 	v1.PATCH("/admin/fansubs/:id/anime/:animeId/contributions/:contributionId", auth, deps.animeContributionsHandler.UpdateAnimeContribution)

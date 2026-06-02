@@ -370,7 +370,8 @@ func main() {
 	animeContributionsHandler := handlers.NewFansubAnimeContributionsHandler(
 		animeContributionsRepo, histGroupMemberRolesRepo, permissionSvc, auditLogRepo,
 	).WithBadgeService(badgeService)
-	groupHistoryHandler := handlers.NewFansubGroupHistoryHandler(fansubGroupHistoryRepo)
+	groupHistoryHandler := handlers.NewFansubGroupHistoryHandler(fansubGroupHistoryRepo).
+		WithPermissionSvc(permissionSvc)
 	reviewHandler := handlers.NewContributionReviewHandler(animeContributionsRepo, permissionSvc, auditLogRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
 		adminContentHandler:           adminContentHandler,

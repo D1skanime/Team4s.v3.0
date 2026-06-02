@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -22,12 +23,19 @@ var allowedGroupHistoryEventTypes = map[string]struct{}{
 
 // FansubGroupHistoryHandler verwaltet Admin-Endpunkte für fansub_group_history.
 type FansubGroupHistoryHandler struct {
-	historyRepo *repository.FansubGroupHistoryRepository
+	historyRepo   *repository.FansubGroupHistoryRepository
+	permissionSvc *permissions.Service
 }
 
 // NewFansubGroupHistoryHandler erstellt einen neuen FansubGroupHistoryHandler.
 func NewFansubGroupHistoryHandler(repo *repository.FansubGroupHistoryRepository) *FansubGroupHistoryHandler {
 	return &FansubGroupHistoryHandler{historyRepo: repo}
+}
+
+// WithPermissionSvc ergänzt den Permission-Service (Leader-Auth-Check).
+func (h *FansubGroupHistoryHandler) WithPermissionSvc(svc *permissions.Service) *FansubGroupHistoryHandler {
+	h.permissionSvc = svc
+	return h
 }
 
 type groupHistoryCreateRequest struct {
@@ -74,15 +82,36 @@ func (h *FansubGroupHistoryHandler) CreateGroupHistory(c *gin.Context) {
 		return
 	}
 
+	// Leader-Auth-Check (T-68-02-01)
+	if h.permissionSvc != nil {
+		_, actor, ok := permissionActorFromContext(c)
+		if !ok {
+			return
+		}
+		result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor,
+			permissions.ActionFansubGroupMembersManage, fansubID)
+		if err != nil {
+			writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
+			return
+		}
+		if !result.Allowed {
+			writePermissionDenied(c, result)
+			return
+		}
+	}
+
 	var req groupHistoryCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		badRequest(c, "ungültiger request body")
 		return
 	}
 
-	if req.EventType == "" {
-		badRequest(c, "event_type ist erforderlich")
+	if req.Title == nil || *req.Title == "" {
+		badRequest(c, "titel ist ein Pflichtfeld")
 		return
+	}
+	if req.EventType == "" {
+		req.EventType = "milestone"
 	}
 	if _, ok := allowedGroupHistoryEventTypes[req.EventType]; !ok {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -92,14 +121,20 @@ func (h *FansubGroupHistoryHandler) CreateGroupHistory(c *gin.Context) {
 		})
 		return
 	}
-	status, ok := normalizeHistoricalContributionStatus(req.Status)
-	if !ok {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": gin.H{
-				"message": "ungültiger status-wert",
-			},
-		})
-		return
+
+	// D-11: Leader-Einträge sind sofort mit status='confirmed' sichtbar.
+	// Falls kein Status gesendet oder leer → immer "confirmed".
+	status := "confirmed"
+	if req.Status != "" {
+		if !validHistoricalContributionStatus(req.Status) {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"error": gin.H{
+					"message": "ungültiger status-wert",
+				},
+			})
+			return
+		}
+		status = req.Status
 	}
 
 	input := repository.GroupHistoryInput{
@@ -140,6 +175,41 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 	historyID, err := strconv.ParseInt(c.Param("historyId"), 10, 64)
 	if err != nil || historyID <= 0 {
 		badRequest(c, "ungültige history id")
+		return
+	}
+
+	// Leader-Auth-Check (T-68-02-01)
+	if h.permissionSvc != nil {
+		_, actor, ok := permissionActorFromContext(c)
+		if !ok {
+			return
+		}
+		result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor,
+			permissions.ActionFansubGroupMembersManage, fansubID)
+		if err != nil {
+			writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
+			return
+		}
+		if !result.Allowed {
+			writePermissionDenied(c, result)
+			return
+		}
+	}
+
+	// Cross-Group-Guard (T-68-02-03): Eintrag muss zur URL-Gruppe gehören.
+	existing, err := h.historyRepo.GetByID(c.Request.Context(), historyID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "historieneintrag nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		log.Printf("group history update: getbyid error (history_id=%d): %v", historyID, err)
+		internalError(c, "interner serverfehler")
+		return
+	}
+	if existing.FansubGroupID != fansubID {
+		// Kein Infoleakage — gibt 404 wie bei nicht-gefundenem Eintrag.
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "historieneintrag nicht gefunden"}})
 		return
 	}
 
@@ -192,4 +262,67 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": item})
+}
+
+// DeleteGroupHistory löscht einen Historieneintrag.
+// DELETE /admin/fansubs/:id/history/:historyId
+func (h *FansubGroupHistoryHandler) DeleteGroupHistory(c *gin.Context) {
+	fansubID, err := parseFansubID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungültige fansub id")
+		return
+	}
+
+	historyID, err := strconv.ParseInt(c.Param("historyId"), 10, 64)
+	if err != nil || historyID <= 0 {
+		badRequest(c, "ungültige history id")
+		return
+	}
+
+	// Leader-Auth-Check (T-68-02-01)
+	if h.permissionSvc != nil {
+		_, actor, ok := permissionActorFromContext(c)
+		if !ok {
+			return
+		}
+		result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor,
+			permissions.ActionFansubGroupMembersManage, fansubID)
+		if err != nil {
+			writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
+			return
+		}
+		if !result.Allowed {
+			writePermissionDenied(c, result)
+			return
+		}
+	}
+
+	// Cross-Group-Guard (T-68-02-03): Eintrag muss zur URL-Gruppe gehören.
+	existing, err := h.historyRepo.GetByID(c.Request.Context(), historyID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "historieneintrag nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		log.Printf("group history delete: getbyid error (history_id=%d): %v", historyID, err)
+		internalError(c, "interner serverfehler")
+		return
+	}
+	if existing.FansubGroupID != fansubID {
+		// Kein Infoleakage — gibt 404 wie bei nicht-gefundenem Eintrag.
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "historieneintrag nicht gefunden"}})
+		return
+	}
+
+	if err := h.historyRepo.Delete(c.Request.Context(), historyID); err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "historieneintrag nicht gefunden"}})
+			return
+		}
+		log.Printf("group history delete: repo error (fansub_id=%d, history_id=%d): %v", fansubID, historyID, err)
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }
