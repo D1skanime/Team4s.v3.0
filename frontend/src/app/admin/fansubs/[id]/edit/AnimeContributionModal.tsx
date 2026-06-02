@@ -8,18 +8,16 @@ import {
 } from '@/lib/api'
 import {
   AnimeContribution,
+  FANSUB_GROUP_ROLE_OPTIONS,
   HistFansubGroupMember,
 } from '@/types/fansub'
 
-
-const SUGGESTED_ROLES = [
-  { code: 'translator', label: 'Übersetzer' },
-  { code: 'editor', label: 'Editor' },
-  { code: 'timer', label: 'Timer' },
-  { code: 'typesetter', label: 'Typesetter' },
-  { code: 'qc', label: 'QC' },
-  { code: 'encoder', label: 'Encoder' },
-]
+// Anime-Contribution-konforme Rollen (fansub_lead ist kein anime_contribution-Code)
+// MVP-Scope: Die Seed-Codes 'admin', 'other' und 'project_manager' sind in
+// FANSUB_GROUP_ROLE_OPTIONS bewusst nicht enthalten (keine UX-Relevanz im MVP).
+const ANIME_CONTRIBUTION_ROLES = FANSUB_GROUP_ROLE_OPTIONS.filter(
+  (r) => r.code !== 'fansub_lead'
+)
 
 type MemberVisibility = {
   anime: boolean
@@ -51,7 +49,6 @@ export default function AnimeContributionModal({
   const [rolesByMemberId, setRolesByMemberId] = useState<Record<number, string[]>>({})
   const [visibilityByMemberId, setVisibilityByMemberId] = useState<Record<number, MemberVisibility>>({})
   const [statusByMemberId, setStatusByMemberId] = useState<Record<number, MemberStatus>>({})
-  const [roleInputByMemberId, setRoleInputByMemberId] = useState<Record<number, string>>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -192,7 +189,6 @@ export default function AnimeContributionModal({
           const roles = rolesByMemberId[member.id] ?? []
           const vis = visibilityByMemberId[member.id] ?? { anime: false, profile: false }
           const memberStatus = statusByMemberId[member.id] ?? 'draft'
-          const roleInput = roleInputByMemberId[member.id] ?? ''
 
           return (
             <div
@@ -226,7 +222,7 @@ export default function AnimeContributionModal({
                       Rollen
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 6 }}>
-                      {SUGGESTED_ROLES.map((sr) => {
+                      {ANIME_CONTRIBUTION_ROLES.map((sr) => {
                         const active = roles.includes(sr.code)
                         return (
                           <button
@@ -248,66 +244,6 @@ export default function AnimeContributionModal({
                           </button>
                         )
                       })}
-                    </div>
-
-                    {/* Benutzerdefinierte Rollen */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
-                      {roles
-                        .filter((r) => !SUGGESTED_ROLES.some((sr) => sr.code === r))
-                        .map((r) => (
-                          <span
-                            key={r}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              padding: '2px 8px',
-                              borderRadius: 12,
-                              background: '#dbeafe',
-                              fontSize: '0.8rem',
-                            }}
-                          >
-                            {r}
-                            <button
-                              type="button"
-                              onClick={() => removeRole(member.id, r)}
-                              style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '1rem' }}
-                              aria-label={`Rolle ${r} entfernen`}
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                    </div>
-
-                    {/* Freitext-Rolle hinzufügen */}
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <input
-                        type="text"
-                        placeholder="Eigene Rolle eingeben…"
-                        value={roleInput}
-                        onChange={(e) =>
-                          setRoleInputByMemberId((prev) => ({ ...prev, [member.id]: e.target.value }))
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            addRole(member.id, roleInput)
-                            setRoleInputByMemberId((prev) => ({ ...prev, [member.id]: '' }))
-                          }
-                        }}
-                        style={{ flex: 1, fontSize: '0.8rem', padding: '4px 8px', borderRadius: 4, border: '1px solid #d1d5db' }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          addRole(member.id, roleInput)
-                          setRoleInputByMemberId((prev) => ({ ...prev, [member.id]: '' }))
-                        }}
-                        style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', padding: '4px 10px', borderRadius: 4, border: '1px solid #d1d5db', cursor: 'pointer', background: '#f9fafb' }}
-                      >
-                        Hinzufügen
-                      </button>
                     </div>
                   </div>
 

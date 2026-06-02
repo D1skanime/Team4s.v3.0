@@ -17,6 +17,7 @@ import type {
   HistFansubGroupMember,
   HistGroupMemberRole,
 } from '@/types/fansub'
+import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -96,17 +97,19 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
     try {
       setLoading(true)
       setError(null)
-      const [rolesRes, membersRes] = await Promise.all([
-        listMemberRoles(fansubId),
-        listGroupMembers(fansubId),
-      ])
-      const sorted = [...rolesRes.roles].sort((a, b) => {
+      const membersRes = await listGroupMembers(fansubId)
+      const allMembers = membersRes.data ?? []
+      const roleResponses = await Promise.all(
+        allMembers.map((m) => listMemberRoles(fansubId, m.id))
+      )
+      const allRoles = roleResponses.flatMap((r) => r.data ?? [])
+      const sorted = [...allRoles].sort((a, b) => {
         const ay = a.started_year ?? 0
         const by = b.started_year ?? 0
         return by - ay
       })
       setRoles(sorted)
-      setMembers(membersRes.members)
+      setMembers(allMembers)
     } catch (err) {
       setError(formatApiError(err, 'Rollen konnten nicht geladen werden.'))
     } finally {
@@ -299,13 +302,16 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
 
           <label>
             <span className={styles.fansubEditHint}>Rolle (Pflichtfeld)</span>
-            <input
-              type="text"
+            <select
               value={form.roleCode}
               onChange={(e) => setForm((f) => ({ ...f, roleCode: e.target.value }))}
-              placeholder="z. B. Leader, Gründer/in, Übersetzer/in"
-              aria-label="Rollenbezeichnung"
-            />
+              aria-label="Rolle auswählen"
+            >
+              <option value="">Rolle auswählen…</option>
+              {FANSUB_GROUP_ROLE_OPTIONS.map((opt) => (
+                <option key={opt.code} value={opt.code}>{opt.label}</option>
+              ))}
+            </select>
           </label>
 
           <label>

@@ -38,7 +38,7 @@ export default function AnimeContributionsTab({ fansubId }: Props) {
         const animes = animeResp.data ?? []
         if (!cancelled) {
           setAnimeList(animes)
-          setMembers(membersResp.members ?? [])
+          setMembers(membersResp.data ?? [])
         }
 
         // Beitragszähler für alle Anime laden
@@ -47,7 +47,7 @@ export default function AnimeContributionsTab({ fansubId }: Props) {
           animes.map(async (anime) => {
             try {
               const resp = await listAnimeContributions(fansubId, anime.id)
-              counts[anime.id] = (resp.contributions ?? []).length
+              counts[anime.id] = (resp.data ?? []).length
             } catch {
               counts[anime.id] = 0
             }
@@ -68,7 +68,7 @@ export default function AnimeContributionsTab({ fansubId }: Props) {
     setModalLoading(true)
     try {
       const resp = await listAnimeContributions(fansubId, animeId)
-      setModalContributions(resp.contributions ?? [])
+      setModalContributions(resp.data ?? [])
       setModalAnimeId(animeId)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Mitwirkende konnten nicht geladen werden.')
@@ -83,7 +83,7 @@ export default function AnimeContributionsTab({ fansubId }: Props) {
       const resp = await listAnimeContributions(fansubId, animeId)
       setContributionCountByAnimeId((prev) => ({
         ...prev,
-        [animeId]: (resp.contributions ?? []).length,
+        [animeId]: (resp.data ?? []).length,
       }))
     } catch {
       // kein kritischer Fehler

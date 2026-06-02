@@ -88,7 +88,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
       setLoading(true)
       setError(null)
       const response = await listGroupMembers(fansubId)
-      setMembers(response.members)
+      setMembers(response.data)
     } catch (err) {
       setError(formatApiError(err, 'Mitglieder konnten nicht geladen werden.'))
     } finally {
