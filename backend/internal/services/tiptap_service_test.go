@@ -280,3 +280,131 @@ func TestTipTapIsEmpty_whitespaceOnly(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, empty)
 }
+
+// --- Image-Node Tests (Wave 0 — rot bis Plan 70-02/70-03 implementiert) ---
+
+// TestTipTapValidateImageNode_Valid prueft, dass ein korrekter image-Node ValidateJSON besteht.
+// ERWARTET: schlaegt fehl bis "image" in allowedTipTapNodes aufgenommen wird (D-01).
+func TestTipTapValidateImageNode_Valid(t *testing.T) {
+	svc := newTestTipTapService(t)
+	input := `{"type":"doc","content":[{"type":"image","attrs":{"media_asset_id":42,"width_percent":60,"alignment":"center"}}]}`
+	err := svc.ValidateJSON(input)
+	require.NoError(t, err, "image-Node mit gueltiger media_asset_id, width_percent und alignment muss erlaubt sein")
+}
+
+// TestTipTapValidateImageNode_MissingID prueft, dass ein image-Node ohne media_asset_id abgelehnt wird.
+func TestTipTapValidateImageNode_MissingID(t *testing.T) {
+	svc := newTestTipTapService(t)
+	input := `{"type":"doc","content":[{"type":"image","attrs":{"width_percent":60,"alignment":"center"}}]}`
+	err := svc.ValidateJSON(input)
+	assert.Error(t, err, "image-Node ohne media_asset_id muss abgelehnt werden")
+}
+
+// TestTipTapValidateImageNode_InvalidAlignment prueft, dass eine ungueltige Ausrichtung abgelehnt wird.
+func TestTipTapValidateImageNode_InvalidAlignment(t *testing.T) {
+	svc := newTestTipTapService(t)
+	input := `{"type":"doc","content":[{"type":"image","attrs":{"media_asset_id":42,"width_percent":60,"alignment":"diagonal"}}]}`
+	err := svc.ValidateJSON(input)
+	assert.Error(t, err, "alignment='diagonal' muss abgelehnt werden")
+}
+
+// TestTipTapValidateImageNode_InvalidWidthPercent prueft, dass width_percent > 100 abgelehnt wird.
+func TestTipTapValidateImageNode_InvalidWidthPercent(t *testing.T) {
+	svc := newTestTipTapService(t)
+	input := `{"type":"doc","content":[{"type":"image","attrs":{"media_asset_id":42,"width_percent":150,"alignment":"center"}}]}`
+	err := svc.ValidateJSON(input)
+	assert.Error(t, err, "width_percent=150 muss abgelehnt werden (Maximum 100)")
+}
+
+// TestTipTapRenderHTMLImageNode_WithResolver prueft, dass RenderHTMLWithResolver den Resolver
+// benutzt und ein korrektes <img>-Tag mit style und class erzeugt.
+// TODO: In Plan 70-03 wird RenderHTMLWithResolver implementiert. Bis dahin testet dieser Test
+// gegen die erwartete neue Signatur und schlaegt mit compile-Fehler fehl.
+func TestTipTapRenderHTMLImageNode_WithResolver(t *testing.T) {
+	svc := newTestTipTapService(t)
+	input := `{"type":"doc","content":[{"type":"image","attrs":{"media_asset_id":42,"width_percent":60,"alignment":"center"}}]}`
+	resolver := func(assetID int64) (string, bool) {
+		if assetID == 42 {
+			return "/media/profile/1/story/abc/original.jpg", true
+		}
+		return "", false
+	}
+	html, err := svc.RenderHTMLWithResolver(input, resolver)
+	require.NoError(t, err)
+	assert.Contains(t, html, `<img`)
+	assert.Contains(t, html, `src="/media/profile/1/story/abc/original.jpg"`)
+	assert.Contains(t, html, `style="width:60%"`)
+	assert.Contains(t, html, `class="story-img-align-center"`)
+}
+
+// TestTipTapRenderHTMLImageNode_MissingAsset prueft, dass ein nicht aufloesbareres Asset
+// still uebersprungen wird (kein <img> im Output, kein Fehler) — D-04.
+func TestTipTapRenderHTMLImageNode_MissingAsset(t *testing.T) {
+	svc := newTestTipTapService(t)
+	input := `{"type":"doc","content":[{"type":"image","attrs":{"media_asset_id":99,"width_percent":60,"alignment":"center"}}]}`
+	resolver := func(assetID int64) (string, bool) {
+		return "", false
+	}
+	html, err := svc.RenderHTMLWithResolver(input, resolver)
+	require.NoError(t, err)
+	assert.NotContains(t, html, "<img", "fehlende Assets muessen still uebersprungen werden (D-04)")
+}
+
+// TestTipTapRenderHTMLImageNode_NilResolver prueft, dass ein nil-Resolver image-Nodes
+// still ueberspringt (D-04).
+func TestTipTapRenderHTMLImageNode_NilResolver(t *testing.T) {
+	svc := newTestTipTapService(t)
+	input := `{"type":"doc","content":[{"type":"image","attrs":{"media_asset_id":42,"width_percent":60,"alignment":"center"}}]}`
+	html, err := svc.RenderHTMLWithResolver(input, nil)
+	require.NoError(t, err)
+	assert.NotContains(t, html, "<img", "nil-Resolver muss image-Nodes still ueberspringen")
+}
+
+// TestTipTapSanitizeImage_AllowsValidImg prueft, dass die bluemonday-Policy ein
+// gueltiges <img> mit internem src, style=width:% und erlaubter class durchlaesst.
+func TestTipTapSanitizeImage_AllowsValidImg(t *testing.T) {
+	svc := newTestTipTapService(t)
+	// Direkt Policy-Zugang via RenderHTMLWithResolver mit bekanntem Resolver
+	input := `{"type":"doc","content":[{"type":"image","attrs":{"media_asset_id":1,"width_percent":60,"alignment":"center"}}]}`
+	resolver := func(assetID int64) (string, bool) {
+		return "/media/profile/1/story/abc/original.jpg", true
+	}
+	html, err := svc.RenderHTMLWithResolver(input, resolver)
+	require.NoError(t, err)
+	assert.Contains(t, html, `src="/media/profile/1/story/abc/original.jpg"`, "internes /media-src muss erlaubt bleiben")
+	assert.Contains(t, html, `style="width:60%"`, "width-%-style muss erlaubt bleiben")
+	assert.Contains(t, html, `class="story-img-align-center"`, "erlaubte Ausrichtungsklasse muss bleiben")
+}
+
+// TestTipTapSanitizeImage_BlocksExternalSrc prueft, dass ein externes src nach Sanitizing
+// entfernt oder geleert wird (D-20).
+func TestTipTapSanitizeImage_BlocksExternalSrc(t *testing.T) {
+	p := newTipTapSanitizerPolicyForTest()
+	// Simuliere einen <img>-Tag mit externem src — sollte nach Sanitizing kein src="https://..." haben
+	raw := `<img src="https://evil.com/x.jpg" style="width:60%" class="story-img-align-center">`
+	sanitized := string(p.SanitizeBytes([]byte(raw)))
+	assert.NotContains(t, sanitized, "evil.com", "externes src muss entfernt werden (D-20)")
+}
+
+// TestTipTapSanitizeImage_BlocksScript prueft, dass <script>-Tags durch Sanitizing entfernt werden.
+func TestTipTapSanitizeImage_BlocksScript(t *testing.T) {
+	p := newTipTapSanitizerPolicyForTest()
+	raw := `<img src="/media/profile/1/story/abc/original.jpg"><script>alert(1)</script>`
+	sanitized := string(p.SanitizeBytes([]byte(raw)))
+	assert.NotContains(t, sanitized, "<script", "script-Tags muessen durch Sanitizing entfernt werden")
+}
+
+// TestTipTapSanitizeImage_BlocksStyleBeyondWidth prueft, dass nur width:N% in style erlaubt ist,
+// nicht aber andere CSS-Properties (D-20).
+func TestTipTapSanitizeImage_BlocksStyleBeyondWidth(t *testing.T) {
+	p := newTipTapSanitizerPolicyForTest()
+	raw := `<img src="/media/profile/1/story/abc/original.jpg" style="color:red;width:60%" class="story-img-align-center">`
+	sanitized := string(p.SanitizeBytes([]byte(raw)))
+	// color:red muss entfernt sein — entweder style komplett leer oder nur width:60% verbleibend
+	assert.NotContains(t, sanitized, "color:red", "color:red darf nicht im sanitisierten HTML verbleiben (D-20)")
+}
+
+// newTipTapSanitizerPolicyForTest ist ein Testhelfer, der die exportierte Policy zurueckgibt.
+func newTipTapSanitizerPolicyForTest() interface{ SanitizeBytes([]byte) []byte } {
+	return services.NewTipTapSanitizerPolicy()
+}
