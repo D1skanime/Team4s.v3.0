@@ -27,12 +27,18 @@ files_reviewed_list:
   - frontend/src/lib/api.ts
   - frontend/src/types/contributions.ts
 findings:
-  critical: 2
+  critical: 0
   warning: 5
   info: 3
   total: 10
-status: issues_found
+criticals_resolved: 2
+status: warnings_open
 ---
+
+> **Resolution 2026-06-02 (commit 705b9439):** Beide kritischen Befunde behoben.
+> CR-01 (confirm/reject) und CR-02 (BadgeService nie ausgelöst) sind gefixt und
+> mit Build/Vet/Tests verifiziert. Die 5 Warnings und 3 Infos bleiben als
+> Advisory offen (nicht-blockierend).
 
 # Phase 64: Code Review Report
 
@@ -49,7 +55,7 @@ Phase 64 bringt öffentliche Contribution-Seiten, ein Member-Dashboard, Badge-Ve
 
 ## Critical Issues
 
-### CR-01: `confirmAnimeContribution` und `rejectAnimeContribution` sind inhaltlich falsch implementiert
+### CR-01: `confirmAnimeContribution` und `rejectAnimeContribution` sind inhaltlich falsch implementiert ✅ RESOLVED (705b9439)
 
 **File:** `frontend/src/lib/api.ts:6909-6921`
 **Issue:** `confirmAnimeContribution` ruft `patchAnimeContributionVisibility(id, true)` auf und `rejectAnimeContribution` ruft `patchAnimeContributionVisibility(id, false)` auf. Beides patcht nur das Feld `is_public_on_member_profile` auf dem Visibility-Endpoint (`PATCH /me/anime-contributions/:id/visibility`). Bestätigen und Ablehnen sind aber konzeptionell andere Aktionen als das Umschalten der öffentlichen Sichtbarkeit. Ein Benutzer, der "Ablehnen" klickt, setzt damit lediglich `is_public_on_member_profile=false` – der Contribution-Status bleibt unverändert auf `proposed` oder `draft`. Das hat zwei direkte Konsequenzen:
@@ -79,7 +85,7 @@ export async function confirmAnimeContribution(id: number): Promise<void> {
 
 ---
 
-### CR-02: `BadgeService`-Instanz wird sofort verworfen (`_ = ...`) — Badge-Berechnung nie ausgelöst
+### CR-02: `BadgeService`-Instanz wird sofort verworfen (`_ = ...`) — Badge-Berechnung nie ausgelöst ✅ RESOLVED (705b9439)
 
 **File:** `backend/cmd/server/main.go:347`
 **Issue:**
