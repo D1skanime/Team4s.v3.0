@@ -137,6 +137,17 @@ import {
   AdminFansubAnimeReleasesResponse,
   AdminCanonicalFansubAnimeReleaseResponse,
   AdminReleaseResponse,
+  HistFansubGroupMemberListResponse,
+  HistFansubGroupMemberResponse,
+  CreateGroupMemberRequest,
+  UpdateGroupMemberRequest,
+  HistGroupMemberRoleListResponse,
+  HistGroupMemberRoleResponse,
+  CreateMemberRoleRequest,
+  UpdateMemberRoleRequest,
+  AnimeContributionListResponse,
+  AnimeContributionResponse,
+  UpsertAnimeContributionRequest,
 } from "@/types/fansub";
 import {
   PaginatedWatchlistResponse,
@@ -218,7 +229,6 @@ const AUTH_BYPASS_LOCAL =
   (
     (process.env.NEXT_PUBLIC_AUTH_BYPASS_LOCAL || "").trim() || "false"
   ).toLowerCase() === "true";
-const AUTH_BYPASS_TOKEN = "local-auth-bypass";
 const AUTH_BYPASS_DISPLAY_NAME = "LocalAdmin";
 export const API_AUTH_SESSION_TOKEN = "__team4s_runtime_auth__";
 
@@ -721,7 +731,7 @@ function dispatchAuthSessionChanged(): void {
  * 1. Browser-Runtime-Token aus Cookie/localStorage
  * 2. Explizit übergebener Token (z.B. von Server-Komponenten oder SSR)
  * 4. Build-time Env-Variable NEXT_PUBLIC_AUTH_TOKEN
- * 5. Local-Dev-Bypass-Token (nur wenn AUTH_BYPASS_LOCAL=true)
+ * Lokaler Bypass wird nicht als Browser-Bearer-Token gesendet.
  */
 function resolveAuthToken(authToken?: string): string {
   if (typeof window !== "undefined") {
@@ -740,10 +750,6 @@ function resolveAuthToken(authToken?: string): string {
 
   if (AUTH_BEARER_TOKEN) {
     return AUTH_BEARER_TOKEN;
-  }
-
-  if (AUTH_BYPASS_LOCAL) {
-    return AUTH_BYPASS_TOKEN;
   }
 
   return "";
@@ -1164,13 +1170,15 @@ export async function refreshActiveAuthSession(): Promise<CurrentUserResponse | 
 
 export async function logoutActiveAuthSession(): Promise<void> {
   const refreshToken = getRuntimeRefreshToken();
-  if (isKeycloakEnabled()) {
-    await logoutFromKeycloak(refreshToken || undefined);
-  } else {
-    await revokeAuthToken(refreshToken ? { refresh_token: refreshToken } : {});
+  try {
+    if (isKeycloakEnabled()) {
+      await logoutFromKeycloak(refreshToken || undefined);
+    } else {
+      await revokeAuthToken(refreshToken ? { refresh_token: refreshToken } : {});
+    }
+  } finally {
+    clearAuthSession();
   }
-
-  clearAuthSession();
 }
 
 async function authorizedFetch(
@@ -2800,6 +2808,7 @@ export async function uploadOwnProfileAvatar(
 }
 
 type OwnProfileBackgroundUploadInput = File | {
+  sourceFile?: File;
   croppedFile: File;
 };
 
@@ -2812,6 +2821,9 @@ export async function uploadOwnProfileBackground(
   if (input instanceof File) {
     body.append("file", input);
   } else {
+    if (input.sourceFile) {
+      body.append("source_file", input.sourceFile);
+    }
     body.append("cropped_file", input.croppedFile);
   }
 
@@ -6467,6 +6479,350 @@ export async function deleteReleaseVersionNote(
   const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes/${noteId}`,
+    {
+      method: "DELETE",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+// --- Gruppen-Mitglieder ---
+
+export async function listGroupMembers(
+  fansubId: number,
+  authToken?: string,
+): Promise<HistFansubGroupMemberListResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/group-members`,
+    { authToken },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<HistFansubGroupMemberListResponse>;
+}
+
+export async function createGroupMember(
+  fansubId: number,
+  body: CreateGroupMemberRequest,
+  authToken?: string,
+): Promise<HistFansubGroupMemberResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/group-members`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<HistFansubGroupMemberResponse>;
+}
+
+export async function updateGroupMember(
+  fansubId: number,
+  memberId: number,
+  body: UpdateGroupMemberRequest,
+  authToken?: string,
+): Promise<HistFansubGroupMemberResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/group-members/${memberId}`,
+    {
+      method: "PATCH",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<HistFansubGroupMemberResponse>;
+}
+
+export async function deleteGroupMember(
+  fansubId: number,
+  memberId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/group-members/${memberId}`,
+    {
+      method: "DELETE",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+// --- Mitglieder-Rollen ---
+
+export async function listMemberRoles(
+  fansubId: number,
+  authToken?: string,
+): Promise<HistGroupMemberRoleListResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-roles`,
+    { authToken },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<HistGroupMemberRoleListResponse>;
+}
+
+export async function createMemberRole(
+  fansubId: number,
+  body: CreateMemberRoleRequest,
+  authToken?: string,
+): Promise<HistGroupMemberRoleResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-roles`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<HistGroupMemberRoleResponse>;
+}
+
+export async function updateMemberRole(
+  fansubId: number,
+  roleId: number,
+  body: UpdateMemberRoleRequest,
+  authToken?: string,
+): Promise<HistGroupMemberRoleResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-roles/${roleId}`,
+    {
+      method: "PATCH",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<HistGroupMemberRoleResponse>;
+}
+
+export async function deleteMemberRole(
+  fansubId: number,
+  roleId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-roles/${roleId}`,
+    {
+      method: "DELETE",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+// --- Anime-Contributions ---
+
+export async function listAnimeContributions(
+  fansubId: number,
+  animeId: number,
+  authToken?: string,
+): Promise<AnimeContributionListResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/contributions`,
+    { authToken },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<AnimeContributionListResponse>;
+}
+
+export async function upsertAnimeContribution(
+  fansubId: number,
+  animeId: number,
+  body: UpsertAnimeContributionRequest,
+  authToken?: string,
+): Promise<AnimeContributionResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/contributions`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<AnimeContributionResponse>;
+}
+
+export async function deleteAnimeContribution(
+  fansubId: number,
+  animeId: number,
+  contributionId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/contributions/${contributionId}`,
     {
       method: "DELETE",
       authToken,
