@@ -48,7 +48,7 @@ Drei zusammenhängende Fähigkeiten auf Basis des bestehenden `anime_contributio
 
 ### Audit-Attribution
 - **D-14:** Beim Einreichen: `created_by` = App-User-ID des Members. Bei Leader-Bestätigung: `confirmed_by` = Leader/Admin (siehe D-10).
-- **D-15:** Schaltet der Member nach 90 Tagen selbst öffentlich, wird `confirmed_by` = **App-User-ID des Members** gesetzt (Audit-Spur, wer geschaltet hat), der Eintrag bleibt aber **unverified** markiert. → Offene Modellierungsfrage für Research: Wie wird „selbst-geschaltet/unverified" von einer echten Leader-Bestätigung unterschieden (z. B. anhand der Rolle des `confirmed_by`-Users oder eines dedizierten Flags)? Status bei Selbst-Schaltung NICHT zwingend `confirmed`.
+- **D-15:** Schaltet der Member nach 90 Tagen selbst öffentlich, wird `confirmed_by` = **App-User-ID des Members** gesetzt (Audit-Spur, wer geschaltet hat), der Eintrag bleibt aber **unverified** markiert. **GELÖST (2026-06-02, Research + User-Entscheidung):** Kein neues Flag. Die Selbstschaltung lässt den Status auf `proposed`, setzt nur die Sichtbarkeitsflags + `confirmed_by` = Member-App-User-ID. Da `is_verified` in der Public-Query als `status = 'confirmed'` berechnet wird (`anime_contributions_public_repository.go:106`), erscheint der selbst-geschaltete Eintrag korrekt als unverified `(historisch)` und NICHT als verifiziert. Status bei Selbst-Schaltung NICHT `confirmed`.
 
 ### Member-Dashboard-UX
 - **D-16:** Eingabe über ein **Inline-/Modal-Formular** in der „Eigene Vorschläge"-Sektion auf `me/contributions` (Button „+ Beitrag vorschlagen"). Kein Seitenwechsel.
