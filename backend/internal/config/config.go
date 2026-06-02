@@ -48,6 +48,16 @@ type Config struct {
 	FFmpegPath                   string   // Dateipfad zur FFmpeg-Binärdatei
 	TMDBAPIKey                   string   // API-Schlüssel für The Movie Database (TMDB)
 	FanartAPIKey                 string   // API-Schlüssel für fanart.tv
+	// SMTP-Mailer-Konfiguration
+	SMTPEnabled   bool   // SMTP-Versand aktiv (false = Noop-Modus)
+	SMTPHost      string // SMTP-Server-Hostname
+	SMTPPort      int    // SMTP-Port (Standard: 1025 lokal, 587 Produktion)
+	SMTPUsername  string // SMTP-Benutzername (leer = kein Auth)
+	SMTPPassword  string // SMTP-Passwort
+	SMTPFromEmail string // Absender-E-Mail-Adresse
+	SMTPFromName  string // Absender-Anzeigename
+	SMTPStartTLS  bool   // STARTTLS für SMTP-Verbindung verwenden
+	AppPublicURL  string // Öffentliche Basis-URL der App (für absolute Links in Mails)
 }
 
 // Load liest alle Konfigurationswerte aus Umgebungsvariablen und gibt eine fertig befüllte Config zurück.
@@ -96,6 +106,15 @@ func Load() Config {
 		FFmpegPath:                   strings.TrimSpace(getEnv("FFMPEG_PATH", "/usr/bin/ffmpeg")),
 		TMDBAPIKey:                   strings.TrimSpace(os.Getenv("TMDB_API_KEY")),
 		FanartAPIKey:                 strings.TrimSpace(os.Getenv("FANART_API_KEY")),
+		SMTPEnabled:                  getEnvBool("SMTP_ENABLED", false),
+		SMTPHost:                     getEnv("SMTP_HOST", "team4sv30-mailpit"),
+		SMTPPort:                     getEnvInt("SMTP_PORT", 1025),
+		SMTPUsername:                 strings.TrimSpace(os.Getenv("SMTP_USERNAME")),
+		SMTPPassword:                 os.Getenv("SMTP_PASSWORD"),
+		SMTPFromEmail:                getEnv("SMTP_FROM_EMAIL", "noreply@team4s.local"),
+		SMTPFromName:                 getEnv("SMTP_FROM_NAME", "Team4s"),
+		SMTPStartTLS:                 getEnvBool("SMTP_STARTTLS", false),
+		AppPublicURL:                 strings.TrimSpace(getEnv("APP_PUBLIC_URL", "http://localhost:3002")),
 	}
 }
 

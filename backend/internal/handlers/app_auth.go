@@ -30,7 +30,7 @@ type fansubGroupCapabilitiesResponse struct {
 
 type fansubGroupAppMemberStore interface {
 	ListByFansubGroup(ctx context.Context, fansubGroupID int64) ([]models.FansubGroupAppMember, error)
-	SearchCandidates(ctx context.Context, fansubGroupID int64, query string, limit int) ([]models.AppUserListItem, error)
+	SearchCandidates(ctx context.Context, fansubGroupID int64, query string, limit int) ([]models.FansubGroupMemberCandidate, error)
 	Create(ctx context.Context, fansubGroupID int64, input models.FansubGroupMemberCreateInput) (*models.FansubGroupAppMember, error)
 	SetRole(ctx context.Context, fansubGroupID int64, appUserID int64, input models.FansubGroupMemberRoleUpdateInput) (*models.FansubGroupAppMember, error)
 	UpdateStatus(ctx context.Context, fansubGroupID int64, appUserID int64, input models.FansubGroupMemberStatusUpdateInput) (*models.FansubGroupAppMember, error)
@@ -64,9 +64,11 @@ type AppAuthHandler struct {
 	permissionSvc      *permissions.Service
 	auditLogRepo       auditLogWriter
 	tiptapSvc          *services.TipTapService
+	mailer             services.Mailer
 	mediaStorageDir    string
 	mediaBaseURL       string
 	keycloakAccountURL string
+	appPublicURL       string
 }
 
 func NewAppAuthHandler(
@@ -81,9 +83,11 @@ func NewAppAuthHandler(
 	permissionSvc *permissions.Service,
 	auditLogRepo *repository.AuditLogRepository,
 	tiptapSvc *services.TipTapService,
+	mailer services.Mailer,
 	mediaStorageDir string,
 	mediaBaseURL string,
 	keycloakAccountURL string,
+	appPublicURL string,
 ) *AppAuthHandler {
 	return &AppAuthHandler{
 		appAuthRepo:        appAuthRepo,
@@ -97,9 +101,11 @@ func NewAppAuthHandler(
 		permissionSvc:      permissionSvc,
 		auditLogRepo:       auditLogRepo,
 		tiptapSvc:          tiptapSvc,
+		mailer:             mailer,
 		mediaStorageDir:    strings.TrimSpace(mediaStorageDir),
 		mediaBaseURL:       strings.TrimSpace(mediaBaseURL),
 		keycloakAccountURL: strings.TrimSpace(keycloakAccountURL),
+		appPublicURL:       strings.TrimSpace(appPublicURL),
 	}
 }
 

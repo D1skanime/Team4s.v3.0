@@ -126,6 +126,22 @@ func main() {
 	permissionSvc := permissions.NewService(authzRepo)
 	auditLogRepo := repository.NewAuditLogRepository(dbPool)
 	tiptapSvc := services.NewTipTapService()
+	var mailerSvc services.Mailer
+	if cfg.SMTPEnabled {
+		mailerSvc = services.NewSMTPMailer(services.MailerConfig{
+			Host:      cfg.SMTPHost,
+			Port:      cfg.SMTPPort,
+			Username:  cfg.SMTPUsername,
+			Password:  cfg.SMTPPassword,
+			FromEmail: cfg.SMTPFromEmail,
+			FromName:  cfg.SMTPFromName,
+			StartTLS:  cfg.SMTPStartTLS,
+		})
+		log.Printf("SMTP-Mailer aktiv: %s:%d (from=%s)", cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPFromEmail)
+	} else {
+		mailerSvc = services.NewNoopMailer()
+		log.Printf("SMTP_ENABLED=false: Noop-Mailer aktiv (kein Mailversand)")
+	}
 	groupAppMemberRepo := repository.NewFansubGroupAppMemberRepository(dbPool)
 	groupInvitationRepo := repository.NewFansubGroupInvitationRepository(dbPool, groupAppMemberRepo)
 	var authMiddleware gin.HandlerFunc
@@ -156,9 +172,11 @@ func main() {
 		permissionSvc,
 		auditLogRepo,
 		tiptapSvc,
+		mailerSvc,
 		cfg.MediaStorageDir,
 		cfg.MediaPublicBaseURL,
 		cfg.KeycloakAccountURL,
+		cfg.AppPublicURL,
 	)
 	adminBootstrapUserIDs := resolveAdminBootstrapUserIDs(cfg)
 	if err := bootstrapAdminRoleAssignments(ctx, authzRepo, cfg.AuthAdminRoleName, adminBootstrapUserIDs); err != nil {
