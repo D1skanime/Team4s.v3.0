@@ -69,3 +69,22 @@
   background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
   font-weight: 600;
 }
+
+/* Story-Bild-Ausrichtungs-Klassen fuer server-gerenderte img-Tags (Phase 70).
+   Klassen werden vom TipTap-Renderer im Backend erzeugt (tiptap_service.go).
+   D-10: Block-Level-Ausrichtung, kein Float. */
+.richTextOutput :global(img.story-img-align-left) {
+  display: block;
+  margin-right: auto;
+}
+
+.richTextOutput :global(img.story-img-align-center) {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.richTextOutput :global(img.story-img-align-right) {
+  display: block;
+  margin-left: auto;
+}

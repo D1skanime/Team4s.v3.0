@@ -1,0 +1,111 @@
+/* StoryImageNodeView.module.css
+   CSS-Tokens aus bestehenden globalen Variablen (NICHT neu definieren).
+   Visueller Vertrag: UI-SPEC Phase 70, Sections 2-4 */
+
+/* Wrapper-Block fuer den Node — display block, Abstand oben/unten */
+.storyImageWrapper {
+  display: block;
+  position: relative;
+  margin: 16px 0; /* lg spacing — UI-SPEC Spacing Scale */
+}
+
+/* Ausrichtungs-Klassen (Block-Level, kein Float — D-10) */
+.align-left {
+  margin-right: auto;
+}
+
+.align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.align-right {
+  margin-left: auto;
+}
+
+/* Selektions-Ring: identisch zu .editorShell:focus-within aus RichTextEditor.module.css */
+.selected {
+  outline: 2px solid color-mix(in srgb, var(--accent-primary) 42%, var(--text-secondary));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+}
+
+/* Schwebende Node-Toolbar (nur bei selected) — absolut ueber dem Bild positioniert */
+.nodeToolbar {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 4px; /* xs spacing — UI-SPEC Spacing Scale */
+  align-items: center;
+  padding: 3px 4px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, var(--accent-primary) 14%);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-card) 98%, white 2%),
+    color-mix(in srgb, var(--bg-secondary) 80%, var(--bg-card))
+  );
+  box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.18);
+}
+
+/* Toolbar-Buttons: exakt wie .toolbarBtn aus RichTextEditor.module.css */
+.toolbarBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 5px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+  color: color-mix(in srgb, var(--text-primary) 88%, var(--text-secondary));
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.toolbarBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-card));
+  border-color: color-mix(in srgb, var(--accent-primary) 32%, transparent);
+  color: var(--text-primary);
+}
+
+/* Aktiver Ausrichtungs-Button: identisch zu .toolbarBtnActive aus RichTextEditor.module.css */
+.toolbarBtnActive {
+  background: color-mix(in srgb, var(--accent-primary) 18%, var(--bg-card));
+  border-color: color-mix(in srgb, var(--accent-primary) 44%, transparent);
+  color: color-mix(in srgb, var(--accent-primary) 88%, var(--text-primary));
+}
+
+/* Bild-Container: position relative fuer den Resize-Handle */
+.imageContainer {
+  position: relative;
+  display: inline-block;
+}
+
+/* Das Bild selbst */
+.storyImage {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Resize-Handle: 12px quadratisch, Accent-Farbe, unten rechts — UI-SPEC Section 3 */
+.resizeHandle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--accent-primary);
+  border-radius: var(--radius-sm);
+  cursor: se-resize;
+}
+
+.resizeHandle:hover {
+  opacity: 0.8;
+}

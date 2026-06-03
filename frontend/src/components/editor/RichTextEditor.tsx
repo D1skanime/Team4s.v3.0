@@ -11,6 +11,8 @@ import CharacterCount from '@tiptap/extension-character-count'
 import { useEffect, useId, useRef, useState } from 'react'
 import { ColorTokenExtension } from './ColorTokenExtension'
 import type { ColorToken } from './ColorTokenExtension'
+import { StoryImageExtension } from './StoryImageExtension'
+import { StoryImageToolbarButton } from './StoryImageToolbarButton'
 import type { Editor } from '@tiptap/react'
 import styles from './RichTextEditor.module.css'
 
@@ -22,6 +24,10 @@ type RichTextEditorProps = {
   mode?: 'longform' | 'shortnote'
   disabled?: boolean
   minHeight?: number
+  /** Opt-in Bild-Feature: nur bei true wird StoryImageExtension geladen + Toolbar-Button gerendert (D-11) */
+  enableImages?: boolean
+  /** Callback wenn Nutzer ein Bild auswaehlt — liefert pending_key und File fuer deferred Upload */
+  onPendingImageAdded?: (pendingKey: string, file: File) => void
 }
 
 const SHORTNOTE_HINT =
@@ -43,6 +49,8 @@ function cloneRichTextValue(value: unknown | null): object {
 
 type ToolbarProps = {
   editor: Editor
+  enableImages?: boolean
+  onPendingImageAdded?: (pendingKey: string, file: File) => void
 }
 
 const COLOR_TOKEN_META: Array<{ token: ColorToken; label: string }> = [
@@ -55,7 +63,7 @@ const COLOR_TOKEN_META: Array<{ token: ColorToken; label: string }> = [
   { token: 'purple', label: 'Lila' },
 ]
 
-function EditorToolbar({ editor }: ToolbarProps) {
+function EditorToolbar({ editor, enableImages, onPendingImageAdded }: ToolbarProps) {
   const [colorMenuOpen, setColorMenuOpen] = useState(false)
   const colorMenuId = useId()
   const colorMenuRef = useRef<HTMLDivElement | null>(null)
@@ -336,6 +344,29 @@ function EditorToolbar({ editor }: ToolbarProps) {
       >
         ↪
       </button>
+
+      {/* Bild einfuegen — nur bei enableImages={true} (D-11, T-70-05-03) */}
+      {enableImages && (
+        <>
+          <span className={styles.toolbarSep} />
+          <StoryImageToolbarButton
+            btnClassName={styles.toolbarBtn}
+            onFileSelected={(file) => {
+              const pendingKey = crypto.randomUUID()
+              editor.chain().focus().insertContent({
+                type: 'image',
+                attrs: {
+                  pending_key: pendingKey,
+                  preview_url: URL.createObjectURL(file),
+                  width_percent: 60,
+                  alignment: 'center',
+                },
+              }).run()
+              onPendingImageAdded?.(pendingKey, file)
+            }}
+          />
+        </>
+      )}
     </div>
   )
 }
@@ -350,6 +381,8 @@ export function RichTextEditor({
   mode = 'longform',
   disabled = false,
   minHeight = 160,
+  enableImages,
+  onPendingImageAdded,
 }: RichTextEditorProps) {
   const prevValue = useRef(value)
 
@@ -369,6 +402,8 @@ export function RichTextEditor({
       ColorTokenExtension,
       Placeholder.configure({ placeholder: placeholder ?? 'Hier schreiben…' }),
       CharacterCount,
+      // Bild-Extension nur bei opt-in (D-11, T-70-05-03)
+      ...(enableImages ? [StoryImageExtension] : []),
     ],
     content: cloneRichTextValue(value),
     editable: !disabled,
@@ -396,7 +431,13 @@ export function RichTextEditor({
   return (
     <div className={`${styles.editorShell} ${disabled ? styles.editorShellDisabled : ''}`}>
       {helperText && <p className={styles.helperText}>{helperText}</p>}
-      {editor && !disabled && <EditorToolbar editor={editor} />}
+      {editor && !disabled && (
+        <EditorToolbar
+          editor={editor}
+          enableImages={enableImages}
+          onPendingImageAdded={onPendingImageAdded}
+        />
+      )}
       <div className={styles.editorContent} style={{ minHeight }}>
         <EditorContent editor={editor} />
       </div>
