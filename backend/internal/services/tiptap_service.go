@@ -39,6 +39,8 @@ var allowedTipTapNodes = map[string]bool{
 	"heading": true, "bulletList": true, "orderedList": true,
 	"listItem": true, "blockquote": true, "horizontalRule": true,
 	"table": true, "tableRow": true, "tableCell": true, "tableHeader": true,
+	// Phase 70: Image-Node fuer Member-Profilgeschichte
+	"image": true,
 }
 
 var allowedTipTapMarks = map[string]bool{
@@ -96,6 +98,30 @@ func validateNode(node TipTapNode) error {
 				return fmt.Errorf("Verschachtelte Tabellen sind nicht erlaubt")
 			}
 		}
+
+	case "image":
+		// media_asset_id muss vorhanden und positiv sein (D-01)
+		rawID, ok := node.Attrs["media_asset_id"]
+		if !ok || rawID == nil {
+			return fmt.Errorf("image-node fehlt media_asset_id")
+		}
+		id, isFloat := rawID.(float64)
+		if !isFloat || id <= 0 {
+			return fmt.Errorf("image-node hat ungültige media_asset_id")
+		}
+		// alignment: nur erlaubte Werte, optional (D-02)
+		if align, ok := node.Attrs["alignment"].(string); ok && align != "" {
+			if align != "left" && align != "center" && align != "right" {
+				return fmt.Errorf("image-node hat ungültige ausrichtung: %q", align)
+			}
+		}
+		// width_percent: 1-100, optional (D-02)
+		if wp, ok := node.Attrs["width_percent"].(float64); ok {
+			if wp < 1 || wp > 100 {
+				return fmt.Errorf("image-node hat ungültige breite: %v", wp)
+			}
+		}
+		// Alt-Text und Caption werden stillschweigend ignoriert (D-02)
 	}
 
 	// Marks auf text-Nodes prüfen
