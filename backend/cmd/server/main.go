@@ -278,6 +278,7 @@ func main() {
 	v1.PUT("/me/profile", authMiddleware, appAuthHandler.UpdateOwnProfile)
 	v1.POST("/me/profile/avatar", authMiddleware, appAuthHandler.UploadOwnProfileAvatar)
 	v1.POST("/me/profile/background", authMiddleware, appAuthHandler.UploadOwnProfileBackground)
+	v1.POST("/me/profile/story-images", authMiddleware, appAuthHandler.UploadOwnProfileStoryImage)
 	publicProfileHandler := handlers.NewAppPublicProfileHandler(memberProfileRepo)
 	v1.GET("/members/:slug", authOptionalMiddleware, publicProfileHandler.GetPublicMemberProfile)
 	v1.GET("/me/fansub-groups", authMiddleware, appAuthHandler.ListMyFansubGroups)

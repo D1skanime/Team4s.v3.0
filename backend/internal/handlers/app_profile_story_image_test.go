@@ -25,51 +25,20 @@ import (
 
 // --- Testhelfer fuer Story-Bild-Tests ---
 
-// tinyJPEGWithEXIFBytes gibt ein minimales JPEG zurueck, das einen APP1-EXIF-Block
-// mit GPS-Daten enthaelt. Byte-Sequenz: FF D8 FF E1 (APP1-Marker).
-// Das Literal ist ein echter 1x1 JPEG mit synthetischem APP1-EXIF-Segment.
-// Quelle: manuell konstruiert — FF D8 SOI + FF E1 APP1 Segment + FF D9 EOI.
+// tinyJPEGWithEXIFBytes gibt ein echtes, dekodierbares 1x1 JPEG zurueck, das einen
+// APP1-EXIF-Block enthaelt. Byte-Sequenz: FF D8 FF E1 (APP1-Marker an Position 2).
+// Das Literal ist ein echtes 1x1-Grau-JPEG mit injiziertem APP1-EXIF-Segment.
+// Generiert via Go image/jpeg.Encode + APP1-Injektion nach SOI.
+// Wichtig: bytes.Index(data, []byte{0xFF, 0xE1}) muss != -1 fuer dieses Input-File sein.
 func tinyJPEGWithEXIFBytes(t *testing.T) []byte {
 	t.Helper()
-	// Minimal JPEG mit APP1 (0xFF 0xE1) EXIF-Marker:
-	// SOI (FF D8) + APP1 header (FF E1 00 1C "Exif\x00\x00" + Dummy-TIFF-Header) + EOI (FF D9)
-	// Der APP1-Block enthaelt einen synthetischen EXIF-Header der nur GPS-Marker-Abwesenheit testet.
-	// Wichtig: bytes.Index(data, []byte{0xFF, 0xE1}) muss != -1 fuer dieses Input-File sein.
-	b64 := "AP8Q/hAABEV4aWYAAE1NAQAAAAAIAAABGgAFAAAAAQAAAG4BGwAFAAAAAQAAAHYBKAADAAAAAgAAAAAAAAAA/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAIBAQEBAQIBAQECAgICAgQDAgICAgUEBAMEBgUGBgYFBgYGBwkIBgcJBgYGCAsICQoKCgoKBggLDAsKDAkKCgr/wAAR"
+	// Echtes 1x1-JPEG mit APP1-EXIF-Marker (generiert und verifiziert):
+	// - image.DecodeConfig ergibt Format=jpeg, Width=1, Height=1
+	// - bytes.Index(data, []byte{0xFF, 0xE1}) == 2 (APP1 direkt nach SOI)
+	b64 := "/9j/4QAgRXhpZgAASUkqAAgAAAAAAAAAAAAAAAAA/9sAhAADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUUAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QBogAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoLEAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+foBAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKCxEAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwAooooA/9k="
 	data, err := base64.StdEncoding.DecodeString(b64)
 	if err != nil || len(data) == 0 {
-		// Fallback: konstruiere manuell ein JPEG mit APP1-Marker
-		// SOI=FF D8, APP1-Marker=FF E1, length=0x00 0x20 (32 Bytes), "Exif\x00\x00" + Padding, EOI=FF D9
-		manual := []byte{
-			0xFF, 0xD8, // SOI
-			0xFF, 0xE1, // APP1 Marker
-			0x00, 0x20, // APP1 laenge = 32 bytes (inklusive der 2 Laenge-Bytes)
-			// "Exif\x00\x00" Header
-			0x45, 0x78, 0x69, 0x66, 0x00, 0x00,
-			// TIFF-Header (little-endian "II", magic 42, offset 8)
-			0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00,
-			// IFD0: 0 Eintraege
-			0x00, 0x00,
-			// Padding bis APP1 laenge erfuellt
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			// EOI
-			0xFF, 0xD9,
-		}
-		return manual
-	}
-	// Stelle sicher, dass der APP1-Marker vorhanden ist (Testvoraussetzung)
-	if bytes.Index(data, []byte{0xFF, 0xE1}) == -1 {
-		// Fallback auf manuellen Build (Base64-Dekodierung enthielt kein APP1)
-		return []byte{
-			0xFF, 0xD8,
-			0xFF, 0xE1,
-			0x00, 0x20,
-			0x45, 0x78, 0x69, 0x66, 0x00, 0x00,
-			0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00,
-			0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0xFF, 0xD9,
-		}
+		t.Fatalf("tinyJPEGWithEXIFBytes: Base64-Dekodierung fehlgeschlagen: %v", err)
 	}
 	return data
 }
@@ -241,10 +210,10 @@ func TestStoryImageUploadExifStrip(t *testing.T) {
 
 	handler.UploadOwnProfileStoryImage(c)
 
-	// Nach erfolgreichem Upload (200 OK) die gespeicherte Datei lesen und APP1-Abwesenheit pruefen
-	// Da der Stub 501 zurueckgibt, schlaegt assert.Equal(200) fehl — Test ist ROT bis Implementierung
-	require.Equal(t, http.StatusOK, recorder.Code,
-		"Handler muss 200 OK zurueckgeben nach erfolgreichem Upload (aktuell 501 Stub)")
+	// Nach erfolgreichem Upload (201 Created) die gespeicherte Datei lesen und APP1-Abwesenheit pruefen.
+	// Der Handler gibt 201 Created zurueck (korrekt fuer eine neue Ressource).
+	require.Equal(t, http.StatusCreated, recorder.Code,
+		"Handler muss 201 Created zurueckgeben nach erfolgreichem Upload")
 
 	// Gespeicherte Datei finden und APP1-Marker pruefen
 	var savedPath string

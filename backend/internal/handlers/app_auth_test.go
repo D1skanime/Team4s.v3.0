@@ -132,6 +132,14 @@ func (s *profileRepoStub) AttachUploadedBackground(_ context.Context, _ int64, i
 	return s.attachResp, s.attachErr
 }
 
+func (s *profileRepoStub) InsertStoryImageAsset(_ context.Context, _ models.StoryImageUploadInput) (int64, error) {
+	return 0, nil
+}
+
+func (s *profileRepoStub) GetStoryImageAssetsByMember(_ context.Context, _ int64) ([]models.StoryImageAssetRef, error) {
+	return nil, nil
+}
+
 func (s *invitationRepoStub) ListByFansubGroup(_ context.Context, _ int64) ([]models.FansubGroupInvitation, error) {
 	return s.listResp, nil
 }

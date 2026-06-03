@@ -29,6 +29,8 @@ type memberProfileStore interface {
 	UpdateOwnProfile(ctx context.Context, appUserID int64, input models.MemberProfileUpdateInput) (*models.MemberProfile, error)
 	AttachUploadedAvatar(ctx context.Context, appUserID int64, input models.MemberProfileAvatarUploadInput) (*models.MemberProfile, error)
 	AttachUploadedBackground(ctx context.Context, appUserID int64, input models.MemberProfileBackgroundUploadInput) (*models.MemberProfile, error)
+	InsertStoryImageAsset(ctx context.Context, input models.StoryImageUploadInput) (int64, error)
+	GetStoryImageAssetsByMember(ctx context.Context, memberID int64) ([]models.StoryImageAssetRef, error)
 }
 
 type updateOwnProfileRequest struct {
