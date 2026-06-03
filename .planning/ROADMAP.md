@@ -1427,6 +1427,23 @@ Plans:
   5. Roh-Invite-Tokens werden nicht persistiert oder geloggt; Audit-Logs enthalten keinen klickbaren Token.
   6. Mailjet ist fuer spaetere Produktion als SMTP-Konfiguration dokumentiert, ohne Secrets im Repo und ohne Amazon-Abhaengigkeit.
 
+### Phase 71: UI-Politur Fansub-Contributions und Member-Profil auf globales Design-System
+
+**Goal:** Bestehende Contribution- und Member-Profil-Flaechen durchgaengig auf das globale Design-System (`@/components/ui`) bringen und Anzeige- von Bearbeiten-Kontext sauber trennen. Buendelt drei beim Live-UAT (2026-06-03) erfasste UI-Befunde; keine neuen Datenmodelle/Backends ausser kleinen Korrektheits-Fixes.
+**Requirements**: P71-SC1, P71-SC2, P71-SC3, P71-SC4
+**Depends on:** Phase 68
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 71 to break down)
+
+**Success Criteria** (what must be TRUE):
+
+  1. Release-Version-Dropdown im `AnimeContributionModal` nutzt `Select`+`FormField` aus `@/components/ui` (kein natives `<select>`); `ReleaseVersionBreakdown` ist an die globalen Tokens/Primitives angeglichen. (Quelle-Todo: contribution-dropdown-auf-globale-ui-primitives-umstellen)
+  2. Credits-Anzeige ist in "Anime & Veroeffentlichungen" konsolidiert und durchgaengig "Mitwirkende" benannt (statt "Beitraege"); die Permission-Bruecke (Credit schlaegt optionalen, separaten, widerrufbaren Permission-Grant vor) ist als Produktentscheidung geklaert und dokumentiert. (Quelle-Todo: credits-ui-konsolidierung-und-permission-bruecke)
+  3. Member-Profil: `params`-Korrektheitsbug behoben (`React.use(params)`, keine sync-dynamic-API-Errors mehr); Badge-Chip-Verwaltung ("Ausblenden") nur im Owner-/Edit-Kontext, nicht auf der Anzeige; Rollen-Timeline-Kontrast/Styling gefixt; Medienbild mit korrektem Aspect-Ratio/URL. (Quelle-Todo: member-profil-ui-und-params-bug)
+  4. Anzeige- vs. Bearbeiten-Trennung ist konsistent: kuenftig-oeffentliche Flaechen (z. B. `/admin/my-groups`) zeigen nur an, Bearbeiten lebt im Edit-Bereich (`/admin/fansubs/[id]/edit`). ESLint-`no-restricted-syntax`-Guard kann nach Migration der Altfaelle von `warn` auf `error` angehoben werden.
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
