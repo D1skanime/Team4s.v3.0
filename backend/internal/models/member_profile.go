@@ -147,6 +147,24 @@ type MemberProfileBgImage struct {
 	StoragePath       string `json:"-"`
 }
 
+// StoryImageUploadInput haelt die Pflichtfelder fuer einen neuen media_assets-Eintrag
+// fuer ein Story-Bild (analog MemberProfileAvatarUploadInput).
+type StoryImageUploadInput struct {
+	FilePath      string
+	MimeType      string
+	SizeBytes     int64
+	Width         int
+	Height        int
+	OwnerMemberID int64
+}
+
+// StoryImageAssetRef ist die schlanke Referenz fuer den Referenz-Diff im Cleanup-on-Save.
+type StoryImageAssetRef struct {
+	ID            int64
+	FilePath      string
+	OwnerMemberID int64
+}
+
 type PublicMemberProfile struct {
 	MemberID            int64                             `json:"member_id"`
 	AppUserID           int64                             `json:"-"`
