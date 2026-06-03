@@ -96,6 +96,22 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
   Placeholder-Attribute, aria-labels, Toast-Nachrichten und Go-Response-Strings.
 - **Ausnahmen:** Code-Bezeichner (Variablennamen, Funktionsnamen, CSS-Klassen,
   Dateinamen, Kommentare) sind vom Scope ausgenommen — nur String-Inhalte.
+
+### Frontend-UI (globales Design-System)
+
+- **Pflicht:** Jede user-facing UI MUSS die globalen Primitives aus `@/components/ui`
+  nutzen (`Button`, `Select`, `FormField`, `Modal`, `Input`, `Textarea`, `Tabs`,
+  `Drawer`, `Card`, `Table` …). Referenz/Showcase: Route `/dev/ui-system`.
+- **Verboten:** Handgebaute native `<select>`, `<input>`, `<textarea>`, `<button>`
+  oder Eigen-Markup für einen Primitiv-Typ, den `@/components/ui` bereits anbietet.
+  Lokale Datei-Konsistenz rechtfertigt KEIN Abweichen vom globalen Design-System;
+  die „closest-analog"-Regel darf das globale UI nie überstimmen.
+- **Durchsetzung:** ESLint `no-restricted-syntax` warnt bei nativem `<select>/<input>/
+  <textarea>` (`frontend/eslint.config.mjs`); nach Migration der Altfälle wird auf
+  `error` angehoben. UI-SPECs müssen die Primitive-Nutzung als Pflicht-Constraint
+  führen (UI-Checker-Gate).
+- **Ausnahme:** Die Primitive-Definitionen selbst unter
+  `frontend/src/components/ui/` dürfen native Elemente kapseln.
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
