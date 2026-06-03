@@ -31,6 +31,7 @@ type memberProfileStore interface {
 	AttachUploadedBackground(ctx context.Context, appUserID int64, input models.MemberProfileBackgroundUploadInput) (*models.MemberProfile, error)
 	InsertStoryImageAsset(ctx context.Context, input models.StoryImageUploadInput) (int64, error)
 	GetStoryImageAssetsByMember(ctx context.Context, memberID int64) ([]models.StoryImageAssetRef, error)
+	DeleteStoryImageAsset(ctx context.Context, assetID int64, ownerMemberID int64) error
 }
 
 type updateOwnProfileRequest struct {
@@ -138,7 +139,23 @@ func (h *AppAuthHandler) UpdateOwnProfile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "profilgeschichte-html wird serverseitig erzeugt"}})
 		return
 	}
-	if err := h.prepareMemberStoryRichText(&input, req.MemberStoryJSON, req.MemberStory); err != nil {
+	// Einbaustelle 1: IDOR-Check + Cleanup-on-Save fuer Story-Bilder (Plan 70-06, D-03, D-22)
+	var assetsMap map[int64]string
+	if req.MemberStoryJSON.Set && req.MemberStoryJSON.Value != nil {
+		newBodyJSON := []byte(*req.MemberStoryJSON.Value)
+		am, lcErr := h.applyStoryImageLifecycle(c.Request.Context(), identity, *before, newBodyJSON)
+		if lcErr != nil {
+			if errors.Is(lcErr, ErrIDORViolation) {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": lcErr.Error()}})
+				return
+			}
+			writeInternalErrorResponse(c, "interner serverfehler", lcErr, "Story-Bild-Lifecycle konnte nicht ausgefuehrt werden.")
+			return
+		}
+		assetsMap = am
+	}
+
+	if err := h.prepareMemberStoryRichText(&input, req.MemberStoryJSON, req.MemberStory, assetsMap); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
@@ -242,13 +259,14 @@ func (h *AppAuthHandler) prepareMemberStoryRichText(
 	input *models.MemberProfileUpdateInput,
 	storyJSON models.OptionalRawJSON,
 	plainStory models.OptionalString,
+	assetsMap map[int64]string,
 ) error {
 	if input == nil {
 		return nil
 	}
 	if storyJSON.Set {
 		input.MemberStoryJSON = storyJSON
-		return h.renderMemberStoryRichText(input, storyJSON.Value)
+		return h.renderMemberStoryRichText(input, storyJSON.Value, assetsMap)
 	}
 	if !plainStory.Set {
 		return nil
@@ -265,10 +283,10 @@ func (h *AppAuthHandler) prepareMemberStoryRichText(
 		}
 	}
 	input.MemberStoryJSON = models.OptionalRawJSON{Set: true, Value: raw}
-	return h.renderMemberStoryRichText(input, raw)
+	return h.renderMemberStoryRichText(input, raw, assetsMap)
 }
 
-func (h *AppAuthHandler) renderMemberStoryRichText(input *models.MemberProfileUpdateInput, raw *json.RawMessage) error {
+func (h *AppAuthHandler) renderMemberStoryRichText(input *models.MemberProfileUpdateInput, raw *json.RawMessage, assetsMap map[int64]string) error {
 	if input == nil {
 		return nil
 	}
@@ -287,7 +305,15 @@ func (h *AppAuthHandler) renderMemberStoryRichText(input *models.MemberProfileUp
 	if err := h.tiptapSvc.ValidateJSON(bodyJSON); err != nil {
 		return fmt.Errorf("nicht erlaubter Editor-Inhalt: %w", err)
 	}
-	html, err := h.tiptapSvc.RenderHTML(bodyJSON)
+	// Einbaustelle 2: RenderHTMLWithResolver statt RenderHTML (Plan 70-06, D-21)
+	// assetsMap kann nil sein (kein MemberStoryJSON im Request) — dann keine img-Resolver
+	html, err := h.tiptapSvc.RenderHTMLWithResolver(bodyJSON, func(id int64) (string, bool) {
+		if assetsMap == nil {
+			return "", false
+		}
+		url, ok := assetsMap[id]
+		return url, ok
+	})
 	if err != nil {
 		return fmt.Errorf("profilgeschichte konnte nicht gerendert werden")
 	}

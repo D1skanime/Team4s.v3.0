@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image"
 	"net/http"
@@ -259,5 +260,106 @@ func cleanupStoryImageAsset(mediaStorageDir string, storagePath string) {
 	}
 }
 
-// Sicherstellen dass der Kontext-Import benoetigt wird
-var _ context.Context
+// ErrIDORViolation wird zurueckgegeben wenn ein body_json eine media_asset_id
+// referenziert, die nicht dem savenden Member gehoert (D-03, D-23).
+var ErrIDORViolation = errors.New("story-bild gehört nicht diesem profil")
+
+// applyStoryImageLifecycle fuehrt IDOR-Check und Cleanup-on-Save fuer Story-Bilder durch.
+//
+// Schritt 1 — IDOR-Check:
+//   - Extrahiert alle media_asset_id-Werte aus newBodyJSON.
+//   - Laedt alle Assets des Members (GetStoryImageAssetsByMember).
+//   - Gibt ErrIDORViolation zurueck, falls eine ID nicht zum Member gehoert.
+//
+// Schritt 2 — Cleanup-on-Save:
+//   - Extrahiert alle media_asset_id-Werte aus dem vorhandenen profile.MemberStoryJSON.
+//   - Loescht Assets die in oldIDs aber nicht in newIDs enthalten sind
+//     (cleanupStoryImageAsset + DeleteStoryImageAsset + Audit-Log).
+//
+// Rueckgabe: (assetsURLMap id→public_url, error).
+// Die assetsURLMap wird als Resolver-Cache an RenderHTMLWithResolver weitergegeben.
+func (h *AppAuthHandler) applyStoryImageLifecycle(
+	ctx context.Context,
+	identity middleware.AuthIdentity,
+	profile models.MemberProfile,
+	newBodyJSON []byte,
+) (map[int64]string, error) {
+	newIDs := extractStoryImageIDsFromJSON(newBodyJSON)
+
+	assets, err := h.profileRepo.GetStoryImageAssetsByMember(ctx, profile.MemberID)
+	if err != nil {
+		return nil, fmt.Errorf("story-bilder des members konnten nicht geladen werden: %w", err)
+	}
+
+	// assetsURLMap aufbauen: id → public_url (fuer Resolver-Wiederverwendung)
+	assetsURLMap := make(map[int64]string, len(assets))
+	for _, a := range assets {
+		url := strings.TrimRight(h.mediaBaseURL, "/") + a.FilePath
+		assetsURLMap[a.ID] = url
+	}
+
+	// IDOR-Check: alle neuen IDs muessen dem Member gehoeren
+	for _, id := range newIDs {
+		if _, owned := assetsURLMap[id]; !owned {
+			return nil, ErrIDORViolation
+		}
+	}
+
+	// Cleanup-on-Save: alte IDs die nicht mehr in newIDs enthalten sind, loeschen
+	if profile.MemberStoryJSON != nil {
+		oldIDs := extractStoryImageIDsFromJSON([]byte(*profile.MemberStoryJSON))
+		newIDSet := make(map[int64]bool, len(newIDs))
+		for _, id := range newIDs {
+			newIDSet[id] = true
+		}
+		for _, oldID := range oldIDs {
+			if newIDSet[oldID] {
+				continue
+			}
+			// Nur eigene Assets loeschen
+			if _, owned := assetsURLMap[oldID]; !owned {
+				continue
+			}
+			// Dateisystem-Cleanup
+			if filePath, ok := assetFilePath(assets, oldID); ok {
+				cleanupStoryImageAsset(h.mediaStorageDir, filePath)
+			}
+			// DB-Zeile loeschen
+			if delErr := h.profileRepo.DeleteStoryImageAsset(ctx, oldID, profile.MemberID); delErr != nil {
+				// Fehler loggen aber nicht abbrechen — Cleanup-Fehler sind nicht kritisch
+				_ = delErr
+			}
+			// Audit-Log
+			if h.auditLogRepo != nil {
+				actorAppUserID := identity.AppUserID
+				actorLegacyUserID := identity.UserID
+				memberID := profile.MemberID
+				assetID := oldID
+				_ = h.auditLogRepo.Write(ctx, repository.AuditLogEntry{
+					ActorAppUserID:    &actorAppUserID,
+					ActorLegacyUserID: &actorLegacyUserID,
+					EventType:         "member_profile.story_image.cleaned_up",
+					ScopeType:         "member_profile",
+					ScopeID:           &memberID,
+					TargetType:        "media_asset",
+					TargetID:          &assetID,
+					Action:            "member_profile.story_image.cleanup",
+					Outcome:           "success",
+					Payload:           map[string]any{"media_asset_id": oldID},
+				})
+			}
+		}
+	}
+
+	return assetsURLMap, nil
+}
+
+// assetFilePath gibt den Dateipfad eines Assets anhand seiner ID zurueck.
+func assetFilePath(assets []models.StoryImageAssetRef, id int64) (string, bool) {
+	for _, a := range assets {
+		if a.ID == id {
+			return a.FilePath, true
+		}
+	}
+	return "", false
+}
