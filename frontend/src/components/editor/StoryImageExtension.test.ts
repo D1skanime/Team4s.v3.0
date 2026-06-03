@@ -4,22 +4,8 @@
 
 import { describe, it, expect } from 'vitest'
 
-// TODO(plan-70-05): StoryImageExtension aus dem richtigen Pfad importieren.
-// Bis zur Implementierung schlaegt der Import fehl und Tests sind ROT.
-// Kommentierter Import fuer spaetere Aktivierung:
-// import { StoryImageExtension } from './StoryImageExtension'
-
-// Stub-Typ damit die Tests kompilieren und als FAIL ausfuehren koennen.
-// In Plan 70-05 wird der echte Import aktiviert.
-const StoryImageExtension = null as unknown as {
-  name: string
-  config?: {
-    group?: string
-    atom?: boolean
-    draggable?: boolean
-    addAttributes?: () => Record<string, unknown>
-  }
-}
+// Plan 70-05: Echter Import aktiviert (Wave-0-Tests gruen machen).
+import { StoryImageExtension } from './StoryImageExtension'
 
 describe('StoryImageExtension — Node-Konfiguration', () => {
   it('hat name="image"', () => {
@@ -39,41 +25,46 @@ describe('StoryImageExtension — Node-Konfiguration', () => {
   })
 })
 
+// Hilfsfunktion: ruft addAttributes() auf der echten TipTap-Node auf und
+// castet das Ergebnis auf den erwarteten Record-Typ (TipTap's Attribut-Schema).
+function getExtensionAttrs(): Record<string, { default?: unknown }> {
+  const addAttributesFn = StoryImageExtension.config?.addAttributes
+  if (typeof addAttributesFn !== 'function') return {}
+  // TipTap ruft addAttributes() mit dem Extension-Kontext auf.
+  // Fuer die Attribut-Default-Tests reicht ein leerer Kontext-Stub.
+  return (addAttributesFn as unknown as () => Record<string, { default?: unknown }>)()
+}
+
 describe('StoryImageExtension — Default-Attribute', () => {
   it('hat media_asset_id=null als Default (vor Upload)', () => {
     expect(StoryImageExtension).not.toBeNull()
-    const attrs = StoryImageExtension.config?.addAttributes?.()
+    const attrs = getExtensionAttrs()
     expect(attrs).toBeDefined()
-    const mediaAssetId = attrs?.['media_asset_id'] as { default?: unknown } | undefined
-    expect(mediaAssetId?.default).toBeNull()
+    expect(attrs['media_asset_id']?.default).toBeNull()
   })
 
   it('hat pending_key=null als Default (kein deferred-Upload-Marker)', () => {
     expect(StoryImageExtension).not.toBeNull()
-    const attrs = StoryImageExtension.config?.addAttributes?.()
-    const pendingKey = attrs?.['pending_key'] as { default?: unknown } | undefined
-    expect(pendingKey?.default).toBeNull()
+    const attrs = getExtensionAttrs()
+    expect(attrs['pending_key']?.default).toBeNull()
   })
 
   it('hat preview_url=null als Default (kein lokales Blob-Preview)', () => {
     expect(StoryImageExtension).not.toBeNull()
-    const attrs = StoryImageExtension.config?.addAttributes?.()
-    const previewUrl = attrs?.['preview_url'] as { default?: unknown } | undefined
-    expect(previewUrl?.default).toBeNull()
+    const attrs = getExtensionAttrs()
+    expect(attrs['preview_url']?.default).toBeNull()
   })
 
   it('hat width_percent=60 als Default (60 % der Textbereichsbreite)', () => {
     expect(StoryImageExtension).not.toBeNull()
-    const attrs = StoryImageExtension.config?.addAttributes?.()
-    const widthPercent = attrs?.['width_percent'] as { default?: unknown } | undefined
-    expect(widthPercent?.default).toBe(60)
+    const attrs = getExtensionAttrs()
+    expect(attrs['width_percent']?.default).toBe(60)
   })
 
   it('hat alignment="center" als Default (zentriert)', () => {
     expect(StoryImageExtension).not.toBeNull()
-    const attrs = StoryImageExtension.config?.addAttributes?.()
-    const alignment = attrs?.['alignment'] as { default?: unknown } | undefined
-    expect(alignment?.default).toBe('center')
+    const attrs = getExtensionAttrs()
+    expect(attrs['alignment']?.default).toBe('center')
   })
 })
 

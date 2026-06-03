@@ -4,19 +4,8 @@
 
 import { describe, it, expect, vi } from 'vitest'
 
-// TODO(plan-70-05): uploadPendingStoryImages aus dem richtigen Pfad importieren.
-// Bis zur Implementierung schlaegt der Import fehl und Tests sind ROT.
-// Kommentierter Import fuer spaetere Aktivierung:
-// import { uploadPendingStoryImages } from './storyImageUpload'
-
-// Stub-Funktion damit die Tests kompilieren und als FAIL ausfuehren koennen.
-// In Plan 70-05 wird der echte Import aktiviert und dieser Stub entfernt.
-const uploadPendingStoryImages = null as unknown as (
-  doc: unknown,
-  pendingFiles: Map<string, File>,
-  uploadFn: (file: File) => Promise<{ media_asset_id: number; public_url: string }>,
-  onProgress?: (done: number, total: number) => void,
-) => Promise<unknown>
+// Plan 70-05: Echter Import aktiviert (Wave-0-Tests gruen machen).
+import { uploadPendingStoryImages } from './storyImageUpload'
 
 // Hilfsfunktion: erzeugt ein TipTap-JSON-Dokument mit einem image-Node und pending_key
 function makeTipTapDocWithPendingImage(pendingKey: string): unknown {

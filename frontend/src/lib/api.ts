@@ -7990,3 +7990,43 @@ export async function searchArchive(params: {
 export async function getFansubs(): Promise<FansubGroupListResponse> {
   return getFansubList()
 }
+
+// ---------------------------------------------------------------------------
+// Story-Bild-Upload (Phase 70 — D-01..D-23)
+// ---------------------------------------------------------------------------
+
+export interface StoryImageUploadResponse {
+  media_asset_id: number
+  public_url: string
+}
+
+/**
+ * Laedt ein einzelnes Story-Bild fuer das eigene Profil hoch.
+ * Endpoint: POST /api/v1/me/profile/story-images (field "image")
+ * retryEligibility: 'never' — Upload nicht idempotent.
+ * Server-Side-Guard: wirft 500 wenn kein Browser-Kontext.
+ */
+export async function uploadOwnProfileStoryImage(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<StoryImageUploadResponse> {
+  if (typeof window === "undefined") {
+    throw new ApiError(500, "Upload ist nur im Browser verfügbar.");
+  }
+  const API_BASE_URL = getApiBaseUrl();
+  const endpoint = `${API_BASE_URL}/api/v1/me/profile/story-images`;
+  return authorizedUploadXhr<StoryImageUploadResponse>({
+    endpoint,
+    onProgress,
+    retryEligibility: "never",
+    buildBody: () => {
+      const body = new FormData();
+      body.set("image", file);
+      return body;
+    },
+    parsePayload: (payload) => {
+      const data = (payload as { data: StoryImageUploadResponse }).data;
+      return data;
+    },
+  });
+}
