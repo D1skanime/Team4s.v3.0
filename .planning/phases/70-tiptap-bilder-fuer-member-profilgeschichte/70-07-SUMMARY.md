@@ -3,7 +3,7 @@ phase: 70-tiptap-bilder-fuer-member-profilgeschichte
 plan: "07"
 subsystem: verification
 tags: [verification, uat, test-suite, roadmap, migration-smoke]
-status: code-complete-uat-pending
+status: verified
 dependency_graph:
   requires:
     - 70-03 (TipTap-Service Image-Node)
@@ -96,6 +96,27 @@ Upload-Endpoint). Per `docker compose up -d --build team4sv30-backend` neu gebau
 
 **Noch offen (Nutzer-UAT):** Szenario 2 (Cleanup-on-Save D-22), 3 (IDOR 422 D-23), 4 (Public-Profil
 D-24), 5 (Sanitizing D-20/D-23), 6 (Upload-Fehler-Atomizitaet D-06/D-07), 7 (/me/profile Lesemodus D-12).
+
+## UAT-Abnahme (2026-06-03) — VERIFIZIERT (Nutzer: "kannst abhaken")
+
+4 Bugs gefunden + gefixt (alle live, mit Regressionstests):
+1. Editor-Ausrichtung rechts/mitte — `text-align` statt `margin:auto` auf vollbreitem Wrapper. `4b40cf37`
+2. Read/Public `<img>` ohne `src` — Resolver liefert relativen `file_path` (bluemonday-Regex). `a33d3282`
+3. Editor zeigt geladene Bilder nicht — oeffentlicher Resolver `GET /api/v1/media/story-images/:id`. `5f8d8976`
+4. Resize skalierte nicht ueber native Breite — `.storyImage { width:100% }` (fuellt %-Container). `3fdd6fcb`
+Zusaetzlich Backend-Container neu gebaut (war stale → 404 auf Upload-Endpoint).
+
+Szenarien-Status:
+- 1 Round-Trip (D-21): ✅ Nutzer bestaetigt
+- 2 Cleanup-on-Save (D-22): ✅ DB-Zeile + Datei physisch entfernt (verifiziert)
+- 3 IDOR 422 (D-23): ✅ Unit-Test (TestUpdateOwnProfileIDOR)
+- 4 Public-Profil (D-24): ✅ GET /api/v1/members/{slug} liefert 2 imgs mit relativem src + width% + align
+- 5 Sanitizing (D-20/D-23): ✅ Unit-Tests (BlocksExternalSrc/BlocksScript/BlocksStyleBeyondWidth)
+- 6 Upload-Atomizitaet (D-06/D-07): Unit-Test-Abdeckung akzeptiert (storyImageUpload Rollback)
+- 7 /me/profile Lesemodus (D-12): ✅ member_story_html mit korrektem img-src verifiziert
+
+Echtdaten-Beleg (member 16): media_assets 158/159 (owner_member_id=16), Dateien auf Platte,
+member_story_html mit `<img src="/media/profile/16/story/.../original.jpg" style="width:N%" class="story-img-align-center">`.
 
 ## Self-Check: PASSED (automatisierter Scope)
 Backend-Suite gruen, Phase-70-Frontend-Tests gruen, Migration in DB bestaetigt, Route registriert.
