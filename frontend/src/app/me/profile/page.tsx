@@ -6,9 +6,10 @@ import { MemberProfileHero } from '@/components/profile/MemberProfileHero'
 import { RecentContributionsSection } from '@/components/profile/RecentContributionsSection'
 import { RecentMediaSection } from '@/components/profile/RecentMediaSection'
 import { Button, Card, ErrorState, LoadingState, SectionHeader } from '@/components/ui'
-import { ApiError, getMyMemberClaim, getOwnProfile, patchNoindex, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar, uploadOwnProfileBackground } from '@/lib/api'
+import { ApiError, getMyMemberClaim, getOwnProfile, patchNoindex, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar, uploadOwnProfileBackground, uploadOwnProfileStoryImage } from '@/lib/api'
+import { uploadPendingStoryImages } from '@/lib/storyImageUpload'
 import { useAuthSession } from '@/lib/useAuthSession'
-import type { MemberClaimRow, MemberProfileData, TipTapDocument } from '@/types/profile'
+import type { MemberClaimRow, MemberProfileData } from '@/types/profile'
 
 import { AccountSecurityCard } from './components/AccountSecurityCard'
 import { ClaimStatusCard } from './components/ClaimStatusCard'
@@ -18,108 +19,19 @@ import { ProfileBackgroundCard } from './components/ProfileBackgroundCard'
 import { ProfileBasicsForm } from './components/ProfileBasicsForm'
 import { ProfileStoryCard } from './components/ProfileStoryCard'
 import { VisibilityCard } from './components/VisibilityCard'
-import { getMaxActivityYear, MIN_ACTIVITY_YEAR } from './components/activityYears'
+import {
+  AUTH_REQUIRED_MESSAGE,
+  accountSnapshot,
+  emptyFormState,
+  isUnauthorizedError,
+  normalizedDateFromYear,
+  readErrorMessage,
+  toFormState,
+  validateOptionalYear,
+  withProfileLoadTimeout,
+} from './components/profilePageHelpers'
 import type { MemberProfileFormState } from './components/profileFormTypes'
 import styles from './page.module.css'
-
-const PROFILE_LOAD_TIMEOUT_MS = 10000
-const AUTH_REQUIRED_MESSAGE = 'Anmeldung erforderlich. Bitte melde dich erneut an.'
-
-function richTextFromPlainText(text: string): TipTapDocument {
-  const trimmed = text.trim()
-  return {
-    type: 'doc',
-    content: [{ type: 'paragraph', content: trimmed ? [{ type: 'text', text: trimmed }] : [] }],
-  }
-}
-
-function isTipTapDocument(value: unknown): value is TipTapDocument {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
-}
-
-function toFormState(profile: MemberProfileData): MemberProfileFormState {
-  return {
-    fansubName: profile.fansub_name || '',
-    bio: profile.bio || '',
-    memberStory: isTipTapDocument(profile.member_story_json)
-      ? profile.member_story_json
-      : richTextFromPlainText(profile.member_story || ''),
-    activeFromYear: yearFromProfileDate(profile.active_from_date, profile.active_from_year),
-    activeUntilYear: yearFromProfileDate(profile.active_until_date, profile.active_until_year),
-    isCurrentlyActive: Boolean(profile.is_currently_active),
-    profileVisibility: profile.profile_visibility || 'members_only',
-  }
-}
-
-function emptyFormState(): MemberProfileFormState {
-  return {
-    fansubName: '',
-    bio: '',
-    memberStory: richTextFromPlainText(''),
-    activeFromYear: '',
-    activeUntilYear: '',
-    isCurrentlyActive: false,
-    profileVisibility: 'members_only',
-  }
-}
-
-function yearFromProfileDate(dateValue?: string | null, fallbackYear?: number | null): string {
-  const trimmed = typeof dateValue === 'string' ? dateValue.trim() : ''
-  const match = /^(\d{4})-01-01$/.exec(trimmed)
-  if (match) return match[1]
-  return fallbackYear ? String(fallbackYear) : ''
-}
-
-function normalizedDateFromYear(raw: string): string | null {
-  const trimmed = raw.trim()
-  if (!trimmed) return null
-  const parsed = Number.parseInt(trimmed, 10)
-  if (!Number.isFinite(parsed) || parsed < MIN_ACTIVITY_YEAR || parsed > getMaxActivityYear()) return null
-  return `${parsed}-01-01`
-}
-
-function validateOptionalYear(raw: string): string | undefined {
-  const trimmed = raw.trim()
-  if (!trimmed) return undefined
-  if (!/^\d{4}$/.test(trimmed)) return 'Bitte ein vierstelliges Jahr eingeben.'
-  const parsed = Number.parseInt(trimmed, 10)
-  if (!Number.isFinite(parsed) || parsed < MIN_ACTIVITY_YEAR || parsed > getMaxActivityYear()) {
-    return `Bitte ein Jahr zwischen ${MIN_ACTIVITY_YEAR} und ${getMaxActivityYear()} auswählen.`
-  }
-  return undefined
-}
-
-function readErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof ApiError) return error.message
-  if (error instanceof Error) return error.message
-  return fallback
-}
-
-function isUnauthorizedError(error: unknown): boolean {
-  return error instanceof ApiError && error.status === 401
-}
-
-function withProfileLoadTimeout<T>(promise: Promise<T>): Promise<T> {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined
-  const timeout = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(() => {
-      reject(new Error('Profil konnte nicht rechtzeitig geladen werden. Bitte melde dich erneut an.'))
-    }, PROFILE_LOAD_TIMEOUT_MS)
-  })
-
-  return Promise.race([promise, timeout]).finally(() => {
-    if (timeoutId) clearTimeout(timeoutId)
-  })
-}
-
-function accountSnapshot(profile: MemberProfileData): string {
-  return JSON.stringify({
-    accountDisplayName: profile.account_display_name || '',
-    email: profile.email || '',
-    status: profile.account_status || '',
-    roles: [...profile.account_global_roles].sort(),
-  })
-}
 
 export default function MyProfilePage() {
   const { authToken, hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
@@ -136,6 +48,9 @@ export default function MyProfilePage() {
   const [isRefreshingAccount, setIsRefreshingAccount] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  // pendingImages: Map von pending_key → File (deferred-Batch-Upload vor Save, D-06, D-07)
+  const [pendingImages] = useState(() => new Map<string, File>())
+  const [uploadProgress, setUploadProgress] = useState<Map<string, number>>(new Map())
   const accountSnapshotRef = useRef<string | null>(null)
   const hasOpenedKeycloakAccountRef = useRef(false)
   const isFormDirtyRef = useRef(false)
@@ -256,6 +171,10 @@ export default function MyProfilePage() {
   }), [form.activeFromYear, form.activeUntilYear, form.isCurrentlyActive])
   const hasYearErrors = Boolean(yearErrors.activeFromYear || yearErrors.activeUntilYear)
 
+  function handlePendingImageAdded(pendingKey: string, file: File) {
+    pendingImages.set(pendingKey, file)
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!hasAuthSession || !profile) return
@@ -269,10 +188,22 @@ export default function MyProfilePage() {
       setIsSaving(true)
       setError(null)
       setSuccess(null)
+
+      // Deferred-Batch-Upload: pending images vor updateOwnProfile hochladen (D-06, D-07)
+      let resolvedStory = form.memberStory
+      if (pendingImages.size > 0) {
+        resolvedStory = await uploadPendingStoryImages(
+          form.memberStory,
+          pendingImages,
+          uploadOwnProfileStoryImage,
+          (key, pct) => setUploadProgress(prev => new Map(prev).set(key, pct)),
+        ) as typeof form.memberStory
+      }
+
       const response = await updateOwnProfile({
         fansub_name: form.fansubName.trim() || null,
         bio: form.bio.trim() || null,
-        member_story_json: form.memberStory,
+        member_story_json: resolvedStory,
         active_from_date: normalizedDateFromYear(form.activeFromYear),
         active_until_date: form.isCurrentlyActive ? null : normalizedDateFromYear(form.activeUntilYear),
         is_currently_active: form.isCurrentlyActive,
@@ -281,11 +212,19 @@ export default function MyProfilePage() {
       applyProfile(response.data, { syncForm: true, resetDirty: true })
       setIsStoryEditing(false)
       setSuccess('Profil wurde gespeichert.')
+      // pendingImages nach erfolgreichem Save leeren
+      pendingImages.clear()
     } catch (saveError) {
-      setError(readErrorMessage(saveError, 'Profil konnte nicht gespeichert werden.'))
+      if (saveError instanceof ApiError) {
+        setError(readErrorMessage(saveError, 'Profil konnte nicht gespeichert werden.'))
+      } else {
+        // Upload-Fehler: Fehlermeldung laut UI-SPEC Copywriting Contract
+        setError('Mindestens ein Bild konnte nicht hochgeladen werden. Die Geschichte wurde nicht gespeichert. Bitte erneut versuchen.')
+      }
       setSuccess(null)
     } finally {
       setIsSaving(false)
+      setUploadProgress(new Map())
     }
   }
 
@@ -396,6 +335,8 @@ export default function MyProfilePage() {
                     isEditing={isStoryEditing}
                     onEdit={() => setIsStoryEditing(true)}
                     onChange={updateForm}
+                    onPendingImageAdded={handlePendingImageAdded}
+                    uploadProgress={uploadProgress}
                   />
                 </Card>
                 <Card variant="section">
