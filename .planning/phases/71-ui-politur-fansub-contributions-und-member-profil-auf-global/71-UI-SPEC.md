@@ -1,10 +1,11 @@
 ---
 phase: 71
 slug: ui-politur-fansub-contributions-und-member-profil-auf-global
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-03
+reviewed_at: 2026-06-03
 ---
 
 # Phase 71 — UI Design Contract
@@ -50,6 +51,8 @@ Existing `globals.css` `--space-*` tokens. Executors MUST reference these variab
 | 6 | `--space-6` | 32px | Layout gaps, page-shell vertical padding |
 | 7 | `--space-7` | 48px | Major section breaks |
 | 8 | `--space-8` | 64px | Page-level spacing |
+
+> **Note (checker FLAG, non-blocking):** `--space-3` (12px) sits outside the strict 8px-step set (4, 8, 16, 24, 32, 48, 64) but is a multiple of 4 and a deliberately-retained existing `globals.css` token (brownfield constraint: no new tokens). It is grid-conformant — do NOT treat 12px as an error during planning/execution.
 
 Control heights (touch targets) come from tokens: `--control-height-sm` 36px, `--control-height-md` 44px, `--control-height-lg` 52px. The migrated `Select` in the contribution modal inherits the primitive's height — do not hardcode.
 
