@@ -1414,9 +1414,9 @@ Wave 4 *(blocked on Wave 3 completion)*
 
 Plans:
 
-- [ ] `60-01-PLAN.md` � Lokale SMTP-Infrastruktur: Mailpit, Keycloak-Mailpit-Konfiguration und Env-Doku.
-- [ ] `60-02-PLAN.md` � Backend-Mailer-Service und Fansub-Einladungsversand.
-- [ ] `60-03-PLAN.md` � OpenAPI/Frontend-Contract, Einladungs-UX und Mailjet-Produktionshandoff.
+- [x] `60-01-PLAN.md` - Lokale SMTP-Infrastruktur: Mailpit, Keycloak-Mailpit-Konfiguration und Env-Doku.
+- [x] `60-02-PLAN.md` - Backend-Mailer-Service und Fansub-Einladungsversand.
+- [x] `60-03-PLAN.md` - OpenAPI/Frontend-Contract, Einladungs-UX und Mailjet-Produktionshandoff.
 
 **Success Criteria** (what must be TRUE):
 
@@ -1487,14 +1487,13 @@ Plans:
 **Goal:** Admin-Frontend fuer Fansub-Leader: Mitglieder verwalten, historische Rollen und Leader-Zeitraeume pflegen, Anime-Contributions per Multi-Select zuweisen. Bestehende Admin-UI-Komponenten wiederverwenden, kein neues Design-System.
 **Requirements**: P63-SC1, P63-SC2, P63-SC3, P63-SC4, P63-SC5
 **Depends on:** Phase 62
-**Plans:** 4 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 
-- [ ] `68-01-PLAN.md` - Badge-Engine: RevokeMemberBadge, 4 neue Badge-Compute-Funktionen, Recompute-Trigger in Contribution-Mutations, BackfillService, CLI-Subbefehl backfill-badges.
-- [ ] `68-02-PLAN.md` - Gruppen-Meilensteine: DeleteGroupHistory-Handler, Leader-Auth, DELETE-Route, GroupHistorySection-UI in manage/groups/[id].
-- [ ] `68-03-PLAN.md` - Archiv-Suche: Migration 0092, member_archive_repository, MemberArchiveHandler, /api/v1/archiv Route, /archiv Frontend-Seite, MemberSearchCard, Badge-Chip-Labels.
-- [ ] `68-04-PLAN.md` - Gesamtverifikation: automatische Tests + UAT fuer alle drei Sub-Features.
+- [x] `63-01-PLAN.md` - TypeScript interfaces und API-Funktionen fuer group-members, member-roles und anime contributions.
+- [x] `63-02-PLAN.md` - GroupMembersTab und MemberRolesTab in die Fansub-Edit-Seite integrieren.
+- [x] `63-03-PLAN.md` - AnimeContributionsTab und AnimeContributionModal in die Fansub-Edit-Seite integrieren.
 
 **Success Criteria** (what must be TRUE):
 
@@ -1554,16 +1553,16 @@ Plans:
 **Goal:** Member kann behaupten, ein historischer Nick zu sein (Claiming). Leader kann per Einladungslink bestaetigen. Verifizierungsstatus im Profil sichtbar. noindex-Steuerung per Member-Einstellung.
 **Requirements**: P66-SC1, P66-SC2, P66-SC3
 **Depends on:** Phase 65
-**Plans:** 7/7 plans executed
+**Plans:** 7/7 plans complete
 
 Plans:
-- [ ] `66-00-PLAN.md` - Wave-0 Test-Stubs (Nyquist-Validierung) anlegen
-- [ ] `66-01-PLAN.md` - Migration 0092 member_claim_invitations anlegen und anwenden
-- [ ] `66-02-PLAN.md` - Backend-Repositories: member_claims und member_claim_invitations
-- [ ] `66-03-PLAN.md` - Backend-Handler: Claim-Endpunkte und Einladungslink-Endpunkte
-- [ ] `66-04-PLAN.md` - Backend-Verdrahtung und Frontend-Typen und API-Client
-- [ ] `66-05-PLAN.md` - Frontend VerifiedBadge, ClaimStatusCard, noindex-Toggle, generateMetadata
-- [ ] `66-06-PLAN.md` - Frontend claim-invitations/accept und Leader Claim-Queue
+- [x] `66-00-PLAN.md` - Wave-0 Test-Stubs (Nyquist-Validierung) anlegen
+- [x] `66-01-PLAN.md` - Migration 0092 member_claim_invitations anlegen und anwenden
+- [x] `66-02-PLAN.md` - Backend-Repositories: member_claims und member_claim_invitations
+- [x] `66-03-PLAN.md` - Backend-Handler: Claim-Endpunkte und Einladungslink-Endpunkte
+- [x] `66-04-PLAN.md` - Backend-Verdrahtung und Frontend-Typen und API-Client
+- [x] `66-05-PLAN.md` - Frontend VerifiedBadge, ClaimStatusCard, noindex-Toggle, generateMetadata
+- [x] `66-06-PLAN.md` - Frontend claim-invitations/accept und Leader Claim-Queue
 
 **Success Criteria** (what must be TRUE):
 
@@ -1610,15 +1609,15 @@ Plans:
 **Goal:** Phase 62/63 release-/live-tauglich machen. Frontend und Backend sprechen denselben Contract, der Member-Create-Flow funktioniert fachlich, Admin-Routen pruefen Gruppenberechtigung, und falscher Gruppen-/Member-Kontext sowie Duplikate werden auf DB- und Handler-Ebene verhindert.
 **Requirements**: P69-SC1, P69-SC2, P69-SC3, P69-SC4, P69-SC5, P69-SC6, P69-SC7, P69-SC8, P69-SC9
 **Depends on:** Phase 63
-**Plans:** 3/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 
 - [x] 69-01-PLAN.md -- Migration 0088: Unique-Constraint + Composite-FK fuer anime_contributions
 - [x] 69-02-PLAN.md -- Repository-Erweiterungen: Member-Auto-Create + Status im Contribution-Create + CreateOrUpdate
 - [x] 69-03-PLAN.md -- Backend-Handler-Haertung: Permission-Checks, Member-Auto-Create-Flow, Cross-Group-Guards, Status-Durchreichung
-- [ ] 69-04-PLAN.md -- Frontend: Envelope-Korrektur (.data), listMemberRoles mit member_id, seed-konforme Rollencodes
-- [ ] 69-05-PLAN.md -- OpenAPI-Contracts fuer group-members, member-roles und anime/:animeId/contributions
+- [x] 69-04-PLAN.md -- Frontend: Envelope-Korrektur (.data), listMemberRoles mit member_id, seed-konforme Rollencodes
+- [x] 69-05-PLAN.md -- OpenAPI-Contracts fuer group-members, member-roles und anime/:animeId/contributions
 
 **Locked Decisions** (aus Discuss-Phase, nicht erneut aufrollen):
 

@@ -851,6 +851,220 @@ types:
       status: 201
       type: FansubAppMemberResponse
 
+  - name: fansub-group-members-list
+    method: GET
+    path: /api/v1/admin/fansubs/{id}/group-members
+    auth:
+      required: true
+      permission: fansub_group.members.view for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: HistFansubGroupMemberListResponse
+    notes:
+      - Returns historical group members enriched with display_name from the members table.
+
+  - name: fansub-group-members-create
+    method: POST
+    path: /api/v1/admin/fansubs/{id}/group-members
+    auth:
+      required: true
+      permission: fansub_group.members.manage for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: CreateGroupMemberRequest
+    response:
+      status: 201
+      type: HistFansubGroupMemberResponse
+    error_responses:
+      - status: 409
+        description: Member already exists in this fansub group.
+      - status: 422
+        description: Invalid status, visibility, or year range.
+    notes:
+      - display_name creates a members row automatically with nickname=display_name and user_id=null.
+      - Cross-group consistency is enforced by the Phase-69 composite guard/constraint.
+
+  - name: fansub-group-members-update
+    method: PATCH
+    path: /api/v1/admin/fansubs/{id}/group-members/{memberId}
+    auth:
+      required: true
+      permission: fansub_group.members.manage for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: memberId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: UpdateGroupMemberRequest
+    response:
+      status: 200
+      type: HistFansubGroupMemberResponse
+    error_responses:
+      - status: 404
+        description: Membership entry not found in the addressed fansub group.
+
+  - name: fansub-group-members-delete
+    method: DELETE
+    path: /api/v1/admin/fansubs/{id}/group-members/{memberId}
+    auth:
+      required: true
+      permission: fansub_group.members.manage for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: memberId
+        type: int64
+        minimum: 1
+    response:
+      status: 204
+      type: none
+    error_responses:
+      - status: 404
+        description: Membership entry not found in the addressed fansub group.
+
+  - name: fansub-member-roles-list
+    method: GET
+    path: /api/v1/admin/fansubs/{id}/member-roles
+    auth:
+      required: true
+      permission: fansub_group.members.view for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    query_params:
+      - name: member_id
+        type: int64
+        required: true
+        minimum: 1
+    response:
+      status: 200
+      type: HistGroupMemberRoleListResponse
+    error_responses:
+      - status: 400
+        description: member_id query parameter is missing or invalid.
+
+  - name: fansub-member-roles-create
+    method: POST
+    path: /api/v1/admin/fansubs/{id}/member-roles
+    auth:
+      required: true
+      permission: fansub_group.members.manage for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: CreateMemberRoleRequest
+    response:
+      status: 201
+      type: HistGroupMemberRoleResponse
+    error_responses:
+      - status: 404
+        description: Membership entry not found.
+      - status: 422
+        description: Role code is invalid for group_history or membership belongs to another fansub group.
+    notes:
+      - hist_fansub_group_member_id must belong to the fansub group in the route.
+      - role_code must be valid for the group_history context.
+
+  - name: fansub-member-roles-update
+    method: PATCH
+    path: /api/v1/admin/fansubs/{id}/member-roles/{roleId}
+    auth:
+      required: true
+      permission: fansub_group.members.manage for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: roleId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: UpdateMemberRoleRequest
+    response:
+      status: 200
+      type: HistGroupMemberRoleResponse
+    error_responses:
+      - status: 404
+        description: Role entry not found in the addressed fansub group.
+
+  - name: fansub-member-roles-delete
+    method: DELETE
+    path: /api/v1/admin/fansubs/{id}/member-roles/{roleId}
+    auth:
+      required: true
+      permission: fansub_group.members.manage for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: roleId
+        type: int64
+        minimum: 1
+    response:
+      status: 204
+      type: none
+    error_responses:
+      - status: 404
+        description: Role entry not found in the addressed fansub group.
+
 # ---- Typ-Definitionen fuer App-Member und Invitations -----------------------
 
 types_append:
@@ -916,3 +1130,58 @@ types_append:
   FansubAppMemberCreateRequest:
     app_user_id: int64 (required, minimum: 1)
     roles: string[] (required, min_items: 1)
+  HistFansubGroupMember:
+    id: int64
+    fansub_group_id: int64
+    member_id: int64
+    display_name: string
+    app_user_id: int64 | null
+    app_username: string | null
+    joined_year: int32 | null
+    left_year: int32 | null
+    status: string (enum: draft, historical, confirmed, disputed)
+    created_at: datetime
+  HistFansubGroupMemberListResponse:
+    data: HistFansubGroupMember[]
+  HistFansubGroupMemberResponse:
+    data: HistFansubGroupMember
+  CreateGroupMemberRequest:
+    display_name: string (required, min_length: 1)
+    joined_year: int32 | null
+    left_year: int32 | null
+    status: string (required, enum: draft, historical, confirmed, disputed)
+    visibility: string (optional, enum: internal, public)
+  UpdateGroupMemberRequest:
+    joined_year: int32 | null
+    left_year: int32 | null
+    status: string (optional, enum: draft, historical, confirmed, disputed)
+    visibility: string (optional, enum: internal, public)
+  HistGroupMemberRole:
+    id: int64
+    fansub_group_member_id: int64
+    member_display_name: string
+    role_code: string
+    role_label: string | null
+    started_year: int32 | null
+    ended_year: int32 | null
+    note: string | null
+    status: string (enum: draft, historical, confirmed, disputed)
+    created_at: datetime
+  HistGroupMemberRoleListResponse:
+    data: HistGroupMemberRole[]
+  HistGroupMemberRoleResponse:
+    data: HistGroupMemberRole
+  CreateMemberRoleRequest:
+    hist_fansub_group_member_id: int64 (required, minimum: 1)
+    role_code: string (required)
+    started_year: int32 | null
+    ended_year: int32 | null
+    status: string (required, enum: draft, historical, confirmed, disputed)
+    visibility: string (optional, enum: internal, public)
+    source_note: string | null
+  UpdateMemberRoleRequest:
+    started_year: int32 | null
+    ended_year: int32 | null
+    status: string (optional, enum: draft, historical, confirmed, disputed)
+    visibility: string (optional, enum: internal, public)
+    source_note: string | null

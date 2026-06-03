@@ -465,6 +465,124 @@ endpoints:
       status: 200
       type: StatusResponse
 
+  - name: admin-fansub-anime-contributions-list
+    method: GET
+    path: /api/v1/admin/fansubs/{id}/anime/{animeId}/contributions
+    auth:
+      required: true
+      permission: fansub_group.members.view for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: animeId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: AnimeContributionListResponse
+    notes:
+      - Returns contributions enriched with member_display_name from the members table.
+
+  - name: admin-fansub-anime-contributions-create
+    method: POST
+    path: /api/v1/admin/fansubs/{id}/anime/{animeId}/contributions
+    auth:
+      required: true
+      permission: fansub_group.members.manage for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: animeId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: UpsertAnimeContributionRequest
+    response:
+      status: 201
+      type: AnimeContributionResponse
+    error_responses:
+      - status: 404
+        description: Fansub group, anime, or historical group member not found.
+      - status: 422
+        description: Cross-group member mismatch or invalid anime_contribution role_code/status.
+    notes:
+      - fansub_group_member_id must belong to the fansub group in the route.
+      - Repeated POST for the same fansub_group_id/anime_id/fansub_group_member_id/release_version_id uses ON CONFLICT DO UPDATE/upsert semantics instead of creating duplicates.
+
+  - name: admin-fansub-anime-contributions-update
+    method: PATCH
+    path: /api/v1/admin/fansubs/{id}/anime/{animeId}/contributions/{contributionId}
+    auth:
+      required: true
+      permission: fansub_group.members.manage for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: animeId
+        type: int64
+        minimum: 1
+      - name: contributionId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: UpdateAnimeContributionRequest
+    response:
+      status: 200
+      type: AnimeContributionResponse
+    error_responses:
+      - status: 404
+        description: Contribution not found in the addressed fansub/anime context.
+      - status: 422
+        description: Invalid anime_contribution role_code/status.
+
+  - name: admin-fansub-anime-contributions-delete
+    method: DELETE
+    path: /api/v1/admin/fansubs/{id}/anime/{animeId}/contributions/{contributionId}
+    auth:
+      required: true
+      permission: fansub_group.members.manage for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: animeId
+        type: int64
+        minimum: 1
+      - name: contributionId
+        type: int64
+        minimum: 1
+    response:
+      status: 204
+      type: none
+    error_responses:
+      - status: 404
+        description: Contribution not found in the addressed fansub/anime context.
+
 types:
   AdminFansubReleaseSummary:
     release_id: int64
@@ -521,6 +639,43 @@ types:
     is_preview_candidate: boolean (optional)
   StatusResponse:
     status: string
+  AnimeContribution:
+    id: int64
+    fansub_group_member_id: int64
+    member_display_name: string
+    anime_id: int64
+    role_codes: string[]
+    started_year: int32 | null
+    ended_year: int32 | null
+    note: string | null
+    is_public_on_anime_page: boolean
+    is_public_on_member_profile: boolean
+    status: string (enum: draft, proposed, confirmed, disputed, hidden)
+    release_version_id: int64 | null
+    created_at: timestamp
+  AnimeContributionListResponse:
+    data: AnimeContribution[]
+  AnimeContributionResponse:
+    data: AnimeContribution
+  UpsertAnimeContributionRequest:
+    fansub_group_member_id: int64 (required, minimum: 1)
+    role_codes: string[] (required, min_items: 1, role_context: anime_contribution)
+    started_year: int32 | null
+    ended_year: int32 | null
+    note: string | null
+    is_public_on_anime_page: boolean (required)
+    is_public_on_member_profile: boolean (required)
+    release_version_id: int64 | null
+    status: string (required, enum: draft, proposed, confirmed, disputed, hidden)
+  UpdateAnimeContributionRequest:
+    role_codes: string[] (optional, role_context: anime_contribution)
+    started_year: int32 | null
+    ended_year: int32 | null
+    note: string | null
+    is_public_on_anime_page: boolean (optional)
+    is_public_on_member_profile: boolean (optional)
+    release_version_id: int64 | null
+    status: string (optional, enum: draft, proposed, confirmed, disputed, hidden)
   AdminAnimeCreateRequest:
     title: string (required, min: 1, max: 255)
     title_de: string | null
