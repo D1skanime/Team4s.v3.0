@@ -222,7 +222,7 @@
 | P66-SC1 | Phase 66 | Pending |
 | P66-SC2 | Phase 66 | Pending |
 | P66-SC3 | Phase 66 | Pending |
-| P67-SC1 | Phase 67 | Pending |
+| P67-SC1 | Phase 67 | Complete |
 | P67-SC2 | Phase 67 | Complete |
 | P68-SC1 | Phase 68 | Complete |
 | P68-SC2 | Phase 68 | Complete |
