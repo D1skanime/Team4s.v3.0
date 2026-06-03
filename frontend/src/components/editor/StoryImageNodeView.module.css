@@ -9,18 +9,20 @@
   margin: 16px 0; /* lg spacing — UI-SPEC Spacing Scale */
 }
 
-/* Ausrichtungs-Klassen (Block-Level, kein Float — D-10) */
+/* Ausrichtungs-Klassen (Block-Level, kein Float — D-10).
+   Das Bild liegt in einem inline-block .imageContainer; der Block-Wrapper
+   fuellt die volle Spaltenbreite, daher wirkt margin:auto hier NICHT.
+   Ausrichtung erfolgt ueber text-align des Wrappers auf den inline-block. */
 .align-left {
-  margin-right: auto;
+  text-align: left;
 }
 
 .align-center {
-  margin-left: auto;
-  margin-right: auto;
+  text-align: center;
 }
 
 .align-right {
-  margin-left: auto;
+  text-align: right;
 }
 
 /* Selektions-Ring: identisch zu .editorShell:focus-within aus RichTextEditor.module.css */
