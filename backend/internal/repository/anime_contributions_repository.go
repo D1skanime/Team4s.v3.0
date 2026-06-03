@@ -222,6 +222,25 @@ func (r *AnimeContributionsRepository) GetByID(ctx context.Context, id int64) (*
 	return r.getByIDWithQuerier(ctx, r.db, id)
 }
 
+func (r *AnimeContributionsRepository) GetByIDForFansubAnime(ctx context.Context, fansubGroupID int64, animeID int64, id int64) (*AnimeContributionRow, error) {
+	row := r.db.QueryRow(ctx, `
+		SELECT `+animeContributionSelectCols+`
+		FROM anime_contributions ac
+		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
+		WHERE ac.id = $1 AND ac.fansub_group_id = $2 AND ac.anime_id = $3
+		GROUP BY ac.id
+	`, id, fansubGroupID, animeID)
+	result, err := scanAnimeContributionRow(row)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("get anime contribution by fansub and anime: %w", err)
+	}
+	return result, nil
+}
+
 type querier interface {
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 }
@@ -318,7 +337,7 @@ func (r *AnimeContributionsRepository) Create(ctx context.Context, fansubGroupID
 }
 
 // Update patches an anime contribution. If RoleCodes is set, roles are replaced atomically.
-func (r *AnimeContributionsRepository) Update(ctx context.Context, id int64, input AnimeContributionPatchInput) (*AnimeContributionRow, error) {
+func (r *AnimeContributionsRepository) Update(ctx context.Context, fansubGroupID int64, animeID int64, id int64, input AnimeContributionPatchInput) (*AnimeContributionRow, error) {
 	setClauses := make([]string, 0)
 	args := make([]any, 0)
 	argIdx := 1
@@ -356,12 +375,14 @@ func (r *AnimeContributionsRepository) Update(ctx context.Context, id int64, inp
 	setClauses = append(setClauses, "updated_at = NOW()")
 
 	idxID := addArg(id)
+	idxFansubGroupID := addArg(fansubGroupID)
+	idxAnimeID := addArg(animeID)
 
 	needsRoleUpdate := input.RoleCodes != nil
 
 	if !needsRoleUpdate && len(setClauses) == 2 {
 		// Only updated_by + updated_at — nothing meaningful to update besides roles
-		return r.GetByID(ctx, id)
+		return r.GetByIDForFansubAnime(ctx, fansubGroupID, animeID, id)
 	}
 
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
@@ -371,7 +392,13 @@ func (r *AnimeContributionsRepository) Update(ctx context.Context, id int64, inp
 	defer tx.Rollback(ctx)
 
 	if len(setClauses) > 2 || input.UpdatedBy != nil {
-		query := fmt.Sprintf("UPDATE anime_contributions SET %s WHERE id = $%d", strings.Join(setClauses, ", "), idxID)
+		query := fmt.Sprintf(
+			"UPDATE anime_contributions SET %s WHERE id = $%d AND fansub_group_id = $%d AND anime_id = $%d",
+			strings.Join(setClauses, ", "),
+			idxID,
+			idxFansubGroupID,
+			idxAnimeID,
+		)
 		tag, err := tx.Exec(ctx, query, args...)
 		if err != nil {
 			return nil, fmt.Errorf("update anime contribution: %w", err)
@@ -382,16 +409,29 @@ func (r *AnimeContributionsRepository) Update(ctx context.Context, id int64, inp
 	}
 
 	if needsRoleUpdate {
-		if _, err := tx.Exec(ctx, `
-			DELETE FROM anime_contribution_roles WHERE anime_contribution_id = $1
-		`, id); err != nil {
+		tag, err := tx.Exec(ctx, `
+			DELETE FROM anime_contribution_roles acr
+			USING anime_contributions ac
+			WHERE acr.anime_contribution_id = ac.id
+			  AND ac.id = $1
+			  AND ac.fansub_group_id = $2
+			  AND ac.anime_id = $3
+		`, id, fansubGroupID, animeID)
+		if err != nil {
 			return nil, fmt.Errorf("update anime contribution: delete roles: %w", err)
+		}
+		if tag.RowsAffected() == 0 {
+			if _, err := r.GetByIDForFansubAnime(ctx, fansubGroupID, animeID, id); err != nil {
+				return nil, err
+			}
 		}
 		for _, code := range *input.RoleCodes {
 			if _, err := tx.Exec(ctx, `
 				INSERT INTO anime_contribution_roles (anime_contribution_id, role_code)
-				VALUES ($1, $2)
-			`, id, code); err != nil {
+				SELECT ac.id, $2
+				FROM anime_contributions ac
+				WHERE ac.id = $1 AND ac.fansub_group_id = $3 AND ac.anime_id = $4
+			`, id, code, fansubGroupID, animeID); err != nil {
 				if isForeignKeyViolation(err) {
 					return nil, fmt.Errorf("update anime contribution: unknown role_code %q: %w", code, ErrNotFound)
 				}
@@ -407,7 +447,7 @@ func (r *AnimeContributionsRepository) Update(ctx context.Context, id int64, inp
 		return nil, fmt.Errorf("update anime contribution: commit: %w", err)
 	}
 
-	return r.GetByID(ctx, id)
+	return r.GetByIDForFansubAnime(ctx, fansubGroupID, animeID, id)
 }
 
 // ListByMemberID und Delete sind in anime_contributions_member_repository.go ausgelagert.

@@ -370,6 +370,19 @@ describe('MyProfilePage', () => {
     expect(await screen.findByText('Sichtbarkeitseinstellung wurde gespeichert.')).not.toBeNull()
   })
 
+  it('hides the member claim action card once the member claim is verified', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      claim_status: 'verified',
+      claim_member_nick: 'UAT66-Claim-202952',
+    }))
+
+    render(<MyProfilePage />)
+
+    expect(await screen.findByText('Du bist als UAT66-Claim-202952 verifiziert.')).not.toBeNull()
+    expect(screen.queryByText('Member-Claim')).toBeNull()
+    expect(screen.queryByText('Historischen Nick suchen')).toBeNull()
+  })
+
   it('treats is_verified as verified claim status when claim_status is absent', async () => {
     getOwnProfileMock.mockResolvedValue(makeProfileResponse({
       is_verified: true,

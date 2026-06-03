@@ -327,7 +327,7 @@ func (h *FansubAnimeContributionsHandler) UpdateAnimeContribution(c *gin.Context
 		Status:                  req.Status,
 	}
 
-	item, err := h.contributionsRepo.Update(c.Request.Context(), contributionID, input)
+	item, err := h.contributionsRepo.Update(c.Request.Context(), fansubID, animeID, contributionID, input)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{
@@ -416,7 +416,7 @@ func (h *FansubAnimeContributionsHandler) DeleteAnimeContribution(c *gin.Context
 		}
 	}
 
-	if err := h.contributionsRepo.Delete(c.Request.Context(), contributionID); errors.Is(err, repository.ErrNotFound) {
+	if err := h.contributionsRepo.Delete(c.Request.Context(), fansubID, animeID, contributionID); errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{
 				"message": "beitragseintrag nicht gefunden",

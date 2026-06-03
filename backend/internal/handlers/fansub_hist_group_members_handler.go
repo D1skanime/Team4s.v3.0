@@ -264,7 +264,7 @@ func (h *FansubHistGroupMembersHandler) UpdateHistGroupMember(c *gin.Context) {
 		Visibility: req.Visibility,
 	}
 
-	item, err := h.histMembersRepo.Update(c.Request.Context(), memberID, input)
+	item, err := h.histMembersRepo.Update(c.Request.Context(), fansubID, memberID, input)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{
@@ -327,7 +327,7 @@ func (h *FansubHistGroupMembersHandler) DeleteHistGroupMember(c *gin.Context) {
 		return
 	}
 
-	if err := h.histMembersRepo.Delete(c.Request.Context(), memberID); errors.Is(err, repository.ErrNotFound) {
+	if err := h.histMembersRepo.Delete(c.Request.Context(), fansubID, memberID); errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{
 				"message": "mitgliedschaftseintrag nicht gefunden",

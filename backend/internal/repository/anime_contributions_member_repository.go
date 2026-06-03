@@ -38,9 +38,9 @@ func (r *AnimeContributionsRepository) ListByMemberID(ctx context.Context, membe
 	return result, nil
 }
 
-// Delete removes an anime contribution by ID. Roles are removed via CASCADE.
-func (r *AnimeContributionsRepository) Delete(ctx context.Context, id int64) error {
-	tag, err := r.db.Exec(ctx, `DELETE FROM anime_contributions WHERE id = $1`, id)
+// Delete removes an anime contribution inside the route's fansub/anime context. Roles are removed via CASCADE.
+func (r *AnimeContributionsRepository) Delete(ctx context.Context, fansubGroupID int64, animeID int64, id int64) error {
+	tag, err := r.db.Exec(ctx, `DELETE FROM anime_contributions WHERE id = $1 AND fansub_group_id = $2 AND anime_id = $3`, id, fansubGroupID, animeID)
 	if err != nil {
 		return fmt.Errorf("delete anime contribution: %w", err)
 	}

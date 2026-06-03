@@ -204,6 +204,30 @@ func (r *HistGroupMemberRolesRepository) GetByID(ctx context.Context, id int64) 
 	return &row, nil
 }
 
+func (r *HistGroupMemberRolesRepository) GetByIDForFansub(ctx context.Context, fansubGroupID int64, id int64) (*HistGroupMemberRoleRow, error) {
+	var row HistGroupMemberRoleRow
+	err := r.db.QueryRow(ctx, `
+		SELECT r.id, r.hist_fansub_group_member_id, r.role_code, r.started_year, r.ended_year,
+		       r.status, r.visibility, r.confirmed_by, r.confirmed_at, r.source_note, r.created_by, r.created_at, r.updated_at
+		FROM hist_group_member_roles r
+		JOIN hist_fansub_group_members hfgm ON hfgm.id = r.hist_fansub_group_member_id
+		WHERE r.id = $1 AND hfgm.fansub_group_id = $2
+	`, id, fansubGroupID).Scan(
+		&row.ID, &row.HistFansubGroupMemberID, &row.RoleCode,
+		&row.StartedYear, &row.EndedYear,
+		&row.Status, &row.Visibility,
+		&row.ConfirmedBy, &row.ConfirmedAt, &row.SourceNote,
+		&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("get hist group member role for fansub: %w", err)
+	}
+	return &row, nil
+}
+
 func (r *HistGroupMemberRolesRepository) RoleCodeExistsForContext(ctx context.Context, roleCode string, contextName string) (bool, error) {
 	var exists bool
 	err := r.db.QueryRow(ctx, `
@@ -241,7 +265,7 @@ func (r *HistGroupMemberRolesRepository) Create(ctx context.Context, input HistG
 	return &row, nil
 }
 
-func (r *HistGroupMemberRolesRepository) Update(ctx context.Context, id int64, input HistGroupMemberRolePatchInput) (*HistGroupMemberRoleRow, error) {
+func (r *HistGroupMemberRolesRepository) Update(ctx context.Context, fansubGroupID int64, id int64, input HistGroupMemberRolePatchInput) (*HistGroupMemberRoleRow, error) {
 	setClauses := make([]string, 0, 6)
 	args := make([]any, 0, 7)
 	argIdx := 1
@@ -273,19 +297,28 @@ func (r *HistGroupMemberRolesRepository) Update(ctx context.Context, id int64, i
 	}
 
 	if len(setClauses) == 0 {
-		return r.GetByID(ctx, id)
+		return r.GetByIDForFansub(ctx, fansubGroupID, id)
 	}
 
 	setClauses = append(setClauses, "updated_at = NOW()")
 	args = append(args, id)
+	idxID := argIdx
+	argIdx++
+	args = append(args, fansubGroupID)
 
 	query := fmt.Sprintf(`
 		UPDATE hist_group_member_roles
 		SET %s
 		WHERE id = $%d
+		  AND EXISTS (
+		      SELECT 1
+		      FROM hist_fansub_group_members hfgm
+		      WHERE hfgm.id = hist_group_member_roles.hist_fansub_group_member_id
+		        AND hfgm.fansub_group_id = $%d
+		  )
 		RETURNING id, hist_fansub_group_member_id, role_code, started_year, ended_year,
 		          status, visibility, confirmed_by, confirmed_at, source_note, created_by, created_at, updated_at
-	`, strings.Join(setClauses, ", "), argIdx)
+	`, strings.Join(setClauses, ", "), idxID, argIdx)
 
 	var row HistGroupMemberRoleRow
 	err := r.db.QueryRow(ctx, query, args...).Scan(
@@ -304,8 +337,14 @@ func (r *HistGroupMemberRolesRepository) Update(ctx context.Context, id int64, i
 	return &row, nil
 }
 
-func (r *HistGroupMemberRolesRepository) Delete(ctx context.Context, id int64) error {
-	tag, err := r.db.Exec(ctx, `DELETE FROM hist_group_member_roles WHERE id = $1`, id)
+func (r *HistGroupMemberRolesRepository) Delete(ctx context.Context, fansubGroupID int64, id int64) error {
+	tag, err := r.db.Exec(ctx, `
+		DELETE FROM hist_group_member_roles r
+		USING hist_fansub_group_members hfgm
+		WHERE r.id = $1
+		  AND hfgm.id = r.hist_fansub_group_member_id
+		  AND hfgm.fansub_group_id = $2
+	`, id, fansubGroupID)
 	if err != nil {
 		return fmt.Errorf("delete hist group member role: %w", err)
 	}

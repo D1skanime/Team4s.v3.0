@@ -247,6 +247,9 @@ export default function MyProfilePage() {
     () => resolveApiUrl(profile?.avatar?.source_original_url || profile?.avatar?.public_url || ''),
     [profile?.avatar?.public_url, profile?.avatar?.source_original_url],
   )
+  const effectiveClaimStatus = profile
+    ? profile.claim_status ?? (profile.is_verified ? 'verified' : null)
+    : null
   const yearErrors = useMemo(() => ({
     activeFromYear: validateOptionalYear(form.activeFromYear),
     activeUntilYear: form.isCurrentlyActive ? undefined : validateOptionalYear(form.activeUntilYear),
@@ -430,15 +433,17 @@ export default function MyProfilePage() {
                 <Card variant="section" title="Claim & Indexierung">
                   <ClaimStatusCard
                     noindex={profile.noindex}
-                    claimStatus={profile.claim_status ?? (profile.is_verified ? 'verified' : null)}
+                    claimStatus={effectiveClaimStatus}
                     claimMemberNick={profile.claim_member_nick ?? profile.fansub_name}
                     disabled={isSaving || !profile.is_verified}
                     onNoindexChange={handleNoindexChange}
                   />
                 </Card>
-                <Card variant="section" title="Member-Claim">
-                  <MemberClaimSection currentClaim={myClaim} authToken={authToken || undefined} disabled={isSaving} />
-                </Card>
+                {effectiveClaimStatus !== 'verified' ? (
+                  <Card variant="section" title="Member-Claim">
+                    <MemberClaimSection currentClaim={myClaim} authToken={authToken || undefined} disabled={isSaving} />
+                  </Card>
+                ) : null}
                 <Card variant="section" title="Account & Sicherheit">
                   <AccountSecurityCard
                     profile={profile}

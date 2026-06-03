@@ -314,7 +314,7 @@ func (h *FansubHistGroupMemberRolesHandler) UpdateHistGroupMemberRole(c *gin.Con
 		SourceNote:  req.SourceNote,
 	}
 
-	item, err := h.rolesRepo.Update(c.Request.Context(), roleID, input)
+	item, err := h.rolesRepo.Update(c.Request.Context(), fansubID, roleID, input)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{
@@ -377,7 +377,7 @@ func (h *FansubHistGroupMemberRolesHandler) DeleteHistGroupMemberRole(c *gin.Con
 		return
 	}
 
-	if err := h.rolesRepo.Delete(c.Request.Context(), roleID); errors.Is(err, repository.ErrNotFound) {
+	if err := h.rolesRepo.Delete(c.Request.Context(), fansubID, roleID); errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{
 				"message": "rolleneintrag nicht gefunden",

@@ -12,16 +12,16 @@ import (
 )
 
 type HistGroupMemberRow struct {
-	ID             int64
-	FansubGroupID  int64
-	MemberID       int64
-	JoinedYear     *int
-	LeftYear       *int
-	Status         string
-	Visibility     string
-	CreatedBy      *int64
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID            int64
+	FansubGroupID int64
+	MemberID      int64
+	JoinedYear    *int
+	LeftYear      *int
+	Status        string
+	Visibility    string
+	CreatedBy     *int64
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type HistGroupMemberInput struct {
@@ -153,6 +153,27 @@ func (r *HistGroupMembersRepository) GetByID(ctx context.Context, id int64) (*Hi
 	return &row, nil
 }
 
+func (r *HistGroupMembersRepository) GetByIDForFansub(ctx context.Context, fansubGroupID int64, id int64) (*HistGroupMemberRow, error) {
+	var row HistGroupMemberRow
+	err := r.db.QueryRow(ctx, `
+		SELECT id, fansub_group_id, member_id, joined_year, left_year, status, visibility, created_by, created_at, updated_at
+		FROM hist_fansub_group_members
+		WHERE id = $1 AND fansub_group_id = $2
+	`, id, fansubGroupID).Scan(
+		&row.ID, &row.FansubGroupID, &row.MemberID,
+		&row.JoinedYear, &row.LeftYear,
+		&row.Status, &row.Visibility,
+		&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("get hist group member for fansub: %w", err)
+	}
+	return &row, nil
+}
+
 func (r *HistGroupMembersRepository) Create(ctx context.Context, input HistGroupMemberInput) (*HistGroupMemberRow, error) {
 	var row HistGroupMemberRow
 	err := r.db.QueryRow(ctx, `
@@ -180,7 +201,7 @@ func (r *HistGroupMembersRepository) Create(ctx context.Context, input HistGroup
 	return &row, nil
 }
 
-func (r *HistGroupMembersRepository) Update(ctx context.Context, id int64, input HistGroupMemberPatchInput) (*HistGroupMemberRow, error) {
+func (r *HistGroupMembersRepository) Update(ctx context.Context, fansubGroupID int64, id int64, input HistGroupMemberPatchInput) (*HistGroupMemberRow, error) {
 	setClauses := make([]string, 0, 5)
 	args := make([]any, 0, 6)
 	argIdx := 1
@@ -207,18 +228,21 @@ func (r *HistGroupMembersRepository) Update(ctx context.Context, id int64, input
 	}
 
 	if len(setClauses) == 0 {
-		return r.GetByID(ctx, id)
+		return r.GetByIDForFansub(ctx, fansubGroupID, id)
 	}
 
 	setClauses = append(setClauses, "updated_at = NOW()")
 	args = append(args, id)
+	idxID := argIdx
+	argIdx++
+	args = append(args, fansubGroupID)
 
 	query := fmt.Sprintf(`
 		UPDATE hist_fansub_group_members
 		SET %s
-		WHERE id = $%d
+		WHERE id = $%d AND fansub_group_id = $%d
 		RETURNING id, fansub_group_id, member_id, joined_year, left_year, status, visibility, created_by, created_at, updated_at
-	`, strings.Join(setClauses, ", "), argIdx)
+	`, strings.Join(setClauses, ", "), idxID, argIdx)
 
 	var row HistGroupMemberRow
 	err := r.db.QueryRow(ctx, query, args...).Scan(
@@ -236,8 +260,8 @@ func (r *HistGroupMembersRepository) Update(ctx context.Context, id int64, input
 	return &row, nil
 }
 
-func (r *HistGroupMembersRepository) Delete(ctx context.Context, id int64) error {
-	tag, err := r.db.Exec(ctx, `DELETE FROM hist_fansub_group_members WHERE id = $1`, id)
+func (r *HistGroupMembersRepository) Delete(ctx context.Context, fansubGroupID int64, id int64) error {
+	tag, err := r.db.Exec(ctx, `DELETE FROM hist_fansub_group_members WHERE id = $1 AND fansub_group_id = $2`, id, fansubGroupID)
 	if err != nil {
 		return fmt.Errorf("delete hist group member: %w", err)
 	}
