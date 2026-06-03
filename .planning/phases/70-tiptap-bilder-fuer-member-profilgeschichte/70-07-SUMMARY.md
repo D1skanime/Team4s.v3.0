@@ -70,6 +70,33 @@ gebaut/gestartet werden (`docker compose up -d --build team4sv30-backend`). Dev-
 - `admin/anime/page.test.tsx`, `admin/anime/create/page.test.tsx`, `useAdminAnimeCreateController.test.ts` — Admin-Anime/Jellyfin (`feat 50`).
 Keine dieser Dateien gehoert zu Phase 70.
 
+## UAT-Durchlauf (2026-06-03) — 3 Bugs gefunden und gefixt
+
+Manueller Browser-UAT (Dev-Server :3000, Backend-Container neu gebaut, Migration 0090 aktiv)
+deckte drei Defekte auf, die alle behoben + mit Regressionstests abgesichert wurden:
+
+1. **Editor-Ausrichtung rechts/mitte ohne Wirkung** — `align-*`-Klassen nutzten `margin:auto`
+   auf dem vollbreiten Block-Wrapper (wirkungslos). Fix: `text-align` auf dem Wrapper (inline-block
+   Container). Commit `4b40cf37`.
+2. **Read/Public-View: `<img>` ohne `src`** — Render-Resolver baute eine absolute URL
+   (`mediaBaseURL + file_path`), die die bluemonday-img-src-Regex (`^/media/profile/...`) verfehlte
+   → `src` gestrippt → unsichtbar. Fix: Resolver liefert relativen `file_path`. Commit `a33d3282`
+   (+ verschaerfter Round-Trip-Test mit `mediaBaseURL`).
+3. **Editor zeigt geladene Bilder nicht** — NodeView nutzte nur `preview_url` (Blob); geladene
+   Bilder (nur `media_asset_id`) blieben leer; keine id→URL-Aufloesung. Fix: oeffentlicher Resolver
+   `GET /api/v1/media/story-images/:id` (liefert Datei; konsistent mit oeffentlichem /media-Serving,
+   da `<img>` keinen Bearer traegt) + NodeView nutzt ihn via `resolveApiUrl`. Commit `5f8d8976`
+   (+ Handler-/Repo-Tests).
+
+Zusaetzlich: **Backend-Container war stale** (Build vor den 70-03..70-06-Commits → 404 auf den
+Upload-Endpoint). Per `docker compose up -d --build team4sv30-backend` neu gebaut.
+
+**Szenario 1 (Round-Trip D-21) vom Nutzer bestaetigt** ("passt"): Bild einfuegen → Breite/Ausrichtung
+→ Save → Reload → Bild bleibt im Editor und im Lesemodus.
+
+**Noch offen (Nutzer-UAT):** Szenario 2 (Cleanup-on-Save D-22), 3 (IDOR 422 D-23), 4 (Public-Profil
+D-24), 5 (Sanitizing D-20/D-23), 6 (Upload-Fehler-Atomizitaet D-06/D-07), 7 (/me/profile Lesemodus D-12).
+
 ## Self-Check: PASSED (automatisierter Scope)
 Backend-Suite gruen, Phase-70-Frontend-Tests gruen, Migration in DB bestaetigt, Route registriert.
 Browser-UAT (D-12/D-21/D-22/D-23/D-24, D-06/D-07) bleibt als manueller Gate offen.
