@@ -67,13 +67,19 @@ function entryToFormState(entry: GroupHistoryRow): HistoryFormState {
 interface GroupHistorySectionProps {
   fansubGroupId: number
   authToken?: string
+  /**
+   * Nur-Anzeige-Modus: blendet alle Bearbeiten-Steuerelemente aus (kein
+   * Hinzufügen/Bearbeiten/Löschen). Für künftig-öffentliche Flächen wie
+   * /admin/my-groups, wo die Timeline nur gelesen werden darf.
+   */
+  readOnly?: boolean
 }
 
 // ---------------------------------------------------------------------------
 // Komponente
 // ---------------------------------------------------------------------------
 
-export function GroupHistorySection({ fansubGroupId, authToken }: GroupHistorySectionProps) {
+export function GroupHistorySection({ fansubGroupId, authToken, readOnly = false }: GroupHistorySectionProps) {
   const [entries, setEntries] = useState<GroupHistoryRow[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -229,19 +235,21 @@ export function GroupHistorySection({ fansubGroupId, authToken }: GroupHistorySe
         description="Wichtige Ereignisse der Gruppe chronologisch festhalten."
       />
 
-      <Toolbar
-        leading={
-          <Button variant="primary" size="sm" onClick={openAddForm} disabled={isFormOpen}>
-            + Meilenstein hinzufügen
-          </Button>
-        }
-      />
+      {!readOnly ? (
+        <Toolbar
+          leading={
+            <Button variant="primary" size="sm" onClick={openAddForm} disabled={isFormOpen}>
+              + Meilenstein hinzufügen
+            </Button>
+          }
+        />
+      ) : null}
 
       {successMessage ? (
         <p className={styles.historySuccessMessage} role="status">{successMessage}</p>
       ) : null}
 
-      {isFormOpen ? (
+      {isFormOpen && !readOnly ? (
         <GroupHistoryForm
           form={form}
           onFormChange={setForm}
@@ -286,14 +294,16 @@ export function GroupHistorySection({ fansubGroupId, authToken }: GroupHistorySe
                   {entry.title}
                   {entry.note ? <span className={styles.historyNote}> — {entry.note}</span> : null}
                 </span>
-                <div className={styles.historyRowActions}>
-                  <Button variant="ghost" size="sm" aria-label="Eintrag bearbeiten" onClick={() => openEditForm(entry)}>
-                    <Pencil size={14} />
-                  </Button>
-                  <Button variant="danger" size="sm" aria-label="Eintrag löschen" onClick={() => setDeleteTarget(entry)}>
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
+                {!readOnly ? (
+                  <div className={styles.historyRowActions}>
+                    <Button variant="ghost" size="sm" aria-label="Eintrag bearbeiten" onClick={() => openEditForm(entry)}>
+                      <Pencil size={14} />
+                    </Button>
+                    <Button variant="danger" size="sm" aria-label="Eintrag löschen" onClick={() => setDeleteTarget(entry)}>
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>

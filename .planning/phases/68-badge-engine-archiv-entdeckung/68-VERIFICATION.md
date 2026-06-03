@@ -1,9 +1,13 @@
 ---
 phase: 68-badge-engine-archiv-entdeckung
 verified: 2026-06-02T00:00:00Z
-status: human_needed
+human_uat_completed: 2026-06-03
+status: passed
 score: 3/3 must-haves verified
 overrides_applied: 0
+human_uat_result:
+  - "Live-UAT 2026-06-03 (App-Browser :3000, Leader Gruppe 88): Meilenstein Create/Edit/Delete + 'Meilenstein gelöscht.'-Toast bestätigt."
+  - "Zwei Defekte gefunden UND behoben (Quick-Task 20260603-phase68-meilenstein-platzierung-render-fix): (1) Meilenstein-CRUD lag auf der künftig-öffentlichen /admin/my-groups-Seite -> in den Edit-Bereich /admin/fansubs/[id]/edit verschoben, my-groups nur read-only; (2) Render-Bug '—' statt Titel -> json-Tags an GroupHistoryRow ergänzt."
 live_verified:
   - "P68-SC1: backfill-badges live (members_processed=13 errors=0); first_contribution + verified Badges in DB berechnet."
   - "P68-SC3: /api/v1/archiv AND-Filter-Matrix + Sichtbarkeits-Sicherheit (beide Richtungen) + Frontend-SSR (deutsche Labels, Gruppen-Dropdown via getFansubs, MemberSearchCard-Render) live bestätigt."

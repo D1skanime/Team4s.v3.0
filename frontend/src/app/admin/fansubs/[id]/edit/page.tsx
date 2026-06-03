@@ -87,6 +87,7 @@ import AnimeContributionsTab from "./AnimeContributionsTab";
 import { GroupMembersTab } from "./GroupMembersTab";
 import { MemberRolesTab } from "./MemberRolesTab";
 import { NotesTab } from "./NotesTab";
+import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
 import { ReviewQueue } from "@/components/contributions/ReviewQueue";
 import sharedStyles from "../../../admin.module.css";
@@ -3178,7 +3179,12 @@ function AdminFansubEditContent({
             hasAccessToken={hasAuthSession}
           />
         ) : null}
-        {activeMainTab === "notes" ? <NotesTab fansubId={fansubID} /> : null}
+        {activeMainTab === "notes" ? (
+          <>
+            <NotesTab fansubId={fansubID} />
+            <GroupHistorySection fansubGroupId={fansubID} />
+          </>
+        ) : null}
         {activeMainTab === "mitglieder" ? <GroupMembersTab fansubId={fansubID} /> : null}
         {activeMainTab === "rollen" ? <MemberRolesTab fansubId={fansubID} /> : null}
         {activeMainTab === "claims" ? <ClaimManagementPanel groupId={fansubID} /> : null}

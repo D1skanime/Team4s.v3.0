@@ -415,7 +415,7 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
               )}
             </Card>
 
-            <GroupHistorySection fansubGroupId={groupId} />
+            <GroupHistorySection fansubGroupId={groupId} readOnly />
           </>
         ) : null}
       </div>

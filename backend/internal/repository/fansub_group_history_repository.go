@@ -12,15 +12,15 @@ import (
 
 // GroupHistoryRow represents a single fansub_group_history record.
 type GroupHistoryRow struct {
-	ID            int64
-	FansubGroupID int64
-	Year          *int
-	EventType     string
-	Title         *string
-	Note          *string
-	Status        string
-	CreatedBy     *int64
-	CreatedAt     time.Time
+	ID            int64     `json:"id"`
+	FansubGroupID int64     `json:"fansub_group_id"`
+	Year          *int      `json:"year"`
+	EventType     string    `json:"event_type"`
+	Title         *string   `json:"title"`
+	Note          *string   `json:"note"`
+	Status        string    `json:"status"`
+	CreatedBy     *int64    `json:"created_by"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 // GroupHistoryInput holds the data required to create a new group history entry.
