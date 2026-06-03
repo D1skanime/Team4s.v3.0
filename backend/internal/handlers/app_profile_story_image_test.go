@@ -337,6 +337,9 @@ func TestStoryImageRoundTrip(t *testing.T) {
 	handler := &AppAuthHandler{
 		profileRepo: repoStub,
 		tiptapSvc:   services.NewTipTapService(),
+		// mediaBaseURL wie in Produktion gesetzt — deckt die Config-Differenz auf,
+		// die den urspruenglichen Round-Trip-Bug verdeckte (UAT Phase 70).
+		mediaBaseURL: "http://localhost:8092",
 	}
 
 	// body_json referenziert Asset 42 — gehoert Member 5
@@ -352,6 +355,16 @@ func TestStoryImageRoundTrip(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, recorder.Code,
 		"Eigene media_asset_id im body_json muss mit 200 OK gespeichert werden (D-21)")
+
+	// Regression: das gerenderte member_story_html MUSS ein nicht-leeres img-src
+	// mit dem relativen /media-Pfad enthalten. Mit absoluter mediaBaseURL-URL wurde
+	// src von der bluemonday-Policy gestrippt (img ohne src = unsichtbar nach Reload).
+	if assert.NotNil(t, repoStub.lastUpdateArg.MemberStoryHTML.Value,
+		"member_story_html muss serverseitig gerendert gesetzt sein") {
+		assert.Contains(t, *repoStub.lastUpdateArg.MemberStoryHTML.Value,
+			`src="/media/profile/5/story/abc/original.jpg"`,
+			"member_story_html muss relativen img-src enthalten (D-21/D-23) — bluemonday darf src nicht strippen")
+	}
 }
 
 // TestStoryImageCleanup prueft, dass beim Speichern eines body_json ohne image-Nodes

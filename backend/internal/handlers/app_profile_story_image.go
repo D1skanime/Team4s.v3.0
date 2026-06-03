@@ -291,11 +291,16 @@ func (h *AppAuthHandler) applyStoryImageLifecycle(
 		return nil, fmt.Errorf("story-bilder des members konnten nicht geladen werden: %w", err)
 	}
 
-	// assetsURLMap aufbauen: id → public_url (fuer Resolver-Wiederverwendung)
+	// assetsURLMap aufbauen: id → relativer /media-Pfad (fuer Render-Resolver).
+	// WICHTIG: relativer Pfad (a.FilePath), KEINE absolute mediaBaseURL-URL.
+	// Die bluemonday-img-src-Policy (newTipTapSanitizerPolicy) erlaubt src nur
+	// als relativen ^/media/profile/.../story/.../original.ext-Pfad; eine absolute
+	// http://host:port/...-URL wuerde die Regex verfehlen und src wuerde gestrippt
+	// (img ohne src = unsichtbar). Der relative Pfad wird im Browser ueber den
+	// Frontend-/media-Proxy aufgeloest. (UAT Phase 70, D-20/D-21/D-23)
 	assetsURLMap := make(map[int64]string, len(assets))
 	for _, a := range assets {
-		url := strings.TrimRight(h.mediaBaseURL, "/") + a.FilePath
-		assetsURLMap[a.ID] = url
+		assetsURLMap[a.ID] = a.FilePath
 	}
 
 	// IDOR-Check: alle neuen IDs muessen dem Member gehoeren
