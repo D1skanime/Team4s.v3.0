@@ -1642,7 +1642,7 @@ Plans:
 **Goal:** Member koennen in ihrer eigenen Fansub-Geschichte auf `/me/profile` ein oder mehrere Bilder in den TipTap-Text einfuegen. Bilder werden nicht als Base64 oder externe URLs gespeichert, sondern ueber den bestehenden Team4s-Media-/Upload-Flow persistiert und im TipTap-Dokument per Media-Asset-Referenz eingebettet.
 **Requirements**: D-01..D-24 (aus 70-CONTEXT.md)
 **Depends on:** Phase 69
-**Plans:** 2/7 plans executed
+**Plans:** 3/7 plans executed
 
 Plans:
 
