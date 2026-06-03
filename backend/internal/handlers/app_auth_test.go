@@ -140,6 +140,10 @@ func (s *profileRepoStub) GetStoryImageAssetsByMember(_ context.Context, _ int64
 	return nil, nil
 }
 
+func (s *profileRepoStub) DeleteStoryImageAsset(_ context.Context, _ int64, _ int64) error {
+	return nil
+}
+
 func (s *invitationRepoStub) ListByFansubGroup(_ context.Context, _ int64) ([]models.FansubGroupInvitation, error) {
 	return s.listResp, nil
 }

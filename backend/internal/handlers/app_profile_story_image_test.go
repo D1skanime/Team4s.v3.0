@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -17,6 +18,7 @@ import (
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -295,18 +297,106 @@ func TestUpdateOwnProfileIDOR(t *testing.T) {
 // --- Integrations-Stub-Tests (D-21, D-22) ---
 // Diese Tests sind Skelette und enthalten TODO-Kommentare fuer Plan 70-06.
 
-// TestStoryImageRoundTrip prueft den Round-Trip: Bild-Node einfuegen, speichern, neu laden
-// → media_asset_id, width_percent und alignment bleiben exakt erhalten (D-21).
-// TODO(plan-70-06): In Plan 70-06 mit echtem Test-Repository ausfuellen.
-func TestStoryImageRoundTrip(t *testing.T) {
-	t.Skip("TODO(plan-70-06): Integrations-Test — wird in Plan 70-06 ausgefuellt")
+// storyCleanupProfileRepoStub ist ein erweiterter Stub fuer Cleanup-Tests.
+// Er unterstuetzt GetStoryImageAssetsByMember mit konfigurierbaren Assets
+// und verfolgt DeleteStoryImageAsset-Aufrufe.
+type storyCleanupProfileRepoStub struct {
+	profileRepoStub
+	storyAssets      []models.StoryImageAssetRef
+	storyAssetsErr   error
+	deleteAssetErr   error
+	deleteAssetCalls []int64
 }
 
-// TestStoryImageCleanup prueft, dass beim Speichern ohne zuvor persistierte image-Nodes
-// Datei + DB-Zeile der alten Assets geloescht werden (D-22).
-// TODO(plan-70-06): In Plan 70-06 mit echtem Test-Repository ausfuellen.
+func (s *storyCleanupProfileRepoStub) GetStoryImageAssetsByMember(_ context.Context, _ int64) ([]models.StoryImageAssetRef, error) {
+	return s.storyAssets, s.storyAssetsErr
+}
+
+func (s *storyCleanupProfileRepoStub) DeleteStoryImageAsset(_ context.Context, assetID int64, _ int64) error {
+	s.deleteAssetCalls = append(s.deleteAssetCalls, assetID)
+	return s.deleteAssetErr
+}
+
+// TestStoryImageRoundTrip prueft den Round-Trip: body_json mit image-Node wird gespeichert
+// → UpdateOwnProfile akzeptiert ihn wenn die media_asset_id dem Member gehoert (D-21).
+func TestStoryImageRoundTrip(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	// Asset 42 gehoert Member 5 — Round-Trip soll funktionieren
+	existingJSON := []byte(`{"type":"doc","content":[]}`)
+	existingJSONMsg := json.RawMessage(existingJSON)
+	repoStub := &storyCleanupProfileRepoStub{
+		profileRepoStub: profileRepoStub{
+			getResp:    &models.MemberProfile{MemberID: 5, AppUserID: 10, MemberStoryJSON: &existingJSONMsg},
+			updateResp: &models.MemberProfile{MemberID: 5, AppUserID: 10},
+		},
+		storyAssets: []models.StoryImageAssetRef{
+			{ID: 42, FilePath: "/media/profile/5/story/abc/original.jpg", OwnerMemberID: 5},
+		},
+	}
+	handler := &AppAuthHandler{
+		profileRepo: repoStub,
+		tiptapSvc:   services.NewTipTapService(),
+	}
+
+	// body_json referenziert Asset 42 — gehoert Member 5
+	body := []byte(`{"member_story_json":{"type":"doc","content":[{"type":"image","attrs":{"media_asset_id":42,"width_percent":60,"alignment":"center"}}]}}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPatch, "/api/v1/me/profile", body, middleware.AuthIdentity{
+		UserID:        1,
+		AppUserID:     10,
+		DisplayName:   "Testuser",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UpdateOwnProfile(c)
+
+	assert.Equal(t, http.StatusOK, recorder.Code,
+		"Eigene media_asset_id im body_json muss mit 200 OK gespeichert werden (D-21)")
+}
+
+// TestStoryImageCleanup prueft, dass beim Speichern eines body_json ohne image-Nodes
+// die alten Assets per DeleteStoryImageAsset geloescht werden (D-22).
 func TestStoryImageCleanup(t *testing.T) {
-	t.Skip("TODO(plan-70-06): Integrations-Test — wird in Plan 70-06 ausgefuellt")
+	gin.SetMode(gin.TestMode)
+
+	// Vorherige Geschichte: enthaelt Asset 77 (im alten JSON)
+	oldJSON := []byte(`{"type":"doc","content":[{"type":"image","attrs":{"media_asset_id":77,"width_percent":60,"alignment":"center"}}]}`)
+	oldJSONMsg := json.RawMessage(oldJSON)
+	tmpDir := t.TempDir()
+
+	repoStub := &storyCleanupProfileRepoStub{
+		profileRepoStub: profileRepoStub{
+			getResp:    &models.MemberProfile{MemberID: 5, AppUserID: 10, MemberStoryJSON: &oldJSONMsg},
+			updateResp: &models.MemberProfile{MemberID: 5, AppUserID: 10},
+		},
+		storyAssets: []models.StoryImageAssetRef{
+			{ID: 77, FilePath: "/media/profile/5/story/old-uuid/original.jpg", OwnerMemberID: 5},
+		},
+	}
+	handler := &AppAuthHandler{
+		profileRepo:     repoStub,
+		tiptapSvc:       services.NewTipTapService(),
+		mediaStorageDir: tmpDir,
+		mediaBaseURL:    "http://localhost:8092",
+	}
+
+	// Neue Geschichte: kein Bild-Node mehr → Asset 77 soll geloescht werden
+	body := []byte(`{"member_story_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Nur Text"}]}]}}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPatch, "/api/v1/me/profile", body, middleware.AuthIdentity{
+		UserID:        1,
+		AppUserID:     10,
+		DisplayName:   "Testuser",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UpdateOwnProfile(c)
+
+	require.Equal(t, http.StatusOK, recorder.Code,
+		"Speichern ohne Bild-Node muss 200 OK ergeben")
+	require.Len(t, repoStub.deleteAssetCalls, 1,
+		"DeleteStoryImageAsset muss genau einmal aufgerufen worden sein (Cleanup-on-Save D-22)")
+	assert.Equal(t, int64(77), repoStub.deleteAssetCalls[0],
+		"Asset 77 muss geloescht worden sein")
 }
 
 // --- D-14-Test: Kein Orphan bei entferntem pending_key ---
