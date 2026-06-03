@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
 stopped_at: Phase 68 UI-SPEC approved
-last_updated: "2026-06-02T20:20:45.266Z"
+last_updated: "2026-06-03T07:43:28.328Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 66
@@ -21,7 +21,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 68 — badge-engine-archiv-entdeckung
+**Current focus:** Phase 67 verifiziert (passed) — Release-/Episode-Credits live
 
 ## Current Position
 

@@ -1559,7 +1559,7 @@ Plans:
 **Goal:** Contributions auf Episode- und Release-Version-Ebene erweitern. Verknuepfung mit bestehenden Release-Tabellen. Erweiterte Detailansicht auf der Anime-Seite.
 **Requirements**: P67-SC1, P67-SC2
 **Depends on:** Phase 64
-**Plans:** 5/5 plans executed (67-04 Code komplett; finales Browser-UAT durch Orchestrator ausstehend)
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 67-01-PLAN.md — Migration 0090: release_version_id + erweiterter UNIQUE-Constraint + Contract-Test + [BLOCKING] Apply
