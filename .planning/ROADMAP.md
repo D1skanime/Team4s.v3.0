@@ -6,6 +6,7 @@
 
 - [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
 - [x] **v1.1 Asset Lifecycle Hardening** - Phases 6 through 16 are complete or verified, and Phase 17 is the current next slice for the `/admin/anime/create` UX/UI follow-through. (completed 2026-04-17)
+- [ ] **v1.2 Public Experience, Historie & Scoped Rights** - Phasen 72–80: bestehende Public Pages (`/fansubs/[slug]`, `/members/[slug]`, `/anime/[id]/group/[groupId]`), `/me/contributions`, Leader-Workspace und Rechteverwaltung werden gezielt erweitert, ohne Parallelmodelle. Kanonische Diskussion/Entscheidungen (LOCKED): [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
 
 ## Current Direction
 
@@ -70,6 +71,18 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 57: Profil-Aktivzeitraum als jahrbegrenzte Datumsfelder** - `/me/profile` speichert den Fansub-Szene-Aktivzeitraum ueber echte DB-DATE-Spalten, waehrend die UI weiterhin nur Jahresauswahl fuer "von wann bis wann aktiv" erlaubt. (implemented, security-verified, and validation-approved 2026-05-29; authenticated UAT pending)
 
 - [x] **Phase 29: Fansub Group Model Normalization And Generic Links** - Fansub-Gruppen werden auf ein kanonisches Profilmodell mit generischen `fansub_group_links` ausgerichtet, Kollaborationen werden explizit administrierbar, und Legacy-Doppelfelder erhalten einen klaren Cleanup-Pfad. (SC1/SC2/SC4/SC5 UAT bestanden 2026-05-11; SC3 Collaboration-Workflow als impraktikabel eingestuft, wird durch Phase 39 ersetzt)
+
+### Milestone v1.2 – Public Experience, Historie & Scoped Rights (Phasen 72–80)
+
+- [ ] **Phase 72: Domänen-Projektionen & Status-Fundament** - Backend/Contract-Fundament, das Mitglied vs. Mitwirkender vs. historische Nennung in DTOs/Projektionen sauber trennt und die phasenübergreifend nötigen Statusfelder einführt (`memorial`-Profilstatus, Contribution-Status/-Sichtbarkeit, Media owner/visibility/review-Metadaten), damit 73–80 ohne doppelte DTO-Arbeit darauf aufsetzen.
+- [ ] **Phase 73: Public Fansub Page `/fansubs/[slug]` erweitern** - Bestehende Public-Fansub-Seite kuratiert ausbauen (Hero, Story/Timeline, Highlights, Mitglieder vs. Mitwirkende, Medien nach Ownership, Projektkarten) durch Reuse von `FansubProfileTabs`, `GroupLeaderTimeline` und public contribution helpers.
+- [ ] **Phase 74: Public Member Profile `/members/[slug]` + Memorial** - Member-Profil als dreistufige Public-Seite erweitern (Hero+Status, Geschichte/Gruppenbezug, filterbare Contributions) inkl. Gedenkprofil-Darstellung und kuratierter Badge-Anzeige; Reuse Member API, Public Member Components, `RichTextRenderer`, Badge-Service.
+- [ ] **Phase 75: Anime-Gruppen-Deep-Dive `/anime/[id]/group/[groupId]`** - Gruppenspezifischen Anime-Projektkontext stärken (Projektstory, Releases/Versionen, OP/ED/Middle, Mitwirkende, Release-Version-Medien) ohne gruppenspezifische Daten auf die neutrale Anime-Ebene zu schreiben; Reuse `GroupAssetShowcase`, `CollapsibleStory`, group/release/theme APIs.
+- [ ] **Phase 76: `/me/contributions` Dashboard + registrierte-User-Vorschläge** - Eigene Beitragsseite zum Klärungsdashboard ausbauen (Summary, „Das war ich"/„war ich nicht", Sichtbarkeit, Filter) und registrierte-User-Beteiligungsflows (Fehler/Story/Medien/Contribution melden, Claim-Einstieg) review-gebunden integrieren; Reuse `getMyAnimeContributions`, Proposal-/Review-Strukturen.
+- [ ] **Phase 77: Leader Workspace – Public Preview & Readiness** - In `/admin/fansubs/[id]/edit` Public-Preview, Public-Readiness-Check und die Pflege von Story-/Projekt-/Release-Kontext ergänzen (capability-gated), ohne `/admin/my-groups/[id]` zu duplizieren.
+- [ ] **Phase 78: Leader Workspace – Review & Pflege** - In `/admin/fansubs/[id]/edit` die Review-/Pflege-Flächen ergänzen (offene Claims, offene Contributions, historische Member, externe Mitwirkende, Medienprüfung) auf bestehenden Claim-/Contribution-/Media-Seams, capability-gated, ohne Parallel-Queues.
+- [ ] **Phase 79: Medien-Ownership in UI durchsetzen** - Upload-/Zuweisungsflows über alle Surfaces zwingen Owner-Typ, Owner-ID, Medienkategorie, Sichtbarkeit und Reviewstatus sichtbar zu machen und die Media-Ownership-Matrix einzuhalten; Reuse bestehender Upload-Helfer/Transport (`authorizedUploadXhr`).
+- [ ] **Phase 80: `/admin/users` + User Detail Drawer (scoped Rechte)** - Globale User-/Rechteübersicht starten (Userliste + Detail-Drawer mit globalen Rollen, Member-Link, Gruppenmitgliedschaften, Claims, Contributions, Medien, Audit), Rechte strikt scoped, ohne Rechte aus Contributions abzuleiten.
 
 ## Phase Details
 
@@ -1661,3 +1674,130 @@ Plans:
   3. Der Upload nutzt bestehende zentrale Auth-/API-/Media-Seams (analog UploadOwnProfileAvatar) und erzeugt keinen parallelen TipTap-Sonderweg; RichTextEditor wird nicht geforkt (opt-in per Prop).
   4. Backend-Validierung und HTML-Rendering erlauben nur die definierte Image-Node-Struktur und liefern weiterhin sanitisiertes HTML (bluemonday-Policy mit src-Regex, style nur width%, class nur story-img-align-*).
   5. [Ueberschrieben D-13] Cleanup-on-Save ist in Phase 70 implementiert: Beim Speichern der Geschichte wird jedes dereferenzierte Story-Bild sofort physisch aus Dateisystem (/media) und DB (media_assets) entfernt. Urspruenglicher deferred-Status per User-Entscheidung (D-13) ueberschrieben.
+
+### Phase 72: Domänen-Projektionen & Status-Fundament
+
+**Goal:** Das phasenübergreifende Backend-/Contract-Fundament für Meilenstein v1.2: Read-Projektionen/DTOs trennen Gruppenmitglied, externe Mitwirkende und historische Nennung sauber, und die übergreifend nötigen Statusfelder existieren (`memorial`-Profilstatus, Contribution-Status/-Sichtbarkeit, Media owner/visibility/review-Metadaten), sodass Phasen 73–80 ohne doppelte DTO-Arbeit darauf aufsetzen. Keine Public-UI-Arbeit in dieser Phase.
+**Requirements:** Entscheidungen A, G, H, I, J, K aus [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
+**Depends on:** Phase 71
+
+**Success Criteria** (what must be TRUE):
+
+  1. Es existiert eine Read-Projektion/DTO-Schicht, die für eine Fansub-Gruppe Mitglieder (`fansub_group_members`/`hist_fansub_group_members` + Rollen) und Mitwirkende (`anime_contributions`/`anime_contribution_roles`/`release_member_roles`) als getrennte, klar typisierte Mengen liefert — eine Release-Beteiligung erzeugt niemals einen Mitglieds-Eintrag.
+  2. Member tragen einen Profilstatus, der mindestens `active`, `historical`, `unclaimed`, `claimed` und `memorial` unterscheidet; `memorial` ist nur serverseitig durch Plattform-Admin setzbar und über die Projektion auslesbar.
+  3. Contributions liefern in den Projektionen einen expliziten Status (bestätigt / zugeordnet-unbestätigt / bestritten/Konflikt) und eine öffentliche Sichtbarkeit, getrennt vom Claim-Status.
+  4. Media-Assets/-Relationen liefern Owner-Typ, Owner-ID, Medienkategorie, Sichtbarkeit und Reviewstatus in einer Form, die UI-Surfaces (73–80) ohne Owner-Verwischung konsumieren können.
+  5. Alle neuen/erweiterten Felder sind in `shared/contracts` (openapi.yaml, ggf. admin-content.yaml) und in `frontend/src/lib/api.ts`-Typen konsistent abgebildet; keine undocumented response fields.
+  6. Migrationen sind append-only; bestehende Public/Admin-Reads brechen nicht (Runtime-Authority unverändert, keine Umstellung öffentlicher Anime-Reads).
+
+### Phase 73: Public Fansub Page `/fansubs/[slug]` erweitern
+
+**Goal:** Die bestehende Public-Fansub-Seite wird kuratiert erweitert (keine neue Route), sodass Besucher die Gruppe als Geschichte verstehen: Hero, Kurzgeschichte, Highlights, Projekte, Mitglieder, Mitwirkende, Medien, Timeline, Deep-Dive — mit korrekter Datenherkunft und klaren Labels.
+**Requirements:** Entscheidungen B, C(Teil), G, K aus [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
+**Depends on:** Phase 72
+
+**Success Criteria** (what must be TRUE):
+
+  1. `/fansubs/[slug]` zeigt einen disziplinierten Hero (Logo, Banner, Status, Aktivitätszeitraum, Kurzbeschreibung) und kuratierte Highlights über Reuse bestehender Komponenten (`FansubProfileTabs`, `GroupLeaderTimeline`).
+  2. Mitglieder und Mitwirkende werden in zwei klar getrennten Bereichen mit verständlichen Labels dargestellt; eine Contribution erscheint nie als Gruppenmitgliedschaft.
+  3. Medienbereiche sind nach Ownership getrennt dargestellt (Gruppenmedien vs. Release-Einblicke vs. Member-/Erinnerungsmedien) ohne Vermischung der Quell-Tabellen.
+  4. Projektkarten verlinken auf `/anime/[id]/group/[groupId]` als Deep-Dive.
+  5. Keine neue Public-Fansub-Route, keine ad-hoc-Fetches, keine Token-Direktzugriffe; alle Daten über bestehende API-Seams.
+
+### Phase 74: Public Member Profile `/members/[slug]` + Memorial
+
+**Goal:** Die bestehende Public-Member-Seite wird zu einem dreistufigen Profil erweitert (Identität/Highlights → Geschichte/Gruppenbezug → filterbare Contributions), inkl. Status-/Memorial-Darstellung und kuratierter Badge-Anzeige.
+**Requirements:** Entscheidungen C, J, Badges(13), K aus [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
+**Depends on:** Phase 72
+
+**Success Criteria** (what must be TRUE):
+
+  1. Profil-Hero zeigt Nickname, Avatar, Status (active/historical/unclaimed/claimed/memorial), aktive Jahre, bekannte Gruppen, wichtigste Rollen, sichtbare Badges und „Bekannt für".
+  2. Contributions sind filterbar (Anime/Gruppe/Rolle/Zeitraum/Status); Hauptrollen bleiben vereinfacht, Detail-Subtypes erscheinen nur im Detail, nicht als neue Hauptrollen.
+  3. Eine Korrektur-melden-Aktion existiert und erzeugt ausschließlich einen Review-gebundenen Vorschlag (keine direkte öffentliche Änderung).
+  4. Memorial-Profile haben eine eigene, würdevolle Darstellung (keine normale Aktivitätsanzeige, keine Mengen-/Gamification-Badges) und sind nicht über normale Claim-Flows beanspruchbar.
+  5. Badge-State wird über den bestehenden Badge-Service bezogen, nicht ad hoc im UI berechnet; Owner-Sichtbarkeit wird respektiert. Reuse Member API/`RichTextRenderer`; keine zweite Public-Member-Implementierung.
+
+### Phase 75: Anime-Gruppen-Deep-Dive `/anime/[id]/group/[groupId]`
+
+**Goal:** Die bestehende gruppenspezifische Anime-Seite wird als zentraler Deep-Dive für Fansub-Projekte gestärkt, ohne gruppenspezifische Daten auf die neutrale Anime-Ebene zu schreiben.
+**Requirements:** Entscheidung D, A, G, K aus [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
+**Depends on:** Phase 72
+
+**Success Criteria** (what must be TRUE):
+
+  1. `/anime/[id]/group/[groupId]` zeigt gruppenspezifische Projektstory, Releases und Release-Versionen klar strukturiert über bestehende group/release APIs (`anime_fansub_groups`, `fansub_releases`, `release_versions`, `release_version_groups`).
+  2. OP/ED/Middle-Segmente und Release-Version-Medien sind im Gruppenkontext sauber eingebunden (Release-Version-Medien über `release_version_media`, nicht über Gruppen-/Episode-Medien).
+  3. Beteiligte Member/Mitwirkende werden im Projektkontext angezeigt, getrennt nach Bedeutung.
+  4. Es gibt klare Rückverlinkung zur Fansubgruppe und zum neutralen Anime; gruppenspezifische Projektstory wird nicht auf der neutralen Anime-Ebene gespeichert.
+  5. Öffentliche Anime-Reads werden nicht ohne Runtime-Authority-Entscheid auf andere Tabellen umgestellt; Reuse `GroupAssetShowcase`/`CollapsibleStory`.
+
+### Phase 76: `/me/contributions` Dashboard + registrierte-User-Vorschläge
+
+**Goal:** Die eigene Beitragsseite wird zum persönlichen Beitrags- und Klärungsdashboard erweitert, und registrierte User erhalten einfache, review-gebundene Beteiligungsflows (Fehler/Story/Medien/Contribution melden, Claim-Einstieg) — ohne Claim- und Contribution-Flows zu vermischen.
+**Requirements:** Entscheidungen E, Runde 6, H, K aus [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
+**Depends on:** Phase 72
+
+**Success Criteria** (what must be TRUE):
+
+  1. `/me/contributions` zeigt ein Summary-Aggregat (pro Status/Gruppe/Anime/Rolle) sowie Statusgruppen (bestätigt, zugeordnet-unbestätigt, bestritten) über Reuse von `getMyAnimeContributions`.
+  2. „Das war ich" bestätigt eine Contribution-Zuordnung (keine Claim-Logik); „Das war ich nicht" löscht nichts, sondern setzt einen Konflikt-/Reviewstatus.
+  3. Öffentliche Sichtbarkeit eigener Beiträge ist steuerbar; Filter nach Anime/Gruppe/Rolle/Zeitraum/Status existieren.
+  4. Registrierte User können Fehler/Story/Medien/Contribution vorschlagen und einen Claim starten; jeder Vorschlag trägt Submitter, Zielkontext, Typ, Inhalt, Status, Reviewzuständigkeit und Audit und veröffentlicht nichts direkt.
+  5. Claim-Flow ist verlinkt, aber nicht mit dem Contribution-Flow vermischt; Leader-Review entsteht nicht außerhalb von `/admin/fansubs/[id]/edit`.
+
+### Phase 77: Leader Workspace – Public Preview & Readiness
+
+**Goal:** Im kanonischen Workspace `/admin/fansubs/[id]/edit` erhalten Leader eine Public-Vorschau, einen Public-Readiness-Check und die Pflege von Story-/Projekt-/Release-Kontext — capability-gated, ohne einen zweiten Workspace.
+**Requirements:** Entscheidung F(Teil), I, K aus [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
+**Depends on:** Phase 72 (Phase 73 liefert die Preview-Zieldarstellung)
+
+**Success Criteria** (what must be TRUE):
+
+  1. `/admin/fansubs/[id]/edit` bietet eine Public-Preview der Fansub-Seite, damit Leader nicht blind pflegen.
+  2. Ein Public-Readiness-Check listet den Pflegezustand (Logo/Banner/Kurzbeschreibung/Story vorhanden, Mitglieder/Mitwirkende geprüft, Medien kategorisiert, offene Claims/Contributions, Vorschau verfügbar).
+  3. Story-/Projekt-/Release-Kontext-Pflege ist im Workspace verfügbar und schreibt in die korrekten Owner-Tabellen.
+  4. Jede Aktion ist capability-gated (Gruppenmitgliedschaft allein genügt nicht); keine Review-/Adminlogik in `/admin/my-groups/[id]`.
+  5. Keine zweite Medien-/Claim-/Contribution-Verwaltung; alle Daten über bestehende Seams und Contracts.
+
+### Phase 78: Leader Workspace – Review & Pflege
+
+**Goal:** Im kanonischen Workspace `/admin/fansubs/[id]/edit` erhalten Leader die Review-/Pflege-Flächen für offene Claims, offene Contributions, historische Member, externe Mitwirkende und Medienprüfung — auf bestehenden Seams, capability-gated, ohne Parallel-Queues.
+**Requirements:** Entscheidungen F, H, I, G, K aus [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
+**Depends on:** Phase 72, Phase 76 (User-Vorschläge speisen die Review-Queues)
+
+**Success Criteria** (what must be TRUE):
+
+  1. Offene Claims und offene Contributions werden im Workspace getrennt dargestellt und können capability-gated bestätigt/abgelehnt werden (Claim- und Contribution-Review bleiben getrennte Flows).
+  2. Historische Member und externe Mitwirkende sind im Workspace pflegbar, ohne sie mit App-Mitgliedern zu vermischen.
+  3. Medienprüfung (Sichtbarkeit/Reviewstatus/Owner-Korrektheit) ist im Workspace möglich und schreibt in die korrekten Owner-Tabellen.
+  4. Registrierte-User-Vorschläge aus Phase 76 erscheinen als Review-Eingang im richtigen Gruppenkontext.
+  5. Keine Duplizierung der Review-/Adminlogik in `/admin/my-groups/[id]`; keine generische „Request"-Vermischung; alle Mutationen auditiert.
+
+### Phase 79: Medien-Ownership in UI durchsetzen
+
+**Goal:** Über alle Upload-/Zuweisungs-Surfaces wird die Media-Ownership-Matrix in der UI erzwungen: der Upload ist eine fachliche Entscheidung mit Owner-Typ, Owner-ID, Kategorie, Sichtbarkeit und Reviewstatus — ohne neue Medienwelt.
+**Requirements:** Entscheidung G, I, K aus [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
+**Depends on:** Phase 72, Phase 77, Phase 78
+
+**Success Criteria** (what must be TRUE):
+
+  1. Jeder Upload-/Zuweisungsflow macht den Owner-Kontext sichtbar und erzwingt Owner-Typ + Owner-ID + Medienkategorie vor dem Speichern (verständliche Auswahl, nicht technisch).
+  2. Sichtbarkeit und Reviewstatus sind Teil jedes Upload-/Zuweisungsflows; Medien ohne Owner-Kontext werden nicht öffentlich.
+  3. Release-Version-Medien landen ausschließlich über `release_version_media`; niemals über `release_media`, `episode_media` oder direkte Episode-Zuordnung; Gruppenmedien werden nicht als Release-Medien missbraucht.
+  4. Es wird kein neuer Upload-Transport gebaut; `authorizedUploadXhr` und bestehende Upload-Helfer werden wiederverwendet.
+  5. Bestehende Upload-Komponenten (`MediaUpload.tsx`, `ReleaseVersionMediaSection.tsx`, Profil-Media, Theme-Asset-Upload) werden konsistent auf das erzwungene Owner-/Status-Modell gehoben.
+
+### Phase 80: `/admin/users` + User Detail Drawer (scoped Rechte)
+
+**Goal:** Eine globale User- und Rechteübersicht wird gestartet: `/admin/users`-Liste plus User-Detail-Drawer als Rechte-/Übersichtszentrale, mit strikt gescopten Rechten und vollständigem Audit — erster Ausbau, nicht jede Spezialberechtigung sofort editierbar.
+**Requirements:** Entscheidung I, H, K, J(Teil) aus [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
+**Depends on:** Phase 72
+
+**Success Criteria** (what must be TRUE):
+
+  1. `/admin/users` listet App User mit Accountstatus, globalen Rollen, verknüpftem Member-Profil, Gruppenmitgliedschaften, Leader-Kontexten, offenen Claims, offenen Contributions, Medienuploads, letzter Aktivität und Konflikten.
+  2. Der User-Detail-Drawer hat Tabs für Übersicht, globale Rollen, Member-Profil/Claims, Gruppenmitgliedschaften, Gruppenrechte, Contributions, Medien und Audit.
+  3. Rechte werden scoped dargestellt/vergeben (z. B. Gruppen-/Release-Version-bezogen), nicht pauschal; Medienrechte ohne Scope werden nicht vergeben.
+  4. Rechte werden nicht aus Contributions abgeleitet; Gruppenmitgliedschaft ist keine pauschale Adminfähigkeit.
+  5. Alle rechte-/statusändernden Aktionen sind auditierbar; nur Plattform-Admin erreicht die globale Zentrale (Leader sehen gruppenspezifische Rechte in `/admin/fansubs/[id]/edit`).
