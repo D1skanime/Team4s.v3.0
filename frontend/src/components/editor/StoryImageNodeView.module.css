@@ -89,10 +89,12 @@
   display: inline-block;
 }
 
-/* Das Bild selbst */
+/* Das Bild selbst — width:100% (nicht nur max-width), damit es den prozentualen
+   Container exakt fuellt und beim Resize ueber die native Breite hinaus mitwaechst.
+   Konsistent zur Read-/Public-Ansicht, die width:N% direkt aufs img rendert (D-21). */
 .storyImage {
   display: block;
-  max-width: 100%;
+  width: 100%;
   height: auto;
 }
 
