@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"regexp"
 	"strings"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -150,29 +151,38 @@ func validateNode(node TipTapNode) error {
 }
 
 // RenderHTML erzeugt sanitisiertes HTML aus TipTap JSON.
+// Rückwärtskompatible Signatur — delegiert intern an RenderHTMLWithResolver.
 func (s *TipTapService) RenderHTML(input string) (string, error) {
+	return s.RenderHTMLWithResolver(input, nil)
+}
+
+// RenderHTMLWithResolver erzeugt sanitisiertes HTML aus TipTap JSON.
+// Resolver wird für image-Nodes aufgerufen: func(mediaAssetID int64) (url string, ok bool).
+// Ist resolver nil, werden image-Nodes still übersprungen (D-04).
+func (s *TipTapService) RenderHTMLWithResolver(input string, resolver func(int64) (string, bool)) (string, error) {
 	var doc TipTapNode
 	if err := json.Unmarshal([]byte(input), &doc); err != nil {
 		return "", fmt.Errorf("ungültiges JSON: %w", err)
 	}
 	var sb strings.Builder
-	renderNode(doc, &sb)
+	renderNodeWithResolver(doc, &sb, resolver)
 	safe := s.sanitizer.SanitizeBytes([]byte(sb.String()))
 	return string(safe), nil
 }
 
-// renderNode schreibt den HTML-Output eines Nodes in den Builder.
-func renderNode(node TipTapNode, sb *strings.Builder) {
+// renderNodeWithResolver schreibt den HTML-Output eines Nodes in den Builder.
+// resolver wird für image-Nodes genutzt; nil bedeutet: image-Nodes still überspringen (D-04).
+func renderNodeWithResolver(node TipTapNode, sb *strings.Builder, resolver func(int64) (string, bool)) {
 	switch node.Type {
 	case "doc":
 		for _, child := range node.Content {
-			renderNode(child, sb)
+			renderNodeWithResolver(child, sb, resolver)
 		}
 
 	case "paragraph":
 		sb.WriteString("<p>")
 		for _, child := range node.Content {
-			renderNode(child, sb)
+			renderNodeWithResolver(child, sb, resolver)
 		}
 		sb.WriteString("</p>")
 
@@ -185,50 +195,80 @@ func renderNode(node TipTapNode, sb *strings.Builder) {
 		level := resolveHeadingLevel(node.Attrs)
 		sb.WriteString(fmt.Sprintf("<h%d>", level))
 		for _, child := range node.Content {
-			renderNode(child, sb)
+			renderNodeWithResolver(child, sb, resolver)
 		}
 		sb.WriteString(fmt.Sprintf("</h%d>", level))
 
 	case "bulletList":
 		sb.WriteString("<ul>")
 		for _, child := range node.Content {
-			renderNode(child, sb)
+			renderNodeWithResolver(child, sb, resolver)
 		}
 		sb.WriteString("</ul>")
 
 	case "orderedList":
 		sb.WriteString("<ol>")
 		for _, child := range node.Content {
-			renderNode(child, sb)
+			renderNodeWithResolver(child, sb, resolver)
 		}
 		sb.WriteString("</ol>")
 
 	case "listItem":
 		sb.WriteString("<li>")
 		for _, child := range node.Content {
-			renderNode(child, sb)
+			renderNodeWithResolver(child, sb, resolver)
 		}
 		sb.WriteString("</li>")
 
 	case "blockquote":
 		sb.WriteString("<blockquote>")
 		for _, child := range node.Content {
-			renderNode(child, sb)
+			renderNodeWithResolver(child, sb, resolver)
 		}
 		sb.WriteString("</blockquote>")
 
 	case "horizontalRule":
 		sb.WriteString("<hr>")
 
+	case "image":
+		// D-04: kein Resolver → still überspringen
+		if resolver == nil {
+			return
+		}
+		rawID, _ := node.Attrs["media_asset_id"].(float64)
+		mediaAssetID := int64(rawID)
+		if mediaAssetID <= 0 {
+			return // D-04: ungültige ID — still überspringen
+		}
+		mediaURL, ok := resolver(mediaAssetID)
+		if !ok {
+			return // D-04: Asset nicht gefunden — still überspringen
+		}
+		widthPercent := 60.0
+		if wp, ok := node.Attrs["width_percent"].(float64); ok && wp >= 1 && wp <= 100 {
+			widthPercent = wp
+		}
+		align := "center"
+		if a, ok := node.Attrs["alignment"].(string); ok && (a == "left" || a == "center" || a == "right") {
+			align = a
+		}
+		// Nur src, style und class — kein alt, kein title (D-02)
+		sb.WriteString(fmt.Sprintf(
+			`<img src="%s" style="width:%.0f%%" class="story-img-align-%s">`,
+			template.HTMLEscapeString(mediaURL),
+			widthPercent,
+			align,
+		))
+
 	case "table":
 		sb.WriteString("<table>")
-		renderTableContent(node.Content, sb)
+		renderTableContent(node.Content, sb, resolver)
 		sb.WriteString("</table>")
 
 	case "tableRow":
 		sb.WriteString("<tr>")
 		for _, child := range node.Content {
-			renderNode(child, sb)
+			renderNodeWithResolver(child, sb, resolver)
 		}
 		sb.WriteString("</tr>")
 
@@ -236,7 +276,7 @@ func renderNode(node TipTapNode, sb *strings.Builder) {
 		attrs := renderCellAttrs(node.Attrs)
 		sb.WriteString(fmt.Sprintf("<th%s>", attrs))
 		for _, child := range node.Content {
-			renderNode(child, sb)
+			renderNodeWithResolver(child, sb, resolver)
 		}
 		sb.WriteString("</th>")
 
@@ -244,14 +284,14 @@ func renderNode(node TipTapNode, sb *strings.Builder) {
 		attrs := renderCellAttrs(node.Attrs)
 		sb.WriteString(fmt.Sprintf("<td%s>", attrs))
 		for _, child := range node.Content {
-			renderNode(child, sb)
+			renderNodeWithResolver(child, sb, resolver)
 		}
 		sb.WriteString("</td>")
 	}
 }
 
 // renderTableContent wraps rows in thead/tbody based on whether header rows come first.
-func renderTableContent(rows []TipTapNode, sb *strings.Builder) {
+func renderTableContent(rows []TipTapNode, sb *strings.Builder, resolver func(int64) (string, bool)) {
 	if len(rows) == 0 {
 		return
 	}
@@ -269,19 +309,19 @@ func renderTableContent(rows []TipTapNode, sb *strings.Builder) {
 
 	if firstIsHeader {
 		sb.WriteString("<thead>")
-		renderNode(rows[0], sb)
+		renderNodeWithResolver(rows[0], sb, resolver)
 		sb.WriteString("</thead>")
 		if len(rows) > 1 {
 			sb.WriteString("<tbody>")
 			for _, row := range rows[1:] {
-				renderNode(row, sb)
+				renderNodeWithResolver(row, sb, resolver)
 			}
 			sb.WriteString("</tbody>")
 		}
 	} else {
 		sb.WriteString("<tbody>")
 		for _, row := range rows {
-			renderNode(row, sb)
+			renderNodeWithResolver(row, sb, resolver)
 		}
 		sb.WriteString("</tbody>")
 	}
@@ -388,9 +428,24 @@ func newTipTapSanitizerPolicy() *bluemonday.Policy {
 	p := bluemonday.NewPolicy()
 	p.AllowElements("p", "h1", "h2", "h3", "strong", "em",
 		"ul", "ol", "li", "blockquote",
-		"table", "thead", "tbody", "tr", "th", "td", "hr", "span")
+		"table", "thead", "tbody", "tr", "th", "td", "hr", "span",
+		// Phase 70: Story-Bilder
+		"img")
 	p.AllowAttrs("class").OnElements("span", "td", "th")
 	p.AllowAttrs("colspan", "rowspan").OnElements("td", "th")
 	p.AllowAttrs("data-color-token").OnElements("span")
+	// Phase 70 — img-Attribute mit enger Regex-Bindung (T-70-03-01, T-70-03-02, D-20, D-23)
+	// src: nur eigener /media/profile/.../story/... Pfad
+	p.AllowAttrs("src").Matching(
+		regexp.MustCompile(`^/media/profile/\d+/story/[a-z0-9-]+/original\.(jpg|jpeg|png|webp)$`),
+	).OnElements("img")
+	// style: nur width in %
+	p.AllowAttrs("style").Matching(
+		regexp.MustCompile(`^width:\s*\d{1,3}%$`),
+	).OnElements("img")
+	// class: nur kontrollierte Ausrichtungsklassen
+	p.AllowAttrs("class").Matching(
+		regexp.MustCompile(`^story-img-align-(left|center|right)$`),
+	).OnElements("img")
 	return p
 }
