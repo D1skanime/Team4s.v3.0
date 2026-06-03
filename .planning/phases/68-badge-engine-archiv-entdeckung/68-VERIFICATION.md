@@ -6,8 +6,9 @@ status: passed
 score: 3/3 must-haves verified
 overrides_applied: 0
 human_uat_result:
-  - "Live-UAT 2026-06-03 (App-Browser :3000, Leader Gruppe 88): Meilenstein Create/Edit/Delete + 'Meilenstein gelöscht.'-Toast bestätigt."
-  - "Zwei Defekte gefunden UND behoben (Quick-Task 20260603-phase68-meilenstein-platzierung-render-fix): (1) Meilenstein-CRUD lag auf der künftig-öffentlichen /admin/my-groups-Seite -> in den Edit-Bereich /admin/fansubs/[id]/edit verschoben, my-groups nur read-only; (2) Render-Bug '—' statt Titel -> json-Tags an GroupHistoryRow ergänzt."
+  - "P68-SC2 (Meilensteine): Live-UAT 2026-06-03 (App-Browser :3000, Leader Gruppe 88): Create/Edit/Delete + 'Meilenstein gelöscht.'-Toast bestätigt. Zwei Defekte gefunden UND behoben (Quick-Task 20260603-phase68-meilenstein-platzierung-render-fix): (1) Meilenstein-CRUD lag auf der künftig-öffentlichen /admin/my-groups-Seite -> in den Edit-Bereich /admin/fansubs/[id]/edit verschoben, my-groups nur read-only; (2) Render-Bug '—' statt Titel -> json-Tags an GroupHistoryRow ergänzt."
+  - "P68-SC3 (Archiv-Suche): Live-UAT 2026-06-03 — /archiv liefert öffentliche Member-Profile; Rollenfilter (typesetter->1, translator->0), Gruppenfilter per ID (88->1, andere->0), AND-Kombination (gruppe=88&rolle=translator->0) korrekt; Jahresfilter COALESCE-permissiv bei NULL-Jahren (by design); nur 1 öffentliches Profil sichtbar (Sichtbarkeits-Sicherheit)."
+  - "P68-SC1 (Badge-Engine): Live-UAT 2026-06-03 — Member-Profil /members/uat66-claim-202952 rendert berechnete Badge-Chips 'Erster Beitrag' + 'Verifiziert' (deutsche Labels via MemberBadgeChips); Backfill 13 Member zuvor live bestätigt."
 live_verified:
   - "P68-SC1: backfill-badges live (members_processed=13 errors=0); first_contribution + verified Badges in DB berechnet."
   - "P68-SC3: /api/v1/archiv AND-Filter-Matrix + Sichtbarkeits-Sicherheit (beide Richtungen) + Frontend-SSR (deutsche Labels, Gruppen-Dropdown via getFansubs, MemberSearchCard-Render) live bestätigt."
