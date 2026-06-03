@@ -86,6 +86,9 @@ type profileRepoStub struct {
 	lastUpdateArg models.MemberProfileUpdateInput
 	lastAttachArg models.MemberProfileAvatarUploadInput
 	lastBgArg     models.MemberProfileBackgroundUploadInput
+
+	storyAssetByIDResp *models.StoryImageAssetRef
+	storyAssetByIDErr  error
 }
 
 type contributorRepoStub struct {
@@ -138,6 +141,10 @@ func (s *profileRepoStub) InsertStoryImageAsset(_ context.Context, _ models.Stor
 
 func (s *profileRepoStub) GetStoryImageAssetsByMember(_ context.Context, _ int64) ([]models.StoryImageAssetRef, error) {
 	return nil, nil
+}
+
+func (s *profileRepoStub) GetStoryImageAssetByID(_ context.Context, _ int64) (*models.StoryImageAssetRef, error) {
+	return s.storyAssetByIDResp, s.storyAssetByIDErr
 }
 
 func (s *profileRepoStub) DeleteStoryImageAsset(_ context.Context, _ int64, _ int64) error {

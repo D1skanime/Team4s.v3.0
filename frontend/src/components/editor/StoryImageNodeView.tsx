@@ -4,6 +4,7 @@ import { NodeViewWrapper } from '@tiptap/react'
 import type { NodeViewProps } from '@tiptap/react'
 import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react'
 import { useRef } from 'react'
+import { resolveApiUrl } from '@/lib/api'
 import styles from './StoryImageNodeView.module.css'
 
 // StoryImageNodeView: React NodeView fuer TipTap Story-Bild-Nodes.
@@ -19,7 +20,12 @@ export function StoryImageNodeView({ node, updateAttributes, selected }: NodeVie
   }
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const imgSrc = preview_url ?? null
+  // Frisch eingefuegtes Bild: lokale Blob-Vorschau (preview_url).
+  // Aus dem Server geladenes Bild: nur media_asset_id -> oeffentlicher Resolver-Endpoint
+  // (loest media_asset_id zur Datei auf; noetig fuer Round-Trip nach Reload, D-21).
+  const imgSrc =
+    preview_url ??
+    (media_asset_id != null ? resolveApiUrl(`/api/v1/media/story-images/${media_asset_id}`) : null)
 
   // D-04: kein Bild wenn weder preview_url noch media_asset_id
   if (!imgSrc && !media_asset_id) return null

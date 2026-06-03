@@ -339,6 +339,9 @@ func main() {
 	v1.GET("/media/image", fansubHandler.MediaImage)
 	v1.GET("/media/video", fansubHandler.MediaVideo)
 	v1.GET("/media/files/:filename", fansubHandler.ServeMediaFile)
+	// Oeffentlicher Story-Bild-Resolver (kein Auth — <img> traegt keinen Bearer; Story-Bilder
+	// sind ohnehin oeffentlich). Editor nutzt ihn fuer geladene Bilder (media_asset_id -> Datei).
+	v1.GET("/media/story-images/:id", appAuthHandler.ResolveStoryImageByID)
 	v1.GET(
 		"/assets/:assetId/stream",
 		authMiddleware,

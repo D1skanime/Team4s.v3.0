@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"team4s.v3/backend/internal/middleware"
@@ -200,6 +201,42 @@ func (h *AppAuthHandler) UploadOwnProfileStoryImage(c *gin.Context) {
 		"media_asset_id": newAssetID,
 		"public_url":     strings.TrimRight(h.mediaBaseURL, "/") + relativePath,
 	}})
+}
+
+// ResolveStoryImageByID liefert die Bilddatei eines Story-Assets anhand seiner media_asset_id.
+// Oeffentlich (kein Auth) — konsistent mit dem oeffentlichen /media-Serving und noetig, weil
+// <img>-Requests keinen Bearer-Token tragen koennen. Story-Bilder sind ohnehin auf oeffentlichen
+// Profilen sichtbar. Der Editor nutzt diesen Endpoint, um geladene Bilder (nur media_asset_id,
+// ohne preview_url) anzuzeigen (Round-Trip D-21). Der Query beschraenkt auf Story-Assets
+// (owner_member_id IS NOT NULL), sodass keine beliebigen media_assets ausgeliefert werden.
+func (h *AppAuthHandler) ResolveStoryImageByID(c *gin.Context) {
+	id, err := strconv.ParseInt(strings.TrimSpace(c.Param("id")), 10, 64)
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "story-bild nicht gefunden"}})
+		return
+	}
+	ref, err := h.profileRepo.GetStoryImageAssetByID(c.Request.Context(), id)
+	if errors.Is(err, repository.ErrNotFound) || ref == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "story-bild nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
+		return
+	}
+	// file_path (/media/profile/{m}/story/{uuid}/original.ext) -> Disk unter mediaStorageDir.
+	trimmed := strings.TrimPrefix(strings.TrimPrefix(strings.TrimSpace(ref.FilePath), "/"), "media/")
+	diskPath := filepath.Join(h.mediaStorageDir, trimmed)
+	if ok, perr := isUploadPathWithinBase(h.mediaStorageDir, diskPath); perr != nil || !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "story-bild nicht gefunden"}})
+		return
+	}
+	if _, serr := os.Stat(diskPath); serr != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "story-bild nicht gefunden"}})
+		return
+	}
+	c.Header("Cache-Control", "public, max-age=31536000, immutable")
+	c.File(diskPath)
 }
 
 // extractStoryImageIDsFromJSON parst ein TipTap-JSON-Dokument und sammelt alle

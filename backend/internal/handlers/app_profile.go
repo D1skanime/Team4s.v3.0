@@ -31,6 +31,7 @@ type memberProfileStore interface {
 	AttachUploadedBackground(ctx context.Context, appUserID int64, input models.MemberProfileBackgroundUploadInput) (*models.MemberProfile, error)
 	InsertStoryImageAsset(ctx context.Context, input models.StoryImageUploadInput) (int64, error)
 	GetStoryImageAssetsByMember(ctx context.Context, memberID int64) ([]models.StoryImageAssetRef, error)
+	GetStoryImageAssetByID(ctx context.Context, assetID int64) (*models.StoryImageAssetRef, error)
 	DeleteStoryImageAsset(ctx context.Context, assetID int64, ownerMemberID int64) error
 }
 

@@ -2,7 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
+	"github.com/jackc/pgx/v5"
 
 	"team4s.v3/backend/internal/models"
 )
@@ -53,6 +56,28 @@ func (r *MemberProfileRepository) GetStoryImageAssetsByMember(
 		return nil, fmt.Errorf("iterate story image assets for member %d: %w", memberID, err)
 	}
 	return items, nil
+}
+
+// GetStoryImageAssetByID laedt ein einzelnes Story-Bild-Asset nach ID.
+// Beschraenkt auf Story-Assets (owner_member_id IS NOT NULL), damit der oeffentliche
+// Resolver keine beliebigen media_assets ausliefert. ErrNotFound wenn nicht vorhanden.
+func (r *MemberProfileRepository) GetStoryImageAssetByID(
+	ctx context.Context,
+	assetID int64,
+) (*models.StoryImageAssetRef, error) {
+	var item models.StoryImageAssetRef
+	err := r.db.QueryRow(ctx, `
+		SELECT id, file_path, owner_member_id
+		FROM media_assets
+		WHERE id = $1 AND owner_member_id IS NOT NULL
+	`, assetID).Scan(&item.ID, &item.FilePath, &item.OwnerMemberID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("get story image asset %d: %w", assetID, err)
+	}
+	return &item, nil
 }
 
 // DeleteStoryImageAsset loescht eine media_assets-Zeile nach ID.

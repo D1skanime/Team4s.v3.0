@@ -18,6 +18,7 @@ import (
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
@@ -452,6 +453,60 @@ func extractPendingKeysFromDoc(docJSON string) map[string]struct{} {
 	// Stub: gibt immer leere Map zurueck bis Plan 70-04 implementiert ist
 	// (kein pending_key im Text-only-Dokument — korrekt fuer diesen Test)
 	return map[string]struct{}{}
+}
+
+// TestResolveStoryImageByID prueft den oeffentlichen Story-Bild-Resolver:
+// gueltige ID -> Datei wird geliefert; ungueltige/fehlende ID -> 404 (D-21 Editor-Round-Trip).
+func TestResolveStoryImageByID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tmpDir := t.TempDir()
+	relDir := filepath.Join("profile", "5", "story", "abc", "original.jpg")
+	diskPath := filepath.Join(tmpDir, relDir)
+	require.NoError(t, os.MkdirAll(filepath.Dir(diskPath), 0o755))
+	require.NoError(t, os.WriteFile(diskPath, []byte("JPEGDATA"), 0o644))
+
+	t.Run("gueltige ID liefert Datei", func(t *testing.T) {
+		repoStub := &profileRepoStub{
+			storyAssetByIDResp: &models.StoryImageAssetRef{
+				ID: 42, FilePath: "/media/profile/5/story/abc/original.jpg", OwnerMemberID: 5,
+			},
+		}
+		handler := &AppAuthHandler{profileRepo: repoStub, mediaStorageDir: tmpDir}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/media/story-images/42", nil)
+		c.Params = gin.Params{{Key: "id", Value: "42"}}
+
+		handler.ResolveStoryImageByID(c)
+
+		assert.Equal(t, http.StatusOK, w.Code, "gueltiges Story-Bild muss mit 200 geliefert werden")
+		assert.Equal(t, "JPEGDATA", w.Body.String(), "Dateiinhalt muss zurueckgegeben werden")
+	})
+
+	t.Run("nicht-numerische ID -> 404", func(t *testing.T) {
+		handler := &AppAuthHandler{profileRepo: &profileRepoStub{}, mediaStorageDir: tmpDir}
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/media/story-images/abc", nil)
+		c.Params = gin.Params{{Key: "id", Value: "abc"}}
+
+		handler.ResolveStoryImageByID(c)
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("unbekannte ID -> 404", func(t *testing.T) {
+		repoStub := &profileRepoStub{storyAssetByIDErr: repository.ErrNotFound}
+		handler := &AppAuthHandler{profileRepo: repoStub, mediaStorageDir: tmpDir}
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/media/story-images/999", nil)
+		c.Params = gin.Params{{Key: "id", Value: "999"}}
+
+		handler.ResolveStoryImageByID(c)
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
 }
 
 // --- Hilfsfunktionen fuer Handler-Stub (werden in Plan 70-04 durch echte Implementierung ersetzt) ---
