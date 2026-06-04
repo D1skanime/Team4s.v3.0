@@ -3,7 +3,21 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 
-import { Badge, Button, Modal } from '@/components/ui'
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  FormField,
+  Input,
+  LoadingState,
+  Modal,
+  SectionHeader,
+  Select,
+  Toolbar,
+  YearPicker,
+} from '@/components/ui'
 import {
   ApiError,
   createGroupMember,
@@ -28,10 +42,7 @@ type GroupMembersTabProps = {
 }
 
 const CURRENT_YEAR = new Date().getFullYear()
-const YEAR_OPTIONS: number[] = []
-for (let y = CURRENT_YEAR; y >= 1980; y--) {
-  YEAR_OPTIONS.push(y)
-}
+const YEAR_MIN = 1980
 
 function formatApiError(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message
@@ -56,6 +67,14 @@ function statusLabel(status: HistFansubGroupMember['status']): string {
   if (status === 'disputed') return 'umstritten'
   if (status === 'draft') return 'Entwurf'
   return 'historisch'
+}
+
+function visibilityBadgeVariant(visibility: HistoricalContributionVisibility): 'success' | 'muted' {
+  return visibility === 'public' ? 'success' : 'muted'
+}
+
+function visibilityLabel(visibility: HistoricalContributionVisibility): string {
+  return visibility === 'public' ? 'öffentlich' : 'intern'
 }
 
 type FormFields = {
@@ -96,6 +115,9 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
   const [form, setForm] = useState<FormFields>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [modalError, setModalError] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<HistFansubGroupMember | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -187,82 +209,107 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
     }
   }
 
-  async function handleDelete(member: HistFansubGroupMember) {
-    if (!window.confirm(`Mitglied "${member.display_name}" wirklich löschen?`)) return
+  function closeDeleteModal() {
+    setDeleteTarget(null)
+    setDeleteError(null)
+  }
 
+  async function handleDeleteConfirm() {
+    if (!deleteTarget) return
     try {
-      await deleteGroupMember(fansubId, member.id)
+      setDeleting(true)
+      setDeleteError(null)
+      await deleteGroupMember(fansubId, deleteTarget.id)
       await load()
+      closeDeleteModal()
     } catch (err) {
-      setError(formatApiError(err, 'Mitglied konnte nicht gelöscht werden.'))
+      setDeleteError(formatApiError(err, 'Mitglied konnte nicht gelöscht werden.'))
+    } finally {
+      setDeleting(false)
     }
   }
 
   return (
-    <div className={styles.fansubEditMembershipSurface}>
-      <div className={styles.fansubEditMembershipIntro}>
-        <div>
-          <p className={styles.fansubEditBasicEyebrow}>Historische Mitglieder</p>
-          <h3 className={styles.fansubEditMembershipTitle}>Gruppenmitglieder</h3>
-          <p className={styles.fansubEditHint}>
-            Hier kannst du historische Mitglieder der Fansubgruppe pflegen.
-            Eine Verknüpfung mit einem App-Nutzerkonto ist optional.
-          </p>
-        </div>
-        <Button
-          variant="primary"
-          leftIcon={<Plus size={15} aria-hidden="true" />}
-          onClick={openNew}
-        >
-          Mitglied hinzufügen
-        </Button>
-      </div>
+    <Card variant="section" className={styles.fansubEditMembershipSurface}>
+      <SectionHeader
+        eyebrow="Historische Mitglieder"
+        title="Gruppenmitglieder"
+        description="Pflege historische Mitglieder der Fansubgruppe. Eine Verknüpfung mit einem App-Nutzerkonto ist optional."
+        actions={
+          <Toolbar
+            leading={
+              <Button
+                variant="primary"
+                leftIcon={<Plus size={15} aria-hidden="true" />}
+                onClick={openNew}
+              >
+                Mitglied hinzufügen
+              </Button>
+            }
+          />
+        }
+      />
 
-      {error ? <div className={styles.errorBox}>{error}</div> : null}
-      {loading ? <div className={styles.fansubEditReleaseState}>Mitglieder werden geladen...</div> : null}
+      {error ? (
+        <ErrorState
+          title="Mitglieder konnten nicht geladen werden"
+          description={error}
+          action={<Button variant="secondary" size="sm" onClick={() => void load()}>Erneut laden</Button>}
+        />
+      ) : null}
+      {loading ? (
+        <LoadingState
+          title="Mitglieder werden geladen"
+          description="Team4s lädt die historischen Gruppenmitglieder."
+        />
+      ) : null}
 
       {!loading && !error && members.length === 0 ? (
-        <div className={styles.fansubEditMembershipEmpty}>
-          <strong>Noch keine Mitglieder eingetragen</strong>
-          <p className={styles.fansubEditHint}>Füge das erste Mitglied hinzu.</p>
-        </div>
+        <EmptyState
+          title="Noch keine Mitglieder eingetragen"
+          description="Füge das erste historische Mitglied hinzu."
+          action={<Button variant="primary" leftIcon={<Plus size={15} aria-hidden="true" />} onClick={openNew}>Mitglied hinzufügen</Button>}
+        />
       ) : null}
 
       {!loading && members.length > 0 ? (
         <div className={styles.fansubEditMembershipList}>
           {members.map((member) => (
-            <div key={member.id} className={styles.fansubEditMembershipCard}>
+            <Card key={member.id} variant="nestedFlat" className={styles.fansubEditMembershipCard}>
               <div className={styles.fansubEditMembershipCardTop}>
                 <div className={styles.fansubEditMembershipIdentity}>
                   <strong>{member.display_name}</strong>
-                  <span className={styles.fansubEditHint}>{formatZeitraum(member)}</span>
-                  {member.app_username ? (
-                    <span className={styles.fansubEditHint}>App-Konto: {member.app_username}</span>
-                  ) : null}
+                  <div className={styles.fansubEditMembershipMetaLine}>
+                    <span>{formatZeitraum(member)}</span>
+                    <span>{member.app_username ? `App-Konto: ${member.app_username}` : 'Kein App-Konto verknüpft'}</span>
+                  </div>
                 </div>
                 <div className={styles.fansubEditMembershipControls}>
                   <Badge variant={statusBadgeVariant(member.status)}>
                     {statusLabel(member.status)}
                   </Badge>
+                  <Badge variant={visibilityBadgeVariant(member.visibility ?? 'internal')}>
+                    {visibilityLabel(member.visibility ?? 'internal')}
+                  </Badge>
                   <Button
                     variant="ghost"
                     size="sm"
+                    iconOnly
+                    aria-label="Mitglied bearbeiten"
                     leftIcon={<Pencil size={14} aria-hidden="true" />}
                     onClick={() => openEdit(member)}
-                  >
-                    Bearbeiten
-                  </Button>
+                  />
                   <Button
-                    variant="ghost"
+                    variant="danger"
                     size="sm"
+                    iconOnly
+                    aria-label="Mitglied löschen"
                     leftIcon={<Trash2 size={14} aria-hidden="true" />}
-                    onClick={() => void handleDelete(member)}
-                  >
-                    Löschen
-                  </Button>
+                    onClick={() => setDeleteTarget(member)}
+                  />
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       ) : null}
@@ -272,102 +319,143 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
         onClose={closeModal}
         title={editTarget ? 'Mitglied bearbeiten' : 'Mitglied hinzufügen'}
         description="Historisches Mitglied der Fansubgruppe anlegen oder bearbeiten."
+        footer={
+          <div className={styles.fansubEditMembershipModalActions}>
+            <Button variant="secondary" onClick={closeModal} disabled={saving}>
+              Schließen
+            </Button>
+            <Button
+              variant="primary"
+              loading={saving}
+              onClick={() => void handleSave()}
+              disabled={!form.displayName.trim()}
+            >
+              Speichern
+            </Button>
+          </div>
+        }
       >
         <div className={styles.fansubEditMembershipModalStack}>
-          {modalError ? <div className={styles.errorBox}>{modalError}</div> : null}
+          {modalError ? (
+            <ErrorState
+              title="Mitglied konnte nicht gespeichert werden"
+              description={modalError}
+            />
+          ) : null}
 
-          <label>
-            <span className={styles.fansubEditHint}>Anzeigename (Pflichtfeld)</span>
-            <input
+          <FormField label="Anzeigename" htmlFor="hist-member-display-name" required>
+            <Input
+              id="hist-member-display-name"
               type="text"
               value={form.displayName}
               onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
               placeholder="z. B. Sora"
-              aria-label="Anzeigename"
+              required
             />
-          </label>
+          </FormField>
 
-          <label>
-            <span className={styles.fansubEditHint}>Beitrittsjahr (optional)</span>
-            <select
-              value={form.joinedYear}
-              onChange={(e) => setForm((f) => ({ ...f, joinedYear: e.target.value }))}
-              aria-label="Beitrittsjahr"
-            >
-              <option value="">– kein Jahr –</option>
-              {YEAR_OPTIONS.map((y) => (
-                <option key={y} value={String(y)}>{y}</option>
-              ))}
-            </select>
-          </label>
+          <div className={styles.fansubEditMembershipModalGrid}>
+            <FormField label="Beitrittsjahr" htmlFor="hist-member-joined-year" hint="Optionaler Startpunkt der Mitgliedschaft.">
+              <YearPicker
+                id="hist-member-joined-year"
+                label="Beitrittsjahr"
+                value={form.joinedYear}
+                minYear={YEAR_MIN}
+                maxYear={CURRENT_YEAR}
+                onChange={(value) => setForm((f) => ({ ...f, joinedYear: value }))}
+              />
+            </FormField>
 
-          <label>
-            <span className={styles.fansubEditHint}>Austrittsjahr (optional)</span>
-            <select
-              value={form.leftYear}
-              onChange={(e) => setForm((f) => ({ ...f, leftYear: e.target.value }))}
-              aria-label="Austrittsjahr"
-            >
-              <option value="">– kein Jahr –</option>
-              {YEAR_OPTIONS.map((y) => (
-                <option key={y} value={String(y)}>{y}</option>
-              ))}
-            </select>
-          </label>
+            <FormField label="Austrittsjahr" htmlFor="hist-member-left-year" hint="Leer lassen, wenn die Person weiterhin aktiv ist.">
+              <YearPicker
+                id="hist-member-left-year"
+                label="Austrittsjahr"
+                value={form.leftYear}
+                minYear={YEAR_MIN}
+                maxYear={CURRENT_YEAR}
+                onChange={(value) => setForm((f) => ({ ...f, leftYear: value }))}
+              />
+            </FormField>
+          </div>
 
-          <label>
-            <span className={styles.fansubEditHint}>App-Nutzer-ID (optional)</span>
-            <input
+          <FormField
+            label="App-Nutzer-ID"
+            htmlFor="hist-member-app-user-id"
+            hint="Optional. Nur setzen, wenn der passende Team4s-App-User bekannt ist."
+          >
+            <Input
+              id="hist-member-app-user-id"
               type="number"
               value={form.appUserId}
               onChange={(e) => setForm((f) => ({ ...f, appUserId: e.target.value }))}
               placeholder="Numerische Nutzer-ID"
-              aria-label="App-Nutzer-ID"
               min={1}
             />
-          </label>
+          </FormField>
 
-          <label>
-            <span className={styles.fansubEditHint}>Status</span>
-            <select
-              value={form.status}
-              onChange={(e) => setForm((f) => ({
-                ...f,
-                status: e.target.value as HistoricalContributionStatus,
-              }))}
-              aria-label="Status"
-            >
-              <option value="historical">historisch</option>
-              <option value="confirmed">bestätigt</option>
-              <option value="draft">Entwurf</option>
-              <option value="disputed">umstritten</option>
-            </select>
-          </label>
+          <div className={styles.fansubEditMembershipModalGrid}>
+            <FormField label="Status" htmlFor="hist-member-status">
+              <Select
+                id="hist-member-status"
+                value={form.status}
+                onChange={(e) => setForm((f) => ({
+                  ...f,
+                  status: e.target.value as HistoricalContributionStatus,
+                }))}
+              >
+                <option value="historical">historisch</option>
+                <option value="confirmed">bestätigt</option>
+                <option value="draft">Entwurf</option>
+                <option value="disputed">umstritten</option>
+              </Select>
+            </FormField>
 
-          <label>
-            <span className={styles.fansubEditHint}>Sichtbarkeit</span>
-            <select
-              value={form.visibility}
-              onChange={(e) => setForm((f) => ({
-                ...f,
-                visibility: e.target.value as HistoricalContributionVisibility,
-              }))}
-              aria-label="Sichtbarkeit"
-            >
-              <option value="internal">intern</option>
-              <option value="public">öffentlich</option>
-            </select>
-          </label>
-
-          <Button
-            variant="primary"
-            onClick={() => void handleSave()}
-            disabled={saving || !form.displayName.trim()}
-          >
-            {saving ? 'Wird gespeichert...' : 'Speichern'}
-          </Button>
+            <FormField label="Sichtbarkeit" htmlFor="hist-member-visibility">
+              <Select
+                id="hist-member-visibility"
+                value={form.visibility}
+                onChange={(e) => setForm((f) => ({
+                  ...f,
+                  visibility: e.target.value as HistoricalContributionVisibility,
+                }))}
+              >
+                <option value="internal">intern</option>
+                <option value="public">öffentlich</option>
+              </Select>
+            </FormField>
+          </div>
         </div>
       </Modal>
-    </div>
+
+      <Modal
+        open={deleteTarget !== null}
+        onClose={closeDeleteModal}
+        title="Mitglied löschen"
+        description="Dieses historische Mitglied wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+        footer={
+          <div className={styles.fansubEditMembershipModalActions}>
+            <Button variant="secondary" onClick={closeDeleteModal} disabled={deleting}>
+              Nicht löschen
+            </Button>
+            <Button
+              variant="danger"
+              loading={deleting}
+              onClick={() => void handleDeleteConfirm()}
+            >
+              Endgültig löschen
+            </Button>
+          </div>
+        }
+      >
+        {deleteError ? (
+          <ErrorState title="Mitglied konnte nicht gelöscht werden" description={deleteError} />
+        ) : null}
+        {deleteTarget ? (
+          <p className={styles.fansubEditMembershipDeleteText}>
+            <strong>{deleteTarget.display_name}</strong> aus der historischen Mitgliederliste entfernen.
+          </p>
+        ) : null}
+      </Modal>
+    </Card>
   )
 }

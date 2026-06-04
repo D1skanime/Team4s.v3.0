@@ -212,6 +212,10 @@
     justify-content: flex-start;
     margin-left: 0;
   }
+
+  .fansubEditMembershipModalGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .fansubEditMembershipRoleEditor {
@@ -225,6 +229,25 @@
 .fansubEditMembershipModalSection {
   display: grid;
   gap: 0.9rem;
+}
+
+.fansubEditMembershipModalGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.fansubEditMembershipModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.fansubEditMembershipDeleteText {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 .fansubEditMembershipModalSection {
