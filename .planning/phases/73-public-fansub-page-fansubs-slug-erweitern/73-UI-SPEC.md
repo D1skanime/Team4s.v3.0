@@ -69,10 +69,12 @@ Quelle: Verifiziert aus `page.module.css`, `FansubProfileTabs.module.css`, `ui.m
 |-------|-------|---------|------------|-----------|
 | Body | 16px | 400 (regular) | 1.5 | Fließtext (Story, leere Zustände, Meta-Info) |
 | Label | 14px | 400 (regular) | 1.4 | Sekundäre Infos, Datumsbereiche, Breadcrumb, Badge-Text intern |
-| Heading | 18–24px | 600 (semibold) | 1.25 | Abschnittsköpfe (`SectionHeader`), Gruppen-Titel |
-| Display | 28px | 700 (bold) | 1.2 | Gruppen-Name im Hero (entspricht bestehendem `.title`) |
+| Heading | 18–24px | 600 (semibold) | 1.25 | Abschnittsköpfe (`SectionHeader`), Gruppen-Titel — 18px aus `FansubProfileTabs.module.css` (.memberGroup h3), 24px aus `page.module.css` (.title); der Executor führt keine neue Größe ein |
+| Display | 28px | (System-Token) | 1.2 | Gruppen-Name im Hero — erbt 700 vom bestehenden `.title`-CSS-Token; kein eigenes Gewicht in Phase 73 deklariert |
 
-Nur zwei Gewichte: 400 und 600 (plus 700 ausschließlich für den Hero-Display-Titel und Button-Labels — bereits im UI-System vorhanden).
+**Deklarierte Phase-73-Gewichte: nur 400 (regular) und 600 (semibold).**
+Display und primäre Buttons erben 700 vom bestehenden UI-System-Token — kein eigenes Gewicht
+in dieser Phase deklariert.
 
 Abschnittsköpfe nutzen ausschließlich `SectionHeader`-Primitive — keine ad-hoc `<h2>`/`<h3>`-Elemente
 mit individuellen Inline-Styles.
