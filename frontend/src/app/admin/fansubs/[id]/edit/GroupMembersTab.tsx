@@ -77,6 +77,12 @@ function visibilityLabel(visibility: HistoricalContributionVisibility): string {
   return visibility === 'public' ? 'öffentlich' : 'intern'
 }
 
+function memberAssignmentLabel(member: HistFansubGroupMember): string {
+  if (member.app_username) return `Zugeordnet: ${member.app_username}`
+  if (member.status === 'confirmed') return 'Bestätigt, aber keinem aktuellen Gruppenmitglied zugeordnet'
+  return 'Noch keinem aktuellen Gruppenmitglied zugeordnet'
+}
+
 type FormFields = {
   displayName: string
   joinedYear: string
@@ -281,7 +287,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
                   <strong>{member.display_name}</strong>
                   <div className={styles.fansubEditMembershipMetaLine}>
                     <span>{formatZeitraum(member)}</span>
-                    <span>{member.app_username ? `Zugeordnet: ${member.app_username}` : 'Noch keinem aktuellen Gruppenmitglied zugeordnet'}</span>
+                    <span>{memberAssignmentLabel(member)}</span>
                   </div>
                 </div>
                 <div className={styles.fansubEditMembershipControls}>
