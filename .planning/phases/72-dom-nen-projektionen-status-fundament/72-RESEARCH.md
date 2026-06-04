@@ -351,29 +351,24 @@ ALTER TABLE members
 | A3 | Review-Status braucht eigenes Feld pro Medien-Träger statt zentral | Don't Hand-Roll | Mittel — Owner-Typ-Modell in `media_assets` ist heute nicht vorhanden (Q4); Träger-Wahl beeinflusst Feld-Platzierung. |
 | A4 | Neue Public-Reads folgen dem No-Envelope-Muster der Contribution-Reads | Contracts | Gering — pro Endpoint am nächsten Analog ausrichten (Q3). |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Alle fünf Fragen wurden in der Planung von Phase 72 entschieden (Discretion-Felder aus CONTEXT.md). Auflösungen sind in 72-01..72-04 + 72-VALIDATION.md verbindlich gepinnt.
 
 1. **Statuswerte-Trägerform: CHECK-Spalte vs. Lookup-Tabelle?**
-   - Bekannt: `visibilities`/`role_definitions` sind Lookups; `*.status`/`*.dispute_state` sind CHECK-Spalten.
-   - Unklar: Review-Status (5 Werte: in Prüfung/freigegeben/abgelehnt/archiviert/entfernt) — CHECK oder Lookup?
-   - Empfehlung: `dispute_state` als CHECK (stabil); Review-Status als eigene **Lookup-Tabelle** erwägen (erweiterbar, FK-referenzierbar, konsistent mit `visibilities`). Planner-Entscheid (Discretion).
+   - **RESOLVED:** `dispute_state` als CHECK-Spalte (none/open/resolved, stabil). Review-Status als eigene **Lookup-Tabelle `review_statuses`** (code/label_de/sort_order), referenziert per FK `review_status_id` auf Contribution- und Medien-Trägern (konsistent mit `visibilities`, erweiterbar ohne Migration). Pin in 72-01.
 
 2. **`hist_*.visibility` (VARCHAR) vs. `visibilities`-Lookup angleichen?**
-   - Bekannt: hist-Tabellen nutzen freien String 'internal'/'public', nicht den Lookup.
-   - Empfehlung: In 72 NICHT migrieren (Risiko, Scope). Neue Träger nutzen `visibilities`-FK (D-03); Inkonsistenz dokumentieren, Angleich als deferred slice.
+   - **RESOLVED:** In Phase 72 **nicht migriert** (Scope/Risiko). Nur die NEUEN Träger (`anime_contributions`, `media_assets`) erhalten `visibility_id`-FK auf `visibilities` (D-03). Die bestehende `hist_*.visibility`-Inkonsistenz bleibt dokumentiert; Angleich ist deferred.
 
 3. **Envelope `{"data":...}` für neue Reads?**
-   - Bekannt: Public-Contribution-Reads ohne Envelope; CONTEXT verweist auf `{"data":...}` (STATE 62 D3).
-   - Empfehlung: pro Endpoint dem nächstgelegenen bestehenden Analog folgen; im Plan explizit festlegen.
+   - **RESOLVED:** **No-Envelope** — direkte DTO-Antwort (`c.JSON(http.StatusOK, response)`), dem benachbarten `contributions_public_handler`-Analog folgend. Gepinnt in 72-02/72-03 `key_links` und 1:1 in 72-04 (OpenAPI + TS) gespiegelt. Kein `{"data":...}`-Wrapper.
 
 4. **Owner-Typ in `media_assets`?**
-   - Bekannt: `owner_member_id` existiert; Owner-TYP (group/anime/release/member) wird heute über Junction-Tabellen (`fansub_group_media`, `release_version_media`, …) ausgedrückt, nicht als Spalte.
-   - Unklar: Soll die Medien-Projektion Owner-Typ/Kategorie/Visibility/Review pro Asset zentral oder pro Junction liefern? Entscheidung 8 fordert Pflichtfelder Owner-Typ/-ID/Kategorie/Sichtbarkeit/Review.
-   - Empfehlung: Projektion komponiert pro Junction-Kontext (kein neues zentrales Owner-Typ-Feld erzwingen → Lock A/G). Planner präzisiert je Surface (73–80 brauchen unterschiedliche Seams).
+   - **RESOLVED:** Owner-Typ/-ID werden **pro Junction-Kontext komponiert** (member via `media_assets.owner_member_id`; group/release/theme via Junction-Tabellen). KEIN neues zentrales Owner-Typ-Feld in `media_assets` (Lock A/G). Die Medien-Projektion liefert owner_type/owner_id/category/visibility/review_status pro Asset im Junction-Kontext. Pin in 72-03.
 
 5. **`disputed`/`hidden` im Content-Status — bleiben oder migrieren?**
-   - Mit `dispute_state` separat wird `status='disputed'` semantisch redundant. `hidden` überlappt mit Visibility/Review.
-   - Empfehlung: In 72 Content-Status UNVERÄNDERT lassen (keine Daten-Migration, D-05/Scope); nur additive Felder. Bereinigung später, falls nötig.
+   - **RESOLVED:** Content-Status (`anime_contributions.status`) bleibt in Phase 72 **unverändert** (keine Daten-Migration, D-05/Scope). `disputed`/`hidden` bleiben als Content-Werte erhalten; die Konflikt-Achse läuft separat über `dispute_state`. Negativ-Assertion in 72-01-Tests sperrt jede Änderung von `status`. Eventuelle Bereinigung später.
 
 ## Environment Availability
 

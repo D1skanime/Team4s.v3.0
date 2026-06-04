@@ -1448,6 +1448,7 @@ Plans:
 **Plans:** 0 plans
 
 Plans:
+
 - [ ] TBD (run /gsd-plan-phase 71 to break down)
 
 **Success Criteria** (what must be TRUE):
@@ -1569,6 +1570,7 @@ Plans:
 **Plans:** 7/7 plans complete
 
 Plans:
+
 - [x] `66-00-PLAN.md` - Wave-0 Test-Stubs (Nyquist-Validierung) anlegen
 - [x] `66-01-PLAN.md` - Migration 0092 member_claim_invitations anlegen und anwenden
 - [x] `66-02-PLAN.md` - Backend-Repositories: member_claims und member_claim_invitations
@@ -1591,6 +1593,7 @@ Plans:
 **Plans:** 5/5 plans complete
 
 Plans:
+
 - [x] 67-01-PLAN.md — Migration 0090: release_version_id + erweiterter UNIQUE-Constraint + Contract-Test + [BLOCKING] Apply
 - [x] 67-02-PLAN.md — Backend-Schreibpfad: GroupParticipatesInReleaseVersion, Dropdown-Lookup, vierspaltiger Upsert, Leader-Handler D-03-Validierung, Proposal-Input
 - [x] 67-03-PLAN.md — Public-Query: Ebene-1-Filter (IS NULL) + Versions-Aufschluesselung (attachVersionBreakdowns), DTOs, Repo-Test
@@ -1692,10 +1695,15 @@ Plans:
 
 **Plans:** 4 plans
 Plans:
+
 - [ ] `72-01-PLAN.md` — Migration 0096: additive Statusfelder (memorial, dispute_state, visibility_id + review-Lookup) + Wave-0-Roundtrip-Test
 - [ ] `72-02-PLAN.md` — Domänen-Projektions-Repo: Mitglied/historisch/Mitwirkender getrennt + dispute_state/visibility/review-Felder (GET-only)
 - [ ] `72-03-PLAN.md` — Medien-Ownership-Projektions-Repo: owner/category/visibility/review pro Junction-Kontext (GET-only)
 - [ ] `72-04-PLAN.md` — Contract-Slice (Lock K): OpenAPI-Schemas + 1:1 TS-Typen + api.ts-Clientfunktionen + Paritäts-Test
+
+**Cross-cutting constraints:**
+
+- D-05: ausschließlich GET-Read-Projektion, keine Schreib-Endpunkte
 
 ### Phase 73: Public Fansub Page `/fansubs/[slug]` erweitern
 
