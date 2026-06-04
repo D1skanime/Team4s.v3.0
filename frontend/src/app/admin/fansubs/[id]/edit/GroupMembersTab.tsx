@@ -307,7 +307,10 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
                   <Badge variant={statusBadgeVariant(member.status)}>
                     {statusLabel(member.status)}
                   </Badge>
-                  <Badge variant={visibilityBadgeVariant(member.visibility ?? 'internal')}>
+                  <Badge
+                    variant={visibilityBadgeVariant(member.visibility ?? 'internal')}
+                    className={styles.fansubEditMembershipVisibilityBadge}
+                  >
                     {visibilityLabel(member.visibility ?? 'internal')}
                   </Badge>
                   <Button

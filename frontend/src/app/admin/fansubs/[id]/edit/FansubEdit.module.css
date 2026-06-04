@@ -172,6 +172,14 @@
   margin-left: auto;
 }
 
+.fansubEditMembershipVisibilityBadge {
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  box-shadow: none;
+}
+
 .fansubEditMembershipBody {
   display: flex;
   align-items: flex-end;
