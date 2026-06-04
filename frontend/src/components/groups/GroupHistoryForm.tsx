@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Input, Select, Textarea } from '@/components/ui'
+import { Button, FormField, Input, Select, Textarea, YearPicker } from '@/components/ui'
 import styles from './groups.module.css'
 
 // ---------------------------------------------------------------------------
@@ -29,6 +29,9 @@ export const EMPTY_HISTORY_FORM: HistoryFormState = {
   year: '',
   note: '',
 }
+
+const HISTORY_YEAR_MIN = 1990
+const HISTORY_YEAR_MAX = 2099
 
 interface GroupHistoryFormProps {
   form: HistoryFormState
@@ -61,10 +64,7 @@ export function GroupHistoryForm({
       onSubmit={onSubmit}
       noValidate
     >
-      <div className={styles.historyFormField}>
-        <label className={styles.historyFormLabel} htmlFor="history-title">
-          Titel *
-        </label>
+      <FormField label="Titel" htmlFor="history-title" required error={titleError ?? undefined}>
         <Input
           id="history-title"
           type="text"
@@ -74,17 +74,9 @@ export function GroupHistoryForm({
           invalid={!!titleError}
           required
         />
-        {titleError ? (
-          <span className={styles.historyFormError} role="alert">
-            {titleError}
-          </span>
-        ) : null}
-      </div>
+      </FormField>
 
-      <div className={styles.historyFormField}>
-        <label className={styles.historyFormLabel} htmlFor="history-event-type">
-          Ereignistyp
-        </label>
+      <FormField label="Ereignistyp" htmlFor="history-event-type">
         <Select
           id="history-event-type"
           value={form.eventType}
@@ -96,30 +88,27 @@ export function GroupHistoryForm({
             </option>
           ))}
         </Select>
-      </div>
+      </FormField>
 
       <div className={styles.historyFormRow}>
-        <div className={styles.historyFormField}>
-          <label className={styles.historyFormLabel} htmlFor="history-year">
-            Jahr (optional)
-          </label>
-          <Input
+        <FormField
+          label="Jahr"
+          htmlFor="history-year"
+          hint="Optionaler Zeitpunkt für die Timeline."
+        >
+          <YearPicker
             id="history-year"
-            type="number"
-            min={1990}
-            max={2099}
-            placeholder="z. B. 2008"
+            label="Jahr"
             value={form.year}
-            onChange={(e) => onFormChange((f) => ({ ...f, year: e.target.value }))}
+            minYear={HISTORY_YEAR_MIN}
+            maxYear={HISTORY_YEAR_MAX}
+            onChange={(value) => onFormChange((f) => ({ ...f, year: value }))}
           />
-        </div>
+        </FormField>
         <div />
       </div>
 
-      <div className={styles.historyFormField}>
-        <label className={styles.historyFormLabel} htmlFor="history-note">
-          Notiz (optional)
-        </label>
+      <FormField label="Notiz" htmlFor="history-note" hint="Optionaler Kontext zum Ereignis.">
         <Textarea
           id="history-note"
           rows={2}
@@ -127,7 +116,7 @@ export function GroupHistoryForm({
           value={form.note}
           onChange={(e) => onFormChange((f) => ({ ...f, note: e.target.value }))}
         />
-      </div>
+      </FormField>
 
       {saveError ? (
         <p className={styles.historyFormError} role="alert">

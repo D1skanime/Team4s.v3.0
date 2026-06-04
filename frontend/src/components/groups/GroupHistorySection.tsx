@@ -1,13 +1,15 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 
 import {
+  Badge,
   Button,
   Card,
   EmptyState,
   ErrorState,
+  LoadingState,
   Modal,
   SectionHeader,
   Toolbar,
@@ -40,6 +42,19 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   rebranding: 'Umbenennung',
   milestone: 'Meilenstein',
   other: 'Sonstiges',
+}
+
+const EVENT_TYPE_BADGE_VARIANTS = {
+  founding: 'success',
+  disbanding: 'danger',
+  hiatus: 'warning',
+  rebranding: 'info',
+  milestone: 'neutral',
+  other: 'muted',
+} as const
+
+function eventTypeBadgeVariant(eventType: string): 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'muted' {
+  return EVENT_TYPE_BADGE_VARIANTS[eventType as keyof typeof EVENT_TYPE_BADGE_VARIANTS] ?? 'muted'
 }
 
 function sortEntries(entries: GroupHistoryRow[]): GroupHistoryRow[] {
@@ -238,15 +253,23 @@ export function GroupHistorySection({ fansubGroupId, authToken, readOnly = false
       {!readOnly ? (
         <Toolbar
           leading={
-            <Button variant="primary" size="sm" onClick={openAddForm} disabled={isFormOpen}>
-              + Meilenstein hinzufügen
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<Plus size={14} />}
+              onClick={openAddForm}
+              disabled={isFormOpen}
+            >
+              Meilenstein hinzufügen
             </Button>
           }
         />
       ) : null}
 
       {successMessage ? (
-        <p className={styles.historySuccessMessage} role="status">{successMessage}</p>
+        <div className={styles.historySuccessMessage} role="status">
+          <Badge variant="success">{successMessage}</Badge>
+        </div>
       ) : null}
 
       {isFormOpen && !readOnly ? (
@@ -263,7 +286,10 @@ export function GroupHistorySection({ fansubGroupId, authToken, readOnly = false
       ) : null}
 
       {isLoading ? (
-        <p style={{ padding: '8px 0', color: 'var(--text-faint)' }}>Wird geladen …</p>
+        <LoadingState
+          title="Meilensteine werden geladen"
+          description="Team4s lädt die Gruppen-Historie."
+        />
       ) : null}
 
       {!isLoading && loadError ? (
@@ -287,19 +313,33 @@ export function GroupHistorySection({ fansubGroupId, authToken, readOnly = false
             {visibleEntries.map((entry) => (
               <li key={entry.id} className={styles.historyRow}>
                 <span className={styles.historyYear}>{entry.year ?? '—'}</span>
-                <span className={styles.historyEventType}>
-                  {EVENT_TYPE_LABELS[entry.event_type] ?? entry.event_type}
-                </span>
-                <span className={styles.historyTitle}>
-                  {entry.title}
-                  {entry.note ? <span className={styles.historyNote}> — {entry.note}</span> : null}
-                </span>
+                <div className={styles.historyContent}>
+                  <div className={styles.historyMetaRow}>
+                    <Badge variant={eventTypeBadgeVariant(entry.event_type)}>
+                      {EVENT_TYPE_LABELS[entry.event_type] ?? entry.event_type}
+                    </Badge>
+                  </div>
+                  <strong className={styles.historyTitle}>{entry.title}</strong>
+                  {entry.note ? <p className={styles.historyNote}>{entry.note}</p> : null}
+                </div>
                 {!readOnly ? (
                   <div className={styles.historyRowActions}>
-                    <Button variant="ghost" size="sm" aria-label="Eintrag bearbeiten" onClick={() => openEditForm(entry)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      iconOnly
+                      aria-label="Eintrag bearbeiten"
+                      onClick={() => openEditForm(entry)}
+                    >
                       <Pencil size={14} />
                     </Button>
-                    <Button variant="danger" size="sm" aria-label="Eintrag löschen" onClick={() => setDeleteTarget(entry)}>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      iconOnly
+                      aria-label="Eintrag löschen"
+                      onClick={() => setDeleteTarget(entry)}
+                    >
                       <Trash2 size={14} />
                     </Button>
                   </div>
