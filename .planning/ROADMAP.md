@@ -1690,6 +1690,13 @@ Plans:
   5. Alle neuen/erweiterten Felder sind in `shared/contracts` (openapi.yaml, ggf. admin-content.yaml) und in `frontend/src/lib/api.ts`-Typen konsistent abgebildet; keine undocumented response fields.
   6. Migrationen sind append-only; bestehende Public/Admin-Reads brechen nicht (Runtime-Authority unverändert, keine Umstellung öffentlicher Anime-Reads).
 
+**Plans:** 4 plans
+Plans:
+- [ ] `72-01-PLAN.md` — Migration 0096: additive Statusfelder (memorial, dispute_state, visibility_id + review-Lookup) + Wave-0-Roundtrip-Test
+- [ ] `72-02-PLAN.md` — Domänen-Projektions-Repo: Mitglied/historisch/Mitwirkender getrennt + dispute_state/visibility/review-Felder (GET-only)
+- [ ] `72-03-PLAN.md` — Medien-Ownership-Projektions-Repo: owner/category/visibility/review pro Junction-Kontext (GET-only)
+- [ ] `72-04-PLAN.md` — Contract-Slice (Lock K): OpenAPI-Schemas + 1:1 TS-Typen + api.ts-Clientfunktionen + Paritäts-Test
+
 ### Phase 73: Public Fansub Page `/fansubs/[slug]` erweitern
 
 **Goal:** Die bestehende Public-Fansub-Seite wird kuratiert erweitert (keine neue Route), sodass Besucher die Gruppe als Geschichte verstehen: Hero, Kurzgeschichte, Highlights, Projekte, Mitglieder, Mitwirkende, Medien, Timeline, Deep-Dive — mit korrekter Datenherkunft und klaren Labels.
