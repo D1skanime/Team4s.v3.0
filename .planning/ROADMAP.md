@@ -1719,6 +1719,15 @@ Plans:
   4. Projektkarten verlinken auf `/anime/[id]/group/[groupId]` als Deep-Dive.
   5. Keine neue Public-Fansub-Route, keine ad-hoc-Fetches, keine Token-Direktzugriffe; alle Daten über bestehende API-Seams.
 
+**Plans:** 5 plans
+Plans:
+
+- [ ] `73-01-PLAN.md` — FansubSectionNav (Client-Komponente, IntersectionObserver) + Test-Scaffolds
+- [ ] `73-02-PLAN.md` — Hero, Story, Highlights, Projekte, Deep-Dive-Section-Komponenten
+- [ ] `73-03-PLAN.md` — FansubTeamSection + Sub-Komponenten + FansubContributorsSection
+- [ ] `73-04-PLAN.md` — FansubMediaSection + drei Ownership-Blöcke (parallel zu Plan 03)
+- [ ] `73-05-PLAN.md` — page.tsx-Umbau: paralleler Datenfetch + Section-Orchestrierung + FansubProfileTabs-Bereinigung
+
 ### Phase 74: Public Member Profile `/members/[slug]` + Memorial
 
 **Goal:** Die bestehende Public-Member-Seite wird zu einem dreistufigen Profil erweitert (Identität/Highlights → Geschichte/Gruppenbezug → filterbare Contributions), inkl. Status-/Memorial-Darstellung und kuratierter Badge-Anzeige.
