@@ -281,7 +281,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
                   <strong>{member.display_name}</strong>
                   <div className={styles.fansubEditMembershipMetaLine}>
                     <span>{formatZeitraum(member)}</span>
-                    <span>{member.app_username ? `App-Konto: ${member.app_username}` : 'Kein App-Konto verknüpft'}</span>
+                    <span>{member.app_username ? `Zugeordnet: ${member.app_username}` : 'Noch keinem aktuellen Gruppenmitglied zugeordnet'}</span>
                   </div>
                 </div>
                 <div className={styles.fansubEditMembershipControls}>
