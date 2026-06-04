@@ -1,10 +1,11 @@
 ---
 phase: 73
 slug: public-fansub-page-fansubs-slug-erweitern
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-04
+reviewed_at: 2026-06-04
 ---
 
 # Phase 73 — UI Design Contract
