@@ -5,7 +5,7 @@ milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
 stopped_at: Phase 72 context gathered
 last_updated: "2026-06-03T15:47:58.320Z"
-last_activity: "2026-06-03 - Completed quick task 260603-l77: Ergänze current-system-inventory.md um fehlende Oberflächen und Funktionsbereiche"
+last_activity: "2026-06-04 - Completed quick task 260604-d12: ui verbessern auf global ziehen"
 progress:
   total_phases: 76
   completed_phases: 51
@@ -395,10 +395,11 @@ Recent durable decisions:
 | 260602-k94 | Phase 61 bug triage after live UAT: no Phase 61 code bug found; record older empty-database migration-chain finding as unrelated historical-migration risk | 2026-06-02 | afb76c12 | [260602-k94-phase-61-bug-triage-after-live-uat-no-ph](./quick/260602-k94-phase-61-bug-triage-after-live-uat-no-ph/) |
 | 260602-o68 | phase 65 befunde fixen | 2026-06-02 | working tree | [260602-o68-phase-65-befunde-fixen](./quick/260602-o68-phase-65-befunde-fixen/) |
 | 260603-l77 | Ergänze current-system-inventory.md um fehlende Oberflächen und Funktionsbereiche | 2026-06-03 | working tree | [260603-l77-inventory-doc-gaps](./quick/260603-l77-inventory-doc-gaps/) |
+| 260604-d12 | ui verbessern auf global ziehen | 2026-06-04 | 049fb3ed | [260604-d12-ui-verbessern-auf-global-ziehen](./quick/260604-d12-ui-verbessern-auf-global-ziehen/) |
 
 ## Session Continuity
 
 Last session: 2026-06-03T15:47:58.258Z
 Stopped at: Phase 72 context gathered
-Last activity: 2026-06-03 - Completed quick task 260603-l77: Ergänze current-system-inventory.md um fehlende Oberflächen und Funktionsbereiche
+Last activity: 2026-06-04 - Completed quick task 260604-d12: ui verbessern auf global ziehen
 Resume file: .planning/phases/72-dom-nen-projektionen-status-fundament/72-CONTEXT.md
