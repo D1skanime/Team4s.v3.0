@@ -1742,6 +1742,16 @@ Plans:
   4. Memorial-Profile haben eine eigene, würdevolle Darstellung (keine normale Aktivitätsanzeige, keine Mengen-/Gamification-Badges) und sind nicht über normale Claim-Flows beanspruchbar.
   5. Badge-State wird über den bestehenden Badge-Service bezogen, nicht ad hoc im UI berechnet; Owner-Sichtbarkeit wird respektiert. Reuse Member API/`RichTextRenderer`; keine zweite Public-Member-Implementierung.
 
+**Plans:** 7 plans
+Plans:
+- [ ] `74-00-PLAN.md` — Wave-0 Test-Stubs (6 RED) + Migrations-Kollisions-Notiz (0096)
+- [ ] `74-01-PLAN.md` — Public-Badge-Quelle + Status ins PublicMemberProfile-DTO (Contract-first, Badges-13/C/K)
+- [ ] `74-02-PLAN.md` — Memorial-Setter (Global-Admin) + Claim-Sperre (beide Pfade) + Audit (J/D-14..D-17)
+- [ ] `74-03-PLAN.md` — Korrektur-melden: eigene Tabelle (Lock H) + review-gebundener Endpoint + Audit (D-18)
+- [ ] `74-04-PLAN.md` — Sektions-Scroll-Seite + Sticky-Nav + Status-Pill + würdevolle Memorial-Hero (C/D-01/D-02/D-09/D-10)
+- [ ] `74-05-PLAN.md` — Top-N-Badge-Highlights + clientseitige Contribution-Filter + Inline-Expand + Altlast-Migration (C/Badges-13/D-06..D-08/D-11)
+- [ ] `74-06-PLAN.md` — Write-Action-UI: Korrektur-Modal + Memorial-Setter-Action im Leader-Workspace + Human-Verify (D-12/D-16..D-18)
+
 ### Phase 75: Anime-Gruppen-Deep-Dive `/anime/[id]/group/[groupId]`
 
 **Goal:** Die bestehende gruppenspezifische Anime-Seite wird als zentraler Deep-Dive für Fansub-Projekte gestärkt, ohne gruppenspezifische Daten auf die neutrale Anime-Ebene zu schreiben.
