@@ -83,6 +83,19 @@ function memberAssignmentLabel(member: HistFansubGroupMember): string {
   return 'Noch keinem aktuellen Gruppenmitglied zugeordnet'
 }
 
+function statusHelpText(status: HistoricalContributionStatus): string {
+  if (status === 'draft') {
+    return 'Entwurf: Arbeitsstand. Nutze das, wenn Name, Jahre oder Zugehörigkeit noch nicht sauber eingeordnet sind.'
+  }
+  if (status === 'confirmed') {
+    return 'Von der Gruppe bestätigt: Die Gruppe steht fachlich hinter diesem historischen Eintrag. Das verknüpft noch kein aktuelles Gruppenmitglied.'
+  }
+  if (status === 'disputed') {
+    return 'Klärfall: Nutze das, wenn Angaben widersprüchlich sind, jemand widerspricht oder Rollen/Jahre erst geprüft werden müssen.'
+  }
+  return 'Historischer Eintrag: Standard für frühere Mitglieder, die grundsätzlich zur Gruppenhistorie gehören, aber noch nicht final bestätigt sind.'
+}
+
 type FormFields = {
   displayName: string
   joinedYear: string
@@ -403,7 +416,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
             <FormField
               label="Status"
               htmlFor="hist-member-status"
-              hint="Bewertet den historischen Eintrag, nicht die Zuordnung zu einem aktuellen Gruppenmitglied."
+              hint={statusHelpText(form.status)}
             >
               <Select
                 id="hist-member-status"
