@@ -63,10 +63,10 @@ function statusBadgeVariant(status: HistFansubGroupMember['status']): 'success' 
 }
 
 function statusLabel(status: HistFansubGroupMember['status']): string {
-  if (status === 'confirmed') return 'bestätigt'
-  if (status === 'disputed') return 'umstritten'
+  if (status === 'confirmed') return 'Von der Gruppe bestätigt'
+  if (status === 'disputed') return 'Klärfall'
   if (status === 'draft') return 'Entwurf'
-  return 'historisch'
+  return 'Historischer Eintrag'
 }
 
 function visibilityBadgeVariant(visibility: HistoricalContributionVisibility): 'success' | 'muted' {
@@ -79,7 +79,7 @@ function visibilityLabel(visibility: HistoricalContributionVisibility): string {
 
 function memberAssignmentLabel(member: HistFansubGroupMember): string {
   if (member.app_username) return `Zugeordnet: ${member.app_username}`
-  if (member.status === 'confirmed') return 'Bestätigt, aber keinem aktuellen Gruppenmitglied zugeordnet'
+  if (member.status === 'confirmed') return 'Von der Gruppe bestätigt, aber keinem aktuellen Gruppenmitglied zugeordnet'
   return 'Noch keinem aktuellen Gruppenmitglied zugeordnet'
 }
 
@@ -400,7 +400,11 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
           </FormField>
 
           <div className={styles.fansubEditMembershipModalGrid}>
-            <FormField label="Status" htmlFor="hist-member-status">
+            <FormField
+              label="Status"
+              htmlFor="hist-member-status"
+              hint="Bewertet den historischen Eintrag, nicht die Zuordnung zu einem aktuellen Gruppenmitglied."
+            >
               <Select
                 id="hist-member-status"
                 value={form.status}
@@ -409,10 +413,10 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
                   status: e.target.value as HistoricalContributionStatus,
                 }))}
               >
-                <option value="historical">historisch</option>
-                <option value="confirmed">bestätigt</option>
+                <option value="historical">Historischer Eintrag</option>
+                <option value="confirmed">Von der Gruppe bestätigt</option>
                 <option value="draft">Entwurf</option>
-                <option value="disputed">umstritten</option>
+                <option value="disputed">Klärfall</option>
               </Select>
             </FormField>
 
