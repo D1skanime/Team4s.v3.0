@@ -67,6 +67,20 @@
   color: var(--text-primary);
 }
 
+/* Einspaltige Sektions-Scroll-Seite (D-01/D-02) */
+.section {
+  max-width: 820px;
+  margin: 0 auto 32px;
+  width: 100%;
+}
+
+.sectionPlaceholder {
+  margin: 0;
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.9rem;
+}
+
+/* Legacy: profileGrid bleibt für OwnHiddenProfilePreview */
 .profileGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

@@ -9,10 +9,15 @@
  */
 
 export interface RoleTimelineEntry {
-  role: string
+  /** Rollenbezeichnung — entweder 'role' (generisch) oder 'role_label' (PublicMemberRoleEntry) */
+  role?: string | null
+  role_label?: string | null
   year?: number | null
+  /** Jahresstart — alternativ zu 'year' für PublicMemberRoleEntry */
+  started_year?: number | null
   group_name?: string | null
-  [key: string]: unknown
+  /** Gruppenname — alternativ zu 'group_name' für PublicMemberRoleEntry */
+  fansub_group_name?: string | null
 }
 
 export interface KnownForResult {
@@ -28,9 +33,9 @@ export function deriveKnownFor(roleTimeline: RoleTimelineEntry[]): KnownForResul
     return { activeYears: '', topRoles: [], knownGroups: [] }
   }
 
-  // Aktive Jahre: min/max über alle Einträge mit Jahr-Angabe
+  // Aktive Jahre: min/max über alle Einträge mit Jahr-Angabe (year oder started_year)
   const years = roleTimeline
-    .map((e) => e.year)
+    .map((e) => e.year ?? e.started_year)
     .filter((y): y is number => typeof y === 'number')
 
   let activeYears = ''
@@ -41,10 +46,12 @@ export function deriveKnownFor(roleTimeline: RoleTimelineEntry[]): KnownForResul
   }
 
   // Top-Rollen nach Häufigkeit (absteigend sortiert, stabile Reihenfolge bei Gleichstand)
+  // Akzeptiert 'role' (generisch) oder 'role_label' (PublicMemberRoleEntry)
   const roleCounts = new Map<string, number>()
   for (const entry of roleTimeline) {
-    if (entry.role) {
-      roleCounts.set(entry.role, (roleCounts.get(entry.role) ?? 0) + 1)
+    const roleKey = entry.role || entry.role_label
+    if (roleKey) {
+      roleCounts.set(roleKey, (roleCounts.get(roleKey) ?? 0) + 1)
     }
   }
   const topRoles = Array.from(roleCounts.entries())
@@ -52,11 +59,12 @@ export function deriveKnownFor(roleTimeline: RoleTimelineEntry[]): KnownForResul
     .slice(0, TOP_ROLES_LIMIT)
     .map(([role]) => role)
 
-  // Bekannte Gruppen: distinct group_name, Reihenfolge nach erstem Auftreten
+  // Bekannte Gruppen: distinct, Reihenfolge nach erstem Auftreten
+  // Akzeptiert 'group_name' (generisch) oder 'fansub_group_name' (PublicMemberRoleEntry)
   const seenGroups = new Set<string>()
   const knownGroups: string[] = []
   for (const entry of roleTimeline) {
-    const g = entry.group_name
+    const g = entry.group_name || entry.fansub_group_name
     if (g && !seenGroups.has(g)) {
       seenGroups.add(g)
       knownGroups.push(g)

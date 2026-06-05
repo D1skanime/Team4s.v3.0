@@ -1,0 +1,16 @@
+/* MemberSectionNav — Sticky-Anker-Nav für /members/[slug] (D-01, Phase-73-Paradigma) */
+
+.sectionNav {
+  position: sticky;
+  top: var(--header-height, 60px);
+  z-index: 10;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 8px 0;
+  background: var(--color-white, #fff);
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  /* Desktop: flex-row; Mobil: overflow-x: auto (horizontale Chip-Leiste) */
+  overflow-x: auto;
+  white-space: nowrap;
+}
