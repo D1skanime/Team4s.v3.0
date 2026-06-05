@@ -34,11 +34,19 @@ func AsClaimMutationError(err error) (*ClaimMutationError, bool) {
 }
 
 type MemberClaimsRepository struct {
-	db *pgxpool.Pool
+	db           *pgxpool.Pool
+	auditLogRepo *AuditLogRepository
 }
 
 func NewMemberClaimsRepository(db *pgxpool.Pool) *MemberClaimsRepository {
 	return &MemberClaimsRepository{db: db}
+}
+
+// WithAuditLog setzt den AuditLogRepository für denied-Audit-Einträge beim Claim-Block.
+// Fehlertolerant — nil-safe.
+func (r *MemberClaimsRepository) WithAuditLog(auditLog *AuditLogRepository) *MemberClaimsRepository {
+	r.auditLogRepo = auditLog
+	return r
 }
 
 type MemberSearchResult struct {
@@ -107,6 +115,37 @@ func (r *MemberClaimsRepository) SearchHistoricalMembers(ctx context.Context, qu
 func (r *MemberClaimsRepository) SubmitClaim(ctx context.Context, input SubmitClaimInput) (*MemberClaimRow, error) {
 	if input.MemberID <= 0 || input.AppUserID <= 0 {
 		return nil, fmt.Errorf("submit member claim: invalid ids")
+	}
+
+	// Memorial-Guard: profile_status prüfen — Gedenkprofile können nicht beansprucht werden
+	// (D-17/Fallstrick 3). Ablehnung mit Code "memorial_not_claimable" und HTTP 409.
+	var profileStatus string
+	if err := r.db.QueryRow(ctx, `
+		SELECT COALESCE(profile_status, 'active') FROM members WHERE id = $1
+	`, input.MemberID).Scan(&profileStatus); err != nil {
+		return nil, fmt.Errorf("submit member claim: check profile_status: %w", err)
+	}
+	if profileStatus == "memorial" {
+		// denied-Audit schreiben (D-15). Fehlertolerant via _ = (blockiert den Fehler-Return nicht).
+		// Action-Key "member_claim.memorial_blocked" als String-Literal (D-15-Stub-Erzwingung).
+		_ = func() error {
+			if r.auditLogRepo == nil {
+				return nil
+			}
+			return r.auditLogRepo.Write(ctx, AuditLogEntry{
+				ActorAppUserID: &input.AppUserID,
+				EventType:      "member_claim.memorial_blocked",
+				TargetType:     "member",
+				TargetID:       &input.MemberID,
+				Action:         "submit_claim",
+				Outcome:        "denied",
+			})
+		}()
+		return nil, &ClaimMutationError{
+			Code:       "memorial_not_claimable",
+			Message:    "Dieses Profil wird als Gedenkprofil geführt und kann nicht beansprucht werden.",
+			HTTPStatus: 409,
+		}
 	}
 
 	row := r.db.QueryRow(ctx, `

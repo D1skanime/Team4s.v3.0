@@ -19,10 +19,18 @@ import (
 type MemberClaimInvitationRepository struct {
 	db           *pgxpool.Pool
 	appPublicURL string
+	auditLogRepo *AuditLogRepository
 }
 
 func NewMemberClaimInvitationRepository(db *pgxpool.Pool, appPublicURL string) *MemberClaimInvitationRepository {
 	return &MemberClaimInvitationRepository{db: db, appPublicURL: strings.TrimRight(strings.TrimSpace(appPublicURL), "/")}
+}
+
+// WithAuditLog setzt den AuditLogRepository für denied-Audit-Einträge beim Claim-Block.
+// Fehlertolerant — nil-safe.
+func (r *MemberClaimInvitationRepository) WithAuditLog(auditLog *AuditLogRepository) *MemberClaimInvitationRepository {
+	r.auditLogRepo = auditLog
+	return r
 }
 
 type MemberClaimInvitationRow struct {
@@ -174,6 +182,36 @@ func (r *MemberClaimInvitationRepository) AcceptInvitation(ctx context.Context, 
 			return fmt.Errorf("accept member claim invitation: commit already verified invitation: %w", err)
 		}
 		return &ClaimMutationError{Code: "already_verified", Message: "Dieser historische Member-Eintrag ist bereits einem Team4s-Account zugeordnet.", HTTPStatus: 409}
+	}
+
+	// Memorial-Guard: profile_status prüfen — Gedenkprofile können nicht beansprucht werden
+	// (D-17/Fallstrick 3 — zweiter Claim-Pfad!). Ablehnung mit "memorial_not_claimable" + 409.
+	var profileStatus string
+	if err := r.db.QueryRow(ctx, `
+		SELECT COALESCE(profile_status, 'active') FROM members WHERE id = $1
+	`, invitation.MemberID).Scan(&profileStatus); err != nil {
+		return fmt.Errorf("accept member claim invitation: check profile_status: %w", err)
+	}
+	if profileStatus == "memorial" {
+		// denied-Audit schreiben (D-15). Fehlertolerant via _ = (blockiert den Fehler-Return nicht).
+		// Action-Key "member_claim.memorial_blocked" als String-Literal (D-15-Stub-Erzwingung).
+		_ = func() error {
+			if r.auditLogRepo == nil {
+				return nil
+			}
+			return r.auditLogRepo.Write(ctx, AuditLogEntry{
+				EventType:  "member_claim.memorial_blocked",
+				TargetType: "member",
+				TargetID:   &invitation.MemberID,
+				Action:     "accept_invitation",
+				Outcome:    "denied",
+			})
+		}()
+		return &ClaimMutationError{
+			Code:       "memorial_not_claimable",
+			Message:    "Dieses Profil wird als Gedenkprofil geführt und kann nicht beansprucht werden.",
+			HTTPStatus: 409,
+		}
 	}
 
 	if _, err := tx.Exec(ctx, `
