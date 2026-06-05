@@ -43,6 +43,7 @@ function makeMembership(overrides: Partial<MemberProfileMembership> = {}): Membe
     app_member_status: 'active',
     app_member_roles: ['fansub_lead'],
     has_historical_link: false,
+    historical_member_status: null,
     ...overrides,
   }
 }
@@ -61,21 +62,39 @@ describe('MembershipsSection', () => {
     expect(container.querySelector('[class*="badge"]')).toBeNull()
   })
 
-  it('shows historical memberships as former activity without a badge or raw status code', () => {
+  it('shows confirmed historical memberships as group-confirmed context without a badge or raw status code', () => {
     const { container } = render(
       <MembershipsSection
         memberships={[
           makeMembership({
             app_member_roles: [],
             has_historical_link: true,
+            historical_member_status: 'confirmed',
             logo_url: null,
           }),
         ]}
       />,
     )
 
-    expect(screen.getAllByText('Früher aktiv')).toHaveLength(1)
+    expect(screen.getAllByText('Bestätigtes Gruppenmitglied')).toHaveLength(1)
     expect(screen.queryByText('inactive')).toBeNull()
     expect(container.querySelector('[class*="badge"]')).toBeNull()
+  })
+
+  it('keeps unconfirmed historical memberships distinct from verified accounts', () => {
+    render(
+      <MembershipsSection
+        memberships={[
+          makeMembership({
+            app_member_roles: [],
+            has_historical_link: true,
+            historical_member_status: 'historical',
+          }),
+        ]}
+      />,
+    )
+
+    expect(screen.getAllByText('Historischer Eintrag')).toHaveLength(1)
+    expect(screen.queryByText('Verifiziert')).toBeNull()
   })
 })

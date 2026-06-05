@@ -19,14 +19,18 @@ import (
 )
 
 type fansubGroupCapabilitiesResponse struct {
-	CanEditGroup        bool `json:"can_edit_group"`
-	CanManageLinks      bool `json:"can_manage_links"`
-	CanViewMembers      bool `json:"can_view_members"`
-	CanManageMembers    bool `json:"can_manage_members"`
-	CanEditNotes        bool `json:"can_edit_notes"`
-	CanViewInvitations  bool `json:"can_view_invitations"`
-	CanCreateInvitation bool `json:"can_create_invitation"`
-	CanCancelInvitation bool `json:"can_cancel_invitation"`
+	CanEditGroup          bool `json:"can_edit_group"`
+	CanManageLinks        bool `json:"can_manage_links"`
+	CanViewMembers        bool `json:"can_view_members"`
+	CanManageMembers      bool `json:"can_manage_members"`
+	CanEditNotes          bool `json:"can_edit_notes"`
+	CanViewInvitations    bool `json:"can_view_invitations"`
+	CanCreateInvitation   bool `json:"can_create_invitation"`
+	CanCancelInvitation   bool `json:"can_cancel_invitation"`
+	CanViewReleases       bool `json:"can_view_releases"`
+	CanViewReleaseMedia   bool `json:"can_view_release_media"`
+	CanUploadReleaseMedia bool `json:"can_upload_release_media"`
+	CanEditReleaseNotes   bool `json:"can_edit_release_notes"`
 }
 
 type fansubGroupAppMemberStore interface {
@@ -914,21 +918,45 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
 		return
 	}
+	canViewReleases, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseView, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canViewReleaseMedia, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaView, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canUploadReleaseMedia, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpload, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canEditReleaseNotes, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseVersionNotesWrite, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
 
-	if !canEditGroup.Allowed && !canViewMembers.Allowed && !canManageMembers.Allowed && !canManageLinks.Allowed && !canEditNotes.Allowed && !canViewInvitations.Allowed && !canCreateInvitation.Allowed && !canCancelInvitation.Allowed {
+	if !canEditGroup.Allowed && !canViewMembers.Allowed && !canManageMembers.Allowed && !canManageLinks.Allowed && !canEditNotes.Allowed && !canViewInvitations.Allowed && !canCreateInvitation.Allowed && !canCancelInvitation.Allowed && !canViewReleases.Allowed && !canViewReleaseMedia.Allowed && !canUploadReleaseMedia.Allowed && !canEditReleaseNotes.Allowed {
 		writePermissionDenied(c, canViewMembers)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": fansubGroupCapabilitiesResponse{
-		CanEditGroup:        canEditGroup.Allowed,
-		CanManageLinks:      canManageLinks.Allowed,
-		CanViewMembers:      canViewMembers.Allowed,
-		CanManageMembers:    canManageMembers.Allowed,
-		CanEditNotes:        canEditNotes.Allowed,
-		CanViewInvitations:  canViewInvitations.Allowed,
-		CanCreateInvitation: canCreateInvitation.Allowed,
-		CanCancelInvitation: canCancelInvitation.Allowed,
+		CanEditGroup:          canEditGroup.Allowed,
+		CanManageLinks:        canManageLinks.Allowed,
+		CanViewMembers:        canViewMembers.Allowed,
+		CanManageMembers:      canManageMembers.Allowed,
+		CanEditNotes:          canEditNotes.Allowed,
+		CanViewInvitations:    canViewInvitations.Allowed,
+		CanCreateInvitation:   canCreateInvitation.Allowed,
+		CanCancelInvitation:   canCancelInvitation.Allowed,
+		CanViewReleases:       canViewReleases.Allowed,
+		CanViewReleaseMedia:   canViewReleaseMedia.Allowed,
+		CanUploadReleaseMedia: canUploadReleaseMedia.Allowed,
+		CanEditReleaseNotes:   canEditReleaseNotes.Allowed,
 	}})
 }
 

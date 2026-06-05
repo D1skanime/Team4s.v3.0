@@ -127,6 +127,11 @@ var roleMatrix = map[string][]Action{
 	RoleEncoder: {
 		ActionReleaseView,
 		ActionReleaseVersionView,
+		ActionReleaseVersionMediaView,
+		ActionReleaseVersionMediaUpload,
+		ActionReleaseVersionMediaUpdate,
+		ActionReleaseVersionMediaDeleteOwn,
+		ActionReleaseVersionNotesWrite,
 	},
 	RoleRawProvider: {
 		ActionReleaseView,

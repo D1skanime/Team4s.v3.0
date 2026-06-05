@@ -21,6 +21,9 @@ vi.mock('next/image', () => ({
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ id: '88' }),
+  usePathname: () => '/admin/fansubs/88/edit',
+  useRouter: () => ({ replace: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 const mockedUseReleaseVersionMedia = vi.fn<(versionId: number | null) => UseReleaseVersionMediaResult>()
@@ -159,6 +162,10 @@ beforeEach(() => {
       can_view_invitations: true,
       can_create_invitation: true,
       can_cancel_invitation: true,
+      can_view_releases: true,
+      can_view_release_media: true,
+      can_upload_release_media: true,
+      can_edit_release_notes: true,
     },
   })
   apiMocks.getAdminFansubAnime.mockResolvedValue({ data: [] })
@@ -248,13 +255,13 @@ describe('ReleaseVersionMediaDrawerSummary', () => {
 })
 
 describe('AdminFansubEditPage token-free wiring', () => {
-  it('allows a non-platform member with group capabilities into the fansub edit workspace', async () => {
+  it('allows a non-platform release role into the fansub edit workspace with only release tabs', async () => {
     apiMocks.getCurrentUser.mockResolvedValue({
       data: { is_platform_admin: false },
     })
     apiMocks.getFansubGroupCapabilities.mockResolvedValue({
       data: {
-        can_edit_group: true,
+        can_edit_group: false,
         can_manage_links: false,
         can_view_members: false,
         can_manage_members: false,
@@ -262,16 +269,126 @@ describe('AdminFansubEditPage token-free wiring', () => {
         can_view_invitations: false,
         can_create_invitation: false,
         can_cancel_invitation: false,
+        can_view_releases: true,
+        can_view_release_media: false,
+        can_upload_release_media: false,
+        can_edit_release_notes: false,
       },
+    })
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [
+        {
+          id: 13,
+          title: 'Naruto',
+          type: 'tv',
+          header_image: null,
+          cover_image: null,
+        },
+      ],
+    })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue({
+      data: [
+        {
+          release_id: 62,
+          release_version_id: 41,
+          anime_id: 13,
+          anime_title: 'Naruto',
+          fansub_group_id: 88,
+          fansub_name: 'SubGroup',
+          episode_id: 249,
+          episode_number: '1',
+          episode_title: 'Wer ist Naruto?',
+          source: null,
+          version_count: 1,
+          has_theme_assets: false,
+          duration_seconds: null,
+          created_at: '2026-05-25T00:00:00Z',
+        },
+      ],
     })
 
     render(<AdminFansubEditPage />)
 
     expect(await screen.findByRole('heading', { name: 'SubGroup' })).not.toBeNull()
+    expect(await screen.findByRole('button', { name: 'Anime & Veröffentlichungen' })).not.toBeNull()
+    expect(await screen.findByRole('heading', { name: 'Naruto' })).not.toBeNull()
+    fireEvent.click(await screen.findByRole('button', { name: 'Naruto ausklappen' }))
+    expect((await screen.findAllByRole('button', { name: 'Release 62 ausklappen' })).length).toBeGreaterThan(0)
     expect(apiMocks.getFansubGroupCapabilities).toHaveBeenCalledWith(88)
+    expect(screen.queryByRole('button', { name: 'Grunddaten' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Mitwirkende' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Editieren' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Notizen & Medien' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Notizen' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Medien' })).toBeNull()
     expect(
       screen.queryByText('Diese Ansicht ist dem Team4s-Admin vorbehalten.'),
     ).toBeNull()
+  })
+
+  it('opens the release drawer directly on Media for non-platform users with media rights', async () => {
+    const release = {
+      release_id: 62,
+      release_version_id: 41,
+      anime_id: 13,
+      anime_title: 'Naruto',
+      fansub_group_id: 88,
+      fansub_name: 'SubGroup',
+      episode_id: 249,
+      episode_number: '1',
+      episode_title: 'Wer ist Naruto?',
+      source: null,
+      version_count: 1,
+      has_theme_assets: false,
+      duration_seconds: null,
+      created_at: '2026-05-25T00:00:00Z',
+    }
+
+    apiMocks.getCurrentUser.mockResolvedValue({
+      data: { is_platform_admin: false },
+    })
+    apiMocks.getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: false,
+        can_manage_links: false,
+        can_view_members: false,
+        can_manage_members: false,
+        can_edit_notes: false,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+        can_view_releases: true,
+        can_view_release_media: true,
+        can_upload_release_media: true,
+        can_edit_release_notes: false,
+      },
+    })
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [
+        {
+          id: 13,
+          title: 'Naruto',
+          type: 'tv',
+          header_image: null,
+          cover_image: null,
+        },
+      ],
+    })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue({ data: [release] })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    fireEvent.click(await screen.findByRole('button', { name: 'Naruto ausklappen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Medien' }))
+
+    expect(screen.queryByRole('button', { name: 'Details' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Media' })).not.toBeNull()
+    await waitFor(() => expect(mockedUseReleaseVersionMedia).toHaveBeenCalledWith(41))
+    expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
+    expect(screen.getByRole('link', { name: 'Media verwalten' }).getAttribute('href')).toContain(
+      '/admin/episode-versions/41/edit?tab=media',
+    )
   })
 
   it('hides slug management from non-platform fansub leads and saves the group name without slug changes', async () => {
@@ -288,6 +405,10 @@ describe('AdminFansubEditPage token-free wiring', () => {
         can_view_invitations: false,
         can_create_invitation: false,
         can_cancel_invitation: false,
+        can_view_releases: false,
+        can_view_release_media: false,
+        can_upload_release_media: false,
+        can_edit_release_notes: false,
       },
     })
     apiMocks.updateFansubGroup.mockResolvedValue({ data: {} })

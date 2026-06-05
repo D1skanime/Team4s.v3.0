@@ -24,16 +24,6 @@
   align-items: center;
 }
 
-.inviteLinkRow input {
-  min-width: 0;
-  min-height: 2.35rem;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
-  color: var(--text-primary);
-  padding: 0.55rem 0.65rem;
-}
-
 .inviteLinkRow p {
   grid-column: 1 / -1;
   margin: 0;

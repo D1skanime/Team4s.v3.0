@@ -21,6 +21,7 @@ export interface MemberProfileMembership {
   app_member_status?: string | null
   app_member_roles?: string[]
   has_historical_link: boolean
+  historical_member_status?: 'draft' | 'historical' | 'confirmed' | 'disputed' | null
 }
 
 export interface MemberProfileCredit {

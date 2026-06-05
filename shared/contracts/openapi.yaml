@@ -1425,7 +1425,7 @@ paths:
                     error:
                       message: anmeldung erforderlich
         "403":
-          description: Admin permission required
+          description: Permission denied for this release version
           content:
             application/json:
               schema:
@@ -3584,6 +3584,52 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/capabilities:
+    get:
+      tags: [Fansubs]
+      summary: Load fansub group workspace capabilities
+      operationId: getFansubGroupCapabilities
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Fansub group workspace capabilities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubGroupCapabilitiesResponse"
+        "400":
+          description: Invalid fansub group id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Permission denied
           content:
             application/json:
               schema:
@@ -5857,6 +5903,85 @@ paths:
 
   # ─── Contribution Proposals (Phase 65) ───────────────────────────────────────
 
+  /api/v1/me/badges:
+    get:
+      tags: [Profile]
+      summary: List own badges
+      description: Returns the authenticated member's active badges, including hidden badges so the owner can restore visibility.
+      operationId: getMyBadges
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of badge entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberBadgesResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/me/badges/{badgeId}/visibility:
+    patch:
+      tags: [Profile]
+      summary: Update own badge visibility
+      description: Updates visibility for one badge owned by the authenticated member.
+      operationId: patchMyBadgeVisibility
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: badgeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BadgeVisibilityPatchRequest"
+      responses:
+        "200":
+          description: Visibility updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+        "400":
+          description: Invalid badge id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Badge not found or not owned by the member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid request body or visibility value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/v1/me/memberships:
     get:
       tags: [Profile]
@@ -7493,6 +7618,59 @@ components:
             type: string
         has_historical_link:
           type: boolean
+        historical_member_status:
+          type: string
+          nullable: true
+          enum:
+            - draft
+            - historical
+            - confirmed
+            - disputed
+    MemberBadge:
+      type: object
+      required:
+        - id
+        - badge_code
+        - badge_category
+        - visibility
+        - awarded_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        badge_code:
+          type: string
+        badge_category:
+          type: string
+        visibility:
+          type: string
+          enum:
+            - public
+            - internal
+            - hidden
+        awarded_at:
+          type: string
+          format: date-time
+    MemberBadgesResponse:
+      type: object
+      required:
+        - badges
+      properties:
+        badges:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberBadge"
+    BadgeVisibilityPatchRequest:
+      type: object
+      required:
+        - visibility
+      properties:
+        visibility:
+          type: string
+          enum:
+            - public
+            - internal
+            - hidden
     MemberProfileCredit:
       type: object
       required:
@@ -9587,6 +9765,52 @@ components:
           nullable: true
           allOf:
             - $ref: "#/components/schemas/FansubGroupMemberIdentitySummary"
+    FansubGroupCapabilities:
+      type: object
+      required:
+        - can_edit_group
+        - can_manage_links
+        - can_view_members
+        - can_manage_members
+        - can_edit_notes
+        - can_view_invitations
+        - can_create_invitation
+        - can_cancel_invitation
+        - can_view_releases
+        - can_view_release_media
+        - can_upload_release_media
+        - can_edit_release_notes
+      properties:
+        can_edit_group:
+          type: boolean
+        can_manage_links:
+          type: boolean
+        can_view_members:
+          type: boolean
+        can_manage_members:
+          type: boolean
+        can_edit_notes:
+          type: boolean
+        can_view_invitations:
+          type: boolean
+        can_create_invitation:
+          type: boolean
+        can_cancel_invitation:
+          type: boolean
+        can_view_releases:
+          type: boolean
+        can_view_release_media:
+          type: boolean
+        can_upload_release_media:
+          type: boolean
+        can_edit_release_notes:
+          type: boolean
+    FansubGroupCapabilitiesResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/FansubGroupCapabilities"
     FansubAppMemberListResponse:
       type: object
       required: [data]

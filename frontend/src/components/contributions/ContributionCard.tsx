@@ -1,7 +1,9 @@
 'use client'
 
+import { Badge, Button, Card } from '@/components/ui'
 import type { MeAnimeContribution } from '@/types/contributions'
 
+import styles from './contributions.module.css'
 import { VisibilityDropdown } from './VisibilityDropdown'
 
 interface ContributionCardProps {
@@ -12,21 +14,34 @@ interface ContributionCardProps {
   onVisibilityChange?: (id: number, isPublic: boolean) => void
 }
 
-// Lesbare Bezeichner für bekannte role_codes
 const ROLE_LABELS: Record<string, string> = {
   translator: 'Übersetzung',
   editor: 'Editing',
   timer: 'Timing',
-  typesetting: 'Typesetting',
+  typesetter: 'Typesetting / FX',
+  typesetting: 'Typesetting / FX',
+  encoder: 'Encoding',
   encoding: 'Encoding',
+  raw_provider: 'Raw-Bereitstellung',
   quality_checker: 'Qualitätsprüfung',
   project_lead: 'Projektleitung',
+  project_manager: 'Projektmanagement',
+  designer: 'Design',
+  admin: 'Administration',
   leader: 'Gruppenleitung',
   founder: 'Gründer/in',
+  other: 'Sonstiges',
 }
 
 function roleLabel(code: string): string {
   return ROLE_LABELS[code] ?? code
+}
+
+function yearRange(startedYear?: number | null, endedYear?: number | null): string | null {
+  if (startedYear && endedYear) return `${startedYear}-${endedYear}`
+  if (startedYear) return `ab ${startedYear}`
+  if (endedYear) return `bis ${endedYear}`
+  return null
 }
 
 export function ContributionCard({
@@ -36,106 +51,70 @@ export function ContributionCard({
   onReject,
   onVisibilityChange,
 }: ContributionCardProps) {
-  const { id, anime_id, fansub_group_id, role_codes, started_year, ended_year, is_public_on_member_profile, status, review_note } = contribution
-
-  const yearRange = started_year
-    ? ended_year
-      ? `${started_year}–${ended_year}`
-      : `ab ${started_year}`
-    : null
+  const {
+    id,
+    anime_id,
+    anime_title,
+    role_codes,
+    role_labels,
+    started_year,
+    ended_year,
+    is_public_on_member_profile,
+    status,
+    review_note,
+  } = contribution
+  const title = anime_title?.trim() || `Anime #${anime_id}`
+  const years = yearRange(started_year, ended_year)
 
   return (
-    <div
-      style={{
-        border: '1px solid #ddd',
-        borderRadius: 6,
-        padding: '12px 16px',
-        background: '#fafafa',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+    <Card variant="nestedFlat" className={styles.contributionCard}>
+      <div className={styles.contributionCardHeader}>
         <div>
-          <span style={{ fontWeight: 600, marginRight: 8 }}>Anime #{anime_id}</span>
-          <span style={{ color: '#666', fontSize: '0.875rem' }}>Gruppe #{fansub_group_id}</span>
-          {yearRange && (
-            <span style={{ marginLeft: 8, color: '#888', fontSize: '0.8rem' }}>{yearRange}</span>
-          )}
+          <div className={styles.contributionTitleRow}>
+            <span className={styles.contributionTitle}>{title}</span>
+            {years ? <span className={styles.metaText}>{years}</span> : null}
+          </div>
         </div>
-        {mode === 'confirmed' && onVisibilityChange && (
+
+        {mode === 'confirmed' && onVisibilityChange ? (
           <VisibilityDropdown
             contributionId={id}
             isPublic={is_public_on_member_profile}
             onChanged={(isPublic) => onVisibilityChange(id, isPublic)}
           />
-        )}
+        ) : null}
       </div>
 
-      {role_codes.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-          {role_codes.map((code) => (
-            <span
-              key={code}
-              style={{
-                background: '#e8f0fe',
-                color: '#1a56db',
-                borderRadius: 4,
-                padding: '2px 8px',
-                fontSize: '0.78rem',
-                fontWeight: 500,
-              }}
-            >
-              {roleLabel(code)}
-            </span>
+      {role_codes.length > 0 ? (
+        <div className={styles.roleList}>
+          {role_codes.map((code, index) => (
+            <Badge key={`${code}-${index}`} variant="info">
+              {role_labels?.[index] || roleLabel(code)}
+            </Badge>
           ))}
         </div>
-      )}
+      ) : null}
 
-      {mode === 'proposal' && status === 'disputed' && review_note && (
-        <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280', fontStyle: 'italic' }}>
-          <strong style={{ fontStyle: 'normal', color: '#4b5563' }}>Ablehngrund:</strong>{' '}
-          {review_note}
+      {mode === 'proposal' && status === 'disputed' && review_note ? (
+        <p className={styles.reviewNote}>
+          <strong>Ablehngrund:</strong> {review_note}
         </p>
-      )}
+      ) : null}
 
-      {mode === 'pending' && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-          {onConfirm && (
-            <button
-              onClick={() => onConfirm(id)}
-              style={{
-                background: '#16a34a',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 4,
-                padding: '4px 14px',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-              }}
-            >
+      {mode === 'pending' ? (
+        <div className={styles.actionsRow}>
+          {onConfirm ? (
+            <Button size="sm" variant="success" onClick={() => onConfirm(id)}>
               Bestätigen
-            </button>
-          )}
-          {onReject && (
-            <button
-              onClick={() => onReject(id)}
-              style={{
-                background: '#dc2626',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 4,
-                padding: '4px 14px',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-              }}
-            >
+            </Button>
+          ) : null}
+          {onReject ? (
+            <Button size="sm" variant="danger" onClick={() => onReject(id)}>
               Ablehnen
-            </button>
-          )}
+            </Button>
+          ) : null}
         </div>
-      )}
-    </div>
+      ) : null}
+    </Card>
   )
 }

@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"bytes"
@@ -889,6 +889,11 @@ func (h *AdminContentHandler) GetReleaseVersionCapabilities(c *gin.Context) {
 		return
 	}
 
+	canViewVersion, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionView, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
 	canViewMedia, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaView, versionID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
@@ -915,8 +920,8 @@ func (h *AdminContentHandler) GetReleaseVersionCapabilities(c *gin.Context) {
 		return
 	}
 
-	if !canViewMedia.Allowed && !canUploadMedia.Allowed && !canUpdateMedia.Allowed && !canDeleteMedia.Allowed && !canEditNotes.Allowed {
-		writePermissionDenied(c, canViewMedia)
+	if !canViewVersion.Allowed && !canViewMedia.Allowed && !canUploadMedia.Allowed && !canUpdateMedia.Allowed && !canDeleteMedia.Allowed && !canEditNotes.Allowed {
+		writePermissionDenied(c, canViewVersion)
 		return
 	}
 

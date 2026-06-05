@@ -37,7 +37,7 @@ type meBadgeResponse struct {
 }
 
 // GetMyBadges handles GET /api/v1/me/badges
-// Gibt die nicht ausgeblendeten Badges des eingeloggten Members zurück. Ohne
+// Gibt die aktiven Badges des eingeloggten Members inklusive hidden zurück. Ohne
 // verifizierten Member-Account wird eine leere Liste (kein Fehler) geliefert.
 func (h *MemberBadgesHandler) GetMyBadges(c *gin.Context) {
 	identity, ok := middleware.CommentAuthIdentityFromContext(c)

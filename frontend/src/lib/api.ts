@@ -7736,7 +7736,7 @@ export async function getMemberContributions(
   const encodedSlug = encodeURIComponent(slug);
   const response = await fetch(
     `${API_BASE_URL}/api/v1/members/${encodedSlug}/contributions`,
-    { next: { revalidate: 60 } },
+    { cache: "no-store" },
   );
 
   if (!response.ok) {
@@ -7757,7 +7757,7 @@ export async function getMemberContributions(
 }
 
 export async function getMyBadges(
-  authToken: string,
+  authToken?: string,
 ): Promise<MemberBadgesResponse> {
   const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me/badges`, {
@@ -7785,7 +7785,7 @@ export async function getMyBadges(
 }
 
 export async function patchMyBadgeVisibility(
-  authToken: string,
+  authToken: string | undefined,
   badgeId: number,
   visibility: string,
 ): Promise<void> {

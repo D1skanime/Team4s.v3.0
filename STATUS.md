@@ -2,62 +2,58 @@
 
 ## Project Snapshot
 - **Project:** Team4s.v3.0
-- **Milestone:** `v1.1 Asset Lifecycle Hardening`
+- **Milestone:** Post-MVP fansub/contribution polish after MVP phases 60-69.
 - **Branch:** `main`
-- **Status:** Phase 54, Phase 55, Phase 56, and Phase 57 are complete. Phase 57 automated verification, security review, and Nyquist validation passed on 2026-05-29; authenticated browser UAT is pending.
-- **Current focus:** Leave `main` pushed and restartable; next work should complete Phase 57 authenticated UAT or choose the next narrow cleanup slice from the verified baseline.
+- **Status:** Phases 60-69 are closed as the current fansub-contributions MVP baseline. Phase 70 is verified and committed. Phase 71 is planned/designed as the next separate UI-polish thread.
+- **Current focus:** Preserve the verified MVP baseline, then continue with Phase 71 or a deliberate post-MVP discussion/planning slice.
 
 ## What Works Now
-- Keycloak/API token boundary from Phase 51 remains the auth truth: API bearer is Keycloak `access_token`, not `id_token`.
-- Phase 52 profile account-return flow was live-tested during Phase 53 UAT and passed for the member flow.
-- Phase 53 profile page saves Team4s-owned fields and keeps account-owned display data read-only.
-- Phase 55 persists profile story content as TipTap JSON plus server-rendered sanitized HTML and derived plain text.
-- Phase 56 uses `react-easy-crop` behind a shared `Team4sCropper` component.
-- Profile avatar crop uses the shared cropper and still uploads source original plus cropped display through `uploadOwnProfileAvatar`.
-- Fansub group raster logo crop uses the shared cropper and still uploads through `uploadFansubMedia`.
-- SVG group logos bypass canvas cropping and remain on the existing upload path.
-- Profile activity periods now use `members.active_from_date` and `members.active_until_date` as the date source of truth, with year-limited `YYYY-01-01` values and deprecated legacy year mirrors.
-- Release-version media domain guardrails remain in force: use `release_version_media.release_version_id`, not `release_media` or `release_id` substitutes.
+- Fansub contributions have a real data/API/UI baseline: historical members, member roles, anime contributions, proposals, claims, release-version credits, badges, group milestones, archive search, contracts, and permission guards.
+- `/admin/fansubs/[id]/edit` is the canonical edit workspace for internal leader/admin actions.
+- `/admin/my-groups/[id]` is not the canonical edit workspace for proposals, claims, or milestones.
+- Claim invitations can link an app user to a historical member entry; normal group invitations remain separate app-membership flows.
+- Phase 70 profile story images persist through media-backed TipTap image references and have UAT evidence in commit `39517af0`.
+- Phase 71 artifacts exist for context/discussion/UI-spec, but no uncommitted Phase-71 UAT file is visible locally at closeout.
 
 ## What Is Not Done Yet
-- Profile hub content/activity design remains open.
-- Contributor-owned media upload text edit/delete remains open.
-- Older parking-lot cleanup and broad UI convergence ideas should stay as small tested slices.
+- Phase 71 implementation/closure should be confirmed against the latest branch/thread before coding further.
+- Global platform-admin user/rights overview is still a future planning topic.
+- Public Fansub Page information architecture is not fully defined yet.
+- Claim-management visibility should probably become permission/need-sensitive instead of always prominent for every fresh-data workflow.
+- `.planning/MVP-PHASES-60-69-SUMMARY.md` is local-only discussion prep and should not be staged unless the user asks.
 
 ## Valid Commands
 - `cd backend && go test ./...`
 - `cd backend && go test ./internal/handlers ./internal/repository`
-- `cd frontend && npm run test -- --run "src/app/me/profile/page.test.tsx" "src/components/editor/RichTextEditor.test.tsx"`
-- `cd frontend && npx vitest run src/components/media/crop/Team4sCropper.test.tsx src/components/media/crop/AvatarCropDialog.test.tsx --reporter verbose`
-- `cd frontend && npx vitest run src/components/admin/MediaUpload.test.tsx src/app/me/profile/page.test.tsx --reporter verbose`
 - `cd frontend && npm run typecheck`
 - `cd frontend && npm run lint`
 - `cd frontend && npm run build`
+- `cd frontend && npm test -- --run`
 - `git diff --check`
 - `git status --short --branch`
 
 ## Verification Evidence
-- Phase 51 live smoke passed: access token accepted, ID token rejected.
-- Phase 52 targeted auth/profile checks passed during its implementation slice.
-- Phase 53 profile/AppShell tests passed after validation expansion.
-- Phase 55 backend, frontend, typecheck, and validation evidence is recorded in Phase 55 artifacts.
-- Phase 56 targeted cropper/avatar/media/profile tests passed.
-- Phase 56 `npm run typecheck`, focused ESLint, `npm run build`, and functional UAT passed.
-- Phase 56 security review passed with `threats_open: 0`.
-- Phase 57 backend migration/handler/repository tests, profile page tests, typecheck, production build, and `git diff --check` passed.
-- Phase 57 security review passed with `threats_open: 0`, and validation is `nyquist_compliant: true`.
-- Phase 57 browser smoke reached `/me/profile` locally but showed the unauthenticated gate because no browser auth session was available.
-- `git diff --check` passed during closeout.
+- Phase 60 live SMTP/Mailpit UAT passed.
+- Phase 61 schema UAT/verification passed.
+- Phase 63 browser/API UAT passed after live fixes.
+- Phase 64 re-verification passed 6/6.
+- Phase 65 live browser UAT passed; proposal review route ownership moved to `/admin/fansubs/[id]/edit`.
+- Phase 66 claim/verification UAT passed 6/6.
+- Phase 67 release/episode credits passed live browser/API/DB verification.
+- Phase 68 badge/archive/milestone UAT passed after moving milestone CRUD into the edit area.
+- Phase 69 contract/permission hardening was committed in `16429983`.
+- Phase 70 final UAT was committed in `39517af0`.
+- Closeout checks: `git diff --check -- .planning/MVP-PHASES-60-69-SUMMARY.md` passed; no full test suite was run during closeout.
 
 ## Top 3 Next
-1. Run Phase 57 authenticated `/me/profile` UAT: save/reload activity years, then verify `Aktuell aktiv` clears/disables `Aktiv bis`.
-2. Run a 15-minute roadmap/requirements reconcile after push and confirm Phase 54-57 remain marked complete.
-3. Pick the next narrow cleanup slice from the verified baseline.
+1. Inspect Phase 71 latest artifacts/commits and confirm whether the reported UAT result exists in this workspace or another agent/thread.
+2. Decide whether to continue Phase 71 implementation/verification or start the post-MVP product discussion from the local MVP summary.
+3. Push/sync strategy: `main` is far ahead of `origin/main`; decide when and what to push.
 
 ## Risks / Blockers
+- Do not stage `.planning/MVP-PHASES-60-69-SUMMARY.md` for GitHub unless the user changes that decision.
+- Do not stage `frontend/tsconfig.tsbuildinfo`; it is generated local state.
+- Do not move internal edit actions back to `/admin/my-groups/[id]`.
+- Do not mix credits with permissions.
 - Do not collapse versioned release media back onto `release_media`.
 - Do not create a new upload flow unless the reuse guardrail has been checked and a decision is documented.
-- Do not change profile story persistence back to plain-text-only save behavior.
-- Do not reintroduce free text/number activity-period inputs; UI stays year-select only while the persisted contract remains date-backed.
-- `active_from_year` and `active_until_year` are compatibility mirrors only, not the new source of truth.
-- Phase 54 browser screenshots are planning evidence; keep them with the Phase 54 artifacts unless a later cleanup explicitly archives them.

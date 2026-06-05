@@ -245,6 +245,26 @@ func (h *ContributionsMeHandler) updateMyAnimeContributionStatus(c *gin.Context,
 		return
 	}
 
+	var currentStatus string
+	var createdBySelf bool
+	err = h.db.QueryRow(c.Request.Context(), `
+		SELECT status, COALESCE(created_by = $2, false)
+		FROM anime_contributions
+		WHERE id = $1
+	`, contributionID, identity.AppUserID).Scan(&currentStatus, &createdBySelf)
+	if errors.Is(err, pgx.ErrNoRows) {
+		notFound(c, "Contribution nicht gefunden")
+		return
+	}
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+	if createdBySelf && (currentStatus == "draft" || currentStatus == "proposed") {
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "Eigene Vorschläge müssen von einem Gruppenleader geprüft werden."}})
+		return
+	}
+
 	_, err = h.db.Exec(c.Request.Context(), `
 		UPDATE anime_contributions
 		SET status = $1, is_public_on_member_profile = $2, updated_at = NOW()

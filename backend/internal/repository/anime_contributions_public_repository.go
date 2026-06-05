@@ -297,7 +297,8 @@ func (r *AnimeContributionsRepository) GetPublicMemberContributions(ctx context.
 	var memberID int64
 	err := r.db.QueryRow(ctx, `
 		SELECT id FROM members
-		WHERE `+resolveExpr+` = $1
+		WHERE `+resolveExpr+` = $1 OR id::text = $1
+		ORDER BY CASE WHEN `+resolveExpr+` = $1 THEN 0 ELSE 1 END, id ASC
 		LIMIT 1
 	`, memberSlug).Scan(&memberID)
 	if err != nil {

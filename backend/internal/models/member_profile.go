@@ -20,16 +20,17 @@ type MemberProfileCapabilities struct {
 }
 
 type MemberProfileMembership struct {
-	FansubGroupID     int64    `json:"fansub_group_id"`
-	FansubGroupName   string   `json:"fansub_group_name"`
-	FansubGroupSlug   string   `json:"fansub_group_slug"`
-	LogoURL           *string  `json:"logo_url,omitempty"`
-	GroupStatus       string   `json:"group_status"`
-	JoinedYear        *int32   `json:"joined_year,omitempty"`
-	LeftYear          *int32   `json:"left_year,omitempty"`
-	AppMemberStatus   *string  `json:"app_member_status,omitempty"`
-	AppMemberRoles    []string `json:"app_member_roles,omitempty"`
-	HasHistoricalLink bool     `json:"has_historical_link"`
+	FansubGroupID          int64    `json:"fansub_group_id"`
+	FansubGroupName        string   `json:"fansub_group_name"`
+	FansubGroupSlug        string   `json:"fansub_group_slug"`
+	LogoURL                *string  `json:"logo_url,omitempty"`
+	GroupStatus            string   `json:"group_status"`
+	JoinedYear             *int32   `json:"joined_year,omitempty"`
+	LeftYear               *int32   `json:"left_year,omitempty"`
+	AppMemberStatus        *string  `json:"app_member_status,omitempty"`
+	AppMemberRoles         []string `json:"app_member_roles,omitempty"`
+	HasHistoricalLink      bool     `json:"has_historical_link"`
+	HistoricalMemberStatus *string  `json:"historical_member_status,omitempty"`
 }
 
 type MemberProfileCredit struct {

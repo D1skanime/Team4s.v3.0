@@ -3,7 +3,21 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 
-import { Badge, Button, Modal } from '@/components/ui'
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  FormField,
+  LoadingState,
+  Modal,
+  SectionHeader,
+  Select,
+  Textarea,
+  Toolbar,
+  YearPicker,
+} from '@/components/ui'
 import {
   ApiError,
   createMemberRole,
@@ -28,10 +42,7 @@ type MemberRolesTabProps = {
 }
 
 const CURRENT_YEAR = new Date().getFullYear()
-const YEAR_OPTIONS: number[] = []
-for (let y = CURRENT_YEAR; y >= 1980; y--) {
-  YEAR_OPTIONS.push(y)
-}
+const YEAR_MIN = 1980
 
 const GROUP_HISTORY_ROLE_OPTIONS = [
   { code: 'founder', label: 'Gründer/in' },
@@ -52,12 +63,16 @@ function formatZeitraum(role: HistGroupMemberRole): string {
   return `${von} – ${bis}`
 }
 
-function statusBadgeVariant(status: HistGroupMemberRole['status']): 'info' | 'muted' {
-  return status === 'confirmed' ? 'info' : 'muted'
+function statusBadgeVariant(status: HistGroupMemberRole['status']): 'success' | 'info' {
+  return status === 'confirmed' ? 'success' : 'info'
 }
 
 function statusLabel(status: HistGroupMemberRole['status']): string {
-  return status === 'confirmed' ? 'bestätigt' : 'historisch'
+  return status === 'confirmed' ? 'Bestätigt' : 'Historisch'
+}
+
+function roleLabelForCode(code: string): string {
+  return GROUP_HISTORY_ROLE_OPTIONS.find((option) => option.code === code)?.label ?? code
 }
 
 type FormFields = {
@@ -76,6 +91,13 @@ const EMPTY_FORM: FormFields = {
   endedYear: '',
   note: '',
   status: 'historical',
+}
+
+function statusHelpText(status: FormFields['status']): string {
+  if (status === 'confirmed') {
+    return 'Bestätigt: Diese Rolle ist für die Gruppenhistorie geprüft.'
+  }
+  return 'Historisch: Der Rolleneintrag gehört zur Timeline, ist aber noch nicht final bestätigt.'
 }
 
 function roleToForm(role: HistGroupMemberRole): FormFields {
@@ -99,6 +121,9 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
   const [form, setForm] = useState<FormFields>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [modalError, setModalError] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<HistGroupMemberRole | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -151,6 +176,16 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
     setModalOpen(false)
     setEditTarget(null)
     setModalError(null)
+  }
+
+  function openDelete(role: HistGroupMemberRole) {
+    setDeleteTarget(role)
+    setDeleteError(null)
+  }
+
+  function closeDeleteModal() {
+    setDeleteTarget(null)
+    setDeleteError(null)
   }
 
   async function handleSave() {
@@ -206,59 +241,77 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
     }
   }
 
-  async function handleDelete(role: HistGroupMemberRole) {
-    if (!window.confirm(`Rolleneintrag für "${role.member_display_name}" wirklich löschen?`)) return
-
+  async function handleDelete() {
+    if (!deleteTarget) return
     try {
-      await deleteMemberRole(fansubId, role.id)
+      setDeleting(true)
+      setDeleteError(null)
+      await deleteMemberRole(fansubId, deleteTarget.id)
       await load()
+      closeDeleteModal()
     } catch (err) {
-      setError(formatApiError(err, 'Rolle konnte nicht gelöscht werden.'))
+      setDeleteError(formatApiError(err, 'Rolle konnte nicht gelöscht werden.'))
+    } finally {
+      setDeleting(false)
     }
   }
 
   return (
-    <div className={styles.fansubEditMembershipSurface}>
-      <div className={styles.fansubEditMembershipIntro}>
-        <div>
-          <p className={styles.fansubEditBasicEyebrow}>Rollen & Zeiträume</p>
-          <h3 className={styles.fansubEditMembershipTitle}>Rollen/Timeline</h3>
-          <p className={styles.fansubEditHint}>
-            Historische Rollen und Zeiträume der Gruppenmitglieder.
-            Leader-Zeiträume können hier mit Jahresangaben erfasst werden.
-          </p>
-        </div>
-        <Button
-          variant="primary"
-          leftIcon={<Plus size={15} aria-hidden="true" />}
-          onClick={openNew}
-        >
-          Rolle hinzufügen
-        </Button>
-      </div>
-
-      {error ? <div className={styles.errorBox}>{error}</div> : null}
-      {loading ? <div className={styles.fansubEditReleaseState}>Rollen werden geladen...</div> : null}
+    <Card
+      variant="section"
+      className={styles.fansubEditMembershipSurface}
+      header={(
+        <SectionHeader
+          eyebrow="Gruppenhistorie"
+          title="Historische Rollen"
+          description="Dokumentiere, welche Rolle ein Mitglied in der Geschichte dieser Gruppe hatte. Diese Einträge vergeben keine App-Rechte."
+          actions={(
+            <Toolbar>
+              <Button
+                variant="primary"
+                leftIcon={<Plus size={15} aria-hidden="true" />}
+                onClick={openNew}
+              >
+                Rolle hinzufügen
+              </Button>
+            </Toolbar>
+          )}
+        />
+      )}
+    >
+      {error ? (
+        <ErrorState
+          title="Rollen konnten nicht geladen werden"
+          description={error}
+          action={<Button variant="secondary" onClick={() => void load()}>Erneut laden</Button>}
+        />
+      ) : null}
+      {loading ? (
+        <LoadingState
+          title="Rollen werden geladen"
+          description="Die Timeline der Gruppenmitglieder wird vorbereitet."
+        />
+      ) : null}
 
       {!loading && !error && roles.length === 0 ? (
-        <div className={styles.fansubEditMembershipEmpty}>
-          <strong>Noch keine Rolleneinträge vorhanden</strong>
-          <p className={styles.fansubEditHint}>
-            Füge den ersten Rolleneintrag hinzu, um die Timeline aufzubauen.
-          </p>
-        </div>
+        <EmptyState
+          title="Noch keine Rolleneinträge vorhanden"
+          description="Füge den ersten Rolleneintrag hinzu, um die Timeline aufzubauen."
+          action={<Button variant="primary" leftIcon={<Plus size={15} aria-hidden="true" />} onClick={openNew}>Rolle hinzufügen</Button>}
+          variant="withAction"
+        />
       ) : null}
 
       {!loading && roles.length > 0 ? (
         <div className={styles.fansubEditMembershipList}>
           {roles.map((role) => (
-            <div key={role.id} className={styles.fansubEditMembershipCard}>
+            <Card key={role.id} variant="nestedFlat" className={styles.fansubEditMembershipCard}>
               <div className={styles.fansubEditMembershipCardTop}>
                 <div className={styles.fansubEditMembershipIdentity}>
-                  <strong>
-                    {formatZeitraum(role)}&nbsp;&nbsp;{role.member_display_name}&nbsp;&nbsp;
-                    {role.role_label ?? role.role_code}
-                  </strong>
+                  <strong>{role.member_display_name}</strong>
+                  <span className={styles.fansubEditHint}>
+                    {formatZeitraum(role)} · {role.role_label ?? roleLabelForCode(role.role_code)}
+                  </span>
                   {role.note ? (
                     <span className={styles.fansubEditHint}>{role.note}</span>
                   ) : null}
@@ -270,22 +323,22 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
                   <Button
                     variant="ghost"
                     size="sm"
+                    iconOnly
                     leftIcon={<Pencil size={14} aria-hidden="true" />}
+                    aria-label={`Rolle von ${role.member_display_name} bearbeiten`}
                     onClick={() => openEdit(role)}
-                  >
-                    Bearbeiten
-                  </Button>
+                  />
                   <Button
-                    variant="ghost"
+                    variant="danger"
                     size="sm"
+                    iconOnly
                     leftIcon={<Trash2 size={14} aria-hidden="true" />}
-                    onClick={() => void handleDelete(role)}
-                  >
-                    Löschen
-                  </Button>
+                    aria-label={`Rolle von ${role.member_display_name} löschen`}
+                    onClick={() => openDelete(role)}
+                  />
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       ) : null}
@@ -294,14 +347,29 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
         open={modalOpen}
         onClose={closeModal}
         title={editTarget ? 'Rolle bearbeiten' : 'Rolle hinzufügen'}
-        description="Historischen Rolleneintrag für ein Gruppenmitglied anlegen oder bearbeiten."
+        description="Historische Gruppenrolle für ein Mitglied anlegen oder bearbeiten."
+        footer={(
+          <>
+            <Button variant="secondary" onClick={closeModal}>Abbrechen</Button>
+            <Button
+              variant="primary"
+              onClick={() => void handleSave()}
+              loading={saving}
+              disabled={!form.memberId || !form.roleCode.trim()}
+            >
+              Speichern
+            </Button>
+          </>
+        )}
       >
         <div className={styles.fansubEditMembershipModalStack}>
-          {modalError ? <div className={styles.errorBox}>{modalError}</div> : null}
+          {modalError ? (
+            <ErrorState title="Rolle konnte nicht gespeichert werden" description={modalError} />
+          ) : null}
 
-          <label>
-            <span className={styles.fansubEditHint}>Mitglied (Pflichtfeld)</span>
-            <select
+          <FormField label="Mitglied" htmlFor="member-role-member" required disabled={!!editTarget}>
+            <Select
+              id="member-role-member"
               value={form.memberId}
               onChange={(e) => setForm((f) => ({ ...f, memberId: e.target.value }))}
               aria-label="Mitglied auswählen"
@@ -311,12 +379,12 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
               {members.map((m) => (
                 <option key={m.id} value={String(m.id)}>{m.display_name}</option>
               ))}
-            </select>
-          </label>
+            </Select>
+          </FormField>
 
-          <label>
-            <span className={styles.fansubEditHint}>Rolle (Pflichtfeld)</span>
-            <select
+          <FormField label="Rolle" htmlFor="member-role-role" required>
+            <Select
+              id="member-role-role"
               value={form.roleCode}
               onChange={(e) => setForm((f) => ({ ...f, roleCode: e.target.value }))}
               aria-label="Rolle auswählen"
@@ -325,69 +393,81 @@ export function MemberRolesTab({ fansubId }: MemberRolesTabProps) {
               {GROUP_HISTORY_ROLE_OPTIONS.map((opt) => (
                 <option key={opt.code} value={opt.code}>{opt.label}</option>
               ))}
-            </select>
-          </label>
+            </Select>
+          </FormField>
 
-          <label>
-            <span className={styles.fansubEditHint}>Von-Jahr (optional)</span>
-            <select
-              value={form.startedYear}
-              onChange={(e) => setForm((f) => ({ ...f, startedYear: e.target.value }))}
-              aria-label="Von-Jahr"
-            >
-              <option value="">– kein Jahr –</option>
-              {YEAR_OPTIONS.map((y) => (
-                <option key={y} value={String(y)}>{y}</option>
-              ))}
-            </select>
-          </label>
+          <div className={styles.fansubEditModalGrid}>
+            <FormField label="Von-Jahr" htmlFor="member-role-started-year">
+              <YearPicker
+                id="member-role-started-year"
+                label="Von-Jahr"
+                value={form.startedYear}
+                minYear={YEAR_MIN}
+                maxYear={CURRENT_YEAR}
+                onChange={(year) => setForm((f) => ({ ...f, startedYear: year }))}
+              />
+            </FormField>
+            <FormField label="Bis-Jahr" htmlFor="member-role-ended-year">
+              <YearPicker
+                id="member-role-ended-year"
+                label="Bis-Jahr"
+                value={form.endedYear}
+                minYear={YEAR_MIN}
+                maxYear={CURRENT_YEAR}
+                onChange={(year) => setForm((f) => ({ ...f, endedYear: year }))}
+              />
+            </FormField>
+          </div>
 
-          <label>
-            <span className={styles.fansubEditHint}>Bis-Jahr (optional)</span>
-            <select
-              value={form.endedYear}
-              onChange={(e) => setForm((f) => ({ ...f, endedYear: e.target.value }))}
-              aria-label="Bis-Jahr"
-            >
-              <option value="">– kein Jahr –</option>
-              {YEAR_OPTIONS.map((y) => (
-                <option key={y} value={String(y)}>{y}</option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            <span className={styles.fansubEditHint}>Notiz (optional)</span>
-            <input
-              type="text"
+          <FormField label="Notiz" htmlFor="member-role-note" hint="Optionaler Kontext für spätere Prüfung oder Einordnung.">
+            <Textarea
+              id="member-role-note"
               value={form.note}
               onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
               placeholder="Ergänzende Anmerkung"
               aria-label="Notiz"
+              rows={3}
             />
-          </label>
+          </FormField>
 
-          <label>
-            <span className={styles.fansubEditHint}>Status</span>
-            <select
+          <FormField label="Status" htmlFor="member-role-status" hint={statusHelpText(form.status)}>
+            <Select
+              id="member-role-status"
               value={form.status}
               onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as 'historical' | 'confirmed' }))}
               aria-label="Status"
             >
-              <option value="historical">historisch</option>
-              <option value="confirmed">bestätigt</option>
-            </select>
-          </label>
-
-          <Button
-            variant="primary"
-            onClick={() => void handleSave()}
-            disabled={saving || !form.memberId || !form.roleCode.trim()}
-          >
-            {saving ? 'Wird gespeichert...' : 'Speichern'}
-          </Button>
+              <option value="historical">Historisch</option>
+              <option value="confirmed">Bestätigt</option>
+            </Select>
+          </FormField>
         </div>
       </Modal>
-    </div>
+      <Modal
+        open={deleteTarget != null}
+        onClose={closeDeleteModal}
+        title="Rolleneintrag löschen"
+        description="Diese Änderung entfernt den historischen Rolleneintrag aus der Gruppenhistorie."
+        footer={(
+          <>
+            <Button variant="secondary" onClick={closeDeleteModal}>Abbrechen</Button>
+            <Button variant="danger" onClick={() => void handleDelete()} loading={deleting}>
+              Löschen
+            </Button>
+          </>
+        )}
+      >
+        <div className={styles.fansubEditMembershipModalStack}>
+          {deleteError ? (
+            <ErrorState title="Rolle konnte nicht gelöscht werden" description={deleteError} />
+          ) : null}
+          {deleteTarget ? (
+            <p className={styles.fansubEditMembershipDeleteText}>
+              Möchtest du die Rolle <strong>{deleteTarget.role_label ?? roleLabelForCode(deleteTarget.role_code)}</strong> von {deleteTarget.member_display_name} wirklich löschen?
+            </p>
+          ) : null}
+        </div>
+      </Modal>
+    </Card>
   )
 }

@@ -1,0 +1,109 @@
+.contributionList {
+  display: grid;
+  gap: 10px;
+}
+
+.proposalStack {
+  display: grid;
+  gap: 18px;
+}
+
+.proposalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.proposalIntro {
+  padding: 12px 14px;
+  border: 1px solid rgba(34, 128, 82, 0.28);
+  border-radius: 8px;
+  background: rgba(238, 246, 241, 0.92);
+  color: #28533a;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.proposalGroup {
+  display: grid;
+  gap: 10px;
+}
+
+.proposalList {
+  display: grid;
+  gap: 10px;
+}
+
+.contributionCard {
+  display: grid;
+  gap: 10px;
+}
+
+.contributionCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.contributionTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.contributionTitle {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--color-text, #0f172a);
+}
+
+.metaText {
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.85rem;
+}
+
+.roleList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reviewNote {
+  margin: 0;
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.selfPublishPanel {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(47, 95, 227, 0.18);
+  border-radius: 8px;
+  background: rgba(240, 244, 255, 0.82);
+  color: #3a4c80;
+  font-size: 0.875rem;
+}
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .proposalHeader {
+    align-items: stretch;
+  }
+
+  .proposalHeader > * {
+    width: 100%;
+  }
+}

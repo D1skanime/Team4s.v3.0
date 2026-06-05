@@ -8,6 +8,7 @@ import {
   Button,
   Card,
   EmptyState,
+  Input,
   SectionHeader,
   Table,
   TableBody,
@@ -283,7 +284,7 @@ export function ClaimManagementPanel({ groupId }: ClaimManagementPanelProps) {
                 />
                 {invite ? (
                   <div className={styles.inviteLinkRow}>
-                    <input id={`claim-invite-link-${member.id}`} type="text" aria-label={`Einladungslink für ${member.display_name}`} readOnly value={inviteLink} onFocus={(event) => event.currentTarget.select()} />
+                    <Input id={`claim-invite-link-${member.id}`} type="text" aria-label={`Einladungslink für ${member.display_name}`} readOnly value={inviteLink} onFocus={(event) => event.currentTarget.select()} />
                     <Button variant="secondary" size="sm" leftIcon={<Copy size={16} />} onClick={() => void handleCopyLink(member.id, inviteLink)}>
                       {copyStates[member.id] === 'copied' ? 'Kopiert!' : copyStates[member.id] === 'selected' ? 'Link markiert' : 'Link kopieren'}
                     </Button>
@@ -337,7 +338,7 @@ export function ClaimManagementPanel({ groupId }: ClaimManagementPanelProps) {
               <TableCell>{request.app_user_id}</TableCell>
               <TableCell>{request.note || '-'}</TableCell>
               <TableCell>{formatDate(request.created_at)}</TableCell>
-              <TableCell><input type="text" placeholder="Nickname eingeben..." value={approveNicknames[request.id] || ''} onChange={(event) => setApproveNicknames((current) => ({ ...current, [request.id]: event.target.value }))} /></TableCell>
+              <TableCell><Input type="text" placeholder="Nickname eingeben..." value={approveNicknames[request.id] || ''} onChange={(event) => setApproveNicknames((current) => ({ ...current, [request.id]: event.target.value }))} /></TableCell>
               <TableCell><div className={styles.rowActions}><Button size="sm" variant="success" leftIcon={<FilePlus size={16} />} onClick={() => void handleApproveRequest(request.id)}>Anlegen</Button><Button size="sm" variant="danger" leftIcon={<UserX size={16} />} onClick={() => void handleRejectRequest(request.id)}>Ablehnen</Button></div></TableCell>
             </TableRow>
           ))}</TableBody>

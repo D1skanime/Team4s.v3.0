@@ -1,0 +1,60 @@
+.modalFooter {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.modalError {
+  flex: 1;
+  margin: 0;
+  color: var(--color-error);
+  font-size: 0.85rem;
+}
+
+.memberList {
+  display: grid;
+  gap: 0.65rem;
+  max-height: 55vh;
+  overflow-y: auto;
+  padding-right: 0.15rem;
+}
+
+.memberCard {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.memberHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.memberName {
+  font-weight: 600;
+}
+
+.memberDetails {
+  display: grid;
+  gap: 0.8rem;
+  margin-left: 1.6rem;
+}
+
+.fieldGroup {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.fieldLabel {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}

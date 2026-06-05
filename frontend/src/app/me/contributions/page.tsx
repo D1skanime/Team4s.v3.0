@@ -53,7 +53,7 @@ export default function MyContributionsPage() {
   }, [hasAuthSession, isClientInitialized])
 
   if (!isClientInitialized || isLoading) {
-    return <LoadingState title="Beiträge werden geladen" description="Team4s lädt deine Contributions." />
+    return <LoadingState title="Beiträge werden geladen" description="Team4s lädt deine Beiträge." />
   }
 
   if (error || !contributions) {

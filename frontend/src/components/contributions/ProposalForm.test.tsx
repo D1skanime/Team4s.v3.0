@@ -28,7 +28,7 @@ describe('ProposalForm', () => {
     expect(markup).toContain('90 Tagen')
   })
 
-  it('enthält den Anime-Typeahead-Input mit korrektem Placeholder', () => {
+  it('enthält die gruppengebundene Anime-Auswahl mit Kontext', () => {
     const markup = renderToStaticMarkup(
       <ProposalForm
         onSuccess={vi.fn()}
@@ -37,7 +37,14 @@ describe('ProposalForm', () => {
         roleDefinitions={ROLE_DEFINITIONS}
       />,
     )
-    expect(markup).toContain('Anime suchen oder auswählen')
+    expect(markup).toContain('Bei welchem Anime/Projekt dieser Gruppe?')
+    expect(markup).toContain('Erst Gruppe auswählen')
+    expect(markup).toContain('Du schlägst hier keine freie Anime-Notiz vor.')
+    expect(markup).toContain('Was möchtest du bestätigen lassen?')
+    expect(markup).toContain('Ganzer Anime / Projekt')
+    expect(markup).toContain('Bestimmte Folgen / Release-Version')
+    expect(markup).toContain('Zur Bestätigung senden')
+    expect(markup).toContain('nicht als öffentlicher Profiltext angezeigt')
   })
 
   it('zeigt Rollenoptionen aus den roleDefinitions', () => {

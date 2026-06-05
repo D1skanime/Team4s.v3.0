@@ -1,48 +1,39 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phase 55 is complete: profile story persistence is TipTap-contract based, not plain-text-only.
-- Phase 56 is complete: shared cropper foundation shipped, UAT passed, security passed.
-- Phase 57 is complete at automated-verification/security/validation level: profile activity periods now persist through year-limited DATE fields; authenticated browser UAT remains pending.
-- Phase 54 drawer/header work is complete; its screenshots remain as planning evidence.
+- Phases 60-69 are the current MVP baseline for fansub contributions and historical member identity.
+- Phase 70 is complete and verified: member profile story images are persisted through Team4s media-backed TipTap image references.
+- Phase 71 is the active post-MVP polish/design context, but confirm the latest UAT artifact before treating it as locally closed.
 
 ## Useful Facts To Keep
-- Phase 51 auth truth: `id_token` is only a login/identity artifact; Team4s API bearer must be Keycloak `access_token`.
-- API audience is `team4s-api`; frontend client/authorized party is `team4s-frontend`.
-- 24h login means refresh/SSO lifetime, not a 24h API access token.
-- `release_version_media` is canonical for versioned Admin/Fansub process media.
-- Release-version media must be addressed with `release_version_id`, not `release_id`.
-- `release_media` remains separate release-level/public/legacy structure and is not a replacement for versioned process media.
-- `release_version_groups.fansub_group_id` is canonical; `fansubgroup_id` is gone locally via migration 0057.
-- Upload guardrail: reuse existing domain flows before adding a new upload path.
-- Phase 55 profile story persistence uses TipTap JSON plus server-rendered sanitized HTML and derived plain text.
-- Phase 56 cropper uses `react-easy-crop` behind `Team4sCropper`.
-- `Team4sCropper` exports a client-side cropped `File`; it does not upload, authenticate, persist, or know media ownership.
-- Avatar crop keeps source original plus cropped display through `uploadOwnProfileAvatar`.
-- Fansub group logo crop keeps group media ownership through `MediaUpload` and `uploadFansubMedia`.
-- SVG group logos bypass canvas/cropper conversion.
-- Profile activity period source of truth is `members.active_from_date` / `members.active_until_date`, normalized to `YYYY-01-01` and constrained to years 1970-2100.
-- Legacy `active_from_year` / `active_until_year` remain as deprecated compatibility mirrors only.
+- `/admin/fansubs/[id]/edit` owns internal edit workflows for proposals, claims, milestones, historical members, roles, and anime contributions.
+- `/admin/my-groups/[id]` is not the canonical edit route. Treat it as display/contributor-scope unless a later decision changes that.
+- Normal app-member invitations and claim invitations are separate products, even if both use links.
+- App users are current Team4s accounts. `members` are historical/archive identities. Claims connect the two.
+- Claiming is more important for historical import/correction workflows than for a fresh database where data is entered correctly from day one.
+- Credits are attribution. Permissions are operational access. Do not merge them implicitly.
+- `anime_contributions.release_version_id` is optional and allows version-specific credits without replacing anime-wide credits.
+- Archive search is public discovery and must keep visibility filters server-side.
+- Phase 70 story images must not be saved as base64 or external URLs.
+- The local MVP summary lives at `.planning/MVP-PHASES-60-69-SUMMARY.md` and is not meant for GitHub unless user reverses that decision.
 
 ## Verification Memory
-- Phase 51 live smoke: `/api/v1/me` with access token returned `200`; `/api/v1/me` with ID token returned `401`.
-- Phase 52 profile/account-return checks passed during its slice and were exercised during later profile UAT.
-- Phase 53 profile/AppShell checks passed.
-- Phase 55 backend/frontend/typecheck/security/validation evidence is recorded in Phase 55 artifacts.
-- Phase 56 targeted cropper/avatar/media/profile tests passed.
-- Phase 56 functional UAT passed on 2026-05-29.
-- Phase 56 security review passed with `threats_open: 0`.
-- Phase 57 checks passed: `go test ./internal/migrations ./internal/handlers ./internal/repository`, profile page Vitest, frontend typecheck, frontend build, and `git diff --check`.
-- Phase 57 security review passed with `threats_open: 0`; validation is `nyquist_compliant: true`.
-- Phase 57 global `npm run lint` still fails on unrelated existing files and temporary scripts outside the phase scope.
-- Full frontend lint may still have known unrelated warnings outside focused checks.
+- Phase 60: SMTP/Mailpit and Keycloak mail UAT passed.
+- Phase 63: Leader frontend UAT passed after live browser/API fixes.
+- Phase 65: Proposal review belongs in `/admin/fansubs/[id]/edit`; live UAT passed there.
+- Phase 66: Claiming UAT passed 6/6; verified claim removes the open Member-Claim action card on `/me/profile`.
+- Phase 67: Release-version credits passed live browser/API/DB verification.
+- Phase 68: Badge engine, milestones, and `/archiv` were live-UAT verified; milestone CRUD was moved out of `my-groups` into fansub edit.
+- Phase 69: Contracts/permissions were hardened and committed in `16429983`.
+- Phase 70: final UAT committed in `39517af0`.
 
 ## Commit Hygiene Notes
-- User explicitly asked on 2026-05-29 to commit everything and push.
-- In normal future work, keep explicit-path staging for GSD slices.
-- Do not use broad formatting on dirty files unless the task explicitly needs it.
+- Current closeout did not commit.
+- Dirty local files at closeout: `frontend/tsconfig.tsbuildinfo` and untracked `.planning/MVP-PHASES-60-69-SUMMARY.md`.
+- Do not run `git add .` while these are present unless the user explicitly wants them included.
+- `main` is ahead of `origin/main` by many commits; push should be deliberate.
 
 ## Mental Unload
-- Next session should not rediscover Phase 56; it is closed.
-- Phase 54-57 are the current closed baseline, with Phase 57 authenticated UAT still pending.
-- The safest next task is a short authenticated `/me/profile` UAT pass, then roadmap/status reconciliation and a deliberate next-slice choice.
+- The next agent should not rebuild the 60-69 summary from scratch; use the local summary file if discussion context is needed.
+- If continuing Phase 71, first locate the claimed UAT evidence from the other agent/thread.
+- If starting product discussion, use the MVP summary's roles/questions as the opening frame.

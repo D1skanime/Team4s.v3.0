@@ -74,15 +74,15 @@ describe('AppShell', () => {
     expect(screen.queryByText('Meine Gruppen')).toBeNull()
   })
 
-  it('marks unavailable future member targets without fake routes', () => {
+  it('links signed-in members to their contribution workspace', () => {
     render(
       <AppShell currentPath="/me/profile">
         <main>Profilinhalt</main>
       </AppShell>,
     )
 
-    expect(screen.queryByRole('link', { name: /Meine Beiträge/i })).toBeNull()
-    expect(screen.getAllByText('bald').length).toBeGreaterThanOrEqual(2)
+    const contributionsLink = screen.getByRole('link', { name: /Meine Beiträge/i })
+    expect(contributionsLink.getAttribute('href')).toBe('/me/contributions')
   })
 
   it('renders member group memberships as fansub edit links', () => {
@@ -101,11 +101,11 @@ describe('AppShell', () => {
     expect(screen.getByText('Meine Gruppen')).not.toBeNull()
 
     const moonLink = screen.getByRole('link', { name: /Moon Subs/i })
-    expect(moonLink.getAttribute('href')).toBe('/admin/fansubs/42/edit')
+    expect(moonLink.getAttribute('href')).toBe('/admin/fansubs/42/edit?tab=releases')
     expect(moonLink.getAttribute('aria-current')).toBe('page')
 
     const kumoLink = screen.getByRole('link', { name: /Kumo Fansubs/i })
-    expect(kumoLink.getAttribute('href')).toBe('/admin/fansubs/77/edit')
+    expect(kumoLink.getAttribute('href')).toBe('/admin/fansubs/77/edit?tab=releases')
   })
 
   it('keeps admin navigation available when the caller has the capability', () => {

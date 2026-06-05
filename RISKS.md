@@ -2,36 +2,43 @@
 
 ## Top Risks
 
-### 1. Closed planning state drifts after push
+### 1. Phase 71 UAT state may be split across agents
 - **Impact:** Medium
 - **Likelihood:** Medium
-- **Why it matters:** Phase 54-56 now span several planning artifacts. A stale checkbox or pending-gate note can mislead the next session.
-- **Mitigation:** Start next session with a 15-minute roadmap/status reconcile and confirm Phase 54-56 are consistently closed.
+- **Why it matters:** The user reports Phase 71 UAT was confirmed, but this worktree currently shows only committed context/discussion/UI-spec artifacts and no local UAT artifact.
+- **Mitigation:** Start next session by locating the Phase 71 UAT artifact or the other agent's commit before changing Phase 71 code or docs.
 
-### 2. Future cropper work accidentally crosses media ownership boundaries
+### 2. Local-only MVP summary could be accidentally staged
+- **Impact:** Low
+- **Likelihood:** Medium
+- **Why it matters:** `.planning/MVP-PHASES-60-69-SUMMARY.md` is useful discussion context but the user explicitly said it does not need to go to GitHub.
+- **Mitigation:** Do not use `git add .`; stage explicit paths only.
+
+### 3. Generated TypeScript build state could enter a commit
+- **Impact:** Low
+- **Likelihood:** Medium
+- **Why it matters:** `frontend/tsconfig.tsbuildinfo` is dirty local generated state and unrelated to the closeout.
+- **Mitigation:** Leave it unstaged unless a separate cleanup explicitly decides otherwise.
+
+### 4. Edit and display surfaces drift again
 - **Impact:** High
 - **Likelihood:** Medium
-- **Why it matters:** Phase 56 deliberately kept the cropper as UI/export infrastructure only. Uploads still belong to profile avatar and fansub group media seams separately.
-- **Mitigation:** Keep `Team4sCropper` domain-neutral. Profile uploads go through `uploadOwnProfileAvatar`; fansub group media goes through `MediaUpload`/`uploadFansubMedia`; no release/anime/episode media shortcuts.
+- **Why it matters:** Live UAT repeatedly found proposal, claim, and milestone editing in the wrong place. `/admin/my-groups/[id]` should not become a shadow edit hub.
+- **Mitigation:** Keep internal mutation workflows in `/admin/fansubs/[id]/edit` unless a new documented decision redefines the route.
 
-### 3. TipTap profile story persistence regresses to plain-text-only behavior
-- **Impact:** High
-- **Likelihood:** Low
-- **Why it matters:** Phase 55 moved profile story persistence onto a real TipTap JSON, server-sanitized HTML, and derived plain text contract.
-- **Mitigation:** Preserve the Phase 55 migration, backend validation/sanitizing, OpenAPI/frontend DTO alignment, and tests when touching `/me/profile`.
-
-### 4. New upload flows duplicate existing domain flows
+### 5. Credits and permissions get conflated
 - **Impact:** High
 - **Likelihood:** Medium
-- **Why it matters:** Parallel upload logic makes media ownership, progress state, and API contracts drift.
-- **Mitigation:** Before any new upload work, inspect `MediaUpload`, `ReleaseVersionMediaSection`/`useReleaseVersionMedia`, anime upload planning, and `frontend/src/lib/api.ts` upload helpers.
+- **Why it matters:** A contribution credit is historical/attribution data; a permission is an operational right. Automatically connecting them can create accidental access grants.
+- **Mitigation:** Treat any credit-to-permission bridge as an explicit, separate, reversible product decision.
 
-### 5. Release-version media is collapsed back onto release-level media
+### 6. Media ownership regressions
 - **Impact:** High
 - **Likelihood:** Medium
-- **Why it matters:** Versioned Admin/Fansub process media belongs to `release_version_media.release_version_id`; using `release_id` or `release_media` here breaks domain ownership.
-- **Mitigation:** Keep `AGENTS.md`, `DECISIONS.md`, domain docs, contracts, and tests aligned.
+- **Why it matters:** Versioned Admin/Fansub process media belongs to `release_version_media.release_version_id`; profile story images now have their own media-backed TipTap flow.
+- **Mitigation:** Reuse existing upload/auth/API seams and domain-specific media tables; do not substitute `release_media`, `release_id`, or generic uploads for scoped flows.
 
 ## Current Blockers
-- No known blocker remains for Phase 55 or Phase 56.
-- Older parking-lot tasks remain intentionally deferred.
+- No known blocker remains for phases 60-70.
+- Phase 71 latest UAT status must be reconciled before treating it as locally closed.
+- `main` is ahead of `origin/main` by many commits; push strategy should be explicit.

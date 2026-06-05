@@ -110,12 +110,12 @@ func (r *BadgeRepository) SetBadgeVisibility(
 	return nil
 }
 
-// GetMemberBadges gibt alle nicht-hidden Badges eines Members zurück, sortiert nach awarded_at.
+// GetMemberBadges gibt alle aktiven Badges eines Members zurück, sortiert nach awarded_at.
 func (r *BadgeRepository) GetMemberBadges(ctx context.Context, memberID int64) ([]MemberBadgeRow, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, member_id, badge_code, badge_category, visibility, awarded_at
 		FROM member_badges
-		WHERE member_id = $1 AND visibility != 'hidden'
+		WHERE member_id = $1 AND status = 'active'
 		ORDER BY awarded_at
 	`, memberID)
 	if err != nil {

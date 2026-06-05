@@ -1318,6 +1318,18 @@
   transition: background 160ms ease;
 }
 
+.fansubEditAnimeReleaseHeaderRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fansubEditAnimeContributorsButton {
+  justify-self: end;
+  white-space: nowrap;
+}
+
 .fansubEditAnimeReleaseHeader:hover {
   background: color-mix(in srgb, #82122c 2%, transparent);
 }
@@ -1416,7 +1428,7 @@
 .fansubEditReleaseTableHeader,
 .fansubEditReleaseRow {
   display: grid;
-  grid-template-columns: minmax(3rem, 0.45fr) minmax(15rem, 2.4fr) minmax(4rem, 0.45fr) minmax(5rem, 0.55fr) minmax(6rem, auto) 1.75rem;
+  grid-template-columns: minmax(3rem, 0.45fr) minmax(15rem, 2.4fr) minmax(4rem, 0.45fr) minmax(5rem, 0.55fr) minmax(12rem, auto) 1.75rem;
   gap: 0.55rem;
   align-items: center;
 }
@@ -2329,6 +2341,17 @@
 }
 
 @media (max-width: 900px) {
+  .fansubEditAnimeReleaseHeaderRow {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .fansubEditAnimeContributorsButton {
+    justify-self: start;
+    margin-left: 0.65rem;
+  }
+
   .fansubEditThemeDrawerPanel {
     grid-template-columns: 1fr;
   }

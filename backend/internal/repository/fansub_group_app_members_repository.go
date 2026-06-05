@@ -66,19 +66,32 @@ func (r *FansubGroupAppMemberRepository) SearchCandidates(
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			au.id,
-			m.id,
-			COALESCE(NULLIF(m.nickname, ''), 'Mitglied') AS fansub_name
+			COALESCE(claimed_m.id, legacy_m.id, 0) AS member_id,
+			COALESCE(NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), NULLIF(au.display_name, ''), 'Mitglied') AS fansub_name
 		FROM app_users au
-		JOIN members m
-			ON m.user_id = au.legacy_user_id
+		LEFT JOIN LATERAL (
+			SELECT member_id
+			FROM member_claims
+			WHERE app_user_id = au.id
+			  AND claim_status = 'verified'
+			ORDER BY verified_at DESC NULLS LAST, id DESC
+			LIMIT 1
+		) mc ON true
+		LEFT JOIN members claimed_m
+			ON claimed_m.id = mc.member_id
+		LEFT JOIN members legacy_m
+			ON legacy_m.user_id = au.legacy_user_id
 		LEFT JOIN fansub_group_members fgm
 			ON fgm.app_user_id = au.id
 			AND fgm.fansub_group_id = $1
 		WHERE fgm.id IS NULL
 		  AND (
-			m.nickname ILIKE $2
+			claimed_m.nickname ILIKE $2
+			OR legacy_m.nickname ILIKE $2
+			OR au.display_name ILIKE $2
+			OR au.email ILIKE $2
 		  )
-		ORDER BY LOWER(COALESCE(NULLIF(m.nickname, ''), 'Mitglied')), au.id
+		ORDER BY LOWER(COALESCE(NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), NULLIF(au.display_name, ''), 'Mitglied')), au.id
 		LIMIT $3
 	`, fansubGroupID, pattern, limit)
 	if err != nil {
@@ -117,8 +130,8 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			fgm.updated_by_app_user_id,
 			fgm.created_at,
 			fgm.updated_at,
-			COALESCE(m.id, 0) AS member_id,
-			COALESCE(NULLIF(m.nickname, ''), 'Mitglied') AS fansub_name,
+			COALESCE(claimed_m.id, legacy_m.id, 0) AS member_id,
+			COALESCE(NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), NULLIF(au.display_name, ''), 'Mitglied') AS fansub_name,
 			COALESCE(
 				ARRAY(
 					SELECT role
@@ -130,9 +143,18 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			) AS member_roles
 		FROM fansub_group_members fgm
 		JOIN app_users au ON au.id = fgm.app_user_id
-		LEFT JOIN members m ON m.user_id = au.legacy_user_id
+		LEFT JOIN LATERAL (
+			SELECT member_id
+			FROM member_claims
+			WHERE app_user_id = au.id
+			  AND claim_status = 'verified'
+			ORDER BY verified_at DESC NULLS LAST, id DESC
+			LIMIT 1
+		) mc ON true
+		LEFT JOIN members claimed_m ON claimed_m.id = mc.member_id
+		LEFT JOIN members legacy_m ON legacy_m.user_id = au.legacy_user_id
 		WHERE fgm.fansub_group_id = $1
-		ORDER BY LOWER(COALESCE(NULLIF(m.nickname, ''), 'Mitglied')), au.id
+		ORDER BY LOWER(COALESCE(NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), NULLIF(au.display_name, ''), 'Mitglied')), au.id
 	`, fansubGroupID)
 	if err != nil {
 		return nil, fmt.Errorf("list fansub group members: %w", err)

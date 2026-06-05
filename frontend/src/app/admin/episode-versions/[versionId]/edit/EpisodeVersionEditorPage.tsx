@@ -31,6 +31,16 @@ type ActiveTab =
   | "changelog"
   | "notizen";
 
+const ACTIVE_TABS: ActiveTab[] = [
+  "uebersicht",
+  "dateien",
+  "informationen",
+  "segmente",
+  "media",
+  "changelog",
+  "notizen",
+];
+
 function parsePositiveInt(value: string | null): number | null {
   if (!value) return null;
 
@@ -38,6 +48,12 @@ function parsePositiveInt(value: string | null): number | null {
   if (!Number.isFinite(parsed) || parsed <= 0) return null;
 
   return parsed;
+}
+
+function parseActiveTab(value: string | null): ActiveTab {
+  return ACTIVE_TABS.includes(value as ActiveTab)
+    ? (value as ActiveTab)
+    : "informationen";
 }
 
 export function EpisodeVersionEditorPage() {
@@ -53,8 +69,8 @@ export function EpisodeVersionEditorPage() {
   const episodeIDFromQuery = parsePositiveInt(searchParams.get("episodeId"));
 
   const tabFromQuery = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<ActiveTab>(
-    tabFromQuery === "media" ? "media" : "informationen",
+  const [activeTab, setActiveTab] = useState<ActiveTab>(() =>
+    parseActiveTab(tabFromQuery),
   );
 
   useEffect(() => {

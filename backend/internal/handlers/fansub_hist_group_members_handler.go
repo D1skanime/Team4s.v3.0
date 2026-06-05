@@ -64,6 +64,13 @@ type histGroupMemberPatchRequest struct {
 	Visibility *string `json:"visibility"`
 }
 
+func confirmedActorForStatus(status string, actorAppUserID int64) *int64 {
+	if status != "confirmed" || actorAppUserID <= 0 {
+		return nil
+	}
+	return &actorAppUserID
+}
+
 // ListHistGroupMembers gibt alle historischen Mitgliedschaften einer Fansub-Gruppe zurück.
 // GET /admin/fansubs/:id/group-members
 func (h *FansubHistGroupMembersHandler) ListHistGroupMembers(c *gin.Context) {
@@ -161,6 +168,7 @@ func (h *FansubHistGroupMembersHandler) CreateHistGroupMember(c *gin.Context) {
 		LeftYear:      req.LeftYear,
 		Status:        status,
 		Visibility:    visibility,
+		ConfirmedBy:   confirmedActorForStatus(status, identity.AppUserID),
 		CreatedBy:     &identity.AppUserID,
 	}
 
@@ -258,10 +266,11 @@ func (h *FansubHistGroupMembersHandler) UpdateHistGroupMember(c *gin.Context) {
 	}
 
 	input := repository.HistGroupMemberPatchInput{
-		JoinedYear: req.JoinedYear,
-		LeftYear:   req.LeftYear,
-		Status:     req.Status,
-		Visibility: req.Visibility,
+		JoinedYear:  req.JoinedYear,
+		LeftYear:    req.LeftYear,
+		Status:      req.Status,
+		Visibility:  req.Visibility,
+		ConfirmedBy: &identity.AppUserID,
 	}
 
 	item, err := h.histMembersRepo.Update(c.Request.Context(), fansubID, memberID, input)

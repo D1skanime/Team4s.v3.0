@@ -1155,3 +1155,51 @@
 
 ### Next Step
 - Fix the `next/image` mock warning in `frontend/src/app/admin/fansubs/[id]/edit/page.test.tsx`, then run that single targeted test.
+
+## 2026-06-03
+- Project: `Team4s.v3.0`
+- Milestone: Post-MVP fansub/contribution baseline
+- Today's focus: close the phases 60-69 MVP baseline, finish Phase 70 verification, capture Phase 71 as a separate polish thread, and leave a restartable handoff.
+
+### Workstreams Touched
+- Fansub contributions MVP closure: phases 60-69
+- Phase 69 contract and permission hardening
+- Phase 70 TipTap profile story image upload/render/save lifecycle
+- Phase 71 UI-polish planning context
+- Local product-discussion prep for moving out of the MVP
+- Repo-local closeout files
+
+### Goals Intended vs Achieved
+- Intended: stop treating phases 60-69 as loose partial work and decide whether the MVP baseline is coherent enough to move forward.
+- Achieved: phases 60-69 now have plan/summary parity; Phase 69 contracts and roadmap state were corrected and committed; Phase 70 was verified and committed; a local-only MVP summary was created for the next product discussion.
+
+### Problems Solved
+- Root cause: Phase 69 still had missing plan summaries and missing shared contract documentation.
+- Fix: added `69-04-SUMMARY.md`, `69-05-SUMMARY.md`, contract entries in `shared/contracts/fansubs.yaml` and `shared/contracts/admin-content.yaml`, and corrected the roadmap state.
+- Root cause: earlier agents repeatedly placed internal proposal/claim/milestone work in `my-groups`.
+- Fix: closeout now records `/admin/fansubs/[id]/edit` as the canonical internal edit route and `my-groups` as non-canonical for these edit actions.
+- Root cause: product discussion risked starting from memory instead of facts.
+- Fix: created `.planning/MVP-PHASES-60-69-SUMMARY.md` as local-only discussion context grounded in phase artifacts and code routes.
+
+### Decisions
+- The local MVP summary is not meant for GitHub unless the user later asks for it.
+- Do not stage `frontend/tsconfig.tsbuildinfo`.
+- Continue to treat Phase 71 as separate from the 60-69 MVP closeout.
+- Before coding further on Phase 71, confirm where the reported UAT result lives.
+
+### Verification
+- Phase 60-69 plan/summary count checked: all phases have matching plan and summary counts.
+- Phase 69 contract grep checked: 8 fansub group/member-role endpoints and 4 anime-contribution endpoints.
+- `git diff --check` and `git diff --cached --check` passed for the Phase 69 closeout commit.
+- `.planning/MVP-PHASES-60-69-SUMMARY.md` passed `git diff --check`.
+- Phase 70 final UAT is recorded in commit `39517af0`.
+- No full test suite was run during day-closeout.
+
+### Blockers
+- No known blocker remains for phases 60-70.
+- Phase 71 UAT is reported by the user/another agent, but no local uncommitted UAT artifact was visible during closeout.
+- `main` is ahead of `origin/main` by many commits; push strategy should be explicit.
+- Dirty local files remain: generated `frontend/tsconfig.tsbuildinfo` and local-only `.planning/MVP-PHASES-60-69-SUMMARY.md`.
+
+### Next Step
+- Run a 15-minute Phase 71 artifact check: inspect the Phase 71 directory and recent commits for a UAT/verification artifact before changing code or docs.

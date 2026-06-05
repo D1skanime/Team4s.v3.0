@@ -61,7 +61,7 @@ func (r *MemberProfileRepository) GetOwnProfile(ctx context.Context, appUserID i
 		return nil, err
 	}
 
-	base.Memberships, err = r.loadMemberships(ctx, base.MemberID, appUserID)
+	base.Memberships, err = r.loadMemberships(ctx, base.MemberID, appUserID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -469,7 +469,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 	}
 
 	var loadErr error
-	profile.Memberships, loadErr = r.loadMemberships(ctx, row.memberID, appUserID)
+	profile.Memberships, loadErr = r.loadMemberships(ctx, row.memberID, appUserID, false)
 	if loadErr != nil {
 		return nil, loadErr
 	}
@@ -877,6 +877,7 @@ func (r *MemberProfileRepository) loadMemberships(
 	ctx context.Context,
 	memberID int64,
 	appUserID int64,
+	includeInternalHistorical bool,
 ) ([]models.MemberProfileMembership, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
@@ -885,8 +886,8 @@ func (r *MemberProfileRepository) loadMemberships(
 			fg.slug,
 			fg.logo_url,
 			fg.status,
-			gm.joined_year,
-			gm.left_year,
+			hgm.joined_year,
+			hgm.left_year,
 			fgm.status,
 			COALESCE(
 				ARRAY(
@@ -897,18 +898,20 @@ func (r *MemberProfileRepository) loadMemberships(
 				),
 				ARRAY[]::varchar[]
 			) AS app_member_roles,
-			(gm.id IS NOT NULL) AS has_historical_link
+			(hgm.id IS NOT NULL) AS has_historical_link,
+			hgm.status AS historical_member_status
 		FROM fansub_groups fg
-		LEFT JOIN group_members gm
-			ON gm.group_id = fg.id
-		   AND gm.member_id = $1
+		LEFT JOIN hist_fansub_group_members hgm
+			ON hgm.fansub_group_id = fg.id
+		   AND hgm.member_id = $1
+		   AND ($3 OR hgm.visibility = 'public')
 		LEFT JOIN fansub_group_members fgm
 			ON fgm.fansub_group_id = fg.id
 		   AND fgm.app_user_id = $2
-		WHERE gm.id IS NOT NULL
+		WHERE hgm.id IS NOT NULL
 		   OR fgm.id IS NOT NULL
 		ORDER BY fg.name ASC
-	`, memberID, appUserID)
+	`, memberID, appUserID, includeInternalHistorical)
 	if err != nil {
 		return nil, fmt.Errorf("load memberships for member %d: %w", memberID, err)
 	}
@@ -928,6 +931,7 @@ func (r *MemberProfileRepository) loadMemberships(
 			&item.AppMemberStatus,
 			&item.AppMemberRoles,
 			&item.HasHistoricalLink,
+			&item.HistoricalMemberStatus,
 		); err != nil {
 			return nil, fmt.Errorf("scan membership row: %w", err)
 		}

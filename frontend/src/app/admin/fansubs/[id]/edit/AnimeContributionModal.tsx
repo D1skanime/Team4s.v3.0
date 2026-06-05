@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Button, Modal } from '@/components/ui'
+
+import { Badge, Button, Card, EmptyState, FormField, Modal, Select } from '@/components/ui'
 import {
   ApiError,
   deleteAnimeContribution,
@@ -9,17 +10,16 @@ import {
   upsertAnimeContribution,
 } from '@/lib/api'
 import type { FansubAnimeReleaseVersionOption } from '@/types/contributions'
-import {
+import type {
   AnimeContribution,
-  FANSUB_GROUP_ROLE_OPTIONS,
   HistFansubGroupMember,
 } from '@/types/fansub'
+import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 
-// Anime-Contribution-konforme Rollen (fansub_lead ist kein anime_contribution-Code)
-// MVP-Scope: Die Seed-Codes 'admin', 'other' und 'project_manager' sind in
-// FANSUB_GROUP_ROLE_OPTIONS bewusst nicht enthalten (keine UX-Relevanz im MVP).
+import styles from './AnimeContributionModal.module.css'
+
 const ANIME_CONTRIBUTION_ROLES = FANSUB_GROUP_ROLE_OPTIONS.filter(
-  (r) => r.code !== 'fansub_lead'
+  (role) => role.code !== 'fansub_lead',
 )
 
 type MemberVisibility = {
@@ -59,11 +59,9 @@ export default function AnimeContributionModal({
   const [rolesByMemberId, setRolesByMemberId] = useState<Record<number, string[]>>({})
   const [visibilityByMemberId, setVisibilityByMemberId] = useState<Record<number, MemberVisibility>>({})
   const [statusByMemberId, setStatusByMemberId] = useState<Record<number, MemberStatus>>({})
-  // Phase 67-04: optionale Release-Version-Zuordnung pro Member (null = anime-weit).
   const [releaseVersionByMemberId, setReleaseVersionByMemberId] = useState<Record<number, number | null>>({})
   const [releaseVersionOptions, setReleaseVersionOptions] = useState<FansubAnimeReleaseVersionOption[]>([])
   const [releaseVersionsLoadError, setReleaseVersionsLoadError] = useState<string | null>(null)
-  // 422-Feldfehler pro Member (gruppen-fremde Release-Version, D-03).
   const [versionErrorByMemberId, setVersionErrorByMemberId] = useState<Record<number, string>>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -75,15 +73,15 @@ export default function AnimeContributionModal({
     const status: Record<number, MemberStatus> = {}
     const releaseVersions: Record<number, number | null> = {}
 
-    for (const c of existingContributions) {
-      ids.add(c.fansub_group_member_id)
-      roles[c.fansub_group_member_id] = c.role_codes ?? []
-      visibility[c.fansub_group_member_id] = {
-        anime: c.is_public_on_anime_page,
-        profile: c.is_public_on_member_profile,
+    for (const contribution of existingContributions) {
+      ids.add(contribution.fansub_group_member_id)
+      roles[contribution.fansub_group_member_id] = contribution.role_codes ?? []
+      visibility[contribution.fansub_group_member_id] = {
+        anime: contribution.is_public_on_anime_page,
+        profile: contribution.is_public_on_member_profile,
       }
-      status[c.fansub_group_member_id] = c.status
-      releaseVersions[c.fansub_group_member_id] = c.release_version_id ?? null
+      status[contribution.fansub_group_member_id] = contribution.status
+      releaseVersions[contribution.fansub_group_member_id] = contribution.release_version_id ?? null
     }
 
     setSelectedMemberIds(ids)
@@ -93,7 +91,6 @@ export default function AnimeContributionModal({
     setReleaseVersionByMemberId(releaseVersions)
   }, [existingContributions])
 
-  // Gruppen-gefilterte Release-Versionen laden (serverseitig gefiltert, kein Client-Filter).
   useEffect(() => {
     let cancelled = false
     setReleaseVersionsLoadError(null)
@@ -104,7 +101,7 @@ export default function AnimeContributionModal({
       .catch(() => {
         if (!cancelled) {
           setReleaseVersionsLoadError(
-            'Release-Versionen konnten nicht geladen werden. Bitte später erneut versuchen.'
+            'Release-Versionen konnten nicht geladen werden. Bitte später erneut versuchen.',
           )
         }
       })
@@ -115,7 +112,6 @@ export default function AnimeContributionModal({
 
   function setReleaseVersion(memberId: number, value: number | null) {
     setReleaseVersionByMemberId((prev) => ({ ...prev, [memberId]: value }))
-    // Beim Ändern den evtl. anstehenden 422-Feldfehler dieses Members verwerfen.
     setVersionErrorByMemberId((prev) => {
       if (!(memberId in prev)) return prev
       const next = { ...prev }
@@ -132,16 +128,16 @@ export default function AnimeContributionModal({
       } else {
         next.add(memberId)
         if (!rolesByMemberId[memberId]) {
-          setRolesByMemberId((r) => ({ ...r, [memberId]: [] }))
+          setRolesByMemberId((current) => ({ ...current, [memberId]: [] }))
         }
         if (!visibilityByMemberId[memberId]) {
-          setVisibilityByMemberId((v) => ({
-            ...v,
+          setVisibilityByMemberId((current) => ({
+            ...current,
             [memberId]: { anime: false, profile: false },
           }))
         }
         if (!statusByMemberId[memberId]) {
-          setStatusByMemberId((s) => ({ ...s, [memberId]: 'draft' }))
+          setStatusByMemberId((current) => ({ ...current, [memberId]: 'draft' }))
         }
       }
       return next
@@ -161,7 +157,7 @@ export default function AnimeContributionModal({
   function removeRole(memberId: number, code: string) {
     setRolesByMemberId((prev) => ({
       ...prev,
-      [memberId]: (prev[memberId] ?? []).filter((r) => r !== code),
+      [memberId]: (prev[memberId] ?? []).filter((role) => role !== code),
     }))
   }
 
@@ -184,21 +180,22 @@ export default function AnimeContributionModal({
     try {
       await Promise.all(
         Array.from(selectedMemberIds).map(async (memberId) => {
-          const existingC = existingContributions.find((c) => c.fansub_group_member_id === memberId)
+          const existingContribution = existingContributions.find((contribution) => (
+            contribution.fansub_group_member_id === memberId
+          ))
           try {
             await upsertAnimeContribution(fansubId, animeId, {
               fansub_group_member_id: memberId,
               role_codes: rolesByMemberId[memberId] ?? [],
-              started_year: existingC?.started_year ?? null,
-              ended_year: existingC?.ended_year ?? null,
-              note: existingC?.note ?? null,
+              started_year: existingContribution?.started_year ?? null,
+              ended_year: existingContribution?.ended_year ?? null,
+              note: existingContribution?.note ?? null,
               is_public_on_anime_page: visibilityByMemberId[memberId]?.anime ?? false,
               is_public_on_member_profile: visibilityByMemberId[memberId]?.profile ?? false,
               status: statusByMemberId[memberId] ?? 'draft',
               release_version_id: releaseVersionByMemberId[memberId] ?? null,
             })
           } catch (err) {
-            // 422 = gruppen-fremde Release-Version → Feldfehler unter dem Select (D-03).
             if (err instanceof ApiError && err.status === 422) {
               fieldErrors[memberId] =
                 'Diese Gruppe war an der gewählten Release-Version nicht beteiligt. Bitte eine andere Version wählen oder anime-weit lassen.'
@@ -206,7 +203,7 @@ export default function AnimeContributionModal({
             }
             throw err
           }
-        })
+        }),
       )
 
       if (Object.keys(fieldErrors).length > 0) {
@@ -216,8 +213,8 @@ export default function AnimeContributionModal({
 
       await Promise.all(
         existingContributions
-          .filter((c) => !selectedMemberIds.has(c.fansub_group_member_id))
-          .map((c) => deleteAnimeContribution(fansubId, animeId, c.id))
+          .filter((contribution) => !selectedMemberIds.has(contribution.fansub_group_member_id))
+          .map((contribution) => deleteAnimeContribution(fansubId, animeId, contribution.id)),
       )
 
       onSaved()
@@ -233,175 +230,127 @@ export default function AnimeContributionModal({
     <Modal
       open
       onClose={onClose}
-      title={`Mitwirkende für „${animeTitle}" bearbeiten`}
+      title={`Mitwirkende für „${animeTitle}“ bearbeiten`}
       footer={
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          {error && (
-            <span style={{ color: '#dc2626', fontSize: '0.85rem', flex: 1 }}>{error}</span>
-          )}
+        <div className={styles.modalFooter}>
+          {error ? <p className={styles.modalError}>{error}</p> : null}
           <Button variant="secondary" onClick={onClose} disabled={saving}>
             Abbrechen
           </Button>
           <Button variant="primary" onClick={handleSave} disabled={saving}>
-            {saving ? 'Wird gespeichert…' : 'Speichern'}
+            {saving ? 'Wird gespeichert...' : 'Speichern'}
           </Button>
         </div>
       }
     >
-      <div style={{ maxHeight: '55vh', overflowY: 'auto' }}>
-        {members.length === 0 && (
-          <p style={{ color: '#888', fontStyle: 'italic' }}>Keine Gruppenmitglieder vorhanden.</p>
-        )}
+      <div className={styles.memberList}>
+        {members.length === 0 ? (
+          <EmptyState title="Keine Gruppenmitglieder" description="Lege zuerst historische Mitglieder in der Gruppe an." />
+        ) : null}
         {members.map((member) => {
           const isSelected = selectedMemberIds.has(member.id)
           const roles = rolesByMemberId[member.id] ?? []
-          const vis = visibilityByMemberId[member.id] ?? { anime: false, profile: false }
+          const visibility = visibilityByMemberId[member.id] ?? { anime: false, profile: false }
           const memberStatus = statusByMemberId[member.id] ?? 'draft'
           const releaseVersionValue = releaseVersionByMemberId[member.id] ?? null
           const versionError = versionErrorByMemberId[member.id]
           const statusHint = groupMemberStatusHint(member.status)
 
           return (
-            <div
-              key={member.id}
-              style={{
-                marginBottom: 10,
-                padding: '8px 10px',
-                borderRadius: 6,
-                border: '1px solid',
-                borderColor: isSelected ? '#3b82f6' : '#e5e7eb',
-                background: isSelected ? '#eff6ff' : '#fafafa',
-              }}
-            >
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => toggleMember(member.id)}
-                />
-                <span style={{ fontWeight: isSelected ? 600 : 400 }}>{member.display_name}</span>
-                {statusHint && (
-                  <span style={{ fontSize: '0.75rem', color: '#888' }}>({statusHint})</span>
-                )}
-              </label>
+            <Card key={member.id} variant={isSelected ? 'nested' : 'nestedFlat'} className={styles.memberCard}>
+              <div className={styles.memberHeader}>
+                <Button
+                  variant={isSelected ? 'primary' : 'secondary'}
+                  size="sm"
+                  aria-pressed={isSelected}
+                  onClick={() => toggleMember(member.id)}
+                >
+                  {isSelected ? 'Ausgewählt' : 'Auswählen'}
+                </Button>
+                <span className={styles.memberName}>{member.display_name}</span>
+                {statusHint ? <Badge variant="muted">{statusHint}</Badge> : null}
+              </div>
 
-              {isSelected && (
-                <div style={{ marginLeft: 26, marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {/* Rollen-Chips */}
-                  <div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', color: '#6b7280' }}>
-                      Rollen
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 6 }}>
-                      {ANIME_CONTRIBUTION_ROLES.map((sr) => {
-                        const active = roles.includes(sr.code)
+              {isSelected ? (
+                <div className={styles.memberDetails}>
+                  <div className={styles.fieldGroup}>
+                    <p className={styles.fieldLabel}>Rollen</p>
+                    <div className={styles.chipRow}>
+                      {ANIME_CONTRIBUTION_ROLES.map((role) => {
+                        const active = roles.includes(role.code)
                         return (
-                          <button
-                            key={sr.code}
-                            type="button"
-                            onClick={() => active ? removeRole(member.id, sr.code) : addRole(member.id, sr.code)}
-                            style={{
-                              padding: '2px 10px',
-                              borderRadius: 12,
-                              border: '1px solid',
-                              borderColor: active ? '#3b82f6' : '#d1d5db',
-                              background: active ? '#3b82f6' : '#f9fafb',
-                              color: active ? '#fff' : '#374151',
-                              cursor: 'pointer',
-                              fontSize: '0.8rem',
-                            }}
+                          <Button
+                            key={role.code}
+                            size="sm"
+                            variant={active ? 'primary' : 'secondary'}
+                            onClick={() => active ? removeRole(member.id, role.code) : addRole(member.id, role.code)}
                           >
-                            {sr.label}
-                          </button>
+                            {role.label}
+                          </Button>
                         )
                       })}
                     </div>
                   </div>
 
-                  {/* Sichtbarkeit */}
-                  <div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', color: '#6b7280' }}>
-                      Sichtbarkeit
-                    </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: '0.85rem' }}>
-                      <input
-                        type="checkbox"
-                        checked={vis.anime}
-                        onChange={(e) => setVisibility(member.id, 'anime', e.target.checked)}
-                      />
+                  <div className={styles.fieldGroup}>
+                    <p className={styles.fieldLabel}>Sichtbarkeit</p>
+                    <Button
+                      variant={visibility.anime ? 'primary' : 'secondary'}
+                      size="sm"
+                      aria-pressed={visibility.anime}
+                      onClick={() => setVisibility(member.id, 'anime', !visibility.anime)}
+                    >
                       Öffentlich auf Anime-Seite
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
-                      <input
-                        type="checkbox"
-                        checked={vis.profile}
-                        onChange={(e) => setVisibility(member.id, 'profile', e.target.checked)}
-                      />
+                    </Button>
+                    <Button
+                      variant={visibility.profile ? 'primary' : 'secondary'}
+                      size="sm"
+                      aria-pressed={visibility.profile}
+                      onClick={() => setVisibility(member.id, 'profile', !visibility.profile)}
+                    >
                       Im Mitgliederprofil
-                    </label>
+                    </Button>
                   </div>
 
-                  {/* Status */}
-                  <div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', color: '#6b7280' }}>
-                      Status
-                    </div>
-                    <select
+                  <FormField label="Status">
+                    <Select
                       value={memberStatus}
-                      onChange={(e) => setMemberStatus(member.id, e.target.value as MemberStatus)}
-                      style={{ fontSize: '0.8rem', padding: '4px 8px', borderRadius: 4, border: '1px solid #d1d5db' }}
+                      onChange={(event) => setMemberStatus(member.id, event.target.value as MemberStatus)}
                     >
                       <option value="draft">Entwurf</option>
                       <option value="confirmed">Bestätigt</option>
                       <option value="hidden">Versteckt</option>
-                    </select>
-                  </div>
+                    </Select>
+                  </FormField>
 
-                  {/* Release-Version (optional, gruppen-gefiltert, Phase 67-04) */}
-                  <div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', color: '#6b7280' }}>
-                      Release-Version (optional)
-                    </div>
-                    <select
+                  <FormField
+                    label="Release-Version (optional)"
+                    hint="Leer lassen = die Gruppe war allgemein an der Serie beteiligt."
+                    error={versionError || releaseVersionsLoadError || undefined}
+                    disabled={Boolean(releaseVersionsLoadError)}
+                  >
+                    <Select
                       value={releaseVersionValue === null ? '' : String(releaseVersionValue)}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         setReleaseVersion(
                           member.id,
-                          e.target.value === '' ? null : Number(e.target.value)
+                          event.target.value === '' ? null : Number(event.target.value),
                         )
                       }
                       disabled={Boolean(releaseVersionsLoadError)}
-                      style={{
-                        fontSize: '0.8rem',
-                        padding: '4px 8px',
-                        borderRadius: 4,
-                        border: `1px solid ${versionError ? '#dc3545' : '#d1d5db'}`,
-                      }}
+                      invalid={Boolean(versionError)}
                     >
-                      <option value="">— anime-weit lassen —</option>
-                      {releaseVersionOptions.map((opt) => (
-                        <option key={opt.release_version_id} value={String(opt.release_version_id)}>
-                          Episode {opt.episode_number} · {opt.version}
+                      <option value="">Anime-weit lassen</option>
+                      {releaseVersionOptions.map((option) => (
+                        <option key={option.release_version_id} value={String(option.release_version_id)}>
+                          Episode {option.episode_number} · {option.version}
                         </option>
                       ))}
-                    </select>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: 4 }}>
-                      Leer lassen = die Gruppe war allgemein an der Serie beteiligt.
-                    </div>
-                    {releaseVersionsLoadError && (
-                      <div style={{ fontSize: '0.75rem', color: '#dc3545', marginTop: 4 }}>
-                        {releaseVersionsLoadError}
-                      </div>
-                    )}
-                    {versionError && (
-                      <div style={{ fontSize: '0.75rem', color: '#dc3545', marginTop: 4 }}>
-                        {versionError}
-                      </div>
-                    )}
-                  </div>
+                    </Select>
+                  </FormField>
                 </div>
-              )}
-            </div>
+              ) : null}
+            </Card>
           )
         })}
       </div>

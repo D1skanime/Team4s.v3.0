@@ -315,14 +315,9 @@
 /* ---- Rollen-Timeline ---- */
 
 .roleTimelineSection {
+  display: grid;
+  gap: 14px;
   margin-top: 16px;
-}
-
-.roleTimelineHeading {
-  font-size: 1rem;
-  font-weight: 700;
-  margin: 0 0 12px;
-  color: #e2e8f0;
 }
 
 .roleTimelineList {
@@ -330,56 +325,98 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .roleTimelineEntry {
-  display: flex;
+  --timeline-accent: var(--text-secondary);
+  --timeline-bg: color-mix(in srgb, var(--timeline-accent) 12%, var(--surface-card-muted));
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: start;
   gap: 16px;
-  align-items: baseline;
-  padding: 8px 12px;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(100, 116, 139, 0.18);
-  border-radius: 6px;
+  padding: 15px 16px;
+  border-color: color-mix(in srgb, var(--timeline-accent) 36%, transparent);
+  border-left: 4px solid var(--timeline-accent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--timeline-accent) 18%, var(--surface-card)) 0%, var(--timeline-bg) 48%, color-mix(in srgb, var(--timeline-accent) 10%, var(--surface-sunken)) 100%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--surface-card) 70%, transparent),
+    0 8px 22px color-mix(in srgb, var(--timeline-accent) 10%, transparent);
+}
+
+.roleTimelineEntryHistory {
+  --timeline-accent: var(--color-warning);
+  --timeline-bg: color-mix(in srgb, var(--color-warning) 20%, var(--surface-card-muted));
+}
+
+.roleTimelineEntryAnime {
+  --timeline-accent: var(--color-success);
+  --timeline-bg: color-mix(in srgb, var(--color-success) 16%, var(--surface-card-muted));
 }
 
 .roleTimelineYear {
-  min-width: 80px;
+  width: fit-content;
+  min-width: 88px;
+  padding: 6px 8px;
+  border: 1px solid color-mix(in srgb, var(--timeline-accent) 32%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--timeline-accent) 16%, var(--surface-card));
+  color: color-mix(in srgb, var(--timeline-accent) 72%, var(--text-primary));
   font-size: 0.78rem;
-  color: #94a3b8;
-  flex-shrink: 0;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
 }
 
 .roleTimelineContent {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.roleTimelineMeta {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
 .roleTimelineGroup {
   font-size: 0.88rem;
-  font-weight: 600;
-  color: #e2e8f0;
-}
-
-.roleTimelineHistorical {
-  font-size: 0.75rem;
-  color: #64748b;
-  font-weight: 400;
+  color: var(--text-secondary);
 }
 
 .roleTimelineRole {
-  font-size: 0.78rem;
-  color: #94a3b8;
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.roleTimelineRole,
+.roleTimelineGroup,
+.roleTimelineAnime {
+  overflow-wrap: anywhere;
 }
 
 .roleTimelineAnime {
-  font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
 }
 
 .roleTimelineDisclaimer {
   margin: 10px 0 0;
-  font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 640px) {
+  .roleTimelineEntry {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .roleTimelineYear {
+    min-width: 0;
+  }
 }

@@ -6,12 +6,14 @@ import { MemberProfileHero } from '@/components/profile/MemberProfileHero'
 import { RecentContributionsSection } from '@/components/profile/RecentContributionsSection'
 import { RecentMediaSection } from '@/components/profile/RecentMediaSection'
 import { Button, Card, ErrorState, LoadingState, SectionHeader } from '@/components/ui'
-import { ApiError, getMyMemberClaim, getOwnProfile, patchNoindex, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar, uploadOwnProfileBackground, uploadOwnProfileStoryImage } from '@/lib/api'
+import { ApiError, getMyBadges, getMyMemberClaim, getOwnProfile, patchMyBadgeVisibility, patchNoindex, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar, uploadOwnProfileBackground, uploadOwnProfileStoryImage } from '@/lib/api'
 import { uploadPendingStoryImages } from '@/lib/storyImageUpload'
 import { useAuthSession } from '@/lib/useAuthSession'
+import type { MemberBadge } from '@/types/contributions'
 import type { MemberClaimRow, MemberProfileData } from '@/types/profile'
 
 import { AccountSecurityCard } from './components/AccountSecurityCard'
+import { AchievementBadgesCard } from './components/AchievementBadgesCard'
 import { ClaimStatusCard } from './components/ClaimStatusCard'
 import { MemberClaimSection } from './components/MemberClaimSection'
 import { MemberAvatarCard } from './components/MemberAvatarCard'
@@ -37,6 +39,7 @@ export default function MyProfilePage() {
   const { authToken, hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const [profile, setProfile] = useState<MemberProfileData | null>(null)
   const [myClaim, setMyClaim] = useState<MemberClaimRow | null>(null)
+  const [badges, setBadges] = useState<MemberBadge[]>([])
   const [form, setForm] = useState<MemberProfileFormState>(() => emptyFormState())
   const [isDirty, setIsDirty] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -46,6 +49,8 @@ export default function MyProfilePage() {
   const [hasOpenedKeycloakAccount, setHasOpenedKeycloakAccount] = useState(false)
   const [isStoryEditing, setIsStoryEditing] = useState(false)
   const [isRefreshingAccount, setIsRefreshingAccount] = useState(false)
+  const [pendingBadgeId, setPendingBadgeId] = useState<number | null>(null)
+  const [badgeError, setBadgeError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   // pendingImages: Map von pending_key → File (deferred-Batch-Upload vor Save, D-06, D-07)
@@ -74,11 +79,13 @@ export default function MyProfilePage() {
   }, [])
 
   const loadProfile = useCallback(async (options: { syncForm: boolean; resetDirty?: boolean }) => {
-    const [response, claim] = await Promise.all([
+    const [response, claim, badgesResponse] = await Promise.all([
       getOwnProfile(),
       getMyMemberClaim().catch(() => null),
+      getMyBadges().catch(() => ({ badges: [] })),
     ])
     setMyClaim(claim)
+    setBadges(badgesResponse.badges ?? [])
     applyProfile(response.data, options)
     return response.data
   }, [applyProfile])
@@ -119,8 +126,16 @@ export default function MyProfilePage() {
       try {
         setIsLoading(true)
         setError(null)
-        const response = await withProfileLoadTimeout(getOwnProfile())
-        if (!cancelled) applyProfile(response.data, { syncForm: true, resetDirty: true })
+        const [response, claim, badgesResponse] = await withProfileLoadTimeout(Promise.all([
+          getOwnProfile(),
+          getMyMemberClaim().catch(() => null),
+          getMyBadges().catch(() => ({ badges: [] })),
+        ]))
+        if (!cancelled) {
+          setMyClaim(claim)
+          setBadges(badgesResponse.badges ?? [])
+          applyProfile(response.data, { syncForm: true, resetDirty: true })
+        }
       } catch (loadError) {
         if (!cancelled) {
           setError(isUnauthorizedError(loadError) ? AUTH_REQUIRED_MESSAGE : readErrorMessage(loadError, 'Profil konnte nicht geladen werden.'))
@@ -249,6 +264,27 @@ export default function MyProfilePage() {
     }
   }
 
+  async function handleBadgeVisibilityChange(badgeId: number, visibility: MemberBadge['visibility']) {
+    if (!hasAuthSession || pendingBadgeId !== null) return
+
+    const previousBadges = badges
+    setBadges((current) => current.map((badge) => (badge.id === badgeId ? { ...badge, visibility } : badge)))
+    setPendingBadgeId(badgeId)
+    setBadgeError(null)
+    setSuccess(null)
+
+    try {
+      await patchMyBadgeVisibility(authToken || undefined, badgeId, visibility)
+      setSuccess('Badge-Sichtbarkeit wurde gespeichert.')
+    } catch (visibilityError) {
+      setBadges(previousBadges)
+      setBadgeError(readErrorMessage(visibilityError, 'Badge-Sichtbarkeit konnte nicht gespeichert werden.'))
+      setSuccess(null)
+    } finally {
+      setPendingBadgeId(null)
+    }
+  }
+
   async function handleAvatarSelected(payload: { sourceFile: File; croppedFile: File }) {
     if (!hasAuthSession) return
 
@@ -344,7 +380,10 @@ export default function MyProfilePage() {
                   <RecentMediaSection items={profile.recent_media ?? []} canView={true} isPublicView={false} />
                 </Card>
                 <Card variant="section">
-                  <SectionHeader title="Meine letzten Beiträge" />
+                  <SectionHeader
+                    title="Meine letzten Beiträge"
+                    actions={<Button href="/me/contributions" variant="secondary" size="sm">Alle Beiträge</Button>}
+                  />
                   <RecentContributionsSection items={profile.recent_contributions ?? []} canView={true} isPublicView={false} />
                 </Card>
               </div>
@@ -370,6 +409,15 @@ export default function MyProfilePage() {
                 </Card>
                 <Card variant="section">
                   <VisibilityCard value={form.profileVisibility} disabled={!profile.capabilities.can_edit_own_profile || isSaving} onChange={updateForm} />
+                </Card>
+                <Card variant="section">
+                  <AchievementBadgesCard
+                    badges={badges}
+                    disabled={!profile.capabilities.can_edit_own_profile || isSaving}
+                    pendingBadgeId={pendingBadgeId}
+                    error={badgeError}
+                    onVisibilityChange={handleBadgeVisibilityChange}
+                  />
                 </Card>
                 <Card variant="section" title="Claim & Indexierung">
                   <ClaimStatusCard

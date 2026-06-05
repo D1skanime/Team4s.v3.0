@@ -105,6 +105,31 @@ func TestRoleAllowsActionDifferentiatesManagerRoles(t *testing.T) {
 	}
 }
 
+func TestRoleAllowsActionGrantsEncoderReleaseVersionWorkspace(t *testing.T) {
+	expected := []Action{
+		ActionReleaseView,
+		ActionReleaseVersionView,
+		ActionReleaseVersionMediaView,
+		ActionReleaseVersionMediaUpload,
+		ActionReleaseVersionMediaUpdate,
+		ActionReleaseVersionMediaDeleteOwn,
+		ActionReleaseVersionNotesWrite,
+	}
+
+	for _, action := range expected {
+		if !RoleAllowsAction(RoleEncoder, action) {
+			t.Fatalf("expected encoder to allow %s", action)
+		}
+	}
+
+	if RoleAllowsAction(RoleEncoder, ActionReleaseVersionMediaDelete) {
+		t.Fatal("expected encoder to not delete media from other members")
+	}
+	if RoleAllowsAction(RoleEncoder, ActionFansubGroupMembersManage) {
+		t.Fatal("expected encoder to not manage group members")
+	}
+}
+
 func TestCanForFansubGroupDeniesWhenNoActiveMembershipRolesRemain(t *testing.T) {
 	service := NewService(resolverStub{
 		context: &Context{ScopeType: ScopeTypeGroup, FansubGroupIDs: []int64{88}},

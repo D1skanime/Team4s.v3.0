@@ -1078,6 +1078,94 @@ func TestGetFansubGroupCapabilitiesReturnsViewWithoutManageForProjectLead(t *tes
 	if data["can_manage_members"] != false {
 		t.Fatalf("expected can_manage_members=false, got %#v", data["can_manage_members"])
 	}
+	if data["can_view_releases"] != true {
+		t.Fatalf("expected can_view_releases=true, got %#v", data["can_view_releases"])
+	}
+	if data["can_view_release_media"] != true {
+		t.Fatalf("expected can_view_release_media=true, got %#v", data["can_view_release_media"])
+	}
+	if data["can_upload_release_media"] != true {
+		t.Fatalf("expected can_upload_release_media=true, got %#v", data["can_upload_release_media"])
+	}
+	if data["can_edit_release_notes"] != true {
+		t.Fatalf("expected can_edit_release_notes=true, got %#v", data["can_edit_release_notes"])
+	}
+}
+
+func TestGetFansubGroupCapabilitiesAllowsEncoderMediaAndNotesWorkspace(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	handler := &AppAuthHandler{
+		permissionSvc: permissions.NewService(permissionResolverStub{
+			context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+			roles:   map[int64][]string{88: {permissions.RoleEncoder}},
+		}),
+	}
+
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/admin/fansubs/88/capabilities", nil, middleware.AuthIdentity{
+		UserID:        107,
+		AppUserID:     41,
+		DisplayName:   "Encoder",
+		AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.GetFansubGroupCapabilities(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	body := decodeBody(t, recorder)
+	data := body["data"].(map[string]any)
+	if data["can_view_releases"] != true {
+		t.Fatalf("expected can_view_releases=true, got %#v", data["can_view_releases"])
+	}
+	if data["can_edit_group"] != false || data["can_view_members"] != false {
+		t.Fatalf("expected encoder to skip group/member permissions, got %#v", data)
+	}
+	if data["can_view_release_media"] != true {
+		t.Fatalf("expected encoder to view release media, got %#v", data["can_view_release_media"])
+	}
+	if data["can_upload_release_media"] != true || data["can_edit_release_notes"] != true {
+		t.Fatalf("expected encoder to upload media and edit notes, got %#v", data)
+	}
+}
+
+func TestGetFansubGroupCapabilitiesAllowsReleaseOnlyRolesIntoWorkspace(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	handler := &AppAuthHandler{
+		permissionSvc: permissions.NewService(permissionResolverStub{
+			context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+			roles:   map[int64][]string{88: {permissions.RoleRawProvider}},
+		}),
+	}
+
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/admin/fansubs/88/capabilities", nil, middleware.AuthIdentity{
+		UserID:        107,
+		AppUserID:     41,
+		DisplayName:   "Raw Provider",
+		AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.GetFansubGroupCapabilities(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	body := decodeBody(t, recorder)
+	data := body["data"].(map[string]any)
+	if data["can_view_releases"] != true {
+		t.Fatalf("expected can_view_releases=true, got %#v", data["can_view_releases"])
+	}
+	if data["can_edit_group"] != false || data["can_view_members"] != false {
+		t.Fatalf("expected release-only role to skip group/member permissions, got %#v", data)
+	}
+	if data["can_view_release_media"] != false {
+		t.Fatalf("expected raw provider to skip release media view, got %#v", data["can_view_release_media"])
+	}
+	if data["can_upload_release_media"] != false || data["can_edit_release_notes"] != false {
+		t.Fatalf("expected raw provider to only view releases, got %#v", data)
+	}
 }
 
 func TestGetFansubGroupCapabilitiesReturnsInvitationBooleansForLead(t *testing.T) {

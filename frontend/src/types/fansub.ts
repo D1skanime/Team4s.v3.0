@@ -169,6 +169,10 @@ export interface FansubGroupCapabilities {
   can_view_invitations: boolean;
   can_create_invitation: boolean;
   can_cancel_invitation: boolean;
+  can_view_releases: boolean;
+  can_view_release_media: boolean;
+  can_upload_release_media: boolean;
+  can_edit_release_notes: boolean;
 }
 
 export interface FansubGroupCapabilitiesResponse {
@@ -506,6 +510,9 @@ export interface HistFansubGroupMember {
   app_username: string | null;
   status: HistoricalContributionStatus;
   visibility?: HistoricalContributionVisibility;
+  confirmed_by_app_user_id?: number | null;
+  confirmed_by_display_name?: string | null;
+  confirmed_at?: string | null;
   created_at: string;
 }
 

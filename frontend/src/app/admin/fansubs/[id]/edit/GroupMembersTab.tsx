@@ -55,6 +55,16 @@ function formatZeitraum(member: HistFansubGroupMember): string {
   return `${von} – ${bis}`
 }
 
+function formatConfirmationDate(value?: string | null): string | null {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return new Intl.DateTimeFormat('de-DE', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
+}
+
 function statusBadgeVariant(status: HistFansubGroupMember['status']): 'success' | 'warning' | 'info' | 'muted' {
   if (status === 'confirmed') return 'success'
   if (status === 'disputed') return 'warning'
@@ -63,7 +73,7 @@ function statusBadgeVariant(status: HistFansubGroupMember['status']): 'success' 
 }
 
 function statusLabel(status: HistFansubGroupMember['status']): string {
-  if (status === 'confirmed') return 'Von der Gruppe bestätigt'
+  if (status === 'confirmed') return 'Bestätigt'
   if (status === 'disputed') return 'Klärfall'
   if (status === 'draft') return 'Entwurf'
   return 'Historischer Eintrag'
@@ -79,8 +89,19 @@ function visibilityLabel(visibility: HistoricalContributionVisibility): string {
 
 function memberAssignmentLabel(member: HistFansubGroupMember): string {
   if (member.app_username) return `Zugeordnet: ${member.app_username}`
-  if (member.status === 'confirmed') return 'Von der Gruppe bestätigt, aber keinem aktuellen Gruppenmitglied zugeordnet'
   return 'Noch keinem aktuellen Gruppenmitglied zugeordnet'
+}
+
+function confirmationLabel(member: HistFansubGroupMember): string | null {
+  if (member.status !== 'confirmed') return null
+
+  const confirmedBy = member.confirmed_by_display_name?.trim()
+  const confirmedAt = formatConfirmationDate(member.confirmed_at)
+
+  if (confirmedBy && confirmedAt) return `Bestätigt von ${confirmedBy} am ${confirmedAt}`
+  if (confirmedBy) return `Bestätigt von ${confirmedBy}`
+  if (confirmedAt) return `Bestätigt am ${confirmedAt}`
+  return 'Bestätigt, Details noch nicht gespeichert'
 }
 
 function statusHelpText(status: HistoricalContributionStatus): string {
@@ -88,7 +109,7 @@ function statusHelpText(status: HistoricalContributionStatus): string {
     return 'Entwurf: Arbeitsstand. Nutze das, wenn Name, Jahre oder Zugehörigkeit noch nicht sauber eingeordnet sind.'
   }
   if (status === 'confirmed') {
-    return 'Von der Gruppe bestätigt: Die Gruppe steht fachlich hinter diesem historischen Eintrag. Das verknüpft noch kein aktuelles Gruppenmitglied.'
+    return 'Bestätigt: Beim Speichern wird der aktuelle App-User mit Zeitpunkt als Bestätigung hinterlegt. Das verknüpft noch kein aktuelles Gruppenmitglied.'
   }
   if (status === 'disputed') {
     return 'Klärfall: Nutze das, wenn Angaben widersprüchlich sind, jemand widerspricht oder Rollen/Jahre erst geprüft werden müssen.'
@@ -293,46 +314,51 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
 
       {!loading && members.length > 0 ? (
         <div className={styles.fansubEditMembershipList}>
-          {members.map((member) => (
-            <Card key={member.id} variant="nestedFlat" className={styles.fansubEditMembershipCard}>
-              <div className={styles.fansubEditMembershipCardTop}>
-                <div className={styles.fansubEditMembershipIdentity}>
-                  <strong>{member.display_name}</strong>
-                  <div className={styles.fansubEditMembershipMetaLine}>
-                    <span>{formatZeitraum(member)}</span>
-                    <span>{memberAssignmentLabel(member)}</span>
+          {members.map((member) => {
+            const confirmation = confirmationLabel(member)
+
+            return (
+              <Card key={member.id} variant="nestedFlat" className={styles.fansubEditMembershipCard}>
+                <div className={styles.fansubEditMembershipCardTop}>
+                  <div className={styles.fansubEditMembershipIdentity}>
+                    <strong>{member.display_name}</strong>
+                    <div className={styles.fansubEditMembershipMetaLine}>
+                      <span>{formatZeitraum(member)}</span>
+                      <span>{memberAssignmentLabel(member)}</span>
+                      {confirmation ? <span>{confirmation}</span> : null}
+                    </div>
+                  </div>
+                  <div className={styles.fansubEditMembershipControls}>
+                    <Badge variant={statusBadgeVariant(member.status)}>
+                      {statusLabel(member.status)}
+                    </Badge>
+                    <Badge
+                      variant={visibilityBadgeVariant(member.visibility ?? 'internal')}
+                      className={styles.fansubEditMembershipVisibilityBadge}
+                    >
+                      {visibilityLabel(member.visibility ?? 'internal')}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      iconOnly
+                      aria-label="Mitglied bearbeiten"
+                      leftIcon={<Pencil size={14} aria-hidden="true" />}
+                      onClick={() => openEdit(member)}
+                    />
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      iconOnly
+                      aria-label="Mitglied löschen"
+                      leftIcon={<Trash2 size={14} aria-hidden="true" />}
+                      onClick={() => setDeleteTarget(member)}
+                    />
                   </div>
                 </div>
-                <div className={styles.fansubEditMembershipControls}>
-                  <Badge variant={statusBadgeVariant(member.status)}>
-                    {statusLabel(member.status)}
-                  </Badge>
-                  <Badge
-                    variant={visibilityBadgeVariant(member.visibility ?? 'internal')}
-                    className={styles.fansubEditMembershipVisibilityBadge}
-                  >
-                    {visibilityLabel(member.visibility ?? 'internal')}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    iconOnly
-                    aria-label="Mitglied bearbeiten"
-                    leftIcon={<Pencil size={14} aria-hidden="true" />}
-                    onClick={() => openEdit(member)}
-                  />
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    iconOnly
-                    aria-label="Mitglied löschen"
-                    leftIcon={<Trash2 size={14} aria-hidden="true" />}
-                    onClick={() => setDeleteTarget(member)}
-                  />
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            )
+          })}
         </div>
       ) : null}
 
@@ -430,7 +456,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
                 }))}
               >
                 <option value="historical">Historischer Eintrag</option>
-                <option value="confirmed">Von der Gruppe bestätigt</option>
+                <option value="confirmed">Bestätigt</option>
                 <option value="draft">Entwurf</option>
                 <option value="disputed">Klärfall</option>
               </Select>

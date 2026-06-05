@@ -85,7 +85,7 @@ export function ReleaseVersionMediaDrawerSummary({
       )}
 
       <Link
-        href={`/admin/episode-versions/${versionId}/edit/?tab=media`}
+        href={`/admin/episode-versions/${versionId}/edit?tab=media`}
         className={styles.fansubEditReleaseDrawerMediaCTA}
       >
         Media verwalten

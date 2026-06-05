@@ -75,6 +75,7 @@ export interface PublicAnimeContributionsResponse {
 export interface MeAnimeContribution {
   id: number
   anime_id: number
+  anime_title?: string
   fansub_group_id: number
   fansub_group_member_id: number
   status: 'confirmed' | 'proposed' | 'draft' | 'disputed' | 'hidden'
@@ -167,7 +168,7 @@ export interface PublicMemberContributionsResponse {
 
 export interface MemberBadge {
   id: number
-  badge_code: 'founding_member' | 'historical_leader' | 'long_term_member'
+  badge_code: string
   badge_category: string
   visibility: 'public' | 'internal' | 'hidden'
   awarded_at: string

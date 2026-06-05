@@ -72,13 +72,23 @@ func (r *FansubGroupInvitationRepository) ListByFansubGroup(ctx context.Context,
 			fgi.cancelled_at,
 			fgi.created_at,
 			fgi.updated_at,
-			COALESCE(m.id, 0) AS member_id,
-			COALESCE(NULLIF(m.nickname, ''), '') AS fansub_name
+			COALESCE(claimed_m.id, legacy_m.id, 0) AS member_id,
+			COALESCE(NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), '') AS fansub_name
 		FROM fansub_group_invitations fgi
 		LEFT JOIN app_users au
 			ON lower(au.email) = fgi.normalized_email
-		LEFT JOIN members m
-			ON m.user_id = au.legacy_user_id
+		LEFT JOIN LATERAL (
+			SELECT member_id
+			FROM member_claims
+			WHERE app_user_id = au.id
+			  AND claim_status = 'verified'
+			ORDER BY verified_at DESC NULLS LAST, id DESC
+			LIMIT 1
+		) mc ON true
+		LEFT JOIN members claimed_m
+			ON claimed_m.id = mc.member_id
+		LEFT JOIN members legacy_m
+			ON legacy_m.user_id = au.legacy_user_id
 		WHERE fgi.fansub_group_id = $1
 		  AND fgi.status = 'pending'
 		ORDER BY fgi.created_at DESC, fgi.id DESC

@@ -2,7 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import {
   type FormEvent,
   type ReactNode,
@@ -20,6 +25,7 @@ import {
   Plus,
   Save,
   Trash2,
+  Users,
   X,
 } from "lucide-react";
 
@@ -41,6 +47,8 @@ import {
   getFansubByID,
   getFansubGroupCapabilities,
   getFansubList,
+  listAnimeContributions,
+  listGroupMembers,
   resolveApiUrl,
   updateFansubGroup,
   updateFansubLink,
@@ -56,6 +64,8 @@ import {
   FansubGroupPatchRequest,
   FansubGroupType,
   FansubStatus,
+  AnimeContribution,
+  HistFansubGroupMember,
 } from "@/types/fansub";
 import {
   AdminAnimeTheme,
@@ -81,9 +91,9 @@ import {
   YearPicker,
 } from "@/components/ui";
 import { AnimeProjectNotesSection } from "./AnimeProjectNotesSection";
+import AnimeContributionModal from "./AnimeContributionModal";
 import { ClaimManagementPanel } from "./ClaimManagementPanel";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
-import AnimeContributionsTab from "./AnimeContributionsTab";
 import { GroupMembersTab } from "./GroupMembersTab";
 import { MemberRolesTab } from "./MemberRolesTab";
 import { NotesTab } from "./NotesTab";
@@ -119,8 +129,7 @@ type SectionKey =
   | "mitglieder"
   | "rollen"
   | "claims"
-  | "vorschlaege"
-  | "anime-beitraege";
+  | "vorschlaege";
 type MainTab = SectionKey;
 type FormState = {
   name: string;
@@ -172,6 +181,11 @@ type ReleaseDrawerContext = {
   contextKey: string;
 };
 
+type ContributionModalAnime = {
+  id: number;
+  title: string;
+};
+
 type BannerEdgeFills = {
   left: string;
   right: string;
@@ -188,13 +202,70 @@ const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: "media", label: "Medien" },
   { key: "collaboration", label: "App-Mitglieder" },
   { key: "mitglieder", label: "Hist. Mitglieder" },
-  { key: "rollen", label: "Rollen/Timeline" },
+  { key: "rollen", label: "Historische Rollen" },
   { key: "claims", label: "Claims" },
   { key: "vorschlaege", label: "Vorschläge" },
-  { key: "anime-beitraege", label: "Anime-Beiträge" },
   { key: "releases", label: "Anime & Veröffentlichungen" },
   { key: "anime-projekte", label: "Anime-Einblicke" },
 ];
+
+function parseMainTab(value: string | null): MainTab {
+  return MAIN_TABS.some((tab) => tab.key === value) ? (value as MainTab) : "basic";
+}
+
+function canUseMainTab(
+  tab: MainTab,
+  isPlatformAdmin: boolean,
+  capabilities: FansubGroupCapabilities | null,
+): boolean {
+  if (isPlatformAdmin) return true;
+  if (!capabilities) return false;
+
+  switch (tab) {
+    case "basic":
+    case "media":
+      return capabilities.can_edit_group;
+    case "links":
+      return capabilities.can_manage_links;
+    case "collaboration":
+    case "mitglieder":
+    case "rollen":
+      return capabilities.can_view_members || capabilities.can_manage_members;
+    case "claims":
+      return (
+        capabilities.can_view_invitations ||
+        capabilities.can_create_invitation ||
+        capabilities.can_cancel_invitation
+      );
+    case "vorschlaege":
+      return capabilities.can_manage_members;
+    case "releases":
+      return Boolean(capabilities.can_view_releases);
+    case "anime-projekte":
+    case "notes":
+      return capabilities.can_edit_notes;
+    default:
+      return false;
+  }
+}
+
+function visibleMainTabs(
+  isPlatformAdmin: boolean,
+  capabilities: FansubGroupCapabilities | null,
+): Array<{ key: MainTab; label: string }> {
+  return MAIN_TABS.filter((tab) =>
+    canUseMainTab(tab.key, isPlatformAdmin, capabilities),
+  );
+}
+
+function resolveMainTabForAccess(
+  requested: MainTab,
+  isPlatformAdmin: boolean,
+  capabilities: FansubGroupCapabilities | null,
+): MainTab {
+  if (canUseMainTab(requested, isPlatformAdmin, capabilities)) return requested;
+  return visibleMainTabs(isPlatformAdmin, capabilities)[0]?.key ?? "basic";
+}
 
 const STATUS_LABELS: Record<FansubStatus, string> = {
   active: "aktiv",
@@ -726,8 +797,58 @@ function hasFansubWorkspaceAccess(
   return Object.values(capabilities).some(Boolean);
 }
 
+function canViewReleaseContributors(
+  isPlatformAdmin: boolean,
+  capabilities: FansubGroupCapabilities | null,
+): boolean {
+  return canUseMainTab("mitglieder", isPlatformAdmin, capabilities);
+}
+
+function canUploadReleaseMedia(
+  isPlatformAdmin: boolean,
+  capabilities: FansubGroupCapabilities | null,
+): boolean {
+  return (
+    isPlatformAdmin || Boolean(capabilities?.can_upload_release_media)
+  );
+}
+
+function canViewReleaseMedia(
+  isPlatformAdmin: boolean,
+  capabilities: FansubGroupCapabilities | null,
+): boolean {
+  return isPlatformAdmin || Boolean(capabilities?.can_view_release_media);
+}
+
+function canEditReleaseNotes(
+  isPlatformAdmin: boolean,
+  capabilities: FansubGroupCapabilities | null,
+): boolean {
+  return isPlatformAdmin || Boolean(capabilities?.can_edit_release_notes);
+}
+
+function releaseVersionToolsTarget(
+  releaseVersionID: number,
+  options: { canViewMedia: boolean; canEditNotes: boolean },
+): { href: string; label: string } | null {
+  if (releaseVersionID <= 0) return null;
+  if (!options.canEditNotes) return null;
+
+  const tab = "notizen";
+  const label =
+    options.canViewMedia && options.canEditNotes
+      ? "Notizen & Medien"
+      : "Notizen";
+
+  return {
+    href: `/admin/episode-versions/${releaseVersionID}/edit?tab=${tab}`,
+    label,
+  };
+}
+
 type FansubEditAccessContext = {
   isPlatformAdmin: boolean;
+  capabilities: FansubGroupCapabilities | null;
 };
 
 function readFansubIDFromParams(params?: { id?: string }): number {
@@ -747,6 +868,8 @@ function FansubEditAccessGate({
   const [isLoading, setIsLoading] = useState(true);
   const [isAllowed, setIsAllowed] = useState(false);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [capabilities, setCapabilities] =
+    useState<FansubGroupCapabilities | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -758,6 +881,7 @@ function FansubEditAccessGate({
         if (!cancelled) {
           setIsAllowed(false);
           setIsPlatformAdmin(false);
+          setCapabilities(null);
           setIsLoading(false);
           setErrorMessage("Anmeldung erforderlich.");
         }
@@ -768,6 +892,7 @@ function FansubEditAccessGate({
         if (!cancelled) {
           setIsAllowed(false);
           setIsPlatformAdmin(false);
+          setCapabilities(null);
           setIsLoading(false);
           setErrorMessage("Ungültige Fansub-ID.");
         }
@@ -782,6 +907,7 @@ function FansubEditAccessGate({
           if (!cancelled) {
             setIsAllowed(true);
             setIsPlatformAdmin(true);
+            setCapabilities(null);
           }
           return;
         }
@@ -790,12 +916,14 @@ function FansubEditAccessGate({
           await getFansubGroupCapabilities(fansubID);
         if (!cancelled) {
           setIsPlatformAdmin(false);
+          setCapabilities(capabilitiesResponse.data);
           setIsAllowed(hasFansubWorkspaceAccess(capabilitiesResponse.data));
         }
       } catch (error: unknown) {
         if (!cancelled) {
           setIsAllowed(false);
           setIsPlatformAdmin(false);
+          setCapabilities(null);
           setErrorMessage(
             error instanceof Error
               ? error.message
@@ -839,7 +967,7 @@ function FansubEditAccessGate({
     );
   }
 
-  return <>{children({ isPlatformAdmin })}</>;
+  return <>{children({ isPlatformAdmin, capabilities })}</>;
 }
 
 function YearSelectField({
@@ -871,10 +999,21 @@ function YearSelectField({
 function AdminFansubEditContent({
   fansubID,
   isPlatformAdmin,
+  capabilities,
 }: {
   fansubID: number;
   isPlatformAdmin: boolean;
+  capabilities: FansubGroupCapabilities | null;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const mainTabFromQuery = parseMainTab(searchParams.get("tab"));
+  const initialMainTab = resolveMainTabForAccess(
+    mainTabFromQuery,
+    isPlatformAdmin,
+    capabilities,
+  );
   const [group, setGroup] = useState<FansubGroup | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [initialForm, setInitialForm] = useState<FormState>(emptyForm);
@@ -900,7 +1039,7 @@ function AdminFansubEditContent({
   ] = useState<Record<string, string | null>>({});
   const [visibleReleaseCountByAnimeKey, setVisibleReleaseCountByAnimeKey] =
     useState<Record<string, number>>({});
-  const [activeMainTab, setActiveMainTab] = useState<MainTab>("basic");
+  const [activeMainTab, setActiveMainTab] = useState<MainTab>(initialMainTab);
   const [expandedAnimeKeys, setExpandedAnimeKeys] = useState<Set<string>>(
     () => new Set(),
   );
@@ -926,6 +1065,19 @@ function AdminFansubEditContent({
   const [selectedAnimeId, setSelectedAnimeId] = useState<number | null>(null);
   const [selectedFansubGroupId, setSelectedFansubGroupId] = useState<
     number | null
+  >(null);
+  const [contributionModalAnime, setContributionModalAnime] =
+    useState<ContributionModalAnime | null>(null);
+  const [contributionMembers, setContributionMembers] = useState<
+    HistFansubGroupMember[]
+  >([]);
+  const [contributionModalRows, setContributionModalRows] = useState<
+    AnimeContribution[]
+  >([]);
+  const [contributionModalLoadingAnimeId, setContributionModalLoadingAnimeId] =
+    useState<number | null>(null);
+  const [contributionModalError, setContributionModalError] = useState<
+    string | null
   >(null);
   const [releaseDrawerOpen, setReleaseDrawerOpen] = useState(false);
   const [drawerRelease, setDrawerRelease] = useState<AdminFansubRelease | null>(
@@ -959,7 +1111,6 @@ function AdminFansubEditContent({
       rollen: true,
       claims: true,
       vorschlaege: true,
-      "anime-beitraege": true,
     },
   );
   const [loading, setLoading] = useState(true);
@@ -1000,6 +1151,60 @@ function AdminFansubEditContent({
   const { hasAccessToken, hasRefreshToken, isClientInitialized } =
     useAuthSession();
   const hasAuthSession = hasAccessToken || hasRefreshToken;
+  const availableMainTabs = useMemo(
+    () => visibleMainTabs(isPlatformAdmin, capabilities),
+    [capabilities, isPlatformAdmin],
+  );
+  const canOpenReleaseContributors = canViewReleaseContributors(
+    isPlatformAdmin,
+    capabilities,
+  );
+  const canManageReleaseThemeAssets = canUploadReleaseMedia(
+    isPlatformAdmin,
+    capabilities,
+  );
+  const canUseReleaseMedia = canViewReleaseMedia(
+    isPlatformAdmin,
+    capabilities,
+  );
+  const canUseReleaseNotes = canEditReleaseNotes(
+    isPlatformAdmin,
+    capabilities,
+  );
+  const canUseAdminReleaseDetails = isPlatformAdmin;
+  const canOpenReleaseDrawer =
+    canUseAdminReleaseDetails || canUseReleaseMedia;
+
+  useEffect(() => {
+    const nextTab = resolveMainTabForAccess(
+      mainTabFromQuery,
+      isPlatformAdmin,
+      capabilities,
+    );
+    setActiveMainTab((current) =>
+      current === nextTab ? current : nextTab,
+    );
+  }, [capabilities, isPlatformAdmin, mainTabFromQuery]);
+
+  const handleMainTabChange = useCallback(
+    (tab: MainTab) => {
+      if (!canUseMainTab(tab, isPlatformAdmin, capabilities)) return;
+      setActiveMainTab(tab);
+
+      const nextSearchParams = new URLSearchParams(searchParams.toString());
+      if (tab === "basic") {
+        nextSearchParams.delete("tab");
+      } else {
+        nextSearchParams.set("tab", tab);
+      }
+
+      const query = nextSearchParams.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [capabilities, isPlatformAdmin, pathname, router, searchParams],
+  );
 
   const handleLogoMediaBusyChange = useCallback((isBusy: boolean) => {
     setMediaBusy((current) =>
@@ -1039,6 +1244,11 @@ function AdminFansubEditContent({
     setSelectedAnimeFansubContextKey(null);
     setSelectedAnimeId(null);
     setSelectedFansubGroupId(null);
+    setContributionModalAnime(null);
+    setContributionMembers([]);
+    setContributionModalRows([]);
+    setContributionModalLoadingAnimeId(null);
+    setContributionModalError(null);
     setDrawerRelease(null);
     setDrawerReleaseLoading(false);
     setDrawerReleaseError(null);
@@ -1406,9 +1616,14 @@ function AdminFansubEditContent({
   };
 
   const openReleaseDrawer = (context: ReleaseDrawerContext) => {
+    if (!canOpenReleaseDrawer) return;
+
     const { release, animeID, fansubGroupID, contextKey } = context;
     const requestID = releaseDrawerRequestSeqRef.current + 1;
     releaseDrawerRequestSeqRef.current = requestID;
+    const initialDrawerTab: ReleaseDrawerTab = canUseAdminReleaseDetails
+      ? "details"
+      : "media";
 
     setSelectedReleaseId(release.release_id);
     setSelectedAnimeFansubContextKey(contextKey);
@@ -1418,17 +1633,17 @@ function AdminFansubEditContent({
     setThemeDrawerOpen(false);
     setSelectedReleaseSegment(null);
     setDrawerRelease(release);
-    setDrawerTab("details");
+    setDrawerTab(initialDrawerTab);
     setDrawerBusy(false);
     resetThemeDrawerTransientState();
     setDrawerReleaseError(null);
-    setDrawerReleaseLoading(hasAuthSession);
+    setDrawerReleaseLoading(hasAuthSession && canUseAdminReleaseDetails);
     setExpandedReleaseIds((current) =>
       new Set(current).add(release.release_id),
     );
     void loadReleaseSegmentCards(release);
 
-    if (!hasAuthSession) {
+    if (!hasAuthSession || !canUseAdminReleaseDetails) {
       setDrawerReleaseLoading(false);
       return;
     }
@@ -1560,6 +1775,33 @@ function AdminFansubEditContent({
     });
   };
 
+  const openAnimeContributions = async (anime: AdminFansubAnimeEntry) => {
+    setContributionModalLoadingAnimeId(anime.id);
+    setContributionModalError(null);
+    try {
+      const [membersResponse, contributionsResponse] = await Promise.all([
+        listGroupMembers(fansubID),
+        listAnimeContributions(fansubID, anime.id),
+      ]);
+      setContributionMembers(membersResponse.data ?? []);
+      setContributionModalRows(contributionsResponse.data ?? []);
+      setContributionModalAnime({ id: anime.id, title: anime.title });
+    } catch (nextError) {
+      setContributionModalError(errMessage(nextError));
+    } finally {
+      setContributionModalLoadingAnimeId(null);
+    }
+  };
+
+  const refreshAnimeContributions = async (animeID: number) => {
+    try {
+      const response = await listAnimeContributions(fansubID, animeID);
+      setContributionModalRows(response.data ?? []);
+    } catch {
+      // Der Speichervorgang selbst war erfolgreich; ein Refresh-Fehler ist nicht kritisch.
+    }
+  };
+
   useEffect(() => {
     if (!drawerRelease) return;
     const cards = releaseSegmentCards[drawerRelease.release_id] ?? [];
@@ -1598,7 +1840,13 @@ function AdminFansubEditContent({
   }, [releaseSegmentCards, selectedReleaseSegment]);
 
   const handleDrawerUpload = async (file: File | null) => {
-    if (!file || !selectedReleaseSegment || !hasAuthSession) return;
+    if (
+      !file ||
+      !selectedReleaseSegment ||
+      !hasAuthSession ||
+      !canManageReleaseThemeAssets
+    )
+      return;
     const release = selectedReleaseSegment.release;
     const themeID = selectedReleaseSegment.card.theme_id;
     const selectionKey = releaseThemeSelectionKey(release.release_id, themeID);
@@ -1904,8 +2152,12 @@ function AdminFansubEditContent({
   const fansubEditColumnsClassName = `${styles.fansubEditColumns}${tabUsesLeftWorkspace ? ` ${styles.fansubEditColumnsSingleLeft}` : ""}${tabUsesRightWorkspace ? ` ${styles.fansubEditColumnsSingleRight}` : ""}`;
   const releaseDrawerTabs = drawerRelease
     ? [
-        { key: "details" as const, label: "Details", disabled: false },
-        { key: "media" as const, label: "Media", disabled: false },
+        ...(canUseAdminReleaseDetails
+          ? [{ key: "details" as const, label: "Details", disabled: false }]
+          : []),
+        ...(canUseReleaseMedia
+          ? [{ key: "media" as const, label: "Media", disabled: false }]
+          : []),
       ]
     : [];
   const communityLinksList = (
@@ -2128,12 +2380,12 @@ function AdminFansubEditContent({
             className={styles.fansubEditMainTabRow}
             aria-label="Fansub Bearbeitungsbereiche"
           >
-            {MAIN_TABS.map((tab) => (
+            {availableMainTabs.map((tab) => (
               <button
                 key={tab.key}
                 type="button"
                 className={`${styles.fansubEditMainTabButton} ${activeMainTab === tab.key ? styles.fansubEditMainTabButtonActive : ""}`}
-                onClick={() => setActiveMainTab(tab.key)}
+                onClick={() => handleMainTabChange(tab.key)}
               >
                 {tab.label}
               </button>
@@ -2146,8 +2398,7 @@ function AdminFansubEditContent({
         activeMainTab !== "notes" &&
         activeMainTab !== "mitglieder" &&
         activeMainTab !== "rollen" &&
-        activeMainTab !== "vorschlaege" &&
-        activeMainTab !== "anime-beitraege" ? (
+        activeMainTab !== "vorschlaege" ? (
           <form className={styles.fansubEditForm} onSubmit={save}>
             {activeMainTab !== "collaboration" ? (
               <div className={styles.fansubEditStickyActions}>
@@ -2668,6 +2919,9 @@ function AdminFansubEditContent({
               {releaseGroupsError ? (
                 <div className={styles.errorBox}>{releaseGroupsError}</div>
               ) : null}
+              {contributionModalError ? (
+                <div className={styles.errorBox}>{contributionModalError}</div>
+              ) : null}
               {!releaseGroupsLoading &&
               !releaseGroupsError &&
               releaseGroups.length === 0 ? (
@@ -2716,51 +2970,71 @@ function AdminFansubEditContent({
                       key={releaseGroup.key}
                       className={styles.fansubEditAnimeReleaseCard}
                     >
-                      <button
-                        type="button"
-                        className={styles.fansubEditAnimeReleaseHeader}
-                        onClick={() => toggleAnime(releaseGroup)}
-                        aria-expanded={animeExpanded}
-                        aria-label={
-                          animeExpanded
-                            ? `${releaseGroup.anime.title} einklappen`
-                            : `${releaseGroup.anime.title} ausklappen`
-                        }
-                      >
-                        <Image
-                          src={animeVisualUrl}
-                          alt=""
-                          className={
-                            useLandscapeVisual
-                              ? styles.fansubEditAnimeLandscape
-                              : styles.fansubEditAnimePoster
+                      <div className={styles.fansubEditAnimeReleaseHeaderRow}>
+                        <button
+                          type="button"
+                          className={styles.fansubEditAnimeReleaseHeader}
+                          onClick={() => toggleAnime(releaseGroup)}
+                          aria-expanded={animeExpanded}
+                          aria-label={
+                            animeExpanded
+                              ? `${releaseGroup.anime.title} einklappen`
+                              : `${releaseGroup.anime.title} ausklappen`
                           }
-                          width={useLandscapeVisual ? 176 : 108}
-                          height={useLandscapeVisual ? 100 : 152}
-                          unoptimized
-                        />
-                        <div className={styles.fansubEditAnimeReleaseBody}>
-                          <h3>{releaseGroup.anime.title}</h3>
-                          {animeTypeLabel ? (
-                            <span className={styles.fansubEditAnimeReleaseType}>
-                              {animeTypeLabel}
-                            </span>
-                          ) : null}
-                          <span className={styles.fansubEditAnimeReleaseCount}>
-                            {releaseCountLabel}
-                          </span>
-                        </div>
-                        <span
-                          className={styles.fansubEditAnimeToggle}
-                          aria-hidden="true"
                         >
-                          {animeExpanded ? (
-                            <ChevronDown size={34} strokeWidth={2.6} />
-                          ) : (
-                            <ChevronRight size={34} strokeWidth={2.6} />
-                          )}
-                        </span>
-                      </button>
+                          <Image
+                            src={animeVisualUrl}
+                            alt=""
+                            className={
+                              useLandscapeVisual
+                                ? styles.fansubEditAnimeLandscape
+                                : styles.fansubEditAnimePoster
+                            }
+                            width={useLandscapeVisual ? 176 : 108}
+                            height={useLandscapeVisual ? 100 : 152}
+                            unoptimized
+                          />
+                          <div className={styles.fansubEditAnimeReleaseBody}>
+                            <h3>{releaseGroup.anime.title}</h3>
+                            {animeTypeLabel ? (
+                              <span className={styles.fansubEditAnimeReleaseType}>
+                                {animeTypeLabel}
+                              </span>
+                            ) : null}
+                            <span className={styles.fansubEditAnimeReleaseCount}>
+                              {releaseCountLabel}
+                            </span>
+                          </div>
+                          <span
+                            className={styles.fansubEditAnimeToggle}
+                            aria-hidden="true"
+                          >
+                            {animeExpanded ? (
+                              <ChevronDown size={34} strokeWidth={2.6} />
+                            ) : (
+                              <ChevronRight size={34} strokeWidth={2.6} />
+                            )}
+                          </span>
+                        </button>
+                        {canOpenReleaseContributors ? (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            leftIcon={<Users size={16} />}
+                            className={styles.fansubEditAnimeContributorsButton}
+                            loading={
+                              contributionModalLoadingAnimeId ===
+                              releaseGroup.anime.id
+                            }
+                            onClick={() =>
+                              void openAnimeContributions(releaseGroup.anime)
+                            }
+                          >
+                            Mitwirkende
+                          </Button>
+                        ) : null}
+                      </div>
                       {animeExpanded && releasesLoading ? (
                         <div className={styles.fansubEditReleaseState}>
                           Releases werden geladen...
@@ -2807,6 +3081,14 @@ function AdminFansubEditContent({
                               const expanded = expandedReleaseIds.has(
                                 release.release_id,
                               );
+                              const releaseVersionTools =
+                                releaseVersionToolsTarget(
+                                  release.release_version_id,
+                                  {
+                                    canViewMedia: canUseReleaseMedia,
+                                    canEditNotes: canUseReleaseNotes,
+                                  },
+                                );
                               const cards =
                                 releaseSegmentCards[release.release_id] ?? [];
                               const cardsLoading =
@@ -2910,22 +3192,41 @@ function AdminFansubEditContent({
                                         styles.fansubEditReleaseActions
                                       }
                                     >
-                                      <button
-                                        type="button"
-                                        className={`${styles.button} ${styles.fansubEditReleaseEditButton}`}
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          openReleaseDrawer({
-                                            release,
-                                            animeID: releaseGroup.anime.id,
-                                            fansubGroupID:
-                                              release.fansub_group_id,
-                                            contextKey: releaseGroup.key,
-                                          });
-                                        }}
-                                      >
-                                        Editieren
-                                      </button>
+                                      {releaseVersionTools ? (
+                                        <Button
+                                          href={releaseVersionTools.href}
+                                          variant="secondary"
+                                          size="sm"
+                                          leftIcon={
+                                            <ExternalLink size={15} />
+                                          }
+                                          onClick={(event) =>
+                                            event.stopPropagation()
+                                          }
+                                        >
+                                          {releaseVersionTools.label}
+                                        </Button>
+                                      ) : null}
+                                      {canOpenReleaseDrawer ? (
+                                        <button
+                                          type="button"
+                                          className={`${styles.button} ${styles.fansubEditReleaseEditButton}`}
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            openReleaseDrawer({
+                                              release,
+                                              animeID: releaseGroup.anime.id,
+                                              fansubGroupID:
+                                                release.fansub_group_id,
+                                              contextKey: releaseGroup.key,
+                                            });
+                                          }}
+                                        >
+                                          {canUseAdminReleaseDetails
+                                            ? "Editieren"
+                                            : "Medien"}
+                                        </button>
+                                      ) : null}
                                     </div>
                                     <span
                                       className={
@@ -3189,8 +3490,18 @@ function AdminFansubEditContent({
         {activeMainTab === "rollen" ? <MemberRolesTab fansubId={fansubID} /> : null}
         {activeMainTab === "claims" ? <ClaimManagementPanel groupId={fansubID} /> : null}
         {activeMainTab === "vorschlaege" ? <ReviewQueue fansubId={fansubID} /> : null}
-        {activeMainTab === "anime-beitraege" ? <AnimeContributionsTab fansubId={fansubID} /> : null}
       </section>
+      {contributionModalAnime ? (
+        <AnimeContributionModal
+          fansubId={fansubID}
+          animeId={contributionModalAnime.id}
+          animeTitle={contributionModalAnime.title}
+          members={contributionMembers}
+          existingContributions={contributionModalRows}
+          onClose={() => setContributionModalAnime(null)}
+          onSaved={() => void refreshAnimeContributions(contributionModalAnime.id)}
+        />
+      ) : null}
       {releaseDrawerOpen && drawerRelease ? (
         <div
           className={styles.fansubEditReleaseDrawerOverlay}
@@ -3255,7 +3566,7 @@ function AdminFansubEditContent({
               {drawerReleaseError ? (
                 <div className={styles.errorBox}>{drawerReleaseError}</div>
               ) : null}
-              {drawerTab === "details" ? (
+              {drawerTab === "details" && canUseAdminReleaseDetails ? (
                 <div className={styles.fansubEditReleaseDrawerPanel}>
                   <div className={styles.fansubEditReleaseDrawerDetailGrid}>
                     <div className={styles.fansubEditReleaseDrawerDetailItem}>
@@ -3332,7 +3643,7 @@ function AdminFansubEditContent({
                 </div>
               ) : null}
 
-              {drawerTab === "media" ? (
+              {drawerTab === "media" && canUseReleaseMedia ? (
                 <div className={styles.fansubEditReleaseDrawerPanel}>
                   {drawerRelease.release_version_id > 0 ? (
                     <ReleaseVersionMediaDrawerSummary
@@ -3470,6 +3781,11 @@ function AdminFansubEditContent({
                       Global/Jellyfin gesetzt - keine Fansub-Überschreibung in
                       diesem Schritt.
                     </p>
+                  ) : !canManageReleaseThemeAssets ? (
+                    <p className={styles.fansubEditHint}>
+                      Du kannst die Theme-Zuordnung ansehen. Hochladen oder
+                      Entfernen ist nur mit Release-Media-Recht möglich.
+                    </p>
                   ) : (
                     <div className={styles.fansubEditReleaseDrawerDropzone}>
                       <div className={styles.fansubEditThemeUploadHeader}>
@@ -3578,10 +3894,11 @@ export default function AdminFansubEditPage() {
 
   return (
     <FansubEditAccessGate fansubID={fansubID}>
-      {({ isPlatformAdmin }) => (
+      {({ isPlatformAdmin, capabilities }) => (
         <AdminFansubEditContent
           fansubID={fansubID}
           isPlatformAdmin={isPlatformAdmin}
+          capabilities={capabilities}
         />
       )}
     </FansubEditAccessGate>

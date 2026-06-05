@@ -21,9 +21,15 @@
 - [x] Define and execute Phase 55: safe TipTap profile-story persistence with migration and backend/API/frontend contract.
 - [x] Replace fragile avatar/fansub logo cropper with shared `Team4sCropper` and complete Phase 56 UAT/security.
 - [x] Complete Phase 54 drawer/header work.
+- [x] Close phases 60-69 as the fansub-contributions MVP baseline.
+- [x] Complete and verify Phase 70 TipTap profile story images.
+- [ ] Confirm Phase 71 UAT artifact/source before treating Phase 71 as locally closed.
+- [ ] Decide next post-MVP move: Phase 71 polish continuation or structured product discussion.
 
 ## Parking Lot
 - [ ] Larger Drawer/Upload/Card UI convergence, only as small tested slices.
 - [ ] Review older unrelated stashes before deleting them.
 - [ ] Full browser pass on affected admin screens after commit slicing if a local server is available.
+- [ ] Plan global platform-admin user/rights overview.
+- [ ] Define future public Fansub Page information architecture.
 - [x] Replace avatar cropper globally with a modern maintained cropper library.

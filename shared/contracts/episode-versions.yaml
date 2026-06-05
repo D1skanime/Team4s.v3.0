@@ -27,6 +27,7 @@ endpoints:
     path: /api/v1/admin/episode-versions/:versionId/editor-context
     auth:
       required: true
+      permission: platform_admin or release_version.view/media/notes capability for a related fansub group
       header:
         name: Authorization
         format: Bearer <signed token>

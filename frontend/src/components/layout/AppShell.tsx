@@ -105,7 +105,7 @@ function AppShellNavGroups({
     : []
   const myItems: AppShellNavItem[] = [
     { label: 'Mein Profil', href: '/me/profile', icon: <UserCircle size={17} />, current: isCurrent(currentPath, '/me/profile') },
-    { label: 'Meine Beiträge', icon: <Compass size={17} />, disabled: true, badge: 'bald' },
+    { label: 'Meine Beiträge', href: '/me/contributions', icon: <Compass size={17} />, current: isCurrent(currentPath, '/me/contributions') },
   ]
   const settingsItems: AppShellNavItem[] = [
     { label: 'Account & Sicherheit', href: '/me/profile', icon: <Settings size={17} />, current: isCurrent(currentPath, '/me/profile') },
@@ -128,14 +128,15 @@ function AppShellNavGroups({
         <div className={styles.navGroup}>
           <p className={styles.navGroupLabel}>Meine Gruppen</p>
           {memberships.map((membership) => {
-            const href = `/admin/fansubs/${membership.fansub_group_id}/edit`
+            const baseHref = `/admin/fansubs/${membership.fansub_group_id}/edit`
+            const href = `${baseHref}?tab=releases`
 
             return (
               <Link
                 key={membership.fansub_group_id}
                 href={href}
-                className={`${styles.navItem} ${isCurrent(currentPath, href) ? styles.navItemCurrent : ''}`}
-                aria-current={isCurrent(currentPath, href) ? 'page' : undefined}
+                className={`${styles.navItem} ${isCurrent(currentPath, baseHref) ? styles.navItemCurrent : ''}`}
+                aria-current={isCurrent(currentPath, baseHref) ? 'page' : undefined}
               >
                 <span className={styles.navIcon} aria-hidden="true"><Users size={17} /></span>
                 <span>{membership.fansub_group_name}</span>

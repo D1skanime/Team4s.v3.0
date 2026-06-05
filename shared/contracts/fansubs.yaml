@@ -810,6 +810,25 @@ types:
 
 # ---- App-Member Endpunkte (Phase 45) ----------------------------------------
 
+  - name: fansub-group-capabilities
+    method: GET
+    path: /api/v1/admin/fansubs/{id}/capabilities
+    auth:
+      required: true
+      permission: any workspace capability for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: FansubGroupCapabilitiesResponse
+
   - name: fansub-app-members-list
     method: GET
     path: /api/v1/admin/fansubs/{id}/app-members
@@ -1123,6 +1142,21 @@ types_append:
     created_at: datetime
     updated_at: datetime
     member: FansubGroupMemberIdentitySummary | null
+  FansubGroupCapabilities:
+    can_edit_group: bool
+    can_manage_links: bool
+    can_view_members: bool
+    can_manage_members: bool
+    can_edit_notes: bool
+    can_view_invitations: bool
+    can_create_invitation: bool
+    can_cancel_invitation: bool
+    can_view_releases: bool
+    can_view_release_media: bool
+    can_upload_release_media: bool
+    can_edit_release_notes: bool
+  FansubGroupCapabilitiesResponse:
+    data: FansubGroupCapabilities
   FansubAppMemberListResponse:
     data: FansubAppMember[]
   FansubAppMemberResponse:
@@ -1140,6 +1174,9 @@ types_append:
     joined_year: int32 | null
     left_year: int32 | null
     status: string (enum: draft, historical, confirmed, disputed)
+    confirmed_by_app_user_id: int64 | null
+    confirmed_by_display_name: string | null
+    confirmed_at: datetime | null
     created_at: datetime
   HistFansubGroupMemberListResponse:
     data: HistFansubGroupMember[]

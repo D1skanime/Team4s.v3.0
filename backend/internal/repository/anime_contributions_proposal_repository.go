@@ -47,6 +47,20 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 	defer tx.Rollback(ctx)
 
 	createdBy := input.AppUserID
+	existing, err := r.findProposalMergeTarget(ctx, tx, fansubGroupID, animeID, input.FansubGroupMemberID, input.ReleaseVersionID)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		if err := r.mergeProposalRoles(ctx, tx, existing, input); err != nil {
+			return nil, err
+		}
+		if err := tx.Commit(ctx); err != nil {
+			return nil, fmt.Errorf("vorschlag erweitern: commit: %w", err)
+		}
+		return r.GetByID(ctx, existing.ID)
+	}
+
 	var newID int64
 	err = tx.QueryRow(ctx, `
 		INSERT INTO anime_contributions (
@@ -208,6 +222,7 @@ func (r *AnimeContributionsRepository) Reject(ctx context.Context, contributionI
 // Member-Listen-Query on-read berechnet — sie gehören NICHT zu animeContributionSelectCols.
 type MemberContributionWithProposalRow struct {
 	AnimeContributionRow
+	AnimeTitle     string  `json:"anime_title"`
 	CanSelfPublish bool    `json:"can_self_publish"`
 	ReviewNote     *string `json:"review_note"`
 }
@@ -228,14 +243,16 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			`+animeContributionSelectCols+`,
+			COALESCE(a.title_de, a.title_en, a.title, '') AS anime_title,
 			(ac.status = 'proposed' AND ac.created_at + INTERVAL '90 days' < NOW()) AS can_self_publish,
 			`+reviewNoteExpr+`
 		FROM anime_contributions ac
 		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		JOIN anime a ON a.id = ac.anime_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
 		WHERE hfgm.member_id = $1
-		GROUP BY ac.id
+		GROUP BY ac.id, a.title_de, a.title_en, a.title
 		ORDER BY ac.created_at DESC
 		LIMIT 50
 	`, memberID)
@@ -267,6 +284,7 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			&row.UpdatedAt,
 			&row.RoleCodes,
 			&row.RoleLabels,
+			&row.AnimeTitle,
 			&row.CanSelfPublish,
 			&row.ReviewNote,
 		); err != nil {

@@ -52,6 +52,10 @@ describe("FansubAppMembersSection", () => {
         can_view_invitations: true,
         can_create_invitation: true,
         can_cancel_invitation: true,
+        can_view_releases: true,
+        can_view_release_media: true,
+        can_upload_release_media: true,
+        can_edit_release_notes: true,
       },
     });
     listFansubAppMembers.mockResolvedValue({
@@ -94,6 +98,10 @@ describe("FansubAppMembersSection", () => {
         can_view_invitations: false,
         can_create_invitation: false,
         can_cancel_invitation: false,
+        can_view_releases: false,
+        can_view_release_media: false,
+        can_upload_release_media: false,
+        can_edit_release_notes: false,
       },
     });
     listFansubAppMembers
@@ -163,6 +171,10 @@ describe("FansubAppMembersSection", () => {
         can_view_invitations: true,
         can_create_invitation: true,
         can_cancel_invitation: true,
+        can_view_releases: true,
+        can_view_release_media: true,
+        can_upload_release_media: true,
+        can_edit_release_notes: true,
       },
     });
     listFansubAppMembers.mockResolvedValue({ data: [] });
@@ -237,6 +249,10 @@ describe("FansubAppMembersSection", () => {
         can_view_invitations: true,
         can_create_invitation: true,
         can_cancel_invitation: true,
+        can_view_releases: true,
+        can_view_release_media: true,
+        can_upload_release_media: true,
+        can_edit_release_notes: true,
       },
     });
     listFansubAppMembers.mockResolvedValue({ data: [] });

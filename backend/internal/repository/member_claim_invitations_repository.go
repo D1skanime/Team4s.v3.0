@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
@@ -57,6 +58,9 @@ func (r *MemberClaimInvitationRepository) CreateInvitation(ctx context.Context, 
 		return nil, ErrNotFound
 	}
 	if err := r.expirePendingInvitations(ctx, memberID); err != nil {
+		return nil, err
+	}
+	if err := r.rejectInvitationForVerifiedMember(ctx, memberID); err != nil {
 		return nil, err
 	}
 
@@ -139,18 +143,36 @@ func (r *MemberClaimInvitationRepository) AcceptInvitation(ctx context.Context, 
 		return &ClaimMutationError{Code: "invitation_expired", Message: "Dieser Einladungslink ist abgelaufen.", HTTPStatus: 410}
 	}
 
-	var alreadyVerified bool
+	var verifiedAppUserID sql.NullInt64
+	var verifiedAt sql.NullTime
 	if err := tx.QueryRow(ctx, `
-		SELECT EXISTS(
-			SELECT 1
-			FROM member_claims
-			WHERE member_id = $1
-			  AND claim_status = 'verified'
-		)
-	`, invitation.MemberID).Scan(&alreadyVerified); err != nil {
+		SELECT app_user_id, verified_at
+		FROM member_claims
+		WHERE member_id = $1
+		  AND claim_status = 'verified'
+		ORDER BY verified_at DESC NULLS LAST, id DESC
+		LIMIT 1
+	`, invitation.MemberID).Scan(&verifiedAppUserID, &verifiedAt); err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return fmt.Errorf("accept member claim invitation: check verified invariant: %w", err)
 	}
-	if alreadyVerified {
+	if verifiedAppUserID.Valid {
+		acceptedAt := time.Now().UTC()
+		if verifiedAt.Valid {
+			acceptedAt = verifiedAt.Time
+		}
+		if _, err := tx.Exec(ctx, `
+			UPDATE member_claim_invitations
+			SET status = 'accepted',
+				accepted_by_app_user_id = $2,
+				accepted_at = $3,
+				updated_at = NOW()
+			WHERE id = $1
+		`, invitation.ID, verifiedAppUserID.Int64, acceptedAt); err != nil {
+			return fmt.Errorf("accept member claim invitation: mark already verified invitation accepted: %w", err)
+		}
+		if err := tx.Commit(ctx); err != nil {
+			return fmt.Errorf("accept member claim invitation: commit already verified invitation: %w", err)
+		}
 		return &ClaimMutationError{Code: "already_verified", Message: "Dieser historische Member-Eintrag ist bereits einem Team4s-Account zugeordnet.", HTTPStatus: 409}
 	}
 
@@ -268,6 +290,45 @@ func (r *MemberClaimInvitationRepository) expirePendingInvitations(ctx context.C
 	`, memberID)
 	if err != nil {
 		return fmt.Errorf("expire pending member claim invitations: %w", err)
+	}
+	_, err = r.db.Exec(ctx, `
+		WITH verified AS (
+			SELECT app_user_id, verified_at
+			FROM member_claims
+			WHERE member_id = $1
+			  AND claim_status = 'verified'
+			ORDER BY verified_at DESC NULLS LAST, id DESC
+			LIMIT 1
+		)
+		UPDATE member_claim_invitations invitation
+		SET status = 'accepted',
+			accepted_by_app_user_id = verified.app_user_id,
+			accepted_at = COALESCE(verified.verified_at, NOW()),
+			updated_at = NOW()
+		FROM verified
+		WHERE invitation.member_id = $1
+		  AND invitation.status = 'pending'
+	`, memberID)
+	if err != nil {
+		return fmt.Errorf("reconcile verified member claim invitations: %w", err)
+	}
+	return nil
+}
+
+func (r *MemberClaimInvitationRepository) rejectInvitationForVerifiedMember(ctx context.Context, memberID int64) error {
+	var exists bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1
+			FROM member_claims
+			WHERE member_id = $1
+			  AND claim_status = 'verified'
+		)
+	`, memberID).Scan(&exists); err != nil {
+		return fmt.Errorf("reject member claim invitation for verified member: %w", err)
+	}
+	if exists {
+		return &ClaimMutationError{Code: "already_verified", Message: "Dieser historische Member-Eintrag ist bereits einem Team4s-Account zugeordnet.", HTTPStatus: 409}
 	}
 	return nil
 }

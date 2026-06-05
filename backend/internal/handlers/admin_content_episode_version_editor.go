@@ -28,6 +28,11 @@ func (h *AdminContentHandler) GetEpisodeVersionEditorContext(c *gin.Context) {
 	if actor.IsPlatformAdmin {
 		data, err = h.loadEpisodeVersionEditorContext(c.Request.Context(), versionID)
 	} else {
+		canViewVersion, permissionErr := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionView, versionID)
+		if permissionErr != nil {
+			writePermissionInternalError(c, permissionErr, "Release-Version-Berechtigung konnte nicht geprüft werden.")
+			return
+		}
 		canViewMedia, permissionErr := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaView, versionID)
 		if permissionErr != nil {
 			writePermissionInternalError(c, permissionErr, "Release-Version-Berechtigung konnte nicht geprüft werden.")
@@ -38,9 +43,9 @@ func (h *AdminContentHandler) GetEpisodeVersionEditorContext(c *gin.Context) {
 			writePermissionInternalError(c, permissionErr, "Release-Version-Berechtigung konnte nicht geprüft werden.")
 			return
 		}
-		if !canViewMedia.Allowed && !canEditNotes.Allowed {
-			auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_editor_context.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionView, canViewMedia)
-			writePermissionDenied(c, canViewMedia)
+		if !canViewVersion.Allowed && !canViewMedia.Allowed && !canEditNotes.Allowed {
+			auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_editor_context.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionView, canViewVersion)
+			writePermissionDenied(c, canViewVersion)
 			return
 		}
 		data, err = h.loadEpisodeVersionContributorContext(c.Request.Context(), versionID)
