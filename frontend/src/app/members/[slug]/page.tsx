@@ -9,10 +9,13 @@ import {
   getMemberContributions,
   resolveApiUrl,
 } from '@/lib/api'
-import { Card, EmptyState } from '@/components/ui'
+import { Card } from '@/components/ui'
 import { MemberProfileHero } from '@/components/profile/MemberProfileHero'
 import { MemberGroupsHistorySection } from '@/components/profile/MemberGroupsHistorySection'
 import { MemberSectionNav } from '@/components/profile/MemberSectionNav'
+import { MemberBadgeHighlights } from '@/components/profile/MemberBadgeHighlights'
+import { MemberContributionFilters } from '@/components/profile/MemberContributionFilters'
+import { MemberRoleTimeline } from '@/components/profile/MemberRoleTimeline'
 import type { PublicMemberRoleEntry } from '@/types/contributions'
 import type { PublicMemberProfileData } from '@/types/profile'
 
@@ -115,17 +118,14 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         />
       </section>
 
-      {/* #badges — Platzhalter für Plan-05 MemberBadgeHighlights (D-02/D-05) */}
+      {/* #badges — Badge-Highlights (D-11, D-10) */}
       <section id="badges" className={styles.section}>
-        {publicBadges.length > 0 ? (
-          <Card variant="section" title="Badges">
-            <p className={styles.sectionPlaceholder}>
-              {publicBadges.length} Badge{publicBadges.length !== 1 ? 's' : ''} — Detailansicht folgt.
-            </p>
-          </Card>
-        ) : (
-          <EmptyState title="Keine Badges" description="Noch keine öffentlichen Badges vergeben." />
-        )}
+        <Card variant="section" title="Badges">
+          <MemberBadgeHighlights
+            publicBadges={publicBadges}
+            isMemorial={profile.profile_status === 'memorial'}
+          />
+        </Card>
       </section>
 
       {/* #geschichte — Gruppen & Geschichte (D-02) */}
@@ -133,9 +133,13 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         <MemberGroupsHistorySection memberships={profile.memberships ?? []} storyHtml={profile.member_story_html} />
       </section>
 
-      {/* #beitraege — Platzhalter für Plan-05 Contribution-Filter/Timeline (D-02/D-05) */}
+      {/* #beitraege — Filterbare Contributions (D-06/D-07/D-08) */}
       <section id="beitraege" className={styles.section}>
-        <EmptyState title="Beiträge" description="Filterbare Contributions folgen in der nächsten Ausbaustufe." />
+        <Card variant="section" title="Beiträge">
+          {roleTimeline.length > 0
+            ? <MemberContributionFilters roleTimeline={roleTimeline} />
+            : <MemberRoleTimeline entries={[]} hasUnverified={false} isVerified={profile.is_verified} />}
+        </Card>
       </section>
     </main>
   )
