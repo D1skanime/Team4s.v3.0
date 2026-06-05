@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, SectionHeader } from '@/components/ui'
-import { ApiError, getMyAnimeContributions, getMyMemberships, selfPublishContribution } from '@/lib/api'
+import { ApiError, getMyMemberships, selfPublishContribution } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { MeAnimeContribution, MembershipEntry } from '@/types/contributions'
 
@@ -51,12 +51,19 @@ function contributionRoleLabel(contribution: MeAnimeContribution, code: string, 
   return contribution.role_labels?.[index] || code
 }
 
-export function MyProposalsSection() {
+interface MyProposalsSectionProps {
+  /**
+   * Fertig gefilterte Vorschläge-Liste (von page.tsx via useMemo).
+   * Enthält Einträge mit is_own_proposal=true, dem aktiven Filter entsprechend.
+   */
+  proposals: MeAnimeContribution[]
+  onReload: () => void
+}
+
+export function MyProposalsSection({ proposals, onReload }: MyProposalsSectionProps) {
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
-  const [proposals, setProposals] = useState<MeAnimeContribution[]>([])
   const [ownGroups, setOwnGroups] = useState<MembershipEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [selfPublishConfirming, setSelfPublishConfirming] = useState<number | null>(null)
   const [selfPublishError, setSelfPublishError] = useState<string | null>(null)
@@ -72,26 +79,11 @@ export function MyProposalsSection() {
 
     try {
       setIsLoading(true)
-      setError(null)
 
-      const [contributionsResp, membershipsResp] = await Promise.allSettled([
-        getMyAnimeContributions(),
-        getMyMemberships(),
-      ])
+      const membershipsResp = await Promise.allSettled([getMyMemberships()])
 
-      if (contributionsResp.status === 'fulfilled') {
-        const filtered = contributionsResp.value.data.filter((c) =>
-          ['proposed', 'confirmed', 'disputed'].includes(c.status),
-        )
-        setProposals(filtered)
-      } else {
-        setError(
-          readErrorMessage(contributionsResp.reason, 'Vorschläge konnten nicht geladen werden.'),
-        )
-      }
-
-      if (membershipsResp.status === 'fulfilled') {
-        setOwnGroups(membershipsResp.value.data)
+      if (membershipsResp[0].status === 'fulfilled') {
+        setOwnGroups(membershipsResp[0].value.data)
       } else {
         // 404 = kein verifizierter Member-Account → leere ownGroups, Button deaktiviert
         setOwnGroups([])
@@ -109,8 +101,8 @@ export function MyProposalsSection() {
     setSelfPublishError(null)
     try {
       await selfPublishContribution(id)
-      setProposals((prev) => prev.filter((c) => c.id !== id))
       setSelfPublishConfirming(null)
+      onReload()
     } catch (err) {
       setSelfPublishError(
         readErrorMessage(err, 'Öffentlich schalten fehlgeschlagen. Bitte versuche es erneut.'),
@@ -120,13 +112,14 @@ export function MyProposalsSection() {
 
   function handleFormSuccess() {
     setShowForm(false)
-    void loadData()
+    onReload()
   }
 
   const inPruefung = proposals.filter((c) => c.status === 'proposed')
   const bestaetigt = proposals.filter((c) => c.status === 'confirmed')
   const abgelehnt = proposals.filter((c) => c.status === 'disputed')
   const total = proposals.length
+
 
   function renderProposalCard(c: MeAnimeContribution) {
     return (
@@ -194,14 +187,6 @@ export function MyProposalsSection() {
     return (
       <Card variant="section">
         <LoadingState title="Vorschläge werden geladen" description="Team4s lädt deine Mitwirkungs-Vorschläge." />
-      </Card>
-    )
-  }
-
-  if (error) {
-    return (
-      <Card variant="section">
-        <ErrorState title="Vorschläge konnten nicht geladen werden" description={error} />
       </Card>
     )
   }
