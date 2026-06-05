@@ -163,7 +163,12 @@ Use these entry points:
 Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
 <!-- GSD:workflow-end -->
 
+## Phasen-Worktree-Konvention
 
+- **Planung auf `main`:** GSD-Planungsartefakte (CONTEXT/RESEARCH/VALIDATION/UI-SPEC/PLAN) werden auf `main` erstellt und committet.
+- **Execute je Phase im eigenen Worktree:** `/gsd:execute-phase` läuft in einem Schwester-Worktree pro Phase (`../Team4s-phaseNN`, Branch `codex/phase-NN-<slug>`, von aktuellem `main` HEAD), wird dort getestet und nach bestandener Verifikation nach `main` zurückgemergt.
+- **Kein Planungs-only-Worktree** und kein erzwungener Auto-Hook — bewusste Konvention (GSD `plan-phase` hält die Branch-Invariante ein, legt also selbst keine Branches an).
+- **Geteilte Dateien beachten:** `.planning/STATE.md` + `.planning/ROADMAP.md` können beim Merge paralleler Phasen kollidieren → vor `execute-phase` Live-Writer auf `main` prüfen, Konflikte manuell lösen. Niemals `git stash` bei offenen Änderungen. Details siehe `DECISIONS.md` (Eintrag 2026-06-05).
 
 <!-- GSD:profile-start -->
 ## Developer Profile
