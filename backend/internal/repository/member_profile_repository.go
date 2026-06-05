@@ -34,6 +34,7 @@ type publicMemberProfileBaseRow struct {
 	isCurrentlyActive   bool
 	noindex             bool
 	isVerified          bool
+	profileStatus       string
 	profileVisibility   *string
 	avatarPath          *string
 	backgroundImagePath *string
@@ -374,6 +375,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 					WHERE mc.member_id = m.id
 					  AND mc.claim_status = 'verified'
 				) AS is_verified,
+				COALESCE(m.profile_status, 'active') AS profile_status,
 				m.profile_visibility,
 				avatar.file_path AS avatar_path,
 				background.file_path AS background_image_path,
@@ -402,6 +404,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 			is_currently_active,
 			noindex,
 			is_verified,
+			profile_status,
 			profile_visibility,
 			avatar_path,
 			background_image_path
@@ -421,6 +424,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 		&row.isCurrentlyActive,
 		&row.noindex,
 		&row.isVerified,
+		&row.profileStatus,
 		&row.profileVisibility,
 		&row.avatarPath,
 		&row.backgroundImagePath,
@@ -452,8 +456,10 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 		IsCurrentlyActive:   row.isCurrentlyActive,
 		Noindex:             row.noindex,
 		IsVerified:          row.isVerified,
+		ProfileStatus:       strings.TrimSpace(valueOrDefault(&row.profileStatus, "active")),
 		ProfileVisibility:   strings.TrimSpace(valueOrDefault(row.profileVisibility, models.ProfileVisibilityMembersOnly)),
 		Memberships:         []models.MemberProfileMembership{},
+		PublicBadges:        []models.PublicMemberBadge{},
 		RecentMedia:         []models.MemberProfileRecentMedia{},
 		RecentContributions: []models.MemberProfileRecentContribution{},
 	}
@@ -473,6 +479,10 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 	if loadErr != nil {
 		return nil, loadErr
 	}
+	profile.PublicBadges, loadErr = r.loadPublicBadges(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
 	if appUserID > 0 {
 		profile.RecentMedia, loadErr = r.loadRecentMedia(ctx, appUserID)
 		if loadErr != nil {
@@ -485,6 +495,34 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 	}
 
 	return profile, nil
+}
+
+// loadPublicBadges laedt nur visibility='public' AND status='active' Badges eines Members.
+// Projektions-Hilfsfunktion fuer GetPublicMemberProfile (CTE-Erweiterung ausgelagert wegen 450-Zeilen-Limit).
+func (r *MemberProfileRepository) loadPublicBadges(ctx context.Context, memberID int64) ([]models.PublicMemberBadge, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, badge_code, badge_category
+		FROM member_badges
+		WHERE member_id=$1 AND status='active' AND visibility='public'
+		ORDER BY awarded_at
+	`, memberID)
+	if err != nil {
+		return []models.PublicMemberBadge{}, fmt.Errorf("load public badges for member %d: %w", memberID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.PublicMemberBadge, 0)
+	for rows.Next() {
+		var b models.PublicMemberBadge
+		if err := rows.Scan(&b.ID, &b.BadgeCode, &b.BadgeCategory); err != nil {
+			return nil, fmt.Errorf("scan public badge row for member %d: %w", memberID, err)
+		}
+		items = append(items, b)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate public badges for member %d: %w", memberID, err)
+	}
+	return items, nil
 }
 
 func (r *MemberProfileRepository) findPublicMemberProfileByNormalizedSlug(ctx context.Context, normalizedSlug string) (*publicMemberProfileBaseRow, error) {
@@ -505,6 +543,7 @@ func (r *MemberProfileRepository) findPublicMemberProfileByNormalizedSlug(ctx co
 				WHERE mc.member_id = m.id
 				  AND mc.claim_status = 'verified'
 			) AS is_verified,
+			COALESCE(m.profile_status, 'active') AS profile_status,
 			m.profile_visibility,
 			avatar.file_path AS avatar_path,
 			background.file_path AS background_image_path
@@ -540,6 +579,7 @@ func (r *MemberProfileRepository) findPublicMemberProfileByNormalizedSlug(ctx co
 			&row.isCurrentlyActive,
 			&row.noindex,
 			&row.isVerified,
+			&row.profileStatus,
 			&row.profileVisibility,
 			&row.avatarPath,
 			&row.backgroundImagePath,

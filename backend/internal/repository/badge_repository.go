@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"team4s.v3/backend/internal/models"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -108,6 +110,38 @@ func (r *BadgeRepository) SetBadgeVisibility(
 		return ErrNotFound
 	}
 	return nil
+}
+
+// GetPublicMemberBadges gibt ausschließlich öffentlich sichtbare aktive Badges eines Members zurück.
+// SQL-Guard: visibility='public' AND status='active' — interne/versteckte Badges erscheinen nie (Badges-13, T-74-01-INFO).
+// Sortierung nach awarded_at aufsteigend.
+func (r *BadgeRepository) GetPublicMemberBadges(ctx context.Context, memberID int64) ([]models.PublicMemberBadge, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, badge_code, badge_category
+		FROM member_badges
+		WHERE member_id=$1 AND status='active' AND visibility='public'
+		ORDER BY awarded_at
+	`, memberID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []models.PublicMemberBadge
+	for rows.Next() {
+		var b models.PublicMemberBadge
+		if err := rows.Scan(&b.ID, &b.BadgeCode, &b.BadgeCategory); err != nil {
+			return nil, err
+		}
+		result = append(result, b)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // GetMemberBadges gibt alle aktiven Badges eines Members zurück, sortiert nach awarded_at.

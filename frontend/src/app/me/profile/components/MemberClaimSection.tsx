@@ -71,7 +71,18 @@ export function MemberClaimSection({ currentClaim, authToken, disabled = false }
       await submitMemberClaim({ member_id: selectedMember.id, note: claimNote }, authToken)
       setSuccessMessage('Dein Claim wurde eingereicht. Warte auf Bestätigung durch den Leader.')
     } catch (error) {
-      setErrorMessage(readClaimError(error, 'Claim konnte nicht eingereicht werden.'))
+      // D-17: server-seitiger 409 memorial_not_claimable → verständlicher Hinweis
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        error.code === 'memorial_not_claimable'
+      ) {
+        setErrorMessage(
+          'Dieses Profil wird als Gedenkprofil geführt und kann nicht beansprucht werden.',
+        )
+      } else {
+        setErrorMessage(readClaimError(error, 'Claim konnte nicht eingereicht werden.'))
+      }
     } finally {
       setIsSubmitting(false)
     }

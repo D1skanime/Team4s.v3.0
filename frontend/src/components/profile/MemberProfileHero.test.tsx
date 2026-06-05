@@ -25,15 +25,50 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
     is_currently_active: true,
     noindex: false,
     is_verified: false,
+    profile_status: 'active',
     profile_visibility: 'public',
     avatar: null,
     background_image: null,
     memberships: [],
+    public_badges: [],
     recent_media: [],
     recent_contributions: [],
     ...overrides,
   }
 }
+
+// Wave-0 RED-Stub: Memorial-Variante (D-10, C)
+// MemberProfileHero muss bei profile_status='memorial' den Gedenk-Text rendern
+// und Mengen-/Gamification-Badges unterdrücken.
+// RED: profile_status existiert noch nicht in PublicMemberProfileData → Kompilierungsfehler.
+describe('MemberProfileHero — Memorial-Variante (Wave-0 RED, D-10)', () => {
+  it('rendert Gedenk-Sprache bei profile_status="memorial"', () => {
+    render(
+      <MemberProfileHero
+        profile={makePublicProfile({ profile_status: 'memorial' })}
+        isPublicView={true}
+      />,
+    )
+
+    // Exakter Pflicht-String laut CLAUDE.md §Sprachqualität (D-10)
+    expect(screen.getByText('Dieses Profil wird als historisches Gedenkprofil geführt.')).not.toBeNull()
+  })
+
+  it('unterdrückt Mengen-/Aktivitäts-Badges bei profile_status="memorial" (D-10)', () => {
+    render(
+      <MemberProfileHero
+        profile={makePublicProfile({ profile_status: 'memorial' })}
+        isPublicView={true}
+      />,
+    )
+
+    // Keine Aktivitätsmetrik-Anzeige (Mengen-/Gamification-Badges verboten bei Memorial)
+    const activityMetric = document.querySelector('[data-testid="activity-metric"]')
+    if (activityMetric !== null) {
+      throw new Error('Mengen-/Aktivitäts-Badge darf bei Memorial-Profil nicht gerendert werden (D-10)')
+    }
+  })
+})
 
 describe('MemberProfileHero', () => {
   it('shows the public fansub activity period without adding a separate card', () => {

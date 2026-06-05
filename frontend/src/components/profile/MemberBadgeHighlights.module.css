@@ -1,0 +1,44 @@
+.container {
+  display: grid;
+  gap: 14px;
+}
+
+.badgeGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.badgeItem {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 14px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.28);
+  border-radius: 8px;
+  min-width: 120px;
+}
+
+.badgeLabel {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #93c5fd;
+}
+
+.badgeCategory {
+  font-size: 0.72rem;
+  color: var(--text-secondary, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.toggleBtn {
+  align-self: flex-start;
+}
+
+.emptyText {
+  margin: 0;
+  color: var(--text-secondary, #64748b);
+  font-size: 0.9rem;
+}

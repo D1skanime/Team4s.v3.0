@@ -7,34 +7,25 @@ import {
   AUTH_TOKEN_COOKIE_NAME,
   getMemberProfile,
   getMemberContributions,
-  getMyBadges,
-  getOwnProfile,
   resolveApiUrl,
 } from '@/lib/api'
-import { RichTextRenderer } from '@/components/editor'
-import { MemberProfileHero } from '@/components/profile/MemberProfileHero'
-import { MemberBadgeChips } from '@/components/profile/MemberBadgeChips'
-import { MemberRoleTimeline } from '@/components/profile/MemberRoleTimeline'
-import { MembershipsSection } from '@/components/profile/MembershipsSection'
-import { RecentContributionsSection } from '@/components/profile/RecentContributionsSection'
-import { RecentMediaSection } from '@/components/profile/RecentMediaSection'
 import { Card } from '@/components/ui'
-import type { MemberBadge } from '@/types/contributions'
+import { MemberProfileHero } from '@/components/profile/MemberProfileHero'
+import { MemberGroupsHistorySection } from '@/components/profile/MemberGroupsHistorySection'
+import { MemberSectionNav } from '@/components/profile/MemberSectionNav'
+import { MemberBadgeHighlights } from '@/components/profile/MemberBadgeHighlights'
+import { MemberContributionFilters } from '@/components/profile/MemberContributionFilters'
+import { MemberRoleTimeline } from '@/components/profile/MemberRoleTimeline'
 import type { PublicMemberRoleEntry } from '@/types/contributions'
 import type { PublicMemberProfileData } from '@/types/profile'
 
+import { CorrectionReportModal } from '@/components/profile/CorrectionReportModal'
 import { OwnHiddenProfilePreview } from './OwnHiddenProfilePreview'
 import { OwnProfileEditLink } from './OwnProfileEditLink'
 import styles from './page.module.css'
 
 interface MemberProfilePageProps {
-  params:
-    | {
-        slug: string
-      }
-    | Promise<{
-        slug: string
-      }>
+  params: { slug: string } | Promise<{ slug: string }>
 }
 
 async function resolveSlug(params: MemberProfilePageProps['params']): Promise<string> {
@@ -45,25 +36,17 @@ async function resolveSlug(params: MemberProfilePageProps['params']): Promise<st
 export async function generateMetadata({ params }: MemberProfilePageProps): Promise<Metadata> {
   const slug = await resolveSlug(params)
   if (!slug) return {}
-
   try {
     const response = await getMemberProfile(slug)
-    if ('data' in response && response.data.noindex) {
-      return { robots: { index: false, follow: false } }
-    }
-  } catch {
-    return {}
-  }
-
+    if ('data' in response && response.data.noindex) return { robots: { index: false, follow: false } }
+  } catch { return {} }
   return {}
 }
 
 function renderNotice(message: string) {
   return (
     <main className={styles.page}>
-      <p className={styles.backLink}>
-        <Link href="/anime">Zur Anime-Liste</Link>
-      </p>
+      <p className={styles.backLink}><Link href="/anime">Zur Anime-Liste</Link></p>
       <div className={styles.errorBox}>{message}</div>
     </main>
   )
@@ -71,16 +54,12 @@ function renderNotice(message: string) {
 
 export default async function MemberProfilePage({ params }: MemberProfilePageProps) {
   const slug = await resolveSlug(params)
-
-  if (!slug) {
-    return renderNotice('Ungültiger Member-Slug.')
-  }
+  if (!slug) return renderNotice('Ungültiger Member-Slug.')
 
   const cookieStore = await cookies()
   const token = (
     cookieStore.get(AUTH_TOKEN_COOKIE_NAME)?.value ||
-    cookieStore.get('access_token')?.value ||
-    ''
+    cookieStore.get('access_token')?.value || ''
   ).trim()
 
   let profile: PublicMemberProfileData | null = null
@@ -89,105 +68,84 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
 
   try {
     const response = await getMemberProfile(slug, token || undefined)
-    if ('visible' in response && !response.visible) {
-      isHidden = true
-    } else if ('data' in response) {
-      profile = response.data
-    }
+    if ('visible' in response && !response.visible) isHidden = true
+    else if ('data' in response) profile = response.data
   } catch (error) {
-    message =
-      error instanceof ApiError && error.status === 404
-        ? 'Mitglied nicht gefunden.'
-        : 'Profil konnte nicht geladen werden.'
+    message = error instanceof ApiError && error.status === 404
+      ? 'Mitglied nicht gefunden.'
+      : 'Profil konnte nicht geladen werden.'
   }
 
   if (isHidden) {
     return (
       <main className={styles.page}>
-        <p className={styles.backLink}>
-          <Link href="/anime">Zur Anime-Liste</Link>
-        </p>
+        <p className={styles.backLink}><Link href="/anime">Zur Anime-Liste</Link></p>
         <OwnHiddenProfilePreview slug={slug} />
       </main>
     )
   }
-
-  if (!profile) {
-    return renderNotice(message || 'Profil konnte nicht geladen werden.')
-  }
+  if (!profile) return renderNotice(message || 'Profil konnte nicht geladen werden.')
 
   const avatarURL = resolveApiUrl(profile.avatar?.public_url || '')
   const backgroundImageURL = resolveApiUrl(profile.background_image?.public_url || '')
 
-  // Contributions und Badges laden
   let roleTimeline: PublicMemberRoleEntry[] = []
-  let hasUnverified = false
-  let badges: MemberBadge[] = []
-  let isOwnProfile = false
-
   try {
     const contributionsData = await getMemberContributions(slug)
     roleTimeline = contributionsData.role_timeline ?? []
-    hasUnverified = contributionsData.has_unverified ?? false
-  } catch {
-    // Keine Contributions — leere Timeline anzeigen
-  }
+  } catch { /* Keine Contributions — leere Timeline */ }
 
-  if (token) {
-    try {
-      const ownProfileData = await getOwnProfile(token)
-      if (ownProfileData.data.member_id === profile.member_id) {
-        isOwnProfile = true
-        const badgesData = await getMyBadges(token)
-        badges = badgesData.badges ?? []
-      }
-    } catch {
-      // Nicht eingeloggt oder Fehler — kein eigenes Profil
-    }
-  }
+  // Badges aus DTO (public_badges) — kein getMyBadges (Fallstrick 2, Badges-13)
+  const publicBadges = profile.public_badges ?? []
 
   return (
     <main className={styles.page}>
       <div className={styles.profileToolbar}>
         <nav className={styles.breadcrumb}>
           <Link href="/anime">Anime</Link>
-          <span>&gt;</span>
-          <span>Members</span>
-          <span>&gt;</span>
+          <span>&gt;</span><span>Members</span><span>&gt;</span>
           <span>{profile.fansub_name}</span>
         </nav>
-        <OwnProfileEditLink publicMemberId={profile.member_id} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <OwnProfileEditLink publicMemberId={profile.member_id} />
+          {/* CorrectionReportModal: nur für eingeloggte User sichtbar (via useAuthSession, D-18) */}
+          <CorrectionReportModal memberId={profile.member_id} memberName={profile.fansub_name} />
+        </div>
       </div>
 
-      <MemberProfileHero profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL} isPublicView={true} isVerified={profile.is_verified} />
+      <MemberSectionNav />
 
-      <MemberBadgeChips
-        badges={badges}
-        isOwnProfile={isOwnProfile}
-        token={isOwnProfile ? token : undefined}
-      />
+      {/* #identitaet — Hero (D-02 Reihenfolge) */}
+      <section id="identitaet" className={styles.section}>
+        <MemberProfileHero
+          profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL}
+          isPublicView={true} isVerified={profile.is_verified} roleTimeline={roleTimeline}
+        />
+      </section>
 
-      <div className={styles.profileGrid}>
-        {profile.member_story_html?.trim() ? (
-          <Card variant="section" className={styles.storySection} title="Fansub-Geschichte">
-            <RichTextRenderer bodyHtml={profile.member_story_html} editorType="tiptap" contentSchemaVersion={1} />
-          </Card>
-        ) : null}
-        <section className={styles.fullWidthSection}>
-          <MembershipsSection memberships={profile.memberships ?? []} />
-        </section>
-        <section className={styles.fullWidthSection}>
-          <MemberRoleTimeline entries={roleTimeline} hasUnverified={hasUnverified} isVerified={profile.is_verified} />
-        </section>
-        <section className={styles.contentSection}>
-          <h2>Letzte Medien</h2>
-          <RecentMediaSection items={profile.recent_media ?? []} canView={true} isPublicView={true} />
-        </section>
-        <section className={styles.contentSection}>
-          <h2>Letzte Beiträge</h2>
-          <RecentContributionsSection items={profile.recent_contributions ?? []} canView={true} isPublicView={true} />
-        </section>
-      </div>
+      {/* #badges — Badge-Highlights (D-11, D-10) */}
+      <section id="badges" className={styles.section}>
+        <Card variant="section" title="Badges">
+          <MemberBadgeHighlights
+            publicBadges={publicBadges}
+            isMemorial={profile.profile_status === 'memorial'}
+          />
+        </Card>
+      </section>
+
+      {/* #geschichte — Gruppen & Geschichte (D-02) */}
+      <section id="geschichte" className={styles.section}>
+        <MemberGroupsHistorySection memberships={profile.memberships ?? []} storyHtml={profile.member_story_html} />
+      </section>
+
+      {/* #beitraege — Filterbare Contributions (D-06/D-07/D-08) */}
+      <section id="beitraege" className={styles.section}>
+        <Card variant="section" title="Beiträge">
+          {roleTimeline.length > 0
+            ? <MemberContributionFilters roleTimeline={roleTimeline} />
+            : <MemberRoleTimeline entries={[]} hasUnverified={false} isVerified={profile.is_verified} />}
+        </Card>
+      </section>
     </main>
   )
 }

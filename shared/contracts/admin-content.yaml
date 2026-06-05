@@ -583,6 +583,46 @@ endpoints:
       - status: 404
         description: Contribution not found in the addressed fansub/anime context.
 
+  - name: admin-member-memorial-set
+    method: POST
+    path: /api/v1/admin/members/{id}/memorial
+    description: >
+      Setzt das Profil eines historischen Members auf den Status 'memorial'.
+      Nur Global Admin darf diesen Endpoint aufrufen — keine Gruppen-Capability
+      ausreichend (D-14/D-16-Caveat). Berührt NICHT den app_user-Account (D-13).
+      Alle Setzaktionen werden in audit_logs protokolliert (D-15).
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Nur Global Admin (platform_admin) darf diesen Endpoint aufrufen.
+        - Gruppen-Capabilities sind NICHT ausreichend (Fallstrick 4).
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+        description: ID des Members, dessen Profil als Gedenkprofil markiert werden soll.
+    response:
+      status: 200
+      type: AdminMemberMemorialSetResponse
+    error_responses:
+      - status: 403
+        description: Kein Global Admin — Zugriff verweigert.
+      - status: 404
+        description: Member nicht gefunden.
+      - status: 500
+        description: Interner Serverfehler.
+
 types:
   AdminFansubReleaseSummary:
     release_id: int64
@@ -811,3 +851,8 @@ types:
     title: string | null
     status: episode_status
     stream_link: string | null
+  AdminMemberMemorialSetResponse:
+    description: Antwort auf erfolgreiche Gedenkprofil-Markierung.
+    data:
+      member_id: int64
+      profile_status: string (enum "memorial", description: "Neuer Profilstatus — immer 'memorial'")

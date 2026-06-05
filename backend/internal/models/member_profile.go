@@ -166,6 +166,14 @@ type StoryImageAssetRef struct {
 	OwnerMemberID int64
 }
 
+// PublicMemberBadge ist ein schlankes Badge-DTO fuer oeffentlich sichtbare Badges
+// (visibility='public' AND status='active'). Eingebettet in PublicMemberProfile (D-11/Badges-13).
+type PublicMemberBadge struct {
+	ID           int64  `json:"id"`
+	BadgeCode    string `json:"badge_code"`
+	BadgeCategory string `json:"badge_category"`
+}
+
 type PublicMemberProfile struct {
 	MemberID            int64                             `json:"member_id"`
 	AppUserID           int64                             `json:"-"`
@@ -177,10 +185,12 @@ type PublicMemberProfile struct {
 	IsCurrentlyActive   bool                              `json:"is_currently_active"`
 	Noindex             bool                              `json:"noindex"`
 	IsVerified          bool                              `json:"is_verified"`
+	ProfileStatus       string                            `json:"profile_status"`
 	ProfileVisibility   string                            `json:"profile_visibility"`
 	Avatar              *MemberProfileAvatar              `json:"avatar,omitempty"`
 	BackgroundImage     *MemberProfileBgImage             `json:"background_image,omitempty"`
 	Memberships         []MemberProfileMembership         `json:"memberships"`
+	PublicBadges        []PublicMemberBadge               `json:"public_badges"`
 	RecentMedia         []MemberProfileRecentMedia        `json:"recent_media"`
 	RecentContributions []MemberProfileRecentContribution `json:"recent_contributions"`
 }

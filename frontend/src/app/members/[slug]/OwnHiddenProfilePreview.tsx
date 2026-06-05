@@ -45,12 +45,16 @@ function toPublicProfile(profile: MemberProfileData): PublicMemberProfileData {
     is_currently_active: profile.is_currently_active,
     noindex: profile.noindex,
     is_verified: profile.is_verified,
+    // MemberProfileData (own profile) traegt kein profile_status-Feld; 'active' als sicherer Fallback
+    profile_status: 'active',
     profile_visibility: profile.profile_visibility,
     avatar: profile.avatar?.public_url ? { public_url: profile.avatar.public_url } : null,
     background_image: profile.background_image?.public_url
       ? { public_url: profile.background_image.public_url }
       : null,
     memberships: profile.memberships ?? [],
+    // Badges werden im Own-Profile-Vorschau-Kontext nicht benoetigt (kein public_badges im own-profile DTO)
+    public_badges: [],
     recent_media: profile.recent_media ?? [],
     recent_contributions: profile.recent_contributions ?? [],
   }

@@ -1,0 +1,83 @@
+.container {
+  display: grid;
+  gap: 16px;
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.filterLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary, #64748b);
+}
+
+.filterSelect {
+  min-width: 160px;
+}
+
+.emptyText {
+  margin: 0;
+  color: var(--text-secondary, #64748b);
+  font-size: 0.9rem;
+}
+
+.entryList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  border-radius: 6px;
+  background: var(--surface-card, #1e293b);
+  transition: opacity 0.15s;
+}
+
+.entryDimmed {
+  opacity: 0.55;
+}
+
+.entryRole {
+  font-weight: 600;
+  color: var(--text-primary, #f1f5f9);
+  font-size: 0.95rem;
+}
+
+.entryAnime {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.88rem;
+}
+
+.entryYear {
+  margin-left: auto;
+  color: var(--text-secondary, #64748b);
+  font-size: 0.82rem;
+}
+
+.unverifiedBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  color: #fbbf24;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: lowercase;
+}

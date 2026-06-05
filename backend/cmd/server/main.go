@@ -125,13 +125,17 @@ func main() {
 	authzRepo := repository.NewAuthzRepository(dbPool)
 	permissionSvc := permissions.NewService(authzRepo)
 	auditLogRepo := repository.NewAuditLogRepository(dbPool)
-	memberClaimsRepo := repository.NewMemberClaimsRepository(dbPool)
-	memberClaimInvitationsRepo := repository.NewMemberClaimInvitationRepository(dbPool, cfg.AppPublicURL)
+	memberClaimsRepo := repository.NewMemberClaimsRepository(dbPool).WithAuditLog(auditLogRepo)
+	memberClaimInvitationsRepo := repository.NewMemberClaimInvitationRepository(dbPool, cfg.AppPublicURL).WithAuditLog(auditLogRepo)
 	memberRequestsRepo := repository.NewMemberRequestsRepository(dbPool)
 	memberClaimsHandler := handlers.NewMemberClaimsHandler(memberClaimsRepo, permissionSvc, auditLogRepo)
 	memberClaimInvitationsHandler := handlers.NewMemberClaimInvitationsHandler(memberClaimInvitationsRepo, permissionSvc, auditLogRepo, cfg.AppPublicURL)
 	memberProfileNoindexHandler := handlers.NewMemberProfileNoindexHandler(memberClaimsRepo)
 	memberRequestsHandler := handlers.NewMemberRequestsHandler(memberRequestsRepo, permissionSvc, auditLogRepo)
+	memberMemorialRepo := repository.NewMemberMemorialRepository(dbPool)
+	memberMemorialHandler := handlers.NewMemberMemorialHandler(authzRepo, memberMemorialRepo, auditLogRepo)
+	memberCorrectionRepo := repository.NewMemberCorrectionRepository(dbPool)
+	memberCorrectionHandler := handlers.NewMemberCorrectionHandler(memberCorrectionRepo, auditLogRepo)
 	tiptapSvc := services.NewTipTapService()
 	var mailerSvc services.Mailer
 	if cfg.SMTPEnabled {
@@ -288,6 +292,7 @@ func main() {
 	v1.GET("/me/member-claim", authMiddleware, memberClaimsHandler.GetMyClaim)
 	v1.POST("/me/member-claims", authMiddleware, memberClaimsHandler.SubmitClaim)
 	v1.POST("/me/member-requests", authMiddleware, memberRequestsHandler.SubmitRequest)
+	v1.POST("/me/members/:id/correction", authMiddleware, memberCorrectionHandler.SubmitCorrection)
 	v1.PATCH("/me/profile/noindex", authMiddleware, memberProfileNoindexHandler.PatchNoindex)
 	v1.POST("/claim-invitations/accept", authMiddleware, memberClaimInvitationsHandler.AcceptClaimInvitation)
 	v1.GET("/anime", animeHandler.List)
@@ -390,6 +395,7 @@ func main() {
 		memberClaimsHandler:           memberClaimsHandler,
 		memberClaimInvitationsHandler: memberClaimInvitationsHandler,
 		memberRequestsHandler:         memberRequestsHandler,
+		memberMemorialHandler:         memberMemorialHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	archiveRepo := repository.NewMemberArchiveRepository(dbPool)

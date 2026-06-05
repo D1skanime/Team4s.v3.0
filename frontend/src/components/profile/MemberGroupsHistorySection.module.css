@@ -1,0 +1,14 @@
+.geschichteWrapper {
+  display: grid;
+  gap: 24px;
+}
+
+.storyCard {
+  min-width: 0;
+}
+
+.emptyStory {
+  margin: 0;
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.9rem;
+}

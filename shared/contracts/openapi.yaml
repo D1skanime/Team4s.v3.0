@@ -6010,6 +6010,58 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/v1/me/members/{id}/correction:
+    post:
+      tags: [Profile]
+      summary: Korrektur-Vorschlag zu einem Member-Profil einreichen
+      description: >
+        Registrierte User können einen review-gebundenen Korrektur-Vorschlag zu einem Member-Profil,
+        einer Contribution oder einer Rolle einreichen. Der Vorschlag wird NIE direkt veröffentlicht —
+        er landet ausschließlich zur Prüfung in der Verwaltungsqueue (D-18, Lock H).
+        Die Submitter-Identität wird server-seitig aus dem Token gelesen, nicht aus dem Body.
+      operationId: submitMemberCorrection
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Member-ID
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberCorrectionRequest"
+      responses:
+        "201":
+          description: Korrektur-Vorschlag erfolgreich eingereicht (status in_review)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberCorrectionResponse"
+        "400":
+          description: Ungültiger Request-Body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Anmeldung erforderlich
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Pflichtfeld fehlt oder ungültiger Zieltyp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/v1/me/contribution-proposals:
     post:
       tags: [Profile]
@@ -8495,14 +8547,33 @@ components:
       properties:
         public_url:
           type: string
+    PublicMemberBadge:
+      type: object
+      description: >
+        Öffentlich sichtbares Badge eines Members (visibility='public' AND status='active').
+        Eingebettet im PublicMemberProfile-DTO — kein separater Endpoint (Badges-13).
+      required:
+        - id
+        - badge_code
+        - badge_category
+      properties:
+        id:
+          type: integer
+          format: int64
+        badge_code:
+          type: string
+        badge_category:
+          type: string
     PublicMemberProfileData:
       type: object
       required:
         - member_id
         - fansub_name
         - is_currently_active
+        - profile_status
         - profile_visibility
         - memberships
+        - public_badges
         - recent_media
         - recent_contributions
       properties:
@@ -8527,6 +8598,15 @@ components:
           nullable: true
         is_currently_active:
           type: boolean
+        profile_status:
+          type: string
+          description: >
+            Statuswert des Member-Profils (D-09/D-10). Werte: active, historical, memorial.
+            claimed/unclaimed sind derived aus member_claims.claim_status='verified' und erscheinen nicht hier.
+          enum:
+            - active
+            - historical
+            - memorial
         profile_visibility:
           $ref: "#/components/schemas/ProfileVisibility"
         avatar:
@@ -8541,6 +8621,13 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/MemberProfileMembership"
+        public_badges:
+          type: array
+          description: >
+            Eingebettete öffentliche Badges des angezeigten Members (Badges-13).
+            Nur visibility='public' AND status='active'. Kein separater Endpoint.
+          items:
+            $ref: "#/components/schemas/PublicMemberBadge"
         recent_media:
           type: array
           items:
@@ -10324,3 +10411,37 @@ components:
           minItems: 1
           items:
             type: string
+    MemberCorrectionRequest:
+      type: object
+      required: [target_type, reason_text]
+      description: Anfrage für einen Korrektur-Vorschlag zu einem Member-Profil (Lock H — eigene Tabelle).
+      properties:
+        target_type:
+          type: string
+          enum: [profile, contribution, role]
+          description: Zieltyp des Korrektur-Vorschlags (Lock K).
+        target_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: Optionale Kontext-Referenz (z. B. Contribution-ID oder Rollen-ID).
+        reason_text:
+          type: string
+          minLength: 1
+          description: Begründung für den Korrektur-Vorschlag (Pflichtfeld).
+    MemberCorrectionResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [id, status]
+          description: Erstellter Korrektur-Vorschlag (status immer 'in_review', niemals direkt veröffentlicht).
+          properties:
+            id:
+              type: integer
+              format: int64
+            status:
+              type: string
+              enum: [in_review]
+              description: Vorschlag liegt zur Prüfung vor — wird nie direkt veröffentlicht (D-18).

@@ -3488,7 +3488,7 @@ function AdminFansubEditContent({
         ) : null}
         {activeMainTab === "mitglieder" ? <GroupMembersTab fansubId={fansubID} /> : null}
         {activeMainTab === "rollen" ? <MemberRolesTab fansubId={fansubID} /> : null}
-        {activeMainTab === "claims" ? <ClaimManagementPanel groupId={fansubID} /> : null}
+        {activeMainTab === "claims" ? <ClaimManagementPanel groupId={fansubID} isGlobalAdmin={isPlatformAdmin} /> : null}
         {activeMainTab === "vorschlaege" ? <ReviewQueue fansubId={fansubID} /> : null}
       </section>
       {contributionModalAnime ? (

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 
+import { Button } from '@/components/ui'
 import { patchMyBadgeVisibility } from '@/lib/api'
 import type { MemberBadge } from '@/types/contributions'
 
@@ -61,14 +62,15 @@ export function MemberBadgeChips({
           <span key={badge.id} className={styles.badgeChip}>
             {formatMemberBadgeLabel(badge.badge_code)}
             {isOwnProfile ? (
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
                 className={styles.badgeHideBtn}
                 onClick={() => handleHide(badge.id)}
                 disabled={pendingId === badge.id}
               >
                 Ausblenden
-              </button>
+              </Button>
             ) : null}
           </span>
         ))}

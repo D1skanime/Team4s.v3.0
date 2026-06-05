@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: ready_to_plan
-stopped_at: Phase 78 UI-SPEC approved
-last_updated: "2026-06-05T10:12:34.026Z"
+status: phase_complete
+stopped_at: "Phase 74 abgeschlossen + verifiziert (gsd-verifier PASS 7/7, Human-Verify :3000 bestanden); bereit fuer Merge codex/phase-74 -> main"
+last_updated: "2026-06-05T14:23:19.606Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 76
-  completed_phases: 52
+  completed_phases: 53
   total_plans: 287
-  completed_plans: 226
-  percent: 68
+  completed_plans: 233
+  percent: 70
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 73 — public fansub page fansubs slug erweitern
+**Current focus:** Phase 74 — public-member-profile-members-slug-memorial
 
 ## Current Position
 
-Phase: 73
-Plan: Not started
+Phase: 74 (public-member-profile-members-slug-memorial) — EXECUTING
+Plan: 7 of 7
 
 ## Accumulated Context
 
@@ -219,6 +219,12 @@ Recent durable decisions:
 - [Phase 72-04]: Runtime Go projection DTO fields are the contract source of truth; OpenAPI and TS mirror every json-tagged field from domain/media ownership projection repositories.
 - [Phase 72-04]: OpenAPI projection path keys are documented without /api/v1 per execution instruction, while frontend api.ts helpers call the real /api/v1 runtime routes.
 - [Phase 72-04]: Projection read helpers return direct DTO/list payloads and do not unwrap a data envelope.
+- [Phase ?]: [Phase 74-00]: Claim-Block-Audit in beiden Claim-Pfaden: denied-Audit-Action-Key 'member_claim.memorial_blocked' muss als String-Literal in member_claims_repository.go UND member_claim_invitations_repository.go erscheinen
+- [Phase ?]: [Phase 74-00]: Migrations-Kollision 0096 ist aufgelöst: Phase 72 wurde korrekt auf 0097 umnummeriert; nächste freie Nummer für Phase 74 ist 0098+
+- [Phase ?]: [Phase 74-01]: loadPublicBadges als Hilfsfunktion ausgelagert statt LATERAL-CTE-Erweiterung wegen 450-Zeilen-Grenze in member_profile_repository.go
+- [Phase ?]: [Phase 74-01]: COALESCE(m.profile_status, 'active') in CTE als sicherer Fallback fuer retrokompatible Projektion ohne Migration in Plan 01
+- [Phase 74-03]: Migration 0098 member_correction_reports: eigene Tabelle (Lock H), status DEFAULT 'in_review' (D-18), target_type CHECK ('profile','contribution','role'); review-gebundener Insert via MemberCorrectionRepository.CreateCorrectionReport; requireMeIdentity-Gate auf POST /api/v1/me/members/:id/correction; audit_logs member_correction.submitted (D-15)
+- [Phase ?]: [Phase 74-05]: ContributionFilterEntry als Union-Typ-Brücke für Wave-0-Test/PublicMemberRoleEntry-Kompatibilität; vitest globals:true für @testing-library auto-cleanup; Top-N=4 Badge-Slicing
 
 ### Pending Todos
 
@@ -379,6 +385,13 @@ Recent durable decisions:
 | Phase 72 P02 | 14min | 2 tasks | 4 files |
 | Phase 72 P03 | 9min | 2 tasks | 4 files |
 | Phase 72-dom-nen-projektionen-status-fundament P04 | 14min | 2 tasks | 6 files |
+| Phase 74 P00 | 3min | 2 tasks | 8 files |
+| Phase 74 P01 | 15min | 2 tasks | 7 files |
+| Phase 74 P02 | 25min | 2 tasks | 9 files |
+| Phase 74 P04 | 35min | 2 tasks | 11 files |
+| Phase 74 P03 | 20min | 2 tasks | 7 files |
+| Phase 74 P05 | 11min | 2 tasks | 9 files |
+| Phase 74 P06 | 30min | 2 tasks (Task 3 pending human-verify) | 8 files |
 
 ### Quick Tasks Completed
 
@@ -414,7 +427,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-05T08:50:03.536Z
-Stopped at: Phase 78 UI-SPEC approved
+Last session: 2026-06-05T14:23:19.576Z
+Stopped at: Completed 74-05-PLAN.md
 Last activity: 2026-06-05
-Resume file: .planning/phases/78-leader-workspace-review-pflege/78-UI-SPEC.md
+Resume file: None
