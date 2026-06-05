@@ -53,12 +53,10 @@ func TestRejectContributionRequiresReason(t *testing.T) {
 		DisplayName: "Testuser",
 	})
 
-	// Aktuell: RejectMyAnimeContribution gibt kein 422 zurück (kein Body-Parsing)
 	// Plan 02: RejectMyAnimeContributionWithReason gibt 422 zurück wenn body fehlt
-	h.RejectMyAnimeContribution(c)
+	h.RejectMyAnimeContributionWithReason(c)
 
-	// ROT: Aktuell gibt der Handler keinen 422-Status zurück.
-	// Sobald Plan 02 die Pflicht-Validierung einbaut, muss dieser Test grün werden.
+	// GRÜN: Neuer Handler gibt 422 zurück wenn member_reason fehlt (D-09 Pflicht-Begründung).
 	assert.Equal(t, http.StatusUnprocessableEntity, recorder.Code,
 		"Reject ohne member_reason muss 422 zurückgeben (D-09 Pflicht-Begründung)")
 }

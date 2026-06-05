@@ -406,6 +406,8 @@ func main() {
 	mediaOwnershipProjectionHandler := handlers.NewMediaOwnershipProjectionHandler(mediaOwnershipProjectionRepo)
 	contributionsPublicHandler := handlers.NewContributionsPublicHandler(animeContributionsRepo)
 	contributionsMeHandler := handlers.NewContributionsMeHandler(animeContributionsRepo, histGroupMemberRolesRepo, dbPool)
+	memberSuggestionsRepo := repository.NewMemberSuggestionsRepository(dbPool)
+	suggestionsMeHandler := handlers.NewSuggestionsMeHandler(memberSuggestionsRepo, auditLogRepo)
 	// Archiv-Suche: oeffentliche Route ohne Auth-Gate (Pitfall 6 aus RESEARCH.md)
 	v1.GET("/archiv", archiveHandler.SearchArchive)
 	v1.GET("/me/badges", authMiddleware, memberBadgesHandler.GetMyBadges)
@@ -419,8 +421,11 @@ func main() {
 	v1.GET("/me/group-contributions", authMiddleware, contributionsMeHandler.ListMyGroupContributions)
 	v1.PATCH("/me/anime-contributions/:contributionId/visibility", authMiddleware, contributionsMeHandler.UpdateMyAnimeContributionVisibility)
 	v1.POST("/me/anime-contributions/:contributionId/confirm", authMiddleware, contributionsMeHandler.ConfirmMyAnimeContribution)
-	v1.POST("/me/anime-contributions/:contributionId/reject", authMiddleware, contributionsMeHandler.RejectMyAnimeContribution)
+	v1.POST("/me/anime-contributions/:contributionId/reject", authMiddleware, contributionsMeHandler.RejectMyAnimeContributionWithReason)
 	v1.PATCH("/me/group-contributions/:contributionId/visibility", authMiddleware, contributionsMeHandler.UpdateMyGroupContributionVisibility)
+	v1.POST("/me/suggestions", authMiddleware, suggestionsMeHandler.CreateSuggestion)
+	v1.GET("/me/suggestions", authMiddleware, suggestionsMeHandler.ListSuggestions)
+	v1.POST("/me/suggestions/media", authMiddleware, suggestionsMeHandler.UploadMediaSuggestion)
 	proposalsMeHandler := handlers.NewContributionProposalsMeHandler(
 		animeContributionsRepo, histGroupMemberRolesRepo, dbPool, auditLogRepo,
 	)
