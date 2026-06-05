@@ -19,6 +19,7 @@ import { MemberRoleTimeline } from '@/components/profile/MemberRoleTimeline'
 import type { PublicMemberRoleEntry } from '@/types/contributions'
 import type { PublicMemberProfileData } from '@/types/profile'
 
+import { CorrectionReportModal } from '@/components/profile/CorrectionReportModal'
 import { OwnHiddenProfilePreview } from './OwnHiddenProfilePreview'
 import { OwnProfileEditLink } from './OwnProfileEditLink'
 import styles from './page.module.css'
@@ -105,7 +106,11 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
           <span>&gt;</span><span>Members</span><span>&gt;</span>
           <span>{profile.fansub_name}</span>
         </nav>
-        <OwnProfileEditLink publicMemberId={profile.member_id} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <OwnProfileEditLink publicMemberId={profile.member_id} />
+          {/* CorrectionReportModal: nur für eingeloggte User sichtbar (via useAuthSession, D-18) */}
+          <CorrectionReportModal memberId={profile.member_id} memberName={profile.fansub_name} />
+        </div>
       </div>
 
       <MemberSectionNav />
