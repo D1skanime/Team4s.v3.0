@@ -76,7 +76,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 
 - [x] **Phase 72: Domänen-Projektionen & Status-Fundament** - Backend/Contract-Fundament, das Mitglied vs. Mitwirkender vs. historische Nennung in DTOs/Projektionen sauber trennt und die phasenübergreifend nötigen Statusfelder einführt (`memorial`-Profilstatus, Contribution-Status/-Sichtbarkeit, Media owner/visibility/review-Metadaten), damit 73–80 ohne doppelte DTO-Arbeit darauf aufsetzen.
 - [ ] **Phase 73: Public Fansub Page `/fansubs/[slug]` erweitern** - Bestehende Public-Fansub-Seite kuratiert ausbauen (Hero, Story/Timeline, Highlights, Mitglieder vs. Mitwirkende, Medien nach Ownership, Projektkarten) durch Reuse von `FansubProfileTabs`, `GroupLeaderTimeline` und public contribution helpers.
-- [ ] **Phase 74: Public Member Profile `/members/[slug]` + Memorial** - Member-Profil als dreistufige Public-Seite erweitern (Hero+Status, Geschichte/Gruppenbezug, filterbare Contributions) inkl. Gedenkprofil-Darstellung und kuratierter Badge-Anzeige; Reuse Member API, Public Member Components, `RichTextRenderer`, Badge-Service.
+- [x] **Phase 74: Public Member Profile `/members/[slug]` + Memorial** - Member-Profil als dreistufige Public-Seite erweitern (Hero+Status, Geschichte/Gruppenbezug, filterbare Contributions) inkl. Gedenkprofil-Darstellung und kuratierter Badge-Anzeige; Reuse Member API, Public Member Components, `RichTextRenderer`, Badge-Service. (completed 2026-06-05)
 - [ ] **Phase 75: Anime-Gruppen-Deep-Dive `/anime/[id]/group/[groupId]`** - Gruppenspezifischen Anime-Projektkontext stärken (Projektstory, Releases/Versionen, OP/ED/Middle, Mitwirkende, Release-Version-Medien) ohne gruppenspezifische Daten auf die neutrale Anime-Ebene zu schreiben; Reuse `GroupAssetShowcase`, `CollapsibleStory`, group/release/theme APIs.
 - [ ] **Phase 76: `/me/contributions` Dashboard + registrierte-User-Vorschläge** - Eigene Beitragsseite zum Klärungsdashboard ausbauen (Summary, „Das war ich"/„war ich nicht", Sichtbarkeit, Filter) und registrierte-User-Beteiligungsflows (Fehler/Story/Medien/Contribution melden, Claim-Einstieg) review-gebunden integrieren; Reuse `getMyAnimeContributions`, Proposal-/Review-Strukturen.
 - [ ] **Phase 77: Leader Workspace – Public Preview & Readiness** - In `/admin/fansubs/[id]/edit` Public-Preview, Public-Readiness-Check und die Pflege von Story-/Projekt-/Release-Kontext ergänzen (capability-gated), ohne `/admin/my-groups/[id]` zu duplizieren.
@@ -1754,7 +1754,7 @@ Plans:
   4. Memorial-Profile haben eine eigene, würdevolle Darstellung (keine normale Aktivitätsanzeige, keine Mengen-/Gamification-Badges) und sind nicht über normale Claim-Flows beanspruchbar.
   5. Badge-State wird über den bestehenden Badge-Service bezogen, nicht ad hoc im UI berechnet; Owner-Sichtbarkeit wird respektiert. Reuse Member API/`RichTextRenderer`; keine zweite Public-Member-Implementierung.
 
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 Plans:
 - [ ] `74-00-PLAN.md` — Wave-0 Test-Stubs (6 RED) + Migrations-Kollisions-Notiz (0096)
 - [ ] `74-01-PLAN.md` — Public-Badge-Quelle + Status ins PublicMemberProfile-DTO (Contract-first, Badges-13/C/K)
