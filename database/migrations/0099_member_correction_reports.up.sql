@@ -1,4 +1,4 @@
--- Migration 0098: member_correction_reports — review-gebundene Korrektur-Vorschläge zu Member-Profilen.
+-- Migration 0099: member_correction_reports — review-gebundene Korrektur-Vorschläge zu Member-Profilen.
 -- Lock H: Eigene Tabelle, strikt getrennt von Claims/Requests/Contributions.
 -- Vorschläge werden NIE direkt veröffentlicht (D-18); status DEFAULT 'in_review'.
 

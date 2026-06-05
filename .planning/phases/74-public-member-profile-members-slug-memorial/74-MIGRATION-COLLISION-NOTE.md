@@ -65,6 +65,25 @@ Erwartetes Ergebnis: Höchste Nummer ist 0097. Wenn eine neue Migration angelegt
 
 ---
 
+## Nachtrag beim Merge (2026-06-05): Zweite Kollision 0098 → Phase 74 auf 0099
+
+Während Phase 74 im eigenen Worktree lief, wurde **Phase 76 parallel nach `main` gemergt**
+und brachte `0098_member_suggestions.{up,down}.sql` mit. Phase 74 hatte ihre Korrektur-Tabelle
+ebenfalls als **0098_member_correction_reports** angelegt → erneute Nummern-Kollision (von Git
+nicht geflaggt, da verschiedene Dateinamen).
+
+**Auflösung beim Merge:** Phase-74-Migration auf **0099** umnummeriert:
+
+```
+0098_member_suggestions.{up,down}.sql          ← Phase 76 (main)
+0099_member_correction_reports.{up,down}.sql   ← Phase 74 (umnummeriert)
+```
+
+Kein Go-Code referenziert die Nummer (Runner lädt per `os.ReadDir` + Regex + numerischem Sort);
+die beiden Tabellen sind unabhängig (keine Reihenfolge-Abhängigkeit). `migrate up` läuft sauber.
+
+---
+
 ## Quellen
 
 - `74-RESEARCH.md §Migrations-Befund` (Kollision ursprünglich entdeckt)
