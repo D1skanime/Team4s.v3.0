@@ -2723,3 +2723,32 @@
     display: none;
   }
 }
+
+/* Readiness-Tab — neue Klassen (Phase 77) */
+.readinessTabRoot {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.readinessList {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.readinessItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.readinessItemLabel {
+  flex: 1;
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.readinessSectionDivider {
+  margin-block: var(--space-4);
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
+}
