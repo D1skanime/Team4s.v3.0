@@ -1,10 +1,11 @@
 ---
 phase: 76
 slug: me-contributions-dashboard-registrierte-user-vorschl-ge
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-05
+reviewed_at: 2026-06-05
 ---
 
 # Phase 76 — UI Design Contract
