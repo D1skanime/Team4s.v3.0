@@ -264,6 +264,38 @@
   }
 }
 
+/* ---- Memorial-Hero ---- */
+
+.memorialNotice {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 3px solid rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+.memorialBio {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.9rem;
+}
+
+/* ---- „Bekannt für"-Block (D-03) ---- */
+
+.knownForBlock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.knownForItem {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 500;
+}
+
 /* ---- Badge-Chips ---- */
 
 .badgeChipsRow {
