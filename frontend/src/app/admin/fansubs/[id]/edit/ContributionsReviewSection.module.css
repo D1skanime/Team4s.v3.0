@@ -1,0 +1,70 @@
+.reviewSection {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.filterRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cardStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cardFooterActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-card-muted);
+}
+
+.rejectExpansion {
+  background: var(--surface-card-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border: 1px solid var(--border-subtle);
+  margin-top: var(--space-2);
+}
+
+.rejectActions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.inlineError {
+  margin: var(--space-1) 0 0;
+  border: 1px solid color-mix(in srgb, var(--color-error) 45%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  color: var(--color-error);
+  padding: 0.6rem 0.7rem;
+  font-size: 0.875rem;
+}
+
+.tableWrapHeaderLineWine {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.tableWrapHeaderLineWine thead th {
+  background: transparent;
+  border-bottom: 3px solid #82122c;
+}
+
+.rowActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+}
