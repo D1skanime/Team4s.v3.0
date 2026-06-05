@@ -554,22 +554,25 @@ _, err = db.Exec(ctx, `
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Migrationsnummern-Sequenzierung Phase 72 vs. Phase 76**
    - Was wir wissen: 0096 ist belegt. Phase-72-Plan-01 plant 0096 (veraltet).
    - Was unklar: In welcher Reihenfolge werden Phasen 72 und 76 ausgeführt?
    - Empfehlung: Phase 72 als Vorläufer bestätigen und auf 0097+ umnummerieren. Phase 76 beginnt dann mit 0098+. Planner soll diesen Slot mit `ls database/migrations/*.up.sql | sort | tail -1` live verifizieren.
+   - **RESOLVED:** Plan 01 T1 nutzt 0097 und verifiziert den höchsten Migrationsslot zur Ausführungszeit via `<read_first>` (live-Check) statt fest zu kodieren.
 
 2. **`is_own_proposal` server-seitig vs. client-seitig**
    - Was wir wissen: `created_by` ist in `AnimeContributionRow` vorhanden, aber ob die app_user_id im Frontend verfügbar ist für clientseitigen Vergleich ist unklar.
    - Was unklar: Liefert `useAuthSession` die app_user_id?
    - Empfehlung: Server-seitig berechnen (analog `can_self_publish`) — robuster und unabhängig vom Frontend-Auth-State.
+   - **RESOLVED:** Server-seitig — Plan 02 T1 berechnet `is_own_proposal` per COALESCE im Backend-Response.
 
 3. **Scope von „Medien vorschlagen" in Phase 76**
    - Was wir wissen: Decision 6 + D-06 schließen es ein. Upload ist der größte Aufwand.
    - Was unklar: Muss der Upload in Phase 76 vollständig produktiv sein, oder reicht ein review-gebundener Upload-Stub?
    - Empfehlung: Upload-Flow shippt vollständig, aber review-gebunden (status='in_review', visibility='internal'). Leader-Review kommt in Phase 77/78.
+   - **RESOLVED:** Voller Upload — Plan 02 T2 (`UploadMediaSuggestion`, `POST /me/suggestions/media`) shippt review-gebunden mit `review_status='in_review'`, `visibility='internal'`.
 
 ---
 
