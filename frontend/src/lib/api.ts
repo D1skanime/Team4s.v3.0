@@ -7627,6 +7627,35 @@ export async function getMySuggestions(): Promise<MeSuggestionsResponse> {
   return response.json() as Promise<MeSuggestionsResponse>;
 }
 
+export interface UploadMediaSuggestionOptions {
+  file: File;
+  fields: {
+    target_type: string;
+    target_id: string;
+    category: string;
+  };
+  onProgress?: (percent: number) => void;
+}
+
+export async function uploadMediaSuggestion(
+  options: UploadMediaSuggestionOptions,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  return authorizedUploadXhr<void>({
+    endpoint: `${API_BASE_URL}/api/v1/me/suggestions/media`,
+    retryEligibility: "never",
+    onProgress: options.onProgress,
+    buildBody: () => {
+      const body = new FormData();
+      body.set("file", options.file);
+      body.set("target_type", options.fields.target_type);
+      body.set("target_id", options.fields.target_id);
+      body.set("category", options.fields.category);
+      return body;
+    },
+  });
+}
+
 // ─── Contribution Proposals (Member) ─────────────────────────────────────────
 
 export async function getMyMemberships(
