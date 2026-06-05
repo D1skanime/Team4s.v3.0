@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { ApiError, createContributionProposal, getAdminFansubAnime } from '@/lib/api'
-import { FormField, Input, Select, Textarea } from '@/components/ui'
+import { Button, FormField, Input, Modal, Select, Textarea } from '@/components/ui'
 import type { AdminFansubAnimeEntry } from '@/types/admin'
 import type { MembershipEntry, ProposalFormData } from '@/types/contributions'
 
@@ -21,14 +21,7 @@ interface ProposalFormProps {
 
 type ContributionScope = 'project' | 'release_version'
 
-const S = {
-  btn: (primary?: boolean) => ({
-    padding: '8px 20px', borderRadius: 6, fontSize: '14px', fontWeight: 700, cursor: 'pointer',
-    border: primary ? 'none' : '1px solid #c8d0de',
-    background: primary ? '#5f84dd' : 'transparent',
-    color: primary ? '#fff' : '#3a4560',
-  } as React.CSSProperties),
-} as const
+const FORM_ID = 'proposal-form'
 
 export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }: ProposalFormProps) {
   const [scope, setScope] = useState<ContributionScope | ''>('')
@@ -130,165 +123,157 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     }
   }
 
+  const footer = (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 12 }}>
+      <Button type="button" variant="secondary" onClick={onClose}>
+        Abbrechen
+      </Button>
+      <Button
+        type="submit"
+        form={FORM_ID}
+        variant="primary"
+        disabled={isSubmitting || scope === 'release_version'}
+        aria-disabled={isSubmitting || scope === 'release_version'}
+      >
+        {isSubmitting ? 'Wird gesendet…' : 'Zur Bestätigung senden'}
+      </Button>
+    </div>
+  )
+
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="proposal-form-title"
-      style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-      <div aria-hidden="true" onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }} />
-      <div style={{ position: 'relative', background: '#fff', borderRadius: 10, padding: '24px', width: 'min(560px, 100%)', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h2 id="proposal-form-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Mitwirkung vorschlagen</h2>
-        <div style={{ background: '#eef6f1', border: '1px solid #bdddc9', borderRadius: 6, padding: '10px 14px', color: '#28533a', fontSize: '0.875rem', lineHeight: 1.5 }}>
-          Du schlägst hier keine freie Anime-Notiz vor. Erst entscheidest du, ob deine Rolle für das ganze Projekt gilt oder nur für bestimmte Folgen. Danach wählst du deine Gruppe, das Projekt und deine Aufgabe.
-        </div>
-        {error && <div role="alert" style={{ background: '#fee2e2', color: '#82122c', borderRadius: 6, padding: '10px 14px', fontSize: '0.875rem' }}>{error}</div>}
+    <Modal open={true} onClose={onClose} title="Mitwirkung vorschlagen" footer={footer}>
+      <div style={{ background: '#eef6f1', border: '1px solid #bdddc9', borderRadius: 6, padding: '10px 14px', color: '#28533a', fontSize: '0.875rem', lineHeight: 1.5, marginBottom: 8 }}>
+        Du schlägst hier keine freie Anime-Notiz vor. Erst entscheidest du, ob deine Rolle für das ganze Projekt gilt oder nur für bestimmte Folgen. Danach wählst du deine Gruppe, das Projekt und deine Aufgabe.
+      </div>
+      {error ? <div role="alert" style={{ background: '#fee2e2', color: '#82122c', borderRadius: 6, padding: '10px 14px', fontSize: '0.875rem', marginBottom: 8 }}>{error}</div> : null}
 
-        <form onSubmit={(e) => void handleSubmit(e)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <FormField label="Was möchtest du bestätigen lassen?" error={scopeError ?? undefined} required>
-            <div role="group" aria-label="Art der Mitwirkung" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-              <button
-                type="button"
-                aria-pressed={scope === 'project'}
-                onClick={() => selectScope('project')}
-                style={{
-                  minHeight: 88,
-                  padding: '12px',
-                  borderRadius: 8,
-                  border: `1px solid ${scope === 'project' ? '#5f84dd' : '#c8d0de'}`,
-                  background: scope === 'project' ? '#ebf0fb' : '#f6f8fc',
-                  color: '#1f2937',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                }}
-              >
-                <strong style={{ display: 'block', marginBottom: 5 }}>Ganzer Anime / Projekt</strong>
-                <span style={{ fontSize: '0.82rem', lineHeight: 1.4 }}>
-                  Deine Rolle gilt für das Projekt insgesamt und kann später als Anime-Credit erscheinen.
-                </span>
-              </button>
-              <button
-                type="button"
-                aria-pressed={scope === 'release_version'}
-                onClick={() => selectScope('release_version')}
-                style={{
-                  minHeight: 88,
-                  padding: '12px',
-                  borderRadius: 8,
-                  border: `1px solid ${scope === 'release_version' ? '#8a6420' : '#c8d0de'}`,
-                  background: scope === 'release_version' ? '#fff7e6' : '#f6f8fc',
-                  color: '#1f2937',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                }}
-              >
-                <strong style={{ display: 'block', marginBottom: 5 }}>Bestimmte Folgen / Release-Version</strong>
-                <span style={{ fontSize: '0.82rem', lineHeight: 1.4 }}>
-                  Deine Rolle gilt nur für einzelne Folgen oder eine konkrete Release-Version.
-                </span>
-              </button>
+      <form id={FORM_ID} onSubmit={(e) => void handleSubmit(e)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <FormField label="Was möchtest du bestätigen lassen?" error={scopeError ?? undefined} required>
+          <div role="group" aria-label="Art der Mitwirkung" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+            <Button
+              type="button"
+              variant={scope === 'project' ? 'primary' : 'secondary'}
+              aria-pressed={scope === 'project'}
+              onClick={() => selectScope('project')}
+              style={{ minHeight: 88, textAlign: 'left', flexDirection: 'column', alignItems: 'flex-start' }}
+            >
+              <strong style={{ display: 'block', marginBottom: 5 }}>Ganzer Anime / Projekt</strong>
+              <span style={{ fontSize: '0.82rem', lineHeight: 1.4, fontWeight: 400 }}>
+                Deine Rolle gilt für das Projekt insgesamt und kann später als Anime-Credit erscheinen.
+              </span>
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              aria-pressed={scope === 'release_version'}
+              onClick={() => selectScope('release_version')}
+              style={{ minHeight: 88, textAlign: 'left', flexDirection: 'column', alignItems: 'flex-start' }}
+            >
+              <strong style={{ display: 'block', marginBottom: 5 }}>Bestimmte Folgen / Release-Version</strong>
+              <span style={{ fontSize: '0.82rem', lineHeight: 1.4, fontWeight: 400 }}>
+                Deine Rolle gilt nur für einzelne Folgen oder eine konkrete Release-Version.
+              </span>
+            </Button>
+          </div>
+          {scope === 'release_version' ? (
+            <div role="status" style={{ marginTop: 8, background: '#fff7e6', border: '1px solid #f0d28a', borderRadius: 6, padding: '10px 12px', color: '#6d4c13', fontSize: '0.85rem', lineHeight: 1.45 }}>
+              Diese Variante wird noch nicht abgeschickt, weil hier erst eine echte Folgen- oder Release-Version-Auswahl eingebaut werden muss. So verhindern wir falsche globale Anime-Credits für Arbeit an einzelnen Folgen.
             </div>
-            {scope === 'release_version' ? (
-              <div role="status" style={{ marginTop: 8, background: '#fff7e6', border: '1px solid #f0d28a', borderRadius: 6, padding: '10px 12px', color: '#6d4c13', fontSize: '0.85rem', lineHeight: 1.45 }}>
-                Diese Variante wird noch nicht abgeschickt, weil hier erst eine echte Folgen- oder Release-Version-Auswahl eingebaut werden muss. So verhindern wir falsche globale Anime-Credits für Arbeit an einzelnen Folgen.
-              </div>
-            ) : null}
-          </FormField>
+          ) : null}
+        </FormField>
 
-          {/* Gruppe */}
-          <FormField label="Für welche deiner Gruppen?" htmlFor="proposal-group" required>
-            <Select id="proposal-group" value={selectedGroupMemberId}
-              onChange={(e) => setSelectedGroupMemberId(e.target.value ? parseInt(e.target.value, 10) : '')}
-              required>
-              <option value="">Gruppe auswählen</option>
-              {ownGroups.map((g) => <option key={g.fansub_group_member_id} value={g.fansub_group_member_id}>{g.group_name}</option>)}
-            </Select>
-          </FormField>
+        {/* Gruppe */}
+        <FormField label="Für welche deiner Gruppen?" htmlFor="proposal-group" required>
+          <Select id="proposal-group" value={selectedGroupMemberId}
+            onChange={(e) => setSelectedGroupMemberId(e.target.value ? parseInt(e.target.value, 10) : '')}
+            required>
+            <option value="">Gruppe auswählen</option>
+            {ownGroups.map((g) => <option key={g.fansub_group_member_id} value={g.fansub_group_member_id}>{g.group_name}</option>)}
+          </Select>
+        </FormField>
 
-          {/* Gruppengebundene Anime-Auswahl */}
-          <FormField
-            label="Bei welchem Anime/Projekt dieser Gruppe?"
-            htmlFor="proposal-anime"
-            error={groupAnimeError ?? undefined}
+        {/* Gruppengebundene Anime-Auswahl */}
+        <FormField
+          label="Bei welchem Anime/Projekt dieser Gruppe?"
+          htmlFor="proposal-anime"
+          error={groupAnimeError ?? undefined}
+          required
+        >
+          <Select
+            id="proposal-anime"
+            value={selectedAnimeId}
+            onChange={(e) => setSelectedAnimeId(e.target.value ? parseInt(e.target.value, 10) : '')}
+            disabled={!selectedGroup || isLoadingGroupAnime || groupAnime.length === 0}
             required
           >
-            <Select
-              id="proposal-anime"
-              value={selectedAnimeId}
-              onChange={(e) => setSelectedAnimeId(e.target.value ? parseInt(e.target.value, 10) : '')}
-              disabled={!selectedGroup || isLoadingGroupAnime || groupAnime.length === 0}
-              required
-            >
-              <option value="">
-                {!selectedGroup
-                  ? 'Erst Gruppe auswählen'
-                  : isLoadingGroupAnime
-                    ? 'Anime/Projekte werden geladen'
-                    : groupAnime.length === 0
-                      ? 'Keine Anime/Projekte für diese Gruppe'
-                      : 'Anime/Projekt auswählen'}
-              </option>
-              {groupAnime.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}
-            </Select>
-          </FormField>
+            <option value="">
+              {!selectedGroup
+                ? 'Erst Gruppe auswählen'
+                : isLoadingGroupAnime
+                  ? 'Anime/Projekte werden geladen'
+                  : groupAnime.length === 0
+                    ? 'Keine Anime/Projekte für diese Gruppe'
+                    : 'Anime/Projekt auswählen'}
+            </option>
+            {groupAnime.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}
+          </Select>
+        </FormField>
 
-          {/* Rollen Multi-Select */}
-          <FormField label="Welche Aufgabe hattest du?" required>
-            <div role="group" aria-label="Rollen auswählen" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {roleDefinitions.map((role) => {
-                const sel = selectedRoleCodes.includes(role.code)
-                return (
-                  <button key={role.code} type="button" onClick={() => toggleRole(role.code)} aria-pressed={sel}
-                    style={{ padding: '5px 12px', borderRadius: 20, border: `1px solid ${sel ? '#5f84dd' : '#c8d0de'}`, background: sel ? '#ebf0fb' : '#f6f8fc', color: sel ? '#2a5abf' : '#3a4560', fontSize: '0.85rem', fontWeight: sel ? 700 : 400, cursor: 'pointer' }}>
-                    {role.label_de}
-                  </button>
-                )
-              })}
-            </div>
-            {roleError && <span style={{ color: '#82122c', fontSize: '12px' }} role="alert">{roleError}</span>}
-          </FormField>
-
-          {/* Notiz */}
-          <FormField
-            label="Hinweis für den Gruppenleader"
-            htmlFor="proposal-note"
-            hint="Dieser Hinweis ist für die Prüfung gedacht und wird nicht als öffentlicher Profiltext angezeigt."
-          >
-            <Textarea id="proposal-note" value={note} onChange={(e) => setNote(e.target.value)} rows={3}
-              placeholder="Kurze Erläuterung, z. B. welche Folgen, Releases oder Zeitraum betroffen sind."
-            />
-          </FormField>
-
-          {/* Von/Bis Jahr */}
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 1 }}>
-              <FormField label="Von Jahr" htmlFor="proposal-started">
-                <Input id="proposal-started" type="number" value={startedYear} onChange={(e) => setStartedYear(e.target.value)}
-                  placeholder="z. B. 2010" min={1990} max={new Date().getFullYear()} />
-              </FormField>
-            </div>
-            <div style={{ flex: 1 }}>
-              <FormField label="Bis Jahr" htmlFor="proposal-ended">
-                <Input id="proposal-ended" type="number" value={endedYear} onChange={(e) => setEndedYear(e.target.value)}
-                  placeholder="z. B. 2012" min={1990} max={new Date().getFullYear()} />
-              </FormField>
-            </div>
+        {/* Rollen Multi-Select */}
+        <FormField label="Welche Aufgabe hattest du?" required>
+          <div role="group" aria-label="Rollen auswählen" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {roleDefinitions.map((role) => {
+              const sel = selectedRoleCodes.includes(role.code)
+              return (
+                <Button
+                  key={role.code}
+                  type="button"
+                  variant="subtle"
+                  size="sm"
+                  aria-pressed={sel}
+                  onClick={() => toggleRole(role.code)}
+                >
+                  {role.label_de}
+                </Button>
+              )
+            })}
           </div>
+          {roleError ? <span style={{ color: '#82122c', fontSize: '12px' }} role="alert">{roleError}</span> : null}
+        </FormField>
 
-          {/* 90-Tage-Hinweis-Banner (D-13) */}
-          <div style={{ background: '#f0f4ff', border: '1px solid #c5d3f5', borderRadius: 6, padding: '10px 14px', fontSize: '0.85rem', color: '#3a4c80', lineHeight: 1.5 }}>
-            Reagiert kein Gruppen-Leader binnen 90 Tagen, kannst du den Vorschlag selbst als
-            unverifizierten historischen Eintrag öffentlich schalten.
-          </div>
+        {/* Notiz */}
+        <FormField
+          label="Hinweis für den Gruppenleader"
+          htmlFor="proposal-note"
+          hint="Dieser Hinweis ist für die Prüfung gedacht und wird nicht als öffentlicher Profiltext angezeigt."
+        >
+          <Textarea id="proposal-note" value={note} onChange={(e) => setNote(e.target.value)} rows={3}
+            placeholder="Kurze Erläuterung, z. B. welche Folgen, Releases oder Zeitraum betroffen sind."
+          />
+        </FormField>
 
-          {/* Footer */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, gap: 12 }}>
-            <button type="button" onClick={onClose} style={S.btn()}>Abbrechen</button>
-            <button type="submit" disabled={isSubmitting || scope === 'release_version'} aria-disabled={isSubmitting || scope === 'release_version'}
-              style={{ ...S.btn(true), opacity: isSubmitting || scope === 'release_version' ? 0.6 : 1, cursor: isSubmitting || scope === 'release_version' ? 'not-allowed' : 'pointer' }}>
-              {isSubmitting ? 'Wird gesendet…' : 'Zur Bestätigung senden'}
-            </button>
+        {/* Von/Bis Jahr */}
+        <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ flex: 1 }}>
+            <FormField label="Von Jahr" htmlFor="proposal-started">
+              <Input id="proposal-started" type="number" value={startedYear} onChange={(e) => setStartedYear(e.target.value)}
+                placeholder="z. B. 2010" min={1990} max={new Date().getFullYear()} />
+            </FormField>
           </div>
-        </form>
-      </div>
-    </div>
+          <div style={{ flex: 1 }}>
+            <FormField label="Bis Jahr" htmlFor="proposal-ended">
+              <Input id="proposal-ended" type="number" value={endedYear} onChange={(e) => setEndedYear(e.target.value)}
+                placeholder="z. B. 2012" min={1990} max={new Date().getFullYear()} />
+            </FormField>
+          </div>
+        </div>
+
+        {/* 90-Tage-Hinweis-Banner (D-13) */}
+        <div style={{ background: '#f0f4ff', border: '1px solid #c5d3f5', borderRadius: 6, padding: '10px 14px', fontSize: '0.85rem', color: '#3a4c80', lineHeight: 1.5 }}>
+          Reagiert kein Gruppen-Leader binnen 90 Tagen, kannst du den Vorschlag selbst als
+          unverifizierten historischen Eintrag öffentlich schalten.
+        </div>
+      </form>
+    </Modal>
   )
 }
