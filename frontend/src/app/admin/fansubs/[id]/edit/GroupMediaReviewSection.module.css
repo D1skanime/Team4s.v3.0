@@ -1,0 +1,67 @@
+.reviewSection {
+  display: grid;
+  gap: var(--space-5);
+}
+
+/* Medien-Karten-Grid: responsives Auto-Fill-Raster (UI-SPEC mediaReviewGrid) */
+.mediaReviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.mediaCard {
+  display: flex;
+  flex-direction: column;
+}
+
+.ownerFlagRow {
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mediaCardBody {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+}
+
+/* Aktionszeile am unteren Ende jeder Karte */
+.cardFooterActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-card-muted);
+}
+
+/* Inline-Fehlermeldung (analog ClaimManagementPanel.module.css) */
+.inlineError {
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--color-error) 45%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  color: var(--color-error);
+  padding: 0.6rem 0.7rem;
+  font-size: 0.875rem;
+}
+
+/* Erfolgs-Toast */
+.toastSuccess {
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--button-success-mid) 15%, transparent);
+  color: var(--button-success-mid);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .mediaReviewGrid {
+    grid-template-columns: 1fr;
+  }
+}
