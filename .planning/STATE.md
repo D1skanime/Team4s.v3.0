@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: ready_to_plan
-stopped_at: "Completed 74-06-PLAN.md Task 1+2; Task 3 pending human-verify :3000"
+status: phase_complete
+stopped_at: "Phase 74 abgeschlossen + verifiziert (gsd-verifier PASS 7/7, Human-Verify :3000 bestanden); bereit fuer Merge codex/phase-74 -> main"
 last_updated: "2026-06-05T14:23:19.606Z"
 last_activity: 2026-06-05
 progress:

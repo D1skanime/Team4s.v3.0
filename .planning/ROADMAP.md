@@ -1756,13 +1756,13 @@ Plans:
 
 **Plans:** 7/7 plans complete
 Plans:
-- [ ] `74-00-PLAN.md` — Wave-0 Test-Stubs (6 RED) + Migrations-Kollisions-Notiz (0096)
-- [ ] `74-01-PLAN.md` — Public-Badge-Quelle + Status ins PublicMemberProfile-DTO (Contract-first, Badges-13/C/K)
-- [ ] `74-02-PLAN.md` — Memorial-Setter (Global-Admin) + Claim-Sperre (beide Pfade) + Audit (J/D-14..D-17)
-- [ ] `74-03-PLAN.md` — Korrektur-melden: eigene Tabelle (Lock H) + review-gebundener Endpoint + Audit (D-18)
-- [ ] `74-04-PLAN.md` — Sektions-Scroll-Seite + Sticky-Nav + Status-Pill + würdevolle Memorial-Hero (C/D-01/D-02/D-09/D-10)
-- [ ] `74-05-PLAN.md` — Top-N-Badge-Highlights + clientseitige Contribution-Filter + Inline-Expand + Altlast-Migration (C/Badges-13/D-06..D-08/D-11)
-- [ ] `74-06-PLAN.md` — Write-Action-UI: Korrektur-Modal + Memorial-Setter-Action im Leader-Workspace + Human-Verify (D-12/D-16..D-18)
+- [x] `74-00-PLAN.md` — Wave-0 Test-Stubs (6 RED) + Migrations-Kollisions-Notiz (0096)
+- [x] `74-01-PLAN.md` — Public-Badge-Quelle + Status ins PublicMemberProfile-DTO (Contract-first, Badges-13/C/K)
+- [x] `74-02-PLAN.md` — Memorial-Setter (Global-Admin) + Claim-Sperre (beide Pfade) + Audit (J/D-14..D-17)
+- [x] `74-03-PLAN.md` — Korrektur-melden: eigene Tabelle (Lock H) + review-gebundener Endpoint + Audit (D-18)
+- [x] `74-04-PLAN.md` — Sektions-Scroll-Seite + Sticky-Nav + Status-Pill + würdevolle Memorial-Hero (C/D-01/D-02/D-09/D-10)
+- [x] `74-05-PLAN.md` — Top-N-Badge-Highlights + clientseitige Contribution-Filter + Inline-Expand + Altlast-Migration (C/Badges-13/D-06..D-08/D-11)
+- [x] `74-06-PLAN.md` — Write-Action-UI: Korrektur-Modal + Memorial-Setter-Action im Leader-Workspace + Human-Verify (D-12/D-16..D-18)
 
 ### Phase 75: Anime-Gruppen-Deep-Dive `/anime/[id]/group/[groupId]`
 
