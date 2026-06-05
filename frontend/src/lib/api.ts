@@ -69,6 +69,7 @@ import {
   ContributorGroupDetailResponse,
   ContributorGroupsResponse,
 } from "@/types/contributor";
+import type { DomainProjectionResponse } from "@/types/domain-projection";
 import {
   GenerateClaimInvitationResponse,
   MemberClaimInvitationResponse,
@@ -79,6 +80,7 @@ import {
   PublicMemberProfileResponse,
   UpdateMemberProfileRequest,
 } from "@/types/profile";
+import type { MediaOwnershipRow } from "@/types/media-ownership";
 import {
   CommentCreateRequest,
   CommentCreateResponse,
@@ -7727,6 +7729,60 @@ export async function getAnimeContributions(
   }
 
   return response.json() as Promise<PublicAnimeContributionsResponse>;
+}
+
+export async function getFansubGroupDomainProjection(
+  groupID: number,
+): Promise<DomainProjectionResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/fansubs/${groupID}/domain-projection`,
+    { next: { revalidate: 60 } },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<DomainProjectionResponse>;
+}
+
+export async function getMediaOwnershipProjection(
+  ownerType: string,
+  ownerID: number,
+): Promise<MediaOwnershipRow[]> {
+  const API_BASE_URL = getApiBaseUrl();
+  const encodedOwnerType = encodeURIComponent(ownerType);
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/media-ownership/${encodedOwnerType}/${ownerID}`,
+    { next: { revalidate: 60 } },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<MediaOwnershipRow[]>;
 }
 
 export async function getMemberContributions(
