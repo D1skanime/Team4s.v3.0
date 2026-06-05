@@ -1754,7 +1754,7 @@ Plans:
   4. Memorial-Profile haben eine eigene, würdevolle Darstellung (keine normale Aktivitätsanzeige, keine Mengen-/Gamification-Badges) und sind nicht über normale Claim-Flows beanspruchbar.
   5. Badge-State wird über den bestehenden Badge-Service bezogen, nicht ad hoc im UI berechnet; Owner-Sichtbarkeit wird respektiert. Reuse Member API/`RichTextRenderer`; keine zweite Public-Member-Implementierung.
 
-**Plans:** 5/7 plans executed
+**Plans:** 6/7 plans executed
 Plans:
 - [ ] `74-00-PLAN.md` — Wave-0 Test-Stubs (6 RED) + Migrations-Kollisions-Notiz (0096)
 - [ ] `74-01-PLAN.md` — Public-Badge-Quelle + Status ins PublicMemberProfile-DTO (Contract-first, Badges-13/C/K)

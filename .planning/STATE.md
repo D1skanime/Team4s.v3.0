@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Completed 74-03-PLAN.md
-last_updated: "2026-06-05T13:55:52.557Z"
+stopped_at: Completed 74-05-PLAN.md
+last_updated: "2026-06-05T14:11:32.457Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 76
   completed_phases: 52
   total_plans: 287
-  completed_plans: 231
+  completed_plans: 232
   percent: 68
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 74 (public-member-profile-members-slug-memorial) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 
 ## Accumulated Context
 
@@ -224,6 +224,7 @@ Recent durable decisions:
 - [Phase ?]: [Phase 74-01]: loadPublicBadges als Hilfsfunktion ausgelagert statt LATERAL-CTE-Erweiterung wegen 450-Zeilen-Grenze in member_profile_repository.go
 - [Phase ?]: [Phase 74-01]: COALESCE(m.profile_status, 'active') in CTE als sicherer Fallback fuer retrokompatible Projektion ohne Migration in Plan 01
 - [Phase 74-03]: Migration 0098 member_correction_reports: eigene Tabelle (Lock H), status DEFAULT 'in_review' (D-18), target_type CHECK ('profile','contribution','role'); review-gebundener Insert via MemberCorrectionRepository.CreateCorrectionReport; requireMeIdentity-Gate auf POST /api/v1/me/members/:id/correction; audit_logs member_correction.submitted (D-15)
+- [Phase ?]: [Phase 74-05]: ContributionFilterEntry als Union-Typ-Brücke für Wave-0-Test/PublicMemberRoleEntry-Kompatibilität; vitest globals:true für @testing-library auto-cleanup; Top-N=4 Badge-Slicing
 
 ### Pending Todos
 
@@ -389,6 +390,7 @@ Recent durable decisions:
 | Phase 74 P02 | 25min | 2 tasks | 9 files |
 | Phase 74 P04 | 35min | 2 tasks | 11 files |
 | Phase 74 P03 | 20min | 2 tasks | 7 files |
+| Phase 74 P05 | 11min | 2 tasks | 9 files |
 
 ### Quick Tasks Completed
 
@@ -423,7 +425,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-05T13:55:52.525Z
-Stopped at: Completed 74-01-PLAN.md
+Last session: 2026-06-05T14:11:32.425Z
+Stopped at: Completed 74-05-PLAN.md
 Last activity: 2026-06-05
 Resume file: None
