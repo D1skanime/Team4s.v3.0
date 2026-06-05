@@ -1,4 +1,4 @@
-﻿# Roadmap: Team4s Admin Anime Intake
+# Roadmap: Team4s Admin Anime Intake
 
 ## Milestones
 
@@ -80,6 +80,11 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [ ] **Phase 75: Anime-Gruppen-Deep-Dive `/anime/[id]/group/[groupId]`** - Gruppenspezifischen Anime-Projektkontext stärken (Projektstory, Releases/Versionen, OP/ED/Middle, Mitwirkende, Release-Version-Medien) ohne gruppenspezifische Daten auf die neutrale Anime-Ebene zu schreiben; Reuse `GroupAssetShowcase`, `CollapsibleStory`, group/release/theme APIs.
 - [ ] **Phase 76: `/me/contributions` Dashboard + registrierte-User-Vorschläge** - Eigene Beitragsseite zum Klärungsdashboard ausbauen (Summary, „Das war ich"/„war ich nicht", Sichtbarkeit, Filter) und registrierte-User-Beteiligungsflows (Fehler/Story/Medien/Contribution melden, Claim-Einstieg) review-gebunden integrieren; Reuse `getMyAnimeContributions`, Proposal-/Review-Strukturen.
 - [ ] **Phase 77: Leader Workspace – Public Preview & Readiness** - In `/admin/fansubs/[id]/edit` Public-Preview, Public-Readiness-Check und die Pflege von Story-/Projekt-/Release-Kontext ergänzen (capability-gated), ohne `/admin/my-groups/[id]` zu duplizieren.
+  **Plans:** 3 plans
+  Plans:
+  - [ ] `77-01-PLAN.md` - Wave-0-Testgeruest: ReadinessTab.test.tsx (RED) + page.test.tsx Capability-Gating-Cases (Req F, I, K)
+  - [ ] `77-02-PLAN.md` - ReadinessTab.tsx + PublicPreviewPanel.tsx implementieren (Readiness-Checkliste, Preview-Fallback, CSS)
+  - [ ] `77-03-PLAN.md` - page.tsx chirurgisch verdrahten (SectionKey, MAIN_TABS, canUseMainTab, Render-Zweig) + Human-Verify
 - [ ] **Phase 78: Leader Workspace – Review & Pflege** - In `/admin/fansubs/[id]/edit` die Review-/Pflege-Flächen ergänzen (offene Claims, offene Contributions, historische Member, externe Mitwirkende, Medienprüfung) auf bestehenden Claim-/Contribution-/Media-Seams, capability-gated, ohne Parallel-Queues.
 - [ ] **Phase 79: Medien-Ownership in UI durchsetzen** - Upload-/Zuweisungsflows über alle Surfaces zwingen Owner-Typ, Owner-ID, Medienkategorie, Sichtbarkeit und Reviewstatus sichtbar zu machen und die Media-Ownership-Matrix einzuhalten; Reuse bestehender Upload-Helfer/Transport (`authorizedUploadXhr`).
 - [ ] **Phase 80: `/admin/users` + User Detail Drawer (scoped Rechte)** - Globale User-/Rechteübersicht starten (Userliste + Detail-Drawer mit globalen Rollen, Member-Link, Gruppenmitgliedschaften, Claims, Contributions, Medien, Audit), Rechte strikt scoped, ohne Rechte aus Contributions abzuleiten.
