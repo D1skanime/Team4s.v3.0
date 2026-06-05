@@ -9,7 +9,7 @@ import (
 )
 
 func TestV12StatusFoundationUpStatements(t *testing.T) {
-	content := readMigrationSource(t, "0096_v12_status_foundation.up.sql")
+	content := readMigrationSource(t, "0097_v12_status_foundation.up.sql")
 	normalized := strings.ToLower(content)
 
 	requiredFragments := []string{
@@ -43,7 +43,7 @@ func TestV12StatusFoundationUpStatements(t *testing.T) {
 }
 
 func TestV12StatusFoundationDownMirrors(t *testing.T) {
-	content := readMigrationSource(t, "0096_v12_status_foundation.down.sql")
+	content := readMigrationSource(t, "0097_v12_status_foundation.down.sql")
 	normalized := strings.ToLower(content)
 
 	requiredFragments := []string{
@@ -62,8 +62,8 @@ func TestV12StatusFoundationDownMirrors(t *testing.T) {
 }
 
 func TestV12StatusFoundationLeavesContentStatusUntouched(t *testing.T) {
-	upSQL := strings.ToLower(readMigrationSource(t, "0096_v12_status_foundation.up.sql"))
-	downSQL := strings.ToLower(readMigrationSource(t, "0096_v12_status_foundation.down.sql"))
+	upSQL := strings.ToLower(readMigrationSource(t, "0097_v12_status_foundation.up.sql"))
+	downSQL := strings.ToLower(readMigrationSource(t, "0097_v12_status_foundation.down.sql"))
 
 	for _, sql := range []string{upSQL, downSQL} {
 		assertColumnNotAltered(t, sql, "anime_contributions", "status")
