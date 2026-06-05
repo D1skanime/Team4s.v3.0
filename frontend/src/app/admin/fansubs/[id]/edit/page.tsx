@@ -100,6 +100,7 @@ import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
 import { ReviewQueue } from "@/components/contributions/ReviewQueue";
+import { ReadinessTab } from "./ReadinessTab";
 import sharedStyles from "../../../admin.module.css";
 import fansubEditStyles from "./FansubEdit.module.css";
 
@@ -129,7 +130,8 @@ type SectionKey =
   | "mitglieder"
   | "rollen"
   | "claims"
-  | "vorschlaege";
+  | "vorschlaege"
+  | "readiness";
 type MainTab = SectionKey;
 type FormState = {
   name: string;
@@ -207,6 +209,7 @@ const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: "vorschlaege", label: "Vorschläge" },
   { key: "releases", label: "Anime & Veröffentlichungen" },
   { key: "anime-projekte", label: "Anime-Einblicke" },
+  { key: "readiness", label: "Veröffentlichung" },
 ];
 
 function parseMainTab(value: string | null): MainTab {
@@ -244,6 +247,8 @@ function canUseMainTab(
     case "anime-projekte":
     case "notes":
       return capabilities.can_edit_notes;
+    case "readiness":
+      return capabilities.can_edit_group || capabilities.can_edit_notes;
     default:
       return false;
   }
@@ -2398,7 +2403,8 @@ function AdminFansubEditContent({
         activeMainTab !== "notes" &&
         activeMainTab !== "mitglieder" &&
         activeMainTab !== "rollen" &&
-        activeMainTab !== "vorschlaege" ? (
+        activeMainTab !== "vorschlaege" &&
+        activeMainTab !== "readiness" ? (
           <form className={styles.fansubEditForm} onSubmit={save}>
             {activeMainTab !== "collaboration" ? (
               <div className={styles.fansubEditStickyActions}>
@@ -3490,6 +3496,9 @@ function AdminFansubEditContent({
         {activeMainTab === "rollen" ? <MemberRolesTab fansubId={fansubID} /> : null}
         {activeMainTab === "claims" ? <ClaimManagementPanel groupId={fansubID} isGlobalAdmin={isPlatformAdmin} /> : null}
         {activeMainTab === "vorschlaege" ? <ReviewQueue fansubId={fansubID} /> : null}
+        {activeMainTab === "readiness" && group ? (
+          <ReadinessTab fansubId={fansubID} group={group} />
+        ) : null}
       </section>
       {contributionModalAnime ? (
         <AnimeContributionModal
