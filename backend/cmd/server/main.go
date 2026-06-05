@@ -382,6 +382,8 @@ func main() {
 	groupHistoryHandler := handlers.NewFansubGroupHistoryHandler(fansubGroupHistoryRepo).
 		WithPermissionSvc(permissionSvc)
 	reviewHandler := handlers.NewContributionReviewHandler(animeContributionsRepo, permissionSvc, auditLogRepo)
+	// Phase 78: Gruppenmedien-Review — GET-Liste + PATCH Sichtbarkeit/Reviewstatus (Lock K/G/D-08/D-09)
+	fansubMediaReviewHandler := handlers.NewFansubMediaReviewHandler(mediaRepo, permissionSvc, auditLogRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
 		adminContentHandler:           adminContentHandler,
 		animeHandler:                  animeHandler,
@@ -396,6 +398,7 @@ func main() {
 		memberClaimInvitationsHandler: memberClaimInvitationsHandler,
 		memberRequestsHandler:         memberRequestsHandler,
 		memberMemorialHandler:         memberMemorialHandler,
+		fansubMediaReviewHandler:      fansubMediaReviewHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	archiveRepo := repository.NewMemberArchiveRepository(dbPool)
