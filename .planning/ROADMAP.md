@@ -78,7 +78,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [ ] **Phase 73: Public Fansub Page `/fansubs/[slug]` erweitern** - Bestehende Public-Fansub-Seite kuratiert ausbauen (Hero, Story/Timeline, Highlights, Mitglieder vs. Mitwirkende, Medien nach Ownership, Projektkarten) durch Reuse von `FansubProfileTabs`, `GroupLeaderTimeline` und public contribution helpers.
 - [x] **Phase 74: Public Member Profile `/members/[slug]` + Memorial** - Member-Profil als dreistufige Public-Seite erweitern (Hero+Status, Geschichte/Gruppenbezug, filterbare Contributions) inkl. Gedenkprofil-Darstellung und kuratierter Badge-Anzeige; Reuse Member API, Public Member Components, `RichTextRenderer`, Badge-Service.
 - [ ] **Phase 75: Anime-Gruppen-Deep-Dive `/anime/[id]/group/[groupId]`** - Gruppenspezifischen Anime-Projektkontext stärken (Projektstory, Releases/Versionen, OP/ED/Middle, Mitwirkende, Release-Version-Medien) ohne gruppenspezifische Daten auf die neutrale Anime-Ebene zu schreiben; Reuse `GroupAssetShowcase`, `CollapsibleStory`, group/release/theme APIs.
-- [ ] **Phase 76: `/me/contributions` Dashboard + registrierte-User-Vorschläge** - Eigene Beitragsseite zum Klärungsdashboard ausbauen (Summary, „Das war ich"/„war ich nicht", Sichtbarkeit, Filter) und registrierte-User-Beteiligungsflows (Fehler/Story/Medien/Contribution melden, Claim-Einstieg) review-gebunden integrieren; Reuse `getMyAnimeContributions`, Proposal-/Review-Strukturen.
+- [x] **Phase 76: `/me/contributions` Dashboard + registrierte-User-Vorschläge** - Eigene Beitragsseite zum Klärungsdashboard ausbauen (Summary, „Das war ich"/„war ich nicht", Sichtbarkeit, Filter) und registrierte-User-Beteiligungsflows (Fehler/Story/Medien/Contribution melden, Claim-Einstieg) review-gebunden integrieren; Reuse `getMyAnimeContributions`, Proposal-/Review-Strukturen. (completed 2026-06-06)
 - [ ] **Phase 77: Leader Workspace – Public Preview & Readiness** - In `/admin/fansubs/[id]/edit` Public-Preview, Public-Readiness-Check und die Pflege von Story-/Projekt-/Release-Kontext ergänzen (capability-gated), ohne `/admin/my-groups/[id]` zu duplizieren.
   **Plans:** 3 plans
   Plans:
@@ -1789,14 +1789,14 @@ Plans:
 **Goal:** Die eigene Beitragsseite wird zum persönlichen Beitrags- und Klärungsdashboard erweitert, und registrierte User erhalten einfache, review-gebundene Beteiligungsflows (Fehler/Story/Medien/Contribution melden, Claim-Einstieg) — ohne Claim- und Contribution-Flows zu vermischen.
 **Requirements:** Entscheidungen E, Runde 6, H, K aus [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
 **Depends on:** Phase 72
-**Plans:** 1/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
-- [ ] `76-01-PLAN.md` — Schema/Contract/Typ-Fundament: Migration 0097, OpenAPI, Frontend-Typen, Wave-0-Tests
-- [ ] `76-02-PLAN.md` — Backend: member_suggestions-Repository + Handler, Reject-Reason, api.ts-Helfer (Lock K)
-- [ ] `76-03-PLAN.md` — Frontend-Kernkomponenten: ContributionInbox, ContributionSummary + Stat-Chips, VisibilityDropdown-Migration (C2)
-- [ ] `76-04-PLAN.md` — Unified Melde-Modal + RejectReasonModal + ProposalForm-Migration (D-05/D-06/D-09/C2)
-- [ ] `76-05-PLAN.md` — page.tsx-Verdrahtung + ContributionCard-Erweiterung + Human-Verify
+- [x] `76-01-PLAN.md` — Schema/Contract/Typ-Fundament: Migration 0098, OpenAPI, Frontend-Typen, Wave-0-Tests
+- [x] `76-02-PLAN.md` — Backend: member_suggestions-Repository + Handler, Reject-Reason, api.ts-Helfer (Lock K)
+- [x] `76-03-PLAN.md` — Frontend-Kernkomponenten: ContributionInbox, ContributionSummary + Stat-Chips, VisibilityDropdown-Migration (C2)
+- [x] `76-04-PLAN.md` — Unified Melde-Modal + RejectReasonModal + ProposalForm-Migration (D-05/D-06/D-09/C2)
+- [x] `76-05-PLAN.md` — page.tsx-Verdrahtung + ContributionCard-Erweiterung + Human-Verify
 
 **Success Criteria** (what must be TRUE):
 

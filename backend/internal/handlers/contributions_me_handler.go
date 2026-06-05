@@ -58,6 +58,11 @@ type meContributionVisibilityPatchRequest struct {
 	IsPublicOnMemberProfile *bool `json:"is_public_on_member_profile"`
 }
 
+// meContributionRejectRequest ist der Request-Body für Reject mit Pflicht-Begründung (D-09, Phase 76).
+type meContributionRejectRequest struct {
+	MemberReason string `json:"member_reason" binding:"required,min=5"`
+}
+
 // meGroupContributionVisibilityPatchRequest ist der Request-Body für PATCH Visibility auf hist_group_member_roles.
 type meGroupContributionVisibilityPatchRequest struct {
 	Visibility *string `json:"visibility"`
@@ -90,7 +95,7 @@ func (h *ContributionsMeHandler) ListMyAnimeContributions(c *gin.Context) {
 		return
 	}
 
-	items, err := h.contributionsRepo.ListByMemberIDWithProposalFields(c.Request.Context(), memberID)
+	items, err := h.contributionsRepo.ListByMemberIDWithProposalFields(c.Request.Context(), memberID, identity.AppUserID)
 	if err != nil {
 		internalError(c, "interner serverfehler")
 		return
@@ -214,6 +219,54 @@ func (h *ContributionsMeHandler) ConfirmMyAnimeContribution(c *gin.Context) {
 // öffentliche Profil-Sichtbarkeit wird entzogen. Der Eintrag bleibt intern erhalten.
 func (h *ContributionsMeHandler) RejectMyAnimeContribution(c *gin.Context) {
 	h.updateMyAnimeContributionStatus(c, "disputed", false)
+}
+
+// RejectMyAnimeContributionWithReason handles POST /api/v1/me/anime-contributions/:contributionId/reject
+// mit Pflicht-Begründung (D-09, Phase 76). Gibt 400 zurück wenn member_reason fehlt oder < 5 Zeichen.
+// Schreibt member_reason in anime_contributions.member_reason bei Status-Update auf 'disputed'.
+func (h *ContributionsMeHandler) RejectMyAnimeContributionWithReason(c *gin.Context) {
+	var req meContributionRejectRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Begründung ist erforderlich (mindestens 5 Zeichen)."}})
+		return
+	}
+
+	contributionID, err := strconv.ParseInt(c.Param("contributionId"), 10, 64)
+	if err != nil || contributionID <= 0 {
+		badRequest(c, "ungültige contribution-id")
+		return
+	}
+
+	identity, ok := requireMeIdentity(c)
+	if !ok {
+		return
+	}
+
+	memberID, err := h.resolveVerifiedMemberID(c.Request.Context(), identity.AppUserID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "kein verifizierter Member-Account verknüpft"}})
+		return
+	}
+	if err != nil {
+		internalError(c, "interner Serverfehler")
+		return
+	}
+
+	if !h.authorizeAnimeContributionOwner(c, contributionID, memberID) {
+		return
+	}
+
+	if err := h.contributionsRepo.RejectWithMemberReason(
+		c.Request.Context(), contributionID, identity.AppUserID, nil, &req.MemberReason,
+	); errors.Is(err, repository.ErrNotFound) {
+		notFound(c, "Contribution nicht gefunden oder falscher Status")
+		return
+	} else if err != nil {
+		internalError(c, "interner Serverfehler")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Widerspruch wurde gespeichert"})
 }
 
 // updateMyAnimeContributionStatus setzt Status und Profil-Sichtbarkeit einer eigenen

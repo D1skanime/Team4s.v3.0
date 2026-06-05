@@ -98,6 +98,45 @@
   flex-wrap: wrap;
 }
 
+/* Phase 76: Inbox-Container — ausschließlich --space-*-Tokens (C4/UI-SPEC) */
+.inboxContainer {
+  display: grid;
+  gap: var(--space-4);
+}
+
+/* Phase 76: Summary-Chips-Zeile für Filterachsen */
+.summaryChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Phase 76: Achsen-Zeile (Label + Chips) */
+.summaryAxisRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Phase 76: Achsen-Label über den Chips */
+.summaryAxisLabel {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-muted, #6b6b70);
+}
+
+/* Phase 76: Aktiver Stat-Chip — Accent-Optik (D-12, UI-SPEC §Color) */
+.chipActive {
+  border-color: var(--accent-primary, #5f84dd) !important;
+  color: var(--accent-primary, #5f84dd) !important;
+}
+
+/* Phase 76: Inaktiver Stat-Chip — neutrale Optik */
+.chipInactive {
+  border-color: transparent;
+  color: inherit;
+}
+
 @media (max-width: 640px) {
   .proposalHeader {
     align-items: stretch;

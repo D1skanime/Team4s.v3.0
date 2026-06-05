@@ -220,17 +220,21 @@ func (r *AnimeContributionsRepository) Reject(ctx context.Context, contributionI
 // MemberContributionWithProposalRow erweitert AnimeContributionRow um proposal-spezifische
 // Felder für die Member-Dashboard-Ansicht. CanSelfPublish und ReviewNote werden in der
 // Member-Listen-Query on-read berechnet — sie gehören NICHT zu animeContributionSelectCols.
+// FansubGroupName und IsOwnProposal sind Phase-76-Erweiterungen (D-12, D-03a).
 type MemberContributionWithProposalRow struct {
 	AnimeContributionRow
-	AnimeTitle     string  `json:"anime_title"`
-	CanSelfPublish bool    `json:"can_self_publish"`
-	ReviewNote     *string `json:"review_note"`
+	AnimeTitle      string  `json:"anime_title"`
+	CanSelfPublish  bool    `json:"can_self_publish"`
+	ReviewNote      *string `json:"review_note"`
+	FansubGroupName string  `json:"fansub_group_name"`
+	IsOwnProposal   bool    `json:"is_own_proposal"`
 }
 
 // ListByMemberIDWithProposalFields gibt Contributions für einen Member zurück,
 // angereichert um CanSelfPublish (berechnet on-read: status='proposed' UND
-// created_at+90d < NOW()) und ReviewNote.
-func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx context.Context, memberID int64) ([]MemberContributionWithProposalRow, error) {
+// created_at+90d < NOW()), ReviewNote, FansubGroupName (D-12) und IsOwnProposal (D-03a).
+// appUserID wird als $2 übergeben, um IsOwnProposal server-seitig zu berechnen.
+func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx context.Context, memberID int64, appUserID int64) ([]MemberContributionWithProposalRow, error) {
 	reviewNoteExpr := "ac.review_note"
 	hasReviewNote, err := r.hasAnimeContributionReviewNoteColumn(ctx)
 	if err != nil {
@@ -245,17 +249,20 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			`+animeContributionSelectCols+`,
 			COALESCE(a.title_de, a.title_en, a.title, '') AS anime_title,
 			(ac.status = 'proposed' AND ac.created_at + INTERVAL '90 days' < NOW()) AS can_self_publish,
-			`+reviewNoteExpr+`
+			`+reviewNoteExpr+`,
+			COALESCE(fg.name, '') AS fansub_group_name,
+			COALESCE(ac.created_by = $2, false) AS is_own_proposal
 		FROM anime_contributions ac
 		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 		JOIN anime a ON a.id = ac.anime_id
+		LEFT JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
 		WHERE hfgm.member_id = $1
-		GROUP BY ac.id, a.title_de, a.title_en, a.title
+		GROUP BY ac.id, a.title_de, a.title_en, a.title, fg.name
 		ORDER BY ac.created_at DESC
 		LIMIT 50
-	`, memberID)
+	`, memberID, appUserID)
 	if err != nil {
 		return nil, fmt.Errorf("contributions mit vorschlagsfeldern: %w", err)
 	}
@@ -287,6 +294,8 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			&row.AnimeTitle,
 			&row.CanSelfPublish,
 			&row.ReviewNote,
+			&row.FansubGroupName,
+			&row.IsOwnProposal,
 		); err != nil {
 			return nil, fmt.Errorf("contributions mit vorschlagsfeldern: scan: %w", err)
 		}
