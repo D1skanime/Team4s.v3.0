@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Completed 72-02-PLAN.md
-last_updated: "2026-06-05T08:45:56.916Z"
+stopped_at: Completed 72-03-PLAN.md
+last_updated: "2026-06-05T09:00:53.463Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 76
   completed_phases: 51
   total_plans: 274
-  completed_plans: 224
+  completed_plans: 225
   percent: 67
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 72 (dom-nen-projektionen-status-fundament) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 
 ## Accumulated Context
 
@@ -213,6 +213,9 @@ Recent durable decisions:
 - [Phase 72-01]: 0096 fuehrt nur Schema und Test ein; Schreib-Endpunkte fuer memorial/dispute/review/visibility bleiben in den nutzenden Phasen. — D-05/D-06 begrenzen Phase 72 auf Schema/Reads und verhindern ungeschuetzte Setter.
 - [Phase 72-02]: Domain projection returns direct DTO without data envelope for GET /api/v1/fansubs/:id/domain-projection.
 - [Phase 72-02]: claimed is derived only from member_claims.claim_status='verified'; anime_contributions never creates membership or claim rows.
+- [Phase 72-03]: Media owner_type/owner_id werden pro Junction-Kontext komponiert; kein zentrales media_assets Owner-Typ-Feld eingefuehrt.
+- [Phase 72-03]: Medien-Ownership-Projektion ist GET-only und liefert die DTO-Liste direkt ohne data-Envelope.
+- [Phase 72-03]: Member-Media-Scope nutzt media_assets.owner_member_id als parametrisierten Owner-Scope.
 
 ### Pending Todos
 
@@ -371,6 +374,7 @@ Recent durable decisions:
 | Phase 70 P06 | 35min | 2 tasks | 7 files |
 | Phase 72 P01 | 9min | 2 tasks | 3 files |
 | Phase 72 P02 | 14min | 2 tasks | 4 files |
+| Phase 72 P03 | 9min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -405,7 +409,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-05T08:45:56.869Z
-Stopped at: Completed 72-02-PLAN.md
+Last session: 2026-06-05T09:00:53.413Z
+Stopped at: Completed 72-03-PLAN.md
 Last activity: 2026-06-05
 Resume file: None
