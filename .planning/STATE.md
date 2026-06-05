@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 77 context gathered
-last_updated: "2026-06-05T07:29:24.587Z"
+stopped_at: Phase 75 context gathered
+last_updated: "2026-06-05T07:31:18.704Z"
 last_activity: 2026-06-04
 progress:
   total_phases: 76
@@ -399,7 +399,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-05T07:29:24.550Z
-Stopped at: Phase 77 context gathered
+Last session: 2026-06-05T07:31:18.665Z
+Stopped at: Phase 75 context gathered
 Last activity: 2026-06-04
-Resume file: .planning/phases/77-leader-workspace-public-preview-readiness/77-CONTEXT.md
+Resume file: .planning/phases/75-anime-gruppen-deep-dive-anime-id-group-groupid/75-CONTEXT.md
