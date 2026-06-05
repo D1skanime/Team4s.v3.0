@@ -1,4 +1,4 @@
-# Phase 77: Leader Workspace – Public Preview & Readiness – Research
+﻿# Phase 77: Leader Workspace – Public Preview & Readiness – Research
 
 **Recherchiert:** 2026-06-05
 **Domäne:** Next.js App Router – Workspace-Erweiterung, Capability-Gating, Read-only-Preview, Readiness-Checkliste
@@ -565,19 +565,19 @@ function buildReadinessItems(
 
 ---
 
-## Offene Fragen
+## Offene Fragen (RESOLVED)
 
-1. **Abhängigkeitsreihenfolge Phase 72/73 → 77**
+1. **Abhängigkeitsreihenfolge Phase 72/73 → 77** — RESOLVED
    - Was wir wissen: Phase 72 und 73 sind noch nicht ausgeführt.
    - Was unklar ist: Ob der Planner Phase 77 als Folge-Phase nach 73 plant oder einen Fallback-Pfad einbaut.
    - Empfehlung: Preview-Wrapper mit Fallback-Option starten; nach Phase-73-Ausführung auf echte Section-Komponenten migrieren. Explizit im Plan vermerken.
 
-2. **Story-Präsenz-Zähler ohne eigenen Fetch**
+2. **Story-Präsenz-Zähler ohne eigenen Fetch** — RESOLVED
    - Was wir wissen: `NotesTab` lädt Notizen eigenständig bei Tab-Aktivierung.
    - Was unklar ist: Ob `FansubGroup`-DTO ein `has_notes`-Feld oder `notes_count` trägt.
    - Empfehlung: Prüfen ob `getFansubByID` bereits ein Notizen-Feld zurückgibt; falls nicht, Readiness-Kriterium „Story" erst aktivieren wenn NotesTab geladen ist oder kleinen zusätzlichen Fetch im Readiness-Tab starten.
 
-3. **Contributions-Gesamt-Zähler ohne pro-Anime-Loop**
+3. **Contributions-Gesamt-Zähler ohne pro-Anime-Loop** — RESOLVED
    - Was wir wissen: `listAnimeContributions(fansubId, animeId)` erfordert animeId.
    - Was unklar ist: Ob Phase 62/65 einen gruppen-weiten Contributions-Endpunkt hinzufügte.
    - Empfehlung: Backend `admin_routes.go` prüfen ob `/admin/fansubs/:id/contributions` (ohne animeId) existiert; falls nicht, Zähler aus `anime.length` ableiten oder Loop akzeptieren.
@@ -721,11 +721,11 @@ Phase 77 hat keine neuen externen Abhängigkeiten. Alle benötigten Laufzeit-Die
 | Phase-72/73-Abhängigkeit | MEDIUM | Ausführungsstand gesichert; Migrations-Prüfung durchgeführt |
 | Preview-Filterung (D-02) | MEDIUM | Phase-72-Felder noch nicht vorhanden; Fallback dokumentiert |
 
-### Offene Fragen
+### Offene Fragen (RESOLVED)
 
-- Abhängigkeitsreihenfolge Phase 73 → 77 im Plan explizit kodieren
-- Story-Präsenz-Zähler ohne Zusatz-Fetch klären (FansubGroup-DTO prüfen)
-- Gruppen-weiter Contributions-Endpunkt ohne animeId — existiert oder nicht? (admin_routes.go prüfen)
+- RESOLVED: Abhängigkeitsreihenfolge Phase 73 → 77 — Phase 77 ist eigenständig auslieferbar; PublicPreviewPanel rendert Fallback (FansubProfileTabs + GroupLeaderTimeline); KEINE harte Wave-Blockade auf Phase 73; Upgrade-Pfad via TODO(Phase 73)-Kommentar dokumentiert (D-01).
+- RESOLVED: Story-Präsenz-Zähler ohne Zusatz-Fetch — vereinfachtes Präsenz-Kriterium akzeptiert; Sprungmarke auf Notes-Tab; kein neues has_notes-DTO-Feld (Lock K gewahrt).
+- RESOLVED: Gruppen-weiter Contributions-Endpunkt — Vereinfachung auf animeCount-Basis akzeptiert; kein neuer Endpunkt (Lock K).
 
 ### Bereit für Planung
 Research vollständig. Planner kann PLAN.md-Dateien auf Basis dieses Dokuments erstellen.

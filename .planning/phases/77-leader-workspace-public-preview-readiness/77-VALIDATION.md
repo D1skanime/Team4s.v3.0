@@ -42,12 +42,15 @@ created: 2026-06-05
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | TBD | F | T-77-EoP | Tab sichtbar nur bei `can_edit_group`/`can_edit_notes`; reine Mitgliedschaft → unsichtbar | unit | `npx vitest run src/app/admin/fansubs/\[id\]/edit/page.test.tsx` | ✅ vorhanden; neue Cases | ⬜ pending |
-| TBD | TBD | TBD | F | T-77-EoP | `canUseMainTab("readiness")` → false wenn nur `can_view_members` | unit | wie oben | ✅ vorhanden; neue Cases | ⬜ pending |
-| TBD | TBD | TBD | I | — | Preview-Komponente rendert read-only, keine Schreib-Interaktion | unit | `npx vitest run src/app/admin/fansubs/\[id\]/edit/ReadinessTab.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | K | — | Readiness-Tab ruft keinen neuen Endpunkt auf (nur bestehende API-Funktionen) | unit (Mock-Check) | wie oben | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | D-04 | T-77-EoP | Klick auf Sprungmarke → `router.replace` mit korrektem `?tab=` | unit | wie oben | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | D-06 | — | Claims-/Contributions-Zähler als informativ gerendert (kein „nicht bereit") | unit | wie oben | ❌ W0 | ⬜ pending |
+| Task 2 (page.test.tsx Capability-Gating) | 77-01 | 0 | F | T-77-EoP | Tab sichtbar nur bei `can_edit_group`/`can_edit_notes`; reine Mitgliedschaft → unsichtbar | unit | `npx vitest run src/app/admin/fansubs/\[id\]/edit/page.test.tsx` | ✅ vorhanden; neue Cases | ⬜ pending |
+| Task 2 (canUseMainTab readiness=false) | 77-01 | 0 | F | T-77-EoP | `canUseMainTab("readiness")` → false wenn nur `can_view_members` | unit | wie oben | ✅ vorhanden; neue Cases | ⬜ pending |
+| Task 1 (ReadinessTab.test.tsx read-only) | 77-01 | 0 | I | — | Preview-Komponente rendert read-only, keine Schreib-Interaktion | unit | `npx vitest run src/app/admin/fansubs/\[id\]/edit/ReadinessTab.test.tsx` | ❌ W0 | ⬜ pending |
+| Task 1 (ReadinessTab.test.tsx Lock K) | 77-01 | 0 | K | — | Readiness-Tab ruft keinen neuen Endpunkt auf (nur bestehende API-Funktionen) | unit (Mock-Check) | wie oben | ❌ W0 | ⬜ pending |
+| Task 1 (ReadinessTab.test.tsx D-04) | 77-01 | 0 | D-04 | T-77-EoP | Klick auf Sprungmarke → `router.replace` mit korrektem `?tab=` | unit | wie oben | ❌ W0 | ⬜ pending |
+| Task 1 (ReadinessTab.test.tsx D-06) | 77-01 | 0 | D-06 | — | Claims-/Contributions-Zähler als informativ gerendert (kein „nicht bereit") | unit | wie oben | ❌ W0 | ⬜ pending |
+| Task 1 (ReadinessTab.tsx implementieren) | 77-02 | 1 | F, I, K | T-77-02-EoP | ReadinessTab grün macht Wave-0-Tests grün; story-Item variant=info (kein warning) | unit | `npx vitest run src/app/admin/fansubs/\[id\]/edit/ReadinessTab.test.tsx` | ❌ neu | ⬜ pending |
+| Task 2 (PublicPreviewPanel + CSS) | 77-02 | 1 | I, K | T-77-03-ID | PublicPreviewPanel read-only, TODO(Phase 73), CSS-Klassen vorhanden | unit + tsc | `npx vitest run src/app/admin/fansubs/\[id\]/edit/` | ❌ neu | ⬜ pending |
+| Task 1 (page.tsx Eingriffe) | 77-03 | 2 | F, K | T-77-05-EoP | Tab verdrahtet, Gating korrekt, Formular-Ausschluss | unit | `npx vitest run src/app/admin/fansubs/\[id\]/edit/` | ✅ vorhanden | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
