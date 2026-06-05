@@ -1693,7 +1693,7 @@ Plans:
   5. Alle neuen/erweiterten Felder sind in `shared/contracts` (openapi.yaml, ggf. admin-content.yaml) und in `frontend/src/lib/api.ts`-Typen konsistent abgebildet; keine undocumented response fields.
   6. Migrationen sind append-only; bestehende Public/Admin-Reads brechen nicht (Runtime-Authority unverändert, keine Umstellung öffentlicher Anime-Reads).
 
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 Plans:
 
 - [ ] `72-01-PLAN.md` — Migration 0096: additive Statusfelder (memorial, dispute_state, visibility_id + review-Lookup) + Wave-0-Roundtrip-Test
