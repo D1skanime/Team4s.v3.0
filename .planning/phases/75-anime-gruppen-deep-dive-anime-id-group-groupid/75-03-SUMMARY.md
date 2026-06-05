@@ -2,6 +2,9 @@
 phase: 75-anime-gruppen-deep-dive-anime-id-group-groupid
 plan: "03"
 subsystem: frontend-ui
+status: code_merged_human_verify_pending
+completed_date: 2026-06-06
+merge_commit: 44b2f95a
 tags:
   - next-js-server-component
   - section-wiring
@@ -48,10 +51,13 @@ commits:
   - a729a577 test(75-03): add failing tests for TeamSection (TDD RED)
   - a7715d7b feat(75-03): TeamSection, ReleasesSection, BacklinksSection — Task 1
   - 0346b64a feat(75-03): ThemesSection + MediaSection + page.tsx final wiring + CSS — Task 2
+  - 44b2f95a Merge commit '0346b64a'
 verification:
   typecheck: "npm run typecheck — exit 0"
   build: "npm run build — exit 0 (Route /anime/[id]/group/[groupId] enthalten)"
-  unit_tests: "vitest TeamSection — 4/4 passed (D-07 Trennung, D-09 Link/span, EmptyState, Rollen-Badges)"
+  unit_tests: "npm test -- --reporter=verbose TeamSection ReadinessTab — 10/10 passed"
+  diff_check: "git diff --check — exit 0"
+  lint: "npm run lint — exit 1; repo-weite bestehende Fehler, Phase-75-Dateien nur image-bezogene Warnungen"
   human_uat: "AUSSTEHEND — blocking checkpoint (Task 3); Browser-Verifikation gegen Dev-Server :3000 noch offen"
 ---
 
@@ -80,17 +86,39 @@ Hero → Projektgeschichte → **Beteiligte am Projekt** → **Releases & Versio
   mit Graceful Degradation (try/catch → EmptyState bei Fetch-Fehler, D-05); ≤150 Zeilen
   Orchestrator-Struktur aus 75-02 erhalten.
 
+## Main-Closeout 2026-06-06
+
+Der bis dahin noch nicht in `main` sichtbare 75-03-Agentenstand (`0346b64a`) wurde per
+Merge-Commit `44b2f95a` integriert. Dabei wurde zusätzlich ein bestehender
+TypeScript-Blocker in `ReadinessTab` behoben: die lose Index-Signatur in
+`ReadinessGroupProps` verhinderte, dass der echte `FansubGroup`-Typ aus
+`/admin/fansubs/[id]/edit/page.tsx` sauber typisiert durchgereicht werden konnte.
+Das ändert kein Readiness-Verhalten.
+
 ## Verifikation
 
 | Gate | Ergebnis |
 |------|----------|
 | `npm run typecheck` | ✅ exit 0 |
+| `npm test -- --reporter=verbose TeamSection ReadinessTab` | ✅ 10/10 |
 | `npm run build` | ✅ exit 0 (Route enthalten) |
-| `vitest TeamSection` | ✅ 4/4 |
+| `git diff --check` | ✅ exit 0 |
+| `npm run lint` | ❌ repo-weite bestehende Fehler |
 | Zeilenlimits (≤450, page.tsx ≤150) | ✅ page.tsx 115, css 352, Sections ≤81 |
 | Keine nativen `<button>/<input>/<select>` außerhalb `@/components/ui` | ✅ |
 | Korrekte Umlaute in allen UI-Strings | ✅ |
 | Human-UAT (Task 3, blocking) | ⏳ AUSSTEHEND |
+
+## Lint-Status
+
+`npm run lint` scheitert weiterhin an bestehenden repo-weiten Fehlern, unter anderem:
+
+- `frontend/src/app/dev/ui-system/page.tsx:188` (`react-hooks/set-state-in-effect`)
+- `frontend/src/app/me/profile/components/ClaimStatusCard.tsx:64` (`react/no-unescaped-entities`)
+- temporäre `frontend/tmp-live-full-flow*.js` Dateien mit `require()`
+
+Die neuen Phase-75-Dateien erzeugen nur image-bezogene Warnungen in `MediaSection.tsx`
+und `ThemesSection.tsx`; sie sind nicht die lint-blockierenden Fehler.
 
 ## Offen / Nächste Schritte
 
@@ -98,10 +126,3 @@ Hero → Projektgeschichte → **Beteiligte am Projekt** → **Releases & Versio
   noch offen — sieben Abschnitte, Sticky-Nav-Verhalten, EmptyStates, Mobil-Chip-Leiste,
   keine Console-/401-Fehler (siehe 75-03-PLAN.md Task 3, Schritte 1–13).
 - **D-11** (Version-Labels) bleibt als bewusster Gap auf der /releases-Tiefenseite.
-
-## Hinweis zur Ausführung
-
-Die Implementierungs-Commits (a729a577, a7715d7b, 0346b64a) entstanden in einer
-parallelen Ausführung und lagen bereits auf `main`. Dieser Closeout hat das Ergebnis
-gegen die `must_haves` des Plans verifiziert (Build/Typecheck/Unit grün) und das zuvor
-fehlende SUMMARY + Tracking nachgezogen.

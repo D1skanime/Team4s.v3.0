@@ -41,7 +41,6 @@ interface ReadinessGroupProps {
   dissolved_year?: number | null
   can_edit_group?: boolean
   can_edit_notes?: boolean
-  [key: string]: unknown
 }
 
 interface ReadinessTabProps {
