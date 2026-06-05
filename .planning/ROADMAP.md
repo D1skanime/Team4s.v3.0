@@ -1782,6 +1782,14 @@ Plans:
 **Goal:** Die eigene Beitragsseite wird zum persönlichen Beitrags- und Klärungsdashboard erweitert, und registrierte User erhalten einfache, review-gebundene Beteiligungsflows (Fehler/Story/Medien/Contribution melden, Claim-Einstieg) — ohne Claim- und Contribution-Flows zu vermischen.
 **Requirements:** Entscheidungen E, Runde 6, H, K aus [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
 **Depends on:** Phase 72
+**Plans:** 5 plans
+
+Plans:
+- [ ] `76-01-PLAN.md` — Schema/Contract/Typ-Fundament: Migration 0097, OpenAPI, Frontend-Typen, Wave-0-Tests
+- [ ] `76-02-PLAN.md` — Backend: member_suggestions-Repository + Handler, Reject-Reason, api.ts-Helfer (Lock K)
+- [ ] `76-03-PLAN.md` — Frontend-Kernkomponenten: ContributionInbox, ContributionSummary + Stat-Chips, VisibilityDropdown-Migration (C2)
+- [ ] `76-04-PLAN.md` — Unified Melde-Modal + RejectReasonModal + ProposalForm-Migration (D-05/D-06/D-09/C2)
+- [ ] `76-05-PLAN.md` — page.tsx-Verdrahtung + ContributionCard-Erweiterung + Human-Verify
 
 **Success Criteria** (what must be TRUE):
 
