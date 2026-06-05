@@ -6100,6 +6100,146 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/v1/me/anime-contributions/{contributionId}/reject:
+    post:
+      tags: [Profile]
+      summary: Widerspreche einer Contribution-Zuordnung (Das war ich nicht)
+      operationId: rejectAnimeContributionWithReason
+      description: >
+        Setzt status = 'disputed' und entzieht die öffentliche Profil-Sichtbarkeit.
+        Löscht nichts — der Eintrag bleibt intern erhalten (Phase 76 D-09).
+        Pflicht-Begründung (member_reason) ist erforderlich.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: contributionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [member_reason]
+              properties:
+                member_reason:
+                  type: string
+                  minLength: 5
+                  description: Pflicht-Begründung des Members für den Widerspruch
+      responses:
+        "200":
+          description: Widerspruch gespeichert
+        "400":
+          description: Ungültige contribution-id oder fehlende Begründung
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Anmeldung erforderlich
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Contribution gehört nicht zum Member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Contribution nicht gefunden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Eigene Vorschläge können nicht abgelehnt werden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Begründung fehlt oder zu kurz (min. 5 Zeichen)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/me/suggestions:
+    post:
+      tags: [Profile]
+      summary: Vorschlag einreichen (Fehler/Story/Medien)
+      operationId: submitMeSuggestion
+      description: >
+        Registrierte User können Vorschläge für Fehler, Storys oder Medien einreichen.
+        Alle Vorschläge sind review-gebunden (status=pending).
+        Lock H: schreibt NICHT in anime_contributions oder member_claims.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitSuggestionRequest"
+      responses:
+        "201":
+          description: Vorschlag eingereicht
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/MemberSuggestionResponse"
+        "400":
+          description: Ungültiger Request-Body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Anmeldung erforderlich
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Ungültiger Vorschlagstyp oder Zielkontext
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    get:
+      tags: [Profile]
+      summary: Eigene Vorschläge abrufen
+      operationId: getMySuggestions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste eigener Vorschläge
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MemberSuggestionResponse"
+        "401":
+          description: Anmeldung erforderlich
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/v1/admin/fansubs/{fansubId}/contribution-proposals:
     get:
       tags: [Admin]
@@ -6378,6 +6518,55 @@ components:
         format: int64
         minimum: 1
   schemas:
+    # ─── Phase 76: Member Suggestions + Reject-Reason ──────────────────────────
+    SubmitSuggestionRequest:
+      type: object
+      required: [suggestion_type, target_type, target_id]
+      properties:
+        suggestion_type:
+          type: string
+          enum: [error_report, story, media]
+          description: Art des Vorschlags
+        target_type:
+          type: string
+          enum: [anime, contribution, fansub_group, member]
+          description: Zielkontext-Typ
+        target_id:
+          type: integer
+          format: int64
+          description: ID des Zielkontexts
+        content_text:
+          type: string
+          nullable: true
+          description: Freitext-Inhalt des Vorschlags
+    MemberSuggestionResponse:
+      type: object
+      required: [id, suggestion_type, target_type, target_id, status, created_at]
+      properties:
+        id:
+          type: integer
+          format: int64
+        suggestion_type:
+          type: string
+          enum: [error_report, story, media]
+        target_type:
+          type: string
+          enum: [anime, contribution, fansub_group, member]
+        target_id:
+          type: integer
+          format: int64
+        content_text:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, in_review, approved, rejected]
+        review_note:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
     # ─── Contribution Proposal Schemas (Phase 65) ──────────────────────────────
     MembershipEntry:
       type: object
