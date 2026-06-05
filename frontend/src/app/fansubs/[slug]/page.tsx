@@ -1,11 +1,26 @@
 import Link from 'next/link'
 
-import { FansubProfileTabs } from '@/components/fansubs/FansubProfileTabs'
+import { FansubContributorsSection } from '@/components/fansubs/FansubContributorsSection'
+import { FansubDeepDiveSection } from '@/components/fansubs/FansubDeepDiveSection'
+import { FansubHeroSection } from '@/components/fansubs/FansubHeroSection'
+import { FansubHighlightsSection } from '@/components/fansubs/FansubHighlightsSection'
+import { FansubMediaSection } from '@/components/fansubs/FansubMediaSection'
+import { FansubProjectsSection } from '@/components/fansubs/FansubProjectsSection'
+import { FansubSectionNav } from '@/components/fansubs/FansubSectionNav'
+import { FansubStorySection } from '@/components/fansubs/FansubStorySection'
+import { FansubTeamSection } from '@/components/fansubs/FansubTeamSection'
 import { GroupLeaderTimeline } from '@/components/fansubs/GroupLeaderTimeline'
-import { AnimeListItem } from '@/types/anime'
-import type { PublicFansubLeaderEntry } from '@/types/contributions'
-import { ApiError, getAnimeList, getFansubBySlug, getFansubContributions, getFansubMembers } from '@/lib/api'
-import { buildFansubFactSummary } from '@/lib/fansub-summary'
+import type { AnimeListItem } from '@/types/anime'
+import type { PublicGroupContributionsResponse } from '@/types/contributions'
+import type { MediaOwnershipRow } from '@/types/media-ownership'
+import {
+  ApiError,
+  getAnimeList,
+  getFansubBySlug,
+  getFansubContributions,
+  getFansubGroupDomainProjection,
+  getMediaOwnershipProjection,
+} from '@/lib/api'
 
 import styles from './page.module.css'
 
@@ -25,18 +40,16 @@ async function loadFansubProjects(fansubID: number): Promise<AnimeListItem[]> {
   const projects: AnimeListItem[] = []
 
   for (let page = 1; page <= maxPages; page += 1) {
-    const response = await getAnimeList({
-      page,
-      per_page: perPage,
-      fansub_id: fansubID,
-    })
+    const response = await getAnimeList({ page, per_page: perPage, fansub_id: fansubID })
     projects.push(...response.data)
-    if (page >= response.meta.total_pages) {
-      break
-    }
+    if (page >= response.meta.total_pages) break
   }
 
   return projects
+}
+
+function resolveSettled<T>(result: PromiseSettledResult<T>, fallback: T): T {
+  return result.status === 'fulfilled' ? result.value : fallback
 }
 
 export default async function FansubProfilePage({ params }: FansubProfilePageProps) {
@@ -54,18 +67,11 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
     )
   }
 
+  let groupResponse: Awaited<ReturnType<typeof getFansubBySlug>> | null = null
   let message: string | null = null
-  let group: Awaited<ReturnType<typeof getFansubBySlug>>['data'] | null = null
-  let members: Awaited<ReturnType<typeof getFansubMembers>>['data'] = []
-  let projects: AnimeListItem[] = []
-  let leaderTimeline: PublicFansubLeaderEntry[] = []
 
   try {
-    const groupResponse = await getFansubBySlug(slug)
-    group = groupResponse.data
-    const [membersResponse, projectsResponse] = await Promise.all([getFansubMembers(group.id), loadFansubProjects(group.id)])
-    members = membersResponse.data
-    projects = projectsResponse
+    groupResponse = await getFansubBySlug(slug)
   } catch (error) {
     message =
       error instanceof ApiError && error.status === 404
@@ -73,16 +79,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
         : 'Fansub-Profil konnte nicht geladen werden.'
   }
 
-  if (group) {
-    try {
-      const contributionsResponse = await getFansubContributions(group.id)
-      leaderTimeline = contributionsResponse.leader_timeline ?? []
-    } catch {
-      // Leader-Timeline überspringen bei Fehler — keine Fehlerseite
-    }
-  }
-
-  if (!group) {
+  if (!groupResponse) {
     return (
       <main className={styles.page}>
         <p className={styles.backLink}>
@@ -93,25 +90,52 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
     )
   }
 
+  const group = groupResponse.data
+  const [projectsResult, contributionsResult, domainProjectionResult, mediaOwnershipResult] =
+    await Promise.allSettled([
+      loadFansubProjects(group.id),
+      getFansubContributions(group.id),
+      getFansubGroupDomainProjection(group.id),
+      getMediaOwnershipProjection('group', group.id),
+    ])
+  const projects = resolveSettled<AnimeListItem[]>(projectsResult, [])
+  const contributions = resolveSettled<PublicGroupContributionsResponse | null>(contributionsResult, null)
+  const domainProjection =
+    domainProjectionResult.status === 'fulfilled'
+      ? domainProjectionResult.value
+      : { members: [], historical: [], contributors: [] }
+  const mediaRows = resolveSettled<MediaOwnershipRow[]>(mediaOwnershipResult, [])
+
   return (
     <main className={styles.page}>
-      <nav className={styles.breadcrumb}>
-        <Link href="/anime">Anime</Link>
-        <span>&gt;</span>
-        <span>Fansubs</span>
-        <span>&gt;</span>
-        <span>{group.name}</span>
-      </nav>
-
-      <section className={styles.hero}>
-        <p className={styles.slug}>/{group.slug}</p>
-        <h1 className={styles.title}>{group.name}</h1>
-        <p className={styles.subtitle}>{buildFansubFactSummary(group) || 'Keine Kurzbeschreibung vorhanden.'}</p>
-      </section>
-
-      <GroupLeaderTimeline entries={leaderTimeline} />
-
-      <FansubProfileTabs group={group} members={members} projects={projects} />
+      <FansubSectionNav />
+      <div className={styles.readingColumn}>
+        <FansubHeroSection group={group} />
+        <div className={styles.sectionSpacing}>
+          <FansubStorySection group={group} />
+        </div>
+        <div className={styles.sectionSpacing}>
+          <FansubHighlightsSection group={group} contributions={contributions} />
+        </div>
+        <div className={`${styles.sectionSpacing} ${styles.gridSection}`}>
+          <FansubProjectsSection projects={projects} groupId={group.id} />
+        </div>
+        <div className={styles.sectionSpacing}>
+          <FansubTeamSection members={domainProjection.members} historical={domainProjection.historical} />
+        </div>
+        <div className={styles.sectionSpacing}>
+          <FansubContributorsSection contributors={domainProjection.contributors} />
+        </div>
+        <div className={`${styles.sectionSpacing} ${styles.gridSection}`}>
+          <FansubMediaSection mediaRows={mediaRows} group={group} />
+        </div>
+        <section id="timeline" className={styles.sectionSpacing}>
+          <GroupLeaderTimeline entries={contributions?.leader_timeline ?? []} />
+        </section>
+        <div className={styles.sectionSpacing}>
+          <FansubDeepDiveSection group={group} />
+        </div>
+      </div>
     </main>
   )
 }
