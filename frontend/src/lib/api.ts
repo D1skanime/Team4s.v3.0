@@ -214,6 +214,11 @@ import type {
 } from "@/types/contributions";
 import type { DomainProjectionResponse } from "@/types/domain-projection";
 import type { MediaOwnershipProjectionResponse } from "@/types/media-ownership";
+import type {
+  GroupContributorsResponse,
+  GroupThemesResponse,
+  GroupReleaseMediaResponse,
+} from "@/types/groupContributors";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
 // live frontends from depending on a directly reachable host backend port.
@@ -5628,6 +5633,71 @@ export async function getGroupAssets(
   }
 
   return response.json() as Promise<GroupAssetsResponse>;
+}
+
+// --- Öffentliche Gruppen-Projektions-Endpunkte (Phase 75) ---
+
+export async function getGroupContributors(
+  animeID: number,
+  groupID: number,
+): Promise<GroupContributorsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/contributors`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<GroupContributorsResponse>;
+}
+
+export async function getGroupThemes(
+  animeID: number,
+  groupID: number,
+): Promise<GroupThemesResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/themes`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<GroupThemesResponse>;
+}
+
+export async function getGroupReleaseMedia(
+  animeID: number,
+  groupID: number,
+): Promise<GroupReleaseMediaResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/release-media`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<GroupReleaseMediaResponse>;
 }
 
 export async function getReleaseAssets(
