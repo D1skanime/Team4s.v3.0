@@ -90,7 +90,7 @@ func (h *ContributionsMeHandler) ListMyAnimeContributions(c *gin.Context) {
 		return
 	}
 
-	items, err := h.contributionsRepo.ListByMemberIDWithProposalFields(c.Request.Context(), memberID)
+	items, err := h.contributionsRepo.ListByMemberIDWithProposalFields(c.Request.Context(), memberID, identity.AppUserID)
 	if err != nil {
 		internalError(c, "interner serverfehler")
 		return
