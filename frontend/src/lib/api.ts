@@ -203,6 +203,7 @@ import {
 import { getBrowserApiBaseUrl, resolvePublicApiUrl } from "@/lib/publicApiUrl";
 import type {
   MeAnimeContributionsResponse,
+  MeSuggestionsResponse,
   PublicGroupContributionsResponse,
   PublicAnimeContributionsResponse,
   PublicMemberContributionsResponse,
@@ -7534,6 +7535,96 @@ export async function rejectAnimeContribution(
       parsed.details,
     );
   }
+}
+
+// === Phase 76: neue Me-Suggestion-Helfer ===
+
+export async function rejectAnimeContributionWithReason(
+  contributionId: number,
+  memberReason: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/anime-contributions/${contributionId}/reject`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ member_reason: memberReason }),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+export interface SubmitSuggestionBody {
+  suggestion_type: "error_report" | "story" | "media";
+  target_type: "anime" | "contribution" | "fansub_group" | "member";
+  target_id: number;
+  content_text?: string | null;
+}
+
+export async function submitSuggestion(
+  body: SubmitSuggestionBody,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/suggestions`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+export async function getMySuggestions(): Promise<MeSuggestionsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/suggestions`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<MeSuggestionsResponse>;
 }
 
 // ─── Contribution Proposals (Member) ─────────────────────────────────────────
