@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: phase_complete
-stopped_at: "Phase 74 abgeschlossen + verifiziert (gsd-verifier PASS 7/7, Human-Verify :3000 bestanden); bereit fuer Merge codex/phase-74 -> main"
-last_updated: "2026-06-05T14:23:19.606Z"
+stopped_at: Completed 74-05-PLAN.md
+last_updated: "2026-06-05T20:37:03.086Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 76
   completed_phases: 53
   total_plans: 287
-  completed_plans: 233
+  completed_plans: 236
   percent: 70
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 74 — public-member-profile-members-slug-memorial
+**Current focus:** Phase 76 — me-contributions-dashboard-registrierte-user-vorschl-ge
 
 ## Current Position
 
-Phase: 74 (public-member-profile-members-slug-memorial) — EXECUTING
-Plan: 7 of 7
+Phase: 76 (me-contributions-dashboard-registrierte-user-vorschl-ge) — EXECUTING
+Plan: 1 of 5
 
 ## Accumulated Context
 
