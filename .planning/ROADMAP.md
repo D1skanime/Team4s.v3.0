@@ -74,7 +74,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 
 ### Milestone v1.2 – Public Experience, Historie & Scoped Rights (Phasen 72–80)
 
-- [ ] **Phase 72: Domänen-Projektionen & Status-Fundament** - Backend/Contract-Fundament, das Mitglied vs. Mitwirkender vs. historische Nennung in DTOs/Projektionen sauber trennt und die phasenübergreifend nötigen Statusfelder einführt (`memorial`-Profilstatus, Contribution-Status/-Sichtbarkeit, Media owner/visibility/review-Metadaten), damit 73–80 ohne doppelte DTO-Arbeit darauf aufsetzen.
+- [x] **Phase 72: Domänen-Projektionen & Status-Fundament** - Backend/Contract-Fundament, das Mitglied vs. Mitwirkender vs. historische Nennung in DTOs/Projektionen sauber trennt und die phasenübergreifend nötigen Statusfelder einführt (`memorial`-Profilstatus, Contribution-Status/-Sichtbarkeit, Media owner/visibility/review-Metadaten), damit 73–80 ohne doppelte DTO-Arbeit darauf aufsetzen.
 - [ ] **Phase 73: Public Fansub Page `/fansubs/[slug]` erweitern** - Bestehende Public-Fansub-Seite kuratiert ausbauen (Hero, Story/Timeline, Highlights, Mitglieder vs. Mitwirkende, Medien nach Ownership, Projektkarten) durch Reuse von `FansubProfileTabs`, `GroupLeaderTimeline` und public contribution helpers.
 - [ ] **Phase 74: Public Member Profile `/members/[slug]` + Memorial** - Member-Profil als dreistufige Public-Seite erweitern (Hero+Status, Geschichte/Gruppenbezug, filterbare Contributions) inkl. Gedenkprofil-Darstellung und kuratierter Badge-Anzeige; Reuse Member API, Public Member Components, `RichTextRenderer`, Badge-Service.
 - [ ] **Phase 75: Anime-Gruppen-Deep-Dive `/anime/[id]/group/[groupId]`** - Gruppenspezifischen Anime-Projektkontext stärken (Projektstory, Releases/Versionen, OP/ED/Middle, Mitwirkende, Release-Version-Medien) ohne gruppenspezifische Daten auf die neutrale Anime-Ebene zu schreiben; Reuse `GroupAssetShowcase`, `CollapsibleStory`, group/release/theme APIs.
@@ -1693,13 +1693,13 @@ Plans:
   5. Alle neuen/erweiterten Felder sind in `shared/contracts` (openapi.yaml, ggf. admin-content.yaml) und in `frontend/src/lib/api.ts`-Typen konsistent abgebildet; keine undocumented response fields.
   6. Migrationen sind append-only; bestehende Public/Admin-Reads brechen nicht (Runtime-Authority unverändert, keine Umstellung öffentlicher Anime-Reads).
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans executed
 Plans:
 
-- [ ] `72-01-PLAN.md` — Migration 0096: additive Statusfelder (memorial, dispute_state, visibility_id + review-Lookup) + Wave-0-Roundtrip-Test
-- [ ] `72-02-PLAN.md` — Domänen-Projektions-Repo: Mitglied/historisch/Mitwirkender getrennt + dispute_state/visibility/review-Felder (GET-only)
-- [ ] `72-03-PLAN.md` — Medien-Ownership-Projektions-Repo: owner/category/visibility/review pro Junction-Kontext (GET-only)
-- [ ] `72-04-PLAN.md` — Contract-Slice (Lock K): OpenAPI-Schemas + 1:1 TS-Typen + api.ts-Clientfunktionen + Paritäts-Test
+- [x] `72-01-PLAN.md` — Migration 0096: additive Statusfelder (memorial, dispute_state, visibility_id + review-Lookup) + Wave-0-Roundtrip-Test
+- [x] `72-02-PLAN.md` — Domänen-Projektions-Repo: Mitglied/historisch/Mitwirkender getrennt + dispute_state/visibility/review-Felder (GET-only)
+- [x] `72-03-PLAN.md` — Medien-Ownership-Projektions-Repo: owner/category/visibility/review pro Junction-Kontext (GET-only)
+- [x] `72-04-PLAN.md` — Contract-Slice (Lock K): OpenAPI-Schemas + 1:1 TS-Typen + api.ts-Clientfunktionen + Paritäts-Test
 
 **Cross-cutting constraints:**
 

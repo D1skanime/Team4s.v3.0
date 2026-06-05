@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: ready_to_plan
-stopped_at: Completed 72-03-PLAN.md
-last_updated: "2026-06-05T09:00:53.463Z"
+status: ready_for_verification
+stopped_at: Completed 72-04-PLAN.md
+last_updated: "2026-06-05T09:21:30.491Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 76
-  completed_phases: 51
+  completed_phases: 52
   total_plans: 274
-  completed_plans: 225
-  percent: 67
+  completed_plans: 226
+  percent: 82
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 ## Current Position
 
-Phase: 72 (dom-nen-projektionen-status-fundament) — EXECUTING
+Phase: 72 (dom-nen-projektionen-status-fundament) — READY FOR VERIFICATION
 Plan: 4 of 4
 
 ## Accumulated Context
@@ -216,6 +216,9 @@ Recent durable decisions:
 - [Phase 72-03]: Media owner_type/owner_id werden pro Junction-Kontext komponiert; kein zentrales media_assets Owner-Typ-Feld eingefuehrt.
 - [Phase 72-03]: Medien-Ownership-Projektion ist GET-only und liefert die DTO-Liste direkt ohne data-Envelope.
 - [Phase 72-03]: Member-Media-Scope nutzt media_assets.owner_member_id als parametrisierten Owner-Scope.
+- [Phase 72-04]: Runtime Go projection DTO fields are the contract source of truth; OpenAPI and TS mirror every json-tagged field from domain/media ownership projection repositories.
+- [Phase 72-04]: OpenAPI projection path keys are documented without /api/v1 per execution instruction, while frontend api.ts helpers call the real /api/v1 runtime routes.
+- [Phase 72-04]: Projection read helpers return direct DTO/list payloads and do not unwrap a data envelope.
 
 ### Pending Todos
 
@@ -375,6 +378,7 @@ Recent durable decisions:
 | Phase 72 P01 | 9min | 2 tasks | 3 files |
 | Phase 72 P02 | 14min | 2 tasks | 4 files |
 | Phase 72 P03 | 9min | 2 tasks | 4 files |
+| Phase 72-dom-nen-projektionen-status-fundament P04 | 14min | 2 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -409,7 +413,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-05T09:00:53.413Z
-Stopped at: Completed 72-03-PLAN.md
+Last session: 2026-06-05T09:21:18.297Z
+Stopped at: Completed 72-04-PLAN.md
 Last activity: 2026-06-05
 Resume file: None
