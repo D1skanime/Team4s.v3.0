@@ -709,3 +709,66 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(screen.getByText('Aktuelle Drawer-Details')).not.toBeNull()
   })
 })
+
+describe("Tab 'Veröffentlichung' — Capability-Gating (Req F)", () => {
+  it('zeigt den Veröffentlichung-Tab wenn can_edit_group=true', async () => {
+    // Defaults: can_edit_group=true (gesetzt in beforeEach)
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    // Tab „Veröffentlichung" soll sichtbar sein wenn can_edit_group=true
+    // Läuft ROT solange MAIN_TABS noch kein readiness-Eintrag hat (Plan 03)
+    expect(screen.getByRole('button', { name: 'Veröffentlichung' })).not.toBeNull()
+  })
+
+  it('zeigt den Veröffentlichung-Tab wenn can_edit_notes=true (aber can_edit_group=false)', async () => {
+    apiMocks.getFansubGroupCapabilities.mockResolvedValueOnce({
+      data: {
+        can_edit_group: false,
+        can_manage_links: false,
+        can_view_members: false,
+        can_manage_members: false,
+        can_edit_notes: true,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+        can_view_releases: false,
+        can_view_release_media: false,
+        can_upload_release_media: false,
+        can_edit_release_notes: false,
+      },
+    })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    // Läuft ROT solange MAIN_TABS noch kein readiness-Eintrag hat (Plan 03)
+    expect(screen.getByRole('button', { name: 'Veröffentlichung' })).not.toBeNull()
+  })
+
+  it('versteckt den Veröffentlichung-Tab bei reiner Mitgliedschaft (can_view_members=true, can_edit_group=false, can_edit_notes=false)', async () => {
+    apiMocks.getFansubGroupCapabilities.mockResolvedValueOnce({
+      data: {
+        can_edit_group: false,
+        can_manage_links: false,
+        can_view_members: true,
+        can_manage_members: false,
+        can_edit_notes: false,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+        can_view_releases: false,
+        can_view_release_media: false,
+        can_upload_release_media: false,
+        can_edit_release_notes: false,
+      },
+    })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    // Tab darf bei reiner Mitgliedschaft NICHT sichtbar sein
+    // Läuft GRÜN wenn kein readiness-Eintrag in MAIN_TABS ist (korrekt für Wave-0)
+    expect(screen.queryByRole('button', { name: 'Veröffentlichung' })).toBeNull()
+  })
+})
