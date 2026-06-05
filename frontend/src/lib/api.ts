@@ -212,6 +212,8 @@ import type {
   GroupProposalsResponse,
   FansubAnimeReleaseVersionsResponse,
 } from "@/types/contributions";
+import type { DomainProjectionResponse } from "@/types/domain-projection";
+import type { MediaOwnershipProjectionResponse } from "@/types/media-ownership";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
 // live frontends from depending on a directly reachable host backend port.
@@ -7727,6 +7729,60 @@ export async function getAnimeContributions(
   }
 
   return response.json() as Promise<PublicAnimeContributionsResponse>;
+}
+
+export async function getFansubGroupDomainProjection(
+  groupID: number,
+): Promise<DomainProjectionResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await apiClientFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${groupID}/domain-projection`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<DomainProjectionResponse>;
+}
+
+export async function getMediaOwnershipProjection(
+  ownerType: string,
+  ownerID: number,
+): Promise<MediaOwnershipProjectionResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const encodedOwnerType = encodeURIComponent(ownerType);
+  const response = await apiClientFetch(
+    `${API_BASE_URL}/api/v1/media-ownership/${encodedOwnerType}/${ownerID}`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<MediaOwnershipProjectionResponse>;
 }
 
 export async function getMemberContributions(
