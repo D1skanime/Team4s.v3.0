@@ -199,6 +199,12 @@ wiederverwendet — Phase 77 ist deren erster Admin-seitiger Konsument.
   spätere Phase.
 - **Besucher-Sicht + interne Marker in der Preview:** verworfen zugunsten exakter
   Besucher-Sicht (D-02); „was fehlt" liefert der Readiness-Check.
+- **Phase-73-Upgrade der Inline-Preview (D-01):** Sobald Phase 73 ausgeführt ist,
+  ersetzt `PublicPreviewPanel` den Fallback (FansubProfileTabs + GroupLeaderTimeline)
+  durch die echten Section-Komponenten aus `frontend/src/app/fansubs/[slug]/sections/`
+  (D-01). Phase 77 liefert den read-only Fallback als dokumentierten Übergangszustand.
+  Der Upgrade-Pfad ist durch einen `// TODO(Phase 73)`-Kommentar in
+  `PublicPreviewPanel.tsx` verankert.
 
 ### Reviewed Todos (not folded)
 Folgende offene Todos matchten Phase 77 per Keyword, gehören aber thematisch zu

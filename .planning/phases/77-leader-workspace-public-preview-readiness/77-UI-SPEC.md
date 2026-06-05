@@ -1,10 +1,11 @@
 ---
 phase: 77
 slug: leader-workspace-public-preview-readiness
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-05
+reviewed_at: 2026-06-05
 ---
 
 # Phase 77 — UI Design Contract

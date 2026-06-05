@@ -69,7 +69,6 @@ import {
   ContributorGroupDetailResponse,
   ContributorGroupsResponse,
 } from "@/types/contributor";
-import type { DomainProjectionResponse } from "@/types/domain-projection";
 import {
   GenerateClaimInvitationResponse,
   MemberClaimInvitationResponse,
@@ -80,7 +79,6 @@ import {
   PublicMemberProfileResponse,
   UpdateMemberProfileRequest,
 } from "@/types/profile";
-import type { MediaOwnershipProjectionResponse } from "@/types/media-ownership";
 import {
   CommentCreateRequest,
   CommentCreateResponse,
@@ -214,6 +212,8 @@ import type {
   GroupProposalsResponse,
   FansubAnimeReleaseVersionsResponse,
 } from "@/types/contributions";
+import type { DomainProjectionResponse } from "@/types/domain-projection";
+import type { MediaOwnershipProjectionResponse } from "@/types/media-ownership";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
 // live frontends from depending on a directly reachable host backend port.

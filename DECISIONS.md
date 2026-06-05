@@ -1,5 +1,24 @@
 # DECISIONS
 
+## 2026-06-05 - Jede Phase executet im eigenen Worktree; Planung bleibt auf main
+
+### Decision
+GSD-Planungsartefakte (CONTEXT/RESEARCH/VALIDATION/UI-SPEC/PLAN) werden auf `main` erstellt und committet. Die Code-Ausführung einer Phase (`/gsd:execute-phase`) läuft in einem eigenen Schwester-Worktree pro Phase auf einem `codex/phase-NN-<slug>`-Branch und wird nach bestandener Verifikation zurück nach `main` gemergt. Ein separater Worktree NUR für die Planung wird bewusst NICHT gemacht.
+
+### Why This Won
+- Entspricht der bereits gelebten Praxis (`Team4s-phase72`/`-phase73`/`-phase75` auf `codex/phase-NN`-Branches).
+- Planung erzeugt nur Docs: geringes Konfliktrisiko, und sie soll für parallele Phasen sofort auf `main` sichtbar sein. Die Code-Execution dagegen profitiert von Isolation + sauberem Merge.
+- Ein Worktree nur für die Planung wäre der falsche Schnitt — Planen und Ausführen würden in verschiedene Worktrees auseinanderfallen.
+- GSD `plan-phase` vermeidet bewusst Branch-Operationen (Branch-Invariante); ein erzwungener Auto-Hook ist daher unerwünscht. Dies ist eine Konvention, kein Automatismus.
+
+### Consequences
+- Pro Phase: `git worktree add ../Team4s-phaseNN codex/phase-NN-<slug>` von aktuellem `main` HEAD; dort executen, testen, dann zurück nach `main` mergen.
+- `.planning/STATE.md` und `.planning/ROADMAP.md` sind geteilte, veränderliche Dateien → bei parallelen Phasen-Branches sind Merge-Konflikte genau dort möglich und werden manuell aufgelöst. Vor `execute-phase` Live-Writer auf `main` prüfen.
+- Kein `git stash` bei offenen Änderungen; Artefakte gezielt per Pfad committen.
+
+### Follow-ups Required
+- Optional `gsd-workstreams`/`gsd-workspace` evaluieren, falls eine GSD-nativere Isolation gewünscht wird.
+
 ## 2026-06-02 - Phase 65 Review Queue Belongs In Fansub Edit, Not my-groups
 
 ### Decision
