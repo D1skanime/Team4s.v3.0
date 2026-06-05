@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: ready_for_verification
-stopped_at: Completed 72-04-PLAN.md
-last_updated: "2026-06-05T09:21:30.491Z"
+status: ready_to_plan
+stopped_at: Phase 72 complete (4/4) — ready to discuss Phase 73
+last_updated: 2026-06-05T09:35:38.340Z
 last_activity: 2026-06-05
 progress:
   total_phases: 76
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 72 — dom-nen-projektionen-status-fundament
+**Current focus:** Phase 73 — public fansub page fansubs slug erweitern
 
 ## Current Position
 
-Phase: 72 (dom-nen-projektionen-status-fundament) — READY FOR VERIFICATION
-Plan: 4 of 4
+Phase: 73
+Plan: Not started
 
 ## Accumulated Context
 

@@ -22,6 +22,7 @@ Admins can reliably create and maintain correct anime records without losing con
 - [x] Relation CRUD is available in the admin edit route with the four approved V1 labels - v1.0
 - [x] Admin actions remain attributable to the acting user and operator-facing failures are surfaced clearly - v1.0
 - [x] Production workflow code touched by the milestone remains modularized rather than collapsing into oversized files - v1.0
+- [x] Phase 72 provides the v1.2 backend/contract foundation for status axes, domain projections, and media ownership read DTOs - validated 2026-06-05
 
 ### Active
 
@@ -55,6 +56,8 @@ v1.0 shipped on 2026-04-01 with 6 completed phases and 23 completed plans. The s
 The next product thread is no longer intake correctness itself; it is the generic upload/provisioning and asset lifecycle layer that future media types will depend on.
 
 Phase 54 completed on 2026-05-28: the global AppShell now provides the release-independent nav drawer through the root layout, with `/me/profile` no longer nesting its own shell.
+
+Phase 72 completed on 2026-06-05: migration 0096, GET-only domain/media ownership projections, OpenAPI schemas, TypeScript DTOs, and central `api.ts` helpers now provide the status/projection foundation for Phases 73-80.
 
 ## Current Milestone: v1.1 Asset Lifecycle Hardening
 
@@ -92,4 +95,4 @@ Phase 54 completed on 2026-05-28: the global AppShell now provides the release-i
 | Make asset lifecycle behavior generic before adding more upload surfaces | Prevents banner/logo/background/video work from becoming a pile of slot-specific exceptions | Pending |
 
 ---
-*Last updated: 2026-05-28 after Phase 54 nav drawer completion*
+*Last updated: 2026-06-05 after Phase 72 status/projection foundation completion*
