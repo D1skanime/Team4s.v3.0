@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
 import { AnimeListItem } from '@/types/anime'
+import { Button } from '@/components/ui'
 import { FansubGroup, FansubMember } from '@/types/fansub'
 import { buildFansubFactSummary } from '@/lib/fansub-summary'
 
@@ -116,9 +117,10 @@ export function FansubProfileTabs({ group, members, projects }: FansubProfileTab
     <section className={styles.section}>
       <div className={styles.tabRow} role="tablist" aria-label="Fansub Profil Tabs">
         {tabOrder.map((tab) => (
-          <button
+          <Button
             key={tab}
-            type="button"
+            variant={activeTab === tab ? 'subtle' : 'ghost'}
+            size="sm"
             onClick={() => handleTabChange(tab)}
             className={`${styles.tabButton} ${activeTab === tab ? styles.tabButtonActive : ''}`}
             role="tab"
@@ -127,7 +129,7 @@ export function FansubProfileTabs({ group, members, projects }: FansubProfileTab
             aria-controls={`fansub-panel-${tab}`}
           >
             {tabLabel[tab]}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -143,11 +145,11 @@ export function FansubProfileTabs({ group, members, projects }: FansubProfileTab
               <dd>{group.country || 'Unbekannt'}</dd>
             </div>
             <div>
-              <dt>Gruendung</dt>
+              <dt>Gründung</dt>
               <dd>{group.founded_year || 'n/a'}</dd>
             </div>
             <div>
-              <dt>Aufloesung</dt>
+              <dt>Auflösung</dt>
               <dd>{group.dissolved_year || 'aktiv'}</dd>
             </div>
           </dl>
