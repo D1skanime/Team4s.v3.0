@@ -8,10 +8,10 @@ last_updated: "2026-06-05T10:12:34.026Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 76
-  completed_phases: 51
+  completed_phases: 52
   total_plans: 287
-  completed_plans: 222
-  percent: 67
+  completed_plans: 226
+  percent: 68
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 67 verifiziert (passed) — Release-/Episode-Credits live
+**Current focus:** Phase 73 — public fansub page fansubs slug erweitern
 
 ## Current Position
 
-Phase: 68 (badge-engine-archiv-entdeckung) — EXECUTING
-Plan: 4 of 4
+Phase: 73
+Plan: Not started
 
 ## Accumulated Context
 
@@ -209,6 +209,16 @@ Recent durable decisions:
 - [Phase 67-04]: AnimeContributionModal nutzt das datei-eigene native <select>+Label-Muster statt der ui-Primitives Select/FormField — die Datei verwendet diese Primitives nirgends; Konsistenz mit dem Bestand schlaegt das Plan-Soll.
 - [Phase 67-04]: Per-Member 422-Feldfehler aus parallelem upsert-Promise.all via try/catch je Member statt globalem Fehlerbanner (D-03 gruppen-fremde Version).
 - [Phase ?]: Phase 70-05: StoryImageToolbarButton.tsx ausgelagert (praeventiever Split), RichTextEditor.tsx hat 449 Zeilen
+- [Phase 72-01]: Review-Status bleibt Lookup-basiert via review_statuses und review_status_id; keine denormalisierte review_status VARCHAR-Spalte. — Plan 72-01 pinnt FK-Lookup-Form als kanonische Traegerform fuer Plan 02/03-Projektionen.
+- [Phase 72-01]: 0096 fuehrt nur Schema und Test ein; Schreib-Endpunkte fuer memorial/dispute/review/visibility bleiben in den nutzenden Phasen. — D-05/D-06 begrenzen Phase 72 auf Schema/Reads und verhindern ungeschuetzte Setter.
+- [Phase 72-02]: Domain projection returns direct DTO without data envelope for GET /api/v1/fansubs/:id/domain-projection.
+- [Phase 72-02]: claimed is derived only from member_claims.claim_status='verified'; anime_contributions never creates membership or claim rows.
+- [Phase 72-03]: Media owner_type/owner_id werden pro Junction-Kontext komponiert; kein zentrales media_assets Owner-Typ-Feld eingefuehrt.
+- [Phase 72-03]: Medien-Ownership-Projektion ist GET-only und liefert die DTO-Liste direkt ohne data-Envelope.
+- [Phase 72-03]: Member-Media-Scope nutzt media_assets.owner_member_id als parametrisierten Owner-Scope.
+- [Phase 72-04]: Runtime Go projection DTO fields are the contract source of truth; OpenAPI and TS mirror every json-tagged field from domain/media ownership projection repositories.
+- [Phase 72-04]: OpenAPI projection path keys are documented without /api/v1 per execution instruction, while frontend api.ts helpers call the real /api/v1 runtime routes.
+- [Phase 72-04]: Projection read helpers return direct DTO/list payloads and do not unwrap a data envelope.
 
 ### Pending Todos
 
@@ -365,6 +375,10 @@ Recent durable decisions:
 | Phase 70 P04 | 25min | 2 tasks | 7 files |
 | Phase 70-tiptap-bilder-fuer-member-profilgeschichte P05 | 35min | 2 tasks | 11 files |
 | Phase 70 P06 | 35min | 2 tasks | 7 files |
+| Phase 72 P01 | 9min | 2 tasks | 3 files |
+| Phase 72 P02 | 14min | 2 tasks | 4 files |
+| Phase 72 P03 | 9min | 2 tasks | 4 files |
+| Phase 72-dom-nen-projektionen-status-fundament P04 | 14min | 2 tasks | 6 files |
 
 ### Quick Tasks Completed
 
