@@ -8086,3 +8086,40 @@ export async function uploadOwnProfileStoryImage(
     },
   });
 }
+
+// setMemberMemorial markiert ein Member-Profil als Gedenkprofil (profile_status='memorial').
+// Nur Global Admin. Analoges Muster zu submitMemberClaim (authorizedFetch).
+// POST /api/v1/admin/members/:id/memorial
+export async function setMemberMemorial(
+  memberId: number,
+  authToken?: string,
+): Promise<{ member_id: number; profile_status: string }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/members/${memberId}/memorial`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const body = (await response.json()) as {
+    data: { member_id: number; profile_status: string };
+  };
+  return body.data;
+}

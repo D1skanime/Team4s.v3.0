@@ -132,6 +132,8 @@ func main() {
 	memberClaimInvitationsHandler := handlers.NewMemberClaimInvitationsHandler(memberClaimInvitationsRepo, permissionSvc, auditLogRepo, cfg.AppPublicURL)
 	memberProfileNoindexHandler := handlers.NewMemberProfileNoindexHandler(memberClaimsRepo)
 	memberRequestsHandler := handlers.NewMemberRequestsHandler(memberRequestsRepo, permissionSvc, auditLogRepo)
+	memberMemorialRepo := repository.NewMemberMemorialRepository(dbPool)
+	memberMemorialHandler := handlers.NewMemberMemorialHandler(authzRepo, memberMemorialRepo, auditLogRepo)
 	tiptapSvc := services.NewTipTapService()
 	var mailerSvc services.Mailer
 	if cfg.SMTPEnabled {
@@ -390,6 +392,7 @@ func main() {
 		memberClaimsHandler:           memberClaimsHandler,
 		memberClaimInvitationsHandler: memberClaimInvitationsHandler,
 		memberRequestsHandler:         memberRequestsHandler,
+		memberMemorialHandler:         memberMemorialHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	archiveRepo := repository.NewMemberArchiveRepository(dbPool)

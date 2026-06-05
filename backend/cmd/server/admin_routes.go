@@ -19,6 +19,7 @@ type adminRouteHandlers struct {
 	memberClaimsHandler           *handlers.MemberClaimsHandler
 	memberClaimInvitationsHandler *handlers.MemberClaimInvitationsHandler
 	memberRequestsHandler         *handlers.MemberRequestsHandler
+	memberMemorialHandler         *handlers.MemberMemorialHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -177,4 +178,6 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.GET("/admin/member-requests", auth, deps.memberRequestsHandler.ListRequests)
 	v1.POST("/admin/member-requests/:requestId/approve", auth, deps.memberRequestsHandler.ApproveRequest)
 	v1.POST("/admin/member-requests/:requestId/reject", auth, deps.memberRequestsHandler.RejectRequest)
+	// Phase 74: Memorial-Setter (Global Admin only — D-14/D-16-Caveat)
+	v1.POST("/admin/members/:id/memorial", auth, deps.memberMemorialHandler.SetMemorial)
 }
