@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
 stopped_at: Phase 78 context gathered
-last_updated: "2026-06-05T07:44:11.465Z"
-last_activity: 2026-06-04
+last_updated: "2026-06-05T08:12:08.471Z"
+last_activity: 2026-06-05
 progress:
   total_phases: 76
   completed_phases: 51
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 67 verifiziert (passed) — Release-/Episode-Credits live
+**Current focus:** Phase 72 — dom-nen-projektionen-status-fundament
 
 ## Current Position
 
-Phase: 68 (badge-engine-archiv-entdeckung) — EXECUTING
-Plan: 4 of 4
+Phase: 72 (dom-nen-projektionen-status-fundament) — EXECUTING
+Plan: 1 of 4
 
 ## Accumulated Context
 
@@ -401,5 +401,5 @@ Recent durable decisions:
 
 Last session: 2026-06-05T07:44:11.410Z
 Stopped at: Phase 78 context gathered
-Last activity: 2026-06-04
+Last activity: 2026-06-05
 Resume file: .planning/phases/78-leader-workspace-review-pflege/78-CONTEXT.md
