@@ -410,6 +410,7 @@ Recent durable decisions:
 | 260602-o68 | phase 65 befunde fixen | 2026-06-02 | working tree | [260602-o68-phase-65-befunde-fixen](./quick/260602-o68-phase-65-befunde-fixen/) |
 | 260603-l77 | Ergänze current-system-inventory.md um fehlende Oberflächen und Funktionsbereiche | 2026-06-03 | working tree | [260603-l77-inventory-doc-gaps](./quick/260603-l77-inventory-doc-gaps/) |
 | 260604-d12 | ui verbessern auf global ziehen | 2026-06-04 | 049fb3ed | [260604-d12-ui-verbessern-auf-global-ziehen](./quick/260604-d12-ui-verbessern-auf-global-ziehen/) |
+| 260605-iyz | Phase 72/73 public projection hardening and fansub page integration fix | 2026-06-05 | main + phase73 worktrees | [260605-iyz-phase-72-73-public-projection-hardening-](./quick/260605-iyz-phase-72-73-public-projection-hardening-/) |
 
 ## Session Continuity
 

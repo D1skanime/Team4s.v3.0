@@ -14,7 +14,6 @@ export type DomainProjectionReviewStatus =
 
 export interface DomainProjectionMemberRow {
   id: number;
-  app_user_id: number;
   member_id: number | null;
   member_display_name: string;
   member_slug: string | null;

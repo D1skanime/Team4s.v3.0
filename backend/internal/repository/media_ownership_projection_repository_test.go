@@ -71,6 +71,21 @@ func TestMediaProjectionRespectsOwnerScope(t *testing.T) {
 	}
 }
 
+func TestMediaProjectionReturnsOnlyPublicApprovedRows(t *testing.T) {
+	content := readRepositorySource(t, "media_ownership_projection_repository.go")
+	normalized := strings.ToLower(content)
+
+	required := []string{
+		"where visibility = 'public'",
+		"and review_status = 'approved'",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(normalized, fragment) {
+			t.Fatalf("expected public media ownership projection to contain %q", fragment)
+		}
+	}
+}
+
 func TestMediaProjectionHandlerHasNoEnvelope(t *testing.T) {
 	content := readBackendSource(t, filepath.Join("internal", "handlers", "media_ownership_projection_handler.go"))
 	normalized := strings.ToLower(content)

@@ -71,6 +71,31 @@ func TestProjectionClaimedDerivedFromClaims(t *testing.T) {
 	}
 }
 
+func TestProjectionPublicMemberRowsAvoidInternalIdentity(t *testing.T) {
+	content := readRepositorySource(t, "domain_projection_repository.go")
+	normalized := strings.ToLower(content)
+
+	forbidden := []string{
+		"`json:\"app_user_id\"`",
+		"au.email",
+	}
+	for _, fragment := range forbidden {
+		if strings.Contains(normalized, fragment) {
+			t.Fatalf("expected public domain projection not to expose internal identity fragment %q", fragment)
+		}
+	}
+
+	required := []string{
+		"m.id is not null",
+		"m.profile_visibility = 'public'",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(normalized, fragment) {
+			t.Fatalf("expected public domain projection member query to contain %q", fragment)
+		}
+	}
+}
+
 func TestProjectionHandlerHasNoEnvelope(t *testing.T) {
 	content := readBackendSource(t, filepath.Join("internal", "handlers", "domain_projection_handler.go"))
 	normalized := strings.ToLower(content)

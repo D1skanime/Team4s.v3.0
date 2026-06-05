@@ -23,7 +23,6 @@ type DomainProjectionResponse struct {
 
 type DomainProjectionMemberRow struct {
 	ID                int64    `json:"id"`
-	AppUserID         int64    `json:"app_user_id"`
 	MemberID          *int64   `json:"member_id"`
 	MemberDisplayName string   `json:"member_display_name"`
 	MemberSlug        *string  `json:"member_slug"`
@@ -98,9 +97,8 @@ func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, 
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			fgm.id,
-			fgm.app_user_id,
 			m.id AS member_id,
-			COALESCE(`+displayCol+`, NULLIF(au.display_name, ''), au.email) AS member_display_name,
+			COALESCE(`+displayCol+`, NULLIF(au.display_name, ''), 'Mitglied') AS member_display_name,
 			`+slugCol+` AS member_slug,
 			COALESCE(ARRAY_AGG(fgmr.role::text) FILTER (WHERE fgmr.role IS NOT NULL), ARRAY[]::text[]) AS role_codes,
 			COALESCE(ARRAY_AGG(COALESCE(rd.label_de, fgmr.role::text)) FILTER (WHERE fgmr.role IS NOT NULL), ARRAY[]::text[]) AS role_labels,
@@ -119,7 +117,9 @@ func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, 
 		LEFT JOIN role_definitions rd ON rd.code = fgmr.role
 		WHERE fgm.fansub_group_id = $1
 		  AND fgm.status = 'active'
-		GROUP BY fgm.id, fgm.app_user_id, m.id, m.display_name, m.nickname, m.profile_status, au.display_name, au.email, fgm.status
+		  AND m.id IS NOT NULL
+		  AND m.profile_visibility = 'public'
+		GROUP BY fgm.id, m.id, m.display_name, m.nickname, m.profile_status, au.display_name, fgm.status
 		ORDER BY member_display_name, fgm.id
 	`, groupID)
 	if err != nil {
@@ -132,7 +132,6 @@ func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, 
 		var row DomainProjectionMemberRow
 		if err := rows.Scan(
 			&row.ID,
-			&row.AppUserID,
 			&row.MemberID,
 			&row.MemberDisplayName,
 			&row.MemberSlug,

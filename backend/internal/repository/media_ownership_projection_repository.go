@@ -134,6 +134,8 @@ func (r *MediaOwnershipProjectionRepository) GetMediaOwnershipProjection(
 			id, owner_type, owner_id, media_category, visibility, review_status,
 			review_status_label, file_path, original_file_path, caption, mime_type
 		FROM projected
+		WHERE visibility = 'public'
+		  AND review_status = 'approved'
 		ORDER BY media_category ASC, id ASC
 	`, ownerType, ownerID)
 	if err != nil {

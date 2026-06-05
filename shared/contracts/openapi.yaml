@@ -6586,7 +6586,6 @@ components:
       type: object
       required:
         - id
-        - app_user_id
         - member_id
         - member_display_name
         - member_slug
@@ -6597,9 +6596,6 @@ components:
         - claimed
       properties:
         id:
-          type: integer
-          format: int64
-        app_user_id:
           type: integer
           format: int64
         member_id:

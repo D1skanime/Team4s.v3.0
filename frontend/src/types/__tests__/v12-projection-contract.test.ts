@@ -48,7 +48,6 @@ const ownerTypes = [
 
 const memberKeys = [
   "id",
-  "app_user_id",
   "member_id",
   "member_display_name",
   "member_slug",
@@ -137,11 +136,11 @@ const mediaOwnershipKeysExact: ExactKeys<
 const openapi = readFileSync(
   new URL("../../../../shared/contracts/openapi.yaml", import.meta.url),
   "utf8",
-);
+).replace(/\r\n/g, "\n");
 const apiClientSource = readFileSync(
   new URL("../../lib/api.ts", import.meta.url),
   "utf8",
-);
+).replace(/\r\n/g, "\n");
 
 function getOpenApiBlock(startMarker: string, endPattern: RegExp): string {
   const start = openapi.indexOf(startMarker);
