@@ -89,6 +89,29 @@ export interface MeAnimeContribution {
   review_note?: string | null
   can_self_publish?: boolean
   release_version_id: number | null
+  /** Phase 76: Gruppen-Name für Gruppen-Filter (D-12) */
+  fansub_group_name?: string
+  /** Phase 76: Vom Backend berechnet — true wenn der eingeloggte User selbst der Ersteller ist (D-03a) */
+  is_own_proposal: boolean
+  /** Phase 76: Eigene Dispute-Begründung (D-09 "Das war ich nicht") */
+  member_reason?: string | null
+}
+
+/** Phase 76: Einzelner Vorschlag des eingeloggten Members (Decision 6) */
+export interface MeSuggestion {
+  id: number
+  suggestion_type: 'error_report' | 'story' | 'media'
+  target_type: 'anime' | 'contribution' | 'fansub_group' | 'member'
+  target_id: number
+  content_text: string | null
+  status: 'pending' | 'in_review' | 'approved' | 'rejected'
+  review_note: string | null
+  created_at: string
+}
+
+/** Phase 76: Response-Envelope für GET /me/suggestions */
+export interface MeSuggestionsResponse {
+  data: MeSuggestion[]
 }
 
 export interface ProposalFormData {
