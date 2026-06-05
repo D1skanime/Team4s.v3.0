@@ -1786,11 +1786,11 @@ Plans:
 **Plans:** 5/5 plans complete
 
 Plans:
-- [ ] `76-01-PLAN.md` — Schema/Contract/Typ-Fundament: Migration 0097, OpenAPI, Frontend-Typen, Wave-0-Tests
-- [ ] `76-02-PLAN.md` — Backend: member_suggestions-Repository + Handler, Reject-Reason, api.ts-Helfer (Lock K)
-- [ ] `76-03-PLAN.md` — Frontend-Kernkomponenten: ContributionInbox, ContributionSummary + Stat-Chips, VisibilityDropdown-Migration (C2)
-- [ ] `76-04-PLAN.md` — Unified Melde-Modal + RejectReasonModal + ProposalForm-Migration (D-05/D-06/D-09/C2)
-- [ ] `76-05-PLAN.md` — page.tsx-Verdrahtung + ContributionCard-Erweiterung + Human-Verify
+- [x] `76-01-PLAN.md` — Schema/Contract/Typ-Fundament: Migration 0098, OpenAPI, Frontend-Typen, Wave-0-Tests
+- [x] `76-02-PLAN.md` — Backend: member_suggestions-Repository + Handler, Reject-Reason, api.ts-Helfer (Lock K)
+- [x] `76-03-PLAN.md` — Frontend-Kernkomponenten: ContributionInbox, ContributionSummary + Stat-Chips, VisibilityDropdown-Migration (C2)
+- [x] `76-04-PLAN.md` — Unified Melde-Modal + RejectReasonModal + ProposalForm-Migration (D-05/D-06/D-09/C2)
+- [x] `76-05-PLAN.md` — page.tsx-Verdrahtung + ContributionCard-Erweiterung + Human-Verify
 
 **Success Criteria** (what must be TRUE):
 
