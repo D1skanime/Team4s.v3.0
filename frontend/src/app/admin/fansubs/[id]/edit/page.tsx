@@ -1116,6 +1116,7 @@ function AdminFansubEditContent({
       rollen: true,
       claims: true,
       vorschlaege: true,
+      readiness: true,
     },
   );
   const [loading, setLoading] = useState(true);
