@@ -121,6 +121,14 @@ export interface UpdateMemberProfileRequest {
   profile_visibility?: ProfileVisibility | null
 }
 
+export type MemberProfileStatus = 'active' | 'historical' | 'memorial'
+
+export interface PublicMemberBadge {
+  id: number
+  badge_code: string
+  badge_category: string
+}
+
 export interface PublicMemberProfileData {
   member_id: number
   fansub_name: string
@@ -131,6 +139,8 @@ export interface PublicMemberProfileData {
   is_currently_active: boolean
   noindex: boolean
   is_verified: boolean
+  /** Statuswert des Member-Profils (D-09/D-10). claimed/unclaimed sind derived, nicht im DTO. */
+  profile_status: MemberProfileStatus
   profile_visibility: ProfileVisibility
   avatar?: {
     public_url: string
@@ -140,6 +150,8 @@ export interface PublicMemberProfileData {
     source_original_url?: string | null
   } | null
   memberships: MemberProfileMembership[]
+  /** Eingebettete öffentliche Badges des angezeigten Members (Badges-13). Nur visibility='public' AND status='active'. */
+  public_badges: PublicMemberBadge[]
   recent_media: MemberProfileRecentMedia[]
   recent_contributions: MemberProfileRecentContribution[]
 }
