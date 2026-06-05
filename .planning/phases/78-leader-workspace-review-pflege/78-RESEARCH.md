@@ -555,27 +555,37 @@ Phase 78 ist eine reine Code-/Config-Erweiterung innerhalb des bestehenden Stack
 
 ---
 
-## Offene Fragen
+## Offene Fragen (RESOLVED)
+
+> **Kanonischer Enum-Satz (Plan-Finalisierung, identisch in 78-01-Backend-RED-Test,
+> 78-03/78-05-Handler-Validierung und UI-SPEC `<Select>`-Optionen):**
+> - **Sichtbarkeit (`visibility`):** `intern`, `oeffentlich`
+> - **Reviewstatus (`review_status`):** `in_pruefung`, `freigegeben`, `abgelehnt`,
+>   `archiviert`, `entfernt`
+>
+> Diese value-Strings sind die einzige Quelle der Wahrheit für Body-Validierung
+> (Backend) und Select-`value`-Attribute (Frontend). Deutsche Anzeige-Labels (Intern,
+> Öffentlich, In Prüfung, …) bleiben von diesen value-Strings entkoppelt.
 
 1. **Phase-72-Execute-Stand: Welche Spalten existieren genau?**
    - Was bekannt ist: Phase 72 führt `visibilities`-Lookup + separaten Review-Status + `dispute_state` ein.
    - Was unklar ist: Die genauen Spalten-/Enum-Namen auf `media_assets`, `anime_contributions` — sie sind Phase-72-Planner-Entscheidung.
-   - Empfehlung: Phase 78 Medienprüfungs-Implementierung erst nach Phase 72 Execute beginnen; vorher prüfen via `SHOW COLUMNS FROM media_assets`.
+   - **RESOLVED:** Aufgelöst zur Ausführungszeit durch das **78-03 Task 0 Schema-Gate** (blocking-human Checkpoint). Die realen Spalten-/Enum-Namen werden dort gegen die Live-Dev-DB verifiziert, bevor irgendein Endpoint-/Repo-Code entsteht. Die kanonischen value-Strings oben gelten unabhängig vom physischen Spaltenlayout (direkt vs. via `media_assets`/`visibilities`-FK) — das Schema-Gate mappt sie auf die realen Spalten. Annahme A1 bleibt [ASSUMED] bis Task 0, ist aber nicht plan-blockierend, da Task 0 als harter Stopp davorsteht.
 
 2. **Phase-76-Reihenfolge: Vorbedingung oder Stub?**
    - Was bekannt ist: Phase 76 ist nicht implementiert; D-03/D-04 hängt daran.
    - Was unklar ist: User-Priorität — Phase 76 zuerst, oder Phase 78 mit Stubs?
-   - Empfehlung: Phase-76-Eingang als `<EmptyState>` in Domänen-Tabs einbauen, mit TODO-Kommentar. Vollständige Verdrahtung als separater Wave nach Phase 76.
+   - **RESOLVED:** **Stub gemäß D-03/D-04** — Phase 78 liefert capability-gegatete, gruppen-gescopte `UserSuggestionsInbox`-EmptyState-Stubs in den Domänen-Tabs (78-04 Task 2), KEINE erfundene Phase-76-API. Volle Verdrahtung folgt als separater Wave nach Phase-76-Execute. Phase 76 ist damit KEINE harte Vorbedingung für Phase 78.
 
 3. **`fansub_group_media`-Visibility/ReviewStatus: Welche Felder?**
    - Was bekannt ist: `media_assets` hat Status-Spalten (Phase 34/35); `visibilities`-Lookup existiert (Phase 72/Migration 0037).
    - Was unklar ist: Ob `fansub_group_media` einen direkten Visibility-/Status-Join braucht oder via `media_assets`-Felder.
-   - Empfehlung: Schema-Query nach Phase-72-Execute; neuer PATCH-Endpoint auf Basis dieser Erkenntnis designen.
+   - **RESOLVED:** Aufgelöst zur Ausführungszeit durch das **78-03 Task 0 Schema-Gate** (identisch zu Q1). Der Executor protokolliert dort, ob `fansub_group_media` direkte Spalten hat oder über `media_assets.status` / FK auf `visibilities` aufgelöst wird; der GET-List- und PATCH-Endpoint (78-03) sowie die Release-Version-Extension (78-05) bauen auf diesem Befund auf. Die kanonischen value-Strings (oben) bleiben stabil.
 
 4. **`ReleaseVersionMediaDrawerSummary` — Erweiterung auf Prüf-Aktionen?**
    - Was bekannt ist: Heute nur Summary (read-only). Phase 78 D-06 sagt Release-Medienprüfung im Release-Drawer.
    - Was unklar ist: Ob der Drawer selbst erweitert wird oder eine neue `ReleaseMediaReviewSection` eingehängt wird.
-   - Empfehlung: Neue Komponente `ReleaseVersionMediaReviewSection` im Drawer; `ReleaseVersionMediaDrawerSummary` bleibt read-only.
+   - **RESOLVED:** Neue Komponente `ReleaseVersionMediaReviewSection` als separater Slot im Release-Drawer; `ReleaseVersionMediaDrawerSummary` bleibt read-only. Diese Wiring liefert **Plan 78-05** (gemeinsam mit der release_version_media-PATCH-Extension), sodass der erweiterte PATCH einen echten Frontend-Caller erhält (kein toter Backend-Key-Link). Siehe 78-05.
 
 ---
 
