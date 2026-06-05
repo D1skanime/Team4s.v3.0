@@ -1,7 +1,12 @@
-import { Badge, Card, SectionHeader } from '@/components/ui'
+'use client'
+
+import { useState } from 'react'
+
+import { Badge, Button, Card, SectionHeader } from '@/components/ui'
 import type { PublicMemberRoleEntry } from '@/types/contributions'
 
 import styles from './profile.module.css'
+import timelineStyles from './MemberRoleTimeline.module.css'
 
 type MemberRoleTimelineProps = {
   entries: PublicMemberRoleEntry[]
@@ -27,6 +32,59 @@ function formatYearRange(start: number | null, end: number | null): string {
 
 function contextLabel(entry: PublicMemberRoleEntry): string {
   return entry.context === 'group_history' ? 'Gruppenhistorie' : 'Anime-Beitrag'
+}
+
+function isUnverifiedEntry(entry: PublicMemberRoleEntry): boolean {
+  return entry.status !== 'confirmed' && entry.status !== 'active'
+}
+
+// Erzeugt einen stabilen Key pro Eintrag.
+function entryKey(entry: PublicMemberRoleEntry, idx: number): string {
+  return `${entry.context}-${entry.fansub_group_slug}-${entry.role_code}-${entry.anime_id ?? 'x'}-${entry.started_year ?? idx}`
+}
+
+type EntryDetailProps = {
+  entry: PublicMemberRoleEntry
+}
+
+// Inline-Expand für Detail-Subtypes/Notes (D-07) — kein neuer Hauptrollen-Eintrag.
+function EntryDetail({ entry }: EntryDetailProps) {
+  const [expanded, setExpanded] = useState(false)
+
+  // Nur anzeigen, wenn es Detail-Informationen gibt.
+  const hasDetail =
+    Boolean(entry.anime_title && entry.context === 'anime_contribution') ||
+    Boolean(entry.role_code)
+
+  if (!hasDetail) return null
+
+  return (
+    <div className={timelineStyles.expandWrap}>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setExpanded((prev) => !prev)}
+        aria-expanded={expanded}
+        aria-label={expanded ? 'Details ausblenden' : 'Details anzeigen'}
+      >
+        {expanded ? 'Details ausblenden' : 'Details anzeigen'}
+      </Button>
+      {expanded ? (
+        <div className={timelineStyles.expandDetail}>
+          {entry.role_code ? (
+            <span className={timelineStyles.detailSubtype}>
+              Rollencode: <code>{entry.role_code}</code>
+            </span>
+          ) : null}
+          {entry.anime_title && entry.context === 'anime_contribution' ? (
+            <span className={timelineStyles.detailAnime}>
+              Anime: {entry.anime_title}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 export function MemberRoleTimeline({ entries, hasUnverified, isVerified = false }: MemberRoleTimelineProps) {
@@ -57,16 +115,15 @@ export function MemberRoleTimeline({ entries, hasUnverified, isVerified = false 
           const yearRange = formatYearRange(entry.started_year, entry.ended_year)
           const isHistorical = entry.status === 'historical'
           const isGroupHistory = entry.context === 'group_history'
+          const unverified = isUnverifiedEntry(entry)
 
           return (
-            <li
-              key={`${entry.context}-${entry.fansub_group_slug}-${entry.role_code}-${entry.anime_id ?? 'x'}-${entry.started_year ?? idx}`}
-            >
+            <li key={entryKey(entry, idx)}>
               <Card
                 variant="nestedFlat"
                 className={`${styles.roleTimelineEntry} ${
                   isGroupHistory ? styles.roleTimelineEntryHistory : styles.roleTimelineEntryAnime
-                }`}
+                } ${unverified && !isVerified ? timelineStyles.entryDimmed : ''}`}
               >
                 <span className={styles.roleTimelineYear}>{yearRange || 'ohne Jahr'}</span>
                 <span className={styles.roleTimelineContent}>
@@ -77,6 +134,10 @@ export function MemberRoleTimeline({ entries, hasUnverified, isVerified = false 
                     {isHistorical && !isVerified ? (
                       <Badge variant="muted">Historisch ungeprüft</Badge>
                     ) : null}
+                    {/* D-08: Unbestätigte Einträge mit Badge "unbestätigt" kennzeichnen */}
+                    {unverified && !isVerified && entry.status !== 'historical' ? (
+                      <Badge variant="warning">unbestätigt</Badge>
+                    ) : null}
                   </span>
                   <strong className={styles.roleTimelineRole}>{entry.role_label}</strong>
                   <span className={styles.roleTimelineGroup}>{entry.fansub_group_name}</span>
@@ -85,6 +146,8 @@ export function MemberRoleTimeline({ entries, hasUnverified, isVerified = false 
                       Anime: {entry.anime_title}
                     </span>
                   ) : null}
+                  {/* D-07: Inline-Expand für Detail-Subtypes/Notes */}
+                  <EntryDetail entry={entry} />
                 </span>
               </Card>
             </li>

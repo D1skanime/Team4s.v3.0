@@ -1,0 +1,34 @@
+/* Gedämpfte Darstellung für unbestätigte/historische Einträge (D-08) */
+.entryDimmed {
+  opacity: 0.6;
+}
+
+/* Inline-Expand (D-07) */
+.expandWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.expandDetail {
+  display: grid;
+  gap: 4px;
+  padding: 8px 12px;
+  border-left: 2px solid rgba(100, 116, 139, 0.3);
+  font-size: 0.84rem;
+  color: var(--text-secondary, #64748b);
+}
+
+.detailSubtype,
+.detailAnime {
+  display: block;
+}
+
+.detailSubtype code {
+  font-family: monospace;
+  font-size: 0.82rem;
+  background: rgba(100, 116, 139, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
