@@ -18,6 +18,7 @@ import {
   TableRow,
   Toolbar,
 } from '@/components/ui'
+import { MemorialSetterAction } from '@/components/profile/MemorialSetterAction'
 import {
   ApiError,
   approveMemberRequest,
@@ -43,6 +44,8 @@ import styles from './ClaimManagementPanel.module.css'
 
 type ClaimManagementPanelProps = {
   groupId: number
+  /** D-16: Nur Global Admin darf Memorial setzen. Gruppen-Capability reicht nicht (Fallstrick 4). */
+  isGlobalAdmin?: boolean
 }
 
 type CopyState = 'copied' | 'selected'
@@ -70,7 +73,7 @@ function normalizeInviteLink(rawLink: string): string {
   }
 }
 
-export function ClaimManagementPanel({ groupId }: ClaimManagementPanelProps) {
+export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimManagementPanelProps) {
   const [members, setMembers] = useState<HistFansubGroupMember[]>([])
   const [pendingClaims, setPendingClaims] = useState<MemberClaimRow[]>([])
   const [memberRequests, setMemberRequests] = useState<MemberRequestRow[]>([])
@@ -303,6 +306,12 @@ export function ClaimManagementPanel({ groupId }: ClaimManagementPanelProps) {
                     <p>Der ursprüngliche Link kann aus Sicherheitsgründen nicht erneut angezeigt werden. Ziehe ihn zurück und generiere bei Bedarf einen neuen Link.</p>
                   </div>
                 ) : null}
+                {/* D-16: Memorial-Setter nur für Global Admin — nicht für Gruppen-Capability (Fallstrick 4) */}
+                <MemorialSetterAction
+                  isGlobalAdmin={isGlobalAdmin}
+                  memberId={member.member_id}
+                  memberName={member.display_name}
+                />
               </Card>
             )
           })}
