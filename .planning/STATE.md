@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Completed 74-00-PLAN.md
-last_updated: "2026-06-05T11:33:18.300Z"
+stopped_at: Completed 74-01-PLAN.md
+last_updated: "2026-06-05T11:41:32.157Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 76
   completed_phases: 52
   total_plans: 287
-  completed_plans: 227
+  completed_plans: 228
   percent: 68
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 74 (public-member-profile-members-slug-memorial) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 
 ## Accumulated Context
 
@@ -221,6 +221,8 @@ Recent durable decisions:
 - [Phase 72-04]: Projection read helpers return direct DTO/list payloads and do not unwrap a data envelope.
 - [Phase ?]: [Phase 74-00]: Claim-Block-Audit in beiden Claim-Pfaden: denied-Audit-Action-Key 'member_claim.memorial_blocked' muss als String-Literal in member_claims_repository.go UND member_claim_invitations_repository.go erscheinen
 - [Phase ?]: [Phase 74-00]: Migrations-Kollision 0096 ist aufgelöst: Phase 72 wurde korrekt auf 0097 umnummeriert; nächste freie Nummer für Phase 74 ist 0098+
+- [Phase ?]: [Phase 74-01]: loadPublicBadges als Hilfsfunktion ausgelagert statt LATERAL-CTE-Erweiterung wegen 450-Zeilen-Grenze in member_profile_repository.go
+- [Phase ?]: [Phase 74-01]: COALESCE(m.profile_status, 'active') in CTE als sicherer Fallback fuer retrokompatible Projektion ohne Migration in Plan 01
 
 ### Pending Todos
 
@@ -382,6 +384,7 @@ Recent durable decisions:
 | Phase 72 P03 | 9min | 2 tasks | 4 files |
 | Phase 72-dom-nen-projektionen-status-fundament P04 | 14min | 2 tasks | 6 files |
 | Phase 74 P00 | 3min | 2 tasks | 8 files |
+| Phase 74 P01 | 15min | 2 tasks | 7 files |
 
 ### Quick Tasks Completed
 
@@ -416,7 +419,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-05T11:33:18.232Z
-Stopped at: Completed 74-00-PLAN.md
+Last session: 2026-06-05T11:41:32.125Z
+Stopped at: Completed 74-01-PLAN.md
 Last activity: 2026-06-05
 Resume file: None
