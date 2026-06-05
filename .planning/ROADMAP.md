@@ -86,6 +86,12 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   - [ ] `77-02-PLAN.md` - ReadinessTab.tsx + PublicPreviewPanel.tsx implementieren (Readiness-Checkliste, Preview-Fallback, CSS)
   - [ ] `77-03-PLAN.md` - page.tsx chirurgisch verdrahten (SectionKey, MAIN_TABS, canUseMainTab, Render-Zweig) + Human-Verify
 - [ ] **Phase 78: Leader Workspace – Review & Pflege** - In `/admin/fansubs/[id]/edit` die Review-/Pflege-Flächen ergänzen (offene Claims, offene Contributions, historische Member, externe Mitwirkende, Medienprüfung) auf bestehenden Claim-/Contribution-/Media-Seams, capability-gated, ohne Parallel-Queues.
+  **Plans:** 4 plans
+  Plans:
+  - [ ] `78-01-PLAN.md` — Wave-0-Testgeruest (RED): ContributionsReviewSection/GroupMediaReviewSection.test.tsx + fansub_media_review_handler_test.go (SC1/SC3/SC4, D-09)
+  - [ ] `78-02-PLAN.md` — ContributionsReviewSection (GDS) + ReviewQueue-Primitives-Migration + ClaimManagementPanel offen-Filter (D-01/D-02/D-07/D-08, Lock H)
+  - [ ] `78-03-PLAN.md` — Backend Medien-Review: PATCH fansub_group_media + release_version_media-Erweiterung + api.ts (Lock K/G/I, D-05/D-06/D-09); Phase-72-Schema-Gate
+  - [ ] `78-04-PLAN.md` — GroupMediaReviewSection + Phase-76-Stubs (D-03/D-04) + page.tsx-Verdrahtung + Human-Verify (Lock F/SC5)
 - [ ] **Phase 79: Medien-Ownership in UI durchsetzen** - Upload-/Zuweisungsflows über alle Surfaces zwingen Owner-Typ, Owner-ID, Medienkategorie, Sichtbarkeit und Reviewstatus sichtbar zu machen und die Media-Ownership-Matrix einzuhalten; Reuse bestehender Upload-Helfer/Transport (`authorizedUploadXhr`).
 - [ ] **Phase 80: `/admin/users` + User Detail Drawer (scoped Rechte)** - Globale User-/Rechteübersicht starten (Userliste + Detail-Drawer mit globalen Rollen, Member-Link, Gruppenmitgliedschaften, Claims, Contributions, Medien, Audit), Rechte strikt scoped, ohne Rechte aus Contributions abzuleiten.
 
