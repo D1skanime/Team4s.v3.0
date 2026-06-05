@@ -1,7 +1,12 @@
-import { describe, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+
+import { describe, expect, it } from 'vitest'
+
+const pageSource = readFileSync(new URL('../[slug]/page.tsx', import.meta.url), 'utf8')
 
 describe('fansub public page', () => {
-  it.todo('rendert Team-Abschnitt mit Empty State wenn getDomainProjection-Fetch fehlschlägt')
-  it.todo('rendert Medien-Abschnitt mit Empty State wenn getMediaOwnershipProjection-Fetch fehlschlägt')
-  it.todo('zeigt Fehlerseite wenn getFansubBySlug 404 zurückgibt')
+  it('lädt Gruppenmedien mit dem kanonischen Phase-72 owner type', () => {
+    expect(pageSource).toContain("getMediaOwnershipProjection('fansub_group', group.id)")
+    expect(pageSource).not.toContain("getMediaOwnershipProjection('group', group.id)")
+  })
 })

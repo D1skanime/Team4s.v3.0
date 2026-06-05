@@ -1,5 +1,5 @@
 import { EmptyState, SectionHeader } from '@/components/ui'
-import type { DomainHistoricalRow, DomainMemberRow } from '@/types/domain-projection'
+import type { DomainProjectionHistoricalRow, DomainProjectionMemberRow } from '@/types/domain-projection'
 
 import { FansubTeamActiveGroup } from './FansubTeamActiveGroup'
 import { FansubTeamHistoricalGroup } from './FansubTeamHistoricalGroup'
@@ -7,8 +7,8 @@ import { FansubTeamMemorialBlock } from './FansubTeamMemorialBlock'
 import styles from './FansubTeamSection.module.css'
 
 interface FansubTeamSectionProps {
-  members: DomainMemberRow[]
-  historical: DomainHistoricalRow[]
+  members: DomainProjectionMemberRow[]
+  historical: DomainProjectionHistoricalRow[]
 }
 
 export function FansubTeamSection({ members, historical }: FansubTeamSectionProps) {

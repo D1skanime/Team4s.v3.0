@@ -96,7 +96,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
       loadFansubProjects(group.id),
       getFansubContributions(group.id),
       getFansubGroupDomainProjection(group.id),
-      getMediaOwnershipProjection('group', group.id),
+      getMediaOwnershipProjection('fansub_group', group.id),
     ])
   const projects = resolveSettled<AnimeListItem[]>(projectsResult, [])
   const contributions = resolveSettled<PublicGroupContributionsResponse | null>(contributionsResult, null)

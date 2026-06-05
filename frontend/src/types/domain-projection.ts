@@ -1,36 +1,62 @@
-// Phase-72-Typ-Stubs — werden durch Phase-72-Ausführung (frontend/Phase-72-Plan-04) drop-in überschrieben.
-// Shapes sind identisch zu den finalen Phase-72-Definitionen (73-RESEARCH.md §Phase-72-Contract).
+export type DomainProjectionProfileStatus =
+  | 'active'
+  | 'historical'
+  | 'memorial'
 
-export interface DomainMemberRow {
+export type DomainProjectionDisputeState = 'none' | 'open' | 'resolved'
+
+export type DomainProjectionReviewStatus =
+  | 'in_review'
+  | 'approved'
+  | 'rejected'
+  | 'archived'
+  | 'removed'
+
+export interface DomainProjectionMemberRow {
+  id: number
+  member_id: number | null
   member_display_name: string
   member_slug: string | null
   roles: string[]
   role_labels: string[]
-  profile_status: 'active' | 'historical' | 'memorial'
+  status: string
+  profile_status: DomainProjectionProfileStatus
   claimed: boolean
 }
 
-export interface DomainHistoricalRow {
+export interface DomainProjectionHistoricalRow {
+  id: number
+  member_id: number
   member_display_name: string
   member_slug: string | null
   roles: string[]
   role_labels: string[]
-  profile_status: 'active' | 'historical' | 'memorial'
+  joined_year: number | null
+  left_year: number | null
+  status: string
+  profile_status: DomainProjectionProfileStatus
   claimed: boolean
 }
 
-export interface DomainContributorRow {
+export interface DomainProjectionContributorRow {
+  id: number
+  anime_id: number
+  anime_title: string
+  member_id: number
   member_display_name: string
   member_slug: string | null
   roles: string[]
   role_labels: string[]
-  dispute_state: 'none' | 'open' | 'resolved'
+  started_year: number | null
+  ended_year: number | null
+  status: string
+  dispute_state: DomainProjectionDisputeState
   visibility: string
-  review_status: string
+  review_status: DomainProjectionReviewStatus
 }
 
 export interface DomainProjectionResponse {
-  members: DomainMemberRow[]
-  historical: DomainHistoricalRow[]
-  contributors: DomainContributorRow[]
+  members: DomainProjectionMemberRow[]
+  historical: DomainProjectionHistoricalRow[]
+  contributors: DomainProjectionContributorRow[]
 }

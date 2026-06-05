@@ -1,10 +1,23 @@
-// Phase-72-Typ-Stub — wird durch Phase-72-Ausführung drop-in überschrieben.
-// Shape identisch zu finaler Phase-72-Definition (73-RESEARCH.md §Phase-72-Contract Endpunkt 2).
+import type { DomainProjectionReviewStatus } from './domain-projection'
+
+export type MediaOwnershipOwnerType =
+  | 'member'
+  | 'fansub_group'
+  | 'release_version'
+  | 'release_theme'
 
 export interface MediaOwnershipRow {
-  owner_type: string
+  id: number
+  owner_type: MediaOwnershipOwnerType
   owner_id: number
   media_category: string
-  visibility: string
-  review_status: string
+  visibility: string | null
+  review_status: DomainProjectionReviewStatus | null
+  review_status_label: string | null
+  file_path: string
+  original_file_path: string | null
+  caption: string | null
+  mime_type: string
 }
+
+export type MediaOwnershipProjectionResponse = MediaOwnershipRow[]

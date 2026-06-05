@@ -1,13 +1,13 @@
 import Link from 'next/link'
 
 import { Card, EmptyState, SectionHeader } from '@/components/ui'
-import type { DomainContributorRow } from '@/types/domain-projection'
+import type { DomainProjectionContributorRow } from '@/types/domain-projection'
 
 interface FansubContributorsSectionProps {
-  contributors: DomainContributorRow[]
+  contributors: DomainProjectionContributorRow[]
 }
 
-function renderContributorName(contributor: DomainContributorRow) {
+function renderContributorName(contributor: DomainProjectionContributorRow) {
   if (contributor.member_slug !== null) {
     return <Link href={'/members/' + contributor.member_slug}>{contributor.member_display_name}</Link>
   }

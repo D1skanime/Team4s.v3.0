@@ -25,7 +25,7 @@ function renderMediaRows(mediaRows: MediaOwnershipRow[]) {
 export function FansubGroupMediaBlock({ mediaRows, group }: FansubGroupMediaBlockProps) {
   const publicGroupMedia = mediaRows.filter(
     (r) =>
-      (r.owner_type === 'group' || r.owner_type === 'fansub_group') &&
+      r.owner_type === 'fansub_group' &&
       r.visibility === 'public' &&
       r.review_status === 'approved',
   )

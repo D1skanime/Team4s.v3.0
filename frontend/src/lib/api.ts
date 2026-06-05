@@ -80,7 +80,7 @@ import {
   PublicMemberProfileResponse,
   UpdateMemberProfileRequest,
 } from "@/types/profile";
-import type { MediaOwnershipRow } from "@/types/media-ownership";
+import type { MediaOwnershipProjectionResponse } from "@/types/media-ownership";
 import {
   CommentCreateRequest,
   CommentCreateResponse,
@@ -7735,9 +7735,9 @@ export async function getFansubGroupDomainProjection(
   groupID: number,
 ): Promise<DomainProjectionResponse> {
   const API_BASE_URL = getApiBaseUrl();
-  const response = await fetch(
+  const response = await apiClientFetch(
     `${API_BASE_URL}/api/v1/fansubs/${groupID}/domain-projection`,
-    { next: { revalidate: 60 } },
+    { cache: "no-store" },
   );
 
   if (!response.ok) {
@@ -7760,12 +7760,12 @@ export async function getFansubGroupDomainProjection(
 export async function getMediaOwnershipProjection(
   ownerType: string,
   ownerID: number,
-): Promise<MediaOwnershipRow[]> {
+): Promise<MediaOwnershipProjectionResponse> {
   const API_BASE_URL = getApiBaseUrl();
   const encodedOwnerType = encodeURIComponent(ownerType);
-  const response = await fetch(
+  const response = await apiClientFetch(
     `${API_BASE_URL}/api/v1/media-ownership/${encodedOwnerType}/${ownerID}`,
-    { next: { revalidate: 60 } },
+    { cache: "no-store" },
   );
 
   if (!response.ok) {
@@ -7782,7 +7782,7 @@ export async function getMediaOwnershipProjection(
     );
   }
 
-  return response.json() as Promise<MediaOwnershipRow[]>;
+  return response.json() as Promise<MediaOwnershipProjectionResponse>;
 }
 
 export async function getMemberContributions(

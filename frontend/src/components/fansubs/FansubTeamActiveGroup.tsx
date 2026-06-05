@@ -1,15 +1,15 @@
 import Link from 'next/link'
 
 import { Card } from '@/components/ui'
-import type { DomainMemberRow } from '@/types/domain-projection'
+import type { DomainProjectionMemberRow } from '@/types/domain-projection'
 
 import styles from './FansubTeamSection.module.css'
 
 interface FansubTeamActiveGroupProps {
-  members: DomainMemberRow[]
+  members: DomainProjectionMemberRow[]
 }
 
-function renderMemberName(member: DomainMemberRow) {
+function renderMemberName(member: DomainProjectionMemberRow) {
   if (member.member_slug !== null) {
     return (
       <Link href={'/members/' + member.member_slug} className={styles.memberName}>

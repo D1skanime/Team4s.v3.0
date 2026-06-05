@@ -1,15 +1,15 @@
 import Link from 'next/link'
 
 import { Badge, Card } from '@/components/ui'
-import type { DomainHistoricalRow } from '@/types/domain-projection'
+import type { DomainProjectionHistoricalRow } from '@/types/domain-projection'
 
 import styles from './FansubTeamSection.module.css'
 
 interface FansubTeamHistoricalGroupProps {
-  historical: DomainHistoricalRow[]
+  historical: DomainProjectionHistoricalRow[]
 }
 
-function renderLinkedName(member: DomainHistoricalRow) {
+function renderLinkedName(member: DomainProjectionHistoricalRow) {
   if (member.member_slug !== null) {
     return (
       <Link href={'/members/' + member.member_slug} className={styles.memberName}>
@@ -21,7 +21,7 @@ function renderLinkedName(member: DomainHistoricalRow) {
   return <span className={styles.memberName}>{member.member_display_name}</span>
 }
 
-function renderRoles(member: DomainHistoricalRow) {
+function renderRoles(member: DomainProjectionHistoricalRow) {
   return member.role_labels.join(', ') || 'Rolle nicht hinterlegt'
 }
 

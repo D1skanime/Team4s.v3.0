@@ -1,15 +1,15 @@
 import Link from 'next/link'
 
 import { Card } from '@/components/ui'
-import type { DomainHistoricalRow, DomainMemberRow } from '@/types/domain-projection'
+import type { DomainProjectionHistoricalRow, DomainProjectionMemberRow } from '@/types/domain-projection'
 
 import styles from './FansubTeamSection.module.css'
 
 interface FansubTeamMemorialBlockProps {
-  memorial: Array<DomainMemberRow | DomainHistoricalRow>
+  memorial: Array<DomainProjectionMemberRow | DomainProjectionHistoricalRow>
 }
 
-function renderMemorialName(member: DomainMemberRow | DomainHistoricalRow) {
+function renderMemorialName(member: DomainProjectionMemberRow | DomainProjectionHistoricalRow) {
   if (member.member_slug !== null) {
     return (
       <Link href={'/members/' + member.member_slug} className={styles.memberName}>
