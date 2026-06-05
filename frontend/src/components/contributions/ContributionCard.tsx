@@ -11,6 +11,10 @@ interface ContributionCardProps {
   mode: 'confirmed' | 'pending' | 'proposal'
   onConfirm?: (id: number) => void
   onReject?: (id: number) => void
+  /** Phase 76: Öffnet RejectReasonModal mit Pflicht-Begründung (D-09) */
+  onRejectWithReason?: (id: number) => void
+  /** Phase 76: Öffnet ReportModal vorbefüllt für „Details korrigieren" (D-10) */
+  onCorrect?: (id: number) => void
   onVisibilityChange?: (id: number, isPublic: boolean) => void
 }
 
@@ -49,6 +53,8 @@ export function ContributionCard({
   mode,
   onConfirm,
   onReject,
+  onRejectWithReason,
+  onCorrect,
   onVisibilityChange,
 }: ContributionCardProps) {
   const {
@@ -105,12 +111,21 @@ export function ContributionCard({
         <div className={styles.actionsRow}>
           {onConfirm ? (
             <Button size="sm" variant="success" onClick={() => onConfirm(id)}>
-              Bestätigen
+              Das war ich
             </Button>
           ) : null}
-          {onReject ? (
+          {onRejectWithReason ? (
+            <Button size="sm" variant="danger" onClick={() => onRejectWithReason(id)}>
+              Das war ich nicht
+            </Button>
+          ) : onReject ? (
             <Button size="sm" variant="danger" onClick={() => onReject(id)}>
               Ablehnen
+            </Button>
+          ) : null}
+          {onCorrect ? (
+            <Button size="sm" variant="secondary" onClick={() => onCorrect(id)}>
+              Details korrigieren
             </Button>
           ) : null}
         </div>
