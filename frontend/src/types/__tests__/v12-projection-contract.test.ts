@@ -138,6 +138,10 @@ const openapi = readFileSync(
   new URL("../../../../shared/contracts/openapi.yaml", import.meta.url),
   "utf8",
 );
+const apiClientSource = readFileSync(
+  new URL("../../lib/api.ts", import.meta.url),
+  "utf8",
+);
 
 function getOpenApiBlock(startMarker: string, endPattern: RegExp): string {
   const start = openapi.indexOf(startMarker);
@@ -158,6 +162,39 @@ function expectRequiredFields(schemaName: string, fields: readonly string[]) {
 function expectInlineEnum(schemaName: string, values: readonly string[]) {
   const block = getOpenApiBlock(`    ${schemaName}:\n`, /\n    [A-Za-z][A-Za-z0-9]+:\n/);
   expect(block).toContain(`      enum: [${values.join(", ")}]`);
+}
+
+function getApiFunctionBlock(functionName: string): string {
+  const startMarker = `export async function ${functionName}(`;
+  const start = apiClientSource.indexOf(startMarker);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const rest = apiClientSource.slice(start);
+  const nextFunction = rest.slice(startMarker.length).search(/\nexport async function /);
+  return nextFunction === -1
+    ? rest
+    : rest.slice(0, startMarker.length + nextFunction);
+}
+
+function expectReadHelperUsesCentralApiSeam(
+  functionName: string,
+  expectedFragments: readonly string[],
+) {
+  const block = getApiFunctionBlock(functionName);
+  const lowerBlock = block.toLowerCase();
+
+  expect(block).toContain("getApiBaseUrl()");
+  expect(block).toContain("apiClientFetch(");
+  expect(block).toContain("parseApiErrorPayload(");
+  expect(block).toContain("throw new ApiError(");
+  for (const fragment of expectedFragments) {
+    expect(block).toContain(fragment);
+  }
+
+  expect(lowerBlock).not.toContain("await fetch(");
+  expect(lowerBlock).not.toContain(".data");
+  expect(lowerBlock).not.toContain("localstorage");
+  expect(lowerBlock).not.toContain("sessionstorage");
+  expect(lowerBlock).not.toContain("document.cookie");
 }
 
 describe("v12 projection contract parity", () => {
@@ -191,8 +228,10 @@ describe("v12 projection contract parity", () => {
 
     expect(domainPath).toContain("$ref: \"#/components/schemas/DomainProjectionResponse\"");
     expect(domainPath).not.toMatch(/\n\s+data:/);
+    expect(domainPath).not.toMatch(/\n\s+(post|patch|put|delete):/);
     expect(mediaPath).toContain("$ref: \"#/components/schemas/MediaOwnershipRow\"");
     expect(mediaPath).not.toMatch(/\n\s+data:/);
+    expect(mediaPath).not.toMatch(/\n\s+(post|patch|put|delete):/);
   });
 
   it("keeps OpenAPI schema fields and enums aligned with the TS mirrors", () => {
@@ -204,5 +243,17 @@ describe("v12 projection contract parity", () => {
     expectInlineEnum("DomainProjectionDisputeState", disputeStates);
     expectInlineEnum("DomainProjectionReviewStatus", reviewStatuses);
     expectInlineEnum("MediaOwnershipOwnerType", ownerTypes);
+  });
+
+  it("keeps projection reads behind the central api.ts helpers", () => {
+    expectReadHelperUsesCentralApiSeam("getFansubGroupDomainProjection", [
+      "/api/v1/fansubs/${groupID}/domain-projection",
+      "return response.json() as Promise<DomainProjectionResponse>",
+    ]);
+    expectReadHelperUsesCentralApiSeam("getMediaOwnershipProjection", [
+      "const encodedOwnerType = encodeURIComponent(ownerType)",
+      "/api/v1/media-ownership/${encodedOwnerType}/${ownerID}",
+      "return response.json() as Promise<MediaOwnershipProjectionResponse>",
+    ]);
   });
 });

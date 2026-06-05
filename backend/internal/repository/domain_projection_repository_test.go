@@ -82,3 +82,19 @@ func TestProjectionHandlerHasNoEnvelope(t *testing.T) {
 		t.Fatalf("expected domain projection handler not to wrap response in a data envelope")
 	}
 }
+
+func TestProjectionRouteIsGetOnly(t *testing.T) {
+	content := readBackendSource(t, filepath.Join("cmd", "server", "main.go"))
+	normalized := strings.ToLower(content)
+
+	route := "\"/fansubs/:id/domain-projection\""
+	if !strings.Contains(normalized, "v1.get("+route) {
+		t.Fatalf("expected domain projection route to be registered as GET")
+	}
+
+	for _, method := range []string{"post", "patch", "put", "delete"} {
+		if strings.Contains(normalized, "v1."+method+"("+route) {
+			t.Fatalf("expected domain projection route not to be registered as %s", method)
+		}
+	}
+}
