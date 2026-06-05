@@ -1,10 +1,11 @@
 ---
 phase: 78
 slug: leader-workspace-review-pflege
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-05
+reviewed_at: 2026-06-05
 ---
 
 # Phase 78 — UI Design Contract
@@ -80,6 +81,7 @@ Tokens aus `frontend/src/styles/globals.css` (Quelle: `--space-*`):
 |-------|------|-------------|------------|
 | xs | 4px | `--space-1` | Icon-Abstände, Inline-Padding, Chip-Gaps |
 | sm | 8px | `--space-2` | Kompakte Element-Abstände, Button-Gaps in Toolbar |
+| — | 12px | `--space-3` | Filter-Toggle-Pill vertikales Padding, `.rejectExpansion`-Innenabstand |
 | md | 16px | `--space-4` | Standard-Element-Abstände, Card-Padding |
 | lg | 24px | `--space-5` | Abschnitt-Padding, Stack-Gaps zwischen Sektionen |
 | xl | 32px | `--space-6` | Layout-Gaps zwischen Tab-Bereichen |
@@ -89,7 +91,7 @@ Tokens aus `frontend/src/styles/globals.css` (Quelle: `--space-*`):
 Ausnahmen:
 - Touch-Targets für Bestätigen/Ablehnen-Buttons: `min-height: var(--control-height-md)` = 44px (entspricht WCAG 2.5.5)
 - Filter-Toggle-Pill: 12px vertikales Padding (`--space-3`)
-- Nested-Card-Padding: 14px × 16px (analog `ClaimManagementPanel`-Karten)
+- Nested-Card-Padding: `var(--space-4)` (16px)
 
 ---
 
@@ -417,7 +419,7 @@ ASCII-Ersetzungen (ae/oe/ue/ss) sind verboten.
 | `.reviewSection` | Root-Grid-Container, `display: grid; gap: var(--space-5)` |
 | `.filterRow` | Toolbar-Zeile für Filter-Toggle, `display: flex; justify-content: flex-end` |
 | `.cardStack` | Karten-Liste, `display: flex; flex-direction: column; gap: var(--space-4)` |
-| `.cardFooterActions` | Footer-Aktionen pro Karte, `display: flex; justify-content: flex-end; gap: var(--space-2); padding: 10px var(--space-4); border-top: 1px solid var(--border-subtle); background: var(--surface-card-muted)` |
+| `.cardFooterActions` | Footer-Aktionen pro Karte, `display: flex; justify-content: flex-end; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-top: 1px solid var(--border-subtle); background: var(--surface-card-muted)` |
 | `.rejectExpansion` | Ablehnen-Expansion, `background: var(--surface-card-muted); border-radius: var(--radius-sm); padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); border: 1px solid var(--border-subtle)` |
 | `.rejectActions` | Aktionszeile in Expansion, `display: flex; gap: var(--space-2); align-items: center` |
 | `.inlineError` | Analog `ClaimManagementPanel.module.css:.inlineError` |
