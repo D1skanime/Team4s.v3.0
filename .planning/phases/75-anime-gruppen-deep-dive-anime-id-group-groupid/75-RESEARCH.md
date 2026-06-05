@@ -624,27 +624,31 @@ export function TeamSection({ teamMembers, externalContributors }: TeamSectionPr
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Projektstory-Quelle: `anime_fansub_groups.notes` oder `anime_fansub_project_notes.body_html`?**
    - Was wir wissen: Beide Felder existieren. `notes` ist Kurztext; `anime_fansub_project_notes` ist Tiptap-Editor mit `status`/`visibility`.
    - Was unklar ist: Welches Feld Phase 75 anzeigen soll; ob `getGroupDetail` erweitert wird oder ein separater Fetch nötig ist.
    - Empfehlung: `anime_fansub_project_notes.body_html` bevorzugen (strukturiert), mit Fallback auf `anime_fansub_groups.notes`. Backend-Erweiterung in `group_repository.go` nötig.
+   - RESOLVED: StorySection verwendet `projectNotesHtml` (aus `anime_fansub_project_notes.body_html`) als primäre Quelle, mit Fallback auf `group.story` (`anime_fansub_groups.notes`). Bei null in beiden Feldern zeigt StorySection einen EmptyState. (Plan 75-02, Task 1.)
 
 2. **Sichtbarkeits-Gate für Themes/Medien vor Phase-72-Deployment**
    - Was wir wissen: Phase 72 ergänzt `review_status` / `visibility_id` auf `media_assets`. Phase 75 braucht diese Felder für D-13 und D-15.
    - Was unklar ist: Ob Phase 72 vor Phase 75 deployed wird und ob der Planner Phasenreihenfolge erzwingt.
    - Empfehlung: Backend-Wave von Phase 75 prüft explizit, ob Phase-72-Felder in DB existieren (`IF EXISTS` in Query) oder nutzt `media_assets.status='ready'` als temporären Fallback.
+   - RESOLVED: Sichtbarkeits-Gate für Themes und Release-Medien nutzt `media_assets.status='ready'` als temporären Fallback (Phase-72-Felder werden nicht vorausgesetzt). Repositories GetPublicGroupThemes und GetPublicReleaseMedia filtern explizit auf `status='ready'`. (Plan 75-01, Task 1.)
 
 3. **Slug-Verlinkung: wann genau verlinken?**
    - Was wir wissen: `member_slug` ist NULL wenn kein Nickname ableitbar; geclaimt bedeutet `member_claims.claim_status='verified'`.
    - Was unklar ist: Soll Phase 75 nur bei claimed verlinken oder wenn Slug != null?
    - Empfehlung: Verlinkung wenn `member_slug != null` (analog Phase 73 D-10) — das `/members/[slug]`-Profil existiert für alle Members mit Nickname.
+   - RESOLVED: TeamSection und ExternalContributors-Block verlinken auf `/members/[slug]` wenn `member_slug != null`; bei null wird nur der Name als `<span>` angezeigt, kein Link. (Plan 75-03, Task 1; analog Phase 73 D-10.)
 
 4. **Phasenreihenfolge Backend-Wave**
    - Was wir wissen: Drei neue öffentliche Endpoints brauchen OpenAPI + Backend + api.ts + Typen.
    - Was unklar ist: In welcher Phase-75-Wave diese Arbeit landet (Wave 1 Backend, Wave 2 Frontend).
    - Empfehlung: Planner plant explizit Wave 01 (Backend-Endpoints + Contracts + Typen), Wave 02 (Section-Komponenten-Umbau Frontend), Wave 03 (Sektions-Nav + Integration).
+   - RESOLVED: 3-Wave-Struktur umgesetzt — Wave 1 (Plan 75-01): Backend-Repos + Handler + OpenAPI + TS-Typen; Wave 2 (Plan 75-02): Seiten-Orchestrator + HeroSection + StorySection + GroupSectionsNav; Wave 3 (Plan 75-03): TeamSection + ReleasesSection + ThemesSection + MediaSection + BacklinksSection + page.tsx-Endverdrahtung.
 
 ---
 
