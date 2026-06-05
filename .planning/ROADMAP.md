@@ -1769,7 +1769,7 @@ Plans:
 **Goal:** Die bestehende gruppenspezifische Anime-Seite wird als zentraler Deep-Dive für Fansub-Projekte gestärkt, ohne gruppenspezifische Daten auf die neutrale Anime-Ebene zu schreiben.
 **Requirements:** Entscheidung D, A, G, K aus [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
 **Depends on:** Phase 72
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] `75-01-PLAN.md` — Backend: drei neue öffentliche Projektions-Endpoints (Mitwirkende, Themes, Release-Medien) + OpenAPI + TypeScript-Typen + api.ts-Helper (Contract-zuerst per K)
