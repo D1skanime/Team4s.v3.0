@@ -1,10 +1,11 @@
 ---
 phase: 75
 slug: anime-gruppen-deep-dive-anime-id-group-groupid
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-05
+reviewed_at: 2026-06-05
 ---
 
 # Phase 75 — UI Design Contract
