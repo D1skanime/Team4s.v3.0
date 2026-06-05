@@ -2288,6 +2288,125 @@ export async function deleteFansubMedia(
   }
 }
 
+// --- Phase 78: Gruppenmedien-Review (Lock K, D-05/D-06/D-08/D-09) ---
+
+/**
+ * Kanonische Sichtbarkeitswerte für Gruppenmedien.
+ * Quelle: 78-RESEARCH.md "Offene Fragen (RESOLVED)"
+ */
+export type FansubMediaVisibility = "intern" | "oeffentlich";
+
+/**
+ * Kanonische Prüfstatuswerte für Gruppenmedien.
+ * Quelle: 78-RESEARCH.md "Offene Fragen (RESOLVED)"
+ */
+export type FansubMediaReviewStatus =
+  | "in_pruefung"
+  | "freigegeben"
+  | "abgelehnt"
+  | "archiviert"
+  | "entfernt";
+
+/**
+ * Ein Medieneintrag einer Fansub-Gruppe mit Sichtbarkeit, Prüfstatus und Owner-Konsistenz-Flag.
+ * Entspricht FansubGroupMediaItem im Contract admin-content.yaml (Phase 78, Lock K).
+ * owner_consistent zeigt NUR an, ob das Medium korrekt zur Gruppe gehört — kein Setter (D-05).
+ */
+export interface FansubGroupMediaItem {
+  id: number;
+  preview_url?: string | null;
+  visibility: FansubMediaVisibility | null;
+  review_status: FansubMediaReviewStatus | null;
+  owner_type: string;
+  owner_id: number;
+  owner_consistent: boolean;
+}
+
+/**
+ * Listenantwort für Gruppenmedien-Review.
+ * Entspricht FansubGroupMediaListResponse im Contract admin-content.yaml (Phase 78, Lock K).
+ */
+export interface FansubGroupMediaListResponse {
+  data: FansubGroupMediaItem[];
+}
+
+/**
+ * Patch-Body für Gruppenmedien-Review.
+ * Mindestens eines der Felder muss angegeben werden.
+ */
+export interface FansubMediaReviewPatch {
+  visibility?: FansubMediaVisibility;
+  review_status?: FansubMediaReviewStatus;
+}
+
+/**
+ * Liest alle Gruppenmedien einer Fansub-Gruppe für den Review-Tab.
+ * GET /api/v1/admin/fansubs/{fansubId}/media
+ *
+ * Lese-Quelle für GroupMediaReviewSection (78-04). Gegated (ActionFansubGroupEdit, D-08).
+ * Scoped strikt auf fansubId (D-04).
+ */
+export async function listFansubGroupMedia(
+  fansubId: number,
+  authToken?: string,
+): Promise<FansubGroupMediaItem[]> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/media`,
+    {
+      method: "GET",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  const body: FansubGroupMediaListResponse = await response.json();
+  return body.data;
+}
+
+/**
+ * Setzt Sichtbarkeit und/oder Prüfstatus eines Gruppenmediums.
+ * PATCH /api/v1/admin/fansubs/{fansubId}/media/{mediaId}
+ *
+ * Mutation für GroupMediaReviewSection (78-04). Gegated (ActionFansubGroupEdit, D-08).
+ * Ungültige Enum-Werte werden serverseitig mit 400 abgelehnt (V5).
+ */
+export async function patchFansubMediaReview(
+  fansubId: number,
+  mediaId: number,
+  patch: FansubMediaReviewPatch,
+  authToken?: string,
+): Promise<FansubGroupMediaItem> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/media/${mediaId}`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader({ "Content-Type": "application/json" }, authToken),
+      body: JSON.stringify(patch),
+    },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json();
+}
+
+// --- Ende Phase 78 Gruppenmedien-Review ---
+
 export async function createFansubMember(
   fansubID: number,
   payload: FansubMemberCreateRequest,
