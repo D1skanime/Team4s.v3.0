@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Completed 72-01-PLAN.md
-last_updated: "2026-06-05T08:28:54.503Z"
+stopped_at: Completed 72-02-PLAN.md
+last_updated: "2026-06-05T08:45:56.916Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 76
   completed_phases: 51
   total_plans: 274
-  completed_plans: 223
+  completed_plans: 224
   percent: 67
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 72 (dom-nen-projektionen-status-fundament) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 ## Accumulated Context
 
@@ -211,6 +211,8 @@ Recent durable decisions:
 - [Phase ?]: Phase 70-05: StoryImageToolbarButton.tsx ausgelagert (praeventiever Split), RichTextEditor.tsx hat 449 Zeilen
 - [Phase 72-01]: Review-Status bleibt Lookup-basiert via review_statuses und review_status_id; keine denormalisierte review_status VARCHAR-Spalte. — Plan 72-01 pinnt FK-Lookup-Form als kanonische Traegerform fuer Plan 02/03-Projektionen.
 - [Phase 72-01]: 0096 fuehrt nur Schema und Test ein; Schreib-Endpunkte fuer memorial/dispute/review/visibility bleiben in den nutzenden Phasen. — D-05/D-06 begrenzen Phase 72 auf Schema/Reads und verhindern ungeschuetzte Setter.
+- [Phase 72-02]: Domain projection returns direct DTO without data envelope for GET /api/v1/fansubs/:id/domain-projection.
+- [Phase 72-02]: claimed is derived only from member_claims.claim_status='verified'; anime_contributions never creates membership or claim rows.
 
 ### Pending Todos
 
@@ -368,6 +370,7 @@ Recent durable decisions:
 | Phase 70-tiptap-bilder-fuer-member-profilgeschichte P05 | 35min | 2 tasks | 11 files |
 | Phase 70 P06 | 35min | 2 tasks | 7 files |
 | Phase 72 P01 | 9min | 2 tasks | 3 files |
+| Phase 72 P02 | 14min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -402,7 +405,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-05T08:28:54.467Z
-Stopped at: Completed 72-01-PLAN.md
+Last session: 2026-06-05T08:45:56.869Z
+Stopped at: Completed 72-02-PLAN.md
 Last activity: 2026-06-05
 Resume file: None
