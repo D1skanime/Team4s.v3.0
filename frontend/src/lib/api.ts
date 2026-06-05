@@ -2791,6 +2791,44 @@ export async function submitMemberClaim(
   return body.data;
 }
 
+export async function submitMemberCorrection(
+  memberId: number,
+  payload: { targetType: string; targetId?: number | null; reasonText: string },
+  authToken?: string,
+): Promise<{ id: number; status: string }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/members/${memberId}/correction`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        target_type: payload.targetType,
+        target_id: payload.targetId ?? null,
+        reason_text: payload.reasonText,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const body = (await response.json()) as { data: { id: number; status: string } };
+  return body.data;
+}
+
 export async function patchNoindex(
   noindex: boolean,
   authToken?: string,

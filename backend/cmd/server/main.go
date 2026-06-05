@@ -134,6 +134,8 @@ func main() {
 	memberRequestsHandler := handlers.NewMemberRequestsHandler(memberRequestsRepo, permissionSvc, auditLogRepo)
 	memberMemorialRepo := repository.NewMemberMemorialRepository(dbPool)
 	memberMemorialHandler := handlers.NewMemberMemorialHandler(authzRepo, memberMemorialRepo, auditLogRepo)
+	memberCorrectionRepo := repository.NewMemberCorrectionRepository(dbPool)
+	memberCorrectionHandler := handlers.NewMemberCorrectionHandler(memberCorrectionRepo, auditLogRepo)
 	tiptapSvc := services.NewTipTapService()
 	var mailerSvc services.Mailer
 	if cfg.SMTPEnabled {
@@ -290,6 +292,7 @@ func main() {
 	v1.GET("/me/member-claim", authMiddleware, memberClaimsHandler.GetMyClaim)
 	v1.POST("/me/member-claims", authMiddleware, memberClaimsHandler.SubmitClaim)
 	v1.POST("/me/member-requests", authMiddleware, memberRequestsHandler.SubmitRequest)
+	v1.POST("/me/members/:id/correction", authMiddleware, memberCorrectionHandler.SubmitCorrection)
 	v1.PATCH("/me/profile/noindex", authMiddleware, memberProfileNoindexHandler.PatchNoindex)
 	v1.POST("/claim-invitations/accept", authMiddleware, memberClaimInvitationsHandler.AcceptClaimInvitation)
 	v1.GET("/anime", animeHandler.List)
