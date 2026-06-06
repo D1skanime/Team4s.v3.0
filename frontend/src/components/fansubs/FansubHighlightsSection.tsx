@@ -19,12 +19,12 @@ function computeActiveYears(foundedYear?: number | null, dissolvedYear?: number 
 
 function computeHighlights(
   group: FansubGroup,
-  _contributions: FansubHighlightsSectionProps['contributions'],
+  contributions: FansubHighlightsSectionProps['contributions'],
 ): Highlight[] {
   return [
-    { label: 'Anime-Projekte', value: group.anime_relations_count },
+    { label: 'Anime-Projekte', value: group.anime_relations_count || contributions?.anime_count || null },
     { label: 'Release-Versionen', value: group.release_versions_count },
-    { label: 'Mitglieder', value: group.members_count },
+    { label: 'Mitglieder', value: group.members_count || contributions?.member_count || null },
     { label: 'Aktive Jahre', value: computeActiveYears(group.founded_year, group.dissolved_year) },
   ].filter((highlight) => highlight.value !== null && highlight.value !== 0)
 }
