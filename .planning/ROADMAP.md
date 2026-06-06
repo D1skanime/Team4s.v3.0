@@ -85,7 +85,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   - [ ] `77-01-PLAN.md` - Wave-0-Testgeruest: ReadinessTab.test.tsx (RED) + page.test.tsx Capability-Gating-Cases (Req F, I, K)
   - [ ] `77-02-PLAN.md` - ReadinessTab.tsx + PublicPreviewPanel.tsx implementieren (Readiness-Checkliste, Preview-Fallback, CSS)
   - [ ] `77-03-PLAN.md` - page.tsx chirurgisch verdrahten (SectionKey, MAIN_TABS, canUseMainTab, Render-Zweig) + Human-Verify
-- [ ] **Phase 78: Leader Workspace – Review & Pflege** - In `/admin/fansubs/[id]/edit` die Review-/Pflege-Flächen ergänzen (offene Claims, offene Contributions, historische Member, externe Mitwirkende, Medienprüfung) auf bestehenden Claim-/Contribution-/Media-Seams, capability-gated, ohne Parallel-Queues.
+- [x] **Phase 78: Leader Workspace – Review & Pflege** - In `/admin/fansubs/[id]/edit` die Review-/Pflege-Flächen ergänzen (offene Claims, offene Contributions, historische Member, externe Mitwirkende, Medienprüfung) auf bestehenden Claim-/Contribution-/Media-Seams, capability-gated, ohne Parallel-Queues. (completed 2026-06-06)
   **Plans:** 5 plans
   Plans:
   - [ ] `78-01-PLAN.md` — Wave-0-Testgeruest (RED): ContributionsReviewSection/GroupMediaReviewSection.test.tsx (mockt listFansubGroupMedia) + fansub_media_review_handler_test.go (SC1/SC3/SC4, D-09)
