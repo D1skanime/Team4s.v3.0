@@ -26,12 +26,14 @@ type MediaAsset struct {
 }
 
 type MediaAssetCreateInput struct {
-	Kind        MediaKind
-	Filename    string
-	StoragePath string
-	PublicURL   string
-	MimeType    string
-	SizeBytes   int64
-	Width       *int
-	Height      *int
+	Kind             MediaKind
+	Filename         string
+	StoragePath      string
+	PublicURL        string
+	MimeType         string
+	SizeBytes        int64
+	Width            *int
+	Height           *int
+	VisibilityCode   *string // nil = Backend-Default; z.B. "public", "private"
+	ReviewStatusCode *string // nil = Backend-Default; z.B. "approved", "in_review"
 }

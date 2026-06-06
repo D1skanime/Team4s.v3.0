@@ -455,6 +455,64 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/me/profile/story-images:
+    post:
+      tags: [Profile]
+      summary: Upload own member profile story image
+      operationId: uploadOwnProfileStoryImage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Story-Bild (JPG, PNG, WEBP, max 10 MB).
+                visibility_code:
+                  type: string
+                  nullable: true
+                  description: "Sichtbarkeits-Code (z.B. 'public', 'private'). Backend setzt Default 'private' wenn leer (Prozessmedium, D-03)."
+                review_status_code:
+                  type: string
+                  nullable: true
+                  description: "Reviewstatus-Code (z.B. 'approved', 'in_review'). Backend setzt Default 'in_review' wenn leer (Prozessmedium, D-03)."
+      responses:
+        "201":
+          description: Hochgeladenes Story-Bild-Asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoryImageUploadResponse"
+        "400":
+          description: Ungültige oder fehlende Bild-Datei
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Anmeldung erforderlich
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Deaktivierte Benutzer dürfen keine Story-Bilder hochladen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/members/{slug}:
     get:
       tags: [Profile]
@@ -1380,6 +1438,14 @@ paths:
                 file:
                   type: string
                   format: binary
+                visibility_code:
+                  type: string
+                  nullable: true
+                  description: "Sichtbarkeits-Code (z.B. 'public', 'private'). Backend setzt Default wenn leer."
+                review_status_code:
+                  type: string
+                  nullable: true
+                  description: "Reviewstatus-Code (z.B. 'approved', 'in_review'). Backend setzt Default wenn leer."
             encoding:
               file:
                 contentType: image/jpeg, image/png, image/webp, image/gif, video/mp4, video/webm
@@ -3498,6 +3564,14 @@ paths:
                 file:
                   type: string
                   format: binary
+                visibility_code:
+                  type: string
+                  nullable: true
+                  description: "Sichtbarkeits-Code (z.B. 'public', 'private'). Backend setzt Default wenn leer."
+                review_status_code:
+                  type: string
+                  nullable: true
+                  description: "Reviewstatus-Code (z.B. 'approved', 'in_review'). Backend setzt Default wenn leer."
       responses:
         "201":
           description: Uploaded media payload
@@ -5172,6 +5246,14 @@ paths:
                   items:
                     type: string
                     format: binary
+                visibility_code:
+                  type: string
+                  nullable: true
+                  description: "Sichtbarkeits-Code (z.B. 'public', 'private'). Backend setzt Default 'private' wenn leer."
+                review_status_code:
+                  type: string
+                  nullable: true
+                  description: "Reviewstatus-Code (z.B. 'approved', 'in_review'). Backend setzt Default 'in_review' wenn leer."
             encoding:
               files:
                 contentType: image/jpeg, image/png, image/webp, image/gif
@@ -8591,6 +8673,17 @@ components:
           allOf:
             - $ref: "#/components/schemas/ProfileVisibility"
           nullable: true
+    StoryImageUploadResponse:
+      type: object
+      required: [media_asset_id, public_url]
+      properties:
+        media_asset_id:
+          type: integer
+          format: int64
+          description: ID des erstellten media_assets-Eintrags.
+        public_url:
+          type: string
+          description: Öffentliche URL des Story-Bildes.
     UploadOwnProfileAvatarRequest:
       type: object
       description: |
@@ -8616,6 +8709,14 @@ components:
           type: string
           format: binary
           description: Backward-compatible single avatar file. Runtime accepts JPG, PNG, WEBP, and GIF, enforces the shared 50 MB image limit, and rejects SVG.
+        visibility_code:
+          type: string
+          nullable: true
+          description: "Sichtbarkeits-Code (z.B. 'public', 'private'). Backend setzt Default 'public' wenn leer (Identity-Slot, D-09)."
+        review_status_code:
+          type: string
+          nullable: true
+          description: "Reviewstatus-Code (z.B. 'approved', 'in_review'). Backend setzt Default 'approved' wenn leer (Identity-Slot, D-09)."
     UploadOwnProfileBackgroundRequest:
       type: object
       description: |
@@ -8641,6 +8742,14 @@ components:
           type: string
           format: binary
           description: Backward-compatible single background image file.
+        visibility_code:
+          type: string
+          nullable: true
+          description: "Sichtbarkeits-Code (z.B. 'public', 'private'). Backend setzt Default 'public' wenn leer (Identity-Slot, D-09)."
+        review_status_code:
+          type: string
+          nullable: true
+          description: "Reviewstatus-Code (z.B. 'approved', 'in_review'). Backend setzt Default 'approved' wenn leer (Identity-Slot, D-09)."
     PublicMemberProfileEnvelope:
       type: object
       required: [data]
