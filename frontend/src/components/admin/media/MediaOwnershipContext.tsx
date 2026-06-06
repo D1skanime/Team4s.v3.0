@@ -78,9 +78,12 @@ export function MediaOwnershipContext({
     defaultStatusLabel(statusPolicy),
   )
 
-  // Kategorie-Zustand (für dropdown-Mode)
+  // Kategorie-Zustand (für dropdown-Mode).
+  // D-08 / UI-SPEC: Kategorie ist ein Pflichtfeld mit Validierung vor CTA-Enable —
+  // daher NICHT die erste Option vorbelegen, sondern leer starten (Platzhalter erzwingt
+  // explizite Auswahl). Slot-Surfaces liefern ihren Fixwert über categoryValue.
   const [selectedCategory, setSelectedCategory] = useState<string>(
-    categoryValue ?? categoryOptions?.[0]?.value ?? '',
+    categoryValue ?? '',
   )
 
   // ─── D-06: Owner-Guard ───────────────────────────────────────────────────
@@ -176,6 +179,7 @@ export function MediaOwnershipContext({
               onChange={handleCategoryChange}
               disabled={disabled}
             >
+              <option value="">Bitte auswählen …</option>
               {(categoryOptions ?? []).map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}

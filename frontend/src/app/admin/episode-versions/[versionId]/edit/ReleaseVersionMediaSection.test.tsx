@@ -184,12 +184,12 @@ describe('ReleaseVersionMediaSection', () => {
   it('renders the category dropdown with all four category labels', () => {
     renderSection(makeMediaState())
 
-    const options = Array.from(screen.getByRole('combobox').querySelectorAll('option')).map(
+    const options = Array.from(screen.getByLabelText('Kategorie').querySelectorAll('option')).map(
       (option) => option.textContent,
     )
 
-    expect(options).toContain('Release-Screenshot')
-    expect(options).toContain('Typesetting-/Karaoke-Beispiel')
+    expect(options).toContain('Screenshot')
+    expect(options).toContain('Typesetting / Karaoke')
     expect(options.some((option) => option?.includes('Outtake'))).toBe(true)
     expect(options).toContain('Sonstiges')
   })
@@ -214,7 +214,7 @@ describe('ReleaseVersionMediaSection', () => {
       }),
     )
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'screenshot' } })
+    fireEvent.change(screen.getByLabelText('Kategorie'), { target: { value: 'screenshot' } })
 
     expect(screen.getByText(/ansehen, aber nicht hochladen/i)).not.toBeNull()
     expect(screen.getByLabelText('Dateien')).toHaveProperty('disabled', true)
@@ -224,7 +224,7 @@ describe('ReleaseVersionMediaSection', () => {
   it('enables upload after category selection and file pick', () => {
     renderSection(makeMediaState())
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'screenshot' } })
+    fireEvent.change(screen.getByLabelText('Kategorie'), { target: { value: 'screenshot' } })
     const input = screen.getByLabelText('Dateien')
     fireEvent.change(input, {
       target: {
@@ -241,7 +241,7 @@ describe('ReleaseVersionMediaSection', () => {
 
     const previewFile = new File(['demo'], 'preview-ready.png', { type: 'image/png' })
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'screenshot' } })
+    fireEvent.change(screen.getByLabelText('Kategorie'), { target: { value: 'screenshot' } })
     fireEvent.drop(screen.getByRole('button', { name: /dateien hier hineinziehen oder klicken/i }), {
       dataTransfer: {
         files: [previewFile],
@@ -259,7 +259,7 @@ describe('ReleaseVersionMediaSection', () => {
     const firstFile = new File(['a'], 'first-preview.png', { type: 'image/png' })
     const secondFile = new File(['b'], 'second-preview.png', { type: 'image/png' })
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'screenshot' } })
+    fireEvent.change(screen.getByLabelText('Kategorie'), { target: { value: 'screenshot' } })
 
     const input = screen.getByLabelText('Dateien')
     fireEvent.change(input, {
@@ -282,22 +282,22 @@ describe('ReleaseVersionMediaSection', () => {
   it('shows the preview toggle for screenshot and hides it for fun_outtake', () => {
     renderSection(makeMediaState())
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'screenshot' } })
+    fireEvent.change(screen.getByLabelText('Kategorie'), { target: { value: 'screenshot' } })
     expect(screen.getByLabelText('Als Vorschau markieren')).not.toBeNull()
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'fun_outtake' } })
+    fireEvent.change(screen.getByLabelText('Kategorie'), { target: { value: 'fun_outtake' } })
     expect(screen.queryByLabelText('Als Vorschau markieren')).toBeNull()
   })
 
   it('shows the preview toggle for typesetting_karaoke and hides it for other', () => {
     renderSection(makeMediaState())
 
-    fireEvent.change(screen.getByRole('combobox'), {
+    fireEvent.change(screen.getByLabelText('Kategorie'), {
       target: { value: 'typesetting_karaoke' },
     })
     expect(screen.getByLabelText('Als Vorschau markieren')).not.toBeNull()
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'other' } })
+    fireEvent.change(screen.getByLabelText('Kategorie'), { target: { value: 'other' } })
     expect(screen.queryByLabelText('Als Vorschau markieren')).toBeNull()
   })
 
