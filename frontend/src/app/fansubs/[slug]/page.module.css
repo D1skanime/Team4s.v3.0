@@ -4,6 +4,12 @@
   padding: 24px 0 48px;
 }
 
+.backLink {
+  margin-top: 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
 .backLink a {
   color: var(--text-secondary);
   text-decoration: none;
@@ -59,4 +65,17 @@
   border: 1px solid var(--color-border);
   background: var(--color-white);
   padding: 16px;
+}
+
+.readingColumn {
+  width: min(780px, 100% - 48px);
+  margin: 0 auto;
+}
+
+.sectionSpacing {
+  margin-top: 32px;
+}
+
+.gridSection {
+  width: 100%;
 }

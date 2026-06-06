@@ -17,6 +17,7 @@ import {
   uploadAdminAnimeMedia,
 } from '@/lib/api'
 import type { AdminAnimeJellyfinContext } from '@/types/admin'
+import { MediaOwnershipContext, MediaOwnershipContextValue } from '@/components/admin/media/MediaOwnershipContext'
 
 import styles from '../../AdminStudio.module.css'
 import workspaceStyles from './AnimeEditWorkspace.module.css'
@@ -26,6 +27,7 @@ import { summarizeAssetSlotDecision } from './AnimeJellyfinMetadataSection.helpe
 
 interface AnimeJellyfinAssetUploadControlsProps {
   animeID: number
+  animeTitle?: string
   disabled?: boolean
   assetCards: AssetCardDescriptor[]
   coverCurrentImage?: string
@@ -42,6 +44,7 @@ function formatOwnershipLabel(value: 'manual' | 'provider'): string {
 
 export function AnimeJellyfinAssetUploadControls({
   animeID,
+  animeTitle,
   disabled = false,
   assetCards,
   coverCurrentImage,
@@ -55,6 +58,8 @@ export function AnimeJellyfinAssetUploadControls({
   const [uploadTarget, setUploadTarget] = useState<EditUploadTarget | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploadingCover, setIsUploadingCover] = useState(false)
+  // D-07: MediaOwnershipContext-Zustand (Surface 2, Branding-Slot)
+  const [ownerCtx, setOwnerCtx] = useState<MediaOwnershipContextValue | null>(null)
 
   const coverInputRef = useRef<HTMLInputElement | null>(null)
   const bannerInputRef = useRef<HTMLInputElement | null>(null)
@@ -66,6 +71,11 @@ export function AnimeJellyfinAssetUploadControls({
   const mutationStatusLabel = getEditUploadStatusLabel(uploadTarget, false)
 
   async function handleCoverUpload(file: File) {
+    // D-06-Guard: kein Upload ohne aufgelösten Owner-Kontext
+    if (!ownerCtx?.ownerResolved) {
+      onError('Upload nicht möglich: Kein gültiger Owner-Kontext.')
+      return
+    }
     setIsUploadingCover(true)
 
     try {
@@ -73,6 +83,8 @@ export function AnimeJellyfinAssetUploadControls({
         animeID,
         assetType: 'poster',
         file,
+        visibilityCode: ownerCtx.visibilityCode,
+        reviewStatusCode: ownerCtx.reviewStatusCode,
       })
 
       await assignAdminAnimeCoverAsset(animeID, upload.id)
@@ -108,6 +120,11 @@ export function AnimeJellyfinAssetUploadControls({
   }
 
   async function handleManualUpload(target: EditUploadTarget, file: File) {
+    // D-06-Guard: kein Upload ohne aufgelösten Owner-Kontext
+    if (!ownerCtx?.ownerResolved) {
+      onError('Upload nicht möglich: Kein gültiger Owner-Kontext.')
+      return
+    }
     setIsMutatingAssets(true)
     setUploadTarget(target)
     setUploadProgress(0)
@@ -118,6 +135,8 @@ export function AnimeJellyfinAssetUploadControls({
         assetType: EDIT_UPLOAD_TARGETS[target].assetType,
         file,
         onProgress: setUploadProgress,
+        visibilityCode: ownerCtx.visibilityCode,
+        reviewStatusCode: ownerCtx.reviewStatusCode,
       })
 
       if (target === 'banner') {
@@ -533,6 +552,17 @@ export function AnimeJellyfinAssetUploadControls({
 
   return (
     <>
+      {/* D-07: MediaOwnershipContext — Surface 2, Anime-Assets (Branding-Slot, D-09) */}
+      <MediaOwnershipContext
+        ownerType="anime"
+        ownerID={animeID}
+        ownerLabel={animeTitle ? `Anime «${animeTitle}»` : `Anime ${animeID}`}
+        categoryMode="slot"
+        categoryValue="anime-asset"
+        statusPolicy="immediate"
+        disabled={isBusy}
+        onContextChange={setOwnerCtx}
+      />
     <input
         ref={coverInputRef}
         type="file"
