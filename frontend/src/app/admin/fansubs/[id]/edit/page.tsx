@@ -99,6 +99,7 @@ import { MemberRolesTab } from "./MemberRolesTab";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
+import { ReleaseVersionMediaReviewSection } from "./ReleaseVersionMediaReviewSection";
 import { ContributionsReviewSection } from "./ContributionsReviewSection";
 import { GroupMediaReviewSection } from "./GroupMediaReviewSection";
 import { UserSuggestionsInbox } from "./UserSuggestionsInbox";
@@ -3664,11 +3665,19 @@ function AdminFansubEditContent({
               {drawerTab === "media" && canUseReleaseMedia ? (
                 <div className={styles.fansubEditReleaseDrawerPanel}>
                   {drawerRelease.release_version_id > 0 ? (
-                    <ReleaseVersionMediaDrawerSummary
-                      versionId={drawerRelease.release_version_id}
-                      fansubName={drawerRelease.fansub_name}
-                      releaseVersionLabel={`Release-Version ${drawerRelease.release_version_id}`}
-                    />
+                    <>
+                      <ReleaseVersionMediaDrawerSummary
+                        versionId={drawerRelease.release_version_id}
+                        fansubName={drawerRelease.fansub_name}
+                        releaseVersionLabel={`Release-Version ${drawerRelease.release_version_id}`}
+                      />
+                      {capabilities ? (
+                        <ReleaseVersionMediaReviewSection
+                          versionId={drawerRelease.release_version_id}
+                          capabilities={capabilities}
+                        />
+                      ) : null}
+                    </>
                   ) : (
                     <div className={styles.fansubEditReleaseState}>
                       Für diesen Release ist keine konkrete Release-Version verfügbar.
