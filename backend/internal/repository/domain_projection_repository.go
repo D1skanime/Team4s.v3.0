@@ -64,6 +64,8 @@ type DomainProjectionContributorRow struct {
 	ReviewStatus      string   `json:"review_status"`
 }
 
+const domainProjectionMemberDisplayExpr = `COALESCE(NULLIF(TRIM(%s.nickname), ''), NULLIF(TRIM(%s.display_name), ''), 'Mitglied')`
+
 func (r *DomainProjectionRepository) GetFansubGroupDomainProjection(ctx context.Context, groupID int64) (*DomainProjectionResponse, error) {
 	resp := &DomainProjectionResponse{
 		Members:      []DomainProjectionMemberRow{},
@@ -91,7 +93,7 @@ func (r *DomainProjectionRepository) GetFansubGroupDomainProjection(ctx context.
 }
 
 func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, groupID int64) ([]DomainProjectionMemberRow, error) {
-	displayCol := fmt.Sprintf(memberDisplayExpr, "m", "m")
+	displayCol := fmt.Sprintf(domainProjectionMemberDisplayExpr, "m", "m")
 	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
 
 	rows, err := r.db.Query(ctx, `
@@ -152,7 +154,7 @@ func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, 
 }
 
 func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Context, groupID int64) ([]DomainProjectionHistoricalRow, error) {
-	displayCol := fmt.Sprintf(memberDisplayExpr, "m", "m")
+	displayCol := fmt.Sprintf(domainProjectionMemberDisplayExpr, "m", "m")
 	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
 
 	rows, err := r.db.Query(ctx, `
@@ -217,7 +219,7 @@ func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Contex
 }
 
 func (r *DomainProjectionRepository) listProjectionContributors(ctx context.Context, groupID int64) ([]DomainProjectionContributorRow, error) {
-	displayCol := fmt.Sprintf(memberDisplayExpr, "m", "m")
+	displayCol := fmt.Sprintf(domainProjectionMemberDisplayExpr, "m", "m")
 	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
 
 	rows, err := r.db.Query(ctx, `

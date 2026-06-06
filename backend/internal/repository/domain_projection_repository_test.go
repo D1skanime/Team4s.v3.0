@@ -96,6 +96,16 @@ func TestProjectionPublicMemberRowsAvoidInternalIdentity(t *testing.T) {
 	}
 }
 
+func TestProjectionUsesFansubNameBeforeProfileDisplayName(t *testing.T) {
+	content := readRepositorySource(t, "domain_projection_repository.go")
+	normalized := strings.ToLower(content)
+
+	expected := "coalesce(nullif(trim(%s.nickname), ''), nullif(trim(%s.display_name), ''), 'mitglied')"
+	if !strings.Contains(normalized, expected) {
+		t.Fatalf("expected domain projection display name to prefer members.nickname before members.display_name")
+	}
+}
+
 func TestProjectionHandlerHasNoEnvelope(t *testing.T) {
 	content := readBackendSource(t, filepath.Join("internal", "handlers", "domain_projection_handler.go"))
 	normalized := strings.ToLower(content)
