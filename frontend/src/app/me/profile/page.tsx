@@ -53,7 +53,6 @@ export default function MyProfilePage() {
   const [badgeError, setBadgeError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  // pendingImages: Map von pending_key → File (deferred-Batch-Upload vor Save, D-06, D-07)
   const [pendingImages] = useState(() => new Map<string, File>())
   const [uploadProgress, setUploadProgress] = useState<Map<string, number>>(new Map())
   const accountSnapshotRef = useRef<string | null>(null)
@@ -199,22 +198,22 @@ export default function MyProfilePage() {
       return
     }
 
+    // D-06-Guard: Upload nur wenn gültiger Member-Kontext
+    if (!profile.member_id || profile.member_id <= 0) { setError('Upload nicht möglich: Kein gültiger Member-Kontext.'); setSuccess(null); return }
     try {
       setIsSaving(true)
       setError(null)
       setSuccess(null)
-
-      // Deferred-Batch-Upload: pending images vor updateOwnProfile hochladen (D-06, D-07)
       let resolvedStory = form.memberStory
       if (pendingImages.size > 0) {
+        // D-03/Lock K: Story-Bilder = Prozessmedien → private/in_review
+        const storyUploadFn = (file: File, onProgress?: (pct: number) => void) =>
+          uploadOwnProfileStoryImage({ file, onProgress, visibilityCode: 'private', reviewStatusCode: 'in_review' })
         resolvedStory = await uploadPendingStoryImages(
-          form.memberStory,
-          pendingImages,
-          uploadOwnProfileStoryImage,
+          form.memberStory, pendingImages, storyUploadFn,
           (key, pct) => setUploadProgress(prev => new Map(prev).set(key, pct)),
         ) as typeof form.memberStory
       }
-
       const response = await updateOwnProfile({
         fansub_name: form.fansubName.trim() || null,
         bio: form.bio.trim() || null,
@@ -227,13 +226,11 @@ export default function MyProfilePage() {
       applyProfile(response.data, { syncForm: true, resetDirty: true })
       setIsStoryEditing(false)
       setSuccess('Profil wurde gespeichert.')
-      // pendingImages nach erfolgreichem Save leeren
       pendingImages.clear()
     } catch (saveError) {
       if (saveError instanceof ApiError) {
         setError(readErrorMessage(saveError, 'Profil konnte nicht gespeichert werden.'))
       } else {
-        // Upload-Fehler: Fehlermeldung laut UI-SPEC Copywriting Contract
         setError('Mindestens ein Bild konnte nicht hochgeladen werden. Die Geschichte wurde nicht gespeichert. Bitte erneut versuchen.')
       }
       setSuccess(null)
@@ -287,12 +284,13 @@ export default function MyProfilePage() {
 
   async function handleAvatarSelected(payload: { sourceFile: File; croppedFile: File }) {
     if (!hasAuthSession) return
-
+    // D-06-Guard + D-09/Lock K: Branding-Slot public/approved (member_id aus Session)
+    if (!profile?.member_id || profile.member_id <= 0) { setError('Upload nicht möglich: Kein gültiger Member-Kontext.'); setSuccess(null); return }
     try {
       setIsUploadingAvatar(true)
       setError(null)
       setSuccess(null)
-      const response = await uploadOwnProfileAvatar(payload)
+      const response = await uploadOwnProfileAvatar({ ...payload, visibilityCode: 'public', reviewStatusCode: 'approved' })
       const shouldSyncForm = !isFormDirtyRef.current
       applyProfile(response.data, { syncForm: shouldSyncForm, resetDirty: shouldSyncForm })
       setSuccess('Avatar wurde aktualisiert.')
@@ -306,12 +304,13 @@ export default function MyProfilePage() {
 
   async function handleBackgroundSelected(payload: { sourceFile: File; croppedFile: File }) {
     if (!hasAuthSession) return
-
+    // D-06-Guard + D-09/Lock K: Branding-Slot public/approved (member_id aus Session)
+    if (!profile?.member_id || profile.member_id <= 0) { setError('Upload nicht möglich: Kein gültiger Member-Kontext.'); setSuccess(null); return }
     try {
       setIsUploadingBackground(true)
       setError(null)
       setSuccess(null)
-      const response = await uploadOwnProfileBackground(payload)
+      const response = await uploadOwnProfileBackground({ ...payload, visibilityCode: 'public', reviewStatusCode: 'approved' })
       const shouldSyncForm = !isFormDirtyRef.current
       applyProfile(response.data, { syncForm: shouldSyncForm, resetDirty: shouldSyncForm })
       setSuccess('Hintergrundbild wurde aktualisiert.')
