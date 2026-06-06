@@ -1,14 +1,14 @@
 'use client'
 
-import Image from 'next/image'
 import type { ChangeEvent, DragEvent, KeyboardEvent } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ImagePlus, Loader2, Pencil, RefreshCw, Trash2 } from 'lucide-react'
 
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
 import { ApiError, deleteFansubMedia, uploadFansubMedia } from '@/lib/api'
 import { FansubMediaKind } from '@/types/fansub'
 
+import { MediaUploadCore } from './MediaUploadCore'
+import type { MediaOwnershipContextValue } from './media/MediaOwnershipContext'
 import styles from './MediaUpload.module.css'
 
 export interface EditableMediaValue {
@@ -153,25 +153,12 @@ function hslToHex(h: number, s: number, l: number): string {
   let g = 0
   let b = 0
 
-  if (h < 60) {
-    r = c
-    g = x
-  } else if (h < 120) {
-    r = x
-    g = c
-  } else if (h < 180) {
-    g = c
-    b = x
-  } else if (h < 240) {
-    g = x
-    b = c
-  } else if (h < 300) {
-    r = x
-    b = c
-  } else {
-    r = c
-    b = x
-  }
+  if (h < 60) { r = c; g = x }
+  else if (h < 120) { r = x; g = c }
+  else if (h < 180) { g = c; b = x }
+  else if (h < 240) { g = x; b = c }
+  else if (h < 300) { r = x; b = c }
+  else { r = c; b = x }
 
   const toHex = (value: number) => Math.round((value + m) * 255).toString(16).padStart(2, '0')
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`
@@ -210,23 +197,18 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
   const [cropSourceFile, setCropSourceFile] = useState<File | null>(null)
+  // Vorbereiteter State für MediaOwnershipContext-Integration (Task 2)
+  const [ownerCtx, setOwnerCtx] = useState<MediaOwnershipContextValue | null>(null)
 
   const fallback = useMemo(() => buildFansubLogoFallback(groupName), [groupName])
   const busy = busyAction !== null || preparingEdit
-  const hasValue = Boolean(value?.publicURL?.trim())
   const isLogo = type === 'logo'
   const filename = deriveFilename(value)
   const previewURL = buildMediaPreviewURL(value)
-
-  const title = isLogo ? 'Logo' : 'Banner'
   const acceptedMime = isLogo ? 'image/svg+xml,image/png,image/jpeg,image/webp' : 'image/png,image/jpeg,image/webp,image/gif'
   const dropzoneAriaLabel = isLogo
-    ? hasValue
-      ? 'Logo ersetzen oder neu hochladen'
-      : 'Logo hochladen'
-    : hasValue
-      ? 'Banner ersetzen oder neu hochladen'
-      : 'Banner hochladen'
+    ? Boolean(value?.publicURL?.trim()) ? 'Logo ersetzen oder neu hochladen' : 'Logo hochladen'
+    : Boolean(value?.publicURL?.trim()) ? 'Banner ersetzen oder neu hochladen' : 'Banner hochladen'
 
   useEffect(() => {
     onBusyChange?.(busy)
@@ -244,6 +226,10 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
         kind: type,
         file,
         onProgress: setProgress,
+        ...(ownerCtx?.ownerResolved ? {
+          visibilityCode: ownerCtx.visibilityCode,
+          reviewStatusCode: ownerCtx.reviewStatusCode,
+        } : {}),
       })
 
       const media = response.data.media
@@ -271,7 +257,7 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
   }
 
   const onEditCurrentLogo = async () => {
-    if (!isLogo || !hasValue || disabled || busy) return
+    if (!isLogo || !Boolean(value?.publicURL?.trim()) || disabled || busy) return
     const sourceURL = previewURL || value?.publicURL?.trim() || ''
     if (!sourceURL) return
 
@@ -338,7 +324,6 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
     event.preventDefault()
     event.stopPropagation()
     setDragging(false)
-
     if (busy || disabled) return
     const file = event.dataTransfer.files?.[0]
     if (!file) return
@@ -354,7 +339,7 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
   }
 
   const onRemove = async () => {
-    if (busy || disabled || !hasValue) return
+    if (busy || disabled || !Boolean(value?.publicURL?.trim())) return
     setError(null)
     setWarning(null)
     setBusyAction('delete')
@@ -369,26 +354,30 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
     }
   }
 
+  // ownerCtx wird in Task 2 verdrahtet; Unterdrückung damit kein TS-Fehler wegen ungelesener Variable
+  void ownerCtx
+
   return (
     <div className={styles.card}>
-      <div className={styles.headerRow}>
-        <h3>{title}</h3>
-        {busy ? (
-          <span className={styles.statusPill} aria-live="polite">
-            <Loader2 size={14} className={styles.spinner} />
-            {preparingEdit ? 'Bearbeiten...' : busyAction === 'upload' ? 'Upload...' : 'Löschen...'}
-          </span>
-        ) : null}
-      </div>
-
-      <div
-        className={`${styles.dropzone} ${dragging ? styles.dropzoneDrag : ''} ${error ? styles.dropzoneError : ''} ${disabled ? styles.dropzoneDisabled : ''}`}
-        role="button"
-        tabIndex={disabled ? -1 : 0}
-        aria-label={dropzoneAriaLabel}
-        aria-busy={busy}
-        onClick={() => (!disabled && !busy ? inputRef.current?.click() : undefined)}
-        onKeyDown={onDropzoneKeyDown}
+      <MediaUploadCore
+        type={type}
+        value={value}
+        filename={filename}
+        previewURL={previewURL}
+        formattedSize={formatBytes(value?.sizeBytes)}
+        fallback={fallback}
+        busy={busy}
+        preparingEdit={preparingEdit}
+        busyAction={busyAction}
+        progress={progress}
+        error={error}
+        warning={warning}
+        dragging={dragging}
+        disabled={disabled}
+        inputRef={inputRef}
+        acceptedMime={acceptedMime}
+        dropzoneAriaLabel={dropzoneAriaLabel}
+        onFileInputChange={(event) => void onInputChange(event)}
         onDragOver={(event) => {
           event.preventDefault()
           event.stopPropagation()
@@ -404,112 +393,10 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
           event.stopPropagation()
           setDragging(false)
         }}
-        onDrop={(event) => {
-          void onDrop(event)
-        }}
-        aria-disabled={disabled || busy}
-      >
-        {hasValue ? (
-          <>
-            {isLogo ? (
-              <div className={styles.previewRound}>
-                <Image
-                  src={previewURL}
-                  alt="Logo Vorschau"
-                  className={styles.previewImageRound}
-                  width={116}
-                  height={116}
-                  unoptimized
-                />
-              </div>
-            ) : (
-              <div className={styles.previewWide}>
-                <Image
-                  src={previewURL}
-                  alt="Banner Vorschau"
-                  className={styles.previewImageWide}
-                  width={520}
-                  height={130}
-                  unoptimized
-                />
-              </div>
-            )}
-          </>
-        ) : isLogo ? (
-          <div className={styles.previewRoundFallback} style={{ backgroundColor: fallback.background, color: fallback.color }}>
-            {fallback.initials}
-          </div>
-        ) : (
-          <div className={styles.previewWideEmpty}>Kein Banner vorhanden</div>
-        )}
-
-        {!hasValue ? (
-          <div className={styles.emptyState}>
-            <ImagePlus size={20} />
-            <span>Bild hierher ziehen oder klicken zum Hochladen</span>
-          </div>
-        ) : null}
-      </div>
-
-      {busyAction === 'upload' ? (
-        <div className={styles.progressWrap}>
-          <div className={styles.progressTrack}>
-            <div className={styles.progressBar} style={{ width: `${progress}%` }} />
-          </div>
-          <span className={styles.progressLabel}>{progress}%</span>
-        </div>
-      ) : null}
-
-      <div className={styles.fileMeta}>
-        <span>{filename || 'Kein Dateiname'}</span>
-        <span>{formatBytes(value?.sizeBytes)}</span>
-      </div>
-
-      <div className={styles.actions}>
-        {isLogo && hasValue ? (
-          <button
-            type="button"
-            className={styles.buttonSecondary}
-            onClick={() => void onEditCurrentLogo()}
-            disabled={disabled || busy}
-            aria-label="Logo bearbeiten"
-          >
-            <Pencil size={14} />
-            Edit
-          </button>
-        ) : null}
-        <button
-          type="button"
-          className={styles.buttonSecondary}
-          onClick={() => inputRef.current?.click()}
-          disabled={disabled || busy}
-          aria-label={`${title} ersetzen`}
-        >
-          <RefreshCw size={14} />
-          Replace
-        </button>
-        <button
-          type="button"
-          className={styles.buttonDanger}
-          onClick={() => void onRemove()}
-          disabled={disabled || busy || !hasValue}
-          aria-label={`${title} löschen`}
-        >
-          <Trash2 size={14} />
-          Delete
-        </button>
-      </div>
-
-      {warning ? <p className={styles.warning} aria-live="polite">{warning}</p> : null}
-      {error ? <p className={styles.error} role="alert">{error}</p> : null}
-
-      <input
-        ref={inputRef}
-        className={styles.fileInput}
-        type="file"
-        accept={acceptedMime}
-        aria-label={`${title} Datei auswählen`}
-        onChange={(event) => void onInputChange(event)}
+        onDrop={(event) => void onDrop(event)}
+        onDropzoneKeyDown={onDropzoneKeyDown}
+        onEditClick={() => void onEditCurrentLogo()}
+        onRemoveClick={() => void onRemove()}
       />
 
       {type === 'logo' && cropSourceFile ? (
