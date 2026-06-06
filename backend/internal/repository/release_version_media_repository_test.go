@@ -259,3 +259,78 @@ func TestReleaseVersionMedia_CleanupServicePassesExist(t *testing.T) {
 	assert.True(t, strings.Contains(content, "SelectSoftDeleteRVMCleanupCandidates"),
 		"cleanup service must implement pass 3: soft-delete purge scan")
 }
+
+// ---------------------------------------------------------------------------
+// Task 79-02 Task 2: Sub-SELECT-Persistenz in CreateMediaAsset + Handler-Defaults
+// ---------------------------------------------------------------------------
+
+// TestCreateMediaAsset_SubSelectVisibilityOnInput verifies that media_repository.go
+// contains the Sub-SELECT pattern for visibility_id and review_status_id
+// in CreateMediaAsset when VisibilityCode is not nil (Lock K).
+func TestCreateMediaAsset_SubSelectVisibilityOnInput(t *testing.T) {
+	repoSrc, err := os.ReadFile("../repository/media_repository.go")
+	require.NoError(t, err)
+	content := string(repoSrc)
+
+	// Sub-SELECT muss im INSERT für visibility_id vorhanden sein
+	assert.True(t, strings.Contains(content, "SELECT id FROM visibilities WHERE name"),
+		"CreateMediaAsset INSERT muss Sub-SELECT für visibility_id enthalten (Lock K)")
+
+	// Sub-SELECT muss im INSERT für review_status_id vorhanden sein
+	assert.True(t, strings.Contains(content, "SELECT id FROM review_statuses WHERE code"),
+		"CreateMediaAsset INSERT muss Sub-SELECT für review_status_id enthalten (Lock K)")
+}
+
+// TestFansubMediaUploadHandler_BrandingDefaults verifies the fansub_media_upload.go
+// handler sets Branding-Defaults (public/approved) when visibility/review fields are empty (D-09).
+func TestFansubMediaUploadHandler_BrandingDefaults(t *testing.T) {
+	src, err := os.ReadFile("../handlers/fansub_media_upload.go")
+	require.NoError(t, err)
+	content := string(src)
+
+	// Branding-Default: 'public' und 'approved' müssen als Default gesetzt werden
+	assert.True(t, strings.Contains(content, `"public"`),
+		"fansub_media_upload.go muss 'public' als Branding-Default setzen (D-09)")
+	assert.True(t, strings.Contains(content, `"approved"`),
+		"fansub_media_upload.go muss 'approved' als Branding-Default setzen (D-09)")
+
+	// visibility_code muss aus FormData gelesen werden
+	assert.True(t, strings.Contains(content, "visibility_code"),
+		"fansub_media_upload.go muss visibility_code aus FormData lesen")
+
+	// review_status_code muss aus FormData gelesen werden
+	assert.True(t, strings.Contains(content, "review_status_code"),
+		"fansub_media_upload.go muss review_status_code aus FormData lesen")
+}
+
+// TestRVMHandler_ProzessmedienDefaults verifies admin_content_release_version_media.go
+// sets Prozessmedien-Defaults (private/in_review) when fields are empty (D-03).
+func TestRVMHandler_ProzessmedienDefaults(t *testing.T) {
+	src, err := os.ReadFile("../handlers/admin_content_release_version_media.go")
+	require.NoError(t, err)
+	content := string(src)
+
+	// Prozessmedien-Default: 'private' und 'in_review' müssen als Default gesetzt werden
+	assert.True(t, strings.Contains(content, `"private"`),
+		"admin_content_release_version_media.go muss 'private' als Prozessmedien-Default setzen (D-03)")
+	assert.True(t, strings.Contains(content, `"in_review"`),
+		"admin_content_release_version_media.go muss 'in_review' als Prozessmedien-Default setzen (D-03)")
+}
+
+// TestMemberMediaHandler_LockI_OwnerFromSession verifies member_media_upload.go
+// does NOT read owner_member_id from PostForm (Lock I enforcement).
+func TestMemberMediaHandler_LockI_OwnerFromSession(t *testing.T) {
+	src, err := os.ReadFile("../handlers/member_media_upload.go")
+	require.NoError(t, err)
+	content := string(src)
+
+	// owner_member_id darf NICHT aus PostForm kommen (Lock I)
+	assert.False(t, strings.Contains(content, `PostForm("owner_member_id")`),
+		"member_media_upload.go darf owner_member_id NICHT aus dem Request lesen (Lock I)")
+
+	// Avatar/Hintergrund-Branding-Default: 'public' und 'approved' müssen vorhanden sein
+	assert.True(t, strings.Contains(content, `"public"`),
+		"member_media_upload.go muss 'public' als Branding-Default für Avatar/Hintergrund setzen (D-09)")
+	assert.True(t, strings.Contains(content, `"approved"`),
+		"member_media_upload.go muss 'approved' als Branding-Default für Avatar/Hintergrund setzen (D-09)")
+}
