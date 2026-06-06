@@ -8,6 +8,7 @@ import { ApiError, deleteFansubMedia, uploadFansubMedia } from '@/lib/api'
 import { FansubMediaKind } from '@/types/fansub'
 
 import { MediaUploadCore } from './MediaUploadCore'
+import { MediaOwnershipContext } from './media/MediaOwnershipContext'
 import type { MediaOwnershipContextValue } from './media/MediaOwnershipContext'
 import styles from './MediaUpload.module.css'
 
@@ -215,6 +216,12 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
   }, [busy, onBusyChange])
 
   const submitUpload = async (file: File) => {
+    // D-06: Upload blockieren wenn Owner nicht aufgelöst
+    if (!ownerCtx?.ownerResolved) {
+      setError('Upload nicht möglich: Kein gültiger Owner-Kontext.')
+      return
+    }
+
     setError(null)
     setWarning(null)
     setBusyAction('upload')
@@ -226,10 +233,8 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
         kind: type,
         file,
         onProgress: setProgress,
-        ...(ownerCtx?.ownerResolved ? {
-          visibilityCode: ownerCtx.visibilityCode,
-          reviewStatusCode: ownerCtx.reviewStatusCode,
-        } : {}),
+        visibilityCode: ownerCtx.visibilityCode,
+        reviewStatusCode: ownerCtx.reviewStatusCode,
       })
 
       const media = response.data.media
@@ -354,11 +359,20 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
     }
   }
 
-  // ownerCtx wird in Task 2 verdrahtet; Unterdrückung damit kein TS-Fehler wegen ungelesener Variable
-  void ownerCtx
-
   return (
     <div className={styles.card}>
+      {/* D-07: Surface 1 — Fansub Branding-Slot (ownerType=fansub_group, statusPolicy=immediate) */}
+      <MediaOwnershipContext
+        ownerType="fansub_group"
+        ownerID={fansubID}
+        ownerLabel={groupName ? `Gruppe «${groupName}»` : ''}
+        categoryMode="slot"
+        categoryValue={type}
+        statusPolicy="immediate"
+        disabled={disabled}
+        onContextChange={setOwnerCtx}
+      />
+
       <MediaUploadCore
         type={type}
         value={value}
@@ -373,7 +387,7 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
         error={error}
         warning={warning}
         dragging={dragging}
-        disabled={disabled}
+        disabled={disabled || ownerCtx?.ownerResolved === false}
         inputRef={inputRef}
         acceptedMime={acceptedMime}
         dropzoneAriaLabel={dropzoneAriaLabel}
