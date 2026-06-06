@@ -1848,7 +1848,7 @@ Plans:
   4. Es wird kein neuer Upload-Transport gebaut; `authorizedUploadXhr` und bestehende Upload-Helfer werden wiederverwendet.
   5. Bestehende Upload-Komponenten (`MediaUpload.tsx`, `ReleaseVersionMediaSection.tsx`, Profil-Media, Theme-Asset-Upload) werden konsistent auf das erzwungene Owner-/Status-Modell gehoben.
 
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 Plans:
 - [x] `79-01-PLAN.md` — TDD: mediaStatusMapping + MediaOwnershipContext-Komponente (D-01/D-02/D-03/D-06/D-07/D-09)
 - [ ] `79-02-PLAN.md` — Lock-K Contract-Pfad: OpenAPI + models + Repository INSERT + Go-Handler (Branding/Prozessmedien-Defaults) + api.ts
