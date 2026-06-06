@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
 stopped_at: Phase 79 Plan 01 complete — mediaStatusMapping + MediaOwnershipContext (16/16 Tests grün)
-last_updated: "2026-06-06T18:43:07.703Z"
+last_updated: "2026-06-06T18:58:30.834Z"
 last_activity: 2026-06-06
 progress:
   total_phases: 76
-  completed_phases: 57
+  completed_phases: 58
   total_plans: 295
-  completed_plans: 252
-  percent: 75
+  completed_plans: 259
+  percent: 76
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 79 (medien-ownership-in-ui-durchsetzen) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 ## Accumulated Context
 
@@ -234,6 +234,8 @@ Recent durable decisions:
 - [Phase ?]: [Phase 74-01]: COALESCE(m.profile_status, 'active') in CTE als sicherer Fallback fuer retrokompatible Projektion ohne Migration in Plan 01
 - [Phase 74-03]: Migration 0098 member_correction_reports: eigene Tabelle (Lock H), status DEFAULT 'in_review' (D-18), target_type CHECK ('profile','contribution','role'); review-gebundener Insert via MemberCorrectionRepository.CreateCorrectionReport; requireMeIdentity-Gate auf POST /api/v1/me/members/:id/correction; audit_logs member_correction.submitted (D-15)
 - [Phase ?]: [Phase 74-05]: ContributionFilterEntry als Union-Typ-Brücke für Wave-0-Test/PublicMemberRoleEntry-Kompatibilität; vitest globals:true für @testing-library auto-cleanup; Top-N=4 Badge-Slicing
+- [Phase ?]: [Phase 79-04]: CATEGORY_OPTIONS + Utilities in ReleaseVersionMediaSection.helpers.tsx ausgelagert (396 Z., ≤450)
+- [Phase ?]: [Phase 79-04]: AnimeJellyfinAssetUploadControls.tsx 662 Zeilen Pre-existing — Split als Follow-up-Quick-Task deferred
 
 ### Pending Todos
 
@@ -404,6 +406,7 @@ Recent durable decisions:
 | 79 | 01 | 6min | 2 tasks | 6 files |
 | 79 | 02 | 14min | 3 tasks | 11 files |
 | Phase 79 P03 | 9min | 3 tasks | 3 files |
+| Phase 79 P04 | 9min | 3 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -439,7 +442,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-06T18:43:07.671Z
+Last session: 2026-06-06T18:57:16.615Z
 Stopped at: Phase 79 Plan 01 complete — mediaStatusMapping + MediaOwnershipContext (16/16 Tests grün)
 Last activity: 2026-06-06
 Resume file: None
