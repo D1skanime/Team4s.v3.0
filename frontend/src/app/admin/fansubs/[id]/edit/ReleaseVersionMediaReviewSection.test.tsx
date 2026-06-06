@@ -119,7 +119,9 @@ describe('ReleaseVersionMediaReviewSection — Capability-Gating (D-08)', () => 
     )
 
     // Sektions-Titel aus Copywriting-Contract (78-UI-SPEC)
-    expect(await screen.findByText('Sichtbarkeit')).toBeTruthy()
+    expect(await screen.findByText('Medien prüfen')).toBeTruthy()
+    // Pro Release-Medium je ein Sichtbarkeits-Control (sampleMedia hat 2 Items).
+    expect(screen.getAllByText('Sichtbarkeit')).toHaveLength(sampleMedia.length)
   })
 })
 
