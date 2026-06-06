@@ -30,6 +30,8 @@ interface UploadConfig {
   category: ReleaseVersionMediaCategory
   defaultCaption?: string
   isPreviewCandidate?: boolean
+  visibilityCode?: string
+  reviewStatusCode?: string
 }
 
 export interface UseReleaseVersionMediaResult {
@@ -43,6 +45,8 @@ export interface UseReleaseVersionMediaResult {
     files: File[],
     defaultCaption?: string,
     isPreviewCandidate?: boolean,
+    visibilityCode?: string,
+    reviewStatusCode?: string,
   ) => Promise<void>
   retryUpload: (fileIndex: number) => Promise<void>
   clearUploadQueue: () => void
@@ -153,6 +157,8 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
           versionId,
           category: config.category,
           files,
+          visibilityCode: config.visibilityCode,
+          reviewStatusCode: config.reviewStatusCode,
           onProgress: (_fileIndex, percent) => {
             setUploadItems((current) =>
               current.map((item, index) =>
@@ -264,12 +270,14 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
       files: File[],
       defaultCaption?: string,
       isPreviewCandidate?: boolean,
+      visibilityCode?: string,
+      reviewStatusCode?: string,
     ) => {
       if (files.length === 0) {
         return
       }
 
-      const config: UploadConfig = { category, defaultCaption, isPreviewCandidate }
+      const config: UploadConfig = { category, defaultCaption, isPreviewCandidate, visibilityCode, reviewStatusCode }
       const initialQueue = files.map<UploadQueueItem>((file) => ({
         file,
         status: 'idle',
