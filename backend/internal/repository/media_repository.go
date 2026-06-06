@@ -604,3 +604,92 @@ func (r *MediaRepository) GetFansubMediaOwner(ctx context.Context, mediaID int64
 	}
 	return groupID, nil
 }
+
+// --- Release-Version-Medien-Review-Methoden (Phase 78) ---
+
+// UpdateReleaseVersionMediaReview setzt ausschließlich Sichtbarkeit und/oder Reviewstatus
+// eines Release-Version-Mediums über die media_assets-Tabelle.
+// Die EXISTS-Subquery auf release_version_media stellt die Zugehörigkeit zur Release-Version sicher (IDOR-Schutz).
+// Ändert NIEMALS owner_type oder owner_id (D-05, Lock G).
+func (r *MediaRepository) UpdateReleaseVersionMediaReview(ctx context.Context, relationID int64, patch FansubMediaReviewPatch) error {
+	if patch.Visibility == nil && patch.ReviewStatus == nil {
+		return nil
+	}
+
+	if patch.Visibility != nil && patch.ReviewStatus != nil {
+		dbVis, ok := visibilityAPIToDB[*patch.Visibility]
+		if !ok {
+			return fmt.Errorf("ungültiger Sichtbarkeitswert: %q", *patch.Visibility)
+		}
+		dbStatus, ok := reviewStatusAPIToDB[*patch.ReviewStatus]
+		if !ok {
+			return fmt.Errorf("ungültiger Prüfstatus: %q", *patch.ReviewStatus)
+		}
+		tag, err := r.db.Exec(ctx, `
+			UPDATE media_assets ma
+			SET
+				visibility_id    = (SELECT id FROM visibilities WHERE name = $1 LIMIT 1),
+				review_status_id = (SELECT id FROM review_statuses WHERE code = $2 LIMIT 1)
+			WHERE ma.id = (
+				SELECT rvm.media_asset_id
+				FROM release_version_media rvm
+				WHERE rvm.id = $3 AND rvm.deleted_at IS NULL
+				LIMIT 1
+			)
+		`, dbVis, dbStatus, relationID)
+		if err != nil {
+			return fmt.Errorf("update release_version_media review (vis+status, relation_id=%d): %w", relationID, err)
+		}
+		if tag.RowsAffected() == 0 {
+			return ErrNotFound
+		}
+		return nil
+	}
+
+	if patch.Visibility != nil {
+		dbVis, ok := visibilityAPIToDB[*patch.Visibility]
+		if !ok {
+			return fmt.Errorf("ungültiger Sichtbarkeitswert: %q", *patch.Visibility)
+		}
+		tag, err := r.db.Exec(ctx, `
+			UPDATE media_assets ma
+			SET visibility_id = (SELECT id FROM visibilities WHERE name = $1 LIMIT 1)
+			WHERE ma.id = (
+				SELECT rvm.media_asset_id
+				FROM release_version_media rvm
+				WHERE rvm.id = $2 AND rvm.deleted_at IS NULL
+				LIMIT 1
+			)
+		`, dbVis, relationID)
+		if err != nil {
+			return fmt.Errorf("update release_version_media visibility (relation_id=%d): %w", relationID, err)
+		}
+		if tag.RowsAffected() == 0 {
+			return ErrNotFound
+		}
+		return nil
+	}
+
+	// Nur ReviewStatus
+	dbStatus, ok := reviewStatusAPIToDB[*patch.ReviewStatus]
+	if !ok {
+		return fmt.Errorf("ungültiger Prüfstatus: %q", *patch.ReviewStatus)
+	}
+	tag, err := r.db.Exec(ctx, `
+		UPDATE media_assets ma
+		SET review_status_id = (SELECT id FROM review_statuses WHERE code = $1 LIMIT 1)
+		WHERE ma.id = (
+			SELECT rvm.media_asset_id
+			FROM release_version_media rvm
+			WHERE rvm.id = $2 AND rvm.deleted_at IS NULL
+			LIMIT 1
+		)
+	`, dbStatus, relationID)
+	if err != nil {
+		return fmt.Errorf("update release_version_media review_status (relation_id=%d): %w", relationID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}

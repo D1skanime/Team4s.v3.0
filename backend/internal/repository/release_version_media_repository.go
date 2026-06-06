@@ -30,10 +30,14 @@ type ReleaseVersionMediaCreateInput struct {
 // ReleaseVersionMediaPatchInput holds the patchable fields for a release_version_media row.
 // A nil pointer means "do not change this field".
 // CaptionSet=true with Caption=nil means explicitly clear the caption to NULL.
+// Visibility and ReviewStatus target media_assets (the owner row) — nil = do not change (D-05/Lock G).
 type ReleaseVersionMediaPatchInput struct {
 	Caption            *string
 	CaptionSet         bool
 	IsPreviewCandidate *bool
+	// Review-Felder (Phase 78, additiv): nur gesetzt wenn Key im Request vorhanden war.
+	Visibility   *string // kanonischer API-Wert (intern/oeffentlich), nil = nicht ändern
+	ReviewStatus *string // kanonischer API-Wert (in_pruefung/...), nil = nicht ändern
 }
 
 // ReleaseVersionMediaReorderItem pairs a relation ID with its new sort_order.

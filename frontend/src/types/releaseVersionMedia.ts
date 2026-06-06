@@ -59,10 +59,23 @@ export interface ReleaseVersionMediaUploadResponse {
   results: ReleaseVersionMediaUploadResult[]
 }
 
+export type ReleaseVersionMediaVisibility = 'intern' | 'oeffentlich'
+
+export type ReleaseVersionMediaReviewStatus =
+  | 'in_pruefung'
+  | 'freigegeben'
+  | 'abgelehnt'
+  | 'archiviert'
+  | 'entfernt'
+
 export interface ReleaseVersionMediaPatchRequest {
   caption?: string | null
   sort_order?: number
   is_preview_candidate?: boolean
+  /** Optionale Sichtbarkeit (Phase 78, D-05/Lock K). Nur senden wenn explizit geändert. */
+  visibility?: ReleaseVersionMediaVisibility
+  /** Optionaler Prüfstatus (Phase 78, D-05/Lock K). Nur senden wenn explizit geändert. */
+  review_status?: ReleaseVersionMediaReviewStatus
 }
 
 export interface ReleaseVersionMediaReorderItem {

@@ -761,6 +761,8 @@ types:
   ReleaseVersionMediaPatchRequest:
     caption: string | null
     is_preview_candidate: boolean (optional)
+    visibility: string (optional, enum: intern | oeffentlich)
+    review_status: string (optional, enum: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt)
   StatusResponse:
     status: string
   AnimeContribution:
