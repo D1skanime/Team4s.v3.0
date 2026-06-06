@@ -1850,7 +1850,7 @@ Plans:
 
 **Plans:** 5 plans
 Plans:
-- [ ] `79-01-PLAN.md` — TDD: mediaStatusMapping + MediaOwnershipContext-Komponente (D-01/D-02/D-03/D-06/D-07/D-09)
+- [x] `79-01-PLAN.md` — TDD: mediaStatusMapping + MediaOwnershipContext-Komponente (D-01/D-02/D-03/D-06/D-07/D-09)
 - [ ] `79-02-PLAN.md` — Lock-K Contract-Pfad: OpenAPI + models + Repository INSERT + Go-Handler (Branding/Prozessmedien-Defaults) + api.ts
 - [ ] `79-03-PLAN.md` — Surface 1 (MediaUpload.tsx Split + MediaOwnershipContext) + Surface 3 (ReleaseThemeAssetsSection + native-select-Migration)
 - [ ] `79-04-PLAN.md` — Surface 4 (ReleaseVersionMediaSection + useReleaseVersionMedia) + Surface 2 (AnimeJellyfinAssetUploadControls)

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: ready_to_plan
-stopped_at: Phase 79 UI-SPEC approved
-last_updated: "2026-06-06T02:17:07.094Z"
+status: executing
+stopped_at: Phase 79 Plan 01 complete
+last_updated: "2026-06-06T18:04:00Z"
 last_activity: 2026-06-06
 progress:
   total_phases: 76
   completed_phases: 57
   total_plans: 295
-  completed_plans: 249
+  completed_plans: 250
   percent: 75
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 79 — medien ownership in ui durchsetzen
+**Current focus:** Phase 79 — medien-ownership-in-ui-durchsetzen
 
 ## Current Position
 
-Phase: 79
-Plan: Not started
+Phase: 79 (medien-ownership-in-ui-durchsetzen) — EXECUTING
+Plan: 2 of 5
 
 ## Accumulated Context
 
@@ -35,6 +35,11 @@ Plan: Not started
 Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
+
+- [Phase 79-01]: STATUS_LABELS_ORDERED Reihenfolge: intern → in Prüfung → öffentlich → abgelehnt → archiviert → entfernt (UI-SPEC)
+- [Phase 79-01]: onContextChange via useEffect bei Owner-Guard und jeder Status-/Kategorie-Änderung
+- [Phase 79-01]: jsdom-Environment via @vitest-environment jsdom Direktive pro Datei (Datei-Ebene, nicht global in vitest.config.ts)
+- [Phase 79-01]: .gitignore Exception für frontend/src/components/admin/media/ (media/-Regel traf rekursiv)
 
 - [Phase 67-01]: Migrationsnummer 0091 statt geplanter 0090 — 0090 ist durch Phase 70 (member_story_images) belegt (Pitfall 4); Inhalt/Form unveraendert.
 - [Phase 67-01]: ON DELETE SET NULL fuer release_version_id — historisches Faktum bleibt erhalten, faellt auf anime-weit zurueck (kein CASCADE/RESTRICT).
@@ -392,6 +397,7 @@ Recent durable decisions:
 | Phase 74 P03 | 20min | 2 tasks | 7 files |
 | Phase 74 P05 | 11min | 2 tasks | 9 files |
 | Phase 74 P06 | 30min | 2 tasks (Task 3 pending human-verify) | 8 files |
+| 79 | 01 | 6min | 2 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -427,7 +433,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-06T01:31:58.312Z
-Stopped at: Phase 79 UI-SPEC approved
+Last session: 2026-06-06T18:04:00Z
+Stopped at: Phase 79 Plan 01 complete — mediaStatusMapping + MediaOwnershipContext (16/16 Tests grün)
 Last activity: 2026-06-06
-Resume file: .planning/phases/79-medien-ownership-in-ui-durchsetzen/79-UI-SPEC.md
+Resume file: .planning/phases/79-medien-ownership-in-ui-durchsetzen/79-01-SUMMARY.md
