@@ -5,14 +5,21 @@ import { RefreshCw } from 'lucide-react'
 
 import {
   CATEGORY_ALLOWS_PREVIEW,
-  CATEGORY_LABELS,
-  RELEASE_VERSION_MEDIA_CATEGORIES,
   ReleaseVersionMediaCategory,
 } from '@/types/releaseVersionMedia'
 
+import { MediaOwnershipContext, MediaOwnershipContextValue } from '@/components/admin/media/MediaOwnershipContext'
 import { ReleaseVersionMediaDetailPanel } from './ReleaseVersionMediaDetailPanel'
 import { ReleaseVersionMediaGallery } from './ReleaseVersionMediaGallery'
 import { UploadQueueItem, useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
+import {
+  CATEGORY_OPTIONS,
+  buildLocalPreviewURL,
+  fileKey,
+  isTerminalStatus,
+  statusClassName,
+  statusLabel,
+} from './ReleaseVersionMediaSection.helpers'
 import styles from './ReleaseVersionMediaSection.module.css'
 
 interface ReleaseVersionMediaSectionProps {
@@ -20,52 +27,6 @@ interface ReleaseVersionMediaSectionProps {
   fansubGroupName: string
   releaseVersionLabel: string
   mediaState?: UseReleaseVersionMediaResult
-}
-
-function fileKey(file: File): string {
-  return `${file.name}:${file.size}:${file.lastModified}`
-}
-
-function buildLocalPreviewURL(file: File): string | null {
-  if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
-    return null
-  }
-
-  return URL.createObjectURL(file)
-}
-
-function statusLabel(item: UploadQueueItem): string {
-  switch (item.status) {
-    case 'uploading':
-      return `hochladen... ${item.progress}%`
-    case 'processing':
-      return 'verarbeiten...'
-    case 'ready':
-      return 'Fertig'
-    case 'failed':
-      return 'Fehler'
-    default:
-      return 'idle'
-  }
-}
-
-function statusClassName(item: UploadQueueItem): string {
-  switch (item.status) {
-    case 'uploading':
-      return styles.uploading
-    case 'processing':
-      return styles.processing
-    case 'ready':
-      return styles.ready
-    case 'failed':
-      return styles.failed
-    default:
-      return styles.idle
-  }
-}
-
-function isTerminalStatus(status: UploadQueueItem['status']): boolean {
-  return status === 'ready' || status === 'failed'
 }
 
 export function ReleaseVersionMediaSection({
@@ -77,12 +38,17 @@ export function ReleaseVersionMediaSection({
   const internalMedia = useReleaseVersionMedia(versionId)
   const media = mediaState ?? internalMedia
   const persistedItems = Array.isArray(media.items) ? media.items : []
+
+  // ─── Owner-Kontext (MediaOwnershipContext, D-07) ───────────────────────────
+  const [ownerCtx, setOwnerCtx] = useState<MediaOwnershipContextValue | null>(null)
+
   const [selectedCategory, setSelectedCategory] = useState<ReleaseVersionMediaCategory | ''>('')
   const [defaultCaption, setDefaultCaption] = useState('')
   const [isPreviewCandidate, setIsPreviewCandidate] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [isDragActive, setIsDragActive] = useState(false)
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const selectedFilePreviews = useMemo(
@@ -131,16 +97,6 @@ export function ReleaseVersionMediaSection({
   const selectedItem =
     persistedItems.find((item) => item.id === selectedItemId) ?? null
 
-  function handleCategoryChange(nextValue: string) {
-    const nextCategory = nextValue as ReleaseVersionMediaCategory | ''
-    setSelectedCategory(nextCategory)
-    if (!nextCategory || !CATEGORY_ALLOWS_PREVIEW[nextCategory]) {
-      setIsPreviewCandidate(false)
-    }
-    setSelectedFiles([])
-    media.clearUploadQueue()
-  }
-
   function handleFiles(nextFiles: File[]) {
     setSelectedFiles((current) => {
       const merged = [...current]
@@ -183,15 +139,24 @@ export function ReleaseVersionMediaSection({
   }
 
   async function handleUploadClick() {
+    // D-06-Guard: kein Upload ohne aufgelösten Owner-Kontext
+    if (!ownerCtx?.ownerResolved) {
+      setUploadError('Upload nicht möglich: Kein gültiger Owner-Kontext.')
+      return
+    }
+
     if (!selectedCategory || selectedFiles.length === 0) {
       return
     }
 
+    setUploadError(null)
     await media.startUpload(
       selectedCategory,
       selectedFiles,
       defaultCaption,
       canShowPreviewToggle ? isPreviewCandidate : false,
+      ownerCtx.visibilityCode,
+      ownerCtx.reviewStatusCode,
     )
     setSelectedFiles([])
   }
@@ -211,28 +176,31 @@ export function ReleaseVersionMediaSection({
           </p>
         </div>
 
+        {/* D-07: MediaOwnershipContext — Surface 4, Prozessmedien */}
+        <MediaOwnershipContext
+          ownerType="release_version"
+          ownerID={versionId}
+          ownerLabel={`Version ${versionId}`}
+          categoryMode="dropdown"
+          categoryOptions={[...CATEGORY_OPTIONS]}
+          statusPolicy="in_review"
+          disabled={isBusy}
+          onContextChange={(ctx) => {
+            setOwnerCtx(ctx)
+            // Kategorie-Dropdown aus MediaOwnershipContext übernehmen (D-08)
+            if (ctx.categoryValue) {
+              setSelectedCategory(ctx.categoryValue as ReleaseVersionMediaCategory)
+            }
+          }}
+        />
+
         {media.error ? <div className={styles.errorBox}>API Fehler: {media.error}</div> : null}
+        {uploadError ? <div className={styles.errorBox}>{uploadError}</div> : null}
         {media.capabilitiesError && !canViewMedia ? (
           <div className={styles.errorBox}>Diese Release-Version darfst du im Media-Bereich nicht bearbeiten.</div>
         ) : null}
 
         <div className={styles.controls}>
-          <label className={styles.field}>
-            <span>Kategorie</span>
-            <select
-              className={styles.select}
-              value={selectedCategory}
-              onChange={(event) => handleCategoryChange(event.target.value)}
-            >
-              <option value="">Kategorie wählen</option>
-              {RELEASE_VERSION_MEDIA_CATEGORIES.map((category) => (
-                <option key={category} value={category}>
-                  {CATEGORY_LABELS[category]}
-                </option>
-              ))}
-            </select>
-          </label>
-
           {selectedCategory ? (
             <label className={styles.field}>
               <span>Standard-Beschreibung</span>
@@ -332,7 +300,7 @@ export function ReleaseVersionMediaSection({
               type="button"
               className={styles.buttonPrimary}
               onClick={() => void handleUploadClick()}
-              disabled={!canUpload}
+              disabled={!canUpload || !ownerCtx?.ownerResolved}
             >
               Upload starten
             </button>
