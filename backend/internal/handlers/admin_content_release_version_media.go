@@ -617,6 +617,46 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		}
 	}
 
+	// Additiv: Sichtbarkeit und Prüfstatus parsen (Phase 78, D-05/Lock G).
+	// Nur setzen wenn Key im Request vorhanden — keine Wertänderung wenn Key fehlt.
+	var visibility *string
+	if v, ok := rawBody["visibility"]; ok {
+		if s, ok := v.(string); ok {
+			visibility = &s
+		}
+	}
+	var reviewStatus *string
+	if v, ok := rawBody["review_status"]; ok {
+		if s, ok := v.(string); ok {
+			reviewStatus = &s
+		}
+	}
+
+	// Enum-Validierung (V5): ungültige Werte → 400, keine Mutation.
+	validVisibility := map[string]bool{"intern": true, "oeffentlich": true}
+	validReviewStatus := map[string]bool{
+		"in_pruefung": true, "freigegeben": true, "abgelehnt": true,
+		"archiviert": true, "entfernt": true,
+	}
+	if visibility != nil {
+		if !validVisibility[*visibility] {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{
+				"message":    "ungültiger Sichtbarkeitswert",
+				"error_code": "INVALID_VISIBILITY",
+			}})
+			return
+		}
+	}
+	if reviewStatus != nil {
+		if !validReviewStatus[*reviewStatus] {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{
+				"message":    "ungültiger Prüfstatus",
+				"error_code": "INVALID_REVIEW_STATUS",
+			}})
+			return
+		}
+	}
+
 	if isPreviewCandidate != nil && *isPreviewCandidate {
 		if !rvmPreviewAllowedCategories[relationMeta.Category] {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
@@ -631,6 +671,8 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		Caption:            caption,
 		CaptionSet:         captionSet,
 		IsPreviewCandidate: isPreviewCandidate,
+		Visibility:         visibility,
+		ReviewStatus:       reviewStatus,
 	}
 
 	if isPreviewCandidate != nil && *isPreviewCandidate {
@@ -678,6 +720,24 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		}
 	}
 
+	// Additiver Review-Update: Sichtbarkeit/Prüfstatus in media_assets schreiben (Lock G, D-05).
+	// Außerhalb der Transaktion, da release_version_media und media_assets unabhängige Zeilen sind.
+	reviewChanged := visibility != nil || reviewStatus != nil
+	if reviewChanged {
+		reviewPatch := repository.FansubMediaReviewPatch{
+			Visibility:   visibility,
+			ReviewStatus: reviewStatus,
+		}
+		if err := h.mediaRepo.UpdateReleaseVersionMediaReview(c.Request.Context(), relationID, reviewPatch); err != nil {
+			if errors.Is(err, repository.ErrNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden"}})
+				return
+			}
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Sichtbarkeit/Prüfstatus konnte nicht gespeichert werden.")
+			return
+		}
+	}
+
 	item, err := h.loadReleaseVersionMediaResponseItem(c, versionID, relationID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden"}})
@@ -688,10 +748,15 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
+	// Audit: separater Event-Typ wenn Review-Felder geändert wurden (D-09).
+	auditEventType := "release_version_media.updated"
+	if reviewChanged {
+		auditEventType = "release_version_media.visibility_updated"
+	}
 	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
 		ActorAppUserID:    &identity.AppUserID,
 		ActorLegacyUserID: &identity.UserID,
-		EventType:         "release_version_media.updated",
+		EventType:         auditEventType,
 		TargetType:        "release_version_media",
 		TargetID:          &relationID,
 		Action:            string(permissions.ActionReleaseVersionMediaUpdate),

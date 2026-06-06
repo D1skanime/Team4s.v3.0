@@ -83,6 +83,7 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
   const [approveNicknames, setApproveNicknames] = useState<Record<number, string>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [showOnlyOpen, setShowOnlyOpen] = useState(true)
 
   const loadClaimData = useCallback(async () => {
     if (!Number.isFinite(groupId) || groupId <= 0) return
@@ -318,9 +319,20 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
         </div>
       )}
 
-      <SectionHeader title={`Offene Claims (${pendingClaims.length})`} description="Prüfe Self-Service-Claims und bestätige sie für diese Gruppe." />
+      <Toolbar
+        leading={<SectionHeader title={`Offene Claims (${pendingClaims.length})`} description="Prüfe Self-Service-Claims und bestätige sie für diese Gruppe." />}
+        trailing={(
+          <Button
+            variant={showOnlyOpen ? 'subtle' : 'ghost'}
+            size="sm"
+            onClick={() => setShowOnlyOpen((prev) => !prev)}
+          >
+            {showOnlyOpen ? 'Nur offene anzeigen' : 'Alle anzeigen'}
+          </Button>
+        )}
+      />
       {pendingClaims.length === 0 ? (
-        <EmptyState title="Keine offenen Claims" description="Keine offenen Claims." />
+        <EmptyState title="Keine offenen Claims" description="Alle Claims wurden bearbeitet." />
       ) : (
         <Table variant="withActions" containerClassName={styles.tableWrapHeaderLineWine}>
           <TableHead><TableRow><TableHeaderCell>App-User-ID</TableHeaderCell><TableHeaderCell>Nick</TableHeaderCell><TableHeaderCell>Notiz</TableHeaderCell><TableHeaderCell>Eingereicht</TableHeaderCell><TableHeaderCell>Aktionen</TableHeaderCell></TableRow></TableHead>

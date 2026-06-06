@@ -20,6 +20,8 @@ type adminRouteHandlers struct {
 	memberClaimInvitationsHandler *handlers.MemberClaimInvitationsHandler
 	memberRequestsHandler         *handlers.MemberRequestsHandler
 	memberMemorialHandler         *handlers.MemberMemorialHandler
+	// Phase 78: Gruppenmedien-Review (GET-Liste + PATCH Sichtbarkeit/Reviewstatus)
+	fansubMediaReviewHandler *handlers.FansubMediaReviewHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -68,6 +70,13 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.DELETE("/admin/episodes/:id", auth, deps.adminContentHandler.DeleteEpisode)
 	v1.POST("/admin/fansubs/:id/media", auth, deps.fansubHandler.UploadFansubMedia)
 	v1.DELETE("/admin/fansubs/:id/media/:kind", auth, deps.fansubHandler.DeleteFansubMedia)
+	// Phase 78: Gruppenmedien-Review (GET-Liste + PATCH Sichtbarkeit/Reviewstatus, Lock K/G/D-08/D-09)
+	// WICHTIG: GET /admin/fansubs/:id/media muss VOR den DeleteFansubMedia-Routen registriert werden,
+	// damit Gin den GET-Pfad korrekt auflöst (kein Konflikt mit :kind-Parameter).
+	if deps.fansubMediaReviewHandler != nil {
+		v1.GET("/admin/fansubs/:id/media", auth, deps.fansubMediaReviewHandler.ListFansubGroupMedia)
+		v1.PATCH("/admin/fansubs/:id/media/:mediaId", auth, deps.fansubMediaReviewHandler.PatchFansubMediaReview)
+	}
 	v1.POST("/fansubs", auth, deps.fansubHandler.CreateFansub)
 	v1.PATCH("/fansubs/:id", auth, deps.fansubHandler.UpdateFansub)
 	v1.DELETE("/fansubs/:id", auth, deps.fansubHandler.DeleteFansub)

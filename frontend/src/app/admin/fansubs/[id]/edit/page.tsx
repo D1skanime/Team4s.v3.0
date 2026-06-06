@@ -99,8 +99,11 @@ import { MemberRolesTab } from "./MemberRolesTab";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
-import { ReviewQueue } from "@/components/contributions/ReviewQueue";
 import { ReadinessTab } from "./ReadinessTab";
+import { ReleaseVersionMediaReviewSection } from "./ReleaseVersionMediaReviewSection";
+import { ContributionsReviewSection } from "./ContributionsReviewSection";
+import { GroupMediaReviewSection } from "./GroupMediaReviewSection";
+import { UserSuggestionsInbox } from "./UserSuggestionsInbox";
 import sharedStyles from "../../../admin.module.css";
 import fansubEditStyles from "./FansubEdit.module.css";
 
@@ -2777,55 +2780,63 @@ function AdminFansubEditContent({
               {tabUsesRightWorkspace ? (
                 <div className={styles.fansubEditRightColumn}>
                   {activeMainTab === "media" ? (
-                    <details
-                      className={styles.fansubEditSection}
-                      open={isSectionOpen("media")}
-                      onToggle={(event) =>
-                        onSectionToggle("media", event.currentTarget.open)
-                      }
-                    >
-                      <summary className={styles.fansubEditSectionSummary}>
-                        Medien
-                      </summary>
-                      <div className={styles.fansubEditSectionBody}>
-                        <div className={styles.fansubEditMediaGrid}>
-                          <MediaUpload
-                            type="logo"
-                            fansubID={fansubID}
-                            groupName={form.name.trim() || group?.name || ""}
-                            value={logoMedia}
-                            disabled={!hasAuthSession || saving}
-                            onBusyChange={handleLogoMediaBusyChange}
-                            onChange={(nextValue) => {
-                              setLogoMedia(nextValue);
-                              setInitialLogoMedia(nextValue);
-                              setToast(
-                                nextValue?.publicURL
-                                  ? "Logo aktualisiert."
-                                  : "Logo entfernt.",
-                              );
-                            }}
-                          />
-                          <MediaUpload
-                            type="banner"
-                            fansubID={fansubID}
-                            groupName={form.name.trim() || group?.name || ""}
-                            value={bannerMedia}
-                            disabled={!hasAuthSession || saving}
-                            onBusyChange={handleBannerMediaBusyChange}
-                            onChange={(nextValue) => {
-                              setBannerMedia(nextValue);
-                              setInitialBannerMedia(nextValue);
-                              setToast(
-                                nextValue?.publicURL
-                                  ? "Banner aktualisiert."
-                                  : "Banner entfernt.",
-                              );
-                            }}
-                          />
+                    <>
+                      <details
+                        className={styles.fansubEditSection}
+                        open={isSectionOpen("media")}
+                        onToggle={(event) =>
+                          onSectionToggle("media", event.currentTarget.open)
+                        }
+                      >
+                        <summary className={styles.fansubEditSectionSummary}>
+                          Medien
+                        </summary>
+                        <div className={styles.fansubEditSectionBody}>
+                          <div className={styles.fansubEditMediaGrid}>
+                            <MediaUpload
+                              type="logo"
+                              fansubID={fansubID}
+                              groupName={form.name.trim() || group?.name || ""}
+                              value={logoMedia}
+                              disabled={!hasAuthSession || saving}
+                              onBusyChange={handleLogoMediaBusyChange}
+                              onChange={(nextValue) => {
+                                setLogoMedia(nextValue);
+                                setInitialLogoMedia(nextValue);
+                                setToast(
+                                  nextValue?.publicURL
+                                    ? "Logo aktualisiert."
+                                    : "Logo entfernt.",
+                                );
+                              }}
+                            />
+                            <MediaUpload
+                              type="banner"
+                              fansubID={fansubID}
+                              groupName={form.name.trim() || group?.name || ""}
+                              value={bannerMedia}
+                              disabled={!hasAuthSession || saving}
+                              onBusyChange={handleBannerMediaBusyChange}
+                              onChange={(nextValue) => {
+                                setBannerMedia(nextValue);
+                                setInitialBannerMedia(nextValue);
+                                setToast(
+                                  nextValue?.publicURL
+                                    ? "Banner aktualisiert."
+                                    : "Banner entfernt.",
+                                );
+                              }}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    </details>
+                      </details>
+                      {capabilities ? (
+                        <>
+                          <GroupMediaReviewSection fansubId={fansubID} capabilities={capabilities} />
+                          <UserSuggestionsInbox fansubId={fansubID} domain="media" capabilities={capabilities} />
+                        </>
+                      ) : null}
+                    </>
                   ) : null}
 
                   {activeMainTab === "links" ? (
@@ -3491,12 +3502,20 @@ function AdminFansubEditContent({
           <>
             <NotesTab fansubId={fansubID} />
             <GroupHistorySection fansubGroupId={fansubID} />
+            {capabilities ? (
+              <UserSuggestionsInbox fansubId={fansubID} domain="notes" capabilities={capabilities} />
+            ) : null}
           </>
         ) : null}
         {activeMainTab === "mitglieder" ? <GroupMembersTab fansubId={fansubID} /> : null}
         {activeMainTab === "rollen" ? <MemberRolesTab fansubId={fansubID} /> : null}
         {activeMainTab === "claims" ? <ClaimManagementPanel groupId={fansubID} isGlobalAdmin={isPlatformAdmin} /> : null}
-        {activeMainTab === "vorschlaege" ? <ReviewQueue fansubId={fansubID} /> : null}
+        {activeMainTab === "vorschlaege" && capabilities ? (
+          <>
+            <ContributionsReviewSection fansubId={fansubID} capabilities={capabilities} />
+            <UserSuggestionsInbox fansubId={fansubID} domain="contribution" capabilities={capabilities} />
+          </>
+        ) : null}
         {activeMainTab === "readiness" && group ? (
           <ReadinessTab fansubId={fansubID} group={group} />
         ) : null}
@@ -3656,11 +3675,19 @@ function AdminFansubEditContent({
               {drawerTab === "media" && canUseReleaseMedia ? (
                 <div className={styles.fansubEditReleaseDrawerPanel}>
                   {drawerRelease.release_version_id > 0 ? (
-                    <ReleaseVersionMediaDrawerSummary
-                      versionId={drawerRelease.release_version_id}
-                      fansubName={drawerRelease.fansub_name}
-                      releaseVersionLabel={`Release-Version ${drawerRelease.release_version_id}`}
-                    />
+                    <>
+                      <ReleaseVersionMediaDrawerSummary
+                        versionId={drawerRelease.release_version_id}
+                        fansubName={drawerRelease.fansub_name}
+                        releaseVersionLabel={`Release-Version ${drawerRelease.release_version_id}`}
+                      />
+                      {capabilities ? (
+                        <ReleaseVersionMediaReviewSection
+                          versionId={drawerRelease.release_version_id}
+                          capabilities={capabilities}
+                        />
+                      ) : null}
+                    </>
                   ) : (
                     <div className={styles.fansubEditReleaseState}>
                       Für diesen Release ist keine konkrete Release-Version verfügbar.

@@ -2,8 +2,20 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  SectionHeader,
+  Textarea,
+} from '@/components/ui'
 import { ApiError, confirmProposal, listGroupProposals, rejectProposal } from '@/lib/api'
 import type { GroupProposalRow } from '@/types/contributions'
+
+import styles from './ReviewQueue.module.css'
 
 interface ReviewQueueProps {
   fansubId: number
@@ -83,263 +95,100 @@ export function ReviewQueue({ fansubId }: ReviewQueueProps) {
   }
 
   if (isLoading) {
-    return (
-      <section>
-        <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 16px' }}>
-          Offene Vorschläge
-        </h2>
-        <p style={{ color: '#888', fontSize: '0.875rem' }}>Wird geladen…</p>
-      </section>
-    )
+    return <LoadingState title="Wird geladen…" description="Vorschläge werden abgerufen." />
   }
 
   if (error) {
-    return (
-      <section>
-        <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 16px' }}>
-          Offene Vorschläge
-        </h2>
-        <div
-          role="alert"
-          style={{
-            background: '#fee2e2',
-            color: '#82122c',
-            borderRadius: 6,
-            padding: '10px 14px',
-            fontSize: '0.875rem',
-          }}
-        >
-          {error}
-        </div>
-      </section>
-    )
+    return <ErrorState title="Fehler beim Laden" description={error} />
   }
 
   return (
     <section>
-      <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 16px' }}>
-        Offene Vorschläge ({proposals.length})
-      </h2>
+      <SectionHeader
+        title={`Offene Vorschläge (${proposals.length})`}
+      />
 
       {proposals.length === 0 ? (
-        <div style={{ color: '#6b7280', textAlign: 'center', padding: '32px 0' }}>
-          <strong style={{ display: 'block', marginBottom: 6 }}>Keine offenen Vorschläge</strong>
-          <span style={{ fontSize: '0.875rem' }}>
-            Für diese Gruppe wurden noch keine Vorschläge eingereicht.
-          </span>
-        </div>
+        <EmptyState
+          title="Keine offenen Vorschläge"
+          description="Für diese Gruppe wurden noch keine Vorschläge eingereicht."
+        />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className={styles.cardStack}>
           {proposals.map((row) => (
-            <div
-              key={row.id}
-              style={{
-                border: '1px solid #e6ebf3',
-                borderRadius: 8,
-                background: '#fff',
-                overflow: 'hidden',
-              }}
-            >
-              <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {/* Zeile 1: Name + Badge */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <strong style={{ fontSize: '0.9rem' }}>{row.member_display_name}</strong>
-                  <span
-                    aria-label="Status: In Prüfung"
-                    style={{
-                      display: 'inline-block',
-                      padding: '2px 8px',
-                      borderRadius: 12,
-                      background: '#fff3cd',
-                      color: '#8a6420',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                    }}
-                  >
-                    In Prüfung
-                  </span>
+            <Card key={row.id} variant="nested">
+              <div className={styles.cardHeader}>
+                <strong>{row.member_display_name}</strong>
+                <Badge variant="warning">In Prüfung</Badge>
+              </div>
+              <div className={styles.cardBody}>
+                <span className={styles.animeTitle}>{row.anime_title}</span>
+                <div className={styles.roleChips}>
+                  {row.role_codes.map((code) => (
+                    <Badge key={code} variant="info">{code}</Badge>
+                  ))}
                 </div>
-
-                {/* Zeile 2: Anime-Titel + Rollen-Chips */}
-                <div>
-                  <span style={{ fontSize: '0.875rem', color: '#3a4560', fontWeight: 600 }}>
-                    {row.anime_title}
-                  </span>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
-                    {row.role_codes.map((code) => (
-                      <span
-                        key={code}
-                        style={{
-                          background: '#dbeafe',
-                          color: '#1e40af',
-                          borderRadius: 12,
-                          padding: '2px 8px',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                        }}
-                      >
-                        {code}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Zeile 3: Notiz */}
-                {row.note && (
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: '0.875rem',
-                      color: '#6b7280',
-                      fontStyle: 'italic',
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical',
-                    }}
-                  >
-                    {row.note}
-                  </p>
-                )}
-
-                {/* Zeile 4: Datum */}
-                <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+                {row.note ? (
+                  <p className={styles.noteText}>{row.note}</p>
+                ) : null}
+                <span className={styles.dateText}>
                   Eingereicht am {formatDate(row.created_at)}
                 </span>
-
-                {/* Kartenfehler */}
-                {cardErrors[row.id] && (
-                  <div
-                    role="alert"
-                    style={{
-                      background: '#fee2e2',
-                      color: '#82122c',
-                      borderRadius: 6,
-                      padding: '8px 12px',
-                      fontSize: '0.8rem',
-                    }}
-                  >
+                {cardErrors[row.id] ? (
+                  <div role="alert" className={styles.inlineError}>
                     {cardErrors[row.id]}
                   </div>
-                )}
-
-                {/* Ablehnen-Expansion */}
-                {rejectingId === row.id && (
-                  <div
-                    style={{
-                      background: '#fafafa',
-                      borderRadius: 6,
-                      padding: '12px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 8,
-                      border: '1px solid #e6ebf3',
-                    }}
-                  >
-                    <textarea
+                ) : null}
+                {rejectingId === row.id ? (
+                  <div className={styles.rejectExpansion}>
+                    <Textarea
                       value={rejectNote}
                       onChange={(e) => setRejectNote(e.target.value)}
                       placeholder="Ablehngrund (optional)"
                       rows={3}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: 6,
-                        border: '1px solid #c8d0de',
-                        fontSize: '0.875rem',
-                        resize: 'vertical',
-                        boxSizing: 'border-box',
-                      }}
                     />
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <button
-                        type="button"
+                    <div className={styles.rejectActions}>
+                      <Button
+                        variant="danger"
+                        size="sm"
                         onClick={() => void handleReject(row.id)}
                         aria-label={`Ablehnung von ${row.member_display_name} bestätigen`}
-                        style={{
-                          padding: '6px 14px',
-                          borderRadius: 6,
-                          border: 'none',
-                          background: '#82122c',
-                          color: '#fff',
-                          fontSize: '14px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
                       >
                         Ablehnung bestätigen
-                      </button>
-                      <button
-                        type="button"
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => { setRejectingId(null); setRejectNote('') }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#5f84dd',
-                          fontSize: '0.875rem',
-                          cursor: 'pointer',
-                          textDecoration: 'underline',
-                        }}
                       >
                         Abbrechen
-                      </button>
+                      </Button>
                     </div>
                   </div>
-                )}
+                ) : null}
               </div>
-
-              {/* Footer-Aktionen */}
-              <div
-                style={{
-                  padding: '10px 16px',
-                  borderTop: '1px solid #f3f4f6',
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  gap: 8,
-                  background: '#fafafa',
-                }}
-              >
-                <button
-                  type="button"
+              <div className={styles.cardFooterActions}>
+                <Button
+                  variant="success"
+                  size="sm"
                   onClick={() => void handleConfirm(row.id)}
                   aria-label={`Vorschlag von ${row.member_display_name} bestätigen`}
-                  style={{
-                    padding: '7px 16px',
-                    minHeight: 44,
-                    borderRadius: 6,
-                    border: 'none',
-                    background: 'linear-gradient(135deg, #16a34a, #15803d)',
-                    color: '#fff',
-                    fontSize: '14px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
                 >
                   Vorschlag bestätigen
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
                   onClick={() => {
                     setRejectingId(rejectingId === row.id ? null : row.id)
                     setRejectNote('')
                   }}
                   aria-label={`Vorschlag von ${row.member_display_name} ablehnen`}
-                  style={{
-                    padding: '7px 16px',
-                    minHeight: 44,
-                    borderRadius: 6,
-                    border: 'none',
-                    background: 'linear-gradient(135deg, #82122c, #6e0f25)',
-                    color: '#fff',
-                    fontSize: '14px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
                 >
                   Vorschlag ablehnen
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

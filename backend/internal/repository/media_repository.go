@@ -16,6 +16,62 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// --- Typen für Gruppenmedien-Review (Phase 78) ---
+
+// FansubGroupMediaReviewRow enthält einen Medieneintrag mit Sichtbarkeit/Reviewstatus
+// für den Review-Tab. Wird von ListFansubGroupMediaForReview befüllt.
+type FansubGroupMediaReviewRow struct {
+	MediaAssetID    int64
+	PreviewURL      string
+	Visibility      *string // nil wenn nicht gesetzt; API-seitiger Wert (intern/oeffentlich)
+	ReviewStatus    *string // nil wenn nicht gesetzt; API-seitiger Wert (in_pruefung/...)
+	OwnerType       string
+	OwnerID         int64
+	OwnerConsistent bool // true wenn Medium korrekt zur Gruppe gehört
+}
+
+// FansubMediaReviewPatch enthält die zu ändernden Felder.
+// Ausschließlich Visibility und ReviewStatus — kein owner_type/owner_id (D-05).
+type FansubMediaReviewPatch struct {
+	Visibility   *string // nil = nicht ändern
+	ReviewStatus *string // nil = nicht ändern
+}
+
+// --- Mapping-Tabellen: API-Wert ↔ DB-Lookup-Code ---
+
+// visibilityAPIToDB mappt kanonische API-Werte auf die DB-Namen in der visibilities-Tabelle.
+var visibilityAPIToDB = map[string]string{
+	"intern":      "private",
+	"oeffentlich": "public",
+}
+
+// visibilityDBToAPI mappt DB-Namen zurück auf kanonische API-Werte.
+var visibilityDBToAPI = map[string]string{
+	"private":    "intern",
+	"public":     "oeffentlich",
+	"registered": "oeffentlich", // Fallback: registriert → öffentlich (lesende Darstellung)
+	"fansubber":  "intern",      // Fallback: fansubber → intern
+	"staff":      "intern",      // Fallback: staff → intern
+}
+
+// reviewStatusAPIToDB mappt kanonische API-Werte auf die DB-Codes in der review_statuses-Tabelle.
+var reviewStatusAPIToDB = map[string]string{
+	"in_pruefung": "in_review",
+	"freigegeben": "approved",
+	"abgelehnt":   "rejected",
+	"archiviert":  "archived",
+	"entfernt":    "removed",
+}
+
+// reviewStatusDBToAPI mappt DB-Codes zurück auf kanonische API-Werte.
+var reviewStatusDBToAPI = map[string]string{
+	"in_review": "in_pruefung",
+	"approved":  "freigegeben",
+	"rejected":  "abgelehnt",
+	"archived":  "archiviert",
+	"removed":   "entfernt",
+}
+
 type MediaRepository struct {
 	db            *pgxpool.Pool
 	publicBaseURL string
@@ -366,4 +422,274 @@ func mediaFormatForKind(kind models.MediaKind) string {
 	default:
 		return "image"
 	}
+}
+
+// --- Gruppenmedien-Review-Methoden (Phase 78) ---
+
+// ListFansubGroupMediaForReview liest alle Medienassets einer Fansub-Gruppe mit
+// Sichtbarkeit/Reviewstatus für den Review-Tab. Scoped strikt auf fansubGroupID (IDOR-Schutz D-04).
+// Gibt die Werte als API-seitige kanonische Strings zurück (intern/oeffentlich, in_pruefung/...).
+func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fansubGroupID int64) ([]FansubGroupMediaReviewRow, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			ma.id          AS media_asset_id,
+			ma.file_path   AS file_path,
+			v.name         AS visibility_name,
+			rs.code        AS review_status_code,
+			'fansub_group' AS owner_type,
+			fgm.group_id   AS owner_id
+		FROM fansub_group_media fgm
+		JOIN media_assets ma ON ma.id = fgm.media_id
+		LEFT JOIN visibilities v ON v.id = ma.visibility_id
+		LEFT JOIN review_statuses rs ON rs.id = ma.review_status_id
+		WHERE fgm.group_id = $1
+		ORDER BY ma.id DESC
+	`, fansubGroupID)
+	if err != nil {
+		return nil, fmt.Errorf("list fansub group media for review (group_id=%d): %w", fansubGroupID, err)
+	}
+	defer rows.Close()
+
+	var result []FansubGroupMediaReviewRow
+	for rows.Next() {
+		var row FansubGroupMediaReviewRow
+		var filePath string
+		var visibilityName *string
+		var reviewStatusCode *string
+
+		if err := rows.Scan(
+			&row.MediaAssetID,
+			&filePath,
+			&visibilityName,
+			&reviewStatusCode,
+			&row.OwnerType,
+			&row.OwnerID,
+		); err != nil {
+			return nil, fmt.Errorf("scan fansub group media review row: %w", err)
+		}
+
+		row.PreviewURL = r.buildPublicURL(mediaFilename(filePath))
+		row.OwnerConsistent = (row.OwnerID == fansubGroupID)
+
+		// DB-Werte auf kanonische API-Werte mappen
+		if visibilityName != nil {
+			if apiVal, ok := visibilityDBToAPI[*visibilityName]; ok {
+				row.Visibility = &apiVal
+			} else {
+				row.Visibility = visibilityName
+			}
+		}
+		if reviewStatusCode != nil {
+			if apiVal, ok := reviewStatusDBToAPI[*reviewStatusCode]; ok {
+				row.ReviewStatus = &apiVal
+			} else {
+				row.ReviewStatus = reviewStatusCode
+			}
+		}
+
+		result = append(result, row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate fansub group media review rows: %w", err)
+	}
+	return result, nil
+}
+
+// UpdateFansubMediaReview setzt ausschließlich Sichtbarkeit und/oder Reviewstatus
+// eines Mediums über die media_assets-Tabelle. Die JOIN-Bedingung mit fansub_group_media
+// erzwingt die fansubID-Zugehörigkeit (IDOR-Schutz T-78-08).
+// Ändert NIEMALS owner_type oder owner_id (D-05).
+func (r *MediaRepository) UpdateFansubMediaReview(ctx context.Context, fansubGroupID, mediaID int64, patch FansubMediaReviewPatch) error {
+	if patch.Visibility == nil && patch.ReviewStatus == nil {
+		// Kein Update nötig — kein Error, kein DB-Call
+		return nil
+	}
+
+	// Sichtbarkeit: API-Wert → DB-ID via Subquery
+	// Reviewstatus: API-Wert → DB-ID via Subquery
+	// JOIN mit fansub_group_media stellt sicher, dass das Medium zur Gruppe gehört.
+	// KEINE Änderung von owner_type/owner_id.
+
+	if patch.Visibility != nil && patch.ReviewStatus != nil {
+		dbVis, ok := visibilityAPIToDB[*patch.Visibility]
+		if !ok {
+			return fmt.Errorf("ungültiger Sichtbarkeitswert: %q", *patch.Visibility)
+		}
+		dbStatus, ok := reviewStatusAPIToDB[*patch.ReviewStatus]
+		if !ok {
+			return fmt.Errorf("ungültiger Prüfstatus: %q", *patch.ReviewStatus)
+		}
+		tag, err := r.db.Exec(ctx, `
+			UPDATE media_assets ma
+			SET
+				visibility_id    = (SELECT id FROM visibilities WHERE name = $1 LIMIT 1),
+				review_status_id = (SELECT id FROM review_statuses WHERE code = $2 LIMIT 1)
+			WHERE ma.id = $3
+			  AND EXISTS (
+				SELECT 1 FROM fansub_group_media fgm
+				WHERE fgm.media_id = ma.id AND fgm.group_id = $4
+			  )
+		`, dbVis, dbStatus, mediaID, fansubGroupID)
+		if err != nil {
+			return fmt.Errorf("update fansub group media review (vis+status, media_id=%d, group_id=%d): %w", mediaID, fansubGroupID, err)
+		}
+		if tag.RowsAffected() == 0 {
+			return ErrNotFound
+		}
+		return nil
+	}
+
+	if patch.Visibility != nil {
+		dbVis, ok := visibilityAPIToDB[*patch.Visibility]
+		if !ok {
+			return fmt.Errorf("ungültiger Sichtbarkeitswert: %q", *patch.Visibility)
+		}
+		tag, err := r.db.Exec(ctx, `
+			UPDATE media_assets ma
+			SET visibility_id = (SELECT id FROM visibilities WHERE name = $1 LIMIT 1)
+			WHERE ma.id = $2
+			  AND EXISTS (
+				SELECT 1 FROM fansub_group_media fgm
+				WHERE fgm.media_id = ma.id AND fgm.group_id = $3
+			  )
+		`, dbVis, mediaID, fansubGroupID)
+		if err != nil {
+			return fmt.Errorf("update fansub group media visibility (media_id=%d, group_id=%d): %w", mediaID, fansubGroupID, err)
+		}
+		if tag.RowsAffected() == 0 {
+			return ErrNotFound
+		}
+		return nil
+	}
+
+	// Nur ReviewStatus
+	dbStatus, ok := reviewStatusAPIToDB[*patch.ReviewStatus]
+	if !ok {
+		return fmt.Errorf("ungültiger Prüfstatus: %q", *patch.ReviewStatus)
+	}
+	tag, err := r.db.Exec(ctx, `
+		UPDATE media_assets ma
+		SET review_status_id = (SELECT id FROM review_statuses WHERE code = $1 LIMIT 1)
+		WHERE ma.id = $2
+		  AND EXISTS (
+			SELECT 1 FROM fansub_group_media fgm
+			WHERE fgm.media_id = ma.id AND fgm.group_id = $3
+		  )
+	`, dbStatus, mediaID, fansubGroupID)
+	if err != nil {
+		return fmt.Errorf("update fansub group media review_status (media_id=%d, group_id=%d): %w", mediaID, fansubGroupID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// GetFansubMediaOwner gibt zurück, welcher Gruppe das Medium (media_asset) gehört.
+// Wird für Cross-Group-Tamper-Prüfung (T-78-03) verwendet.
+// Gibt ErrNotFound zurück wenn das Medium keiner Fansub-Gruppe zugeordnet ist.
+func (r *MediaRepository) GetFansubMediaOwner(ctx context.Context, mediaID int64) (int64, error) {
+	var groupID int64
+	err := r.db.QueryRow(ctx, `
+		SELECT group_id
+		FROM fansub_group_media
+		WHERE media_id = $1
+		LIMIT 1
+	`, mediaID).Scan(&groupID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, ErrNotFound
+	}
+	if err != nil {
+		return 0, fmt.Errorf("get fansub media owner (media_id=%d): %w", mediaID, err)
+	}
+	return groupID, nil
+}
+
+// --- Release-Version-Medien-Review-Methoden (Phase 78) ---
+
+// UpdateReleaseVersionMediaReview setzt ausschließlich Sichtbarkeit und/oder Reviewstatus
+// eines Release-Version-Mediums über die media_assets-Tabelle.
+// Die EXISTS-Subquery auf release_version_media stellt die Zugehörigkeit zur Release-Version sicher (IDOR-Schutz).
+// Ändert NIEMALS owner_type oder owner_id (D-05, Lock G).
+func (r *MediaRepository) UpdateReleaseVersionMediaReview(ctx context.Context, relationID int64, patch FansubMediaReviewPatch) error {
+	if patch.Visibility == nil && patch.ReviewStatus == nil {
+		return nil
+	}
+
+	if patch.Visibility != nil && patch.ReviewStatus != nil {
+		dbVis, ok := visibilityAPIToDB[*patch.Visibility]
+		if !ok {
+			return fmt.Errorf("ungültiger Sichtbarkeitswert: %q", *patch.Visibility)
+		}
+		dbStatus, ok := reviewStatusAPIToDB[*patch.ReviewStatus]
+		if !ok {
+			return fmt.Errorf("ungültiger Prüfstatus: %q", *patch.ReviewStatus)
+		}
+		tag, err := r.db.Exec(ctx, `
+			UPDATE media_assets ma
+			SET
+				visibility_id    = (SELECT id FROM visibilities WHERE name = $1 LIMIT 1),
+				review_status_id = (SELECT id FROM review_statuses WHERE code = $2 LIMIT 1)
+			WHERE ma.id = (
+				SELECT rvm.media_asset_id
+				FROM release_version_media rvm
+				WHERE rvm.id = $3 AND rvm.deleted_at IS NULL
+				LIMIT 1
+			)
+		`, dbVis, dbStatus, relationID)
+		if err != nil {
+			return fmt.Errorf("update release_version_media review (vis+status, relation_id=%d): %w", relationID, err)
+		}
+		if tag.RowsAffected() == 0 {
+			return ErrNotFound
+		}
+		return nil
+	}
+
+	if patch.Visibility != nil {
+		dbVis, ok := visibilityAPIToDB[*patch.Visibility]
+		if !ok {
+			return fmt.Errorf("ungültiger Sichtbarkeitswert: %q", *patch.Visibility)
+		}
+		tag, err := r.db.Exec(ctx, `
+			UPDATE media_assets ma
+			SET visibility_id = (SELECT id FROM visibilities WHERE name = $1 LIMIT 1)
+			WHERE ma.id = (
+				SELECT rvm.media_asset_id
+				FROM release_version_media rvm
+				WHERE rvm.id = $2 AND rvm.deleted_at IS NULL
+				LIMIT 1
+			)
+		`, dbVis, relationID)
+		if err != nil {
+			return fmt.Errorf("update release_version_media visibility (relation_id=%d): %w", relationID, err)
+		}
+		if tag.RowsAffected() == 0 {
+			return ErrNotFound
+		}
+		return nil
+	}
+
+	// Nur ReviewStatus
+	dbStatus, ok := reviewStatusAPIToDB[*patch.ReviewStatus]
+	if !ok {
+		return fmt.Errorf("ungültiger Prüfstatus: %q", *patch.ReviewStatus)
+	}
+	tag, err := r.db.Exec(ctx, `
+		UPDATE media_assets ma
+		SET review_status_id = (SELECT id FROM review_statuses WHERE code = $1 LIMIT 1)
+		WHERE ma.id = (
+			SELECT rvm.media_asset_id
+			FROM release_version_media rvm
+			WHERE rvm.id = $2 AND rvm.deleted_at IS NULL
+			LIMIT 1
+		)
+	`, dbStatus, relationID)
+	if err != nil {
+		return fmt.Errorf("update release_version_media review_status (relation_id=%d): %w", relationID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
 }

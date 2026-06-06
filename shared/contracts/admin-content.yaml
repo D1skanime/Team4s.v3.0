@@ -623,6 +623,90 @@ endpoints:
       - status: 500
         description: Interner Serverfehler.
 
+  # Phase 78 — Gruppenmedien-Review: GET-Liste
+  - name: admin-fansub-group-media-list
+    method: GET
+    path: /api/v1/admin/fansubs/{id}/media
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - CanForFansubGroup(ActionFansubGroupEdit) wird serverseitig geprüft (D-08).
+        - Gruppenmitgliedschaft allein genügt nicht.
+        - Deny-Audit fansub_group_media.list.denied wird geschrieben (D-09).
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+        description: ID der Fansub-Gruppe.
+    response:
+      status: 200
+      type: FansubGroupMediaListResponse
+    error_responses:
+      - status: 401
+        description: Nicht angemeldet.
+      - status: 403
+        description: Keine Berechtigung (ActionFansubGroupEdit fehlt).
+      - status: 404
+        description: Gruppe nicht gefunden.
+      - status: 500
+        description: Interner Serverfehler.
+
+  # Phase 78 — Gruppenmedien-Review: PATCH Sichtbarkeit/Prüfstatus
+  - name: admin-fansub-group-media-patch-review
+    method: PATCH
+    path: /api/v1/admin/fansubs/{id}/media/{mediaId}
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - CanForFansubGroup(ActionFansubGroupEdit) wird serverseitig geprüft (D-08).
+        - Enum-Validierung serverseitig gegen kanonischen value-Satz (V5).
+        - Owner-Mismatch (Medium gehört anderer Gruppe) → 403 ohne Mutation (T-78-03).
+        - Ändert NIEMALS owner_type/owner_id (D-05).
+        - Erfolgs-Audit fansub_group_media.visibility_updated + Deny-Audit (D-09).
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+        description: ID der Fansub-Gruppe.
+      - name: mediaId
+        type: int64
+        minimum: 1
+        description: ID des Medienassets.
+    request_body:
+      required: true
+      description: >
+        Mindestens eines der Felder muss angegeben werden.
+        Kanonische Enum-Werte: visibility in {intern, oeffentlich};
+        review_status in {in_pruefung, freigegeben, abgelehnt, archiviert, entfernt}.
+      example:
+        visibility: "oeffentlich"
+        review_status: "freigegeben"
+    response:
+      status: 200
+      example:
+        message: "Medien-Review wurde aktualisiert."
+    error_responses:
+      - status: 400
+        description: Ungültiger Enum-Wert für visibility oder review_status — keine Mutation.
+      - status: 401
+        description: Nicht angemeldet.
+      - status: 403
+        description: Keine Berechtigung oder Medium gehört anderer Gruppe (Owner-Mismatch).
+      - status: 404
+        description: Medium oder Gruppe nicht gefunden.
+      - status: 500
+        description: Interner Serverfehler.
+
 types:
   AdminFansubReleaseSummary:
     release_id: int64
@@ -677,6 +761,8 @@ types:
   ReleaseVersionMediaPatchRequest:
     caption: string | null
     is_preview_candidate: boolean (optional)
+    visibility: string (optional, enum: intern | oeffentlich)
+    review_status: string (optional, enum: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt)
   StatusResponse:
     status: string
   AnimeContribution:
@@ -856,3 +942,22 @@ types:
     data:
       member_id: int64
       profile_status: string (enum "memorial", description: "Neuer Profilstatus — immer 'memorial'")
+
+  # Phase 78 — Gruppenmedien-Review (Lock K, D-05/D-06/D-08/D-09)
+  FansubGroupMediaItem:
+    description: >
+      Ein Medieneintrag einer Fansub-Gruppe mit Sichtbarkeit, Prüfstatus und Owner-Konsistenz-Flag.
+      Sichtbarkeit und Prüfstatus werden als kanonische API-Wert-Strings zurückgegeben
+      (visibility: intern | oeffentlich; review_status: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt).
+      owner_consistent zeigt NUR an, ob das Medium korrekt zur Gruppe gehört — kein Setter (D-05).
+    id: int64
+    preview_url: string | null (description: "Öffentliche URL des Medienassets")
+    visibility: string | null (enum intern|oeffentlich, description: "Sichtbarkeitsachse; null wenn nicht gesetzt")
+    review_status: string | null (enum in_pruefung|freigegeben|abgelehnt|archiviert|entfernt, description: "Prüfstatusachse; null wenn nicht gesetzt")
+    owner_type: string (description: "Typ der Owner-Tabelle, immer 'fansub_group'")
+    owner_id: int64 (description: "ID der besitzenden Fansub-Gruppe")
+    owner_consistent: boolean (description: "true wenn Medium korrekt zur angefragten Gruppe gehört — nur lesend, kein Setter (D-05/Phase 79)")
+
+  FansubGroupMediaListResponse:
+    description: Liste aller Gruppenmedien für den Review-Tab. Scoped auf die angeforderte Gruppe (D-04).
+    data: FansubGroupMediaItem[]
