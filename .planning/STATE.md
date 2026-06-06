@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
-stopped_at: Phase 79 Plan 01 complete — mediaStatusMapping + MediaOwnershipContext (16/16 Tests grün)
-last_updated: "2026-06-06T19:30:14.910Z"
+stopped_at: Phase 80 context gathered
+last_updated: "2026-06-06T19:41:15.200Z"
 last_activity: 2026-06-06
 progress:
   total_phases: 76
@@ -442,7 +442,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-06T19:30:14.874Z
-Stopped at: Phase 79 Plan 01 complete — mediaStatusMapping + MediaOwnershipContext (16/16 Tests grün)
+Last session: 2026-06-06T19:41:15.113Z
+Stopped at: Phase 80 context gathered
 Last activity: 2026-06-06
-Resume file: None
+Resume file: .planning/phases/80-admin-users-user-detail-drawer-scoped-rechte/80-CONTEXT.md
