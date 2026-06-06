@@ -2389,7 +2389,7 @@ export async function patchFansubMediaReview(
   mediaId: number,
   patch: FansubMediaReviewPatch,
   authToken?: string,
-): Promise<FansubGroupMediaItem> {
+): Promise<{ message: string }> {
   const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/media/${mediaId}`,

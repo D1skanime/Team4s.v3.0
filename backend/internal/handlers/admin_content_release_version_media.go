@@ -675,60 +675,37 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		ReviewStatus:       reviewStatus,
 	}
 
-	if isPreviewCandidate != nil && *isPreviewCandidate {
-		tx, err := h.mediaRepo.BeginTx(c.Request.Context())
-		if err != nil {
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Transaktion konnte nicht gestartet werden.")
-			return
-		}
-		defer tx.Rollback(c.Request.Context()) //nolint:errcheck
+	// CR-01: Alle Schreibvorgänge (optionales Preview-Clear, RVM-Patch, Review-Update)
+	// laufen in EINER Transaktion — atomar, kein Teil-Commit bei Fehler.
+	reviewChanged := visibility != nil || reviewStatus != nil
 
+	tx, err := h.mediaRepo.BeginTx(c.Request.Context())
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Transaktion konnte nicht gestartet werden.")
+		return
+	}
+	defer tx.Rollback(c.Request.Context()) //nolint:errcheck
+
+	if isPreviewCandidate != nil && *isPreviewCandidate {
 		if err := h.mediaRepo.ClearPreviewCandidateForVersion(c.Request.Context(), tx, versionID, relationID); err != nil {
 			writeInternalErrorResponse(c, "interner serverfehler", err, "Preview-Flag konnte nicht zurückgesetzt werden.")
 			return
 		}
-		if err := h.mediaRepo.PatchReleaseVersionMedia(c.Request.Context(), tx, relationID, patchInput); err != nil {
-			if errors.Is(err, repository.ErrNotFound) {
-				c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden"}})
-				return
-			}
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Patch fehlgeschlagen.")
-			return
-		}
-		if err := tx.Commit(c.Request.Context()); err != nil {
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Commit fehlgeschlagen.")
-			return
-		}
-	} else {
-		tx, err := h.mediaRepo.BeginTx(c.Request.Context())
-		if err != nil {
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Transaktion konnte nicht gestartet werden.")
-			return
-		}
-		defer tx.Rollback(c.Request.Context()) //nolint:errcheck
-		if err := h.mediaRepo.PatchReleaseVersionMedia(c.Request.Context(), tx, relationID, patchInput); err != nil {
-			if errors.Is(err, repository.ErrNotFound) {
-				c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden"}})
-				return
-			}
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Patch fehlgeschlagen.")
-			return
-		}
-		if err := tx.Commit(c.Request.Context()); err != nil {
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Commit fehlgeschlagen.")
-			return
-		}
 	}
-
-	// Additiver Review-Update: Sichtbarkeit/Prüfstatus in media_assets schreiben (Lock G, D-05).
-	// Außerhalb der Transaktion, da release_version_media und media_assets unabhängige Zeilen sind.
-	reviewChanged := visibility != nil || reviewStatus != nil
+	if err := h.mediaRepo.PatchReleaseVersionMedia(c.Request.Context(), tx, relationID, patchInput); err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden"}})
+			return
+		}
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Patch fehlgeschlagen.")
+		return
+	}
 	if reviewChanged {
 		reviewPatch := repository.FansubMediaReviewPatch{
 			Visibility:   visibility,
 			ReviewStatus: reviewStatus,
 		}
-		if err := h.mediaRepo.UpdateReleaseVersionMediaReview(c.Request.Context(), relationID, reviewPatch); err != nil {
+		if err := h.mediaRepo.UpdateReleaseVersionMediaReview(c.Request.Context(), tx, relationID, reviewPatch); err != nil {
 			if errors.Is(err, repository.ErrNotFound) {
 				c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden"}})
 				return
@@ -736,6 +713,10 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 			writeInternalErrorResponse(c, "interner serverfehler", err, "Sichtbarkeit/Prüfstatus konnte nicht gespeichert werden.")
 			return
 		}
+	}
+	if err := tx.Commit(c.Request.Context()); err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Commit fehlgeschlagen.")
+		return
 	}
 
 	item, err := h.loadReleaseVersionMediaResponseItem(c, versionID, relationID)

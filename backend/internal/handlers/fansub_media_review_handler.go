@@ -245,6 +245,14 @@ func (h *FansubMediaReviewHandler) PatchFansubMediaReview(c *gin.Context) {
 		patch.ReviewStatus = &status
 	}
 
+	// Leerer Patch (CR-02): weder visibility noch review_status vorhanden → 400 vor
+	// Owner-Prüfung/Mutation/Audit. Verhindert Phantom-Erfolgsaudits für No-op-Writes
+	// und Cross-Group-Probe-Spuren über einen leeren Body.
+	if patch.Visibility == nil && patch.ReviewStatus == nil {
+		badRequest(c, "kein Feld zum Aktualisieren: visibility oder review_status erforderlich")
+		return
+	}
+
 	// Owner-Mismatch-Prüfung (T-78-03): Medium muss zur angegebenen Gruppe gehören
 	ownerGroupID, err := h.repo.GetFansubMediaOwner(c.Request.Context(), mediaID)
 	if errors.Is(err, repository.ErrNotFound) {

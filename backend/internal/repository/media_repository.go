@@ -611,7 +611,9 @@ func (r *MediaRepository) GetFansubMediaOwner(ctx context.Context, mediaID int64
 // eines Release-Version-Mediums über die media_assets-Tabelle.
 // Die EXISTS-Subquery auf release_version_media stellt die Zugehörigkeit zur Release-Version sicher (IDOR-Schutz).
 // Ändert NIEMALS owner_type oder owner_id (D-05, Lock G).
-func (r *MediaRepository) UpdateReleaseVersionMediaReview(ctx context.Context, relationID int64, patch FansubMediaReviewPatch) error {
+// CR-01: nimmt die laufende Transaktion entgegen, damit der Review-Write atomar mit
+// dem release_version_media-Patch committet/rollt (kein Teil-Commit bei Fehler).
+func (r *MediaRepository) UpdateReleaseVersionMediaReview(ctx context.Context, tx pgx.Tx, relationID int64, patch FansubMediaReviewPatch) error {
 	if patch.Visibility == nil && patch.ReviewStatus == nil {
 		return nil
 	}
@@ -625,7 +627,7 @@ func (r *MediaRepository) UpdateReleaseVersionMediaReview(ctx context.Context, r
 		if !ok {
 			return fmt.Errorf("ungültiger Prüfstatus: %q", *patch.ReviewStatus)
 		}
-		tag, err := r.db.Exec(ctx, `
+		tag, err := tx.Exec(ctx, `
 			UPDATE media_assets ma
 			SET
 				visibility_id    = (SELECT id FROM visibilities WHERE name = $1 LIMIT 1),
@@ -651,7 +653,7 @@ func (r *MediaRepository) UpdateReleaseVersionMediaReview(ctx context.Context, r
 		if !ok {
 			return fmt.Errorf("ungültiger Sichtbarkeitswert: %q", *patch.Visibility)
 		}
-		tag, err := r.db.Exec(ctx, `
+		tag, err := tx.Exec(ctx, `
 			UPDATE media_assets ma
 			SET visibility_id = (SELECT id FROM visibilities WHERE name = $1 LIMIT 1)
 			WHERE ma.id = (
@@ -675,7 +677,7 @@ func (r *MediaRepository) UpdateReleaseVersionMediaReview(ctx context.Context, r
 	if !ok {
 		return fmt.Errorf("ungültiger Prüfstatus: %q", *patch.ReviewStatus)
 	}
-	tag, err := r.db.Exec(ctx, `
+	tag, err := tx.Exec(ctx, `
 		UPDATE media_assets ma
 		SET review_status_id = (SELECT id FROM review_statuses WHERE code = $1 LIMIT 1)
 		WHERE ma.id = (
