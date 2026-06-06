@@ -2134,6 +2134,8 @@ interface FansubMediaUploadOptions {
   file: File;
   authToken?: string;
   onProgress?: (percent: number) => void;
+  visibilityCode?: string;
+  reviewStatusCode?: string;
 }
 
 type UploadRetryEligibility =
@@ -2289,6 +2291,8 @@ export async function uploadFansubMedia(
       const body = new FormData();
       body.set("kind", options.kind);
       body.set("file", options.file);
+      if (options.visibilityCode) body.set("visibility_code", options.visibilityCode);
+      if (options.reviewStatusCode) body.set("review_status_code", options.reviewStatusCode);
       return body;
     },
   });
@@ -3130,6 +3134,8 @@ export async function updateOwnProfile(
 type OwnProfileAvatarUploadInput = File | {
   sourceFile: File;
   croppedFile: File;
+  visibilityCode?: string;
+  reviewStatusCode?: string;
 };
 
 export async function uploadOwnProfileAvatar(
@@ -3143,6 +3149,8 @@ export async function uploadOwnProfileAvatar(
   } else {
     body.append("source_file", input.sourceFile);
     body.append("cropped_file", input.croppedFile);
+    if (input.visibilityCode) body.set("visibility_code", input.visibilityCode);
+    if (input.reviewStatusCode) body.set("review_status_code", input.reviewStatusCode);
   }
 
   const response = await authorizedFetch(
@@ -3175,6 +3183,8 @@ export async function uploadOwnProfileAvatar(
 type OwnProfileBackgroundUploadInput = File | {
   sourceFile?: File;
   croppedFile: File;
+  visibilityCode?: string;
+  reviewStatusCode?: string;
 };
 
 export async function uploadOwnProfileBackground(
@@ -3190,6 +3200,8 @@ export async function uploadOwnProfileBackground(
       body.append("source_file", input.sourceFile);
     }
     body.append("cropped_file", input.croppedFile);
+    if (input.visibilityCode) body.set("visibility_code", input.visibilityCode);
+    if (input.reviewStatusCode) body.set("review_status_code", input.reviewStatusCode);
   }
 
   const response = await authorizedFetch(
@@ -4235,6 +4247,8 @@ interface AdminAnimeMediaUploadOptions {
   file: File;
   authToken?: string;
   onProgress?: (percent: number) => void;
+  visibilityCode?: string;
+  reviewStatusCode?: string;
 }
 
 export async function uploadAdminAnimeMedia(
@@ -4256,6 +4270,8 @@ export async function uploadAdminAnimeMedia(
       body.set("entity_id", String(options.animeID));
       body.set("asset_type", options.assetType);
       body.set("file", options.file);
+      if (options.visibilityCode) body.set("visibility_code", options.visibilityCode);
+      if (options.reviewStatusCode) body.set("review_status_code", options.reviewStatusCode);
       return body;
     },
   });
@@ -4430,6 +4446,8 @@ interface AdminReleaseThemeAssetUploadOptions {
   file: File;
   authToken?: string;
   onProgress?: (percent: number) => void;
+  visibilityCode?: string;
+  reviewStatusCode?: string;
 }
 
 interface AdminReleaseThemeAssetUploadForReleaseOptions {
@@ -4438,6 +4456,8 @@ interface AdminReleaseThemeAssetUploadForReleaseOptions {
   file: File;
   authToken?: string;
   onProgress?: (percent: number) => void;
+  visibilityCode?: string;
+  reviewStatusCode?: string;
 }
 
 export async function uploadAdminReleaseThemeAsset(
@@ -4457,6 +4477,8 @@ export async function uploadAdminReleaseThemeAsset(
       const body = new FormData();
       body.set("theme_id", String(options.themeID));
       body.set("file", options.file);
+      if (options.visibilityCode) body.set("visibility_code", options.visibilityCode);
+      if (options.reviewStatusCode) body.set("review_status_code", options.reviewStatusCode);
       return body;
     },
   });
@@ -4478,6 +4500,8 @@ export async function uploadAdminReleaseThemeAssetForRelease(
       const body = new FormData();
       body.set("theme_id", String(options.themeID));
       body.set("file", options.file);
+      if (options.visibilityCode) body.set("visibility_code", options.visibilityCode);
+      if (options.reviewStatusCode) body.set("review_status_code", options.reviewStatusCode);
       return body;
     },
   });
@@ -6272,6 +6296,8 @@ export interface UploadReleaseVersionMediaOptions {
   files: File[];
   onProgress?: (fileIndex: number, percent: number) => void;
   authToken?: string;
+  visibilityCode?: string;
+  reviewStatusCode?: string;
 }
 
 export async function uploadReleaseVersionMedia(
@@ -6295,6 +6321,8 @@ export async function uploadReleaseVersionMedia(
       for (const file of options.files) {
         body.append("files[]", file);
       }
+      if (options.visibilityCode) body.set("visibility_code", options.visibilityCode);
+      if (options.reviewStatusCode) body.set("review_status_code", options.reviewStatusCode);
       return body;
     },
   });
@@ -8431,8 +8459,15 @@ export interface StoryImageUploadResponse {
  * retryEligibility: 'never' — Upload nicht idempotent.
  * Server-Side-Guard: wirft 500 wenn kein Browser-Kontext.
  */
+interface OwnProfileStoryImageUploadOptions {
+  file: File;
+  onProgress?: (percent: number) => void;
+  visibilityCode?: string;
+  reviewStatusCode?: string;
+}
+
 export async function uploadOwnProfileStoryImage(
-  file: File,
+  fileOrOptions: File | OwnProfileStoryImageUploadOptions,
   onProgress?: (percent: number) => void,
 ): Promise<StoryImageUploadResponse> {
   if (typeof window === "undefined") {
@@ -8440,13 +8475,21 @@ export async function uploadOwnProfileStoryImage(
   }
   const API_BASE_URL = getApiBaseUrl();
   const endpoint = `${API_BASE_URL}/api/v1/me/profile/story-images`;
+
+  const opts: OwnProfileStoryImageUploadOptions =
+    fileOrOptions instanceof File
+      ? { file: fileOrOptions, onProgress }
+      : fileOrOptions;
+
   return authorizedUploadXhr<StoryImageUploadResponse>({
     endpoint,
-    onProgress,
+    onProgress: opts.onProgress,
     retryEligibility: "never",
     buildBody: () => {
       const body = new FormData();
-      body.set("image", file);
+      body.set("image", opts.file);
+      if (opts.visibilityCode) body.set("visibility_code", opts.visibilityCode);
+      if (opts.reviewStatusCode) body.set("review_status_code", opts.reviewStatusCode);
       return body;
     },
     parsePayload: (payload) => {
