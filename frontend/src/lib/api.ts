@@ -269,9 +269,26 @@ function getApiBaseUrl(): string {
     : getBrowserApiBaseUrl();
 }
 
+function isLoopbackHost(hostname: string): boolean {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1" || hostname === "[::1]";
+}
+
+function resolveLoopbackMediaUrl(value: string): string | null {
+  try {
+    const parsed = new URL(value);
+    if (!isLoopbackHost(parsed.hostname)) return null;
+    if (!parsed.pathname.startsWith("/api/") && !parsed.pathname.startsWith("/media/")) return null;
+
+    return resolvePublicApiUrl(`${parsed.pathname}${parsed.search}${parsed.hash}`);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Löst eine relative oder absolute Media-URL zu einer vollständig qualifizierten URL auf.
- * - Absolute URLs (http/https) → unverändert zurückgeben
+ * - Absolute externe URLs (http/https) → unverändert zurückgeben
+ * - Absolute lokale API-/Media-URLs → auf den aktuellen Browser-API-Pfad normalisieren
  * - Pfade die mit /api/ beginnen → an die öffentliche API-Base anhängen
  * - Alle anderen Werte (z.B. /media/...) → unverändert zurückgeben
  * Wird für Cover-, Banner- und Backdrop-Pfade aus der API genutzt.
@@ -283,6 +300,11 @@ export function resolveApiUrl(value?: string): string {
   }
 
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    const loopbackMediaUrl = resolveLoopbackMediaUrl(trimmed);
+    if (loopbackMediaUrl) {
+      return loopbackMediaUrl;
+    }
+
     return trimmed;
   }
 

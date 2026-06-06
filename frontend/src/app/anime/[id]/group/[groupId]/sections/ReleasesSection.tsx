@@ -1,4 +1,6 @@
-import { Button, Card, EmptyState, SectionHeader } from '@/components/ui'
+import Link from 'next/link'
+
+import { Card, EmptyState, SectionHeader } from '@/components/ui'
 import type { EpisodeReleaseSummary } from '@/types/group'
 
 import styles from '../page.module.css'
@@ -37,9 +39,9 @@ export function ReleasesSection({ episodes, animeID, groupID }: ReleasesSectionP
         </div>
       )}
       <div className={styles.releasesCta}>
-        <Button href={`/anime/${animeID}/group/${groupID}/releases`} variant="primary">
+        <Link href={`/anime/${animeID}/group/${groupID}/releases`} className={styles.releasesButton}>
           Alle Releases ansehen
-        </Button>
+        </Link>
       </div>
     </div>
   )
