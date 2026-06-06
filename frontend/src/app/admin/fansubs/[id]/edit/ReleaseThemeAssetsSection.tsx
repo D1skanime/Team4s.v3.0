@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from 'react'
 
+import { FormField, Select } from '@/components/ui'
 import {
   deleteAdminReleaseThemeAsset,
   getAdminCanonicalFansubRelease,
   getAdminReleaseThemeAssets,
   uploadAdminReleaseThemeAsset,
 } from '@/lib/api'
+import { MediaOwnershipContext } from '@/components/admin/media/MediaOwnershipContext'
+import type { MediaOwnershipContextValue } from '@/components/admin/media/MediaOwnershipContext'
 import { AdminAnimeTheme, AdminReleaseThemeAsset } from '@/types/admin'
 
 import sharedStyles from '../../../admin.module.css'
@@ -36,6 +39,7 @@ export function ReleaseThemeAssetsSection({
   const [error, setError] = useState<string | null>(null)
   const [releaseID, setReleaseID] = useState<number | null>(null)
   const [assets, setAssets] = useState<AdminReleaseThemeAsset[]>([])
+  const [ownerCtx, setOwnerCtx] = useState<MediaOwnershipContextValue | null>(null)
 
   useEffect(() => {
     setThemeID(themes[0]?.id ?? 0)
@@ -91,6 +95,17 @@ export function ReleaseThemeAssetsSection({
 
   async function handleUpload() {
     if (!file || !themeID || !hasAccessToken) return
+
+    // D-06: Upload blockieren wenn fansubID/animeID fehlt oder Owner nicht auflösbar
+    if (!fansubID || !animeID) {
+      setError('Upload nicht möglich: Kein gültiger Owner-Kontext.')
+      return
+    }
+    if (!ownerCtx?.ownerResolved) {
+      setError('Upload nicht möglich: Kein gültiger Owner-Kontext.')
+      return
+    }
+
     setBusy(true)
     setError(null)
     try {
@@ -100,6 +115,8 @@ export function ReleaseThemeAssetsSection({
         themeID,
         file,
         onProgress: setProgress,
+        visibilityCode: ownerCtx.visibilityCode,
+        reviewStatusCode: ownerCtx.reviewStatusCode,
       })
       await reloadAssets()
       setFile(null)
@@ -111,23 +128,45 @@ export function ReleaseThemeAssetsSection({
     }
   }
 
+  // Aktuell gewähltes Theme-Label für categoryValue (slot-Anzeige)
+  const selectedTheme = themes.find((t) => t.id === themeID)
+  const categoryValue = selectedTheme
+    ? `${selectedTheme.theme_type_name}${selectedTheme.title ? ` - ${selectedTheme.title}` : ''}`
+    : 'Release-Theme'
+
   return (
     <div className={styles.uploadForm}>
+      {/* D-07: Surface 3 — Release-Theme-Assets (ownerType=release_theme, statusPolicy=immediate) */}
+      <MediaOwnershipContext
+        ownerType="release_theme"
+        ownerID={fansubID}
+        ownerLabel={`Release «Anime ${animeID} · Fansub ${fansubID}»`}
+        categoryMode="slot"
+        categoryValue={categoryValue}
+        statusPolicy="immediate"
+        disabled={busy}
+        onContextChange={setOwnerCtx}
+      />
+
       <div className={styles.formRow}>
-        <label className={styles.field}>
-          <span>Theme</span>
-          <select className={styles.select} value={themeID} onChange={(event) => setThemeID(Number(event.target.value))}>
-            <option value={0}>Bitte wählen</option>
+        <FormField label="Theme" htmlFor="release-theme-select">
+          <Select
+            id="release-theme-select"
+            value={String(themeID)}
+            onChange={(event) => setThemeID(Number(event.target.value))}
+          >
+            <option value="0">Bitte wählen</option>
             {themes.map((theme) => (
-              <option key={theme.id} value={theme.id}>
+              <option key={theme.id} value={String(theme.id)}>
                 {theme.theme_type_name}{theme.title ? ` - ${theme.title}` : ''}
               </option>
             ))}
-          </select>
-        </label>
+          </Select>
+        </FormField>
 
         <label className={styles.field}>
           <span>Video-Datei</span>
+          {/* hidden file input bleibt nativ — kein @/components/ui-Primitive für file inputs */}
           <input type="file" accept="video/*" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
         </label>
 
@@ -136,7 +175,7 @@ export function ReleaseThemeAssetsSection({
           <progress value={progress} max={100} />
         </div>
 
-        <button type="button" className={styles.button} onClick={() => void handleUpload()} disabled={!file || !themeID || busy || !hasAccessToken}>
+        <button type="button" className={styles.button} onClick={() => void handleUpload()} disabled={!file || !themeID || busy || !hasAccessToken || !ownerCtx?.ownerResolved}>
           {busy ? 'Lade hoch...' : 'Video hochladen'}
         </button>
       </div>
