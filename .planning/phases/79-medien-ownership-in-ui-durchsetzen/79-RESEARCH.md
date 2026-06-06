@@ -471,7 +471,7 @@ err = db.QueryRow(ctx, "SELECT id FROM review_statuses WHERE code = $1", reviewS
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Lookup-Endpoint für Status-Optionen**
    - Was wir wissen: Die Review-Status-Codes sind konstant (5 Werte aus Migration 0097), die Visibility-Codes ebenfalls (5 Werte aus Migration 0037).
