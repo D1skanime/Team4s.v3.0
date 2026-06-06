@@ -15,7 +15,7 @@ vi.mock('next/image', () => ({
 
 describe('MediaOwnershipContext — D-06: ownerID-Validierung', () => {
   it('ownerID=null → onContextChange mit ownerResolved=false; ErrorState sichtbar', () => {
-    const onContextChange = vi.fn<[MediaOwnershipContextValue], void>()
+    const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
       <MediaOwnershipContext
@@ -36,7 +36,7 @@ describe('MediaOwnershipContext — D-06: ownerID-Validierung', () => {
   })
 
   it('ownerID=0 → ownerResolved=false', () => {
-    const onContextChange = vi.fn<[MediaOwnershipContextValue], void>()
+    const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
       <MediaOwnershipContext
@@ -56,7 +56,7 @@ describe('MediaOwnershipContext — D-06: ownerID-Validierung', () => {
   })
 
   it('ownerID=5 → ownerResolved=true; ErrorState NICHT gerendert', () => {
-    const onContextChange = vi.fn<[MediaOwnershipContextValue], void>()
+    const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
       <MediaOwnershipContext
@@ -79,7 +79,7 @@ describe('MediaOwnershipContext — D-06: ownerID-Validierung', () => {
 
 describe('MediaOwnershipContext — D-03/D-09: statusPolicy', () => {
   it('statusPolicy=in_review, ownerID=5 → onContextChange mit reviewStatusCode=in_review + visibilityCode=private', () => {
-    const onContextChange = vi.fn<[MediaOwnershipContextValue], void>()
+    const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
       <MediaOwnershipContext
@@ -102,7 +102,7 @@ describe('MediaOwnershipContext — D-03/D-09: statusPolicy', () => {
   })
 
   it('statusPolicy=immediate, ownerID=5 → onContextChange mit reviewStatusCode=approved + visibilityCode=public', () => {
-    const onContextChange = vi.fn<[MediaOwnershipContextValue], void>()
+    const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
       <MediaOwnershipContext
@@ -127,7 +127,7 @@ describe('MediaOwnershipContext — D-03/D-09: statusPolicy', () => {
 
 describe('MediaOwnershipContext — D-05: Owner-Chip', () => {
   it('ownerLabel=Gruppe X ist als read-only Text sichtbar; kein editierbares Feld', () => {
-    const onContextChange = vi.fn<[MediaOwnershipContextValue], void>()
+    const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
       <MediaOwnershipContext
@@ -152,7 +152,7 @@ describe('MediaOwnershipContext — D-05: Owner-Chip', () => {
 
 describe('MediaOwnershipContext — D-08: categoryMode', () => {
   it('categoryMode=slot, categoryValue=logo → Badge mit logo gerendert; kein Select', () => {
-    const onContextChange = vi.fn<[MediaOwnershipContextValue], void>()
+    const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
       <MediaOwnershipContext
@@ -174,7 +174,7 @@ describe('MediaOwnershipContext — D-08: categoryMode', () => {
   })
 
   it('categoryMode=dropdown, categoryOptions=[{value:screenshot,label:Screenshot}] → Select gerendert', () => {
-    const onContextChange = vi.fn<[MediaOwnershipContextValue], void>()
+    const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
       <MediaOwnershipContext
