@@ -120,20 +120,44 @@ func (r *MediaRepository) CreateMediaAsset(
 
 	publicURL := r.buildPublicURL(filename)
 	var item models.MediaAsset
-	if err := r.db.QueryRow(ctx, `
-		INSERT INTO media_assets (media_type_id, file_path, mime_type, format, created_at)
-		VALUES ($1, $2, $3, $4, NOW())
-		RETURNING id, file_path, mime_type, created_at
-	`, mediaTypeID, storagePath, input.MimeType, mediaFormatForKind(input.Kind)).Scan(
-		&item.ID,
-		&item.StoragePath,
-		&item.MimeType,
-		&item.CreatedAt,
-	); err != nil {
-		if isUniqueViolation(err) {
-			return nil, ErrConflict
+	if input.VisibilityCode != nil && input.ReviewStatusCode != nil {
+		// Sub-SELECT-INSERT: visibility_id und review_status_id per Lookup-Tabellen aufgelöst (Lock K)
+		if err := r.db.QueryRow(ctx, `
+			INSERT INTO media_assets (media_type_id, file_path, mime_type, format,
+				visibility_id, review_status_id, created_at)
+			VALUES ($1, $2, $3, $4,
+				(SELECT id FROM visibilities WHERE name = $5 LIMIT 1),
+				(SELECT id FROM review_statuses WHERE code = $6 LIMIT 1),
+				NOW())
+			RETURNING id, file_path, mime_type, created_at
+		`, mediaTypeID, storagePath, input.MimeType, mediaFormatForKind(input.Kind),
+			*input.VisibilityCode, *input.ReviewStatusCode).Scan(
+			&item.ID,
+			&item.StoragePath,
+			&item.MimeType,
+			&item.CreatedAt,
+		); err != nil {
+			if isUniqueViolation(err) {
+				return nil, ErrConflict
+			}
+			return nil, fmt.Errorf("create media asset: %w", err)
 		}
-		return nil, fmt.Errorf("create media asset: %w", err)
+	} else {
+		if err := r.db.QueryRow(ctx, `
+			INSERT INTO media_assets (media_type_id, file_path, mime_type, format, created_at)
+			VALUES ($1, $2, $3, $4, NOW())
+			RETURNING id, file_path, mime_type, created_at
+		`, mediaTypeID, storagePath, input.MimeType, mediaFormatForKind(input.Kind)).Scan(
+			&item.ID,
+			&item.StoragePath,
+			&item.MimeType,
+			&item.CreatedAt,
+		); err != nil {
+			if isUniqueViolation(err) {
+				return nil, ErrConflict
+			}
+			return nil, fmt.Errorf("create media asset: %w", err)
+		}
 	}
 
 	item.Filename = filename

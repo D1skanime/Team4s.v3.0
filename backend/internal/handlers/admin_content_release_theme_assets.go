@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
@@ -170,6 +171,28 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 		return
 	}
 
+	// visibility_code und review_status_code aus FormData lesen (optionale Felder, Lock K)
+	themeVisibilityCode := strings.TrimSpace(c.PostForm("visibility_code"))
+	themeReviewStatusCode := strings.TrimSpace(c.PostForm("review_status_code"))
+
+	// Whitelist-Validierung (T-79-02-01)
+	if themeVisibilityCode != "" && !validVisibilityCodes[themeVisibilityCode] {
+		badRequest(c, "ungültiger visibility_code")
+		return
+	}
+	if themeReviewStatusCode != "" && !validReviewStatusCodes[themeReviewStatusCode] {
+		badRequest(c, "ungültiger review_status_code")
+		return
+	}
+
+	// D-09 Branding-Default: Theme-Assets sind Branding-Slots → sofort öffentlich/freigegeben
+	if themeVisibilityCode == "" {
+		themeVisibilityCode = "public"
+	}
+	if themeReviewStatusCode == "" {
+		themeReviewStatusCode = "approved"
+	}
+
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpload, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Release-Media-Berechtigung konnte nicht geprüft werden.")
@@ -241,6 +264,10 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 		return
 	}
 
+	// Visibility/ReviewStatus in CreateInput eintragen (Lock K, Sub-SELECT-Pfad)
+	saveResult.CreateInput.VisibilityCode = &themeVisibilityCode
+	saveResult.CreateInput.ReviewStatusCode = &themeReviewStatusCode
+
 	mediaAsset, err := h.mediaRepo.CreateMediaAsset(c.Request.Context(), saveResult.CreateInput)
 	if err != nil {
 		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
@@ -311,6 +338,28 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 		return
 	}
 
+	// visibility_code und review_status_code aus FormData lesen (optionale Felder, Lock K)
+	themeRelVisibilityCode := strings.TrimSpace(c.PostForm("visibility_code"))
+	themeRelReviewStatusCode := strings.TrimSpace(c.PostForm("review_status_code"))
+
+	// Whitelist-Validierung (T-79-02-01)
+	if themeRelVisibilityCode != "" && !validVisibilityCodes[themeRelVisibilityCode] {
+		badRequest(c, "ungültiger visibility_code")
+		return
+	}
+	if themeRelReviewStatusCode != "" && !validReviewStatusCodes[themeRelReviewStatusCode] {
+		badRequest(c, "ungültiger review_status_code")
+		return
+	}
+
+	// D-09 Branding-Default: Theme-Assets sind Branding-Slots → sofort öffentlich/freigegeben
+	if themeRelVisibilityCode == "" {
+		themeRelVisibilityCode = "public"
+	}
+	if themeRelReviewStatusCode == "" {
+		themeRelReviewStatusCode = "approved"
+	}
+
 	result, err := h.permissionSvc.CanForRelease(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpload, releaseID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Release-Media-Berechtigung konnte nicht geprüft werden.")
@@ -366,6 +415,10 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Video konnte nicht gespeichert werden.")
 		return
 	}
+
+	// Visibility/ReviewStatus in CreateInput eintragen (Lock K, Sub-SELECT-Pfad)
+	saveResult.CreateInput.VisibilityCode = &themeRelVisibilityCode
+	saveResult.CreateInput.ReviewStatusCode = &themeRelReviewStatusCode
 
 	mediaAsset, err := h.mediaRepo.CreateMediaAsset(c.Request.Context(), saveResult.CreateInput)
 	if err != nil {

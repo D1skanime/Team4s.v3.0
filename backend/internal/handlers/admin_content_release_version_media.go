@@ -214,6 +214,28 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
+	// visibility_code und review_status_code aus FormData lesen (optionale Felder, Lock K)
+	rvmVisibilityCode := strings.TrimSpace(c.PostForm("visibility_code"))
+	rvmReviewStatusCode := strings.TrimSpace(c.PostForm("review_status_code"))
+
+	// Whitelist-Validierung (T-79-02-01)
+	if rvmVisibilityCode != "" && !validVisibilityCodes[rvmVisibilityCode] {
+		badRequest(c, "ungültiger visibility_code")
+		return
+	}
+	if rvmReviewStatusCode != "" && !validReviewStatusCodes[rvmReviewStatusCode] {
+		badRequest(c, "ungültiger review_status_code")
+		return
+	}
+
+	// D-03 Prozessmedien-Default: Prozessmedien sind standardmäßig nicht öffentlich
+	if rvmVisibilityCode == "" {
+		rvmVisibilityCode = "private"
+	}
+	if rvmReviewStatusCode == "" {
+		rvmReviewStatusCode = "in_review"
+	}
+
 	files := form.File["files[]"]
 	if len(files) == 0 {
 		files = form.File["files"]
@@ -241,7 +263,7 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 
 	for i, fileHeader := range files {
 		sortOrder := maxSortOrder + (i+1)*10
-		result := h.processOneRVMFile(c, fileHeader, versionID, category, sortOrder, uploadedByUserID)
+		result := h.processOneRVMFile(c, fileHeader, versionID, category, sortOrder, uploadedByUserID, rvmVisibilityCode, rvmReviewStatusCode)
 		results = append(results, result)
 		if result.Status == "ready" && result.ReleaseVersionMediaID != nil {
 			_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
@@ -269,6 +291,8 @@ func (h *AdminContentHandler) processOneRVMFile(
 	category string,
 	sortOrder int,
 	uploadedByUserID int64,
+	visibilityCode string,
+	reviewStatusCode string,
 ) rvmFileResult {
 	clientName := fileHeader.Filename
 
@@ -386,13 +410,15 @@ func (h *AdminContentHandler) processOneRVMFile(
 	}()
 
 	createInput := models.MediaAssetCreateInput{
-		Kind:        models.MediaKindImage,
-		MimeType:    mimeType,
-		Filename:    "original." + ext,
-		StoragePath: originalPath,
-		SizeBytes:   int64(len(data)),
-		Width:       &meta.Width,
-		Height:      &meta.Height,
+		Kind:             models.MediaKindImage,
+		MimeType:         mimeType,
+		Filename:         "original." + ext,
+		StoragePath:      originalPath,
+		SizeBytes:        int64(len(data)),
+		Width:            &meta.Width,
+		Height:           &meta.Height,
+		VisibilityCode:   &visibilityCode,
+		ReviewStatusCode: &reviewStatusCode,
 	}
 	mediaAsset, err := h.mediaRepo.CreateMediaAssetWithStatusTx(ctx, tx, createInput, "processing")
 	if err != nil {

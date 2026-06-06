@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
@@ -12,6 +13,24 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+// validVisibilityCodes enthält die erlaubten visibility_code-Werte (aus Migration 0037 visibilities-Tabelle).
+var validVisibilityCodes = map[string]bool{
+	"public":    true,
+	"private":   true,
+	"registered": true,
+	"fansubber": true,
+	"staff":     true,
+}
+
+// validReviewStatusCodes enthält die erlaubten review_status_code-Werte (aus Migration 0097 review_statuses-Tabelle).
+var validReviewStatusCodes = map[string]bool{
+	"in_review": true,
+	"approved":  true,
+	"rejected":  true,
+	"archived":  true,
+	"removed":   true,
+}
 
 // UploadFansubMedia nimmt eine Mediendatei (Logo oder Banner) für eine Fansub-Gruppe entgegen und speichert sie.
 func (h *FansubHandler) UploadFansubMedia(c *gin.Context) {
@@ -46,6 +65,28 @@ func (h *FansubHandler) UploadFansubMedia(c *gin.Context) {
 		return
 	}
 
+	// visibility_code und review_status_code aus FormData lesen (optionale Felder, Lock K)
+	visibilityCode := strings.TrimSpace(c.PostForm("visibility_code"))
+	reviewStatusCode := strings.TrimSpace(c.PostForm("review_status_code"))
+
+	// Whitelist-Validierung (T-79-02-01)
+	if visibilityCode != "" && !validVisibilityCodes[visibilityCode] {
+		badRequest(c, "ungültiger visibility_code")
+		return
+	}
+	if reviewStatusCode != "" && !validReviewStatusCodes[reviewStatusCode] {
+		badRequest(c, "ungültiger review_status_code")
+		return
+	}
+
+	// D-09 Branding-Default: Identitäts-/Branding-Slots sind sofort öffentlich/freigegeben
+	if visibilityCode == "" {
+		visibilityCode = "public"
+	}
+	if reviewStatusCode == "" {
+		reviewStatusCode = "approved"
+	}
+
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		badRequest(c, "datei fehlt (field: file)")
@@ -57,7 +98,7 @@ func (h *FansubHandler) UploadFansubMedia(c *gin.Context) {
 		return
 	}
 
-	asset, gifLargeHint, ok := h.storeFansubMediaUpload(c, identity.UserID, fansubID, kind, fileHeader.Filename, data)
+	asset, gifLargeHint, ok := h.storeFansubMediaUpload(c, identity.UserID, fansubID, kind, fileHeader.Filename, data, visibilityCode, reviewStatusCode)
 	if !ok {
 		return
 	}
@@ -78,11 +119,17 @@ func (h *FansubHandler) storeFansubMediaUpload(
 	kind models.MediaKind,
 	filename string,
 	data []byte,
+	visibilityCode string,
+	reviewStatusCode string,
 ) (*models.MediaAsset, bool, bool) {
 	saveResult, ok := h.saveFansubMediaUpload(c, userID, fansubID, kind, filename, data)
 	if !ok {
 		return nil, false, false
 	}
+
+	// Visibility/ReviewStatus in CreateInput eintragen (Lock K, Sub-SELECT-Pfad)
+	saveResult.CreateInput.VisibilityCode = &visibilityCode
+	saveResult.CreateInput.ReviewStatusCode = &reviewStatusCode
 
 	asset, ok := h.persistFansubMediaAsset(c, userID, fansubID, kind, saveResult)
 	if !ok {

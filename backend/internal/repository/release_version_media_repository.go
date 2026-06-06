@@ -139,14 +139,32 @@ func (r *MediaRepository) CreateMediaAssetWithStatusTx(
 		filename = filepath.Base(input.StoragePath)
 	}
 	var item models.MediaAsset
-	if err := tx.QueryRow(ctx, `
-		INSERT INTO media_assets (media_type_id, file_path, mime_type, format, status, created_at)
-		VALUES ($1, $2, $3, $4, $5, NOW())
-		RETURNING id, file_path, mime_type, created_at
-	`, mediaTypeID, input.StoragePath, input.MimeType, mediaFormatForKind(input.Kind), status).Scan(
-		&item.ID, &item.StoragePath, &item.MimeType, &item.CreatedAt,
-	); err != nil {
-		return nil, fmt.Errorf("create media asset with status tx: %w", err)
+	if input.VisibilityCode != nil && input.ReviewStatusCode != nil {
+		// Sub-SELECT-INSERT: visibility_id und review_status_id per Lookup-Tabellen aufgelöst (Lock K)
+		if err := tx.QueryRow(ctx, `
+			INSERT INTO media_assets (media_type_id, file_path, mime_type, format, status,
+				visibility_id, review_status_id, created_at)
+			VALUES ($1, $2, $3, $4, $5,
+				(SELECT id FROM visibilities WHERE name = $6 LIMIT 1),
+				(SELECT id FROM review_statuses WHERE code = $7 LIMIT 1),
+				NOW())
+			RETURNING id, file_path, mime_type, created_at
+		`, mediaTypeID, input.StoragePath, input.MimeType, mediaFormatForKind(input.Kind), status,
+			*input.VisibilityCode, *input.ReviewStatusCode).Scan(
+			&item.ID, &item.StoragePath, &item.MimeType, &item.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("create media asset with status tx: %w", err)
+		}
+	} else {
+		if err := tx.QueryRow(ctx, `
+			INSERT INTO media_assets (media_type_id, file_path, mime_type, format, status, created_at)
+			VALUES ($1, $2, $3, $4, $5, NOW())
+			RETURNING id, file_path, mime_type, created_at
+		`, mediaTypeID, input.StoragePath, input.MimeType, mediaFormatForKind(input.Kind), status).Scan(
+			&item.ID, &item.StoragePath, &item.MimeType, &item.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("create media asset with status tx: %w", err)
+		}
 	}
 	item.Filename = filename
 	item.SizeBytes = input.SizeBytes
