@@ -93,7 +93,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   - [ ] `78-03-PLAN.md` — Backend Gruppenmedien-Review: GET-Liste + PATCH fansub_group_media + api.ts (listFansubGroupMedia/patchFansubMediaReview, Lock K/G/I, D-05/D-06/D-09); Phase-72-Schema-Gate
   - [ ] `78-04-PLAN.md` — GroupMediaReviewSection (liest via listFansubGroupMedia) + Phase-76-Stubs (D-03/D-04) + page.tsx-Verdrahtung + Human-Verify (Lock F/SC2/SC5)
   - [ ] `78-05-PLAN.md` — Release-Version-Media-Review: release_version_media PATCH-Erweiterung + ReleaseVersionMediaReviewSection im Release-Drawer (D-06 zweite Owner-Fläche, Lock K/G/I)
-- [ ] **Phase 79: Medien-Ownership in UI durchsetzen** - Upload-/Zuweisungsflows über alle Surfaces zwingen Owner-Typ, Owner-ID, Medienkategorie, Sichtbarkeit und Reviewstatus sichtbar zu machen und die Media-Ownership-Matrix einzuhalten; Reuse bestehender Upload-Helfer/Transport (`authorizedUploadXhr`).
+- [x] **Phase 79: Medien-Ownership in UI durchsetzen** - Upload-/Zuweisungsflows über alle Surfaces zwingen Owner-Typ, Owner-ID, Medienkategorie, Sichtbarkeit und Reviewstatus sichtbar zu machen und die Media-Ownership-Matrix einzuhalten; Reuse bestehender Upload-Helfer/Transport (`authorizedUploadXhr`). (completed 2026-06-06)
 - [ ] **Phase 80: `/admin/users` + User Detail Drawer (scoped Rechte)** - Globale User-/Rechteübersicht starten (Userliste + Detail-Drawer mit globalen Rollen, Member-Link, Gruppenmitgliedschaften, Claims, Contributions, Medien, Audit), Rechte strikt scoped, ohne Rechte aus Contributions abzuleiten.
 
 ## Phase Details
@@ -1848,7 +1848,7 @@ Plans:
   4. Es wird kein neuer Upload-Transport gebaut; `authorizedUploadXhr` und bestehende Upload-Helfer werden wiederverwendet.
   5. Bestehende Upload-Komponenten (`MediaUpload.tsx`, `ReleaseVersionMediaSection.tsx`, Profil-Media, Theme-Asset-Upload) werden konsistent auf das erzwungene Owner-/Status-Modell gehoben.
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 Plans:
 - [x] `79-01-PLAN.md` — TDD: mediaStatusMapping + MediaOwnershipContext-Komponente (D-01/D-02/D-03/D-06/D-07/D-09)
 - [ ] `79-02-PLAN.md` — Lock-K Contract-Pfad: OpenAPI + models + Repository INSERT + Go-Handler (Branding/Prozessmedien-Defaults) + api.ts
