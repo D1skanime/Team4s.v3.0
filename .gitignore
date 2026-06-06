@@ -17,6 +17,8 @@ media/
 !frontend/src/components/media/
 !frontend/src/components/media/crop/
 !frontend/src/components/media/crop/**
+!frontend/src/components/admin/media/
+!frontend/src/components/admin/media/**
 
 # General
 .cache/
