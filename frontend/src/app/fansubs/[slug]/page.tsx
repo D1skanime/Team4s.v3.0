@@ -13,9 +13,11 @@ import { GroupLeaderTimeline } from '@/components/fansubs/GroupLeaderTimeline'
 import type { AnimeListItem } from '@/types/anime'
 import type { PublicGroupContributionsResponse } from '@/types/contributions'
 import type { MediaOwnershipRow } from '@/types/media-ownership'
+import type { FansubGroupSummary } from '@/types/fansub'
 import {
   ApiError,
   getAnimeList,
+  getCollaborationMembers,
   getFansubBySlug,
   getFansubContributions,
   getFansubGroupDomainProjection,
@@ -94,10 +96,19 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
 
   // Kollaboration-Check — VOR allen nachgelagerten API-Aufrufen
   if (group.group_type === 'collaboration') {
+    let collaborationMembers: FansubGroupSummary[] = []
+    try {
+      const collabResponse = await getCollaborationMembers(group.id)
+      collaborationMembers = collabResponse.data
+        .map((m) => m.member_group)
+        .filter((g): g is FansubGroupSummary => g != null)
+    } catch {
+      // Fallback: leere Liste; Hero zeigt "Keine Gruppenangaben hinterlegt."
+    }
     return (
       <main className={styles.page}>
         <div className={styles.readingColumn}>
-          <FansubHeroSection group={group} isCollaboration />
+          <FansubHeroSection group={group} isCollaboration collaborationMembers={collaborationMembers} />
         </div>
       </main>
     )
@@ -146,7 +157,20 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
           <FansubMediaSection mediaRows={mediaRows} group={group} />
         </div>
         <section id="gruppenleitung" className={styles.sectionSpacing}>
-          <GroupLeaderTimeline entries={contributions?.leader_timeline ?? []} />
+          <GroupLeaderTimeline
+            entries={contributions?.leader_timeline ?? []}
+            fallbackLeads={domainProjection.members
+              .filter((m) => m.roles.includes('fansub_lead'))
+              .map((m) => ({
+                member_display_name: m.member_display_name,
+                member_slug: m.member_slug,
+                role_code: 'fansub_lead',
+                role_label: 'Fansub-Lead',
+                started_year: null,
+                ended_year: null,
+                status: m.status,
+              }))}
+          />
         </section>
         <div className={styles.sectionSpacing}>
           <FansubDeepDiveSection group={group} />
