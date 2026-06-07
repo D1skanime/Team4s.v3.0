@@ -129,7 +129,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
         <div className={`${styles.sectionSpacing} ${styles.gridSection}`}>
           <FansubMediaSection mediaRows={mediaRows} group={group} />
         </div>
-        <section id="timeline" className={styles.sectionSpacing}>
+        <section id="gruppenleitung" className={styles.sectionSpacing}>
           <GroupLeaderTimeline entries={contributions?.leader_timeline ?? []} />
         </section>
         <div className={styles.sectionSpacing}>

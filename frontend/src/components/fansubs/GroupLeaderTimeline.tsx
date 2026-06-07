@@ -12,7 +12,7 @@ export function GroupLeaderTimeline({ entries }: GroupLeaderTimelineProps) {
       <section className={styles.timeline}>
         <h2 className={styles.heading}>Gruppenleitung</h2>
         <p className={styles.empty}>
-          Noch keine Gruppenhistorie eingetragen.
+          Noch keine Gruppenleitung eingetragen.
         </p>
       </section>
     )
