@@ -117,7 +117,10 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
       ? domainProjectionResult.value
       : { members: [], historical: [], contributors: [] }
   const mediaRows = resolveSettled<MediaOwnershipRow[]>(mediaOwnershipResult, [])
-  const teamMemberNames = domainProjection.members.map((m) => m.member_display_name)
+  const teamMemberNames = [
+    ...domainProjection.members.map((m) => m.member_display_name),
+    ...domainProjection.historical.map((m) => m.member_display_name),
+  ]
 
   return (
     <main className={styles.page}>
@@ -128,7 +131,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
           <FansubStorySection group={group} />
         </div>
         <div className={styles.sectionSpacing}>
-          <FansubHighlightsSection group={group} contributions={contributions} />
+          <FansubHighlightsSection group={group} contributions={contributions} animeProjectCount={projects.length} />
         </div>
         <div className={`${styles.sectionSpacing} ${styles.gridSection}`}>
           <FansubProjectsSection projects={projects} groupId={group.id} />
