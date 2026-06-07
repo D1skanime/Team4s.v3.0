@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
 stopped_at: Phase 80 context gathered
-last_updated: "2026-06-06T19:41:15.200Z"
-last_activity: 2026-06-06
+last_updated: "2026-06-07T12:23:40.305Z"
+last_activity: 2026-06-07
 progress:
   total_phases: 76
-  completed_phases: 59
-  total_plans: 295
-  completed_plans: 260
-  percent: 78
+  completed_phases: 58
+  total_plans: 300
+  completed_plans: 261
+  percent: 76
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 79 — medien-ownership-in-ui-durchsetzen
+**Current focus:** Phase 73 — public-fansub-page-fansubs-slug-erweitern
 
 ## Current Position
 
-Phase: 79 (medien-ownership-in-ui-durchsetzen) — EXECUTING
-Plan: 5 of 5
+Phase: 73 (public-fansub-page-fansubs-slug-erweitern) — EXECUTING
+Plan: 2 of 11
 
 ## Accumulated Context
 
@@ -442,7 +442,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-06T19:41:15.113Z
+Last session: 2026-06-07T12:23:40.281Z
 Stopped at: Phase 80 context gathered
-Last activity: 2026-06-06
-Resume file: .planning/phases/80-admin-users-user-detail-drawer-scoped-rechte/80-CONTEXT.md
+Last activity: 2026-06-07
+Resume file: None
