@@ -1731,7 +1731,7 @@ Plans:
   4. Projektkarten verlinken auf `/anime/[id]/group/[groupId]` als Deep-Dive.
   5. Keine neue Public-Fansub-Route, keine ad-hoc-Fetches, keine Token-Direktzugriffe; alle Daten über bestehende API-Seams.
 
-**Plans:** 11/11 plans complete
+**Plans:** 13 plans (11 complete, 2 gap-closure pending)
 Plans:
 
 - [ ] `73-01-PLAN.md` — FansubSectionNav (Client-Komponente, IntersectionObserver) + Test-Scaffolds
@@ -1739,6 +1739,8 @@ Plans:
 - [ ] `73-03-PLAN.md` — FansubTeamSection + Sub-Komponenten + FansubContributorsSection
 - [ ] `73-04-PLAN.md` — FansubMediaSection + drei Ownership-Blöcke (parallel zu Plan 03)
 - [ ] `73-05-PLAN.md` — page.tsx-Umbau: paralleler Datenfetch + Section-Orchestrierung + FansubProfileTabs-Bereinigung
+- [ ] `73-11-PLAN.md` — Gap-Closure R2: Projektzähler-Quelle auf projects.length; teamMemberNames + historical (UAT-12, UAT-5)
+- [ ] `73-12-PLAN.md` — Gap-Closure R2: Kollaborations-Gruppen via API-Endpunkt; Lead-Fallback aus DomainProjection (UAT-16, UAT-7-Lead)
 
 ### Phase 74: Public Member Profile `/members/[slug]` + Memorial
 
