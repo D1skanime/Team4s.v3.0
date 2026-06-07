@@ -1,12 +1,10 @@
-import Image from 'next/image'
-
 import { Card, EmptyState } from '@/components/ui'
 import type { FansubGroup } from '@/types/fansub'
 import type { MediaOwnershipRow } from '@/types/media-ownership'
 
 interface FansubGroupMediaBlockProps {
   mediaRows: MediaOwnershipRow[]
-  group: Pick<FansubGroup, 'id' | 'logo_url' | 'banner_url'>
+  group: Pick<FansubGroup, 'id'>
 }
 
 function renderMediaRows(mediaRows: MediaOwnershipRow[]) {
@@ -32,19 +30,6 @@ export function FansubGroupMediaBlock({ mediaRows, group }: FansubGroupMediaBloc
 
   if (publicGroupMedia.length > 0) {
     return renderMediaRows(publicGroupMedia)
-  }
-
-  if (publicGroupMedia.length === 0 && (group.logo_url || group.banner_url)) {
-    return (
-      <div style={{ display: 'grid', gap: 12 }}>
-        {group.logo_url ? (
-          <Image src={group.logo_url} alt="Gruppenlogo" width={160} height={160} unoptimized />
-        ) : null}
-        {group.banner_url ? (
-          <Image src={group.banner_url} alt="Gruppenbanner" width={480} height={180} unoptimized />
-        ) : null}
-      </div>
-    )
   }
 
   return (
