@@ -61,6 +61,7 @@
 .heroBanner {
   position: relative;
   min-height: 164px;
+  overflow: hidden;
   border-bottom: 1px solid rgba(56, 70, 96, 0.08);
   background:
     linear-gradient(to bottom, rgba(245, 248, 253, 0.92), rgba(231, 236, 246, 0.92)),
@@ -69,7 +70,7 @@
 
 .heroBannerImage {
   object-fit: contain;
-  object-position: center;
+  object-position: center top;
   padding: 16px 20px;
 }
 
