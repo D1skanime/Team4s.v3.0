@@ -47,10 +47,15 @@ expected: Bei Überschneidung Contributor/Mitglied (Angeldust) Badge "auch Mitgl
 result: pass
 evidence: "Nach 73-11: teamMemberNames = members + historical. Mitwirkende zeigt 'Angeldust · auch Mitglied · Typesetting / FX'."
 
+### 8. Banner-Darstellung konsistent zur Edit-Seite (Nutzer-Feedback / 73-13)
+expected: Public-Hero-Banner nicht beschnitten, sondern wie auf der Admin-Edit-Seite (object-fit: contain, Edge-Fill-Seitenränder, responsive).
+result: pass
+evidence: "Nach 73-13: neue Client-Komponente FansubBannerDisplay repliziert die Edit-Edge-Fill-Technik. Live :3000 /fansubs/animeownage: Banner 958×180 contain (kein Beschnitt mehr, vorher cover), keine Konsolen-Fehler, Edge-Fill CORS-sicher (same-origin :3000-Proxy, toDataURL OK). Mobile 375px kein Overflow. Bei breitem Banner keine Seitenlücken nötig; Edge-Fill-Maschinerie für schmale Banner aktiv."
+
 ## Summary
 
-total: 7
-passed: 7
+total: 8
+passed: 8
 issues: 0
 pending: 0
 skipped: 0
