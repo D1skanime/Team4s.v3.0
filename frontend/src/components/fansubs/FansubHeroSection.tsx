@@ -4,13 +4,14 @@ import Link from 'next/link'
 import { Badge, Card } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
 import { buildFansubFactSummary } from '@/lib/fansub-summary'
-import type { FansubGroup } from '@/types/fansub'
+import type { FansubGroup, FansubGroupSummary } from '@/types/fansub'
 
 import styles from '../../app/fansubs/[slug]/page.module.css'
 
 interface FansubHeroSectionProps {
   group: FansubGroup
   isCollaboration?: boolean
+  collaborationMembers?: FansubGroupSummary[]
 }
 
 function buildInitials(name: string): string {
@@ -42,7 +43,7 @@ function yearsLabel(group: FansubGroup): string | null {
   return null
 }
 
-export function FansubHeroSection({ group, isCollaboration }: FansubHeroSectionProps) {
+export function FansubHeroSection({ group, isCollaboration, collaborationMembers }: FansubHeroSectionProps) {
   const logoURL = resolveApiUrl(group.logo_url || '')
   const bannerURL = resolveApiUrl(group.banner_url || '')
   const years = yearsLabel(group)
@@ -105,9 +106,9 @@ export function FansubHeroSection({ group, isCollaboration }: FansubHeroSectionP
           <p style={{ margin: '0 0 8px', fontSize: 14, color: 'var(--text-secondary)' }}>
             Dies ist eine Kollaboration zwischen:
           </p>
-          {(group.collaboration_members ?? []).length > 0 ? (
+          {(collaborationMembers ?? []).length > 0 ? (
             <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {(group.collaboration_members ?? []).map((member) => (
+              {(collaborationMembers ?? []).map((member) => (
                 <li key={member.id}>
                   <Link href={'/fansubs/' + member.slug}>
                     <Badge variant="info">{member.name}</Badge>

@@ -4,10 +4,13 @@ import styles from './GroupLeaderTimeline.module.css'
 
 interface GroupLeaderTimelineProps {
   entries: PublicFansubLeaderEntry[]
+  fallbackLeads?: PublicFansubLeaderEntry[]
 }
 
-export function GroupLeaderTimeline({ entries }: GroupLeaderTimelineProps) {
-  if (entries.length === 0) {
+export function GroupLeaderTimeline({ entries, fallbackLeads }: GroupLeaderTimelineProps) {
+  const effectiveEntries = entries.length > 0 ? entries : (fallbackLeads ?? [])
+
+  if (effectiveEntries.length === 0) {
     return (
       <section className={styles.timeline}>
         <h2 className={styles.heading}>Gruppenleitung</h2>
@@ -22,7 +25,7 @@ export function GroupLeaderTimeline({ entries }: GroupLeaderTimelineProps) {
     <section className={styles.timeline}>
       <h2 className={styles.heading}>Gruppenleitung</h2>
       <ol className={styles.list}>
-        {entries.map((entry, index) => (
+        {effectiveEntries.map((entry, index) => (
           <li
             key={`${entry.member_slug ?? entry.member_display_name}-${entry.role_code}-${entry.started_year ?? index}`}
             className={styles.entry}
