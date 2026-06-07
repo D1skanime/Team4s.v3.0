@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
-stopped_at: Phase 80 context gathered
-last_updated: "2026-06-07T12:34:06.912Z"
+stopped_at: Completed 73-10-PLAN.md
+last_updated: "2026-06-07T12:39:58.942Z"
 last_activity: 2026-06-07
 progress:
   total_phases: 76
-  completed_phases: 58
+  completed_phases: 59
   total_plans: 300
-  completed_plans: 264
-  percent: 76
+  completed_plans: 265
+  percent: 78
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 73 (public-fansub-page-fansubs-slug-erweitern) — EXECUTING
-Plan: 5 of 11
+Plan: 6 of 11
 
 ## Accumulated Context
 
@@ -236,6 +236,8 @@ Recent durable decisions:
 - [Phase ?]: [Phase 74-05]: ContributionFilterEntry als Union-Typ-Brücke für Wave-0-Test/PublicMemberRoleEntry-Kompatibilität; vitest globals:true für @testing-library auto-cleanup; Top-N=4 Badge-Slicing
 - [Phase ?]: [Phase 79-04]: CATEGORY_OPTIONS + Utilities in ReleaseVersionMediaSection.helpers.tsx ausgelagert (396 Z., ≤450)
 - [Phase ?]: [Phase 79-04]: AnimeJellyfinAssetUploadControls.tsx 662 Zeilen Pre-existing — Split als Follow-up-Quick-Task deferred
+- [Phase ?]: [Phase 73-10]: Kollaboration-Block nutzt inline-style statt neuer CSS-Klasse
+- [Phase ?]: [Phase 73-10]: Badge variant=muted fuer 'auch Mitglied' Querverweis-Badge
 
 ### Pending Todos
 
@@ -408,6 +410,7 @@ Recent durable decisions:
 | Phase 79 P03 | 9min | 3 tasks | 3 files |
 | Phase 79 P04 | 9min | 3 tasks | 4 files |
 | Phase 73 P07 | 5min | 2 tasks | 3 files |
+| Phase 73 P10 | 2min | 2 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -443,7 +446,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-07T12:34:06.883Z
-Stopped at: Phase 80 context gathered
+Last session: 2026-06-07T12:39:58.914Z
+Stopped at: Completed 73-10-PLAN.md
 Last activity: 2026-06-07
 Resume file: None
