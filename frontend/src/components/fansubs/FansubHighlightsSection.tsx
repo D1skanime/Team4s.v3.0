@@ -22,7 +22,7 @@ function computeHighlights(
   contributions: FansubHighlightsSectionProps['contributions'],
 ): Highlight[] {
   return [
-    { label: 'Anime-Projekte', value: group.anime_relations_count || contributions?.anime_count || null },
+    { label: 'Anime-Projekte', value: contributions?.anime_count ?? null },
     { label: 'Release-Versionen', value: group.release_versions_count },
     { label: 'Mitglieder', value: group.members_count || contributions?.member_count || null },
     { label: 'Aktive Jahre', value: computeActiveYears(group.founded_year, group.dissolved_year) },
