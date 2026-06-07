@@ -6,6 +6,7 @@ import { resolveApiUrl } from '@/lib/api'
 import { buildFansubFactSummary } from '@/lib/fansub-summary'
 import type { FansubGroup, FansubGroupSummary } from '@/types/fansub'
 
+import { FansubBannerDisplay } from './FansubBannerDisplay'
 import styles from '../../app/fansubs/[slug]/page.module.css'
 
 interface FansubHeroSectionProps {
@@ -52,17 +53,7 @@ export function FansubHeroSection({ group, isCollaboration, collaborationMembers
   return (
     <Card id="hero" variant="section" className={styles.hero}>
       {bannerURL ? (
-        <div className={styles.heroBanner}>
-          <Image
-            src={bannerURL}
-            alt={`${group.name} Banner`}
-            fill
-            sizes="(max-width: 767px) calc(100vw - 48px), 960px"
-            className={styles.heroBannerImage}
-            unoptimized
-            priority
-          />
-        </div>
+        <FansubBannerDisplay bannerURL={bannerURL} altText={`${group.name} Banner`} />
       ) : null}
 
       <div className={styles.heroContent}>
