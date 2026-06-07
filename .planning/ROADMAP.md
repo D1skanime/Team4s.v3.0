@@ -1731,7 +1731,7 @@ Plans:
   4. Projektkarten verlinken auf `/anime/[id]/group/[groupId]` als Deep-Dive.
   5. Keine neue Public-Fansub-Route, keine ad-hoc-Fetches, keine Token-Direktzugriffe; alle Daten über bestehende API-Seams.
 
-**Plans:** 12/13 plans executed
+**Plans:** 13/13 plans complete
 Plans:
 
 - [ ] `73-01-PLAN.md` — FansubSectionNav (Client-Komponente, IntersectionObserver) + Test-Scaffolds
