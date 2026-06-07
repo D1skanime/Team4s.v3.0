@@ -117,6 +117,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
       ? domainProjectionResult.value
       : { members: [], historical: [], contributors: [] }
   const mediaRows = resolveSettled<MediaOwnershipRow[]>(mediaOwnershipResult, [])
+  const teamMemberNames = domainProjection.members.map((m) => m.member_display_name)
 
   return (
     <main className={styles.page}>
@@ -136,7 +137,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
           <FansubTeamSection members={domainProjection.members} historical={domainProjection.historical} />
         </div>
         <div className={styles.sectionSpacing}>
-          <FansubContributorsSection contributors={domainProjection.contributors} />
+          <FansubContributorsSection contributors={domainProjection.contributors} teamMemberNames={teamMemberNames} />
         </div>
         <div className={`${styles.sectionSpacing} ${styles.gridSection}`}>
           <FansubMediaSection mediaRows={mediaRows} group={group} />
