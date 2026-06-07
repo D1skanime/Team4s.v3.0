@@ -5,6 +5,7 @@ import type { FansubGroup } from '@/types/fansub'
 interface FansubHighlightsSectionProps {
   group: FansubGroup
   contributions: Pick<PublicGroupContributionsResponse, 'anime_count' | 'member_count'> | null
+  animeProjectCount?: number
 }
 
 interface Highlight {
@@ -20,17 +21,18 @@ function computeActiveYears(foundedYear?: number | null, dissolvedYear?: number 
 function computeHighlights(
   group: FansubGroup,
   contributions: FansubHighlightsSectionProps['contributions'],
+  animeProjectCount?: number,
 ): Highlight[] {
   return [
-    { label: 'Anime-Projekte', value: contributions?.anime_count ?? null },
+    { label: 'Anime-Projekte', value: animeProjectCount ?? null },
     { label: 'Release-Versionen', value: group.release_versions_count },
     { label: 'Mitglieder', value: group.members_count || contributions?.member_count || null },
     { label: 'Aktive Jahre', value: computeActiveYears(group.founded_year, group.dissolved_year) },
   ].filter((highlight) => highlight.value !== null && highlight.value !== 0)
 }
 
-export function FansubHighlightsSection({ group, contributions }: FansubHighlightsSectionProps) {
-  const highlights = computeHighlights(group, contributions)
+export function FansubHighlightsSection({ group, contributions, animeProjectCount }: FansubHighlightsSectionProps) {
+  const highlights = computeHighlights(group, contributions, animeProjectCount)
 
   if (highlights.length === 0) {
     return null
