@@ -13,7 +13,7 @@ const SECTION_IDS = [
   'team',
   'mitwirkende',
   'medien',
-  'timeline',
+  'gruppenleitung',
   'deep-dive',
 ] as const
 
@@ -26,7 +26,7 @@ const SECTION_LABELS: Record<SectionId, string> = {
   team: 'Team',
   mitwirkende: 'Mitwirkende',
   medien: 'Medien',
-  timeline: 'Timeline',
+  gruppenleitung: 'Gruppenleitung',
   'deep-dive': 'Mehr',
 }
 
