@@ -91,6 +91,18 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
   }
 
   const group = groupResponse.data
+
+  // Kollaboration-Check — VOR allen nachgelagerten API-Aufrufen
+  if (group.group_type === 'collaboration') {
+    return (
+      <main className={styles.page}>
+        <div className={styles.readingColumn}>
+          <FansubHeroSection group={group} isCollaboration />
+        </div>
+      </main>
+    )
+  }
+
   const [projectsResult, contributionsResult, domainProjectionResult, mediaOwnershipResult] =
     await Promise.allSettled([
       loadFansubProjects(group.id),
