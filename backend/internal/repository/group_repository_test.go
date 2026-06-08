@@ -265,6 +265,81 @@ func TestGroupRepository_GetGroupReleases(t *testing.T) {
 	}
 }
 
+func TestGroupRepository_GetGroupReleases_ReturnsMultipleVersionsPerRelease(t *testing.T) {
+	repo := setupTestRepo(t)
+	ctx := context.Background()
+
+	animeID := createTestAnime(t, repo.db)
+	fansubRepo := NewFansubRepository(repo.db)
+	group, err := fansubRepo.CreateGroup(ctx, models.FansubGroupCreateInput{
+		Slug:   "test-multi-version-group",
+		Name:   "Test Multi-Version Group",
+		Status: "active",
+	})
+	if err != nil {
+		t.Fatalf("failed to create test group: %v", err)
+	}
+	if _, err := fansubRepo.AttachAnimeFansub(ctx, animeID, group.ID, models.AnimeFansubAttachInput{IsPrimary: true}); err != nil {
+		t.Fatalf("failed to attach group: %v", err)
+	}
+
+	var episodeID int64
+	if err := repo.db.QueryRow(ctx, `
+		INSERT INTO episodes (anime_id, episode_number, title, status)
+		VALUES ($1, '1', 'Episode 1', 'public')
+		RETURNING id
+	`, animeID).Scan(&episodeID); err != nil {
+		t.Fatalf("failed to create episode: %v", err)
+	}
+
+	var releaseID int64
+	if err := repo.db.QueryRow(ctx, `
+		INSERT INTO fansub_releases (episode_id)
+		VALUES ($1)
+		RETURNING id
+	`, episodeID).Scan(&releaseID); err != nil {
+		t.Fatalf("failed to create release: %v", err)
+	}
+
+	for _, version := range []string{"v1", "v2"} {
+		var releaseVersionID int64
+		if err := repo.db.QueryRow(ctx, `
+			INSERT INTO release_versions (release_id, version, title)
+			VALUES ($1, $2, $3)
+			RETURNING id
+		`, releaseID, version, "Episode 1 "+version).Scan(&releaseVersionID); err != nil {
+			t.Fatalf("failed to create release version %s: %v", version, err)
+		}
+		if _, err := repo.db.Exec(ctx, `
+			INSERT INTO release_version_groups (release_version_id, fansub_group_id)
+			VALUES ($1, $2)
+		`, releaseVersionID, group.ID); err != nil {
+			t.Fatalf("failed to create release version group %s: %v", version, err)
+		}
+	}
+
+	groupRepo := NewGroupRepository(repo.db)
+	data, total, err := groupRepo.GetGroupReleases(ctx, animeID, group.ID, models.GroupReleasesFilter{
+		Page:    1,
+		PerPage: 20,
+	})
+	if err != nil {
+		t.Fatalf("GetGroupReleases failed: %v", err)
+	}
+	if total != 2 {
+		t.Fatalf("expected two release-version summaries, got total=%d", total)
+	}
+	if len(data.Episodes) != 2 {
+		t.Fatalf("expected two visible release-version cards, got %d", len(data.Episodes))
+	}
+	if data.Episodes[0].VersionLabel == nil || *data.Episodes[0].VersionLabel != "v1" {
+		t.Fatalf("expected first version label v1, got %#v", data.Episodes[0].VersionLabel)
+	}
+	if data.Episodes[1].VersionLabel == nil || *data.Episodes[1].VersionLabel != "v2" {
+		t.Fatalf("expected second version label v2, got %#v", data.Episodes[1].VersionLabel)
+	}
+}
+
 func stringPtr(s string) *string {
 	return &s
 }

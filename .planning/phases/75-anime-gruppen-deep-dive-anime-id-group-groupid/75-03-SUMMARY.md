@@ -45,7 +45,7 @@ key_files:
     - frontend/src/app/anime/[id]/group/[groupId]/page.module.css
 decisions:
   - "Anker-IDs (#team/#releases/#themes/#medien) liegen in den Section-Komponenten selbst, nicht in page.tsx — Sticky-Nav verlinkt nie auf fehlende Abschnitte"
-  - "D-11 (Version-Labels v1/v2, TV/BD) bewusst NICHT gerendert: EpisodeReleaseSummary trägt kein version_label-Feld; als Gap auf die /releases-Tiefenseite vertagt (Inline-Kommentar in ReleasesSection)"
+  - "D-11 auditiert 2026-06-08: EpisodeReleaseSummary trägt version_label, ReleasesSection rendert es; Live-Daten /anime/3/group/88 enthalten nur v1; Multi-Version-Rückgabe ist per Repository-Test abgesichert"
   - "ReleasesSection rendert keine has_op/has_ed/karaoke_count-Flags (RESEARCH Befund 1: Dummy-Werte)"
 commits:
   - a729a577 test(75-03): add failing tests for TeamSection (TDD RED)
@@ -75,8 +75,9 @@ Hero → Projektgeschichte → **Beteiligte am Projekt** → **Releases & Versio
   Mitwirkende" (D-07); geclaimte Member als `next/link` zu `/members/[slug]`,
   ungeclaimte als reiner Text (D-09); Rollen als Badges; EmptyState je Block.
 - **ReleasesSection** — bis zu 5 Highlight-Karten + CTA-Button „Alle Releases
-  ansehen" → `/anime/[id]/group/[groupId]/releases` (D-10, D-03). Keine Version-Labels
-  (D-11 Gap, vertagt auf /releases-Tiefe).
+  ansehen" → `/anime/[id]/group/[groupId]/releases` (D-10, D-03). Vorhandene
+  `version_label`-Werte werden angezeigt; echte Multi-Versionen sind per
+  Repository-Test abgesichert.
 - **ThemesSection** — Themes nach Opening/Ending/Middle gruppiert, sichtbare Asset-Tiles,
   read-only ohne Player/Timing-Editor (D-12, D-13); EmptyState bei keinen Themes.
 - **MediaSection** — Galerie öffentlicher Release-Version-Medien, Abschnitt immer
@@ -122,4 +123,6 @@ und `ThemesSection.tsx`; sie sind nicht die lint-blockierenden Fehler.
 
 ## Offen / Nächste Schritte
 
-- **D-11** (Version-Labels) bleibt als bewusster Gap auf der /releases-Tiefenseite.
+- **D-11 Zusatzlabel**: Die Hauptseite zeigt vorhandene `version_label`-Werte
+  (`v1`/`v2`). Erweiterte Variant-Hinweise wie `TV/BD` bleiben daten- und
+  contractabhängig für die `/releases`-Tiefenseite.
