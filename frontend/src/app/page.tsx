@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { Button } from '@/components/ui'
 
 /**
  * Startseite der Anwendung.
@@ -11,19 +11,11 @@ export default function HomePage() {
         <p className="eyebrow">Team4s v3.0</p>
         <h1>Anime Portal</h1>
         <p>Neues Fullstack-Fundament steht. Starte mit der Anime-Liste.</p>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <Link href="/anime" className="primary-link">
-            Zur Anime-Liste
-          </Link>
-          <Link href="/watchlist" className="primary-link">
-            Zur Watchlist
-          </Link>
-          <Link href="/login" className="primary-link">
-            Anmelden
-          </Link>
-          <Link href="/admin" className="primary-link">
-            Zu Admin
-          </Link>
+        <div className="hero-actions">
+          <Button href="/anime">Zur Anime-Liste</Button>
+          <Button href="/watchlist">Zur Watchlist</Button>
+          <Button href="/login">Anmelden</Button>
+          <Button href="/admin">Zu Admin</Button>
         </div>
       </section>
     </main>
