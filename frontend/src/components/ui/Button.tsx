@@ -1,4 +1,6 @@
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react'
+'use client'
+
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, MouseEvent, ReactNode } from 'react'
 
 import { classNames } from './classNames'
 import styles from './ui.module.css'
@@ -71,6 +73,16 @@ export function Button(props: ButtonProps) {
   if ('href' in domProps && typeof domProps.href === 'string') {
     const { href, onClick, target, rel, ...anchorProps } = domProps
     const isDisabled = Boolean(('disabled' in props && props.disabled) || loading)
+    const handleAnchorClick =
+      isDisabled || onClick
+        ? (event: MouseEvent<HTMLAnchorElement>) => {
+            if (isDisabled) {
+              event.preventDefault()
+              return
+            }
+            onClick?.(event)
+          }
+        : undefined
 
     return (
       <a
@@ -80,13 +92,7 @@ export function Button(props: ButtonProps) {
         rel={rel}
         className={classes}
         aria-disabled={isDisabled}
-        onClick={(event) => {
-          if (isDisabled) {
-            event.preventDefault()
-            return
-          }
-          onClick?.(event)
-        }}
+        onClick={handleAnchorClick}
       >
         {content}
       </a>

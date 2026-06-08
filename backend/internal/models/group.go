@@ -4,15 +4,15 @@ import "time"
 
 // GroupDetail represents detailed information about a fansub group's work on an anime
 type GroupDetail struct {
-	ID        int64                `json:"id"`
-	AnimeID   int64                `json:"anime_id"`
-	FansubID  int64                `json:"fansub_id"`
-	Fansub    FansubGroupWithLogo  `json:"fansub"`
-	Story     *string              `json:"story,omitempty"`
-	Period    *GroupPeriod         `json:"period,omitempty"`
-	Stats     GroupStats           `json:"stats"`
-	CreatedAt time.Time            `json:"created_at"`
-	UpdatedAt *time.Time           `json:"updated_at,omitempty"`
+	ID        int64               `json:"id"`
+	AnimeID   int64               `json:"anime_id"`
+	FansubID  int64               `json:"fansub_id"`
+	Fansub    FansubGroupWithLogo `json:"fansub"`
+	Story     *string             `json:"story,omitempty"`
+	Period    *GroupPeriod        `json:"period,omitempty"`
+	Stats     GroupStats          `json:"stats"`
+	CreatedAt time.Time           `json:"created_at"`
+	UpdatedAt *time.Time          `json:"updated_at,omitempty"`
 }
 
 // FansubGroupWithLogo extends FansubGroupSummary with logo_url
@@ -41,6 +41,7 @@ type EpisodeReleaseSummary struct {
 	EpisodeID       *int64     `json:"episode_id,omitempty"`
 	EpisodeNumber   int32      `json:"episode_number"`
 	Title           *string    `json:"title,omitempty"`
+	VersionLabel    *string    `json:"version_label,omitempty"`
 	HasOP           bool       `json:"has_op"`
 	HasED           bool       `json:"has_ed"`
 	KaraokeCount    int32      `json:"karaoke_count"`

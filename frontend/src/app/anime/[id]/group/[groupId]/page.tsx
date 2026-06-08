@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
 import {
   ApiError, getAnimeByID, getAnimeFansubs, getGroupAssets,
-  getGroupContributors, getGroupDetail, getGroupReleaseMedia,
+  getGroupContributors, getGroupDetail, getGroupProjectNote, getGroupReleaseMedia,
   getGroupReleases, getGroupThemes,
 } from "@/lib/api";
 import { buildGroupNavigationGroups } from "@/lib/groupNavigation";
@@ -74,9 +74,14 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
   let contributorsData: GroupContributorsResponse = { team_members: [], external_contributors: [] };
   let themesData: GroupThemesResponse = { themes: [] };
   let releaseMediaData: GroupReleaseMediaResponse = { items: [] };
+  let projectNotesHtml: string | null = null;
   try { contributorsData = await getGroupContributors(animeID, groupID) } catch { /* EmptyState */ }
   try { themesData = await getGroupThemes(animeID, groupID) } catch { /* EmptyState */ }
   try { releaseMediaData = await getGroupReleaseMedia(animeID, groupID) } catch { /* EmptyState */ }
+  try {
+    const projectNoteResponse = await getGroupProjectNote(animeID, groupID);
+    projectNotesHtml = projectNoteResponse.data?.body_html?.trim() || null;
+  } catch { /* EmptyState */ }
 
   const navigationGroups = buildGroupNavigationGroups({ currentGroup: group.fansub, fallbackOtherGroups: otherGroups, animeFansubRelations });
   const breadcrumbItems = [
@@ -104,7 +109,7 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
         groupAssetsError={groupAssetsError} releaseEpisodes={releaseEpisodes}
       />
       <GroupSectionsNav />
-      <StorySection story={group.story} projectNotesHtml={null} />
+      <StorySection story={group.story} projectNotesHtml={projectNotesHtml} />
       <TeamSection teamMembers={contributorsData.team_members} externalContributors={contributorsData.external_contributors} />
       <ReleasesSection episodes={releaseEpisodes.slice(0, 5)} animeID={animeID} groupID={groupID} />
       <ThemesSection themes={themesData.themes} />

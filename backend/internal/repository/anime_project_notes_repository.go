@@ -54,6 +54,20 @@ type AnimeFansubProjectNote struct {
 	DeletedAt            *time.Time
 }
 
+// PublicAnimeFansubProjectNote is the public projection of one project note.
+type PublicAnimeFansubProjectNote struct {
+	ID            int64  `json:"id"`
+	Title         string `json:"title"`
+	BodyHTML      string `json:"body_html"`
+	BodyText      string `json:"body_text"`
+	UpdatedAtText string `json:"updated_at,omitempty"`
+}
+
+// PublicAnimeFansubProjectNoteResponse is returned by the public anime+group note endpoint.
+type PublicAnimeFansubProjectNoteResponse struct {
+	Data *PublicAnimeFansubProjectNote `json:"data"`
+}
+
 // UpsertAnimeFansubProjectNoteRequest holds the fields for upserting an anime_fansub_project_notes row.
 type UpsertAnimeFansubProjectNoteRequest struct {
 	Title                string
@@ -104,6 +118,45 @@ func (r *FansubNotesRepository) GetAnimeFansubProjectNote(
 	}
 	if err != nil {
 		return nil, fmt.Errorf("get anime_fansub_project_note (anime %d, group %d): %w", animeID, fansubGroupID, err)
+	}
+	return &n, nil
+}
+
+// GetPublicAnimeFansubProjectNote returns the public, published project note for
+// an anime/fansub context. It never returns internal, draft, archived, deleted,
+// or soft-deleted content.
+func (r *FansubNotesRepository) GetPublicAnimeFansubProjectNote(
+	ctx context.Context,
+	animeID int64,
+	fansubGroupID int64,
+) (*PublicAnimeFansubProjectNote, error) {
+	if err := r.ensureAnimeFansubProjectContextExists(ctx, animeID, fansubGroupID); err != nil {
+		return nil, err
+	}
+
+	var n PublicAnimeFansubProjectNote
+	err := r.db.QueryRow(ctx, `
+		SELECT id, title, body_html, body_text, COALESCE(updated_at, created_at)::text
+		FROM anime_fansub_project_notes
+		WHERE anime_id = $1
+		  AND fansub_group_id = $2
+		  AND visibility = 'public'
+		  AND status = 'published'
+		  AND deleted_at IS NULL
+		ORDER BY sort_order ASC, id ASC
+		LIMIT 1
+	`, animeID, fansubGroupID).Scan(
+		&n.ID,
+		&n.Title,
+		&n.BodyHTML,
+		&n.BodyText,
+		&n.UpdatedAtText,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get public anime_fansub_project_note (anime %d, group %d): %w", animeID, fansubGroupID, err)
 	}
 	return &n, nil
 }

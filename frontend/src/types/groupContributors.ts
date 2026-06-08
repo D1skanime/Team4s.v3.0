@@ -45,3 +45,15 @@ export interface PublicReleaseMediaItem {
 export interface GroupReleaseMediaResponse {
   items: PublicReleaseMediaItem[]
 }
+
+export interface PublicAnimeFansubProjectNote {
+  id: number
+  title: string
+  body_html: string
+  body_text: string
+  updated_at?: string
+}
+
+export interface GroupProjectNoteResponse {
+  data: PublicAnimeFansubProjectNote | null
+}

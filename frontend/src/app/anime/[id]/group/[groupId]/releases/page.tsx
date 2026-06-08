@@ -62,6 +62,7 @@ type Episode = {
   episode_id?: number | null
   episode_number: number
   title?: string | null
+  version_label?: string | null
   thumbnail_url?: string | null
   has_op: boolean
   has_ed: boolean
@@ -496,19 +497,9 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
                             Episode {episode.episode_number}
                             {episode.title ? `: ${episode.title}` : ''}
                           </h3>
-                          <div className={styles.badges}>
-                            {episode.has_op ? <span className={styles.badgeAccent}>OP</span> : null}
-                            {episode.has_ed ? <span className={styles.badgeAccent}>ED</span> : null}
-                            {episode.karaoke_count > 0 ? (
-                              <span className={styles.badgeAccent}>K-FX {episode.karaoke_count}</span>
-                            ) : null}
-                            {episode.insert_count > 0 ? (
-                              <span className={styles.badge}>Insert {episode.insert_count}</span>
-                            ) : null}
-                            {episode.screenshot_count > 0 ? (
-                              <span className={styles.badge}>{episode.screenshot_count} Screenshots</span>
-                            ) : null}
-                          </div>
+                          {episode.version_label ? (
+                            <p className={styles.releaseDate}>{episode.version_label}</p>
+                          ) : null}
                           {episode.released_at ? (
                             <p className={styles.releaseDate}>
                               {new Date(episode.released_at).toLocaleDateString('de-DE')}
@@ -539,6 +530,9 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
                           Episode {episode.episode_number}
                           {episode.title ? `: ${episode.title}` : ''}
                         </h3>
+                        {episode.version_label ? (
+                          <p className={styles.releaseDate}>{episode.version_label}</p>
+                        ) : null}
                         <p className={styles.releaseDate}>Episode-Route nicht verfügbar.</p>
                       </div>
                     </article>

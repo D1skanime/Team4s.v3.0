@@ -185,6 +185,38 @@ func (h *FansubHandler) GetFansubBySlug(c *gin.Context) {
 	})
 }
 
+// GetFansubPublicProfileBySlug gibt die public-safe Profilprojektion für /fansubs/[slug] zurück.
+func (h *FansubHandler) GetFansubPublicProfileBySlug(c *gin.Context) {
+	slug := strings.TrimSpace(c.Param("slug"))
+	if slug == "" || len([]rune(slug)) > 120 {
+		badRequest(c, "ungültiger fansub slug")
+		return
+	}
+
+	item, err := h.fansubRepo.GetPublicProfileBySlug(c.Request.Context(), slug)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": gin.H{
+				"message": "fansubgruppe nicht gefunden",
+			},
+		})
+		return
+	}
+	if err != nil {
+		log.Printf("fansub public profile by slug: repo error (slug=%q): %v", slug, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{
+				"message": "interner serverfehler",
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": item,
+	})
+}
+
 // UpdateFansub aktualisiert eine bestehende Fansub-Gruppe.
 func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 	identity, actor, ok := permissionActorFromContext(c)

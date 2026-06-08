@@ -1,6 +1,28 @@
 # DECISIONS
 
+## 2026-06-08 - Phasen-Ausführung komplett auf `main`; Worktree-Konvention abgeschafft (löst 2026-06-05 ab)
+
+### Decision
+Die Worktree-Konvention von 2026-06-05 wird zurückgenommen. Sowohl Planung als auch Code-Ausführung einer Phase laufen ab sofort direkt auf `main`. Es werden keine Schwester-Worktrees (`../Team4s-phaseNN`) und keine `codex/phase-NN`-Branches mehr angelegt. GSD wird mit `workflow.use_worktrees: false` betrieben, sodass `/gsd:execute-phase` Executor-Agenten sequenziell im Haupt-Working-Tree ausführt.
+
+### Why This Won
+- Die Worktree-Isolation hat in der Praxis zu **fehlerhaft umgesetzten Phasen** geführt: In den Schwester-Worktrees war `frontend/node_modules` oft nur ein leerer Cross-Link, sodass `vitest`/`tsc` nicht liefen und Phasen ohne echte Verifikation als „fertig" galten; zusätzlich entstanden stale Builds und Merge-Reibung auf `.planning/STATE.md`/`ROADMAP.md`.
+- Direktes Arbeiten auf `main` hält Tooling, Tests und den Live-Dev-Server (`:3000`) konsistent mit dem tatsächlich ausgelieferten Stand.
+- Der vermeintliche Isolationsvorteil wog den Korrektheitsverlust nicht auf — bei Solo-Entwicklung ist ein sauberer, getesteter Stand wichtiger als parallele Branch-Isolation.
+
+### Consequences
+- `.planning/config.json`: `workflow.use_worktrees` ist explizit `false`.
+- `CLAUDE.md`-Abschnitt „Phasen-Ausführung auf `main`" ersetzt die frühere „Phasen-Worktree-Konvention".
+- Disziplin bleibt: kein `git stash` bei offenen Änderungen, Artefakte gezielt per Pfad committen, nach Phase-UAT sofort committen.
+- Bei parallelen GSD-Schreibern auf `main` weiterhin vor dem nächsten Schritt Live-Writer auf `.planning/STATE.md`/`ROADMAP.md` prüfen.
+
+### Follow-ups Required
+- Keine. Bestehende Alt-Worktrees unter `.claude/worktrees/` sind historisch und können bei Bedarf separat aufgeräumt werden.
+
 ## 2026-06-05 - Jede Phase executet im eigenen Worktree; Planung bleibt auf main
+
+> **ABGELÖST am 2026-06-08** — siehe Eintrag oben. Worktree-Ausführung führte zu fehlerhaften Phasen; alles läuft jetzt auf `main`.
+
 
 ### Decision
 GSD-Planungsartefakte (CONTEXT/RESEARCH/VALIDATION/UI-SPEC/PLAN) werden auf `main` erstellt und committet. Die Code-Ausführung einer Phase (`/gsd:execute-phase`) läuft in einem eigenen Schwester-Worktree pro Phase auf einem `codex/phase-NN-<slug>`-Branch und wird nach bestandener Verifikation zurück nach `main` gemergt. Ein separater Worktree NUR für die Planung wird bewusst NICHT gemacht.

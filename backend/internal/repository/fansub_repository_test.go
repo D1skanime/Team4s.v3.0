@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -38,6 +39,41 @@ func TestApplyLegacyLinkProjection_UsesCanonicalLinks(t *testing.T) {
 	}
 	if group.DiscordURL == nil || *group.DiscordURL != "https://canonical.example/discord" {
 		t.Fatalf("expected projected discord url, got %#v", group.DiscordURL)
+	}
+}
+
+func TestFansubRepository_PublicProfileSourceInvariants(t *testing.T) {
+	src, err := os.ReadFile("fansub_repository.go")
+	if err != nil {
+		t.Fatalf("read fansub repository: %v", err)
+	}
+	content := string(src)
+
+	for _, fragment := range []string{
+		"func (r *FansubRepository) GetPublicProfileBySlug",
+		"FROM fansub_group_notes",
+		"visibility = 'public'",
+		"status = 'published'",
+		"deleted_at IS NULL",
+		"FROM anime_fansub_groups afg",
+		"FROM fansub_group_history",
+		"status = 'confirmed'",
+		"FROM fansub_group_media fgm",
+		"JOIN media_assets ma ON ma.id = fgm.media_id",
+		"JOIN visibilities v ON v.id = ma.visibility_id",
+		"JOIN review_statuses rs ON rs.id = ma.review_status_id",
+		"ma.status = 'ready'",
+		"rs.code = 'approved'",
+		"publicMediaURLForPath",
+		"ListCollaborationMembers(ctx, group.ID)",
+	} {
+		if !strings.Contains(content, fragment) {
+			t.Fatalf("expected public profile repository to contain %q", fragment)
+		}
+	}
+
+	if strings.Contains(content, "getAnimeList") {
+		t.Fatalf("public fansub profile must not depend on anime list fansub_id filtering")
 	}
 }
 

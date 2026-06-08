@@ -8,11 +8,14 @@ import type { MemberProfileResponse } from '@/types/profile'
 
 const getOwnProfileMock = vi.fn()
 const getMyMemberClaimMock = vi.fn()
+const getMyBadgesMock = vi.fn()
+const patchMyBadgeVisibilityMock = vi.fn()
 const patchNoindexMock = vi.fn()
 const refreshActiveAuthSessionMock = vi.fn()
 const updateOwnProfileMock = vi.fn()
 const uploadOwnProfileAvatarMock = vi.fn()
 const uploadOwnProfileBackgroundMock = vi.fn()
+const uploadOwnProfileStoryImageMock = vi.fn()
 const useAuthSessionMock = vi.hoisted(() => vi.fn())
 
 vi.mock('next/link', () => ({
@@ -111,13 +114,16 @@ vi.mock('@/lib/api', () => ({
     }
   },
   getAuthSessionSnapshot: () => ({ hasAccessToken: true, hasRefreshToken: true, displayName: 'Test User' }),
+  getMyBadges: (...args: unknown[]) => getMyBadgesMock(...args),
   getMyMemberClaim: (...args: unknown[]) => getMyMemberClaimMock(...args),
   getOwnProfile: (...args: unknown[]) => getOwnProfileMock(...args),
+  patchMyBadgeVisibility: (...args: unknown[]) => patchMyBadgeVisibilityMock(...args),
   patchNoindex: (...args: unknown[]) => patchNoindexMock(...args),
   refreshActiveAuthSession: (...args: unknown[]) => refreshActiveAuthSessionMock(...args),
   updateOwnProfile: (...args: unknown[]) => updateOwnProfileMock(...args),
   uploadOwnProfileAvatar: (...args: unknown[]) => uploadOwnProfileAvatarMock(...args),
   uploadOwnProfileBackground: (...args: unknown[]) => uploadOwnProfileBackgroundMock(...args),
+  uploadOwnProfileStoryImage: (...args: unknown[]) => uploadOwnProfileStoryImageMock(...args),
   resolveApiUrl: (value: string) => value,
 }))
 
@@ -134,7 +140,9 @@ beforeEach(() => {
     isClientInitialized: true,
   })
   getMyMemberClaimMock.mockResolvedValue(null)
+  getMyBadgesMock.mockResolvedValue({ badges: [] })
   patchNoindexMock.mockResolvedValue(undefined)
+  patchMyBadgeVisibilityMock.mockResolvedValue({ badges: [] })
 })
 
 afterEach(() => {
@@ -251,7 +259,7 @@ describe('MyProfilePage', () => {
     render(<MyProfilePage />)
 
     const publicProfileLink = await screen.findByRole('link', { name: /Öffentliches Profil ansehen/i })
-    expect(publicProfileLink.getAttribute('href')).toBe('/members/4')
+    expect(publicProfileLink.getAttribute('href')).toBe('/members/mikafx')
     expect(publicProfileLink.getAttribute('aria-disabled')).toBe('false')
   })
 

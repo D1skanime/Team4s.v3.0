@@ -1,22 +1,21 @@
 import { Card, SectionHeader } from '@/components/ui'
-import type { FansubGroup } from '@/types/fansub'
-import type { MediaOwnershipRow } from '@/types/media-ownership'
+import type { PublicFansubMediaItem } from '@/types/fansub'
 
 import { FansubGroupMediaBlock } from './FansubGroupMediaBlock'
+import styles from './FansubPublicSections.module.css'
 
 interface FansubMediaSectionProps {
-  mediaRows: MediaOwnershipRow[]
-  group: FansubGroup
+  media: PublicFansubMediaItem[]
 }
 
-export function FansubMediaSection({ mediaRows, group }: FansubMediaSectionProps) {
+export function FansubMediaSection({ media }: FansubMediaSectionProps) {
   return (
     <section id="medien">
       <SectionHeader title="Medien" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+      <div className={styles.mediaGrid}>
         <Card variant="section">
-          <h3 style={{ margin: 0 }}>Gruppenmedien</h3>
-          <FansubGroupMediaBlock mediaRows={mediaRows} group={group} />
+          <h3 className={styles.sectionTitle}>Gruppenmedien</h3>
+          <FansubGroupMediaBlock media={media} />
         </Card>
       </div>
     </section>

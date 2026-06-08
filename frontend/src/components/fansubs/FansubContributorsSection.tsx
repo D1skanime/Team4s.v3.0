@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { Badge, Card, EmptyState, SectionHeader } from '@/components/ui'
 import type { DomainProjectionContributorRow } from '@/types/domain-projection'
 
+import styles from './FansubPublicSections.module.css'
+
 interface FansubContributorsSectionProps {
   contributors: DomainProjectionContributorRow[]
   teamMemberNames?: string[]
@@ -33,16 +35,16 @@ export function FansubContributorsSection({ contributors, teamMemberNames }: Fan
           description="Für diese Gruppe sind noch keine Mitwirkenden eingetragen."
         />
       ) : (
-        <div style={{ display: 'grid', gap: 8 }}>
+        <div className={styles.compactStack}>
           {visibleContributors.map((contributor) => {
             const isAlsoMember = teamSet.has(contributor.member_display_name.toLowerCase())
             return (
-              <Card key={contributor.member_display_name} variant="flat">
+              <Card key={contributor.member_display_name} variant="flat" className={styles.contributorCard}>
                 <strong>{renderContributorName(contributor)}</strong>
                 {isAlsoMember ? (
-                  <Badge variant="muted" style={{ marginLeft: 8 }}>auch Mitglied</Badge>
+                  <Badge variant="muted" className={styles.inlineBadge}>auch Mitglied</Badge>
                 ) : null}
-                <span style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
+                <span className={styles.mutedMeta}>
                   {contributor.role_labels.join(', ') || 'Rolle nicht hinterlegt'}
                 </span>
               </Card>

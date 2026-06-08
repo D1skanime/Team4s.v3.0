@@ -9,12 +9,17 @@ import (
 
 // GroupThemesRepository liefert öffentliche Themes (OP/ED/Middle) für eine Gruppe+Anime.
 type GroupThemesRepository struct {
-	db *pgxpool.Pool
+	db              *pgxpool.Pool
+	mediaStorageDir string
 }
 
 // NewGroupThemesRepository erstellt ein neues GroupThemesRepository.
-func NewGroupThemesRepository(db *pgxpool.Pool) *GroupThemesRepository {
-	return &GroupThemesRepository{db: db}
+func NewGroupThemesRepository(db *pgxpool.Pool, mediaStorageDir ...string) *GroupThemesRepository {
+	storageDir := ""
+	if len(mediaStorageDir) > 0 {
+		storageDir = mediaStorageDir[0]
+	}
+	return &GroupThemesRepository{db: db, mediaStorageDir: storageDir}
 }
 
 // --- DTOs ---
@@ -46,28 +51,38 @@ func (r *GroupThemesRepository) GetPublicGroupThemes(ctx context.Context, animeI
 		Themes: make([]PublicGroupTheme, 0),
 	}
 
-	// Verbindet themes → release_theme_assets → fansub_releases → episodes (anime_id)
-	// mit release_version_groups scope auf groupID.
-	// Sichtbarkeits-Gate: media_assets.status = 'ready'
+	// Joins themes -> release_theme_assets -> fansub_releases -> episodes and
+	// scopes the release through release_version_groups.fansub_group_id.
 	query := `
 		SELECT DISTINCT
 			t.id AS theme_id,
-			t.theme_type,
+			CASE tt.name
+				WHEN 'opening' THEN 'OP'
+				WHEN 'ending' THEN 'ED'
+				WHEN 'insert_song' THEN 'MIDDLE'
+				ELSE UPPER(tt.name)
+			END AS theme_type,
 			COALESCE(t.title, '') AS title,
-			rta.id AS asset_id,
-			mf.storage_path AS thumbnail_storage_path
+			ma.id AS asset_id,
+			COALESCE(mf_thumb.path, mf_orig.path, ma.file_path) AS thumbnail_path
 		FROM themes t
+		JOIN theme_types tt ON tt.id = t.theme_type_id
 		JOIN release_theme_assets rta ON rta.theme_id = t.id
 		JOIN fansub_releases fr ON fr.id = rta.release_id
 		JOIN episodes e ON e.id = fr.episode_id
 		JOIN release_versions rv ON rv.release_id = fr.id
 		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
-		JOIN media_assets ma ON ma.id = rta.media_asset_id
-		LEFT JOIN media_files mf ON mf.media_asset_id = ma.id AND mf.variant = 'thumbnail'
+		JOIN media_assets ma ON ma.id = rta.media_id
+		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
+		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
+		JOIN visibilities v ON v.id = ma.visibility_id
+		JOIN review_statuses rs ON rs.id = ma.review_status_id
 		WHERE e.anime_id = $1
 		  AND rvg.fansub_group_id = $2
 		  AND ma.status = 'ready'
-		ORDER BY t.id, rta.id
+		  AND v.name = 'public'
+		  AND rs.code = 'approved'
+		ORDER BY t.id, ma.id
 	`
 
 	rows, err := r.db.Query(ctx, query, animeID, groupID)
@@ -80,20 +95,19 @@ func (r *GroupThemesRepository) GetPublicGroupThemes(ctx context.Context, animeI
 
 	for rows.Next() {
 		var (
-			themeID             int64
-			themeType           string
-			title               string
-			assetID             int64
-			thumbnailStoragePath *string
+			themeID       int64
+			themeType     string
+			title         string
+			assetID       int64
+			thumbnailPath *string
 		)
-		if err := rows.Scan(&themeID, &themeType, &title, &assetID, &thumbnailStoragePath); err != nil {
+		if err := rows.Scan(&themeID, &themeType, &title, &assetID, &thumbnailPath); err != nil {
 			return nil, fmt.Errorf("group themes: scan: %w", err)
 		}
 
 		var thumbnailURL *string
-		if thumbnailStoragePath != nil && *thumbnailStoragePath != "" {
-			url := "/media/" + *thumbnailStoragePath
-			thumbnailURL = &url
+		if thumbnailPath != nil {
+			thumbnailURL = publicMediaURLForPath(*thumbnailPath, r.mediaStorageDir)
 		}
 
 		asset := PublicThemeAsset{

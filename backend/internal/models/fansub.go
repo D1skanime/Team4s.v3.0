@@ -62,6 +62,56 @@ type FansubGroup struct {
 	CollaborationMembers []FansubGroupSummary `json:"collaboration_members,omitempty"`
 }
 
+// PublicFansubProfileResponse bundles the public data needed by /fansubs/[slug].
+type PublicFansubProfileResponse struct {
+	Group                FansubGroup             `json:"group"`
+	Story                *PublicFansubStory      `json:"story"`
+	Projects             []PublicFansubProject   `json:"projects"`
+	History              []PublicFansubHistory   `json:"history"`
+	Media                []PublicFansubMediaItem `json:"media"`
+	CollaborationMembers []FansubGroupSummary    `json:"collaboration_members,omitempty"`
+}
+
+// PublicFansubStory is the public, published fansub_group_notes projection.
+type PublicFansubStory struct {
+	ID        int64  `json:"id"`
+	Title     string `json:"title"`
+	BodyHTML  string `json:"body_html"`
+	BodyText  string `json:"body_text"`
+	UpdatedAt string `json:"updated_at,omitempty"`
+}
+
+// PublicFansubProject is an anime_fansub_groups-backed public project card.
+type PublicFansubProject struct {
+	ID          int64   `json:"id"`
+	Title       string  `json:"title"`
+	Type        string  `json:"type"`
+	Status      string  `json:"status"`
+	Year        *int16  `json:"year,omitempty"`
+	CoverImage  *string `json:"cover_image,omitempty"`
+	MaxEpisodes *int16  `json:"max_episodes,omitempty"`
+}
+
+// PublicFansubHistory is a confirmed fansub_group_history milestone.
+type PublicFansubHistory struct {
+	ID        int64   `json:"id"`
+	Year      *int    `json:"year,omitempty"`
+	EventType string  `json:"event_type"`
+	Title     *string `json:"title,omitempty"`
+	Note      *string `json:"note,omitempty"`
+	Status    string  `json:"status"`
+}
+
+// PublicFansubMediaItem is one public approved context media item from fansub_group_media.
+type PublicFansubMediaItem struct {
+	ID           int64   `json:"id"`
+	MediaType    string  `json:"media_type"`
+	Caption      *string `json:"caption,omitempty"`
+	MimeType     string  `json:"mime_type"`
+	ThumbnailURL *string `json:"thumbnail_url,omitempty"`
+	OriginalURL  *string `json:"original_url,omitempty"`
+}
+
 // FansubGroupSummary ist eine kompakte Kurzform einer Fansub-Gruppe.
 type FansubGroupSummary struct {
 	ID      int64   `json:"id"`

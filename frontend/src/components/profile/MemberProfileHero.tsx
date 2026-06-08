@@ -27,6 +27,11 @@ function getAccountDisplayName(profile: MemberProfileData | PublicMemberProfileD
   return 'account_display_name' in profile ? profile.account_display_name : ''
 }
 
+function getPublicProfileHref(profile: MemberProfileData | PublicMemberProfileData): string {
+  const slug = 'slug' in profile ? profile.slug : ''
+  return `/members/${slug || profile.member_id}`
+}
+
 function getYearFromProfileDate(dateValue?: string | null): string {
   const match = /^(\d{4})-\d{2}-\d{2}$/.exec((dateValue || '').trim())
   return match?.[1] || ''
@@ -65,7 +70,7 @@ export function MemberProfileHero({
   const accountDisplayName = getAccountDisplayName(profile)
   const displayName = profile.fansub_name || accountDisplayName || 'Mein Profil'
   const avatarLabel = profile.fansub_name || accountDisplayName || 'Profil'
-  const publicProfileHref = `/members/${profile.member_id}`
+  const publicProfileHref = getPublicProfileHref(profile)
   const publicActivityLabel = isPublicView ? formatPublicActivity(profile) : ''
   const profileStatus = getProfileStatus(profile)
 

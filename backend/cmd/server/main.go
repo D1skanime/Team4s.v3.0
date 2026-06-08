@@ -80,7 +80,7 @@ func main() {
 	)
 	episodeRepo := repository.NewEpisodeRepository(dbPool)
 	episodeHandler := handlers.NewEpisodeHandler(episodeRepo)
-	fansubRepo := repository.NewFansubRepository(dbPool)
+	fansubRepo := repository.NewFansubRepository(dbPool, cfg.MediaStorageDir)
 	mediaRepo := repository.NewMediaRepository(dbPool, cfg.MediaPublicBaseURL, cfg.MediaStorageDir)
 	mediaService := services.NewMediaService(cfg.MediaStorageDir, cfg.MediaPublicBaseURL)
 	episodeVersionRepo := repository.NewEpisodeVersionRepository(dbPool)
@@ -241,9 +241,14 @@ func main() {
 	groupRepo := repository.NewGroupRepository(dbPool)
 	groupHandler := handlers.NewGroupHandler(groupRepo)
 	groupContributorsRepo := repository.NewGroupContributorsRepository(dbPool)
-	groupThemesRepo := repository.NewGroupThemesRepository(dbPool)
+	groupThemesRepo := repository.NewGroupThemesRepository(dbPool, cfg.MediaStorageDir)
 	groupReleaseMediaRepo := repository.NewGroupReleaseMediaRepository(dbPool, cfg.MediaStorageDir)
-	groupPublicHandler := handlers.NewGroupPublicHandler(groupContributorsRepo, groupThemesRepo, groupReleaseMediaRepo)
+	groupPublicHandler := handlers.NewGroupPublicHandler(
+		groupContributorsRepo,
+		groupThemesRepo,
+		groupReleaseMediaRepo,
+		repository.NewFansubNotesRepository(dbPool),
+	)
 	groupAssetsHandler := handlers.NewGroupAssetsHandler(
 		groupRepo,
 		handlers.AnimeMediaConfig{
@@ -311,6 +316,7 @@ func main() {
 	v1.GET("/anime/:id/group/:groupId/contributors", groupPublicHandler.GetGroupContributors)
 	v1.GET("/anime/:id/group/:groupId/themes", groupPublicHandler.GetGroupThemes)
 	v1.GET("/anime/:id/group/:groupId/release-media", groupPublicHandler.GetGroupReleaseMedia)
+	v1.GET("/anime/:id/group/:groupId/project-note", groupPublicHandler.GetGroupProjectNote)
 	v1.GET("/episode-versions/:versionId", fansubHandler.GetEpisodeVersionByID)
 	v1.GET("/anime/:id/comments", commentHandler.ListByAnimeID)
 	v1.POST(
@@ -344,6 +350,7 @@ func main() {
 	)
 	v1.GET("/fansubs", fansubHandler.ListFansubs)
 	v1.GET("/fansub-slugs/:slug", fansubHandler.GetFansubBySlug)
+	v1.GET("/fansub-slugs/:slug/public-profile", fansubHandler.GetFansubPublicProfileBySlug)
 	v1.GET("/fansubs/:id", fansubHandler.GetFansubByID)
 	v1.GET("/fansubs/:id/aliases", fansubHandler.ListFansubAliases)
 	v1.GET("/fansubs/:id/members", fansubHandler.ListFansubMembers)

@@ -116,6 +116,35 @@
   margin-top: 18px;
 }
 
+.collaborationPanel {
+  display: grid;
+  gap: 8px;
+  margin: 16px 28px 28px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--surface-secondary, #f5f5f5);
+}
+
+.collaborationIntro,
+.collaborationEmpty {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.collaborationList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.collaborationLink {
+  text-decoration: none;
+}
+
 .heroLink {
   display: inline-flex;
   align-items: center;
@@ -140,7 +169,7 @@
 }
 
 .readingColumn {
-  width: min(960px, 100% - 48px);
+  width: min(780px, 100% - 48px);
   margin: 0 auto;
 }
 
@@ -149,7 +178,8 @@
 }
 
 .gridSection {
-  width: 100%;
+  width: min(1280px, 100% - 48px);
+  margin: 32px auto 0;
 }
 
 @media (max-width: 767px) {

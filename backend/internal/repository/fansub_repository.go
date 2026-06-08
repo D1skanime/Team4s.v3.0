@@ -13,7 +13,8 @@ import (
 )
 
 type FansubRepository struct {
-	db *pgxpool.Pool
+	db              *pgxpool.Pool
+	mediaStorageDir string
 }
 
 var allowedFansubGroupLinkTypes = map[models.FansubGroupLinkType]struct{}{
@@ -24,8 +25,12 @@ var allowedFansubGroupLinkTypes = map[models.FansubGroupLinkType]struct{}{
 	models.FansubGroupLinkTypeIRC:     {},
 }
 
-func NewFansubRepository(db *pgxpool.Pool) *FansubRepository {
-	return &FansubRepository{db: db}
+func NewFansubRepository(db *pgxpool.Pool, mediaStorageDir ...string) *FansubRepository {
+	storageDir := ""
+	if len(mediaStorageDir) > 0 {
+		storageDir = mediaStorageDir[0]
+	}
+	return &FansubRepository{db: db, mediaStorageDir: storageDir}
 }
 
 func (r *FansubRepository) ListGroups(
@@ -239,6 +244,225 @@ func (r *FansubRepository) GetGroupBySlug(ctx context.Context, slug string) (*mo
 	}
 
 	return &item, nil
+}
+
+// GetPublicProfileBySlug returns the public profile payload for /fansubs/[slug].
+func (r *FansubRepository) GetPublicProfileBySlug(ctx context.Context, slug string) (*models.PublicFansubProfileResponse, error) {
+	group, err := r.GetGroupBySlug(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &models.PublicFansubProfileResponse{
+		Group:    *group,
+		Projects: make([]models.PublicFansubProject, 0),
+		History:  make([]models.PublicFansubHistory, 0),
+		Media:    make([]models.PublicFansubMediaItem, 0),
+	}
+
+	if group.GroupType == models.FansubGroupTypeCollaboration {
+		members, err := r.ListCollaborationMembers(ctx, group.ID)
+		if err != nil {
+			return nil, err
+		}
+		resp.CollaborationMembers = make([]models.FansubGroupSummary, 0, len(members))
+		for _, member := range members {
+			if member.MemberGroup != nil {
+				resp.CollaborationMembers = append(resp.CollaborationMembers, *member.MemberGroup)
+			}
+		}
+		return resp, nil
+	}
+
+	story, err := r.getPublicFansubStory(ctx, group.ID)
+	if err != nil {
+		return nil, err
+	}
+	resp.Story = story
+
+	projects, err := r.listPublicFansubProjects(ctx, group.ID)
+	if err != nil {
+		return nil, err
+	}
+	resp.Projects = projects
+
+	history, err := r.listPublicFansubHistory(ctx, group.ID)
+	if err != nil {
+		return nil, err
+	}
+	resp.History = history
+
+	media, err := r.listPublicFansubMedia(ctx, group.ID, group.LogoID, group.BannerID)
+	if err != nil {
+		return nil, err
+	}
+	resp.Media = media
+
+	return resp, nil
+}
+
+func (r *FansubRepository) getPublicFansubStory(ctx context.Context, groupID int64) (*models.PublicFansubStory, error) {
+	var story models.PublicFansubStory
+	err := r.db.QueryRow(ctx, `
+		SELECT id, title, body_html, body_text, COALESCE(updated_at, created_at)::text
+		FROM fansub_group_notes
+		WHERE fansub_group_id = $1
+		  AND visibility = 'public'
+		  AND status = 'published'
+		  AND deleted_at IS NULL
+		ORDER BY sort_order ASC, id ASC
+		LIMIT 1
+	`, groupID).Scan(
+		&story.ID,
+		&story.Title,
+		&story.BodyHTML,
+		&story.BodyText,
+		&story.UpdatedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get public fansub story for group %d: %w", groupID, err)
+	}
+	return &story, nil
+}
+
+func (r *FansubRepository) listPublicFansubProjects(ctx context.Context, groupID int64) ([]models.PublicFansubProject, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			a.id,
+			a.title,
+			a.type::text,
+			a.status::text,
+			a.year,
+			a.cover_image,
+			a.max_episodes
+		FROM anime_fansub_groups afg
+		JOIN anime a ON a.id = afg.anime_id
+		WHERE afg.fansub_group_id = $1
+		  AND a.status <> 'disabled'
+		ORDER BY a.title ASC, a.id ASC
+	`, groupID)
+	if err != nil {
+		return nil, fmt.Errorf("list public fansub projects for group %d: %w", groupID, err)
+	}
+	defer rows.Close()
+
+	projects := make([]models.PublicFansubProject, 0)
+	for rows.Next() {
+		var project models.PublicFansubProject
+		if err := rows.Scan(
+			&project.ID,
+			&project.Title,
+			&project.Type,
+			&project.Status,
+			&project.Year,
+			&project.CoverImage,
+			&project.MaxEpisodes,
+		); err != nil {
+			return nil, fmt.Errorf("scan public fansub project row: %w", err)
+		}
+		projects = append(projects, project)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate public fansub projects for group %d: %w", groupID, err)
+	}
+	return projects, nil
+}
+
+func (r *FansubRepository) listPublicFansubHistory(ctx context.Context, groupID int64) ([]models.PublicFansubHistory, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, year, event_type, title, note, status
+		FROM fansub_group_history
+		WHERE fansub_group_id = $1
+		  AND status = 'confirmed'
+		ORDER BY COALESCE(year, 9999), id ASC
+	`, groupID)
+	if err != nil {
+		return nil, fmt.Errorf("list public fansub history for group %d: %w", groupID, err)
+	}
+	defer rows.Close()
+
+	history := make([]models.PublicFansubHistory, 0)
+	for rows.Next() {
+		var item models.PublicFansubHistory
+		if err := rows.Scan(
+			&item.ID,
+			&item.Year,
+			&item.EventType,
+			&item.Title,
+			&item.Note,
+			&item.Status,
+		); err != nil {
+			return nil, fmt.Errorf("scan public fansub history row: %w", err)
+		}
+		history = append(history, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate public fansub history for group %d: %w", groupID, err)
+	}
+	return history, nil
+}
+
+func (r *FansubRepository) listPublicFansubMedia(ctx context.Context, groupID int64, logoID *int64, bannerID *int64) ([]models.PublicFansubMediaItem, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			ma.id,
+			COALESCE(mt.name, ma.mime_type, 'group_media') AS media_type,
+			ma.caption,
+			ma.mime_type,
+			COALESCE(mf_thumb.path, mf_orig.path, ma.file_path) AS thumbnail_path,
+			COALESCE(mf_orig.path, mf_thumb.path, ma.file_path) AS original_path
+		FROM fansub_group_media fgm
+		JOIN media_assets ma ON ma.id = fgm.media_id
+		LEFT JOIN media_types mt ON mt.id = ma.media_type_id
+		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
+		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
+		JOIN visibilities v ON v.id = ma.visibility_id
+		JOIN review_statuses rs ON rs.id = ma.review_status_id
+		WHERE fgm.group_id = $1
+		  AND ma.status = 'ready'
+		  AND v.name = 'public'
+		  AND rs.code = 'approved'
+		  AND ($2::bigint IS NULL OR ma.id <> $2)
+		  AND ($3::bigint IS NULL OR ma.id <> $3)
+		ORDER BY ma.created_at ASC, ma.id ASC
+	`, groupID, logoID, bannerID)
+	if err != nil {
+		return nil, fmt.Errorf("list public fansub media for group %d: %w", groupID, err)
+	}
+	defer rows.Close()
+
+	media := make([]models.PublicFansubMediaItem, 0)
+	for rows.Next() {
+		var (
+			item          models.PublicFansubMediaItem
+			thumbnailPath *string
+			originalPath  *string
+		)
+		if err := rows.Scan(
+			&item.ID,
+			&item.MediaType,
+			&item.Caption,
+			&item.MimeType,
+			&thumbnailPath,
+			&originalPath,
+		); err != nil {
+			return nil, fmt.Errorf("scan public fansub media row: %w", err)
+		}
+		if thumbnailPath != nil {
+			item.ThumbnailURL = publicMediaURLForPath(*thumbnailPath, r.mediaStorageDir)
+		}
+		if originalPath != nil {
+			item.OriginalURL = publicMediaURLForPath(*originalPath, r.mediaStorageDir)
+		}
+		media = append(media, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate public fansub media for group %d: %w", groupID, err)
+	}
+	return media, nil
 }
 
 func (r *FansubRepository) UpdateGroup(

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"team4s.v3/backend/internal/repository"
@@ -14,6 +15,7 @@ type GroupPublicHandler struct {
 	contributorsRepo *repository.GroupContributorsRepository
 	themesRepo       *repository.GroupThemesRepository
 	mediaRepo        *repository.GroupReleaseMediaRepository
+	notesRepo        *repository.FansubNotesRepository
 }
 
 // NewGroupPublicHandler erstellt einen neuen GroupPublicHandler.
@@ -21,11 +23,13 @@ func NewGroupPublicHandler(
 	contributorsRepo *repository.GroupContributorsRepository,
 	themesRepo *repository.GroupThemesRepository,
 	mediaRepo *repository.GroupReleaseMediaRepository,
+	notesRepo *repository.FansubNotesRepository,
 ) *GroupPublicHandler {
 	return &GroupPublicHandler{
 		contributorsRepo: contributorsRepo,
 		themesRepo:       themesRepo,
 		mediaRepo:        mediaRepo,
+		notesRepo:        notesRepo,
 	}
 }
 
@@ -96,4 +100,31 @@ func (h *GroupPublicHandler) GetGroupReleaseMedia(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+// GetGroupProjectNote handles GET /api/v1/anime/:id/group/:groupId/project-note
+// and returns only public, published anime_fansub_project_notes content.
+func (h *GroupPublicHandler) GetGroupProjectNote(c *gin.Context) {
+	animeID, err := parseAnimeID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungültige anime-id")
+		return
+	}
+	groupID, err := parseGroupID(c.Param("groupId"))
+	if err != nil {
+		badRequest(c, "ungültige group-id")
+		return
+	}
+
+	note, err := h.notesRepo.GetPublicAnimeFansubProjectNote(c.Request.Context(), animeID, groupID)
+	if errors.Is(err, repository.ErrInvalidAnimeFansubContext) || errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusOK, repository.PublicAnimeFansubProjectNoteResponse{Data: nil})
+		return
+	}
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	c.JSON(http.StatusOK, repository.PublicAnimeFansubProjectNoteResponse{Data: note})
 }

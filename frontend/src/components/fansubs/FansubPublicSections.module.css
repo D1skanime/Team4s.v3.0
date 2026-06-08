@@ -1,0 +1,150 @@
+.storyArticle {
+  display: grid;
+  gap: 12px;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.bodyText {
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.stack {
+  display: grid;
+  gap: 16px;
+}
+
+.compactStack {
+  display: grid;
+  gap: 8px;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.highlightGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.highlightValue {
+  display: block;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.mutedMeta {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.projectLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.projectYear {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.historyList {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historyEntry {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.historyYear {
+  min-width: 48px;
+}
+
+.historyNote {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.mediaItemGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.mediaImage {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.mediaLabel {
+  display: block;
+}
+
+.mediaLabelWithImage {
+  display: block;
+  margin-top: 10px;
+}
+
+.inlineLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-primary);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.inlineLink:hover {
+  color: var(--accent-primary-strong);
+  text-decoration: underline;
+}
+
+.flatText {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.contributorCard {
+  display: grid;
+  gap: 4px;
+}
+
+.inlineBadge {
+  margin-left: 8px;
+}
+
+@media (max-width: 640px) {
+  .historyEntry {
+    display: grid;
+    gap: 4px;
+  }
+}

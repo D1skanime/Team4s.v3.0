@@ -1,10 +1,12 @@
 import Link from 'next/link'
 
 import { Card, EmptyState, SectionHeader } from '@/components/ui'
-import type { AnimeListItem } from '@/types/anime'
+import type { PublicFansubProject } from '@/types/fansub'
+
+import styles from './FansubPublicSections.module.css'
 
 interface FansubProjectsSectionProps {
-  projects: AnimeListItem[]
+  projects: PublicFansubProject[]
   groupId: number
 }
 
@@ -18,14 +20,14 @@ const projectBucketLabel: Record<ProjectBucketKey, string> = {
   archived: 'Archiviert',
 }
 
-function resolveProjectBucket(status: AnimeListItem['status']): ProjectBucketKey {
+function resolveProjectBucket(status: PublicFansubProject['status']): ProjectBucketKey {
   if (status === 'ongoing') return 'ongoing'
   if (status === 'done') return 'completed'
   return 'archived'
 }
 
-function groupProjects(projects: AnimeListItem[]): Record<ProjectBucketKey, AnimeListItem[]> {
-  const buckets: Record<ProjectBucketKey, AnimeListItem[]> = {
+function groupProjects(projects: PublicFansubProject[]): Record<ProjectBucketKey, PublicFansubProject[]> {
+  const buckets: Record<ProjectBucketKey, PublicFansubProject[]> = {
     ongoing: [],
     completed: [],
     archived: [],
@@ -55,23 +57,21 @@ export function FansubProjectsSection({ projects, groupId }: FansubProjectsSecti
           description="Diese Gruppe hat bisher keine öffentlich zugänglichen Anime-Projekte."
         />
       ) : (
-        <div style={{ display: 'grid', gap: 16 }}>
+        <div className={styles.stack}>
           {projectBucketOrder.map((bucket) => {
             const items = projectsByBucket[bucket]
             if (items.length === 0) return null
 
             return (
-              <div key={bucket} style={{ display: 'grid', gap: 8 }}>
-                <h3 style={{ margin: 0 }}>{projectBucketLabel[bucket]}</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+              <div key={bucket} className={styles.compactStack}>
+                <h3 className={styles.sectionTitle}>{projectBucketLabel[bucket]}</h3>
+                <div className={styles.cardGrid}>
                   {items.map((item) => (
-                    <Link key={item.id} href={`/anime/${item.id}/group/${groupId}`} style={{ textDecoration: 'none' }}>
+                    <Link key={item.id} href={`/anime/${item.id}/group/${groupId}`} className={styles.projectLink}>
                       <Card variant="interactive">
                         <strong>{item.title}</strong>
                         {item.year ? (
-                          <p style={{ margin: '8px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>
-                            {item.year}
-                          </p>
+                          <p className={styles.projectYear}>{item.year}</p>
                         ) : null}
                       </Card>
                     </Link>

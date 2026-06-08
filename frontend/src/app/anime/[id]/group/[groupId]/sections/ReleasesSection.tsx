@@ -28,8 +28,10 @@ export function ReleasesSection({ episodes, animeID, groupID }: ReleasesSectionP
               <p className={styles.releaseTitle}>
                 {ep.title ?? `Episode ${ep.episode_number}`}
               </p>
-              {/* D-11 GAP (DEFERRED): EpisodeReleaseSummary has no version_label field.
-                  Version labels (v1/v2, TV/BD) cannot be rendered — deferred to /releases depth page. */}
+              {ep.version_label ? (
+                <span className={styles.releaseMeta}>{ep.version_label}</span>
+              ) : null}
+              {/* Release-derived counters remain hidden until backed by real fields. */}
               {ep.released_at ? (
                 <span className={styles.releaseMeta}>{ep.released_at}</span>
               ) : null}

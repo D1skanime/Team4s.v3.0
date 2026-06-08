@@ -157,6 +157,7 @@ func (r *GroupRepository) GetGroupReleases(
 			e.id AS episode_id,
 			CAST(e.episode_number AS INTEGER) AS episode_number,
 			COALESCE(rev.title, e.title) AS title,
+			NULLIF(BTRIM(rev.version), '') AS version_label,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			0::BIGINT AS screenshot_count,
 			NULL::TEXT AS thumbnail_url
@@ -188,6 +189,7 @@ func (r *GroupRepository) GetGroupReleases(
 			&episodeID,
 			&ep.EpisodeNumber,
 			&ep.Title,
+			&ep.VersionLabel,
 			&ep.ReleasedAt,
 			&screenshotCount,
 			&ep.ThumbnailURL,

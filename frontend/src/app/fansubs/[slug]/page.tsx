@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import { FansubContributorsSection } from '@/components/fansubs/FansubContributorsSection'
 import { FansubDeepDiveSection } from '@/components/fansubs/FansubDeepDiveSection'
+import { FansubHistorySection } from '@/components/fansubs/FansubHistorySection'
 import { FansubHeroSection } from '@/components/fansubs/FansubHeroSection'
 import { FansubHighlightsSection } from '@/components/fansubs/FansubHighlightsSection'
 import { FansubMediaSection } from '@/components/fansubs/FansubMediaSection'
@@ -10,18 +11,12 @@ import { FansubSectionNav } from '@/components/fansubs/FansubSectionNav'
 import { FansubStorySection } from '@/components/fansubs/FansubStorySection'
 import { FansubTeamSection } from '@/components/fansubs/FansubTeamSection'
 import { GroupLeaderTimeline } from '@/components/fansubs/GroupLeaderTimeline'
-import type { AnimeListItem } from '@/types/anime'
 import type { PublicGroupContributionsResponse } from '@/types/contributions'
-import type { MediaOwnershipRow } from '@/types/media-ownership'
-import type { FansubGroupSummary } from '@/types/fansub'
 import {
   ApiError,
-  getAnimeList,
-  getCollaborationMembers,
-  getFansubBySlug,
   getFansubContributions,
   getFansubGroupDomainProjection,
-  getMediaOwnershipProjection,
+  getPublicFansubProfileBySlug,
 } from '@/lib/api'
 
 import styles from './page.module.css'
@@ -34,20 +29,6 @@ interface FansubProfilePageProps {
     | Promise<{
         slug: string
       }>
-}
-
-async function loadFansubProjects(fansubID: number): Promise<AnimeListItem[]> {
-  const perPage = 100
-  const maxPages = 10
-  const projects: AnimeListItem[] = []
-
-  for (let page = 1; page <= maxPages; page += 1) {
-    const response = await getAnimeList({ page, per_page: perPage, fansub_id: fansubID })
-    projects.push(...response.data)
-    if (page >= response.meta.total_pages) break
-  }
-
-  return projects
 }
 
 function resolveSettled<T>(result: PromiseSettledResult<T>, fallback: T): T {
@@ -69,11 +50,11 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
     )
   }
 
-  let groupResponse: Awaited<ReturnType<typeof getFansubBySlug>> | null = null
+  let profileResponse: Awaited<ReturnType<typeof getPublicFansubProfileBySlug>> | null = null
   let message: string | null = null
 
   try {
-    groupResponse = await getFansubBySlug(slug)
+    profileResponse = await getPublicFansubProfileBySlug(slug)
   } catch (error) {
     message =
       error instanceof ApiError && error.status === 404
@@ -81,7 +62,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
         : 'Fansub-Profil konnte nicht geladen werden.'
   }
 
-  if (!groupResponse) {
+  if (!profileResponse) {
     return (
       <main className={styles.page}>
         <p className={styles.backLink}>
@@ -92,42 +73,32 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
     )
   }
 
-  const group = groupResponse.data
+  const profile = profileResponse.data
+  const group = profile.group
 
-  // Kollaboration-Check — VOR allen nachgelagerten API-Aufrufen
   if (group.group_type === 'collaboration') {
-    let collaborationMembers: FansubGroupSummary[] = []
-    try {
-      const collabResponse = await getCollaborationMembers(group.id)
-      collaborationMembers = collabResponse.data
-        .map((m) => m.member_group)
-        .filter((g): g is FansubGroupSummary => g != null)
-    } catch {
-      // Fallback: leere Liste; Hero zeigt "Keine Gruppenangaben hinterlegt."
-    }
     return (
       <main className={styles.page}>
         <div className={styles.readingColumn}>
-          <FansubHeroSection group={group} isCollaboration collaborationMembers={collaborationMembers} />
+          <FansubHeroSection
+            group={group}
+            isCollaboration
+            collaborationMembers={profile.collaboration_members ?? []}
+          />
         </div>
       </main>
     )
   }
 
-  const [projectsResult, contributionsResult, domainProjectionResult, mediaOwnershipResult] =
-    await Promise.allSettled([
-      loadFansubProjects(group.id),
-      getFansubContributions(group.id),
-      getFansubGroupDomainProjection(group.id),
-      getMediaOwnershipProjection('fansub_group', group.id),
-    ])
-  const projects = resolveSettled<AnimeListItem[]>(projectsResult, [])
+  const [contributionsResult, domainProjectionResult] = await Promise.allSettled([
+    getFansubContributions(group.id),
+    getFansubGroupDomainProjection(group.id),
+  ])
   const contributions = resolveSettled<PublicGroupContributionsResponse | null>(contributionsResult, null)
   const domainProjection =
     domainProjectionResult.status === 'fulfilled'
       ? domainProjectionResult.value
       : { members: [], historical: [], contributors: [] }
-  const mediaRows = resolveSettled<MediaOwnershipRow[]>(mediaOwnershipResult, [])
   const teamMemberNames = [
     ...domainProjection.members.map((m) => m.member_display_name),
     ...domainProjection.historical.map((m) => m.member_display_name),
@@ -139,13 +110,23 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
       <div className={styles.readingColumn}>
         <FansubHeroSection group={group} />
         <div className={styles.sectionSpacing}>
-          <FansubStorySection group={group} />
+          <FansubStorySection group={group} story={profile.story} />
         </div>
         <div className={styles.sectionSpacing}>
-          <FansubHighlightsSection group={group} contributions={contributions} animeProjectCount={projects.length} />
+          <FansubHighlightsSection
+            group={group}
+            contributions={contributions}
+            animeProjectCount={profile.projects.length}
+            historyCount={profile.history.length}
+          />
         </div>
-        <div className={`${styles.sectionSpacing} ${styles.gridSection}`}>
-          <FansubProjectsSection projects={projects} groupId={group.id} />
+      </div>
+      <div className={styles.gridSection}>
+        <FansubProjectsSection projects={profile.projects} groupId={group.id} />
+      </div>
+      <div className={styles.readingColumn}>
+        <div className={styles.sectionSpacing}>
+          <FansubHistorySection history={profile.history} />
         </div>
         <div className={styles.sectionSpacing}>
           <FansubTeamSection members={domainProjection.members} historical={domainProjection.historical} />
@@ -153,9 +134,11 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
         <div className={styles.sectionSpacing}>
           <FansubContributorsSection contributors={domainProjection.contributors} teamMemberNames={teamMemberNames} />
         </div>
-        <div className={`${styles.sectionSpacing} ${styles.gridSection}`}>
-          <FansubMediaSection mediaRows={mediaRows} group={group} />
-        </div>
+      </div>
+      <div className={styles.gridSection}>
+        <FansubMediaSection media={profile.media} />
+      </div>
+      <div className={styles.readingColumn}>
         <section id="gruppenleitung" className={styles.sectionSpacing}>
           <GroupLeaderTimeline
             entries={contributions?.leader_timeline ?? []}

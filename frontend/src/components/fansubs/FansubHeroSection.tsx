@@ -93,22 +93,22 @@ export function FansubHeroSection({ group, isCollaboration, collaborationMembers
       </div>
 
       {isCollaboration ? (
-        <div style={{ marginTop: 16, padding: '12px 16px', background: 'var(--surface-secondary, #f5f5f5)', borderRadius: 8 }}>
-          <p style={{ margin: '0 0 8px', fontSize: 14, color: 'var(--text-secondary)' }}>
+        <div className={styles.collaborationPanel}>
+          <p className={styles.collaborationIntro}>
             Dies ist eine Kollaboration zwischen:
           </p>
           {(collaborationMembers ?? []).length > 0 ? (
-            <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <ul className={styles.collaborationList}>
               {(collaborationMembers ?? []).map((member) => (
                 <li key={member.id}>
-                  <Link href={'/fansubs/' + member.slug}>
+                  <Link href={'/fansubs/' + member.slug} className={styles.collaborationLink}>
                     <Badge variant="info">{member.name}</Badge>
                   </Link>
                 </li>
               ))}
             </ul>
           ) : (
-            <p style={{ margin: 0, fontSize: 14, color: 'var(--text-secondary)' }}>
+            <p className={styles.collaborationEmpty}>
               Keine Gruppenangaben hinterlegt.
             </p>
           )}

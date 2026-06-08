@@ -35,6 +35,7 @@ export interface EpisodeReleaseSummary {
   episode_id?: number | null
   episode_number: number
   title?: string | null
+  version_label?: string | null
   has_op: boolean
   has_ed: boolean
   karaoke_count: number

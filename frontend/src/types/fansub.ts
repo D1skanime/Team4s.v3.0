@@ -132,6 +132,55 @@ export interface FansubGroupResponse {
   data: FansubGroup;
 }
 
+export interface PublicFansubStory {
+  id: number;
+  title: string;
+  body_html: string;
+  body_text: string;
+  updated_at?: string;
+}
+
+export interface PublicFansubProject {
+  id: number;
+  title: string;
+  type: string;
+  status: string;
+  year?: number | null;
+  cover_image?: string | null;
+  max_episodes?: number | null;
+}
+
+export interface PublicFansubHistory {
+  id: number;
+  year?: number | null;
+  event_type: string;
+  title?: string | null;
+  note?: string | null;
+  status: string;
+}
+
+export interface PublicFansubMediaItem {
+  id: number;
+  media_type: string;
+  caption?: string | null;
+  mime_type: string;
+  thumbnail_url?: string | null;
+  original_url?: string | null;
+}
+
+export interface PublicFansubProfile {
+  group: FansubGroup;
+  story: PublicFansubStory | null;
+  projects: PublicFansubProject[];
+  history: PublicFansubHistory[];
+  media: PublicFansubMediaItem[];
+  collaboration_members?: FansubGroupSummary[];
+}
+
+export interface PublicFansubProfileResponse {
+  data: PublicFansubProfile;
+}
+
 export interface FansubGroupLinkListResponse {
   data: FansubGroupLink[];
 }

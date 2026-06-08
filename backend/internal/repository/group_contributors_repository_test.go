@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"os"
+	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -119,4 +121,41 @@ func TestGetPublicReleaseMedia_VisibilityGate(t *testing.T) {
 	require.NotNil(t, response, "response must not be nil")
 	assert.NotNil(t, response.Items, "Items must not be nil")
 	assert.Equal(t, 0, len(response.Items), "Items must be empty for non-existent anime+group")
+}
+
+func TestGroupPublicMediaRepositoriesUseCanonicalMediaFilesColumns(t *testing.T) {
+	releaseMediaSrc, err := os.ReadFile("group_release_media_repository.go")
+	require.NoError(t, err)
+	themesSrc, err := os.ReadFile("group_themes_repository.go")
+	require.NoError(t, err)
+
+	for name, content := range map[string]string{
+		"group_release_media_repository.go": string(releaseMediaSrc),
+		"group_themes_repository.go":        string(themesSrc),
+	} {
+		assert.NotContains(t, content, "media_asset_id = ma.id", "%s must use media_files.media_id", name)
+		assert.NotContains(t, content, "storage_path", "%s must use media_files.path", name)
+		assert.Contains(t, content, "mf_thumb.media_id = ma.id", "%s must join thumbnails through media_files.media_id", name)
+		assert.Contains(t, content, "mf_thumb.path", "%s must read thumbnail paths from media_files.path", name)
+	}
+}
+
+func TestGroupPublicMediaRepositoriesGatePublicApprovedReadyMedia(t *testing.T) {
+	releaseMediaSrc, err := os.ReadFile("group_release_media_repository.go")
+	require.NoError(t, err)
+	themesSrc, err := os.ReadFile("group_themes_repository.go")
+	require.NoError(t, err)
+
+	for name, content := range map[string]string{
+		"group_release_media_repository.go": string(releaseMediaSrc),
+		"group_themes_repository.go":        string(themesSrc),
+	} {
+		normalized := strings.ToLower(content)
+		assert.Contains(t, normalized, "join visibilities", "%s must join visibilities", name)
+		assert.Contains(t, normalized, "join review_statuses", "%s must join review_statuses", name)
+		assert.Contains(t, normalized, "ma.status = 'ready'", "%s must exclude failed/deleted media assets", name)
+		assert.Contains(t, normalized, "v.name = 'public'", "%s must exclude private media", name)
+		assert.Contains(t, normalized, "rs.code = 'approved'", "%s must exclude unapproved media", name)
+		assert.Contains(t, normalized, "mf_thumb.status = 'ready'", "%s must exclude failed thumbnails", name)
+	}
 }

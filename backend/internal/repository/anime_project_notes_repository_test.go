@@ -12,6 +12,7 @@ import (
 func TestAnimeProjectNotesRepositoryMethodSignatures(t *testing.T) {
 	var repo *FansubNotesRepository
 	_ = repo.GetAnimeFansubProjectNote
+	_ = repo.GetPublicAnimeFansubProjectNote
 	_ = repo.UpsertAnimeFansubProjectNote
 	_ = repo.DeleteAnimeFansubProjectNote
 }
@@ -29,6 +30,23 @@ func TestAnimeProjectNotesRepository_ContextGuardSourceInvariants(t *testing.T) 
 		"delete must be scoped to the anime id from the route context")
 	assert.True(t, strings.Contains(content, "AND fansub_group_id = $3"),
 		"delete must be scoped to the fansub group id from the route context")
+}
+
+func TestAnimeProjectNotesRepository_PublicProjectionGates(t *testing.T) {
+	repoSrc, err := os.ReadFile("anime_project_notes_repository.go")
+	require.NoError(t, err)
+	content := string(repoSrc)
+
+	assert.True(t, strings.Contains(content, "GetPublicAnimeFansubProjectNote"),
+		"repository must expose a public project-note read seam")
+	assert.True(t, strings.Contains(content, "visibility = 'public'"),
+		"public project notes must exclude internal content")
+	assert.True(t, strings.Contains(content, "status = 'published'"),
+		"public project notes must exclude draft/archived/deleted content")
+	assert.True(t, strings.Contains(content, "deleted_at IS NULL"),
+		"public project notes must exclude soft-deleted content")
+	assert.True(t, strings.Contains(content, "ensureAnimeFansubProjectContextExists"),
+		"public project notes must stay scoped to a real anime_fansub_groups context")
 }
 
 func TestAnimeProjectNotesMigration_ContextGuardExists(t *testing.T) {

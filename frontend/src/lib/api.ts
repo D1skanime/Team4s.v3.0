@@ -136,6 +136,7 @@ import {
   MergeFansubsResponse,
   CollaborationMemberListResponse,
   CollaborationMemberResponse,
+  PublicFansubProfileResponse,
   AddCollaborationMemberRequest,
   FansubMediaKind,
   FansubMediaUploadResponse,
@@ -217,6 +218,7 @@ import type { DomainProjectionResponse } from "@/types/domain-projection";
 import type { MediaOwnershipProjectionResponse } from "@/types/media-ownership";
 import type {
   GroupContributorsResponse,
+  GroupProjectNoteResponse,
   GroupThemesResponse,
   GroupReleaseMediaResponse,
 } from "@/types/groupContributors";
@@ -1555,6 +1557,35 @@ export async function getFansubBySlug(
   }
 
   return response.json() as Promise<FansubGroupResponse>;
+}
+
+export async function getPublicFansubProfileBySlug(
+  slug: string,
+): Promise<PublicFansubProfileResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const encodedSlug = encodeURIComponent(slug);
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansub-slugs/${encodedSlug}/public-profile`,
+    {
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<PublicFansubProfileResponse>;
 }
 
 export async function getFansubMembers(
@@ -5864,6 +5895,27 @@ export async function getGroupReleaseMedia(
   }
 
   return response.json() as Promise<GroupReleaseMediaResponse>;
+}
+
+export async function getGroupProjectNote(
+  animeID: number,
+  groupID: number,
+): Promise<GroupProjectNoteResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/project-note`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<GroupProjectNoteResponse>;
 }
 
 export async function getReleaseAssets(
