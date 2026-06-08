@@ -450,3 +450,55 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GroupProposalRow"
+
+    # Public Member-Rollen-Timeline (GET /api/v1/members/:slug/contributions).
+    # Quelle der Wahrheit ist das Backend-Struct PublicMemberRoleEntry in
+    # backend/internal/repository/anime_contributions_public_repository.go (Lock K).
+    # Phase 74: GAP-3 (group_history aus aktuellen App-Gruppenrollen) + GAP-2 (notes).
+    PublicMemberRoleEntry:
+      type: object
+      required: [fansub_group_name, fansub_group_slug, role_code, role_label, context, status]
+      properties:
+        fansub_group_name:
+          type: string
+        fansub_group_slug:
+          type: string
+        role_code:
+          type: string
+        role_label:
+          type: string
+          description: Lokalisiertes Label (role_definitions.label_de) mit Fallback auf role_code.
+        context:
+          type: string
+          enum: [group_history, anime_contribution]
+          description: group_history = Gruppen-/App-Rolle; anime_contribution = anime-spezifischer Beitrag.
+        anime_title:
+          type: string
+          nullable: true
+        anime_id:
+          type: integer
+          format: int64
+          nullable: true
+        started_year:
+          type: integer
+          nullable: true
+        ended_year:
+          type: integer
+          nullable: true
+        status:
+          type: string
+        notes:
+          type: string
+          nullable: true
+          description: Detailtext aus anime_contributions.note (nur context='anime_contribution'); sonst null. Quelle für den Inline-Expand.
+
+    PublicMemberContributionsResponse:
+      type: object
+      required: [role_timeline, has_unverified]
+      properties:
+        role_timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicMemberRoleEntry"
+        has_unverified:
+          type: boolean

@@ -182,6 +182,7 @@ export interface PublicMemberRoleEntry {
   started_year: number | null
   ended_year: number | null
   status: string
+  notes: string | null
 }
 
 export interface PublicMemberContributionsResponse {
