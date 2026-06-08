@@ -51,10 +51,13 @@ type EntryDetailProps = {
 function EntryDetail({ entry }: EntryDetailProps) {
   const [expanded, setExpanded] = useState(false)
 
-  // Nur anzeigen, wenn es Detail-Informationen gibt.
+  const hasNotes = Boolean(entry.notes && entry.notes.trim())
+
+  // Nur anzeigen, wenn es Detail-Informationen gibt (notes, role_code oder Anime).
   const hasDetail =
     Boolean(entry.anime_title && entry.context === 'anime_contribution') ||
-    Boolean(entry.role_code)
+    Boolean(entry.role_code) ||
+    hasNotes
 
   if (!hasDetail) return null
 
@@ -79,6 +82,11 @@ function EntryDetail({ entry }: EntryDetailProps) {
           {entry.anime_title && entry.context === 'anime_contribution' ? (
             <span className={timelineStyles.detailAnime}>
               Anime: {entry.anime_title}
+            </span>
+          ) : null}
+          {hasNotes ? (
+            <span className={timelineStyles.detailNotes}>
+              Notiz: {entry.notes}
             </span>
           ) : null}
         </div>

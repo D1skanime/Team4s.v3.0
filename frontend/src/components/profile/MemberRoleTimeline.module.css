@@ -21,8 +21,14 @@
 }
 
 .detailSubtype,
-.detailAnime {
+.detailAnime,
+.detailNotes {
   display: block;
+}
+
+.detailNotes {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .detailSubtype code {
