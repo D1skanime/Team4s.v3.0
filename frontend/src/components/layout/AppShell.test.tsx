@@ -40,7 +40,7 @@ afterEach(() => {
 describe('AppShell', () => {
   it('gives signed-in non-admin members a visible path to their own profile', () => {
     render(
-      <AppShell currentPath="/me/profile" user={{ displayName: 'Mika', email: 'mika@example.com' }}>
+      <AppShell currentPath="/me/profile" user={{ displayName: 'Mika', email: 'mika@example.com' }} hasMemberProfile>
         <main>Profilinhalt</main>
       </AppShell>,
     )
@@ -49,6 +49,19 @@ describe('AppShell', () => {
     expect(profileLink.getAttribute('href')).toBe('/me/profile')
     expect(profileLink.getAttribute('aria-current')).toBe('page')
     expect(screen.getByText('Mika')).not.toBeNull()
+  })
+
+  it('labels account-only users as account users instead of members', () => {
+    render(
+      <AppShell currentPath="/me/profile" user={{ displayName: 'Phase Admin', email: 'platform-admin@example.com' }}>
+        <main>Accountinhalt</main>
+      </AppShell>,
+    )
+
+    expect(screen.getByRole('link', { name: /Mein Account/i }).getAttribute('href')).toBe('/me/profile')
+    expect(screen.queryByRole('link', { name: /Mein Profil/i })).toBeNull()
+    expect(screen.getAllByText('Plattform').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Member Hub')).toBeNull()
   })
 
   it('hides capability-gated admin navigation for normal members', () => {
@@ -89,6 +102,7 @@ describe('AppShell', () => {
     render(
       <AppShell
         currentPath="/admin/fansubs/42/edit"
+        hasMemberProfile
         memberships={[
           { fansub_group_id: 42, fansub_group_name: 'Moon Subs', fansub_group_slug: 'moon-subs' },
           { fansub_group_id: 77, fansub_group_name: 'Kumo Fansubs', fansub_group_slug: 'kumo-fansubs' },
@@ -250,7 +264,7 @@ describe('AppShell drawer behavior', () => {
     logoutAuthSessionMock.mockResolvedValue(undefined)
 
     render(
-      <AppShell currentPath="/me/profile" user={{ displayName: 'Mika', email: 'mika@example.com' }}>
+      <AppShell currentPath="/me/profile" user={{ displayName: 'Mika', email: 'mika@example.com' }} hasMemberProfile>
         <main>Profilinhalt</main>
       </AppShell>,
     )

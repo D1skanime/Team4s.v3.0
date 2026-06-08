@@ -8560,6 +8560,7 @@ components:
       type: object
       required:
         - member_id
+        - has_member_profile
         - app_user_id
         - display_name
         - fansub_name
@@ -8580,6 +8581,10 @@ components:
         member_id:
           type: integer
           format: int64
+          description: Linked member id. Account-only responses without a verified member profile use 0.
+        has_member_profile:
+          type: boolean
+          description: True only when the account is linked to a verified member profile.
         app_user_id:
           type: integer
           format: int64

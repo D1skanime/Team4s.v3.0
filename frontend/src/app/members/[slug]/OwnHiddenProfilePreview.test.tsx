@@ -61,6 +61,7 @@ function makeOwnProfileResponse(overrides: Partial<MemberProfileResponse['data']
   return {
     data: {
       member_id: 3,
+      has_member_profile: true,
       app_user_id: 42,
       display_name: 'AOEditor',
       fansub_name: 'Subaru',
@@ -118,5 +119,21 @@ describe('OwnHiddenProfilePreview', () => {
     await waitFor(() => {
       expect(screen.getByText('Dieses Profil ist nicht öffentlich zugänglich.')).not.toBeNull()
     })
+  })
+
+  it('keeps the hidden notice for account-only users without a verified member profile', async () => {
+    getOwnProfileMock.mockResolvedValue(makeOwnProfileResponse({
+      member_id: 0,
+      has_member_profile: false,
+      fansub_name: '',
+      slug: '',
+    }))
+
+    render(<OwnHiddenProfilePreview slug="0" />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/Dieses Profil ist nicht/)).not.toBeNull()
+    })
+    expect(screen.queryByText('Profil bearbeiten')).toBeNull()
   })
 })

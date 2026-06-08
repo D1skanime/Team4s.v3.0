@@ -61,6 +61,13 @@ func (r *MemberProfileRepository) GetOwnProfile(ctx context.Context, appUserID i
 	if err != nil {
 		return nil, err
 	}
+	if !base.HasMemberProfile {
+		base.Memberships = []models.MemberProfileMembership{}
+		base.HistoricalCredits = []models.MemberProfileCredit{}
+		base.RecentMedia = []models.MemberProfileRecentMedia{}
+		base.RecentContributions = []models.MemberProfileRecentContribution{}
+		return base, nil
+	}
 
 	base.Memberships, err = r.loadMemberships(ctx, base.MemberID, appUserID, true)
 	if err != nil {
@@ -90,6 +97,9 @@ func (r *MemberProfileRepository) UpdateOwnProfile(
 	base, err := r.ensureProfileBase(ctx, appUserID)
 	if err != nil {
 		return nil, err
+	}
+	if !base.HasMemberProfile {
+		return nil, ErrMemberProfileRequired
 	}
 
 	if input.ProfileVisibility.Set && input.ProfileVisibility.Value != nil {
@@ -184,6 +194,9 @@ func (r *MemberProfileRepository) AttachUploadedAvatar(
 	if err != nil {
 		return nil, err
 	}
+	if !base.HasMemberProfile {
+		return nil, ErrMemberProfileRequired
+	}
 	if strings.TrimSpace(input.FilePath) == "" || strings.TrimSpace(input.MimeType) == "" {
 		return nil, ErrValidation
 	}
@@ -263,6 +276,9 @@ func (r *MemberProfileRepository) AttachUploadedBackground(
 	base, err := r.ensureProfileBase(ctx, appUserID)
 	if err != nil {
 		return nil, err
+	}
+	if !base.HasMemberProfile {
+		return nil, ErrMemberProfileRequired
 	}
 	if strings.TrimSpace(input.FilePath) == "" || strings.TrimSpace(input.MimeType) == "" {
 		return nil, ErrValidation
@@ -623,6 +639,8 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		accountName                     string
 		accountStatus                   string
 		accountRoles                    []string
+		accountCreatedAt                time.Time
+		accountUpdatedAt                time.Time
 		memberID                        *int64
 		memberDisplay                   *string
 		memberNickname                  *string
@@ -675,6 +693,8 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 				),
 				ARRAY[]::varchar[]
 			) AS account_roles,
+			au.created_at,
+			au.updated_at,
 			m.id,
 			m.display_name,
 			m.nickname,
@@ -737,12 +757,10 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 				m.created_at,
 				m.updated_at
 			FROM members m
-			LEFT JOIN member_claims mc ON mc.member_id = m.id
+			JOIN member_claims mc ON mc.member_id = m.id
 				AND mc.app_user_id = au.id
 				AND mc.claim_status = 'verified'
-			WHERE mc.id IS NOT NULL
-			   OR m.user_id = au.legacy_user_id
-			ORDER BY CASE WHEN mc.id IS NOT NULL THEN 0 ELSE 1 END, m.id ASC
+			ORDER BY m.id ASC
 			LIMIT 1
 		) m ON true
 		LEFT JOIN media_assets ma ON ma.id = m.avatar_media_id
@@ -760,6 +778,8 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		&row.accountName,
 		&row.accountStatus,
 		&row.accountRoles,
+		&row.accountCreatedAt,
+		&row.accountUpdatedAt,
 		&row.memberID,
 		&row.memberDisplay,
 		&row.memberNickname,
@@ -799,43 +819,33 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 	if err != nil {
 		return nil, fmt.Errorf("load own member profile base for app_user %d: %w", appUserID, err)
 	}
-	if row.legacyUserID == nil || *row.legacyUserID <= 0 {
-		return nil, fmt.Errorf("own member profile for app_user %d: legacy user bridge missing", appUserID)
-	}
-
 	if row.memberID == nil {
-		nickname := strings.TrimSpace(row.accountName)
-		if nickname == "" {
-			nickname = "Mitglied"
+		accountName := strings.TrimSpace(row.accountName)
+		if accountName == "" {
+			accountName = strings.TrimSpace(row.email)
 		}
-		displayName := nickname
-		visibility := models.ProfileVisibilityMembersOnly
-		var createdID int64
-		var createdAt time.Time
-		var updatedAt time.Time
-		if err := tx.QueryRow(ctx, `
-			INSERT INTO members (
-				user_id,
-				nickname,
-				display_name,
-				profile_visibility,
-				is_currently_active,
-				created_at,
-				updated_at
-			)
-			VALUES ($1, $2, $3, $4, false, NOW(), NOW())
-			RETURNING id, created_at, updated_at
-		`, *row.legacyUserID, nickname, displayName, visibility).Scan(&createdID, &createdAt, &updatedAt); err != nil {
-			return nil, fmt.Errorf("create member profile for app_user %d: %w", appUserID, err)
-		}
-
-		row.memberID = &createdID
-		row.memberNickname = &nickname
-		row.memberDisplay = &displayName
-		row.visibility = &visibility
-		row.noindex = true
-		row.memberCreatedAt = &createdAt
-		row.memberUpdatedAt = &updatedAt
+		return &models.MemberProfile{
+			MemberID:                        0,
+			HasMemberProfile:                false,
+			AppUserID:                       row.appUserID,
+			LegacyUserID:                    row.legacyUserID,
+			DisplayName:                     accountName,
+			FansubName:                      "",
+			Slug:                            "",
+			Email:                           row.email,
+			KeycloakSubject:                 row.keycloakSubject,
+			MemberStoryEditorType:           "tiptap",
+			MemberStoryContentSchemaVersion: 1,
+			IsCurrentlyActive:               false,
+			Noindex:                         true,
+			IsVerified:                      false,
+			ProfileVisibility:               models.ProfileVisibilityMembersOnly,
+			CreatedAt:                       row.accountCreatedAt,
+			UpdatedAt:                       row.accountUpdatedAt,
+			AccountStatus:                   row.accountStatus,
+			AccountDisplayName:              accountName,
+			AccountGlobalRoles:              row.accountRoles,
+		}, nil
 	}
 
 	memberStory := normalizeLoadedOptionalString(row.memberStoryText)
@@ -853,6 +863,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 
 	profile := &models.MemberProfile{
 		MemberID:                        *row.memberID,
+		HasMemberProfile:                true,
 		AppUserID:                       row.appUserID,
 		LegacyUserID:                    row.legacyUserID,
 		DisplayName:                     strings.TrimSpace(valueOrDefault(row.memberDisplay, row.accountName)),

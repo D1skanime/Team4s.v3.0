@@ -28,6 +28,7 @@ function slugifyMemberName(value: string): string {
 }
 
 function isOwnProfileSlug(slug: string, profile: MemberProfileData): boolean {
+  if (!profile.has_member_profile || profile.member_id <= 0) return false
   const normalizedSlug = slug.trim().toLowerCase()
   if (!normalizedSlug) return false
   if (/^\d+$/.test(normalizedSlug) && Number(normalizedSlug) === profile.member_id) return true

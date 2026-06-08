@@ -184,6 +184,7 @@ export default function MyProfilePage() {
     activeUntilYear: form.isCurrentlyActive ? undefined : validateOptionalYear(form.activeUntilYear),
   }), [form.activeFromYear, form.activeUntilYear, form.isCurrentlyActive])
   const hasYearErrors = Boolean(yearErrors.activeFromYear || yearErrors.activeUntilYear)
+  const hasMemberProfile = profile ? profile.has_member_profile || profile.member_id > 0 : false
 
   function handlePendingImageAdded(pendingKey: string, file: File) {
     pendingImages.set(pendingKey, file)
@@ -199,7 +200,7 @@ export default function MyProfilePage() {
     }
 
     // D-06-Guard: Upload nur wenn gültiger Member-Kontext
-    if (!profile.member_id || profile.member_id <= 0) { setError('Upload nicht möglich: Kein gültiger Member-Kontext.'); setSuccess(null); return }
+    if (!hasMemberProfile || !profile.member_id || profile.member_id <= 0) { setError('Speichern nicht möglich: Kein verifizierter Member-Kontext.'); setSuccess(null); return }
     try {
       setIsSaving(true)
       setError(null)
@@ -285,7 +286,7 @@ export default function MyProfilePage() {
   async function handleAvatarSelected(payload: { sourceFile: File; croppedFile: File }) {
     if (!hasAuthSession) return
     // D-06-Guard + D-09/Lock K: Branding-Slot public/approved (member_id aus Session)
-    if (!profile?.member_id || profile.member_id <= 0) { setError('Upload nicht möglich: Kein gültiger Member-Kontext.'); setSuccess(null); return }
+    if (!hasMemberProfile || !profile?.member_id || profile.member_id <= 0) { setError('Upload nicht möglich: Kein verifizierter Member-Kontext.'); setSuccess(null); return }
     try {
       setIsUploadingAvatar(true)
       setError(null)
@@ -305,7 +306,7 @@ export default function MyProfilePage() {
   async function handleBackgroundSelected(payload: { sourceFile: File; croppedFile: File }) {
     if (!hasAuthSession) return
     // D-06-Guard + D-09/Lock K: Branding-Slot public/approved (member_id aus Session)
-    if (!profile?.member_id || profile.member_id <= 0) { setError('Upload nicht möglich: Kein gültiger Member-Kontext.'); setSuccess(null); return }
+    if (!hasMemberProfile || !profile?.member_id || profile.member_id <= 0) { setError('Upload nicht möglich: Kein verifizierter Member-Kontext.'); setSuccess(null); return }
     try {
       setIsUploadingBackground(true)
       setError(null)
@@ -349,7 +350,40 @@ export default function MyProfilePage() {
           />
         ) : null}
 
-        {isClientInitialized && !isLoading && profile ? (
+        {isClientInitialized && !isLoading && profile && !hasMemberProfile ? (
+          <>
+            {error ? <div className={styles.errorBox}>{error}</div> : null}
+            {success ? <div className={styles.successBox}>{success}</div> : null}
+
+            <div className={styles.layoutGrid}>
+              <div className={styles.mainColumn}>
+                <Card variant="section">
+                  <SectionHeader
+                    title="Mein Account"
+                    description="Dieser Login ist noch keinem verifizierten Member-Eintrag zugeordnet."
+                  />
+                  <AccountSecurityCard
+                    profile={profile}
+                    hasOpenedKeycloakAccount={hasOpenedKeycloakAccount}
+                    isRefreshingAccount={isRefreshingAccount}
+                    onKeycloakAccountClick={handleKeycloakAccountClick}
+                  />
+                </Card>
+              </div>
+
+              <aside className={styles.sideColumn}>
+                <Card variant="section" title="Member-Eintrag">
+                  <p className={styles.mutedText}>
+                    Ein normales Konto ist noch kein öffentliches Member-Profil. Suche deinen historischen Nick oder beantrage einen neuen Member-Eintrag.
+                  </p>
+                  <MemberClaimSection currentClaim={myClaim} authToken={authToken || undefined} disabled={isSaving} />
+                </Card>
+              </aside>
+            </div>
+          </>
+        ) : null}
+
+        {isClientInitialized && !isLoading && profile && hasMemberProfile ? (
           <>
             <MemberProfileHero profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL} isSaving={isSaving} canSave={isDirty && !hasYearErrors && profile.capabilities.can_edit_own_profile} isVerified={profile.is_verified} />
             {error ? <div className={styles.errorBox}>{error}</div> : null}

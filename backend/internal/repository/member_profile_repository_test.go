@@ -38,6 +38,12 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"legacy activity year columns may only be mirrored from the DATE update path")
 	assert.True(t, strings.Contains(content, "normalizeProfileActivityDate"),
 		"own profile activity dates must be validated as year-normalized date values")
+	assert.False(t, strings.Contains(content, "OR m.user_id = au.legacy_user_id"),
+		"own profile reads must not treat legacy app user bridges as verified member profiles")
+	assert.False(t, strings.Contains(content, "INSERT INTO members ("),
+		"own profile reads must not auto-create member profiles for plain accounts")
+	assert.True(t, strings.Contains(content, "ErrMemberProfileRequired"),
+		"own profile mutations and uploads must require a verified member profile")
 	assert.True(t, strings.Contains(content, "member_story_html = CASE"),
 		"own profile updates must persist server-rendered story HTML with the JSON update")
 	assert.True(t, strings.Contains(content, "member_story_text = CASE"),

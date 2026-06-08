@@ -52,6 +52,7 @@ export interface MemberProfileRecentContribution {
 
 export interface MemberProfileData {
   member_id: number
+  has_member_profile: boolean
   app_user_id: number
   legacy_user_id?: number | null
   display_name: string

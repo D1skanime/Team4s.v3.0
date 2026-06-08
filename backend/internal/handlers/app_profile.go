@@ -125,6 +125,10 @@ func (h *AppAuthHandler) UpdateOwnProfile(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Profil konnte nicht vor dem Speichern geladen werden.")
 		return
 	}
+	if !hasConcreteMemberProfile(before) {
+		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "ein verifizierter Member-Eintrag ist erforderlich"}})
+		return
+	}
 
 	input := models.MemberProfileUpdateInput{
 		DisplayName:       req.DisplayName,
@@ -169,6 +173,10 @@ func (h *AppAuthHandler) UpdateOwnProfile(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, repository.ErrValidation) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "profilfelder sind ungültig"}})
+			return
+		}
+		if errors.Is(err, repository.ErrMemberProfileRequired) {
+			c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "ein verifizierter Member-Eintrag ist erforderlich"}})
 			return
 		}
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Profil konnte nicht gespeichert werden.")
@@ -426,6 +434,10 @@ func (h *AppAuthHandler) UploadOwnProfileAvatar(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Profil konnte nicht vor dem Avatar-Upload geladen werden.")
 		return
 	}
+	if !hasConcreteMemberProfile(profile) {
+		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "ein verifizierter Member-Eintrag ist erforderlich"}})
+		return
+	}
 
 	mediaID := uuid.New().String()
 	relativeDir := fmt.Sprintf("/media/profile/%d/avatar/%s", profile.MemberID, mediaID)
@@ -585,6 +597,10 @@ func (h *AppAuthHandler) UploadOwnProfileBackground(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Profil konnte nicht vor dem Hintergrundbild-Upload geladen werden.")
 		return
 	}
+	if !hasConcreteMemberProfile(profile) {
+		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "ein verifizierter Member-Eintrag ist erforderlich"}})
+		return
+	}
 
 	mediaID := uuid.New().String()
 	filename := "original." + ext
@@ -699,14 +715,22 @@ func (h *AppAuthHandler) applyProfileCapabilities(profile *models.MemberProfile,
 		profile.KeycloakAccountURL = keycloakAccountURL
 	}
 	canMutate := strings.TrimSpace(identity.AppUserStatus) != models.AppUserStatusDisabled
+	hasMemberProfile := hasConcreteMemberProfile(profile)
 	profile.Capabilities = models.MemberProfileCapabilities{
 		CanViewOwnProfile:      identity.AppUserID > 0,
-		CanEditOwnProfile:      identity.AppUserID > 0 && canMutate,
-		CanUploadOwnAvatar:     identity.AppUserID > 0 && canMutate,
+		CanEditOwnProfile:      identity.AppUserID > 0 && canMutate && hasMemberProfile,
+		CanUploadOwnAvatar:     identity.AppUserID > 0 && canMutate && hasMemberProfile,
 		CanOpenKeycloakAccount: keycloakAccountURL != nil,
-		CanViewMemberships:     true,
-		CanViewHistoricalCreds: true,
+		CanViewMemberships:     hasMemberProfile,
+		CanViewHistoricalCreds: hasMemberProfile,
 	}
+}
+
+func hasConcreteMemberProfile(profile *models.MemberProfile) bool {
+	if profile == nil {
+		return false
+	}
+	return profile.HasMemberProfile || profile.MemberID > 0
 }
 
 func (h *AppAuthHandler) resolveKeycloakAccountURL(identity middleware.AuthIdentity) *string {

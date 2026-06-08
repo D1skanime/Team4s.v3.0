@@ -427,6 +427,91 @@ func TestGetOwnProfileReturnsAggregate(t *testing.T) {
 	}
 }
 
+func TestGetOwnProfileWithoutMemberProfileReturnsAccountOnlyCapabilities(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	profileRepo := &profileRepoStub{
+		getResp: &models.MemberProfile{
+			MemberID:           0,
+			HasMemberProfile:   false,
+			AppUserID:          11,
+			DisplayName:        "Phase Admin",
+			FansubName:         "",
+			Email:              "platform-admin@example.com",
+			KeycloakSubject:    "kc-11",
+			ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+			AccountStatus:      models.AppUserStatusActive,
+			AccountDisplayName: "Phase Admin",
+		},
+	}
+	handler := &AppAuthHandler{
+		profileRepo:        profileRepo,
+		keycloakAccountURL: "http://localhost:8081/realms/team4s/account",
+	}
+
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/me/profile", nil, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Phase Admin",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.GetOwnProfile(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	body := decodeBody(t, recorder)
+	data := body["data"].(map[string]any)
+	if data["has_member_profile"] != false {
+		t.Fatalf("expected has_member_profile false, got %#v", data["has_member_profile"])
+	}
+	capabilities := data["capabilities"].(map[string]any)
+	if capabilities["can_edit_own_profile"] != false || capabilities["can_upload_own_avatar"] != false {
+		t.Fatalf("expected account-only profile mutation capabilities to be disabled, got %#v", capabilities)
+	}
+	if capabilities["can_view_memberships"] != false || capabilities["can_view_historical_credits"] != false {
+		t.Fatalf("expected account-only member sections to be hidden, got %#v", capabilities)
+	}
+	if capabilities["can_open_keycloak_account"] != true {
+		t.Fatalf("expected keycloak account capability, got %#v", capabilities)
+	}
+}
+
+func TestUpdateOwnProfileRejectsMissingMemberProfile(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	profileRepo := &profileRepoStub{
+		getResp: &models.MemberProfile{
+			MemberID:           0,
+			HasMemberProfile:   false,
+			AppUserID:          11,
+			DisplayName:        "Phase Admin",
+			ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+			AccountStatus:      models.AppUserStatusActive,
+			AccountDisplayName: "Phase Admin",
+		},
+	}
+	handler := &AppAuthHandler{profileRepo: profileRepo}
+
+	body := []byte(`{"display_name":"Phase Admin"}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPut, "/api/v1/me/profile", body, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Phase Admin",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.UpdateOwnProfile(c)
+
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if profileRepo.updateCalls != 0 {
+		t.Fatalf("expected no profile update call, got %d", profileRepo.updateCalls)
+	}
+}
+
 func TestUpdateOwnProfileRejectsReadonlyIdentityFields(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

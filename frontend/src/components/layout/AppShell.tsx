@@ -52,6 +52,7 @@ export interface AppShellProps {
   user?: AppShellUser | null
   memberships?: AppShellMembership[]
   canAccessAdmin?: boolean
+  hasMemberProfile?: boolean
   children: ReactNode
 }
 
@@ -91,10 +92,12 @@ function AppShellNavGroups({
   currentPath,
   memberships = [],
   canAccessAdmin,
+  hasMemberProfile,
 }: {
   currentPath?: string
   memberships?: AppShellMembership[]
   canAccessAdmin: boolean
+  hasMemberProfile: boolean
 }) {
   const publicItems: AppShellNavItem[] = [
     { label: 'Anime entdecken', href: '/anime', icon: <Compass size={17} />, current: isCurrent(currentPath, '/anime') },
@@ -104,7 +107,7 @@ function AppShellNavGroups({
     ? [{ label: 'Verwaltung', href: '/admin', icon: <ShieldCheck size={17} />, current: isCurrent(currentPath, '/admin') }]
     : []
   const myItems: AppShellNavItem[] = [
-    { label: 'Mein Profil', href: '/me/profile', icon: <UserCircle size={17} />, current: isCurrent(currentPath, '/me/profile') },
+    { label: hasMemberProfile ? 'Mein Profil' : 'Mein Account', href: '/me/profile', icon: <UserCircle size={17} />, current: isCurrent(currentPath, '/me/profile') },
     { label: 'Meine Beiträge', href: '/me/contributions', icon: <Compass size={17} />, current: isCurrent(currentPath, '/me/contributions') },
   ]
   const settingsItems: AppShellNavItem[] = [
@@ -187,7 +190,7 @@ function DrawerUserFooter({
   isLoggingOut: boolean
   onLogout: () => void
 }) {
-  const displayName = user?.displayName || 'Angemeldetes Mitglied'
+  const displayName = user?.displayName || 'Angemeldeter Account'
   const email = user?.email || 'Team4s Account'
 
   return (
@@ -196,7 +199,7 @@ function DrawerUserFooter({
         {user?.avatarUrl ? (
           <Image
             src={user.avatarUrl}
-            alt={`Avatar von ${user?.displayName || 'Mitglied'}`}
+            alt={`Avatar von ${user?.displayName || 'Account'}`}
             className={styles.userAvatarImg}
             width={36}
             height={36}
@@ -231,6 +234,7 @@ export function AppShell({
   user,
   memberships = [],
   canAccessAdmin = false,
+  hasMemberProfile = false,
   children,
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -306,7 +310,7 @@ export function AppShell({
           <span className={styles.brandMark}>T4</span>
           <div>
             <strong>Team4s</strong>
-            <span>{mode === 'authenticated' ? 'Member Hub' : 'Plattform'}</span>
+            <span>{mode === 'authenticated' && hasMemberProfile ? 'Member Hub' : 'Plattform'}</span>
           </div>
         </div>
         <button
@@ -345,7 +349,7 @@ export function AppShell({
           <span className={styles.brandMark}>T4</span>
           <div>
             <strong>Team4s</strong>
-            <span>{mode === 'authenticated' ? 'Member Hub' : 'Plattform'}</span>
+            <span>{mode === 'authenticated' && hasMemberProfile ? 'Member Hub' : 'Plattform'}</span>
           </div>
         </div>
 
@@ -353,7 +357,7 @@ export function AppShell({
           {mode === 'anonymous' ? (
             <AppShellAnonNavGroups currentPath={currentPath} />
           ) : (
-            <AppShellNavGroups currentPath={currentPath} memberships={memberships} canAccessAdmin={canAccessAdmin} />
+            <AppShellNavGroups currentPath={currentPath} memberships={memberships} canAccessAdmin={canAccessAdmin} hasMemberProfile={hasMemberProfile} />
           )}
         </nav>
 

@@ -112,6 +112,10 @@ func (h *AppAuthHandler) UploadOwnProfileStoryImage(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Profil konnte nicht vor dem Story-Bild-Upload geladen werden.")
 		return
 	}
+	if !hasConcreteMemberProfile(profile) {
+		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "ein verifizierter Member-Eintrag ist erforderlich"}})
+		return
+	}
 
 	ext := imageExtFromMime(mimeType)
 	mediaID := uuid.New().String()

@@ -156,6 +156,7 @@ function makeProfileResponse(overrides: Partial<MemberProfileResponse['data']> =
   return {
     data: {
       member_id: 4,
+      has_member_profile: true,
       app_user_id: 11,
       legacy_user_id: 8,
       display_name: 'Mika',
@@ -251,6 +252,47 @@ describe('MyProfilePage', () => {
     expect(screen.getByText('Meine Fansub-Geschichte')).not.toBeNull()
     expect(screen.getByTestId('story-renderer').textContent).toContain('Seit 2016')
     expect(screen.queryByLabelText('Meine Fansub-Geschichte Editor')).toBeNull()
+  })
+
+  it('renders an account-only view when no verified member profile is linked', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      member_id: 0,
+      has_member_profile: false,
+      display_name: 'Phase Admin',
+      fansub_name: '',
+      slug: '',
+      member_story: null,
+      member_story_json: null,
+      member_story_html: null,
+      member_story_text: null,
+      is_verified: false,
+      capabilities: {
+        can_view_own_profile: true,
+        can_edit_own_profile: false,
+        can_upload_own_avatar: false,
+        can_open_keycloak_account: true,
+        can_view_memberships: false,
+        can_view_historical_credits: false,
+      },
+      memberships: [],
+      historical_credits: [],
+      recent_media: [],
+      recent_contributions: [],
+      account_display_name: 'Phase Admin',
+      account_global_roles: ['platform_admin'],
+    }))
+
+    render(<MyProfilePage />)
+
+    expect(await screen.findByRole('heading', { name: 'Mein Account' })).not.toBeNull()
+    expect(screen.getByText('Ein normales Konto ist noch kein öffentliches Member-Profil. Suche deinen historischen Nick oder beantrage einen neuen Member-Eintrag.')).not.toBeNull()
+    expect(screen.getByLabelText('Historischen Nick suchen')).not.toBeNull()
+    expect(screen.getAllByText('Phase Admin').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('heading', { name: 'Mein Profil' })).toBeNull()
+    expect(screen.queryByLabelText('Fansub-Nick')).toBeNull()
+    expect(screen.queryByText('Meine Fansub-Geschichte')).toBeNull()
+    expect(screen.queryByText('Avatar-Bild')).toBeNull()
+    expect(screen.queryByRole('link', { name: /Öffentliches Profil ansehen/i })).toBeNull()
   })
 
   it('links from the own profile hub to the public member profile', async () => {

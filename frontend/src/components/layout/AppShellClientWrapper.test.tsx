@@ -30,6 +30,7 @@ vi.mock('./AppShell', () => ({
     user,
     memberships,
     canAccessAdmin,
+    hasMemberProfile,
     children,
   }: {
     mode: 'authenticated' | 'anonymous'
@@ -41,9 +42,10 @@ vi.mock('./AppShell', () => ({
       fansub_group_slug: string
     }>
     canAccessAdmin?: boolean
+    hasMemberProfile?: boolean
     children: ReactNode
   }) => {
-    appShellRenderMock({ mode, currentPath, user, memberships, canAccessAdmin })
+    appShellRenderMock({ mode, currentPath, user, memberships, canAccessAdmin, hasMemberProfile })
 
     return (
       <div
@@ -55,6 +57,7 @@ vi.mock('./AppShell', () => ({
         data-email={user?.email || ''}
         data-avatar-url={user?.avatarUrl || ''}
         data-membership-count={String(memberships?.length ?? 0)}
+        data-has-member-profile={String(Boolean(hasMemberProfile))}
       >
         {children}
       </div>
@@ -85,6 +88,8 @@ function mockAuthSession({
 function makeProfileResponse(overrides: Record<string, unknown> = {}) {
   return {
     data: {
+      member_id: 4,
+      has_member_profile: true,
       account_display_name: 'Mika Member',
       fansub_name: 'MikaFX',
       email: 'mika@example.local',
@@ -148,7 +153,33 @@ describe('AppShellClientWrapper', () => {
     expect(screen.getByTestId('app-shell').getAttribute('data-email')).toBe('mika@example.local')
     expect(screen.getByTestId('app-shell').getAttribute('data-avatar-url')).toBe('resolved:/media/avatar/mika.png')
     expect(screen.getByTestId('app-shell').getAttribute('data-can-access-admin')).toBe('true')
+    expect(screen.getByTestId('app-shell').getAttribute('data-has-member-profile')).toBe('true')
     expect(resolveApiUrlMock).toHaveBeenCalledWith('/media/avatar/mika.png')
+  })
+
+  it('passes account-only profile state to AppShell without member labeling', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      member_id: 0,
+      has_member_profile: false,
+      account_display_name: 'Phase Admin',
+      fansub_name: '',
+      avatar: null,
+      memberships: [],
+    }))
+
+    render(
+      <AppShellClientWrapper>
+        <main>Content</main>
+      </AppShellClientWrapper>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('app-shell').getAttribute('data-display-name')).toBe('Phase Admin')
+    })
+
+    expect(screen.getByTestId('app-shell').getAttribute('data-has-member-profile')).toBe('false')
+    expect(screen.getByTestId('app-shell').getAttribute('data-membership-count')).toBe('0')
+    expect(appShellRenderMock).toHaveBeenLastCalledWith(expect.objectContaining({ hasMemberProfile: false }))
   })
 
   it('passes memberships from getOwnProfile to AppShell without another request', async () => {
