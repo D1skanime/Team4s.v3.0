@@ -16,7 +16,7 @@ type MemberProfileHeroProps = {
 export function MemberProfileHero({ profile, avatarURL, isSaving, canSave }: MemberProfileHeroProps) {
   const displayName = profile.fansub_name || profile.account_display_name || 'Mein Profil'
   const avatarLabel = profile.fansub_name || profile.account_display_name || 'Profil'
-  const publicProfileHref = `/members/${profile.member_id}`
+  const publicProfileHref = `/members/${profile.slug || profile.member_id}`
 
   return (
     <div className={styles.hero}>
