@@ -857,6 +857,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		LegacyUserID:                    row.legacyUserID,
 		DisplayName:                     strings.TrimSpace(valueOrDefault(row.memberDisplay, row.accountName)),
 		FansubName:                      strings.TrimSpace(valueOrDefault(row.memberNickname, row.accountName)),
+		Slug:                            deriveMemberSlug(valueOrDefault(row.memberNickname, row.accountName)),
 		Email:                           row.email,
 		KeycloakSubject:                 row.keycloakSubject,
 		Bio:                             normalizeLoadedOptionalString(row.memberBio),
@@ -1145,6 +1146,17 @@ func (r *MemberProfileRepository) publicURLForPath(filePath string) string {
 		trimmed = "/" + trimmed
 	}
 	return r.publicBaseURL + trimmed
+}
+
+// deriveMemberSlug spiegelt den SQL memberSlugExpr
+// (LOWER(TRIM(BOTH '-' FROM REGEXP_REPLACE(TRIM(nickname),'[^a-z0-9]+','-','gi'))))
+// exakt: zuerst lowercasen (damit der case-insensitive [^a-z0-9]+-Filter greift),
+// dann alle Nicht-[a-z0-9]-Sequenzen zu '-', schließlich '-' am Rand trimmen.
+// Bewusst KEIN NFD-Diakritika-Stripping (anders als normalizeMemberProfileSlug),
+// damit das Ergebnis bit-identisch zum kanonischen Public-Slug bleibt (GAP-9/T-74-08-DRIFT).
+func deriveMemberSlug(nickname string) string {
+	lowered := strings.ToLower(strings.TrimSpace(nickname))
+	return strings.Trim(memberSlugNonAlphanumeric.ReplaceAllString(lowered, "-"), "-")
 }
 
 func normalizeMemberProfileSlug(value string) string {

@@ -65,6 +65,7 @@ type MemberProfile struct {
 	LegacyUserID                    *int64                            `json:"legacy_user_id,omitempty"`
 	DisplayName                     string                            `json:"display_name"`
 	FansubName                      string                            `json:"fansub_name"`
+	Slug                            string                            `json:"slug"`
 	Email                           string                            `json:"email"`
 	KeycloakSubject                 string                            `json:"keycloak_subject"`
 	Bio                             *string                           `json:"bio,omitempty"`
