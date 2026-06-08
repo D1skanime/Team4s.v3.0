@@ -2,15 +2,19 @@
 
 import { useState } from 'react'
 
-import { ApiError, submitSuggestion } from '@/lib/api'
 import { FormField, Select, Textarea } from '@/components/ui'
+import { ApiError, submitSuggestion } from '@/lib/api'
+
+import { ReportTargetField } from './ReportTargetField'
+import type { ReportTargetOption, ReportTargetType } from './reportTargets'
 
 interface ReportFormFehlerProps {
   onSuccess: () => void
   prefillContributionId?: number
+  targetOptions?: ReportTargetOption[]
 }
 
-type TargetType = 'anime' | 'contribution' | 'fansub_group' | 'member'
+type TargetType = ReportTargetType
 
 const TARGET_TYPE_OPTIONS: { value: TargetType; label: string }[] = [
   { value: 'anime', label: 'Anime / Projekt' },
@@ -27,7 +31,11 @@ interface ReportFormFehlerState {
   error: string | null
 }
 
-export function ReportFormFehler({ onSuccess, prefillContributionId }: ReportFormFehlerProps) {
+export function ReportFormFehler({
+  onSuccess,
+  prefillContributionId,
+  targetOptions = [],
+}: ReportFormFehlerProps) {
   const [state, setState] = useState<ReportFormFehlerState>({
     targetType: prefillContributionId ? 'contribution' : 'anime',
     targetId: prefillContributionId ? String(prefillContributionId) : '',
@@ -40,13 +48,13 @@ export function ReportFormFehler({ onSuccess, prefillContributionId }: ReportFor
     setState((prev) => ({ ...prev, ...partial }))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
     update({ error: null })
 
-    const targetIdNum = parseInt(state.targetId, 10)
-    if (!state.targetId || isNaN(targetIdNum) || targetIdNum < 1) {
-      update({ error: 'Bitte gib eine gültige Ziel-ID an.' })
+    const targetIdNum = Number.parseInt(state.targetId, 10)
+    if (!state.targetId || Number.isNaN(targetIdNum) || targetIdNum < 1) {
+      update({ error: 'Bitte wähle ein gültiges Ziel aus oder gib eine gültige Ziel-ID an.' })
       return
     }
     if (state.contentText.trim().length < 5) {
@@ -63,11 +71,11 @@ export function ReportFormFehler({ onSuccess, prefillContributionId }: ReportFor
         content_text: state.contentText.trim(),
       })
       onSuccess()
-    } catch (err) {
+    } catch (error) {
       update({
         error:
-          err instanceof ApiError
-            ? err.message
+          error instanceof ApiError
+            ? error.message
             : 'Der Vorschlag konnte nicht eingereicht werden. Bitte versuche es erneut.',
       })
     } finally {
@@ -75,8 +83,16 @@ export function ReportFormFehler({ onSuccess, prefillContributionId }: ReportFor
     }
   }
 
+  const prefillOption: ReportTargetOption[] = prefillContributionId
+    ? [{
+        type: 'contribution',
+        id: prefillContributionId,
+        label: `Contribution #${prefillContributionId}`,
+      }]
+    : []
+
   return (
-    <form id="report-form-fehler" onSubmit={(e) => void handleSubmit(e)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <form id="report-form-fehler" onSubmit={(event) => void handleSubmit(event)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {state.error ? (
         <p role="alert" style={{ color: 'var(--button-danger-start)', fontSize: '0.875rem' }}>
           {state.error}
@@ -87,36 +103,33 @@ export function ReportFormFehler({ onSuccess, prefillContributionId }: ReportFor
         <Select
           id="fehler-target-type"
           value={state.targetType}
-          onChange={(e) => update({ targetType: e.target.value as TargetType, targetId: '' })}
+          onChange={(event) => update({ targetType: event.target.value as TargetType, targetId: '' })}
           required
         >
-          {TARGET_TYPE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
+          {TARGET_TYPE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </Select>
       </FormField>
 
-      <FormField label="ID des Ziels" htmlFor="fehler-target-id" required hint="Die numerische ID des Eintrags, auf den sich dein Vorschlag bezieht.">
-        <Select
-          id="fehler-target-id"
-          value={state.targetId}
-          onChange={(e) => update({ targetId: e.target.value })}
-          required
-        >
-          <option value="">ID eingeben (manuell)</option>
-          {prefillContributionId && state.targetType === 'contribution' ? (
-            <option value={String(prefillContributionId)}>Contribution #{prefillContributionId}</option>
-          ) : null}
-        </Select>
-      </FormField>
+      <ReportTargetField
+        id="fehler-target-id"
+        label="Ziel"
+        hint="Wähle einen bekannten Eintrag aus deinen Beiträgen oder gib eine numerische ID ein."
+        targetType={state.targetType}
+        targetId={state.targetId}
+        targetOptions={targetOptions}
+        extraOptions={prefillOption}
+        onTargetIdChange={(targetId) => update({ targetId })}
+      />
 
       <FormField label="Was ist falsch oder unvollständig?" htmlFor="fehler-text" required>
         <Textarea
           id="fehler-text"
           value={state.contentText}
-          onChange={(e) => update({ contentText: e.target.value })}
+          onChange={(event) => update({ contentText: event.target.value })}
           rows={4}
           placeholder="Beschreibe den Fehler oder die gewünschte Korrektur."
           required

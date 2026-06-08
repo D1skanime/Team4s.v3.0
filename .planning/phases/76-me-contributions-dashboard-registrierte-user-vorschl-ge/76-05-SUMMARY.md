@@ -30,7 +30,7 @@ key_files:
     - frontend/src/components/contributions/MyContributionsSection.tsx
     - frontend/src/components/contributions/MyProposalsSection.tsx
 decisions:
-  - "MyProposalsSection behält eigenen getMyMemberships()-Call (für ProposalForm), aber entfernt getMyAnimeContributions()-Duplikat — page.tsx ist alleiniger Owner der Contributions-Daten (D-11)"
+  - "page.tsx besitzt Contributions- und Membership-Daten; MyProposalsSection erhält ownGroups als Prop und macht keinen lokalen Membership-Load mehr."
   - "MyContributionsSection: initialContributions-Prop auf contributions+onVisibilityChange umgestellt — Filterung liegt in page.tsx useMemo, optimistische Sichtbarkeits-Updates weiterhin über page.tsx State"
   - "filteredProposals basiert auf is_own_proposal=true statt Status-Whitelist — konservativere Filterung; Status-Chips filtern zusätzlich über applyFilters"
 metrics:
@@ -119,7 +119,8 @@ ContributionInbox → ContributionSummary → MyContributionsSection → MyPropo
 
 ### D-11 kein zweiter API-Call
 - `page.tsx` macht genau einen `getMyAnimeContributions()`-Call via `reload`-Callback
-- `MyProposalsSection` macht nur noch `getMyMemberships()` (für ProposalForm)
+- `page.tsx` lädt `getMyMemberships()` am selben Daten-Seam für ProposalForm und ReportModal
+- `MyProposalsSection` macht keinen lokalen Daten-Load mehr
 - Filterung ausschließlich via `applyFilters`-useMemo in page.tsx — eingehalten
 
 ## Known Stubs

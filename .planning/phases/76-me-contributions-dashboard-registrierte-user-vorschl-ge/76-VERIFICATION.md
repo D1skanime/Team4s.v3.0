@@ -1,10 +1,11 @@
 ---
 phase: 76-me-contributions-dashboard-registrierte-user-vorschl-ge
 verified: 2026-06-06T00:00:00Z
-status: passed
+status: passed_after_repair
 score: 24/24 must-haves verified
 overrides_applied: 0
-re_verification: false
+re_verification: true
+repair_verified: 2026-06-08T00:00:00Z
 known_limitations:
   - artifact: backend/internal/handlers/suggestions_me_handler.go
     method: UploadMediaSuggestion
@@ -17,9 +18,28 @@ known_limitations:
 
 **Phasen-Ziel:** Registrierte User erhalten ein `/me/contributions`-Dashboard mit Klärungs-Inbox, Stat-Chip-Filter, unified Melde-Modal, Pflicht-Begründungs-Modal für „Das war ich nicht" und Backend-Endpunkten für member_suggestions + erweiterten Reject-Handler.
 **Verifiziert:** 2026-06-06
-**Status:** PASSED
-**Re-Verifikation:** Nein — initiale Verifikation
+**Status:** PASSED AFTER REPAIR
+**Re-Verifikation:** Ja — 2026-06-08 Zielkontext-Fix nach Over-Claim im initialen Report
 **Human-Verify Plan 05:** BEREITS BESTÄTIGT (vom Auftraggeber vor dieser Verifikation genehmigt)
+
+---
+
+## Nachprüfung 2026-06-08: Zielkontext-Fix
+
+Der initiale Report hat Truth #20 zu breit als PASSED gewertet: Die Typ-Navigation und das Sub-Formular-Routing waren vorhanden, aber Story-/Medien-/Fehler-Formulare erhielten keine echten Zieloptionen. Dadurch waren Story und Medien im Happy-Path nicht absendbar; der allgemeine Fehler-Einstieg hatte nur ein leeres Select statt einer nutzbaren manuellen ID-Eingabe.
+
+**Reparatur:**
+- `page.tsx` lädt neben `getMyAnimeContributions()` auch `getMyMemberships()` und baut Report-Zieloptionen aus den echten Me-Contribution-Daten.
+- `ReportModal` reicht `targetOptions`, `ownGroups` und zentrale Rollen-Definitionen an die jeweiligen Sub-Formulare durch.
+- `ReportFormStory`, `ReportFormMedia` und `ReportFormFehler` verwenden `ReportTargetField`: bekannte Ziele werden als Select angezeigt, ohne bekannte Ziele gibt es eine ehrliche numerische Eingabe.
+- `ReportFormFehler` behält einen vorbefüllten Contribution-Kontext als echte Option bei.
+- `MyProposalsSection` nutzt die von der Page geladenen `ownGroups`; der lokale zweite Membership-Load wurde entfernt.
+
+**Neue Regressionsabdeckung:**
+- `ReportModal.test.tsx`: Story- und Medien-Formulare zeigen echte Anime-Ziele; Fehler-Prefill bleibt auswählbar; ohne bekannte Ziele erscheint ein numerisches Eingabefeld statt eines leeren Selects.
+- `reportTargets.test.ts`: Anime-/Fansub-Ziele werden dedupliziert, Contribution-Ziele behalten konkrete Labels.
+
+**Weiter bekannte Limitation:** `UploadMediaSuggestion` persistiert die Datei weiterhin nicht auf Disk. Diese Limitation ist nicht durch den Zielkontext-Fix behoben und bleibt als spätere Medien-Pipeline-Arbeit offen.
 
 ---
 

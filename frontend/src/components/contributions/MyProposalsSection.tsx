@@ -1,13 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 
-import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, SectionHeader } from '@/components/ui'
-import { ApiError, getMyMemberships, selfPublishContribution } from '@/lib/api'
-import { useAuthSession } from '@/lib/useAuthSession'
+import { Badge, Button, Card, EmptyState, ErrorState, SectionHeader } from '@/components/ui'
+import { ApiError, selfPublishContribution } from '@/lib/api'
 import type { MeAnimeContribution, MembershipEntry } from '@/types/contributions'
 
-import { ProposalForm, type RoleDefinition } from './ProposalForm'
+import { ANIME_CONTRIBUTION_ROLES } from './contributionRoles'
+import { ProposalForm } from './ProposalForm'
 import styles from './contributions.module.css'
 
 function readErrorMessage(error: unknown, fallback: string): string {
@@ -15,21 +15,6 @@ function readErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error) return error.message
   return fallback
 }
-
-const ANIME_CONTRIBUTION_ROLES: RoleDefinition[] = [
-  { code: 'translator', label_de: 'Übersetzung' },
-  { code: 'editor', label_de: 'Editing' },
-  { code: 'timer', label_de: 'Timing' },
-  { code: 'typesetter', label_de: 'Typesetting / FX' },
-  { code: 'encoder', label_de: 'Encoding' },
-  { code: 'raw_provider', label_de: 'Raw-Bereitstellung' },
-  { code: 'quality_checker', label_de: 'Qualitätsprüfung' },
-  { code: 'project_lead', label_de: 'Projektleitung' },
-  { code: 'project_manager', label_de: 'Projektmanagement' },
-  { code: 'designer', label_de: 'Design' },
-  { code: 'admin', label_de: 'Administration' },
-  { code: 'other', label_de: 'Sonstiges' },
-]
 
 function StatusBadge({ status }: { status: MeAnimeContribution['status'] }) {
   const variants: Record<string, { variant: 'neutral' | 'success' | 'warning' | 'danger' | 'muted'; label: string }> = {
@@ -57,45 +42,14 @@ interface MyProposalsSectionProps {
    * Enthält Einträge mit is_own_proposal=true, dem aktiven Filter entsprechend.
    */
   proposals: MeAnimeContribution[]
+  ownGroups: MembershipEntry[]
   onReload: () => void
 }
 
-export function MyProposalsSection({ proposals, onReload }: MyProposalsSectionProps) {
-  const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
-  const [ownGroups, setOwnGroups] = useState<MembershipEntry[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposalsSectionProps) {
   const [showForm, setShowForm] = useState(false)
   const [selfPublishConfirming, setSelfPublishConfirming] = useState<number | null>(null)
   const [selfPublishError, setSelfPublishError] = useState<string | null>(null)
-
-  const hasAuthSession = hasAccessToken || hasRefreshToken
-
-  const loadData = useCallback(async () => {
-    if (!isClientInitialized) return
-    if (!hasAuthSession) {
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      setIsLoading(true)
-
-      const membershipsResp = await Promise.allSettled([getMyMemberships()])
-
-      if (membershipsResp[0].status === 'fulfilled') {
-        setOwnGroups(membershipsResp[0].value.data)
-      } else {
-        // 404 = kein verifizierter Member-Account → leere ownGroups, Button deaktiviert
-        setOwnGroups([])
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }, [hasAuthSession, isClientInitialized])
-
-  useEffect(() => {
-    void loadData()
-  }, [loadData])
 
   async function handleSelfPublish(id: number) {
     setSelfPublishError(null)
@@ -179,14 +133,6 @@ export function MyProposalsSection({ proposals, onReload }: MyProposalsSectionPr
             )}
           </div>
         ) : null}
-      </Card>
-    )
-  }
-
-  if (!isClientInitialized || isLoading) {
-    return (
-      <Card variant="section">
-        <LoadingState title="Vorschläge werden geladen" description="Team4s lädt deine Mitwirkungs-Vorschläge." />
       </Card>
     )
   }

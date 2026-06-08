@@ -2,14 +2,18 @@
 
 import { useRef, useState } from 'react'
 
-import { ApiError, uploadMediaSuggestion } from '@/lib/api'
 import { FormField, Select } from '@/components/ui'
+import { ApiError, uploadMediaSuggestion } from '@/lib/api'
+
+import { ReportTargetField } from './ReportTargetField'
+import type { ReportTargetOption, ReportTargetType } from './reportTargets'
 
 interface ReportFormMediaProps {
   onSuccess: () => void
+  targetOptions?: ReportTargetOption[]
 }
 
-type TargetType = 'anime' | 'fansub_group' | 'member'
+type TargetType = Extract<ReportTargetType, 'anime' | 'fansub_group' | 'member'>
 
 const TARGET_TYPE_OPTIONS: { value: TargetType; label: string }[] = [
   { value: 'anime', label: 'Anime / Projekt' },
@@ -24,7 +28,6 @@ const MEDIA_CATEGORIES = [
   { value: 'other', label: 'Sonstiges' },
 ]
 
-// Max. Dateigröße: 20 MB (primäre Schranke liegt im Backend)
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024
 
 interface ReportFormMediaState {
@@ -37,7 +40,7 @@ interface ReportFormMediaState {
   error: string | null
 }
 
-export function ReportFormMedia({ onSuccess }: ReportFormMediaProps) {
+export function ReportFormMedia({ onSuccess, targetOptions = [] }: ReportFormMediaProps) {
   const [state, setState] = useState<ReportFormMediaState>({
     targetType: 'anime',
     targetId: '',
@@ -54,8 +57,8 @@ export function ReportFormMedia({ onSuccess }: ReportFormMediaProps) {
     setState((prev) => ({ ...prev, ...partial }))
   }
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selected = e.target.files?.[0] ?? null
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const selected = event.target.files?.[0] ?? null
     if (!selected) {
       update({ file: null, error: null })
       return
@@ -68,13 +71,13 @@ export function ReportFormMedia({ onSuccess }: ReportFormMediaProps) {
     update({ file: selected, error: null })
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
     update({ error: null })
 
-    const targetIdNum = parseInt(state.targetId, 10)
-    if (!state.targetId || isNaN(targetIdNum) || targetIdNum < 1) {
-      update({ error: 'Bitte gib eine gültige Ziel-ID an.' })
+    const targetIdNum = Number.parseInt(state.targetId, 10)
+    if (!state.targetId || Number.isNaN(targetIdNum) || targetIdNum < 1) {
+      update({ error: 'Bitte wähle ein gültiges Ziel aus oder gib eine gültige Ziel-ID an.' })
       return
     }
     if (!state.category) {
@@ -98,11 +101,11 @@ export function ReportFormMedia({ onSuccess }: ReportFormMediaProps) {
         onProgress: (percent) => update({ uploadProgress: percent }),
       })
       onSuccess()
-    } catch (err) {
+    } catch (error) {
       update({
         error:
-          err instanceof ApiError
-            ? err.message
+          error instanceof ApiError
+            ? error.message
             : 'Der Upload konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
       })
     } finally {
@@ -111,7 +114,7 @@ export function ReportFormMedia({ onSuccess }: ReportFormMediaProps) {
   }
 
   return (
-    <form id="report-form-media" onSubmit={(e) => void handleSubmit(e)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <form id="report-form-media" onSubmit={(event) => void handleSubmit(event)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {state.error ? (
         <p role="alert" style={{ color: 'var(--button-danger-start)', fontSize: '0.875rem' }}>
           {state.error}
@@ -122,45 +125,44 @@ export function ReportFormMedia({ onSuccess }: ReportFormMediaProps) {
         <Select
           id="media-target-type"
           value={state.targetType}
-          onChange={(e) => update({ targetType: e.target.value as TargetType, targetId: '' })}
+          onChange={(event) => update({ targetType: event.target.value as TargetType, targetId: '' })}
           required
         >
-          {TARGET_TYPE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
+          {TARGET_TYPE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </Select>
       </FormField>
 
-      <FormField label="ID des Ziels" htmlFor="media-target-id" required hint="Die numerische ID des Eintrags, für den du ein Medium einreichst.">
-        <Select
-          id="media-target-id"
-          value={state.targetId}
-          onChange={(e) => update({ targetId: e.target.value })}
-          required
-        >
-          <option value="">Ziel auswählen</option>
-        </Select>
-      </FormField>
+      <ReportTargetField
+        id="media-target-id"
+        label="Ziel"
+        hint="Wähle einen bekannten Eintrag aus deinen Beiträgen oder gib eine numerische ID ein."
+        targetType={state.targetType}
+        targetId={state.targetId}
+        targetOptions={targetOptions}
+        onTargetIdChange={(targetId) => update({ targetId })}
+      />
 
       <FormField label="Kategorie" htmlFor="media-category" required>
         <Select
           id="media-category"
           value={state.category}
-          onChange={(e) => update({ category: e.target.value })}
+          onChange={(event) => update({ category: event.target.value })}
           required
         >
           <option value="">Kategorie wählen</option>
-          {MEDIA_CATEGORIES.map((cat) => (
-            <option key={cat.value} value={cat.value}>
-              {cat.label}
+          {MEDIA_CATEGORIES.map((category) => (
+            <option key={category.value} value={category.value}>
+              {category.label}
             </option>
           ))}
         </Select>
       </FormField>
 
-      <FormField label="Datei auswählen" htmlFor="media-file" required hint="Unterstützt werden gängige Bildformate. Maximale Dateigröße: 20 MB.">
+      <FormField label="Datei auswählen" htmlFor="media-file" required hint="Unterstützt werden gängige Bild- und Videoformate. Maximale Dateigröße: 20 MB.">
         {/* eslint-disable-next-line no-restricted-syntax -- file input: kein FileInput-Primitiv in @/components/ui verfügbar */}
         <input
           ref={fileInputRef}
@@ -182,7 +184,7 @@ export function ReportFormMedia({ onSuccess }: ReportFormMediaProps) {
 
       {state.isUploading ? (
         <div role="status" style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-          Wird hochgeladen… {state.uploadProgress}%
+          Wird hochgeladen... {state.uploadProgress}%
         </div>
       ) : null}
 

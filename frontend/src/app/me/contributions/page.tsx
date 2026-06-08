@@ -4,11 +4,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { ContributionInbox } from '@/components/contributions/ContributionInbox'
 import { ContributionSummary } from '@/components/contributions/ContributionSummary'
+import { ANIME_CONTRIBUTION_ROLES } from '@/components/contributions/contributionRoles'
 import { MyContributionsSection } from '@/components/contributions/MyContributionsSection'
 import { MyProposalsSection } from '@/components/contributions/MyProposalsSection'
 import { RejectReasonModal } from '@/components/contributions/RejectReasonModal'
 import { ReportModal } from '@/components/contributions/ReportModal'
 import type { SuggestionType } from '@/components/contributions/ReportModal'
+import { buildReportTargetOptions } from '@/components/contributions/reportTargets'
 import {
   applyFilters,
   EMPTY_FILTER_STATE,
@@ -19,10 +21,11 @@ import {
   ApiError,
   confirmAnimeContribution,
   getMyAnimeContributions,
+  getMyMemberships,
   rejectAnimeContributionWithReason,
 } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
-import type { MeAnimeContribution } from '@/types/contributions'
+import type { MeAnimeContribution, MembershipEntry } from '@/types/contributions'
 
 function readErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message
@@ -35,6 +38,7 @@ export default function MyContributionsPage() {
 
   // Kern-Datenzustand
   const [contributions, setContributions] = useState<MeAnimeContribution[] | null>(null)
+  const [ownGroups, setOwnGroups] = useState<MembershipEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -63,8 +67,12 @@ export default function MyContributionsPage() {
     try {
       setIsLoading(true)
       setError(null)
-      const response = await getMyAnimeContributions()
+      const [response, membershipsResponse] = await Promise.all([
+        getMyAnimeContributions(),
+        getMyMemberships().catch(() => ({ data: [] as MembershipEntry[] })),
+      ])
       setContributions(response.data)
+      setOwnGroups(membershipsResponse.data)
     } catch (loadError) {
       setError(readErrorMessage(loadError, 'Beiträge konnten nicht geladen werden.'))
     } finally {
@@ -89,6 +97,10 @@ export default function MyContributionsPage() {
     const predicate = applyFilters(activeFilters)
     return contributions.filter((c) => c.is_own_proposal && predicate(c))
   }, [contributions, activeFilters])
+
+  const reportTargetOptions = useMemo(() => (
+    contributions ? buildReportTargetOptions(contributions) : []
+  ), [contributions])
 
   // Handler: Bestätigen (D-08)
   async function handleConfirm(id: number) {
@@ -196,7 +208,11 @@ export default function MyContributionsPage() {
         />
 
         {/* 4. Eigene Vorschläge — gefiltert (D-11) */}
-        <MyProposalsSection proposals={filteredProposals} onReload={() => void reload()} />
+        <MyProposalsSection
+          proposals={filteredProposals}
+          ownGroups={ownGroups}
+          onReload={() => void reload()}
+        />
       </div>
 
       {/* Overlays */}
@@ -216,6 +232,9 @@ export default function MyContributionsPage() {
         onSuccess={() => void reload()}
         prefillType={reportPrefillType ?? undefined}
         prefillContributionId={reportPrefillId ?? undefined}
+        targetOptions={reportTargetOptions}
+        ownGroups={ownGroups}
+        roleDefinitions={ANIME_CONTRIBUTION_ROLES}
       />
     </main>
   )

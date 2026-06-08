@@ -9,6 +9,7 @@ import { ReportFormMedia } from './ReportFormMedia'
 import { ReportFormStory } from './ReportFormStory'
 import type { RoleDefinition } from './ProposalForm'
 import type { MembershipEntry } from '@/types/contributions'
+import type { ReportTargetOption } from './reportTargets'
 
 export type SuggestionType = 'fehler' | 'story' | 'medien' | 'contribution' | 'claim'
 
@@ -21,6 +22,7 @@ export interface ReportModalProps {
   // Für contribution-Typ: benötigte Props für ProposalForm
   ownGroups?: MembershipEntry[]
   roleDefinitions?: RoleDefinition[]
+  targetOptions?: ReportTargetOption[]
 }
 
 const SUGGESTION_TYPES: { value: SuggestionType; label: string; description: string }[] = [
@@ -66,6 +68,7 @@ export function ReportModal({
   prefillContributionId,
   ownGroups = [],
   roleDefinitions = [],
+  targetOptions = [],
 }: ReportModalProps) {
   const [type, setType] = useState<SuggestionType | null>(prefillType ?? null)
 
@@ -174,15 +177,19 @@ export function ReportModal({
 
       {/* Schritt 2/3: Sub-Formular je nach Typ */}
       {type === 'fehler' ? (
-        <ReportFormFehler onSuccess={handleSuccess} prefillContributionId={prefillContributionId} />
+        <ReportFormFehler
+          onSuccess={handleSuccess}
+          prefillContributionId={prefillContributionId}
+          targetOptions={targetOptions}
+        />
       ) : null}
 
       {type === 'story' ? (
-        <ReportFormStory onSuccess={handleSuccess} />
+        <ReportFormStory onSuccess={handleSuccess} targetOptions={targetOptions} />
       ) : null}
 
       {type === 'medien' ? (
-        <ReportFormMedia onSuccess={handleSuccess} />
+        <ReportFormMedia onSuccess={handleSuccess} targetOptions={targetOptions} />
       ) : null}
 
       {/* Zurück-Link wenn Typ bereits gewählt */}
