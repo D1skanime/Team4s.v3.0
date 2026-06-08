@@ -67,29 +67,39 @@ docker compose up -d --build team4sv30-backend team4sv30-frontend
 - Import-Datei: [infra/keycloak/realm-team4s.json](/C:/Users/admin/Documents/Team4s/infra/keycloak/realm-team4s.json)
 - Lokale Session-Zielwerte: Access-Token 5 Minuten, SSO-Idle 24 Stunden, SSO-Max 24 Stunden. Das Frontend soll Access-Tokens automatisch per Refresh erneuern, sodass Benutzer bis zu 24 Stunden angemeldet bleiben, außer sie melden sich aktiv ab.
 
-### 4. Dokumentierte Testbenutzer
-- `phase43-admin` / `Team4s123!`
-- `phase43-member` / `Team4s123!`
+### 4. Bootstrap-Benutzer
+- `platform-admin` / `Team4sAdmin123!`
+- E-Mail: `platform-admin@team4s.local`
 
-Diese Benutzer liefern nur Identität. Team4s-Adminrechte entstehen erst nach dem Team4s-seitigen Bootstrap unten.
+Der Realm-Export enthaelt keine Team4s-Realm-Benutzer. Lokale Benutzer werden gezielt nach dem frischen Import angelegt.
 
 ## Erster Team4s-`platform_admin`
 
 ### Ablauf
-1. Mit `phase43-admin` über [frontend/src/app/auth/page.tsx](/C:/Users/admin/Documents/Team4s/frontend/src/app/auth/page.tsx) anmelden.
-2. Dadurch erzeugt Team4s beim ersten `/api/me`-Zugriff einen `app_user`.
-3. Danach in der Team4s-Datenbank `platform_admin` setzen.
+1. Den lokalen Bootstrap-Admin im Realm `team4s` anlegen.
+2. Mit `platform-admin` ueber [frontend/src/app/auth/page.tsx](/C:/Users/admin/Documents/Team4s/frontend/src/app/auth/page.tsx) anmelden.
+3. Dadurch erzeugt Team4s beim ersten `/api/me`-Zugriff einen `app_user`.
+4. Danach in der Team4s-Datenbank `platform_admin` setzen.
+
+### Keycloak-Bootstrap
+
+```powershell
+docker compose exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://127.0.0.1:8080 --realm master --user admin --password admin
+docker compose exec -T keycloak /opt/keycloak/bin/kcadm.sh create users -r team4s -s username=platform-admin -s email=platform-admin@team4s.local -s firstName=Platform -s lastName=Admin -s enabled=true -s emailVerified=true
+$userId = docker compose exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r team4s -q username=platform-admin --fields id | ConvertFrom-Json | Select-Object -ExpandProperty id
+docker compose exec -T keycloak /opt/keycloak/bin/kcadm.sh set-password -r team4s --userid $userId --new-password Team4sAdmin123! --temporary=false
+```
 
 ### SQL
 ```sql
 UPDATE app_users
 SET status = 'active', updated_at = NOW()
-WHERE email = 'phase43-admin@example.local';
+WHERE email = 'platform-admin@team4s.local';
 
-INSERT INTO app_user_global_roles (app_user_id, role, created_at, updated_at)
-SELECT au.id, 'platform_admin', NOW(), NOW()
+INSERT INTO app_user_global_roles (app_user_id, role, created_at)
+SELECT au.id, 'platform_admin', NOW()
 FROM app_users au
-WHERE au.email = 'phase43-admin@example.local'
+WHERE au.email = 'platform-admin@team4s.local'
 ON CONFLICT (app_user_id, role) DO NOTHING;
 ```
 
@@ -98,7 +108,7 @@ ON CONFLICT (app_user_id, role) DO NOTHING;
 SELECT au.id, au.email, augr.role
 FROM app_users au
 LEFT JOIN app_user_global_roles augr ON augr.app_user_id = au.id
-WHERE au.email IN ('phase43-admin@example.local', 'phase43-member@example.local')
+WHERE au.email = 'platform-admin@team4s.local'
 ORDER BY au.id, augr.role;
 ```
 

@@ -2,16 +2,14 @@
 -- Bereits zusammengefuehrte Themes bleiben auf OP1 bzw. ED1, da die alte Zuordnung
 -- nach dem Merge nicht eindeutig rekonstruiert werden kann.
 
-UPDATE theme_types SET name = 'OP1' WHERE id = 1;
-UPDATE theme_types SET name = 'ED1' WHERE id = 3;
-UPDATE theme_types SET name = 'Insert' WHERE id = 5;
-UPDATE theme_types SET name = 'Outro' WHERE id = 6;
+UPDATE theme_types SET name = 'OP1' WHERE name = 'OP';
+UPDATE theme_types SET name = 'ED1' WHERE name = 'ED';
 
-INSERT INTO theme_types (id, name, created_at)
+INSERT INTO theme_types (name, created_at)
 VALUES
-  (2, 'OP2', NOW()),
-  (4, 'ED2', NOW())
-ON CONFLICT (id) DO NOTHING;
+  ('OP2', NOW()),
+  ('ED2', NOW())
+ON CONFLICT (name) DO NOTHING;
 
 SELECT setval(
   'theme_types_id_seq',
