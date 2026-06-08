@@ -3,41 +3,23 @@
 import { useMemo, useState } from 'react'
 
 import { Select } from '@/components/ui'
+import type { PublicMemberRoleEntry } from '@/types/contributions'
 
 import { MemberRoleTimeline } from './MemberRoleTimeline'
 import styles from './MemberContributionFilters.module.css'
 
-// Flexible Eintragstruktur, die sowohl die echte PublicMemberRoleEntry als auch
-// die Test-Mock-Daten abdeckt (D-06: kein API-Call, rein clientseitig).
-export type ContributionFilterEntry = {
-  id?: number
-  anime_id: number | null
-  anime_title?: string | null
-  role?: string
-  role_label?: string
-  role_code?: string
-  status: string
-  year?: number | null
-  started_year?: number | null
-  ended_year?: number | null
-  fansub_group_name?: string
-  fansub_group_slug?: string
-  context?: 'group_history' | 'anime_contribution'
-  // Detail-Felder für Inline-Expand (D-07)
-  detail_subtype?: string | null
-  notes?: string | null
-}
-
 type MemberContributionFiltersProps = {
-  roleTimeline: ContributionFilterEntry[]
+  roleTimeline: PublicMemberRoleEntry[]
 }
 
-type AnimeOption = {
-  id: number
-  title: string
-}
+type AnimeOption = { id: number; title: string }
+type GroupOption = { slug: string; name: string }
+type RoleOption = { code: string; label: string }
+type DecadeOption = { value: string; label: string }
 
-function collectAnimeOptions(entries: ContributionFilterEntry[]): AnimeOption[] {
+// --- Options-Ableitung (alle aus role_timeline, keine Hardcodes) ---
+
+function collectAnimeOptions(entries: PublicMemberRoleEntry[]): AnimeOption[] {
   const seen = new Map<number, string>()
   for (const e of entries) {
     if (e.anime_id != null && !seen.has(e.anime_id)) {
@@ -47,28 +29,94 @@ function collectAnimeOptions(entries: ContributionFilterEntry[]): AnimeOption[] 
   return Array.from(seen.entries()).map(([id, title]) => ({ id, title }))
 }
 
-function matchesStatus(entry: ContributionFilterEntry, filter: string): boolean {
-  if (filter === 'confirmed') return entry.status === 'confirmed'
-  if (filter === 'unverified') return entry.status !== 'confirmed'
+function collectGroupOptions(entries: PublicMemberRoleEntry[]): GroupOption[] {
+  const seen = new Map<string, string>()
+  for (const e of entries) {
+    if (e.fansub_group_slug && !seen.has(e.fansub_group_slug)) {
+      seen.set(e.fansub_group_slug, e.fansub_group_name || e.fansub_group_slug)
+    }
+  }
+  return Array.from(seen.entries()).map(([slug, name]) => ({ slug, name }))
+}
+
+function collectRoleOptions(entries: PublicMemberRoleEntry[]): RoleOption[] {
+  const seen = new Map<string, string>()
+  for (const e of entries) {
+    if (e.role_code && !seen.has(e.role_code)) {
+      seen.set(e.role_code, e.role_label || e.role_code)
+    }
+  }
+  return Array.from(seen.entries()).map(([code, label]) => ({ code, label }))
+}
+
+// Dekaden-Buckets aus started_year/ended_year. value = Dekaden-Startjahr als String.
+function collectDecadeOptions(entries: PublicMemberRoleEntry[]): DecadeOption[] {
+  const decades = new Set<number>()
+  for (const e of entries) {
+    for (const year of [e.started_year, e.ended_year]) {
+      if (year != null) decades.add(Math.floor(year / 10) * 10)
+    }
+  }
+  return Array.from(decades)
+    .sort((a, b) => a - b)
+    .map((start) => ({ value: String(start), label: `${start}–${start + 9}` }))
+}
+
+// --- Filter-Prädikate ---
+
+// group_history mit status 'active' zählt als bestätigt (wie MemberRoleTimeline).
+function isConfirmed(entry: PublicMemberRoleEntry): boolean {
+  return entry.status === 'confirmed' || entry.status === 'active'
+}
+
+function matchesStatus(entry: PublicMemberRoleEntry, filter: string): boolean {
+  if (filter === 'confirmed') return isConfirmed(entry)
+  if (filter === 'unverified') return !isConfirmed(entry)
   return true
+}
+
+// Eintrag fällt in die Dekade, wenn started_year ODER ended_year im Fenster liegt.
+// Einträge ohne Jahr sind nur bei 'all' sichtbar.
+function matchesDecade(entry: PublicMemberRoleEntry, filter: string): boolean {
+  if (filter === 'all') return true
+  const start = Number(filter)
+  const end = start + 9
+  const inRange = (y: number | null) => y != null && y >= start && y <= end
+  return inRange(entry.started_year) || inRange(entry.ended_year)
+}
+
+// Unbestätigt für die gedämpfte Darstellung in MemberRoleTimeline.
+function isUnverified(entry: PublicMemberRoleEntry): boolean {
+  return !isConfirmed(entry)
 }
 
 export function MemberContributionFilters({ roleTimeline }: MemberContributionFiltersProps) {
   const [animeFilter, setAnimeFilter] = useState<string>('all')
+  const [groupFilter, setGroupFilter] = useState<string>('all')
+  const [roleFilter, setRoleFilter] = useState<string>('all')
+  const [zeitraumFilter, setZeitraumFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
   const animeOptions = useMemo(() => collectAnimeOptions(roleTimeline), [roleTimeline])
+  const groupOptions = useMemo(() => collectGroupOptions(roleTimeline), [roleTimeline])
+  const roleOptions = useMemo(() => collectRoleOptions(roleTimeline), [roleTimeline])
+  const decadeOptions = useMemo(() => collectDecadeOptions(roleTimeline), [roleTimeline])
 
-  // Rein clientseitige Filterung — KEIN fetch/API-Call (D-06)
+  // Rein clientseitige Filterung mit UND-Verknüpfung — KEIN fetch/API-Call (D-06).
   const filtered = useMemo(
     () =>
       roleTimeline.filter(
         (e) =>
           (animeFilter === 'all' || e.anime_id === Number(animeFilter)) &&
+          (groupFilter === 'all' || e.fansub_group_slug === groupFilter) &&
+          (roleFilter === 'all' || e.role_code === roleFilter) &&
+          matchesDecade(e, zeitraumFilter) &&
           matchesStatus(e, statusFilter),
       ),
-    [roleTimeline, animeFilter, statusFilter],
+    [roleTimeline, animeFilter, groupFilter, roleFilter, zeitraumFilter, statusFilter],
   )
+
+  const hasUnverified = useMemo(() => filtered.some(isUnverified), [filtered])
 
   return (
     <div className={styles.container}>
@@ -90,6 +138,57 @@ export function MemberContributionFilters({ roleTimeline }: MemberContributionFi
           </Select>
         </label>
 
+        <label className={styles.filterLabel} htmlFor="filter-gruppe">
+          Gruppe
+          <Select
+            id="filter-gruppe"
+            value={groupFilter}
+            onChange={(e) => setGroupFilter(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="all">Alle Gruppen</option>
+            {groupOptions.map((opt) => (
+              <option key={opt.slug} value={opt.slug}>
+                {opt.name}
+              </option>
+            ))}
+          </Select>
+        </label>
+
+        <label className={styles.filterLabel} htmlFor="filter-rolle">
+          Rolle
+          <Select
+            id="filter-rolle"
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="all">Alle Rollen</option>
+            {roleOptions.map((opt) => (
+              <option key={opt.code} value={opt.code}>
+                {opt.label}
+              </option>
+            ))}
+          </Select>
+        </label>
+
+        <label className={styles.filterLabel} htmlFor="filter-zeitraum">
+          Zeitraum
+          <Select
+            id="filter-zeitraum"
+            value={zeitraumFilter}
+            onChange={(e) => setZeitraumFilter(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="all">Alle Zeiträume</option>
+            {decadeOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </Select>
+        </label>
+
         <label className={styles.filterLabel} htmlFor="filter-status">
           Status
           <Select
@@ -105,38 +204,8 @@ export function MemberContributionFilters({ roleTimeline }: MemberContributionFi
         </label>
       </div>
 
-      {filtered.length === 0 ? (
-        <p className={styles.emptyText}>Keine Beiträge für den gewählten Filter.</p>
-      ) : (
-        <ul className={styles.entryList} role="list">
-          {filtered.map((entry, idx) => {
-            const key = entry.id ?? `${entry.anime_id}-${entry.role ?? entry.role_label}-${idx}`
-            const isUnverified = entry.status !== 'confirmed'
-            const label = entry.role_label ?? entry.role ?? entry.role_code ?? '–'
-            return (
-              <li key={key} className={`${styles.entry} ${isUnverified ? styles.entryDimmed : ''}`}>
-                <span className={styles.entryRole}>{label}</span>
-                {entry.anime_title ? (
-                  <span className={styles.entryAnime}>{entry.anime_title}</span>
-                ) : null}
-                <span className={styles.entryYear}>
-                  {entry.year ?? entry.started_year ?? '–'}
-                </span>
-                {isUnverified ? (
-                  <span className={styles.unverifiedBadge} aria-label="Unbestätigt">
-                    unbestätigt
-                  </span>
-                ) : null}
-              </li>
-            )
-          })}
-        </ul>
-      )}
+      {/* GAP-2: gefilterte Liste rendert über MemberRoleTimeline (inkl. EntryDetail-Inline-Expand). */}
+      <MemberRoleTimeline entries={filtered} hasUnverified={hasUnverified} />
     </div>
   )
 }
-
-// Re-exportiere MemberRoleTimeline-Integration für page.tsx-Verdrahtung.
-// MemberContributionFilters ist die filterbare Wrapper-Komponente;
-// MemberRoleTimeline bleibt für den direkten, nicht gefilterten Einsatz.
-export { MemberRoleTimeline }
