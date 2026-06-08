@@ -58,7 +58,7 @@ verification:
   unit_tests: "npm test -- --reporter=verbose TeamSection ReadinessTab — 10/10 passed"
   diff_check: "git diff --check — exit 0"
   lint: "npm run lint — exit 1; repo-weite bestehende Fehler, Phase-75-Dateien nur image-bezogene Warnungen"
-  human_uat: "AUSSTEHEND — blocking checkpoint (Task 3); Browser-Verifikation gegen Dev-Server :3000 noch offen"
+  human_uat: "VERIFIED 2026-06-08 — Browser-Verifikation gegen Dev-Server :3000 auf /anime/3/group/88 abgeschlossen"
 ---
 
 # 75-03 — Sections verdrahten + narrative Scroll-Seite vervollständigen
@@ -107,7 +107,7 @@ Das ändert kein Readiness-Verhalten.
 | Zeilenlimits (≤450, page.tsx ≤150) | ✅ page.tsx 115, css 352, Sections ≤81 |
 | Keine nativen `<button>/<input>/<select>` außerhalb `@/components/ui` | ✅ |
 | Korrekte Umlaute in allen UI-Strings | ✅ |
-| Human-UAT (Task 3, blocking) | ⏳ AUSSTEHEND |
+| Human-UAT (Task 3, blocking) | ✅ verified 2026-06-08 |
 
 ## Lint-Status
 
@@ -122,7 +122,4 @@ und `ThemesSection.tsx`; sie sind nicht die lint-blockierenden Fehler.
 
 ## Offen / Nächste Schritte
 
-- **Human-Verify (blocking checkpoint)**: Browser-Verifikation gegen Dev-Server :3000
-  noch offen — sieben Abschnitte, Sticky-Nav-Verhalten, EmptyStates, Mobil-Chip-Leiste,
-  keine Console-/401-Fehler (siehe 75-03-PLAN.md Task 3, Schritte 1–13).
 - **D-11** (Version-Labels) bleibt als bewusster Gap auf der /releases-Tiefenseite.
