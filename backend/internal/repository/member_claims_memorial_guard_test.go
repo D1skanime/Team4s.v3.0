@@ -73,3 +73,42 @@ func TestClaimBlockWritesDeniedAudit(t *testing.T) {
 		}
 	}
 }
+
+// TestClaimBlockDeniedAuditOutcomeColocated: Stellt sicher, dass der Outcome "denied"
+// nicht nur irgendwo in der Datei, sondern direkt im memorial_blocked-Audit-Block
+// beider Claim-Pfade gesetzt wird (D-15). Re-Audit nannte die Outcome-"denied"-Prüfung
+// explizit; ein reines Datei-weites Vorkommen würde ein versehentlich auf "allowed"
+// gesetztes Block-Outcome nicht erkennen. Diese Assertion bindet beide Literale
+// (EventType + Outcome) an dieselbe Guard-Region.
+func TestClaimBlockDeniedAuditOutcomeColocated(t *testing.T) {
+	cases := []struct {
+		filename string
+		path     string
+	}{
+		{"member_claims_repository.go", "SubmitClaim"},
+		{"member_claim_invitations_repository.go", "AcceptInvitation (zweiter Pfad)"},
+	}
+
+	for _, tc := range cases {
+		content := readRepositorySource(t, tc.filename)
+
+		// Letztes Vorkommen verwenden — das EventType-Literal taucht zuerst im
+		// Erläuterungs-Kommentar und dann im eigentlichen Struct-Literal auf.
+		idx := strings.LastIndex(content, `EventType:`)
+		if idx < 0 || !strings.Contains(content, "member_claim.memorial_blocked") {
+			t.Fatalf("%s: EventType \"member_claim.memorial_blocked\" fehlt — denied-Audit nicht implementiert (%s)", tc.filename, tc.path)
+		}
+
+		// Region ab dem Struct-Literal bis ~12 Zeilen weiter (der Audit-Block-Aufruf).
+		region := content[idx:]
+		if len(region) > 400 {
+			region = region[:400]
+		}
+		if !strings.Contains(region, "member_claim.memorial_blocked") {
+			t.Fatalf("%s: kein memorial_blocked-Audit-Struct-Literal gefunden (%s)", tc.filename, tc.path)
+		}
+		if !strings.Contains(region, `Outcome:        "denied"`) && !strings.Contains(region, `Outcome:    "denied"`) {
+			t.Fatalf("%s: Outcome \"denied\" steht nicht im memorial_blocked-Audit-Block (%s) — D-15 verlangt Outcome 'denied' direkt am Block.\nRegion:\n%s", tc.filename, tc.path, region)
+		}
+	}
+}

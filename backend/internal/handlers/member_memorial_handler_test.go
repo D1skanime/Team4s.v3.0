@@ -129,3 +129,88 @@ func TestMemorialSetterErrorHandling(t *testing.T) {
 		t.Logf("expected 500 on roleChecker error, got %d — still RED", w.Code)
 	}
 }
+
+// recordingMemberMemorialRepo zählt die Repo-Aufrufe des Memorial-Setters.
+// Die Schnittstelle MemberMemorialRepo umfasst NUR GetMemberProfileStatus und
+// SetMemorialStatus (members.profile_status) — es existiert KEINE app_user-/
+// Account-Mutationsmethode im Vertrag (D-13). Der Recorder belegt, dass der
+// Handler exakt diese beiden member-bezogenen Methoden aufruft und nichts darüber
+// hinaus an die DB-Schicht delegiert.
+type recordingMemberMemorialRepo struct {
+	getStatusCalls   int
+	setMemorialCalls int
+	lastMemberID     int64
+}
+
+func (r *recordingMemberMemorialRepo) GetMemberProfileStatus(_ context.Context, _ int64) (string, error) {
+	r.getStatusCalls++
+	return "active", nil
+}
+
+func (r *recordingMemberMemorialRepo) SetMemorialStatus(_ context.Context, memberID int64) error {
+	r.setMemorialCalls++
+	r.lastMemberID = memberID
+	return nil
+}
+
+// TestMemorialSetterNoAccountMutation: Global-Admin setzt Memorial → der Handler
+// delegiert NUR an die member-bezogenen Repo-Methoden (GetMemberProfileStatus,
+// SetMemorialStatus). Da der MemberMemorialRepo-Vertrag keine Account-/app_user-
+// Mutationsmethode enthält, belegt dieser Test verhaltensbezogen den D-13-Invarianten
+// "kein app_user-Account-Eingriff": die einzige Schreib-Mutation ist genau ein
+// SetMemorialStatus-Aufruf, und die Response trägt profile_status='memorial'.
+func TestMemorialSetterNoAccountMutation(t *testing.T) {
+	roleChecker := &stubbedRoleChecker{isAdmin: true}
+	auditLog := &stubbedAuditLog{}
+	repo := &recordingMemberMemorialRepo{}
+
+	handler := NewMemberMemorialHandler(roleChecker, repo, auditLog)
+
+	c, w := ginContextWithAdminIdentity(7, models.AppUserStatusActive)
+	c.Params = gin.Params{{Key: "id", Value: "42"}}
+
+	handler.SetMemorial(c)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected HTTP 200 for global admin, got %d — body: %s", w.Code, w.Body.String())
+	}
+
+	// D-13: genau eine member-bezogene Schreib-Mutation (SetMemorialStatus), kein
+	// Account-Eingriff (der Repo-Vertrag bietet ohnehin keine Account-Mutationsmethode).
+	if repo.setMemorialCalls != 1 {
+		t.Fatalf("expected exactly 1 SetMemorialStatus call, got %d", repo.setMemorialCalls)
+	}
+	if repo.getStatusCalls != 1 {
+		t.Fatalf("expected exactly 1 GetMemberProfileStatus call, got %d", repo.getStatusCalls)
+	}
+	if repo.lastMemberID != 42 {
+		t.Fatalf("expected SetMemorialStatus for member 42, got %d", repo.lastMemberID)
+	}
+
+	// Response trägt profile_status='memorial' (D-14).
+	var body struct {
+		Data struct {
+			MemberID      int64  `json:"member_id"`
+			ProfileStatus string `json:"profile_status"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(w.Body).Decode(&body); err != nil {
+		t.Fatalf("expected JSON response: %v", err)
+	}
+	if body.Data.ProfileStatus != "memorial" {
+		t.Fatalf("expected profile_status 'memorial' in response, got %q", body.Data.ProfileStatus)
+	}
+
+	// allowed-Audit "member_profile.memorial_set" mit Outcome 'allowed' (D-15).
+	found := false
+	for _, entry := range auditLog.entries {
+		if entry.EventType == "member_profile.memorial_set" && entry.Outcome == "allowed" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected allowed-audit %q/Outcome 'allowed' — not found in %d entries",
+			"member_profile.memorial_set", len(auditLog.entries))
+	}
+}
