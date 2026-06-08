@@ -79,6 +79,7 @@ type PublicMemberRoleEntry struct {
 	StartedYear     *int    `json:"started_year"`
 	EndedYear       *int    `json:"ended_year"`
 	Status          string  `json:"status"`
+	Notes           *string `json:"notes"`
 }
 
 // PublicMemberContributionsResponse is the response for GET /members/:slug/contributions.
@@ -308,7 +309,29 @@ func (r *AnimeContributionsRepository) GetPublicMemberContributions(ctx context.
 		return nil, fmt.Errorf("public member contributions: resolve slug: %w", err)
 	}
 
+	// resolved_user spiegelt member->app_user-Auflösung aus member_profile_repository
+	// (GetPublicMemberProfile-CTE): COALESCE(verifizierter member_claims.app_user_id,
+	// app_users via members.user_id->app_users.legacy_user_id). $1 bleibt die memberID.
 	timelineQuery := `
+		WITH resolved_user AS (
+			SELECT COALESCE(
+				(
+					SELECT mc.app_user_id
+					FROM member_claims mc
+					WHERE mc.member_id = $1
+					  AND mc.claim_status = 'verified'
+					ORDER BY mc.verified_at DESC NULLS LAST, mc.id DESC
+					LIMIT 1
+				),
+				(
+					SELECT au.id
+					FROM app_users au
+					JOIN members m ON m.user_id = au.legacy_user_id
+					WHERE m.id = $1
+					LIMIT 1
+				)
+			) AS app_user_id
+		)
 		SELECT
 			fg.name AS fansub_group_name,
 			fg.slug AS fansub_group_slug,
@@ -319,7 +342,8 @@ func (r *AnimeContributionsRepository) GetPublicMemberContributions(ctx context.
 			NULL::bigint AS anime_id,
 			r.started_year,
 			r.ended_year,
-			r.status
+			r.status,
+			NULL::text AS notes
 		FROM hist_group_member_roles r
 		JOIN hist_fansub_group_members hfgm ON hfgm.id = r.hist_fansub_group_member_id
 		JOIN fansub_groups fg ON fg.id = hfgm.fansub_group_id
@@ -338,7 +362,8 @@ func (r *AnimeContributionsRepository) GetPublicMemberContributions(ctx context.
 			a.id AS anime_id,
 			ac.started_year,
 			ac.ended_year,
-			ac.status
+			ac.status,
+			ac.note AS notes
 		FROM anime_contributions ac
 		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 		JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
@@ -346,6 +371,38 @@ func (r *AnimeContributionsRepository) GetPublicMemberContributions(ctx context.
 		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
 		WHERE hfgm.member_id = $1 AND ac.is_public_on_member_profile = true
+
+		UNION ALL
+
+		-- 3. Branch (GAP-3): aktuelle App-Gruppenrollen aus fansub_group_members
+		-- (+ fansub_group_member_roles), aufgelöst über resolved_user.app_user_id.
+		-- Diese sind bereits über die memberships-Sektion öffentlich; notes=NULL.
+		SELECT
+			fg.name AS fansub_group_name,
+			fg.slug AS fansub_group_slug,
+			fgmr.role AS role_code,
+			COALESCE(rd.label_de, fgmr.role) AS role_label,
+			'group_history'::text AS context,
+			NULL::text AS anime_title,
+			NULL::bigint AS anime_id,
+			NULL::int AS started_year,
+			NULL::int AS ended_year,
+			COALESCE(fgm.status, 'active') AS status,
+			NULL::text AS notes
+		FROM fansub_group_members fgm
+		JOIN fansub_groups fg ON fg.id = fgm.fansub_group_id
+		JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
+		LEFT JOIN role_definitions rd ON rd.code = fgmr.role
+		WHERE fgm.app_user_id = (SELECT app_user_id FROM resolved_user)
+		  AND NOT EXISTS (
+			SELECT 1
+			FROM hist_group_member_roles hr
+			JOIN hist_fansub_group_members h2 ON h2.id = hr.hist_fansub_group_member_id
+			WHERE h2.member_id = $1
+			  AND h2.fansub_group_id = fgm.fansub_group_id
+			  AND hr.role_code = fgmr.role
+			  AND hr.visibility = 'public'
+		  )
 
 		ORDER BY started_year NULLS LAST, fansub_group_name, role_label
 	`
@@ -360,11 +417,13 @@ func (r *AnimeContributionsRepository) GetPublicMemberContributions(ctx context.
 		if err := rows.Scan(
 			&e.FansubGroupName, &e.FansubGroupSlug, &e.RoleCode, &e.RoleLabel,
 			&e.Context, &e.AnimeTitle, &e.AnimeID,
-			&e.StartedYear, &e.EndedYear, &e.Status,
+			&e.StartedYear, &e.EndedYear, &e.Status, &e.Notes,
 		); err != nil {
 			return nil, fmt.Errorf("public member contributions: timeline scan: %w", err)
 		}
-		if e.Status != "confirmed" {
+		// status='active' (aktuelle App-Gruppenrolle, GAP-3) gilt nicht als unverified,
+		// konsistent zu MemberRoleTimeline.isUnverifiedEntry im Frontend.
+		if e.Status != "confirmed" && e.Status != "active" {
 			resp.HasUnverified = true
 		}
 		resp.RoleTimeline = append(resp.RoleTimeline, e)
@@ -374,28 +433,4 @@ func (r *AnimeContributionsRepository) GetPublicMemberContributions(ctx context.
 	}
 
 	return resp, nil
-}
-
-// --- helpers ---
-
-func minYearPtr(cur, candidate *int) *int {
-	if candidate == nil {
-		return cur
-	}
-	if cur == nil || *candidate < *cur {
-		v := *candidate
-		return &v
-	}
-	return cur
-}
-
-func maxYearPtr(cur, candidate *int) *int {
-	if candidate == nil {
-		return cur
-	}
-	if cur == nil || *candidate > *cur {
-		v := *candidate
-		return &v
-	}
-	return cur
 }
