@@ -1,14 +1,37 @@
 ---
 phase: 74-public-member-profile-members-slug-memorial
-verified: 2026-06-08T00:00:00Z
-status: failed
-score: Re-Audit — mehrere Kernziele nur teilweise/falsch umgesetzt
+verified: 2026-06-08T14:00:00Z
+status: passed
+score: Gap-Closure abgeschlossen — GAP-1/2/3/9 live geschlossen, Memorial code-verifiziert
 overrides_applied: 0
 re_verification: true
-supersedes: "Vorheriger Report 2026-06-05 (status: passed) war zu optimistisch — siehe Git-Historie dieses Files."
+supersedes: "Report 2026-06-05 (passed) war zu optimistisch; Re-Audit 2026-06-08 (failed) dokumentierte die echten Gaps. Dieser Stand verifiziert die Gap-Closure."
 ---
 
-# Phase 74: Re-Audit `/members/[slug]` + Memorial — Gap-Report
+# Phase 74: Gap-Closure-Verifikation `/members/[slug]` + Memorial
+
+## Re-Verifikation 2026-06-08 (nach Gap-Closure) — BESTANDEN
+
+Gap-Closure-Pläne 74-07..74-11 ausgeführt + live auf `:3000` verifiziert (Details:
+`74-11-SUMMARY.md`). Ergebnis je Gap:
+
+| Gap | Status | Nachweis |
+|-----|--------|----------|
+| GAP-1 Filter Anime/Gruppe/Rolle/Zeitraum/Status | GESCHLOSSEN | Live: 5 `@/components/ui` Select, abgeleitete Optionen; Rolle-Filter reduziert 3→1 (Angeldust) |
+| GAP-2 Inline-Expand auf Happy-Path | GESCHLOSSEN | Gefilterte Liste rendert über `MemberRoleTimeline`; „Details anzeigen" toggelt (aria-expanded, „Rollencode") |
+| GAP-3 App-Gruppenrollen in Timeline | GESCHLOSSEN | Ballelboy liefert `group_history`/„Fansub-Lead"; Angeldust hist+App+Anime getrennt, kein Duplikat; Migration 0100 für deutsches Label |
+| GAP-9 /me-Link Slug | GESCHLOSSEN (code) | `MemberProfile.slug` end-to-end; Link `/members/${slug||member_id}` |
+| GAP-6/7 Memorial | CODE-VERIFIZIERT | Plan 74-10: 4 Schutzmechanismen vorhanden + 2 Coverage-Tests (`go test` grün); kein Live-Test (keine Memorial-Daten, Nutzer-Entscheidung) |
+| #4 Story/375px, #11 Mobile-Nav, #12 Hidden | BESTÄTIGT | Kein Overflow @375px; Hidden-Profil zeigt Schutz-Hinweis ohne Daten |
+
+**Tests:** Frontend 15/15 (Vitest), Backend repository+handlers ok, `go build`/`typecheck` grün.
+
+**Ehrliche Restvorbehalte:** GAP-9 Voll-Login-Spotcheck, Badges-„alle-anzeigen"-Toggle und
+Memorial-Live bleiben mangels Testdaten ungeprüft (code-/contract-verifiziert). Siehe 74-11-SUMMARY.
+
+---
+
+# Anhang: Re-Audit 2026-06-08 (ursprünglicher Gap-Report, status war: failed)
 
 **Re-Audit:** 2026-06-08 (Code + echte DB-Daten + Live `:3000`).
 **Ergebnis:** Die strukturellen Komponenten existieren, aber mehrere Phase-74-Kernziele
