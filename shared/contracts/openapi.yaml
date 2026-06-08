@@ -2904,6 +2904,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/fansub-slugs/{slug}/public-profile:
+    get:
+      tags: [Fansubs]
+      summary: Get public fansub profile data by slug
+      operationId: getPublicFansubProfileBySlug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+      responses:
+        "200":
+          description: Public fansub profile payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicFansubProfileResponse"
+        "400":
+          description: Invalid fansub slug
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/fansubs/{id}/aliases:
     get:
       tags: [Fansubs]
@@ -4709,6 +4747,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GroupReleaseMediaResponse"
+        "400":
+          description: Invalid anime-id or group-id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/group/{groupId}/project-note:
+    get:
+      tags: [Fansubs]
+      summary: Get the public published project note for an anime+group
+      operationId: getAnimeGroupProjectNote
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Public project note scoped to this anime+group, or null when absent/not public
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupProjectNoteResponse"
         "400":
           description: Invalid anime-id or group-id
           content:
@@ -8486,6 +8563,7 @@ components:
         - app_user_id
         - display_name
         - fansub_name
+        - slug
         - email
         - keycloak_subject
         - is_currently_active
@@ -8513,6 +8591,9 @@ components:
           type: string
         fansub_name:
           type: string
+        slug:
+          type: string
+          description: Nickname-derived public profile slug (mirror of the /members/:slug route key).
         email:
           type: string
           format: email
@@ -8970,6 +9051,109 @@ components:
         updated_at:
           type: string
           format: date-time
+    PublicFansubStory:
+      type: object
+      required: [id, title, body_html, body_text]
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        body_html:
+          type: string
+        body_text:
+          type: string
+        updated_at:
+          type: string
+    PublicFansubProject:
+      type: object
+      required: [id, title, type, status]
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        year:
+          type: integer
+          nullable: true
+        cover_image:
+          type: string
+          nullable: true
+        max_episodes:
+          type: integer
+          nullable: true
+    PublicFansubHistory:
+      type: object
+      required: [id, event_type, status]
+      properties:
+        id:
+          type: integer
+          format: int64
+        year:
+          type: integer
+          nullable: true
+        event_type:
+          type: string
+        title:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        status:
+          type: string
+    PublicFansubMediaItem:
+      type: object
+      required: [id, media_type, mime_type]
+      properties:
+        id:
+          type: integer
+          format: int64
+        media_type:
+          type: string
+        caption:
+          type: string
+          nullable: true
+        mime_type:
+          type: string
+        thumbnail_url:
+          type: string
+          nullable: true
+        original_url:
+          type: string
+          nullable: true
+    PublicFansubProfile:
+      type: object
+      required: [group, story, projects, history, media]
+      properties:
+        group:
+          $ref: "#/components/schemas/FansubGroup"
+        story:
+          nullable: true
+          oneOf:
+            - $ref: "#/components/schemas/PublicFansubStory"
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicFansubProject"
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicFansubHistory"
+        media:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicFansubMediaItem"
+        collaboration_members:
+          type: array
+          items:
+            $ref: "#/components/schemas/FansubGroupSummary"
     FansubMember:
       type: object
       required:
@@ -9395,6 +9579,12 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/FansubGroup"
+    PublicFansubProfileResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/PublicFansubProfile"
     FansubMemberListResponse:
       type: object
       required: [data]
@@ -10219,6 +10409,9 @@ components:
         title:
           type: string
           nullable: true
+        version_label:
+          type: string
+          nullable: true
         has_op:
           type: boolean
           description: Episode has opening
@@ -10367,6 +10560,30 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicReleaseMediaItem"
+    PublicAnimeFansubProjectNote:
+      type: object
+      required: [id, title, body_html, body_text]
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        body_html:
+          type: string
+        body_text:
+          type: string
+        updated_at:
+          type: string
+          nullable: true
+    GroupProjectNoteResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          nullable: true
+          oneOf:
+            - $ref: "#/components/schemas/PublicAnimeFansubProjectNote"
     EpisodeVersionImage:
       type: object
       required:

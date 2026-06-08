@@ -56,6 +56,7 @@ export interface MemberProfileData {
   legacy_user_id?: number | null
   display_name: string
   fansub_name: string
+  slug: string
   email: string
   keycloak_subject: string
   bio?: string | null

@@ -152,6 +152,7 @@ function makeProfileResponse(overrides: Partial<MemberProfileResponse['data']> =
       legacy_user_id: 8,
       display_name: 'Mika',
       fansub_name: 'MikaFX',
+      slug: 'mikafx',
       email: 'mika@example.com',
       keycloak_subject: 'kc-11',
       bio: 'Typesetting und QC.',

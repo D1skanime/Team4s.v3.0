@@ -64,6 +64,7 @@ function makeOwnProfileResponse(overrides: Partial<MemberProfileResponse['data']
       app_user_id: 42,
       display_name: 'AOEditor',
       fansub_name: 'Subaru',
+      slug: 'subaru',
       email: 'subaru@example.local',
       keycloak_subject: 'kc-subaru',
       bio: 'Editor bei AO.',
