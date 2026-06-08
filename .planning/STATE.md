@@ -444,10 +444,11 @@ Recent durable decisions:
 | 260603-l77 | Ergänze current-system-inventory.md um fehlende Oberflächen und Funktionsbereiche | 2026-06-03 | working tree | [260603-l77-inventory-doc-gaps](./quick/260603-l77-inventory-doc-gaps/) |
 | 260604-d12 | ui verbessern auf global ziehen | 2026-06-04 | 049fb3ed | [260604-d12-ui-verbessern-auf-global-ziehen](./quick/260604-d12-ui-verbessern-auf-global-ziehen/) |
 | 260605-iyz | Phase 72/73 public projection hardening and fansub page integration fix | 2026-06-05 | main + phase73 worktrees | [260605-iyz-phase-72-73-public-projection-hardening-](./quick/260605-iyz-phase-72-73-public-projection-hardening-/) |
+| 260608-jb9 | Startseite UI-Regelverstoß beheben: native Link/Inline-Styles durch Button-Primitiv ersetzen | 2026-06-08 | f1ca2d46 | [260608-jb9-startseite-ui-regelverstoss-beheben-nati](./quick/260608-jb9-startseite-ui-regelverstoss-beheben-nati/) |
 
 ## Session Continuity
 
 Last session: 2026-06-07T20:04:35.248Z
 Stopped at: Completed 73-10-PLAN.md
-Last activity: 2026-06-07
+Last activity: 2026-06-08 - Completed quick task 260608-jb9: Startseite UI-Regelverstoß behoben (Button-Primitiv)
 Resume file: None
