@@ -1579,7 +1579,7 @@ Plans:
 **Goal:** Member kann behaupten, ein historischer Nick zu sein (Claiming). Leader kann per Einladungslink bestaetigen. Verifizierungsstatus im Profil sichtbar. noindex-Steuerung per Member-Einstellung.
 **Requirements**: P66-SC1, P66-SC2, P66-SC3
 **Depends on:** Phase 65
-**Plans:** 7/7 plans complete
+**Plans:** 12 plans (7 complete + 5 gap-closure)
 
 Plans:
 
@@ -1765,6 +1765,11 @@ Plans:
 - [x] `74-04-PLAN.md` — Sektions-Scroll-Seite + Sticky-Nav + Status-Pill + würdevolle Memorial-Hero (C/D-01/D-02/D-09/D-10)
 - [x] `74-05-PLAN.md` — Top-N-Badge-Highlights + clientseitige Contribution-Filter + Inline-Expand + Altlast-Migration (C/Badges-13/D-06..D-08/D-11)
 - [x] `74-06-PLAN.md` — Write-Action-UI: Korrektur-Modal + Memorial-Setter-Action im Leader-Workspace + Human-Verify (D-12/D-16..D-18)
+- [ ] `74-07-PLAN.md` — Gap-Closure: GetPublicMemberContributions 3. UNION (App-Gruppenrollen als group_history) + notes-DTO (GAP-3/GAP-2, Lock K)
+- [ ] `74-08-PLAN.md` — Gap-Closure: MemberProfile.slug end-to-end + /me/profile-Link auf Slug (GAP-9, Lock K)
+- [ ] `74-09-PLAN.md` — Gap-Closure: 5 clientseitige Filter (Anime/Gruppe/Rolle/Zeitraum/Status) + Durchreichen an MemberRoleTimeline + Inline-Expand notes (GAP-1/GAP-2)
+- [ ] `74-10-PLAN.md` — Gap-Closure: Memorial-Schutzkette code-level (beide Claim-Pfade 409 + denied-Audit, Setter Global-Admin, D-10) via go test (GAP-6/7)
+- [ ] `74-11-PLAN.md` — Gap-Closure: Live-UAT :3000 (ballelboy/angeldust) + automatisiertes Vorab-Gate (Verifikation)
 
 ### Phase 75: Anime-Gruppen-Deep-Dive `/anime/[id]/group/[groupId]`
 
