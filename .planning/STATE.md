@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
 stopped_at: Phase 81 context gathered
-last_updated: "2026-06-09T08:16:46.991Z"
+last_updated: "2026-06-09T09:07:58.362Z"
 last_activity: 2026-06-09
 progress:
   total_phases: 77
   completed_phases: 59
   total_plans: 314
-  completed_plans: 273
+  completed_plans: 274
   percent: 77
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 73 — public-fansub-page-fansubs-slug-erweitern
+**Current focus:** Phase 81 — Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe
 
 ## Current Position
 
-Phase: 73 (public-fansub-page-fansubs-slug-erweitern) — EXECUTING
-Plan: 9 of 11
+Phase: 81 (Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe) — EXECUTING
+Plan: 2 of 6
 
 ## Accumulated Context
 
@@ -238,6 +238,7 @@ Recent durable decisions:
 - [Phase ?]: [Phase 79-04]: AnimeJellyfinAssetUploadControls.tsx 662 Zeilen Pre-existing — Split als Follow-up-Quick-Task deferred
 - [Phase ?]: [Phase 73-10]: Kollaboration-Block nutzt inline-style statt neuer CSS-Klasse
 - [Phase ?]: [Phase 73-10]: Badge variant=muted fuer 'auch Mitglied' Querverweis-Badge
+- [Phase ?]: 81-01 Split
 
 ### Pending Todos
 
@@ -412,6 +413,7 @@ Recent durable decisions:
 | Phase 73 P07 | 5min | 2 tasks | 3 files |
 | Phase 73 P10 | 2min | 2 tasks | 3 files |
 | Phase 73 P12 | 6min | 2 tasks | 3 files |
+| Phase 81-release-version-mehrfach-fansubgruppen-ohne-kombigruppe P01 | 45min | 3 tasks | 9 files |
 
 ### Quick Tasks Completed
 
@@ -448,7 +450,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-09T07:30:33.598Z
+Last session: 2026-06-09T09:07:58.241Z
 Stopped at: Phase 81 context gathered
 Last activity: 2026-06-09
-Resume file: .planning/phases/81-release-version-mehrfach-fansubgruppen-ohne-kombigruppe/81-CONTEXT.md
+Resume file: None
