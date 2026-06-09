@@ -712,14 +712,16 @@ Keine neuen Auth-Flächen. ASVS V5 (Input Validation): Alle übergebenen `fansub
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`theme_segments`-Migration**: Falls echte Daten-Zeilen in `theme_segments` auf Kombigruppen-IDs zeigen — soll der Planner einen expliziten UPDATE-Schritt einplanen (setze `fansub_group_id = NULL` oder auf den ersten Member), oder reicht der RESTRICT-Guard + Deaktivierung?
    - Was wir wissen: Das lateral-JOIN-Pattern in `listReleaseVariantsByAnimeID` matcht Theme-Segments über `fansub_group_id`; nach Migration passen die Felder nicht mehr zusammen, wenn `theme_segments.fansub_group_id` noch Kombigruppen-IDs enthält.
    - Empfehlung: Expliziten UPDATE in 0101 einplanen (`theme_segments` auf `NULL` für Kombigruppen-IDs setzen) als defensiver Schritt.
+   - **RESOLVED**: Plan 02 (Migration 0101) plant einen expliziten UPDATE-Schritt: `UPDATE theme_segments SET fansub_group_id = NULL WHERE fansub_group_id IN (SELECT id FROM fansub_groups WHERE group_type = 'collaboration')` vor dem DELETE-Block. Der RESTRICT-Guard prüft `theme_segments` als zusätzliche Absicherung für Hard-Delete.
 
 2. **`handlersRoute DELETE für /fansubs/:id/collaboration-members`**: In `main.go` L457 ist `POST /fansubs/:id/collaboration-members` als separater POST mit `authMiddleware` registriert. Exakter Scope der zu entfernenden Routen noch nicht vollständig gelesen.
    - Empfehlung: Planner liest `main.go` L450–470 vollständig und listet alle Kollaborations-Routen.
+   - **RESOLVED**: Plan 04 Task 2 listet alle drei zu entfernenden Routen explizit: `GET /fansubs/:id/collaboration-members`, `POST /fansubs/:id/collaboration-members` und `DELETE /fansubs/:id/collaboration-members/:memberGroupId`. Die `<interfaces>`-Sektion von Plan 04 enthaelt die exakten Zeilen aus `main.go`.
 
 ---
 
