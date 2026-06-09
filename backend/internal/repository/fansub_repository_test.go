@@ -65,7 +65,6 @@ func TestFansubRepository_PublicProfileSourceInvariants(t *testing.T) {
 		"ma.status = 'ready'",
 		"rs.code = 'approved'",
 		"publicMediaURLForPath",
-		"ListCollaborationMembers(ctx, group.ID)",
 	} {
 		if !strings.Contains(content, fragment) {
 			t.Fatalf("expected public profile repository to contain %q", fragment)

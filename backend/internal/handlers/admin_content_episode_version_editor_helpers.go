@@ -14,7 +14,6 @@ type episodeVersionEditorResolved struct {
 	animeFolderPath  *string
 	jellyfinSeriesID string
 	selectedGroups   []models.FansubGroupSummary
-	collaborationID  *int64
 }
 
 // loadEpisodeVersionEditorContext löst alle für den Editor benötigten Daten auf und gibt den zusammengestellten Bearbeitungskontext zurück.
@@ -35,11 +34,10 @@ func (h *AdminContentHandler) loadEpisodeVersionEditorContext(
 	}
 
 	return &models.EpisodeVersionEditorContext{
-		Version:              version,
-		AnimeTitle:           resolved.animeSource.Title,
-		AnimeFolderPath:      resolved.animeFolderPath,
-		CollaborationGroupID: resolved.collaborationID,
-		SelectedGroups:       resolved.selectedGroups,
+		Version:         version,
+		AnimeTitle:      resolved.animeSource.Title,
+		AnimeFolderPath: resolved.animeFolderPath,
+		SelectedGroups:  resolved.selectedGroups,
 	}, nil
 }
 
@@ -66,22 +64,21 @@ func (h *AdminContentHandler) loadEpisodeVersionContributorContext(
 		EpisodeNumber:   version.EpisodeNumber,
 		Title:           version.Title,
 		ReleaseVersion:  version.ReleaseVersion,
-		FansubGroup:     version.FansubGroup,
+		FansubGroups:    version.FansubGroups,
 		DurationSeconds: version.DurationSeconds,
 		CreatedAt:       version.CreatedAt,
 		UpdatedAt:       version.UpdatedAt,
 	}
 
-	selectedGroups, collaborationID, err := h.resolveEpisodeVersionSelectedGroups(ctx, version)
+	selectedGroups, err := h.resolveEpisodeVersionSelectedGroups(ctx, version)
 	if err != nil {
 		return nil, err
 	}
 
 	return &models.EpisodeVersionEditorContext{
-		Version:              safeVersion,
-		AnimeTitle:           animeSource.Title,
-		CollaborationGroupID: collaborationID,
-		SelectedGroups:       selectedGroups,
+		Version:        safeVersion,
+		AnimeTitle:     animeSource.Title,
+		SelectedGroups: selectedGroups,
 	}, nil
 }
 
@@ -105,7 +102,7 @@ func (h *AdminContentHandler) resolveEpisodeVersionEditor(
 		return nil, err
 	}
 
-	selectedGroups, collaborationID, err := h.resolveEpisodeVersionSelectedGroups(ctx, version)
+	selectedGroups, err := h.resolveEpisodeVersionSelectedGroups(ctx, version)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +113,6 @@ func (h *AdminContentHandler) resolveEpisodeVersionEditor(
 		animeFolderPath:  folderPath,
 		jellyfinSeriesID: seriesID,
 		selectedGroups:   selectedGroups,
-		collaborationID:  collaborationID,
 	}, nil
 }
 
@@ -167,41 +163,20 @@ func (h *AdminContentHandler) resolveEpisodeVersionDuration(
 	return h.getJellyfinEpisodeDurationSeconds(ctx, mediaItemID)
 }
 
-// resolveEpisodeVersionSelectedGroups ermittelt die ausgewaehlten Fansub-Gruppen für eine Episodenversion und loest Kollaborationen in ihre Einzelgruppen auf.
+// resolveEpisodeVersionSelectedGroups gibt die FansubGroups der Episodenversion zurück.
+// Nach Phase 81 enthält version.FansubGroups bereits alle beteiligten echten Gruppen —
+// keine Kollaborations-Auflösung mehr nötig (D-02, D-08).
 func (h *AdminContentHandler) resolveEpisodeVersionSelectedGroups(
 	ctx context.Context,
 	version *models.EpisodeVersion,
-) ([]models.FansubGroupSummary, *int64, error) {
-	if version == nil || version.FansubGroup == nil {
-		return []models.FansubGroupSummary{}, nil, nil
+) ([]models.FansubGroupSummary, error) {
+	if version == nil {
+		return []models.FansubGroupSummary{}, nil
 	}
-
-	group, err := h.fansubRepo.GetGroupByID(ctx, version.FansubGroup.ID)
-	if err != nil {
-		return []models.FansubGroupSummary{*version.FansubGroup}, nil, nil
+	if len(version.FansubGroups) > 0 {
+		return version.FansubGroups, nil
 	}
-	if group.GroupType != models.FansubGroupTypeCollaboration {
-		return []models.FansubGroupSummary{*version.FansubGroup}, nil, nil
-	}
-
-	members, err := h.fansubRepo.ListCollaborationMembers(ctx, group.ID)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	selected := make([]models.FansubGroupSummary, 0, len(members))
-	for _, member := range members {
-		if member.MemberGroup == nil {
-			continue
-		}
-		selected = append(selected, *member.MemberGroup)
-	}
-	if len(selected) == 0 {
-		selected = append(selected, *version.FansubGroup)
-	}
-
-	collaborationID := group.ID
-	return selected, &collaborationID, nil
+	return []models.FansubGroupSummary{}, nil
 }
 
 // ensureJellyfinConfiguredForEditor prüft, ob Jellyfin-Basis-URL und API-Schlüssel für den Editor konfiguriert sind.

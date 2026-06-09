@@ -145,24 +145,23 @@ func TestParseImportFansubGroupNames_SplitsAndCanonicalizesCollaborations(t *tes
 func TestBuildAnimeFansubLinkGroupIDs_IsIdempotentAcrossRepeatedApply(t *testing.T) {
 	t.Parallel()
 
-	selection := resolvedImportFansubSelection{
-		EffectiveGroup: &resolvedImportFansubGroup{ID: 10, Name: "FlameHazeSubs & TestGruppe"},
-		MemberGroups: []resolvedImportFansubGroup{
-			{ID: 3, Name: "FlameHazeSubs"},
-			{ID: 4, Name: "TestGruppe"},
-			{ID: 3, Name: "FlameHazeSubs"},
-		},
+	// Nach Phase 81: buildAnimeFansubLinkGroupIDs nimmt direkt []resolvedImportFansubGroup
+	// (kein EffectiveGroup mehr, D-07). Duplikate werden dedupliziert.
+	memberGroups := []resolvedImportFansubGroup{
+		{ID: 3, Name: "FlameHazeSubs"},
+		{ID: 4, Name: "TestGruppe"},
+		{ID: 3, Name: "FlameHazeSubs"}, // Duplikat
 	}
 
 	seen := make(map[int64]struct{})
 	for attempt := 0; attempt < 2; attempt++ {
-		for _, groupID := range buildAnimeFansubLinkGroupIDs(selection) {
+		for _, groupID := range buildAnimeFansubLinkGroupIDs(memberGroups) {
 			seen[groupID] = struct{}{}
 		}
 	}
 
-	if len(seen) != 3 {
-		t.Fatalf("expected effective group plus two members without duplicates, got %v", seen)
+	if len(seen) != 2 {
+		t.Fatalf("expected two deduplicated member group IDs, got %v", seen)
 	}
 }
 
@@ -202,6 +201,7 @@ func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
 		t.Fatalf("read stream helper source: %v", err)
 	}
 	normalized := strings.ToLower(string(applyContent) + "\n" + string(releaseContent) + "\n" + string(streamContent))
+	// Nach Phase 81: fansub_collaboration_members und FansubGroupTypeCollaboration sind entfernt (D-02).
 	required := []string{
 		"insert into episodes",
 		"insert into episode_titles",
@@ -212,7 +212,6 @@ func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
 		"insert into release_streams",
 		"insert into release_version_groups",
 		"insert into release_variant_episodes",
-		"insert into fansub_collaboration_members",
 	}
 	for _, fragment := range required {
 		if !strings.Contains(normalized, fragment) {
@@ -222,8 +221,8 @@ func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
 	if strings.Contains(normalized, "episode_versions") || strings.Contains(normalized, "episode_version_episodes") {
 		t.Fatalf("release-native apply source must not reference legacy episode version tables")
 	}
-	if !strings.Contains(normalized, "models.fansubgrouptypecollaboration") {
-		t.Fatalf("expected release-native apply source to support collaboration fansub groups")
+	if strings.Contains(normalized, "insert into fansub_collaboration_members") {
+		t.Fatalf("release-native apply source must not write fansub_collaboration_members (removed in phase 81, D-02)")
 	}
 }
 

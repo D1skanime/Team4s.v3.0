@@ -162,6 +162,58 @@ func ensureEpisodeVersionStream(
 	return nil
 }
 
+// resolveMemberGroupsForSync löst Fansub-Gruppen-Eingaben für den Editor-Sync auf.
+// Delegiert an resolveImportFansubMemberGroups aus episode_import_repository_fansub_helpers.go.
+func resolveMemberGroupsForSync(
+	ctx context.Context,
+	tx pgx.Tx,
+	fansubGroups []models.SelectedFansubGroupInput,
+	fansubGroupID *int64,
+) ([]resolvedImportFansubGroup, error) {
+	if len(fansubGroups) > 0 {
+		return resolveImportFansubMemberGroups(ctx, tx, fansubGroups)
+	}
+	if fansubGroupID != nil && *fansubGroupID > 0 {
+		group, err := lookupImportFansubGroupByID(ctx, tx, *fansubGroupID)
+		if err != nil {
+			return nil, err
+		}
+		return []resolvedImportFansubGroup{*group}, nil
+	}
+	return nil, nil
+}
+
+// upsertReleaseVersionGroupsForSync schreibt N Junction-Zeilen für N echte Gruppen
+// in release_version_groups. Überzählige Einträge werden gelöscht (D-05).
+func upsertReleaseVersionGroupsForSync(
+	ctx context.Context,
+	tx pgx.Tx,
+	releaseVersionID int64,
+	memberGroups []resolvedImportFansubGroup,
+) error {
+	newIDs := make([]int64, len(memberGroups))
+	for i, g := range memberGroups {
+		newIDs[i] = g.ID
+	}
+	if _, err := tx.Exec(ctx, `
+		DELETE FROM release_version_groups
+		WHERE release_version_id = $1
+		  AND fansub_group_id <> ALL($2::bigint[])
+	`, releaseVersionID, newIDs); err != nil {
+		return fmt.Errorf("reset release version groups version=%d: %w", releaseVersionID, err)
+	}
+	for _, group := range memberGroups {
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO release_version_groups (release_version_id, fansub_group_id)
+			VALUES ($1, $2)
+			ON CONFLICT (release_version_id, fansub_group_id) DO NOTHING
+		`, releaseVersionID, group.ID); err != nil {
+			return fmt.Errorf("upsert release version group version=%d group=%d: %w", releaseVersionID, group.ID, err)
+		}
+	}
+	return nil
+}
+
 func syncEpisodeVersionSelectedGroups(
 	ctx context.Context,
 	tx pgx.Tx,
@@ -175,45 +227,21 @@ func syncEpisodeVersionSelectedGroups(
 		return nil
 	}
 
-	var selection *resolvedImportFansubSelection
-	var err error
-	switch {
-	case len(fansubGroups) > 0:
-		selection, err = resolveImportFansubSelectionFromInputs(ctx, tx, fansubGroups)
-	case fansubGroupID != nil && *fansubGroupID > 0:
-		selection = &resolvedImportFansubSelection{
-			EffectiveGroup: &resolvedImportFansubGroup{ID: *fansubGroupID},
-			MemberGroups:   []resolvedImportFansubGroup{{ID: *fansubGroupID}},
-		}
-	default:
-		selection = nil
-	}
+	memberGroups, err := resolveMemberGroupsForSync(ctx, tx, fansubGroups, fansubGroupID)
 	if err != nil {
 		return err
 	}
-	if selection == nil || selection.EffectiveGroup == nil {
+	if len(memberGroups) == 0 {
 		if _, err := tx.Exec(ctx, `DELETE FROM release_version_groups WHERE release_version_id = $1`, releaseVersionID); err != nil {
 			return fmt.Errorf("clear release version groups version=%d: %w", releaseVersionID, err)
 		}
 		return nil
 	}
 
-	if _, err := tx.Exec(ctx, `
-		DELETE FROM release_version_groups
-		WHERE release_version_id = $1
-		  AND fansub_group_id <> $2
-	`, releaseVersionID, selection.EffectiveGroup.ID); err != nil {
-		return fmt.Errorf("reset release version groups version=%d: %w", releaseVersionID, err)
+	if err := upsertReleaseVersionGroupsForSync(ctx, tx, releaseVersionID, memberGroups); err != nil {
+		return err
 	}
-	if _, err := tx.Exec(ctx, `
-		INSERT INTO release_version_groups (release_version_id, fansub_group_id)
-		VALUES ($1, $2)
-		ON CONFLICT (release_version_id, fansub_group_id) DO UPDATE
-		SET fansub_group_id = EXCLUDED.fansub_group_id
-	`, releaseVersionID, selection.EffectiveGroup.ID); err != nil {
-		return fmt.Errorf("upsert release version group version=%d group=%d: %w", releaseVersionID, selection.EffectiveGroup.ID, err)
-	}
-	return ensureAnimeFansubGroupLinks(ctx, tx, animeID, *selection)
+	return ensureAnimeFansubGroupLinksForMembers(ctx, tx, animeID, memberGroups)
 }
 
 func (r *EpisodeVersionRepository) Delete(ctx context.Context, versionID int64) error {

@@ -33,22 +33,24 @@ func TestSyncEpisodeVersionSelectedGroups_WritesNJunctionRows(t *testing.T) {
 
 // TestResolveImportFansubMemberGroups_RejectsUnknownGroupID prüft per Source-Scan,
 // dass ErrNotFound-Validierung vor dem Gruppen-Upsert ausgewertet wird (P81-SC6).
+// Nach dem Helper-Split (Plan 03) liegt lookupImportFansubGroupByID (ErrNotFound) in
+// episode_import_repository_fansub_helpers.go, upsertImportFansubGroup ebenfalls dort.
 func TestResolveImportFansubMemberGroups_RejectsUnknownGroupID(t *testing.T) {
 	t.Parallel()
 
-	content, err := os.ReadFile("episode_import_repository_release_helpers.go")
+	content, err := os.ReadFile("episode_import_repository_fansub_helpers.go")
 	if err != nil {
-		t.Fatalf("read release helper source: %v", err)
+		t.Fatalf("read fansub helper source: %v", err)
 	}
 	source := string(content)
 
 	errNotFoundIdx := strings.Index(source, "ErrNotFound")
 	upsertIdx := strings.Index(source, "upsertImportFansubGroup(")
 	if errNotFoundIdx < 0 {
-		t.Fatal("expected ErrNotFound sentinel to appear in episode_import_repository_release_helpers.go")
+		t.Fatal("expected ErrNotFound sentinel to appear in episode_import_repository_fansub_helpers.go")
 	}
 	if upsertIdx < 0 {
-		t.Fatal("expected upsertImportFansubGroup to appear in episode_import_repository_release_helpers.go")
+		t.Fatal("expected upsertImportFansubGroup to appear in episode_import_repository_fansub_helpers.go")
 	}
 	if errNotFoundIdx > upsertIdx {
 		t.Fatal("expected ErrNotFound check to occur before upsertImportFansubGroup call")

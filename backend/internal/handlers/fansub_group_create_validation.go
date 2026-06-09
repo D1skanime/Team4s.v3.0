@@ -34,7 +34,7 @@ func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.Fans
 
 		parsedGroupType := models.FansubGroupType(*value)
 		switch parsedGroupType {
-		case models.FansubGroupTypeGroup, models.FansubGroupTypeCollaboration:
+		case models.FansubGroupTypeGroup:
 			groupType = parsedGroupType
 		default:
 			return models.FansubGroupCreateInput{}, "ungültiger group_type parameter"

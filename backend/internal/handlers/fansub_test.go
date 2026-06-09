@@ -12,7 +12,7 @@ import (
 func TestValidateFansubGroupCreateRequest(t *testing.T) {
 	founded := int32(2010)
 	dissolved := int32(2015)
-	groupType := "collaboration"
+	groupType := "group"
 
 	input, message := validateFansubGroupCreateRequest(fansubGroupCreateRequest{
 		Slug:          " gax ",
@@ -31,8 +31,8 @@ func TestValidateFansubGroupCreateRequest(t *testing.T) {
 	if input.Name != "Group A" {
 		t.Fatalf("expected normalized name, got %q", input.Name)
 	}
-	if input.GroupType != models.FansubGroupTypeCollaboration {
-		t.Fatalf("expected group_type collaboration, got %q", input.GroupType)
+	if input.GroupType != models.FansubGroupTypeGroup {
+		t.Fatalf("expected group_type group, got %q", input.GroupType)
 	}
 }
 
@@ -68,7 +68,7 @@ func TestValidateFansubGroupCreateRequest_InvalidGroupType(t *testing.T) {
 
 func TestValidateFansubGroupPatchRequest_GroupTypeOnly(t *testing.T) {
 	var patch models.FansubGroupPatchInput
-	if err := json.Unmarshal([]byte(`{"group_type":"collaboration"}`), &patch); err != nil {
+	if err := json.Unmarshal([]byte(`{"group_type":"group"}`), &patch); err != nil {
 		t.Fatalf("unmarshal patch: %v", err)
 	}
 
@@ -79,8 +79,8 @@ func TestValidateFansubGroupPatchRequest_GroupTypeOnly(t *testing.T) {
 	if !validated.GroupType.Set || validated.GroupType.Value == nil {
 		t.Fatalf("expected group_type to be set")
 	}
-	if *validated.GroupType.Value != "collaboration" {
-		t.Fatalf("expected group_type collaboration, got %q", *validated.GroupType.Value)
+	if *validated.GroupType.Value != "group" {
+		t.Fatalf("expected group_type group (collaboration entfernt in Phase 81), got %q", *validated.GroupType.Value)
 	}
 }
 

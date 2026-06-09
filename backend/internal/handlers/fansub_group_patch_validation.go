@@ -44,7 +44,7 @@ func validateFansubGroupPatchRequest(req models.FansubGroupPatchInput) (models.F
 
 		parsedGroupType := models.FansubGroupType(*value)
 		switch parsedGroupType {
-		case models.FansubGroupTypeGroup, models.FansubGroupTypeCollaboration:
+		case models.FansubGroupTypeGroup:
 			normalizedGroupType := string(parsedGroupType)
 			req.GroupType.Value = &normalizedGroupType
 		default:

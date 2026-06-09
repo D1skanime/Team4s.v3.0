@@ -303,12 +303,12 @@ func scanReleaseVariantAsEpisodeVersion(scanner rowScanner, includeFansub bool) 
 		return nil, 0, fmt.Errorf("scan release variant row: %w", err)
 	}
 	if includeFansub && groupID != nil && groupSlug != nil && groupName != nil {
-		item.FansubGroup = &models.FansubGroupSummary{
+		item.FansubGroups = []models.FansubGroupSummary{{
 			ID:      *groupID,
 			Slug:    *groupSlug,
 			Name:    *groupName,
 			LogoURL: groupLogoURL,
-		}
+		}}
 	}
 	return &item, groupEpisodeNumber, nil
 }
