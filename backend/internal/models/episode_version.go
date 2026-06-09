@@ -14,7 +14,7 @@ type EpisodeVersion struct {
 	EpisodeNumber         int32               `json:"episode_number"`
 	Title                 *string             `json:"title,omitempty"`
 	ReleaseVersion        *string             `json:"release_version,omitempty"`
-	FansubGroup           *FansubGroupSummary `json:"fansub_group,omitempty"`
+	FansubGroups          []FansubGroupSummary `json:"fansub_groups,omitempty"`
 	MediaProvider         string              `json:"media_provider"`
 	MediaItemID           string              `json:"media_item_id"`
 	CoveredEpisodeNumbers []int32             `json:"covered_episode_numbers,omitempty"`
@@ -116,7 +116,6 @@ type EpisodeVersionEditorContext struct {
 	Version              EpisodeVersion       `json:"version"`
 	AnimeTitle           string               `json:"anime_title"`
 	AnimeFolderPath      *string              `json:"anime_folder_path,omitempty"`
-	CollaborationGroupID *int64               `json:"collaboration_group_id,omitempty"`
 	SelectedGroups       []FansubGroupSummary `json:"selected_groups"`
 }
 

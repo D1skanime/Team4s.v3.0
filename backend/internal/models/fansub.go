@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// FansubGroupType unterscheidet regulaere Fansub-Gruppen von Kollaborationen.
+// FansubGroupType unterscheidet regulaere Fansub-Gruppen (einziger erlaubter Wert nach Phase 81).
 type FansubGroupType string
 
 // FansubGroupLinkType beschreibt die erlaubten generischen Link-Typen fuer Fansub-Gruppen.
@@ -11,8 +11,6 @@ type FansubGroupLinkType string
 const (
 	// FansubGroupTypeGroup bezeichnet eine normale Fansub-Gruppe.
 	FansubGroupTypeGroup FansubGroupType = "group"
-	// FansubGroupTypeCollaboration bezeichnet eine Kollaborationsgruppe aus mehreren Fansubs.
-	FansubGroupTypeCollaboration FansubGroupType = "collaboration"
 
 	// FansubGroupLinkTypeWebsite steht fuer die Haupt-Webseite einer Gruppe.
 	FansubGroupLinkTypeWebsite FansubGroupLinkType = "website"
@@ -59,7 +57,6 @@ type FansubGroup struct {
 	CreatedAt            time.Time            `json:"created_at"`
 	UpdatedAt            time.Time            `json:"updated_at"`
 	Links                []FansubGroupLink    `json:"links,omitempty"`
-	CollaborationMembers []FansubGroupSummary `json:"collaboration_members,omitempty"`
 }
 
 // PublicFansubProfileResponse bundles the public data needed by /fansubs/[slug].
@@ -69,7 +66,6 @@ type PublicFansubProfileResponse struct {
 	Projects             []PublicFansubProject   `json:"projects"`
 	History              []PublicFansubHistory   `json:"history"`
 	Media                []PublicFansubMediaItem `json:"media"`
-	CollaborationMembers []FansubGroupSummary    `json:"collaboration_members,omitempty"`
 }
 
 // PublicFansubStory is the public, published fansub_group_notes projection.
@@ -256,14 +252,6 @@ type MergeGroupsPreview struct {
 	AliasesSkipped    []string              `json:"aliases_skipped"`
 	CanMerge          bool                  `json:"can_merge"`
 	Conflicts         MergePreviewConflicts `json:"conflicts"`
-}
-
-// CollaborationMember represents a member group in a collaboration.
-type CollaborationMember struct {
-	CollaborationID int64               `json:"collaboration_id"`
-	MemberGroupID   int64               `json:"member_group_id"`
-	AddedAt         time.Time           `json:"added_at"`
-	MemberGroup     *FansubGroupSummary `json:"member_group,omitempty"`
 }
 
 type FansubMemberCreateInput struct {
