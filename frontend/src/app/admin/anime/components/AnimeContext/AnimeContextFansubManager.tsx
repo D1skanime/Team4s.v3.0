@@ -187,7 +187,7 @@ export function AnimeContextFansubManager({
                 <span className={styles.contextFansubMeta}>#{group.id}</span>
               </p>
               <p className={styles.hint}>
-                Typ: {group.group_type === 'collaboration' ? 'Kollaboration' : 'Gruppe'} | Slug: {group.slug}
+                Typ: Gruppe | Slug: {group.slug}
               </p>
               <div className={styles.actions}>
                 <button
@@ -215,13 +215,8 @@ export function AnimeContextFansubManager({
                 <span className={styles.contextFansubMeta}>#{group.id}</span>
               </p>
               <p className={styles.hint}>
-                Typ: {group.group_type === 'collaboration' ? 'Kollaboration' : 'Gruppe'} | Verknüpft mit diesem Anime
+                Typ: Gruppe | Verknüpft mit diesem Anime
               </p>
-              {group.group_type === 'collaboration' && group.collaboration_members && group.collaboration_members.length > 0 ? (
-                <p className={styles.contextDescription}>
-                  Beteiligte Gruppen: {group.collaboration_members.map((member) => member.name).join(', ')}
-                </p>
-              ) : null}
               <div className={styles.actions}>
                 <button
                   className={styles.buttonSecondary}

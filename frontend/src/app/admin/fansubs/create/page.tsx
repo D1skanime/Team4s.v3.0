@@ -6,18 +6,15 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ExternalLink, Plus, Save, Trash2, X } from "lucide-react";
 
 import {
-  addCollaborationMember,
   ApiError,
   createFansubAlias,
   createFansubGroup,
   createFansubLink,
   deleteFansubAlias,
   deleteFansubLink,
-  getCollaborationMembers,
   getFansubAliases,
   getFansubByID,
   getFansubList,
-  removeCollaborationMember,
   updateFansubGroup,
   updateFansubLink,
 } from "@/lib/api";
@@ -25,7 +22,6 @@ import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { YearPicker } from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
 import {
-  CollaborationMember,
   FansubAlias,
   FansubGroup,
   FansubGroupLink,
@@ -48,7 +44,7 @@ import fansubEditStyles from "../[id]/edit/FansubEdit.module.css";
 const styles = { ...sharedStyles, ...fansubEditStyles };
 
 const STATUS_OPTIONS: FansubStatus[] = ["active", "inactive", "dissolved"];
-const GROUP_TYPE_OPTIONS: FansubGroupType[] = ["group", "collaboration"];
+
 const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = [
   "website",
   "discord",
@@ -319,15 +315,9 @@ function AdminFansubCreateContent() {
   const [initialLinks, setInitialLinks] = useState<CommunityLinkDraft[]>([
     createEmptyLink("draft-link-initial"),
   ]);
-  const [candidateGroups, setCandidateGroups] = useState<FansubGroup[]>([]);
-  const [collaborationMembers, setCollaborationMembers] = useState<
-    CollaborationMember[]
-  >([]);
-  const [selectedMemberGroupID, setSelectedMemberGroupID] = useState("");
   const [manualSlug, setManualSlug] = useState(false);
   const [saving, setSaving] = useState(false);
   const [aliasBusy, setAliasBusy] = useState(false);
-  const [collaborationBusy, setCollaborationBusy] = useState(false);
   const [logoMedia, setLogoMedia] = useState<EditableMediaValue | null>(null);
   const [bannerMedia, setBannerMedia] = useState<EditableMediaValue | null>(
     null,
@@ -341,31 +331,10 @@ function AdminFansubCreateContent() {
   >({ logo: false, banner: false });
   const [slugConflict, setSlugConflict] = useState(false);
   const [slugChecking, setSlugChecking] = useState(false);
-  const [loadingCandidates, setLoadingCandidates] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const { hasAccessToken: hasRuntimeAuthToken, isClientInitialized } =
     useAuthSession();
-
-  useEffect(() => {
-    let active = true;
-    setLoadingCandidates(true);
-    getFansubList({ per_page: 500 })
-      .then((response) => {
-        if (!active) return;
-        setCandidateGroups(response.data);
-      })
-      .catch((nextError) => {
-        if (active) setError(errMessage(nextError));
-      })
-      .finally(() => {
-        if (active) setLoadingCandidates(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     if (manualSlug) return;
@@ -523,12 +492,6 @@ function AdminFansubCreateContent() {
     setInitialAliasDrafts(nextAliases.map((item) => item.alias));
     setManualSlug(nextForm.slug !== slugify(nextForm.name));
 
-    if (nextGroup.group_type === "collaboration") {
-      const members = await getCollaborationMembers(fansubID);
-      setCollaborationMembers(members.data);
-    } else {
-      setCollaborationMembers([]);
-    }
   }
 
   const addAlias = async () => {
@@ -640,68 +603,9 @@ function AdminFansubCreateContent() {
     }
   };
 
-  const addMemberGroup = async () => {
-    if (
-      !hasRuntimeAuthToken ||
-      !createdGroup ||
-      !selectedMemberGroupID ||
-      createdGroup.group_type !== "collaboration"
-    )
-      return;
-    setCollaborationBusy(true);
-    try {
-      const response = await addCollaborationMember(createdGroup.id, {
-        member_group_id: Number(selectedMemberGroupID),
-      });
-      setCollaborationMembers((current) =>
-        [...current, response.data].sort((a, b) =>
-          (a.member_group?.name || "").localeCompare(
-            b.member_group?.name || "",
-            "de",
-          ),
-        ),
-      );
-      setSelectedMemberGroupID("");
-      setToast("Mitgliedsgruppe hinzugefuegt.");
-    } catch (nextError) {
-      setError(errMessage(nextError));
-    } finally {
-      setCollaborationBusy(false);
-    }
-  };
-
-  const removeMemberGroup = async (memberGroupID: number) => {
-    if (
-      !hasRuntimeAuthToken ||
-      !createdGroup ||
-      createdGroup.group_type !== "collaboration"
-    )
-      return;
-    setCollaborationBusy(true);
-    try {
-      await removeCollaborationMember(createdGroup.id, memberGroupID);
-      setCollaborationMembers((current) =>
-        current.filter((item) => item.member_group_id !== memberGroupID),
-      );
-      setToast("Mitgliedsgruppe entfernt.");
-    } catch (nextError) {
-      setError(errMessage(nextError));
-    } finally {
-      setCollaborationBusy(false);
-    }
-  };
-
   const logoFallback = buildFansubLogoFallback(form.name);
   const bannerPreviewURL = buildMediaPreviewURL(bannerMedia);
   const logoPreviewURL = buildMediaPreviewURL(logoMedia);
-  const collaborationCandidates = candidateGroups.filter(
-    (candidate) =>
-      candidate.id !== createdGroup?.id &&
-      candidate.group_type === "group" &&
-      !collaborationMembers.some(
-        (member) => member.member_group_id === candidate.id,
-      ),
-  );
 
   return (
     <main className={styles.page}>
@@ -773,8 +677,8 @@ function AdminFansubCreateContent() {
           <div className={styles.fansubEditStickyActions}>
             <button
               type="submit"
-              className={styles.button}
-              disabled={invalid || saving || loadingCandidates}
+              className={createdGroup ? `${styles.button} ${styles.buttonSuccess}` : styles.button}
+              disabled={invalid || saving}
             >
               <Save size={14} />
               {saving ? "Speichern..." : createdGroup ? "Speichern" : "Anlegen"}
@@ -928,11 +832,7 @@ function AdminFansubCreateContent() {
                           }))
                         }
                       >
-                        {GROUP_TYPE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
+                        <option value="group">Gruppe</option>
                       </select>
                     </div>
                     <div className={styles.field}>
@@ -1246,87 +1146,6 @@ function AdminFansubCreateContent() {
                 </div>
               </details>
 
-              {form.groupType === "collaboration" ? (
-                <details className={styles.fansubEditSection} open>
-                  <summary className={styles.fansubEditSectionSummary}>
-                    Collaboration Members
-                  </summary>
-                  <div className={styles.fansubEditSectionBody}>
-                    {!createdGroup ? (
-                      <p className={styles.fansubEditHint}>
-                        Bitte zuerst speichern. Danach nutzt Create dieselbe
-                        Collaboration-Mitgliederverwaltung wie Edit.
-                      </p>
-                    ) : (
-                      <>
-                        <div className={styles.fansubEditCollaborationRow}>
-                          <select
-                            value={selectedMemberGroupID}
-                            onChange={(event) =>
-                              setSelectedMemberGroupID(event.target.value)
-                            }
-                            disabled={collaborationBusy || loadingCandidates}
-                          >
-                            <option value="">Mitgliedsgruppe wählen</option>
-                            {collaborationCandidates.map((candidate) => (
-                              <option key={candidate.id} value={candidate.id}>
-                                {candidate.name}
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            type="button"
-                            className={styles.buttonSecondary}
-                            onClick={() => void addMemberGroup()}
-                            disabled={
-                              collaborationBusy || !selectedMemberGroupID
-                            }
-                          >
-                            <Plus size={14} />
-                            Hinzufügen
-                          </button>
-                        </div>
-                        <div className={styles.fansubEditCollaborationList}>
-                          {collaborationMembers.length === 0 ? (
-                            <p className={styles.fansubEditHint}>
-                              Noch keine Mitgliedsgruppen verknüpft.
-                            </p>
-                          ) : null}
-                          {collaborationMembers.map((member) => (
-                            <div
-                              key={member.member_group_id}
-                              className={styles.fansubEditCollaborationItem}
-                            >
-                              <div>
-                                <strong>
-                                  {member.member_group?.name ||
-                                    `Gruppe ${member.member_group_id}`}
-                                </strong>
-                                <p className={styles.fansubEditHint}>
-                                  /
-                                  {member.member_group?.slug ||
-                                    member.member_group_id}
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
-                                onClick={() =>
-                                  void removeMemberGroup(member.member_group_id)
-                                }
-                                disabled={collaborationBusy}
-                              >
-                                <Trash2 size={14} />
-                                Entfernen
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </details>
-              ) : null}
             </div>
           </div>
         </form>

@@ -48,11 +48,11 @@ export function VersionRow({ version, isDefault = false }: VersionRowProps) {
   return (
     <div className={`${styles.versionRow} ${isDefault ? styles.versionRowDefault : ''}`}>
       <div className={styles.versionMain}>
-        {version.fansub_group ? (
+        {version.fansub_groups && version.fansub_groups.length > 0 ? (
           <div className={styles.fansubBadge}>
-            {version.fansub_group.logo_url && (
+            {version.fansub_groups[0].logo_url && (
               <Image
-                src={version.fansub_group.logo_url}
+                src={version.fansub_groups[0].logo_url}
                 alt=""
                 className={styles.fansubLogo}
                 width={24}
@@ -60,7 +60,7 @@ export function VersionRow({ version, isDefault = false }: VersionRowProps) {
                 unoptimized
               />
             )}
-            <span className={styles.fansubName}>{version.fansub_group.name}</span>
+            <span className={styles.fansubName}>{version.fansub_groups.map((g) => g.name).join(', ')}</span>
           </div>
         ) : (
           <span className={styles.fansubUnknown}>Unbekannte Gruppe</span>

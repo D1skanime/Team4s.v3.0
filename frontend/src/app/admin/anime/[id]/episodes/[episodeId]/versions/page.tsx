@@ -559,7 +559,7 @@ function AdminAnimeEpisodeVersionsContent() {
 
                 <div className={styles.actionsRow}>
                   <button
-                    className={`${styles.button} ${styles.buttonPrimary}`}
+                    className={`${styles.button} ${styles.buttonSuccess}`}
                     type="submit"
                     disabled={isCreating}
                   >
@@ -618,7 +618,7 @@ function AdminAnimeEpisodeVersionsContent() {
                       <span
                         className={`${styles.badge} ${styles.badgePrimary}`}
                       >
-                        {version.fansub_group?.name || "Keine Gruppe"}
+                        {(version.fansub_groups ?? []).map((g) => g.name).join(', ') || "Keine Gruppe"}
                       </span>
                       <span
                         className={`${styles.badge} ${styles.badgeWarning}`}

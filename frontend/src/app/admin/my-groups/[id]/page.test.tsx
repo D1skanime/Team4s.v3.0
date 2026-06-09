@@ -126,7 +126,7 @@ describe("AdminMyGroupDetailPage", () => {
     expect(screen.getByText("Credits sind read-only")).not.toBeNull();
     expect(screen.getByText("Keine App-Rechte")).not.toBeNull();
     expect(screen.getByText("Episode 07: Ankunft")).not.toBeNull();
-    expect(screen.getByText("Coop-Release")).not.toBeNull();
+    expect(screen.getByText("Kooperation")).not.toBeNull();
     const workspaceLink = screen.getByRole("link", { name: "Arbeitsfläche" });
     const mediaLink = screen.getByRole("link", { name: "Media" });
 

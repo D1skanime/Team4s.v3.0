@@ -89,9 +89,6 @@ export function EpisodeImportMappingRowCard({
           return
         }
         const nextResults = response.data.filter((group) => {
-          if (group.group_type === 'collaboration') {
-            return false
-          }
           return !selectedGroupKeys.includes(`id:${group.id}`)
         })
         setResults(nextResults)

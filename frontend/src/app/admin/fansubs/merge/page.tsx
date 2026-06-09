@@ -886,8 +886,7 @@ function GroupRowCard({
   group: FansubGroup;
   selectedAs: "target" | "source" | null;
 }) {
-  const typeLabel =
-    group.group_type === "collaboration" ? "Kollaboration" : "Gruppe";
+  const typeLabel = "Gruppe";
   const statusLabel =
     group.status === "active"
       ? "aktiv"

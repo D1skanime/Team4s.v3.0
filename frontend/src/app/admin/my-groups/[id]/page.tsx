@@ -345,7 +345,7 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
                                           {formatReleaseTitle(release)}
                                         </strong>
                                         {release.is_coop ? (
-                                          <span>Coop-Release</span>
+                                          <Badge variant="neutral">Kooperation</Badge>
                                         ) : null}
                                       </div>
                                     </TableCell>

@@ -91,11 +91,6 @@ function resolveEpisodeStreamDiagnostics(selectedEpisode: EpisodeListItem | null
   }
 }
 
-function resolveExpandedFansub(version: EpisodeVersion, availableFansubs: FansubGroup[]): FansubGroup | null {
-  const fansubID = version.fansub_group?.id
-  if (!fansubID) return null
-  return availableFansubs.find((group) => group.id === fansubID) || null
-}
 
 export function EpisodeEditForm({
   episodeOpenID,
@@ -274,21 +269,13 @@ export function EpisodeEditForm({
               </p>
               <div className={styles.contextFansubGrid}>
                 {selectedEpisodeVersions.map((version) => {
-                  const expandedFansub = resolveExpandedFansub(version, availableFansubs)
                   return (
                   <article key={version.id} className={styles.contextFansubCard}>
                     <p className={styles.contextFansubTitle}>#{version.id} - {resolveVersionTitle(version)}</p>
                     <p className={styles.hint}>
-                      Gruppe: {version.fansub_group?.name || 'keine'} | Qualitaet: {version.video_quality || 'n/a'} | Sub:{' '}
+                      Gruppe: {(version.fansub_groups ?? []).map((g) => g.name).join(', ') || 'keine'} | Qualitaet: {version.video_quality || 'n/a'} | Sub:{' '}
                       {version.subtitle_type || 'n/a'}
                     </p>
-                    {expandedFansub?.group_type === 'collaboration' &&
-                    expandedFansub.collaboration_members &&
-                    expandedFansub.collaboration_members.length > 0 ? (
-                      <p className={styles.contextDescription}>
-                        Beteiligte Gruppen: {expandedFansub.collaboration_members.map((member) => member.name).join(', ')}
-                      </p>
-                    ) : null}
                     <p className={styles.hint}>
                       Provider: {version.media_provider} | Item: {version.media_item_id} | Release:{' '}
                       {formatReleaseDate(version.release_date)}
@@ -302,8 +289,8 @@ export function EpisodeEditForm({
                       <Link href={`/admin/episode-versions/${version.id}/edit`} className={styles.buttonSecondary}>
                         Version bearbeiten
                       </Link>
-                      {version.fansub_group?.id ? (
-                        <Link href={`/admin/fansubs/${version.fansub_group.id}/edit`} className={styles.buttonSecondary}>
+                      {version.fansub_groups && version.fansub_groups.length > 0 ? (
+                        <Link href={`/admin/fansubs/${version.fansub_groups[0].id}/edit`} className={styles.buttonSecondary}>
                           Gruppe bearbeiten
                         </Link>
                       ) : null}
@@ -321,7 +308,7 @@ export function EpisodeEditForm({
 
         <div className={styles.actions}>
           <button
-            className={hasUnsavedChanges ? styles.button : styles.buttonSecondary}
+            className={hasUnsavedChanges ? `${styles.button} ${styles.buttonSuccess}` : styles.buttonSecondary}
             type="submit"
             disabled={isUpdating || !parsePositiveInt(values.id) || !hasUnsavedChanges}
           >

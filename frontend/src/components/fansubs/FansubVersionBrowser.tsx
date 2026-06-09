@@ -112,7 +112,7 @@ function getSummaryVersion(
     return episode.versions[0]
   }
 
-  const preferred = episode.versions.find((item) => item.fansub_group?.id === activeFansubGroupID)
+  const preferred = episode.versions.find((item) => item.fansub_groups?.some((g) => g.id === activeFansubGroupID))
   return preferred || episode.versions[0]
 }
 
@@ -189,7 +189,7 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes, onActiveFansu
             const expanded = Boolean(expandedEpisodes[episode.episode_number])
             const summaryVersion = getSummaryVersion(episode, activeFansubGroupID)
             const groupMatchedVersions = activeFansubGroupID !== null
-              ? episode.versions.filter((item) => item.fansub_group?.id === activeFansubGroupID)
+              ? episode.versions.filter((item) => item.fansub_groups?.some((g) => g.id === activeFansubGroupID))
               : episode.versions
             const hasNoMatchingVersion = activeFansubGroupID !== null && groupMatchedVersions.length === 0
             const panelID = `episode-versions-${episode.episode_number}`
@@ -220,7 +220,7 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes, onActiveFansu
                       </div>
                     ) : (
                       groupMatchedVersions.map((version) => {
-                        const versionLogoURL = resolveLogoUrl(version.fansub_group?.logo_url)
+                        const versionLogoURL = resolveLogoUrl(version.fansub_groups?.[0]?.logo_url)
                         return (
                           <div key={version.id} className={styles.versionRow}>
                             <div className={styles.versionMeta}>
@@ -236,11 +236,11 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes, onActiveFansu
                                   />
                                 ) : (
                                   <div className={styles.versionLogoFallback} aria-hidden="true">
-                                    {version.fansub_group?.name?.charAt(0)?.toUpperCase() || '?'}
+                                    {version.fansub_groups?.[0]?.name?.charAt(0)?.toUpperCase() || '?'}
                                   </div>
                                 )}
                                 <div className={styles.versionIdentityText}>
-                                  <p className={styles.versionGroupName}>{version.fansub_group?.name || 'Unbekannt'}</p>
+                                  <p className={styles.versionGroupName}>{version.fansub_groups?.map((g) => g.name).join(', ') || 'Unbekannt'}</p>
                                   <p className={styles.versionReleaseName}>{resolveReleaseName(version)}</p>
                                 </div>
                               </div>

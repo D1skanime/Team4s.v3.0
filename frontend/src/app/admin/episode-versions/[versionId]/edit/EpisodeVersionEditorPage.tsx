@@ -706,9 +706,7 @@ export function EpisodeVersionEditorPage() {
                         >
                           <strong>{group.name}</strong>
                           <span>
-                            {group.group_type === "collaboration"
-                              ? "Kollaboration"
-                              : "Gruppe"}{" "}
+                            {"Gruppe"}{" "}
                             | {group.slug}
                           </span>
                         </button>
@@ -820,7 +818,7 @@ export function EpisodeVersionEditorPage() {
               {isPlatformAdmin ? (
                 <>
                   <button
-                    className={styles.primaryButton}
+                    className={`${styles.primaryButton} ${styles.successButton}`}
                     type="submit"
                     disabled={editor.isSaving}
                   >

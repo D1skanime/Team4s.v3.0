@@ -76,20 +76,6 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
   const profile = profileResponse.data
   const group = profile.group
 
-  if (group.group_type === 'collaboration') {
-    return (
-      <main className={styles.page}>
-        <div className={styles.readingColumn}>
-          <FansubHeroSection
-            group={group}
-            isCollaboration
-            collaborationMembers={profile.collaboration_members ?? []}
-          />
-        </div>
-      </main>
-    )
-  }
-
   const [contributionsResult, domainProjectionResult] = await Promise.allSettled([
     getFansubContributions(group.id),
     getFansubGroupDomainProjection(group.id),

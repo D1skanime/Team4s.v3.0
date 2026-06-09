@@ -245,7 +245,6 @@ export function useEpisodeVersionEditor() {
           ...contextData,
           version: response.data,
           selected_groups: selectedGroups,
-          collaboration_group_id: selectedGroups.length > 1 ? response.data.fansub_group?.id ?? null : null,
         })
       }
       baselineRef.current = buildSnapshot(formState, selectedGroups)
