@@ -196,71 +196,6 @@ endpoints:
       status: 204
       type: none
 
-  - name: fansub-collaboration-members-list
-    method: GET
-    path: /api/v1/fansubs/:id/collaboration-members
-    path_params:
-      - name: id
-        type: int64
-        minimum: 1
-    response:
-      status: 200
-      type: CollaborationMemberListResponse
-
-  - name: fansub-collaboration-members-create
-    method: POST
-    path: /api/v1/fansubs/:id/collaboration-members
-    auth:
-      required: true
-      header:
-        name: Authorization
-        format: Bearer <signed token>
-      unauthenticated_status: 401
-      unauthenticated_response:
-        error:
-          message: "anmeldung erforderlich"
-      forbidden_status: 403
-      forbidden_response:
-        error:
-          message: "keine berechtigung"
-    path_params:
-      - name: id
-        type: int64
-        minimum: 1
-    request_body:
-      required: true
-      type: AddCollaborationMemberRequest
-    response:
-      status: 201
-      type: CollaborationMemberResponse
-
-  - name: fansub-collaboration-members-delete
-    method: DELETE
-    path: /api/v1/fansubs/:id/collaboration-members/:memberGroupId
-    auth:
-      required: true
-      header:
-        name: Authorization
-        format: Bearer <signed token>
-      unauthenticated_status: 401
-      unauthenticated_response:
-        error:
-          message: "anmeldung erforderlich"
-      forbidden_status: 403
-      forbidden_response:
-        error:
-          message: "keine berechtigung"
-    path_params:
-      - name: id
-        type: int64
-        minimum: 1
-      - name: memberGroupId
-        type: int64
-        minimum: 1
-    response:
-      status: 204
-      type: none
-
   - name: fansub-merge-preview
     method: POST
     path: /api/v1/admin/fansubs/merge/preview
@@ -530,7 +465,7 @@ types:
   FansubStatus:
     enum: [active, inactive, dissolved]
   FansubGroupType:
-    enum: [group, collaboration]
+    enum: [group]
   FansubGroupListResponse:
     data: FansubGroup[]
     meta: PaginationMeta
@@ -544,10 +479,6 @@ types:
     data: FansubAlias[]
   FansubAliasResponse:
     data: FansubAlias
-  CollaborationMemberListResponse:
-    data: CollaborationMember[]
-  CollaborationMemberResponse:
-    data: CollaborationMember
   AnimeFansubListResponse:
     data: AnimeFansub[]
   AnimeFansubResponse:
@@ -600,8 +531,6 @@ types:
     notes: string | null
   FansubAliasCreateRequest:
     alias: string (required, min: 1, max: 120)
-  AddCollaborationMemberRequest:
-    member_group_id: int64 (required, minimum: 1)
   AnimeFansubAttachRequest:
     is_primary: bool
     notes: string | null
@@ -678,11 +607,6 @@ types:
     alias: string
     created_at: datetime
     updated_at: datetime
-  CollaborationMember:
-    collaboration_id: int64
-    member_group_id: int64
-    added_at: datetime
-    member_group: FansubGroupSummary | null
   AnimeFansub:
     anime_id: int64
     fansub_group_id: int64

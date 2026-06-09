@@ -452,18 +452,6 @@ func main() {
 	v1.GET("/admin/fansubs/:id/contribution-proposals", authMiddleware, reviewHandler.ListProposals)
 	v1.POST("/admin/fansubs/:id/contribution-proposals/:cid/confirm", authMiddleware, reviewHandler.ConfirmProposal)
 	v1.POST("/admin/fansubs/:id/contribution-proposals/:cid/reject", authMiddleware, reviewHandler.RejectProposal)
-	v1.GET("/fansubs/:id/collaboration-members", fansubHandler.ListCollaborationMembers)
-	v1.POST(
-		"/fansubs/:id/collaboration-members",
-		authMiddleware,
-		fansubHandler.AddCollaborationMember,
-	)
-	v1.DELETE(
-		"/fansubs/:id/collaboration-members/:memberGroupId",
-		authMiddleware,
-		fansubHandler.RemoveCollaborationMember,
-	)
-
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
 		Handler:           router,

@@ -251,7 +251,7 @@ types:
     anime_id: int64
     episode_number: int32
     title: string | null
-    fansub_group: FansubGroupShort | null
+    fansub_groups: FansubGroupShort[]
     media_provider: string
     media_item_id: string
     video_quality: string | null
@@ -264,7 +264,6 @@ types:
     version: EpisodeVersion
     anime_title: string
     anime_folder_path: string | null
-    collaboration_group_id: int64 | null
     selected_groups: FansubGroupShort[]
   EpisodeVersionFolderScanResult:
     version_id: int64
