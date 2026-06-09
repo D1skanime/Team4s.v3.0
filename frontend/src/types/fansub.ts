@@ -1,7 +1,7 @@
 import { PaginationMeta } from "@/types/anime";
 
 export type FansubStatus = "active" | "inactive" | "dissolved";
-export type FansubGroupType = "group" | "collaboration";
+export type FansubGroupType = "group";
 export type FansubGroupLinkType =
   | "website"
   | "discord"
@@ -42,7 +42,6 @@ export interface FansubGroup {
   created_at: string;
   updated_at: string;
   links?: FansubGroupLink[];
-  collaboration_members?: FansubGroupSummary[];
 }
 
 export interface FansubGroupSummary {
@@ -174,7 +173,6 @@ export interface PublicFansubProfile {
   projects: PublicFansubProject[];
   history: PublicFansubHistory[];
   media: PublicFansubMediaItem[];
-  collaboration_members?: FansubGroupSummary[];
 }
 
 export interface PublicFansubProfileResponse {
@@ -455,25 +453,6 @@ export interface MergeFansubsPreviewResult {
 
 export interface MergeFansubsPreviewResponse {
   data: MergeFansubsPreviewResult;
-}
-
-export interface CollaborationMember {
-  collaboration_id: number;
-  member_group_id: number;
-  added_at: string;
-  member_group?: FansubGroupSummary;
-}
-
-export interface CollaborationMemberListResponse {
-  data: CollaborationMember[];
-}
-
-export interface CollaborationMemberResponse {
-  data: CollaborationMember;
-}
-
-export interface AddCollaborationMemberRequest {
-  member_group_id: number;
 }
 
 export type FansubMediaKind = "logo" | "banner";

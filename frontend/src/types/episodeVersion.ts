@@ -9,7 +9,7 @@ export interface EpisodeVersion {
   episode_number: number
   title?: string | null
   release_version?: string | null
-  fansub_group?: FansubGroupSummary | null
+  fansub_groups?: FansubGroupSummary[]
   media_provider: string
   media_item_id: string
   video_quality?: string | null
@@ -48,7 +48,6 @@ export interface EpisodeVersionEditorContext {
   version: EpisodeVersion
   anime_title: string
   anime_folder_path?: string | null
-  collaboration_group_id?: number | null
   selected_groups: FansubGroupSummary[]
 }
 

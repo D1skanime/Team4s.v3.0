@@ -134,10 +134,7 @@ import {
   MergeFansubsRequest,
   MergeFansubsPreviewResponse,
   MergeFansubsResponse,
-  CollaborationMemberListResponse,
-  CollaborationMemberResponse,
   PublicFansubProfileResponse,
-  AddCollaborationMemberRequest,
   FansubMediaKind,
   FansubMediaUploadResponse,
   AdminFansubAnimeReleasesResponse,
@@ -5639,85 +5636,6 @@ export async function mergeFansubs(
   }
 
   return response.json() as Promise<MergeFansubsResponse>;
-}
-
-// Collaboration member operations
-export async function getCollaborationMembers(
-  fansubID: number,
-  authToken?: string,
-): Promise<CollaborationMemberListResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/fansubs/${fansubID}/collaboration-members`,
-    {
-      headers: withAuthHeader({}, authToken),
-      cache: "no-store",
-    },
-  );
-
-  if (!response.ok) {
-    const message = await parseApiError(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(response.status, message);
-  }
-
-  return response.json() as Promise<CollaborationMemberListResponse>;
-}
-
-export async function addCollaborationMember(
-  collaborationID: number,
-  payload: AddCollaborationMemberRequest,
-  authToken?: string,
-): Promise<CollaborationMemberResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/fansubs/${collaborationID}/collaboration-members`,
-    {
-      method: "POST",
-      headers: withAuthHeader(
-        {
-          "Content-Type": "application/json",
-        },
-        authToken,
-      ),
-      body: JSON.stringify(payload),
-    },
-  );
-
-  if (!response.ok) {
-    const message = await parseApiError(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(response.status, message);
-  }
-
-  return response.json() as Promise<CollaborationMemberResponse>;
-}
-
-export async function removeCollaborationMember(
-  collaborationID: number,
-  memberGroupID: number,
-  authToken?: string,
-): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/fansubs/${collaborationID}/collaboration-members/${memberGroupID}`,
-    {
-      method: "DELETE",
-      authToken,
-    },
-  );
-
-  if (!response.ok) {
-    const message = await parseApiError(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(response.status, message);
-  }
 }
 
 export async function syncEpisode(
