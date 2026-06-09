@@ -451,6 +451,7 @@ Recent durable decisions:
 | 260604-d12 | ui verbessern auf global ziehen | 2026-06-04 | 049fb3ed | [260604-d12-ui-verbessern-auf-global-ziehen](./quick/260604-d12-ui-verbessern-auf-global-ziehen/) |
 | 260605-iyz | Phase 72/73 public projection hardening and fansub page integration fix | 2026-06-05 | main + phase73 worktrees | [260605-iyz-phase-72-73-public-projection-hardening-](./quick/260605-iyz-phase-72-73-public-projection-hardening-/) |
 | 260608-jb9 | Startseite UI-Regelverstoß beheben: native Link/Inline-Styles durch Button-Primitiv ersetzen | 2026-06-08 | f1ca2d46 | [260608-jb9-startseite-ui-regelverstoss-beheben-nati](./quick/260608-jb9-startseite-ui-regelverstoss-beheben-nati/) |
+| 260609-wev | ReleaseVersionNotesTab auf globales UI-System migrieren: native button/input/select durch @/components/ui-Primitives ersetzt, CSS bereinigt | 2026-06-09 | a3b17210 | [260609-wev-releaseversionnotestab-auf-globales-ui-s](./quick/260609-wev-releaseversionnotestab-auf-globales-ui-s/) |
 
 ## Session Continuity
 
