@@ -493,7 +493,7 @@ function mapGroupToForm(group: FansubGroup): FormState {
     name: group.name || "",
     slug: group.slug || "",
     status: group.status,
-    groupType: group.group_type,
+    groupType: "group",
     country: group.country || "",
     foundedYear: group.founded_year ? String(group.founded_year) : "",
     dissolvedYear: group.dissolved_year ? String(group.dissolved_year) : "",
@@ -2285,8 +2285,17 @@ function AdminFansubEditContent({
   return (
     <main className={styles.page}>
       <p className={styles.backLinks}>
-        <Link href="/admin">Admin</Link> /{" "}
-        <Link href="/admin/fansubs">Fansubs</Link>
+        {isPlatformAdmin ? (
+          <>
+            <Link href="/admin">Admin</Link> /{" "}
+            <Link href="/admin/fansubs">Fansubs</Link>
+          </>
+        ) : (
+          <>
+            <Link href="/manage/groups">Meine Gruppen</Link> /{" "}
+            <span>{form.name.trim() || "Gruppe"}</span>
+          </>
+        )}
       </p>
       {toast ? <div className={styles.fansubEditToast}>{toast}</div> : null}
 
@@ -2414,7 +2423,7 @@ function AdminFansubEditContent({
               <div className={styles.fansubEditStickyActions}>
                 <Button
                   type="submit"
-                  variant="primary"
+                  variant="success"
                   disabled={invalid || saving}
                   loading={saving}
                   leftIcon={<Save size={14} />}
@@ -2659,6 +2668,49 @@ function AdminFansubEditContent({
                         <div className={styles.fansubEditBasicSupplementGrid}>
                           <Card
                             variant="section"
+                            className={styles.fansubEditBrandingCard}
+                            title="Erscheinungsbild"
+                            description="Logo und Banner sind Teil der öffentlichen Gruppenidentität."
+                          >
+                            <div className={styles.fansubEditMediaGrid}>
+                              <MediaUpload
+                                type="logo"
+                                fansubID={fansubID}
+                                groupName={form.name.trim() || group?.name || ""}
+                                value={logoMedia}
+                                disabled={!hasAuthSession || saving}
+                                onBusyChange={handleLogoMediaBusyChange}
+                                onChange={(nextValue) => {
+                                  setLogoMedia(nextValue);
+                                  setInitialLogoMedia(nextValue);
+                                  setToast(
+                                    nextValue?.publicURL
+                                      ? "Logo aktualisiert."
+                                      : "Logo entfernt.",
+                                  );
+                                }}
+                              />
+                              <MediaUpload
+                                type="banner"
+                                fansubID={fansubID}
+                                groupName={form.name.trim() || group?.name || ""}
+                                value={bannerMedia}
+                                disabled={!hasAuthSession || saving}
+                                onBusyChange={handleBannerMediaBusyChange}
+                                onChange={(nextValue) => {
+                                  setBannerMedia(nextValue);
+                                  setInitialBannerMedia(nextValue);
+                                  setToast(
+                                    nextValue?.publicURL
+                                      ? "Banner aktualisiert."
+                                      : "Banner entfernt.",
+                                  );
+                                }}
+                              />
+                            </div>
+                          </Card>
+                          <Card
+                            variant="section"
                             className={styles.fansubEditAliasCard}
                             title="Aliase"
                             description="Alternative Gruppennamen gehören direkt zu den Stammdaten der Gruppe."
@@ -2781,55 +2833,6 @@ function AdminFansubEditContent({
                 <div className={styles.fansubEditRightColumn}>
                   {activeMainTab === "media" ? (
                     <>
-                      <details
-                        className={styles.fansubEditSection}
-                        open={isSectionOpen("media")}
-                        onToggle={(event) =>
-                          onSectionToggle("media", event.currentTarget.open)
-                        }
-                      >
-                        <summary className={styles.fansubEditSectionSummary}>
-                          Medien
-                        </summary>
-                        <div className={styles.fansubEditSectionBody}>
-                          <div className={styles.fansubEditMediaGrid}>
-                            <MediaUpload
-                              type="logo"
-                              fansubID={fansubID}
-                              groupName={form.name.trim() || group?.name || ""}
-                              value={logoMedia}
-                              disabled={!hasAuthSession || saving}
-                              onBusyChange={handleLogoMediaBusyChange}
-                              onChange={(nextValue) => {
-                                setLogoMedia(nextValue);
-                                setInitialLogoMedia(nextValue);
-                                setToast(
-                                  nextValue?.publicURL
-                                    ? "Logo aktualisiert."
-                                    : "Logo entfernt.",
-                                );
-                              }}
-                            />
-                            <MediaUpload
-                              type="banner"
-                              fansubID={fansubID}
-                              groupName={form.name.trim() || group?.name || ""}
-                              value={bannerMedia}
-                              disabled={!hasAuthSession || saving}
-                              onBusyChange={handleBannerMediaBusyChange}
-                              onChange={(nextValue) => {
-                                setBannerMedia(nextValue);
-                                setInitialBannerMedia(nextValue);
-                                setToast(
-                                  nextValue?.publicURL
-                                    ? "Banner aktualisiert."
-                                    : "Banner entfernt.",
-                                );
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </details>
                       {capabilities ? (
                         <>
                           <GroupMediaReviewSection fansubId={fansubID} capabilities={capabilities} />
@@ -2906,7 +2909,7 @@ function AdminFansubEditContent({
               <div className={styles.fansubEditMobileActionBar}>
                 <Button
                   type="submit"
-                  variant="primary"
+                  variant="success"
                   disabled={invalid || saving}
                   loading={saving}
                   fullWidth

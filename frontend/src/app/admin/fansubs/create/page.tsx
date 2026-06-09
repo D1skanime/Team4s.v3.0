@@ -113,7 +113,7 @@ function mapGroupToForm(group: FansubGroup): FormState {
     name: group.name || "",
     slug: group.slug || "",
     status: group.status,
-    groupType: group.group_type,
+    groupType: "group",
     country: group.country || "",
     foundedYear: group.founded_year ? String(group.founded_year) : "",
     dissolvedYear: group.dissolved_year ? String(group.dissolved_year) : "",

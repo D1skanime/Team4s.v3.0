@@ -30,7 +30,6 @@ export interface FansubGroup {
   dissolved_year?: number | null;
   closed_year?: number | null;
   status: FansubStatus;
-  group_type: FansubGroupType;
   website_url?: string | null;
   discord_url?: string | null;
   irc_url?: string | null;

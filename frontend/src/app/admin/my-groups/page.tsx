@@ -248,9 +248,6 @@ export default function AdminMyGroupsPage() {
                         </div>
                         <div className={styles.groupMeta}>
                           <strong>{group.name}</strong>
-                          <span className={styles.groupType}>
-                            {group.group_type}
-                          </span>
                           <span className={styles.groupCount}>
                             {group.anime_count} Anime ·{" "}
                             {group.release_version_count} Versionen ·{" "}

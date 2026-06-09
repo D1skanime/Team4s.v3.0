@@ -16,7 +16,6 @@ const styles = { ...sharedStyles, ...mergeStyles };
 type WizardStep = 1 | 2 | 3 | 4;
 type SortMode = "name" | "related";
 type StatusFilter = "all" | "active" | "inactive" | "dissolved";
-type TypeFilter = "all" | "group" | "collaboration";
 
 interface CountSummary {
   animeRelations: number;
@@ -46,7 +45,6 @@ function MergeFansubsContent() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [sortMode, setSortMode] = useState<SortMode>("name");
 
   const [currentStep, setCurrentStep] = useState<WizardStep>(1);
@@ -103,8 +101,6 @@ function MergeFansubsContent() {
         }
         if (statusFilter !== "all" && group.status !== statusFilter)
           return false;
-        if (typeFilter !== "all" && group.group_type !== typeFilter)
-          return false;
         return true;
       })
       .sort((a, b) => {
@@ -114,7 +110,7 @@ function MergeFansubsContent() {
         }
         return a.name.localeCompare(b.name, "de", { sensitivity: "base" });
       });
-  }, [groups, searchQuery, sortMode, statusFilter, typeFilter]);
+  }, [groups, searchQuery, sortMode, statusFilter]);
 
   const selectionReady = targetID !== null && sourceIDs.size > 0;
   const selectionKey = useMemo(() => {
@@ -422,21 +418,6 @@ function MergeFansubsContent() {
               <option value="active">Aktiv</option>
               <option value="inactive">Inaktiv</option>
               <option value="dissolved">Aufgeloest</option>
-            </select>
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="merge-type-filter">Typ</label>
-            <select
-              id="merge-type-filter"
-              value={typeFilter}
-              onChange={(event) =>
-                setTypeFilter(event.target.value as TypeFilter)
-              }
-              disabled={merging}
-            >
-              <option value="all">Alle Typen</option>
-              <option value="group">Gruppe</option>
-              <option value="collaboration">Kollaboration</option>
             </select>
           </div>
           <div className={styles.field}>
