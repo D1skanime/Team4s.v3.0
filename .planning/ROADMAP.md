@@ -96,6 +96,10 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 79: Medien-Ownership in UI durchsetzen** - Upload-/Zuweisungsflows über alle Surfaces zwingen Owner-Typ, Owner-ID, Medienkategorie, Sichtbarkeit und Reviewstatus sichtbar zu machen und die Media-Ownership-Matrix einzuhalten; Reuse bestehender Upload-Helfer/Transport (`authorizedUploadXhr`). (completed 2026-06-06)
 - [ ] **Phase 80: `/admin/users` + User Detail Drawer (scoped Rechte)** - Globale User-/Rechteübersicht starten (Userliste + Detail-Drawer mit globalen Rollen, Member-Link, Gruppenmitgliedschaften, Claims, Contributions, Medien, Audit), Rechte strikt scoped, ohne Rechte aus Contributions abzuleiten.
 
+### Korrektur-Phase – Release-Version Mehrfach-Fansubgruppen
+
+- [ ] **Phase 81: Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe** - Mehrere Fansub-Gruppen an einer Release-Version werden als N gleichberechtigte Zeilen in `release_version_groups` geführt statt als synthetische `group_type='collaboration'`-Gruppe „A & B". Kehrt P21-SC3 bewusst um; entfernt die Kollaborations-Entität, stellt Schreib-/Lesepfade auf Mehrfachzuordnung um, migriert Bestandsdaten und zeigt Kooperationen sauber auf Release- und Gruppenebene.
+
 ## Phase Details
 
 ### Phase 6: Provisioning And Lifecycle Foundations
@@ -1876,3 +1880,19 @@ Plans:
   3. Rechte werden scoped dargestellt/vergeben (z. B. Gruppen-/Release-Version-bezogen), nicht pauschal; Medienrechte ohne Scope werden nicht vergeben.
   4. Rechte werden nicht aus Contributions abgeleitet; Gruppenmitgliedschaft ist keine pauschale Adminfähigkeit.
   5. Alle rechte-/statusändernden Aktionen sind auditierbar; nur Plattform-Admin erreicht die globale Zentrale (Leader sehen gruppenspezifische Rechte in `/admin/fansubs/[id]/edit`).
+
+### Phase 81: Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe
+
+**Goal:** Eine Release-Version kann mehrere bestehende Fansub-Gruppen als gleichwertige Mitwirkende referenzieren, ohne dass dabei eine neue „Kombigruppe" (`group_type='collaboration'`, Name „A & B") in `fansub_groups` entsteht. Eine Kooperation existiert ausschließlich als N gleichberechtigte Zeilen in `release_version_groups`; Anzeige als Kooperation passiert nur in der UI.
+**Requirements**: P81-SC1, P81-SC2, P81-SC3, P81-SC4, P81-SC5, P81-SC6, P81-SC7, P81-SC8
+**Depends on:** Phase 21 (kehrt P21-SC3 bewusst um), Phase 72/73/75 (Public-Lesepfade konsumieren `release_version_groups`)
+**Success Criteria** (what must be TRUE):
+
+  1. Wählt ein Admin im Episode-Version-Editor ODER im Jellyfin-Import mehrere Gruppen per Chip, entstehen genau N Zeilen in `release_version_groups`; es wird KEINE neue `fansub_groups`-Zeile (Kombigruppe) erzeugt.
+  2. Das Kollaborations-Konzept ist entfernt: `group_type='collaboration'` und `fansub_collaboration_members` existieren nicht mehr, und kein Code-/Schreibpfad (`upsertImportCollaborationGroup`, `buildImportCollaborationName`) erzeugt noch zusammengesetzte Gruppen.
+  3. Lesepfade liefern pro Release-Version ALLE beteiligten Gruppen (kein `LIMIT 1`); das DTO trägt `FansubGroups` (Liste) statt `FansubGroup` (Singular) in allen betroffenen Repos/Models/Contracts/Frontend-Typen.
+  4. Die Release-Version-Ansicht zeigt alle beteiligten Gruppen als gleichwertige Chips (stabile alphabetische Sortierung) über `@/components/ui`-Primitives, ohne eine eigene Gruppe „A & B" zu suggerieren.
+  5. Eine Release-Version erscheint auf der Seite jeder beteiligten Gruppe; dort ist die Kooperation erkennbar („Kooperation mit …" / „Mitwirkende Gruppen"), die aktuelle Gruppe ist hervorgehoben, ohne Hauptgruppen-Hierarchie.
+  6. Beim Speichern werden alle IDs gegen `fansub_groups` validiert, abgewählte Zuordnungen entfernt und ungültige/nicht existierende IDs abgelehnt.
+  7. Bestehende falsch erzeugte Kombigruppen werden per Migration über `fansub_collaboration_members` auf ihre echten Mitglieds-IDs gemappt, in `release_version_groups` UND `anime_fansub_groups` materialisiert und anschließend deaktiviert/gelöscht, sofern keine Fremdreferenzen mehr bestehen.
+  8. Backend- und Frontend-Tests decken Schreiben (N Zeilen, keine Kombigruppe), Lesen (Aggregation mehrerer Gruppen) und die Bestandsdaten-Migration ab.
