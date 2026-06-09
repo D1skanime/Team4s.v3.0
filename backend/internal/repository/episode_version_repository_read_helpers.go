@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -126,7 +127,13 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 
 	if includeFansubs {
 		query += `,
-			fg.id, fg.slug, fg.name, fg.logo_url`
+			COALESCE(
+				json_agg(
+					json_build_object('id', fg.id, 'slug', fg.slug, 'name', fg.name, 'logo_url', fg.logo_url)
+					ORDER BY fg.name ASC, fg.id ASC
+				) FILTER (WHERE fg.id IS NOT NULL),
+				'[]'::json
+			) AS fansub_groups`
 	}
 
 	query += `
@@ -186,12 +193,7 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 			rv.duration_seconds,
 			rv.created_at,
 			rv.updated_at,
-			rv.modified_at`
-	if includeFansubs {
-		query += `,
-			fg.id, fg.slug, fg.name, fg.logo_url`
-	}
-	query += `
+			rv.modified_at
 		ORDER BY group_episode_number ASC, COALESCE(rev.release_date, fr.release_date) DESC NULLS LAST, rv.id ASC
 	`
 
@@ -267,13 +269,10 @@ func buildGroupedEpisodeCounts(
 	return grouped
 }
 
-func scanReleaseVariantAsEpisodeVersion(scanner rowScanner, includeFansub bool) (*models.EpisodeVersion, int32, error) {
+func scanReleaseVariantAsEpisodeVersion(scanner rowScanner, includeFansubs bool) (*models.EpisodeVersion, int32, error) {
 	var item models.EpisodeVersion
 	var groupEpisodeNumber int32
-	var groupID *int64
-	var groupSlug *string
-	var groupName *string
-	var groupLogoURL *string
+	var fansubGroupsJSON []byte
 
 	dest := []any{
 		&groupEpisodeNumber,
@@ -295,20 +294,17 @@ func scanReleaseVariantAsEpisodeVersion(scanner rowScanner, includeFansub bool) 
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	}
-	if includeFansub {
-		dest = append(dest, &groupID, &groupSlug, &groupName, &groupLogoURL)
+	if includeFansubs {
+		dest = append(dest, &fansubGroupsJSON)
 	}
 
 	if err := scanner.Scan(dest...); err != nil {
 		return nil, 0, fmt.Errorf("scan release variant row: %w", err)
 	}
-	if includeFansub && groupID != nil && groupSlug != nil && groupName != nil {
-		item.FansubGroups = []models.FansubGroupSummary{{
-			ID:      *groupID,
-			Slug:    *groupSlug,
-			Name:    *groupName,
-			LogoURL: groupLogoURL,
-		}}
+	if includeFansubs && len(fansubGroupsJSON) > 0 {
+		if err := json.Unmarshal(fansubGroupsJSON, &item.FansubGroups); err != nil {
+			return nil, 0, fmt.Errorf("unmarshal fansub_groups: %w", err)
+		}
 	}
 	return &item, groupEpisodeNumber, nil
 }

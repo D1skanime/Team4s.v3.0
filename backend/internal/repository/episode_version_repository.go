@@ -61,7 +61,7 @@ func (r *EpisodeVersionRepository) ListGroupedByAnimeID(
 }
 
 func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64) (*models.EpisodeVersion, error) {
-	row := r.db.QueryRow(ctx, `
+	rows, err := r.db.Query(ctx, `
 		SELECT
 			COALESCE(CAST(primary_episode.episode_number AS INTEGER), 0) AS group_episode_number,
 			rv.id,
@@ -85,7 +85,13 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			rv.duration_seconds,
 			rv.created_at,
 			COALESCE(rv.updated_at, rv.modified_at, rv.created_at) AS updated_at,
-			fg.id, fg.slug, fg.name, fg.logo_url
+			COALESCE(
+				json_agg(
+					json_build_object('id', fg.id, 'slug', fg.slug, 'name', fg.name, 'logo_url', fg.logo_url)
+					ORDER BY fg.name ASC, fg.id ASC
+				) FILTER (WHERE fg.id IS NOT NULL),
+				'[]'::json
+			) AS fansub_groups
 		FROM release_variants rv
 		JOIN release_versions rev ON rev.id = rv.release_version_id
 		JOIN fansub_releases fr ON fr.id = rev.release_id
@@ -130,18 +136,23 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			rv.duration_seconds,
 			rv.created_at,
 			rv.updated_at,
-			rv.modified_at,
-			fg.id, fg.slug, fg.name, fg.logo_url
+			rv.modified_at
 		ORDER BY rv.id ASC
-		LIMIT 1
 	`, versionID)
-
-	item, _, err := scanReleaseVariantAsEpisodeVersion(row, true)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, ErrNotFound
-	}
 	if err != nil {
 		return nil, fmt.Errorf("get release version %d: %w", versionID, err)
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		if err := rows.Err(); err != nil {
+			return nil, fmt.Errorf("get release version %d: %w", versionID, err)
+		}
+		return nil, ErrNotFound
+	}
+	item, _, err := scanReleaseVariantAsEpisodeVersion(rows, true)
+	if err != nil {
+		return nil, fmt.Errorf("scan release version %d: %w", versionID, err)
 	}
 	return item, nil
 }
