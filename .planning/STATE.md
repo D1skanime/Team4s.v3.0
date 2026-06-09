@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
-stopped_at: Phase 81 context gathered
-last_updated: "2026-06-09T09:07:58.362Z"
+stopped_at: Completed 81-02-PLAN.md
+last_updated: "2026-06-09T09:17:52.428Z"
 last_activity: 2026-06-09
 progress:
   total_phases: 77
   completed_phases: 59
   total_plans: 314
-  completed_plans: 274
+  completed_plans: 275
   percent: 77
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 81 (Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 
 ## Accumulated Context
 
@@ -239,6 +239,7 @@ Recent durable decisions:
 - [Phase ?]: [Phase 73-10]: Kollaboration-Block nutzt inline-style statt neuer CSS-Klasse
 - [Phase ?]: [Phase 73-10]: Badge variant=muted fuer 'auch Mitglied' Querverweis-Badge
 - [Phase ?]: 81-01 Split
+- [Phase ?]: 81-02: Migration 0101 NULL-setzt theme_segments+segment_library vor DO LOOP, 0102 guard RAISE EXCEPTION bei active_collabs>0
 
 ### Pending Todos
 
@@ -414,6 +415,7 @@ Recent durable decisions:
 | Phase 73 P10 | 2min | 2 tasks | 3 files |
 | Phase 73 P12 | 6min | 2 tasks | 3 files |
 | Phase 81-release-version-mehrfach-fansubgruppen-ohne-kombigruppe P01 | 45min | 3 tasks | 9 files |
+| Phase 81 P02 | 15min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -450,7 +452,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-09T09:07:58.241Z
-Stopped at: Phase 81 context gathered
+Last session: 2026-06-09T09:17:52.393Z
+Stopped at: Completed 81-02-PLAN.md
 Last activity: 2026-06-09
 Resume file: None
