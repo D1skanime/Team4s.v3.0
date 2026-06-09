@@ -295,6 +295,11 @@
   color: #ffffff;
 }
 
+.successButton {
+  background: var(--color-success, #16a34a);
+  color: #ffffff;
+}
+
 .secondaryButton {
   background: #ffffff;
   border-color: #e1e1e6;
@@ -436,4 +441,15 @@
 .mediaGalleryShell {
   padding: 12px 0;
   border-top: 1px solid #e1e1e6;
+}
+
+.subtitleGroupLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(107, 107, 112, 0.4);
+  text-underline-offset: 2px;
+}
+
+.subtitleGroupLink:hover {
+  text-decoration-color: #6b6b70;
 }

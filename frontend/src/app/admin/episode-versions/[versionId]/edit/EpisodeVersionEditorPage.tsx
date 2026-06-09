@@ -21,6 +21,7 @@ import { ReleaseVersionNotesTab } from "./ReleaseVersionNotesTab";
 import { useEpisodeVersionEditor } from "./useEpisodeVersionEditor";
 import { SegmenteTab } from "./SegmenteTab";
 import styles from "./EpisodeVersionEditor.module.css";
+import { Button } from "@/components/ui/Button";
 
 type ActiveTab =
   | "uebersicht"
@@ -169,6 +170,11 @@ export function EpisodeVersionEditorPage() {
     ? `/admin/anime/${editor.contextData.version.anime_id}/edit`
     : "/admin/anime";
 
+  const fansubGroupHref =
+    segmentGroupId != null
+      ? `/admin/fansubs/${segmentGroupId}/edit`
+      : null;
+
   const episodesHref = editor.contextData
     ? `/admin/anime/${editor.contextData.version.anime_id}/episodes`
     : "/admin/anime";
@@ -219,7 +225,23 @@ export function EpisodeVersionEditorPage() {
             {version ? (
               <p className={styles.subtitle}>
                 {breadcrumbEpisodeLabel}
-                {groupName ? ` \u00B7 ${groupName} ${segmentVersion}` : ""}
+                {groupName ? (
+                  <>
+                    {" \u00B7 "}
+                    {fansubGroupHref != null ? (
+                      <Link
+                        href={fansubGroupHref}
+                        className={styles.subtitleGroupLink}
+                      >
+                        {groupName}
+                      </Link>
+                    ) : (
+                      groupName
+                    )}
+                    {" "}
+                    {segmentVersion}
+                  </>
+                ) : null}
               </p>
             ) : null}
           </div>
@@ -815,6 +837,11 @@ export function EpisodeVersionEditorPage() {
               <Link href={backHref} className={styles.secondaryButton}>
                 Zurück
               </Link>
+              {fansubGroupHref != null ? (
+                <Button href={fansubGroupHref} variant="secondary">
+                  Zur Fansubgruppe
+                </Button>
+              ) : null}
               {isPlatformAdmin ? (
                 <>
                   <button

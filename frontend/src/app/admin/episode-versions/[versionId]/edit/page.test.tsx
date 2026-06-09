@@ -360,4 +360,33 @@ describe("EpisodeVersionEditorPage media tab", () => {
     ).toBeNull();
     expect(screen.queryByRole("button", { name: "Speichern" })).toBeNull();
   });
+
+  it("zeigt 'Zur Fansubgruppe'-Link auf /admin/fansubs/10/edit wenn Gruppe bekannt", async () => {
+    mockPlatformAdminScope();
+    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
+    useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
+
+    render(<EpisodeVersionEditorPage />);
+
+    // Admin-Tabs laden lassen
+    await screen.findByRole("button", { name: "Informationen" });
+
+    const links = screen.getAllByRole("link", { name: "Zur Fansubgruppe" });
+    expect(links.length).toBeGreaterThan(0);
+    expect(links[0].getAttribute("href")).toBe("/admin/fansubs/10/edit");
+  });
+
+  it("zeigt groupName in der Subtitle als Link zur Fansubgruppe", async () => {
+    mockPlatformAdminScope();
+    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
+    useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
+
+    render(<EpisodeVersionEditorPage />);
+
+    await screen.findByRole("button", { name: "Informationen" });
+
+    // next/link ist als <a> gemockt — suche nach dem Link mit Text "SubGroup"
+    const subtitleLink = screen.getByRole("link", { name: "SubGroup" });
+    expect(subtitleLink.getAttribute("href")).toBe("/admin/fansubs/10/edit");
+  });
 });
