@@ -98,7 +98,7 @@ describe('ReleaseVersionNotesTab', () => {
 
     render(<ReleaseVersionNotesTab versionId={7} />)
 
-    expect(await screen.findByText(/keine Mitglieder und Rollen zugeordnet/i)).not.toBeNull()
+    expect(await screen.findByText(/keine rollen zugeordnet/i)).not.toBeNull()
   })
 
   it('rendert rollenspezifische Hilfetexte und überspringt leere neue Felder beim Bulk-Save', async () => {

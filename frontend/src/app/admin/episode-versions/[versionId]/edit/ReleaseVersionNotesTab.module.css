@@ -13,20 +13,6 @@
     0 24px 36px -30px rgba(17, 24, 39, 0.24);
 }
 
-.stateBox {
-  padding: 1.5rem;
-  border: 1px dashed color-mix(in srgb, var(--text-secondary) 22%, transparent);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--bg-card) 94%, var(--bg-primary));
-}
-
-.stateText {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.92rem;
-  line-height: 1.6;
-}
-
 .memberCard {
   display: grid;
   gap: 0;
@@ -115,19 +101,6 @@
   color: var(--text-primary);
 }
 
-.roleChip {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0.3rem 0.72rem;
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 22%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-card));
-  color: color-mix(in srgb, var(--accent-primary) 46%, var(--text-primary));
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
 .roleHelpText {
   margin: 0;
   font-size: 0.9rem;
@@ -176,76 +149,9 @@
   gap: 0.85rem;
 }
 
-.fieldGroup {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.fieldLabel {
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.input,
-.select {
-  width: 100%;
-  min-height: 40px;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--bg-card) 96%, transparent);
-  color: var(--text-primary);
-  font: inherit;
-}
-
-.input:focus,
-.select:focus {
-  outline: none;
-  border-color: color-mix(in srgb, var(--accent-primary) 44%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent);
-}
-
-.saveBar {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 0.15rem;
-}
-
-.saveButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.75rem;
-  padding: 0.65rem 1.15rem;
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 32%, transparent);
-  border-radius: 999px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 18%, #fff), color-mix(in srgb, var(--accent-primary) 9%, #fff));
-  color: color-mix(in srgb, var(--accent-primary) 84%, var(--text-primary));
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 56%, transparent),
-    0 16px 28px -24px color-mix(in srgb, var(--accent-primary) 28%, transparent);
-}
-
-.saveButton:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
 @media (max-width: 767px) {
   .notesTab {
     padding: 1rem;
-  }
-
-  .saveBar {
-    justify-content: stretch;
-  }
-
-  .saveButton {
-    width: 100%;
   }
 
   .charFooter {

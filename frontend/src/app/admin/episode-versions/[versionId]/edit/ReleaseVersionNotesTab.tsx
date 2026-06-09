@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 
 import { RichTextEditor } from '@/components/editor'
+import { ActionBar, Badge, Button, EmptyState, ErrorState, FormField, Input, LoadingState, Select } from '@/components/ui'
 import {
   bulkUpsertReleaseVersionNotes,
   getMemberRolesForVersion,
@@ -245,21 +246,15 @@ export function ReleaseVersionNotesTab({ versionId }: ReleaseVersionNotesTabProp
   }
 
   if (isLoading) {
-    return (
-      <section className={styles.stateBox}>
-        <p className={styles.stateText}>Lade Notizen...</p>
-      </section>
-    )
+    return <LoadingState title="Notizen werden geladen" />
   }
 
   if (memberRoles.length === 0) {
     return (
-      <section className={styles.stateBox}>
-        <p className={styles.stateText}>
-          Für diese Release-Version sind keine Mitglieder und Rollen zugeordnet.
-          Notizen können erst hinzugefügt werden, wenn Mitglieder im Release zugeordnet sind.
-        </p>
-      </section>
+      <EmptyState
+        title="Keine Rollen zugeordnet"
+        description="Notizen können erst hinzugefügt werden, wenn Mitglieder im Release zugeordnet sind."
+      />
     )
   }
 
@@ -281,15 +276,11 @@ export function ReleaseVersionNotesTab({ versionId }: ReleaseVersionNotesTabProp
       </div>
 
       {errorMessage ? (
-        <div className={`${styles.editorNotice} ${styles.editorNoticeError}`}>
-          <p className={styles.editorNoticeText}>{errorMessage}</p>
-        </div>
+        <ErrorState title="Fehler" description={errorMessage} />
       ) : null}
 
       {successMessage ? (
-        <div className={`${styles.editorNotice} ${styles.editorNoticeSuccess}`}>
-          <p className={styles.editorNoticeText}>{successMessage}</p>
-        </div>
+        <Badge variant="success">{successMessage}</Badge>
       ) : null}
 
       {Array.from(memberMap.entries()).map(([memberId, { name, roles }]) => (
@@ -302,16 +293,18 @@ export function ReleaseVersionNotesTab({ versionId }: ReleaseVersionNotesTabProp
         />
       ))}
 
-      <div className={styles.saveBar}>
-        <button
-          type="button"
-          disabled={isSaving}
-          onClick={() => void handleSave()}
-          className={styles.saveButton}
-        >
-          {isSaving ? 'Wird gespeichert...' : 'Alle Notizen speichern'}
-        </button>
-      </div>
+      <ActionBar
+        trailing={
+          <Button
+            variant="success"
+            type="button"
+            loading={isSaving}
+            onClick={() => void handleSave()}
+          >
+            {isSaving ? 'Wird gespeichert…' : 'Alle Notizen speichern'}
+          </Button>
+        }
+      />
     </section>
   )
 }
@@ -368,7 +361,7 @@ function RoleNoteField({ memberRole, state, onUpdate }: RoleNoteFieldProps) {
           <p className={styles.roleLabelEyebrow}>Rolle</p>
           <label className={styles.roleLabelTitle}>{label}</label>
         </div>
-        <span className={styles.roleChip}>{memberRole.roleName}</span>
+        <Badge variant="neutral">{memberRole.roleName}</Badge>
       </div>
 
       {helpText ? <p className={styles.roleHelpText}>{helpText}</p> : null}
@@ -393,42 +386,36 @@ function RoleNoteField({ memberRole, state, onUpdate }: RoleNoteFieldProps) {
       <details className={styles.advancedDetails}>
         <summary className={styles.advancedSummary}>Erweiterte Felder</summary>
         <div className={styles.advancedFields}>
-          <label className={styles.fieldGroup}>
-            <span className={styles.fieldLabel}>Titel (optional)</span>
-            <input
+          <FormField label="Titel (optional)">
+            <Input
               type="text"
               value={state?.title ?? ''}
               onChange={(e) => onUpdate(key, 'title', e.target.value)}
-              className={styles.input}
             />
-          </label>
+          </FormField>
 
           <div className={styles.advancedGrid}>
-            <label className={styles.fieldGroup}>
-              <span className={styles.fieldLabel}>Sichtbarkeit</span>
-              <select
+            <FormField label="Sichtbarkeit">
+              <Select
                 value={state?.visibility ?? 'internal'}
                 onChange={(e) => onUpdate(key, 'visibility', e.target.value as 'public' | 'internal')}
-                className={styles.select}
               >
                 <option value="internal">intern</option>
                 <option value="public">öffentlich</option>
-              </select>
-            </label>
+              </Select>
+            </FormField>
 
-            <label className={styles.fieldGroup}>
-              <span className={styles.fieldLabel}>Status</span>
-              <select
+            <FormField label="Status">
+              <Select
                 value={state?.status ?? 'draft'}
                 onChange={(e) => onUpdate(key, 'status', e.target.value as NoteFormState['status'])}
-                className={styles.select}
               >
                 <option value="draft">Entwurf</option>
                 <option value="published">Veröffentlicht</option>
                 <option value="archived">Archiviert</option>
                 <option value="deleted">Gelöscht</option>
-              </select>
-            </label>
+              </Select>
+            </FormField>
           </div>
         </div>
       </details>
