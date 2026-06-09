@@ -64,8 +64,16 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"recent media must resolve the concrete release version")
 	assert.True(t, strings.Contains(content, "COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text))"),
 		"recent media must expose a readable release version label")
-	assert.True(t, strings.Contains(content, "LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = rvm.media_asset_id AND mf_thumb.variant = 'thumb'"),
-		"recent media must use the release-version-media thumbnail variant")
+	assert.True(t, strings.Contains(content, "JOIN media_assets ma ON ma.id = rvm.media_asset_id"),
+		"recent media must inspect the media asset status")
+	assert.True(t, strings.Contains(content, "LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = rvm.media_asset_id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'"),
+		"recent media must use ready release-version-media thumbnails")
+	assert.True(t, strings.Contains(content, "LEFT JOIN media_files mf_orig ON mf_orig.media_id = rvm.media_asset_id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'"),
+		"recent media must fall back to ready original files when no thumbnail exists")
+	assert.True(t, strings.Contains(content, "AND ma.status = 'ready'"),
+		"recent media must hide failed assets")
+	assert.True(t, strings.Contains(content, "AND (mf_thumb.id IS NOT NULL OR mf_orig.id IS NOT NULL)"),
+		"recent media must hide assets without a ready file")
 	assert.True(t, strings.Contains(content, "JOIN episodes e ON e.id = fr.episode_id"),
 		"recent profile activity must resolve anime through fansub_releases -> episodes")
 	assert.True(t, strings.Contains(content, "JOIN anime a ON a.id = e.anime_id"),

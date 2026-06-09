@@ -34,38 +34,40 @@ type FansubFilter struct {
 
 // FansubGroup enthaelt alle Detailfelder einer Fansub-Gruppe.
 type FansubGroup struct {
-	ID                   int64                `json:"id"`
-	Slug                 string               `json:"slug"`
-	Name                 string               `json:"name"`
-	LogoID               *int64               `json:"logo_id,omitempty"`
-	BannerID             *int64               `json:"banner_id,omitempty"`
-	LogoURL              *string              `json:"logo_url,omitempty"`
-	BannerURL            *string              `json:"banner_url,omitempty"`
-	FoundedYear          *int32               `json:"founded_year,omitempty"`
-	DissolvedYear        *int32               `json:"dissolved_year,omitempty"`
-	ClosedYear           *int32               `json:"closed_year,omitempty"`
-	Status               string               `json:"status"`
-	GroupType            FansubGroupType      `json:"group_type"`
-	WebsiteURL           *string              `json:"website_url,omitempty"`
-	DiscordURL           *string              `json:"discord_url,omitempty"`
-	IrcURL               *string              `json:"irc_url,omitempty"`
-	Country              *string              `json:"country,omitempty"`
-	AnimeRelationsCount  int                  `json:"anime_relations_count"`
-	ReleaseVersionsCount int                  `json:"release_versions_count"`
-	MembersCount         int                  `json:"members_count"`
-	AliasesCount         int                  `json:"aliases_count"`
-	CreatedAt            time.Time            `json:"created_at"`
-	UpdatedAt            time.Time            `json:"updated_at"`
-	Links                []FansubGroupLink    `json:"links,omitempty"`
+	ID                      int64             `json:"id"`
+	Slug                    string            `json:"slug"`
+	Name                    string            `json:"name"`
+	LogoID                  *int64            `json:"logo_id,omitempty"`
+	BannerID                *int64            `json:"banner_id,omitempty"`
+	LogoURL                 *string           `json:"logo_url,omitempty"`
+	BannerURL               *string           `json:"banner_url,omitempty"`
+	LogoSourceOriginalURL   *string           `json:"logo_source_original_url,omitempty"`
+	BannerSourceOriginalURL *string           `json:"banner_source_original_url,omitempty"`
+	FoundedYear             *int32            `json:"founded_year,omitempty"`
+	DissolvedYear           *int32            `json:"dissolved_year,omitempty"`
+	ClosedYear              *int32            `json:"closed_year,omitempty"`
+	Status                  string            `json:"status"`
+	GroupType               FansubGroupType   `json:"group_type"`
+	WebsiteURL              *string           `json:"website_url,omitempty"`
+	DiscordURL              *string           `json:"discord_url,omitempty"`
+	IrcURL                  *string           `json:"irc_url,omitempty"`
+	Country                 *string           `json:"country,omitempty"`
+	AnimeRelationsCount     int               `json:"anime_relations_count"`
+	ReleaseVersionsCount    int               `json:"release_versions_count"`
+	MembersCount            int               `json:"members_count"`
+	AliasesCount            int               `json:"aliases_count"`
+	CreatedAt               time.Time         `json:"created_at"`
+	UpdatedAt               time.Time         `json:"updated_at"`
+	Links                   []FansubGroupLink `json:"links,omitempty"`
 }
 
 // PublicFansubProfileResponse bundles the public data needed by /fansubs/[slug].
 type PublicFansubProfileResponse struct {
-	Group                FansubGroup             `json:"group"`
-	Story                *PublicFansubStory      `json:"story"`
-	Projects             []PublicFansubProject   `json:"projects"`
-	History              []PublicFansubHistory   `json:"history"`
-	Media                []PublicFansubMediaItem `json:"media"`
+	Group    FansubGroup             `json:"group"`
+	Story    *PublicFansubStory      `json:"story"`
+	Projects []PublicFansubProject   `json:"projects"`
+	History  []PublicFansubHistory   `json:"history"`
+	Media    []PublicFansubMediaItem `json:"media"`
 }
 
 // PublicFansubStory is the public, published fansub_group_notes projection.

@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"strings"
 
@@ -16,11 +17,11 @@ import (
 
 // validVisibilityCodes enthält die erlaubten visibility_code-Werte (aus Migration 0037 visibilities-Tabelle).
 var validVisibilityCodes = map[string]bool{
-	"public":    true,
-	"private":   true,
+	"public":     true,
+	"private":    true,
 	"registered": true,
-	"fansubber": true,
-	"staff":     true,
+	"fansubber":  true,
+	"staff":      true,
 }
 
 // validReviewStatusCodes enthält die erlaubten review_status_code-Werte (aus Migration 0097 review_statuses-Tabelle).
@@ -92,13 +93,25 @@ func (h *FansubHandler) UploadFansubMedia(c *gin.Context) {
 		badRequest(c, "datei fehlt (field: file)")
 		return
 	}
+	sourceFileHeader, sourceFileErr := c.FormFile("source_file")
+	if sourceFileErr != nil && !errors.Is(sourceFileErr, http.ErrMissingFile) {
+		badRequest(c, "source_file konnte nicht gelesen werden")
+		return
+	}
 
 	data, ok := h.readFansubMediaUpload(c, identity.UserID, fansubID, kind, fileHeader)
 	if !ok {
 		return
 	}
+	var sourceData []byte
+	if sourceFileHeader != nil {
+		sourceData, ok = h.readFansubMediaUpload(c, identity.UserID, fansubID, kind, sourceFileHeader)
+		if !ok {
+			return
+		}
+	}
 
-	asset, gifLargeHint, ok := h.storeFansubMediaUpload(c, identity.UserID, fansubID, kind, fileHeader.Filename, data, visibilityCode, reviewStatusCode)
+	asset, gifLargeHint, ok := h.storeFansubMediaUpload(c, identity.UserID, fansubID, kind, fileHeader.Filename, data, sourceFileHeader, sourceData, visibilityCode, reviewStatusCode)
 	if !ok {
 		return
 	}
@@ -119,6 +132,8 @@ func (h *FansubHandler) storeFansubMediaUpload(
 	kind models.MediaKind,
 	filename string,
 	data []byte,
+	sourceFileHeader *multipart.FileHeader,
+	sourceData []byte,
 	visibilityCode string,
 	reviewStatusCode string,
 ) (*models.MediaAsset, bool, bool) {
@@ -126,13 +141,25 @@ func (h *FansubHandler) storeFansubMediaUpload(
 	if !ok {
 		return nil, false, false
 	}
+	var sourceResult *services.MediaVariantSaveResult
+	if sourceFileHeader != nil && len(sourceData) > 0 {
+		var sourceOK bool
+		sourceResult, sourceOK = h.saveFansubMediaSourceOriginal(c, userID, fansubID, kind, sourceFileHeader.Filename, sourceData)
+		if !sourceOK {
+			_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+			return nil, false, false
+		}
+	}
 
 	// Visibility/ReviewStatus in CreateInput eintragen (Lock K, Sub-SELECT-Pfad)
 	saveResult.CreateInput.VisibilityCode = &visibilityCode
 	saveResult.CreateInput.ReviewStatusCode = &reviewStatusCode
 
-	asset, ok := h.persistFansubMediaAsset(c, userID, fansubID, kind, saveResult)
+	asset, ok := h.persistFansubMediaAsset(c, userID, fansubID, kind, saveResult, sourceResult)
 	if !ok {
+		if sourceResult != nil {
+			_ = removeFileQuietly(sourceResult.StoragePath)
+		}
 		return nil, false, false
 	}
 
@@ -162,12 +189,36 @@ func (h *FansubHandler) saveFansubMediaUpload(
 	return saveResult, true
 }
 
+func (h *FansubHandler) saveFansubMediaSourceOriginal(
+	c *gin.Context,
+	userID int64,
+	fansubID int64,
+	kind models.MediaKind,
+	filename string,
+	data []byte,
+) (*services.MediaVariantSaveResult, bool) {
+	saveResult, err := h.mediaService.SaveUploadSourceOriginal(kind, filename, data)
+	if err != nil {
+		var validationErr *services.MediaValidationError
+		if errors.As(err, &validationErr) {
+			badRequest(c, validationErr.Message)
+			return nil, false
+		}
+		log.Printf("fansub media upload: save source original failed (user_id=%d, fansub_id=%d): %v", userID, fansubID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "upload fehlgeschlagen"}})
+		return nil, false
+	}
+
+	return saveResult, true
+}
+
 func (h *FansubHandler) persistFansubMediaAsset(
 	c *gin.Context,
 	userID int64,
 	fansubID int64,
 	kind models.MediaKind,
 	saveResult *services.MediaSaveResult,
+	sourceResult *services.MediaVariantSaveResult,
 ) (*models.MediaAsset, bool) {
 	asset, err := h.mediaRepo.CreateMediaAsset(c.Request.Context(), saveResult.CreateInput)
 	if err != nil {
@@ -180,11 +231,32 @@ func (h *FansubHandler) persistFansubMediaAsset(
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "upload fehlgeschlagen"}})
 		return nil, false
 	}
+	if err := h.mediaRepo.InsertMediaFile(c.Request.Context(), asset.ID, "original", asset.StoragePath, asset.SizeBytes); err != nil {
+		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), asset.ID)
+		_ = removeFileQuietly(asset.StoragePath)
+		log.Printf("fansub media upload: insert original media file failed (user_id=%d, fansub_id=%d, media_id=%d): %v", userID, fansubID, asset.ID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "upload fehlgeschlagen"}})
+		return nil, false
+	}
+	if sourceResult != nil && strings.TrimSpace(sourceResult.StoragePath) != "" && sourceResult.StoragePath != asset.StoragePath {
+		if err := h.mediaRepo.InsertMediaFile(c.Request.Context(), asset.ID, "source_original", sourceResult.StoragePath, sourceResult.SizeBytes); err != nil {
+			_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), asset.ID)
+			_ = removeFileQuietly(asset.StoragePath)
+			_ = removeFileQuietly(sourceResult.StoragePath)
+			log.Printf("fansub media upload: insert source media file failed (user_id=%d, fansub_id=%d, media_id=%d): %v", userID, fansubID, asset.ID, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "upload fehlgeschlagen"}})
+			return nil, false
+		}
+		asset.SourceOriginalURL = sourceResult.PublicURL
+	}
 
 	previousMediaID, err := h.mediaRepo.AssignFansubMedia(c.Request.Context(), fansubID, kind, asset.ID, asset.PublicURL)
 	if err != nil {
 		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), asset.ID)
 		_ = removeFileQuietly(asset.StoragePath)
+		if sourceResult != nil {
+			_ = removeFileQuietly(sourceResult.StoragePath)
+		}
 		if errors.Is(err, repository.ErrNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "fansubgruppe nicht gefunden"}})
 			return nil, false

@@ -209,6 +209,15 @@ textarea.input {
     0 16px 28px -24px color-mix(in srgb, var(--accent-primary) 28%, transparent);
 }
 
+.buttonSuccess {
+  border-color: var(--color-success, #16a34a);
+  background: var(--color-success, #16a34a);
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 34%, transparent),
+    0 16px 28px -24px color-mix(in srgb, var(--color-success, #16a34a) 28%, transparent);
+}
+
 .buttonPrimary:disabled,
 .buttonSecondary:disabled {
   opacity: 0.6;

@@ -8,6 +8,7 @@
 ## Useful Facts To Keep
 - `/admin/fansubs/[id]/edit` owns internal edit workflows for proposals, claims, milestones, historical members, roles, and anime contributions.
 - `/admin/my-groups/[id]` is not the canonical edit route. Treat it as display/contributor-scope unless a later decision changes that.
+- Codex Desktop in-app browser screenshots: if normal `System.Drawing.Graphics.CopyFromScreen(...)` fails with `Handle is invalid` or produces a black image, capture the Codex window via Win32 `PrintWindow` instead. Enumerate visible windows for process `Codex`, pick the large main window, call `PrintWindow(hwnd, hdc, 2)`, save PNG, then crop the web preview region. This successfully captured `/admin/fansubs/1/edit` as `tmp-codex-window-printwindow.png` and the banner crop as `tmp-codex-window-banner-crop.png` on 2026-06-09.
 - Normal app-member invitations and claim invitations are separate products, even if both use links.
 - App users are current Team4s accounts. `members` are historical/archive identities. Claims connect the two.
 - Claiming is more important for historical import/correction workflows than for a fresh database where data is entered correctly from day one.

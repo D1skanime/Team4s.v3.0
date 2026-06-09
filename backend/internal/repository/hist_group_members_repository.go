@@ -77,8 +77,8 @@ func (r *HistGroupMembersRepository) ListByFansubGroupWithDisplay(ctx context.Co
 	rows, err := r.db.Query(ctx, `
 		SELECT hfgm.id, hfgm.fansub_group_id, hfgm.member_id,
 		       m.nickname AS display_name,
-		       m.user_id  AS app_user_id,
-		       NULL::text AS app_username,
+		       claimed_user.id AS app_user_id,
+		       COALESCE(NULLIF(TRIM(claimed_user.preferred_username), ''), NULLIF(TRIM(claimed_user.display_name), ''), NULLIF(TRIM(claimed_user.email), '')) AS app_username,
 		       hfgm.joined_year, hfgm.left_year, hfgm.status,
 		       hfgm.confirmed_by AS confirmed_by_app_user_id,
 		       COALESCE(NULLIF(TRIM(confirmer.preferred_username), ''), NULLIF(TRIM(confirmer.display_name), ''), NULLIF(TRIM(confirmer.email), '')) AS confirmed_by_display_name,
@@ -86,8 +86,22 @@ func (r *HistGroupMembersRepository) ListByFansubGroupWithDisplay(ctx context.Co
 		       hfgm.created_at
 		FROM hist_fansub_group_members hfgm
 		JOIN members m ON m.id = hfgm.member_id
+		LEFT JOIN LATERAL (
+			SELECT mc.app_user_id
+			FROM member_claims mc
+			WHERE mc.member_id = hfgm.member_id
+			  AND mc.claim_status = 'verified'
+			ORDER BY mc.verified_at DESC NULLS LAST, mc.id DESC
+			LIMIT 1
+		) verified_claim ON true
+		LEFT JOIN app_users claimed_user ON claimed_user.id = verified_claim.app_user_id
+		LEFT JOIN fansub_group_members active_group_member
+			ON active_group_member.fansub_group_id = hfgm.fansub_group_id
+		   AND active_group_member.app_user_id = verified_claim.app_user_id
+		   AND active_group_member.status = 'active'
 		LEFT JOIN app_users confirmer ON confirmer.id = hfgm.confirmed_by
 		WHERE hfgm.fansub_group_id = $1
+		  AND active_group_member.id IS NULL
 		ORDER BY COALESCE(hfgm.joined_year, 9999), hfgm.id
 	`, fansubGroupID)
 	if err != nil {
@@ -347,7 +361,7 @@ func (r *HistGroupMembersRepository) CreateWithAutoMember(
 		WITH inserted AS (
 			INSERT INTO hist_fansub_group_members
 				(fansub_group_id, member_id, joined_year, left_year, status, visibility, confirmed_by, confirmed_at, created_by)
-			VALUES ($1, $2, $3, $4, $5, $6, CASE WHEN $5 = 'confirmed' AND $7 IS NOT NULL THEN $7 ELSE NULL END, CASE WHEN $5 = 'confirmed' AND $7 IS NOT NULL THEN NOW() ELSE NULL END, $8)
+			VALUES ($1, $2, $3, $4, $5::varchar, $6::varchar, CASE WHEN $5::varchar = 'confirmed' AND $7::bigint IS NOT NULL THEN $7::bigint ELSE NULL END, CASE WHEN $5::varchar = 'confirmed' AND $7::bigint IS NOT NULL THEN NOW() ELSE NULL END, $8)
 			RETURNING id, fansub_group_id, member_id, joined_year, left_year, status, confirmed_by, confirmed_at, created_at
 		)
 		SELECT inserted.id,

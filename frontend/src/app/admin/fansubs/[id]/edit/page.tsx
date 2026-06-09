@@ -95,7 +95,6 @@ import AnimeContributionModal from "./AnimeContributionModal";
 import { ClaimManagementPanel } from "./ClaimManagementPanel";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 import { GroupMembersTab } from "./GroupMembersTab";
-import { MemberRolesTab } from "./MemberRolesTab";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
@@ -131,7 +130,6 @@ type SectionKey =
   | "anime-projekte"
   | "notes"
   | "mitglieder"
-  | "rollen"
   | "claims"
   | "vorschlaege"
   | "readiness";
@@ -191,23 +189,12 @@ type ContributionModalAnime = {
   title: string;
 };
 
-type BannerEdgeFills = {
-  left: string;
-  right: string;
-};
-
-type BannerSideWidths = {
-  left: number;
-  right: number;
-};
-
 const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: "basic", label: "Grunddaten" },
   { key: "notes", label: "Gruppengeschichte" },
   { key: "media", label: "Medien" },
-  { key: "collaboration", label: "App-Mitglieder" },
+  { key: "collaboration", label: "Fansub Members" },
   { key: "mitglieder", label: "Hist. Mitglieder" },
-  { key: "rollen", label: "Historische Rollen" },
   { key: "claims", label: "Claims" },
   { key: "vorschlaege", label: "Vorschläge" },
   { key: "releases", label: "Anime & Veröffentlichungen" },
@@ -216,6 +203,7 @@ const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
 ];
 
 function parseMainTab(value: string | null): MainTab {
+  if (value === "rollen") return "mitglieder";
   return MAIN_TABS.some((tab) => tab.key === value) ? (value as MainTab) : "basic";
 }
 
@@ -235,7 +223,6 @@ function canUseMainTab(
       return capabilities.can_manage_links;
     case "collaboration":
     case "mitglieder":
-    case "rollen":
       return capabilities.can_view_members || capabilities.can_manage_members;
     case "claims":
       return (
@@ -496,7 +483,10 @@ function mapGroupToForm(group: FansubGroup): FormState {
     groupType: "group",
     country: group.country || "",
     foundedYear: group.founded_year ? String(group.founded_year) : "",
-    dissolvedYear: group.dissolved_year ? String(group.dissolved_year) : "",
+    dissolvedYear:
+      group.status === "active" || !group.dissolved_year
+        ? ""
+        : String(group.dissolved_year),
   };
 }
 
@@ -505,10 +495,18 @@ function mapGroupMedia(group: FansubGroup): {
   banner: EditableMediaValue | null;
 } {
   const logo = group.logo_url
-    ? { id: group.logo_id ?? null, publicURL: group.logo_url }
+    ? {
+        id: group.logo_id ?? null,
+        publicURL: group.logo_url,
+        sourceOriginalURL: group.logo_source_original_url ?? null,
+      }
     : null;
   const banner = group.banner_url
-    ? { id: group.banner_id ?? null, publicURL: group.banner_url }
+    ? {
+        id: group.banner_id ?? null,
+        publicURL: group.banner_url,
+        sourceOriginalURL: group.banner_source_original_url ?? null,
+      }
     : null;
   return { logo, banner };
 }
@@ -612,50 +610,6 @@ function createEmptyLink(): CommunityLinkDraft {
 
 function labelForFansubStatus(status: FansubStatus): string {
   return STATUS_LABELS[status] || status;
-}
-
-function createBannerEdgeFillDataURL(
-  image: HTMLImageElement,
-  side: "left" | "right",
-): string {
-  const sourceWidth = image.naturalWidth || image.width || 1;
-  const sourceHeight = image.naturalHeight || image.height || 1;
-  const sampleWidth = Math.max(1, Math.min(3, sourceWidth));
-  const sourceX = side === "left" ? 0 : Math.max(0, sourceWidth - sampleWidth);
-  const canvas = document.createElement("canvas");
-  canvas.width = sampleWidth;
-  canvas.height = sourceHeight;
-  const context = canvas.getContext("2d");
-  if (!context) return "";
-  context.drawImage(
-    image,
-    sourceX,
-    0,
-    sampleWidth,
-    sourceHeight,
-    0,
-    0,
-    sampleWidth,
-    sourceHeight,
-  );
-  return canvas.toDataURL("image/png");
-}
-
-async function loadBannerEdgeFills(
-  imageURL: string,
-): Promise<BannerEdgeFills | null> {
-  if (!imageURL.trim()) return null;
-  return await new Promise<BannerEdgeFills | null>((resolve) => {
-    const image = new window.Image();
-    image.crossOrigin = "anonymous";
-    image.onload = () =>
-      resolve({
-        left: createBannerEdgeFillDataURL(image, "left"),
-        right: createBannerEdgeFillDataURL(image, "right"),
-      });
-    image.onerror = () => resolve(null);
-    image.src = imageURL;
-  });
 }
 
 function errMessage(error: unknown): string {
@@ -979,12 +933,14 @@ function FansubEditAccessGate({
 }
 
 function YearSelectField({
+  disabled = false,
   error,
   id,
   label,
   value,
   onChange,
 }: {
+  disabled?: boolean;
   error?: string | null;
   id: string;
   label: string;
@@ -998,6 +954,7 @@ function YearSelectField({
       value={value}
       minYear={YEAR_MIN}
       maxYear={YEAR_MAX}
+      disabled={disabled}
       invalid={Boolean(error)}
       onChange={onChange}
     />
@@ -1116,7 +1073,6 @@ function AdminFansubEditContent({
       "anime-projekte": true,
       notes: true,
       mitglieder: true,
-      rollen: true,
       claims: true,
       vorschlaege: true,
       readiness: true,
@@ -1129,12 +1085,6 @@ function AdminFansubEditContent({
   const [bannerMedia, setBannerMedia] = useState<EditableMediaValue | null>(
     null,
   );
-  const [bannerEdgeFills, setBannerEdgeFills] =
-    useState<BannerEdgeFills | null>(null);
-  const [bannerSideWidths, setBannerSideWidths] = useState<BannerSideWidths>({
-    left: 0,
-    right: 0,
-  });
   const [initialLogoMedia, setInitialLogoMedia] =
     useState<EditableMediaValue | null>(null);
   const [initialBannerMedia, setInitialBannerMedia] =
@@ -1146,8 +1096,6 @@ function AdminFansubEditContent({
   const [slugChecking, setSlugChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const bannerShellRef = useRef<HTMLDivElement | null>(null);
-  const bannerImageRef = useRef<HTMLImageElement | null>(null);
   const themeUploadInputRef = useRef<HTMLInputElement | null>(null);
   const releaseRequestSeqRef = useRef(0);
   const releaseRequestByContextRef = useRef<Record<string, number>>({});
@@ -2045,66 +1993,6 @@ function AdminFansubEditContent({
   const bannerPreviewURL = buildMediaPreviewURL(bannerMedia);
   const logoPreviewURL = buildMediaPreviewURL(logoMedia);
 
-  useEffect(() => {
-    let active = true;
-    if (!bannerPreviewURL) {
-      setBannerEdgeFills(null);
-      return () => {
-        active = false;
-      };
-    }
-
-    void loadBannerEdgeFills(bannerPreviewURL).then((fills) => {
-      if (!active) return;
-      setBannerEdgeFills(fills);
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [bannerPreviewURL]);
-
-  useEffect(() => {
-    const shell = bannerShellRef.current;
-    const image = bannerImageRef.current;
-    if (!shell || !image) {
-      setBannerSideWidths({ left: 0, right: 0 });
-      return;
-    }
-
-    const measure = () => {
-      const shellRect = shell.getBoundingClientRect();
-      const imageRect = image.getBoundingClientRect();
-      const left = Math.max(0, Math.round(imageRect.left - shellRect.left) + 8);
-      const right = Math.max(
-        0,
-        Math.round(shellRect.right - imageRect.right) + 8,
-      );
-      setBannerSideWidths((current) =>
-        current.left === left && current.right === right
-          ? current
-          : { left, right },
-      );
-    };
-
-    measure();
-
-    const resizeObserver = new ResizeObserver(() => measure());
-    resizeObserver.observe(shell);
-    resizeObserver.observe(image);
-    window.addEventListener("resize", measure);
-
-    if (!image.complete) {
-      image.addEventListener("load", measure);
-    }
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener("resize", measure);
-      image.removeEventListener("load", measure);
-    };
-  }, [bannerPreviewURL]);
-
   if (loading)
     return (
       <main className={styles.page}>
@@ -2114,8 +2002,6 @@ function AdminFansubEditContent({
       </main>
     );
 
-  const showBannerSideFills =
-    bannerSideWidths.left > 12 || bannerSideWidths.right > 12;
   const themeSelectedCard = selectedReleaseSegment?.card ?? null;
   const themeSelectedLocked = themeSelectedCard
     ? themeSelectedCard.status === "global" ||
@@ -2299,55 +2185,20 @@ function AdminFansubEditContent({
       </p>
       {toast ? <div className={styles.fansubEditToast}>{toast}</div> : null}
 
-      <section className={styles.panel}>
+      <section className={`${styles.panel} ${styles.fansubEditWorkspacePanel}`}>
         <header className={styles.fansubEditHeaderCard}>
-          <div className={styles.fansubEditBannerShell} ref={bannerShellRef}>
+          <div className={styles.fansubEditBannerShell}>
             {bannerPreviewURL ? (
-              <>
-                {showBannerSideFills ? (
-                  <>
-                    <div
-                      className={`${styles.fansubEditBannerSideFill} ${styles.fansubEditBannerSideFillLeft}`}
-                      style={
-                        bannerEdgeFills?.left
-                          ? {
-                              backgroundImage: `url(${bannerEdgeFills.left})`,
-                              width: `${bannerSideWidths.left}px`,
-                            }
-                          : undefined
-                      }
-                      aria-hidden="true"
-                    />
-                    <div
-                      className={`${styles.fansubEditBannerSideFill} ${styles.fansubEditBannerSideFillRight}`}
-                      style={
-                        bannerEdgeFills?.right
-                          ? {
-                              backgroundImage: `url(${bannerEdgeFills.right})`,
-                              width: `${bannerSideWidths.right}px`,
-                            }
-                          : undefined
-                      }
-                      aria-hidden="true"
-                    />
-                    <div
-                      className={styles.fansubEditBannerEdgeFade}
-                      aria-hidden="true"
-                    />
-                  </>
-                ) : null}
-                <div className={styles.fansubEditBannerImage}>
-                  <Image
-                    ref={bannerImageRef}
-                    src={bannerPreviewURL}
-                    alt=""
-                    className={styles.fansubEditBannerImageElement}
-                    width={1200}
-                    height={180}
-                    unoptimized
-                  />
-                </div>
-              </>
+              <div className={styles.fansubEditBannerImage}>
+                <Image
+                  src={bannerPreviewURL}
+                  alt=""
+                  className={styles.fansubEditBannerImageElement}
+                  width={1200}
+                  height={220}
+                  unoptimized
+                />
+              </div>
             ) : (
               <div className={styles.fansubEditBannerPlaceholder}>
                 Kein Banner vorhanden
@@ -2415,7 +2266,6 @@ function AdminFansubEditContent({
         activeMainTab !== "anime-projekte" &&
         activeMainTab !== "notes" &&
         activeMainTab !== "mitglieder" &&
-        activeMainTab !== "rollen" &&
         activeMainTab !== "vorschlaege" &&
         activeMainTab !== "readiness" ? (
           <form className={styles.fansubEditForm} onSubmit={save}>
@@ -2443,38 +2293,12 @@ function AdminFansubEditContent({
               {tabUsesLeftWorkspace ? (
                 <div className={styles.fansubEditLeftColumn}>
                   {activeMainTab === "basic" ? (
-                    <details
-                      className={styles.fansubEditSection}
-                      open={isSectionOpen("basic")}
-                      onToggle={(event) =>
-                        onSectionToggle("basic", event.currentTarget.open)
-                      }
-                    >
-                      <summary className={styles.fansubEditSectionSummary}>
-                        Grunddaten
-                      </summary>
+                    <section className={styles.fansubEditBasicWorkspace}>
                       <div className={styles.fansubEditSectionBody}>
-                        <div className={styles.fansubEditBasicIntro}>
-                          <div>
-                            <p className={styles.fansubEditBasicEyebrow}>
-                              Profil
-                            </p>
-                            <h3 className={styles.fansubEditBasicTitle}>
-                              Fansubgruppe bearbeiten
-                            </h3>
-                            <p className={styles.fansubEditHint}>
-                              Name und zeitliche Einordnung der Fansubgruppe.
-                              Der Name wird zentral am Gruppendatensatz
-                              gespeichert und in verknüpften Ansichten über
-                              die Gruppen-ID wiederverwendet.
-                            </p>
-                          </div>
-                          <div className={styles.fansubEditBasicStatusCard}>
-                            <span>Aktueller Status</span>
-                            <strong>{labelForFansubStatus(form.status)}</strong>
-                          </div>
-                        </div>
-                        <div className={styles.fansubEditBasicSurface}>
+                        <Card
+                          variant="section"
+                          className={styles.fansubEditBasicSurface}
+                        >
                           <div className={styles.fansubEditBasicGrid}>
                             <div
                               className={`${styles.field} ${styles.fansubEditBasicField} ${styles.fansubEditBasicFieldWide}`}
@@ -2587,6 +2411,10 @@ function AdminFansubEditContent({
                                   setForm((c) => ({
                                     ...c,
                                     status: e.target.value as FansubStatus,
+                                    dissolvedYear:
+                                      e.target.value === "active"
+                                        ? ""
+                                        : c.dissolvedYear,
                                   }))
                                 }
                               >
@@ -2644,6 +2472,7 @@ function AdminFansubEditContent({
                                 Auflösungsjahr
                               </label>
                               <YearSelectField
+                                disabled={form.status === "active"}
                                 id="fansub-group-dissolved-year"
                                 label="Auflösungsjahr"
                                 value={form.dissolvedYear}
@@ -2664,14 +2493,12 @@ function AdminFansubEditContent({
                               ) : null}
                             </div>
                           </div>
-                        </div>
+                        </Card>
                         <div className={styles.fansubEditBasicSupplementGrid}>
-                          <Card
-                            variant="section"
-                            className={styles.fansubEditBrandingCard}
-                            title="Erscheinungsbild"
-                            description="Logo und Banner sind Teil der öffentlichen Gruppenidentität."
-                          >
+                          <section className={styles.fansubEditBrandingCard}>
+                            <h3 className={styles.fansubEditBasicPanelTitle}>
+                              Logo und Banner
+                            </h3>
                             <div className={styles.fansubEditMediaGrid}>
                               <MediaUpload
                                 type="logo"
@@ -2708,12 +2535,11 @@ function AdminFansubEditContent({
                                 }}
                               />
                             </div>
-                          </Card>
+                          </section>
                           <Card
                             variant="section"
                             className={styles.fansubEditAliasCard}
                             title="Aliase"
-                            description="Alternative Gruppennamen gehören direkt zu den Stammdaten der Gruppe."
                           >
                             <div className={styles.fansubEditAliasBody}>
                               <FormField
@@ -2779,23 +2605,10 @@ function AdminFansubEditContent({
                             variant="section"
                             className={styles.fansubEditCommunityCard}
                             header={
-                              <>
-                                <div>
-                                  <p className={styles.fansubEditBasicEyebrow}>
-                                    Community
-                                  </p>
-                                  <h4
-                                    className={
-                                      styles.fansubEditBasicSupplementTitle
-                                    }
-                                  >
-                                    Community-Links
-                                  </h4>
-                                  <p className={styles.fansubEditHint}>
-                                    Website, Discord oder Social-Profile der
-                                    Gruppe.
-                                  </p>
-                                </div>
+                              <div className={styles.fansubEditBasicPanelHeader}>
+                                <h3 className={styles.fansubEditBasicPanelTitle}>
+                                  Community-Links
+                                </h3>
                                 <Button
                                   type="button"
                                   variant="secondary"
@@ -2810,7 +2623,7 @@ function AdminFansubEditContent({
                                 >
                                   Link hinzufügen
                                 </Button>
-                              </>
+                              </div>
                             }
                           >
                             <div className={styles.fansubEditCommunityBody}>
@@ -2824,7 +2637,7 @@ function AdminFansubEditContent({
                           </p>
                         ) : null}
                       </div>
-                    </details>
+                    </section>
                   ) : null}
                 </div>
               ) : null}
@@ -2880,26 +2693,10 @@ function AdminFansubEditContent({
                   ) : null}
 
                   {activeMainTab === "collaboration" ? (
-                    <details
-                      className={styles.fansubEditSection}
-                      open={isSectionOpen("collaboration")}
-                      onToggle={(event) =>
-                        onSectionToggle(
-                          "collaboration",
-                          event.currentTarget.open,
-                        )
-                      }
-                    >
-                      <summary className={styles.fansubEditSectionSummary}>
-                        Mitglieder
-                      </summary>
-                      <div className={styles.fansubEditSectionBody}>
-                        <FansubAppMembersSection
-                          fansubId={fansubID}
-                          hasAccessToken={hasAuthSession}
-                        />
-                      </div>
-                    </details>
+                    <FansubAppMembersSection
+                      fansubId={fansubID}
+                      hasAccessToken={hasAuthSession}
+                    />
                   ) : null}
                 </div>
               ) : null}
@@ -3511,7 +3308,6 @@ function AdminFansubEditContent({
           </>
         ) : null}
         {activeMainTab === "mitglieder" ? <GroupMembersTab fansubId={fansubID} /> : null}
-        {activeMainTab === "rollen" ? <MemberRolesTab fansubId={fansubID} /> : null}
         {activeMainTab === "claims" ? <ClaimManagementPanel groupId={fansubID} isGlobalAdmin={isPlatformAdmin} /> : null}
         {activeMainTab === "vorschlaege" && capabilities ? (
           <>

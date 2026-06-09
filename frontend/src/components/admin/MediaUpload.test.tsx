@@ -54,6 +54,16 @@ vi.mock('@/lib/api', () => ({
     }
   },
   deleteFansubMedia: (...args: unknown[]) => deleteFansubMediaMock(...args),
+  resolveApiUrl: (value?: string | null) => {
+    const trimmed = (value || '').trim()
+    if (trimmed.startsWith('http://127.0.0.1:8092/api/')) {
+      return trimmed.replace('http://127.0.0.1:8092', '')
+    }
+    if (trimmed.startsWith('http://localhost:8092/api/')) {
+      return trimmed.replace('http://localhost:8092', '')
+    }
+    return trimmed
+  },
   uploadFansubMedia: (...args: unknown[]) => uploadFansubMediaMock(...args),
 }))
 
@@ -62,6 +72,7 @@ import { MediaUpload, type EditableMediaValue } from './MediaUpload'
 const uploadedMedia = {
   id: 55,
   public_url: '/media/groups/17/banner.png',
+  source_original_url: '/media/groups/17/banner-source.png',
   mime_type: 'image/png',
   size_bytes: 2048,
   filename: 'banner.png',
@@ -126,15 +137,29 @@ describe('MediaUpload', () => {
     const file = new File(['banner'], 'banner.png', { type: 'image/png' })
     fireEvent.change(screen.getByLabelText(/Banner Datei/i), { target: { files: [file] } })
 
+    expect(await screen.findByRole('dialog', { name: 'Banner ausrichten' })).not.toBeNull()
+    expect(uploadFansubMediaMock).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Ausschnitt speichern' }))
+
     await waitFor(() => expect(uploadFansubMediaMock).toHaveBeenCalledTimes(1))
     const uploadOptions = uploadFansubMediaMock.mock.calls[0][0] as {
+      file: File
       onProgress?: (percent: number) => void
       [key: string]: unknown
     }
     expect(uploadOptions).toMatchObject({
       fansubID: 17,
       kind: 'banner',
-      file,
+      visibilityCode: 'public',
+      reviewStatusCode: 'approved',
+    })
+    expect(uploadOptions.file).toMatchObject({
+      name: 'banner.png',
+      type: 'image/png',
+    })
+    expect(uploadOptions.sourceFile).toMatchObject({
+      name: 'banner.png',
+      type: 'image/png',
     })
     expect(uploadOptions).not.toHaveProperty('authToken')
 
@@ -148,6 +173,7 @@ describe('MediaUpload', () => {
       expect(onChange).toHaveBeenCalledWith({
         id: 55,
         publicURL: '/media/groups/17/banner.png',
+        sourceOriginalURL: '/media/groups/17/banner-source.png',
         mimeType: 'image/png',
         sizeBytes: 2048,
         filename: 'banner.png',
@@ -156,6 +182,37 @@ describe('MediaUpload', () => {
       })
     })
     await waitFor(() => expect(onBusyChange).toHaveBeenLastCalledWith(false))
+  })
+
+  it('uploads animated banner GIFs directly without opening the cropper', async () => {
+    uploadFansubMediaMock.mockResolvedValue({
+      data: {
+        media: {
+          ...uploadedMedia,
+          filename: 'banner.gif',
+          mime_type: 'image/gif',
+          public_url: '/media/groups/17/banner.gif',
+        },
+        gif_large_warning: false,
+      },
+    })
+
+    render(
+      <MediaUpload
+        type="banner"
+        fansubID={17}
+        groupName="Phase Fansubs"
+        value={null}
+        onChange={vi.fn()}
+      />,
+    )
+
+    const file = new File(['gif'], 'banner.gif', { type: 'image/gif' })
+    fireEvent.change(screen.getByLabelText(/Banner Datei/i), { target: { files: [file] } })
+
+    await waitFor(() => expect(uploadFansubMediaMock).toHaveBeenCalledTimes(1))
+    expect(uploadFansubMediaMock.mock.calls[0][0]).toMatchObject({ file })
+    expect(screen.queryByRole('dialog', { name: 'Banner ausrichten' })).toBeNull()
   })
 
   it('deletes group media without a token argument', async () => {
@@ -191,7 +248,7 @@ describe('MediaUpload', () => {
       />,
     )
 
-    expect(screen.getByRole('button', { name: /Banner ersetzen/i })).toHaveProperty('disabled', true)
+    expect(screen.getByText('Hochladen').closest('button')).toHaveProperty('disabled', true)
     const file = new File(['banner'], 'banner.png', { type: 'image/png' })
     fireEvent.change(screen.getByLabelText(/Banner Datei/i), { target: { files: [file] } })
 
@@ -231,6 +288,40 @@ describe('MediaUpload', () => {
     expect(uploadFansubMediaMock).not.toHaveBeenCalled()
   })
 
+  it('opens the shared cropper for existing raster banners from the retained source original', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      blob: () => Promise.resolve(new Blob(['banner'], { type: 'image/png' })),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(
+      <MediaUpload
+        type="banner"
+        fansubID={17}
+        groupName="Phase Fansubs"
+        value={makeValue({
+          id: null,
+          publicURL: 'http://127.0.0.1:8092/api/v1/media/files/banner.png',
+          sourceOriginalURL: 'http://127.0.0.1:8092/api/v1/media/files/banner-source.png',
+          filename: 'banner.png',
+          mimeType: 'image/png',
+          sizeBytes: null,
+          width: null,
+          height: null,
+        })}
+        onChange={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Banner bearbeiten/i }))
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/^\/api\/v1\/media\/files\/banner-source\.png/), { cache: 'no-store' })
+    expect(await screen.findByRole('dialog', { name: 'Banner ausrichten' })).not.toBeNull()
+    expect(uploadFansubMediaMock).not.toHaveBeenCalled()
+  })
+
   it('opens the shared cropper for raster logos before upload', async () => {
     uploadFansubMediaMock.mockResolvedValue({
       data: {
@@ -259,10 +350,14 @@ describe('MediaUpload', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt speichern' }))
 
     await waitFor(() => expect(uploadFansubMediaMock).toHaveBeenCalledTimes(1))
-    const uploadOptions = uploadFansubMediaMock.mock.calls[0][0] as { file: File }
+    const uploadOptions = uploadFansubMediaMock.mock.calls[0][0] as { file: File; sourceFile?: File }
     expect(uploadOptions.file).toMatchObject({
       name: 'logo.png',
       type: 'image/png',
+    })
+    expect(uploadOptions.sourceFile).toMatchObject({
+      name: 'logo.webp',
+      type: 'image/webp',
     })
   })
 
@@ -295,5 +390,21 @@ describe('MediaUpload', () => {
     await waitFor(() => expect(uploadFansubMediaMock).toHaveBeenCalledTimes(1))
     expect(uploadFansubMediaMock.mock.calls[0][0]).toMatchObject({ file })
     expect(screen.queryByRole('dialog', { name: 'Logo zuschneiden' })).toBeNull()
+  })
+
+  it('keeps technical ownership policy out of the visible branding upload UI', () => {
+    render(
+      <MediaUpload
+        type="banner"
+        fansubID={17}
+        groupName="Phase Fansubs"
+        value={null}
+        onChange={vi.fn()}
+      />,
+    )
+
+    expect(screen.queryByText(/Owner-Typ/i)).toBeNull()
+    expect(screen.queryByText(/öffentlich.*Identität/i)).toBeNull()
+    expect(screen.queryByText(/in Prüfung/i)).toBeNull()
   })
 })

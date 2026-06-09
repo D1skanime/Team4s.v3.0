@@ -440,6 +440,12 @@
   cursor: not-allowed;
 }
 
+.episodeMiniSaveButton {
+  border-color: var(--color-success);
+  background: var(--color-success);
+  color: #ffffff;
+}
+
 .episodeDangerButton {
   border-color: color-mix(in srgb, var(--color-error) 54%, transparent);
   background: color-mix(in srgb, var(--color-error) 12%, transparent);

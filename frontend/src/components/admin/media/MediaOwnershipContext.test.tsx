@@ -1,20 +1,17 @@
 // @vitest-environment jsdom
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+
 import { MediaOwnershipContext } from './MediaOwnershipContext'
 import type { MediaOwnershipContextValue } from './MediaOwnershipContext'
 
-// Minimale Mocks für Next.js-Umgebung
 vi.mock('next/image', () => ({
-  default: (props: Record<string, unknown>) => {
-    // eslint-disable-next-line @next/next/no-img-element
-    return null
-  },
+  default: () => null,
 }))
 
-describe('MediaOwnershipContext — D-06: ownerID-Validierung', () => {
-  it('ownerID=null → onContextChange mit ownerResolved=false; ErrorState sichtbar', () => {
+describe('MediaOwnershipContext - D-06: ownerID-Validierung', () => {
+  it('ownerID=null meldet ownerResolved=false und zeigt einen ErrorState', () => {
     const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
@@ -35,7 +32,7 @@ describe('MediaOwnershipContext — D-06: ownerID-Validierung', () => {
     expect(screen.getByText('Upload nicht möglich')).toBeTruthy()
   })
 
-  it('ownerID=0 → ownerResolved=false', () => {
+  it('ownerID=0 meldet ownerResolved=false', () => {
     const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
@@ -55,7 +52,7 @@ describe('MediaOwnershipContext — D-06: ownerID-Validierung', () => {
     )
   })
 
-  it('ownerID=5 → ownerResolved=true; ErrorState NICHT gerendert', () => {
+  it('ownerID=5 meldet ownerResolved=true und rendert keinen ErrorState', () => {
     const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
@@ -77,8 +74,8 @@ describe('MediaOwnershipContext — D-06: ownerID-Validierung', () => {
   })
 })
 
-describe('MediaOwnershipContext — D-03/D-09: statusPolicy', () => {
-  it('statusPolicy=in_review, ownerID=5 → onContextChange mit reviewStatusCode=in_review + visibilityCode=private', () => {
+describe('MediaOwnershipContext - D-03/D-09: statusPolicy', () => {
+  it('statusPolicy=in_review meldet reviewStatusCode=in_review und visibilityCode=private', () => {
     const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
@@ -101,7 +98,7 @@ describe('MediaOwnershipContext — D-03/D-09: statusPolicy', () => {
     )
   })
 
-  it('statusPolicy=immediate, ownerID=5 → onContextChange mit reviewStatusCode=approved + visibilityCode=public', () => {
+  it('statusPolicy=immediate meldet reviewStatusCode=approved und visibilityCode=public', () => {
     const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
@@ -125,8 +122,8 @@ describe('MediaOwnershipContext — D-03/D-09: statusPolicy', () => {
   })
 })
 
-describe('MediaOwnershipContext — D-05: Owner-Chip', () => {
-  it('ownerLabel=Gruppe X ist als read-only Text sichtbar; kein editierbares Feld', () => {
+describe('MediaOwnershipContext - D-05: Owner-Kontext bleibt intern', () => {
+  it('rendert keine technischen Owner-Typ- oder Owner-Label-Hinweise', () => {
     const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
@@ -141,17 +138,15 @@ describe('MediaOwnershipContext — D-05: Owner-Chip', () => {
       />,
     )
 
-    expect(screen.getByText(/Gruppe X/)).toBeTruthy()
-    // kein Input mit dem Owner-Label
-    const inputs = document.querySelectorAll('input')
-    inputs.forEach((input) => {
-      expect(input.value).not.toBe('Gruppe X')
-    })
+    expect(screen.queryByText(/Gruppe X/)).toBeNull()
+    expect(screen.queryByText(/Owner-Typ/)).toBeNull()
+    expect(screen.queryByText(/Upload für:/)).toBeNull()
+    expect(screen.queryByText(/Der Owner ergibt sich/)).toBeNull()
   })
 })
 
-describe('MediaOwnershipContext — D-08: categoryMode', () => {
-  it('categoryMode=slot, categoryValue=logo → Badge mit logo gerendert; kein Select', () => {
+describe('MediaOwnershipContext - D-08: categoryMode', () => {
+  it('categoryMode=slot rendert die Kategorie als Badge und kein Select', () => {
     const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
@@ -167,13 +162,10 @@ describe('MediaOwnershipContext — D-08: categoryMode', () => {
     )
 
     expect(screen.getByText('logo')).toBeTruthy()
-    // Bei slot-Mode: kein Kategorie-Select vorhanden
-    const selects = document.querySelectorAll('select')
-    // Bei statusPolicy=immediate gibt es auch keinen Status-Select → 0 Selects erwartet
-    expect(selects).toHaveLength(0)
+    expect(document.querySelectorAll('select')).toHaveLength(0)
   })
 
-  it('categoryMode=dropdown, categoryOptions=[{value:screenshot,label:Screenshot}] → Select gerendert', () => {
+  it('categoryMode=dropdown rendert die Kategorieoptionen', () => {
     const onContextChange = vi.fn<(ctx: MediaOwnershipContextValue) => void>()
 
     render(
@@ -189,8 +181,6 @@ describe('MediaOwnershipContext — D-08: categoryMode', () => {
     )
 
     expect(screen.getByText('Screenshot')).toBeTruthy()
-    // Bei dropdown-Mode + in_review: Kategorie-Select + Status-Select = 2 Selects
-    const selects = document.querySelectorAll('select')
-    expect(selects.length).toBeGreaterThanOrEqual(1)
+    expect(document.querySelectorAll('select').length).toBeGreaterThanOrEqual(1)
   })
 })

@@ -312,7 +312,7 @@ function AdminAnimeEpisodesContent() {
 
                 <div className={styles.actionsRow}>
                   <button
-                    className={`${styles.button} ${styles.buttonPrimary}`}
+                    className={`${styles.button} ${styles.buttonSuccess}`}
                     type="submit"
                     disabled={isCreating}
                   >

@@ -210,6 +210,17 @@
   border-color: #e55a31;
 }
 
+.buttonSuccess {
+  background: var(--color-success, #16a34a);
+  border-color: var(--color-success, #16a34a);
+  color: #ffffff;
+}
+
+.buttonSuccess:hover {
+  background: color-mix(in srgb, var(--color-success, #16a34a) 82%, #000000);
+  border-color: color-mix(in srgb, var(--color-success, #16a34a) 82%, #000000);
+}
+
 .buttonSecondary {
   background: #ffffff;
   border-color: #e1e1e6;

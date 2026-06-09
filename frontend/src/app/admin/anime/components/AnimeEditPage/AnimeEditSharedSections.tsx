@@ -290,7 +290,7 @@ export function AnimeEditReviewSection({
         <div className={styles.actionsRow}>
           <button
             type="button"
-            className={`${styles.button} ${styles.buttonPrimary}`}
+            className={`${styles.button} ${styles.buttonSuccess}`}
             onClick={editor.onSubmit}
             disabled={!editor.canSubmit || editor.isSubmitting}
           >

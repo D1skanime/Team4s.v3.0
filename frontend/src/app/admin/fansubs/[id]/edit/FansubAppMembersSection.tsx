@@ -1,9 +1,10 @@
 'use client'
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import Image from 'next/image'
 import { Calendar, CheckCircle2, Clock, Pencil, UserPlus } from 'lucide-react'
 
-import { Badge, Button, Card, Modal } from '@/components/ui'
+import { Badge, Button, Card, FormField, Input, Modal } from '@/components/ui'
 import {
   ApiError,
   cancelFansubGroupInvitation,
@@ -400,13 +401,11 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
   }
 
   return (
-    <div className={styles.fansubEditMembershipSurface}>
+    <Card variant="section" className={styles.fansubEditMembershipSurface}>
       <div className={styles.fansubEditMembershipIntro}>
         <div>
-          <p className={styles.fansubEditBasicEyebrow}>Gruppenbereich</p>
-          <h3 className={styles.fansubEditMembershipTitle}>Mitglieder und Rollen</h3>
           <p className={styles.fansubEditHint}>
-            Hier siehst du, wer zur Fansubgruppe gehört und welche Aufgaben die Person in der Gruppe übernimmt.
+            Wer zur Fansubgruppe gehört und welche Aufgaben die Person übernimmt.
           </p>
         </div>
         <div className={styles.fansubEditMembershipHeaderActions}>
@@ -455,6 +454,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
             <div className={styles.fansubEditMembershipList}>
               {members.map((member) => {
                 const fansubName = member.member?.fansub_name?.trim() || `Mitglied #${member.app_user_id}`
+                const avatarUrl = member.member?.avatar_url?.trim()
                 const isStatusBusy = busyKey === `status:${member.app_user_id}`
                 const isRoleEditorOpen = roleEditorMemberId === member.id
 
@@ -463,7 +463,17 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
                     <div className={styles.fansubEditMembershipCardTop}>
                       <div className={styles.fansubEditMembershipProfile}>
                         <div className={styles.fansubEditMembershipAvatar} aria-hidden="true">
-                          {formatMemberInitials(fansubName)}
+                          {avatarUrl ? (
+                            <Image
+                              src={avatarUrl}
+                              alt=""
+                              width={56}
+                              height={56}
+                              unoptimized
+                            />
+                          ) : (
+                            formatMemberInitials(fansubName)
+                          )}
                         </div>
                         <div className={styles.fansubEditMembershipIdentity}>
                           <div className={styles.fansubEditMembershipNameRow}>
@@ -619,20 +629,20 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
       >
         <div className={styles.fansubEditMembershipModalStack}>
           {canManageMembers ? (
-            <section className={styles.fansubEditMembershipModalSection}>
-              <div>
-                <p className={styles.fansubEditBasicEyebrow}>Bestehendes Profil</p>
-                <h4 className={styles.fansubEditMembershipSubtitle}>Fansub-Nick suchen</h4>
-                <p className={styles.fansubEditHint}>Die Verknüpfung zum Team4s-Konto passiert im Hintergrund.</p>
-              </div>
-
-              <input
-                type="search"
-                value={candidateQuery}
-                onChange={(event) => handleCandidateQueryChange(event.target.value)}
-                placeholder="Fansub-Nick suchen"
-                aria-label="Fansub-Nick suchen"
-              />
+            <Card
+              variant="nestedFlat"
+              title="Bestehendes Profil"
+              description="Fansub-Nick suchen und mit dieser Gruppe verbinden."
+            >
+              <FormField label="Fansub-Nick" htmlFor="fansub-member-candidate-query">
+                <Input
+                  id="fansub-member-candidate-query"
+                  type="search"
+                  value={candidateQuery}
+                  onChange={(event) => handleCandidateQueryChange(event.target.value)}
+                  placeholder="Fansub-Nick suchen"
+                />
+              </FormField>
 
               {candidateQuery.trim().length < 2 ? (
                 <p className={styles.fansubEditHint}>Gib mindestens zwei Zeichen ein, um passende Fansub-Nicks zu suchen.</p>
@@ -697,8 +707,8 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
               </div>
 
               <Button
-                variant="secondary"
-                size="sm"
+                variant="primary"
+                fullWidth
                 onClick={() => void handleAddMember()}
                 disabled={isAdding || !selectedCandidateId || selectedRoles.length === 0}
               >
@@ -710,23 +720,24 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
                       ? 'Aufgabe auswählen'
                       : 'Mitglied hinzufügen'}
               </Button>
-            </section>
+            </Card>
           ) : null}
 
           {canCreateInvitation ? (
-            <section className={styles.fansubEditMembershipModalSection}>
-              <div>
-                <p className={styles.fansubEditBasicEyebrow}>Einladung</p>
-                <h4 className={styles.fansubEditMembershipSubtitle}>Per E-Mail einladen</h4>
-              </div>
-
-              <input
-                type="email"
-                value={inviteEmail}
-                onChange={(event) => setInviteEmail(event.target.value)}
-                placeholder="E-Mail-Adresse für die Einladung"
-                aria-label="E-Mail-Adresse für die Einladung"
-              />
+            <Card
+              variant="nestedFlat"
+              title="Einladung"
+              description="Per E-Mail einladen und Aufgaben für die Annahme festlegen."
+            >
+              <FormField label="E-Mail-Adresse" htmlFor="fansub-member-invite-email">
+                <Input
+                  id="fansub-member-invite-email"
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(event) => setInviteEmail(event.target.value)}
+                  placeholder="E-Mail-Adresse für die Einladung"
+                />
+              </FormField>
 
               <div>
                 <p className={styles.fansubEditHint}>Aufgaben nach Annahme</p>
@@ -751,14 +762,14 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
               </div>
 
               <Button
-                variant="secondary"
-                size="sm"
+                variant="primary"
+                fullWidth
                 onClick={() => void handleCreateInvitation()}
                 disabled={isCreatingInvite || !inviteEmail.trim() || inviteRoles.length === 0}
               >
                 {isCreatingInvite ? 'Einladung wird erstellt...' : 'Einladung erstellen'}
               </Button>
-            </section>
+            </Card>
           ) : null}
         </div>
       </Modal>
@@ -797,6 +808,6 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
           </div>
         ) : null}
       </Modal>
-    </div>
+    </Card>
   )
 }

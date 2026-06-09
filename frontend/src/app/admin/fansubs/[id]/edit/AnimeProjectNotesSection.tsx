@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronRight, Pencil, Save, Trash2 } from 'lucide-react'
 
 import { RichTextEditor, RichTextRenderer } from '@/components/editor'
+import { Button } from '@/components/ui'
 import {
   ApiError,
   deleteAnimeFansubProjectNote,
@@ -242,15 +243,16 @@ function AnimeProjectNoteForm({ fansubId, anime, hasAccessToken, initialNote, on
 
       <div className={styles.editorActionBar}>
         <div className={styles.editorActionMeta} />
-        <button
+        <Button
           type="button"
-          className={`${styles.button} ${styles.editorPrimaryAction}`}
+          variant="success"
+          className={styles.editorPrimaryAction}
+          leftIcon={<Save size={14} />}
           onClick={() => void handleSave()}
           disabled={saving || !hasAccessToken}
         >
-          <Save size={14} />
           {saving ? 'Speichern...' : 'Speichern'}
-        </button>
+        </Button>
       </div>
     </section>
   )

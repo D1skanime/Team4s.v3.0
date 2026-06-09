@@ -29,6 +29,18 @@ type MediaSaveResult struct {
 	GIFLargeHint bool
 }
 
+// MediaVariantSaveResult beschreibt eine gespeicherte Datei-Variante zu einem
+// bestehenden Media-Asset, z.B. die interne source_original-Datei.
+type MediaVariantSaveResult struct {
+	Filename    string
+	StoragePath string
+	PublicURL   string
+	MimeType    string
+	SizeBytes   int64
+	Width       *int
+	Height      *int
+}
+
 // MediaValidationError repräsentiert einen Validierungsfehler bei einer Medien-Upload-Operation.
 type MediaValidationError struct {
 	Message string
@@ -124,6 +136,54 @@ func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, da
 
 	_ = originalName
 	return result, nil
+}
+
+// SaveUploadSourceOriginal validiert und speichert die unbearbeitete Quelle zu
+// einem Fansub-Branding-Upload. Die Datei wird nicht öffentlich verlinkt, aber
+// als editierbare Quelle über geschützte Admin-/Leader-Antworten durchgereicht.
+func (s *MediaService) SaveUploadSourceOriginal(kind models.MediaKind, originalName string, data []byte) (*MediaVariantSaveResult, error) {
+	if len(data) == 0 {
+		return nil, &MediaValidationError{Message: "datei ist leer"}
+	}
+
+	maxSize := int64(2 * 1024 * 1024)
+	if kind == models.MediaKindBanner {
+		maxSize = 5 * 1024 * 1024
+	}
+	if int64(len(data)) > maxSize {
+		if kind == models.MediaKindLogo {
+			return nil, &MediaValidationError{Message: "logo ist zu gross (max 2MB)"}
+		}
+		return nil, &MediaValidationError{Message: "banner ist zu gross (max 5MB)"}
+	}
+
+	detectedMime := detectMimeType(data)
+	if err := validateMimeForKind(kind, detectedMime); err != nil {
+		return nil, err
+	}
+
+	width, height := decodeImageDimensions(data)
+	ext := extensionFromMime(detectedMime)
+	filename := buildFilename(models.MediaKind(string(kind)+"_source"), ext)
+	absolutePath := filepath.Join(s.storageDir, filename)
+
+	if err := os.MkdirAll(filepath.Dir(absolutePath), 0o755); err != nil {
+		return nil, fmt.Errorf("create media directory: %w", err)
+	}
+	if err := os.WriteFile(absolutePath, data, fs.FileMode(0o644)); err != nil {
+		return nil, fmt.Errorf("write source media file: %w", err)
+	}
+
+	_ = originalName
+	return &MediaVariantSaveResult{
+		Filename:    filename,
+		StoragePath: absolutePath,
+		PublicURL:   fmt.Sprintf("%s/api/v1/media/files/%s", s.publicBaseURL, url.PathEscape(filename)),
+		MimeType:    detectedMime,
+		SizeBytes:   int64(len(data)),
+		Width:       width,
+		Height:      height,
+	}, nil
 }
 
 // SaveReleaseThemeVideoUpload validiert und speichert ein release-spezifisches Theme-Video fuer OP/ED-Assets.

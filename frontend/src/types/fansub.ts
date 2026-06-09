@@ -26,6 +26,8 @@ export interface FansubGroup {
   banner_id?: number | null;
   logo_url?: string | null;
   banner_url?: string | null;
+  logo_source_original_url?: string | null;
+  banner_source_original_url?: string | null;
   founded_year?: number | null;
   dissolved_year?: number | null;
   closed_year?: number | null;
@@ -96,6 +98,7 @@ export interface FansubAppMember {
 export interface FansubGroupMemberIdentity {
   member_id: number;
   fansub_name: string;
+  avatar_url?: string | null;
 }
 
 export interface FansubGroupMemberCandidate {
@@ -460,6 +463,7 @@ export interface FansubMediaAsset {
   id: number;
   filename: string;
   public_url: string;
+  source_original_url?: string | null;
   mime_type: string;
   size_bytes: number;
   width?: number | null;
@@ -555,7 +559,6 @@ export interface CreateGroupMemberRequest {
   display_name: string;
   joined_year: number | null;
   left_year: number | null;
-  app_user_id: number | null;
   status: HistoricalContributionStatus;
   visibility: HistoricalContributionVisibility;
 }
@@ -564,7 +567,6 @@ export interface UpdateGroupMemberRequest {
   display_name?: string;
   joined_year?: number | null;
   left_year?: number | null;
-  app_user_id?: number | null;
   status?: HistoricalContributionStatus;
   visibility?: HistoricalContributionVisibility;
 }

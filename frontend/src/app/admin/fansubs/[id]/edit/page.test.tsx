@@ -255,6 +255,15 @@ describe('ReleaseVersionMediaDrawerSummary', () => {
 })
 
 describe('AdminFansubEditPage token-free wiring', () => {
+  it('keeps the admin breadcrumb for platform admins', async () => {
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    expect(screen.getByRole('link', { name: 'Admin' }).getAttribute('href')).toBe('/admin')
+    expect(screen.getByRole('link', { name: 'Fansubs' }).getAttribute('href')).toBe('/admin/fansubs')
+    expect(screen.queryByRole('link', { name: 'Meine Gruppen' })).toBeNull()
+  })
+
   it('allows a non-platform release role into the fansub edit workspace with only release tabs', async () => {
     apiMocks.getCurrentUser.mockResolvedValue({
       data: { is_platform_admin: false },
@@ -416,6 +425,9 @@ describe('AdminFansubEditPage token-free wiring', () => {
     render(<AdminFansubEditPage />)
 
     await screen.findByRole('heading', { name: 'SubGroup' })
+    expect(screen.getByRole('link', { name: 'Meine Gruppen' }).getAttribute('href')).toBe('/manage/groups')
+    expect(screen.queryByRole('link', { name: 'Admin' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Fansubs' })).toBeNull()
     expect(screen.getByLabelText(/Fansubgruppen-Name/i)).not.toBeNull()
     expect(screen.queryByText('Slug')).toBeNull()
 
@@ -451,6 +463,42 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(foundedYear.textContent).toContain(currentYear)
   })
 
+  it('disables and clears the dissolution year while the group is active', async () => {
+    apiMocks.getFansubByID.mockResolvedValue({
+      data: {
+        id: 88,
+        name: 'SubGroup',
+        slug: 'subgroup',
+        status: 'dissolved',
+        group_type: 'group',
+        country: null,
+        founded_year: null,
+        dissolved_year: 2020,
+        logo_url: null,
+        banner_url: null,
+        logo_id: null,
+        banner_id: null,
+        website_url: null,
+        discord_url: null,
+        irc_url: null,
+        links: [],
+        updated_at: '2026-05-20T00:00:00Z',
+      },
+    })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    const dissolvedYear = screen.getByLabelText('Auflösungsjahr') as HTMLButtonElement
+    expect(dissolvedYear.disabled).toBe(false)
+    expect(dissolvedYear.textContent).toContain('2020')
+
+    fireEvent.change(screen.getByLabelText(/Status/i), { target: { value: 'active' } })
+
+    expect(dissolvedYear.disabled).toBe(true)
+    expect(dissolvedYear.textContent).toContain('Keine Angabe')
+  })
+
   it('does not show the group delete action while deletion ownership is unresolved', async () => {
     render(<AdminFansubEditPage />)
 
@@ -479,22 +527,27 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(screen.queryByRole('button', { name: 'AO x' })).toBeNull()
   })
 
-  it('passes no token-shaped prop into MediaUpload from the media tab', async () => {
+  it('renders branding uploads on Grunddaten and not in the media tab', async () => {
     render(<AdminFansubEditPage />)
 
     await screen.findByRole('heading', { name: 'SubGroup' })
-    fireEvent.click(screen.getByRole('button', { name: 'Medien' }))
-
     await waitFor(() => expect(mediaUploadProps.length).toBeGreaterThanOrEqual(2))
     expect(mediaUploadProps.every((props) => !Object.prototype.hasOwnProperty.call(props, 'authToken'))).toBe(true)
     expect(mediaUploadProps.slice(-2).map((props) => props.disabled)).toEqual([false, false])
+    expect(screen.getByTestId('media-upload-logo')).not.toBeNull()
+    expect(screen.getByTestId('media-upload-banner')).not.toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Medien' }))
+
+    expect(screen.queryByTestId('media-upload-logo')).toBeNull()
+    expect(screen.queryByTestId('media-upload-banner')).toBeNull()
   })
 
   it('passes token-free access state into child sections', async () => {
     render(<AdminFansubEditPage />)
 
     await screen.findByRole('heading', { name: 'SubGroup' })
-    fireEvent.click(screen.getByRole('button', { name: 'App-Mitglieder' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Fansub Members' }))
     expect(await screen.findByTestId('app-members-section')).not.toBeNull()
 
     expect(appMembersSectionProps.at(-1)).toMatchObject({ fansubId: 88, hasAccessToken: true })
@@ -712,6 +765,9 @@ describe('AdminFansubEditPage token-free wiring', () => {
 
 describe("Tab 'Veröffentlichung' — Capability-Gating (Req F)", () => {
   it('zeigt den Veröffentlichung-Tab wenn can_edit_group=true', async () => {
+    apiMocks.getCurrentUser.mockResolvedValueOnce({
+      data: { is_platform_admin: false },
+    })
     // Defaults: can_edit_group=true (gesetzt in beforeEach)
     render(<AdminFansubEditPage />)
 
@@ -722,6 +778,9 @@ describe("Tab 'Veröffentlichung' — Capability-Gating (Req F)", () => {
   })
 
   it('zeigt den Veröffentlichung-Tab wenn can_edit_notes=true (aber can_edit_group=false)', async () => {
+    apiMocks.getCurrentUser.mockResolvedValueOnce({
+      data: { is_platform_admin: false },
+    })
     apiMocks.getFansubGroupCapabilities.mockResolvedValueOnce({
       data: {
         can_edit_group: false,
@@ -747,6 +806,9 @@ describe("Tab 'Veröffentlichung' — Capability-Gating (Req F)", () => {
   })
 
   it('versteckt den Veröffentlichung-Tab bei reiner Mitgliedschaft (can_view_members=true, can_edit_group=false, can_edit_notes=false)', async () => {
+    apiMocks.getCurrentUser.mockResolvedValueOnce({
+      data: { is_platform_admin: false },
+    })
     apiMocks.getFansubGroupCapabilities.mockResolvedValueOnce({
       data: {
         can_edit_group: false,

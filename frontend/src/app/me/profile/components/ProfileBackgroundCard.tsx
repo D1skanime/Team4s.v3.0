@@ -5,7 +5,6 @@ import { useRef, useState } from 'react'
 import { Crop, ImageUp } from 'lucide-react'
 
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
-import { MediaOwnershipContext } from '@/components/admin/media/MediaOwnershipContext'
 import { Button } from '@/components/ui'
 import type { MemberProfileData } from '@/types/profile'
 
@@ -73,21 +72,8 @@ export function ProfileBackgroundCard({
     }
   }
 
-  const ownerMemberID = profile.member_id ?? null
-  const ownerName = profile.fansub_name || profile.account_display_name || 'Profil'
-
   return (
     <div className={styles.backgroundStack}>
-      <MediaOwnershipContext
-        ownerType="member"
-        ownerID={ownerMemberID}
-        ownerLabel={`Profil «${ownerName}»`}
-        categoryMode="slot"
-        categoryValue="hintergrund"
-        statusPolicy="immediate"
-        disabled={isUploading}
-        onContextChange={() => {}}
-      />
       <div className={styles.backgroundPreview}>
         {backgroundURL ? (
           <Image src={backgroundURL} alt="Aktuelles Profil-Hintergrundbild" width={960} height={192} unoptimized />

@@ -131,15 +131,14 @@ function AppShellNavGroups({
         <div className={styles.navGroup}>
           <p className={styles.navGroupLabel}>Meine Gruppen</p>
           {memberships.map((membership) => {
-            const baseHref = `/admin/fansubs/${membership.fansub_group_id}/edit`
-            const href = `${baseHref}?tab=releases`
+            const href = `/admin/fansubs/${membership.fansub_group_id}/edit`
 
             return (
               <Link
                 key={membership.fansub_group_id}
                 href={href}
-                className={`${styles.navItem} ${isCurrent(currentPath, baseHref) ? styles.navItemCurrent : ''}`}
-                aria-current={isCurrent(currentPath, baseHref) ? 'page' : undefined}
+                className={`${styles.navItem} ${isCurrent(currentPath, href) ? styles.navItemCurrent : ''}`}
+                aria-current={isCurrent(currentPath, href) ? 'page' : undefined}
               >
                 <span className={styles.navIcon} aria-hidden="true"><Users size={17} /></span>
                 <span>{membership.fansub_group_name}</span>

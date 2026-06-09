@@ -194,13 +194,14 @@ export function Team4sCropper({
   }
 
   const busy = disabled || isApplying
+  const isWideCrop = shape === 'rectangle' && aspectRatio > 1.5
 
   return (
     <div className={styles.dialogShell} role="presentation">
       <div className={styles.backdrop} aria-hidden="true" />
       <div
         ref={panelRef}
-        className={styles.panel}
+        className={`${styles.panel} ${isWideCrop ? styles.panelWide : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleID}
@@ -215,7 +216,12 @@ export function Team4sCropper({
         </header>
 
         <div>
-          <div className={styles.cropViewport} aria-label={cropAriaLabel} tabIndex={0}>
+          <div
+            className={`${styles.cropViewport} ${isWideCrop ? styles.cropViewportWide : ''}`}
+            style={{ aspectRatio }}
+            aria-label={cropAriaLabel}
+            tabIndex={0}
+          >
             {sourceURL ? (
               <Cropper
                 image={sourceURL}
@@ -270,7 +276,12 @@ export function Team4sCropper({
           >
             {resetLabel}
           </Button>
-          <Button onClick={() => void applyCrop()} loading={isApplying} disabled={disabled || !croppedArea}>
+          <Button
+            variant="success"
+            onClick={() => void applyCrop()}
+            loading={isApplying}
+            disabled={disabled || !croppedArea}
+          >
             {applyLabel}
           </Button>
         </div>

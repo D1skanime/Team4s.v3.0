@@ -31,8 +31,8 @@ WHERE fansub_group_id IN (
     SELECT id FROM fansub_groups WHERE group_type = 'collaboration'
 );
 
--- Step 4: segment_library — clear collaboration group references (analog Schritt 3)
-UPDATE segment_library
+-- Step 4: segment_library_definitions — clear collaboration group references (analog Schritt 3)
+UPDATE segment_library_definitions
 SET fansub_group_id = NULL
 WHERE fansub_group_id IN (
     SELECT id FROM fansub_groups WHERE group_type = 'collaboration'
@@ -65,7 +65,7 @@ BEGIN
             EXISTS (SELECT 1 FROM hist_fansub_group_members WHERE fansub_group_id = collab_id)
             OR EXISTS (SELECT 1 FROM anime_contributions   WHERE fansub_group_id = collab_id)
             OR EXISTS (SELECT 1 FROM theme_segments        WHERE fansub_group_id = collab_id)
-            OR EXISTS (SELECT 1 FROM segment_library       WHERE fansub_group_id = collab_id)
+            OR EXISTS (SELECT 1 FROM segment_library_definitions WHERE fansub_group_id = collab_id)
         ) INTO has_restrict_refs;
 
         IF has_restrict_refs THEN

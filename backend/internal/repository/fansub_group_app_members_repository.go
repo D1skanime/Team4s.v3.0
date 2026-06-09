@@ -16,7 +16,8 @@ import (
 )
 
 type FansubGroupAppMemberRepository struct {
-	db *pgxpool.Pool
+	db                 *pgxpool.Pool
+	mediaPublicBaseURL string
 }
 
 type MemberMutationConflict struct {
@@ -39,8 +40,12 @@ func AsMemberMutationConflict(err error) (*MemberMutationConflict, bool) {
 	return nil, false
 }
 
-func NewFansubGroupAppMemberRepository(db *pgxpool.Pool) *FansubGroupAppMemberRepository {
-	return &FansubGroupAppMemberRepository{db: db}
+func NewFansubGroupAppMemberRepository(db *pgxpool.Pool, mediaPublicBaseURL ...string) *FansubGroupAppMemberRepository {
+	baseURL := ""
+	if len(mediaPublicBaseURL) > 0 {
+		baseURL = strings.TrimRight(strings.TrimSpace(mediaPublicBaseURL[0]), "/")
+	}
+	return &FansubGroupAppMemberRepository{db: db, mediaPublicBaseURL: baseURL}
 }
 
 func (r *FansubGroupAppMemberRepository) SearchCandidates(
@@ -132,6 +137,7 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			fgm.updated_at,
 			COALESCE(claimed_m.id, legacy_m.id, 0) AS member_id,
 			COALESCE(NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), NULLIF(au.display_name, ''), 'Mitglied') AS fansub_name,
+			COALESCE(claimed_avatar.file_path, legacy_avatar.file_path, '') AS avatar_path,
 			COALESCE(
 				ARRAY(
 					SELECT role
@@ -153,6 +159,8 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 		) mc ON true
 		LEFT JOIN members claimed_m ON claimed_m.id = mc.member_id
 		LEFT JOIN members legacy_m ON legacy_m.user_id = au.legacy_user_id
+		LEFT JOIN media_assets claimed_avatar ON claimed_avatar.id = claimed_m.avatar_media_id
+		LEFT JOIN media_assets legacy_avatar ON legacy_avatar.id = legacy_m.avatar_media_id
 		WHERE fgm.fansub_group_id = $1
 		ORDER BY LOWER(COALESCE(NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), NULLIF(au.display_name, ''), 'Mitglied')), au.id
 	`, fansubGroupID)
@@ -166,6 +174,7 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 		var member models.FansubGroupAppMember
 		var memberRoles []string
 		var memberIdentity models.FansubGroupMemberIdentity
+		var avatarPath string
 		if err := rows.Scan(
 			&member.ID,
 			&member.FansubGroupID,
@@ -177,11 +186,15 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			&member.UpdatedAt,
 			&memberIdentity.MemberID,
 			&memberIdentity.FansubName,
+			&avatarPath,
 			&memberRoles,
 		); err != nil {
 			return nil, fmt.Errorf("list fansub group members: scan: %w", err)
 		}
 		member.Roles = normalizeDistinctStrings(memberRoles)
+		if avatarURL := r.publicURLForPath(avatarPath); avatarURL != "" {
+			memberIdentity.AvatarURL = &avatarURL
+		}
 		if memberIdentity.MemberID > 0 {
 			member.Member = &memberIdentity
 		}
@@ -452,6 +465,28 @@ func (r *FansubGroupAppMemberRepository) GetByID(ctx context.Context, memberID i
 	}
 
 	return nil, ErrNotFound
+}
+
+func (r *FansubGroupAppMemberRepository) publicURLForPath(filePath string) string {
+	trimmed := strings.TrimSpace(filePath)
+	if trimmed == "" {
+		return ""
+	}
+	if strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") {
+		return trimmed
+	}
+	normalized := strings.ReplaceAll(trimmed, "\\", "/")
+	if strings.HasPrefix(normalized, "/app/media/") {
+		trimmed = "/media/" + strings.TrimPrefix(normalized, "/app/media/")
+	} else if strings.HasPrefix(normalized, "app/media/") {
+		trimmed = "/media/" + strings.TrimPrefix(normalized, "app/media/")
+	} else if strings.HasPrefix(normalized, "media/") {
+		trimmed = "/" + normalized
+	}
+	if !strings.HasPrefix(trimmed, "/") {
+		trimmed = "/" + trimmed
+	}
+	return r.mediaPublicBaseURL + trimmed
 }
 
 func (r *FansubGroupAppMemberRepository) lookupMemberID(ctx context.Context, fansubGroupID int64, appUserID int64) (int64, error) {

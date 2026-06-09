@@ -137,7 +137,7 @@ export function AnimeRelationsSection({
               {model.inlineError ? <p className={relationStyles.errorBox}>{model.inlineError}</p> : null}
 
               <div className={relationStyles.actions}>
-                <button type="button" className={styles.buttonPrimary} onClick={() => void model.createRelation()} disabled={model.isSaving}>
+                <button type="button" className={`${styles.button} ${styles.buttonSuccess}`} onClick={() => void model.createRelation()} disabled={model.isSaving}>
                   Relation speichern
                 </button>
               </div>
@@ -170,7 +170,7 @@ export function AnimeRelationsSection({
                           </option>
                         ))}
                       </select>
-                      <button type="button" className={styles.buttonPrimary} onClick={() => void model.saveEditing()} disabled={model.isSaving}>
+                      <button type="button" className={`${styles.button} ${styles.buttonSuccess}`} onClick={() => void model.saveEditing()} disabled={model.isSaving}>
                         Speichern
                       </button>
                       <button type="button" className={styles.buttonSecondary} onClick={() => model.cancelEditing()}>

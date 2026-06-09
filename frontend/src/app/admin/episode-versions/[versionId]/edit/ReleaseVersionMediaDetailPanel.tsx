@@ -124,7 +124,7 @@ export function ReleaseVersionMediaDetailPanel({
       <div className={styles.buttonRow}>
         <button
           type="button"
-          className={styles.buttonPrimary}
+          className={`${styles.buttonPrimary} ${styles.buttonSuccess}`}
           onClick={() => void saveCaption()}
           disabled={!canEdit || isSaving || isDeleting}
         >

@@ -750,7 +750,7 @@ export default function UISystemPlaygroundPage() {
                   <>
                     <Button variant="ghost">Abbrechen</Button>
                     <Button variant="danger">Löschen</Button>
-                    <Button>Speichern</Button>
+                    <Button variant="success">Speichern</Button>
                   </>
                 )}
               />
@@ -882,7 +882,7 @@ export default function UISystemPlaygroundPage() {
 
                       <div className={styles.projectNotesActionBar}>
                         <p className={styles.projectNotesActionHint}>Gespeicherter Eintrag (ID: 2)</p>
-                        <Button>Speichern</Button>
+                        <Button variant="success">Speichern</Button>
                       </div>
                     </div>
                   </div>

@@ -4,6 +4,8 @@ import Image from 'next/image'
 import type { DragEvent, KeyboardEvent, MutableRefObject } from 'react'
 import { ImagePlus, Loader2, Pencil, RefreshCw, Trash2 } from 'lucide-react'
 
+import { Button } from '@/components/ui'
+
 import type { EditableMediaValue } from './MediaUpload'
 import styles from './MediaUpload.module.css'
 
@@ -13,11 +15,9 @@ export interface MediaUploadCoreProps {
   /** Aktuell gespeichertes Medium (für Preview) */
   value: EditableMediaValue | null
   /** Dateiname für Anzeige */
-  filename: string
   /** Vorschau-URL (bereits mit Cache-Buster) */
   previewURL: string
   /** Formatierte Dateigröße */
-  formattedSize: string
   /** Logo-Fallback (Initialen + Farbe) */
   fallback: { initials: string; background: string; color: '#FFFFFF' | '#111111' }
   /** Läuft gerade eine Aktion? */
@@ -54,7 +54,7 @@ export interface MediaUploadCoreProps {
   onDrop: (event: DragEvent<HTMLDivElement>) => void
   /** Wird aufgerufen, wenn die Dropzone per Tastatur aktiviert wird */
   onDropzoneKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void
-  /** Wird aufgerufen, wenn der User auf „Edit" klickt (nur Logo) */
+  /** Wird aufgerufen, wenn der User auf „Edit" klickt */
   onEditClick: () => void
   /** Wird aufgerufen, wenn der User löschen möchte */
   onRemoveClick: () => void
@@ -68,9 +68,7 @@ export interface MediaUploadCoreProps {
 export function MediaUploadCore({
   type,
   value,
-  filename,
   previewURL,
-  formattedSize,
   fallback,
   busy,
   preparingEdit,
@@ -95,6 +93,15 @@ export function MediaUploadCore({
   const isLogo = type === 'logo'
   const hasValue = Boolean(value?.publicURL?.trim())
   const title = isLogo ? 'Logo' : 'Banner'
+  const uploadActionLabel = hasValue ? 'Ersetzen' : 'Hochladen'
+  const dropzoneClassName = [
+    styles.dropzone,
+    isLogo ? styles.dropzoneLogo : styles.dropzoneBanner,
+    hasValue ? styles.dropzoneWithPreview : '',
+    dragging ? styles.dropzoneDrag : '',
+    error ? styles.dropzoneError : '',
+    disabled ? styles.dropzoneDisabled : '',
+  ].filter(Boolean).join(' ')
 
   return (
     <>
@@ -109,7 +116,7 @@ export function MediaUploadCore({
       </div>
 
       <div
-        className={`${styles.dropzone} ${dragging ? styles.dropzoneDrag : ''} ${error ? styles.dropzoneError : ''} ${disabled ? styles.dropzoneDisabled : ''}`}
+        className={dropzoneClassName}
         role="button"
         tabIndex={disabled ? -1 : 0}
         aria-label={dropzoneAriaLabel}
@@ -173,44 +180,42 @@ export function MediaUploadCore({
         </div>
       ) : null}
 
-      <div className={styles.fileMeta}>
-        <span>{filename || 'Kein Dateiname'}</span>
-        <span>{formattedSize}</span>
-      </div>
-
       <div className={styles.actions}>
-        {isLogo && hasValue ? (
-          <button
+        {hasValue ? (
+          <Button
             type="button"
-            className={styles.buttonSecondary}
+            variant="secondary"
+            size="sm"
             onClick={onEditClick}
             disabled={disabled || busy}
-            aria-label="Logo bearbeiten"
+            aria-label={`${title} bearbeiten`}
+            leftIcon={<Pencil size={14} />}
           >
-            <Pencil size={14} />
-            Edit
-          </button>
+            Bearbeiten
+          </Button>
         ) : null}
-        <button
+        <Button
           type="button"
-          className={styles.buttonSecondary}
+          variant="secondary"
+          size="sm"
           onClick={() => inputRef.current?.click()}
           disabled={disabled || busy}
-          aria-label={`${title} ersetzen`}
+          aria-label={`${title} ${hasValue ? 'ersetzen' : 'hochladen'}`}
+          leftIcon={hasValue ? <RefreshCw size={14} /> : <ImagePlus size={14} />}
         >
-          <RefreshCw size={14} />
-          Replace
-        </button>
-        <button
+          {uploadActionLabel}
+        </Button>
+        <Button
           type="button"
-          className={styles.buttonDanger}
+          variant="danger"
+          size="sm"
           onClick={onRemoveClick}
           disabled={disabled || busy || !hasValue}
           aria-label={`${title} löschen`}
+          leftIcon={<Trash2 size={14} />}
         >
-          <Trash2 size={14} />
-          Delete
-        </button>
+          Löschen
+        </Button>
       </div>
 
       {warning ? <p className={styles.warning} aria-live="polite">{warning}</p> : null}

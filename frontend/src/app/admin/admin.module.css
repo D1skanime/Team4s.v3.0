@@ -198,8 +198,15 @@
   color: color-mix(in srgb, #7f1d1d 72%, var(--text-primary));
 }
 
+.buttonSuccess {
+  border-color: var(--color-success);
+  background: var(--color-success);
+  color: #ffffff;
+}
+
 .button:disabled,
-.buttonSecondary:disabled {
+.buttonSecondary:disabled,
+.buttonSuccess:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }

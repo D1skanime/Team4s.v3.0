@@ -3,6 +3,7 @@
 import { Pencil, Save, Trash2 } from 'lucide-react'
 
 import { RichTextEditor, RichTextRenderer } from '@/components/editor'
+import { Button } from '@/components/ui'
 import { MemberStoryContextMember, MemberStoryContextRole } from '@/types/fansubNotes'
 import sharedStyles from '../../../admin.module.css'
 import editorScaffoldStyles from '../../../../../components/editor/EditorScaffold.module.css'
@@ -242,9 +243,15 @@ export function GroupNoteEditor({
       </div>
 
       <div className={styles.editorActionBar}>
-        <button type="button" className={styles.button} onClick={onSave} disabled={draft.saving || draft.deleting}>
-          <Save size={14} />{draft.saving ? 'Speichern...' : 'Speichern'}
-        </button>
+        <Button
+          variant="success"
+          className={styles.editorPrimaryAction}
+          leftIcon={<Save size={14} />}
+          onClick={onSave}
+          disabled={draft.saving || draft.deleting}
+        >
+          {draft.saving ? 'Speichern...' : 'Speichern'}
+        </Button>
         <button type="button" className={`${styles.buttonSecondary} ${styles.editorGhostButton}`} onClick={onDelete} disabled={draft.saving || draft.deleting}>
           <Trash2 size={14} />{draft.id != null ? (draft.deleting ? 'Löschen...' : 'Löschen') : 'Verwerfen'}
         </button>
@@ -368,9 +375,15 @@ export function StoryEditor({
       </div>
 
       <div className={styles.editorActionBar}>
-        <button type="button" className={styles.button} onClick={onSave} disabled={draft.saving || draft.deleting}>
-          <Save size={14} />{draft.saving ? 'Speichern...' : 'Speichern'}
-        </button>
+        <Button
+          variant="success"
+          className={styles.editorPrimaryAction}
+          leftIcon={<Save size={14} />}
+          onClick={onSave}
+          disabled={draft.saving || draft.deleting}
+        >
+          {draft.saving ? 'Speichern...' : 'Speichern'}
+        </Button>
         <button type="button" className={`${styles.buttonSecondary} ${styles.editorGhostButton}`} onClick={onDelete} disabled={draft.saving || draft.deleting}>
           <Trash2 size={14} />{draft.id != null ? (draft.deleting ? 'Löschen...' : 'Löschen') : 'Verwerfen'}
         </button>

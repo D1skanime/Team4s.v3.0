@@ -3,7 +3,6 @@ import { useRef, useState } from 'react'
 import { Crop, ImageUp } from 'lucide-react'
 
 import { AvatarCropDialog } from '@/components/media/crop/AvatarCropDialog'
-import { MediaOwnershipContext } from '@/components/admin/media/MediaOwnershipContext'
 import { Button } from '@/components/ui'
 import type { MemberProfileData } from '@/types/profile'
 
@@ -124,21 +123,8 @@ export function MemberAvatarCard({
     setSelectedFile(file)
   }
 
-  const ownerMemberID = profile.member_id ?? null
-  const ownerName = profile.fansub_name || profile.account_display_name || 'Profil'
-
   return (
     <div className={styles.avatarStack}>
-      <MediaOwnershipContext
-        ownerType="member"
-        ownerID={ownerMemberID}
-        ownerLabel={`Profil «${ownerName}»`}
-        categoryMode="slot"
-        categoryValue="avatar"
-        statusPolicy="immediate"
-        disabled={isUploading}
-        onContextChange={() => {}}
-      />
       <div className={styles.avatarPreview}>
         {avatarURL ? (
           <Image src={avatarURL} alt={`${label} Avatar`} width={420} height={420} unoptimized />

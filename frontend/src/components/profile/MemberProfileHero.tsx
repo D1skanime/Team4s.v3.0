@@ -110,6 +110,7 @@ export function MemberProfileHero({
                   <Button
                     className={styles.heroActionButton}
                     type="submit"
+                    variant="success"
                     form="member-profile-form"
                     loading={isSaving}
                     disabled={!canSave}

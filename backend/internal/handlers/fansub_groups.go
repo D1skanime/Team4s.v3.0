@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"log"
 	"math"
@@ -147,10 +148,32 @@ func (h *FansubHandler) GetFansubByID(c *gin.Context) {
 		})
 		return
 	}
+	h.attachFansubBrandingSourceOriginals(c.Request.Context(), item)
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": item,
 	})
+}
+
+func (h *FansubHandler) attachFansubBrandingSourceOriginals(ctx context.Context, item *models.FansubGroup) {
+	if h.mediaRepo == nil || item == nil {
+		return
+	}
+
+	if item.LogoID != nil && *item.LogoID > 0 {
+		if sourceURL, err := h.mediaRepo.GetMediaFileVariantURL(ctx, *item.LogoID, "source_original"); err == nil {
+			item.LogoSourceOriginalURL = sourceURL
+		} else if !errors.Is(err, repository.ErrNotFound) {
+			log.Printf("fansub get: load logo source original failed (fansub_id=%d, media_id=%d): %v", item.ID, *item.LogoID, err)
+		}
+	}
+	if item.BannerID != nil && *item.BannerID > 0 {
+		if sourceURL, err := h.mediaRepo.GetMediaFileVariantURL(ctx, *item.BannerID, "source_original"); err == nil {
+			item.BannerSourceOriginalURL = sourceURL
+		} else if !errors.Is(err, repository.ErrNotFound) {
+			log.Printf("fansub get: load banner source original failed (fansub_id=%d, media_id=%d): %v", item.ID, *item.BannerID, err)
+		}
+	}
 }
 
 // GetFansubBySlug gibt eine Fansub-Gruppe anhand ihres Slugs zurück.

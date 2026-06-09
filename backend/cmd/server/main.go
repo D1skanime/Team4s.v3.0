@@ -153,7 +153,7 @@ func main() {
 		mailerSvc = services.NewNoopMailer()
 		log.Printf("SMTP_ENABLED=false: Noop-Mailer aktiv (kein Mailversand)")
 	}
-	groupAppMemberRepo := repository.NewFansubGroupAppMemberRepository(dbPool)
+	groupAppMemberRepo := repository.NewFansubGroupAppMemberRepository(dbPool, cfg.MediaPublicBaseURL)
 	groupInvitationRepo := repository.NewFansubGroupInvitationRepository(dbPool, groupAppMemberRepo)
 	var authMiddleware gin.HandlerFunc
 	var authOptionalMiddleware gin.HandlerFunc

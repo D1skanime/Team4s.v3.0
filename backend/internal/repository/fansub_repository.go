@@ -52,7 +52,7 @@ func (r *FansubRepository) ListGroups(
 	listQuery := fmt.Sprintf(`
 		SELECT
 			id, slug, name, logo_id, banner_id, logo_url, banner_url,
-			founded_year, dissolved_year, closed_year, status, group_type, website_url, discord_url, irc_url, country,
+			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 		FROM fansub_groups
 		%s
@@ -92,20 +92,15 @@ func (r *FansubRepository) CreateGroup(
 	ctx context.Context,
 	input models.FansubGroupCreateInput,
 ) (*models.FansubGroup, error) {
-	groupType := input.GroupType
-	if groupType == "" {
-		groupType = models.FansubGroupTypeGroup
-	}
-
 	query := `
 		INSERT INTO fansub_groups (
 			slug, name, logo_id, banner_id, logo_url, banner_url, founded_year,
-			dissolved_year, status, group_type, website_url, discord_url, irc_url, country
+			dissolved_year, status, website_url, discord_url, irc_url, country
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 		RETURNING
 			id, slug, name, logo_id, banner_id, logo_url, banner_url,
-			founded_year, dissolved_year, closed_year, status, group_type, website_url, discord_url, irc_url, country,
+			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 	`
 
@@ -122,7 +117,6 @@ func (r *FansubRepository) CreateGroup(
 		input.FoundedYear,
 		input.DissolvedYear,
 		input.Status,
-		groupType,
 		input.WebsiteURL,
 		input.DiscordURL,
 		input.IrcURL,
@@ -164,7 +158,7 @@ func (r *FansubRepository) GetGroupByID(ctx context.Context, id int64) (*models.
 	query := `
 		SELECT
 			id, slug, name, logo_id, banner_id, logo_url, banner_url,
-			founded_year, dissolved_year, closed_year, status, group_type, website_url, discord_url, irc_url, country,
+			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 		FROM fansub_groups
 		WHERE id = $1
@@ -207,7 +201,7 @@ func (r *FansubRepository) GetGroupBySlug(ctx context.Context, slug string) (*mo
 	query := `
 		SELECT
 			id, slug, name, logo_id, banner_id, logo_url, banner_url,
-			founded_year, dissolved_year, closed_year, status, group_type, website_url, discord_url, irc_url, country,
+			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 		FROM fansub_groups
 		WHERE slug = $1
@@ -507,11 +501,6 @@ func (r *FansubRepository) UpdateGroup(
 		args = append(args, input.Status.Value)
 		argPos++
 	}
-	if input.GroupType.Set {
-		assignments = append(assignments, fmt.Sprintf("group_type = $%d", argPos))
-		args = append(args, input.GroupType.Value)
-		argPos++
-	}
 	if input.WebsiteURL.Set {
 		assignments = append(assignments, fmt.Sprintf("website_url = $%d", argPos))
 		args = append(args, input.WebsiteURL.Value)
@@ -534,6 +523,9 @@ func (r *FansubRepository) UpdateGroup(
 	}
 
 	if len(assignments) == 1 {
+		if input.GroupType.Set {
+			return r.GetGroupByID(ctx, id)
+		}
 		return nil, fmt.Errorf("update fansub group %d: no patch fields provided", id)
 	}
 
@@ -543,7 +535,7 @@ func (r *FansubRepository) UpdateGroup(
 		WHERE id = $%d
 		RETURNING
 			id, slug, name, logo_id, banner_id, logo_url, banner_url,
-			founded_year, dissolved_year, closed_year, status, group_type, website_url, discord_url, irc_url, country,
+			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 	`, strings.Join(assignments, ", "), argPos)
 	args = append(args, id)

@@ -75,8 +75,9 @@ type AppUserListItem struct {
 }
 
 type FansubGroupMemberIdentity struct {
-	MemberID   int64  `json:"member_id"`
-	FansubName string `json:"fansub_name"`
+	MemberID   int64   `json:"member_id"`
+	FansubName string  `json:"fansub_name"`
+	AvatarURL  *string `json:"avatar_url,omitempty"`
 }
 
 type FansubGroupMemberCandidate struct {

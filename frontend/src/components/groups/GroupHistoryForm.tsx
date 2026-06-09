@@ -125,7 +125,7 @@ export function GroupHistoryForm({
       ) : null}
 
       <div className={styles.historyFormActions}>
-        <Button type="submit" variant="primary" size="sm" disabled={isSaving}>
+        <Button type="submit" variant="success" size="sm" disabled={isSaving}>
           {isSaving ? 'Wird gespeichert …' : 'Meilenstein speichern'}
         </Button>
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={isSaving}>

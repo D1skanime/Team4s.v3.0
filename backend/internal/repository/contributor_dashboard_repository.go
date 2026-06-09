@@ -56,7 +56,7 @@ func (r *ContributorDashboardRepository) ListContributorGroups(
 			fg.slug,
 			fg.name,
 			fg.status,
-			fg.group_type,
+			'group' AS group_type,
 			fg.logo_url,
 			fg.banner_url,
 			COALESCE(NULLIF(m.nickname, ''), au.display_name, '') AS fansub_name,

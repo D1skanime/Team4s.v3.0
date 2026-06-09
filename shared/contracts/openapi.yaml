@@ -1438,6 +1438,11 @@ paths:
                 file:
                   type: string
                   format: binary
+                source_file:
+                  type: string
+                  format: binary
+                  nullable: true
+                  description: Optional uncropped source image retained as media_files.variant=source_original for later logo/banner re-cropping.
                 visibility_code:
                   type: string
                   nullable: true
@@ -8341,7 +8346,7 @@ components:
         source_original_url:
           type: string
           nullable: true
-          description: Optional own-profile edit source for re-cropping retained avatar originals; not a public display URL.
+          description: Optional protected edit source for re-cropping retained originals; not a public display URL.
         mime_type:
           type: string
         size_bytes:
@@ -9013,6 +9018,14 @@ components:
         banner_url:
           type: string
           nullable: true
+        logo_source_original_url:
+          type: string
+          nullable: true
+          description: Optional admin/leader edit source for re-cropping retained logo originals; not a public display URL.
+        banner_source_original_url:
+          type: string
+          nullable: true
+          description: Optional admin/leader edit source for re-cropping retained banner originals; not a public display URL.
         founded_year:
           type: integer
           format: int32
@@ -10763,6 +10776,9 @@ components:
           format: int64
         fansub_name:
           type: string
+        avatar_url:
+          type: string
+          nullable: true
     FansubGroupInvitationListResponse:
       type: object
       required: [data]

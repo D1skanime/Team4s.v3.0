@@ -237,7 +237,7 @@ export default function AnimeContributionModal({
           <Button variant="secondary" onClick={onClose} disabled={saving}>
             Abbrechen
           </Button>
-          <Button variant="primary" onClick={handleSave} disabled={saving}>
+          <Button variant="success" onClick={handleSave} disabled={saving}>
             {saving ? 'Wird gespeichert...' : 'Speichern'}
           </Button>
         </div>

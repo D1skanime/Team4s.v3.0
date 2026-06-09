@@ -28,6 +28,10 @@
   box-shadow: 0 18px 48px rgba(15, 23, 42, 0.28);
 }
 
+.panelWide {
+  width: min(100%, 1040px);
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -69,6 +73,10 @@
   border-radius: 8px;
   background: #111827;
   outline: none;
+}
+
+.cropViewportWide {
+  width: min(100%, 920px);
 }
 
 .cropViewport:focus-visible,

@@ -2160,6 +2160,7 @@ interface FansubMediaUploadOptions {
   fansubID: number;
   kind: FansubMediaKind;
   file: File;
+  sourceFile?: File;
   authToken?: string;
   onProgress?: (percent: number) => void;
   visibilityCode?: string;
@@ -2319,6 +2320,7 @@ export async function uploadFansubMedia(
       const body = new FormData();
       body.set("kind", options.kind);
       body.set("file", options.file);
+      if (options.sourceFile) body.set("source_file", options.sourceFile);
       if (options.visibilityCode) body.set("visibility_code", options.visibilityCode);
       if (options.reviewStatusCode) body.set("review_status_code", options.reviewStatusCode);
       return body;

@@ -4,17 +4,17 @@ import type { ChangeEvent, DragEvent, KeyboardEvent } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
-import { ApiError, deleteFansubMedia, uploadFansubMedia } from '@/lib/api'
+import { Card } from '@/components/ui'
+import { ApiError, deleteFansubMedia, resolveApiUrl, uploadFansubMedia } from '@/lib/api'
 import { FansubMediaKind } from '@/types/fansub'
 
 import { MediaUploadCore } from './MediaUploadCore'
-import { MediaOwnershipContext } from './media/MediaOwnershipContext'
-import type { MediaOwnershipContextValue } from './media/MediaOwnershipContext'
 import styles from './MediaUpload.module.css'
 
 export interface EditableMediaValue {
   id?: number | null
   publicURL?: string | null
+  sourceOriginalURL?: string | null
   mimeType?: string | null
   sizeBytes?: number | null
   filename?: string | null
@@ -33,7 +33,9 @@ interface MediaUploadProps {
   [compatProp: string]: unknown
 }
 
-const CROP_OUTPUT_SIZE = 512
+const LOGO_CROP_OUTPUT_SIZE = 512
+const BANNER_CROP_OUTPUT_WIDTH = 1200
+const BANNER_CROP_OUTPUT_HEIGHT = 220
 
 function extensionForMime(mimeType: string): string {
   if (mimeType === 'image/jpeg') return 'jpg'
@@ -51,13 +53,6 @@ function readErrorMessage(error: unknown, fallback: string): string {
     return error.message
   }
   return fallback
-}
-
-function formatBytes(bytes?: number | null): string {
-  if (!bytes || bytes <= 0) return '-'
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
 }
 
 function deriveFilename(value: EditableMediaValue | null): string {
@@ -88,13 +83,21 @@ function appendCacheBustParam(rawURL: string, cacheKey: string): string {
   }
 }
 
-function logoCropFilename(sourceName: string): string {
-  const baseName = sourceName.replace(/\.[^.]+$/, '').trim() || 'logo'
+function cropFilename(sourceName: string, fallbackName: string): string {
+  const baseName = sourceName.replace(/\.[^.]+$/, '').trim() || fallbackName
   return `${baseName}.png`
 }
 
+function isRasterMimeType(mimeType: string): boolean {
+  return mimeType === 'image/png' || mimeType === 'image/jpeg' || mimeType === 'image/webp'
+}
+
+function isRasterCropCandidate(file: File): boolean {
+  return isRasterMimeType(file.type)
+}
+
 export function buildMediaPreviewURL(value: EditableMediaValue | null): string {
-  const raw = value?.publicURL?.trim() || ''
+  const raw = resolveApiUrl(value?.publicURL?.trim() || '')
   if (!raw) return ''
 
   const keyParts: Array<string> = []
@@ -198,14 +201,16 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
   const [cropSourceFile, setCropSourceFile] = useState<File | null>(null)
-  // Vorbereiteter State für MediaOwnershipContext-Integration (Task 2)
-  const [ownerCtx, setOwnerCtx] = useState<MediaOwnershipContextValue | null>(null)
+  const [cropOriginalFile, setCropOriginalFile] = useState<File | null>(null)
 
   const fallback = useMemo(() => buildFansubLogoFallback(groupName), [groupName])
   const busy = busyAction !== null || preparingEdit
   const isLogo = type === 'logo'
+  const mediaLabel = isLogo ? 'Logo' : 'Banner'
+  const ownerResolved = fansubID > 0
   const filename = deriveFilename(value)
   const previewURL = buildMediaPreviewURL(value)
+  const editSourceURL = resolveApiUrl(value?.sourceOriginalURL?.trim() || '') || previewURL || resolveApiUrl(value?.publicURL?.trim() || '')
   const acceptedMime = isLogo ? 'image/svg+xml,image/png,image/jpeg,image/webp' : 'image/png,image/jpeg,image/webp,image/gif'
   const dropzoneAriaLabel = isLogo
     ? Boolean(value?.publicURL?.trim()) ? 'Logo ersetzen oder neu hochladen' : 'Logo hochladen'
@@ -215,10 +220,9 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
     onBusyChange?.(busy)
   }, [busy, onBusyChange])
 
-  const submitUpload = async (file: File) => {
-    // D-06: Upload blockieren wenn Owner nicht aufgelöst
-    if (!ownerCtx?.ownerResolved) {
-      setError('Upload nicht möglich: Kein gültiger Owner-Kontext.')
+  const submitUpload = async (file: File, sourceFile?: File | null) => {
+    if (!ownerResolved) {
+      setError('Upload nicht möglich: Kein gültiger Gruppen-Kontext.')
       return
     }
 
@@ -232,15 +236,17 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
         fansubID,
         kind: type,
         file,
+        sourceFile: sourceFile ?? undefined,
         onProgress: setProgress,
-        visibilityCode: ownerCtx.visibilityCode,
-        reviewStatusCode: ownerCtx.reviewStatusCode,
+        visibilityCode: 'public',
+        reviewStatusCode: 'approved',
       })
 
       const media = response.data.media
       onChange({
         id: media.id,
         publicURL: media.public_url,
+        sourceOriginalURL: media.source_original_url ?? null,
         mimeType: media.mime_type,
         sizeBytes: media.size_bytes,
         filename: media.filename,
@@ -261,9 +267,9 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
     }
   }
 
-  const onEditCurrentLogo = async () => {
-    if (!isLogo || !Boolean(value?.publicURL?.trim()) || disabled || busy) return
-    const sourceURL = previewURL || value?.publicURL?.trim() || ''
+  const onEditCurrentMedia = async () => {
+    if (!Boolean(value?.publicURL?.trim()) || disabled || busy) return
+    const sourceURL = editSourceURL
     if (!sourceURL) return
 
     setError(null)
@@ -273,20 +279,30 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
     try {
       const response = await fetch(sourceURL, { cache: 'no-store' })
       if (!response.ok) {
-        throw new Error(`(${response.status}) Logo konnte nicht geladen werden.`)
+        throw new Error(`(${response.status}) ${mediaLabel} konnte nicht geladen werden.`)
       }
       const blob = await response.blob()
       const mimeType = blob.type || value?.mimeType?.trim() || 'image/png'
-      if (mimeType === 'image/svg+xml') {
+      if (isLogo && mimeType === 'image/svg+xml') {
         setError('SVG-Logos können nicht zugeschnitten werden. Lade eine neue SVG-Datei hoch oder ersetze das Logo mit einem Rasterbild.')
         return
       }
-      const baseName = (filename || 'logo').replace(/\.[^.]+$/, '') || 'logo'
+      if (!isLogo && mimeType === 'image/gif') {
+        setError('Animierte Banner können nicht zugeschnitten werden, weil dabei die Animation verloren gehen würde.')
+        return
+      }
+      if (!isRasterMimeType(mimeType)) {
+        setError(`${mediaLabel} kann nicht zugeschnitten werden. Lade eine PNG-, JPG- oder WEBP-Datei hoch.`)
+        return
+      }
+      const fallbackName = isLogo ? 'logo' : 'banner'
+      const baseName = (filename || fallbackName).replace(/\.[^.]+$/, '') || fallbackName
       const editableName = `${baseName}.${extensionForMime(mimeType)}`
       const editableFile = new File([blob], editableName, { type: mimeType })
       setCropSourceFile(editableFile)
+      setCropOriginalFile(editableFile)
     } catch (nextError) {
-      setError(readErrorMessage(nextError, 'Logo konnte nicht zum Bearbeiten geladen werden.'))
+      setError(readErrorMessage(nextError, `${mediaLabel} konnte nicht zum Bearbeiten geladen werden.`))
     } finally {
       setPreparingEdit(false)
     }
@@ -302,8 +318,19 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
       return
     }
 
-    if (type === 'banner' && file.type === 'image/gif' && file.size > 4 * 1024 * 1024) {
-      setWarning('Hinweis: Dieses GIF ist groß (>4MB) und kann langsamer laden.')
+    if (type === 'banner') {
+      if (file.type === 'image/gif') {
+        if (file.size > 4 * 1024 * 1024) {
+          setWarning('Hinweis: Dieses GIF ist groß (>4MB) und kann langsamer laden.')
+        }
+        await submitUpload(file)
+        return
+      }
+      if (isRasterCropCandidate(file)) {
+        setCropSourceFile(file)
+        setCropOriginalFile(file)
+        return
+      }
     }
 
     if (type === 'logo') {
@@ -312,6 +339,7 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
         return
       }
       setCropSourceFile(file)
+      setCropOriginalFile(file)
       return
     }
 
@@ -360,25 +388,11 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
   }
 
   return (
-    <div className={styles.card}>
-      {/* D-07: Surface 1 — Fansub Branding-Slot (ownerType=fansub_group, statusPolicy=immediate) */}
-      <MediaOwnershipContext
-        ownerType="fansub_group"
-        ownerID={fansubID}
-        ownerLabel={groupName ? `Gruppe «${groupName}»` : ''}
-        categoryMode="slot"
-        categoryValue={type}
-        statusPolicy="immediate"
-        disabled={disabled}
-        onContextChange={setOwnerCtx}
-      />
-
+    <Card variant="section" className={isLogo ? styles.cardLogo : styles.cardBanner}>
       <MediaUploadCore
         type={type}
         value={value}
-        filename={filename}
         previewURL={previewURL}
-        formattedSize={formatBytes(value?.sizeBytes)}
         fallback={fallback}
         busy={busy}
         preparingEdit={preparingEdit}
@@ -387,7 +401,7 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
         error={error}
         warning={warning}
         dragging={dragging}
-        disabled={disabled || ownerCtx?.ownerResolved === false}
+        disabled={disabled || !ownerResolved}
         inputRef={inputRef}
         acceptedMime={acceptedMime}
         dropzoneAriaLabel={dropzoneAriaLabel}
@@ -409,33 +423,40 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
         }}
         onDrop={(event) => void onDrop(event)}
         onDropzoneKeyDown={onDropzoneKeyDown}
-        onEditClick={() => void onEditCurrentLogo()}
+        onEditClick={() => void onEditCurrentMedia()}
         onRemoveClick={() => void onRemove()}
       />
 
-      {type === 'logo' && cropSourceFile ? (
+      {cropSourceFile ? (
         <Team4sCropper
           file={cropSourceFile}
-          title="Logo zuschneiden"
-          cropAriaLabel="Logo-Ausschnitt wählen"
-          shape="circle"
-          aspectRatio={1}
+          title={isLogo ? 'Logo zuschneiden' : 'Banner ausrichten'}
+          cropAriaLabel={isLogo ? 'Logo-Ausschnitt wählen' : 'Banner-Ausschnitt wählen'}
+          shape={isLogo ? 'circle' : 'rectangle'}
+          aspectRatio={isLogo ? 1 : BANNER_CROP_OUTPUT_WIDTH / BANNER_CROP_OUTPUT_HEIGHT}
           output={{
-            width: CROP_OUTPUT_SIZE,
-            height: CROP_OUTPUT_SIZE,
+            width: isLogo ? LOGO_CROP_OUTPUT_SIZE : BANNER_CROP_OUTPUT_WIDTH,
+            height: isLogo ? LOGO_CROP_OUTPUT_SIZE : BANNER_CROP_OUTPUT_HEIGHT,
             mimeType: 'image/png',
-            filename: logoCropFilename(cropSourceFile.name),
+            filename: cropFilename(cropSourceFile.name, isLogo ? 'logo' : 'banner'),
           }}
-          hint="Bild ziehen oder zoomen. Escape schließt den Cropper."
+          hint={isLogo
+            ? 'Bild ziehen oder zoomen. Escape schließt den Cropper.'
+            : 'Banner ziehen oder zoomen. Der Ausschnitt wird für die breite Headerfläche gespeichert.'}
           applyLabel="Ausschnitt speichern"
           disabled={busy}
-          onCancel={() => setCropSourceFile(null)}
-          onApply={async (croppedFile) => {
+          onCancel={() => {
             setCropSourceFile(null)
-            await submitUpload(croppedFile)
+            setCropOriginalFile(null)
+          }}
+          onApply={async (croppedFile) => {
+            const originalFile = cropOriginalFile
+            setCropSourceFile(null)
+            setCropOriginalFile(null)
+            await submitUpload(croppedFile, originalFile)
           }}
         />
       ) : null}
-    </div>
+    </Card>
   )
 }

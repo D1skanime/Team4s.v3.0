@@ -255,6 +255,59 @@ func (r *MediaRepository) InsertMediaFile(
 	return nil
 }
 
+func (r *MediaRepository) ListMediaFilePaths(ctx context.Context, mediaID int64) ([]string, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT path
+		FROM media_files
+		WHERE media_id = $1
+	`, mediaID)
+	if err != nil {
+		return nil, fmt.Errorf("list media file paths for asset %d: %w", mediaID, err)
+	}
+	defer rows.Close()
+
+	paths := make([]string, 0)
+	for rows.Next() {
+		var rawPath string
+		if err := rows.Scan(&rawPath); err != nil {
+			return nil, fmt.Errorf("scan media file path for asset %d: %w", mediaID, err)
+		}
+		if trimmed := strings.TrimSpace(rawPath); trimmed != "" {
+			paths = append(paths, r.resolveReadableStoragePath(trimmed))
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate media file paths for asset %d: %w", mediaID, err)
+	}
+	return paths, nil
+}
+
+func (r *MediaRepository) GetMediaFileVariantURL(ctx context.Context, mediaID int64, variant string) (*string, error) {
+	trimmedVariant := strings.TrimSpace(variant)
+	if mediaID <= 0 || trimmedVariant == "" {
+		return nil, ErrNotFound
+	}
+
+	var filePath string
+	if err := r.db.QueryRow(ctx, `
+		SELECT path
+		FROM media_files
+		WHERE media_id = $1 AND variant = $2
+		ORDER BY id DESC
+		LIMIT 1
+	`, mediaID, trimmedVariant).Scan(&filePath); errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	} else if err != nil {
+		return nil, fmt.Errorf("get media file variant url (media_id=%d, variant=%q): %w", mediaID, trimmedVariant, err)
+	}
+
+	url := r.buildPublicURL(mediaFilename(filePath))
+	if strings.TrimSpace(url) == "" {
+		return nil, ErrNotFound
+	}
+	return &url, nil
+}
+
 func (r *MediaRepository) IsMediaAssetReferenced(ctx context.Context, mediaID int64) (bool, error) {
 	var count int64
 	if err := r.db.QueryRow(ctx, `
@@ -464,9 +517,12 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 			fgm.group_id   AS owner_id
 		FROM fansub_group_media fgm
 		JOIN media_assets ma ON ma.id = fgm.media_id
+		JOIN fansub_groups fg ON fg.id = fgm.group_id
 		LEFT JOIN visibilities v ON v.id = ma.visibility_id
 		LEFT JOIN review_statuses rs ON rs.id = ma.review_status_id
 		WHERE fgm.group_id = $1
+		  AND (fg.logo_id IS NULL OR ma.id <> fg.logo_id)
+		  AND (fg.banner_id IS NULL OR ma.id <> fg.banner_id)
 		ORDER BY ma.id DESC
 	`, fansubGroupID)
 	if err != nil {

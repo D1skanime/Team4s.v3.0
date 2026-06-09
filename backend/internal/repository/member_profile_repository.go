@@ -1042,18 +1042,22 @@ func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, appUserID
 		SELECT
 			rvm.id,
 			rvm.category,
-			COALESCE(mf_thumb.path, ''),
+			COALESCE(mf_thumb.path, mf_orig.path, ''),
 			a.title,
 			rv.id,
 			COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text))
 		FROM release_version_media rvm
+		JOIN media_assets ma ON ma.id = rvm.media_asset_id
 		JOIN release_versions rv ON rv.id = rvm.release_version_id
 		JOIN fansub_releases fr ON fr.id = rv.release_id
 		JOIN episodes e ON e.id = fr.episode_id
 		JOIN anime a ON a.id = e.anime_id
-		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = rvm.media_asset_id AND mf_thumb.variant = 'thumb'
+		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = rvm.media_asset_id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
+		LEFT JOIN media_files mf_orig ON mf_orig.media_id = rvm.media_asset_id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
 		WHERE rvm.uploaded_by_user_id = $1
 		  AND rvm.deleted_at IS NULL
+		  AND ma.status = 'ready'
+		  AND (mf_thumb.id IS NOT NULL OR mf_orig.id IS NOT NULL)
 		ORDER BY rvm.created_at DESC
 		LIMIT 3
 	`, appUserID)

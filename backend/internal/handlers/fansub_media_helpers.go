@@ -81,6 +81,10 @@ func (h *FansubHandler) tryCleanupUnusedMedia(ctx context.Context, mediaID int64
 		log.Printf("fansub media cleanup: load asset failed (media_id=%d): %v", mediaID, err)
 		return
 	}
+	filePaths, err := h.mediaRepo.ListMediaFilePaths(ctx, mediaID)
+	if err != nil {
+		log.Printf("fansub media cleanup: list media files failed (media_id=%d): %v", mediaID, err)
+	}
 
 	if err := h.mediaRepo.DeleteMediaAsset(ctx, mediaID); err != nil {
 		if !errors.Is(err, repository.ErrNotFound) {
@@ -91,6 +95,20 @@ func (h *FansubHandler) tryCleanupUnusedMedia(ctx context.Context, mediaID int64
 
 	if err := removeFileQuietly(asset.StoragePath); err != nil {
 		log.Printf("fansub media cleanup: delete file failed (media_id=%d, path=%q): %v", mediaID, asset.StoragePath, err)
+	}
+	seenPaths := map[string]struct{}{strings.TrimSpace(asset.StoragePath): {}}
+	for _, filePath := range filePaths {
+		trimmedPath := strings.TrimSpace(filePath)
+		if trimmedPath == "" {
+			continue
+		}
+		if _, seen := seenPaths[trimmedPath]; seen {
+			continue
+		}
+		seenPaths[trimmedPath] = struct{}{}
+		if err := removeFileQuietly(trimmedPath); err != nil {
+			log.Printf("fansub media cleanup: delete media file variant failed (media_id=%d, path=%q): %v", mediaID, trimmedPath, err)
+		}
 	}
 }
 

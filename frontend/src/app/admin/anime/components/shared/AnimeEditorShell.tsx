@@ -25,7 +25,7 @@ export function AnimeEditorShell({ editor, title, subtitle, header, children }: 
         <button
           type={editor.submitButtonType}
           form={editor.formID}
-          className={`${styles.button} ${styles.buttonPrimary}`}
+          className={`${styles.button} ${styles.buttonSuccess}`}
           disabled={editor.isSubmitting || !editor.canSubmit}
           onClick={editor.onSubmit}
         >

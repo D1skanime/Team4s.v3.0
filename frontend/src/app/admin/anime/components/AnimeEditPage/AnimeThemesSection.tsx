@@ -120,7 +120,7 @@ function AnimeThemeRow({ animeID, theme, episodes, model }: AnimeThemeRowProps) 
               onChange={(event) => model.setEditingTitle(event.target.value)}
               placeholder="Optionaler Titel"
             />
-            <button type="button" className={styles.buttonPrimary} onClick={() => void model.saveEditing()} disabled={model.isSaving}>
+            <button type="button" className={`${styles.button} ${styles.buttonSuccess}`} onClick={() => void model.saveEditing()} disabled={model.isSaving}>
               Speichern
             </button>
             <button type="button" className={styles.buttonSecondary} onClick={() => model.cancelEditing()}>
@@ -305,7 +305,7 @@ export function AnimeThemesSection({
               {model.inlineError ? <p className={themeStyles.errorBox}>{model.inlineError}</p> : null}
 
               <div className={themeStyles.actions}>
-                <button type="button" className={styles.buttonPrimary} onClick={() => void model.createTheme()} disabled={model.isSaving}>
+                <button type="button" className={`${styles.button} ${styles.buttonSuccess}`} onClick={() => void model.createTheme()} disabled={model.isSaving}>
                   Theme speichern
                 </button>
               </div>

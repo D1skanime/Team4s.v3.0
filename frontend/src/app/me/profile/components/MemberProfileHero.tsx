@@ -28,7 +28,7 @@ export function MemberProfileHero({ profile, avatarURL, isSaving, canSave }: Mem
             <Button className={styles.heroActionButton} href={publicProfileHref} variant="secondary" leftIcon={<Eye size={16} />}>
               Öffentliches Profil ansehen
             </Button>
-            <Button className={styles.heroActionButton} type="submit" form="member-profile-form" loading={isSaving} disabled={!canSave} leftIcon={<Save size={16} />}>
+            <Button className={styles.heroActionButton} type="submit" variant="success" form="member-profile-form" loading={isSaving} disabled={!canSave} leftIcon={<Save size={16} />}>
               Profil speichern
             </Button>
           </>

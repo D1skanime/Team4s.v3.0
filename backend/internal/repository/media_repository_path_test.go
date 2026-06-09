@@ -3,6 +3,7 @@ package repository
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -31,5 +32,23 @@ func TestMediaFilenameHandlesDockerAndWindowsPaths(t *testing.T) {
 		if got := mediaFilename(input); got != expected {
 			t.Fatalf("mediaFilename(%q) = %q, expected %q", input, got, expected)
 		}
+	}
+}
+
+func TestListFansubGroupMediaForReviewExcludesBrandingSlots(t *testing.T) {
+	content, err := os.ReadFile("media_repository.go")
+	if err != nil {
+		t.Fatalf("media_repository.go konnte nicht gelesen werden: %v", err)
+	}
+	source := string(content)
+
+	if !strings.Contains(source, "JOIN fansub_groups fg ON fg.id = fgm.group_id") {
+		t.Fatal("Review-Query muss fansub_groups joinen, um Logo/Banner-Slots auszuschließen")
+	}
+	if !strings.Contains(source, "fg.logo_id IS NULL OR ma.id <> fg.logo_id") {
+		t.Fatal("Review-Query muss das aktuelle Gruppenlogo aus Kontextmedien ausschließen")
+	}
+	if !strings.Contains(source, "fg.banner_id IS NULL OR ma.id <> fg.banner_id") {
+		t.Fatal("Review-Query muss das aktuelle Gruppenbanner aus Kontextmedien ausschließen")
 	}
 }

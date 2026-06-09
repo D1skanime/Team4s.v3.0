@@ -256,7 +256,7 @@ function ReleaseVersionMediaReviewSectionInner({ versionId, externalMedia, owner
 
                 <div className={styles.cardFooterActions}>
                   <Button
-                    variant="primary"
+                    variant="success"
                     size="sm"
                     leftIcon={<Save size={16} />}
                     disabled={saving[item.id] ?? false}

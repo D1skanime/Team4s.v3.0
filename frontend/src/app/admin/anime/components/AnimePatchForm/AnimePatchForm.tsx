@@ -211,7 +211,7 @@ export function AnimePatchForm({
         </div>
 
         <div className={styles.actions}>
-          <button className={styles.buttonSecondary} type="submit" disabled={patch.isSubmitting || !patch.isDirty}>
+          <button className={`${styles.button} ${styles.buttonSuccess}`} type="submit" disabled={patch.isSubmitting || !patch.isDirty}>
             {patch.isSubmitting ? 'Speichern...' : 'Änderungen speichern'}
           </button>
           {anime ? (

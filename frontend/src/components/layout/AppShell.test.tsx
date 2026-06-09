@@ -115,11 +115,11 @@ describe('AppShell', () => {
     expect(screen.getByText('Meine Gruppen')).not.toBeNull()
 
     const moonLink = screen.getByRole('link', { name: /Moon Subs/i })
-    expect(moonLink.getAttribute('href')).toBe('/admin/fansubs/42/edit?tab=releases')
+    expect(moonLink.getAttribute('href')).toBe('/admin/fansubs/42/edit')
     expect(moonLink.getAttribute('aria-current')).toBe('page')
 
     const kumoLink = screen.getByRole('link', { name: /Kumo Fansubs/i })
-    expect(kumoLink.getAttribute('href')).toBe('/admin/fansubs/77/edit?tab=releases')
+    expect(kumoLink.getAttribute('href')).toBe('/admin/fansubs/77/edit')
   })
 
   it('keeps admin navigation available when the caller has the capability', () => {
