@@ -460,10 +460,11 @@ Recent durable decisions:
 | 260610-fhn | Fansub-Members-UX-Schnitt dokumentieren: zwei Tabellen für App-Mitglieder und historische Mitglieder, ein Add-Flow, Claim-Verknüpfung nur durch Bestätigung | 2026-06-10 | this commit | [260610-fhn-fansub-members-ux-schnitt-dokumentieren-](./quick/260610-fhn-fansub-members-ux-schnitt-dokumentieren-/) |
 | 260610-hw1 | Banner-Buttons in Fansub-Edit auf 36px Höhe vereinheitlichen (align-content fix) | 2026-06-10 | dfa4497e | [260610-hw1-banner-buttons-in-fansub-edit-auf-36px-h](./quick/260610-hw1-banner-buttons-in-fansub-edit-auf-36px-h/) |
 | 260610-i2j | Fansub-Mitglieder und historische Mitglieder auf einer Collaboration-Seite zusammenführen | 2026-06-10 | this commit | [260610-i2j-fansub-mitglieder-und-historische-mitgli](./quick/260610-i2j-fansub-mitglieder-und-historische-mitgli/) |
+| 260610-iqh | Alias-Verwaltung in Fansub-Edit ins Grunddaten-Grid verschieben (Mehrfach-Aliase erhalten) | 2026-06-10 | 1f45e0b0 | [260610-iqh-alias-verwaltung-in-fansub-edit-ins-grun](./quick/260610-iqh-alias-verwaltung-in-fansub-edit-ins-grun/) |
 
 ## Session Continuity
 
 Last session: 2026-06-09T10:43:41.601Z
 Stopped at: Completed 81-02-PLAN.md
-Last activity: 2026-06-10 - Completed quick task 260610-i2j: Fansub-Mitglieder und historische Mitglieder auf Collaboration zusammengeführt
+Last activity: 2026-06-10 - Completed quick task 260610-iqh: Alias-Verwaltung in Grunddaten-Grid verschoben
 Resume file: None
