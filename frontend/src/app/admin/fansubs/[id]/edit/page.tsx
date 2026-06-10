@@ -2309,7 +2309,7 @@ function AdminFansubEditContent({
                                   *
                                 </span>
                               </label>
-                              <input
+                              <Input
                                 id="fansub-group-name"
                                 value={form.name}
                                 onChange={(e) =>
@@ -2320,12 +2320,7 @@ function AdminFansubEditContent({
                                 }
                                 required
                                 minLength={2}
-                                aria-invalid={Boolean(nameError)}
-                                className={
-                                  nameError
-                                    ? styles.fansubEditInputInvalid
-                                    : undefined
-                                }
+                                invalid={Boolean(nameError)}
                               />
                               {nameError ? (
                                 <p className={styles.fansubEditInlineError}>
@@ -2344,7 +2339,7 @@ function AdminFansubEditContent({
                                 </span>
                               </label>
                               <div className={styles.fansubEditSlugRow}>
-                                <input
+                                <Input
                                   id="fansub-group-slug"
                                   value={form.slug}
                                   onChange={(e) => {
@@ -2354,13 +2349,8 @@ function AdminFansubEditContent({
                                       slug: e.target.value,
                                     }));
                                   }}
-                                  aria-invalid={
+                                  invalid={
                                     Boolean(slugFormatError) || slugConflict
-                                  }
-                                  className={
-                                    slugFormatError || slugConflict
-                                      ? styles.fansubEditInputInvalid
-                                      : undefined
                                   }
                                 />
                                 <Button
@@ -2404,7 +2394,7 @@ function AdminFansubEditContent({
                                   *
                                 </span>
                               </label>
-                              <select
+                              <Select
                                 id="fansub-group-status"
                                 value={form.status}
                                 onChange={(e) =>
@@ -2423,13 +2413,13 @@ function AdminFansubEditContent({
                                     {labelForFansubStatus(s)}
                                   </option>
                                 ))}
-                              </select>
+                              </Select>
                             </div>
                             <div
                               className={`${styles.field} ${styles.fansubEditBasicField}`}
                             >
                               <label htmlFor="fansub-group-country">Land</label>
-                              <input
+                              <Input
                                 id="fansub-group-country"
                                 value={form.country}
                                 onChange={(e) =>

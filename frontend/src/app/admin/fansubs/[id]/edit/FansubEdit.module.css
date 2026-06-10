@@ -1055,10 +1055,6 @@
   color: var(--color-error);
 }
 
-.fansubEditInputInvalid {
-  border-color: color-mix(in srgb, var(--color-error) 62%, transparent) !important;
-}
-
 .fansubEditInlineError {
   margin: 0.2rem 0 0;
   color: var(--color-error);
