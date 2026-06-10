@@ -955,18 +955,12 @@
     0 10px 18px -20px rgba(17, 24, 39, 0.12);
 }
 
-.fansubEditAliasCard,
-.fansubEditCommunityCard {
-  min-width: 0;
-}
-
 .fansubEditBrandingCard {
   display: grid;
   gap: 0.85rem;
   min-width: 0;
 }
 
-.fansubEditAliasCard,
 .fansubEditCommunityCard {
   min-width: 0;
 }
@@ -986,7 +980,6 @@
   color: var(--text-primary);
 }
 
-.fansubEditAliasBody,
 .fansubEditCommunityBody {
   display: grid;
   gap: 0.8rem;
@@ -1019,6 +1012,10 @@
 
 .fansubEditBasicFieldWide {
   grid-column: span 6;
+}
+
+.fansubEditBasicFieldFull {
+  grid-column: 1 / -1;
 }
 
 .fansubEditBasicField label {
@@ -2845,5 +2842,32 @@
 .fansubEditTableRowActions {
   display: flex;
   gap: 8px;
+  align-items: center;
+}
+
+.fansubEditClaimCell,
+.fansubEditClaimList,
+.fansubEditClaimItem,
+.fansubEditClaimInvite {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.fansubEditClaimItem {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+  padding: 0.55rem;
+}
+
+.fansubEditClaimItem span {
+  overflow-wrap: anywhere;
+}
+
+.fansubEditClaimActions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
   align-items: center;
 }

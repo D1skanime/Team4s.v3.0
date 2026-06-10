@@ -92,7 +92,6 @@ import {
 } from "@/components/ui";
 import { AnimeProjectNotesSection } from "./AnimeProjectNotesSection";
 import AnimeContributionModal from "./AnimeContributionModal";
-import { ClaimManagementPanel } from "./ClaimManagementPanel";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
@@ -193,7 +192,6 @@ const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: "notes", label: "Gruppengeschichte" },
   { key: "media", label: "Medien" },
   { key: "collaboration", label: "Fansub Members" },
-  { key: "claims", label: "Claims" },
   { key: "vorschlaege", label: "Vorschläge" },
   { key: "releases", label: "Anime & Veröffentlichungen" },
   { key: "anime-projekte", label: "Anime-Einblicke" },
@@ -201,7 +199,7 @@ const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
 ];
 
 function parseMainTab(value: string | null): MainTab {
-  if (value === "rollen" || value === "mitglieder") return "collaboration";
+  if (value === "rollen" || value === "mitglieder" || value === "claims") return "collaboration";
   return MAIN_TABS.some((tab) => tab.key === value) ? (value as MainTab) : "basic";
 }
 
@@ -220,7 +218,13 @@ function canUseMainTab(
     case "links":
       return capabilities.can_manage_links;
     case "collaboration":
-      return capabilities.can_view_members || capabilities.can_manage_members;
+      return (
+        capabilities.can_view_members ||
+        capabilities.can_manage_members ||
+        capabilities.can_view_invitations ||
+        capabilities.can_create_invitation ||
+        capabilities.can_cancel_invitation
+      );
     case "claims":
       return (
         capabilities.can_view_invitations ||
@@ -2488,58 +2492,11 @@ function AdminFansubEditContent({
                                 </p>
                               ) : null}
                             </div>
-                          </div>
-                        </Card>
-                        <div className={styles.fansubEditBasicSupplementGrid}>
-                          <section className={styles.fansubEditBrandingCard}>
-                            <h3 className={styles.fansubEditBasicPanelTitle}>
-                              Logo und Banner
-                            </h3>
-                            <div className={styles.fansubEditMediaGrid}>
-                              <MediaUpload
-                                type="logo"
-                                fansubID={fansubID}
-                                groupName={form.name.trim() || group?.name || ""}
-                                value={logoMedia}
-                                disabled={!hasAuthSession || saving}
-                                onBusyChange={handleLogoMediaBusyChange}
-                                onChange={(nextValue) => {
-                                  setLogoMedia(nextValue);
-                                  setInitialLogoMedia(nextValue);
-                                  setToast(
-                                    nextValue?.publicURL
-                                      ? "Logo aktualisiert."
-                                      : "Logo entfernt.",
-                                  );
-                                }}
-                              />
-                              <MediaUpload
-                                type="banner"
-                                fansubID={fansubID}
-                                groupName={form.name.trim() || group?.name || ""}
-                                value={bannerMedia}
-                                disabled={!hasAuthSession || saving}
-                                onBusyChange={handleBannerMediaBusyChange}
-                                onChange={(nextValue) => {
-                                  setBannerMedia(nextValue);
-                                  setInitialBannerMedia(nextValue);
-                                  setToast(
-                                    nextValue?.publicURL
-                                      ? "Banner aktualisiert."
-                                      : "Banner entfernt.",
-                                  );
-                                }}
-                              />
-                            </div>
-                          </section>
-                          <Card
-                            variant="section"
-                            className={styles.fansubEditAliasCard}
-                            title="Aliase"
-                          >
-                            <div className={styles.fansubEditAliasBody}>
+                            <div
+                              className={`${styles.fansubEditBasicField} ${styles.fansubEditBasicFieldFull}`}
+                            >
                               <FormField
-                                label="Alias"
+                                label="Aliase"
                                 htmlFor="fansub-group-alias-input"
                                 error={aliasError || undefined}
                               >
@@ -2596,7 +2553,50 @@ function AdminFansubEditContent({
                                 </div>
                               </div>
                             </div>
-                          </Card>
+                          </div>
+                        </Card>
+                        <div className={styles.fansubEditBasicSupplementGrid}>
+                          <section className={styles.fansubEditBrandingCard}>
+                            <h3 className={styles.fansubEditBasicPanelTitle}>
+                              Logo und Banner
+                            </h3>
+                            <div className={styles.fansubEditMediaGrid}>
+                              <MediaUpload
+                                type="logo"
+                                fansubID={fansubID}
+                                groupName={form.name.trim() || group?.name || ""}
+                                value={logoMedia}
+                                disabled={!hasAuthSession || saving}
+                                onBusyChange={handleLogoMediaBusyChange}
+                                onChange={(nextValue) => {
+                                  setLogoMedia(nextValue);
+                                  setInitialLogoMedia(nextValue);
+                                  setToast(
+                                    nextValue?.publicURL
+                                      ? "Logo aktualisiert."
+                                      : "Logo entfernt.",
+                                  );
+                                }}
+                              />
+                              <MediaUpload
+                                type="banner"
+                                fansubID={fansubID}
+                                groupName={form.name.trim() || group?.name || ""}
+                                value={bannerMedia}
+                                disabled={!hasAuthSession || saving}
+                                onBusyChange={handleBannerMediaBusyChange}
+                                onChange={(nextValue) => {
+                                  setBannerMedia(nextValue);
+                                  setInitialBannerMedia(nextValue);
+                                  setToast(
+                                    nextValue?.publicURL
+                                      ? "Banner aktualisiert."
+                                      : "Banner entfernt.",
+                                  );
+                                }}
+                              />
+                            </div>
+                          </section>
                           <Card
                             variant="section"
                             className={styles.fansubEditCommunityCard}
@@ -3303,7 +3303,6 @@ function AdminFansubEditContent({
             ) : null}
           </>
         ) : null}
-        {activeMainTab === "claims" ? <ClaimManagementPanel groupId={fansubID} isGlobalAdmin={isPlatformAdmin} /> : null}
         {activeMainTab === "vorschlaege" && capabilities ? (
           <>
             <ContributionsReviewSection fansubId={fansubID} capabilities={capabilities} />
