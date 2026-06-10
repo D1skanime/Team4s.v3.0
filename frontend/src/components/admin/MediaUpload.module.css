@@ -1,12 +1,12 @@
 .cardLogo,
 .cardBanner {
   min-height: 310px;
+  align-content: start;
 }
 
 .cardLogo {
   width: 100%;
   justify-items: center;
-  align-content: start;
 }
 
 .cardBanner {
