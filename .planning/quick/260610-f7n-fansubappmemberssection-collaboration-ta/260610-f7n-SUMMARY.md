@@ -17,6 +17,8 @@ key_files:
     - frontend/src/app/admin/fansubs/[id]/edit/FansubAppMembersSection.test.tsx
     - frontend/src/app/admin/fansubs/[id]/edit/FansubEdit.module.css
     - frontend/src/app/admin/fansubs/[id]/edit/GroupMembersTab.tsx
+    - database/migrations/0103_fansub_roles_group_history_context.up.sql
+    - database/migrations/0103_fansub_roles_group_history_context.down.sql
 decisions:
   - findByPlaceholderText statt findByRole-name für Inputs mit Label+Placeholder genutzt
   - GroupMembersTab FANSUB_GROUP_ROLE_OPTIONS fix als separaten Commit mitgenommen
@@ -38,12 +40,14 @@ metrics:
 | 2 | Component migration (FansubAppMembersSection) | 37e80a90 | FansubAppMembersSection.tsx, FansubEdit.module.css |
 | 3 | Tests anpassen | 37e80a90 | FansubAppMembersSection.test.tsx |
 | - | GroupMembersTab FANSUB_GROUP_ROLE_OPTIONS fix | 0117d9cf | GroupMembersTab.tsx |
+| - | group_history-Kontext für zentrale Rollen | follow-up | 0103_fansub_roles_group_history_context.*.sql |
 
 ## What Was Built
 
 - **FansubAppMembersSection.tsx**: Migriert von `errorBox`/`successBox`/`fansubEditReleaseState`-divs auf globale Primitives `LoadingState` und `ErrorState`. Mitglieder-Abschnitt und Einladungs-Abschnitt nutzen `Table`/`TableEmptyState`/`SectionHeader` statt Card-Stapel. Alle Modals, Handler und Capability-Guards unverändert.
 - **FansubEdit.module.css**: Neue lokale CSS-Klassen `fansubEditTableSurface`, `fansubEditTableWrapWine`, `fansubEditTableRowActions` für das Showcase-Tabellen-Pattern.
 - **FansubAppMembersSection.test.tsx**: `findByRole("searchbox", { name: "Fansub-Nick suchen" })` und `findByRole("textbox", { name: "E-Mail-Adresse für die Einladung" })` auf `findByPlaceholderText` umgestellt — korrekte accessible names der verknüpften Labels werden nun nicht mehr umgangen.
+- **Migration 0103**: Erweiterte die zentralen Fansub-Rollen um den `group_history`-Kontext, damit historische Gruppenrollen dieselbe Rollentaxonomie wie App-Gruppenrollen verwenden können.
 
 ## Test Results
 
@@ -62,6 +66,12 @@ Tests:      73 passed (73)
 - **Fix:** Import von `FANSUB_GROUP_ROLE_OPTIONS` aus `@/types/fansub`, lokale Konstante entfernt
 - **Files modified:** `GroupMembersTab.tsx`
 - **Commit:** 0117d9cf
+
+**1b. [Contract Follow-up] role_definitions-Kontexte für historische Rollen ergänzt**
+- **Found during:** Nachkontrolle des `FANSUB_GROUP_ROLE_OPTIONS`-Fixes
+- **Issue:** Der Backend-Handler validiert `hist_group_member_roles.role_code` über `RoleCodeExistsForContext(..., "group_history")`; ohne DB-Kontext scheitern neu auswählbare App-Gruppenrollen bei historischen Mitgliedern.
+- **Fix:** Migration `0103_fansub_roles_group_history_context` ergänzt `group_history` für die zentralen Rollen und entfernt den Kontext im Rollback wieder für Rollen, die historisch nicht bereits `group_history` hatten.
+- **Files modified:** `database/migrations/0103_fansub_roles_group_history_context.up.sql`, `database/migrations/0103_fansub_roles_group_history_context.down.sql`
 
 **2. [Rule 1 - Bug] Test-Selektoren für accessible names korrigiert**
 - **Found during:** Task 3 — Tests schlugen wegen falscher ARIA accessible names fehl
