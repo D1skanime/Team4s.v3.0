@@ -1,12 +1,13 @@
 .cardLogo,
 .cardBanner {
+  display: flex;
+  flex-direction: column;
   min-height: 310px;
-  align-content: start;
 }
 
 .cardLogo {
   width: 100%;
-  justify-items: center;
+  align-items: center;
 }
 
 .cardBanner {
@@ -210,6 +211,7 @@
   display: flex;
   gap: 0.6rem;
   flex-wrap: wrap;
+  margin-top: auto;
 }
 
 .cardLogo .headerRow,
