@@ -2483,7 +2483,7 @@ function AdminFansubEditContent({
                               ) : null}
                             </div>
                             <div
-                              className={`${styles.fansubEditBasicField} ${styles.fansubEditBasicFieldFull}`}
+                              className={`${styles.fansubEditBasicField} ${styles.fansubEditBasicFieldWide}`}
                             >
                               <FormField
                                 label="Aliase"

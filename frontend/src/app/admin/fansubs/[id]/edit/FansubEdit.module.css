@@ -1002,6 +1002,7 @@
   display: grid;
   gap: 0.8rem;
   grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: start;
 }
 
 .fansubEditBasicField {
@@ -1012,10 +1013,6 @@
 
 .fansubEditBasicFieldWide {
   grid-column: span 6;
-}
-
-.fansubEditBasicFieldFull {
-  grid-column: 1 / -1;
 }
 
 .fansubEditBasicField label {
