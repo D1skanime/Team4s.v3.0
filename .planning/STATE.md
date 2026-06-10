@@ -252,6 +252,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 82 added: Mitwirkende projektweit zuordnen und Leader-Abdeckungs-Matrix - anime_contributions ankert kuenftig auf members.id (App- und historische Member gleichwertig buchbar), plus Leader-Cockpit (Projekt x Rolle Abdeckungs-Matrix mit Inline-Zuweisung und Standard-Team). Gelockte Entscheidungen + offene Fragen im Design-Seed 82-SEED.md; naechster Schritt /gsd:discuss-phase 82.
 - Phase 70 added: TipTap-Bilder fuer Member-Profilgeschichte - Member koennen Bilder in ihre eigene Fansub-Geschichte einfuegen; Bilder werden ueber bestehende Team4s-Media-Seams gespeichert und im TipTap-Dokument per Media-Asset-Referenz eingebettet, ohne Base64/externe URLs oder parallelen Upload-Weg.
 - Phase 55 added: Sichere TipTap-Persistenz fuer Profilgeschichte - `/me/profile` darf die Profilgeschichte nicht laenger ad hoc von TipTap nach Plain Text zurueckkonvertieren; Migration, Backend-TipTap-Service, OpenAPI/frontend DTOs, zentraler API-Client, Sanitizing und Bestandsdaten bewegen sich gemeinsam.
 - Phase 56 added: Cropper - der fragile eigene Cropper wird als eigener Folge-Slice mit gepflegter React-Cropper-Bibliothek geplant; Profil-Avatar und Fansub-Gruppenlogo sollen dieselbe gemeinsame Cropper-Komponente nutzen, ohne Upload-Endpunkte oder Media-Ownership zu vermischen.

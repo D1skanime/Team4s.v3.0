@@ -1474,6 +1474,16 @@ Plans:
   3. Member-Profil: `params`-Korrektheitsbug behoben (`React.use(params)`, keine sync-dynamic-API-Errors mehr); Badge-Chip-Verwaltung ("Ausblenden") nur im Owner-/Edit-Kontext, nicht auf der Anzeige; Rollen-Timeline-Kontrast/Styling gefixt; Medienbild mit korrektem Aspect-Ratio/URL. (Quelle-Todo: member-profil-ui-und-params-bug)
   4. Anzeige- vs. Bearbeiten-Trennung ist konsistent: kuenftig-oeffentliche Flaechen (z. B. `/admin/my-groups`) zeigen nur an, Bearbeiten lebt im Edit-Bereich (`/admin/fansubs/[id]/edit`). ESLint-`no-restricted-syntax`-Guard kann nach Migration der Altfaelle von `warn` auf `error` angehoben werden.
 
+### Phase 82: Mitwirkende projektweit zuordnen und Leader-Abdeckungs-Matrix
+
+**Goal:** Anime-Mitwirkende lassen sich für jede Person der Gruppe gleichwertig zuordnen (App-Member UND historische Member, Anker auf `members.id`), und ein Leader sieht über alle Projekte hinweg Abdeckung/Lücken in einer Matrix und weist direkt aus der Übersicht zu — ohne sich durch jedes Projekt-Modal zu klicken. Design-Seed (gelockte Entscheidungen + offene Fragen): `82-SEED.md`.
+**Requirements**: TBD
+**Depends on:** Phase 81
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 82 to break down)
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
