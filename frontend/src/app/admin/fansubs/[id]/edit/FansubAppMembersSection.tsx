@@ -2,9 +2,26 @@
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
-import { Calendar, CheckCircle2, Clock, Pencil, UserPlus } from 'lucide-react'
+import { Pencil, UserPlus } from 'lucide-react'
 
-import { Badge, Button, Card, FormField, Input, Modal } from '@/components/ui'
+import {
+  Badge,
+  Button,
+  Card,
+  ErrorState,
+  FormField,
+  Input,
+  LoadingState,
+  Modal,
+  SectionHeader,
+  Table,
+  TableBody,
+  TableCell,
+  TableEmptyState,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from '@/components/ui'
 import {
   ApiError,
   cancelFansubGroupInvitation,
@@ -433,108 +450,151 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
         </div>
       ) : null}
 
-      {isLoading ? <div className={styles.fansubEditReleaseState}>Mitglieder werden geladen...</div> : null}
-      {loadError ? <div className={styles.errorBox}>{loadError}</div> : null}
-      {actionError ? <div className={styles.errorBox}>{actionError}</div> : null}
+      {isLoading ? (
+        <LoadingState
+          title="Mitglieder werden geladen"
+          description="Team4s lädt die Mitglieder und Einladungen dieser Fansubgruppe."
+        />
+      ) : null}
+      {loadError ? (
+        <ErrorState
+          title="Mitglieder konnten nicht geladen werden"
+          description={loadError}
+          action={<Button variant="secondary" size="sm" onClick={() => void loadSection()}>Erneut laden</Button>}
+        />
+      ) : null}
+      {actionError ? (
+        <ErrorState
+          title="Aktion fehlgeschlagen"
+          description={actionError}
+        />
+      ) : null}
       {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}
 
       {!isLoading && !loadError && hasAccessToken && !canViewMembers && !canViewInvitations ? (
-        <div className={styles.errorBox}>Dir fehlen die Berechtigungen für Mitglieder und Einladungen dieser Fansubgruppe.</div>
+        <ErrorState
+          title="Fehlende Berechtigungen"
+          description="Dir fehlen die Berechtigungen für Mitglieder und Einladungen dieser Fansubgruppe."
+        />
       ) : null}
 
       {!isLoading && !loadError && hasAccessToken && (canViewMembers || canViewInvitations) ? (
         <>
-          {canViewMembers && members.length === 0 ? (
-            <div className={styles.fansubEditMembershipEmpty}>
-              <strong>Noch keine Mitglieder in dieser Gruppe</strong>
-              <p className={styles.fansubEditHint}>Sobald jemand hinzugefügt wurde, erscheinen Rollen und Status hier in der Übersicht.</p>
-            </div>
-          ) : null}
-          {canViewMembers && members.length > 0 ? (
-            <div className={styles.fansubEditMembershipList}>
-              {members.map((member) => {
-                const fansubName = member.member?.fansub_name?.trim() || `Mitglied #${member.app_user_id}`
-                const avatarUrl = member.member?.avatar_url?.trim()
-                const isStatusBusy = busyKey === `status:${member.app_user_id}`
-                const isRoleEditorOpen = roleEditorMemberId === member.id
+          {canViewMembers ? (
+            <>
+              <SectionHeader
+                title="Mitgliederübersicht"
+                actions={
+                  <Badge variant="muted">
+                    {members.length} {members.length === 1 ? 'Mitglied' : 'Mitglieder'}
+                  </Badge>
+                }
+              />
+              <div className={styles.fansubEditTableSurface}>
+                <Table
+                  variant="withActions"
+                  caption="Mitglieder dieser Fansubgruppe"
+                  containerClassName={styles.fansubEditTableWrapWine}
+                >
+                  <TableHead>
+                    <TableRow>
+                      <TableHeaderCell>Mitglied</TableHeaderCell>
+                      <TableHeaderCell>Rollen</TableHeaderCell>
+                      <TableHeaderCell>Status</TableHeaderCell>
+                      <TableHeaderCell>Seit</TableHeaderCell>
+                      {canManageMembers ? <TableHeaderCell>Aktionen</TableHeaderCell> : null}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {members.length === 0
+                      ? (
+                        <TableEmptyState
+                          colSpan={canManageMembers ? 5 : 4}
+                          title="Noch keine Mitglieder in dieser Gruppe"
+                          description="Sobald jemand hinzugefügt wurde, erscheinen Rollen und Status hier in der Übersicht."
+                        />
+                      )
+                      : members.map((member) => {
+                          const fansubName = member.member?.fansub_name?.trim() || `Mitglied #${member.app_user_id}`
+                          const avatarUrl = member.member?.avatar_url?.trim()
+                          const isStatusBusy = busyKey === `status:${member.app_user_id}`
 
-                return (
-                  <Card key={member.id} variant="compact" className={styles.fansubEditMembershipCard}>
-                    <div className={styles.fansubEditMembershipCardTop}>
-                      <div className={styles.fansubEditMembershipProfile}>
-                        <div className={styles.fansubEditMembershipAvatar} aria-hidden="true">
-                          {avatarUrl ? (
-                            <Image
-                              src={avatarUrl}
-                              alt=""
-                              width={56}
-                              height={56}
-                              unoptimized
-                            />
-                          ) : (
-                            formatMemberInitials(fansubName)
-                          )}
-                        </div>
-                        <div className={styles.fansubEditMembershipIdentity}>
-                          <div className={styles.fansubEditMembershipNameRow}>
-                            <strong>{fansubName}</strong>
-                          </div>
-                          <span className={styles.fansubEditMembershipMetaLine}>
-                            <span><Calendar size={14} aria-hidden="true" />Seit {formatDateTime(member.created_at)}</span>
-                            <span><Clock size={14} aria-hidden="true" />Aktualisiert {formatDateTime(member.updated_at)}</span>
-                          </span>
-                        </div>
-                      </div>
-                      <div className={styles.fansubEditMembershipControls}>
-                        <Badge variant={memberStatusVariant(member.status)}>
-                          <CheckCircle2 size={13} aria-hidden="true" />
-                          {formatMemberStatusLabel(member.status)}
-                        </Badge>
-                        {canManageMembers ? (
-                          <Button
-                            variant={member.status === 'active' ? 'ghost' : 'secondary'}
-                            size="sm"
-                            disabled={isStatusBusy}
-                            onClick={() => void handleToggleStatus(member)}
-                          >
-                            {isStatusBusy
-                              ? 'Bitte warten...'
-                              : member.status === 'active'
-                                ? 'Deaktivieren'
-                                : 'Reaktivieren'}
-                          </Button>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    <div className={styles.fansubEditMembershipBody}>
-                      <div className={styles.fansubEditMembershipRoleSummary}>
-                        <span>Aktive Rollen</span>
-                        <div className={styles.chipRow}>
-                          {member.roles.length > 0 ? member.roles.map((role) => (
-                            <Badge key={role} variant="info" className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(role))}>
-                              {formatRoleLabel(role)}
-                            </Badge>
-                          )) : <span className={styles.fansubEditHint}>Keine aktiven Aufgaben</span>}
-                        </div>
-                      </div>
-
-                      {canManageMembers ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          leftIcon={<Pencil size={14} aria-hidden="true" />}
-                          onClick={() => setRoleEditorMemberId((current) => (current === member.id ? null : member.id))}
-                        >
-                          {isRoleEditorOpen ? 'Rollen schließen' : 'Rollen bearbeiten'}
-                        </Button>
-                      ) : null}
-                    </div>
-
-                  </Card>
-                )
-              })}
-            </div>
+                          return (
+                            <TableRow key={member.id}>
+                              <TableCell>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <div className={styles.fansubEditMembershipAvatar} aria-hidden="true" style={{ width: 32, height: 32, fontSize: '0.75rem' }}>
+                                    {avatarUrl ? (
+                                      <Image
+                                        src={avatarUrl}
+                                        alt=""
+                                        width={32}
+                                        height={32}
+                                        unoptimized
+                                      />
+                                    ) : (
+                                      formatMemberInitials(fansubName)
+                                    )}
+                                  </div>
+                                  <strong>{fansubName}</strong>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className={styles.chipRow}>
+                                  {member.roles.length > 0
+                                    ? member.roles.map((role) => (
+                                        <Badge
+                                          key={role}
+                                          variant="info"
+                                          className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(role))}
+                                        >
+                                          {formatRoleLabel(role)}
+                                        </Badge>
+                                      ))
+                                    : <span className={styles.fansubEditHint}>Keine</span>
+                                  }
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={memberStatusVariant(member.status)}>
+                                  {formatMemberStatusLabel(member.status)}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>{formatDateTime(member.created_at)}</TableCell>
+                              {canManageMembers ? (
+                                <TableCell>
+                                  <div className={styles.fansubEditTableRowActions}>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      leftIcon={<Pencil size={14} aria-hidden="true" />}
+                                      onClick={() => setRoleEditorMemberId((current) => (current === member.id ? null : member.id))}
+                                    >
+                                      Rollen bearbeiten
+                                    </Button>
+                                    <Button
+                                      variant={member.status === 'active' ? 'ghost' : 'secondary'}
+                                      size="sm"
+                                      disabled={isStatusBusy}
+                                      onClick={() => void handleToggleStatus(member)}
+                                    >
+                                      {isStatusBusy
+                                        ? 'Bitte warten...'
+                                        : member.status === 'active'
+                                          ? 'Deaktivieren'
+                                          : 'Reaktivieren'}
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              ) : null}
+                            </TableRow>
+                          )
+                        })
+                    }
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           ) : null}
 
           <Card variant="nestedFlat" className={styles.fansubEditMembershipAssignCard}>
@@ -560,61 +620,77 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
                   </div>
                 ) : null}
 
-                {invitations.length === 0 ? (
-                  <div className={styles.fansubEditMembershipEmpty}>
-                    <strong>Keine offenen Einladungen</strong>
-                    <p className={styles.fansubEditHint}>Neue Einladungen erscheinen hier bis zur Annahme, zum Ablauf oder zur Rücknahme.</p>
-                  </div>
-                ) : (
-                  <div className={styles.fansubEditMembershipList}>
-                    {invitations.map((invitation) => {
-                      const invitationBusy = busyKey === `invitation:${invitation.id}`
-                      const invitedFansubName = invitation.member?.fansub_name?.trim()
-                      return (
-                        <Card key={invitation.id} variant="compact" className={styles.fansubEditMembershipCard}>
-                          <div className={styles.fansubEditMembershipCardTop}>
-                            <div className={styles.fansubEditMembershipIdentity}>
-                              <strong>{invitedFansubName || invitation.email}</strong>
-                              {invitedFansubName ? <span>{invitation.email}</span> : null}
-                              <span>Läuft ab: {formatDateTime(invitation.expires_at)}</span>
-                            </div>
-                            <div className={styles.fansubEditMembershipBadgeRow}>
-                              <Badge variant={invitationStatusVariant(invitation.status)}>
-                                {formatInvitationStatusLabel(invitation.status)}
-                              </Badge>
-                            </div>
-                          </div>
-                          <div>
-                            <p className={styles.fansubEditHint}>Aufgaben nach Annahme</p>
-                            <div className={styles.chipRow}>
-                              {invitation.invited_role_codes.map((role) => (
-                                <Badge
-                                  key={`${invitation.id}-${role}`}
-                                  variant="info"
-                                  className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(role))}
-                                >
-                                  {formatRoleLabel(role)}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                          {canCancelInvitation ? (
-                            <div className={styles.fansubEditMembershipActionRow}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled={invitationBusy}
-                                onClick={() => void handleCancelInvitation(invitation.id)}
-                              >
-                                {invitationBusy ? 'Bitte warten...' : 'Einladung zurückziehen'}
-                              </Button>
-                            </div>
-                          ) : null}
-                        </Card>
-                      )
-                    })}
-                  </div>
-                )}
+                <div className={styles.fansubEditTableSurface}>
+                  <Table
+                    variant="withActions"
+                    caption="Offene Einladungen"
+                    containerClassName={styles.fansubEditTableWrapWine}
+                  >
+                    <TableHead>
+                      <TableRow>
+                        <TableHeaderCell>Empfänger</TableHeaderCell>
+                        <TableHeaderCell>Rollen nach Annahme</TableHeaderCell>
+                        <TableHeaderCell>Status</TableHeaderCell>
+                        <TableHeaderCell>Läuft ab</TableHeaderCell>
+                        {canCancelInvitation ? <TableHeaderCell>Aktion</TableHeaderCell> : null}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {invitations.length === 0
+                        ? (
+                          <TableEmptyState
+                            colSpan={canCancelInvitation ? 5 : 4}
+                            title="Keine offenen Einladungen"
+                            description="Neue Einladungen erscheinen hier bis zur Annahme, zum Ablauf oder zur Rücknahme."
+                          />
+                        )
+                        : invitations.map((invitation) => {
+                            const invitedFansubName = invitation.member?.fansub_name?.trim()
+                            const invitationBusy = busyKey === `invitation:${invitation.id}`
+                            return (
+                              <TableRow key={invitation.id}>
+                                <TableCell>
+                                  <strong>{invitedFansubName || invitation.email}</strong>
+                                  {invitedFansubName ? <><br /><span>{invitation.email}</span></> : null}
+                                </TableCell>
+                                <TableCell>
+                                  <div className={styles.chipRow}>
+                                    {invitation.invited_role_codes.map((role) => (
+                                      <Badge
+                                        key={`${invitation.id}-${role}`}
+                                        variant="info"
+                                        className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(role))}
+                                      >
+                                        {formatRoleLabel(role)}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={invitationStatusVariant(invitation.status)}>
+                                    {formatInvitationStatusLabel(invitation.status)}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>{formatDateTime(invitation.expires_at)}</TableCell>
+                                {canCancelInvitation ? (
+                                  <TableCell>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      disabled={invitationBusy}
+                                      onClick={() => void handleCancelInvitation(invitation.id)}
+                                    >
+                                      {invitationBusy ? 'Bitte warten...' : 'Einladung zurückziehen'}
+                                    </Button>
+                                  </TableCell>
+                                ) : null}
+                              </TableRow>
+                            )
+                          })
+                      }
+                    </TableBody>
+                  </Table>
+                </div>
               </>
             )}
           </Card>
@@ -648,7 +724,10 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
                 <p className={styles.fansubEditHint}>Gib mindestens zwei Zeichen ein, um passende Fansub-Nicks zu suchen.</p>
               ) : null}
               {candidateQuery.trim().length >= 2 && isSearching ? (
-                <div className={styles.fansubEditReleaseState}>Mitglieder werden gesucht...</div>
+                <LoadingState
+                  title="Mitglieder werden gesucht"
+                  description="Passende Fansub-Nicks werden gesucht."
+                />
               ) : null}
               {candidateQuery.trim().length >= 2 && !isSearching && candidateResults.length === 0 ? (
                 <p className={styles.fansubEditHint}>Keine passenden Mitglieder gefunden.</p>

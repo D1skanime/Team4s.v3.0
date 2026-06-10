@@ -2810,3 +2810,34 @@
   border: none;
   border-top: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
 }
+
+/* FansubAppMembersSection table surface (260610-f7n) */
+
+.fansubEditTableSurface {
+  padding: 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(72, 58, 48, 0.06);
+  border-top-color: rgba(255, 248, 240, 0.78);
+  background-color: #ece4dc;
+  background-image: linear-gradient(to bottom, #f7f1eb, #ece4dc);
+  box-shadow:
+    0 1px 1px rgba(42, 30, 21, 0.2),
+    0 2px 3px rgba(42, 30, 21, 0.08);
+}
+
+.fansubEditTableWrapWine {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.fansubEditTableSurface .fansubEditTableWrapWine thead th {
+  background: transparent;
+  border-bottom: 3px solid #82122c;
+}
+
+.fansubEditTableRowActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}

@@ -138,9 +138,7 @@ describe("FansubAppMembersSection", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: "Mitglied hinzufügen" }));
 
-    const searchInput = await screen.findByRole("searchbox", {
-      name: "Fansub-Nick suchen",
-    });
+    const searchInput = await screen.findByPlaceholderText("Fansub-Nick suchen");
     fireEvent.change(searchInput, { target: { value: "phase" } });
 
     const candidateButton = await screen.findByRole("button", { name: /Phase Member/ });
@@ -214,7 +212,7 @@ describe("FansubAppMembersSection", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Mitglied hinzufügen" }));
 
     fireEvent.change(
-      await screen.findByRole("textbox", { name: "E-Mail-Adresse für die Einladung" }),
+      await screen.findByPlaceholderText("E-Mail-Adresse für die Einladung"),
       { target: { value: "invitee@example.local" } },
     );
     fireEvent.click(screen.getAllByRole("button", { name: /Editing/ }).at(-1) as HTMLElement);
@@ -268,7 +266,7 @@ describe("FansubAppMembersSection", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Mitglied hinzufügen" }));
 
     fireEvent.change(
-      await screen.findByRole("textbox", { name: "E-Mail-Adresse für die Einladung" }),
+      await screen.findByPlaceholderText("E-Mail-Adresse für die Einladung"),
       { target: { value: "smtp-fail@example.local" } },
     );
     fireEvent.click(screen.getAllByRole("button", { name: /Editing/ }).at(-1) as HTMLElement);
