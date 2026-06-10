@@ -1,5 +1,32 @@
 # DECISIONS
 
+## 2026-06-10 - Fansub Members Uses Two Domain Tables; Historical Linkage Only Through Confirmed Claims
+
+### Decision
+The admin fansub member workspace at `/admin/fansubs/[id]/edit` keeps one visible Fansub Members/Collaboration tab, but the content is split into two domain-owned tables:
+
+- `App-/Fansub-Members`: app/admin workspace members, invitations, access state, and permission roles.
+- `Historische Mitglieder`: public/historical fansub member entries and their role/task history.
+
+The tab has one primary `Mitglied hinzufügen` action. Its modal or drawer offers separate paths for app member/invitation work and historical member creation. Historical members do not have their own active/disabled/pending workflow status. Their visible claim state is derived from claims/linkage only: `Nicht beansprucht`, `Claim offen`, or `Bestätigt/verknüpft`.
+
+Historical member to app-profile linkage must not be performed manually by an admin in this UI. The linkage is created only when a logged-in user self-claims the historical member and a leader/admin confirms that claim.
+
+### Why This Won
+- A single mixed table makes app access and historical/public identity look like the same domain entity, which they are not.
+- Two tables keep the UI scannable while preserving the data ownership split between app membership, historical group members, claims, and invitations.
+- Self-claim confirmation prevents admins from accidentally attaching a historical identity to the wrong app profile.
+- Removing historical active/disabled/pending states keeps the historical row model simple: it is a historical entry; claim state belongs to the claim/linkage.
+
+### Consequences
+- Implement table UI with existing global primitives such as `frontend/src/components/ui/Table.tsx`, `Button`, `Badge`, `EmptyState`, and `Modal`/`Drawer`.
+- Do not add a UI action such as `Profil verknüpfen`, `App-Profil zuordnen`, or an equivalent manual linking path for historical members.
+- Claim review can surface beside or inside the historical table, but mutations remain claim/invitation operations.
+- Any backend/API changes needed later must keep contracts, DTOs, and frontend helpers aligned in the same change.
+
+### Follow-ups Required
+- The Phase 73 table UI agent should apply this as the target UX contract while avoiding concurrent overwrite of active edits in `FansubAppMembersSection.tsx`, `GroupMembersTab.tsx`, and related CSS.
+
 ## 2026-06-08 - Phasen-Ausführung komplett auf `main`; Worktree-Konvention abgeschafft (löst 2026-06-05 ab)
 
 ### Decision

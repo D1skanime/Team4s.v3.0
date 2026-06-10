@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
-stopped_at: Completed 81-02-PLAN.md
-last_updated: "2026-06-09T10:43:41.635Z"
-last_activity: 2026-06-09
+stopped_at: Completed quick task 260610-fhn
+last_updated: "2026-06-10T09:14:16.951Z"
+last_activity: 2026-06-10
 progress:
   total_phases: 77
   completed_phases: 60
@@ -36,6 +36,7 @@ Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
 
+- [Quick 260610-fhn]: Fansub Members uses two domain-owned tables in one tab: app/admin members and historical members. Historical member linkage to app profiles happens only through confirmed self-claims; historical rows have no active/disabled/pending workflow status.
 - [Phase 79-01]: STATUS_LABELS_ORDERED Reihenfolge: intern → in Prüfung → öffentlich → abgelehnt → archiviert → entfernt (UI-SPEC)
 - [Phase 79-01]: onContextChange via useEffect bei Owner-Guard und jeder Status-/Kategorie-Änderung
 - [Phase 79-01]: jsdom-Environment via @vitest-environment jsdom Direktive pro Datei (Datei-Ebene, nicht global in vitest.config.ts)
@@ -453,6 +454,7 @@ Recent durable decisions:
 | 260608-jb9 | Startseite UI-Regelverstoß beheben: native Link/Inline-Styles durch Button-Primitiv ersetzen | 2026-06-08 | f1ca2d46 | [260608-jb9-startseite-ui-regelverstoss-beheben-nati](./quick/260608-jb9-startseite-ui-regelverstoss-beheben-nati/) |
 | 260609-wev | ReleaseVersionNotesTab auf globales UI-System migrieren: native button/input/select durch @/components/ui-Primitives ersetzt, CSS bereinigt | 2026-06-09 | a3b17210 | [260609-wev-releaseversionnotestab-auf-globales-ui-s](./quick/260609-wev-releaseversionnotestab-auf-globales-ui-s/) |
 | 260609-x3q | Navigation zur Fansubgruppe im Episode-Version-Editor: Action-Bar-Button + Header-Subtitle-Link | 2026-06-09 | 7b45f40b | [260609-x3q-episode-version-editor-navigation-zuruec](./quick/260609-x3q-episode-version-editor-navigation-zuruec/) |
+| 260610-fhn | Fansub-Members-UX-Schnitt dokumentieren: zwei Tabellen für App-Mitglieder und historische Mitglieder, ein Add-Flow, Claim-Verknüpfung nur durch Bestätigung | 2026-06-10 | this commit | [260610-fhn-fansub-members-ux-schnitt-dokumentieren-](./quick/260610-fhn-fansub-members-ux-schnitt-dokumentieren-/) |
 
 ## Session Continuity
 
