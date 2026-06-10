@@ -30,13 +30,14 @@ import {
   updateGroupMember,
   updateMemberRole,
 } from '@/lib/api'
-import type {
-  CreateGroupMemberRequest,
-  CreateMemberRoleRequest,
-  HistFansubGroupMember,
-  HistGroupMemberRole,
-  HistoricalContributionStatus,
-  HistoricalContributionVisibility,
+import {
+  FANSUB_GROUP_ROLE_OPTIONS,
+  type CreateGroupMemberRequest,
+  type CreateMemberRoleRequest,
+  type HistFansubGroupMember,
+  type HistGroupMemberRole,
+  type HistoricalContributionStatus,
+  type HistoricalContributionVisibility,
 } from '@/types/fansub'
 
 import sharedStyles from '../../../admin.module.css'
@@ -50,14 +51,6 @@ type GroupMembersTabProps = {
 
 const CURRENT_YEAR = new Date().getFullYear()
 const YEAR_MIN = 1980
-
-const GROUP_HISTORY_ROLE_OPTIONS = [
-  { code: 'founder', label: 'Gründer/in' },
-  { code: 'leader', label: 'Gruppenleitung' },
-  { code: 'co_leader', label: 'Co-Leitung' },
-  { code: 'project_lead', label: 'Projektleitung' },
-  { code: 'project_manager', label: 'Projektmanagement' },
-]
 
 function formatApiError(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message
@@ -147,7 +140,7 @@ function roleStatusLabel(status: HistGroupMemberRole['status']): string {
 }
 
 function roleLabelForCode(code: string): string {
-  return GROUP_HISTORY_ROLE_OPTIONS.find((option) => option.code === code)?.label ?? code
+  return FANSUB_GROUP_ROLE_OPTIONS.find((option) => option.code === code)?.label ?? code
 }
 
 function roleStatusHelpText(status: RoleFormFields['status']): string {
@@ -406,7 +399,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
     const endedYear = roleForm.endedYear ? Number(roleForm.endedYear) : null
 
     if (startedYear !== null && endedYear !== null && endedYear < startedYear) {
-      setRoleModalError('Bis-Jahr darf nicht vor dem Von-Jahr liegen.')
+      setRoleModalError('Rolle bis darf nicht vor Rolle von liegen.')
       return
     }
 
@@ -769,7 +762,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
               aria-label="Rolle auswählen"
             >
               <option value="">Rolle auswählen</option>
-              {GROUP_HISTORY_ROLE_OPTIONS.map((option) => (
+              {FANSUB_GROUP_ROLE_OPTIONS.map((option) => (
                 <option key={option.code} value={option.code}>
                   {option.label}
                 </option>
@@ -778,20 +771,20 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
           </FormField>
 
           <div className={styles.fansubEditMembershipModalGrid}>
-            <FormField label="Von-Jahr" htmlFor="member-role-started-year">
+            <FormField label="Rolle von" htmlFor="member-role-started-year">
               <YearPicker
                 id="member-role-started-year"
-                label="Von-Jahr"
+                label="Rolle von"
                 value={roleForm.startedYear}
                 minYear={YEAR_MIN}
                 maxYear={CURRENT_YEAR}
                 onChange={(year) => setRoleForm((f) => ({ ...f, startedYear: year }))}
               />
             </FormField>
-            <FormField label="Bis-Jahr" htmlFor="member-role-ended-year">
+            <FormField label="Rolle bis" htmlFor="member-role-ended-year">
               <YearPicker
                 id="member-role-ended-year"
-                label="Bis-Jahr"
+                label="Rolle bis"
                 value={roleForm.endedYear}
                 minYear={YEAR_MIN}
                 maxYear={CURRENT_YEAR}
