@@ -457,10 +457,11 @@ Recent durable decisions:
 | 260609-x3q | Navigation zur Fansubgruppe im Episode-Version-Editor: Action-Bar-Button + Header-Subtitle-Link | 2026-06-09 | 7b45f40b | [260609-x3q-episode-version-editor-navigation-zuruec](./quick/260609-x3q-episode-version-editor-navigation-zuruec/) |
 | 260610-f7n | FansubAppMembersSection Collaboration-Tab auf globales Tabellen-UI migrieren und historische Rollen-Kontexte nachziehen | 2026-06-10 | this commit | [260610-f7n-fansubappmemberssection-collaboration-ta](./quick/260610-f7n-fansubappmemberssection-collaboration-ta/) |
 | 260610-fhn | Fansub-Members-UX-Schnitt dokumentieren: zwei Tabellen für App-Mitglieder und historische Mitglieder, ein Add-Flow, Claim-Verknüpfung nur durch Bestätigung | 2026-06-10 | this commit | [260610-fhn-fansub-members-ux-schnitt-dokumentieren-](./quick/260610-fhn-fansub-members-ux-schnitt-dokumentieren-/) |
+| 260610-hw1 | Banner-Buttons in Fansub-Edit auf 36px Höhe vereinheitlichen (align-content fix) | 2026-06-10 | dfa4497e | [260610-hw1-banner-buttons-in-fansub-edit-auf-36px-h](./quick/260610-hw1-banner-buttons-in-fansub-edit-auf-36px-h/) |
 
 ## Session Continuity
 
 Last session: 2026-06-09T10:43:41.601Z
 Stopped at: Completed 81-02-PLAN.md
-Last activity: 2026-06-09
+Last activity: 2026-06-10 - Completed quick task 260610-hw1: Banner-Buttons auf 36px Höhe vereinheitlicht
 Resume file: None
