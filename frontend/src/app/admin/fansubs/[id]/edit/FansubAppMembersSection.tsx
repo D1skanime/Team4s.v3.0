@@ -45,6 +45,7 @@ import {
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import { GroupMembersTab, type GroupMembersTabActions } from './GroupMembersTab'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
@@ -146,6 +147,8 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
   const [selectedCandidateId, setSelectedCandidateId] = useState('')
   const [selectedRoles, setSelectedRoles] = useState<string[]>([])
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false)
+  const [isAddChoiceOpen, setIsAddChoiceOpen] = useState(false)
+  const [historicalActions, setHistoricalActions] = useState<GroupMembersTabActions | null>(null)
   const [roleEditorMemberId, setRoleEditorMemberId] = useState<number | null>(null)
   const [invitations, setInvitations] = useState<FansubGroupInvitation[]>([])
   const [inviteEmail, setInviteEmail] = useState('')
@@ -417,6 +420,17 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
     }
   }
 
+  function openAppMemberFlow() {
+    setIsAddChoiceOpen(false)
+    setIsMemberModalOpen(true)
+  }
+
+  function openHistoricalMemberFlow() {
+    if (!canManageMembers) return
+    setIsAddChoiceOpen(false)
+    historicalActions?.openHistoricalMemberForm()
+  }
+
   return (
     <Card variant="section" className={styles.fansubEditMembershipSurface}>
       <div className={styles.fansubEditMembershipIntro}>
@@ -435,7 +449,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
             <Button
               variant="primary"
               leftIcon={<UserPlus size={15} aria-hidden="true" />}
-              onClick={() => setIsMemberModalOpen(true)}
+              onClick={() => setIsAddChoiceOpen(true)}
             >
               Mitglied hinzufügen
             </Button>
@@ -694,8 +708,41 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
               </>
             )}
           </Card>
+
+          <GroupMembersTab
+            embedded
+            fansubId={fansubId}
+            onActionsChange={setHistoricalActions}
+            showHeaderActions={false}
+          />
         </>
       ) : null}
+
+      <Modal
+        open={isAddChoiceOpen}
+        onClose={() => setIsAddChoiceOpen(false)}
+        title="Mitglied hinzufügen"
+        description="Wähle, ob du App-Zugriff vergibst oder einen historischen Eintrag anlegst."
+      >
+        <div className={styles.fansubEditMembershipModalStack}>
+          <Button
+            variant="primary"
+            fullWidth
+            onClick={openAppMemberFlow}
+            disabled={!canManageMembers && !canCreateInvitation}
+          >
+            App-Mitglied / Einladung
+          </Button>
+          <Button
+            variant="secondary"
+            fullWidth
+            onClick={openHistoricalMemberFlow}
+            disabled={!canManageMembers || !historicalActions}
+          >
+            Historischen Eintrag anlegen
+          </Button>
+        </div>
+      </Modal>
 
       <Modal
         open={isMemberModalOpen}

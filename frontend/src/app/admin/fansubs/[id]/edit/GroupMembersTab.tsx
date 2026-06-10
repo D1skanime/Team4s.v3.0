@@ -6,8 +6,6 @@ import { Pencil, Plus, Trash2 } from 'lucide-react'
 import {
   Badge,
   Button,
-  Card,
-  EmptyState,
   ErrorState,
   FormField,
   Input,
@@ -15,6 +13,13 @@ import {
   Modal,
   SectionHeader,
   Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableEmptyState,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
   Textarea,
   Toolbar,
   YearPicker,
@@ -36,7 +41,6 @@ import {
   type CreateMemberRoleRequest,
   type HistFansubGroupMember,
   type HistGroupMemberRole,
-  type HistoricalContributionStatus,
   type HistoricalContributionVisibility,
 } from '@/types/fansub'
 
@@ -46,7 +50,16 @@ import fansubEditStyles from './FansubEdit.module.css'
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
 type GroupMembersTabProps = {
+  embedded?: boolean
   fansubId: number
+  onActionsChange?: (actions: GroupMembersTabActions | null) => void
+  showHeaderActions?: boolean
+}
+
+export type GroupMembersTabActions = {
+  canCreateRole: boolean
+  openHistoricalMemberForm: () => void
+  openHistoricalRoleForm: () => void
 }
 
 const CURRENT_YEAR = new Date().getFullYear()
@@ -63,66 +76,8 @@ function formatZeitraum(member: HistFansubGroupMember): string {
   return `${von} – ${bis}`
 }
 
-function formatConfirmationDate(value?: string | null): string | null {
-  if (!value) return null
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return null
-  return new Intl.DateTimeFormat('de-DE', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date)
-}
-
-function statusBadgeVariant(status: HistFansubGroupMember['status']): 'success' | 'warning' | 'info' | 'muted' {
-  if (status === 'confirmed') return 'success'
-  if (status === 'disputed') return 'warning'
-  if (status === 'draft') return 'muted'
-  return 'info'
-}
-
-function statusLabel(status: HistFansubGroupMember['status']): string {
-  if (status === 'confirmed') return 'Bestätigt'
-  if (status === 'disputed') return 'Klärfall'
-  if (status === 'draft') return 'Entwurf'
-  return 'Historischer Eintrag'
-}
-
-function visibilityBadgeVariant(visibility: HistoricalContributionVisibility): 'success' | 'muted' {
-  return visibility === 'public' ? 'success' : 'muted'
-}
-
 function visibilityLabel(visibility: HistoricalContributionVisibility): string {
   return visibility === 'public' ? 'öffentlich' : 'intern'
-}
-
-function memberAssignmentLabel(member: HistFansubGroupMember): string {
-  if (member.app_username) return `Zugeordnet: ${member.app_username}`
-  return 'Noch keinem aktuellen Gruppenmitglied zugeordnet'
-}
-
-function confirmationLabel(member: HistFansubGroupMember): string | null {
-  if (member.status !== 'confirmed') return null
-
-  const confirmedBy = member.confirmed_by_display_name?.trim()
-  const confirmedAt = formatConfirmationDate(member.confirmed_at)
-
-  if (confirmedBy && confirmedAt) return `Bestätigt von ${confirmedBy} am ${confirmedAt}`
-  if (confirmedBy) return `Bestätigt von ${confirmedBy}`
-  if (confirmedAt) return `Bestätigt am ${confirmedAt}`
-  return 'Bestätigt, Details noch nicht gespeichert'
-}
-
-function statusHelpText(status: HistoricalContributionStatus): string {
-  if (status === 'draft') {
-    return 'Entwurf: Arbeitsstand. Nutze das, wenn Name, Jahre oder Zugehörigkeit noch nicht sauber eingeordnet sind.'
-  }
-  if (status === 'confirmed') {
-    return 'Bestätigt: Beim Speichern wird der aktuelle App-User mit Zeitpunkt als Bestätigung hinterlegt. Das verknüpft noch kein aktuelles Gruppenmitglied.'
-  }
-  if (status === 'disputed') {
-    return 'Klärfall: Nutze das, wenn Angaben widersprüchlich sind, jemand widerspricht oder Rollen/Jahre erst geprüft werden müssen.'
-  }
-  return 'Historischer Eintrag: Standard für frühere Mitglieder, die grundsätzlich zur Gruppenhistorie gehören, aber noch nicht final bestätigt sind.'
 }
 
 function formatRoleZeitraum(role: HistGroupMemberRole): string {
@@ -131,30 +86,22 @@ function formatRoleZeitraum(role: HistGroupMemberRole): string {
   return `${von} – ${bis}`
 }
 
-function roleStatusBadgeVariant(status: HistGroupMemberRole['status']): 'success' | 'info' {
-  return status === 'confirmed' ? 'success' : 'info'
-}
-
-function roleStatusLabel(status: HistGroupMemberRole['status']): string {
-  return status === 'confirmed' ? 'Bestätigt' : 'Historisch'
-}
-
 function roleLabelForCode(code: string): string {
   return FANSUB_GROUP_ROLE_OPTIONS.find((option) => option.code === code)?.label ?? code
 }
 
-function roleStatusHelpText(status: RoleFormFields['status']): string {
-  if (status === 'confirmed') {
-    return 'Bestätigt: Diese Rolle ist für die Gruppenhistorie geprüft.'
-  }
-  return 'Historisch: Der Rolleneintrag gehört zur Timeline, ist aber noch nicht final bestätigt.'
+function claimVariant(member: HistFansubGroupMember): 'success' | 'muted' {
+  return member.app_username ? 'success' : 'muted'
+}
+
+function claimLabel(member: HistFansubGroupMember): string {
+  return member.app_username ? 'Bestätigt/verknüpft' : 'Nicht beansprucht'
 }
 
 type FormFields = {
   displayName: string
   joinedYear: string
   leftYear: string
-  status: HistoricalContributionStatus
   visibility: HistoricalContributionVisibility
 }
 
@@ -164,14 +111,12 @@ type RoleFormFields = {
   startedYear: string
   endedYear: string
   note: string
-  status: 'historical' | 'confirmed'
 }
 
 const EMPTY_FORM: FormFields = {
   displayName: '',
   joinedYear: '',
   leftYear: '',
-  status: 'historical',
   visibility: 'internal',
 }
 
@@ -181,7 +126,6 @@ const EMPTY_ROLE_FORM: RoleFormFields = {
   startedYear: '',
   endedYear: '',
   note: '',
-  status: 'historical',
 }
 
 function memberToForm(m: HistFansubGroupMember): FormFields {
@@ -189,7 +133,6 @@ function memberToForm(m: HistFansubGroupMember): FormFields {
     displayName: m.display_name,
     joinedYear: m.joined_year != null ? String(m.joined_year) : '',
     leftYear: m.left_year != null ? String(m.left_year) : '',
-    status: m.status,
     visibility: m.visibility ?? 'internal',
   }
 }
@@ -201,11 +144,15 @@ function roleToForm(role: HistGroupMemberRole): RoleFormFields {
     startedYear: role.started_year != null ? String(role.started_year) : '',
     endedYear: role.ended_year != null ? String(role.ended_year) : '',
     note: role.note ?? '',
-    status: role.status,
   }
 }
 
-export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
+export function GroupMembersTab({
+  embedded = false,
+  fansubId,
+  onActionsChange,
+  showHeaderActions = true,
+}: GroupMembersTabProps) {
   const [members, setMembers] = useState<HistFansubGroupMember[]>([])
   const [roles, setRoles] = useState<HistGroupMemberRole[]>([])
   const [loading, setLoading] = useState(true)
@@ -271,12 +218,12 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
     return grouped
   }, [roles])
 
-  function openNew() {
+  const openNew = useCallback(() => {
     setEditTarget(null)
     setForm(EMPTY_FORM)
     setModalError(null)
     setModalOpen(true)
-  }
+  }, [])
 
   function openEdit(member: HistFansubGroupMember) {
     setEditTarget(member)
@@ -314,7 +261,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
           display_name: form.displayName.trim(),
           joined_year: joinedYear,
           left_year: leftYear,
-          status: form.status,
+          status: editTarget.status,
           visibility: form.visibility,
         })
       } else {
@@ -322,7 +269,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
           display_name: form.displayName.trim(),
           joined_year: joinedYear,
           left_year: leftYear,
-          status: form.status,
+          status: 'historical',
           visibility: form.visibility,
         }
         await createGroupMember(fansubId, body)
@@ -357,7 +304,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
     }
   }
 
-  function openNewRole(member?: HistFansubGroupMember) {
+  const openNewRole = useCallback((member?: HistFansubGroupMember) => {
     setRoleEditTarget(null)
     setRoleForm({
       ...EMPTY_ROLE_FORM,
@@ -365,7 +312,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
     })
     setRoleModalError(null)
     setRoleModalOpen(true)
-  }
+  }, [])
 
   function openEditRole(role: HistGroupMemberRole) {
     setRoleEditTarget(role)
@@ -413,7 +360,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
           started_year: startedYear,
           ended_year: endedYear,
           source_note: roleForm.note.trim() || null,
-          status: roleForm.status,
+          status: roleEditTarget.status,
           visibility: 'internal',
         })
       } else {
@@ -423,7 +370,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
           started_year: startedYear,
           ended_year: endedYear,
           source_note: roleForm.note.trim() || null,
-          status: roleForm.status,
+          status: 'historical',
           visibility: 'internal',
         }
         await createMemberRole(fansubId, body)
@@ -437,6 +384,16 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
       setRoleSaving(false)
     }
   }
+
+  useEffect(() => {
+    if (!onActionsChange) return
+    onActionsChange({
+      canCreateRole: members.length > 0,
+      openHistoricalMemberForm: openNew,
+      openHistoricalRoleForm: () => openNewRole(),
+    })
+    return () => onActionsChange(null)
+  }, [members.length, onActionsChange, openNew, openNewRole])
 
   async function handleRoleDeleteConfirm() {
     if (!roleDeleteTarget) return
@@ -454,12 +411,13 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
   }
 
   return (
-    <Card variant="section" className={styles.fansubEditMembershipSurface}>
+    <section className={embedded ? styles.fansubEditEmbeddedMembershipSurface : styles.fansubEditMembershipSurface}>
       <SectionHeader
         eyebrow="Historische Mitglieder"
-        title="Gruppenmitglieder"
-        description="Pflege historische Mitglieder und ihre damaligen Gruppenrollen an einer Stelle."
+        title="Historische Mitglieder"
+        description="Öffentliche oder interne historische Fansub-Einträge. Die App-Profil-Verknüpfung entsteht nur durch bestätigte Claims."
         actions={
+          showHeaderActions ? (
           <Toolbar
             leading={
               <>
@@ -481,6 +439,7 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
               </>
             }
           />
+          ) : null
         }
       />
 
@@ -498,111 +457,117 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
         />
       ) : null}
 
-      {!loading && !error && members.length === 0 ? (
-        <EmptyState
-          title="Noch keine Mitglieder eingetragen"
-          description="Füge das erste historische Mitglied hinzu. Danach kannst du direkt Rollen an dieser Person pflegen."
-          action={<Button variant="primary" leftIcon={<Plus size={15} aria-hidden="true" />} onClick={openNew}>Mitglied hinzufügen</Button>}
-        />
-      ) : null}
+      {!loading && !error ? (
+        <div className={styles.fansubEditTableSurface}>
+          <Table
+            variant="withActions"
+            caption="Historische Mitglieder dieser Fansubgruppe"
+            containerClassName={styles.fansubEditTableWrapWine}
+          >
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Name</TableHeaderCell>
+                <TableHeaderCell>Aufgaben/Rollen</TableHeaderCell>
+                <TableHeaderCell>Claim</TableHeaderCell>
+                <TableHeaderCell>Aktionen</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {members.length === 0 ? (
+                <TableEmptyState
+                  colSpan={4}
+                  title="Noch keine historischen Mitglieder"
+                  description="Lege historische Einträge über Mitglied hinzufügen an."
+                />
+              ) : members.map((member) => {
+                const memberRoles = rolesByMember.get(member.id) ?? []
 
-      {!loading && members.length > 0 ? (
-        <div className={styles.fansubEditMembershipList}>
-          {members.map((member) => {
-            const confirmation = confirmationLabel(member)
-            const memberRoles = rolesByMember.get(member.id) ?? []
-
-            return (
-              <Card key={member.id} variant="nestedFlat" className={styles.fansubEditMembershipCard}>
-                <div className={styles.fansubEditMembershipCardTop}>
-                  <div className={styles.fansubEditMembershipIdentity}>
-                    <strong>{member.display_name}</strong>
-                    <div className={styles.fansubEditMembershipMetaLine}>
-                      <span>{formatZeitraum(member)}</span>
-                      <span>{memberAssignmentLabel(member)}</span>
-                      {confirmation ? <span>{confirmation}</span> : null}
-                    </div>
-                  </div>
-                  <div className={styles.fansubEditMembershipControls}>
-                    <Badge variant={statusBadgeVariant(member.status)}>
-                      {statusLabel(member.status)}
-                    </Badge>
-                    <Badge
-                      variant={visibilityBadgeVariant(member.visibility ?? 'internal')}
-                      className={styles.fansubEditMembershipVisibilityBadge}
-                    >
-                      {visibilityLabel(member.visibility ?? 'internal')}
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      iconOnly
-                      aria-label="Mitglied bearbeiten"
-                      leftIcon={<Pencil size={14} aria-hidden="true" />}
-                      onClick={() => openEdit(member)}
-                    />
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      iconOnly
-                      aria-label="Mitglied löschen"
-                      leftIcon={<Trash2 size={14} aria-hidden="true" />}
-                      onClick={() => setDeleteTarget(member)}
-                    />
-                  </div>
-                </div>
-                <div className={styles.fansubEditMembershipBody}>
-                  <div className={styles.fansubEditMembershipRoleSummary}>
-                    <span>Historische Rollen</span>
-                    {memberRoles.length > 0 ? (
-                      <div className={styles.fansubEditMembershipRoleList}>
-                        {memberRoles.map((role) => (
-                          <div key={role.id} className={styles.fansubEditMembershipRoleItem}>
-                            <div className={styles.fansubEditMembershipRoleItemMain}>
-                              <strong>{role.role_label ?? roleLabelForCode(role.role_code)}</strong>
-                              <span>{formatRoleZeitraum(role)}</span>
-                              {role.note ? <span>{role.note}</span> : null}
+                return (
+                  <TableRow key={member.id}>
+                    <TableCell>
+                      <strong>{member.display_name}</strong>
+                      <br />
+                      <span className={styles.fansubEditHint}>{formatZeitraum(member)}</span>
+                      <br />
+                      <span className={styles.fansubEditHint}>{visibilityLabel(member.visibility ?? 'internal')}</span>
+                    </TableCell>
+                    <TableCell>
+                      {memberRoles.length > 0 ? (
+                        <div className={styles.fansubEditMembershipRoleList}>
+                          {memberRoles.map((role) => (
+                            <div key={role.id} className={styles.fansubEditMembershipRoleItem}>
+                              <div className={styles.fansubEditMembershipRoleItemMain}>
+                                <strong>{role.role_label ?? roleLabelForCode(role.role_code)}</strong>
+                                <span>{formatRoleZeitraum(role)}</span>
+                                {role.note ? <span>{role.note}</span> : null}
+                              </div>
+                              <div className={styles.fansubEditMembershipRoleControls}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  iconOnly
+                                  aria-label="Rolle bearbeiten"
+                                  leftIcon={<Pencil size={14} aria-hidden="true" />}
+                                  onClick={() => openEditRole(role)}
+                                />
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  iconOnly
+                                  aria-label="Rolle löschen"
+                                  leftIcon={<Trash2 size={14} aria-hidden="true" />}
+                                  onClick={() => setRoleDeleteTarget(role)}
+                                />
+                              </div>
                             </div>
-                            <div className={styles.fansubEditMembershipRoleControls}>
-                              <Badge variant={roleStatusBadgeVariant(role.status)}>
-                                {roleStatusLabel(role.status)}
-                              </Badge>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                iconOnly
-                                aria-label="Rolle bearbeiten"
-                                leftIcon={<Pencil size={14} aria-hidden="true" />}
-                                onClick={() => openEditRole(role)}
-                              />
-                              <Button
-                                variant="danger"
-                                size="sm"
-                                iconOnly
-                                aria-label="Rolle löschen"
-                                leftIcon={<Trash2 size={14} aria-hidden="true" />}
-                                onClick={() => setRoleDeleteTarget(role)}
-                              />
-                            </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                      ) : (
+                        <span className={styles.fansubEditHint}>Keine historischen Rollen</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={claimVariant(member)}>{claimLabel(member)}</Badge>
+                      {member.app_username ? (
+                        <>
+                          <br />
+                          <span className={styles.fansubEditHint}>{member.app_username}</span>
+                        </>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      <div className={styles.fansubEditTableRowActions}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={<Pencil size={14} aria-hidden="true" />}
+                          onClick={() => openEdit(member)}
+                        >
+                          Bearbeiten
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          leftIcon={<Plus size={14} aria-hidden="true" />}
+                          onClick={() => openNewRole(member)}
+                        >
+                          Rolle
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          iconOnly
+                          aria-label={`${member.display_name} löschen`}
+                          leftIcon={<Trash2 size={14} aria-hidden="true" />}
+                          onClick={() => setDeleteTarget(member)}
+                        />
                       </div>
-                    ) : (
-                      <p className={styles.fansubEditHint}>Noch keine historische Rolle eingetragen.</p>
-                    )}
-                  </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    leftIcon={<Plus size={14} aria-hidden="true" />}
-                    onClick={() => openNewRole(member)}
-                  >
-                    Rolle hinzufügen
-                  </Button>
-                </div>
-              </Card>
-            )
-          })}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
         </div>
       ) : null}
 
@@ -670,41 +635,19 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
             </FormField>
           </div>
 
-          <div className={styles.fansubEditMembershipModalGrid}>
-            <FormField
-              label="Status"
-              htmlFor="hist-member-status"
-              hint={statusHelpText(form.status)}
+          <FormField label="Sichtbarkeit" htmlFor="hist-member-visibility">
+            <Select
+              id="hist-member-visibility"
+              value={form.visibility}
+              onChange={(e) => setForm((f) => ({
+                ...f,
+                visibility: e.target.value as HistoricalContributionVisibility,
+              }))}
             >
-              <Select
-                id="hist-member-status"
-                value={form.status}
-                onChange={(e) => setForm((f) => ({
-                  ...f,
-                  status: e.target.value as HistoricalContributionStatus,
-                }))}
-              >
-                <option value="historical">Historischer Eintrag</option>
-                <option value="confirmed">Bestätigt</option>
-                <option value="draft">Entwurf</option>
-                <option value="disputed">Klärfall</option>
-              </Select>
-            </FormField>
-
-            <FormField label="Sichtbarkeit" htmlFor="hist-member-visibility">
-              <Select
-                id="hist-member-visibility"
-                value={form.visibility}
-                onChange={(e) => setForm((f) => ({
-                  ...f,
-                  visibility: e.target.value as HistoricalContributionVisibility,
-                }))}
-              >
-                <option value="internal">intern</option>
-                <option value="public">öffentlich</option>
-              </Select>
-            </FormField>
-          </div>
+              <option value="internal">intern</option>
+              <option value="public">öffentlich</option>
+            </Select>
+          </FormField>
         </div>
       </Modal>
 
@@ -808,20 +751,6 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
             />
           </FormField>
 
-          <FormField label="Status" htmlFor="member-role-status" hint={roleStatusHelpText(roleForm.status)}>
-            <Select
-              id="member-role-status"
-              value={roleForm.status}
-              onChange={(e) => setRoleForm((f) => ({
-                ...f,
-                status: e.target.value as RoleFormFields['status'],
-              }))}
-              aria-label="Status"
-            >
-              <option value="historical">Historisch</option>
-              <option value="confirmed">Bestätigt</option>
-            </Select>
-          </FormField>
         </div>
       </Modal>
 
@@ -886,6 +815,6 @@ export function GroupMembersTab({ fansubId }: GroupMembersTabProps) {
           ) : null}
         </div>
       </Modal>
-    </Card>
+    </section>
   )
 }

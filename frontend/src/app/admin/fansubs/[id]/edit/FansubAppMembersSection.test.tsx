@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 const listFansubAppMembers = vi.fn();
@@ -12,6 +12,14 @@ const updateFansubAppMemberStatus = vi.fn();
 const listFansubGroupInvitations = vi.fn();
 const createFansubGroupInvitation = vi.fn();
 const cancelFansubGroupInvitation = vi.fn();
+const listGroupMembers = vi.fn();
+const listMemberRoles = vi.fn();
+const createGroupMember = vi.fn();
+const createMemberRole = vi.fn();
+const updateGroupMember = vi.fn();
+const updateMemberRole = vi.fn();
+const deleteGroupMember = vi.fn();
+const deleteMemberRole = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   ApiError: class ApiError extends Error {
@@ -31,9 +39,22 @@ vi.mock("@/lib/api", () => ({
   listFansubGroupInvitations: (...args: unknown[]) => listFansubGroupInvitations(...args),
   createFansubGroupInvitation: (...args: unknown[]) => createFansubGroupInvitation(...args),
   cancelFansubGroupInvitation: (...args: unknown[]) => cancelFansubGroupInvitation(...args),
+  listGroupMembers: (...args: unknown[]) => listGroupMembers(...args),
+  listMemberRoles: (...args: unknown[]) => listMemberRoles(...args),
+  createGroupMember: (...args: unknown[]) => createGroupMember(...args),
+  createMemberRole: (...args: unknown[]) => createMemberRole(...args),
+  updateGroupMember: (...args: unknown[]) => updateGroupMember(...args),
+  updateMemberRole: (...args: unknown[]) => updateMemberRole(...args),
+  deleteGroupMember: (...args: unknown[]) => deleteGroupMember(...args),
+  deleteMemberRole: (...args: unknown[]) => deleteMemberRole(...args),
 }));
 
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
+
+beforeEach(() => {
+  listGroupMembers.mockResolvedValue({ data: [] });
+  listMemberRoles.mockResolvedValue({ data: [] });
+});
 
 afterEach(() => {
   cleanup();
@@ -76,10 +97,45 @@ describe("FansubAppMembersSection", () => {
       ],
     });
     listFansubGroupInvitations.mockResolvedValue({ data: [] });
+    listGroupMembers.mockResolvedValue({
+      data: [
+        {
+          id: 301,
+          fansub_group_id: 88,
+          member_id: 44,
+          display_name: "Archiv Admin",
+          joined_year: 2005,
+          left_year: null,
+          app_user_id: 11,
+          app_username: "phase-admin",
+          status: "historical",
+          visibility: "internal",
+          created_at: "2026-05-16T08:10:00Z",
+        },
+      ],
+    });
+    listMemberRoles.mockResolvedValue({
+      data: [
+        {
+          id: 401,
+          fansub_group_member_id: 301,
+          member_display_name: "Archiv Admin",
+          role_code: "editor",
+          role_label: "Editing",
+          started_year: 2005,
+          ended_year: null,
+          note: null,
+          status: "historical",
+          created_at: "2026-05-16T08:10:00Z",
+        },
+      ],
+    });
 
     render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
 
     expect(await screen.findByText("Phase Admin")).not.toBeNull();
+    expect(await screen.findByText("Archiv Admin")).not.toBeNull();
+    expect(screen.getByText("Bestätigt/verknüpft")).not.toBeNull();
     expect(screen.getAllByText("Fansub-Lead").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Editing").length).toBeGreaterThan(0);
     expect(screen.getByText("Aktiv")).not.toBeNull();
@@ -137,6 +193,7 @@ describe("FansubAppMembersSection", () => {
     render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
 
     fireEvent.click(await screen.findByRole("button", { name: "Mitglied hinzufügen" }));
+    fireEvent.click(await screen.findByRole("button", { name: "App-Mitglied / Einladung" }));
 
     const searchInput = await screen.findByPlaceholderText("Fansub-Nick suchen");
     fireEvent.change(searchInput, { target: { value: "phase" } });
@@ -210,6 +267,7 @@ describe("FansubAppMembersSection", () => {
     render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
 
     fireEvent.click(await screen.findByRole("button", { name: "Mitglied hinzufügen" }));
+    fireEvent.click(await screen.findByRole("button", { name: "App-Mitglied / Einladung" }));
 
     fireEvent.change(
       await screen.findByPlaceholderText("E-Mail-Adresse für die Einladung"),
@@ -264,6 +322,7 @@ describe("FansubAppMembersSection", () => {
     render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
 
     fireEvent.click(await screen.findByRole("button", { name: "Mitglied hinzufügen" }));
+    fireEvent.click(await screen.findByRole("button", { name: "App-Mitglied / Einladung" }));
 
     fireEvent.change(
       await screen.findByPlaceholderText("E-Mail-Adresse für die Einladung"),

@@ -152,7 +152,7 @@ export function ReadinessTab({ fansubId, group }: ReadinessTabProps) {
       key: 'members',
       label: 'Mitglieder eingetragen/geprüft',
       satisfied: memberCount > 0,
-      targetTab: 'mitglieder',
+      targetTab: 'collaboration',
       hint: 'Mitglieder prüfen',
     },
     {

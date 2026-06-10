@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
-stopped_at: Completed quick task 260610-f7n follow-up
-last_updated: "2026-06-10T10:44:59.858Z"
+stopped_at: Completed quick task 260610-i2j
+last_updated: "2026-06-10T11:00:38.885Z"
 last_activity: 2026-06-10
 progress:
   total_phases: 77
@@ -38,6 +38,7 @@ Recent durable decisions:
 
 - [Quick 260610-f7n]: FansubAppMembersSection collaboration tab now uses global table primitives; GroupMembersTab reuses FANSUB_GROUP_ROLE_OPTIONS, backed by migration 0103 so those role codes are valid for group_history.
 - [Quick 260610-fhn]: Fansub Members uses two domain-owned tables in one tab: app/admin members and historical members. Historical member linkage to app profiles happens only through confirmed self-claims; historical rows have no active/disabled/pending workflow status.
+- [Quick 260610-i2j]: Fansub Collaboration now combines App-/Fansub-Mitglieder, Einladungen, and historical members on one page; legacy tab=mitglieder routes to collaboration and historical app-profile linkage remains claim-only.
 - [Phase 79-01]: STATUS_LABELS_ORDERED Reihenfolge: intern → in Prüfung → öffentlich → abgelehnt → archiviert → entfernt (UI-SPEC)
 - [Phase 79-01]: onContextChange via useEffect bei Owner-Guard und jeder Status-/Kategorie-Änderung
 - [Phase 79-01]: jsdom-Environment via @vitest-environment jsdom Direktive pro Datei (Datei-Ebene, nicht global in vitest.config.ts)
@@ -458,10 +459,11 @@ Recent durable decisions:
 | 260610-f7n | FansubAppMembersSection Collaboration-Tab auf globales Tabellen-UI migrieren und historische Rollen-Kontexte nachziehen | 2026-06-10 | this commit | [260610-f7n-fansubappmemberssection-collaboration-ta](./quick/260610-f7n-fansubappmemberssection-collaboration-ta/) |
 | 260610-fhn | Fansub-Members-UX-Schnitt dokumentieren: zwei Tabellen für App-Mitglieder und historische Mitglieder, ein Add-Flow, Claim-Verknüpfung nur durch Bestätigung | 2026-06-10 | this commit | [260610-fhn-fansub-members-ux-schnitt-dokumentieren-](./quick/260610-fhn-fansub-members-ux-schnitt-dokumentieren-/) |
 | 260610-hw1 | Banner-Buttons in Fansub-Edit auf 36px Höhe vereinheitlichen (align-content fix) | 2026-06-10 | dfa4497e | [260610-hw1-banner-buttons-in-fansub-edit-auf-36px-h](./quick/260610-hw1-banner-buttons-in-fansub-edit-auf-36px-h/) |
+| 260610-i2j | Fansub-Mitglieder und historische Mitglieder auf einer Collaboration-Seite zusammenführen | 2026-06-10 | this commit | [260610-i2j-fansub-mitglieder-und-historische-mitgli](./quick/260610-i2j-fansub-mitglieder-und-historische-mitgli/) |
 
 ## Session Continuity
 
 Last session: 2026-06-09T10:43:41.601Z
 Stopped at: Completed 81-02-PLAN.md
-Last activity: 2026-06-10 - Completed quick task 260610-hw1: Banner-Buttons auf 36px Höhe vereinheitlicht
+Last activity: 2026-06-10 - Completed quick task 260610-i2j: Fansub-Mitglieder und historische Mitglieder auf Collaboration zusammengeführt
 Resume file: None

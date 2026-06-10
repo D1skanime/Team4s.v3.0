@@ -94,7 +94,6 @@ import { AnimeProjectNotesSection } from "./AnimeProjectNotesSection";
 import AnimeContributionModal from "./AnimeContributionModal";
 import { ClaimManagementPanel } from "./ClaimManagementPanel";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
-import { GroupMembersTab } from "./GroupMembersTab";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
@@ -194,7 +193,6 @@ const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: "notes", label: "Gruppengeschichte" },
   { key: "media", label: "Medien" },
   { key: "collaboration", label: "Fansub Members" },
-  { key: "mitglieder", label: "Hist. Mitglieder" },
   { key: "claims", label: "Claims" },
   { key: "vorschlaege", label: "Vorschläge" },
   { key: "releases", label: "Anime & Veröffentlichungen" },
@@ -203,7 +201,7 @@ const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
 ];
 
 function parseMainTab(value: string | null): MainTab {
-  if (value === "rollen") return "mitglieder";
+  if (value === "rollen" || value === "mitglieder") return "collaboration";
   return MAIN_TABS.some((tab) => tab.key === value) ? (value as MainTab) : "basic";
 }
 
@@ -222,7 +220,6 @@ function canUseMainTab(
     case "links":
       return capabilities.can_manage_links;
     case "collaboration":
-    case "mitglieder":
       return capabilities.can_view_members || capabilities.can_manage_members;
     case "claims":
       return (
@@ -763,7 +760,7 @@ function canViewReleaseContributors(
   isPlatformAdmin: boolean,
   capabilities: FansubGroupCapabilities | null,
 ): boolean {
-  return canUseMainTab("mitglieder", isPlatformAdmin, capabilities);
+  return canUseMainTab("collaboration", isPlatformAdmin, capabilities);
 }
 
 function canUploadReleaseMedia(
@@ -2265,7 +2262,6 @@ function AdminFansubEditContent({
         {activeMainTab !== "releases" &&
         activeMainTab !== "anime-projekte" &&
         activeMainTab !== "notes" &&
-        activeMainTab !== "mitglieder" &&
         activeMainTab !== "vorschlaege" &&
         activeMainTab !== "readiness" ? (
           <form className={styles.fansubEditForm} onSubmit={save}>
@@ -3307,7 +3303,6 @@ function AdminFansubEditContent({
             ) : null}
           </>
         ) : null}
-        {activeMainTab === "mitglieder" ? <GroupMembersTab fansubId={fansubID} /> : null}
         {activeMainTab === "claims" ? <ClaimManagementPanel groupId={fansubID} isGlobalAdmin={isPlatformAdmin} /> : null}
         {activeMainTab === "vorschlaege" && capabilities ? (
           <>

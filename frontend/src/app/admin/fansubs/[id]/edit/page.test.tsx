@@ -547,6 +547,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     render(<AdminFansubEditPage />)
 
     await screen.findByRole('heading', { name: 'SubGroup' })
+    expect(screen.queryByRole('button', { name: 'Hist. Mitglieder' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Fansub Members' }))
     expect(await screen.findByTestId('app-members-section')).not.toBeNull()
 
