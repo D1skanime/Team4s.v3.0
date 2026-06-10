@@ -522,7 +522,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     render(<AdminFansubEditPage />)
 
     await screen.findByRole('heading', { name: 'SubGroup' })
-    expect(screen.getByText('AO')).not.toBeNull()
+    expect(screen.getAllByText('AO').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: 'Alias AO entfernen' })).not.toBeNull()
     expect(screen.queryByRole('button', { name: 'AO x' })).toBeNull()
   })
@@ -548,6 +548,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
 
     await screen.findByRole('heading', { name: 'SubGroup' })
     expect(screen.queryByRole('button', { name: 'Hist. Mitglieder' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Claims' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Fansub Members' }))
     expect(await screen.findByTestId('app-members-section')).not.toBeNull()
 

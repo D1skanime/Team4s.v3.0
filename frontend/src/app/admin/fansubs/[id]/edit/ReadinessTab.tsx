@@ -191,7 +191,7 @@ export function ReadinessTab({ fansubId, group }: ReadinessTabProps) {
     {
       key: 'claims',
       label: `Offene Claims: ${openClaimCount}`,
-      targetTab: 'claims',
+      targetTab: 'collaboration',
       hint: 'Claims einsehen',
     },
     {

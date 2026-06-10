@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Copy, FilePlus, Link2, Pencil, Plus, Trash2, UserCheck, UserX } from 'lucide-react'
 
 import {
   Badge,
@@ -26,14 +26,23 @@ import {
 } from '@/components/ui'
 import {
   ApiError,
+  approveMemberRequest,
+  cancelClaimInvitation,
   createGroupMember,
   createMemberRole,
   deleteGroupMember,
   deleteMemberRole,
+  generateClaimInvitation,
+  listClaimInvitations,
   listGroupMembers,
+  listMemberRequests,
   listMemberRoles,
+  listPendingMemberClaims,
+  rejectMemberClaim,
+  rejectMemberRequest,
   updateGroupMember,
   updateMemberRole,
+  verifyMemberClaim,
 } from '@/lib/api'
 import {
   FANSUB_GROUP_ROLE_OPTIONS,
@@ -43,6 +52,12 @@ import {
   type HistGroupMemberRole,
   type HistoricalContributionVisibility,
 } from '@/types/fansub'
+import type {
+  GenerateClaimInvitationResponse,
+  MemberClaimInvitationResponse,
+  MemberClaimRow,
+  MemberRequestRow,
+} from '@/types/profile'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -51,8 +66,12 @@ const styles = { ...sharedStyles, ...fansubEditStyles }
 
 type GroupMembersTabProps = {
   embedded?: boolean
+  canCancelClaimInvitation?: boolean
+  canCreateClaimInvitation?: boolean
+  canManageClaims?: boolean
   fansubId: number
   onActionsChange?: (actions: GroupMembersTabActions | null) => void
+  showClaimRequests?: boolean
   showHeaderActions?: boolean
 }
 
@@ -90,12 +109,41 @@ function roleLabelForCode(code: string): string {
   return FANSUB_GROUP_ROLE_OPTIONS.find((option) => option.code === code)?.label ?? code
 }
 
-function claimVariant(member: HistFansubGroupMember): 'success' | 'muted' {
-  return member.app_username ? 'success' : 'muted'
+type CopyState = 'copied' | 'selected'
+
+function formatDate(value: string): string {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('de-DE')
 }
 
-function claimLabel(member: HistFansubGroupMember): string {
-  return member.app_username ? 'Bestätigt/verknüpft' : 'Nicht beansprucht'
+function isLocalHost(hostname: string): boolean {
+  return hostname === 'localhost' || hostname === '127.0.0.1'
+}
+
+function normalizeInviteLink(rawLink: string): string {
+  const trimmed = rawLink.trim()
+  if (!trimmed || typeof window === 'undefined') return trimmed
+  try {
+    const parsed = new URL(trimmed, window.location.origin)
+    if (isLocalHost(parsed.hostname) && isLocalHost(window.location.hostname)) {
+      return `${window.location.origin}${parsed.pathname}${parsed.search}${parsed.hash}`
+    }
+    return parsed.toString()
+  } catch {
+    return trimmed
+  }
+}
+
+function claimVariant(member: HistFansubGroupMember, claims: MemberClaimRow[]): 'success' | 'warning' | 'muted' {
+  if (member.app_username) return 'success'
+  if (claims.length > 0) return 'warning'
+  return 'muted'
+}
+
+function claimLabel(member: HistFansubGroupMember, claims: MemberClaimRow[]): string {
+  if (member.app_username) return 'Bestätigt/verknüpft'
+  if (claims.length > 0) return 'Offener Claim'
+  return 'Nicht beansprucht'
 }
 
 type FormFields = {
@@ -149,12 +197,23 @@ function roleToForm(role: HistGroupMemberRole): RoleFormFields {
 
 export function GroupMembersTab({
   embedded = false,
+  canCancelClaimInvitation = true,
+  canCreateClaimInvitation = true,
+  canManageClaims = true,
   fansubId,
   onActionsChange,
+  showClaimRequests = true,
   showHeaderActions = true,
 }: GroupMembersTabProps) {
   const [members, setMembers] = useState<HistFansubGroupMember[]>([])
   const [roles, setRoles] = useState<HistGroupMemberRole[]>([])
+  const [pendingClaims, setPendingClaims] = useState<MemberClaimRow[]>([])
+  const [memberRequests, setMemberRequests] = useState<MemberRequestRow[]>([])
+  const [generatedInvites, setGeneratedInvites] = useState<Record<number, GenerateClaimInvitationResponse>>({})
+  const [memberInvitations, setMemberInvitations] = useState<Record<number, MemberClaimInvitationResponse[]>>({})
+  const [copyStates, setCopyStates] = useState<Record<number, CopyState>>({})
+  const [approveNicknames, setApproveNicknames] = useState<Record<number, string>>({})
+  const [claimActionError, setClaimActionError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -183,6 +242,20 @@ export function GroupMembersTab({
       const roleResponses = await Promise.all(
         loadedMembers.map((member) => listMemberRoles(fansubId, member.id)),
       )
+      const invitationEntries = await Promise.all(
+        loadedMembers.map(async (member) => {
+          try {
+            const invitations = await listClaimInvitations(fansubId, member.member_id)
+            return [member.id, invitations] as const
+          } catch {
+            return [member.id, [] as MemberClaimInvitationResponse[]] as const
+          }
+        }),
+      )
+      const [loadedPendingClaims, loadedMemberRequests] = await Promise.all([
+        listPendingMemberClaims(fansubId).catch(() => [] as MemberClaimRow[]),
+        listMemberRequests().catch(() => [] as MemberRequestRow[]),
+      ])
       const loadedRoles = roleResponses.flatMap((roleResponse, index) =>
         (roleResponse.data ?? []).map((role) => ({
           ...role,
@@ -191,6 +264,9 @@ export function GroupMembersTab({
         })),
       )
       setMembers(loadedMembers)
+      setMemberInvitations(Object.fromEntries(invitationEntries))
+      setPendingClaims(loadedPendingClaims)
+      setMemberRequests(loadedMemberRequests)
       setRoles(
         loadedRoles.sort((a, b) => {
           const startedDiff = (b.started_year ?? 0) - (a.started_year ?? 0)
@@ -217,6 +293,16 @@ export function GroupMembersTab({
     }
     return grouped
   }, [roles])
+
+  const pendingClaimsByMember = useMemo(() => {
+    const grouped = new Map<number, MemberClaimRow[]>()
+    for (const claim of pendingClaims) {
+      const list = grouped.get(claim.member_id) ?? []
+      list.push(claim)
+      grouped.set(claim.member_id, list)
+    }
+    return grouped
+  }, [pendingClaims])
 
   const openNew = useCallback(() => {
     setEditTarget(null)
@@ -410,6 +496,146 @@ export function GroupMembersTab({
     }
   }
 
+  async function handleGenerateInvitation(rowId: number, memberId: number) {
+    try {
+      setClaimActionError(null)
+      const invite = await generateClaimInvitation(fansubId, memberId)
+      setGeneratedInvites((current) => ({ ...current, [rowId]: invite }))
+      setMemberInvitations((current) => ({
+        ...current,
+        [rowId]: [
+          {
+            id: invite.id,
+            member_id: invite.member_id,
+            fansub_group_id: invite.fansub_group_id,
+            status: 'pending',
+            expires_at: invite.expires_at,
+            created_at: new Date().toISOString(),
+          },
+        ],
+      }))
+    } catch (err) {
+      if (err instanceof ApiError && err.code === 'pending_invitation_exists') {
+        const invitations = await listClaimInvitations(fansubId, memberId).catch(() => [] as MemberClaimInvitationResponse[])
+        setMemberInvitations((current) => ({ ...current, [rowId]: invitations }))
+      }
+      setClaimActionError(formatApiError(err, 'Einladungslink konnte nicht erstellt werden.'))
+    }
+  }
+
+  async function handleCancelInvitation(rowId: number, memberId: number, invitationId: number) {
+    if (!window.confirm('Aktive Einladung zurückziehen? Der bisherige Link kann danach nicht mehr verwendet werden.')) return
+    try {
+      setClaimActionError(null)
+      await cancelClaimInvitation(fansubId, memberId, invitationId)
+      setGeneratedInvites((current) => {
+        const next = { ...current }
+        delete next[rowId]
+        return next
+      })
+      setMemberInvitations((current) => ({
+        ...current,
+        [rowId]: (current[rowId] ?? []).filter((invitation) => invitation.id !== invitationId),
+      }))
+      setClaimActionError('Aktive Einladung zurückgezogen. Du kannst jetzt einen neuen Link generieren.')
+    } catch (err) {
+      setClaimActionError(formatApiError(err, 'Einladung konnte nicht zurückgezogen werden.'))
+    }
+  }
+
+  function markVisibleInviteLink(rowId: number) {
+    const field = document.getElementById(`hist-claim-invite-link-${rowId}`) as HTMLInputElement | null
+    if (!field) return false
+    field.focus()
+    field.select()
+    return true
+  }
+
+  async function handleCopyLink(rowId: number, link: string) {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link)
+      } else {
+        const field = document.createElement('textarea')
+        field.value = link
+        field.setAttribute('readonly', 'true')
+        field.style.position = 'fixed'
+        field.style.left = '-9999px'
+        document.body.appendChild(field)
+        field.select()
+        const copied = document.execCommand('copy')
+        document.body.removeChild(field)
+        if (!copied) throw new Error('copy command failed')
+      }
+      setClaimActionError(null)
+      setCopyStates((current) => ({ ...current, [rowId]: 'copied' }))
+      window.setTimeout(() => {
+        setCopyStates((current) => {
+          const next = { ...current }
+          delete next[rowId]
+          return next
+        })
+      }, 1500)
+    } catch {
+      if (markVisibleInviteLink(rowId)) {
+        setClaimActionError('Automatisches Kopieren wurde vom Browser blockiert. Der Link ist markiert; kopiere ihn mit Strg+C.')
+        setCopyStates((current) => ({ ...current, [rowId]: 'selected' }))
+        return
+      }
+      setClaimActionError('Automatisches Kopieren wurde vom Browser blockiert. Öffne den Link direkt oder kopiere ihn aus dem Textfeld.')
+    }
+  }
+
+  async function handleVerifyClaim(claimId: number) {
+    try {
+      setClaimActionError(null)
+      await verifyMemberClaim(fansubId, claimId)
+      setPendingClaims((current) => current.filter((claim) => claim.id !== claimId))
+      await load()
+    } catch (err) {
+      setClaimActionError(formatApiError(err, 'Claim konnte nicht bestätigt werden.'))
+    }
+  }
+
+  async function handleRejectClaim(claimId: number, memberNick: string) {
+    if (!window.confirm(`Claim für "${memberNick}" ablehnen?`)) return
+    try {
+      setClaimActionError(null)
+      await rejectMemberClaim(fansubId, claimId)
+      setPendingClaims((current) => current.filter((claim) => claim.id !== claimId))
+    } catch (err) {
+      setClaimActionError(formatApiError(err, 'Claim konnte nicht abgelehnt werden.'))
+    }
+  }
+
+  async function handleApproveRequest(requestId: number) {
+    const nickname = (approveNicknames[requestId] || '').trim()
+    if (!nickname) {
+      setClaimActionError('Nickname für den neuen Eintrag ist erforderlich.')
+      return
+    }
+    if (!window.confirm(`Neuanlage-Antrag mit Nickname "${nickname}" bestätigen?`)) return
+    try {
+      setClaimActionError(null)
+      await approveMemberRequest(requestId, { nickname })
+      setMemberRequests((current) => current.filter((request) => request.id !== requestId))
+      await load()
+    } catch (err) {
+      setClaimActionError(formatApiError(err, 'Neuanlage-Antrag konnte nicht bestätigt werden.'))
+    }
+  }
+
+  async function handleRejectRequest(requestId: number) {
+    if (!window.confirm('Neuanlage-Antrag ablehnen?')) return
+    try {
+      setClaimActionError(null)
+      await rejectMemberRequest(requestId)
+      setMemberRequests((current) => current.filter((request) => request.id !== requestId))
+    } catch (err) {
+      setClaimActionError(formatApiError(err, 'Neuanlage-Antrag konnte nicht abgelehnt werden.'))
+    }
+  }
+
   return (
     <section className={embedded ? styles.fansubEditEmbeddedMembershipSurface : styles.fansubEditMembershipSurface}>
       <SectionHeader
@@ -456,6 +682,12 @@ export function GroupMembersTab({
           description="Team4s lädt die historischen Gruppenmitglieder und Rollen."
         />
       ) : null}
+      {claimActionError ? (
+        <ErrorState
+          title="Claim-Aktion"
+          description={claimActionError}
+        />
+      ) : null}
 
       {!loading && !error ? (
         <div className={styles.fansubEditTableSurface}>
@@ -481,6 +713,10 @@ export function GroupMembersTab({
                 />
               ) : members.map((member) => {
                 const memberRoles = rolesByMember.get(member.id) ?? []
+                const memberClaims = pendingClaimsByMember.get(member.member_id) ?? []
+                const invite = generatedInvites[member.id]
+                const inviteLink = invite ? normalizeInviteLink(invite.invite_link) : ''
+                const activeInvitation = (memberInvitations[member.id] ?? []).find((invitation) => invitation.status === 'pending')
 
                 return (
                   <TableRow key={member.id}>
@@ -527,13 +763,100 @@ export function GroupMembersTab({
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={claimVariant(member)}>{claimLabel(member)}</Badge>
+                      <div className={styles.fansubEditClaimCell}>
+                        <Badge variant={claimVariant(member, memberClaims)}>{claimLabel(member, memberClaims)}</Badge>
                       {member.app_username ? (
                         <>
                           <br />
                           <span className={styles.fansubEditHint}>{member.app_username}</span>
                         </>
                       ) : null}
+                        {!member.app_username && memberClaims.length > 0 ? (
+                          <div className={styles.fansubEditClaimList}>
+                            {memberClaims.map((claim) => (
+                              <div key={claim.id} className={styles.fansubEditClaimItem}>
+                                <span className={styles.fansubEditHint}>App-User-ID {claim.app_user_id} · {formatDate(claim.created_at)}</span>
+                                {claim.note ? <span>{claim.note}</span> : null}
+                                {canManageClaims ? (
+                                  <div className={styles.fansubEditClaimActions}>
+                                    <Button
+                                      size="sm"
+                                      variant="success"
+                                      leftIcon={<UserCheck size={14} aria-hidden="true" />}
+                                      onClick={() => void handleVerifyClaim(claim.id)}
+                                    >
+                                      Bestätigen
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="danger"
+                                      leftIcon={<UserX size={14} aria-hidden="true" />}
+                                      onClick={() => void handleRejectClaim(claim.id, claim.member_nickname)}
+                                    >
+                                      Ablehnen
+                                    </Button>
+                                  </div>
+                                ) : null}
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                        {!member.app_username && memberClaims.length === 0 && invite ? (
+                          <div className={styles.fansubEditClaimInvite}>
+                            <Input
+                              id={`hist-claim-invite-link-${member.id}`}
+                              type="text"
+                              aria-label={`Einladungslink für ${member.display_name}`}
+                              readOnly
+                              value={inviteLink}
+                              onFocus={(event) => event.currentTarget.select()}
+                            />
+                            <div className={styles.fansubEditClaimActions}>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                leftIcon={<Copy size={14} aria-hidden="true" />}
+                                onClick={() => void handleCopyLink(member.id, inviteLink)}
+                              >
+                                {copyStates[member.id] === 'copied' ? 'Kopiert!' : copyStates[member.id] === 'selected' ? 'Link markiert' : 'Kopieren'}
+                              </Button>
+                              <Button
+                                href={inviteLink}
+                                size="sm"
+                                variant="secondary"
+                                leftIcon={<Link2 size={14} aria-hidden="true" />}
+                              >
+                                Öffnen
+                              </Button>
+                            </div>
+                          </div>
+                        ) : null}
+                        {!member.app_username && memberClaims.length === 0 && !invite && activeInvitation ? (
+                          <div className={styles.fansubEditClaimInvite}>
+                            <Badge variant="muted">Einladung aktiv bis {formatDate(activeInvitation.expires_at)}</Badge>
+                            {canCancelClaimInvitation ? (
+                              <Button
+                                size="sm"
+                                variant="danger"
+                                leftIcon={<UserX size={14} aria-hidden="true" />}
+                                onClick={() => void handleCancelInvitation(member.id, member.member_id, activeInvitation.id)}
+                              >
+                                Zurückziehen
+                              </Button>
+                            ) : null}
+                          </div>
+                        ) : null}
+                        {!member.app_username && memberClaims.length === 0 && !invite && !activeInvitation && canCreateClaimInvitation ? (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            leftIcon={<Link2 size={14} aria-hidden="true" />}
+                            onClick={() => void handleGenerateInvitation(member.id, member.member_id)}
+                          >
+                            Claim-Link
+                          </Button>
+                        ) : null}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className={styles.fansubEditTableRowActions}>
@@ -568,6 +891,72 @@ export function GroupMembersTab({
               })}
             </TableBody>
           </Table>
+          {showClaimRequests && memberRequests.length > 0 ? (
+            <>
+              <SectionHeader
+                eyebrow="Claims"
+                title={`Neuanlage-Anträge (${memberRequests.length})`}
+                description="Diese Anträge haben noch keinen passenden historischen Eintrag und bleiben deshalb unterhalb der Mitglieder-Tabelle."
+              />
+              <Table
+                variant="withActions"
+                caption="Neuanlage-Anträge ohne historischen Mitglieder-Anker"
+                containerClassName={styles.fansubEditTableWrapWine}
+              >
+                <TableHead>
+                  <TableRow>
+                    <TableHeaderCell>App-User-ID</TableHeaderCell>
+                    <TableHeaderCell>Notiz</TableHeaderCell>
+                    <TableHeaderCell>Eingereicht</TableHeaderCell>
+                    <TableHeaderCell>Nickname</TableHeaderCell>
+                    <TableHeaderCell>Aktionen</TableHeaderCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {memberRequests.map((request) => (
+                    <TableRow key={request.id}>
+                      <TableCell>{request.app_user_id}</TableCell>
+                      <TableCell>{request.note || '-'}</TableCell>
+                      <TableCell>{formatDate(request.created_at)}</TableCell>
+                      <TableCell>
+                        <Input
+                          type="text"
+                          placeholder="Nickname eingeben..."
+                          value={approveNicknames[request.id] || ''}
+                          onChange={(event) => setApproveNicknames((current) => ({
+                            ...current,
+                            [request.id]: event.target.value,
+                          }))}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className={styles.fansubEditTableRowActions}>
+                          <Button
+                            size="sm"
+                            variant="success"
+                            leftIcon={<FilePlus size={14} aria-hidden="true" />}
+                            disabled={!canManageClaims}
+                            onClick={() => void handleApproveRequest(request.id)}
+                          >
+                            Anlegen
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            leftIcon={<UserX size={14} aria-hidden="true" />}
+                            disabled={!canManageClaims}
+                            onClick={() => void handleRejectRequest(request.id)}
+                          >
+                            Ablehnen
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </>
+          ) : null}
         </div>
       ) : null}
 

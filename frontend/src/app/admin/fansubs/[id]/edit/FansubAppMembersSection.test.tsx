@@ -20,6 +20,15 @@ const updateGroupMember = vi.fn();
 const updateMemberRole = vi.fn();
 const deleteGroupMember = vi.fn();
 const deleteMemberRole = vi.fn();
+const approveMemberRequest = vi.fn();
+const cancelClaimInvitation = vi.fn();
+const generateClaimInvitation = vi.fn();
+const listClaimInvitations = vi.fn();
+const listMemberRequests = vi.fn();
+const listPendingMemberClaims = vi.fn();
+const rejectMemberClaim = vi.fn();
+const rejectMemberRequest = vi.fn();
+const verifyMemberClaim = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   ApiError: class ApiError extends Error {
@@ -47,6 +56,15 @@ vi.mock("@/lib/api", () => ({
   updateMemberRole: (...args: unknown[]) => updateMemberRole(...args),
   deleteGroupMember: (...args: unknown[]) => deleteGroupMember(...args),
   deleteMemberRole: (...args: unknown[]) => deleteMemberRole(...args),
+  approveMemberRequest: (...args: unknown[]) => approveMemberRequest(...args),
+  cancelClaimInvitation: (...args: unknown[]) => cancelClaimInvitation(...args),
+  generateClaimInvitation: (...args: unknown[]) => generateClaimInvitation(...args),
+  listClaimInvitations: (...args: unknown[]) => listClaimInvitations(...args),
+  listMemberRequests: (...args: unknown[]) => listMemberRequests(...args),
+  listPendingMemberClaims: (...args: unknown[]) => listPendingMemberClaims(...args),
+  rejectMemberClaim: (...args: unknown[]) => rejectMemberClaim(...args),
+  rejectMemberRequest: (...args: unknown[]) => rejectMemberRequest(...args),
+  verifyMemberClaim: (...args: unknown[]) => verifyMemberClaim(...args),
 }));
 
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
@@ -54,6 +72,9 @@ import { FansubAppMembersSection } from "./FansubAppMembersSection";
 beforeEach(() => {
   listGroupMembers.mockResolvedValue({ data: [] });
   listMemberRoles.mockResolvedValue({ data: [] });
+  listClaimInvitations.mockResolvedValue([]);
+  listMemberRequests.mockResolvedValue([]);
+  listPendingMemberClaims.mockResolvedValue([]);
 });
 
 afterEach(() => {
@@ -112,35 +133,71 @@ describe("FansubAppMembersSection", () => {
           visibility: "internal",
           created_at: "2026-05-16T08:10:00Z",
         },
-      ],
-    });
-    listMemberRoles.mockResolvedValue({
-      data: [
         {
-          id: 401,
-          fansub_group_member_id: 301,
-          member_display_name: "Archiv Admin",
-          role_code: "editor",
-          role_label: "Editing",
-          started_year: 2005,
-          ended_year: null,
-          note: null,
+          id: 302,
+          fansub_group_id: 88,
+          member_id: 45,
+          display_name: "Archiv Claim",
+          joined_year: 2008,
+          left_year: 2010,
+          app_user_id: null,
+          app_username: null,
           status: "historical",
-          created_at: "2026-05-16T08:10:00Z",
+          visibility: "internal",
+          created_at: "2026-05-16T08:11:00Z",
         },
       ],
     });
+    listMemberRoles
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: 401,
+            fansub_group_member_id: 301,
+            member_display_name: "Archiv Admin",
+            role_code: "editor",
+            role_label: "Editing",
+            started_year: 2005,
+            ended_year: null,
+            note: null,
+            status: "historical",
+            created_at: "2026-05-16T08:10:00Z",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ data: [] });
+    listPendingMemberClaims.mockResolvedValue([
+      {
+        id: 701,
+        app_user_id: 77,
+        member_id: 45,
+        member_nickname: "Archiv Claim",
+        claim_status: "pending",
+        note: "Das bin ich.",
+        created_at: "2026-06-10T09:00:00Z",
+      },
+    ]);
+    verifyMemberClaim.mockResolvedValue({});
 
     render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
 
     expect(await screen.findByText("Phase Admin")).not.toBeNull();
     expect(await screen.findByText("Archiv Admin")).not.toBeNull();
+    expect(await screen.findByText("Archiv Claim")).not.toBeNull();
     expect(screen.getByText("Bestätigt/verknüpft")).not.toBeNull();
+    expect(screen.getByText("Offener Claim")).not.toBeNull();
+    expect(screen.getByText("Das bin ich.")).not.toBeNull();
     expect(screen.getAllByText("Fansub-Lead").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Editing").length).toBeGreaterThan(0);
     expect(screen.getByText("Aktiv")).not.toBeNull();
     expect(screen.queryByText("phase-admin@example.local")).toBeNull();
     expect(screen.queryByText(/phase 45 mvp/i)).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Bestätigen" }));
+
+    await waitFor(() => {
+      expect(verifyMemberClaim).toHaveBeenCalledWith(88, 701);
+    });
   });
 
   it("adds a new member through candidate search with selected roles", async () => {

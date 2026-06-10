@@ -711,8 +711,12 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
 
           <GroupMembersTab
             embedded
+            canCancelClaimInvitation={canCancelInvitation || canManageMembers}
+            canCreateClaimInvitation={canCreateInvitation || canManageMembers}
+            canManageClaims={canManageMembers}
             fansubId={fansubId}
             onActionsChange={setHistoricalActions}
+            showClaimRequests={canManageMembers}
             showHeaderActions={false}
           />
         </>
