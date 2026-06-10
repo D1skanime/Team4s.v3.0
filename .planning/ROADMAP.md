@@ -1476,7 +1476,7 @@ Plans:
 
 ### Phase 82: Mitwirkende projektweit zuordnen und Leader-Abdeckungs-Matrix
 
-**Goal:** Anime-Mitwirkende lassen sich für jede Person der Gruppe gleichwertig zuordnen (App-Member UND historische Member, Anker auf `members.id`), und ein Leader sieht über alle Projekte hinweg Abdeckung/Lücken in einer Matrix und weist direkt aus der Übersicht zu — ohne sich durch jedes Projekt-Modal zu klicken. Design-Seed (gelockte Entscheidungen + offene Fragen): `82-SEED.md`.
+**Goal:** Der Tab „Anime & Veröffentlichungen" wird zum Projekt-Cockpit: (1) Anime-Mitwirkende sind für jede Person der Gruppe gleichwertig zuordenbar (App- UND historische Member, Anker auf `members.id`) mit Leader-Abdeckungssicht (Projekt × Rolle), Inline-Zuweisung und Standard-Team; (2) die bisherigen „Anime-Einblicke" werden in dieselbe Projektkarte integriert (Status-Badges, Inline-Einblick, Routing/Tab-Merge). Kontext + Entscheidungen: `82-CONTEXT.md`; verbindlicher Einblicke-Auftrag: `82-EINBLICKE-AUFTRAG.md`; Design-Seed: `82-SEED.md`.
 **Requirements**: TBD
 **Depends on:** Phase 81
 **Plans:** 0 plans
