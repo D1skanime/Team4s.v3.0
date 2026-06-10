@@ -38,6 +38,10 @@ Der Tab „Anime & Veröffentlichungen" (`tab=releases`) in `/admin/fansubs/[id]
 ### Rollen-Seeding
 - **D-09:** Beim Hinzufügen werden **nur operative** Gruppen-Rollen (translator/timer/typesetter/…) als Default in die Anime-Rollen übernommen; Leadership (`fansub_lead`/`founder`) NICHT automatisch als Anime-Credit. Überschreibbar pro Projekt.
 
+### Projektleiter / Rollen-Granularität
+- **D-15:** „Projektleiter" ist die **projektbezogene** Rolle `project_lead` (Katalog-Kontext `anime_contribution`), klar getrennt vom **Gruppen**-Status `fansub_lead`. Der Projektleiter kann der Fansub-Leader sein, muss aber nicht — er wird pro Projekt einer Person zugewiesen und ist NICHT automatisch der Gruppen-Leader.
+- **D-16:** `project_lead` wird als **normale Katalog-Rolle** behandelt — KEINE „max. 1 pro Projekt"-Sperre und KEIN dediziertes Sonderfeld. Bewusst offen gehalten, weil künftig weitere Lead-Varianten (z.B. `co_project_lead`) dazukommen können; diese sind dann reiner Katalog-Insert (`role_definitions`) ohne Schema-Änderung. Projektleiter-Erkennung erfolgt über die Rolle, nicht über eine eigene Spalte/Struktur.
+
 ### Anime-Einblicke-Integration (siehe 82-EINBLICKE-AUFTRAG.md — verbindlich)
 - **D-10:** Einblicke pro Anime-Projekt direkt im aufklappbaren Projektbereich (Projektstatus-Kopf + Abschnitt „Projekt-Einblick" mit Text+Bearbeiten oder Empty-State+„Einblick hinzufügen"). Bestehende Releases/Episoden bleiben darunter sichtbar.
 - **D-11:** Pro Projekt Status-Badges (z.B. `220 Folgen`, `Mitwirkende 6/6` / `Mitwirkende fehlen`, `Einblick vorhanden` / `Einblick fehlt`, `N offene Punkte`), ruhig/admin-tauglich. Aktionen: bestehender `Mitwirkende`-Button bleibt + `Einblick`/`Einblick bearbeiten` + bestehende Detail-/Release-Aktion.

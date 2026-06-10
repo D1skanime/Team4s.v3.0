@@ -68,6 +68,19 @@
 **User's choice:** In Phase 82 zusammenlegen.
 **Notes:** Verbindlicher Auftrag als `82-EINBLICKE-AUFTRAG.md` abgelegt.
 
+## Projektleiter (project_lead)
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Hervorgehobene Einzelrolle, max. 1 | project_lead pro Projekt genau einer Person, in Matrix hervorgehoben | |
+| Normale Rolle wie andere | project_lead = normale Katalog-Rolle, mehrfach möglich, keine Sonderdarstellung | ✓ |
+| Eigenes Feld am Projekt | Separates Leitungsfeld statt Mitwirkenden-Credit | |
+
+**User's choice:** Normale Rolle wie andere.
+**Notes:** Bewusst nicht zu eng schnüren — es können später Co-Projekt-Lead-Rollen dazukommen (Katalog-Insert). Projektleiter ist projektbezogen und unabhängig vom Gruppen-Fansub-Leader.
+
+---
+
 ## Claude's Discretion
 
 - Migrationsreihenfolge & Backfill-Sicherheit der bestehenden anime_contributions.
