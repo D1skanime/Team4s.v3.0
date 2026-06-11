@@ -186,3 +186,92 @@ func (r *AuthzRepository) ListActorGroupRoles(ctx context.Context, appUserID int
 
 	return roles, nil
 }
+
+// ListActorContributionRolesForVersion gibt die role_codes zurück, die dem Actor
+// für eine Release-Version zustehen.
+// Auflösungsreihenfolge (D-02):
+//  1. versions-spezifische anime_contributions (release_version_id = versionID)
+//  2. Fallback: anime-weite Contributions (release_version_id IS NULL, anime_id aus Episode ermittelt)
+//
+// Gibt leere Liste zurück wenn keine Contribution existiert (→ D-04: kein Recht).
+func (r *AuthzRepository) ListActorContributionRolesForVersion(ctx context.Context, appUserID int64, releaseVersionID int64) ([]string, error) {
+	if appUserID <= 0 || releaseVersionID <= 0 {
+		return nil, nil
+	}
+
+	// Schritt 1: versions-spezifische Contributions des Actors für diese Release-Version.
+	// fansub_group_id-Scope via JOIN auf fansub_group_members verhindert Cross-Gruppen-Leckage (T-83-01).
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT acr.role_code
+		FROM anime_contributions ac
+		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		JOIN fansub_group_members fgm ON fgm.member_id = ac.member_id
+		  AND fgm.fansub_group_id = ac.fansub_group_id
+		WHERE ac.release_version_id = $1
+		  AND fgm.app_user_id = $2
+		  AND fgm.status = 'active'
+		ORDER BY acr.role_code
+	`, releaseVersionID, appUserID)
+	if err != nil {
+		return nil, fmt.Errorf("list actor contribution roles version=%d user=%d step=%d: %w", releaseVersionID, appUserID, 1, err)
+	}
+	defer rows.Close()
+
+	roleCodes := make([]string, 0)
+	for rows.Next() {
+		var code string
+		if err := rows.Scan(&code); err != nil {
+			return nil, fmt.Errorf("list actor contribution roles version=%d user=%d step=%d: scan: %w", releaseVersionID, appUserID, 1, err)
+		}
+		roleCodes = append(roleCodes, strings.TrimSpace(code))
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list actor contribution roles version=%d user=%d step=%d: iterate: %w", releaseVersionID, appUserID, 1, err)
+	}
+
+	// Schritt 1 lieferte Ergebnisse → versions-spezifischer Satz gilt (D-02/D-03).
+	if len(roleCodes) > 0 {
+		return roleCodes, nil
+	}
+
+	// Schritt 2 (Fallback anime-weit): role_codes aus anime_contributions mit
+	// release_version_id IS NULL, wenn Schritt 1 kein Ergebnis lieferte.
+	// anime_id wird über release_versions → fansub_releases → episodes ermittelt.
+	// fansub_group_id-Scope: IN (SELECT fansub_group_id FROM release_version_groups) verhindert
+	// Cross-Gruppen-Leckage (T-83-CROSSGROUP).
+	rows2, err := r.db.Query(ctx, `
+		SELECT DISTINCT acr.role_code
+		FROM anime_contributions ac
+		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		JOIN fansub_group_members fgm ON fgm.member_id = ac.member_id
+		  AND fgm.fansub_group_id = ac.fansub_group_id
+		JOIN release_versions rv ON rv.id = $1
+		JOIN fansub_releases fr ON fr.id = rv.release_id
+		JOIN episodes ep ON ep.id = fr.episode_id
+		WHERE ac.release_version_id IS NULL
+		  AND ac.anime_id = ep.anime_id
+		  AND ac.fansub_group_id IN (
+		      SELECT fansub_group_id FROM release_version_groups WHERE release_version_id = $1
+		  )
+		  AND fgm.app_user_id = $2
+		  AND fgm.status = 'active'
+		ORDER BY acr.role_code
+	`, releaseVersionID, appUserID)
+	if err != nil {
+		return nil, fmt.Errorf("list actor contribution roles version=%d user=%d step=%d: %w", releaseVersionID, appUserID, 2, err)
+	}
+	defer rows2.Close()
+
+	for rows2.Next() {
+		var code string
+		if err := rows2.Scan(&code); err != nil {
+			return nil, fmt.Errorf("list actor contribution roles version=%d user=%d step=%d: scan: %w", releaseVersionID, appUserID, 2, err)
+		}
+		roleCodes = append(roleCodes, strings.TrimSpace(code))
+	}
+	if err := rows2.Err(); err != nil {
+		return nil, fmt.Errorf("list actor contribution roles version=%d user=%d step=%d: iterate: %w", releaseVersionID, appUserID, 2, err)
+	}
+
+	return roleCodes, nil
+}
