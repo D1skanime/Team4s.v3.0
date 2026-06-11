@@ -2935,3 +2935,54 @@
   flex-wrap: wrap;
   align-items: center;
 }
+
+/* ─── ReleaseContributionDrawer (Phase 83) ───────────────────────────────── */
+
+.contributorAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.contributorAvatarInitials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 400;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.contributionRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.contributionRowActions {
+  display: flex;
+  margin-left: auto;
+  gap: var(--space-1);
+}
+
+.contributionRoleLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 80px;
+}
+
+.contributionMemberName {
+  font-size: 16px;
+  flex: 1;
+}

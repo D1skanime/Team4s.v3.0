@@ -154,6 +154,7 @@ import {
   UpsertAnimeContributionRequest,
   UnifiedGroupMember,
   DefaultCrewEntry,
+  EffectiveContributionsResponse,
 } from "@/types/fansub";
 import {
   PaginatedWatchlistResponse,
@@ -7861,6 +7862,36 @@ export async function deleteAnimeContribution(
       parsed.details,
     );
   }
+}
+
+/** Aufgelöster Mitwirkenden-Satz für eine Release-Version (Override oder Projekt-Default, D-02).
+ * Endpoint: GET /api/v1/admin/release-versions/:versionId/contributions/effective */
+export async function listEffectiveContributionsForVersion(
+  releaseVersionId: number,
+  fansubGroupId: number,
+  authToken?: string,
+): Promise<EffectiveContributionsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/release-versions/${releaseVersionId}/contributions/effective?fansub_group_id=${fansubGroupId}`,
+    { authToken },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<EffectiveContributionsResponse>;
 }
 
 // ─── Me-Contributions ─────────────────────────────────────────────────────────

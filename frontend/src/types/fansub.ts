@@ -675,3 +675,21 @@ export interface DefaultCrewEntry {
   created_by: number | null;
   created_at: string;
 }
+
+// --- Effektive Mitwirkende für Release-Version (D-02, Phase 83) ---
+
+export interface EffectiveContributionRow {
+  contribution_id: number;
+  member_id: number;
+  member_display_name: string;
+  member_avatar_url?: string | null;
+  role_codes: string[];
+}
+
+export interface EffectiveContributionsResponse {
+  data: EffectiveContributionRow[];
+  meta: {
+    is_override: boolean;
+    source: 'release_version' | 'anime_default';
+  };
+}
