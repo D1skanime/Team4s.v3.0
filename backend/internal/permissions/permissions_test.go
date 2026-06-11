@@ -3,6 +3,8 @@ package permissions
 import (
 	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type resolverStub struct {
@@ -146,4 +148,138 @@ func TestCanForFansubGroupDeniesWhenNoActiveMembershipRolesRemain(t *testing.T) 
 	if result.ReasonCode != ReasonNoMembership {
 		t.Fatalf("expected no_membership, got %+v", result)
 	}
+}
+
+// mockResolverV83 ist ein erweiterter Test-Resolver für die Wave-0-Tests (Plan 83-01).
+// Er liefert Rollen nach appUserID (nicht fansubGroupID) und enthält einen Stub für
+// ListActorContributionRolesForVersion, die in Plan 83-02 dem Resolver-Interface hinzugefügt wird.
+type mockResolverV83 struct {
+	// groupRolesByUser: appUserID → []string (Rollen aus fansub_group_member_roles)
+	groupRolesByUser map[int64][]string
+	// contributionRolesByUser: appUserID → []string (role_codes aus anime_contributions)
+	contributionRolesByUser map[int64][]string
+}
+
+func (m mockResolverV83) ResolveFansubGroup(_ context.Context, _ int64) (*Context, error) {
+	return &Context{ScopeType: ScopeTypeGroup, FansubGroupIDs: []int64{1}}, nil
+}
+
+func (m mockResolverV83) ResolveRelease(_ context.Context, _ int64) (*Context, error) {
+	return &Context{ScopeType: ScopeTypeGroup, FansubGroupIDs: []int64{1}}, nil
+}
+
+func (m mockResolverV83) ResolveReleaseVersion(_ context.Context, versionID int64) (*Context, error) {
+	if versionID == 42 {
+		return &Context{ScopeType: ScopeTypeGroup, FansubGroupIDs: []int64{1}}, nil
+	}
+	return nil, nil
+}
+
+func (m mockResolverV83) ResolveReleaseVersionMedia(_ context.Context, _ int64) (*Context, error) {
+	return &Context{ScopeType: ScopeTypeGroup, FansubGroupIDs: []int64{1}}, nil
+}
+
+func (m mockResolverV83) ListActorGroupRoles(_ context.Context, appUserID int64, _ int64) ([]string, error) {
+	return m.groupRolesByUser[appUserID], nil
+}
+
+// ListActorContributionRolesForVersion ist ein Stub für die Methode, die in Plan 83-02
+// dem Resolver-Interface hinzugefügt wird (D-02). Solange das Interface die Methode noch
+// nicht enthält, kompiliert dieser Mock, aber CanForReleaseVersion ruft sie nicht auf.
+func (m mockResolverV83) ListActorContributionRolesForVersion(_ context.Context, appUserID int64, _ int64) ([]string, error) {
+	return m.contributionRolesByUser[appUserID], nil
+}
+
+// TestCanForReleaseVersionContributionRequired prüft D-01/D-04:
+// Ein Actor ohne Leader-Rolle und ohne Contribution für die Release-Version wird abgelehnt.
+func TestCanForReleaseVersionContributionRequired(t *testing.T) {
+	// appUserID=3 hat weder fansub_lead noch project_lead und keine Contribution für versionID=42
+	mock := mockResolverV83{
+		groupRolesByUser:        map[int64][]string{3: {"member"}},
+		contributionRolesByUser: map[int64][]string{},
+	}
+	service := NewService(mock)
+
+	result, err := service.CanForReleaseVersion(context.Background(), Actor{AppUserID: 3, Status: "active"}, ActionReleaseVersionNotesWrite, 42)
+	if err != nil {
+		t.Fatalf("CanForReleaseVersion: %v", err)
+	}
+	assert.False(t, result.Allowed, "erwartet: kein Zugriff ohne Contribution (D-04)")
+	assert.True(t,
+		result.ReasonCode == ReasonNoMembership || result.ReasonCode == ReasonInsufficientRole,
+		"erwartet: ReasonNoMembership oder ReasonInsufficientRole, got %q", result.ReasonCode,
+	)
+}
+
+// TestCanForReleaseVersionLeaderBypass prüft D-05 (fansub_lead):
+// fansub_lead darf trotz fehlender Contribution auf eine Release-Version zugreifen.
+func TestCanForReleaseVersionLeaderBypass(t *testing.T) {
+	// appUserID=99 hat fansub_lead, aber keine Contribution für versionID=42
+	mock := mockResolverV83{
+		groupRolesByUser:        map[int64][]string{99: {RoleFansubLead}},
+		contributionRolesByUser: map[int64][]string{},
+	}
+	service := NewService(mock)
+
+	result, err := service.CanForReleaseVersion(context.Background(), Actor{AppUserID: 99, Status: "active"}, ActionReleaseVersionMediaUpload, 42)
+	if err != nil {
+		t.Fatalf("CanForReleaseVersion fansub_lead: %v", err)
+	}
+	assert.True(t, result.Allowed, "erwartet: fansub_lead hat Zugriff trotz fehlender Contribution (D-05)")
+}
+
+// TestCanForReleaseVersionProjectLeadBypass prüft D-05 (project_lead):
+// project_lead darf trotz fehlender Contribution auf eine Release-Version zugreifen.
+// project_lead wird in fansub_group_member_roles.role gespeichert — gleicher Abfragepfad wie fansub_lead.
+func TestCanForReleaseVersionProjectLeadBypass(t *testing.T) {
+	// appUserID=98 hat project_lead (aus ListActorGroupRoles, via fansub_group_member_roles),
+	// aber keine Contribution für versionID=42
+	mock := mockResolverV83{
+		groupRolesByUser:        map[int64][]string{98: {RoleProjectLead}},
+		contributionRolesByUser: map[int64][]string{},
+	}
+	service := NewService(mock)
+
+	result, err := service.CanForReleaseVersion(context.Background(), Actor{AppUserID: 98, Status: "active"}, ActionReleaseVersionMediaUpload, 42)
+	if err != nil {
+		t.Fatalf("CanForReleaseVersion project_lead: %v", err)
+	}
+	assert.True(t, result.Allowed, "erwartet: project_lead hat Zugriff trotz fehlender Contribution (D-05)")
+}
+
+// TestCanForReleaseVersionWithContribution prüft D-01/D-02:
+// Ein Actor mit einer passenden Contribution-Rolle für die Release-Version erhält Zugriff.
+func TestCanForReleaseVersionWithContribution(t *testing.T) {
+	// appUserID=2 hat translator-Contribution für versionID=42
+	mock := mockResolverV83{
+		groupRolesByUser:        map[int64][]string{},
+		contributionRolesByUser: map[int64][]string{2: {RoleTranslator}},
+	}
+	service := NewService(mock)
+
+	// ActionReleaseVersionNotesWrite ist für translator in roleMatrix vorhanden
+	result, err := service.CanForReleaseVersion(context.Background(), Actor{AppUserID: 2, Status: "active"}, ActionReleaseVersionNotesWrite, 42)
+	if err != nil {
+		t.Fatalf("CanForReleaseVersion with contribution: %v", err)
+	}
+	assert.True(t, result.Allowed, "erwartet: translator-Contribution erlaubt ActionReleaseVersionNotesWrite (D-01)")
+}
+
+// TestCanForReleaseVersionAbsenceInOverride prüft D-03:
+// Wenn für eine Release-Version ein versions-spezifischer Override-Satz existiert,
+// aber der Actor nicht darin enthalten ist, wird der Zugriff verweigert.
+func TestCanForReleaseVersionAbsenceInOverride(t *testing.T) {
+	// appUserID=3 hat keine Leader-Rolle und keine Contribution für versionID=42.
+	// Modelliert: Override-Satz für Version 42 existiert, Actor 3 ist nicht darin.
+	mock := mockResolverV83{
+		groupRolesByUser:        map[int64][]string{},
+		contributionRolesByUser: map[int64][]string{},
+	}
+	service := NewService(mock)
+
+	result, err := service.CanForReleaseVersion(context.Background(), Actor{AppUserID: 3, Status: "active"}, ActionReleaseVersionNotesWrite, 42)
+	if err != nil {
+		t.Fatalf("CanForReleaseVersion absence in override: %v", err)
+	}
+	assert.False(t, result.Allowed, "erwartet: kein Zugriff wenn Actor nicht im Override-Satz (D-03)")
 }
