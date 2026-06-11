@@ -32,6 +32,10 @@ func (s resolverStub) ListActorGroupRoles(_ context.Context, _ int64, fansubGrou
 	return s.roles[fansubGroupID], nil
 }
 
+func (s resolverStub) ListActorContributionRolesForVersion(_ context.Context, _ int64, _ int64) ([]string, error) {
+	return nil, nil
+}
+
 func TestCanForFansubGroupAllowsFansubLead(t *testing.T) {
 	service := NewService(resolverStub{
 		context: &Context{ScopeType: ScopeTypeGroup, FansubGroupIDs: []int64{88}},

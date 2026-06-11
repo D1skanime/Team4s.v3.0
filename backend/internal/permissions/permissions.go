@@ -184,6 +184,9 @@ type Resolver interface {
 	ResolveReleaseVersion(ctx context.Context, releaseVersionID int64) (*Context, error)
 	ResolveReleaseVersionMedia(ctx context.Context, relationID int64) (*Context, error)
 	ListActorGroupRoles(ctx context.Context, appUserID int64, fansubGroupID int64) ([]string, error)
+	// ListActorContributionRolesForVersion gibt die role_codes zurück, die dem Actor
+	// für eine Release-Version zustehen (D-02). Auflösung: versions-spezifisch, dann anime-weit.
+	ListActorContributionRolesForVersion(ctx context.Context, appUserID int64, releaseVersionID int64) ([]string, error)
 }
 
 type Service struct {
@@ -238,9 +241,79 @@ func (s *Service) CanForRelease(ctx context.Context, actor Actor, action Action,
 }
 
 func (s *Service) CanForReleaseVersion(ctx context.Context, actor Actor, action Action, releaseVersionID int64) (Result, error) {
-	return s.canForContext(ctx, actor, []Action{action}, func(ctx context.Context) (*Context, error) {
-		return s.resolver.ResolveReleaseVersion(ctx, releaseVersionID)
-	})
+	// Schritt 0: Basis-Checks (analog canForContext).
+	if s == nil || s.resolver == nil {
+		return denied(ReasonUnauthorized, "permission service nicht verfügbar"), nil
+	}
+	if actor.AppUserID <= 0 {
+		return denied(ReasonUnauthorized, "aktueller app-user fehlt"), nil
+	}
+	if strings.TrimSpace(actor.Status) == "disabled" {
+		return denied(ReasonDisabledUser, "deaktivierter benutzer"), nil
+	}
+	if actor.IsPlatformAdmin {
+		return Result{
+			Allowed:      true,
+			ReasonCode:   ReasonPlatformAdmin,
+			Reason:       "platform_admin darf diese aktion ausführen",
+			MatchedRole:  RolePlatformAdmin,
+			MatchedScope: ScopeTypeGroup,
+		}, nil
+	}
+
+	// Schritt 1: Ressource auflösen.
+	resourceCtx, err := s.resolver.ResolveReleaseVersion(ctx, releaseVersionID)
+	if err != nil {
+		return Result{}, err
+	}
+	if resourceCtx == nil || len(resourceCtx.FansubGroupIDs) == 0 {
+		return denied(ReasonResourceNotFound, "ressource nicht gefunden"), nil
+	}
+
+	// Schritt 2: Leader-Check ZUERST (D-05, Pitfall 1).
+	// fansub_lead UND project_lead werden beide in fansub_group_member_roles.role gespeichert
+	// und über ListActorGroupRoles aufgelöst — kein separater Abfragepfad nötig.
+	for _, fansubGroupID := range resourceCtx.FansubGroupIDs {
+		groupRoles, err := s.resolver.ListActorGroupRoles(ctx, actor.AppUserID, fansubGroupID)
+		if err != nil {
+			return Result{}, err
+		}
+		for _, role := range groupRoles {
+			if role == RoleFansubLead || role == RoleProjectLead {
+				if roleAllows(role, action) {
+					return Result{
+						Allowed:      true,
+						ReasonCode:   ReasonAllowed,
+						Reason:       "berechtigung über leader-rolle bestätigt",
+						MatchedRole:  role,
+						MatchedScope: fmt.Sprintf("%s:%d", ScopeTypeGroup, fansubGroupID),
+					}, nil
+				}
+			}
+		}
+	}
+
+	// Schritt 3: Contribution-Check (D-01..D-04).
+	// Gibt versions-spezifische role_codes zurück; Fallback auf anime-weite wenn keine Override existiert.
+	roleCodes, err := s.resolver.ListActorContributionRolesForVersion(ctx, actor.AppUserID, releaseVersionID)
+	if err != nil {
+		return Result{}, err
+	}
+	for _, code := range roleCodes {
+		if roleAllows(code, action) {
+			return Result{
+				Allowed:      true,
+				ReasonCode:   ReasonAllowed,
+				Reason:       "berechtigung über contribution-rolle bestätigt",
+				MatchedRole:  code,
+				MatchedScope: ScopeTypeGroup,
+			}, nil
+		}
+	}
+	if len(roleCodes) > 0 {
+		return denied(ReasonInsufficientRole, "contribution vorhanden, aber rolle reicht nicht aus"), nil
+	}
+	return denied(ReasonNoMembership, "keine contribution für diese release-version"), nil
 }
 
 func (s *Service) CanForReleaseVersionMedia(ctx context.Context, actor Actor, action Action, relationID int64) (Result, error) {
