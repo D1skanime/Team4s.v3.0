@@ -55,6 +55,11 @@
   align-items: center;
 }
 
+.filterChipActive {
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .fansubEditMembershipSurface {
   display: grid;
   gap: 1rem;

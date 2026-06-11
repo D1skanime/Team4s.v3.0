@@ -48,7 +48,7 @@ import {
   getFansubGroupCapabilities,
   getFansubList,
   listAnimeContributions,
-  listGroupMembers,
+  listUnifiedGroupMembers,
   resolveApiUrl,
   updateFansubGroup,
   updateFansubLink,
@@ -65,7 +65,7 @@ import {
   FansubGroupType,
   FansubStatus,
   AnimeContribution,
-  HistFansubGroupMember,
+  UnifiedGroupMember,
 } from "@/types/fansub";
 import {
   AdminAnimeTheme,
@@ -90,8 +90,11 @@ import {
   Select,
   YearPicker,
 } from "@/components/ui";
-import { AnimeProjectNotesSection } from "./AnimeProjectNotesSection";
 import AnimeContributionModal from "./AnimeContributionModal";
+import { AnimeReleasesFilterBar, type CockpitFilter } from "./AnimeReleasesFilterBar";
+import { ProjectCockpitBadges } from "./ProjectCockpitBadges";
+import { AnimeProjectNoteWorkspace } from "./AnimeProjectNoteWorkspace";
+import { CoverageMatrix, type RoleDefinition, type ProjectCoverageRow } from "./CoverageMatrix";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
@@ -125,7 +128,6 @@ type SectionKey =
   | "links"
   | "collaboration"
   | "releases"
-  | "anime-projekte"
   | "notes"
   | "mitglieder"
   | "claims"
@@ -194,12 +196,12 @@ const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: "collaboration", label: "Fansub Members" },
   { key: "vorschlaege", label: "Vorschläge" },
   { key: "releases", label: "Anime & Veröffentlichungen" },
-  { key: "anime-projekte", label: "Anime-Einblicke" },
   { key: "readiness", label: "Veröffentlichung" },
 ];
 
 function parseMainTab(value: string | null): MainTab {
   if (value === "rollen" || value === "mitglieder" || value === "claims") return "collaboration";
+  if (value === "anime-projekte") return "releases"; // D-13: Legacy-Redirect
   return MAIN_TABS.some((tab) => tab.key === value) ? (value as MainTab) : "basic";
 }
 
@@ -235,7 +237,6 @@ function canUseMainTab(
       return capabilities.can_manage_members;
     case "releases":
       return Boolean(capabilities.can_view_releases);
-    case "anime-projekte":
     case "notes":
       return capabilities.can_edit_notes;
     case "readiness":
@@ -1035,7 +1036,7 @@ function AdminFansubEditContent({
   const [contributionModalAnime, setContributionModalAnime] =
     useState<ContributionModalAnime | null>(null);
   const [contributionMembers, setContributionMembers] = useState<
-    HistFansubGroupMember[]
+    UnifiedGroupMember[]
   >([]);
   const [contributionModalRows, setContributionModalRows] = useState<
     AnimeContribution[]
@@ -1045,6 +1046,16 @@ function AdminFansubEditContent({
   const [contributionModalError, setContributionModalError] = useState<
     string | null
   >(null);
+  const [cockpitFilter, setCockpitFilter] = useState<CockpitFilter>('all');
+  // Katalog-Rollen für CoverageMatrix (D-07): Fallback auf statische Liste bis API-Endpoint verfügbar
+  const catalogRoles = useMemo<RoleDefinition[]>(() => [
+    { code: 'translator', label: 'Übersetzung', sort_order: 1 },
+    { code: 'timer', label: 'Timing', sort_order: 2 },
+    { code: 'typesetter', label: 'Typesetting', sort_order: 3 },
+    { code: 'editor', label: 'Editing', sort_order: 4 },
+    { code: 'encoder', label: 'Encoding', sort_order: 5 },
+    { code: 'quality_checker', label: 'Qualitätscheck', sort_order: 6 },
+  ], []);
   const [releaseDrawerOpen, setReleaseDrawerOpen] = useState(false);
   const [drawerRelease, setDrawerRelease] = useState<AdminFansubRelease | null>(
     null,
@@ -1071,7 +1082,6 @@ function AdminFansubEditContent({
       links: true,
       collaboration: true,
       releases: true,
-      "anime-projekte": true,
       notes: true,
       mitglieder: true,
       claims: true,
@@ -1737,11 +1747,11 @@ function AdminFansubEditContent({
     setContributionModalLoadingAnimeId(anime.id);
     setContributionModalError(null);
     try {
-      const [membersResponse, contributionsResponse] = await Promise.all([
-        listGroupMembers(fansubID),
+      const [membersResult, contributionsResponse] = await Promise.all([
+        listUnifiedGroupMembers(fansubID),
         listAnimeContributions(fansubID, anime.id),
       ]);
-      setContributionMembers(membersResponse.data ?? []);
+      setContributionMembers(membersResult ?? []);
       setContributionModalRows(contributionsResponse.data ?? []);
       setContributionModalAnime({ id: anime.id, title: anime.title });
     } catch (nextError) {
@@ -2264,7 +2274,6 @@ function AdminFansubEditContent({
         </header>
 
         {activeMainTab !== "releases" &&
-        activeMainTab !== "anime-projekte" &&
         activeMainTab !== "notes" &&
         activeMainTab !== "vorschlaege" &&
         activeMainTab !== "readiness" ? (
@@ -2726,6 +2735,26 @@ function AdminFansubEditContent({
               {contributionModalError ? (
                 <div className={styles.errorBox}>{contributionModalError}</div>
               ) : null}
+              {!releaseGroupsLoading && !releaseGroupsError ? (
+                <AnimeReleasesFilterBar
+                  activeFilter={cockpitFilter}
+                  onFilterChange={setCockpitFilter}
+                />
+              ) : null}
+              {!releaseGroupsLoading && !releaseGroupsError && releaseGroups.length > 0 ? (
+                <CoverageMatrix
+                  roles={catalogRoles}
+                  rows={releaseGroups.map((rg) => ({
+                    animeId: rg.anime.id,
+                    animeTitle: rg.anime.title,
+                    coveredRoleCodes: [],
+                  } as ProjectCoverageRow))}
+                  onCellClick={(animeId) => {
+                    const anime = releaseGroups.find((rg) => rg.anime.id === animeId)?.anime
+                    if (anime) void openAnimeContributions(anime)
+                  }}
+                />
+              ) : null}
               {!releaseGroupsLoading &&
               !releaseGroupsError &&
               releaseGroups.length === 0 ? (
@@ -2820,6 +2849,10 @@ function AdminFansubEditContent({
                             )}
                           </span>
                         </button>
+                        <ProjectCockpitBadges
+                          contributionCount={0}
+                          note={undefined}
+                        />
                         {canOpenReleaseContributors ? (
                           <Button
                             type="button"
@@ -2839,6 +2872,13 @@ function AdminFansubEditContent({
                           </Button>
                         ) : null}
                       </div>
+                      {animeExpanded ? (
+                        <AnimeProjectNoteWorkspace
+                          fansubId={fansubID}
+                          animeId={releaseGroup.anime.id}
+                          expanded={animeExpanded}
+                        />
+                      ) : null}
                       {animeExpanded && releasesLoading ? (
                         <div className={styles.fansubEditReleaseState}>
                           Releases werden geladen...
@@ -3277,12 +3317,6 @@ function AdminFansubEditContent({
               </div>
             </div>
           </details>
-        ) : null}
-        {activeMainTab === "anime-projekte" ? (
-          <AnimeProjectNotesSection
-            fansubId={fansubID}
-            hasAccessToken={hasAuthSession}
-          />
         ) : null}
         {activeMainTab === "notes" ? (
           <>
