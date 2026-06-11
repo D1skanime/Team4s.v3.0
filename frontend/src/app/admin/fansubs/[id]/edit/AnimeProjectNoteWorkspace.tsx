@@ -55,8 +55,11 @@ export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded }: Props
 
   // Lazy-Load-Effect: lädt erst wenn aufgeklappt (D-12)
   useEffect(() => {
-    if (!expanded || noteState !== 'idle') return
+    if (!expanded) return
     let cancelled = false
+    setNote(null)
+    setForm(emptyForm())
+    setSaveError(null)
     setNoteState('loading')
     getAnimeFansubProjectNote(fansubId, animeId)
       .then((n) => {
@@ -71,7 +74,7 @@ export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded }: Props
     return () => {
       cancelled = true
     }
-  }, [expanded, fansubId, animeId, noteState])
+  }, [expanded, fansubId, animeId])
 
   async function handleSave() {
     setSaving(true)

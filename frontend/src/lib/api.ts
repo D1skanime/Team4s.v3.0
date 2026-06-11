@@ -6929,7 +6929,10 @@ export async function getAnimeFansubProjectNote(
     );
   }
 
-  const json = (await response.json()) as { data: RawAnimeFansubProjectNote };
+  const json = (await response.json()) as { data: RawAnimeFansubProjectNote | null };
+  if (!json.data) {
+    return null;
+  }
   return mapAnimeFansubProjectNote(json.data);
 }
 
